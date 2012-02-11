@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.6.0)	
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")	
 include(AppendCompilerFlags)
+include(CheckSSE4_2)	
 	
 ## Project information ##
 PROJECT(sdsl CXX C)
@@ -51,6 +52,13 @@ set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}")
 set(LIBRARY_VERSION_FULL "${LIBRARY_VERSION}.${LIBRARY_VERSION_PATCH}")
 
 append_cxx_compiler_flags("-Wall -ffast-math -Wall -O9 -funroll-loops -DNDEBUG -DWRITE_R_OUTPUT -DMEM_INFO" "GCC" CMAKE_CXX_FLAGS)
+
+
+if( BUILTIN_POPCNT )
+	append_cxx_compiler_flags("-msse4.2" "GCC" CMAKE_CXX_FLAGS)
+	message("CPU seems to support fast popcount.\n")
+	message("Flag -msse4.2 added to compile options.\n")
+endif()
 #append_cxx_compiler_flags("-Wall -ffast-math -Wall -g -DNDEBUG" "GCC" CMAKE_CXX_FLAGS)
 
 add_subdirectory(include)
