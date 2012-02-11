@@ -1,0 +1,470 @@
+/* sdsl - succinct data structures library
+    Copyright (C) 2009 Simon Gog 
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see http://www.gnu.org/licenses/ .
+*/
+/*! \file util.hpp
+    \brief util.hpp contains some helper methods for int_vector and other stuff like demangle class names.
+	\author Simon Gog
+*/
+#ifndef INCLUDED_SDSL_UTIL
+#define INCLUDED_SDSL_UTIL
+
+#include "bitmagic.hpp"
+#include "typedefs.hpp"
+#include <iosfwd> // forward declaration of ostream
+#include <stdint.h> // for uint64_t uint32_t declaration
+#include <iostream>// for cerr
+#include <cassert>
+#include <fstream> // file stream for storeToFile and loadFromFile
+#include <ctime>  // for rand initialization
+#include <string>
+#include <string.h> // for strlen
+#include <cstdlib>
+#include <unistd.h> // for getpid 
+#include <sstream> // for to_string method
+#include <stdexcept>   // for std::logic_error
+
+
+// macros to transform a defined name to a string
+#define SDSL_STR(x) #x
+#define SDSL_XSTR(s) SDSL_STR(s)	
+
+//! Namespace for the succinct data structure library.
+namespace sdsl{
+
+template<uint8_t, class size_type_class>
+class int_vector_file_buffer; // forward declaration	
+
+template<uint8_t, class size_type_class>
+class int_vector;	 // forward declaration
+
+//! A namespace for helper functions
+namespace util{
+	//! Sets all bits of the int_vector to pseudo-random bits.
+	/*! \param v The int_vector whose bits should be set to random bits
+	 *  \param seed If seed = 0, the time is used to initialize the 
+	 *              pseudo random number generator, otherwise the seed
+	 *              parameter is used. 
+	 */
+	template<class int_vector>
+	void set_random_bits(int_vector &v, int seed);
+	//! Sets all bits of the int_vector to 0-bits.
+	template<class int_vector>
+	void set_zero_bits(int_vector &v);
+	//! Sets all bits of the int_vector to 1-bits.
+	template<class int_vector>
+	void set_one_bits(int_vector &v);
+
+	//! All elements of v modulo m
+	template<class int_vector, class size_type_class>
+	void all_elements_mod(int_vector &v, size_type_class m);
+	
+
+	//! Set all entries of int_vector to value k	
+	/*! \param  v The int_vector which should be set
+	 *	\param  k The value which should be inserted into v.  
+	 *  \par Details 
+	 *   This method precalculates the content of at most 64
+	 *   words and then repeatedly inserts these words into v. 
+	 */
+	template<class int_vector>
+	void set_all_values_to_k(int_vector &v, uint64_t k);
+
+	//! Counts and returns the 1-bits an int_vector contains. 
+	/*! \param v The int_vector to count the 1-bits.
+	  	\return The number of 1-bits in v.
+	 */
+	template<class int_vector>
+	typename int_vector::size_type get_one_bits(const int_vector &v);
+
+	//! Counts 10 bit pair occurencies. 
+	/*! \sa getOneBits, getOneZeroBits
+	 */
+	template<class int_vector>
+	typename int_vector::size_type get_onezero_bits(const int_vector &v);
+
+	//! Counts 01 bit pair occurencies. 
+	/*! \sa getOneBits, getZeroOneBits
+	 */
+	template <class int_vector>
+	typename int_vector::size_type get_zeroone_bits(const int_vector &v);
+
+	//! Load a data structure from a file.
+	/*! The data structure has to provide a load function.
+	 * \param v Data structure to load.
+	   \param file_name Name of the serialized file.
+	 */
+	template<class T>
+	bool load_from_file(T &v, const char *file_name);
+
+	template<class size_type_class>
+	bool load_from_int_vector_buffer(unsigned char * &text, int_vector_file_buffer<8, size_type_class> &text_buf);	
+	
+	//! Specialization of load_from_file for a char array
+	/*  \pre v=NULL
+	 *	
+	 */
+	bool load_from_file(char* &v, const char *file_name);
+
+	//! Store a data structure to a file.
+	/*! The data structure has to provide a serialize function.
+		\param v Data structure to store.
+		\param file_name Name of the file where to store the data structure.
+		\param Return if the data structure was stored successfully
+	 */
+	template<class T>
+	bool store_to_file(const T &v, const char *file_name);
+
+	//! Specialization of store_to_file for a char array
+	bool store_to_file(const char* v, const char *file_name);
+
+	//! Specialization of store_to_file for int_vector
+	template<uint8_t fixed_int_width, class size_type_class>
+	bool store_to_file(const int_vector<fixed_int_width, size_type_class> &v, const char *file_name, bool write_fixed_as_variable=false);
+
+	//! Demangle the class name of typeid(...).name()
+	/*!
+	 *	\param name A pointer to the the result of typeid(...).name()
+	 */ 
+	std::string demangle(const char* name);
+
+	//! Demangle the class name of typeid(...).name() and remove the "sdsl::"-prefix, "unsigned int",...
+	std::string demangle2(const char* name);
+
+	//! Get the size of a data structure in bytes.
+	/*!
+	 *	\param v A reference to the data structure for which the size in bytes should be calculated. 
+	 */ 
+	template<class T>
+	typename T::size_type get_size_in_bytes(const T &v);
+
+	struct nullstream : std::ostream{
+		struct nullbuf: std::streambuf{
+			int overflow(int c){ return traits_type::not_eof(c); }
+		} m_sbuf;
+		nullstream(): std::ios(&m_sbuf), std::ostream(&m_sbuf){}
+	};
+
+	// Writes primitive-typed variable t to stream out
+	template<class T>
+	size_t write_member(const T &t, std::ostream &out){
+		out.write((char*)&t, sizeof(t));
+		return sizeof(t);
+	}
+
+	// Writes primitive-typed variable t to stream out
+	template<class T>
+	void read_member(T &t, std::istream &in){
+		in.read((char*)&t, sizeof(t));
+	}	
+
+	//! Get the process id of the current process
+	uint64_t get_pid();
+
+	class _id_helper{
+		private:
+			static uint64_t id;
+		public:
+			static uint64_t getId(){
+				return id++;
+			}	
+	};
+
+
+	//! Get a unique id inside the process
+	inline uint64_t get_id(){
+		return _id_helper::getId();
+	};
+
+	//! Convert type to string
+	template<typename T>
+	std::string to_string(const T &t);
+
+	//! Delete all files in the file_map in the file system
+	void delete_all_files(tMSS &file_map);
+
+
+	// thanks to Stefan Arnold for the assign functions
+	template<class T, class U>	
+	void assign(T &x, const U &y){
+		x = T(y);
+	}
+
+	template<class T>
+	void assign(T &x, T &y){
+		x.swap(y);
+	}
+
+}
+
+//==================== Template functions ====================
+
+
+template<class T>
+typename T::size_type util::get_size_in_bytes(const T &v){
+	if( (&v) == NULL)
+		return 0;
+	util::nullstream ns;
+	return v.serialize(ns);
+}
+
+template<class T>
+bool util::store_to_file(const T &v, const char *file_name){
+	std::ofstream out;
+	out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
+	if( !out )
+		return false;
+	v.serialize(out);
+	out.close();
+	return true;
+}
+
+inline bool util::store_to_file(const char* v, const char *file_name){
+	std::ofstream out;
+	out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
+	if( !out )
+		return false;
+   	uint64_t n = strlen((const char*)v);
+	out.write(v, n);
+	out.close();
+	return true;	
+}
+
+template<uint8_t fixed_int_width, class size_type_class>
+bool util::store_to_file(const int_vector<fixed_int_width, size_type_class> &v, const char *file_name, bool write_fixed_as_variable){
+	std::ofstream out;
+	out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
+	if( !out )
+		return false;
+	v.serialize(out, write_fixed_as_variable);
+	out.close();
+	return true;
+}
+
+template<class T>
+bool util::load_from_file(T &v, const char *file_name){
+	std::ifstream in;
+	in.open(file_name, std::ios::binary | std::ios::in );
+	if( !in )
+		return false;
+	v.load(in);
+	in.close();
+	return true;
+}
+
+
+template<class size_type_class>
+bool util::load_from_int_vector_buffer(unsigned char * &text, int_vector_file_buffer<8, size_type_class> &text_buf){
+	text_buf.reset();
+	size_type_class n = text_buf.int_vector_size;
+	if( text != NULL ){
+		delete [] text;
+		text = NULL;
+	}
+	text = new unsigned char[n];
+	for(size_type_class i=0, r_sum=0, r=text_buf.load_next_block(); r_sum < n; ){
+		for(; i < r_sum+r; ++i){
+			text[i] = text_buf[i-r_sum];
+		}
+		r_sum += r; r = text_buf.load_next_block();
+	}
+	return true;
+}	
+	
+
+inline bool util::load_from_file(char* &v, const char *file_name){
+	if( v != NULL ){
+		delete [] v;
+		v = NULL;
+	}
+	std::ifstream in;
+	in.open(file_name, std::ios::binary | std::ios::in );
+	if( in ){
+		const uint64_t SDSL_BLOCK_SIZE = (1<<20);
+		uint64_t n=0, read = 0;
+		char buf[SDSL_BLOCK_SIZE], *cp;
+		do{
+			in.read(buf, SDSL_BLOCK_SIZE);
+			read = in.gcount();
+			n+=read;
+		}while( SDSL_BLOCK_SIZE == read );
+		if(n==0)
+			return false;
+		v = new char[n+1];
+		in.close();
+		in.open(file_name);
+		if(!in){ 
+			delete [] v; 
+			v = NULL; 
+			return false;
+		}
+		cp=v;
+		do{
+			in.read(cp, SDSL_BLOCK_SIZE);
+			read = in.gcount();
+			cp+= read;
+		}while( SDSL_BLOCK_SIZE == read );
+		*(v+n) = '\0';
+		return true;
+	}
+	else
+		return false;
+}
+
+template<class int_vector>
+void util::set_random_bits(int_vector &v, int seed=0){
+	if( 0 == seed ){
+		srand48((int)time(NULL));
+	}else
+		srand48(seed);
+
+	uint64_t *data = v.m_data;
+	if(v.empty())
+		return;
+	*data = (((uint64_t)lrand48()&0xFFFFULL)<<48)
+		|(((uint64_t)lrand48()&0xFFFFULL)<<32)
+		|(((uint64_t)lrand48()&0xFFFFULL)<<16)
+		|((uint64_t)lrand48()&0xFFFFULL);
+	for(typename int_vector::size_type i=1; i < (v.capacity()>>6); ++i){
+		*(++data) = (((uint64_t)lrand48()&0xFFFFULL)<<48)
+			|(((uint64_t)lrand48()&0xFFFFULL)<<32)
+			|(((uint64_t)lrand48()&0xFFFFULL)<<16)
+			|((uint64_t)lrand48()&0xFFFFULL);
+	}
+}
+
+// all elements of vector v modulo m
+template<class int_vector, class size_type_class>
+void util::all_elements_mod(int_vector &v, size_type_class m){
+	for(typename int_vector::size_type i=0; i < v.size(); ++i){
+		v[i] = v[i] % m;
+	}
+}
+
+template<class int_vector>
+void util::set_zero_bits(int_vector &v){
+	uint64_t *data = v.m_data;
+	if(v.empty())
+		return;
+	*data = 0ULL;
+	for(typename int_vector::size_type i=1; i < (v.capacity()>>6); ++i){
+		*(++data) = 0ULL;
+	}	
+}
+
+template<class int_vector>
+void util::set_one_bits(int_vector &v){
+	uint64_t *data = v.m_data;
+	if(v.empty())
+		return;
+	*data = 0xFFFFFFFFFFFFFFFFULL;
+	for(typename int_vector::size_type i=1; i < (v.capacity()>>6); ++i){
+		*(++data) = 0xFFFFFFFFFFFFFFFFULL;
+	}	
+}
+
+template<class int_vector>
+void util::set_all_values_to_k(int_vector &v, uint64_t k){
+	uint64_t *data = v.m_data;
+	if(v.empty())
+		return;
+	uint8_t int_width = v.m_int_width;	
+	if( int_width == 0 ){
+		throw std::logic_error("util::set_all_values_to_k can not be performed with int_width=0!");
+	}
+	k = k & (0xFFFFFFFFFFFFFFFFULL >> (64-int_width));
+	uint64_t vec[67] = {0}; // allocate memory for the mask and initialize with zeros
+	vec[0] = 0;
+	uint8_t offset = 0;
+	uint64_t n=0, vals=0;
+	do{ // loop terminates after at most 64 iterations
+		vec[n] = vec[n] | ( k << offset );
+		offset += int_width;
+		vals++;
+		if( offset >= 64 ){
+			vec[n+1] = 0;
+			vec[++n] = k >> (int_width-(offset-64));
+			offset -= 64;	
+		}
+	}
+	while( offset != 0 );
+	
+	typename int_vector::size_type n64 = v.capacity()/64;
+	for(typename int_vector::size_type i=0; i < n64; ){
+		for(uint64_t ii=0; ii < n and i < n64; ++ii,++i){
+			*(data++) = vec[ii];
+		}
+	}
+}
+
+template<class int_vector>
+typename int_vector::size_type util::get_one_bits(const int_vector &v){
+	const uint64_t *data = v.data();
+	if(v.empty())
+		return 0;
+	typename int_vector::size_type result = bit_magic::b1Cnt(*data);
+	for(typename int_vector::size_type i=1; i < (v.capacity()>>6); ++i){
+		result += bit_magic::b1Cnt(*(++data));
+	}
+	if( v.bit_size()&0x3F ){
+		result -= bit_magic::b1Cnt( (*data) & (~bit_magic::Li1Mask[v.bit_size()&0x3F]) );
+	}
+	return result;
+}
+
+template<class int_vector>
+typename int_vector::size_type util::get_onezero_bits(const int_vector &v){
+	const uint64_t *data = v.data();
+	if(v.empty())
+		return 0;
+	uint64_t carry = 0, oldcarry=0;
+	typename int_vector::size_type result = bit_magic::b10Cnt(*data, carry);
+	for(typename int_vector::size_type i=1; i < (v.capacity()>>6); ++i){
+		oldcarry = carry;
+		result += bit_magic::b10Cnt(*(++data), carry);
+	}
+	if( v.bit_size()&0x3F ){// if bit_size is not a multiple of 64, substract the counts of the additional bits
+		result -= bit_magic::b1Cnt( bit_magic::b10Map(*data, oldcarry) & bit_magic::Li0Mask[v.bit_size()&0x3F] );
+	}
+	return result;
+}
+
+template<class int_vector>
+typename int_vector::size_type util::get_zeroone_bits(const int_vector &v){
+	const uint64_t *data = v.data();
+	if(v.empty())
+		return 0;
+	uint64_t carry = 1, oldcarry = 1;
+	typename int_vector::size_type result = bit_magic::b01Cnt(*data, carry);
+	for(typename int_vector::size_type i=1; i < (v.capacity()>>6); ++i){
+		oldcarry = carry;
+		result += bit_magic::b01Cnt(*(++data), carry);
+	}
+	if( v.bit_size()&0x3F ){// if bit_size is not a multiple of 64, substract the counts of the additional bits
+		result -= bit_magic::b1Cnt( bit_magic::b01Map(*data, oldcarry) & bit_magic::Li0Mask[v.bit_size()&0x3F] );
+	}
+	return result;
+}
+
+template<typename T>
+std::string util::to_string(const T &t){
+	std::stringstream ss;
+	ss<<t;
+	return ss.str();
+}
+
+}// end namespace sds
+
+#endif // end file 

@@ -1,0 +1,32 @@
+2012-02-08: Fixed handling of last block in rrr_vector in the constructor. Bug was discover through 
+            new tests (using gtest) for rank data structures.
+2012-02-04: Moved non-template functions from lcp_constract.hpp and isa_construct.hpp into .cpp files.
+            Thanks to Matthias Petri to pointing this out.
+2012-01-27: Fixed a problem with compiling the library in C++0x. Thanks to Sebastian Me\ssmer for the patch.
+2012-01-27: Fixed a bug in the Winer link operation of cst_sct* and cst_sada. Thanks to
+            Kalle Karhu for pointing this out.
+2012-01-25: Fixed some issues with GCC  (Version 4.6.1). Thanks to Sebastian Me\ssmer.
+2011-11-30: When the compile your programs with GCC (Version >= 3.4) 
+	        and option -msse4.2 and your CPU supports
+            sse 4.2, then a single instruction is used for the
+			popcount method (bitmagic::b1Cnt).
+
+2011-11-14: Added the template parameter "BitVector" to wt_huff and wt_rlmn.
+         	This may cause compile errors, when you compile code where you have
+			specified template paramters for wt_huff and wt_rlmn. You should
+			add the class bit_vector as first template parameter to wt_huff 
+			and wt_rlmn in this cases.
+2011-11-13: Added the class rrr_vector. 
+
+2011-11-04: Added header cstddef in int_vector for ptrdiff_t
+
+
+From 9.0 to 9.1
+  - accelerated BWT calculation
+  - fixed a bug in the construction of int_wavelet_tree
+  - added new lcp construction method (goPHI)
+
+From 0.8 to 9.0
+  - added int_wavelet_tree
+  - added semi-external construction of csts
+  - added new lcp construction methods (go, go2)  
