@@ -675,7 +675,7 @@ class wt_huff{
 	 void interval_symbols(size_type i, size_type j, size_type &k, 
 		                    std::vector<unsigned char> &cs, 
 						    std::vector<size_type> &rank_c_i, 
-						    std::vector<size_type> &rank_c_j)
+						    std::vector<size_type> &rank_c_j) const 
 	{
 		if( i==j ){
 			k = 0;
