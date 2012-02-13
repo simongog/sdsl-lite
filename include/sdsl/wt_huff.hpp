@@ -655,7 +655,7 @@ class wt_huff{
 	};
 
 
-	//! Calculates for each symbol c in wt[i..j-1], how many times c occures in wt[0..i-1] and wt[0..j-1].
+	//! Calculates for each symbol c in wt[i..j-1], how many times c occurs in wt[0..i-1] and wt[0..j-1].
 	/*!
 	 *	\param i The start index (inclusive) of the interval.
 	 *	\param j The end index (exclusive) of the interval.
