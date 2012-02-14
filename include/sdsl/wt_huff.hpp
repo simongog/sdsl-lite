@@ -302,7 +302,7 @@ class wt_huff{
 		void _interval_symbols(size_type i, size_type j, size_type &k, 
 								std::vector<unsigned char> &cs, 
 								std::vector<size_type> &rank_c_i, 
-								std::vector<size_type> &rank_c_j, uint16_t node)
+								std::vector<size_type> &rank_c_j, uint16_t node) const
 		{
 			// invariant: j>i
 			// goto right child
@@ -661,8 +661,8 @@ class wt_huff{
 	 *	\param j The end index (exclusive) of the interval.
 	 *	\param k Reference that will contain the number of different symbols in wt[i..j-1].
 	 *  \param cs Reference to a vector of size k that will contain all symbols that occur in wt[i..j-1] in arbitrary order.
-	 *  \param rank_c_i Reference to a vector which equals rank_c_i[p] = rank(cs[p],i), for \f$ 0 \leq p < k \f$ 
-	 *  \param rank_c_j Reference to a vector which equals rank_c_j[p] = rank(cs[p],j), for \f$ 0 \leq p < k \f$ 
+	 *  \param rank_c_i Reference to a vector which equals rank_c_i[p] = rank(i,cs[p]), for \f$ 0 \leq p < k \f$ 
+	 *  \param rank_c_j Reference to a vector which equals rank_c_j[p] = rank(j,cs[p]), for \f$ 0 \leq p < k \f$ 
 	 *	\par Time complexity
 	 *		\f$ \Order{\min{\sigma, k \log \sigma}} \f$ 
 	 *	
