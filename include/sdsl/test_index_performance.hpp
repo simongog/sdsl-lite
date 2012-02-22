@@ -804,7 +804,7 @@ template<class Bps>
 void test_bps_find_close_and_enclose(const Bps &bps, const bit_vector &b, uint64_t times=10000000, uint64_t x=17){
 	typedef bit_vector::size_type size_type;
 	uint64_t mask;
-	uint64_t n = bps.size();
+//	uint64_t n = bps.size();
 	int_vector<32> rands = get_rnd_positions(20, mask, bps.size());
 	for(size_type i=0; i<rands.size(); ++i){
 		if( !b[rands[i]] ){ // if there is no opening parentheses at position rands[i]
