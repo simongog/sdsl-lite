@@ -850,7 +850,7 @@ class wt{
 							std::vector<unsigned char> &cs, 
 							std::vector<size_type> &rank_c_i, 
 							std::vector<size_type> &rank_c_j, 
-							size_type lex_idx, size_type sigma, size_type node)
+							size_type lex_idx, size_type sigma, size_type node) const 
 	{
 		// not in a leaf		
 		if(sigma >= 2){
@@ -870,6 +870,48 @@ class wt{
 			rank_c_j[k] = j;
 			cs[k++] = m_inv_char_map[lex_idx];
 			return;				
+		}
+	}
+
+	//! Counts the characters in the range [0..i-1] which are smaller than character c.
+	/* If the character c does not occur in the sequence 0 is returned. 
+	 *  
+	 */   
+	size_type count_lex_smaller(size_type i, value_type c)const{
+		if( !wt_trait<RandomAccessContainer>::symbol_available(m_char_map, c, m_first_symbol) ){
+			return 0;
+		}
+		size_type lex_idx 	= m_char_map[c]; 
+		size_type sigma 	= m_sigma;  // start with the whole alphabet
+		size_type node		= 0;
+		size_type result	= 0;
+		while( sigma >= 2 ){
+			if( lex_idx < (sigma+1)/2 ){ // symbols belongs to the left half of the alphabet 
+				// calculate new i for the left child bit_vector
+				i 	= i - (m_tree_rank(m_node_pointers[node]+i) -  m_node_pointers_rank[node]); 
+				sigma 	= (sigma+1)/2;
+				node	= 2*node+1;
+			}else{ // symbol belongs to the right half of the alphabet
+				size_type ones = m_tree_rank(m_node_pointers[node]+i) -  m_node_pointers_rank[node]; 
+				result += (i - ones); // all elements prefixed with 0 are lexicographic smaller than c
+				i = ones; 
+				// calclate new i for the right child bit_vector
+				lex_idx -= (sigma+1)/2;
+				sigma -= (sigma+1)/2;
+				node = 2*node+2;
+			}
+		}
+		return result;
+	}
+
+	//! Counts the characters in the range [i..j-1] which are smaller than character c.
+	size_type count_lex_smaller(size_type i, size_type j, value_type c)const{
+		if( i==j )
+			return 0;
+		if( i+1 == j ){
+			return (*this)[i] < c;
+		}else{
+			return count_lex_smaller(j, c) - count_lex_smaller(i, c);
 		}
 	}
 
@@ -893,7 +935,7 @@ class wt{
 	 void interval_symbols(size_type i, size_type j, size_type &k, 
 		                    std::vector<unsigned char> &cs, 
 						    std::vector<size_type> &rank_c_i, 
-						    std::vector<size_type> &rank_c_j)
+						    std::vector<size_type> &rank_c_j) const
 	{
 		if( i==j ){
 			k = 0;
