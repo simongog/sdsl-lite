@@ -150,6 +150,13 @@ namespace util{
 	template<class T>
 	typename T::size_type get_size_in_bytes(const T &v);
 
+	//! Get the size of a data structure in mega bytes (MB).
+	/*!
+	 *	\param v A reference to the data structure for which the size in bytes should be calculated. 
+	 */ 
+	template<class T>
+	double get_size_in_mega_bytes(const T &v);
+
 	struct nullstream : std::ostream{
 		struct nullbuf: std::streambuf{
 			int overflow(int c){ return traits_type::not_eof(c); }
@@ -218,6 +225,11 @@ typename T::size_type util::get_size_in_bytes(const T &v){
 		return 0;
 	util::nullstream ns;
 	return v.serialize(ns);
+}
+
+template<class T>
+double util::get_size_in_mega_bytes(const T &v){
+	return get_size_in_bytes( v )/(1024.0*1024.0);
 }
 
 template<class T>
