@@ -22,11 +22,6 @@
 #ifndef INCLUDED_SDSL_ALGORITHMS
 #define INCLUDED_SDSL_ALGORITHMS
 
-#include "algorithms_for_suffix_array_construction.hpp"
-#include "algorithms_for_balanced_parentheses.hpp"
-#include "algorithms_for_compressed_suffix_arrays.hpp"
-#include "algorithms_for_compressed_suffix_trees.hpp"
-#include "algorithms_for_string_matching.hpp"
 #include "int_vector.hpp"
 
 #include <stdexcept> // for exceptions
@@ -666,5 +661,13 @@ namespace algorithm{
 } // end namespace algorithm
 
 } // end namespace sdsl
+
+#include "algorithms_for_suffix_array_construction.hpp"
+#include "algorithms_for_balanced_parentheses.hpp"
+#include "algorithms_for_compressed_suffix_arrays.hpp"
+#include "algorithms_for_compressed_suffix_trees.hpp"
+#include "algorithms_for_string_matching.hpp"
+
+
 
 #endif

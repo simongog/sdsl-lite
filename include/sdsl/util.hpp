@@ -59,7 +59,7 @@ namespace util{
 	 *              parameter is used. 
 	 */
 	template<class int_vector>
-	void set_random_bits(int_vector &v, int seed);
+	void set_random_bits(int_vector &v, int seed=0);
 	//! Sets all bits of the int_vector to 0-bits.
 	template<class int_vector>
 	void set_zero_bits(int_vector &v);
@@ -336,7 +336,7 @@ inline bool util::load_from_file(char* &v, const char *file_name){
 }
 
 template<class int_vector>
-void util::set_random_bits(int_vector &v, int seed=0){
+void util::set_random_bits(int_vector &v, int seed){
 	if( 0 == seed ){
 		srand48((int)time(NULL));
 	}else

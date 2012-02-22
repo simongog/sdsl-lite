@@ -1348,7 +1348,7 @@ calculated_l:
 				size_type bit_size = 8*n;
 				lcp_sml_out_buf.write( (char *) &bit_size, sizeof(size_type) ); // write size
 
-				buffered_char_queue lcps[sigma];
+				buffered_char_queue lcps[256];//lcps[sigma];
 				for(size_type i=0; i<sigma; ++i){
 					lcps[i].init(dir, alphabet[i]);
 				}

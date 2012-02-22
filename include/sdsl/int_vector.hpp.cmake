@@ -278,9 +278,9 @@ class int_vector{
 	typedef size_type_class												size_type;		// STL Container requirement
 
 	friend struct int_vector_trait<fixedIntWidth, size_type_class>;
-	friend struct int_vector_iterator_base<int_vector>;
-	friend struct int_vector_iterator<int_vector>;
-	friend struct int_vector_const_iterator<int_vector>;
+	friend class int_vector_iterator_base<int_vector>;
+	friend class int_vector_iterator<int_vector>;
+	friend class int_vector_const_iterator<int_vector>;
 	friend class  coder::elias_delta;
 	friend class  coder::fibonacci;
 	friend class  coder::ternary;
@@ -417,7 +417,7 @@ class int_vector{
 		size_type serialize(std::ostream &out, bool write_fixed_as_variable=false) const;
 
 #ifdef MEM_INFO
-		void mem_info(std::string label) const;
+		void mem_info(std::string label="") const;
 #endif		
 
 		//! Load the int_vector for a stream.
@@ -662,10 +662,14 @@ class int_vector_reference<bit_vector>{
 
 
 template<class int_vector>
-struct int_vector_iterator_base: public std::iterator<std::random_access_iterator_tag, typename int_vector::value_type, typename int_vector::difference_type/*ptrdiff_t*/>{
+class int_vector_iterator_base: public std::iterator<std::random_access_iterator_tag, typename int_vector::value_type, typename int_vector::difference_type/*ptrdiff_t*/>{
+	public:
 	typedef /*typename int_vector::size_type*/uint64_t				size_type;
+	protected:
 	uint8_t m_offset;
 	uint8_t m_len; 
+
+	public:
 
 	int_vector_iterator_base(uint8_t offset, uint8_t len):m_offset(offset),m_len(len)
 	{}
@@ -680,17 +684,22 @@ struct int_vector_iterator_base: public std::iterator<std::random_access_iterato
 };
 
 template<class int_vector>
-struct int_vector_iterator : public int_vector_iterator_base<int_vector>{
-	typedef int_vector_reference<int_vector> 	reference;
-	typedef int_vector_iterator 				iterator;
-	typedef reference*							pointer;
-	typedef typename int_vector::size_type		size_type;
-	typedef typename int_vector::difference_type difference_type;
+class int_vector_iterator : public int_vector_iterator_base<int_vector>{
+	public:
+		typedef int_vector_reference<int_vector> 	reference;
+		typedef int_vector_iterator 				iterator;
+		typedef reference*							pointer;
+		typedef typename int_vector::size_type		size_type;
+		typedef typename int_vector::difference_type difference_type;
+
+	private:	
 
 	using int_vector_iterator_base<int_vector>::m_offset; // make m_offset easy usable
 	using int_vector_iterator_base<int_vector>::m_len;    // make m_len easy usable
 
 	typename int_vector::value_type *m_word;
+
+	public:
 
 	inline int_vector_iterator(int_vector *v=NULL, size_type idx=0) : int_vector_iterator_base<int_vector>(v, idx){
 		if( v!=NULL )
@@ -830,17 +839,22 @@ inline int_vector_iterator<int_vector> operator+(typename int_vector_iterator<in
 }
 
 template<class int_vector>
-struct int_vector_const_iterator : public int_vector_iterator_base<int_vector>{
-	typedef typename int_vector::value_type		const_reference;
-	typedef const typename int_vector::value_type*	pointer;
-	typedef int_vector_const_iterator		const_iterator;
-	typedef typename int_vector::size_type		size_type;
-	typedef typename int_vector::difference_type difference_type;
+class int_vector_const_iterator : public int_vector_iterator_base<int_vector>{
+	public:
+		typedef typename int_vector::value_type		const_reference;
+		typedef const typename int_vector::value_type*	pointer;
+		typedef int_vector_const_iterator		const_iterator;
+		typedef typename int_vector::size_type		size_type;
+		typedef typename int_vector::difference_type difference_type;
+
+	private:	
 
 	using int_vector_iterator_base<int_vector>::m_offset; // make m_offset easy usable
 	using int_vector_iterator_base<int_vector>::m_len;    // make m_len easy usable
 
 	const typename int_vector::value_type * m_word;
+
+	public:
 
 	int_vector_const_iterator(const int_vector *v=NULL, size_type idx=0) : int_vector_iterator_base<int_vector>(v, idx){
 		if( v!=NULL )
@@ -1371,7 +1385,7 @@ size_type_class _sdsl_serialize_size_and_int_width(std::ostream &out, uint8_t fi
 
 #ifdef MEM_INFO
 template<uint8_t fixedIntWidth, class size_type_class>
-void int_vector<fixedIntWidth,size_type_class>::mem_info(std::string label="") const{
+void int_vector<fixedIntWidth,size_type_class>::mem_info(std::string label) const{
 	if(label=="")
 		label="int_vector";
 	size_type bytes = util::get_size_in_bytes(*this);
@@ -1437,7 +1451,7 @@ class char_array_serialize_wrapper{
 
 	char_array_serialize_wrapper(const unsigned char* c=NULL, size_type n=0):m_n(n), m_cp(c){}
 
-	char_array_serialize_wrapper(const char* c=NULL, size_type n=0):m_n(n), m_cp(c){}
+//	char_array_serialize_wrapper(const char* c=NULL, size_type n=0):m_n(n), m_cp(c){}
 		
 	size_type serialize(std::ostream &out) const{
 		size_type size = m_n*8; // number of bits
