@@ -100,7 +100,7 @@ class enc_vector{
 		enc_vector(const Container &c){
 			construct();
 			init(c);
-		};
+		}
 
 		//! Constructor for an int_vector_file_buffer of positive integers.
 		/*
@@ -121,7 +121,7 @@ class enc_vector{
 
 		//! Default Destructor
 		~enc_vector(){
-		};
+		}
 
 		//! The number of elements in the enc_vector.
 		/*!

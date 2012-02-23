@@ -38,7 +38,7 @@ void construct_lcp(	Lcp &lcp, const Cst &cst,
 					int_vector_file_buffer<int_width1, size_type_class1> &isa_buf){
 	typename Lcp::lcp_category tag;
 	construct_lcp(lcp, cst, lcp_buf, isa_buf, tag);
-};
+}
 
 template<class Lcp, class Cst, uint8_t int_width, class size_type_class, uint8_t int_width1, class size_type_class1>
 void construct_lcp(	Lcp &lcp, const Cst &cst, 
@@ -46,7 +46,7 @@ void construct_lcp(	Lcp &lcp, const Cst &cst,
 					int_vector_file_buffer<int_width1, size_type_class1> &isa_buf, 
 					lcp_plain_tag){
 	lcp.construct(lcp_buf);
-};
+}
 
 template<class Lcp, class Cst, uint8_t int_width, class size_type_class, uint8_t int_width1, class size_type_class1>
 void construct_lcp(	Lcp &lcp, const Cst &cst, 
@@ -54,7 +54,7 @@ void construct_lcp(	Lcp &lcp, const Cst &cst,
 					int_vector_file_buffer<int_width1, size_type_class1> &isa_buf, 
 					lcp_permuted_tag){
 	lcp.construct(lcp_buf, isa_buf, &(cst.csa) );
-};
+}
 
 template<class Lcp, class Cst, uint8_t int_width, class size_type_class, uint8_t int_width1, class size_type_class1>
 void construct_lcp(	Lcp &lcp, const Cst &cst, 
@@ -62,20 +62,20 @@ void construct_lcp(	Lcp &lcp, const Cst &cst,
 					int_vector_file_buffer<int_width1, size_type_class1> &isa_buf, 
 					lcp_tree_compressed_tag){
 	lcp.construct(lcp_buf, &(cst.bp_support), &(cst.first_child_rank) );
-};
+}
 
 // construct lcp arrays
 template<class Lcp, class Cst>
 void construct_lcp(	Lcp &lcp, const Cst &cst, tMSS &file_map, const std::string dir, const std::string id){
 	typename Lcp::lcp_category tag;
 	construct_lcp(lcp, cst, file_map, dir, id, tag);
-};
+}
 
 template<class Lcp, class Cst>
 void construct_lcp(	Lcp &lcp, const Cst &cst, tMSS &file_map, const std::string dir, const std::string id, lcp_plain_tag){
 	int_vector_file_buffer<> lcp_buf(file_map["lcp"].c_str());
 	lcp.construct(lcp_buf);
-};
+}
 
 template<class Lcp, class Cst>
 void construct_lcp(	Lcp &lcp, const Cst &cst, tMSS &file_map, const std::string dir, const std::string id, lcp_permuted_tag){
@@ -85,77 +85,77 @@ void construct_lcp(	Lcp &lcp, const Cst &cst, tMSS &file_map, const std::string 
 	}
 	int_vector_file_buffer<> isa_buf(file_map["isa"].c_str());
 	lcp.construct(lcp_buf, isa_buf, &(cst.csa) );
-};
+}
 
 template<class Lcp, class Cst>
 void construct_lcp(	Lcp &lcp, const Cst &cst, tMSS &file_map, const std::string dir, const std::string id, lcp_tree_compressed_tag){
 	int_vector_file_buffer<> lcp_buf(file_map["lcp"].c_str());
 	lcp.construct(lcp_buf, &cst );
-};
+}
 
 template<class Lcp, class Cst>
 void construct_lcp(	Lcp &lcp, const Cst &cst, tMSS &file_map, const std::string dir, const std::string id, lcp_tree_and_lf_compressed_tag){
 	int_vector_file_buffer<> lcp_buf(file_map["lcp"].c_str());
 	int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str());
 	lcp.construct(lcp_buf, bwt_buf, &cst);
-};
+}
 
 // copy lcp arrays
 template<class Lcp, class Cst>
 void copy_lcp( Lcp &lcp, const Lcp &lcp_c, const Cst &cst ){
 	typename Lcp::lcp_category tag;
 	copy_lcp( lcp, lcp_c, cst, tag);
-};
+}
 
 template<class Lcp, class Cst>
 void copy_lcp( Lcp &lcp, const Lcp &lcp_c, const Cst &cst, lcp_plain_tag ){
 	lcp = lcp_c;
-};
+}
 
 template<class Lcp, class Cst>
 void copy_lcp( Lcp &lcp, const Lcp &lcp_c, const Cst &cst, lcp_permuted_tag ){
 	lcp = lcp_c;
 	lcp.set_csa( &(cst.csa) );
-};
+}
 
 template<class Lcp, class Cst>
 void copy_lcp( Lcp &lcp, const Lcp &lcp_c, const Cst &cst, lcp_tree_compressed_tag ){
 	lcp = lcp_c;
 	lcp.set_cst( &cst );
-};
+}
 
 template<class Lcp, class Cst>
 void copy_lcp( Lcp &lcp, const Lcp &lcp_c, const Cst &cst, lcp_tree_and_lf_compressed_tag ){
 	lcp = lcp_c;
 	lcp.set_cst( &cst );
-};
+}
 
 // load lcp arrays
 template<class Lcp, class Cst>
 void load_lcp( Lcp &lcp, std::istream &in, const Cst &cst ){
 	typename Lcp::lcp_category tag;
 	load_lcp(lcp, in, cst, tag);
-};
+}
 
 template<class Lcp, class Cst>
 void load_lcp( Lcp &lcp, std::istream &in, const Cst &cst, lcp_plain_tag ){
 	lcp.load(in);
-};
+}
 
 template<class Lcp, class Cst>
 void load_lcp( Lcp &lcp, std::istream &in, const Cst &cst, lcp_permuted_tag ){
 	lcp.load(in, &(cst.csa));
-};
+}
 
 template<class Lcp, class Cst>
 void load_lcp( Lcp &lcp, std::istream &in, const Cst &cst, lcp_tree_compressed_tag ){
 	lcp.load(in, &cst);
-};
+}
 
 template<class Lcp, class Cst>
 void load_lcp( Lcp &lcp, std::istream &in, const Cst &cst, lcp_tree_and_lf_compressed_tag ){
 	lcp.load(in, &cst);
-};
+}
 
 } // end namespace sdsl
 

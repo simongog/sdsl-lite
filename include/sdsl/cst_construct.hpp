@@ -51,7 +51,7 @@ namespace sdsl{
 	template<class Cst>
 	bool construct_cst(std::string file_name, Cst &cst){
 		tMSS file_map;
-		construct_cst(file_name, cst, file_map, true, "./", false, "", "any");
+		return construct_cst(file_name, cst, file_map, true, "./", false, "", "any");
 	}	
 
 	//! Constructs a compressed suffix tree (cst) semi-external

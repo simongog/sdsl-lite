@@ -584,11 +584,11 @@ class wt_huff{
 */		return result;
 	};
 
-	//! Calculates how many occurences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
+	//! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the original sequence.
 	/*!
 	 *	\param i The index of the symbol.
-	 *  \param c Reference that will contain the symbol at position i after the execution of the method.
-	 *  \return The number of occurences of symbol wt[i] in the prefix [0..i-1]
+	 *  \param c Reference that will contain symbol wt[i].
+	 *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
 	 *	\par Time complexity
 	 *		\f$ \Order{H_0} \f$ 
 	 */
@@ -596,7 +596,7 @@ class wt_huff{
 		assert(i>=0 and i < size());
 		uint32_t node=0;
 		while( m_nodes[node].child[0] != _undef_node ){ // while node is not a leaf
-			if( m_tree[m_nodes[node].tree_pos + i] ){ // if bit is set at position goto rigth child
+			if( m_tree[m_nodes[node].tree_pos + i] ){ // if bit is set at position goto right child
 				i 	= (m_tree_rank(m_nodes[node].tree_pos + i) -  m_nodes[node].tree_pos_rank); 
 				node = m_nodes[node].child[1]; 
 			}else{ // goto left child

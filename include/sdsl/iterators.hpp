@@ -138,7 +138,7 @@ template<class RandomAccessContainer>
 inline typename random_access_const_iterator<RandomAccessContainer>::difference_type operator-(const random_access_const_iterator<RandomAccessContainer> &x, const random_access_const_iterator<RandomAccessContainer> &y){
 	return  (typename random_access_const_iterator<RandomAccessContainer>::difference_type)x.m_idx
 			- (typename random_access_const_iterator<RandomAccessContainer>::difference_type)y.m_idx;
-};
+}
 
 template<class RandomAccessContainer>
 inline random_access_const_iterator<RandomAccessContainer> operator+(typename random_access_const_iterator<RandomAccessContainer>::difference_type n, const random_access_const_iterator<RandomAccessContainer>& it){

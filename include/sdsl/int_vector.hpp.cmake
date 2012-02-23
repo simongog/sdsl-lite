@@ -831,7 +831,7 @@ class int_vector_iterator : public int_vector_iterator_base<int_vector>{
 template<class int_vector>
 inline typename int_vector_iterator<int_vector>::difference_type operator-(const int_vector_iterator<int_vector> &x, const int_vector_iterator<int_vector> &y){
 	return  (((x.m_word - y.m_word)<<6) + x.m_offset - y.m_offset) / x.m_len;
-};
+}
 
 template<class int_vector>
 inline int_vector_iterator<int_vector> operator+(typename int_vector_iterator<int_vector>::difference_type n, const int_vector_iterator<int_vector>& it){

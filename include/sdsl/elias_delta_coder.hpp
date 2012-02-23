@@ -74,7 +74,7 @@ public:
 		template<class int_vector>
 		static uint64_t* raw_data(int_vector &v){
 			return v.m_data;
-		};	
+		}	
 };
 
 // \sa coder::elias_delta::encoding_length

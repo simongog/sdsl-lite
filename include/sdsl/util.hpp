@@ -193,7 +193,7 @@ namespace util{
 	//! Get a unique id inside the process
 	inline uint64_t get_id(){
 		return _id_helper::getId();
-	};
+	}
 
 	//! Convert type to string
 	template<typename T>

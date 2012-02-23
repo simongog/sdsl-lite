@@ -336,7 +336,7 @@ class csa_wt{
 		char_type		m_char2comp[256]; 
 		char_type	 	m_comp2char[256];
 		
-		size_type       m_C[257];
+		size_type       m_C[257]; // counts for the compact alphabet [0..sigma-1]
 		uint8_t			m_sigma;
 //		uint32_t m_sample_dens; // additional to SampleDens value
 //#define USE_CSA_CACHE
