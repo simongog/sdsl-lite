@@ -199,6 +199,11 @@ namespace util{
 	template<typename T>
 	std::string to_string(const T &t);
 
+	template<typename T>
+	std::string to_latex_string(const T &t);
+
+	std::string to_latex_string(unsigned char c);
+
 	//! Delete all files in the file_map in the file system
 	void delete_all_files(tMSS &file_map);
 
@@ -477,6 +482,11 @@ std::string util::to_string(const T &t){
 	return ss.str();
 }
 
-}// end namespace sds
+template<typename T>
+std::string util::to_latex_string(const T &t){
+	return to_string(t);
+}
+
+}// end namespace sdsl
 
 #endif // end file 

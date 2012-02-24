@@ -65,6 +65,15 @@ void delete_all_files(tMSS &file_map){
 	file_map.clear();
 }
 
+std::string util::to_latex_string(unsigned char c){
+	if( c == '_' )
+		return "\\_";
+	else if( c == '\0' )
+		return "\\$";
+	else
+   		return to_string(c);	
+}
+
 
 
 }// end namespace util
