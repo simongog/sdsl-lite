@@ -423,6 +423,7 @@ void util::bit_compress(int_vector &v){
 			bit_magic::write_int_and_move(write_data,  x, write_offset, min_width);
 		}
 		v.bit_resize( v.size()*min_width );
+		v.set_int_width( min_width );
 	}
 }
 
