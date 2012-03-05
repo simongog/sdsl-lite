@@ -82,6 +82,10 @@ namespace util{
 	template<class int_vector>
 	void set_all_values_to_k(int_vector &v, uint64_t k);
 
+	//! Sets each entry of the numerical vector v at position \$fi\f$ to value \$fi\$f
+	template<class int_vector>
+	void set_to_id(int_vector &v);	
+
 	//! Counts and returns the 1-bits an int_vector contains. 
 	/*! \param v The int_vector to count the 1-bits.
 	  	\return The number of 1-bits in v.
@@ -426,6 +430,14 @@ void util::set_all_values_to_k(int_vector &v, uint64_t k){
 	}
 }
 
+
+template<class int_vector>
+void util::set_to_id(int_vector &v){
+	for (typename int_vector::size_type i=0; i < v.size(); ++i){
+		v[i] = i;
+	}
+}
+
 template<class int_vector>
 typename int_vector::size_type util::get_one_bits(const int_vector &v){
 	const uint64_t *data = v.data();
@@ -441,6 +453,7 @@ typename int_vector::size_type util::get_one_bits(const int_vector &v){
 	return result;
 }
 
+	
 template<class int_vector>
 typename int_vector::size_type util::get_onezero_bits(const int_vector &v){
 	const uint64_t *data = v.data();
