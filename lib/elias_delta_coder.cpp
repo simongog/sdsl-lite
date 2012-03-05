@@ -186,7 +186,7 @@ start_decoding:
 		// n-i values to decode
 		if( ((*data>>offset)&0xF)==0xF  ){
 			uint8_t maxdecode = n-i > 63 ? 63 : n-i;
-			uint8_t rbp = bit_magic::r1BP(~bit_magic::readInt(data, offset,maxdecode));
+			uint8_t rbp = bit_magic::r1BP(~bit_magic::read_int(data, offset,maxdecode));
 			i += rbp;
 			value += rbp;
 			if(rbp+offset>=64){ ++data; offset = (rbp+offset)&0x3F; }else{ offset += rbp; }
@@ -194,14 +194,14 @@ start_decoding:
 				continue;
 		}
 		while( i < n ){
-			uint32_t psum = EliasDeltaPrefixSum[bit_magic::readInt(data, offset, 16)];
+			uint32_t psum = EliasDeltaPrefixSum[bit_magic::read_int(data, offset, 16)];
 //			if( psum == 0 or i+((psum>>16)&0x00FF) > n ){ // value does not fit in 16 bits
 			if( psum == 0 ){ // value does not fit in 16 bits
 				goto decode_single;
 			}
 			else if( i+((psum>>16)&0x00FF) > n ){ // decoded too much 
 				if(n-i <= 8){
-					psum = EliasDeltaPrefixSum8bit[bit_magic::readInt(data, offset, 8) | ((n-i-1)<<8)];
+					psum = EliasDeltaPrefixSum8bit[bit_magic::read_int(data, offset, 8) | ((n-i-1)<<8)];
 					if( psum > 0 ){
 						value += (psum&0xF);
 						i += ((psum>>4)&0xF);
@@ -222,8 +222,8 @@ start_decoding:
 decode_single:			
 			i++;	
 			uint16_t len_1_len = bit_magic::readUnaryIntAndMove(data, offset); // read length of length of x
-			uint16_t len_1 	=  bit_magic::readIntAndMove(data, offset, len_1_len) + (1ULL << len_1_len) - 1;
-			value	+= bit_magic::readIntAndMove(data, offset, len_1) + (1ULL << (len_1));
+			uint16_t len_1 	=  bit_magic::read_int_and_move(data, offset, len_1_len) + (1ULL << len_1_len) - 1;
+			value	+= bit_magic::read_int_and_move(data, offset, len_1) + (1ULL << (len_1));
 		}
 	}
 	return value;
@@ -238,8 +238,8 @@ uint64_t elias_delta::decode_prefix_sum(const uint64_t *data, const size_type st
 	uint8_t offset = start_idx & 0x3F;//, maxdecode;
 	while( i++ < n ){// while not all values are decoded
 			uint16_t len_1_len = bit_magic::readUnaryIntAndMove(data, offset); // read length of length of x
-			uint16_t len_1 	=  bit_magic::readIntAndMove(data, offset, len_1_len) + (1ULL << len_1_len) - 1;
-			value	+= bit_magic::readIntAndMove(data, offset, len_1) + (1ULL << (len_1));
+			uint16_t len_1 	=  bit_magic::read_int_and_move(data, offset, len_1_len) + (1ULL << len_1_len) - 1;
+			value	+= bit_magic::read_int_and_move(data, offset, len_1) + (1ULL << (len_1));
 	}
 	return value;
 }

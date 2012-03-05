@@ -290,6 +290,7 @@ class int_vector{
 	friend void util::set_random_bits<int_vector>(int_vector &v, int);
 	friend void util::set_zero_bits<int_vector>(int_vector &v);
 	friend void util::set_one_bits<int_vector>(int_vector &v);
+	friend void util::bit_compress<int_vector>(int_vector &v);
 	friend void util::set_all_values_to_k<int_vector>(int_vector &v, uint64_t k);
 	friend void algorithm::calculate_sa<fixedIntWidth>(const unsigned char *c, typename int_vector<fixedIntWidth>::size_type len, int_vector<fixedIntWidth> &sa);
 	private:
@@ -588,7 +589,7 @@ class int_vector_reference{
 			\return A const_reference to the assigned reference
 		 */
 		int_vector_reference& operator=(typename int_vector::value_type x){
-			bit_magic::writeInt(m_word, x, m_offset, m_len);
+			bit_magic::write_int(m_word, x, m_offset, m_len);
 			return *this;
 		};
 
@@ -598,7 +599,7 @@ class int_vector_reference{
 
 		//! Cast the reference to a int_vector<>::value_type
 		operator typename int_vector::value_type()const{
-			return bit_magic::readInt(m_word, m_offset, m_len);
+			return bit_magic::read_int(m_word, m_offset, m_len);
 		}
 
 		bool operator==(const int_vector_reference& x)const{
@@ -1129,7 +1130,7 @@ void int_vector<fixedIntWidth,size_type_class>::bit_resize(const size_type size)
 		m_data = data;
 		// initialize unreachable bits to 0
 		if( m_size > old_size and bit_size() < capacity() ){//m_size>0 
-			bit_magic::writeInt(m_data+(bit_size()>>6), 0, bit_size()&0x3F, capacity()-bit_size() );
+			bit_magic::write_int(m_data+(bit_size()>>6), 0, bit_size()&0x3F, capacity()-bit_size() );
 		}
 	}
 }
@@ -1170,7 +1171,7 @@ inline const typename int_vector<fixedIntWidth,size_type_class>::value_type int_
 		throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); len>64!");
 	}
 #endif	
-	return bit_magic::readInt(m_data+(idx>>6), idx&0x3F, len);
+	return bit_magic::read_int(m_data+(idx>>6), idx&0x3F, len);
 }
 
 template<uint8_t fixedIntWidth, class size_type_class>
@@ -1183,7 +1184,7 @@ inline void int_vector<fixedIntWidth,size_type_class>::set_int(size_type idx, va
 		throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::set_int(size_type, uint8_t); len>64!");
 	}
 #endif	
-	bit_magic::writeInt(m_data+(idx>>6), x, idx&0x3F, len);
+	bit_magic::write_int(m_data+(idx>>6), x, idx&0x3F, len);
 }
 
 template<uint8_t fixedIntWidth, class size_type_class>
@@ -1601,12 +1602,12 @@ class int_vector_file_buffer{
 	value_type operator[](const size_type i)const{
 		assert(i<m_len);
 		size_type idx = i*m_int_width+m_off;
-		return bit_magic::readInt(m_buf + (idx>>6), idx&0x3F, m_int_width);
+		return bit_magic::read_int(m_buf + (idx>>6), idx&0x3F, m_int_width);
 	}
 
 	void set_int(const size_type i, uint64_t x){
 		size_type idx = i*m_int_width+m_off;
-		bit_magic::writeInt(m_buf + (idx>>6), x, idx&0x3F, m_int_width);
+		bit_magic::write_int(m_buf + (idx>>6), x, idx&0x3F, m_int_width);
 	}
 
 	const uint64_t* data()const{

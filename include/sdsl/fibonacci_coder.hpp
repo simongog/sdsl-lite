@@ -165,10 +165,10 @@ inline bool fibonacci::encode(const int_vector1 &v, int_vector2 &z){
 			}	
 		}
 		if( len_1 >=64 ){
-			bit_magic::writeIntAndMove(z_data, fibword_low, offset, 64);
-			bit_magic::writeIntAndMove(z_data, fibword_high, offset, len_1 - 63);
+			bit_magic::write_int_and_move(z_data, fibword_low, offset, 64);
+			bit_magic::write_int_and_move(z_data, fibword_high, offset, len_1 - 63);
 		}else{
-			bit_magic::writeIntAndMove(z_data, fibword_low, offset, (len_1&0x3F) +1);
+			bit_magic::write_int_and_move(z_data, fibword_low, offset, (len_1&0x3F) +1);
 		}
 	}
 	z.set_int_width(v.get_int_width());
@@ -217,10 +217,10 @@ inline void fibonacci::encode(uint64_t x, uint64_t* &z, uint8_t &offset){
 		}	
 	}
 	if( len_1 >=64 ){
-		bit_magic::writeIntAndMove(z, fibword_low, offset, 64);
-		bit_magic::writeIntAndMove(z, fibword_high, offset, len_1 - 63);
+		bit_magic::write_int_and_move(z, fibword_low, offset, 64);
+		bit_magic::write_int_and_move(z, fibword_high, offset, len_1 - 63);
 	}else{
-		bit_magic::writeIntAndMove(z, fibword_low, offset, (len_1&0x3F) +1);
+		bit_magic::write_int_and_move(z, fibword_low, offset, (len_1&0x3F) +1);
 	}
 }
 

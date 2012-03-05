@@ -118,7 +118,7 @@ bool ternary::encode(const int_vector &v, int_vector &z){
 		offset &= 0x3F;
 //		bool not_zero = false;
 		// write ternary number
-		bit_magic::writeInt(z_temp, 3, off_temp, 2);
+		bit_magic::write_int(z_temp, 3, off_temp, 2);
 		for(int32_t i=len; i>0; i-=2){
 			if( off_temp != 0 )
 				off_temp -= 2;
@@ -128,7 +128,7 @@ bool ternary::encode(const int_vector &v, int_vector &z){
 			}
 //			if( (w%3)>0 )
 //				not_zero = true;
-			bit_magic::writeInt(z_temp, w%3, off_temp, 2);
+			bit_magic::write_int(z_temp, w%3, off_temp, 2);
 			w/=3;
 		}
 //		assert(not_zero);

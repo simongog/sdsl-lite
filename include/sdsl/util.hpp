@@ -66,6 +66,13 @@ namespace util{
 	//! Sets all bits of the int_vector to 1-bits.
 	template<class int_vector>
 	void set_one_bits(int_vector &v);
+	//! Bit compress the int_vector
+	/*! Determine the biggest value X and then set the
+	 *  int_width to the smallest possible so that we
+	 *  still can represent X
+	 */
+	template<class int_vector>
+	void bit_compress(int_vector &v);
 
 	//! All elements of v modulo m
 	template<class int_vector, class size_type_class>
@@ -395,6 +402,30 @@ void util::set_one_bits(int_vector &v){
 		*(++data) = 0xFFFFFFFFFFFFFFFFULL;
 	}	
 }
+
+template<class int_vector>
+void util::bit_compress(int_vector &v){
+	typename int_vector::value_type max=0;
+	for (typename int_vector::size_type i=0; i < v.size(); ++i){
+		if ( v[i] > max ){
+			max = v[i];
+		}
+	}
+	uint8_t min_width = bit_magic::l1BP(max)+1;
+	uint8_t old_width = v.get_int_width();
+	if ( old_width > min_width ){
+		const uint64_t *read_data = v.m_data;
+		uint64_t *write_data = v.m_data;
+		uint8_t read_offset = 0;
+		uint8_t write_offset = 0;
+		for (typename int_vector::size_type i=0; i < v.size(); ++i){
+			uint64_t x = bit_magic::read_int_and_move(read_data, read_offset, old_width);
+			bit_magic::write_int_and_move(write_data,  x, write_offset, min_width);
+		}
+		v.bit_resize( v.size()*min_width );
+	}
+}
+
 
 template<class int_vector>
 void util::set_all_values_to_k(int_vector &v, uint64_t k){

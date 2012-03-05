@@ -111,10 +111,10 @@ bool elias_delta::encode(const int_vector &v, int_vector &z){
 		// (number of bits to represent the length of w) -1
 		len_1_len	= bit_magic::l1BP(len);
 		// Write unary representation for the length of the length of w 
-		bit_magic::writeIntAndMove(z_data, 1ULL << len_1_len, offset, len_1_len+1); 
+		bit_magic::write_int_and_move(z_data, 1ULL << len_1_len, offset, len_1_len+1); 
 		if(len_1_len){
-			bit_magic::writeIntAndMove(z_data, len, offset, len_1_len);
-			bit_magic::writeIntAndMove(z_data, w, offset, len-1);
+			bit_magic::write_int_and_move(z_data, len, offset, len_1_len);
+			bit_magic::write_int_and_move(z_data, w, offset, len-1);
 		}
 	}
 	return true;
@@ -130,10 +130,10 @@ inline void elias_delta::encode(uint64_t x, uint64_t* &z, uint8_t &offset){
 	// (number of bits to represent the length of w) - 1
 	len_1_len	= bit_magic::l1BP(len);
 	// Write unary representation for the length of the length of w 
-	bit_magic::writeIntAndMove(z, 1ULL << len_1_len, offset, len_1_len+1); 
+	bit_magic::write_int_and_move(z, 1ULL << len_1_len, offset, len_1_len+1); 
 	if(len_1_len){
-		bit_magic::writeIntAndMove(z, len, offset, len_1_len);
-		bit_magic::writeIntAndMove(z, x, offset, len-1);
+		bit_magic::write_int_and_move(z, len, offset, len_1_len);
+		bit_magic::write_int_and_move(z, x, offset, len-1);
 	}
 }
 
@@ -147,7 +147,7 @@ bool elias_delta::decode(const int_vector &z, int_vector &v){
 		len_1_len = bit_magic::readUnaryIntAndMove(z_data, offset);
 //if(z_data==z.data() ) std::cerr<<" len_1_len="<<len_1_len<<" offset="<<(int)offset<<std::endl;		
 		if( len_1_len ){
-			len 	= bit_magic::readIntAndMove(z_data, offset, len_1_len) + (1 << len_1_len);
+			len 	= bit_magic::read_int_and_move(z_data, offset, len_1_len) + (1 << len_1_len);
 //if(z_data==z.data() ) std::cerr<<" len="<<len<<" offset="<<(int)offset<<std::endl;		
 			bit_magic::move_right(z_data, offset, len-1);
 		}
@@ -172,8 +172,8 @@ inline uint64_t elias_delta::decode(const uint64_t *data, const size_type start_
 		if( !len_1_len ){
 			value += 1;
 		}else{
-			len 	=  bit_magic::readIntAndMove(data, offset, len_1_len) + (1ULL << len_1_len);
-			value	+= bit_magic::readIntAndMove(data, offset, len-1) + (1ULL << (len-1));
+			len 	=  bit_magic::read_int_and_move(data, offset, len_1_len) + (1ULL << len_1_len);
+			value	+= bit_magic::read_int_and_move(data, offset, len-1) + (1ULL << (len-1));
 		}
 		if( increment ) *(it++) = value;
 	}

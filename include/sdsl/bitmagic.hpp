@@ -367,17 +367,17 @@ class bit_magic{
 		static const uint32_t l11BP(uint64_t x);
 
 		//! TODO: Documentation for this function
-		static void writeInt(uint64_t *word, uint64_t x, const uint8_t offset=0, const uint8_t len=64);
+		static void write_int(uint64_t *word, uint64_t x, const uint8_t offset=0, const uint8_t len=64);
 		static void writeInt2(uint64_t *word, uint64_t x, const uint8_t offset=0, const uint8_t len=64);
 
 		//! TODO: Documentation for this function
-		static void writeIntAndMove(uint64_t* &word, uint64_t x, uint8_t &offset, const uint8_t len);
+		static void write_int_and_move(uint64_t* &word, uint64_t x, uint8_t &offset, const uint8_t len);
 
 		//! TODO: Documentation for this function
-		static uint64_t readInt(const uint64_t *word, uint8_t offset=0, const uint8_t len=64);
+		static uint64_t read_int(const uint64_t *word, uint8_t offset=0, const uint8_t len=64);
 
 		//! TODO: Documentation for this function
-		static uint64_t readIntAndMove(const uint64_t* &word, uint8_t &offset, const uint8_t len=64);
+		static uint64_t read_int_and_move(const uint64_t* &word, uint8_t &offset, const uint8_t len=64);
 
 		//! TODO: Documentation for this function
 		static uint64_t readUnaryInt(const uint64_t* word, uint8_t offset=0);
@@ -1200,7 +1200,7 @@ inline const uint32_t bit_magic::eI11BP(uint64_t x, uint32_t i){
 	return i1BP((x&(x<<1))&0xAAAAAAAAAAAAAAAAULL, i);
 }
 
-inline void bit_magic::writeInt(uint64_t *word, uint64_t x, uint8_t offset, const uint8_t len){
+inline void bit_magic::write_int(uint64_t *word, uint64_t x, uint8_t offset, const uint8_t len){
 	x &= bit_magic::Li1Mask[len];
 	if( offset + len < 64 ){
 		*word &=
@@ -1230,7 +1230,7 @@ inline void bit_magic::writeInt2(uint64_t *word, uint64_t x, uint8_t offset, con
 //	}
 }
 
-inline void bit_magic::writeIntAndMove(uint64_t* &word, uint64_t x, uint8_t &offset, const uint8_t len){
+inline void bit_magic::write_int_and_move(uint64_t* &word, uint64_t x, uint8_t &offset, const uint8_t len){
 	x &= bit_magic::Li1Mask[len];
 	if( offset + len < 64 ){
 		*word &=
@@ -1252,7 +1252,7 @@ inline void bit_magic::writeIntAndMove(uint64_t* &word, uint64_t x, uint8_t &off
 	}
 }
 
-inline uint64_t bit_magic::readInt(const uint64_t *word, uint8_t offset, const uint8_t len){
+inline uint64_t bit_magic::read_int(const uint64_t *word, uint8_t offset, const uint8_t len){
 	uint64_t w1 = (*word)>>offset;
 	if( (offset+len) > 64 ){ // if offset+len > 64
 		return w1 |  // w1 or w2 adepted:
@@ -1263,7 +1263,7 @@ inline uint64_t bit_magic::readInt(const uint64_t *word, uint8_t offset, const u
 	}
 }
 
-inline uint64_t bit_magic::readIntAndMove(const uint64_t* &word, uint8_t &offset, const uint8_t len){
+inline uint64_t bit_magic::read_int_and_move(const uint64_t* &word, uint8_t &offset, const uint8_t len){
 	uint64_t w1 = (*word)>>offset;
 	if( (offset = (offset+len))>=64 ){  // if offset+len > 64
 		if(offset==64){
