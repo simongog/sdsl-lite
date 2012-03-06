@@ -74,6 +74,23 @@ std::string to_latex_string(unsigned char c){
    		return to_string(c);	
 }
 
+template<>
+size_t write_member<std::string>(const std::string &t, std::ostream &out){
+	write_member(t.size(), out);
+	out.write(t.c_str(), t.size());
+	return t.size();
+}
+
+template<>
+void read_member<std::string>(std::string &t, std::istream &in){
+	std::string::size_type size;
+	read_member(size, in);
+	char *buf = new char[size];
+	in.read(buf, size);
+	std::string temp(buf, size);
+	delete [] buf;
+	t.swap(temp);
+}
 
 
 }// end namespace util

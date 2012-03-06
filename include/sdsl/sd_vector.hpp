@@ -233,8 +233,8 @@ class sd_rank_support{
 		typedef bit_vector::size_type size_type;
 		typedef sd_vector<Select1Support, Select0Support> bit_vector_type;
 	private:
-//		const bit_vector_type *m_v;
-		mutable bit_vector_type *m_v;
+		const bit_vector_type *m_v;
+//		mutable bit_vector_type *m_v;
 
 	public:
 
@@ -286,7 +286,7 @@ class sd_rank_support{
 		}
 
 //		void set_vector(const bit_vector_type *v=NULL){
-		void set_vector(bit_vector_type *v=NULL){
+		void set_vector(const bit_vector_type *v=NULL){
 			m_v = v;
 		}
 

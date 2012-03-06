@@ -182,11 +182,19 @@ namespace util{
 		return sizeof(t);
 	}
 
+	// Specialization for std::string
+	template<>
+	size_t write_member<std::string>(const std::string &t, std::ostream &out);
+
 	// Writes primitive-typed variable t to stream out
 	template<class T>
 	void read_member(T &t, std::istream &in){
 		in.read((char*)&t, sizeof(t));
 	}	
+	
+	// Specialization for std::string
+	template<>
+	void read_member<std::string>(std::string &t, std::istream &in);
 
 	//! Get the process id of the current process
 	uint64_t get_pid();
