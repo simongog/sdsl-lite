@@ -132,6 +132,31 @@ namespace sdsl{
 		write_R_output("csa", "construct CSA", "end", 1, 0);
 		return true;
 	}	
+
+
+	template<class Csa>
+	static bool construct_csa_of_reversed_text(std::string file_name, Csa &csa){
+		typedef int_vector<>::size_type size_type;
+		std::string tmp_rev_file_name = "./text_rev_"+util::to_string(util::get_pid())+"_"+util::to_string(util::get_id());
+		char *text = NULL;
+		size_type n = 0;
+		if ( (n=file::read_text((const char*)file_name.c_str(), text)) > 0 ){
+			--n; // since read_text appends a 0 byte
+			for( size_type i=0; i < n/2; ++i ){
+				std::swap(text[i], text[n-1-i] );
+			}
+			file::write_text((const char*)tmp_rev_file_name.c_str(),text, n);
+			delete [] text;
+		}else{
+			std::cout<<"ERROR: text cannot be read from file "<<file_name<<std::endl;
+			return false;
+		}
+		bool res = construct_csa(tmp_rev_file_name, csa);
+		std::remove(tmp_rev_file_name.c_str());
+		return res;
+	}	
+
+
 }// end namespace
 
 #endif
