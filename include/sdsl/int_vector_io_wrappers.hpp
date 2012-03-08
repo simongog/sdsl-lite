@@ -14,7 +14,7 @@
 #define INCLUDE_SDSL_INT_VECTOR_IO_WRAPPERS
 
 #include <sdsl/int_vector.hpp>
-#include <sdsl/util.hpp>
+//#include <sdsl/util.hpp>
 
 #include <iostream>
 
@@ -23,15 +23,15 @@ namespace sdsl{
 template<uint8_t fixedIntWidth=0, class size_type_class=int_vector<0>::size_type>
 class int_vector_serialize_vbyte_wrapper{
 	public:
-		typedef int_vector<fixedIntWidth, size_type_class> int_vector;
-		typedef typename int_vector::size_type size_type;
-		typedef typename int_vector::value_type value_type;
+		typedef int_vector<fixedIntWidth, size_type_class> int_vector_type;
+		typedef typename int_vector_type::size_type size_type;
+		typedef typename int_vector_type::value_type value_type;
 
 	private:
-		const int_vector &m_vec;
+		const int_vector_type &m_vec;
 
 	public:	
-		int_vector_serialize_vbyte_wrapper(const int_vector &vec):m_vec(vec){}
+		int_vector_serialize_vbyte_wrapper(const int_vector_type &vec):m_vec(vec){}
 
 		size_type serialize(std::ostream &out)const{
 			size_type written_bytes = 0;
@@ -59,19 +59,19 @@ class int_vector_serialize_vbyte_wrapper{
 template<uint8_t fixedIntWidth=0, class size_type_class=int_vector<0>::size_type>
 class int_vector_load_vbyte_wrapper{
 	public:
-		typedef int_vector<fixedIntWidth, size_type_class> int_vector;
-		typedef typename int_vector::size_type size_type;
-		typedef typename int_vector::value_type value_type;
+		typedef int_vector<fixedIntWidth, size_type_class> int_vector_type;
+		typedef typename int_vector_type::size_type size_type;
+		typedef typename int_vector_type::value_type value_type;
 
 	private:
-		int_vector &m_vec;
+		int_vector_type &m_vec;
 
 	public:	
-		int_vector_load_vbyte_wrapper(int_vector &vec):m_vec(vec){}
+		int_vector_load_vbyte_wrapper(int_vector_type &vec):m_vec(vec){}
 
 		void load(std::istream &in){
 			size_type size;
-			typename int_vector::int_width_type int_width;
+			typename int_vector_type::int_width_type int_width;
 			// (1) read size and int_width
 			int_vector_trait<fixedIntWidth, size_type_class>::read_header(size, int_width, in);
 			// (2) resize the vector 
@@ -93,31 +93,31 @@ class int_vector_load_vbyte_wrapper{
 		}
 };
 
-template<class int_vector=int_vector<> >
+template<class int_vector_type=int_vector<> >
 class int_vector_serialize_wrapper{
 	public:
-		typedef typename int_vector::size_type size_type;
+		typedef typename int_vector_type::size_type size_type;
 
 	private:
-		const int_vector &m_vec;
+		const int_vector_type &m_vec;
 
 	public:	
-		int_vector_serialize_wrapper(const int_vector &vec):m_vec(vec){}
+		int_vector_serialize_wrapper(const int_vector_type &vec):m_vec(vec){}
 
 		size_type serialize(std::ostream &out)const{
 			return m_vec.serialize(out);	
 		}
 };
 
-template<class int_vector=int_vector<> >
+template<class int_vector_type=int_vector<> >
 class int_vector_load_wrapper{
 	public:
-		typedef typename int_vector::size_type size_type;
+		typedef typename int_vector_type::size_type size_type;
 	private:
-		int_vector &m_vec;
+		int_vector_type &m_vec;
 
 	public:	
-		int_vector_load_wrapper(int_vector &vec):m_vec(vec){}
+		int_vector_load_wrapper(int_vector_type &vec):m_vec(vec){}
 		void load(std::istream &in){
 			m_vec.load(in);
 		}
