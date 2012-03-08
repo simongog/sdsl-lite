@@ -121,7 +121,7 @@ class gap_vector{
 				label = "gap_vector";
 			size_type bytes = util::get_size_in_bytes(*this);
 			std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << "\n,";
-			m_positions.mem_info("positions"); std::cout << ")\n";
+			m_position.mem_info("positions"); std::cout << ")\n";
 		}
 #endif	
 
