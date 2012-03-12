@@ -122,9 +122,9 @@ class file{
 	     *           was successful and c is not needed anymore. 
 		 *  \param trunc Indicated if the file should be truncated.
 		 *  \param lim Maximal number of bytes which are read when trunc is true.
-	     *	\return len The number of readed bits. If this is zero, now memory is 
+	     *	\return len The number of read bits. If this is zero, now memory is 
 		 *          allocated for c. And c equals NULL.
-		 *  \pre c has to be initalized to NULL.
+		 *  \pre c has to be initialized to NULL.
 		 *  \post If len > 0  c[len]=0 and the memory for c was allocated with "new" else c=NULL.
 		 */
 		static uint64_t read_text(const char *file_name, char* &c, bool trunc=0, uint64_t lim=0);
