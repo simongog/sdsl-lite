@@ -19,6 +19,7 @@
 	\author Simon Gog
 */
 #include "sdsl/bwt_construct.hpp"
+#include <string>
 
 namespace sdsl{
 	
@@ -31,7 +32,15 @@ namespace sdsl{
 	 */
 	bool construct_bwt( tMSS &file_map, const std::string &dir, const std::string &id){
 		typedef int_vector<>::size_type size_type;
-		if( file_map.find("bwt") == file_map.end() ){ // if bwt is not already on disk => calculate it
+		if( file_map.find("bwt") == file_map.end() ){ // if bwt is not already registered in file_map 
+			std::string bwt_file_name = dir+"bwt_"+id;
+			std::ifstream bwt_in( bwt_file_name.c_str() );
+			 // check if bwt is already on disk => register it
+			if ( bwt_in ){
+				file_map["bwt"] = bwt_file_name;
+				bwt_in.close();
+				return true;
+			}
 			write_R_output("csa", "construct BWT", "begin", 1, 0);
 			const size_type buffer_size = 1000000;
 			int_vector_file_buffer<8> text_buf( file_map["text"].c_str(), buffer_size );
@@ -40,8 +49,8 @@ namespace sdsl{
 			unsigned char *text = NULL;
 			util::load_from_int_vector_buffer(text, text_buf);		
 
-			std::ofstream bwt_out_buf( (dir+"bwt_"+id).c_str(), std::ios::binary | std::ios::trunc | std::ios::out ); // open out file stream
-			file_map["bwt"] = dir+"bwt_"+id;																		  // and save result to disk
+			std::ofstream bwt_out_buf( bwt_file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out ); // open out file stream
+			file_map["bwt"] = bwt_file_name;																		  // and save result to disk
 
 			int_vector<8> bwt_buf(buffer_size);
 			size_type bit_size = n*8;

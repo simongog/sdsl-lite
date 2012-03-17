@@ -81,8 +81,9 @@ namespace sdsl{
 		text_buf.reset();
 		size_type n = text_buf.int_vector_size;
 
+		std::string sa_file_name = dir+"sa_"+id;
 		// if sa file already exists
-		std::ifstream in((dir+"sa_"+id).c_str());
+		std::ifstream in(sa_file_name.c_str());
 		if( !in ){
 			unsigned char *text = NULL;
 			util::load_from_int_vector_buffer(text, text_buf);		
@@ -103,11 +104,11 @@ namespace sdsl{
 			write_R_output("csa", "construct SA", "end", 1, 0);
 			write_R_output("csa", "store SA", "begin", 1, 0);
 
-			if( !util::store_to_file(sa, (dir+"sa_"+id).c_str() ) ){
+			if( !util::store_to_file(sa, sa_file_name.c_str() ) ){
 				throw std::ios_base::failure( "#csa_construct: Cannot store SA to file system!" );
 				return false;
 			}else{
-				file_map["sa"] = dir+"sa_"+id;
+				file_map["sa"] = sa_file_name;
 			}
 			write_R_output("csa", "store SA", "end", 1, 0);
 			{
@@ -116,7 +117,8 @@ namespace sdsl{
 				temp.swap(sa);
 			}
 		}else{
-			file_map["sa"] = dir+"sa_"+id;
+			file_map["sa"] = sa_file_name;
+			in.close();
 		}
 
 		
@@ -133,26 +135,47 @@ namespace sdsl{
 		return true;
 	}	
 
-
 	template<class Csa>
 	static bool construct_csa_of_reversed_text(std::string file_name, Csa &csa){
+		tMSS file_map;
+		return construct_csa_of_reversed_text(file_name, csa, file_map, true, "./","");
+	}
+
+
+
+	template<class Csa>
+	static bool construct_csa_of_reversed_text(std::string file_name, Csa &csa, tMSS &file_map, bool delete_files=true, 
+			                                   std::string dir="./", std::string id=""){
 		typedef int_vector<>::size_type size_type;
-		std::string tmp_rev_file_name = "./text_rev_"+util::to_string(util::get_pid())+"_"+util::to_string(util::get_id());
-		char *text = NULL;
-		size_type n = 0;
-		if ( (n=file::read_text((const char*)file_name.c_str(), text)) > 0 ){
-			--n; // since read_text appends a 0 byte
-			for( size_type i=0; i < n/2; ++i ){
-				std::swap(text[i], text[n-1-i] );
+
+		if(id=="")
+			id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
+
+		std::string tmp_rev_file_name = dir+"text_rev_"+id;
+		std::ifstream in(tmp_rev_file_name.c_str());
+		if ( !in ){
+			char *text = NULL;
+			size_type n = 0;
+			if ( (n=file::read_text((const char*)file_name.c_str(), text)) > 0 ){
+				--n; // since read_text appends a 0 byte
+				for( size_type i=0; i < n/2; ++i ){
+					std::swap(text[i], text[n-1-i] );
+				}
+				file::write_text((const char*)tmp_rev_file_name.c_str(),text, n);
+				file_map["text_rev"] = tmp_rev_file_name;
+				delete [] text;
+			}else{
+				std::cout<<"ERROR: text cannot be read from file "<<file_name<<std::endl;
+				return false;
 			}
-			file::write_text((const char*)tmp_rev_file_name.c_str(),text, n);
-			delete [] text;
 		}else{
-			std::cout<<"ERROR: text cannot be read from file "<<file_name<<std::endl;
-			return false;
+			file_map["text_rev"] = tmp_rev_file_name;
+			in.close();
 		}
-		bool res = construct_csa(tmp_rev_file_name, csa);
-		std::remove(tmp_rev_file_name.c_str());
+		bool res = construct_csa(tmp_rev_file_name, csa, file_map, delete_files, dir, id);
+		if ( delete_files ){
+			util::delete_all_files(file_map);
+		}
 		return res;
 	}	
 

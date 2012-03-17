@@ -1,13 +1,16 @@
 # Check if the CPU provides fast operations
 # for popcount, leftmost and rightmost bit
 
-set(BUILTIN_POPCNT NO)
+set(BUILTIN_POPCNT 0)
 # Check if we are on a Linux system
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	# Use /proc/cpuinfo to get the information
 	file(STRINGS "/proc/cpuinfo" _cpuinfo)
 	if(_cpuinfo MATCHES "(sse4_2)|(sse4a)")
-		set(BUILTIN_POPCNT YES)
+		set(BUILTIN_POPCNT 1)
+		message("hey dude, builtin popcnt!")
+	else()
+		message("sorry dude, no builtin popcnt")
 	endif()
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 #  handle windows
