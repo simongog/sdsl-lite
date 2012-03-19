@@ -55,13 +55,16 @@ namespace algorithm{
 		
 
 //	public:	
-	// Calculate the entropy of T
+	//! Calculate the zero-order entropy for a text T
+	/*!
+	 *  \param c Pointer to a 0-terminated string. 
+	 *  \return The zero-order entropy of the text.
+	 */	
 	double H_0(const unsigned char *c);
-	
+
 	// Claculate the star entropy of T, see Manzini 2001 for details
 	double H_0s(const unsigned char *c);
 
-	double H_k(const unsigned char *c, uint8_t k);
 
 	//! Calculate the Inverse Suffix Array from a Suffix Array SA. 
 	/*!

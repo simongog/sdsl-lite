@@ -120,6 +120,9 @@ namespace util{
 	template<class T>
 	bool load_from_file(T &v, const char *file_name);
 
+	template<>
+	bool load_from_file(void*&, const char *file_name);	
+
 	template<class size_type_class>
 	bool load_from_int_vector_buffer(unsigned char * &text, int_vector_file_buffer<8, size_type_class> &text_buf);	
 	
@@ -320,44 +323,7 @@ bool util::load_from_int_vector_buffer(unsigned char * &text, int_vector_file_bu
 }	
 	
 
-inline bool util::load_from_file(char* &v, const char *file_name){
-	if( v != NULL ){
-		delete [] v;
-		v = NULL;
-	}
-	std::ifstream in;
-	in.open(file_name, std::ios::binary | std::ios::in );
-	if( in ){
-		const uint64_t SDSL_BLOCK_SIZE = (1<<20);
-		uint64_t n=0, read = 0;
-		char buf[SDSL_BLOCK_SIZE], *cp;
-		do{
-			in.read(buf, SDSL_BLOCK_SIZE);
-			read = in.gcount();
-			n+=read;
-		}while( SDSL_BLOCK_SIZE == read );
-		if(n==0)
-			return false;
-		v = new char[n+1];
-		in.close();
-		in.open(file_name);
-		if(!in){ 
-			delete [] v; 
-			v = NULL; 
-			return false;
-		}
-		cp=v;
-		do{
-			in.read(cp, SDSL_BLOCK_SIZE);
-			read = in.gcount();
-			cp+= read;
-		}while( SDSL_BLOCK_SIZE == read );
-		*(v+n) = '\0';
-		return true;
-	}
-	else
-		return false;
-}
+
 
 template<class int_vector>
 void util::set_random_bits(int_vector &v, int seed){

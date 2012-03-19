@@ -92,6 +92,50 @@ void read_member<std::string>(std::string &t, std::istream &in){
 	t.swap(temp);
 }
 
+template<>
+bool load_from_file(void*& v, const char* file_name){
+	return true;
+}
+
+bool load_from_file(char* &v, const char *file_name){
+	if( v != NULL ){
+		delete [] v;
+		v = NULL;
+	}
+	std::ifstream in;
+	in.open(file_name, std::ios::binary | std::ios::in );
+	if( in ){
+		const uint64_t SDSL_BLOCK_SIZE = (1<<20);
+		uint64_t n=0, read = 0;
+		char buf[SDSL_BLOCK_SIZE], *cp;
+		do{
+			in.read(buf, SDSL_BLOCK_SIZE);
+			read = in.gcount();
+			n+=read;
+		}while( SDSL_BLOCK_SIZE == read );
+		if(n==0)
+			return false;
+		v = new char[n+1];
+		in.close();
+		in.open(file_name);
+		if(!in){ 
+			delete [] v; 
+			v = NULL; 
+			return false;
+		}
+		cp=v;
+		do{
+			in.read(cp, SDSL_BLOCK_SIZE);
+			read = in.gcount();
+			cp+= read;
+		}while( SDSL_BLOCK_SIZE == read );
+		*(v+n) = '\0';
+		return true;
+	}
+	else
+		return false;
+}
+
 
 }// end namespace util
 }// end namespace sdsl

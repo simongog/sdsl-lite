@@ -60,21 +60,4 @@ double algorithm::H_0s(const unsigned char *c){
 
 }
 
-double algorithm::H_k(const unsigned char *c, uint8_t k){
-	if(k==0)
-		return H_0(c);
-	size_t n = strlen((const char*)c);
-	if(n==0)
-		return 0;
-	size_t cnt[256] = {};
-	double res = 0;
-	tMSS mapi;
-	for(uint16_t i=1; i<256; ++i)
-		if(cnt[i]>0){
-			res += (double)cnt[i]/(double)n * log2((double)n/(double)cnt[i]);
-//			std::cerr<<"cnt["<<i<<"] = "<<cnt[i]<<"  n = "<<n<<std::endl;
-		}
-	return res;
-}
-
 }
