@@ -69,7 +69,7 @@ class rrr_vector_var{
 	typedef rrr_select_support_var<1, wt_type, block_size> select_1_type;
 	typedef rrr_select_support_var<0, wt_type, block_size> select_0_type;
 
-	typedef binomial<block_size> bi_type;
+	typedef binomial2<block_size> bi_type;
 
 	enum{ rrr_block_size = block_size };
   private:
@@ -190,9 +190,9 @@ class rrr_vector_var{
      for( size_type j = sample_pos*m_sample_rate; j < bt_idx; ++j ){
 	 	btnrp += bi_type::space_for_bt( m_bt[j] );
 	 }
-     uint32_t btnr = m_btnr.get_int(btnrp, bi_type::space_for_bt( bt ) );
+     uint64_t btnr = m_btnr.get_int(btnrp, bi_type::space_for_bt( bt ) );
 
-	 return (bi_type::nr_to_bin( bt, btnr) >> off) & (uint32_t)1;
+	 return (bi_type::nr_to_bin( bt, btnr) >> off) & (uint64_t)1;
    }
 
    //! Returns the size of the original bit vector.
@@ -330,34 +330,7 @@ class rrr_rank_support_var{
 				btnrp += bi_type::space_for_bt( r ); // TODO: brauchst man nicht falls bt[bt_idx] schon 0 oder block_size ist
 			 }
 			 uint8_t bt = inv ? block_size - m_v->m_bt[ bt_idx ] : m_v->m_bt[ bt_idx ];
-			 uint32_t btnr = m_v->m_btnr.get_int(btnrp, bi_type::space_for_bt( bt ) );
-			 uint8_t off = i % block_size; //i - bt_idx*block_size;
-			 return rrr_rank_support_var_trait<b>::adjust_rank( rank + 
-					 bit_magic::b1Cnt( ((uint64_t)(bi_type::nr_to_bin( bt, btnr ))) & bit_magic::Li1Mask[off] ), i);
-		}
-
-	    // Answers rank queries if block_size = 15
-		const size_type rank1(size_type i)const{
-			 size_type bt_idx = i/block_size;
-			 size_type sample_pos = bt_idx/m_sample_rate;
-			 size_type btnrp = m_v->m_btnrp[ sample_pos ];
-			 size_type rank  = m_v->m_rank[ sample_pos ];
-			 size_type diff_rank  = m_v->m_rank[ sample_pos+1 ] - rank;
-			 if( diff_rank == 0 ){
-				return  rrr_rank_support_var_trait<b>::adjust_rank( rank, i );
-			 }else if( diff_rank == block_size*m_sample_rate ){
-				return  rrr_rank_support_var_trait<b>::adjust_rank( 
-					rank + i - sample_pos*m_sample_rate*block_size, i);
-			 }
-			 const bool inv = m_v->m_invert[ sample_pos ];
-//			 uint64_t data = m_v->m_bt.data();
-			 for(size_type j = sample_pos*m_sample_rate; j < bt_idx; ++j ){
-				uint8_t r = m_v->m_bt[j];
-				rank  += (inv ? block_size - r: r);
-				btnrp += bi_type::space_for_bt( r ); // TODO: brauchst man nicht falls bt[bt_idx] schon 0 oder block_size ist
-			 }
-			 uint8_t bt = inv ? block_size - m_v->m_bt[ bt_idx ] : m_v->m_bt[ bt_idx ];
-			 uint32_t btnr = m_v->m_btnr.get_int(btnrp, bi_type::space_for_bt( bt ) );
+			 uint64_t btnr = m_v->m_btnr.get_int(btnrp, bi_type::space_for_bt( bt ) );
 			 uint8_t off = i % block_size; //i - bt_idx*block_size;
 			 return rrr_rank_support_var_trait<b>::adjust_rank( rank + 
 					 bit_magic::b1Cnt( ((uint64_t)(bi_type::nr_to_bin( bt, btnr ))) & bit_magic::Li1Mask[off] ), i);
@@ -476,7 +449,7 @@ class rrr_select_support_var{
 				btnrp += (s=bi_type::space_for_bt(bt));
 			}
 			rank -= bt;
-			uint32_t btnr = m_v->m_btnr.get_int(btnrp-s, s);
+			uint64_t btnr = m_v->m_btnr.get_int(btnrp-s, s);
 			return (idx-1) * block_size + bit_magic::i1BP( bi_type::nr_to_bin(bt, btnr), i-rank );
 	   }
 
@@ -513,7 +486,7 @@ class rrr_select_support_var{
 				btnrp += (s=bi_type::space_for_bt(bt));
 			}
 			rank -= (block_size-bt);
-			uint32_t btnr = m_v->m_btnr.get_int(btnrp-s, s);
+			uint64_t btnr = m_v->m_btnr.get_int(btnrp-s, s);
 			return (idx-1) * block_size + bit_magic::i1BP( ~((uint64_t)bi_type::nr_to_bin(bt, btnr)), i-rank );
 	   }
 

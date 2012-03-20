@@ -34,7 +34,7 @@ class binomial{
 	static class impl{	
 		public:
 		static const int MAX_SIZE=32;	
-		uint8_t m_space_for_bt[MAX_SIZE];
+		uint8_t m_space_for_bt[n+1];
 		uint8_t m_space_for_bt_pair[256*(n==15)];
 		uint64_t m_C[MAX_SIZE];
 		int_vector<32> m_nr_to_bin;
@@ -94,5 +94,102 @@ class binomial{
 template<uint8_t n>
 typename binomial<n>::impl binomial<n>::iii;
 
-}
+
+// Second helper class.
+// Idea based on the paper
+// Gonzalo Navarro and Eliana Providel: Fast, Small, Simple Rank/Select on Bitmaps, SEA 2012
+template<uint8_t n>	
+class binomial2{
+	private:
+
+	static class impl{
+		public:
+			static const int MAX_SIZE=64;
+			uint8_t m_space_for_bt[n+1];
+			uint64_t m_coefficients[MAX_SIZE][MAX_SIZE]; // m_coefficient[n][k] stores /n\
+                                                         //                            \k/
+														 // TODO: this table is the same for all possible n
+														 // the different binomial2 classes should share it 
+			impl(){
+				for (int k=0; k<MAX_SIZE; ++k){
+					m_coefficients[0][k] = 0;
+				}
+				for (int nn=0; nn<MAX_SIZE; ++nn){
+					m_coefficients[nn][0] = 1;
+				}
+				for (int nn=1; nn<MAX_SIZE; ++nn){
+					for (int k=1; k<MAX_SIZE; ++k){
+						m_coefficients[nn][k] = m_coefficients[nn-1][k-1] + m_coefficients[nn-1][k];
+//						std::cout << nn << " " << k << "   " << m_coefficients[nn][k] << std::endl;
+						// check overflow
+//						if ( m_coefficients[nn][k] < m_coefficients[nn-1][k-1] or 
+//							 m_coefficients[nn][k] < m_coefficients[nn-1][k-1] ){
+//							std::cout << "ERROR: for nn="<< nn <<" k="<< k << std::endl;
+//						}
+					}
+				}
+				for (uint8_t k=0; k<=n; ++k){
+					if ( m_coefficients[n][k] == 1 ){
+						m_space_for_bt[k] = 0;
+					}else{
+						m_space_for_bt[k] = bit_magic::l1BP( m_coefficients[n][k] )+1;
+					}
+//					std::cout<<"m_space_for_bt["<<(int)k<<"]="<<(int)m_space_for_bt[k]<<" m_coefficients[n][k]="<<m_coefficients[n][k]<<std::endl;
+				}
+			}
+	} iii;
+
+	public:
+	
+	static inline uint8_t space_for_bt(uint64_t i){
+		return iii.m_space_for_bt[i];
+	}
+
+	static inline uint64_t nr_to_bin(uint8_t k, uint64_t nr){
+		if ( k == n ){
+			return bit_magic::Li1Mask[n];
+		}else if (k == 0){
+			return 0;
+		}
+		uint64_t bin = 0;
+		uint64_t mask = 1;
+		uint8_t nn = n;
+		while ( k ){
+			if ( nr >= iii.m_coefficients[nn-1][k] ){
+				nr -= iii.m_coefficients[nn-1][k];
+				--k;
+				bin |= mask;
+			}
+			--nn;
+			mask <<= 1;
+		}
+		return bin;
+	}
+
+	static inline uint64_t bin_to_nr(uint64_t bin){
+		if ( bin == 0 or bin == bit_magic::Li1Mask[n] ){ // handle special cases
+			return 0;
+		}
+		uint64_t nr = 0;
+		uint8_t  k  = bit_magic::b1Cnt(bin);
+		uint8_t  nn = n;
+		while ( bin ){
+			if ( bin&1 ){
+				nr += iii.m_coefficients[nn-1][k];
+				--k; // go to the case (n-1, k-1) 
+			}// else go to the case (n-1, k)
+			bin >>= 1;
+			--nn;
+		}
+		return nr;
+	}
+
+	static inline uint8_t space_for_bt_pair(uint8_t x){
+		return 0;//iii.m_space_for_bt_pair[x];
+	}
+};
+template<uint8_t n>
+typename binomial2<n>::impl binomial2<n>::iii;
+
+} // end namespace
 #endif
