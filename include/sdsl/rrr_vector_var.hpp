@@ -36,10 +36,10 @@ namespace sdsl{
 	
 
 
-template<uint8_t b=1, class wt_type=int_vector<>, uint8_t block_size=15 >  // forward declaration needed for friend declaration
+template<uint8_t b=1, uint8_t block_size=15, class wt_type=int_vector<> >  // forward declaration needed for friend declaration
 class rrr_rank_support_var;                // in rrr_vector_var
 
-template<uint8_t b=1, class wt_type=int_vector<>, uint8_t block_size=15 >  // forward declaration needed for friend declaration
+template<uint8_t b=1, uint8_t block_size=15, class wt_type=int_vector<> >  // forward declaration needed for friend declaration
 class rrr_select_support_var;                // in rrr_vector_var
 
 //! A bit vector which compresses the input with the method from Raman, Raman, and Rao
@@ -52,21 +52,21 @@ class rrr_select_support_var;                // in rrr_vector_var
 	In this version the block size can be adjust by the template parameter block_size!
 	\sa sdsl::rrr_vector for a specialized version for block_size=15
 */
-template<class wt_type=int_vector<>, uint8_t block_size=15> 
+template<uint8_t block_size=15, class wt_type=int_vector<> > 
 class rrr_vector_var{
   public:	
     typedef bit_vector::size_type size_type;
     typedef bit_vector::value_type value_type;
 
-	friend class rrr_rank_support_var<0, wt_type, block_size>;
-	friend class rrr_rank_support_var<1, wt_type, block_size>;
-	friend class rrr_select_support_var<0, wt_type, block_size>;
-	friend class rrr_select_support_var<1, wt_type, block_size>;
+	friend class rrr_rank_support_var<0, block_size, wt_type>;
+	friend class rrr_rank_support_var<1, block_size, wt_type>;
+	friend class rrr_select_support_var<0, block_size, wt_type>;
+	friend class rrr_select_support_var<1, block_size, wt_type>;
 
-	typedef rrr_rank_support_var<1, wt_type, block_size> rank_1_type; // typedef for default types for rank and select
-	typedef rrr_rank_support_var<0, wt_type, block_size> rank_0_type;
-	typedef rrr_select_support_var<1, wt_type, block_size> select_1_type;
-	typedef rrr_select_support_var<0, wt_type, block_size> select_0_type;
+	typedef rrr_rank_support_var<1, block_size, wt_type> rank_1_type; // typedef for default types for rank and select
+	typedef rrr_rank_support_var<0, block_size, wt_type> rank_0_type;
+	typedef rrr_select_support_var<1, block_size, wt_type> select_1_type;
+	typedef rrr_select_support_var<0, block_size, wt_type> select_0_type;
 
 	typedef binomial2<block_size> bi_type;
 
@@ -280,10 +280,10 @@ struct rrr_rank_support_var_trait<0>{
  *    is this called hinted binary search???
  *    or is this called  
  */
-template<uint8_t b, class wt_type, uint8_t block_size> 
+template<uint8_t b, uint8_t block_size, class wt_type> 
 class rrr_rank_support_var{
 	public:	
-		typedef rrr_vector_var<wt_type, block_size> rrr_type;
+		typedef rrr_vector_var<block_size, wt_type> rrr_type;
 		typedef typename rrr_type::size_type size_type;
 		typedef typename rrr_type::bi_type bi_type;
 
@@ -404,10 +404,10 @@ class rrr_rank_support_var{
 };
 
 //! Select support for the rrr_vector_var class.
-template<uint8_t b,class wt_type, uint8_t block_size> 
+template<uint8_t b, uint8_t block_size, class wt_type> 
 class rrr_select_support_var{
 	public:	
-		typedef rrr_vector_var<wt_type, block_size> rrr_type;
+		typedef rrr_vector_var<block_size, wt_type> rrr_type;
 		typedef typename rrr_type::size_type size_type;
 		typedef typename rrr_type::bi_type bi_type;
 
