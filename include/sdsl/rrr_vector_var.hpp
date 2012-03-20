@@ -50,9 +50,8 @@ class rrr_select_support_var;                // in rrr_vector_var
 	of k-ary trees and multi-sets.
 
 	In this version the block size can be adjust by the template parameter block_size!
+	\sa sdsl::rrr_vector for a specialized version for block_size=15
 */
-// TODO: if block_size==15 then wt_type=int_vector<4>
-// realize fast access to int_vector<4> 
 template<class wt_type=int_vector<>, uint8_t block_size=15> 
 class rrr_vector_var{
   public:	
@@ -80,7 +79,7 @@ class rrr_vector_var{
    bit_vector     m_btnr; // data structure, which stores the block type numbers of the blocks  
    int_vector<>   m_btnrp; // sample pointers into btnr
    int_vector<>   m_rank;  // sample rank values
-   bit_vector     m_invert; // specifies if a a superblock (i.e. sample_rate blocks) have to be considered as inverted
+   bit_vector     m_invert; // specifies if a superblock (i.e. sample_rate blocks) have to be considered as inverted
                             // i.e. 1 and 0 are swapped
 
   public:	
@@ -169,7 +168,7 @@ class rrr_vector_var{
 	 }
 	 // for technical reasons add an additional element to m_rank
 	 m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv 
-	 m_bt = wt_type(bt_array);
+	 m_bt = wt_type(bt_array); // TODO: use assign from util?
    }
    
    //! Accessing the i-th element of the original bit_vector

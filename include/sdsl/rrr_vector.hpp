@@ -46,7 +46,9 @@ class rrr_select_support;                // in rrr_vector
 	Succinct Indexable Dictionaries with Applications to representations 
 	of k-ary trees and multisets.
 	This implementation fixes the block size to 15 and includes optimizations
-	for bit vectors which contains runs of length >= 15 . 
+	for bit vectors which contains runs of length >= 15 .
+
+	For a version with variable block size see sdsl::rrr_vector_var .
 */
 template<class wt_type=int_vector<> > 
 class rrr_vector{
@@ -142,7 +144,7 @@ class rrr_vector{
 	 }
 	 // for technical reasons add an additional element to m_rank
 	 m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv 
-	 m_bt = wt_type(bt_array);
+	 m_bt = wt_type(bt_array); // TODO: use assign from util?
    }
    
    //! Accessing the i-th element of the original bit_vector
