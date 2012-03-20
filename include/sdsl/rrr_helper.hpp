@@ -98,6 +98,7 @@ typename binomial<n>::impl binomial<n>::iii;
 // Second helper class.
 // Idea based on the paper
 // Gonzalo Navarro and Eliana Providel: Fast, Small, Simple Rank/Select on Bitmaps, SEA 2012
+// TODO: Further improve by precalc decoding of blocks with small k
 template<uint8_t n>	
 class binomial2{
 	private:

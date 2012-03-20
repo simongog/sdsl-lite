@@ -73,15 +73,20 @@ class int_vector_iterator; // forward declaration
 template<class int_vector>
 class int_vector_const_iterator;  // forward declaration
 
+template<uint8_t b, uint8_t patter_len>  // forward declaration
+class rank_support_v;
+
 class rank_support_jmc;
 template<uint8_t bit_pattern, uint8_t pattern_len>
 class rank_support_v;
 class rank_support;
 
 class select_support;
+
 template<class RankSupport>
 class select_support_bs;
-template<uint8_t bit_pattern, uint8_t pattern_len>
+
+template<uint8_t bit_pattern, uint8_t pattern_len> // forward declaration
 class select_support_mcl;
 
 namespace coder{
@@ -306,6 +311,10 @@ class int_vector{
 	typedef ptrdiff_t 					difference_type;// STL Container requirement
 	typedef size_type_class												size_type;		// STL Container requirement
 	typedef	typename int_vector_trait<fixedIntWidth,size_type_class>::int_width_type	int_width_type;
+	typedef rank_support_v<1,1> rank_1_type;
+	typedef rank_support_v<0,1> rank_0_type;
+	typedef select_support_mcl<1,1> select_1_type;
+	typedef select_support_mcl<0,1> select_0_type;
 
 	friend struct int_vector_trait<fixedIntWidth, size_type_class>;
 	friend class int_vector_iterator_base<int_vector>;
