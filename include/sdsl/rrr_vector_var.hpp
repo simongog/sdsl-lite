@@ -58,6 +58,8 @@ class rrr_vector_var{
     typedef bit_vector::size_type size_type;
     typedef bit_vector::value_type value_type;
 
+//	template<uint8_t b, uint8_t blockSize, class wtType>
+//	friend class rrr_rank_support_var;
 	friend class rrr_rank_support_var<0, block_size, wt_type>;
 	friend class rrr_rank_support_var<1, block_size, wt_type>;
 	friend class rrr_select_support_var<0, block_size, wt_type>;
@@ -93,6 +95,8 @@ class rrr_vector_var{
 	*/	
    rrr_vector_var(const bit_vector &bv, uint16_t sample_rate=32): m_sample_rate(sample_rate){
 	 m_size = bv.size();						 
+	 if ( m_size == 0 )
+		 return;
 	 int_vector<> bt_array;
      bt_array.set_int_width( bit_magic::l1BP(block_size)+1 );
 	 bt_array.resize( (m_size+block_size-1)/block_size );
@@ -283,24 +287,24 @@ struct rrr_rank_support_var_trait<0>{
 template<uint8_t b, uint8_t block_size, class wt_type> 
 class rrr_rank_support_var{
 	public:	
-		typedef rrr_vector_var<block_size, wt_type> rrr_type;
-		typedef typename rrr_type::size_type size_type;
-		typedef typename rrr_type::bi_type bi_type;
+		typedef rrr_vector_var<block_size, wt_type> bit_vector_type;
+		typedef typename bit_vector_type::size_type size_type;
+		typedef typename bit_vector_type::bi_type bi_type;
 
 	private:
-		const rrr_type *m_v; //!< Pointer to the rank supported rrr_vector_var
+		const bit_vector_type *m_v; //!< Pointer to the rank supported rrr_vector_var
 		uint16_t m_sample_rate;  //!<    "     "   "      "
 
 	public:
 		//! Standard constructor
 		/*! \param v Pointer to the rrr_vector_var, which should be supported
 		 */
-		rrr_rank_support_var(const rrr_type *v=NULL){
+		rrr_rank_support_var(const bit_vector_type *v=NULL){
 			init(v);	
 		}
 
 		//! Initialize the data structure with a rrr_vector_var, which should be supported
-		void init(const rrr_type *v=NULL){
+		void init(const bit_vector_type *v=NULL){
 			set_vector(v);
 		}
 
@@ -346,7 +350,7 @@ class rrr_rank_support_var{
 		}
 
 		//! Set the supported vector.
-		void set_vector(const rrr_type *v=NULL){
+		void set_vector(const bit_vector_type *v=NULL){
 			m_v = v;
 			if( v != NULL ){
 				m_sample_rate = m_v->m_sample_rate;
@@ -380,7 +384,7 @@ class rrr_rank_support_var{
 		}
 
 		//! Load the data structure from a stream and set the supported vector.
-		void load(std::istream &in, const rrr_type *v=NULL){
+		void load(std::istream &in, const bit_vector_type *v=NULL){
 			in.read((char*) &m_sample_rate, sizeof(m_sample_rate));
 			set_vector(v);
 		}
@@ -407,12 +411,12 @@ class rrr_rank_support_var{
 template<uint8_t b, uint8_t block_size, class wt_type> 
 class rrr_select_support_var{
 	public:	
-		typedef rrr_vector_var<block_size, wt_type> rrr_type;
-		typedef typename rrr_type::size_type size_type;
-		typedef typename rrr_type::bi_type bi_type;
+		typedef rrr_vector_var<block_size, wt_type> bit_vector_type;
+		typedef typename bit_vector_type::size_type size_type;
+		typedef typename bit_vector_type::bi_type bi_type;
 
 	private:
-		const rrr_type *m_v; //!< Pointer to the rank supported rrr_vector_var
+		const bit_vector_type *m_v; //!< Pointer to the rank supported rrr_vector_var
 		uint16_t m_sample_rate;  //!<    "     "   "      "
 
 	   size_type  select1(size_type i)const{
@@ -492,11 +496,11 @@ class rrr_select_support_var{
 
 
 	public:	
-		rrr_select_support_var(const rrr_type *v=NULL){
+		rrr_select_support_var(const bit_vector_type *v=NULL){
 			init(v);	
 		}
 
-		void init(const rrr_type *v=NULL){
+		void init(const bit_vector_type *v=NULL){
 			set_vector(v);
 		}
 
@@ -514,7 +518,7 @@ class rrr_select_support_var{
 			return m_v->size();
 		}
 
-		void set_vector(const rrr_type *v=NULL){
+		void set_vector(const bit_vector_type *v=NULL){
 			m_v = v;
 			if( v != NULL ){
 				m_sample_rate = m_v->m_sample_rate;
@@ -548,7 +552,7 @@ class rrr_select_support_var{
 		}
 
 
-		void load(std::istream &in, const rrr_type *v=NULL){
+		void load(std::istream &in, const bit_vector_type *v=NULL){
 			in.read((char*) &m_sample_rate, sizeof(m_sample_rate));
 			set_vector(v);
 		}
