@@ -100,7 +100,7 @@ class stop_watch
 };
 
 //! Write stopwatch output in readable format
-void write_R_output(std::string data_structure, std::string action,
+inline void write_R_output(std::string data_structure, std::string action,
                     std::string state="begin", uint64_t times=1, uint64_t check=0)
 {
 #ifdef WRITE_R_OUTPUT
