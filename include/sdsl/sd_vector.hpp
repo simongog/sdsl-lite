@@ -114,7 +114,26 @@ class sd_vector{
 //std::cout<<"m_low and m_high initialized="<<std::endl;
 			const uint64_t *bvp = bv.data();
 			for(size_type i=0, mm=0,last_high=0,highpos=0; i < (bv.size()+63)/64; ++i, ++bvp){
-				if( *bvp ){ // if there is a one in the word
+				size_type position = 64*i;
+				uint64_t  w = *bvp;
+				while ( w ){
+					uint8_t offset = bit_magic::r1BP(w);
+					w >>= offset;   // note:  w >>= (offset+1) can not be applied for offset=63!
+					position += offset;
+					if ( position >= bv.size() )
+						break;
+					// (1) handle high part
+					size_type cur_high = position >> m_wl;
+					highpos += ( cur_high - last_high ); // write cur_high-last_high 0s 
+					last_high = cur_high;
+					// (2) handle low part
+					m_low[mm++] = position; // int_vector truncates the most significant logm bits
+					m_high[highpos++] = 1;     // write 1 for the entry
+					position += 1;
+					w >>= 1;
+				}
+/*				
+				if( *bvp ){ // if there is a set bit in the word
 					for(size_type j=0; j<64 and 64*i+j < bv.size(); ++j) // check each bit of the word
 						if( bv[64*i+j] ){
 							// (1) handle high part
@@ -126,6 +145,7 @@ class sd_vector{
 							m_high[highpos++] = 1;     // write 1 for the entry
 						}
 				}
+*/				
 			}
 //std::cout<<"m_low and m_high filled"<<std::endl;
 /*			
