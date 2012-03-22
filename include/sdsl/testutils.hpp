@@ -24,6 +24,8 @@
 #include "int_vector.hpp"
 #include <sys/time.h> // for struct timeval
 #include <sys/resource.h> // for struct rusageA
+#include <iomanip>
+#include <iostream>
 #include <string>
 
 namespace sdsl

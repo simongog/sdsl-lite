@@ -20,6 +20,9 @@
 */
 #include "sdsl/bwt_construct.hpp"
 #include <string>
+#include <iostream>
+#include <iomanip>
+
 
 namespace sdsl{
 	
