@@ -30,9 +30,18 @@ namespace sdsl{
 template<uint8_t, uint8_t>
 struct rank_support_v_trait;	
 
-//! A class supporting rank queries in constant time. The implementation is a space saving version of the data structure porposed by Vigna (WEA 2008).
+//! A class supporting rank queries in constant time. The implementation is a space saving version of the data structure proposed by Vigna (WEA 2008).
 /*! \par Space complexity
  *  \f$ 0.0625n\f$ bits for a bit vector of length n bits.
+ *
+ * The superblock size is 2048.
+ * Each superblock is subdivided into 2048/(6*64) = 5 blocks (with some bit remaining).
+ * So absolute counts for the superblock add 64/2048 bits on top of each supported bit.
+ * Since the first of the 6 relative count values is 0, we can fit the remaining 
+ * 5 in (each of width log(2048)=11) in a 64 bit word.
+ * The relative counts add another 64/2048 bits bits on top of each supported bit.
+ * In total this results is 128/2048= 6.25% overhead.
+ *
  * @ingroup rank_support_group 
  */
 template<uint8_t b=1, uint8_t pattern_len=1>	

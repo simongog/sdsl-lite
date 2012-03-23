@@ -142,6 +142,15 @@ struct rank_support_v_trait<01,2>{
 //! A class supporting rank queries in constant time. The implementation is a version of the data structure proposed by Vigna (WEA 2008).
 /*! \par Space complexity
  *  \f$ 0.25n\f$ for a bit vector of length n bits.
+ *
+ * The superblock size is 512. 
+ * Each superblock is subdivided into 512/64 = 8 blocks.
+ * So absolute counts for the superblock add 64/512 bits on top of each supported bit.
+ * Since the first of the 8 relative count values is 0, we can fit the remaining 
+ * 7 (each of width log(512)=9) in a 64bit word.
+ * The relative counts add another 64/512 bits on top of each supported bit.
+ * In total this results in 128/512=25% overhead.
+ * 
  * @ingroup rank_support_group 
  */
 template<uint8_t b=1, uint8_t pattern_len=1>	
