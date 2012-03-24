@@ -151,11 +151,14 @@ class binomial2{
 			return bit_magic::Li1Mask[n];
 		}else if (k == 0){
 			return 0;
+		} else if( k == 1 ){
+			return 1ULL<<(n-1-nr);
 		}
 		uint64_t bin = 0;
 		uint64_t mask = 1;
 		uint8_t nn = n;
-		while ( k ){
+		while ( k > 1 ){
+//		while ( k  ){
 			if ( nr >= iii.m_coefficients[nn-1][k] ){
 				nr -= iii.m_coefficients[nn-1][k];
 				--k;
@@ -164,7 +167,9 @@ class binomial2{
 			--nn;
 			mask <<= 1;
 		}
-		return bin;
+		// now: k == 1
+		return bin | (1ULL<<(n-1-nr)); 
+//		return bin;
 	}
 
 	static inline uint64_t bin_to_nr(uint64_t bin){
@@ -172,8 +177,8 @@ class binomial2{
 			return 0;
 		}
 		uint64_t nr = 0;
-		uint8_t  k  = bit_magic::b1Cnt(bin);
-		uint8_t  nn = n;
+		uint8_t  k  = bit_magic::b1Cnt(bin); // get number of ones
+		uint8_t  nn = n; // size of the block
 		while ( bin ){
 			if ( bin&1 ){
 				nr += iii.m_coefficients[nn-1][k];
