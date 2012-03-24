@@ -110,7 +110,7 @@ class sd_vector{
 			m_wl    = logn - logm;
 //std::cout<<"m_wl="<<(int)m_wl<<std::endl;
 			m_low = int_vector<>(m, 0, m_wl);
-			m_high = bit_vector(m + (1<<logm), 0);
+			m_high = bit_vector(m + (1ULL<<logm), 0);
 //std::cout<<"m_low and m_high initialized="<<std::endl;
 			const uint64_t *bvp = bv.data();
 			for(size_type i=0, mm=0,last_high=0,highpos=0; i < (bv.size()+63)/64; ++i, ++bvp){
@@ -132,20 +132,6 @@ class sd_vector{
 					position += 1;
 					w >>= 1;
 				}
-/*				
-				if( *bvp ){ // if there is a set bit in the word
-					for(size_type j=0; j<64 and 64*i+j < bv.size(); ++j) // check each bit of the word
-						if( bv[64*i+j] ){
-							// (1) handle high part
-							size_type cur_high = (64*i+j) >> m_wl;
-							highpos += ( cur_high - last_high ); // write cur_high-last_high 0s 
-							last_high = cur_high;
-							// (2) handle low part
-							m_low[mm++] = 64*i+j; // int_vector truncates the most significant logm bits
-							m_high[highpos++] = 1;     // write 1 for the entry
-						}
-				}
-*/				
 			}
 //std::cout<<"m_low and m_high filled"<<std::endl;
 /*			
