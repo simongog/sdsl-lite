@@ -541,17 +541,17 @@ inline const typename select_support_mcl<b,pattern_len>::size_type select_suppor
 	i = i-1;
 	size_type sb_idx = i>>12;   // i/4096
 	size_type offset = i&0xFFF; // i%4096
-	if( m_longsuperblock!=NULL and !m_longsuperblock[sb_idx].empty() ){
+	if ( m_longsuperblock!=NULL and !m_longsuperblock[sb_idx].empty() ){
 //		std::cout<<"i="<<i<<" sb_idx="<<sb_idx<<" offset="<<offset<<std::endl;
 //		std::cout<<"sb_size"<<m_longsuperblock[sb_idx].size()<<std::endl;
 		return m_longsuperblock[sb_idx][offset];
 	}else{
-		if((offset&0x3F)==0){
+		if ((offset&0x3F)==0){
 			assert(sb_idx < m_superblock.size() );
-			if( (offset>>6) >= m_miniblock[sb_idx].size() ){
-				std::cerr<<" i="<<i<<std::endl;
-				std::cerr<<" "<< (offset>>6) <<" >= "<<  m_miniblock[sb_idx].size() << std::endl; 
-			}
+//			if( (offset>>6) >= m_miniblock[sb_idx].size() ){
+//				std::cerr<<" i="<<i<<std::endl;
+//				std::cerr<<" "<< (offset>>6) <<" >= "<<  m_miniblock[sb_idx].size() << std::endl; 
+//			}
 			assert((offset>>6) < m_miniblock[sb_idx].size());
 			return m_superblock[sb_idx] + m_miniblock[sb_idx][offset>>6/*/64*/];
 		}
@@ -573,7 +573,7 @@ inline const typename select_support_mcl<b,pattern_len>::size_type select_suppor
 			uint64_t carry = select_support_mcl_trait<b,pattern_len>::init_carry(data, word_pos);
 			size_type args = select_support_mcl_trait<b,pattern_len>::args_in_the_first_word(*data, word_off, carry);
 
-			if( args >= i ){
+			if ( args >= i ){
 				return (word_pos<<6)+select_support_mcl_trait<b,pattern_len>::ith_arg_pos_in_the_first_word(*data, i, word_off, carry);	
 			}
 			word_pos+=1;
@@ -581,14 +581,15 @@ inline const typename select_support_mcl<b,pattern_len>::size_type select_suppor
 			carry = select_support_mcl_trait<b,pattern_len>::get_carry(*data);
 			uint64_t old_carry = carry;
 			args = select_support_mcl_trait<b,pattern_len>::args_in_the_word(*(++data), carry);
-			while( sum_args + args < i ){
+			while ( sum_args + args < i ){
 				sum_args += args;
 				assert(data+1 < m_v->data() + (m_v->capacity()>>6) );
 				old_carry = carry;
 				args = select_support_mcl_trait<b,pattern_len>::args_in_the_word(*(++data), carry);
 				word_pos+=1;
 			}
-			return (word_pos<<6) + select_support_mcl_trait<b,pattern_len>::ith_arg_pos_in_the_word(*data, i-sum_args, old_carry);
+			return (word_pos<<6) + 
+				   select_support_mcl_trait<b,pattern_len>::ith_arg_pos_in_the_word(*data, i-sum_args, old_carry);
 		}	
 	}
 }
