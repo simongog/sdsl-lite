@@ -117,7 +117,7 @@ class rrr_vector_var{
 	    btnr_pos += bi_type::space_for_bt( x );
 	 }
 //	 cout << "# bt array initialized "<< endl;
-	 m_btnr.resize( std::max(btnr_pos, (size_type)1) ); // max neccessary for case: block_size == 1
+	 m_btnr.resize( std::max(btnr_pos, (size_type)1) ); // max necessary for case: block_size == 1
 	 m_btnrp.set_int_width( bit_magic::l1BP(btnr_pos)+1 ); m_btnrp.resize( (bt_array.size()+m_sample_rate-1)/m_sample_rate  );
 	 m_rank.set_int_width( bit_magic::l1BP(sum_rank)+1 ); m_rank.resize( (bt_array.size()+m_sample_rate-1)/m_sample_rate + 1  );
 	 m_invert = bit_vector( (bt_array.size()+m_sample_rate-1)/m_sample_rate, 0 );
@@ -126,30 +126,33 @@ class rrr_vector_var{
 	 pos = 0; i = 0; 
 	 btnr_pos= 0, sum_rank = 0;
 	 bool invert = false;
-	 while( pos + block_size <= m_size ){ // handle all blocks, except the last one
-	   if( (i % m_sample_rate) == 0 ){
+	 while ( pos + block_size <= m_size ){ // handle all blocks, except the last one
+	   if ( (i % m_sample_rate) == 0 ){
 	     m_btnrp[ i/m_sample_rate ] = btnr_pos;
 	     m_rank[ i/m_sample_rate ] = sum_rank;
 		 // calculate invert bit for that superblock
-		 if( i+m_sample_rate <= bt_array.size() ){
+		 if ( i+m_sample_rate <= bt_array.size() ){
 			size_type gt_half_block_size = 0; // counter for blocks greater than half of the blocksize 
 		 	for(size_type j=i; j < i+m_sample_rate; ++j ){
-				if( bt_array[j] > block_size/2 )
+				if ( bt_array[j] > block_size/2 )
 					++gt_half_block_size;
 			}
-			if( gt_half_block_size > (m_sample_rate/2) ){ 
+			if ( gt_half_block_size > (m_sample_rate/2) ){ 
 				m_invert[ i/m_sample_rate ] = 1;
-				invert = true;
-				for(size_type j=i; j < i+m_sample_rate; ++j ){
+				for (size_type j=i; j < i+m_sample_rate; ++j ){
 					bt_array[j] = block_size - bt_array[j];
 				}
-			}else{
+				invert = true;
+			}else
+			{
 				invert = false;
 			}
+		 }else{
+		 	invert = false;
 		 }
 	   }
        uint8_t space_for_bt = bi_type::space_for_bt( x=bt_array[i++] );
-	   sum_rank += invert ? block_size - x : x;
+	   sum_rank += (invert ? (block_size - x) : x);
 	   if( space_for_bt ){
 	     m_btnr.set_int(btnr_pos, bi_type::bin_to_nr( bv.get_int(pos, block_size) ), space_for_bt );
 	   } 
@@ -164,7 +167,7 @@ class rrr_vector_var{
 		  invert = false;
 	    }
         uint8_t space_for_bt = bi_type::space_for_bt( x=bt_array[i++] );
-	    sum_rank += invert ? block_size - x : x;
+	    sum_rank += invert ? (block_size - x) : x;
 	    if( space_for_bt ){
 	      m_btnr.set_int(btnr_pos, bi_type::bin_to_nr( bv.get_int(pos, m_size - pos) ), space_for_bt );
 	    } 
@@ -172,7 +175,8 @@ class rrr_vector_var{
 	 }
 	 // for technical reasons add an additional element to m_rank
 	 m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv 
-	 m_bt = wt_type(bt_array); // TODO: use assign from util?
+	 util::assign(m_bt, bt_array);
+//	 m_bt = wt_type(bt_array); // TODO: use assign from util?
    }
    
    //! Accessing the i-th element of the original bit_vector
@@ -419,7 +423,7 @@ class rrr_select_support_var{
 		const bit_vector_type *m_v; //!< Pointer to the rank supported rrr_vector_var
 		uint16_t m_sample_rate;  //!<    "     "   "      "
 
-	   size_type  select1(size_type i)const{
+	   size_type select1(size_type i)const{
 			if( m_v->m_rank[m_v->m_rank.size()-1] < i )
 				return size();
 			//  (1) binary search for the answer in the rank_samples

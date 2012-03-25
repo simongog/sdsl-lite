@@ -151,7 +151,7 @@ class binomial2{
 			return bit_magic::Li1Mask[n];
 		}else if (k == 0){
 			return 0;
-		} else if( k == 1 ){
+		}else if( k == 1 ){
 			return 1ULL<<(n-1-nr);
 		}
 		uint64_t bin = 0;
