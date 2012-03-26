@@ -107,7 +107,7 @@ class binomial2{
 		public:
 			static const int MAX_SIZE=64;
 			uint8_t m_space_for_bt[n+1];
-			uint64_t m_coefficients[MAX_SIZE][MAX_SIZE]; // m_coefficient[n][k] stores /n\
+			uint64_t m_coefficients[MAX_SIZE][MAX_SIZE]; // m_coefficient[n][k] stores /n
                                                          //                            \k/
 														 // TODO: this table is the same for all possible n
 														 // the different binomial2 classes should share it 
