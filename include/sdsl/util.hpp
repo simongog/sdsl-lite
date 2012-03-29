@@ -30,7 +30,8 @@
 #include <fstream> // file stream for storeToFile and loadFromFile
 #include <ctime>  // for rand initialization
 #include <string>
-#include <string.h> // for strlen
+#include <string.h> // for strlen and strdup
+#include <libgen.h> // for basename
 #include <cstdlib>
 #include <unistd.h> // for getpid 
 #include <sstream> // for to_string method
@@ -52,6 +53,10 @@ class int_vector;	 // forward declaration
 
 //! A namespace for helper functions
 namespace util{
+
+	//! Returns the basename of a file_name
+	std::string basename(const std::string &file_name);
+
 	//! Sets all bits of the int_vector to pseudo-random bits.
 	/*! \param v The int_vector whose bits should be set to random bits
 	 *  \param seed If seed = 0, the time is used to initialize the 
