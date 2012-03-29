@@ -20,13 +20,14 @@
 #include <vector> 
 
 namespace sdsl{
+
 namespace util{
 
 uint64_t _id_helper::id = 0;
 
 std::string basename(const std::string &file_name){
 	char *c = strdup((const char*)file_name.c_str());
-	return std::string( basename(c) );
+	return std::string( ::basename(c) );
 }
 
 uint64_t get_pid(){
