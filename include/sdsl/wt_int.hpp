@@ -80,10 +80,10 @@ class wt_int{
 
 	public:	
 	
-	const size_type &sigma;	
-	const bit_vector &tree;
+	const size_type &sigma;	//!< Effective alphabet size of the wavelet tree.
+	const bit_vector &tree; //!< A concatenation of all bit vectors of the wavelet tree. 
 
-	// Default constructor
+	//! Default constructor
 	wt_int():m_size(0),m_sigma(0), m_logn(0), sigma(m_sigma), tree(m_tree){};
 
 

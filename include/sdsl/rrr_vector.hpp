@@ -144,7 +144,8 @@ class rrr_vector{
 	 }
 	 // for technical reasons add an additional element to m_rank
 	 m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv 
-	 m_bt = wt_type(bt_array); // TODO: use assign from util?
+	 util::assign(m_bt, bt_array);
+//	 m_bt = wt_type(bt_array); // TODO: use assign from util?
    }
    
    //! Accessing the i-th element of the original bit_vector
