@@ -30,6 +30,11 @@ std::string basename(const std::string &file_name){
 	return std::string( ::basename(c) );
 }
 
+std::string dirname(const std::string &file_name){
+	char *c = strdup((const char*)file_name.c_str());
+	return std::string( ::dirname(c) );
+}
+
 uint64_t get_pid(){
 	return getpid();
 } 

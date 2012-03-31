@@ -57,6 +57,9 @@ namespace util{
 	//! Returns the basename of a file_name
 	std::string basename(const std::string &file_name);
 
+	//! Returns the directory of a file_name. Trailing / are removed.
+	std::string dirname(const std::string &file_name);
+
 	//! Sets all bits of the int_vector to pseudo-random bits.
 	/*! \param v The int_vector whose bits should be set to random bits
 	 *  \param seed If seed = 0, the time is used to initialize the 
