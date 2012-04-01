@@ -208,8 +208,6 @@ class csa_sada_theo{
 		//! Load SDSCompressedSuffixArray from a stream.
 		void load(std::istream &in);
 };
-/*!  \example csa_sada_theo.e.cpp
-  */
 
 // == template functions ==
 

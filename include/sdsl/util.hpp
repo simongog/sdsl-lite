@@ -30,7 +30,8 @@
 #include <fstream> // file stream for storeToFile and loadFromFile
 #include <ctime>  // for rand initialization
 #include <string>
-#include <string.h> // for strlen
+#include <string.h> // for strlen and strdup
+#include <libgen.h> // for basename
 #include <cstdlib>
 #include <unistd.h> // for getpid 
 #include <sstream> // for to_string method
@@ -52,6 +53,13 @@ class int_vector;	 // forward declaration
 
 //! A namespace for helper functions
 namespace util{
+
+	//! Returns the basename of a file_name
+	std::string basename(const std::string &file_name);
+
+	//! Returns the directory of a file_name. Trailing / are removed.
+	std::string dirname(const std::string &file_name);
+
 	//! Sets all bits of the int_vector to pseudo-random bits.
 	/*! \param v The int_vector whose bits should be set to random bits
 	 *  \param seed If seed = 0, the time is used to initialize the 
@@ -231,11 +239,21 @@ namespace util{
 
 
 	// thanks to Stefan Arnold for the assign functions
+	//! Assigns the value x of type T to the value of y of type U.
+	/*!
+	 *  \param x	The assigned variable.
+	 *	\param y	The variable which provides the value that is assigned to x.
+	 */
 	template<class T, class U>	
 	void assign(T &x, const U &y){
 		x = T(y);
 	}
 
+	//! Swaps variables x and y.
+	/*!
+	 * \param x Reference to the first variable. 
+	 * \param y Reference to the second variable. 
+	 */
 	template<class T>
 	void assign(T &x, T &y){
 		x.swap(y);
