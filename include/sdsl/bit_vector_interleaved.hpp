@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2012 Simon Gog 
+    Copyright (C) 2012 Simon Gog, Matthias Petri
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -14,38 +14,46 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file gap_vector.hpp
-   \brief gap_vector.hpp contains the sdsl::gap_vector class, and 
-          classes which support rank and select for gap_vector.
-   \author Simon Gog
+/*!\file bit_vector_interleaved.hpp
+   \brief bit_vector_interleaved.hpp contains the sdsl::bit_vector_interleaved class, and 
+          classes which support rank and select for bit_vector_interleaved.
+   \author Matthias Petri, Simon Gog
 */ 
-#ifndef SDSL_BIT1L_VECTOR
-#define SDSL_BIT1L_VECTOR
+#ifndef SDSL_BIT_VECTOR_INTERLEAVED
+#define SDSL_BIT_VECTOR_INTERLEAVED
 
 #include "int_vector.hpp"
+#include "bitmagic.hpp" 
 #include "util.hpp"
 
 //! Namespace for the succinct data structure library
 namespace sdsl{
 
-template<uint32_t blockSize>// forward declaration needed for friend declaration
-class bit1l_rank_support;  // in gap_vector
+template<uint32_t blockSize=512>// forward declaration needed for friend declaration
+class rank_support_interleaved;  // in bit_vector_interleaved 
 
-template<uint32_t blockSize>// forward declaration needed for friend declaration
-class bit1l_select_support;  // in gap_vector
+template<uint32_t blockSize=512>// forward declaration needed for friend declaration
+class select_support_interleaved;  // in bit_vector_interleaved
 
-//! A bit vector which compresses very sparse populated bit vectors by representing the 1 or 0 by gap encoding
+//! A bit vector which interleaves the original bit_vector with rank information.
+/*!
+ * This class is a uncompressed bit vector representation. It copies the original
+ * bit_vector and interleaves the data every blockSize bits with a cumulative
+ * sum of set bits before the current position. Each cumulative sum is stored
+ * in a 64 bit word.
+ * \pre blockSize has to be a power of 2. 
+ */
 template<uint32_t blockSize=512>	
-class bit1l_vector{
+class bit_vector_interleaved{
 	public:
 		typedef bit_vector::size_type   size_type;
 		typedef size_type               value_type;
 
-		friend class bit1l_rank_support<blockSize>;
-		friend class bit1l_select_support<blockSize>;
+		friend class rank_support_interleaved<blockSize>;
+		friend class select_support_interleaved<blockSize>;
 
-		typedef bit1l_rank_support<blockSize>   rank_1_type;
-		typedef bit1l_select_support<blockSize> select_1_type;
+		typedef rank_support_interleaved<blockSize>   rank_1_type;
+		typedef select_support_interleaved<blockSize> select_1_type;
 	private:
 		size_type m_size;           /* size of the original bitvector */
         size_type m_totalBlocks;    /* total size of m_data in u64s */
@@ -53,14 +61,14 @@ class bit1l_vector{
         size_type m_blockMask;      /* blockmask for modulo operation */
         size_type m_superblocks;    /* number of superblocks */
         size_type m_blockShift;
-        uint64_t* m_data;           /* data */
+        int_vector<64> m_data;           /* data */
 
 	public:
-		bit1l_vector(){}
+		bit_vector_interleaved(){}
 
-		bit1l_vector(const bit_vector &bv) {
+		bit_vector_interleaved(const bit_vector &bv) {
 			m_size = bv.size();
-			if(m_size == 0)
+			if (m_size == 0)
 				return;
 
             /* calculate the number of superblocks */
@@ -70,7 +78,9 @@ class bit1l_vector{
 
             /* allocate new data */
             size_type mem = ((m_size+63)>>6)+m_superblocks;
-            m_data = new uint64_t[mem+1];
+//            m_data = new uint64_t[mem+1];
+			util::assign( m_data, int_vector<64>(mem+1) );
+//			m_data.resize( mem+1 );
             m_totalBlocks = mem+1;
 
             /* assign data and calculate super block values */
@@ -78,8 +88,8 @@ class bit1l_vector{
 
             size_type j = 0;
             size_type popcnt = 0;
-            for(size_type i=0;i < (m_size+63)/64;i++) {
-                if(i%(blockSize>>6)==0) {
+            for (size_type i=0;i < (m_size+63)/64;i++) {
+                if (i%(blockSize>>6)==0) {
                     m_data[j] = popcnt;
                     j++;
                 }
@@ -113,19 +123,11 @@ class bit1l_vector{
 	       size_type written_bytes = 0;
 		   written_bytes += util::write_member(m_size, out);
 		   written_bytes += util::write_member(m_totalBlocks, out);
-
-           /* write in blocks */
-           uint64_t* p = m_data;
-           const static size_type SDSL_BLOCK_SIZE = (1<<20);
-           size_type idx = 0;
-           while( idx+SDSL_BLOCK_SIZE < m_totalBlocks ) {
-               out.write((char*) p, SDSL_BLOCK_SIZE*sizeof(uint64_t) );
-               written_bytes += SDSL_BLOCK_SIZE*sizeof(uint64_t);
-               p   += SDSL_BLOCK_SIZE;
-               idx += SDSL_BLOCK_SIZE;
-           }
-           out.write((char*) p, (m_totalBlocks-idx)*sizeof(uint64_t));
-           written_bytes += (m_totalBlocks-idx)*sizeof(uint64_t);
+		   written_bytes += util::write_member(m_blockSize_U64, out);
+		   written_bytes += util::write_member(m_blockMask, out);
+		   written_bytes += util::write_member(m_superblocks, out);
+		   written_bytes += util::write_member(m_blockShift, out);
+		   written_bytes += m_data.serialize(out);
 		   return written_bytes;
 	    }
 
@@ -133,29 +135,17 @@ class bit1l_vector{
 		void load(std::istream &in){
 			util::read_member(m_size, in);
 			util::read_member(m_totalBlocks, in);
-            /* calc the rest */
-            m_superblocks = m_size / blockSize + 1;
-            /* blocksize in U64s */
-            m_blockShift = bit_magic::l1BP(blockSize);
-
-            m_data = new uint64_t[m_totalBlocks];
-
-            uint64_t *p = m_data;
-            const static size_type SDSL_BLOCK_SIZE = (1<<20);
-            size_type idx = 0;
-
-            while( idx+SDSL_BLOCK_SIZE < m_totalBlocks ){
-                in.read((char*) p, SDSL_BLOCK_SIZE*sizeof(uint64_t) );
-                p   += SDSL_BLOCK_SIZE;
-                idx += SDSL_BLOCK_SIZE;
-            }
-            in.read((char*) p, (m_totalBlocks-idx)*sizeof(uint64_t));
-		}	
+			util::read_member(m_blockSize_U64, in);
+			util::read_member(m_blockMask, in);
+			util::read_member(m_superblocks, in);
+			util::read_member(m_blockShift, in);
+			m_data.load(in);
+		}
 
 #ifdef MEM_INFO
 		void mem_info(std::string label="")const{
 			if(label=="")
-				label = "bit1l_vector";
+				label = "bit_vector_interleaved";
 			size_type bytes = util::get_size_in_bytes(*this) + m_totalBlocks*sizeof(uint64_t);
             std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << "\n,";
 		}
@@ -163,11 +153,11 @@ class bit1l_vector{
 
 };
 
-template<uint32_t blockSize=512>	
-class bit1l_rank_support{
+template<uint32_t blockSize>	
+class rank_support_interleaved{
 	public:
-		typedef bit_vector::size_type       size_type;
-		typedef bit1l_vector<blockSize>               bit_vector_type;
+		typedef bit_vector::size_type       		size_type;
+		typedef bit_vector_interleaved<blockSize> 	bit_vector_type;
 	private:
 		const bit_vector_type* m_v;
         size_type m_blockShift;
@@ -176,7 +166,7 @@ class bit1l_rank_support{
 
 	public:
 
-		bit1l_rank_support(const bit_vector_type *v=NULL){
+		rank_support_interleaved(const bit_vector_type *v=NULL){
 			init(v);
             m_blockShift = bit_magic::l1BP(blockSize);
             m_blockMask = blockSize - 1;
@@ -193,17 +183,20 @@ class bit1l_rank_support{
             size_type SBlockNum = i >> m_blockShift;
             size_type SBlockPos = (SBlockNum << m_blockSize_U64) + SBlockNum;
             uint64_t resp = m_v->m_data[SBlockPos];
-            uint64_t* B = (uint64_t*) &(m_v->m_data[SBlockPos+1]);
+            const uint64_t* B = (m_v->m_data.data() +  (SBlockPos+1) );
             uint64_t rem = i&63;
             uint64_t bits = (i&m_blockMask) - rem;
             uint64_t l=0;
-
+// TODO: remove l, and access B by *B and increase B afterwards 
             while(bits) {
-                resp+=__builtin_popcountll(B[l]);
+//                resp+=__builtin_popcountll(B[l]);
+				resp += bit_magic::b1Cnt(B[l]);
                 bits -= 64;
                 l++;
             }
-            resp += __builtin_popcountll(B[l]&bit_magic::Li1Mask[rem]);
+			// TODO replace by bit_magic::b1Cnt()
+//            resp += __builtin_popcountll(B[l]&bit_magic::Li1Mask[rem]);
+            resp += bit_magic::b1Cnt(B[l]&bit_magic::Li1Mask[rem]);
             return resp;
 		} 
 
@@ -219,22 +212,22 @@ class bit1l_rank_support{
 			m_v = v;
 		}
 
-		bit1l_rank_support& operator=(const bit1l_rank_support &rs){
+		rank_support_interleaved& operator=(const rank_support_interleaved &rs){
 			if(this != &rs){
 				set_vector(rs.m_v);
 			}
 			return *this;
 		}
 
-		void swap(bit1l_rank_support &rs){ }
+		void swap(rank_support_interleaved &rs){ }
 
-		bool operator==(const bit1l_rank_support &ss)const{
+		bool operator==(const rank_support_interleaved &ss)const{
 			if(this == &ss)
 				return true;
 			return ss.m_v == m_v;
 		}
 
-		bool operator!=(const bit1l_rank_support &rs)const{
+		bool operator!=(const rank_support_interleaved &rs)const{
 			return !(*this == rs);	
 		}
 
@@ -251,7 +244,7 @@ class bit1l_rank_support{
 #ifdef MEM_INFO
 		void mem_info(std::string label="")const{
 			if(label=="")
-				label = "bit1l_rank_support";
+				label = "rank_support_interleaved";
 			size_type bytes = util::get_size_in_bytes(*this);
 			std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
 		}
@@ -260,17 +253,17 @@ class bit1l_rank_support{
 };
 
 
-template<uint32_t blockSize=512>	
-class bit1l_select_support{
+template<uint32_t blockSize>	
+class select_support_interleaved{
 	public:
 		typedef bit_vector::size_type size_type;
-		typedef bit1l_vector<blockSize> bit_vector_type;
+		typedef bit_vector_interleaved<blockSize> bit_vector_type;
 	private:
 		const bit_vector_type *m_v;
 
 	public:
 
-		bit1l_select_support(const bit_vector_type *v=NULL){
+		select_support_interleaved(const bit_vector_type *v=NULL){
 			init(v);
 		}
 
@@ -295,22 +288,22 @@ class bit1l_select_support{
 			m_v = v;
 		}
 
-		bit1l_select_support& operator=(const bit1l_select_support &rs){
+		select_support_interleaved& operator=(const select_support_interleaved &rs){
 			if(this != &rs){
 				set_vector(rs.m_v);
 			}
 			return *this;
 		}
 
-		void swap(bit1l_select_support &rs){ }
+		void swap(select_support_interleaved &rs){ }
 
-		bool operator==(const bit1l_select_support &ss)const{
+		bool operator==(const select_support_interleaved &ss)const{
 			if(this == &ss)
 				return true;
 			return ss.m_v == m_v;
 		}
 
-		bool operator!=(const bit1l_select_support &rs)const{
+		bool operator!=(const select_support_interleaved &rs)const{
 			return !(*this == rs);	
 		}
 
@@ -327,7 +320,7 @@ class bit1l_select_support{
 #ifdef MEM_INFO
 		void mem_info(std::string label="")const{
 			if(label=="")
-				label = "bit1l_select_support";
+				label = "select_support_interleaved";
 			size_type bytes = util::get_size_in_bytes(*this);
 			std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
 		}
