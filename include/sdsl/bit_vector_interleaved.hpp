@@ -181,25 +181,18 @@ class rank_support_interleaved
         }
 
         inline size_type rank(size_type i) const {
-
-            /*i++;*/
             size_type SBlockNum = i >> m_blockShift;
             size_type SBlockPos = (SBlockNum << m_blockSize_U64) + SBlockNum;
             uint64_t resp = m_v->m_data[SBlockPos];
             const uint64_t* B = (m_v->m_data.data() + (SBlockPos+1));
             uint64_t rem = i&63;
             uint64_t bits = (i&m_blockMask) - rem;
-            uint64_t l=0;
 // TODO: remove l, and access B by *B and increase B afterwards
             while (bits) {
-//                resp+=__builtin_popcountll(B[l]);
-                resp += bit_magic::b1Cnt(B[l]);
+                resp += bit_magic::b1Cnt( *B++ );
                 bits -= 64;
-                l++;
             }
-            // TODO replace by bit_magic::b1Cnt()
-//            resp += __builtin_popcountll(B[l]&bit_magic::Li1Mask[rem]);
-            resp += bit_magic::b1Cnt(B[l]&bit_magic::Li1Mask[rem]);
+            resp += bit_magic::b1Cnt(*B & bit_magic::Li1Mask[rem]);
             return resp;
         }
 
@@ -301,18 +294,19 @@ class select_support_interleaved
             res = mid << m_blockShift;
 
             /* iterate in 64 bit steps */
-            i -= m_v->m_data[pos];
+			const uint64_t *w = m_v->m_data.data() + pos;  // m_v->m_data[pos
+			i -= *w; 
 
-            pos++; /* step into the data */
-            size_type ones = __builtin_popcountll(m_v->m_data[pos]);
+            ++w; /* step into the data */
+            size_type ones = bit_magic::b1Cnt( *w );
             while (ones < i) {
-                i -= ones; pos++;
-                ones = __builtin_popcountll(m_v->m_data[pos]);
+                i -= ones; ++w;
+                ones = bit_magic::b1Cnt( *w );
                 res += 64;
             }
 
             /* last integer */
-            res += bit_magic::i1BP(m_v->m_data[pos],i);
+            res += bit_magic::i1BP( *w, i );
             return res;
         }
 
