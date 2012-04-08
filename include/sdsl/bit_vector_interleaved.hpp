@@ -61,7 +61,6 @@ class bit_vector_interleaved
     private:
         size_type m_size;           /* size of the original bit vector */
         size_type m_totalBlocks;    /* total size of m_data in u64s */
-        size_type m_blockSize_U64;  /* block size for superblocks */
         size_type m_blockMask;      /* block mask for modulo operation */
         size_type m_superblocks;    /* number of superblocks */
         size_type m_blockShift;
@@ -69,15 +68,16 @@ class bit_vector_interleaved
 		int_vector<64> m_rank_samples;   /* space for additional rank samples */
 
 		void init_rank_samples(){
+            uint32_t blockSize_U64 = bit_magic::l1BP(blockSize>>6);
 			size_type idx = 0;
 			std::queue<size_type> lbs, rbs;
 			lbs.push(0); rbs.push(m_superblocks);
 			while ( !lbs.empty() ){
 				size_type lb = lbs.front(); lbs.pop();
 				size_type rb = rbs.front(); rbs.pop();
-			    if ( lb < rb and idx < m_rank_samples.size() ){
+			    if ( /*lb < rb and*/ idx < m_rank_samples.size() ){
 					size_type mid = (lb+rb)/2; // select mid \in [lb..rb)
-					size_type pos = (mid << m_blockSize_U64) + mid;
+					size_type pos = (mid << blockSize_U64) + mid;
 					m_rank_samples[ idx++ ] = m_data[pos];
 					lbs.push( lb ); rbs.push( mid );	
 					lbs.push( mid+1 ); rbs.push( rb );	
@@ -150,7 +150,6 @@ class bit_vector_interleaved
             size_type written_bytes = 0;
             written_bytes += util::write_member(m_size, out);
             written_bytes += util::write_member(m_totalBlocks, out);
-            written_bytes += util::write_member(m_blockSize_U64, out);
             written_bytes += util::write_member(m_blockMask, out);
             written_bytes += util::write_member(m_superblocks, out);
             written_bytes += util::write_member(m_blockShift, out);
@@ -163,7 +162,6 @@ class bit_vector_interleaved
         void load(std::istream& in) {
             util::read_member(m_size, in);
             util::read_member(m_totalBlocks, in);
-            util::read_member(m_blockSize_U64, in);
             util::read_member(m_blockMask, in);
             util::read_member(m_superblocks, in);
             util::read_member(m_blockShift, in);
@@ -310,10 +308,7 @@ class select_support_interleaved
 			//            m_data[ pos(rb) ] >= i, initial since i < rank(size())
             while ( lb < rb ) {
                 size_type mid = (lb+rb)/2; // select mid \in [lb..rb)
-                size_type pos = (mid << m_blockSize_U64) + mid;
-//                              ^^^^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^
-//                                data blocks to jump      superblock position
-				if ( false and idx < m_v->m_rank_samples.size() ){
+				if ( idx < m_v->m_rank_samples.size() ){
 					if ( m_v->m_rank_samples[idx] >= i ){
 						idx = (idx<<1) + 1;
 						rb = mid;
@@ -322,6 +317,9 @@ class select_support_interleaved
 						lb = mid + 1;
 					}
 				}else{
+                    size_type pos = (mid << m_blockSize_U64) + mid;
+//                                  ^^^^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^
+//                                    data blocks to jump      superblock position
 					if ( m_v->m_data[pos] >= i){
 						rb = mid;
 					} else {
