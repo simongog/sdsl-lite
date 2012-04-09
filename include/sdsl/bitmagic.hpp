@@ -24,6 +24,9 @@
 #include <stdint.h> // for uint64_t uint32_t declaration
 #include <iostream>// for cerr
 #include <cassert>
+#ifdef __SSE4_2__
+	#include <xmmintrin.h>
+#endif
 
 //! Namespace for the succinct data structure library.
 namespace sdsl{
@@ -295,11 +298,19 @@ class bit_magic{
 		  	\sa l1BP, r1BP
 		 */
 		static uint32_t i1BP(uint64_t x, uint32_t i);
+		static uint32_t i1BP2(uint64_t x, uint32_t i);
 
 		//! i1BP implementation proposed by Vigna.
 		/*! \sa i1BP
 		 */
 		static uint32_t j1BP(uint64_t x, uint32_t j);
+
+		//! i1BP implementation using SSE4.2.
+		/*! \sa i1BP
+		 */
+		static uint32_t k1BP(uint64_t x, uint32_t j);
+
+
 
 		//! Naive implementation of i1BP.
 		static uint32_t i1BPNaive(uint64_t x, uint32_t i);
@@ -1017,7 +1028,74 @@ inline uint32_t bit_magic::b10CntNaive(uint64_t x, uint64_t &c){
 	return sum;
 }
 
+inline uint32_t bit_magic::k1BP(uint64_t x, uint32_t i){
+//	if ( i == 1 ){
+//		return __builtin_ctzll(x);
+//	}
+#ifdef __SSE4_2__	
+	uint64_t s = x, b;  
+	s = s-( (s>>1) & 0x5555555555555555ULL);
+	s = (s & 0x3333333333333333ULL) + ((s >> 2) & 0x3333333333333333ULL);
+	s = (s + (s >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
+	s = 0x0101010101010101ULL*s;
+	// now s contains 8 bytes s[7],...,s[0], s[i] contains the cumulative sum
+	// off (i+1)*8 least significant bits of s
+	b = (s+PsOverflow[i]) & 0x8080808080808080ULL;
+	// PsOverflow contains a bit mask x consisting of 8 bytes
+    // x[7],...,x[0] and x[i] is set to 128-i
+	// => a byte b[i] in b is >= 128 if cum sum >= i
+
+	// __builtin_ctzll returns the number of trailing zeros, if b!=0
+	int  byte_nr = __builtin_ctzll( b ) >> 3; // byte nr in [0..7] 
+//	b = _mm_movemask_pi8( (__m64)~b );	
+//	std::cout << "byte_nr = " << byte_nr << " ";
+		/*! Entry at idx = 256*j + i equals the position of the
+		    (j+1)-th leftmost 1 bit in the integer i. Positions lie in the range \f$[0..7]\f$.
+		 */
+	s <<= 8;
+	i -= ((uint8_t*)&s)[byte_nr];
+//	std::cout << "i = " << i << std::endl;
+	return (byte_nr << 3) + Select256[ ( (i-1) << 8) + ((uint8_t*)&x)[byte_nr] ];
+#endif	
+	return i1BP(x, i);
+}
+
+
 inline uint32_t bit_magic::i1BP(uint64_t x, uint32_t i){
+#ifdef __SSE4_2__       
+//__m64 v;
+//v = (__m64)x;
+//const __m64 mask_
+uint64_t s = x, b;  
+s = s-( (s>>1) & 0x5555555555555555ULL);
+s = (s & 0x3333333333333333ULL) + ((s >> 2) & 0x3333333333333333ULL);
+s = (s + (s >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
+s = 0x0101010101010101ULL*s;
+// now s contains 8 bytes s[7],...,s[0], s[i] contains the cumulative sum
+// off (i+1)*8 least significant bits of s
+b = (s+PsOverflow[i]) & 0x8080808080808080ULL;
+// PsOverflow contains a bit mask x consisting of 8 bytes
+// x[7],...,x[0] and x[i] is set to 128-i
+// => a byte b[i] in b is >= 128 if cum sum >= i
+
+// __builtin_ctzll returns the number of trailing zeros, if b!=0
+int  byte_nr = __builtin_ctzll( b ) >> 3; // byte nr in [0..7] 
+//      b = _mm_movemask_pi8( (__m64)~b );      
+//      std::cout << "byte_nr = " << byte_nr << " ";
+/*! Entry at idx = 256*j + i equals the position of the
+	  (j+1)-th leftmost 1 bit in the integer i. Positions lie in the range \f$[0..7]\f$.
+					   */
+s <<= 8;
+i -= (s >> (byte_nr<<3)) & 0xFFULL;
+//i -= ((uint8_t*)&s)[byte_nr];
+//      std::cout << "i = " << i << std::endl;
+return (byte_nr << 3) + Select256[ ( (i-1) << 8) + ((x>>(byte_nr<<3))&0xFFULL) ];
+#endif  
+return i1BP2(x, i);
+}
+
+
+inline uint32_t bit_magic::i1BP2(uint64_t x, uint32_t i){
 // TODO: Maybe case i<16 as a special case
 //	assert(i>0 && i<=b1Cnt(x));
 	/*register*/ uint64_t s = x, b;  // s = sum
