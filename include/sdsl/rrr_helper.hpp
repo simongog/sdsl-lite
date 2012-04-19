@@ -24,11 +24,6 @@
 
 #include <algorithm> // for next permutation
 
-#ifdef __SSE4_2__
-#include <xmmintrin.h>
-#include <smmintrin.h>
-#endif
-
 namespace sdsl
 {
 
@@ -204,76 +199,6 @@ class binomial2
 template<uint8_t n>
 typename binomial2<n>::impl binomial2<n>::iii;
 
-#pragma pack(16)
-typedef struct {
-    uint64_t low;
-    uint64_t high;
-} uint128b_t;
-
-
-static inline void
-uint128_add(uint128b_t* a,uint128b_t* b)
-{
-    a->high += b->high;
-    a->low += b->low;
-    if (a->low < b->low) a->high++; // carry
-}
-
-static inline void
-uint128_sub(uint128b_t* a,uint128b_t* b)
-{
-    a->high -= b->high;
-    if (a->low < b->low) a->high--; // borrow
-    a->low -= b->low;
-}
-
-static inline void
-uint128_setbit(uint128b_t* a,uint8_t bit)
-{
-    if (bit>63) {
-        a->high |= 1ULL<<(bit-63-1);
-    } else {
-        a->low |= 1ULL<<(bit-1);
-    }
-}
-
-void
-print_int16a(uint32_t i)
-{
-    for (int32_t j=15; j>=8; j--) {
-        fprintf(stdout,"%d",(i>>j)&1);
-    }
-    fprintf(stdout," ");
-    for (int32_t j=7; j>=0; j--) {
-        fprintf(stdout,"%d",(i>>j)&1);
-    }
-    fprintf(stdout," ");
-}
-
-void
-print_m128a(__m128i data,const char* name)
-{
-    fprintf(stdout,"%10s: ",name);
-    uint32_t i;
-    i = _mm_extract_epi16(data,7);
-    print_int16a(i);
-    i = _mm_extract_epi16(data,6);
-    print_int16a(i);
-    i = _mm_extract_epi16(data,5);
-    print_int16a(i);
-    i = _mm_extract_epi16(data,4);
-    print_int16a(i);
-    i = _mm_extract_epi16(data,3);
-    print_int16a(i);
-    i = _mm_extract_epi16(data,2);
-    print_int16a(i);
-    i = _mm_extract_epi16(data,1);
-    print_int16a(i);
-    i = _mm_extract_epi16(data,0);
-    print_int16a(i);
-    fprintf(stdout,"\n");
-}
-
 typedef unsigned int uint128_t __attribute__((mode(TI)));
 
 template<uint8_t n>
@@ -356,50 +281,6 @@ class binomial3
             return bin | ((uint128_t)1<<(n-nr-1));
         };
 
-
-        static inline void nr_to_bin2(uint8_t k,uint128b_t* nr,uint128b_t* res) {
-            if (k == n) {
-                res->high = bit_magic::Li1Mask[n-64];
-                res->low = bit_magic::Li1Mask[64];
-                return;
-            } else if (k == 0) {
-                res->high = 0;
-                res->low = 0;
-                return;
-            } else if (k == 1) {
-                uint128_setbit(res , (n - nr->low - 1));
-                return;
-            }
-            res->high = 0;
-            res->low = 0;
-            uint64_t mask = 1;
-            uint8_t nn = n;
-            mask = 1;
-            while (mask && (k > 1)) {
-                if (nr->high > iii.m_coefficients2[nn-1][k].high ||
-                    ((nr->high == iii.m_coefficients2[nn-1][k].high) && (nr->low >= iii.m_coefficients2[nn-1][k].low))) {
-                    uint128_sub(nr,&iii.m_coefficients2[nn-1][k]);
-                    --k;
-                    res->low |= mask;
-                }
-                --nn;
-                mask <<= 1;
-            }
-            mask = 1;
-            while (mask && (k > 1)) {
-                if (nr->high > iii.m_coefficients2[nn-1][k].high ||
-                    ((nr->high == iii.m_coefficients2[nn-1][k].high) && (nr->low >= iii.m_coefficients2[nn-1][k].low))) {
-                    uint128_sub(nr,&iii.m_coefficients2[nn-1][k]);
-                    --k;
-                    res->high |= mask;
-                }
-                --nn;
-                mask <<=  1;
-            }
-            /* now: k == 1 */
-            uint128_setbit(res , (n - nr->low - 1));
-        }
-
         static inline uint128_t bin_to_nr(uint128_t& bin) {
             if (bin == 0 or bin == bit_magic::Li1Mask[n]) {  // handle special cases
                 return 0;
@@ -418,71 +299,6 @@ class binomial3
                 --nn;
             }
             return nr;
-        }
-
-        static inline void bin_to_nr2(uint128b_t* bin,uint128b_t* nr) {
-            __m128i mbin = _mm_load_si128((__m128i*)bin);
-            __m128i zero = _mm_setzero_si128();
-
-            if (_mm_testc_si128(zero , mbin)  == 1) {
-                nr->high = nr->low = 0;
-                return;
-            }
-
-            if (bin->low == bit_magic::Li1Mask[64] && bin->high == bit_magic::Li1Mask[n-64]) {
-                nr->high = nr->low = 0;
-                return;
-            }
-            uint8_t  k = bit_magic::b1Cnt(bin->low) + bit_magic::b1Cnt(bin->high);
-
-            uint8_t nn = n;
-            nr->low = nr->high = 0;
-
-            while (_mm_testc_si128(zero,mbin) == 0) {
-                uint8_t byte = _mm_extract_epi8(mbin,0);
-
-                if (byte&1) {
-                    uint128_add(nr,&iii.m_coefficients2[nn-1][k]);
-                    k--;
-                }
-                --nn;
-                if (byte&2) {
-                    uint128_add(nr,&iii.m_coefficients2[nn-1][k]);
-                    k--;
-                }
-                --nn;
-                if (byte&4) {
-                    uint128_add(nr,&iii.m_coefficients2[nn-1][k]);
-                    k--;
-                }
-                --nn;
-                if (byte&8) {
-                    uint128_add(nr,&iii.m_coefficients2[nn-1][k]);
-                    k--;
-                }
-                --nn;
-                if (byte&16) {
-                    uint128_add(nr,&iii.m_coefficients2[nn-1][k]);
-                    k--;
-                }
-                --nn;
-                if (byte&32) {
-                    uint128_add(nr,&iii.m_coefficients2[nn-1][k]);
-                    k--;
-                }
-                --nn;
-                if (byte&64) {
-                    uint128_add(nr,&iii.m_coefficients2[nn-1][k]);
-                    k--;
-                }
-                --nn;
-                if (byte&128) {
-                    uint128_add(nr,&iii.m_coefficients2[nn-1][k]);
-                    k--;
-                }
-                --nn;
-                mbin = _mm_srli_si128(mbin,1);
-            }
         }
 
         static inline uint8_t space_for_bt_pair(uint8_t x) {
