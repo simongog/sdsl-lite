@@ -211,7 +211,6 @@ class binomial3
             public:
                 static const int MAX_SIZE=128;
                 uint8_t m_space_for_bt[n+1];
-                uint128b_t m_coefficients2[MAX_SIZE][MAX_SIZE];
                 uint128_t m_coefficients[MAX_SIZE][MAX_SIZE]; // m_coefficient[n][k] stores /n
                 //                            \k/
                 // TODO: this table is the same for all possible n
@@ -219,22 +218,13 @@ class binomial3
                 impl() {
                     for (int k=0; k<MAX_SIZE; ++k) {
                         m_coefficients[0][k] = 0;
-
-                        m_coefficients2[0][k].high = 0;
-                        m_coefficients2[0][k].low = 0;
                     }
                     for (int nn=0; nn<MAX_SIZE; ++nn) {
                         m_coefficients[nn][0] = 1;
-
-                        m_coefficients2[nn][0].high = 0;
-                        m_coefficients2[nn][0].low = 1;
                     }
                     for (int nn=1; nn<MAX_SIZE; ++nn) {
                         for (int k=1; k<MAX_SIZE; ++k) {
                             m_coefficients[nn][k] = m_coefficients[nn-1][k-1] + m_coefficients[nn-1][k];
-
-                            m_coefficients2[nn][k] = m_coefficients2[nn-1][k-1];
-                            uint128_add(&m_coefficients2[nn][k],&m_coefficients2[nn-1][k]);
                         }
                     }
                     for (uint8_t k=0; k<=n; ++k) {
@@ -244,7 +234,7 @@ class binomial3
                             m_space_for_bt[k] = 0;
                         } else {
                             if (high == 0) m_space_for_bt[k] = bit_magic::l1BP(low)+1;
-                            else m_space_for_bt[k] = bit_magic::l1BP(low) + 64 + 1;
+                            else m_space_for_bt[k] = bit_magic::l1BP(high) + 64 + 1;
                         }
                     }
                 }
@@ -256,7 +246,7 @@ class binomial3
             return iii.m_space_for_bt[i];
         }
 
-        static inline uint128_t nr_to_bin(uint8_t k,uint128_t& nr) {
+        static inline const uint128_t nr_to_bin(uint8_t k,uint128_t& nr) {
             if (k == n) {
                 return ((uint128_t)bit_magic::Li1Mask[n-64]<<64) + bit_magic::Li1Mask[64];
             } else if (k == 0) {
@@ -270,19 +260,25 @@ class binomial3
             uint8_t nn = n;
 
             while (k > 1) {
+                /*
+                print_m128a((__m128i*)&mask,"mask");
+                print_m128a((__m128i*)&nr,"nr");
+                print_m128a((__m128i*)&bin,"bin");*/
                 if (nr >= iii.m_coefficients[nn-1][k]) {
                     nr -= iii.m_coefficients[nn-1][k];
                     --k;
                     bin |= mask;
                 }
                 --nn;
-                mask <<= 1ULL;
+                mask = (mask << 1ULL);
             }
+            /* k == 1 */
             return bin | ((uint128_t)1<<(n-nr-1));
         };
 
         static inline uint128_t bin_to_nr(uint128_t& bin) {
-            if (bin == 0 or bin == bit_magic::Li1Mask[n]) {  // handle special cases
+            if (bin == 0 or bin == (((uint128_t)bit_magic::Li1Mask[n-64]<<64) +
+                                    bit_magic::Li1Mask[64])) {   // handle special cases
                 return 0;
             }
             uint128_t nr = 0;

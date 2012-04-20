@@ -333,20 +333,19 @@ class rrr_vector_var<127, wt_type>
             while (pos + 127 <= m_size) { // handle all blocks, except the last one
                 /* 127 bits at a time */
                 bt_array[ i++ ] = x = (bit_magic::b1Cnt(bv.get_int(pos, 64)) + bit_magic::b1Cnt(bv.get_int(pos+64, 63)));
-                fprintf(stdout,"bt[%zu] = %zu\n",i-1,x);
                 sum_rank += x;
                 btnr_pos += bi_type::space_for_bt(x);
                 pos += 127;
             }
             if (pos <= m_size) { // handle last block
                 size_type left = m_size - pos;
+                x = 0;
                 if (left>=64) {
                     x = bit_magic::b1Cnt(bv.get_int(pos, 64));
                     pos += 64;
                     left -= 64;
                 }
                 if (left) x += bit_magic::b1Cnt(bv.get_int(pos, left));
-                fprintf(stdout,"bt[%zu] = %zu\n",i,x);
                 bt_array[ i++ ] = x;
                 sum_rank += x;
                 btnr_pos += bi_type::space_for_bt(x);
@@ -389,22 +388,8 @@ class rrr_vector_var<127, wt_type>
                 uint8_t space_for_bt = bi_type::space_for_bt(x=bt_array[i++]);
                 sum_rank += (invert ? (127 - x) : x);
                 if (space_for_bt) {
-                    if (space_for_bt>64) {
-                        bin = (((uint128_t) bv.get_int(pos+64, space_for_bt-64)<<64) + bv.get_int(pos, 64));
-                    } else {
-                        bin = bv.get_int(pos, space_for_bt);
-                    }
-
-                    uint64_t h = (bin >> 64);
-                    uint64_t l = bin;
-
-                    fprintf(stdout,"pct(h+l) = %zu x = %zu\n",bit_magic::b1Cnt(h)+bit_magic::b1Cnt(l),x);
-
-                    print_m128a((__m128i*)&bin,"bin");
+                    bin = (((uint128_t) bv.get_int(pos+64, 63)<<64) + bv.get_int(pos, 64));
                     num = bi_type::bin_to_nr(bin);
-                    print_m128a((__m128i*)&num,"num");
-                    bin = bi_type::nr_to_bin(x,num);
-                    print_m128a((__m128i*)&bin,"rbin");
                     if (space_for_bt>64) {
                         uint64_t high = (num >> 64);
                         uint64_t low = num;
@@ -428,15 +413,13 @@ class rrr_vector_var<127, wt_type>
                 uint8_t space_for_bt = bi_type::space_for_bt(x=bt_array[i++]);
                 sum_rank += invert ? (127 - x) : x;
                 if (space_for_bt) {
-
-                    if (space_for_bt>64) {
-                        bin = (((uint128_t) bv.get_int(pos+64, space_for_bt-64)<<64) + bv.get_int(pos, 64));
+                    size_t left = m_size - pos;
+                    if (left>64) {
+                        bin = (((uint128_t) bv.get_int(pos+64, left-64)<<64) + bv.get_int(pos, 64));
                     } else {
-                        bin = bv.get_int(pos, space_for_bt);
+                        bin = bv.get_int(pos, left);
                     }
-                    print_m128a((__m128i*)&bin,"bin");
                     num = bi_type::bin_to_nr(bin);
-                    print_m128a((__m128i*)&num,"num");
                     if (space_for_bt>64) {
                         uint64_t high = (num >> 64);
                         uint64_t low = num;
@@ -452,7 +435,6 @@ class rrr_vector_var<127, wt_type>
             // for technical reasons add an additional element to m_rank
             m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
             util::assign(m_bt, bt_array);
-//	 m_bt = wt_type(bt_array); // TODO: use assign from util?
         }
 
         //! Accessing the i-th element of the original bit_vector
@@ -475,18 +457,12 @@ class rrr_vector_var<127, wt_type>
             }
             uint128_t bin,num;
             size_t space = bi_type::space_for_bt(bt);
-            fprintf(stdout,"bt %u i %zu off %u space %zu\n",bt,i,off,space);
             if (space<=64) num = m_btnr.get_int(btnrp,space);
             else {
                 num = ((uint128_t) m_btnr.get_int(btnrp+64,space-64) << 64) + m_btnr.get_int(btnrp,64);
             }
 
-            uint128_t num2 = num;
-            print_m128a((__m128i*)&num,"num");
             bin = bi_type::nr_to_bin(bt,num);
-            print_m128a((__m128i*)&bin,"bin");
-
-
             return ((bin >> off) & 1);
         }
 
@@ -942,7 +918,7 @@ class rrr_rank_support_var_127
             if (off<=64) {
                 mask = bit_magic::Li1Mask[off];
             } else {
-                mask = ((uint128_t)bit_magic::Li1Mask[off] << 64) + bit_magic::Li1Mask[64];
+                mask = ((uint128_t)bit_magic::Li1Mask[off-64] << 64) + bit_magic::Li1Mask[64];
             }
             uint128_t bin = bi_type::nr_to_bin(bt, btnr) & mask;
             uint64_t high = (bin >> 64);
@@ -1077,8 +1053,8 @@ class rrr_select_support_var_127
             uint64_t high = (bin >> 64);
             uint64_t low = bin;
             uint8_t poplow = bit_magic::b1Cnt(low);
-            if (poplow<= (i-rank))(idx-1) * 127 + bit_magic::i1BP(low , i-rank);
-            else return (idx-1) * 127 + bit_magic::i1BP(high , i-rank-poplow);
+            if (poplow >= (i-rank)) return (idx-1) * 127 + bit_magic::i1BP(low , i-rank);
+            else return (idx-1) * 127 + 64 + bit_magic::i1BP(high , i-rank-poplow);
         }
 
         size_type  select0(size_type i)const {
@@ -1125,8 +1101,8 @@ class rrr_select_support_var_127
             uint64_t high = (bin >> 64);
             uint64_t low = bin;
             uint8_t poplow = bit_magic::b1Cnt(~low);
-            if (poplow<= (i-rank))(idx-1) * 127 + bit_magic::i1BP(~low , i-rank);
-            else return (idx-1) * 127 + bit_magic::i1BP(~high , i-rank-poplow);
+            if (poplow >= (i-rank)) return (idx-1) * 127 + bit_magic::i1BP(~low , i-rank);
+            else return (idx-1) * 127 + 64 + bit_magic::i1BP(~high , i-rank-poplow);
         }
 
 
