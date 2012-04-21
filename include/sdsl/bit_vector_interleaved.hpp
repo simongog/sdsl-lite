@@ -32,10 +32,10 @@
 namespace sdsl
 {
 
-template<uint32_t blockSize=512>// forward declaration needed for friend declaration
+template<uint8_t b=1,uint32_t blockSize=512>// forward declaration needed for friend declaration
 class rank_support_interleaved;  // in bit_vector_interleaved
 
-template<uint32_t blockSize=512>// forward declaration needed for friend declaration
+template<uint8_t b=1,uint32_t blockSize=512>// forward declaration needed for friend declaration
 class select_support_interleaved;  // in bit_vector_interleaved
 
 //! A bit vector which interleaves the original bit_vector with rank information.
@@ -53,11 +53,15 @@ class bit_vector_interleaved
         typedef bit_vector::size_type   size_type;
         typedef size_type               value_type;
 
-        friend class rank_support_interleaved<blockSize>;
-        friend class select_support_interleaved<blockSize>;
+        friend class rank_support_interleaved<1,blockSize>;
+        friend class rank_support_interleaved<0,blockSize>;
+        friend class select_support_interleaved<1,blockSize>;
+        friend class select_support_interleaved<0,blockSize>;
 
-        typedef rank_support_interleaved<blockSize>   rank_1_type;
-        typedef select_support_interleaved<blockSize> select_1_type;
+        typedef rank_support_interleaved<1,blockSize>     rank_1_type;
+        typedef rank_support_interleaved<0,blockSize>     rank_0_type;
+        typedef select_support_interleaved<1,blockSize> select_1_type;
+        typedef select_support_interleaved<0,blockSize> select_0_type;
     private:
         size_type m_size;           /* size of the original bit vector */
         size_type m_totalBlocks;    /* total size of m_data in u64s */
@@ -65,25 +69,25 @@ class bit_vector_interleaved
         size_type m_superblocks;    /* number of superblocks */
         size_type m_blockShift;
         int_vector<64> m_data;           /* data */
-		int_vector<64> m_rank_samples;   /* space for additional rank samples */
+        int_vector<64> m_rank_samples;   /* space for additional rank samples */
 
-		void init_rank_samples(){
+        void init_rank_samples() {
             uint32_t blockSize_U64 = bit_magic::l1BP(blockSize>>6);
-			size_type idx = 0;
-			std::queue<size_type> lbs, rbs;
-			lbs.push(0); rbs.push(m_superblocks);
-			while ( !lbs.empty() ){
-				size_type lb = lbs.front(); lbs.pop();
-				size_type rb = rbs.front(); rbs.pop();
-			    if ( /*lb < rb and*/ idx < m_rank_samples.size() ){
-					size_type mid = (lb+rb)/2; // select mid \in [lb..rb)
-					size_type pos = (mid << blockSize_U64) + mid;
-					m_rank_samples[ idx++ ] = m_data[pos];
-					lbs.push( lb ); rbs.push( mid );	
-					lbs.push( mid+1 ); rbs.push( rb );	
-				}
-			}
-		}
+            size_type idx = 0;
+            std::queue<size_type> lbs, rbs;
+            lbs.push(0); rbs.push(m_superblocks);
+            while (!lbs.empty()) {
+                size_type lb = lbs.front(); lbs.pop();
+                size_type rb = rbs.front(); rbs.pop();
+                if (/*lb < rb and*/ idx < m_rank_samples.size()) {
+                    size_type mid = (lb+rb)/2; // select mid \in [lb..rb)
+                    size_type pos = (mid << blockSize_U64) + mid;
+                    m_rank_samples[ idx++ ] = m_data[pos];
+                    lbs.push(lb); rbs.push(mid);
+                    lbs.push(mid+1); rbs.push(rb);
+                }
+            }
+        }
 
     public:
         bit_vector_interleaved() {}
@@ -94,12 +98,12 @@ class bit_vector_interleaved
                 return;
             /* calculate the number of superblocks */
 //          each block of size > 0 gets suberblock in which we store the cumulative sum up to this block
-			m_superblocks = (m_size+blockSize-1) / blockSize;
+            m_superblocks = (m_size+blockSize-1) / blockSize;
             m_blockShift = bit_magic::l1BP(blockSize);
             /* allocate new data */
-			size_type blocks = (m_size+63)/64;
+            size_type blocks = (m_size+63)/64;
             size_type mem =  blocks + m_superblocks + 1;
-//                          ^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^   ^			
+//                          ^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^   ^
 //                          bit vector data | cum. sum data | sum after last block
             util::assign(m_data, int_vector<64>(mem));
             m_totalBlocks = mem;
@@ -109,11 +113,11 @@ class bit_vector_interleaved
 
             size_type j = 0; // 64-bit word counter in the m_data
             size_type cum_sum = 0;
-			size_type sample_rate = blockSize/64;
+            size_type sample_rate = blockSize/64;
             for (size_type i=0, sample_cnt=sample_rate; i < blocks; ++i, ++sample_cnt) {
-                if ( sample_cnt == sample_rate ) {
+                if (sample_cnt == sample_rate) {
                     m_data[j] = cum_sum;
-					sample_cnt = 0;
+                    sample_cnt = 0;
                     j++;
                 }
                 m_data[j] = bvp[i];
@@ -123,9 +127,9 @@ class bit_vector_interleaved
             m_data[j] = cum_sum; /* last superblock so we can always
                                     get num_ones fast */
 //			if ( ) { // TODO: do not use extra array for small bit_vectors
-				m_rank_samples.resize( 1ULL << 10 );
+            m_rank_samples.resize(1ULL << 10);
 //			}
-			init_rank_samples();
+            init_rank_samples();
         }
 
         //! Accessing the i-th element of the original bit_vector
@@ -166,7 +170,7 @@ class bit_vector_interleaved
             util::read_member(m_superblocks, in);
             util::read_member(m_blockShift, in);
             m_data.load(in);
-			m_rank_samples.load(in);
+            m_rank_samples.load(in);
         }
 
 #ifdef MEM_INFO
@@ -180,7 +184,7 @@ class bit_vector_interleaved
 
 };
 
-template<uint32_t blockSize>
+template<uint8_t b,uint32_t blockSize>
 class rank_support_interleaved
 {
     public:
@@ -191,6 +195,37 @@ class rank_support_interleaved
         size_type m_blockShift;
         size_type m_blockMask;
         size_type m_blockSize_U64;  /* blocksize for superblocks in 64 bit words */
+
+        inline size_type rank1(size_type i) const {
+            size_type SBlockNum = i >> m_blockShift;
+            size_type SBlockPos = (SBlockNum << m_blockSize_U64) + SBlockNum;
+            uint64_t resp = m_v->m_data[SBlockPos];
+            const uint64_t* B = (m_v->m_data.data() + (SBlockPos+1));
+            uint64_t rem = i&63;
+            uint64_t bits = (i&m_blockMask) - rem;
+            while (bits) {
+                resp += bit_magic::b1Cnt(*B++);
+                bits -= 64;
+            }
+            resp += bit_magic::b1Cnt(*B & bit_magic::Li1Mask[rem]);
+            return resp;
+        }
+
+
+        inline size_type rank0(size_type i) const {
+            size_type SBlockNum = i >> m_blockShift;
+            size_type SBlockPos = (SBlockNum << m_blockSize_U64) + SBlockNum;
+            uint64_t resp = (SBlockNum << m_blockShift) - m_v->m_data[SBlockPos];
+            const uint64_t* B = (m_v->m_data.data() + (SBlockPos+1));
+            uint64_t rem = i&63;
+            uint64_t bits = (i&m_blockMask) - rem;
+            while (bits) {
+                resp += bit_magic::b1Cnt(~(*B)); B++;
+                bits -= 64;
+            }
+            resp += bit_magic::b1Cnt((~(*B)) & bit_magic::Li1Mask[rem]);
+            return resp;
+        }
 
     public:
 
@@ -205,19 +240,10 @@ class rank_support_interleaved
             set_vector(v);
         }
 
-        inline size_type rank(size_type i) const {
-            size_type SBlockNum = i >> m_blockShift;
-            size_type SBlockPos = (SBlockNum << m_blockSize_U64) + SBlockNum;
-            uint64_t resp = m_v->m_data[SBlockPos];
-            const uint64_t* B = (m_v->m_data.data() + (SBlockPos+1));
-            uint64_t rem = i&63;
-            uint64_t bits = (i&m_blockMask) - rem;
-            while (bits) {
-                resp += bit_magic::b1Cnt( *B++ );
-                bits -= 64;
-            }
-            resp += bit_magic::b1Cnt(*B & bit_magic::Li1Mask[rem]);
-            return resp;
+        //! Returns the position of the i-th occurrence in the bit vector.
+        size_type rank(size_type i) const {
+            if (b) return rank1(i);
+            return rank0(i);
         }
 
         const size_type operator()(size_type i)const {
@@ -273,7 +299,7 @@ class rank_support_interleaved
 };
 
 
-template<uint32_t blockSize>
+template<uint8_t b,uint32_t blockSize>
 class select_support_interleaved
 {
     public:
@@ -285,11 +311,104 @@ class select_support_interleaved
         size_type m_blockShift;
         size_type m_blockSize_U64;
 
+
+        //! Returns the position of the i-th occurrence in the bit vector.
+        size_type select1(size_type i) const {
+            size_type lb = 0, rb = m_v->m_superblocks; // search interval [lb..rb)
+            size_type res = 0;
+            size_type idx = 0; // index in m_rank_samples
+            /* binary search over super blocks */
+            // invariant: lb==0 or m_data[ pos(lb-1) ] < i
+            //            m_data[ pos(rb) ] >= i, initial since i < rank(size())
+            while (lb < rb) {
+                size_type mid = (lb+rb)/2; // select mid \in [lb..rb)
+                if (idx < m_v->m_rank_samples.size()) {
+                    if (m_v->m_rank_samples[idx] >= i) {
+                        idx = (idx<<1) + 1;
+                        rb = mid;
+                    } else {
+                        idx = (idx<<1) + 2;
+                        lb = mid + 1;
+                    }
+                } else {
+                    size_type pos = (mid << m_blockSize_U64) + mid;
+//                                  ^^^^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^
+//                                    data blocks to jump      superblock position
+                    if (m_v->m_data[pos] >= i) {
+                        rb = mid;
+                    } else {
+                        lb = mid + 1;
+                    }
+                }
+            }
+            res = (rb-1) << m_blockShift;
+            /* iterate in 64 bit steps */
+            const uint64_t* w = m_v->m_data.data() + ((rb-1) << m_blockSize_U64) + (rb-1);
+            i -= *w;  // substract the cumulative sum before the superblock
+            ++w; /* step into the data */
+            size_type ones = bit_magic::b1Cnt(*w);
+            while (ones < i) {
+                i -= ones; ++w;
+                ones = bit_magic::b1Cnt(*w);
+                res += 64;
+            }
+            /* handle last word */
+            res += bit_magic::i1BP(*w, i);
+            return res;
+        }
+
+        //! Returns the position of the i-th occurrence in the bit vector.
+        size_type select0(size_type i)const {
+            size_type lb = 0, rb = m_v->m_superblocks; // search interval [lb..rb)
+            size_type res = 0;
+            size_type idx = 0; // index in m_rank_samples
+            /* binary search over super blocks */
+            // invariant: lb==0 or m_data[ pos(lb-1) ] < i
+            //            m_data[ pos(rb) ] >= i, initial since i < rank(size())
+            while (lb < rb) {
+                size_type mid = (lb+rb)/2; // select mid \in [lb..rb)
+                if (idx < m_v->m_rank_samples.size()) {
+                    if (((mid << m_blockShift) - m_v->m_rank_samples[idx]) >= i) {
+                        idx = (idx<<1) + 1;
+                        rb = mid;
+                    } else {
+                        idx = (idx<<1) + 2;
+                        lb = mid + 1;
+                    }
+                } else {
+                    size_type pos = (mid << m_blockSize_U64) + mid;
+//                                  ^^^^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^
+//                                    data blocks to jump      superblock position
+                    if (((mid << m_blockShift) - m_v->m_data[pos]) >= i) {
+                        rb = mid;
+                    } else {
+                        lb = mid + 1;
+                    }
+                }
+            }
+            res = (rb-1) << m_blockShift;
+
+            /* iterate in 64 bit steps */
+            const uint64_t* w = m_v->m_data.data() + ((rb-1) << m_blockSize_U64) + (rb-1);
+            i = i - (res - *w);  // substract the cumulative sum before the superblock
+            ++w; /* step into the data */
+            size_type zeros = bit_magic::b1Cnt(~ *w);
+            while (zeros < i) {
+                i -= zeros; ++w;
+                zeros = bit_magic::b1Cnt(~ *w);
+                res += 64;
+            }
+            /* handle last word */
+            res += bit_magic::i1BP(~ *w, i);
+            return res;
+        }
+
     public:
 
         select_support_interleaved(const bit_vector_type* v=NULL) {
             init(v);
         }
+
 
         void init(const bit_vector_type* v=NULL) {
             set_vector(v);
@@ -297,50 +416,10 @@ class select_support_interleaved
             m_blockSize_U64 = bit_magic::l1BP(blockSize>>6);
         }
 
-
         //! Returns the position of the i-th occurrence in the bit vector.
-        size_type select(size_type i)const {
-            size_type lb = 0, rb = m_v->m_superblocks; // search interval [lb..rb)
-            size_type res = 0;
-			size_type idx = 0; // index in m_rank_samples
-            /* binary search over super blocks */
-			// invariant: lb==0 or m_data[ pos(lb-1) ] < i
-			//            m_data[ pos(rb) ] >= i, initial since i < rank(size())
-            while ( lb < rb ) {
-                size_type mid = (lb+rb)/2; // select mid \in [lb..rb)
-				if ( idx < m_v->m_rank_samples.size() ){
-					if ( m_v->m_rank_samples[idx] >= i ){
-						idx = (idx<<1) + 1;
-						rb = mid;
-					}else{
-						idx = (idx<<1) + 2;
-						lb = mid + 1;
-					}
-				}else{
-                    size_type pos = (mid << m_blockSize_U64) + mid;
-//                                  ^^^^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^
-//                                    data blocks to jump      superblock position
-					if ( m_v->m_data[pos] >= i){
-						rb = mid;
-					} else {
-						lb = mid + 1;
-					}
-				}
-            }
-            res = (rb-1) << m_blockShift;
-            /* iterate in 64 bit steps */
-			const uint64_t *w = m_v->m_data.data() + ((rb-1) << m_blockSize_U64) + (rb-1); 
-			i -= *w;  // substract the cumulative sum before the superblock
-            ++w; /* step into the data */
-            size_type ones = bit_magic::b1Cnt( *w );
-            while (ones < i) {
-                i -= ones; ++w;
-                ones = bit_magic::b1Cnt( *w );
-                res += 64;
-            }
-            /* handle last word */
-            res += bit_magic::i1BP( *w, i );
-            return res;
+        size_type select(size_type i) const {
+            if (b) return select1(i);
+            return select0(i);
         }
 
         const size_type operator()(size_type i)const {
