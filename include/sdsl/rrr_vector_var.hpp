@@ -67,23 +67,19 @@ class rrr_vector_var
         typedef bit_vector::size_type size_type;
         typedef bit_vector::value_type value_type;
 
-//	template<uint8_t b, uint8_t blockSize, class wtType>
-//	friend class rrr_rank_support_var;
-        friend class rrr_rank_support_var<0, block_size, wt_type>;
-        friend class rrr_rank_support_var<1, block_size, wt_type>;
-        friend class rrr_select_support_var<0, block_size, wt_type>;
-        friend class rrr_select_support_var<1, block_size, wt_type>;
-
-        friend class rrr_rank_support_var_127   <0, wt_type>;
-        friend class rrr_rank_support_var_127   <1, wt_type>;
-        friend class rrr_select_support_var_127 <0, wt_type>;
-        friend class rrr_select_support_var_127 <1, wt_type>;
-
         typedef rrr_rank_support_var<1, block_size, wt_type> rank_1_type; // typedef for default types for rank and select
         typedef rrr_rank_support_var<0, block_size, wt_type> rank_0_type;
         typedef rrr_select_support_var<1, block_size, wt_type> select_1_type;
         typedef rrr_select_support_var<0, block_size, wt_type> select_0_type;
 
+//        template<uint8_t b, uint8_t block_size, class wt_type> Hm, the second and third argument is
+//        friend class rrr_rank_support_var;  // fixed 
+        friend class rrr_rank_support_var<0, block_size, wt_type>;
+        friend class rrr_rank_support_var<1, block_size, wt_type>;
+        friend class rrr_select_support_var<0, block_size, wt_type>;
+        friend class rrr_select_support_var<1, block_size, wt_type>;
+
+    
         typedef binomial2<block_size> bi_type;
 
         enum { rrr_block_size = block_size };
@@ -677,7 +673,7 @@ class rrr_rank_support_var
 };
 
 //! Select support for the rrr_vector_var class.
-template< uint8_t block_size, uint8_t b, class wt_type>
+template< uint8_t b, uint8_t block_size, class wt_type>
 class rrr_select_support_var
 {
     public:
@@ -996,6 +992,9 @@ class rrr_rank_support_var_127
 #endif
 };
 
+// TODO:
+// template<uint8_t b, class wt_type>
+// class rrr_select_support_var<b, 127, wt_type>
 //! Select support for the rrr_vector_var class.
 template<uint8_t b,class wt_type>
 class rrr_select_support_var_127
