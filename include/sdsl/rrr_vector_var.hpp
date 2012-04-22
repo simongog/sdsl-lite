@@ -712,7 +712,7 @@ class rrr_select_support_var
             rank = m_v->m_rank[begin]; // now i>rank
             idx = begin * m_sample_rate; // initialize idx for select result
             size_type diff_rank  = m_v->m_rank[end] - rank;
-            if (diff_rank == block_size*m_sample_rate) {// optimiziation for select<1>
+            if (diff_rank == block_size*m_sample_rate) {// optimisiation for select<1>
                 return idx*block_size + i-rank -1;
             }
             const bool inv = m_v->m_invert[ begin ];
@@ -750,8 +750,7 @@ class rrr_select_support_var
             //   (2) linear search between the samples
             rank = begin*block_size*m_sample_rate - m_v->m_rank[begin]; // now i>rank
             idx = begin * m_sample_rate; // initialize idx for select result
-            size_type diff_rank  = m_v->m_rank[end] - rank;
-            if (diff_rank == 0) {   // only for select<0>
+            if (  m_v->m_rank[end] == m_v->m_rank[begin] ) {   // only for select<0>
                 return idx*block_size +  i-rank -1;
             }
             const bool inv = m_v->m_invert[ begin ];
@@ -764,7 +763,7 @@ class rrr_select_support_var
             }
             rank -= (block_size-bt);
 			number_type	btnr = bi_type::decode_btnr( m_v->m_btnr, btnrp-btnrlen, btnrlen ); 
-            return (idx-1) * block_size + bi_type::select( ~bi_type::nr_to_bin(bt, btnr), i-rank);
+            return (idx-1) * block_size + bi_type::select( ~(bi_type::nr_to_bin(bt, btnr)), i-rank);
         }
 
 

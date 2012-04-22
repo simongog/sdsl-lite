@@ -524,8 +524,7 @@ class rrr_select_support{
 			//   (2) linear search between the samples 
 			rank = begin*bit_vector_type::block_size*m_sample_rate - m_v->m_rank[begin]; // now i>rank
 			idx = begin * m_sample_rate; // initialize idx for select result
-			size_type diff_rank  = m_v->m_rank[end] - rank;
-			if( diff_rank == 0  ){  // only for select<0>
+			if( m_v->m_rank[end] == m_v->m_rank[begin] ){  // only for select<0>
 				return idx*bit_vector_type::block_size +  i-rank -1;
 			}
 			size_type btnrp = m_v->m_btnrp[ begin ];
