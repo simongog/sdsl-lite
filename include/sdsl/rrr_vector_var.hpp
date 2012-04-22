@@ -43,11 +43,11 @@ class rrr_rank_support_var;                // in rrr_vector_var
 template<uint8_t b=1, uint8_t block_size=15, class wt_type=int_vector<> >  // forward declaration needed for friend declaration
 class rrr_select_support_var;                // in rrr_vector_var
 
-template<uint8_t b=1, class wt_type=int_vector<> >  // forward declaration needed for friend declaration
-class rrr_rank_support_var_127;                // in rrr_vector_var
+//template<uint8_t b=1, class wt_type=int_vector<> >  // forward declaration needed for friend declaration
+//class rrr_rank_support_var_127;                // in rrr_vector_var
 
-template<uint8_t b=1, class wt_type=int_vector<> >  // forward declaration needed for friend declaration
-class rrr_select_support_var_127;                // in rrr_vector_var
+//template<uint8_t b=1, class wt_type=int_vector<> >  // forward declaration needed for friend declaration
+//class rrr_select_support_var_127;                // in rrr_vector_var
 
 //! A bit vector which compresses the input with the method from Raman, Raman, and Rao
 /*!
@@ -281,15 +281,15 @@ class rrr_vector_var<127, wt_type>
         typedef bit_vector::size_type size_type;
         typedef bit_vector::value_type value_type;
 
-        friend class rrr_rank_support_var_127   <0, wt_type>;
-        friend class rrr_rank_support_var_127   <1, wt_type>;
-        friend class rrr_select_support_var_127 <0, wt_type>;
-        friend class rrr_select_support_var_127 <1, wt_type>;
+        friend class rrr_rank_support_var   <0, 127, wt_type>;
+        friend class rrr_rank_support_var   <1, 127, wt_type>;
+        friend class rrr_select_support_var <0, 127, wt_type>;
+        friend class rrr_select_support_var <1, 127, wt_type>;
 
-        typedef rrr_rank_support_var_127    <1, wt_type> rank_1_type; // typedef for default types for rank and select
-        typedef rrr_rank_support_var_127    <0, wt_type> rank_0_type;
-        typedef rrr_select_support_var_127  <1, wt_type> select_1_type;
-        typedef rrr_select_support_var_127  <0, wt_type> select_0_type;
+        typedef rrr_rank_support_var    <1, 127, wt_type> rank_1_type; // typedef for default types for rank and select
+        typedef rrr_rank_support_var    <0, 127, wt_type> rank_0_type;
+        typedef rrr_select_support_var  <1, 127, wt_type> select_1_type;
+        typedef rrr_select_support_var  <0, 127, wt_type> select_0_type;
 
         typedef binomial3<127> bi_type;
 
@@ -851,7 +851,8 @@ class rrr_select_support_var
  *    or is this called
  */
 template<uint8_t b, class wt_type>
-class rrr_rank_support_var_127
+//class rrr_rank_support_var_127
+class rrr_rank_support_var<b, 127, wt_type>
 {
     public:
         typedef rrr_vector_var<127, wt_type> bit_vector_type;
@@ -866,7 +867,7 @@ class rrr_rank_support_var_127
         //! Standard constructor
         /*! \param v Pointer to the rrr_vector_var, which should be supported
          */
-        rrr_rank_support_var_127(const bit_vector_type* v=NULL) {
+        rrr_rank_support_var(const bit_vector_type* v=NULL) {
             init(v);
         }
 
@@ -944,7 +945,7 @@ class rrr_rank_support_var_127
             }
         }
 
-        rrr_rank_support_var_127& operator=(const rrr_rank_support_var_127& rs) {
+        rrr_rank_support_var& operator=(const rrr_rank_support_var& rs) {
             if (this != &rs) {
                 set_vector(rs.m_v);
                 m_sample_rate = rs.m_sample_rate;
@@ -952,19 +953,19 @@ class rrr_rank_support_var_127
             return *this;
         }
 
-        void swap(rrr_rank_support_var_127& rs) {
+        void swap(rrr_rank_support_var& rs) {
             if (this != &rs) {
                 std::swap(m_sample_rate, rs.m_sample_rate);
             }
         }
 
-        bool operator==(const rrr_rank_support_var_127& rs)const {
+        bool operator==(const rrr_rank_support_var& rs)const {
             if (this == &rs)
                 return true;
             return m_sample_rate == rs.m_sample_rate;
         }
 
-        bool operator!=(const rrr_rank_support_var_127& rs)const {
+        bool operator!=(const rrr_rank_support_var& rs)const {
             return !(*this == rs);
         }
 
@@ -997,7 +998,8 @@ class rrr_rank_support_var_127
 // class rrr_select_support_var<b, 127, wt_type>
 //! Select support for the rrr_vector_var class.
 template<uint8_t b,class wt_type>
-class rrr_select_support_var_127
+//class rrr_select_support_var_127
+class rrr_select_support_var<b, 127, wt_type>//_127
 {
     public:
         typedef rrr_vector_var<127, wt_type> bit_vector_type;
@@ -1107,7 +1109,7 @@ class rrr_select_support_var_127
 
 
     public:
-        rrr_select_support_var_127(const bit_vector_type* v=NULL) {
+        rrr_select_support_var(const bit_vector_type* v=NULL) {
             init(v);
         }
 
@@ -1138,7 +1140,7 @@ class rrr_select_support_var_127
             }
         }
 
-        rrr_select_support_var_127& operator=(const rrr_select_support_var_127& rs) {
+        rrr_select_support_var& operator=(const rrr_select_support_var& rs) {
             if (this != &rs) {
                 set_vector(rs.m_v);
                 m_sample_rate = rs.m_sample_rate;
@@ -1146,19 +1148,19 @@ class rrr_select_support_var_127
             return *this;
         }
 
-        void swap(rrr_select_support_var_127& rs) {
+        void swap(rrr_select_support_var& rs) {
             if (this != &rs) {
                 std::swap(m_sample_rate, rs.m_sample_rate);
             }
         }
 
-        bool operator==(const rrr_select_support_var_127& rs)const {
+        bool operator==(const rrr_select_support_var& rs)const {
             if (this == &rs)
                 return true;
             return m_sample_rate == rs.m_sample_rate;
         }
 
-        bool operator!=(const rrr_select_support_var_127& rs)const {
+        bool operator!=(const rrr_select_support_var& rs)const {
             return !(*this == rs);
         }
 
