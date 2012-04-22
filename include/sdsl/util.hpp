@@ -66,25 +66,25 @@ namespace util{
 	 *              pseudo random number generator, otherwise the seed
 	 *              parameter is used. 
 	 */
-	template<class int_vector>
-	void set_random_bits(int_vector &v, int seed=0);
+	template<class int_vector_type>
+	void set_random_bits(int_vector_type &v, int seed=0);
 	//! Sets all bits of the int_vector to 0-bits.
-	template<class int_vector>
-	void set_zero_bits(int_vector &v);
+	template<class int_vector_type>
+	void set_zero_bits(int_vector_type &v);
 	//! Sets all bits of the int_vector to 1-bits.
-	template<class int_vector>
-	void set_one_bits(int_vector &v);
+	template<class int_vector_type>
+	void set_one_bits(int_vector_type &v);
 	//! Bit compress the int_vector
 	/*! Determine the biggest value X and then set the
 	 *  int_width to the smallest possible so that we
 	 *  still can represent X
 	 */
-	template<class int_vector>
-	void bit_compress(int_vector &v);
+	template<class int_vector_type>
+	void bit_compress(int_vector_type &v);
 
 	//! All elements of v modulo m
-	template<class int_vector, class size_type_class>
-	void all_elements_mod(int_vector &v, size_type_class m);
+	template<class int_vector_type, class size_type_class>
+	void all_elements_mod(int_vector_type &v, size_type_class m);
 	
 
 	//! Set all entries of int_vector to value k	
@@ -94,31 +94,31 @@ namespace util{
 	 *   This method precalculates the content of at most 64
 	 *   words and then repeatedly inserts these words into v. 
 	 */
-	template<class int_vector>
-	void set_all_values_to_k(int_vector &v, uint64_t k);
+	template<class int_vector_type>
+	void set_all_values_to_k(int_vector_type &v, uint64_t k);
 
 	//! Sets each entry of the numerical vector v at position \$fi\f$ to value \$fi\$f
-	template<class int_vector>
-	void set_to_id(int_vector &v);	
+	template<class int_vector_type>
+	void set_to_id(int_vector_type &v);	
 
 	//! Counts and returns the 1-bits an int_vector contains. 
 	/*! \param v The int_vector to count the 1-bits.
 	  	\return The number of 1-bits in v.
 	 */
-	template<class int_vector>
-	typename int_vector::size_type get_one_bits(const int_vector &v);
+	template<class int_vector_type>
+	typename int_vector_type::size_type get_one_bits(const int_vector_type &v);
 
 	//! Counts 10 bit pair occurencies. 
 	/*! \sa getOneBits, getOneZeroBits
 	 */
-	template<class int_vector>
-	typename int_vector::size_type get_onezero_bits(const int_vector &v);
+	template<class int_vector_type>
+	typename int_vector_type::size_type get_onezero_bits(const int_vector_type &v);
 
 	//! Counts 01 bit pair occurencies. 
 	/*! \sa getOneBits, getZeroOneBits
 	 */
-	template <class int_vector>
-	typename int_vector::size_type get_zeroone_bits(const int_vector &v);
+	template <class int_vector_type>
+	typename int_vector_type::size_type get_zeroone_bits(const int_vector_type &v);
 
 	//! Load a data structure from a file.
 	/*! The data structure has to provide a load function.
@@ -343,8 +343,8 @@ bool util::load_from_int_vector_buffer(unsigned char * &text, int_vector_file_bu
 
 
 
-template<class int_vector>
-void util::set_random_bits(int_vector &v, int seed){
+template<class int_vector_type>
+void util::set_random_bits(int_vector_type &v, int seed){
 	if( 0 == seed ){
 		srand48((int)time(NULL));
 	}else
@@ -357,7 +357,7 @@ void util::set_random_bits(int_vector &v, int seed){
 		|(((uint64_t)lrand48()&0xFFFFULL)<<32)
 		|(((uint64_t)lrand48()&0xFFFFULL)<<16)
 		|((uint64_t)lrand48()&0xFFFFULL);
-	for(typename int_vector::size_type i=1; i < (v.capacity()>>6); ++i){
+	for(typename int_vector_type::size_type i=1; i < (v.capacity()>>6); ++i){
 		*(++data) = (((uint64_t)lrand48()&0xFFFFULL)<<48)
 			|(((uint64_t)lrand48()&0xFFFFULL)<<32)
 			|(((uint64_t)lrand48()&0xFFFFULL)<<16)
@@ -366,39 +366,39 @@ void util::set_random_bits(int_vector &v, int seed){
 }
 
 // all elements of vector v modulo m
-template<class int_vector, class size_type_class>
-void util::all_elements_mod(int_vector &v, size_type_class m){
-	for(typename int_vector::size_type i=0; i < v.size(); ++i){
+template<class int_vector_type, class size_type_class>
+void util::all_elements_mod(int_vector_type &v, size_type_class m){
+	for(typename int_vector_type::size_type i=0; i < v.size(); ++i){
 		v[i] = v[i] % m;
 	}
 }
 
-template<class int_vector>
-void util::set_zero_bits(int_vector &v){
+template<class int_vector_type>
+void util::set_zero_bits(int_vector_type &v){
 	uint64_t *data = v.m_data;
 	if(v.empty())
 		return;
 	*data = 0ULL;
-	for(typename int_vector::size_type i=1; i < (v.capacity()>>6); ++i){
+	for(typename int_vector_type::size_type i=1; i < (v.capacity()>>6); ++i){
 		*(++data) = 0ULL;
 	}	
 }
 
-template<class int_vector>
-void util::set_one_bits(int_vector &v){
+template<class int_vector_type>
+void util::set_one_bits(int_vector_type &v){
 	uint64_t *data = v.m_data;
 	if(v.empty())
 		return;
 	*data = 0xFFFFFFFFFFFFFFFFULL;
-	for(typename int_vector::size_type i=1; i < (v.capacity()>>6); ++i){
+	for(typename int_vector_type::size_type i=1; i < (v.capacity()>>6); ++i){
 		*(++data) = 0xFFFFFFFFFFFFFFFFULL;
 	}	
 }
 
-template<class int_vector>
-void util::bit_compress(int_vector &v){
-	typename int_vector::value_type max=0;
-	for (typename int_vector::size_type i=0; i < v.size(); ++i){
+template<class int_vector_type>
+void util::bit_compress(int_vector_type &v){
+	typename int_vector_type::value_type max=0;
+	for (typename int_vector_type::size_type i=0; i < v.size(); ++i){
 		if ( v[i] > max ){
 			max = v[i];
 		}
@@ -410,7 +410,7 @@ void util::bit_compress(int_vector &v){
 		uint64_t *write_data = v.m_data;
 		uint8_t read_offset = 0;
 		uint8_t write_offset = 0;
-		for (typename int_vector::size_type i=0; i < v.size(); ++i){
+		for (typename int_vector_type::size_type i=0; i < v.size(); ++i){
 			uint64_t x = bit_magic::read_int_and_move(read_data, read_offset, old_width);
 			bit_magic::write_int_and_move(write_data,  x, write_offset, min_width);
 		}
@@ -420,8 +420,8 @@ void util::bit_compress(int_vector &v){
 }
 
 
-template<class int_vector>
-void util::set_all_values_to_k(int_vector &v, uint64_t k){
+template<class int_vector_type>
+void util::set_all_values_to_k(int_vector_type &v, uint64_t k){
 	uint64_t *data = v.m_data;
 	if(v.empty())
 		return;
@@ -446,8 +446,8 @@ void util::set_all_values_to_k(int_vector &v, uint64_t k){
 	}
 	while( offset != 0 );
 	
-	typename int_vector::size_type n64 = v.capacity()/64;
-	for(typename int_vector::size_type i=0; i < n64; ){
+	typename int_vector_type::size_type n64 = v.capacity()/64;
+	for(typename int_vector_type::size_type i=0; i < n64; ){
 		for(uint64_t ii=0; ii < n and i < n64; ++ii,++i){
 			*(data++) = vec[ii];
 		}
@@ -455,20 +455,20 @@ void util::set_all_values_to_k(int_vector &v, uint64_t k){
 }
 
 
-template<class int_vector>
-void util::set_to_id(int_vector &v){
-	for (typename int_vector::size_type i=0; i < v.size(); ++i){
+template<class int_vector_type>
+void util::set_to_id(int_vector_type &v){
+	for (typename int_vector_type::size_type i=0; i < v.size(); ++i){
 		v[i] = i;
 	}
 }
 
-template<class int_vector>
-typename int_vector::size_type util::get_one_bits(const int_vector &v){
+template<class int_vector_type>
+typename int_vector_type::size_type util::get_one_bits(const int_vector_type &v){
 	const uint64_t *data = v.data();
 	if(v.empty())
 		return 0;
-	typename int_vector::size_type result = bit_magic::b1Cnt(*data);
-	for(typename int_vector::size_type i=1; i < (v.capacity()>>6); ++i){
+	typename int_vector_type::size_type result = bit_magic::b1Cnt(*data);
+	for(typename int_vector_type::size_type i=1; i < (v.capacity()>>6); ++i){
 		result += bit_magic::b1Cnt(*(++data));
 	}
 	if( v.bit_size()&0x3F ){
@@ -478,14 +478,14 @@ typename int_vector::size_type util::get_one_bits(const int_vector &v){
 }
 
 	
-template<class int_vector>
-typename int_vector::size_type util::get_onezero_bits(const int_vector &v){
+template<class int_vector_type>
+typename int_vector_type::size_type util::get_onezero_bits(const int_vector_type &v){
 	const uint64_t *data = v.data();
 	if(v.empty())
 		return 0;
 	uint64_t carry = 0, oldcarry=0;
-	typename int_vector::size_type result = bit_magic::b10Cnt(*data, carry);
-	for(typename int_vector::size_type i=1; i < (v.capacity()>>6); ++i){
+	typename int_vector_type::size_type result = bit_magic::b10Cnt(*data, carry);
+	for(typename int_vector_type::size_type i=1; i < (v.capacity()>>6); ++i){
 		oldcarry = carry;
 		result += bit_magic::b10Cnt(*(++data), carry);
 	}
@@ -495,14 +495,14 @@ typename int_vector::size_type util::get_onezero_bits(const int_vector &v){
 	return result;
 }
 
-template<class int_vector>
-typename int_vector::size_type util::get_zeroone_bits(const int_vector &v){
+template<class int_vector_type>
+typename int_vector_type::size_type util::get_zeroone_bits(const int_vector_type &v){
 	const uint64_t *data = v.data();
 	if(v.empty())
 		return 0;
 	uint64_t carry = 1, oldcarry = 1;
-	typename int_vector::size_type result = bit_magic::b01Cnt(*data, carry);
-	for(typename int_vector::size_type i=1; i < (v.capacity()>>6); ++i){
+	typename int_vector_type::size_type result = bit_magic::b01Cnt(*data, carry);
+	for(typename int_vector_type::size_type i=1; i < (v.capacity()>>6); ++i){
 		oldcarry = carry;
 		result += bit_magic::b01Cnt(*(++data), carry);
 	}
