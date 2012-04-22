@@ -321,10 +321,10 @@ class bit_magic{
 			        x>0 and 0 if x equals 0.
 			\sa i1BP, r1BP
 		*/
-		static const uint32_t l1BP(uint64_t x);
+		static uint32_t l1BP(uint64_t x);
 
 		//! Naive implementation of l1BP.
-		static const uint32_t l1BPNaive(uint64_t x);
+		static uint32_t l1BPNaive(uint64_t x);
 
 		//! Calculates the position of the rightmost 1-bit in the 64bit integer x if it exists
 		/*! This method is e.g. used in the getUnaryBit method.
@@ -333,10 +333,10 @@ class bit_magic{
 			        x>0 and 0 if x equals 0.
 			\sa i1BP, l1BP
 		*/
-		static const uint32_t r1BP(uint64_t x);
+		static uint32_t r1BP(uint64_t x);
 
 		//! Naive implementation of r1BP.
-		static const uint32_t r1BPNaive(uint64_t x);
+		static uint32_t r1BPNaive(uint64_t x);
 
 		//! Calcluates the position of the i-th rightmost 11-bit-pattern which terminates a fibonacci coded integer in x.
 		/*!	\param x 64 bit integer.
@@ -347,10 +347,10 @@ class bit_magic{
 		    \sa b11Cnt, l11BP, i1BP
 
 		 */
-		static const uint32_t i11BP(uint64_t x, uint32_t i, uint32_t c=0);
+		static uint32_t i11BP(uint64_t x, uint32_t i, uint32_t c=0);
 
 		//! Naive implementation of i11BP
-		static const uint32_t i11BPNaive(uint64_t x, uint32_t i){
+		static uint32_t i11BPNaive(uint64_t x, uint32_t i){
 			for(uint32_t j=0; j<63; ++j){
 				if( (x&3)==3  ){
 					i--;
@@ -363,10 +363,10 @@ class bit_magic{
 			return 63;
 		}
 
-		static const uint64_t all11BPs(uint64_t x, bool &c);
+		static uint64_t all11BPs(uint64_t x, bool &c);
 
 		//! Calculates the position of the i-th rightmost 11-bit-pattern which terminates a Ternary coded integer in x.
-		static const uint32_t eI11BP(uint64_t x, uint32_t i);
+		static uint32_t eI11BP(uint64_t x, uint32_t i);
 
 		//! Calculates the position of the leftmost 11-bit-pattern which terminates a fibonacci coded integer in x.
 	    /*! \param x 64 bit integer.
@@ -375,11 +375,11 @@ class bit_magic{
 					and 0 otherwise.
 			\sa b11Cnt, i11BP
 	    */
-		static const uint32_t l11BP(uint64_t x);
+		static uint32_t l11BP(uint64_t x);
 
 		//! TODO: Documentation for this function
 		static void write_int(uint64_t *word, uint64_t x, const uint8_t offset=0, const uint8_t len=64);
-		static void writeInt2(uint64_t *word, uint64_t x, const uint8_t offset=0, const uint8_t len=64);
+//		static void writeInt2(uint64_t *word, uint64_t x, const uint8_t offset=0, const uint8_t len=64);
 
 		//! TODO: Documentation for this function
 		static void write_int_and_move(uint64_t* &word, uint64_t x, uint8_t &offset, const uint8_t len);
@@ -1159,7 +1159,7 @@ inline uint32_t bit_magic::i1BPNaive(uint64_t x, uint32_t i){
 // builtin version of sse version or
 // 64 bit version of 32 bit proposial of
 // http://www-graphics.stanford.edu/~seander/bithacks.html
-inline const uint32_t bit_magic::l1BP(uint64_t x){
+inline uint32_t bit_magic::l1BP(uint64_t x){
 #ifdef __SSE4_2__
 	if( x == 0 )
 		return 0;
@@ -1185,7 +1185,7 @@ inline const uint32_t bit_magic::l1BP(uint64_t x){
 #endif	
 }
 
-inline const uint32_t bit_magic::l1BPNaive(uint64_t x){
+inline uint32_t bit_magic::l1BPNaive(uint64_t x){
 	if(x&0x8000000000000000ULL)
 		return 63;
 	x<<=1;
@@ -1199,7 +1199,7 @@ inline const uint32_t bit_magic::l1BPNaive(uint64_t x){
 
 // details see: http://citeseer.ist.psu.edu/leiserson98using.html
 // or page 10, Knuth TAOCP Vol 4 F1A
-inline const uint32_t bit_magic::r1BP(uint64_t x){
+inline uint32_t bit_magic::r1BP(uint64_t x){
 #ifdef __SSE4_2__
 	if(x==0)
 		return 0;
@@ -1218,7 +1218,7 @@ inline const uint32_t bit_magic::r1BP(uint64_t x){
 #endif
 }
 
-inline const uint32_t bit_magic::r1BPNaive(uint64_t x){
+inline uint32_t bit_magic::r1BPNaive(uint64_t x){
 	if(x&1)
 		return 0;
 	x>>=1;
@@ -1230,7 +1230,7 @@ inline const uint32_t bit_magic::r1BPNaive(uint64_t x){
 	return 63;
 }
 
-inline const uint32_t bit_magic::l11BP(uint64_t x){
+inline uint32_t bit_magic::l11BP(uint64_t x){
 	// extract "11" 2bit blocks
 	uint64_t ex11 =  (x&(x>>1))&0x5555555555555555ULL;
 //	std::cerr<<"ex11="<<ex11<<std::endl;
@@ -1251,7 +1251,7 @@ inline const uint32_t bit_magic::l11BP(uint64_t x){
 	*/
 }
 /*
-inline const uint64_t bit_magic::all11BPs(uint64_t x, uint32_t c){
+inline uint64_t bit_magic::all11BPs(uint64_t x, uint32_t c){
 	uint64_t ex11 =  (x&(x>>1))&0x5555555555555555ULL;
 	uint64_t ex10or01 = (ex11|(ex11<<1))^x;
 	ex11 += ( ((ex11|(ex11<<1))+(((ex10or01<<1)&0x5555555555555555ULL)|c)) & ((ex10or01&0x5555555555555555ULL)|ex11) );
@@ -1259,7 +1259,7 @@ inline const uint64_t bit_magic::all11BPs(uint64_t x, uint32_t c){
 }
 */
 
-inline const uint64_t bit_magic::all11BPs(uint64_t x, bool &c){
+inline uint64_t bit_magic::all11BPs(uint64_t x, bool &c){
 	uint64_t ex11 =  (x&(x>>1))&0x5555555555555555ULL;
 	uint64_t ex10or01 = (ex11|(ex11<<1))^x;
 	ex11 += ( ((ex11|(ex11<<1))+(((ex10or01<<1)&0x5555555555555555ULL)|c)) & ((ex10or01&0x5555555555555555ULL)|ex11) );
@@ -1267,14 +1267,14 @@ inline const uint64_t bit_magic::all11BPs(uint64_t x, bool &c){
 	return ex11;
 }
 
-inline const uint32_t bit_magic::i11BP(uint64_t x, uint32_t i, uint32_t c){
+inline uint32_t bit_magic::i11BP(uint64_t x, uint32_t i, uint32_t c){
 	uint64_t ex11 =  (x&(x>>1))&0x5555555555555555ULL;
 	uint64_t ex10or01 = (ex11|(ex11<<1))^x;
 	ex11 += ( ((ex11|(ex11<<1))+(((ex10or01<<1)&0x5555555555555555ULL)|c)) & ((ex10or01&0x5555555555555555ULL)|ex11) );
 	return i1BP(ex11,i);
 }
 
-inline const uint32_t bit_magic::eI11BP(uint64_t x, uint32_t i){
+inline uint32_t bit_magic::eI11BP(uint64_t x, uint32_t i){
 	return i1BP((x&(x<<1))&0xAAAAAAAAAAAAAAAAULL, i);
 }
 
@@ -1299,14 +1299,14 @@ inline void bit_magic::write_int(uint64_t *word, uint64_t x, uint8_t offset, con
 	}
 }
 
-inline void bit_magic::writeInt2(uint64_t *word, uint64_t x, uint8_t offset, const uint8_t len){
+//inline void bit_magic::writeInt2(uint64_t *word, uint64_t x, uint8_t offset, const uint8_t len){
 //	*word ^= ((x)& 111ULL << offset);
 //	*word ^= ((*word ^ x)& bit_magic::Li1Mask[len] << offset);
 //	if( offset + len > 64 ){
 //		offset = offset + len - 64;
 //		*(word+1) ^= (( *(word+1) ^ (x >> (len-offset)) ) & bit_magic::Li1Mask[offset]);
 //	}
-}
+//}
 
 inline void bit_magic::write_int_and_move(uint64_t* &word, uint64_t x, uint8_t &offset, const uint8_t len){
 	x &= bit_magic::Li1Mask[len];

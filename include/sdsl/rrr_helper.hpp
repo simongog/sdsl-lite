@@ -111,6 +111,21 @@ class binomial
 			return bv.get_int(btnrp, btnrlen);
 		}
 
+		template<class bit_vector_type>
+		static inline uint8_t get_bt(const bit_vector_type &bv, 
+									 typename bit_vector_type::size_type pos,
+									 uint8_t block_size){
+			return bit_magic::b1Cnt( bv.get_int(pos, block_size) );
+		}
+
+		template<class bit_vector_type>
+		static void set_bt(bit_vector_type &bv, 
+						   typename bit_vector_type::size_type pos,
+						   number_type bt,
+						   uint8_t space_for_bt){
+			bv.set_int(pos, bt, space_for_bt);
+		}
+
 		static inline number_type Li1Mask(uint8_t off){
 			return bit_magic::Li1Mask[off];
 		}
@@ -232,6 +247,21 @@ class binomial2
 											  typename bit_vector_type::size_type btnrp,
 											  uint8_t btnrlen){
 			return bv.get_int(btnrp, btnrlen);
+		}
+
+		template<class bit_vector_type>
+		static inline uint8_t get_bt(const bit_vector_type &bv, 
+									 typename bit_vector_type::size_type pos,
+									 uint8_t block_size){
+			return bit_magic::b1Cnt( bv.get_int(pos, block_size) );
+		}
+
+		template<class bit_vector_type>
+		static void set_bt(bit_vector_type &bv, 
+						   typename bit_vector_type::size_type pos,
+						   number_type bt,
+						   uint8_t space_for_bt){
+			bv.set_int(pos, bt, space_for_bt);
 		}
 
 		static inline number_type Li1Mask(uint8_t off){
@@ -381,6 +411,31 @@ class binomial3
 				return bv.get_int(btnrp, btnrlen);
 			}else{
                 return ((((uint128_t) bv.get_int(btnrp+64, btnrlen-64))<<64) + bv.get_int(btnrp, 64));
+			}
+		}
+
+		template<class bit_vector_type>
+		static inline uint8_t get_bt(const bit_vector_type &bv, 
+									 typename bit_vector_type::size_type pos,
+									 uint8_t block_size){
+			if ( block_size <= 64 ){
+				return bit_magic::b1Cnt( bv.get_int(pos, block_size) );
+			}else{
+                return bit_magic::b1Cnt( bv.get_int(pos+64, block_size-64) )+ 
+					   bit_magic::b1Cnt( bv.get_int(pos, 64) );
+			}
+		}
+
+		template<class bit_vector_type>
+		static void set_bt(bit_vector_type &bv, 
+						   typename bit_vector_type::size_type pos,
+						   number_type bt,
+						   uint8_t space_for_bt){
+			if ( space_for_bt <= 64 ){
+				bv.set_int(pos, bt, space_for_bt);
+			}else{
+                bv.set_int(pos, (uint64_t)bt, 64);
+			    bv.set_int(pos+64, bt>>64, space_for_bt-64 );
 			}
 		}
 

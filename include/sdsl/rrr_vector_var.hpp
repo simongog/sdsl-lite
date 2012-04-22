@@ -34,14 +34,18 @@
 namespace sdsl
 {
 
-
-
-
 template<uint8_t b=1, uint8_t block_size=15, class wt_type=int_vector<> >  // forward declaration needed for friend declaration
 class rrr_rank_support_var;                // in rrr_vector_var
 
 template<uint8_t b=1, uint8_t block_size=15, class wt_type=int_vector<> >  // forward declaration needed for friend declaration
 class rrr_select_support_var;                // in rrr_vector_var
+
+template<uint8_t N, uint8_t block_size> 
+struct select_binomial { 
+	typedef binomial2<block_size> bi_type; 
+};
+template<uint8_t block_size> struct select_binomial<0, block_size> { typedef binomial2<block_size> bi_type; };
+template<uint8_t block_size> struct select_binomial<1, block_size> { typedef binomial3<block_size> bi_type; };
 
 //template<uint8_t b=1, class wt_type=int_vector<> >  // forward declaration needed for friend declaration
 //class rrr_rank_support_var_127;                // in rrr_vector_var
@@ -80,7 +84,10 @@ class rrr_vector_var
         friend class rrr_select_support_var<1, block_size, wt_type>;
 
     
-        typedef binomial2<block_size> bi_type;
+		enum { D = (block_size > 64 ? 1 : 0) };
+		typedef typename select_binomial<D, block_size>::bi_type bi_type;
+//        typedef binomial2<block_size> bi_type;
+		typedef typename bi_type::number_type number_type;
 
         enum { rrr_block_size = block_size };
     public:
@@ -116,13 +123,15 @@ class rrr_vector_var
             size_type btnr_pos = 0;
             size_type sum_rank = 0;
             while (pos + block_size <= m_size) { // handle all blocks, except the last one
-                bt_array[ i++ ] = x = bit_magic::b1Cnt(bv.get_int(pos, block_size));
+//                bt_array[ i++ ] = x = bit_magic::b1Cnt(bv.get_int(pos, block_size));
+                bt_array[ i++ ] = x = bi_type::get_bt(bv, pos, block_size);
                 sum_rank += x;
                 btnr_pos += bi_type::space_for_bt(x);
                 pos += block_size;
             }
             if (pos <= m_size) { // handle last block
-                bt_array[ i++ ] = x = bit_magic::b1Cnt(bv.get_int(pos, m_size - pos));
+//                bt_array[ i++ ] = x = bit_magic::b1Cnt(bv.get_int(pos, m_size - pos));
+                bt_array[ i++ ] = x = bi_type::get_bt(bv, pos, m_size - pos);
                 sum_rank += x;
                 btnr_pos += bi_type::space_for_bt(x);
             }
@@ -163,7 +172,9 @@ class rrr_vector_var
                 uint8_t space_for_bt = bi_type::space_for_bt(x=bt_array[i++]);
                 sum_rank += (invert ? (block_size - x) : x);
                 if (space_for_bt) {
-                    m_btnr.set_int(btnr_pos, bi_type::bin_to_nr(bv.get_int(pos, block_size)), space_for_bt);
+					number_type bin = bi_type::decode_btnr(bv, pos, block_size);
+					number_type nr = bi_type::bin_to_nr( bin );
+					bi_type::set_bt(m_btnr, btnr_pos, nr, space_for_bt);
                 }
                 btnr_pos += space_for_bt;
                 pos += block_size;
@@ -178,14 +189,16 @@ class rrr_vector_var
                 uint8_t space_for_bt = bi_type::space_for_bt(x=bt_array[i++]);
                 sum_rank += invert ? (block_size - x) : x;
                 if (space_for_bt) {
-                    m_btnr.set_int(btnr_pos, bi_type::bin_to_nr(bv.get_int(pos, m_size - pos)), space_for_bt);
+					number_type bin = bi_type::decode_btnr(bv, pos, m_size-pos );
+					number_type nr = bi_type::bin_to_nr( bin );
+					bi_type::set_bt(m_btnr, btnr_pos, nr, space_for_bt);
+
                 }
                 btnr_pos += space_for_bt;
             }
             // for technical reasons add an additional element to m_rank
             m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
             util::assign(m_bt, bt_array);
-//	 m_bt = wt_type(bt_array); // TODO: use assign from util?
         }
 
         //! Accessing the i-th element of the original bit_vector
@@ -207,8 +220,10 @@ class rrr_vector_var
                 btnrp += bi_type::space_for_bt(m_bt[j]);
             }
             uint64_t btnr = m_btnr.get_int(btnrp, bi_type::space_for_bt(bt));
+			// TODO ^^^ (see rank)
 
             return (bi_type::nr_to_bin(bt, btnr) >> off) & (uint64_t)1;
+			// TODO ^^^ (see rank)
         }
 
         //! Returns the size of the original bit vector.
@@ -271,256 +286,6 @@ class rrr_vector_var
         }
 };
 
-
-
-// TODO remove the class and merge with rrr_vector_var
-template<class wt_type>
-class rrr_vector_var<127, wt_type>
-{
-    public:
-        typedef bit_vector::size_type size_type;
-        typedef bit_vector::value_type value_type;
-
-        friend class rrr_rank_support_var   <0, 127, wt_type>;
-        friend class rrr_rank_support_var   <1, 127, wt_type>;
-        friend class rrr_select_support_var <0, 127, wt_type>;
-        friend class rrr_select_support_var <1, 127, wt_type>;
-
-        typedef rrr_rank_support_var    <1, 127, wt_type> rank_1_type; // typedef for default types for rank and select
-        typedef rrr_rank_support_var    <0, 127, wt_type> rank_0_type;
-        typedef rrr_select_support_var  <1, 127, wt_type> select_1_type;
-        typedef rrr_select_support_var  <0, 127, wt_type> select_0_type;
-
-        typedef binomial3<127> bi_type;
-
-        enum { rrr_block_size = 127 };
-    public:
-        size_type      m_size; // length of the original bit_vector
-        uint16_t       m_sample_rate;
-        wt_type        m_bt; // data structure, which stores the block types (bt). The block type equals the number
-        // of ones in a block. Another option for this data structure is wt_huff
-        bit_vector     m_btnr; // data structure, which stores the block type numbers of the blocks
-        int_vector<>   m_btnrp; // sample pointers into btnr
-        int_vector<>   m_rank;  // sample rank values
-        bit_vector     m_invert; // specifies if a superblock (i.e. sample_rate blocks) have to be considered as inverted
-        // i.e. 1 and 0 are swapped
-
-    public:
-
-        //! Default constructor
-        rrr_vector_var(uint16_t sample_rate=32) : m_sample_rate(sample_rate) {};
-
-        //! Constructor
-        /*!
-        *  \param block_size Number of bits in one block. \f$ block\_size \in \{1,...,23\} \f$
-        */
-        rrr_vector_var(const bit_vector& bv, uint16_t sample_rate=32): m_sample_rate(sample_rate) {
-            m_size = bv.size();
-            if (m_size == 0)
-                return;
-            int_vector<> bt_array;
-            bt_array.set_int_width(7);
-            bt_array.resize((m_size+126)/127);
-
-            // (1) calculate the block types and store them in m_bt
-            size_type pos = 0, i = 0, x;
-            size_type btnr_pos = 0;
-            size_type sum_rank = 0;
-            while (pos + 127 <= m_size) { // handle all blocks, except the last one
-                /* 127 bits at a time */
-                bt_array[ i++ ] = x = (bit_magic::b1Cnt(bv.get_int(pos, 64)) + bit_magic::b1Cnt(bv.get_int(pos+64, 63)));
-                sum_rank += x;
-                btnr_pos += bi_type::space_for_bt(x);
-                pos += 127;
-            }
-            if (pos <= m_size) { // handle last block
-                size_type left = m_size - pos;
-                x = 0;
-                if (left>=64) {
-                    x = bit_magic::b1Cnt(bv.get_int(pos, 64));
-                    pos += 64;
-                    left -= 64;
-                }
-                if (left) x += bit_magic::b1Cnt(bv.get_int(pos, left));
-                bt_array[ i++ ] = x;
-                sum_rank += x;
-                btnr_pos += bi_type::space_for_bt(x);
-            }
-//	 cout << "# bt array initialized "<< endl;
-            m_btnr.resize(std::max(btnr_pos, (size_type)1));   // max necessary for case: block_size == 1
-            m_btnrp.set_int_width(bit_magic::l1BP(btnr_pos)+1); m_btnrp.resize((bt_array.size()+m_sample_rate-1)/m_sample_rate);
-            m_rank.set_int_width(bit_magic::l1BP(sum_rank)+1); m_rank.resize((bt_array.size()+m_sample_rate-1)/m_sample_rate + 1);
-            m_invert = bit_vector((bt_array.size()+m_sample_rate-1)/m_sample_rate, 0);
-
-            // (2) calculate block type numbers and pointers into btnr and rank samples
-            pos = 0; i = 0;
-            btnr_pos= 0, sum_rank = 0;
-            bool invert = false;
-            uint128_t num,bin;
-            while (pos + 127 <= m_size) {  // handle all blocks, except the last one
-                if ((i % m_sample_rate) == 0) {
-                    m_btnrp[ i/m_sample_rate ] = btnr_pos;
-                    m_rank[ i/m_sample_rate ] = sum_rank;
-                    // calculate invert bit for that superblock
-                    if (i+m_sample_rate <= bt_array.size()) {
-                        size_type gt_half_block_size = 0; // counter for blocks greater than half of the blocksize
-                        for (size_type j=i; j < i+m_sample_rate; ++j) {
-                            if (bt_array[j] > 127/2)
-                                ++gt_half_block_size;
-                        }
-                        if (gt_half_block_size > (m_sample_rate/2)) {
-                            m_invert[ i/m_sample_rate ] = 1;
-                            for (size_type j=i; j < i+m_sample_rate; ++j) {
-                                bt_array[j] = 127 - bt_array[j];
-                            }
-                            invert = true;
-                        } else {
-                            invert = false;
-                        }
-                    } else {
-                        invert = false;
-                    }
-                }
-                uint8_t space_for_bt = bi_type::space_for_bt(x=bt_array[i++]);
-                sum_rank += (invert ? (127 - x) : x);
-                if (space_for_bt) {
-                    bin = (((uint128_t) bv.get_int(pos+64, 63)<<64) + bv.get_int(pos, 64));
-                    num = bi_type::bin_to_nr(bin);
-                    if (space_for_bt>64) {
-                        uint64_t high = (num >> 64);
-                        uint64_t low = num;
-                        m_btnr.set_int(btnr_pos, low , 64);
-                        m_btnr.set_int(btnr_pos+64, high , space_for_bt-64);
-                    } else {
-                        uint64_t nr64 = num;
-                        m_btnr.set_int(btnr_pos, nr64 , space_for_bt);
-                    }
-                }
-                btnr_pos += space_for_bt;
-                pos += 127;
-            }
-            if (pos <= m_size) { // handle last block
-                if ((i % m_sample_rate) == 0) {
-                    m_btnrp[ i/m_sample_rate ] = btnr_pos;
-                    m_rank[ i/m_sample_rate ] = sum_rank;
-                    m_invert[ i/m_sample_rate ] = 0; // default: set last block to not inverted
-                    invert = false;
-                }
-                uint8_t space_for_bt = bi_type::space_for_bt(x=bt_array[i++]);
-                sum_rank += invert ? (127 - x) : x;
-                if (space_for_bt) {
-                    size_t left = m_size - pos;
-                    if (left>64) {
-                        bin = (((uint128_t) bv.get_int(pos+64, left-64)<<64) + bv.get_int(pos, 64));
-                    } else {
-                        bin = bv.get_int(pos, left);
-                    }
-                    num = bi_type::bin_to_nr(bin);
-                    if (space_for_bt>64) {
-                        uint64_t high = (num >> 64);
-                        uint64_t low = num;
-                        m_btnr.set_int(btnr_pos, low , 64);
-                        m_btnr.set_int(btnr_pos+64, high , space_for_bt-64);
-                    } else {
-                        uint64_t nr64 = num;
-                        m_btnr.set_int(btnr_pos, nr64 , space_for_bt);
-                    }
-                }
-                btnr_pos += space_for_bt;
-            }
-            // for technical reasons add an additional element to m_rank
-            m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
-            util::assign(m_bt, bt_array);
-        }
-
-        //! Accessing the i-th element of the original bit_vector
-        /*! \param i An index i with \f$ 0 \leq i < size()  \f$.
-           \return The i-th bit of the original bit_vector
-        */
-        value_type operator[](size_type i)const {
-            size_type bt_idx = i/127;
-            uint8_t bt = m_bt[ bt_idx ];
-            size_type sample_pos = bt_idx/m_sample_rate;
-            if (m_invert[sample_pos])
-                bt = 127 - bt;
-            if (bt == 0 or bt == 127) {
-                return bt>0;
-            }
-            uint8_t off = i % 127; //i - bt_idx*block_size;
-            size_type btnrp = m_btnrp[ sample_pos ];
-            for (size_type j = sample_pos*m_sample_rate; j < bt_idx; ++j) {
-                btnrp += bi_type::space_for_bt(m_bt[j]);
-            }
-            uint128_t bin,num;
-            size_t space = bi_type::space_for_bt(bt);
-            if (space<=64) num = m_btnr.get_int(btnrp,space);
-            else {
-                num = ((uint128_t) m_btnr.get_int(btnrp+64,space-64) << 64) + m_btnr.get_int(btnrp,64);
-            }
-
-            bin = bi_type::nr_to_bin(bt,num);
-            return ((bin >> off) & 1);
-        }
-
-        //! Returns the size of the original bit vector.
-        size_type size()const {
-            return m_size;
-        }
-
-        //! Answers select queries
-        //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
-            size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            out.write((char*)&m_sample_rate, sizeof(m_sample_rate));
-            written_bytes += sizeof(m_sample_rate);
-            written_bytes += m_bt.serialize(out);
-            written_bytes += m_btnr.serialize(out);
-            written_bytes += m_btnrp.serialize(out);
-            written_bytes += m_rank.serialize(out);
-            written_bytes += m_invert.serialize(out);
-            return written_bytes;
-        }
-
-        //! Loads the data structure from the given istream.
-        void load(std::istream& in) {
-            in.read((char*) &m_size, sizeof(m_size));
-            in.read((char*) &m_sample_rate, sizeof(m_sample_rate));
-            m_bt.load(in);
-            m_btnr.load(in);
-            m_btnrp.load(in);
-            m_rank.load(in);
-            m_invert.load(in);
-        }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "rrr_vector_var";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << "\n,";
-            m_bt.mem_info("bt"); std::cout << ",\n";
-            m_btnr.mem_info("btnr"); std::cout << ",\n";
-            m_btnrp.mem_info("btnrp"); std::cout << ",\n";
-            m_rank.mem_info("rank samples"); std::cout << ",\n";
-            m_invert.mem_info("invert"); std::cout << ")\n";
-        }
-#endif
-
-        // Print information about the object to stdout.
-        void print_info()const {
-            size_type orig_bv_size = m_size; // size of the original bit vector in bits
-            size_type rrr_size 	= util::get_size_in_bytes(*this)*8;
-            size_type bt_size 	= util::get_size_in_bytes(m_bt)*8;
-            size_type btnr_size 	= util::get_size_in_bytes(m_btnr)*8;
-            size_type btnrp_and_rank_size 	= util::get_size_in_bytes(m_btnrp)*8 + util::get_size_in_bytes(m_rank)*8 + util::get_size_in_bytes(m_invert)*8;
-            std::cout << "#block_size\tsample_rate\torig_bv_size\trrr_size\tbt_size\tbtnr_size\tbtnrp_and_rank_size" << std::endl;
-            std::cout << (int)127 << "\t" << m_sample_rate << "\t";
-            std::cout << orig_bv_size << "\t" << rrr_size << "\t" << bt_size << "\t" << btnr_size << "\t"
-                      << btnrp_and_rank_size << std::endl;
-        }
-};
 
 template<uint8_t bit_pattern>
 struct rrr_rank_support_var_trait {
