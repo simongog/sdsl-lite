@@ -17,12 +17,14 @@
 /*! \file rrr_helper.hpp
    \brief rrr_helper.hpp contains the sdsl::binomial class,
           a class which contains informations about the binomial coefficients
-   \author Simon Gog, Stefan Arnold
+   \author Simon Gog, Matthias Petri, Stefan Arnold
 */
 #ifndef SDSL_RRR_HELPER
 #define SDSL_RRR_HELPER
 
 #include <algorithm> // for next permutation
+#include <iostream>
+#include "bitmagic.hpp"
 
 namespace sdsl
 {
@@ -31,6 +33,8 @@ namespace sdsl
 template<uint8_t n>
 class binomial
 {
+	public:
+		typedef uint32_t number_type;
     private:
 
         static class impl
@@ -91,6 +95,25 @@ class binomial
         static inline uint8_t space_for_bt_pair(uint8_t x) {
             return iii.m_space_for_bt_pair[x];
         }
+
+		static inline uint8_t popcount(number_type x) {
+			return bit_magic::b1Cnt(x);
+		}
+
+		static inline uint8_t select(number_type x, uint32_t i) {
+           	return bit_magic::i1BP(x, i);
+		}
+
+		template<class bit_vector_type>
+		static inline number_type decode_btnr(const bit_vector_type &bv, 
+											  typename bit_vector_type::size_type btnrp,
+											  uint8_t btnrlen){
+			return bv.get_int(btnrp, btnrlen);
+		}
+
+		static inline number_type Li1Mask(uint8_t off){
+			return bit_magic::Li1Mask[off];
+		}
 };
 template<uint8_t n>
 typename binomial<n>::impl binomial<n>::iii;
@@ -103,6 +126,8 @@ typename binomial<n>::impl binomial<n>::iii;
 template<uint8_t n>
 class binomial2
 {
+	public:
+		typedef uint64_t number_type;
     private:
 
         static class impl
@@ -192,10 +217,29 @@ class binomial2
             return nr;
         }
 
-        static inline uint8_t space_for_bt_pair(uint8_t x) {
-            return 0;//iii.m_space_for_bt_pair[x];
-        }
+        static inline uint8_t space_for_bt_pair(uint8_t x) { return 0; }
+
+		static inline uint8_t popcount(number_type x) {
+			return bit_magic::b1Cnt(x);
+		}
+
+		static inline uint8_t select(number_type x, uint32_t i) {
+           	return bit_magic::i1BP(x, i);
+		}
+
+		template<class bit_vector_type>
+		static inline number_type decode_btnr(const bit_vector_type &bv, 
+											  typename bit_vector_type::size_type btnrp,
+											  uint8_t btnrlen){
+			return bv.get_int(btnrp, btnrlen);
+		}
+
+		static inline number_type Li1Mask(uint8_t off){
+			return bit_magic::Li1Mask[off];
+		}
 };
+
+
 template<uint8_t n>
 typename binomial2<n>::impl binomial2<n>::iii;
 
@@ -204,6 +248,8 @@ typedef unsigned int uint128_t __attribute__((mode(TI)));
 template<uint8_t n>
 class binomial3
 {
+	public:
+		typedef uint128_t number_type;
     private:
 
         static class impl
@@ -212,6 +258,8 @@ class binomial3
                 static const int MAX_SIZE=128;
                 uint8_t m_space_for_bt[n+1];
                 uint128_t m_coefficients[MAX_SIZE][MAX_SIZE]; // m_coefficient[n][k] stores /n
+
+				uint128_t m_L1Mask[MAX_SIZE+1];
                 //                            \k/
                 // TODO: this table is the same for all possible n
                 // the different binomial2 classes should share it
@@ -237,6 +285,16 @@ class binomial3
                             else m_space_for_bt[k] = bit_magic::l1BP(high) + 64 + 1;
                         }
                     }
+					m_L1Mask[0] = 0;
+					uint128_t mask = 1;
+					for (int i=1; i<=128; ++i){
+						m_L1Mask[i] = mask;
+						mask <<= 1;
+						mask |= (uint128_t)1;
+//						uint64_t high = mask >> 64;
+//						uint64_t low = mask;
+//						std::cout << " mask = " << high << " " << low << std::endl;
+					}
                 }
         } iii;
 
@@ -246,6 +304,7 @@ class binomial3
             return iii.m_space_for_bt[i];
         }
 
+		// TODO: is a speed-up possible if we only decode as many bit as we need?
         static inline const uint128_t nr_to_bin(uint8_t k,uint128_t& nr) {
             if (k == n) {
                 return ((uint128_t)bit_magic::Li1Mask[n-64]<<64) + bit_magic::Li1Mask[64];
@@ -297,9 +356,37 @@ class binomial3
             return nr;
         }
 
-        static inline uint8_t space_for_bt_pair(uint8_t x) {
-            return 0;//iii.m_space_for_bt_pair[x];
-        }
+        static inline uint8_t space_for_bt_pair(uint8_t x) { return 0; }
+
+		static inline uint8_t popcount(number_type x) {
+			return bit_magic::b1Cnt(x >> 64) + bit_magic::b1Cnt(x);
+		}
+
+		static inline uint8_t select(number_type x, uint32_t i) {
+			uint64_t low = x;
+			uint64_t poplow = bit_magic::b1Cnt(low);
+			if ( poplow >= i ){
+            	return bit_magic::i1BP(low, i);
+			}else{
+				uint64_t high = x>>64;
+            	return 64 + bit_magic::i1BP( high, i-poplow);
+			}
+		}
+
+		template<class bit_vector_type>
+		static inline number_type decode_btnr(const bit_vector_type &bv, 
+											  typename bit_vector_type::size_type btnrp,
+											  uint8_t btnrlen){
+			if ( btnrlen <= 64 ){
+				return bv.get_int(btnrp, btnrlen);
+			}else{
+                return ((((uint128_t) bv.get_int(btnrp+64, btnrlen-64))<<64) + bv.get_int(btnrp, 64));
+			}
+		}
+
+		static inline number_type Li1Mask(uint8_t off){
+			return iii.m_L1Mask[off];
+		}
 };
 
 template<uint8_t n>

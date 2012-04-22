@@ -505,7 +505,7 @@ class rrr_select_support{
 
 	   // TODO: hinted binary search
 	   size_type  select0(size_type i)const{
-			if( (i-m_v->m_rank[m_v->m_rank.size()-1]) < i )
+			if( (size()-m_v->m_rank[m_v->m_rank.size()-1]) < i )
 				return size();
 			//  (1) binary search for the answer in the rank_samples
 			size_type begin=0, end=m_v->m_rank.size()-1; // min included, max excluded 

@@ -17,7 +17,7 @@
 /*! \file rrr_vector_var.hpp
    \brief rrr_vector_var.hpp contains the sdsl::rrr_vector_var class, and
           classes which support rank and select for rrr_vector_var.
-   \author Simon Gog, Stefan Arnold
+   \author Simon Gog, Matthias Petri, Stefan Arnold
 */
 #ifndef SDSL_RRR_VECTOR_VAR
 #define SDSL_RRR_VECTOR_VAR
@@ -273,7 +273,7 @@ class rrr_vector_var
 
 
 
-
+// TODO remove the class and merge with rrr_vector_var
 template<class wt_type>
 class rrr_vector_var<127, wt_type>
 {
@@ -555,6 +555,7 @@ class rrr_rank_support_var
         typedef rrr_vector_var<block_size, wt_type> bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
         typedef typename bit_vector_type::bi_type bi_type;
+		typedef typename bi_type::number_type number_type;
 
     private:
         const bit_vector_type* m_v; //!< Pointer to the rank supported rrr_vector_var
@@ -595,13 +596,17 @@ class rrr_rank_support_var
             for (size_type j = sample_pos*m_sample_rate; j < bt_idx; ++j) {
                 uint8_t r = m_v->m_bt[j];
                 rank  += (inv ? block_size - r: r);
-                btnrp += bi_type::space_for_bt(r);   // TODO: brauchst man nicht falls bt[bt_idx] schon 0 oder block_size ist
+                btnrp += bi_type::space_for_bt(r); 
             }
             uint8_t bt = inv ? block_size - m_v->m_bt[ bt_idx ] : m_v->m_bt[ bt_idx ];
-            uint64_t btnr = m_v->m_btnr.get_int(btnrp, bi_type::space_for_bt(bt));
-            uint8_t off = i % block_size; //i - bt_idx*block_size;
-            return rrr_rank_support_var_trait<b>::adjust_rank(rank +
-                    bit_magic::b1Cnt(((uint64_t)(bi_type::nr_to_bin(bt, btnr))) & bit_magic::Li1Mask[off]), i);
+            uint8_t off = i % block_size;
+
+			uint8_t btnrlen 	= bi_type::space_for_bt( bt );
+			number_type	btnr	= bi_type::decode_btnr( m_v->m_btnr, btnrp, btnrlen ); 
+			number_type mask 	= bi_type::Li1Mask(off);
+			number_type	bin		= bi_type::nr_to_bin(bt, btnr) & mask;
+			uint8_t popcnt 		= bi_type::popcount( bin );	
+            return rrr_rank_support_var_trait<b>::adjust_rank(rank + popcnt, i);
         }
 
         //! Short hand for rank(i)
@@ -680,6 +685,7 @@ class rrr_select_support_var
         typedef rrr_vector_var<block_size, wt_type> bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
         typedef typename bit_vector_type::bi_type bi_type;
+		typedef typename bi_type::number_type number_type;
 
     private:
         const bit_vector_type* m_v; //!< Pointer to the rank supported rrr_vector_var
@@ -711,20 +717,22 @@ class rrr_select_support_var
             }
             const bool inv = m_v->m_invert[ begin ];
             size_type btnrp = m_v->m_btnrp[ begin ];
-            uint8_t bt = 0, s = 0; // temp variables for block_type and space for block type
+            uint8_t bt = 0, btnrlen = 0; // temp variables for block_type and space for block type
             while (i > rank) {
                 bt = m_v->m_bt[idx++]; bt = inv ? block_size-bt : bt;
                 rank += bt;
-                btnrp += (s=bi_type::space_for_bt(bt));
+                btnrp += (btnrlen=bi_type::space_for_bt(bt));
             }
             rank -= bt;
-            uint64_t btnr = m_v->m_btnr.get_int(btnrp-s, s);
-            return (idx-1) * block_size + bit_magic::i1BP(bi_type::nr_to_bin(bt, btnr), i-rank);
+			number_type	btnr = bi_type::decode_btnr( m_v->m_btnr, btnrp-btnrlen, btnrlen ); 
+            return (idx-1) * block_size + bi_type::select(bi_type::nr_to_bin(bt, btnr), i-rank);
         }
 
         size_type  select0(size_type i)const {
-            if ((i-m_v->m_rank[m_v->m_rank.size()-1]) < i)
+            if ((size() - m_v->m_rank[m_v->m_rank.size()-1]) < i){
+				std::cout<<"i="<<i<<" size()-m_v->m_rank[m_v->m_rank.size()-1] = " << m_v->m_rank[m_v->m_rank.size()-1]<< std::endl;
                 return size();
+			}
             //  (1) binary search for the answer in the rank_samples
             size_type begin=0, end=m_v->m_rank.size()-1; // min included, max excluded
             size_type idx, rank;
@@ -748,362 +756,15 @@ class rrr_select_support_var
             }
             const bool inv = m_v->m_invert[ begin ];
             size_type btnrp = m_v->m_btnrp[ begin ];
-            uint8_t bt = 0, s = 0; // temp variables for block_type and space for block type
+            uint8_t bt = 0, btnrlen = 0; // temp variables for block_type and space for block type
             while (i > rank) {
                 bt = m_v->m_bt[idx++]; bt = inv ? block_size-bt : bt;
                 rank += (block_size-bt);
-                btnrp += (s=bi_type::space_for_bt(bt));
+                btnrp += (btnrlen=bi_type::space_for_bt(bt));
             }
             rank -= (block_size-bt);
-            uint64_t btnr = m_v->m_btnr.get_int(btnrp-s, s);
-            return (idx-1) * block_size + bit_magic::i1BP(~((uint64_t)bi_type::nr_to_bin(bt, btnr)), i-rank);
-        }
-
-
-
-    public:
-        rrr_select_support_var(const bit_vector_type* v=NULL) {
-            init(v);
-        }
-
-        void init(const bit_vector_type* v=NULL) {
-            set_vector(v);
-        }
-
-        //! Answers select queries
-        size_type select(size_type i)const {
-            return  b ? select1(i) : select0(i);
-        }
-
-
-        const size_type operator()(size_type i)const {
-            return select(i);
-        }
-
-        const size_type size()const {
-            return m_v->size();
-        }
-
-        void set_vector(const bit_vector_type* v=NULL) {
-            m_v = v;
-            if (v != NULL) {
-                m_sample_rate = m_v->m_sample_rate;
-            } else {
-                m_sample_rate = 0;
-            }
-        }
-
-        rrr_select_support_var& operator=(const rrr_select_support_var& rs) {
-            if (this != &rs) {
-                set_vector(rs.m_v);
-                m_sample_rate = rs.m_sample_rate;
-            }
-            return *this;
-        }
-
-        void swap(rrr_select_support_var& rs) {
-            if (this != &rs) {
-                std::swap(m_sample_rate, rs.m_sample_rate);
-            }
-        }
-
-        bool operator==(const rrr_select_support_var& rs)const {
-            if (this == &rs)
-                return true;
-            return m_sample_rate == rs.m_sample_rate;
-        }
-
-        bool operator!=(const rrr_select_support_var& rs)const {
-            return !(*this == rs);
-        }
-
-
-        void load(std::istream& in, const bit_vector_type* v=NULL) {
-            in.read((char*) &m_sample_rate, sizeof(m_sample_rate));
-            set_vector(v);
-        }
-
-        size_type serialize(std::ostream& out)const {
-            size_type written_bytes = 0;
-            out.write((char*)&m_sample_rate, sizeof(m_sample_rate));
-            written_bytes += sizeof(m_sample_rate);
-            return written_bytes;
-        }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "rrr_select_support_var";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
-};
-
-
-
-//! rank_support for the rrr_vector_var class
-/*! The first template parameter is the bit pattern of size one.
- *  TODO: Test if the binary search can be speed up by
- *        saving the (n/2)-th rank value in T[0], the (n/4)-th in T[1],
- *        the (3n/4)-th in T[2],... for small number of rank values
- *    is this called hinted binary search???
- *    or is this called
- */
-template<uint8_t b, class wt_type>
-//class rrr_rank_support_var_127
-class rrr_rank_support_var<b, 127, wt_type>
-{
-    public:
-        typedef rrr_vector_var<127, wt_type> bit_vector_type;
-        typedef typename bit_vector_type::size_type size_type;
-        typedef typename bit_vector_type::bi_type bi_type;
-
-    private:
-        const bit_vector_type* m_v; //!< Pointer to the rank supported rrr_vector_var
-        uint16_t m_sample_rate;  //!<    "     "   "      "
-
-    public:
-        //! Standard constructor
-        /*! \param v Pointer to the rrr_vector_var, which should be supported
-         */
-        rrr_rank_support_var(const bit_vector_type* v=NULL) {
-            init(v);
-        }
-
-        //! Initialize the data structure with a rrr_vector_var, which should be supported
-        void init(const bit_vector_type* v=NULL) {
-            set_vector(v);
-        }
-
-        //! Answers rank queries
-        /*! \param i Argument for the length of the prefix v[0..i-1], with \f$0\leq i \leq size()\f$.
-           \returns Number of 1-bits in the prefix [0..i-1] of the original bit_vector.
-           \par Time complexity
-        		\f$ \Order{ sample\_rate of the rrr\_vector} \f$
-        */
-        const size_type rank(size_type i)const {
-            size_type bt_idx = i/127;
-            size_type sample_pos = bt_idx/m_sample_rate;
-            size_type btnrp = m_v->m_btnrp[ sample_pos ];
-            size_type rank  = m_v->m_rank[ sample_pos ];
-            size_type diff_rank  = m_v->m_rank[ sample_pos+1 ] - rank;
-            if (diff_rank == 0) {
-                return  rrr_rank_support_var_trait<b>::adjust_rank(rank, i);
-            } else if (diff_rank == 127*m_sample_rate) {
-                return  rrr_rank_support_var_trait<b>::adjust_rank(
-                            rank + i - sample_pos*m_sample_rate*127, i);
-            }
-            const bool inv = m_v->m_invert[ sample_pos ];
-            for (size_type j = sample_pos*m_sample_rate; j < bt_idx; ++j) {
-                uint8_t r = m_v->m_bt[j];
-                rank  += (inv ? 127 - r: r);
-                btnrp += bi_type::space_for_bt(r);   // TODO: brauchst man nicht falls bt[bt_idx] schon 0 oder block_size ist
-            }
-            uint8_t bt = inv ? 127 - m_v->m_bt[ bt_idx ] : m_v->m_bt[ bt_idx ];
-            uint8_t off = i % 127; //i - bt_idx*block_size;
-
-            uint128_t btnr;
-            uint8_t s = bi_type::space_for_bt(bt);
-            if (s<=64) {
-                btnr = m_v->m_btnr.get_int(btnrp, s);
-            } else {
-                btnr = (((uint128_t) m_v->m_btnr.get_int(btnrp+64, s-64)<<64) + m_v->m_btnr.get_int(btnrp, 64));
-            }
-
-            uint128_t mask;
-            if (off<=64) {
-                mask = bit_magic::Li1Mask[off];
-            } else {
-                mask = ((uint128_t)bit_magic::Li1Mask[off-64] << 64) + bit_magic::Li1Mask[64];
-            }
-            uint128_t bin = bi_type::nr_to_bin(bt, btnr) & mask;
-            uint64_t high = (bin >> 64);
-            uint64_t low = bin;
-            uint8_t popcnt = bit_magic::b1Cnt(low) + bit_magic::b1Cnt(high);
-
-            return rrr_rank_support_var_trait<b>::adjust_rank(rank + popcnt , i);
-        }
-
-        //! Short hand for rank(i)
-        const size_type operator()(size_type i)const {
-            return rank(i);
-        }
-
-        //! Returns the size of the original vector
-        const size_type size()const {
-            return m_v->size();
-        }
-
-        //! Set the supported vector.
-        void set_vector(const bit_vector_type* v=NULL) {
-            m_v = v;
-            if (v != NULL) {
-                m_sample_rate = m_v->m_sample_rate;
-            } else {
-                m_sample_rate = 0;
-            }
-        }
-
-        rrr_rank_support_var& operator=(const rrr_rank_support_var& rs) {
-            if (this != &rs) {
-                set_vector(rs.m_v);
-                m_sample_rate = rs.m_sample_rate;
-            }
-            return *this;
-        }
-
-        void swap(rrr_rank_support_var& rs) {
-            if (this != &rs) {
-                std::swap(m_sample_rate, rs.m_sample_rate);
-            }
-        }
-
-        bool operator==(const rrr_rank_support_var& rs)const {
-            if (this == &rs)
-                return true;
-            return m_sample_rate == rs.m_sample_rate;
-        }
-
-        bool operator!=(const rrr_rank_support_var& rs)const {
-            return !(*this == rs);
-        }
-
-        //! Load the data structure from a stream and set the supported vector.
-        void load(std::istream& in, const bit_vector_type* v=NULL) {
-            in.read((char*) &m_sample_rate, sizeof(m_sample_rate));
-            set_vector(v);
-        }
-
-        //! Serializes the data structure into a stream.
-        size_type serialize(std::ostream& out)const {
-            size_type written_bytes = 0;
-            out.write((char*)&m_sample_rate, sizeof(m_sample_rate));
-            written_bytes += sizeof(m_sample_rate);
-            return written_bytes;
-        }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "rrr_rank_support_var";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
-};
-
-// TODO:
-// template<uint8_t b, class wt_type>
-// class rrr_select_support_var<b, 127, wt_type>
-//! Select support for the rrr_vector_var class.
-template<uint8_t b,class wt_type>
-//class rrr_select_support_var_127
-class rrr_select_support_var<b, 127, wt_type>//_127
-{
-    public:
-        typedef rrr_vector_var<127, wt_type> bit_vector_type;
-        typedef typename bit_vector_type::size_type size_type;
-        typedef typename bit_vector_type::bi_type bi_type;
-
-    private:
-        const bit_vector_type* m_v; //!< Pointer to the rank supported rrr_vector_var
-        uint16_t m_sample_rate;  //!<    "     "   "      "
-
-        size_type select1(size_type i)const {
-            if (m_v->m_rank[m_v->m_rank.size()-1] < i)
-                return size();
-            //  (1) binary search for the answer in the rank_samples
-            size_type begin=0, end=m_v->m_rank.size()-1; // min included, max excluded
-            size_type idx, rank;
-            // invariant:  m_rank[end] >= i
-            //             m_rank[begin] < i
-            while (end-begin > 1) {
-                idx  = (begin+end) >> 1; // idx in [0..m_rank.size()-1]
-                rank = m_v->m_rank[idx];
-                if (rank >= i)
-                    end = idx;
-                else { // rank < i
-                    begin = idx;
-                }
-            }
-            //   (2) linear search between the samples
-            rank = m_v->m_rank[begin]; // now i>rank
-            idx = begin * m_sample_rate; // initialize idx for select result
-            size_type diff_rank  = m_v->m_rank[end] - rank;
-            if (diff_rank == 127*m_sample_rate) {// optimiziation for select<1>
-                return idx*127 + i-rank -1;
-            }
-            const bool inv = m_v->m_invert[ begin ];
-            size_type btnrp = m_v->m_btnrp[ begin ];
-            uint8_t bt = 0, s = 0; // temp variables for block_type and space for block type
-            while (i > rank) {
-                bt = m_v->m_bt[idx++]; bt = inv ? 127-bt : bt;
-                rank += bt;
-                btnrp += (s=bi_type::space_for_bt(bt));
-            }
-            rank -= bt;
-
-            uint128_t btnr;
-            if (s<=64) {
-                btnr = m_v->m_btnr.get_int(btnrp-s, s);
-            } else {
-                btnr = (((uint128_t) m_v->m_btnr.get_int(btnrp-s+64, s-64)<<64) + m_v->m_btnr.get_int(btnrp-s, 64));
-            }
-            uint128_t bin = bi_type::nr_to_bin(bt,btnr);
-            uint64_t high = (bin >> 64);
-            uint64_t low = bin;
-            uint8_t poplow = bit_magic::b1Cnt(low);
-            if (poplow >= (i-rank)) return (idx-1) * 127 + bit_magic::i1BP(low , i-rank);
-            else return (idx-1) * 127 + 64 + bit_magic::i1BP(high , i-rank-poplow);
-        }
-
-        size_type  select0(size_type i)const {
-            if ((i-m_v->m_rank[m_v->m_rank.size()-1]) < i)
-                return size();
-            //  (1) binary search for the answer in the rank_samples
-            size_type begin=0, end=m_v->m_rank.size()-1; // min included, max excluded
-            size_type idx, rank;
-            // invariant:  m_rank[end] >= i
-            //             m_rank[begin] < i
-            while (end-begin > 1) {
-                idx  = (begin+end) >> 1; // idx in [0..m_rank.size()-1]
-                rank = idx*127*m_sample_rate - m_v->m_rank[idx];
-                if (rank >= i)
-                    end = idx;
-                else { // rank < i
-                    begin = idx;
-                }
-            }
-            //   (2) linear search between the samples
-            rank = begin*127*m_sample_rate - m_v->m_rank[begin]; // now i>rank
-            idx = begin * m_sample_rate; // initialize idx for select result
-            size_type diff_rank  = m_v->m_rank[end] - rank;
-            if (diff_rank == 0) {   // only for select<0>
-                return idx*127 +  i-rank -1;
-            }
-            const bool inv = m_v->m_invert[ begin ];
-            size_type btnrp = m_v->m_btnrp[ begin ];
-            uint8_t bt = 0, s = 0; // temp variables for block_type and space for block type
-            while (i > rank) {
-                bt = m_v->m_bt[idx++]; bt = inv ? 127-bt : bt;
-                rank += (127-bt);
-                btnrp += (s=bi_type::space_for_bt(bt));
-            }
-            rank -= (127-bt);
-
-            uint128_t btnr;
-            if (s<=64) {
-                btnr = m_v->m_btnr.get_int(btnrp-s, s);
-            } else {
-                btnr = (((uint128_t) m_v->m_btnr.get_int(btnrp-s+64, s-64)<<64) + m_v->m_btnr.get_int(btnrp-s, 64));
-            }
-            uint128_t bin = bi_type::nr_to_bin(bt,btnr);
-            uint64_t high = (bin >> 64);
-            uint64_t low = bin;
-            uint8_t poplow = bit_magic::b1Cnt(~low);
-            if (poplow >= (i-rank)) return (idx-1) * 127 + bit_magic::i1BP(~low , i-rank);
-            else return (idx-1) * 127 + 64 + bit_magic::i1BP(~high , i-rank-poplow);
+			number_type	btnr = bi_type::decode_btnr( m_v->m_btnr, btnrp-btnrlen, btnrlen ); 
+            return (idx-1) * block_size + bi_type::select( ~bi_type::nr_to_bin(bt, btnr), i-rank);
         }
 
 
