@@ -149,20 +149,20 @@ class binomial2
         {
             public:
                 static const int MAX_SIZE=64;
-                uint8_t m_space_for_bt[n+1];
-                uint64_t m_coefficients[MAX_SIZE][MAX_SIZE]; // m_coefficient[n][k] stores /n
+                uint8_t m_space_for_bt[MAX_SIZE+1];
+                uint64_t m_coefficients[MAX_SIZE+1][MAX_SIZE+1]; // m_coefficient[n][k] stores /n
                 //                            \k/
                 // TODO: this table is the same for all possible n
                 // the different binomial2 classes should share it
                 impl() {
-                    for (int k=0; k<MAX_SIZE; ++k) {
+                    for (int k=0; k<=MAX_SIZE; ++k) {
                         m_coefficients[0][k] = 0;
                     }
-                    for (int nn=0; nn<MAX_SIZE; ++nn) {
+                    for (int nn=0; nn<=MAX_SIZE; ++nn) {
                         m_coefficients[nn][0] = 1;
                     }
-                    for (int nn=1; nn<MAX_SIZE; ++nn) {
-                        for (int k=1; k<MAX_SIZE; ++k) {
+                    for (int nn=1; nn<=MAX_SIZE; ++nn) {
+                        for (int k=1; k<=MAX_SIZE; ++k) {
                             m_coefficients[nn][k] = m_coefficients[nn-1][k-1] + m_coefficients[nn-1][k];
                             // check overflow
                             if (m_coefficients[nn][k] < m_coefficients[nn-1][k-1] or
@@ -171,7 +171,7 @@ class binomial2
                             }
                         }
                     }
-                    for (uint8_t k=0; k<=n; ++k) {
+                    for (uint8_t k=0; k<=MAX_SIZE; ++k) {
                         if (m_coefficients[n][k] == 1) {
                             m_space_for_bt[k] = 0;
                         } else {
@@ -193,8 +193,8 @@ class binomial2
                 return bit_magic::Li1Mask[n];
             } else if (k == 0) {
                 return 0;
-            } else if (k == 1) {
-                return 1ULL<<(n-1-nr);
+            } else if (k == 1) { // optimization if only on bit is set
+                return 1ULL<<(n-1-nr); // (n-1-nr) is always < 64 for n<=64
             }
             uint64_t bin = 0;
             uint64_t mask = 1;
@@ -446,7 +446,185 @@ class binomial3
 
 template<uint8_t n>
 typename binomial3<n>::impl binomial3<n>::iii;
+/*
+typedef unsigned int uint256_t __attribute__((mode(OI)));
+// TODO: rename binoimal4 to binomial255
+//              binomial3 to binomial127
+//              binomail2 to binomial63
+template<uint8_t n>
+class binomial4
+{
+	public:
+		typedef uint256_t number_type;
+    private:
 
+        static class impl
+        {
+            public:
+                static const int MAX_SIZE=256;
+                uint8_t m_space_for_bt[n+1];
+                uint256_t m_coefficients[MAX_SIZE][MAX_SIZE]; // m_coefficient[n][k] stores /n
+
+				uint256_t m_L1Mask[MAX_SIZE+1];
+                //                            \k/
+                // TODO: this table is the same for all possible n
+                // the different binomial2 classes should share it
+                impl() {
+                    for (int k=0; k<MAX_SIZE; ++k) {
+                        m_coefficients[0][k] = 0;
+                    }
+                    for (int nn=0; nn<MAX_SIZE; ++nn) {
+                        m_coefficients[nn][0] = 1;
+                    }
+                    for (int nn=1; nn<MAX_SIZE; ++nn) {
+                        for (int k=1; k<MAX_SIZE; ++k) {
+                            m_coefficients[nn][k] = m_coefficients[nn-1][k-1] + m_coefficients[nn-1][k];
+                        }
+                    }
+                    for (uint8_t k=0; k<=n; ++k) {
+                        uint64_t high = (m_coefficients[n][k] >> 64); // TODO
+                        uint64_t low = m_coefficients[n][k];
+                        if (high == 0 && low == 1) {
+                            m_space_for_bt[k] = 0;
+                        } else {
+                            if (high == 0) m_space_for_bt[k] = bit_magic::l1BP(low)+1;
+                            else m_space_for_bt[k] = bit_magic::l1BP(high) + 64 + 1;
+                        }
+                    }
+					m_L1Mask[0] = 0;
+					uint128_t mask = 1;
+					for (int i=1; i<=MAX_SIZE; ++i){
+						m_L1Mask[i] = mask;
+						mask <<= 1;
+						mask |= (uint128_t)1;
+//						uint64_t high = mask >> 64;
+//						uint64_t low = mask;
+//						std::cout << " mask = " << high << " " << low << std::endl;
+					}
+                }
+        } iii;
+
+    public:
+
+        static inline uint8_t space_for_bt(uint64_t i) {
+            return iii.m_space_for_bt[i];
+        }
+
+		// TODO: is a speed-up possible if we only decode as many bit as we need?
+        static inline const uint128_t nr_to_bin(uint8_t k,uint128_t& nr) {
+			// TODO
+            if (k == n) {
+                return ((uint128_t)bit_magic::Li1Mask[n-64]<<64) + bit_magic::Li1Mask[64];
+            } else if (k == 0) {
+                return 0;
+            } else if (k == 1) {
+                return ((uint128_t)1ULL<<(n-nr-1));
+            }
+
+            uint128_t bin = 0;
+            uint128_t mask = 1;
+            uint8_t nn = n;
+
+            while (k > 1) {
+                if (nr >= iii.m_coefficients[nn-1][k]) {
+                    nr -= iii.m_coefficients[nn-1][k];
+                    --k;
+                    bin |= mask;
+                }
+                --nn;
+                mask = (mask << 1ULL);
+            }
+            return bin | ((uint128_t)1<<(n-nr-1));
+        };
+
+        static inline uint128_t bin_to_nr(uint128_t& bin) {
+			// TODO
+            if (bin == 0 or bin == (((uint128_t)bit_magic::Li1Mask[n-64]<<64) +
+                                    bit_magic::Li1Mask[64])) {   // handle special cases
+                return 0;
+            }
+            uint128_t nr = 0;
+            uint64_t high = (bin>>64);
+            uint64_t low = bin;
+            uint8_t  k  = bit_magic::b1Cnt(high) + bit_magic::b1Cnt(low); // get number of ones
+            uint8_t  nn = n; // size of the block
+            while (bin) {
+                if (bin&1) {
+                    nr += iii.m_coefficients[nn-1][k];
+                    --k; // go to the case (n-1, k-1)
+                }// else go to the case (n-1, k)
+                bin >>= 1;
+                --nn;
+            }
+            return nr;
+        }
+
+        static inline uint8_t space_for_bt_pair(uint8_t x) { return 0; }
+
+		static inline uint8_t popcount(number_type x) {
+			return bit_magic::b1Cnt(x >> 196) + bit_magic::b1Cnt(x >> 128);
+				   bit_magic::b1Cnt(x >> 64) + bit_magic::b1Cnt(x);
+		}
+
+		static inline uint8_t select(number_type x, uint32_t i) {
+			// TODO
+			uint64_t low = x;
+			uint64_t poplow = bit_magic::b1Cnt(low);
+			if ( poplow >= i ){
+            	return bit_magic::i1BP(low, i);
+			}else{
+				uint64_t high = x>>64;
+            	return 64 + bit_magic::i1BP( high, i-poplow);
+			}
+		}
+
+		template<class bit_vector_type>
+		static inline number_type decode_btnr(const bit_vector_type &bv, 
+											  typename bit_vector_type::size_type btnrp,
+											  uint8_t btnrlen){
+			// TODO
+			if ( btnrlen <= 64 ){
+				return bv.get_int(btnrp, btnrlen);
+			}else{
+                return ((((number_type) bv.get_int(btnrp+64, btnrlen-64))<<64) + bv.get_int(btnrp, 64));
+			}
+		}
+
+		template<class bit_vector_type>
+		static inline uint8_t get_bt(const bit_vector_type &bv, 
+									 typename bit_vector_type::size_type pos,
+									 uint8_t block_size){
+			// TODO
+			if ( block_size <= 64 ){
+				return bit_magic::b1Cnt( bv.get_int(pos, block_size) );
+			}else{
+                return bit_magic::b1Cnt( bv.get_int(pos+64, block_size-64) )+ 
+					   bit_magic::b1Cnt( bv.get_int(pos, 64) );
+			}
+		}
+
+		template<class bit_vector_type>
+		static void set_bt(bit_vector_type &bv, 
+						   typename bit_vector_type::size_type pos,
+						   number_type bt,
+						   uint8_t space_for_bt){
+			// TODO
+			if ( space_for_bt <= 64 ){
+				bv.set_int(pos, bt, space_for_bt);
+			}else{
+                bv.set_int(pos, (uint64_t)bt, 64);
+			    bv.set_int(pos+64, bt>>64, space_for_bt-64 );
+			}
+		}
+
+		static inline number_type Li1Mask(uint8_t off){
+			return iii.m_L1Mask[off];
+		}
+};
+
+template<uint8_t n>
+typename binomial4<n>::impl binomial4<n>::iii;
+*/
 
 } // end namespace
 #endif

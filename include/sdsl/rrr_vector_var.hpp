@@ -86,7 +86,6 @@ class rrr_vector_var
     
 		enum { D = (block_size > 64 ? 1 : 0) };
 		typedef typename select_binomial<D, block_size>::bi_type bi_type;
-//        typedef binomial2<block_size> bi_type;
 		typedef typename bi_type::number_type number_type;
 
         enum { rrr_block_size = block_size };
@@ -211,7 +210,7 @@ class rrr_vector_var
             size_type sample_pos = bt_idx/m_sample_rate;
             if (m_invert[sample_pos])
                 bt = block_size - bt;
-            if (bt == 0 or bt == block_size) {
+            if (bt == 0 or bt == block_size) { // very effective optimization
                 return bt>0;
             }
             uint8_t off = i % block_size; //i - bt_idx*block_size;
@@ -219,11 +218,11 @@ class rrr_vector_var
             for (size_type j = sample_pos*m_sample_rate; j < bt_idx; ++j) {
                 btnrp += bi_type::space_for_bt(m_bt[j]);
             }
-            uint64_t btnr = m_btnr.get_int(btnrp, bi_type::space_for_bt(bt));
-			// TODO ^^^ (see rank)
 
-            return (bi_type::nr_to_bin(bt, btnr) >> off) & (uint64_t)1;
-			// TODO ^^^ (see rank)
+			uint8_t btnrlen 	= bi_type::space_for_bt( bt );
+			number_type	btnr	= bi_type::decode_btnr( m_btnr, btnrp, btnrlen ); 
+			number_type	bin		= bi_type::nr_to_bin(bt, btnr);
+			return ((bin >> off) & 1);
         }
 
         //! Returns the size of the original bit vector.
