@@ -17,6 +17,10 @@
 /*! \file rrr_vector_var.hpp
    \brief rrr_vector_var.hpp contains the sdsl::rrr_vector_var class, and
           classes which support rank and select for rrr_vector_var.
+		  Note: This class is deprecated since the class
+		        rrr_vector contains all functionality
+				of rrr_vector_var now.
+	\deprecated rrr_vector_var			
    \author Simon Gog, Matthias Petri, Stefan Arnold
 */
 #ifndef SDSL_RRR_VECTOR_VAR
@@ -41,11 +45,11 @@ template<uint8_t b=1, uint8_t block_size=15, class wt_type=int_vector<> >  // fo
 class rrr_select_support_var;                // in rrr_vector_var
 
 template<uint8_t N, uint8_t block_size> 
-struct select_binomial { 
+struct select_binomial_var { 
 	typedef binomial64<block_size> bi_type; 
 };
-template<uint8_t block_size> struct select_binomial<0, block_size> { typedef binomial64<block_size> bi_type; };
-template<uint8_t block_size> struct select_binomial<1, block_size> { typedef binomial128<block_size> bi_type; };
+template<uint8_t block_size> struct select_binomial_var<0, block_size> { typedef binomial64<block_size> bi_type; };
+template<uint8_t block_size> struct select_binomial_var<1, block_size> { typedef binomial128<block_size> bi_type; };
 
 //template<uint8_t b=1, class wt_type=int_vector<> >  // forward declaration needed for friend declaration
 //class rrr_rank_support_var_127;                // in rrr_vector_var
@@ -85,7 +89,7 @@ class rrr_vector_var
 
     
 		enum { D = (block_size > 64 ? 1 : 0) };
-		typedef typename select_binomial<D, block_size>::bi_type bi_type;
+		typedef typename select_binomial_var<D, block_size>::bi_type bi_type;
 		typedef typename bi_type::number_type number_type;
 
         enum { rrr_block_size = block_size };
