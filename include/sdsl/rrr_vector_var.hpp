@@ -42,10 +42,10 @@ class rrr_select_support_var;                // in rrr_vector_var
 
 template<uint8_t N, uint8_t block_size> 
 struct select_binomial { 
-	typedef binomial2<block_size> bi_type; 
+	typedef binomial64<block_size> bi_type; 
 };
-template<uint8_t block_size> struct select_binomial<0, block_size> { typedef binomial2<block_size> bi_type; };
-template<uint8_t block_size> struct select_binomial<1, block_size> { typedef binomial3<block_size> bi_type; };
+template<uint8_t block_size> struct select_binomial<0, block_size> { typedef binomial64<block_size> bi_type; };
+template<uint8_t block_size> struct select_binomial<1, block_size> { typedef binomial128<block_size> bi_type; };
 
 //template<uint8_t b=1, class wt_type=int_vector<> >  // forward declaration needed for friend declaration
 //class rrr_rank_support_var_127;                // in rrr_vector_var

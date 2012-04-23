@@ -139,7 +139,7 @@ typename binomial<n>::impl binomial<n>::iii;
 // Gonzalo Navarro and Eliana Providel: Fast, Small, Simple Rank/Select on Bitmaps, SEA 2012
 // TODO: Further improve by precalc decoding of blocks with small k
 template<uint8_t n>
-class binomial2
+class binomial64
 {
 	public:
 		typedef uint64_t number_type;
@@ -271,12 +271,12 @@ class binomial2
 
 
 template<uint8_t n>
-typename binomial2<n>::impl binomial2<n>::iii;
+typename binomial64<n>::impl binomial64<n>::iii;
 
 typedef unsigned int uint128_t __attribute__((mode(TI)));
 
 template<uint8_t n>
-class binomial3
+class binomial128
 {
 	public:
 		typedef uint128_t number_type;
@@ -287,21 +287,21 @@ class binomial3
             public:
                 static const int MAX_SIZE=128;
                 uint8_t m_space_for_bt[n+1];
-                uint128_t m_coefficients[MAX_SIZE][MAX_SIZE]; // m_coefficient[n][k] stores /n
+                uint128_t m_coefficients[MAX_SIZE+1][MAX_SIZE+1]; // m_coefficient[n][k] stores /n
 
 				uint128_t m_L1Mask[MAX_SIZE+1];
                 //                            \k/
                 // TODO: this table is the same for all possible n
                 // the different binomial2 classes should share it
                 impl() {
-                    for (int k=0; k<MAX_SIZE; ++k) {
+                    for (int k=0; k <= MAX_SIZE; ++k) {
                         m_coefficients[0][k] = 0;
                     }
-                    for (int nn=0; nn<MAX_SIZE; ++nn) {
+                    for (int nn=0; nn <= MAX_SIZE; ++nn) {
                         m_coefficients[nn][0] = 1;
                     }
-                    for (int nn=1; nn<MAX_SIZE; ++nn) {
-                        for (int k=1; k<MAX_SIZE; ++k) {
+                    for (int nn=1; nn <= MAX_SIZE; ++nn) {
+                        for (int k=1; k <= MAX_SIZE; ++k) {
                             m_coefficients[nn][k] = m_coefficients[nn-1][k-1] + m_coefficients[nn-1][k];
                         }
                     }
@@ -445,14 +445,14 @@ class binomial3
 };
 
 template<uint8_t n>
-typename binomial3<n>::impl binomial3<n>::iii;
+typename binomial128<n>::impl binomial128<n>::iii;
 /*
 typedef unsigned int uint256_t __attribute__((mode(OI)));
 // TODO: rename binoimal4 to binomial255
 //              binomial3 to binomial127
 //              binomail2 to binomial63
 template<uint8_t n>
-class binomial4
+class binomial256
 {
 	public:
 		typedef uint256_t number_type;
@@ -623,7 +623,7 @@ class binomial4
 };
 
 template<uint8_t n>
-typename binomial4<n>::impl binomial4<n>::iii;
+typename binomial256<n>::impl binomial256<n>::iii;
 */
 
 } // end namespace
