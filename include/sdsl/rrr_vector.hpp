@@ -255,7 +255,7 @@ class rrr_vector
 #ifdef MEM_INFO
         void mem_info(std::string label="")const {
             if (label=="")
-                label = "rrr_vector<"<< util::to_string(block_size) <<">";
+                label = "rrr_vector<" + util::to_string(block_size) + ">";
             size_type bytes = util::get_size_in_bytes(*this);
             std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << "\n,";
             m_bt.mem_info("bt"); std::cout << ",\n";
