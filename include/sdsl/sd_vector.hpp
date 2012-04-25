@@ -93,11 +93,17 @@ class sd_vector{
 
 	public:
 		const hi_bit_vector_type &high;
-		sd_vector():high(m_high){
+		const int_vector<> &low;
+		const select_1_support_type 	&high_1_select; 
+		const select_0_support_type 	&high_0_select; 
+
+		sd_vector():high(m_high), low(m_low),
+					high_1_select(m_high_1_select), high_0_select(m_high_0_select){
 		//	std::cout<<"std constructor of sd_vector"<<std::endl;
 		}
 
-		sd_vector(const bit_vector &bv):high(m_high){
+		sd_vector(const bit_vector &bv):high(m_high),low(m_low),
+										high_1_select(m_high_1_select), high_0_select(m_high_0_select){
 //std::cout<<"calling constructor of sd_vector"<<std::endl;
 			m_size = bv.size();
 			if(m_size == 0)
