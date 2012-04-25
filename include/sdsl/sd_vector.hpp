@@ -31,11 +31,11 @@
 namespace sdsl{
 
 // forward declaration needed for friend declaration
-template<class Select1Support=select_support_mcl<1>, class Select0Support=select_support_mcl<0> >
+template<class hi_bit_vector_type=bit_vector, class Select1Support=select_support_mcl<1>, class Select0Support=select_support_mcl<0> >
 class sd_rank_support;  // in sd_vector
 
 // forward declaration needed for friend declaration
-template<class Select1Support=select_support_mcl<1>, class Select0Support=select_support_mcl<0> >
+template<class hi_bit_vector_type=bit_vector, class Select1Support=select_support_mcl<1>, class Select0Support=select_support_mcl<0> >
 class sd_select_support;  // in sd_vector
 
 //! A bit vector which compresses very sparse populated bit vectors by 
@@ -54,19 +54,19 @@ class sd_select_support;  // in sd_vector
  *  - D. Okanohara, K. Sadakane: ,,Practical Entropy-Compressed Rank/Select Dictionary'',
  *             Proceedings of ALENEX 2007.
  */
-template<class Select1Support=select_support_mcl<1>, class Select0Support=select_support_mcl<0> >	
+template<class hi_bit_vector_type=bit_vector, class hi_select_1=select_support_mcl<1>, class hi_select_0=select_support_mcl<0> >	
 class sd_vector{
 	public:
 		typedef bit_vector::size_type size_type;
 		typedef size_type value_type;
-		typedef Select0Support select_0_support_type;
-		typedef Select1Support select_1_support_type;
+		typedef hi_select_0 select_0_support_type;
+		typedef hi_select_1 select_1_support_type;
 
-		friend class sd_rank_support<select_1_support_type, select_0_support_type>;
-		friend class sd_select_support<select_1_support_type, select_0_support_type>;
+		friend class sd_rank_support<hi_bit_vector_type, select_1_support_type, select_0_support_type>;
+		friend class sd_select_support<hi_bit_vector_type, select_1_support_type, select_0_support_type>;
 
-		typedef sd_rank_support<select_1_support_type, select_0_support_type> rank_1_type;
-		typedef sd_select_support<select_1_support_type, select_0_support_type> select_1_type;
+		typedef sd_rank_support<hi_bit_vector_type, select_1_support_type, select_0_support_type> rank_1_type;
+		typedef sd_select_support<hi_bit_vector_type, select_1_support_type, select_0_support_type> select_1_type;
 	private:
 		// we need this variables to represent the m ones of the original bit vector of size n 
 		size_type m_size;		 // length of the original bit vector
@@ -75,9 +75,9 @@ class sd_vector{
 								 // for ,,with (of) low (part)''
 
 		int_vector<> m_low;      // vector for the least significant bits of the positions of the m ones 
-		bit_vector   m_high;     // bit vector that represents the most significant bit in permuted order
-		select_1_support_type m_high_1_select; // 
-		select_0_support_type m_high_0_select; // 
+		hi_bit_vector_type   	m_high;     // bit vector that represents the most significant bit in permuted order
+		select_1_support_type 	m_high_1_select; // 
+		select_0_support_type 	m_high_0_select; // 
 
 	void copy(const sd_vector &v){
 		m_size = v.m_size;
@@ -92,12 +92,18 @@ class sd_vector{
 
 
 	public:
-		const bit_vector &high;
-		sd_vector():high(m_high){
+		const hi_bit_vector_type &high;
+		const int_vector<> &low;
+		const select_1_support_type 	&high_1_select; 
+		const select_0_support_type 	&high_0_select; 
+
+		sd_vector():high(m_high), low(m_low),
+					high_1_select(m_high_1_select), high_0_select(m_high_0_select){
 		//	std::cout<<"std constructor of sd_vector"<<std::endl;
 		}
 
-		sd_vector(const bit_vector &bv):high(m_high){
+		sd_vector(const bit_vector &bv):high(m_high),low(m_low),
+										high_1_select(m_high_1_select), high_0_select(m_high_0_select){
 //std::cout<<"calling constructor of sd_vector"<<std::endl;
 			m_size = bv.size();
 			if(m_size == 0)
@@ -110,8 +116,8 @@ class sd_vector{
 			m_wl    = logn - logm;
 //std::cout<<"m_wl="<<(int)m_wl<<std::endl;
 			m_low = int_vector<>(m, 0, m_wl);
-			m_high = bit_vector(m + (1ULL<<logm), 0);
-//std::cout<<"m_low and m_high initialized="<<std::endl;
+			bit_vector high = bit_vector(m + (1ULL<<logm), 0); // 
+//std::cout<<"m_low and high initialized="<<std::endl;
 			const uint64_t *bvp = bv.data();
 			for(size_type i=0, mm=0,last_high=0,highpos=0; i < (bv.size()+63)/64; ++i, ++bvp){
 				size_type position = 64*i;
@@ -128,19 +134,20 @@ class sd_vector{
 					last_high = cur_high;
 					// (2) handle low part
 					m_low[mm++] = position; // int_vector truncates the most significant logm bits
-					m_high[highpos++] = 1;     // write 1 for the entry
+					high[highpos++] = 1;     // write 1 for the entry
 					position += 1;
 					w >>= 1;
 				}
 			}
-//std::cout<<"m_low and m_high filled"<<std::endl;
+//std::cout<<"m_low and high filled"<<std::endl;
 /*			
 			if( m_size < 50 ){
 				for(size_type i=0; i<m; ++i)
 					std::cout<<i<<" "<<m_low[i]<<std::endl;
-				std::cout<< m_high << std::endl;
+				std::cout<< high << std::endl;
 			}
 */			
+			util::assign( m_high, high );
 			m_high_1_select.init(&m_high);
 			m_high_0_select.init(&m_high);
 //cout << "m_v="<< (this) << endl;
@@ -233,11 +240,11 @@ class sd_vector{
 
 };
 
-template<class Select1Support, class Select0Support>
+template<class hi_bit_vector_type, class Select1Support, class Select0Support>
 class sd_rank_support{
 	public:
 		typedef bit_vector::size_type size_type;
-		typedef sd_vector<Select1Support, Select0Support> bit_vector_type;
+		typedef sd_vector<hi_bit_vector_type, Select1Support, Select0Support> bit_vector_type;
 	private:
 		const bit_vector_type *m_v;
 //		mutable bit_vector_type *m_v;
@@ -336,11 +343,11 @@ class sd_rank_support{
 
 };
 
-template<class Select1Support, class Select0Support>
+template<class hi_bit_vector_type, class Select1Support, class Select0Support>
 class sd_select_support{
 	public:
 		typedef bit_vector::size_type size_type;
-		typedef sd_vector<Select1Support, Select0Support> bit_vector_type;
+		typedef sd_vector<hi_bit_vector_type, Select1Support, Select0Support> bit_vector_type;
 	private:
 		const bit_vector_type *m_v;
 

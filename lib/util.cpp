@@ -27,12 +27,16 @@ uint64_t _id_helper::id = 0;
 
 std::string basename(const std::string &file_name){
 	char *c = strdup((const char*)file_name.c_str());
-	return std::string( ::basename(c) );
+	std::string res = std::string( ::basename(c) );
+	free(c);
+	return res;
 }
 
 std::string dirname(const std::string &file_name){
 	char *c = strdup((const char*)file_name.c_str());
-	return std::string( ::dirname(c) );
+	std::string res = std::string( ::dirname(c) );
+	free(c);
+	return res;	
 }
 
 uint64_t get_pid(){
