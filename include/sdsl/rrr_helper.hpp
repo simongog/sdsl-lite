@@ -555,10 +555,11 @@ class uint256_t{
 		uint256_t operator&(const uint256_t &x){
 			return uint256_t(m_lo&x.m_lo, m_mid&x.m_mid, m_high&x.m_high);
 		}
-
+/* // is not needed since we can convert uint256_t to uint64_t
 		uint64_t operator&(uint64_t x){
 			return m_lo & x;	
 		}
+*/		
 
 		uint256_t operator<<(int x){
 			if ( x < 128){
@@ -753,8 +754,8 @@ class binomial256
             uint256_t nr = 0;
             uint16_t  k  = popcount(bin);
             uint16_t  nn = n; // size of the block
-            while ( bin > 0ULL ) {
-                if (bin & 1ULL ) {
+            while ( (const uint256_t)bin > 0ULL ) {
+                if ( 1ULL & bin ) {
                     nr += (iii.m_coefficients[nn-1][k]);
                     --k; // go to the case (n-1, k-1)
                 }// else go to the case (n-1, k)

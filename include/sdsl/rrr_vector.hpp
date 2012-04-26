@@ -85,7 +85,7 @@ class rrr_vector
 		typedef typename bi_type::number_type number_type;
 
         enum { rrr_block_size = block_size };
-    public:
+    private:
         size_type      m_size; // length of the original bit_vector
         uint16_t       m_sample_rate;
         wt_type        m_bt; // data structure, which stores the block types (bt). The block type equals the number
@@ -97,15 +97,17 @@ class rrr_vector
         // i.e. 1 and 0 are swapped
 
     public:
+		const wt_type &bt;
+		const bit_vector &btnr;
 
         //! Default constructor
-        rrr_vector(uint16_t sample_rate=32):m_sample_rate(sample_rate) {};
+        rrr_vector(uint16_t sample_rate=32):m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {};
 
         //! Constructor
         /*!
         *  \param block_size Number of bits in one block. \f$ block\_size \in \{1,...,23\} \f$
         */
-        rrr_vector(const bit_vector& bv, uint16_t sample_rate=32): m_sample_rate(sample_rate) {
+        rrr_vector(const bit_vector& bv, uint16_t sample_rate=32): m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {
             m_size = bv.size();
             if (m_size == 0)
                 return;
@@ -216,7 +218,7 @@ class rrr_vector
 			uint16_t btnrlen 	= bi_type::space_for_bt( bt );
 			number_type	btnr	= bi_type::decode_btnr( m_btnr, btnrp, btnrlen ); 
 			number_type	bin		= bi_type::nr_to_bin(bt, btnr);
-			return ((bin >> off) & 1ULL);
+			return 1ULL&(bin >> off);
         }
 
         //! Returns the size of the original bit vector.
@@ -320,15 +322,19 @@ class rrr_vector<15, wt_type>{
    int_vector<>   m_rank;  // sample rank values
 
   public:	
+    const wt_type &bt;
+    const bit_vector &btnr;
+
+
 
    //! Default constructor
-   rrr_vector(uint16_t sample_rate=32):m_sample_rate(sample_rate){};
+   rrr_vector(uint16_t sample_rate=32):m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {};
 
    //! Constructor 
    /*!
 	*  \param sample_rate Insert a sampled block between sample_rate blocks
 	*/	
-   rrr_vector(const bit_vector &bv, uint16_t sample_rate=32): m_sample_rate(sample_rate){
+   rrr_vector(const bit_vector& bv, uint16_t sample_rate=32): m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {
 	 m_size = bv.size();
 	 if( m_size == 0 )
 		 return;
