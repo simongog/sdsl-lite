@@ -96,12 +96,27 @@ class rrr_vector
         bit_vector     m_invert; // specifies if a superblock (i.e. sample_rate blocks) have to be considered as inverted
         // i.e. 1 and 0 are swapped
 
+		void copy(const rrr_vector &rrr){
+			m_size = rrr.m_size;
+			m_sample_rate = rrr.m_sample_rate;
+			m_bt = rrr.m_bt;
+	        m_btnr = rrr.m_btnr; 
+			m_btnrp = rrr.m_btnrp; 
+			m_rank = rrr.m_rank;  
+			m_invert = rrr.m_invert; 
+		}
+
     public:
 		const wt_type &bt;
 		const bit_vector &btnr;
 
         //! Default constructor
         rrr_vector(uint16_t sample_rate=32):m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {};
+
+		//! Copy constructor
+		rrr_vector(const rrr_vector &rrr):m_sample_rate(rrr.m_sample_rate), bt(m_bt), btnr(m_btnr){
+			copy(rrr);
+		}
 
         //! Constructor
         /*!
@@ -220,6 +235,14 @@ class rrr_vector
 			number_type	bin		= bi_type::nr_to_bin(bt, btnr);
 			return 1ULL&(bin >> off);
         }
+
+		//! Assignment operator
+		rrr_vector& operator=(const rrr_vector &rrr){
+			if ( this != &rrr ) {
+				copy(rrr);
+			}
+			return *this;
+		}
 
         //! Returns the size of the original bit vector.
         size_type size()const {
