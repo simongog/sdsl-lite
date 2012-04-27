@@ -348,10 +348,22 @@ class rrr_vector<15, wt_type>{
     const wt_type &bt;
     const bit_vector &btnr;
 
-
+	void copy(const rrr_vector &rrr){
+		m_size = rrr.m_size;
+		m_sample_rate = rrr.m_sample_rate;
+		m_bt = rrr.m_bt;
+		m_btnr = rrr.m_btnr; 
+		m_btnrp = rrr.m_btnrp; 
+		m_rank = rrr.m_rank;  
+	}
 
    //! Default constructor
    rrr_vector(uint16_t sample_rate=32):m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {};
+
+	//! Copy constructor
+	rrr_vector(const rrr_vector &rrr):m_sample_rate(rrr.m_sample_rate), bt(m_bt), btnr(m_btnr){
+		copy(rrr);
+	}
 
    //! Constructor 
    /*!
@@ -455,6 +467,14 @@ class rrr_vector<15, wt_type>{
 	 uint8_t off = i % block_size; //i - bt_idx*block_size; 
 	 return (bi_type::nr_to_bin(i_bt, btnr) >> off) & (uint32_t)1;
    }
+
+	//! Assignment operator
+	rrr_vector& operator=(const rrr_vector &rrr){
+		if ( this != &rrr ) {
+			copy(rrr);
+		}
+		return *this;
+	}
 
    //! Returns the size of the original bit vector.
    size_type size()const{
