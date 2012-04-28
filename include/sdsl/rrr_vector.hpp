@@ -17,7 +17,7 @@
 /*! \file rrr_vector.hpp
    \brief rrr_vector.hpp contains the sdsl::rrr_vector class, and 
           classes which support rank and select for rrr_vector.
-   \author Simon Gog
+   \author Simon Gog, Matthias Petri
 */ 
 #ifndef SDSL_RRR_VECTOR
 #define SDSL_RRR_VECTOR
@@ -51,6 +51,11 @@ template<uint16_t block_size> struct select_binomial<2, block_size> { typedef bi
 
 //! A bit vector which compresses the input with the method from Raman, Raman, and Rao
 /*!
+    Recently, I discovered that Rasmus Pagh was the first who presented
+	the design of this bitvector representation. For detail see the Technical Report
+	,,Low redundancy in dictionaries with O(1) worst case lookup time'' 
+    ftp://ftp.cs.au.dk/BRICS/Reports/RS/98/28/BRICS-RS-98-28.pdf, Section 2.
+
     This compact representation was presented by
 	Rajeev Raman, V. Raman and S. Srinivasa Rao at SODA 2002 in the article:
 	Succinct Indexable Dictionaries with Applications to representations
