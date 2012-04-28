@@ -17,7 +17,7 @@
 /*! \file rrr_vector.hpp
    \brief rrr_vector.hpp contains the sdsl::rrr_vector class, and 
           classes which support rank and select for rrr_vector.
-   \author Simon Gog
+   \author Simon Gog, Matthias Petri
 */ 
 #ifndef SDSL_RRR_VECTOR
 #define SDSL_RRR_VECTOR
@@ -51,6 +51,11 @@ template<uint16_t block_size> struct select_binomial<2, block_size> { typedef bi
 
 //! A bit vector which compresses the input with the method from Raman, Raman, and Rao
 /*!
+    Recently, I discovered that Rasmus Pagh was the first who presented
+	the design of this bitvector representation. For detail see the Technical Report
+	,,Low redundancy in dictionaries with O(1) worst case lookup time'' 
+    ftp://ftp.cs.au.dk/BRICS/Reports/RS/98/28/BRICS-RS-98-28.pdf, Section 2.
+
     This compact representation was presented by
 	Rajeev Raman, V. Raman and S. Srinivasa Rao at SODA 2002 in the article:
 	Succinct Indexable Dictionaries with Applications to representations
@@ -96,12 +101,27 @@ class rrr_vector
         bit_vector     m_invert; // specifies if a superblock (i.e. sample_rate blocks) have to be considered as inverted
         // i.e. 1 and 0 are swapped
 
+		void copy(const rrr_vector &rrr){
+			m_size = rrr.m_size;
+			m_sample_rate = rrr.m_sample_rate;
+			m_bt = rrr.m_bt;
+	        m_btnr = rrr.m_btnr; 
+			m_btnrp = rrr.m_btnrp; 
+			m_rank = rrr.m_rank;  
+			m_invert = rrr.m_invert; 
+		}
+
     public:
 		const wt_type &bt;
 		const bit_vector &btnr;
 
         //! Default constructor
         rrr_vector(uint16_t sample_rate=32):m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {};
+
+		//! Copy constructor
+		rrr_vector(const rrr_vector &rrr):m_sample_rate(rrr.m_sample_rate), bt(m_bt), btnr(m_btnr){
+			copy(rrr);
+		}
 
         //! Constructor
         /*!
@@ -221,6 +241,14 @@ class rrr_vector
 			return 1ULL&(bin >> off);
         }
 
+		//! Assignment operator
+		rrr_vector& operator=(const rrr_vector &rrr){
+			if ( this != &rrr ) {
+				copy(rrr);
+			}
+			return *this;
+		}
+
         //! Returns the size of the original bit vector.
         size_type size()const {
             return m_size;
@@ -325,10 +353,22 @@ class rrr_vector<15, wt_type>{
     const wt_type &bt;
     const bit_vector &btnr;
 
-
+	void copy(const rrr_vector &rrr){
+		m_size = rrr.m_size;
+		m_sample_rate = rrr.m_sample_rate;
+		m_bt = rrr.m_bt;
+		m_btnr = rrr.m_btnr; 
+		m_btnrp = rrr.m_btnrp; 
+		m_rank = rrr.m_rank;  
+	}
 
    //! Default constructor
    rrr_vector(uint16_t sample_rate=32):m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {};
+
+	//! Copy constructor
+	rrr_vector(const rrr_vector &rrr):m_sample_rate(rrr.m_sample_rate), bt(m_bt), btnr(m_btnr){
+		copy(rrr);
+	}
 
    //! Constructor 
    /*!
@@ -432,6 +472,14 @@ class rrr_vector<15, wt_type>{
 	 uint8_t off = i % block_size; //i - bt_idx*block_size; 
 	 return (bi_type::nr_to_bin(i_bt, btnr) >> off) & (uint32_t)1;
    }
+
+	//! Assignment operator
+	rrr_vector& operator=(const rrr_vector &rrr){
+		if ( this != &rrr ) {
+			copy(rrr);
+		}
+		return *this;
+	}
 
    //! Returns the size of the original bit vector.
    size_type size()const{
