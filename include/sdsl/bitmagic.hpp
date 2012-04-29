@@ -304,6 +304,7 @@ class bit_magic
          */
         static uint32_t i1BP(uint64_t x, uint32_t i);
         static uint32_t i1BP2(uint64_t x, uint32_t i);
+        static uint32_t i1BP3(uint64_t x, uint32_t i);
 
         //! i1BP implementation proposed by Vigna.
         /*! \sa i1BP
@@ -1130,8 +1131,13 @@ inline uint32_t bit_magic::i1BP(uint64_t x, uint32_t i)
 //i -= ((uint8_t*)&s)[byte_nr];
 //      std::cout << "i = " << i << std::endl;
     return (byte_nr << 3) + Select256[((i-1) << 8) + ((x>>(byte_nr<<3))&0xFFULL) ];
-#endif
+#else
+#ifdef I1BP_TABLE
+    return i1BP3(x,i);
+#else
     return i1BP2(x, i);
+#endif
+#endif
 }
 
 
@@ -1170,6 +1176,62 @@ inline uint32_t bit_magic::i1BP2(uint64_t x, uint32_t i)
             else
                 return 56+Select256[(((x>>56)&0xFFULL) + i - ((s>>40)&0xFF00ULL))&0x7FFULL];//byte 7;
     return 0;
+}
+
+inline uint32_t bit_magic::i1BP3(uint64_t x, uint32_t i)
+{
+    uint32_t pos = 0;
+
+    uint32_t pop = B1CntBytes[x&0xFFULL];
+    if (pop < i) {
+        x=x>>8;
+        i-=pop;
+        pos+=8;
+        pop = B1CntBytes[x&0xFFULL];
+        if (pop < i) {
+            x=x>>8;
+            i-=pop;
+            pos+=8;
+            pop = B1CntBytes[x&0xFFULL];
+            if (pop < i) {
+                x=x>>8;
+                i-=pop;
+                pos+=8;
+                pop = B1CntBytes[x&0xFFULL];
+                if (pop < i) {
+                    x=x>>8;
+                    i-=pop;
+                    pos+=8;
+                    pop = B1CntBytes[x&0xFFULL];
+                    if (pop < i) {
+                        x=x>>8;
+                        i-=pop;
+                        pos+=8;
+                        pop = B1CntBytes[x&0xFFULL];
+                        if (pop < i) {
+                            x=x>>8;
+                            i-=pop;
+                            pos+=8;
+                            pop = B1CntBytes[x&0xFFULL];
+                            if (pop < i) {
+                                x=x>>8;
+                                i-=pop;
+                                pos+=8;
+                                pop = B1CntBytes[x&0xFFULL];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    while (i) {
+        if (x&1) i--;
+        x=x>>1;
+        pos++;
+    }
+    return pos-1;
 }
 
 inline uint32_t bit_magic::j1BP(uint64_t x, uint32_t j)
