@@ -9,7 +9,7 @@
    f) make
    g) make install  
 2. a) goto the build directory /path/to/sdsl/build 
-   b) cmake ..-DCMAKE_INSTALL_PREFIX=${HOME}
+   b) cmake .. -DCMAKE_INSTALL_PREFIX=${HOME}
    c) make 
    d) make install
 
@@ -17,4 +17,3 @@ You can now compile your program example.cc by
 
 g++ -O3 -DNDEBUG -funroll-loops -I${HOME}/include/ -L${HOME}/lib/ -o example example.cc -lsdsl -ldivsufsort -ldivsufsort64
 
-or download sdsl_tutorial.tar.gz to compile some examples.
