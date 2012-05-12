@@ -221,6 +221,25 @@ struct select_support_mcl_trait<01,2>{
 
 //! A class supporting constant time select queries (proposed by Munro/Clark, 1996) enhanced by broadword computing tricks.
 /*!
+ * \par Space usage
+ *      The space usage of the data structure depends on the number of \f$ m \f$ of ones in the 
+ *      original bitvector $b$. We store the position of every $4096$th set bit
+ *      (called L1-sampled bits) of $b$. 
+ *      This takes in the worst case \f$\frac{m}{4096} \log{n} \leq \frac{64}{n}\f$ bits.
+ *      Next, 
+ *      (1) if the distance of two adjacent L1-sampled bits $b[i]$ and $b[j]$ 
+ *      is greater or equal than $\log^4 n$, then
+ *      we store each of the 4096 positions of the set $b$ in [i..j-1] with
+ *      $\log{n}$ bits. This results in at most 
+ *      \$ \frac{4096\cdot \log n}{\log^4 n}=\frac{4096}{\log^3 n}\$ bits per bit.
+ *      For a bitvector of 1GB, i.e. \f$ \log n = 35 \f$ we get about 0.01 bits per bit.
+ *      If the $j-i+1 < \log^4 n$ then  
+ *      (2) we store the relative position of every $64$th set bit (called L2-sampled bits) 
+ *      in b[i..j-1] in at most $4\log\log n$ bits per L2-sampled bits.
+ *      An pessimistic upper bound for the space would be
+ *      \f$ \frac{4\log\log n}{64} \leq \frac{24}{64} = 0.375\f$ bit per 
+ *      bit (since $\log\log n\leq 6$. It is very pessimistic, since we store
+ *      the relative position in $\log\log(j-i+1)\leq \log\log n$ bits.
  * @ingroup select_support_group 
  */
 template<uint8_t b=1, uint8_t pattern_len=1>
