@@ -177,7 +177,8 @@ class wt_int
          *		\f$ n\log|\Sigma| + O(1)\f$ bits, where \f$n=size\f$.
          */
         template<uint8_t int_width>
-        wt_int(int_vector_file_buffer<int_width> &buf, uint32_t logn=0, std::string dir="./") {
+        wt_int(int_vector_file_buffer<int_width> &buf, uint32_t logn=0, std::string dir="./")
+            : m_size(0),m_sigma(0), m_logn(0), sigma(m_sigma), tree(m_tree) {
             construct(buf, logn, dir);
         }
 
