@@ -8,7 +8,6 @@
 #include "int_vector.hpp"
 #include "bit_vector_interleaved.hpp"
 #include "rrr_vector.hpp"
-#include "rrr_vector_var.hpp"
 #include "sd_vector.hpp"
 #include "gap_vector.hpp"
 
