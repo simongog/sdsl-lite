@@ -32,6 +32,8 @@ namespace sdsl
 {
 
 //! Trait class for the binomial coefficient class to handle different type of intergers	
+/*! This generic implementation works for 64-bit integers.
+ */
 template<uint16_t log_n>
 struct binomial_coefficients_trait{
 	typedef uint64_t number_type;
@@ -39,11 +41,11 @@ struct binomial_coefficients_trait{
 		return bit_magic::l1BP(x);
 	}
 
-	//! Read a len-bit integer of type number_type from a bitvector. 
+	//! Read a \f$len\f$-bit integer of type number_type from a bitvector. 
 	/*! 
-	 *  \param bv 	A bit_vector of int_vector.
-	 *  \param pos  Starting index in the bitvector.
-	 *  \param len  Width of the integer.
+	 *  \param bv 	A bit_vector of int_vector from which we extract the integer.
+	 *  \param pos  Position of the least significant bit of the integer which should be read.
+	 *  \param len  bit-width of the integer which should be read.
 	 *  \return The len-bit integer.
 	 */
 	template<class bit_vector_type>
@@ -53,7 +55,13 @@ struct binomial_coefficients_trait{
 		return bv.get_int(pos, len);
 	}
 
-	//! Write a len-bit integer x of type number_type to a bitvector.
+	//! Write a \f$len\f$-bit integer x of type number_type to a bitvector.
+	/*!
+	 *	\param bv 	A bit_vecor or int_vector in which we write the integer.
+	 *  \param pos	Position of the least significant bit of the integer which should be written. 
+	 *  \param x    The integer x which should be written.
+	 *  \param len  Bit-width of x.
+	 */
 	template<class bit_vector_type>
 	static void set_int(bit_vector_type &bv, 
 					   typename bit_vector_type::size_type pos,
@@ -61,12 +69,16 @@ struct binomial_coefficients_trait{
 		bv.set_int(pos, x, len);
 	}
 
-	//! Count the number of set bits in x
+	//! Count the number of set bits in x.
+	/*! 
+	 *	\param x The integer x.
+	 */
 	static inline uint16_t popcount(number_type x) {
 		return bit_magic::b1Cnt(x);
 	}
 };
 
+//! Specialization for 128-bit integers.
 template<> 
 struct binomial_coefficients_trait<7>{ 
 	typedef uint128_t number_type; 
@@ -105,6 +117,7 @@ struct binomial_coefficients_trait<7>{
 	}
 };
 
+//! Specialization for 256-bit integers.
 template<> 
 struct binomial_coefficients_trait<8>{ 
 	typedef uint256_t number_type; 
@@ -157,7 +170,7 @@ struct binomial_coefficients_trait<8>{
  * data.table[m][k] contains the number \f${m \choose k}\f$ for \f$ k\leq m\leq \leq n\f$.
  * data.space[m][k] returns the bits needed to encode a value between [0..data.table[m][k]], given m and k.  
  * 
- * \pre The template parameter n should be in the range [1..256].
+ * \pre The template parameter n should be in the range [7..256].
  */
 template<uint16_t n>
 class binomial_coefficients{
