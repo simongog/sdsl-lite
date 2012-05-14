@@ -100,7 +100,7 @@ class cst_sada
         Rank_support10			m_bp_rank10;  // rank_support for leaves, i.e. "10" bit pattern
         Select_support10		m_bp_select10;// select_support for leaves, i.e. "10" bit pattern
 
-        /* Get the number of leafs that are in the subtree rooted at the first child of v +
+        /* Get the number of leaves that are in the subtree rooted at the first child of v +
          * number of leafs in the subtrees rooted at the children of parent(v) which precede v in the tree.
          */
         size_type inorder(node_type v)const {
@@ -791,15 +791,31 @@ class cst_sada
          *	\param id An id in the range [0..nodes()-1].
          *  \return A node v of the CST such that id(v)=id.
          *  \par Time complexity
-         *		\f$ \Order{1} \f$
+         *		\f$ \Order{1} \f$ for leaves and \f$ \log n \f$ for inner nodes
          *  \sa id(node_type v)
          */
         size_type inv_id(size_type id) {
             if (id < size()) {  // the corresponding node is a leaf
                 return ith_leaf(id+1);
             } else { // the corresponding node is a inner node
-                id -= size();
-                // TODO: not as easy as first assumed
+                id = id + 1 - size();
+                // solved by binary search; TODO: can be done in constant time by using a select structure on the bitpattern 11
+                size_type lb = 0, rb = m_bp.size(); // lb inclusive, rb exclusive
+                // invariant: arg(lb) < id, arg(rb)>= id
+                while (rb-lb > 1) {
+                    size_type mid = lb + (rb-lb)/2; // mid \in [0..m_bp.size()-1]
+                    if (m_bp[mid] == 0 and m_bp[mid-1] == 1) {  // if we are ``half on a leaf''
+                        ++mid; //we step one to the right to include it
+                    }
+                    // get the number of open inner nodes before position mid, i.e. arg(mid)
+                    size_type mid_id = m_bp_support.rank(mid-1) - m_bp_rank10(mid);  // Note: mid-1 is valid of mid is of type ``size_type'' as us the parameter of rank
+                    if (mid_id < id) {
+                        lb = mid;
+                    } else { // mid_id >= x
+                        rb = mid;
+                    }
+                }
+                return lb;
             }
         }
 
