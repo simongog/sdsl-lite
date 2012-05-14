@@ -130,8 +130,7 @@ inline std::ostream& operator<<(std::ostream& os, const bp_interval<Int>& interv
 template<class Csa = csa_wt<>,                        // CSA type
          class Lcp = lcp_support_tree<lcp_wt<> >,     // LCP type
          class Bp_support = bp_support_sada<>,        // for the balanced parentheses
-         class Rank_support = rank_support_v5<>,      // for the 'first child' bit_vector
-         class Select_support = select_support_mcl<>  // for the 'first child' bit_vector
+         class Rank_support = rank_support_v5<>       // for the 'first child' bit_vector
          >
 class cst_sct3
 {
@@ -155,7 +154,6 @@ class cst_sct3
         typedef typename Csa::char_type								 char_type;
         typedef bp_interval<size_type>								 node_type; //!< Type for the nodes in the tree
         typedef Rank_support										 fc_rank_support_type;
-        typedef Select_support										 fc_select_support_type;
 
         typedef cst_tag												 index_category;
     private:
@@ -165,7 +163,6 @@ class cst_sct3
         bp_support_type			m_bp_support;
         bit_vector				m_first_child; // implementation note: no rank structure is needed for the first_child bit_vector, except for id()
         fc_rank_support_type	m_first_child_rank;
-        fc_select_support_type  m_first_child_select;
         uint8_t					m_sigma;
         size_type				m_nodes;
 
@@ -178,8 +175,6 @@ class cst_sct3
             m_first_child 	= cst.m_first_child;
             m_first_child_rank = cst.m_first_child_rank;
             m_first_child_rank.set_vector(&m_first_child);
-            m_first_child_select = cst.m_first_child_select;
-            m_first_child_select.set_vector(&m_first_child);
             m_sigma			= cst.m_sigma;
             m_nodes			= cst.m_nodes;
         }
@@ -357,14 +352,13 @@ class cst_sct3
 
         const bit_vector& first_child_bv;
         const fc_rank_support_type& first_child_rank;
-        const fc_select_support_type& first_child_select;
 
         /*! \defgroup cst_sct3_constructors Constructors of cst_sct3 */
         /* @{ */
 
         //! Default Constructor
         cst_sct3(): csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child),
-            first_child_rank(m_first_child_rank), first_child_select(m_first_child_select) {}
+            first_child_rank(m_first_child_rank) {}
 
         // Constructor for the cst_sct3 taking a string for that the compressed suffix tree should be calculated.
         /*
@@ -390,7 +384,7 @@ class cst_sct3
          *       \f$ \Order{n} \f$, where \f$n=\f$cst_sct3.size()
          */
         cst_sct3(const cst_sct3& cst):csa(m_csa),lcp(m_lcp),bp(m_bp),bp_support(m_bp_support),first_child_bv(m_first_child),
-            first_child_rank(m_first_child_rank), first_child_select(m_first_child_select) {
+            first_child_rank(m_first_child_rank) {
             copy(cst);
         }
 
@@ -1067,11 +1061,27 @@ class cst_sct3
                 return ith_leaf(id+1);
             } else { // the corresponding node is a inner node
                 // (1) get index of the closing parenthesis in m_first_child
-                size_type r0ckpos = m_first_child_select(id-size()+1);
+                size_type r0ckpos = 0;
+                {
+                    //binary search for the position of the (id-size()+1)-th set bit in
+                    id = id-size()+1;
+                    size_type lb = 0, rb = m_bp.size(); // lb inclusive, rb exclusive
+                    // invariant: arg(lb) < id, arg(rb) >= id
+                    while (rb-lb > 1) {
+                        size_type mid = lb + (rb-lb)/2;
+                        size_type arg = m_first_child_rank(mid); // ones in the prefix [0..mid-1]
+                        if (arg < id) {
+                            lb = mid;
+                        } else { // arg >= id
+                            rb = mid;
+                        }
+                    }
+                    r0ckpos = lb;
+                }
                 // (2) determine position clpos of the r0clpos-th closing parentheses in the parentheses sequence
                 size_type ckpos = 0;
                 {
-                    // binary search for the positino of the (r0ckpos+1)-th closing parenthesis
+                    // binary search for the position of the (r0ckpos+1)-th closing parenthesis
                     size_type lb = 0, rb = m_bp.size(); // lb inclusive, rb exclusive
                     // invariant: arg(lb) < r0ckpos+1,  arg(rb) >= r0ckpos+1
                     while (rb-lb > 1) {
@@ -1171,8 +1181,6 @@ class cst_sct3
             m_first_child.mem_info("first_visit");
             std::cout<<",";
             m_first_child_rank.mem_info("first_visit_rank");
-            std::cout<<",";
-            m_first_child_select.mem_info("first_visit_select");
             std::cout << ") )\n";
         }
 #endif
@@ -1183,15 +1191,15 @@ class cst_sct3
 // == template functions ==
 
 
-template<class Csa, class Lcp, class Bp_support, class Rank_support, class Select_support>
+template<class Csa, class Lcp, class Bp_support, class Rank_support>
 template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1, uint8_t int_width_2, class size_type_class_2>
-cst_sct3<Csa, Lcp, Bp_support, Rank_support, Select_support>::cst_sct3(const std::string& csa_file_name,
+cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(const std::string& csa_file_name,
         int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
         int_vector_file_buffer<int_width_1, size_type_class_1>& sa_buf,
         int_vector_file_buffer<int_width_2, size_type_class_2>& isa_buf,
         std::string dir="./",
         bool build_only_bps=false
-                                                                      ):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
+                                                      ):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
 {
     std::string id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
 
@@ -1209,21 +1217,20 @@ cst_sct3<Csa, Lcp, Bp_support, Rank_support, Select_support>::cst_sct3(const std
     write_R_output("cst", "construct BPSS", "begin", 1, 0);
     m_bp_support = Bp_support(&m_bp);
     m_first_child_rank.init(&m_first_child);
-    m_first_child_select.init(&m_first_child);
     write_R_output("cst", "construct BPSS", "end", 1, 0);
     m_sigma = degree(root());
 }
 
 
-template<class Csa, class Lcp, class Bp_support, class Rank_support, class SelectSupport>
-cst_sct3<Csa, Lcp, Bp_support, Rank_support, SelectSupport>::cst_sct3(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps = false):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank), first_child_select(m_first_child_select)
+template<class Csa, class Lcp, class Bp_support, class Rank_support>
+cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps = false):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
 {
     construct(file_map, dir, id, build_only_bps);
 }
 
 
-template<class Csa, class Lcp, class Bp_support, class Rank_support, class SelectSupport>
-void cst_sct3<Csa, Lcp, Bp_support, Rank_support, SelectSupport>::construct(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps = false)
+template<class Csa, class Lcp, class Bp_support, class Rank_support>
+void cst_sct3<Csa, Lcp, Bp_support, Rank_support>::construct(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps = false)
 {
     write_R_output("cst", "construct BPS", "begin", 1, 0);
     int_vector_file_buffer<> lcp_buf(file_map["lcp"].c_str());
@@ -1232,7 +1239,6 @@ void cst_sct3<Csa, Lcp, Bp_support, Rank_support, SelectSupport>::construct(tMSS
     write_R_output("cst", "construct BPSS", "begin", 1, 0);
     m_bp_support = Bp_support(&m_bp);
     m_first_child_rank.init(&m_first_child);
-    m_first_child_select.init(&m_first_child);
     write_R_output("cst", "construct BPSS", "end", 1, 0);
 
     if (!build_only_bps) {
@@ -1246,8 +1252,8 @@ void cst_sct3<Csa, Lcp, Bp_support, Rank_support, SelectSupport>::construct(tMSS
     m_sigma = degree(root());
 }
 
-template<class Csa, class Lcp, class Bp_support, class Rank_support, class SelectSupport>
-typename cst_sct3<Csa, Lcp, Bp_support, Rank_support, SelectSupport>::size_type cst_sct3<Csa, Lcp, Bp_support, Rank_support, SelectSupport>::serialize(std::ostream& out) const
+template<class Csa, class Lcp, class Bp_support, class Rank_support>
+typename cst_sct3<Csa, Lcp, Bp_support, Rank_support>::size_type cst_sct3<Csa, Lcp, Bp_support, Rank_support>::serialize(std::ostream& out) const
 {
     size_type written_bytes = 0;
     written_bytes += m_csa.serialize(out);
@@ -1256,7 +1262,6 @@ typename cst_sct3<Csa, Lcp, Bp_support, Rank_support, SelectSupport>::size_type 
     written_bytes += m_bp_support.serialize(out);
     written_bytes += m_first_child.serialize(out);
     written_bytes += m_first_child_rank.serialize(out);
-    written_bytes += m_first_child_select.serialize(out);
     out.write((char*) &m_sigma, sizeof(m_sigma));
     written_bytes += sizeof(m_sigma);
     out.write((char*) &m_nodes, sizeof(m_nodes));
@@ -1264,8 +1269,8 @@ typename cst_sct3<Csa, Lcp, Bp_support, Rank_support, SelectSupport>::size_type 
     return written_bytes;
 }
 
-template<class Csa, class Lcp, class Bp_support, class Rank_support, class SelectSupport>
-void cst_sct3<Csa, Lcp, Bp_support, Rank_support, SelectSupport>::load(std::istream& in)
+template<class Csa, class Lcp, class Bp_support, class Rank_support>
+void cst_sct3<Csa, Lcp, Bp_support, Rank_support>::load(std::istream& in)
 {
     m_csa.load(in);
     load_lcp(m_lcp, in, *this);
@@ -1273,7 +1278,6 @@ void cst_sct3<Csa, Lcp, Bp_support, Rank_support, SelectSupport>::load(std::istr
     m_bp_support.load(in, &m_bp);
     m_first_child.load(in);
     m_first_child_rank.load(in, &m_first_child);
-    m_first_child_select.load(in, &m_first_child);
     in.read((char*) &m_sigma, sizeof(m_sigma));
     in.read((char*) &m_nodes, sizeof(m_nodes));
 #ifdef SDSL_DEBUG
@@ -1282,8 +1286,8 @@ void cst_sct3<Csa, Lcp, Bp_support, Rank_support, SelectSupport>::load(std::istr
 #endif
 }
 
-template<class Csa, class Lcp, class Bp_support, class Rank_support, class SelectSupport>
-cst_sct3<Csa, Lcp, Bp_support, Rank_support, SelectSupport>& cst_sct3<Csa, Lcp, Bp_support, Rank_support, SelectSupport>::operator=(const cst_sct3& cst)
+template<class Csa, class Lcp, class Bp_support, class Rank_support>
+cst_sct3<Csa, Lcp, Bp_support, Rank_support>& cst_sct3<Csa, Lcp, Bp_support, Rank_support>::operator=(const cst_sct3& cst)
 {
     if (this != &cst) {
         copy(cst);
