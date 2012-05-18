@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2011 Simon Gog 
+    Copyright (C) 2011 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,16 +21,16 @@
 #ifndef INCLUDED_SDSL_WAVELET_TREES
 #define INCLUDED_SDSL_WAVELET_TREES
 
-/** \defgroup wt Wavelet Trees (WT) 
+/** \defgroup wt Wavelet Trees (WT)
  *   This group contains data structures for wavelet trees. The following methods are supported:
- *    - []-operator 
+ *    - []-operator
  *    - rank(i, c)
  *    - select(i, c)
  *    - rank_ith_symbol(i)
  */
 
 #include "wt.hpp"
-#include "wt_int.hpp"	
+#include "wt_int.hpp"
 #include "wt_huff.hpp"
 #include "wt_rlmn.hpp"
 #include "wt_rlg.hpp"

@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2011 Simon Gog 
+    Copyright (C) 2011 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file select_support_dummy.hpp
-    \brief select_support_dummy.hpp contains classes that support a sdsl::bit_vector with constant time select information. 
+    \brief select_support_dummy.hpp contains classes that support a sdsl::bit_vector with constant time select information.
 	\author Simon Gog
 */
 #ifndef INCLUDED_SDSL_SELECT_SUPPORT_DUMMY
@@ -33,50 +33,52 @@
 #endif
 
 //! Namespace for the succinct data structure library.
-namespace sdsl{
+namespace sdsl
+{
 
 
-//! A dummy class for select 
+//! A dummy class for select
 /*!
- * @ingroup select_support_group 
+ * @ingroup select_support_group
  */
-class select_support_dummy : public select_support{
-	public:
-		select_support_dummy(const int_vector<1> *v=NULL);
-		select_support_dummy(const select_support_dummy &ss);
-		~select_support_dummy();
-		void init(const int_vector<1> *v=NULL);
-		//! Select function
-		/*! \sa select_support.select
-		 */
-		inline const size_type select(size_type i) const;
-		//! Alias for select(i).
-		inline const size_type operator()(size_type i)const;
-		size_type serialize(std::ostream &out)const;
-#ifdef MEM_INFO		
-		void mem_info(std::string label="")const;
-#endif			
-		void load(std::istream &in, const int_vector<1> *v=NULL);
-		void set_vector(const int_vector<1> *v=NULL);
-		select_support_dummy& operator=(const select_support_dummy &ss);
+class select_support_dummy : public select_support
+{
+    public:
+        select_support_dummy(const int_vector<1>* v=NULL);
+        select_support_dummy(const select_support_dummy& ss);
+        ~select_support_dummy();
+        void init(const int_vector<1>* v=NULL);
+        //! Select function
+        /*! \sa select_support.select
+         */
+        inline const size_type select(size_type i) const;
+        //! Alias for select(i).
+        inline const size_type operator()(size_type i)const;
+        size_type serialize(std::ostream& out)const;
+#ifdef MEM_INFO
+        void mem_info(std::string label="")const;
+#endif
+        void load(std::istream& in, const int_vector<1>* v=NULL);
+        void set_vector(const int_vector<1>* v=NULL);
+        select_support_dummy& operator=(const select_support_dummy& ss);
 
-		//! Swap operator
-		/*! This swap Operator swaps two select_support_dummys in constant time.
-		 *  All members (excluded the pointer to the supported SDSBitVector) are swapped.
-		 */
-		void swap(select_support_dummy &ss);
-		//! Equality Operator
-		/*! Two select_support_dummys are equal if all member variables are equal.
-		 * Required for the Equality Comparable Concept of the STL.
-		 * \sa operator!=
-		 */
-		bool operator==(const select_support_dummy &ss)const;
-		//! Unequality Operator
-		/*! Two select_support_dummys are not equal if any member variable are not equal.
-		 * Required for the Equality Comparable Concept of the STL.
-		 * \sa operator==
-		 */
-		bool operator!=(const select_support_dummy &ss)const;
+        //! Swap operator
+        /*! This swap Operator swaps two select_support_dummys in constant time.
+         *  All members (excluded the pointer to the supported SDSBitVector) are swapped.
+         */
+        void swap(select_support_dummy& ss);
+        //! Equality Operator
+        /*! Two select_support_dummys are equal if all member variables are equal.
+         * Required for the Equality Comparable Concept of the STL.
+         * \sa operator!=
+         */
+        bool operator==(const select_support_dummy& ss)const;
+        //! Unequality Operator
+        /*! Two select_support_dummys are not equal if any member variable are not equal.
+         * Required for the Equality Comparable Concept of the STL.
+         * \sa operator==
+         */
+        bool operator!=(const select_support_dummy& ss)const;
 };
 
 

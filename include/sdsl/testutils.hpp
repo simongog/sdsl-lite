@@ -103,17 +103,17 @@ class stop_watch
 
 //! Write stopwatch output in readable format
 inline void write_R_output(std::string data_structure, std::string action,
-                    std::string state="begin", uint64_t times=1, uint64_t check=0)
+                           std::string state="begin", uint64_t times=1, uint64_t check=0)
 {
-#ifdef WRITE_R_OUTPUT
-    stop_watch _sw;
-    _sw.stop();
-    std::cout << data_structure << "\t" << action << "\t" << state << "\t"
-              << std::setw(9)<< times << "\t" << std::setw(9) << check << "\t"
-              << std::setw(9) << _sw.get_abs_real_time() << "\t "
-              << std::setw(9) << _sw.get_abs_user_time() << "\t"
-              << std::setw(9) << _sw.get_abs_sys_time() << std::endl;
-#endif
+    if (util::verbose) {
+        stop_watch _sw;
+        _sw.stop();
+        std::cout << data_structure << "\t" << action << "\t" << state << "\t"
+                  << std::setw(9)<< times << "\t" << std::setw(9) << check << "\t"
+                  << std::setw(9) << _sw.get_abs_real_time() << "\t "
+                  << std::setw(9) << _sw.get_abs_user_time() << "\t"
+                  << std::setw(9) << _sw.get_abs_sys_time() << std::endl;
+    }
 }
 
 //! A helper class to get time information.
@@ -143,7 +143,7 @@ class file
          *  \pre c has to be initialized to NULL.
          *  \post If len > 0  c[len]=0 and the memory for c was allocated with "new" else c=NULL.
          */
-        static uint64_t read_text(const char* file_name, char* &c, bool trunc=0, uint64_t lim=0);
+        static uint64_t read_text(const char* file_name, char*& c, bool trunc=0, uint64_t lim=0);
 
         static void write_text(const char* file_name, const char* c, uint64_t len);
 };

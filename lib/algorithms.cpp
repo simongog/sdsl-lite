@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2008 Simon Gog 
+    Copyright (C) 2008 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,41 +22,44 @@
 
 typedef std::map<std::string, std::string> tMSS;
 
-namespace sdsl{
+namespace sdsl
+{
 
-double algorithm::H_0(const unsigned char *c){
-	size_t n = strlen((const char*)c);
-	if(n==0)
-		return 0;
-	size_t cnt[256] = {};
-	double res = 0;
-	for(size_t i=0;i<n;++i)
-		++cnt[c[i]];
-	for(uint16_t i=1; i<256; ++i)
-		if(cnt[i]>0){
-			res += (double)cnt[i]/(double)n * log2((double)n/(double)cnt[i]);
+double algorithm::H_0(const unsigned char* c)
+{
+    size_t n = strlen((const char*)c);
+    if (n==0)
+        return 0;
+    size_t cnt[256] = {};
+    double res = 0;
+    for (size_t i=0; i<n; ++i)
+        ++cnt[c[i]];
+    for (uint16_t i=1; i<256; ++i)
+        if (cnt[i]>0) {
+            res += (double)cnt[i]/(double)n * log2((double)n/(double)cnt[i]);
 //			std::cerr<<"cnt["<<i<<"] = "<<cnt[i]<<"  n = "<<n<<std::endl;
-		}
-	return res;
+        }
+    return res;
 }
 
-double algorithm::H_0s(const unsigned char *c){
-	size_t n = strlen((const char*)c);
-	if(n==0)
-		return 0;
-	size_t cnt[256] = {};
-	double res = 0;
-	for(size_t i=0;i<n;++i)
-		++cnt[c[i]];
-	for(uint16_t i=1; i<256; ++i)
-		if(cnt[i]>0){
-			res += (double)cnt[i]/(double)n * log2((double)n/(double)cnt[i]);
+double algorithm::H_0s(const unsigned char* c)
+{
+    size_t n = strlen((const char*)c);
+    if (n==0)
+        return 0;
+    size_t cnt[256] = {};
+    double res = 0;
+    for (size_t i=0; i<n; ++i)
+        ++cnt[c[i]];
+    for (uint16_t i=1; i<256; ++i)
+        if (cnt[i]>0) {
+            res += (double)cnt[i]/(double)n * log2((double)n/(double)cnt[i]);
 //			std::cerr<<"cnt["<<i<<"] = "<<cnt[i]<<"  n = "<<n<<std::endl;
-		}
-	if(res==0){//only one character occures in the string
-		return (floor(log2((double)n))+1)/(double)n;	
-	}
-	return res;
+        }
+    if (res==0) { //only one character occures in the string
+        return (floor(log2((double)n))+1)/(double)n;
+    }
+    return res;
 
 }
 

@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2009 Simon Gog 
+    Copyright (C) 2009 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #ifndef INCLUDED_SDSL_BP_SUPPORT
 #define INCLUDED_SDSL_BP_SUPPORT
 
-/** \defgroup bps Balanced Parentheses Supports (BPS) 
+/** \defgroup bps Balanced Parentheses Supports (BPS)
  * This group contains data structures which supports a sdsl::bit_vector with the following methods:
  *   - find_open
  *   - find_close

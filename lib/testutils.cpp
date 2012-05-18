@@ -122,7 +122,7 @@ void file::write_text(const char* file_name, const char* c, uint64_t len)
     }
 }
 
-uint64_t file::read_text(const char* file_name, char* &c, bool trunc, uint64_t lim)
+uint64_t file::read_text(const char* file_name, char*& c, bool trunc, uint64_t lim)
 {
     if (c != NULL) {
         delete [] c;

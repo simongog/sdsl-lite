@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2010 Simon Gog 
+    Copyright (C) 2010 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file bwt_construct.hpp
-    \brief bwt_construct.hpp contains a space and time efficient construction method for the Burrows and Wheeler Transform (BWT). 
+    \brief bwt_construct.hpp contains a space and time efficient construction method for the Burrows and Wheeler Transform (BWT).
 	\author Simon Gog
 */
 #ifndef INCLUDED_SDSL_BWT_CONSTRUCT
@@ -31,27 +31,28 @@
 #include <stdexcept>
 #include <list>
 
-namespace sdsl{
-	
-	/*! Constructs the Burrows and Wheeler Transform (BWT) from text and suffix array
-	 * \param file_map A map, which contains the paths of the precalculated files like suffix array or text
-	 * \param dir	   Directory in which the result should be written on disk. 
-	 * \param id	   Id which should be used to build a file name for the calculated BWT.
-	 * \par Space complexity: 
-	 *        \f$n\f$ bytes
-	 */
-	bool construct_bwt( tMSS &file_map, const std::string &dir, const std::string &id);
+namespace sdsl
+{
 
-	/* Constructs the Burrows and Wheeler Transform (BWT) from text and suffix array
-	 * \param file_map A map, which contains the paths of the precalculated files like suffix array or text
-	 * \param dir	   Directory in which the result should be written on disk. 
-	 * \param id	   Id which should be used to build a file name for the calculated BWT.
-	 * \par Space complexity: 
-	 *        \f$2n\f$ bytes
-	 */
-	bool construct_bwt2( tMSS &file_map, const std::string &dir, const std::string &id);
-	
-	
+/*! Constructs the Burrows and Wheeler Transform (BWT) from text and suffix array
+ * \param file_map A map, which contains the paths of the precalculated files like suffix array or text
+ * \param dir	   Directory in which the result should be written on disk.
+ * \param id	   Id which should be used to build a file name for the calculated BWT.
+ * \par Space complexity:
+ *        \f$n\f$ bytes
+ */
+bool construct_bwt(tMSS& file_map, const std::string& dir, const std::string& id);
+
+/* Constructs the Burrows and Wheeler Transform (BWT) from text and suffix array
+ * \param file_map A map, which contains the paths of the precalculated files like suffix array or text
+ * \param dir	   Directory in which the result should be written on disk.
+ * \param id	   Id which should be used to build a file name for the calculated BWT.
+ * \par Space complexity:
+ *        \f$2n\f$ bytes
+ */
+bool construct_bwt2(tMSS& file_map, const std::string& dir, const std::string& id);
+
+
 /*
 	bool construct_bwt( tMSS &file_map, const std::string &dir, const std::string &id){
 		typedef int_vector<>::size_type size_type;
@@ -62,7 +63,7 @@ namespace sdsl{
 			int_vector_file_buffer<> sa_buf(file_map["sa"].c_str());
 			unsigned char *bwt = new unsigned char[n+1];
 			unsigned char *text = NULL;
-			util::load_from_int_vector_buffer(text, text_buf);		
+			util::load_from_int_vector_buffer(text, text_buf);
 			for(size_type i=0, r_sum=0, r = sa_buf.load_next_block(); r_sum < n; ){
 				for(; i<r_sum+r; ++i){
 					bwt[i] = text[ (sa_buf[i-r_sum]+n-1)%n ];
@@ -83,8 +84,8 @@ namespace sdsl{
 		}
 		write_R_output("csa", "construct BWT", "end", 1, 0);
 		return true;
-	}	
-*/	
+	}
+*/
 
 }// end namespace
 

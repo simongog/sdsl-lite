@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2009 Simon Gog 
+    Copyright (C) 2009 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,145 +16,159 @@
 */
 #include "sdsl/csa_uncompressed.hpp"
 
-namespace sdsl{
+namespace sdsl
+{
 
-csa_uncompressed::csa_uncompressed(const unsigned char *str):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi), bwt(m_bwt), sa_sample(m_sa), isa_sample(m_isa){
-	int_vector<>::size_type n = strlen((const char*)str);
-	m_sa = int_vector<>(n+1, 0, bit_magic::l1BP(n+1)+1);
-	algorithm::calculate_sa(str,n+1, m_sa);	 // calculate the suffix array sa of str
-	assert(m_sa.size() == n+1);
-	algorithm::set_text<csa_uncompressed>(str, n+1, m_C, m_char2comp, m_comp2char, m_sigma);
-	construct();
-	if( n+1 > 0 and n+1 != size() )
-		throw std::logic_error("csa_uncompressed: text size differ with sa size!");
+csa_uncompressed::csa_uncompressed(const unsigned char* str):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi), bwt(m_bwt), sa_sample(m_sa), isa_sample(m_isa)
+{
+    int_vector<>::size_type n = strlen((const char*)str);
+    m_sa = int_vector<>(n+1, 0, bit_magic::l1BP(n+1)+1);
+    algorithm::calculate_sa(str,n+1, m_sa);	 // calculate the suffix array sa of str
+    assert(m_sa.size() == n+1);
+    algorithm::set_text<csa_uncompressed>(str, n+1, m_C, m_char2comp, m_comp2char, m_sigma);
+    construct();
+    if (n+1 > 0 and n+1 != size())
+        throw std::logic_error("csa_uncompressed: text size differ with sa size!");
 }
 
-void csa_uncompressed::construct(){
-	m_isa = m_sa;
-	for(size_type i=0; i<m_sa.size(); ++i){
-		m_isa[m_sa[i]] = i;
-	}
-	m_psi = psi_type(this);
-	m_bwt = bwt_type(this);
+void csa_uncompressed::construct()
+{
+    m_isa = m_sa;
+    for (size_type i=0; i<m_sa.size(); ++i) {
+        m_isa[m_sa[i]] = i;
+    }
+    m_psi = psi_type(this);
+    m_bwt = bwt_type(this);
 }
 
-csa_uncompressed::const_iterator csa_uncompressed::begin()const{
-	return const_iterator(this, 0);
-}
-
-
-csa_uncompressed::const_iterator csa_uncompressed::end()const{
-	return const_iterator(this, size());
-}
-
-void csa_uncompressed::copy(const csa_uncompressed &csa){
-		m_sa = csa.m_sa;
-		m_isa = csa.m_isa;
-		m_sigma		 = csa.m_sigma;
-		for(int i=0; i<256; ++i){
-		   	m_char2comp[i] = csa.m_char2comp[i];
-			m_comp2char[i] = csa.m_comp2char[i];
-			m_C[i]		 = csa.m_C[i];
-		}
-		m_C[256] = csa.m_C[256];
-		m_psi = psi_type(this);
-		m_bwt = bwt_type(this);
-}
-
-csa_uncompressed& csa_uncompressed::operator=(const csa_uncompressed &csa){
-	if(this != &csa){
-		copy(csa);
-	}
-	return *this;
+csa_uncompressed::const_iterator csa_uncompressed::begin()const
+{
+    return const_iterator(this, 0);
 }
 
 
-csa_uncompressed::size_type csa_uncompressed::serialize(std::ostream &out)const{
-	size_type written_bytes = 0;
-	written_bytes += m_sa.serialize(out);
-	written_bytes += m_isa.serialize(out);
-	size_type wb   = sizeof(m_char2comp[0])*256;
-	out.write((char*)m_char2comp, wb);
-	written_bytes += wb;
-	wb			   = sizeof(m_comp2char[0])*256;
-	out.write((char*)m_comp2char, wb);
-	written_bytes += wb;
-	wb			   = sizeof(m_C[0])*257;
-	out.write((char*)C, wb);
-	written_bytes += wb;
-	out.write((char*)&m_sigma, sizeof(m_sigma));
-	wb += sizeof(m_sigma);
-	return written_bytes;
+csa_uncompressed::const_iterator csa_uncompressed::end()const
+{
+    return const_iterator(this, size());
 }
 
-void csa_uncompressed::load(std::istream &in){
-	m_sa.load(in);
-	m_isa.load(in);
-	in.read((char*)m_char2comp, sizeof(m_char2comp[0])*256);
-	in.read((char*)m_comp2char, sizeof(m_comp2char[0])*256);
-	in.read((char*)m_C, sizeof(m_C[0])*257);
-	in.read((char*)&m_sigma, sizeof(m_sigma));
-	m_psi = psi_type(this);
-	m_bwt = bwt_type(this);
+void csa_uncompressed::copy(const csa_uncompressed& csa)
+{
+    m_sa = csa.m_sa;
+    m_isa = csa.m_isa;
+    m_sigma		 = csa.m_sigma;
+    for (int i=0; i<256; ++i) {
+        m_char2comp[i] = csa.m_char2comp[i];
+        m_comp2char[i] = csa.m_comp2char[i];
+        m_C[i]		 = csa.m_C[i];
+    }
+    m_C[256] = csa.m_C[256];
+    m_psi = psi_type(this);
+    m_bwt = bwt_type(this);
 }
 
-void csa_uncompressed::swap(csa_uncompressed &csa){
-	if(this != &csa){
-		m_sa.swap(csa.m_sa);
-		m_isa.swap(csa.m_isa);
-		m_psi.swap(csa.m_psi);
-		for(uint16_t i=0;i<256;++i){
-			std::swap(m_char2comp[i], csa.m_char2comp[i]);
-			std::swap(m_comp2char[i], csa.m_comp2char[i]);
-			std::swap(m_C[i], csa.m_C[i]);
-		}
-		std::swap(m_C[256], csa.m_C[256]);
-		std::swap(m_sigma, csa.m_sigma);
-	}
+csa_uncompressed& csa_uncompressed::operator=(const csa_uncompressed& csa)
+{
+    if (this != &csa) {
+        copy(csa);
+    }
+    return *this;
 }
 
-bool csa_uncompressed::operator==(const csa_uncompressed &csa)const{
-	for(uint16_t i=0;i<256;++i)
-		if(m_char2comp[i] != csa.m_char2comp[i] or m_comp2char[i] != csa.m_comp2char[i] or m_C[i] != csa.m_C[i])
-			return false;
-	return m_sa == csa.m_sa and m_isa == csa.m_isa and m_psi == csa.m_psi and m_C[256] == csa.m_C[256] and m_sigma == csa.m_sigma;
+
+csa_uncompressed::size_type csa_uncompressed::serialize(std::ostream& out)const
+{
+    size_type written_bytes = 0;
+    written_bytes += m_sa.serialize(out);
+    written_bytes += m_isa.serialize(out);
+    size_type wb   = sizeof(m_char2comp[0])*256;
+    out.write((char*)m_char2comp, wb);
+    written_bytes += wb;
+    wb			   = sizeof(m_comp2char[0])*256;
+    out.write((char*)m_comp2char, wb);
+    written_bytes += wb;
+    wb			   = sizeof(m_C[0])*257;
+    out.write((char*)C, wb);
+    written_bytes += wb;
+    out.write((char*)&m_sigma, sizeof(m_sigma));
+    wb += sizeof(m_sigma);
+    return written_bytes;
 }
 
-bool csa_uncompressed::operator!=(const csa_uncompressed &csa)const{
-	return !(*this == csa); 
+void csa_uncompressed::load(std::istream& in)
+{
+    m_sa.load(in);
+    m_isa.load(in);
+    in.read((char*)m_char2comp, sizeof(m_char2comp[0])*256);
+    in.read((char*)m_comp2char, sizeof(m_comp2char[0])*256);
+    in.read((char*)m_C, sizeof(m_C[0])*257);
+    in.read((char*)&m_sigma, sizeof(m_sigma));
+    m_psi = psi_type(this);
+    m_bwt = bwt_type(this);
 }
 
-csa_uncompressed::size_type csa_uncompressed::rank_bwt(size_type i, const unsigned char c)const{
-	// TODO: special case if c == BWT[i-1] we can use LF to get a constant time answer
-	unsigned char cc = m_char2comp[c];
-	if( cc==0 and c!=0 ) // character is not in the text => return 0
-	   return 0;	
-	// binary search the interval [C[cc]..C[cc+1]-1] for the result
-	size_type lower_b = m_C[cc], upper_b = m_C[cc+1]; // lower_b inclusive, upper_b exclusive 
-	while(lower_b+1 < upper_b){
-		size_type mid = (lower_b+upper_b)/2;
-		if( m_psi[mid] >= i  )
-			upper_b = mid;
-		else
-			lower_b = mid;
-	}
-	if( lower_b > m_C[cc] )
-		return lower_b - m_C[cc] + 1;
-	else{ // lower_b == m_C[cc]
-		return m_psi[lower_b] < i;// 1 if m_psi[lower_b]<i, 0 otherwise
-	}
+void csa_uncompressed::swap(csa_uncompressed& csa)
+{
+    if (this != &csa) {
+        m_sa.swap(csa.m_sa);
+        m_isa.swap(csa.m_isa);
+        m_psi.swap(csa.m_psi);
+        for (uint16_t i=0; i<256; ++i) {
+            std::swap(m_char2comp[i], csa.m_char2comp[i]);
+            std::swap(m_comp2char[i], csa.m_comp2char[i]);
+            std::swap(m_C[i], csa.m_C[i]);
+        }
+        std::swap(m_C[256], csa.m_C[256]);
+        std::swap(m_sigma, csa.m_sigma);
+    }
 }
 
-csa_uncompressed::size_type csa_uncompressed::select_bwt(size_type i, const unsigned char c)const{
-	assert( i > 0 );
-	unsigned char cc = m_char2comp[c];
-	if( cc==0 and c!=0 ) // character is not in the text => return size() 
-		return size();
-	assert( cc != 255 );
-	if( m_C[cc]+i-1 <  m_C[cc+1] ){
-		return m_psi[m_C[cc]+i-1];
-	}else
-		return size();
+bool csa_uncompressed::operator==(const csa_uncompressed& csa)const
+{
+    for (uint16_t i=0; i<256; ++i)
+        if (m_char2comp[i] != csa.m_char2comp[i] or m_comp2char[i] != csa.m_comp2char[i] or m_C[i] != csa.m_C[i])
+            return false;
+    return m_sa == csa.m_sa and m_isa == csa.m_isa and m_psi == csa.m_psi and m_C[256] == csa.m_C[256] and m_sigma == csa.m_sigma;
+}
+
+bool csa_uncompressed::operator!=(const csa_uncompressed& csa)const
+{
+    return !(*this == csa);
+}
+
+csa_uncompressed::size_type csa_uncompressed::rank_bwt(size_type i, const unsigned char c)const
+{
+    // TODO: special case if c == BWT[i-1] we can use LF to get a constant time answer
+    unsigned char cc = m_char2comp[c];
+    if (cc==0 and c!=0)  // character is not in the text => return 0
+        return 0;
+    // binary search the interval [C[cc]..C[cc+1]-1] for the result
+    size_type lower_b = m_C[cc], upper_b = m_C[cc+1]; // lower_b inclusive, upper_b exclusive
+    while (lower_b+1 < upper_b) {
+        size_type mid = (lower_b+upper_b)/2;
+        if (m_psi[mid] >= i)
+            upper_b = mid;
+        else
+            lower_b = mid;
+    }
+    if (lower_b > m_C[cc])
+        return lower_b - m_C[cc] + 1;
+    else { // lower_b == m_C[cc]
+        return m_psi[lower_b] < i;// 1 if m_psi[lower_b]<i, 0 otherwise
+    }
+}
+
+csa_uncompressed::size_type csa_uncompressed::select_bwt(size_type i, const unsigned char c)const
+{
+    assert(i > 0);
+    unsigned char cc = m_char2comp[c];
+    if (cc==0 and c!=0)  // character is not in the text => return size()
+        return size();
+    assert(cc != 255);
+    if (m_C[cc]+i-1 <  m_C[cc+1]) {
+        return m_psi[m_C[cc]+i-1];
+    } else
+        return size();
 }
 
 } // end namespace sdsl

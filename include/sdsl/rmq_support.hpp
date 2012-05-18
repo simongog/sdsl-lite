@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2009 Simon Gog 
+    Copyright (C) 2009 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,23 +24,23 @@
 /** \defgroup rmq_group Range Minimum/Maximum Support (RMS) */
 
 template<class RandomAccessContainer, bool Minimum>	 // for range minimum queries
-struct min_max_trait{
-	static inline bool strict_compare(const typename RandomAccessContainer::value_type v1, const typename RandomAccessContainer::value_type v2){
-		return v1 < v2;	
-	} 
-	static inline bool compare(const typename RandomAccessContainer::value_type v1, const typename RandomAccessContainer::value_type v2){
-		return v1 <= v2;	
-	} 
+struct min_max_trait {
+    static inline bool strict_compare(const typename RandomAccessContainer::value_type v1, const typename RandomAccessContainer::value_type v2) {
+        return v1 < v2;
+    }
+    static inline bool compare(const typename RandomAccessContainer::value_type v1, const typename RandomAccessContainer::value_type v2) {
+        return v1 <= v2;
+    }
 };
 
 template<class RandomAccessContainer> // for range maximum queries
-struct min_max_trait<RandomAccessContainer, false>{
-	static inline bool strict_compare(const typename RandomAccessContainer::value_type v1, const typename RandomAccessContainer::value_type v2){
-		return v1 > v2;	
-	} 
-	static inline bool compare(const typename RandomAccessContainer::value_type v1, const typename RandomAccessContainer::value_type v2){
-		return v1 >= v2;	
-	} 
+struct min_max_trait<RandomAccessContainer, false> {
+    static inline bool strict_compare(const typename RandomAccessContainer::value_type v1, const typename RandomAccessContainer::value_type v2) {
+        return v1 > v2;
+    }
+    static inline bool compare(const typename RandomAccessContainer::value_type v1, const typename RandomAccessContainer::value_type v2) {
+        return v1 >= v2;
+    }
 };
 
 #include "rmq_support_sparse_table.hpp"

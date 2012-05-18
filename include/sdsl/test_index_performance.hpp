@@ -558,7 +558,7 @@ void test_cst_parent_operation(const Cst& cst, typename Cst::size_type times=100
  * \param x     Seed for the random number generator for the generation of the leaves
  */
 template<class Cst>
-void generate_nodes_from_random_leaves(const Cst& cst, typename Cst::size_type times, std::vector<typename Cst::node_type> &nodes, uint64_t x=17)
+void generate_nodes_from_random_leaves(const Cst& cst, typename Cst::size_type times, std::vector<typename Cst::node_type>& nodes, uint64_t x=17)
 {
     typedef typename Cst::size_type size_type;
     typedef typename Cst::node_type node_type;

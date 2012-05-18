@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2010 Simon Gog 
+    Copyright (C) 2010 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,149 +35,154 @@
 #include <string>
 #include <stdexcept>
 
-namespace sdsl{
+namespace sdsl
+{
 
-	template<class Csa>
-	static bool construct_csa(std::string file_name, Csa &csa){
-		tMSS file_map;
-		return construct_csa(file_name, csa, file_map, true, "./","");
-	}	
+template<class Csa>
+static bool construct_csa(std::string file_name, Csa& csa)
+{
+    tMSS file_map;
+    return construct_csa(file_name, csa, file_map, true, "./","");
+}
 
-	template<class Csa>
-	static bool construct_csa(std::string file_name, Csa &csa, tMSS &file_map, bool delete_files=true, std::string dir="./", std::string id=""){
-		uint64_t fs = 0;
-		char *ccc = NULL; 	
-		if( (fs=file::read_text((const char*)file_name.c_str(), ccc))>0 ){
-			typename Csa::size_type n = strlen((const char*)ccc);
-			if(id == "")
-				id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
-			if(fs != n + 1){
-				std::cerr << "# WARNING: file \"" << file_name << "\" contains 0-bytes." << std::endl;
-				algorithm::shift_text((char*)ccc, fs, true);
-				n = fs-1;
-			}
+template<class Csa>
+static bool construct_csa(std::string file_name, Csa& csa, tMSS& file_map, bool delete_files=true, std::string dir="./", std::string id="")
+{
+    uint64_t fs = 0;
+    char* ccc = NULL;
+    if ((fs=file::read_text((const char*)file_name.c_str(), ccc))>0) {
+        typename Csa::size_type n = strlen((const char*)ccc);
+        if (id == "")
+            id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
+        if (fs != n + 1) {
+            std::cerr << "# WARNING: file \"" << file_name << "\" contains 0-bytes." << std::endl;
+            algorithm::shift_text((char*)ccc, fs, true);
+            n = fs-1;
+        }
 
-			if( !util::store_to_file(char_array_serialize_wrapper<>((unsigned char*)ccc,n+1), (dir+"text_"+id).c_str() ) ){
-				throw std::ios_base::failure( "#csa_construct: Cannot store text to file system!" );
-				delete [] ccc;
-				return false;
-			}
-			else{
-				file_map["text"] = (dir+"text_"+id).c_str();
-			}
-			delete [] ccc;
-			return construct_csa(csa, file_map, delete_files, dir, id);
-		}
-		return false;
-	}	
+        if (!util::store_to_file(char_array_serialize_wrapper<>((unsigned char*)ccc,n+1), (dir+"text_"+id).c_str())) {
+            throw std::ios_base::failure("#csa_construct: Cannot store text to file system!");
+            delete [] ccc;
+            return false;
+        } else {
+            file_map["text"] = (dir+"text_"+id).c_str();
+        }
+        delete [] ccc;
+        return construct_csa(csa, file_map, delete_files, dir, id);
+    }
+    return false;
+}
 
-	template<class Csa>
-	static bool construct_csa(Csa &csa, tMSS &file_map, bool delete_files=true, std::string dir="./", std::string id=""){
-		write_R_output("csa", "construct CSA", "begin", 1, 0);
-		int_vector_file_buffer<8> text_buf( file_map["text"].c_str() );
-		typedef int_vector<>::size_type size_type;
-		if(id=="")
-			id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
-		text_buf.reset();
-		size_type n = text_buf.int_vector_size;
+template<class Csa>
+static bool construct_csa(Csa& csa, tMSS& file_map, bool delete_files=true, std::string dir="./", std::string id="")
+{
+    write_R_output("csa", "construct CSA", "begin", 1, 0);
+    int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
+    typedef int_vector<>::size_type size_type;
+    if (id=="")
+        id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
+    text_buf.reset();
+    size_type n = text_buf.int_vector_size;
 
-		std::string sa_file_name = dir+"sa_"+id;
-		// if sa file already exists
-		std::ifstream in(sa_file_name.c_str());
-		if( !in ){
-			unsigned char *text = NULL;
-			util::load_from_int_vector_buffer(text, text_buf);		
+    std::string sa_file_name = dir+"sa_"+id;
+    // if sa file already exists
+    std::ifstream in(sa_file_name.c_str());
+    if (!in) {
+        unsigned char* text = NULL;
+        util::load_from_int_vector_buffer(text, text_buf);
 
-			typename Csa::size_type nn = strlen((const char*) text);
-			if( nn+1 != n ){
-				std::cerr << "# WARNING: text contains 0-bytes. nn=" << nn << " n=" << n << std::endl;
-				algorithm::shift_text((char*)text, n);
-			}
+        typename Csa::size_type nn = strlen((const char*) text);
+        if (nn+1 != n) {
+            std::cerr << "# WARNING: text contains 0-bytes. nn=" << nn << " n=" << n << std::endl;
+            algorithm::shift_text((char*)text, n);
+        }
 
-			write_R_output("csa", "construct SA", "begin", 1, 0);
-			int_vector<> sa = int_vector<>(n, 0, bit_magic::l1BP(n+1)+1);
-			algorithm::calculate_sa(text,n, sa);	 // calculate the suffix array sa of str
-			delete [] text;
+        write_R_output("csa", "construct SA", "begin", 1, 0);
+        int_vector<> sa = int_vector<>(n, 0, bit_magic::l1BP(n+1)+1);
+        algorithm::calculate_sa(text,n, sa);	 // calculate the suffix array sa of str
+        delete [] text;
 
-			assert(sa.size() == n);
+        assert(sa.size() == n);
 
-			write_R_output("csa", "construct SA", "end", 1, 0);
-			write_R_output("csa", "store SA", "begin", 1, 0);
+        write_R_output("csa", "construct SA", "end", 1, 0);
+        write_R_output("csa", "store SA", "begin", 1, 0);
 
-			if( !util::store_to_file(sa, sa_file_name.c_str() ) ){
-				throw std::ios_base::failure( "#csa_construct: Cannot store SA to file system!" );
-				return false;
-			}else{
-				file_map["sa"] = sa_file_name;
-			}
-			write_R_output("csa", "store SA", "end", 1, 0);
-			{
-				sa.resize(0);
-				int_vector<> temp;
-				temp.swap(sa);
-			}
-		}else{
-			file_map["sa"] = sa_file_name;
-			in.close();
-		}
+        if (!util::store_to_file(sa, sa_file_name.c_str())) {
+            throw std::ios_base::failure("#csa_construct: Cannot store SA to file system!");
+            return false;
+        } else {
+            file_map["sa"] = sa_file_name;
+        }
+        write_R_output("csa", "store SA", "end", 1, 0);
+        {
+            sa.resize(0);
+            int_vector<> temp;
+            temp.swap(sa);
+        }
+    } else {
+        file_map["sa"] = sa_file_name;
+        in.close();
+    }
 
-		
-		write_R_output("csa", "encode CSA", "begin", 1, 0);
-		csa.construct(file_map, dir, id); // TODO: for all three choices
+
+    write_R_output("csa", "encode CSA", "begin", 1, 0);
+    csa.construct(file_map, dir, id); // TODO: for all three choices
 // TODO replace line above by swap operation of csa
 //		csa = Csa(file_map, dir, id);
-		write_R_output("csa", "encode CSA", "end", 1, 0);
+    write_R_output("csa", "encode CSA", "end", 1, 0);
 
-		if( delete_files ){
-			util::delete_all_files(file_map);
-		}
-		write_R_output("csa", "construct CSA", "end", 1, 0);
-		return true;
-	}	
+    if (delete_files) {
+        util::delete_all_files(file_map);
+    }
+    write_R_output("csa", "construct CSA", "end", 1, 0);
+    return true;
+}
 
-	template<class Csa>
-	static bool construct_csa_of_reversed_text(std::string file_name, Csa &csa){
-		tMSS file_map;
-		return construct_csa_of_reversed_text(file_name, csa, file_map, true, "./","");
-	}
+template<class Csa>
+static bool construct_csa_of_reversed_text(std::string file_name, Csa& csa)
+{
+    tMSS file_map;
+    return construct_csa_of_reversed_text(file_name, csa, file_map, true, "./","");
+}
 
 
 
-	template<class Csa>
-	static bool construct_csa_of_reversed_text(std::string file_name, Csa &csa, tMSS &file_map, bool delete_files=true, 
-			                                   std::string dir="./", std::string id=""){
-		typedef int_vector<>::size_type size_type;
+template<class Csa>
+static bool construct_csa_of_reversed_text(std::string file_name, Csa& csa, tMSS& file_map, bool delete_files=true,
+        std::string dir="./", std::string id="")
+{
+    typedef int_vector<>::size_type size_type;
 
-		if(id=="")
-			id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
+    if (id=="")
+        id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
 
-		std::string tmp_rev_file_name = dir+"text_rev_"+id;
-		std::ifstream in(tmp_rev_file_name.c_str());
-		if ( !in ){
-			char *text = NULL;
-			size_type n = 0;
-			if ( (n=file::read_text((const char*)file_name.c_str(), text)) > 0 ){
-				--n; // since read_text appends a 0 byte
-				for( size_type i=0; i < n/2; ++i ){
-					std::swap(text[i], text[n-1-i] );
-				}
-				file::write_text((const char*)tmp_rev_file_name.c_str(),text, n);
-				file_map["text_rev"] = tmp_rev_file_name;
-				delete [] text;
-			}else{
-				std::cout<<"ERROR: text cannot be read from file "<<file_name<<std::endl;
-				return false;
-			}
-		}else{
-			file_map["text_rev"] = tmp_rev_file_name;
-			in.close();
-		}
-		bool res = construct_csa(tmp_rev_file_name, csa, file_map, delete_files, dir, id);
-		if ( delete_files ){
-			util::delete_all_files(file_map);
-		}
-		return res;
-	}	
+    std::string tmp_rev_file_name = dir+"text_rev_"+id;
+    std::ifstream in(tmp_rev_file_name.c_str());
+    if (!in) {
+        char* text = NULL;
+        size_type n = 0;
+        if ((n=file::read_text((const char*)file_name.c_str(), text)) > 0) {
+            --n; // since read_text appends a 0 byte
+            for (size_type i=0; i < n/2; ++i) {
+                std::swap(text[i], text[n-1-i]);
+            }
+            file::write_text((const char*)tmp_rev_file_name.c_str(),text, n);
+            file_map["text_rev"] = tmp_rev_file_name;
+            delete [] text;
+        } else {
+            std::cout<<"ERROR: text cannot be read from file "<<file_name<<std::endl;
+            return false;
+        }
+    } else {
+        file_map["text_rev"] = tmp_rev_file_name;
+        in.close();
+    }
+    bool res = construct_csa(tmp_rev_file_name, csa, file_map, delete_files, dir, id);
+    if (delete_files) {
+        util::delete_all_files(file_map);
+    }
+    return res;
+}
 
 
 }// end namespace

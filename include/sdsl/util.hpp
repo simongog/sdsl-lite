@@ -56,6 +56,8 @@ class int_vector;	 // forward declaration
 namespace util
 {
 
+static bool verbose = false;
+
 //! Returns the basename of a file_name
 std::string basename(const std::string& file_name);
 
@@ -134,13 +136,13 @@ template<>
 bool load_from_file(void*&, const char* file_name);
 
 template<class size_type_class>
-bool load_from_int_vector_buffer(unsigned char * &text, int_vector_file_buffer<8, size_type_class> &text_buf);
+bool load_from_int_vector_buffer(unsigned char*& text, int_vector_file_buffer<8, size_type_class>& text_buf);
 
 //! Specialization of load_from_file for a char array
 /*  \pre v=NULL
  *
  */
-bool load_from_file(char* &v, const char* file_name);
+bool load_from_file(char*& v, const char* file_name);
 
 //! Store a data structure to a file.
 /*! The data structure has to provide a serialize function.
@@ -156,7 +158,7 @@ bool store_to_file(const char* v, const char* file_name);
 
 //! Specialization of store_to_file for int_vector
 template<uint8_t fixed_int_width, class size_type_class>
-bool store_to_file(const int_vector<fixed_int_width, size_type_class> &v, const char* file_name, bool write_fixed_as_variable=false);
+bool store_to_file(const int_vector<fixed_int_width, size_type_class>& v, const char* file_name, bool write_fixed_as_variable=false);
 
 //! Demangle the class name of typeid(...).name()
 /*!
@@ -325,7 +327,7 @@ inline bool util::store_to_file(const char* v, const char* file_name)
 }
 
 template<uint8_t fixed_int_width, class size_type_class>
-bool util::store_to_file(const int_vector<fixed_int_width, size_type_class> &v, const char* file_name, bool write_fixed_as_variable)
+bool util::store_to_file(const int_vector<fixed_int_width, size_type_class>& v, const char* file_name, bool write_fixed_as_variable)
 {
     std::ofstream out;
     out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
@@ -350,7 +352,7 @@ bool util::load_from_file(T& v, const char* file_name)
 
 
 template<class size_type_class>
-bool util::load_from_int_vector_buffer(unsigned char * &text, int_vector_file_buffer<8, size_type_class> &text_buf)
+bool util::load_from_int_vector_buffer(unsigned char*& text, int_vector_file_buffer<8, size_type_class>& text_buf)
 {
     text_buf.reset();
     size_type_class n = text_buf.int_vector_size;

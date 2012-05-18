@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2009 Simon Gog 
+    Copyright (C) 2009 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file rmq_support_sada.hpp
-    \brief rmq_support_sada.hpp contains the class rmq_support_sada which supports range minimum or range maximum queries on a random access container in constant time and \f$4 n+o(n) bits\f$ space. 
+    \brief rmq_support_sada.hpp contains the class rmq_support_sada which supports range minimum or range maximum queries on a random access container in constant time and \f$4 n+o(n) bits\f$ space.
 	\author Simon Gog
 */
 #ifndef INCLUDED_SDSL_RMQ_SUPPORT_SADA
@@ -29,15 +29,16 @@
 #include "select_support_mcl.hpp"
 
 //! Namespace for the succinct data structure library.
-namespace sdsl{
+namespace sdsl
+{
 
-	
-template<class RandomAccessContainer = int_vector<>, bool Minimum = true, class Bp_support = bp_support_sada<>, class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >	
+
+template<class RandomAccessContainer = int_vector<>, bool Minimum = true, class Bp_support = bp_support_sada<>, class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
 class rmq_support_sada;
 
-template<class RandomAccessContainer = int_vector<>, class Bp_support = bp_support_sada<>, class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >	
-struct range_maximum_support_sada{
-	typedef rmq_support_sada<RandomAccessContainer, false, Bp_support, Rank_support10, Select_support10> type;
+template<class RandomAccessContainer = int_vector<>, class Bp_support = bp_support_sada<>, class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
+struct range_maximum_support_sada {
+    typedef rmq_support_sada<RandomAccessContainer, false, Bp_support, Rank_support10, Select_support10> type;
 };
 
 //! A class to support range minimum or range maximum queries on a random access container.
@@ -53,142 +54,143 @@ struct range_maximum_support_sada{
  * \par Space complexity:
  *		\f$ 4n+o(n) \f$ bits for the data structure ( \f$ n=size() \f$ ).
  *
- */	
-template<class RandomAccessContainer, bool Minimum, class Bp_support, class Rank_support10, class Select_support10>	
-class rmq_support_sada{
-	const RandomAccessContainer *m_v;
-	bit_vector					m_ect_bp; 			//!< A bit vector which contains the balanced parentheses sequence of the extended Cartesian tree of the input container.
-	Bp_support					m_ect_bp_support; 	//!< Support structure for the balanced parentheses sequence of the extended Cartesian tree.
-	Rank_support10				m_ect_bp_rank10;		//!< A rank support (for bit pattern "10") which supports the balanced parentheses sequence of the extended Cartesian tree.
-	Select_support10			m_ect_bp_select10; 	//!< A select support (for bit pattern "10") which supports the balanced parentheses sequence of the extended Cartesian tree.
+ */
+template<class RandomAccessContainer, bool Minimum, class Bp_support, class Rank_support10, class Select_support10>
+class rmq_support_sada
+{
+        const RandomAccessContainer* m_v;
+        bit_vector					m_ect_bp; 			//!< A bit vector which contains the balanced parentheses sequence of the extended Cartesian tree of the input container.
+        Bp_support					m_ect_bp_support; 	//!< Support structure for the balanced parentheses sequence of the extended Cartesian tree.
+        Rank_support10				m_ect_bp_rank10;		//!< A rank support (for bit pattern "10") which supports the balanced parentheses sequence of the extended Cartesian tree.
+        Select_support10			m_ect_bp_select10; 	//!< A select support (for bit pattern "10") which supports the balanced parentheses sequence of the extended Cartesian tree.
 
-	public:
-	typedef typename RandomAccessContainer::size_type size_type;
-	typedef typename RandomAccessContainer::size_type value_type;
+    public:
+        typedef typename RandomAccessContainer::size_type size_type;
+        typedef typename RandomAccessContainer::size_type value_type;
 
-	typedef Bp_support 			bp_support_type;
-	typedef	Rank_support10 		rank_support10_type;
-	typedef Select_support10	select_support10_type;
+        typedef Bp_support 			bp_support_type;
+        typedef	Rank_support10 		rank_support10_type;
+        typedef Select_support10	select_support10_type;
 
-	const bit_vector 		&ect_bp;
-	const Bp_support 		&ect_bp_support;
-	const Rank_support10	&ect_bp_rank10;
-	const Select_support10	&ect_bp_select10;
+        const bit_vector&		 ect_bp;
+        const Bp_support&		 ect_bp_support;
+        const Rank_support10&	ect_bp_rank10;
+        const Select_support10&	ect_bp_select10;
 
-	private:
+    private:
 
-	typedef rmq_support_sct<RandomAccessContainer, Minimum> rmq_construct_helper_type;
+        typedef rmq_support_sct<RandomAccessContainer, Minimum> rmq_construct_helper_type;
 
-	void _construct_bp_of_extended_cartesian_tree(size_type l, size_type r, size_type &bp_cnt, const rmq_construct_helper_type &rmq_helper){
-		if( r==(size_type)-1 or l > r  )
-			return;
-		m_ect_bp[bp_cnt++] = 1; // write beginning of inner node
-		size_type m = rmq_helper(l, r);
-		_construct_bp_of_extended_cartesian_tree(l, m-1, bp_cnt, rmq_helper);
-		m_ect_bp[bp_cnt++] = 1; // write leaf 
-		m_ect_bp[bp_cnt++] = 0;
-		_construct_bp_of_extended_cartesian_tree(m+1, r, bp_cnt, rmq_helper);
-		m_ect_bp[bp_cnt++] = 0; // write end of inner node
-		assert(bp_cnt <= m_ect_bp.size() );
-	}
+        void _construct_bp_of_extended_cartesian_tree(size_type l, size_type r, size_type& bp_cnt, const rmq_construct_helper_type& rmq_helper) {
+            if (r==(size_type)-1 or l > r)
+                return;
+            m_ect_bp[bp_cnt++] = 1; // write beginning of inner node
+            size_type m = rmq_helper(l, r);
+            _construct_bp_of_extended_cartesian_tree(l, m-1, bp_cnt, rmq_helper);
+            m_ect_bp[bp_cnt++] = 1; // write leaf
+            m_ect_bp[bp_cnt++] = 0;
+            _construct_bp_of_extended_cartesian_tree(m+1, r, bp_cnt, rmq_helper);
+            m_ect_bp[bp_cnt++] = 0; // write end of inner node
+            assert(bp_cnt <= m_ect_bp.size());
+        }
 
-	void construct(){
-		if( m_v == NULL ){
-			m_ect_bp = bit_vector(0); m_ect_bp_support = Bp_support();
-			m_ect_bp_rank10 = Rank_support10(); m_ect_bp_select10 = Select_support10();
-		}else{
-			rmq_construct_helper_type rmq_helper(m_v);
-			m_ect_bp.resize(4*m_v->size());
-			size_type bp_cnt=0;
-		   	_construct_bp_of_extended_cartesian_tree((size_type)0, m_v->size()-1, bp_cnt, rmq_helper);
-		    assert( bp_cnt == 4*m_v->size() );
-			m_ect_bp_support = Bp_support(&m_ect_bp);
-			m_ect_bp_rank10.init(&m_ect_bp);
-			m_ect_bp_select10.init(&m_ect_bp);
-		}
-	}
+        void construct() {
+            if (m_v == NULL) {
+                m_ect_bp = bit_vector(0); m_ect_bp_support = Bp_support();
+                m_ect_bp_rank10 = Rank_support10(); m_ect_bp_select10 = Select_support10();
+            } else {
+                rmq_construct_helper_type rmq_helper(m_v);
+                m_ect_bp.resize(4*m_v->size());
+                size_type bp_cnt=0;
+                _construct_bp_of_extended_cartesian_tree((size_type)0, m_v->size()-1, bp_cnt, rmq_helper);
+                assert(bp_cnt == 4*m_v->size());
+                m_ect_bp_support = Bp_support(&m_ect_bp);
+                m_ect_bp_rank10.init(&m_ect_bp);
+                m_ect_bp_select10.init(&m_ect_bp);
+            }
+        }
 
-	void copy(const rmq_support_sada &rm){
-		m_v = rm.m_v;
-		m_ect_bp = rm.m_ect_bp;
-		m_ect_bp_support = rm.m_ect_bp_support;
-		m_ect_bp_support.set_vector(&m_ect_bp);
-		m_ect_bp_rank10 = rm.m_ect_bp_rank10;
-		m_ect_bp_rank10.set_vector(&m_ect_bp);
-		m_ect_bp_select10 = rm.m_ect_bp_select10;
-		m_ect_bp_select10.set_vector(&m_ect_bp);
-	}
+        void copy(const rmq_support_sada& rm) {
+            m_v = rm.m_v;
+            m_ect_bp = rm.m_ect_bp;
+            m_ect_bp_support = rm.m_ect_bp_support;
+            m_ect_bp_support.set_vector(&m_ect_bp);
+            m_ect_bp_rank10 = rm.m_ect_bp_rank10;
+            m_ect_bp_rank10.set_vector(&m_ect_bp);
+            m_ect_bp_select10 = rm.m_ect_bp_select10;
+            m_ect_bp_select10.set_vector(&m_ect_bp);
+        }
 
-	public:
+    public:
 
-	//! Constructor
-	rmq_support_sada(const RandomAccessContainer *v=NULL):m_v(v), ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10){
-		construct();
-	}
+        //! Constructor
+        rmq_support_sada(const RandomAccessContainer* v=NULL):m_v(v), ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {
+            construct();
+        }
 
-	//! Copy constructor
-	rmq_support_sada(const rmq_support_sada &rm){
-		if( this != &rm ){ // if v is not the same object
-			copy(rm);
-		}
-	}
+        //! Copy constructor
+        rmq_support_sada(const rmq_support_sada& rm) {
+            if (this != &rm) { // if v is not the same object
+                copy(rm);
+            }
+        }
 
-	//! Destructor
-	~rmq_support_sada(){ }
+        //! Destructor
+        ~rmq_support_sada() { }
 
-	rmq_support_sada& operator=(const rmq_support_sada &rm){
-		if( this != &rm ){
-			copy(rm);
-		}
-		return *this;
-	}
+        rmq_support_sada& operator=(const rmq_support_sada& rm) {
+            if (this != &rm) {
+                copy(rm);
+            }
+            return *this;
+        }
 
-	void set_vector(const RandomAccessContainer *v){
-		m_v = v;
-	}
+        void set_vector(const RandomAccessContainer* v) {
+            m_v = v;
+        }
 
-	//! Range minimum/maximum query for the supported random access container v.
-	/*! 
-	 * \param l Leftmost position of the interval \f$[\ell..r]\f$.  
-	 * \param r Rightmost position of the interval \f$[\ell..r]\f$.
-	 * \return The minimal index i with \f$\ell \leq i \leq r\f$ for which \f$ v[i] \f$ is minimal/maximal. 
-	 * \pre 
-	 *   - r < size()
-	 *   - \f$ \ell \leq r \f$
-	 * \par Time complexity
-	 *      \f$ \Order{1} \f$
-	 */
-	size_type operator()(const size_type l, const size_type r)const{
-		assert( l <= r ); assert( r < size() );
-		if( l==r )
-			return l;
-		size_type x		= m_ect_bp_select10(l+1);
-		size_type y		= m_ect_bp_select10(r+1);
-		size_type z		= m_ect_bp_support.rmq(x, y);
-		size_type f 	= z + 1 - 2*(m_ect_bp[z]);
-		return m_ect_bp_rank10(f-1);
-	}
+        //! Range minimum/maximum query for the supported random access container v.
+        /*!
+         * \param l Leftmost position of the interval \f$[\ell..r]\f$.
+         * \param r Rightmost position of the interval \f$[\ell..r]\f$.
+         * \return The minimal index i with \f$\ell \leq i \leq r\f$ for which \f$ v[i] \f$ is minimal/maximal.
+         * \pre
+         *   - r < size()
+         *   - \f$ \ell \leq r \f$
+         * \par Time complexity
+         *      \f$ \Order{1} \f$
+         */
+        size_type operator()(const size_type l, const size_type r)const {
+            assert(l <= r); assert(r < size());
+            if (l==r)
+                return l;
+            size_type x		= m_ect_bp_select10(l+1);
+            size_type y		= m_ect_bp_select10(r+1);
+            size_type z		= m_ect_bp_support.rmq(x, y);
+            size_type f 	= z + 1 - 2*(m_ect_bp[z]);
+            return m_ect_bp_rank10(f-1);
+        }
 
-	size_type size()const{
-		return m_ect_bp.size()/4;
-	}
+        size_type size()const {
+            return m_ect_bp.size()/4;
+        }
 
-	size_type serialize(std::ostream &out)const{
-		size_type written_bytes = 0;
-		written_bytes += m_ect_bp.serialize(out);
-		written_bytes += m_ect_bp_support.serialize(out);
-		written_bytes -= m_ect_bp_support.bp_select.serialize(out); // rmq_support_sada does not use the select support of bp_support
-		written_bytes += m_ect_bp_rank10.serialize(out);
-		written_bytes += m_ect_bp_select10.serialize(out);
-		return written_bytes;
-	}
+        size_type serialize(std::ostream& out)const {
+            size_type written_bytes = 0;
+            written_bytes += m_ect_bp.serialize(out);
+            written_bytes += m_ect_bp_support.serialize(out);
+            written_bytes -= m_ect_bp_support.bp_select.serialize(out); // rmq_support_sada does not use the select support of bp_support
+            written_bytes += m_ect_bp_rank10.serialize(out);
+            written_bytes += m_ect_bp_select10.serialize(out);
+            return written_bytes;
+        }
 
-	void load(std::istream &in, const RandomAccessContainer *v){
-		m_ect_bp.load(in);
-		m_ect_bp_support.load(in, &m_ect_bp);
-		m_ect_bp_rank10.load(in, &m_ect_bp);
-		m_ect_bp_select10.load(in, &m_ect_bp);
-	}
+        void load(std::istream& in, const RandomAccessContainer* v) {
+            m_ect_bp.load(in);
+            m_ect_bp_support.load(in, &m_ect_bp);
+            m_ect_bp_rank10.load(in, &m_ect_bp);
+            m_ect_bp_select10.load(in, &m_ect_bp);
+        }
 };
 
 

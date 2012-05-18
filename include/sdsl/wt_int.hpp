@@ -177,7 +177,7 @@ class wt_int
          *		\f$ n\log|\Sigma| + O(1)\f$ bits, where \f$n=size\f$.
          */
         template<uint8_t int_width>
-        wt_int(int_vector_file_buffer<int_width> &buf, uint32_t logn=0, std::string dir="./")
+        wt_int(int_vector_file_buffer<int_width>& buf, uint32_t logn=0, std::string dir="./")
             : m_size(0),m_sigma(0), m_logn(0), sigma(m_sigma), tree(m_tree) {
             construct(buf, logn, dir);
         }
@@ -185,7 +185,7 @@ class wt_int
 
         // TODO external construction method which occupies only additional constant memory
         template<uint8_t int_width>
-        void construct(int_vector_file_buffer<int_width> &buf, uint32_t logn=0, std::string dir="./") {
+        void construct(int_vector_file_buffer<int_width>& buf, uint32_t logn=0, std::string dir="./") {
             buf.reset();
             size_type n = buf.int_vector_size;  // set n
             m_size = n;				// set sigma and size
@@ -430,8 +430,8 @@ class wt_int
          *  \param val_result Reference to a vector to which the resulting values should be added
          */
         size_type range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb,
-                                  std::vector<size_type> *idx_result=NULL,
-                                  std::vector<value_type> *val_result=NULL
+                                  std::vector<size_type>* idx_result=NULL,
+                                  std::vector<value_type>* val_result=NULL
                                  ) const {
             size_type offsets[m_logn+1];
             size_type ones_before_os[m_logn+1];
@@ -450,7 +450,7 @@ class wt_int
         // irb interval right bound
         void _range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb, size_type depth,
                               size_type ilb, size_type node_size, size_type offsets[], size_type ones_before_os[], size_type path,
-                              std::vector<size_type> *idx_result, std::vector<size_type> *val_result, size_type& cnt_answers)
+                              std::vector<size_type>* idx_result, std::vector<size_type>* val_result, size_type& cnt_answers)
         const {
             if (lb > rb)
                 return;

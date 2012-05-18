@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2010 Simon Gog 
+    Copyright (C) 2010 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,16 +21,17 @@
 #ifndef INCLUDED_SDSL_CONCEPTS
 #define INCLUDED_SDSL_CONCEPTS
 
-namespace sdsl{
+namespace sdsl
+{
 
-struct csa_tag{};
+struct csa_tag {};
 
-struct cst_tag{};
+struct cst_tag {};
 
-struct lcp_plain_tag{};
-struct lcp_permuted_tag{};
-struct lcp_tree_compressed_tag{};
-struct lcp_tree_and_lf_compressed_tag{};
+struct lcp_plain_tag {};
+struct lcp_permuted_tag {};
+struct lcp_tree_compressed_tag {};
+struct lcp_tree_and_lf_compressed_tag {};
 
 } // end namespace sdsl
 

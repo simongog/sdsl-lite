@@ -387,19 +387,19 @@ class bit_magic
 //		static void writeInt2(uint64_t *word, uint64_t x, const uint8_t offset=0, const uint8_t len=64);
 
         //! TODO: Documentation for this function
-        static void write_int_and_move(uint64_t* &word, uint64_t x, uint8_t& offset, const uint8_t len);
+        static void write_int_and_move(uint64_t*& word, uint64_t x, uint8_t& offset, const uint8_t len);
 
         //! TODO: Documentation for this function
         static uint64_t read_int(const uint64_t* word, uint8_t offset=0, const uint8_t len=64);
 
         //! TODO: Documentation for this function
-        static uint64_t read_int_and_move(const uint64_t* &word, uint8_t& offset, const uint8_t len=64);
+        static uint64_t read_int_and_move(const uint64_t*& word, uint8_t& offset, const uint8_t len=64);
 
         //! TODO: Documentation for this function
         static uint64_t readUnaryInt(const uint64_t* word, uint8_t offset=0);
 
         //! TODO: Documentation for this function
-        static uint64_t readUnaryIntAndMove(const uint64_t* &word, uint8_t& offset);
+        static uint64_t readUnaryIntAndMove(const uint64_t*& word, uint8_t& offset);
 
         //! Move the bit pointer consisting of a uint64_t pointer and an offset len positions to the right.
         /*!
@@ -408,7 +408,7 @@ class bit_magic
          * \param len Position to move to the right. \f$ len \in [0..64] \f$
          * \sa move_left
          */
-        static void move_right(const uint64_t* &word, uint8_t& offset, const uint8_t len);
+        static void move_right(const uint64_t*& word, uint8_t& offset, const uint8_t len);
         //! Move the bit pointer consisting of a uint64_t pointer and an offset len positions to the left.
         /*!
          * \param word   64-bit word part of the bit pointer
@@ -416,7 +416,7 @@ class bit_magic
          * \param len Position to move to the left. \f$ len \in [0..64] \f$
          * \sa move_right
          */
-        static void move_left(const uint64_t* &word, uint8_t& offset, const uint8_t len);
+        static void move_left(const uint64_t*& word, uint8_t& offset, const uint8_t len);
 
         //! Get the first one bit in the intervall \f$[idx..\infty )\f$
         static uint64_t next(const uint64_t* word, uint64_t idx);
@@ -1357,7 +1357,7 @@ inline void bit_magic::write_int(uint64_t* word, uint64_t x, uint8_t offset, con
 //	}
 //}
 
-inline void bit_magic::write_int_and_move(uint64_t* &word, uint64_t x, uint8_t& offset, const uint8_t len)
+inline void bit_magic::write_int_and_move(uint64_t*& word, uint64_t x, uint8_t& offset, const uint8_t len)
 {
     x &= bit_magic::Li1Mask[len];
     if (offset + len < 64) {
@@ -1392,7 +1392,7 @@ inline uint64_t bit_magic::read_int(const uint64_t* word, uint8_t offset, const 
     }
 }
 
-inline uint64_t bit_magic::read_int_and_move(const uint64_t* &word, uint8_t& offset, const uint8_t len)
+inline uint64_t bit_magic::read_int_and_move(const uint64_t*& word, uint8_t& offset, const uint8_t len)
 {
     uint64_t w1 = (*word)>>offset;
     if ((offset = (offset+len))>=64) {  // if offset+len > 64
@@ -1426,7 +1426,7 @@ inline uint64_t bit_magic::readUnaryInt(const uint64_t* word, uint8_t offset)
     return 0;
 }
 
-inline uint64_t bit_magic::readUnaryIntAndMove(const uint64_t* &word, uint8_t& offset)
+inline uint64_t bit_magic::readUnaryIntAndMove(const uint64_t*& word, uint8_t& offset)
 {
     register uint64_t w = (*word) >> offset; // temporary variable is good for the performance
     if (w) {
@@ -1455,7 +1455,7 @@ inline uint64_t bit_magic::readUnaryIntAndMove(const uint64_t* &word, uint8_t& o
     return 0;
 }
 
-inline void bit_magic::move_right(const uint64_t* &word, uint8_t& offset, const uint8_t len)
+inline void bit_magic::move_right(const uint64_t*& word, uint8_t& offset, const uint8_t len)
 {
     if ((offset+=len)&0xC0) { // if offset >= 65
         offset&=0x3F;
@@ -1463,7 +1463,7 @@ inline void bit_magic::move_right(const uint64_t* &word, uint8_t& offset, const 
     }
 }
 
-inline void bit_magic::move_left(const uint64_t* &word, uint8_t& offset, const uint8_t len)
+inline void bit_magic::move_left(const uint64_t*& word, uint8_t& offset, const uint8_t len)
 {
     if ((offset-=len)&0xC0) {  // if offset-len<0
         offset&=0x3F;
