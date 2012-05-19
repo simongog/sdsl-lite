@@ -57,7 +57,7 @@ if [[ `pwd` != ${OLD_DIR} ]]; then
 fi
 
 echo "SUCCESS: Yuta Mori's libdivsufsort was installed successfully!"
-rm -r ${LIBDIVSUFSORT_DIR}
+rm -rf ${LIBDIVSUFSORT_DIR}
 # (2) Download the google's test framework gtest 
 #
 
@@ -75,9 +75,9 @@ fi
 GTEST_DIR=${GTEST_NAME%.zip}
 if [[ ! -d "${GTEST_DIR}" ]]; then # if gtest is not unpacked
 	echo "unpacking ${GTEST_NAME}"
-	tar -xzvf ${GTEST_NAME} # 
+	unzip ${GTEST_NAME} # 
 	if [[ $? != 0 ]] ; then
-		echo "ERROR: Could not unpack the libdivsufsort library."
+		echo "ERROR: Could not unpack the gtest library."
 		exit 1
 	fi
 fi
@@ -86,7 +86,10 @@ cd ${GTEST_DIR} # change into the gtest directory
 if [[ $? != 0 ]]; then
 	exit 1
 fi
-cd build-aux    # change into the build directory
+if [[ ! -d build ]]; then
+	mkdir build # create a build directory
+fi
+cd build  # step into the build dir of libdivsufsort
 if [[ $? != 0 ]]; then
 	exit 1
 fi
@@ -111,7 +114,7 @@ if [[ `pwd` != ${OLD_DIR} ]]; then
 fi
 
 echo "SUCCESS: gtest was installed successfully!"
-rm -r ${GTEST_DIR}
+rm -rf ${GTEST_DIR}
 
 # (3) Finally, install sdsl
 #
