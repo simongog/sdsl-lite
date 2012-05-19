@@ -1,0 +1,5 @@
+This directory contains crafted inputs. Here are details about the inputs:
+
+100a.txt            Consists of exactly 100 a-characters. 
+abc_abc_abc.txt     Contains 3 0-bytes: At position 3 6 and 9.
+abc_abc_abc2.txt     Contains 3 255-bytes: At position 3 6 and 9.

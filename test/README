@@ -1,0 +1,20 @@
+This is a set of tests for the succinct data structure library (sdsl).
+
+You can compile the tests by calling 
+`make` 
+and execute them by calling 
+`make test`
+.
+
+In some test instances we generate data structures, e.g. 
+compressed suffix trees,  for real world inputs. 
+These inputs are downloaded with the command
+`curl` from a ``Project Gutenberg'' mirror before the
+first execution of the test.
+
+The tests use google's gtest framework which should
+be installed, since you have already executed
+the `install.sh` bash script to install the sdsl
+library.
+
+If you find a bug, please report it to us. Thanks.
