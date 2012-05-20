@@ -139,4 +139,11 @@ if [[ `pwd` != ${OLD_DIR} ]]; then
 fi
 
 echo "SUCCESS: sdsl was installed successfully!"
-
+echo "The sdsl include files are located in ${HOME}/include."
+echo "The library files are located in ${home}/lib."
+echo " "
+echo "A program 'example.cpp' can be compiled with"
+echo "g++ -DNDEBUG -O3 [-msse4.2] -I${HOME}/include -L${HOME}/lib example.cpp -lsdsl -ldivsufsort -ldivsufsort64"
+echo " "
+echo "Tests can be found in the test-directory."
+echo "Have fun!"
