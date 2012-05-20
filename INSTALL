@@ -1,3 +1,28 @@
+I Automatic Installation
+
+The library can be installed automatically by
+running
+./install.sh
+
+This will download all dependencies (libdivsuftsort
+and gtest), build them and install the include
+files in ${HOME}/include and the libraries
+in ${HOME}/lib. 
+After running the script you can change into
+the test directory and make and execute the tests by
+make && make test
+
+You can compile your own program example.cc by
+
+g++ -O3 -DNDEBUG -funroll-loops -I${HOME}/include/ -L${HOME}/lib/ -o example example.cc -lsdsl -ldivsufsort -ldivsufsort64
+
+
+If the automatic installation fails (maybe you have not a download
+program like curl or wget installed) then you can try the 
+manual installation:
+
+II Manual Installation
+
 1. a) download the libdivsufsort of Yuta Mori from
       http://code.google.com/p/libdivsufsort/
    b) unpack libdivsufsort-2.0.1.tar.gz into a directory libdivsufsort-2.0.1 and change into that directoy
@@ -12,8 +37,4 @@
    b) cmake .. -DCMAKE_INSTALL_PREFIX=${HOME}
    c) make 
    d) make install
-
-You can now compile your program example.cc by
-
-g++ -O3 -DNDEBUG -funroll-loops -I${HOME}/include/ -L${HOME}/lib/ -o example example.cc -lsdsl -ldivsufsort -ldivsufsort64
 
