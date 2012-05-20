@@ -8,12 +8,15 @@
 
 OLD_DIR="$( cd "$( dirname "$0" )" && pwd )" # gets the directory where the script is located in
 cd ${OLD_DIR}
+
+source "scripts/download.sh"
+
 LIBDIVSUFSORT_URL="http://libdivsufsort.googlecode.com/files/libdivsufsort-2.0.1.tar.gz"
 LIBDIVSUFSORT_NAME=`basename ${LIBDIVSUFSORT_URL}`
 if [[ ! -e ${LIBDIVSUFSORT_NAME} ]]; then
 	echo "Download ${LIBDIVSUFSORT_NAME} from ${LIBDIVSUFSORT_URL}"
-	curl -O ${LIBDIVSUFSORT_URL}
-	if [[ $? != 0 ]] ; then  # if curl returns not 0 
+	download_from_url "${LIBDIVSUFSORT_URL}"
+	if [[ $? != 0 ]] ; then  # if download_from_url returns not 0 
 		echo "ERROR: Could not download the libdivsufsort library. Has the library moved to another place?"
 		exit 1
 	fi
@@ -66,7 +69,7 @@ GTEST_NAME=`basename ${GTEST_URL}`
 
 if [[ ! -e ${GTEST_NAME} ]]; then
 	echo "Download ${GTEST_NAME} from ${GTEST_URL}"
-	curl -O ${GTEST_URL}
+	download_from_url "${GTEST_URL}"
 	if [[ $? != 0 ]] ; then  # if curl returns not 0 
 		echo "ERROR: Could not download the gtest library. Has the library moved to another place?"
 		exit 1

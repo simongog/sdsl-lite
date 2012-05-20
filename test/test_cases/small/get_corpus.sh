@@ -14,13 +14,16 @@ ZARATHUSTRA_URL="${GUTENBERG_MIRROR}/7/2/0/7205/7205-8.txt"
 ZARATHUSTRA_BASENAME=`basename ${ZARATHUSTRA_URL}`
 ZARATHUSTRA_NAME='zarathustra.txt'
 
+# Include download function
+source "${CUR_DIR}/../../../scripts/download.sh"
+
 if [[ ! -e ${FAUST_NAME} ]]; then
-	curl -O ${FAUST_URL}
+	download_from_url "${FAUST_URL}"
 	mv ${FAUST_BASENAME} ${FAUST_NAME}
 fi
 
 if [[ ! -e ${ZARATHUSTRA_NAME} ]]; then
-	curl -O ${ZARATHUSTRA_URL}
+	download_from_url "${FAUST_URL}"
 	mv ${ZARATHUSTRA_BASENAME} ${ZARATHUSTRA_NAME}
 fi
 
