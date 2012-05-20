@@ -140,7 +140,7 @@ fi
 
 echo "SUCCESS: sdsl was installed successfully!"
 echo "The sdsl include files are located in ${HOME}/include."
-echo "The library files are located in ${home}/lib."
+echo "The library files are located in ${HOME}/lib."
 echo " "
 echo "A program 'example.cpp' can be compiled with"
 echo "g++ -DNDEBUG -O3 [-msse4.2] -I${HOME}/include -L${HOME}/lib example.cpp -lsdsl -ldivsufsort -ldivsufsort64"
