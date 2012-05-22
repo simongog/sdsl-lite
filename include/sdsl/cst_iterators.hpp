@@ -247,6 +247,76 @@ class cst_bottom_up_const_forward_iterator: public std::iterator<std::forward_it
 
 };
 
+//! A forward iterator for a bottom up traversal of a suffix tree
+template<class Cst, class Queue = std::queue<  > >
+class cst_bfs_iterator: public std::iterator<std::forward_iterator_tag, typename Cst::node_type>
+{
+    public:
+        typedef typename Cst::node_type 		value_type;
+        typedef const value_type 				const_reference;
+        typedef typename Cst::size_type 		size_type;
+        typedef cst_bfs_iterator<Cst, Queue> 	iterator;
+        typedef Queue 							queue_type;
+    private:
+        const Cst* 				m_cst;
+        typename Cst::node_type m_v;
+
+    public:
+
+        //! Constructor
+        cst_bfs_iterator(const Cst* cst, const value_type node) {
+            m_cst = cst;
+            m_v = node;
+            if (m_cst == NULL)
+                m_valid = false;
+        }
+
+        //! Method for dereferencing the iterator.
+        const_reference operator*()const {
+            return m_v;
+        }
+
+        //! Prefix increment of the iterator.
+        iterator& operator++() {
+            if (!m_valid)
+                return *this;
+            if (m_v == m_cst->root()) {
+                m_valid = false;
+                return *this;
+            }
+            value_type w = m_cst->sibling(m_v);
+            if (w == m_cst->root()) {   // if no next right sibling exist
+                m_v = m_cst->parent(m_v);    // go to parent
+            } else { // if next right sibling exist
+                m_v = m_cst->leftmost_leaf_in_the_subtree(w);   // go to leaftmost leaf in the subtree of w
+            }
+            return *this;
+        }
+
+        //! Postfix increment of the iterator.
+        iterator operator++(int x) {
+            iterator it = *this;
+            ++(*this);
+            return it;
+        }
+
+        //! Equality operator.
+        bool operator==(const iterator& it)const {
+            return (it.m_valid == m_valid) // valid status is equal => for end() iterator
+                   and (it.m_v == m_v)    // nodes are equal
+                   and (it.m_cst == m_cst);  // iterator belongs to the same cst
+        }
+
+        //! Inequality operator.
+        bool operator!=(const iterator& it)const {
+            return !(*this==it);
+        }
+
+};
+
+
+
+
 //! A forward iterator for
 /*
 template<class Cst>
