@@ -7,7 +7,7 @@
 #include <string>
 #include <locale>
 
-
+// TODO: test different lcp classes with the CST
 
 namespace
 {
