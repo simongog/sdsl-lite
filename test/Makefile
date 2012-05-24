@@ -7,7 +7,8 @@ GCCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread -msse4.2
 all: IntVectorTest RankSupportTest SelectSupportTest\
 	 SelectSupportTest0 BitMagicTest BitMagicTestSSE \
 	 BitVectorTest \
-	 CstTest
+	 CstTest\
+	 WtIntTest
 
 IntVectorTest: IntVectorTest.cpp
 	g++ ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} IntVectorTest.cpp -o IntVectorTest ${GCCLIB}
@@ -33,6 +34,9 @@ BitVectorTest: BitVectorTest.cpp
 CstTest: CstTest.cpp
 	g++ ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} CstTest.cpp -o CstTest ${GCCLIB}
 
+WtIntTest: WtIntTest.cpp
+	g++ ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} WtIntTest.cpp -o WtIntTest ${GCCLIB}
+
 test:
 	./IntVectorTest
 	./BitVectorTest
@@ -42,10 +46,11 @@ test:
 	./BitMagicTest
 	./BitMagicTestSSE
 	./test_cases/small/get_corpus.sh
+	./WtIntTest
 	./CstTest
 
 clean:
 	rm -f IntVectorTest RankSupportTest SelectSupportTest \
 		  SelectSupportTest0 BitMagicTest BitMagicTestSSE BitVectorTest \
-		  CstTest 
+		  CstTest WtIntTest
 	rm -rf *.dSYM
