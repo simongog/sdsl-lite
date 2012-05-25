@@ -247,14 +247,100 @@ class cst_bottom_up_const_forward_iterator: public std::iterator<std::forward_it
 
 };
 
-//! A forward iterator for
-/*
-template<class Cst>
-class cst_breadth_first_const_forward_iterator: public std::iterator<std::forward_iterator_tag, typename Cst::node_type>
+//! A forward iterator for a breath first traversal of a tree
+/*!
+ *	\tparam Cst 	A class which fulfills the CST concept
+ *  \tparam Queue	A queue for the traversal. Note that for large data,
+ *                  you should use an external implementation of a queue.
+ */
+template<class Cst, class Queue = std::queue<typename Cst::node_type> >
+class cst_bfs_iterator: public std::iterator<std::forward_iterator_tag, typename Cst::node_type>
 {
-        //TODO
-}
-*/
+    public:
+        typedef typename Cst::node_type 		value_type;
+        typedef const value_type 				const_reference;
+        typedef typename Cst::size_type 		size_type;
+        typedef cst_bfs_iterator<Cst, Queue> 	iterator;
+        typedef Queue 							queue_type;
+    private:
+        const Cst* 	m_cst;   // Pointer to the cst.
+        queue_type	m_queue; //
+        bool		m_valid; // State of the iterator.
+
+    public:
+
+        //! Constructor
+        /*!
+         * \param cst	Pointer to the compressed suffix tree.
+         * \param node  Root node of the traversal.
+         * \param valid State of the iterator.
+         * \param end   If valid=true and end=true, we get the end() iterator otherwise ``end'' has no effect.
+         */
+        cst_bfs_iterator(const Cst* cst, const value_type node, bool valid=true, bool end_it=false) {
+            m_cst = cst;
+            m_valid = valid;
+            if (m_cst != NULL and !end_it) {
+                m_queue.push(node);
+            }
+        }
+
+        //! Returns the current number of nodes in the queue.
+        size_type size()const {
+            return m_queue.size();
+        }
+
+        //! Method for dereferencing the iterator.
+        const_reference operator*()const {
+            return m_queue.front();
+        }
+
+        //! Prefix increment of the iterator.
+        iterator& operator++() {
+            if (!m_valid)
+                return *this;
+            if (m_queue.empty()) {
+                m_valid = false;
+                return *this;
+            }
+            value_type v = m_queue.front();
+            m_queue.pop();
+            value_type child = m_cst->ith_child(v, 1);
+            while (m_cst->root() != child) {
+                m_queue.push(child);
+                child = m_cst->sibling(child);
+            }
+            return *this;
+        }
+
+        //! Postfix increment of the iterator.
+        iterator operator++(int x) {
+            iterator it = *this;
+            ++(*this);
+            return it;
+        }
+
+        //! Equality operator.
+        bool operator==(const iterator& it)const {
+            if (m_queue.size() != it.m_queue.size()) {   // if the queue size is different
+                return false;                            // the state of the to iterator are different
+            }
+            if (m_queue.empty()) {  // if the queue is empty, we have to check if they are valid and
+                return it.m_valid == m_valid and it.m_cst == m_cst; // belong to the same cst
+            }
+            return (it.m_valid == m_valid) // valid status is equal => for end() iterator
+                   and (it.m_cst == m_cst) // iterator belongs to the same cst
+                   and (it.m_queue.front() == m_queue.front())  // front element and
+                   and (it.m_queue.back() == m_queue.back());  //  back element are the same.
+        }
+
+        //! Inequality operator.
+        bool operator!=(const iterator& it)const {
+            return !(*this==it);
+        }
+
+};
+
+
 } // end namespace sdsl
 
 #endif
