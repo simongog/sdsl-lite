@@ -331,7 +331,7 @@ class bp_support_sada
     public:
         const RankSupport& bp_rank;						//!< The rank support for the supported balanced parentheses sequence.
         const SelectSupport& bp_select;					//!< The select support for the supported balanced parentheses sequence.
-        const sml_block_array_type&	sml_block_min_max;	//!< The array which contains the entries of the small blocks. I.e. the relativ maximum and minumum for the small blocks.
+        const sml_block_array_type&	sml_block_min_max;	//!< The array which contains the entries of the small blocks. I.e. the relative maximum and minimum for the small blocks.
         const med_block_array_type&  med_block_min_max;	//!< The array which contains the min max tree of the medium blocks.
 
         bp_support_sada():m_bp(NULL), m_size(0), m_sml_blocks(0), m_med_blocks(0), m_med_inner_blocks(0),

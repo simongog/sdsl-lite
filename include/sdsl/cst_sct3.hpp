@@ -32,6 +32,7 @@
 #include "cst_iterators.hpp"
 #include "cst_sct.hpp" // for lcp_interval
 #include "rank_support.hpp"
+#include "select_support.hpp"
 #include "testutils.hpp"
 #include "util.hpp"
 #include <iostream>
@@ -48,14 +49,13 @@ namespace sdsl
 
 struct cst_tag; // forward declaration
 
-template<class Int = int_vector<>::size_type /*size_t*/>
-struct bp_interval
-{
+template<class Int = int_vector<>::size_type>
+struct bp_interval {
     Int i; 	//!< The left border of the lcp-interval \f$\ell-[left..right]\f$.
     Int j;	//!< The right border of the lcp-interval \f$\ell-[left..right]\f$.
-    Int ipos;  // position of the i+1th opening parenthesis in the balanced parenthese sequence
-    Int cipos; // positon of the matching closing parenthesis of the i+1th openeing parenthesis in the balanced parentheses sequence
-    Int jp1pos; // position of the j+2th opening parentheis in the balanced parentheses sequence
+    Int ipos;  // position of the i+1th opening parenthesis in the balanced parentheses sequence
+    Int cipos; // position of the matching closing parenthesis of the i+1th opening parenthesis in the balanced parentheses sequence
+    Int jp1pos; // position of the j+2th opening parenthesis in the balanced parentheses sequence
 
     //! Constructor
     /*!
@@ -78,7 +78,7 @@ struct bp_interval
     }
 
     //! Inequality operator.
-    /*! Two lcp-intervals are not equal if and only if not all their corresponding memeber variables have the same values.
+    /*! Two lcp-intervals are not equal if and only if not all their corresponding member variables have the same values.
       */
     bool operator!=(const bp_interval& interval)const {
         return !(*this==interval);
@@ -127,7 +127,11 @@ inline std::ostream& operator<<(std::ostream& os, const bp_interval<Int>& interv
  *  "Algorithms on Strings, Trees, and Sequences" of Dan Gusfield.
  *  @ingroup cst
  */
-template<class Csa = csa_wt<>, class Lcp = lcp_support_tree<lcp_wt<> >, class Bp_support = bp_support_sada<>, class Rank_support = rank_support_v5<> >
+template<class Csa = csa_wt<>,                        // CSA type
+         class Lcp = lcp_support_tree<lcp_wt<> >,     // LCP type
+         class Bp_support = bp_support_sada<>,        // for the balanced parentheses
+         class Rank_support = rank_support_v5<>       // for the 'first child' bit_vector
+         >
 class cst_sct3
 {
     public:
@@ -353,7 +357,8 @@ class cst_sct3
         /* @{ */
 
         //! Default Constructor
-        cst_sct3(): csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank) {}
+        cst_sct3(): csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child),
+            first_child_rank(m_first_child_rank) {}
 
         // Constructor for the cst_sct3 taking a string for that the compressed suffix tree should be calculated.
         /*
@@ -378,7 +383,8 @@ class cst_sct3
          *  \par Time complexity
          *       \f$ \Order{n} \f$, where \f$n=\f$cst_sct3.size()
          */
-        cst_sct3(const cst_sct3& cst):csa(m_csa),lcp(m_lcp),bp(m_bp),bp_support(m_bp_support),first_child_bv(m_first_child), first_child_rank(m_first_child_rank) {
+        cst_sct3(const cst_sct3& cst):csa(m_csa),lcp(m_lcp),bp(m_bp),bp_support(m_bp_support),first_child_bv(m_first_child),
+            first_child_rank(m_first_child_rank) {
             copy(cst);
         }
 
@@ -1028,19 +1034,96 @@ class cst_sct3
          *		\f$ \Order{1} \f$
          */
         size_type id(const node_type& v)const {
-            if (is_leaf(v)) { // return i in the range from 0..csa.size()-1
+            if (is_leaf(v)) { // return id in the range from 0..csa.size()-1
                 return v.i;
             }
-            size_type clpos; // closing parentheses of the l-index
+            size_type ckpos; // closing parentheses of the l-index
             if (v.cipos > v.jp1pos) { // corresponds to m_lcp[i] <= m_lcp[j+1]
-                clpos 	= v.jp1pos-1;
+                ckpos 	= v.jp1pos-1;
             } else { // corresponds to m_lcp[i] > m_lcp[j+1]
-                clpos	= v.cipos-1;
+                ckpos	= v.cipos-1;
             }
-            assert(m_bp[clpos]==0);
-            size_type r0clpos = clpos-m_bp_support.rank(clpos);
+            assert(m_bp[ckpos]==0);
+            size_type r0ckpos = ckpos-m_bp_support.rank(ckpos); // determine the rank of the closing parenthesis
+            return size()+m_first_child_rank(r0ckpos);
+        }
 
-            return size()+m_first_child_rank(r0clpos);
+        //! Computes the node for such that id(v)=id.
+        /*!
+         *	\param id An id in the range [0..nodes()-1].
+         *  \return A node v of the CST such that id(v)=id.
+         *  \par Time complexity
+         *		\f$ \Order{1} \f$ for leaves and \f$ \Order{\log size()} \f$ for inner nodes
+         *  \sa id(node_type v)
+         */
+        node_type inv_id(size_type id) {
+            if (id < size()) {  // the corresponding node is a leaf
+                return ith_leaf(id+1);
+            } else { // the corresponding node is a inner node
+                // (1) get index of the closing parenthesis in m_first_child
+                size_type r0ckpos = 0;
+                {
+                    //binary search for the position of the (id-size()+1)-th set bit in
+                    id = id-size()+1;
+                    size_type lb = 0, rb = m_bp.size(); // lb inclusive, rb exclusive
+                    // invariant: arg(lb) < id, arg(rb) >= id
+                    while (rb-lb > 1) {
+                        size_type mid = lb + (rb-lb)/2;
+                        size_type arg = m_first_child_rank(mid); // ones in the prefix [0..mid-1]
+                        if (arg < id) {
+                            lb = mid;
+                        } else { // arg >= id
+                            rb = mid;
+                        }
+                    }
+                    r0ckpos = lb;
+                }
+                // (2) determine position clpos of the r0clpos-th closing parentheses in the parentheses sequence
+                size_type ckpos = 0;
+                {
+                    // binary search for the position of the (r0ckpos+1)-th closing parenthesis
+                    size_type lb = 0, rb = m_bp.size(); // lb inclusive, rb exclusive
+                    // invariant: arg(lb) < r0ckpos+1,  arg(rb) >= r0ckpos+1
+                    while (rb-lb > 1) {
+                        size_type mid = lb + (rb-lb)/2;
+                        size_type arg = mid - m_bp_support.rank(mid-1);  // zeros in the prefix [0..mid-1]
+                        if (arg < r0ckpos+1) {
+                            lb = mid;
+                        } else { // arg >= x
+                            rb = mid;
+                        }
+                    }
+                    ckpos = lb;
+                }
+//				if ( m_bp[ckpos] ){
+//					std::cerr<<"m_bp[ckpos] should be zero! id=" << id << std::endl;
+//					std::cerr<<"r0ckpos="<<r0ckpos<<" rank_0(ckpos)="<< ckpos - m_bp_support.rank(ckpos-1)  << std::endl;
+//				}
+                if (ckpos == m_bp.size()-1) {
+                    return root();
+                }
+                if (m_bp[ckpos+1]) {  // jp1pos < cipos
+//					std::cout<<"case1"<<std::endl;
+                    size_type jp1pos= ckpos+1;
+                    size_type j 	= m_bp_support.rank(jp1pos-1)-1;
+                    size_type kpos  = m_bp_support.find_open(ckpos);
+                    size_type ipos	= m_bp_support.enclose(kpos);
+                    size_type cipos = m_bp_support.find_close(ipos);
+                    size_type i		= m_bp_support.rank(ipos-1);
+                    return node_type(i, j, ipos, cipos, jp1pos);
+                } else { //
+//					std::cout<<"case2"<<std::endl;
+                    size_type cipos = ckpos+1;
+                    size_type ipos  = m_bp_support.find_open(cipos);
+                    size_type i     = m_bp_support.rank(ipos-1);
+                    size_type j     = nsv(i, ipos)-1;
+                    size_type jp1pos= m_bp.size();
+                    if (j != size()-1) {
+                        jp1pos = m_bp_support.select(j+2);
+                    }
+                    return node_type(i, j, ipos, cipos, jp1pos);
+                }
+            }
         }
 
         //! Get the number of nodes of the suffix tree.
