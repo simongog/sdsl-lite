@@ -29,6 +29,7 @@
 #include "bitmagic.hpp"
 #include "testutils.hpp"
 #include "temp_write_read_buffer.hpp"
+#include "util.hpp"
 #include <set> // for calculating the alphabet size
 #include <map> // for mapping a symbol to its lexicographical index
 #include <algorithm> // for std::swap
@@ -52,19 +53,27 @@ namespace sdsl
  *
  *   @ingroup wt
  */
-template<class RandomAccessContainer=int_vector<>, class RankSupport = rank_support_v<>, class SelectSupport=select_support_mcl<>, class SelectSupportZero=select_support_mcl<0> >
+template<class RandomAccessContainer=int_vector<>,
+         class BitVector   		= bit_vector,
+         class RankSupport 		= typename BitVector::rank_1_type,
+         class SelectSupport		= typename BitVector::select_1_type,
+         class SelectSupportZero = typename BitVector::select_0_type>
 class wt_int
 {
     public:
         typedef typename RandomAccessContainer::size_type 		size_type;
         typedef typename RandomAccessContainer::value_type 		value_type;
+        typedef BitVector										bit_vector_type;
+        typedef RankSupport										rank_1_type;
+        typedef SelectSupport									select_1_type;
+        typedef SelectSupportZero								select_0_type;
     protected:
         size_type 			m_size;
         size_type 			m_sigma; 		//<- \f$ |\Sigma| \f$
-        bit_vector 			m_tree;			// bit vector to store the wavelet tree
-        RankSupport			m_tree_rank;	// rank support for the wavelet tree bit vector
-        SelectSupport		m_tree_select1;	// select support for the wavelet tree bit vector
-        SelectSupportZero	m_tree_select0;
+        bit_vector_type 	m_tree;			// bit vector to store the wavelet tree
+        rank_1_type			m_tree_rank;	// rank support for the wavelet tree bit vector
+        select_1_type		m_tree_select1;	// select support for the wavelet tree bit vector
+        select_0_type		m_tree_select0;
         uint32_t			m_logn;
 
         void copy(const wt_int& wt) {
@@ -83,7 +92,7 @@ class wt_int
     public:
 
         const size_type& sigma;	//!< Effective alphabet size of the wavelet tree.
-        const bit_vector& tree; //!< A concatenation of all bit vectors of the wavelet tree.
+        const bit_vector_type& tree; //!< A concatenation of all bit vectors of the wavelet tree.
 
         //! Default constructor
         wt_int():m_size(0),m_sigma(0), m_logn(0), sigma(m_sigma), tree(m_tree) {};
@@ -113,7 +122,7 @@ class wt_int
             } else {
                 m_logn = logn;
             }
-            m_tree		=	bit_vector(n*m_logn, 0);  // initialize the tree
+            bit_vector tree		=	bit_vector(n*m_logn, 0);  // initialize the tree
 
             int_vector<> 	perms[2];
             perms[0].set_int_width(m_logn); perms[1].set_int_width(m_logn);
@@ -138,7 +147,7 @@ class wt_int
                     uint64_t	x;
                     while (i < n and((x=act_perm[i])&mask_old)==start_value) {
                         if (x&mask_new) {
-                            ++cnt1; m_tree[tree_pos] = 1;
+                            ++cnt1; tree[tree_pos] = 1;
                         }
                         ++tree_pos;
                         ++i;
@@ -157,10 +166,11 @@ class wt_int
                 mask_old += mask_new;
             }
 #ifdef SDSL_DEBUG_INT_WAVELET_TREE
-            if (m_tree.size()<100) {
-                std::cerr<<"tree="<<m_tree<<std::endl;
+            if (tree.size()<100) {
+                std::cerr<<"tree="<<tree<<std::endl;
             }
 #endif
+            util::assign(m_tree, tree);
             m_tree_rank.init(&m_tree);
             m_tree_select0.init(&m_tree);
             m_tree_select1.init(&m_tree);
@@ -261,13 +271,15 @@ class wt_int
             }
             tree_out_buf.close();
             rac.resize(0);
-            util::load_from_file(m_tree, tree_out_buf_file_name.c_str());
+            bit_vector tree;
+            util::load_from_file(tree, tree_out_buf_file_name.c_str());
             std::remove(tree_out_buf_file_name.c_str());
 #ifdef SDSL_DEBUG_INT_WAVELET_TREE
-            if (m_tree.size()<100) {
-                std::cerr<<"tree="<<m_tree<<std::endl;
+            if (tree.size()<100) {
+                std::cerr<<"tree="<<tree<<std::endl;
             }
 #endif
+            util::assign(m_tree, tree);
             m_tree_rank.init(&m_tree);
             m_tree_select0.init(&m_tree);
             m_tree_select1.init(&m_tree);
@@ -293,8 +305,11 @@ class wt_int
                 std::swap(m_sigma,  wt.m_sigma);
                 m_tree.swap(wt.m_tree);
                 m_tree_rank.swap(wt.m_tree_rank); // rank swap after the swap of the bit vector m_tree
+                m_tree_rank.set_vector(&m_tree);
                 m_tree_select1.swap(wt.m_tree_select1); // select1 swap after the swap of the bit vector m_tree
+                m_tree_select1.set_vector(&m_tree);
                 m_tree_select0.swap(wt.m_tree_select0); // select0 swap after the swap of the bit vector m_tree
+                m_tree_select0.set_vector(&m_tree);
                 std::swap(m_logn,  wt.m_logn);
             }
         }
