@@ -15,16 +15,14 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file wt_rlmn.hpp
-    \brief wt_rlmn.hpp contains a class for the wavelet tree of byte sequences which is in Huffman shape and runs of character are compressed.
+    \brief wt_rlmn.hpp contains a class for a compressed wavelet tree. Compression is achieved by exploiting runs in the input sequence.
 	\author Simon Gog
 */
 #ifndef INCLUDED_SDSL_WT_RLMN
 #define INCLUDED_SDSL_WT_RLMN
 
 #include "int_vector.hpp"
-#include "rank_support_v.hpp"
-#include "rank_support_v5.hpp"
-#include "select_support_mcl.hpp"
+#include "sd_vector.hpp"  // for standard initialisation of template parameters 
 #include "bitmagic.hpp"
 #include "util.hpp"
 #include "wt_huff.hpp"
@@ -45,8 +43,6 @@
 namespace sdsl
 {
 
-
-
 //! A Wavelet Tree class for byte sequences.
 /*!
  * A wavelet tree is build for a vector of characters over the alphabet \f$\Sigma\f$.
@@ -54,20 +50,26 @@ namespace sdsl
  * The wavelet tree \f$wt\f$ consists of a tree of bitvectors and provides three efficient methods:
  *   - The "[]"-operator: \f$wt[i]\f$ returns the ith symbol of vector for which the wavelet tree was build for.
  *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurences of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the wavelet tree was build for.
- *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurence of symbol \f$c\f$.
+ *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurrence of symbol \f$c\f$.
  *
  *	\par Space complexity
  *		 \f$ nH_0 + 2|\Sigma|\log n + 2n + o(n) \f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
  *
  *  \par Note
- *       This implementation is based on the idea of Veli Makinen and Gonzalo Navarro presented in the paper
+ *       This implementation is based on the idea of Veli Mäkinen and Gonzalo Navarro presented in the paper
  *       "Succint Suffix Arrays Based on Run-Length Encoding" (CPM 2005)
  *
  *   @ingroup wt
  *
- * TODO: make it possible to replace the bit_vector class for m_bl and m_bf by the rrr_vector class
+ *  \tparam BitVector 		Type of the bitvector which is used to represent bf and bl which mark the head of each run in the original sequence.
+ *  \tparam RankSupport		Type of the rank support for bitvectors bf and bl.
+ *  \tparam SelectSupport   Type of the select support for bitvectors bf and lb.
+ *  \tparam WaveletTree		Type of the wavelet tree for the string consisting of the heads of the runs of the original sequence.
  */
-template<class BitVector = bit_vector, class RankSupport = rank_support_v5<>, class SelectSupport = select_support_mcl<>, class WaveletTree = wt_huff<> >
+template<class BitVector = sd_vector<>,
+         class RankSupport = typename BitVector::rank_1_type,
+         class SelectSupport = typename BitVector::select_1_type,
+         class WaveletTree = wt_huff<> >
 class wt_rlmn
 {
     public:
@@ -147,8 +149,7 @@ class wt_rlmn
         void construct(int_vector_file_buffer<8, size_type_class>& rac, size_type size) {
             m_size = size;
             typedef size_type_class size_type;
-            // TODO: remove absolute file name
-            std::string temp_file = "/tmp/wt_rlmn_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
+            std::string temp_file = "tmp_wt_rlmn_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
             std::ofstream wt_out(temp_file.c_str(), std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
@@ -206,8 +207,6 @@ class wt_rlmn
                 }
                 util::assign(m_bl, bl);
                 util::assign(m_bf, bf);
-//			m_bl = bit_vector_type(bl);
-//			m_bf = bit_vector_type(bf);
             }
 
             m_bl_rank.init(&m_bl);
