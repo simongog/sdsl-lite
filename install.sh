@@ -105,11 +105,13 @@ if [[ $? != 0 ]]; then
 	exit 1
 fi
 cp libgtest.a libgtest_main.a ${HOME}/lib
+cd ..
+cp -r include/gtest ${HOME}/include
 if [[ $? != 0 ]]; then
 	exit 1
 fi
 
-cd ../..
+cd ..
 
 if [[ `pwd` != ${OLD_DIR} ]]; then
 	echo "ERROR: we are not in the original dir ${OLD_DIR} now."
