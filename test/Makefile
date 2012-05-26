@@ -8,7 +8,8 @@ all: IntVectorTest RankSupportTest SelectSupportTest\
 	 SelectSupportTest0 BitMagicTest BitMagicTestSSE \
 	 BitVectorTest \
 	 CstTest\
-	 WtIntTest
+	 WtIntTest\
+	 WtAsciiTest
 
 IntVectorTest: IntVectorTest.cpp
 	g++ ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} IntVectorTest.cpp -o IntVectorTest ${GCCLIB}
@@ -37,6 +38,9 @@ CstTest: CstTest.cpp
 WtIntTest: WtIntTest.cpp
 	g++ ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} WtIntTest.cpp -o WtIntTest ${GCCLIB}
 
+WtAsciiTest: WtAsciiTest.cpp
+	g++ ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} WtAsciiTest.cpp -o WtAsciiTest ${GCCLIB}
+
 test:
 	./IntVectorTest
 	./BitVectorTest
@@ -48,9 +52,10 @@ test:
 	./test_cases/small/get_corpus.sh
 	./WtIntTest
 	./CstTest
+	./WtAsciiTest
 
 clean:
 	rm -f IntVectorTest RankSupportTest SelectSupportTest \
 		  SelectSupportTest0 BitMagicTest BitMagicTestSSE BitVectorTest \
-		  CstTest WtIntTest
+		  CstTest WtIntTest WtAsciiTest
 	rm -rf *.dSYM

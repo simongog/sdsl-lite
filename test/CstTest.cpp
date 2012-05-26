@@ -6,6 +6,7 @@
 #include <cstdlib> // for rand()
 #include <string>
 #include <locale>
+#include <sstream>
 
 // TODO: test different lcp classes with the CST
 
@@ -46,17 +47,17 @@ class CstTest : public ::testing::Test
         std::string tmp_file;
 
         template<class Cst>
-        std::string get_tmp_file_name(const Cst& cst) {
+        std::string get_tmp_file_name(const Cst& cst, size_type i) {
             std::locale loc;                 // the "C" locale
             const std::collate<char>& coll = std::use_facet<std::collate<char> >(loc);
             std::string name = sdsl::util::demangle2(typeid(Cst).name());
             uint64_t myhash = coll.hash(name.data(),name.data()+name.length());
-            return tmp_file + sdsl::util::to_string(myhash);
+            return tmp_file + sdsl::util::to_string(myhash) + "_" + sdsl::util::basename(test_cases[i].c_str());
         }
 
         template<class Cst>
-        bool load_cst(Cst& cst) {
-            return sdsl::util::load_from_file(cst, get_tmp_file_name(cst).c_str());
+        bool load_cst(Cst& cst, size_type i) {
+            return sdsl::util::load_from_file(cst, get_tmp_file_name(cst, i).c_str());
         }
 };
 
@@ -75,7 +76,7 @@ TYPED_TEST(CstTest, CreateAndStoreTest)
         TypeParam cst;
         sdsl::util::verbose = false;
         construct_cst(this->test_cases[i], cst);
-        bool success = sdsl::util::store_to_file(cst, this->get_tmp_file_name(cst).c_str());
+        bool success = sdsl::util::store_to_file(cst, this->get_tmp_file_name(cst, i).c_str());
         ASSERT_EQ(success, true);
     }
 }
@@ -85,7 +86,7 @@ TYPED_TEST(CstTest, BasicMethods)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-        ASSERT_EQ(this->load_cst(cst), true);
+        ASSERT_EQ(this->load_cst(cst, i), true);
         typedef typename TypeParam::node_type node_type;
         node_type r = cst.root(); // get root node
         // Size of the subtree rooted at r should the size of the suffix array
@@ -133,16 +134,29 @@ TYPED_TEST(CstTest, IdMethod)
 }
 */
 
+template<class Cst>
+std::string format_node(const Cst& cst, const typename Cst::node_type& v)
+{
+    std::stringstream ss;
+    ss << cst.depth(v) << "-["<<cst.lb(v)<<","<<cst.rb(v)<<"]";
+    return ss.str();
+}
 
 template<class Cst>
-typename Cst::node_type naive_lca(const Cst& cst, typename Cst::node_type v, typename Cst::node_type w)
+typename Cst::node_type naive_lca(const Cst& cst, typename Cst::node_type v, typename Cst::node_type w, bool output=false)
 {
     size_type steps = 0;
     while (v != w  and steps < cst.csa.size()) {
         if (cst.depth(v) > cst.depth(w)) {
             v = cst.parent(v);
+            if (output) {
+                std::cout << "v="<<format_node(cst, v) << std::endl;
+            }
         } else {
             w = cst.parent(w);
+            if (output) {
+                std::cout << "w="<<format_node(cst, v) << std::endl;
+            }
         }
         steps++;
     }
@@ -154,7 +168,7 @@ TYPED_TEST(CstTest, LcaMethod)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-        ASSERT_EQ(this->load_cst(cst), true);
+        ASSERT_EQ(this->load_cst(cst, i), true);
         uint64_t mask;
         uint8_t log_m = 14;
         // create m/2 pairs of positions in [0..cst.csa.size()-1]
@@ -170,13 +184,22 @@ TYPED_TEST(CstTest, LcaMethod)
             ASSERT_EQ(cst.lca(v, w), z);
         }
         // test for regular sampled nodes
-        for (size_type i=cst.csa.size()/2, g=100; i+g < cst.csa.size()/2+100*g; ++i) {
+        for (size_type i=cst.csa.size()/2, g=100; i+g < std::min(cst.csa.size(), cst.csa.size()/2+100*g); ++i) {
             // get two children
             node_type v = cst.ith_leaf(i+1);
             node_type w = cst.ith_leaf(i+g+1);
             // calculate lca
             node_type z = naive_lca(cst, v, w);
-            ASSERT_EQ(cst.lca(v, w), z);
+            node_type u = cst.lca(v, w);
+            if (u != z) {
+                std::cout << "v="<<v<<" w="<<w<< std::endl;
+                std::cout << "u="<<u<<" z="<<z<<std::endl;
+                std::cout << "--------------"<<std::endl;
+                std::cout << "v="<<format_node(cst, v)<<" w="<<format_node(cst, w)<< std::endl;
+                std::cout << "u="<<format_node(cst, u)<<" z="<<format_node(cst, z)<<std::endl;
+                naive_lca(cst, v, w, true);
+            }
+            ASSERT_EQ(u, z);
         }
     }
 }
@@ -186,7 +209,7 @@ TYPED_TEST(CstTest, NodeMethod)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-        ASSERT_EQ(this->load_cst(cst), true);
+        ASSERT_EQ(this->load_cst(cst, i), true);
         // doing a depth first traversal through the tree to count the nodes
         typedef typename TypeParam::const_iterator const_iterator;
         typedef typename TypeParam::node_type node_type;
@@ -206,8 +229,8 @@ TYPED_TEST(CstTest, NodeMethod)
 TYPED_TEST(CstTest, BottomUpIterator)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam cst;
-        ASSERT_EQ(this->load_cst(cst), true);
+//        TypeParam cst;
+//        ASSERT_EQ(this->load_cst(cst, i), true);
         // doing a bottom-up traversal of the tree
         // TODO: implement
     }
@@ -217,7 +240,7 @@ TYPED_TEST(CstTest, DeleteTest)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-        std::remove(this->get_tmp_file_name(cst).c_str());
+        std::remove(this->get_tmp_file_name(cst, i).c_str());
     }
 }
 
