@@ -167,8 +167,7 @@ class rmq_support_sparse_table
 
         size_type serialize(std::ostream& out)const {
             size_type written_bytes = 0;
-            out.write((char*)&m_k, sizeof(m_k));
-            written_bytes += sizeof(m_k);
+            written_bytes += util::write_member(m_k, out);
             if (m_k > 0) {
                 assert(m_table != NULL);
                 for (size_type i=0; i < m_k; ++i)
@@ -179,7 +178,7 @@ class rmq_support_sparse_table
 
         void load(std::istream& in, const RandomAccessContainer* v) {
             set_vector(v);
-            in.read((char*)&m_k, sizeof(m_k));
+            util::read_member(m_k, in);
             if (m_k >0) {
                 if (m_table != NULL)
                     delete [] m_table;

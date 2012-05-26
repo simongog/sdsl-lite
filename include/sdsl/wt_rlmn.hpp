@@ -348,8 +348,7 @@ class wt_rlmn
         //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream& out)const {
             size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
+            written_bytes += util::write_member(m_size, out);
             written_bytes += m_bl.serialize(out);
             written_bytes += m_bf.serialize(out);
             written_bytes += m_wt.serialize(out);
@@ -364,7 +363,7 @@ class wt_rlmn
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            in.read((char*) &m_size, sizeof(m_size));
+            util::read_member(m_size, in);
             m_bl.load(in);
             m_bf.load(in);
             m_wt.load(in);

@@ -402,8 +402,7 @@ class wt_rlg
         //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream& out)const {
             size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
+            written_bytes += util::write_member(m_size, out);
             written_bytes += m_wt.serialize(out);
             written_bytes += m_b.serialize(out);
             written_bytes += m_b_rank.serialize(out);
@@ -416,7 +415,7 @@ class wt_rlg
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            in.read((char*) &m_size, sizeof(m_size));
+            util::read_member(m_size, in);
             m_wt.load(in);
             m_b.load(in);
             m_b_rank.load(in, &m_b);

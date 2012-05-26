@@ -837,14 +837,10 @@ class bp_support_sada
          */
         size_type serialize(std::ostream& out) const {
             size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            out.write((char*)&m_sml_blocks, sizeof(m_sml_blocks));
-            written_bytes += sizeof(m_sml_blocks);
-            out.write((char*)&m_med_blocks, sizeof(m_med_blocks));
-            written_bytes += sizeof(m_med_blocks);
-            out.write((char*)&m_med_inner_blocks, sizeof(m_med_inner_blocks));
-            written_bytes += sizeof(m_med_inner_blocks);
+            written_bytes += util::write_member(m_size, out);
+            written_bytes += util::write_member(m_sml_blocks, out);
+            written_bytes += util::write_member(m_med_blocks, out);
+            written_bytes += util::write_member(m_med_inner_blocks, out);
 
             written_bytes += m_bp_rank.serialize(out);
             written_bytes += m_bp_select.serialize(out);
@@ -862,11 +858,11 @@ class bp_support_sada
          */
         void load(std::istream& in, const bit_vector* bp) {
             m_bp = bp;
-            in.read((char*) &m_size, sizeof(m_size));
+            util::read_member(m_size, in);
             assert(m_size == bp->size());
-            in.read((char*) &m_sml_blocks, sizeof(m_sml_blocks));
-            in.read((char*) &m_med_blocks, sizeof(m_med_blocks));
-            in.read((char*) &m_med_inner_blocks, sizeof(m_med_inner_blocks));
+            util::read_member(m_sml_blocks, in);
+            util::read_member(m_med_blocks, in);
+            util::read_member(m_med_inner_blocks, in);
 
             m_bp_rank.load(in, m_bp);
             m_bp_select.load(in, m_bp);

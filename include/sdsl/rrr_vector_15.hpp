@@ -533,15 +533,14 @@ class rrr_rank_support<b, 15, wt_type>
 
         //! Load the data structure from a stream and set the supported vector.
         void load(std::istream& in, const bit_vector_type* v=NULL) {
-            in.read((char*) &m_sample_rate, sizeof(m_sample_rate));
+            util::read_member(m_sample_rate, in);
             set_vector(v);
         }
 
         //! Serializes the data structure into a stream.
         size_type serialize(std::ostream& out)const {
             size_type written_bytes = 0;
-            out.write((char*)&m_sample_rate, sizeof(m_sample_rate));
-            written_bytes += sizeof(m_sample_rate);
+            written_bytes += util::write_member(m_sample_rate, out);
             return written_bytes;
         }
 
@@ -702,14 +701,13 @@ class rrr_select_support<b, 15, wt_type>
 
 
         void load(std::istream& in, const bit_vector_type* v=NULL) {
-            in.read((char*) &m_sample_rate, sizeof(m_sample_rate));
+            util::read_member(m_sample_rate, in);
             set_vector(v);
         }
 
         size_type serialize(std::ostream& out)const {
             size_type written_bytes = 0;
-            out.write((char*)&m_sample_rate, sizeof(m_sample_rate));
-            written_bytes += sizeof(m_sample_rate);
+            written_bytes += util::write_member(m_sample_rate, out);
             return written_bytes;
         }
 

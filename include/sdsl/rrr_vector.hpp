@@ -244,10 +244,8 @@ class rrr_vector
         //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream& out)const {
             size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            out.write((char*)&m_sample_rate, sizeof(m_sample_rate));
-            written_bytes += sizeof(m_sample_rate);
+            written_bytes += util::write_member(m_size, out);
+            written_bytes += util::write_member(m_sample_rate, out);
             written_bytes += m_bt.serialize(out);
             written_bytes += m_btnr.serialize(out);
             written_bytes += m_btnrp.serialize(out);
@@ -258,8 +256,8 @@ class rrr_vector
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            in.read((char*) &m_size, sizeof(m_size));
-            in.read((char*) &m_sample_rate, sizeof(m_sample_rate));
+            util::read_member(m_size, in);
+            util::read_member(m_sample_rate, in);
             m_bt.load(in);
             m_btnr.load(in);
             m_btnrp.load(in);
@@ -428,15 +426,14 @@ class rrr_rank_support
 
         //! Load the data structure from a stream and set the supported vector.
         void load(std::istream& in, const bit_vector_type* v=NULL) {
-            in.read((char*) &m_sample_rate, sizeof(m_sample_rate));
+            util::read_member(m_sample_rate, in);
             set_vector(v);
         }
 
         //! Serializes the data structure into a stream.
         size_type serialize(std::ostream& out)const {
             size_type written_bytes = 0;
-            out.write((char*)&m_sample_rate, sizeof(m_sample_rate));
-            written_bytes += sizeof(m_sample_rate);
+            written_bytes += util::write_member(m_sample_rate, out);
             return written_bytes;
         }
 
@@ -600,14 +597,13 @@ class rrr_select_support
 
 
         void load(std::istream& in, const bit_vector_type* v=NULL) {
-            in.read((char*) &m_sample_rate, sizeof(m_sample_rate));
+            util::read_member(m_sample_rate, in);
             set_vector(v);
         }
 
         size_type serialize(std::ostream& out)const {
             size_type written_bytes = 0;
-            out.write((char*)&m_sample_rate, sizeof(m_sample_rate));
-            written_bytes += sizeof(m_sample_rate);
+            written_bytes += util::write_member(m_sample_rate, out);
             return written_bytes;
         }
 

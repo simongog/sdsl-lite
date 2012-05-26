@@ -528,28 +528,25 @@ class wt_int
         //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream& out)const {
             size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            out.write((char*)&m_sigma, sizeof(m_sigma));
-            written_bytes += sizeof(m_sigma);
+            written_bytes += util::write_member(m_size, out);
+            written_bytes += util::write_member(m_sigma, out);
             written_bytes += m_tree.serialize(out);
             written_bytes += m_tree_rank.serialize(out);
             written_bytes += m_tree_select1.serialize(out);
             written_bytes += m_tree_select0.serialize(out);
-            written_bytes += sizeof(m_logn);
-            out.write((char*)&m_logn, sizeof(m_logn));
+            written_bytes += util::write_member(m_logn, out);
             return written_bytes;
         }
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            in.read((char*) &m_size, sizeof(m_size));
-            in.read((char*) &m_sigma, sizeof(m_sigma));
+            util::read_member(m_size, in);
+            util::read_member(m_sigma, in);
             m_tree.load(in);
             m_tree_rank.load(in, &m_tree);
             m_tree_select1.load(in, &m_tree);
             m_tree_select0.load(in, &m_tree);
-            in.read((char*) &m_logn, sizeof(m_logn));
+            util::read_member(m_logn, in);
         }
         /*
         	void print_info()const{

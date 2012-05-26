@@ -378,8 +378,7 @@ typename lcp_dac<b, rank_support_type>::size_type lcp_dac<b, rank_support_type>:
     written_bytes += m_overflow.serialize(out);
     written_bytes += m_overflow_rank.serialize(out);
     written_bytes += m_level_pointer_and_rank.serialize(out);
-    out.write((char*)&m_max_level, sizeof(m_max_level));
-    written_bytes += sizeof(m_max_level);
+    written_bytes += util::write_member(m_max_level, out);
     return written_bytes;
 }
 
@@ -390,7 +389,7 @@ void lcp_dac<b, rank_support_type>::load(std::istream& in)
     m_overflow.load(in);
     m_overflow_rank.load(in, &m_overflow); // FIXED that at 2012-02-01 15:34
     m_level_pointer_and_rank.load(in);
-    in.read((char*) &m_max_level, sizeof(m_max_level));
+    util::read_member(m_max_level, in);
 }
 
 

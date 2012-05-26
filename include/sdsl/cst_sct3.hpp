@@ -1262,10 +1262,8 @@ typename cst_sct3<Csa, Lcp, Bp_support, Rank_support>::size_type cst_sct3<Csa, L
     written_bytes += m_bp_support.serialize(out);
     written_bytes += m_first_child.serialize(out);
     written_bytes += m_first_child_rank.serialize(out);
-    out.write((char*) &m_sigma, sizeof(m_sigma));
-    written_bytes += sizeof(m_sigma);
-    out.write((char*) &m_nodes, sizeof(m_nodes));
-    written_bytes += sizeof(m_nodes);
+    written_bytes += util::write_member(m_sigma, out);
+    written_bytes += util::write_member(m_nodes, out);
     return written_bytes;
 }
 
@@ -1278,8 +1276,8 @@ void cst_sct3<Csa, Lcp, Bp_support, Rank_support>::load(std::istream& in)
     m_bp_support.load(in, &m_bp);
     m_first_child.load(in);
     m_first_child_rank.load(in, &m_first_child);
-    in.read((char*) &m_sigma, sizeof(m_sigma));
-    in.read((char*) &m_nodes, sizeof(m_nodes));
+    util::read_member(m_sigma, in);
+    util::read_member(m_nodes, in);
 #ifdef SDSL_DEBUG
     assert(algorithm::check_bp_support(m_bp, m_bp_support));
     std::cerr<<"checked bp_support"<<std::endl;

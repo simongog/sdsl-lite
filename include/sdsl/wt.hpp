@@ -1076,10 +1076,8 @@ class wt
         //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream& out)const {
             size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            out.write((char*)&m_sigma, sizeof(m_sigma));
-            written_bytes += sizeof(m_sigma);
+            written_bytes += util::write_member(m_size, out);
+            written_bytes += util::write_member(m_sigma, out);
             written_bytes += m_tree.serialize(out);
             written_bytes += m_tree_rank.serialize(out);
             written_bytes += m_tree_select1.serialize(out);
@@ -1087,8 +1085,7 @@ class wt
             written_bytes += m_node_pointers.serialize(out);
             written_bytes += m_node_pointers_rank.serialize(out);
             written_bytes += wt_trait<RandomAccessContainer>::serialize_maps(out, m_char_map, m_inv_char_map);
-            out.write((char*)&m_first_symbol, sizeof(m_first_symbol));
-            written_bytes += sizeof(m_first_symbol);
+            written_bytes += util::write_member(m_first_symbol, out);
             // serialize char_node_map
             if (wt_trait<RandomAccessContainer>::char_node_map_size == 256) {
                 for (size_type i=0; i<256; ++i) {
@@ -1101,8 +1098,8 @@ class wt
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            in.read((char*) &m_size, sizeof(m_size));
-            in.read((char*) &m_sigma, sizeof(m_sigma));
+            util::read_member(m_size, in);
+            util::read_member(m_sigma, in);
             m_tree.load(in);
             m_tree_rank.load(in, &m_tree);
             m_tree_select1.load(in, &m_tree);
@@ -1110,7 +1107,7 @@ class wt
             m_node_pointers.load(in);
             m_node_pointers_rank.load(in);
             wt_trait<RandomAccessContainer>::load_maps(in, m_char_map, m_inv_char_map);
-            in.read((char*) &m_first_symbol, sizeof(m_first_symbol));
+            util::read_member(m_first_symbol, in);
             // serialize char_node_map
             if (wt_trait<RandomAccessContainer>::char_node_map_size == 256) {
                 for (size_type i=0; i<256; ++i) {

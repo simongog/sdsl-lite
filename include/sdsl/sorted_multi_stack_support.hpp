@@ -213,12 +213,9 @@ inline bool sorted_multi_stack_support::pop()
 inline sorted_multi_stack_support::size_type sorted_multi_stack_support::serialize(std::ostream& out)const
 {
     size_type written_bytes = 0;
-    out.write((char*) &m_n, sizeof(m_n));
-    written_bytes += sizeof(m_n);
-    out.write((char*) &m_top, sizeof(m_top));
-    written_bytes += sizeof(m_top);
-    out.write((char*) &m_cnt, sizeof(m_cnt));
-    written_bytes += sizeof(m_cnt);
+    written_bytes += util::write_member(m_n, out);
+    written_bytes += util::write_member(m_top, out);
+    written_bytes += util::write_member(m_cnt, out);
     written_bytes += m_stack.serialize(out);
     written_bytes += m_duplication_stack.serialize(out);
     return written_bytes;
@@ -226,9 +223,9 @@ inline sorted_multi_stack_support::size_type sorted_multi_stack_support::seriali
 
 inline void sorted_multi_stack_support::load(std::istream& in)
 {
-    in.read((char*)&m_n, sizeof(m_n));
-    in.read((char*)&m_top, sizeof(m_top));
-    in.read((char*)&m_cnt, sizeof(m_cnt));
+    util::read_member(m_n, in);
+    util::read_member(m_top, in);
+    util::read_member(m_cnt, in);
     m_stack.load(in);
     m_duplication_stack.load(in);
 }

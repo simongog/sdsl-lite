@@ -58,7 +58,7 @@ const int_vector<>::size_type ZoO[2] = {0, (int_vector<>::size_type)-1};
 template<class size_type>
 struct _node {
     size_type 	tree_pos; 		// pointer into the bit_vector, which represents the wavelet tree
-    size_type 	tree_pos_rank;	// precalculated rank for the prefix up to but not including tree_pos
+    size_type 	tree_pos_rank;	// pre-calculated rank for the prefix up to but not including tree_pos
     uint16_t	parent;			// pointer to the parent
     uint16_t	child[2];		// pointer to the children
 
@@ -82,21 +82,18 @@ struct _node {
 
     size_type serialize(std::ostream& out)const {
         size_type written_bytes = 0;
-        out.write((char*)&tree_pos, sizeof(tree_pos));
-        written_bytes += sizeof(tree_pos);
-        out.write((char*)&tree_pos_rank, sizeof(tree_pos_rank));
-        written_bytes += sizeof(tree_pos_rank);
-        out.write((char*)&parent, sizeof(parent));
-        written_bytes += sizeof(parent);
+        written_bytes += util::write_member(tree_pos, out);
+        written_bytes += util::write_member(tree_pos_rank, out);
+        written_bytes += util::write_member(parent, out);
         out.write((char*)child, 2*sizeof(child[0]));
         written_bytes += 2*sizeof(child[0]);
         return written_bytes;
     }
 
     void load(std::istream& in) {
-        in.read((char*) &tree_pos, sizeof(tree_pos));
-        in.read((char*) &tree_pos_rank, sizeof(tree_pos_rank));
-        in.read((char*) &parent, sizeof(parent));
+        util::read_member(tree_pos, in);
+        util::read_member(tree_pos_rank, in);
+        util::read_member(parent, in);
         in.read((char*) child, 2*sizeof(child[0]));
     }
 };
@@ -115,11 +112,11 @@ struct _node {
  *
  *   @ingroup wt
  */
-template<class BitVector = bit_vector,
-         class RankSupport = rank_support_v5<>,
-         class SelectSupport=select_support_mcl<>,
-         class SelectSupportZero=select_support_mcl<0>,
-         bool dfs_shape=0 >
+template<class BitVector 		= bit_vector,
+              class RankSupport 		= typename BitVector::rank_1_type,
+              class SelectSupport	= typename BitVector::select_1_type,
+              class SelectSupportZero= typename BitVector::select_0_type,
+              bool dfs_shape=0 >
 class wt_huff
 {
     public:
@@ -603,9 +600,9 @@ class wt_huff
             return i;
         }
 
-        //! Calculates the ith occurence of the symbol c in the supported vector.
+        //! Calculates the ith occurrence of the symbol c in the supported vector.
         /*!
-         *  \param i The ith occurence. \f$i\in [1..rank(size(),c)]\f$.
+         *  \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
          *  \param c The symbol c.
          *  \par Time complexity
          *		\f$ \Order{H_0} \f$
@@ -703,10 +700,8 @@ class wt_huff
         //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream& out)const {
             size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            out.write((char*)&m_sigma, sizeof(m_sigma));
-            written_bytes += sizeof(m_sigma);
+            written_bytes += util::write_member(m_size, out);
+            written_bytes += util::write_member(m_sigma, out);
             written_bytes += m_tree.serialize(out);
             written_bytes += m_tree_rank.serialize(out);
             written_bytes += m_tree_select1.serialize(out);
@@ -724,8 +719,8 @@ class wt_huff
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            in.read((char*) &m_size, sizeof(m_size));
-            in.read((char*) &m_sigma, sizeof(m_sigma));
+            util::read_member(m_size, in);
+            util::read_member(m_sigma, in);
             m_tree.load(in);
             m_tree_rank.load(in, &m_tree);
             m_tree_select1.load(in, &m_tree);
