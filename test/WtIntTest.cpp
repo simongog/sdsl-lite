@@ -43,21 +43,21 @@ class WtIntTest : public ::testing::Test
 //! Test the parametrized constructor
 TEST_F(WtIntTest, Constructor)
 {
-	uint8_t width = 18;
-	std::string suffix = "constructor";
-    sdsl::int_vector<> iv(10000000,0,width);
-	sdsl::util::set_random_bits(iv, 17);
+    uint8_t width = 18;
+    std::string suffix = "constructor";
+    sdsl::int_vector<> iv(100000000,0,width);
+    sdsl::util::set_random_bits(iv, 17);
 
-	sdsl::util::store_to_file(iv, (tmp_file+suffix).c_str() );
-	{
-		sdsl::int_vector_file_buffer<> buf( (tmp_file+suffix).c_str() ); 
-		sdsl::wt_int<> wt(buf);
-		ASSERT_EQ( iv.size(), wt.size() );
-		for (size_type i=0; i < iv.size(); ++i) {
-			ASSERT_EQ(iv[i], wt[i]);
-		}
-	}
-	std::remove( (tmp_file+suffix).c_str() );
+    sdsl::util::store_to_file(iv, (tmp_file+suffix).c_str());
+    {
+        sdsl::int_vector_file_buffer<> buf((tmp_file+suffix).c_str());
+        sdsl::wt_int<> wt(buf);
+        ASSERT_EQ(iv.size(), wt.size());
+        for (size_type i=0; i < iv.size(); ++i) {
+            ASSERT_EQ(iv[i], wt[i]);
+        }
+    }
+    std::remove((tmp_file+suffix).c_str());
 }
 
 }  // namespace
