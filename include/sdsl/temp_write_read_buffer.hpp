@@ -11,6 +11,11 @@
 namespace sdsl
 {
 
+
+
+/*!
+ * FIFO data structure
+ */
 template<uint8_t int_width=0>
 class temp_write_read_buffer
 {
@@ -21,18 +26,19 @@ class temp_write_read_buffer
 
     private:
 
-        buffer_type 	m_buf; // buffer for the data
-        size_type   	m_buf_size; // size of the buffer
-        std::string 	m_file_name; // filename for the file holding
+        buffer_type 		m_buf; // buffer for the data
+        size_type   		m_buf_size; // size of the buffer
+        std::string 		m_file_name; // filename for the file holding
         // the data which does not fit in the buffer
-        size_type 		m_in_buf_idx;// current index in the buffer
-        size_type		m_buf_idx;// index of the current buffer
-        size_type		m_buf_cnt;// number of buffers written to disk
-        std::ofstream	m_out;		 // file out stream
-        std::ifstream	m_in;		 // file in stream
-        bool			m_output_exists; // if there exists output to the file
-        size_type		m_r;// remaining entries in the buffer
-        size_type		m_last_block_size; // size of the last block written to disk
+        size_type 			m_in_buf_idx;// current index in the buffer
+        size_type			m_buf_idx;// index of the current buffer
+        size_type			m_buf_cnt;// number of buffers written to disk
+        std::ofstream		m_out;		 // file out stream
+        std::ifstream		m_in;		 // file in stream
+        bool				m_output_exists; // if there exists output to the file
+        size_type			m_r;// remaining entries in the buffer
+        size_type			m_last_block_size; // size of the last block written to disk
+        static size_t		m_buffer_id;
 
     public:
 
@@ -46,8 +52,13 @@ class temp_write_read_buffer
             m_buf = buffer_type(buf_size, 0, width);    // initialize buffer
             m_in_buf_idx = 0;
             m_buf_cnt = 0;
-            m_file_name =  dir + "temp_write_read_buffer_" + util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
+            m_file_name =  dir + "temp_write_read_buffer_" + util::to_string(util::get_pid())+"_"
+                           + util::to_string(util::get_id())+"_"
+                           + util::to_string(m_buffer_id);
+            m_buffer_id++; // increase the object counter
             m_output_exists = false;
+            std::cout << "size  = " << buf_size << std::endl;
+            std::cout << "width = " << (int) width << std::endl;
         }
 
         // Destructor
@@ -65,7 +76,7 @@ class temp_write_read_buffer
         value_type operator<<(value_type x) {
             if (m_in_buf_idx == m_buf_size) {
                 m_in_buf_idx = 0;
-                ++m_buf_cnt; ++m_buf_idx;
+                ++m_buf_cnt; ++m_buf_idx; // increase the number of buffers written to disk; increase the number of the current buffer
                 if (m_buf_cnt == 1) {
                     m_out.open(m_file_name.c_str(), std::ios::trunc | std::ios::out | std::ios::binary);   // open file buffer
                 }
@@ -79,19 +90,18 @@ class temp_write_read_buffer
         void write_close() {
             if (m_buf_cnt > 0) {
                 m_buf.serialize(m_out);    // write last buffer to disk
+                m_out.close(); // close stream
                 m_last_block_size = m_in_buf_idx;
                 ++m_buf_cnt;
                 m_out.close();
                 m_r = 0;
-                m_in_buf_idx = 0;
-                m_buf_idx = 0;
                 m_in.open(m_file_name.c_str(), std::ios::in | std::ios::binary);
             } else {
                 m_r = m_in_buf_idx;
-                m_in_buf_idx = 0;
-                m_buf_idx = 0;
                 m_last_block_size = 0;
             }
+            m_in_buf_idx = 0;
+            m_buf_idx = 0;
         }
 
         void reset() {
@@ -113,7 +123,7 @@ class temp_write_read_buffer
                     m_in_buf_idx = 0; // reset in buffer index
                     m_buf.load(m_in);   // load next block
                     if (m_buf_idx == m_buf_cnt)
-                        m_r = m_buf_idx;
+                        m_r = m_last_block_size;
                     else
                         m_r = m_buf_size;
                 } else {
@@ -125,6 +135,9 @@ class temp_write_read_buffer
             return true;
         }
 };
+
+template<uint8_t int_width>
+size_t temp_write_read_buffer<int_width>::m_buffer_id = 0;
 
 } // end namespace sdsl
 
