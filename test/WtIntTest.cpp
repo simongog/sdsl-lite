@@ -57,7 +57,7 @@ TYPED_TEST(WtIntTest, Constructor)
 {
     uint8_t width = 18;
     std::string suffix = "constructor";
-    sdsl::int_vector<> iv(100000,0,width);
+    sdsl::int_vector<> iv(100000000,0,width);
     sdsl::util::set_random_bits(iv, 17);
     double iv_size = sdsl::util::get_size_in_mega_bytes(iv);
 
@@ -68,7 +68,7 @@ TYPED_TEST(WtIntTest, Constructor)
         std::cout << "compression = " << sdsl::util::get_size_in_mega_bytes(wt)/iv_size << std::endl;
         ASSERT_EQ(iv.size(), wt.size());
         for (size_type i=0; i < iv.size(); ++i) {
-            ASSERT_EQ(iv[i], wt[i]);
+            ASSERT_EQ(iv[i], wt[i])<<i;
         }
     }
     std::remove((this->tmp_file+suffix).c_str());
