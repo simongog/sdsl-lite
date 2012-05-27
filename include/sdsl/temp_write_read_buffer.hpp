@@ -57,8 +57,6 @@ class temp_write_read_buffer
                            + util::to_string(m_buffer_id);
             m_buffer_id++; // increase the object counter
             m_output_exists = false;
-            std::cout << "size  = " << buf_size << std::endl;
-            std::cout << "width = " << (int) width << std::endl;
         }
 
         // Destructor
