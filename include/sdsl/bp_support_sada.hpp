@@ -434,6 +434,25 @@ class bp_support_sada
         ~bp_support_sada() {
         }
 
+        //! Swap method
+        /*! Swaps the content of the two data structure.
+         *  You have to use set_vector to adjust the supported bit_vector.
+         *  \param bp_support Object which is swapped.
+         */
+        void swap(bp_support_sada& bp_support) {
+            // m_bp.swap(bp_support.m_bp); use set_vector to set the supported bit_vector
+            m_bp_rank.swap(bp_support.m_bp_rank);
+            m_bp_select.swap(bp_support.m_bp_select);
+
+            m_sml_block_min_max.swap(bp_support.m_sml_block_min_max);
+            m_med_block_min_max.swap(bp_support.m_med_block_min_max);
+
+            std::swap(m_size, bp_support.m_size);
+            std::swap(m_sml_blocks, bp_support.m_sml_blocks);
+            std::swap(m_med_blocks, bp_support.m_med_blocks);
+            std::swap(m_med_inner_blocks, bp_support.m_med_inner_blocks);
+        }
+
         //! Assignment operator
         bp_support_sada& operator=(const bp_support_sada& bp_support) {
             if (this != &bp_support) {

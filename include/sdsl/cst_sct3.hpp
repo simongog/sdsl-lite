@@ -428,7 +428,20 @@ class cst_sct3
 
         	Required for the Assignable Conecpt of the STL.
           */
-        void swap(cst_sct3& cst);
+        void swap(cst_sct3& cst) {
+            if (this != &cst) {
+                m_csa.swap(cst.m_csa);
+                m_bp.swap(cst.m_bp);
+                util::swap_support(m_bp_support, cst.m_bp_support, &m_bp, &(cst.m_bp));
+
+                m_first_child.swap(cst.m_first_child);
+                util::swap_support(m_first_child_rank, cst.m_first_child_rank, &m_first_child, &(cst.m_first_child));
+                std::swap(m_sigma, cst.m_sigma);
+                std::swap(m_nodes, cst.m_nodes);
+                // anything else has to be swapped before swapping lcp
+                swap_lcp(m_lcp, cst.m_lcp, *this, cst);
+            }
+        }
 
         //! Returns a const_iterator to the first element of a depth first traversal of the tree.
         /*! Required for the STL Container Concept.

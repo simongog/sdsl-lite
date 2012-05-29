@@ -867,7 +867,10 @@ void csa_wt<WaveletTree, SampleDens, InvSampleDens, fixedIntWidth, charType>::sw
         }
         std::swap(m_C[256], csa.m_C[256]);
         std::swap(m_sigma, csa.m_sigma);
-        m_psi.swap(csa.m_psi);
+
+//        m_psi.swap(csa.m_psi);
+        m_psi = psi_type(this);
+        csa.m_psi = psi_type(&csa);
         m_bwt.swap(csa.m_bwt);
     }
 }

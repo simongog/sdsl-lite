@@ -173,6 +173,18 @@ class bit_vector_interleaved
             m_rank_samples.load(in);
         }
 
+        void swap(bit_vector_interleaved& bv) {
+            if (this != &bv) {
+                std::swap(m_size, bv.m_size);
+                std::swap(m_totalBlocks, bv.m_totalBlocks);
+                std::swap(m_blockMask, bv.m_blockMask);
+                std::swap(m_superblocks, bv.m_superblocks);
+                std::swap(m_blockShift, bv.m_blockShift);
+                m_data.swap(bv.m_data);
+                m_rank_samples.swap(bv.m_rank_samples);
+            }
+        }
+
 #ifdef MEM_INFO
         void mem_info(std::string label="")const {
             if (label=="")

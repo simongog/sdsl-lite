@@ -1,4 +1,5 @@
 #include "sdsl/suffixtrees.hpp"
+#include "sdsl/lcp.hpp"
 #include "sdsl/test_index_performance.hpp"
 #include "sdsl/util.hpp" // for store_to_file, load_to_file,...
 #include "gtest/gtest.h"
@@ -8,13 +9,13 @@
 #include <locale>
 #include <sstream>
 
-// TODO: test different lcp classes with the CST
+using namespace sdsl;
 
 namespace
 {
 
-typedef sdsl::int_vector<>::size_type size_type;
-typedef sdsl::bit_vector bit_vector;
+typedef int_vector<>::size_type size_type;
+typedef bit_vector bit_vector;
 
 template<class T>
 class CstTest : public ::testing::Test
@@ -35,7 +36,7 @@ class CstTest : public ::testing::Test
             test_cases.push_back("test_cases/crafted/100a.txt");
             test_cases.push_back("test_cases/small/faust.txt");
             test_cases.push_back("test_cases/small/zarathustra.txt");
-            tmp_file = "tmp_cst_test_" + sdsl::util::to_string(sdsl::util::get_pid()) + "_";
+            tmp_file = "tmp_cst_test_" + util::to_string(util::get_pid()) + "_";
         }
 
         virtual void TearDown() {
@@ -50,21 +51,25 @@ class CstTest : public ::testing::Test
         std::string get_tmp_file_name(const Cst& cst, size_type i) {
             std::locale loc;                 // the "C" locale
             const std::collate<char>& coll = std::use_facet<std::collate<char> >(loc);
-            std::string name = sdsl::util::demangle2(typeid(Cst).name());
+            std::string name = util::demangle2(typeid(Cst).name());
             uint64_t myhash = coll.hash(name.data(),name.data()+name.length());
-            return tmp_file + sdsl::util::to_string(myhash) + "_" + sdsl::util::basename(test_cases[i].c_str());
+            return tmp_file + util::to_string(myhash) + "_" + util::basename(test_cases[i].c_str());
         }
 
         template<class Cst>
         bool load_cst(Cst& cst, size_type i) {
-            return sdsl::util::load_from_file(cst, get_tmp_file_name(cst, i).c_str());
+            return util::load_from_file(cst, get_tmp_file_name(cst, i).c_str());
         }
 };
 
 using testing::Types;
 
-typedef Types<sdsl::cst_sct3<>,
-        sdsl::cst_sada<>
+typedef Types<cst_sct3<>,
+        cst_sada<>,
+        cst_sct3<cst_sct3<>::csa_type, lcp_support_sada<> >,
+        cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<> >,
+        cst_sct3<cst_sct3<>::csa_type, lcp_support_tree2<> >,
+        cst_sct3<cst_sct3<>::csa_type, lcp_wt<> >
         > Implementations;
 
 TYPED_TEST_CASE(CstTest, Implementations);
@@ -74,10 +79,50 @@ TYPED_TEST(CstTest, CreateAndStoreTest)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-        sdsl::util::verbose = false;
+        util::verbose = false;
         construct_cst(this->test_cases[i], cst);
-        bool success = sdsl::util::store_to_file(cst, this->get_tmp_file_name(cst, i).c_str());
+        bool success = util::store_to_file(cst, this->get_tmp_file_name(cst, i).c_str());
         ASSERT_EQ(success, true);
+    }
+}
+
+
+template<class tCst>
+void check_node_method(const tCst& cst)
+{
+    typedef typename tCst::const_iterator const_iterator;
+    typedef typename tCst::node_type node_type;
+    for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it) {
+        if (it.visit() == 1) {
+            node_type v = *it;
+            size_type d = cst.depth(v);
+            size_type lb = cst.lb(v), rb = cst.rb(v);
+            ASSERT_EQ(cst.node(lb, rb, d), v);
+        }
+    }
+}
+
+//! Test the swap method
+TYPED_TEST(CstTest, SwapMethod)
+{
+    for (size_t i=0; i< this->test_cases.size(); ++i) {
+        TypeParam cst1;
+        ASSERT_EQ(this->load_cst(cst1, i), true);
+        size_type n = cst1.size();
+        TypeParam cst2;
+        ASSERT_EQ(cst2.size(), 0);
+        cst1.swap(cst2);
+        ASSERT_EQ(cst1.size(), 0);
+        ASSERT_EQ(cst2.size(), n);
+        ASSERT_EQ(cst2.csa.size(), n);
+        bit_vector mark(cst2.size(), 0);
+        /*		for(size_type i=0; i<cst2.size(); ++i){
+        			size_type x = cst2.csa[i];
+        			ASSERT_EQ( mark[x], 0 );
+        			mark[x] = 1;
+        		}
+        */
+        check_node_method(cst2);
     }
 }
 
@@ -173,7 +218,7 @@ TYPED_TEST(CstTest, LcaMethod)
         uint8_t log_m = 14;
         // create m/2 pairs of positions in [0..cst.csa.size()-1]
         typedef typename TypeParam::node_type node_type;
-        sdsl::int_vector<64> rnd_pos = sdsl::get_rnd_positions(log_m, mask, cst.csa.size());
+        int_vector<64> rnd_pos = get_rnd_positions(log_m, mask, cst.csa.size());
         // test for random sampled nodes
         for (size_type i=0; i < rnd_pos.size()/2; ++i) {
             // get two children
@@ -204,6 +249,7 @@ TYPED_TEST(CstTest, LcaMethod)
     }
 }
 
+
 //! Test the node method
 TYPED_TEST(CstTest, NodeMethod)
 {
@@ -211,18 +257,21 @@ TYPED_TEST(CstTest, NodeMethod)
         TypeParam cst;
         ASSERT_EQ(this->load_cst(cst, i), true);
         // doing a depth first traversal through the tree to count the nodes
-        typedef typename TypeParam::const_iterator const_iterator;
-        typedef typename TypeParam::node_type node_type;
-        for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it) {
-            if (it.visit() == 1) {
-                node_type v = *it;
-                size_type d = cst.depth(v);
-                size_type lb = cst.lb(v), rb = cst.rb(v);
-                ASSERT_EQ(cst.node(lb, rb, d), v);
-            }
-        }
+        check_node_method(cst);
+        /*		typedef typename TypeParam::const_iterator const_iterator;
+                typedef typename TypeParam::node_type node_type;
+                for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it) {
+                    if (it.visit() == 1) {
+                        node_type v = *it;
+                        size_type d = cst.depth(v);
+                        size_type lb = cst.lb(v), rb = cst.rb(v);
+                        ASSERT_EQ(cst.node(lb, rb, d), v);
+                    }
+                }
+        */
     }
 }
+
 
 
 //! Test the bottom-up iterator

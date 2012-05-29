@@ -101,27 +101,22 @@ class sd_vector
 
         sd_vector():high(m_high), low(m_low),
             high_1_select(m_high_1_select), high_0_select(m_high_0_select) {
-            //	std::cout<<"std constructor of sd_vector"<<std::endl;
         }
 
         sd_vector(const bit_vector& bv):high(m_high),low(m_low),
             high_1_select(m_high_1_select), high_0_select(m_high_0_select) {
-//std::cout<<"calling constructor of sd_vector"<<std::endl;
             m_size = bv.size();
             if (m_size == 0)
                 return;
             size_type m = util::get_one_bits(bv);
-//std::cout<<"ones in bv="<<m<<std::endl;
             uint8_t logm = bit_magic::l1BP(m)+1;
             uint8_t logn = bit_magic::l1BP(m_size)+1;
             if (logm == logn) {
                 --logm;    // to ensure logn-logm > 0
             }
             m_wl    = logn - logm;
-//std::cout<<"m_wl="<<(int)m_wl<<std::endl;
             m_low = int_vector<>(m, 0, m_wl);
             bit_vector high = bit_vector(m + (1ULL<<logm), 0); //
-//std::cout<<"m_low and high initialized="<<std::endl;
             const uint64_t* bvp = bv.data();
             for (size_type i=0, mm=0,last_high=0,highpos=0; i < (bv.size()+63)/64; ++i, ++bvp) {
                 size_type position = 64*i;
@@ -143,22 +138,9 @@ class sd_vector
                     w >>= 1;
                 }
             }
-//std::cout<<"m_low and high filled"<<std::endl;
-            /*
-            			if( m_size < 50 ){
-            				for(size_type i=0; i<m; ++i)
-            					std::cout<<i<<" "<<m_low[i]<<std::endl;
-            				std::cout<< high << std::endl;
-            			}
-            */
             util::assign(m_high, high);
             m_high_1_select.init(&m_high);
             m_high_0_select.init(&m_high);
-//cout << "m_v="<< (this) << endl;
-//			cout << "m_v.m_high_0_select="<< (&m_high_0_select) << endl;
-//			for(size_type i=1; i<=(1<<logm);++i){
-//				cout <<" 0 select "<<i<<" = "<<m_high_0_select(i)<<endl;
-//			}
         }
 
         //! Accessing the i-th element of the original bit_vector
@@ -192,6 +174,23 @@ class sd_vector
                     return 0;
             }
             return m_high[sel_high] and m_low[rank_low] == val_low;
+        }
+
+        //! Swap method
+        void swap(sd_vector& v) {
+            if (this != &v) {
+                std::swap(m_size, v.m_size);
+                std::swap(m_wl, v.m_wl);
+                m_low.swap(v.m_low);
+                m_high.swap(v.m_high);
+                m_high_1_select.swap(v.m_high_1_select);
+                m_high_1_select.set_vector(&m_high);
+                v.m_high_1_select.set_vector(&(v.m_high));
+
+                m_high_0_select.swap(v.m_high_0_select);
+                m_high_0_select.set_vector(&m_high);
+                v.m_high_0_select.set_vector(&(v.m_high));
+            }
         }
 
         //! Returns the size of the original bit vector.

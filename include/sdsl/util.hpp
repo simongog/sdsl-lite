@@ -283,6 +283,15 @@ void clear(T& x)
     x.swap(y);
 }
 
+//! Swap support data structure and assign to new vector
+template<class S, class P>
+void swap_support(S& s1, S& s2, const P* p1, const P* p2)
+{
+    s1.swap(s2);
+    s1.set_vector(p1);
+    s2.set_vector(p2);
+}
+
 }
 
 //==================== Template functions ====================

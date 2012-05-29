@@ -204,6 +204,19 @@ class rrr_vector
             util::assign(m_bt, bt_array);
         }
 
+        //! Swap method
+        void swap(rrr_vector& rrr) {
+            if (this != &rrr) {
+                std::swap(m_size, rrr.m_size);
+                std::swap(m_sample_rate, rrr.m_sample_rate);
+                m_bt.swap(rrr.m_bt);
+                m_btnr.swap(rrr.m_btnr);
+                m_btnrp.swap(rrr.m_btnrp);
+                m_rank.swap(rrr.m_rank);
+                m_invert.swap(rrr.m_invert);
+            }
+        }
+
         //! Accessing the i-th element of the original bit_vector
         /*! \param i An index i with \f$ 0 \leq i < size()  \f$.
            \return The i-th bit of the original bit_vector

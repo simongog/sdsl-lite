@@ -448,7 +448,7 @@ size_type_class construct_first_child_and_lf_lcp(int_vector_file_buffer<fixedInt
     big_lcp_in.close();
     std::remove(big_lcp_file_name.c_str());
 
-    std::cout<<"#n="<<n<<" fc_cnt="<<fc_cnt<<" fc_cnt_big="<<fc_cnt_big<<" fc_cnt_big2="<<fc_cnt_big2<<std::endl;
+//    std::cout<<"#n="<<n<<" fc_cnt="<<fc_cnt<<" fc_cnt_big="<<fc_cnt_big<<" fc_cnt_big2="<<fc_cnt_big2<<std::endl;
 
     return fc_cnt;
 }

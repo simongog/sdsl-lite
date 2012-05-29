@@ -500,9 +500,10 @@ class wt_huff
                 std::swap(m_size, wt.m_size);
                 std::swap(m_sigma,  wt.m_sigma);
                 m_tree.swap(wt.m_tree);
-                m_tree_rank.swap(wt.m_tree_rank); // rank swap after the swap of the bit vector m_tree
-                m_tree_select1.swap(wt.m_tree_select1); // select1 swap after the swap of the bit vector m_tree
-                m_tree_select0.swap(wt.m_tree_select0); // select0 swap after the swap of the bit vector m_tree
+                util::swap_support(m_tree_rank, wt.m_tree_rank, &m_tree, &(wt.m_tree));
+
+                util::swap_support(m_tree_select1, wt.m_tree_select1, &m_tree, &(wt.m_tree));
+                util::swap_support(m_tree_select0, wt.m_tree_select0, &m_tree, &(wt.m_tree));
 
                 for (size_type i=0; i < 511; ++i)
                     std::swap(m_nodes[i], wt.m_nodes[i]);

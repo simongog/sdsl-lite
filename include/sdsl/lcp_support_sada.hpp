@@ -322,9 +322,8 @@ void _lcp_support_sada<Csa, SelectSupport>::construct(int_vector_file_buffer<int
 template<class Csa, class SelectSupport>
 void _lcp_support_sada<Csa, SelectSupport>::swap(_lcp_support_sada& lcp_c)
 {
-    std::swap(m_csa, lcp_c.m_csa);   // TODO: check if this is necessary
     m_data.swap(lcp_c.m_data);
-    m_select_support.swap(lcp_c.m_select_support); // select swap after the swap of the bit vector m_data
+    util::swap_support(m_select_support, lcp_c.m_select_support, &m_data, &(lcp_c.m_data));
 }
 
 template<class Csa, class SelectSupport>

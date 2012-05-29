@@ -297,7 +297,24 @@ class cst_sada
 
         	Required for the Assignable Conecpt of the STL.
           */
-        void swap(cst_sada<Csa, Lcp>& cst);
+        void swap(cst_sada& cst) {
+            if (this != &cst) {
+                m_csa.swap(cst.m_csa);
+                m_bp.swap(cst.m_bp);
+                m_bp_support.swap(cst.m_bp_support);
+                m_bp_support.set_vector(&m_bp);
+                cst.m_bp_support.set_vector(&(cst.m_bp));
+
+                m_bp_rank10.swap(cst.m_bp_rank10);
+                m_bp_rank10.set_vector(&m_bp);
+                cst.m_bp_rank10.set_vector(&(cst.m_bp));
+                m_bp_select10.swap(cst.m_bp_select10);
+                m_bp_select10.set_vector(&m_bp);
+                cst.m_bp_select10.set_vector(&(cst.m_bp));
+                // anything else has to be swapped before swapping lcp
+                swap_lcp(m_lcp, cst.m_lcp, *this, cst);
+            }
+        }
 
         //! Returns a const_iterator to the first element.
         /*! Required for the STL Container Concept.

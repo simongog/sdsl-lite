@@ -243,17 +243,17 @@ class wt_rlmn
 
                 m_bl_rank.swap(wt.m_bl_rank);
                 m_bl_rank.set_vector(&m_bl);
-                wt.m_bl_rank.set(&(wt.m_bl));
+                wt.m_bl_rank.set_vector(&(wt.m_bl));
                 m_bf_rank.swap(wt.m_bf_rank);
                 m_bf_rank.set_vector(&m_bf);
-                wt.m_bf_rank.set(&(wt.m_bf));
+                wt.m_bf_rank.set_vector(&(wt.m_bf));
 
                 m_bl_select.swap(wt.m_bl_select);
                 m_bl_select.set_vector(&m_bl);
-                wt.m_bl_select.set(&(wt.m_bl));
+                wt.m_bl_select.set_vector(&(wt.m_bl));
                 m_bf_select.swap(wt.m_bf_select);
                 m_bf_select.set_vector(&m_bf);
-                wt.m_bf_select.set(&(wt.m_bf));
+                wt.m_bf_select.set_vector(&(wt.m_bf));
 
                 m_C.swap(wt.m_C);
                 m_C_bf_rank.swap(wt.m_C_bf_rank);

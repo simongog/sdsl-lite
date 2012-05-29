@@ -150,6 +150,25 @@ TYPED_TEST(WtAsciiTest, Select)
 }
 
 
+//! Test access after swap
+TYPED_TEST(WtAsciiTest, SwapTest)
+{
+    for (size_t i=0; i< this->test_cases.size(); ++i) {
+        TypeParam wt1;
+        ASSERT_EQ(this->load_wt(wt1, i), true);
+        TypeParam wt2;
+        wt1.swap(wt2);
+        char* text = NULL;
+        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), text);
+        ASSERT_EQ(wt2.size() ,n);
+        for (size_type j=0; j<n; ++j) {
+            ASSERT_EQ(wt2[j], (typename TypeParam::value_type)text[j]);
+        }
+        delete [] text;
+    }
+}
+
+
 TYPED_TEST(WtAsciiTest, DeleteTest)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
