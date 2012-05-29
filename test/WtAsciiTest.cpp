@@ -65,13 +65,15 @@ class WtAsciiTest : public ::testing::Test
 using testing::Types;
 
 typedef Types<
-sdsl::wt_huff<>,
+sdsl::wt_huff<sdsl::bit_vector, sdsl::rank_support_v<> >,
+     sdsl::wt_huff<sdsl::bit_vector, sdsl::rank_support_v5<> >,
+     sdsl::wt_huff<sdsl::bit_vector_interleaved<> >,
      sdsl::wt_huff<sdsl::rrr_vector<63> >,
      sdsl::wt_rlmn<>,
      sdsl::wt_rlmn<sdsl::bit_vector>,
      sdsl::wt<unsigned char*, sdsl::bit_vector>,
-     sdsl::wt<unsigned char*, sdsl::rrr_vector<63> >,
-     sdsl::wt<unsigned char*, sdsl::bit_vector_interleaved<>  >
+     sdsl::wt<unsigned char*, sdsl::bit_vector_interleaved<>  >,
+     sdsl::wt<unsigned char*, sdsl::rrr_vector<63> >
      > Implementations;
 
 TYPED_TEST_CASE(WtAsciiTest, Implementations);
