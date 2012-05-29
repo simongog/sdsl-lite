@@ -1,8 +1,8 @@
 #include "sdsl/wt_huff.hpp"
 #include "sdsl/wt_rlmn.hpp"
 #include "sdsl/rrr_vector.hpp"
+#include "sdsl/bit_vector_interleaved.hpp"
 #include "sdsl/util.hpp"
-#include "sdsl/rrr_vector.hpp"
 #include "sdsl/csa_construct.hpp"
 #include "sdsl/bwt_construct.hpp"
 #include "gtest/gtest.h"
@@ -66,9 +66,12 @@ using testing::Types;
 
 typedef Types<
 sdsl::wt_huff<>,
-     sdsl::wt_huff<sdsl::rrr_vector<127> >,
+     sdsl::wt_huff<sdsl::rrr_vector<63> >,
      sdsl::wt_rlmn<>,
-     sdsl::wt_rlmn<sdsl::bit_vector>
+     sdsl::wt_rlmn<sdsl::bit_vector>,
+     sdsl::wt<unsigned char*, sdsl::bit_vector>,
+     sdsl::wt<unsigned char*, sdsl::rrr_vector<63> >,
+     sdsl::wt<unsigned char*, sdsl::bit_vector_interleaved<>  >
      > Implementations;
 
 TYPED_TEST_CASE(WtAsciiTest, Implementations);
