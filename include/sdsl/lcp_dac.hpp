@@ -344,8 +344,9 @@ template<uint8_t b, class rank_support_type>
 void lcp_dac<b, rank_support_type>::swap(lcp_dac& lcp_c)
 {
     m_data.swap(lcp_c.m_data);
-    m_overflow.swap(lcp_c.m_data);
-    m_overflow_rank.swap(lcp_c.m_overflow_rank);
+    m_overflow.swap(lcp_c.m_overflow);
+    util::swap_support(m_overflow_rank, lcp_c.m_overflow_rank, &m_overflow, &(lcp_c.m_overflow));
+
     m_level_pointer_and_rank.swap(lcp_c.m_level_pointer_and_rank);
     std::swap(m_max_level, lcp_c.m_max_level);
 }

@@ -66,6 +66,7 @@ using testing::Types;
 
 typedef Types<cst_sct3<>,
         cst_sada<>,
+        cst_sada<cst_sada<>::csa_type, lcp_dac<> >,
         cst_sct3<cst_sct3<>::csa_type, lcp_support_sada<> >,
         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<> >,
         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree2<> >,
