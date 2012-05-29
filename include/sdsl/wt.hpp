@@ -24,9 +24,8 @@
 #define INCLUDED_SDSL_WT
 
 #include "int_vector.hpp"
-#include "rank_support_v.hpp"
-#include "select_support_mcl.hpp"
 #include "bitmagic.hpp"
+#include "util.hpp" // for util::ssign
 #include <set> // for calculating the alphabet size
 #include <map> // for mapping a symbol to its lexicographical index
 #include <algorithm> // for std::swap
@@ -398,10 +397,20 @@ class wt_trait<int_vector_file_buffer<8, size_type_class> >
  *	\par Space complexity
  *		\f$\Order{n\log|\Sigma| + 2|\Sigma|\log n}\f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
  *
+ *  \tparam RandomAccessContainer 	Type of the input sequence.
+ *  \tparam BitVector				Type of the bitvector used for representing the wavelet tree.
+ *  \tparam RankSupport				Type of the support structure for rank on ones.
+ *  \tparam SelectSupport			Type of the support structure for select on ones.
+ *  \tparam SelectSupport			Type of the support structure for select on ones.
+ *
  *   The wavelet tree was proposed first by Grossi et al. 2003 and applied to the BWT in Foschini et al. 2004.
  *   @ingroup wt
  */
-template<class RandomAccessContainer=unsigned char*, class RankSupport = rank_support_v<>, class SelectSupport=select_support_mcl<>, class SelectSupportZero=select_support_mcl<0> >
+template<class RandomAccessContainer=unsigned char*,
+         class BitVector         = bit_vector,
+         class RankSupport       = typename BitVector::rank_1_type,
+         class SelectSupport     = typename BitVector::select_1_type,
+         class SelectSupportZero = typename BitVector::select_0_type>
 class wt
 {
     public:
@@ -412,7 +421,7 @@ class wt
     private:
         size_type 			m_size;
         size_type 			m_sigma; 		//<- \f$ |\Sigma| \f$
-        bit_vector 			m_tree;			// bit vector to store the wavelet tree
+        BitVector 			m_tree;			// bit vector to store the wavelet tree
         RankSupport			m_tree_rank;	// rank support for the wavelet tree bit vector
         SelectSupport		m_tree_select1;	// select support for the wavelet tree bit vector
         SelectSupportZero	m_tree_select0;
@@ -522,14 +531,14 @@ class wt
 #ifdef SDSL_DEBUG_WT
                 std::cerr<<"all nodes size = "<<m_node_pointers[max_node+1]<<std::endl;
 #endif
-                m_tree = bit_vector(m_node_pointers[max_node+1]);
+                bit_vector tree = bit_vector(m_node_pointers[max_node+1]);
                 for (size_type i=0; i<m_size; ++i) {
                     size_type lex_idx = m_char_map[rac[i]]; // lex_idx in [0..m_sigma-1]
 //std::cerr<<"lex_idx="<<lex_idx<<" "<<rac[i]<<std::endl;
                     size_type sigma = m_sigma, node=0;
                     while (sigma >= 2) {
                         if (lex_idx >= ((sigma+1)/2))
-                            m_tree[m_node_pointers[node]+node_sizes[node]] = 1;
+                            tree[m_node_pointers[node]+node_sizes[node]] = 1;
                         node_sizes[node] = node_sizes[node]+1;
                         if (lex_idx < (sigma+1)/2) {
                             sigma = (sigma+1)/2;
@@ -541,6 +550,7 @@ class wt
                         }
                     }
                 }
+                util::assign(m_tree, tree);
                 m_tree_rank.init(&m_tree);
                 for (size_type i=0; i < m_node_pointers.size(); ++i) {
                     m_node_pointers_rank[i] = m_tree_rank(m_node_pointers[i]);
@@ -629,7 +639,7 @@ class wt
                 sw.start();
 #endif
                 // initialize bit vector with 0's
-                m_tree = bit_vector(m_node_pointers[max_node+1], 0);
+                bit_vector tree = bit_vector(m_node_pointers[max_node+1], 0);
                 // precalc paths in the tree for all symbols in the alphabet
                 uint8_t path_len[256] = {0};
                 uint8_t path[256] = {0};
@@ -661,7 +671,7 @@ class wt
                             uint8_t p = path[old_chr];
                             for (uint32_t l=0, node=0; l<path_len[old_chr]; ++l, p >>= 1) {
                                 if (p&1) {
-                                    m_tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
+                                    tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
                                     node_sizes[node] += times; node = (node<<1)+2;
                                 } else {
                                     node_sizes[node] += times; node = (node<<1)+1;
@@ -675,7 +685,7 @@ class wt
                                 uint8_t p = path[old_chr];
                                 for (uint32_t l=0, node=0; l<path_len[old_chr]; ++l, p >>= 1) {
                                     if (p&1) {
-                                        m_tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
+                                        tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
                                         node_sizes[node] += times; node = (node<<1)+2;
                                     } else {
                                         node_sizes[node] += times; node = (node<<1)+1;
@@ -689,7 +699,7 @@ class wt
                         uint8_t p = path[old_chr];
                         for (uint32_t l=0, node=0; l<path_len[old_chr]; ++l, p >>= 1) {
                             if (p&1) {
-                                m_tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
+                                tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
                                 node_sizes[node] += times; node = (node<<1)+2;
                             } else {
                                 node_sizes[node] += times; node = (node<<1)+1;
@@ -704,6 +714,7 @@ class wt
                 std::cerr<<"Time for building phase: "<< sw.get_real_time() << " ms real time , "<< sw.get_user_time()<<" ms user time"<< std::endl;
                 sw.start();
 #endif
+                util::assign(m_tree, tree);
                 m_tree_rank.init(&m_tree);
 #ifdef SDSL_DEBUG_WT
                 sw.stop();
