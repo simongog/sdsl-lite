@@ -21,6 +21,7 @@
 #ifndef INCLUDE_SDSL_TESTUTILS
 #define INCLUDE_SDSL_TESTUTILS
 
+#include "util.hpp"
 #include <sys/time.h> // for struct timeval
 #include <sys/resource.h> // for struct rusageA
 #include <iomanip>
