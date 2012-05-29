@@ -78,6 +78,7 @@ void set_zero_bits(int_vector_type& v);
 //! Sets all bits of the int_vector to 1-bits.
 template<class int_vector_type>
 void set_one_bits(int_vector_type& v);
+
 //! Bit compress the int_vector
 /*! Determine the biggest value X and then set the
  *  int_width to the smallest possible so that we
