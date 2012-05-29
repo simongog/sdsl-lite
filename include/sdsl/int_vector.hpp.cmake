@@ -23,6 +23,7 @@
 
 #include "bitmagic.hpp"
 #include "util.hpp"
+#include "testutils.hpp"
 #include <iosfwd> // forward declaration of ostream
 
 // for uint64_t and uint32_t declaration
@@ -42,6 +43,8 @@
 #include <istream>
 #include <string>
 #include <map>
+
+
 
 //! Namespace for the succinct data structure library.
 namespace sdsl{
@@ -1538,6 +1541,7 @@ class int_vector_file_buffer{
 	size_type m_read_values_sum;
 	int_width_type   m_int_width;
 	std::string m_file_name;
+	bool	m_load_from_plain;
 
 	void load_size_and_width(){
 //		util::read_member(m_int_vector_size, m_in);
@@ -1570,17 +1574,43 @@ class int_vector_file_buffer{
 	const uint8_t &int_width;
 	const std::string &file_name;
 
-	// Constructor
+	//! Constructor
 	/*
+	 * \param f_file_name 	File which contains the int_vector.
+	 * \param len 			Length of the buffer in elements.
 	 */
-	int_vector_file_buffer(const char * f_file_name, size_type len=1000000, uint8_t int_width=0):m_int_width(fixedIntWidth),int_vector_size(m_int_vector_size), int_width(m_int_width), file_name(m_file_name){
+	int_vector_file_buffer(const char * f_file_name=NULL, size_type len=1000000, uint8_t int_width=0):m_int_width(fixedIntWidth),int_vector_size(m_int_vector_size), int_width(m_int_width), file_name(m_file_name){
+		m_load_from_plain = false;
 		int_vector_trait<fixedIntWidth, size_type_class>::set_int_width(m_int_width, int_width);
 		m_len		 		= len;
 		init();
-		m_in.open(f_file_name, std::ifstream::in);
+		if ( f_file_name == NULL ){
+			return;
+		}
 		m_file_name = f_file_name;
-		if( m_in.is_open() ){
+		m_in.open(m_file_name.c_str(), std::ifstream::in);
+		if ( m_in.is_open() ){
 			load_size_and_width();
+			m_buf = new uint64_t[ (m_len*m_int_width+63)/64 + 2];
+		}else{
+			m_buf = NULL;
+		}
+	}
+
+	// initialize int_vector_file_buffer from a plain file
+	// works only for fixedIntWidth = 8 // TODO extent to 1,16,32,64
+	bool load_from_plain(const char * f_file_name, size_type len=1000000, uint8_t int_width=0){
+		if ( f_file_name == NULL ){
+			std::logic_error("ERROR: int_vector_file_buffer::load_from_plain expects a file name.");
+		}
+		if ( fixedIntWidth != 8){
+		   	std::logic_error("ERROR: int_vector_file_buffer: load_from_plain is only implemented for fixedIntWidth=8.");
+		}
+		m_load_from_plain = true;
+		m_file_name = f_file_name;
+		m_int_vector_size = get_file_size(m_file_name.c_str());
+		m_in.open(m_file_name.c_str(), std::ifstream::in);	
+		if ( m_in.is_open() ){
 			m_buf = new uint64_t[ (m_len*m_int_width+63)/64 + 2];
 		}else{
 			m_buf = NULL;
@@ -1594,7 +1624,11 @@ class int_vector_file_buffer{
 			return false;
 		};
 		init();
-		load_size_and_width();
+		if ( !m_load_from_plain ){
+			load_size_and_width();
+		}else{
+			m_int_vector_size = get_file_size(m_file_name.c_str());
+		}
 		if( new_buf_len > 0 and new_buf_len != m_len){
 			if( m_buf != NULL )
 				delete [] m_buf;
