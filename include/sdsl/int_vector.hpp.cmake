@@ -1602,9 +1602,11 @@ class int_vector_file_buffer{
 	bool load_from_plain(const char * f_file_name, size_type len=1000000, uint8_t int_width=0){
 		if ( f_file_name == NULL ){
 			std::logic_error("ERROR: int_vector_file_buffer::load_from_plain expects a file name.");
+			return false;
 		}
 		if ( fixedIntWidth != 8){
 		   	std::logic_error("ERROR: int_vector_file_buffer: load_from_plain is only implemented for fixedIntWidth=8.");
+			return false;
 		}
 		m_load_from_plain = true;
 		m_file_name = f_file_name;
@@ -1614,7 +1616,9 @@ class int_vector_file_buffer{
 			m_buf = new uint64_t[ (m_len*m_int_width+63)/64 + 2];
 		}else{
 			m_buf = NULL;
+			return false;
 		}
+		return true;
 	}
 
 	bool reset(size_type new_buf_len=0){
