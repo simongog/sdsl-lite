@@ -51,12 +51,18 @@ namespace sdsl
  *	\par Space complexity
  *		\f$\Order{n\log|\Sigma|}\f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
  *
+ *  \tparam RandomAccessContainer 	Type of the input sequence.
+ *  \tparam BitVector				Type of the bitvector used for representing the wavelet tree.
+ *  \tparam RankSupport				Type of the support structure for rank on ones.
+ *  \tparam SelectSupport			Type of the support structure for select on ones.
+ *  \tparam SelectSupport			Type of the support structure for select on ones.
+ *
  *   @ingroup wt
  */
 template<class RandomAccessContainer=int_vector<>,
-         class BitVector   		= bit_vector,
-         class RankSupport 		= typename BitVector::rank_1_type,
-         class SelectSupport		= typename BitVector::select_1_type,
+         class BitVector   		 = bit_vector,
+         class RankSupport 		 = typename BitVector::rank_1_type,
+         class SelectSupport	 = typename BitVector::select_1_type,
          class SelectSupportZero = typename BitVector::select_0_type>
 class wt_int
 {
