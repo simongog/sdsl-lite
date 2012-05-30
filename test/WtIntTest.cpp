@@ -1,6 +1,7 @@
 #include "sdsl/wt_int.hpp"
 #include "sdsl/util.hpp"
 #include "sdsl/rrr_vector.hpp"
+#include "sdsl/sd_vector.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()
@@ -45,9 +46,7 @@ using testing::Types;
 typedef Types<
 sdsl::wt_int<>,
      sdsl::wt_int<sdsl::int_vector<>, sdsl::rrr_vector<15> >,
-     sdsl::wt_int<sdsl::int_vector<>, sdsl::rrr_vector<63> >,
-     sdsl::wt_int<sdsl::int_vector<>, sdsl::rrr_vector<127> >,
-     sdsl::wt_int<sdsl::int_vector<>, sdsl::rrr_vector<255> >
+     sdsl::wt_int<sdsl::int_vector<>, sdsl::rrr_vector<63> >
      > Implementations;
 
 TYPED_TEST_CASE(WtIntTest, Implementations);
@@ -57,7 +56,7 @@ TYPED_TEST(WtIntTest, Constructor)
 {
     uint8_t width = 18;
     std::string suffix = "constructor";
-    sdsl::int_vector<> iv(100000000,0,width);
+    sdsl::int_vector<> iv(1000000,0,width);
     sdsl::util::set_random_bits(iv, 17);
     double iv_size = sdsl::util::get_size_in_mega_bytes(iv);
 
