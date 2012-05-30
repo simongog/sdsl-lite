@@ -70,15 +70,16 @@ class bp_support_gg
         typedef NearestNeighbourDictionary nnd_type;
         typedef RankSupport				   rank_support_type;
         typedef SelectSupport			   select_support_type;
+        typedef bp_support_gg<nnd_type, RankSupport, select_support_bs<RankSupport> > bp_support_type;
     private:
-        const bit_vector*		 m_bp;			  // the supported balanced parentheses sequence as bit_vector
+        const bit_vector*	    m_bp;			  // the supported balanced parentheses sequence as bit_vector
         rank_support_type 		m_rank_bp;  	  // rank support for the balanced parentheses sequence => see excess() and rank()
         select_support_type		m_select_bp;      // select support for the balanced parentheses sequence => see select()
 
         nnd_type 				m_nnd; 			  // nearest neighbour dictionary for pioneers bit_vector
 
-        bit_vector 					m_pioneer_bp;     // first level of recursion: balanced parentheses sequence of the pioneers
-        bp_support_gg<nnd_type, RankSupport, select_support_bs<RankSupport> >* m_pioneer_bp_support;
+        bit_vector 				m_pioneer_bp;     // first level of recursion: balanced parentheses sequence of the pioneers
+        bp_support_type* 		m_pioneer_bp_support;
 
         uint32_t m_block_size;
         size_type m_size;
@@ -172,6 +173,27 @@ class bp_support_gg
         ~bp_support_gg() {
             if (m_pioneer_bp_support != NULL)
                 delete m_pioneer_bp_support;
+        }
+
+        //! Swap operator
+        void swap(bp_support_gg& bp_support) {
+            m_rank_bp.swap(bp_support.m_rank_bp);
+            m_select_bp.swap(bp_support.m_select_bp);
+            m_nnd.swap(bp_support.m_nnd);
+
+            std::swap(m_block_size, bp_support.m_block_size);
+            std::swap(m_size, bp_support.m_size);
+            std::swap(m_blocks, bp_support.m_blocks);
+
+            m_pioneer_bp.swap(bp_support.m_pioneer_bp);
+
+            std::swap(m_pioneer_bp_support, bp_support.m_pioneer_bp_support);
+            if (m_pioneer_bp_support != NULL) {
+                m_pioneer_bp_support->set_vector(&m_pioneer_bp);
+            }
+            if (bp_support.m_pioneer_bp_support != NULL) {
+                bp_support.m_pioneer_bp_support->set_vector(&(bp_support.m_pioneer_bp));
+            }
         }
 
         //! Assignment operator
