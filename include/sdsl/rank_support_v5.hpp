@@ -231,8 +231,6 @@ template<uint8_t b, uint8_t pattern_len>
 inline void rank_support_v5<b, pattern_len>::swap(rank_support_v5& rs)
 {
     if (this != &rs) { // if rs and _this_ are not the same object
-        // TODO: swap m_v??? no!!! but the swap of the rank data strucutre has to be made after the swap of the supported bitvectors!!!
-//		std::swap(m_v, rs.m_v);
         m_basic_block.swap(rs.m_basic_block);
     }
 }
