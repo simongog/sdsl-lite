@@ -27,6 +27,7 @@
 #include "rank_support.hpp"
 #include "select_support.hpp"
 #include "algorithms.hpp"
+#include "util.hpp"
 #include <stack>
 #include <map>
 #include <set>
@@ -61,7 +62,7 @@ namespace sdsl
 template<class NearestNeighbourDictionary = nearest_neighbour_dictionary<30>,
          class RankSupport = rank_support_v<>,
          class SelectSupport = select_support_mcl<>,
-         class RangeMaxSupport = range_maximum_support_sparse_table<int_vector<0> >::type >
+         class RangeMaxSupport = range_maximum_support_sparse_table<int_vector<> >::type >
 class bp_support_g
 {
     public:
@@ -102,6 +103,7 @@ class bp_support_g
             m_match = bp_support.m_match;
             m_enclose = bp_support.m_enclose;
             m_range_max_match = bp_support.m_range_max_match;
+            m_range_max_match.set_vector(&m_match);
 
             m_block_size = bp_support.m_block_size;
             m_size = bp_support.m_size;
@@ -149,7 +151,7 @@ class bp_support_g
         }
 
         //! Copy constructor
-        bp_support_g(const bp_support_g& bp_support) {
+        bp_support_g(const bp_support_g& bp_support): bp_rank(m_rank_bp), bp_select(m_select_bp) {
             copy(bp_support);
         }
 
@@ -159,6 +161,28 @@ class bp_support_g
                 copy(bp_support);
             }
             return *this;
+        }
+
+        void swap(bp_support_g& bp_support) {
+            m_rank_bp.swap(bp_support.m_rank_bp);
+            m_select_bp.swap(bp_support.m_select_bp);
+
+            m_nnd.swap(bp_support.m_nnd);
+
+            m_pioneer_bp.swap(bp_support.m_pioneer_bp);
+            util::swap_support(m_rank_pioneer_bp, bp_support.m_rank_pioneer_bp,
+                               &m_pioneer_bp, &(bp_support.m_pioneer_bp));
+
+            m_nnd2.swap(bp_support.m_nnd2);
+
+            m_match.swap(bp_support.m_match);
+            m_enclose.swap(bp_support.m_enclose);
+            util::swap_support(m_range_max_match, bp_support.m_range_max_match,
+                               &m_match, &(bp_support.m_match));
+
+            std::swap(m_block_size, bp_support.m_block_size);
+            std::swap(m_size, bp_support.m_size);
+            std::swap(m_blocks, bp_support.m_blocks);
         }
 
         void set_vector(const bit_vector* bp) {
@@ -576,12 +600,9 @@ class bp_support_g
             written_bytes += m_enclose.serialize(out);
             written_bytes += m_range_max_match.serialize(out);
 
-            out.write((char*)&m_block_size, sizeof(m_block_size));
-            written_bytes += sizeof(m_block_size);
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            out.write((char*)&m_blocks, sizeof(m_blocks));
-            written_bytes += sizeof(m_blocks);
+            written_bytes += util::write_member(m_block_size, out);
+            written_bytes += util::write_member(m_size, out);
+            written_bytes += util::write_member(m_blocks, out);
             return written_bytes;
         }
 
@@ -602,10 +623,10 @@ class bp_support_g
             m_match.load(in);
             m_enclose.load(in);
             m_range_max_match.load(in, &m_match);
-            in.read((char*) &m_block_size, sizeof(m_block_size));
-            in.read((char*) &m_size, sizeof(m_size));
+            util::read_member(m_block_size, in);
+            util::read_member(m_size, in);
             assert(m_size == bp->size());
-            in.read((char*) &m_blocks, sizeof(m_blocks));
+            util::read_member(m_blocks, in);
         }
 
         std::string get_info()const {

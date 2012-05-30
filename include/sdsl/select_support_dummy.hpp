@@ -63,9 +63,6 @@ class select_support_dummy : public select_support
         select_support_dummy& operator=(const select_support_dummy& ss);
 
         //! Swap operator
-        /*! This swap Operator swaps two select_support_dummys in constant time.
-         *  All members (excluded the pointer to the supported SDSBitVector) are swapped.
-         */
         void swap(select_support_dummy& ss);
         //! Equality Operator
         /*! Two select_support_dummys are equal if all member variables are equal.
@@ -74,10 +71,6 @@ class select_support_dummy : public select_support
          */
         bool operator==(const select_support_dummy& ss)const;
         //! Unequality Operator
-        /*! Two select_support_dummys are not equal if any member variable are not equal.
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator==
-         */
         bool operator!=(const select_support_dummy& ss)const;
 };
 

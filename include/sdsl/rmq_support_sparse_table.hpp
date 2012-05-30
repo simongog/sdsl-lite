@@ -132,6 +132,11 @@ class rmq_support_sparse_table
             return *this;
         }
 
+        void swap(rmq_support_sparse_table& rm) {
+            std::swap(m_k, rm.m_k);
+            std::swap(m_table, rm.m_table);
+        }
+
         void set_vector(const RandomAccessContainer* v) {
             m_v = v;
         }

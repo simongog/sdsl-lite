@@ -64,20 +64,31 @@ class CstTest : public ::testing::Test
 
 using testing::Types;
 
-typedef Types<cst_sct3<>,
-        cst_sada<>,
-        cst_sada<cst_sada<>::csa_type, lcp_dac<> >,
-        cst_sct3<cst_sct3<>::csa_type, lcp_support_sada<> >,
-        cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<> >,
-        cst_sct3<cst_sct3<>::csa_type, lcp_support_tree2<> >,
-        cst_sct3<cst_sct3<>::csa_type, lcp_wt<> >
-        > Implementations;
+typedef Types<
+//		cst_sct3<csa_uncompressed, lcp_support_tree2<> >, TODO: make csa_uncompressed working again
+//		cst_sct3<csa_uncompressed, lcp_support_sada<> >,
+cst_sct3<>,
+         cst_sada<>,
+         cst_sada<cst_sada<>::csa_type, lcp_support_tree<> >,
+         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree2<> >,
+         cst_sada<cst_sada<>::csa_type, lcp_dac<> >,
+         cst_sct3<cst_sct3<>::csa_type, lcp_support_sada<> >,
+         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<> >,
+         cst_sct3<cst_sct3<>::csa_type, lcp_wt<> >,
+         cst_sada<cst_sada<>::csa_type, lcp_support_sada<> >,
+         cst_sada<cst_sada<>::csa_type, lcp_support_tree<> >,
+         cst_sada<cst_sada<>::csa_type, lcp_support_tree2<> >,
+         cst_sada<cst_sada<>::csa_type, lcp_wt<> >,
+         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_g<> >,
+         cst_sada<cst_sada<>::csa_type, lcp_dac<>, bp_support_g<> >
+         > Implementations;
 
 TYPED_TEST_CASE(CstTest, Implementations);
 
 
 TYPED_TEST(CstTest, CreateAndStoreTest)
 {
+    util::verbose=true;
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         util::verbose = false;
@@ -103,6 +114,8 @@ void check_node_method(const tCst& cst)
     }
 }
 
+
+
 //! Test the swap method
 TYPED_TEST(CstTest, SwapMethod)
 {
@@ -124,6 +137,29 @@ TYPED_TEST(CstTest, SwapMethod)
         		}
         */
         check_node_method(cst2);
+    }
+}
+
+
+//! Test the node method
+TYPED_TEST(CstTest, NodeMethod)
+{
+    for (size_t i=0; i< this->test_cases.size(); ++i) {
+        TypeParam cst;
+        ASSERT_EQ(this->load_cst(cst, i), true);
+        // doing a depth first traversal through the tree to count the nodes
+        check_node_method(cst);
+        /*		typedef typename TypeParam::const_iterator const_iterator;
+                typedef typename TypeParam::node_type node_type;
+                for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it) {
+                    if (it.visit() == 1) {
+                        node_type v = *it;
+                        size_type d = cst.depth(v);
+                        size_type lb = cst.lb(v), rb = cst.rb(v);
+                        ASSERT_EQ(cst.node(lb, rb, d), v);
+                    }
+                }
+        */
     }
 }
 
@@ -251,27 +287,6 @@ TYPED_TEST(CstTest, LcaMethod)
 }
 
 
-//! Test the node method
-TYPED_TEST(CstTest, NodeMethod)
-{
-    for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam cst;
-        ASSERT_EQ(this->load_cst(cst, i), true);
-        // doing a depth first traversal through the tree to count the nodes
-        check_node_method(cst);
-        /*		typedef typename TypeParam::const_iterator const_iterator;
-                typedef typename TypeParam::node_type node_type;
-                for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it) {
-                    if (it.visit() == 1) {
-                        node_type v = *it;
-                        size_type d = cst.depth(v);
-                        size_type lb = cst.lb(v), rb = cst.rb(v);
-                        ASSERT_EQ(cst.node(lb, rb, d), v);
-                    }
-                }
-        */
-    }
-}
 
 
 

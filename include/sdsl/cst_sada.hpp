@@ -301,16 +301,9 @@ class cst_sada
             if (this != &cst) {
                 m_csa.swap(cst.m_csa);
                 m_bp.swap(cst.m_bp);
-                m_bp_support.swap(cst.m_bp_support);
-                m_bp_support.set_vector(&m_bp);
-                cst.m_bp_support.set_vector(&(cst.m_bp));
-
-                m_bp_rank10.swap(cst.m_bp_rank10);
-                m_bp_rank10.set_vector(&m_bp);
-                cst.m_bp_rank10.set_vector(&(cst.m_bp));
-                m_bp_select10.swap(cst.m_bp_select10);
-                m_bp_select10.set_vector(&m_bp);
-                cst.m_bp_select10.set_vector(&(cst.m_bp));
+                util::swap_support(m_bp_support, cst.m_bp_support, &m_bp, &(cst.m_bp));
+                util::swap_support(m_bp_rank10, cst.m_bp_rank10, &m_bp, &(cst.m_bp));
+                util::swap_support(m_bp_select10, cst.m_bp_select10, &m_bp, &(cst.m_bp));
                 // anything else has to be swapped before swapping lcp
                 swap_lcp(m_lcp, cst.m_lcp, *this, cst);
             }

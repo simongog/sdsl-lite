@@ -749,6 +749,10 @@ void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::swap(csa_sad
         }
         std::swap(m_C[256], csa.m_C[256]);
         std::swap(m_sigma, csa.m_sigma);
+        m_psi_wrapper = psi_type(this);
+        csa.m_psi_wrapper = psi_type(&csa);
+        m_bwt = bwt_type(this);
+        csa.m_bwt = bwt_type(&csa);
     }
 }
 

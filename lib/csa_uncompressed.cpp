@@ -90,8 +90,7 @@ csa_uncompressed::size_type csa_uncompressed::serialize(std::ostream& out)const
     wb			   = sizeof(m_C[0])*257;
     out.write((char*)C, wb);
     written_bytes += wb;
-    out.write((char*)&m_sigma, sizeof(m_sigma));
-    wb += sizeof(m_sigma);
+    wb += util::write_member(m_sigma, out);
     return written_bytes;
 }
 
@@ -102,7 +101,7 @@ void csa_uncompressed::load(std::istream& in)
     in.read((char*)m_char2comp, sizeof(m_char2comp[0])*256);
     in.read((char*)m_comp2char, sizeof(m_comp2char[0])*256);
     in.read((char*)m_C, sizeof(m_C[0])*257);
-    in.read((char*)&m_sigma, sizeof(m_sigma));
+    util::read_member(m_sigma, in);
     m_psi = psi_type(this);
     m_bwt = bwt_type(this);
 }
@@ -120,6 +119,10 @@ void csa_uncompressed::swap(csa_uncompressed& csa)
         }
         std::swap(m_C[256], csa.m_C[256]);
         std::swap(m_sigma, csa.m_sigma);
+        m_psi = psi_type(this);
+        m_bwt = bwt_type(this);
+        csa.m_psi = psi_type(&csa);
+        csa.m_bwt = bwt_type(&csa);
     }
 }
 

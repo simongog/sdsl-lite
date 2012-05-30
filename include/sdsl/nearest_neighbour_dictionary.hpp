@@ -138,6 +138,17 @@ class nearest_neighbour_dictionary
             return *this;
         }
 
+        void swap(nearest_neighbour_dictionary& nnd) {
+            // copy all members of the data structure
+            m_abs_samples.swap(nnd.m_abs_samples);
+            m_differences.swap(nnd.m_differences);
+            std::swap(m_ones, nnd.m_ones);
+            std::swap(m_size, nnd.m_size);
+            m_contains_abs_sample.swap(nnd.m_contains_abs_sample);
+            util::swap_support(m_rank_contains_abs_sample, nnd.m_rank_contains_abs_sample,
+                               &m_contains_abs_sample, &(nnd.m_contains_abs_sample));
+        }
+
         //! Answers rank queries for the supported bit_vector
         /*! \param idx Argument for the length of the prefix v[0..idx-1].
          *  \return Number of 1-bits in the prefix [0..idx-1] of the supported bit_vector.

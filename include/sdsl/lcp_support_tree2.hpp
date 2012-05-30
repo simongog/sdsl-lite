@@ -5,6 +5,7 @@
 #include "util.hpp"
 #include "algorithms_for_compressed_suffix_trees.hpp"
 #include "rank_support_v.hpp"
+#include "select_support_dummy.hpp"
 #include "wt_huff.hpp"
 #include <iostream>
 #include <string>
@@ -51,7 +52,7 @@ class _lcp_support_tree2
 
     private:
         const cst_type*	m_cst;
-        typedef select_support_bs< rank_support_v<> > tDummySS;
+        typedef select_support_dummy tDummySS;
         wt_huff<bit_vector, rank_support_v5<>, tDummySS, tDummySS > m_small_lcp; // vector for lcp values < 254
         int_vector<> m_big_lcp;  // vector for lcp values >= 254
 
@@ -154,7 +155,7 @@ start:
             val = m_small_lcp[idx];
             if (val < 254) {
                 return val;// - offset;
-            } else if (val == 254) { // if lcp value is >= 254 and position i is reducable
+            } else if (val == 254) { // if lcp value is >= 254 and position i is reducible
                 i = m_cst->csa.psi(i); // i = LF[i]    // (*m_psi)(i);
                 ++offset; // goto lcp value, which is one bigger
                 goto start;

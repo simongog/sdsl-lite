@@ -871,7 +871,8 @@ void csa_wt<WaveletTree, SampleDens, InvSampleDens, fixedIntWidth, charType>::sw
 //        m_psi.swap(csa.m_psi);
         m_psi = psi_type(this);
         csa.m_psi = psi_type(&csa);
-        m_bwt.swap(csa.m_bwt);
+        m_bwt = bwt_type(this);
+        csa.m_bwt = bwt_type(&csa);
     }
 }
 
