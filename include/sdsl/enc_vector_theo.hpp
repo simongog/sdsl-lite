@@ -568,9 +568,8 @@ void enc_vector_theo<Coder, SampleDens, RankSupport , SelectSupport, fixedIntWid
     }
 //	delta_c.resize(0);
 //std::cerr<<"Calc rank"<<std::endl;
-    m_sample_rank.init(&m_sample);  // init rank for m_sample
+    util::init_support(m_sample_rank, &m_sample);  // init rank for m_sample
 //std::cerr<<"Calc select"<<std::endl;
-//	m_sample_select.init(&m_sample); // init select for m_sample
 //std::cerr<<"Finished "<<std::endl;,
     m_elements = c.size();
 }

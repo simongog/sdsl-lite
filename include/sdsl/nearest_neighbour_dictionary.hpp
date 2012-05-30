@@ -119,7 +119,7 @@ class nearest_neighbour_dictionary
                     last_one_pos = i;
                 }
             }
-            m_rank_contains_abs_sample.init(&m_contains_abs_sample);
+            util::init_support(m_rank_contains_abs_sample, &m_contains_abs_sample);
         }
 
         //! Copy constructor

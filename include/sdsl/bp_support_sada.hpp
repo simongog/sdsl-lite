@@ -353,8 +353,8 @@ class bp_support_sada
             if (bp == NULL or bp->size()==0)
                 return;
             // initialize rank and select
-            m_bp_rank.init(bp);
-            m_bp_select.init(bp);
+            util::init_support(m_bp_rank, bp);
+            util::init_support(m_bp_select, bp);
 
             m_med_inner_blocks = 1;
             // m_med_inner_blocks = (next power of 2 greater than or equal to m_med_blocks)-1

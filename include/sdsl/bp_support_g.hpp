@@ -129,8 +129,8 @@ class bp_support_g
             }
             if (bp == NULL)
                 return;
-            m_rank_bp.init(bp);
-            m_select_bp.init(bp);
+            util::init_support(m_rank_bp, bp);
+            util::init_support(m_select_bp, bp);
             bit_vector pioneer;
             // calulate pioneers
             algorithm::calculate_pioneers_bitmap(*m_bp, m_block_size, pioneer);
@@ -138,7 +138,7 @@ class bp_support_g
             m_pioneer_bp.resize(m_nnd.ones());
             for (size_type i=1; i<= m_nnd.ones(); ++i) // replace this by an iterator!!! see todo for the nnd data structure
                 m_pioneer_bp[i-1] = (*m_bp)[m_nnd.select(i)];
-            m_rank_pioneer_bp.init(&m_pioneer_bp);
+            util::init_support(m_rank_pioneer_bp, &m_pioneer_bp);
             algorithm::calculate_pioneers_bitmap(m_pioneer_bp, m_block_size, pioneer);
             m_nnd2 = NearestNeighbourDictionary(pioneer);
 

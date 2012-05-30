@@ -139,8 +139,8 @@ class sd_vector
                 }
             }
             util::assign(m_high, high);
-            m_high_1_select.init(&m_high);
-            m_high_0_select.init(&m_high);
+            util::init_support(m_high_1_select, &m_high);
+            util::init_support(m_high_0_select, &m_high);
         }
 
         //! Accessing the i-th element of the original bit_vector
@@ -251,17 +251,14 @@ class sd_rank_support
         typedef sd_vector<hi_bit_vector_type, Select1Support, Select0Support> bit_vector_type;
     private:
         const bit_vector_type* m_v;
-//		mutable bit_vector_type *m_v;
 
     public:
 
-//		sd_rank_support(const bit_vector_type *v=NULL){
-        sd_rank_support(bit_vector_type* v=NULL) {
+        sd_rank_support(const bit_vector_type* v=NULL) {
             init(v);
         }
 
-//		void init(const bit_vector_type *v=NULL){
-        void init(bit_vector_type* v=NULL) {
+        void init(const bit_vector_type* v=NULL) {
             set_vector(v);
         }
 

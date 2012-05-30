@@ -287,9 +287,9 @@ class wt_huff
         }
 
         void construct_init_rank_select() {
-            m_tree_rank.init(&m_tree);
-            m_tree_select0.init(&m_tree);
-            m_tree_select1.init(&m_tree);
+            util::init_support(m_tree_rank, &m_tree);
+            util::init_support(m_tree_select0, &m_tree);
+            util::init_support(m_tree_select1, &m_tree);
         }
 
         void construct_precalc_node_ranks() {

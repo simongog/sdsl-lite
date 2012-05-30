@@ -231,7 +231,7 @@ class wt_rlg8
                 std::cout<<"# m_b.size in MB="<<util::get_size_in_bytes(m_b)/(1024.0*1024.0)<<std::endl;
             }
 
-            m_b_rank.init(&m_b);
+            util::init_support(m_b_rank, &m_b);
             m_b_border_rank.resize(m_b_border.size());
 
             for (size_type i=0; i<m_b_border.size(); ++i) {

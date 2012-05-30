@@ -1119,7 +1119,7 @@ cst_sct3p<Csa, Lcp, Bp_support, Rank_support>::cst_sct3p(const std::string& csa_
     }
     write_R_output("cst", "construct BPSS", "begin", 1, 0);
     m_bp_support = Bp_support(&m_bp);
-    m_first_child_rank.init(&m_first_child);
+    util::init_support(m_first_child_rank, &m_first_child);
     write_R_output("cst", "construct BPSS", "end", 1, 0);
     m_sigma = degree(root());
 }
@@ -1141,7 +1141,7 @@ void cst_sct3p<Csa, Lcp, Bp_support, Rank_support>::construct(tMSS& file_map, co
     write_R_output("cst", "construct BPS", "end", 1, 0);
     write_R_output("cst", "construct BPSS", "begin", 1, 0);
     m_bp_support = Bp_support(&m_bp);
-    m_first_child_rank.init(&m_first_child);
+    util::init_support(m_first_child_rank, &m_first_child);
     write_R_output("cst", "construct BPSS", "end", 1, 0);
 
     if (!build_only_bps) {

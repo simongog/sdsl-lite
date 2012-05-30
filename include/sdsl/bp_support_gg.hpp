@@ -130,8 +130,8 @@ class bp_support_gg
                 return;
             stop_watch sw; sw.start();
 //			write_R_output(sw, "bp support", "init rank and select","start");
-            m_rank_bp.init(bp);
-            m_select_bp.init(bp);
+            util::init_support(m_rank_bp, bp);
+            util::init_support(m_select_bp, bp);
 //			write_R_output(sw, "bp support", "init rank and select","end");
 //			write_R_output(sw, "bp support", "init pioneer","begin", m_bp->size());
             {

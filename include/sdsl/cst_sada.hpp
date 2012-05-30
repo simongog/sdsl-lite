@@ -174,21 +174,6 @@ class cst_sada
             copy(cst);
         }
 
-        // Constructor
-        /* \param str The string for which the CST should be created.
-         */
-        /*
-        		cst_sada(const unsigned char *str):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), bp_rank_10(m_bp_rank10), bp_select_10(m_bp_select10){
-        			cst_sct<Csa, Lcp> temp_cst(str); // TODO replace with cst_sct3 building only the navigation structure
-        			if( !generate_bp(temp_cst, str) )
-        				return;
-        			m_bp_support = Bp_support(&m_bp);
-        			m_bp_rank10.init(&m_bp);
-        			m_bp_select10.init(&m_bp);
-
-        		}
-        */
-
         template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1, uint8_t int_width_2, class size_type_class_2>
         cst_sada(const std::string& csa_file_name,
                  int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
@@ -221,8 +206,8 @@ class cst_sada
 
             write_R_output("cst", "construct BPSS", "begin", 1,0);
             m_bp_support = Bp_support(&m_bp);
-            m_bp_rank10.init(&m_bp);
-            m_bp_select10.init(&m_bp);
+            util::init_support(m_bp_rank10, &m_bp);
+            util::init_support(m_bp_select10, &m_bp);
             write_R_output("cst", "construct BPSS", "end", 1,0);
         }
 
@@ -251,8 +236,8 @@ class cst_sada
             }
             write_R_output("cst", "construct BPSS", "begin", 1,0);
             m_bp_support = Bp_support(&m_bp);
-            m_bp_rank10.init(&m_bp);
-            m_bp_select10.init(&m_bp);
+            util::init_support(m_bp_rank10,   &m_bp);
+            util::init_support(m_bp_select10, &m_bp);
             write_R_output("cst", "construct BPSS", "end", 1,0);
 
             write_R_output("cst", "construct CLCP", "begin", 1,0);

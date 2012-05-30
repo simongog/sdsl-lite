@@ -292,6 +292,20 @@ void swap_support(S& s1, S& s2, const P* p1, const P* p2)
     s2.set_vector(p2);
 }
 
+//! Initialise support data structure with
+/*! \param s Support structure which should be initialized
+ *  \param x Pointer to the data structure which should be supported.
+ */
+template<class S, class X>
+void init_support(S& s, const X* x)
+{
+    S temp(x);			// generate a temporary support object
+    s.swap(temp);		// swap its content with the target object
+    s.set_vector(x);    // set the support object's  pointer to x
+}
+
+
+
 }
 
 //==================== Template functions ====================

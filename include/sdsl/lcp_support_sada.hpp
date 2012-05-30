@@ -270,7 +270,7 @@ void _lcp_support_sada<Csa, SelectSupport>::construct(const Text& text, const Sa
         oldl = l;
     }
     m_data.resize(data_cnt);
-    m_select_support.init(&m_data);
+    util::init_support(m_select_support, &m_data);
 #ifdef SDSL_DEBUG
     std::cerr<<"finished building _lcp_support_sada"<<std::endl;
 #endif
@@ -313,7 +313,7 @@ void _lcp_support_sada<Csa, SelectSupport>::construct(int_vector_file_buffer<int
         r 		=	isa_buf.load_next_block();
     }
     m_data.resize(data_cnt);
-    m_select_support.init(&m_data);
+    util::init_support(m_select_support, &m_data);
 #ifdef SDSL_DEBUG
     std::cerr<<"finished building _lcp_support_sada"<<std::endl;
 #endif

@@ -133,7 +133,7 @@ class bp_support_j
             }
 
             // initialize the rank dictionary for the pioneer bitmap
-            m_rank_pioneer_bitmap.init(&m_pioneer_bitmap);
+            util::init_support(m_rank_pioneer_bitmap, &m_pioneer_bitmap);
 
             // store matching positions of enclose pioneers
             m_enclose_pioneer.set_int_width(bit_magic::l1BP(m_size)+1);
@@ -143,7 +143,7 @@ class bp_support_j
                 m_enclose_pioneer[cnt++] = mit->second;
             }
             // initialize the rank dictionary for the enclose pioneer bitmap
-            m_rank_enclose_pioneer_bitmap.init(&m_enclose_pioneer_bitmap);
+            util::init_support(m_rank_enclose_pioneer_bitmap, &m_enclose_pioneer_bitmap);
 
             /*				if(m_size<120 and m_size>0){
             				std::cerr<<"bp"<<std::endl;
@@ -190,8 +190,8 @@ class bp_support_j
         bp_support_j(const bit_vector* bp = NULL, uint32_t ignore=0/*, uint32_t used_block_size = 64*/):m_bp(bp), m_block_size(64/*block_size==0?used_block_size:block_size*/), m_size(bp==NULL?0:bp->size()) {
 //				assert(m_block_size > 0 and m_block_size <= 8192 and m_block_size%64 == 0);
             m_blocks = (m_size+m_block_size-1)/m_block_size;
-            m_rank.init(m_bp);
-            m_select.init(m_bp);
+            util::init_support(m_rank, m_bp);
+            util::init_support(m_select, m_bp);
             calculate_pioneers_bitmap();
         }
 

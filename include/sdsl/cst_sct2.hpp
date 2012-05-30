@@ -1054,7 +1054,7 @@ cst_sct2<Csa, Lcp, Bp_support, Rank_support>::cst_sct2(const std::string& csa_fi
 
     write_R_output("cst", "construct BPSS", "begin", 1, 0);
     m_bp_support = Bp_support(&m_bp);
-    m_first_child_rank.init(&m_first_child);
+    util::init_support(m_first_child_rank, &m_first_child);
     write_R_output("cst", "construct BPSS", "end",1,0);
 }
 

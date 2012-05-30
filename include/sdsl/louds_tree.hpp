@@ -9,6 +9,7 @@
 #define INCLUDED_SDSL_LOUDS_TREE
 
 #include "int_vector.hpp"
+#include "util.hpp"
 #include <ostream>
 
 //! Namespace for the succinct data structure library.
@@ -80,8 +81,8 @@ class louds_tree
             tmp_bv.resize(pos);
             // TODO do the BFS traversal
             util::assign(m_bv, tmp_bv);
-            m_bv_select1.init(&m_bv);
-            m_bv_select0.init(&m_bv);
+            util::init_support(m_bv_select1, &m_bv);
+            util::init_support(m_bv_select0, &m_bv);
         }
 
         //! Returns the root node

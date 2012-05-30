@@ -209,10 +209,10 @@ class wt_rlmn
                 util::assign(m_bf, bf);
             }
 
-            m_bl_rank.init(&m_bl);
-            m_bf_rank.init(&m_bf);
-            m_bf_select.init(&m_bf);
-            m_bl_select.init(&m_bl);
+            util::init_support(m_bl_rank, &m_bl);
+            util::init_support(m_bf_rank, &m_bf);
+            util::init_support(m_bf_select, &m_bf);
+            util::init_support(m_bl_select, &m_bl);
             m_C_bf_rank = int_vector<64>(256,0);
             for (size_type i=0; i<256; ++i) {
                 m_C_bf_rank[i] = m_bf_rank(m_C[i]);

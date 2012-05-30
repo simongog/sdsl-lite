@@ -1228,8 +1228,8 @@ cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(const std::string& csa_fi
         write_R_output("cst", "construct CLCP", "end", 1, 0);
     }
     write_R_output("cst", "construct BPSS", "begin", 1, 0);
-    m_bp_support = Bp_support(&m_bp);
-    m_first_child_rank.init(&m_first_child);
+    util::init_support(m_bp_support, &m_bp);
+    util::init_support(m_first_child_rank, &m_first_child);
     write_R_output("cst", "construct BPSS", "end", 1, 0);
     m_sigma = degree(root());
 }
@@ -1250,8 +1250,8 @@ void cst_sct3<Csa, Lcp, Bp_support, Rank_support>::construct(tMSS& file_map, con
     m_nodes = algorithm::construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child) + m_bp.size()/2;
     write_R_output("cst", "construct BPS", "end", 1, 0);
     write_R_output("cst", "construct BPSS", "begin", 1, 0);
-    m_bp_support = Bp_support(&m_bp);
-    m_first_child_rank.init(&m_first_child);
+    util::init_support(m_bp_support, &m_bp);
+    util::init_support(m_first_child_rank, &m_first_child);
     write_R_output("cst", "construct BPSS", "end", 1, 0);
 
     if (!build_only_bps) {

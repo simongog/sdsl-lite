@@ -177,9 +177,9 @@ class wt_int
             }
 #endif
             util::assign(m_tree, tree);
-            m_tree_rank.init(&m_tree);
-            m_tree_select0.init(&m_tree);
-            m_tree_select1.init(&m_tree);
+            util::init_support(m_tree_rank, &m_tree);
+            util::init_support(m_tree_select0, &m_tree);
+            util::init_support(m_tree_select1, &m_tree);
         }
 
         //! Semi-external constructor
@@ -286,9 +286,9 @@ class wt_int
             }
 #endif
             util::assign(m_tree, tree);
-            m_tree_rank.init(&m_tree);
-            m_tree_select0.init(&m_tree);
-            m_tree_select1.init(&m_tree);
+            util::init_support(m_tree_rank, &m_tree);
+            util::init_support(m_tree_select0, &m_tree);
+            util::init_support(m_tree_select1, &m_tree);
         }
 
         //! Copy constructor

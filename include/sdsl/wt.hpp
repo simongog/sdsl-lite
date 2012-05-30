@@ -551,12 +551,12 @@ class wt
                     }
                 }
                 util::assign(m_tree, tree);
-                m_tree_rank.init(&m_tree);
+                util::init_support(m_tree_rank, &m_tree);
                 for (size_type i=0; i < m_node_pointers.size(); ++i) {
                     m_node_pointers_rank[i] = m_tree_rank(m_node_pointers[i]);
                 }
-                m_tree_select0.init(&m_tree);
-                m_tree_select1.init(&m_tree);
+                util::init_support(m_tree_select0, &m_tree);
+                util::init_support(m_tree_select1, &m_tree);
             }
         }
 
@@ -715,7 +715,7 @@ class wt
                 sw.start();
 #endif
                 util::assign(m_tree, tree);
-                m_tree_rank.init(&m_tree);
+                util::init_support(m_tree_rank,&m_tree);
 #ifdef SDSL_DEBUG_WT
                 sw.stop();
                 std::cerr<<"Time for rank init: "<< sw.get_real_time() << " ms real time , "<< sw.get_user_time()<<" ms user time"<< std::endl;
@@ -724,11 +724,11 @@ class wt
                 for (size_type i=0; i < m_node_pointers.size(); ++i) {
                     m_node_pointers_rank[i] = m_tree_rank(m_node_pointers[i]);
                 }
-                m_tree_select0.init(&m_tree);
+                util::init_support(m_tree_select0,&m_tree);
 #ifdef SDSL_DEBUG_WT
                 std::cerr<<"select0 init ready!"<<std::endl;
 #endif
-                m_tree_select1.init(&m_tree);
+                util::init_support(m_tree_select1,&m_tree);
 #ifdef SDSL_DEBUG_WT
                 sw.stop();
                 std::cerr<<"Time for select init: "<< sw.get_real_time() << " ms real time , "<< sw.get_user_time()<<" ms user time"<< std::endl;
@@ -756,9 +756,9 @@ class wt
                 std::swap(m_size, wt.m_size);
                 std::swap(m_sigma,  wt.m_sigma);
                 m_tree.swap(wt.m_tree);
-                m_tree_rank.swap(wt.m_tree_rank); // rank swap after the swap of the bit vector m_tree
-                m_tree_select1.swap(wt.m_tree_select1); // select1 swap after the swap of the bit vector m_tree
-                m_tree_select0.swap(wt.m_tree_select0); // select0 swap after the swap of the bit vector m_tree
+                util::swap_support(m_tree_rank, wt.m_tree_rank, &m_tree, &(wt.m_tree));
+                util::swap_support(m_tree_select1, wt.m_tree_select1, &m_tree, &(wt.m_tree));
+                util::swap_support(m_tree_select0, wt.m_tree_select0, &m_tree, &(wt.m_tree));
                 m_node_pointers.swap(wt.m_node_pointers);
                 m_node_pointers_rank.swap(wt.m_node_pointers_rank);
                 std::swap(m_first_symbol, wt.m_first_symbol);
@@ -766,7 +766,9 @@ class wt
                 m_inv_char_map.swap(wt.m_inv_char_map);
                 // swap char_node_map
                 if (wt_trait<RandomAccessContainer>::char_node_map_size == 256) {
-                    for (size_type i=0; i<256; ++i) std::swap(m_char_node_map[i],wt.m_char_node_map[i]);
+                    for (size_type i=0; i<256; ++i) {
+                        std::swap(m_char_node_map[i],wt.m_char_node_map[i]);
+                    }
                 }
             }
         }

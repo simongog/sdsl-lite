@@ -410,7 +410,7 @@ void csa_sada_theo<EncVector,RankSupport>::construct(RandomAccessContainer& psi,
         }
         m_b[l][ isa_2k ] = 1;
         m_last_pos[l] = nn&1 ? isa_2k : psiz[isa_2k]; // save position of entry nn-1 in SA
-        m_b_rank[l].init(&m_b[l]); // build rank structure for b
+        util::init_support(m_b_rank[l], &m_b[l]); // build rank structure for b
         temp_psi.set_int_width(bit_magic::l1BP(nn)+1);
         temp_psi.resize(nn/2);
         for (size_type i=0, j=0; i<nn; ++i) {
@@ -543,7 +543,7 @@ void csa_sada_theo<EncVector, RankSupport>::load(std::istream& in)
         for (size_type l=0; l<m_level; ++l) m_psi[l].load(in);
         for (size_type l=0; l<m_level; ++l) m_b[l].load(in);
         //	for(size_type l=0; l<m_level; ++l) m_b_rank[l].load(in, &m_b[l]);
-        for (size_type l=0; l<m_level; ++l) m_b_rank[l].init(&m_b[l]);
+        for (size_type l=0; l<m_level; ++l) util::init_support(m_b_rank[l], &m_b[l]);
         m_last_pos.load(in);
     }
     in.read((char*)m_char2comp, sizeof(m_char2comp[0])*256);

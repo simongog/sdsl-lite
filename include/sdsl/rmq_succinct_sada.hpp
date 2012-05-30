@@ -105,8 +105,8 @@ class rmq_support_sada
                 _construct_bp_of_extended_cartesian_tree((size_type)0, m_v->size()-1, bp_cnt, rmq_helper);
                 assert(bp_cnt == 4*m_v->size());
                 m_ect_bp_support = Bp_support(&m_ect_bp);
-                m_ect_bp_rank10.init(&m_ect_bp);
-                m_ect_bp_select10.init(&m_ect_bp);
+                util::init_support(m_ect_bp_rank10, &m_ect_bp);
+                util::init_support(m_ect_bp_select10, &m_ect_bp);
             }
         }
 

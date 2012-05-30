@@ -333,7 +333,7 @@ void lcp_dac<b, rank_support_type>::construct(int_vector_file_buffer<int_width, 
 //	std::cerr<<"m_overflow.size()="<<m_overflow.size()<<" "<<"m_data.size()="<<m_data.size()<<std::endl;
 //  (4) Initialize rank data structure for m_overflow and precalc rank for
 //      pointers
-    m_overflow_rank.init(&m_overflow);
+    util::init_support(m_overflow_rank, &m_overflow);
     for (size_type i=0; 2*i < m_level_pointer_and_rank.size() and
          m_level_pointer_and_rank[2*i] < m_overflow.size(); ++i) {
         m_level_pointer_and_rank[2*i+1] = m_overflow_rank(m_level_pointer_and_rank[2*i]);
