@@ -7,8 +7,8 @@ include(CheckSSE4_2)
 PROJECT(sdsl CXX C)
 set(PROJECT_VEDOR "Simon Gog")
 set(PROJECT_CONTACT "simon.gog@gmail.com")
-set(PROJECT_URL "http://www.uni-ulm.de/in/theo/research/sdsl")
-set(PROJECT_DESCRIPTION "A succinct data structure library")
+set(PROJECT_URL "https://github.com/simongog/sdsl")
+set(PROJECT_DESCRIPTION "The succinct data structure library")
 
 ## Project options ##
 #option(BUILD_EXAMPLES "Build examples" OFF)
