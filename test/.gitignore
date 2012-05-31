@@ -1,4 +1,6 @@
-*
-!*.cpp
-!Makefile
-!.gitignore
+./*           # ignore every file in the current directory
+!*/           # don't ignore subdirectories
+!*.cpp        # don't ignore .ccp-files
+!Makefile     # don't ignore the Makefile
+!.gitignore   # don't ignore the .gitignore file
+!README       # don't ignore the README file

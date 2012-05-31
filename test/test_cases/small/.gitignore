@@ -1,4 +1,1 @@
-*
-!.gitignore
-!get_corpus.sh
-!README
+*.txt
