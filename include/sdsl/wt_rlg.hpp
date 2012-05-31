@@ -74,20 +74,20 @@ class wt_rlg
         typedef WaveletTree             wt_type;
 
     private:
-        size_type 				m_size;         // size of the original input sequence
-        wt_type					m_wt;	        // wavelet tree for all levels
-        bit_vector				m_b;	        // bit vector which indicates if a pair consists of
+        size_type 				m_size;           // size of the original input sequence
+        wt_type					m_wt;	          // wavelet tree for all levels
+        bit_vector				m_b;	          // bit vector which indicates if a pair consists of
         // two equal chars
-        rank_support_type		m_b_rank;       // rank support for vector b
-        int_vector<64>          m_b_border_rank;// Vector in which we store the rank values of m_b at the
+        rank_support_type		m_b_rank;         // rank support for vector b
+        int_vector<64>          m_b_border_rank;  // Vector in which we store the rank values of m_b at the
         // border positions.
         int_vector<64>          m_b_border;       // Vector in which we store the borders of the different levels
         // Takes \f$\Order{\max(1, \log L)\log n}\f$ bits.
-        int_vector<64>          m_wt_rank;  // Vector in which we store the rank value for each character
+        int_vector<64>          m_wt_rank;  	  // Vector in which we store the rank value for each character
         // and each border.
         // Takes \f$\Order{\sigma\max(1, \log L)\log n}\f bits
-        int_vector<8>			m_char2comp;    //
-        int_vector<64>          m_char_occ;     //
+        int_vector<8>			m_char2comp;      //
+        int_vector<64>          m_char_occ;       //
 
         void copy(const wt_rlg& wt) {
             m_size          = wt.m_size;
@@ -190,7 +190,6 @@ class wt_rlg
             //  handle remaining levels
             while (pair1cnt > 0) {
                 ++m;
-                std::cerr<<"# level="<<level<<" ones="<<pair1cnt<<" pair0cnt*2="<<(pair0cnt-old_pair0cnt)*2<<std::endl;
                 old_pair0cnt = pair0cnt;
                 m_b_border[++level] = b_cnt;
                 size_type level_size = pair1cnt;
@@ -219,7 +218,6 @@ class wt_rlg
             m_b.resize(b_cnt);
             m_b_border.resize(level+1);
 
-            std::cerr<<"# level="<<level<<" ones="<<pair1cnt<<" pair0cnt*2="<<(pair0cnt-old_pair0cnt)*2<<std::endl;
             wt_out.seekp(0, std::ios::beg);
             bit_cnt = (sizeof(bit_cnt) + 2*pair0cnt)*8;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt));
@@ -228,8 +226,6 @@ class wt_rlg
             {
                 int_vector_file_buffer<8, size_type> temp_bwt_buf(temp_file.c_str());
                 m_wt.construct(temp_bwt_buf, temp_bwt_buf.int_vector_size);
-                std::cout<<"# m_wt.size in MB="<<util::get_size_in_bytes(m_wt)/(1024.0*1024.0)<<std::endl;
-                std::cout<<"# m_b.size in MB="<<util::get_size_in_bytes(m_b)/(1024.0*1024.0)<<std::endl;
             }
 
             util::init_support(m_b_rank, &m_b);
@@ -283,10 +279,9 @@ class wt_rlg
                 std::swap(m_size, wt.m_size);
                 m_wt.swap(wt.m_wt);
                 m_b.swap(wt.m_b);
-                m_b_rank.swap(wt.m_b_rank);
-                m_b_rank.set_vector(&m_b);
-                wt.m_b_rank.set(&(wt.m_b));
+                util::swap_support(m_b_rank, wt.m_b_rank, &m_b, &(wt.m_b));
                 m_b_border.swap(wt.m_b_border);
+                m_b_border_rank.swap(wt.m_b_border_rank);
                 m_wt_rank.swap(wt.m_wt_rank);
                 m_char2comp.swap(wt.m_char2comp);
                 m_char_occ.swap(wt.m_char_occ);
@@ -336,7 +331,6 @@ class wt_rlg
             value_type cc    = m_char2comp[c];
             size_type cs     = 0;
             while (i>0 and cs != m_char_occ[cc]) {
-//std::cerr<<"i="<<i<<" level="<<level<<" added="<<added<<" res="<<res<<std::endl;
                 size_type ones  = m_b_rank((i>>1) + m_b_border[level]); // # of ones till this position
                 size_type zeros = m_b_border[level] + (i>>1) - ones;  // # of zeros till this position
                 res += ((cs=m_wt.rank(zeros<<1, c)) - (m_wt_rank[cc*m_b_border.size() + level])) << level;
@@ -407,6 +401,7 @@ class wt_rlg
             written_bytes += m_b.serialize(out);
             written_bytes += m_b_rank.serialize(out);
             written_bytes += m_b_border.serialize(out);
+            written_bytes += m_b_border_rank.serialize(out);
             written_bytes += m_wt_rank.serialize(out);
             written_bytes += m_char2comp.serialize(out);
             written_bytes += m_char_occ.serialize(out);
@@ -420,6 +415,7 @@ class wt_rlg
             m_b.load(in);
             m_b_rank.load(in, &m_b);
             m_b_border.load(in);
+            m_b_border_rank.load(in);
             m_wt_rank.load(in);
             m_char2comp.load(in);
             m_char_occ.load(in);

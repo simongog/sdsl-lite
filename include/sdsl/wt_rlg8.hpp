@@ -188,7 +188,6 @@ class wt_rlg8
             //  handle remaining levels
             while (pair1cnt > 0) {
                 ++m;
-                std::cerr<<"# level="<<level<<" ones="<<pair1cnt<<" pair0cnt*8="<<(pair0cnt-old_pair0cnt)*8<<" b_cnt="<<b_cnt<<" m_b.size()="<<m_b.size()<<std::endl;
                 old_pair0cnt = pair0cnt;
                 m_b_border[++level] = b_cnt;
                 size_type level_size = pair1cnt;
@@ -218,7 +217,6 @@ class wt_rlg8
             m_b.resize(b_cnt);
             m_b_border.resize(level+1);
 
-            std::cerr<<"# level="<<level<<" ones="<<pair1cnt<<" pair0cnt*8="<<(pair0cnt-old_pair0cnt)*8<<std::endl;
             wt_out.seekp(0, std::ios::beg);
             bit_cnt = (sizeof(bit_cnt) + 8*pair0cnt)*8;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt));
@@ -227,8 +225,6 @@ class wt_rlg8
             {
                 int_vector_file_buffer<8, size_type> temp_bwt_buf(temp_file.c_str());
                 m_wt.construct(temp_bwt_buf, temp_bwt_buf.int_vector_size);
-                std::cout<<"# m_wt.size in MB="<<util::get_size_in_bytes(m_wt)/(1024.0*1024.0)<<std::endl;
-                std::cout<<"# m_b.size in MB="<<util::get_size_in_bytes(m_b)/(1024.0*1024.0)<<std::endl;
             }
 
             util::init_support(m_b_rank, &m_b);
@@ -282,10 +278,9 @@ class wt_rlg8
                 std::swap(m_size, wt.m_size);
                 m_wt.swap(wt.m_wt);
                 m_b.swap(wt.m_b);
-                m_b_rank.swap(wt.m_b_rank);
-                m_b_rank.set_vector(&m_b);
-                wt.m_b_rank.set(&(wt.m_b));
+                util::swap_support(m_b_rank, wt.m_b_rank, &m_b, &(wt.m_b));
                 m_b_border.swap(wt.m_b_border);
+                m_b_border_rank.swap(wt.m_b_border_rank);
                 m_wt_rank.swap(wt.m_wt_rank);
                 m_char2comp.swap(wt.m_char2comp);
                 m_char_occ.swap(wt.m_char_occ);
@@ -409,6 +404,7 @@ class wt_rlg8
             written_bytes += m_b.serialize(out);
             written_bytes += m_b_rank.serialize(out);
             written_bytes += m_b_border.serialize(out);
+            written_bytes += m_b_border_rank.serialize(out);
             written_bytes += m_wt_rank.serialize(out);
             written_bytes += m_char2comp.serialize(out);
             written_bytes += m_char_occ.serialize(out);
@@ -422,6 +418,7 @@ class wt_rlg8
             m_b.load(in);
             m_b_rank.load(in, &m_b);
             m_b_border.load(in);
+            m_b_border_rank.load(in);
             m_wt_rank.load(in);
             m_char2comp.load(in);
             m_char_occ.load(in);
