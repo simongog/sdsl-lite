@@ -1,4 +1,6 @@
 #include "sdsl/wt_huff.hpp"
+#include "sdsl/wt_rlg.hpp"
+#include "sdsl/wt_rlg8.hpp"
 #include "sdsl/wt_rlmn.hpp"
 #include "sdsl/rrr_vector.hpp"
 #include "sdsl/bit_vector_interleaved.hpp"
@@ -73,7 +75,9 @@ sdsl::wt_huff<sdsl::bit_vector, sdsl::rank_support_v<> >,
      sdsl::wt_rlmn<sdsl::bit_vector>,
      sdsl::wt<unsigned char*, sdsl::bit_vector>,
      sdsl::wt<unsigned char*, sdsl::bit_vector_interleaved<>  >,
-     sdsl::wt<unsigned char*, sdsl::rrr_vector<63> >
+     sdsl::wt<unsigned char*, sdsl::rrr_vector<63> >,
+     sdsl::wt_rlg<>,
+     sdsl::wt_rlg8<>
      > Implementations;
 
 TYPED_TEST_CASE(WtAsciiTest, Implementations);
@@ -105,7 +109,7 @@ TYPED_TEST(WtAsciiTest, Access)
         size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), text);
         ASSERT_EQ(wt.size() ,n);
         for (size_type j=0; j<n; ++j) {
-            ASSERT_EQ(wt[j], (typename TypeParam::value_type)text[j]);
+            ASSERT_EQ(wt[j], (typename TypeParam::value_type)text[j])<<" j="<<j;
         }
         delete [] text;
     }
