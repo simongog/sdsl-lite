@@ -310,7 +310,7 @@ class sd_rank_support
             return *this;
         }
 
-        void swap(sd_rank_support& rs) { }
+        void swap(sd_rank_support&) { }
 
         bool operator==(const sd_rank_support& ss)const {
             if (this == &ss)
@@ -388,7 +388,7 @@ class sd_select_support
             return *this;
         }
 
-        void swap(sd_select_support& rs) { }
+        void swap(sd_select_support&) { }
 
         bool operator==(const sd_select_support& ss)const {
             if (this == &ss)
