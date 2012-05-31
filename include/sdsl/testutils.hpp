@@ -22,8 +22,9 @@
 #define INCLUDE_SDSL_TESTUTILS
 
 #include "util.hpp"
+#include "uintx_t.hpp"
 #include <sys/time.h> // for struct timeval
-#include <sys/resource.h> // for struct rusageA
+#include <sys/resource.h> // for struct rusage
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -83,22 +84,22 @@ class stop_watch
          */
         double get_real_time();
 
-        //! Get the elapsed user time in milliseconds since the first constuction of a stop_watch in the current process.
+        //! Get the elapsed user time in milliseconds since the first construction of a stop_watch in the current process.
         /*! \sa get_user_time
          */
-        long long get_abs_user_time();
+        uint64_t get_abs_user_time();
 
-        //! Get the elapsed system time in milliseconds since the first constuction of a stop_watch in the current process.
+        //! Get the elapsed system time in milliseconds since the first construction of a stop_watch in the current process.
         /*! \sa get_sys_time
          */
-        long long get_abs_sys_time();
+        uint64_t get_abs_sys_time();
 
-        //! Get the elapsed real time in milliseconds since the first constuction of a stop_watch in the current process.
+        //! Get the elapsed real time in milliseconds since the first construction of a stop_watch in the current process.
         /*! \sa get_real_time
          */
-        long long get_abs_real_time();
+        uint64_t get_abs_real_time();
 
-        long long get_abs_page_faults();
+        uint64_t get_abs_page_faults();
 };
 
 //! Write stopwatch output in readable format

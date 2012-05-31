@@ -102,7 +102,6 @@ select_support_bs<RankSupport>& select_support_bs<RankSupport>::operator=(const 
 template<class RankSupport>
 void select_support_bs<RankSupport>::swap(select_support_bs& ss)
 {
-//	std::swap(m_v, ss.m_v);
     std::swap(m_rs, ss.m_rs);
 }
 
@@ -114,9 +113,8 @@ void select_support_bs<RankSupport>::copy(const select_support_bs& ss)
 }
 
 template<class RankSupport>
-void select_support_bs<RankSupport>::init(const int_vector<1>* v)
+void select_support_bs<RankSupport>::init(const int_vector<1>*)
 {
-    //TODO: assert that m_rs is up-to-date with m_v
 }
 
 template<class RankSupport>
@@ -145,13 +143,13 @@ inline const typename select_support_bs<RankSupport>::size_type select_support_b
 
 
 template<class RankSupport>
-typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::serialize(std::ostream& out)const
+typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::serialize(std::ostream&)const
 {
     return 0;
 }
 
 template<class RankSupport>
-void select_support_bs<RankSupport>::load(std::istream& in, const int_vector<1>* v)
+void select_support_bs<RankSupport>::load(std::istream&, const int_vector<1>* v)
 {
     set_vector(v);
 }
@@ -167,7 +165,7 @@ bool select_support_bs<RankSupport>::operator==(const select_support_bs& ss)cons
 {
     if (this == &ss)
         return true;
-    return *m_rs == *(ss.m_rs);// and *mv==*(ss.m_v); <- this is check with the first comparison
+    return *m_rs == *(ss.m_rs);
 }
 
 template<class RankSupport>

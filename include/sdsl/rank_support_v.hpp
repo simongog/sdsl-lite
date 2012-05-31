@@ -52,7 +52,7 @@ template<>
 struct rank_support_v_trait<0,1> {
     typedef rank_support::size_type	size_type;
 
-    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
+    static size_type args_in_the_word(uint64_t w, uint64_t&) {
         return bit_magic::b1Cnt(~w);
     }
 
@@ -73,7 +73,7 @@ template<>
 struct rank_support_v_trait<1,1> {
     typedef rank_support::size_type	size_type;
 
-    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
+    static size_type args_in_the_word(uint64_t w, uint64_t&) {
         return bit_magic::b1Cnt(w);
     }
 
@@ -179,8 +179,7 @@ class rank_support_v : public rank_support
         rank_support_v& operator=(const rank_support_v& rs);
         //! swap Operator
         /*! Swap two rank_support_v in constant time.
-         *	All members (excluded the pointer to the supported SDSBitVector) are swapped.
-         *
+         *	All members (excluded the pointer to the supported bit_vector) are swapped.
          *  Required for the Container Concept of the STL.
          */
         void swap(rank_support_v& rs);
@@ -191,7 +190,7 @@ class rank_support_v : public rank_support
          * \sa operator!=
          */
         bool operator==(const rank_support_v& rs)const;
-        //! Unequality Operator
+        //! Inequality Operator
         /*! Two rank_support_vs are not equal if any member variable are not equal.
          *
          * Required for the Equality Comparable Concept of the STL.

@@ -815,7 +815,6 @@ class wt
          *		\f$ \Order{\log |\Sigma|} \f$
          */
         size_type rank(size_type i, value_type c)const {
-            assert(i>=0 and i <= size());
             if (!wt_trait<RandomAccessContainer>::symbol_available(m_char_map, c, m_first_symbol)) {
                 return 0;
             }

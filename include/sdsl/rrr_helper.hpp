@@ -332,7 +332,7 @@ class rrr_helper
                 }
             }
             return (n-nr-1) == off;
-        };
+        }
 
         //! Decode the first off bits bits of the block encoded by the pair (k, nr) and return the set bits.
         static inline uint16_t decode_popcount(uint16_t k, number_type nr, uint16_t off) {
@@ -382,7 +382,7 @@ class rrr_helper
                 }
             }
             return result + ((n-nr-1) < off);
-        };
+        }
 
         /*! \pre k >= sel, sel>0
          */
@@ -425,7 +425,7 @@ class rrr_helper
                 }
                 return i-1;
             }
-        };
+        }
 
         /*! \pre k >= sel, sel>0
          */
@@ -454,7 +454,7 @@ class rrr_helper
                 }
             }
             return i-len; // return the starting position of $sel$th occurence of the pattern
-        };
+        }
 
 };
 

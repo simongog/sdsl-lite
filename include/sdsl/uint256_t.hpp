@@ -242,7 +242,7 @@ std::ostream& operator<<(std::ostream& os, const uint256_t& x)
         }
     }
     return os;
-};
+}
 
 } // end namespace
 

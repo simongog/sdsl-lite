@@ -65,13 +65,13 @@ double stop_watch::get_real_time()
     return result;
 }
 
-long long stop_watch::get_abs_real_time()
+uint64_t stop_watch::get_abs_real_time()
 {
-    long long result = (((m_timeOfDay2.tv_sec*1000000 + m_timeOfDay2.tv_usec - (m_first_t.tv_sec*1000000 + m_first_t.tv_usec))))/1000;
+    uint64_t result = (((m_timeOfDay2.tv_sec*1000000 + m_timeOfDay2.tv_usec - (m_first_t.tv_sec*1000000 + m_first_t.tv_usec))))/1000;
     return result;
 }
 
-long long stop_watch::get_abs_user_time()
+uint64_t stop_watch::get_abs_user_time()
 {
     timeval t1, t2;
     t1 = m_first_r.ru_utime;
@@ -80,7 +80,7 @@ long long stop_watch::get_abs_user_time()
 }
 
 
-long long stop_watch::get_abs_sys_time()
+uint64_t stop_watch::get_abs_sys_time()
 {
     timeval t1, t2;
     t1 = m_first_r.ru_stime;
@@ -88,7 +88,7 @@ long long stop_watch::get_abs_sys_time()
     return (t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec))/1000;
 }
 
-long long stop_watch::get_abs_page_faults()
+uint64_t stop_watch::get_abs_page_faults()
 {
     return m_ruse2.ru_majflt - m_first_r.ru_majflt; // does not work on my platform
 }

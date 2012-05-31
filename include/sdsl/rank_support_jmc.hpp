@@ -84,7 +84,7 @@ inline rank_support_jmc::rank_support_jmc(const int_vector<1>* v)
     init(v);
 }
 
-inline rank_support_jmc::rank_support_jmc(const rank_support_jmc& rs)
+inline rank_support_jmc::rank_support_jmc(const rank_support_jmc& rs) : rank_support()
 {
     set_vector(rs.m_v);
     m_superblockrank = rs.m_superblockrank;
@@ -104,8 +104,6 @@ inline rank_support_jmc& rank_support_jmc::operator=(const rank_support_jmc& rs)
 inline void rank_support_jmc::swap(rank_support_jmc& rs)
 {
     if (this != &rs) { // if rs and _this_ are not the same object
-        // TODO: swap m_v??? no!!!
-//		std::swap(m_v, rs.m_v);
         std::swap(m_logn, rs.m_logn);
         m_superblockrank.swap(rs.m_superblockrank);
         m_blockrank.swap(rs.m_blockrank);
@@ -192,7 +190,7 @@ inline rank_support_jmc::~rank_support_jmc()
 inline void rank_support_jmc::set_vector(const int_vector<1>* v)
 {
     if (v != NULL) {
-        m_v =v;
+        m_v = v;
         m_logn = bit_magic::l1BP(m_v->capacity())+1;
     }
 }

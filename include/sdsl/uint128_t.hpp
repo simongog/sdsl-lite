@@ -39,7 +39,7 @@ std::ostream& operator<<(std::ostream& os, const uint128_t& x)
         }
     }
     return os;
-};
+}
 
 
 } // end namespace

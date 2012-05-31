@@ -558,7 +558,6 @@ class wt_huff
          *		\f$ \Order{H_0} \f$
          */
         size_type rank(size_type i, value_type c)const {
-            assert(i>=0 and i <= size());
             uint64_t p = m_path[c];
             uint32_t path_len = (m_path[c]>>56); // equals zero if char was not present in the original text
             size_type result = i & ZoO[path_len>0]; // important: result has type size_type and ZoO has type size_type
