@@ -136,7 +136,7 @@ class wt_rlg8
             m_size = size;
             typedef size_type_class size_type;
             // TODO: remove absolute file name
-            std::string temp_file = "/tmp/wt_rlg8_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
+            std::string temp_file = "wt_rlg8_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
             std::ofstream wt_out(temp_file.c_str(), std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
@@ -218,7 +218,7 @@ class wt_rlg8
             m_b_border.resize(level+1);
 
             wt_out.seekp(0, std::ios::beg);
-            bit_cnt = (sizeof(bit_cnt) + 8*pair0cnt)*8;
+            bit_cnt = (8*pair0cnt)*8;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt));
             wt_out.close();
 
