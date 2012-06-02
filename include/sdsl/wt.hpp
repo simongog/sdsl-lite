@@ -618,6 +618,8 @@ class wt
                             }
                         }
                         m_char_node_map[i] = node;
+                    } else {
+                        m_char_node_map[i] = 0;
                     }
                 }
 #ifdef SDSL_DEBUG_WT
@@ -1101,8 +1103,9 @@ class wt
             // serialize char_node_map
             if (wt_trait<RandomAccessContainer>::char_node_map_size == 256) {
                 for (size_type i=0; i<256; ++i) {
-                    out.write((char*)&m_char_node_map[i], sizeof(m_char_node_map[i]));
-                    written_bytes += sizeof(m_char_node_map[i]);
+                    written_bytes += util::write_member(m_char_node_map[i], out);
+//                    out.write((char*)&m_char_node_map[i], sizeof(m_char_node_map[i]));
+//                    written_bytes += sizeof(m_char_node_map[i]);
                 }
             }
             return written_bytes;
