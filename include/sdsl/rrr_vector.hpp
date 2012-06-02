@@ -129,7 +129,7 @@ class rrr_vector
             size_type pos = 0, i = 0, x;
             size_type btnr_pos = 0;
             size_type sum_rank = 0;
-            while (pos + block_size <= m_size) { // handle all blocks, except the last one
+            while (pos + block_size <= m_size) { // handle all blocks full blocks
                 bt_array[ i++ ] = x = rrr_helper_type::get_bt(bv, pos, block_size);
                 sum_rank += x;
                 btnr_pos += rrr_helper_type::space_for_bt(x);
@@ -149,7 +149,7 @@ class rrr_vector
             pos = 0; i = 0;
             btnr_pos= 0, sum_rank = 0;
             bool invert = false;
-            while (pos + block_size <= m_size) {  // handle all blocks, except the last one
+            while (pos + block_size <= m_size) {  // handle all full blocks
                 if ((i % m_sample_rate) == 0) {
                     m_btnrp[ i/m_sample_rate ] = btnr_pos;
                     m_rank[ i/m_sample_rate ] = sum_rank;
