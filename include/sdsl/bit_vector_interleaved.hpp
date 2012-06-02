@@ -130,7 +130,7 @@ class bit_vector_interleaved
                 // we store at most m_superblocks+1 rank_samples:
                 // we do a cache efficient binary search for the select on X=1024
                 // or X=the smallest power of two smaller than m_superblock
-                m_rank_samples.resize(std::min(1024, 1ULL << bit_magic::l1BP(m_superblocks)));
+                m_rank_samples.resize(std::min(1024ULL, 1ULL << bit_magic::l1BP(m_superblocks)));
             }
             init_rank_samples();
         }
