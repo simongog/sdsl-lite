@@ -140,7 +140,8 @@ class rrr_vector
                 sum_rank += x;
                 btnr_pos += rrr_helper_type::space_for_bt(x);
             }
-            m_btnr.resize(std::max(btnr_pos, (size_type)1));   // max necessary for case: block_size == 1
+            m_btnr.resize(std::max(btnr_pos, (size_type)64));   // max necessary for case: block_size == 1
+            m_btnr.set_int(0, 0, 64); // initialize vector
             m_btnrp.set_int_width(bit_magic::l1BP(btnr_pos)+1); m_btnrp.resize((bt_array.size()+m_sample_rate-1)/m_sample_rate);
             m_rank.set_int_width(bit_magic::l1BP(sum_rank)+1); m_rank.resize((bt_array.size()+m_sample_rate-1)/m_sample_rate + 1);
             m_invert = bit_vector((bt_array.size()+m_sample_rate-1)/m_sample_rate, 0);
@@ -384,8 +385,12 @@ class rrr_rank_support
                 rank  += (inv ? block_size - r: r);
                 btnrp += rrr_helper_type::space_for_bt(r);
             }
-            uint16_t bt = inv ? block_size - m_v->m_bt[ bt_idx ] : m_v->m_bt[ bt_idx ];
             uint16_t off = i % block_size;
+            if (!off) {   // needed for special case: if i=size() is a multiple of block_size
+                // the access to m_bt would cause a invalid memory access
+                return rrr_rank_support_trait<b>::adjust_rank(rank, i);
+            }
+            uint16_t bt = inv ? block_size - m_v->m_bt[ bt_idx ] : m_v->m_bt[ bt_idx ];
 
             uint16_t btnrlen 	= rrr_helper_type::space_for_bt(bt);
             number_type	btnr	= rrr_helper_type::decode_btnr(m_v->m_btnr, btnrp, btnrlen);
