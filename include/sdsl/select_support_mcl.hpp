@@ -260,7 +260,7 @@ class select_support_mcl : public select_support
         void initData();
         void init_fast(const int_vector<1>* v=NULL);
     public:
-        select_support_mcl(const int_vector<1>* v=NULL);
+        explicit select_support_mcl(const int_vector<1>* v=NULL);
         select_support_mcl(const select_support_mcl<b,pattern_len>& ss);
         ~select_support_mcl();
         void init(const int_vector<1>* v=NULL);

@@ -339,7 +339,7 @@ class bp_support_sada
         {}
 
         //! Constructor
-        bp_support_sada(const bit_vector* bp):m_bp(bp),
+        explicit bp_support_sada(const bit_vector* bp):m_bp(bp),
             m_size(bp==NULL?0:bp->size()),
             m_sml_blocks((m_size+SmlBlkSize-1)/SmlBlkSize),
             m_med_blocks((m_size+SmlBlkSize*MedBlkDeg-1)/(SmlBlkSize* MedBlkDeg)),

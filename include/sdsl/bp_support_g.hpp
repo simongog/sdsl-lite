@@ -123,7 +123,7 @@ class bp_support_g
 
 
         //! Constructor
-        bp_support_g(const bit_vector* bp = NULL, uint32_t used_block_size = 840):m_bp(bp), m_block_size(used_block_size), m_size(bp==NULL?0:bp->size()), m_blocks((m_size+used_block_size-1)/used_block_size),bp_rank(m_rank_bp), bp_select(m_select_bp) {
+        explicit bp_support_g(const bit_vector* bp = NULL, uint32_t used_block_size = 840):m_bp(bp), m_block_size(used_block_size), m_size(bp==NULL?0:bp->size()), m_blocks((m_size+used_block_size-1)/used_block_size),bp_rank(m_rank_bp), bp_select(m_select_bp) {
             if (m_block_size<=2) {
                 throw std::logic_error(util::demangle(typeid(this).name())+": block_size should be greater than 2!");
             }

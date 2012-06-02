@@ -254,7 +254,7 @@ class sd_rank_support
 
     public:
 
-        sd_rank_support(const bit_vector_type* v=NULL) {
+        explicit sd_rank_support(const bit_vector_type* v=NULL) {
             init(v);
         }
 
@@ -354,7 +354,7 @@ class sd_select_support
 
     public:
 
-        sd_select_support(const bit_vector_type* v=NULL) {
+        explicit sd_select_support(const bit_vector_type* v=NULL) {
             init(v);
         }
 

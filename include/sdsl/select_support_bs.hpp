@@ -42,7 +42,7 @@ class select_support_bs : public select_support
         const RankSupport* m_rs;
         void copy(const select_support_bs& ss);
     public:
-        select_support_bs(const int_vector<1>* v=NULL, const RankSupport* m_rs=NULL);
+        explicit select_support_bs(const int_vector<1>* v=NULL, const RankSupport* m_rs=NULL);
         select_support_bs(const select_support_bs& ss);
         ~select_support_bs() {}
         void init(const int_vector<1>* v=NULL);

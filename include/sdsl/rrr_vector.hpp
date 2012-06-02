@@ -351,7 +351,7 @@ class rrr_rank_support
         //! Standard constructor
         /*! \param v Pointer to the rrr_vector, which should be supported
          */
-        rrr_rank_support(const bit_vector_type* v=NULL) {
+        explicit rrr_rank_support(const bit_vector_type* v=NULL) {
             init(v);
         }
 
@@ -553,7 +553,7 @@ class rrr_select_support
 
 
     public:
-        rrr_select_support(const bit_vector_type* v=NULL) {
+        explicit rrr_select_support(const bit_vector_type* v=NULL) {
             init(v);
         }
 

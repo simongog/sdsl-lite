@@ -42,7 +42,7 @@ class rank_support_jmc : public rank_support
         int_vector<0> m_superblockrank;
         int_vector<0> m_blockrank;
     public:
-        rank_support_jmc(const int_vector<1>* v=NULL);
+        explicit rank_support_jmc(const int_vector<1>* v=NULL);
         rank_support_jmc(const rank_support_jmc& rs);
         ~rank_support_jmc();
         void init(const int_vector<1>* v=NULL);

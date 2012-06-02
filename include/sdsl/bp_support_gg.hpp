@@ -122,7 +122,7 @@ class bp_support_gg
 
         //! Constructor
         // TODO: einen Konstruktor ohne das const bei bit_vector, damit bei calculate_pioneers_bitmap_succinct bp ueberschrieben werden kann?
-        bp_support_gg(const bit_vector* bp, uint32_t used_block_size = 840):m_bp(bp), m_pioneer_bp_support(NULL), m_block_size(used_block_size), m_size(bp==NULL?0:bp->size()), m_blocks((m_size+used_block_size-1)/used_block_size),bp_rank(m_rank_bp),bp_select(m_select_bp) {
+        explicit bp_support_gg(const bit_vector* bp, uint32_t used_block_size = 840):m_bp(bp), m_pioneer_bp_support(NULL), m_block_size(used_block_size), m_size(bp==NULL?0:bp->size()), m_blocks((m_size+used_block_size-1)/used_block_size),bp_rank(m_rank_bp),bp_select(m_select_bp) {
             if (m_block_size<=2) {
                 throw std::logic_error(util::demangle(typeid(this).name())+": block_size should be greater than 2!");
             }

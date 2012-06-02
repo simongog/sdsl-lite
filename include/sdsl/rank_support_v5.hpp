@@ -53,7 +53,7 @@ class rank_support_v5 : public rank_support
     private:
         int_vector<64> m_basic_block; // basic block for interleaved storage of superblockrank and blockrank
     public:
-        rank_support_v5(const bit_vector* v = NULL);
+        explicit rank_support_v5(const bit_vector* v = NULL);
         rank_support_v5(const rank_support_v5& rs);
         ~rank_support_v5();
         void init(const bit_vector* v=NULL);
