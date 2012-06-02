@@ -123,7 +123,7 @@ class rrr_vector
                 return;
             int_vector<> bt_array;
             bt_array.set_int_width(bit_magic::l1BP(block_size)+1);
-            bt_array.resize((m_size+block_size-1)/block_size);
+            bt_array.resize((m_size+block_size-1)/((size_type)block_size));
 
             // (1) calculate the block types and store them in m_bt
             size_type pos = 0, i = 0, x;
@@ -135,7 +135,7 @@ class rrr_vector
                 btnr_pos += rrr_helper_type::space_for_bt(x);
                 pos += block_size;
             }
-            if (pos <= m_size) { // handle last block
+            if (pos < m_size) { // handle last not full block
                 bt_array[ i++ ] = x = rrr_helper_type::get_bt(bv, pos, m_size - pos);
                 sum_rank += x;
                 btnr_pos += rrr_helper_type::space_for_bt(x);
@@ -183,7 +183,7 @@ class rrr_vector
                 btnr_pos += space_for_bt;
                 pos += block_size;
             }
-            if (pos <= m_size) { // handle last block
+            if (pos < m_size) { // handle last not full block
                 if ((i % m_sample_rate) == 0) {
                     m_btnrp[ i/m_sample_rate ] = btnr_pos;
                     m_rank[ i/m_sample_rate ] = sum_rank;
