@@ -70,6 +70,7 @@ class bit_vector_interleaved
         int_vector<64> m_data;           /* data */
         int_vector<64> m_rank_samples;   /* space for additional rank samples */
 
+        // precondition: m_rank_samples.size() <= m_superblocks
         void init_rank_samples() {
             uint32_t blockSize_U64 = bit_magic::l1BP(blockSize>>6);
             size_type idx = 0;
@@ -79,7 +80,7 @@ class bit_vector_interleaved
                 size_type lb = lbs.front(); lbs.pop();
                 size_type rb = rbs.front(); rbs.pop();
                 if (/*lb < rb and*/ idx < m_rank_samples.size()) {
-                    size_type mid = (lb+rb)/2; // select mid \in [lb..rb)
+                    size_type mid = lb + (rb-lb)/2; // select mid \in [lb..rb)
                     size_type pos = (mid << blockSize_U64) + mid;
                     m_rank_samples[ idx++ ] = m_data[pos];
                     lbs.push(lb); rbs.push(mid);
@@ -125,8 +126,11 @@ class bit_vector_interleaved
             }
             m_data[j] = cum_sum; /* last superblock so we can always
                                     get num_ones fast */
-            if (m_totalBlocks > 1024) {
-                m_rank_samples.resize(std::min(1ULL << 10, 1ULL << bit_magic::l1BP(m_totalBlocks)));
+            if (m_totalBlocks > 1024*64) {
+                // we store at most m_superblocks+1 rank_samples:
+                // we do a cache efficient binary search for the select on X=1024
+                // or X=the smallest power of two smaller than m_superblock
+                m_rank_samples.resize(std::min(1024, 1ULL << bit_magic::l1BP(m_superblocks)));
             }
             init_rank_samples();
         }
@@ -352,7 +356,7 @@ class select_support_interleaved
             res = (rb-1) << m_blockShift;
             /* iterate in 64 bit steps */
             const uint64_t* w = m_v->m_data.data() + ((rb-1) << m_blockSize_U64) + (rb-1);
-            i -= *w;  // substract the cumulative sum before the superblock
+            i -= *w;  // subtract the cumulative sum before the superblock
             ++w; /* step into the data */
             size_type ones = bit_magic::b1Cnt(*w);
             while (ones < i) {
