@@ -54,6 +54,21 @@ test:
 	./CstTest
 	./WtAsciiTest
 
+
+
+vtest:
+	valgrind ./IntVectorTest
+	valgrind ./BitVectorTest
+	valgrind ./RankSupportTest
+	valgrind ./SelectSupportTest
+	valgrind ./SelectSupportTest0
+	valgrind ./BitMagicTest
+	valgrind ./BitMagicTestSSE
+	./test_cases/small/get_corpus.sh
+	valgrind ./WtIntTest
+	valgrind ./CstTest
+	valgrind ./WtAsciiTest
+
 clean:
 	rm -f IntVectorTest RankSupportTest SelectSupportTest \
 		  SelectSupportTest0 BitMagicTest BitMagicTestSSE BitVectorTest \
