@@ -65,7 +65,6 @@ class bit_vector_interleaved
     private:
         size_type m_size;           /* size of the original bit vector */
         size_type m_totalBlocks;    /* total size of m_data in u64s */
-        size_type m_blockMask;      /* block mask for modulo operation */
         size_type m_superblocks;    /* number of superblocks */
         size_type m_blockShift;
         int_vector<64> m_data;           /* data */
@@ -102,7 +101,7 @@ class bit_vector_interleaved
             m_blockShift = bit_magic::l1BP(blockSize);
             /* allocate new data */
             size_type blocks = (m_size+63)/64;
-            size_type mem =  blocks + m_superblocks + 1;
+            size_type mem =  blocks +         m_superblocks + 1;
 //                          ^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^   ^
 //                          bit vector data | cum. sum data | sum after last block
             util::assign(m_data, int_vector<64>(mem));
@@ -126,9 +125,9 @@ class bit_vector_interleaved
             }
             m_data[j] = cum_sum; /* last superblock so we can always
                                     get num_ones fast */
-//			if ( ) { // TODO: do not use extra array for small bit_vectors
-            m_rank_samples.resize(1ULL << 10);
-//			}
+            if (m_totalBlocks > 1024) {
+                m_rank_samples.resize(std::min(1ULL << 10, 1ULL << bit_magic::l1BP(m_totalBlocks)));
+            }
             init_rank_samples();
         }
 
@@ -154,7 +153,6 @@ class bit_vector_interleaved
             size_type written_bytes = 0;
             written_bytes += util::write_member(m_size, out);
             written_bytes += util::write_member(m_totalBlocks, out);
-            written_bytes += util::write_member(m_blockMask, out);
             written_bytes += util::write_member(m_superblocks, out);
             written_bytes += util::write_member(m_blockShift, out);
             written_bytes += m_data.serialize(out);
@@ -166,7 +164,6 @@ class bit_vector_interleaved
         void load(std::istream& in) {
             util::read_member(m_size, in);
             util::read_member(m_totalBlocks, in);
-            util::read_member(m_blockMask, in);
             util::read_member(m_superblocks, in);
             util::read_member(m_blockShift, in);
             m_data.load(in);
@@ -177,7 +174,6 @@ class bit_vector_interleaved
             if (this != &bv) {
                 std::swap(m_size, bv.m_size);
                 std::swap(m_totalBlocks, bv.m_totalBlocks);
-                std::swap(m_blockMask, bv.m_blockMask);
                 std::swap(m_superblocks, bv.m_superblocks);
                 std::swap(m_blockShift, bv.m_blockShift);
                 m_data.swap(bv.m_data);
