@@ -106,8 +106,6 @@ class sd_vector
         sd_vector(const bit_vector& bv):high(m_high),low(m_low),
             high_1_select(m_high_1_select), high_0_select(m_high_0_select) {
             m_size = bv.size();
-            if (m_size == 0)
-                return;
             size_type m = util::get_one_bits(bv);
             uint8_t logm = bit_magic::l1BP(m)+1;
             uint8_t logn = bit_magic::l1BP(m_size)+1;
