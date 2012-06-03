@@ -1175,13 +1175,14 @@ void int_vector<fixedIntWidth,size_type_class>::bit_resize(const size_type size)
     m_size = size;                       // set new size
     if (do_realloc) {
         uint64_t* data = NULL;
-//		std::cerr<<"realloc to m_size"<<m_size<<" bytes   m_data="<<m_data<<std::endl;
-        data = (uint64_t*)realloc(m_data, (((m_size+63)>>6)<<3)); // if m_data == NULL realloc
-        // is equivalent to malloc
-        // if sizeInBytes == 0
-        // realloc is equivalent to
-        // free
-        assert(m_size == 0 || data != NULL);
+        // Note that we allocate 8 additional bytes if m_size % 64 == 0.
+        // We need this padding since rank data structures do a memory
+        // access to this padding to answer rank(size()) if size()%64 ==0.
+        // Note that this padding is not counted in the serialize method!
+        data = (uint64_t*)realloc(m_data, (((m_size+64)>>6)<<3)); // if m_data == NULL realloc
+        // Method realloc is equivalent to malloc if m_data == NULL.
+        // If size is zero and ptr is not NULL, a new, minimum sized object is allocated and the original object is freed.
+        // The allocated memory is aligned such that it can be used for any data type, including AltiVec- and SSE-related types.
         m_data = data;
         // initialize unreachable bits to 0
         if (m_size > old_size and bit_size() < capacity()) {//m_size>0
