@@ -94,14 +94,12 @@ class bit_vector_interleaved
 
         bit_vector_interleaved(const bit_vector& bv) {
             m_size = bv.size();
-            if (m_size == 0)
-                return;
             /* calculate the number of superblocks */
 //          each block of size > 0 gets suberblock in which we store the cumulative sum up to this block
-            m_superblocks = (m_size+blockSize-1) / blockSize;
+            m_superblocks = (m_size+blockSize) / blockSize;
             m_blockShift = bit_magic::l1BP(blockSize);
             /* allocate new data */
-            size_type blocks = (m_size+63)/64;
+            size_type blocks = (m_size+64)/64;
             size_type mem =  blocks +         m_superblocks + 1;
 //                          ^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^   ^
 //                          bit vector data | cum. sum data | sum after last block
@@ -139,7 +137,7 @@ class bit_vector_interleaved
         /*! \param i An index i with \f$ 0 \leq i < size()  \f$.
            \return The i-th bit of the original bit_vector
            \par Time complexity
-           		\f$ \Order{\log m} \f$, where m equals the number of zeros
+           		\f$ \Order{1} \f$
         */
         value_type operator[](size_type i)const {
             size_type bs = i >> m_blockShift;
