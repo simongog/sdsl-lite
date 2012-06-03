@@ -206,11 +206,10 @@ class rrr_vector<15, wt_type>
         */
         rrr_vector(const bit_vector& bv, uint16_t sample_rate=32): m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {
             m_size = bv.size();
-            if (m_size == 0)
-                return;
             int_vector<> bt_array;
-            bt_array.set_int_width(bit_magic::l1BP(block_size)+1);
-            bt_array.resize((m_size+block_size-1)/block_size);
+            util::assign(bt_array, int_vector<>(m_size/block_size+1, 0, bit_magic::l1BP(block_size)+1));
+//            bt_array.set_int_width(bit_magic::l1BP(block_size)+1);
+//            bt_array.resize((m_size+block_size)/block_size);
 
             // (1) calculate the block types and store them in m_bt
             size_type pos = 0, i = 0, x;
@@ -228,9 +227,9 @@ class rrr_vector<15, wt_type>
                 btnr_pos += bi_type::space_for_bt(x);
             }
 //	 cout << "# bt array initialized "<< endl;
-            m_btnr.resize(std::max(btnr_pos, (size_type)1));   // max neccessary for case: block_size == 1
-            m_btnrp.set_int_width(bit_magic::l1BP(btnr_pos)+1); m_btnrp.resize((bt_array.size()+m_sample_rate-1)/m_sample_rate);
-            m_rank.set_int_width(bit_magic::l1BP(sum_rank)+1); m_rank.resize((bt_array.size()+m_sample_rate-1)/m_sample_rate + 1);
+            util::assign(m_btnr, bit_vector(std::max(btnr_pos, (size_type)64), 0));      // max necessary for case: block_size == 1
+            util::assign(m_btnrp, int_vector<>((bt_array.size()+m_sample_rate-1)/m_sample_rate, 0,  bit_magic::l1BP(btnr_pos)+1));
+            util::assign(m_rank, int_vector<>((bt_array.size()+m_sample_rate-1)/m_sample_rate + 1, 0, bit_magic::l1BP(sum_rank)+1));
 
             // (2) calculate block type numbers and pointers into btnr and rank samples
             pos = 0; i = 0;
@@ -263,6 +262,7 @@ class rrr_vector<15, wt_type>
             // for technical reasons add an additional element to m_rank
             m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
             util::assign(m_bt, bt_array);
+            std::cerr<<"m_bt.size()="<<m_bt.size()<<std::endl;
         }
 
         //! Accessing the i-th element of the original bit_vector
@@ -389,7 +389,7 @@ class rrr_rank_support<b, 15, wt_type>
         //! Standard constructor
         /*! \param v Pointer to the rrr_vector, which should be supported
          */
-        rrr_rank_support(const bit_vector_type* v=NULL) {
+        explicit rrr_rank_support(const bit_vector_type* v=NULL) {
             init(v);
         }
 
