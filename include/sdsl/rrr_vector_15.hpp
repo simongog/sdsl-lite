@@ -262,7 +262,6 @@ class rrr_vector<15, wt_type>
             // for technical reasons add an additional element to m_rank
             m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
             util::assign(m_bt, bt_array);
-            std::cerr<<"m_bt.size()="<<m_bt.size()<<std::endl;
         }
 
         //! Accessing the i-th element of the original bit_vector
