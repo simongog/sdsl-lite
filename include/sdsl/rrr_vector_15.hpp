@@ -481,8 +481,12 @@ class rrr_rank_support<b, 15, wt_type>
                 btnrp += bi_type::space_for_bt(r&0x0F);
                 ++j;
             }
-            uint32_t btnr = m_v->m_btnr.get_int(btnrp, bi_type::space_for_bt(last_bt));
             uint8_t off = i % bit_vector_type::block_size; //i - bt_idx*bit_vector_type::block_size;
+            if (!off) {   // needed for special case: if i=size() is a multiple of block_size
+                // the access to m_bt would cause a invalid memory access
+                return rrr_rank_support_trait<b>::adjust_rank(rank, i);
+            }
+            uint32_t btnr = m_v->m_btnr.get_int(btnrp, bi_type::space_for_bt(last_bt));
             return rrr_rank_support_trait<b>::adjust_rank(rank +
                     bit_magic::b1Cnt(((uint64_t)(bi_type::nr_to_bin(last_bt, btnr))) & bit_magic::Li1Mask[off]), i);
         }
