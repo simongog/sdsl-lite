@@ -128,7 +128,7 @@ class wt_int
             } else {
                 m_logn = logn;
             }
-            bit_vector tree		=	bit_vector(n*m_logn, 0);  // initialize the tree
+            bit_vector tree(n*m_logn, 0);  // initialize the tree
 
             int_vector<> 	perms[2];
             perms[0].set_int_width(m_logn); perms[1].set_int_width(m_logn);
