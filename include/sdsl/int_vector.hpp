@@ -1173,7 +1173,8 @@ void int_vector<fixedIntWidth,size_type_class>::bit_resize(const size_type size)
     bool do_realloc = ((size+63)>>6) != ((m_size+63)>>6);
     const size_type old_size = m_size;
     m_size = size;                       // set new size
-    if (do_realloc) {
+    // special case: bitvector of size 0
+    if (do_realloc or m_data==NULL) { // or (fixedIntWidth==1 and m_size==0) ) {
         uint64_t* data = NULL;
         // Note that we allocate 8 additional bytes if m_size % 64 == 0.
         // We need this padding since rank data structures do a memory
@@ -1187,6 +1188,9 @@ void int_vector<fixedIntWidth,size_type_class>::bit_resize(const size_type size)
         // initialize unreachable bits to 0
         if (m_size > old_size and bit_size() < capacity()) {//m_size>0
             bit_magic::write_int(m_data+(bit_size()>>6), 0, bit_size()&0x3F, capacity()-bit_size());
+        }
+        if ((m_size % 64) == 0) {  // initialize unreachable bits with 0
+            m_data[m_size/64] = 0;
         }
     }
 }
@@ -1495,7 +1499,7 @@ typename int_vector<fixedIntWidth,size_type_class>::size_type int_vector<fixedIn
         written_bytes += _sdsl_serialize_size_and_int_width(out, fixedIntWidth, m_int_width, m_size);
     }
     uint64_t* p = m_data;
-    const static size_type SDSL_BLOCK_SIZE = (1<<20);
+    const static size_type SDSL_BLOCK_SIZE = (1<<28);
     size_type idx = 0;
     while (idx+SDSL_BLOCK_SIZE < (capacity()>>6)) {
         out.write((char*) p, SDSL_BLOCK_SIZE*sizeof(uint64_t));
@@ -1524,7 +1528,7 @@ void int_vector<fixedIntWidth,size_type_class>::load(std::istream& in)
 
     bit_resize(size);
     uint64_t* p = m_data;
-    const static size_type SDSL_BLOCK_SIZE = (1<<20);
+    const static size_type SDSL_BLOCK_SIZE = (1<<28); // TODO: is this the loading bottleneck?
     size_type idx = 0;
     while (idx+SDSL_BLOCK_SIZE < (capacity()>>6)) {
         in.read((char*) p, SDSL_BLOCK_SIZE*sizeof(uint64_t));
