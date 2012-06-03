@@ -118,8 +118,12 @@ template<uint8_t b, uint8_t pattern_len>
 inline void rank_support_v5<b, pattern_len>::init(const bit_vector* v)
 {
     set_vector(v);
-    if (v == NULL or v->empty())
+    if (v == NULL) {
         return;
+    } else if (v->empty()) {
+        m_basic_block = int_vector<64>(2,0);   // resize structure for basic_blocks
+        return;
+    }
     size_type basic_block_size = ((v->capacity() >> 11)+1)<<1;
     m_basic_block.resize(basic_block_size);   // resize structure for basic_blocks
     if (m_basic_block.empty())
