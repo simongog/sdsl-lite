@@ -72,25 +72,25 @@ template<class EncVector = enc_vector<>, uint32_t SampleDens = 32, uint32_t InvS
 class csa_sada
 {
     public:
-        typedef uint64_t											 value_type;	// STL Container requirement
-        typedef random_access_const_iterator<csa_sada> const_iterator;// STL Container requirement
-        typedef const_iterator 										 iterator;		// STL Container requirement
-        typedef const value_type									 const_reference;
-        typedef const_reference										 reference;
-        typedef const_reference*									 pointer;
-        typedef const pointer										 const_pointer;
-        typedef int_vector<>::size_type								 size_type;		// STL Container requirement
-        typedef size_type 											 csa_size_type;
-        typedef ptrdiff_t  											 difference_type; // STL Container requirement
-        typedef EncVector											 enc_vector_type;
-        typedef psi_of_csa_psi<csa_sada>						 psi_type;
-        typedef bwt_of_csa_psi<csa_sada>						 bwt_type;
-        typedef const unsigned char*						 		 pattern_type;
-        typedef unsigned char										 char_type;
-        typedef typename csa_sada_trait<fixedIntWidth>::int_vector_type sa_sample_type;
-        typedef typename csa_sada_trait<fixedIntWidth>::int_vector_type isa_sample_type;
+        typedef uint64_t											      value_type;	// STL Container requirement
+        typedef random_access_const_iterator<csa_sada> 				      const_iterator;// STL Container requirement
+        typedef const_iterator 										      iterator;		// STL Container requirement
+        typedef const value_type									      const_reference;
+        typedef const_reference										      reference;
+        typedef const_reference*									      pointer;
+        typedef const pointer										      const_pointer;
+        typedef int_vector<>::size_type								      size_type;		// STL Container requirement
+        typedef size_type 											      csa_size_type;
+        typedef ptrdiff_t  											      difference_type; // STL Container requirement
+        typedef EncVector											      enc_vector_type;
+        typedef psi_of_csa_psi<csa_sada>						 	      psi_type;
+        typedef bwt_of_csa_psi<csa_sada>						 	      bwt_type;
+        typedef const unsigned char*						 		      pattern_type;
+        typedef unsigned char										      char_type;
+        typedef typename csa_sada_trait<fixedIntWidth>::int_vector_type   sa_sample_type;
+        typedef typename csa_sada_trait<fixedIntWidth>::int_vector_type   isa_sample_type;
 
-        typedef csa_tag													index_category;
+        typedef csa_tag													  index_category;
 
         enum { sa_sample_dens = SampleDens,
                isa_sample_dens = InvSampleDens
@@ -106,11 +106,10 @@ class csa_sada
         bwt_type m_bwt;
         sa_sample_type 	m_sa_sample; // suffix array samples
         isa_sample_type m_isa_sample; // inverse suffix array samples
-        unsigned char	m_char2comp[256]; // =0 for the 0-byte and all characters which do not occure in the text
-        unsigned char 	m_comp2char[256];
-        size_type       m_C[257];
-        uint8_t			m_sigma;
-        uint32_t m_sample_dens; // additional to SampleDens value
+        int_vector<8>	m_char2comp; // =0 for the 0-byte and all characters which do not occur in the text
+        int_vector<8> 	m_comp2char;
+        int_vector<64>  m_C;
+        uint16_t			m_sigma;
 
         uint64_t* m_psi_buf; // buffer for decoded psi values : TODO statisch uint64_t[groesse] anlegen, siehe: wavelet_tree fuer int_vector_file_buffer
 
@@ -127,22 +126,19 @@ class csa_sada
             m_psi = csa.m_psi;
             m_sa_sample = csa.m_sa_sample;
             m_isa_sample = csa.m_isa_sample;
-            for (int i=0; i<256; ++i) {
-                m_char2comp[i] = csa.m_char2comp[i];
-                m_comp2char[i] = csa.m_comp2char[i];
-                m_C[i]		 = csa.m_C[i];
-                m_sigma		 = csa.m_sigma;
-            }
-            m_C[256] = csa.m_C[256];
+            m_char2comp  = csa.m_char2comp;
+            m_comp2char  = csa.m_comp2char;
+            m_C = csa.m_C;
+            m_sigma		 = csa.m_sigma;
             m_psi_wrapper = psi_type(this);
             m_bwt = bwt_type(this);
         };
 
     public:
-        const unsigned char* char2comp;
-        const unsigned char* comp2char;
-        const size_type* C;
-        const uint8_t& sigma;
+        const int_vector<8>& char2comp;
+        const int_vector<8>& comp2char;
+        const int_vector<64>& C;
+        const uint16_t& sigma;
         const psi_type& psi;
         const bwt_type& bwt;
         const sa_sample_type& sa_sample;
@@ -153,6 +149,10 @@ class csa_sada
         csa_sada():char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma) ,psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
             m_psi_buf = NULL;
             m_psi_buf = new uint64_t[m_psi.get_sample_dens()+1];
+            util::assign(m_char2comp, int_vector<8>(256, 0));
+            util::assign(m_comp2char, int_vector<8>(256, 0));
+            util::assign(m_C, int_vector<64>(257, 0));
+            m_sigma = 0;
         }
         //! Default Destructor
         ~csa_sada() {
@@ -161,10 +161,9 @@ class csa_sada
         }
         //! Copy constructor
         csa_sada(const csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>& csa):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
-            copy(csa);
-            if (m_psi_buf != NULL)
-                delete [] m_psi_buf;
+            m_psi_buf = NULL;
             m_psi_buf = new uint64_t[m_psi.get_sample_dens()+1];
+            copy(csa);
         }
 
         //! Construct the csa_sada from another (compressed) suffix array and the original text
@@ -295,7 +294,6 @@ class csa_sada
         void load(std::istream& in);
 
         uint32_t get_sample_dens() const;
-        void set_sample_dens(const uint32_t sample_dens);
 
         uint32_t get_psi_sample_dens() const;
         void set_psi_sample_dens(const uint32_t sample_dens);
@@ -516,15 +514,15 @@ csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(tMSS& fi
 template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
 void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::construct(tMSS& file_map, const std::string& dir, const std::string& id)
 {
-    m_psi_buf = NULL;
-    m_psi_buf = new uint64_t[m_psi.get_sample_dens()+1];
+    if (m_psi_buf = NULL) {
+        m_psi_buf = new uint64_t[m_psi.get_sample_dens()+1];
+    }
     if (file_map.find("bwt") == file_map.end()) { // if bwt is not already stored on disk => construct bwt
         construct_bwt(file_map, dir, id);
     }
     int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str());
     size_type n = bwt_buf.int_vector_size;
     algorithm::set_text<csa_sada>(bwt_buf, n, m_C, m_char2comp, m_comp2char, m_sigma);
-//	assert( sa_buf.int_vetor_size == sa_buf.int_vector_size );
 
     size_type cnt_chr[256] = {0};
     for (uint32_t i=0; i<m_sigma; ++i)
@@ -561,16 +559,7 @@ void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::construct(tM
 template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
 uint32_t csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::get_sample_dens()const
 {
-    if (SampleDens==0)
-        return m_sample_dens;
-    else
-        return SampleDens;
-}
-
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::set_sample_dens(const uint32_t sample_dens)
-{
-    m_sample_dens = sample_dens;
+    return SampleDens;
 }
 
 template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
@@ -707,17 +696,10 @@ typename csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::size_typ
     written_bytes += m_psi.serialize(out);
     written_bytes += m_sa_sample.serialize(out);
     written_bytes += m_isa_sample.serialize(out);
-    size_type wb   = sizeof(m_char2comp[0])*256;
-    out.write((char*)m_char2comp, wb);
-    written_bytes += wb;
-    wb			   = sizeof(m_comp2char[0])*256;
-    out.write((char*)m_comp2char, wb);
-    written_bytes += wb;
-    wb			   = sizeof(m_C[0])*257;
-    out.write((char*)C, wb);
-    written_bytes += wb;
-    out.write((char*)&m_sigma, sizeof(m_sigma));
-    wb += sizeof(m_sigma);
+    written_bytes += m_char2comp.serialize(out);
+    written_bytes += m_comp2char.serialize(out);
+    written_bytes += m_C.serialize(out);
+    written_bytes += util::write_member(m_sigma, out);
     return written_bytes;
 }
 
@@ -727,10 +709,10 @@ void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::load(std::is
     m_psi.load(in);
     m_sa_sample.load(in);
     m_isa_sample.load(in);
-    in.read((char*)m_char2comp, sizeof(m_char2comp[0])*256);
-    in.read((char*)m_comp2char, sizeof(m_comp2char[0])*256);
-    in.read((char*)m_C, sizeof(m_C[0])*257);
-    in.read((char*)&m_sigma, sizeof(m_sigma));
+    m_char2comp.load(in);
+    m_comp2char.load(in);
+    m_C.load(in);
+    util::read_member(m_sigma, in);
     m_psi_wrapper = psi_type(this);
     m_bwt = bwt_type(this);
 }
@@ -742,12 +724,9 @@ void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::swap(csa_sad
         m_psi.swap(csa.m_psi);
         m_sa_sample.swap(csa.m_sa_sample);
         m_isa_sample.swap(csa.m_isa_sample);
-        for (uint16_t i=0; i<256; ++i) {
-            std::swap(m_char2comp[i], csa.m_char2comp[i]);
-            std::swap(m_comp2char[i], csa.m_comp2char[i]);
-            std::swap(m_C[i], csa.m_C[i]);
-        }
-        std::swap(m_C[256], csa.m_C[256]);
+        m_char2comp.swap(csa.m_char2comp);
+        m_comp2char.swap(csa.m_comp2char);
+        m_C.swap(csa.m_C);
         std::swap(m_sigma, csa.m_sigma);
         m_psi_wrapper = psi_type(this);
         csa.m_psi_wrapper = psi_type(&csa);

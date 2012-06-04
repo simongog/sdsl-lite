@@ -338,11 +338,11 @@ class csa_wt
         bwt_type m_bwt;  // bwt
         sa_sample_type m_sa_sample; // suffix array samples
         isa_sample_type m_isa_sample; // inverse suffix array samples
-        char_type		m_char2comp[256];
-        char_type	 	m_comp2char[256];
+        int_vector<8>	m_char2comp;
+        int_vector<8>	m_comp2char;
 
-        size_type       m_C[257]; // counts for the compact alphabet [0..sigma-1]
-        uint8_t			m_sigma;
+        int_vector<64>  m_C; // counts for the compact alphabet [0..sigma-1]
+        uint16_t		m_sigma;
 //		uint32_t m_sample_dens; // additional to SampleDens value
 //#define USE_CSA_CACHE
 #ifdef USE_CSA_CACHE
@@ -359,22 +359,19 @@ class csa_wt
             m_wavelet_tree			= csa.m_wavelet_tree;
             m_sa_sample 			= csa.m_sa_sample;
             m_isa_sample 			= csa.m_isa_sample;
-            m_sigma			= csa.m_sigma;
-            for (int i=0; i<256; ++i) {
-                m_char2comp[i] 	= csa.m_char2comp[i];
-                m_comp2char[i]	= csa.m_comp2char[i];
-                m_C[i]			= csa.m_C[i];
-            }
-            m_C[256] = csa.m_C[256];
+            m_sigma					= csa.m_sigma;
+            m_char2comp				= csa.m_char2comp;
+            m_comp2char				= csa.m_comp2char;
+            m_C = csa.m_C;
             m_psi = psi_type(this);
             m_bwt = bwt_type(this);
         }
 
     public:
-        const char_type* char2comp;
-        const char_type* comp2char;
-        const size_type* C;
-        const uint8_t& sigma;
+        const int_vector<8>& char2comp;
+        const int_vector<8>& comp2char;
+        const int_vector<64>& C;
+        const uint16_t& sigma;
         const psi_type& psi;
         const bwt_type& bwt;
         const sa_sample_type& sa_sample;
@@ -825,17 +822,10 @@ typename csa_wt<WaveletTree, SampleDens, InvSampleDens, fixedIntWidth, charType>
     written_bytes += m_wavelet_tree.serialize(out);
     written_bytes += m_sa_sample.serialize(out);
     written_bytes += m_isa_sample.serialize(out);
-    size_type wb   = sizeof(m_char2comp[0])*256;
-    out.write((char*)m_char2comp, wb);
-    written_bytes += wb;
-    wb			   = sizeof(m_comp2char[0])*256;
-    out.write((char*)m_comp2char, wb);
-    written_bytes += wb;
-    wb			   = sizeof(m_C[0])*257;
-    out.write((char*)C, wb);
-    written_bytes += wb;
-    out.write((char*)&m_sigma, sizeof(m_sigma));
-    wb += sizeof(m_sigma);
+    written_bytes += m_char2comp.serialize(out);
+    written_bytes += m_comp2char.serialize(out);
+    written_bytes += m_C.serialize(out);
+    written_bytes += util::write_member(m_sigma, out);
     return written_bytes;
 }
 
@@ -845,10 +835,10 @@ void csa_wt<WaveletTree, SampleDens, InvSampleDens, fixedIntWidth, charType>::lo
     m_wavelet_tree.load(in);
     m_sa_sample.load(in);
     m_isa_sample.load(in);
-    in.read((char*)m_char2comp, sizeof(m_char2comp[0])*256);
-    in.read((char*)m_comp2char, sizeof(m_comp2char[0])*256);
-    in.read((char*)m_C, sizeof(m_C[0])*257);
-    in.read((char*)&m_sigma, sizeof(m_sigma));
+    m_char2comp.load(in);
+    m_comp2char.load(in);
+    m_C.load(in);
+    util::read_member(m_sigma, in);
     m_psi = psi_type(this);
     m_bwt = bwt_type(this);
 }
@@ -860,14 +850,10 @@ void csa_wt<WaveletTree, SampleDens, InvSampleDens, fixedIntWidth, charType>::sw
         m_wavelet_tree.swap(csa.m_wavelet_tree);
         m_sa_sample.swap(csa.m_sa_sample);
         m_isa_sample.swap(csa.m_isa_sample);
-        for (uint16_t i=0; i<256; ++i) {
-            std::swap(m_char2comp[i], csa.m_char2comp[i]);
-            std::swap(m_comp2char[i], csa.m_comp2char[i]);
-            std::swap(m_C[i], csa.m_C[i]);
-        }
-        std::swap(m_C[256], csa.m_C[256]);
+        m_char2comp.swap(csa.m_char2comp);
+        m_comp2char.swap(csa.m_comp2char);
+        m_C.swap(csa.m_C);
         std::swap(m_sigma, csa.m_sigma);
-
 //        m_psi.swap(csa.m_psi);
         m_psi = psi_type(this);
         csa.m_psi = psi_type(&csa);

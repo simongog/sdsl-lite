@@ -57,12 +57,9 @@ void csa_uncompressed::copy(const csa_uncompressed& csa)
     m_sa = csa.m_sa;
     m_isa = csa.m_isa;
     m_sigma		 = csa.m_sigma;
-    for (int i=0; i<256; ++i) {
-        m_char2comp[i] = csa.m_char2comp[i];
-        m_comp2char[i] = csa.m_comp2char[i];
-        m_C[i]		 = csa.m_C[i];
-    }
-    m_C[256] = csa.m_C[256];
+    m_char2comp  = csa.m_char2comp;
+    m_comp2char  = csa.m_comp2char;
+    m_C = csa.m_C;
     m_psi = psi_type(this);
     m_bwt = bwt_type(this);
 }
@@ -81,16 +78,10 @@ csa_uncompressed::size_type csa_uncompressed::serialize(std::ostream& out)const
     size_type written_bytes = 0;
     written_bytes += m_sa.serialize(out);
     written_bytes += m_isa.serialize(out);
-    size_type wb   = sizeof(m_char2comp[0])*256;
-    out.write((char*)m_char2comp, wb);
-    written_bytes += wb;
-    wb			   = sizeof(m_comp2char[0])*256;
-    out.write((char*)m_comp2char, wb);
-    written_bytes += wb;
-    wb			   = sizeof(m_C[0])*257;
-    out.write((char*)C, wb);
-    written_bytes += wb;
-    wb += util::write_member(m_sigma, out);
+    written_bytes += m_char2comp.serialize(out);
+    written_bytes += m_comp2char.serialize(out);
+    written_bytes += m_C.serialize(out);
+    written_bytes += util::write_member(m_sigma, out);
     return written_bytes;
 }
 
@@ -98,9 +89,9 @@ void csa_uncompressed::load(std::istream& in)
 {
     m_sa.load(in);
     m_isa.load(in);
-    in.read((char*)m_char2comp, sizeof(m_char2comp[0])*256);
-    in.read((char*)m_comp2char, sizeof(m_comp2char[0])*256);
-    in.read((char*)m_C, sizeof(m_C[0])*257);
+    m_char2comp.load(in);
+    m_comp2char.load(in);
+    m_C.load(in);
     util::read_member(m_sigma, in);
     m_psi = psi_type(this);
     m_bwt = bwt_type(this);
@@ -112,12 +103,9 @@ void csa_uncompressed::swap(csa_uncompressed& csa)
         m_sa.swap(csa.m_sa);
         m_isa.swap(csa.m_isa);
         m_psi.swap(csa.m_psi);
-        for (uint16_t i=0; i<256; ++i) {
-            std::swap(m_char2comp[i], csa.m_char2comp[i]);
-            std::swap(m_comp2char[i], csa.m_comp2char[i]);
-            std::swap(m_C[i], csa.m_C[i]);
-        }
-        std::swap(m_C[256], csa.m_C[256]);
+        m_char2comp.swap(csa.m_char2comp);
+        m_comp2char.swap(csa.m_comp2char);
+        m_C.swap(csa.m_C);
         std::swap(m_sigma, csa.m_sigma);
         m_psi = psi_type(this);
         m_bwt = bwt_type(this);
