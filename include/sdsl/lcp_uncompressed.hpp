@@ -165,7 +165,7 @@ class lcp_uncompressed
          */
         bool operator==(const lcp_uncompressed& lcp_c)const;
 
-        //! Unequality Operator
+        //! Inequality Operator
         /*! Two Instances of lcp_uncompressed are equal if
          *  not all their members are equal.
          *  \par Required for the Equality Comparable Concept of the STL.
