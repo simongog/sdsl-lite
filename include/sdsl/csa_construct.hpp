@@ -126,9 +126,7 @@ static bool construct_csa(Csa& csa, tMSS& file_map, bool delete_files=true, std:
 
 
     write_R_output("csa", "encode CSA", "begin", 1, 0);
-    csa.construct(file_map, dir, id); // TODO: for all three choices
-// TODO replace line above by swap operation of csa
-//		csa = Csa(file_map, dir, id);
+    util::assign(csa, Csa(file_map, dir, id));
     write_R_output("csa", "encode CSA", "end", 1, 0);
 
     if (delete_files) {
