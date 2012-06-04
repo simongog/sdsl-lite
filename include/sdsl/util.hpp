@@ -435,6 +435,7 @@ void util::set_zero_bits(int_vector_type& v)
     uint64_t* data = v.m_data;
     if (v.empty())
         return;
+    // TODO: replace by memset() but take care of size_t in the argument!
     *data = 0ULL;
     for (typename int_vector_type::size_type i=1; i < (v.capacity()>>6); ++i) {
         *(++data) = 0ULL;
