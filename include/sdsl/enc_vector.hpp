@@ -67,13 +67,11 @@ class enc_vector
         int_vector<0> 	m_z; 		// compressed bit stream
     private:
         int_vector_type   m_sample_vals_and_pointer;
-        size_type		m_elements;    // number of elements
-        uint32_t		m_sample_dens;
+        size_type		  m_elements;    // number of elements
 
         // workaround function for the constructor
         void construct() {
             m_elements = 0;
-            m_sample_dens = 8;
         }
         void copy(const enc_vector& v);
 
@@ -235,7 +233,6 @@ class enc_vector
         value_type sample(const size_type i) const;
 
         uint32_t get_sample_dens() const;
-        void set_sample_dens(const uint32_t sample_dens);
 
         /*!
          * \param i The index of the sample for which all values till the next sample should be decoded. 0 <= i < size()/get_sample_dens()
@@ -270,16 +267,7 @@ class enc_vector
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
 inline uint32_t enc_vector<Coder, SampleDens, fixedIntWidth>::get_sample_dens() const
 {
-    if (SampleDens == 0)
-        return m_sample_dens;
-    else
-        return SampleDens;
-}
-
-template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-inline void enc_vector<Coder, SampleDens, fixedIntWidth>::set_sample_dens(const uint32_t sample_dens)
-{
-    m_sample_dens = sample_dens;
+    return SampleDens;
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
@@ -331,9 +319,9 @@ inline bool enc_vector<Coder, SampleDens,fixedIntWidth>::empty()const
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
 void enc_vector<Coder, SampleDens,fixedIntWidth>::copy(const enc_vector<Coder, SampleDens,fixedIntWidth>& v)
 {
-    m_z					= v.m_z;				// copy compressed bit stream
-    m_sample_vals_and_pointer		= v.m_sample_vals_and_pointer;      // copy sample values
-    m_elements			= v.m_elements;			// copy number of stored elements
+    m_z							= v.m_z;				// copy compressed bit stream
+    m_sample_vals_and_pointer	= v.m_sample_vals_and_pointer;      // copy sample values
+    m_elements					= v.m_elements;			// copy number of stored elements
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
@@ -411,6 +399,7 @@ void enc_vector<Coder, SampleDens,fixedIntWidth>::init(const Container& c)
         else
             m_sample_vals_and_pointer.set_int_width(bit_magic::l1BP(z_size+1) + 1);
         m_sample_vals_and_pointer.resize(2*samples+2); // add 2 for last entry
+        util::set_zero_bits(m_sample_vals_and_pointer);
         typename int_vector_type::iterator sv_it = m_sample_vals_and_pointer.begin();
         z_size = 0;
         size_type no_sample=0;
@@ -432,7 +421,7 @@ void enc_vector<Coder, SampleDens,fixedIntWidth>::init(const Container& c)
         *sv_it = 0; ++sv_it;        // initialize
         *sv_it = z_size+1; ++sv_it; // last entry
 
-        m_z.bit_resize(z_size);
+        util::assign(m_z, int_vector<>(z_size, 0, 1));
         uint64_t* z_data = Coder::raw_data(m_z);
         uint8_t offset = 0;
         no_sample = 0;
@@ -493,9 +482,10 @@ void enc_vector<Coder, SampleDens,fixedIntWidth>::init(int_vector_file_buffer<in
     else
         m_sample_vals_and_pointer.set_int_width(bit_magic::l1BP(z_size+1) + 1);
     m_sample_vals_and_pointer.resize(2*samples+2); // add 2 for last entry
+    util::set_zero_bits(m_sample_vals_and_pointer);
 
 //     (b) Initilize bit_vector for encoded data
-    m_z.bit_resize(z_size);
+    util::assign(m_z, int_vector<>(z_size, 0, 1));
     uint64_t* z_data = Coder::raw_data(m_z);
     uint8_t offset = 0;
 
