@@ -452,7 +452,14 @@ class wt_huff
                 tree_pos[i] = m_nodes[i].tree_pos;
             }
             rac.reset();
+            if (rac.int_vector_size < size) {
+                throw std::logic_error("wt_huff::construct: stream size is smaller than size!");
+                return;
+            }
             for (size_type i=0, r_sum=0, r = rac.load_next_block(); r_sum < m_size;) {
+                if (r_sum + r > size) {  // read not more than size chars in the next loop
+                    r = size-r_sum;
+                }
                 uint8_t old_chr = rac[i-r_sum], times = 0;
                 for (; i < r_sum+r; ++i) {
                     uint8_t chr = rac[i-r_sum];
@@ -552,14 +559,17 @@ class wt_huff
         //! Calculates how many symbols c are in the prefix [0..i-1] of the supported vector.
         /*!
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
-         *  \param c The symbol to count the occurences in the prefix.
-         *	\return The number of occurences of symbol c in the prefix [0..i-1] of the supported vector.
+         *  \param c The symbol to count the occurrences in the prefix.
+         *	\return The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
          *  \par Time complexity
          *		\f$ \Order{H_0} \f$
          */
         size_type rank(size_type i, value_type c)const {
             uint64_t p = m_path[c];
-            uint32_t path_len = (m_path[c]>>56); // equals zero if char was not present in the original text
+            uint32_t path_len = (m_path[c]>>56); // equals zero if char was not present in the original text or m_sigma=1
+            if (!path_len and 1 == m_sigma) {    // if m_sigma == 1 return result immediately
+                return std::min(i, m_size);
+            }
             size_type result = i & ZoO[path_len>0]; // important: result has type size_type and ZoO has type size_type
             uint32_t node=0;
             for (uint32_t l=0; l<path_len and result; ++l, p >>= 1) {
@@ -571,13 +581,7 @@ class wt_huff
                 }
                 node = m_nodes[node].child[p&1]; // goto child
             }
-//		size_type r2 = m_check.rank(i, c);
-            /*		if( r2 != result ){
-            			std::cerr<<"ERROR rank r="<<result<<" != "<<r2<<"=r2 for input ("<<i<<","<<c<<")"<<
-            				     " len="<<path_len<<" m_path[c]="<<m_path[c]<<" c="<<(char)m_nodes[node].tree_pos_rank<<std::endl;
-            			return r2;
-            		}
-            */		return result;
+            return result;
         };
 
         //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the original sequence.
@@ -589,6 +593,7 @@ class wt_huff
          *		\f$ \Order{H_0} \f$
          */
         size_type rank_ith_symbol(size_type i, value_type& c)const {
+            // TODO: handle m_sigma=1
             assert(i>=0 and i < size());
             uint32_t node=0;
             while (m_nodes[node].child[0] != _undef_node) { // while node is not a leaf
@@ -616,6 +621,9 @@ class wt_huff
             if (node == _undef_node) { // if c was not present in the original text
                 return m_size;		   // -> return a position right to the end
             }
+            if (m_sigma == 1) {
+                return std::min(i-1,m_size);
+            }
             /*		if( i == 0 ){
             			std::cerr<<"WARNING: i=0"<<std::endl;
             			return m_size;
@@ -628,7 +636,7 @@ class wt_huff
             size_type result = i-1;		// otherwise
             uint64_t p = m_path[c];
             uint32_t path_len = (p>>56);
-            p <<= (64-path_len);
+            p <<= (64-path_len); // Note: path_len > 0, since we have handled m_sigma = 1.
             for (uint32_t l=0; l<path_len; ++l, p <<= 1) {
 //			if( node & 1 ){ // node was a left child, in the case of bfs order
                 if ((p & 0x8000000000000000ULL)==0) { // node was a left child
