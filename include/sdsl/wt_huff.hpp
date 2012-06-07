@@ -568,6 +568,9 @@ class wt_huff
             uint64_t p = m_path[c];
             uint32_t path_len = (m_path[c]>>56); // equals zero if char was not present in the original text or m_sigma=1
             if (!path_len and 1 == m_sigma) {    // if m_sigma == 1 return result immediately
+                if (m_c_to_leaf[c] == _undef_node) { // if character does not exist return 0
+                    return 0;
+                }
                 return std::min(i, m_size);
             }
             size_type result = i & ZoO[path_len>0]; // important: result has type size_type and ZoO has type size_type
