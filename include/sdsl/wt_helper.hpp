@@ -17,6 +17,9 @@ void calculate_character_occurences(int_vector_file_buffer<8, size_type_class>& 
 {
     text.reset();
     for (size_type i=0, r_sum=0, r = text.load_next_block(); r_sum < size;) {
+        if (r_sum + r > size) {  // read not more than size chars in the next loop
+            r = size-r_sum;
+        }
         for (; i < r_sum+r; ++i) {
             ++C[text[i-r_sum]];
         }
