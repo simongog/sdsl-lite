@@ -1669,6 +1669,8 @@ class int_vector_file_buffer
                 return false;
             }
             m_load_from_plain = true;
+            int_vector_trait<fixedIntWidth, size_type_class>::set_int_width(m_int_width, int_width);
+            m_len = len;
             m_file_name = f_file_name;
             m_int_vector_size = get_file_size(m_file_name.c_str());
             m_in.open(m_file_name.c_str(), std::ifstream::in);
