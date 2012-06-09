@@ -88,6 +88,7 @@ class wt_rlg
         // Takes \f$\Order{\sigma\max(1, \log L)\log n}\f bits
         int_vector<8>			m_char2comp;      //
         int_vector<64>          m_char_occ;       //
+        uint16_t				m_sigma;
 
         void copy(const wt_rlg& wt) {
             m_size          = wt.m_size;
@@ -100,14 +101,15 @@ class wt_rlg
             m_wt_rank       = wt.m_wt_rank;
             m_char2comp     = wt.m_char2comp;
             m_char_occ      = wt.m_char_occ;
+            m_size			= wt.m_size;
         }
 
     public:
 
-        const size_type& sigma;
+        const uint16_t& sigma;
 
         // Default constructor
-        wt_rlg():m_size(0), sigma(m_wt.sigma) {};
+        wt_rlg():m_size(0), m_sigma(0), sigma(m_sigma) {};
 
 
 
@@ -118,14 +120,14 @@ class wt_rlg
          *	\par Time complexity
          *		\f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        wt_rlg(const unsigned char* rac, size_type size):m_size(size), sigma(m_wt.sigma) {
+        wt_rlg(const unsigned char* rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
             // TODO
             std::cerr << "ERROR: Constructor of wt_rlg not implemented yet!!!" << std::endl;
             throw std::logic_error("This constructor of wt_rlg is not yet implemented!");
         }
 
         template<class size_type_class>
-        wt_rlg(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), sigma(m_wt.sigma) {
+        wt_rlg(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), sigma(m_sigma) {
             construct(rac, size);
         }
 
@@ -154,6 +156,7 @@ class wt_rlg
             int m=0;
 
             rac.reset();
+            bit_vector b_sigma(256, 0);
             uint8_t last_c = '\0', c = '\0';
             size_type b_cnt = 0, pair1cnt=0, pair0cnt=0;
             for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
@@ -162,6 +165,7 @@ class wt_rlg
                 }
                 for (; i < r+r_sum; ++i) {
                     c = rac[i-r_sum];
+                    b_sigma[c] = 1;
                     if (i & 1) { // if position is odd
                         if (c == last_c) { // join pair
                             m_b[b_cnt] = 1;
@@ -186,6 +190,10 @@ class wt_rlg
                 wt_out.write("\0", sizeof(c));
                 ++pair0cnt;
                 ++b_cnt;
+            }
+            m_sigma = 0;
+            for (size_type i=0; i<b_sigma.size(); ++i) {
+                m_sigma += b_sigma[i];
             }
 
             size_type old_pair0cnt=0;
@@ -240,23 +248,18 @@ class wt_rlg
 
             m_char2comp = int_vector<8>(256,255);
             for (uint16_t c=0, cnt=0; c<256; ++c) {
-                if (m_wt.rank(m_wt.size(), c) > 0) {
+                if (b_sigma[c]) {
                     m_char2comp[c] = cnt++;
                 }
             }
 
-
-
-
-            m_wt_rank.resize(sigma * m_b_border.size());
-            m_char_occ.resize(sigma);
+            m_wt_rank.resize(m_sigma * m_b_border.size());
+            m_char_occ.resize(m_sigma);
             for (size_type c=0; c < 256; ++c) {
                 uint16_t cc = m_char2comp[c];
-                if (cc < sigma) {
+                if (cc < m_sigma) {
                     for (size_type i=0; i < m_b_border.size(); ++i) {
                         size_type zeros  = m_b_border[i] - m_b_border_rank[i];
-//					std::cout<<"i="<<i<<" m_b_border[i]="<<m_b_border[i]<<" m_b_border_rank[i]="<<m_b_border_rank[i]
-//						     <<" zeros="<<zeros<<" cc="<<cc<<" sigma="<<sigma<<" c=."<< (char)c <<"."<<std::endl;
                         m_wt_rank[cc * m_b_border.size() + i] = m_wt.rank(2*zeros, c);
                     }
                     m_char_occ[cc] = m_wt.rank(m_wt.size(), c);
@@ -266,7 +269,7 @@ class wt_rlg
         }
 
         //! Copy constructor
-        wt_rlg(const wt_rlg& wt):sigma(wt.sigma) {
+        wt_rlg(const wt_rlg& wt):sigma(m_sigma) {
             copy(wt);
         }
 
@@ -290,6 +293,7 @@ class wt_rlg
                 m_wt_rank.swap(wt.m_wt_rank);
                 m_char2comp.swap(wt.m_char2comp);
                 m_char_occ.swap(wt.m_char_occ);
+                std::swap(m_sigma, wt.m_sigma);
             }
         }
 
@@ -416,6 +420,7 @@ class wt_rlg
             written_bytes += m_wt_rank.serialize(out);
             written_bytes += m_char2comp.serialize(out);
             written_bytes += m_char_occ.serialize(out);
+            written_bytes += util::write_member(m_sigma, out);
             return written_bytes;
         }
 
@@ -430,6 +435,7 @@ class wt_rlg
             m_wt_rank.load(in);
             m_char2comp.load(in);
             m_char_occ.load(in);
+            util::read_member(m_sigma, in);
         }
 
 };
