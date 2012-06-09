@@ -158,7 +158,7 @@ class wt_trait
             return alphabet_size;
         }
 
-        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol) {
+        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type) {
             return map.find(c)!=map.end();
         }
 
@@ -243,7 +243,7 @@ class wt_trait<character*>
             return alphabet_size;
         }
 
-        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol) {
+        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type) {
             return map.find(c)!=map.end();
         }
 
@@ -274,7 +274,7 @@ class wt_trait<unsigned char*>
             inv_map.clear();
             if (n==0)
                 return 0;
-//			first_symbol	= *rac;
+            first_symbol	= *rac;
             map[*rac] = 0;
             inv_map[0] = *rac;
             size_type alphabet_size = 0;
@@ -297,12 +297,12 @@ class wt_trait<unsigned char*>
                 }
                 inv_map[map[i]] = i;
             }
-            first_symbol = (alphabet_size == 256); //TODO fix the workaround
+//            first_symbol = (alphabet_size == 256); //TODO fix the workaround
             return alphabet_size;
         }
 
-        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol) {
-            return map[c] < 255 or first_symbol;
+        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type sigma) {
+            return sigma==256 or map[c] < 255;
         }
 
         static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map) {
@@ -337,17 +337,20 @@ class wt_trait<int_vector_file_buffer<8, size_type_class> >
             rac.reset();
             if (rac.int_vector_size < n) {
                 throw std::logic_error("wt<int_vector_file_buffer<8> >: n > rac.int_vector_size!");
+                return 0;
             }
 
             for (size_type i=0; i<256; ++i) {
                 map[i] = 0;
             }
 
-            size_type r = rac.load_next_block();
             size_type alphabet_size = 0;
 
-            for (size_type i=0, r_sum=0; r_sum < n;) {// TODO schneller, wie?
-                for (; i<r_sum+r and i<n; ++i) {
+            for (size_type i=0, r_sum=0, r = rac.load_next_block(); r_sum < n;) {
+                if (r_sum +r > n) {  // make sure that not more than n characters are read
+                    r = n-r_sum;
+                }
+                for (; i< r_sum+r; ++i) {
                     value_type c = rac[i-r_sum];
                     map[c] = 1;
                 }
@@ -593,8 +596,11 @@ class wt
                 // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
                 size_type C[256] = {0};
                 rac.reset();
-                //  1. Count occurences of characters
+                //  1. Count occurrences of characters
                 for (size_type i=0, r_sum=0, r = rac.load_next_block(); r_sum < m_size;) {
+                    if (r_sum + r > m_size) {  // read not more than size chars in the next loop
+                        r = m_size-r_sum;
+                    }
                     for (; i < r_sum+r; ++i) {
                         ++C[rac[i-r_sum]];
                     }
@@ -665,6 +671,9 @@ class wt
 ///*
                 rac.reset();
                 for (size_type i=0, r_sum=0, r = rac.load_next_block(); r_sum < m_size;) {
+                    if (r_sum + r > size) {  // read not more than size chars in the next loop
+                        r = size-r_sum;
+                    }
                     uint8_t old_chr = rac[i-r_sum];
                     uint8_t times = 0;
                     for (; i < r_sum+r; ++i) {
@@ -817,7 +826,7 @@ class wt
          *		\f$ \Order{\log |\Sigma|} \f$
          */
         size_type rank(size_type i, value_type c)const {
-            if (!wt_trait<RandomAccessContainer>::symbol_available(m_char_map, c, m_first_symbol)) {
+            if (!wt_trait<RandomAccessContainer>::symbol_available(m_char_map, c, m_first_symbol, m_sigma)) {
                 return 0;
             }
             size_type lex_idx 	= m_char_map[c]; // koennte man auch nur path, path_len ersetzen
@@ -839,10 +848,10 @@ class wt
             return result;
         };
 
-        //! Calculates how many occurences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
+        //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
         /*!
          *	\param i The index of the symbol.
-         *  \return The number of occurences of symbol wt[i] in the prefix [0..i-1]
+         *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
          *	\par Time complexity
          *		\f$ \Order{\log |\Sigma|} \f$
          */
@@ -900,7 +909,7 @@ class wt
          *
          */
         size_type count_lex_smaller(size_type i, value_type c)const {
-            if (!wt_trait<RandomAccessContainer>::symbol_available(m_char_map, c, m_first_symbol)) {
+            if (!wt_trait<RandomAccessContainer>::symbol_available(m_char_map, c, m_first_symbol, m_sigma)) {
                 return 0;
             }
             size_type lex_idx 	= m_char_map[c];
@@ -995,6 +1004,9 @@ class wt
          */
         // TODO: was ist wenn c gar nicht vorkommt, oder es keine i Vorkommen gibt?
         size_type select(size_type i, value_type c)const {
+            if (!wt_trait<RandomAccessContainer>::symbol_available(m_char_map, c, m_first_symbol, m_sigma)) {
+                return size();
+            }
             assert(i > 0);
 #ifdef SDSL_DEBUG_WT
             std::cerr<<"wt: select("<<i<<", "<<c<<")"<<std::endl;
