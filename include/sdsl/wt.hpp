@@ -272,8 +272,12 @@ class wt_trait<unsigned char*>
         static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
             map.clear();
             inv_map.clear();
-            if (n==0)
+            if (n==0) {
+                for (size_type i=0; i<256; ++i) {
+                    map[i] = 255;    // mark each symbol as absent
+                }
                 return 0;
+            }
             first_symbol	= *rac;
             map[*rac] = 0;
             inv_map[0] = *rac;
@@ -297,7 +301,6 @@ class wt_trait<unsigned char*>
                 }
                 inv_map[map[i]] = i;
             }
-//            first_symbol = (alphabet_size == 256); //TODO fix the workaround
             return alphabet_size;
         }
 
@@ -332,8 +335,12 @@ class wt_trait<int_vector_file_buffer<8, size_type_class> >
         static size_type alphabet_size_and_map(reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
             map.clear();
             inv_map.clear();
-            if (n==0)
+            if (n==0) {
+                for (size_type i=0; i<256; ++i) {
+                    map[i] = 255;    // mark each symbol as absent
+                }
                 return 0;
+            }
             rac.reset();
             if (rac.int_vector_size < n) {
                 throw std::logic_error("wt<int_vector_file_buffer<8> >: n > rac.int_vector_size!");
@@ -345,8 +352,9 @@ class wt_trait<int_vector_file_buffer<8, size_type_class> >
             }
 
             size_type alphabet_size = 0;
-
-            for (size_type i=0, r_sum=0, r = rac.load_next_block(); r_sum < n;) {
+            size_type r = rac.load_next_block();
+            first_symbol = rac[0];
+            for (size_type i=0, r_sum=0; r_sum < n;) {
                 if (r_sum +r > n) {  // make sure that not more than n characters are read
                     r = n-r_sum;
                 }
@@ -366,12 +374,11 @@ class wt_trait<int_vector_file_buffer<8, size_type_class> >
                 }
                 inv_map[map[i]] = i;
             }
-            first_symbol	= alphabet_size; //TODO fix the workaround
             return alphabet_size;
         }
 
-        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol) {
-            return map[c] < 255 or first_symbol==256;
+        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type sigma) {
+            return sigma==256 or map[c] < 255;
         }
 
         static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map) {
@@ -485,6 +492,10 @@ class wt
             m_node_pointers_rank = int_vector<64>(node_sizes.size()+1, 0);
 
             if (m_sigma < 2) {
+                if (m_sigma == 1) {  // ==> m_size > 0
+                    if (wt_trait<RandomAccessContainer>::char_node_map_size == 256)
+                        m_char_node_map[ m_first_symbol ] = 0; // first symbol corresponds to root node of the wavelet tree
+                }
                 return;
             } else {
                 // TODO: slow compared to other constructor which uses
@@ -591,7 +602,9 @@ class wt
             m_node_pointers_rank = int_vector<64>(node_sizes.size()+1, 0);
 
             if (m_sigma < 2) {
-                return;
+                if (1 == m_sigma) {  // handle special case more efficient
+                    m_char_node_map[m_first_symbol] = 0; // map the first symbol to the root node of the wavelet tree
+                }
             } else {
                 // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
                 size_type C[256] = {0};
