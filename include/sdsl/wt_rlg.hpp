@@ -157,6 +157,9 @@ class wt_rlg
             uint8_t last_c = '\0', c = '\0';
             size_type b_cnt = 0, pair1cnt=0, pair0cnt=0;
             for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
+                if (r_sum + r > size) {  // read not more than size chars in the next loop
+                    r = size-r_sum;
+                }
                 for (; i < r+r_sum; ++i) {
                     c = rac[i-r_sum];
                     if (i & 1) { // if position is odd
@@ -243,6 +246,8 @@ class wt_rlg
             }
 
 
+
+
             m_wt_rank.resize(sigma * m_b_border.size());
             m_char_occ.resize(sigma);
             for (size_type c=0; c < 256; ++c) {
@@ -318,17 +323,20 @@ class wt_rlg
         //! Calculates how many symbols c are in the prefix [0..i-1] of the supported vector.
         /*!
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
-         *  \param c The symbol to count the occurences in the prefix.
-         *	\return The number of occurences of symbol c in the prefix [0..i-1] of the supported vector.
+         *  \param c The symbol to count the occurrences in the prefix.
+         *	\return The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
          *  \par Time complexity
          *		\f$ \Order{H_0 \log L} \f$ on average, where \f$ H_0 \f$ is the zero order entropy of
          *      the sequence and \f$L\f$ the maximal length of a run of \f$c\f$s in the sequence.
          */
         size_type rank(size_type i, value_type c)const {
+            value_type cc    = m_char2comp[c];
+            if (((size_type)cc) >= m_char_occ.size()) { // char does not occur
+                return 0;
+            }
             size_type  res   = 0;
             size_type  level = 0;
             size_type  added = 0;
-            value_type cc    = m_char2comp[c];
             size_type cs     = 0;
             while (i>0 and cs != m_char_occ[cc]) {
                 size_type ones  = m_b_rank((i>>1) + m_b_border[level]); // # of ones till this position
@@ -359,11 +367,11 @@ class wt_rlg
             return res;
         };
 
-        //! Calculates how many occurences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
+        //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
         /*!
          *	\param i The index of the symbol.
          *  \param c Reference that will contain the symbol at position i after the execution of the method.
-         *  \return The number of occurences of symbol wt[i] in the prefix [0..i-1]
+         *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
          *	\par Time complexity
          *		\f$ \Order{H_0 \log L} \f$
          */
@@ -371,9 +379,9 @@ class wt_rlg
             return rank(i, c=(*this)[i]);
         }
 
-        //! Calculates the ith occurence of the symbol c in the supported vector.
+        //! Calculates the ith occurrence of the symbol c in the supported vector.
         /*!
-         *  \param i The ith occurence. \f$i\in [1..rank(size(),c)]\f$.
+         *  \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
          *  \param c The symbol c.
          *  \par Time complexity
          *		\f$ \Order{\log n H_0 \log L} \f$ on average, where \f$ H_0 \f$ is the zero order
@@ -381,6 +389,9 @@ class wt_rlg
          *      of \f$c\f$s in the sequence.
          */
         size_type select(size_type i, value_type c)const {
+            if (((size_type)m_char2comp[c]) >= m_char_occ.size()) { // char does not occur
+                return size();
+            }
             size_type lb = 0, rb = m_size;  // lb inclusive, rb exclusive
             while (rb > lb) {
                 size_type m = (lb+rb)>>1;
