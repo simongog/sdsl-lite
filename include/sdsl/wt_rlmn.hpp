@@ -157,10 +157,12 @@ class wt_rlmn
                 // scope for bl and bf
                 bit_vector bl = bit_vector(size, 0);
                 m_C  = int_vector<64>(256, 0);
-
                 rac.reset();
                 uint8_t last_c = '\0';
                 for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
+                    if (r_sum + r > size) {  // read not more than size chars in the next loop
+                        r = size-r_sum;
+                    }
                     for (; i < r+r_sum; ++i) {
                         uint8_t c = rac[i-r_sum];
                         if (last_c != c or i==0) {
@@ -190,6 +192,9 @@ class wt_rlmn
                 bf[size] = 1; // initialize last element
                 rac.reset();
                 for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
+                    if (r_sum + r > size) {  // read not more than size chars in the next loop
+                        r = size-r_sum;
+                    }
                     for (; i < r+r_sum; ++i) {
                         uint8_t c = rac[i-r_sum];
                         if (bl[i]) {
