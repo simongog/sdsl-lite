@@ -11,6 +11,7 @@
 #include <vector>
 #include <cstdlib> // for rand()
 #include <string>
+#include <algorithm> // for std::min
 
 namespace
 {
@@ -37,7 +38,8 @@ class WtAsciiTest : public ::testing::Test
             // before each test).
             test_cases.push_back("test_cases/crafted/100a.txt");
             test_cases.push_back("test_cases/small/faust.txt");
-//           test_cases.push_back("test_cases/small/zarathustra.txt");
+            test_cases.push_back("test_cases/small/zarathustra.txt");
+            test_cases.push_back("test_cases/crafted/empty.txt");
             tmp_file = "tmp_wt_ascii_test_" + sdsl::util::to_string(sdsl::util::get_pid()) + "_";
         }
 
@@ -67,13 +69,13 @@ class WtAsciiTest : public ::testing::Test
 using testing::Types;
 
 typedef Types<
-sdsl::wt_huff<sdsl::bit_vector, sdsl::rank_support_v<> >,
-     sdsl::wt_huff<sdsl::bit_vector, sdsl::rank_support_v5<> >,
+sdsl::wt<unsigned char*, sdsl::bit_vector>,
      sdsl::wt_huff<sdsl::bit_vector_interleaved<> >,
+     sdsl::wt_huff<sdsl::bit_vector, sdsl::rank_support_v<> >,
+     sdsl::wt_huff<sdsl::bit_vector, sdsl::rank_support_v5<> >,
      sdsl::wt_huff<sdsl::rrr_vector<63> >,
      sdsl::wt_rlmn<>,
      sdsl::wt_rlmn<sdsl::bit_vector>,
-     sdsl::wt<unsigned char*, sdsl::bit_vector>,
      sdsl::wt<unsigned char*, sdsl::bit_vector_interleaved<>  >,
      sdsl::wt<unsigned char*, sdsl::rrr_vector<63> >,
      sdsl::wt_rlg<>,
@@ -85,17 +87,34 @@ TYPED_TEST_CASE(WtAsciiTest, Implementations);
 TYPED_TEST(WtAsciiTest, CreateAndStoreTest)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam dummy_wt;
-        std::string tmp_text = "text_"+this->get_tmp_file_name(dummy_wt, i);
-        char* text = NULL;
-        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), text);
-        sdsl::util::store_to_file(sdsl::char_array_serialize_wrapper<>((unsigned char*)text, n), tmp_text.c_str());
-        delete [] text;
-        sdsl::int_vector_file_buffer<8> text_buf(tmp_text.c_str());
+        sdsl::int_vector_file_buffer<8> text_buf;
+        text_buf.load_from_plain(this->test_cases[i].c_str());
+        size_type n = text_buf.int_vector_size;
         TypeParam wt(text_buf, n);
         bool success = sdsl::util::store_to_file(wt, this->get_tmp_file_name(wt, i).c_str());
-        std::remove(tmp_text.c_str());
         ASSERT_EQ(success, true);
+    }
+}
+
+//! Test access methods
+TYPED_TEST(WtAsciiTest, Sigma)
+{
+    for (size_t i=0; i< this->test_cases.size(); ++i) {
+        TypeParam wt;
+        ASSERT_EQ(this->load_wt(wt, i), true);
+        char* text = NULL;
+        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), text)-1;
+        ASSERT_EQ(n, wt.size());
+        sdsl::bit_vector occur(256, 0);
+        uint16_t sigma = 0;
+        for (size_type j=0; j<n; ++j) {
+            if (!occur[(unsigned char)text[j]]) {
+                occur[(unsigned char)text[j]] = 1;
+                ++sigma;
+            }
+        }
+        ASSERT_EQ(sigma, wt.sigma);
+        delete [] text;
     }
 }
 
@@ -106,12 +125,36 @@ TYPED_TEST(WtAsciiTest, Access)
         TypeParam wt;
         ASSERT_EQ(this->load_wt(wt, i), true);
         char* text = NULL;
-        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), text);
-        ASSERT_EQ(wt.size() ,n);
+        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), text)-1;
+        ASSERT_EQ(n, wt.size());
         for (size_type j=0; j<n; ++j) {
-            ASSERT_EQ(wt[j], (typename TypeParam::value_type)text[j])<<" j="<<j;
+            ASSERT_EQ((typename TypeParam::value_type)text[j], wt[j])<<" j="<<j;
         }
         delete [] text;
+    }
+}
+
+template<class tWt>
+void test_rank(const tWt& wt, const unsigned char* text, size_type n)
+{
+    std::vector<size_type> cnt(256, 0);
+    ASSERT_EQ(n, wt.size());
+    for (size_type j=0; j < wt.size(); ++j) {
+        cnt[text[j]]++;
+        ASSERT_EQ(cnt[text[j]], wt.rank(j+1, text[j]))<< " j = "<<j<<" text[j]"<<text[j];
+    }
+    // Do random queries for all characters that do not occur in the string
+    for (size_type j=0; j<cnt.size(); ++j) {
+        if (cnt[j] == 0) {
+            for (size_type k=0; k<1000; ++k) {
+                size_type pos = rand()%(wt.size()+1);
+                ASSERT_EQ(0, wt.rank(pos, (unsigned char)j))<<" pos="<<pos;
+            }
+        }
+    }
+    // Test rank(size(), c) for each character c
+    for (size_type c=0; c < 256; ++c) {
+        ASSERT_EQ(cnt[c], wt.rank(wt.size(), (unsigned char)c))<<" c="<<c;
     }
 }
 
@@ -123,13 +166,8 @@ TYPED_TEST(WtAsciiTest, Rank)
         TypeParam wt;
         ASSERT_EQ(this->load_wt(wt, i), true);
         unsigned char* text = NULL;
-        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), (char*&)text);
-        std::vector<size_type> cnt(256, 0);
-        ASSERT_EQ(wt.size() ,n);
-        for (size_type j=0; j<n; ++j) {
-            cnt[text[j]]++;
-            ASSERT_EQ(wt.rank(j+1, text[j]), cnt[text[j]])<< " j = "<<j<<" text[j]"<<text[j];
-        }
+        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), (char*&)text)-1;
+        ::test_rank(wt, text, n);
         delete [] text;
     }
 }
@@ -142,12 +180,12 @@ TYPED_TEST(WtAsciiTest, Select)
         TypeParam wt;
         ASSERT_EQ(this->load_wt(wt, i), true);
         unsigned char* text = NULL;
-        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), (char*&)text);
+        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), (char*&)text)-1;
         std::vector<size_type> cnt(256, 0);
-        ASSERT_EQ(wt.size() ,n);
+        ASSERT_EQ(n, wt.size());
         for (size_type j=0; j<n; ++j) {
             cnt[text[j]]++;
-            ASSERT_EQ(wt.select(cnt[text[j]], text[j]), j)<< " j = "<<j<<" text[j]"<<text[j];
+            ASSERT_EQ(j, wt.select(cnt[text[j]], text[j]))<< " j = "<<j<<" text[j]"<<text[j];
         }
         delete [] text;
     }
@@ -162,15 +200,31 @@ TYPED_TEST(WtAsciiTest, SwapTest)
         ASSERT_EQ(this->load_wt(wt1, i), true);
         TypeParam wt2;
         wt1.swap(wt2);
-        char* text = NULL;
-        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), text);
-        ASSERT_EQ(wt2.size() ,n);
+        unsigned char* text = NULL;
+        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), (char*&)text)-1;
+        ASSERT_EQ(n, wt2.size());
         for (size_type j=0; j<n; ++j) {
             ASSERT_EQ(wt2[j], (typename TypeParam::value_type)text[j]);
         }
         delete [] text;
     }
 }
+
+
+TYPED_TEST(WtAsciiTest, CreatePartiallyTest)
+{
+    for (size_t i=0; i< this->test_cases.size(); ++i) {
+        sdsl::int_vector_file_buffer<8> text_buf;
+        text_buf.load_from_plain(this->test_cases[i].c_str());
+        unsigned char* text = NULL;
+        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), (char*&)text)-1;
+        n = std::min(n, (size_type)50);
+        TypeParam wt(text_buf, n);
+        ::test_rank(wt, text, n);
+        delete [] text;
+    }
+}
+
 
 
 TYPED_TEST(WtAsciiTest, DeleteTest)
