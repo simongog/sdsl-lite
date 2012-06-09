@@ -429,15 +429,7 @@ class wt_huff
                 return;
             // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
             size_type C[256] = {0};
-//		rac.reset();
-            //  1. Count occurences of characters
-//		for(size_type i=0, r_sum=0, r = rac.load_next_block(); r_sum < m_size;){
-//			for(; i < r_sum+r; ++i){
-//				++C[rac[i-r_sum]];
-//			}
-//			r_sum += r; r = rac.load_next_block();
-//		}
-            // 1. Count occurences of characters
+            // 1. Count occurrences of characters
             calculate_character_occurences(rac, m_size, C);
             // 2. Calculate effective alphabet size
             calculate_effective_alphabet_size(C, m_sigma);
