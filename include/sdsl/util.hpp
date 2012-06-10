@@ -170,19 +170,30 @@ std::string demangle(const char* name);
 //! Demangle the class name of typeid(...).name() and remove the "sdsl::"-prefix, "unsigned int",...
 std::string demangle2(const char* name);
 
+template<class T>
+std::string get_class_name(const T& t)
+{
+    std::string result = demangle2(typeid(t).name());
+    size_t template_pos = result.find("<");
+    if (template_pos != std::string::npos) {
+        result = result.erase(template_pos);
+    }
+    return result;
+}
+
 //! Get the size of a data structure in bytes.
 /*!
  *	\param v A reference to the data structure for which the size in bytes should be calculated.
  */
 template<class T>
-typename T::size_type get_size_in_bytes(const T& v);
+typename T::size_type get_size_in_bytes(const T& t);
 
 //! Get the size of a data structure in mega bytes (MB).
 /*!
- *	\param v A reference to the data structure for which the size in bytes should be calculated.
+ *	\param t A reference to the data structure for which the size in bytes should be calculated.
  */
 template<class T>
-double get_size_in_mega_bytes(const T& v);
+double get_size_in_mega_bytes(const T& t);
 
 struct nullstream : std::ostream {
     struct nullbuf: std::streambuf {
@@ -320,28 +331,28 @@ void init_support(S& s, const X* x)
 
 
 template<class T>
-typename T::size_type util::get_size_in_bytes(const T& v)
+typename T::size_type util::get_size_in_bytes(const T& t)
 {
-    if ((&v) == NULL)
+    if ((&t) == NULL)
         return 0;
     util::nullstream ns;
-    return v.serialize(ns);
+    return t.serialize(ns);
 }
 
 template<class T>
-double util::get_size_in_mega_bytes(const T& v)
+double util::get_size_in_mega_bytes(const T& t)
 {
-    return get_size_in_bytes(v)/(1024.0*1024.0);
+    return get_size_in_bytes(t)/(1024.0*1024.0);
 }
 
 template<class T>
-bool util::store_to_file(const T& v, const char* file_name)
+bool util::store_to_file(const T& t, const char* file_name)
 {
     std::ofstream out;
     out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
         return false;
-    v.serialize(out);
+    t.serialize(out);
     out.close();
     return true;
 }
