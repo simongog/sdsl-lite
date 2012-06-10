@@ -19,8 +19,8 @@
           classes which support rank and select for gap_vector.
    \author Simon Gog
 */
-#ifndef SDSL_GAP_VECTOR
-#define SDSL_GAP_VECTOR
+#ifndef INCLUDED_SDSL_GAP_VECTOR
+#define INCLUDED_SDSL_GAP_VECTOR
 
 #include "int_vector.hpp"
 #include "util.hpp"
@@ -56,12 +56,10 @@ class gap_vector
         gap_vector():m_size(0) {}
 
         gap_vector(const bit_vector& bv) {
-//std::cout<<"calling constructor of gap_vector"<<std::endl;
             m_size = bv.size();
             if (m_size == 0)
                 return;
             size_type ones = util::get_one_bits(bv);
-//std::cout<<"ones in bv="<<ones<<std::endl;
             m_position = int_vector<>(ones, 0, bit_magic::l1BP(m_size)+1);
             const uint64_t* bvp = bv.data();
             for (size_type i=0, one_cnt=0; i < (bv.size()+63)/64; ++i, ++bvp) {
@@ -72,7 +70,14 @@ class gap_vector
                         }
                 }
             }
-//std::cout<<"written_positions"<<std::endl;
+        }
+
+        //! Swap method
+        void swap(gap_vector& v) {
+            if (this != &v) {
+                std::swap(m_size, v.m_size);
+                m_position.swap(v.m_position);
+            }
         }
 
         //! Accessing the i-th element of the original bit_vector
