@@ -19,8 +19,8 @@
           classes which support rank and select for sd_vector.
    \author Simon Gog
 */
-#ifndef SDSL_SD_VECTOR
-#define SDSL_SD_VECTOR
+#ifndef INCLUDED_SDSL_SD_VECTOR
+#define INCLUDED_SDSL_SD_VECTOR
 
 #include "int_vector.hpp"
 #include "select_support_mcl.hpp"
@@ -32,17 +32,20 @@ namespace sdsl
 {
 
 // forward declaration needed for friend declaration
-template<class hi_bit_vector_type=bit_vector, class Select1Support=select_support_mcl<1>, class Select0Support=select_support_mcl<0> >
+template<class hi_bit_vector_type = bit_vector,
+         class Select1Support	  = typename hi_bit_vector_type::select_1_type,
+         class Select0Support	  = typename hi_bit_vector_type::select_0_type>
 class sd_rank_support;  // in sd_vector
 
 // forward declaration needed for friend declaration
-template<class hi_bit_vector_type=bit_vector, class Select1Support=select_support_mcl<1>, class Select0Support=select_support_mcl<0> >
+template<class hi_bit_vector_type = bit_vector,
+         class Select1Support	  = typename hi_bit_vector_type::select_1_type,
+         class Select0Support	  = typename hi_bit_vector_type::select_0_type>
 class sd_select_support;  // in sd_vector
 
 //! A bit vector which compresses very sparse populated bit vectors by
 // representing the positions of 1 by the Elias-Fano representation for non-decreasing sequences
 /*!
- *
  * \par Other implementations of this data structure:
  *  - the sdarray of Okanohara and Sadakane
  *  - Sebastiano Vigna implemented a elias_fano class in this sux library.
@@ -54,8 +57,14 @@ class sd_select_support;  // in sd_vector
  *             Memorandum 61. Computer Structures Group, Project MAC, MIT, 1971
  *  - D. Okanohara, K. Sadakane: ,,Practical Entropy-Compressed Rank/Select Dictionary'',
  *             Proceedings of ALENEX 2007.
+ *
+ *	\tparam hi_bit_vector_type	Type of the bitvector HI used for representing the high part of the positions of the 1s.
+ *  \tparam hi_select_1			Type of the select support data structure which is used to select ones in HI.
+ *  \tparam hi_select_0			Type of the select support data structure which is used to select zeros in HI.
  */
-template<class hi_bit_vector_type=bit_vector, class hi_select_1=select_support_mcl<1>, class hi_select_0=select_support_mcl<0> >
+template<class hi_bit_vector_type	= bit_vector,
+           class hi_select_1			= typename hi_bit_vector_type::select_1_type,
+           class hi_select_0			= typename hi_bit_vector_type::select_0_type>
 class sd_vector
 {
     public:
@@ -73,13 +82,13 @@ class sd_vector
         // we need this variables to represent the m ones of the original bit vector of size n
         size_type m_size;		 // length of the original bit vector
         uint8_t   m_wl;			 // log n - log m, where n is the length of the original bit vector
-        // and m is the number of ones in the bit vector, lw is the abbreviation
-        // for ,,with (of) low (part)''
+        // and m is the number of ones in the bit vector, wl is the abbreviation
+        // for ,,width (of) low (part)''
 
-        int_vector<> m_low;      // vector for the least significant bits of the positions of the m ones
-        hi_bit_vector_type   	m_high;     // bit vector that represents the most significant bit in permuted order
-        select_1_support_type 	m_high_1_select; //
-        select_0_support_type 	m_high_0_select; //
+        int_vector<> 			m_low;      	 // vector for the least significant bits of the positions of the m ones
+        hi_bit_vector_type   	m_high;     	 // bit vector that represents the most significant bit in permuted order
+        select_1_support_type 	m_high_1_select; // select support for the ones in m_high
+        select_0_support_type 	m_high_0_select; // select support for the zeros in m_high
 
         void copy(const sd_vector& v) {
             m_size = v.m_size;
@@ -91,7 +100,6 @@ class sd_vector
             m_high_0_select = v.m_high_0_select;
             m_high_0_select.set_vector(&m_high);
         }
-
 
     public:
         const hi_bit_vector_type& high;
@@ -120,11 +128,11 @@ class sd_vector
             for (size_type i=0, mm=0,last_high=0,highpos=0; i < (bv.size()+63)/64; ++i, ++bvp) {
                 size_type position = 64*i;
                 uint64_t  w = *bvp;
-                while (w) {
+                while (w) {  // process bit_vector word by word
                     uint8_t offset = bit_magic::r1BP(w);
                     w >>= offset;   // note:  w >>= (offset+1) can not be applied for offset=63!
                     position += offset;
-                    if (position >= bv.size())
+                    if (position >= bv.size()) // check that we have not reached the end of the bitvector
                         break;
                     // (1) handle high part
                     size_type cur_high = position >> m_wl;
@@ -153,18 +161,12 @@ class sd_vector
         *        by using binary search in the second step.
         */
         value_type operator[](size_type i)const {
-//			size_type h = i >> m_wl; // extract high part
-            // search for the h's zero in m_high
-            //size_type m_high_0_select(  );
-            // split problem in two parts:
-            // (1) find  >=
             size_type high_val = (i >> (m_wl));
             size_type sel_high = m_high_0_select.select(high_val + 1);
             size_type rank_low = sel_high - high_val;
             if (0 == rank_low)
                 return 0;
-            size_type val_low = i & bit_magic::Li1Mask[ m_wl ];
-            // now since rank_low > 0 => sel_high > 0
+            size_type val_low = i & bit_magic::Li1Mask[ m_wl ]; // extract the low m_wl = log n -log m bits
             --sel_high; --rank_low;
             while (m_high[sel_high] and m_low[rank_low] > val_low) {
                 if (sel_high > 0) {
@@ -182,13 +184,8 @@ class sd_vector
                 std::swap(m_wl, v.m_wl);
                 m_low.swap(v.m_low);
                 m_high.swap(v.m_high);
-                m_high_1_select.swap(v.m_high_1_select);
-                m_high_1_select.set_vector(&m_high);
-                v.m_high_1_select.set_vector(&(v.m_high));
-
-                m_high_0_select.swap(v.m_high_0_select);
-                m_high_0_select.set_vector(&m_high);
-                v.m_high_0_select.set_vector(&(v.m_high));
+                util::swap_support(m_high_1_select, v.m_high_1_select, &m_high, &v.m_high);
+                util::swap_support(m_high_0_select, v.m_high_0_select, &m_high, &v.m_high);
             }
         }
 
@@ -198,7 +195,6 @@ class sd_vector
         }
 
         sd_vector& operator=(const sd_vector& v) {
-//		   std::cout<<"copy constructor of sd_vector was called"<<std::endl;
             if (this != &v) {
                 copy(v);
             }
@@ -242,6 +238,12 @@ class sd_vector
 
 };
 
+//! Rank data structure for sd_vector
+/*
+ *	\tparam hi_bit_vector_type	Type of the bitvector HI used for representing the high part of the positions of the 1s in sd_vector.
+ *  \tparam hi_select_1			Type of the select support data structure which is used to select ones in HI in sd_vector.
+ *  \tparam hi_select_0			Type of the select support data structure which is used to select zeros in HI in sd_vector.
+ */
 template<class hi_bit_vector_type, class Select1Support, class Select0Support>
 class sd_rank_support
 {
@@ -265,27 +267,17 @@ class sd_rank_support
             // split problem in two parts:
             // (1) find  >=
             size_type high_val = (i >> (m_v->m_wl));
-//std::cout<<"high_val="<<high_val<<" i="<<i<<" / "<<m_v->m_high.size()<<" / "<<m_v->size() <<std::endl;
-//std::cout<<"m_v="<<m_v<<std::endl;
-//std::cout<<"m_v="<< (&(m_v->m_high_0_select)) <<std::endl;
-//for(size_type j=1; j<2; ++j)
-//	std::cout<<"m_v->m_high_0_select("<<j<<")="<< m_v->m_high_0_select.select(j) << std::endl;
-//std::cout<<"------------"<<std::endl;
             size_type sel_high = m_v->m_high_0_select.select(high_val + 1);
-//std::cout<<"sel_high="<<sel_high<<" /"<<m_v->m_high.size() <<std::endl;
             size_type rank_low = sel_high - high_val; //
-//std::cout<<"rank_low="<<rank_low<<std::endl;
             if (0 == rank_low)
                 return 0;
             size_type val_low = i & bit_magic::Li1Mask[ m_v->m_wl ];
-//std::cout<<"val_low="<<val_low<<std::endl;
             // now since rank_low > 0 => sel_high > 0
             do {
                 if (!sel_high)
                     return 0;
                 --sel_high; --rank_low;
             } while (m_v->m_high[sel_high] and m_v->m_low[rank_low] >= val_low);
-//std::cout<<"result = "<<rank_low+1<<std::endl;
             return rank_low+1;
         }
 
@@ -297,7 +289,6 @@ class sd_rank_support
             return m_v->size();
         }
 
-//		void set_vector(const bit_vector_type *v=NULL){
         void set_vector(const bit_vector_type* v=NULL) {
             m_v = v;
         }
@@ -342,6 +333,12 @@ class sd_rank_support
 
 };
 
+//! Select data structure for sd_vector
+/*
+ *	\tparam hi_bit_vector_type	Type of the bitvector HI used for representing the high part of the positions of the 1s in sd_vector.
+ *  \tparam hi_select_1			Type of the select support data structure which is used to select ones in HI in sd_vector.
+ *  \tparam hi_select_0			Type of the select support data structure which is used to select zeros in HI in sd_vector.
+ */
 template<class hi_bit_vector_type, class Select1Support, class Select0Support>
 class sd_select_support
 {
