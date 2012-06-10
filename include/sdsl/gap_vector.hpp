@@ -53,7 +53,7 @@ class gap_vector
         int_vector<> m_position;
 
     public:
-        gap_vector() {}
+        gap_vector():m_size(0) {}
 
         gap_vector(const bit_vector& bv) {
 //std::cout<<"calling constructor of gap_vector"<<std::endl;

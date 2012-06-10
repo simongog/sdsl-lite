@@ -90,9 +90,9 @@ class bit_vector_interleaved
         }
 
     public:
-        bit_vector_interleaved() {}
+        bit_vector_interleaved():m_size(0), m_totalBlocks(0), m_superblocks(0), m_blockShift(0) {}
 
-        bit_vector_interleaved(const bit_vector& bv) {
+        bit_vector_interleaved(const bit_vector& bv):m_size(0), m_totalBlocks(0), m_superblocks(0), m_blockShift(0) {
             m_size = bv.size();
             /* calculate the number of superblocks */
 //          each block of size > 0 gets suberblock in which we store the cumulative sum up to this block

@@ -99,7 +99,8 @@ class sd_vector
         const select_1_support_type&	 high_1_select;
         const select_0_support_type&	 high_0_select;
 
-        sd_vector():high(m_high), low(m_low),
+        sd_vector():m_size(0), m_wl(0),
+            high(m_high), low(m_low),
             high_1_select(m_high_1_select), high_0_select(m_high_0_select) {
         }
 

@@ -106,10 +106,10 @@ class rrr_vector
         const bit_vector& btnr;
 
         //! Default constructor
-        rrr_vector(uint16_t sample_rate=32):m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {};
+        rrr_vector(uint16_t sample_rate=32):m_size(0), m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {};
 
         //! Copy constructor
-        rrr_vector(const rrr_vector& rrr):m_sample_rate(rrr.m_sample_rate), bt(m_bt), btnr(m_btnr) {
+        rrr_vector(const rrr_vector& rrr):bt(m_bt), btnr(m_btnr) {
             copy(rrr);
         }
 

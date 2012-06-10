@@ -87,46 +87,6 @@ struct unsigned_char_map {
     }
 };
 
-/*
-template<class size_type>
-struct identity_map{
-//	static size_type dummy;
-
-	size_type operator[](const size_type i)const{
-		return i;
-	}
-
-	void clear(){}
-
-	uint16_t serialize(std::ostream &out)const{ // takes 0 bytes
-		return 0;
-	}
-
-	void load(std::istream &in){}
-	void swap(identity_map &map){}
-};
-
-template<class RandomAccessContainer>
-class perm_wrapper{
-	public:
-	typedef RandomAccessContainer rac_type;
-	typedef typename rac_type::value_type value_type;
-	typedef typename rac_type::size_type size_type;
-	private:
-	const rac_type& m_rac;
-
-	public:
-	perm_wrapper(RandomAccessContainer &perm):m_rac(perm){ }
-
-	value_type operator[](size_type i)const{
-		return m_rac[i];
-	}
-
-	size_type size()const{
-		return m_rac.size();
-	}
-};
-*/
 
 template<class RandomAccessContainer>
 class wt_trait
@@ -172,45 +132,6 @@ class wt_trait
             return 0;
         }
 };
-
-/*
-template<class RandomAccessContainer>
-class wt_trait<perm_wrapper<RandomAccessContainer> >{
-	public:
-		typedef typename RandomAccessContainer::size_type 		size_type;
-		typedef typename RandomAccessContainer::value_type 		value_type;
-		typedef perm_wrapper<RandomAccessContainer>& 							reference_type;
-		typedef identity_map<size_type>							map_type;
-		typedef identity_map<size_type>							inv_map_type;
-		enum{ char_node_map_size=0 };
-
-		static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type &map, inv_map_type &inv_map, value_type &first_symbol){
-			if( n > 0 )
-				first_symbol = rac[0];
-			bit_vector check_perm(n,0);
-			for(size_type i=0; i<n; ++i){
-				size_type x = rac[i];
-				if(x >= n or check_perm[x]){
-					std::cerr<<"ERROR array is not a permutation!"<<std::endl;
-					return 0;
-				}
-				check_perm[x] = 1;
-			}
-			return n;
-		}
-
-		static bool symbol_available(const map_type &map, const value_type c, const value_type first_symbol){
-			return true; // TODO
-		}
-		static size_type serialize_maps(std::ostream &out, const map_type &map, const inv_map_type &inv_map){
-			return 0;
-		}
-
-		static void load_maps(std::istream &in, map_type &map, inv_map_type &inv_map){
-			return 0;
-		}
-};
-*/
 
 template<class character>
 class wt_trait<character*>
@@ -426,7 +347,7 @@ class wt
     public:
         typedef typename wt_trait<RandomAccessContainer>::size_type 		size_type;
         typedef typename wt_trait<RandomAccessContainer>::value_type 		value_type;
-        typedef typename wt_trait<RandomAccessContainer>::map_type		map_type;
+        typedef typename wt_trait<RandomAccessContainer>::map_type		     map_type;
         typedef typename wt_trait<RandomAccessContainer>::inv_map_type	inv_map_type;
     private:
         size_type 			m_size;
@@ -464,6 +385,12 @@ class wt
             }
         }
 
+        void init_char_node_map() {
+            if (wt_trait<RandomAccessContainer>::char_node_map_size == 256) {
+                for (size_type i=0; i<256; ++i) m_char_node_map[i] = 0;
+            }
+        }
+
     public:
 
         const size_type& sigma;
@@ -486,7 +413,7 @@ class wt
 #endif
             // calculate alphabet size and the mappings for the symbols to the integers and back
             m_sigma = wt_trait<RandomAccessContainer>::alphabet_size_and_map(rac, m_size, m_char_map, m_inv_char_map, m_first_symbol);
-
+            init_char_node_map();
             int_vector<> node_sizes = int_vector<>(2*m_sigma+1, 0, bit_magic::l1BP(m_size)+1);
             m_node_pointers = int_vector<64>(node_sizes.size()+1, 0);
             m_node_pointers_rank = int_vector<64>(node_sizes.size()+1, 0);
@@ -586,6 +513,7 @@ class wt
         template<class size_type_class>
         void construct(int_vector_file_buffer<8, size_type_class>& rac, size_type size) {
             m_size = size;
+            init_char_node_map();
             typedef int_vector_file_buffer<8, size_type_class> tIVFB;
 //#define SDSL_DEBUG_WT
 #ifdef SDSL_DEBUG_WT
@@ -1129,8 +1057,6 @@ class wt
             if (wt_trait<RandomAccessContainer>::char_node_map_size == 256) {
                 for (size_type i=0; i<256; ++i) {
                     written_bytes += util::write_member(m_char_node_map[i], out);
-//                    out.write((char*)&m_char_node_map[i], sizeof(m_char_node_map[i]));
-//                    written_bytes += sizeof(m_char_node_map[i]);
                 }
             }
             return written_bytes;
@@ -1151,7 +1077,7 @@ class wt
             // serialize char_node_map
             if (wt_trait<RandomAccessContainer>::char_node_map_size == 256) {
                 for (size_type i=0; i<256; ++i) {
-                    in.read((char*)&m_char_node_map[i], sizeof(m_char_node_map[i]));
+                    util::read_member(m_char_node_map[i], in);
                 }
             }
         }
