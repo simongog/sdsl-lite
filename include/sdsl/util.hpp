@@ -284,6 +284,14 @@ void clear(T& x)
 }
 
 //! Swap support data structure and assign to new vector
+/*! \param s1 First support structure.
+ *  \param s2 Second support structure.
+ *  \param p1 First supported structure.
+ *  \param p2 Second supported structure.
+ *  s1 is swapped with s2 and after the execution s1 supports p1 and s2 supports
+ *  p2. I.e. if p1 and p2 are members of a complex data structure, we have to
+ *  swap p1 and p2 before we use this method.
+ */
 template<class S, class P>
 void swap_support(S& s1, S& s2, const P* p1, const P* p2)
 {
