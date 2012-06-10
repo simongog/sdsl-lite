@@ -179,10 +179,6 @@ class rrr_vector<15, wt_type>
         int_vector<>   m_btnrp; // sample pointers into btnr
         int_vector<>   m_rank;  // sample rank values
 
-    public:
-        const wt_type& bt;
-        const bit_vector& btnr;
-
         void copy(const rrr_vector& rrr) {
             m_size = rrr.m_size;
             m_sample_rate = rrr.m_sample_rate;
@@ -191,6 +187,9 @@ class rrr_vector<15, wt_type>
             m_btnrp = rrr.m_btnrp;
             m_rank = rrr.m_rank;
         }
+    public:
+        const wt_type& bt;
+        const bit_vector& btnr;
 
         //! Default constructor
         rrr_vector(uint16_t sample_rate=32):m_size(0), m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {};
@@ -262,6 +261,18 @@ class rrr_vector<15, wt_type>
             // for technical reasons add an additional element to m_rank
             m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
             util::assign(m_bt, bt_array);
+        }
+
+        //! Swap method
+        void swap(rrr_vector& rrr) {
+            if (this != &rrr) {
+                std::swap(m_size, rrr.m_size);
+                std::swap(m_sample_rate, rrr.m_sample_rate);
+                m_bt.swap(rrr.m_bt);
+                m_btnr.swap(rrr.m_btnr);
+                m_btnrp.swap(rrr.m_btnrp);
+                m_rank.swap(rrr.m_rank);
+            }
         }
 
         //! Accessing the i-th element of the original bit_vector
