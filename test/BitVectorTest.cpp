@@ -87,6 +87,10 @@ using testing::Types;
 
 typedef Types<
 sdsl::bit_vector,
+     sdsl::bit_vector_interleaved<256>,
+     sdsl::bit_vector_interleaved<512>,
+     sdsl::bit_vector_interleaved<1024>,
+     sdsl::rrr_vector<64>,
      sdsl::rrr_vector<256>,
      sdsl::rrr_vector<129>,
      sdsl::rrr_vector<192>,
@@ -94,14 +98,11 @@ sdsl::bit_vector,
      sdsl::rrr_vector<15>,
      sdsl::rrr_vector<31>,
      sdsl::rrr_vector<63>,
-     sdsl::rrr_vector<64>,
      sdsl::rrr_vector<83>,
      sdsl::rrr_vector<127>,
      sdsl::rrr_vector<128>,
-     sdsl::bit_vector_interleaved<256>,
-     sdsl::bit_vector_interleaved<512>,
-     sdsl::bit_vector_interleaved<1024>,
      sdsl::sd_vector<>,
+     sdsl::sd_vector<sdsl::rrr_vector<63> >,
      sdsl::gap_vector<>
      > Implementations;
 
@@ -112,9 +113,27 @@ TYPED_TEST(BitVectorTest, Access)
 {
     for (size_type i=0; i<this->n; ++i) {
         TypeParam copied_bs(this->bs[i]);
-        ASSERT_EQ(copied_bs.size(), (this->bs[i]).size());
+        ASSERT_EQ((this->bs[i]).size(), copied_bs.size());
         for (size_type j=0; j < (this->bs[i]).size(); ++j) {
-            ASSERT_EQ(copied_bs[j], this->bs[i][j]) << " at index "<<j<<" of vector "<<i<<" of length "<<(this->bs[i]).size();
+            ASSERT_EQ(this->bs[i][j], copied_bs[j]) << " at index "<<j<<" of vector "<<i<<" of length "<<(this->bs[i]).size();
+        }
+    }
+}
+
+TYPED_TEST(BitVectorTest, Swap)
+{
+    for (size_type i=0; i<this->n; ++i) {
+        TypeParam copied_bs(this->bs[i]);
+        ASSERT_EQ(this->bs[i].size(), copied_bs.size());
+
+        TypeParam bs_empty;
+        ASSERT_EQ((size_type)0, bs_empty.size());
+
+        bs_empty.swap(copied_bs);
+        ASSERT_EQ((size_type)0, copied_bs.size());
+        ASSERT_EQ(this->bs[i].size(), bs_empty.size());
+        for (size_type j=0; j < (this->bs[i]).size(); ++j) {
+            ASSERT_EQ(this->bs[i][j], bs_empty[j]) << " at index "<<j<<" of vector "<<i<<" of length "<<(this->bs[i]).size();
         }
     }
 }

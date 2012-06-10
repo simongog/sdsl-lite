@@ -51,6 +51,8 @@ sdsl::wt_int<>,
 
 TYPED_TEST_CASE(WtIntTest, Implementations);
 
+// TODO: test streaming operator
+
 //! Test the parametrized constructor
 TYPED_TEST(WtIntTest, Constructor)
 {

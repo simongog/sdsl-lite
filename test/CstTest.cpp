@@ -65,10 +65,10 @@ class CstTest : public ::testing::Test
 using testing::Types;
 
 typedef Types<
-//		cst_sct3<csa_uncompressed, lcp_support_tree2<> >, TODO: make csa_uncompressed working again
-//		cst_sct3<csa_uncompressed, lcp_support_sada<> >,
-cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_gg<> >,
+cst_sct3<cst_sada<>::csa_type, lcp_uncompressed<> >,
+         cst_sada<cst_sada<>::csa_type, lcp_dac<> >,
          cst_sada<cst_sada<>::csa_type, lcp_support_tree2<>, bp_support_gg<> >,
+         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_gg<> >,
          cst_sct3<>,
          cst_sada<>,
          cst_sada<cst_sada<>::csa_type, lcp_support_tree<> >,
@@ -82,6 +82,7 @@ cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_gg<> >,
          cst_sada<cst_sada<>::csa_type, lcp_support_tree2<> >,
          cst_sada<cst_sada<>::csa_type, lcp_wt<> >,
          cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_g<> >,
+//		cst_sct3<csa_uncompressed, lcp_uncompressed<> >, //TODO: make csa_uncompressed working again
          cst_sada<cst_sada<>::csa_type, lcp_dac<>, bp_support_g<> >
          > Implementations;
 
@@ -96,7 +97,7 @@ TYPED_TEST(CstTest, CreateAndStoreTest)
         util::verbose = false;
         construct_cst(this->test_cases[i], cst);
         bool success = util::store_to_file(cst, this->get_tmp_file_name(cst, i).c_str());
-        ASSERT_EQ(success, true);
+        ASSERT_EQ(true, success);
     }
 }
 
@@ -111,7 +112,7 @@ void check_node_method(const tCst& cst)
             node_type v = *it;
             size_type d = cst.depth(v);
             size_type lb = cst.lb(v), rb = cst.rb(v);
-            ASSERT_EQ(cst.node(lb, rb, d), v);
+            ASSERT_EQ(v, cst.node(lb, rb, d));
         }
     }
 }
@@ -123,21 +124,15 @@ TYPED_TEST(CstTest, SwapMethod)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst1;
-        ASSERT_EQ(this->load_cst(cst1, i), true);
+        ASSERT_EQ(true, this->load_cst(cst1, i));
         size_type n = cst1.size();
         TypeParam cst2;
-        ASSERT_EQ(cst2.size(), 0);
+        ASSERT_EQ(0, cst2.size());
         cst1.swap(cst2);
-        ASSERT_EQ(cst1.size(), 0);
-        ASSERT_EQ(cst2.size(), n);
-        ASSERT_EQ(cst2.csa.size(), n);
-        bit_vector mark(cst2.size(), 0);
-        /*		for(size_type i=0; i<cst2.size(); ++i){
-        			size_type x = cst2.csa[i];
-        			ASSERT_EQ( mark[x], 0 );
-        			mark[x] = 1;
-        		}
-        */
+        ASSERT_EQ(0, cst1.size());
+        ASSERT_EQ(n, cst2.size());
+        ASSERT_EQ(n, cst2.csa.size());
+        bit_vector mark(0, cst2.size());
         check_node_method(cst2);
     }
 }
@@ -148,20 +143,9 @@ TYPED_TEST(CstTest, NodeMethod)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-        ASSERT_EQ(this->load_cst(cst, i), true);
+        ASSERT_EQ(true, this->load_cst(cst, i));
         // doing a depth first traversal through the tree to count the nodes
         check_node_method(cst);
-        /*		typedef typename TypeParam::const_iterator const_iterator;
-                typedef typename TypeParam::node_type node_type;
-                for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it) {
-                    if (it.visit() == 1) {
-                        node_type v = *it;
-                        size_type d = cst.depth(v);
-                        size_type lb = cst.lb(v), rb = cst.rb(v);
-                        ASSERT_EQ(cst.node(lb, rb, d), v);
-                    }
-                }
-        */
     }
 }
 
@@ -170,53 +154,52 @@ TYPED_TEST(CstTest, BasicMethods)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-        ASSERT_EQ(this->load_cst(cst, i), true);
+        ASSERT_EQ(true, this->load_cst(cst, i));
         typedef typename TypeParam::node_type node_type;
         node_type r = cst.root(); // get root node
         // Size of the subtree rooted at r should the size of the suffix array
-        ASSERT_EQ(cst.leaves_in_the_subtree(r), cst.csa.size());
+        ASSERT_EQ(cst.csa.size(), cst.leaves_in_the_subtree(r));
         // Check leaf methods
         for (size_type i=0; i < cst.csa.size(); ++i) {
-            ASSERT_EQ(cst.is_leaf(cst.ith_leaf(i+1)), true);
+            ASSERT_EQ(true, cst.is_leaf(cst.ith_leaf(i+1)));
         }
     }
 }
 
 
-//! Test the id method
-/*
+//! Test the id and inverse id method
 TYPED_TEST(CstTest, IdMethod)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-		ASSERT_EQ( this->load_cst(cst), true);
-		// doing a depth first traversal through the tree to count the nodes
-		typedef typename TypeParam::const_iterator const_iterator;
-		typedef typename TypeParam::node_type node_type;
-		size_type node_count=0;
-		for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it){
-			if ( it.visit() == 1 ){
-				++node_count;
-			}
-		}
-		// counted nodes should be equal to nodes
-		ASSERT_EQ( node_count, cst.nodes() );
-		// check if the id method is working
-		bit_vector marked(cst.nodes(), 0);
-		for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it){
-			if ( it.visit() == 1 ){
-				++node_count;
-				node_type v = *it;
-				size_type id = cst.id( v );
-				ASSERT_EQ( marked[id], 0 );
-				marked[id] = 1;
-				ASSERT_EQ( cst.inv_id( cst.id(v) ), v );
-			}
-		}
-
+        ASSERT_EQ(true, this->load_cst(cst, i));
+        // doing a depth first traversal through the tree to count the nodes
+        typedef typename TypeParam::const_iterator const_iterator;
+        typedef typename TypeParam::node_type node_type;
+        size_type node_count=0;
+        for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it) {
+            if (it.visit() == 1) {
+                ++node_count;
+            }
+        }
+        // counted nodes should be equal to nodes
+        ASSERT_EQ(node_count, cst.nodes());
+        // check if the id method is working
+        bit_vector marked(cst.nodes(), 0);
+        for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it) {
+            if (it.visit() == 1) {
+                ++node_count;
+                node_type v = *it;
+                size_type id = cst.id(v);
+                ASSERT_EQ(0, marked[id]);
+                marked[id] = 1;
+                ASSERT_EQ(v, cst.inv_id(cst.id(v)));
+            }
+        }
     }
 }
-*/
+
+
 
 template<class Cst>
 std::string format_node(const Cst& cst, const typename Cst::node_type& v)
@@ -252,7 +235,7 @@ TYPED_TEST(CstTest, LcaMethod)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-        ASSERT_EQ(this->load_cst(cst, i), true);
+        ASSERT_EQ(true, this->load_cst(cst, i));
         uint64_t mask;
         uint8_t log_m = 14;
         // create m/2 pairs of positions in [0..cst.csa.size()-1]
@@ -265,7 +248,7 @@ TYPED_TEST(CstTest, LcaMethod)
             node_type w = cst.ith_leaf(rnd_pos[2*i+1]+1);
             // calculate lca
             node_type z = naive_lca(cst, v, w);
-            ASSERT_EQ(cst.lca(v, w), z);
+            ASSERT_EQ(z, cst.lca(v, w));
         }
         // test for regular sampled nodes
         for (size_type i=cst.csa.size()/2, g=100; i+g < std::min(cst.csa.size(), cst.csa.size()/2+100*g); ++i) {
@@ -283,7 +266,7 @@ TYPED_TEST(CstTest, LcaMethod)
                 std::cout << "u="<<format_node(cst, u)<<" z="<<format_node(cst, z)<<std::endl;
                 naive_lca(cst, v, w, true);
             }
-            ASSERT_EQ(u, z);
+            ASSERT_EQ(z, u);
         }
     }
 }
