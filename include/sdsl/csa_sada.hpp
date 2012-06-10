@@ -514,7 +514,7 @@ csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(tMSS& fi
 template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
 void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::construct(tMSS& file_map, const std::string& dir, const std::string& id)
 {
-    if (m_psi_buf = NULL) {
+    if (m_psi_buf == NULL) {
         m_psi_buf = new uint64_t[m_psi.get_sample_dens()+1];
     }
     if (file_map.find("bwt") == file_map.end()) { // if bwt is not already stored on disk => construct bwt

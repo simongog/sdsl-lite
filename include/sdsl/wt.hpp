@@ -175,7 +175,6 @@ class wt_trait<character*>
 
         static void load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
             throw std::logic_error(util::demangle(typeid(wt_trait<character*>).name())+": load not implemented");
-            return 0;
         }
 };
 

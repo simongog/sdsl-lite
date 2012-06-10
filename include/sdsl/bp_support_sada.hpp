@@ -174,7 +174,7 @@ class bp_support_sada
         }
 
         inline difference_type sml_max_value(size_type sml_block)const {
-            return m_sml_block_min_max[(sml_block_idx<<1)+1] - 1;
+            return (difference_type)m_sml_block_min_max[(sml_block<<1)+1] - 1;
         }
 
         void print_node(size_type v)const {

@@ -338,10 +338,10 @@ class cst_sct
                 int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
                 int_vector_file_buffer<int_width_1, size_type_class_1>& sa_buf,
                 int_vector_file_buffer<int_width_2, size_type_class_2>& isa_buf,
-                std::string dir,
-                bool build_only_bps);
+                std::string dir="./",
+                bool build_only_bps=false);
 
-        cst_sct(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps);
+        cst_sct(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps=false);
 
         //! Copy constructor
         /*!
@@ -355,7 +355,7 @@ class cst_sct
 
         /* @} */
 
-        void construct(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps);
+        void construct(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps=false);
 
         //! Default Destructor
         ~cst_sct() {}
@@ -1076,8 +1076,8 @@ cst_sct<Csa, Lcp, Bp_support>::cst_sct(const std::string& csa_file_name,
                                        int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
                                        int_vector_file_buffer<int_width_1, size_type_class_1>& sa_buf,
                                        int_vector_file_buffer<int_width_2, size_type_class_2>& isa_buf,
-                                       std::string dir="./",
-                                       bool build_only_bps = false
+                                       std::string dir,
+                                       bool build_only_bps
                                       ):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support)
 {
     std::string id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
@@ -1100,13 +1100,13 @@ cst_sct<Csa, Lcp, Bp_support>::cst_sct(const std::string& csa_file_name,
 }
 
 template<class Csa, class Lcp, class Bp_support>
-cst_sct<Csa, Lcp, Bp_support>::cst_sct(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps = false):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support)
+cst_sct<Csa, Lcp, Bp_support>::cst_sct(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support)
 {
     construct(file_map, dir, id, build_only_bps);
 }
 
 template<class Csa, class Lcp, class Bp_support>
-void cst_sct<Csa, Lcp, Bp_support>::construct(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps = false)
+void cst_sct<Csa, Lcp, Bp_support>::construct(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps)
 {
     write_R_output("cst", "construct BPS", "begin", 1, 0);
     {
