@@ -25,17 +25,17 @@
 #include "util.hpp"
 #include "testutils.hpp"
 #include "uintx_t.hpp"
-#include <iosfwd> // forward declaration of ostream
+#include <iosfwd>    // forward declaration of ostream
 #include <stdexcept> // for exceptions
-#include <iostream>// for cerr
+#include <iostream>  // for cerr
 #include <typeinfo>
 #include <cassert>
 #include <iterator>
 #include <cstdlib>
 #include <cstddef>
-#include <ctime>  // for rand initialization
+#include <ctime>    // for rand initialization
 #include <sstream>
-#include <cstring> // for memcpy
+#include <cstring>  // for memcpy
 #include <ostream>
 #include <istream>
 #include <string>
