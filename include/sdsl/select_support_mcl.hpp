@@ -271,7 +271,7 @@ class select_support_mcl : public select_support
         inline const size_type select(size_type i) const;
         //! Alias for select(i).
         inline const size_type operator()(size_type i)const;
-        size_type serialize(std::ostream& out)const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
         void load(std::istream& in, const int_vector<1>* v=NULL);
         void set_vector(const int_vector<1>* v=NULL);
         select_support_mcl<b, pattern_len>& operator=(const select_support_mcl& ss);
@@ -293,14 +293,6 @@ class select_support_mcl : public select_support
          * \sa operator==
          */
         bool operator!=(const select_support_mcl<b, pattern_len>& ss)const;
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label="select";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<")\n";
-        }
-#endif
 };
 
 
@@ -656,41 +648,41 @@ void select_support_mcl<b,pattern_len>::set_vector(const int_vector<1>* v)
 }
 
 template<uint8_t b, uint8_t pattern_len>
-typename select_support_mcl<b,pattern_len>::size_type select_support_mcl<b,pattern_len>::serialize(std::ostream& out)const
+typename select_support_mcl<b,pattern_len>::size_type select_support_mcl<b,pattern_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    // write the number of 1-bits in the supported SDSBitVector
+    // write the number of 1-bits in the supported bit_vector
     out.write((char*) &m_arg_cnt, sizeof(size_type)/sizeof(char));
     written_bytes = sizeof(size_type)/sizeof(char);
     // number of superblocks in the data structure
     size_type sb = (m_arg_cnt+4095)>>12;
 
     if (m_arg_cnt) { // if there exists 1-bits to be supported
-        written_bytes += m_superblock.serialize(out); // serialize superblocks
+        written_bytes += m_superblock.serialize(out, child, "superblock"); // serialize superblocks
         int_vector<1> mini_or_long;// Helper vector: mini or long block?
         if (m_longsuperblock!=NULL) {
-            mini_or_long.resize(sb); // resize indicatior BitVector to the number of superblocks
+            mini_or_long.resize(sb); // resize indicator bit_vector to the number of superblocks
             for (size_type i=0; i< sb; ++i)
                 mini_or_long[i] = !m_miniblock[i].empty();
         }
-        written_bytes += mini_or_long.serialize(out);
+        written_bytes += mini_or_long.serialize(out, child, "mini_or_long");
+        size_type written_bytes_long = 0;
+        size_type written_bytes_mini = 0;
         for (size_type i=0; i < sb; ++i)
             if (!mini_or_long.empty() and !mini_or_long[i]) {
-                written_bytes += m_longsuperblock[i].serialize(out);
-//		   			SDSCoder::compress(m_longsuperblock[i], z);
-//					z.serialize(out);
-//SDSBitVector *z = SDSCoder::compress(m_longsuperblock[i]);
-//if(z!=NULL) delete z;
+                written_bytes_long += m_longsuperblock[i].serialize(out);
             } else {
-                written_bytes += m_miniblock[i].serialize(out);
-//		   			SDSCoder::compress(m_miniblock[i], z);
-//		   			SDSCoder::decompress(z, zz);
-//					assert(m_miniblock[i]==zz);
-//					z.serialize(out);
-//SDSBitVector *z = SDSCoder::compress(m_miniblock[i]);
-//if(z!=NULL) delete z;
+                written_bytes_mini += m_miniblock[i].serialize(out);
             }
+        written_bytes += written_bytes_long;
+        written_bytes += written_bytes_mini;
+        structure_tree_node* child_long = structure_tree::add_child(child, "longsuperblock", util::class_name(m_longsuperblock));
+        structure_tree::add_size(child_long, written_bytes_long);
+        structure_tree_node* child_mini = structure_tree::add_child(child, "minisuperblock", util::class_name(m_miniblock));
+        structure_tree::add_size(child_mini, written_bytes_mini);
     }
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 

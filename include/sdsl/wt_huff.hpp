@@ -80,13 +80,15 @@ struct _node {
         return *this;
     }
 
-    size_type serialize(std::ostream& out)const {
+    size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        structure_tree_node* st_child = structure_tree::add_child(v, name, util::class_name(*this));
         size_type written_bytes = 0;
         written_bytes += util::write_member(tree_pos, out);
         written_bytes += util::write_member(tree_pos_rank, out);
         written_bytes += util::write_member(parent, out);
         out.write((char*)child, 2*sizeof(child[0]));
         written_bytes += 2*sizeof(child[0]);
+        structure_tree::add_size(st_child, written_bytes);
         return written_bytes;
     }
 
@@ -705,14 +707,15 @@ class wt_huff
 
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out);
-            written_bytes += util::write_member(m_sigma, out);
-            written_bytes += m_tree.serialize(out);
-            written_bytes += m_tree_rank.serialize(out);
-            written_bytes += m_tree_select1.serialize(out);
-            written_bytes += m_tree_select0.serialize(out);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_sigma, out, child, "sigma");
+            written_bytes += m_tree.serialize(out, child, "tree");
+            written_bytes += m_tree_rank.serialize(out, child, "tree_rank");
+            written_bytes += m_tree_select1.serialize(out, child, "tree_select_1");
+            written_bytes += m_tree_select0.serialize(out, child, "tree_select_0");
             for (size_type i=0; i < 511; ++i) {
                 written_bytes += m_nodes[i].serialize(out);
             }
@@ -720,7 +723,7 @@ class wt_huff
             written_bytes += 256*sizeof(m_c_to_leaf[0]); // add written bytes from previous loop
             out.write((char*) m_path, 256*sizeof(m_path[0]));
             written_bytes += 256*sizeof(m_path[0]); // add written bytes from previous loop
-//		m_check.serialize(out);
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -737,31 +740,7 @@ class wt_huff
             }
             in.read((char*) m_c_to_leaf, 256*sizeof(m_c_to_leaf[0]));
             in.read((char*) m_path, 256*sizeof(m_path[0]));
-//		m_check.load(in);
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label="wt_huff";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            m_tree.mem_info("data"); std::cout<<",";
-            m_tree_rank.mem_info("rank"); std::cout<<",";
-            m_tree_select1.mem_info("select 1"); std::cout<<",";
-            m_tree_select0.mem_info("select 0"); std::cout << ")\n";
-            // TODO: add m_nodes, m_c_to_leaf, m_path?
-        }
-#endif
-        /*
-        	void print_info()const{
-        		size_type rle_ed = 0;
-        		for(size_type i=0; i < m_tree.size(); ++i){
-
-        		}
-        	}
-        */
 
 };
 

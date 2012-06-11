@@ -197,15 +197,6 @@ class rank_support_v : public rank_support
          * \sa operator==
          */
         bool operator!=(const rank_support_v& rs)const;
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label="rank";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<")\n";
-        }
-#endif
 };
 
 template<uint8_t b, uint8_t pattern_len>
@@ -304,7 +295,7 @@ inline typename rank_support_v<b, pattern_len>::size_type rank_support_v<b, patt
     size_type written_bytes = 0;
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     written_bytes += m_basic_block.serialize(out, child, "cumulative_counts");
-    structure_tree::add_size(v, written_bytes);
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 

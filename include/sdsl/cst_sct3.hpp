@@ -502,7 +502,7 @@ class cst_sct3
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
 
         //! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
@@ -1171,34 +1171,7 @@ class cst_sct3
             size_type cipos = m_bp_support.find_close(ipos);
             return m_first_child_rank.rank(((ipos+cipos-1)>>1)-i);
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "cst";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            csa.mem_info("csa");
-            std::cout<<",";
-            lcp.mem_info("lcp");
-            std::cout<<",list(label = \"nav\", size = "<<
-                     (util::get_size_in_bytes(bp)+
-                      util::get_size_in_bytes(bp_support)+
-                      util::get_size_in_bytes(m_first_child)) / (1024.0*1024.0)
-                     <<", ";
-            bp.mem_info("bp");
-            std::cout<<",";
-            bp_support.mem_info("bp_support");
-            std::cout<<",";
-            m_first_child.mem_info("first_visit");
-            std::cout<<",";
-            m_first_child_rank.mem_info("first_visit_rank");
-            std::cout << ") )\n";
-        }
-#endif
         /* @} */
-
 };
 
 // == template functions ==
@@ -1266,17 +1239,19 @@ void cst_sct3<Csa, Lcp, Bp_support, Rank_support>::construct(tMSS& file_map, con
 }
 
 template<class Csa, class Lcp, class Bp_support, class Rank_support>
-typename cst_sct3<Csa, Lcp, Bp_support, Rank_support>::size_type cst_sct3<Csa, Lcp, Bp_support, Rank_support>::serialize(std::ostream& out) const
+typename cst_sct3<Csa, Lcp, Bp_support, Rank_support>::size_type cst_sct3<Csa, Lcp, Bp_support, Rank_support>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    written_bytes += m_csa.serialize(out);
-    written_bytes += m_lcp.serialize(out);
-    written_bytes += m_bp.serialize(out);
-    written_bytes += m_bp_support.serialize(out);
-    written_bytes += m_first_child.serialize(out);
-    written_bytes += m_first_child_rank.serialize(out);
-    written_bytes += util::write_member(m_sigma, out);
-    written_bytes += util::write_member(m_nodes, out);
+    written_bytes += m_csa.serialize(out, child, "csa");
+    written_bytes += m_lcp.serialize(out, child, "lcp");
+    written_bytes += m_bp.serialize(out, child, "bp");
+    written_bytes += m_bp_support.serialize(out, child, "bp_support");
+    written_bytes += m_first_child.serialize(out, child, "mark_child");
+    written_bytes += m_first_child_rank.serialize(out, child, "mark_child_rank");
+    written_bytes += util::write_member(m_sigma, out, child, "sigma");
+    written_bytes += util::write_member(m_nodes, out, child, "node_cnt");
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 

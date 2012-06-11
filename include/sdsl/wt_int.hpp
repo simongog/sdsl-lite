@@ -532,15 +532,17 @@ class wt_int
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out);
-            written_bytes += util::write_member(m_sigma, out);
-            written_bytes += m_tree.serialize(out);
-            written_bytes += m_tree_rank.serialize(out);
-            written_bytes += m_tree_select1.serialize(out);
-            written_bytes += m_tree_select0.serialize(out);
-            written_bytes += util::write_member(m_logn, out);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_sigma, out, child, "sigma");
+            written_bytes += m_tree.serialize(out, out, child, "tree");
+            written_bytes += m_tree_rank.serialize(out, child, "tree_rank");
+            written_bytes += m_tree_select1.serialize(out, child, "tree_select_1");
+            written_bytes += m_tree_select0.serialize(out, child, "tree_select_0");
+            written_bytes += util::write_member(m_logn, out, child, "log_n");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 

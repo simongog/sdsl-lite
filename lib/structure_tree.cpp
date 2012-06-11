@@ -89,7 +89,7 @@ void write_structure_tree<JSON_FORMAT>(const structure_tree_node* v, std::ostrea
         if (written_elements++ > 0) {
             out << ",";
         }
-        out << "children:["; // open children
+        out << "\"children\":["; // open children
         size_t written_child_elements = 0;
         for (size_t i = 0; i < v->children.size(); ++i) {
             if (written_child_elements++ > 0) {

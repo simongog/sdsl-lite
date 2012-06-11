@@ -500,7 +500,7 @@ class csa_wt
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
 
         //! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
@@ -544,22 +544,6 @@ class csa_wt
             } else
                 return size();
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label="csa";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            wavelet_tree.mem_info("wt");
-            std::cout<<",";
-            sa_sample.mem_info("sa_sample");
-            std::cout<<",";
-            isa_sample.mem_info("isa_sample");
-            std::cout << ")\n";
-        }
-#endif
 };
 
 // == template functions ==
@@ -816,16 +800,18 @@ csa_wt<WaveletTree,SampleDens, InvSampleDens, fixedIntWidth, charType>& csa_wt<W
 
 
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth, class charType>
-typename csa_wt<WaveletTree, SampleDens, InvSampleDens, fixedIntWidth, charType>::size_type csa_wt<WaveletTree, SampleDens, InvSampleDens, fixedIntWidth, charType>::serialize(std::ostream& out)const
+typename csa_wt<WaveletTree, SampleDens, InvSampleDens, fixedIntWidth, charType>::size_type csa_wt<WaveletTree, SampleDens, InvSampleDens, fixedIntWidth, charType>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    written_bytes += m_wavelet_tree.serialize(out);
-    written_bytes += m_sa_sample.serialize(out);
-    written_bytes += m_isa_sample.serialize(out);
-    written_bytes += m_char2comp.serialize(out);
-    written_bytes += m_comp2char.serialize(out);
-    written_bytes += m_C.serialize(out);
-    written_bytes += util::write_member(m_sigma, out);
+    written_bytes += m_wavelet_tree.serialize(out, child, "wavelet_tree");
+    written_bytes += m_sa_sample.serialize(out, child, "sa_samples");
+    written_bytes += m_isa_sample.serialize(out, child, "isa_samples");
+    written_bytes += m_char2comp.serialize(out, child, "char2comp");
+    written_bytes += m_comp2char.serialize(out, child, "comp2char");
+    written_bytes += m_C.serialize(out, child, "C");
+    written_bytes += util::write_member(m_sigma, out, child, "sigma");
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 

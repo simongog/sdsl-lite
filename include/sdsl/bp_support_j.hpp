@@ -494,19 +494,21 @@ class bp_support_j
          * \param out The outstream to which the data structure is written.
          * \return The number of bytes written to out.
          */
-        size_type serialize(std::ostream& out) const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += m_rank.serialize(out);
-            written_bytes += m_select.serialize(out);
+            written_bytes += m_rank.serialize(out, child, "bp_rank");
+            written_bytes += m_select.serialize(out, child, "bp_select");
 
-            written_bytes += m_pioneer_bitmap.serialize(out);
-            written_bytes += m_rank_pioneer_bitmap.serialize(out);
-            written_bytes += m_pioneer.serialize(out);
+            written_bytes += m_pioneer_bitmap.serialize(out, child, "pioneer_bitmap");
+            written_bytes += m_rank_pioneer_bitmap.serialize(out, child, "pioneer_bitmap_rank");
+            written_bytes += m_pioneer.serialize(out, child, "pioneer");
 
-            written_bytes += m_enclose_pioneer_bitmap.serialize(out);
-            written_bytes += m_rank_enclose_pioneer_bitmap.serialize(out);
-            written_bytes += m_enclose_pioneer.serialize(out);
+            written_bytes += m_enclose_pioneer_bitmap.serialize(out, child, "enclose");
+            written_bytes += m_rank_enclose_pioneer_bitmap.serialize(out, child, "enclose_rank");
+            written_bytes += m_enclose_pioneer.serialize(out, child, "enclose_pioneer");
 
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 

@@ -221,7 +221,7 @@ class enc_vector
         /*! \param out Outstream to write the data structure.
             \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
 
         //! Load the enc_vector from a stream.
         void load(std::istream& in);
@@ -248,19 +248,6 @@ class enc_vector
                 Coder::template decode<true, true>(m_z.data(), m_sample_vals_and_pointer[(i<<1)+1], size()-i*SampleDens - 1, it);
             }
         };
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "enc vector";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            m_z.mem_info("variable-length code");
-            std::cout<<",";
-            m_sample_vals_and_pointer.mem_info("samples");
-            std::cout << ")\n";
-        }
-#endif
 };
 
 
@@ -512,20 +499,21 @@ void enc_vector<Coder, SampleDens,fixedIntWidth>::init(int_vector_file_buffer<in
 
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-enc_vector<>::size_type enc_vector<Coder, SampleDens,fixedIntWidth>::serialize(std::ostream& out) const
+enc_vector<>::size_type enc_vector<Coder, SampleDens,fixedIntWidth>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    out.write((char*) &m_elements, sizeof(m_elements));
-    written_bytes += sizeof(m_elements);
-    written_bytes += m_z.serialize(out);
-    written_bytes += m_sample_vals_and_pointer.serialize(out);
+    written_bytes += util::write_member(m_elements, out, child, "elements");
+    written_bytes += m_z.serialize(out, child, "compressed differences");
+    written_bytes += m_sample_vals_and_pointer.serialize(out, child, "samples_and_pointers");
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
 void enc_vector<Coder, SampleDens,fixedIntWidth>::load(std::istream& in)
 {
-    in.read((char*) &m_elements, sizeof(m_elements));
+    util::read_member(m_elements, in);
     m_z.load(in);
     m_sample_vals_and_pointer.load(in);
 }

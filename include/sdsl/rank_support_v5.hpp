@@ -213,7 +213,7 @@ inline typename rank_support_v5<b, pattern_len>::size_type rank_support_v5<b, pa
     size_type written_bytes = 0;
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     written_bytes += m_basic_block.serialize(out, child, "cumulative_counts");
-    structure_tree::add_size(v, written_bytes);
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 

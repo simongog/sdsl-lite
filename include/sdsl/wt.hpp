@@ -63,12 +63,14 @@ struct unsigned_char_map {
             m_map[i] = 0;
     }
 
-    uint16_t serialize(std::ostream& out)const {
+    uint16_t serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
         uint16_t written_bytes = 0;
         for (uint16_t i=0; i<256; ++i) {
             out.write((char*)&m_map[i], sizeof(m_map[i]));
             written_bytes += sizeof(m_map[256]);
         }
+        structure_tree::add_size(child, written_bytes);
         return written_bytes;
     }
 
@@ -122,7 +124,7 @@ class wt_trait
             return map.find(c)!=map.end();
         }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map) {
+        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, std::string name="") {
             throw std::logic_error(util::demangle(typeid(wt_trait<RandomAccessContainer>).name())+": serialize not implemented");
             return 0;
         }
@@ -168,7 +170,7 @@ class wt_trait<character*>
             return map.find(c)!=map.end();
         }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map) {
+        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, std::string name="") {
             throw std::logic_error(util::demangle(typeid(wt_trait<character*>).name())+": serialize not implemented");
             return 0;
         }
@@ -228,10 +230,10 @@ class wt_trait<unsigned char*>
             return sigma==256 or map[c] < 255;
         }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map) {
+        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, std::string name="") {
             size_type written_bytes = 0;
-            written_bytes += map.serialize(out);
-            written_bytes += inv_map.serialize(out);
+            written_bytes += map.serialize(out, v, "alphabet_map");
+            written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
             return written_bytes;
         }
 
@@ -301,10 +303,10 @@ class wt_trait<int_vector_file_buffer<8, size_type_class> >
             return sigma==256 or map[c] < 255;
         }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map) {
+        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, std::string name="") {
             size_type written_bytes = 0;
-            written_bytes += map.serialize(out);
-            written_bytes += inv_map.serialize(out);
+            written_bytes += map.serialize(out, v, "alphabet_map");
+            written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
             return written_bytes;
         }
 
@@ -1040,24 +1042,30 @@ class wt
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out);
-            written_bytes += util::write_member(m_sigma, out);
-            written_bytes += m_tree.serialize(out);
-            written_bytes += m_tree_rank.serialize(out);
-            written_bytes += m_tree_select1.serialize(out);
-            written_bytes += m_tree_select0.serialize(out);
-            written_bytes += m_node_pointers.serialize(out);
-            written_bytes += m_node_pointers_rank.serialize(out);
-            written_bytes += wt_trait<RandomAccessContainer>::serialize_maps(out, m_char_map, m_inv_char_map);
-            written_bytes += util::write_member(m_first_symbol, out);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_sigma, out, child, "sigma");
+            written_bytes += m_tree.serialize(out, child, "tree");
+            written_bytes += m_tree_rank.serialize(out, child, "tree_rank");
+            written_bytes += m_tree_select1.serialize(out, child, "tree_select_1");
+            written_bytes += m_tree_select0.serialize(out, child, "tree_select_0");
+            written_bytes += m_node_pointers.serialize(out, child, "node_pointers");
+            written_bytes += m_node_pointers_rank.serialize(out, child, "node_pointers_rank");
+            written_bytes += wt_trait<RandomAccessContainer>::serialize_maps(out, m_char_map, m_inv_char_map, child, "alphabet_mapping");
+            written_bytes += util::write_member(m_first_symbol, out, child, "first symbol");
             // serialize char_node_map
             if (wt_trait<RandomAccessContainer>::char_node_map_size == 256) {
+                size_type written_bytes2 = 0;
                 for (size_type i=0; i<256; ++i) {
-                    written_bytes += util::write_member(m_char_node_map[i], out);
+                    written_bytes2 += util::write_member(m_char_node_map[i], out);
                 }
+                structure_tree_node* child2 = structure_tree::add_child(child, "char_node_map", "char_map");
+                structure_tree::add_size(child2, written_bytes2);
+                written_bytes += written_bytes2;
             }
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -1080,27 +1088,6 @@ class wt
                 }
             }
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label="csa";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            m_tree.mem_info("data");
-            std::cout << ")\n";
-        }
-#endif
-        /*
-        	void print_info()const{
-        		size_type rle_ed = 0;
-        		for(size_type i=0; i < m_tree.size(); ++i){
-
-        		}
-        	}
-        */
-
 };
 
 }// end namespace sds

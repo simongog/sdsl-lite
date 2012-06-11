@@ -200,9 +200,11 @@ class _lcp_support_tree
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             size_type written_bytes = 0;
-            written_bytes += m_lcp.serialize(out);
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+            written_bytes += m_lcp.serialize(out, child, "lcp");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -215,12 +217,6 @@ class _lcp_support_tree
             m_lcp.load(in); // works for lcp_kurtz and lcp_uncompressed
             m_cst = cst;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            m_lcp.mem_info(label);
-        }
-#endif
 };
 
 //! Helper class which provides _lcp_support_tree the context of a CST.

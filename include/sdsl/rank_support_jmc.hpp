@@ -48,7 +48,7 @@ class rank_support_jmc : public rank_support
         void init(const int_vector<1>* v=NULL);
         inline const size_type rank(size_type idx) const;
         inline const size_type operator()(size_type idx)const;
-        size_type serialize(std::ostream& out)const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
         void load(std::istream& in, const int_vector<1>* v=NULL);
         void set_vector(const int_vector<1>* v);
         //! Assign Operator
@@ -169,10 +169,14 @@ inline const rank_support_jmc::size_type rank_support_jmc::operator()(size_type 
     return rank(idx);
 }
 
-inline rank_support_jmc::size_type rank_support_jmc::serialize(std::ostream& out)const
+inline rank_support_jmc::size_type rank_support_jmc::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
-    return    m_blockrank.serialize(out)
-              + m_superblockrank.serialize(out);
+    size_type written_bytes = 0;
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+    written_bytes += m_blockrank.serialize(out, child, "blockrank");
+    written_bytes += m_superblockrank.serialize(out, child, "superblockrank");
+    structure_tree::add_size(child, written_bytes);
+    return written_bytes;
 }
 
 inline void rank_support_jmc::load(std::istream& in, const int_vector<1>* v)

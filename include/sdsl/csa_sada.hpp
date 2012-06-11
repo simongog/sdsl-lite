@@ -286,7 +286,7 @@ class csa_sada
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
 
         //! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
@@ -690,16 +690,18 @@ csa_sada<EncVector,SampleDens, InvSampleDens, fixedIntWidth>& csa_sada<EncVector
 
 
 template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-typename csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::size_type csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::serialize(std::ostream& out)const
+typename csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::size_type csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    written_bytes += m_psi.serialize(out);
-    written_bytes += m_sa_sample.serialize(out);
-    written_bytes += m_isa_sample.serialize(out);
-    written_bytes += m_char2comp.serialize(out);
-    written_bytes += m_comp2char.serialize(out);
-    written_bytes += m_C.serialize(out);
-    written_bytes += util::write_member(m_sigma, out);
+    written_bytes += m_psi.serialize(out, child, "psi");
+    written_bytes += m_sa_sample.serialize(out, child, "sa_samples");
+    written_bytes += m_isa_sample.serialize(out, child, "isa_samples");
+    written_bytes += m_char2comp.serialize(out, child, "char2comp");
+    written_bytes += m_comp2char.serialize(out, child, "comp2char");
+    written_bytes += m_C.serialize(out, child, "C");
+    written_bytes += util::write_member(m_sigma, out, child, "sigma");
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 

@@ -214,26 +214,13 @@ class _lcp_support_sada
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
 
         //! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
          *  \param csa Compressed Suffix Array that is supported.
          */
         void load(std::istream& in, const Csa* csa);
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "lcp";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            m_data.mem_info("bit vector 2n");
-            std::cout<<",";
-            m_select_support.mem_info("select");
-            std::cout << ")\n";
-        }
-#endif
 };
 
 // == template functions ==
@@ -336,11 +323,13 @@ inline typename _lcp_support_sada<Csa, SelectSupport>::value_type _lcp_support_s
 
 
 template<class Csa, class SelectSupport>
-typename _lcp_support_sada<Csa, SelectSupport>::size_type _lcp_support_sada<Csa, SelectSupport>::serialize(std::ostream& out) const
+typename _lcp_support_sada<Csa, SelectSupport>::size_type _lcp_support_sada<Csa, SelectSupport>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    written_bytes += m_data.serialize(out);
-    written_bytes += m_select_support.serialize(out);
+    written_bytes += m_data.serialize(out, child, "data");
+    written_bytes += m_select_support.serialize(out, child, "select_support");
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 

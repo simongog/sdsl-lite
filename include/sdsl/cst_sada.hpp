@@ -358,14 +358,16 @@ class cst_sada
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += m_csa.serialize(out);
-            written_bytes += m_lcp.serialize(out);
-            written_bytes += m_bp.serialize(out);
-            written_bytes += m_bp_support.serialize(out);
-            written_bytes += m_bp_rank10.serialize(out);
-            written_bytes += m_bp_select10.serialize(out);
+            written_bytes += m_csa.serialize(out, child, "csa");
+            written_bytes += m_lcp.serialize(out, child, "lcp");
+            written_bytes += m_bp.serialize(out, child, "bp");
+            written_bytes += m_bp_support.serialize(out, child, "bp_support");
+            written_bytes += m_bp_rank10.serialize(out, child, "bp_rank_10");
+            written_bytes += m_bp_select10.serialize(out, child, "bp_select_10");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -380,33 +382,6 @@ class cst_sada
             m_bp_rank10.load(in, &m_bp);
             m_bp_select10.load(in, &m_bp);
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label="cst";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            csa.mem_info("\\CSA ({\\\\tt csa\\_sada})");
-            std::cout<<",";
-            lcp.mem_info();
-            std::cout<<",list(label = \"nav\", size = " <<
-                     (util::get_size_in_bytes(bp)+
-                      util::get_size_in_bytes(bp_support)+
-                      util::get_size_in_bytes(m_bp_rank10)+
-                      util::get_size_in_bytes(m_bp_select10)) / (1024.0*1024.0)
-                     << ", ";
-            bp.mem_info("\\BPSDFS ({\\\\tt bit\\_vector})");
-            std::cout<<",";
-            bp_support.mem_info("bp_support");
-            std::cout<<",";
-            m_bp_rank10.mem_info("rank_support10");
-            std::cout<<",";
-            m_bp_select10.mem_info("select_support10");
-            std::cout << "))\n";
-        }
-#endif
 
         /*! \defgroup cst_sada_tree_methods Tree methods of cst_sada */
         /* @{ */

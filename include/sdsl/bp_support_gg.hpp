@@ -548,21 +548,21 @@ class bp_support_gg
          * \param out The outstream to which the data structure is written.
          * \return The number of bytes written to out.
          */
-        size_type serialize(std::ostream& out) const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_block_size, out);
-            written_bytes += util::write_member(m_size, out);
-            written_bytes += util::write_member(m_blocks, out);
+            written_bytes += util::write_member(m_block_size, out, child, "block_size");
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_blocks, out, child, "block_cnt");
 
-            written_bytes += m_rank_bp.serialize(out);
-            written_bytes += m_select_bp.serialize(out);
-            written_bytes += m_nnd.serialize(out);
+            written_bytes += m_rank_bp.serialize(out, child, "bp_rank");
+            written_bytes += m_select_bp.serialize(out, child, "bp_select");
+            written_bytes += m_nnd.serialize(out, child, "nearest_neighbour_dictionary");
 
-            written_bytes += m_pioneer_bp.serialize(out);
+            written_bytes += m_pioneer_bp.serialize(out, child, "pioneer_bp");
             if (m_bp != NULL and m_bp->size() > 0)
-                written_bytes += m_pioneer_bp_support->serialize(out);
-
-
+                written_bytes += m_pioneer_bp_support->serialize(out, child, "pioneer_bp_support");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -591,29 +591,6 @@ class bp_support_gg
                 m_pioneer_bp_support->load(in, &m_pioneer_bp);
             }
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "bp_support";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ", ";
-            m_rank_bp.mem_info("bp rank");
-            std::cout<<" ,";
-            m_select_bp.mem_info("bp select");
-            std::cout<<" ,";
-            m_nnd.mem_info("nnd");
-            std::cout<<" ,";
-            m_pioneer_bp.mem_info("pioneer bp");
-            if (m_pioneer_bp_support != NULL)
-                std::cout<< ", list(label=\"pioneer bp_support\" size=\"" <<
-                         util::get_size_in_bytes(*m_pioneer_bp_support) <<"\")";
-            std::cout <<")\n";
-        }
-#endif
-
-
 
         std::string get_info()const {
             std::stringstream ss;

@@ -587,22 +587,24 @@ class bp_support_g
          * \param out The outstream to which the data structure is written.
          * \return The number of bytes written to out.
          */
-        size_type serialize(std::ostream& out) const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += m_rank_bp.serialize(out);
-            written_bytes += m_select_bp.serialize(out);
-            written_bytes += m_nnd.serialize(out);
+            written_bytes += m_rank_bp.serialize(out, child, "bp_rank");
+            written_bytes += m_select_bp.serialize(out, child, "bp_select");
+            written_bytes += m_nnd.serialize(out, child,"nearest_neighbor_dictionary");
 
-            written_bytes += m_pioneer_bp.serialize(out);
-            written_bytes += m_rank_pioneer_bp.serialize(out);
-            written_bytes += m_nnd2.serialize(out);
-            written_bytes += m_match.serialize(out);
-            written_bytes += m_enclose.serialize(out);
-            written_bytes += m_range_max_match.serialize(out);
+            written_bytes += m_pioneer_bp.serialize(out, child, "pioneer_bp");
+            written_bytes += m_rank_pioneer_bp.serialize(out, child, "pioneer_bp_rank");
+            written_bytes += m_nnd2.serialize(out, child, "nearest_neighbor_dictionary2");
+            written_bytes += m_match.serialize(out, child, "match_answers");
+            written_bytes += m_enclose.serialize(out, child, "enclose_answers");
+            written_bytes += m_range_max_match.serialize(out, child, "rmq_answers");
 
-            written_bytes += util::write_member(m_block_size, out);
-            written_bytes += util::write_member(m_size, out);
-            written_bytes += util::write_member(m_blocks, out);
+            written_bytes += util::write_member(m_block_size, out, child, "block_size");
+            written_bytes += util::write_member(m_size, out, "size");
+            written_bytes += util::write_member(m_blocks, out, "block_cnt");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 

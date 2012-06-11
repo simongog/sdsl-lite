@@ -54,10 +54,7 @@ class select_support_dummy : public select_support
         inline const size_type select(size_type i) const;
         //! Alias for select(i).
         inline const size_type operator()(size_type i)const;
-        size_type serialize(std::ostream& out)const;
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const;
-#endif
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
         void load(std::istream& in, const int_vector<1>* v=NULL);
         void set_vector(const int_vector<1>* v=NULL);
         select_support_dummy& operator=(const select_support_dummy& ss);
