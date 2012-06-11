@@ -25,6 +25,7 @@
 #include "util.hpp"
 #include "testutils.hpp"
 #include "uintx_t.hpp"
+#include "structure_tree.hpp"
 #include <iosfwd>    // forward declaration of ostream
 #include <stdexcept> // for exceptions
 #include <iostream>  // for cerr
