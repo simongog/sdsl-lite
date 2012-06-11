@@ -213,7 +213,7 @@ class lcp_dac
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="") const;
 
         //! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
@@ -372,14 +372,16 @@ inline typename lcp_dac<b, rank_support_type>::value_type lcp_dac<b, rank_suppor
 
 
 template<uint8_t b, class rank_support_type>
-typename lcp_dac<b, rank_support_type>::size_type lcp_dac<b, rank_support_type>::serialize(std::ostream& out) const
+typename lcp_dac<b, rank_support_type>::size_type lcp_dac<b, rank_support_type>::serialize(std::ostream& out, structure_tree_node* v, std::string name) const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    written_bytes += m_data.serialize(out);
-    written_bytes += m_overflow.serialize(out);
-    written_bytes += m_overflow_rank.serialize(out);
-    written_bytes += m_level_pointer_and_rank.serialize(out);
-    written_bytes += util::write_member(m_max_level, out);
+    written_bytes += m_data.serialize(out, child, "data");
+    written_bytes += m_overflow.serialize(out, child, "overflow");
+    written_bytes += m_overflow_rank.serialize(out, child, "overflow_rank");
+    written_bytes += m_level_pointer_and_rank.serialize(out, child, "level_pointer_and_rank");
+    written_bytes += util::write_member(m_max_level, out, child, "max_level");
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 

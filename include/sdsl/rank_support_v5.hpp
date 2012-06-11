@@ -60,7 +60,7 @@ class rank_support_v5 : public rank_support
         const size_type rank(size_type idx) const;
         const size_type operator()(size_type idx)const;
         const size_type size()const;
-        size_type serialize(std::ostream& out)const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
         void load(std::istream& in, const bit_vector* v=NULL);
         void set_vector(const bit_vector* v=NULL);
 
@@ -208,9 +208,13 @@ inline const typename rank_support_v5<b,pattern_len>::size_type rank_support_v5<
 }
 
 template<uint8_t b, uint8_t pattern_len>
-inline typename rank_support_v5<b, pattern_len>::size_type rank_support_v5<b, pattern_len>::serialize(std::ostream& out)const
+inline typename rank_support_v5<b, pattern_len>::size_type rank_support_v5<b, pattern_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
-    return m_basic_block.serialize(out);
+    size_type written_bytes = 0;
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+    written_bytes += m_basic_block.serialize(out, child, "cumulative_counts");
+    structure_tree::add_size(v, written_bytes);
+    return written_bytes;
 }
 
 template<uint8_t b, uint8_t pattern_len>

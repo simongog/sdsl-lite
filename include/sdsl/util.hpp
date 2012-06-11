@@ -23,9 +23,9 @@
 
 #include "bitmagic.hpp"
 #include "typedefs.hpp"
+#include "structure_tree.hpp"
 #include <iosfwd> // forward declaration of ostream
 #include <stdint.h> // for uint64_t uint32_t declaration
-#include <iostream>// for cerr
 #include <cassert>
 #include <fstream> // file stream for storeToFile and loadFromFile
 #include <ctime>  // for rand initialization
@@ -45,6 +45,9 @@
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
+
+//class structure_tree_node; // forward declaration of data structure in structure_tree.hpp
+//class structure_tree; // forward declaration of data structure in structure.hpp
 
 template<uint8_t, class size_type_class>
 class int_vector_file_buffer; // forward declaration
@@ -206,15 +209,18 @@ struct nullstream : std::ostream {
 
 // Writes primitive-typed variable t to stream out
 template<class T>
-size_t write_member(const T& t, std::ostream& out)
+size_t write_member(const T& t, std::ostream& out, sdsl::structure_tree_node* v=NULL, std::string name="")
 {
+    sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, util::class_name(t));
     out.write((char*)&t, sizeof(t));
-    return sizeof(t);
+    size_t written_bytes = sizeof(t);
+    sdsl::structure_tree::add_size(child, written_bytes);
+    return written_bytes;
 }
 
 // Specialization for std::string
 template<>
-size_t write_member<std::string>(const std::string& t, std::ostream& out);
+size_t write_member<std::string>(const std::string& t, std::ostream& out, structure_tree_node* v, std::string name);
 
 // Writes primitive-typed variable t to stream out
 template<class T>
@@ -323,9 +329,19 @@ void init_support(S& s, const X* x)
     s.set_vector(x);    // set the support object's  pointer to x
 }
 
-
-
+template<format_type F, class X>
+void write_structure(const X& x, std::ostream& out)
+{
+    structure_tree_node* v = new structure_tree_node();
+    nullstream ns;
+    x.serialize(ns, v, "");
+    if (v->children.size() > 0) {
+        sdsl::write_structure_tree<F>(v->children[0], out);
+    }
+    delete v;
 }
+
+} // end namespace util
 
 //==================== Template functions ====================
 
@@ -376,7 +392,7 @@ bool util::store_to_file(const int_vector<fixed_int_width, size_type_class>& v, 
     out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
         return false;
-    v.serialize(out, write_fixed_as_variable);
+    v.serialize(out, NULL, "", write_fixed_as_variable);
     out.close();
     return true;
 }

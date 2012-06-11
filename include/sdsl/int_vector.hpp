@@ -459,7 +459,7 @@ class int_vector
          * \return The number of bytes written to out.
          * \sa load
          */
-        size_type serialize(std::ostream& out, bool write_fixed_as_variable=false) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name = "", bool write_fixed_as_variable=false) const;
 
 #ifdef MEM_INFO
         void mem_info(std::string label="") const;
@@ -1491,8 +1491,12 @@ void int_vector<fixedIntWidth,size_type_class>::mem_info(std::string label) cons
 #endif
 
 template<uint8_t fixedIntWidth, class size_type_class>
-typename int_vector<fixedIntWidth,size_type_class>::size_type int_vector<fixedIntWidth,size_type_class>::serialize(std::ostream& out, bool write_fixed_as_variable) const
+typename int_vector<fixedIntWidth,size_type_class>::size_type int_vector<fixedIntWidth,size_type_class>::serialize(std::ostream& out,
+        structure_tree_node* v,
+        string name,
+        bool write_fixed_as_variable) const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
     if (fixedIntWidth > 0 and write_fixed_as_variable) {
         written_bytes += _sdsl_serialize_size_and_int_width(out, 0, fixedIntWidth, m_size);
@@ -1510,6 +1514,7 @@ typename int_vector<fixedIntWidth,size_type_class>::size_type int_vector<fixedIn
     }
     out.write((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
     written_bytes += ((capacity()>>6)-idx)*sizeof(uint64_t);
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 
@@ -1789,7 +1794,6 @@ inline int_vector_file_buffer<8, uint32_t>::reference int_vector_file_buffer<8, 
 	return *(((uint8_t*)(m_buf))+idx);
 }
 */
-
 
 }// end namespace sdsl
 

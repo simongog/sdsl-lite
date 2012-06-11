@@ -1,5 +1,7 @@
 #include "sdsl/structure_tree.hpp"
 #include <algorithm> // for std::swap
+#include <string>
+#include <iostream>
 
 namespace sdsl
 {
@@ -67,7 +69,9 @@ structure_tree_node* structure_tree::parent(const structure_tree_node* v)
     }
 }
 
-void structure_tree_to_json(const structure_tree_node* v, std::ostream& out)
+
+template<>
+void write_structure_tree<JSON_FORMAT>(const structure_tree_node* v, std::ostream& out)
 {
     if (NULL == v or (v->children.size()==0 and v->key_values.size()==0)) {
         return;
@@ -91,11 +95,44 @@ void structure_tree_to_json(const structure_tree_node* v, std::ostream& out)
             if (written_child_elements++ > 0) {
                 out << ",";
             }
-            structure_tree_to_json(v->children[i], out);
+            write_structure_tree<JSON_FORMAT>(v->children[i], out);
         }
         out << "]";// close children
     }
     out << "}"; // end json element
 }
+
+template<>
+void write_structure_tree<R_FORMAT>(const structure_tree_node* v, std::ostream& out)
+{
+    if (NULL == v or (v->children.size()==0 and v->key_values.size()==0)) {
+        return;
+    }
+    typedef structure_tree_node::tKeyValue::const_iterator const_iterator;
+    size_t written_elements = 0;
+    out << "list("; // begin R list
+    for (const_iterator it = v->key_values.begin(); it != v->key_values.end(); ++it) {
+        if (written_elements++ > 0) {
+            out << ",";
+        }
+        out << it->first << " = " << it->second;
+    }
+    if (v->children.size() > 0) {
+        if (written_elements++ > 0) {
+            out << ",";
+        }
+        out << "list("; // open children
+        size_t written_child_elements = 0;
+        for (size_t i = 0; i < v->children.size(); ++i) {
+            if (written_child_elements++ > 0) {
+                out << ",";
+            }
+            write_structure_tree<JSON_FORMAT>(v->children[i], out);
+        }
+        out << ")";// close children
+    }
+    out << ")"; // end R list
+}
+
 
 } // end namespace

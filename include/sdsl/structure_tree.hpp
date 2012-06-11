@@ -5,10 +5,10 @@
 #ifndef INCLUDED_SDSL_STRUCTURE_TREE
 #define INCLUDED_SDSL_STRUCTURE_TREE
 
-#include "int_vector.hpp"
 #include <vector>
 #include <map>
 #include <string>
+#include <iostream>
 
 using std::vector;
 using std::map;
@@ -18,7 +18,15 @@ using std::string;
 namespace sdsl
 {
 
-class structure_tree; // forward delcaration
+class structure_tree; // forward declaration
+
+namespace util
+{
+
+template<typename T>
+std::string to_string(const T&); // forward declaration
+
+}
 
 //! Class for a node of the structure tree
 class structure_tree_node
@@ -58,16 +66,39 @@ class structure_tree_node
         void swap(structure_tree_node& v);
         //! Add a key value pair.
         void add_key_value(const string& key, const string& value);
+        template<class IntType>
+        void add_size(IntType value);
 };
 
 class structure_tree
 {
     public:
         static structure_tree_node* add_child(structure_tree_node* v, const string& name, const string& class_name);
+        template<class IntType>
+        static void add_size(structure_tree_node* v, IntType value);
         static structure_tree_node* parent(const structure_tree_node* v);
 };
 
-void structure_tree_to_json(const structure_tree_node* v, std::ostream& out);
+
+enum format_type {JSON_FORMAT, R_FORMAT};
+
+template<format_type F>
+void write_structure_tree(const structure_tree_node* v, std::ostream& out);
+
+
+template<class IntType>
+void structure_tree_node::add_size(IntType value)
+{
+    m_key_values["size"] = util::to_string(value);
+}
+
+template<class IntType>
+void structure_tree::add_size(structure_tree_node* v, IntType value)
+{
+    if (NULL != v) {
+        v->add_size(value);
+    }
+}
 
 }
 #endif
