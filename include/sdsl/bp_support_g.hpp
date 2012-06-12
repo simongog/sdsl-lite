@@ -602,8 +602,8 @@ class bp_support_g
             written_bytes += m_range_max_match.serialize(out, child, "rmq_answers");
 
             written_bytes += util::write_member(m_block_size, out, child, "block_size");
-            written_bytes += util::write_member(m_size, out, "size");
-            written_bytes += util::write_member(m_blocks, out, "block_cnt");
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_blocks, out, child, "block_cnt");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }

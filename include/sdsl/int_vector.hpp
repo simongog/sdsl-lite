@@ -461,10 +461,6 @@ class int_vector
          */
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name = "", bool write_fixed_as_variable=false) const;
 
-#ifdef MEM_INFO
-        void mem_info(std::string label="") const;
-#endif
-
         //! Load the int_vector for a stream.
         void load(std::istream& in);
 
@@ -1084,10 +1080,8 @@ inline std::istream& operator>>(std::istream &in, int_vector<1> &v){
 // ==== int_vector implemenation  ====
 
 template<uint8_t fixedIntWidth, class size_type_class>
-inline int_vector<fixedIntWidth,size_type_class>::int_vector(size_type elements, value_type default_value, uint8_t intWidth):m_int_width(intWidth)
+inline int_vector<fixedIntWidth,size_type_class>::int_vector(size_type elements, value_type default_value, uint8_t intWidth):m_size(0), m_data(NULL), m_int_width(intWidth)
 {
-    m_data = NULL; // initialize m_data
-    m_size = 0;
     int_vector_trait<fixedIntWidth,size_type_class>::set_int_width(m_int_width, intWidth);
     resize(elements);
     if (default_value == 0) {
@@ -1096,19 +1090,12 @@ inline int_vector<fixedIntWidth,size_type_class>::int_vector(size_type elements,
         util::set_one_bits(*this);
     } else {
         util::set_all_values_to_k(*this, default_value); // new initialization
-        /*
-        		for(iterator it=this->begin(),end=this->end(); it!=end; ++it ){
-        			*it = default_value;
-        		}
-        */
     }
 }
 
 template<uint8_t fixedIntWidth, class size_type_class>
-inline int_vector<fixedIntWidth,size_type_class>::int_vector(const int_vector& v):m_int_width(v.m_int_width)
+inline int_vector<fixedIntWidth,size_type_class>::int_vector(const int_vector& v):m_size(0), m_data(NULL), m_int_width(v.m_int_width)
 {
-    m_data = NULL; // initalize m_data
-    m_size = 0;
     bit_resize(v.bit_size());
     if (v.capacity() > 0) {
         if (memcpy(m_data, v.data() ,v.capacity()/8)==NULL) {
@@ -1139,8 +1126,6 @@ template<uint8_t fixedIntWidth, class size_type_class>
 int_vector<fixedIntWidth,size_type_class>::~int_vector()
 {
     if (m_data != NULL) {
-//		if( m_size > 100000 )
-//			std::cout<<"delte int_vector "<<(int)fixedIntWidth<<" "<<(int)get_int_width()<<" size="<<m_size<<std::endl;
         free(m_data); //fixed delete
     }
 }
@@ -1479,17 +1464,6 @@ size_type_class _sdsl_serialize_size_and_int_width(std::ostream& out, uint8_t fi
     return written_bytes;
 }
 
-#ifdef MEM_INFO
-template<uint8_t fixedIntWidth, class size_type_class>
-void int_vector<fixedIntWidth,size_type_class>::mem_info(std::string label) const
-{
-    if (label=="")
-        label="int_vector";
-    size_type bytes = util::get_size_in_bytes(*this);
-    std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<")\n";
-}
-#endif
-
 template<uint8_t fixedIntWidth, class size_type_class>
 typename int_vector<fixedIntWidth,size_type_class>::size_type int_vector<fixedIntWidth,size_type_class>::serialize(std::ostream& out,
         structure_tree_node* v,
@@ -1610,11 +1584,6 @@ class int_vector_file_buffer
         bool	m_load_from_plain;
 
         void load_size_and_width() {
-//		util::read_member(m_int_vector_size, m_in);
-//		if( fixedIntWidth == 0 )
-//			util::read_member(m_int_width, m_in);
-//		else
-//			m_int_width = fixedIntWidth;
             int_vector_trait<fixedIntWidth, size_type_class>::read_header(m_int_vector_size, m_int_width, m_in);
             m_int_vector_size/=m_int_width;
         }
@@ -1645,7 +1614,7 @@ class int_vector_file_buffer
          * \param f_file_name 	File which contains the int_vector.
          * \param len 			Length of the buffer in elements.
          */
-        int_vector_file_buffer(const char* f_file_name=NULL, size_type len=1000000, uint8_t int_width=0):m_int_width(fixedIntWidth),int_vector_size(m_int_vector_size), int_width(m_int_width), file_name(m_file_name) {
+        int_vector_file_buffer(const char* f_file_name=NULL, size_type len=1000000, uint8_t int_width=0):m_in(), m_buf(NULL), m_off(0), m_read_values(0), m_len(0), m_int_vector_size(0), m_read_values_sum(0), m_int_width(fixedIntWidth), m_file_name(), m_load_from_plain(false), int_vector_size(m_int_vector_size), int_width(m_int_width), file_name(m_file_name) {
             m_load_from_plain = false;
             int_vector_trait<fixedIntWidth, size_type_class>::set_int_width(m_int_width, int_width);
             m_len		 		= len;

@@ -89,16 +89,6 @@ class rank_support_v5 : public rank_support
          * \sa operator==
          */
         bool operator!=(const rank_support_v5& rs)const;
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label="rank";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<")\n";
-        }
-#endif
-
 };
 
 template<uint8_t b, uint8_t pattern_len>

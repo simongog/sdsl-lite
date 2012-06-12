@@ -537,7 +537,7 @@ class wt_int
             size_type written_bytes = 0;
             written_bytes += util::write_member(m_size, out, child, "size");
             written_bytes += util::write_member(m_sigma, out, child, "sigma");
-            written_bytes += m_tree.serialize(out, out, child, "tree");
+            written_bytes += m_tree.serialize(out, child, "tree");
             written_bytes += m_tree_rank.serialize(out, child, "tree_rank");
             written_bytes += m_tree_select1.serialize(out, child, "tree_select_1");
             written_bytes += m_tree_select0.serialize(out, child, "tree_select_0");

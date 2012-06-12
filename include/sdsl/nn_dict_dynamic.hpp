@@ -240,33 +240,25 @@ class nn_dict_dynamic
 
         //! Load the data structure
         void load(std::istream& in) {
-            in.read((char*) &m_depth, sizeof(m_depth));
-            in.read((char*) &m_v_begin_leaves, sizeof(m_v_begin_leaves));
-            in.read((char*) &m_size, sizeof(m_size));
+			util::read_member(m_depth, in);
+			util::read_member(m_v_begin_leaves, in);
+			util::read_member(m_size, in);
             m_offset.load(in);
             m_tree.load(in);
         }
 
         //! Serialize the data structure
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            out.write((char*)&m_depth, sizeof(m_depth));
-            written_bytes += sizeof(m_depth);
-            out.write((char*)&m_v_begin_leaves, sizeof(m_v_begin_leaves));
-            written_bytes += sizeof(m_v_begin_leaves);
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            written_bytes += m_offset.serialize(out);
-            written_bytes += m_tree.serialize(out);
+			written_bytes += util::write_member(m_depth, out, child, "depth");
+			written_bytes += util::write_member(m_v_begin_leaves, out, child, "v_begin_leaves");
+			written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += m_offset.serialize(out, child, "offset");
+            written_bytes += m_tree.serialize(out, child, "tree");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the data structure
-        void mem_info() {
-            // TODO
-        }
-#endif
 
         class reference
         {

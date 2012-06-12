@@ -350,18 +350,20 @@ class wt_rlmn
         };
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out);
-            written_bytes += m_bl.serialize(out);
-            written_bytes += m_bf.serialize(out);
-            written_bytes += m_wt.serialize(out);
-            written_bytes += m_bl_rank.serialize(out);
-            written_bytes += m_bf_rank.serialize(out);
-            written_bytes += m_bl_select.serialize(out);
-            written_bytes += m_bf_select.serialize(out);
-            written_bytes += m_C.serialize(out);
-            written_bytes += m_C_bf_rank.serialize(out);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += m_bl.serialize(out, child, "bl");
+            written_bytes += m_bf.serialize(out, child, "bf");
+            written_bytes += m_wt.serialize(out, child, "wt");
+            written_bytes += m_bl_rank.serialize(out, child, "bl_rank");
+            written_bytes += m_bf_rank.serialize(out, child, "bf_rank");
+            written_bytes += m_bl_select.serialize(out, child, "bl_select");
+            written_bytes += m_bf_select.serialize(out, child, "bf_select");
+            written_bytes += m_C.serialize(out, child, "C");
+            written_bytes += m_C_bf_rank.serialize(out, child, "C_bf_rank");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -384,25 +386,6 @@ class wt_rlmn
             std::cout<<"# m_bf.size in MB="<<util::get_size_in_bytes(m_bf)/(1024.0*1024.0)<<std::endl;
             std::cout<<"# m_bl.size in MB="<<util::get_size_in_bytes(m_bl)/(1024.0*1024.0)<<std::endl;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "wt_rlmn";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << "\n,";
-            m_bl.mem_info("bl"); std::cout << ",\n";
-            m_bf.mem_info("bf"); std::cout << ",\n";
-            m_wt.mem_info("wt"); std::cout << ",\n";
-            m_bl_rank.mem_info("rank bl"); std::cout << ",\n";
-            m_bf_rank.mem_info("rank bf"); std::cout << ",\n";
-            m_bl_select.mem_info("select bl"); std::cout << ",\n";
-            m_bf_select.mem_info("select bf"); std::cout << ",\n";
-            m_C.mem_info("C"); std::cout << ",\n";
-            m_C_bf_rank.mem_info("rank C bf"); std::cout << ")\n";
-        }
-#endif
-
 };
 
 

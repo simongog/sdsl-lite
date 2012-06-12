@@ -219,21 +219,6 @@ class lcp_dac
         /*! \param in Inputstream to load the data structure from.
          */
         void load(std::istream& in);
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "lcp";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            m_data.mem_info("lcp values");
-            std::cout<<",";
-            m_overflow.mem_info("overflow mark");
-            std::cout<<",";
-            m_overflow_rank.mem_info("rank");
-            std::cout << ")\n";
-        }
-#endif
 };
 
 // == template functions ==

@@ -202,14 +202,16 @@ class sd_vector
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out);
-            written_bytes += util::write_member(m_wl, out);
-            written_bytes += m_low.serialize(out);
-            written_bytes += m_high.serialize(out);
-            written_bytes += m_high_1_select.serialize(out);
-            written_bytes += m_high_0_select.serialize(out);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_wl, out, child, "wl");
+            written_bytes += m_low.serialize(out, child, "low");
+            written_bytes += m_high.serialize(out, child, "high");
+            written_bytes += m_high_1_select.serialize(out, child, "high_1_select");
+            written_bytes += m_high_0_select.serialize(out, child, "high_0_select");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -222,20 +224,6 @@ class sd_vector
             m_high_1_select.load(in, &m_high);
             m_high_0_select.load(in, &m_high);
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "sd_vector";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ",\n";
-            m_high.mem_info("high part"); std::cout << ",\n";
-            m_low.mem_info("low part"); std::cout << ",\n";
-            m_high_1_select.mem_info("high_1_select"); std::cout << ",\n";
-            m_high_0_select.mem_info("high_0_select"); std::cout << ")\n";
-        }
-#endif
-
 };
 
 //! Rank data structure for sd_vector
@@ -317,20 +305,12 @@ class sd_rank_support
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "sd_rank_support";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
-
 };
 
 //! Select data structure for sd_vector
@@ -401,20 +381,12 @@ class sd_select_support
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "sd_select_support";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
-
 };
 
 } // end namespace

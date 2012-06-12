@@ -52,7 +52,8 @@ set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}")
 set(LIBRARY_VERSION_FULL "${LIBRARY_VERSION}.${LIBRARY_VERSION_PATCH}")
 
 #append_cxx_compiler_flags("-W -ffast-math -Wall -O9 -funroll-loops -DNDEBUG -DWRITE_R_OUTPUT -DMEM_INFO" "GCC" CMAKE_CXX_FLAGS)
-append_cxx_compiler_flags("-ffast-math -Wall -pedantic -enable-long-long -Weffc++ -Werror -O9 -funroll-loops -DNDEBUG -DWRITE_R_OUTPUT -DMEM_INFO" "GCC" CMAKE_CXX_FLAGS)
+#append_cxx_compiler_flags("-ffast-math -Wall -pedantic -enable-long-long -Weffc++ -O9 -funroll-loops -DNDEBUG -DWRITE_R_OUTPUT -DMEM_INFO" "GCC" CMAKE_CXX_FLAGS)
+append_cxx_compiler_flags("-ffast-math -Wall -O9 -funroll-loops -DNDEBUG -DWRITE_R_OUTPUT" "GCC" CMAKE_CXX_FLAGS)
 
 
 if( BUILTIN_POPCNT )

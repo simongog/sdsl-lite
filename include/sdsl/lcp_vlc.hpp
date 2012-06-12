@@ -177,20 +177,12 @@ class lcp_vlc
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
 
         //! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
          */
         void load(std::istream& in);
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "lcp";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<")\n";
-        }
-#endif
 };
 
 // == template functions ==
@@ -258,10 +250,12 @@ inline typename lcp_vlc<vlc_vec_type>::value_type lcp_vlc<vlc_vec_type>::operato
 
 
 template<class vlc_vec_type>
-typename lcp_vlc<vlc_vec_type>::size_type lcp_vlc<vlc_vec_type>::serialize(std::ostream& out) const
+typename lcp_vlc<vlc_vec_type>::size_type lcp_vlc<vlc_vec_type>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    written_bytes += m_vec.serialize(out);
+    written_bytes += m_vec.serialize(out, child, "vec");
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 

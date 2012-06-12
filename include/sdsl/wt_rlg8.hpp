@@ -413,18 +413,20 @@ class wt_rlg8
         };
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out);
-            written_bytes += m_wt.serialize(out);
-            written_bytes += m_b.serialize(out);
-            written_bytes += m_b_rank.serialize(out);
-            written_bytes += m_b_border.serialize(out);
-            written_bytes += m_b_border_rank.serialize(out);
-            written_bytes += m_wt_rank.serialize(out);
-            written_bytes += m_char2comp.serialize(out);
-            written_bytes += m_char_occ.serialize(out);
-            written_bytes += util::write_member(m_sigma, out);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += m_wt.serialize(out, child, "wt");
+            written_bytes += m_b.serialize(out, child, "b");
+            written_bytes += m_b_rank.serialize(out, child, "b_rank");
+            written_bytes += m_b_border.serialize(out, child, "b_border");
+            written_bytes += m_b_border_rank.serialize(out, child, "b_border_rank");
+            written_bytes += m_wt_rank.serialize(out, child, "wt_rank");
+            written_bytes += m_char2comp.serialize(out, child, "char2comp");
+            written_bytes += m_char_occ.serialize(out, child, "char_occ");
+            written_bytes += util::write_member(m_sigma, out, child, "sigma");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -441,24 +443,6 @@ class wt_rlg8
             m_char_occ.load(in);
             util::read_member(m_sigma, in);
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "wt_rlg";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << "\n,";
-            m_wt.mem_info("wt"); std::cout << ",\n";
-            m_b.mem_info("b"); std::cout << ",\n";
-            m_b_rank.mem_info("rank b"); std::cout << ",\n";
-            m_b_border.mem_info("b border"); std::cout << ",\n";
-            m_wt_rank.mem_info("wt rank"); std::cout << ",\n";
-            m_char2comp.mem_info("char2comp"); std::cout << ",\n";
-            m_char_occ.mem_info("char_occ"); std::cout << ")\n";
-        }
-#endif
-
-
 };
 
 

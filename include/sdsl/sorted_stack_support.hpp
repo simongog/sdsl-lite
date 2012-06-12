@@ -110,13 +110,13 @@ class sorted_stack_support
 
 };
 
-inline sorted_stack_support::sorted_stack_support(size_type n):m_n(n), m_cnt(0), m_top(0)
+inline sorted_stack_support::sorted_stack_support(size_type n):m_n(n), m_cnt(0), m_top(0), m_stack()
 {
     m_stack = int_vector<64>(block_nr(m_n+1)+1, 0);
     m_stack[0] = 1;
 }
 
-inline sorted_stack_support::sorted_stack_support(const sorted_stack_support& sis):m_n(sis.m_n), m_cnt(sis.m_cnt), m_top(sis.m_top)
+inline sorted_stack_support::sorted_stack_support(const sorted_stack_support& sis):m_n(sis.m_n), m_cnt(sis.m_cnt), m_top(sis.m_top), m_stack()
 {
     m_stack = sis.m_stack;
 }

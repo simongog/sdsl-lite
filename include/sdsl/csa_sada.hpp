@@ -384,23 +384,6 @@ class csa_sada
             } else
                 return size();
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "csa";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            m_psi.mem_info("$\\Psi$");
-            std::cout<<",";
-            sa_sample.mem_info("sa_sample");
-            std::cout<<",";
-            isa_sample.mem_info("isa_sample");
-            std::cout << ")\n";
-        }
-#endif
-
 };
 
 // == template functions ==

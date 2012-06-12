@@ -34,6 +34,12 @@ class structure_tree_node
     public:
         typedef map<string, string> tKeyValue;
         friend class structure_tree;
+    private:
+        structure_tree_node*	 	 m_parent;
+        vector<structure_tree_node*> m_children;
+        map<string, string>			 m_key_values;
+        void copy(const structure_tree_node& v);
+	public:
 
         structure_tree_node*&			 parent;
         vector<structure_tree_node*>&	 children;
@@ -63,12 +69,6 @@ class structure_tree_node
         void add_key_value(const string& key, const string& value);
         template<class IntType>
         void add_size(IntType value);
-
-    private:
-        structure_tree_node*	 	 m_parent;
-        vector<structure_tree_node*> m_children;
-        map<string, string>			 m_key_values;
-        void copy(const structure_tree_node& v);
 };
 
 class structure_tree

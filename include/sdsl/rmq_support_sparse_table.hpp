@@ -170,14 +170,16 @@ class rmq_support_sparse_table
                 return m_v->size();
         }
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             size_type written_bytes = 0;
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             written_bytes += util::write_member(m_k, out);
             if (m_k > 0) {
                 assert(m_table != NULL);
                 for (size_type i=0; i < m_k; ++i)
                     written_bytes += m_table[i].serialize(out);
             }
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 

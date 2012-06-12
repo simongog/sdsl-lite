@@ -253,15 +253,17 @@ class rrr_vector
 
         //! Answers select queries
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out);
-            written_bytes += util::write_member(m_sample_rate, out);
-            written_bytes += m_bt.serialize(out);
-            written_bytes += m_btnr.serialize(out);
-            written_bytes += m_btnrp.serialize(out);
-            written_bytes += m_rank.serialize(out);
-            written_bytes += m_invert.serialize(out);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_sample_rate, out, child, "sample_rate");
+            written_bytes += m_bt.serialize(out, child, "bt");
+            written_bytes += m_btnr.serialize(out, child, "btnr");
+            written_bytes += m_btnrp.serialize(out, child, "btnrp");
+            written_bytes += m_rank.serialize(out, child, "rank_samples");
+            written_bytes += m_invert.serialize(out, child, "invert");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -275,20 +277,6 @@ class rrr_vector
             m_rank.load(in);
             m_invert.load(in);
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "rrr_vector<" + util::to_string(block_size) + ">";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << "\n,";
-            m_bt.mem_info("bt"); std::cout << ",\n";
-            m_btnr.mem_info("btnr"); std::cout << ",\n";
-            m_btnrp.mem_info("btnrp"); std::cout << ",\n";
-            m_rank.mem_info("rank samples"); std::cout << ",\n";
-            m_invert.mem_info("invert"); std::cout << ")\n";
-        }
-#endif
 
         // Print information about the object to stdout.
         void print_info()const {
@@ -446,20 +434,13 @@ class rrr_rank_support
         }
 
         //! Serializes the data structure into a stream.
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_sample_rate, out);
+            written_bytes += util::write_member(m_sample_rate, out, child, "sample_rate");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "rrr_rank_support";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
 };
 
 
@@ -616,20 +597,13 @@ class rrr_select_support
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_sample_rate, out);
+            written_bytes += util::write_member(m_sample_rate, out, child, "sample_rate");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "rrr_select_support";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
 };
 
 }// end namespace sdsl

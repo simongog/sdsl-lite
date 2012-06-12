@@ -151,14 +151,16 @@ class bit_vector_interleaved
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out);
-            written_bytes += util::write_member(m_totalBlocks, out);
-            written_bytes += util::write_member(m_superblocks, out);
-            written_bytes += util::write_member(m_blockShift, out);
-            written_bytes += m_data.serialize(out);
-            written_bytes += m_rank_samples.serialize(out);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_totalBlocks, out, child, "totalBlocks");
+            written_bytes += util::write_member(m_superblocks, out, child, "superblocks");
+            written_bytes += util::write_member(m_blockShift, out, child, "blockShift");
+            written_bytes += m_data.serialize(out, child, "data");
+            written_bytes += m_rank_samples.serialize(out, child, "rank_samples");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -182,16 +184,6 @@ class bit_vector_interleaved
                 m_rank_samples.swap(bv.m_rank_samples);
             }
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "bit_vector_interleaved";
-            size_type bytes = util::get_size_in_bytes(*this) + m_totalBlocks*sizeof(uint64_t);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << "\n,";
-        }
-#endif
-
 };
 
 template<uint8_t b,uint32_t blockSize>
@@ -292,20 +284,12 @@ class rank_support_interleaved
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "rank_support_interleaved";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
-
 };
 
 
@@ -468,20 +452,12 @@ class select_support_interleaved
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "select_support_interleaved";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
-
 };
 
 }

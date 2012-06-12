@@ -109,10 +109,12 @@ class gap_vector
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out);
-            written_bytes += m_position.serialize(out);
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += m_position.serialize(out, child, "positions");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -121,17 +123,6 @@ class gap_vector
             util::read_member(m_size, in);
             m_position.load(in);
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "gap_vector";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << "\n,";
-            m_position.mem_info("positions"); std::cout << ")\n";
-        }
-#endif
-
 };
 
 template<bool b>
@@ -204,20 +195,12 @@ class gap_rank_support
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "gap_rank_support";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
-
 };
 
 
@@ -283,20 +266,12 @@ class gap_select_support
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "gap_select_support";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
-
 };
 
 }
