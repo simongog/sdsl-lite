@@ -24,18 +24,19 @@
 #include "bitmagic.hpp"
 #include "typedefs.hpp"
 #include "structure_tree.hpp"
-#include <iosfwd> // forward declaration of ostream
-#include <stdint.h> // for uint64_t uint32_t declaration
+#include <iosfwd>      // forward declaration of ostream
+#include <stdint.h>    // for uint64_t uint32_t declaration
 #include <cassert>
-#include <fstream> // file stream for storeToFile and loadFromFile
-#include <ctime>  // for rand initialization
+#include <fstream>     // file stream for storeToFile and loadFromFile
+#include <ctime>       // for rand initialization
 #include <string>
-#include <string.h> // for strlen and strdup
-#include <libgen.h> // for basename
+#include <string.h>    // for strlen and strdup
+#include <libgen.h>    // for basename
 #include <cstdlib>
-#include <unistd.h> // for getpid 
-#include <sstream> // for to_string method
+#include <unistd.h>    // for getpid 
+#include <sstream>     // for to_string method
 #include <stdexcept>   // for std::logic_error
+#include <typeinfo>    // for typeid
 
 
 // macros to transform a defined name to a string
