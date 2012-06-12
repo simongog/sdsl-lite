@@ -35,7 +35,8 @@ class int_vector_serialize_vbyte_wrapper
     public:
         int_vector_serialize_vbyte_wrapper(const int_vector_type& vec):m_vec(vec) {}
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             // (1) write size and int_width
             written_bytes += _sdsl_serialize_size_and_int_width(out, fixedIntWidth, m_vec.get_int_width(), m_vec.bit_size());
@@ -54,6 +55,7 @@ class int_vector_serialize_vbyte_wrapper
                 out.write((const char*)&w, sizeof(uint8_t));  // write without overflow bit
                 ++written_bytes;
             }
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 };
@@ -108,8 +110,8 @@ class int_vector_serialize_wrapper
     public:
         int_vector_serialize_wrapper(const int_vector_type& vec):m_vec(vec) {}
 
-        size_type serialize(std::ostream& out)const {
-            return m_vec.serialize(out);
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            return m_vec.serialize(out, v, name);
         }
 };
 
