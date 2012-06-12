@@ -47,6 +47,10 @@ std::ostream& operator<<(std::ostream& os, const louds_node& v);
  * \tparam SelectSupport1 A select_support on 1-bits; it is needed for the child(v,i) operation.
  * \tparam SelectSupport0 A select_support on 0-bits; it is needed for the parent operation.
  *
+ * Example of the structure: A tree with balanced parentheses representation (()()(()()))
+ * is translated into 10001110011. Traverse the tree in breadth-first order an write
+ * for each node a 1-bit followed by as many 0-bits as the node has children.
+ *
  * Disadvantages of louds: No efficient support for subtree size.
 */
 template<class BitVector = bit_vector, class SelectSupport1 = typename BitVector::select_1_type, class SelectSupport0 = typename BitVector::select_0_type>
@@ -68,7 +72,7 @@ class louds_tree
 
         //! Constructor for a cst and a root node for the traversal
         template<class Cst, class CstBfsIterator>
-        louds_tree(const Cst& cst, const CstBfsIterator begin, const CstBfsIterator end):bv(m_bv) {
+        louds_tree(const Cst& cst, const CstBfsIterator begin, const CstBfsIterator end):m_bv(), m_bv_select1(), m_bv_select0(), bv(m_bv) {
             bit_vector tmp_bv(4*cst.leaves_in_the_subtree(*begin) , 0); // resize the bit_vector to the maximal
             // possible size 2*2*#leaves in the tree
             size_type pos = 0;
@@ -79,7 +83,6 @@ class louds_tree
                 pos += it.size()+1-size;
             }
             tmp_bv.resize(pos);
-            // TODO do the BFS traversal
             util::assign(m_bv, tmp_bv);
             util::init_support(m_bv_select1, &m_bv);
             util::init_support(m_bv_select0, &m_bv);
