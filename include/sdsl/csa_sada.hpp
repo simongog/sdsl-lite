@@ -111,7 +111,7 @@ class csa_sada
         int_vector<64>  m_C;
         uint16_t			m_sigma;
 
-        uint64_t* m_psi_buf; // buffer for decoded psi values : TODO statisch uint64_t[groesse] anlegen, siehe: wavelet_tree fuer int_vector_file_buffer
+        uint64_t m_psi_buf[SampleDens+1]; // buffer for decoded psi values
 
         template<typename RandomAccessContainer>
         void construct(const RandomAccessContainer& sa, const unsigned char* str);
@@ -147,22 +147,16 @@ class csa_sada
 
         //! Default Constructor
         csa_sada():char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma) ,psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
-            m_psi_buf = NULL;
-            m_psi_buf = new uint64_t[m_psi.get_sample_dens()+1];
             util::assign(m_char2comp, int_vector<8>(256, 0));
             util::assign(m_comp2char, int_vector<8>(256, 0));
             util::assign(m_C, int_vector<64>(257, 0));
             m_sigma = 0;
         }
         //! Default Destructor
-        ~csa_sada() {
-            if (m_psi_buf != NULL)
-                delete [] m_psi_buf;
-        }
+        ~csa_sada() { }
+
         //! Copy constructor
         csa_sada(const csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>& csa):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
-            m_psi_buf = NULL;
-            m_psi_buf = new uint64_t[m_psi.get_sample_dens()+1];
             copy(csa);
         }
 
@@ -414,8 +408,6 @@ class csa_sada
 template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
 csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(const unsigned char* str):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
 {
-    m_psi_buf = NULL;
-    m_psi_buf = new uint64_t[m_psi.get_sample_dens()+1];
     csa_uncompressed sa(str);
 //	size_type n = strlen((const char*)str);
 //	int_vector<> sa(n+1, 0, bit_magic::l1BP(n+1)+1);
@@ -431,9 +423,6 @@ template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t f
 template<typename RandomAccessContainer>
 csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(const RandomAccessContainer& sa, const unsigned char* str):char2comp(m_char2comp), comp2char(m_comp2char),C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
 {
-    m_psi_buf = NULL;
-    m_psi_buf = new uint64_t[m_psi.get_sample_dens()+1];
-
     size_type n = 1;
     if (str != NULL) {
         n = strlen((const char*)str);
@@ -449,9 +438,6 @@ template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t f
 template<typename RandomAccessContainer>
 csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(RandomAccessContainer& sa, const unsigned char* str):char2comp(m_char2comp), comp2char(m_comp2char),C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
 {
-    m_psi_buf = NULL;
-    m_psi_buf = new uint64_t[m_psi.get_sample_dens()+1];
-
     size_type n = 1;
     if (str != NULL) {
         n = strlen((const char*)str);
@@ -469,8 +455,6 @@ csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(int_vect
         int_vector_file_buffer<int_width, size_type_class_1>& sa_buf):
     char2comp(m_char2comp), comp2char(m_comp2char),C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
 {
-    m_psi_buf = NULL;
-    m_psi_buf = new uint64_t[m_psi.get_sample_dens()+1];
     bwt_buf.reset(); sa_buf.reset();
     size_type n = bwt_buf.int_vector_size;
     algorithm::set_text<csa_sada>(bwt_buf, n, m_C, m_char2comp, m_comp2char, m_sigma);
@@ -514,9 +498,6 @@ csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(tMSS& fi
 template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
 void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::construct(tMSS& file_map, const std::string& dir, const std::string& id)
 {
-    if (m_psi_buf == NULL) {
-        m_psi_buf = new uint64_t[m_psi.get_sample_dens()+1];
-    }
     if (file_map.find("bwt") == file_map.end()) { // if bwt is not already stored on disk => construct bwt
         construct_bwt(file_map, dir, id);
     }
