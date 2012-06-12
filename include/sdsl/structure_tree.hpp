@@ -33,17 +33,11 @@ class structure_tree_node
 {
     public:
         typedef map<string, string> tKeyValue;
-    private:
-        structure_tree_node*	 	 m_parent;
-        vector<structure_tree_node*> m_children;
-        map<string, string>			 m_key_values;
-
         friend class structure_tree;
 
-    public:
         structure_tree_node*&			 parent;
-        vector<structure_tree_node*>&	children;
-        map<string, string>&				key_values;
+        vector<structure_tree_node*>&	 children;
+        map<string, string>&			 key_values;
         //! Standard constructor
         structure_tree_node();
         //! User defined operator.
@@ -62,12 +56,19 @@ class structure_tree_node
         structure_tree_node(const structure_tree_node& v);
         //! Destructor.
         ~structure_tree_node();
+        structure_tree_node& operator=(const structure_tree_node& v);
         //! Swap operator.
         void swap(structure_tree_node& v);
         //! Add a key value pair.
         void add_key_value(const string& key, const string& value);
         template<class IntType>
         void add_size(IntType value);
+
+    private:
+        structure_tree_node*	 	 m_parent;
+        vector<structure_tree_node*> m_children;
+        map<string, string>			 m_key_values;
+        void copy(const structure_tree_node& v);
 };
 
 class structure_tree

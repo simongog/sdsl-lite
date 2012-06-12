@@ -205,7 +205,7 @@ struct nullstream : std::ostream {
             return traits_type::not_eof(c);
         }
     } m_sbuf;
-    nullstream(): std::ios(&m_sbuf), std::ostream(&m_sbuf) {}
+    nullstream(): std::ios(&m_sbuf), std::ostream(&m_sbuf), m_sbuf() {}
 };
 
 // Writes primitive-typed variable t to stream out

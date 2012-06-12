@@ -46,7 +46,7 @@ class stop_watch
         static rusage m_first_r;
     public:
 
-        stop_watch() {
+        stop_watch() : m_ruse1(), m_ruse2(), m_timeOfDay1(), m_timeOfDay2() {
             timeval t;
             t.tv_sec = 0; t.tv_usec = 0;
             m_ruse1.ru_utime = t; m_ruse1.ru_stime = t; // init m_ruse1

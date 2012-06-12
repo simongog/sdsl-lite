@@ -18,14 +18,26 @@ structure_tree_node::structure_tree_node(structure_tree_node* v, const string& n
     add_key_value("class_name", class_name);
 }
 
-// copy constructor
-structure_tree_node::structure_tree_node(const structure_tree_node& v):parent(m_parent), children(m_children), key_values(m_key_values)
+// copy method
+void structure_tree_node::copy(const structure_tree_node& v)
 {
     if (this != &v) { // if it is not the same object
         m_parent     = v.m_parent;
         m_children   = v.m_children;
         m_key_values = v.m_key_values;
     }
+}
+
+// copy constructor
+structure_tree_node::structure_tree_node(const structure_tree_node& v):parent(m_parent), children(m_children), key_values(m_key_values)
+{
+    copy(v);
+}
+
+structure_tree_node& structure_tree_node::operator=(const structure_tree_node& v)
+{
+    copy(v);
+    return *this;
 }
 
 structure_tree_node::~structure_tree_node()
