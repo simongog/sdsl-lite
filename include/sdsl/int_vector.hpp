@@ -21,6 +21,7 @@
 #ifndef INCLUDED_SDSL_INT_VECTOR
 #define INCLUDED_SDSL_INT_VECTOR
 
+#include "compatibility.hpp"
 #include "bitmagic.hpp"
 #include "util.hpp"
 #include "testutils.hpp"
@@ -35,12 +36,10 @@
 #include <cstdlib>
 #include <cstddef>
 #include <ctime>    // for rand initialization
-#include <sstream>
 #include <cstring>  // for memcpy
 #include <ostream>
 #include <istream>
 #include <string>
-#include <map>
 
 
 
