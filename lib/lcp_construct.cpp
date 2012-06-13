@@ -429,6 +429,8 @@ bool construct_lcp_simple_5n(tMSS& file_map, const std::string& dir, const std::
     const size_type rmq_limit = rmq_stack.size()-4;
     uint8_t cur_c = alphabet[1];
     size_type comps = 0;
+
+    size_type queries[257] = {0};
     for (size_type i=1, sai, r_sum=0, cur_c_idx=1, cur_c_cnt=cnt_c[alphabet[1]+1]; r_sum < n;) {
         for (; i < r_sum+r; ++i, --cur_c_cnt) {
             uint8_t bwti = bwt_buf[i-r_sum];
@@ -477,7 +479,6 @@ calculated_l:
             bwti_1 = bwti;					 // update BWT[i-1]
             if (rmq_end > rmq_limit) {
 //					std::cout<<"stack is too big (i="<<i<<"). Stack size = "<< (rmq_end+1)/2 <<". Start resizing."<<std::endl;
-                size_type queries[sigma];
                 for (int j=0; j<sigma; ++j)
                     queries[j] = prev_occ_in_bwt[alphabet[j]];
                 std::sort(queries, queries+sigma);
