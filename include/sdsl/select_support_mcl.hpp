@@ -277,8 +277,7 @@ class select_support_mcl : public select_support
         select_support_mcl<b, pattern_len>& operator=(const select_support_mcl& ss);
 
         //! Swap operator
-        /*! This swap Operator swaps two select_support_mcls in constant time.
-         *  All members (excluded the pointer to the supported SDSBitVector) are swapped.
+        /*! This swap operator swaps two select_support_mcls in constant time.
          */
         void swap(select_support_mcl<b, pattern_len>& ss);
         //! Equality Operator
@@ -691,14 +690,11 @@ void select_support_mcl<b,pattern_len>::load(std::istream& in, const int_vector<
 {
     set_vector(v);
     initData();
-    // read the number of 1-bits in the supported SDSBitVector
+    // read the number of 1-bits in the supported bit_vector
     in.read((char*) &m_arg_cnt, sizeof(size_type)/sizeof(char));
     size_type sb = (m_arg_cnt+4095)>>12;
 
     if (m_arg_cnt) { // if there exists 1-bits to be supported
-//			SDSBitVector z;
-//			z.load(in);// load compressed superblocks
-//			SDSCoder::decompress(z, m_superblock);
         m_superblock.load(in); // load superblocks
 
         if (m_miniblock!=NULL) {
@@ -719,12 +715,8 @@ void select_support_mcl<b,pattern_len>::load(std::istream& in, const int_vector<
         for (size_type i=0; i < sb; ++i)
             if (!mini_or_long.empty() and not mini_or_long[i]) {
                 m_longsuperblock[i].load(in);
-//					z.load(in);
-//					SDSCoder::decompress(z,m_longsuperblock[i]);
             } else {
                 m_miniblock[i].load(in);
-//					z.load(in);
-//					SDSCoder::decompress(z,m_miniblock[i]);
             }
     }
 }

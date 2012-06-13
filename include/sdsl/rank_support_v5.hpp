@@ -70,8 +70,6 @@ class rank_support_v5 : public rank_support
         rank_support_v5& operator=(const rank_support_v5& rs);
         //! swap Operator
         /*! Swap two rank_support_v5 in constant time.
-         *	All members (excluded the pointer to the supported SDSBitVector) are swapped.
-         *
          *  Required for the Container Concept of the STL.
          */
         void swap(rank_support_v5& rs);

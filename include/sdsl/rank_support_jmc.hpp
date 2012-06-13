@@ -57,8 +57,6 @@ class rank_support_jmc : public rank_support
         rank_support_jmc& operator=(const rank_support_jmc& rs);
         //! swap Operator
         /*! Swap two rank_support_jmc in constant time.
-        	All members (the pointer to the supported SDSBitVector excluded) are swapped.
-
             Required for the Container Concept of the STL.
          */
         void swap(rank_support_jmc& rs);

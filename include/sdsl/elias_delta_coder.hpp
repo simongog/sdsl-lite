@@ -92,7 +92,6 @@ bool elias_delta::encode(const int_vector& v, int_vector& z)
 {
     typedef typename int_vector::size_type size_type;
     z.set_int_width(v.get_int_width());
-//	z.m_elements = v.size();
     size_type z_bit_size = 0;
     for (typename int_vector::const_iterator it = v.begin(), end = v.end(); it != end; ++it) {
         z_bit_size += encoding_length(*it);
@@ -109,7 +108,7 @@ bool elias_delta::encode(const int_vector& v, int_vector& z)
     for (typename int_vector::const_iterator it = v.begin(), end=v.end(); it != end; ++it) {
         w = *it;
         if (w == 0) {
-            throw std::logic_error("elias_delta::encode(const SDSBitVector &v, SDSBitVector &z); entry of v equals 0 that cannot be encoded!");
+            throw std::logic_error("elias_delta::encode(const int_vector &v, int_vector &z); entry of v equals 0 that cannot be encoded!");
         }
         // (number of bits to represent w)
         len 		= bit_magic::l1BP(w)+1;
@@ -152,16 +151,13 @@ bool elias_delta::decode(const int_vector& z, int_vector& v)
     uint8_t offset 		= 0;
     while ((z_data < z_end) or (z_data==z_end and offset < (z.bit_size()&0x3F))) {
         len_1_len = bit_magic::readUnaryIntAndMove(z_data, offset);
-//if(z_data==z.data() ) std::cerr<<" len_1_len="<<len_1_len<<" offset="<<(int)offset<<std::endl;
         if (len_1_len) {
             len 	= bit_magic::read_int_and_move(z_data, offset, len_1_len) + (1 << len_1_len);
-//if(z_data==z.data() ) std::cerr<<" len="<<len<<" offset="<<(int)offset<<std::endl;
             bit_magic::move_right(z_data, offset, len-1);
         }
         ++n;
     }
     v.set_int_width(z.get_int_width());
-//	n = z.m_elements;
     v.resize(n);
     return decode<false, true>(z.data(), 0, n, v.begin());
 }

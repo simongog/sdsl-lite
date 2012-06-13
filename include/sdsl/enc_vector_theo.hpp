@@ -57,12 +57,10 @@ class enc_vector_theo
 {
     public:
         typedef uint64_t 							value_type;  	// STL Container requirement
-//	typedef enc_vector_theo_const_iterator<Coder, SampleDens, RankSupport, SelectSupport, fixedIntWidth>	iterator;    	// STL Container requirement
         typedef enc_vector_theo_const_iterator<enc_vector_theo<Coder, SampleDens, RankSupport, SelectSupport, fixedIntWidth> >	iterator;    	// STL Container requirement
         typedef iterator							const_iterator; // STL Container requirement
         typedef const value_type		 			reference;
         typedef const value_type 					const_reference;
-//	typedef SDSBitVectorReference*				pointer;
         typedef const value_type*					const_pointer;
         typedef ptrdiff_t 							difference_type;// STL Container requirement
         typedef int_vector<>::size_type				size_type;		// STL Container requirement

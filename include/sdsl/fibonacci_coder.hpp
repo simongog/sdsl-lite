@@ -115,7 +115,7 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
     uint64_t z_bit_size = 0;
     for (typename int_vector1::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
         if (*it == 0) {
-            throw std::logic_error("fibonacci::encode(const SDSBitVector &v, SDSBitVector &z); entry of v equals 0 that cannot be encoded!");
+            throw std::logic_error("fibonacci::encode(int_vector1 &v, int_vector2 &z); entry of v equals 0 that cannot be encoded!");
         }
         z_bit_size += encoding_length(*it);
     }
