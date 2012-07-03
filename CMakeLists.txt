@@ -65,6 +65,7 @@ endif()
 
 add_subdirectory(include)
 add_subdirectory(lib)
+add_subdirectory(test)
 
 MESSAGE("Options")
 MESSAGE("USE_LIBDIVSUFSORT = ${USE_LIBDIVSUFSORT}")
