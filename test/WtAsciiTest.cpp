@@ -7,6 +7,7 @@
 #include "sdsl/util.hpp"
 #include "sdsl/csa_construct.hpp"
 #include "sdsl/bwt_construct.hpp"
+#include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()
@@ -36,10 +37,11 @@ class WtAsciiTest : public ::testing::Test
         virtual void SetUp() {
             // Code here will be called immediately after the constructor (right
             // before each test).
-            test_cases.push_back("test_cases/crafted/100a.txt");
-            test_cases.push_back("test_cases/small/faust.txt");
-            test_cases.push_back("test_cases/small/zarathustra.txt");
-            test_cases.push_back("test_cases/crafted/empty.txt");
+            string test_cases_dir = string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
+            test_cases.push_back(test_cases_dir + "/crafted/100a.txt");
+            test_cases.push_back(test_cases_dir + "/small/faust.txt");
+            test_cases.push_back(test_cases_dir + "/small/zarathustra.txt");
+            test_cases.push_back(test_cases_dir + "/crafted/empty.txt");
             tmp_file = "tmp_wt_ascii_test_" + sdsl::util::to_string(sdsl::util::get_pid()) + "_";
         }
 
