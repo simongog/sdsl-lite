@@ -21,5 +21,5 @@ foreach(test_SRC ${test_SRCS})
 	target_link_libraries(${test_PROG} divsufsort)
 	target_link_libraries(${test_PROG} divsufsort64)
 	add_test(${test_PROG} ${test_PROG})
-endforeach(testSource)
+endforeach(test_SRC)
 
