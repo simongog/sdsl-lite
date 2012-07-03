@@ -17,6 +17,9 @@ endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/uintx_t.hpp.cmake" 
 		       "${CMAKE_CURRENT_BINARY_DIR}/uintx_t.hpp" @ONLY)	
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.hpp.cmake" 
+		       "${CMAKE_CURRENT_BINARY_DIR}/config.hpp" @ONLY)	
+
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/uintx_t.hpp" DESTINATION include/sdsl)
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/algorithms_for_suffix_array_construction.hpp.cmake"

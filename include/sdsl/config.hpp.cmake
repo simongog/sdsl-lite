@@ -1,0 +1,6 @@
+#ifndef SDSL_CONFIG
+#define SDSL_CONFIG
+
+#define CMAKE_SOURCE_DIR @CMAKE_SOURCE_DIR@
+
+#endif

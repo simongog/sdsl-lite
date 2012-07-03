@@ -2,6 +2,7 @@
 #include "sdsl/lcp.hpp"
 #include "sdsl/test_index_performance.hpp"
 #include "sdsl/util.hpp" // for store_to_file, load_to_file,...
+#include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()
@@ -33,9 +34,10 @@ class CstTest : public ::testing::Test
         // If the constructor and destructor are not enough for setting up
         // and cleaning up each test, you can define the following methods:
         virtual void SetUp() {
-            test_cases.push_back("test_cases/crafted/100a.txt");
-            test_cases.push_back("test_cases/small/faust.txt");
-            test_cases.push_back("test_cases/small/zarathustra.txt");
+            string test_cases_dir = string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
+            test_cases.push_back(test_cases_dir + "/crafted/100a.txt");
+            test_cases.push_back(test_cases_dir + "/small/faust.txt");
+            test_cases.push_back(test_cases_dir + "/small/zarathustra.txt");
             tmp_file = "tmp_cst_test_" + util::to_string(util::get_pid()) + "_";
         }
 
