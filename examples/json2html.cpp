@@ -102,7 +102,7 @@ string create_js_body(const std::string& jsonsize)
             "      })\n"
             "      .on(\"click\", click);\n"
             "\n"
-            "  textEnter.append(\"title\").text(function(d) { return d.name + ' ' + sizeMB(d) });\n"
+            "  textEnter.append(\"title\").text(function(d) { return 'class name: ' + d.class_name + '\\nmember_name: ' + d.name + '\\n size: ' + sizeMB(d) });\n"
             "\n"
             "  textEnter.append(\"tspan\")\n"
             "      .attr(\"x\", 0)\n"
