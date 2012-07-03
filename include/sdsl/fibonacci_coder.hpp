@@ -113,11 +113,17 @@ template<class int_vector1, class int_vector2>
 inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
 {
     uint64_t z_bit_size = 0;
+    register uint64_t w;
+    const uint64_t zero_val = v.get_int_width() < 64 ? (1ULL)<<v.get_int_width() : 0;
     for (typename int_vector1::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
-        if (*it == 0) {
-            throw std::logic_error("fibonacci::encode(int_vector1 &v, int_vector2 &z); entry of v equals 0 that cannot be encoded!");
+        if ((w=*it) == 0) {
+            if (v.get_int_width() < 64) {
+                w = zero_val;
+            } else {
+                throw std::logic_error("elias_delta::encode(const int_vector &v, int_vector &z); entry of v equals 0 that cannot be encoded!");
+            }
         }
-        z_bit_size += encoding_length(*it);
+        z_bit_size += encoding_length(w);
     }
     z.bit_resize(z_bit_size);
     if (z_bit_size & 0x3F) { // if z_bit_size % 64 != 0
@@ -125,11 +131,13 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
     }
     uint64_t* z_data 	= z.m_data;
     uint8_t offset 		= 0;
-    register uint64_t w;
     register uint64_t fibword_high = 0x0000000000000001ULL, fibword_low;
     register uint64_t t;
     for (typename int_vector1::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
         w = *it;
+        if (w == 0) {
+            w = zero_val;
+        }
         int8_t len_1 = encoding_length(w)-1,j;
         fibword_low = 0x0000000000000001ULL;
 
