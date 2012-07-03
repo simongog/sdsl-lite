@@ -281,7 +281,7 @@ class cst_sct3
          *    \f$ \Order{\frac{\sigma}{w}} \f$, where w=64 is the word size, can be implemented in \f$\Order{1}\f$ with rank and select
          */
         inline size_type psv(size_type i, size_type ipos, size_type cipos, size_type& psvpos, size_type& psvcpos)const {
-            if (cipos >= m_bp.size() - m_sigma) { // if lcp[i]==0 => psv is the 0th index by definition
+            if (cipos + m_sigma >= m_bp.size()) {  // if lcp[i]==0 => psv is the 0th index by definition
                 psvpos = 0;
                 psvcpos = m_bp.size()-1;
                 return 0;
