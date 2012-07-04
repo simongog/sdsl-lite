@@ -150,7 +150,7 @@ void test_rank(const tWt& wt, const unsigned char* text, size_type n)
         if (cnt[j] == 0) {
             for (size_type k=0; k<1000; ++k) {
                 size_type pos = rand()%(wt.size()+1);
-                ASSERT_EQ(0, wt.rank(pos, (unsigned char)j))<<" pos="<<pos;
+                ASSERT_EQ((size_type)0, wt.rank(pos, (unsigned char)j))<<" pos="<<pos;
             }
         }
     }

@@ -129,12 +129,12 @@ TYPED_TEST(CstTest, SwapMethod)
         ASSERT_EQ(true, this->load_cst(cst1, i));
         size_type n = cst1.size();
         TypeParam cst2;
-        ASSERT_EQ(0, cst2.size());
+        ASSERT_EQ((size_type)0, cst2.size());
         cst1.swap(cst2);
-        ASSERT_EQ(0, cst1.size());
+        ASSERT_EQ((size_type)0, cst1.size());
         ASSERT_EQ(n, cst2.size());
         ASSERT_EQ(n, cst2.csa.size());
-        bit_vector mark(0, cst2.size());
+        bit_vector mark((size_type)0, cst2.size());
         check_node_method(cst2);
     }
 }
