@@ -56,8 +56,8 @@ TEST_F(IntVectorTest, DefaultConstruct)
 {
     {
         sdsl::int_vector<> iv;
-        ASSERT_EQ(iv.size(), 0);			   // size should be 0
-        ASSERT_EQ(iv.get_int_width(), 64);   // default width of each element should be 64 bits
+        ASSERT_EQ((size_type)0, iv.size());			   // size should be 0
+        ASSERT_EQ((uint8_t)64, iv.get_int_width());   // default width of each element should be 64 bits
     }
     {
         sdsl::bit_vector bv;
@@ -93,7 +93,7 @@ TEST_F(IntVectorTest, Constructor)
         sdsl::int_vector<> iv(vec_sizes[i]);
         ASSERT_EQ(iv.size(), vec_sizes[i]);
         for (size_type j=0; j < iv.size(); ++j) { // should be initialized with 0s
-            EXPECT_EQ(iv[j], 0);
+            EXPECT_EQ((size_type)0, iv[j]);
         }
     }
     for (size_type i=0; i < vec_sizes.size(); ++i) {
@@ -113,9 +113,9 @@ TEST_F(IntVectorTest, Swap)
         sdsl::int_vector<> iv(vec_sizes[i], val);
         {
             sdsl::int_vector<> tmp;
-            ASSERT_EQ(tmp.size(), 0);
+            ASSERT_EQ((size_type)0, tmp.size());
             tmp.swap(iv);
-            ASSERT_EQ(iv.size(), 0);
+            ASSERT_EQ((size_type)0, iv.size());
             ASSERT_EQ(tmp.size(), vec_sizes[i]);
             for (size_type j=0; j < tmp.size(); ++j) {
                 EXPECT_EQ(tmp[j], val);
