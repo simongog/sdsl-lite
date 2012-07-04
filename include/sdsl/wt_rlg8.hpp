@@ -194,12 +194,10 @@ class wt_rlg8
                 m_sigma += b_sigma[i];
             }
 
-            size_type old_pair0cnt=0;
             uint32_t level = 0;
             //  handle remaining levels
             while (pair1cnt > 0) {
                 ++m;
-                old_pair0cnt = pair0cnt;
                 m_b_border[++level] = b_cnt;
                 size_type level_size = pair1cnt;
                 pair1cnt = 0;
