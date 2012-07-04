@@ -43,7 +43,7 @@ class BitMagicTest : public ::testing::Test
 TEST_F(BitMagicTest, Rank)
 {
     for (size_type i=0; i<64; ++i) {
-        ASSERT_EQ(sdsl::bit_magic::b1Cnt(1ULL<<i), 1);
+        ASSERT_EQ(sdsl::bit_magic::b1Cnt(1ULL<<i), (uint64_t)1);
     }
 }
 
