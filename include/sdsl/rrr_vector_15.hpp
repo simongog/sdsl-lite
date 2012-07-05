@@ -411,7 +411,7 @@ class rrr_rank_support<b, 15, wt_type>
             size_type diff_rank  = m_v->m_rank[ sample_pos+1 ] - rank;
             if (diff_rank == 0) {
                 return  rrr_rank_support_trait<b>::adjust_rank(rank, i);
-            } else if (diff_rank == bit_vector_type::block_size*m_sample_rate) {
+            } else if (diff_rank == (size_type)bit_vector_type::block_size*m_sample_rate) {
                 return  rrr_rank_support_trait<b>::adjust_rank(
                             rank + i - sample_pos*m_sample_rate*bit_vector_type::block_size, i);
             }
@@ -586,7 +586,7 @@ class rrr_select_support<b, 15, wt_type>
             rank = m_v->m_rank[begin]; // now i>rank
             idx = begin * m_sample_rate; // initialize idx for select result
             size_type diff_rank  = m_v->m_rank[end] - rank;
-            if (diff_rank == bit_vector_type::block_size*m_sample_rate) {// optimiziation for select<1>
+            if (diff_rank == (size_type)bit_vector_type::block_size*m_sample_rate) {// optimisation for select<1>
                 return idx*bit_vector_type::block_size + i-rank -1;
             }
             size_type btnrp = m_v->m_btnrp[ begin ];
