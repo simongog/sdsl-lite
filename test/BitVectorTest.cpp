@@ -133,7 +133,7 @@ TYPED_TEST(BitVectorTest, Swap)
         ASSERT_EQ((size_type)0, copied_bs.size());
         ASSERT_EQ(this->bs[i].size(), bs_empty.size());
         for (size_type j=0; j < (this->bs[i]).size(); ++j) {
-            ASSERT_EQ(this->bs[i][j], bs_empty[j]) << " at index "<<j<<" of vector "<<i<<" of length "<<(this->bs[i]).size();
+            ASSERT_EQ((bool)(this->bs[i][j]), (bool)(bs_empty[j])) << " at index "<<j<<" of vector "<<i<<" of length "<<(this->bs[i]).size();
         }
     }
 }
