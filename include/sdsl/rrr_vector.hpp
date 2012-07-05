@@ -148,7 +148,7 @@ class rrr_vector
             btnr_pos= 0, sum_rank = 0;
             bool invert = false;
             while (pos + block_size <= m_size) {  // handle all full blocks
-                if ((i % m_sample_rate) == 0) {
+                if ((i % m_sample_rate) == (size_type)0) {
                     m_btnrp[ i/m_sample_rate ] = btnr_pos;
                     m_rank[ i/m_sample_rate ] = sum_rank;
                     // calculate invert bit for that superblock
@@ -182,7 +182,7 @@ class rrr_vector
                 pos += block_size;
             }
             if (pos < m_size) { // handle last not full block
-                if ((i % m_sample_rate) == 0) {
+                if ((i % m_sample_rate) == (size_type)0) {
                     m_btnrp[ i/m_sample_rate ] = btnr_pos;
                     m_rank[ i/m_sample_rate ] = sum_rank;
                     m_invert[ i/m_sample_rate ] = 0; // default: set last block to not inverted
@@ -358,9 +358,9 @@ class rrr_rank_support
             size_type btnrp = m_v->m_btnrp[ sample_pos ];
             size_type rank  = m_v->m_rank[ sample_pos ];
             size_type diff_rank  = m_v->m_rank[ sample_pos+1 ] - rank;
-            if (diff_rank == 0) {
+            if (diff_rank == (size_type)0) {
                 return  rrr_rank_support_trait<b>::adjust_rank(rank, i);
-            } else if (diff_rank == block_size*m_sample_rate) {
+            } else if (diff_rank == (size_type)block_size*m_sample_rate) {
                 return  rrr_rank_support_trait<b>::adjust_rank(
                             rank + i - sample_pos*m_sample_rate*block_size, i);
             }
@@ -479,7 +479,7 @@ class rrr_select_support
             rank = m_v->m_rank[begin]; // now i>rank
             idx = begin * m_sample_rate; // initialize idx for select result
             size_type diff_rank  = m_v->m_rank[end] - rank;
-            if (diff_rank == block_size*m_sample_rate) {// optimisiation for select<1>
+            if (diff_rank == (size_type)block_size*m_sample_rate) {// optimisation for select<1>
                 return idx*block_size + i-rank -1;
             }
             const bool inv = m_v->m_invert[ begin ];
