@@ -115,7 +115,7 @@ TYPED_TEST(BitVectorTest, Access)
         TypeParam copied_bs(this->bs[i]);
         ASSERT_EQ((this->bs[i]).size(), copied_bs.size());
         for (size_type j=0; j < (this->bs[i]).size(); ++j) {
-            ASSERT_EQ(this->bs[i][j], copied_bs[j]) << " at index "<<j<<" of vector "<<i<<" of length "<<(this->bs[i]).size();
+            ASSERT_EQ((bool)(this->bs[i][j]), (bool)(copied_bs[j])) << " at index "<<j<<" of vector "<<i<<" of length "<<(this->bs[i]).size();
         }
     }
 }
