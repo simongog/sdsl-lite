@@ -39,7 +39,7 @@ struct enc_vector_trait<32> {
     typedef int_vector<32> int_vector_type;
 };
 
-//! A generic immutable space-saving vector class for unsigned positiv integers. It encodes each integer with its self-delimiting code and still provides constant time access.
+//! A generic immutable space-saving vector class for unsigned positive integers. It encodes each integer with its self-delimiting code and still provides constant time access.
 /*! The values of a enc_vector are immutable after the constructor call. The class
  *   can be parametrized with a self-delimiting codes (parameter Coder)
  *   and the sample density.
