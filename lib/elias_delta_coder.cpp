@@ -163,9 +163,13 @@ begin_decode:
 //					std::cerr<<"len_1="<<len_1<<" buffered = "<<buffered<<std::endl;
 //				}
 //				assert(len_1 <= buffered);
-                value	+= (w&bit_magic::Li1Mask[len_1]) + (1ULL << (len_1));
+                value	+= (w&bit_magic::Li1Mask[len_1]) + (len_1<64) * (1ULL << (len_1));
                 buffered -= len_1;
-                w >>= len_1;
+                if (len_1 < 64) {
+                    w >>= len_1;
+                } else {
+                    w = 0;
+                }
                 ++i;
                 if (i==n)
                     return value;
@@ -282,7 +286,8 @@ decode_single:
             i++;
             uint16_t len_1_len = bit_magic::readUnaryIntAndMove(data, offset); // read length of length of x
             uint16_t len_1 	=  bit_magic::read_int_and_move(data, offset, len_1_len) + (1ULL << len_1_len) - 1;
-            value	+= bit_magic::read_int_and_move(data, offset, len_1) + (1ULL << (len_1));
+            value	+= bit_magic::read_int_and_move(data, offset, len_1) + (len_1<64) * (1ULL << (len_1));
+//			std::cout<<"decode single ("<<len_1_len<<","<<len_1<<","<<value<<")"<<std::endl;
         }
     }
     return value;

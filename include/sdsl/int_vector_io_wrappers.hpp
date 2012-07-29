@@ -146,6 +146,7 @@ class int_vector_load_vlen_wrapper
         }
 };
 
+
 template<class int_vector_type=int_vector<> >
 class int_vector_serialize_wrapper
 {
@@ -176,6 +177,12 @@ class int_vector_load_wrapper
         void load(std::istream& in) {
             m_vec.load(in);
         }
+};
+
+template<class int_vector_serialize_wrapper_type=int_vector_serialize_wrapper<> >
+class int_vector_serialize_min_overhead
+{
+
 };
 
 } // end namespace
