@@ -17,6 +17,8 @@
 /*! \file enc_vector.hpp
    \brief enc_vector.hpp contains the sdsl::enc_vector class.
    \author Simon Gog
+   // TODO: check, if two adjacent elements of the same value can also be represented,
+   //
 */
 #include "int_vector.hpp"
 #include "elias_delta_coder.hpp"
@@ -363,7 +365,7 @@ void enc_vector<Coder, SampleDens,fixedIntWidth>::init(const Container& c)
     if (c.empty())  // if c is empty there is nothing to do...
         return;
     typename Container::const_iterator	it		 	= c.begin(), end = c.end();
-    typename Container::value_type 		v1			= *it, v2, max_value=0, max_sample_value=0, x;
+    typename Container::value_type 		v1			= *it, v2, max_sample_value=0, x;
     size_type samples=0;
     size_type z_size = 0;
 //  (1) Calculate maximal value of samples and of deltas
@@ -374,7 +376,6 @@ void enc_vector<Coder, SampleDens,fixedIntWidth>::init(const Container& c)
             if (max_sample_value < v2) max_sample_value = v2;
             ++samples;
         } else {
-            if (max_value < v2-v1) max_value = v2 - v1;
             z_size += Coder::encoding_length(v2-v1);
         }
         v1=v2;
@@ -398,9 +399,9 @@ void enc_vector<Coder, SampleDens,fixedIntWidth>::init(const Container& c)
                 *sv_it = z_size; ++sv_it;
             } else {
                 x = v2-v1;
-                if (v2 == v1) {
-                    throw std::logic_error("enc_vector cannot decode adjacent equal values!");
-                }
+//                if (v2 == v1) {
+//                    throw std::logic_error("enc_vector cannot decode adjacent equal values!");
+//                }
                 z_size += Coder::encoding_length(x);
             }
             v1=v2;
@@ -439,7 +440,7 @@ void enc_vector<Coder, SampleDens,fixedIntWidth>::init(int_vector_file_buffer<in
     if (n == 0)  // if c is empty there is nothing to do...
         return;
     v_buf.reset();
-    value_type 	v1=0, v2=0, max_value=0, max_sample_value=0;
+    value_type 	v1=0, v2=0, max_sample_value=0;
     size_type samples=0, z_size=0;
     const size_type sd = get_sample_dens();
 //  (1) Calculate maximal value of samples and of deltas
@@ -451,10 +452,9 @@ void enc_vector<Coder, SampleDens,fixedIntWidth>::init(int_vector_file_buffer<in
                 if (max_sample_value < v2) max_sample_value = v2;
                 ++samples;
             } else {
-                if (max_value < v2-v1) max_value = v2-v1;
-                if (v2 == v1) {
-                    throw std::logic_error("enc_vector cannot decode adjacent equal values!");
-                }
+//                if (v2 == v1) {
+//                    throw std::logic_error("enc_vector cannot decode adjacent equal values!");
+//                }
                 z_size += Coder::encoding_length(v2-v1);
             }
             v1 = v2;
