@@ -160,6 +160,7 @@ class csa_sada
 
         //! Copy constructor
         csa_sada(const csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>& csa):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
+			m_psi_buf = new uint64_t[SampleDens+1];
             copy(csa);
         }
 
