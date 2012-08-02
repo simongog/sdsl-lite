@@ -525,11 +525,11 @@ class csa_wt
             return m_wavelet_tree.rank(i, c);
         }
 
-        //! Calculates the ith occurence of symbol c in the BWT of the original text.
+        //! Calculates the ith occurrence of symbol c in the BWT of the original text.
         /*!
-         *  \param i The ith occurence. \f$i\in [1..rank(size(),c)]\f$.
+         *  \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
          *  \param c The symbol c.
-         *	\returns The ith occurence symbol c in the the BWT or size() if no ith occurence of the symbol exists in the BWT.
+         *	\returns The ith occurrence symbol c in the the BWT or size() if no ith occurence of the symbol exists in the BWT.
          *  \par Time complexity
          *		\f$ \Order{t_{\Psi}} \f$
          */
