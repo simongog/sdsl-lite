@@ -17,8 +17,6 @@
 /*! \file enc_vector.hpp
    \brief enc_vector.hpp contains the sdsl::enc_vector class.
    \author Simon Gog
-   // TODO: check, if two adjacent elements of the same value can also be represented,
-   //
 */
 #include "int_vector.hpp"
 #include "elias_delta_coder.hpp"
@@ -41,7 +39,7 @@ struct enc_vector_trait<32> {
     typedef int_vector<32> int_vector_type;
 };
 
-//! A generic immutable space-saving vector class for unsigned positive integers. It encodes each integer with its self-delimiting code and still provides constant time access.
+//! A generic immutable space-saving vector class for unsigned integers. It encodes each integer with its self-delimiting code and still provides constant time access.
 /*! The values of a enc_vector are immutable after the constructor call. The class
  *   can be parametrized with a self-delimiting codes (parameter Coder)
  *   and the sample density.
@@ -241,7 +239,7 @@ class enc_vector
          * \param it A pointer to a uint64_t vector, whereto the values should be written
          */
 //		template<class Iterator>
-        void get_inter_sampled_values(const size_type i, uint64_t*& it)const {
+        void get_inter_sampled_values(const size_type i, uint64_t* it)const {
             *(it++) = 0;
             if (i*SampleDens + SampleDens - 1 < size()) {
                 Coder::template decode<true, true>(m_z.data(), m_sample_vals_and_pointer[(i<<1)+1], SampleDens - 1, it);
