@@ -1,76 +1,26 @@
-GCCFLAGS=-g -O3 -DNDEBUG -funroll-loops
-GCCINC=-I${HOME}/include/ 
-GCCLIBDIR=-L${HOME}/lib/ 
-GCCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread -msse4.2
+CC=g++
+CC_FLAGS=-Wall -g -O3 -I${HOME}/include -L${HOME}/lib -DNDEBUG -funroll-loops 
+CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread 
+SOURCES=$(wildcard *Test.cpp)
+EXECS=$(SOURCES:.cpp=)
+EXEC_LIST=$(patsubst %,./%;,$(EXECS))                # list of executables
+EXEC_LIST_VAL=$(patsubst %,valgrind ./%;,$(EXECS))   # list of executables preceded by valgrind command
 
+all: $(EXECS)
+	        
+%:%.cpp
+	$(CC) $(CC_FLAGS) -o $@ $< $(CCLIB) 
 
-all: IntVectorTest RankSupportTest SelectSupportTest\
-	 SelectSupportTest0 BitMagicTest BitMagicTestSSE \
-	 BitVectorTest \
-	 CstTest\
-	 WtIntTest\
-	 WtAsciiTest
+clean:
+	rm -f $(EXECS)
 
-IntVectorTest: IntVectorTest.cpp
-	g++ ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} IntVectorTest.cpp -o IntVectorTest ${GCCLIB}
-
-RankSupportTest: RankSupportTest.cpp
-	g++ ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} RankSupportTest.cpp -o RankSupportTest ${GCCLIB}
-
-SelectSupportTest: SelectSupportTest.cpp
-	g++ ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} SelectSupportTest.cpp -o SelectSupportTest ${GCCLIB}
-
-SelectSupportTest0: SelectSupportTest0.cpp
-	g++ ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} SelectSupportTest0.cpp -o SelectSupportTest0 ${GCCLIB}
-
-BitMagicTest: BitMagicTest.cpp
-	g++ ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} BitMagicTest.cpp -o BitMagicTest ${GCCLIB}
-
-BitMagicTestSSE: BitMagicTest.cpp
-	g++ -msse4.2 ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} BitMagicTest.cpp -o BitMagicTestSSE ${GCCLIB}
-
-BitVectorTest: BitVectorTest.cpp
-	g++ -msse4.2 ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} BitVectorTest.cpp -o BitVectorTest ${GCCLIB}
-
-CstTest: CstTest.cpp
-	g++ ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} CstTest.cpp -o CstTest ${GCCLIB}
-
-WtIntTest: WtIntTest.cpp
-	g++ ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} WtIntTest.cpp -o WtIntTest ${GCCLIB}
-
-WtAsciiTest: WtAsciiTest.cpp
-	g++ ${GCCFLAGS} ${GCCINC} ${GCCLIBDIR} WtAsciiTest.cpp -o WtAsciiTest ${GCCLIB}
+# TODO special test case for BitMagicTestSSE
 
 test:
-	./IntVectorTest
-	./BitVectorTest
-	./RankSupportTest
-	./SelectSupportTest
-	./SelectSupportTest0
-	./BitMagicTest
-	./BitMagicTestSSE
 	./test_cases/small/get_corpus.sh
-	./WtIntTest
-	./CstTest
-	./WtAsciiTest
-
+	$(EXEC_LIST)
 
 
 vtest:
-	valgrind ./IntVectorTest
-	valgrind ./BitVectorTest
-	valgrind ./RankSupportTest
-	valgrind ./SelectSupportTest
-	valgrind ./SelectSupportTest0
-	valgrind ./BitMagicTest
-	valgrind ./BitMagicTestSSE
 	./test_cases/small/get_corpus.sh
-	valgrind ./WtIntTest
-	valgrind ./CstTest
-	valgrind ./WtAsciiTest
-
-clean:
-	rm -f IntVectorTest RankSupportTest SelectSupportTest \
-		  SelectSupportTest0 BitMagicTest BitMagicTestSSE BitVectorTest \
-		  CstTest WtIntTest WtAsciiTest
-	rm -rf *.dSYM
+	$(EXEC_LIST_VAL)
