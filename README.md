@@ -49,7 +49,7 @@ List of implemented data structures
       (`rank_support_v`,`rank_support_v5`,`select_support_mcl`,...)
     * Rank and select for compressed bitvectors (`rrr_rank_support<>`, `sd_rank_support<>`,...) 
   * Variable-length Coders
-    * Elias- ![\delta](http://latex.codecogs.com/gif.latex?\delta) coder (`coder::elias_delta`)
+    * Elias- ![\delta](http://latex.codecogs.com/gif.latex?%5Cdelta) coder (`coder::elias_delta`)
     * Fibonacci-coder (`coder::fibonacci`)
   * Integer Vectors
     * Mutable vectors for (compile-time) fixed `w`-bit integers (`int_vector<w>`)
@@ -62,7 +62,7 @@ List of implemented data structures
     * Run-length compressed wavelet trees for a byte-alphabet (`wt_rlmn`, `wt_rlg`, and `wt_rlg8`)
   * Compressed Suffix Arrays (CSA) (all immutable)
     * CSA based on a wavelet tree (`csa_wt`)
-    * CSA based on the compressed ![\Psi](http://latex.codecogs.com/gif.latex?\Psi)-function `csa_sada`
+    * CSA based on the compressed ![\Psi](http://latex.codecogs.com/gif.latex?%5CPsi)-function `csa_sada`
   * Balanced Parentheses Support Structures (all immutable)
     * A range-min-max-tree implementation (`bp_support_sada`) to `find_open`, `find_close`,
 	  `enclose`, `double_enclose`,...
