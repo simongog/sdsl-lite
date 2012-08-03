@@ -111,7 +111,7 @@ types. So the final type looks like this:
 
 Now, lets explore the data structure a little bit.
 We take the english.100MB input from 
-the [Pizza&amp;Chili](http://http://pizzachili.di.unipi.it/)-corpus,
+the [Pizza&amp;Chili](http://pizzachili.di.unipi.it/)-corpus,
 construct the CST-object, output its structure, and visualise
 it using the [d3js](http://d3js.org/)-library. Have fun with 
 [the result](http://people.eng.unimelb.edu.au/sgog/sdsl_explore/dblp.xml.100MB_cst_sada_wt_rlmn_lcp_tree2.html).
