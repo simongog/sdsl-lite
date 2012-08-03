@@ -81,6 +81,42 @@ List of implemented data structures
     * CST providing very fast navigation operations (`cst_sada`)
     * CST representing nodes as intervals in the suffix array (`cst_sct3`)
 
+Example of a complex data structure
+-----------------------------------
+Let us now show how you can assemble even a very
+complex data structure very easily. Lets begin with
+the most complex one, a CST!
+It basically consists of a CSA, an compressed LCP-array,
+and a succinct representation of the tree topology;
+each part can be specified by a template parameter.
+Say, we want fast navigation operations, so we take
+the class `cst_sada<cst_type, lcp_type, bp_support_type>` 
+for our CST. Now we can specify the type of CSA.
+Lets take a CSA based on wavelet tree:
+`csa_wt<wt_type, SA_sample_dens, inv_SA_sample_dens>`.
+We can recursively specify the used types. So
+now we can specify the used wavelet tree, say
+a run-length compressed wavelet tree 
+(`wt_rlmn<>`). We could recurse again and specify, each detail
+of the wavelet tree (e.g. which rank support structure 
+should be used) but we stick now with the default
+configuration which uses an `sd_vector` for the
+marking of the heads of the runs in the wavelet tree.
+Lets choose at last a LCP array which uses
+the topology of the CST and the CSA to
+compress the LCP values (`lcp_support_tree2`) and
+stick with default template parameters for all
+types. So the final type looks like this:
+``cst_sada<cst_wt<wt_rlmn<> >, lcp_support_tree2<> >``.
+
+Now, lets explore the data structure a little bit.
+We take the english.100MB input from 
+the [Pizza&amp;Chili](http://http://pizzachili.di.unipi.it/)-corpus,
+construct the CST-object, output its structure, and visualise
+it using the [d3js](http://d3js.org/)-library. Have fun with 
+[the result](http://people.eng.unimelb.edu.au/sgog/sdsl_explore/dblp.xml.100MB_cst_sada_wt_rlmn_lcp_tree2.html).
+
+
 Types of data structures
 ------------------------
 The data structures in the library can be divided into several classes:
