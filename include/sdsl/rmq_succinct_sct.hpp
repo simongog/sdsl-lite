@@ -14,17 +14,18 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file rmq_support_sct.hpp
-    \brief rmq_support_sct.hpp contains the class rmq_support_sct which supports range minimum or range maximum queries on a random access container in constant time and \f$2 n+o(n) bits\f$ space.
+/*! \file rmq_sct.hpp
+    \brief rmq_sct.hpp contains the class rmq_sct which supports range minimum or range maximum queries on a random access container in constant time and \f$2 n+o(n) bits\f$ space.
 	\author Simon Gog
 */
-#ifndef INCLUDED_SDSL_RMQ_SUPPORT_SCT
-#define INCLUDED_SDSL_RMQ_SUPPORT_SCT
+#ifndef INCLUDED_SDSL_RMQ_SUCCINCT_SCT
+#define INCLUDED_SDSL_RMQ_SUCCINCT_SCT
 
 #include "rmq_support.hpp"
 #include "int_vector.hpp"
 #include "algorithms_for_compressed_suffix_trees.hpp"
 #include "bp_support_sada.hpp"
+#include "util.hpp"
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -32,11 +33,11 @@ namespace sdsl
 
 
 template<class RandomAccessContainer = int_vector<>, bool Minimum = true, class Bp_support = bp_support_sada<> >
-class rmq_support_sct;
+class rmq_sct;
 
 template<class RandomAccessContainer = int_vector<>, class Bp_support = bp_support_sada<> >
 struct range_maximum_support_sct {
-    typedef rmq_support_sct<RandomAccessContainer, false, Bp_support> type;
+    typedef rmq_sct<RandomAccessContainer, false, Bp_support> type;
 };
 
 //! A class to support range minimum or range maximum queries on a random access container.
@@ -50,24 +51,24 @@ struct range_maximum_support_sct {
  * \par Space complexity:
  *		\f$ \Order{2n}+o(n) \f$ bits for the data structure ( \f$ n=size() \f$ ).
  *
+ * TODO: implement test
  */
 template<class RandomAccessContainer, bool Minimum, class Bp_support>
-class rmq_support_sct
+class rmq_sct
 {
-        const RandomAccessContainer* m_v;
         bit_vector					m_sct_bp; 		//!< A bit vector which contains the balanced parentheses sequence of the Super-Cartesian tree of the input container.
         Bp_support					m_sct_bp_support; 	//!< Support structure for the balanced parentheses of the Super-Cartesian tree.
 
-        void construct() {
-            if (m_v == NULL) {
+        void construct(const RandomAccessContainer* v) {
+            if (v == NULL) {
                 m_sct_bp = bit_vector(0); m_sct_bp_support = Bp_support();
             } else {
 #ifdef RMQ_SCT_BUILD_BP_NOT_SUCCINCT
                 // this method takes \f$n\log n\f$ bits extra space in the worst case
-                algorithm::construct_supercartesian_tree_bp(*m_v, m_sct_bp);
+                algorithm::construct_supercartesian_tree_bp(*v, m_sct_bp);
 #else
                 // this method takes only \f$n\f$ bits extra space in all cases
-                algorithm::construct_supercartesian_tree_bp_succinct(*m_v, m_sct_bp);
+                algorithm::construct_supercartesian_tree_bp_succinct(*v, m_sct_bp);
                 // TODO: falls alle werte im bereich von 0..n liegen sind nur 2n bits noetig
                 //  TODO: constructor mit int_vector_file_buffer
 #endif
@@ -75,8 +76,7 @@ class rmq_support_sct
             }
         }
 
-        void copy(const rmq_support_sct& rm) {
-            m_v = rm.m_v;
+        void copy(const rmq_sct& rm) {
             m_sct_bp = rm.m_sct_bp;
             m_sct_bp_support = rm.m_sct_bp_support;
             m_sct_bp_support.set_vector(&m_sct_bp);
@@ -90,29 +90,30 @@ class rmq_support_sct
         const Bp_support& sct_bp_support;
 
         //! Constructor
-        rmq_support_sct(const RandomAccessContainer* v=NULL):m_v(v), sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
+        rmq_sct(const RandomAccessContainer* v=NULL): sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
             construct();
         }
 
         //! Copy constructor
-        rmq_support_sct(const rmq_support_sct& rm) {
+        rmq_sct(const rmq_sct& rm) {
             if (this != &rm) { // if v is not the same object
                 copy(rm);
             }
         }
 
         //! Destructor
-        ~rmq_support_sct() { }
+        ~rmq_sct() { }
 
-        rmq_support_sct& operator=(const rmq_support_sct& rm) {
+        rmq_sct& operator=(const rmq_sct& rm) {
             if (this != &rm) {
                 copy(rm);
             }
             return *this;
         }
 
-        void set_vector(const RandomAccessContainer* v) {
-            m_v = v;
+        void swap(const rmq_sct& rm) {
+			m_sct_bp.swap(rm.m_sct_bp);
+			util::swap_support(m_sct_bp_support, rm.m_sct_bp_support, &m_sct_bp, &(rm.m_sct_bp));
         }
 
         //! Range minimum/maximum query for the supported random access container v.
