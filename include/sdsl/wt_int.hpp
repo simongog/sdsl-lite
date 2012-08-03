@@ -185,7 +185,7 @@ class wt_int
         //! Semi-external constructor
         /*!	\param buf	int_vector_file_buffer which contains the vector v for which a wt_int should be build.
          *	\param logn Let x > 0 be the biggest value in v. logn should be bit_magic::l1BP(x-1)+1 to represent all values of v.
-         *	\param dir	Derectory in which temporary files should be stored during the construction.
+         *	\param dir	Directory in which temporary files should be stored during the construction.
          *	\par Time complexity
          *		\f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          *		I.e. we nee \Order{n\log n} if rac is a permutation of 0..n-1.
