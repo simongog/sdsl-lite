@@ -43,7 +43,7 @@ namespace sdsl
 //! A wavelet tree class for sequences of big alphabet size (like integer alphabet)
 /*!
  * A wavelet tree is build for a vector of characters over the alphabet \f$\Sigma\f$.
- * The wavelet tree \f$wt\f$ consits of a tree of bit vector and provides three efficient methods:
+ * The wavelet tree \f$wt\f$ consists of a tree of bit vector and provides three efficient methods:
  *   - The "[]"-operator: \f$wt[i]\f$ returns the ith symbol of vector for which the wavelet tree was build for.
  *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurences of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the wavelet tree was build for.
  *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurence of symbol \f$c\f$.
@@ -183,7 +183,7 @@ class wt_int
         }
 
         //! Semi-external constructor
-        /*!	\param buf	int_vector_file_buffer which contains the vector v for which a wt_int should be bould.
+        /*!	\param buf	int_vector_file_buffer which contains the vector v for which a wt_int should be build.
          *	\param logn Let x > 0 be the biggest value in v. logn should be bit_magic::l1BP(x-1)+1 to represent all values of v.
          *	\param dir	Derectory in which temporary files should be stored during the construction.
          *	\par Time complexity
