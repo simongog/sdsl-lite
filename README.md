@@ -150,22 +150,47 @@ We provide many handy methods for _sdsl_ objects in the `util` namespace:
   * `util::write_structure<FORMAT>(const X &x, std::ostream &out)` writes the structure
      of the data structure in JSON or R format (`FORMAT`=`JSON_FORMAT` or `R_FORMAT`)
 
+Supported platforms
+-------------------
+The library was successfully tested on the following
+configurations
+  * Mac OS X 10.7.3 on a MacBookPro equipped with a Intel Core i5
+  * Ubuntu Linux 12.04 running on a server equipped with INtel Xeon (E5640) CPUs
+
+We plan to support Windows in the near future.
+
+Installation
+------------
+You can install the library into a directory `SDSL_INSTALL_DIR` by
+calling
+``
+./install SDSL_INSTALL_DIR
+``
+If `SDSL_INSTALL_DIR` is not specified your home directory is used.
+The library header files will be located in the directory
+`SDSL_INSTALL_DIR/include` and the library in the directory
+`SDSL_INSTALL_DIR/lib`. After the installation you can 
+execute the tests in the `test` directory of start
+with some code examples in the `examples` folder.
+
+Tests
+-----
+We have used the gtest framework for the tests.
+Compile with `make` and run tests with `make test`. We have another
+target `vtest` which runs the test with the valgrind tool.
+`make test` will try to download some texts from a
+gutenberg.org mirror. See the README file in the directory for details.
+
+Examples
+--------
+Compile the examples with `make` and experience
+how esay it is to use succinct data structures.
 
 Construction of Suffix Arrays
 -----------------------------
 The current version includes Yuta Mori's incredible fast suffix array
 construction library [libdivsufsort](http://code.google.com/p/libdivsufsort/)
 version 2.0.1.
-
-Tests
------
-Your will find a set of tests in the `test` directory. We have used the gtest
-framework for the tests.
-Compile with `make` and run tests with `make test`. We have another
-target `vtest` which runs the test with the valgrind tool.
-`make test` will try to download some texts from a
-gutenberg.org mirror. See the README file in the directory for details.
-
 
 
 
