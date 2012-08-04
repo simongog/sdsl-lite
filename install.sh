@@ -46,6 +46,7 @@ cmake -DCMAKE_INSTALL_PREFIX=${SDSL_INSTALL_PREFIX} \
 	  -DBUILD_SHARED_LIBS=OFF -Dgtest_disable_pthreads=ON .. 
 make # run make
 cp ./libgtest* "${SDSL_INSTALL_PREFIX}/lib" # copy generated libraries to the destination
+cp -r ../include/gtest "${SDSL_INSTALL_PREFIX}/include"
 
 cd ../.. # go to the original directory
 if [[ `pwd` != ${OLD_DIR} ]]; then
