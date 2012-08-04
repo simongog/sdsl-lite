@@ -2,39 +2,38 @@ SDSL: Succinct Data Structure Library
 =====================================
 
 This is a C++ template library for succinct data structures
-called (_sdsl_). 
+called _sdsl_. 
+
 Succinct data structures are fascinating: They represent an
 object (like a bitvector, a tree, suffix array,...) in space
 close the information-theoretic lower bound of the object
 but the defined operations can still be performed 
 efficiently. Hmmm, at least in theory ;) Actually there
 is still a big gap between theory and practice. Why?
-They time complexity of an operations performed
+The time complexity of an operations performed
 on the classical fat data structure and the slim 
 succinct data structure are the same most time in
 theory. However, in practice succinct structures are
 slow since the operations require often memory accesses
-with bad locality. Moreover, often the in theory
+with bad locality of references. Moreover, often the in theory
 small sub-linear space data structures account for
 a large amount of memory, since they are only 
 asymptotic sub-linear and the input size for which
 they are negligible in practice is galactic.
-So, actually there was a big gap between theory and practice
-and this library tries to close that gap.
 
 The aim of the library is to provide basic and complex succinct
 data structure which are
   * easy to use (the library is structure like the 
     [STL](http://www.sgi.com/tech/stl/), which provides
-    classical data structures)
-  * capable of handling large inputs (yes, we support 64-bit)
-  * provide excellent performance in construction
+    classical data structures),
+  * capable of handling large inputs (yes, we support 64-bit),
+  * provide excellent performance in construction, and 
   * provide excellent operation performance 
 
 A lot of engineering tricks had to be applied to
 reach the performance goal, for instance the use a semi-external
 algorithm, bit-parallelism on 64-bit words,
-and cache-friendly algorithms.
+and cache-friendly algorithms. 
 
 List of implemented data structures
 -----------------------------------
@@ -154,8 +153,8 @@ Supported platforms
 -------------------
 The library was successfully tested on the following
 configurations
-  * Mac OS X 10.7.3 on a MacBookPro equipped with a Intel Core i5
-  * Ubuntu Linux 12.04 running on a server equipped with INtel Xeon (E5640) CPUs
+  * Mac OS X 10.7.3 on a MacBookPro equipped with a Intel Core i5 CPU
+  * Ubuntu Linux 12.04 running on a server equipped with Intel Xeon (E5640) CPUs
 
 We plan to support Windows in the near future.
 
