@@ -1,0 +1,44 @@
+Performing C SOURCE FILE Test HAVE___DECLSPEC_DLLEXPORT_ failed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/src.c.o
+/usr/bin/gcc   -Wall  -DHAVE___DECLSPEC_DLLEXPORT_   -o CMakeFiles/cmTryCompileExec.dir/src.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c:1:1: warning: return type defaults to ‘int’ [-Wreturn-type]
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c: In function ‘__declspec’:
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c:1:48: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘{’ token
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c:1:63: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘{’ token
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c:1:28: error: declaration for parameter ‘func’ but no such parameter
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c:1:63: error: expected ‘{’ at end of input
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c:1:63: warning: control reaches end of non-void function [-Wreturn-type]
+make[1]: *** [CMakeFiles/cmTryCompileExec.dir/src.c.o] Error 1
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+make: *** [cmTryCompileExec/fast] Error 2
+
+Source file was:
+__declspec(dllexport) void func(); void func() { } int main() { func(); return 0; }
+Performing C SOURCE FILE Test HAVE___DECLSPEC_DLLIMPORT_ failed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/src.c.o
+/usr/bin/gcc   -Wall  -DHAVE___DECLSPEC_DLLIMPORT_   -o CMakeFiles/cmTryCompileExec.dir/src.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c:1:1: warning: return type defaults to ‘int’ [-Wreturn-type]
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c: In function ‘__declspec’:
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c:1:48: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘{’ token
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c:1:63: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘{’ token
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c:1:28: error: declaration for parameter ‘func’ but no such parameter
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c:1:63: error: expected ‘{’ at end of input
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c:1:63: warning: control reaches end of non-void function [-Wreturn-type]
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+make[1]: *** [CMakeFiles/cmTryCompileExec.dir/src.c.o] Error 1
+make: *** [cmTryCompileExec/fast] Error 2
+
+Source file was:
+__declspec(dllimport) void func(); void func() { } int main() { func(); return 0; }

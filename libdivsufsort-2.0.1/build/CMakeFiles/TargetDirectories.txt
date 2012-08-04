@@ -1,0 +1,3 @@
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/lib/CMakeFiles/divsufsort.dir
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/lib/CMakeFiles/divsufsort64.dir
+/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/uninstall.dir

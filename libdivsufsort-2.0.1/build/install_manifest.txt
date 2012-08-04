@@ -1,0 +1,6 @@
+/home/sgog/TESTSDSL/lib/pkgconfig/libdivsufsort.pc
+/home/sgog/TESTSDSL/lib/pkgconfig/libdivsufsort64.pc
+/home/sgog/TESTSDSL/include/divsufsort.h
+/home/sgog/TESTSDSL/include/divsufsort64.h
+/home/sgog/TESTSDSL/lib/libdivsufsort.a
+/home/sgog/TESTSDSL/lib/libdivsufsort64.a
