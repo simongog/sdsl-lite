@@ -62,6 +62,8 @@ namespace util
 
 static bool verbose = false;
 
+void set_verbose();
+
 //! Returns the basename of a file_name
 std::string basename(const std::string& file_name);
 
@@ -177,7 +179,7 @@ std::string demangle2(const char* name);
 template<class T>
 std::string class_name(const T& t)
 {
-    std::string result = demangle(typeid(t).name());
+    std::string result = demangle2(typeid(t).name());
     size_t template_pos = result.find("<");
     if (template_pos != std::string::npos) {
         result = result.erase(template_pos);
