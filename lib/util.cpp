@@ -70,6 +70,7 @@ std::string demangle2(const char* name)
     std::vector<std::string> words_to_delete;
     words_to_delete.push_back("sdsl::");
     words_to_delete.push_back("(unsigned char)");
+    words_to_delete.push_back(", unsigned long");
 
     for (size_t k=0; k<words_to_delete.size(); ++k) {
         std::string w = words_to_delete[k];
@@ -78,6 +79,11 @@ std::string demangle2(const char* name)
             ++i;
         }
     }
+	size_t index = 0;
+	std::string to_replace = "int_vector<1>";
+	while( (index = result.find(to_replace, index)) != string::npos ){
+		result.replace(index, to_replace.size(), "bit_vector");
+	}
     return result;
 }
 
@@ -166,6 +172,10 @@ bool load_from_file(char*& v, const char* file_name)
         return true;
     } else
         return false;
+}
+
+void set_verbose(){
+	verbose = true;
 }
 
 
