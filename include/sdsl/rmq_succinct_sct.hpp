@@ -14,8 +14,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file rmq_sct.hpp
-    \brief rmq_sct.hpp contains the class rmq_sct which supports range minimum or range maximum queries on a random access container in constant time and \f$2 n+o(n) bits\f$ space.
+/*! \file rmq_succinct_sct.hpp
+    \brief rmq_succinct_sct.hpp contains the class rmq_succinct_sct which supports range minimum or range maximum queries on a random access container in constant time and \f$2 n+o(n) bits\f$ space.
 	\author Simon Gog
 */
 #ifndef INCLUDED_SDSL_RMQ_SUCCINCT_SCT
@@ -32,12 +32,12 @@ namespace sdsl
 {
 
 
-template<class RandomAccessContainer = int_vector<>, bool Minimum = true, class Bp_support = bp_support_sada<> >
-class rmq_sct;
+template<class RandomAccessContainer = int_vector<>, bool Minimum = true, class Bp_support = bp_support_sada<256,32,rank_support_v5<> > >
+class rmq_succinct_sct;
 
-template<class RandomAccessContainer = int_vector<>, class Bp_support = bp_support_sada<> >
+template<class RandomAccessContainer = int_vector<>, class Bp_support = bp_support_sada<256,32,rank_support_v5<> > >
 struct range_maximum_support_sct {
-    typedef rmq_sct<RandomAccessContainer, false, Bp_support> type;
+    typedef rmq_succinct_sct<RandomAccessContainer, false, Bp_support> type;
 };
 
 //! A class to support range minimum or range maximum queries on a random access container.
@@ -54,7 +54,7 @@ struct range_maximum_support_sct {
  * TODO: implement test
  */
 template<class RandomAccessContainer, bool Minimum, class Bp_support>
-class rmq_sct
+class rmq_succinct_sct
 {
         bit_vector					m_sct_bp; 		//!< A bit vector which contains the balanced parentheses sequence of the Super-Cartesian tree of the input container.
         Bp_support					m_sct_bp_support; 	//!< Support structure for the balanced parentheses of the Super-Cartesian tree.
@@ -76,7 +76,7 @@ class rmq_sct
             }
         }
 
-        void copy(const rmq_sct& rm) {
+        void copy(const rmq_succinct_sct& rm) {
             m_sct_bp = rm.m_sct_bp;
             m_sct_bp_support = rm.m_sct_bp_support;
             m_sct_bp_support.set_vector(&m_sct_bp);
@@ -90,28 +90,28 @@ class rmq_sct
         const Bp_support& sct_bp_support;
 
         //! Constructor
-        rmq_sct(const RandomAccessContainer* v=NULL): sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
-            construct();
+        rmq_succinct_sct(const RandomAccessContainer* v=NULL): sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
+            construct(v);
         }
 
         //! Copy constructor
-        rmq_sct(const rmq_sct& rm) {
+        rmq_succinct_sct(const rmq_succinct_sct& rm) {
             if (this != &rm) { // if v is not the same object
                 copy(rm);
             }
         }
 
         //! Destructor
-        ~rmq_sct() { }
+        ~rmq_succinct_sct() { }
 
-        rmq_sct& operator=(const rmq_sct& rm) {
+        rmq_succinct_sct& operator=(const rmq_succinct_sct& rm) {
             if (this != &rm) {
                 copy(rm);
             }
             return *this;
         }
 
-        void swap(const rmq_sct& rm) {
+        void swap(const rmq_succinct_sct& rm) {
 			m_sct_bp.swap(rm.m_sct_bp);
 			util::swap_support(m_sct_bp_support, rm.m_sct_bp_support, &m_sct_bp, &(rm.m_sct_bp));
         }
@@ -150,10 +150,12 @@ class rmq_sct
             return m_sct_bp.size()/2;
         }
 
-        size_type serialize(std::ostream& out)const {
+    	size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        	structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += m_sct_bp.serialize(out);
-            written_bytes += m_sct_bp_support.serialize(out);
+            written_bytes += m_sct_bp.serialize(out, child, "sct_bp");
+            written_bytes += m_sct_bp_support.serialize(out, child, "sct_bp_support");
+        	structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
