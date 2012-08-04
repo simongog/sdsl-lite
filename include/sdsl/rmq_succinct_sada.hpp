@@ -34,10 +34,12 @@ namespace sdsl
 {
 
 
-template<class RandomAccessContainer = int_vector<>, bool Minimum = true, class Bp_support = bp_support_sada<>, class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
+template<class RandomAccessContainer = int_vector<>, bool Minimum = true, class Bp_support = bp_support_sada<256, 32, rank_support_v5<>, select_support_dummy>, 
+	     class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
 class rmq_succinct_sada;
 
-template<class RandomAccessContainer = int_vector<>, class Bp_support = bp_support_sada<>, class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
+template<class RandomAccessContainer = int_vector<>, class Bp_support = bp_support_sada<256, 32, rank_support_v5<>, select_support_dummy>, 
+	     class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
 struct range_maximum_support_sada {
     typedef rmq_succinct_sada<RandomAccessContainer, false, Bp_support, Rank_support10, Select_support10> type;
 };
@@ -80,7 +82,7 @@ class rmq_succinct_sada
 
     private:
 
-        typedef rmq_support_sct<RandomAccessContainer, Minimum> rmq_construct_helper_type;
+        typedef rmq_succinct_sct<RandomAccessContainer, Minimum> rmq_construct_helper_type;
 
         void _construct_bp_of_extended_cartesian_tree(size_type l, size_type r, size_type& bp_cnt, const rmq_construct_helper_type& rmq_helper) {
             if (r==(size_type)-1 or l > r)
@@ -146,7 +148,7 @@ class rmq_succinct_sada
         }
 
 		//! Swap operator
-        void swap(const rmq_sct& rm) {
+        void swap(const rmq_succinct_sada& rm) {
             m_ect_bp.swap(rm.m_ect_bp);
 			util::swap_support(m_ect_bp_support, rm.m_ect_bp_support, 
 					          &m_ect_bp, &(rm.m_ect_bp));
@@ -182,13 +184,14 @@ class rmq_succinct_sada
             return m_ect_bp.size()/4;
         }
 
-        size_type serialize(std::ostream& out)const {
+    	size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        	structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += m_ect_bp.serialize(out);
-            written_bytes += m_ect_bp_support.serialize(out);
-            written_bytes -= m_ect_bp_support.bp_select.serialize(out); // rmq_succinct_sada does not use the select support of bp_support
-            written_bytes += m_ect_bp_rank10.serialize(out);
-            written_bytes += m_ect_bp_select10.serialize(out);
+            written_bytes += m_ect_bp.serialize(out, child, "ect_bp");
+            written_bytes += m_ect_bp_support.serialize(out, child, "ect_bp_support");
+            written_bytes += m_ect_bp_rank10.serialize(out, child, "ect_bp_rank10");
+            written_bytes += m_ect_bp_select10.serialize(out, child, "ect_bp_select10");
+        	structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
