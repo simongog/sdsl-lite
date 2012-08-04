@@ -191,27 +191,12 @@ class lcp_kurtz
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
 
         //! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
          */
         void load(std::istream& in);
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "lcp";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            m_small_lcp.mem_info("small lcp");
-            std::cout<<",";
-            m_big_lcp.mem_info("big lcp");
-            std::cout<<",";
-            m_big_lcp_idx.mem_info("big lcp idx");
-            std::cout << ")\n";
-        }
-#endif
 };
 
 // == template functions ==
@@ -331,12 +316,14 @@ inline typename lcp_kurtz<width>::value_type lcp_kurtz<width>::operator[](size_t
 
 
 template<uint8_t width>
-typename lcp_kurtz<width>::size_type lcp_kurtz<width>::serialize(std::ostream& out) const
+typename lcp_kurtz<width>::size_type lcp_kurtz<width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    written_bytes += m_small_lcp.serialize(out);
-    written_bytes += m_big_lcp.serialize(out);
-    written_bytes += m_big_lcp_idx.serialize(out);
+    written_bytes += m_small_lcp.serialize(out, child, "small_lcp");
+    written_bytes += m_big_lcp.serialize(out, child, "large_lcp");
+    written_bytes += m_big_lcp_idx.serialize(out, child, "large_lcp_idx");
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 

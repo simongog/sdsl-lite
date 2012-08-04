@@ -106,10 +106,10 @@ class rrr_vector
         const bit_vector& btnr;
 
         //! Default constructor
-        rrr_vector(uint16_t sample_rate=32):m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {};
+        rrr_vector(uint16_t sample_rate=32):m_size(0), m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {};
 
         //! Copy constructor
-        rrr_vector(const rrr_vector& rrr):m_sample_rate(rrr.m_sample_rate), bt(m_bt), btnr(m_btnr) {
+        rrr_vector(const rrr_vector& rrr):bt(m_bt), btnr(m_btnr) {
             copy(rrr);
         }
 
@@ -119,38 +119,36 @@ class rrr_vector
         */
         rrr_vector(const bit_vector& bv, uint16_t sample_rate=32): m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {
             m_size = bv.size();
-            if (m_size == 0)
-                return;
             int_vector<> bt_array;
             bt_array.set_int_width(bit_magic::l1BP(block_size)+1);
-            bt_array.resize((m_size+block_size-1)/block_size);
+            bt_array.resize((m_size+block_size)/((size_type)block_size));
 
             // (1) calculate the block types and store them in m_bt
             size_type pos = 0, i = 0, x;
             size_type btnr_pos = 0;
             size_type sum_rank = 0;
-            while (pos + block_size <= m_size) { // handle all blocks, except the last one
+            while (pos + block_size <= m_size) { // handle all blocks full blocks
                 bt_array[ i++ ] = x = rrr_helper_type::get_bt(bv, pos, block_size);
                 sum_rank += x;
                 btnr_pos += rrr_helper_type::space_for_bt(x);
                 pos += block_size;
             }
-            if (pos <= m_size) { // handle last block
+            if (pos < m_size) { // handle last not full block
                 bt_array[ i++ ] = x = rrr_helper_type::get_bt(bv, pos, m_size - pos);
                 sum_rank += x;
                 btnr_pos += rrr_helper_type::space_for_bt(x);
             }
-            m_btnr.resize(std::max(btnr_pos, (size_type)1));   // max necessary for case: block_size == 1
-            m_btnrp.set_int_width(bit_magic::l1BP(btnr_pos)+1); m_btnrp.resize((bt_array.size()+m_sample_rate-1)/m_sample_rate);
-            m_rank.set_int_width(bit_magic::l1BP(sum_rank)+1); m_rank.resize((bt_array.size()+m_sample_rate-1)/m_sample_rate + 1);
-            m_invert = bit_vector((bt_array.size()+m_sample_rate-1)/m_sample_rate, 0);
+            util::assign(m_btnr, bit_vector(std::max(btnr_pos, (size_type)64), 0));      // max necessary for case: block_size == 1
+            util::assign(m_btnrp, int_vector<>((bt_array.size()+m_sample_rate-1)/m_sample_rate, 0,  bit_magic::l1BP(btnr_pos)+1));
+            util::assign(m_rank, int_vector<>((bt_array.size()+m_sample_rate-1)/m_sample_rate + 1, 0, bit_magic::l1BP(sum_rank)+1));
+            util::assign(m_invert, bit_vector((bt_array.size()+m_sample_rate-1)/m_sample_rate, 0));
 
             // (2) calculate block type numbers and pointers into btnr and rank samples
             pos = 0; i = 0;
             btnr_pos= 0, sum_rank = 0;
             bool invert = false;
-            while (pos + block_size <= m_size) {  // handle all blocks, except the last one
-                if ((i % m_sample_rate) == 0) {
+            while (pos + block_size <= m_size) {  // handle all full blocks
+                if ((i % m_sample_rate) == (size_type)0) {
                     m_btnrp[ i/m_sample_rate ] = btnr_pos;
                     m_rank[ i/m_sample_rate ] = sum_rank;
                     // calculate invert bit for that superblock
@@ -183,8 +181,8 @@ class rrr_vector
                 btnr_pos += space_for_bt;
                 pos += block_size;
             }
-            if (pos <= m_size) { // handle last block
-                if ((i % m_sample_rate) == 0) {
+            if (pos < m_size) { // handle last not full block
+                if ((i % m_sample_rate) == (size_type)0) {
                     m_btnrp[ i/m_sample_rate ] = btnr_pos;
                     m_rank[ i/m_sample_rate ] = sum_rank;
                     m_invert[ i/m_sample_rate ] = 0; // default: set last block to not inverted
@@ -202,6 +200,19 @@ class rrr_vector
             // for technical reasons add an additional element to m_rank
             m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
             util::assign(m_bt, bt_array);
+        }
+
+        //! Swap method
+        void swap(rrr_vector& rrr) {
+            if (this != &rrr) {
+                std::swap(m_size, rrr.m_size);
+                std::swap(m_sample_rate, rrr.m_sample_rate);
+                m_bt.swap(rrr.m_bt);
+                m_btnr.swap(rrr.m_btnr);
+                m_btnrp.swap(rrr.m_btnrp);
+                m_rank.swap(rrr.m_rank);
+                m_invert.swap(rrr.m_invert);
+            }
         }
 
         //! Accessing the i-th element of the original bit_vector
@@ -242,44 +253,30 @@ class rrr_vector
 
         //! Answers select queries
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            out.write((char*)&m_sample_rate, sizeof(m_sample_rate));
-            written_bytes += sizeof(m_sample_rate);
-            written_bytes += m_bt.serialize(out);
-            written_bytes += m_btnr.serialize(out);
-            written_bytes += m_btnrp.serialize(out);
-            written_bytes += m_rank.serialize(out);
-            written_bytes += m_invert.serialize(out);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_sample_rate, out, child, "sample_rate");
+            written_bytes += m_bt.serialize(out, child, "bt");
+            written_bytes += m_btnr.serialize(out, child, "btnr");
+            written_bytes += m_btnrp.serialize(out, child, "btnrp");
+            written_bytes += m_rank.serialize(out, child, "rank_samples");
+            written_bytes += m_invert.serialize(out, child, "invert");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            in.read((char*) &m_size, sizeof(m_size));
-            in.read((char*) &m_sample_rate, sizeof(m_sample_rate));
+            util::read_member(m_size, in);
+            util::read_member(m_sample_rate, in);
             m_bt.load(in);
             m_btnr.load(in);
             m_btnrp.load(in);
             m_rank.load(in);
             m_invert.load(in);
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "rrr_vector<" + util::to_string(block_size) + ">";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << "\n,";
-            m_bt.mem_info("bt"); std::cout << ",\n";
-            m_btnr.mem_info("btnr"); std::cout << ",\n";
-            m_btnrp.mem_info("btnrp"); std::cout << ",\n";
-            m_rank.mem_info("rank samples"); std::cout << ",\n";
-            m_invert.mem_info("invert"); std::cout << ")\n";
-        }
-#endif
 
         // Print information about the object to stdout.
         void print_info()const {
@@ -340,7 +337,7 @@ class rrr_rank_support
         //! Standard constructor
         /*! \param v Pointer to the rrr_vector, which should be supported
          */
-        rrr_rank_support(const bit_vector_type* v=NULL) {
+        explicit rrr_rank_support(const bit_vector_type* v=NULL) {
             init(v);
         }
 
@@ -361,9 +358,9 @@ class rrr_rank_support
             size_type btnrp = m_v->m_btnrp[ sample_pos ];
             size_type rank  = m_v->m_rank[ sample_pos ];
             size_type diff_rank  = m_v->m_rank[ sample_pos+1 ] - rank;
-            if (diff_rank == 0) {
+            if (diff_rank == (size_type)0) {
                 return  rrr_rank_support_trait<b>::adjust_rank(rank, i);
-            } else if (diff_rank == block_size*m_sample_rate) {
+            } else if (diff_rank == (size_type)block_size*m_sample_rate) {
                 return  rrr_rank_support_trait<b>::adjust_rank(
                             rank + i - sample_pos*m_sample_rate*block_size, i);
             }
@@ -373,8 +370,12 @@ class rrr_rank_support
                 rank  += (inv ? block_size - r: r);
                 btnrp += rrr_helper_type::space_for_bt(r);
             }
-            uint16_t bt = inv ? block_size - m_v->m_bt[ bt_idx ] : m_v->m_bt[ bt_idx ];
             uint16_t off = i % block_size;
+            if (!off) {   // needed for special case: if i=size() is a multiple of block_size
+                // the access to m_bt would cause a invalid memory access
+                return rrr_rank_support_trait<b>::adjust_rank(rank, i);
+            }
+            uint16_t bt = inv ? block_size - m_v->m_bt[ bt_idx ] : m_v->m_bt[ bt_idx ];
 
             uint16_t btnrlen 	= rrr_helper_type::space_for_bt(bt);
             number_type	btnr	= rrr_helper_type::decode_btnr(m_v->m_btnr, btnrp, btnrlen);
@@ -428,26 +429,18 @@ class rrr_rank_support
 
         //! Load the data structure from a stream and set the supported vector.
         void load(std::istream& in, const bit_vector_type* v=NULL) {
-            in.read((char*) &m_sample_rate, sizeof(m_sample_rate));
+            util::read_member(m_sample_rate, in);
             set_vector(v);
         }
 
         //! Serializes the data structure into a stream.
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            out.write((char*)&m_sample_rate, sizeof(m_sample_rate));
-            written_bytes += sizeof(m_sample_rate);
+            written_bytes += util::write_member(m_sample_rate, out, child, "sample_rate");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "rrr_rank_support";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
 };
 
 
@@ -486,7 +479,7 @@ class rrr_select_support
             rank = m_v->m_rank[begin]; // now i>rank
             idx = begin * m_sample_rate; // initialize idx for select result
             size_type diff_rank  = m_v->m_rank[end] - rank;
-            if (diff_rank == block_size*m_sample_rate) {// optimisiation for select<1>
+            if (diff_rank == (size_type)block_size*m_sample_rate) {// optimisation for select<1>
                 return idx*block_size + i-rank -1;
             }
             const bool inv = m_v->m_invert[ begin ];
@@ -543,7 +536,7 @@ class rrr_select_support
 
 
     public:
-        rrr_select_support(const bit_vector_type* v=NULL) {
+        explicit rrr_select_support(const bit_vector_type* v=NULL) {
             init(v);
         }
 
@@ -600,27 +593,20 @@ class rrr_select_support
 
 
         void load(std::istream& in, const bit_vector_type* v=NULL) {
-            in.read((char*) &m_sample_rate, sizeof(m_sample_rate));
+            util::read_member(m_sample_rate, in);
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            out.write((char*)&m_sample_rate, sizeof(m_sample_rate));
-            written_bytes += sizeof(m_sample_rate);
+            written_bytes += util::write_member(m_sample_rate, out, child, "sample_rate");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "rrr_select_support";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
 };
 
 }// end namespace sdsl
+#include "rrr_vector_15.hpp" // include specialization 
 
 #endif

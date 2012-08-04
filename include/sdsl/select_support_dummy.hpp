@@ -54,18 +54,12 @@ class select_support_dummy : public select_support
         inline const size_type select(size_type i) const;
         //! Alias for select(i).
         inline const size_type operator()(size_type i)const;
-        size_type serialize(std::ostream& out)const;
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const;
-#endif
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
         void load(std::istream& in, const int_vector<1>* v=NULL);
         void set_vector(const int_vector<1>* v=NULL);
         select_support_dummy& operator=(const select_support_dummy& ss);
 
         //! Swap operator
-        /*! This swap Operator swaps two select_support_dummys in constant time.
-         *  All members (excluded the pointer to the supported SDSBitVector) are swapped.
-         */
         void swap(select_support_dummy& ss);
         //! Equality Operator
         /*! Two select_support_dummys are equal if all member variables are equal.
@@ -74,10 +68,6 @@ class select_support_dummy : public select_support
          */
         bool operator==(const select_support_dummy& ss)const;
         //! Unequality Operator
-        /*! Two select_support_dummys are not equal if any member variable are not equal.
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator==
-         */
         bool operator!=(const select_support_dummy& ss)const;
 };
 

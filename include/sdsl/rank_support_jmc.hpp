@@ -42,13 +42,13 @@ class rank_support_jmc : public rank_support
         int_vector<0> m_superblockrank;
         int_vector<0> m_blockrank;
     public:
-        rank_support_jmc(const int_vector<1>* v=NULL);
+        explicit rank_support_jmc(const int_vector<1>* v=NULL);
         rank_support_jmc(const rank_support_jmc& rs);
         ~rank_support_jmc();
         void init(const int_vector<1>* v=NULL);
         inline const size_type rank(size_type idx) const;
         inline const size_type operator()(size_type idx)const;
-        size_type serialize(std::ostream& out)const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
         void load(std::istream& in, const int_vector<1>* v=NULL);
         void set_vector(const int_vector<1>* v);
         //! Assign Operator
@@ -57,8 +57,6 @@ class rank_support_jmc : public rank_support
         rank_support_jmc& operator=(const rank_support_jmc& rs);
         //! swap Operator
         /*! Swap two rank_support_jmc in constant time.
-        	All members (the pointer to the supported SDSBitVector excluded) are swapped.
-
             Required for the Container Concept of the STL.
          */
         void swap(rank_support_jmc& rs);
@@ -84,7 +82,7 @@ inline rank_support_jmc::rank_support_jmc(const int_vector<1>* v)
     init(v);
 }
 
-inline rank_support_jmc::rank_support_jmc(const rank_support_jmc& rs)
+inline rank_support_jmc::rank_support_jmc(const rank_support_jmc& rs) : rank_support()
 {
     set_vector(rs.m_v);
     m_superblockrank = rs.m_superblockrank;
@@ -104,8 +102,6 @@ inline rank_support_jmc& rank_support_jmc::operator=(const rank_support_jmc& rs)
 inline void rank_support_jmc::swap(rank_support_jmc& rs)
 {
     if (this != &rs) { // if rs and _this_ are not the same object
-        // TODO: swap m_v??? no!!!
-//		std::swap(m_v, rs.m_v);
         std::swap(m_logn, rs.m_logn);
         m_superblockrank.swap(rs.m_superblockrank);
         m_blockrank.swap(rs.m_blockrank);
@@ -171,10 +167,14 @@ inline const rank_support_jmc::size_type rank_support_jmc::operator()(size_type 
     return rank(idx);
 }
 
-inline rank_support_jmc::size_type rank_support_jmc::serialize(std::ostream& out)const
+inline rank_support_jmc::size_type rank_support_jmc::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
-    return    m_blockrank.serialize(out)
-              + m_superblockrank.serialize(out);
+    size_type written_bytes = 0;
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+    written_bytes += m_blockrank.serialize(out, child, "blockrank");
+    written_bytes += m_superblockrank.serialize(out, child, "superblockrank");
+    structure_tree::add_size(child, written_bytes);
+    return written_bytes;
 }
 
 inline void rank_support_jmc::load(std::istream& in, const int_vector<1>* v)
@@ -192,7 +192,7 @@ inline rank_support_jmc::~rank_support_jmc()
 inline void rank_support_jmc::set_vector(const int_vector<1>* v)
 {
     if (v != NULL) {
-        m_v =v;
+        m_v = v;
         m_logn = bit_magic::l1BP(m_v->capacity())+1;
     }
 }

@@ -132,6 +132,11 @@ class rmq_support_sparse_table
             return *this;
         }
 
+        void swap(rmq_support_sparse_table& rm) {
+            std::swap(m_k, rm.m_k);
+            std::swap(m_table, rm.m_table);
+        }
+
         void set_vector(const RandomAccessContainer* v) {
             m_v = v;
         }
@@ -165,21 +170,22 @@ class rmq_support_sparse_table
                 return m_v->size();
         }
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             size_type written_bytes = 0;
-            out.write((char*)&m_k, sizeof(m_k));
-            written_bytes += sizeof(m_k);
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+            written_bytes += util::write_member(m_k, out);
             if (m_k > 0) {
                 assert(m_table != NULL);
                 for (size_type i=0; i < m_k; ++i)
                     written_bytes += m_table[i].serialize(out);
             }
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
         void load(std::istream& in, const RandomAccessContainer* v) {
             set_vector(v);
-            in.read((char*)&m_k, sizeof(m_k));
+            util::read_member(m_k, in);
             if (m_k >0) {
                 if (m_table != NULL)
                     delete [] m_table;

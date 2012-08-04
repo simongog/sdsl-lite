@@ -48,8 +48,10 @@ const select_support_dummy::size_type select_support_dummy::operator()(size_type
 
 void select_support_dummy::set_vector(const int_vector<1>* v) { }
 
-select_support_dummy::size_type select_support_dummy::serialize(std::ostream& out)const
+select_support_dummy::size_type select_support_dummy::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+    structure_tree::add_size(child, 0);
     return 0;
 }
 
@@ -64,14 +66,5 @@ bool select_support_dummy::operator!=(const select_support_dummy& ss)const
 {
     return !(*this == ss);
 }
-
-#ifdef MEM_INFO
-void select_support_dummy::mem_info(std::string label)const
-{
-    std::cout << "list(label=\"" << label <<"\", size = 0)\n";
-}
-#endif
-
-
 
 }

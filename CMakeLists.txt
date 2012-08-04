@@ -4,14 +4,14 @@ include(AppendCompilerFlags)
 include(CheckSSE4_2)	
 	
 ## Project information ##
-PROJECT(sdsl CXX C)
+project(sdsl CXX C)
 set(PROJECT_VEDOR "Simon Gog")
 set(PROJECT_CONTACT "simon.gog@gmail.com")
-set(PROJECT_URL "http://www.uni-ulm.de/in/theo/research/sdsl")
-set(PROJECT_DESCRIPTION "A succinct data structure library")
+set(PROJECT_URL "https://github.com/simongog/sdsl")
+set(PROJECT_DESCRIPTION "SDSL: Succinct Data Structure Library")
+set(CMAKE_BUILD_TYPE "Release")
 
 ## Project options ##
-#option(BUILD_EXAMPLES "Build examples" OFF)
 option(USE_LIBDIVSUFSORT "Use the libdivsufsort library of Yuta Mori to construct suffix arrays" ON)
 if(USE_LIBDIVSUFSORT)
 	find_package(divsufsort)
@@ -23,7 +23,7 @@ endif()
 
 if(NOT divsufsort_FOUND)
 	set( divsufsort_INCLUDE_DIRS "." )
-	message("WARNING: libdivsuftsort is not installed! ")
+	message("WARNING: libdivsufsort is not installed! ")
 	message("         The build in default algorithm   ")
 	message("         will use much more time and space")
 	message("         then libdivsufsort!")
@@ -31,7 +31,7 @@ endif()
 
 if(NOT divsufsort64_FOUND)
 	set( divsufsort64_INCLUDE_DIRS "." )
-	message("WARNING: libdivsuftsort64 is not installed! ")
+	message("WARNING: libdivsufsort64 is not installed! ")
 	message("         The build in default algorithm   ")
 	message("         will use much more time and space")
 	message("         then libdivsufsort64!")
@@ -52,7 +52,8 @@ set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}")
 set(LIBRARY_VERSION_FULL "${LIBRARY_VERSION}.${LIBRARY_VERSION_PATCH}")
 
 #append_cxx_compiler_flags("-W -ffast-math -Wall -O9 -funroll-loops -DNDEBUG -DWRITE_R_OUTPUT -DMEM_INFO" "GCC" CMAKE_CXX_FLAGS)
-append_cxx_compiler_flags("-ffast-math -Wall -O9 -funroll-loops -DNDEBUG -DWRITE_R_OUTPUT -DMEM_INFO" "GCC" CMAKE_CXX_FLAGS)
+#append_cxx_compiler_flags("-ffast-math -Wall -pedantic -enable-long-long -Weffc++ -O9 -funroll-loops -DNDEBUG -DWRITE_R_OUTPUT -DMEM_INFO" "GCC" CMAKE_CXX_FLAGS)
+append_cxx_compiler_flags("-ffast-math -Wall -O9 -funroll-loops -DNDEBUG" "GCC" CMAKE_CXX_FLAGS)
 
 
 if( BUILTIN_POPCNT )
@@ -64,12 +65,8 @@ endif()
 
 add_subdirectory(include)
 add_subdirectory(lib)
+add_subdirectory(test)
+add_subdirectory(examples)
 
-MESSAGE("Options")
-MESSAGE("USE_LIBDIVSUFSORT = ${USE_LIBDIVSUFSORT}")
-
-## CPack configuration ##
-#set(CPACK_GENERATOR "TGZ;TBZ2;ZIP")
-#set(CPACK_SOURCE_GENERATOR "TGZ;TBZ2;ZIP")
-#include(ProjectCPack)
-
+message("Options")
+message("USE_LIBDIVSUFSORT = ${USE_LIBDIVSUFSORT}")

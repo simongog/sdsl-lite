@@ -69,7 +69,7 @@ class rank_support
         //! Serializes rank_support.
         /*! \param out Out-Stream to serialize the data to.
         */
-        virtual size_type serialize(std::ostream& out)const = 0;
+        virtual size_type serialize(std::ostream& out, structure_tree_node* v, std::string name)const = 0;
         //! Loads the rank_support.
         /*! \param in In-Stream to load the rank_support data from.
             \param v The supported bit_vector.

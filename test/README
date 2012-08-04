@@ -4,6 +4,9 @@ You can compile the tests by calling
 `make` 
 and execute them by calling 
 `make test`
+or
+`make vtest`, if you would like to
+call the test with valgrind.
 .
 
 In some test instances we generate data structures, e.g. 
@@ -17,4 +20,4 @@ be installed, since you have already executed
 the `install.sh` bash script to install the sdsl
 library.
 
-If you find a bug, please report it to us. Thanks.
+If you find a bug, please report it to us. Thanks. 

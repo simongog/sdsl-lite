@@ -110,13 +110,13 @@ class sorted_stack_support
 
 };
 
-inline sorted_stack_support::sorted_stack_support(size_type n):m_n(n), m_cnt(0), m_top(0)
+inline sorted_stack_support::sorted_stack_support(size_type n):m_n(n), m_cnt(0), m_top(0), m_stack()
 {
     m_stack = int_vector<64>(block_nr(m_n+1)+1, 0);
     m_stack[0] = 1;
 }
 
-inline sorted_stack_support::sorted_stack_support(const sorted_stack_support& sis):m_n(sis.m_n), m_cnt(sis.m_cnt), m_top(sis.m_top)
+inline sorted_stack_support::sorted_stack_support(const sorted_stack_support& sis):m_n(sis.m_n), m_cnt(sis.m_cnt), m_top(sis.m_top), m_stack()
 {
     m_stack = sis.m_stack;
 }
@@ -187,21 +187,18 @@ inline void sorted_stack_support::pop()
 inline sorted_stack_support::size_type sorted_stack_support::serialize(std::ostream& out)const
 {
     size_type written_bytes = 0;
-    out.write((char*) &m_n, sizeof(m_n));
-    written_bytes += sizeof(m_n);
-    out.write((char*) &m_top, sizeof(m_top));
-    written_bytes += sizeof(m_top);
-    out.write((char*) &m_cnt, sizeof(m_cnt));
-    written_bytes += sizeof(m_cnt);
+    written_bytes += util::write_member(m_n, out);
+    written_bytes += util::write_member(m_top, out);
+    written_bytes += util::write_member(m_cnt, out);
     written_bytes += m_stack.serialize(out);
     return written_bytes;
 }
 
 inline void sorted_stack_support::load(std::istream& in)
 {
-    in.read((char*)&m_n, sizeof(m_n));
-    in.read((char*)&m_top, sizeof(m_top));
-    in.read((char*)&m_cnt, sizeof(m_cnt));
+    util::read_member(m_n, in);
+    util::read_member(m_top, in);
+    util::read_member(m_cnt, in);
     m_stack.load(in);
 }
 

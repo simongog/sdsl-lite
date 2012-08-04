@@ -65,12 +65,12 @@ class bit_vector_interleaved
     private:
         size_type m_size;           /* size of the original bit vector */
         size_type m_totalBlocks;    /* total size of m_data in u64s */
-        size_type m_blockMask;      /* block mask for modulo operation */
         size_type m_superblocks;    /* number of superblocks */
         size_type m_blockShift;
         int_vector<64> m_data;           /* data */
         int_vector<64> m_rank_samples;   /* space for additional rank samples */
 
+        // precondition: m_rank_samples.size() <= m_superblocks
         void init_rank_samples() {
             uint32_t blockSize_U64 = bit_magic::l1BP(blockSize>>6);
             size_type idx = 0;
@@ -80,7 +80,7 @@ class bit_vector_interleaved
                 size_type lb = lbs.front(); lbs.pop();
                 size_type rb = rbs.front(); rbs.pop();
                 if (/*lb < rb and*/ idx < m_rank_samples.size()) {
-                    size_type mid = (lb+rb)/2; // select mid \in [lb..rb)
+                    size_type mid = lb + (rb-lb)/2; // select mid \in [lb..rb)
                     size_type pos = (mid << blockSize_U64) + mid;
                     m_rank_samples[ idx++ ] = m_data[pos];
                     lbs.push(lb); rbs.push(mid);
@@ -90,19 +90,17 @@ class bit_vector_interleaved
         }
 
     public:
-        bit_vector_interleaved() {}
+        bit_vector_interleaved():m_size(0), m_totalBlocks(0), m_superblocks(0), m_blockShift(0) {}
 
-        bit_vector_interleaved(const bit_vector& bv) {
+        bit_vector_interleaved(const bit_vector& bv):m_size(0), m_totalBlocks(0), m_superblocks(0), m_blockShift(0) {
             m_size = bv.size();
-            if (m_size == 0)
-                return;
             /* calculate the number of superblocks */
 //          each block of size > 0 gets suberblock in which we store the cumulative sum up to this block
-            m_superblocks = (m_size+blockSize-1) / blockSize;
+            m_superblocks = (m_size+blockSize) / blockSize;
             m_blockShift = bit_magic::l1BP(blockSize);
             /* allocate new data */
-            size_type blocks = (m_size+63)/64;
-            size_type mem =  blocks + m_superblocks + 1;
+            size_type blocks = (m_size+64)/64;
+            size_type mem =  blocks +         m_superblocks + 1;
 //                          ^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^   ^
 //                          bit vector data | cum. sum data | sum after last block
             util::assign(m_data, int_vector<64>(mem));
@@ -126,9 +124,12 @@ class bit_vector_interleaved
             }
             m_data[j] = cum_sum; /* last superblock so we can always
                                     get num_ones fast */
-//			if ( ) { // TODO: do not use extra array for small bit_vectors
-            m_rank_samples.resize(1ULL << 10);
-//			}
+            if (m_totalBlocks > 1024*64) {
+                // we store at most m_superblocks+1 rank_samples:
+                // we do a cache efficient binary search for the select on X=1024
+                // or X=the smallest power of two smaller than m_superblock
+                m_rank_samples.resize(std::min(1024ULL, 1ULL << bit_magic::l1BP(m_superblocks)));
+            }
             init_rank_samples();
         }
 
@@ -136,7 +137,7 @@ class bit_vector_interleaved
         /*! \param i An index i with \f$ 0 \leq i < size()  \f$.
            \return The i-th bit of the original bit_vector
            \par Time complexity
-           		\f$ \Order{\log m} \f$, where m equals the number of zeros
+           		\f$ \Order{1} \f$
         */
         value_type operator[](size_type i)const {
             size_type bs = i >> m_blockShift;
@@ -150,15 +151,16 @@ class bit_vector_interleaved
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out);
-            written_bytes += util::write_member(m_totalBlocks, out);
-            written_bytes += util::write_member(m_blockMask, out);
-            written_bytes += util::write_member(m_superblocks, out);
-            written_bytes += util::write_member(m_blockShift, out);
-            written_bytes += m_data.serialize(out);
-            written_bytes += m_rank_samples.serialize(out);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_totalBlocks, out, child, "totalBlocks");
+            written_bytes += util::write_member(m_superblocks, out, child, "superblocks");
+            written_bytes += util::write_member(m_blockShift, out, child, "blockShift");
+            written_bytes += m_data.serialize(out, child, "data");
+            written_bytes += m_rank_samples.serialize(out, child, "rank_samples");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -166,22 +168,22 @@ class bit_vector_interleaved
         void load(std::istream& in) {
             util::read_member(m_size, in);
             util::read_member(m_totalBlocks, in);
-            util::read_member(m_blockMask, in);
             util::read_member(m_superblocks, in);
             util::read_member(m_blockShift, in);
             m_data.load(in);
             m_rank_samples.load(in);
         }
 
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "bit_vector_interleaved";
-            size_type bytes = util::get_size_in_bytes(*this) + m_totalBlocks*sizeof(uint64_t);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << "\n,";
+        void swap(bit_vector_interleaved& bv) {
+            if (this != &bv) {
+                std::swap(m_size, bv.m_size);
+                std::swap(m_totalBlocks, bv.m_totalBlocks);
+                std::swap(m_superblocks, bv.m_superblocks);
+                std::swap(m_blockShift, bv.m_blockShift);
+                m_data.swap(bv.m_data);
+                m_rank_samples.swap(bv.m_rank_samples);
+            }
         }
-#endif
-
 };
 
 template<uint8_t b,uint32_t blockSize>
@@ -282,20 +284,12 @@ class rank_support_interleaved
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "rank_support_interleaved";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
-
 };
 
 
@@ -344,7 +338,7 @@ class select_support_interleaved
             res = (rb-1) << m_blockShift;
             /* iterate in 64 bit steps */
             const uint64_t* w = m_v->m_data.data() + ((rb-1) << m_blockSize_U64) + (rb-1);
-            i -= *w;  // substract the cumulative sum before the superblock
+            i -= *w;  // subtract the cumulative sum before the superblock
             ++w; /* step into the data */
             size_type ones = bit_magic::b1Cnt(*w);
             while (ones < i) {
@@ -458,20 +452,12 @@ class select_support_interleaved
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "select_support_interleaved";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
-
 };
 
 }

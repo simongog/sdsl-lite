@@ -1,0 +1,5 @@
+*
+!*.cpp
+!Makefile.cmake
+!CMakeLists.txt
+!.gitignore

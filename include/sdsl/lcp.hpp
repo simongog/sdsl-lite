@@ -145,6 +145,44 @@ void copy_lcp(Lcp& lcp, const Lcp& lcp_c, const Cst& cst, lcp_tree_and_lf_compre
     lcp.set_cst(&cst);
 }
 
+// swap lcp arrays
+template<class Lcp, class Cst>
+void swap_lcp(Lcp& lcp1, Lcp& lcp2, const Cst& cst1, const Cst& cst2)
+{
+    typename Lcp::lcp_category tag;
+    swap_lcp(lcp1, lcp2, cst1, cst2, tag);
+}
+
+template<class Lcp, class Cst>
+void swap_lcp(Lcp& lcp1, Lcp& lcp2, const Cst& cst1, const Cst& cst2, lcp_plain_tag)
+{
+    lcp1.swap(lcp2);
+}
+
+template<class Lcp, class Cst>
+void swap_lcp(Lcp& lcp1, Lcp& lcp2, const Cst& cst1, const Cst& cst2, lcp_permuted_tag)
+{
+    lcp1.swap(lcp2);
+    lcp1.set_csa(&(cst1.csa));
+    lcp2.set_csa(&(cst2.csa));
+}
+
+template<class Lcp, class Cst>
+void swap_lcp(Lcp& lcp1, Lcp& lcp2, const Cst& cst1, const Cst& cst2, lcp_tree_compressed_tag)
+{
+    lcp1.swap(lcp2);
+    lcp1.set_cst(&cst1);
+    lcp2.set_cst(&cst2);
+}
+
+template<class Lcp, class Cst>
+void swap_lcp(Lcp& lcp1, Lcp& lcp2, const Cst& cst1, const Cst& cst2, lcp_tree_and_lf_compressed_tag)
+{
+    lcp1.swap(lcp2);
+    lcp1.set_cst(&cst1);
+    lcp2.set_cst(&cst2);
+}
+
 // load lcp arrays
 template<class Lcp, class Cst>
 void load_lcp(Lcp& lcp, std::istream& in, const Cst& cst)

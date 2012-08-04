@@ -41,7 +41,7 @@ namespace sdsl
 {
 
 
-//! A class for the compressed version of lcp information of an suffix array of class Csa proposed by Sadakane in the paper "Succinct Representation of lcp Information and Imporvements in the Compressed Suffix Arrays".
+//! A class for the compressed version of lcp information of an suffix array of class Csa proposed by Sadakane in the paper "Succinct Representation of lcp Information and Improvements in the Compressed Suffix Arrays".
 /*! The class has two template parameters:
  *    - \a Csa is the (compressed) suffix array for which the lcp information should by provided.
  *    - \a SelectSupport is the SelectSupport class which is used in the data structure to calculate the select queries.
@@ -50,9 +50,9 @@ namespace sdsl
  *		 	\f$ 2n+o(n) \f$ bits, where 2n is the maximal size of the bitvector for the differences of the PLCP array
  *				and o(n) for the select support data structure.
  *
- *	The representation of the lcp information corresponds to the concept of an imutable random access container of the STL.
+ *	The representation of the lcp information corresponds to the concept of an immutable random access container of the STL.
  */
-template<class Csa = csa_sada<>, class SelectSupport = select_support_mcl<1> >
+template<class Csa = csa_sada<>, class BitVector = bit_vector, class SelectSupport = typename BitVector::select_1_type>
 class _lcp_support_sada
 {
     public:
@@ -65,6 +65,7 @@ class _lcp_support_sada
         typedef const pointer								 const_pointer;
         typedef int_vector<>::size_type						 size_type;		// STL Container requirement
         typedef ptrdiff_t  									 difference_type; // STL Container requirement
+        typedef BitVector									 bit_vector_type;
         typedef Csa											 csa_type;
 
 
@@ -84,8 +85,8 @@ class _lcp_support_sada
 
     private:
         //
-        const Csa*		 m_csa;
-        bit_vector      m_data;
+        const Csa*		m_csa;
+        bit_vector_type m_data;
         SelectSupport  	m_select_support;
 
         void copy(const _lcp_support_sada& lcp_c) {
@@ -214,46 +215,33 @@ class _lcp_support_sada
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
 
         //! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
          *  \param csa Compressed Suffix Array that is supported.
          */
         void load(std::istream& in, const Csa* csa);
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "lcp";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            m_data.mem_info("bit vector 2n");
-            std::cout<<",";
-            m_select_support.mem_info("select");
-            std::cout << ")\n";
-        }
-#endif
 };
 
 // == template functions ==
 
-template<class Csa, class SelectSupport>
+template<class Csa, class BitVector, class SelectSupport>
 template<class Text, class Sa>
-_lcp_support_sada<Csa, SelectSupport>::_lcp_support_sada(const Text& text, const Sa& sa, const Csa* csa):csa(m_csa)
+_lcp_support_sada<Csa, BitVector, SelectSupport>::_lcp_support_sada(const Text& text, const Sa& sa, const Csa* csa):csa(m_csa)
 {
     construct(text, sa, csa);
 }
 
-template<class Csa, class SelectSupport>
+template<class Csa, class BitVector, class SelectSupport>
 template<class Text, class Sa>
-void _lcp_support_sada<Csa, SelectSupport>::construct(const Text& text, const Sa& sa, const Csa* csa)
+void _lcp_support_sada<Csa, BitVector, SelectSupport>::construct(const Text& text, const Sa& sa, const Csa* csa)
 {
     set_csa(csa);
 #ifdef SDSL_DEBUG
     std::cerr<<"start building _lcp_support_sada"<<std::endl;
 #endif
-    m_data = bit_vector(2*sa.size(), 0);
+    bit_vector data = bit_vector(2*sa.size(), 0);
     size_type data_cnt = 0;
     for (typename Csa::size_type i=0,j=0, sa_1 = sa(0), l=0, oldl=1; i < sa.size(); ++i) {
         if (l) --l;
@@ -264,30 +252,31 @@ void _lcp_support_sada<Csa, SelectSupport>::construct(const Text& text, const Sa
             l = 0;
         }
         data_cnt += l-oldl+1;
-        m_data[data_cnt]=1;
+        data[data_cnt]=1;
         ++data_cnt;
         sa_1 = sa.psi[sa_1];
         oldl = l;
     }
-    m_data.resize(data_cnt);
-    m_select_support.init(&m_data);
+    data.resize(data_cnt);
+    util::assign(m_data, data);
+    util::init_support(m_select_support, &m_data);
 #ifdef SDSL_DEBUG
     std::cerr<<"finished building _lcp_support_sada"<<std::endl;
 #endif
 }
 
-template<class Csa, class SelectSupport>
+template<class Csa, class BitVector, class SelectSupport>
 template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1>
-_lcp_support_sada<Csa, SelectSupport>::_lcp_support_sada(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
+_lcp_support_sada<Csa, BitVector, SelectSupport>::_lcp_support_sada(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
         int_vector_file_buffer<int_width_1, size_type_class_1>& isa_buf,
         const Csa* f_csa):csa(m_csa)
 {
     construct(lcp_buf, isa_buf, f_csa);
 }
 
-template<class Csa, class SelectSupport>
+template<class Csa, class BitVector, class SelectSupport>
 template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1>
-void _lcp_support_sada<Csa, SelectSupport>::construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
+void _lcp_support_sada<Csa, BitVector, SelectSupport>::construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
         int_vector_file_buffer<int_width_1, size_type_class_1>& isa_buf,
         const Csa* f_csa)
 {
@@ -300,35 +289,35 @@ void _lcp_support_sada<Csa, SelectSupport>::construct(int_vector_file_buffer<int
     util::load_from_file(lcp, lcp_buf.file_name.c_str());
     isa_buf.reset();
     size_type n = lcp.size();
-    m_data = bit_vector(2*n, 0);
+    bit_vector data = bit_vector(2*n, 0);
     size_type data_cnt=0;
     for (size_type i=0, r_sum=0, r = isa_buf.load_next_block(), l=0, old_l=1; r_sum < n;) {
         for (; i < r_sum+r; ++i) {
             l = lcp[isa_buf[i-r_sum]];
             data_cnt += l + 1 - old_l;
-            m_data[data_cnt++] = 1;
+            data[data_cnt++] = 1;
             old_l = l;
         }
         r_sum	+=	r;
         r 		=	isa_buf.load_next_block();
     }
-    m_data.resize(data_cnt);
-    m_select_support.init(&m_data);
+    data.resize(data_cnt);
+    util::assign(m_data, data);
+    util::init_support(m_select_support, &m_data);
 #ifdef SDSL_DEBUG
     std::cerr<<"finished building _lcp_support_sada"<<std::endl;
 #endif
 }
 
-template<class Csa, class SelectSupport>
-void _lcp_support_sada<Csa, SelectSupport>::swap(_lcp_support_sada& lcp_c)
+template<class Csa, class BitVector, class SelectSupport>
+void _lcp_support_sada<Csa, BitVector, SelectSupport>::swap(_lcp_support_sada& lcp_c)
 {
-    std::swap(m_csa, lcp_c.m_csa);   // TODO: check if this is necessary
     m_data.swap(lcp_c.m_data);
-    m_select_support.swap(lcp_c.m_select_support); // select swap after the swap of the bit vector m_data
+    util::swap_support(m_select_support, lcp_c.m_select_support, &m_data, &(lcp_c.m_data));
 }
 
-template<class Csa, class SelectSupport>
-inline typename _lcp_support_sada<Csa, SelectSupport>::value_type _lcp_support_sada<Csa, SelectSupport>::operator[](size_type i)const
+template<class Csa, class BitVector, class SelectSupport>
+inline typename _lcp_support_sada<Csa, BitVector, SelectSupport>::value_type _lcp_support_sada<Csa, BitVector, SelectSupport>::operator[](size_type i)const
 {
     size_type j = (*m_csa)[i];
     size_type s = m_select_support.select(j+1);
@@ -336,17 +325,19 @@ inline typename _lcp_support_sada<Csa, SelectSupport>::value_type _lcp_support_s
 }
 
 
-template<class Csa, class SelectSupport>
-typename _lcp_support_sada<Csa, SelectSupport>::size_type _lcp_support_sada<Csa, SelectSupport>::serialize(std::ostream& out) const
+template<class Csa, class BitVector, class SelectSupport>
+typename _lcp_support_sada<Csa, BitVector, SelectSupport>::size_type _lcp_support_sada<Csa, BitVector, SelectSupport>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    written_bytes += m_data.serialize(out);
-    written_bytes += m_select_support.serialize(out);
+    written_bytes += m_data.serialize(out, child, "data");
+    written_bytes += m_select_support.serialize(out, child, "select_support");
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 
-template<class Csa, class SelectSupport>
-void _lcp_support_sada<Csa, SelectSupport>::load(std::istream& in, const Csa* csa)
+template<class Csa, class BitVector, class SelectSupport>
+void _lcp_support_sada<Csa, BitVector, SelectSupport>::load(std::istream& in, const Csa* csa)
 {
     m_csa = csa;
     m_data.load(in);
@@ -354,8 +345,8 @@ void _lcp_support_sada<Csa, SelectSupport>::load(std::istream& in, const Csa* cs
 }
 
 
-template<class Csa, class SelectSupport>
-_lcp_support_sada<Csa, SelectSupport>& _lcp_support_sada<Csa, SelectSupport>::operator=(const _lcp_support_sada& lcp_c)
+template<class Csa, class BitVector, class SelectSupport>
+_lcp_support_sada<Csa, BitVector, SelectSupport>& _lcp_support_sada<Csa, BitVector, SelectSupport>::operator=(const _lcp_support_sada& lcp_c)
 {
     if (this != &lcp_c) {
         copy(lcp_c);
@@ -364,35 +355,35 @@ _lcp_support_sada<Csa, SelectSupport>& _lcp_support_sada<Csa, SelectSupport>::op
 }
 
 
-template<class Csa, class SelectSupport>
-bool _lcp_support_sada<Csa, SelectSupport>::operator==(const _lcp_support_sada& lcp_c)const
+template<class Csa, class BitVector, class SelectSupport>
+bool _lcp_support_sada<Csa, BitVector, SelectSupport>::operator==(const _lcp_support_sada& lcp_c)const
 {
     if (this == &lcp_c)
         return true;
     return m_csa == lcp_c.m_csa and m_data == lcp_c.m_data and m_select_support == lcp_c.m_select_support;
 }
 
-template<class Csa, class SelectSupport>
-bool _lcp_support_sada<Csa, SelectSupport>::operator!=(const _lcp_support_sada& lcp_c)const
+template<class Csa, class BitVector, class SelectSupport>
+bool _lcp_support_sada<Csa, BitVector, SelectSupport>::operator!=(const _lcp_support_sada& lcp_c)const
 {
     return !(*this == lcp_c);
 }
 
-template<class Csa, class SelectSupport>
-typename _lcp_support_sada<Csa, SelectSupport>::const_iterator _lcp_support_sada<Csa, SelectSupport>::begin()const
+template<class Csa, class BitVector, class SelectSupport>
+typename _lcp_support_sada<Csa, BitVector, SelectSupport>::const_iterator _lcp_support_sada<Csa, BitVector, SelectSupport>::begin()const
 {
     return const_iterator(this, 0);
 }
 
-template<class Csa, class SelectSupport>
-typename _lcp_support_sada<Csa, SelectSupport>::const_iterator _lcp_support_sada<Csa, SelectSupport>::end()const
+template<class Csa, class BitVector, class SelectSupport>
+typename _lcp_support_sada<Csa, BitVector, SelectSupport>::const_iterator _lcp_support_sada<Csa, BitVector, SelectSupport>::end()const
 {
     return const_iterator(this, size());
 }
 
 
 //! Helper class which provides _lcp_support_sada the context of a CSA.
-template<class SelectSupport = select_support_mcl<1> >
+template<class BitVector = bit_vector, class SelectSupport = typename BitVector::select_1_type>
 class lcp_support_sada
 {
     public:
@@ -400,7 +391,7 @@ class lcp_support_sada
         class type           // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
         {
             public:
-                typedef _lcp_support_sada<typename Cst::csa_type, SelectSupport> lcp_type;
+                typedef _lcp_support_sada<typename Cst::csa_type, BitVector, SelectSupport> lcp_type;
         };
 };
 

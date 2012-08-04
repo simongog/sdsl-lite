@@ -19,8 +19,8 @@
           classes which support rank and select for sd_vector.
    \author Simon Gog
 */
-#ifndef SDSL_SD_VECTOR
-#define SDSL_SD_VECTOR
+#ifndef INCLUDED_SDSL_SD_VECTOR
+#define INCLUDED_SDSL_SD_VECTOR
 
 #include "int_vector.hpp"
 #include "select_support_mcl.hpp"
@@ -32,17 +32,20 @@ namespace sdsl
 {
 
 // forward declaration needed for friend declaration
-template<class hi_bit_vector_type=bit_vector, class Select1Support=select_support_mcl<1>, class Select0Support=select_support_mcl<0> >
+template<class hi_bit_vector_type = bit_vector,
+         class Select1Support	  = typename hi_bit_vector_type::select_1_type,
+         class Select0Support	  = typename hi_bit_vector_type::select_0_type>
 class sd_rank_support;  // in sd_vector
 
 // forward declaration needed for friend declaration
-template<class hi_bit_vector_type=bit_vector, class Select1Support=select_support_mcl<1>, class Select0Support=select_support_mcl<0> >
+template<class hi_bit_vector_type = bit_vector,
+         class Select1Support	  = typename hi_bit_vector_type::select_1_type,
+         class Select0Support	  = typename hi_bit_vector_type::select_0_type>
 class sd_select_support;  // in sd_vector
 
 //! A bit vector which compresses very sparse populated bit vectors by
 // representing the positions of 1 by the Elias-Fano representation for non-decreasing sequences
 /*!
- *
  * \par Other implementations of this data structure:
  *  - the sdarray of Okanohara and Sadakane
  *  - Sebastiano Vigna implemented a elias_fano class in this sux library.
@@ -54,8 +57,14 @@ class sd_select_support;  // in sd_vector
  *             Memorandum 61. Computer Structures Group, Project MAC, MIT, 1971
  *  - D. Okanohara, K. Sadakane: ,,Practical Entropy-Compressed Rank/Select Dictionary'',
  *             Proceedings of ALENEX 2007.
+ *
+ *	\tparam hi_bit_vector_type	Type of the bitvector HI used for representing the high part of the positions of the 1s.
+ *  \tparam hi_select_1			Type of the select support data structure which is used to select ones in HI.
+ *  \tparam hi_select_0			Type of the select support data structure which is used to select zeros in HI.
  */
-template<class hi_bit_vector_type=bit_vector, class hi_select_1=select_support_mcl<1>, class hi_select_0=select_support_mcl<0> >
+template<class hi_bit_vector_type	= bit_vector,
+           class hi_select_1			= typename hi_bit_vector_type::select_1_type,
+           class hi_select_0			= typename hi_bit_vector_type::select_0_type>
 class sd_vector
 {
     public:
@@ -73,13 +82,13 @@ class sd_vector
         // we need this variables to represent the m ones of the original bit vector of size n
         size_type m_size;		 // length of the original bit vector
         uint8_t   m_wl;			 // log n - log m, where n is the length of the original bit vector
-        // and m is the number of ones in the bit vector, lw is the abbreviation
-        // for ,,with (of) low (part)''
+        // and m is the number of ones in the bit vector, wl is the abbreviation
+        // for ,,width (of) low (part)''
 
-        int_vector<> m_low;      // vector for the least significant bits of the positions of the m ones
-        hi_bit_vector_type   	m_high;     // bit vector that represents the most significant bit in permuted order
-        select_1_support_type 	m_high_1_select; //
-        select_0_support_type 	m_high_0_select; //
+        int_vector<> 			m_low;      	 // vector for the least significant bits of the positions of the m ones
+        hi_bit_vector_type   	m_high;     	 // bit vector that represents the most significant bit in permuted order
+        select_1_support_type 	m_high_1_select; // select support for the ones in m_high
+        select_0_support_type 	m_high_0_select; // select support for the zeros in m_high
 
         void copy(const sd_vector& v) {
             m_size = v.m_size;
@@ -92,45 +101,38 @@ class sd_vector
             m_high_0_select.set_vector(&m_high);
         }
 
-
     public:
         const hi_bit_vector_type& high;
         const int_vector<>& low;
         const select_1_support_type&	 high_1_select;
         const select_0_support_type&	 high_0_select;
 
-        sd_vector():high(m_high), low(m_low),
+        sd_vector():m_size(0), m_wl(0),
+            high(m_high), low(m_low),
             high_1_select(m_high_1_select), high_0_select(m_high_0_select) {
-            //	std::cout<<"std constructor of sd_vector"<<std::endl;
         }
 
         sd_vector(const bit_vector& bv):high(m_high),low(m_low),
             high_1_select(m_high_1_select), high_0_select(m_high_0_select) {
-//std::cout<<"calling constructor of sd_vector"<<std::endl;
             m_size = bv.size();
-            if (m_size == 0)
-                return;
             size_type m = util::get_one_bits(bv);
-//std::cout<<"ones in bv="<<m<<std::endl;
             uint8_t logm = bit_magic::l1BP(m)+1;
             uint8_t logn = bit_magic::l1BP(m_size)+1;
             if (logm == logn) {
                 --logm;    // to ensure logn-logm > 0
             }
             m_wl    = logn - logm;
-//std::cout<<"m_wl="<<(int)m_wl<<std::endl;
             m_low = int_vector<>(m, 0, m_wl);
             bit_vector high = bit_vector(m + (1ULL<<logm), 0); //
-//std::cout<<"m_low and high initialized="<<std::endl;
             const uint64_t* bvp = bv.data();
             for (size_type i=0, mm=0,last_high=0,highpos=0; i < (bv.size()+63)/64; ++i, ++bvp) {
                 size_type position = 64*i;
                 uint64_t  w = *bvp;
-                while (w) {
+                while (w) {  // process bit_vector word by word
                     uint8_t offset = bit_magic::r1BP(w);
                     w >>= offset;   // note:  w >>= (offset+1) can not be applied for offset=63!
                     position += offset;
-                    if (position >= bv.size())
+                    if (position >= bv.size()) // check that we have not reached the end of the bitvector
                         break;
                     // (1) handle high part
                     size_type cur_high = position >> m_wl;
@@ -143,22 +145,9 @@ class sd_vector
                     w >>= 1;
                 }
             }
-//std::cout<<"m_low and high filled"<<std::endl;
-            /*
-            			if( m_size < 50 ){
-            				for(size_type i=0; i<m; ++i)
-            					std::cout<<i<<" "<<m_low[i]<<std::endl;
-            				std::cout<< high << std::endl;
-            			}
-            */
             util::assign(m_high, high);
-            m_high_1_select.init(&m_high);
-            m_high_0_select.init(&m_high);
-//cout << "m_v="<< (this) << endl;
-//			cout << "m_v.m_high_0_select="<< (&m_high_0_select) << endl;
-//			for(size_type i=1; i<=(1<<logm);++i){
-//				cout <<" 0 select "<<i<<" = "<<m_high_0_select(i)<<endl;
-//			}
+            util::init_support(m_high_1_select, &m_high);
+            util::init_support(m_high_0_select, &m_high);
         }
 
         //! Accessing the i-th element of the original bit_vector
@@ -172,18 +161,12 @@ class sd_vector
         *        by using binary search in the second step.
         */
         value_type operator[](size_type i)const {
-//			size_type h = i >> m_wl; // extract high part
-            // search for the h's zero in m_high
-            //size_type m_high_0_select(  );
-            // split problem in two parts:
-            // (1) find  >=
             size_type high_val = (i >> (m_wl));
             size_type sel_high = m_high_0_select.select(high_val + 1);
             size_type rank_low = sel_high - high_val;
             if (0 == rank_low)
                 return 0;
-            size_type val_low = i & bit_magic::Li1Mask[ m_wl ];
-            // now since rank_low > 0 => sel_high > 0
+            size_type val_low = i & bit_magic::Li1Mask[ m_wl ]; // extract the low m_wl = log n -log m bits
             --sel_high; --rank_low;
             while (m_high[sel_high] and m_low[rank_low] > val_low) {
                 if (sel_high > 0) {
@@ -194,13 +177,24 @@ class sd_vector
             return m_high[sel_high] and m_low[rank_low] == val_low;
         }
 
+        //! Swap method
+        void swap(sd_vector& v) {
+            if (this != &v) {
+                std::swap(m_size, v.m_size);
+                std::swap(m_wl, v.m_wl);
+                m_low.swap(v.m_low);
+                m_high.swap(v.m_high);
+                util::swap_support(m_high_1_select, v.m_high_1_select, &m_high, &v.m_high);
+                util::swap_support(m_high_0_select, v.m_high_0_select, &m_high, &v.m_high);
+            }
+        }
+
         //! Returns the size of the original bit vector.
         size_type size()const {
             return m_size;
         }
 
         sd_vector& operator=(const sd_vector& v) {
-//		   std::cout<<"copy constructor of sd_vector was called"<<std::endl;
             if (this != &v) {
                 copy(v);
             }
@@ -208,14 +202,16 @@ class sd_vector
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out);
-            written_bytes += util::write_member(m_wl, out);
-            written_bytes += m_low.serialize(out);
-            written_bytes += m_high.serialize(out);
-            written_bytes += m_high_1_select.serialize(out);
-            written_bytes += m_high_0_select.serialize(out);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_wl, out, child, "wl");
+            written_bytes += m_low.serialize(out, child, "low");
+            written_bytes += m_high.serialize(out, child, "high");
+            written_bytes += m_high_1_select.serialize(out, child, "high_1_select");
+            written_bytes += m_high_0_select.serialize(out, child, "high_0_select");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -228,22 +224,14 @@ class sd_vector
             m_high_1_select.load(in, &m_high);
             m_high_0_select.load(in, &m_high);
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "sd_vector";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ",\n";
-            m_high.mem_info("high part"); std::cout << ",\n";
-            m_low.mem_info("low part"); std::cout << ",\n";
-            m_high_1_select.mem_info("high_1_select"); std::cout << ",\n";
-            m_high_0_select.mem_info("high_0_select"); std::cout << ")\n";
-        }
-#endif
-
 };
 
+//! Rank data structure for sd_vector
+/*
+ *	\tparam hi_bit_vector_type	Type of the bitvector HI used for representing the high part of the positions of the 1s in sd_vector.
+ *  \tparam hi_select_1			Type of the select support data structure which is used to select ones in HI in sd_vector.
+ *  \tparam hi_select_0			Type of the select support data structure which is used to select zeros in HI in sd_vector.
+ */
 template<class hi_bit_vector_type, class Select1Support, class Select0Support>
 class sd_rank_support
 {
@@ -252,17 +240,14 @@ class sd_rank_support
         typedef sd_vector<hi_bit_vector_type, Select1Support, Select0Support> bit_vector_type;
     private:
         const bit_vector_type* m_v;
-//		mutable bit_vector_type *m_v;
 
     public:
 
-//		sd_rank_support(const bit_vector_type *v=NULL){
-        sd_rank_support(bit_vector_type* v=NULL) {
+        explicit sd_rank_support(const bit_vector_type* v=NULL) {
             init(v);
         }
 
-//		void init(const bit_vector_type *v=NULL){
-        void init(bit_vector_type* v=NULL) {
+        void init(const bit_vector_type* v=NULL) {
             set_vector(v);
         }
 
@@ -270,27 +255,17 @@ class sd_rank_support
             // split problem in two parts:
             // (1) find  >=
             size_type high_val = (i >> (m_v->m_wl));
-//std::cout<<"high_val="<<high_val<<" i="<<i<<" / "<<m_v->m_high.size()<<" / "<<m_v->size() <<std::endl;
-//std::cout<<"m_v="<<m_v<<std::endl;
-//std::cout<<"m_v="<< (&(m_v->m_high_0_select)) <<std::endl;
-//for(size_type j=1; j<2; ++j)
-//	std::cout<<"m_v->m_high_0_select("<<j<<")="<< m_v->m_high_0_select.select(j) << std::endl;
-//std::cout<<"------------"<<std::endl;
             size_type sel_high = m_v->m_high_0_select.select(high_val + 1);
-//std::cout<<"sel_high="<<sel_high<<" /"<<m_v->m_high.size() <<std::endl;
             size_type rank_low = sel_high - high_val; //
-//std::cout<<"rank_low="<<rank_low<<std::endl;
             if (0 == rank_low)
                 return 0;
             size_type val_low = i & bit_magic::Li1Mask[ m_v->m_wl ];
-//std::cout<<"val_low="<<val_low<<std::endl;
             // now since rank_low > 0 => sel_high > 0
             do {
                 if (!sel_high)
                     return 0;
                 --sel_high; --rank_low;
             } while (m_v->m_high[sel_high] and m_v->m_low[rank_low] >= val_low);
-//std::cout<<"result = "<<rank_low+1<<std::endl;
             return rank_low+1;
         }
 
@@ -302,7 +277,6 @@ class sd_rank_support
             return m_v->size();
         }
 
-//		void set_vector(const bit_vector_type *v=NULL){
         void set_vector(const bit_vector_type* v=NULL) {
             m_v = v;
         }
@@ -314,7 +288,7 @@ class sd_rank_support
             return *this;
         }
 
-        void swap(sd_rank_support& rs) { }
+        void swap(sd_rank_support&) { }
 
         bool operator==(const sd_rank_support& ss)const {
             if (this == &ss)
@@ -331,22 +305,20 @@ class sd_rank_support
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "sd_rank_support";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
-
 };
 
+//! Select data structure for sd_vector
+/*
+ *	\tparam hi_bit_vector_type	Type of the bitvector HI used for representing the high part of the positions of the 1s in sd_vector.
+ *  \tparam hi_select_1			Type of the select support data structure which is used to select ones in HI in sd_vector.
+ *  \tparam hi_select_0			Type of the select support data structure which is used to select zeros in HI in sd_vector.
+ */
 template<class hi_bit_vector_type, class Select1Support, class Select0Support>
 class sd_select_support
 {
@@ -358,7 +330,7 @@ class sd_select_support
 
     public:
 
-        sd_select_support(const bit_vector_type* v=NULL) {
+        explicit sd_select_support(const bit_vector_type* v=NULL) {
             init(v);
         }
 
@@ -392,7 +364,7 @@ class sd_select_support
             return *this;
         }
 
-        void swap(sd_select_support& rs) { }
+        void swap(sd_select_support&) { }
 
         bool operator==(const sd_select_support& ss)const {
             if (this == &ss)
@@ -409,20 +381,12 @@ class sd_select_support
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "sd_select_support";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
-
 };
 
 } // end namespace

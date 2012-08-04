@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file rmq_support_sada.hpp
-    \brief rmq_support_sada.hpp contains the class rmq_support_sada which supports range minimum or range maximum queries on a random access container in constant time and \f$4 n+o(n) bits\f$ space.
+/*! \file rmq_succinct_sada.hpp
+    \brief rmq_succinct_sada.hpp contains the class rmq_succinct_sada which supports range minimum or range maximum queries on a random access container in constant time and \f$4 n+o(n) bits\f$ space.
 	\author Simon Gog
 */
-#ifndef INCLUDED_SDSL_RMQ_SUPPORT_SADA
-#define INCLUDED_SDSL_RMQ_SUPPORT_SADA
+#ifndef INCLUDED_SDSL_RMQ_SUCCINCT_SADA
+#define INCLUDED_SDSL_RMQ_SUCCINCT_SADA
 
 #include "rmq_support.hpp"
 #include "int_vector.hpp"
@@ -27,18 +27,21 @@
 #include "bp_support_sada.hpp"
 #include "rank_support_v.hpp"
 #include "select_support_mcl.hpp"
+#include "util.hpp"
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
 
 
-template<class RandomAccessContainer = int_vector<>, bool Minimum = true, class Bp_support = bp_support_sada<>, class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
-class rmq_support_sada;
+template<class RandomAccessContainer = int_vector<>, bool Minimum = true, class Bp_support = bp_support_sada<256, 32, rank_support_v5<>, select_support_dummy>, 
+	     class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
+class rmq_succinct_sada;
 
-template<class RandomAccessContainer = int_vector<>, class Bp_support = bp_support_sada<>, class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
+template<class RandomAccessContainer = int_vector<>, class Bp_support = bp_support_sada<256, 32, rank_support_v5<>, select_support_dummy>, 
+	     class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
 struct range_maximum_support_sada {
-    typedef rmq_support_sada<RandomAccessContainer, false, Bp_support, Rank_support10, Select_support10> type;
+    typedef rmq_succinct_sada<RandomAccessContainer, false, Bp_support, Rank_support10, Select_support10> type;
 };
 
 //! A class to support range minimum or range maximum queries on a random access container.
@@ -54,11 +57,11 @@ struct range_maximum_support_sada {
  * \par Space complexity:
  *		\f$ 4n+o(n) \f$ bits for the data structure ( \f$ n=size() \f$ ).
  *
+ * TODO: implement test
  */
 template<class RandomAccessContainer, bool Minimum, class Bp_support, class Rank_support10, class Select_support10>
-class rmq_support_sada
+class rmq_succinct_sada
 {
-        const RandomAccessContainer* m_v;
         bit_vector					m_ect_bp; 			//!< A bit vector which contains the balanced parentheses sequence of the extended Cartesian tree of the input container.
         Bp_support					m_ect_bp_support; 	//!< Support structure for the balanced parentheses sequence of the extended Cartesian tree.
         Rank_support10				m_ect_bp_rank10;		//!< A rank support (for bit pattern "10") which supports the balanced parentheses sequence of the extended Cartesian tree.
@@ -79,7 +82,7 @@ class rmq_support_sada
 
     private:
 
-        typedef rmq_support_sct<RandomAccessContainer, Minimum> rmq_construct_helper_type;
+        typedef rmq_succinct_sct<RandomAccessContainer, Minimum> rmq_construct_helper_type;
 
         void _construct_bp_of_extended_cartesian_tree(size_type l, size_type r, size_type& bp_cnt, const rmq_construct_helper_type& rmq_helper) {
             if (r==(size_type)-1 or l > r)
@@ -94,24 +97,23 @@ class rmq_support_sada
             assert(bp_cnt <= m_ect_bp.size());
         }
 
-        void construct() {
-            if (m_v == NULL) {
+        void construct(const RandomAccessContainer* v) {
+            if (v == NULL) {
                 m_ect_bp = bit_vector(0); m_ect_bp_support = Bp_support();
                 m_ect_bp_rank10 = Rank_support10(); m_ect_bp_select10 = Select_support10();
             } else {
-                rmq_construct_helper_type rmq_helper(m_v);
-                m_ect_bp.resize(4*m_v->size());
+                rmq_construct_helper_type rmq_helper(v);
+                m_ect_bp.resize(4*v->size());
                 size_type bp_cnt=0;
-                _construct_bp_of_extended_cartesian_tree((size_type)0, m_v->size()-1, bp_cnt, rmq_helper);
-                assert(bp_cnt == 4*m_v->size());
+                _construct_bp_of_extended_cartesian_tree((size_type)0, v->size()-1, bp_cnt, rmq_helper);
+                assert(bp_cnt == 4*v->size());
                 m_ect_bp_support = Bp_support(&m_ect_bp);
-                m_ect_bp_rank10.init(&m_ect_bp);
-                m_ect_bp_select10.init(&m_ect_bp);
+                util::init_support(m_ect_bp_rank10, &m_ect_bp);
+                util::init_support(m_ect_bp_select10, &m_ect_bp);
             }
         }
 
-        void copy(const rmq_support_sada& rm) {
-            m_v = rm.m_v;
+        void copy(const rmq_succinct_sada& rm) {
             m_ect_bp = rm.m_ect_bp;
             m_ect_bp_support = rm.m_ect_bp_support;
             m_ect_bp_support.set_vector(&m_ect_bp);
@@ -124,29 +126,36 @@ class rmq_support_sada
     public:
 
         //! Constructor
-        rmq_support_sada(const RandomAccessContainer* v=NULL):m_v(v), ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {
-            construct();
+        rmq_succinct_sada(const RandomAccessContainer* v=NULL):ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {
+            construct(v);
         }
 
         //! Copy constructor
-        rmq_support_sada(const rmq_support_sada& rm) {
+        rmq_succinct_sada(const rmq_succinct_sada& rm) {
             if (this != &rm) { // if v is not the same object
                 copy(rm);
             }
         }
 
         //! Destructor
-        ~rmq_support_sada() { }
+        ~rmq_succinct_sada() { }
 
-        rmq_support_sada& operator=(const rmq_support_sada& rm) {
+        rmq_succinct_sada& operator=(const rmq_succinct_sada& rm) {
             if (this != &rm) {
                 copy(rm);
             }
             return *this;
         }
 
-        void set_vector(const RandomAccessContainer* v) {
-            m_v = v;
+		//! Swap operator
+        void swap(const rmq_succinct_sada& rm) {
+            m_ect_bp.swap(rm.m_ect_bp);
+			util::swap_support(m_ect_bp_support, rm.m_ect_bp_support, 
+					          &m_ect_bp, &(rm.m_ect_bp));
+			util::swap_support(m_ect_bp_rank10, rm.m_ect_bp_rank10, 
+					          &m_ect_bp, &(rm.m_ect_bp));
+			util::swap_support(m_ect_bp_select10, rm.m_ect_bp_select10,
+					          &m_ect_bp, &(rm.m_ect_bp));
         }
 
         //! Range minimum/maximum query for the supported random access container v.
@@ -175,17 +184,18 @@ class rmq_support_sada
             return m_ect_bp.size()/4;
         }
 
-        size_type serialize(std::ostream& out)const {
+    	size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        	structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += m_ect_bp.serialize(out);
-            written_bytes += m_ect_bp_support.serialize(out);
-            written_bytes -= m_ect_bp_support.bp_select.serialize(out); // rmq_support_sada does not use the select support of bp_support
-            written_bytes += m_ect_bp_rank10.serialize(out);
-            written_bytes += m_ect_bp_select10.serialize(out);
+            written_bytes += m_ect_bp.serialize(out, child, "ect_bp");
+            written_bytes += m_ect_bp_support.serialize(out, child, "ect_bp_support");
+            written_bytes += m_ect_bp_rank10.serialize(out, child, "ect_bp_rank10");
+            written_bytes += m_ect_bp_select10.serialize(out, child, "ect_bp_select10");
+        	structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
-        void load(std::istream& in, const RandomAccessContainer* v) {
+        void load(std::istream& in) {
             m_ect_bp.load(in);
             m_ect_bp_support.load(in, &m_ect_bp);
             m_ect_bp_rank10.load(in, &m_ect_bp);

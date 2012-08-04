@@ -24,9 +24,8 @@
 #define INCLUDED_SDSL_WT
 
 #include "int_vector.hpp"
-#include "rank_support_v.hpp"
-#include "select_support_mcl.hpp"
 #include "bitmagic.hpp"
+#include "util.hpp" // for util::ssign
 #include <set> // for calculating the alphabet size
 #include <map> // for mapping a symbol to its lexicographical index
 #include <algorithm> // for std::swap
@@ -64,12 +63,14 @@ struct unsigned_char_map {
             m_map[i] = 0;
     }
 
-    uint16_t serialize(std::ostream& out)const {
+    uint16_t serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
         uint16_t written_bytes = 0;
         for (uint16_t i=0; i<256; ++i) {
             out.write((char*)&m_map[i], sizeof(m_map[i]));
             written_bytes += sizeof(m_map[256]);
         }
+        structure_tree::add_size(child, written_bytes);
         return written_bytes;
     }
 
@@ -88,46 +89,6 @@ struct unsigned_char_map {
     }
 };
 
-/*
-template<class size_type>
-struct identity_map{
-//	static size_type dummy;
-
-	size_type operator[](const size_type i)const{
-		return i;
-	}
-
-	void clear(){}
-
-	uint16_t serialize(std::ostream &out)const{ // takes 0 bytes
-		return 0;
-	}
-
-	void load(std::istream &in){}
-	void swap(identity_map &map){}
-};
-
-template<class RandomAccessContainer>
-class perm_wrapper{
-	public:
-	typedef RandomAccessContainer rac_type;
-	typedef typename rac_type::value_type value_type;
-	typedef typename rac_type::size_type size_type;
-	private:
-	const rac_type& m_rac;
-
-	public:
-	perm_wrapper(RandomAccessContainer &perm):m_rac(perm){ }
-
-	value_type operator[](size_type i)const{
-		return m_rac[i];
-	}
-
-	size_type size()const{
-		return m_rac.size();
-	}
-};
-*/
 
 template<class RandomAccessContainer>
 class wt_trait
@@ -159,11 +120,11 @@ class wt_trait
             return alphabet_size;
         }
 
-        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol) {
+        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type) {
             return map.find(c)!=map.end();
         }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map) {
+        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, std::string name="") {
             throw std::logic_error(util::demangle(typeid(wt_trait<RandomAccessContainer>).name())+": serialize not implemented");
             return 0;
         }
@@ -173,45 +134,6 @@ class wt_trait
             return 0;
         }
 };
-
-/*
-template<class RandomAccessContainer>
-class wt_trait<perm_wrapper<RandomAccessContainer> >{
-	public:
-		typedef typename RandomAccessContainer::size_type 		size_type;
-		typedef typename RandomAccessContainer::value_type 		value_type;
-		typedef perm_wrapper<RandomAccessContainer>& 							reference_type;
-		typedef identity_map<size_type>							map_type;
-		typedef identity_map<size_type>							inv_map_type;
-		enum{ char_node_map_size=0 };
-
-		static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type &map, inv_map_type &inv_map, value_type &first_symbol){
-			if( n > 0 )
-				first_symbol = rac[0];
-			bit_vector check_perm(n,0);
-			for(size_type i=0; i<n; ++i){
-				size_type x = rac[i];
-				if(x >= n or check_perm[x]){
-					std::cerr<<"ERROR array is not a permutation!"<<std::endl;
-					return 0;
-				}
-				check_perm[x] = 1;
-			}
-			return n;
-		}
-
-		static bool symbol_available(const map_type &map, const value_type c, const value_type first_symbol){
-			return true; // TODO
-		}
-		static size_type serialize_maps(std::ostream &out, const map_type &map, const inv_map_type &inv_map){
-			return 0;
-		}
-
-		static void load_maps(std::istream &in, map_type &map, inv_map_type &inv_map){
-			return 0;
-		}
-};
-*/
 
 template<class character>
 class wt_trait<character*>
@@ -244,18 +166,17 @@ class wt_trait<character*>
             return alphabet_size;
         }
 
-        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol) {
+        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type) {
             return map.find(c)!=map.end();
         }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map) {
+        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, std::string name="") {
             throw std::logic_error(util::demangle(typeid(wt_trait<character*>).name())+": serialize not implemented");
             return 0;
         }
 
         static void load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
             throw std::logic_error(util::demangle(typeid(wt_trait<character*>).name())+": load not implemented");
-            return 0;
         }
 };
 
@@ -273,9 +194,13 @@ class wt_trait<unsigned char*>
         static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
             map.clear();
             inv_map.clear();
-            if (n==0)
+            if (n==0) {
+                for (size_type i=0; i<256; ++i) {
+                    map[i] = 255;    // mark each symbol as absent
+                }
                 return 0;
-//			first_symbol	= *rac;
+            }
+            first_symbol	= *rac;
             map[*rac] = 0;
             inv_map[0] = *rac;
             size_type alphabet_size = 0;
@@ -298,18 +223,17 @@ class wt_trait<unsigned char*>
                 }
                 inv_map[map[i]] = i;
             }
-            first_symbol = (alphabet_size == 256); //TODO fix the workaround
             return alphabet_size;
         }
 
-        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol) {
-            return map[c] < 255 or first_symbol;
+        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type sigma) {
+            return sigma==256 or map[c] < 255;
         }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map) {
+        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, std::string name="") {
             size_type written_bytes = 0;
-            written_bytes += map.serialize(out);
-            written_bytes += inv_map.serialize(out);
+            written_bytes += map.serialize(out, v, "alphabet_map");
+            written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
             return written_bytes;
         }
 
@@ -333,22 +257,30 @@ class wt_trait<int_vector_file_buffer<8, size_type_class> >
         static size_type alphabet_size_and_map(reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
             map.clear();
             inv_map.clear();
-            if (n==0)
+            if (n==0) {
+                for (size_type i=0; i<256; ++i) {
+                    map[i] = 255;    // mark each symbol as absent
+                }
                 return 0;
+            }
             rac.reset();
             if (rac.int_vector_size < n) {
                 throw std::logic_error("wt<int_vector_file_buffer<8> >: n > rac.int_vector_size!");
+                return 0;
             }
 
             for (size_type i=0; i<256; ++i) {
                 map[i] = 0;
             }
 
-            size_type r = rac.load_next_block();
             size_type alphabet_size = 0;
-
-            for (size_type i=0, r_sum=0; r_sum < n;) {// TODO schneller, wie?
-                for (; i<r_sum+r and i<n; ++i) {
+            size_type r = rac.load_next_block();
+            first_symbol = rac[0];
+            for (size_type i=0, r_sum=0; r_sum < n;) {
+                if (r_sum +r > n) {  // make sure that not more than n characters are read
+                    r = n-r_sum;
+                }
+                for (; i< r_sum+r; ++i) {
                     value_type c = rac[i-r_sum];
                     map[c] = 1;
                 }
@@ -364,18 +296,17 @@ class wt_trait<int_vector_file_buffer<8, size_type_class> >
                 }
                 inv_map[map[i]] = i;
             }
-            first_symbol	= alphabet_size; //TODO fix the workaround
             return alphabet_size;
         }
 
-        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol) {
-            return map[c] < 255 or first_symbol==256;
+        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type sigma) {
+            return sigma==256 or map[c] < 255;
         }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map) {
+        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, std::string name="") {
             size_type written_bytes = 0;
-            written_bytes += map.serialize(out);
-            written_bytes += inv_map.serialize(out);
+            written_bytes += map.serialize(out, v, "alphabet_map");
+            written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
             return written_bytes;
         }
 
@@ -398,21 +329,31 @@ class wt_trait<int_vector_file_buffer<8, size_type_class> >
  *	\par Space complexity
  *		\f$\Order{n\log|\Sigma| + 2|\Sigma|\log n}\f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
  *
+ *  \tparam RandomAccessContainer 	Type of the input sequence.
+ *  \tparam BitVector				Type of the bitvector used for representing the wavelet tree.
+ *  \tparam RankSupport				Type of the support structure for rank on ones.
+ *  \tparam SelectSupport			Type of the support structure for select on ones.
+ *  \tparam SelectSupport			Type of the support structure for select on ones.
+ *
  *   The wavelet tree was proposed first by Grossi et al. 2003 and applied to the BWT in Foschini et al. 2004.
  *   @ingroup wt
  */
-template<class RandomAccessContainer=unsigned char*, class RankSupport = rank_support_v<>, class SelectSupport=select_support_mcl<>, class SelectSupportZero=select_support_mcl<0> >
+template<class RandomAccessContainer=unsigned char*,
+         class BitVector         = bit_vector,
+         class RankSupport       = typename BitVector::rank_1_type,
+         class SelectSupport     = typename BitVector::select_1_type,
+         class SelectSupportZero = typename BitVector::select_0_type>
 class wt
 {
     public:
         typedef typename wt_trait<RandomAccessContainer>::size_type 		size_type;
         typedef typename wt_trait<RandomAccessContainer>::value_type 		value_type;
-        typedef typename wt_trait<RandomAccessContainer>::map_type		map_type;
+        typedef typename wt_trait<RandomAccessContainer>::map_type		     map_type;
         typedef typename wt_trait<RandomAccessContainer>::inv_map_type	inv_map_type;
     private:
         size_type 			m_size;
         size_type 			m_sigma; 		//<- \f$ |\Sigma| \f$
-        bit_vector 			m_tree;			// bit vector to store the wavelet tree
+        BitVector 			m_tree;			// bit vector to store the wavelet tree
         RankSupport			m_tree_rank;	// rank support for the wavelet tree bit vector
         SelectSupport		m_tree_select1;	// select support for the wavelet tree bit vector
         SelectSupportZero	m_tree_select0;
@@ -445,6 +386,12 @@ class wt
             }
         }
 
+        void init_char_node_map() {
+            if (wt_trait<RandomAccessContainer>::char_node_map_size == 256) {
+                for (size_type i=0; i<256; ++i) m_char_node_map[i] = 0;
+            }
+        }
+
     public:
 
         const size_type& sigma;
@@ -467,12 +414,16 @@ class wt
 #endif
             // calculate alphabet size and the mappings for the symbols to the integers and back
             m_sigma = wt_trait<RandomAccessContainer>::alphabet_size_and_map(rac, m_size, m_char_map, m_inv_char_map, m_first_symbol);
-
+            init_char_node_map();
             int_vector<> node_sizes = int_vector<>(2*m_sigma+1, 0, bit_magic::l1BP(m_size)+1);
             m_node_pointers = int_vector<64>(node_sizes.size()+1, 0);
             m_node_pointers_rank = int_vector<64>(node_sizes.size()+1, 0);
 
             if (m_sigma < 2) {
+                if (m_sigma == 1) {  // ==> m_size > 0
+                    if (wt_trait<RandomAccessContainer>::char_node_map_size == 256)
+                        m_char_node_map[ m_first_symbol ] = 0; // first symbol corresponds to root node of the wavelet tree
+                }
                 return;
             } else {
                 // TODO: slow compared to other constructor which uses
@@ -522,14 +473,14 @@ class wt
 #ifdef SDSL_DEBUG_WT
                 std::cerr<<"all nodes size = "<<m_node_pointers[max_node+1]<<std::endl;
 #endif
-                m_tree = bit_vector(m_node_pointers[max_node+1]);
+                bit_vector tree = bit_vector(m_node_pointers[max_node+1]);
                 for (size_type i=0; i<m_size; ++i) {
                     size_type lex_idx = m_char_map[rac[i]]; // lex_idx in [0..m_sigma-1]
 //std::cerr<<"lex_idx="<<lex_idx<<" "<<rac[i]<<std::endl;
                     size_type sigma = m_sigma, node=0;
                     while (sigma >= 2) {
                         if (lex_idx >= ((sigma+1)/2))
-                            m_tree[m_node_pointers[node]+node_sizes[node]] = 1;
+                            tree[m_node_pointers[node]+node_sizes[node]] = 1;
                         node_sizes[node] = node_sizes[node]+1;
                         if (lex_idx < (sigma+1)/2) {
                             sigma = (sigma+1)/2;
@@ -541,12 +492,13 @@ class wt
                         }
                     }
                 }
-                m_tree_rank.init(&m_tree);
+                util::assign(m_tree, tree);
+                util::init_support(m_tree_rank, &m_tree);
                 for (size_type i=0; i < m_node_pointers.size(); ++i) {
                     m_node_pointers_rank[i] = m_tree_rank(m_node_pointers[i]);
                 }
-                m_tree_select0.init(&m_tree);
-                m_tree_select1.init(&m_tree);
+                util::init_support(m_tree_select0, &m_tree);
+                util::init_support(m_tree_select1, &m_tree);
             }
         }
 
@@ -562,6 +514,7 @@ class wt
         template<class size_type_class>
         void construct(int_vector_file_buffer<8, size_type_class>& rac, size_type size) {
             m_size = size;
+            init_char_node_map();
             typedef int_vector_file_buffer<8, size_type_class> tIVFB;
 //#define SDSL_DEBUG_WT
 #ifdef SDSL_DEBUG_WT
@@ -578,13 +531,18 @@ class wt
             m_node_pointers_rank = int_vector<64>(node_sizes.size()+1, 0);
 
             if (m_sigma < 2) {
-                return;
+                if (1 == m_sigma) {  // handle special case more efficient
+                    m_char_node_map[m_first_symbol] = 0; // map the first symbol to the root node of the wavelet tree
+                }
             } else {
                 // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
                 size_type C[256] = {0};
                 rac.reset();
-                //  1. Count occurences of characters
+                //  1. Count occurrences of characters
                 for (size_type i=0, r_sum=0, r = rac.load_next_block(); r_sum < m_size;) {
+                    if (r_sum + r > m_size) {  // read not more than size chars in the next loop
+                        r = m_size-r_sum;
+                    }
                     for (; i < r_sum+r; ++i) {
                         ++C[rac[i-r_sum]];
                     }
@@ -608,6 +566,8 @@ class wt
                             }
                         }
                         m_char_node_map[i] = node;
+                    } else {
+                        m_char_node_map[i] = 0;
                     }
                 }
 #ifdef SDSL_DEBUG_WT
@@ -629,7 +589,7 @@ class wt
                 sw.start();
 #endif
                 // initialize bit vector with 0's
-                m_tree = bit_vector(m_node_pointers[max_node+1], 0);
+                bit_vector tree = bit_vector(m_node_pointers[max_node+1], 0);
                 // precalc paths in the tree for all symbols in the alphabet
                 uint8_t path_len[256] = {0};
                 uint8_t path[256] = {0};
@@ -653,6 +613,9 @@ class wt
 ///*
                 rac.reset();
                 for (size_type i=0, r_sum=0, r = rac.load_next_block(); r_sum < m_size;) {
+                    if (r_sum + r > size) {  // read not more than size chars in the next loop
+                        r = size-r_sum;
+                    }
                     uint8_t old_chr = rac[i-r_sum];
                     uint8_t times = 0;
                     for (; i < r_sum+r; ++i) {
@@ -661,7 +624,7 @@ class wt
                             uint8_t p = path[old_chr];
                             for (uint32_t l=0, node=0; l<path_len[old_chr]; ++l, p >>= 1) {
                                 if (p&1) {
-                                    m_tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
+                                    tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
                                     node_sizes[node] += times; node = (node<<1)+2;
                                 } else {
                                     node_sizes[node] += times; node = (node<<1)+1;
@@ -675,7 +638,7 @@ class wt
                                 uint8_t p = path[old_chr];
                                 for (uint32_t l=0, node=0; l<path_len[old_chr]; ++l, p >>= 1) {
                                     if (p&1) {
-                                        m_tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
+                                        tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
                                         node_sizes[node] += times; node = (node<<1)+2;
                                     } else {
                                         node_sizes[node] += times; node = (node<<1)+1;
@@ -689,7 +652,7 @@ class wt
                         uint8_t p = path[old_chr];
                         for (uint32_t l=0, node=0; l<path_len[old_chr]; ++l, p >>= 1) {
                             if (p&1) {
-                                m_tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
+                                tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
                                 node_sizes[node] += times; node = (node<<1)+2;
                             } else {
                                 node_sizes[node] += times; node = (node<<1)+1;
@@ -704,7 +667,8 @@ class wt
                 std::cerr<<"Time for building phase: "<< sw.get_real_time() << " ms real time , "<< sw.get_user_time()<<" ms user time"<< std::endl;
                 sw.start();
 #endif
-                m_tree_rank.init(&m_tree);
+                util::assign(m_tree, tree);
+                util::init_support(m_tree_rank,&m_tree);
 #ifdef SDSL_DEBUG_WT
                 sw.stop();
                 std::cerr<<"Time for rank init: "<< sw.get_real_time() << " ms real time , "<< sw.get_user_time()<<" ms user time"<< std::endl;
@@ -713,11 +677,11 @@ class wt
                 for (size_type i=0; i < m_node_pointers.size(); ++i) {
                     m_node_pointers_rank[i] = m_tree_rank(m_node_pointers[i]);
                 }
-                m_tree_select0.init(&m_tree);
+                util::init_support(m_tree_select0,&m_tree);
 #ifdef SDSL_DEBUG_WT
                 std::cerr<<"select0 init ready!"<<std::endl;
 #endif
-                m_tree_select1.init(&m_tree);
+                util::init_support(m_tree_select1,&m_tree);
 #ifdef SDSL_DEBUG_WT
                 sw.stop();
                 std::cerr<<"Time for select init: "<< sw.get_real_time() << " ms real time , "<< sw.get_user_time()<<" ms user time"<< std::endl;
@@ -745,9 +709,9 @@ class wt
                 std::swap(m_size, wt.m_size);
                 std::swap(m_sigma,  wt.m_sigma);
                 m_tree.swap(wt.m_tree);
-                m_tree_rank.swap(wt.m_tree_rank); // rank swap after the swap of the bit vector m_tree
-                m_tree_select1.swap(wt.m_tree_select1); // select1 swap after the swap of the bit vector m_tree
-                m_tree_select0.swap(wt.m_tree_select0); // select0 swap after the swap of the bit vector m_tree
+                util::swap_support(m_tree_rank, wt.m_tree_rank, &m_tree, &(wt.m_tree));
+                util::swap_support(m_tree_select1, wt.m_tree_select1, &m_tree, &(wt.m_tree));
+                util::swap_support(m_tree_select0, wt.m_tree_select0, &m_tree, &(wt.m_tree));
                 m_node_pointers.swap(wt.m_node_pointers);
                 m_node_pointers_rank.swap(wt.m_node_pointers_rank);
                 std::swap(m_first_symbol, wt.m_first_symbol);
@@ -755,7 +719,9 @@ class wt
                 m_inv_char_map.swap(wt.m_inv_char_map);
                 // swap char_node_map
                 if (wt_trait<RandomAccessContainer>::char_node_map_size == 256) {
-                    for (size_type i=0; i<256; ++i) std::swap(m_char_node_map[i],wt.m_char_node_map[i]);
+                    for (size_type i=0; i<256; ++i) {
+                        std::swap(m_char_node_map[i],wt.m_char_node_map[i]);
+                    }
                 }
             }
         }
@@ -802,8 +768,7 @@ class wt
          *		\f$ \Order{\log |\Sigma|} \f$
          */
         size_type rank(size_type i, value_type c)const {
-            assert(i>=0 and i <= size());
-            if (!wt_trait<RandomAccessContainer>::symbol_available(m_char_map, c, m_first_symbol)) {
+            if (!wt_trait<RandomAccessContainer>::symbol_available(m_char_map, c, m_first_symbol, m_sigma)) {
                 return 0;
             }
             size_type lex_idx 	= m_char_map[c]; // koennte man auch nur path, path_len ersetzen
@@ -825,10 +790,10 @@ class wt
             return result;
         };
 
-        //! Calculates how many occurences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
+        //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
         /*!
          *	\param i The index of the symbol.
-         *  \return The number of occurences of symbol wt[i] in the prefix [0..i-1]
+         *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
          *	\par Time complexity
          *		\f$ \Order{\log |\Sigma|} \f$
          */
@@ -886,7 +851,7 @@ class wt
          *
          */
         size_type count_lex_smaller(size_type i, value_type c)const {
-            if (!wt_trait<RandomAccessContainer>::symbol_available(m_char_map, c, m_first_symbol)) {
+            if (!wt_trait<RandomAccessContainer>::symbol_available(m_char_map, c, m_first_symbol, m_sigma)) {
                 return 0;
             }
             size_type lex_idx 	= m_char_map[c];
@@ -981,6 +946,9 @@ class wt
          */
         // TODO: was ist wenn c gar nicht vorkommt, oder es keine i Vorkommen gibt?
         size_type select(size_type i, value_type c)const {
+            if (!wt_trait<RandomAccessContainer>::symbol_available(m_char_map, c, m_first_symbol, m_sigma)) {
+                return size();
+            }
             assert(i > 0);
 #ifdef SDSL_DEBUG_WT
             std::cerr<<"wt: select("<<i<<", "<<c<<")"<<std::endl;
@@ -1074,35 +1042,37 @@ class wt
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            out.write((char*)&m_sigma, sizeof(m_sigma));
-            written_bytes += sizeof(m_sigma);
-            written_bytes += m_tree.serialize(out);
-            written_bytes += m_tree_rank.serialize(out);
-            written_bytes += m_tree_select1.serialize(out);
-            written_bytes += m_tree_select0.serialize(out);
-            written_bytes += m_node_pointers.serialize(out);
-            written_bytes += m_node_pointers_rank.serialize(out);
-            written_bytes += wt_trait<RandomAccessContainer>::serialize_maps(out, m_char_map, m_inv_char_map);
-            out.write((char*)&m_first_symbol, sizeof(m_first_symbol));
-            written_bytes += sizeof(m_first_symbol);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_sigma, out, child, "sigma");
+            written_bytes += m_tree.serialize(out, child, "tree");
+            written_bytes += m_tree_rank.serialize(out, child, "tree_rank");
+            written_bytes += m_tree_select1.serialize(out, child, "tree_select_1");
+            written_bytes += m_tree_select0.serialize(out, child, "tree_select_0");
+            written_bytes += m_node_pointers.serialize(out, child, "node_pointers");
+            written_bytes += m_node_pointers_rank.serialize(out, child, "node_pointers_rank");
+            written_bytes += wt_trait<RandomAccessContainer>::serialize_maps(out, m_char_map, m_inv_char_map, child, "alphabet_mapping");
+            written_bytes += util::write_member(m_first_symbol, out, child, "first symbol");
             // serialize char_node_map
             if (wt_trait<RandomAccessContainer>::char_node_map_size == 256) {
+                size_type written_bytes2 = 0;
                 for (size_type i=0; i<256; ++i) {
-                    out.write((char*)&m_char_node_map[i], sizeof(m_char_node_map[i]));
-                    written_bytes += sizeof(m_char_node_map[i]);
+                    written_bytes2 += util::write_member(m_char_node_map[i], out);
                 }
+                structure_tree_node* child2 = structure_tree::add_child(child, "char_node_map", "char_map");
+                structure_tree::add_size(child2, written_bytes2);
+                written_bytes += written_bytes2;
             }
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            in.read((char*) &m_size, sizeof(m_size));
-            in.read((char*) &m_sigma, sizeof(m_sigma));
+            util::read_member(m_size, in);
+            util::read_member(m_sigma, in);
             m_tree.load(in);
             m_tree_rank.load(in, &m_tree);
             m_tree_select1.load(in, &m_tree);
@@ -1110,35 +1080,14 @@ class wt
             m_node_pointers.load(in);
             m_node_pointers_rank.load(in);
             wt_trait<RandomAccessContainer>::load_maps(in, m_char_map, m_inv_char_map);
-            in.read((char*) &m_first_symbol, sizeof(m_first_symbol));
+            util::read_member(m_first_symbol, in);
             // serialize char_node_map
             if (wt_trait<RandomAccessContainer>::char_node_map_size == 256) {
                 for (size_type i=0; i<256; ++i) {
-                    in.read((char*)&m_char_node_map[i], sizeof(m_char_node_map[i]));
+                    util::read_member(m_char_node_map[i], in);
                 }
             }
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label="csa";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            m_tree.mem_info("data");
-            std::cout << ")\n";
-        }
-#endif
-        /*
-        	void print_info()const{
-        		size_type rle_ed = 0;
-        		for(size_type i=0; i < m_tree.size(); ++i){
-
-        		}
-        	}
-        */
-
 };
 
 }// end namespace sds

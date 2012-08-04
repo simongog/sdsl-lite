@@ -74,20 +74,21 @@ class wt_rlg
         typedef WaveletTree             wt_type;
 
     private:
-        size_type 				m_size;         // size of the original input sequence
-        wt_type					m_wt;	        // wavelet tree for all levels
-        bit_vector				m_b;	        // bit vector which indicates if a pair consists of
+        size_type 				m_size;           // size of the original input sequence
+        wt_type					m_wt;	          // wavelet tree for all levels
+        bit_vector				m_b;	          // bit vector which indicates if a pair consists of
         // two equal chars
-        rank_support_type		m_b_rank;       // rank support for vector b
-        int_vector<64>          m_b_border_rank;// Vector in which we store the rank values of m_b at the
+        rank_support_type		m_b_rank;         // rank support for vector b
+        int_vector<64>          m_b_border_rank;  // Vector in which we store the rank values of m_b at the
         // border positions.
         int_vector<64>          m_b_border;       // Vector in which we store the borders of the different levels
         // Takes \f$\Order{\max(1, \log L)\log n}\f$ bits.
-        int_vector<64>          m_wt_rank;  // Vector in which we store the rank value for each character
+        int_vector<64>          m_wt_rank;  	  // Vector in which we store the rank value for each character
         // and each border.
         // Takes \f$\Order{\sigma\max(1, \log L)\log n}\f bits
-        int_vector<8>			m_char2comp;    //
-        int_vector<64>          m_char_occ;     //
+        int_vector<8>			m_char2comp;      //
+        int_vector<64>          m_char_occ;       //
+        uint16_t				m_sigma;
 
         void copy(const wt_rlg& wt) {
             m_size          = wt.m_size;
@@ -100,14 +101,15 @@ class wt_rlg
             m_wt_rank       = wt.m_wt_rank;
             m_char2comp     = wt.m_char2comp;
             m_char_occ      = wt.m_char_occ;
+            m_size			= wt.m_size;
         }
 
     public:
 
-        const size_type& sigma;
+        const uint16_t& sigma;
 
         // Default constructor
-        wt_rlg():m_size(0), sigma(m_wt.sigma) {};
+        wt_rlg():m_size(0), m_sigma(0), sigma(m_sigma) {};
 
 
 
@@ -118,14 +120,14 @@ class wt_rlg
          *	\par Time complexity
          *		\f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        wt_rlg(const unsigned char* rac, size_type size):m_size(size), sigma(m_wt.sigma) {
+        wt_rlg(const unsigned char* rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
             // TODO
             std::cerr << "ERROR: Constructor of wt_rlg not implemented yet!!!" << std::endl;
             throw std::logic_error("This constructor of wt_rlg is not yet implemented!");
         }
 
         template<class size_type_class>
-        wt_rlg(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), sigma(m_wt.sigma) {
+        wt_rlg(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), sigma(m_sigma) {
             construct(rac, size);
         }
 
@@ -138,7 +140,7 @@ class wt_rlg
             m_size = size;
             typedef size_type_class size_type;
             // TODO: remove absolute file name
-            std::string temp_file = "/tmp/wt_rlg_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
+            std::string temp_file = "wt_rlg_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
             std::ofstream wt_out(temp_file.c_str(), std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
@@ -154,11 +156,16 @@ class wt_rlg
             int m=0;
 
             rac.reset();
+            bit_vector b_sigma(256, 0);
             uint8_t last_c = '\0', c = '\0';
             size_type b_cnt = 0, pair1cnt=0, pair0cnt=0;
             for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
+                if (r_sum + r > size) {  // read not more than size chars in the next loop
+                    r = size-r_sum;
+                }
                 for (; i < r+r_sum; ++i) {
                     c = rac[i-r_sum];
+                    b_sigma[c] = 1;
                     if (i & 1) { // if position is odd
                         if (c == last_c) { // join pair
                             m_b[b_cnt] = 1;
@@ -184,14 +191,15 @@ class wt_rlg
                 ++pair0cnt;
                 ++b_cnt;
             }
+            m_sigma = 0;
+            for (size_type i=0; i<b_sigma.size(); ++i) {
+                m_sigma += b_sigma[i];
+            }
 
-            size_type old_pair0cnt=0;
             uint32_t level = 0;
             //  handle remaining levels
             while (pair1cnt > 0) {
                 ++m;
-                std::cerr<<"# level="<<level<<" ones="<<pair1cnt<<" pair0cnt*2="<<(pair0cnt-old_pair0cnt)*2<<std::endl;
-                old_pair0cnt = pair0cnt;
                 m_b_border[++level] = b_cnt;
                 size_type level_size = pair1cnt;
                 pair1cnt = 0;
@@ -219,20 +227,17 @@ class wt_rlg
             m_b.resize(b_cnt);
             m_b_border.resize(level+1);
 
-            std::cerr<<"# level="<<level<<" ones="<<pair1cnt<<" pair0cnt*2="<<(pair0cnt-old_pair0cnt)*2<<std::endl;
             wt_out.seekp(0, std::ios::beg);
-            bit_cnt = (sizeof(bit_cnt) + 2*pair0cnt)*8;
+            bit_cnt = (2*pair0cnt)*8;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt));
             wt_out.close();
 
             {
                 int_vector_file_buffer<8, size_type> temp_bwt_buf(temp_file.c_str());
                 m_wt.construct(temp_bwt_buf, temp_bwt_buf.int_vector_size);
-                std::cout<<"# m_wt.size in MB="<<util::get_size_in_bytes(m_wt)/(1024.0*1024.0)<<std::endl;
-                std::cout<<"# m_b.size in MB="<<util::get_size_in_bytes(m_b)/(1024.0*1024.0)<<std::endl;
             }
 
-            m_b_rank.init(&m_b);
+            util::init_support(m_b_rank, &m_b);
             m_b_border_rank.resize(m_b_border.size());
 
             for (size_type i=0; i<m_b_border.size(); ++i) {
@@ -241,21 +246,18 @@ class wt_rlg
 
             m_char2comp = int_vector<8>(256,255);
             for (uint16_t c=0, cnt=0; c<256; ++c) {
-                if (m_wt.rank(m_wt.size(), c) > 0) {
+                if (b_sigma[c]) {
                     m_char2comp[c] = cnt++;
                 }
             }
 
-
-            m_wt_rank.resize(sigma * m_b_border.size());
-            m_char_occ.resize(sigma);
+            m_wt_rank.resize(m_sigma * m_b_border.size());
+            m_char_occ.resize(m_sigma);
             for (size_type c=0; c < 256; ++c) {
                 uint16_t cc = m_char2comp[c];
-                if (cc < sigma) {
+                if (cc < m_sigma) {
                     for (size_type i=0; i < m_b_border.size(); ++i) {
                         size_type zeros  = m_b_border[i] - m_b_border_rank[i];
-//					std::cout<<"i="<<i<<" m_b_border[i]="<<m_b_border[i]<<" m_b_border_rank[i]="<<m_b_border_rank[i]
-//						     <<" zeros="<<zeros<<" cc="<<cc<<" sigma="<<sigma<<" c=."<< (char)c <<"."<<std::endl;
                         m_wt_rank[cc * m_b_border.size() + i] = m_wt.rank(2*zeros, c);
                     }
                     m_char_occ[cc] = m_wt.rank(m_wt.size(), c);
@@ -265,7 +267,7 @@ class wt_rlg
         }
 
         //! Copy constructor
-        wt_rlg(const wt_rlg& wt):sigma(wt.sigma) {
+        wt_rlg(const wt_rlg& wt):sigma(m_sigma) {
             copy(wt);
         }
 
@@ -283,13 +285,13 @@ class wt_rlg
                 std::swap(m_size, wt.m_size);
                 m_wt.swap(wt.m_wt);
                 m_b.swap(wt.m_b);
-                m_b_rank.swap(wt.m_b_rank);
-                m_b_rank.set_vector(&m_b);
-                wt.m_b_rank.set(&(wt.m_b));
+                util::swap_support(m_b_rank, wt.m_b_rank, &m_b, &(wt.m_b));
                 m_b_border.swap(wt.m_b_border);
+                m_b_border_rank.swap(wt.m_b_border_rank);
                 m_wt_rank.swap(wt.m_wt_rank);
                 m_char2comp.swap(wt.m_char2comp);
                 m_char_occ.swap(wt.m_char_occ);
+                std::swap(m_sigma, wt.m_sigma);
             }
         }
 
@@ -323,20 +325,22 @@ class wt_rlg
         //! Calculates how many symbols c are in the prefix [0..i-1] of the supported vector.
         /*!
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
-         *  \param c The symbol to count the occurences in the prefix.
-         *	\return The number of occurences of symbol c in the prefix [0..i-1] of the supported vector.
+         *  \param c The symbol to count the occurrences in the prefix.
+         *	\return The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
          *  \par Time complexity
          *		\f$ \Order{H_0 \log L} \f$ on average, where \f$ H_0 \f$ is the zero order entropy of
          *      the sequence and \f$L\f$ the maximal length of a run of \f$c\f$s in the sequence.
          */
         size_type rank(size_type i, value_type c)const {
+            value_type cc    = m_char2comp[c];
+            if (((size_type)cc) >= m_char_occ.size()) { // char does not occur
+                return 0;
+            }
             size_type  res   = 0;
             size_type  level = 0;
             size_type  added = 0;
-            value_type cc    = m_char2comp[c];
             size_type cs     = 0;
             while (i>0 and cs != m_char_occ[cc]) {
-//std::cerr<<"i="<<i<<" level="<<level<<" added="<<added<<" res="<<res<<std::endl;
                 size_type ones  = m_b_rank((i>>1) + m_b_border[level]); // # of ones till this position
                 size_type zeros = m_b_border[level] + (i>>1) - ones;  // # of zeros till this position
                 res += ((cs=m_wt.rank(zeros<<1, c)) - (m_wt_rank[cc*m_b_border.size() + level])) << level;
@@ -365,11 +369,11 @@ class wt_rlg
             return res;
         };
 
-        //! Calculates how many occurences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
+        //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
         /*!
          *	\param i The index of the symbol.
          *  \param c Reference that will contain the symbol at position i after the execution of the method.
-         *  \return The number of occurences of symbol wt[i] in the prefix [0..i-1]
+         *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
          *	\par Time complexity
          *		\f$ \Order{H_0 \log L} \f$
          */
@@ -377,9 +381,9 @@ class wt_rlg
             return rank(i, c=(*this)[i]);
         }
 
-        //! Calculates the ith occurence of the symbol c in the supported vector.
+        //! Calculates the ith occurrence of the symbol c in the supported vector.
         /*!
-         *  \param i The ith occurence. \f$i\in [1..rank(size(),c)]\f$.
+         *  \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
          *  \param c The symbol c.
          *  \par Time complexity
          *		\f$ \Order{\log n H_0 \log L} \f$ on average, where \f$ H_0 \f$ is the zero order
@@ -387,6 +391,9 @@ class wt_rlg
          *      of \f$c\f$s in the sequence.
          */
         size_type select(size_type i, value_type c)const {
+            if (((size_type)m_char2comp[c]) >= m_char_occ.size()) { // char does not occur
+                return size();
+            }
             size_type lb = 0, rb = m_size;  // lb inclusive, rb exclusive
             while (rb > lb) {
                 size_type m = (lb+rb)>>1;
@@ -400,30 +407,35 @@ class wt_rlg
         };
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            written_bytes += m_wt.serialize(out);
-            written_bytes += m_b.serialize(out);
-            written_bytes += m_b_rank.serialize(out);
-            written_bytes += m_b_border.serialize(out);
-            written_bytes += m_wt_rank.serialize(out);
-            written_bytes += m_char2comp.serialize(out);
-            written_bytes += m_char_occ.serialize(out);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += m_wt.serialize(out, child, "wt");
+            written_bytes += m_b.serialize(out, child, "b");
+            written_bytes += m_b_rank.serialize(out, child, "rank");
+            written_bytes += m_b_border.serialize(out, child, "b_border");
+            written_bytes += m_b_border_rank.serialize(out, child, "b_border_rank");
+            written_bytes += m_wt_rank.serialize(out, child, "wt_rank");
+            written_bytes += m_char2comp.serialize(out, child, "char2comp");
+            written_bytes += m_char_occ.serialize(out, child, "char_occ");
+            written_bytes += util::write_member(m_sigma, out, child, "sigma");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            in.read((char*) &m_size, sizeof(m_size));
+            util::read_member(m_size, in);
             m_wt.load(in);
             m_b.load(in);
             m_b_rank.load(in, &m_b);
             m_b_border.load(in);
+            m_b_border_rank.load(in);
             m_wt_rank.load(in);
             m_char2comp.load(in);
             m_char_occ.load(in);
+            util::read_member(m_sigma, in);
         }
 
 };

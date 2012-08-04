@@ -27,6 +27,7 @@
 #include "rank_support.hpp"
 #include "select_support.hpp"
 #include "algorithms.hpp"
+#include "util.hpp"
 #include <stack>
 #include <map>
 #include <set>
@@ -61,7 +62,7 @@ namespace sdsl
 template<class NearestNeighbourDictionary = nearest_neighbour_dictionary<30>,
          class RankSupport = rank_support_v<>,
          class SelectSupport = select_support_mcl<>,
-         class RangeMaxSupport = range_maximum_support_sparse_table<int_vector<0> >::type >
+         class RangeMaxSupport = range_maximum_support_sparse_table<int_vector<> >::type >
 class bp_support_g
 {
     public:
@@ -102,6 +103,7 @@ class bp_support_g
             m_match = bp_support.m_match;
             m_enclose = bp_support.m_enclose;
             m_range_max_match = bp_support.m_range_max_match;
+            m_range_max_match.set_vector(&m_match);
 
             m_block_size = bp_support.m_block_size;
             m_size = bp_support.m_size;
@@ -121,14 +123,14 @@ class bp_support_g
 
 
         //! Constructor
-        bp_support_g(const bit_vector* bp = NULL, uint32_t used_block_size = 840):m_bp(bp), m_block_size(used_block_size), m_size(bp==NULL?0:bp->size()), m_blocks((m_size+used_block_size-1)/used_block_size),bp_rank(m_rank_bp), bp_select(m_select_bp) {
+        explicit bp_support_g(const bit_vector* bp = NULL, uint32_t used_block_size = 840):m_bp(bp), m_block_size(used_block_size), m_size(bp==NULL?0:bp->size()), m_blocks((m_size+used_block_size-1)/used_block_size),bp_rank(m_rank_bp), bp_select(m_select_bp) {
             if (m_block_size<=2) {
                 throw std::logic_error(util::demangle(typeid(this).name())+": block_size should be greater than 2!");
             }
             if (bp == NULL)
                 return;
-            m_rank_bp.init(bp);
-            m_select_bp.init(bp);
+            util::init_support(m_rank_bp, bp);
+            util::init_support(m_select_bp, bp);
             bit_vector pioneer;
             // calulate pioneers
             algorithm::calculate_pioneers_bitmap(*m_bp, m_block_size, pioneer);
@@ -136,7 +138,7 @@ class bp_support_g
             m_pioneer_bp.resize(m_nnd.ones());
             for (size_type i=1; i<= m_nnd.ones(); ++i) // replace this by an iterator!!! see todo for the nnd data structure
                 m_pioneer_bp[i-1] = (*m_bp)[m_nnd.select(i)];
-            m_rank_pioneer_bp.init(&m_pioneer_bp);
+            util::init_support(m_rank_pioneer_bp, &m_pioneer_bp);
             algorithm::calculate_pioneers_bitmap(m_pioneer_bp, m_block_size, pioneer);
             m_nnd2 = NearestNeighbourDictionary(pioneer);
 
@@ -149,7 +151,7 @@ class bp_support_g
         }
 
         //! Copy constructor
-        bp_support_g(const bp_support_g& bp_support) {
+        bp_support_g(const bp_support_g& bp_support): bp_rank(m_rank_bp), bp_select(m_select_bp) {
             copy(bp_support);
         }
 
@@ -159,6 +161,28 @@ class bp_support_g
                 copy(bp_support);
             }
             return *this;
+        }
+
+        void swap(bp_support_g& bp_support) {
+            m_rank_bp.swap(bp_support.m_rank_bp);
+            m_select_bp.swap(bp_support.m_select_bp);
+
+            m_nnd.swap(bp_support.m_nnd);
+
+            m_pioneer_bp.swap(bp_support.m_pioneer_bp);
+            util::swap_support(m_rank_pioneer_bp, bp_support.m_rank_pioneer_bp,
+                               &m_pioneer_bp, &(bp_support.m_pioneer_bp));
+
+            m_nnd2.swap(bp_support.m_nnd2);
+
+            m_match.swap(bp_support.m_match);
+            m_enclose.swap(bp_support.m_enclose);
+            util::swap_support(m_range_max_match, bp_support.m_range_max_match,
+                               &m_match, &(bp_support.m_match));
+
+            std::swap(m_block_size, bp_support.m_block_size);
+            std::swap(m_size, bp_support.m_size);
+            std::swap(m_blocks, bp_support.m_blocks);
         }
 
         void set_vector(const bit_vector* bp) {
@@ -563,25 +587,24 @@ class bp_support_g
          * \param out The outstream to which the data structure is written.
          * \return The number of bytes written to out.
          */
-        size_type serialize(std::ostream& out) const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += m_rank_bp.serialize(out);
-            written_bytes += m_select_bp.serialize(out);
-            written_bytes += m_nnd.serialize(out);
+            written_bytes += m_rank_bp.serialize(out, child, "bp_rank");
+            written_bytes += m_select_bp.serialize(out, child, "bp_select");
+            written_bytes += m_nnd.serialize(out, child,"nearest_neighbor_dictionary");
 
-            written_bytes += m_pioneer_bp.serialize(out);
-            written_bytes += m_rank_pioneer_bp.serialize(out);
-            written_bytes += m_nnd2.serialize(out);
-            written_bytes += m_match.serialize(out);
-            written_bytes += m_enclose.serialize(out);
-            written_bytes += m_range_max_match.serialize(out);
+            written_bytes += m_pioneer_bp.serialize(out, child, "pioneer_bp");
+            written_bytes += m_rank_pioneer_bp.serialize(out, child, "pioneer_bp_rank");
+            written_bytes += m_nnd2.serialize(out, child, "nearest_neighbor_dictionary2");
+            written_bytes += m_match.serialize(out, child, "match_answers");
+            written_bytes += m_enclose.serialize(out, child, "enclose_answers");
+            written_bytes += m_range_max_match.serialize(out, child, "rmq_answers");
 
-            out.write((char*)&m_block_size, sizeof(m_block_size));
-            written_bytes += sizeof(m_block_size);
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            out.write((char*)&m_blocks, sizeof(m_blocks));
-            written_bytes += sizeof(m_blocks);
+            written_bytes += util::write_member(m_block_size, out, child, "block_size");
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_blocks, out, child, "block_cnt");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -602,10 +625,10 @@ class bp_support_g
             m_match.load(in);
             m_enclose.load(in);
             m_range_max_match.load(in, &m_match);
-            in.read((char*) &m_block_size, sizeof(m_block_size));
-            in.read((char*) &m_size, sizeof(m_size));
+            util::read_member(m_block_size, in);
+            util::read_member(m_size, in);
             assert(m_size == bp->size());
-            in.read((char*) &m_blocks, sizeof(m_blocks));
+            util::read_member(m_blocks, in);
         }
 
         std::string get_info()const {

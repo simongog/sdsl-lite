@@ -213,27 +213,12 @@ class lcp_dac
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="") const;
 
         //! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
          */
         void load(std::istream& in);
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "lcp";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            m_data.mem_info("lcp values");
-            std::cout<<",";
-            m_overflow.mem_info("overflow mark");
-            std::cout<<",";
-            m_overflow_rank.mem_info("rank");
-            std::cout << ")\n";
-        }
-#endif
 };
 
 // == template functions ==
@@ -333,7 +318,7 @@ void lcp_dac<b, rank_support_type>::construct(int_vector_file_buffer<int_width, 
 //	std::cerr<<"m_overflow.size()="<<m_overflow.size()<<" "<<"m_data.size()="<<m_data.size()<<std::endl;
 //  (4) Initialize rank data structure for m_overflow and precalc rank for
 //      pointers
-    m_overflow_rank.init(&m_overflow);
+    util::init_support(m_overflow_rank, &m_overflow);
     for (size_type i=0; 2*i < m_level_pointer_and_rank.size() and
          m_level_pointer_and_rank[2*i] < m_overflow.size(); ++i) {
         m_level_pointer_and_rank[2*i+1] = m_overflow_rank(m_level_pointer_and_rank[2*i]);
@@ -344,8 +329,9 @@ template<uint8_t b, class rank_support_type>
 void lcp_dac<b, rank_support_type>::swap(lcp_dac& lcp_c)
 {
     m_data.swap(lcp_c.m_data);
-    m_overflow.swap(lcp_c.m_data);
-    m_overflow_rank.swap(lcp_c.m_overflow_rank);
+    m_overflow.swap(lcp_c.m_overflow);
+    util::swap_support(m_overflow_rank, lcp_c.m_overflow_rank, &m_overflow, &(lcp_c.m_overflow));
+
     m_level_pointer_and_rank.swap(lcp_c.m_level_pointer_and_rank);
     std::swap(m_max_level, lcp_c.m_max_level);
 }
@@ -371,15 +357,16 @@ inline typename lcp_dac<b, rank_support_type>::value_type lcp_dac<b, rank_suppor
 
 
 template<uint8_t b, class rank_support_type>
-typename lcp_dac<b, rank_support_type>::size_type lcp_dac<b, rank_support_type>::serialize(std::ostream& out) const
+typename lcp_dac<b, rank_support_type>::size_type lcp_dac<b, rank_support_type>::serialize(std::ostream& out, structure_tree_node* v, std::string name) const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    written_bytes += m_data.serialize(out);
-    written_bytes += m_overflow.serialize(out);
-    written_bytes += m_overflow_rank.serialize(out);
-    written_bytes += m_level_pointer_and_rank.serialize(out);
-    out.write((char*)&m_max_level, sizeof(m_max_level));
-    written_bytes += sizeof(m_max_level);
+    written_bytes += m_data.serialize(out, child, "data");
+    written_bytes += m_overflow.serialize(out, child, "overflow");
+    written_bytes += m_overflow_rank.serialize(out, child, "overflow_rank");
+    written_bytes += m_level_pointer_and_rank.serialize(out, child, "level_pointer_and_rank");
+    written_bytes += util::write_member(m_max_level, out, child, "max_level");
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 
@@ -390,7 +377,7 @@ void lcp_dac<b, rank_support_type>::load(std::istream& in)
     m_overflow.load(in);
     m_overflow_rank.load(in, &m_overflow); // FIXED that at 2012-02-01 15:34
     m_level_pointer_and_rank.load(in);
-    in.read((char*) &m_max_level, sizeof(m_max_level));
+    util::read_member(m_max_level, in);
 }
 
 

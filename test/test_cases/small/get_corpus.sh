@@ -23,7 +23,7 @@ if [[ ! -e ${FAUST_NAME} ]]; then
 fi
 
 if [[ ! -e ${ZARATHUSTRA_NAME} ]]; then
-	download_from_url "${FAUST_URL}"
+	download_from_url "${ZARATHUSTRA_URL}"
 	mv ${ZARATHUSTRA_BASENAME} ${ZARATHUSTRA_NAME}
 fi
 

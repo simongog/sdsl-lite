@@ -107,7 +107,7 @@ bool ternary::encode(const int_vector& v, int_vector& z)
     for (typename int_vector::const_iterator it = v.begin(), end=v.end(); it != end; ++it) {
         w = *it;
         if (w == 0) {
-            throw std::logic_error("ternary::encode(const SDSBitVector &v, SDSBitVector &z); entry of v equals 0 that cannot be encoded!");
+            throw std::logic_error("ternary::encode(const int_vector &v, int_vector &z); entry of v equals 0 that cannot be encoded!");
         }
         // (length of bits to represent w)
         len = encoding_length(*it)-2;

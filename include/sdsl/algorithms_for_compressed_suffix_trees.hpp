@@ -298,19 +298,16 @@ size_type_class construct_first_child_lcp(int_vector_file_buffer<fixedIntWidth, 
     lcp_buf.reset();
     size_type n = lcp_buf.int_vector_size;
     if (n == 0) {	// if n == 0 we are done
-        fc_lcp.resize(0);
+        fc_lcp = int_vector<>(0);
         return 0;
     }
     if (first_child_size == 0) {
-        fc_lcp.set_int_width(bit_magic::l1BP(n)+1);
-        fc_lcp.resize(n);
+        util::assign(fc_lcp, int_vector<>(n, 0, bit_magic::l1BP(n)+1));
     }
 
     size_type fc_cnt=0; // first child counter
     sorted_multi_stack_support vec_stack(n);
-
     size_type y;
-
     for (size_type i=0, r_sum = 0, r = lcp_buf.load_next_block(), x; r_sum < n;) {
         for (; i < r_sum +r; ++i) {
             x = lcp_buf[i-r_sum];
@@ -332,10 +329,9 @@ size_type_class construct_first_child_lcp(int_vector_file_buffer<fixedIntWidth, 
         }
         // writing a closing parenthesis in bp, not necessary as bp is initalized with zeros
     }
-
-    if (fc_cnt < fc_lcp.size())
+    if (fc_cnt < fc_lcp.size()) {
         fc_lcp.resize(fc_cnt);
-
+    }
     return fc_cnt;
 }
 
@@ -448,7 +444,7 @@ size_type_class construct_first_child_and_lf_lcp(int_vector_file_buffer<fixedInt
     big_lcp_in.close();
     std::remove(big_lcp_file_name.c_str());
 
-    std::cout<<"#n="<<n<<" fc_cnt="<<fc_cnt<<" fc_cnt_big="<<fc_cnt_big<<" fc_cnt_big2="<<fc_cnt_big2<<std::endl;
+//    std::cout<<"#n="<<n<<" fc_cnt="<<fc_cnt<<" fc_cnt_big="<<fc_cnt_big<<" fc_cnt_big2="<<fc_cnt_big2<<std::endl;
 
     return fc_cnt;
 }

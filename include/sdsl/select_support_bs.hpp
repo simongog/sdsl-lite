@@ -42,7 +42,7 @@ class select_support_bs : public select_support
         const RankSupport* m_rs;
         void copy(const select_support_bs& ss);
     public:
-        select_support_bs(const int_vector<1>* v=NULL, const RankSupport* m_rs=NULL);
+        explicit select_support_bs(const int_vector<1>* v=NULL, const RankSupport* m_rs=NULL);
         select_support_bs(const select_support_bs& ss);
         ~select_support_bs() {}
         void init(const int_vector<1>* v=NULL);
@@ -51,7 +51,7 @@ class select_support_bs : public select_support
         //! Alias for select(i).
         inline const size_type operator()(size_type)const;
 
-        size_type serialize(std::ostream& out)const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
         void load(std::istream& in, const int_vector<1>* v=NULL);
         void set_vector(const int_vector<1>* v=NULL);
         select_support_bs& operator=(const select_support_bs& ss);
@@ -68,16 +68,6 @@ class select_support_bs : public select_support
          * \sa operator==
          */
         bool operator!=(const select_support_bs& ss)const;
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "select";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<")\n";
-        }
-#endif
 };
 
 template<class RankSupport>
@@ -102,7 +92,6 @@ select_support_bs<RankSupport>& select_support_bs<RankSupport>::operator=(const 
 template<class RankSupport>
 void select_support_bs<RankSupport>::swap(select_support_bs& ss)
 {
-//	std::swap(m_v, ss.m_v);
     std::swap(m_rs, ss.m_rs);
 }
 
@@ -114,9 +103,8 @@ void select_support_bs<RankSupport>::copy(const select_support_bs& ss)
 }
 
 template<class RankSupport>
-void select_support_bs<RankSupport>::init(const int_vector<1>* v)
+void select_support_bs<RankSupport>::init(const int_vector<1>*)
 {
-    //TODO: assert that m_rs is up-to-date with m_v
 }
 
 template<class RankSupport>
@@ -145,13 +133,15 @@ inline const typename select_support_bs<RankSupport>::size_type select_support_b
 
 
 template<class RankSupport>
-typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::serialize(std::ostream& out)const
+typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+    structure_tree::add_size(child, 0);
     return 0;
 }
 
 template<class RankSupport>
-void select_support_bs<RankSupport>::load(std::istream& in, const int_vector<1>* v)
+void select_support_bs<RankSupport>::load(std::istream&, const int_vector<1>* v)
 {
     set_vector(v);
 }
@@ -167,7 +157,7 @@ bool select_support_bs<RankSupport>::operator==(const select_support_bs& ss)cons
 {
     if (this == &ss)
         return true;
-    return *m_rs == *(ss.m_rs);// and *mv==*(ss.m_v); <- this is check with the first comparison
+    return *m_rs == *(ss.m_rs);
 }
 
 template<class RankSupport>

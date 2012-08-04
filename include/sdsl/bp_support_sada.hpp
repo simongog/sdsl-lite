@@ -174,7 +174,7 @@ class bp_support_sada
         }
 
         inline difference_type sml_max_value(size_type sml_block)const {
-            return m_sml_block_min_max[(sml_block_idx<<1)+1] - 1;
+            return (difference_type)m_sml_block_min_max[(sml_block<<1)+1] - 1;
         }
 
         void print_node(size_type v)const {
@@ -331,7 +331,7 @@ class bp_support_sada
     public:
         const RankSupport& bp_rank;						//!< The rank support for the supported balanced parentheses sequence.
         const SelectSupport& bp_select;					//!< The select support for the supported balanced parentheses sequence.
-        const sml_block_array_type&	sml_block_min_max;	//!< The array which contains the entries of the small blocks. I.e. the relativ maximum and minumum for the small blocks.
+        const sml_block_array_type&	sml_block_min_max;	//!< The array which contains the entries of the small blocks. I.e. the relative maximum and minimum for the small blocks.
         const med_block_array_type&  med_block_min_max;	//!< The array which contains the min max tree of the medium blocks.
 
         bp_support_sada():m_bp(NULL), m_size(0), m_sml_blocks(0), m_med_blocks(0), m_med_inner_blocks(0),
@@ -339,7 +339,7 @@ class bp_support_sada
         {}
 
         //! Constructor
-        bp_support_sada(const bit_vector* bp):m_bp(bp),
+        explicit bp_support_sada(const bit_vector* bp):m_bp(bp),
             m_size(bp==NULL?0:bp->size()),
             m_sml_blocks((m_size+SmlBlkSize-1)/SmlBlkSize),
             m_med_blocks((m_size+SmlBlkSize*MedBlkDeg-1)/(SmlBlkSize* MedBlkDeg)),
@@ -353,8 +353,8 @@ class bp_support_sada
             if (bp == NULL or bp->size()==0)
                 return;
             // initialize rank and select
-            m_bp_rank.init(bp);
-            m_bp_select.init(bp);
+            util::init_support(m_bp_rank, bp);
+            util::init_support(m_bp_select, bp);
 
             m_med_inner_blocks = 1;
             // m_med_inner_blocks = (next power of 2 greater than or equal to m_med_blocks)-1
@@ -403,7 +403,7 @@ class bp_support_sada
                 if (max_value(v) > max_value(p))  // update maximum
                     m_med_block_min_max[2*p+1] = m_med_block_min_max[2*v+1];
             }
-#ifdef DEBUG
+#ifdef DEBUG_BP_SUPPORT_SADA
             for (size_type i=0; i<m_sml_block_min_max.size(); ++i) {
                 if (i%2==0)
                     std::cout << (-(difference_type)m_sml_block_min_max[i]) + 1 << std::endl;
@@ -432,6 +432,25 @@ class bp_support_sada
 
         //! Destructor
         ~bp_support_sada() {
+        }
+
+        //! Swap method
+        /*! Swaps the content of the two data structure.
+         *  You have to use set_vector to adjust the supported bit_vector.
+         *  \param bp_support Object which is swapped.
+         */
+        void swap(bp_support_sada& bp_support) {
+            // m_bp.swap(bp_support.m_bp); use set_vector to set the supported bit_vector
+            m_bp_rank.swap(bp_support.m_bp_rank);
+            m_bp_select.swap(bp_support.m_bp_select);
+
+            m_sml_block_min_max.swap(bp_support.m_sml_block_min_max);
+            m_med_block_min_max.swap(bp_support.m_med_block_min_max);
+
+            std::swap(m_size, bp_support.m_size);
+            std::swap(m_sml_blocks, bp_support.m_sml_blocks);
+            std::swap(m_med_blocks, bp_support.m_med_blocks);
+            std::swap(m_med_inner_blocks, bp_support.m_med_inner_blocks);
         }
 
         //! Assignment operator
@@ -835,23 +854,21 @@ class bp_support_sada
          * \param out The outstream to which the data structure is written.
          * \return The number of bytes written to out.
          */
-        size_type serialize(std::ostream& out) const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            out.write((char*)&m_sml_blocks, sizeof(m_sml_blocks));
-            written_bytes += sizeof(m_sml_blocks);
-            out.write((char*)&m_med_blocks, sizeof(m_med_blocks));
-            written_bytes += sizeof(m_med_blocks);
-            out.write((char*)&m_med_inner_blocks, sizeof(m_med_inner_blocks));
-            written_bytes += sizeof(m_med_inner_blocks);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_sml_blocks, out, child, "sml_block_cnt");
+            written_bytes += util::write_member(m_med_blocks, out, child, "med_block_cnt");
+            written_bytes += util::write_member(m_med_inner_blocks, out, child, "med_inner_blocks");
 
-            written_bytes += m_bp_rank.serialize(out);
-            written_bytes += m_bp_select.serialize(out);
+            written_bytes += m_bp_rank.serialize(out, child, "bp_rank");
+            written_bytes += m_bp_select.serialize(out, child, "bp_select");
 
-            written_bytes += m_sml_block_min_max.serialize(out);
-            written_bytes += m_med_block_min_max.serialize(out);
+            written_bytes += m_sml_block_min_max.serialize(out, child, "sml_blocks");
+            written_bytes += m_med_block_min_max.serialize(out, child, "med_blocks");
 
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -862,11 +879,11 @@ class bp_support_sada
          */
         void load(std::istream& in, const bit_vector* bp) {
             m_bp = bp;
-            in.read((char*) &m_size, sizeof(m_size));
+            util::read_member(m_size, in);
             assert(m_size == bp->size());
-            in.read((char*) &m_sml_blocks, sizeof(m_sml_blocks));
-            in.read((char*) &m_med_blocks, sizeof(m_med_blocks));
-            in.read((char*) &m_med_inner_blocks, sizeof(m_med_inner_blocks));
+            util::read_member(m_sml_blocks, in);
+            util::read_member(m_med_blocks, in);
+            util::read_member(m_med_inner_blocks, in);
 
             m_bp_rank.load(in, m_bp);
             m_bp_select.load(in, m_bp);
@@ -874,24 +891,6 @@ class bp_support_sada
             m_sml_block_min_max.load(in);
             m_med_block_min_max.load(in);
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "bp_support";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ", ";
-            m_sml_block_min_max.mem_info("small block");
-            std::cout<<" ,";
-            m_med_block_min_max.mem_info("medium block");
-            std::cout<<" ,";
-            m_bp_rank.mem_info("bp rank");
-            std::cout<<" ,";
-            m_bp_select.mem_info("bp select");
-            std::cout <<")\n";
-        }
-#endif
 
         std::string get_info()const {
             std::stringstream ss;
