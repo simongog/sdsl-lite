@@ -29,6 +29,7 @@
 #include "bitmagic.hpp"
 #include "testutils.hpp"
 #include "temp_write_read_buffer.hpp"
+#include "util.hpp"
 #include <set> // for calculating the alphabet size
 #include <map> // for mapping a symbol to its lexicographical index
 #include <algorithm> // for std::swap
@@ -42,7 +43,7 @@ namespace sdsl
 //! A wavelet tree class for sequences of big alphabet size (like integer alphabet)
 /*!
  * A wavelet tree is build for a vector of characters over the alphabet \f$\Sigma\f$.
- * The wavelet tree \f$wt\f$ consits of a tree of bit vector and provides three efficient methods:
+ * The wavelet tree \f$wt\f$ consists of a tree of bit vector and provides three efficient methods:
  *   - The "[]"-operator: \f$wt[i]\f$ returns the ith symbol of vector for which the wavelet tree was build for.
  *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurences of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the wavelet tree was build for.
  *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurence of symbol \f$c\f$.
@@ -50,21 +51,35 @@ namespace sdsl
  *	\par Space complexity
  *		\f$\Order{n\log|\Sigma|}\f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
  *
+ *  \tparam RandomAccessContainer 	Type of the input sequence.
+ *  \tparam BitVector				Type of the bitvector used for representing the wavelet tree.
+ *  \tparam RankSupport				Type of the support structure for rank on ones.
+ *  \tparam SelectSupport			Type of the support structure for select on ones.
+ *  \tparam SelectSupport			Type of the support structure for select on ones.
+ *
  *   @ingroup wt
  */
-template<class RandomAccessContainer=int_vector<>, class RankSupport = rank_support_v<>, class SelectSupport=select_support_mcl<>, class SelectSupportZero=select_support_mcl<0> >
+template<class RandomAccessContainer=int_vector<>,
+         class BitVector   		 = bit_vector,
+         class RankSupport 		 = typename BitVector::rank_1_type,
+         class SelectSupport	 = typename BitVector::select_1_type,
+         class SelectSupportZero = typename BitVector::select_0_type>
 class wt_int
 {
     public:
         typedef typename RandomAccessContainer::size_type 		size_type;
         typedef typename RandomAccessContainer::value_type 		value_type;
+        typedef BitVector										bit_vector_type;
+        typedef RankSupport										rank_1_type;
+        typedef SelectSupport									select_1_type;
+        typedef SelectSupportZero								select_0_type;
     protected:
         size_type 			m_size;
         size_type 			m_sigma; 		//<- \f$ |\Sigma| \f$
-        bit_vector 			m_tree;			// bit vector to store the wavelet tree
-        RankSupport			m_tree_rank;	// rank support for the wavelet tree bit vector
-        SelectSupport		m_tree_select1;	// select support for the wavelet tree bit vector
-        SelectSupportZero	m_tree_select0;
+        bit_vector_type 	m_tree;			// bit vector to store the wavelet tree
+        rank_1_type			m_tree_rank;	// rank support for the wavelet tree bit vector
+        select_1_type		m_tree_select1;	// select support for the wavelet tree bit vector
+        select_0_type		m_tree_select0;
         uint32_t			m_logn;
 
         void copy(const wt_int& wt) {
@@ -83,7 +98,7 @@ class wt_int
     public:
 
         const size_type& sigma;	//!< Effective alphabet size of the wavelet tree.
-        const bit_vector& tree; //!< A concatenation of all bit vectors of the wavelet tree.
+        const bit_vector_type& tree; //!< A concatenation of all bit vectors of the wavelet tree.
 
         //! Default constructor
         wt_int():m_size(0),m_sigma(0), m_logn(0), sigma(m_sigma), tree(m_tree) {};
@@ -113,7 +128,7 @@ class wt_int
             } else {
                 m_logn = logn;
             }
-            m_tree		=	bit_vector(n*m_logn, 0);  // initialize the tree
+            bit_vector tree(n*m_logn, 0);  // initialize the tree
 
             int_vector<> 	perms[2];
             perms[0].set_int_width(m_logn); perms[1].set_int_width(m_logn);
@@ -138,7 +153,7 @@ class wt_int
                     uint64_t	x;
                     while (i < n and((x=act_perm[i])&mask_old)==start_value) {
                         if (x&mask_new) {
-                            ++cnt1; m_tree[tree_pos] = 1;
+                            ++cnt1; tree[tree_pos] = 1;
                         }
                         ++tree_pos;
                         ++i;
@@ -157,19 +172,20 @@ class wt_int
                 mask_old += mask_new;
             }
 #ifdef SDSL_DEBUG_INT_WAVELET_TREE
-            if (m_tree.size()<100) {
-                std::cerr<<"tree="<<m_tree<<std::endl;
+            if (tree.size()<100) {
+                std::cerr<<"tree="<<tree<<std::endl;
             }
 #endif
-            m_tree_rank.init(&m_tree);
-            m_tree_select0.init(&m_tree);
-            m_tree_select1.init(&m_tree);
+            util::assign(m_tree, tree);
+            util::init_support(m_tree_rank, &m_tree);
+            util::init_support(m_tree_select0, &m_tree);
+            util::init_support(m_tree_select1, &m_tree);
         }
 
         //! Semi-external constructor
-        /*!	\param buf	int_vector_file_buffer which contains the vector v for which a wt_int should be bould.
+        /*!	\param buf	int_vector_file_buffer which contains the vector v for which a wt_int should be build.
          *	\param logn Let x > 0 be the biggest value in v. logn should be bit_magic::l1BP(x-1)+1 to represent all values of v.
-         *	\param dir	Derectory in which temporary files should be stored during the construction.
+         *	\param dir	Directory in which temporary files should be stored during the construction.
          *	\par Time complexity
          *		\f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          *		I.e. we nee \Order{n\log n} if rac is a permutation of 0..n-1.
@@ -261,16 +277,18 @@ class wt_int
             }
             tree_out_buf.close();
             rac.resize(0);
-            util::load_from_file(m_tree, tree_out_buf_file_name.c_str());
+            bit_vector tree;
+            util::load_from_file(tree, tree_out_buf_file_name.c_str());
             std::remove(tree_out_buf_file_name.c_str());
 #ifdef SDSL_DEBUG_INT_WAVELET_TREE
-            if (m_tree.size()<100) {
-                std::cerr<<"tree="<<m_tree<<std::endl;
+            if (tree.size()<100) {
+                std::cerr<<"tree="<<tree<<std::endl;
             }
 #endif
-            m_tree_rank.init(&m_tree);
-            m_tree_select0.init(&m_tree);
-            m_tree_select1.init(&m_tree);
+            util::assign(m_tree, tree);
+            util::init_support(m_tree_rank, &m_tree);
+            util::init_support(m_tree_select0, &m_tree);
+            util::init_support(m_tree_select1, &m_tree);
         }
 
         //! Copy constructor
@@ -293,8 +311,11 @@ class wt_int
                 std::swap(m_sigma,  wt.m_sigma);
                 m_tree.swap(wt.m_tree);
                 m_tree_rank.swap(wt.m_tree_rank); // rank swap after the swap of the bit vector m_tree
+                m_tree_rank.set_vector(&m_tree);
                 m_tree_select1.swap(wt.m_tree_select1); // select1 swap after the swap of the bit vector m_tree
+                m_tree_select1.set_vector(&m_tree);
                 m_tree_select0.swap(wt.m_tree_select0); // select0 swap after the swap of the bit vector m_tree
+                m_tree_select0.set_vector(&m_tree);
                 std::swap(m_logn,  wt.m_logn);
             }
         }
@@ -511,30 +532,29 @@ class wt_int
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            out.write((char*)&m_sigma, sizeof(m_sigma));
-            written_bytes += sizeof(m_sigma);
-            written_bytes += m_tree.serialize(out);
-            written_bytes += m_tree_rank.serialize(out);
-            written_bytes += m_tree_select1.serialize(out);
-            written_bytes += m_tree_select0.serialize(out);
-            written_bytes += sizeof(m_logn);
-            out.write((char*)&m_logn, sizeof(m_logn));
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_sigma, out, child, "sigma");
+            written_bytes += m_tree.serialize(out, child, "tree");
+            written_bytes += m_tree_rank.serialize(out, child, "tree_rank");
+            written_bytes += m_tree_select1.serialize(out, child, "tree_select_1");
+            written_bytes += m_tree_select0.serialize(out, child, "tree_select_0");
+            written_bytes += util::write_member(m_logn, out, child, "log_n");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            in.read((char*) &m_size, sizeof(m_size));
-            in.read((char*) &m_sigma, sizeof(m_sigma));
+            util::read_member(m_size, in);
+            util::read_member(m_sigma, in);
             m_tree.load(in);
             m_tree_rank.load(in, &m_tree);
             m_tree_select1.load(in, &m_tree);
             m_tree_select0.load(in, &m_tree);
-            in.read((char*) &m_logn, sizeof(m_logn));
+            util::read_member(m_logn, in);
         }
         /*
         	void print_info()const{

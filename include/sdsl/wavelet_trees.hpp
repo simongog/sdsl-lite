@@ -34,7 +34,6 @@
 #include "wt_huff.hpp"
 #include "wt_rlmn.hpp"
 #include "wt_rlg.hpp"
-#include "wt_rlg4.hpp"
 #include "wt_rlg8.hpp"
 
 #endif

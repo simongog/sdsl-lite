@@ -100,7 +100,7 @@ class cst_sada
         Rank_support10			m_bp_rank10;  // rank_support for leaves, i.e. "10" bit pattern
         Select_support10		m_bp_select10;// select_support for leaves, i.e. "10" bit pattern
 
-        /* Get the number of leafs that are in the subtree rooted at the first child of v +
+        /* Get the number of leaves that are in the subtree rooted at the first child of v +
          * number of leafs in the subtrees rooted at the children of parent(v) which precede v in the tree.
          */
         size_type inorder(node_type v)const {
@@ -174,21 +174,6 @@ class cst_sada
             copy(cst);
         }
 
-        // Constructor
-        /* \param str The string for which the CST should be created.
-         */
-        /*
-        		cst_sada(const unsigned char *str):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), bp_rank_10(m_bp_rank10), bp_select_10(m_bp_select10){
-        			cst_sct<Csa, Lcp> temp_cst(str); // TODO replace with cst_sct3 building only the navigation structure
-        			if( !generate_bp(temp_cst, str) )
-        				return;
-        			m_bp_support = Bp_support(&m_bp);
-        			m_bp_rank10.init(&m_bp);
-        			m_bp_select10.init(&m_bp);
-
-        		}
-        */
-
         template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1, uint8_t int_width_2, class size_type_class_2>
         cst_sada(const std::string& csa_file_name,
                  int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
@@ -221,8 +206,8 @@ class cst_sada
 
             write_R_output("cst", "construct BPSS", "begin", 1,0);
             m_bp_support = Bp_support(&m_bp);
-            m_bp_rank10.init(&m_bp);
-            m_bp_select10.init(&m_bp);
+            util::init_support(m_bp_rank10, &m_bp);
+            util::init_support(m_bp_select10, &m_bp);
             write_R_output("cst", "construct BPSS", "end", 1,0);
         }
 
@@ -251,8 +236,8 @@ class cst_sada
             }
             write_R_output("cst", "construct BPSS", "begin", 1,0);
             m_bp_support = Bp_support(&m_bp);
-            m_bp_rank10.init(&m_bp);
-            m_bp_select10.init(&m_bp);
+            util::init_support(m_bp_rank10,   &m_bp);
+            util::init_support(m_bp_select10, &m_bp);
             write_R_output("cst", "construct BPSS", "end", 1,0);
 
             write_R_output("cst", "construct CLCP", "begin", 1,0);
@@ -297,7 +282,17 @@ class cst_sada
 
         	Required for the Assignable Conecpt of the STL.
           */
-        void swap(cst_sada<Csa, Lcp>& cst);
+        void swap(cst_sada& cst) {
+            if (this != &cst) {
+                m_csa.swap(cst.m_csa);
+                m_bp.swap(cst.m_bp);
+                util::swap_support(m_bp_support, cst.m_bp_support, &m_bp, &(cst.m_bp));
+                util::swap_support(m_bp_rank10, cst.m_bp_rank10, &m_bp, &(cst.m_bp));
+                util::swap_support(m_bp_select10, cst.m_bp_select10, &m_bp, &(cst.m_bp));
+                // anything else has to be swapped before swapping lcp
+                swap_lcp(m_lcp, cst.m_lcp, *this, cst);
+            }
+        }
 
         //! Returns a const_iterator to the first element.
         /*! Required for the STL Container Concept.
@@ -363,14 +358,16 @@ class cst_sada
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += m_csa.serialize(out);
-            written_bytes += m_lcp.serialize(out);
-            written_bytes += m_bp.serialize(out);
-            written_bytes += m_bp_support.serialize(out);
-            written_bytes += m_bp_rank10.serialize(out);
-            written_bytes += m_bp_select10.serialize(out);
+            written_bytes += m_csa.serialize(out, child, "csa");
+            written_bytes += m_lcp.serialize(out, child, "lcp");
+            written_bytes += m_bp.serialize(out, child, "bp");
+            written_bytes += m_bp_support.serialize(out, child, "bp_support");
+            written_bytes += m_bp_rank10.serialize(out, child, "bp_rank_10");
+            written_bytes += m_bp_select10.serialize(out, child, "bp_select_10");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -385,33 +382,6 @@ class cst_sada
             m_bp_rank10.load(in, &m_bp);
             m_bp_select10.load(in, &m_bp);
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label="cst";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            csa.mem_info("\\CSA ({\\\\tt csa\\_sada})");
-            std::cout<<",";
-            lcp.mem_info();
-            std::cout<<",list(label = \"nav\", size = " <<
-                     (util::get_size_in_bytes(bp)+
-                      util::get_size_in_bytes(bp_support)+
-                      util::get_size_in_bytes(m_bp_rank10)+
-                      util::get_size_in_bytes(m_bp_select10)) / (1024.0*1024.0)
-                     << ", ";
-            bp.mem_info("\\BPSDFS ({\\\\tt bit\\_vector})");
-            std::cout<<",";
-            bp_support.mem_info("bp_support");
-            std::cout<<",";
-            m_bp_rank10.mem_info("rank_support10");
-            std::cout<<",";
-            m_bp_select10.mem_info("select_support10");
-            std::cout << "))\n";
-        }
-#endif
 
         /*! \defgroup cst_sada_tree_methods Tree methods of cst_sada */
         /* @{ */
@@ -767,22 +737,56 @@ class cst_sada
             return m_csa[m_bp_rank10(v)];
         }
 
-        //! Comuptes a unique identification number for a node of the suffix tree in the range [0..nodes()-1]
+        //! Computes a unique identification number for a node of the suffix tree in the range [0..nodes()-1]
         /*!
          *	\param v A valid node of a cst_sada.
          *  \return A unique identification number for the node v in the range [0..nodes()-1]
          *  \par Time complexity
          *		\f$ \Order{1} \f$
+         *  \sa inv_id(size_type id)
          */
         size_type id(node_type v)const {
             // v+1 is < m_bp.size(), as v is the position of an open parenthesis
-            if (m_bp[v+1]) {   // case (a) inner node
+            if (m_bp[v+1]) {    // case (a) inner node
                 return size() + (m_bp_support.rank(v) - 1) - m_bp_rank10(v);
             } else {            // case (b) leaf
                 return m_bp_rank10(v);
             }
             // each node has a unique opening parenthesis -> results in an integer between [0..2n-1]
             //	return m_bp_support.rank(v)-1;
+        }
+
+        //! Computes the node for such that id(v)=id.
+        /*!
+         *	\param id An id in the range [0..nodes()-1].
+         *  \return A node v of the CST such that id(v)=id.
+         *  \par Time complexity
+         *		\f$ \Order{1} \f$ for leaves and \f$ \log n \f$ for inner nodes
+         *  \sa id(node_type v)
+         */
+        size_type inv_id(size_type id) {
+            if (id < size()) {  // the corresponding node is a leaf
+                return ith_leaf(id+1);
+            } else { // the corresponding node is a inner node
+                id = id + 1 - size();
+                // solved by binary search; TODO: can be done in constant time by using a select structure on the bitpattern 11
+                size_type lb = 0, rb = m_bp.size(); // lb inclusive, rb exclusive
+                // invariant: arg(lb) < id, arg(rb)>= id
+                while (rb-lb > 1) {
+                    size_type mid = lb + (rb-lb)/2; // mid \in [0..m_bp.size()-1]
+                    if (m_bp[mid] == 0 and m_bp[mid-1] == 1) {  // if we are ``half on a leaf''
+                        ++mid; //we step one to the right to include it
+                    }
+                    // get the number of open inner nodes before position mid, i.e. arg(mid)
+                    size_type mid_id = m_bp_support.rank(mid-1) - m_bp_rank10(mid);  // Note: mid-1 is valid of mid is of type ``size_type'' as us the parameter of rank
+                    if (mid_id < id) {
+                        lb = mid;
+                    } else { // mid_id >= x
+                        rb = mid;
+                    }
+                }
+                return lb;
+            }
         }
 
         //! Get the number of nodes of the suffix tree.

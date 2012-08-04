@@ -55,7 +55,6 @@ class enc_vector_dna
         typedef iterator							const_iterator; // STL Container requirement
         typedef const value_type		 			reference;
         typedef const value_type 					const_reference;
-//	typedef SDSBitVectorReference*				pointer;
         typedef const value_type*					const_pointer;
         typedef ptrdiff_t 							difference_type;// STL Container requirement
         typedef int_vector<>::size_type				size_type;		// STL Container requirement

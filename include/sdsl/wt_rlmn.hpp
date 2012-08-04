@@ -15,16 +15,14 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file wt_rlmn.hpp
-    \brief wt_rlmn.hpp contains a class for the wavelet tree of byte sequences which is in Huffman shape and runs of character are compressed.
+    \brief wt_rlmn.hpp contains a class for a compressed wavelet tree. Compression is achieved by exploiting runs in the input sequence.
 	\author Simon Gog
 */
 #ifndef INCLUDED_SDSL_WT_RLMN
 #define INCLUDED_SDSL_WT_RLMN
 
 #include "int_vector.hpp"
-#include "rank_support_v.hpp"
-#include "rank_support_v5.hpp"
-#include "select_support_mcl.hpp"
+#include "sd_vector.hpp"  // for standard initialisation of template parameters 
 #include "bitmagic.hpp"
 #include "util.hpp"
 #include "wt_huff.hpp"
@@ -45,8 +43,6 @@
 namespace sdsl
 {
 
-
-
 //! A Wavelet Tree class for byte sequences.
 /*!
  * A wavelet tree is build for a vector of characters over the alphabet \f$\Sigma\f$.
@@ -54,20 +50,26 @@ namespace sdsl
  * The wavelet tree \f$wt\f$ consists of a tree of bitvectors and provides three efficient methods:
  *   - The "[]"-operator: \f$wt[i]\f$ returns the ith symbol of vector for which the wavelet tree was build for.
  *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurences of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the wavelet tree was build for.
- *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurence of symbol \f$c\f$.
+ *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurrence of symbol \f$c\f$.
  *
  *	\par Space complexity
  *		 \f$ nH_0 + 2|\Sigma|\log n + 2n + o(n) \f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
  *
  *  \par Note
- *       This implementation is based on the idea of Veli Makinen and Gonzalo Navarro presented in the paper
+ *       This implementation is based on the idea of Veli Mäkinen and Gonzalo Navarro presented in the paper
  *       "Succint Suffix Arrays Based on Run-Length Encoding" (CPM 2005)
  *
  *   @ingroup wt
  *
- * TODO: make it possible to replace the bit_vector class for m_bl and m_bf by the rrr_vector class
+ *  \tparam BitVector 		Type of the bitvector which is used to represent bf and bl which mark the head of each run in the original sequence.
+ *  \tparam RankSupport		Type of the rank support for bitvectors bf and bl.
+ *  \tparam SelectSupport   Type of the select support for bitvectors bf and lb.
+ *  \tparam WaveletTree		Type of the wavelet tree for the string consisting of the heads of the runs of the original sequence.
  */
-template<class BitVector = bit_vector, class RankSupport = rank_support_v5<>, class SelectSupport = select_support_mcl<>, class WaveletTree = wt_huff<> >
+template<class BitVector = sd_vector<>,
+         class RankSupport = typename BitVector::rank_1_type,
+         class SelectSupport = typename BitVector::select_1_type,
+         class WaveletTree = wt_huff<> >
 class wt_rlmn
 {
     public:
@@ -147,8 +149,7 @@ class wt_rlmn
         void construct(int_vector_file_buffer<8, size_type_class>& rac, size_type size) {
             m_size = size;
             typedef size_type_class size_type;
-            // TODO: remove absolute file name
-            std::string temp_file = "/tmp/wt_rlmn_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
+            std::string temp_file = "tmp_wt_rlmn_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
             std::ofstream wt_out(temp_file.c_str(), std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
@@ -156,10 +157,12 @@ class wt_rlmn
                 // scope for bl and bf
                 bit_vector bl = bit_vector(size, 0);
                 m_C  = int_vector<64>(256, 0);
-
                 rac.reset();
                 uint8_t last_c = '\0';
                 for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
+                    if (r_sum + r > size) {  // read not more than size chars in the next loop
+                        r = size-r_sum;
+                    }
                     for (; i < r+r_sum; ++i) {
                         uint8_t c = rac[i-r_sum];
                         if (last_c != c or i==0) {
@@ -189,6 +192,9 @@ class wt_rlmn
                 bf[size] = 1; // initialize last element
                 rac.reset();
                 for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
+                    if (r_sum + r > size) {  // read not more than size chars in the next loop
+                        r = size-r_sum;
+                    }
                     for (; i < r+r_sum; ++i) {
                         uint8_t c = rac[i-r_sum];
                         if (bl[i]) {
@@ -206,14 +212,12 @@ class wt_rlmn
                 }
                 util::assign(m_bl, bl);
                 util::assign(m_bf, bf);
-//			m_bl = bit_vector_type(bl);
-//			m_bf = bit_vector_type(bf);
             }
 
-            m_bl_rank.init(&m_bl);
-            m_bf_rank.init(&m_bf);
-            m_bf_select.init(&m_bf);
-            m_bl_select.init(&m_bl);
+            util::init_support(m_bl_rank, &m_bl);
+            util::init_support(m_bf_rank, &m_bf);
+            util::init_support(m_bf_select, &m_bf);
+            util::init_support(m_bl_select, &m_bl);
             m_C_bf_rank = int_vector<64>(256,0);
             for (size_type i=0; i<256; ++i) {
                 m_C_bf_rank[i] = m_bf_rank(m_C[i]);
@@ -244,17 +248,17 @@ class wt_rlmn
 
                 m_bl_rank.swap(wt.m_bl_rank);
                 m_bl_rank.set_vector(&m_bl);
-                wt.m_bl_rank.set(&(wt.m_bl));
+                wt.m_bl_rank.set_vector(&(wt.m_bl));
                 m_bf_rank.swap(wt.m_bf_rank);
                 m_bf_rank.set_vector(&m_bf);
-                wt.m_bf_rank.set(&(wt.m_bf));
+                wt.m_bf_rank.set_vector(&(wt.m_bf));
 
                 m_bl_select.swap(wt.m_bl_select);
                 m_bl_select.set_vector(&m_bl);
-                wt.m_bl_select.set(&(wt.m_bl));
+                wt.m_bl_select.set_vector(&(wt.m_bl));
                 m_bf_select.swap(wt.m_bf_select);
                 m_bf_select.set_vector(&m_bf);
-                wt.m_bf_select.set(&(wt.m_bf));
+                wt.m_bf_select.set_vector(&(wt.m_bf));
 
                 m_C.swap(wt.m_C);
                 m_C_bf_rank.swap(wt.m_C_bf_rank);
@@ -346,25 +350,26 @@ class wt_rlmn
         };
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            written_bytes += m_bl.serialize(out);
-            written_bytes += m_bf.serialize(out);
-            written_bytes += m_wt.serialize(out);
-            written_bytes += m_bl_rank.serialize(out);
-            written_bytes += m_bf_rank.serialize(out);
-            written_bytes += m_bl_select.serialize(out);
-            written_bytes += m_bf_select.serialize(out);
-            written_bytes += m_C.serialize(out);
-            written_bytes += m_C_bf_rank.serialize(out);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += m_bl.serialize(out, child, "bl");
+            written_bytes += m_bf.serialize(out, child, "bf");
+            written_bytes += m_wt.serialize(out, child, "wt");
+            written_bytes += m_bl_rank.serialize(out, child, "bl_rank");
+            written_bytes += m_bf_rank.serialize(out, child, "bf_rank");
+            written_bytes += m_bl_select.serialize(out, child, "bl_select");
+            written_bytes += m_bf_select.serialize(out, child, "bf_select");
+            written_bytes += m_C.serialize(out, child, "C");
+            written_bytes += m_C_bf_rank.serialize(out, child, "C_bf_rank");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            in.read((char*) &m_size, sizeof(m_size));
+            util::read_member(m_size, in);
             m_bl.load(in);
             m_bf.load(in);
             m_wt.load(in);
@@ -381,25 +386,6 @@ class wt_rlmn
             std::cout<<"# m_bf.size in MB="<<util::get_size_in_bytes(m_bf)/(1024.0*1024.0)<<std::endl;
             std::cout<<"# m_bl.size in MB="<<util::get_size_in_bytes(m_bl)/(1024.0*1024.0)<<std::endl;
         }
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "wt_rlmn";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label=\""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << "\n,";
-            m_bl.mem_info("bl"); std::cout << ",\n";
-            m_bf.mem_info("bf"); std::cout << ",\n";
-            m_wt.mem_info("wt"); std::cout << ",\n";
-            m_bl_rank.mem_info("rank bl"); std::cout << ",\n";
-            m_bf_rank.mem_info("rank bf"); std::cout << ",\n";
-            m_bl_select.mem_info("select bl"); std::cout << ",\n";
-            m_bf_select.mem_info("select bf"); std::cout << ",\n";
-            m_C.mem_info("C"); std::cout << ",\n";
-            m_C_bf_rank.mem_info("rank C bf"); std::cout << ")\n";
-        }
-#endif
-
 };
 
 

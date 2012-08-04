@@ -26,6 +26,7 @@
 #include "rank_support.hpp"
 #include "util.hpp"
 #include <stdexcept>
+#include <string>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -119,7 +120,7 @@ class nearest_neighbour_dictionary
                     last_one_pos = i;
                 }
             }
-            m_rank_contains_abs_sample.init(&m_contains_abs_sample);
+            util::init_support(m_rank_contains_abs_sample, &m_contains_abs_sample);
         }
 
         //! Copy constructor
@@ -136,6 +137,17 @@ class nearest_neighbour_dictionary
                 copy(nnd);
             }
             return *this;
+        }
+
+        void swap(nearest_neighbour_dictionary& nnd) {
+            // copy all members of the data structure
+            m_abs_samples.swap(nnd.m_abs_samples);
+            m_differences.swap(nnd.m_differences);
+            std::swap(m_ones, nnd.m_ones);
+            std::swap(m_size, nnd.m_size);
+            m_contains_abs_sample.swap(nnd.m_contains_abs_sample);
+            util::swap_support(m_rank_contains_abs_sample, nnd.m_rank_contains_abs_sample,
+                               &m_contains_abs_sample, &(nnd.m_contains_abs_sample));
         }
 
         //! Answers rank queries for the supported bit_vector
@@ -210,16 +222,16 @@ class nearest_neighbour_dictionary
         //! Serializes the nearest_neighbour_dictionary.
         /*! \param out Out-Stream to serialize the data to.
         */
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             size_type written_bytes = 0;
-            written_bytes += m_abs_samples.serialize(out);
-            written_bytes += m_differences.serialize(out);
-            out.write((char*)&m_ones, sizeof(m_ones));
-            written_bytes += sizeof(m_ones);
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_ones);
-            written_bytes += m_contains_abs_sample.serialize(out);
-            written_bytes += m_rank_contains_abs_sample.serialize(out);
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+            written_bytes += m_abs_samples.serialize(out, child, "absolute_samples");
+            written_bytes += m_differences.serialize(out, child, "differences");
+			written_bytes += util::write_member(m_ones, out, child, "ones");
+			written_bytes += util::write_member(m_size,out,  child, "size");
+            written_bytes += m_contains_abs_sample.serialize(out, child, "contains_abs_sample");
+            written_bytes += m_rank_contains_abs_sample.serialize(out, child, "rank_contains_abs_sample");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -229,21 +241,11 @@ class nearest_neighbour_dictionary
         void load(std::istream& in) {
             m_abs_samples.load(in);
             m_differences.load(in);
-            in.read((char*)&m_ones, sizeof(m_ones));
-            in.read((char*)&m_size, sizeof(m_size));
+			util::read_member(m_ones, in);
+			util::read_member(m_size, in);
             m_contains_abs_sample.load(in);
             m_rank_contains_abs_sample.load(in, &m_contains_abs_sample);
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "nnd";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ")\n";
-        }
-#endif
 };
 
 

@@ -23,19 +23,20 @@
 
 #include "bitmagic.hpp"
 #include "typedefs.hpp"
-#include <iosfwd> // forward declaration of ostream
-#include <stdint.h> // for uint64_t uint32_t declaration
-#include <iostream>// for cerr
+#include "structure_tree.hpp"
+#include <iosfwd>      // forward declaration of ostream
+#include <stdint.h>    // for uint64_t uint32_t declaration
 #include <cassert>
-#include <fstream> // file stream for storeToFile and loadFromFile
-#include <ctime>  // for rand initialization
+#include <fstream>     // file stream for storeToFile and loadFromFile
+#include <ctime>       // for rand initialization
 #include <string>
-#include <string.h> // for strlen and strdup
-#include <libgen.h> // for basename
+#include <string.h>    // for strlen and strdup
+#include <libgen.h>    // for basename
 #include <cstdlib>
-#include <unistd.h> // for getpid 
-#include <sstream> // for to_string method
+#include <unistd.h>    // for getpid 
+#include <sstream>     // for to_string method
 #include <stdexcept>   // for std::logic_error
+#include <typeinfo>    // for typeid
 
 
 // macros to transform a defined name to a string
@@ -45,6 +46,9 @@
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
+
+//class structure_tree_node; // forward declaration of data structure in structure_tree.hpp
+//class structure_tree; // forward declaration of data structure in structure.hpp
 
 template<uint8_t, class size_type_class>
 class int_vector_file_buffer; // forward declaration
@@ -57,6 +61,8 @@ namespace util
 {
 
 static bool verbose = false;
+
+void set_verbose();
 
 //! Returns the basename of a file_name
 std::string basename(const std::string& file_name);
@@ -78,6 +84,7 @@ void set_zero_bits(int_vector_type& v);
 //! Sets all bits of the int_vector to 1-bits.
 template<class int_vector_type>
 void set_one_bits(int_vector_type& v);
+
 //! Bit compress the int_vector
 /*! Determine the biggest value X and then set the
  *  int_width to the smallest possible so that we
@@ -169,19 +176,30 @@ std::string demangle(const char* name);
 //! Demangle the class name of typeid(...).name() and remove the "sdsl::"-prefix, "unsigned int",...
 std::string demangle2(const char* name);
 
+template<class T>
+std::string class_name(const T& t)
+{
+    std::string result = demangle2(typeid(t).name());
+    size_t template_pos = result.find("<");
+    if (template_pos != std::string::npos) {
+        result = result.erase(template_pos);
+    }
+    return result;
+}
+
 //! Get the size of a data structure in bytes.
 /*!
  *	\param v A reference to the data structure for which the size in bytes should be calculated.
  */
 template<class T>
-typename T::size_type get_size_in_bytes(const T& v);
+typename T::size_type get_size_in_bytes(const T& t);
 
 //! Get the size of a data structure in mega bytes (MB).
 /*!
- *	\param v A reference to the data structure for which the size in bytes should be calculated.
+ *	\param t A reference to the data structure for which the size in bytes should be calculated.
  */
 template<class T>
-double get_size_in_mega_bytes(const T& v);
+double get_size_in_mega_bytes(const T& t);
 
 struct nullstream : std::ostream {
     struct nullbuf: std::streambuf {
@@ -189,20 +207,23 @@ struct nullstream : std::ostream {
             return traits_type::not_eof(c);
         }
     } m_sbuf;
-    nullstream(): std::ios(&m_sbuf), std::ostream(&m_sbuf) {}
+    nullstream(): std::ios(&m_sbuf), std::ostream(&m_sbuf), m_sbuf() {}
 };
 
 // Writes primitive-typed variable t to stream out
 template<class T>
-size_t write_member(const T& t, std::ostream& out)
+size_t write_member(const T& t, std::ostream& out, sdsl::structure_tree_node* v=NULL, std::string name="")
 {
+    sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, util::class_name(t));
     out.write((char*)&t, sizeof(t));
-    return sizeof(t);
+    size_t written_bytes = sizeof(t);
+    sdsl::structure_tree::add_size(child, written_bytes);
+    return written_bytes;
 }
 
 // Specialization for std::string
 template<>
-size_t write_member<std::string>(const std::string& t, std::ostream& out);
+size_t write_member<std::string>(const std::string& t, std::ostream& out, structure_tree_node* v, std::string name);
 
 // Writes primitive-typed variable t to stream out
 template<class T>
@@ -282,34 +303,75 @@ void clear(T& x)
     x.swap(y);
 }
 
+//! Swap support data structure and assign to new vector
+/*! \param s1 First support structure.
+ *  \param s2 Second support structure.
+ *  \param p1 First supported structure.
+ *  \param p2 Second supported structure.
+ *  s1 is swapped with s2 and after the execution s1 supports p1 and s2 supports
+ *  p2. I.e. if p1 and p2 are members of a complex data structure, we have to
+ *  swap p1 and p2 before we use this method.
+ */
+template<class S, class P>
+void swap_support(S& s1, S& s2, const P* p1, const P* p2)
+{
+    s1.swap(s2);
+    s1.set_vector(p1);
+    s2.set_vector(p2);
 }
+
+//! Initialise support data structure with
+/*! \param s Support structure which should be initialized
+ *  \param x Pointer to the data structure which should be supported.
+ */
+template<class S, class X>
+void init_support(S& s, const X* x)
+{
+    S temp(x);			// generate a temporary support object
+    s.swap(temp);		// swap its content with the target object
+    s.set_vector(x);    // set the support object's  pointer to x
+}
+
+template<format_type F, class X>
+void write_structure(const X& x, std::ostream& out)
+{
+    structure_tree_node* v = new structure_tree_node();
+    nullstream ns;
+    x.serialize(ns, v, "");
+    if (v->children.size() > 0) {
+        sdsl::write_structure_tree<F>(v->children[0], out);
+    }
+    delete v;
+}
+
+} // end namespace util
 
 //==================== Template functions ====================
 
 
 template<class T>
-typename T::size_type util::get_size_in_bytes(const T& v)
+typename T::size_type util::get_size_in_bytes(const T& t)
 {
-    if ((&v) == NULL)
+    if ((&t) == NULL)
         return 0;
     util::nullstream ns;
-    return v.serialize(ns);
+    return t.serialize(ns);
 }
 
 template<class T>
-double util::get_size_in_mega_bytes(const T& v)
+double util::get_size_in_mega_bytes(const T& t)
 {
-    return get_size_in_bytes(v)/(1024.0*1024.0);
+    return get_size_in_bytes(t)/(1024.0*1024.0);
 }
 
 template<class T>
-bool util::store_to_file(const T& v, const char* file_name)
+bool util::store_to_file(const T& t, const char* file_name)
 {
     std::ofstream out;
     out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
         return false;
-    v.serialize(out);
+    t.serialize(out);
     out.close();
     return true;
 }
@@ -333,7 +395,7 @@ bool util::store_to_file(const int_vector<fixed_int_width, size_type_class>& v, 
     out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
         return false;
-    v.serialize(out, write_fixed_as_variable);
+    v.serialize(out, NULL, "", write_fixed_as_variable);
     out.close();
     return true;
 }
@@ -411,6 +473,7 @@ void util::set_zero_bits(int_vector_type& v)
     uint64_t* data = v.m_data;
     if (v.empty())
         return;
+    // TODO: replace by memset() but take care of size_t in the argument!
     *data = 0ULL;
     for (typename int_vector_type::size_type i=1; i < (v.capacity()>>6); ++i) {
         *(++data) = 0ULL;

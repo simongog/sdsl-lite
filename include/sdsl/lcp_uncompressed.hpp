@@ -165,7 +165,7 @@ class lcp_uncompressed
          */
         bool operator==(const lcp_uncompressed& lcp_c)const;
 
-        //! Unequality Operator
+        //! Inequality Operator
         /*! Two Instances of lcp_uncompressed are equal if
          *  not all their members are equal.
          *  \par Required for the Equality Comparable Concept of the STL.
@@ -177,21 +177,12 @@ class lcp_uncompressed
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
 
         //! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
          */
         void load(std::istream& in);
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "lcp";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<")\n";
-        }
-#endif
 };
 
 // == template functions ==
@@ -263,10 +254,12 @@ inline typename lcp_uncompressed<width>::value_type lcp_uncompressed<width>::ope
 
 
 template<uint8_t width>
-typename lcp_uncompressed<width>::size_type lcp_uncompressed<width>::serialize(std::ostream& out) const
+typename lcp_uncompressed<width>::size_type lcp_uncompressed<width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    written_bytes += m_lcp.serialize(out);
+    written_bytes += m_lcp.serialize(out, child, "lcp");
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 

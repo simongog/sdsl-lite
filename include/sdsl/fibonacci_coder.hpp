@@ -103,6 +103,9 @@ class fibonacci
 
 inline uint8_t fibonacci::encoding_length(uint64_t w)
 {
+    if (w == 0) {
+        return 93;
+    }
     // This limit for the leftmost 1bit in the resulting fib code could be improved using a table
     uint8_t len_1 = bit_magic::l1BP(w); // len-1 of the fib code
     while (++len_1 < (uint8_t)(sizeof(bit_magic::Fib)/sizeof(bit_magic::Fib[0])) && w >= bit_magic::Fib[len_1]);
@@ -113,11 +116,15 @@ template<class int_vector1, class int_vector2>
 inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
 {
     uint64_t z_bit_size = 0;
+    register uint64_t w;
+    const uint64_t zero_val = v.get_int_width() < 64 ? (1ULL)<<v.get_int_width() : 0;
     for (typename int_vector1::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
-        if (*it == 0) {
-            throw std::logic_error("fibonacci::encode(const SDSBitVector &v, SDSBitVector &z); entry of v equals 0 that cannot be encoded!");
+        if ((w=*it) == 0) {
+            if (v.get_int_width() < 64) {
+                w = zero_val;
+            }
         }
-        z_bit_size += encoding_length(*it);
+        z_bit_size += encoding_length(w);
     }
     z.bit_resize(z_bit_size);
     if (z_bit_size & 0x3F) { // if z_bit_size % 64 != 0
@@ -125,17 +132,27 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
     }
     uint64_t* z_data 	= z.m_data;
     uint8_t offset 		= 0;
-    register uint64_t w;
     register uint64_t fibword_high = 0x0000000000000001ULL, fibword_low;
     register uint64_t t;
     for (typename int_vector1::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
         w = *it;
+        if (w == 0) {
+            w = zero_val;
+        }
         int8_t len_1 = encoding_length(w)-1,j;
         fibword_low = 0x0000000000000001ULL;
 
         if (len_1 >= 64) { // length > 65
             fibword_high = 0x0000000000000001ULL;
-            for (j = len_1-1; j>63; --j) {
+            j = len_1-1;
+            if (w == 0) { // handle special case
+                fibword_high <<= 1;
+                fibword_high |= 1;
+                fibword_high <<= 1;
+                w -= bit_magic::Fib[len_1-1];
+                j -= 2;
+            }
+            for (; j>63; --j) {
                 fibword_high <<= 1;
                 if (w >= (t=bit_magic::Fib[j])) {
                     w -= t;
@@ -188,7 +205,15 @@ inline void fibonacci::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
 
     if (len_1 >= 64) { // length > 65
         fibword_high = 0x0000000000000001ULL;
-        for (j = len_1-1; j>63; --j) {
+        j = len_1-1;
+        if (x == 0) { // handle special case
+            fibword_high <<= 1;
+            fibword_high |= 1;
+            fibword_high <<= 1;
+            x -= bit_magic::Fib[len_1-1];
+            j -= 2;
+        }
+        for (; j>63; --j) {
             fibword_high <<= 1;
             if (x >= (t=bit_magic::Fib[j])) {
                 x -= t;
@@ -247,6 +272,7 @@ bool fibonacci::decode(const int_vector1& z, int_vector2& v)
     } else {
         n += bit_magic::b11Cnt(*data, carry);
     }
+    std::cout<<"n="<<n<<std::endl;
     v.set_int_width(z.get_int_width()); v.resize(n);
     return decode<false, true>(z.data(), 0, n, v.begin());
 }

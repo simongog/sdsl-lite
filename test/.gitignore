@@ -1,0 +1,6 @@
+Makefile			  
+./*           # ignore every file in the current directory
+!*/           # don't ignore subdirectories
+!*.cpp        # don't ignore .cpp-files
+!.gitignore   # don't ignore the .gitignore file
+!README       # don't ignore the README file

@@ -40,34 +40,34 @@ struct select_support_mcl_trait {
     typedef select_support::size_type	size_type;
 
     /* Count the number of arguments for the specific select support */
-    static size_type arg_cnt(const bit_vector& v) {
+    static size_type arg_cnt(const bit_vector&) {
         return 0;
     }
 
-    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry) {
+    static size_type args_in_the_first_word(uint64_t, uint8_t, uint64_t) {
         return 0;
     }
 
-    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry) {
+    static size_type ith_arg_pos_in_the_first_word(uint64_t, size_type, uint8_t, uint64_t) {
         return 0;
     }
 
-    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
+    static size_type args_in_the_word(uint64_t, uint64_t&) {
         return 0;
     }
 
-    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry) {
+    static size_type ith_arg_pos_in_the_word(uint64_t, size_type, uint64_t) {
         return 0;
     }
 
-    static bool found_arg(size_type i, const bit_vector& v) {
+    static bool found_arg(size_type, const bit_vector&) {
         return 0;
     }
 
-    static uint64_t init_carry(const uint64_t* data, size_type word_pos) {
+    static uint64_t init_carry(const uint64_t*, size_type) {
         return 0;
     }
-    static uint64_t get_carry(uint64_t w) {
+    static uint64_t get_carry(uint64_t) {
         return 0;
     }
 };
@@ -80,26 +80,26 @@ struct select_support_mcl_trait<0,1> {
         return v.bit_size()-util::get_one_bits(v);
     }
 
-    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry) {
+    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t) {
         return bit_magic::b1Cnt((~w)& bit_magic::Li0Mask[offset]);
     }
 
-    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry) {
+    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t) {
         return bit_magic::i1BP(~w & bit_magic::Li0Mask[offset], i);
     }
-    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
+    static size_type args_in_the_word(uint64_t w, uint64_t&) {
         return bit_magic::b1Cnt(~w);
     }
-    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry) {
+    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t) {
         return bit_magic::i1BP(~w, i);
     }
     static bool found_arg(size_type i, const bit_vector& v) {
         return !v[i];
     }
-    static uint64_t init_carry(const uint64_t* data, size_type word_pos) {
+    static uint64_t init_carry(const uint64_t*, size_type) {
         return 0;
     }
-    static uint64_t get_carry(uint64_t w) {
+    static uint64_t get_carry(uint64_t) {
         return 0;
     }
 };
@@ -113,19 +113,19 @@ struct select_support_mcl_trait<1,1> {
         return util::get_one_bits(v);
     }
 
-    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry) {
+    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t) {
         return bit_magic::b1Cnt(w & bit_magic::Li0Mask[offset]);
     }
 
-    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry) {
+    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t) {
         return bit_magic::i1BP(w & bit_magic::Li0Mask[offset], i);
     }
 
-    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
+    static size_type args_in_the_word(uint64_t w, uint64_t&) {
         return bit_magic::b1Cnt(w);
     }
 
-    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry) {
+    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t) {
         return bit_magic::i1BP(w, i);
     }
 
@@ -133,10 +133,10 @@ struct select_support_mcl_trait<1,1> {
         return v[i];
     }
 
-    static uint64_t init_carry(const uint64_t* data, size_type word_pos) {
+    static uint64_t init_carry(const uint64_t*, size_type) {
         return 0;
     }
-    static uint64_t get_carry(uint64_t w) {
+    static uint64_t get_carry(uint64_t) {
         return 0;
     }
 };
@@ -260,7 +260,7 @@ class select_support_mcl : public select_support
         void initData();
         void init_fast(const int_vector<1>* v=NULL);
     public:
-        select_support_mcl(const int_vector<1>* v=NULL);
+        explicit select_support_mcl(const int_vector<1>* v=NULL);
         select_support_mcl(const select_support_mcl<b,pattern_len>& ss);
         ~select_support_mcl();
         void init(const int_vector<1>* v=NULL);
@@ -271,14 +271,13 @@ class select_support_mcl : public select_support
         inline const size_type select(size_type i) const;
         //! Alias for select(i).
         inline const size_type operator()(size_type i)const;
-        size_type serialize(std::ostream& out)const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
         void load(std::istream& in, const int_vector<1>* v=NULL);
         void set_vector(const int_vector<1>* v=NULL);
         select_support_mcl<b, pattern_len>& operator=(const select_support_mcl& ss);
 
         //! Swap operator
-        /*! This swap Operator swaps two select_support_mcls in constant time.
-         *  All members (excluded the pointer to the supported SDSBitVector) are swapped.
+        /*! This swap operator swaps two select_support_mcls in constant time.
          */
         void swap(select_support_mcl<b, pattern_len>& ss);
         //! Equality Operator
@@ -293,14 +292,6 @@ class select_support_mcl : public select_support
          * \sa operator==
          */
         bool operator!=(const select_support_mcl<b, pattern_len>& ss)const;
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label="select";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<")\n";
-        }
-#endif
 };
 
 
@@ -656,41 +647,41 @@ void select_support_mcl<b,pattern_len>::set_vector(const int_vector<1>* v)
 }
 
 template<uint8_t b, uint8_t pattern_len>
-typename select_support_mcl<b,pattern_len>::size_type select_support_mcl<b,pattern_len>::serialize(std::ostream& out)const
+typename select_support_mcl<b,pattern_len>::size_type select_support_mcl<b,pattern_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    // write the number of 1-bits in the supported SDSBitVector
+    // write the number of 1-bits in the supported bit_vector
     out.write((char*) &m_arg_cnt, sizeof(size_type)/sizeof(char));
     written_bytes = sizeof(size_type)/sizeof(char);
     // number of superblocks in the data structure
     size_type sb = (m_arg_cnt+4095)>>12;
 
     if (m_arg_cnt) { // if there exists 1-bits to be supported
-        written_bytes += m_superblock.serialize(out); // serialize superblocks
+        written_bytes += m_superblock.serialize(out, child, "superblock"); // serialize superblocks
         int_vector<1> mini_or_long;// Helper vector: mini or long block?
         if (m_longsuperblock!=NULL) {
-            mini_or_long.resize(sb); // resize indicatior BitVector to the number of superblocks
+            mini_or_long.resize(sb); // resize indicator bit_vector to the number of superblocks
             for (size_type i=0; i< sb; ++i)
                 mini_or_long[i] = !m_miniblock[i].empty();
         }
-        written_bytes += mini_or_long.serialize(out);
+        written_bytes += mini_or_long.serialize(out, child, "mini_or_long");
+        size_type written_bytes_long = 0;
+        size_type written_bytes_mini = 0;
         for (size_type i=0; i < sb; ++i)
             if (!mini_or_long.empty() and !mini_or_long[i]) {
-                written_bytes += m_longsuperblock[i].serialize(out);
-//		   			SDSCoder::compress(m_longsuperblock[i], z);
-//					z.serialize(out);
-//SDSBitVector *z = SDSCoder::compress(m_longsuperblock[i]);
-//if(z!=NULL) delete z;
+                written_bytes_long += m_longsuperblock[i].serialize(out);
             } else {
-                written_bytes += m_miniblock[i].serialize(out);
-//		   			SDSCoder::compress(m_miniblock[i], z);
-//		   			SDSCoder::decompress(z, zz);
-//					assert(m_miniblock[i]==zz);
-//					z.serialize(out);
-//SDSBitVector *z = SDSCoder::compress(m_miniblock[i]);
-//if(z!=NULL) delete z;
+                written_bytes_mini += m_miniblock[i].serialize(out);
             }
+        written_bytes += written_bytes_long;
+        written_bytes += written_bytes_mini;
+        structure_tree_node* child_long = structure_tree::add_child(child, "longsuperblock", util::class_name(m_longsuperblock));
+        structure_tree::add_size(child_long, written_bytes_long);
+        structure_tree_node* child_mini = structure_tree::add_child(child, "minisuperblock", util::class_name(m_miniblock));
+        structure_tree::add_size(child_mini, written_bytes_mini);
     }
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 
@@ -699,14 +690,11 @@ void select_support_mcl<b,pattern_len>::load(std::istream& in, const int_vector<
 {
     set_vector(v);
     initData();
-    // read the number of 1-bits in the supported SDSBitVector
+    // read the number of 1-bits in the supported bit_vector
     in.read((char*) &m_arg_cnt, sizeof(size_type)/sizeof(char));
     size_type sb = (m_arg_cnt+4095)>>12;
 
     if (m_arg_cnt) { // if there exists 1-bits to be supported
-//			SDSBitVector z;
-//			z.load(in);// load compressed superblocks
-//			SDSCoder::decompress(z, m_superblock);
         m_superblock.load(in); // load superblocks
 
         if (m_miniblock!=NULL) {
@@ -727,12 +715,8 @@ void select_support_mcl<b,pattern_len>::load(std::istream& in, const int_vector<
         for (size_type i=0; i < sb; ++i)
             if (!mini_or_long.empty() and not mini_or_long[i]) {
                 m_longsuperblock[i].load(in);
-//					z.load(in);
-//					SDSCoder::decompress(z,m_longsuperblock[i]);
             } else {
                 m_miniblock[i].load(in);
-//					z.load(in);
-//					SDSCoder::decompress(z,m_miniblock[i]);
             }
     }
 }

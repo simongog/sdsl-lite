@@ -52,7 +52,7 @@ template<>
 struct rank_support_v_trait<0,1> {
     typedef rank_support::size_type	size_type;
 
-    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
+    static size_type args_in_the_word(uint64_t w, uint64_t&) {
         return bit_magic::b1Cnt(~w);
     }
 
@@ -73,7 +73,7 @@ template<>
 struct rank_support_v_trait<1,1> {
     typedef rank_support::size_type	size_type;
 
-    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
+    static size_type args_in_the_word(uint64_t w, uint64_t&) {
         return bit_magic::b1Cnt(w);
     }
 
@@ -162,14 +162,14 @@ class rank_support_v : public rank_support
     private:
         int_vector<64> m_basic_block; // basic block for interleaved storage of superblockrank and blockrank
     public:
-        rank_support_v(const bit_vector* v = NULL);
+        explicit rank_support_v(const bit_vector* v = NULL);
         rank_support_v(const rank_support_v& rs);
         ~rank_support_v();
         void init(const bit_vector* v=NULL);
         const size_type rank(size_type idx) const;
         const size_type operator()(size_type idx)const;
         const size_type size()const;
-        size_type serialize(std::ostream& out)const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
         void load(std::istream& in, const int_vector<1>* v=NULL);
         void set_vector(const bit_vector* v=NULL);
 
@@ -179,8 +179,7 @@ class rank_support_v : public rank_support
         rank_support_v& operator=(const rank_support_v& rs);
         //! swap Operator
         /*! Swap two rank_support_v in constant time.
-         *	All members (excluded the pointer to the supported SDSBitVector) are swapped.
-         *
+         *	All members (excluded the pointer to the supported bit_vector) are swapped.
          *  Required for the Container Concept of the STL.
          */
         void swap(rank_support_v& rs);
@@ -191,22 +190,13 @@ class rank_support_v : public rank_support
          * \sa operator!=
          */
         bool operator==(const rank_support_v& rs)const;
-        //! Unequality Operator
+        //! Inequality Operator
         /*! Two rank_support_vs are not equal if any member variable are not equal.
          *
          * Required for the Equality Comparable Concept of the STL.
          * \sa operator==
          */
         bool operator!=(const rank_support_v& rs)const;
-
-#ifdef MEM_INFO
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label="rank";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<")\n";
-        }
-#endif
 };
 
 template<uint8_t b, uint8_t pattern_len>
@@ -239,8 +229,12 @@ template<uint8_t b, uint8_t pattern_len>
 inline void rank_support_v<b, pattern_len>::init(const bit_vector* v)
 {
     set_vector(v);
-    if (v == NULL or v->empty())
+    if (v == NULL) {
         return;
+    } else if (v->empty()) {
+        m_basic_block = int_vector<64>(2,0);   // resize structure for basic_blocks
+        return;
+    }
     size_type basic_block_size = ((v->capacity() >> 9)+1)<<1;
     m_basic_block.resize(basic_block_size);   // resize structure for basic_blocks
     if (m_basic_block.empty())
@@ -296,9 +290,13 @@ inline rank_support_v<b, pattern_len>::~rank_support_v() {}
 
 
 template<uint8_t b, uint8_t pattern_len>
-inline typename rank_support_v<b, pattern_len>::size_type rank_support_v<b, pattern_len>::serialize(std::ostream& out)const
+inline typename rank_support_v<b, pattern_len>::size_type rank_support_v<b, pattern_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
-    return m_basic_block.serialize(out);
+    size_type written_bytes = 0;
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+    written_bytes += m_basic_block.serialize(out, child, "cumulative_counts");
+    structure_tree::add_size(child, written_bytes);
+    return written_bytes;
 }
 
 template<uint8_t b, uint8_t pattern_len>
@@ -323,8 +321,6 @@ template<uint8_t b, uint8_t pattern_len>
 inline void rank_support_v<b, pattern_len>::swap(rank_support_v& rs)
 {
     if (this != &rs) { // if rs and _this_ are not the same object
-        // TODO: swap m_v??? no!!! but the swap of the rank data strucutre has to be made after the swap of the supported bitvectors!!!
-//		std::swap(m_v, rs.m_v);
         m_basic_block.swap(rs.m_basic_block);
     }
 }

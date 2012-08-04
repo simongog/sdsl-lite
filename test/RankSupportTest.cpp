@@ -43,7 +43,7 @@ class RankSupportTest : public ::testing::Test
             bs[1] = bit_vector(1,0);
             bs[2] = bit_vector(1000000,0);
             bs[3] = bit_vector(1000000,1);
-            bs[4] = bit_vector(0);
+            bs[4] = bit_vector(0);   // test empty bitvector
             for (size_type i=5; i<14; ++i) {
                 bs[i] = bit_vector(i, i%2);
             }
@@ -89,26 +89,26 @@ class RankSupportTest : public ::testing::Test
 using testing::Types;
 
 typedef Types<
-sdsl::rank_support_v<>,
+sdsl::rank_support_interleaved<1,256>,
+     sdsl::rank_support_interleaved<1, 512>,
+     sdsl::rank_support_interleaved<1, 1024>,
+     sdsl::rrr_rank_support<>,
+     sdsl::rank_support_v<>,
+     sdsl::rank_support_v5<>,
+     sdsl::rrr_rank_support<1, 64>,
      sdsl::rrr_rank_support<1, 192>,
      sdsl::rrr_rank_support<1, 256>,
      sdsl::rrr_rank_support<1, 255>,
      sdsl::rrr_rank_support<1, 15>,
      sdsl::rrr_rank_support<1, 31>,
      sdsl::rrr_rank_support<1, 63>,
-     sdsl::rrr_rank_support<1, 64>,
      sdsl::rrr_rank_support<1, 83>,
      sdsl::rrr_rank_support<1, 127>,
      sdsl::rrr_rank_support<1, 128>,
      sdsl::rrr_rank_support<1, 129>,
-     sdsl::rank_support_v5<>,
-     sdsl::rank_support_interleaved<1,256>,
-     sdsl::rank_support_interleaved<1, 512>,
-     sdsl::rank_support_interleaved<1, 1024>,
      sdsl::sd_rank_support<>,
-     sdsl::rank_support_jmc,
-     sdsl::rrr_rank_support<>,
-     sdsl::gap_rank_support<>
+     sdsl::gap_rank_support<>,
+     sdsl::rank_support_jmc
      > Implementations;
 
 TYPED_TEST_CASE(RankSupportTest, Implementations);
@@ -117,23 +117,17 @@ TYPED_TEST_CASE(RankSupportTest, Implementations);
 TYPED_TEST(RankSupportTest, RankMethod)
 {
     for (size_type i=0; i<this->n; ++i) {
-//		std::cout<<"test case "<<i<<" of size "<<this->bs[i].size()<<std::endl;
         typename TypeParam::bit_vector_type bv(this->bs[i]);
-//		std::cout<<"copied vector"<<std::endl;
         TypeParam rs(&bv);
         size_type rank=0;
         for (size_type j=0; j < (this->bs[i]).size(); ++j) {
-//            EXPECT_EQ(rs.rank(j), rank) << " at index "<<j<<" of vector "<<i<<" of length "<<(this->bs[i]).size();
-            ASSERT_EQ(rs.rank(j), rank) << " at index "<<j<<" of vector "<<i<<" of length "<<(this->bs[i]).size();
-//			EXPECT_EQ( this->bs[i][j], bv[j]) << "at index "<<j<<
-//				                          " of vector "<<i<<" of length "<< (this->bs[i]).size();
+            ASSERT_EQ(rank, rs.rank(j)) << " at index "<< j
+                                        <<" of vector "<<i<<" of length "<<(this->bs[i]).size();
             rank += (this->bs)[i][j];
-//			rank += bv[j];
         }
-        if (this->bs[i].size() > 0) {
-            EXPECT_EQ(rs.rank(this->bs[i].size()), rank) << " at index "<<
-                    this->bs[i].size()<<" of vector "<<i<<" of length "<<(this->bs[i]).size();
-        }
+        EXPECT_EQ(rank, rs.rank(this->bs[i].size())) << " at index "
+                << this->bs[i].size()<<" of vector "<< i
+                <<" of length "<<(this->bs[i]).size();
     }
 }
 

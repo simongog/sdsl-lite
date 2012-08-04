@@ -35,15 +35,16 @@ namespace algorithm
 {
 
 template<class Csa>
-void set_text(const unsigned char* str, typename Csa::size_type len, typename Csa::size_type* C, unsigned char* char2comp, unsigned char* comp2char, uint8_t& sigma)
+void set_text(const unsigned char* str, typename Csa::size_type len, int_vector<64>& C, int_vector<8>& char2comp, int_vector<8>& comp2char, uint16_t& sigma)
 {
 #ifdef SDSL_DEBUG_ALGORITHMS_FOR_COMPRESSED_SUFFIX_ARRAYS
     stop_watch sw; sw.start();
 #endif
     typedef typename Csa::size_type size_type;
-    for (uint16_t i=0; i<256; ++i)
-        char2comp[i] = comp2char[i] = C[i] = 0;
-    C[256] = 0;
+    util::assign(C, int_vector<64>(257,0));
+    util::assign(char2comp, int_vector<8>(256,0));
+    util::assign(comp2char, int_vector<8>(256,0));
+
     if (str == NULL or len ==0)
         return;
     const unsigned char* p = str;
@@ -81,15 +82,15 @@ void set_text(const unsigned char* str, typename Csa::size_type len, typename Cs
 }
 
 template<class Csa, class size_type_class>
-void set_text(int_vector_file_buffer<8, size_type_class>& str_buf, typename Csa::size_type len, typename Csa::size_type* C, unsigned char* char2comp, unsigned char* comp2char, uint8_t& sigma)
+void set_text(int_vector_file_buffer<8, size_type_class>& str_buf, typename Csa::size_type len, int_vector<64>& C, int_vector<8>& char2comp, int_vector<8>& comp2char, uint16_t& sigma)
 {
 #ifdef SDSL_DEBUG_ALGORITHMS_FOR_COMPRESSED_SUFFIX_ARRAYS
     stop_watch sw; sw.start();
 #endif
     typedef typename Csa::size_type size_type;
-    for (uint16_t i=0; i<256; ++i)
-        char2comp[i] = comp2char[i] = C[i] = 0;
-    C[256] = 0;
+    util::assign(C, int_vector<64>(257,0));
+    util::assign(char2comp, int_vector<8>(256,0));
+    util::assign(comp2char, int_vector<8>(256,0));
     str_buf.reset();
     if (0 == str_buf.int_vector_size)
         return;
@@ -100,8 +101,8 @@ void set_text(int_vector_file_buffer<8, size_type_class>& str_buf, typename Csa:
         r_sum += r; r = str_buf.load_next_block();
     }
     assert(1 == C[0]);
-    size_type value = 0;
-    for (uint16_t i=0; i<256; ++i)
+    uint16_t value = 0;
+    for (int i=0; i<256; ++i)
         if (C[i]) {
             char2comp[i] 	= value;
             C[value]		= C[i];
@@ -110,12 +111,12 @@ void set_text(int_vector_file_buffer<8, size_type_class>& str_buf, typename Csa:
             ++value;
         }
     sigma = value;
-    for (uint16_t i=0; i<256; ++i)
+    for (int i=0; i<256; ++i)
         if (char2comp[i])
             comp2char[char2comp[i]] = i;
-    for (uint16_t i=256; i>0; --i) C[i] = C[i-1];
+    for (int i=256; i>0; --i) C[i] = C[i-1];
     C[0] = 0;
-    for (uint16_t i=1; i<257; ++i) C[i] += C[i-1];
+    for (int i=1; i<257; ++i) C[i] += C[i-1];
     if (C[256]!=len) {
         std::cerr<<"C[256]="<<C[256]<<" "<<len<<std::endl;
     }

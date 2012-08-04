@@ -5,6 +5,7 @@
 #include "util.hpp"
 #include "algorithms_for_compressed_suffix_trees.hpp"
 #include "rank_support_v.hpp"
+#include "select_support_dummy.hpp"
 #include "wt_huff.hpp"
 #include <iostream>
 #include <string>
@@ -51,7 +52,7 @@ class _lcp_support_tree2
 
     private:
         const cst_type*	m_cst;
-        typedef select_support_bs< rank_support_v<> > tDummySS;
+        typedef select_support_dummy tDummySS;
         wt_huff<bit_vector, rank_support_v5<>, tDummySS, tDummySS > m_small_lcp; // vector for lcp values < 254
         int_vector<> m_big_lcp;  // vector for lcp values >= 254
 
@@ -154,7 +155,7 @@ start:
             val = m_small_lcp[idx];
             if (val < 254) {
                 return val;// - offset;
-            } else if (val == 254) { // if lcp value is >= 254 and position i is reducable
+            } else if (val == 254) { // if lcp value is >= 254 and position i is reducible
                 i = m_cst->csa.psi(i); // i = LF[i]    // (*m_psi)(i);
                 ++offset; // goto lcp value, which is one bigger
                 goto start;
@@ -202,10 +203,12 @@ start:
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += m_small_lcp.serialize(out);
-            written_bytes += m_big_lcp.serialize(out);
+            written_bytes += m_small_lcp.serialize(out, child, "small_lcp");
+            written_bytes += m_big_lcp.serialize(out, child, "large_lcp");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -219,21 +222,6 @@ start:
             m_big_lcp.load(in);
             m_cst = cst;
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label="lcp";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            m_small_lcp.mem_info("small lcp");
-            std::cout<<",";
-            m_big_lcp.mem_info("big lcp");
-            std::cout << ")\n";
-        }
-#endif
-
 };
 
 //! Helper class which provides _lcp_support_tree2 the context of a CST.

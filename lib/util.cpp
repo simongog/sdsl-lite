@@ -16,6 +16,7 @@
 */
 
 #include "sdsl/util.hpp"
+#include "sdsl/structure_tree.hpp"
 #include "cxxabi.h"
 #include <vector>
 
@@ -69,6 +70,7 @@ std::string demangle2(const char* name)
     std::vector<std::string> words_to_delete;
     words_to_delete.push_back("sdsl::");
     words_to_delete.push_back("(unsigned char)");
+    words_to_delete.push_back(", unsigned long");
 
     for (size_t k=0; k<words_to_delete.size(); ++k) {
         std::string w = words_to_delete[k];
@@ -77,6 +79,11 @@ std::string demangle2(const char* name)
             ++i;
         }
     }
+	size_t index = 0;
+	std::string to_replace = "int_vector<1>";
+	while( (index = result.find(to_replace, index)) != string::npos ){
+		result.replace(index, to_replace.size(), "bit_vector");
+	}
     return result;
 }
 
@@ -99,11 +106,15 @@ std::string to_latex_string(unsigned char c)
 }
 
 template<>
-size_t write_member<std::string>(const std::string& t, std::ostream& out)
+size_t write_member<std::string>(const std::string& t, std::ostream& out, structure_tree_node* v, std::string name)
 {
-    write_member(t.size(), out);
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(t));
+    size_t written_bytes = 0;
+    written_bytes += write_member(t.size(), out, child, "length");
     out.write(t.c_str(), t.size());
-    return t.size();
+    written_bytes += t.size();
+    structure_tree::add_size(v, written_bytes);
+    return written_bytes;
 }
 
 template<>
@@ -161,6 +172,10 @@ bool load_from_file(char*& v, const char* file_name)
         return true;
     } else
         return false;
+}
+
+void set_verbose(){
+	verbose = true;
 }
 
 

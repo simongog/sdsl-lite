@@ -19,7 +19,7 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-#include <unistd.h> // for get_file_size 
+#include <unistd.h> // for get_file_size, also contains clock_gettime 
 #include <sys/types.h> // for get_file_size
 #include <sys/stat.h>  // for get_file_size
 
@@ -65,13 +65,13 @@ double stop_watch::get_real_time()
     return result;
 }
 
-long long stop_watch::get_abs_real_time()
+uint64_t stop_watch::get_abs_real_time()
 {
-    long long result = (((m_timeOfDay2.tv_sec*1000000 + m_timeOfDay2.tv_usec - (m_first_t.tv_sec*1000000 + m_first_t.tv_usec))))/1000;
+    uint64_t result = (((m_timeOfDay2.tv_sec*1000000 + m_timeOfDay2.tv_usec - (m_first_t.tv_sec*1000000 + m_first_t.tv_usec))))/1000;
     return result;
 }
 
-long long stop_watch::get_abs_user_time()
+uint64_t stop_watch::get_abs_user_time()
 {
     timeval t1, t2;
     t1 = m_first_r.ru_utime;
@@ -80,7 +80,7 @@ long long stop_watch::get_abs_user_time()
 }
 
 
-long long stop_watch::get_abs_sys_time()
+uint64_t stop_watch::get_abs_sys_time()
 {
     timeval t1, t2;
     t1 = m_first_r.ru_stime;
@@ -88,7 +88,7 @@ long long stop_watch::get_abs_sys_time()
     return (t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec))/1000;
 }
 
-long long stop_watch::get_abs_page_faults()
+uint64_t stop_watch::get_abs_page_faults()
 {
     return m_ruse2.ru_majflt - m_first_r.ru_majflt; // does not work on my platform
 }
@@ -140,7 +140,7 @@ uint64_t file::read_text(const char* file_name, char*& c, bool trunc, uint64_t l
         c[n-1] = '\0';
         char* cp = c;
         in.read(cp, n-1);
-        if (c[n-2] == 0)
+        if (n > 1 and c[n-2] == 0)
             return n-1; // last byte was already a null byte
         else
             return n; // added 0 byte

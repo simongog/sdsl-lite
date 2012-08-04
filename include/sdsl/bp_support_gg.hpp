@@ -26,6 +26,7 @@
 #include "rank_support.hpp"
 #include "select_support.hpp"
 #include "algorithms.hpp"
+#include "util.hpp"
 #include "testutils.hpp"
 #include <stack>
 #include <map>
@@ -70,15 +71,16 @@ class bp_support_gg
         typedef NearestNeighbourDictionary nnd_type;
         typedef RankSupport				   rank_support_type;
         typedef SelectSupport			   select_support_type;
+        typedef bp_support_gg<nnd_type, RankSupport, select_support_bs<RankSupport> > bp_support_type;
     private:
-        const bit_vector*		 m_bp;			  // the supported balanced parentheses sequence as bit_vector
+        const bit_vector*	    m_bp;			  // the supported balanced parentheses sequence as bit_vector
         rank_support_type 		m_rank_bp;  	  // rank support for the balanced parentheses sequence => see excess() and rank()
         select_support_type		m_select_bp;      // select support for the balanced parentheses sequence => see select()
 
         nnd_type 				m_nnd; 			  // nearest neighbour dictionary for pioneers bit_vector
 
-        bit_vector 					m_pioneer_bp;     // first level of recursion: balanced parentheses sequence of the pioneers
-        bp_support_gg<nnd_type, RankSupport, select_support_bs<RankSupport> >* m_pioneer_bp_support;
+        bit_vector 				m_pioneer_bp;     // first level of recursion: balanced parentheses sequence of the pioneers
+        bp_support_type* 		m_pioneer_bp_support;
 
         uint32_t m_block_size;
         size_type m_size;
@@ -121,18 +123,15 @@ class bp_support_gg
 
         //! Constructor
         // TODO: einen Konstruktor ohne das const bei bit_vector, damit bei calculate_pioneers_bitmap_succinct bp ueberschrieben werden kann?
-        bp_support_gg(const bit_vector* bp, uint32_t used_block_size = 840):m_bp(bp), m_pioneer_bp_support(NULL), m_block_size(used_block_size), m_size(bp==NULL?0:bp->size()), m_blocks((m_size+used_block_size-1)/used_block_size),bp_rank(m_rank_bp),bp_select(m_select_bp) {
+        explicit bp_support_gg(const bit_vector* bp, uint32_t used_block_size = 840):m_bp(bp), m_pioneer_bp_support(NULL), m_block_size(used_block_size), m_size(bp==NULL?0:bp->size()), m_blocks((m_size+used_block_size-1)/used_block_size),bp_rank(m_rank_bp),bp_select(m_select_bp) {
             if (m_block_size<=2) {
                 throw std::logic_error(util::demangle(typeid(this).name())+": block_size should be greater than 2!");
             }
-            if (bp == NULL) // -> m_bp == NULL
+            if (bp == NULL) { // -> m_bp == NULL
                 return;
-            stop_watch sw; sw.start();
-//			write_R_output(sw, "bp support", "init rank and select","start");
-            m_rank_bp.init(bp);
-            m_select_bp.init(bp);
-//			write_R_output(sw, "bp support", "init rank and select","end");
-//			write_R_output(sw, "bp support", "init pioneer","begin", m_bp->size());
+            }
+            util::init_support(m_rank_bp, bp);
+            util::init_support(m_select_bp, bp);
             {
                 bit_vector pioneer;
                 // calulate pioneers
@@ -140,27 +139,19 @@ class bp_support_gg
                 algorithm::calculate_pioneers_bitmap_succinct(*m_bp, m_block_size, pioneer);
                 m_nnd = nnd_type(pioneer);
             }
-//			write_R_output(sw, "bp support", "init pioneer","end");
-            {
-                // TODO: braucht man das???
-                bit_vector pioneer;
-                algorithm::calculate_pioneers_bitmap_succinct2(*m_bp, m_block_size, pioneer);
-            }
-//			write_R_output(sw, "bp support", "init pioneer2","begin");
 
-//			write_R_output(sw, "bp support", "init pioneer2","end");
             m_pioneer_bp.resize(m_nnd.ones());
             if (m_nnd.ones() > 0  and m_nnd.ones() == m_bp->size()) { // m_bp != NULL see above
                 throw std::logic_error(util::demangle(typeid(this).name())+": recursion in the construction does not terminate!");
             }
 
-//			write_R_output(sw, "bp support", "construct pioneer bp","begin");
-            for (size_type i=1; i<= m_nnd.ones(); ++i) // replace this by an iterator!!! see TODO for the nnd data structure
+            for (size_type i=1; i<= m_nnd.ones(); ++i) { // replace this by an iterator!!! see TODO for the nnd data structure
                 m_pioneer_bp[i-1] = (*m_bp)[m_nnd.select(i)];
-//			write_R_output(sw, "bp support", "construct pioneer bp","end");
+            }
 
-            if (m_bp->size() > 0)  // m_bp != NULL see above
+            if (m_bp->size() > 0) { // m_bp != NULL see above
                 m_pioneer_bp_support = new bp_support_gg<nnd_type, RankSupport, select_support_bs<RankSupport> >(&m_pioneer_bp, m_block_size);
+            }
         }
 
         //! Copy constructor
@@ -172,6 +163,27 @@ class bp_support_gg
         ~bp_support_gg() {
             if (m_pioneer_bp_support != NULL)
                 delete m_pioneer_bp_support;
+        }
+
+        //! Swap operator
+        void swap(bp_support_gg& bp_support) {
+            m_rank_bp.swap(bp_support.m_rank_bp);
+            m_select_bp.swap(bp_support.m_select_bp);
+            m_nnd.swap(bp_support.m_nnd);
+
+            std::swap(m_block_size, bp_support.m_block_size);
+            std::swap(m_size, bp_support.m_size);
+            std::swap(m_blocks, bp_support.m_blocks);
+
+            m_pioneer_bp.swap(bp_support.m_pioneer_bp);
+
+            std::swap(m_pioneer_bp_support, bp_support.m_pioneer_bp_support);
+            if (m_pioneer_bp_support != NULL) {
+                m_pioneer_bp_support->set_vector(&m_pioneer_bp);
+            }
+            if (bp_support.m_pioneer_bp_support != NULL) {
+                bp_support.m_pioneer_bp_support->set_vector(&(bp_support.m_pioneer_bp));
+            }
         }
 
         //! Assignment operator
@@ -536,24 +548,21 @@ class bp_support_gg
          * \param out The outstream to which the data structure is written.
          * \return The number of bytes written to out.
          */
-        size_type serialize(std::ostream& out) const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            out.write((char*)&m_block_size, sizeof(m_block_size));
-            written_bytes += sizeof(m_block_size);
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            out.write((char*)&m_blocks, sizeof(m_blocks));
-            written_bytes += sizeof(m_blocks);
+            written_bytes += util::write_member(m_block_size, out, child, "block_size");
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_blocks, out, child, "block_cnt");
 
-            written_bytes += m_rank_bp.serialize(out);
-            written_bytes += m_select_bp.serialize(out);
-            written_bytes += m_nnd.serialize(out);
+            written_bytes += m_rank_bp.serialize(out, child, "bp_rank");
+            written_bytes += m_select_bp.serialize(out, child, "bp_select");
+            written_bytes += m_nnd.serialize(out, child, "nearest_neighbour_dictionary");
 
-            written_bytes += m_pioneer_bp.serialize(out);
+            written_bytes += m_pioneer_bp.serialize(out, child, "pioneer_bp");
             if (m_bp != NULL and m_bp->size() > 0)
-                written_bytes += m_pioneer_bp_support->serialize(out);
-
-
+                written_bytes += m_pioneer_bp_support->serialize(out, child, "pioneer_bp_support");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -563,49 +572,25 @@ class bp_support_gg
          * \param bp Bit vector representing a balanced parentheses sequence that is supported by this data structure.
          */
         void load(std::istream& in, const bit_vector* bp) {
-
             m_bp = bp;
-            in.read((char*) &m_block_size, sizeof(m_block_size));
-            in.read((char*) &m_size, sizeof(m_size));
-            assert(m_size == bp->size());
-            in.read((char*) &m_blocks, sizeof(m_blocks));
+            util::read_member(m_block_size, in);
+            util::read_member(m_size, in);
+            util::read_member(m_blocks, in);
 
             m_rank_bp.load(in, m_bp);
             m_select_bp.load(in, m_bp);
             m_nnd.load(in);
 
             m_pioneer_bp.load(in);
-            if (m_pioneer_bp_support == NULL)
+            if (m_pioneer_bp_support != NULL) {
                 delete m_pioneer_bp_support;
-            m_pioneer_bp_support = NULL;
+                m_pioneer_bp_support = NULL;
+            }
             if (m_bp != NULL and m_bp->size() > 0) {
                 m_pioneer_bp_support = new bp_support_gg<nnd_type, RankSupport, select_support_bs<RankSupport> >();
                 m_pioneer_bp_support->load(in, &m_pioneer_bp);
             }
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label = "bp_support";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) << ", ";
-            m_rank_bp.mem_info("bp rank");
-            std::cout<<" ,";
-            m_select_bp.mem_info("bp select");
-            std::cout<<" ,";
-            m_nnd.mem_info("nnd");
-            std::cout<<" ,";
-            m_pioneer_bp.mem_info("pioneer bp");
-            if (m_pioneer_bp_support != NULL)
-                std::cout<< ", list(label=\"pioneer bp_support\" size=\"" <<
-                         util::get_size_in_bytes(*m_pioneer_bp_support) <<"\")";
-            std::cout <<")\n";
-        }
-#endif
-
-
 
         std::string get_info()const {
             std::stringstream ss;

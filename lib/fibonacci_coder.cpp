@@ -31,7 +31,7 @@ uint64_t fibonacci::decode_prefix_sum(const uint64_t* data, const size_type star
     } else { // i>=n
         bits_to_decode = bit_magic::i11BP(*data >> read, n)+1;
     }
-    if (((size_type)bits_to_decode) == n<<1) // TODO: comparisson between unsigned and signed int
+    if (((size_type)bits_to_decode) == n<<1) // TODO: comparison between unsigned and signed int
         return n;
     if (((size_type)bits_to_decode) == (n<<1)+1)
         return n+1;

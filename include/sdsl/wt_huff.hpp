@@ -58,7 +58,7 @@ const int_vector<>::size_type ZoO[2] = {0, (int_vector<>::size_type)-1};
 template<class size_type>
 struct _node {
     size_type 	tree_pos; 		// pointer into the bit_vector, which represents the wavelet tree
-    size_type 	tree_pos_rank;	// precalculated rank for the prefix up to but not including tree_pos
+    size_type 	tree_pos_rank;	// pre-calculated rank for the prefix up to but not including tree_pos
     uint16_t	parent;			// pointer to the parent
     uint16_t	child[2];		// pointer to the children
 
@@ -80,23 +80,22 @@ struct _node {
         return *this;
     }
 
-    size_type serialize(std::ostream& out)const {
+    size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        structure_tree_node* st_child = structure_tree::add_child(v, name, util::class_name(*this));
         size_type written_bytes = 0;
-        out.write((char*)&tree_pos, sizeof(tree_pos));
-        written_bytes += sizeof(tree_pos);
-        out.write((char*)&tree_pos_rank, sizeof(tree_pos_rank));
-        written_bytes += sizeof(tree_pos_rank);
-        out.write((char*)&parent, sizeof(parent));
-        written_bytes += sizeof(parent);
+        written_bytes += util::write_member(tree_pos, out);
+        written_bytes += util::write_member(tree_pos_rank, out);
+        written_bytes += util::write_member(parent, out);
         out.write((char*)child, 2*sizeof(child[0]));
         written_bytes += 2*sizeof(child[0]);
+        structure_tree::add_size(st_child, written_bytes);
         return written_bytes;
     }
 
     void load(std::istream& in) {
-        in.read((char*) &tree_pos, sizeof(tree_pos));
-        in.read((char*) &tree_pos_rank, sizeof(tree_pos_rank));
-        in.read((char*) &parent, sizeof(parent));
+        util::read_member(tree_pos, in);
+        util::read_member(tree_pos_rank, in);
+        util::read_member(parent, in);
         in.read((char*) child, 2*sizeof(child[0]));
     }
 };
@@ -110,16 +109,20 @@ struct _node {
  *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurences of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the wavelet tree was build for.
  *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurence of symbol \f$c\f$.
  *
+ *  The idea of using a Huffman shaped wavelet was first mentioned on page 17 of the following technical report:
+ *  Veli Mäkinen and Gonzalo Navarro: Succinct Suffix Arrays based on Run-Length Encoding.
+ *  Available under: http://swp.dcc.uchile.cl/TR/2005/TR_DCC-2005-004.pdf
+ *
  *	\par Space complexity
  *		\f$\Order{n H_0 + 2|\Sigma|\log n}\f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
  *
  *   @ingroup wt
  */
-template<class BitVector = bit_vector,
-         class RankSupport = rank_support_v5<>,
-         class SelectSupport=select_support_mcl<>,
-         class SelectSupportZero=select_support_mcl<0>,
-         bool dfs_shape=0 >
+template<class BitVector 		 = bit_vector,
+              class RankSupport 		 = typename BitVector::rank_1_type,
+              class SelectSupport	 = typename BitVector::select_1_type,
+              class SelectSupportZero = typename BitVector::select_0_type,
+              bool dfs_shape=0 >
 class wt_huff
 {
     public:
@@ -286,9 +289,9 @@ class wt_huff
         }
 
         void construct_init_rank_select() {
-            m_tree_rank.init(&m_tree);
-            m_tree_select0.init(&m_tree);
-            m_tree_select1.init(&m_tree);
+            util::init_support(m_tree_rank, &m_tree);
+            util::init_support(m_tree_select0, &m_tree);
+            util::init_support(m_tree_select1, &m_tree);
         }
 
         void construct_precalc_node_ranks() {
@@ -428,15 +431,7 @@ class wt_huff
                 return;
             // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
             size_type C[256] = {0};
-//		rac.reset();
-            //  1. Count occurences of characters
-//		for(size_type i=0, r_sum=0, r = rac.load_next_block(); r_sum < m_size;){
-//			for(; i < r_sum+r; ++i){
-//				++C[rac[i-r_sum]];
-//			}
-//			r_sum += r; r = rac.load_next_block();
-//		}
-            // 1. Count occurences of characters
+            // 1. Count occurrences of characters
             calculate_character_occurences(rac, m_size, C);
             // 2. Calculate effective alphabet size
             calculate_effective_alphabet_size(C, m_sigma);
@@ -451,7 +446,14 @@ class wt_huff
                 tree_pos[i] = m_nodes[i].tree_pos;
             }
             rac.reset();
+            if (rac.int_vector_size < size) {
+                throw std::logic_error("wt_huff::construct: stream size is smaller than size!");
+                return;
+            }
             for (size_type i=0, r_sum=0, r = rac.load_next_block(); r_sum < m_size;) {
+                if (r_sum + r > size) {  // read not more than size chars in the next loop
+                    r = size-r_sum;
+                }
                 uint8_t old_chr = rac[i-r_sum], times = 0;
                 for (; i < r_sum+r; ++i) {
                     uint8_t chr = rac[i-r_sum];
@@ -499,9 +501,10 @@ class wt_huff
                 std::swap(m_size, wt.m_size);
                 std::swap(m_sigma,  wt.m_sigma);
                 m_tree.swap(wt.m_tree);
-                m_tree_rank.swap(wt.m_tree_rank); // rank swap after the swap of the bit vector m_tree
-                m_tree_select1.swap(wt.m_tree_select1); // select1 swap after the swap of the bit vector m_tree
-                m_tree_select0.swap(wt.m_tree_select0); // select0 swap after the swap of the bit vector m_tree
+                util::swap_support(m_tree_rank, wt.m_tree_rank, &m_tree, &(wt.m_tree));
+
+                util::swap_support(m_tree_select1, wt.m_tree_select1, &m_tree, &(wt.m_tree));
+                util::swap_support(m_tree_select0, wt.m_tree_select0, &m_tree, &(wt.m_tree));
 
                 for (size_type i=0; i < 511; ++i)
                     std::swap(m_nodes[i], wt.m_nodes[i]);
@@ -550,15 +553,20 @@ class wt_huff
         //! Calculates how many symbols c are in the prefix [0..i-1] of the supported vector.
         /*!
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
-         *  \param c The symbol to count the occurences in the prefix.
-         *	\return The number of occurences of symbol c in the prefix [0..i-1] of the supported vector.
+         *  \param c The symbol to count the occurrences in the prefix.
+         *	\return The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
          *  \par Time complexity
          *		\f$ \Order{H_0} \f$
          */
         size_type rank(size_type i, value_type c)const {
-            assert(i>=0 and i <= size());
             uint64_t p = m_path[c];
-            uint32_t path_len = (m_path[c]>>56); // equals zero if char was not present in the original text
+            uint32_t path_len = (m_path[c]>>56); // equals zero if char was not present in the original text or m_sigma=1
+            if (!path_len and 1 == m_sigma) {    // if m_sigma == 1 return result immediately
+                if (m_c_to_leaf[c] == _undef_node) { // if character does not exist return 0
+                    return 0;
+                }
+                return std::min(i, m_size);
+            }
             size_type result = i & ZoO[path_len>0]; // important: result has type size_type and ZoO has type size_type
             uint32_t node=0;
             for (uint32_t l=0; l<path_len and result; ++l, p >>= 1) {
@@ -570,13 +578,7 @@ class wt_huff
                 }
                 node = m_nodes[node].child[p&1]; // goto child
             }
-//		size_type r2 = m_check.rank(i, c);
-            /*		if( r2 != result ){
-            			std::cerr<<"ERROR rank r="<<result<<" != "<<r2<<"=r2 for input ("<<i<<","<<c<<")"<<
-            				     " len="<<path_len<<" m_path[c]="<<m_path[c]<<" c="<<(char)m_nodes[node].tree_pos_rank<<std::endl;
-            			return r2;
-            		}
-            */		return result;
+            return result;
         };
 
         //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the original sequence.
@@ -588,6 +590,7 @@ class wt_huff
          *		\f$ \Order{H_0} \f$
          */
         size_type rank_ith_symbol(size_type i, value_type& c)const {
+            // TODO: handle m_sigma=1
             assert(i>=0 and i < size());
             uint32_t node=0;
             while (m_nodes[node].child[0] != _undef_node) { // while node is not a leaf
@@ -603,9 +606,9 @@ class wt_huff
             return i;
         }
 
-        //! Calculates the ith occurence of the symbol c in the supported vector.
+        //! Calculates the ith occurrence of the symbol c in the supported vector.
         /*!
-         *  \param i The ith occurence. \f$i\in [1..rank(size(),c)]\f$.
+         *  \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
          *  \param c The symbol c.
          *  \par Time complexity
          *		\f$ \Order{H_0} \f$
@@ -614,6 +617,9 @@ class wt_huff
             uint16_t node = m_c_to_leaf[c];
             if (node == _undef_node) { // if c was not present in the original text
                 return m_size;		   // -> return a position right to the end
+            }
+            if (m_sigma == 1) {
+                return std::min(i-1,m_size);
             }
             /*		if( i == 0 ){
             			std::cerr<<"WARNING: i=0"<<std::endl;
@@ -627,7 +633,7 @@ class wt_huff
             size_type result = i-1;		// otherwise
             uint64_t p = m_path[c];
             uint32_t path_len = (p>>56);
-            p <<= (64-path_len);
+            p <<= (64-path_len); // Note: path_len > 0, since we have handled m_sigma = 1.
             for (uint32_t l=0; l<path_len; ++l, p <<= 1) {
 //			if( node & 1 ){ // node was a left child, in the case of bfs order
                 if ((p & 0x8000000000000000ULL)==0) { // node was a left child
@@ -701,16 +707,15 @@ class wt_huff
 
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            out.write((char*)&m_size, sizeof(m_size));
-            written_bytes += sizeof(m_size);
-            out.write((char*)&m_sigma, sizeof(m_sigma));
-            written_bytes += sizeof(m_sigma);
-            written_bytes += m_tree.serialize(out);
-            written_bytes += m_tree_rank.serialize(out);
-            written_bytes += m_tree_select1.serialize(out);
-            written_bytes += m_tree_select0.serialize(out);
+            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_sigma, out, child, "sigma");
+            written_bytes += m_tree.serialize(out, child, "tree");
+            written_bytes += m_tree_rank.serialize(out, child, "tree_rank");
+            written_bytes += m_tree_select1.serialize(out, child, "tree_select_1");
+            written_bytes += m_tree_select0.serialize(out, child, "tree_select_0");
             for (size_type i=0; i < 511; ++i) {
                 written_bytes += m_nodes[i].serialize(out);
             }
@@ -718,14 +723,14 @@ class wt_huff
             written_bytes += 256*sizeof(m_c_to_leaf[0]); // add written bytes from previous loop
             out.write((char*) m_path, 256*sizeof(m_path[0]));
             written_bytes += 256*sizeof(m_path[0]); // add written bytes from previous loop
-//		m_check.serialize(out);
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            in.read((char*) &m_size, sizeof(m_size));
-            in.read((char*) &m_sigma, sizeof(m_sigma));
+            util::read_member(m_size, in);
+            util::read_member(m_sigma, in);
             m_tree.load(in);
             m_tree_rank.load(in, &m_tree);
             m_tree_select1.load(in, &m_tree);
@@ -735,31 +740,7 @@ class wt_huff
             }
             in.read((char*) m_c_to_leaf, 256*sizeof(m_c_to_leaf[0]));
             in.read((char*) m_path, 256*sizeof(m_path[0]));
-//		m_check.load(in);
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label="wt_huff";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            m_tree.mem_info("data"); std::cout<<",";
-            m_tree_rank.mem_info("rank"); std::cout<<",";
-            m_tree_select1.mem_info("select 1"); std::cout<<",";
-            m_tree_select0.mem_info("select 0"); std::cout << ")\n";
-            // TODO: add m_nodes, m_c_to_leaf, m_path?
-        }
-#endif
-        /*
-        	void print_info()const{
-        		size_type rle_ed = 0;
-        		for(size_type i=0; i < m_tree.size(); ++i){
-
-        		}
-        	}
-        */
 
 };
 
