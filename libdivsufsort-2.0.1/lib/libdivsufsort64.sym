@@ -1,0 +1,8 @@
+divsufsort64
+divbwt64
+divsufsort64_version
+bw_transform64
+inverse_bw_transform64
+sufcheck64
+sa_search64
+sa_simplesearch64

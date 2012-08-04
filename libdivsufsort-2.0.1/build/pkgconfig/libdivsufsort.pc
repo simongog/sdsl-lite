@@ -1,0 +1,11 @@
+prefix=/home/sgog/TESTSDSL
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libdivsufsort
+Description: A lightweight suffix sorting library
+Version: 2.0.1
+URL: http://libdivsufsort.googlecode.com/
+Libs: -L${libdir} -ldivsufsort
+Cflags: -I${includedir}

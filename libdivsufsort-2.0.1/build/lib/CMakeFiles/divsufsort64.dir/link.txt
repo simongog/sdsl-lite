@@ -1,0 +1,2 @@
+/usr/bin/ar cr libdivsufsort64.a  CMakeFiles/divsufsort64.dir/divsufsort.o CMakeFiles/divsufsort64.dir/sssort.o CMakeFiles/divsufsort64.dir/trsort.o CMakeFiles/divsufsort64.dir/utils.o
+/usr/bin/ranlib libdivsufsort64.a

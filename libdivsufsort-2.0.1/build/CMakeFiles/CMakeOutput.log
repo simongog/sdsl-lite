@@ -1,0 +1,448 @@
+The system is: Linux - 3.2.0-27-generic - x86_64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/bin/gcc 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CompilerIdC/a.out"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/testCCompiler.c.o
+/usr/bin/gcc    -o CMakeFiles/cmTryCompileExec.dir/testCCompiler.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc         CMakeFiles/cmTryCompileExec.dir/testCCompiler.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CMakeCCompilerABI.c.o
+/usr/bin/gcc    -o CMakeFiles/cmTryCompileExec.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-2.8/Modules/CMakeCCompilerABI.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc       -v CMakeFiles/cmTryCompileExec.dir/CMakeCCompilerABI.c.o  -o cmTryCompileExec -rdynamic  
+Using built-in specs.
+COLLECT_GCC=/usr/bin/gcc
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/4.6/lto-wrapper
+Target: x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu/Linaro 4.6.3-1ubuntu5' --with-bugurl=file:///usr/share/doc/gcc-4.6/README.Bugs --enable-languages=c,c++,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-4.6 --enable-shared --enable-linker-build-id --with-system-zlib --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --with-gxx-include-dir=/usr/include/c++/4.6 --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --enable-gnu-unique-object --enable-plugin --enable-objc-gc --disable-werror --with-arch-32=i686 --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+Thread model: posix
+gcc version 4.6.3 (Ubuntu/Linaro 4.6.3-1ubuntu5) 
+COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/4.6/:/usr/lib/gcc/x86_64-linux-gnu/4.6/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/4.6/:/usr/lib/gcc/x86_64-linux-gnu/
+LIBRARY_PATH=/home/sgog/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/4.6/:/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/home/sgog/lib/:/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64/:/opt/intel/composer_xe_2011_sp1.9.293/ipp/../compiler/lib/intel64/:/opt/intel/composer_xe_2011_sp1.9.293/ipp/lib/intel64/:/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64/:/opt/intel/composer_xe_2011_sp1.9.293/mkl/lib/intel64/:/opt/intel/composer_xe_2011_sp1.9.293/tbb/lib/intel64//cc4.1.0_libc2.4_kernel2.6.16.21/:/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTryCompileExec' '-rdynamic' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/4.6/collect2 --sysroot=/ --build-id --no-add-needed --as-needed --eh-frame-hdr -m elf_x86_64 --hash-style=gnu -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -z relro -o cmTryCompileExec /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/crt1.o /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/4.6/crtbegin.o -L/home/sgog/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/4.6 -L/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/home/sgog/lib -L/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64 -L/opt/intel/composer_xe_2011_sp1.9.293/ipp/../compiler/lib/intel64 -L/opt/intel/composer_xe_2011_sp1.9.293/ipp/lib/intel64 -L/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64 -L/opt/intel/composer_xe_2011_sp1.9.293/mkl/lib/intel64 -L/opt/intel/composer_xe_2011_sp1.9.293/tbb/lib/intel64//cc4.1.0_libc2.4_kernel2.6.16.21 -L/usr/lib/gcc/x86_64-linux-gnu/4.6/../../.. CMakeFiles/cmTryCompileExec.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-linux-gnu/4.6/crtend.o /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/crtn.o
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:/usr/bin/make "cmTryCompileExec/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build]
+  ignore line: [make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp']
+  ignore line: [/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1]
+  ignore line: [Building C object CMakeFiles/cmTryCompileExec.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/usr/bin/gcc    -o CMakeFiles/cmTryCompileExec.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-2.8/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTryCompileExec]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/gcc       -v CMakeFiles/cmTryCompileExec.dir/CMakeCCompilerABI.c.o  -o cmTryCompileExec -rdynamic  ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/usr/bin/gcc]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/4.6/lto-wrapper]
+  ignore line: [Target: x86_64-linux-gnu]
+  ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu/Linaro 4.6.3-1ubuntu5' --with-bugurl=file:///usr/share/doc/gcc-4.6/README.Bugs --enable-languages=c,c++,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-4.6 --enable-shared --enable-linker-build-id --with-system-zlib --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --with-gxx-include-dir=/usr/include/c++/4.6 --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --enable-gnu-unique-object --enable-plugin --enable-objc-gc --disable-werror --with-arch-32=i686 --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 4.6.3 (Ubuntu/Linaro 4.6.3-1ubuntu5) ]
+  ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/4.6/:/usr/lib/gcc/x86_64-linux-gnu/4.6/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/4.6/:/usr/lib/gcc/x86_64-linux-gnu/]
+  ignore line: [LIBRARY_PATH=/home/sgog/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/4.6/:/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/home/sgog/lib/:/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64/:/opt/intel/composer_xe_2011_sp1.9.293/ipp/../compiler/lib/intel64/:/opt/intel/composer_xe_2011_sp1.9.293/ipp/lib/intel64/:/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64/:/opt/intel/composer_xe_2011_sp1.9.293/mkl/lib/intel64/:/opt/intel/composer_xe_2011_sp1.9.293/tbb/lib/intel64//cc4.1.0_libc2.4_kernel2.6.16.21/:/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTryCompileExec' '-rdynamic' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-linux-gnu/4.6/collect2 --sysroot=/ --build-id --no-add-needed --as-needed --eh-frame-hdr -m elf_x86_64 --hash-style=gnu -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -z relro -o cmTryCompileExec /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/crt1.o /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/4.6/crtbegin.o -L/home/sgog/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/4.6 -L/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/home/sgog/lib -L/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64 -L/opt/intel/composer_xe_2011_sp1.9.293/ipp/../compiler/lib/intel64 -L/opt/intel/composer_xe_2011_sp1.9.293/ipp/lib/intel64 -L/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64 -L/opt/intel/composer_xe_2011_sp1.9.293/mkl/lib/intel64 -L/opt/intel/composer_xe_2011_sp1.9.293/tbb/lib/intel64//cc4.1.0_libc2.4_kernel2.6.16.21 -L/usr/lib/gcc/x86_64-linux-gnu/4.6/../../.. CMakeFiles/cmTryCompileExec.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-linux-gnu/4.6/crtend.o /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/crtn.o]
+    arg [/usr/lib/gcc/x86_64-linux-gnu/4.6/collect2] ==> ignore
+    arg [--sysroot=/] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [--no-add-needed] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-zrelro] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTryCompileExec] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/crt1.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/crti.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/4.6/crtbegin.o] ==> ignore
+    arg [-L/home/sgog/lib/../lib] ==> dir [/home/sgog/lib/../lib]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/4.6] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/4.6]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../../lib]
+    arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
+    arg [-L/lib/../lib] ==> dir [/lib/../lib]
+    arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
+    arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
+    arg [-L/home/sgog/lib] ==> dir [/home/sgog/lib]
+    arg [-L/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64] ==> dir [/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64]
+    arg [-L/opt/intel/composer_xe_2011_sp1.9.293/ipp/../compiler/lib/intel64] ==> dir [/opt/intel/composer_xe_2011_sp1.9.293/ipp/../compiler/lib/intel64]
+    arg [-L/opt/intel/composer_xe_2011_sp1.9.293/ipp/lib/intel64] ==> dir [/opt/intel/composer_xe_2011_sp1.9.293/ipp/lib/intel64]
+    arg [-L/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64] ==> dir [/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64]
+    arg [-L/opt/intel/composer_xe_2011_sp1.9.293/mkl/lib/intel64] ==> dir [/opt/intel/composer_xe_2011_sp1.9.293/mkl/lib/intel64]
+    arg [-L/opt/intel/composer_xe_2011_sp1.9.293/tbb/lib/intel64//cc4.1.0_libc2.4_kernel2.6.16.21] ==> dir [/opt/intel/composer_xe_2011_sp1.9.293/tbb/lib/intel64//cc4.1.0_libc2.4_kernel2.6.16.21]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/4.6/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/4.6/../../..]
+    arg [CMakeFiles/cmTryCompileExec.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/4.6/crtend.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/crtn.o] ==> ignore
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  collapse dir [/home/sgog/lib/../lib] ==> [/home/sgog/lib]
+  collapse dir [/usr/lib/gcc/x86_64-linux-gnu/4.6] ==> [/usr/lib/gcc/x86_64-linux-gnu/4.6]
+  collapse dir [/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse dir [/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../../lib] ==> [/usr/lib]
+  collapse dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
+  collapse dir [/lib/../lib] ==> [/lib]
+  collapse dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse dir [/usr/lib/../lib] ==> [/usr/lib]
+  collapse dir [/home/sgog/lib] ==> [/home/sgog/lib]
+  collapse dir [/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64] ==> [/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64]
+  collapse dir [/opt/intel/composer_xe_2011_sp1.9.293/ipp/../compiler/lib/intel64] ==> [/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64]
+  collapse dir [/opt/intel/composer_xe_2011_sp1.9.293/ipp/lib/intel64] ==> [/opt/intel/composer_xe_2011_sp1.9.293/ipp/lib/intel64]
+  collapse dir [/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64] ==> [/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64]
+  collapse dir [/opt/intel/composer_xe_2011_sp1.9.293/mkl/lib/intel64] ==> [/opt/intel/composer_xe_2011_sp1.9.293/mkl/lib/intel64]
+  collapse dir [/opt/intel/composer_xe_2011_sp1.9.293/tbb/lib/intel64//cc4.1.0_libc2.4_kernel2.6.16.21] ==> [/opt/intel/composer_xe_2011_sp1.9.293/tbb/lib/intel64/cc4.1.0_libc2.4_kernel2.6.16.21]
+  collapse dir [/usr/lib/gcc/x86_64-linux-gnu/4.6/../../..] ==> [/usr/lib]
+  implicit libs: [c]
+  implicit dirs: [/home/sgog/lib;/usr/lib/gcc/x86_64-linux-gnu/4.6;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib;/opt/intel/composer_xe_2011_sp1.9.293/compiler/lib/intel64;/opt/intel/composer_xe_2011_sp1.9.293/ipp/lib/intel64;/opt/intel/composer_xe_2011_sp1.9.293/mkl/lib/intel64;/opt/intel/composer_xe_2011_sp1.9.293/tbb/lib/intel64/cc4.1.0_libc2.4_kernel2.6.16.21]
+
+
+Performing C SOURCE FILE Test HAVE_GCC_WALL succeded with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/src.c.o
+/usr/bin/gcc   -DHAVE_GCC_WALL -Wall   -o CMakeFiles/cmTryCompileExec.dir/src.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc     -DHAVE_GCC_WALL -Wall    CMakeFiles/cmTryCompileExec.dir/src.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C SOURCE FILE Test HAVE_GCC_FOMIT_FRAME_POINTER succeded with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/src.c.o
+/usr/bin/gcc   -Wall  -DHAVE_GCC_FOMIT_FRAME_POINTER -fomit-frame-pointer   -o CMakeFiles/cmTryCompileExec.dir/src.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall  -DHAVE_GCC_FOMIT_FRAME_POINTER -fomit-frame-pointer    CMakeFiles/cmTryCompileExec.dir/src.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Determining if the include file inttypes.h exists passed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o
+/usr/bin/gcc   -Wall     -o CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall      CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file memory.h exists passed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o
+/usr/bin/gcc   -Wall     -o CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall      CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file stddef.h exists passed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o
+/usr/bin/gcc   -Wall     -o CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall      CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file stdint.h exists passed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o
+/usr/bin/gcc   -Wall     -o CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall      CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file stdlib.h exists passed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o
+/usr/bin/gcc   -Wall     -o CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall      CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file string.h exists passed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o
+/usr/bin/gcc   -Wall     -o CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall      CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file strings.h exists passed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o
+/usr/bin/gcc   -Wall     -o CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall      CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file sys/types.h exists passed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o
+/usr/bin/gcc   -Wall     -o CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall      CMakeFiles/cmTryCompileExec.dir/CheckIncludeFile.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+
+Performing C SOURCE FILE Test HAVE_INLINE succeded with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/src.c.o
+/usr/bin/gcc   -Wall  -DHAVE_INLINE   -o CMakeFiles/cmTryCompileExec.dir/src.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall  -DHAVE_INLINE    CMakeFiles/cmTryCompileExec.dir/src.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+inline void func(); void func() { } int main() { func(); return 0; }
+Performing C SOURCE FILE Test HAVE___INLINE succeded with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/src.c.o
+/usr/bin/gcc   -Wall  -DHAVE___INLINE   -o CMakeFiles/cmTryCompileExec.dir/src.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall  -DHAVE___INLINE    CMakeFiles/cmTryCompileExec.dir/src.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+__inline void func(); void func() { } int main() { func(); return 0; }
+Performing C SOURCE FILE Test HAVE___INLINE__ succeded with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/src.c.o
+/usr/bin/gcc   -Wall  -DHAVE___INLINE__   -o CMakeFiles/cmTryCompileExec.dir/src.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall  -DHAVE___INLINE__    CMakeFiles/cmTryCompileExec.dir/src.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+__inline__ void func(); void func() { } int main() { func(); return 0; }
+Determining size of uint8_t passed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/UINT8_T.c.o
+/usr/bin/gcc   -Wall     -o CMakeFiles/cmTryCompileExec.dir/UINT8_T.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CheckTypeSize/UINT8_T.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall      CMakeFiles/cmTryCompileExec.dir/UINT8_T.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+
+Determining size of int32_t passed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/INT32_T.c.o
+/usr/bin/gcc   -Wall     -o CMakeFiles/cmTryCompileExec.dir/INT32_T.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CheckTypeSize/INT32_T.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall      CMakeFiles/cmTryCompileExec.dir/INT32_T.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+
+Determining if the PRId32 exist passed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckSymbolExists.c.o
+/usr/bin/gcc   -Wall     -o CMakeFiles/cmTryCompileExec.dir/CheckSymbolExists.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall      CMakeFiles/cmTryCompileExec.dir/CheckSymbolExists.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+File /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <inttypes.h>
+
+void cmakeRequireSymbol(int dummy,...){(void)dummy;}
+int main()
+{
+#ifndef PRId32
+  cmakeRequireSymbol(0,&PRId32);
+#endif
+  return 0;
+}
+
+Determining size of int64_t passed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/INT64_T.c.o
+/usr/bin/gcc   -Wall     -o CMakeFiles/cmTryCompileExec.dir/INT64_T.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CheckTypeSize/INT64_T.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall      CMakeFiles/cmTryCompileExec.dir/INT64_T.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+
+Determining if the PRId64 exist passed with the following output:
+Change Dir: /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec.dir/build.make CMakeFiles/cmTryCompileExec.dir/build
+make[1]: Entering directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec.dir/CheckSymbolExists.c.o
+/usr/bin/gcc   -Wall     -o CMakeFiles/cmTryCompileExec.dir/CheckSymbolExists.c.o   -c /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTryCompileExec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec.dir/link.txt --verbose=1
+/usr/bin/gcc    -Wall      CMakeFiles/cmTryCompileExec.dir/CheckSymbolExists.c.o  -o cmTryCompileExec -rdynamic 
+make[1]: Leaving directory `/home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp'
+
+File /home/sgog/sdsl/libdivsufsort-2.0.1/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <inttypes.h>
+
+void cmakeRequireSymbol(int dummy,...){(void)dummy;}
+int main()
+{
+#ifndef PRId64
+  cmakeRequireSymbol(0,&PRId64);
+#endif
+  return 0;
+}
+
