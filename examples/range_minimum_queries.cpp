@@ -17,7 +17,7 @@ int main(int argc, char **argv){
 	}
 	cout << "get_size_in_bytes(v)=" << util::get_size_in_bytes(v) << endl;
 	
-	rmq_succinct_sada<> rmq(&v);
+	rmq_succinct_sct<> rmq(&v);
 	cout << "get_size_in_bytes(rmq)/v.size()=" << ((double)util::get_size_in_bytes(rmq))/v.size() << endl;
 
 	if ( v.size() < 100 ) { // if the vector is small
