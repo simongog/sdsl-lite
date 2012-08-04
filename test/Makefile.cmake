@@ -1,5 +1,5 @@
 CC=g++
-CC_FLAGS=-Wall -g -O3 -I${HOME}/include -L${HOME}/lib -DNDEBUG -funroll-loops 
+CC_FLAGS=-Wall -g -O3 -I@CMAKE_INSTALL_PREFIX@/include -L@CMAKE_INSTALL_PREFIX@/lib -DNDEBUG -funroll-loops 
 CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread 
 SOURCES=$(wildcard *Test.cpp)
 EXECS=$(SOURCES:.cpp=)
