@@ -10,6 +10,7 @@ fi
 
 
 sufsort_dir="libdivsufsort-2.0.1"
+gtest_dir="gtest-1.6.0"
 
 # (1) Install libdivsufsort-2.0.1
 OLD_DIR="$( cd "$( dirname "$0" )" && pwd )" # gets the directory where the script is located in
@@ -36,7 +37,24 @@ if [[ `pwd` != ${OLD_DIR} ]]; then
 fi
 echo "SUCCESS: Yuta Mori's libdivsufsort was installed successfully!"
 rm -rf "${sufsort_dir}/build/*"
-# (2) Finally, install sdsl
+# (2) Install gtest
+
+cd "${gtest_dir}/build"  # step into the build dir of gtest
+
+# (3) Finally, install sdsl
+cmake -DCMAKE_INSTALL_PREFIX=${SDSL_INSTALL_PREFIX} \
+	  -DBUILD_SHARED_LIBS=OFF -Dgtest_disable_pthreads=ON .. 
+make # run make
+cp ./libgtest* "${SDSL_INSTALL_PREFIX}/lib" # copy generated libraries to the destination
+
+cd ../.. # go to the original directory
+if [[ `pwd` != ${OLD_DIR} ]]; then
+	echo "ERROR: we are not in the original dir ${OLD_DIR} now."
+	exit 1
+fi
+echo "SUCCESS: gtest was installed successfully!"
+#rm -rf "${sufsort_dir}/build/*"
+
 
 cd build # change into the build directory
 if [[ $? != 0 ]]; then

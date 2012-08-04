@@ -1,6 +1,6 @@
 CC=g++
 CC_FLAGS=-Wall -g -O3 -I@CMAKE_INSTALL_PREFIX@/include -L@CMAKE_INSTALL_PREFIX@/lib -DNDEBUG -funroll-loops 
-CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread 
+CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest 
 SOURCES=$(wildcard *Test.cpp)
 EXECS=$(SOURCES:.cpp=)
 EXEC_LIST=$(patsubst %,./%;,$(EXECS))                # list of executables
