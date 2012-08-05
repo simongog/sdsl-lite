@@ -160,7 +160,10 @@ We plan to support Windows in the near future.
 
 Installation
 ------------
-You can install the library into a directory `SDSL_INSTALL_DIR` by
+The installation requires that the [cmake tool](http://www.cmake.org/)
+and a C++ compiler (e.g. from the [GNU Compiler Collection](http://gcc.gnu.org/))
+is installed.
+You can than install the library into a directory `SDSL_INSTALL_DIR` by
 calling
 ``
 ./install SDSL_INSTALL_DIR
