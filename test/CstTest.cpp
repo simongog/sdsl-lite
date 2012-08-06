@@ -67,7 +67,7 @@ class CstTest : public ::testing::Test
 using testing::Types;
 
 typedef Types<
-cst_sct3<cst_sada<>::csa_type, lcp_uncompressed<> >,
+cst_sct3<cst_sada<>::csa_type, lcp_bitcompressed<> >,
          cst_sada<cst_sada<>::csa_type, lcp_dac<> >,
          cst_sada<cst_sada<>::csa_type, lcp_support_tree2<>, bp_support_gg<> >,
          cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_gg<> >,
@@ -84,7 +84,7 @@ cst_sct3<cst_sada<>::csa_type, lcp_uncompressed<> >,
          cst_sada<cst_sada<>::csa_type, lcp_support_tree2<> >,
          cst_sada<cst_sada<>::csa_type, lcp_wt<> >,
          cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_g<> >,
-//		cst_sct3<csa_uncompressed, lcp_uncompressed<> >, //TODO: make csa_uncompressed working again
+//		cst_sct3<csa_uncompressed, lcp_bitcompressed<> >, //TODO: make csa_uncompressed working again
          cst_sada<cst_sada<>::csa_type, lcp_dac<>, bp_support_g<> >
          > Implementations;
 

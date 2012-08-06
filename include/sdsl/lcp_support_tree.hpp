@@ -12,7 +12,7 @@ namespace sdsl
 {
 
 
-/*! This class composes a virtual lcp array from a lcp arrays which is ordered in suffix array order (e.g. lcp_kurtz or lcp_uncompressed) and a compressed suffix tree like cst_sct3 or cst_sada.
+/*! This class composes a virtual lcp array from a lcp arrays which is ordered in suffix array order (e.g. lcp_kurtz or lcp_bitcompressed) and a compressed suffix tree like cst_sct3 or cst_sada.
  *	The time consumption of the []-operator depends on:
  *    - The time consumption of the tlcp_idx function of the CST
  *    - The access time to the suffix array ordered LCP array
@@ -53,7 +53,7 @@ class _lcp_support_tree
 
         void copy(const _lcp_support_tree& lcp_c) {
             m_cst = lcp_c.m_cst;
-            m_lcp = lcp_c.m_lcp; // works for lcp_uncompressed and lcp_kurtz
+            m_lcp = lcp_c.m_lcp; // works for lcp_bitcompressed and lcp_kurtz
         }
 
     public:
@@ -109,7 +109,7 @@ class _lcp_support_tree
             }
             {
                 int_vector_file_buffer<int_width, size_type_class> temp_lcp_buf(id.c_str());
-                m_lcp = Lcp(temp_lcp_buf); // works for lcp_kurtz, lcp_wt and lcp_uncompressed
+                m_lcp = Lcp(temp_lcp_buf); // works for lcp_kurtz, lcp_wt and lcp_bitcompressed
             }
             std::remove(id.c_str());
         }
@@ -214,7 +214,7 @@ class _lcp_support_tree
          *	\param fcr	A pointer to the rank support for the first child bit_vector
          */
         void load(std::istream& in, const Cst* cst=NULL) {
-            m_lcp.load(in); // works for lcp_kurtz and lcp_uncompressed
+            m_lcp.load(in); // works for lcp_kurtz and lcp_bitcompressed
             m_cst = cst;
         }
 };
