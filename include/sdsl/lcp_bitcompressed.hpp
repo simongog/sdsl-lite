@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file lcp_uncompressed.hpp
-    \brief lcp_uncompressed.hpp contains an implementation of an uncompressed lcp array.
+/*! \file lcp_bitcompressed.hpp
+    \brief lcp_bitcompressed.hpp contains an implementation of an uncompressed lcp array.
 	\author Simon Gog
 */
-#ifndef INCLUDED_SDSL_LCP_UNCOMPRESSED
-#define INCLUDED_SDSL_LCP_UNCOMPRESSED
+#ifndef INCLUDED_SDSL_LCP_BITCOMPRESSED
+#define INCLUDED_SDSL_LCP_BITCOMPRESSED
 
 #include "lcp.hpp"
 #include "int_vector.hpp"
@@ -40,12 +40,12 @@ namespace sdsl
 
 //! A class which stores the lcp array uncompressed.
 template<uint8_t width=0>
-class lcp_uncompressed
+class lcp_bitcompressed
 {
     public:
         typedef typename int_vector<width>::value_type		 	value_type;	// STL Container requirement
         typedef typename int_vector<width>::size_type		 	size_type;		// STL Container requirement
-        typedef random_access_const_iterator<lcp_uncompressed>  const_iterator;// STL Container requirement
+        typedef random_access_const_iterator<lcp_bitcompressed>  const_iterator;// STL Container requirement
         typedef const_iterator 								    iterator;		// STL Container requirement
         typedef const value_type								const_reference;
         typedef const_reference								 	reference;
@@ -64,32 +64,32 @@ class lcp_uncompressed
         class type           // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
         {
             public:
-                typedef lcp_uncompressed lcp_type;
+                typedef lcp_bitcompressed lcp_type;
         };
 
     private:
         int_vector<width>  m_lcp;
 
-        void copy(const lcp_uncompressed& lcp_c) {
+        void copy(const lcp_bitcompressed& lcp_c) {
             m_lcp	= lcp_c.m_lcp;
         }
     public:
         //! Default Constructor
-        lcp_uncompressed() {}
+        lcp_bitcompressed() {}
         //! Default Destructor
-        ~lcp_uncompressed() {}
+        ~lcp_bitcompressed() {}
         //! Copy constructor
-        lcp_uncompressed(const lcp_uncompressed& lcp_c) {
+        lcp_bitcompressed(const lcp_bitcompressed& lcp_c) {
             copy(lcp_c);
         }
 
         //! Constructor for the compressed lcp from a (compressed) suffix array.
         template<class Text, class Sa>
-        lcp_uncompressed(const Text& text, const Sa& sa);
+        lcp_bitcompressed(const Text& text, const Sa& sa);
 
         //! Construct the lcp array from an int_vector_file_buffer
         template<uint8_t int_width, class size_type_class>
-        lcp_uncompressed(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
+        lcp_bitcompressed(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
 
         template<class Text, class Sa>
         void construct(const Text& text, const Sa& sa);
@@ -105,7 +105,7 @@ class lcp_uncompressed
             return m_lcp.size();
         }
 
-        //! Returns the largest size that lcp_uncompressed can ever have.
+        //! Returns the largest size that lcp_bitcompressed can ever have.
         /*! Required for the Container Concept of the STL.
          *  \sa size
          */
@@ -121,16 +121,16 @@ class lcp_uncompressed
             return m_lcp.empty();
         }
 
-        //! Swap method for lcp_uncompressed
+        //! Swap method for lcp_bitcompressed
         /*! The swap method can be defined in terms of assignment.
         	This requires three assignments, each of which, for a container type, is linear
         	in the container's size. In a sense, then, a.swap(b) is redundant.
         	This implementation guaranties a run-time complexity that is constant rather than linear.
-        	\param lcp_c lcp_uncompressed to swap.
+        	\param lcp_c lcp_bitcompressed to swap.
 
         	Required for the Assignable Conecpt of the STL.
           */
-        void swap(lcp_uncompressed& lcp_c);
+        void swap(lcp_bitcompressed& lcp_c);
 
         //! Returns a const_iterator to the first element.
         /*! Required for the STL Container Concept.
@@ -155,23 +155,23 @@ class lcp_uncompressed
         /*!
          *	Required for the Assignable Concept of the STL.
          */
-        lcp_uncompressed& operator=(const lcp_uncompressed& lcp_c);
+        lcp_bitcompressed& operator=(const lcp_bitcompressed& lcp_c);
 
         //! Equality Operator
-        /*! Two Instances of lcp_uncompressed are equal if
+        /*! Two Instances of lcp_bitcompressed are equal if
          *  all their members are equal.
          *  \par Required for the Equality Comparable Concept of the STL.
          *  \sa operator!=
          */
-        bool operator==(const lcp_uncompressed& lcp_c)const;
+        bool operator==(const lcp_bitcompressed& lcp_c)const;
 
         //! Inequality Operator
-        /*! Two Instances of lcp_uncompressed are equal if
+        /*! Two Instances of lcp_bitcompressed are equal if
          *  not all their members are equal.
          *  \par Required for the Equality Comparable Concept of the STL.
          *  \sa operator==
          */
-        bool operator!=(const lcp_uncompressed& lcp_c)const;
+        bool operator!=(const lcp_bitcompressed& lcp_c)const;
 
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
@@ -189,14 +189,14 @@ class lcp_uncompressed
 
 template<uint8_t width>
 template<class Text, class Sa>
-lcp_uncompressed<width>::lcp_uncompressed(const Text& text, const Sa& sa)
+lcp_bitcompressed<width>::lcp_bitcompressed(const Text& text, const Sa& sa)
 {
     construct(text, sa);
 }
 
 template<uint8_t width>
 template<class Text, class Sa>
-void lcp_uncompressed<width>::construct(const Text& text, const Sa& sa)
+void lcp_bitcompressed<width>::construct(const Text& text, const Sa& sa)
 {
     if (sa.size() == 0) {
         return;
@@ -220,14 +220,14 @@ void lcp_uncompressed<width>::construct(const Text& text, const Sa& sa)
 
 template<uint8_t width>
 template<uint8_t int_width, class size_type_class>
-lcp_uncompressed<width>::lcp_uncompressed(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
+lcp_bitcompressed<width>::lcp_bitcompressed(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
 {
     construct(lcp_buf);
 }
 
 template<uint8_t width>
 template<uint8_t int_width, class size_type_class>
-void lcp_uncompressed<width>::construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
+void lcp_bitcompressed<width>::construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
 {
     lcp_buf.reset();
     m_lcp = int_vector<width>(lcp_buf.int_vector_size, 0, lcp_buf.int_width);
@@ -241,20 +241,20 @@ void lcp_uncompressed<width>::construct(int_vector_file_buffer<int_width, size_t
 }
 
 template<uint8_t width>
-void lcp_uncompressed<width>::swap(lcp_uncompressed& lcp_c)
+void lcp_bitcompressed<width>::swap(lcp_bitcompressed& lcp_c)
 {
     m_lcp.swap(lcp_c.m_lcp);
 }
 
 template<uint8_t width>
-inline typename lcp_uncompressed<width>::value_type lcp_uncompressed<width>::operator[](size_type i)const
+inline typename lcp_bitcompressed<width>::value_type lcp_bitcompressed<width>::operator[](size_type i)const
 {
     return m_lcp[i];
 }
 
 
 template<uint8_t width>
-typename lcp_uncompressed<width>::size_type lcp_uncompressed<width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
+typename lcp_bitcompressed<width>::size_type lcp_bitcompressed<width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
@@ -264,14 +264,14 @@ typename lcp_uncompressed<width>::size_type lcp_uncompressed<width>::serialize(s
 }
 
 template<uint8_t width>
-void lcp_uncompressed<width>::load(std::istream& in)
+void lcp_bitcompressed<width>::load(std::istream& in)
 {
     m_lcp.load(in);
 }
 
 
 template<uint8_t width>
-lcp_uncompressed<width>& lcp_uncompressed<width>::operator=(const lcp_uncompressed& lcp_c)
+lcp_bitcompressed<width>& lcp_bitcompressed<width>::operator=(const lcp_bitcompressed& lcp_c)
 {
     if (this != &lcp_c) {
         copy(lcp_c);
@@ -281,7 +281,7 @@ lcp_uncompressed<width>& lcp_uncompressed<width>::operator=(const lcp_uncompress
 
 
 template<uint8_t width>
-bool lcp_uncompressed<width>::operator==(const lcp_uncompressed& lcp_c)const
+bool lcp_bitcompressed<width>::operator==(const lcp_bitcompressed& lcp_c)const
 {
     if (this == &lcp_c)
         return true;
@@ -289,24 +289,22 @@ bool lcp_uncompressed<width>::operator==(const lcp_uncompressed& lcp_c)const
 }
 
 template<uint8_t width>
-bool lcp_uncompressed<width>::operator!=(const lcp_uncompressed& lcp_c)const
+bool lcp_bitcompressed<width>::operator!=(const lcp_bitcompressed& lcp_c)const
 {
     return !(*this == lcp_c);
 }
 
 template<uint8_t width>
-typename lcp_uncompressed<width>::const_iterator lcp_uncompressed<width>::begin()const
+typename lcp_bitcompressed<width>::const_iterator lcp_bitcompressed<width>::begin()const
 {
     return const_iterator(this, 0);
 }
 
 template<uint8_t width>
-typename lcp_uncompressed<width>::const_iterator lcp_uncompressed<width>::end()const
+typename lcp_bitcompressed<width>::const_iterator lcp_bitcompressed<width>::end()const
 {
     return const_iterator(this, size());
 }
-
-
 
 } // end namespace sdsl
 

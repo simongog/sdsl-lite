@@ -221,7 +221,7 @@ void load_lcp(Lcp& lcp, std::istream& in, const Cst& cst, lcp_tree_and_lf_compre
 #include "lcp_kurtz.hpp"            // type (a)
 #include "lcp_wt.hpp"               // type (a)
 #include "lcp_dac.hpp"              // type (a)
-#include "lcp_uncompressed.hpp"     // type (a)
+#include "lcp_bitcompressed.hpp"    // type (a)
 #include "lcp_support_tree.hpp"     // type (c)
 #include "lcp_support_tree2.hpp"    // type (c)
 
