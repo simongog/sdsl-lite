@@ -1,14 +1,23 @@
-The library can be installed automatically by
-running the command
+The installation requires the cross-platoform
+build-tool cmake to be installed first.
+
+You can download cmake here:
+
+http://cmake.org/cmake/resources/software.html
+
+With cmake installed, the library then can be 
+installed automatically by running the command
 ./install.sh YOUR_SDSL_INSTALL_PREFIX
 
-This will download all dependencies (libdivsuftsort
-and gtest), build them and install the include
-files in ${HOME}/include and the libraries
-in ${HOME}/lib. 
+YOUR_SDSL_INSTALL_PREFIX should be an existing
+directory other then the directory where this
+INSTALL file is located in.
+
 After running the script you can change into
 the test directory and make and execute the tests by
 make && make test
+
+Check out also the examples directory. 
 
 You can compile your own program example.cc by
 
@@ -16,5 +25,5 @@ g++ -O3 -DNDEBUG -funroll-loops -I YOUR_SDSL_INSTALL_PREFIX/include \
     -LYOUR_SDSL_INSTALL_PREFIX/lib -o example example.cc \
 	-lsdsl -ldivsufsort -ldivsufsort64
 
-See also the sample programs in the example directory.
-
+or you can copy the Makefile from the examples directory
+to build you programs using sdsl.
