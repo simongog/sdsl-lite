@@ -34,20 +34,19 @@ namespace sdsl
 {
 
 
-template<class RandomAccessContainer = int_vector<>, bool Minimum = true, class Bp_support = bp_support_sada<256, 32, rank_support_v5<>, select_support_dummy>, 
+template<bool Minimum = true, class Bp_support = bp_support_sada<256, 32, rank_support_v5<>, select_support_dummy>, 
 	     class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
 class rmq_succinct_sada;
 
-template<class RandomAccessContainer = int_vector<>, class Bp_support = bp_support_sada<256, 32, rank_support_v5<>, select_support_dummy>, 
+template<class Bp_support = bp_support_sada<256, 32, rank_support_v5<>, select_support_dummy>, 
 	     class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
 struct range_maximum_support_sada {
-    typedef rmq_succinct_sada<RandomAccessContainer, false, Bp_support, Rank_support10, Select_support10> type;
+    typedef rmq_succinct_sada<false, Bp_support, Rank_support10, Select_support10> type;
 };
 
 //! A class to support range minimum or range maximum queries on a random access container.
 /*!
  * This class takes five template parameters:
- *  - RandomAccessContainer is the type of random access container, for which the range minimum/maximum support should be build,
  *  - minumum 				specifies whether the data structure should answer range minimum queries (mimumum=true) of range maximum queries (maximum=false), and
  *  - Bp_support			is the support structure for the balanced parentheses sequence of the balanced parentheses sequence of the extended Cartesian tree used internal in the class.
  *  - Rank_support10		is the rank structure which supports rank queries for the bit pattern "10".
@@ -59,7 +58,7 @@ struct range_maximum_support_sada {
  *
  * TODO: implement test
  */
-template<class RandomAccessContainer, bool Minimum, class Bp_support, class Rank_support10, class Select_support10>
+template<bool Minimum, class Bp_support, class Rank_support10, class Select_support10>
 class rmq_succinct_sada
 {
         bit_vector					m_ect_bp; 			//!< A bit vector which contains the balanced parentheses sequence of the extended Cartesian tree of the input container.
@@ -68,8 +67,8 @@ class rmq_succinct_sada
         Select_support10			m_ect_bp_select10; 	//!< A select support (for bit pattern "10") which supports the balanced parentheses sequence of the extended Cartesian tree.
 
     public:
-        typedef typename RandomAccessContainer::size_type size_type;
-        typedef typename RandomAccessContainer::size_type value_type;
+        typedef typename bit_vector::size_type size_type;
+        typedef typename bit_vector::size_type value_type;
 
         typedef Bp_support 			bp_support_type;
         typedef	Rank_support10 		rank_support10_type;
@@ -82,7 +81,7 @@ class rmq_succinct_sada
 
     private:
 
-        typedef rmq_succinct_sct<RandomAccessContainer, Minimum> rmq_construct_helper_type;
+        typedef rmq_succinct_sct<Minimum> rmq_construct_helper_type;
 
         void _construct_bp_of_extended_cartesian_tree(size_type l, size_type r, size_type& bp_cnt, const rmq_construct_helper_type& rmq_helper) {
             if (r==(size_type)-1 or l > r)
@@ -97,6 +96,7 @@ class rmq_succinct_sada
             assert(bp_cnt <= m_ect_bp.size());
         }
 
+		template<class RandomAccessContainer>
         void construct(const RandomAccessContainer* v) {
             if (v == NULL) {
                 m_ect_bp = bit_vector(0); m_ect_bp_support = Bp_support();
@@ -124,14 +124,17 @@ class rmq_succinct_sada
         }
 
     public:
+        //! Default Constructor
+        rmq_succinct_sada():ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {}
 
         //! Constructor
+		template<class RandomAccessContainer>
         rmq_succinct_sada(const RandomAccessContainer* v=NULL):ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {
             construct(v);
         }
 
         //! Copy constructor
-        rmq_succinct_sada(const rmq_succinct_sada& rm) {
+        rmq_succinct_sada(const rmq_succinct_sada& rm):ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {
             if (this != &rm) { // if v is not the same object
                 copy(rm);
             }

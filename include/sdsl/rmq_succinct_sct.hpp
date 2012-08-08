@@ -32,45 +32,42 @@ namespace sdsl
 {
 
 
-template<class RandomAccessContainer = int_vector<>, bool Minimum = true, class Bp_support = bp_support_sada<256,32,rank_support_v5<> > >
+template< bool Minimum = true, class Bp_support = bp_support_sada<256,32,rank_support_v5<> > >
 class rmq_succinct_sct;
 
-template<class RandomAccessContainer = int_vector<>, class Bp_support = bp_support_sada<256,32,rank_support_v5<> > >
-struct range_maximum_support_sct {
-    typedef rmq_succinct_sct<RandomAccessContainer, false, Bp_support> type;
+template<class Bp_support = bp_support_sada<256,32,rank_support_v5<> > >
+struct range_maximum_sct {
+    typedef rmq_succinct_sct<false, Bp_support> type;
 };
 
 //! A class to support range minimum or range maximum queries on a random access container.
 /*!
  * This class takes three template parameters:
- *  - RandomAccessContainer is the type of random access container, for which the range minimum/maximum support should be build,
  *  - minumum 				specifies whether the data structure should answer range minimum queries (mimumum=true) of range maximum queries (maximum=false), and
  *  - Bp_support			is the support structure for the balanced parentheses sequence of the Super-Cartesian tree used internal in the class.
  * \par Time complexity
  *		\f$ \Order{1} \f$ for the range minimum/maximum queries if the balanced parentheses support structure supports constant time operations.
  * \par Space complexity:
  *		\f$ \Order{2n}+o(n) \f$ bits for the data structure ( \f$ n=size() \f$ ).
- *
- * TODO: implement test
  */
-template<class RandomAccessContainer, bool Minimum, class Bp_support>
+template<bool Minimum, class Bp_support>
 class rmq_succinct_sct
 {
         bit_vector					m_sct_bp; 		//!< A bit vector which contains the balanced parentheses sequence of the Super-Cartesian tree of the input container.
         Bp_support					m_sct_bp_support; 	//!< Support structure for the balanced parentheses of the Super-Cartesian tree.
 
+		template<class RandomAccessContainer>
         void construct(const RandomAccessContainer* v) {
             if (v == NULL) {
                 m_sct_bp = bit_vector(0); m_sct_bp_support = Bp_support();
             } else {
 #ifdef RMQ_SCT_BUILD_BP_NOT_SUCCINCT
                 // this method takes \f$n\log n\f$ bits extra space in the worst case
-                algorithm::construct_supercartesian_tree_bp(*v, m_sct_bp);
+                algorithm::construct_supercartesian_tree_bp(*v, m_sct_bp, Minimum);
 #else
                 // this method takes only \f$n\f$ bits extra space in all cases
-                algorithm::construct_supercartesian_tree_bp_succinct(*v, m_sct_bp);
-                // TODO: falls alle werte im bereich von 0..n liegen sind nur 2n bits noetig
-                //  TODO: constructor mit int_vector_file_buffer
+                algorithm::construct_supercartesian_tree_bp_succinct(*v, m_sct_bp, Minimum);
+                //  TODO: constructor which uses int_vector_file_buffer
 #endif
                 m_sct_bp_support = Bp_support(&m_sct_bp);
             }
@@ -83,19 +80,23 @@ class rmq_succinct_sct
         }
 
     public:
-        typedef typename RandomAccessContainer::size_type size_type;
-        typedef typename RandomAccessContainer::size_type value_type;
+        typedef typename bit_vector::size_type size_type;
+        typedef typename bit_vector::size_type value_type;
 
         const bit_vector& sct_bp;
         const Bp_support& sct_bp_support;
 
+		//! Default constructor
+		rmq_succinct_sct() : sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {}
+
         //! Constructor
+		template<class RandomAccessContainer>
         rmq_succinct_sct(const RandomAccessContainer* v=NULL): sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
             construct(v);
         }
 
         //! Copy constructor
-        rmq_succinct_sct(const rmq_succinct_sct& rm) {
+        rmq_succinct_sct(const rmq_succinct_sct& rm): sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
             if (this != &rm) { // if v is not the same object
                 copy(rm);
             }
@@ -140,7 +141,7 @@ class rmq_succinct_sct
                 size_type ec = m_sct_bp_support.rr_enclose(i,j);
                 if (ec == m_sct_bp_support.size()) {// no restricted enclosing pair found
                     return r;
-                } else { // found range restriced enclosing pair
+                } else { // found range restricted enclosing pair
                     return m_sct_bp_support.rank(ec)-1; // subtract 1, as the index is 0 based
                 }
             }
@@ -159,7 +160,7 @@ class rmq_succinct_sct
             return written_bytes;
         }
 
-        void load(std::istream& in, const RandomAccessContainer* v) {
+        void load(std::istream& in) {
             m_sct_bp.load(in);
             m_sct_bp_support.load(in, &m_sct_bp);
         }
