@@ -137,7 +137,7 @@ class csa_sada
         };
 
 		void create_buffer(){
-			if ( SampleDens < linear_decode_limit  ){
+			if ( enc_vector_type::sample_dens < linear_decode_limit  ){
 				m_psi_buf = new uint64_t[enc_vector_type::sample_dens+1];
 			}else{
 				m_psi_buf = NULL;
