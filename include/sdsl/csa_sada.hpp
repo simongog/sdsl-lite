@@ -99,6 +99,8 @@ class csa_sada
         friend class psi_of_csa_psi<csa_sada>;
         friend class bwt_of_csa_psi<csa_sada>;
 
+		static const int linear_decode_limit = 100000;
+
 //	static const uint32_t sample_dens = SampleDens;
     private:
         enc_vector_type m_psi;  // psi function
@@ -109,7 +111,7 @@ class csa_sada
         int_vector<8>	m_char2comp; // =0 for the 0-byte and all characters which do not occur in the text
         int_vector<8> 	m_comp2char;
         int_vector<64>  m_C;
-        uint16_t			m_sigma;
+        uint16_t		m_sigma;
 
         uint64_t *m_psi_buf; //[SampleDens+1]; // buffer for decoded psi values
 
@@ -134,6 +136,20 @@ class csa_sada
             m_bwt = bwt_type(this);
         };
 
+		void create_buffer(){
+			if ( SampleDens < linear_decode_limit  ){
+				m_psi_buf = new uint64_t[enc_vector_type::sample_dens+1];
+			}else{
+				m_psi_buf = NULL;
+			}
+		}
+
+		void delete_buffer(){
+			if ( m_psi_buf != NULL ){
+				delete [] m_psi_buf;
+			}
+		}
+
     public:
         const int_vector<8>& char2comp;
         const int_vector<8>& comp2char;
@@ -151,16 +167,16 @@ class csa_sada
             util::assign(m_comp2char, int_vector<8>(256, 0));
             util::assign(m_C, int_vector<64>(257, 0));
             m_sigma = 0;
-			m_psi_buf = new uint64_t[SampleDens+1];
+			create_buffer();
         }
         //! Default Destructor
         ~csa_sada() {
-	   		delete [] m_psi_buf;
+			delete_buffer();
 		}
 
         //! Copy constructor
         csa_sada(const csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>& csa):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
-			m_psi_buf = new uint64_t[SampleDens+1];
+			create_buffer();
             copy(csa);
         }
 
@@ -328,7 +344,13 @@ class csa_sada
             if (lower_sb == upper_sb) { // the interval was smaller than sd
                 lower_b = m_C[cc]; upper_b = m_C[cc+1];
             } else if (lower_sb > (m_C[cc]+sd-1)/sd) { // main case
+// TODO: don't use get_inter_sampled_values if SampleDens is really
+//       large				
                 lower_b = lower_sb*sd;
+				if ( m_psi_buf == NULL ){
+					upper_b = std::min(upper_sb*sd, m_C[cc+1]);
+					goto finish;
+				}
                 uint64_t* p=m_psi_buf;
                 // extract the psi values between two samples
                 m_psi.get_inter_sampled_values(lower_sb, p);
@@ -352,7 +374,7 @@ class csa_sada
                     upper_b = std::min(upper_sb*sd, m_C[cc+1]);
                 }
             }
-
+finish:
             // binary search the interval [C[cc]..C[cc+1]-1] for the result
 //			size_type lower_b = m_C[cc], upper_b = m_C[cc+1]; // lower_b inclusive, upper_b exclusive
             while (lower_b+1 < upper_b) {
@@ -395,7 +417,7 @@ class csa_sada
 template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
 csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(const unsigned char* str):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
 {
-	m_psi_buf = new uint64_t[SampleDens+1];
+	create_buffer();
     csa_uncompressed sa(str);
 //	size_type n = strlen((const char*)str);
 //	int_vector<> sa(n+1, 0, bit_magic::l1BP(n+1)+1);
@@ -411,7 +433,7 @@ template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t f
 template<typename RandomAccessContainer>
 csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(const RandomAccessContainer& sa, const unsigned char* str):char2comp(m_char2comp), comp2char(m_comp2char),C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
 {
-	m_psi_buf = new uint64_t[SampleDens+1];
+	create_buffer();
     size_type n = 1;
     if (str != NULL) {
         n = strlen((const char*)str);
@@ -427,7 +449,7 @@ template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t f
 template<typename RandomAccessContainer>
 csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(RandomAccessContainer& sa, const unsigned char* str):char2comp(m_char2comp), comp2char(m_comp2char),C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
 {
-	m_psi_buf = new uint64_t[SampleDens+1];
+	create_buffer();
     size_type n = 1;
     if (str != NULL) {
         n = strlen((const char*)str);
@@ -445,7 +467,7 @@ csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(int_vect
         int_vector_file_buffer<int_width, size_type_class_1>& sa_buf):
     char2comp(m_char2comp), comp2char(m_comp2char),C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
 {
-	m_psi_buf = new uint64_t[SampleDens+1];
+	create_buffer();
     bwt_buf.reset(); sa_buf.reset();
     size_type n = bwt_buf.int_vector_size;
     algorithm::set_text<csa_sada>(bwt_buf, n, m_C, m_char2comp, m_comp2char, m_sigma);
@@ -483,7 +505,7 @@ template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t f
 csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(tMSS& file_map, const std::string& dir, const std::string& id):
     char2comp(m_char2comp), comp2char(m_comp2char),C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
 {
-	m_psi_buf = new uint64_t[SampleDens+1];
+	create_buffer();
     construct(file_map, dir, id);
 }
 
