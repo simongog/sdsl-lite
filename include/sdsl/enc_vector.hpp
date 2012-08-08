@@ -62,7 +62,7 @@ class enc_vector
         typedef int_vector<>::size_type				size_type;		// STL Container requirement
         typedef Coder								coder;
         typedef typename enc_vector_trait<fixedIntWidth>::int_vector_type int_vector_type;
-        static  const uint32_t 						sample_dens	= SampleDens;
+        static  const uint32_t 						sample_dens	= SampleDens;	// Required member
 
         int_vector<0> 	m_z; 		// compressed bit stream
     private:
@@ -206,11 +206,9 @@ class enc_vector
          */
         bool operator==(const enc_vector& v)const;
 
-        //! Unequality Operator
-        /*! Two enc_vectors are unuequal if not all member variables are equal
+        //! Inequality Operator
+        /*! Two enc_vectors are unequal if not all member variables are equal
          *  (including the sample density of the enc_vectors).
-         *  \note If the sample density is not equal you should use
-         *  SDSAlgorithm::equal_container_values to compare two enc_vectors.
          *
          * 	Required for the Equality Comparable Concept of the STL.
          *  \sa operator==
