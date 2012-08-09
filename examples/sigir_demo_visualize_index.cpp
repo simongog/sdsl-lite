@@ -252,7 +252,7 @@ int main(int argc, char **argv){
 	html += create_html_header(argv[1]);
 	html += create_js_body(json.str());
 
-	ofstream html_file( (string(argv[0])+".html").c_str() );
+	ofstream html_file( (string(argv[1])+".html").c_str() );
 	html_file << html;
 }
 
