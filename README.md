@@ -209,6 +209,7 @@ Code:
   * Matthias Petri
 
 Bug reports:
+  * Kalle Karhu
   * Dominik Kempa
 
 New contributors are welcome any time!
