@@ -30,6 +30,8 @@ int main(int argc, char **argv){
 	csa_wt<wt_huff<rrr_vector<255> >, 512, 1024> fm_index;
 
 	if( !util::load_from_file(fm_index, index_file.c_str()) ){
+		ifstream in(argv[1]);
+		if( !in ){ cout << "ERROR: File " << argv[1] << " does not exist. Exit." << endl; return 1; }
 		cout << "No index "<<index_file<< " located. Building index now." << endl;
 		construct_csa(argv[1], fm_index); // generate index
 		util::store_to_file(fm_index, index_file.c_str()); // save it
