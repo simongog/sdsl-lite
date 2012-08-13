@@ -91,6 +91,14 @@ class bit_vector_interleaved
 
     public:
         bit_vector_interleaved():m_size(0), m_totalBlocks(0), m_superblocks(0), m_blockShift(0) {}
+        bit_vector_interleaved(const bit_vector_interleaved& bv):m_size(0), m_totalBlocks(0), m_superblocks(0), m_blockShift(0) {
+			m_size = bv.m_size;
+			m_totalBlocks = bv.m_totalBlocks;
+			m_superblocks = bv.m_superblocks;
+			m_blockShift = bv.m_blockShift;
+			util::assign(m_data, bv.m_data);
+			util::assign(m_rank_samples, bv.m_rank_samples);
+		}
 
         bit_vector_interleaved(const bit_vector& bv):m_size(0), m_totalBlocks(0), m_superblocks(0), m_blockShift(0) {
             m_size = bv.size();
@@ -132,6 +140,14 @@ class bit_vector_interleaved
             }
             init_rank_samples();
         }
+
+		bool map_it(){
+			return m_data.map_it();
+		}
+
+		bool unmap_it(){
+			return m_data.unmap_it();
+		} 
 
         //! Accessing the i-th element of the original bit_vector
         /*! \param i An index i with \f$ 0 \leq i < size()  \f$.
