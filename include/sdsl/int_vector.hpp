@@ -21,6 +21,12 @@
 #ifndef INCLUDED_SDSL_INT_VECTOR
 #define INCLUDED_SDSL_INT_VECTOR
 
+#include <sys/mman.h>
+
+#define HUGE_LEN 1073741824 
+#define HUGE_PROTECTION (PROT_READ | PROT_WRITE)
+#define HUGE_FLAGS (MAP_HUGETLB | MAP_ANONYMOUS | MAP_PRIVATE)
+
 #include "compatibility.hpp"
 #include "bitmagic.hpp"
 #include "util.hpp"
@@ -358,6 +364,40 @@ class int_vector
 
         //! Destructor for int_vector.
         ~int_vector();
+
+		bool map_it(){
+			size_t len = (((m_size+64)>>6)<<3);
+			size_t hpgs= (len+HUGE_LEN-1)/HUGE_LEN; // number of huge pages required to store the data
+			uint64_t *data = (uint64_t*)mmap(NULL, hpgs*HUGE_LEN, HUGE_PROTECTION, HUGE_FLAGS, 0, 0);
+			if (data == MAP_FAILED) {
+				std::cout << "mmap was not successful" << std::endl;
+				return false;
+			}
+			if ( m_data != NULL ){
+				memcpy(data, m_data, len); // copy old data
+				free(m_data);
+				m_data = data;		
+			}
+			return true;
+		}
+
+		bool unmap_it(){
+			size_t len = (((m_size+64)>>6)<<3);
+			size_t hpgs= (len+HUGE_LEN-1)/HUGE_LEN; // number of huge pages 
+			if (  util::verbose ){
+				std::cerr<<"unmap int_vector of size "<< len <<std::endl;
+				std::cerr<<"m_data="<<m_data<<std::endl;
+			}
+			uint64_t* tmp_data = (uint64_t*)malloc(len); // allocate memory for m_data
+			memcpy(tmp_data, m_data, len); // copy data from the mmapped region
+			int ret = munmap((void*)m_data, hpgs*HUGE_LEN ); 
+			if ( ret == -1 ){
+				perror("Unmap failed");
+				return false;
+			}
+			m_data = tmp_data;
+			return true;
+		}
 
         //!	Equivalent to size() == 0.
         /*! Required for the STL Container Concept
