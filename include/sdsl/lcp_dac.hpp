@@ -46,7 +46,7 @@ namespace sdsl
 //! A class for the compressed version of lcp information of an suffix array
 /*! We use a technique called ,,escaping'' to encode the values.
  *  This is defined as follows (see [1]):
- *  A k-bit integer is split into \f$K=\lceilk/(b-1)\rceil\f$ bits each and
+ *  A k-bit integer is split into \f$K=\lceil k/(b-1)\rceil\f$ bits each and
  *  encoded into \f$K\f$ blocks of \f$ b \f$ bits each. All but the last block
  *  are marked with by a 1 in the most significant bit. Escaping with b=8 is
  *  also known as vbyte-coding (see [2]). A experimental study of using escaping

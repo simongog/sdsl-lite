@@ -902,8 +902,8 @@ class wt
          *  \par Precondition
          *       \f$ i\leq j \f$
          *       \f$ cs.size() \geq \sigma \f$
-         *       \f$ rank_c_i.size() \geq \sigma \f$
-         *       \f$ rank_c_j.size() \geq \sigma \f$
+         *       \f$ rank_{c_i}.size() \geq \sigma \f$
+         *       \f$ rank_{c_j}.size() \geq \sigma \f$
          */
         void interval_symbols(size_type i, size_type j, size_type& k,
                               std::vector<unsigned char>& cs,
