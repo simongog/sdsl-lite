@@ -9,9 +9,9 @@ With cmake installed, the library then can be
 installed automatically by running the command
 ./install.sh YOUR_SDSL_INSTALL_PREFIX
 
-YOUR_SDSL_INSTALL_PREFIX should be an existing
-directory other then the directory where this
-INSTALL file is located in.
+YOUR_SDSL_INSTALL_PREFIX should be an absolute
+path to an existing directory other then the 
+directory where this INSTALL file is located in.
 
 After running the script you can change into
 the test directory and make and execute the tests by

@@ -169,6 +169,7 @@ calling
 ./install SDSL_INSTALL_DIR
 ``
 If `SDSL_INSTALL_DIR` is not specified your home directory is used.
+Please use an absolute path name for `SDSL_INSTALL_DIR`.
 The library header files will be located in the directory
 `SDSL_INSTALL_DIR/include` and the library in the directory
 `SDSL_INSTALL_DIR/lib`. After the installation you can 
