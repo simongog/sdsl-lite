@@ -30,10 +30,14 @@ int main(int argc, char **argv){
 	csa_wt<wt_huff<rrr_vector<255> >, 512, 1024> fm_index;
 
 	if( !util::load_from_file(fm_index, index_file.c_str()) ){
+		ifstream in(argv[1]);
+		if( !in ){ cout << "ERROR: File " << argv[1] << " does not exist. Exit." << endl; return 1; }
+		cout << "No index "<<index_file<< " located. Building index now." << endl;
 		construct_csa(argv[1], fm_index); // generate index
 		util::store_to_file(fm_index, index_file.c_str()); // save it
 	}
-	cout << "File is indexed. Input search terms and press Ctrl-D to exit." << endl;
+	cout << "Index construction complete, index requires " << util::get_size_in_mega_bytes(fm_index) << " MiB." << endl;
+	cout << "Input search terms and press Ctrl-D to exit." << endl;
 	string prompt = "\e[0;32m>\e[0m ";
 	cout << prompt;
 	string query;
@@ -64,5 +68,6 @@ int main(int argc, char **argv){
 		}
 		cout << prompt;
 	}
+	cout << endl;
 }
 

@@ -172,7 +172,7 @@ If `SDSL_INSTALL_DIR` is not specified your home directory is used.
 The library header files will be located in the directory
 `SDSL_INSTALL_DIR/include` and the library in the directory
 `SDSL_INSTALL_DIR/lib`. After the installation you can 
-execute the tests in the `test` directory of start
+execute the tests in the `test` directory or start
 with some code examples in the `examples` folder.
 
 Tests
@@ -209,6 +209,7 @@ Code:
   * Matthias Petri
 
 Bug reports:
+  * Kalle Karhu
   * Dominik Kempa
 
 New contributors are welcome any time!
