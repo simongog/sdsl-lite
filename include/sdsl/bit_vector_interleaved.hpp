@@ -141,14 +141,6 @@ class bit_vector_interleaved
             init_rank_samples();
         }
 
-		bool map_it(){
-			return m_data.map_it();
-		}
-
-		bool unmap_it(){
-			return m_data.unmap_it();
-		} 
-
         //! Accessing the i-th element of the original bit_vector
         /*! \param i An index i with \f$ 0 \leq i < size()  \f$.
            \return The i-th bit of the original bit_vector
