@@ -64,6 +64,9 @@ int main(int argc, char** argv)
     typedef fm_index_type::size_type size_type;
     fm_index_type fm_index;
     if (!util::load_from_file(fm_index, index_file.c_str())) {
+		ifstream in(argv[1]);
+		if( !in ){ cout << "ERROR: File " << argv[1] << " does not exist. Exit." << endl; return 1; }
+		cout << "No index "<<index_file<< " located. Building index now." << endl;
         construct_csa(argv[1], fm_index); // generate index
         util::store_to_file(fm_index, index_file.c_str()); // save it
     }
@@ -72,11 +75,16 @@ int main(int argc, char** argv)
     rmq_succinct_sct<> rmq;
     csa_wt<wt_huff<>, 1,1<<20 > tmp_csa;
     if (!util::load_from_file(rmq, rmq_file.c_str())) {
+		ifstream in(argv[1]);
+		if( !in ){ cout << "ERROR: File " << argv[1] << " does not exist. Exit." << endl; return 1; }
+		cout << "No index "<<rmq_file<< " located. Building index now." << endl;
         construct_csa(argv[1], tmp_csa);
         util::assign(rmq, rmq_succinct_sct<>(&tmp_csa));
         util::store_to_file(rmq, rmq_file.c_str());
     }
-    cout << "File is indexed. Input search terms and press Ctrl-D to exit." << endl;
+	size_t index_size = util::get_size_in_mega_bytes(fm_index) + util::get_size_in_mega_bytes(rmq);
+	cout << "Index construction complete, index requires " << index_size << " MiB." << endl;
+	cout << "Input search terms and press Ctrl-D to exit." << endl;
     string prompt = "\e[0;32m>\e[0m ";
     cout << prompt;
     string query;
@@ -125,5 +133,6 @@ int main(int argc, char** argv)
         }
         cout << prompt;
     }
+	cout << endl;
 }
 
