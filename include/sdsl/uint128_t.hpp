@@ -29,6 +29,7 @@ namespace sdsl
 
 typedef unsigned int uint128_t __attribute__((mode(TI)));
 
+inline
 std::ostream& operator<<(std::ostream& os, const uint128_t& x)
 {
     uint64_t X[2] = {(uint64_t)(x >> 64), (uint64_t)x};

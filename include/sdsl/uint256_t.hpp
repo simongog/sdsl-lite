@@ -169,7 +169,7 @@ class uint256_t
         }
 
         bool operator==(const uint256_t& x) const {
-            return (m_lo == x.m_lo) and (m_mid == x.m_mid) and (m_high == x.m_high);
+            return (m_lo == x.m_lo) and(m_mid == x.m_mid) and(m_high == x.m_high);
         }
 
         bool operator!=(const uint256_t& x) const {
@@ -232,6 +232,7 @@ class uint256_t
         }
 };
 
+inline
 std::ostream& operator<<(std::ostream& os, const uint256_t& x)
 {
     uint64_t X[4] = {(uint64_t)(x.m_high >> 64), (uint64_t)x.m_high, x.m_mid, x.m_lo};
