@@ -1477,7 +1477,7 @@ typename int_vector<fixedIntWidth,size_type_class>::size_type int_vector<fixedIn
         written_bytes += _sdsl_serialize_size_and_int_width(out, fixedIntWidth, m_int_width, m_size);
     }
     uint64_t* p = m_data;
-    const static size_type SDSL_BLOCK_SIZE = (1<<28);
+    const static size_type SDSL_BLOCK_SIZE = (1<<20);
     size_type idx = 0;
     while (idx+SDSL_BLOCK_SIZE < (capacity()>>6)) {
         out.write((char*) p, SDSL_BLOCK_SIZE*sizeof(uint64_t));
