@@ -50,8 +50,8 @@ class binomial
                 uint8_t m_space_for_bt[n+1];
                 uint8_t m_space_for_bt_pair[256*(n==15)];
                 uint64_t m_C[MAX_SIZE];
-                int_vector<32> m_nr_to_bin;
-                int_vector<32> m_bin_to_nr;
+				std::vector<uint32_t> m_nr_to_bin;
+				std::vector<uint32_t> m_bin_to_nr;
 
                 impl() {
                     m_nr_to_bin.resize(1<<n);
