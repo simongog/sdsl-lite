@@ -3,9 +3,11 @@
 #include <cstdlib> // for malloc and free
 #include <sys/mman.h>
 
-#define HUGE_LEN 1073741824 
-#define HUGE_PROTECTION (PROT_READ | PROT_WRITE)
-#define HUGE_FLAGS (MAP_HUGETLB | MAP_ANONYMOUS | MAP_PRIVATE)
+#ifdef MAP_HUGETLB
+	#define HUGE_LEN 1073741824 
+	#define HUGE_PROTECTION (PROT_READ | PROT_WRITE)
+	#define HUGE_FLAGS (MAP_HUGETLB | MAP_ANONYMOUS | MAP_PRIVATE)
+#endif
 
 //! Namespace for the succinct data structure library
 namespace sdsl
@@ -30,6 +32,7 @@ namespace sdsl
 	}
 
 	bool mm::map_hp(){
+#ifdef MAP_HUGETLB		
 		m_total_memory = 0; // memory of all int_vectors
 		for(tMVecItem::const_iterator it=m_items.begin(); it!=m_items.end(); ++it){
 			m_total_memory += it->second->size();
@@ -55,9 +58,13 @@ namespace sdsl
 			success = success && it->second->map_hp( addr );
 		}
 		return success;
+#else
+		return false;
+#endif		
 	}
 
 	bool mm::unmap_hp(){
+#ifdef MAP_HUGETLB		
 		size_t hpgs= (m_total_memory+HUGE_LEN-1)/HUGE_LEN; // number of huge pages 
 		if (  util::verbose ){
 			std::cerr<<"unmap "<< m_total_memory << " bytes" <<std::endl;
@@ -75,6 +82,9 @@ namespace sdsl
 			return false;
 		}
 		return success;
+#else
+		return true;
+#endif
 	}
 
 } // end namespace
