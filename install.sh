@@ -63,8 +63,20 @@ if [[ $? != 0 ]]; then
 fi
 
 cmake -DCMAKE_INSTALL_PREFIX=${SDSL_INSTALL_PREFIX} .. # run cmake 
+if [[ $? != 0 ]]; then
+	echo "ERROR: CMake build failed."
+	exit 1
+fi
 make # run make
+if [[ $? != 0 ]]; then
+	echo "ERROR: Build failed."
+	exit 1
+fi
 make install # install library
+if [[ $? != 0 ]]; then
+	echo "ERROR: Installation failed."
+	exit 1
+fi
 
 cd ..
 
