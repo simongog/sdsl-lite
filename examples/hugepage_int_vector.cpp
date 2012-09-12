@@ -7,17 +7,19 @@ using namespace std;
 
 int main(){	
 	{
-		bit_vector v(1ULL<<37);
-		v.map_it();
-		cout << "Hello World" << endl;
-		v.unmap_it();
-		util::clear(v);
+		bit_vector v(1ULL<<30);
+		bool mapped = mm::map_hp();
+		cout << v[0] << endl;
+		if ( mapped ){
+		   	mm::unmap_hp();
+		}
 	}
 	{
-		bit_vector_interleaved<> v(1ULL<<36);
-		v.map_it();
-		cout << "Hello World" << endl;
-		v.unmap_it();
-
+		bit_vector_interleaved<> v(1ULL<<30);
+		bool mapped = mm::map_hp();
+		cout << v[0] << endl;
+		if ( mapped ){
+		   	mm::unmap_hp();
+		}
 	}
 }
