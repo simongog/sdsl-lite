@@ -36,8 +36,7 @@ namespace sdsl
 {
 
 // Helper class
-template<uint8_t n>
-class binomial
+class binomial15
 {
     public:
         typedef uint32_t number_type;
@@ -46,12 +45,13 @@ class binomial
         static class impl
         {
             public:
+				static const int n = 15;
                 static const int MAX_SIZE=32;
-                uint8_t m_space_for_bt[n+1];
-                uint8_t m_space_for_bt_pair[256*(n==15)];
+                uint8_t m_space_for_bt[16];
+                uint8_t m_space_for_bt_pair[256];
                 uint64_t m_C[MAX_SIZE];
-				std::vector<uint32_t> m_nr_to_bin;
-				std::vector<uint32_t> m_bin_to_nr;
+				int_vector<16> m_nr_to_bin;
+				int_vector<16> m_bin_to_nr;
 
                 impl() {
                     m_nr_to_bin.resize(1<<n);
@@ -101,44 +101,7 @@ class binomial
         static inline uint8_t space_for_bt_pair(uint8_t x) {
             return iii.m_space_for_bt_pair[x];
         }
-
-        static inline uint8_t popcount(number_type x) {
-            return bit_magic::b1Cnt(x);
-        }
-
-        static inline uint8_t select(number_type x, uint32_t i) {
-            return bit_magic::i1BP(x, i);
-        }
-
-        template<class bit_vector_type>
-        static inline number_type decode_btnr(const bit_vector_type& bv,
-                                              typename bit_vector_type::size_type btnrp,
-                                              uint8_t btnrlen) {
-            return bv.get_int(btnrp, btnrlen);
-        }
-
-        template<class bit_vector_type>
-        static inline uint8_t get_bt(const bit_vector_type& bv,
-                                     typename bit_vector_type::size_type pos,
-                                     uint8_t block_size) {
-            return bit_magic::b1Cnt(bv.get_int(pos, block_size));
-        }
-
-        template<class bit_vector_type>
-        static void set_bt(bit_vector_type& bv,
-                           typename bit_vector_type::size_type pos,
-                           number_type bt,
-                           uint8_t space_for_bt) {
-            bv.set_int(pos, bt, space_for_bt);
-        }
-
-        static inline number_type Li1Mask(uint8_t off) {
-            return bit_magic::Li1Mask[off];
-        }
 };
-template<uint8_t n>
-typename binomial<n>::impl binomial<n>::iii;
-
 
 
 //! A specialization of the rrr_vector class for a block_size of 15.
@@ -169,7 +132,7 @@ class rrr_vector<15, wt_type>
         typedef rrr_select_support<0, 15, wt_type> select_0_type;
 
         enum { block_size = 15 };
-        typedef binomial<block_size> bi_type;
+        typedef binomial15 bi_type;
     private:
         size_type      m_size; // length of the original bit_vector
         uint16_t       m_sample_rate;

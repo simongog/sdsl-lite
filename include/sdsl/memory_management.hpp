@@ -85,7 +85,10 @@ class mm{
 		static void add(int_vector_type *v){
 			if( mm::m_items.find((uint64_t)v) == mm::m_items.end() ){
 				mm_item_base* item = new mm_item<int_vector_type>(v); 
-				if(util::verbose) cout << "mm::add: add vector " << v << endl;
+				if(util::verbose) { 
+					cout << "mm::add: add vector " << v << endl;
+					cout.flush();
+				}
 				mm::m_items[(uint64_t)v] = item;
 			}else{
 				if(util::verbose) cout << "mm::add: mm_item is already in the set" << endl;
