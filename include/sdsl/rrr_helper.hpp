@@ -164,10 +164,21 @@ struct binomial_coefficients_trait<8> {
     }
 };
 
-//! A class for the binomial coefficients up to n.
+//! A class for the binomial coefficients \f$ n \choose k \f$.
 /*!
  * data.table[m][k] contains the number \f${m \choose k}\f$ for \f$ k\leq m\leq \leq n\f$.
+ * Size of data.table :
+ *   Let \f$ maxlog = \lceil \log n \rceil \f$ and \f$ maxsize = 2^{maxlog} \f$
+ *   then the tables requires \f$ maxsize^2\times \lceil n/8 rceil \f$ bytes space.
+ *    Examples: 
+ *          n <=  64: 64*64*8 bytes    =   4 kB *  8 = 32 kB
+ *     64 < n <= 128: 128*128*16 bytes =  16 kB * 16 = 256 kB
+ *    128 < n <= 256: 256*256*32 bytes =  64 kB * 32 = 2048 kB = 2 MB
+ *
  * data.space[m][k] returns the bits needed to encode a value between [0..data.table[m][k]], given m and k.
+ * Size of data.space is the same as for data.table. TODO: optimize this, only n values are used in the
+ * implementation.  
+ *
  * BINARY_SEARCH_THRESHOLD is equal to \f$ n/\lceil\log{n+1}\rceil \f$
  * \pre The template parameter n should be in the range [7..256].
  */

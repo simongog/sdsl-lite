@@ -35,7 +35,12 @@
 namespace sdsl
 {
 
-// Helper class
+// Helper class for the binomial coefficients \f$ 15 \choose k \f$
+/*
+ * Size of lookup tables:
+ *  * m_nr_to_bin: 64 kB = (2^15 entries x 2 bytes) 
+ *  * m_bin_to_nr: 64 kB = (2^15 entries x 2 bytes)
+ */
 class binomial15
 {
     public:
