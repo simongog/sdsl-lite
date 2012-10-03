@@ -50,8 +50,8 @@ class binomial15
                 uint8_t m_space_for_bt[16];
                 uint8_t m_space_for_bt_pair[256];
                 uint64_t m_C[MAX_SIZE];
-				int_vector<16> m_nr_to_bin;
-				int_vector<16> m_bin_to_nr;
+                int_vector<16> m_nr_to_bin;
+                int_vector<16> m_bin_to_nr;
 
                 impl() {
                     m_nr_to_bin.resize(1<<n);
