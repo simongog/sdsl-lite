@@ -240,8 +240,11 @@ class binomial_coefficients
 				typedef binomial_table<MAX_SIZE,number_type> tBinom;
 				const number_type (&table)[MAX_SIZE+1][MAX_SIZE+1]; // table for the binomial coefficients
                 uint16_t space[n+1];    // for entry i,j \lceil \log( {i \choose j}+1 ) \rceil
+#ifndef RRR_BS				
                 static const uint16_t BINARY_SEARCH_THRESHOLD = n/MAX_LOG;
-
+#else
+                static const uint16_t BINARY_SEARCH_THRESHOLD = 0;
+#endif				
                 number_type (&L1Mask)[MAX_SIZE+1]; // L1Mask[i] contains a word with the i least significant bits set to 1.
                 number_type (&O1Mask)[MAX_SIZE];   // O1Mask[i] contains a word with the i least significant bits set to 0.
 
@@ -351,7 +354,7 @@ class rrr_helper
             }
             uint16_t nn = n;
             // if k < n \log n, it is better to do a binary search for each of the on bits
-            if (k < binomial::data.BINARY_SEARCH_THRESHOLD) {
+            if (  k < binomial::data.BINARY_SEARCH_THRESHOLD ) {
                 while (k > 1) {
                     uint16_t nn_lb = k, nn_rb = nn+1; // invariant nr >= binomial::data.table[nn_lb-1][k]
                     while (nn_lb < nn_rb) {
