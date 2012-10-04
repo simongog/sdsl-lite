@@ -164,6 +164,49 @@ struct binomial_coefficients_trait<8> {
     }
 };
 
+template<uint16_t n, class number_type>
+class binomial_table{
+	public:
+		static class impl
+		{
+			public:
+			number_type table[n+1][n+1];
+            number_type L1Mask[n+1]; // L1Mask[i] contains a word with the i least significant bits set to 1.
+           // i.e. L1Mask[0] = 0, L1Mask[1] = 1,...
+            number_type O1Mask[n]; // O1Mask[i] contains a word with the i least significant bits set to 0.
+
+			impl(){
+				for (uint16_t k=0; k <= n; ++k) {
+					table[k][k] = 1;    // initialize diagonal
+				}
+				for (uint16_t k=0; k <= n; ++k) {
+					table[0][k] = 0;    // initialize first row
+				}
+				for (uint16_t nn=0; nn <= n; ++nn) {
+					table[nn][0] = 1;    // initialize first column
+				}
+				for (int nn=1; nn<=n; ++nn) {
+					for (int k=1; k<=n; ++k) {
+						table[nn][k] = table[nn-1][k-1] + table[nn-1][k];
+					}
+				}
+				L1Mask[0] = 0;
+				number_type mask = 1;
+				O1Mask[0] = 1;
+				for (int i=1; i<=n; ++i) {
+					L1Mask[i] = mask;
+					if (i < n)
+						O1Mask[i] = O1Mask[i-1]<<1;
+					mask = (mask << 1);
+					mask |= (number_type)1;
+				}		
+			}
+		} data;
+};
+
+template<uint16_t n, class number_type>
+typename binomial_table<n,number_type>::impl binomial_table<n,number_type>::data;
+
 //! A class for the binomial coefficients \f$ n \choose k \f$.
 /*!
  * data.table[m][k] contains the number \f${m \choose k}\f$ for \f$ k\leq m\leq \leq n\f$.
@@ -174,10 +217,11 @@ struct binomial_coefficients_trait<8> {
  *          n <=  64: 64*64*8 bytes    =   4 kB *  8 = 32 kB
  *     64 < n <= 128: 128*128*16 bytes =  16 kB * 16 = 256 kB
  *    128 < n <= 256: 256*256*32 bytes =  64 kB * 32 = 2048 kB = 2 MB
+ *  The table is shared now for all n's in on of these ranges. 
  *
- * data.space[m][k] returns the bits needed to encode a value between [0..data.table[m][k]], given m and k.
- * Size of data.space is the same as for data.table. TODO: optimize this, only n values are used in the
- * implementation.  
+ * data.space[k] returns the bits needed to encode a value between [0..data.table[n][k]], given n and k.
+ * Size of data.space is  \f$ (n+1) \times \lceil n/8 \rceil \f$ bytes. E.g. 64*8=512 bytes for n=63,
+ * 2kB for n=127, and 8kB for n=255.
  *
  * BINARY_SEARCH_THRESHOLD is equal to \f$ n/\lceil\log{n+1}\rceil \f$
  * \pre The template parameter n should be in the range [7..256].
@@ -190,43 +234,39 @@ class binomial_coefficients
         {
             public:
                 enum {MAX_LOG = (n>128 ? 8 : (n > 64 ? 7 : 6))};
+                static const uint16_t MAX_SIZE = (1 << MAX_LOG);
                 typedef binomial_coefficients_trait<MAX_LOG> trait;
                 typedef typename trait::number_type number_type;
-                static const uint16_t MAX_SIZE = (1 << MAX_LOG);
-                number_type table[MAX_SIZE+1][MAX_SIZE+1];      // table for the binomial coefficients
-                uint16_t space[MAX_SIZE+1][MAX_SIZE+1];    // for entry i,j \lceil \log( {i \choose j}+1 ) \rceil
+				typedef binomial_table<MAX_SIZE,number_type> tBinom;
+				const number_type (&table)[MAX_SIZE+1][MAX_SIZE+1]; // table for the binomial coefficients
+                uint16_t space[n+1];    // for entry i,j \lceil \log( {i \choose j}+1 ) \rceil
                 static const uint16_t BINARY_SEARCH_THRESHOLD = n/MAX_LOG;
-                number_type L1Mask[MAX_SIZE+1]; // L1Mask[i] contains a word with the i least significant bits set to 1.
-                // i.e. L1Mask[0] = 0, L1Mask[1] = 1,...
-                number_type O1Mask[MAX_SIZE]; // O1Mask[i] contains a word with
-                impl() {
-                    for (uint16_t k=0; k <= MAX_SIZE; ++k) {
-                        table[k][k] = 1;    // initialize diagonal
-                        space[k][k] = 0;
-                    }
-                    for (uint16_t k=0; k <= MAX_SIZE; ++k) {
-                        table[0][k] = 0;    // initialize first row
-                        space[0][k] = 0;
-                    }
-                    for (uint16_t nn=0; nn <= MAX_SIZE; ++nn) {
-                        table[nn][0] = 1;    // initialize first column
-                        space[nn][0] = 0;
-                    }
-                    for (int nn=1; nn<=MAX_SIZE; ++nn) {
-                        for (int k=1; k<=MAX_SIZE; ++k) {
-                            table[nn][k] = table[nn-1][k-1] + table[nn-1][k];
-                            space[nn][k] = (table[nn][k] == (number_type)1) ? 0 : trait::l1BP(table[nn][k]) + 1;
-                        }
-                    }
-                    L1Mask[0] = 0;
-                    number_type mask = 1;
-                    O1Mask[0] = 1;
-                    for (int i=1; i<=MAX_SIZE; ++i) {
-                        L1Mask[i] = mask;
-                        if (i < MAX_SIZE)
-                            O1Mask[i] = O1Mask[i-1]<<1;
-                        mask = (mask << 1);
-                        mask |= (number_type)1;
+
+                number_type (&L1Mask)[MAX_SIZE+1]; // L1Mask[i] contains a word with the i least significant bits set to 1.
+                number_type (&O1Mask)[MAX_SIZE];   // O1Mask[i] contains a word with the i least significant bits set to 0.
+
+                impl() : table( tBinom::data.table ), L1Mask( tBinom::data.L1Mask ), O1Mask( tBinom::data.O1Mask ) {
+					/* Note: ttable contains the same content as table, whoever table is -- in the current
+					 *       implementation initialized too late, to be used here. A solution to this problem
+					 *       would be appreciated. 
+					 */
+					number_type ttable[n+1][n+1]; // table for the binomial coefficients
+					for (uint16_t k=0; k <= n; ++k) {
+						ttable[k][k] = 1;    // initialize diagonal
+					}
+					for (uint16_t k=0; k <= n; ++k) {
+						ttable[0][k] = 0;    // initialize first row
+					}
+					for (uint16_t nn=0; nn <= n; ++nn) {
+						ttable[nn][0] = 1;    // initialize first column
+					}
+					for (int nn=1; nn<=n; ++nn) {
+						for (int k=1; k<=n; ++k) {
+							ttable[nn][k] = ttable[nn-1][k-1] + ttable[nn-1][k];
+						}
+					}
+                    for (int k=0; k<=n; ++k) {
+                        space[k] = (ttable[n][k] == (number_type)1) ? 0 : trait::l1BP(ttable[n][k]) + 1;
                     }
                 }
         } data;
@@ -234,6 +274,10 @@ class binomial_coefficients
 
 template<uint16_t n>
 typename binomial_coefficients<n>::impl binomial_coefficients<n>::data;
+
+//template<uint16_t n>
+//typename binomial_coefficients<n>::impl::number_type (&table2)[binomial_coefficients<n>::impl::MAX_SIZE+1][binomial_coefficients<n>::impl::MAX_SIZE+1] = 0;
+
 
 //! Class to encode and decode binomial coefficients on the fly.
 /*!
@@ -257,7 +301,7 @@ class rrr_helper
 
         //! Returns the space usage in bits of the binary representation of the number \f${n \choose k}\f$
         static inline uint16_t space_for_bt(uint16_t i) {
-            return binomial::data.space[n][i];
+            return binomial::data.space[i];
         }
 
         template<class bit_vector_type>
