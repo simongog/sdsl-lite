@@ -445,6 +445,12 @@ class rrr_rank_support
 
 
 //! Select support for the rrr_vector class.
+/*
+ * TODO: Add heap which contains the 10 first items of 
+ * each binary search could increase performance. 
+ * Experiments on select_support_interleaved showed about
+ * 25%. 
+ */
 template< uint8_t b, uint16_t block_size, class wt_type>
 class rrr_select_support
 {

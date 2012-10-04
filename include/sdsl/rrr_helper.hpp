@@ -240,7 +240,7 @@ class binomial_coefficients
 				typedef binomial_table<MAX_SIZE,number_type> tBinom;
 				const number_type (&table)[MAX_SIZE+1][MAX_SIZE+1]; // table for the binomial coefficients
                 uint16_t space[n+1];    // for entry i,j \lceil \log( {i \choose j}+1 ) \rceil
-#ifndef RRR_BS				
+#ifndef RRR_NO_BS				
                 static const uint16_t BINARY_SEARCH_THRESHOLD = n/MAX_LOG;
 #else
                 static const uint16_t BINARY_SEARCH_THRESHOLD = 0;
