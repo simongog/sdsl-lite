@@ -368,6 +368,7 @@ class select_support_interleaved
             // invariant: lb==0 or m_data[ pos(lb-1) ] < i
             //            m_data[ pos(rb) ] >= i, initial since i < rank(size())
             while (lb < rb) {
+#ifndef NOSELCACHE
                 size_type mid = (lb+rb)/2; // select mid \in [lb..rb)
                 if (idx < m_v->m_rank_samples.size()) {
                     if (((mid << m_blockShift) - m_v->m_rank_samples[idx]) >= i) {
@@ -378,6 +379,7 @@ class select_support_interleaved
                         lb = mid + 1;
                     }
                 } else {
+#endif
                     size_type pos = (mid << m_blockSize_U64) + mid;
 //                                  ^^^^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^
 //                                    data blocks to jump      superblock position
@@ -386,7 +388,9 @@ class select_support_interleaved
                     } else {
                         lb = mid + 1;
                     }
+#ifndef NOSELCACHE
                 }
+#endif
             }
             res = (rb-1) << m_blockShift;
 
