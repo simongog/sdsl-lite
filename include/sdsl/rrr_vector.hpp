@@ -140,7 +140,7 @@ class rrr_vector
             }
             util::assign(m_btnr, bit_vector(std::max(btnr_pos, (size_type)64), 0));      // max necessary for case: block_size == 1
             util::assign(m_btnrp, int_vector<>((bt_array.size()+m_sample_rate-1)/m_sample_rate, 0,  bit_magic::l1BP(btnr_pos)+1));
-            util::assign(m_rank, int_vector<>((bt_array.size()+m_sample_rate-1)/m_sample_rate + 1, 0, bit_magic::l1BP(sum_rank)+1));
+            util::assign(m_rank, int_vector<>((bt_array.size()+m_sample_rate)/m_sample_rate, 0, bit_magic::l1BP(sum_rank)+1));
             util::assign(m_invert, bit_vector((bt_array.size()+m_sample_rate-1)/m_sample_rate, 0));
 
             // (2) calculate block type numbers and pointers into btnr and rank samples
@@ -199,6 +199,11 @@ class rrr_vector
             }
             // for technical reasons add an additional element to m_rank
             m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
+/*			std::cout<<"m_rank.size()-1="<<m_rank.size()-1<<std::endl;
+			for(size_type i=m_rank.size()-4; i<m_rank.size();++i){
+				std::cout<<"m_rank["<< i <<"]="<<m_rank[i]<<std::endl;
+			}
+*/			
             util::assign(m_bt, bt_array);
         }
 
