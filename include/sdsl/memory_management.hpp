@@ -85,25 +85,25 @@ class mm{
 		static void add(int_vector_type *v){
 			if( mm::m_items.find((uint64_t)v) == mm::m_items.end() ){
 				mm_item_base* item = new mm_item<int_vector_type>(v); 
-				if(util::verbose) { 
+				if(false and util::verbose) { 
 					cout << "mm::add: add vector " << v << endl;
 					cout.flush();
 				}
 				mm::m_items[(uint64_t)v] = item;
 			}else{
-				if(util::verbose) cout << "mm::add: mm_item is already in the set" << endl;
+				if(false and util::verbose) cout << "mm::add: mm_item is already in the set" << endl;
 			}
 		}
 
 		template<class int_vector_type>
 		static void remove(int_vector_type *v){
 			if( mm::m_items.find((uint64_t)v) != mm::m_items.end() ){
-				if( util::verbose ){ cout << "mm:remove: remove vector " << v << endl; };
+				if( false and util::verbose ){ cout << "mm:remove: remove vector " << v << endl; };
 				mm_item_base* item = m_items[(uint64_t)v];
 				mm::m_items.erase((uint64_t)v);
 				delete item;
 			}else{
-				if( util::verbose ){ cout << "mm:remove: mm_item is not in the set" << endl; };
+				if( false and util::verbose ){ cout << "mm:remove: mm_item is not in the set" << endl; };
 			}
 		}
 
