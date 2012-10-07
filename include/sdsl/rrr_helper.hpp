@@ -22,6 +22,12 @@
 #ifndef SDSL_RRR_HELPER
 #define SDSL_RRR_HELPER
 
+#ifdef RRR_NO_OPT
+	#ifndef RRR_NO_BS
+		#define RRR_NO_BS
+	#endif
+#endif
+
 #include <algorithm> // for next permutation
 #include <iostream>
 #include "bitmagic.hpp"
