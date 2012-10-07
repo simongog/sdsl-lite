@@ -278,10 +278,6 @@ class binomial_coefficients
 template<uint16_t n>
 typename binomial_coefficients<n>::impl binomial_coefficients<n>::data;
 
-//template<uint16_t n>
-//typename binomial_coefficients<n>::impl::number_type (&table2)[binomial_coefficients<n>::impl::MAX_SIZE+1][binomial_coefficients<n>::impl::MAX_SIZE+1] = 0;
-
-
 //! Class to encode and decode binomial coefficients on the fly.
 /*!
  * The basic encoding and decoding process is described in
@@ -345,6 +341,7 @@ class rrr_helper
 
         //! Decode the bit at position \f$ off \f$ of the block encoded by the pair (k, nr).
         static inline bool decode_bit(uint16_t k, number_type nr, uint16_t off) {
+#ifndef RRR_NO_OPT			
             if (k == n) {  // if n==k, then the encoded block consists only of ones
                 return 1;
             } else if (k == 0) { // if k==0 then the encoded block consists only of zeros
@@ -352,6 +349,7 @@ class rrr_helper
             } else if (k == 1) { // if k==1 then the encoded block contains exactly on set bit at
                 return (n-nr-1) == off; // position n-nr-1
             }
+#endif			
             uint16_t nn = n;
             // if k < n \log n, it is better to do a binary search for each of the on bits
             if (  k < binomial::data.BINARY_SEARCH_THRESHOLD ) {
@@ -394,6 +392,7 @@ class rrr_helper
 
         //! Decode the first off bits bits of the block encoded by the pair (k, nr) and return the set bits.
         static inline uint16_t decode_popcount(uint16_t k, number_type nr, uint16_t off) {
+#ifndef RRR_NO_OPT			
             if (k == n) {  // if n==k, then the encoded block consists only of ones
                 return off;   // i.e. the answer is off
             } else if (k == 0) { // if k==0, then the encoded block consists only on zeros
@@ -401,6 +400,7 @@ class rrr_helper
             } else if (k == 1) { // if k==1 then the encoded block contains exactly on set bit at
                 return (n-nr-1) < off; // position n-nr-1, and popcount is 1 if off > (n-nr-1).
             }
+#endif			
             uint16_t result = 0;
             uint16_t nn = n;
             // if k < n \log n, it is better to do a binary search for each of the on bits
@@ -445,11 +445,13 @@ class rrr_helper
         /*! \pre k >= sel, sel>0
          */
         static inline uint16_t decode_select(uint16_t k, number_type& nr, uint16_t sel) {
+#ifndef RRR_NO_OPT			
             if (k == n) {  // if n==k, then the encoded block consists only of ones
                 return sel-1;
             } else if (k == 1 and sel == 1) {
                 return n-nr-1;
             }
+#endif			
             uint16_t nn = n;
             // if k < n \log n, it is better to do a binary search for each of the on bits
             if (sel < binomial::data.BINARY_SEARCH_THRESHOLD) {
