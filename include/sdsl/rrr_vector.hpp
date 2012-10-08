@@ -121,7 +121,8 @@ class rrr_vector
             m_size = bv.size();
             int_vector<> bt_array;
             bt_array.set_int_width(bit_magic::l1BP(block_size)+1);
-            bt_array.resize((m_size+block_size)/((size_type)block_size));
+            bt_array.resize((m_size+block_size)/((size_type)block_size)); // blocks for the bt_array + a dummy block at the end,
+			                                                              // if m_size%block_size == 0
 
             // (1) calculate the block types and store them in m_bt
             size_type pos = 0, i = 0, x;
@@ -140,7 +141,9 @@ class rrr_vector
             }
             util::assign(m_btnr, bit_vector(std::max(btnr_pos, (size_type)64), 0));      // max necessary for case: block_size == 1
             util::assign(m_btnrp, int_vector<>((bt_array.size()+m_sample_rate-1)/m_sample_rate, 0,  bit_magic::l1BP(btnr_pos)+1));
-            util::assign(m_rank, int_vector<>((bt_array.size()+m_sample_rate)/m_sample_rate, 0, bit_magic::l1BP(sum_rank)+1));
+            util::assign(m_rank, int_vector<>((bt_array.size()+m_sample_rate-1)/m_sample_rate + ( (m_size % (m_sample_rate*block_size))>0 ), 0, bit_magic::l1BP(sum_rank)+1));
+			//                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+			//                                                                      only add a finishing block, if the last block of the superblock is not a dummy block 
             util::assign(m_invert, bit_vector((bt_array.size()+m_sample_rate-1)/m_sample_rate, 0));
 
             // (2) calculate block type numbers and pointers into btnr and rank samples
@@ -189,6 +192,7 @@ class rrr_vector
                     invert = false;
                 }
                 uint16_t space_for_bt = rrr_helper_type::space_for_bt(x=bt_array[i++]);
+				assert( i == bt_array.size() ); // no extra dummy block added to bt_array, therefore this condition should hold
                 sum_rank += invert ? (block_size - x) : x;
                 if (space_for_bt) {
                     number_type bin = rrr_helper_type::decode_btnr(bv, pos, m_size-pos);
@@ -196,11 +200,14 @@ class rrr_vector
                     rrr_helper_type::set_bt(m_btnr, btnr_pos, nr, space_for_bt);
                 }
                 btnr_pos += space_for_bt;
-            }
-            // for technical reasons add an additional element to m_rank
+				assert( m_rank.size()-1 == ((i+m_sample_rate-1)/m_sample_rate) );
+			}else{ // handle last empty full block
+				assert( m_rank.size()-1 == ((i+m_sample_rate-1)/m_sample_rate) );
+			}
+            // for technical reasons we add a last element to m_rank
             m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
 /*			std::cout<<"m_rank.size()-1="<<m_rank.size()-1<<std::endl;
-			for(size_type i=m_rank.size()-4; i<m_rank.size();++i){
+			for(size_type i=std::max((size_type)4,m_rank.size())-4; i<m_rank.size();++i){
 				std::cout<<"m_rank["<< i <<"]="<<m_rank[i]<<std::endl;
 			}
 */			
