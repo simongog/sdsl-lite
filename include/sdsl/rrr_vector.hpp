@@ -230,9 +230,11 @@ class rrr_vector
             size_type sample_pos = bt_idx/m_sample_rate;
             if (m_invert[sample_pos])
                 bt = block_size - bt;
+#ifndef RRR_NO_OPT			
             if (bt == 0 or bt == block_size) { // very effective optimization
                 return bt>0;
             }
+#endif			
             uint16_t off = i % block_size; //i - bt_idx*block_size;
             size_type btnrp = m_btnrp[ sample_pos ];
             for (size_type j = sample_pos*m_sample_rate; j < bt_idx; ++j) {
@@ -363,12 +365,14 @@ class rrr_rank_support
             size_type btnrp = m_v->m_btnrp[ sample_pos ];
             size_type rank  = m_v->m_rank[ sample_pos ];
             size_type diff_rank  = m_v->m_rank[ sample_pos+1 ] - rank;
+#ifndef RRR_NO_OPT			
             if (diff_rank == (size_type)0) {
                 return  rrr_rank_support_trait<b>::adjust_rank(rank, i);
             } else if (diff_rank == (size_type)block_size*m_sample_rate) {
                 return  rrr_rank_support_trait<b>::adjust_rank(
                             rank + i - sample_pos*m_sample_rate*block_size, i);
             }
+#endif			
             const bool inv = m_v->m_invert[ sample_pos ];
             for (size_type j = sample_pos*m_sample_rate; j < bt_idx; ++j) {
                 uint16_t r = m_v->m_bt[j];
@@ -490,9 +494,11 @@ class rrr_select_support
             rank = m_v->m_rank[begin]; // now i>rank
             idx = begin * m_sample_rate; // initialize idx for select result
             size_type diff_rank  = m_v->m_rank[end] - rank;
+#ifndef RRR_NO_OPT			
             if (diff_rank == (size_type)block_size*m_sample_rate) {// optimisation for select<1>
                 return idx*block_size + i-rank -1;
             }
+#endif			
             const bool inv = m_v->m_invert[ begin ];
             size_type btnrp = m_v->m_btnrp[ begin ];
             uint16_t bt = 0, btnrlen = 0; // temp variables for block_type and space for block type
