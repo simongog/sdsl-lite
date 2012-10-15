@@ -112,7 +112,7 @@ class rmq_succinct_sct
             return *this;
         }
 
-        void swap(const rmq_succinct_sct& rm) {
+        void swap(rmq_succinct_sct& rm) {
 			m_sct_bp.swap(rm.m_sct_bp);
 			util::swap_support(m_sct_bp_support, rm.m_sct_bp_support, &m_sct_bp, &(rm.m_sct_bp));
         }

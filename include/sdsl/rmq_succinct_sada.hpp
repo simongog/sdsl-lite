@@ -151,7 +151,7 @@ class rmq_succinct_sada
         }
 
 		//! Swap operator
-        void swap(const rmq_succinct_sada& rm) {
+        void swap(rmq_succinct_sada& rm) {
             m_ect_bp.swap(rm.m_ect_bp);
 			util::swap_support(m_ect_bp_support, rm.m_ect_bp_support, 
 					          &m_ect_bp, &(rm.m_ect_bp));
