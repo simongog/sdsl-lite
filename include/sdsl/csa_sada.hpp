@@ -99,7 +99,7 @@ class csa_sada
         friend class psi_of_csa_psi<csa_sada>;
         friend class bwt_of_csa_psi<csa_sada>;
 
-		static const int linear_decode_limit = 100000;
+		static const uint32_t linear_decode_limit = 100000;
 
 //	static const uint32_t sample_dens = SampleDens;
     private:
