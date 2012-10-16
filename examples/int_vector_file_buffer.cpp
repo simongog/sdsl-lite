@@ -19,9 +19,13 @@ int main(int argc, char* argv[]){
 
 	// open file buffer
 	int_vector_file_buffer<8> v_buf(tmp_file.c_str());
+
+	if ( v.size() != v_buf.int_vector_size ) {
+		std::cerr << "ERROR: v.size() = " << v.size() << " != " << v_buf.int_vector_size << " = v_buf.int_vector_size" << std::endl;  
+	} 
 		
 	// stream vector data from disk and compare it with in-memory data
-	for (size_t i = 0, r_sum = 0, r = v_buf.load_next_block(); i < r_sum;){
+	for (size_t i = 0, r_sum = 0, r = v_buf.load_next_block(); i < v.size();){
 		for(; i < r_sum +r; ++i){
 			if( v[i] != v_buf[i-r_sum] ){
 				std::cerr << "ERROR: v["<< i << "] != v_buf[" << i-r_sum << "]" << std::endl;
