@@ -194,7 +194,7 @@ std::string class_name(const T& t)
 template<class T>
 typename T::size_type get_size_in_bytes(const T& t);
 
-//! Get the size of a data structure in mega bytes (MB).
+//! Get the size of a data structure in mega bytes (MiB).
 /*!
  *	\param t A reference to the data structure for which the size in bytes should be calculated.
  */
@@ -223,7 +223,8 @@ size_t write_member(const T& t, std::ostream& out, sdsl::structure_tree_node* v=
 
 // Specialization for std::string
 template<>
-size_t write_member<std::string>(const std::string& t, std::ostream& out, structure_tree_node* v, std::string name);
+size_t write_member<std::string>(const std::string& t, std::ostream& out, sdsl::structure_tree_node* v, std::string name);
+
 
 // Writes primitive-typed variable t to stream out
 template<class T>
@@ -235,6 +236,45 @@ void read_member(T& t, std::istream& in)
 // Specialization for std::string
 template<>
 void read_member<std::string>(std::string& t, std::istream& in);
+
+//! Serialize each element of an std::vector 
+/*!
+ * \param vec	The vector which should be serialized.
+ * \param out	Output stream to which should be written.
+ * \param v		Structure tree node. Note: If all elements have the same
+ *              structure, then it is tried to combine all elements (i.e.
+ *              make one node w with size set to the cumulative sum of all
+ *              sizes of the children) 
+ */
+template<class T>
+size_t serialize_vector(const std::vector<T> &vec, std::ostream& out, sdsl::structure_tree_node* v=NULL, std::string name=""){
+	if ( vec.size() > 0 ){
+		sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, "std::vector<"+util::class_name(vec[0])+">" );
+		size_t written_bytes = 0;
+		for (typename std::vector<T>::size_type i = 0; i < vec.size(); ++i ){
+			written_bytes += vec[i].serialize(out, child, "[]");
+		}
+		structure_tree::add_size(child, written_bytes);
+		sdsl::structure_tree::merge_children(child);
+		return written_bytes;
+	}else{
+		return 0;
+	}
+}
+
+//! Load all elements of a vector from a input stream
+/*! \param vec	Vector whose elements should be loaded.
+ *  \param in   Input stream.
+ *  \par Note
+ *   The vector has to be resized prior the loading 
+ *   of its elements.
+ */
+template<class T>
+void load_vector(std::vector<T> &vec, std::istream& in){
+	for (typename std::vector<T>::size_type i = 0; i < vec.size(); ++i){
+		vec[i].load(in);
+	}
+}
 
 //! Get the process id of the current process
 uint64_t get_pid();
@@ -336,13 +376,15 @@ template<format_type F, class X>
 void write_structure(const X& x, std::ostream& out)
 {
     structure_tree_node* v = new structure_tree_node();
-    nullstream ns;
+	nullstream ns;
     x.serialize(ns, v, "");
     if (v->children.size() > 0) {
         sdsl::write_structure_tree<F>(v->children[0], out);
     }
     delete v;
 }
+
+
 
 } // end namespace util
 
