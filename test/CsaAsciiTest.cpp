@@ -109,8 +109,8 @@ TYPED_TEST(CsaAsciiTest, Sigma)
     }
 }
 
-//! Test access methods
-TYPED_TEST(CsaAsciiTest, Access) {
+//! Test suffix array access methods
+TYPED_TEST(CsaAsciiTest, SaAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam csa;
         ASSERT_EQ(this->load_csa(csa, i), true);
@@ -124,64 +124,29 @@ TYPED_TEST(CsaAsciiTest, Access) {
     }
 }
 
-/*
-template<class tWt>
-void test_rank(const tWt& wt, const unsigned char* text, size_type n)
-{
-    std::vector<size_type> cnt(256, 0);
-    ASSERT_EQ(n, wt.size());
-    for (size_type j=0; j < wt.size(); ++j) {
-        cnt[text[j]]++;
-        ASSERT_EQ(cnt[text[j]], wt.rank(j+1, text[j]))<< " j = "<<j<<" text[j]"<<text[j];
-    }
-    // Do random queries for all characters that do not occur in the string
-    for (size_type j=0; j<cnt.size(); ++j) {
-        if (cnt[j] == 0) {
-            for (size_type k=0; k<1000; ++k) {
-                size_type pos = rand()%(wt.size()+1);
-                ASSERT_EQ((size_type)0, wt.rank(pos, (unsigned char)j))<<" pos="<<pos;
-            }
-        }
-    }
-    // Test rank(size(), c) for each character c
-    for (size_type c=0; c < 256; ++c) {
-        ASSERT_EQ(cnt[c], wt.rank(wt.size(), (unsigned char)c))<<" c="<<c;
-    }
-}
-
-
-//! Test rank methods
-TYPED_TEST(CsaAsciiTest, Rank)
-{
+//! Test inverse suffix access methods
+TYPED_TEST(CsaAsciiTest, IsaAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam wt;
-        ASSERT_EQ(this->load_wt(wt, i), true);
-        unsigned char* text = NULL;
-        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), (char*&)text)-1;
-        ::test_rank(wt, text, n);
-        delete [] text;
-    }
-}
-
-
-//! Test select methods
-TYPED_TEST(CsaAsciiTest, Select)
-{
-    for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam wt;
-        ASSERT_EQ(this->load_wt(wt, i), true);
-        unsigned char* text = NULL;
-        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), (char*&)text)-1;
-        std::vector<size_type> cnt(256, 0);
-        ASSERT_EQ(n, wt.size());
+        TypeParam csa;
+        ASSERT_EQ(this->load_csa(csa, i), true);
+		sdsl::int_vector<> isa;
+		size_type n = 0;
+		{
+			sdsl::int_vector<> sa;
+			sdsl::util::load_from_file(sa, test_cases_file_map[i]["sa"].c_str());
+			n = sa.size();
+			ASSERT_EQ(n, csa.size());
+			isa = sa;
+			for (size_type j=0; j<n; ++j){
+				isa[sa[j]] = j;
+			}
+		}
         for (size_type j=0; j<n; ++j) {
-            cnt[text[j]]++;
-            ASSERT_EQ(j, wt.select(cnt[text[j]], text[j]))<< " j = "<<j<<" text[j]"<<text[j];
+            ASSERT_EQ(isa[j], csa(j))<<" j="<<j;
         }
-        delete [] text;
     }
 }
-*/
+
 
 //! Test access after swap
 TYPED_TEST(CsaAsciiTest, SwapTest) {
