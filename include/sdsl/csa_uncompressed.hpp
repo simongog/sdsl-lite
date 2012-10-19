@@ -28,6 +28,7 @@
 #include "iterators.hpp"
 #include "util.hpp"
 #include "testutils.hpp"
+#include "csa_sampling_strategy.hpp"
 #include <iostream>
 #include <algorithm>
 #include <cassert>
@@ -69,10 +70,10 @@ class csa_uncompressed
         typedef bwt_of_csa_psi<csa_uncompressed>					 bwt_type;
         typedef const unsigned char*								 pattern_type;
         typedef unsigned char										 char_type;
-        typedef int_vector<>										 sa_sample_type;
+        typedef _sa_order_sampling_strategy<1,0>					 sa_sample_type;
         typedef int_vector<>										 isa_sample_type;
 
-        typedef csa_tag												index_category;
+        typedef csa_tag												 index_category;
 
         enum { sa_sample_dens = 1,
                isa_sample_dens = 1
@@ -90,7 +91,6 @@ class csa_uncompressed
         int_vector<64>  m_C;
         uint16_t		m_sigma;
 
-        void construct();
         void copy(const csa_uncompressed& csa);
     public:
         const int_vector<8>& char2comp;
@@ -115,50 +115,8 @@ class csa_uncompressed
             copy(csa);
         }
 
-        //! Construct csa_uncompressed from another compressed or uncompressed suffix array
-        template<typename RandomAccessContainer>
-        csa_uncompressed(const RandomAccessContainer& sa, const unsigned char* str);
-
-
-        //! Constructor for the CSA taking a string for that the CSA should be calculated
-        csa_uncompressed(const unsigned char* str);
-
-        //! Construct the csa_uncompressed form a int_vector_file_buffer for the text and the SA
-        template<uint8_t int_width, class size_type_class, class size_type_class_1>
-        csa_uncompressed(int_vector_file_buffer<8, size_type_class>& text_buf,
-                         int_vector_file_buffer<int_width, size_type_class_1>& sa_buf):char2comp(m_char2comp),
-            comp2char(m_comp2char), C(m_C), sigma(m_sigma) ,psi(m_psi), bwt(m_bwt), sa_sample(m_sa), isa_sample(m_isa) {
-            text_buf.reset(); sa_buf.reset();
-            size_type n = text_buf.int_vector_size;
-            algorithm::set_text<csa_uncompressed>(text_buf, n, m_C, m_char2comp, m_comp2char, m_sigma);
-            algorithm::set_sa_and_isa_samples<csa_uncompressed>(sa_buf, m_sa, m_isa);
-            m_psi = psi_type(this);
-            m_bwt = bwt_type(this);
-        }
-
-        csa_uncompressed(tMSS& file_map, const std::string& dir, const std::string& id):char2comp(m_char2comp),
-            comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi), bwt(m_bwt), sa_sample(m_sa), isa_sample(m_isa) {
-            construct(file_map, dir, id);
-        }
-
-
-        void construct(tMSS& file_map, const std::string& dir, const std::string& id) {
-            int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
-            int_vector_file_buffer<>  sa_buf(file_map["sa"].c_str());
-            size_type n = text_buf.int_vector_size;
-            algorithm::set_text<csa_uncompressed>(text_buf, n, m_C, m_char2comp, m_comp2char, m_sigma);
-            algorithm::set_sa_and_isa_samples<csa_uncompressed>(sa_buf, m_sa, m_isa);
-            m_psi = psi_type(this);
-            m_bwt = bwt_type(this);
-            write_R_output("csa", "store ISA","begin",1,0);
-            if (!util::store_to_file(m_isa, (dir+"isa_"+id).c_str(), true)) {
-                throw std::ios_base::failure("#csa_uncompressed: Cannot store ISA to file system!");
-            } else {
-                file_map["isa"] = dir+"isa_"+id;
-            }
-            write_R_output("csa", "store ISA","end",1,0);
-        }
-
+		//! Constructor
+        csa_uncompressed(tMSS& file_map, const std::string& dir, const std::string& id);
 
         //! Number of elements in the instance.
         /*! Required for the Container Concept of the STL.
@@ -281,23 +239,6 @@ class csa_uncompressed
         size_type select_bwt(size_type i, const unsigned char c) const;
 };
 
-
-template<typename RandomAccessContainer>
-csa_uncompressed::csa_uncompressed(const RandomAccessContainer& sa, const unsigned char* str):char2comp(m_char2comp), comp2char(m_comp2char),C(m_C), sigma(m_sigma), psi(m_psi), bwt(m_bwt), sa_sample(m_sa), isa_sample(m_isa)
-{
-    size_type n = 1;
-    if (str != NULL) {
-        n = strlen((const char*)str);
-    }
-    algorithm::set_text<csa_uncompressed>(str, n+1, m_C, m_char2comp, m_comp2char, m_sigma);
-//	assert(sa.size() == n+1);
-    m_sa = int_vector<>(n+1, 0, bit_magic::l1BP(n+1)+1);
-    for (size_type i=0; i<n+1; ++i)
-        m_sa[i] = sa[i];
-    construct();
-    if (n+1 > 0 and n+1 != size())
-        throw std::logic_error(util::demangle(typeid(this).name())+": text size differ with sa size!");
-}
 
 
 } // end namespace sdsl
