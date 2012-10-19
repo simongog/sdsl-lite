@@ -19,26 +19,24 @@
 namespace sdsl
 {
 
-csa_uncompressed::csa_uncompressed(const unsigned char* str):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi), bwt(m_bwt), sa_sample(m_sa), isa_sample(m_isa)
-{
-    int_vector<>::size_type n = strlen((const char*)str);
-    m_sa = int_vector<>(n+1, 0, bit_magic::l1BP(n+1)+1);
-    algorithm::calculate_sa(str,n+1, m_sa);	 // calculate the suffix array sa of str
-    assert(m_sa.size() == n+1);
-    algorithm::set_text<csa_uncompressed>(str, n+1, m_C, m_char2comp, m_comp2char, m_sigma);
-    construct();
-    if (n+1 > 0 and n+1 != size())
-        throw std::logic_error("csa_uncompressed: text size differ with sa size!");
-}
+csa_uncompressed::csa_uncompressed(tMSS& file_map, const std::string& dir, const std::string& id):char2comp(m_char2comp),
+	comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi), bwt(m_bwt), sa_sample(m_sa), isa_sample(m_isa) {
 
-void csa_uncompressed::construct()
-{
-    m_isa = m_sa;
-    for (size_type i=0; i<m_sa.size(); ++i) {
-        m_isa[m_sa[i]] = i;
-    }
-    m_psi = psi_type(this);
-    m_bwt = bwt_type(this);
+	int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
+	int_vector_file_buffer<>  sa_buf(file_map["sa"].c_str());
+	size_type n = text_buf.int_vector_size;
+	algorithm::set_text<csa_uncompressed>(text_buf, n, m_C, m_char2comp, m_comp2char, m_sigma);
+	util::assign(m_sa, sa_sample_type(sa_buf));
+	algorithm::set_isa_samples<csa_uncompressed>(sa_buf, m_isa);
+	m_psi = psi_type(this);
+	m_bwt = bwt_type(this);
+	write_R_output("csa", "store ISA","begin",1,0);
+	if (!util::store_to_file(m_isa, (dir+"isa_"+id).c_str(), true)) {
+		throw std::ios_base::failure("#csa_uncompressed: Cannot store ISA to file system!");
+	} else {
+		file_map["isa"] = dir+"isa_"+id;
+	}
+	write_R_output("csa", "store ISA","end",1,0);
 }
 
 csa_uncompressed::const_iterator csa_uncompressed::begin()const

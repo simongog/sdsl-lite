@@ -143,34 +143,25 @@ bool char_occures_in_text_of_csa(const Csa& csa, typename Csa::char_type c)
 }
 
 template<class Csa, uint8_t int_width, class size_type_class>
-void set_sa_and_isa_samples(int_vector_file_buffer<int_width, size_type_class>& sa_buf, typename Csa::sa_sample_type& sa_sample, typename Csa::isa_sample_type& isa_sample)
+void set_isa_samples(int_vector_file_buffer<int_width, size_type_class>& sa_buf, typename Csa::isa_sample_type& isa_sample)
 {
     typedef typename Csa::size_type size_type;
     size_type  n = sa_buf.int_vector_size;
-
-    sa_sample.set_int_width(bit_magic::l1BP(n)+1);
-    sa_sample.resize((n+Csa::sa_sample_dens-1)/Csa::sa_sample_dens);
 
     isa_sample.set_int_width(bit_magic::l1BP(n)+1);
     if (n >= 1) { // so n+Csa::isa_sample_dens >= 2
         isa_sample.resize((n-1+Csa::isa_sample_dens-1)/Csa::isa_sample_dens + 1);
     }
-
-    util::set_one_bits(sa_sample);
     util::set_one_bits(isa_sample);
 
     sa_buf.reset();
-    for (size_type i=0, r_sum = 0, r = sa_buf.load_next_block(), cnt_mod=Csa::sa_sample_dens, cnt_sum=0; r_sum < n;) {
-        for (; i < r_sum+r; ++i, ++cnt_mod) {
+    for (size_type i=0, r_sum = 0, r = sa_buf.load_next_block(); r_sum < n;) {
+        for (; i < r_sum+r; ++i) {
             size_type sa = sa_buf[i-r_sum];
             if ((sa % Csa::isa_sample_dens) == 0) {
                 isa_sample[sa/Csa::isa_sample_dens] = i;
             } else if (sa+1 == n) {
                 isa_sample[(sa+Csa::isa_sample_dens-1)/Csa::isa_sample_dens] = i;
-            }
-            if (Csa::sa_sample_dens == cnt_mod) {
-                cnt_mod = 0;
-                sa_sample[cnt_sum++] = sa;
             }
         }
         r_sum += r; r = sa_buf.load_next_block();

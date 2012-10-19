@@ -30,6 +30,7 @@
 #include "util.hpp"
 #include "testutils.hpp"
 #include "bwt_construct.hpp"
+#include "csa_sampling_strategy.hpp"
 #include <iostream>
 #include <algorithm>
 #include <cassert>
@@ -40,25 +41,6 @@
 namespace sdsl
 {
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens,  uint8_t fixedIntWidth>
-class csa_sada;
-
-template<uint8_t fixedIntWidth>
-struct csa_sada_trait {
-    typedef int_vector<0> int_vector_type;
-};
-
-template<>
-struct csa_sada_trait<32> {
-    typedef int_vector<32> int_vector_type;
-};
-
-template<>
-struct csa_sada_trait<64> {
-    typedef int_vector<64> int_vector_type;
-};
-
-
 //! A class for the Compressed Suffix Array (CSA) proposed by Sadakane for practical implementation.
 /*! The CSA is parameterized with an EncVector and the sample density SampleDens (\f$s_{SA}\f$).
   * I.e. every \f$s_{SA}th\f$ value from the original suffix array is explicitely stored with \f$\log n\f$ bits.
@@ -68,33 +50,39 @@ struct csa_sada_trait<64> {
   *  \sa csa_sada_theo
   * @ingroup csa
  */
-template<class EncVector = enc_vector<>, uint32_t SampleDens = 32, uint32_t InvSampleDens = 64,  uint8_t fixedIntWidth = 0>
+template<class EncVector = enc_vector<>, 					 // Vector type used to store the Psi-function 
+	     uint32_t SampleDens = 32,                           // Sample density for suffix array (SA) values
+		 uint32_t InvSampleDens = 64,                        // Sample density for inverse suffix array (ISA) values
+		 class SaSamplingStrategy = sa_order_sa_sampling<>,  // Policy class for the SA sampling. Alternative text_order_sa_sampling.
+		 class IsaSampleContainer = int_vector<>             // Container for the ISA samples.
+		>
 class csa_sada
 {
     public:
-        typedef uint64_t											      value_type;	// STL Container requirement
-        typedef random_access_const_iterator<csa_sada> 				      const_iterator;// STL Container requirement
-        typedef const_iterator 										      iterator;		// STL Container requirement
-        typedef const value_type									      const_reference;
-        typedef const_reference										      reference;
-        typedef const_reference*									      pointer;
-        typedef const pointer										      const_pointer;
-        typedef int_vector<>::size_type								      size_type;		// STL Container requirement
-        typedef size_type 											      csa_size_type;
-        typedef ptrdiff_t  											      difference_type; // STL Container requirement
-        typedef EncVector											      enc_vector_type;
-        typedef psi_of_csa_psi<csa_sada>						 	      psi_type;
-        typedef bwt_of_csa_psi<csa_sada>						 	      bwt_type;
-        typedef const unsigned char*						 		      pattern_type;
-        typedef unsigned char										      char_type;
-        typedef typename csa_sada_trait<fixedIntWidth>::int_vector_type   sa_sample_type;
-        typedef typename csa_sada_trait<fixedIntWidth>::int_vector_type   isa_sample_type;
-
-        typedef csa_tag													  index_category;
-
         enum { sa_sample_dens = SampleDens,
                isa_sample_dens = InvSampleDens
              };
+
+        typedef uint64_t											                value_type;	// STL Container requirement
+        typedef random_access_const_iterator<csa_sada> 				                const_iterator;// STL Container requirement
+        typedef const_iterator 										                iterator;		// STL Container requirement
+        typedef const value_type									                const_reference;
+        typedef const_reference										                reference;
+        typedef const_reference*									                pointer;
+        typedef const pointer										                const_pointer;
+        typedef int_vector<>::size_type								                size_type;		// STL Container requirement
+        typedef size_type 											                csa_size_type;
+        typedef ptrdiff_t  											                difference_type; // STL Container requirement
+        typedef EncVector											                enc_vector_type;
+        typedef psi_of_csa_psi<csa_sada>						 	                psi_type;
+        typedef bwt_of_csa_psi<csa_sada>						 	                bwt_type;
+        typedef const unsigned char*						 		                pattern_type;
+        typedef unsigned char										                char_type;
+        typedef typename SaSamplingStrategy::template type<csa_sada>::sample_type   sa_sample_type;
+        typedef IsaSampleContainer  												isa_sample_type;
+
+        typedef csa_tag													            index_category;
+
 
         friend class psi_of_csa_psi<csa_sada>;
         friend class bwt_of_csa_psi<csa_sada>;
@@ -114,15 +102,6 @@ class csa_sada
         uint16_t		m_sigma;
 
         uint64_t *m_psi_buf; //[SampleDens+1]; // buffer for decoded psi values
-
-        template<typename RandomAccessContainer>
-        void construct(const RandomAccessContainer& sa, const unsigned char* str);
-
-        template<typename RandomAccessContainer>
-        void construct(RandomAccessContainer& sa, const unsigned char* str);
-
-        template<typename RandomAccessContainer>
-        void construct_samples(const RandomAccessContainer& sa, const unsigned char* str);
 
         void copy(const csa_sada& csa) {
             m_psi = csa.m_psi;
@@ -162,7 +141,8 @@ class csa_sada
 
 
         //! Default Constructor
-        csa_sada():char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma) ,psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
+        csa_sada():char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), 
+		           psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
             util::assign(m_char2comp, int_vector<8>(256, 0));
             util::assign(m_comp2char, int_vector<8>(256, 0));
             util::assign(m_C, int_vector<64>(257, 0));
@@ -175,33 +155,14 @@ class csa_sada
 		}
 
         //! Copy constructor
-        csa_sada(const csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>& csa):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
+        csa_sada(const csa_sada& csa):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma),
+								      psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
 			create_buffer();
             copy(csa);
         }
 
-        //! Construct the csa_sada from another (compressed) suffix array and the original text
-        /*! \param sa  The existing (compressed) suffix array for the string str.
-         *	\param str The text for which sa was build.
-         */
-        template<typename RandomAccessContainer>
-        csa_sada(const RandomAccessContainer& sa, const unsigned char* str);
-
-        //! Construct the csa_sada from another (compressed) suffix array and the original text
-        /*! \param sa  The existing (compressed) suffix array for the string str.
-         *	\param str The text for which the suffix array sa was build.
-         */
-        template<typename RandomAccessContainer>
-        csa_sada(RandomAccessContainer& sa, const unsigned char* str);
-
-        //! Construct the csa_sada from the int_vector_file_buffers of the text, the suffix array and the inverse suffix array
-        template<class size_type_class, uint8_t int_width, class size_type_class_1>
-        csa_sada(int_vector_file_buffer<8, size_type_class>& bwt_buf,
-                 int_vector_file_buffer<int_width, size_type_class_1>& sa_buf);
-
         csa_sada(tMSS& file_map, const std::string& dir, const std::string& id);
 
-        void construct(tMSS& file_map, const std::string& dir, const std::string& id);
 
         //! Constructor for the CSA taking a string for that the CSA should be calculated
         /*!	\param str The text for which the CSA should be constructed.
@@ -243,7 +204,7 @@ class csa_sada
 
         	Required for the Assignable Conecpt of the STL.
           */
-        void swap(csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>& csa);
+        void swap(csa_sada& csa);
 
         //! Returns a const_iterator to the first element.
         /*! Required for the STL Container Concept.
@@ -414,104 +375,11 @@ finish:
 
 // == template functions ==
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(const unsigned char* str):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
-{
-	create_buffer();
-    csa_uncompressed sa(str);
-//	size_type n = strlen((const char*)str);
-//	int_vector<> sa(n+1, 0, bit_magic::l1BP(n+1)+1);
-//	algorithm::calculate_sa(str, n+1, sa);	 // calculate the suffix array sa of str
-//	assert(sa.size() == n+1);
-    algorithm::set_text<csa_sada>(str, sa.size(), m_C, m_char2comp, m_comp2char, m_sigma);
-    construct(sa, str);
-//	if( n+1 > 0 and n+1 != size() )
-//		throw std::logic_error("csa_sada: text size differ with sa size!");
-}
-
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-template<typename RandomAccessContainer>
-csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(const RandomAccessContainer& sa, const unsigned char* str):char2comp(m_char2comp), comp2char(m_comp2char),C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
-{
-	create_buffer();
-    size_type n = 1;
-    if (str != NULL) {
-        n = strlen((const char*)str);
-    }
-    algorithm::set_text<csa_sada>(str, n+1, m_C, m_char2comp, m_comp2char, m_sigma);
-    assert(sa.size() == n+1);
-    construct(sa, str);
-    if (n+1 > 0 and n+1 != size())
-        throw std::logic_error(util::demangle(typeid(this).name())+": text size differ with sa size!");
-}
-
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-template<typename RandomAccessContainer>
-csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(RandomAccessContainer& sa, const unsigned char* str):char2comp(m_char2comp), comp2char(m_comp2char),C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
-{
-	create_buffer();
-    size_type n = 1;
-    if (str != NULL) {
-        n = strlen((const char*)str);
-    }
-    assert(sa.size() == n+1);
-    algorithm::set_text<csa_sada>(str, n+1, m_C, m_char2comp, m_comp2char, m_sigma);
-    construct(sa, str);
-    if (n+1 > 0 and n+1 != size())
-        throw std::logic_error("csa_sada: text size differ with sa size!");
-}
-
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-template<class size_type_class, uint8_t int_width, class size_type_class_1>
-csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(int_vector_file_buffer<8, size_type_class>& bwt_buf,
-        int_vector_file_buffer<int_width, size_type_class_1>& sa_buf):
+template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer>
+csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::csa_sada(tMSS& file_map, const std::string& dir, const std::string& id):
     char2comp(m_char2comp), comp2char(m_comp2char),C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
 {
 	create_buffer();
-    bwt_buf.reset(); sa_buf.reset();
-    size_type n = bwt_buf.int_vector_size;
-    algorithm::set_text<csa_sada>(bwt_buf, n, m_C, m_char2comp, m_comp2char, m_sigma);
-    assert(sa_buf.int_vetor_size == sa_buf.int_vector_size);
-
-    size_type cnt_chr[256] = {0};
-    for (uint32_t i=0; i<m_sigma; ++i)
-        cnt_chr[m_comp2char[i]] = C[i];
-    stop_watch sw; sw.start();
-//	write_R_output(sw, "psi function", "construct","begin");
-    // calculate psi
-    {
-        bwt_buf.reset();
-        int_vector<> temp(n, 0, bit_magic::l1BP(n)+1);
-        for (size_type i=0, r_sum=0, r=bwt_buf.load_next_block(); r_sum < n;) {
-            for (; i < r_sum+r; ++i) {
-                temp[ cnt_chr[ bwt_buf[i-r_sum] ]++ ] = i;
-            }
-            r_sum += r; r = bwt_buf.load_next_block();
-        }
-        util::store_to_file(temp, "/tmp/deleteme");
-    }
-//	write_R_output(sw, "psi function", "construct","end");
-    int_vector_file_buffer<> psi_buf("/tmp/deleteme");
-//	write_R_output(sw, "encoded psi", "construct", "begin");
-    m_psi = EncVector(psi_buf);
-//	write_R_output(sw, "encoded psi", "construct", "end");
-    std::remove("/tmp/deleteme");
-    algorithm::set_sa_and_isa_samples<csa_sada>(sa_buf, m_sa_sample, m_isa_sample);
-    m_psi_wrapper = psi_type(this);
-    m_bwt = bwt_type(this);
-}
-
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::csa_sada(tMSS& file_map, const std::string& dir, const std::string& id):
-    char2comp(m_char2comp), comp2char(m_comp2char),C(m_C), sigma(m_sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
-{
-	create_buffer();
-    construct(file_map, dir, id);
-}
-
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::construct(tMSS& file_map, const std::string& dir, const std::string& id)
-{
     if (file_map.find("bwt") == file_map.end()) { // if bwt is not already stored on disk => construct bwt
         construct_bwt(file_map, dir, id);
     }
@@ -546,124 +414,59 @@ void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::construct(tM
     m_psi = EncVector(psi_buf);
 //	write_R_output(sw, "encoded psi", "construct", "end");
     int_vector_file_buffer<>  sa_buf(file_map["sa"].c_str());
-    algorithm::set_sa_and_isa_samples<csa_sada>(sa_buf, m_sa_sample, m_isa_sample);
+	util::assign(m_sa_sample, sa_sample_type(sa_buf));
+    algorithm::set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
     m_psi_wrapper = psi_type(this);
     m_bwt = bwt_type(this);
 }
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-uint32_t csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::get_sample_dens()const
+template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer>
+uint32_t csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::get_sample_dens()const
 {
     return SampleDens;
 }
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-uint32_t csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::get_psi_sample_dens()const
+template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer>
+uint32_t csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::get_psi_sample_dens()const
 {
     return m_psi.get_sample_dens();
 }
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::set_psi_sample_dens(const uint32_t sample_dens)
+template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer>
+void csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::set_psi_sample_dens(const uint32_t sample_dens)
 {
     m_psi.get_sample_dens();
 }
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-template<typename RandomAccessContainer>
-void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::construct_samples(const RandomAccessContainer& sa, const unsigned char* str)
-{
-    m_sa_sample.set_int_width(bit_magic::l1BP(sa.size())+1);
-    m_sa_sample.resize((sa.size()+get_sample_dens()-1)/get_sample_dens());
-    typename RandomAccessContainer::size_type i=0, idx=0;
-    for (typename RandomAccessContainer::const_iterator it = sa.begin(); i < sa.size(); it += (difference_type)get_sample_dens(), i += get_sample_dens(), ++idx) {
-        m_sa_sample[idx] = *it;
-    }
-//	const uint32_t SampleDens, uint32_t InvSampleDensISA = get_sample_dens()*16;
-    m_isa_sample.set_int_width(bit_magic::l1BP(sa.size())+1);
-    m_isa_sample.resize((sa.size()+(InvSampleDens)-1)/(InvSampleDens));
-    i = 0;
-    for (typename RandomAccessContainer::const_iterator it = sa.begin(), end = sa.end(); it != end; ++it, ++i) {
-        if ((*it % InvSampleDens) == 0) {
-            m_isa_sample[*it/InvSampleDens] = i;
-        }
-    }
-}
-
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-template<typename RandomAccessContainer>
-void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::construct(const RandomAccessContainer& sa, const unsigned char* str)
-{
-    construct_samples(sa, str);
-#ifdef SDSL_DEBUG
-    std::cerr<<"create encoded psi"<<std::endl;
-#endif
-    if (sa.psi.size() > 0) {
-        m_psi = EncVector(sa.psi);
-    } else {
-        m_psi = EncVector();
-    }
-    m_psi_wrapper = psi_type(this);
-    m_bwt = bwt_type(this);
-#ifdef SDSL_DEBUG
-    std::cerr<<"encoded psi created"<<std::endl;
-#endif
-}
-
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-template<typename RandomAccessContainer>
-void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::construct(RandomAccessContainer& sa, const unsigned char* str)
-{
-    construct_samples(sa, str);
-#ifdef SDSL_DEBUG
-    std::cerr<<"create encoded psi"<<std::endl;
-#endif
-    if (sa.psi.size() > 0) {
-        m_psi = EncVector(sa.psi);
-    } else {
-        m_psi = EncVector();
-    }
-    m_psi_wrapper = psi_type(this);
-    m_bwt = bwt_type(this);
-    {
-        // clear sa
-        RandomAccessContainer tmp;
-        tmp.swap(sa);
-    }
-#ifdef SDSL_DEBUG
-    std::cerr<<"encoded psi and created; sa destroyed"<<std::endl;
-#endif
-}
-
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-typename csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::const_iterator csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::begin()const
+template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer>
+typename csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::const_iterator csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::begin()const
 {
     return const_iterator(this, 0);
 }
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-typename csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::const_iterator csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::end()const
+template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer>
+typename csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::const_iterator csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::end()const
 {
     return const_iterator(this, size());
 }
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-inline typename csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::value_type csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::operator[](size_type i)const
+template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer>
+inline typename csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::value_type csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::operator[](size_type i)const
 {
     size_type off = 0;
-    while (i % SampleDens) {// while i mod SampleDens != 0 (SA[i] is not sampled)   SG: auf keinen Fall get_sample_dens nehmen, ist total langsam
+    while ( !m_sa_sample.is_sampled(i) ) {// while i mod SampleDens != 0 (SA[i] is not sampled)   SG: auf keinen Fall get_sample_dens nehmen, ist total langsam
         i = m_psi[i];       // go to the position where SA[i]+1 is located
         ++off;              // add 1 to the offset
     }
-    value_type result = m_sa_sample[i/SampleDens];
+    value_type result = m_sa_sample.sa_value(i); 
     if (result < off) {
         return m_psi.size()-(off-result);
     } else
         return result-off;
 }
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-inline typename csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::value_type csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::operator()(size_type i)const
+template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer>
+inline typename csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::value_type csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::operator()(size_type i)const
 {
     value_type result = m_isa_sample[i/InvSampleDens]; // get the rightmost sampled isa value
     i = i % InvSampleDens;
@@ -674,8 +477,8 @@ inline typename csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::v
     return result;
 }
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-csa_sada<EncVector,SampleDens, InvSampleDens, fixedIntWidth>& csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::operator=(const csa_sada<EncVector,SampleDens, InvSampleDens, fixedIntWidth>& csa)
+template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer>
+csa_sada<EncVector,SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>& csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::operator=(const csa_sada<EncVector,SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>& csa)
 {
     if (this != &csa) {
         copy(csa);
@@ -684,8 +487,8 @@ csa_sada<EncVector,SampleDens, InvSampleDens, fixedIntWidth>& csa_sada<EncVector
 }
 
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-typename csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::size_type csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
+template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer>
+typename csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::size_type csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
@@ -700,8 +503,8 @@ typename csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::size_typ
     return written_bytes;
 }
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::load(std::istream& in)
+template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer>
+void csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::load(std::istream& in)
 {
     m_psi.load(in);
     m_sa_sample.load(in);
@@ -714,8 +517,8 @@ void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::load(std::is
     m_bwt = bwt_type(this);
 }
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::swap(csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>& csa)
+template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer>
+void csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::swap(csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>& csa)
 {
     if (this != &csa) {
         m_psi.swap(csa.m_psi);
@@ -732,8 +535,8 @@ void csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::swap(csa_sad
     }
 }
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-bool csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::operator==(const csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>& csa)const
+template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer>
+bool csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::operator==(const csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>& csa)const
 {
     for (uint16_t i=0; i<256; ++i)
         if (m_char2comp[i] != csa.m_char2comp[i] or m_comp2char[i] != csa.m_comp2char[i] or m_C[i] != csa.m_C[i])
@@ -741,8 +544,8 @@ bool csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::operator==(c
     return m_psi == csa.m_psi and m_sa_sample == csa.m_sa_sample and m_isa_sample == csa.m_isa_sample and m_C[256] == csa.m_C[256] and m_sigma == csa.m_sigma;
 }
 
-template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-bool csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>::operator!=(const csa_sada<EncVector, SampleDens, InvSampleDens, fixedIntWidth>& csa)const
+template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer>
+bool csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>::operator!=(const csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer>& csa)const
 {
     return !(*this == csa);
 //	return m_psi != csa.m_psi or m_sa_sample != csa.m_sa_sample or m_isa_sample != csa.m_isa_sample;
