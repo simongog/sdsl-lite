@@ -346,8 +346,8 @@ class wt_huff
         // Default constructor
         wt_huff():m_size(0),m_sigma(0), sigma(m_sigma),tree(m_tree) {};
 
-        //! Constructor
-        /*!
+        // Construct the wavelet tree from a random access container
+        /*
          *	\param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
          *	\param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
          *	\par Time complexity
@@ -355,61 +355,9 @@ class wt_huff
          */
         template<typename RandomAccessContainer>
         wt_huff(const RandomAccessContainer& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
-            construct(rac, size);
-        }
-
-        template<uint8_t w>
-        wt_huff(const int_vector<w>& rac):m_size(rac.size()), m_sigma(0), sigma(m_sigma), tree(m_tree) {
-            construct(rac, rac.size());
-        }
-
-
-        template<typename RandomAccessContainer>
-        void construct(const RandomAccessContainer& rac, size_type size) {
-            m_size = size;
-            if (m_size == 0)
-                return;
-            // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
-            size_type C[256] = {0};
-            //  1. Count occurrences of characters
-            for (size_type i=0; i < size; ++i) {
-                ++C[rac[i]];
-            }
-            // 2. Calculate effective alphabet size
-            calculate_effective_alphabet_size(C, m_sigma);
-            // 3. Generate Huffman tree
-            size_type tree_size = construct_huffman_tree(C);
-            // 4. Generate wavelet tree bit sequence m_tree
-
-            bit_vector tmp_tree(tree_size, 0);  // initialize bit_vector for the tree
-            //  Calculate starting position of wavelet tree nodes
-            size_type tree_pos[511];
-            for (size_type i=0; i < 2*sigma-1; ++i) {
-                tree_pos[i] = m_nodes[i].tree_pos;
-            }
-            uint8_t old_chr = rac[0], times = 0;
-            for (size_type i=0; i < m_size; ++i) {
-                uint8_t chr = rac[i];
-                if (chr	!= old_chr) {
-                    insert_char(old_chr, tree_pos, times, tmp_tree);
-                    times = 1;
-                    old_chr = chr;
-                } else { // chr == old_chr
-                    ++times;
-                    if (times == 64) {
-                        insert_char(old_chr, tree_pos, times, tmp_tree);
-                        times = 0;
-                    }
-                }
-            }
-            if (times > 0) {
-                insert_char(old_chr, tree_pos, times, tmp_tree);
-            }
-            util::assign(m_tree, tmp_tree);
-            // 5. Initialize rank and select data structures for m_tree
-            construct_init_rank_select();
-            // 6. Finish inner nodes by precalculating the tree_pos_rank values
-            construct_precalc_node_ranks();
+            // TODO: Delegate this to the file_buffer constructor using a wrapper for the file_buffer
+            std::cerr << "ERROR: Constructor of wt_rlmn not implemented yet!!!" << std::endl;
+            throw std::logic_error("This constructor of wt_rlmn is not yet implemented!");
         }
 
         //! Construct the wavelet tree from a file_buffer
