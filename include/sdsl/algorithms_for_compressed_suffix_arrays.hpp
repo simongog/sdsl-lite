@@ -128,19 +128,6 @@ void set_text(int_vector_file_buffer<8, size_type_class>& str_buf, typename Csa:
 #endif
 }
 
-//! Calculates if a character c occurs in the text of the compressed suffix array c.
-/*!
- * \param csa 	The csa in which we search for the occurence of c.
- * \param c		The character c for which we search in the text of the compressed suffix array.
- * \return 		True, if c occures in the text of the compressed suffix array and False otherwise.
- * \pre \f$ csa.size()>0 \f$
- */
-template<class Csa>
-bool char_occures_in_text_of_csa(const Csa& csa, typename Csa::char_type c)
-{
-    return (csa.char2comp[c] > 0) or (csa.char2comp[c]==c);
-}
-
 template<class Csa, uint8_t int_width, class size_type_class>
 void set_isa_samples(int_vector_file_buffer<int_width, size_type_class>& sa_buf, typename Csa::isa_sample_type& isa_sample)
 {
