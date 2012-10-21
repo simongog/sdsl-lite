@@ -330,7 +330,6 @@ class csa_wt
         isa_sample_type m_isa_sample; // inverse suffix array samples
         int_vector<8>	m_char2comp;
         int_vector<8>	m_comp2char;
-
         int_vector<64>  m_C; // counts for the compact alphabet [0..sigma-1]
         uint16_t		m_sigma;
 //		uint32_t m_sample_dens; // additional to SampleDens value
@@ -684,22 +683,6 @@ void csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampl
         csa.m_bwt = bwt_type(&csa);
     }
 }
-
-/* TODO
-template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-bool csa_wt<WaveletTree, SampleDens, InvSampleDens, fixedIntWidth>::operator==(const csa_wt<WaveletTree, SampleDens, InvSampleDens, fixedIntWidth> &csa)const{
-	for(uint16_t i=0;i<256;++i)
-		if(m_char2comp[i] != csa.m_char2comp[i] or m_comp2char[i] != csa.m_comp2char[i] or m_C[i] != csa.m_C[i])
-			return false;
-	return m_psi == csa.m_psi and m_sa_sample == csa.m_sa_sample and m_isa_sample == csa.m_isa_sample and m_C[256] == csa.m_C[256] and m_sigma == csa.m_sigma;
-}
-
-template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, uint8_t fixedIntWidth>
-bool csa_wt<WaveletTree, SampleDens, InvSampleDens, fixedIntWidth>::operator!=(const csa_wt<WaveletTree, SampleDens, InvSampleDens, fixedIntWidth> &csa)const{
-	return !(*this == csa);
-//	return m_psi != csa.m_psi or m_sa_sample != csa.m_sa_sample or m_isa_sample != csa.m_isa_sample;
-}
-*/
 
 } // end namespace sdsl
 

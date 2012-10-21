@@ -46,12 +46,10 @@
  *    we don't need to store a bitvector, which marks the sampled suffixes, since a suffix
  *    at index \(i\) in the suffix array is marked if \(i \mod sa_sample_dens \).
  *
- *   The second sampling (*2) is called text order sampling. It is also called regular in [1]
+ *   The second sampling (*2) is called text order sampling. It is also called regular in [1].
  * 
  * [1] P.Ferragina, J. Siren, R. Venturini: Distribution-Aware Compressed Full-Text Indexes, ESA 2011
  */
-// construction of the sampling
-// sa_sample_text_
 
 #include "int_vector.hpp"
 
