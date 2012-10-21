@@ -121,7 +121,6 @@ void set_text(int_vector_file_buffer<8, size_type_class>& str_buf, typename Csa:
         std::cerr<<"C[256]="<<C[256]<<" "<<len<<std::endl;
     }
     assert(C[256]==len);
-    assert(C[sigma+1]==len);
 #ifdef SDSL_DEBUG_ALGORITHMS_FOR_COMPRESSED_SUFFIX_ARRAYS
     sw.stop();
     std::cerr<<"set_text takes "<<sw.get_real_time()<<" ms real time";
@@ -129,7 +128,7 @@ void set_text(int_vector_file_buffer<8, size_type_class>& str_buf, typename Csa:
 #endif
 }
 
-//! Calculates if a character c occures in the text of the compressed suffix array c.
+//! Calculates if a character c occurs in the text of the compressed suffix array c.
 /*!
  * \param csa 	The csa in which we search for the occurence of c.
  * \param c		The character c for which we search in the text of the compressed suffix array.

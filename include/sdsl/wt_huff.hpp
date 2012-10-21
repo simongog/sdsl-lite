@@ -119,10 +119,10 @@ struct _node {
  *   @ingroup wt
  */
 template<class BitVector 		 = bit_vector,
-              class RankSupport 		 = typename BitVector::rank_1_type,
-              class SelectSupport	 = typename BitVector::select_1_type,
-              class SelectSupportZero = typename BitVector::select_0_type,
-              bool dfs_shape=0 >
+         class RankSupport 		 = typename BitVector::rank_1_type,
+         class SelectSupport	 = typename BitVector::select_1_type,
+         class SelectSupportZero = typename BitVector::select_0_type,
+         bool  dfs_shape         = 0>
 class wt_huff
 {
     public:
@@ -346,8 +346,6 @@ class wt_huff
         // Default constructor
         wt_huff():m_size(0),m_sigma(0), sigma(m_sigma),tree(m_tree) {};
 
-
-
         //! Constructor
         /*!
          *	\param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
@@ -373,7 +371,7 @@ class wt_huff
                 return;
             // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
             size_type C[256] = {0};
-            //  1. Count occurences of characters
+            //  1. Count occurrences of characters
             for (size_type i=0; i < size; ++i) {
                 ++C[rac[i]];
             }
@@ -414,18 +412,12 @@ class wt_huff
             construct_precalc_node_ranks();
         }
 
-        template<class size_type_class>
-        wt_huff(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
-            construct(rac, size);
-        }
-
-        //! Construct the wavelet tree from a random access container
+        //! Construct the wavelet tree from a file_buffer
         /*! \param rac A random access container
          *	\param size The length of the prefix of the random access container, for which the wavelet tree should be build
          */
         template<class size_type_class>
-        void construct(int_vector_file_buffer<8, size_type_class>& rac, size_type size) {
-//		m_check.construct(rac, size);
+        wt_huff(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
             m_size = size;
             if (m_size == 0)
                 return;
