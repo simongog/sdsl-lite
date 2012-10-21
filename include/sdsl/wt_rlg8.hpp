@@ -110,10 +110,8 @@ class wt_rlg8
         // Default constructor
         wt_rlg8():m_size(0), m_sigma(0), sigma(m_sigma) {};
 
-
-
-        //! Constructor
-        /*!
+        // Constructor
+        /*
          *	\param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
          *	\param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
          *	\par Time complexity
@@ -124,18 +122,12 @@ class wt_rlg8
             throw std::logic_error("This constructor of wt_rlg8 is not yet implemented!");
         }
 
-        template<class size_type_class>
-        wt_rlg8(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
-            construct(rac, size);
-        }
-
-        //! Construct the wavelet tree from a random access container
-        /*! \param rac A random access container
-         *	\param size The length of the prefix of the random access container, for which the wavelet tree should be build
+        //! Construct the wavelet tree from a file_buffer
+        /*! \param text_buf	A int_vector_file_buffer to the original text.
+         *	\param size The length of the prefix of the text, for which the wavelet tree should be build.
          */
         template<class size_type_class>
-        void construct(int_vector_file_buffer<8, size_type_class>& rac, size_type size) {
-            m_size = size;
+        wt_rlg8(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
             typedef size_type_class size_type;
             // TODO: remove absolute file name
             std::string temp_file = "wt_rlg8_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
@@ -169,7 +161,7 @@ class wt_rlg8
                         if (last_c[0] == last_c[1] and last_c[2] == last_c[3] and last_c[0] == last_c[2] and
                             last_c[4] == last_c[5] and last_c[6] == last_c[7] and last_c[4] == last_c[6]  and
                             last_c[0] == last_c[4]
-                           ) { // join octtrupel
+                           ) { // join octuple
                             m_b[b_cnt] = 1;
                             next_bwt[pair1cnt] = c;
                             ++pair1cnt;
@@ -233,7 +225,7 @@ class wt_rlg8
 
             {
                 int_vector_file_buffer<8, size_type> temp_bwt_buf(temp_file.c_str());
-                m_wt.construct(temp_bwt_buf, temp_bwt_buf.int_vector_size);
+				util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
             }
 
             util::init_support(m_b_rank, &m_b);

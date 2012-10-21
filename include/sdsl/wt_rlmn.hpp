@@ -123,32 +123,27 @@ class wt_rlmn
 
 
 
-        //! Constructor
-        /*!
+        // Construct the wavelet tree from a random access container
+        /*
          *	\param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
          *	\param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
          *	\par Time complexity
          *		\f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
         wt_rlmn(const unsigned char* rac, size_type size):m_size(size), sigma(m_wt.sigma) {
-            // TODO
+            // TODO: Delegate this to the file_buffer constructor using a wrapper for the file_buffer
             std::cerr << "ERROR: Constructor of wt_rlmn not implemented yet!!!" << std::endl;
             throw std::logic_error("This constructor of wt_rlmn is not yet implemented!");
         }
 
-        template<class size_type_class>
-        wt_rlmn(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), sigma(m_wt.sigma) {
-            construct(rac, size);
-        }
-
-        //! Construct the wavelet tree from a random access container
-        /*! \param rac A random access container
-         *	\param size The length of the prefix of the random access container, for which the wavelet tree should be build
+        //! Construct the wavelet tree from a file_buffer
+        /*! \param text_buf	A int_vector_file_buffer to the original text.
+         *	\param size The length of the prefix of the text, for which the wavelet tree should be build.
          */
         template<class size_type_class>
-        void construct(int_vector_file_buffer<8, size_type_class>& rac, size_type size) {
-            m_size = size;
+        wt_rlmn(int_vector_file_buffer<8, size_type_class>& text_buf, size_type size):m_size(size), sigma(m_wt.sigma) {
             typedef size_type_class size_type;
+			// TODO: remove absolute file name
             std::string temp_file = "tmp_wt_rlmn_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
             std::ofstream wt_out(temp_file.c_str(), std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
@@ -157,14 +152,14 @@ class wt_rlmn
                 // scope for bl and bf
                 bit_vector bl = bit_vector(size, 0);
                 m_C  = int_vector<64>(256, 0);
-                rac.reset();
+                text_buf.reset();
                 uint8_t last_c = '\0';
                 for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
                     if (r_sum + r > size) {  // read not more than size chars in the next loop
                         r = size-r_sum;
                     }
                     for (; i < r+r_sum; ++i) {
-                        uint8_t c = rac[i-r_sum];
+                        uint8_t c = text_buf[i-r_sum];
                         if (last_c != c or i==0) {
                             bl[i] = 1;
                             wt_out.write((char*)&c, sizeof(c));
@@ -174,7 +169,7 @@ class wt_rlmn
                         last_c = c;
                     }
                     r_sum += r;
-                    r = rac.load_next_block();
+                    r = text_buf.load_next_block();
                 }
 
                 wt_out.seekp(0, std::ios::beg);
@@ -190,25 +185,24 @@ class wt_rlmn
                 int_vector<64> lf_map = m_C;
                 bit_vector bf = bit_vector(size+1, 0);
                 bf[size] = 1; // initialize last element
-                rac.reset();
+                text_buf.reset();
                 for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
                     if (r_sum + r > size) {  // read not more than size chars in the next loop
                         r = size-r_sum;
                     }
                     for (; i < r+r_sum; ++i) {
-                        uint8_t c = rac[i-r_sum];
+                        uint8_t c = text_buf[i-r_sum];
                         if (bl[i]) {
                             bf[lf_map[c]] = 1;
                         }
                         ++lf_map[c];
                     }
                     r_sum += r;
-                    r = rac.load_next_block();
+                    r = text_buf.load_next_block();
                 }
                 {
                     int_vector_file_buffer<8, size_type> temp_bwt_buf(temp_file.c_str());
-                    m_wt.construct(temp_bwt_buf, temp_bwt_buf.int_vector_size);
-
+					util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
                 }
                 util::assign(m_bl, bl);
                 util::assign(m_bf, bf);
