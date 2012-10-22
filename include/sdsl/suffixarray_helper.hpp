@@ -167,10 +167,8 @@ class psi_of_sa_and_isa
             assert(m_csa!=NULL);
             assert(i<size());
             // \f$\Psi[i] = SA^{-1}[SA[i]+1 \mod n]\f$, where \f$n\f$ is the length of the suffix array SA
-//		return (*m_csa)( ((*m_csa)[i]+1) % m_csa->size()  ); // TODO: replace % by to_add table
             value_type sai = (*m_csa)[i];
             return (*m_csa)(sai + to_add1[ sai == m_size_m1 ]);
-//		return (*m_csa)( (*m_csa)[i] + to_add1[ (*m_csa)[i] < m_size_m1 ]  );
         }
 
         //! Calculate the LF mapping at position i.
@@ -180,8 +178,6 @@ class psi_of_sa_and_isa
         value_type operator()(size_type i)const {
             assert(m_csa!=NULL);
             assert(i<size());
-            // \f$LF[i] = SA^{-1}[SA[i]-1 \mod n]\f$, where \f$n\f$ is the length of the suffix array SA
-//		return (*m_csa)( ((*m_csa)[i]+size()-1) % size() );	//was slower than the current solution
             value_type sai = (*m_csa)[i];
             return (*m_csa)(sai + to_add2[(bool)sai ]);
         }
@@ -261,16 +257,13 @@ class bwt_of_csa_psi
         typedef random_access_const_iterator<bwt_of_csa_psi> const_iterator;// STL Container requirement
     private:
         CsaPsi* m_csa; //<- pointer to the (compressed) suffix array that is based on the \f$\Psi\f$ function.
+
+        bwt_of_csa_psi() {}
     public:
 
         //! Constructor
-        bwt_of_csa_psi(CsaPsi* csa=NULL) {
+        bwt_of_csa_psi(CsaPsi* csa) {
             m_csa = csa;
-        }
-
-        //! Copy constructor
-        bwt_of_csa_psi(const bwt_of_csa_psi& bwt_of_csa) {
-            m_csa = bwt_of_csa.m_csa;
         }
 
         //! Calculate the Burrows Wheeler Transform (BWT) at position i.
@@ -301,13 +294,6 @@ class bwt_of_csa_psi
         //! Returns if the bwt is empty.
         size_type empty()const {
             return m_csa->empty();
-        }
-
-        //! Swap operation require by the STL.
-        void swap(bwt_of_csa_psi& bwt_of_csa) {
-            if (this != &bwt_of_csa) {
-                ;// std::swap(m_csa, bwt_of_csa.m_csa); // do not exchange the supported structure!
-            }
         }
 
         //! Returns a const_iterator to the first element.

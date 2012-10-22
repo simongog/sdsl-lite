@@ -147,6 +147,54 @@ TYPED_TEST(CsaAsciiTest, IsaAccess) {
     }
 }
 
+//! Test Burrows-Wheeler access methods
+TYPED_TEST(CsaAsciiTest, BwtAccess) {
+    for (size_t i=0; i< this->test_cases.size(); ++i) {
+		if ( test_cases_file_map[i].find("bwt") != test_cases_file_map[i].end() ){
+			TypeParam csa;
+			ASSERT_EQ(this->load_csa(csa, i), true);
+			sdsl::int_vector<8> bwt;
+			sdsl::util::load_from_file(bwt, test_cases_file_map[i]["bwt"].c_str());
+			size_type n = bwt.size();
+			ASSERT_EQ(n, csa.size());
+			for (size_type j=0; j<n; ++j) {
+				ASSERT_EQ(bwt[j], csa.bwt[j])<<" j="<<j;
+			}
+		}
+    }
+}
+
+//! Test Psi access methods
+TYPED_TEST(CsaAsciiTest, PsiAccess) {
+    for (size_t i=0; i< this->test_cases.size(); ++i) {
+		if ( test_cases_file_map[i].find("psi") != test_cases_file_map[i].end() ){
+			TypeParam csa;
+			ASSERT_EQ(this->load_csa(csa, i), true);
+			sdsl::int_vector<> psi;
+			sdsl::util::load_from_file(psi, test_cases_file_map[i]["psi"].c_str());
+			size_type n = psi.size();
+			ASSERT_EQ(n, csa.size());
+			for (size_type j=0; j<n; ++j) {
+				ASSERT_EQ(psi[j], csa.psi[j])<<" j="<<j;
+			}
+		}
+    }
+}
+
+//! Test if Psi[LF[i]]=i 
+TYPED_TEST(CsaAsciiTest, PsiLFAccess) {
+    for (size_t i=0; i< this->test_cases.size(); ++i) {
+		TypeParam csa;
+		ASSERT_EQ(this->load_csa(csa, i), true);
+		for (size_type j=0; j<csa.size(); ++j) {
+			size_type lf = csa.psi(j);
+			ASSERT_TRUE( lf >= 0 );
+			ASSERT_TRUE( lf < csa.size() );
+			ASSERT_EQ(j, csa.psi[lf])<<" j="<<j;
+		}
+    }
+}
+
 
 //! Test access after swap
 TYPED_TEST(CsaAsciiTest, SwapTest) {
