@@ -40,11 +40,11 @@ class psi_of_csa_psi
         typedef typename CsaPsi::difference_type difference_type;
         typedef typename CsaPsi::enc_vector_type::const_iterator const_iterator;
     private:
-        CsaPsi* m_csa; //<-	pointer to the (compressed) suffix array that is based on the compressed psi function
+        const CsaPsi* m_csa; //<-	pointer to the (compressed) suffix array that is based on the compressed psi function
     public:
 
         //! Constructor
-        psi_of_csa_psi(CsaPsi* csa_psi=NULL) {
+        psi_of_csa_psi(const CsaPsi* csa_psi=NULL) {
             m_csa = csa_psi;
         }
 
@@ -256,13 +256,12 @@ class bwt_of_csa_psi
         typedef typename CsaPsi::difference_type difference_type;
         typedef random_access_const_iterator<bwt_of_csa_psi> const_iterator;// STL Container requirement
     private:
-        CsaPsi* m_csa; //<- pointer to the (compressed) suffix array that is based on the \f$\Psi\f$ function.
-
+        const CsaPsi* m_csa; //<- pointer to the (compressed) suffix array that is based on the \f$\Psi\f$ function.
         bwt_of_csa_psi() {}
     public:
 
         //! Constructor
-        bwt_of_csa_psi(CsaPsi* csa) {
+        bwt_of_csa_psi(const CsaPsi* csa) {
             m_csa = csa;
         }
 
