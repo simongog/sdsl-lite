@@ -25,16 +25,19 @@ template<uint32_t SampleDens, class Cst>
 class _lcp_support_tree2
 {
     public:
-        typedef int_vector<>::value_type				value_type; 	 // STL Container requirement
+        typedef int_vector<>::value_type				            value_type; 	 // STL Container requirement
         typedef random_access_const_iterator<_lcp_support_tree2>	const_iterator;  // STL Container requirement
-        typedef const_iterator									iterator;		 // STL Container requirement
-        typedef const value_type								const_reference;
-        typedef const_reference									reference;
-        typedef const_reference*								pointer;
-        typedef const pointer									const_pointer;
-        typedef int_vector<>::size_type							size_type;		 // STL Container requirement
-        typedef int_vector<>::difference_type					difference_type; // STL Container requirement
-        typedef Cst												cst_type;
+        typedef const_iterator							    		iterator;		 // STL Container requirement
+        typedef const value_type						    		const_reference;
+        typedef const_reference							    		reference;
+        typedef const_reference*						    		pointer;
+        typedef const pointer							    		const_pointer;
+        typedef int_vector<>::size_type					    		size_type;		 // STL Container requirement
+        typedef int_vector<>::difference_type			    		difference_type; // STL Container requirement
+        typedef Cst										    		cst_type;
+        typedef select_support_dummy 					    		tDummySS;
+        typedef wt_huff<bit_vector, rank_support_v5<>, 
+				        tDummySS, tDummySS>  						small_lcp_type; 
 
         typedef lcp_tree_and_lf_compressed_tag					lcp_category;
 
@@ -52,9 +55,8 @@ class _lcp_support_tree2
 
     private:
         const cst_type*	m_cst;
-        typedef select_support_dummy tDummySS;
-        wt_huff<bit_vector, rank_support_v5<>, tDummySS, tDummySS > m_small_lcp; // vector for lcp values < 254
-        int_vector<> m_big_lcp;  // vector for lcp values >= 254
+		small_lcp_type  m_small_lcp; // vector for lcp values < 254
+        int_vector<> m_big_lcp;      // vector for lcp values >= 254
 
         void copy(const _lcp_support_tree2& lcp_c) {
             m_small_lcp = lcp_c.m_small_lcp;
@@ -98,7 +100,7 @@ class _lcp_support_tree2
                     small_lcp_file_name, big_lcp_file_name, m_big_lcp);
             // construct wavelet tree huffman from file buffer
             int_vector_file_buffer<8> small_lcp_buf(small_lcp_file_name.c_str());
-            m_small_lcp.construct(small_lcp_buf, small_lcp_buf.int_vector_size);
+			util::assign(m_small_lcp, small_lcp_type(small_lcp_buf, small_lcp_buf.int_vector_size));
             std::remove(small_lcp_file_name.c_str());
         }
 
