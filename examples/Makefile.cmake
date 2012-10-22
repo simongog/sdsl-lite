@@ -11,4 +11,5 @@ all: $(EXECS)
 
 clean:
 	rm -f $(EXECS)
+	rm -rf *.dSYM
 
