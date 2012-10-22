@@ -18,36 +18,36 @@
 
 namespace sdsl{
 
-	byte_alphabet_stategy::byte_alphabet_stategy(): char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma) {
+	byte_alphabet_strategy::byte_alphabet_strategy(): char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma) {
 		m_sigma = 0;	
 	}
 
-	void byte_alphabet_stategy::copy(const byte_alphabet_stategy& bas){
+	void byte_alphabet_strategy::copy(const byte_alphabet_strategy& bas){
 		m_char2comp = bas.m_char2comp;
 		m_comp2char = bas.m_comp2char;
 		m_C			= bas.m_C;
 		m_sigma		= bas.m_sigma;
 	}
 
-	byte_alphabet_stategy::byte_alphabet_stategy(const byte_alphabet_stategy& bas): char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma) {
+	byte_alphabet_strategy::byte_alphabet_strategy(const byte_alphabet_strategy& bas): char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma) {
 		copy(bas);
 	}
 
-	byte_alphabet_stategy& byte_alphabet_stategy::operator=(const byte_alphabet_stategy& bas){
+	byte_alphabet_strategy& byte_alphabet_strategy::operator=(const byte_alphabet_strategy& bas){
 		if ( this != &bas ) {
 			copy(bas);
 		}
 		return *this;
 	}
 
-	void byte_alphabet_stategy::swap(byte_alphabet_stategy& bas){
+	void byte_alphabet_strategy::swap(byte_alphabet_strategy& bas){
 		m_char2comp.swap(bas.m_char2comp);
 		m_comp2char.swap(bas.m_comp2char);
 		m_C.swap(bas.m_C);
 		std::swap(m_sigma, bas.m_sigma);
 	}
 
-	typename byte_alphabet_stategy::size_type byte_alphabet_stategy::serialize(std::ostream& out, structure_tree_node*v, std::string name)const{
+	typename byte_alphabet_strategy::size_type byte_alphabet_strategy::serialize(std::ostream& out, structure_tree_node*v, std::string name)const{
 		structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
 		size_type written_bytes = 0;
         written_bytes += m_char2comp.serialize(out, child, "m_char2comp");
@@ -58,7 +58,7 @@ namespace sdsl{
 		return written_bytes;	
 	}
 
-    void byte_alphabet_stategy::load(std::istream& in){
+    void byte_alphabet_strategy::load(std::istream& in){
 		m_char2comp.load(in);
 		m_comp2char.load(in);
 		m_C.load(in);

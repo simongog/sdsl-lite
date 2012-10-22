@@ -56,7 +56,7 @@ template<class EncVector = enc_vector<>, 					 // Vector type used to store the 
 		 uint32_t InvSampleDens = 64,                        // Sample density for inverse suffix array (ISA) values
 		 class SaSamplingStrategy = sa_order_sa_sampling<>,  // Policy class for the SA sampling. Alternative text_order_sa_sampling.
 		 class IsaSampleContainer = int_vector<>,            // Container for the ISA samples.
-		 class AlphabetStrategy   = byte_alphabet_stategy    // Policy class for the representation of the alphabet.
+		 class AlphabetStrategy   = byte_alphabet_strategy   // Policy class for the representation of the alphabet.
 		>
 class csa_sada
 {
@@ -95,8 +95,6 @@ class csa_sada
 //	static const uint32_t sample_dens = SampleDens;
     private:
         enc_vector_type m_psi;  // psi function
-        psi_type m_psi_wrapper;
-        bwt_type m_bwt;
         sa_sample_type 	m_sa_sample; // suffix array samples
         isa_sample_type m_isa_sample; // inverse suffix array samples
 		alphabet_type   m_alphabet;
@@ -108,8 +106,6 @@ class csa_sada
             m_sa_sample   = csa.m_sa_sample;
             m_isa_sample  = csa.m_isa_sample;
 			m_alphabet	  = csa.m_alphabet;
-            m_psi_wrapper = psi_type(this);
-            m_bwt         = bwt_type(this);
         };
 
 		void create_buffer(){
@@ -131,15 +127,15 @@ class csa_sada
 		const typename alphabet_type::comp2char_type&  	comp2char;
 		const typename alphabet_type::C_type& 			C;
 		const typename alphabet_type::sigma_type& 		sigma;
-        const psi_type& psi;
-        const bwt_type& bwt;
-        const sa_sample_type& sa_sample;
-        const isa_sample_type& isa_sample;
+        const psi_type 									psi;
+        const bwt_type 									bwt;
+        const sa_sample_type& 							sa_sample;
+        const isa_sample_type& 							isa_sample;
 
 
         //! Default Constructor
         csa_sada(): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma), 
-		            psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
+		            psi(this), bwt(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
 			create_buffer();
         }
         //! Default Destructor
@@ -149,7 +145,7 @@ class csa_sada
 
         //! Copy constructor
         csa_sada(const csa_sada& csa): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-								       psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
+								       psi(this), bwt(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
 			create_buffer();
             copy(csa);
         }
@@ -348,7 +344,7 @@ finish:
 
 template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
 csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::csa_sada(tMSS& file_map, const std::string& dir, const std::string& id):
-    char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),C(m_alphabet.C), sigma(m_alphabet.sigma), psi(m_psi_wrapper), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
+    char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),C(m_alphabet.C), sigma(m_alphabet.sigma), psi(this), bwt(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
 {
 	create_buffer();
     if (file_map.find("bwt") == file_map.end()) { // if bwt is not already stored on disk => construct bwt
@@ -389,8 +385,6 @@ csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleCont
     int_vector_file_buffer<>  sa_buf(file_map["sa"].c_str());
 	util::assign(m_sa_sample, sa_sample_type(sa_buf));
     algorithm::set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
-    m_psi_wrapper = psi_type(this);
-    m_bwt = bwt_type(this);
 }
 
 template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
@@ -480,8 +474,6 @@ void csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampl
     m_sa_sample.load(in);
     m_isa_sample.load(in);
 	m_alphabet.load(in);
-    m_psi_wrapper = psi_type(this);
-    m_bwt = bwt_type(this);
 }
 
 template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
@@ -492,10 +484,6 @@ void csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampl
         m_sa_sample.swap(csa.m_sa_sample);
         m_isa_sample.swap(csa.m_isa_sample);
 		m_alphabet.swap(csa.m_alphabet);
-        m_psi_wrapper = psi_type(this);
-        csa.m_psi_wrapper = psi_type(&csa);
-        m_bwt = bwt_type(this);
-        csa.m_bwt = bwt_type(&csa);
     }
 }
 

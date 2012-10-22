@@ -85,7 +85,6 @@ class csa_uncompressed
         sa_sample_type	m_sa;  // vector for suffix array values
         isa_sample_type	m_isa; // vector for inverse suffix array values
         psi_type		m_psi; // wrapper class for psi function values
-        bwt_type 		m_bwt; // wrapper class for the BWT
         int_vector<8>	m_char2comp;
         int_vector<8> 	m_comp2char;
         int_vector<64>  m_C;
@@ -103,7 +102,7 @@ class csa_uncompressed
         const isa_sample_type& isa_sample;
 
         //! Default Constructor
-        csa_uncompressed():char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma) ,psi(m_psi), bwt(m_bwt), sa_sample(m_sa), isa_sample(m_isa) {
+        csa_uncompressed():char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma) ,psi(m_psi), bwt(this), sa_sample(m_sa), isa_sample(m_isa) {
             util::assign(m_C, int_vector<64>(257));
             util::assign(m_char2comp, int_vector<8>(256));
             util::assign(m_comp2char, int_vector<8>(256));
@@ -111,7 +110,7 @@ class csa_uncompressed
         //! Default Destructor
         ~csa_uncompressed() {}
         //! Copy constructor
-        csa_uncompressed(const csa_uncompressed& csa):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi), bwt(m_bwt), sa_sample(m_sa), isa_sample(m_isa) {
+        csa_uncompressed(const csa_uncompressed& csa):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi), bwt(this), sa_sample(m_sa), isa_sample(m_isa) {
             copy(csa);
         }
 

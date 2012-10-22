@@ -49,7 +49,7 @@ template<class WaveletTree = wt_huff<>,                       // Wavelet tree ty
 		 uint32_t InvSampleDens = 64,                         // Sample density for inverse suffix array (ISA) values
 		 class SaSamplingStrategy = sa_order_sa_sampling<>,   // Policy class for the SA sampling. Alternative text_order_sa_sampling.
 		 class IsaSampleContainer = int_vector<>,             // Container for the ISA samples.
-		 class AlphabetStrategy   = byte_alphabet_stategy     // Policy class for the representation of the alphabet.
+		 class AlphabetStrategy   = byte_alphabet_strategy     // Policy class for the representation of the alphabet.
 		 > // forward declaration
 class csa_wt;
 
@@ -66,10 +66,12 @@ class psi_of_csa_wt
         typedef random_access_const_iterator<psi_of_csa_wt> const_iterator;// STL Container requirement
     private:
         CsaWT* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
+
+        psi_of_csa_wt() {}; 
     public:
 
         //! Constructor
-        psi_of_csa_wt(CsaWT* csa_wt=NULL) {
+        psi_of_csa_wt(CsaWT* csa_wt) {
             m_csa_wt = csa_wt;
         }
 
@@ -155,14 +157,6 @@ class psi_of_csa_wt
             }
         }
 
-        //! Assignment operator
-        psi_of_csa_wt& operator=(const psi_of_csa_wt& psi_of_csa) {
-            if (this != &psi_of_csa) {
-                m_csa_wt = psi_of_csa.m_csa_wt;
-            }
-            return *this;
-        }
-
         //! Equality operator
         /*! return Always true, since all wrapper objects are equal only the reference to the supported csa differs.
          */
@@ -178,13 +172,6 @@ class psi_of_csa_wt
         //! Returns if the \f$\Psi\f$ function is empty.
         size_type empty()const {
             return m_csa_wt->empty();
-        }
-
-        //! Swap operation require by the STL.
-        void swap(psi_of_csa_wt& psi_of_csa) {
-            if (this != &psi_of_csa) {
-                ;// std::swap(m_csa_wt, psi_of_csa.m_csa_wt); // do not exchange the supported structure!
-            }
         }
 
         //! Returns a const_iterator to the first element.
@@ -219,10 +206,12 @@ class bwt_of_csa_wt
         typedef random_access_const_iterator<bwt_of_csa_wt> const_iterator;// STL Container requirement
     private:
         CsaWT* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
+
+        bwt_of_csa_wt(){};
     public:
 
         //! Constructor
-        bwt_of_csa_wt(CsaWT* csa_wt=NULL) {
+        bwt_of_csa_wt(CsaWT* csa_wt) {
             m_csa_wt = csa_wt;
         }
 
@@ -242,14 +231,6 @@ class bwt_of_csa_wt
             return m_csa_wt->m_wavelet_tree[i];
         }
 
-        //! Assignment operator
-        bwt_of_csa_wt& operator=(const bwt_of_csa_wt& bwt_of_csa) {
-            if (this != &bwt_of_csa) {
-                m_csa_wt = bwt_of_csa.m_csa_wt;
-            }
-            return *this;
-        }
-
         //! Returns the size of the \f$\Psi\f$ function.
         size_type size()const {
             return m_csa_wt->size();
@@ -258,13 +239,6 @@ class bwt_of_csa_wt
         //! Returns if the bwt function is empty.
         size_type empty()const {
             return m_csa_wt->empty();
-        }
-
-        //! Swap operation require by the STL.
-        void swap(bwt_of_csa_wt& bwt_of_csa) {
-            if (this != &bwt_of_csa) {
-                ;// std::swap(m_csa_wt, bwt_of_csa.m_csa_wt); // do not exchange the supported structure!
-            }
         }
 
         //! Returns a const_iterator to the first element.
@@ -328,8 +302,6 @@ class csa_wt
 //	static const uint32_t sample_dens = SampleDens;
     private:
         WaveletTree		m_wavelet_tree; // the wavelet tree
-        psi_type m_psi;  // psi function
-        bwt_type m_bwt;  // bwt
         sa_sample_type  m_sa_sample; // suffix array samples
         isa_sample_type m_isa_sample; // inverse suffix array samples
 		alphabet_type   m_alphabet;
@@ -344,8 +316,6 @@ class csa_wt
             m_sa_sample 			= csa.m_sa_sample;
             m_isa_sample 			= csa.m_isa_sample;
 			m_alphabet				= csa.m_alphabet;
-            m_psi = psi_type(this);
-            m_bwt = bwt_type(this);
         }
 
     public:
@@ -353,19 +323,19 @@ class csa_wt
 		const typename alphabet_type::comp2char_type&  	comp2char;
 		const typename alphabet_type::C_type& 			C;
 		const typename alphabet_type::sigma_type& 		sigma;
-        const psi_type& psi;
-        const bwt_type& bwt;
-        const sa_sample_type& sa_sample;
-        const isa_sample_type& isa_sample;
-        const wavelet_tree_type& wavelet_tree;
+        const psi_type  								psi;
+        const bwt_type  								bwt;
+        const sa_sample_type& 							sa_sample;
+        const isa_sample_type& 							isa_sample;
+        const wavelet_tree_type& 						wavelet_tree;
 
         //! Default Constructor
         csa_wt(): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-		          psi(m_psi), bwt(m_bwt),sa_sample(m_sa_sample), isa_sample(m_isa_sample), wavelet_tree(m_wavelet_tree) {}
+		          psi(this), bwt(this),sa_sample(m_sa_sample), isa_sample(m_isa_sample), wavelet_tree(m_wavelet_tree) {}
 
         //! Copy constructor
         csa_wt(const csa_wt& csa): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma), 
-								   psi(m_psi), bwt(m_bwt), sa_sample(m_sa_sample), isa_sample(m_isa_sample), wavelet_tree(m_wavelet_tree) {
+								   psi(this), bwt(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample), wavelet_tree(m_wavelet_tree) {
             copy(csa);
         }
 
@@ -514,7 +484,7 @@ class csa_wt
 
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
 csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::csa_wt(tMSS& file_map, const std::string& dir, const std::string& id) : 
-	  char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma), psi(m_psi), bwt(m_bwt),sa_sample(m_sa_sample),isa_sample(m_isa_sample),wavelet_tree(m_wavelet_tree)
+	  char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma), psi(this), bwt(this),sa_sample(m_sa_sample),isa_sample(m_isa_sample),wavelet_tree(m_wavelet_tree)
 {
     if (file_map.find("bwt") == file_map.end()) { // if bwt is not already stored on disk => construct bwt
         construct_bwt(file_map, dir, id);
@@ -538,16 +508,13 @@ csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleCont
     write_R_output("csa", "construct ISA samples", "begin", 1, 0);
     algorithm::set_isa_samples<csa_wt>(sa_buf, m_isa_sample);
     write_R_output("csa", "construct ISA samples", "end", 1, 0);
-
-    m_psi = psi_type(this);
-    m_bwt = bwt_type(this);
 }
 
 
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
 uint32_t csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::get_psi_sample_dens()const
 {
-    return m_psi.get_sample_dens();
+    return psi.get_sample_dens();
 }
 
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
@@ -572,7 +539,7 @@ inline typename csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrateg
 {
     size_type off = 0;
     while ( !m_sa_sample.is_sampled(i) ) {
-        i = m_psi(i);
+        i = psi(i);
         ++off;
     }
     value_type result = m_sa_sample.sa_value(i); 
@@ -590,17 +557,17 @@ inline typename csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrateg
     #endif
     	size_type off = 0;
     	while( i % SampleDens ){// while i mod SampleDens != 0 (SA[i] is not sampled)
-    		i = m_psi[i];       // go to the position where SA[i]+1 is located
+    		i = psi[i];       // go to the position where SA[i]+1 is located
     		++off;              // add 1 to the offset
     	}
     	value_type result = m_sa_sample[i/SampleDens];
     	// TODO: try LF-function for iteration
     	if( result < off ){
     #ifdef USE_CSA_CACHE
-    		r = m_psi.size()-(off-result);
+    		r = psi.size()-(off-result);
     		return r;
     #endif
-    		return m_psi.size()-(off-result);
+    		return psi.size()-(off-result);
     	}
     	else{
     #ifdef USE_CSA_CACHE
@@ -624,7 +591,7 @@ inline typename csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrateg
         i = ii - i;
     }
     while (i--) {
-        result = m_psi(result);
+        result = psi(result);
     }
     return result;
 }
@@ -659,8 +626,6 @@ void csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampl
     m_sa_sample.load(in);
     m_isa_sample.load(in);
 	m_alphabet.load(in);
-    m_psi = psi_type(this);
-    m_bwt = bwt_type(this);
 }
 
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
@@ -671,10 +636,6 @@ void csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampl
         m_sa_sample.swap(csa.m_sa_sample);
         m_isa_sample.swap(csa.m_isa_sample);
 		m_alphabet.swap(csa.m_alphabet);
-        m_psi = psi_type(this);
-        csa.m_psi = psi_type(&csa);
-        m_bwt = bwt_type(this);
-        csa.m_bwt = bwt_type(&csa);
     }
 }
 

@@ -20,7 +20,7 @@ namespace sdsl
 {
 
 csa_uncompressed::csa_uncompressed(tMSS& file_map, const std::string& dir, const std::string& id):char2comp(m_char2comp),
-	comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi), bwt(m_bwt), sa_sample(m_sa), isa_sample(m_isa) {
+	comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi), bwt(this), sa_sample(m_sa), isa_sample(m_isa) {
 
 	int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
 	int_vector_file_buffer<>  sa_buf(file_map["sa"].c_str());
@@ -29,7 +29,6 @@ csa_uncompressed::csa_uncompressed(tMSS& file_map, const std::string& dir, const
 	util::assign(m_sa, sa_sample_type(sa_buf));
 	algorithm::set_isa_samples<csa_uncompressed>(sa_buf, m_isa);
 	m_psi = psi_type(this);
-	m_bwt = bwt_type(this);
 	write_R_output("csa", "store ISA","begin",1,0);
 	if (!util::store_to_file(m_isa, (dir+"isa_"+id).c_str(), true)) {
 		throw std::ios_base::failure("#csa_uncompressed: Cannot store ISA to file system!");
@@ -50,20 +49,17 @@ csa_uncompressed::const_iterator csa_uncompressed::end()const
     return const_iterator(this, size());
 }
 
-void csa_uncompressed::copy(const csa_uncompressed& csa)
-{
-    m_sa = csa.m_sa;
-    m_isa = csa.m_isa;
+void csa_uncompressed::copy(const csa_uncompressed& csa){
+    m_sa 		 = csa.m_sa;
+    m_isa 		 = csa.m_isa;
     m_sigma		 = csa.m_sigma;
     m_char2comp  = csa.m_char2comp;
     m_comp2char  = csa.m_comp2char;
-    m_C = csa.m_C;
-    m_psi = psi_type(this);
-    m_bwt = bwt_type(this);
+    m_C 		 = csa.m_C;
+    m_psi 		 = psi_type(this);
 }
 
-csa_uncompressed& csa_uncompressed::operator=(const csa_uncompressed& csa)
-{
+csa_uncompressed& csa_uncompressed::operator=(const csa_uncompressed& csa) {
     if (this != &csa) {
         copy(csa);
     }
@@ -71,8 +67,7 @@ csa_uncompressed& csa_uncompressed::operator=(const csa_uncompressed& csa)
 }
 
 
-csa_uncompressed::size_type csa_uncompressed::serialize(std::ostream& out)const
-{
+csa_uncompressed::size_type csa_uncompressed::serialize(std::ostream& out)const {
     size_type written_bytes = 0;
     written_bytes += m_sa.serialize(out);
     written_bytes += m_isa.serialize(out);
@@ -92,7 +87,6 @@ void csa_uncompressed::load(std::istream& in)
     m_C.load(in);
     util::read_member(m_sigma, in);
     m_psi = psi_type(this);
-    m_bwt = bwt_type(this);
 }
 
 void csa_uncompressed::swap(csa_uncompressed& csa)
@@ -106,9 +100,7 @@ void csa_uncompressed::swap(csa_uncompressed& csa)
         m_C.swap(csa.m_C);
         std::swap(m_sigma, csa.m_sigma);
         m_psi = psi_type(this);
-        m_bwt = bwt_type(this);
         csa.m_psi = psi_type(&csa);
-        csa.m_bwt = bwt_type(&csa);
     }
 }
 
