@@ -18,8 +18,9 @@
 
 namespace sdsl{
 
-	byte_alphabet_stategy::byte_alphabet_stategy(): char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma)
-	{}
+	byte_alphabet_stategy::byte_alphabet_stategy(): char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma) {
+		m_sigma = 0;	
+	}
 
 	void byte_alphabet_stategy::copy(const byte_alphabet_stategy& bas){
 		m_char2comp = bas.m_char2comp;
