@@ -62,6 +62,9 @@ class lcp_wt
         typedef const pointer								 const_pointer;
         typedef int_vector<>::size_type						 size_type;		// STL Container requirement
         typedef ptrdiff_t  									 difference_type; // STL Container requirement
+        typedef select_support_bs< rank_support_v<> > 		 tDummySS;
+		typedef wt_huff<bit_vector, rank_support_v<>,
+				        tDummySS, tDummySS>					 small_lcp_type;
 
         typedef lcp_plain_tag								 lcp_category;
 
@@ -78,9 +81,8 @@ class lcp_wt
         };
 
     private:
-        typedef select_support_bs< rank_support_v<> > tDummySS;
-        wt_huff<bit_vector, rank_support_v<>, tDummySS, tDummySS > m_small_lcp; // vector for lcp values < 255
-        int_vector<width>   m_big_lcp;		// vector for lcp values > 254
+        small_lcp_type 		m_small_lcp; // vector for lcp values < 255
+        int_vector<width>   m_big_lcp;	 // vector for lcp values > 254
 
         typedef std::pair<size_type, size_type> tPII;
         typedef std::vector<tPII> tVPII;
@@ -257,7 +259,9 @@ void lcp_wt<width>::construct(int_vector_file_buffer<int_width, size_type_class>
     }
 //	write_R_output("lcp","construct sml","end");
     int_vector_file_buffer<8> lcp_sml_buf(temp_file.c_str());
-    m_small_lcp.construct(lcp_sml_buf, lcp_sml_buf.int_vector_size);
+
+	util::assign( m_small_lcp, small_lcp_type(lcp_sml_buf, lcp_sml_buf.int_vector_size) );
+
     std::remove(temp_file.c_str());
 //	write_R_output("lcp","construct big","begin");
     m_big_lcp 		= int_vector<>(big_sum, 0, bit_magic::l1BP(max_l)+1);
