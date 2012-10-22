@@ -74,7 +74,8 @@ class byte_alphabet_stategy{
         comp2char_type	m_comp2char; 
         C_type  		m_C; 		 // cumulative counts for the compact alphabet [0..sigma-1]
         sigma_type		m_sigma;     
-	
+
+		void copy(const byte_alphabet_stategy&);
 	public:
 
 		const char2comp_type& char2comp;
@@ -118,13 +119,18 @@ class byte_alphabet_stategy{
 					m_C[m_sigma]		= m_C[i];
 					++m_sigma;
 				}
-			comp2char.resize(m_sigma);
+			m_comp2char.resize(m_sigma);
 			m_C.resize(m_sigma+1);
 			for (int i=(int)m_sigma; i > 0; --i) m_C[i] = m_C[i-1]; 
 			m_C[0] = 0;
 			for (int i=1; i <= (int)m_sigma; ++i) m_C[i] += m_C[i-1];
 			assert(C[sigma]==len);
 		}
+
+		//! Copy constructor
+		byte_alphabet_stategy(const byte_alphabet_stategy&);
+
+		byte_alphabet_stategy& operator=(const byte_alphabet_stategy&);
 
 		//! Swap operator
         void swap(byte_alphabet_stategy&);
