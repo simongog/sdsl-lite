@@ -65,19 +65,13 @@ class psi_of_csa_wt
         typedef typename CsaWT::difference_type difference_type;
         typedef random_access_const_iterator<psi_of_csa_wt> const_iterator;// STL Container requirement
     private:
-        CsaWT* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
-
-        psi_of_csa_wt() {}; 
+        const CsaWT* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
+        psi_of_csa_wt() {};    // disable default constructor
     public:
 
         //! Constructor
         psi_of_csa_wt(CsaWT* csa_wt) {
             m_csa_wt = csa_wt;
-        }
-
-        //! Copy constructor
-        psi_of_csa_wt(const psi_of_csa_wt& psi_of_csa) {
-            m_csa_wt = psi_of_csa.m_csa_wt;
         }
 
         //! Calculate the \f$\Psi\f$ value at position i.
@@ -205,19 +199,13 @@ class bwt_of_csa_wt
         typedef typename CsaWT::difference_type difference_type;
         typedef random_access_const_iterator<bwt_of_csa_wt> const_iterator;// STL Container requirement
     private:
-        CsaWT* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
-
-        bwt_of_csa_wt(){};
+        const CsaWT* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
+        bwt_of_csa_wt(){};     // disable default constructor
     public:
 
         //! Constructor
         bwt_of_csa_wt(CsaWT* csa_wt) {
             m_csa_wt = csa_wt;
-        }
-
-        //! Copy constructor
-        bwt_of_csa_wt(const bwt_of_csa_wt& bwt_of_csa) {
-            m_csa_wt = bwt_of_csa.m_csa_wt;
         }
 
         //! Calculate the Burrows Wheeler Transform (BWT) at position i.
