@@ -110,12 +110,6 @@ class lcp_wt
         template<uint8_t int_width, class size_type_class>
         lcp_wt(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
 
-        template<class Text, class Sa>
-        void construct(const Text& text, const Sa& sa);
-
-        template<uint8_t int_width, class size_type_class>
-        void construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
-
         //! Number of elements in the instance.
         /*! Required for the Container Concept of the STL.
          *  \sa max_size, empty
@@ -210,32 +204,16 @@ template<uint8_t width>
 template<class Text, class Sa>
 lcp_wt<width>::lcp_wt(const Text& text, const Sa& sa)
 {
-    construct(text, sa);
-}
-
-template<uint8_t width>
-template<class Text, class Sa>
-void lcp_wt<width>::construct(const Text& text, const Sa& sa)
-{
     if (sa.size() == 0) {
         return;
     }
     throw std::logic_error("This constructor of lcp_wt is not yet implemented!");
-    /*
-    */
 }
 
 
 template<uint8_t width>
 template<uint8_t int_width, class size_type_class>
 lcp_wt<width>::lcp_wt(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
-{
-    construct(lcp_buf);
-}
-
-template<uint8_t width>
-template<uint8_t int_width, class size_type_class>
-void lcp_wt<width>::construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
 {
     std::string temp_file = "/tmp/lcp_sml" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id()) ;// TODO: remove absolute file name
 //	write_R_output("lcp","construct sml","begin");
