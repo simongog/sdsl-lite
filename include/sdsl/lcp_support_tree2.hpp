@@ -79,7 +79,7 @@ class _lcp_support_tree2
          *  \param sa_buf
          */
         template<uint8_t int_width, class size_type_class>
-        void _lcp_support_tree2(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
+        _lcp_support_tree2(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
                        int_vector_file_buffer<8, size_type_class>& bwt_buf,
                        const cst_type* cst = NULL) {
             m_cst = cst;
