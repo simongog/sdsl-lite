@@ -22,6 +22,10 @@
 #ifndef INCLUDED_CSA_ALPHABET_STRATEGY
 #define INCLUDED_CSA_ALPHABET_STRATEGY
 
+
+// TODO: Strategy with 1-to-1 mapping and C_array type as template parameter
+//       This can be also used for a integer based CSA.  
+
 /* A alphabet strategy provides the following features:
  *   * Member `sigma` which contains the size (=number of unique symbols) of the alphabet.
  *   * Method `is_present(char_type c)` which indicates if character c occurs in the text.

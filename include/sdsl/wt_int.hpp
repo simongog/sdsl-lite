@@ -206,8 +206,8 @@ class wt_int
             size_type n = buf.int_vector_size;  // set n
             m_size = n;				// set sigma and size
             m_sigma = 0;
-            temp_write_read_buffer<> buf1(5000000, buf.int_width, dir);   // buffer for elements in the rigth node
-            int_vector<int_width> rac(n, 0, buf.int_width);				  // initialze rac
+            temp_write_read_buffer<> buf1(5000000, buf.int_width, dir);   // buffer for elements in the right node
+            int_vector<int_width> rac(n, 0, buf.int_width);				  // initialize rac
 
             value_type x = 1;  // variable for the biggest value in rac
             for (size_type i=0,r=0,r_sum=0; i<n;) { // detect the biggest value in rac
@@ -235,8 +235,8 @@ class wt_int
 
             uint64_t		mask_old = 1ULL<<(m_logn);
             for (uint32_t k=0; k<m_logn; ++k) {
-                size_type	  	start		 = 0;
-                const uint64_t		mask_new = 1ULL<<(m_logn-k-1);
+                size_type	  	start	 = 0;
+                const uint64_t	mask_new = 1ULL<<(m_logn-k-1);
                 do {
                     buf1.reset();
                     size_type	i 		= start;
@@ -310,12 +310,9 @@ class wt_int
                 std::swap(m_size, wt.m_size);
                 std::swap(m_sigma,  wt.m_sigma);
                 m_tree.swap(wt.m_tree);
-                m_tree_rank.swap(wt.m_tree_rank); // rank swap after the swap of the bit vector m_tree
-                m_tree_rank.set_vector(&m_tree);
-                m_tree_select1.swap(wt.m_tree_select1); // select1 swap after the swap of the bit vector m_tree
-                m_tree_select1.set_vector(&m_tree);
-                m_tree_select0.swap(wt.m_tree_select0); // select0 swap after the swap of the bit vector m_tree
-                m_tree_select0.set_vector(&m_tree);
+				util::swap_support(m_tree_rank, wt.m_tree_rank, &m_tree, &(wt.m_tree) );
+				util::swap_support(m_tree_select1, wt.m_tree_select1, &m_tree, &(wt.m_tree) );
+				util::swap_support(m_tree_select0, wt.m_tree_select0, &m_tree, &(wt.m_tree) );
                 std::swap(m_logn,  wt.m_logn);
             }
         }
@@ -330,9 +327,9 @@ class wt_int
             return m_size == 0;
         }
 
-        //! Recovers the ith symbol of the original vector.
+        //! Recovers the i-th symbol of the original vector.
         /*! \param i The index of the symbol in the original vector. \f$i \in [0..size()-1]\f$
-         *	\returns The ith symbol of the original vector.
+         *	\returns The i-th symbol of the original vector.
          */
         value_type operator[](size_type i)const {
 //		size_type zeros_left_of_pos = 0;
@@ -556,15 +553,6 @@ class wt_int
             m_tree_select0.load(in, &m_tree);
             util::read_member(m_logn, in);
         }
-        /*
-        	void print_info()const{
-        		size_type rle_ed = 0;
-        		for(size_type i=0; i < m_tree.size(); ++i){
-
-        		}
-        	}
-        */
-
 };
 
 }// end namespace sds

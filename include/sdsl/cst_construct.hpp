@@ -158,25 +158,7 @@ static bool construct_cst(Cst& cst, tMSS& file_map, bool delete_files=true, std:
                 construct_lcp_kasai(file_map, dir, id);
         }
     }
-    /*		{
-    			int_vector<> lcp_old;
-    			util::load_from_file(lcp_old, file_map["lcp"].c_str());
-    			int_vector<8> lcp_sml;
-    			util::load_from_file(lcp_sml, file_map["lcp_go"].c_str());
-    			for(size_type i=0; i<lcp_old.size(); ++i){
-    				if( lcp_old[i] < 255 ){
-    					if( lcp_old[i] != lcp_sml[i] ){
-    						std::cout<<"ERROR i="<<i<<" "<<lcp_old[i]<<" "<<(size_type)lcp_sml[i]<<std::endl;
-    					}
-    				}
-    			}
-    		}
-    */
-
-
-    {
-        cst.construct(file_map, dir, id, build_only_bps);
-    }
+	util::assign( cst, Cst(file_map, dir, id, build_only_bps) );
     if (delete_files) {
         util::delete_all_files(file_map);
     }

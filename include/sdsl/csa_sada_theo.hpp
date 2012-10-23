@@ -556,14 +556,14 @@ csa_sada_theo<EncVector,RankSupport>::csa_sada_theo(const unsigned char* str):m_
 {
 //	m_b = NULL; m_psi = NULL; m_b_rank = NULL;
 //	assert(str!=NULL);
-    csa_uncompressed sa(str);
+    csa_uncompressed<> sa(str);
 //	uint64_t n = strlen((const char*)str); // get size of the text
     setText(str, sa.size());
 //	int_vector<> sa(n, 0, bit_magic::l1BP(n)+1 );
 //	algorithm::calculate_sa(str, n, sa); // calculate the suffix array sa of str
 
     typename int_vector<>::value_type isa_0 = 0;
-    for (csa_uncompressed::size_type i=0; i!=sa.size(); ++i)
+    for (csa_uncompressed<>::size_type i=0; i!=sa.size(); ++i)
         if (sa[i]==0) {
             isa_0 = i;
             break;
@@ -571,7 +571,7 @@ csa_sada_theo<EncVector,RankSupport>::csa_sada_theo(const unsigned char* str):m_
 //std::cerr<<"verify sa = "<<(SDSAlgorithm::verify_sa(str, n, sa))<<std::endl;
     int_vector<> psi(sa.size(), bit_magic::l1BP(sa.size())+1);
     algorithm::sa2psi(sa, psi); // calculate psi out of sa
-    sa = csa_uncompressed();
+    sa = csa_uncompressed<>();
     construct(psi, isa_0);
 }
 

@@ -390,11 +390,6 @@ class cst_sct3
 
         /* @} */
 
-        //! Default Destructor
-        ~cst_sct3() {}
-
-        void construct(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps=false);
-
         //! Number of leaves of the suffix tree.
         /*! Required for the Container Concept of the STL.
          *  \sa max_size, empty
@@ -1210,13 +1205,6 @@ cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(const std::string& csa_fi
 
 template<class Csa, class Lcp, class Bp_support, class Rank_support>
 cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
-{
-    construct(file_map, dir, id, build_only_bps);
-}
-
-
-template<class Csa, class Lcp, class Bp_support, class Rank_support>
-void cst_sct3<Csa, Lcp, Bp_support, Rank_support>::construct(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps)
 {
     write_R_output("cst", "construct BPS", "begin", 1, 0);
     int_vector_file_buffer<> lcp_buf(file_map["lcp"].c_str());
