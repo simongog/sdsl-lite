@@ -28,13 +28,16 @@
 #include "rank_support_v.hpp"
 #include "select_support_mcl.hpp"
 #include "util.hpp"
+#include <utility> // for pair
+#include <stack>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
 
 
-template<bool Minimum = true, class Bp_support = bp_support_sada<256, 32, rank_support_v5<>, select_support_dummy>, 
+template<bool Minimum = true, 
+	     class Bp_support = bp_support_sada<256, 32, rank_support_v5<>, select_support_dummy>, 
 	     class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
 class rmq_succinct_sada;
 
@@ -81,37 +84,47 @@ class rmq_succinct_sada
 
     private:
 
-        typedef rmq_succinct_sct<Minimum> rmq_construct_helper_type;
+        typedef rmq_succinct_sct<Minimum> 	rmq_construct_helper_type;
 
-        void _construct_bp_of_extended_cartesian_tree(size_type l, size_type r, size_type& bp_cnt, const rmq_construct_helper_type& rmq_helper) {
-            if (r==(size_type)-1 or l > r)
-                return;
-            m_ect_bp[bp_cnt++] = 1; // write beginning of inner node
-            size_type m = rmq_helper(l, r);
-            _construct_bp_of_extended_cartesian_tree(l, m-1, bp_cnt, rmq_helper);
-            m_ect_bp[bp_cnt++] = 1; // write leaf
-            m_ect_bp[bp_cnt++] = 0;
-            _construct_bp_of_extended_cartesian_tree(m+1, r, bp_cnt, rmq_helper);
-            m_ect_bp[bp_cnt++] = 0; // write end of inner node
-            assert(bp_cnt <= m_ect_bp.size());
-        }
+		// helper class for the construction
+		struct state{
+			size_type l, r;  // left and right interval
+			size_type m;     // index of the rmq
+			uint8_t   visit; // 1==first, 2==second, 3==third visit
+			state(size_type fl=0, size_type fr=0, size_type fm=0, uint8_t fvisit=0) 
+				: l(fl), r(fr), m(fm), visit(fvisit){}
+		};
 
 		template<class RandomAccessContainer>
-        void construct(const RandomAccessContainer* v) {
-            if (v == NULL) {
-                m_ect_bp = bit_vector(0); m_ect_bp_support = Bp_support();
-                m_ect_bp_rank10 = Rank_support10(); m_ect_bp_select10 = Select_support10();
-            } else {
-                rmq_construct_helper_type rmq_helper(v);
-                m_ect_bp.resize(4*v->size());
-                size_type bp_cnt=0;
-                _construct_bp_of_extended_cartesian_tree((size_type)0, v->size()-1, bp_cnt, rmq_helper);
-                assert(bp_cnt == 4*v->size());
-                m_ect_bp_support = Bp_support(&m_ect_bp);
-                util::init_support(m_ect_bp_rank10, &m_ect_bp);
-                util::init_support(m_ect_bp_select10, &m_ect_bp);
-            }
-        }
+        void construct_bp_of_extended_cartesian_tree(const RandomAccessContainer *v, const rmq_construct_helper_type& rmq_helper) {
+            m_ect_bp.resize(4*v->size());
+			if ( v->size() > 0 ){
+				size_type bp_cnt = 0;
+				size_type l = 0, r = v->size()-1;
+				std::stack<state> state_stack; 
+				state_stack.push( state(l, r, rmq_helper(l, r), 1) );
+				while ( !state_stack.empty() ) {
+					state s = state_stack.top(); state_stack.pop();
+					if ( 1 == s.visit ) {
+						m_ect_bp[bp_cnt++] = 1; // write beginning of inner node 
+						state_stack.push( state(s.l, s.r, s.m, 2) );
+						if ( s.m > s.l ){
+							state_stack.push( state(s.l, s.m-1, rmq_helper(s.l, s.m-1), 1) );
+						}
+					}else if ( 2 == s.visit ) {
+						m_ect_bp[bp_cnt++] = 1; // write leaf
+						m_ect_bp[bp_cnt++] = 0;
+						state_stack.push( state(s.l, s.r, s.m, 3) );
+						if ( s.m < s.r ){
+							state_stack.push( state(s.m+1, s.r, rmq_helper(s.m+1, s.r), 1) );
+						}
+					}else if ( 3 == s.visit ) {
+						m_ect_bp[bp_cnt++] = 0; // write end of inner node 
+					}
+				}
+				assert( bp_cnt == 4*v->size() );
+			}
+		}
 
         void copy(const rmq_succinct_sada& rm) {
             m_ect_bp = rm.m_ect_bp;
@@ -130,7 +143,17 @@ class rmq_succinct_sada
         //! Constructor
 		template<class RandomAccessContainer>
         rmq_succinct_sada(const RandomAccessContainer* v=NULL):ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {
-            construct(v);
+            if (v == NULL) {
+                m_ect_bp = bit_vector(0); m_ect_bp_support = Bp_support();
+                m_ect_bp_rank10 = Rank_support10(); m_ect_bp_select10 = Select_support10();
+            } else {
+                rmq_construct_helper_type rmq_helper(v);
+                m_ect_bp.resize(4*v->size());
+                construct_bp_of_extended_cartesian_tree(v, rmq_helper);
+                m_ect_bp_support = Bp_support(&m_ect_bp);
+                util::init_support(m_ect_bp_rank10, &m_ect_bp);
+                util::init_support(m_ect_bp_select10, &m_ect_bp);
+            }
         }
 
         //! Copy constructor
@@ -153,12 +176,9 @@ class rmq_succinct_sada
 		//! Swap operator
         void swap(rmq_succinct_sada& rm) {
             m_ect_bp.swap(rm.m_ect_bp);
-			util::swap_support(m_ect_bp_support, rm.m_ect_bp_support, 
-					          &m_ect_bp, &(rm.m_ect_bp));
-			util::swap_support(m_ect_bp_rank10, rm.m_ect_bp_rank10, 
-					          &m_ect_bp, &(rm.m_ect_bp));
-			util::swap_support(m_ect_bp_select10, rm.m_ect_bp_select10,
-					          &m_ect_bp, &(rm.m_ect_bp));
+			util::swap_support(m_ect_bp_support, rm.m_ect_bp_support, &m_ect_bp, &(rm.m_ect_bp));
+			util::swap_support(m_ect_bp_rank10, rm.m_ect_bp_rank10, &m_ect_bp, &(rm.m_ect_bp));
+			util::swap_support(m_ect_bp_select10, rm.m_ect_bp_select10, &m_ect_bp, &(rm.m_ect_bp));
         }
 
         //! Range minimum/maximum query for the supported random access container v.
