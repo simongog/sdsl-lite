@@ -73,14 +73,6 @@ class psi_of_csa_psi
             return (*m_csa)(((*m_csa)[i]+size()-1)%size());   // TODO:replace % by to_add table
         }
 
-        //! Assignment operator
-        psi_of_csa_psi& operator=(const psi_of_csa_psi& psi_of_csa) {
-            if (this != &psi_of_csa) {
-                m_csa = psi_of_csa.m_csa;
-            }
-            return *this;
-        }
-
         //! Returns the size of the \f$\Psi\f$ function.
         size_type size()const {
             return m_csa->size();
@@ -275,14 +267,6 @@ class bwt_of_csa_psi
             assert(i < size());
             size_type pos = m_csa->psi(i);
             return algorithm::get_ith_character_of_the_first_row(pos, *m_csa);
-        }
-
-        //! Assignment operator
-        bwt_of_csa_psi& operator=(const bwt_of_csa_psi& bwt_of_csa) {
-            if (this != &bwt_of_csa) {
-                m_csa = bwt_of_csa.m_csa;
-            }
-            return *this;
         }
 
         //! Returns the size of the \f$\Psi\f$ function.

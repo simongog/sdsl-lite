@@ -29,6 +29,7 @@
 #include "util.hpp"
 #include "testutils.hpp"
 #include "csa_sampling_strategy.hpp"
+#include "csa_alphabet_strategy.hpp"
 #include <iostream>
 #include <algorithm>
 #include <cassert>
@@ -40,7 +41,7 @@
 namespace sdsl
 {
 
-//! A class for the uncmpressed suffix array (SA).
+//! A class for the uncompressed suffix array (SA).
 /*!
  * This class stores the information of the suffix array and the inverse suffix array in uncompressed form.
  * In contrast to this class, classes like  sdsl::csa_sada_theo, sdsl::csa_sada, and sdsl::csa_wt store
@@ -53,6 +54,7 @@ namespace sdsl
  *		\f$ 2n\cdot \log n\f$ bits, where \f$n\f$ equals the \f$size()\f$ of the suffix array.
  * @ingroup csa
  */
+template<class AlphabetStrategy=byte_alphabet_strategy>	
 class csa_uncompressed
 {
     public:
@@ -72,6 +74,7 @@ class csa_uncompressed
         typedef unsigned char										 char_type;
         typedef _sa_order_sampling_strategy<1,0>					 sa_sample_type;
         typedef int_vector<>										 isa_sample_type;
+		typedef AlphabetStrategy								     alphabet_type;
 
         typedef csa_tag												 index_category;
 
@@ -85,37 +88,55 @@ class csa_uncompressed
         sa_sample_type	m_sa;  // vector for suffix array values
         isa_sample_type	m_isa; // vector for inverse suffix array values
         psi_type		m_psi; // wrapper class for psi function values
-        int_vector<8>	m_char2comp;
-        int_vector<8> 	m_comp2char;
-        int_vector<64>  m_C;
-        uint16_t		m_sigma;
+		alphabet_type   m_alphabet;
 
-        void copy(const csa_uncompressed& csa);
+        void copy(const csa_uncompressed& csa){
+		    m_sa 		 = csa.m_sa;
+			m_isa 		 = csa.m_isa;
+			m_alphabet   = csa.m_alphabet;
+			m_psi 		 = psi_type(this);
+		}
     public:
-        const int_vector<8>& char2comp;
-        const int_vector<8>& comp2char;
-        const int_vector<64>& C;
-        const uint16_t& sigma;
-        const psi_type& psi;
-        const bwt_type& bwt;
-        const sa_sample_type& sa_sample;
-        const isa_sample_type& isa_sample;
+		const typename alphabet_type::char2comp_type&   char2comp;
+		const typename alphabet_type::comp2char_type&  	comp2char;
+		const typename alphabet_type::C_type& 			C;
+		const typename alphabet_type::sigma_type& 		sigma;
+        const psi_type& 								psi;
+        const bwt_type 									bwt;
+        const sa_sample_type& 							sa_sample;
+        const isa_sample_type& 							isa_sample;
 
         //! Default Constructor
-        csa_uncompressed():char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma) ,psi(m_psi), bwt(this), sa_sample(m_sa), isa_sample(m_isa) {
-            util::assign(m_C, int_vector<64>(257));
-            util::assign(m_char2comp, int_vector<8>(256));
-            util::assign(m_comp2char, int_vector<8>(256));
-        }
-        //! Default Destructor
-        ~csa_uncompressed() {}
+        csa_uncompressed() :char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
+		                   psi(m_psi), bwt(this), sa_sample(m_sa), isa_sample(m_isa) {}
+
         //! Copy constructor
-        csa_uncompressed(const csa_uncompressed& csa):char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma), psi(m_psi), bwt(this), sa_sample(m_sa), isa_sample(m_isa) {
+        csa_uncompressed(const csa_uncompressed& csa) : char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma), 
+		                                               psi(m_psi), bwt(this), sa_sample(m_sa), isa_sample(m_isa) {
             copy(csa);
         }
 
 		//! Constructor
-        csa_uncompressed(tMSS& file_map, const std::string& dir, const std::string& id);
+        csa_uncompressed(tMSS& file_map, const std::string& dir, const std::string& id) : char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), 
+																						  C(m_alphabet.C), sigma(m_alphabet.sigma), psi(m_psi), bwt(this), 
+																						  sa_sample(m_sa), isa_sample(m_isa) 
+		{
+			int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
+			int_vector_file_buffer<>  sa_buf(file_map["sa"].c_str());
+			size_type n = text_buf.int_vector_size;
+			util::assign(m_alphabet, alphabet_type(text_buf, n));
+			util::assign(m_sa, sa_sample_type(sa_buf));
+			algorithm::set_isa_samples<csa_uncompressed>(sa_buf, m_isa);
+			m_psi = psi_type(this);
+			write_R_output("csa", "store ISA","begin",1,0);
+			if (!util::store_to_file(m_isa, (dir+"isa_"+id).c_str(), true)) {
+				throw std::ios_base::failure("#csa_uncompressed: Cannot store ISA to file system!");
+			} else {
+				file_map["isa"] = dir+"isa_"+id;
+			}
+			write_R_output("csa", "store ISA","end",1,0);
+		}
+
 
         //! Number of elements in the instance.
         /*! Required for the Container Concept of the STL.
@@ -150,19 +171,31 @@ class csa_uncompressed
 
         	Required for the Assignable Conecpt of the STL.
           */
-        void swap(csa_uncompressed& csa);
+        void swap(csa_uncompressed& csa){
+			if (this != &csa) {
+				m_sa.swap(csa.m_sa);
+				m_isa.swap(csa.m_isa);
+				m_alphabet.swap(csa.m_alphabet);
+				m_psi = psi_type(this);
+				csa.m_psi = psi_type(&csa);
+			}	
+		}
 
         //! Returns a const_iterator to the first element.
         /*! Required for the STL Container Concept.
          *  \sa end
          */
-        const_iterator begin()const;
+        const_iterator begin()const{
+    		return const_iterator(this, 0);
+		}
 
         //! Returns a const_iterator to the element after the last element.
         /*! Required for the STL Container Concept.
          *  \sa begin.
          */
-        const_iterator end()const;
+        const_iterator end()const{
+			return const_iterator(this, size());
+		}
 
         //! []-operator
         /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
@@ -184,34 +217,36 @@ class csa_uncompressed
         /*!
          *	Required for the Assignable Concept of the STL.
          */
-        csa_uncompressed& operator=(const csa_uncompressed& csa);
-
-        //! Equality Operator
-        /*! Two Instances of csa_uncompressed are equal if
-         *  all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator!=
-         */
-        bool operator==(const csa_uncompressed& csa)const;
-
-        //! Unequality Operator
-        /*! Two Instances of csa_uncompressed are equal if
-         *  not all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator==
-         */
-        bool operator!=(const csa_uncompressed& csa)const;
+        csa_uncompressed& operator=(const csa_uncompressed& csa){
+			if (this != &csa) {
+        		copy(csa);
+			}
+			return *this;
+		}
 
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const{
+			structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+			size_type written_bytes = 0;
+			written_bytes += m_sa.serialize(out, child, "m_sa");
+			written_bytes += m_isa.serialize(out, child, "m_isa");
+			written_bytes += m_alphabet.serialize(out, child, "m_alphabet");
+			structure_tree::add_size(child, written_bytes);
+			return written_bytes;	
+		}
 
         //! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
          */
-        void load(std::istream& in);
+        void load(std::istream& in){
+			m_sa.load(in);
+			m_isa.load(in);
+			m_alphabet.load(in);
+			m_psi = psi_type(this);
+		}
 
         size_type get_sample_dens()const {
             return 1;
@@ -225,7 +260,26 @@ class csa_uncompressed
          *  \par Time complexity
          *		\f$ \Order{\log n} \f$
          */
-        size_type rank_bwt(size_type i, const unsigned char c) const;
+        size_type rank_bwt(size_type i, const unsigned char c) const{
+			// TODO: special case if c == BWT[i-1] we can use LF to get a constant time answer
+			unsigned char cc = char2comp[c];
+			if (cc==0 and c!=0)  // character is not in the text => return 0
+				return 0;
+			// binary search the interval [C[cc]..C[cc+1]-1] for the result
+			size_type lower_b = C[cc], upper_b = C[cc+1]; // lower_b inclusive, upper_b exclusive
+			while (lower_b+1 < upper_b) {
+				size_type mid = (lower_b+upper_b)/2;
+				if (m_psi[mid] >= i)
+					upper_b = mid;
+				else
+					lower_b = mid;
+			}
+			if (lower_b > C[cc])
+				return lower_b - C[cc] + 1;
+			else { // lower_b == m_C[cc]
+				return m_psi[lower_b] < i;// 1 if m_psi[lower_b]<i, 0 otherwise
+			}	
+		}
 
         //! Calculates the ith occurence of symbol c in the BWT of the original text.
         /*!
@@ -235,7 +289,15 @@ class csa_uncompressed
          *  \par Time complexity
          *		\f$ \Order{t_{\Psi}} \f$
          */
-        size_type select_bwt(size_type i, const unsigned char c) const;
+        size_type select_bwt(size_type i, const unsigned char c) const{
+			unsigned char cc = char2comp[c];
+			if (cc==0 and c!=0)  // character is not in the text => return size()
+				return size();
+			if (C[cc]+i-1 <  C[cc+1]) {
+				return m_psi[C[cc]+i-1];
+			} 
+			return size();	
+		}
 };
 
 

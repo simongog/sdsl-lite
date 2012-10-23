@@ -159,7 +159,7 @@ class cst_sada
 
     public:
         const Csa& csa; 						//!< The compressed suffix array the suffix tree is based on.
-        const lcp_type& lcp;							//!< The lcp array the suffix tree is based on.
+        const lcp_type& lcp;					//!< The lcp array the suffix tree is based on.
         const bit_vector& bp;					//!< The balanced parentheses sequence of the suffix tree.
         const Bp_support& bp_support;			//!< The balanced parentheses sequence support for member bp.
         const Rank_support10& bp_rank_10;		//!< The rank support for the bit pattern "01" for member bp.
@@ -211,12 +211,8 @@ class cst_sada
             write_R_output("cst", "construct BPSS", "end", 1,0);
         }
 
-        cst_sada(tMSS& file_map, const std::string dir, const std::string id, bool build_only_bps=false):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), bp_rank_10(m_bp_rank10), bp_select_10(m_bp_select10) {
-            construct(file_map, dir, id, build_only_bps);
-        }
-
-
-        void construct(tMSS& file_map, const std::string dir, const std::string id, bool build_only_bps=false) {
+        cst_sada(tMSS& file_map, const std::string dir, const std::string id, bool build_only_bps=false) : csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), 
+		                                                                                                   bp_rank_10(m_bp_rank10), bp_select_10(m_bp_select10) {
             {
                 write_R_output("cst", "construct BPS", "begin", 1, 0);
                 cst_sct3<> temp_cst(file_map, dir, id, true);

@@ -361,18 +361,18 @@ class wt_huff
         }
 
         //! Construct the wavelet tree from a file_buffer
-        /*! \param rac A random access container
-         *	\param size The length of the prefix of the random access container, for which the wavelet tree should be build
+        /*! \param input_buf 	File buffer of the input.
+         *	\param size 		The length of the prefix of the random access container, for which the wavelet tree should be build.
          */
         template<class size_type_class>
-        wt_huff(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
+        wt_huff(int_vector_file_buffer<8, size_type_class>& input_buf, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
             m_size = size;
             if (m_size == 0)
                 return;
             // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
             size_type C[256] = {0};
             // 1. Count occurrences of characters
-            calculate_character_occurences(rac, m_size, C);
+            calculate_character_occurences(input_buf, m_size, C);
             // 2. Calculate effective alphabet size
             calculate_effective_alphabet_size(C, m_sigma);
             // 3. Generate Huffman tree
@@ -385,18 +385,18 @@ class wt_huff
             for (size_type i=0; i < 2*sigma-1; ++i) {
                 tree_pos[i] = m_nodes[i].tree_pos;
             }
-            rac.reset();
-            if (rac.int_vector_size < size) {
+            input_buf.reset();
+            if (input_buf.int_vector_size < size) {
                 throw std::logic_error("wt_huff::construct: stream size is smaller than size!");
                 return;
             }
-            for (size_type i=0, r_sum=0, r = rac.load_next_block(); r_sum < m_size;) {
+            for (size_type i=0, r_sum=0, r = input_buf.load_next_block(); r_sum < m_size;) {
                 if (r_sum + r > size) {  // read not more than size chars in the next loop
                     r = size-r_sum;
                 }
-                uint8_t old_chr = rac[i-r_sum], times = 0;
+                uint8_t old_chr = input_buf[i-r_sum], times = 0;
                 for (; i < r_sum+r; ++i) {
-                    uint8_t chr = rac[i-r_sum];
+                    uint8_t chr = input_buf[i-r_sum];
                     if (chr	!= old_chr) {
                         insert_char(old_chr, tree_pos, times, tmp_tree);
                         times = 1;
@@ -412,7 +412,7 @@ class wt_huff
                 if (times > 0) {
                     insert_char(old_chr, tree_pos, times, tmp_tree);
                 }
-                r_sum += r; r = rac.load_next_block();
+                r_sum += r; r = input_buf.load_next_block();
             }
             util::assign(m_tree, tmp_tree);
             // 5. Initialize rank and select data structures for m_tree
@@ -656,9 +656,9 @@ class wt_huff
             written_bytes += m_tree_rank.serialize(out, child, "tree_rank");
             written_bytes += m_tree_select1.serialize(out, child, "tree_select_1");
             written_bytes += m_tree_select0.serialize(out, child, "tree_select_0");
-            for (size_type i=0; i < 511; ++i) {
-                written_bytes += m_nodes[i].serialize(out);
-            }
+            for (size_type i=0; i < 511; ++i) {               // TODO: use serialize vector
+                written_bytes += m_nodes[i].serialize(out);   // is it surely possible to use
+            }                                                 // less space
             out.write((char*) m_c_to_leaf, 256*sizeof(m_c_to_leaf[0]));
             written_bytes += 256*sizeof(m_c_to_leaf[0]); // add written bytes from previous loop
             out.write((char*) m_path, 256*sizeof(m_path[0]));
