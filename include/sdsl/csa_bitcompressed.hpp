@@ -14,8 +14,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file csa_uncompressed.hpp
-    \brief csa_uncompressed.hpp contains an implementation of an uncompressed suffix array providing information of the suffix array, the inverse suffix array and the psi function.
+/*! \file csa_bitcompressed.hpp
+    \brief csa_bitcompressed.hpp contains an implementation of an bitcompressed suffix array providing information of the suffix array, the inverse suffix array and the psi function.
 	\author Simon Gog
 */
 #ifndef INCLUDED_SDSL_CSA_UNCOMPRESSED
@@ -55,11 +55,11 @@ namespace sdsl
  * @ingroup csa
  */
 template<class AlphabetStrategy=byte_alphabet_strategy>	
-class csa_uncompressed
+class csa_bitcompressed
 {
     public:
         typedef uint64_t											 value_type;	// STL Container requirement
-        typedef random_access_const_iterator<csa_uncompressed> 		 const_iterator;// STL Container requirement
+        typedef random_access_const_iterator<csa_bitcompressed> 	 const_iterator;// STL Container requirement
         typedef const_iterator 										 iterator;		// STL Container requirement
         typedef const value_type									 const_reference;
         typedef const_reference										 reference;
@@ -68,8 +68,8 @@ class csa_uncompressed
         typedef int_vector<>::size_type								 size_type;		// STL Container requirement
         typedef size_type				 							 csa_size_type;
         typedef ptrdiff_t  											 difference_type; // STL Container requirement
-        typedef psi_of_sa_and_isa<csa_uncompressed>					 psi_type;
-        typedef bwt_of_csa_psi<csa_uncompressed>					 bwt_type;
+        typedef psi_of_sa_and_isa<csa_bitcompressed>				 psi_type;
+        typedef bwt_of_csa_psi<csa_bitcompressed>					 bwt_type;
         typedef const unsigned char*								 pattern_type;
         typedef unsigned char										 char_type;
         typedef _sa_order_sampling_strategy<1,0>					 sa_sample_type;
@@ -82,15 +82,15 @@ class csa_uncompressed
                isa_sample_dens = 1
              };
 
-        friend class psi_of_sa_and_isa<csa_uncompressed>;
-        friend class bwt_of_csa_psi<csa_uncompressed>;
+        friend class psi_of_sa_and_isa<csa_bitcompressed>;
+        friend class bwt_of_csa_psi<csa_bitcompressed>;
     private:
         sa_sample_type	m_sa;  // vector for suffix array values
         isa_sample_type	m_isa; // vector for inverse suffix array values
         psi_type		m_psi; // wrapper class for psi function values
 		alphabet_type   m_alphabet;
 
-        void copy(const csa_uncompressed& csa){
+        void copy(const csa_bitcompressed& csa){
 		    m_sa 		 = csa.m_sa;
 			m_isa 		 = csa.m_isa;
 			m_alphabet   = csa.m_alphabet;
@@ -107,17 +107,17 @@ class csa_uncompressed
         const isa_sample_type& 							isa_sample;
 
         //! Default Constructor
-        csa_uncompressed() :char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
+        csa_bitcompressed() :char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
 		                   psi(m_psi), bwt(this), sa_sample(m_sa), isa_sample(m_isa) {}
 
         //! Copy constructor
-        csa_uncompressed(const csa_uncompressed& csa) : char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma), 
+        csa_bitcompressed(const csa_bitcompressed& csa) : char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma), 
 		                                               psi(m_psi), bwt(this), sa_sample(m_sa), isa_sample(m_isa) {
             copy(csa);
         }
 
 		//! Constructor
-        csa_uncompressed(tMSS& file_map, const std::string& dir, const std::string& id) : char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), 
+        csa_bitcompressed(tMSS& file_map, const std::string& dir, const std::string& id) : char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), 
 																						  C(m_alphabet.C), sigma(m_alphabet.sigma), psi(m_psi), bwt(this), 
 																						  sa_sample(m_sa), isa_sample(m_isa) 
 		{
@@ -126,11 +126,11 @@ class csa_uncompressed
 			size_type n = text_buf.int_vector_size;
 			util::assign(m_alphabet, alphabet_type(text_buf, n));
 			util::assign(m_sa, sa_sample_type(sa_buf));
-			algorithm::set_isa_samples<csa_uncompressed>(sa_buf, m_isa);
+			algorithm::set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
 			m_psi = psi_type(this);
 			write_R_output("csa", "store ISA","begin",1,0);
 			if (!util::store_to_file(m_isa, (dir+"isa_"+id).c_str(), true)) {
-				throw std::ios_base::failure("#csa_uncompressed: Cannot store ISA to file system!");
+				throw std::ios_base::failure("#csa_bitcompressed: Cannot store ISA to file system!");
 			} else {
 				file_map["isa"] = dir+"isa_"+id;
 			}
@@ -146,7 +146,7 @@ class csa_uncompressed
             return m_sa.size();
         }
 
-        //! Returns the largest size that csa_uncompressed can ever have.
+        //! Returns the largest size that csa_bitcompressed can ever have.
         /*! Required for the Container Concept of the STL.
          *  \sa size
          */
@@ -162,16 +162,16 @@ class csa_uncompressed
             return m_sa.empty();
         }
 
-        //! Swap method for csa_uncompressed
+        //! Swap method for csa_bitcompressed
         /*! The swap method can be defined in terms of assignment.
         	This requires three assignments, each of which, for a container type, is linear
         	in the container's size. In a sense, then, a.swap(b) is redundant.
         	This implementation guaranties a run-time complexity that is constant rather than linear.
-        	\param csa csa_uncompressed to swap.
+        	\param csa csa_bitcompressed to swap.
 
         	Required for the Assignable Conecpt of the STL.
           */
-        void swap(csa_uncompressed& csa){
+        void swap(csa_bitcompressed& csa){
 			if (this != &csa) {
 				m_sa.swap(csa.m_sa);
 				m_isa.swap(csa.m_isa);
@@ -217,7 +217,7 @@ class csa_uncompressed
         /*!
          *	Required for the Assignable Concept of the STL.
          */
-        csa_uncompressed& operator=(const csa_uncompressed& csa){
+        csa_bitcompressed& operator=(const csa_bitcompressed& csa){
 			if (this != &csa) {
         		copy(csa);
 			}

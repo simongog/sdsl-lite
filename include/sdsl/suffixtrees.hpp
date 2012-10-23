@@ -139,7 +139,7 @@ void cst_info(const Cst& cst)
 #include "cst_sct3.hpp"
 #include "cst_sada.hpp"
 
-#include "csa_uncompressed.hpp"
+#include "csa_bitcompressed.hpp"
 #include "int_vector.hpp"
 
 #include "cst_construct.hpp"
@@ -147,8 +147,8 @@ void cst_info(const Cst& cst)
 /*
 namespace sdsl{
 
-typedef cst_sct<csa_uncompressed, int_vector<0> > cst_sct_uncompressed;
-typedef cst_sada<csa_uncompressed, int_vector<0> > cst_sada_uncompressed;
+typedef cst_sct3<csa_bitcompressed, int_vector<0> > cst_sct3_bitcompressed;
+typedef cst_sada<csa_bitcompressed, int_vector<0> > cst_sada_bitcompressed;
 
 }
 */

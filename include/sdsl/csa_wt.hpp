@@ -252,7 +252,7 @@ class bwt_of_csa_wt
   * I.e. every \f$s_{SA}th\f$ value from the original suffix array is explicitly stored with \f$\log n\f$ bits.
   *
   * \todo example, code example
-  *  \sa sdsl::csa_sada, sdsl::csa_uncompressed
+  *  \sa sdsl::csa_sada, sdsl::csa_bitcompressed
   * @ingroup csa
  */
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, 
@@ -401,22 +401,6 @@ class csa_wt
          *	Required for the Assignable Concept of the STL.
          */
         csa_wt& operator=(const csa_wt& csa);
-
-        //! Equality Operator
-        /*! Two Instances of csa_wt are equal if
-         *  all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator!=
-         */
-        bool operator==(const csa_wt& csa)const;
-
-        //! Unequality Operator
-        /*! Two Instances of csa_wt are equal if
-         *  not all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator==
-         */
-        bool operator!=(const csa_wt& csa)const;
 
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.

@@ -84,7 +84,7 @@ cst_sct3<cst_sada<>::csa_type, lcp_bitcompressed<> >,
          cst_sada<cst_sada<>::csa_type, lcp_support_tree2<> >,
          cst_sada<cst_sada<>::csa_type, lcp_wt<> >,
          cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_g<> >,
-		cst_sct3<csa_uncompressed, lcp_bitcompressed<> >, //TODO: make csa_uncompressed working again
+		 cst_sct3<csa_bitcompressed<>, lcp_bitcompressed<> >, 
          cst_sada<cst_sada<>::csa_type, lcp_dac<>, bp_support_g<> >
          > Implementations;
 
