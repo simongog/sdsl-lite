@@ -90,8 +90,7 @@ class lcp_kurtz
     public:
         //! Default Constructor
         lcp_kurtz() {}
-        //! Default Destructor
-        ~lcp_kurtz() {}
+
         //! Copy constructor
         lcp_kurtz(const lcp_kurtz& lcp_c) {
             copy(lcp_c);
@@ -104,12 +103,6 @@ class lcp_kurtz
         //! Construct the lcp array from an int_vector_file_buffer
         template<uint8_t int_width, class size_type_class>
         lcp_kurtz(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
-
-        template<class Text, class Sa>
-        void construct(const Text& text, const Sa& sa);
-
-        template<uint8_t int_width, class size_type_class>
-        void construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
 
         //! Number of elements in the instance.
         /*! Required for the Container Concept of the STL.
@@ -205,13 +198,6 @@ template<uint8_t width>
 template<class Text, class Sa>
 lcp_kurtz<width>::lcp_kurtz(const Text& text, const Sa& sa)
 {
-    construct(text, sa);
-}
-
-template<uint8_t width>
-template<class Text, class Sa>
-void lcp_kurtz<width>::construct(const Text& text, const Sa& sa)
-{
     if (sa.size() == 0) {
         return;
     }
@@ -252,13 +238,6 @@ void lcp_kurtz<width>::construct(const Text& text, const Sa& sa)
 template<uint8_t width>
 template<uint8_t int_width, class size_type_class>
 lcp_kurtz<width>::lcp_kurtz(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
-{
-    construct(lcp_buf);
-}
-
-template<uint8_t width>
-template<uint8_t int_width, class size_type_class>
-void lcp_kurtz<width>::construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
 {
     m_small_lcp = int_vector<8>(lcp_buf.int_vector_size);
     typename int_vector<>::size_type l=0, max_l=0, max_big_idx=0, big_sum=0;

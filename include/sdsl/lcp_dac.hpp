@@ -119,8 +119,7 @@ class lcp_dac
             // m_level_pointer_and_rank[2] contains the length of the LCP array
             m_level_pointer_and_rank = int_vector<64>(4,0);
         }
-        //! Default Destructor
-        ~lcp_dac() {}
+
         //! Copy constructor
         lcp_dac(const lcp_dac& lcp_c) {
             copy(lcp_c);
@@ -130,8 +129,6 @@ class lcp_dac
         template<uint8_t int_width, class size_type_class>
         lcp_dac(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
 
-        template<uint8_t int_width, class size_type_class>
-        void construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
 
         //! Number of elements in the instance.
         /*! Required for the Container Concept of the STL.
@@ -201,7 +198,7 @@ class lcp_dac
          */
         bool operator==(const lcp_dac& lcp_c)const;
 
-        //! Unequality Operator
+        //! Inequality Operator
         /*! Two Instances of lcp_dac are equal if
          *  not all their members are equal.
          *  \par Required for the Equality Comparable Concept of the STL.
@@ -228,14 +225,6 @@ template<uint8_t b, class rank_support_type>
 template<uint8_t int_width, class size_type_class>
 lcp_dac<b, rank_support_type>::lcp_dac(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
 {
-    construct(lcp_buf);
-}
-
-template<uint8_t b, class rank_support_type>
-template<uint8_t int_width, class size_type_class>
-void lcp_dac<b, rank_support_type>::construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
-{
-
 //  (1) Count for each level, how many blocks are needed for the representation
 //      Running time: \f$ O(n \times \frac{\log n}{b}  \f$
 //      Result is sorted in m_level_pointer_and_rank

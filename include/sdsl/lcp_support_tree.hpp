@@ -85,20 +85,6 @@ class _lcp_support_tree
         */
         template<uint8_t int_width, class size_type_class>
         _lcp_support_tree(int_vector_file_buffer<int_width, size_type_class>& lcp_buf, const Cst* cst = NULL) {
-            construct(lcp_buf, cst);
-        }
-
-        /*!
-         * \see _lcp_support_tree
-         */
-        template<class Text, class Sa>
-        void construct(const Text& text, const Sa& sa, const Cst* cst);
-
-
-        //! Construct the lcp array from an lcp array
-        template<uint8_t int_width, class size_type_class>
-        void construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                       const Cst* cst=NULL) {
             m_cst = cst;
             std::string id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str() + "_fc_lcp";
             {
@@ -113,7 +99,6 @@ class _lcp_support_tree
             }
             std::remove(id.c_str());
         }
-
 
         size_type size()const {
             return m_cst->size(); // corresponds to the length of the

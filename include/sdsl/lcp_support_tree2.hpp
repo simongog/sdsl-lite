@@ -69,27 +69,17 @@ class _lcp_support_tree2
         //! Default constructor
         _lcp_support_tree2() {}
 
-        // Destructor
-        ~_lcp_support_tree2() {}
-
         //! Copy constructor
         _lcp_support_tree2(const _lcp_support_tree2& lcp) {
             copy(lcp);
         }
-
-        /*!
-         * \see _lcp_support_tree2
-         */
-        template<class Text, class Sa>
-        void construct(const Text& text, const Sa& sa, const cst_type* cst);
-
 
         //! Construct the lcp array from an lcp array
         /*! \param lcp_buf Buffer to the uncompressed lcp array
          *  \param sa_buf
          */
         template<uint8_t int_width, class size_type_class>
-        void construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
+        void _lcp_support_tree2(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
                        int_vector_file_buffer<8, size_type_class>& bwt_buf,
                        const cst_type* cst = NULL) {
             m_cst = cst;
