@@ -15,7 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file csa_construct.hpp
-    \brief csa_construct.hpp contains a space and time efficient construction method for csa_wt, csa_sada, csa_uncompressed.
+    \brief csa_construct.hpp contains a space and time efficient construction method for csa_wt, csa_sada, csa_bitcompressed.
 	\author Simon Gog
 */
 #ifndef INCLUDED_SDSL_CSA_CONSTRUCT

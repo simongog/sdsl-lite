@@ -27,7 +27,7 @@
 #include "lcp_support_sada.hpp"
 #include "bp_support.hpp"
 #include "csa_wt.hpp" // for std initialization of cst_sct 
-#include "csa_uncompressed.hpp"
+#include "csa_bitcompressed.hpp"
 #include "csa_wt.hpp"
 #include "cst_iterators.hpp"
 #include "testutils.hpp"

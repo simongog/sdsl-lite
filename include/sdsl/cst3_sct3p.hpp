@@ -28,7 +28,7 @@
 #include "lcp_wt.hpp"
 #include "bp_support.hpp"
 #include "csa_wt.hpp" // for std initialization of cst_sct3p 
-#include "csa_uncompressed.hpp"
+#include "csa_bitcompressed.hpp"
 #include "cst_iterators.hpp"
 #include "cst_sct.hpp" // for lcp_interval
 #include "rank_support.hpp"

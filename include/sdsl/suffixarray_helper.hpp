@@ -112,7 +112,7 @@ class psi_of_csa_psi
         }
 };
 
-//! A helper class for the \f$\Psi\f$ function for (compressed) suffix arrays which provide also the inverse suffix array values (like sdsl::csa_uncompressed).
+//! A helper class for the \f$\Psi\f$ function for (compressed) suffix arrays which provide also the inverse suffix array values (like sdsl::csa_bitcompressed).
 template<class Csa>
 class psi_of_sa_and_isa
 {
