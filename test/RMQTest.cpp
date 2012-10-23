@@ -3,12 +3,16 @@
 #include <vector>
 #include <cstdlib> // for rand()
 #include <string>
-#include <algorithm> // for std::min
+#include <algorithm> // for std::min, random permutation
+#include <stack>
 
 namespace
 {
 
 typedef std::vector<uint64_t> tVUI;
+
+ptrdiff_t myrandom (ptrdiff_t i) { return rand()%i;}
+ptrdiff_t (*p_myrandom)(ptrdiff_t) = myrandom;
 
 
 void gen_increasing_vector(tVUI &v, tVUI::size_type len){
@@ -36,9 +40,18 @@ class RMQTest : public ::testing::Test
             // Code here will be called immediately after the constructor (right
             // before each test).
             tmp_file = "tmp_rmq_test_" + sdsl::util::to_string(sdsl::util::get_pid()) + "_";
+			test_cases.push_back(tVUI(0)); // empty vector
+			test_cases.push_back(tVUI(1,42)); // 1-element vector
 			tVUI v;
 			gen_increasing_vector(v, 1000000);
-			test_cases.push_back(v);
+			test_cases.push_back(v); // increasing sequence
+			srand(17);
+			tVUI w;
+			gen_increasing_vector(w, 1000000); 
+			std::random_shuffle(w.begin(), w.end(), p_myrandom);
+			test_cases.push_back(w); // random permutation
+			std::random_shuffle(w.begin(), w.end(), p_myrandom);
+			test_cases.push_back(w); // random permutation
         }
 
         virtual void TearDown() {
@@ -83,11 +96,52 @@ TYPED_TEST(RMQTest, ConstructAndStore)
     }
 }
 
+// helper class for next test
+class state{
+	public:
+	uint64_t l, r; // left and right border of interval
+	uint64_t idx;  // index of the min value
+	uint64_t min;  // min value in the interval
+	state(uint64_t fl=0, uint64_t fr=0, uint64_t fidx = 0, uint64_t fmin=0) : 
+		  l(fl), r(fr), idx(fidx), min(fmin) {}
+};
+
 //! Test range minimum queries
 TYPED_TEST(RMQTest, RmqLoadAndQuery) {
+	typedef typename TypeParam::size_type size_type;
     for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam csa;
-        ASSERT_EQ(this->load_rmq(csa, i), true);
+        TypeParam rmq;
+        ASSERT_EQ(this->load_rmq(rmq, i), true);
+		ASSERT_EQ(rmq.size(), this->test_cases[i].size());
+		if ( rmq.size() > 0 ) {
+			std::stack<state> s;
+			size_type idx = rmq(0, rmq.size()-1);
+			ASSERT_TRUE( idx >= (size_type)0 ); ASSERT_TRUE( idx <= rmq.size() );
+			s.push( state( 0, rmq.size()-1, idx, this->test_cases[i][idx] ) );
+			while ( !s.empty() ){
+				state st = s.top(); s.pop();
+				if ( st.l < st.idx ){
+					idx = rmq(st.l, st.idx-1);
+					ASSERT_TRUE( idx >= st.l ); ASSERT_TRUE( idx <= st.idx-1 );
+					ASSERT_TRUE( this->test_cases[i][idx] >= this->test_cases[i][st.idx] )
+					<< "this->test_cases["<<i<<"]["<<idx<<"]="<< this->test_cases[i][idx]
+					<< " < " << "this->test_cases["<<i<<"]["<<st.idx<<"]=" 
+					<< this->test_cases[i][st.idx] << std::endl 
+					<< "[" << st.l << "," << st.r << "]" << std::endl;
+					s.push( state( st.l, st.idx-1, idx, this->test_cases[i][idx] ) );
+				}
+				if ( st.idx < st.r ){
+					idx = rmq(st.idx+1, st.r);
+					ASSERT_TRUE( idx >= st.idx+1 ); ASSERT_TRUE( idx <= st.r );
+					ASSERT_TRUE( this->test_cases[i][idx] >= this->test_cases[i][st.idx] )
+					<< "this->test_cases["<<i<<"]["<<idx<<"]="<< this->test_cases[i][idx]
+					<< " < " << "this->test_cases["<<i<<"]["<<st.idx<<"]=" 
+					<< this->test_cases[i][st.idx] << std::endl 
+					<< "[" << st.l << "," << st.r << "]" << std::endl;
+					s.push( state( st.idx+1, st.r, idx, this->test_cases[i][idx] ) );
+				}
+			}
+		}
     }
 }
 
@@ -95,8 +149,8 @@ TYPED_TEST(RMQTest, RmqLoadAndQuery) {
 TYPED_TEST(RMQTest, DeleteTest)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam csa;
-        std::remove(this->get_tmp_file_name(csa, i).c_str());
+        TypeParam rmq;
+        std::remove(this->get_tmp_file_name(rmq, i).c_str());
     }
 }
 
