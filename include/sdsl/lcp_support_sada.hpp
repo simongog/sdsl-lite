@@ -117,17 +117,6 @@ class _lcp_support_sada
                           int_vector_file_buffer<int_width_1, size_type_class_1>& isa_buf,
                           const Csa* f_csa);
 
-        template<class Text, class Sa>
-        void construct(const Text& text, const Sa& sa, const Csa* csa);
-
-        template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1>
-        void construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                       int_vector_file_buffer<int_width_1, size_type_class_1>& isa_buf,
-                       const Csa* f_csa);
-
-
-
-
         void set_csa(const Csa* f_csa) {
             if (f_csa==NULL) {
                 std::cerr<<"_lcp_support_sada: Warnung: set m_csa to NULL"<<std::endl;
@@ -230,13 +219,6 @@ template<class Csa, class BitVector, class SelectSupport>
 template<class Text, class Sa>
 _lcp_support_sada<Csa, BitVector, SelectSupport>::_lcp_support_sada(const Text& text, const Sa& sa, const Csa* csa):csa(m_csa)
 {
-    construct(text, sa, csa);
-}
-
-template<class Csa, class BitVector, class SelectSupport>
-template<class Text, class Sa>
-void _lcp_support_sada<Csa, BitVector, SelectSupport>::construct(const Text& text, const Sa& sa, const Csa* csa)
-{
     set_csa(csa);
 #ifdef SDSL_DEBUG
     std::cerr<<"start building _lcp_support_sada"<<std::endl;
@@ -270,15 +252,6 @@ template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class si
 _lcp_support_sada<Csa, BitVector, SelectSupport>::_lcp_support_sada(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
         int_vector_file_buffer<int_width_1, size_type_class_1>& isa_buf,
         const Csa* f_csa):csa(m_csa)
-{
-    construct(lcp_buf, isa_buf, f_csa);
-}
-
-template<class Csa, class BitVector, class SelectSupport>
-template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1>
-void _lcp_support_sada<Csa, BitVector, SelectSupport>::construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-        int_vector_file_buffer<int_width_1, size_type_class_1>& isa_buf,
-        const Csa* f_csa)
 {
     typedef typename Csa::size_type size_type;
     set_csa(f_csa);

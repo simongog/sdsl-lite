@@ -48,7 +48,7 @@ void construct_lcp(Lcp& lcp, const Cst& cst,
                    int_vector_file_buffer<int_width1, size_type_class1>& isa_buf,
                    lcp_plain_tag)
 {
-    lcp.construct(lcp_buf);
+	util::assign( lcp, Lcp(lcp_buf) );
 }
 
 template<class Lcp, class Cst, uint8_t int_width, class size_type_class, uint8_t int_width1, class size_type_class1>
@@ -57,7 +57,7 @@ void construct_lcp(Lcp& lcp, const Cst& cst,
                    int_vector_file_buffer<int_width1, size_type_class1>& isa_buf,
                    lcp_permuted_tag)
 {
-    lcp.construct(lcp_buf, isa_buf, &(cst.csa));
+	util::assign( lcp, Lcp(lcp_buf, isa_buf, &(cst.csa)) );
 }
 
 template<class Lcp, class Cst, uint8_t int_width, class size_type_class, uint8_t int_width1, class size_type_class1>
@@ -66,7 +66,7 @@ void construct_lcp(Lcp& lcp, const Cst& cst,
                    int_vector_file_buffer<int_width1, size_type_class1>& isa_buf,
                    lcp_tree_compressed_tag)
 {
-    lcp.construct(lcp_buf, &(cst.bp_support), &(cst.first_child_rank));
+	util::assign( lcp, Lcp( lcp_buf, &(cst.bp_support), &(cst.first_child_rank) ) );
 }
 
 // construct lcp arrays
@@ -81,7 +81,7 @@ template<class Lcp, class Cst>
 void construct_lcp(Lcp& lcp, const Cst& cst, tMSS& file_map, const std::string dir, const std::string id, lcp_plain_tag)
 {
     int_vector_file_buffer<> lcp_buf(file_map["lcp"].c_str());
-    lcp.construct(lcp_buf);
+	util::assign( lcp, Lcp(lcp_buf) );
 }
 
 template<class Lcp, class Cst>
@@ -92,14 +92,14 @@ void construct_lcp(Lcp& lcp, const Cst& cst, tMSS& file_map, const std::string d
         construct_isa(file_map, dir, id);
     }
     int_vector_file_buffer<> isa_buf(file_map["isa"].c_str());
-    lcp.construct(lcp_buf, isa_buf, &(cst.csa));
+	util::assign( lcp, Lcp(lcp_buf, isa_buf, &(cst.csa)) );
 }
 
 template<class Lcp, class Cst>
 void construct_lcp(Lcp& lcp, const Cst& cst, tMSS& file_map, const std::string dir, const std::string id, lcp_tree_compressed_tag)
 {
     int_vector_file_buffer<> lcp_buf(file_map["lcp"].c_str());
-    lcp.construct(lcp_buf, &cst);
+	util::assign( lcp, Lcp(lcp_buf, &cst) );
 }
 
 template<class Lcp, class Cst>
@@ -107,7 +107,7 @@ void construct_lcp(Lcp& lcp, const Cst& cst, tMSS& file_map, const std::string d
 {
     int_vector_file_buffer<> lcp_buf(file_map["lcp"].c_str());
     int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str());
-    lcp.construct(lcp_buf, bwt_buf, &cst);
+	util::assign( lcp, Lcp(lcp_buf, bwt_buf, &cst) );
 }
 
 // copy lcp arrays
