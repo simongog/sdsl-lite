@@ -71,7 +71,7 @@ using testing::Types;
 
 typedef Types<  sdsl::csa_wt<>,
 				sdsl::csa_wt<sdsl::wt_huff<>, 8, 16, sdsl::text_order_sa_sampling<>  >,
-				sdsl::csa_wt<sdsl::wt_huff<>, 32, 64, sdsl::sa_order_sa_sampling<>, sdsl::int_vector<>, sdsl::succinct_byte_alphabet_strategy<> >,
+				sdsl::csa_wt<sdsl::wt_huff<>, 8, 16, sdsl::sa_order_sa_sampling<>, sdsl::int_vector<>, sdsl::succinct_byte_alphabet_strategy<> >,
 				sdsl::csa_sada<>,
 				sdsl::csa_bitcompressed<> 
 		     > Implementations;

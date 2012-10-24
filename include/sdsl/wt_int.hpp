@@ -192,16 +192,13 @@ class wt_int
          *	\par Space complexity
          *		\f$ n\log|\Sigma| + O(1)\f$ bits, where \f$n=size\f$.
          */
+		// TODO: Check signature of the constructor: It would be probably better 
+		//       to use buf, and len like in the other wavelet trees
+		//
         template<uint8_t int_width>
         wt_int(int_vector_file_buffer<int_width>& buf, uint32_t logn=0, std::string dir="./")
             : m_size(0),m_sigma(0), m_logn(0), sigma(m_sigma), tree(m_tree) {
-            construct(buf, logn, dir);
-        }
 
-
-        // TODO external construction method which occupies only additional constant memory
-        template<uint8_t int_width>
-        void construct(int_vector_file_buffer<int_width>& buf, uint32_t logn=0, std::string dir="./") {
             buf.reset();
             size_type n = buf.int_vector_size;  // set n
             m_size = n;				// set sigma and size
@@ -422,7 +419,7 @@ class wt_int
                 mask >>= 1;
             }
             if (node_size < i) {
-                std::cerr<<"c="<<c<<" does not occure "<<i<<" times in the WT"<<std::endl;
+                std::cerr<<"c="<<c<<" does not occur "<<i<<" times in the WT"<<std::endl;
                 return m_size;
             }
             mask = 1ULL;

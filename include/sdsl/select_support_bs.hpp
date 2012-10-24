@@ -42,18 +42,17 @@ class select_support_bs : public select_support
         const RankSupport* m_rs;
         void copy(const select_support_bs& ss);
     public:
-        explicit select_support_bs(const int_vector<1>* v=NULL, const RankSupport* m_rs=NULL);
+        explicit select_support_bs(const bit_vector* v=NULL, const RankSupport* m_rs=NULL);
         select_support_bs(const select_support_bs& ss);
         ~select_support_bs() {}
-        void init(const int_vector<1>* v=NULL);
 
         inline const size_type select(size_type) const;
         //! Alias for select(i).
         inline const size_type operator()(size_type)const;
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
-        void load(std::istream& in, const int_vector<1>* v=NULL);
-        void set_vector(const int_vector<1>* v=NULL);
+        void load(std::istream& in, const bit_vector* v=NULL);
+        void set_vector(const bit_vector* v=NULL);
         select_support_bs& operator=(const select_support_bs& ss);
         void swap(select_support_bs& ss);
         //! Equality Operator
@@ -71,14 +70,12 @@ class select_support_bs : public select_support
 };
 
 template<class RankSupport>
-select_support_bs<RankSupport>::select_support_bs(const int_vector<1>* v, const RankSupport* rs):select_support(v)
-{
+select_support_bs<RankSupport>::select_support_bs(const bit_vector* v, const RankSupport* rs):select_support(v) {
     m_rs  = rs;
 }
 
 template<class RankSupport>
-select_support_bs<RankSupport>::select_support_bs(const select_support_bs& ss):select_support(ss.m_v)
-{
+select_support_bs<RankSupport>::select_support_bs(const select_support_bs& ss):select_support(ss.m_v) {
     copy(ss);
 }
 
@@ -90,8 +87,7 @@ select_support_bs<RankSupport>& select_support_bs<RankSupport>::operator=(const 
 }
 
 template<class RankSupport>
-void select_support_bs<RankSupport>::swap(select_support_bs& ss)
-{
+void select_support_bs<RankSupport>::swap(select_support_bs& ss) {
     std::swap(m_rs, ss.m_rs);
 }
 
@@ -103,13 +99,7 @@ void select_support_bs<RankSupport>::copy(const select_support_bs& ss)
 }
 
 template<class RankSupport>
-void select_support_bs<RankSupport>::init(const int_vector<1>*)
-{
-}
-
-template<class RankSupport>
-inline const typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::select(size_type i)const
-{
+inline const typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::select(size_type i)const {
     size_type min = i, max = m_v->bit_size()+1; // min included, max excluded
     assert(i <= m_rs->rank(m_v->bit_size()-1) && i>0);
     size_type idx = m_v->bit_size()/2, r;
@@ -133,42 +123,36 @@ inline const typename select_support_bs<RankSupport>::size_type select_support_b
 
 
 template<class RankSupport>
-typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
-{
+typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     structure_tree::add_size(child, 0);
     return 0;
 }
 
 template<class RankSupport>
-void select_support_bs<RankSupport>::load(std::istream&, const int_vector<1>* v)
-{
+void select_support_bs<RankSupport>::load(std::istream&, const bit_vector* v) {
     set_vector(v);
 }
 
 template<class RankSupport>
-void select_support_bs<RankSupport>::set_vector(const int_vector<1>* v)
-{
+void select_support_bs<RankSupport>::set_vector(const bit_vector* v) {
     m_v = v;
 }
 
 template<class RankSupport>
-bool select_support_bs<RankSupport>::operator==(const select_support_bs& ss)const
-{
+bool select_support_bs<RankSupport>::operator==(const select_support_bs& ss)const {
     if (this == &ss)
         return true;
     return *m_rs == *(ss.m_rs);
 }
 
 template<class RankSupport>
-bool select_support_bs<RankSupport>::operator!=(const select_support_bs& ss)const
-{
+bool select_support_bs<RankSupport>::operator!=(const select_support_bs& ss)const {
     return !(*this == ss);
 }
 
 template<class RankSupport>
-inline const typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::operator()(size_type i)const
-{
+inline const typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::operator()(size_type i)const {
     return select(i);
 }
 

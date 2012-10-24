@@ -352,12 +352,7 @@ class rrr_rank_support
         /*! \param v Pointer to the rrr_vector, which should be supported
          */
         explicit rrr_rank_support(const bit_vector_type* v=NULL) {
-            init(v);
-        }
-
-        //! Initialize the data structure with a rrr_vector, which should be supported
-        void init(const bit_vector_type* v=NULL) {
-            set_vector(v);
+			set_vector(v);
         }
 
         //! Answers rank queries
@@ -561,10 +556,6 @@ class rrr_select_support
 
     public:
         explicit rrr_select_support(const bit_vector_type* v=NULL) {
-            init(v);
-        }
-
-        void init(const bit_vector_type* v=NULL) {
             set_vector(v);
         }
 

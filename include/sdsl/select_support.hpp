@@ -55,14 +55,7 @@ class select_support
         select_support(const select_support& f_v);
         //! Destructor of select_support.
         virtual ~select_support() {};
-        //! Initalization method for select_support.
-        /*! Init takes no arguments and should be called
-        	before the first call to the select method if not
-        	  - load is called to initialize the select_support or
-        	  - the constructor is called with the pointer to the supported bit_vector.
-        	\sa select, load.
-         */
-        virtual void init(const int_vector<1>* v=NULL) = 0;
+
         //! Select returns the index of the i-th 1-bit in the supported bit_vector.
         /*!	\param i Argument to calculate the index of the i-th 1-bit in the supported bit_vector.
         	\return The index \f$\in [0..v.size()-1]\f$ of the i-th 1-bit in the supported bit_vector.
@@ -77,8 +70,6 @@ class select_support
         virtual size_type serialize(std::ostream& out, structure_tree_node* v, std::string name)const = 0;
         //! Load the select_support from an in file stream.
         /*!	Load an previously serialized select_support from a std::istream.
-            This method could replace the call of init before
-        	the first call of the select method.
         	\param in The std::istream to load the select_support.
         	\param v The bit_vector to be supported.
         	\sa init, select.
@@ -86,9 +77,6 @@ class select_support
         virtual void load(std::istream& in, const int_vector<1>* v=NULL) = 0;
 
         //! This method sets the supported bit_vector
-        /*! \note Call the init function before you call select
-         *   the first time after you changed the supported bit_vector.
-         */
         virtual void set_vector(const int_vector<1>* v=NULL) = 0;
 };
 

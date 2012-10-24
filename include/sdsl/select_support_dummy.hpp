@@ -44,10 +44,9 @@ namespace sdsl
 class select_support_dummy : public select_support
 {
     public:
-        select_support_dummy(const int_vector<1>* v=NULL);
+        select_support_dummy(const bit_vector* v=NULL);
         select_support_dummy(const select_support_dummy& ss);
         ~select_support_dummy();
-        void init(const int_vector<1>* v=NULL);
         //! Select function
         /*! \sa select_support.select
          */
@@ -55,8 +54,8 @@ class select_support_dummy : public select_support
         //! Alias for select(i).
         inline const size_type operator()(size_type i)const;
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
-        void load(std::istream& in, const int_vector<1>* v=NULL);
-        void set_vector(const int_vector<1>* v=NULL);
+        void load(std::istream& in, const bit_vector* v=NULL);
+        void set_vector(const bit_vector* v=NULL);
         select_support_dummy& operator=(const select_support_dummy& ss);
 
         //! Swap operator

@@ -37,27 +37,20 @@ namespace sdsl
 class rank_support
 {
     protected:
-        const int_vector<1>* m_v; //!< Pointer to the rank supported bit_vector
+        const bit_vector* m_v; //!< Pointer to the rank supported bit_vector
     public:
-        typedef int_vector<1>::size_type size_type;
+        typedef bit_vector::size_type size_type;
 
         //! Constructor
         /*! \param v The supported bit_vector.
          */
-        rank_support(const int_vector<1>* v = NULL);
+        rank_support(const bit_vector* v = NULL);
         //! Copy constructor
         rank_support(const rank_support& rs);
         //! Destructor
         virtual ~rank_support() {}
-        //! Initializes the data structure.
-        /*! \param v The supported bit_vector. If v equals NULL the previous set
-                   bit_vector is supported. Otherwise v will be supported.
-        	\note Call this function before the first call of rank.
-            \sa rank
-         */
-        virtual void init(const int_vector<1>* v=NULL) = 0;
 
-        //! Answers rank queries for the supported bit_vector if init() was called before.
+        //! Answers rank queries for the supported bit_vector.
         /*!	\param i Argument for the length of the prefix v[0..i-1].
         	\returns Number of 1-bits in the prefix [0..i-1] of the supported bit_vector.
         	\note Method init has to be called before the first call of rank.
@@ -74,29 +67,143 @@ class rank_support
         /*! \param in In-Stream to load the rank_support data from.
             \param v The supported bit_vector.
          */
-        virtual void load(std::istream& in, const int_vector<1>* v=NULL) = 0;
+        virtual void load(std::istream& in, const bit_vector* v=NULL) = 0;
         //! Sets the supported bit_vector to the given pointer.
         /*! \param v The new bit_vector to support.
          *  \note Method init has to be called before the next call of rank.
          *  \sa init, rank
          */
-        virtual void set_vector(const int_vector<1>* v=NULL) = 0;
+        virtual void set_vector(const bit_vector* v=NULL) = 0;
 };
 
-inline rank_support::rank_support(const int_vector<1>* v)
-{
+inline rank_support::rank_support(const bit_vector* v) {
     m_v = v;
 }
 
-inline rank_support::rank_support(const rank_support& rs)
-{
+inline rank_support::rank_support(const rank_support& rs) {
     m_v = rs.m_v;
 }
+
+//----------------------------------------------------------------------
+
+template<uint8_t bit_pattern, uint8_t pattern_len>
+struct rank_support_trait {
+    typedef rank_support::size_type	size_type;
+
+    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
+        return 0;
+    }
+
+    static uint32_t word_rank(const uint64_t* data, size_type idx) {
+        return 0;
+    }
+
+    static uint32_t full_word_rank(const uint64_t* data, size_type idx) {
+        return 0;
+    }
+
+    static uint64_t init_carry() {
+        return 0;
+    }
+};
+
+template<>
+struct rank_support_trait<0,1> {
+    typedef rank_support::size_type	size_type;
+
+    static size_type args_in_the_word(uint64_t w, uint64_t&) {
+        return bit_magic::b1Cnt(~w);
+    }
+
+    static uint32_t word_rank(const uint64_t* data, size_type idx) {
+        return	bit_magic::b1Cnt((~*(data+(idx>>6))) & bit_magic::Li1Mask[idx&0x3F]);
+    }
+
+    static uint32_t full_word_rank(const uint64_t* data, size_type idx) {
+        return	bit_magic::b1Cnt((~*(data+(idx>>6))));
+    }
+
+    static uint64_t init_carry() {
+        return 0;
+    }
+};
+
+template<>
+struct rank_support_trait<1,1> {
+    typedef rank_support::size_type	size_type;
+
+    static size_type args_in_the_word(uint64_t w, uint64_t&) {
+        return bit_magic::b1Cnt(w);
+    }
+
+    static uint32_t word_rank(const uint64_t* data, size_type idx) {
+        return	bit_magic::b1Cnt(*(data+(idx>>6)) & bit_magic::Li1Mask[idx&0x3F]);
+    }
+
+    static uint32_t full_word_rank(const uint64_t* data, size_type idx) {
+        return	bit_magic::b1Cnt(*(data+(idx>>6)));
+    }
+
+    static uint64_t init_carry() {
+        return 0;
+    }
+};
+
+template<>
+struct rank_support_trait<10,2> {
+    typedef rank_support::size_type	size_type;
+
+    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
+        return bit_magic::b10Cnt(w, carry);
+    }
+
+    static uint32_t word_rank(const uint64_t* data, size_type idx) {
+        data = data+(idx>>6);
+        uint64_t carry = (idx>63) ? *(data-1)>>63 : 0;
+        return	bit_magic::b1Cnt(bit_magic::b10Map(*data, carry) & bit_magic::Li1Mask[idx&0x3F]);
+    }
+
+    static uint32_t full_word_rank(const uint64_t* data, size_type idx) {
+        data = data+(idx>>6);
+        uint64_t carry = (idx>63) ? *(data-1)>>63 : 0;
+        return	bit_magic::b1Cnt(bit_magic::b10Map(*data, carry));
+    }
+
+    static uint64_t init_carry() {
+        return 0;
+    }
+};
+
+template<>
+struct rank_support_trait<01,2> {
+    typedef rank_support::size_type	size_type;
+
+    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
+        return bit_magic::b01Cnt(w, carry);
+    }
+
+    static uint32_t word_rank(const uint64_t* data, size_type idx) {
+        data = data+(idx>>6);
+        uint64_t carry = (idx>63) ? *(data-1)>>63 : 0;
+        return	bit_magic::b1Cnt(bit_magic::b01Map(*data, carry) & bit_magic::Li1Mask[idx&0x3F]);
+    }
+
+    static uint32_t full_word_rank(const uint64_t* data, size_type idx) {
+        data = data+(idx>>6);
+        uint64_t carry = (idx>63) ? *(data-1)>>63 : 0;
+        return	bit_magic::b1Cnt(bit_magic::b01Map(*data, carry));
+    }
+
+    static uint64_t init_carry() {
+        return 1;
+    }
+};
 
 }// end namespace sdsl
 
 #include "rank_support_v.hpp"
 #include "rank_support_v5.hpp"
+#include "rank_support_scan.hpp"
 #include "rank_support_jmc.hpp"
 
 #endif // end file 
