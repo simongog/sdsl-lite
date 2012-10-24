@@ -39,7 +39,7 @@ class rank_support_scan : public rank_support
         typedef bit_vector bit_vector_type;
     public:
         explicit rank_support_scan(const bit_vector* v = NULL){set_vector(v);}
-        rank_support_scan(const rank_support_scan& rs){}
+        rank_support_scan(const rank_support_scan& rs){set_vector(rs.m_v);}
         const size_type rank(size_type idx) const;
         const size_type operator()(size_type idx)const;
         const size_type size()const;
