@@ -187,13 +187,6 @@ class psi_of_sa_and_isa
             return *this;
         }
 
-        //! Equality operator
-        /*! return Always true, since all wrapper objects are equal only the reference to the supported csa differs.
-         */
-        bool operator==(const psi_of_sa_and_isa& psi)const {
-            return true;
-        }
-
         //! Returns the size of the \f$\Psi\f$ function.
         size_type size()const {
             return m_csa->size();

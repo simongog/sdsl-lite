@@ -57,19 +57,8 @@ class select_support_dummy : public select_support
         void load(std::istream& in, const bit_vector* v=NULL);
         void set_vector(const bit_vector* v=NULL);
         select_support_dummy& operator=(const select_support_dummy& ss);
-
-        //! Swap operator
         void swap(select_support_dummy& ss);
-        //! Equality Operator
-        /*! Two select_support_dummys are equal if all member variables are equal.
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator!=
-         */
-        bool operator==(const select_support_dummy& ss)const;
-        //! Unequality Operator
-        bool operator!=(const select_support_dummy& ss)const;
 };
-
 
 
 }

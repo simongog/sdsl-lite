@@ -92,18 +92,6 @@ class select_support_mcl : public select_support
         /*! This swap operator swaps two select_support_mcls in constant time.
          */
         void swap(select_support_mcl<b, pattern_len>& ss);
-        //! Equality Operator
-        /*! Two select_support_mcls are equal if all member variables are equal.
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator!=
-         */
-        bool operator==(const select_support_mcl<b, pattern_len>& ss)const;
-        //! Inequality Operator
-        /*! Two select_support_mcls are not equal if any member variable are not equal.
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator==
-         */
-        bool operator!=(const select_support_mcl<b, pattern_len>& ss)const;
 };
 
 
@@ -512,46 +500,6 @@ void select_support_mcl<b,pattern_len>::load(std::istream& in, const bit_vector*
             }
     }
 }
-
-template<uint8_t b, uint8_t pattern_len>
-bool select_support_mcl<b,pattern_len>::operator==(const select_support_mcl& ss)const {
-    if (this == &ss)
-        return true;
-    if (m_logn == ss.m_logn and m_logn2 == ss.m_logn2 and m_logn4 == ss.m_logn4
-        and m_arg_cnt == ss.m_arg_cnt and  m_superblock == ss.m_superblock) {
-        if (m_longsuperblock == NULL and ss.m_longsuperblock != NULL)
-            return false;
-        if (ss.m_longsuperblock == NULL and m_longsuperblock != NULL)
-            return false;
-        if (m_miniblock == NULL and ss.m_miniblock != NULL)
-            return false;
-        if (ss.m_miniblock == NULL and m_miniblock != NULL)
-            return false;
-        size_type sb		= (m_arg_cnt+4095)>>12;
-        if (m_miniblock != NULL)
-            for (size_type i=0; i < sb; ++i)
-                if (m_miniblock[i] != ss.m_miniblock[i])
-                    return false;
-        if (m_longsuperblock != NULL)
-            for (size_type i=0; i < sb; ++i)
-                if (m_longsuperblock[i] != ss.m_longsuperblock[i])
-                    return false;
-        if (m_v == NULL and ss.m_v != NULL)
-            return false;
-        if (m_v != NULL and ss.m_v == NULL)
-            return false;
-        if (m_v == NULL and ss.m_v == NULL)
-            return false;
-        return *ss.m_v == *m_v;// supported vectors have to be equal. See docu!!!
-    } else
-        return false;
-}
-
-template<uint8_t b, uint8_t pattern_len>
-bool select_support_mcl<b,pattern_len>::operator!=(const select_support_mcl& ss)const {
-    return !(*this == ss);
-}
-
 
 }
 

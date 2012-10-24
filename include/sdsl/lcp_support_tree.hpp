@@ -159,28 +159,6 @@ class _lcp_support_tree
             return *this;
         }
 
-        //! Equality Operator
-        /*! Two Instances of lcp_kurtz are equal if
-         *  all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator!=
-         */
-        bool operator==(const _lcp_support_tree& lcp_c)const {
-            if (this == &lcp_c)
-                return true;
-            return m_cst == lcp_c.m_cst and m_lcp == lcp_c.m_lcp;
-        }
-
-        //! Unequality Operator
-        /*! Two Instances of lcp_kurtz are equal if
-         *  not all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator==
-         */
-        bool operator!=(const _lcp_support_tree& lcp_c)const {
-            return !(*this == lcp_c);
-        }
-
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.

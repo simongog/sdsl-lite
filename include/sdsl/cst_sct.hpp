@@ -434,22 +434,6 @@ class cst_sct
          */
         cst_sct& operator=(const cst_sct& cst);
 
-        //! Equality Operator
-        /*! Two Instances of cst_sct are equal if
-         *  all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator!=
-         */
-        bool operator==(const cst_sct& cst)const;
-
-        //! Unequality Operator
-        /*! Two Instances of cst_sct are equal if
-         *  not all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator==
-         */
-        bool operator!=(const cst_sct& cst)const;
-
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.

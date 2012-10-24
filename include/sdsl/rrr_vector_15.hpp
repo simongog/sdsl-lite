@@ -487,16 +487,6 @@ class rrr_rank_support<b, 15, wt_type>
             }
         }
 
-        bool operator==(const rrr_rank_support& rs)const {
-            if (this == &rs)
-                return true;
-            return m_sample_rate == rs.m_sample_rate;
-        }
-
-        bool operator!=(const rrr_rank_support& rs)const {
-            return !(*this == rs);
-        }
-
         //! Load the data structure from a stream and set the supported vector.
         void load(std::istream& in, const bit_vector_type* v=NULL) {
             util::read_member(m_sample_rate, in);
@@ -643,17 +633,6 @@ class rrr_select_support<b, 15, wt_type>
                 std::swap(m_sample_rate, rs.m_sample_rate);
             }
         }
-
-        bool operator==(const rrr_select_support& rs)const {
-            if (this == &rs)
-                return true;
-            return m_sample_rate == rs.m_sample_rate;
-        }
-
-        bool operator!=(const rrr_select_support& rs)const {
-            return !(*this == rs);
-        }
-
 
         void load(std::istream& in, const bit_vector_type* v=NULL) {
             util::read_member(m_sample_rate, in);

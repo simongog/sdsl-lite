@@ -273,17 +273,6 @@ class rank_support_interleaved
 
         void swap(rank_support_interleaved& rs) { }
 
-        bool operator==(const rank_support_interleaved& ss)const {
-            if (this == &ss)
-                return true;
-            return ss.m_v == m_v;
-        }
-
-        bool operator!=(const rank_support_interleaved& rs)const {
-            return !(*this == rs);
-        }
-
-
         void load(std::istream& in, const bit_vector_type* v=NULL) {
             set_vector(v);
         }
@@ -444,17 +433,6 @@ class select_support_interleaved
         }
 
         void swap(select_support_interleaved& rs) { }
-
-        bool operator==(const select_support_interleaved& ss)const {
-            if (this == &ss)
-                return true;
-            return ss.m_v == m_v;
-        }
-
-        bool operator!=(const select_support_interleaved& rs)const {
-            return !(*this == rs);
-        }
-
 
         void load(std::istream& in, const bit_vector_type* v=NULL) {
             set_vector(v);

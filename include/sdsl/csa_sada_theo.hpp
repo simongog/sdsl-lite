@@ -190,22 +190,6 @@ class csa_sada_theo
          */
         csa_sada_theo& operator=(const csa_sada_theo& csa);
 
-        //! Equality Operator
-        /*! Two Instances of csa_sada_theo are equal if
-         *  all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator!=
-         */
-        bool operator==(const csa_sada_theo& csa)const;
-
-        //! Unequality Operator
-        /*! Two Instances of csa_sada_theo are equal if
-         *  not all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator==
-         */
-        bool operator!=(const csa_sada_theo& csa)const;
-
         //! Serialize the SDSCompressedSuffixArray to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
@@ -574,35 +558,6 @@ csa_sada_theo<EncVector,RankSupport>::csa_sada_theo(const unsigned char* str):m_
     sa = csa_bitcompressed<>();
     construct(psi, isa_0);
 }
-
-template<class EncVector, class RankSupport>
-bool csa_sada_theo<EncVector,RankSupport>::operator==(const csa_sada_theo& csa)const
-{
-    if (m_level != csa.m_level or m_sa != csa.m_sa or m_last_pos != csa.m_last_pos)
-        return false;
-    if ((m_psi == NULL and csa.m_psi != NULL) or (m_psi !=NULL and csa.m_psi == NULL))
-        return false;
-    if ((m_b == NULL and csa.m_b != NULL) or (m_b !=NULL and csa.m_b == NULL))
-        return false;
-    if ((m_b_rank == NULL and csa.m_b_rank != NULL) or (m_b_rank !=NULL and csa.m_b_rank == NULL))
-        return false;
-    if (m_level > 0) {
-        assert(m_psi != NULL and m_b != NULL and m_b_rank != NULL and
-               csa.m_psi!=NULL and csa.m_b!=NULL and csa.m_b_rank!=NULL);
-        for (size_type i=0; i<m_level; ++i) {
-            if (m_psi[i] != csa.m_psi[i] or m_b[i] != csa.m_b[i] or m_b_rank[i] != csa.m_b_rank[i])
-                return false;
-        }
-    }
-    return true;
-}
-
-template<class EncVector, class RankSupport>
-bool csa_sada_theo<EncVector,RankSupport>::operator!=(const csa_sada_theo<EncVector,RankSupport>& csa)const
-{
-    return !(*this==csa);
-}
-
 
 } // end namespace sdsl
 

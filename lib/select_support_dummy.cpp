@@ -3,7 +3,7 @@
 namespace sdsl
 {
 
-select_support_dummy::select_support_dummy(const int_vector<1>* v):select_support(v) { }
+select_support_dummy::select_support_dummy(const bit_vector* v):select_support(v) { }
 
 
 select_support_dummy::select_support_dummy(const select_support_dummy& ss):select_support(ss.m_v) { }
@@ -27,7 +27,7 @@ const select_support_dummy::size_type select_support_dummy::operator()(size_type
     return select(i);
 }
 
-void select_support_dummy::set_vector(const int_vector<1>* v) { }
+void select_support_dummy::set_vector(const bit_vector* v) { }
 
 select_support_dummy::size_type select_support_dummy::serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
@@ -35,14 +35,6 @@ select_support_dummy::size_type select_support_dummy::serialize(std::ostream& ou
     return 0;
 }
 
-void select_support_dummy::load(std::istream& in, const int_vector<1>* v) { }
-
-bool select_support_dummy::operator==(const select_support_dummy& ss)const {
-    return true;
-}
-
-bool select_support_dummy::operator!=(const select_support_dummy& ss)const {
-    return !(*this == ss);
-}
+void select_support_dummy::load(std::istream& in, const bit_vector* v) { }
 
 }

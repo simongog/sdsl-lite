@@ -170,22 +170,6 @@ class lcp_wt
          */
         lcp_wt& operator=(const lcp_wt& lcp_c);
 
-        //! Equality Operator
-        /*! Two Instances of lcp_wt are equal if
-         *  all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator!=
-         */
-        bool operator==(const lcp_wt& lcp_c)const;
-
-        //! Unequality Operator
-        /*! Two Instances of lcp_wt are equal if
-         *  not all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator==
-         */
-        bool operator!=(const lcp_wt& lcp_c)const;
-
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
@@ -301,21 +285,6 @@ lcp_wt<width>& lcp_wt<width>::operator=(const lcp_wt& lcp_c)
         copy(lcp_c);
     }
     return *this;
-}
-
-
-template<uint8_t width>
-bool lcp_wt<width>::operator==(const lcp_wt& lcp_c)const
-{
-    if (this == &lcp_c)
-        return true;
-    return m_small_lcp == lcp_c.m_small_lcp and m_big_lcp == lcp_c.m_big_lcp;
-}
-
-template<uint8_t width>
-bool lcp_wt<width>::operator!=(const lcp_wt& lcp_c)const
-{
-    return !(*this == lcp_c);
 }
 
 template<uint8_t width>
