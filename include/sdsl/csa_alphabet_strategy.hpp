@@ -44,6 +44,8 @@
  */
 
 #include "int_vector.hpp"
+#include "rank_support.hpp"
+#include "sdsl_concepts.hpp"
 
 namespace sdsl{
 
@@ -52,7 +54,7 @@ namespace sdsl{
 class byte_alphabet_strategy;
 
 template<class bit_vector_type     = bit_vector,
-	     class rank_support_type   = typename bit_vector_type::rank_1_type,
+	     class rank_support_type   = rank_support_scan<>, //typename bit_vector_type::rank_1_type,
 	     class select_support_type = typename bit_vector_type::select_1_type,
 		 class C_array_type		   = int_vector<>
 	    >
@@ -73,6 +75,7 @@ class byte_alphabet_strategy{
 		typedef int_vector<8>			comp2char_type;
 		typedef int_vector<64>			C_type;
 		typedef uint16_t				sigma_type;
+		typedef byte_alphabet_tag		alphabet_category;
 	private:
 	    char2comp_type	m_char2comp; // mapping from a character into the compact alphabet
         comp2char_type	m_comp2char; // inverse mapping of m_char2comp
@@ -172,6 +175,7 @@ class succinct_byte_alphabet_strategy{
 		typedef uint16_t					sigma_type;
 		typedef uint8_t						char_type;
 		typedef uint8_t						comp_char_type;
+		typedef byte_alphabet_tag			alphabet_category;
 
 		//! Helper class for the char2comp mapping	
 		class char2comp_wrapper{

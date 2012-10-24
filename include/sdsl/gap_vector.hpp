@@ -137,10 +137,6 @@ class gap_rank_support
     public:
 
         gap_rank_support(const bit_vector_type* v=NULL) {
-            init(v);
-        }
-
-        void init(const bit_vector_type* v=NULL) {
             set_vector(v);
         }
 
@@ -216,12 +212,7 @@ class gap_select_support
         const bit_vector_type* m_v;
 
     public:
-
         gap_select_support(const bit_vector_type* v=NULL) {
-            init(v);
-        }
-
-        void init(const bit_vector_type* v=NULL) {
             set_vector(v);
         }
 

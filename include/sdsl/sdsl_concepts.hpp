@@ -33,6 +33,10 @@ struct lcp_permuted_tag {};
 struct lcp_tree_compressed_tag {};
 struct lcp_tree_and_lf_compressed_tag {};
 
+
+struct byte_alphabet_tag{};
+struct int_alphabet_tag{};
+
 } // end namespace sdsl
 
 #endif

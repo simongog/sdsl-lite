@@ -240,14 +240,10 @@ class rank_support_interleaved
     public:
 
         rank_support_interleaved(const bit_vector_type* v=NULL) {
-            init(v);
+            set_vector(v);
             m_blockShift = bit_magic::l1BP(blockSize);
             m_blockMask = blockSize - 1;
             m_blockSize_U64 = bit_magic::l1BP(blockSize>>6);
-        }
-
-        void init(const bit_vector_type* v=NULL) {
-            set_vector(v);
         }
 
         //! Returns the position of the i-th occurrence in the bit vector.
@@ -416,14 +412,10 @@ class select_support_interleaved
     public:
 
         select_support_interleaved(const bit_vector_type* v=NULL) {
-            init(v);
-        }
-
-
-        void init(const bit_vector_type* v=NULL) {
             set_vector(v);
             m_blockShift = bit_magic::l1BP(blockSize);
             m_blockSize_U64 = bit_magic::l1BP(blockSize>>6);
+
         }
 
         //! Returns the position of the i-th occurrence in the bit vector.
