@@ -55,13 +55,7 @@ class select_support_scan : public select_support
         void load(std::istream& in, const bit_vector* v=NULL){}
         void set_vector(const bit_vector* v=NULL){m_v = v;}
         select_support_scan<b, pattern_len>& operator=(const select_support_scan& ss){set_vector(ss.m_v); return *this;}
-
-        //! Swap operator
         void swap(select_support_scan<b, pattern_len>& ss){}
-        //! Equality Operator
-        bool operator==(const select_support_scan<b, pattern_len>& ss)const;
-        //! Inequality Operator
-        bool operator!=(const select_support_scan<b, pattern_len>& ss)const;
 };
 
 template<uint8_t b, uint8_t pattern_len>
@@ -87,17 +81,6 @@ inline const typename select_support_scan<b,pattern_len>::size_type select_suppo
 		word_pos+=1;
 	}
 	return (word_pos<<6) + select_support_trait<b,pattern_len>::ith_arg_pos_in_the_word(*data, i-sum_args, old_carry);
-}
-
-
-template<uint8_t b, uint8_t pattern_len>
-bool select_support_scan<b,pattern_len>::operator==(const select_support_scan& ss)const {
-    return this == &ss;
-}
-
-template<uint8_t b, uint8_t pattern_len>
-bool select_support_scan<b,pattern_len>::operator!=(const select_support_scan& ss)const {
-    return !(*this == ss);
 }
 
 } // end namespace

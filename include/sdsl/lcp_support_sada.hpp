@@ -184,22 +184,6 @@ class _lcp_support_sada
          */
         _lcp_support_sada& operator=(const _lcp_support_sada& lcp_c);
 
-        //! Equality Operator
-        /*! Two Instances of _lcp_support_sada are equal if
-         *  all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator!=
-         */
-        bool operator==(const _lcp_support_sada& lcp_c)const;
-
-        //! Unequality Operator
-        /*! Two Instances of _lcp_support_sada are equal if
-         *  not all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator==
-         */
-        bool operator!=(const _lcp_support_sada& lcp_c)const;
-
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
@@ -325,21 +309,6 @@ _lcp_support_sada<Csa, BitVector, SelectSupport>& _lcp_support_sada<Csa, BitVect
         copy(lcp_c);
     }
     return *this;
-}
-
-
-template<class Csa, class BitVector, class SelectSupport>
-bool _lcp_support_sada<Csa, BitVector, SelectSupport>::operator==(const _lcp_support_sada& lcp_c)const
-{
-    if (this == &lcp_c)
-        return true;
-    return m_csa == lcp_c.m_csa and m_data == lcp_c.m_data and m_select_support == lcp_c.m_select_support;
-}
-
-template<class Csa, class BitVector, class SelectSupport>
-bool _lcp_support_sada<Csa, BitVector, SelectSupport>::operator!=(const _lcp_support_sada& lcp_c)const
-{
-    return !(*this == lcp_c);
 }
 
 template<class Csa, class BitVector, class SelectSupport>

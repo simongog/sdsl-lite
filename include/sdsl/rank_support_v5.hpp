@@ -71,20 +71,6 @@ class rank_support_v5 : public rank_support
          *  Required for the Container Concept of the STL.
          */
         void swap(rank_support_v5& rs);
-        //! Equality Operator
-        /*! Two rank_support_v5s are equal if all member variables are equal.
-         *
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator!=
-         */
-        bool operator==(const rank_support_v5& rs)const;
-        //! Unequality Operator
-        /*! Two rank_support_v5s are not equal if any member variable are not equal.
-         *
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator==
-         */
-        bool operator!=(const rank_support_v5& rs)const;
 };
 
 template<uint8_t b, uint8_t pattern_len>
@@ -212,19 +198,6 @@ inline void rank_support_v5<b, pattern_len>::swap(rank_support_v5& rs) {
     if (this != &rs) { // if rs and _this_ are not the same object
         m_basic_block.swap(rs.m_basic_block);
     }
-}
-
-// TODO: == operator remove pointer comparison
-template<uint8_t b, uint8_t pattern_len>
-inline bool rank_support_v5<b, pattern_len>::operator==(const rank_support_v5& rs)const {
-    if (this == &rs)
-        return true;
-    return m_basic_block == rs.m_basic_block and *(rs.m_v) == *m_v;
-}
-
-template<uint8_t b, uint8_t pattern_len>
-inline bool rank_support_v5<b, pattern_len>::operator!=(const rank_support_v5& rs)const {
-    return !(*this == rs);
 }
 
 }// end namespace sds

@@ -176,17 +176,6 @@ class gap_rank_support
 
         void swap(gap_rank_support& rs) { }
 
-        bool operator==(const gap_rank_support& ss)const {
-            if (this == &ss)
-                return true;
-            return ss.m_v == m_v;
-        }
-
-        bool operator!=(const gap_rank_support& rs)const {
-            return !(*this == rs);
-        }
-
-
         void load(std::istream& in, const bit_vector_type* v=NULL) {
             set_vector(v);
         }
@@ -241,17 +230,6 @@ class gap_select_support
         }
 
         void swap(gap_select_support& rs) { }
-
-        bool operator==(const gap_select_support& ss)const {
-            if (this == &ss)
-                return true;
-            return ss.m_v == m_v;
-        }
-
-        bool operator!=(const gap_select_support& rs)const {
-            return !(*this == rs);
-        }
-
 
         void load(std::istream& in, const bit_vector_type* v=NULL) {
             set_vector(v);

@@ -55,18 +55,6 @@ class select_support_bs : public select_support
         void set_vector(const bit_vector* v=NULL);
         select_support_bs& operator=(const select_support_bs& ss);
         void swap(select_support_bs& ss);
-        //! Equality Operator
-        /*! Two select_support_bss are equal if all member variables are equal.
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator!=
-         */
-        bool operator==(const select_support_bs& ss)const;
-        //! Unequality Operator
-        /*! Two select_support_bss are not equal if any member variable are not equal.
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator==
-         */
-        bool operator!=(const select_support_bs& ss)const;
 };
 
 template<class RankSupport>
@@ -137,18 +125,6 @@ void select_support_bs<RankSupport>::load(std::istream&, const bit_vector* v) {
 template<class RankSupport>
 void select_support_bs<RankSupport>::set_vector(const bit_vector* v) {
     m_v = v;
-}
-
-template<class RankSupport>
-bool select_support_bs<RankSupport>::operator==(const select_support_bs& ss)const {
-    if (this == &ss)
-        return true;
-    return *m_rs == *(ss.m_rs);
-}
-
-template<class RankSupport>
-bool select_support_bs<RankSupport>::operator!=(const select_support_bs& ss)const {
-    return !(*this == ss);
 }
 
 template<class RankSupport>

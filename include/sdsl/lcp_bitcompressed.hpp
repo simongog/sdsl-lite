@@ -150,22 +150,6 @@ class lcp_bitcompressed
          */
         lcp_bitcompressed& operator=(const lcp_bitcompressed& lcp_c);
 
-        //! Equality Operator
-        /*! Two Instances of lcp_bitcompressed are equal if
-         *  all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator!=
-         */
-        bool operator==(const lcp_bitcompressed& lcp_c)const;
-
-        //! Inequality Operator
-        /*! Two Instances of lcp_bitcompressed are equal if
-         *  not all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator==
-         */
-        bool operator!=(const lcp_bitcompressed& lcp_c)const;
-
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
@@ -256,21 +240,6 @@ lcp_bitcompressed<width>& lcp_bitcompressed<width>::operator=(const lcp_bitcompr
         copy(lcp_c);
     }
     return *this;
-}
-
-
-template<uint8_t width>
-bool lcp_bitcompressed<width>::operator==(const lcp_bitcompressed& lcp_c)const
-{
-    if (this == &lcp_c)
-        return true;
-    return m_lcp == lcp_c.m_lcp;
-}
-
-template<uint8_t width>
-bool lcp_bitcompressed<width>::operator!=(const lcp_bitcompressed& lcp_c)const
-{
-    return !(*this == lcp_c);
 }
 
 template<uint8_t width>

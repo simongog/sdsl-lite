@@ -52,11 +52,6 @@ class rank_support_scan : public rank_support
 
         //! swap Operator
         void swap(rank_support_scan& rs){}
-
-        //! Equality Operator
-        bool operator==(const rank_support_scan& rs)const;
-        //! Inequality Operator
-        bool operator!=(const rank_support_scan& rs)const;
 };
 
 template<uint8_t b, uint8_t pattern_len>
@@ -89,19 +84,6 @@ inline rank_support_scan<b, pattern_len>& rank_support_scan<b, pattern_len>::ope
         set_vector(rs.m_v);
     }
     return *this;
-}
-
-// TODO: == operator remove pointer comparison
-template<uint8_t b, uint8_t pattern_len>
-inline bool rank_support_scan<b, pattern_len>::operator==(const rank_support_scan& rs)const {
-    if (this == &rs)
-        return true;
-    return *(rs.m_v) == *m_v;
-}
-
-template<uint8_t b, uint8_t pattern_len>
-inline bool rank_support_scan<b, pattern_len>::operator!=(const rank_support_scan& rs)const {
-    return !(*this == rs);
 }
 
 }// end namespace sds

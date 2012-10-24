@@ -58,20 +58,6 @@ class rank_support_jmc : public rank_support
             Required for the Container Concept of the STL.
          */
         void swap(rank_support_jmc& rs);
-        //! Equality Operator
-        /*! Two rank_support_jmcs are equal if all member variables are equal.
-         *
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator!=
-         */
-        bool operator==(const rank_support_jmc& rs)const;
-        //! Unequality Operator
-        /*! Two rank_support_jmcs are not equal if any member variable are not equal.
-         *
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator==
-         */
-        bool operator!=(const rank_support_jmc& rs)const;
 };
 
 inline rank_support_jmc::rank_support_jmc(const rank_support_jmc& rs) : rank_support() {
@@ -175,19 +161,6 @@ inline void rank_support_jmc::set_vector(const int_vector<1>* v) {
         m_v = v;
         m_logn = bit_magic::l1BP(m_v->capacity())+1;
     }
-}
-
-inline bool rank_support_jmc::operator==(const rank_support_jmc& rs)const {
-    if (this == &rs)
-        return true;
-    return m_logn == rs.m_logn
-           and m_superblockrank == rs.m_superblockrank
-           and m_blockrank == rs.m_blockrank
-           and *(m_v) == *(rs.m_v);
-}
-
-inline bool rank_support_jmc::operator!=(const rank_support_jmc& rs)const {
-    return !(*this == rs);
 }
 
 }// end namespace sds
