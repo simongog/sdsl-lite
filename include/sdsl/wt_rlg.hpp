@@ -111,8 +111,6 @@ class wt_rlg
         // Default constructor
         wt_rlg():m_size(0), m_sigma(0), sigma(m_sigma) {};
 
-
-
         //! Constructor
         /*!
          *	\param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.

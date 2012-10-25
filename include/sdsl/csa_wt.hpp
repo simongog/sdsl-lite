@@ -270,23 +270,23 @@ class csa_wt
         typedef psi_of_csa_wt<csa_wt>								                psi_type;
         typedef bwt_of_csa_wt<csa_wt>								                bwt_type;
         typedef WaveletTree											                wavelet_tree_type;
-        typedef unsigned char 										                char_type;
-        typedef const char_type*									                pattern_type;
         typedef typename SaSamplingStrategy::template type<csa_wt>::sample_type     sa_sample_type;
         typedef IsaSampleContainer  												isa_sample_type;
 		typedef AlphabetStrategy													alphabet_type;
+        typedef typename alphabet_type::char_type 								    char_type; // Note: This is the char type of the CSA not the WT!
+		typedef typename alphabet_type::comp_char_type								comp_char_type;
+        typedef const char_type*									                pattern_type;
 
         typedef csa_tag																index_category;
+		typedef typename alphabet_type::alphabet_category  							alphabet_category;
 
         friend class psi_of_csa_wt<csa_wt>;
         friend class bwt_of_csa_wt<csa_wt>;
-//	static const uint32_t sample_dens = SampleDens;
     private:
         WaveletTree		m_wavelet_tree; // the wavelet tree
         sa_sample_type  m_sa_sample; // suffix array samples
         isa_sample_type m_isa_sample; // inverse suffix array samples
 		alphabet_type   m_alphabet;
-//		uint32_t m_sample_dens; // additional to SampleDens value
 //#define USE_CSA_CACHE
 #ifdef USE_CSA_CACHE
         mutable fast_cache csa_cache;
@@ -415,8 +415,8 @@ class csa_wt
         //! Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
         /*!
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
-         *  \param c The symbol to count the occurences in the prefix.
-         *	\returns The number of occurences of symbol c in the prefix [0..i-1] of the BWT.
+         *  \param c The symbol to count the occurrences in the prefix.
+         *	\returns The number of occurrences of symbol c in the prefix [0..i-1] of the BWT.
          *  \par Time complexity
          *		\f$ \Order{\log |\Sigma|} \f$
          */
@@ -428,7 +428,7 @@ class csa_wt
         /*!
          *  \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
          *  \param c The symbol c.
-         *	\returns The ith occurrence symbol c in the the BWT or size() if no ith occurence of the symbol exists in the BWT.
+         *	\returns The ith occurrence symbol c in the BWT or size() if no ith occurence of the symbol exists in the BWT.
          *  \par Time complexity
          *		\f$ \Order{t_{\Psi}} \f$
          */
@@ -455,23 +455,23 @@ csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleCont
         construct_bwt(file_map, dir, id);
 //		construct_bwt2(file_map, dir, id);
     }
-    int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str());
+    int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str()); // 8==special case for byte alphabet/int alphabet result in 0 here
     int_vector_file_buffer<>  sa_buf(file_map["sa"].c_str());
     size_type n = bwt_buf.int_vector_size;
     write_R_output("csa", "construct alphabet", "begin", 1, 0);
-	util::assign(m_alphabet, alphabet_type(bwt_buf, n));
+	util::assign(m_alphabet, alphabet_type(bwt_buf, n));          // int alphabet ready :) 
     write_R_output("csa", "construct alphabet", "end", 1, 0);
 
     write_R_output("csa", "construct WT", "begin", 1, 0);
-	util::assign(m_wavelet_tree, wavelet_tree_type(bwt_buf, n)  );
+	util::assign(m_wavelet_tree, wavelet_tree_type(bwt_buf, n)  ); // not yet int alphabet ready :(
     write_R_output("csa", "construct WT", "end", 1, 0);
 
     write_R_output("csa", "construct SA samples", "begin", 1, 0);
-	util::assign(m_sa_sample, sa_sample_type(sa_buf));
+	util::assign(m_sa_sample, sa_sample_type(sa_buf));				// int alphabet ready :)
     write_R_output("csa", "construct SA samples", "end", 1, 0);
 
     write_R_output("csa", "construct ISA samples", "begin", 1, 0);
-    algorithm::set_isa_samples<csa_wt>(sa_buf, m_isa_sample);
+    algorithm::set_isa_samples<csa_wt>(sa_buf, m_isa_sample);      // int alphabet ready :)
     write_R_output("csa", "construct ISA samples", "end", 1, 0);
 }
 

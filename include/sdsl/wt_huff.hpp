@@ -106,7 +106,7 @@ struct _node {
  * This class should be used only for small alphabets \f$\Sigma \ll n\f$ (see int_wavelet_tree for a wavelet tree for big alphabets).
  * The wavelet tree \f$wt\f$ consists of a tree of bitvectors and provides three efficient methods:
  *   - The "[]"-operator: \f$wt[i]\f$ returns the ith symbol of vector for which the wavelet tree was build for.
- *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurences of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the wavelet tree was build for.
+ *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurrences of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the wavelet tree was build for.
  *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurence of symbol \f$c\f$.
  *
  *  The idea of using a Huffman shaped wavelet was first mentioned on page 17 of the following technical report:
@@ -117,6 +117,7 @@ struct _node {
  *		\f$\Order{n H_0 + 2|\Sigma|\log n}\f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
  *
  *   @ingroup wt
+ * TODO: 
  */
 template<class BitVector 		 = bit_vector,
          class RankSupport 		 = typename BitVector::rank_1_type,
@@ -176,7 +177,6 @@ class wt_huff
             for (size_type i=0; i<256; ++i) {
                 m_path[i] = wt.m_path[i];
             }
-//			m_check = wt.m_check;
         }
 
         // insert a character into the wavelet tree, see constuct method
@@ -366,8 +366,7 @@ class wt_huff
          */
         template<class size_type_class>
         wt_huff(int_vector_file_buffer<8, size_type_class>& input_buf, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
-            m_size = size;
-            if (m_size == 0)
+            if ( 0 == m_size )
                 return;
             // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
             size_type C[256] = {0};
@@ -452,8 +451,6 @@ class wt_huff
                     std::swap(m_c_to_leaf[i], wt.m_c_to_leaf[i]);
                 for (size_type i=0; i<256; ++i)
                     std::swap(m_path[i], wt.m_path[i]);
-
-//			m_check.swap( wt.m_check );
             }
         }
 
@@ -510,7 +507,6 @@ class wt_huff
             size_type result = i & ZoO[path_len>0]; // important: result has type size_type and ZoO has type size_type
             uint32_t node=0;
             for (uint32_t l=0; l<path_len and result; ++l, p >>= 1) {
-//			result = (ZoO[1-(p&1)]&result) - (ZoO[1-(p&1)] ^ (m_tree_rank(m_nodes[node].tree_pos + result) - m_nodes[node].tree_pos_rank) );
                 if (p&1) {
                     result 	= (m_tree_rank(m_nodes[node].tree_pos+result) -  m_nodes[node].tree_pos_rank);
                 } else {
@@ -546,9 +542,9 @@ class wt_huff
             return i;
         }
 
-        //! Calculates the ith occurrence of the symbol c in the supported vector.
+        //! Calculates the i-th occurrence of the symbol c in the supported vector.
         /*!
-         *  \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
+         *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
          *  \param c The symbol c.
          *  \par Time complexity
          *		\f$ \Order{H_0} \f$
@@ -561,15 +557,6 @@ class wt_huff
             if (m_sigma == 1) {
                 return std::min(i-1,m_size);
             }
-            /*		if( i == 0 ){
-            			std::cerr<<"WARNING: i=0"<<std::endl;
-            			return m_size;
-            		}
-            		if( i > rank(size(), c) ){
-            			std::cerr<<"WARNING: i="<<i<<" > rank(size(),"<<c<<")="<<rank(size(),c)<<std::endl;
-            			return m_size;
-            		}
-            */
             size_type result = i-1;		// otherwise
             uint64_t p = m_path[c];
             uint32_t path_len = (p>>56);
@@ -586,12 +573,6 @@ class wt_huff
                              - m_nodes[node].tree_pos;
                 }
             }
-            /*		size_type r2 = m_check.select(i, c);
-            		if( r2 != result ){
-            			std::cerr<<"ERROR select r="<<result<<" != "<<r2<<"=r2 for input ("<<i<<","<<c<<")"<<std::endl;
-            			return r2;
-            		}
-            */
             return result;
         };
 

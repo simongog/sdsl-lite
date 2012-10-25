@@ -78,11 +78,12 @@ class csa_sada
         typedef EncVector											                enc_vector_type;
         typedef psi_of_csa_psi<csa_sada>						 	                psi_type;
         typedef bwt_of_csa_psi<csa_sada>						 	                bwt_type;
-        typedef const unsigned char*						 		                pattern_type;
-        typedef unsigned char										                char_type;
         typedef typename SaSamplingStrategy::template type<csa_sada>::sample_type   sa_sample_type;
         typedef IsaSampleContainer  												isa_sample_type;
 		typedef AlphabetStrategy													alphabet_type;
+		typedef typename alphabet_type::alphabet_category  							alphabet_category;
+        typedef typename alphabet_type::char_type 								    char_type; // Note: This is the char type of the CSA not the WT!
+        typedef const char_type*									                pattern_type;
 
         typedef csa_tag													            index_category;
 
@@ -350,7 +351,7 @@ csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleCont
     if (file_map.find("bwt") == file_map.end()) { // if bwt is not already stored on disk => construct bwt
         construct_bwt(file_map, dir, id);
     }
-    int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str());
+    int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str()); // 8==special case for byte alphabet/int alphabet result in 0 here
     size_type n = bwt_buf.int_vector_size;
     write_R_output("csa", "construct alphabet", "begin", 1, 0);
 	util::assign(m_alphabet, alphabet_type(bwt_buf, n));

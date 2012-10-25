@@ -71,7 +71,7 @@ class WtAsciiTest : public ::testing::Test
 using testing::Types;
 
 typedef Types<
-sdsl::wt<unsigned char*, sdsl::rrr_vector<63> >,
+	 sdsl::wt<unsigned char*, sdsl::rrr_vector<63> >,
      sdsl::wt<unsigned char*, sdsl::bit_vector_interleaved<>  >,
      sdsl::wt<unsigned char*, sdsl::bit_vector>,
      sdsl::wt_huff<sdsl::bit_vector_interleaved<> >,

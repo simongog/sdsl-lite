@@ -8,7 +8,7 @@ namespace sdsl
 
 const uint16_t _undef_node = 65535;
 
-//! Count for each character in [0..255] the number of occurences in rac[0..size-1]
+//! Count for each character in [0..255] the number of occurrences in rac[0..size-1]
 /*!
  * \return C An array of size 256, which contains for each character the number of occurences in rac[0..size-1]
  */

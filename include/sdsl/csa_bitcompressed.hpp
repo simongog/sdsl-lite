@@ -58,25 +58,26 @@ template<class AlphabetStrategy=byte_alphabet_strategy>
 class csa_bitcompressed
 {
     public:
-        typedef uint64_t											 value_type;	// STL Container requirement
-        typedef random_access_const_iterator<csa_bitcompressed> 	 const_iterator;// STL Container requirement
-        typedef const_iterator 										 iterator;		// STL Container requirement
-        typedef const value_type									 const_reference;
-        typedef const_reference										 reference;
-        typedef const_reference*									 pointer;
-        typedef const pointer										 const_pointer;
-        typedef int_vector<>::size_type								 size_type;		// STL Container requirement
-        typedef size_type				 							 csa_size_type;
-        typedef ptrdiff_t  											 difference_type; // STL Container requirement
-        typedef psi_of_sa_and_isa<csa_bitcompressed>				 psi_type;
-        typedef bwt_of_csa_psi<csa_bitcompressed>					 bwt_type;
-        typedef const unsigned char*								 pattern_type;
-        typedef unsigned char										 char_type;
-        typedef _sa_order_sampling_strategy<1,0>					 sa_sample_type;
-        typedef int_vector<>										 isa_sample_type;
-		typedef AlphabetStrategy								     alphabet_type;
+        typedef uint64_t										value_type;	// STL Container requirement
+        typedef random_access_const_iterator<csa_bitcompressed> const_iterator;// STL Container requirement
+        typedef const_iterator 									iterator;		// STL Container requirement
+        typedef const value_type								const_reference;
+        typedef const_reference									reference;
+        typedef const_reference*								pointer;
+        typedef const pointer									const_pointer;
+        typedef int_vector<>::size_type							size_type;		// STL Container requirement
+        typedef size_type				 						csa_size_type;
+        typedef ptrdiff_t  										difference_type; // STL Container requirement
+        typedef psi_of_sa_and_isa<csa_bitcompressed>			psi_type;
+        typedef bwt_of_csa_psi<csa_bitcompressed>				bwt_type;
+        typedef _sa_order_sampling_strategy<1,0>				sa_sample_type;
+        typedef int_vector<>									isa_sample_type;
+		typedef AlphabetStrategy								alphabet_type;
+        typedef typename alphabet_type::char_type 				char_type; // Note: This is the char type of the CSA not the WT!
+		typedef typename alphabet_type::comp_char_type			comp_char_type;
+        typedef const char_type*								pattern_type;
 
-        typedef csa_tag												 index_category;
+        typedef csa_tag											index_category;
 
         enum { sa_sample_dens = 1,
                isa_sample_dens = 1
@@ -260,13 +261,13 @@ class csa_bitcompressed
          *  \par Time complexity
          *		\f$ \Order{\log n} \f$
          */
-        size_type rank_bwt(size_type i, const unsigned char c) const{
+        size_type rank_bwt(size_type i, const char_type c) const{
 			// TODO: special case if c == BWT[i-1] we can use LF to get a constant time answer
-			unsigned char cc = char2comp[c];
+			comp_char_type cc = char2comp[c];
 			if (cc==0 and c!=0)  // character is not in the text => return 0
 				return 0;
 			// binary search the interval [C[cc]..C[cc+1]-1] for the result
-			size_type lower_b = C[cc], upper_b = C[cc+1]; // lower_b inclusive, upper_b exclusive
+			size_type lower_b = C[cc], upper_b = C[((size_type)1)+cc]; // lower_b inclusive, upper_b exclusive
 			while (lower_b+1 < upper_b) {
 				size_type mid = (lower_b+upper_b)/2;
 				if (m_psi[mid] >= i)
@@ -289,11 +290,11 @@ class csa_bitcompressed
          *  \par Time complexity
          *		\f$ \Order{t_{\Psi}} \f$
          */
-        size_type select_bwt(size_type i, const unsigned char c) const{
-			unsigned char cc = char2comp[c];
+        size_type select_bwt(size_type i, const char_type c) const{
+			comp_char_type cc = char2comp[c];
 			if (cc==0 and c!=0)  // character is not in the text => return size()
 				return size();
-			if (C[cc]+i-1 <  C[cc+1]) {
+			if (C[cc]+i-1 <  C[((size_type)1)+cc]) {
 				return m_psi[C[cc]+i-1];
 			} 
 			return size();	

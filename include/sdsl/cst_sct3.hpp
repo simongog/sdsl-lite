@@ -136,9 +136,7 @@ class cst_sct3
     public:
         typedef typename Csa::value_type							 value_type;	// STL Container requirement/TODO: ist das nicht gleich node type???
         typedef cst_dfs_const_forward_iterator<cst_sct3>			 const_iterator;// STL Container requirement
-//	typedef const_iterator 										 iterator;		// STL Container requirement
         typedef cst_bottom_up_const_forward_iterator<cst_sct3>		 const_bottom_up_iterator;
-//	typedef  const_bottom_up_iterator							 bottom_up_iterator;
         typedef const value_type									 const_reference;
         typedef const_reference										 reference;
         typedef const_reference*									 pointer;
@@ -153,6 +151,9 @@ class cst_sct3
         typedef typename Csa::char_type								 char_type;
         typedef bp_interval<size_type>								 node_type; //!< Type for the nodes in the tree
         typedef Rank_support										 fc_rank_support_type;
+
+		typedef typename Csa::alphabet_type::comp_char_type		comp_char_type;
+		typedef typename Csa::alphabet_type::sigma_type			sigma_type;	
 
         typedef cst_tag												 index_category;
     private:
@@ -285,7 +286,6 @@ class cst_sct3
                 psvcpos = m_bp.size()-1;
                 return 0;
             }
-            // TODO einfach am anfang pruefen ob cipos+1
             if (m_bp[cipos+1]) {
                 psvpos = m_bp_support.enclose(ipos);
                 psvcpos = m_bp_support.find_close(psvpos);
@@ -337,16 +337,16 @@ class cst_sct3
                 size_type ec = m_bp_support.rr_enclose(i,j);
                 if (ec == m_bp_support.size()) {// no restricted enclosing pair found
                     return r;
-                } else { // found range restriced enclosing pair
+                } else { // found range restricted enclosing pair
                     return m_bp_support.rank(ec)-1; // subtract 1, as the index is 0 based
                 }
             }
         }
 
     public:
-        const Csa& csa;       			//!< The compressed suffix array the suffix tree is based on.
+        const Csa& csa;       				//!< The compressed suffix array the suffix tree is based on.
         const lcp_type& lcp;       			//!< The lcp array the suffix tree is based on.
-        const bit_vector& bp; 			//!< The balanced parentheses sequence of the Super-Cartesian tree the suffix tree is based on.
+        const bit_vector& bp; 				//!< The balanced parentheses sequence of the Super-Cartesian tree the suffix tree is based on.
         const bp_support_type& bp_support;	//!< The balanced parentheses sequence support for member bp.
 
         const bit_vector& first_child_bv;
@@ -359,21 +359,7 @@ class cst_sct3
         cst_sct3(): csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child),
             first_child_rank(m_first_child_rank) {}
 
-        // Constructor for the cst_sct3 taking a string for that the compressed suffix tree should be calculated.
-        /*
-         * \param str Text for which the \f$ \CST \f$ should be constructed. The text should be terminated by a zero byte.
-         * \pre The text has to be terminated by a zero byte.
-         */
-//		cst_sct3(const unsigned char *str);
-
-        template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1, uint8_t int_width_2, class size_type_class_2>
-        cst_sct3(const std::string& cst_file_name,
-                 int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                 int_vector_file_buffer<int_width_1, size_type_class_1>& sa_buf,
-                 int_vector_file_buffer<int_width_2, size_type_class_2>& isa_buf,
-                 std::string dir="./",
-                 bool build_ony_bps=false);
-
+		//! Construct CST from file_map
         cst_sct3(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps=false);
 
         //! Copy constructor
@@ -427,7 +413,6 @@ class cst_sct3
                 m_csa.swap(cst.m_csa);
                 m_bp.swap(cst.m_bp);
                 util::swap_support(m_bp_support, cst.m_bp_support, &m_bp, &(cst.m_bp));
-
                 m_first_child.swap(cst.m_first_child);
                 util::swap_support(m_first_child_rank, cst.m_first_child_rank, &m_first_child, &(cst.m_first_child));
                 std::swap(m_sigma, cst.m_sigma);
@@ -586,12 +571,6 @@ class cst_sct3
         size_type rb(const node_type& v)const {
             return v.j;
         }
-        /*
-        		bool lcp_value_equals_zero(size_type i)const{
-        			size_type ipos = m_bp_support.find_close(m_bp_support.select(i+1));
-        			return ipos >= (m_bp.size() - m_sigma);
-        		}
-        */
 
         //! Calculate the parent node of a node v.
         /*! \param v A valid node of the suffix tree.
@@ -600,10 +579,6 @@ class cst_sct3
          *       \f$ \Order{1}\f$
          */
         node_type parent(const node_type& v) const {
-//std::cout<<"parent "<<depth(v)<<v<<std::endl;
-#ifndef NDEBUG
-//			std::cout<<"parent interval of "<<v.l<<"-["<<v.left<<" "<<v.right<<"]"<<std::endl;
-#endif
             if (v.cipos > v.jp1pos) { // LCP[i] <= LCP[j+1]
                 size_type psv_pos, psv_cpos, psv_v, nsv_v, nsv_p1pos;
                 psv_v = psv(v.j+1, v.jp1pos, m_bp_support.find_close(v.jp1pos), psv_pos, psv_cpos);
@@ -629,23 +604,16 @@ class cst_sct3
          *      \f$ \Order{1} \f$
          */
         node_type sibling(const node_type& v)const {
-//std::cout<<"sibling "<<depth(v)<<v<<std::endl;
-// Vorgehen:(1) Bestimmen, ob v noch einen rechten Bruder hat. Entsp. parent hat gleicht rechte Grenze wie v. Speziallfall rechter Rand ist hier schon behandelt!
-            if (v.cipos < v.jp1pos) { // LCP[i] > LCP[j+1] => v hat die selbe rechte Grenze wie parent(v) => kein rechter Bruder
+//Procedure:(1) Determine, if v has a right sibling.   Entsp. parent hat gleicht rechte Grenze wie v. Speziallfall rechter Rand ist hier schon behandelt!
+            if (v.cipos < v.jp1pos) { // LCP[i] > LCP[j+1] => v has the same right border as parent(v) => no right sibling
                 return root();
             }
-//          (2)	Es existiert ein rechter Bruder, LCP[j+1] >= LCP[i] und j>i
-            // es gilt nun: v.cipos > v.jp1pos
+//          (2)	There exists a right sibling, LCP[j+1] >= LCP[i] and j>i
+            // Now it holds:  v.cipos > v.jp1pos
             size_type cjp1posm1 = m_bp_support.find_close(v.jp1pos)-1; // v.cipos-2 ???
-//std::cerr<<"cjp1posm1="<<cjp1posm1<<std::endl;
-//			size_type cjp1posm1 = v.cipos-1;
-//			if( cjp1posm1+1 != v.cipos ){
-//				std::cout<<v<<" "<<cjp1posm1+1<<" "<<v.cipos<<std::endl;
-//			}
-//			size_type cjp1posm1 = v.cipos-2;
-            // an der stelle von cjp1posm1 steht 1, falls v das letzte Kind ist
+            // m_bp[cjp1posm1] equals 1 =>  v is the last child 
             bool last_child = m_bp[cjp1posm1];
-            // an der stelle von cjp1posm1 steht 0 -> entweder nicht letztes Kind oder letztes Kind
+            // otherwise if m_bp[cjp1posm1] equals 0 => we don't know if it is the last child 
             if (!last_child) {
                 size_type first_child_idx = cjp1posm1 - m_bp_support.rank(cjp1posm1);
                 last_child = m_first_child[first_child_idx]; // if first_child indicator is true => the new sibling is the rightmost sibling
@@ -659,16 +627,6 @@ class cst_sct3
                 }
                 return node_type(v.j+1, nsv_v, v.jp1pos, m_bp_support.find_close(v.jp1pos), nsv_p1pos);
             } else {
-//std::cerr<<"not last child: "<<std::endl;
-                /*
-                			if( cjp1posm1+1 != v.cipos-1 ){
-                				std::cout<<v<<" "<<cjp1posm1+1<<" "<<v.cipos<<std::endl;
-                				std::cout<<"LCP["<<v.i<<"]="<<m_lcp[v.i]<<" "<<"LCP["<<v.j<<"]="<<m_lcp[v.j];
-                				if(v.j<size())
-                					std::cout<<" LCP[j+1]="<<m_lcp[v.j+1]<<std::endl;
-                			}
-                */
-//std::cerr<<"find_open(cjp1posm1) = "<< m_bp_support.find_open(cjp1posm1) << std::endl;
                 size_type new_j = m_bp_support.rank(m_bp_support.find_open(cjp1posm1))-2;
                 return node_type(v.j+1, new_j, v.jp1pos, m_bp_support.find_close(v.jp1pos), m_bp_support.select(new_j+2));
             }
@@ -685,7 +643,6 @@ class cst_sct3
          */
 
         node_type ith_child(const node_type& v, size_type i)const {
-//			std::cerr<<i<<"th child "<<depth(v)<<v<<" i="<<i<<std::endl;
             assert(i > 0);
             if (is_leaf(v))  // if v is a leave, v has no child
                 return root();
@@ -744,8 +701,6 @@ class cst_sct3
             }
         }
 
-
-
         // Returns the next sibling of node v.
         // Only for tests.
         node_type sibling_naive(const node_type& v)const {
@@ -760,7 +715,6 @@ class cst_sct3
             return root();
         }
 
-
         //! Get the child w of node v which edge label (v,w) starts with character c.
         /*!
          * 	\param v A valid tree node of the cst.
@@ -770,20 +724,18 @@ class cst_sct3
          *  \par Time complexity
          *       \f$ \Order{(\saaccess+\isaaccess) \cdot \log\sigma + \lcpaccess} \f$
          */
-        // TODO const unsigned char c durch char_type ersetzen
-        node_type child(const node_type& v, const unsigned char c, size_type& char_pos)const {
+        node_type child(const node_type& v, const char_type c, size_type& char_pos)const {
             if (is_leaf(v))  // if v is a leaf = (), v has no child
                 return root();
             // else v = ( (     ))
-            uint16_t cc = m_csa.char2comp[c];
+            comp_char_type cc = m_csa.char2comp[c];
             if (cc==0 and c!=0) // TODO: aendere char2comp so ab, dass man diesen sonderfall nicht braucht
                 return root();
-            size_type char_ex_max_pos = m_csa.C[cc+1], char_inc_min_pos = m_csa.C[cc];
+            size_type char_ex_max_pos = m_csa.C[((size_type)1)+cc], char_inc_min_pos = m_csa.C[cc];
 
             size_type d			= depth(v);
 
 //			(1) check the first child
-//			char_pos = m_csa(m_csa[v.i]+d);  // replaced by the next line
             char_pos = get_char_pos(v.i, d, m_csa);
             if (char_pos >= char_ex_max_pos) {// the first character of the first child interval is lex. greater than c
                 // => all other first characters of the child intervals are also greater than c => no solution
@@ -795,7 +747,6 @@ class cst_sct3
             size_type child_cnt 	= degree(v);
 
 //			(2) check the last child
-//			char_pos = m_csa(m_csa[v.j]+d); // replaced by the next line
             char_pos = get_char_pos(v.j, d, m_csa);
             if (char_pos < char_inc_min_pos) {// the first character of the last child interval is lex. smaller than c
                 // =>	all other first characters of the child intervals are also smaller than c => no solution
@@ -810,7 +761,6 @@ class cst_sct3
                 mid = (l_bound + r_bound) >> 1;
 
                 l_index = get_ith_l_index(v, mid-1, kpos, ckpos);
-//				char_pos = m_csa(m_csa[l_index]+d); // replaced by the next line
                 char_pos = get_char_pos(l_index, d, m_csa);
 
                 if (char_inc_min_pos > char_pos) {
@@ -832,8 +782,8 @@ class cst_sct3
         }
 
         //! Get the child w of node v which edge label (v,w) starts with character c.
-        // \sa child(node_type v, const unsigned char c, size_type &char_pos)
-        node_type child(const node_type& v, const unsigned char c) {
+        // \sa child(node_type v, const char_type c, size_type &char_pos)
+        node_type child(const node_type& v, const char_type c) {
             size_type char_pos;
             return child(v, c, char_pos);
         }
@@ -846,15 +796,14 @@ class cst_sct3
          *       \f$ \Order{ \log\sigma + (\saaccess+\isaaccess) } \f$
          * \pre \f$ 1 \leq d \leq depth(v)  \f$
          */
-        unsigned char edge(const node_type& v, size_type d)const {
+        char_type edge(const node_type& v, size_type d)const {
 #ifndef NDEBUG
             if (d < 1 or d > depth(v)) {
-                throw std::out_of_range("OUT_OF_RANGE_ERROR: "+util::demangle(typeid(this).name())+"cst_sct3<>::edge(node_type v, size_type d). d == 0 or d > depth(v)!");
+                throw std::out_of_range("OUT_OF_RANGE_ERROR: "+util::demangle(typeid(this).name())+"::edge(node_type v, size_type d). d == 0 or d > depth(v)!");
             }
 #endif
-//			size_type order = m_csa(m_csa[v.i]+d-1); replaced by the next line
-            size_type order = get_char_pos(v.i, d-1, m_csa);
-            uint16_t c_begin = 1, c_end = m_sigma+1, mid;
+            size_type 	order 	= get_char_pos(v.i, d-1, m_csa);
+            sigma_type 	c_begin	= 1, c_end = m_sigma+1, mid;
             while (c_begin < c_end) {
                 mid = (c_begin+c_end)>>1;
                 if (m_csa.C[mid] <= order) {
@@ -879,8 +828,6 @@ class cst_sct3
             if (v.i > w.i or (v.i == w.i and v.j < w.j)) {
                 std::swap(v, w);
             }
-//			assert(v.i < w.i or (v.i==w.i and v.j >= j));
-//			assert( !(v.i < w.i and v.j > w.i and v.j < w.j) ); // assert that v and w do not overlapp
             if (v.j >= w.j) { // v encloses w or v==w
                 return v;
             } else { // v.i < v.j < w.i < w.j
@@ -984,7 +931,7 @@ class cst_sct3
          *		\f$ \Order{ t_{rank\_bwt} } \f$
          *
          */
-        node_type wl(const node_type& v, const unsigned char c) const {
+        node_type wl(const node_type& v, const char_type c) const {
             size_type c_left	= m_csa.rank_bwt(v.i, c);
             size_type c_right	= m_csa.rank_bwt(v.j+1, c);
             if (c_left == c_right)  // there exists no Weiner link
@@ -1153,37 +1100,6 @@ class cst_sct3
 };
 
 // == template functions ==
-
-
-template<class Csa, class Lcp, class Bp_support, class Rank_support>
-template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1, uint8_t int_width_2, class size_type_class_2>
-cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(const std::string& csa_file_name,
-        int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-        int_vector_file_buffer<int_width_1, size_type_class_1>& sa_buf,
-        int_vector_file_buffer<int_width_2, size_type_class_2>& isa_buf,
-        std::string dir,
-        bool build_only_bps
-                                                      ):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
-{
-    std::string id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
-
-    write_R_output("cst", "construct BPS", "begin", 1, 0);
-    m_nodes = algorithm::construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child) + m_bp.size()/2;
-    write_R_output("cst", "construct BPS", "end", 1, 0);
-
-    if (!build_only_bps) {
-        util::load_from_file(m_csa, csa_file_name.c_str());
-
-        write_R_output("cst", "construct CLCP", "begin", 1, 0);
-        construct_lcp(m_lcp, *this, lcp_buf, isa_buf);
-        write_R_output("cst", "construct CLCP", "end", 1, 0);
-    }
-    write_R_output("cst", "construct BPSS", "begin", 1, 0);
-    util::init_support(m_bp_support, &m_bp);
-    util::init_support(m_first_child_rank, &m_first_child);
-    write_R_output("cst", "construct BPSS", "end", 1, 0);
-    m_sigma = degree(root());
-}
 
 
 template<class Csa, class Lcp, class Bp_support, class Rank_support>
