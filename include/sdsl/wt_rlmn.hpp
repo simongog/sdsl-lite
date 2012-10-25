@@ -115,13 +115,10 @@ class wt_rlmn
         }
 
     public:
-
         const size_type& sigma;
 
         // Default constructor
         wt_rlmn():m_size(0), sigma(m_wt.sigma) {};
-
-
 
         // Construct the wavelet tree from a random access container
         /*

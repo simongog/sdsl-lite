@@ -31,6 +31,12 @@ class WtIntTest : public ::testing::Test
             // Code here will be called immediately after the constructor (right
             // before each test).
             tmp_file = "tmp_wt_int_test_" + sdsl::util::to_string(sdsl::util::get_pid()) + "_";
+			test_cases.push_back( sdsl::int_vector<>(1023,0,1) );
+			test_cases.push_back( sdsl::int_vector<>(100023,0,1) );
+			test_cases.push_back( sdsl::int_vector<>(64,0,2) );
+			sdsl::int_vector<> iv(1000000,0,18);
+    		sdsl::util::set_random_bits(iv, 17);
+			test_cases.push_back( iv );
         }
 
         virtual void TearDown() {
@@ -39,15 +45,16 @@ class WtIntTest : public ::testing::Test
         }
         // Objects declared here can be used by all tests in the test case for Foo.
         std::string tmp_file;
+        std::vector<sdsl::int_vector<> > test_cases;
 };
 
 using testing::Types;
 
 typedef Types<
-sdsl::wt_int<>,
-     sdsl::wt_int<sdsl::int_vector<>, sdsl::rrr_vector<15> >,
-     sdsl::wt_int<sdsl::int_vector<>, sdsl::rrr_vector<63> >
-     > Implementations;
+			  sdsl::wt_int<>,
+     		  sdsl::wt_int<sdsl::int_vector<>, sdsl::rrr_vector<15> >,
+     		  sdsl::wt_int<sdsl::int_vector<>, sdsl::rrr_vector<63> >
+     		 > Implementations;
 
 TYPED_TEST_CASE(WtIntTest, Implementations);
 
@@ -56,24 +63,31 @@ TYPED_TEST_CASE(WtIntTest, Implementations);
 //! Test the parametrized constructor
 TYPED_TEST(WtIntTest, Constructor)
 {
-    uint8_t width = 18;
-    std::string suffix = "constructor";
-    sdsl::int_vector<> iv(1000000,0,width);
-    sdsl::util::set_random_bits(iv, 17);
-    double iv_size = sdsl::util::get_size_in_mega_bytes(iv);
-
-    sdsl::util::store_to_file(iv, (this->tmp_file+suffix).c_str());
-    {
-        sdsl::int_vector_file_buffer<> buf((this->tmp_file+suffix).c_str());
-        TypeParam wt(buf);
-        std::cout << "compression = " << sdsl::util::get_size_in_mega_bytes(wt)/iv_size << std::endl;
-        ASSERT_EQ(iv.size(), wt.size());
-        for (size_type i=0; i < iv.size(); ++i) {
-            ASSERT_EQ(iv[i], wt[i])<<i;
-        }
-    }
-    std::remove((this->tmp_file+suffix).c_str());
+    for (size_t i=0; i< this->test_cases.size(); ++i) {
+		sdsl::int_vector<>& iv = this->test_cases[i];
+		double iv_size = sdsl::util::get_size_in_mega_bytes(iv);
+		std::string tmp_file_name = this->tmp_file+sdsl::util::to_string(i);
+		sdsl::util::store_to_file(iv, tmp_file_name.c_str());
+		{
+			sdsl::int_vector_file_buffer<> buf(tmp_file_name.c_str());
+			TypeParam wt(buf, buf.int_vector_size);
+			std::cout << "compression = " << sdsl::util::get_size_in_mega_bytes(wt)/iv_size << std::endl;
+			ASSERT_EQ(iv.size(), wt.size());
+			for (size_type i=0; i < iv.size(); ++i) {
+				ASSERT_EQ(iv[i], wt[i])<<i;
+			}
+		}
+	}
 }
+
+TYPED_TEST(WtIntTest, DeleteTest)
+{
+    for (size_t i=0; i< this->test_cases.size(); ++i) {
+		std::string tmp_file_name = this->tmp_file+sdsl::util::to_string(i);
+        std::remove(tmp_file_name.c_str());
+    }
+}
+
 
 }  // namespace
 

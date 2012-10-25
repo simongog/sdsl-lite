@@ -106,7 +106,7 @@ static typename Csa::csa_size_type backward_search(const Csa& csa, typename Csa:
 
 // TODO: forward search. Include original text???
 
-//! Counts the number of occurences of pattern pat in the string of the compressed suffix array csa.
+//! Counts the number of occurrences of pattern pat in the string of the compressed suffix array csa.
 /*!
  * \param csa The compressed suffix array.
  * \param pat The pattern for which we count the occurences in the string of the compressed suffix array.
@@ -121,7 +121,7 @@ static typename Csa::csa_size_type count(const Csa& csa, typename Csa::pattern_t
 {
     if (len > csa.size())
         return 0;
-    typename Csa::size_type t1,t2; t1=t2=0; // dummy varaiable for the backward_search call
+    typename Csa::size_type t1,t2; t1=t2=0; // dummy variable for the backward_search call
     return backward_search(csa, 0, csa.size()-1, pat, len, t1, t2);
 }
 

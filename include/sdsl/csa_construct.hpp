@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_CSA_CONSTRUCT
 
 #include "typedefs.hpp"
+#include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "algorithms_for_suffix_array_construction.hpp"
 #include "algorithms_for_compressed_suffix_arrays.hpp"
@@ -38,16 +39,34 @@
 namespace sdsl
 {
 
+//! Construct the compressed suffix array of a file.
+/*!
+ *  \param file_name	Name of the file.
+ *  \param csa			CSA object which should be used to store the
+ *                      compressed suffix array. 
+ */	
 template<class Csa>
-static bool construct_csa(std::string file_name, Csa& csa)
-{
+static bool construct_csa(std::string file_name, Csa& csa) {
+	typename Csa::alphabet_category tag;
+	return construct_csa(file_name, csa, tag);
+}
+
+template<class Csa>
+static bool construct_csa(std::string file_name, Csa& csa, byte_alphabet_tag) {
     tMSS file_map;
+  //  return construct_csa(file_name, csa, file_map, true, "./","", byte_alphabet_tag);
     return construct_csa(file_name, csa, file_map, true, "./","");
 }
 
 template<class Csa>
-static bool construct_csa(std::string file_name, Csa& csa, tMSS& file_map, bool delete_files=true, std::string dir="./", std::string id="")
-{
+static bool construct_csa(std::string file_name, Csa& csa, int_alphabet_tag) {
+	std::logic_error("Not implemented yet");
+	return false;
+}
+
+// TODO: this is construct_csa_from_ascii_file 
+template<class Csa>
+static bool construct_csa(std::string file_name, Csa& csa, tMSS& file_map, bool delete_files=true, std::string dir="./", std::string id="") {
     uint64_t fs = 0;
     char* ccc = NULL;
     if ((fs=file::read_text((const char*)file_name.c_str(), ccc))>0) {
@@ -77,7 +96,7 @@ template<class Csa>
 static bool construct_csa(Csa& csa, tMSS& file_map, bool delete_files=true, std::string dir="./", std::string id="")
 {
     write_R_output("csa", "construct CSA", "begin", 1, 0);
-    int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
+    int_vector_file_buffer<8> text_buf(file_map["text"].c_str());   // 
     typedef int_vector<>::size_type size_type;
     if (id=="")
         id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();

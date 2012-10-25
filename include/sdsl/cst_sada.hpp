@@ -72,26 +72,27 @@ template<class Csa = csa_sada<>,
 class cst_sada
 {
     public:
-        typedef typename Csa::value_type							 value_type;	// STL Container requirement
-        typedef cst_dfs_const_forward_iterator<cst_sada> 			 const_iterator;// STL Container requirement
-//	typedef const_iterator 										 iterator;		// STL Container requirement
-        typedef cst_bottom_up_const_forward_iterator<cst_sada>		 const_bottom_up_iterator;
-//	typedef  const_bottom_up_iterator							 bottom_up_iterator;
-        typedef const value_type									 const_reference;
-        typedef const_reference										 reference;
-        typedef const_reference*									 pointer;
-        typedef const pointer										 const_pointer;
-        typedef typename Csa::size_type								 size_type;		// STL Container requirement
-        typedef size_type											 cst_size_type;
-        typedef ptrdiff_t  											 difference_type; // STL Container requirement
-        typedef Csa													 csa_type;
-        typedef typename Lcp::template type<cst_sada>::lcp_type		 lcp_type;
-        typedef typename Csa::pattern_type							 pattern_type;// TODO: replace by csa::pattern type!!!???
-        typedef typename Csa::char_type								 char_type;
-        typedef size_type											 node_type; //!< Type for the nodes  in the tree.
-        typedef Bp_support											 bp_support_type;
+        typedef typename Csa::value_type						value_type;	// STL Container requirement
+        typedef cst_dfs_const_forward_iterator<cst_sada> 		const_iterator;// STL Container requirement
+        typedef cst_bottom_up_const_forward_iterator<cst_sada>	const_bottom_up_iterator;
+        typedef const value_type								const_reference;
+        typedef const_reference									reference;
+        typedef const_reference*								pointer;
+        typedef const pointer									const_pointer;
+        typedef typename Csa::size_type							size_type;		// STL Container requirement
+        typedef size_type										cst_size_type;
+        typedef ptrdiff_t  										difference_type; // STL Container requirement
+        typedef Csa												csa_type;
+        typedef typename Lcp::template type<cst_sada>::lcp_type	lcp_type;
+        typedef typename Csa::pattern_type						pattern_type;
+        typedef typename Csa::char_type							char_type;
+        typedef size_type										node_type; //!< Type for the nodes  in the tree.
+        typedef Bp_support										bp_support_type;
 
-        typedef cst_tag												 index_category;
+		typedef typename Csa::alphabet_type::comp_char_type		comp_char_type;
+		typedef typename Csa::alphabet_type::sigma_type			sigma_type;	
+
+        typedef cst_tag											index_category;
     private:
         Csa 					m_csa; // suffix array
         lcp_type				m_lcp; // lcp information
@@ -107,44 +108,6 @@ class cst_sada
             return m_bp_rank10(m_bp_support.find_close(v+1)+1);
         }
 
-        bool generate_bp(const cst_sct<Csa, Lcp>& temp_cst, const unsigned char* str) {
-            typedef typename cst_sct<Csa, Lcp>::node_type cst_sct_node_type;
-            m_bp.resize(4*temp_cst.csa.size());
-            util::set_zero_bits(m_bp);
-            if (temp_cst.csa.size() == 0)
-                return false;
-            size_type cnt = 0;
-            std::stack<cst_sct_node_type> right_most_path;
-            std::stack<bool> used;
-            cst_sct_node_type w = temp_cst.root();
-            used.push(false);
-            right_most_path.push(w);
-            while (!right_most_path.empty()) {
-                if (used.top()) {
-                    cnt++; // bits are already set to 0: m_bp[cnt++] = 0;
-                    cst_sct_node_type v = right_most_path.top();
-                    used.pop(); right_most_path.pop();
-                    cst_sct_node_type sibling = temp_cst.sibling(v);
-                    if (sibling != w) {
-                        right_most_path.push(sibling);
-                        used.push(false);
-                    }
-                } else {
-                    m_bp[cnt++] = 1;
-                    used.top() = true;
-                    cst_sct_node_type child = temp_cst.ith_child(right_most_path.top(), 1);
-                    if (child != w) {
-                        used.push(false);
-                        right_most_path.push(child);
-                    }
-                }
-            }
-            m_bp.resize(cnt);
-            m_csa = Csa(temp_cst.csa, str);
-            copy_lcp(m_lcp, temp_cst.m_lcp, *this);
-            return true;
-        }
-
         void copy(const cst_sada& cst) {
             m_csa 			= cst.m_csa;
             copy_lcp(m_lcp, cst.m_lcp, *this);
@@ -158,59 +121,22 @@ class cst_sada
         }
 
     public:
-        const Csa& csa; 						//!< The compressed suffix array the suffix tree is based on.
-        const lcp_type& lcp;					//!< The lcp array the suffix tree is based on.
-        const bit_vector& bp;					//!< The balanced parentheses sequence of the suffix tree.
-        const Bp_support& bp_support;			//!< The balanced parentheses sequence support for member bp.
-        const Rank_support10& bp_rank_10;		//!< The rank support for the bit pattern "01" for member bp.
+        const Csa& 				csa; 			//!< The compressed suffix array the suffix tree is based on.
+        const lcp_type& 		lcp;			//!< The lcp array the suffix tree is based on.
+        const bit_vector& 		bp;				//!< The balanced parentheses sequence of the suffix tree.
+        const Bp_support& 		bp_support;		//!< The balanced parentheses sequence support for member bp.
+        const Rank_support10& 	bp_rank_10;		//!< The rank support for the bit pattern "01" for member bp.
         const Select_support10& bp_select_10;	//!< The select support for the bit pattern "01" for member bp.
 
         //! Default Constructor
         cst_sada(): csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), bp_rank_10(m_bp_rank10), bp_select_10(m_bp_select10) {}
-        //! Default Destructor
-        ~cst_sada() {}
+
         //! Copy constructor
         cst_sada(const cst_sada& cst):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), bp_rank_10(m_bp_rank10), bp_select_10(m_bp_select10) {
             copy(cst);
         }
 
-        template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1, uint8_t int_width_2, class size_type_class_2>
-        cst_sada(const std::string& csa_file_name,
-                 int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                 int_vector_file_buffer<int_width_1, size_type_class_1>& sa_buf,
-                 int_vector_file_buffer<int_width_2, size_type_class_2>& isa_buf,
-                 std::string dir="./",
-                 bool build_ony_bps=false):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), bp_rank_10(m_bp_rank10), bp_select_10(m_bp_select10) {
-            std::string id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
-            {
-                write_R_output("cst", "construct BPS", "begin", 1, 0);
-                cst_sct3<> temp_cst(csa_file_name, lcp_buf, sa_buf, isa_buf, dir, true);
-                m_bp.resize(4*lcp_buf.int_vector_size);
-                util::set_zero_bits(m_bp);
-                size_type idx=0;
-                for (cst_sct3<>::const_iterator it=temp_cst.begin(), end=temp_cst.end(); it!=end; ++it) {
-                    if (1 == it.visit())
-                        m_bp[idx] = 1;
-                    if (temp_cst.is_leaf(*it))
-                        ++idx;
-                    ++idx;
-                }
-                m_bp.resize(idx);
-                write_R_output("cst", "construct BPS", "end", 1, 0);
-            }
-            util::load_from_file(m_csa, csa_file_name.c_str());
-
-            write_R_output("cst", "construct CLCP", "begin", 1,0);
-            construct_lcp(m_lcp, *this, lcp_buf, isa_buf);
-            write_R_output("cst", "construct CLCP", "end", 1,0);
-
-            write_R_output("cst", "construct BPSS", "begin", 1,0);
-            m_bp_support = Bp_support(&m_bp);
-            util::init_support(m_bp_rank10, &m_bp);
-            util::init_support(m_bp_select10, &m_bp);
-            write_R_output("cst", "construct BPSS", "end", 1,0);
-        }
-
+		//! Construct CST from file_map
         cst_sada(tMSS& file_map, const std::string dir, const std::string id, bool build_only_bps=false) : csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), 
 		                                                                                                   bp_rank_10(m_bp_rank10), bp_select_10(m_bp_select10) {
             {
@@ -220,7 +146,6 @@ class cst_sada
                 util::set_zero_bits(m_bp);
                 size_type idx=0;
                 for (cst_sct3<>::const_iterator it=temp_cst.begin(), end=temp_cst.end(); it!=end; ++it) {
-//					std::cout<<idx<<std::endl;
                     if (1 == it.visit())
                         m_bp[idx] = 1;
                     if (temp_cst.is_leaf(*it))
@@ -231,7 +156,7 @@ class cst_sada
                 write_R_output("cst", "construct BPS", "end", 1, 0);
             }
             write_R_output("cst", "construct BPSS", "begin", 1,0);
-            m_bp_support = Bp_support(&m_bp);
+			util::assign(m_bp_support, Bp_support(&m_bp));
             util::init_support(m_bp_rank10,   &m_bp);
             util::init_support(m_bp_select10, &m_bp);
             write_R_output("cst", "construct BPSS", "end", 1,0);
@@ -239,8 +164,6 @@ class cst_sada
             write_R_output("cst", "construct CLCP", "begin", 1,0);
             construct_lcp(m_lcp, *this, file_map, dir, id);
             write_R_output("cst", "construct CLCP", "end", 1,0);
-
-
 
             util::load_from_file(m_csa, file_map["csa"].c_str());
         }
@@ -537,12 +460,11 @@ class cst_sada
          *   \par Note
          *		With range median mimimum queries (RMMQ) one can code this operation in \f$\log \sigma \f$ time
          */
-        // TODO: const unsigned char durch char type ersetzen
-        node_type child(node_type v, const unsigned char c, size_type& char_pos)const {
+        node_type child(node_type v, const char_type c, size_type& char_pos)const {
             if (is_leaf(v))  // if v is a leaf = (), v has no child
                 return root();
             // else v = ( (     ))
-            uint16_t cc = m_csa.char2comp[c];
+            comp_char_type cc = m_csa.char2comp[c];
             if (cc==0 and c!=0) // TODO: aendere char2comp so ab, dass man diesen sonderfall nicht braucht
                 return root();
             size_type char_ex_max_pos = m_csa.C[cc+1], char_inc_min_pos = m_csa.C[cc];
@@ -551,13 +473,10 @@ class cst_sada
             size_type res = v+1;
             while (true) {
                 if (is_leaf(res)) {
-//					char_pos = m_csa( m_csa[ m_bp_rank10(res) ]+d );// replaced by the following line
                     char_pos = get_char_pos(m_bp_rank10(res), d, m_csa);
                 } else {
-//					char_pos = m_csa( m_csa[ inorder(res) ]+d );// replaced by the following line
                     char_pos = get_char_pos(inorder(res), d, m_csa);
                 }
-//				std::cerr<<"char_pos="<<char_pos<<std::endl;
                 if (char_pos >= char_ex_max_pos)  // if the current char is lex. greater than the searched char: exit
                     return root();
                 if (char_pos >= char_inc_min_pos)  // if the current char is lex. equal with the
@@ -569,8 +488,8 @@ class cst_sada
         }
 
         //! Get the child w of node v which edge label (v,w) starts with character c.
-        // \sa child(node_type v, const unsigned char c, size_type &char_pos)
-        node_type child(node_type v, const unsigned char c) {
+        // \sa child(node_type v, const char_type c, size_type &char_pos)
+        node_type child(node_type v, const char_type c) {
             size_type char_pos;
             return child(v, c, char_pos);
         }
@@ -599,14 +518,14 @@ class cst_sada
         }
 
         //! Returns the d-th character (1-based indexing) of the edge-label pointing to v.
-        /*! \param v The node at which the edge path ends.
+        /*!\param v The node at which the edge path ends.
          * \param d The position (1-based indexing) of the requested character on the edge path from the root to v. \f$ d > 0 \wedge d < depth(v) \f$
          * \return The character at position d on the edge path from the root to v.
          * \par Time complexity
          *       \f$ \Order{ \log\sigma + (\saaccess+\isaaccess) } \f$
          * \pre \f$ 1 \leq d \leq depth(v)  \f$
          */
-        unsigned char edge(node_type v, size_type d)const {
+        char_type edge(node_type v, size_type d)const {
             if (d < 1 or d > depth(v)) {
                 throw std::out_of_range("OUT_OF_RANGE_ERROR: "+util::demangle(typeid(this).name())+" cst_sada<>::edge(node_type v, size_type d). d == 0 or d > depth(v)!");
             }
@@ -617,9 +536,8 @@ class cst_sada
             } else {
                 i = inorder(v);
             }
-//			size_type order = m_csa(m_csa[i]+d-1); // replaced by the following line
-            size_type order = get_char_pos(i, d-1, m_csa);
-            uint16_t c_begin = 1, c_end = m_csa.sigma+1, mid;
+            size_type  	order	= get_char_pos(i, d-1, m_csa);
+            sigma_type	c_begin	= 1, c_end = m_csa.sigma+1, mid;
             while (c_begin < c_end) {
                 mid = (c_begin+c_end)>>1;
                 if (m_csa.C[mid] <= order) {
@@ -682,7 +600,7 @@ class cst_sada
          *  \par Time complexity
          *		\f$ \Order{ t_{rank\_bwt} + t_{lca}}\f$
          */
-        node_type wl(node_type v, const unsigned char c) const {
+        node_type wl(node_type v, const char_type c) const {
             // get leftmost leaf in the tree rooted at v
             size_type left		= m_bp_rank10(v);
             // get the rightmost leaf in the tree rooted at v
@@ -732,8 +650,6 @@ class cst_sada
             } else {            // case (b) leaf
                 return m_bp_rank10(v);
             }
-            // each node has a unique opening parenthesis -> results in an integer between [0..2n-1]
-            //	return m_bp_support.rank(v)-1;
         }
 
         //! Computes the node for such that id(v)=id.

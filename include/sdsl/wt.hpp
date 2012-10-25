@@ -25,7 +25,7 @@
 
 #include "int_vector.hpp"
 #include "bitmagic.hpp"
-#include "util.hpp" // for util::ssign
+#include "util.hpp" // for util::assign
 #include <set> // for calculating the alphabet size
 #include <map> // for mapping a symbol to its lexicographical index
 #include <algorithm> // for std::swap
@@ -393,13 +393,10 @@ class wt
         }
 
     public:
-
         const size_type& sigma;
 
         // Default constructor
         wt():m_size(0),m_sigma(0), sigma(m_sigma) {};
-
-
 
         //! Constructor
         /*!
@@ -481,7 +478,7 @@ class wt
                     while (sigma >= 2) {
                         if (lex_idx >= ((sigma+1)/2))
                             tree[m_node_pointers[node]+node_sizes[node]] = 1;
-                        node_sizes[node] = node_sizes[node]+1;
+                        	node_sizes[node] = node_sizes[node]+1;
                         if (lex_idx < (sigma+1)/2) {
                             sigma = (sigma+1)/2;
                             node = 2*node+1;
@@ -502,17 +499,9 @@ class wt
             }
         }
 
+        //! Construct the wavelet tree from a random access container
         template<class size_type_class>
         wt(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
-            construct(rac, size);
-        }
-
-        //! Construct the wavelet tree from a random access container
-        /*! \param rac A random access container
-         *	\param size The length of the prefix of the random access container, for which the wavelet tree should be build
-         */
-        template<class size_type_class>
-        void construct(int_vector_file_buffer<8, size_type_class>& rac, size_type size) {
             m_size = size;
             init_char_node_map();
             typedef int_vector_file_buffer<8, size_type_class> tIVFB;
