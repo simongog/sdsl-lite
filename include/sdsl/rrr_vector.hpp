@@ -366,15 +366,17 @@ class rrr_rank_support
             size_type sample_pos = bt_idx/m_sample_rate;
             size_type btnrp = m_v->m_btnrp[ sample_pos ];
             size_type rank  = m_v->m_rank[ sample_pos ];
-            size_type diff_rank  = m_v->m_rank[ sample_pos+1 ] - rank;
+			if ( sample_pos+1 < m_v->m_rank.size() ){
+				size_type diff_rank  = m_v->m_rank[ sample_pos+1 ] - rank;
 #ifndef RRR_NO_OPT			
-            if (diff_rank == (size_type)0) {
-                return  rrr_rank_support_trait<b>::adjust_rank(rank, i);
-            } else if (diff_rank == (size_type)block_size*m_sample_rate) {
-                return  rrr_rank_support_trait<b>::adjust_rank(
-                            rank + i - sample_pos*m_sample_rate*block_size, i);
-            }
+				if (diff_rank == (size_type)0) {
+					return  rrr_rank_support_trait<b>::adjust_rank(rank, i);
+				} else if (diff_rank == (size_type)block_size*m_sample_rate) {
+					return  rrr_rank_support_trait<b>::adjust_rank(
+								rank + i - sample_pos*m_sample_rate*block_size, i);
+				}
 #endif			
+			}
             const bool inv = m_v->m_invert[ sample_pos ];
             for (size_type j = sample_pos*m_sample_rate; j < bt_idx; ++j) {
                 uint16_t r = m_v->m_bt[j];
@@ -463,7 +465,7 @@ class rrr_select_support
 
     private:
         const bit_vector_type* m_v; //!< Pointer to the rank supported rrr_vector
-        uint16_t m_sample_rate;  //!<    "     "   "      "
+        uint16_t m_sample_rate;     //!<    "     "   "      "
 
         size_type select1(size_type i)const {
             if (m_v->m_rank[m_v->m_rank.size()-1] < i)
@@ -471,8 +473,8 @@ class rrr_select_support
             //  (1) binary search for the answer in the rank_samples
             size_type begin=0, end=m_v->m_rank.size()-1; // min included, max excluded
             size_type idx, rank;
-            // invariant:  m_rank[end] >= i
-            //             m_rank[begin] < i
+            // invariant:  m_rank[end]   >= i
+            //             m_rank[begin]  < i
             while (end-begin > 1) {
                 idx  = (begin+end) >> 1; // idx in [0..m_rank.size()-1]
                 rank = m_v->m_rank[idx];
