@@ -79,7 +79,6 @@ class binomial15
                             m_space_for_bt[i] = 0;
                         else
                             m_space_for_bt[i] = bit_magic::l1BP(class_cnt)+1;
-                        //			cout << cnt << " " << class_cnt << " " << (int)m_space_for_bt[i] << endl;
                     }
                     if (n == 15) {
                         for (int x=0; x<256; ++x) {
@@ -193,18 +192,12 @@ class rrr_vector<15, wt_type>
                 sum_rank += x;
                 btnr_pos += bi_type::space_for_bt(x);
             }
-//	 cout << "# bt array initialized "<< endl;
             util::assign(m_btnr, bit_vector(std::max(btnr_pos, (size_type)64), 0));      // max necessary for case: block_size == 1
             util::assign(m_btnrp, int_vector<>((bt_array.size()+m_sample_rate-1)/m_sample_rate, 0,  bit_magic::l1BP(btnr_pos)+1));
 	
             util::assign(m_rank, int_vector<>((bt_array.size()+m_sample_rate-1)/m_sample_rate + ( (m_size % (m_sample_rate*block_size))>0 ), 0, bit_magic::l1BP(sum_rank)+1));
 			//                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 			//                                                                      only add a finishing block, if the last block of the superblock is not a dummy block 
-#ifndef NDEBUG
-			std::cout << "m_size="<<m_size<<" m_sample_rate="<<m_sample_rate<<" block_size="<<block_size<< std::endl;
-			std::cout << "m_rank.size()="<<m_rank.size()<<" bt_array.size()="<<bt_array.size()<< std::endl;
-#endif		
-
             // (2) calculate block type numbers and pointers into btnr and rank samples
             pos = 0; i = 0;
             btnr_pos= 0, sum_rank = 0;
@@ -326,19 +319,6 @@ class rrr_vector<15, wt_type>
             m_btnr.load(in);
             m_btnrp.load(in);
             m_rank.load(in);
-        }
-
-        // Print information about the object to stdout.
-        void print_info()const {
-            size_type orig_bv_size = m_size; // size of the original bit vector in bits
-            size_type rrr_size 	= util::get_size_in_bytes(*this)*8;
-            size_type bt_size 	= util::get_size_in_bytes(m_bt)*8;
-            size_type btnr_size 	= util::get_size_in_bytes(m_btnr)*8;
-            size_type btnrp_and_rank_size = util::get_size_in_bytes(m_btnrp)*8 + util::get_size_in_bytes(m_rank)*8;
-            std::cout << "#block_size\tsample_rate\torig_bv_size\trrr_size\tbt_size\tbtnr_size\tbtnrp_and_rank_size" << std::endl;
-            std::cout << (int)block_size << "\t" << m_sample_rate << "\t";
-            std::cout << orig_bv_size << "\t" << rrr_size << "\t" << bt_size << "\t" << btnr_size << "\t"
-                      << btnrp_and_rank_size << std::endl;
         }
 };
 
