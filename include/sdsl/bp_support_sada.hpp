@@ -63,19 +63,19 @@ namespace sdsl
  *
  *  @ingroup bps
  */
-template<uint32_t SmlBlkSize = 256,
-         uint32_t MedBlkDeg = 32,
-         class RankSupport = rank_support_v<>,
-         class SelectSupport = select_support_mcl<> >
+template<uint32_t SmlBlkSize 	= 256,
+         uint32_t MedBlkDeg 	= 32,
+         class RankSupport		= rank_support_v<>,
+         class SelectSupport 	= select_support_mcl<> >
 class bp_support_sada
 {
     public:
-        typedef bit_vector::size_type size_type;
+        typedef bit_vector::size_type 		size_type;
         typedef bit_vector::difference_type difference_type;
-        typedef int_vector<>	sml_block_array_type;
-        typedef int_vector<>	med_block_array_type;
+        typedef int_vector<>				sml_block_array_type;
+        typedef int_vector<>				med_block_array_type;
     private:
-        const bit_vector*	 m_bp;			  // the supported balanced parentheses sequence as bit_vector
+        const bit_vector*	m_bp;			  // the supported balanced parentheses sequence as bit_vector
         RankSupport 		m_bp_rank;  	  // rank support for the balanced parentheses sequence => see excess() and rank()
         SelectSupport 		m_bp_select;      // select support for the balanced parentheses sequence => see select()
 
@@ -343,6 +343,7 @@ class bp_support_sada
             m_size(bp==NULL?0:bp->size()),
             m_sml_blocks((m_size+SmlBlkSize-1)/SmlBlkSize),
             m_med_blocks((m_size+SmlBlkSize*MedBlkDeg-1)/(SmlBlkSize* MedBlkDeg)),
+			m_med_inner_blocks(0),
             bp_rank(m_bp_rank),
             bp_select(m_bp_select),
             sml_block_min_max(m_sml_block_min_max),
