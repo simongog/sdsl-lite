@@ -1294,113 +1294,106 @@ void int_vector<fixedIntWidth,size_type_class>::set_int_width(uint8_t width)
 }
 
 template<uint8_t fixedIntWidth, class size_type_class>
-inline typename int_vector<fixedIntWidth,size_type_class>::reference int_vector<fixedIntWidth,size_type_class>::operator[](const size_type& idx)
-{
+inline typename int_vector<fixedIntWidth,size_type_class>::reference int_vector<fixedIntWidth,size_type_class>::operator[](const size_type& idx) {
+	assert( idx < this->size() );
     size_type i = idx * m_int_width;
     return reference(this->m_data + (i>>6), i&0x3F, m_int_width);
 }
 
 // specialized [] operator for 64 bit access.
 template<>
-inline int_vector<64>::reference int_vector<64>::operator[](const size_type& idx)
-{
+inline int_vector<64>::reference int_vector<64>::operator[](const size_type& idx) {
+	assert( idx < this->size() );
     return *(this->m_data+idx);
 }
 
 // specialized [] operator for 32 bit access.
 template<>
-inline int_vector<32>::reference int_vector<32>::operator[](const size_type& idx)
-{
+inline int_vector<32>::reference int_vector<32>::operator[](const size_type& idx) {
+	assert( idx < this->size() );
     return *(((uint32_t*)(this->m_data))+idx);
 }
 
 // specialized [] operator for 16 bit access.
 template<>
-inline int_vector<16>::reference int_vector<16>::operator[](const size_type& idx)
-{
+inline int_vector<16>::reference int_vector<16>::operator[](const size_type& idx) {
+	assert( idx < this->size() );
     return *(((uint16_t*)(this->m_data))+idx);
 }
 
 // specialized [] operator for 8 bit access.
 template<>
-inline int_vector<8>::reference int_vector<8>::operator[](const size_type& idx)
-{
+inline int_vector<8>::reference int_vector<8>::operator[](const size_type& idx) {
+	assert( idx < this->size() );
     return *(((uint8_t*)(this->m_data))+idx);
 }
 
 template<uint8_t fixedIntWidth, class size_type_class>
-inline typename int_vector<fixedIntWidth,size_type_class>::const_reference int_vector<fixedIntWidth,size_type_class>::operator[](const size_type& idx)const
-{
+inline typename int_vector<fixedIntWidth,size_type_class>::const_reference int_vector<fixedIntWidth,size_type_class>::operator[](const size_type& idx)const {
+	assert( idx < this->size() );
     return get_int(idx * fixedIntWidth, fixedIntWidth);
 }
 
 template<>
-inline int_vector<0>::const_reference int_vector<0>::operator[](const size_type& idx)const
-{
+inline int_vector<0>::const_reference int_vector<0>::operator[](const size_type& idx)const {
+	assert( idx < this->size() );
     return get_int(idx * m_int_width, m_int_width);
 }
 
 template<>
-inline int_vector<64>::const_reference int_vector<64>::operator[](const size_type& idx)const
-{
+inline int_vector<64>::const_reference int_vector<64>::operator[](const size_type& idx)const {
+	assert( idx < this->size() );
     return *(this->m_data+idx);
 }
 
 template<>
-inline int_vector<32>::const_reference int_vector<32>::operator[](const size_type& idx)const
-{
+inline int_vector<32>::const_reference int_vector<32>::operator[](const size_type& idx)const {
+	assert( idx < this->size() );
     return *(((uint32_t*)this->m_data)+idx);
 }
 
 template<>
-inline int_vector<16>::const_reference int_vector<16>::operator[](const size_type& idx)const
-{
+inline int_vector<16>::const_reference int_vector<16>::operator[](const size_type& idx)const {
+	assert( idx < this->size() );
     return *(((uint16_t*)this->m_data)+idx);
 }
 
 template<>
-inline int_vector<8>::const_reference int_vector<8>::operator[](const size_type& idx)const
-{
+inline int_vector<8>::const_reference int_vector<8>::operator[](const size_type& idx)const {
+	assert( idx < this->size() );
     return *(((uint8_t*)this->m_data)+idx);
 }
 
 template<>
-inline int_vector<1>::const_reference int_vector<1>::operator[](const size_type& idx)const
-{
+inline int_vector<1>::const_reference int_vector<1>::operator[](const size_type& idx)const {
+	assert( idx < this->size() );
     return ((*(m_data+(idx>>6)))>>(idx&0x3F))&1;
 }
 
 template<uint8_t fixedIntWidth, class size_type_class>
-inline const typename int_vector<fixedIntWidth,size_type_class>::iterator int_vector<fixedIntWidth,size_type_class>::begin()
-{
-//	return iterator(this, 0);
+inline const typename int_vector<fixedIntWidth,size_type_class>::iterator int_vector<fixedIntWidth,size_type_class>::begin() {
     return int_vector_trait<fixedIntWidth,size_type_class>::begin(this, m_data);
 }
 
 template<uint8_t fixedIntWidth, class size_type_class>
-inline const typename int_vector<fixedIntWidth,size_type_class>::iterator int_vector<fixedIntWidth,size_type_class>::end()
-{
-//	return iterator(this, m_int_width*(m_size/m_int_width));
+inline const typename int_vector<fixedIntWidth,size_type_class>::iterator int_vector<fixedIntWidth,size_type_class>::end() {
     return int_vector_trait<fixedIntWidth,size_type_class>::end(this, m_data, (m_size/m_int_width));
 }
 
 template<uint8_t fixedIntWidth, class size_type_class>
-inline const typename int_vector<fixedIntWidth,size_type_class>::const_iterator int_vector<fixedIntWidth,size_type_class>::begin()const
-{
+inline const typename int_vector<fixedIntWidth,size_type_class>::const_iterator int_vector<fixedIntWidth,size_type_class>::begin()const {
 //	return const_iterator(this, 0);
     return int_vector_trait<fixedIntWidth,size_type_class>::begin(this, m_data);
 }
 
 template<uint8_t fixedIntWidth, class size_type_class>
-inline const typename int_vector<fixedIntWidth,size_type_class>::const_iterator int_vector<fixedIntWidth,size_type_class>::end()const
-{
+inline const typename int_vector<fixedIntWidth,size_type_class>::const_iterator int_vector<fixedIntWidth,size_type_class>::end()const {
 //	return const_iterator(this, m_int_width*(m_size/m_int_width));
     return int_vector_trait<fixedIntWidth,size_type_class>::end(this, m_data, (m_size/m_int_width));
 }
 
 template<uint8_t fixedIntWidth, class size_type_class>
-bool int_vector<fixedIntWidth,size_type_class>::operator==(const int_vector<fixedIntWidth>& v)const
-{
+bool int_vector<fixedIntWidth,size_type_class>::operator==(const int_vector<fixedIntWidth>& v)const {
     if (capacity() != v.capacity())
         return false;
     if (bit_size() != v.bit_size())
