@@ -136,6 +136,9 @@ TYPED_TEST(WtIntTest, LoadAndRank) {
 			ASSERT_EQ(wt.rank(j, iv[j]), check_rank[iv[j]]);
 			check_rank[iv[j]]++;
 		}
+		for (tMII::const_iterator it=check_rank.begin(); it!=check_rank.end(); ++it){
+			ASSERT_EQ(wt.rank(wt.size(), it->first), it->second);
+		}
 	}
 }
 
