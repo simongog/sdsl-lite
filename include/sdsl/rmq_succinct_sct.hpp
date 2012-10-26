@@ -74,9 +74,9 @@ class rmq_succinct_sct
 
         //! Constructor
 		template<class RandomAccessContainer>
-        rmq_succinct_sct(const RandomAccessContainer* v=NULL): sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
+        rmq_succinct_sct(const RandomAccessContainer* v=NULL) : sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
             if (v == NULL) {
-                m_sct_bp = bit_vector(0); m_sct_bp_support = Bp_support();
+				util::assign(m_sct_bp, bit_vector()); util::assign(m_sct_bp_support, Bp_support());
             } else {
 #ifdef RMQ_SCT_BUILD_BP_NOT_SUCCINCT
                 // this method takes \f$n\log n\f$ bits extra space in the worst case
@@ -86,7 +86,7 @@ class rmq_succinct_sct
                 algorithm::construct_supercartesian_tree_bp_succinct(*v, m_sct_bp, Minimum);
                 //  TODO: constructor which uses int_vector_file_buffer
 #endif
-                m_sct_bp_support = Bp_support(&m_sct_bp);
+                util::assign( m_sct_bp_support, Bp_support(&m_sct_bp));
             }
         }
 
@@ -96,9 +96,6 @@ class rmq_succinct_sct
                 copy(rm);
             }
         }
-
-        //! Destructor
-        ~rmq_succinct_sct() { }
 
         rmq_succinct_sct& operator=(const rmq_succinct_sct& rm) {
             if (this != &rm) {
