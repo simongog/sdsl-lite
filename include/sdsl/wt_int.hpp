@@ -281,8 +281,8 @@ class wt_int
         //! Calculates how many symbols c are in the prefix [0..i-1] of the supported vector.
         /*!
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
-         *  \param c The symbol to count the occurences in the prefix.
-         *	\returns The number of occurences of symbol c in the prefix [0..i-1] of the supported vector.
+         *  \param c The symbol to count the occurrences in the prefix.
+         *	\returns The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
          *  \par Time complexity
          *		\f$ \Order{\log |\Sigma|} \f$
          */
@@ -321,8 +321,8 @@ class wt_int
             size_type offset = 0;
             uint64_t mask	 = (1ULL) << (m_max_depth-1);
             size_type node_size = m_size;
-            size_type offsets[m_max_depth+1]; 			// offsets down the path
-            size_type ones_before_os[m_max_depth+1];   // ones before the offsets
+            size_type offsets[m_max_depth+1]; 		 // offsets down the path
+            size_type ones_before_os[m_max_depth+1]; // ones before the offsets
             offsets[0] = ones_before_os[0] = 0;
 
             for (uint32_t k=0; k < m_max_depth and node_size; ++k) {
@@ -358,10 +358,10 @@ class wt_int
         };
 
         //! range_search_2d searches points in the index interval [lb..rb] and value interval [vlb..vrb].
-        /*! \param lb Left bound of index interval (inclusive)
-         *  \param rb Right bound of index interval (inclusive)
-         *  \param vlb Left bound of value interval (inclusive)
-         *  \param vrb Right bound of value interval (inclusive)
+        /*! \param lb         Left bound of index interval (inclusive)
+         *  \param rb         Right bound of index interval (inclusive)
+         *  \param vlb        Left bound of value interval (inclusive)
+         *  \param vrb        Right bound of value interval (inclusive)
          *  \param idx_result Reference to a vector to which the resulting indices should be added
          *  \param val_result Reference to a vector to which the resulting values should be added
          */
@@ -473,6 +473,6 @@ class wt_int
         }
 };
 
-}// end namespace sds
+}// end namespace sdsl
 
 #endif // end file 
