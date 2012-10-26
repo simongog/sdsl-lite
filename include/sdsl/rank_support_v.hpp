@@ -157,7 +157,6 @@ typename rank_support_v<b, pattern_len>::size_type rank_support_v<b, pattern_len
 template<uint8_t b, uint8_t pattern_len>
 void rank_support_v<b, pattern_len>::load(std::istream& in, const int_vector<1>* v) {
     set_vector(v);
-    assert(m_v != NULL); // supported bit vector should be known
     m_basic_block.load(in);
 }
 
