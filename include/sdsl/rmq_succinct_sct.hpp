@@ -86,7 +86,7 @@ class rmq_succinct_sct
                 algorithm::construct_supercartesian_tree_bp_succinct(*v, m_sct_bp, Minimum);
                 //  TODO: constructor which uses int_vector_file_buffer
 #endif
-                util::assign( m_sct_bp_support, Bp_support(&m_sct_bp));
+                util::assign(m_sct_bp_support, Bp_support(&m_sct_bp));
             }
         }
 
