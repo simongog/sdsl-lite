@@ -131,6 +131,9 @@ class wt_int
 
             value_type x = 1;  // variable for the biggest value in rac
             for (size_type i=0,r=0,r_sum=0; i < m_size;) { // detect the largest value in rac
+				if ( r_sum + r > m_size ){ // read not more than size chars in the next loop
+					r = m_size - r_sum;
+				}
                 for (; i < r+r_sum; ++i) {
                     if (buf[i-r_sum] > x)
                         x = buf[i-r_sum];
@@ -252,7 +255,6 @@ class wt_int
          *	\returns The i-th symbol of the original vector.
          */
         value_type operator[](size_type i)const {
-//		size_type zeros_left_of_pos = 0;
             size_type offset = 0;
             value_type res = 0;
             size_type node_size = m_size;
@@ -261,9 +263,7 @@ class wt_int
                 size_type ones_before_o	  = m_tree_rank(offset);
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
-//			std::cerr<<"k="<<k<<" i="<<i<<" offset="<<offset<<" node_size="<<node_size<<" obo="<<ones_before_o<<" obi="<<ones_before_i<<" obe="<<ones_before_end<<std::endl;
                 if (m_tree[offset+i]) { // one at position i => follow right child
-//				zeros_left_of_pos += (node_size - ones_before_end);
                     offset += (node_size - ones_before_end);
                     node_size = ones_before_end;
                     i = ones_before_i;
@@ -272,10 +272,8 @@ class wt_int
                     node_size = (node_size - ones_before_end);
                     i = (i-ones_before_i);
                 }
-                //offset = (k+1)*m_size + zeros_left_of_pos;
                 offset += m_size;
             }
-//		std::cerr<<" offset="<<offset<<" node_size="<<node_size<<std::endl;
             return res;
         };
 
