@@ -196,7 +196,14 @@ class rrr_vector<15, wt_type>
 //	 cout << "# bt array initialized "<< endl;
             util::assign(m_btnr, bit_vector(std::max(btnr_pos, (size_type)64), 0));      // max necessary for case: block_size == 1
             util::assign(m_btnrp, int_vector<>((bt_array.size()+m_sample_rate-1)/m_sample_rate, 0,  bit_magic::l1BP(btnr_pos)+1));
-            util::assign(m_rank, int_vector<>((bt_array.size()+m_sample_rate-1)/m_sample_rate + 1, 0, bit_magic::l1BP(sum_rank)+1));
+	
+            util::assign(m_rank, int_vector<>((bt_array.size()+m_sample_rate-1)/m_sample_rate + ( (m_size % (m_sample_rate*block_size))>0 ), 0, bit_magic::l1BP(sum_rank)+1));
+			//                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+			//                                                                      only add a finishing block, if the last block of the superblock is not a dummy block 
+#ifndef NDEBUG
+			std::cout << "m_size="<<m_size<<" m_sample_rate="<<m_sample_rate<<" block_size="<<block_size<< std::endl;
+			std::cout << "m_rank.size()="<<m_rank.size()<<" bt_array.size()="<<bt_array.size()<< std::endl;
+#endif		
 
             // (2) calculate block type numbers and pointers into btnr and rank samples
             pos = 0; i = 0;
@@ -214,7 +221,7 @@ class rrr_vector<15, wt_type>
                 btnr_pos += space_for_bt;
                 pos += block_size;
             }
-            if (pos < m_size) { // handle last full block
+            if (pos < m_size) { // handle last not full block
                 if ((i % m_sample_rate) == 0) {
                     m_btnrp[ i/m_sample_rate ] = btnr_pos;
                     m_rank[ i/m_sample_rate ] = sum_rank;
@@ -225,7 +232,10 @@ class rrr_vector<15, wt_type>
                     m_btnr.set_int(btnr_pos, bi_type::bin_to_nr(bv.get_int(pos, m_size - pos)), space_for_bt);
                 }
                 btnr_pos += space_for_bt;
-            }
+				assert( m_rank.size()-1 == ((i+m_sample_rate-1)/m_sample_rate) );
+            }else{ // handle last empty full block
+				assert( m_rank.size()-1 == ((i+m_sample_rate-1)/m_sample_rate) );
+			}
             // for technical reasons add an additional element to m_rank
             m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
             util::assign(m_bt, bt_array);
@@ -371,13 +381,15 @@ class rrr_rank_support<b, 15, wt_type>
             size_type sample_pos = bt_idx/m_sample_rate;
             size_type btnrp = m_v->m_btnrp[ sample_pos ];
             size_type rank  = m_v->m_rank[ sample_pos ];
-            size_type diff_rank  = m_v->m_rank[ sample_pos+1 ] - rank;
-            if (diff_rank == 0) {
-                return  rrr_rank_support_trait<b>::adjust_rank(rank, i);
-            } else if (diff_rank == (size_type)bit_vector_type::block_size*m_sample_rate) {
-                return  rrr_rank_support_trait<b>::adjust_rank(
-                            rank + i - sample_pos*m_sample_rate*bit_vector_type::block_size, i);
-            }
+			if ( sample_pos+1 < m_v->m_rank.size()  ){
+				size_type diff_rank  = m_v->m_rank[ sample_pos+1 ] - rank;
+				if (diff_rank == 0) {
+					return  rrr_rank_support_trait<b>::adjust_rank(rank, i);
+				} else if (diff_rank == (size_type)bit_vector_type::block_size*m_sample_rate) {
+					return  rrr_rank_support_trait<b>::adjust_rank(
+								rank + i - sample_pos*m_sample_rate*bit_vector_type::block_size, i);
+				}
+			}
             uint8_t* bt = (uint8_t*)(m_v->m_bt.data());
 
             uint8_t last_bt = *(bt + (bt_idx/2));
@@ -476,7 +488,6 @@ class rrr_rank_support<b, 15, wt_type>
         rrr_rank_support& operator=(const rrr_rank_support& rs) {
             if (this != &rs) {
                 set_vector(rs.m_v);
-                m_sample_rate = rs.m_sample_rate;
             }
             return *this;
         }
@@ -505,13 +516,13 @@ class rrr_rank_support<b, 15, wt_type>
 
 
 //! Select support for the specialized rrr_vector class of block size 15.
-template<uint8_t b,class wt_type>
+template<uint8_t b, class wt_type>
 class rrr_select_support<b, 15, wt_type>
 {
     public:
-        typedef rrr_vector<15, wt_type> bit_vector_type;
+        typedef rrr_vector<15, wt_type> 			bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
-        typedef typename bit_vector_type::bi_type bi_type;
+        typedef typename bit_vector_type::bi_type 	bi_type;
 
     private:
         const bit_vector_type* m_v; //!< Pointer to the rank supported rrr_vector
@@ -524,8 +535,8 @@ class rrr_select_support<b, 15, wt_type>
             //  (1) binary search for the answer in the rank_samples
             size_type begin=0, end=m_v->m_rank.size()-1; // min included, max excluded
             size_type idx, rank;
-            // invariant:  m_rank[end] >= i
-            //             m_rank[begin] < i
+            // invariant:  m_rank[end]   >= i
+            //             m_rank[begin]  < i
             while (end-begin > 1) {
                 idx  = (begin+end) >> 1; // idx in [0..m_rank.size()-1]
                 rank = m_v->m_rank[idx];
