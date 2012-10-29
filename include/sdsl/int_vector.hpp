@@ -31,6 +31,7 @@
 #include "bitmagic.hpp"
 #include "util.hpp"
 #include "testutils.hpp"
+#include "config.hpp"
 #include "uintx_t.hpp"
 #include "structure_tree.hpp"
 
@@ -1485,13 +1486,12 @@ typename int_vector<fixedIntWidth,size_type_class>::size_type int_vector<fixedIn
         written_bytes += _sdsl_serialize_size_and_int_width(out, fixedIntWidth, m_int_width, m_size);
     }
     uint64_t* p = m_data;
-    const static size_type SDSL_BLOCK_SIZE = (1<<28);
     size_type idx = 0;
-    while (idx+SDSL_BLOCK_SIZE < (capacity()>>6)) {
-        out.write((char*) p, SDSL_BLOCK_SIZE*sizeof(uint64_t));
-        written_bytes += SDSL_BLOCK_SIZE*sizeof(uint64_t);
-        p 	+= SDSL_BLOCK_SIZE;
-        idx	+= SDSL_BLOCK_SIZE;
+    while (idx+constants::SDSL_BLOCK_SIZE < (capacity()>>6)) {
+        out.write((char*) p, constants::SDSL_BLOCK_SIZE*sizeof(uint64_t));
+        written_bytes += constants::SDSL_BLOCK_SIZE*sizeof(uint64_t);
+        p 	+= constants::SDSL_BLOCK_SIZE;
+        idx	+= constants::SDSL_BLOCK_SIZE;
     }
     out.write((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
     written_bytes += ((capacity()>>6)-idx)*sizeof(uint64_t);
@@ -1515,12 +1515,11 @@ void int_vector<fixedIntWidth,size_type_class>::load(std::istream& in)
 
     bit_resize(size);
     uint64_t* p = m_data;
-    const static size_type SDSL_BLOCK_SIZE = (1<<28); // TODO: is this the loading bottleneck?
     size_type idx = 0;
-    while (idx+SDSL_BLOCK_SIZE < (capacity()>>6)) {
-        in.read((char*) p, SDSL_BLOCK_SIZE*sizeof(uint64_t));
-        p 	+= SDSL_BLOCK_SIZE;
-        idx += SDSL_BLOCK_SIZE;
+    while (idx+constants::SDSL_BLOCK_SIZE < (capacity()>>6)) {
+        in.read((char*) p, constants::SDSL_BLOCK_SIZE*sizeof(uint64_t));
+        p 	+= constants::SDSL_BLOCK_SIZE;
+        idx += constants::SDSL_BLOCK_SIZE;
     }
     in.read((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
 }
@@ -1547,13 +1546,12 @@ class char_array_serialize_wrapper
             size_type written_bytes = 0;
             written_bytes += _sdsl_serialize_size_and_int_width(out, 8, 8, size);
             const char* p = (const char*)m_cp;
-            const static size_type SDSL_BLOCK_SIZE = (1<<22);
             size_type idx = 0;
-            while (idx+SDSL_BLOCK_SIZE < m_n) {
-                out.write(p, SDSL_BLOCK_SIZE);
-                written_bytes += SDSL_BLOCK_SIZE;
-                p += SDSL_BLOCK_SIZE;
-                idx += SDSL_BLOCK_SIZE;
+            while (idx+constants::SDSL_BLOCK_SIZE < m_n) {
+                out.write(p, constants::SDSL_BLOCK_SIZE);
+                written_bytes += constants::SDSL_BLOCK_SIZE;
+                p += constants::SDSL_BLOCK_SIZE;
+                idx += constants::SDSL_BLOCK_SIZE;
             }
             // now: m_n-idx <= SDSL_BLOCK_SIZE
             out.write(p , m_n-idx);
@@ -1654,7 +1652,7 @@ class int_vector_file_buffer
             int_vector_trait<fixedIntWidth, size_type_class>::set_int_width(m_int_width, int_width);
             m_len = len;
             m_file_name = f_file_name;
-            m_int_vector_size = get_file_size(m_file_name.c_str());
+            m_int_vector_size = util::get_file_size(m_file_name.c_str());
             m_in.open(m_file_name.c_str(), std::ifstream::in);
             if (m_in.is_open()) {
                 m_buf = new uint64_t[(m_len*m_int_width+63)/64 + 2];
@@ -1675,7 +1673,7 @@ class int_vector_file_buffer
             if (!m_load_from_plain) {
                 load_size_and_width();
             } else {
-                m_int_vector_size = get_file_size(m_file_name.c_str());
+                m_int_vector_size = util::get_file_size(m_file_name.c_str());
             }
             if (new_buf_len > 0 and new_buf_len != m_len) {
                 if (m_buf != NULL)

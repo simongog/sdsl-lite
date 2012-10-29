@@ -124,8 +124,6 @@ class clock
         static std::string get_time_string();
 };
 
-//! Get the size of a file in bytes
-off_t get_file_size(const char* file_name);
 
 
 //! A helper class to handle files.

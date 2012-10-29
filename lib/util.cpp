@@ -18,6 +18,8 @@
 #include "sdsl/util.hpp"
 #include "sdsl/structure_tree.hpp"
 #include "cxxabi.h"
+#include <sys/types.h> // for get_file_size
+#include <sys/stat.h>  // for get_file_size
 #include <vector>
 
 namespace sdsl
@@ -176,6 +178,13 @@ bool load_from_file(char*& v, const char* file_name)
 
 void set_verbose(){
 	verbose = true;
+}
+
+off_t get_file_size(const char* file_name)
+{
+    struct stat filestatus;
+    stat(file_name, &filestatus);
+    return filestatus.st_size;
 }
 
 
