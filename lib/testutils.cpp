@@ -20,8 +20,7 @@
 #include <iostream>
 #include <iomanip>
 #include <unistd.h> // for get_file_size, also contains clock_gettime 
-#include <sys/types.h> // for get_file_size
-#include <sys/stat.h>  // for get_file_size
+
 
 namespace sdsl
 {
@@ -105,12 +104,7 @@ std::string clock::get_time_string()
     return buffer;
 }
 
-off_t get_file_size(const char* file_name)
-{
-    struct stat filestatus;
-    stat(file_name, &filestatus);
-    return filestatus.st_size;
-}
+
 
 
 void file::write_text(const char* file_name, const char* c, uint64_t len)
@@ -128,7 +122,7 @@ uint64_t file::read_text(const char* file_name, char*& c, bool trunc, uint64_t l
         delete [] c;
         c = NULL;
     }
-    uint64_t n = get_file_size(file_name) + 1; // add one for the 0 byte
+    uint64_t n = util::get_file_size(file_name) + 1; // add one for the 0 byte
     if (trunc and lim+1 < n) {
         n = lim+1;
     }

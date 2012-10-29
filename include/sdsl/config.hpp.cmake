@@ -3,4 +3,13 @@
 
 #define CMAKE_SOURCE_DIR @CMAKE_SOURCE_DIR@
 
+#include "uintx_t.hpp"
+
+namespace sdsl{
+	namespace constants{ // namespace for library constant
+		// size of the buffer for reading and writing data in elements (not in bytes)
+		const uint64_t SDSL_BLOCK_SIZE = (uint64_t)1<<22; 
+	}
+}
+
 #endif

@@ -24,6 +24,7 @@
 #include "bitmagic.hpp"
 #include "typedefs.hpp"
 #include "structure_tree.hpp"
+#include "config.hpp"  // for constants 
 #include <iosfwd>      // forward declaration of ostream
 #include <stdint.h>    // for uint64_t uint32_t declaration
 #include <cassert>
@@ -63,6 +64,9 @@ namespace util
 static bool verbose = false;
 
 void set_verbose();
+
+//! Get the size of a file in bytes
+off_t get_file_size(const char* file_name);
 
 //! Returns the basename of a file_name
 std::string basename(const std::string& file_name);
@@ -142,6 +146,56 @@ bool load_from_file(T& v, const char* file_name);
 template<>
 bool load_from_file(void*&, const char* file_name);
 
+//! Load an int_vector from a plain int_type array stored on disk.
+template<class int_type, class int_vector_type>
+bool load_from_plain_array(int_vector_type &v, const char* file_name, uint8_t max_int_width=64){
+	off_t file_size = get_file_size( file_name );
+	if ( file_size % sizeof(int_type) != 0 ){
+		throw std::logic_error("file size "+to_string(file_size)+" of \""+to_string(file_name)
+				                           +"\" is not a multiple of "+to_string(sizeof(int_type)));
+		return false;
+	}
+	std::ifstream in(file_name);
+	if ( in ){
+		v.set_int_width( std::min( (uint8_t)(sizeof(int_type)*8), max_int_width ) );
+		v.resize( file_size / sizeof(int_type) );
+		size_t idx=0;
+		const size_t block_size = constants::SDSL_BLOCK_SIZE*(sizeof(int_type));
+		char * buf = new char[block_size];
+		do{
+			in.read(buf, block_size);
+			size_t read = in.gcount();
+			int_type* begin = (int_type*)buf;
+		    int_type* end   = begin+(read/sizeof(int_type));
+			while ( begin <= end ){
+				v[idx++] = *begin;
+				++begin;
+			}
+		} while( idx < v.size() );
+		delete [] buf;
+		in.close();
+		return true;
+	}else{
+		return false;
+	}
+}
+
+//! Store an int_vector as plain int_type array to disk 
+template<class int_type, class int_vector_type>
+bool store_to_plain_array(int_vector_type &v, const char* file_name){
+	std::ofstream out(file_name);
+	if ( out ){
+		for (typename int_vector_type::size_type i=0; i<v.size(); ++i){
+			int_type x = v[i];
+			out.write((char*)&x, sizeof(int_type));
+		}
+		return true;
+	}else{
+		return false;
+	}
+}
+
+
 template<class size_type_class>
 bool load_from_int_vector_buffer(unsigned char*& text, int_vector_file_buffer<8, size_type_class>& text_buf);
 
@@ -150,6 +204,7 @@ bool load_from_int_vector_buffer(unsigned char*& text, int_vector_file_buffer<8,
  *
  */
 bool load_from_file(char*& v, const char* file_name);
+
 
 //! Store a data structure to a file.
 /*! The data structure has to provide a serialize function.
