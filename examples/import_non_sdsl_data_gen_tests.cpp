@@ -9,7 +9,7 @@ using namespace std;
 template<typename T>
 void write_inc_file(const char *name, size_t len){
 	ofstream out(name);
-	for(size_t i=0; i<len; ++i){
+	for(size_t i=1; i<=len; ++i){
 		T x = i;
 		out.write((char*)&x,sizeof(x));
 	}
@@ -26,7 +26,7 @@ int main(int argc, char* argv[]){
 	if ( argc < 2 ){
 		cout << "Usage: "<<argv[0]<<" len" << endl;
 		cout << "Generates 8 files. The first 4 contain an increasing sequence\n";
-		cout << "[0..len-1], where each number is represented with a fixed\n";
+		cout << "[1..len], where each number is represented with a fixed\n";
 		cout << "x=8, 16, 32, and 64-bit integer. The result files are named\n";
 		cout << "v.xbit.\n";
 		cout << "The remaining files contain a sequence of length len and all";
