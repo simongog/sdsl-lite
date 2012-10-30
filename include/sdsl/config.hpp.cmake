@@ -2,6 +2,8 @@
 #define SDSL_CONFIG
 
 #define CMAKE_SOURCE_DIR @CMAKE_SOURCE_DIR@
+#cmakedefine divsufsort_FOUND
+#cmakedefine divsufsort64_FOUND
 
 #include "uintx_t.hpp"
 

@@ -150,37 +150,50 @@ bool load_from_file(T& v, const char* file_name);
 template<>
 bool load_from_file(void*&, const char* file_name);
 
-//! Load an int_vector from a plain int_type array stored on disk.
-template<class int_type, class int_vector_type>
-bool load_from_plain_array(int_vector_type &v, const char* file_name, uint8_t max_int_width=64){
-	off_t file_size = get_file_size( file_name );
-	if ( file_size % sizeof(int_type) != 0 ){
-		throw std::logic_error("file size "+to_string(file_size)+" of \""+to_string(file_name)
-				                           +"\" is not a multiple of "+to_string(sizeof(int_type)));
-		return false;
-	}
-	std::ifstream in(file_name);
-	if ( in ){
-		v.set_int_width( std::min( (uint8_t)(sizeof(int_type)*8), max_int_width ) );
-		v.resize( file_size / sizeof(int_type) );
-		size_t idx=0;
-		const size_t block_size = constants::SDSL_BLOCK_SIZE*(sizeof(int_type));
-		char * buf = new char[block_size];
-		do{
-			in.read(buf, block_size);
-			size_t read = in.gcount();
-			int_type* begin = (int_type*)buf;
-		    int_type* end   = begin+(read/sizeof(int_type));
-			while ( begin < end ){
-				v[idx++] = *begin;
-				++begin;
-			}
-		} while( idx < v.size() );
-		delete [] buf;
-		in.close();
-		return true;
-	}else{
-		return false;
+//! Load an int_vector from a plain array of `num_bytes`-byte integers with X in \{0, 1,2,4,8\} from disk.
+// TODO: Remove ENDIAN dependency: currently in BIG_ENDIAN format
+template<class int_vector_type>
+bool load_vector_from_file(int_vector_type &v, const char* file_name, uint8_t num_bytes=1, uint8_t max_int_width=64){
+	if ( (uint8_t)0 == num_bytes ){ // if byte size is variable read int_vector<0> from file
+		return load_from_file(v, file_name);
+	}else {
+		off_t file_size = get_file_size( file_name );
+		if ( file_size % num_bytes != 0 ){
+			throw std::logic_error("file size "+to_string(file_size)+" of \""+to_string(file_name)
+											   +"\" is not a multiple of "+to_string(num_bytes));
+			return false;
+		}
+		std::ifstream in(file_name);
+		if ( in ){
+			v.set_int_width( std::min( (int)8*num_bytes, (int)max_int_width ) );
+			v.resize( file_size / num_bytes );
+			size_t idx=0;
+			const size_t block_size = constants::SDSL_BLOCK_SIZE*num_bytes;
+			uint8_t * buf = new uint8_t[block_size];
+			uint64_t x = 0; // value
+			uint8_t  cur_byte = 0;
+			do{
+				in.read((char*)buf, block_size);
+				size_t read = in.gcount();
+				uint8_t* begin = buf;
+				uint8_t* end   = begin+read;
+				while ( begin < end ){
+					x |= (*begin) << (cur_byte*8);
+					++cur_byte;
+					if ( cur_byte == num_bytes ){
+						v[idx++] = x;
+						cur_byte = 0;
+						x = 0ULL;
+					}
+					++begin;
+				}
+			} while( idx < v.size() );
+			delete [] buf;
+			in.close();
+			return true;
+		}else{
+			return false;
+		}
 	}
 }
 
