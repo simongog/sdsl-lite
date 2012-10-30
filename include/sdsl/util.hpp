@@ -97,6 +97,10 @@ void set_one_bits(int_vector_type& v);
 template<class int_vector_type>
 void bit_compress(int_vector_type& v);
 
+//! Expands the integer width to new_width >= v.get_int_width()
+template<class int_vector_type>
+void expand_width(int_vector_type&v, uint8_t new_width);
+
 //! All elements of v modulo m
 template<class int_vector_type, class size_type_class>
 void all_elements_mod(int_vector_type& v, size_type_class m);
@@ -167,7 +171,7 @@ bool load_from_plain_array(int_vector_type &v, const char* file_name, uint8_t ma
 			size_t read = in.gcount();
 			int_type* begin = (int_type*)buf;
 		    int_type* end   = begin+(read/sizeof(int_type));
-			while ( begin <= end ){
+			while ( begin < end ){
 				v[idx++] = *begin;
 				++begin;
 			}
@@ -614,6 +618,21 @@ void util::bit_compress(int_vector_type& v)
     }
 }
 
+template<class int_vector_type>
+void util::expand_width(int_vector_type&v, uint8_t new_width){
+	uint8_t old_width = v.get_int_width();
+	typename int_vector_type::size_type n = v.size();
+	if ( new_width > old_width and n > 0 ){
+		typename int_vector_type::size_type i, old_pos, new_pos;
+		new_pos = (n-1)*new_width;
+		old_pos = (n-1)*old_width;
+		v.bit_resize(v.size()*new_width);
+    	for (i=0; i < n; ++i, new_pos-=new_width, old_pos-=old_width) {
+			v.set_int(new_pos, v.get_int(old_pos, old_width), new_width);
+		}
+		v.set_int_width(new_width);
+	}
+}
 
 template<class int_vector_type>
 void util::set_all_values_to_k(int_vector_type& v, uint64_t k)
@@ -649,7 +668,7 @@ void util::set_all_values_to_k(int_vector_type& v, uint64_t k)
     }
 }
 
-
+//! Set v[i] = i for i=[0..v.size()-1]
 template<class int_vector_type>
 void util::set_to_id(int_vector_type& v)
 {
