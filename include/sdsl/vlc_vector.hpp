@@ -91,8 +91,8 @@ class vlc_vector
         vlc_vector(const Container& c);
 
         //! Constructor for an int_vector_file_buffer of positive integers.
-        template<uint8_t int_width, class size_type_class>
-        vlc_vector(int_vector_file_buffer<int_width, size_type_class>& v_buf);
+        template<uint8_t int_width>
+        vlc_vector(int_vector_file_buffer<int_width>& v_buf);
 
         //! The number of elements in the vlc_vector.
         size_type size()const;
@@ -270,8 +270,8 @@ vlc_vector<Coder, SampleDens, fixedIntWidth>::vlc_vector(const Container& c) : m
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-template<uint8_t int_width, class size_type_class>
-vlc_vector<Coder, SampleDens, fixedIntWidth>::vlc_vector(int_vector_file_buffer<int_width, size_type_class>& v_buf) 
+template<uint8_t int_width>
+vlc_vector<Coder, SampleDens, fixedIntWidth>::vlc_vector(int_vector_file_buffer<int_width>& v_buf) 
 	: m_elements(0), m_sample_dens(16) {
     clear(); // clear bit_vectors
     size_type n = v_buf.int_vector_size;

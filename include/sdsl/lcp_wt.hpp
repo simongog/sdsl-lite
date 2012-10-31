@@ -107,8 +107,8 @@ class lcp_wt
         lcp_wt(const Text& text, const Sa& sa);
 
         //! Construct the lcp array from an int_vector_file_buffer
-        template<uint8_t int_width, class size_type_class>
-        lcp_wt(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
+        template<uint8_t int_width>
+        lcp_wt(int_vector_file_buffer<int_width>& lcp_buf);
 
         //! Number of elements in the instance.
         /*! Required for the Container Concept of the STL.
@@ -196,8 +196,8 @@ lcp_wt<width>::lcp_wt(const Text& text, const Sa& sa)
 
 
 template<uint8_t width>
-template<uint8_t int_width, class size_type_class>
-lcp_wt<width>::lcp_wt(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
+template<uint8_t int_width>
+lcp_wt<width>::lcp_wt(int_vector_file_buffer<int_width>& lcp_buf)
 {
     std::string temp_file = "/tmp/lcp_sml" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id()) ;// TODO: remove absolute file name
 //	write_R_output("lcp","construct sml","begin");

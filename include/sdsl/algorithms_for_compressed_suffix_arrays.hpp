@@ -81,8 +81,8 @@ void set_text(const unsigned char* str, typename Csa::size_type len, int_vector<
 #endif
 }
 
-template<class Csa, class size_type_class>
-void set_text(int_vector_file_buffer<8, size_type_class>& str_buf, typename Csa::size_type len, int_vector<64>& C, int_vector<8>& char2comp, int_vector<8>& comp2char, uint16_t& sigma)
+template<class Csa>
+void set_text(int_vector_file_buffer<8>& str_buf, typename Csa::size_type len, int_vector<64>& C, int_vector<8>& char2comp, int_vector<8>& comp2char, uint16_t& sigma)
 {
 #ifdef SDSL_DEBUG_ALGORITHMS_FOR_COMPRESSED_SUFFIX_ARRAYS
     stop_watch sw; sw.start();
@@ -128,8 +128,8 @@ void set_text(int_vector_file_buffer<8, size_type_class>& str_buf, typename Csa:
 #endif
 }
 
-template<class Csa, uint8_t int_width, class size_type_class>
-void set_isa_samples(int_vector_file_buffer<int_width, size_type_class>& sa_buf, typename Csa::isa_sample_type& isa_sample)
+template<class Csa, uint8_t int_width>
+void set_isa_samples(int_vector_file_buffer<int_width>& sa_buf, typename Csa::isa_sample_type& isa_sample)
 {
     typedef typename Csa::size_type size_type;
     size_type  n = sa_buf.int_vector_size;
@@ -152,22 +152,7 @@ void set_isa_samples(int_vector_file_buffer<int_width, size_type_class>& sa_buf,
         }
         r_sum += r; r = sa_buf.load_next_block();
     }
-    /*	if(isa_sample.size() < 20 ){
-    		std::cerr<<"isa_samples = ";
-    		for(int_vector<>::size_type i=0;i<isa_sample.size(); ++i)
-    			std::cerr<<isa_sample[i]<<" ";
-    		std::cerr<<std::endl;
-    		std::cerr<<"Csa::isa_sample_dens = "<<Csa::isa_sample_dens <<std::endl;
-    		std::cerr<<"n = "<<n <<std::endl;
-    		std::cerr<<"isa_sample.size() = "<< isa_sample.size() <<std::endl;
-    	}
-    */
 }
-
-//template<class Csa>
-//bool char_at_char_pos_equals_char(const Csa &csa, typename Csa::size_type char_pos, typename Csa::char_type c){
-//	typename Csa::
-//}
 
 /*
  * \par Time complexity

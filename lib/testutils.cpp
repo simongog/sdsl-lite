@@ -134,10 +134,7 @@ uint64_t file::read_text(const char* file_name, char*& c, bool trunc, uint64_t l
         c[n-1] = '\0';
         char* cp = c;
         in.read(cp, n-1);
-        if (n > 1 and c[n-2] == 0)
-            return n-1; // last byte was already a null byte
-        else
-            return n; // added 0 byte
+        return n; // added 0 byte
     }
     return 0;
     /*

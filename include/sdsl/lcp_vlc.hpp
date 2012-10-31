@@ -94,8 +94,8 @@ class lcp_vlc
         lcp_vlc(const Text& text, const Sa& sa);
 
         //! Construct the lcp array from an int_vector_file_buffer
-        template<uint8_t int_width, class size_type_class>
-        lcp_vlc(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
+        template<uint8_t int_width>
+        lcp_vlc(int_vector_file_buffer<int_width>& lcp_buf);
 
         //! Number of elements in the instance.
         /*! Required for the Container Concept of the STL.
@@ -176,8 +176,8 @@ lcp_vlc<vlc_vec_type>::lcp_vlc(const Text& text, const Sa& sa) {
 
 
 template<class vlc_vec_type>
-template<uint8_t int_width, class size_type_class>
-lcp_vlc<vlc_vec_type>::lcp_vlc(int_vector_file_buffer<int_width, size_type_class>& lcp_buf) {
+template<uint8_t int_width>
+lcp_vlc<vlc_vec_type>::lcp_vlc(int_vector_file_buffer<int_width>& lcp_buf) {
 	util::assign(m_vec, vlc_vec_type(lcp_buf));
 }
 

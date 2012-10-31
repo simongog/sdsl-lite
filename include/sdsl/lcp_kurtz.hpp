@@ -101,8 +101,8 @@ class lcp_kurtz
         lcp_kurtz(const Text& text, const Sa& sa);
 
         //! Construct the lcp array from an int_vector_file_buffer
-        template<uint8_t int_width, class size_type_class>
-        lcp_kurtz(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
+        template<uint8_t int_width>
+        lcp_kurtz(int_vector_file_buffer<int_width>& lcp_buf);
 
         //! Number of elements in the instance.
         /*! Required for the Container Concept of the STL.
@@ -219,8 +219,8 @@ lcp_kurtz<width>::lcp_kurtz(const Text& text, const Sa& sa) {
 
 
 template<uint8_t width>
-template<uint8_t int_width, class size_type_class>
-lcp_kurtz<width>::lcp_kurtz(int_vector_file_buffer<int_width, size_type_class>& lcp_buf) {
+template<uint8_t int_width>
+lcp_kurtz<width>::lcp_kurtz(int_vector_file_buffer<int_width>& lcp_buf) {
     m_small_lcp = int_vector<8>(lcp_buf.int_vector_size);
     typename int_vector<>::size_type l=0, max_l=0, max_big_idx=0, big_sum=0;
     lcp_buf.reset();

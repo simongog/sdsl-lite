@@ -59,7 +59,7 @@ namespace sdsl
 
 typedef uint64_t std_size_type_for_int_vector;
 
-template<uint8_t fixedIntWidth=0, class size_type_class = std_size_type_for_int_vector>
+template<uint8_t fixedIntWidth=0>
 class int_vector; // forward declaration
 
 template<class int_vector_type>
@@ -110,23 +110,20 @@ class elias_delta;
 class ternary;
 }
 
-template<uint8_t=0, class size_type_class = std_size_type_for_int_vector>
+template<uint8_t=0>
 class int_vector_file_buffer;
 
-template<class size_type_class = std_size_type_for_int_vector>
 class char_array_serialize_wrapper;
 
-
-template<uint8_t fixedIntWidth, class size_type_class>
+template<uint8_t fixedIntWidth>
 struct int_vector_trait {
-    typedef uint64_t   				value_type;
-    typedef size_type_class			size_type;
-    typedef int_vector<fixedIntWidth, size_type_class> int_vector_type;
-    typedef int_vector_reference<int_vector_type> 	reference;
-    typedef const uint64_t const_reference;
-    typedef uint8_t int_width_type;
+    typedef uint64_t   									value_type;
+    typedef int_vector<fixedIntWidth> 					int_vector_type;
+    typedef int_vector_reference<int_vector_type> 		reference;
+    typedef const uint64_t 								const_reference;
+    typedef uint8_t 									int_width_type;
     typedef int_vector_iterator<int_vector_type> 		iterator;
-    typedef int_vector_const_iterator<int_vector_type>   const_iterator;
+    typedef int_vector_const_iterator<int_vector_type> 	const_iterator;
     // Sets int_width to new_int_width
     static void set_int_width(int_width_type& int_width, const uint8_t new_int_width) {
         if (fixedIntWidth==1)
@@ -138,7 +135,7 @@ struct int_vector_trait {
     }
 
     // read the size and int_width of a bit_vector
-    static void read_header(size_type& size, int_width_type& int_width, std::istream& in) {
+    static void read_header(int_vector_size_type& size, int_width_type& int_width, std::istream& in) {
         util::read_member(size, in);
         if (0 == fixedIntWidth) {
             util::read_member(int_width, in);
@@ -149,139 +146,135 @@ struct int_vector_trait {
     static iterator begin(int_vector_type* v, uint64_t*) {
         return iterator(v, 0);
     }
-    static iterator end(int_vector_type* v, uint64_t*, size_type) {
+    static iterator end(int_vector_type* v, uint64_t*, int_vector_size_type) {
         return iterator(v, v->size()*v->get_int_width()) ;
     }
     static const_iterator begin(const int_vector_type* v, const uint64_t*) {
         return const_iterator(v, 0);
     }
-    static const_iterator end(const int_vector_type* v, const uint64_t*, size_type) {
+    static const_iterator end(const int_vector_type* v, const uint64_t*, int_vector_size_type) {
         return const_iterator(v, v->size()*v->get_int_width());
     }
 };
 
-template<class size_type_class>
-struct int_vector_trait<64, size_type_class> {
-    typedef uint64_t   				value_type;
-    typedef size_type_class			size_type;
-    typedef int_vector<64, size_type_class> int_vector_type;
-    typedef uint64_t& reference;
-    typedef const uint64_t const_reference;
-    typedef const uint8_t int_width_type;
-    typedef uint64_t* iterator;
-    typedef const uint64_t* const_iterator;
+template<>
+struct int_vector_trait<64> {
+    typedef uint64_t   		value_type;
+    typedef int_vector<64> 	int_vector_type;
+    typedef uint64_t& 		reference;
+    typedef const uint64_t 	const_reference;
+    typedef const uint8_t 	int_width_type;
+    typedef uint64_t* 		iterator;
+    typedef const uint64_t*	const_iterator;
 
 
     static void set_int_width(int_width_type&, const uint8_t) {}
 
     // read the size and int_width of a bit_vector
-    static void read_header(size_type& size, int_width_type&, std::istream& in) {
+    static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
         util::read_member(size, in);
     }
 
     static iterator begin(int_vector_type*, uint64_t* begin) {
         return begin;
     }
-    static iterator end(int_vector_type*, uint64_t* begin, size_type size) {
+    static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size) {
         return begin+size;
     }
     static const_iterator begin(const int_vector_type*, const uint64_t* begin) {
         return begin;
     }
-    static const_iterator end(const int_vector_type*, const uint64_t* begin, size_type size) {
+    static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size) {
         return begin+size;
     }
 };
 
-template<class size_type_class>
-struct int_vector_trait<32, size_type_class> {
+template<>
+struct int_vector_trait<32> {
     typedef uint32_t   				value_type;
-    typedef size_type_class			size_type;
-    typedef int_vector<32, size_type_class> int_vector_type;
-    typedef uint32_t& reference;
-    typedef const uint32_t const_reference;
-    typedef const uint8_t int_width_type;
-    typedef uint32_t* iterator;
+    typedef int_vector<32> 	int_vector_type;
+    typedef uint32_t& 		reference;
+    typedef const uint32_t 	const_reference;
+    typedef const uint8_t 	int_width_type;
+    typedef uint32_t* 		iterator;
     typedef const uint32_t* const_iterator;
     static void set_int_width(int_width_type&, const uint8_t) {}
 
     // read the size and int_width of a bit_vector
-    static void read_header(size_type& size, int_width_type&, std::istream& in) {
+    static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
         util::read_member(size, in);
     }
 
     static iterator begin(int_vector_type*, uint64_t* begin) {
         return (uint32_t*)begin;
     }
-    static iterator end(int_vector_type*, uint64_t* begin, size_type size) {
+    static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size) {
         return ((uint32_t*)begin)+size;
     }
     static const_iterator begin(const int_vector_type*, const uint64_t* begin) {
         return (uint32_t*)begin;
     }
-    static const_iterator end(const int_vector_type*, const uint64_t* begin, size_type size) {
+    static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size) {
         return ((uint32_t*)begin)+size;
     }
 };
 
-template<class size_type_class>
-struct int_vector_trait<16, size_type_class> {
-    typedef uint16_t   				value_type;
-    typedef size_type_class			size_type;
-    typedef int_vector<16, size_type_class> int_vector_type;
-    typedef uint16_t& reference;
-    typedef const uint16_t const_reference;
-    typedef const uint8_t int_width_type;
-    typedef uint16_t* iterator;
+template<>
+struct int_vector_trait<16> {
+    typedef uint16_t   		value_type;
+    typedef int_vector<16> 	int_vector_type;
+    typedef uint16_t& 		reference;
+    typedef const uint16_t 	const_reference;
+    typedef const uint8_t 	int_width_type;
+    typedef uint16_t* 		iterator;
     typedef const uint16_t* const_iterator;
     static void set_int_width(int_width_type&, const uint8_t) {}
 
     // read the size and int_width of a bit_vector
-    static void read_header(size_type& size, int_width_type&, std::istream& in) {
+    static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
         util::read_member(size, in);
     }
 
     static iterator begin(int_vector_type*, uint64_t* begin) {
         return (uint16_t*)begin;
     }
-    static iterator end(int_vector_type*, uint64_t* begin, size_type size) {
+    static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size) {
         return ((uint16_t*)begin)+size;
     }
     static const_iterator begin(const int_vector_type*, const uint64_t* begin) {
         return (uint16_t*)begin;
     }
-    static const_iterator end(const int_vector_type*, const uint64_t* begin, size_type size) {
+    static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size) {
         return ((uint16_t*)begin)+size;
     }
 };
 
-template<class size_type_class>
-struct int_vector_trait<8, size_type_class> {
-    typedef uint8_t					value_type;
-    typedef size_type_class			size_type;
-    typedef int_vector<8, size_type_class> int_vector_type;
-    typedef uint8_t& reference;
-    typedef const uint8_t const_reference;
-    typedef const uint8_t int_width_type;
-    typedef uint8_t* iterator;
-    typedef const uint8_t* const_iterator;
+template<>
+struct int_vector_trait<8> {
+    typedef uint8_t			value_type;
+    typedef int_vector<8> 	int_vector_type;
+    typedef uint8_t& 		reference;
+    typedef const uint8_t 	const_reference;
+    typedef const uint8_t 	int_width_type;
+    typedef uint8_t* 		iterator;
+    typedef const uint8_t*  const_iterator;
     static void set_int_width(int_width_type&, const uint8_t) {}
 
     // read the size and int_width of a bit_vector
-    static void read_header(size_type& size, int_width_type&, std::istream& in) {
+    static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
         util::read_member(size, in);
     }
 
     static iterator begin(int_vector_type*, uint64_t* begin) {
         return (uint8_t*)begin;
     }
-    static iterator end(int_vector_type*, uint64_t* begin, size_type size) {
+    static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size) {
         return ((uint8_t*)begin)+size;
     }
     static const_iterator begin(const int_vector_type*, const uint64_t* begin) {
         return (uint8_t*)begin;
     }
-    static const_iterator end(const int_vector_type*, const uint64_t* begin, size_type size) {
+    static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size) {
         return ((uint8_t*)begin)+size;
     }
 };
@@ -312,47 +305,47 @@ sdsl::int_vector<0> v(10);
 
 	@ingroup int_vector
  */
-template<uint8_t fixedIntWidth, class size_type_class>
-class int_vector
-{
+template<uint8_t fixedIntWidth>
+class int_vector {
     public:
-
-        typedef typename int_vector_trait<fixedIntWidth,size_type_class>::value_type		value_type;  	// STL Container requirement
-        typedef typename int_vector_trait<fixedIntWidth,size_type_class>::iterator 			iterator;    	// STL Container requirement
-        typedef typename int_vector_trait<fixedIntWidth,size_type_class>::const_iterator	const_iterator;
-        typedef typename int_vector_trait<fixedIntWidth,size_type_class>::reference 		reference;
-        typedef typename int_vector_trait<fixedIntWidth,size_type_class>::const_reference	const_reference;
-        typedef int_vector_reference<int_vector>*							pointer; // TODO: fix this for 63,32,16,8 bit vector
+        typedef typename int_vector_trait<fixedIntWidth>::value_type		value_type;  	// STL Container requirement
+        typedef typename int_vector_trait<fixedIntWidth>::iterator 			iterator;    	// STL Container requirement
+        typedef typename int_vector_trait<fixedIntWidth>::const_iterator	const_iterator;
+        typedef typename int_vector_trait<fixedIntWidth>::reference 		reference;
+        typedef typename int_vector_trait<fixedIntWidth>::const_reference	const_reference;
+        typedef int_vector_reference<int_vector>*							pointer; 
         typedef const value_type*											const_pointer;
-        typedef ptrdiff_t 					difference_type;// STL Container requirement
-        typedef size_type_class												size_type;		// STL Container requirement
-        typedef	typename int_vector_trait<fixedIntWidth,size_type_class>::int_width_type	int_width_type;
-        typedef rank_support_v<1,1> rank_1_type;
-        typedef rank_support_v<0,1> rank_0_type;
-        typedef select_support_mcl<1,1> select_1_type;
-        typedef select_support_mcl<0,1> select_0_type;
+        typedef ptrdiff_t 													difference_type;// STL Container requirement
+        typedef int_vector_size_type										size_type;		// STL Container requirement
+        typedef	typename int_vector_trait<fixedIntWidth>::int_width_type	int_width_type;
+        typedef rank_support_v<1,1> 										rank_1_type;
+        typedef rank_support_v<0,1> 										rank_0_type;
+        typedef select_support_mcl<1,1> 									select_1_type;
+        typedef select_support_mcl<0,1> 									select_0_type;
 
-        friend struct int_vector_trait<fixedIntWidth, size_type_class>;
-        friend class int_vector_iterator_base<int_vector>;
-        friend class int_vector_iterator<int_vector>;
-        friend class int_vector_const_iterator<int_vector>;
+        friend struct int_vector_trait<fixedIntWidth>;
+        friend class  int_vector_iterator_base<int_vector>;
+        friend class  int_vector_iterator<int_vector>;
+        friend class  int_vector_const_iterator<int_vector>;
         friend class  coder::elias_delta;
         friend class  coder::fibonacci;
         friend class  coder::ternary;
-        friend class  int_vector_file_buffer<fixedIntWidth, size_type_class>;
-		friend class mm_item<int_vector>;
-        //! Operator to create an int_vector<1> (aka bit_vector) from an input stream.
-        friend std::istream& operator>>(std::istream&, int_vector<1>&);
+        friend class  int_vector_file_buffer<fixedIntWidth>;
+		friend class  mm_item<int_vector>;
+
         friend void util::set_random_bits<int_vector>(int_vector& v, int);
-        friend void util::set_zero_bits<int_vector>(int_vector& v);
-        friend void util::set_one_bits<int_vector>(int_vector& v);
-        friend void util::bit_compress<int_vector>(int_vector& v);
-        friend void util::set_all_values_to_k<int_vector>(int_vector& v, uint64_t k);
+        friend void util::set_zero_bits<int_vector>(int_vector&);
+        friend void util::set_one_bits<int_vector>(int_vector&);
+        friend void util::bit_compress<int_vector>(int_vector&);
+        friend void util::set_all_values_to_k<int_vector>(int_vector&, uint64_t);
+		friend bool util::load_vector_from_file<int_vector>(int_vector&, const char*,uint8_t,uint8_t);
         friend void algorithm::calculate_sa<fixedIntWidth>(const unsigned char* c, typename int_vector<fixedIntWidth>::size_type len, int_vector<fixedIntWidth>& sa);
+
+		enum{ fixed_int_width = fixedIntWidth };  // make template parameter accessible 
     private:
-        size_type	m_size; //!< Number of bits needed to store int_vector.
-        uint64_t*   m_data; //!< Pointer to the memory for the bits.
-        int_width_type m_int_width;//!< Width of the integers that are accessed via the [] operator .
+        size_type		m_size; 		//!< Number of bits needed to store int_vector.
+        uint64_t*   	m_data; 		//!< Pointer to the memory for the bits.
+        int_width_type 	m_int_width;	//!< Width of the integers that are accessed via the [] operator .
     public:
 
         //! Constructor for int_vector.
@@ -492,12 +485,6 @@ class int_vector
          */
         inline const_reference operator[](const size_type& i) const;
 
-        // ! This operator should be used for displaying a specific range of the int_vector .
-        /* ! \param range This const char array should consists of an integer <b>begin_idx</b> followed by two dots (..) followed by an integer <b>end_idx</b>. E.g. "0..10" or "3..7".
-        	\return A string containing the bit representation from index <b>begin_idx</b> to (inclusive!) <b>end_idx</b>.
-         */
-//		std::string operator[](const char* range) const;
-
         //! Assignment operator for the int_vector.
         /*! \param v The vector v which should be assigned
           	\returns A copy of v.
@@ -516,12 +503,12 @@ class int_vector
         	  Required for the STL Equality Comparable Concept.
         	  \sa operator!=
          */
-        bool operator==(const int_vector<fixedIntWidth>& v) const;
+        bool operator==(const int_vector& v) const;
 
         //! Inequality operator for two int_vectors.
         /*! Two int_vectors are not equal if
               - capacities and sizes are not equal or
-        	  - IntWidths are not equal or
+        	  - int widths are not equal or
         	  - the bits in the range [0..bit_size()-1] are not equal.
 
 
@@ -539,7 +526,7 @@ class int_vector
          	Required for the STL LessThan Comparable Concept.
         	\sa operator>
         */
-        bool operator<(const int_vector& v) const; //TODO: Test
+        bool operator<(const int_vector& v) const; 
 
         //! Greater operator for two int_vectors
         /*! int_vector w is greater than v if
@@ -549,19 +536,19 @@ class int_vector
          	Required for the STL LessThan Comparable Concept.
             \sa operator<
         */
-        bool operator>(const int_vector& v) const;//TODO: Test
+        bool operator>(const int_vector& v) const;
         //! Less or equal operator
         /*!
          	Required for the STL LessThan Comparable Concept.
         	\sa operator>=, operator==, operator<
         */
-        bool operator<=(const int_vector& v) const;//TODO: Test
+        bool operator<=(const int_vector& v) const;
         //! Greater of equal operator
         /*!
          	Required for the STL LessThan Comparable Concept.
         	\sa operator<=, operator==, operator>
         */
-        bool operator>=(const int_vector& v) const;//TODO: Test
+        bool operator>=(const int_vector& v) const;
 
         //! Iterator that points to the first element of the int_vector.
         /*! Required for Container Concept of the STL.
@@ -602,19 +589,7 @@ class int_vector
            \sa setBit
          */
         const bool getBit(size_type i) const;
-
-
 };
-/*!
-\example bit_vector_and_stl.e.cpp
-This is an example for applying algorithms of the stl to sdsl::bit_vector.
-\example int_vector_variable.e.cpp
-This is an example for a int_vector with no fixed int width.
-\example int_vector_vs_stl_vector.e.cpp
-This example compares the performance of the stl vector with the performance of the sdsl::int_vector.
-\example bit_vector_handling.e.cpp
-Example calls the load and serialize method for the sdsl::bit_vector.
-*/
 
 //! A proxy class that acts as a reference to an integer of length \p len bits in a int_vector.
 template<class int_vector>
@@ -717,16 +692,14 @@ class int_vector_reference<bit_vector>
 
 
 template<class int_vector>
-class int_vector_iterator_base: public std::iterator<std::random_access_iterator_tag, typename int_vector::value_type, typename int_vector::difference_type/*ptrdiff_t*/>
+class int_vector_iterator_base: public std::iterator<std::random_access_iterator_tag, typename int_vector::value_type, typename int_vector::difference_type>
 {
     public:
         typedef /*typename int_vector::size_type*/uint64_t				size_type;
     protected:
         uint8_t m_offset;
         uint8_t m_len;
-
     public:
-
         int_vector_iterator_base(uint8_t offset, uint8_t len):m_offset(offset),m_len(len)
         {}
 
@@ -888,8 +861,7 @@ class int_vector_iterator : public int_vector_iterator_base<int_vector>
 };
 
 template<class int_vector>
-inline int_vector_iterator<int_vector> operator+(typename int_vector_iterator<int_vector>::difference_type n, const int_vector_iterator<int_vector>& it)
-{
+inline int_vector_iterator<int_vector> operator+(typename int_vector_iterator<int_vector>::difference_type n, const int_vector_iterator<int_vector>& it) {
     return it+n;
 }
 
@@ -902,14 +874,11 @@ class int_vector_const_iterator : public int_vector_iterator_base<int_vector>
         typedef int_vector_const_iterator		const_iterator;
         typedef typename int_vector::size_type		size_type;
         typedef typename int_vector::difference_type difference_type;
-
     private:
-
         using int_vector_iterator_base<int_vector>::m_offset; // make m_offset easy usable
         using int_vector_iterator_base<int_vector>::m_len;    // make m_len easy usable
 
         const typename int_vector::value_type* m_word;
-
     public:
 
         int_vector_const_iterator(const int_vector* v=NULL, size_type idx=0) : int_vector_iterator_base<int_vector>(v, idx) {
@@ -921,11 +890,6 @@ class int_vector_const_iterator : public int_vector_iterator_base<int_vector>
 
         int_vector_const_iterator(const int_vector_iterator<int_vector>& it):int_vector_iterator_base<int_vector>(it.m_offset, it.m_len),m_word(it.m_word)
         { }
-        /*
-        	int_vector_const_iterator(const int_vector_const_iterator<int_vector> &it):int_vector_iterator_base<int_vector>(it.m_offset, it.m_len),m_word(it.m_word)
-        	{
-        	}
-        */
 
         const_reference operator*() const {
             if (m_offset+m_len <= 64) {
@@ -1038,21 +1002,18 @@ class int_vector_const_iterator : public int_vector_iterator_base<int_vector>
 };
 
 template<class int_vector>
-inline typename int_vector_const_iterator<int_vector>::difference_type operator-(const int_vector_const_iterator<int_vector>& x, const int_vector_const_iterator<int_vector>& y)
-{
+inline typename int_vector_const_iterator<int_vector>::difference_type operator-(const int_vector_const_iterator<int_vector>& x, const int_vector_const_iterator<int_vector>& y) {
     return (((x.m_word - y.m_word)<<6) + x.m_offset - y.m_offset) / x.m_len;
 }
 
 template<class int_vector>
-inline int_vector_const_iterator<int_vector> operator+(typename int_vector_const_iterator<int_vector>::difference_type n, const int_vector_const_iterator<int_vector>& it)
-{
+inline int_vector_const_iterator<int_vector> operator+(typename int_vector_const_iterator<int_vector>::difference_type n, const int_vector_const_iterator<int_vector>& it) {
     return it + n;
 }
 
 //std::ostream& operator<<(std::ostream&, const int_vector<1> &);
 
-inline std::ostream& operator<<(std::ostream& os, const int_vector<1>& v)
-{
+inline std::ostream& operator<<(std::ostream& os, const int_vector<1>& v) {
     for (int_vector<1>::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
         os << *it;
     }
@@ -1060,8 +1021,7 @@ inline std::ostream& operator<<(std::ostream& os, const int_vector<1>& v)
     return os;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const int_vector<0>& v)
-{
+inline std::ostream& operator<<(std::ostream& os, const int_vector<0>& v) {
     for (int_vector<0>::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
         os << *it;
         if (it+1 != end) os << " ";
@@ -1071,31 +1031,12 @@ inline std::ostream& operator<<(std::ostream& os, const int_vector<0>& v)
 }
 
 
-/*
-inline std::istream& operator>>(std::istream &in, int_vector<1> &v){
-	char c;
-	v.resize(0); // clear
-	do{
-		c = in.get();
-		if(c=='0' || c=='1'){
-			v.bit_resize(v.bit_size()+1);
-			v.setBit(v.bit_size()-1,c=='1');
-		}
-		else{
-			break;
-		}
-	}while(true);
-	return in;
-}
-*/
-
 // ==== int_vector implemenation  ====
 
-template<uint8_t fixedIntWidth, class size_type_class>
-inline int_vector<fixedIntWidth,size_type_class>::int_vector(size_type elements, value_type default_value, uint8_t intWidth):m_size(0), m_data(NULL), m_int_width(intWidth)
-{
+template<uint8_t fixedIntWidth>
+inline int_vector<fixedIntWidth>::int_vector(size_type elements, value_type default_value, uint8_t intWidth):m_size(0), m_data(NULL), m_int_width(intWidth) {
 	mm::add( this );
-    int_vector_trait<fixedIntWidth,size_type_class>::set_int_width(m_int_width, intWidth);
+    int_vector_trait<fixedIntWidth>::set_int_width(m_int_width, intWidth);
     resize(elements);
     if (default_value == 0) {
         util::set_zero_bits(*this);
@@ -1106,9 +1047,8 @@ inline int_vector<fixedIntWidth,size_type_class>::int_vector(size_type elements,
     }
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-inline int_vector<fixedIntWidth,size_type_class>::int_vector(const int_vector& v):m_size(0), m_data(NULL), m_int_width(v.m_int_width)
-{
+template<uint8_t fixedIntWidth>
+inline int_vector<fixedIntWidth>::int_vector(const int_vector& v):m_size(0), m_data(NULL), m_int_width(v.m_int_width) {
 	mm::add( this );
     bit_resize(v.bit_size());
     if (v.capacity() > 0) {
@@ -1116,13 +1056,12 @@ inline int_vector<fixedIntWidth,size_type_class>::int_vector(const int_vector& v
             throw std::bad_alloc();
         }
     }
-    int_vector_trait<fixedIntWidth,size_type_class>::set_int_width(m_int_width, v.m_int_width);
+    int_vector_trait<fixedIntWidth>::set_int_width(m_int_width, v.m_int_width);
 //	set_int_width(v.get_int_width());
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-int_vector<fixedIntWidth,size_type_class>& int_vector<fixedIntWidth,size_type_class>::operator=(const int_vector& v)
-{
+template<uint8_t fixedIntWidth>
+int_vector<fixedIntWidth>& int_vector<fixedIntWidth>::operator=(const int_vector& v) {
     if (this != &v) {// if v is not the same object
         bit_resize(v.bit_size());
         if (v.bit_size()>0) {
@@ -1136,41 +1075,37 @@ int_vector<fixedIntWidth,size_type_class>& int_vector<fixedIntWidth,size_type_cl
 }
 
 // Destructor
-template<uint8_t fixedIntWidth, class size_type_class>
-int_vector<fixedIntWidth,size_type_class>::~int_vector()
-{
+template<uint8_t fixedIntWidth>
+int_vector<fixedIntWidth>::~int_vector() {
 	mm::remove( this );
     if (m_data != NULL) {
         free(m_data); //fixed delete
     }
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-void int_vector<fixedIntWidth,size_type_class>::swap(int_vector& v)
-{
+template<uint8_t fixedIntWidth>
+void int_vector<fixedIntWidth>::swap(int_vector& v) {
     if (this != &v) { // if v and _this_ are not the same object
         size_type	size 		= m_size;
         uint64_t*	 data		= m_data;
         uint8_t		intWidth 	= m_int_width;
         m_size 		= v.m_size;
         m_data 		= v.m_data;
-        int_vector_trait<fixedIntWidth,size_type_class>::set_int_width(m_int_width, v.m_int_width);
+        int_vector_trait<fixedIntWidth>::set_int_width(m_int_width, v.m_int_width);
         v.m_size	= size;
         v.m_data	= data;
-        int_vector_trait<fixedIntWidth,size_type_class>::set_int_width(v.m_int_width, intWidth);
+        int_vector_trait<fixedIntWidth>::set_int_width(v.m_int_width, intWidth);
     }
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-void int_vector<fixedIntWidth,size_type_class>::resize(const size_type size)
-{
+template<uint8_t fixedIntWidth>
+void int_vector<fixedIntWidth>::resize(const size_type size) {
     bit_resize(size * get_int_width());
 }
 
 
-template<uint8_t fixedIntWidth, class size_type_class>
-void int_vector<fixedIntWidth,size_type_class>::bit_resize(const size_type size)
-{
+template<uint8_t fixedIntWidth>
+void int_vector<fixedIntWidth>::bit_resize(const size_type size) {
     bool do_realloc = ((size+63)>>6) != ((m_size+63)>>6);
     const size_type old_size = m_size;
     m_size = size;                       // set new size
@@ -1196,9 +1131,8 @@ void int_vector<fixedIntWidth,size_type_class>::bit_resize(const size_type size)
     }
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-inline void int_vector<fixedIntWidth,size_type_class>::setBit(size_type idx,const bool value)
-{
+template<uint8_t fixedIntWidth>
+inline void int_vector<fixedIntWidth>::setBit(size_type idx,const bool value) {
 #ifdef SDSL_DEBUG
     if (idx >= m_size) {
         throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::setBit(size_type idx, const bool value); idx >= size()!");
@@ -1213,9 +1147,8 @@ inline void int_vector<fixedIntWidth,size_type_class>::setBit(size_type idx,cons
     }
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-inline const bool int_vector<fixedIntWidth,size_type_class>::getBit(size_type idx)const
-{
+template<uint8_t fixedIntWidth>
+inline const bool int_vector<fixedIntWidth>::getBit(size_type idx)const {
 #ifdef SDSL_DEBUG
     if (idx >= m_size) {
         throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::getBit(size_type idx); idx >= size()!");
@@ -1224,9 +1157,8 @@ inline const bool int_vector<fixedIntWidth,size_type_class>::getBit(size_type id
     return m_data[idx >> 6] & (1ULL << (idx & 0x3F));
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-inline const typename int_vector<fixedIntWidth,size_type_class>::value_type int_vector<fixedIntWidth,size_type_class>::get_int(size_type idx, const uint8_t len)const
-{
+template<uint8_t fixedIntWidth>
+inline const typename int_vector<fixedIntWidth>::value_type int_vector<fixedIntWidth>::get_int(size_type idx, const uint8_t len)const {
 #ifdef SDSL_DEBUG
     if (idx+len > m_size) {
         throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); idx+len > size()!");
@@ -1238,9 +1170,8 @@ inline const typename int_vector<fixedIntWidth,size_type_class>::value_type int_
     return bit_magic::read_int(m_data+(idx>>6), idx&0x3F, len);
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-inline void int_vector<fixedIntWidth,size_type_class>::set_int(size_type idx, value_type x, const uint8_t len)
-{
+template<uint8_t fixedIntWidth>
+inline void int_vector<fixedIntWidth>::set_int(size_type idx, value_type x, const uint8_t len) {
 #ifdef SDSL_DEBUG
     if (idx+len > m_size) {
         throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::set_int(size_type, uint8_t); idx+len > size()!");
@@ -1252,50 +1183,43 @@ inline void int_vector<fixedIntWidth,size_type_class>::set_int(size_type idx, va
     bit_magic::write_int(m_data+(idx>>6), x, idx&0x3F, len);
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-typename int_vector<fixedIntWidth,size_type_class>::size_type int_vector<fixedIntWidth,size_type_class>::size() const
-{
+template<uint8_t fixedIntWidth>
+typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::size() const {
     return m_size/m_int_width;
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-typename int_vector<fixedIntWidth,size_type_class>::size_type int_vector<fixedIntWidth,size_type_class>::max_size()
-{
+template<uint8_t fixedIntWidth>
+typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::max_size() {
     return ((size_type)1)<<(sizeof(size_type)*8-6);// TODO: motivation for this expression
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-typename int_vector<fixedIntWidth,size_type_class>::size_type int_vector<fixedIntWidth,size_type_class>::bit_size() const
-{
+template<uint8_t fixedIntWidth>
+typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::bit_size() const {
     return m_size;
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-bool int_vector<fixedIntWidth,size_type_class>::empty() const
-{
+template<uint8_t fixedIntWidth>
+bool int_vector<fixedIntWidth>::empty() const {
     return m_size==0;
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-inline typename int_vector<fixedIntWidth,size_type_class>::size_type int_vector<fixedIntWidth,size_type_class>::capacity() const
-{
+template<uint8_t fixedIntWidth>
+inline typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::capacity() const {
     return ((m_size+63)>>6)<<6;
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-const uint8_t int_vector<fixedIntWidth,size_type_class>::get_int_width()const
-{
+template<uint8_t fixedIntWidth>
+const uint8_t int_vector<fixedIntWidth>::get_int_width()const {
     return m_int_width;
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-void int_vector<fixedIntWidth,size_type_class>::set_int_width(uint8_t width)
-{
-    int_vector_trait<fixedIntWidth,size_type_class>::set_int_width(m_int_width, width); // delegate to trait function
+template<uint8_t fixedIntWidth>
+void int_vector<fixedIntWidth>::set_int_width(uint8_t width) {
+    int_vector_trait<fixedIntWidth>::set_int_width(m_int_width, width); // delegate to trait function
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-inline typename int_vector<fixedIntWidth,size_type_class>::reference int_vector<fixedIntWidth,size_type_class>::operator[](const size_type& idx) {
+template<uint8_t fixedIntWidth>
+inline typename int_vector<fixedIntWidth>::reference int_vector<fixedIntWidth>::operator[](const size_type& idx) {
 	assert( idx < this->size() );
     size_type i = idx * m_int_width;
     return reference(this->m_data + (i>>6), i&0x3F, m_int_width);
@@ -1329,8 +1253,8 @@ inline int_vector<8>::reference int_vector<8>::operator[](const size_type& idx) 
     return *(((uint8_t*)(this->m_data))+idx);
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-inline typename int_vector<fixedIntWidth,size_type_class>::const_reference int_vector<fixedIntWidth,size_type_class>::operator[](const size_type& idx)const {
+template<uint8_t fixedIntWidth>
+inline typename int_vector<fixedIntWidth>::const_reference int_vector<fixedIntWidth>::operator[](const size_type& idx)const {
 	assert( idx < this->size() );
     return get_int(idx * fixedIntWidth, fixedIntWidth);
 }
@@ -1371,30 +1295,28 @@ inline int_vector<1>::const_reference int_vector<1>::operator[](const size_type&
     return ((*(m_data+(idx>>6)))>>(idx&0x3F))&1;
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-inline const typename int_vector<fixedIntWidth,size_type_class>::iterator int_vector<fixedIntWidth,size_type_class>::begin() {
-    return int_vector_trait<fixedIntWidth,size_type_class>::begin(this, m_data);
+template<uint8_t fixedIntWidth>
+inline const typename int_vector<fixedIntWidth>::iterator int_vector<fixedIntWidth>::begin() {
+    return int_vector_trait<fixedIntWidth>::begin(this, m_data);
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-inline const typename int_vector<fixedIntWidth,size_type_class>::iterator int_vector<fixedIntWidth,size_type_class>::end() {
-    return int_vector_trait<fixedIntWidth,size_type_class>::end(this, m_data, (m_size/m_int_width));
+template<uint8_t fixedIntWidth>
+inline const typename int_vector<fixedIntWidth>::iterator int_vector<fixedIntWidth>::end() {
+    return int_vector_trait<fixedIntWidth>::end(this, m_data, (m_size/m_int_width));
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-inline const typename int_vector<fixedIntWidth,size_type_class>::const_iterator int_vector<fixedIntWidth,size_type_class>::begin()const {
-//	return const_iterator(this, 0);
-    return int_vector_trait<fixedIntWidth,size_type_class>::begin(this, m_data);
+template<uint8_t fixedIntWidth>
+inline const typename int_vector<fixedIntWidth>::const_iterator int_vector<fixedIntWidth>::begin()const {
+    return int_vector_trait<fixedIntWidth>::begin(this, m_data);
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-inline const typename int_vector<fixedIntWidth,size_type_class>::const_iterator int_vector<fixedIntWidth,size_type_class>::end()const {
-//	return const_iterator(this, m_int_width*(m_size/m_int_width));
-    return int_vector_trait<fixedIntWidth,size_type_class>::end(this, m_data, (m_size/m_int_width));
+template<uint8_t fixedIntWidth>
+inline const typename int_vector<fixedIntWidth>::const_iterator int_vector<fixedIntWidth>::end()const {
+    return int_vector_trait<fixedIntWidth>::end(this, m_data, (m_size/m_int_width));
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-bool int_vector<fixedIntWidth,size_type_class>::operator==(const int_vector<fixedIntWidth>& v)const {
+template<uint8_t fixedIntWidth>
+bool int_vector<fixedIntWidth>::operator==(const int_vector& v)const {
     if (capacity() != v.capacity())
         return false;
     if (bit_size() != v.bit_size())
@@ -1411,13 +1333,12 @@ bool int_vector<fixedIntWidth,size_type_class>::operator==(const int_vector<fixe
     return ((*data1)&bit_magic::Li1Mask[l])==((*data2)&bit_magic::Li1Mask[l]);
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-bool int_vector<fixedIntWidth,size_type_class>::operator<(const int_vector& v)const
-{
+template<uint8_t fixedIntWidth>
+bool int_vector<fixedIntWidth>::operator<(const int_vector& v)const {
     size_type min_size = size();
     if (min_size > v.size())
         min_size = v.size();
-    for (typename int_vector<fixedIntWidth,size_type_class>::const_iterator it = begin(), end = begin()+min_size, it_v = v.begin(); it!=end; ++it, ++it_v) {
+    for (typename int_vector<fixedIntWidth>::const_iterator it = begin(), end = begin()+min_size, it_v = v.begin(); it!=end; ++it, ++it_v) {
         if (*it == *it_v)
             continue;
         else
@@ -1426,13 +1347,12 @@ bool int_vector<fixedIntWidth,size_type_class>::operator<(const int_vector& v)co
     return  size() < v.size();
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-bool int_vector<fixedIntWidth,size_type_class>::operator>(const int_vector& v)const
-{
+template<uint8_t fixedIntWidth>
+bool int_vector<fixedIntWidth>::operator>(const int_vector& v)const {
     size_type min_size = size();
     if (min_size > v.size())
         min_size = v.size();
-    for (typename int_vector<fixedIntWidth,size_type_class>::const_iterator it = begin(), end = begin()+min_size, it_v = v.begin(); it!=end; ++it, ++it_v) {
+    for (typename int_vector<fixedIntWidth>::const_iterator it = begin(), end = begin()+min_size, it_v = v.begin(); it!=end; ++it, ++it_v) {
         if (*it == *it_v)
             continue;
         else
@@ -1441,27 +1361,23 @@ bool int_vector<fixedIntWidth,size_type_class>::operator>(const int_vector& v)co
     return  size() > v.size();
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-bool int_vector<fixedIntWidth,size_type_class>::operator<=(const int_vector& v)const
-{
+template<uint8_t fixedIntWidth>
+bool int_vector<fixedIntWidth>::operator<=(const int_vector& v)const {
     return *this==v or *this<v;
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-bool int_vector<fixedIntWidth,size_type_class>::operator>=(const int_vector& v)const
-{
+template<uint8_t fixedIntWidth>
+bool int_vector<fixedIntWidth>::operator>=(const int_vector& v)const {
     return *this==v or *this>v;
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-bool int_vector<fixedIntWidth,size_type_class>::operator!=(const int_vector& v)const
-{
+template<uint8_t fixedIntWidth>
+bool int_vector<fixedIntWidth>::operator!=(const int_vector& v)const {
     return !(*this==v);
 }
 
 template<class size_type_class>
-size_type_class _sdsl_serialize_size_and_int_width(std::ostream& out, uint8_t fixed_int_width, uint8_t int_width, size_type_class size)
-{
+size_type_class _sdsl_serialize_size_and_int_width(std::ostream& out, uint8_t fixed_int_width, uint8_t int_width, size_type_class size) {
     size_type_class written_bytes = 0;
     out.write((char*) &size, sizeof(size));
     written_bytes += sizeof(size);
@@ -1472,12 +1388,11 @@ size_type_class _sdsl_serialize_size_and_int_width(std::ostream& out, uint8_t fi
     return written_bytes;
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-typename int_vector<fixedIntWidth,size_type_class>::size_type int_vector<fixedIntWidth,size_type_class>::serialize(std::ostream& out,
+template<uint8_t fixedIntWidth>
+typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::serialize(std::ostream& out,
         structure_tree_node* v,
         string name,
-        bool write_fixed_as_variable) const
-{
+        bool write_fixed_as_variable) const {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
     if (fixedIntWidth > 0 and write_fixed_as_variable) {
@@ -1499,19 +1414,10 @@ typename int_vector<fixedIntWidth,size_type_class>::size_type int_vector<fixedIn
     return written_bytes;
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-void int_vector<fixedIntWidth,size_type_class>::load(std::istream& in)
-{
+template<uint8_t fixedIntWidth>
+void int_vector<fixedIntWidth>::load(std::istream& in) {
     size_type size;
-    int_vector_trait<fixedIntWidth, size_type_class>::read_header(size, m_int_width, in);
-
-//	util::read_member(size, in);
-//	if( fixedIntWidth == 0 ){
-//		in.read((char *) &intWidth, sizeof(m_int_width));
-//	}
-//	else
-//		intWidth = fixedIntWidth;
-//	set_int_width(intWidth);
+    int_vector_trait<fixedIntWidth>::read_header(size, m_int_width, in);
 
     bit_resize(size);
     uint64_t* p = m_data;
@@ -1525,55 +1431,25 @@ void int_vector<fixedIntWidth,size_type_class>::load(std::istream& in)
 }
 
 //! A wrapper class which allows us to serialize an char array as an int_vector.
-template<class size_type_class>
-class char_array_serialize_wrapper
-{
+class char_array_serialize_wrapper {
     public:
-        typedef size_type_class			size_type;
+        typedef int_vector_size_type	size_type;
     private:
-
         size_type m_n;  // number of char
         const unsigned char* m_cp;
-
     public:
-
-        char_array_serialize_wrapper(const unsigned char* c=NULL, size_type n=0):m_n(n), m_cp(c) {}
-
-//	char_array_serialize_wrapper(const char* c=NULL, size_type n=0):m_n(n), m_cp(c){}
-
-        size_type serialize(std::ostream& out) const {
-            size_type size = m_n*8; // number of bits
-            size_type written_bytes = 0;
-            written_bytes += _sdsl_serialize_size_and_int_width(out, 8, 8, size);
-            const char* p = (const char*)m_cp;
-            size_type idx = 0;
-            while (idx+constants::SDSL_BLOCK_SIZE < m_n) {
-                out.write(p, constants::SDSL_BLOCK_SIZE);
-                written_bytes += constants::SDSL_BLOCK_SIZE;
-                p += constants::SDSL_BLOCK_SIZE;
-                idx += constants::SDSL_BLOCK_SIZE;
-            }
-            // now: m_n-idx <= SDSL_BLOCK_SIZE
-            out.write(p , m_n-idx);
-            written_bytes += m_n-idx;
-            uint32_t r= (sizeof(uint64_t)-(m_n % sizeof(uint64_t))) % sizeof(uint64_t);
-            out.write("\0\0\0\0\0\0\0\0", r);
-            written_bytes += r;
-            return written_bytes;
-        }
-
+        inline char_array_serialize_wrapper(const unsigned char* c=NULL, size_type n=0):m_n(n), m_cp(c) {}
+        size_type serialize(std::ostream& out)const;
 };
 
 //! A class for reading an int_vector buffered from a file.
-template<uint8_t fixedIntWidth, class size_type_class>
-class int_vector_file_buffer
-{
+template<uint8_t fixedIntWidth>
+class int_vector_file_buffer {
     public:
-        typedef typename int_vector<fixedIntWidth, size_type_class>::size_type 			size_type;
-        typedef typename int_vector<fixedIntWidth, size_type_class>::value_type 		value_type;
-        typedef typename int_vector<fixedIntWidth, size_type_class>::const_reference	const_reference;
-        typedef typename int_vector<fixedIntWidth, size_type_class>::reference 			reference;
-        typedef typename int_vector<fixedIntWidth, size_type_class>::int_width_type		int_width_type;
+        typedef typename int_vector<fixedIntWidth>::size_type 			size_type;
+        typedef typename int_vector<fixedIntWidth>::value_type 		value_type;
+        typedef typename int_vector<fixedIntWidth>::const_reference	const_reference;
+        typedef typename int_vector<fixedIntWidth>::int_width_type		int_width_type;
 
     private:
 
@@ -1589,7 +1465,7 @@ class int_vector_file_buffer
         bool	m_load_from_plain;
 
         void load_size_and_width() {
-            int_vector_trait<fixedIntWidth, size_type_class>::read_header(m_int_vector_size, m_int_width, m_in);
+            int_vector_trait<fixedIntWidth>::read_header(m_int_vector_size, m_int_width, m_in);
             m_int_vector_size/=m_int_width;
         }
 
@@ -1619,9 +1495,13 @@ class int_vector_file_buffer
          * \param f_file_name 	File which contains the int_vector.
          * \param len 			Length of the buffer in elements.
          */
-        int_vector_file_buffer(const char* f_file_name=NULL, size_type len=1000000, uint8_t int_width=0):m_in(), m_buf(NULL), m_off(0), m_read_values(0), m_len(0), m_int_vector_size(0), m_read_values_sum(0), m_int_width(fixedIntWidth), m_file_name(), m_load_from_plain(false), int_vector_size(m_int_vector_size), int_width(m_int_width), file_name(m_file_name) {
+        int_vector_file_buffer(const char* f_file_name=NULL, size_type len=1000000, uint8_t int_width=0):m_in(), m_buf(NULL), m_off(0), m_read_values(0), 
+		                                                                                                 m_len(0), m_int_vector_size(0), m_read_values_sum(0), 
+																										 m_int_width(fixedIntWidth), m_file_name(), 
+																										 m_load_from_plain(false), int_vector_size(m_int_vector_size),
+																										 int_width(m_int_width), file_name(m_file_name) {
             m_load_from_plain = false;
-            int_vector_trait<fixedIntWidth, size_type_class>::set_int_width(m_int_width, int_width);
+            int_vector_trait<fixedIntWidth>::set_int_width(m_int_width, int_width);
             m_len		 		= len;
             init();
             if (f_file_name == NULL) {
@@ -1649,7 +1529,7 @@ class int_vector_file_buffer
                 return false;
             }
             m_load_from_plain = true;
-            int_vector_trait<fixedIntWidth, size_type_class>::set_int_width(m_int_width, int_width);
+            int_vector_trait<fixedIntWidth>::set_int_width(m_int_width, int_width);
             m_len = len;
             m_file_name = f_file_name;
             m_int_vector_size = util::get_file_size(m_file_name.c_str());
@@ -1710,14 +1590,6 @@ class int_vector_file_buffer
             return m_read_values;
         }
 
-        /*
-        void write_current_block(){
-        	if( m_read_values > 0 ){ // if we there are some values in the buffer
-
-        	}
-        }
-        */
-
         //! Returns the i-th element in the buffer
         /* \pre \f$ i < len \f$
          */
@@ -1735,14 +1607,6 @@ class int_vector_file_buffer
         const uint64_t* data()const {
             return m_buf;
         }
-        //TODO: proxy object for writting the int buffer
-        /*
-        	reference operator[](const size_type i){
-        		assert(i<m_len);
-        		size_type idx = i*m_int_width+m_off;
-        		return reference(m_buf + (idx>>6), idx&0x3F, m_int_width);
-        	}
-        */
 
         ~int_vector_file_buffer() {
             if (m_in.is_open()) {
@@ -1751,23 +1615,6 @@ class int_vector_file_buffer
             }
         }
 };
-
-/*
-// specialized [] operator for 8 bit access.
-template<>
-inline int_vector_file_buffer<8, uint64_t>::reference int_vector_file_buffer<8, uint64_t>::operator[](const size_type idx){
-	assert(idx<m_len);
-	return *(((uint8_t*)(m_buf))+idx);
-}
-
-
-// specialized [] operator for 8 bit access.
-template<>
-inline int_vector_file_buffer<8, uint32_t>::reference int_vector_file_buffer<8, uint32_t>::operator[](const size_type idx){
-	assert(idx<m_len);
-	return *(((uint8_t*)(m_buf))+idx);
-}
-*/
 
 }// end namespace sdsl
 

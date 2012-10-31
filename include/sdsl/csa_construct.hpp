@@ -74,17 +74,16 @@ static bool construct_csa(std::string file_name, Csa& csa, tMSS& file_map, bool 
         if (id == "")
             id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
         if (fs != n + 1) {
-            std::cerr << "# WARNING: file \"" << file_name << "\" contains 0-bytes." << std::endl;
-            algorithm::shift_text((char*)ccc, fs, true);
-            n = fs-1;
+			throw std::logic_error("ERROR: text contains 0-bytes.");
+			return false;
         }
-
-        if (!util::store_to_file(char_array_serialize_wrapper<>((unsigned char*)ccc,n+1), (dir+"text_"+id).c_str())) {
+		std::string text_file = dir+constants::KEY_TEXT+"_"+id;
+        if (!util::store_to_file(char_array_serialize_wrapper((unsigned char*)ccc,n+1), text_file.c_str())) {
             throw std::ios_base::failure("#csa_construct: Cannot store text to file system!");
             delete [] ccc;
             return false;
         } else {
-            file_map["text"] = (dir+"text_"+id).c_str();
+            file_map[constants::KEY_TEXT] = text_file;
         }
         delete [] ccc;
         return construct_csa(csa, file_map, delete_files, dir, id);
@@ -96,30 +95,28 @@ template<class Csa>
 static bool construct_csa(Csa& csa, tMSS& file_map, bool delete_files=true, std::string dir="./", std::string id="")
 {
     write_R_output("csa", "construct CSA", "begin", 1, 0);
-    int_vector_file_buffer<8> text_buf(file_map["text"].c_str());   // 
     typedef int_vector<>::size_type size_type;
     if (id=="")
         id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
-    text_buf.reset();
-    size_type n = text_buf.int_vector_size;
 
-    std::string sa_file_name = dir+"sa_"+id;
+    std::string sa_file_name = dir+constants::KEY_SA+"_"+id;
     // if sa file already exists
     std::ifstream in(sa_file_name.c_str());
     if (!in) {
-        unsigned char* text = NULL;
-        util::load_from_int_vector_buffer(text, text_buf);
+        int_vector<8> text;
+        util::load_vector_from_file(text, file_map[constants::KEY_TEXT].c_str(), 0 );
+    	size_type n = text.size();
 
-        typename Csa::size_type nn = strlen((const char*) text);
+        typename Csa::size_type nn = strlen((const char*) text.data());
         if (nn+1 != n) {
-            std::cerr << "# WARNING: text contains 0-bytes. nn=" << nn << " n=" << n << std::endl;
-            algorithm::shift_text((char*)text, n);
+			throw std::logic_error("ERROR: text contains 0-bytes.");
+			return false;
         }
 
         write_R_output("csa", "construct SA", "begin", 1, 0);
         int_vector<> sa = int_vector<>(n, 0, bit_magic::l1BP(n+1)+1);
-        algorithm::calculate_sa(text,n, sa);	 // calculate the suffix array sa of str
-        delete [] text;
+        algorithm::calculate_sa((const unsigned char*)text.data(),n, sa);	 // calculate the suffix array sa of str
+		util::clear(text);
 
         assert(sa.size() == n);
 
@@ -130,7 +127,7 @@ static bool construct_csa(Csa& csa, tMSS& file_map, bool delete_files=true, std:
             throw std::ios_base::failure("#csa_construct: Cannot store SA to file system!");
             return false;
         } else {
-            file_map["sa"] = sa_file_name;
+            file_map[constants::KEY_SA] = sa_file_name;
         }
         write_R_output("csa", "store SA", "end", 1, 0);
         {
@@ -139,7 +136,7 @@ static bool construct_csa(Csa& csa, tMSS& file_map, bool delete_files=true, std:
             temp.swap(sa);
         }
     } else {
-        file_map["sa"] = sa_file_name;
+        file_map[constants::KEY_SA] = sa_file_name;
         in.close();
     }
 
@@ -163,7 +160,7 @@ static bool construct_csa_of_reversed_text(std::string file_name, Csa& csa)
 }
 
 
-
+/*
 template<class Csa>
 static bool construct_csa_of_reversed_text(std::string file_name, Csa& csa, tMSS& file_map, bool delete_files=true,
         std::string dir="./", std::string id="")
@@ -200,6 +197,7 @@ static bool construct_csa_of_reversed_text(std::string file_name, Csa& csa, tMSS
     }
     return res;
 }
+*/
 
 
 }// end namespace

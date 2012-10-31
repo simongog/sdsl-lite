@@ -98,7 +98,7 @@ class csa_sada
         enc_vector_type m_psi;  // psi function
         sa_sample_type 	m_sa_sample; // suffix array samples
         isa_sample_type m_isa_sample; // inverse suffix array samples
-		alphabet_type   m_alphabet;
+		alphabet_type   m_alphabet;   // alphabet component 
 
         uint64_t *m_psi_buf; //[SampleDens+1]; // buffer for decoded psi values
 
@@ -348,19 +348,19 @@ csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleCont
     char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),C(m_alphabet.C), sigma(m_alphabet.sigma), psi(this), bwt(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample)
 {
 	create_buffer();
-    if (file_map.find("bwt") == file_map.end()) { // if bwt is not already stored on disk => construct bwt
+    if (file_map.find(constants::KEY_BWT) == file_map.end()) { // if bwt is not already stored on disk => construct bwt
         construct_bwt(file_map, dir, id);
     }
-    int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str()); // 8==special case for byte alphabet/int alphabet result in 0 here
+    int_vector_file_buffer<8> bwt_buf(file_map[constants::KEY_BWT].c_str()); // 8==special case for byte alphabet/int alphabet result in 0 here
     size_type n = bwt_buf.int_vector_size;
     write_R_output("csa", "construct alphabet", "begin", 1, 0);
 	util::assign(m_alphabet, alphabet_type(bwt_buf, n));
     write_R_output("csa", "construct alphabet", "end", 1, 0);
 
     size_type cnt_chr[256] = {0};
-    for (uint32_t i=0; i < sigma; ++i)
-        cnt_chr[comp2char[i]] = C[i];
-    stop_watch sw; sw.start();
+    for (typename alphabet_type::sigma_type i=0; i < sigma; ++i){
+        cnt_chr[comp2char[i]] = C[i];		// TODO: problem for integer alphabets!!!
+	}
     write_R_output("csa", "construct PSI","begin",1,0);
     // calculate psi
     {
@@ -372,18 +372,19 @@ csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleCont
             }
             r_sum += r; r = bwt_buf.load_next_block();
         }
-        if (!util::store_to_file(psi, (dir+"psi_"+id).c_str())) {
+		string psi_file = dir+constants::KEY_PSI+"_"+id;
+        if (!util::store_to_file(psi, psi_file.c_str())) {
             throw std::ios_base::failure("#csa_sada: Cannot store PSI to file system!");
         } else {
-            file_map["psi"] = dir+"psi_"+id;
+            file_map[constants::KEY_PSI] = psi_file;
         }
     }
     write_R_output("csa", "construct PSI","end");
-    int_vector_file_buffer<> psi_buf(file_map["psi"].c_str());
+    int_vector_file_buffer<> psi_buf(file_map[constants::KEY_PSI].c_str());
 	write_R_output("csa", "encoded PSI", "begin");
-    m_psi = EncVector(psi_buf);
+	util::assign(m_psi, EncVector(psi_buf));
 	write_R_output("csa", "encoded PSI", "end");
-    int_vector_file_buffer<>  sa_buf(file_map["sa"].c_str());
+    int_vector_file_buffer<>  sa_buf(file_map[constants::KEY_SA].c_str());
 	util::assign(m_sa_sample, sa_sample_type(sa_buf));
     algorithm::set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
 }

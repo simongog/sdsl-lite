@@ -78,9 +78,9 @@ class _lcp_support_tree2
         /*! \param lcp_buf Buffer to the uncompressed lcp array
          *  \param sa_buf
          */
-        template<uint8_t int_width, class size_type_class>
-        _lcp_support_tree2(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                       int_vector_file_buffer<8, size_type_class>& bwt_buf,
+        template<uint8_t int_width>
+        _lcp_support_tree2(int_vector_file_buffer<int_width>& lcp_buf,
+                       int_vector_file_buffer<8>& bwt_buf,
                        const cst_type* cst = NULL) {
             m_cst = cst;
             std::string small_lcp_file_name =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str() + "_fc_lf_lcp_sml";

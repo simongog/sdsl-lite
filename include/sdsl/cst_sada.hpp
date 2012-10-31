@@ -165,7 +165,7 @@ class cst_sada
             construct_lcp(m_lcp, *this, file_map, dir, id);
             write_R_output("cst", "construct CLCP", "end", 1,0);
 
-            util::load_from_file(m_csa, file_map["csa"].c_str());
+            util::load_from_file(m_csa, file_map[util::class_to_hash(m_csa)].c_str());
         }
 
         //! Number of leaves in the suffix tree.

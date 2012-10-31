@@ -18,6 +18,43 @@
 
 namespace sdsl{
 
+	byte_alphabet_strategy::byte_alphabet_strategy(int_vector_file_buffer<8> &text_buf, int_vector_size_type len): 
+						   	char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma)
+	{
+		m_sigma = 0;
+		text_buf.reset();
+		if (0 == len or 0 == text_buf.int_vector_size)
+			return;
+		assert( len <= text_buf.int_vector_size );
+		// initialize vectors 
+		util::assign(m_C	    , int_vector<64>(257, 0));
+		util::assign(m_char2comp, int_vector<8>(256,0));
+		util::assign(m_comp2char, int_vector<8>(256,0));
+		// count occurrences of each symbol 
+		for (size_type i=0, r_sum=0, r = text_buf.load_next_block(); i < len;) {
+			for (; i < r_sum+r; ++i) {
+				++m_C[text_buf[i-r_sum]];
+			}
+			r_sum += r; r = text_buf.load_next_block();
+		}
+		assert(1 == m_C[0]); // null-byte should occur exactly once
+		m_sigma = 0;
+		for (int i=0; i<256; ++i)
+			if (m_C[i]) {
+				m_char2comp[i] 	 	= m_sigma;
+				m_comp2char[sigma]  = i; 
+				m_C[m_sigma]		= m_C[i];
+				++m_sigma;
+			}
+		m_comp2char.resize(m_sigma);
+		m_C.resize(m_sigma+1);
+		for (int i=(int)m_sigma; i > 0; --i) m_C[i] = m_C[i-1]; 
+		m_C[0] = 0;
+		for (int i=1; i <= (int)m_sigma; ++i) m_C[i] += m_C[i-1];
+		assert(C[sigma]==len);
+	}
+
+
 	byte_alphabet_strategy::byte_alphabet_strategy(): char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma) {
 		m_sigma = 0;	
 	}

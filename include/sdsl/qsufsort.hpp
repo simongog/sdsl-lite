@@ -63,6 +63,7 @@ class sorter;
  *      the maximum of `bit_magic::l1BP( max(sa.size()-1, 0) )` and the
  *      bit-width of the text.
  */
+// TODO: problem when int_width==64!!!
 template<class int_vector_type>
 void construct_sa(int_vector_type& sa, const char* file, uint8_t num_bytes){
 	sorter<int_vector_type> s;
@@ -407,8 +408,8 @@ class sorter{
 	
 		m_msb = sa.get_int_width()-1;
 		m_msb_mask = 1ULL<<m_msb;
-//		std::cout<<"m_msb="<<(int)m_msb<<std::endl;
-//		std::cout<<"m_msb_mask="<<m_msb_mask<<std::endl;
+		std::cout<<"m_msb="<<(int)m_msb<<std::endl;
+		std::cout<<"m_msb_mask="<<m_msb_mask<<std::endl;
 
 		stop_watch sw;
 		sw.start();	

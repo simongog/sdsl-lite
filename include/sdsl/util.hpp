@@ -31,6 +31,7 @@
 #include <fstream>     // file stream for storeToFile and loadFromFile
 #include <ctime>       // for rand initialization
 #include <string>
+#include <locale>       // for class_to_hash
 #include <string.h>    // for strlen and strdup
 #include <libgen.h>    // for basename
 #include <cstdlib>
@@ -51,10 +52,7 @@ namespace sdsl
 //class structure_tree_node; // forward declaration of data structure in structure_tree.hpp
 //class structure_tree; // forward declaration of data structure in structure.hpp
 
-template<uint8_t, class size_type_class>
-class int_vector_file_buffer; // forward declaration
-
-template<uint8_t, class size_type_class>
+template<uint8_t>
 class int_vector;	 // forward declaration
 
 //! A namespace for helper functions
@@ -102,8 +100,8 @@ template<class int_vector_type>
 void expand_width(int_vector_type&v, uint8_t new_width);
 
 //! All elements of v modulo m
-template<class int_vector_type, class size_type_class>
-void all_elements_mod(int_vector_type& v, size_type_class m);
+template<class int_vector_type>
+void all_elements_mod(int_vector_type& v, typename int_vector_type::size_type m);
 
 
 //! Set all entries of int_vector to value k
@@ -167,29 +165,35 @@ bool load_vector_from_file(int_vector_type &v, const char* file_name, uint8_t nu
 		if ( in ){
 			v.set_int_width( std::min( (int)8*num_bytes, (int)max_int_width ) );
 			v.resize( file_size / num_bytes );
-			size_t idx=0;
-			const size_t block_size = constants::SDSL_BLOCK_SIZE*num_bytes;
-			uint8_t * buf = new uint8_t[block_size];
-			uint64_t x = 0; // value
-			uint8_t  cur_byte = 0;
-			do{
-				in.read((char*)buf, block_size);
-				size_t read = in.gcount();
-				uint8_t* begin = buf;
-				uint8_t* end   = begin+read;
-				while ( begin < end ){
-					x |= (*begin) << (cur_byte*8);
-					++cur_byte;
-					if ( cur_byte == num_bytes ){
-						v[idx++] = x;
-						cur_byte = 0;
-						x = 0ULL;
+			if ( 8 == int_vector_type::fixed_int_width and 1 == num_bytes ){ // if int_vector<8> is created from byte alphabet file 
+				in.read((char*)v.m_data, file_size);
+			}else{
+				size_t idx=0;
+				const size_t block_size = constants::SDSL_BLOCK_SIZE*num_bytes;
+				uint8_t * buf = new uint8_t[block_size];
+				// TODO: check for larger alphabets with num_bytes*8 = v::fixed_int_width
+
+				uint64_t x = 0; // value
+				uint8_t  cur_byte = 0;
+				do{
+					in.read((char*)buf, block_size);
+					size_t read = in.gcount();
+					uint8_t* begin = buf;
+					uint8_t* end   = begin+read;
+					while ( begin < end ){
+						x |= (*begin) << (cur_byte*8);
+						++cur_byte;
+						if ( cur_byte == num_bytes ){
+							v[idx++] = x;
+							cur_byte = 0;
+							x = 0ULL;
+						}
+						++begin;
 					}
-					++begin;
-				}
-			} while( idx < v.size() );
-			delete [] buf;
-			in.close();
+				} while( idx < v.size() );
+				delete [] buf;
+				in.close();
+			}
 			return true;
 		}else{
 			return false;
@@ -212,10 +216,6 @@ bool store_to_plain_array(int_vector_type &v, const char* file_name){
 	}
 }
 
-
-template<class size_type_class>
-bool load_from_int_vector_buffer(unsigned char*& text, int_vector_file_buffer<8, size_type_class>& text_buf);
-
 //! Specialization of load_from_file for a char array
 /*  \pre v=NULL
  *
@@ -236,8 +236,8 @@ bool store_to_file(const T& v, const char* file_name);
 bool store_to_file(const char* v, const char* file_name);
 
 //! Specialization of store_to_file for int_vector
-template<uint8_t fixed_int_width, class size_type_class>
-bool store_to_file(const int_vector<fixed_int_width, size_type_class>& v, const char* file_name, bool write_fixed_as_variable=false);
+template<uint8_t fixed_int_width>
+bool store_to_file(const int_vector<fixed_int_width>& v, const char* file_name, bool write_fixed_as_variable=false);
 
 //! Demangle the class name of typeid(...).name()
 /*!
@@ -247,6 +247,16 @@ std::string demangle(const char* name);
 
 //! Demangle the class name of typeid(...).name() and remove the "sdsl::"-prefix, "unsigned int",...
 std::string demangle2(const char* name);
+
+//! Transforms the demangled class name of an object to a hash value.
+template<class T>
+std::string class_to_hash(const T& t){
+	std::locale loc;
+	const std::collate<char>& coll = std::use_facet<std::collate<char> >(loc);
+	std::string name = sdsl::util::demangle2(typeid(T).name());
+	uint64_t my_hash = coll.hash(name.data(),name.data()+name.length());
+	return to_string(my_hash);
+}
 
 template<class T>
 std::string class_name(const T& t)
@@ -464,8 +474,7 @@ void write_structure(const X& x, std::ostream& out)
 
 
 template<class T>
-typename T::size_type util::get_size_in_bytes(const T& t)
-{
+typename T::size_type util::get_size_in_bytes(const T& t) {
     if ((&t) == NULL)
         return 0;
     util::nullstream ns;
@@ -473,14 +482,12 @@ typename T::size_type util::get_size_in_bytes(const T& t)
 }
 
 template<class T>
-double util::get_size_in_mega_bytes(const T& t)
-{
+double util::get_size_in_mega_bytes(const T& t) {
     return get_size_in_bytes(t)/(1024.0*1024.0);
 }
 
 template<class T>
-bool util::store_to_file(const T& t, const char* file_name)
-{
+bool util::store_to_file(const T& t, const char* file_name) {
     std::ofstream out;
     out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
@@ -490,8 +497,7 @@ bool util::store_to_file(const T& t, const char* file_name)
     return true;
 }
 
-inline bool util::store_to_file(const char* v, const char* file_name)
-{
+inline bool util::store_to_file(const char* v, const char* file_name) {
     std::ofstream out;
     out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
@@ -502,9 +508,8 @@ inline bool util::store_to_file(const char* v, const char* file_name)
     return true;
 }
 
-template<uint8_t fixed_int_width, class size_type_class>
-bool util::store_to_file(const int_vector<fixed_int_width, size_type_class>& v, const char* file_name, bool write_fixed_as_variable)
-{
+template<uint8_t fixed_int_width>
+bool util::store_to_file(const int_vector<fixed_int_width>& v, const char* file_name, bool write_fixed_as_variable) {
     std::ofstream out;
     out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
@@ -515,8 +520,7 @@ bool util::store_to_file(const int_vector<fixed_int_width, size_type_class>& v, 
 }
 
 template<class T>
-bool util::load_from_file(T& v, const char* file_name)
-{
+bool util::load_from_file(T& v, const char* file_name) {
     std::ifstream in;
     in.open(file_name, std::ios::binary | std::ios::in);
     if (!in)
@@ -527,31 +531,8 @@ bool util::load_from_file(T& v, const char* file_name)
 }
 
 
-template<class size_type_class>
-bool util::load_from_int_vector_buffer(unsigned char*& text, int_vector_file_buffer<8, size_type_class>& text_buf)
-{
-    text_buf.reset();
-    size_type_class n = text_buf.int_vector_size;
-    if (text != NULL) {
-        delete [] text;
-        text = NULL;
-    }
-    text = new unsigned char[n];
-    for (size_type_class i=0, r_sum=0, r=text_buf.load_next_block(); r_sum < n;) {
-        for (; i < r_sum+r; ++i) {
-            text[i] = text_buf[i-r_sum];
-        }
-        r_sum += r; r = text_buf.load_next_block();
-    }
-    return true;
-}
-
-
-
-
 template<class int_vector_type>
-void util::set_random_bits(int_vector_type& v, int seed)
-{
+void util::set_random_bits(int_vector_type& v, int seed) {
     if (0 == seed) {
         srand48((int)time(NULL));
     } else
@@ -573,9 +554,8 @@ void util::set_random_bits(int_vector_type& v, int seed)
 }
 
 // all elements of vector v modulo m
-template<class int_vector_type, class size_type_class>
-void util::all_elements_mod(int_vector_type& v, size_type_class m)
-{
+template<class int_vector_type>
+void util::all_elements_mod(int_vector_type& v, typename int_vector_type::size_type m) {
     for (typename int_vector_type::size_type i=0; i < v.size(); ++i) {
         v[i] = v[i] % m;
     }

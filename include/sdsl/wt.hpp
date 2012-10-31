@@ -243,15 +243,14 @@ class wt_trait<unsigned char*>
         }
 };
 
-template<class size_type_class>
-class wt_trait<int_vector_file_buffer<8, size_type_class> >
-{
+template<>
+class wt_trait<int_vector_file_buffer<8> >{
     public:
-        typedef size_type_class		size_type;
-        typedef unsigned char		value_type;
-        typedef int_vector_file_buffer<8, size_type_class>&		reference_type;
-        typedef unsigned_char_map 	map_type;
-        typedef unsigned_char_map 	inv_map_type;
+        typedef int_vector_size_type		size_type;
+        typedef unsigned char				value_type;
+        typedef int_vector_file_buffer<8>&	reference_type;
+        typedef unsigned_char_map 			map_type;
+        typedef unsigned_char_map 			inv_map_type;
         enum { char_node_map_size=256 };
 
         static size_type alphabet_size_and_map(reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
@@ -500,11 +499,10 @@ class wt
         }
 
         //! Construct the wavelet tree from a random access container
-        template<class size_type_class>
-        wt(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
+        wt(int_vector_file_buffer<8>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
             m_size = size;
             init_char_node_map();
-            typedef int_vector_file_buffer<8, size_type_class> tIVFB;
+            typedef int_vector_file_buffer<8> tIVFB;
 //#define SDSL_DEBUG_WT
 #ifdef SDSL_DEBUG_WT
             std::cerr<<"Wavelet Tree construct for int_vector_file_buffer: size="<<size<<std::endl;

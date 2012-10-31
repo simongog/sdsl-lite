@@ -10,29 +10,13 @@ const uint16_t _undef_node = 65535;
 
 //! Count for each character in [0..255] the number of occurrences in rac[0..size-1]
 /*!
- * \return C An array of size 256, which contains for each character the number of occurences in rac[0..size-1]
+ * \return C An array of size 256, which contains for each character the number of occurrences in rac[0..size-1]
  */
-template<class size_type_class, class size_type>
-void calculate_character_occurences(int_vector_file_buffer<8, size_type_class>& text, const size_type size, size_type* C)
-{
-    text.reset();
-    if (text.int_vector_size < size) {
-        throw std::logic_error("calculate_character_occurences: stream size is smaller than size!");
-        return;
-    }
-    for (size_type i=0, r_sum=0, r = text.load_next_block(); r_sum < size;) {
-        if (r_sum + r > size) {  // read not more than size chars in the next loop
-            r = size-r_sum;
-        }
-        for (; i < r_sum+r; ++i) {
-            ++C[text[i-r_sum]];
-        }
-        r_sum += r; r = text.load_next_block();
-    }
-}
+void calculate_character_occurences(int_vector_file_buffer<8>& text, const int_vector_size_type size, int_vector_size_type* C);
 
-template<class size_type>
-void calculate_effective_alphabet_size(const size_type* C, size_type& sigma)
+
+template<class size_type, class sigma_type>
+void calculate_effective_alphabet_size(const size_type* C, sigma_type& sigma)
 {
     sigma = 0; // initialize with 0
     for (size_type i=0; i < 256; ++i) // for all possible symbols

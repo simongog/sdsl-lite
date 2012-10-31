@@ -30,6 +30,7 @@ class CsaAsciiTest : public ::testing::Test
         virtual void SetUp() {
             // Code here will be called immediately after the constructor (right
             // before each test).
+//			sdsl::util::verbose = true;
             string test_cases_dir = string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
             tmp_dir = string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
             test_cases.push_back(test_cases_dir + "/crafted/100a.txt");

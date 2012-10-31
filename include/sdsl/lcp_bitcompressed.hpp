@@ -87,8 +87,8 @@ class lcp_bitcompressed
         lcp_bitcompressed(const Text& text, const Sa& sa);
 
         //! Construct the lcp array from an int_vector_file_buffer
-        template<uint8_t int_width, class size_type_class>
-        lcp_bitcompressed(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
+        template<uint8_t int_width>
+        lcp_bitcompressed(int_vector_file_buffer<int_width>& lcp_buf);
 
         //! Number of elements in the instance.
         /*! Required for the Container Concept of the STL.
@@ -189,8 +189,8 @@ lcp_bitcompressed<width>::lcp_bitcompressed(const Text& text, const Sa& sa)
 }
 
 template<uint8_t width>
-template<uint8_t int_width, class size_type_class>
-lcp_bitcompressed<width>::lcp_bitcompressed(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
+template<uint8_t int_width>
+lcp_bitcompressed<width>::lcp_bitcompressed(int_vector_file_buffer<int_width>& lcp_buf)
 {
     lcp_buf.reset();
     m_lcp = int_vector<width>(lcp_buf.int_vector_size, 0, lcp_buf.int_width);

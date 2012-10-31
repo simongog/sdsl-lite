@@ -31,6 +31,7 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <string>
 
 namespace sdsl
 {
@@ -82,17 +83,16 @@ bool construct_cst(std::string file_name, Cst& cst, tMSS& file_map, bool delete_
         if (id=="")
             id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
         if (fs != n+1) {
-            std::cerr << "# WARNING: file \"" << file_name << "\" contains 0-bytes. (cst_construct) fs="<<fs<<" n="<< n << std::endl;
-            algorithm::shift_text((char*)ccc, fs, true);
-            n = fs-1;
+			throw std::logic_error( std::string("ERROR: file \""+ file_name+ "\" contains 0-bytes. (cst_construct) ").c_str());
+			return false;
         }
-
-        if (!util::store_to_file(char_array_serialize_wrapper<>((unsigned char*)ccc,n+1), (dir+"text_"+id).c_str())) {
+		std::string text_file = dir+constants::KEY_TEXT+"_"+id;
+        if (!util::store_to_file(char_array_serialize_wrapper((unsigned char*)ccc,n+1), text_file.c_str())) {
             throw std::ios_base::failure("#csa_construct: Cannot store text to file system!");
             delete [] ccc;
             return false;
         } else {
-            file_map["text"] = (dir+"text_"+id).c_str();
+            file_map[constants::KEY_TEXT] = text_file;
         }
         delete [] ccc;
         return construct_cst(cst, file_map, delete_files, dir, build_only_bps, id, lcp_method);
@@ -111,19 +111,21 @@ static bool construct_cst(Cst& cst, tMSS& file_map, bool delete_files=true, std:
     {
         csa_type csa;
         construct_csa(csa, file_map, false, dir, id);
-        if (!util::store_to_file(csa, (dir+"csa_"+id).c_str())) {
+		std::string csa_file = dir+util::class_to_hash(cst.csa)+"_"+id;
+        if (!util::store_to_file(csa, csa_file.c_str())) {
             throw std::ios_base::failure("cst_construct: Cannot store CSA to file system!");
             return false;
         } else {
-            file_map["csa"] = dir+"csa_"+id;
+            file_map[util::class_to_hash(cst.csa)] = csa_file;
         }
     }
 
     {
         // test if lcp is already calculated
-        std::ifstream in((dir+"lcp_"+id).c_str());
+		std::string lcp_file = dir+constants::KEY_LCP+"_"+id;
+        std::ifstream in(lcp_file.c_str());
         if (in) {
-            file_map["lcp"] = dir+"lcp_"+id;
+            file_map[constants::KEY_LCP] = lcp_file;
         }
     }
 
@@ -136,7 +138,6 @@ static bool construct_cst(Cst& cst, tMSS& file_map, bool delete_files=true, std:
                 if (!construct_lcp_kasai(file_map, dir, id))
                     return false;
             }
-            //			construct_lcp_go(file_map, dir, id);
         } else {
             if (lcp_method=="go")
                 construct_lcp_go(file_map, dir, id);
@@ -150,8 +151,6 @@ static bool construct_cst(Cst& cst, tMSS& file_map, bool delete_files=true, std:
                 construct_lcp_PHI(file_map, dir, id, true);
             else if (lcp_method=="simple_n5")
                 construct_lcp_simple_5n(file_map, dir, id);
-            else if (lcp_method=="simple2_n9")
-                construct_lcp_simple2_9n(file_map, dir, id);
             else if (lcp_method=="sparse_phi")
                 construct_lcp_semi_extern_PHI(file_map, dir, id);
             else

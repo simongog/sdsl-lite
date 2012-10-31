@@ -126,9 +126,7 @@ class wt_rlg8
         /*! \param text_buf	A int_vector_file_buffer to the original text.
          *	\param size The length of the prefix of the text, for which the wavelet tree should be build.
          */
-        template<class size_type_class>
-        wt_rlg8(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
-            typedef size_type_class size_type;
+        wt_rlg8(int_vector_file_buffer<8>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
             // TODO: remove absolute file name
             std::string temp_file = "wt_rlg8_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
             std::ofstream wt_out(temp_file.c_str(), std::ios::binary | std::ios::trunc);
@@ -224,7 +222,7 @@ class wt_rlg8
             wt_out.close();
 
             {
-                int_vector_file_buffer<8, size_type> temp_bwt_buf(temp_file.c_str());
+                int_vector_file_buffer<8> temp_bwt_buf(temp_file.c_str());
 				util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
             }
 
