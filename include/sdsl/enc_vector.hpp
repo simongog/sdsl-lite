@@ -98,8 +98,8 @@ class enc_vector
             \param v_buf A int_vector_file_buf.
         	\pre No two adjacent values should be equal.
         */
-        template<uint8_t int_width, class size_type_class>
-        enc_vector(int_vector_file_buffer<int_width, size_type_class>& v_buf); 
+        template<uint8_t int_width>
+        enc_vector(int_vector_file_buffer<int_width>& v_buf); 
 
         //! Default Destructor
         ~enc_vector() {
@@ -408,8 +408,8 @@ enc_vector<Coder, SampleDens,fixedIntWidth>::enc_vector(const Container& c) : m_
 
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-template<uint8_t int_width, class size_type_class>
-enc_vector<Coder, SampleDens,fixedIntWidth>::enc_vector(int_vector_file_buffer<int_width, size_type_class>& v_buf) : m_elements(0)
+template<uint8_t int_width>
+enc_vector<Coder, SampleDens,fixedIntWidth>::enc_vector(int_vector_file_buffer<int_width>& v_buf) : m_elements(0)
 {
     // clear bit_vectors
     clear();

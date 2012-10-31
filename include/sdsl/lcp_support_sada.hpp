@@ -112,9 +112,9 @@ class _lcp_support_sada
 
 
         //! Construct the lcp array from an lcp array and an int_vector_file_buffer of the inverse suffix array
-        template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1>
-        _lcp_support_sada(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                          int_vector_file_buffer<int_width_1, size_type_class_1>& isa_buf,
+        template<uint8_t int_width, uint8_t int_width_1>
+        _lcp_support_sada(int_vector_file_buffer<int_width>& lcp_buf,
+                          int_vector_file_buffer<int_width_1>& isa_buf,
                           const Csa* f_csa);
 
         void set_csa(const Csa* f_csa) {
@@ -232,9 +232,9 @@ _lcp_support_sada<Csa, BitVector, SelectSupport>::_lcp_support_sada(const Text& 
 }
 
 template<class Csa, class BitVector, class SelectSupport>
-template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1>
-_lcp_support_sada<Csa, BitVector, SelectSupport>::_lcp_support_sada(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-        int_vector_file_buffer<int_width_1, size_type_class_1>& isa_buf,
+template<uint8_t int_width, uint8_t int_width_1>
+_lcp_support_sada<Csa, BitVector, SelectSupport>::_lcp_support_sada(int_vector_file_buffer<int_width>& lcp_buf,
+        int_vector_file_buffer<int_width_1>& isa_buf,
         const Csa* f_csa):csa(m_csa)
 {
     typedef typename Csa::size_type size_type;
@@ -242,7 +242,7 @@ _lcp_support_sada<Csa, BitVector, SelectSupport>::_lcp_support_sada(int_vector_f
 #ifdef SDSL_DEBUG
     std::cerr<<"start building _lcp_support_sada"<<std::endl;
 #endif
-    int_vector<int_width, size_type_class> lcp;
+    int_vector<int_width> lcp;
     util::load_from_file(lcp, lcp_buf.file_name.c_str());
     isa_buf.reset();
     size_type n = lcp.size();

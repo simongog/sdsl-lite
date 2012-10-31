@@ -102,22 +102,30 @@ struct _node {
 
 //! A Wavelet Tree class for byte sequences.
 /*!
- * A wavelet tree is build for a vector of characters over the alphabet \f$\Sigma\f$.
- * This class should be used only for small alphabets \f$\Sigma \ll n\f$ (see int_wavelet_tree for a wavelet tree for big alphabets).
- * The wavelet tree \f$wt\f$ consists of a tree of bitvectors and provides three efficient methods:
- *   - The "[]"-operator: \f$wt[i]\f$ returns the ith symbol of vector for which the wavelet tree was build for.
- *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurrences of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the wavelet tree was build for.
- *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurence of symbol \f$c\f$.
+ * A wavelet tree is build for a vector of characters over the byte alphabet 
+ * \f$\Sigma\f$. If you need a wavelet tree for a integer alphabet you should
+ * use `wt_int`.
+ * The wavelet tree \f$wt\f$ consists of a tree of bitvectors and provides 
+ * three efficient methods:
+ *   - The "[]"-operator: \f$wt[i]\f$ returns the i-th symbol of vector for
+ *     which the wavelet tree was build for.
+ *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurrences 
+ *     of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the 
+ *     wavelet tree was build for.
+ *   - The select method: \f$wt.select(j,c)\f$ returns the index 
+ *     \f$i\in [0..size()-1]\f$ of the j-th occurrence of symbol \f$c\f$.
  *
- *  The idea of using a Huffman shaped wavelet was first mentioned on page 17 of the following technical report:
- *  Veli Mäkinen and Gonzalo Navarro: Succinct Suffix Arrays based on Run-Length Encoding.
+ *  The idea of using a Huffman shaped wavelet was first mentioned on page 17
+ *  of the following technical report:
+ *  Veli Mäkinen and Gonzalo Navarro: 
+ *  ,,Succinct Suffix Arrays based on Run-Length Encoding.''
  *  Available under: http://swp.dcc.uchile.cl/TR/2005/TR_DCC-2005-004.pdf
  *
  *	\par Space complexity
- *		\f$\Order{n H_0 + 2|\Sigma|\log n}\f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
+ *		\f$\Order{n H_0 + 2|\Sigma|\log n}\f$ bits, where \f$n\f$ is the size 
+ *      of the vector the wavelet tree was build for.
  *
  *   @ingroup wt
- * TODO: 
  */
 template<class BitVector 		 = bit_vector,
          class RankSupport 		 = typename BitVector::rank_1_type,
@@ -179,7 +187,7 @@ class wt_huff
             }
         }
 
-        // insert a character into the wavelet tree, see constuct method
+        // insert a character into the wavelet tree, see construct method
         void insert_char(uint8_t old_chr, size_type* tree_pos, size_type times, bit_vector& f_tree) {
             uint32_t path_len = (m_path[old_chr]>>56);
             uint64_t p = m_path[old_chr];
@@ -364,8 +372,7 @@ class wt_huff
         /*! \param input_buf 	File buffer of the input.
          *	\param size 		The length of the prefix of the random access container, for which the wavelet tree should be build.
          */
-        template<class size_type_class>
-        wt_huff(int_vector_file_buffer<8, size_type_class>& input_buf, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
+        wt_huff(int_vector_file_buffer<8>& input_buf, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
             if ( 0 == m_size )
                 return;
             // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes

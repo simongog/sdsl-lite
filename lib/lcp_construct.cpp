@@ -11,24 +11,22 @@ bool construct_lcp_kasai(tMSS& file_map, const std::string& dir, const std::stri
 {
     typedef int_vector<>::size_type size_type;
     write_R_output("lcp", "construct LCP", "begin", 1, 0);
-    int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
     if (!construct_isa(file_map, dir, id)) {  // construct isa if it not already exists on disk
         return false;
     }
     {
-
         write_R_output("lcp", "load text", "begin", 1, 0);
-        unsigned char* text = NULL;
-        if (!util::load_from_int_vector_buffer(text, text_buf)) {
+		int_vector<8> text;
+        if (!util::load_vector_from_file(text, file_map[constants::KEY_TEXT].c_str(), 0)) {
             throw std::ios_base::failure("cst_construct: Cannot load text from file system!");
         }
         write_R_output("lcp", "load text", "end", 1, 0);
 
 
-        int_vector_file_buffer<> isa_buf(file_map["isa"].c_str(), 1000000);   // init isa file_buffer
+        int_vector_file_buffer<> isa_buf(file_map[constants::KEY_ISA].c_str(), 1000000);   // init isa file_buffer
 
         int_vector<> sa;
-        if (!util::load_from_file(sa, file_map["sa"].c_str())) {			   // init sa
+        if (!util::load_from_file(sa, file_map[constants::KEY_SA].c_str())) {			   // init sa
             throw std::ios_base::failure("cst_construct: Cannot load SA from file system!");
         }
         // use Kasai algorithm to compute the lcp values
@@ -39,7 +37,7 @@ bool construct_lcp_kasai(tMSS& file_map, const std::string& dir, const std::stri
                     j = sa[sa_1-1];
                     if (l) --l;
                     assert(i!=j);
-                    while (text[i+l]==text[j+l]) { // i+l < n and j+l < n braucht man nicht, da text[n]=0 und text[i]!=0 (i<n) und i!=j
+                    while (text[i+l]==text[j+l]) { // i+l < n and j+l < n are not necessary, since text[n]=0 and text[i]!=0 (i<n) and i!=j
                         ++l;
                     }
                     sa[ sa_1-1 ] = l; //overwrite sa array with lcp values
@@ -51,16 +49,16 @@ bool construct_lcp_kasai(tMSS& file_map, const std::string& dir, const std::stri
             r_sum += r;
             r = isa_buf.load_next_block();
         }
-        delete [] text; text = NULL;
-        if (!util::store_to_file(sa, (dir+"lcp_"+id).c_str())) {
+		std::string lcp_file = dir+constants::KEY_LCP+"_"+id;
+        if (!util::store_to_file(sa, lcp_file.c_str())) {
             throw std::ios_base::failure("cst_construct: Cannot store LCP to file system!");
             return false;
         } else {
-            file_map["lcp"] = dir+"lcp_"+id;
+            file_map[constants::KEY_LCP] = lcp_file;
         }
         // TODO: shift on disk, i.e. read from lcp_buf and write with a buffer to disk
         {
-            int_vector_file_buffer<> lcp_buf(file_map["lcp"].c_str(), 1000000);
+            int_vector_file_buffer<> lcp_buf(file_map[constants::KEY_LCP].c_str(), 1000000);
             // shift lcp array
             for (size_type i=0, r_sum=0, r=lcp_buf.load_next_block(); r_sum < sa.size();) {
                 for (; i<r_sum+r-1; ++i) {
@@ -75,8 +73,8 @@ bool construct_lcp_kasai(tMSS& file_map, const std::string& dir, const std::stri
                 r = lcp_buf.load_next_block();
             }
         } // destructor of lcp_buf is called
-        if (!util::store_to_file(sa, file_map["lcp"].c_str())) {
-            throw std::ios_base::failure("cst_construct: Cannot store ISA to file system!");
+        if (!util::store_to_file(sa, file_map[constants::KEY_LCP].c_str())) {
+            throw std::ios_base::failure("cst_construct: Cannot store LCP to file system!");
             return false;
         }
     }
@@ -88,19 +86,19 @@ bool construct_lcp_semi_extern_PHI(tMSS& file_map, const std::string& dir, const
 {
     typedef int_vector<>::size_type size_type;
     write_R_output("lcp", "construct LCP", "begin", 1, 0);
-    int_vector_file_buffer<> sa_buf(file_map["sa"].c_str());
+    int_vector_file_buffer<> sa_buf(file_map[constants::KEY_SA].c_str());
     size_type n = sa_buf.int_vector_size; // TODO: handle case n=0
     if (n==0) {
-        file_map["lcp"] = dir+"lcp_"+id;
+        file_map[constants::KEY_LCP] = dir+"lcp_"+id;
         int_vector<> lcp(0);
-        util::store_to_file(lcp, file_map["lcp"].c_str());
+        util::store_to_file(lcp, file_map[constants::KEY_LCP].c_str());
         return true;
     }
     const uint8_t log_q = 6; // => q=64
     const uint32_t q = 1<<log_q;
     const uint64_t modq = bit_magic::Li1Mask[log_q];
 
-    // n-1 is the gretes entry in SA
+    // n-1 is the maximum entry in SA
     int_vector<64> plcp((n-1+q)>>log_q);
 
     write_R_output("lcp", "calculate sparse phi", "begin", 1, 0);
@@ -122,9 +120,8 @@ bool construct_lcp_semi_extern_PHI(tMSS& file_map, const std::string& dir, const
     write_R_output("lcp", "calculate sparse phi", "begin", 1, 0);
 
     write_R_output("lcp", "load text", "begin", 1, 0);
-    unsigned char* text = NULL;
-    int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
-    if (!util::load_from_int_vector_buffer(text, text_buf)) {
+    int_vector<8> text;
+    if (!util::load_vector_from_file(text, file_map[constants::KEY_TEXT].c_str(),0)) {
         throw std::ios_base::failure("cst_construct: Cannot load text from file system!");
     }
     write_R_output("lcp", "load text", "end", 1, 0);
@@ -146,8 +143,8 @@ bool construct_lcp_semi_extern_PHI(tMSS& file_map, const std::string& dir, const
     write_R_output("lcp", "calculate sparse plcp", "end", 1, 0);
 
 
-    file_map["lcp"] = dir+"lcp_"+id;
-    std::ofstream lcp_out_buf(file_map["lcp"].c_str(), std::ios::binary | std::ios::app | std::ios::out);   // open buffer for plcp
+    file_map[constants::KEY_LCP] = dir+"lcp_"+id;
+    std::ofstream lcp_out_buf(file_map[constants::KEY_LCP].c_str(), std::ios::binary | std::ios::app | std::ios::out);   // open buffer for plcp
     size_type bit_size = n*sa_buf.int_width;
     lcp_out_buf.write((char*) &(bit_size), sizeof(sa_buf.int_vector_size));		// write size of vector
     lcp_out_buf.write((char*) &(sa_buf.int_width), sizeof(sa_buf.int_width));       // write int_width of vector
@@ -197,7 +194,6 @@ bool construct_lcp_semi_extern_PHI(tMSS& file_map, const std::string& dir, const
         lcp_out_buf.write("\0\0\0\0\0\0\0\0", 8-wb%8);
     }
     lcp_out_buf.close();
-    delete [] text;
     write_R_output("lcp", "construct LCP", "end", 1, 0);
     return true;
 }
@@ -206,8 +202,7 @@ bool construct_lcp_PHI(tMSS& file_map, const std::string& dir, const std::string
 {
     typedef int_vector<>::size_type size_type;
     write_R_output("lcp", "construct LCP", "begin", 1, 0);
-    int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
-    int_vector_file_buffer<> sa_buf(file_map["sa"].c_str());
+    int_vector_file_buffer<> sa_buf(file_map[constants::KEY_SA].c_str());
 
     size_type n = sa_buf.int_vector_size; // TODO: handle case n=0
     int_vector<> plcp(n, 0, sa_buf.int_width);
@@ -229,8 +224,8 @@ bool construct_lcp_PHI(tMSS& file_map, const std::string& dir, const std::string
     }
 
     write_R_output("lcp", "load text", "begin", 1, 0);
-    unsigned char* text = NULL;
-    if (!util::load_from_int_vector_buffer(text, text_buf)) { // load text
+	int_vector<8> text;
+    if (!util::load_vector_from_file(text,  file_map[constants::KEY_TEXT].c_str(),0 )) { // load text
         throw std::ios_base::failure("cst_construct: Cannot load text from file system!");
     }
     write_R_output("lcp", "load text", "end", 1, 0);
@@ -255,24 +250,17 @@ bool construct_lcp_PHI(tMSS& file_map, const std::string& dir, const std::string
 
         size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
         int_vector_file_buffer<> phi_buf(file_name_PHI.c_str(), buffer_size);
-//			int_vector<> plcp_buf(buffer_size, 0, phi_buf.int_width );
-//			size_type phii_1 = phi_buf[0];
         for (size_type i=0, l=0, r=0, r_sum=0; r_sum < n-1;) { // TODO: case plcp[n-1]?
             for (; i < r_sum + r ; ++i) {
                 size_type phii = phi_buf[i-r_sum];
-//					if(phii != phii_1+1){
                 while (text[i+l] == text[phii+l])
                     ++l;
-//					}
-//					plcp_buf[i-r_sum] = l; // TODO: change int_vector_file_buffer so that we can assign phi_buf the new value
                 phi_buf.set_int(i-r_sum, l);
                 if (l)
                     --l;
-//					phii_1 = phii;
             }
             if (r > 0) {
                 size_type cur_wb = (r*phi_buf.int_width+7)/8;
-//					plcp_out_buf.write((const char*)plcp_buf.data(), cur_wb );
                 plcp_out_buf.write((const char*)phi_buf.data(), cur_wb);
                 wb += cur_wb;
             }
@@ -284,17 +272,14 @@ bool construct_lcp_PHI(tMSS& file_map, const std::string& dir, const std::string
         }
         plcp_out_buf.close();
     }
-
-    delete [] text;
-
+	util::clear(text);
     if (semi_external) {
         util::load_from_file(plcp, file_name_PLCP.c_str());   // load PLCP from disk
         std::remove(file_name_PHI.c_str());
         std::remove(file_name_PLCP.c_str());
     }
-
     std::ofstream lcp_out_buf((dir+"lcp_"+id).c_str(), std::ios::binary | std::ios::app | std::ios::out);   // open buffer for lcp
-    file_map["lcp"] = dir+"lcp_"+id;
+    file_map[constants::KEY_LCP] = dir+"lcp_"+id;
 
     size_type bit_size = n*sa_buf.int_width;
     lcp_out_buf.write((char*) &(bit_size), sizeof(sa_buf.int_vector_size));		// write size of vector
@@ -356,9 +341,7 @@ void buffered_char_queue::push_back(uint8_t x)
                 m_stream.open(m_file_name.c_str(), std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
             }
             m_stream.seekp(m_buffer_size * (m_wb++), std::ios::beg);
-//				std::cout<<"tellg="<<m_stream.tellg()<<" tellp"<<m_stream.tellp()<<std::endl;
             m_stream.write((char*) m_write_buf, m_buffer_size);
-//				std::cout<<"tellg="<<m_stream.tellg()<<" tellp"<<m_stream.tellp()<<std::endl;
             ++m_disk_buffered_blocks;
         }
         m_sync = 0;
@@ -390,14 +373,14 @@ bool construct_lcp_simple_5n(tMSS& file_map, const std::string& dir, const std::
     write_R_output("lcp","construct LCP", "begin", 1, 0);
     construct_bwt(file_map, dir, id);
 
-    int_vector_file_buffer<> sa_buf(file_map["sa"].c_str());   // initialize buffer for suffix array
+    int_vector_file_buffer<> sa_buf(file_map[constants::KEY_SA].c_str());   // initialize buffer for suffix array
     sa_buf.load_next_block();
     size_type sai_1 = sa_buf[0];  // store value of sa[i-1]
     int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str()); // initialize buffer of bwt
     size_type r = bwt_buf.load_next_block();
     uint8_t bwti_1 = bwt_buf[0];       // store value of BWT[i-1]
     int_vector<8> text;
-    util::load_from_file(text, file_map["text"].c_str());
+    util::load_from_file(text, file_map[constants::KEY_TEXT].c_str());
 
     const size_type n = sa_buf.int_vector_size;
 
@@ -507,86 +490,7 @@ calculated_l:
         throw std::ios_base::failure("cst_construct: Cannot store LCP_sml to file system!");
         return false;
     } else {
-        file_map["lcp"] = dir+"lcp_"+id;
-    };
-    write_R_output("lcp","construct LCP", "end", 1, 0);
-    return true;
-}
-
-bool construct_lcp_simple2_9n(tMSS& file_map, const std::string& dir, const std::string& id)
-{
-    typedef int_vector<>::size_type size_type;
-    write_R_output("lcp","construct LCP", "begin", 1, 0);
-    construct_bwt(file_map, dir, id);
-    int_vector<8> bwt;
-    util::load_from_file(bwt, file_map["bwt"].c_str());
-    const size_type n = bwt.size();
-    int_vector<> lcp(n, n-1, bit_magic::l1BP(n-1)+1);
-    int_vector<> lf(n, 0, bit_magic::l1BP(n-1)+1);
-
-    size_type cnt_c[257] = {0};   // counter for each character in the text
-    size_type cnt_cc[257] = {0};  // prefix sum of the counter cnt_c
-    size_type cnt_ccc[257] = {0};  // copy of the prefix sum of the counter cnt_c
-    for (size_type i=0; i<n; ++i) { // initialize cnt_c
-        ++cnt_c[bwt[i]+1];
-    }
-    for (int i=1; i<257; ++i) { // calculate sigma and initailize cnt_cc
-        cnt_cc[i] = cnt_c[i] + cnt_cc[i-1];
-        cnt_ccc[i] = cnt_cc[i];
-    }
-    for (size_type i=0; i<n; ++i) {
-        lf[i] = cnt_ccc[bwt[i]];
-        ++cnt_ccc[bwt[i]];
-    }
-
-    tVI m_indices[2];
-    size_type m = 0;
-    lcp[0] = 0;
-    for (int i=1; i<257; ++i) {
-//			for(size_type j=cnt_cc[i-1]+1; j < cnt_cc[i]; ++j){
-//				lcp[j] = n-1;
-//			}
-        if (cnt_cc[i-1] != cnt_cc[i] and i<257) {
-            m_indices[m].push_back(cnt_cc[i]);
-        }
-    }
-
-//		tLI &cur_list = m_indices[m];
-//		tLI &next_list = m_indices[(m+1)%2];
-    size_type up_char_ex[257] = {0};
-    while (!m_indices[m%2].empty()) {
-//			std::cerr<<"m="<<m<<" list.size()="<<m_indices[m%2].size()<<std::endl;
-        for (size_type j=0; j< m_indices[m%2].size(); ++j) {
-            size_type i = m_indices[m%2][j];
-            size_type no_of_chars=0;
-            size_type k=i;
-            while (k > 0 and lcp[k] >= m) {
-                if (up_char_ex[bwt[k-1]] != i) {
-                    up_char_ex[bwt[k-1]] = i;
-                    ++no_of_chars;
-                }
-                --k;
-            }
-            k=i;
-            while (no_of_chars > 0 and k < n and lcp[k]>m) {
-                if (up_char_ex[bwt[k]] == i) {
-                    m_indices[(m+1)%2].push_back(lf[k]);
-                    up_char_ex[bwt[k]] = 0;
-                    --no_of_chars;
-                }
-                ++k;
-            }
-            lcp[i] = m;
-        }
-        m_indices[m%2].clear();
-        ++m;
-    }
-
-    if (!util::store_to_file(lcp, (dir+"lcp_"+id).c_str())) {  // store the LCP values
-        throw std::ios_base::failure("cst_construct: Cannot store LCP_sml to file system!");
-        return false;
-    } else {
-        file_map["lcp"] = dir+"lcp_"+id;
+        file_map[constants::KEY_LCP] = dir+"lcp_"+id;
     };
     write_R_output("lcp","construct LCP", "end", 1, 0);
     return true;
@@ -602,12 +506,12 @@ bool construct_lcp_go(tMSS& file_map, const std::string& dir, const std::string&
 #endif
     write_R_output("lcp","construct LCP", "begin", 1, 0);
     construct_bwt(file_map, dir, id);
-    int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
-    unsigned char* text = NULL;
-    if (!util::load_from_int_vector_buffer(text, text_buf)) {  // load text from file system
+    int_vector_file_buffer<8> text_buf();
+	int_vector<8> text;
+    if (!util::load_vector_from_file(text, file_map[constants::KEY_TEXT].c_str(),0)) {  // load text from file system
         throw std::ios_base::failure("cst_construct: Cannot load text from file system!");
     }
-    int_vector_file_buffer<> sa_buf(file_map["sa"].c_str());   // initialize buffer for suffix array
+    int_vector_file_buffer<> sa_buf(file_map[constants::KEY_SA].c_str());   // initialize buffer for suffix array
     const size_type n = sa_buf.int_vector_size;
     const size_type m = 254; // LCP[i] == m+1 corresp. to LCP[i]>= m+1; LCP[i] <= m corresp. to LCP[i] was calculated
 
@@ -617,9 +521,9 @@ bool construct_lcp_go(tMSS& file_map, const std::string& dir, const std::string&
     size_type cnt_c[257] = {0};   // counter for each character in the text
     size_type cnt_cc[257] = {0};  // prefix sum of the counter cnt_c
     size_type cnt_cc2[257] = {0};  //
-    size_type omitted_c[257] = {0};  // counts the omitted occurences for the second phase
-    size_type prev_occ_in_bwt[256] = {0};  // position of the previous occurence of each character c in the bwt
-    for (size_type i=0; i<256; ++i) prev_occ_in_bwt[i] = (size_type)-1; // initialze the array with -1
+    size_type omitted_c[257] = {0};  // counts the omitted occurrences for the second phase
+    size_type prev_occ_in_bwt[256] = {0};  // position of the previous occurrence of each character c in the bwt
+    for (size_type i=0; i<256; ++i) prev_occ_in_bwt[i] = (size_type)-1; // initialize the array with -1
     unsigned char alphabet[257] = {0};
     uint8_t sigma = 0;
 
@@ -707,8 +611,8 @@ bool construct_lcp_go(tMSS& file_map, const std::string& dir, const std::string&
                     if (l > m) {
                         ++big_val;
                         if (i > 10000 and i < 10500 and big_val > 3000) { // if most of the values are big: switch to PHI algorithm
-                            delete [] text; text = NULL;
-                            lcp_sml.resize(0);
+							util::clear(text);
+							util::clear(lcp_sml);
                             bool res = construct_lcp_PHI(file_map, dir, id);
                             write_R_output("lcp","construct LCP", "end", 1, 0);
                             return res;
@@ -747,10 +651,10 @@ bool construct_lcp_go(tMSS& file_map, const std::string& dir, const std::string&
                 sa_buf.load_next_block();
             }
         }
-        delete [] text; text = NULL;
+		util::clear(text);
 
         if (n > 1000 and nn > 5*(n/6)) {  // if we would occupy more space than the PHI algorithm => switch to PHI algorithm
-            lcp_sml.resize(0);
+			util::clear(lcp_sml);
             bool res = construct_lcp_PHI(file_map, dir, id);
             write_R_output("lcp","construct LCP", "end", 1, 0);
             return res;
@@ -922,7 +826,7 @@ bool construct_lcp_go(tMSS& file_map, const std::string& dir, const std::string&
         int_vector_file_buffer<8> lcp_sml_buf(file_map["lcp_sml"].c_str(), buffer_size);// file buffer containing the small LCP values
 
         std::ofstream lcp_out_buf((dir+"lcp_"+id).c_str(), std::ios::binary | std::ios::trunc | std::ios::out);    // open out file stream
-        file_map["lcp"] = dir+"lcp_"+id;  																		   // and save result to disk
+        file_map[constants::KEY_LCP] = dir+"lcp_"+id;  																		   // and save result to disk
         int_vector<> lcp_buf(buffer_size, 0, lcp_big_buf.int_width); // buffer for the resulting LCP array
         size_type bit_size = n*lcp_big_buf.int_width;
         lcp_out_buf.write((char*) &(bit_size), sizeof(lcp_big_buf.int_vector_size));		   // write size
@@ -979,12 +883,11 @@ bool construct_lcp_goPHI(tMSS& file_map, const std::string& dir, const std::stri
     write_R_output("lcp","goPHI phase 1", "begin", 1, 0);
 #endif
     construct_bwt(file_map, dir, id);
-    int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
-    unsigned char* text = NULL;
-    if (!util::load_from_int_vector_buffer(text, text_buf)) {  // load text from file system
+    int_vector<8> text; 
+    if (!util::load_vector_from_file(text, file_map[constants::KEY_TEXT].c_str(),0 )) {  // load text from file system
         throw std::ios_base::failure("cst_construct: Cannot load text from file system!");
     }
-    int_vector_file_buffer<> sa_buf(file_map["sa"].c_str());   // initialize buffer for suffix array
+    int_vector_file_buffer<> sa_buf(file_map[constants::KEY_SA].c_str());   // initialize buffer for suffix array
     const size_type n = sa_buf.int_vector_size;
     const size_type m = 254; // LCP[i] == m+1 corresp. to LCP[i]>= m+1; LCP[i] <= m corresp. to LCP[i] was calculated
 
@@ -1033,7 +936,6 @@ bool construct_lcp_goPHI(tMSS& file_map, const std::string& dir, const std::stri
             size_type rmq_end=3;				 // index of the value of the topmost element
 
             uint8_t cur_c = alphabet[1];
-//				size_type big_val = 0;
             for (size_type i=1, sai, r_sum=0, cur_c_idx=1, cur_c_cnt=cnt_c[alphabet[1]+1]; r_sum < n;) {
                 for (; i < r_sum+r; ++i, --cur_c_cnt) {
                     uint8_t bwti = bwt_buf[i-r_sum];
@@ -1076,17 +978,6 @@ bool construct_lcp_goPHI(tMSS& file_map, const std::string& dir, const std::stri
                     } else { // if already done
                         l = lcp_sml[i];  // load LCP value
                     }
-                    /*						if( l > m ){
-                    							++big_val;
-                    							if( i > 10000 and i < 10500 and big_val > 3000 ){ // if most of the values are big: switch to PHI algorithm
-                    								delete [] text; text = NULL;
-                    								lcp_sml.resize(0);
-                    								bool res = construct_lcp_PHI(file_map, dir, id);
-                    								write_R_output("lcp","construct LCP", "end", 1, 0);
-                    								return res;
-                    							}
-                    						}
-                    */
                     // invariant: l <= m+1
                     // begin update rmq_stack
                     size_type x = l+1;
@@ -1118,15 +1009,7 @@ bool construct_lcp_goPHI(tMSS& file_map, const std::string& dir, const std::stri
                 sa_buf.load_next_block();
             }
         }
-//			delete [] text; text = NULL; // delete text this time in phase 2
-        /*
-        			if( n > 1000 and nn > 5*(n/6)  ){ // if we would occupy more space than the PHI algorithm => switch to PHI algorithm
-        				lcp_sml.resize(0);
-        				bool res = construct_lcp_PHI(file_map, dir, id);
-        				write_R_output("lcp","construct LCP", "end", 1, 0);
-        				return res;
-        			}
-        */
+		
         if (!util::store_to_file(lcp_sml, (dir+"lcp_sml_"+id).c_str())) {  // store the small LCP values
             throw std::ios_base::failure("cst_construct: Cannot store LCP_sml to file system!");
             return false;
@@ -1154,7 +1037,7 @@ bool construct_lcp_goPHI(tMSS& file_map, const std::string& dir, const std::stri
             {
                 // initialize bit_vector todo
                 int_vector_file_buffer<8> lcp_sml_buf(file_map["lcp_sml"].c_str()); // load lcp_sml
-                int_vector_file_buffer<> sa_buf(file_map["sa"].c_str()); // load sa
+                int_vector_file_buffer<> sa_buf(file_map[constants::KEY_SA].c_str()); // load sa
                 sa_buf.load_next_block();
                 for (size_type i=0, r_sum=0, r = lcp_sml_buf.load_next_block(); r_sum < n;) {
                     if (r > 0)
@@ -1183,7 +1066,7 @@ bool construct_lcp_goPHI(tMSS& file_map, const std::string& dir, const std::stri
             int_vector<> phi(nn, bot, bit_magic::l1BP(n-1)+1); // phi
 
             int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str()); // load BWT
-            int_vector_file_buffer<> sa_buf(file_map["sa"].c_str()); // load sa
+            int_vector_file_buffer<> sa_buf(file_map[constants::KEY_SA].c_str()); // load sa
             int_vector_file_buffer<8> lcp_sml_buf(file_map["lcp_sml"].c_str()); // load lcp_sml
             sa_buf.load_next_block();
             lcp_sml_buf.load_next_block();
@@ -1231,8 +1114,7 @@ bool construct_lcp_goPHI(tMSS& file_map, const std::string& dir, const std::stri
 #ifdef STUDY_INFORMATIONS
             std::cout<<"# irreducible: "<<irreducible_nn<<" nn: "<<nn<<" ratio: "<< ((double)irreducible_nn)/nn <<std::endl;
 #endif
-
-            delete [] text; text = NULL;
+			util::clear(text);
 
             write_R_output("lcp","calc lcp","begin");
             lcp_big.resize(nn);
@@ -1271,7 +1153,7 @@ bool construct_lcp_goPHI(tMSS& file_map, const std::string& dir, const std::stri
         int_vector_file_buffer<8> lcp_sml_buf(file_map["lcp_sml"].c_str(), buffer_size);// file buffer containing the small LCP values
 
         std::ofstream lcp_out_buf((dir+"lcp_"+id).c_str(), std::ios::binary | std::ios::trunc | std::ios::out);    // open out file stream
-        file_map["lcp"] = dir+"lcp_"+id;  																		   // and save result to disk
+        file_map[constants::KEY_LCP] = dir+"lcp_"+id;  																		   // and save result to disk
         int_vector<> lcp_buf(buffer_size, 0, lcp_big_buf.int_width); // buffer for the resulting LCP array
         size_type bit_size = n*lcp_big_buf.int_width;
         lcp_out_buf.write((char*) &(bit_size), sizeof(lcp_big_buf.int_vector_size));		   // write size
@@ -1322,12 +1204,11 @@ bool construct_lcp_go2(tMSS& file_map, const std::string& dir, const std::string
     typedef int_vector<>::size_type size_type;
     write_R_output("lcp","construct LCP", "begin", 1, 0);
     construct_bwt(file_map, dir, id);
-    int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
-    unsigned char* text = NULL;
-    if (!util::load_from_int_vector_buffer(text, text_buf)) {  // load text from file system
+    int_vector<8> text; ;
+    if (!util::load_vector_from_file(text, file_map[constants::KEY_TEXT].c_str(), 0)) {  // load text from file system
         throw std::ios_base::failure("cst_construct: Cannot load text from file system!");
     }
-    int_vector_file_buffer<> sa_buf(file_map["sa"].c_str());   // initialize buffer for suffix array
+    int_vector_file_buffer<> sa_buf(file_map[constants::KEY_SA].c_str());   // initialize buffer for suffix array
     const size_type n = sa_buf.int_vector_size;
     const size_type m = 254; // LCP[i] == m+1 corresp. to LCP[i]>= m+1; LCP[i] <= m corresp. to LCP[i] was calculated
 
@@ -1459,12 +1340,7 @@ bool construct_lcp_go2(tMSS& file_map, const std::string& dir, const std::string
                         size_type x_pos = prev_occ_in_bwt[bwti]+2;
                         size_type j = rmq_end-3;
                         while (x_pos <= rmq_stack[j]) j-=2;   //  search smallest value in the interval I
-//							lcp_sml2[lf] = rmq_stack[j+3] - (rmq_stack[j+3]==m+2); // if lcp-value equals m+1, we subtract 1
                         lcps[inv_alphabet[bwti]].push_back(rmq_stack[j+3] - (rmq_stack[j+3]==m+2));
-//							if(bwti=='A' and i<410){
-//								std::cout<<"push A with "<< (int)(rmq_stack[j+3]-(rmq_stack[j+3]==m+2)) << std::endl;
-//							}
-//							if(n<100)std::cerr<<"push back "<<bwti<<" "<<(int)(rmq_stack[j+3] - (rmq_stack[j+3]==m+2))<<std::endl;
                     }
                     if (l >= m) {
                         if (l == m)
@@ -1487,12 +1363,8 @@ bool construct_lcp_go2(tMSS& file_map, const std::string& dir, const std::string
             }
             lcp_sml_out_buf.close();
             file_map["lcp_sml"] = dir+"lcp_sml_"+id;
-//				std::cerr<<"n="<<n<<"\n#(lf>i)="<<done_cnt<<std::endl;
-//				std::cerr<<"bwt_buf.int_vector_size="<<bwt_buf.int_vector_size<<std::endl;
-//				std::cerr<<"n="<<n<<" nn="<<nn<<" ratio: "<<((double)nn)/n<<std::endl;
         }
-        delete [] text; text = NULL;
-
+		util::clear(text);
         if (n > 1000 and nn > 5*(n/6)) {  // if we would occupy more space than the PHI algorithm => switch to PHI algorithm
             bool res = construct_lcp_PHI(file_map, dir, id);
             write_R_output("lcp","construct LCP", "end", 1, 0);
@@ -1548,7 +1420,6 @@ bool construct_lcp_go2(tMSS& file_map, const std::string& dir, const std::string
             }
         }
 
-//			std::cout<<"# begin initializing bwt2, shift_bwt2, run2"<<std::endl;
         int_vector<8> bwt2(nn), shift_bwt2(nn); // BWT of big LCP values, and shifted BWT of big LCP values
         bit_vector run2(nn+1);					// indicates for each entry i, if i and i-1 are both big LCP values
         run2[nn] = 0;							// index nn is not a big LCP value
@@ -1580,7 +1451,6 @@ bool construct_lcp_go2(tMSS& file_map, const std::string& dir, const std::string
         bit_vector todo2(nn+1, 1); // init all values with 1, except
         todo2[nn] = 0; 			   // the last one! (handels case "i < nn")
 
-//			std::cout<<"# begin calculating m-indices"<<std::endl;
         {
             // calculate m-indices, (m+1)-indices,... until we are done
             size_type m2 = m;
@@ -1598,7 +1468,6 @@ bool construct_lcp_go2(tMSS& file_map, const std::string& dir, const std::string
 
                 for (size_type mc=0; mc<m_char_count[mm1_mod2]; ++mc) { // for every character
                     tLI& mm1_mc_list = m_list[mm1_mod2][m_chars[mm1_mod2][ m_char_count[mm1_mod2]-1-  mc ]];
-//						size_type old_i = nn;
                     while (!mm1_mc_list.empty()) {
                         size_type i = mm1_mc_list.front();  // i in [0..n-1]
                         mm1_mc_list.pop_front();
@@ -1625,7 +1494,6 @@ bool construct_lcp_go2(tMSS& file_map, const std::string& dir, const std::string
                         }
                         lcp_big[ i ] = m2-1;
                         todo2[ i ] = 0;
-//							old_i = i;
                     }
                 }
             }
@@ -1640,7 +1508,6 @@ bool construct_lcp_go2(tMSS& file_map, const std::string& dir, const std::string
         };
     } // end phase 2
 
-//		std::cout<<"# merge lcp_sml and lcp_big"<<std::endl;
     // phase 3: merge lcp_sml and lcp_big and save to disk
     {
         const size_type buffer_size = 1000000; // buffer_size has to be a multiple of 8!
@@ -1648,7 +1515,7 @@ bool construct_lcp_go2(tMSS& file_map, const std::string& dir, const std::string
         int_vector_file_buffer<8> lcp_sml_buf(file_map["lcp_sml"].c_str(), buffer_size);// file buffer containing the small LCP values
 
         std::ofstream lcp_out_buf((dir+"lcp_"+id).c_str(), std::ios::binary | std::ios::trunc | std::ios::out);    // open out file stream
-        file_map["lcp"] = dir+"lcp_"+id;  																		   // and save result to disk
+        file_map[constants::KEY_LCP] = dir+"lcp_"+id;  																		   // and save result to disk
         int_vector<> lcp_buf(buffer_size, 0, lcp_big_buf.int_width); // buffer for the resulting LCP array
         size_type bit_size = n*lcp_big_buf.int_width;
         lcp_out_buf.write((char*) &(bit_size), sizeof(lcp_big_buf.int_vector_size));		   // write size
@@ -1708,7 +1575,7 @@ void check_lcp(std::string lcpI, std::string lcpII, std::string id)
 void lcp_info(tMSS& file_map)
 {
     typedef int_vector<>::size_type size_type;
-    int_vector_file_buffer<> lcp_buf(file_map["lcp"].c_str());
+    int_vector_file_buffer<> lcp_buf(file_map[constants::KEY_LCP].c_str());
     size_type n = lcp_buf.int_vector_size;
 
     size_type max_lcp = 0;

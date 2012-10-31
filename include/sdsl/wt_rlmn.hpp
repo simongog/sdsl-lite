@@ -137,9 +137,7 @@ class wt_rlmn
         /*! \param text_buf	A int_vector_file_buffer to the original text.
          *	\param size The length of the prefix of the text, for which the wavelet tree should be build.
          */
-        template<class size_type_class>
-        wt_rlmn(int_vector_file_buffer<8, size_type_class>& text_buf, size_type size):m_size(size), sigma(m_wt.sigma) {
-            typedef size_type_class size_type;
+        wt_rlmn(int_vector_file_buffer<8>& text_buf, size_type size):m_size(size), sigma(m_wt.sigma) {
 			// TODO: remove absolute file name
             std::string temp_file = "tmp_wt_rlmn_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
             std::ofstream wt_out(temp_file.c_str(), std::ios::binary | std::ios::trunc);
@@ -198,7 +196,7 @@ class wt_rlmn
                     r = text_buf.load_next_block();
                 }
                 {
-                    int_vector_file_buffer<8, size_type> temp_bwt_buf(temp_file.c_str());
+                    int_vector_file_buffer<8> temp_bwt_buf(temp_file.c_str());
 					util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
                 }
                 util::assign(m_bl, bl);

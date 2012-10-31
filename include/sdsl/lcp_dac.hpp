@@ -126,8 +126,8 @@ class lcp_dac
         }
 
         //! Construct the lcp array from an int_vector_file_buffer
-        template<uint8_t int_width, class size_type_class>
-        lcp_dac(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
+        template<uint8_t int_width>
+        lcp_dac(int_vector_file_buffer<int_width>& lcp_buf);
 
 
         //! Number of elements in the instance.
@@ -206,8 +206,8 @@ class lcp_dac
 
 
 template<uint8_t b, class rank_support_type>
-template<uint8_t int_width, class size_type_class>
-lcp_dac<b, rank_support_type>::lcp_dac(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
+template<uint8_t int_width>
+lcp_dac<b, rank_support_type>::lcp_dac(int_vector_file_buffer<int_width>& lcp_buf)
 {
 //  (1) Count for each level, how many blocks are needed for the representation
 //      Running time: \f$ O(n \times \frac{\log n}{b}  \f$

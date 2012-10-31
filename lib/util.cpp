@@ -180,8 +180,7 @@ void set_verbose(){
 	verbose = true;
 }
 
-off_t get_file_size(const char* file_name)
-{
+off_t get_file_size(const char* file_name) {
     struct stat filestatus;
     stat(file_name, &filestatus);
     return filestatus.st_size;

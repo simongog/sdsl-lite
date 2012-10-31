@@ -33,37 +33,37 @@ namespace sdsl
 {
 
 // construct lcp arrays
-template<class Lcp, class Cst, uint8_t int_width, class size_type_class, uint8_t int_width1, class size_type_class1>
+template<class Lcp, class Cst, uint8_t int_width, uint8_t int_width1>
 void construct_lcp(Lcp& lcp, const Cst& cst,
-                   int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                   int_vector_file_buffer<int_width1, size_type_class1>& isa_buf)
+                   int_vector_file_buffer<int_width>& lcp_buf,
+                   int_vector_file_buffer<int_width1>& isa_buf)
 {
     typename Lcp::lcp_category tag;
     construct_lcp(lcp, cst, lcp_buf, isa_buf, tag);
 }
 
-template<class Lcp, class Cst, uint8_t int_width, class size_type_class, uint8_t int_width1, class size_type_class1>
+template<class Lcp, class Cst, uint8_t int_width, uint8_t int_width1>
 void construct_lcp(Lcp& lcp, const Cst& cst,
-                   int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                   int_vector_file_buffer<int_width1, size_type_class1>& isa_buf,
+                   int_vector_file_buffer<int_width>& lcp_buf,
+                   int_vector_file_buffer<int_width1>& isa_buf,
                    lcp_plain_tag)
 {
 	util::assign( lcp, Lcp(lcp_buf) );
 }
 
-template<class Lcp, class Cst, uint8_t int_width, class size_type_class, uint8_t int_width1, class size_type_class1>
+template<class Lcp, class Cst, uint8_t int_width, uint8_t int_width1>
 void construct_lcp(Lcp& lcp, const Cst& cst,
-                   int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                   int_vector_file_buffer<int_width1, size_type_class1>& isa_buf,
+                   int_vector_file_buffer<int_width>& lcp_buf,
+                   int_vector_file_buffer<int_width1>& isa_buf,
                    lcp_permuted_tag)
 {
 	util::assign( lcp, Lcp(lcp_buf, isa_buf, &(cst.csa)) );
 }
 
-template<class Lcp, class Cst, uint8_t int_width, class size_type_class, uint8_t int_width1, class size_type_class1>
+template<class Lcp, class Cst, uint8_t int_width, uint8_t int_width1>
 void construct_lcp(Lcp& lcp, const Cst& cst,
-                   int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                   int_vector_file_buffer<int_width1, size_type_class1>& isa_buf,
+                   int_vector_file_buffer<int_width>& lcp_buf,
+                   int_vector_file_buffer<int_width1>& isa_buf,
                    lcp_tree_compressed_tag)
 {
 	util::assign( lcp, Lcp( lcp_buf, &(cst.bp_support), &(cst.first_child_rank) ) );

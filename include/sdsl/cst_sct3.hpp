@@ -1120,7 +1120,7 @@ cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(tMSS& file_map, const std
         write_R_output("cst", "construct CLCP", "end", 1, 0);
     }
     if (!build_only_bps) {
-        util::load_from_file(m_csa, file_map["csa"].c_str());
+        util::load_from_file(m_csa, file_map[util::class_to_hash(m_csa)].c_str());
     }
     m_sigma = degree(root());
 }

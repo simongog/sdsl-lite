@@ -157,10 +157,10 @@ void construct_supercartesian_tree_bp_succinct(const RandomAccessContainer& vec,
  *  \par Space complexity
  *       \f$\Order{2n}\f$ bits, by the multi_stack_support
  */
-template<uint8_t fixedIntWidth, class size_type_class>
-void construct_supercartesian_tree_bp_succinct(int_vector_file_buffer<fixedIntWidth, size_type_class>& lcp_buf, bit_vector& bp, const bool minimum=true)
+template<uint8_t fixedIntWidth>
+void construct_supercartesian_tree_bp_succinct(int_vector_file_buffer<fixedIntWidth>& lcp_buf, bit_vector& bp, const bool minimum=true)
 {
-    typedef size_type_class size_type;
+    typedef int_vector_size_type size_type;
     lcp_buf.reset();
     size_type n = lcp_buf.int_vector_size;
     bp.resize(2*n);      // resize bit vector for balanaced parantheses to 2 n bits
@@ -225,10 +225,10 @@ void construct_supercartesian_tree_bp_succinct(int_vector_file_buffer<fixedIntWi
  *  \par Space complexity
  *       \f$\Order{2n}\f$ bits, by the multi_stack_support
  */
-template<uint8_t fixedIntWidth, class size_type_class>
-size_type_class construct_supercartesian_tree_bp_succinct_and_first_child(int_vector_file_buffer<fixedIntWidth, size_type_class>& lcp_buf, bit_vector& bp, bit_vector& bp_fc, const bool minimum=true)
+template<uint8_t fixedIntWidth>
+int_vector_size_type construct_supercartesian_tree_bp_succinct_and_first_child(int_vector_file_buffer<fixedIntWidth>& lcp_buf, bit_vector& bp, bit_vector& bp_fc, const bool minimum=true)
 {
-    typedef size_type_class size_type;
+    typedef int_vector_size_type size_type;
     lcp_buf.reset();
     size_type n = lcp_buf.int_vector_size;
     bp.resize(2*n);      // resize bit vector for balanaced parantheses to 2 n bits
@@ -293,10 +293,10 @@ size_type_class construct_supercartesian_tree_bp_succinct_and_first_child(int_ve
     return fc_cnt;
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-size_type_class construct_first_child_lcp(int_vector_file_buffer<fixedIntWidth, size_type_class>& lcp_buf, int_vector<fixedIntWidth, size_type_class>& fc_lcp, size_type_class first_child_size=0)
+template<uint8_t fixedIntWidth>
+int_vector_size_type construct_first_child_lcp(int_vector_file_buffer<fixedIntWidth>& lcp_buf, int_vector<fixedIntWidth>& fc_lcp, int_vector_size_type first_child_size=0)
 {
-    typedef size_type_class size_type;
+    typedef int_vector_size_type size_type;
     lcp_buf.reset();
     size_type n = lcp_buf.int_vector_size;
     if (n == 0) {	// if n == 0 we are done
@@ -338,17 +338,17 @@ size_type_class construct_first_child_lcp(int_vector_file_buffer<fixedIntWidth, 
 }
 
 
-template<uint32_t SampleDens, uint8_t fixedIntWidth, class size_type_class>
-size_type_class construct_first_child_and_lf_lcp(int_vector_file_buffer<fixedIntWidth, size_type_class>& lcp_buf,
-        int_vector_file_buffer<8, size_type_class>& bwt_buf,
+template<uint32_t SampleDens, uint8_t fixedIntWidth>
+int_vector_size_type construct_first_child_and_lf_lcp(int_vector_file_buffer<fixedIntWidth>& lcp_buf,
+        int_vector_file_buffer<8>& bwt_buf,
         std::string small_lcp_file_name,
         std::string big_lcp_file_name,
         int_vector<>& big_lcp,
-        size_type_class first_child_size=0)
+        int_vector_size_type first_child_size=0)
 {
-    typedef size_type_class size_type;
+    typedef int_vector_size_type size_type;
     const size_type M = 255;
-    size_type_class buf_len = 1000000;
+    size_type 		buf_len = 1000000;
     lcp_buf.reset(buf_len);
     bwt_buf.reset(buf_len);
     size_type n = lcp_buf.int_vector_size;
@@ -531,9 +531,8 @@ typename RandomAccessContainer::size_type construct_first_p_index(const RandomAc
     return nr_of_first_indices;
 }
 
-//TODO implementation
-template<uint8_t fixedIntWidth, class size_type_class>
-bit_vector::size_type construct_first_p_index(int_vector_file_buffer<fixedIntWidth, size_type_class>& lcp_buf, bit_vector& bp, const bool minimum=true)
+template<uint8_t fixedIntWidth>
+bit_vector::size_type construct_first_p_index(int_vector_file_buffer<fixedIntWidth>& lcp_buf, bit_vector& bp, const bool minimum=true)
 {
     typedef bit_vector::size_type size_type;
     size_type nr_of_first_indices = 0;

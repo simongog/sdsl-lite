@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring> // for strlen
+#include <string>
 #include <iomanip>
 #include <iterator>
 
@@ -122,18 +123,19 @@ class csa_bitcompressed
 																						  C(m_alphabet.C), sigma(m_alphabet.sigma), psi(m_psi), bwt(this), 
 																						  sa_sample(m_sa), isa_sample(m_isa) 
 		{
-			int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
-			int_vector_file_buffer<>  sa_buf(file_map["sa"].c_str());
+			int_vector_file_buffer<8> text_buf(file_map[constants::KEY_TEXT].c_str());
+			int_vector_file_buffer<>  sa_buf(file_map[constants::KEY_SA].c_str());
 			size_type n = text_buf.int_vector_size;
 			util::assign(m_alphabet, alphabet_type(text_buf, n));
 			util::assign(m_sa, sa_sample_type(sa_buf));
 			algorithm::set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
 			m_psi = psi_type(this);
 			write_R_output("csa", "store ISA","begin",1,0);
-			if (!util::store_to_file(m_isa, (dir+"isa_"+id).c_str(), true)) {
+			std::string isa_file = dir+constants::KEY_ISA+"_"+id;
+			if (!util::store_to_file(m_isa, isa_file.c_str(), true)) {
 				throw std::ios_base::failure("#csa_bitcompressed: Cannot store ISA to file system!");
 			} else {
-				file_map["isa"] = dir+"isa_"+id;
+				file_map[constants::KEY_ISA] = isa_file;
 			}
 			write_R_output("csa", "store ISA","end",1,0);
 		}

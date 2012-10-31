@@ -83,18 +83,18 @@ class _lcp_support_tree
          *	\param fc_bpss 	A pointer to balanced parentheses support of the balanced parentheses representation of the Super-Cartesian Tree of the lcp array
          *  \param fcr		A pointer to the rank support of the first child bit_vector.
         */
-        template<uint8_t int_width, class size_type_class>
-        _lcp_support_tree(int_vector_file_buffer<int_width, size_type_class>& lcp_buf, const Cst* cst = NULL) {
+        template<uint8_t int_width>
+        _lcp_support_tree(int_vector_file_buffer<int_width>& lcp_buf, const Cst* cst = NULL) {
             m_cst = cst;
             std::string id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str() + "_fc_lcp";
             {
-                int_vector<int_width, size_type_class> temp_lcp;
-                algorithm::construct_first_child_lcp(lcp_buf, temp_lcp, (size_type_class) 0);
+                int_vector<int_width> temp_lcp;
+                algorithm::construct_first_child_lcp(lcp_buf, temp_lcp, (int_vector_size_type) 0);
                 // TODO: store lcp values directly to disk
                 util::store_to_file(temp_lcp, id.c_str());
             }
             {
-                int_vector_file_buffer<int_width, size_type_class> temp_lcp_buf(id.c_str());
+                int_vector_file_buffer<int_width> temp_lcp_buf(id.c_str());
                 m_lcp = Lcp(temp_lcp_buf); // works for lcp_kurtz, lcp_wt and lcp_bitcompressed
             }
             std::remove(id.c_str());

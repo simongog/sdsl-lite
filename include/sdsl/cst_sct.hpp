@@ -333,14 +333,6 @@ class cst_sct
          */
 //		cst_sct(const unsigned char *str);
 
-        template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1, uint8_t int_width_2, class size_type_class_2>
-        cst_sct(const std::string& cst_file_name,
-                int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                int_vector_file_buffer<int_width_1, size_type_class_1>& sa_buf,
-                int_vector_file_buffer<int_width_2, size_type_class_2>& isa_buf,
-                std::string dir="./",
-                bool build_only_bps=false);
-
         cst_sct(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps=false);
 
         //! Copy constructor
@@ -1055,35 +1047,6 @@ found_child:
 // == template functions ==
 
 template<class Csa, class Lcp, class Bp_support>
-template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1, uint8_t int_width_2, class size_type_class_2>
-cst_sct<Csa, Lcp, Bp_support>::cst_sct(const std::string& csa_file_name,
-                                       int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                                       int_vector_file_buffer<int_width_1, size_type_class_1>& sa_buf,
-                                       int_vector_file_buffer<int_width_2, size_type_class_2>& isa_buf,
-                                       std::string dir,
-                                       bool build_only_bps
-                                      ):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support)
-{
-    std::string id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str();
-    write_R_output("cst", "construct BPS", "begin", 1, 0);
-    {
-        bit_vector m_first_child;
-        m_nodes = algorithm::construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child) + m_bp.size()/2;
-    }
-    write_R_output("cst", "construct BPS", "end", 1, 0);
-
-    write_R_output("cst", "construct BPSS", "begin", 1, 0);
-    m_bp_support = Bp_support(&m_bp);
-    write_R_output("cst", "construct BPSS", "end", 1, 0);
-
-    write_R_output("cst", "construct CLCP", "begin", 1, 0);
-    construct_lcp(m_lcp, *this, lcp_buf, isa_buf);
-    write_R_output("cst", "construct CLCP", "end", 1, 0);
-
-    util::load_from_file(m_csa, csa_file_name.c_str());
-}
-
-template<class Csa, class Lcp, class Bp_support>
 cst_sct<Csa, Lcp, Bp_support>::cst_sct(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support)
 {
     construct(file_map, dir, id, build_only_bps);
@@ -1108,9 +1071,7 @@ void cst_sct<Csa, Lcp, Bp_support>::construct(tMSS& file_map, const std::string&
     m_bp_support = Bp_support(&m_bp);
     write_R_output("cst", "construct BPSS", "end", 1, 0);
 
-    util::load_from_file(m_csa, file_map["csa"].c_str());
-    std::cout<<"debug = "<<m_csa.size()<<std::endl;
-    std::cout<<"csa file = "<<file_map["csa"]<<std::endl;
+    util::load_from_file(m_csa, file_map[util::class_to_hash(m_csa)].c_str());
 }
 
 
