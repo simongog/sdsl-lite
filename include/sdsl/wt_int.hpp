@@ -51,7 +51,6 @@ namespace sdsl
  *	\par Space complexity
  *		\f$\Order{n\log|\Sigma|}\f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
  *
- *  \tparam RandomAccessContainer 	Type of the input sequence.
  *  \tparam BitVector				Type of the bitvector used for representing the wavelet tree.
  *  \tparam RankSupport				Type of the support structure for rank on ones.
  *  \tparam SelectSupport			Type of the support structure for select on ones.
@@ -59,20 +58,18 @@ namespace sdsl
  *
  *   @ingroup wt
  */
-template<class RandomAccessContainer=int_vector<>,
-         class BitVector   		 = bit_vector,
+template<class BitVector   		 = bit_vector,
          class RankSupport 		 = typename BitVector::rank_1_type,
          class SelectSupport	 = typename BitVector::select_1_type,
          class SelectSupportZero = typename BitVector::select_0_type>
-class wt_int
-{
+class wt_int {
     public:
-        typedef typename RandomAccessContainer::size_type 		size_type;
-        typedef typename RandomAccessContainer::value_type 		value_type;
-        typedef BitVector										bit_vector_type;
-        typedef RankSupport										rank_1_type;
-        typedef SelectSupport									select_1_type;
-        typedef SelectSupportZero								select_0_type;
+        typedef int_vector<>::size_type 		size_type;
+        typedef int_vector<>::value_type 		value_type;
+        typedef BitVector						bit_vector_type;
+        typedef RankSupport						rank_1_type;
+        typedef SelectSupport					select_1_type;
+        typedef SelectSupportZero				select_0_type;
     protected:
         size_type 			m_size;
         size_type 			m_sigma; 		//<- \f$ |\Sigma| \f$
@@ -215,7 +212,7 @@ class wt_int
         }
 
         //! Copy constructor
-        wt_int(const wt_int& wt):sigma(m_sigma) {
+        wt_int(const wt_int& wt):sigma(m_sigma), tree(m_tree) {
             copy(wt);
         }
 
@@ -276,6 +273,19 @@ class wt_int
             }
             return res;
         };
+
+        //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the original sequence.
+        /*!
+         *	\param i The index of the symbol.
+         *  \param c Reference that will contain symbol wt[i].
+         *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
+         */
+		size_type rank_ith_symbol(size_type i, value_type&c )const{
+			// TODO: handle m_sigma=1?
+			assert(i>=0 and i < size());
+			c = (*this)[i];
+			return rank(i, c);
+		}
 
         //TODO: handle character which does not appear in the original text !!!
         //! Calculates how many symbols c are in the prefix [0..i-1] of the supported vector.
