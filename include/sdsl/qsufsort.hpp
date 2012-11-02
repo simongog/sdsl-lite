@@ -372,14 +372,15 @@ class sorter{
 		  m_SA[m_VV[i]]=i;
 	} 
 
-
+	
 	void sort(tIV& sa, const char* file_name, uint8_t num_bytes){
 		util::clear(sa); // free space for sa
 		tIV x;
 		util::load_vector_from_file(x, file_name, num_bytes);
+		assert(x.size()>0);
 
 		int64_t max_symbol = 0, min_symbol = bit_magic::Li1Mask[x.get_int_width()];
-		for(size_type i=0; i < x.size(); ++i){
+		for(size_type i=0; i < x.size()-1; ++i){
 //			if(i<10){
 //				cout<<"x["<<i<<"]="<<x[i]<<" min_symbol="<<min_symbol<<endl;
 //			}
@@ -389,16 +390,19 @@ class sorter{
 //				cout<<"x["<<i<<"]="<<x[i]<<" min_symbol="<<min_symbol<<endl;
 //			}
 		}
-
+		
 		if ( 0 == min_symbol ){
 //			cout<<"min_symbol="<<min_symbol<<endl;
 			throw std::logic_error("Text contains 0-symbol. Suffix array can not be constructed.");
 		}
+		if ( x[x.size()-1] > 0 ){
+			throw std::logic_error("Last symbol is not 0-symbol. Suffix array can not be constructed.");
+		}
 
-		x.resize(x.size()+1);
-		x[x.size()-1] = 0;
+//		x.resize(x.size()+1);
+//		x[x.size()-1] = 0;
 		int64_t n = x.size()-1;
-		uint8_t width = bit_magic::l1BP(n)+2;
+		uint8_t width = std::max(bit_magic::l1BP(max_symbol)+2, bit_magic::l1BP(n)+2);
 		util::expand_width(x, width);
 		sa = x;
 		if ( sa.get_int_width() < x.get_int_width() ){
@@ -411,6 +415,7 @@ class sorter{
 		std::cout<<"m_msb="<<(int)m_msb<<std::endl;
 		std::cout<<"m_msb_mask="<<m_msb_mask<<std::endl;
 
+		std::cout<<"n="<<x.size()-1<<std::endl;
 		stop_watch sw;
 		sw.start();	
 		sort(x.begin(), sa.begin(), x.size()-1, max_symbol+1, min_symbol);

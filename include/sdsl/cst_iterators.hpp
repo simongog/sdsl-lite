@@ -109,7 +109,7 @@ class cst_dfs_const_forward_iterator: public std::iterator<std::forward_iterator
         }
 
         //! Returns how often the current node was already visited.
-        uint8_t visit()const {
+        uint8_t visit()const { 
             return 1+(uint8_t)m_visited;
         }
 

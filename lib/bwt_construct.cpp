@@ -81,4 +81,20 @@ bool construct_bwt(tMSS& file_map, const std::string& dir, const std::string& id
     return true;
 }
 
+bool construct_int_bwt(tMSS& file_map, const char *file){
+	int_vector<> text;
+	util::load_from_file(text, file_map[constants::KEY_TEXT].c_str());
+	int_vector_file_buffer<> sa_buf(file_map[constants::KEY_SA].c_str());
+	int_vector<> bwt(text.size(), 0, text.get_int_width());
+    int_vector_size_type to_add[2] = {-1,text.size()-1};
+	for (int_vector_size_type i=0, r_sum=0, r = 0; r_sum < text.size();) {
+		for (; i<r_sum+r; ++i) {
+			bwt[i] = text[ sa_buf[i-r_sum]+to_add[sa_buf[i-r_sum]==0] ]; 
+		}
+		r_sum += r; r = sa_buf.load_next_block();
+	}
+	util::store_to_file_map(bwt, constants::KEY_BWT, file, file_map);	
+	return true;	
+}
+
 }// end namespace

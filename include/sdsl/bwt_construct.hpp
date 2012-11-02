@@ -43,6 +43,8 @@ namespace sdsl
  */
 bool construct_bwt(tMSS& file_map, const std::string& dir, const std::string& id);
 
+bool construct_int_bwt(tMSS& file_map, const char *file);
+
 }// end namespace
 
 #endif

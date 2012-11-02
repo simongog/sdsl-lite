@@ -92,6 +92,7 @@ class cst_sada
 		typedef typename Csa::alphabet_type::comp_char_type		comp_char_type;
 		typedef typename Csa::alphabet_type::sigma_type			sigma_type;	
 
+        typedef typename Csa::alphabet_category					alphabet_category;
         typedef cst_tag											index_category;
     private:
         Csa 					m_csa; // suffix array
