@@ -134,8 +134,6 @@ void cst_info(const Cst& cst)
  *    - ..
  */
 
-#include "cst_sct.hpp"
-#include "cst_sct2.hpp"
 #include "cst_sct3.hpp"
 #include "cst_sada.hpp"
 
