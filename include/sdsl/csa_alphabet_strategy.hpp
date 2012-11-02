@@ -48,6 +48,7 @@
  */
 
 #include "int_vector.hpp"
+#include "sd_vector.hpp"
 #include "rank_support.hpp"
 #include "select_support.hpp"
 #include "sdsl_concepts.hpp"
@@ -82,6 +83,7 @@ class byte_alphabet_strategy{
 		typedef uint16_t				sigma_type;
 		typedef uint8_t					char_type;
 		typedef uint8_t					comp_char_type;
+		enum{   int_width = 0 };
 
 		typedef byte_alphabet_tag		alphabet_category;
 	private:
@@ -150,6 +152,7 @@ class succinct_byte_alphabet_strategy{
 		typedef uint8_t						char_type;
 		typedef uint8_t						comp_char_type;
 		typedef byte_alphabet_tag			alphabet_category;
+		enum{   int_width = 0 };
 
 		//! Helper class for the char2comp mapping	
 		class char2comp_wrapper{
@@ -298,7 +301,11 @@ class succinct_byte_alphabet_strategy{
  *  The types to represent `char2comp`, `comp2char`, and `C` can be specified
  *  by template parameters.
  */
-template<class bit_vector_type, class rank_support_type, class select_support_type, class C_array_type>
+template<class bit_vector_type		= sd_vector<>, 
+	    class rank_support_type		= typename bit_vector_type::rank_1_type, 
+		class select_support_type   = typename bit_vector_type::select_1_type,
+		class C_array_type 			= int_vector<>
+		>
 class int_alphabet_strategy{
 	public:
 		class char2comp_wrapper;
@@ -313,7 +320,8 @@ class int_alphabet_strategy{
 		typedef uint64_t					sigma_type;
 		typedef uint64_t					char_type;
 		typedef uint64_t					comp_char_type;
-		typedef byte_alphabet_tag			alphabet_category;
+		typedef int_alphabet_tag			alphabet_category;
+		enum{   int_width = 0 };
 
 		//! Helper class for the char2comp mapping	
 		class char2comp_wrapper{

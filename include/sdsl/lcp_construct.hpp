@@ -51,6 +51,7 @@ namespace sdsl
  *		\f$ 5n \f$ bytes
  */
 bool construct_lcp_kasai(tMSS& file_map, const std::string& dir, const std::string& id);
+bool construct_int_lcp_kasai(tMSS& file_map, const char *file, const std::string& dir, const std::string& id);
 
 // semi extern PHI algorithm of Karkainen, Manzini and Puglisi CPM 2009
 bool construct_lcp_semi_extern_PHI(tMSS& file_map, const std::string& dir, const std::string& id);

@@ -134,28 +134,29 @@ template<class Csa = csa_wt<>,                        // CSA type
 class cst_sct3
 {
     public:
-        typedef typename Csa::value_type							 value_type;	// STL Container requirement/TODO: ist das nicht gleich node type???
-        typedef cst_dfs_const_forward_iterator<cst_sct3>			 const_iterator;// STL Container requirement
-        typedef cst_bottom_up_const_forward_iterator<cst_sct3>		 const_bottom_up_iterator;
-        typedef const value_type									 const_reference;
-        typedef const_reference										 reference;
-        typedef const_reference*									 pointer;
-        typedef const pointer										 const_pointer;
-        typedef typename Csa::size_type								 size_type;		// STL Container requirement
-        typedef size_type											 cst_size_type;
-        typedef ptrdiff_t  											 difference_type; // STL Container requirement
-        typedef Csa													 csa_type;
-        typedef typename Lcp::template type<cst_sct3>::lcp_type		 lcp_type;
-        typedef Bp_support											 bp_support_type;
-        typedef typename Csa::pattern_type							 pattern_type;
-        typedef typename Csa::char_type								 char_type;
-        typedef bp_interval<size_type>								 node_type; //!< Type for the nodes in the tree
-        typedef Rank_support										 fc_rank_support_type;
+        typedef typename Csa::value_type						value_type;	// STL Container requirement/TODO: ist das nicht gleich node type???
+        typedef cst_dfs_const_forward_iterator<cst_sct3>		const_iterator;// STL Container requirement
+        typedef cst_bottom_up_const_forward_iterator<cst_sct3>	const_bottom_up_iterator;
+        typedef const value_type								const_reference;
+        typedef const_reference									reference;
+        typedef const_reference*								pointer;
+        typedef const pointer									const_pointer;
+        typedef typename Csa::size_type							size_type;		// STL Container requirement
+        typedef size_type										cst_size_type;
+        typedef ptrdiff_t  										difference_type; // STL Container requirement
+        typedef Csa												csa_type;
+        typedef typename Lcp::template type<cst_sct3>::lcp_type	lcp_type;
+        typedef Bp_support										bp_support_type;
+        typedef typename Csa::pattern_type						pattern_type;
+        typedef typename Csa::char_type							char_type;
+        typedef bp_interval<size_type>							node_type; //!< Type for the nodes in the tree
+        typedef Rank_support									fc_rank_support_type;
 
 		typedef typename Csa::alphabet_type::comp_char_type		comp_char_type;
 		typedef typename Csa::alphabet_type::sigma_type			sigma_type;	
 
-        typedef cst_tag												 index_category;
+        typedef typename Csa::alphabet_category					alphabet_category;
+        typedef cst_tag											index_category;
     private:
         Csa 					m_csa;
         lcp_type				m_lcp;
@@ -163,7 +164,7 @@ class cst_sct3
         bp_support_type			m_bp_support;
         bit_vector				m_first_child; // implementation note: no rank structure is needed for the first_child bit_vector, except for id()
         fc_rank_support_type	m_first_child_rank;
-        uint8_t					m_sigma;
+        sigma_type				m_sigma; 
         size_type				m_nodes;
 
         void copy(const cst_sct3& cst) {

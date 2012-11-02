@@ -49,9 +49,6 @@
 namespace sdsl
 {
 
-//class structure_tree_node; // forward declaration of data structure in structure_tree.hpp
-//class structure_tree; // forward declaration of data structure in structure.hpp
-
 template<uint8_t>
 class int_vector;	 // forward declaration
 
@@ -466,7 +463,16 @@ void write_structure(const X& x, std::ostream& out)
     delete v;
 }
 
-
+template<class T>
+bool store_to_file_map(const T& v, const char* key, const char* file, tMSS& file_map){// TODO add dir and id
+	std::string file_name = std::string(file)+std::string("_")+std::string(key);
+	if ( store_to_file(v, file_name.c_str()) ){
+		file_map[string(key)] = file_name;
+		return true;	
+	}else{
+		return false;
+	}
+}
 
 } // end namespace util
 
@@ -562,8 +568,7 @@ void util::all_elements_mod(int_vector_type& v, typename int_vector_type::size_t
 }
 
 template<class int_vector_type>
-void util::set_zero_bits(int_vector_type& v)
-{
+void util::set_zero_bits(int_vector_type& v) {
     uint64_t* data = v.m_data;
     if (v.empty())
         return;
@@ -575,8 +580,7 @@ void util::set_zero_bits(int_vector_type& v)
 }
 
 template<class int_vector_type>
-void util::set_one_bits(int_vector_type& v)
-{
+void util::set_one_bits(int_vector_type& v) {
     uint64_t* data = v.m_data;
     if (v.empty())
         return;
@@ -587,8 +591,7 @@ void util::set_one_bits(int_vector_type& v)
 }
 
 template<class int_vector_type>
-void util::bit_compress(int_vector_type& v)
-{
+void util::bit_compress(int_vector_type& v) {
     typename int_vector_type::value_type max=0;
     for (typename int_vector_type::size_type i=0; i < v.size(); ++i) {
         if (v[i] > max) {
@@ -628,8 +631,7 @@ void util::expand_width(int_vector_type&v, uint8_t new_width){
 }
 
 template<class int_vector_type>
-void util::set_all_values_to_k(int_vector_type& v, uint64_t k)
-{
+void util::set_all_values_to_k(int_vector_type& v, uint64_t k) {
     uint64_t* data = v.m_data;
     if (v.empty())
         return;
@@ -663,16 +665,14 @@ void util::set_all_values_to_k(int_vector_type& v, uint64_t k)
 
 //! Set v[i] = i for i=[0..v.size()-1]
 template<class int_vector_type>
-void util::set_to_id(int_vector_type& v)
-{
+void util::set_to_id(int_vector_type& v) {
     for (typename int_vector_type::size_type i=0; i < v.size(); ++i) {
         v[i] = i;
     }
 }
 
 template<class int_vector_type>
-typename int_vector_type::size_type util::get_one_bits(const int_vector_type& v)
-{
+typename int_vector_type::size_type util::get_one_bits(const int_vector_type& v) {
     const uint64_t* data = v.data();
     if (v.empty())
         return 0;
@@ -688,8 +688,7 @@ typename int_vector_type::size_type util::get_one_bits(const int_vector_type& v)
 
 
 template<class int_vector_type>
-typename int_vector_type::size_type util::get_onezero_bits(const int_vector_type& v)
-{
+typename int_vector_type::size_type util::get_onezero_bits(const int_vector_type& v) {
     const uint64_t* data = v.data();
     if (v.empty())
         return 0;
@@ -706,8 +705,7 @@ typename int_vector_type::size_type util::get_onezero_bits(const int_vector_type
 }
 
 template<class int_vector_type>
-typename int_vector_type::size_type util::get_zeroone_bits(const int_vector_type& v)
-{
+typename int_vector_type::size_type util::get_zeroone_bits(const int_vector_type& v) {
     const uint64_t* data = v.data();
     if (v.empty())
         return 0;
@@ -724,16 +722,14 @@ typename int_vector_type::size_type util::get_zeroone_bits(const int_vector_type
 }
 
 template<typename T>
-std::string util::to_string(const T& t)
-{
+std::string util::to_string(const T& t) {
     std::stringstream ss;
     ss<<t;
     return ss.str();
 }
 
 template<typename T>
-std::string util::to_latex_string(const T& t)
-{
+std::string util::to_latex_string(const T& t) {
     return to_string(t);
 }
 

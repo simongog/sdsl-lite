@@ -7,8 +7,7 @@
 namespace sdsl
 {
 
-bool construct_lcp_kasai(tMSS& file_map, const std::string& dir, const std::string& id)
-{
+bool construct_lcp_kasai(tMSS& file_map, const std::string& dir, const std::string& id){
     typedef int_vector<>::size_type size_type;
     write_R_output("lcp", "construct LCP", "begin", 1, 0);
     if (!construct_isa(file_map, dir, id)) {  // construct isa if it not already exists on disk
@@ -21,10 +20,7 @@ bool construct_lcp_kasai(tMSS& file_map, const std::string& dir, const std::stri
             throw std::ios_base::failure("cst_construct: Cannot load text from file system!");
         }
         write_R_output("lcp", "load text", "end", 1, 0);
-
-
         int_vector_file_buffer<> isa_buf(file_map[constants::KEY_ISA].c_str(), 1000000);   // init isa file_buffer
-
         int_vector<> sa;
         if (!util::load_from_file(sa, file_map[constants::KEY_SA].c_str())) {			   // init sa
             throw std::ios_base::failure("cst_construct: Cannot load SA from file system!");
@@ -79,6 +75,42 @@ bool construct_lcp_kasai(tMSS& file_map, const std::string& dir, const std::stri
         }
     }
     write_R_output("lcp", "construct LCP", "end", 1, 0);
+    return true;
+}
+
+
+bool construct_int_lcp_kasai(tMSS& file_map, const char* file, const std::string& dir, const std::string& id){
+    typedef int_vector<>::size_type size_type;
+    write_R_output("lcp", "construct LCP", "begin", 1, 0);
+	int_vector<> sa;
+	util::load_from_file(sa, file_map[constants::KEY_SA].c_str());
+	int_vector<> isa(sa);
+	for(size_type i=0; i<sa.size();++i){ isa[sa[i]]=i; } // calculate inverse suffix array
+
+	int_vector<> text;
+	util::load_from_file(text, file_map[constants::KEY_TEXT].c_str());   // load text
+	for (size_type i=0,j=0,l=0; i < sa.size(); ++i) {
+		size_type sa_1 =  isa[i]; // = isa[i]
+		if (sa_1) {
+			j = sa[sa_1-1];
+			if (l) --l;
+			assert(i!=j);
+			while (text[i+l]==text[j+l]) { // i+l < n and j+l < n are not necessary, since text[n]=0 and text[i]!=0 (i<n) and i!=j
+				++l;
+			}
+			sa[ sa_1-1 ] = l; //overwrite sa array with lcp values
+		} else {
+			l = 0;
+			sa[ sa.size()-1 ] = 0;
+		}
+	}
+	for (size_type i=sa.size(); i>1; --i){
+		sa[i-1] = sa[i-2];
+	}
+	sa[0] = 0;
+	std::string lcp_file = dir+constants::KEY_LCP+"_"+id;
+
+	util::store_to_file_map(sa, constants::KEY_LCP, file, file_map);
     return true;
 }
 
