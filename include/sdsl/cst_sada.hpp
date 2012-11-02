@@ -30,7 +30,6 @@
 #include "bp_support_sada.hpp"
 #include "csa_sada.hpp" // for std initialization of cst_sada 
 #include "cst_iterators.hpp"
-#include "cst_sct.hpp" // compressed suffix tree based on the Super-Cartesian tree for the construction
 #include "cst_sct3.hpp" // compressed suffix tree based on the Super-Cartesian tree for the construction
 #include "util.hpp"
 #include <iostream>
