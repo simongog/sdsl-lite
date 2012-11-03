@@ -82,6 +82,7 @@ class csa_sada
         typedef IsaSampleContainer  												isa_sample_type;
 		typedef AlphabetStrategy													alphabet_type;
 		typedef typename alphabet_type::alphabet_category  							alphabet_category;
+		typedef typename alphabet_type::comp_char_type								comp_char_type;
         typedef typename alphabet_type::char_type 								    char_type; // Note: This is the char type of the CSA not the WT!
         typedef const char_type*									                pattern_type;
 
@@ -357,9 +358,9 @@ csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleCont
 	util::assign(m_alphabet, alphabet_type(bwt_buf, n));
     write_R_output("csa", "construct alphabet", "end", 1, 0);
 
-    size_type cnt_chr[256] = {0};
+	int_vector<> cnt_chr(sigma, 0, bit_magic::l1BP(n)+1);
     for (typename alphabet_type::sigma_type i=0; i < sigma; ++i){
-        cnt_chr[comp2char[i]] = C[i];		// TODO: problem for integer alphabets!!!
+        cnt_chr[i] = C[i];
 	}
     write_R_output("csa", "construct PSI","begin",1,0);
     // calculate psi
@@ -368,7 +369,7 @@ csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleCont
         int_vector<> psi(n, 0, bit_magic::l1BP(n)+1);
         for (size_type i=0, r_sum=0, r=bwt_buf.load_next_block(); r_sum < n;) {
             for (; i < r_sum+r; ++i) {
-                psi[ cnt_chr[ bwt_buf[i-r_sum] ]++ ] = i;
+                psi[ cnt_chr[ char2comp[bwt_buf[i-r_sum]] ]++ ] = i;
             }
             r_sum += r; r = bwt_buf.load_next_block();
         }
