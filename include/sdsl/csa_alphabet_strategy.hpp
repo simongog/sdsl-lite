@@ -83,7 +83,7 @@ class byte_alphabet_strategy{
 		typedef uint16_t				sigma_type;
 		typedef uint8_t					char_type;
 		typedef uint8_t					comp_char_type;
-		enum{   int_width = 0 };
+		enum{   int_width = 8 };
 
 		typedef byte_alphabet_tag		alphabet_category;
 	private:
@@ -152,7 +152,7 @@ class succinct_byte_alphabet_strategy{
 		typedef uint8_t						char_type;
 		typedef uint8_t						comp_char_type;
 		typedef byte_alphabet_tag			alphabet_category;
-		enum{   int_width = 0 };
+		enum{   int_width = 8 };
 
 		//! Helper class for the char2comp mapping	
 		class char2comp_wrapper{
@@ -232,7 +232,7 @@ class succinct_byte_alphabet_strategy{
 					++m_sigma;
 				}
 			// resize to sigma+1, since CSAs also need the sum of all elements
-			util::assign(m_C, C_type(m_sigma+1, 0, bit_magic::l1BP(text_buf.int_vector_size)+1)	);
+			util::assign(m_C, C_type(m_sigma+1, 0, bit_magic::l1BP(len)+1));
 			
 			for (int i=(int)m_sigma; i > 0; --i) m_C[i] = D[i-1]; 
 			m_C[0] = 0;
@@ -430,7 +430,7 @@ class int_alphabet_strategy{
     		assert(D.find(0) != D.end() and 1 == D[0]); // null-byte should occur exactly once			
 
 			// resize to sigma+1, since CSAs also need the sum of all elements
-			util::assign(m_C, C_type(m_sigma+1, 0, bit_magic::l1BP(text_buf.int_vector_size)+1)	);
+			util::assign(m_C, C_type(m_sigma+1, 0, bit_magic::l1BP(len)+1)	);
 			size_type sum = 0, idx=0;
 			for (std::map<size_type, size_type>::const_iterator it = D.begin(), end=D.end(); it != end; ++it){
 				m_C[idx++] = sum;
