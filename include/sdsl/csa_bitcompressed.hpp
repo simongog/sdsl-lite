@@ -56,8 +56,7 @@ namespace sdsl
  * @ingroup csa
  */
 template<class AlphabetStrategy=byte_alphabet_strategy>	
-class csa_bitcompressed
-{
+class csa_bitcompressed {
     public:
         typedef uint64_t										value_type;	// STL Container requirement
         typedef random_access_const_iterator<csa_bitcompressed> const_iterator;// STL Container requirement
@@ -76,6 +75,7 @@ class csa_bitcompressed
 		typedef AlphabetStrategy								alphabet_type;
         typedef typename alphabet_type::char_type 				char_type; // Note: This is the char type of the CSA not the WT!
 		typedef typename alphabet_type::comp_char_type			comp_char_type;
+		typedef typename alphabet_type::alphabet_category  							alphabet_category;
         typedef const char_type*								pattern_type;
 
         typedef csa_tag											index_category;
