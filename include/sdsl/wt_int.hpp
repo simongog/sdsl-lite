@@ -71,13 +71,15 @@ class wt_int {
         typedef SelectSupport					select_1_type;
         typedef SelectSupportZero				select_0_type;
     protected:
-        size_type 			m_size;
-        size_type 			m_sigma; 		//<- \f$ |\Sigma| \f$
-        bit_vector_type 	m_tree;			// bit vector to store the wavelet tree
-        rank_1_type			m_tree_rank;	// rank support for the wavelet tree bit vector
-        select_1_type		m_tree_select1;	// select support for the wavelet tree bit vector
-        select_0_type		m_tree_select0;
-        uint32_t			m_max_depth;
+        size_type 				m_size;
+        size_type 				m_sigma; 		//<- \f$ |\Sigma| \f$
+        bit_vector_type 		m_tree;			// bit vector to store the wavelet tree
+        rank_1_type				m_tree_rank;	// rank support for the wavelet tree bit vector
+        select_1_type			m_tree_select1;	// select support for the wavelet tree bit vector
+        select_0_type			m_tree_select0;
+        uint32_t				m_max_depth;
+		mutable int_vector<64>	m_path_off;     // array keeps track of path offset in select-like methods
+		mutable int_vector<64>  m_path_rank_off;// array keeps track of rank values for the offsets 
 
         void copy(const wt_int& wt) {
             m_size 			= wt.m_size;
@@ -90,7 +92,15 @@ class wt_int {
             m_tree_select0	= wt.m_tree_select0;
             m_tree_select0.set_vector(&m_tree);
             m_max_depth			= wt.m_max_depth;
+			m_path_off			= wt.m_path_off;
+			m_path_rank_off		= wt.m_path_rank_off;
         }
+
+	private:
+		void init_buffers(uint32_t max_depth){
+			util::assign(m_path_off, int_vector<64>(max_depth+1));
+			util::assign(m_path_rank_off, int_vector<64>(max_depth+1));
+		}	
 
     public:
 
@@ -98,7 +108,7 @@ class wt_int {
         const bit_vector_type& tree; //!< A concatenation of all bit vectors of the wavelet tree.
 
         //! Default constructor
-        wt_int():m_size(0),m_sigma(0), m_max_depth(0), sigma(m_sigma), tree(m_tree) {};
+        wt_int():m_size(0),m_sigma(0), m_max_depth(0), sigma(m_sigma), tree(m_tree) { init_buffers(m_max_depth); };
 
         //! Semi-external constructor
         /*!	\param buf			File buffer of the int_vector for which the wt_int should be build.
@@ -114,6 +124,7 @@ class wt_int {
         template<uint8_t int_width>
         wt_int(int_vector_file_buffer<int_width>& buf, size_type size, uint32_t max_depth=0, std::string dir="./")
             : m_size(size),m_sigma(0), m_max_depth(0), sigma(m_sigma), tree(m_tree) {
+			init_buffers(m_max_depth);
 			if( 0 == m_size )
 				return; 	
             buf.reset();
@@ -144,6 +155,8 @@ class wt_int {
             } else {
                 m_max_depth = max_depth;
             }
+			init_buffers(m_max_depth);
+
             std::string tree_out_buf_file_name = (dir+"m_tree"+util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()));
             std::ofstream tree_out_buf(tree_out_buf_file_name.c_str(),
                                        std::ios::binary | std::ios::trunc | std::ios::out);   // open buffer for tree
@@ -200,11 +213,6 @@ class wt_int {
             bit_vector tree;
             util::load_from_file(tree, tree_out_buf_file_name.c_str());
             std::remove(tree_out_buf_file_name.c_str());
-#ifdef SDSL_DEBUG_INT_WAVELET_TREE
-            if (tree.size()<100) {
-                std::cerr<<"tree="<<tree<<std::endl;
-            }
-#endif
             util::assign(m_tree, tree);
             util::init_support(m_tree_rank, &m_tree);
             util::init_support(m_tree_select0, &m_tree);
@@ -234,6 +242,8 @@ class wt_int {
 				util::swap_support(m_tree_select1, wt.m_tree_select1, &m_tree, &(wt.m_tree) );
 				util::swap_support(m_tree_select0, wt.m_tree_select0, &m_tree, &(wt.m_tree) );
                 std::swap(m_max_depth,  wt.m_max_depth);
+				m_path_off.swap(wt.m_path_off);
+				m_path_rank_off.swap(wt.m_path_rank_off);
             }
         }
 
@@ -281,13 +291,11 @@ class wt_int {
          *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
          */
 		size_type rank_ith_symbol(size_type i, value_type&c )const{
-			// TODO: handle m_sigma=1?
 			assert(i>=0 and i < size());
 			c = (*this)[i];
 			return rank(i, c);
 		}
 
-        //TODO: handle character which does not appear in the original text !!!
         //! Calculates how many symbols c are in the prefix [0..i-1] of the supported vector.
         /*!
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
@@ -325,19 +333,17 @@ class wt_int {
          *  \par Time complexity
          *		\f$ \Order{\log |\Sigma|} \f$
          */
-        // TODO: handle character which does not occur in the original text, or appear more then i times?
         size_type select(size_type i, value_type c)const {
+			assert( rank(size(), c) >= i );
             // possible optimization: if the array is a permutation we can start at the bottom of the tree
             size_type offset = 0;
             uint64_t mask	 = (1ULL) << (m_max_depth-1);
             size_type node_size = m_size;
-            size_type offsets[m_max_depth+1]; 		 // offsets down the path
-            size_type ones_before_os[m_max_depth+1]; // ones before the offsets
-            offsets[0] = ones_before_os[0] = 0;
+            m_path_off[0] = m_path_rank_off[0] = 0;
 
             for (uint32_t k=0; k < m_max_depth and node_size; ++k) {
                 size_type ones_before_o	  = m_tree_rank(offset);
-                ones_before_os[k] = ones_before_o;
+                m_path_rank_off[k] = ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
                 if (c & mask) { // search for a one at this level
                     offset += (node_size - ones_before_end);
@@ -346,17 +352,17 @@ class wt_int {
                     node_size = (node_size - ones_before_end);
                 }
                 offset += m_size;
-                offsets[k+1] = offset;
+                m_path_off[k+1] = offset;
                 mask >>= 1;
             }
             if (node_size < i) {
-                std::cerr<<"c="<<c<<" does not occur "<<i<<" times in the WT"<<std::endl;
+				throw std::logic_error("select("+util::to_string(i)+","+util::to_string(c)+"): c does not occur i times in the WT");
                 return m_size;
             }
             mask = 1ULL;
             for (uint32_t k=m_max_depth; k>0; --k) {
-                offset = offsets[k-1];
-                size_type ones_before_o = ones_before_os[k-1];
+                offset = m_path_off[k-1];
+                size_type ones_before_o = m_path_rank_off[k-1];
                 if (c & mask) { // right child => search i'th
                     i = m_tree_select1(ones_before_o + i) - offset + 1;
                 } else { // left child => search i'th zero
@@ -480,6 +486,7 @@ class wt_int {
             m_tree_select1.load(in, &m_tree);
             m_tree_select0.load(in, &m_tree);
             util::read_member(m_max_depth, in);
+			init_buffers(m_max_depth);
         }
 };
 
