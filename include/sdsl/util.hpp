@@ -474,6 +474,16 @@ bool store_to_file_map(const T& v, const char* key, const char* file, tMSS& file
 	}
 }
 
+template<class T>
+bool load_from_file_map(T& v, const char* key, const char* file, tMSS& file_map){// TODO add dir and id
+	std::string file_name = std::string(file)+std::string("_")+std::string(key);
+	if( load_from_file(v, file_name.c_str()) ){
+		file_map[string(key)] = file_name;
+		return true;
+	}
+	return false;
+}
+
 } // end namespace util
 
 //==================== Template functions ====================
