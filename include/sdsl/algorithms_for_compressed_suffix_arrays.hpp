@@ -160,7 +160,7 @@ void set_isa_samples(int_vector_file_buffer<int_width>& sa_buf, typename Csa::is
  *  TODO: add hinted binary search? Two way binary search?
 */
 template<class Csa>
-const unsigned char get_ith_character_of_the_first_row(const typename Csa::size_type i, const Csa& csa)
+typename Csa::char_type get_ith_character_of_the_first_row(const typename Csa::size_type i, const Csa& csa)
 {
     assert(i < csa.size());
     if (csa.sigma < 16) { //<- if sigma is small search linear
@@ -172,7 +172,6 @@ const unsigned char get_ith_character_of_the_first_row(const typename Csa::size_
         // binary search the character with C
         typename Csa::size_type upper_c = csa.sigma, lower_c = 0; // lower_c inclusive, upper_c exclusive
         typename Csa::size_type res=0;
-//std::cout<<" binary search: csa.sigma= "<<upper_c<<" i="<<i<<std::endl;
         do {
             res = (upper_c+lower_c)/2;
             if (i < csa.C[res]) {
