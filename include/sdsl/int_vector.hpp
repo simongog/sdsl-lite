@@ -630,6 +630,20 @@ class int_vector_reference
             return bit_magic::read_int(m_word, m_offset, m_len);
         }
 
+        //! Prefix increment of the proxy object
+        int_vector_reference& operator++() {
+            typename int_vector::value_type x = bit_magic::read_int(m_word, m_offset, m_len);
+			bit_magic::write_int(m_word, x+1, m_offset, m_len);
+            return *this;
+        }
+
+        //! Postfix increment of the proxy object
+        typename int_vector::value_type operator++(int x) {
+            typename int_vector::value_type val = (typename int_vector::value_type)*this;
+            ++(*this);
+            return val;
+        }
+
         bool operator==(const int_vector_reference& x)const {
             return typename int_vector::value_type(*this) == typename int_vector::value_type(x);
         }
