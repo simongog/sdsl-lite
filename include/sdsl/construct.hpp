@@ -66,12 +66,19 @@ void construct(Index& idx, const char* file, tMSS& file_map, bool cache, uint8_t
 		append_zero_symbol(text);
 		if ( util::store_to_file_map(text, constants::KEY_TEXT, file, file_map) ){ // TODO lookup if text is cached
 			int_vector<> sa; // TODO lookup if sa is cached
-			sdsl::qsufsort::construct_sa(sa, file_map[constants::KEY_TEXT].c_str(), 0);
+			if ( !util::load_from_file_map(sa, constants::KEY_SA, file, file_map) ){
+				sdsl::qsufsort::construct_sa(sa, file_map[constants::KEY_TEXT].c_str(), 0);
 //			std::cout<<"---------\n sa: ";
 //			for(int_vector_size_type i=0; i<sa.size(); ++i){std::cout<<" "<<sa[i]; }
 //			std::cout<<"\n---------\n ";
-			util::store_to_file_map(sa, constants::KEY_SA, file, file_map);
-			construct_int_bwt(file_map, file); // TODO lookup if bwt is cached
+				util::store_to_file_map(sa, constants::KEY_SA, file, file_map);
+			}
+			util::clear(sa);
+			int_vector<> bwt;
+			if( !util::load_from_file_map(bwt, constants::KEY_BWT, file, file_map)){
+				construct_int_bwt(file_map, file); // TODO lookup if bwt is cached
+			}
+			util::clear(bwt);
 			util::assign(idx, Index(file_map, "",""));
 			// TODO: save CSA so that this can be used for constructing the CST
 		}
