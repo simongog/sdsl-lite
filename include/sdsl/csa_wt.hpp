@@ -50,194 +50,14 @@ template<class WaveletTree = wt_huff<>,                       // Wavelet tree ty
 		 class SaSamplingStrategy = sa_order_sa_sampling<>,   // Policy class for the SA sampling. Alternative text_order_sa_sampling.
 		 class IsaSampleContainer = int_vector<>,             // Container for the ISA samples.
 		 class AlphabetStrategy   = byte_alphabet_strategy     // Policy class for the representation of the alphabet.
-		 > // forward declaration
-class csa_wt;
-
-
-//! A wrapper class for the \f$\Psi\f$ and LF function for (compressed) suffix arrays that are based on a wavelet tree (like sdsl::csa_wt).
-template<class CsaWT>
-class psi_of_csa_wt
-{
-    public:
-        typedef typename CsaWT::value_type value_type;
-        typedef typename CsaWT::size_type size_type;
-        typedef typename CsaWT::char_type char_type;
-        typedef typename CsaWT::difference_type difference_type;
-        typedef random_access_const_iterator<psi_of_csa_wt> const_iterator;// STL Container requirement
-    private:
-        const CsaWT* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
-        psi_of_csa_wt() {};    // disable default constructor
-    public:
-
-        //! Constructor
-        psi_of_csa_wt(CsaWT* csa_wt) {
-            m_csa_wt = csa_wt;
-        }
-
-        //! Calculate the \f$\Psi\f$ value at position i.
-        /*!	\param i The index for which the \f$\Psi\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
-         *	\par Time complexity
-         *		\f$ \Order{\log |\Sigma|} \f$
-         */
-        value_type operator[](size_type i)const {
-            assert(m_csa_wt != NULL);
-            char_type c = algorithm::get_ith_character_of_the_first_row(i, *m_csa_wt);
-            return m_csa_wt->wavelet_tree.select(i - m_csa_wt->C[m_csa_wt->char2comp[c]] + 1 , c);
-        }
-
-        //! Apply \f$\Psi\f$ k times to the value at position i.
-        /*!	\param i The index for which \f$\Psi\f$ should be applied k times, \f$i\in [0..size()-1]\f$.
-         *  \param k Number of times \f$\Psi\f$ should be applied
-         *	\par Time complexity
-         *		\f$ \Order{\min\{k\cdot \log |\Sigma|, (s_{\SUF}+s_{\ISA})\log|\Sigma|\}} \f$
-         */
-        value_type psi_k(size_type i, size_type k)const {
-            assert(m_csa_wt != NULL);
-            if (k < m_csa_wt->sa_sample_dens + m_csa_wt->isa_sample_dens) {
-                for (size_type j=0; j<k; ++j) {
-                    i = (*this)[i];
-                }
-                return i;
-            } else {
-                size_type x = (*m_csa_wt)[i];
-                x += k;
-                if (x >= m_csa_wt->size()) {
-                    x -= m_csa_wt->size();
-                }
-                return (*m_csa_wt)(x);
-            }
-        }
-
-        //! Calculate the LF mapping at position i.
-        /*! The LF mapping function is the inverse to the \f$\Psi\f$ function. That is \f$LF[\Psi(i)]=i\f$.
-         *  \param i The index for which the LF value should be calculated, \f$i\in [0..size()-1]\f$.
-         *	\par Time complexity
-         *		\f$ \Order{\log |\Sigma|} \f$
-         */
-        value_type operator()(size_type i)const {
-            assert(m_csa_wt != NULL);
-            assert(i < size());
-            // (1) get the ith character in the bwt, this takes \f$\log |\Sigma| \f$ time with use of the wavelet tree
-//		value_type c = m_csa_wt->m_wavelet_tree[i];
-            // (2) next count how many symbols c are in the prefix [0..i-1] of the bwt, this takes \f$\log |\Sigma| \f$ time with use of the wavelet tree.
-//		size_type j = m_csa_wt->m_wavelet_tree.rank(i, c);
-            // TODO: (1) and (2) can be calculated in only one request to the wavelet tree -> method rank_ith_symbol !!!
-            // (3) calculate the position of the j+1 th c in the sorted string of the bwt in constant time.
-            typename CsaWT::char_type c;
-            size_type j = m_csa_wt->m_wavelet_tree.rank_ith_symbol(i,c); // see documentation of rank_ith_symbol in wt_huff
-            return m_csa_wt->C[ m_csa_wt->char2comp[c] ] + j;
-        }
-
-        //! Apply LF k times to the value at position i.
-        /*!	\param i The index for which LF should be applied k times, \f$i\in [0..size()-1]\f$.
-         *  \param k Number of times LF should be applied
-         *	\par Time complexity
-         *		\f$ \Order{\min\{k\cdot \log |\Sigma|, (s_{\SUF}+s_{\ISA})\log|\Sigma|\}} \f$
-         */
-        value_type lf_k(size_type i, size_type k)const {
-            assert(m_csa_wt != NULL);
-            if (k < m_csa_wt->sa_sample_dens + m_csa_wt->isa_sample_dens) {
-                for (size_type j=0; j<k; ++j) {
-                    i = (*this)(i);
-                }
-                return i;
-            } else {
-                size_type x = (*m_csa_wt)[i];
-                if (x < k) {
-                    x += m_csa_wt->size();
-                }
-                x -= k;
-                return (*m_csa_wt)(x);
-            }
-        }
-
-        //! Returns the size of the \f$\Psi\f$ function.
-        size_type size()const {
-            return m_csa_wt->size();
-        }
-
-        //! Returns if the \f$\Psi\f$ function is empty.
-        size_type empty()const {
-            return m_csa_wt->empty();
-        }
-
-        //! Returns a const_iterator to the first element.
-        /*! Required for the STL Container Concept.
-         *  \sa end
-         */
-        const_iterator begin()const {
-            return const_iterator(this, 0);
-        }
-
-        //! Returns a const_iterator to the element after the last element.
-        /*! Required for the STL Container Concept.
-         *  \sa begin.
-         */
-        const_iterator end()const {
-            return const_iterator(this, size());
-        }
-
-        // Get the number of sampled \f$\Psi\f$ values. In the wavelet tree approach the number of sampled (i.e. explicitly stored) \f$\Psi\f$ values is zero.
-        uint32_t get_sample_dens()const {
-            return 0;
-        }
-};
+		 > 
+class csa_wt; // forward declaration of CSA class
 
 template<class CsaWT>
-class bwt_of_csa_wt
-{
-    public:
-        typedef const typename CsaWT::char_type value_type;
-        typedef typename CsaWT::size_type size_type;
-        typedef typename CsaWT::difference_type difference_type;
-        typedef random_access_const_iterator<bwt_of_csa_wt> const_iterator;// STL Container requirement
-    private:
-        const CsaWT* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
-        bwt_of_csa_wt(){};     // disable default constructor
-    public:
+class psi_of_csa_wt;  // forward declaration of PSI-array class  
 
-        //! Constructor
-        bwt_of_csa_wt(CsaWT* csa_wt) {
-            m_csa_wt = csa_wt;
-        }
-
-        //! Calculate the Burrows Wheeler Transform (BWT) at position i.
-        /*!	\param i The index for which the \f$\Psi\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
-         *	\par Time complexity
-         *		\f$ \Order{\log |\Sigma|} \f$
-         */
-        value_type operator[](size_type i)const {
-            assert(m_csa_wt != NULL);
-            assert(i < size());
-            return m_csa_wt->m_wavelet_tree[i];
-        }
-
-        //! Returns the size of the \f$\Psi\f$ function.
-        size_type size()const {
-            return m_csa_wt->size();
-        }
-
-        //! Returns if the bwt function is empty.
-        size_type empty()const {
-            return m_csa_wt->empty();
-        }
-
-        //! Returns a const_iterator to the first element.
-        /*! Required for the STL Container Concept.
-         *  \sa end
-         */
-        const_iterator begin()const {
-            return const_iterator(this, 0);
-        }
-
-        //! Returns a const_iterator to the element after the last element.
-        /*! Required for the STL Container Concept.
-         *  \sa begin.
-         */
-        const_iterator end()const {
-            return const_iterator(this, size());
-        }
-};
+template<class CsaWT>
+class bwt_of_csa_wt;   // forward declaration of BWT-array class
 
 
 //! A class for the Compressed Suffix Array (CSA) based on a Wavelet Tree (WT) of the Burrow Wheeler Transform of the orignal text.
@@ -250,8 +70,7 @@ class bwt_of_csa_wt
  */
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, 
 	     class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
-class csa_wt
-{
+class csa_wt {
     public:
         enum { sa_sample_dens = SampleDens,
                isa_sample_dens = InvSampleDens
@@ -408,9 +227,7 @@ class csa_wt
 
 //		uint32_t get_sample_dens() const;
 //		void set_sample_dens(const uint32_t sample_dens);
-
         uint32_t get_psi_sample_dens() const;
-        void set_psi_sample_dens(const uint32_t sample_dens);
 
         //! Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
         /*!
@@ -454,47 +271,38 @@ csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleCont
     if (file_map.find(constants::KEY_BWT) == file_map.end()) { // if bwt is not already stored on disk => construct bwt
         construct_bwt(file_map, dir, id);
     }
-    int_vector_file_buffer<AlphabetStrategy::int_width> bwt_buf(file_map[constants::KEY_BWT].c_str()); // 8==special case for byte alphabet/int alphabet result in 0 here
+    int_vector_file_buffer<AlphabetStrategy::int_width> bwt_buf(file_map[constants::KEY_BWT].c_str()); 
     int_vector_file_buffer<>  sa_buf(file_map[constants::KEY_SA].c_str());
     size_type n = bwt_buf.int_vector_size;
     write_R_output("csa", "construct alphabet", "begin", 1, 0);
-	util::assign(m_alphabet, alphabet_type(bwt_buf, n));          // int alphabet ready :) 
+	util::assign(m_alphabet, alphabet_type(bwt_buf, n));          
     write_R_output("csa", "construct alphabet", "end", 1, 0);
 
     write_R_output("csa", "construct WT", "begin", 1, 0);
-	util::assign(m_wavelet_tree, wavelet_tree_type(bwt_buf, n)  ); // not yet int alphabet ready :(
+	util::assign(m_wavelet_tree, wavelet_tree_type(bwt_buf, n)  ); 
     write_R_output("csa", "construct WT", "end", 1, 0);
 
     write_R_output("csa", "construct SA samples", "begin", 1, 0);
-	util::assign(m_sa_sample, sa_sample_type(sa_buf));				// int alphabet ready :)
+	util::assign(m_sa_sample, sa_sample_type(sa_buf));				
     write_R_output("csa", "construct SA samples", "end", 1, 0);
 
     write_R_output("csa", "construct ISA samples", "begin", 1, 0);
-    algorithm::set_isa_samples<csa_wt>(sa_buf, m_isa_sample);      // int alphabet ready :)
+    algorithm::set_isa_samples<csa_wt>(sa_buf, m_isa_sample);     
     write_R_output("csa", "construct ISA samples", "end", 1, 0);
 }
 
-
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
-uint32_t csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::get_psi_sample_dens()const
-{
+uint32_t csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::get_psi_sample_dens()const {
     return psi.get_sample_dens();
 }
 
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
-void csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::set_psi_sample_dens(const uint32_t sample_dens)
-{
-}
-
-template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
-typename csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::const_iterator csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::begin()const
-{
+typename csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::const_iterator csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::begin()const {
     return const_iterator(this, 0);
 }
 
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
-typename csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::const_iterator csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::end()const
-{
+typename csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::const_iterator csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::end()const {
     return const_iterator(this, size());
 }
 
@@ -544,8 +352,7 @@ inline typename csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrateg
 }
 
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
-inline typename csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::value_type csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::operator()(size_type i)const
-{
+inline typename csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::value_type csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::operator()(size_type i)const {
     size_type ii;
     value_type result = m_isa_sample[ ii = ((i+InvSampleDens-1)/InvSampleDens) ]; // get the leftmost sampled isa value to the right of i
     ii *= InvSampleDens;
@@ -561,8 +368,7 @@ inline typename csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrateg
 }
 
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
-csa_wt<WaveletTree,SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>& csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::operator=(const csa_wt<WaveletTree,SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>& csa)
-{
+csa_wt<WaveletTree,SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>& csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::operator=(const csa_wt<WaveletTree,SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>& csa) {
     if (this != &csa) {
         copy(csa);
     }
@@ -571,8 +377,7 @@ csa_wt<WaveletTree,SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleConta
 
 
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
-typename csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::size_type csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
-{
+typename csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::size_type csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
     written_bytes += m_wavelet_tree.serialize(out, child, "wavelet_tree");
@@ -584,8 +389,7 @@ typename csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaS
 }
 
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
-void csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::load(std::istream& in)
-{
+void csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::load(std::istream& in) {
     m_wavelet_tree.load(in);
     m_sa_sample.load(in);
     m_isa_sample.load(in);
@@ -593,8 +397,7 @@ void csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampl
 }
 
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
-void csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::swap(csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>& csa)
-{
+void csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::swap(csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>& csa) {
     if (this != &csa) {
         m_wavelet_tree.swap(csa.m_wavelet_tree);
         m_sa_sample.swap(csa.m_sa_sample);
@@ -602,6 +405,157 @@ void csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampl
 		m_alphabet.swap(csa.m_alphabet);
     }
 }
+
+//! A wrapper class for the \f$\Psi\f$ and LF function for (compressed) suffix arrays that are based on a wavelet tree (like sdsl::csa_wt).
+template<class CsaWT>
+class psi_of_csa_wt {
+    public:
+        typedef typename CsaWT::value_type value_type;
+        typedef typename CsaWT::size_type size_type;
+        typedef typename CsaWT::char_type char_type;
+        typedef typename CsaWT::difference_type difference_type;
+        typedef random_access_const_iterator<psi_of_csa_wt> const_iterator;// STL Container requirement
+    private:
+        const CsaWT* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
+        psi_of_csa_wt() {};    // disable default constructor
+    public:
+        //! Constructor
+        psi_of_csa_wt(CsaWT* csa_wt) {
+            m_csa_wt = csa_wt;
+        }
+        //! Calculate the \f$\Psi\f$ value at position i.
+        /*!	\param i The index for which the \f$\Psi\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
+         *	\par Time complexity
+         *		\f$ \Order{\log |\Sigma|} \f$
+         */
+        value_type operator[](size_type i)const {
+            assert(m_csa_wt != NULL);
+			assert(i < m_csa_wt->size() );
+            char_type c = algorithm::get_ith_character_of_the_first_row(i, *m_csa_wt);
+            return m_csa_wt->wavelet_tree.select(i - m_csa_wt->C[m_csa_wt->char2comp[c]] + 1 , c);
+        }
+        //! Apply \f$\Psi\f$ k times to the value at position i.
+        /*!	\param i The index for which \f$\Psi\f$ should be applied k times, \f$i\in [0..size()-1]\f$.
+         *  \param k Number of times \f$\Psi\f$ should be applied
+         *	\par Time complexity
+         *		\f$ \Order{\min\{k\cdot \log |\Sigma|, (s_{\SUF}+s_{\ISA})\log|\Sigma|\}} \f$
+         */
+        value_type psi_k(size_type i, size_type k)const {
+            assert(m_csa_wt != NULL);
+            if (k < m_csa_wt->sa_sample_dens + m_csa_wt->isa_sample_dens) {
+                for (size_type j=0; j<k; ++j) {
+                    i = (*this)[i];
+                }
+                return i;
+            } else {
+                size_type x = (*m_csa_wt)[i];
+                x += k;
+                if (x >= m_csa_wt->size()) {
+                    x -= m_csa_wt->size();
+                }
+                return (*m_csa_wt)(x);
+            }
+        }
+        //! Calculate the LF mapping at position i.
+        /*! The LF mapping function is the inverse to the \f$\Psi\f$ function. That is \f$LF[\Psi(i)]=i\f$.
+         *  \param i The index for which the LF value should be calculated, \f$i\in [0..size()-1]\f$.
+         *	\par Time complexity
+         *		\f$ \Order{\log |\Sigma|} \f$
+         */
+        value_type operator()(size_type i)const {
+            assert(m_csa_wt != NULL);
+            assert(i < size());
+            typename CsaWT::char_type c;
+            size_type j = m_csa_wt->m_wavelet_tree.rank_ith_symbol(i,c); // see documentation of rank_ith_symbol in wt_huff
+            return m_csa_wt->C[ m_csa_wt->char2comp[c] ] + j;
+        }
+        //! Apply LF k times to the value at position i.
+        /*!	\param i The index for which LF should be applied k times, \f$i\in [0..size()-1]\f$.
+         *  \param k Number of times LF should be applied
+         *	\par Time complexity
+         *		\f$ \Order{\min\{k\cdot \log |\Sigma|, (s_{\SUF}+s_{\ISA})\log|\Sigma|\}} \f$
+         */
+        value_type lf_k(size_type i, size_type k)const {
+            assert(m_csa_wt != NULL);
+            if (k < m_csa_wt->sa_sample_dens + m_csa_wt->isa_sample_dens) {
+                for (size_type j=0; j<k; ++j) {
+                    i = (*this)(i);
+                }
+                return i;
+            } else {
+                size_type x = (*m_csa_wt)[i];
+                if (x < k) {
+                    x += m_csa_wt->size();
+                }
+                x -= k;
+                return (*m_csa_wt)(x);
+            }
+        }
+        //! Returns the size of the \f$\Psi\f$ function.
+        size_type size()const {
+            return m_csa_wt->size();
+        }
+        //! Returns if the \f$\Psi\f$ function is empty.
+        size_type empty()const {
+            return m_csa_wt->empty();
+        }
+        //! Returns a const_iterator to the first element.
+        const_iterator begin()const {
+            return const_iterator(this, 0);
+        }
+        //! Returns a const_iterator to the element after the last element.
+        const_iterator end()const {
+            return const_iterator(this, size());
+        }
+        // Get the number of sampled \f$\Psi\f$ values. In the wavelet tree approach the number of sampled (i.e. explicitly stored) \f$\Psi\f$ values is zero.
+        uint32_t get_sample_dens()const {
+            return 0;
+        }
+};
+
+template<class CsaWT>
+class bwt_of_csa_wt {
+    public:
+        typedef const typename CsaWT::char_type value_type;
+        typedef typename CsaWT::size_type size_type;
+        typedef typename CsaWT::difference_type difference_type;
+        typedef random_access_const_iterator<bwt_of_csa_wt> const_iterator;// STL Container requirement
+    private:
+        const CsaWT* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
+        bwt_of_csa_wt(){};     // disable default constructor
+    public:
+        //! Constructor
+        bwt_of_csa_wt(CsaWT* csa_wt) {
+            m_csa_wt = csa_wt;
+        }
+        //! Calculate the Burrows Wheeler Transform (BWT) at position i.
+        /*!	\param i The index for which the \f$\Psi\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
+         *	\par Time complexity
+         *		\f$ \Order{\log |\Sigma|} \f$
+         */
+        value_type operator[](size_type i)const {
+            assert(m_csa_wt != NULL);
+            assert(i < size());
+            return m_csa_wt->m_wavelet_tree[i];
+        }
+        //! Returns the size of the BWT function.
+        size_type size()const {
+            return m_csa_wt->size();
+        }
+        //! Returns if the BWT function is empty.
+        size_type empty()const {
+            return m_csa_wt->empty();
+        }
+        //! Returns a const_iterator to the first element.
+        const_iterator begin()const {
+            return const_iterator(this, 0);
+        }
+        //! Returns a const_iterator to the element after the last element.
+        const_iterator end()const {
+            return const_iterator(this, size());
+        }
+};
+
 
 } // end namespace sdsl
 
