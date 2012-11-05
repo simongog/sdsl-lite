@@ -123,7 +123,7 @@ class csa_bitcompressed {
 																						  C(m_alphabet.C), sigma(m_alphabet.sigma), psi(m_psi), bwt(this), 
 																						  sa_sample(m_sa), isa_sample(m_isa) 
 		{
-			int_vector_file_buffer<AlphabetStrategy::int_width> text_buf(file_map[constants::KEY_TEXT].c_str());
+			int_vector_file_buffer<AlphabetStrategy::int_width> text_buf(file_map[key_trait<AlphabetStrategy::int_width>::KEY_TEXT].c_str());
 			int_vector_file_buffer<>  sa_buf(file_map[constants::KEY_SA].c_str());
 			size_type n = text_buf.int_vector_size;
 			util::assign(m_alphabet, alphabet_type(text_buf, n));
