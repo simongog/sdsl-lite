@@ -13,15 +13,15 @@ typedef sdsl::int_vector<>::size_type size_type;
 std::vector<sdsl::tMSS>  test_cases_file_map;
 
 template<class T>
-class CsaAsciiTest : public ::testing::Test
+class CsaIntTest : public ::testing::Test
 {
     protected:
 
-        CsaAsciiTest() {
+        CsaIntTest() {
             // You can do set-up work for each test here.
         }
 
-        virtual ~CsaAsciiTest() {
+        virtual ~CsaIntTest() {
             // You can do clean-up work that doesn't throw exceptions here.
         }
 
@@ -33,11 +33,10 @@ class CsaAsciiTest : public ::testing::Test
 //			sdsl::util::verbose = true;
             string test_cases_dir = string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
             tmp_dir = string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
-            test_cases.push_back(test_cases_dir + "/crafted/100a.txt");
-            test_cases.push_back(test_cases_dir + "/small/faust.txt");
-            test_cases.push_back(test_cases_dir + "/small/zarathustra.txt");
-            test_cases.push_back(test_cases_dir + "/crafted/empty.txt");
-            tmp_file = "tmp_csa_ascii_test_" + sdsl::util::to_string(sdsl::util::get_pid()) + "_";
+            test_cases.push_back(test_cases_dir + "/small/keeper.int");
+            test_cases.push_back(test_cases_dir + "/small/moby.int");
+//			test_cases.push_back(test_cases_dir + "/crafted/empty.txt");
+            tmp_file = "tmp_csa_int_test_" + sdsl::util::to_string(sdsl::util::get_pid()) + "_";
 			if ( test_cases_file_map.size() == 0 ){
 				test_cases_file_map.resize(test_cases.size());
 			}
@@ -66,54 +65,54 @@ class CsaAsciiTest : public ::testing::Test
 
 using testing::Types;
 
-typedef Types<  sdsl::csa_wt<>,
-				sdsl::csa_wt<sdsl::wt_huff<>, 8, 16, sdsl::text_order_sa_sampling<> >,
-				sdsl::csa_wt<sdsl::wt_huff<>, 8, 16, sdsl::sa_order_sa_sampling<> >,
-				sdsl::csa_wt<sdsl::wt_huff<>, 8, 16, sdsl::sa_order_sa_sampling<>, sdsl::int_vector<>, 
-				             sdsl::succinct_byte_alphabet_strategy<sdsl::bit_vector, sdsl::rank_support_v<>, sdsl::select_support_mcl<> > >,
-				sdsl::csa_wt<sdsl::wt_huff<>, 8, 16, sdsl::sa_order_sa_sampling<>, sdsl::int_vector<>, 
-				             sdsl::succinct_byte_alphabet_strategy<> >,
-				sdsl::csa_sada<>,
-				sdsl::csa_bitcompressed<> 
+typedef Types<  sdsl::csa_wt<sdsl::wt_int<>, 32, 128, sdsl::sa_order_sa_sampling<>, sdsl::int_vector<>, sdsl::int_alphabet_strategy<> >,
+				sdsl::csa_sada<sdsl::enc_vector<>, 32, 128, sdsl::sa_order_sa_sampling<>, sdsl::int_vector<>, sdsl::int_alphabet_strategy<> >//,
+//				sdsl::csa_bitcompressed<sdsl::int_alphabet_strategy<> >,
+//				sdsl::csa_wt<sdsl::wt_int<sdsl::rrr_vector<63> >, 32, 128, sdsl::sa_order_sa_sampling<>, sdsl::int_vector<>, sdsl::int_alphabet_strategy<> >,
+//				sdsl::csa_sada<sdsl::wt_int<sdsl::rrr_vector<63> >, 32, 128, sdsl::sa_order_sa_sampling<>, sdsl::int_vector<>, sdsl::int_alphabet_strategy<> >
 		     > Implementations;
 
-TYPED_TEST_CASE(CsaAsciiTest, Implementations);
+TYPED_TEST_CASE(CsaIntTest, Implementations);
 
-TYPED_TEST(CsaAsciiTest, CreateAndStoreTest)
+TYPED_TEST(CsaIntTest, CreateAndStoreTest)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		TypeParam csa;
-        construct_csa( this->test_cases[i].c_str(), csa, test_cases_file_map[i], false, 
-				       this->tmp_dir, sdsl::util::basename(this->test_cases[i].c_str()) );
+		// TODO: construct method has to me modified for this
+		sdsl::cache_config config(false, this->tmp_dir, sdsl::util::basename(this->test_cases[i].c_str()));
+		sdsl::construct(csa, this->test_cases[i].c_str(), config, 8);
+		test_cases_file_map[i] = config.file_map;
         bool success = sdsl::util::store_to_file(csa, this->get_tmp_file_name(csa, i).c_str());
         ASSERT_EQ(success, true);
     }
 }
 
-//! Test sigma member
-TYPED_TEST(CsaAsciiTest, Sigma)
+//! Test access methods
+TYPED_TEST(CsaIntTest, Sigma)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam csa;
         ASSERT_EQ(this->load_csa(csa, i), true);
-        char* text = NULL;
-        size_type n = sdsl::file::read_text((this->test_cases[i]).c_str(), text);
+		sdsl::int_vector<> text;
+        sdsl::util::load_vector_from_file(text, this->test_cases[i].c_str(), 8);
+		text.resize(text.size()+1);
+		text[text.size()-1] = 0;    // add 0-character at the end
+		size_type n = text.size();
         ASSERT_EQ(n, csa.size());
-        sdsl::bit_vector occur(256, 0);
-        uint16_t sigma = 0;
+		std::set<uint64_t> occur;
+        size_type sigma = 0;
         for (size_type j=0; j<n; ++j) {
-            if (!occur[(unsigned char)text[j]]) {
-                occur[(unsigned char)text[j]] = 1;
+            if (occur.end() == occur.find(text[j])) {
+				occur.insert(text[j]);
                 ++sigma;
             }
         }
         ASSERT_EQ(sigma, csa.sigma);
-        delete [] text;
     }
 }
-
+/*
 //! Test suffix array access methods
-TYPED_TEST(CsaAsciiTest, SaAccess) {
+TYPED_TEST(CsaIntTest, SaAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam csa;
         ASSERT_EQ(this->load_csa(csa, i), true);
@@ -128,7 +127,7 @@ TYPED_TEST(CsaAsciiTest, SaAccess) {
 }
 
 //! Test inverse suffix access methods
-TYPED_TEST(CsaAsciiTest, IsaAccess) {
+TYPED_TEST(CsaIntTest, IsaAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam csa;
         ASSERT_EQ(this->load_csa(csa, i), true);
@@ -151,7 +150,7 @@ TYPED_TEST(CsaAsciiTest, IsaAccess) {
 }
 
 //! Test Burrows-Wheeler access methods
-TYPED_TEST(CsaAsciiTest, BwtAccess) {
+TYPED_TEST(CsaIntTest, BwtAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		if ( test_cases_file_map[i].find("bwt") != test_cases_file_map[i].end() ){
 			TypeParam csa;
@@ -168,7 +167,7 @@ TYPED_TEST(CsaAsciiTest, BwtAccess) {
 }
 
 //! Test Psi access methods
-TYPED_TEST(CsaAsciiTest, PsiAccess) {
+TYPED_TEST(CsaIntTest, PsiAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		if ( test_cases_file_map[i].find("psi") != test_cases_file_map[i].end() ){
 			TypeParam csa;
@@ -185,7 +184,7 @@ TYPED_TEST(CsaAsciiTest, PsiAccess) {
 }
 
 //! Test if Psi[LF[i]]=i 
-TYPED_TEST(CsaAsciiTest, PsiLFAccess) {
+TYPED_TEST(CsaIntTest, PsiLFAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		TypeParam csa;
 		ASSERT_EQ(this->load_csa(csa, i), true);
@@ -200,7 +199,7 @@ TYPED_TEST(CsaAsciiTest, PsiLFAccess) {
 
 
 //! Test access after swap
-TYPED_TEST(CsaAsciiTest, SwapTest) {
+TYPED_TEST(CsaIntTest, SwapTest) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam csa1;
         ASSERT_EQ(this->load_csa(csa1, i), true);
@@ -215,9 +214,9 @@ TYPED_TEST(CsaAsciiTest, SwapTest) {
         }
     }
 }
+*/
 
-
-TYPED_TEST(CsaAsciiTest, DeleteTest)
+TYPED_TEST(CsaIntTest, DeleteTest)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam csa;

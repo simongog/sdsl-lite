@@ -307,13 +307,13 @@ class wt_rlmn
          *	\par Time complexity
          *		\f$ \Order{H_0} \f$
          */
-        size_type rank_ith_symbol(size_type i, value_type& c)const {
+        size_type inverse_select(size_type i, value_type& c)const {
             if (i == 0) {
                 c = m_wt[0];
                 return 0;
             }
             size_type wt_ex_pos = m_bl_rank(i+1);
-            size_type c_runs = m_wt.rank_ith_symbol(wt_ex_pos-1, c)+1;
+            size_type c_runs = m_wt.inverse_select(wt_ex_pos-1, c)+1;
             if (c_runs == 0)
                 return 0;
             if (m_wt[wt_ex_pos-1] == c) {

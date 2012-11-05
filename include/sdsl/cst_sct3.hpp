@@ -503,7 +503,7 @@ class cst_sct3
          *      \f$ \Order{1} \f$
          * \pre \f$ 1 \leq i \leq size() \f$
          */
-        node_type ith_leaf(size_type i)const {
+        node_type select_leaf(size_type i)const {
             assert(i > 0 and i <= size());
             size_type ipos = m_bp_support.select(i);
             size_type jp1pos;
@@ -535,7 +535,7 @@ class cst_sct3
          *		\f$ \Order{1} \f$
          */
         node_type leftmost_leaf_in_the_subtree(const node_type& v)const {
-            return ith_leaf(v.i+1);
+            return select_leaf(v.i+1);
         }
 
         //! Calculates the rightmost leaf in the subtree rooted at node v.
@@ -545,7 +545,7 @@ class cst_sct3
          *		\f$ \Order{1} \f$
          */
         node_type rightmost_leaf_in_the_subtree(const node_type& v)const {
-            return ith_leaf(v.j+1);
+            return select_leaf(v.j+1);
         }
 
         //! Calculates the index of the leftmost leaf in the corresponding suffix array.
@@ -632,7 +632,7 @@ class cst_sct3
             }
         }
 
-        //! Get the ith child of a node v.
+        //! Get the i-th child of a node v.
         /*!
          * 	\param v A valid tree node of the cst.
          *  \param i 1-based index of the child which should be returned. \f$i \geq 1\f$.
@@ -642,7 +642,7 @@ class cst_sct3
          *  \pre \f$ 1 \leq i \leq degree(v) \f$
          */
 
-        node_type ith_child(const node_type& v, size_type i)const {
+        node_type select_child(const node_type& v, size_type i)const {
             assert(i > 0);
             if (is_leaf(v))  // if v is a leave, v has no child
                 return root();
@@ -710,8 +710,8 @@ class cst_sct3
             assert(parent != v);
             size_type nr = degree(parent);
             for (size_type i=1; i <= nr; ++i)
-                if (ith_child(parent, i) == v and i!=nr)
-                    return ith_child(parent, i+1);
+                if (select_child(parent, i) == v and i!=nr)
+                    return select_child(parent, i+1);
             return root();
         }
 
@@ -741,7 +741,7 @@ class cst_sct3
                 // => all other first characters of the child intervals are also greater than c => no solution
                 return root();
             } else if (char_pos >= char_inc_min_pos) { // i.e. char_pos < char_ex_max_pos and char_pos >= char_inc_min_pos
-                return ith_child(v, 1);
+                return select_child(v, 1);
             }
 
             size_type child_cnt 	= degree(v);
@@ -752,7 +752,7 @@ class cst_sct3
                 // =>	all other first characters of the child intervals are also smaller than c => no solution
                 return root();
             } else if (char_pos < char_ex_max_pos) { // i.e. char_pos < char_ex_max_pos and char_pos >= char_inc_min_pos
-                return ith_child(v, child_cnt);
+                return select_child(v, child_cnt);
             }
 
 // 			(3) binary search for c in the children [2..children)
@@ -901,7 +901,7 @@ class cst_sct3
                 if (v.i==0 and v.j==0) // if( v.l==1 )
                     return root();
                 else
-                    return ith_leaf(i+1);
+                    return select_leaf(i+1);
             }
             size_type j	 = m_csa.psi[v.j];
             assert(i < j);
@@ -937,7 +937,7 @@ class cst_sct3
             if (c_left == c_right)  // there exists no Weiner link
                 return root();
             if (c_left+1 == c_right)
-                return ith_leaf(m_csa.C[m_csa.char2comp[c]] + c_left + 1);
+                return select_leaf(m_csa.C[m_csa.char2comp[c]] + c_left + 1);
             else {
                 size_type left	= m_csa.C[m_csa.char2comp[c]] + c_left;
                 size_type right	= m_csa.C[m_csa.char2comp[c]] + c_right - 1;
@@ -996,7 +996,7 @@ class cst_sct3
          */
         node_type inv_id(size_type id) {
             if (id < size()) {  // the corresponding node is a leaf
-                return ith_leaf(id+1);
+                return select_leaf(id+1);
             } else { // the corresponding node is a inner node
                 // (1) get index of the closing parenthesis in m_first_child
                 size_type r0ckpos = 0;

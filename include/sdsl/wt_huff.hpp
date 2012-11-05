@@ -532,7 +532,7 @@ class wt_huff
          *	\par Time complexity
          *		\f$ \Order{H_0} \f$
          */
-        size_type rank_ith_symbol(size_type i, value_type& c)const {
+        size_type inverse_select(size_type i, value_type& c)const {
             // TODO: handle m_sigma=1
             assert(i>=0 and i < size());
             uint32_t node=0;
@@ -610,12 +610,12 @@ class wt_huff
                 return;
             } else if ((j-i)==1) {
                 k = 1;
-                rank_c_i[0] = rank_ith_symbol(i, cs[0]);
+                rank_c_i[0] = inverse_select(i, cs[0]);
                 rank_c_j[0] = rank_c_i[0]+1;
                 return;
             } else if ((j-i)==2) {
-                rank_c_i[0] = rank_ith_symbol(i, cs[0]);
-                rank_c_i[1] = rank_ith_symbol(i+1, cs[1]);
+                rank_c_i[0] = inverse_select(i, cs[0]);
+                rank_c_i[1] = inverse_select(i+1, cs[1]);
                 if (cs[0]==cs[1]) {
                     k = 1;
                     rank_c_j[0] = rank_c_i[0]+2;

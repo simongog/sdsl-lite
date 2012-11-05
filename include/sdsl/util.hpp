@@ -358,8 +358,7 @@ void load_vector(std::vector<T> &vec, std::istream& in){
 //! Get the process id of the current process
 uint64_t get_pid();
 
-class _id_helper
-{
+class _id_helper {
     private:
         static uint64_t id;
     public:
@@ -370,8 +369,7 @@ class _id_helper
 
 
 //! Get a unique id inside the process
-inline uint64_t get_id()
-{
+inline uint64_t get_id() {
     return _id_helper::getId();
 }
 
@@ -463,25 +461,27 @@ void write_structure(const X& x, std::ostream& out)
     delete v;
 }
 
+std::string cache_file_name(const char* key, const cache_config &config);
+
 template<class T>
-bool store_to_file_map(const T& v, const char* key, const char* file, tMSS& file_map){// TODO add dir and id
-	std::string file_name = std::string(file)+std::string("_")+std::string(key);
+bool load_from_cache(T&v, const char* key, const cache_config &config){
+	std::string file_name = cache_file_name(key, config);
+	if( load_from_file(v, file_name.c_str()) ){
+		return true;
+	}
+	return false;
+}
+
+
+template<class T>
+bool store_to_cache(const T& v, const char* key, cache_config &config){
+	std::string file_name = cache_file_name(key, config);
 	if ( store_to_file(v, file_name.c_str()) ){
-		file_map[string(key)] = file_name;
+		config.file_map[string(key)] = file_name;
 		return true;	
 	}else{
 		return false;
 	}
-}
-
-template<class T>
-bool load_from_file_map(T& v, const char* key, const char* file, tMSS& file_map){// TODO add dir and id
-	std::string file_name = std::string(file)+std::string("_")+std::string(key);
-	if( load_from_file(v, file_name.c_str()) ){
-		file_map[string(key)] = file_name;
-		return true;
-	}
-	return false;
 }
 
 } // end namespace util

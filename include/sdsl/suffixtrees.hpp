@@ -47,7 +47,7 @@ double H0(const typename tCst::node_type& v, const tCst& cst)
     } else {
         double h0=0;
         typename tCst::size_type n = cst.leaves_in_the_subtree(v);
-        typename tCst::node_type w = cst.ith_child(v, 1);
+        typename tCst::node_type w = cst.select_child(v, 1);
         do {
             double p = ((double)cst.leaves_in_the_subtree(w))/n;
             h0 -= p*log2(p);
@@ -126,8 +126,8 @@ void cst_info(const Cst& cst)
  *   This group contains data structures for compressed suffix trees. The following methods are supported:
  *    - root()
  *    - child(v,c)
- *    - ith_child(v)
- *    - ith_leaf(i)
+ *    - select_child(v)
+ *    - select_leaf(i)
  *    - parent(v)
  *    - sl(v)
  *    - lca(v,w)

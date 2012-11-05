@@ -1,5 +1,5 @@
 CC=g++
-CC_FLAGS=-Wall -g -O3 -I/Users/simon.gog/include -L/Users/simon.gog/lib -DNDEBUG -funroll-loops 
+CC_FLAGS=-Wall -g -O3 -I/home/sgog/include -L/home/sgog/lib -DNDEBUG -funroll-loops 
 CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest 
 SOURCES=$(wildcard *Test.cpp)
 EXECS=$(SOURCES:.cpp=)

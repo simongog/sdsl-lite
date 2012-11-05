@@ -52,6 +52,7 @@
 #include "rank_support.hpp"
 #include "select_support.hpp"
 #include "sdsl_concepts.hpp"
+#include "config.hpp"
 
 namespace sdsl{
 
@@ -65,6 +66,27 @@ template<class bit_vector_type     = bit_vector,
 		 class C_array_type		   = int_vector<>
 	    >
 class succinct_byte_alphabet_strategy;
+
+template<class bit_vector_type		= sd_vector<>, 
+	    class rank_support_type		= typename bit_vector_type::rank_1_type, 
+		class select_support_type   = typename bit_vector_type::select_1_type,
+		class C_array_type 			= int_vector<>
+		>
+class int_alphabet_strategy;
+
+template <uint8_t int_width>
+struct key_trait{
+	static const char* KEY_BWT;
+	static const char* KEY_TEXT;
+};
+
+template<uint8_t int_width>
+const char* key_trait<int_width>::KEY_BWT = constants::KEY_BWT_INT;
+
+template<uint8_t int_width>
+const char* key_trait<int_width>::KEY_TEXT = constants::KEY_TEXT_INT;
+
+
 
 //! A simple space greedy representation for byte alphabets.
 /*!
@@ -296,16 +318,11 @@ class succinct_byte_alphabet_strategy{
  *  alphabet contains not all symbols in the range [0..sigma-1]. If it contains
  *  all symbols, i.e. the alphabet is continuous, then we map the symbols
  *  directly and no extra space is used.
- *  TODO: Array `C` is represented by a bit-compressed `int_vector` and `sigma` by a uint64_t.
  *
  *  The types to represent `char2comp`, `comp2char`, and `C` can be specified
  *  by template parameters.
  */
-template<class bit_vector_type		= sd_vector<>, 
-	    class rank_support_type		= typename bit_vector_type::rank_1_type, 
-		class select_support_type   = typename bit_vector_type::select_1_type,
-		class C_array_type 			= int_vector<>
-		>
+template<class bit_vector_type, class rank_support_type, class select_support_type, class C_array_type>
 class int_alphabet_strategy{
 	public:
 		class char2comp_wrapper;

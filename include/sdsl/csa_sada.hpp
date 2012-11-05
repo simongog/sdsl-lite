@@ -344,10 +344,11 @@ template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaS
 csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::csa_sada(tMSS& file_map, const std::string& dir, const std::string& id):
     char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),C(m_alphabet.C), sigma(m_alphabet.sigma), psi(this), bwt(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
 	create_buffer();
-    if (file_map.find(constants::KEY_BWT) == file_map.end()) { // if bwt is not already stored on disk => construct bwt
-        construct_bwt(file_map, dir, id);
+    if (file_map.find(key_trait<AlphabetStrategy::int_width>::KEY_BWT) == file_map.end()) { // check if bwt is on disk
+		throw std::logic_error("csa_sada: BWT is required for construction! Exiting...");
+		return;	
     }
-    int_vector_file_buffer<8> bwt_buf(file_map[constants::KEY_BWT].c_str()); // 8==special case for byte alphabet/int alphabet result in 0 here
+    int_vector_file_buffer<AlphabetStrategy::int_width> bwt_buf(file_map[key_trait<AlphabetStrategy::int_width>::KEY_BWT].c_str()); 
     size_type n = bwt_buf.int_vector_size;
     write_R_output("csa", "construct alphabet", "begin", 1, 0);
 	util::assign(m_alphabet, alphabet_type(bwt_buf, n));

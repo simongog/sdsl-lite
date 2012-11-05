@@ -55,11 +55,7 @@ class WtAsciiTest : public ::testing::Test
 
         template<class Wt>
         std::string get_tmp_file_name(const Wt& wt, size_type i) {
-            std::locale loc;                 // the "C" locale
-            const std::collate<char>& coll = std::use_facet<std::collate<char> >(loc);
-            std::string name = sdsl::util::demangle2(typeid(Wt).name());
-            uint64_t myhash = coll.hash(name.data(),name.data()+name.length());
-            return tmp_file + sdsl::util::to_string(myhash) + "_" + sdsl::util::basename(test_cases[i].c_str());
+            return tmp_file + sdsl::util::class_to_hash(wt) + "_" + sdsl::util::basename(test_cases[i].c_str());
         }
 
         template<class Wt>

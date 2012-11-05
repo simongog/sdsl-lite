@@ -79,39 +79,38 @@ bool construct_lcp_kasai(tMSS& file_map, const std::string& dir, const std::stri
 }
 
 
-bool construct_int_lcp_kasai(tMSS& file_map, const char* file, const std::string& dir, const std::string& id){
+void construct_int_lcp_kasai(int_vector<>& lcp, const cache_config& config){
     typedef int_vector<>::size_type size_type;
     write_R_output("lcp", "construct LCP", "begin", 1, 0);
-	int_vector<> sa;
-	util::load_from_file(sa, file_map[constants::KEY_SA].c_str());
-	int_vector<> isa(sa);
-	for(size_type i=0; i<sa.size();++i){ isa[sa[i]]=i; } // calculate inverse suffix array
+	tMSS::const_iterator sa_entry = config.file_map.find(constants::KEY_SA);
+	if( config.file_map.end() == sa_entry ){ return; }
+	util::load_from_file(lcp, sa_entry->second.c_str());
+	int_vector<> isa(lcp);
+	for(size_type i=0; i<lcp.size();++i){ isa[lcp[i]]=i; } // calculate inverse suffix array
 
 	int_vector<> text;
-	util::load_from_file(text, file_map[constants::KEY_TEXT].c_str());   // load text
-	for (size_type i=0,j=0,l=0; i < sa.size(); ++i) {
+	tMSS::const_iterator text_entry = config.file_map.find(constants::KEY_TEXT_INT);
+	if( config.file_map.end() == text_entry ){ return; }
+	util::load_from_file(text, text_entry->second.c_str());   // load text
+	for (size_type i=0,j=0,l=0; i < lcp.size(); ++i) {
 		size_type sa_1 =  isa[i]; // = isa[i]
 		if (sa_1) {
-			j = sa[sa_1-1];
+			j = lcp[sa_1-1];
 			if (l) --l;
 			assert(i!=j);
 			while (text[i+l]==text[j+l]) { // i+l < n and j+l < n are not necessary, since text[n]=0 and text[i]!=0 (i<n) and i!=j
 				++l;
 			}
-			sa[ sa_1-1 ] = l; //overwrite sa array with lcp values
+			lcp[ sa_1-1 ] = l; //overwrite sa array with lcp values
 		} else {
 			l = 0;
-			sa[ sa.size()-1 ] = 0;
+			lcp[ lcp.size()-1 ] = 0;
 		}
 	}
-	for (size_type i=sa.size(); i>1; --i){
-		sa[i-1] = sa[i-2];
+	for (size_type i=lcp.size(); i>1; --i){
+		lcp[i-1] = lcp[i-2];
 	}
-	sa[0] = 0;
-	std::string lcp_file = dir+constants::KEY_LCP+"_"+id;
-
-	util::store_to_file_map(sa, constants::KEY_LCP, file, file_map);
-    return true;
+	lcp[0] = 0;
 }
 
 bool construct_lcp_semi_extern_PHI(tMSS& file_map, const std::string& dir, const std::string& id)

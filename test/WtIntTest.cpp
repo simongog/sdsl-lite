@@ -49,11 +49,7 @@ class WtIntTest : public ::testing::Test
 
         template<class Wt>
         std::string get_tmp_file_name(const Wt& wt, size_type i) {
-            std::locale loc;                 // the "C" locale
-            const std::collate<char>& coll = std::use_facet<std::collate<char> >(loc);
-            std::string name = sdsl::util::demangle2(typeid(Wt).name());
-            uint64_t myhash = coll.hash(name.data(),name.data()+name.length());
-            return tmp_file + sdsl::util::to_string(myhash) + "_" + sdsl::util::to_string(i);
+            return tmp_file + sdsl::util::class_to_hash(wt) + "_" + sdsl::util::to_string(i);
         }
 
         template<class Wt>
@@ -68,9 +64,9 @@ class WtIntTest : public ::testing::Test
 using testing::Types;
 
 typedef Types<
-     		  sdsl::wt_int<sdsl::int_vector<>, sdsl::rrr_vector<15> >,
+     		  sdsl::wt_int<sdsl::rrr_vector<15> >,
 			  sdsl::wt_int<>,
-     		  sdsl::wt_int<sdsl::int_vector<>, sdsl::rrr_vector<63> >
+     		  sdsl::wt_int<sdsl::rrr_vector<63> >
      		 > Implementations;
 
 TYPED_TEST_CASE(WtIntTest, Implementations);
@@ -156,6 +152,25 @@ TYPED_TEST(WtIntTest, LoadAndSelect) {
 			count[iv[j]]++;
 			ASSERT_EQ(wt.select(count[iv[j]], iv[j]), j) << "iv[j]=" << iv[j] << " "
 			         << " j="<<j; 
+		}
+	}
+}
+
+
+//! Test the load method and inverse_select method
+TYPED_TEST(WtIntTest, LoadAndInverseSelect) {
+    for (size_t i=0; i< this->test_cases.size(); ++i) {
+		sdsl::int_vector<>& iv = this->test_cases[i];
+		std::string tmp_file_name = this->tmp_file+sdsl::util::to_string(i);
+		TypeParam wt;
+		ASSERT_TRUE(sdsl::util::load_from_file(wt, get_tmp_file_name(wt, i).c_str()));
+		ASSERT_EQ(iv.size(), wt.size());
+		tMII check_rank;
+		for (size_type j=0; j < iv.size(); ++j) {
+			typename TypeParam::value_type x;
+			ASSERT_EQ(wt.inverse_select(j, x), check_rank[iv[j]]);
+			ASSERT_EQ(x, iv[j]);
+			check_rank[iv[j]]++;
 		}
 	}
 }

@@ -785,7 +785,7 @@ class wt
          *		\f$ \Order{\log |\Sigma|} \f$
          */
 
-        size_type rank_ith_symbol(size_type i, value_type& c)const {
+        size_type inverse_select(size_type i, value_type& c)const {
             assert(i>=0 and i < size());
             size_type lex_idx	= 0;
             size_type sigma		= m_sigma;
@@ -901,12 +901,12 @@ class wt
                 return;
             } else if ((j-i)==1) {
                 k = 1;
-                rank_c_i[0] = rank_ith_symbol(i, cs[0]);
+                rank_c_i[0] = inverse_select(i, cs[0]);
                 rank_c_j[0] = rank_c_i[0]+1;
                 return;
             } else if ((j-i)==2) {
-                rank_c_i[0] = rank_ith_symbol(i, cs[0]);
-                rank_c_i[1] = rank_ith_symbol(i+1, cs[1]);
+                rank_c_i[0] = inverse_select(i, cs[0]);
+                rank_c_i[1] = inverse_select(i+1, cs[1]);
                 if (cs[0]==cs[1]) {
                     k = 1;
                     rank_c_j[0] = rank_c_i[0]+2;
