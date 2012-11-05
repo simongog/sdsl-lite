@@ -369,7 +369,7 @@ class wt_rlg
          *	\par Time complexity
          *		\f$ \Order{H_0 \log L} \f$
          */
-        size_type rank_ith_symbol(size_type i, value_type& c)const {
+        size_type inverse_select(size_type i, value_type& c)const {
             return rank(i, c=(*this)[i]);
         }
 

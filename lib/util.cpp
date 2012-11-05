@@ -186,6 +186,10 @@ off_t get_file_size(const char* file_name) {
     return filestatus.st_size;
 }
 
+std::string cache_file_name(const char* key, const cache_config &config){
+	return config.dir+"/"+std::string(key)+"_"+config.id;
+}
+
 
 }// end namespace util
 }// end namespace sdsl

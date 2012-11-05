@@ -290,7 +290,7 @@ class wt_int {
          *  \param c Reference that will contain symbol wt[i].
          *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
          */
-		size_type rank_ith_symbol(size_type i, value_type&c )const{
+		size_type inverse_select(size_type i, value_type&c )const{
 			assert(i>=0 and i < size());
 			c = (*this)[i];
 			return rank(i, c);

@@ -25,6 +25,7 @@
 #include "int_vector.hpp"
 #include "util.hpp"
 #include "testutils.hpp"
+#include "config.hpp" // for cache_config
 
 #include <iostream>
 #include <fstream>
@@ -43,7 +44,7 @@ namespace sdsl
  */
 bool construct_bwt(tMSS& file_map, const std::string& dir, const std::string& id);
 
-bool construct_int_bwt(tMSS& file_map, const char *file);
+void construct_int_bwt(int_vector<> &bwt, const cache_config& conf);
 
 }// end namespace
 

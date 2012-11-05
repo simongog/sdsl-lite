@@ -319,7 +319,7 @@ class cst_sada
          *     \f$ \Order{1} \f$
          * \pre \f$ 1 \leq i \leq csa.size() \f$
          */
-        node_type ith_leaf(size_type i)const {
+        node_type select_leaf(size_type i)const {
             assert(i > 0 and i <= m_csa.size());
             // -1 as select(i) returns the postion of the 0 of pattern 10
             return m_bp_select10.select(i)-1;
@@ -494,7 +494,7 @@ class cst_sada
             return child(v, c, char_pos);
         }
 
-        //! Get the ith child of a node v.
+        //! Get the i-th child of a node v.
         /*!
          * 	\param v A valid tree node of the cst.
          *  \param i 1-based Index of the child which should be returned. \f$i \geq 1\f$.
@@ -503,7 +503,7 @@ class cst_sada
          *      \f$ \Order{i} \f$ for \f$  i \leq \sigma \f$
          *  \pre \f$ 1 \leq i \leq degree(v) \f$
          */
-        node_type ith_child(node_type v, size_type i)const {
+        node_type select_child(node_type v, size_type i)const {
             if (is_leaf(v))  // if v is a leave, v has no child
                 return root();
             size_type res = v+1;
@@ -582,13 +582,13 @@ class cst_sada
             // get leftmost leaf in the tree rooted at v
             size_type left		= m_bp_rank10(v);
             if (is_leaf(v)) {
-                return ith_leaf(m_csa.psi[left]+1);
+                return select_leaf(m_csa.psi[left]+1);
             }
             // get the rightmost leaf in the tree rooted at v
             size_type right	 	= m_bp_rank10(m_bp_support.find_close(v))-1;
             assert(left < right);
-            node_type left_leaf = ith_leaf(m_csa.psi[left]+1);
-            node_type right_leaf= ith_leaf(m_csa.psi[right]+1);
+            node_type left_leaf = select_leaf(m_csa.psi[left]+1);
+            node_type right_leaf= select_leaf(m_csa.psi[right]+1);
             return lca(left_leaf, right_leaf);
         }
 
@@ -612,13 +612,13 @@ class cst_sada
             if (c_left == c_right)  // there exists no Weiner link
                 return root();
             if (c_left+1 == c_right)
-                return ith_leaf(m_csa.C[m_csa.char2comp[c]] + c_left + 1);
+                return select_leaf(m_csa.C[m_csa.char2comp[c]] + c_left + 1);
             else {
                 size_type left	= m_csa.C[m_csa.char2comp[c]] + c_left;
                 size_type right	= m_csa.C[m_csa.char2comp[c]] + c_right - 1;
                 assert(left < right);
-                node_type left_leaf = ith_leaf(left+1);
-                node_type right_leaf= ith_leaf(right+1);
+                node_type left_leaf = select_leaf(left+1);
+                node_type right_leaf= select_leaf(right+1);
                 return lca(left_leaf, right_leaf);
             }
         }
@@ -662,7 +662,7 @@ class cst_sada
          */
         size_type inv_id(size_type id) {
             if (id < size()) {  // the corresponding node is a leaf
-                return ith_leaf(id+1);
+                return select_leaf(id+1);
             } else { // the corresponding node is a inner node
                 id = id + 1 - size();
                 // solved by binary search; TODO: can be done in constant time by using a select structure on the bitpattern 11
@@ -702,7 +702,7 @@ class cst_sada
          *\ return The node in the suffix tree corresponding lcp-interval [lb..rb]
          */
         node_type node(size_type lb, size_type rb, size_type l=0) const {
-            return lca(ith_leaf(lb+1), ith_leaf(rb+1));
+            return lca(select_leaf(lb+1), select_leaf(rb+1));
         }
 
         //! Get the number of children of a node v.

@@ -40,8 +40,6 @@ namespace sdsl
 
 	This iterator is the standard iterator for the classes
 		- sdsl::cst_sada,
-		- sdsl::cst_sct,
-		- sdsl::cst_sct2, and
 		- sdsl::cst_sct3
  */
 // TODO: implement operator--
@@ -75,7 +73,7 @@ class cst_dfs_const_forward_iterator: public std::iterator<std::forward_iterator
             if (m_stack_cache != NULL and m_stack_size < cache_size)   // push node to the stack
                 m_stack_cache[ m_stack_size ] = m_v;
             m_stack_size++;
-            return m_cst->ith_child(m_v, 1);
+            return m_cst->select_child(m_v, 1);
         }
 
     public:
@@ -304,7 +302,7 @@ class cst_bfs_iterator: public std::iterator<std::forward_iterator_tag, typename
             }
             value_type v = m_queue.front();
             m_queue.pop();
-            value_type child = m_cst->ith_child(v, 1);
+            value_type child = m_cst->select_child(v, 1);
             while (m_cst->root() != child) {
                 m_queue.push(child);
                 child = m_cst->sibling(child);

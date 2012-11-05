@@ -7,7 +7,6 @@
 #include <vector>
 #include <cstdlib> // for rand()
 #include <string>
-#include <locale>
 #include <sstream>
 
 using namespace sdsl;
@@ -51,11 +50,7 @@ class CstTest : public ::testing::Test
 
         template<class Cst>
         std::string get_tmp_file_name(const Cst& cst, size_type i) {
-            std::locale loc;                 // the "C" locale
-            const std::collate<char>& coll = std::use_facet<std::collate<char> >(loc);
-            std::string name = util::demangle2(typeid(Cst).name());
-            uint64_t myhash = coll.hash(name.data(),name.data()+name.length());
-            return tmp_file + util::to_string(myhash) + "_" + util::basename(test_cases[i].c_str());
+            return tmp_file + util::class_to_hash(cst) + "_" + util::basename(test_cases[i].c_str());
         }
 
         template<class Cst>
@@ -164,7 +159,7 @@ TYPED_TEST(CstTest, BasicMethods)
         ASSERT_EQ(cst.csa.size(), cst.leaves_in_the_subtree(r));
         // Check leaf methods
         for (size_type i=0; i < cst.csa.size(); ++i) {
-            ASSERT_EQ(true, cst.is_leaf(cst.ith_leaf(i+1)));
+            ASSERT_EQ(true, cst.is_leaf(cst.select_leaf(i+1)));
         }
     }
 }
@@ -247,8 +242,8 @@ TYPED_TEST(CstTest, LcaMethod)
         // test for random sampled nodes
         for (size_type i=0; i < rnd_pos.size()/2; ++i) {
             // get two children
-            node_type v = cst.ith_leaf(rnd_pos[2*i]+1);
-            node_type w = cst.ith_leaf(rnd_pos[2*i+1]+1);
+            node_type v = cst.select_leaf(rnd_pos[2*i]+1);
+            node_type w = cst.select_leaf(rnd_pos[2*i+1]+1);
             // calculate lca
             node_type z = naive_lca(cst, v, w);
             ASSERT_EQ(z, cst.lca(v, w));
@@ -256,8 +251,8 @@ TYPED_TEST(CstTest, LcaMethod)
         // test for regular sampled nodes
         for (size_type i=cst.csa.size()/2, g=100; i+g < std::min(cst.csa.size(), cst.csa.size()/2+100*g); ++i) {
             // get two children
-            node_type v = cst.ith_leaf(i+1);
-            node_type w = cst.ith_leaf(i+g+1);
+            node_type v = cst.select_leaf(i+1);
+            node_type w = cst.select_leaf(i+g+1);
             // calculate lca
             node_type z = naive_lca(cst, v, w);
             node_type u = cst.lca(v, w);

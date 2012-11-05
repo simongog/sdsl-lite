@@ -26,7 +26,7 @@
  *    - []-operator
  *    - rank(i, c)
  *    - select(i, c)
- *    - rank_ith_symbol(i)
+ *    - inverse_select(i)
  */
 
 #include "wt.hpp"
