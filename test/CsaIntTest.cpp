@@ -66,10 +66,9 @@ class CsaIntTest : public ::testing::Test
 using testing::Types;
 
 typedef Types<  sdsl::csa_wt<sdsl::wt_int<>, 32, 128, sdsl::sa_order_sa_sampling<>, sdsl::int_vector<>, sdsl::int_alphabet_strategy<> >,
-				sdsl::csa_sada<sdsl::enc_vector<>, 32, 128, sdsl::sa_order_sa_sampling<>, sdsl::int_vector<>, sdsl::int_alphabet_strategy<> >//,
-//				sdsl::csa_bitcompressed<sdsl::int_alphabet_strategy<> >,
-//				sdsl::csa_wt<sdsl::wt_int<sdsl::rrr_vector<63> >, 32, 128, sdsl::sa_order_sa_sampling<>, sdsl::int_vector<>, sdsl::int_alphabet_strategy<> >,
-//				sdsl::csa_sada<sdsl::wt_int<sdsl::rrr_vector<63> >, 32, 128, sdsl::sa_order_sa_sampling<>, sdsl::int_vector<>, sdsl::int_alphabet_strategy<> >
+				sdsl::csa_sada<sdsl::enc_vector<>, 32, 128, sdsl::sa_order_sa_sampling<>, sdsl::int_vector<>, sdsl::int_alphabet_strategy<> >,
+				sdsl::csa_bitcompressed<sdsl::int_alphabet_strategy<> >,
+				sdsl::csa_wt<sdsl::wt_int<sdsl::rrr_vector<63> >, 32, 128, sdsl::sa_order_sa_sampling<>, sdsl::int_vector<>, sdsl::int_alphabet_strategy<> >
 		     > Implementations;
 
 TYPED_TEST_CASE(CsaIntTest, Implementations);
