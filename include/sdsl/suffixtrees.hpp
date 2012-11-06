@@ -140,8 +140,6 @@ void cst_info(const Cst& cst)
 #include "csa_bitcompressed.hpp"
 #include "int_vector.hpp"
 
-#include "cst_construct.hpp"
-
 /*
 namespace sdsl{
 

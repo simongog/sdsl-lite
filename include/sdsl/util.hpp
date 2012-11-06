@@ -477,7 +477,7 @@ template<class T>
 bool store_to_cache(const T& v, const char* key, cache_config &config){
 	std::string file_name = cache_file_name(key, config);
 	if ( store_to_file(v, file_name.c_str()) ){
-		config.file_map[string(key)] = file_name;
+		config.file_map[std::string(key)] = file_name;
 		return true;	
 	}else{
 		return false;

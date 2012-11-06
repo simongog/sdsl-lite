@@ -30,9 +30,8 @@ class CsaAsciiTest : public ::testing::Test
         virtual void SetUp() {
             // Code here will be called immediately after the constructor (right
             // before each test).
-//			sdsl::util::verbose = true;
-            string test_cases_dir = string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
-            tmp_dir = string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
+			std::string test_cases_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
+            tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
             test_cases.push_back(test_cases_dir + "/crafted/100a.txt");
             test_cases.push_back(test_cases_dir + "/small/faust.txt");
             test_cases.push_back(test_cases_dir + "/small/zarathustra.txt");
@@ -79,20 +78,19 @@ typedef Types<  sdsl::csa_wt<>,
 
 TYPED_TEST_CASE(CsaAsciiTest, Implementations);
 
-TYPED_TEST(CsaAsciiTest, CreateAndStoreTest)
-{
+TYPED_TEST(CsaAsciiTest, CreateAndStoreTest) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		TypeParam csa;
-        construct_csa( this->test_cases[i].c_str(), csa, test_cases_file_map[i], false, 
-				       this->tmp_dir, sdsl::util::basename(this->test_cases[i].c_str()) );
+		sdsl::cache_config config(false, this->tmp_dir, sdsl::util::basename(this->test_cases[i].c_str()));
+		sdsl::construct(csa, this->test_cases[i].c_str(), config, 1);
+		test_cases_file_map[i] = config.file_map;
         bool success = sdsl::util::store_to_file(csa, this->get_tmp_file_name(csa, i).c_str());
         ASSERT_EQ(success, true);
     }
 }
 
 //! Test sigma member
-TYPED_TEST(CsaAsciiTest, Sigma)
-{
+TYPED_TEST(CsaAsciiTest, Sigma) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam csa;
         ASSERT_EQ(this->load_csa(csa, i), true);
@@ -217,8 +215,7 @@ TYPED_TEST(CsaAsciiTest, SwapTest) {
 }
 
 
-TYPED_TEST(CsaAsciiTest, DeleteTest)
-{
+TYPED_TEST(CsaAsciiTest, DeleteTest) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam csa;
         std::remove(this->get_tmp_file_name(csa, i).c_str());

@@ -33,28 +33,23 @@ namespace sdsl
  * \par Space complexity:
  *        \f$n\f$ bytes
  */
-bool construct_bwt(tMSS& file_map, const std::string& dir, const std::string& id) {
+//bool construct_bwt(tMSS& file_map, const std::string& dir, const std::string& id) {
+void construct_bwt(int_vector<8>& bwt, const cache_config& config){
     typedef int_vector<>::size_type size_type;
-    if (file_map.find(constants::KEY_BWT) == file_map.end()) { // if bwt is not already registered in file_map
-        std::string bwt_file_name = dir+constants::KEY_BWT+"_"+id;
-        std::ifstream bwt_in(bwt_file_name.c_str());
-        // check if bwt is already on disk => register it
-        if (bwt_in) {
-            file_map[constants::KEY_BWT] = bwt_file_name;
-            bwt_in.close();
-            return true;
-        }
+	typename tMSS::const_iterator key;
+	key = config.file_map.find(constants::KEY_BWT);
+    if ( config.file_map.end() == key) { // if bwt is not already registered in file_map
+        std::string bwt_tmp_file_name = config.dir+"/tmp_bwt_"+util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()); 
         write_R_output("csa", "construct BWT", "begin", 1, 0);
         const size_type buffer_size = 1000000;
 
 		int_vector<8> text;
-		util::load_vector_from_file(text, file_map[constants::KEY_TEXT].c_str(), 0 );
+		util::load_from_file(text, config.file_map.find(constants::KEY_TEXT)->second.c_str() );
         size_type n = text.size();
 
-        int_vector_file_buffer<> sa_buf(file_map[constants::KEY_SA].c_str(), buffer_size);
+        int_vector_file_buffer<> sa_buf(config.file_map.find(constants::KEY_SA)->second.c_str(), buffer_size);
 
-        std::ofstream bwt_out_buf(bwt_file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out); // open out file stream
-        file_map[constants::KEY_BWT] = bwt_file_name;														  // and save result to disk
+        std::ofstream bwt_out_buf(bwt_tmp_file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out); // open out file stream
 
         int_vector<8> bwt_buf(buffer_size);
         size_type bit_size = n*8;
@@ -75,9 +70,13 @@ bool construct_bwt(tMSS& file_map, const std::string& dir, const std::string& id
             bwt_out_buf.write("\0\0\0\0\0\0\0\0", 8-wb%8);
         }
         bwt_out_buf.close();
+		util::clear(text);
+		util::load_from_file(bwt, bwt_tmp_file_name.c_str()); // load bwt in memory
+		std::remove(bwt_tmp_file_name.c_str()); // remove temporary file
         write_R_output("csa", "construct BWT", "end", 1, 0);
-    }
-    return true;
+    }else{
+		util::load_from_file(bwt, key->second.c_str()); // load bwt in memory
+	}
 }
 
 void construct_int_bwt(int_vector<> &bwt, const cache_config& config){

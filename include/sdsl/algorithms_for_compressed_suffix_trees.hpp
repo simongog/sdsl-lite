@@ -338,16 +338,16 @@ int_vector_size_type construct_first_child_lcp(int_vector_file_buffer<fixedIntWi
 }
 
 
-template<uint32_t SampleDens, uint8_t fixedIntWidth>
+template<uint32_t SampleDens, uint8_t fixedIntWidth, uint8_t bwtIntWidth>
 int_vector_size_type construct_first_child_and_lf_lcp(int_vector_file_buffer<fixedIntWidth>& lcp_buf,
-        int_vector_file_buffer<8>& bwt_buf,
+        int_vector_file_buffer<bwtIntWidth>& bwt_buf,
         std::string small_lcp_file_name,
         std::string big_lcp_file_name,
         int_vector<>& big_lcp,
         int_vector_size_type first_child_size=0)
 {
     typedef int_vector_size_type size_type;
-    const size_type M = 255;
+    const size_type M = 255;	// limit for values represented in the small LCP part
     size_type 		buf_len = 1000000;
     lcp_buf.reset(buf_len);
     bwt_buf.reset(buf_len);
@@ -367,7 +367,7 @@ int_vector_size_type construct_first_child_and_lf_lcp(int_vector_file_buffer<fix
     bool is_one_big_and_not_reducable = false; // all positions have to be reducable
 
     size_type y, max_lcp=0;
-    uint8_t last_bwti=0, val;
+    uint64_t last_bwti=0, val;
     for (size_type i=0, r_sum = 0, r = 0, x; r_sum < n;) {
         for (; i < r_sum + r; ++i) {
             x = lcp_buf[i-r_sum];

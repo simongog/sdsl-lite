@@ -1,6 +1,6 @@
 #include "sdsl/structure_tree.hpp"
+#include "sdsl/util.hpp"
 #include <algorithm> // for std::swap
-#include <string>
 #include <iostream>
 
 namespace sdsl
@@ -12,7 +12,7 @@ structure_tree_node::structure_tree_node():m_parent(NULL), parent(m_parent), chi
 structure_tree_node::structure_tree_node(structure_tree_node* v):m_parent(v), parent(m_parent), children(m_children), key_values(m_key_values) {}
 
 // User defined operator.
-structure_tree_node::structure_tree_node(structure_tree_node* v, const string& name, const string& class_name):m_parent(v), parent(m_parent), children(m_children), key_values(m_key_values) {
+structure_tree_node::structure_tree_node(structure_tree_node* v, const std::string& name, const std::string& class_name):m_parent(v), parent(m_parent), children(m_children), key_values(m_key_values) {
     add_key_value(STRUCTURE_TREE_NAME_KEY, name);
     add_key_value(STRUCTURE_TREE_CLASS_NAME_KEY, class_name);
 }
@@ -58,11 +58,11 @@ void structure_tree_node::swap(structure_tree_node& v) {
     m_key_values.swap(v.m_key_values);
 }
 
-void structure_tree_node::add_key_value(const string& key, const string& value) {
+void structure_tree_node::add_key_value(const std::string& key, const std::string& value) {
     m_key_values[key] = value;
 }
 
-structure_tree_node* structure_tree::add_child(structure_tree_node* v, const string& name, const string& class_name) {
+structure_tree_node* structure_tree::add_child(structure_tree_node* v, const std::string& name, const std::string& class_name) {
     if (NULL == v) {
         return NULL;
     } else {

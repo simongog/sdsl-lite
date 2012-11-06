@@ -268,12 +268,11 @@ template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class S
 csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::csa_wt(tMSS& file_map, const std::string& dir, const std::string& id) : 
 	  char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma), psi(this), bwt(this),sa_sample(m_sa_sample),isa_sample(m_isa_sample),wavelet_tree(m_wavelet_tree)
 {
-    if (file_map.find(key_trait<AlphabetStrategy::int_width>::KEY_BWT) == file_map.end()) { // check if bwt is on disk
-		std::cout<<"key = "<< key_trait<AlphabetStrategy::int_width>::KEY_BWT << std::endl;
+    if (file_map.find(key_trait<alphabet_type::int_width>::KEY_BWT) == file_map.end()) { // check if bwt is on disk
 		throw std::logic_error("csa_wt: BWT is required for construction! Exiting...");
 		return;
     }
-    int_vector_file_buffer<AlphabetStrategy::int_width> bwt_buf(file_map[key_trait<AlphabetStrategy::int_width>::KEY_BWT].c_str()); 
+    int_vector_file_buffer<alphabet_type::int_width> bwt_buf(file_map[key_trait<alphabet_type::int_width>::KEY_BWT].c_str()); 
     int_vector_file_buffer<>  sa_buf(file_map[constants::KEY_SA].c_str());
     size_type n = bwt_buf.int_vector_size;
     write_R_output("csa", "construct alphabet", "begin", 1, 0);

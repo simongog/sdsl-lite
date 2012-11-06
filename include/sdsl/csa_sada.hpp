@@ -344,11 +344,11 @@ template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaS
 csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::csa_sada(tMSS& file_map, const std::string& dir, const std::string& id):
     char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),C(m_alphabet.C), sigma(m_alphabet.sigma), psi(this), bwt(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
 	create_buffer();
-    if (file_map.find(key_trait<AlphabetStrategy::int_width>::KEY_BWT) == file_map.end()) { // check if bwt is on disk
+    if (file_map.find(key_trait<alphabet_type::int_width>::KEY_BWT) == file_map.end()) { // check if bwt is on disk
 		throw std::logic_error("csa_sada: BWT is required for construction! Exiting...");
 		return;	
     }
-    int_vector_file_buffer<AlphabetStrategy::int_width> bwt_buf(file_map[key_trait<AlphabetStrategy::int_width>::KEY_BWT].c_str()); 
+    int_vector_file_buffer<alphabet_type::int_width> bwt_buf(file_map[key_trait<alphabet_type::int_width>::KEY_BWT].c_str()); 
     size_type n = bwt_buf.int_vector_size;
     write_R_output("csa", "construct alphabet", "begin", 1, 0);
 	util::assign(m_alphabet, alphabet_type(bwt_buf, n));
@@ -369,7 +369,7 @@ csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleCont
             }
             r_sum += r; r = bwt_buf.load_next_block();
         }
-		string psi_file = dir+constants::KEY_PSI+"_"+id;
+		std::string psi_file = dir+constants::KEY_PSI+"_"+id;
         if (!util::store_to_file(psi, psi_file.c_str())) {
             throw std::ios_base::failure("#csa_sada: Cannot store PSI to file system!");
         } else {
