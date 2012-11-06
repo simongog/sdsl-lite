@@ -1116,7 +1116,9 @@ cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(tMSS& file_map, const std
 
     if (!build_only_bps) {
         write_R_output("cst", "construct CLCP", "begin", 1, 0);
-        construct_lcp(m_lcp, *this, file_map, dir, id);
+		cache_config config(false, dir, id, file_map);
+        construct_lcp(m_lcp, *this, config);
+		file_map = config.file_map;
         write_R_output("cst", "construct CLCP", "end", 1, 0);
     }
     if (!build_only_bps) {

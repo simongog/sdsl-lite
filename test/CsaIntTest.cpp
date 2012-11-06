@@ -28,8 +28,8 @@ class CsaIntTest : public ::testing::Test
         // If the constructor and destructor are not enough for setting up
         // and cleaning up each test, you can define the following methods:
         virtual void SetUp() {
-            string test_cases_dir = string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
-            tmp_dir = string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
+			std::string test_cases_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
+            tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
             test_cases.push_back(test_cases_dir + "/small/keeper.int"); num_bytes.push_back(8);
             test_cases.push_back(test_cases_dir + "/small/moby.int"); num_bytes.push_back(8);
 			test_cases.push_back(test_cases_dir + "/crafted/empty.txt"); num_bytes.push_back(8);
@@ -78,7 +78,6 @@ TYPED_TEST_CASE(CsaIntTest, Implementations);
 TYPED_TEST(CsaIntTest, CreateAndStoreTest) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		TypeParam csa;
-		// TODO: construct method has to me modified for this
 		sdsl::cache_config config(false, this->tmp_dir, sdsl::util::basename(this->test_cases[i].c_str()));
 		sdsl::construct(csa, this->test_cases[i].c_str(), config, this->num_bytes[i]);
 		test_cases_file_map[i] = config.file_map;

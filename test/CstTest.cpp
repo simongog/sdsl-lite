@@ -16,6 +16,7 @@ namespace
 
 typedef int_vector<>::size_type size_type;
 typedef bit_vector bit_vector;
+std::vector<sdsl::tMSS>  test_cases_file_map;
 
 template<class T>
 class CstTest : public ::testing::Test
@@ -33,11 +34,15 @@ class CstTest : public ::testing::Test
         // If the constructor and destructor are not enough for setting up
         // and cleaning up each test, you can define the following methods:
         virtual void SetUp() {
-            string test_cases_dir = string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
+			std::string test_cases_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
+            tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
             test_cases.push_back(test_cases_dir + "/crafted/100a.txt");
             test_cases.push_back(test_cases_dir + "/small/faust.txt");
             test_cases.push_back(test_cases_dir + "/small/zarathustra.txt");
             tmp_file = "tmp_cst_test_" + util::to_string(util::get_pid()) + "_";
+			if ( test_cases_file_map.size() == 0 ){
+				test_cases_file_map.resize(test_cases.size());
+			}
         }
 
         virtual void TearDown() {
@@ -47,6 +52,7 @@ class CstTest : public ::testing::Test
 
         std::vector<std::string> test_cases;
         std::string tmp_file;
+        std::string tmp_dir;
 
         template<class Cst>
         std::string get_tmp_file_name(const Cst& cst, size_type i) {
@@ -62,7 +68,7 @@ class CstTest : public ::testing::Test
 using testing::Types;
 
 typedef Types<
-		cst_sct3<cst_sada<>::csa_type, lcp_bitcompressed<> >,
+		 cst_sct3<cst_sada<>::csa_type, lcp_bitcompressed<> >,
          cst_sada<cst_sada<>::csa_type, lcp_dac<> >,
          cst_sada<cst_sada<>::csa_type, lcp_vlc<> >,
          cst_sada<cst_sada<>::csa_type, lcp_support_tree2<>, bp_support_gg<> >,
@@ -87,13 +93,14 @@ typedef Types<
 TYPED_TEST_CASE(CstTest, Implementations);
 
 
-TYPED_TEST(CstTest, CreateAndStoreTest)
-{
+TYPED_TEST(CstTest, CreateAndStoreTest){
     util::verbose=true;
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         util::verbose = false;
-        construct_cst(this->test_cases[i], cst);
+		cache_config config(false, this->tmp_dir, util::basename(this->test_cases[i].c_str()));
+		construct(cst, this->test_cases[i].c_str(), config, 1);
+		test_cases_file_map[i] = config.file_map;
         bool success = util::store_to_file(cst, this->get_tmp_file_name(cst, i).c_str());
         ASSERT_EQ(true, success);
     }
@@ -101,8 +108,7 @@ TYPED_TEST(CstTest, CreateAndStoreTest)
 
 
 template<class tCst>
-void check_node_method(const tCst& cst)
-{
+void check_node_method(const tCst& cst) {
     typedef typename tCst::const_iterator const_iterator;
     typedef typename tCst::node_type node_type;
     for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it) {
@@ -118,8 +124,7 @@ void check_node_method(const tCst& cst)
 
 
 //! Test the swap method
-TYPED_TEST(CstTest, SwapMethod)
-{
+TYPED_TEST(CstTest, SwapMethod) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst1;
         ASSERT_EQ(true, this->load_cst(cst1, i));
@@ -137,8 +142,7 @@ TYPED_TEST(CstTest, SwapMethod)
 
 
 //! Test the node method
-TYPED_TEST(CstTest, NodeMethod)
-{
+TYPED_TEST(CstTest, NodeMethod) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
@@ -148,8 +152,7 @@ TYPED_TEST(CstTest, NodeMethod)
 }
 
 //! Test basic methods
-TYPED_TEST(CstTest, BasicMethods)
-{
+TYPED_TEST(CstTest, BasicMethods) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
@@ -166,8 +169,7 @@ TYPED_TEST(CstTest, BasicMethods)
 
 
 //! Test the id and inverse id method
-TYPED_TEST(CstTest, IdMethod)
-{
+TYPED_TEST(CstTest, IdMethod) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
@@ -200,16 +202,14 @@ TYPED_TEST(CstTest, IdMethod)
 
 
 template<class Cst>
-std::string format_node(const Cst& cst, const typename Cst::node_type& v)
-{
+std::string format_node(const Cst& cst, const typename Cst::node_type& v) {
     std::stringstream ss;
     ss << cst.depth(v) << "-["<<cst.lb(v)<<","<<cst.rb(v)<<"]";
     return ss.str();
 }
 
 template<class Cst>
-typename Cst::node_type naive_lca(const Cst& cst, typename Cst::node_type v, typename Cst::node_type w, bool output=false)
-{
+typename Cst::node_type naive_lca(const Cst& cst, typename Cst::node_type v, typename Cst::node_type w, bool output=false) {
     size_type steps = 0;
     while (v != w  and steps < cst.csa.size()) {
         if (cst.depth(v) > cst.depth(w)) {
@@ -229,8 +229,7 @@ typename Cst::node_type naive_lca(const Cst& cst, typename Cst::node_type v, typ
 }
 
 
-TYPED_TEST(CstTest, LcaMethod)
-{
+TYPED_TEST(CstTest, LcaMethod) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
@@ -269,13 +268,8 @@ TYPED_TEST(CstTest, LcaMethod)
     }
 }
 
-
-
-
-
 //! Test the bottom-up iterator
-TYPED_TEST(CstTest, BottomUpIterator)
-{
+TYPED_TEST(CstTest, BottomUpIterator) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 //        TypeParam cst;
 //        ASSERT_EQ(this->load_cst(cst, i), true);
@@ -284,11 +278,11 @@ TYPED_TEST(CstTest, BottomUpIterator)
     }
 }
 
-TYPED_TEST(CstTest, DeleteTest)
-{
+TYPED_TEST(CstTest, DeleteTest) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         std::remove(this->get_tmp_file_name(cst, i).c_str());
+		util::delete_all_files(test_cases_file_map[i]);	
     }
 }
 

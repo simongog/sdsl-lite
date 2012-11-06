@@ -35,14 +35,13 @@
 namespace sdsl
 {
 
-/*! Constructs the Burrows and Wheeler Transform (BWT) from text and suffix array
- * \param file_map A map, which contains the paths of the precalculated files like suffix array or text
- * \param dir	   Directory in which the result should be written on disk.
- * \param id	   Id which should be used to build a file name for the calculated BWT.
+/*! Constructs the Burrows and Wheeler Transform (BWT) from text and suffix array store on disk
+ * \param bwt 		Will contain the resulting BWT after the call of the method.
+ * \param config	Config object for location of suffix array and text on disk.
  * \par Space complexity:
  *        \f$n\f$ bytes
  */
-bool construct_bwt(tMSS& file_map, const std::string& dir, const std::string& id);
+void construct_bwt(int_vector<8>& bwt, const cache_config& conf);
 
 void construct_int_bwt(int_vector<> &bwt, const cache_config& conf);
 

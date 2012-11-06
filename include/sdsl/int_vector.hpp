@@ -29,11 +29,11 @@
 
 #include "compatibility.hpp"
 #include "bitmagic.hpp"
+#include "structure_tree.hpp"
 #include "util.hpp"
 #include "testutils.hpp"
 #include "config.hpp"
 #include "uintx_t.hpp"
-#include "structure_tree.hpp"
 
 #include "memory_management.hpp"
 
@@ -1405,7 +1405,7 @@ size_type_class _sdsl_serialize_size_and_int_width(std::ostream& out, uint8_t fi
 template<uint8_t fixedIntWidth>
 typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::serialize(std::ostream& out,
         structure_tree_node* v,
-        string name,
+        std::string name,
         bool write_fixed_as_variable) const {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;

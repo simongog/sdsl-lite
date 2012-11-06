@@ -162,7 +162,9 @@ class cst_sada
             write_R_output("cst", "construct BPSS", "end", 1,0);
 
             write_R_output("cst", "construct CLCP", "begin", 1,0);
-            construct_lcp(m_lcp, *this, file_map, dir, id);
+			cache_config config(false, dir, id, file_map);
+            construct_lcp(m_lcp, *this, config);
+			file_map = config.file_map;
             write_R_output("cst", "construct CLCP", "end", 1,0);
 
             util::load_from_file(m_csa, file_map[util::class_to_hash(m_csa)].c_str());

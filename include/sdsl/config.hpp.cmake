@@ -37,7 +37,7 @@ namespace sdsl{
 									// id is the empty string, then it will be replace
 									// a concatenation of PID and a unique ID inside the
 									// current process.
-		cache_config(bool f_delete_files=true, std::string f_dir="./", std::string f_id=""); 
+		cache_config(bool f_delete_files=true, std::string f_dir="./", std::string f_id="", tMSS f_file_map=tMSS()); 
 	};
 }
 
