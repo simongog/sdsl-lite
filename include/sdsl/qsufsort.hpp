@@ -412,17 +412,11 @@ class sorter{
 	
 		m_msb = sa.get_int_width()-1;
 		m_msb_mask = 1ULL<<m_msb;
-		std::cout<<"m_msb="<<(int)m_msb<<std::endl;
-		std::cout<<"m_msb_mask="<<m_msb_mask<<std::endl;
 
-		std::cout<<"n="<<x.size()-1<<std::endl;
-		stop_watch sw;
-		sw.start();	
-		sort(x.begin(), sa.begin(), x.size()-1, max_symbol+1, min_symbol);
-		sw.stop();
 		
-		std::cout<<"qsufsort took "<<sw.get_user_time()<<" ms"<<std::endl;
-
+		sort(x.begin(), sa.begin(), x.size()-1, max_symbol+1, min_symbol);
+/*		
+		// TODO: move test code in test suite
 		util::load_vector_from_file(x, file_name, num_bytes);
 
 		// Naive check: 
@@ -451,6 +445,7 @@ class sorter{
 		}else{
 			std::cout << "SA is NOT correct!" << std::endl;
 		}
+*/		
 			
 	}
 };

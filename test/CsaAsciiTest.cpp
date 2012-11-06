@@ -118,7 +118,7 @@ TYPED_TEST(CsaAsciiTest, SaAccess) {
         TypeParam csa;
         ASSERT_EQ(this->load_csa(csa, i), true);
 		sdsl::int_vector<> sa;
-		sdsl::util::load_from_file(sa, test_cases_file_map[i]["sa"].c_str());
+		sdsl::util::load_from_file(sa, test_cases_file_map[i][sdsl::constants::KEY_SA].c_str());
         size_type n = sa.size();
         ASSERT_EQ(n, csa.size());
         for (size_type j=0; j<n; ++j) {
@@ -136,7 +136,7 @@ TYPED_TEST(CsaAsciiTest, IsaAccess) {
 		size_type n = 0;
 		{
 			sdsl::int_vector<> sa;
-			sdsl::util::load_from_file(sa, test_cases_file_map[i]["sa"].c_str());
+			sdsl::util::load_from_file(sa, test_cases_file_map[i][sdsl::constants::KEY_SA].c_str());
 			n = sa.size();
 			ASSERT_EQ(n, csa.size());
 			isa = sa;
@@ -153,11 +153,11 @@ TYPED_TEST(CsaAsciiTest, IsaAccess) {
 //! Test Burrows-Wheeler access methods
 TYPED_TEST(CsaAsciiTest, BwtAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
-		if ( test_cases_file_map[i].find("bwt") != test_cases_file_map[i].end() ){
+		if ( test_cases_file_map[i].find(sdsl::constants::KEY_BWT) != test_cases_file_map[i].end() ){
 			TypeParam csa;
 			ASSERT_EQ(this->load_csa(csa, i), true);
 			sdsl::int_vector<8> bwt;
-			sdsl::util::load_from_file(bwt, test_cases_file_map[i]["bwt"].c_str());
+			sdsl::util::load_from_file(bwt, test_cases_file_map[i][sdsl::constants::KEY_BWT].c_str());
 			size_type n = bwt.size();
 			ASSERT_EQ(n, csa.size());
 			for (size_type j=0; j<n; ++j) {
@@ -170,11 +170,11 @@ TYPED_TEST(CsaAsciiTest, BwtAccess) {
 //! Test Psi access methods
 TYPED_TEST(CsaAsciiTest, PsiAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
-		if ( test_cases_file_map[i].find("psi") != test_cases_file_map[i].end() ){
+		if ( test_cases_file_map[i].find(sdsl::constants::KEY_PSI) != test_cases_file_map[i].end() ){
 			TypeParam csa;
 			ASSERT_EQ(this->load_csa(csa, i), true);
 			sdsl::int_vector<> psi;
-			sdsl::util::load_from_file(psi, test_cases_file_map[i]["psi"].c_str());
+			sdsl::util::load_from_file(psi, test_cases_file_map[i][sdsl::constants::KEY_PSI].c_str());
 			size_type n = psi.size();
 			ASSERT_EQ(n, csa.size());
 			for (size_type j=0; j<n; ++j) {
@@ -207,7 +207,7 @@ TYPED_TEST(CsaAsciiTest, SwapTest) {
         TypeParam csa2;
         csa1.swap(csa2);
 		sdsl::int_vector<> sa;
-		sdsl::util::load_from_file(sa, test_cases_file_map[i]["sa"].c_str());
+		sdsl::util::load_from_file(sa, test_cases_file_map[i][sdsl::constants::KEY_SA].c_str());
         size_type n = sa.size();
         ASSERT_EQ(n, csa2.size());
         for (size_type j=0; j<n; ++j) {

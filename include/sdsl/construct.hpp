@@ -19,21 +19,36 @@
 	\author Simon Gog
 */
 
-#ifndef SDSL_INCLUDED_CONSTRUCT
-#define SDSL_INCLUDED_CONSTRUCT
+#ifndef INCLUDED_SDSL_CONSTRUCT
+#define INCLUDED_SDSL_CONSTRUCT
 
 #include "int_vector.hpp"
 #include "sdsl_concepts.hpp"
 #include "wavelet_trees.hpp"
 #include "suffixarrays.hpp"
 #include "suffixtrees.hpp"
+#include "lcp_construct.hpp"
 #include "qsufsort.hpp"
 #include <string>
 
 namespace sdsl{
 
-bool contains_no_zero_symbol(const int_vector<>& text, const char* file);
-void append_zero_symbol(int_vector<>& text);
+template<class int_vector>
+bool contains_no_zero_symbol(const int_vector& text, const char* file){
+	for (int_vector_size_type i=0; i < text.size(); ++i){
+		if ( (uint64_t)0 == text[i] ){
+			throw std::logic_error((std::string("Error: File \"")+std::string(file)+std::string("\" contains zero symbol.")).c_str());
+			return false;
+		}
+	}
+	return true;
+}
+
+template<class int_vector>
+void append_zero_symbol(int_vector& text){
+	text.resize(text.size()+1);
+	text[text.size()-1] = 0;
+}
 
 
 
@@ -63,8 +78,6 @@ void construct(Index& idx, const char* file, cache_config& config, uint8_t num_b
 
 template<class Index>
 void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes, csa_tag, int_alphabet_tag){
-	std::cout<<"config.dir="<<config.dir<<std::endl;
-	std::cout<<"config.id="<<config.id<<std::endl;
 	{// (1) check, if the text is cached
 		int_vector<> text;
 		if ( !util::load_from_cache(text, constants::KEY_TEXT_INT, config) ){
@@ -93,6 +106,39 @@ void construct(Index& idx, const char* file, cache_config& config, uint8_t num_b
 		util::delete_all_files(config.file_map);	
 	}
 }
+
+template<class Index>
+void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes, csa_tag, byte_alphabet_tag){
+	int_vector<8> text;
+	{// (1) check, if the text is cached
+		if ( !util::load_from_cache(text, constants::KEY_TEXT, config) ){
+			util::load_vector_from_file(text, file, num_bytes);
+			if ( contains_no_zero_symbol(text, file) ){
+				append_zero_symbol(text);
+				util::store_to_cache(text, constants::KEY_TEXT, config);
+			}
+		}
+	}
+	{// (2) check, if the suffix array is cached 
+		int_vector<> sa; 
+		if ( !util::load_from_cache(sa, constants::KEY_SA, config) ){
+			// call divsufsort
+			algorithm::calculate_sa((const unsigned char*)text.data, sa.size(), sa);
+			util::store_to_cache(sa, constants::KEY_SA, config);
+		}
+	//  (3) construct BWT
+		int_vector<8> bwt;
+		if ( !util::load_from_cache(bwt, constants::KEY_BWT, config) ){
+			construct_bwt(config.file_map, config.dir, config.id);
+			util::store_to_cache(bwt, constants::KEY_BWT, config);
+		}
+	}
+	util::assign(idx, Index(config.file_map, config.dir,config.id));
+	if ( config.delete_files ){
+		util::delete_all_files(config.file_map);
+	}
+}
+
 
 
 template<class Index>
