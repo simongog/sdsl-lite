@@ -18,10 +18,7 @@
 
 namespace sdsl{
 
-	template<>
 	const char* key_trait<8>::KEY_BWT = constants::KEY_BWT;
-
-	template<>
 	const char* key_trait<8>::KEY_TEXT = constants::KEY_TEXT;
 
 	byte_alphabet_strategy::byte_alphabet_strategy(int_vector_file_buffer<8> &text_buf, int_vector_size_type len): 

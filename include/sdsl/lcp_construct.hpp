@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_LCP_CONSTRUCT
 
 #include "typedefs.hpp"  // includes definition of tMSS
+#include "config.hpp"
 #include "int_vector.hpp"
 #include "rank_support_v.hpp"
 #include "util.hpp"

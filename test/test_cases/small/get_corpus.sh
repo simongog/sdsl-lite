@@ -14,6 +14,9 @@ ZARATHUSTRA_URL="${GUTENBERG_MIRROR}/7/2/0/7205/7205-8.txt"
 ZARATHUSTRA_BASENAME=`basename ${ZARATHUSTRA_URL}`
 ZARATHUSTRA_NAME='zarathustra.txt'
 
+SIMONS_HOMEPAGE="http://people.eng.unimelb.edu.au/sgog/test_cases"
+INT_TEST_CASES='keeper.int moby.int'
+
 # Include download function
 source "${CUR_DIR}/../../../scripts/download.sh"
 
@@ -26,5 +29,11 @@ if [[ ! -e ${ZARATHUSTRA_NAME} ]]; then
 	download_from_url "${ZARATHUSTRA_URL}"
 	mv ${ZARATHUSTRA_BASENAME} ${ZARATHUSTRA_NAME}
 fi
+
+for int_file in ${INT_TEST_CASES}; do
+	if [[ ! -e int_file ]]; then
+	download_from_url "${SIMONS_HOMEPAGE}/${int_file}"
+	fi
+done
 
 cd ${OLD_DIR} 

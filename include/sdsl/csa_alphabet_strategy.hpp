@@ -80,11 +80,19 @@ struct key_trait{
 	static const char* KEY_TEXT;
 };
 
+template<>
+struct key_trait<8>{
+	static const char* KEY_BWT;
+	static const char* KEY_TEXT;
+};
+
 template<uint8_t int_width>
 const char* key_trait<int_width>::KEY_BWT = constants::KEY_BWT_INT;
 
 template<uint8_t int_width>
 const char* key_trait<int_width>::KEY_TEXT = constants::KEY_TEXT_INT;
+
+
 
 
 

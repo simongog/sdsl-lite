@@ -236,7 +236,7 @@ template<class CsaPsi>
 class bwt_of_csa_psi
 {
     public:
-        typedef const unsigned char value_type;
+        typedef typename CsaPsi::char_type value_type;
         typedef typename CsaPsi::size_type size_type;
         typedef typename CsaPsi::difference_type difference_type;
         typedef random_access_const_iterator<bwt_of_csa_psi> const_iterator;// STL Container requirement

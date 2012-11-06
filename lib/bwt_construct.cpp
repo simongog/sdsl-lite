@@ -33,8 +33,7 @@ namespace sdsl
  * \par Space complexity:
  *        \f$n\f$ bytes
  */
-bool construct_bwt(tMSS& file_map, const std::string& dir, const std::string& id)
-{
+bool construct_bwt(tMSS& file_map, const std::string& dir, const std::string& id) {
     typedef int_vector<>::size_type size_type;
     if (file_map.find(constants::KEY_BWT) == file_map.end()) { // if bwt is not already registered in file_map
         std::string bwt_file_name = dir+constants::KEY_BWT+"_"+id;

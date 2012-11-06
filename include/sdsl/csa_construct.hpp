@@ -139,7 +139,9 @@ static bool construct_csa(Csa& csa, tMSS& file_map, bool delete_files=true, std:
         file_map[constants::KEY_SA] = sa_file_name;
         in.close();
     }
-
+	if ( file_map.end() == file_map.find(constants::KEY_BWT)  ){
+		construct_bwt(file_map, dir, id);
+	}
 
     write_R_output("csa", "encode CSA", "begin", 1, 0);
     util::assign(csa, Csa(file_map, dir, id));
