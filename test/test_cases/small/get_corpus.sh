@@ -31,7 +31,7 @@ if [[ ! -e ${ZARATHUSTRA_NAME} ]]; then
 fi
 
 for int_file in ${INT_TEST_CASES}; do
-	if [[ ! -e int_file ]]; then
+	if [[ ! -e ${int_file} ]]; then
 	download_from_url "${SIMONS_HOMEPAGE}/${int_file}"
 	fi
 done
