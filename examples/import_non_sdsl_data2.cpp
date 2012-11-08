@@ -13,7 +13,7 @@ int main(int argc, char* argv[]){
 	}
 	int_vector<> v;
 
-	util::load_from_plain_array<uint32_t>(v, argv[1]);
+	util::load_vector_from_file(v, argv[1], 4);
 	
 	cout << "v.size() = " << v.size() << endl;
 	cout << "v.get_int_width() = "  << (int)v.get_int_width() << endl;

@@ -12,9 +12,9 @@ using namespace sdsl;
 using namespace std;
 
 template<class Csa>
-void csa_info(Csa &csa, string file_name, bool json){
-	cout << "file: " << file_name << endl;
-	construct_csa( file_name, csa );
+void csa_info(Csa &csa, const char* file, bool json){
+	cout << "file: " << file << endl;
+	construct(csa, file, 1);
 	cout << "csa of type " << util::demangle(typeid(csa).name()) << endl;
 	cout << "size in bytes : " << util::get_size_in_bytes(csa) << endl;
 	if ( json ){
@@ -26,7 +26,7 @@ void csa_info(Csa &csa, string file_name, bool json){
 
 int main(int argc, char* argv[]){
 	if ( argc < 2 ){
-		cout << "Usage: " << argv[0] << " file_name [json]" << endl;
+		cout << "Usage: " << argv[0] << " file [json]" << endl;
 		return 1;
 	}
 	bool json = false;
@@ -37,8 +37,8 @@ int main(int argc, char* argv[]){
 	csa_sada<enc_vector<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, succinct_byte_alphabet_strategy<> > csa2;
 	csa_wt<wt_huff<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, byte_alphabet_strategy> csa3;
 	csa_wt<wt_huff<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, succinct_byte_alphabet_strategy<> > csa4;
-	csa_info(csa1, string(argv[1]), json);	
-	csa_info(csa2, string(argv[1]), json);	
-	csa_info(csa3, string(argv[1]), json);	
-	csa_info(csa4, string(argv[1]), json);	
+	csa_info(csa1, argv[1], json);	
+	csa_info(csa2, argv[1], json);	
+	csa_info(csa3, argv[1], json);	
+	csa_info(csa4, argv[1], json);	
 }
