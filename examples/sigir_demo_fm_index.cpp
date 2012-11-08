@@ -27,13 +27,13 @@ int main(int argc, char **argv){
 	if ( argc >= 5 ){ pre_context = atoi(argv[4]); }
 	string index_suffix = ".fm9";
 	string index_file   = string(argv[1])+index_suffix;
-	csa_wt<wt_huff<rrr_vector<255> >, 512, 1024> fm_index;
+	csa_wt<wt_huff<rrr_vector<127> >, 512, 1024> fm_index;
 
 	if( !util::load_from_file(fm_index, index_file.c_str()) ){
 		ifstream in(argv[1]);
 		if( !in ){ cout << "ERROR: File " << argv[1] << " does not exist. Exit." << endl; return 1; }
 		cout << "No index "<<index_file<< " located. Building index now." << endl;
-		construct_csa(argv[1], fm_index); // generate index
+		construct(fm_index, argv[1], 1); // generate index
 		util::store_to_file(fm_index, index_file.c_str()); // save it
 	}
 	cout << "Index construction complete, index requires " << util::get_size_in_mega_bytes(fm_index) << " MiB." << endl;
@@ -44,7 +44,7 @@ int main(int argc, char **argv){
 	while ( getline(cin, query) ){
 		size_t m    = query.size();
 		size_t occs = algorithm::count(fm_index, (const unsigned char*)query.c_str(), m);
-		cout << "# of occcurences: " << occs << endl;
+		cout << "# of occurrences: " << occs << endl;
 		if ( occs > 0 ){
 			cout << "Location and context of first occurrences: " << endl;
 			int_vector<> locations;
@@ -52,6 +52,7 @@ int main(int argc, char **argv){
 			sort(locations.begin(), locations.end());
 			for(size_t i = 0, pre_extract = pre_context, post_extract = post_context; i < min(occs, max_locations); ++i){
 				cout << setw(8) << locations[i] << ": ";
+				cout<<"("<<fm_index.sigma<<") ";
 				if( pre_extract > locations[i] ){ pre_extract = locations[i]; }
 				if( locations[i]+m+ post_extract > fm_index.size() ){ post_extract = fm_index.size()-locations[i]-m; }
 				string s   = algorithm::extract(fm_index, locations[i]-pre_extract, locations[i]+m+ post_extract-1 );

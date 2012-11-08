@@ -12,7 +12,7 @@ int main(int argc, char* argv[]){
 	cst_sct3<> cst;
 	typedef cst_sct3<>::size_type size_type;
 	typedef cst_sct3<>::char_type char_type;
-	construct_cst(argv[1], cst);
+	construct(cst, argv[1], 1);
 
 	long double red = 0;
 	long double lcp_mean = 0;

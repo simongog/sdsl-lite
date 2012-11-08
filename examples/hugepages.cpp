@@ -39,7 +39,7 @@ int main(int argc, char** argv){
 //	if( mapped ) mm::unmap_hp();
 
 	csa_wt<wt_huff<bit_vector_interleaved<> > > csa;
-	construct_csa(string(argv[1]), csa);
+	construct(csa, argv[1], 1);
 	do_something(csa); // before it is mapped
 	mapped = mm::map_hp();
 	do_something(csa); // while it is mapped

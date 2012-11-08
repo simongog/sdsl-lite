@@ -13,7 +13,7 @@ int main(int argc, char* argv[]){
 	}
 	int_vector<8> text;
 
-	util::load_from_plain_array<uint8_t>(text, argv[1]);
+	util::load_vector_from_file(text, argv[1], 1);
 	
 	cout << "text.size() = " << text.size() << endl;
 	cout << "text =";
