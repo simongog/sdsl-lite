@@ -22,10 +22,8 @@
 #ifndef INCLUDED_SDSL_CONSTRUCT
 #define INCLUDED_SDSL_CONSTRUCT
 
+#include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
-#include "wavelet_trees.hpp"
-#include "suffixarrays.hpp"
-#include "suffixtrees.hpp"
 #include "lcp_construct.hpp"
 #include "bwt_construct.hpp"
 #include "qsufsort.hpp"
