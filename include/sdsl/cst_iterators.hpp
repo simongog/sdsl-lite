@@ -76,11 +76,10 @@ class cst_dfs_const_forward_iterator: public std::iterator<std::forward_iterator
             return m_cst->select_child(m_v, 1);
         }
 
-    public:
-
         //! Default constructor
         cst_dfs_const_forward_iterator():m_cst(NULL),m_visited(false),m_valid(false), m_stack_cache(NULL)
         {}
+    public:
 
         //! Constructor
         cst_dfs_const_forward_iterator(const Cst* cst, const value_type node, bool visited=false, bool valid=true):m_visited(visited), m_valid(valid), m_stack_cache(NULL) {
@@ -88,7 +87,7 @@ class cst_dfs_const_forward_iterator: public std::iterator<std::forward_iterator
             m_v = node;
             if (m_cst == NULL) {
                 m_valid = false;
-            } else if (node == m_cst->root() and !visited and valid) { // if the iterator equal cst.begin()
+            } else if (m_v == m_cst->root() and !m_visited and m_valid) { // if the iterator equal cst.begin()
                 m_stack_cache = new node_type[cache_size];
                 m_stack_size  = 0;
 //			std::cerr<<"#creating stack "<<m_cst->lb(m_v)<<" "<<m_cst->rb(m_v)<<std::endl;
@@ -146,7 +145,7 @@ class cst_dfs_const_forward_iterator: public std::iterator<std::forward_iterator
                 }
             } else { //
                 w = m_cst->sibling(m_v);
-                if (w == m_cst->root()) {   // if there exists no rigth sibling
+                if (w == m_cst->root()) {   // if there exists no right sibling
                     w = parent();
                 } else {
                     m_visited = false;

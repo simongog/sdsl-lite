@@ -3,6 +3,7 @@
 */
 
 #include "sdsl/lcp_construct.hpp"
+#include <stdexcept>
 
 namespace sdsl
 {
@@ -57,15 +58,16 @@ void construct_lcp_kasai(int_vector<>& lcp, cache_config& config){
 void construct_int_lcp_kasai(int_vector<>& lcp, const cache_config& config){
     typedef int_vector<>::size_type size_type;
     write_R_output("lcp", "construct LCP", "begin", 1, 0);
-	tMSS::const_iterator sa_entry = config.file_map.find(constants::KEY_SA);
-	if( config.file_map.end() == sa_entry ){ return; }
+	tMSS::const_iterator sa_entry = config.file_map.find(constants::KEY_SA); // TODO: use load from cache
+	if( config.file_map.end() == sa_entry ){ throw std::logic_error("construct_int_lcp_kasai: ERROR: could not load SA."); return; }
 	util::load_from_file(lcp, sa_entry->second.c_str());
 	int_vector<> isa(lcp);
 	for(size_type i=0; i<lcp.size();++i){ isa[lcp[i]]=i; } // calculate inverse suffix array
 
 	int_vector<> text;
 	tMSS::const_iterator text_entry = config.file_map.find(constants::KEY_TEXT_INT);
-	if( config.file_map.end() == text_entry ){ return; }
+	// TODO: use is_cached method...
+	if( config.file_map.end() == text_entry ){ throw std::logic_error("construct_int_lcp_kasai: ERROR: could not load TEXT."); return; }
 	util::load_from_file(text, text_entry->second.c_str());   // load text
 	for (size_type i=0,j=0,l=0; i < lcp.size(); ++i) {
 		size_type sa_1 =  isa[i]; // = isa[i]

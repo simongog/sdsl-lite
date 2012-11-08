@@ -23,6 +23,7 @@
 #ifndef INCLUDED_SDSL_WT
 #define INCLUDED_SDSL_WT
 
+#include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "bitmagic.hpp"
 #include "util.hpp" // for util::assign
@@ -342,13 +343,14 @@ template<class RandomAccessContainer=unsigned char*,
          class RankSupport       = typename BitVector::rank_1_type,
          class SelectSupport     = typename BitVector::select_1_type,
          class SelectSupportZero = typename BitVector::select_0_type>
-class wt
-{
+class wt {
     public:
         typedef typename wt_trait<RandomAccessContainer>::size_type 		size_type;
         typedef typename wt_trait<RandomAccessContainer>::value_type 		value_type;
-        typedef typename wt_trait<RandomAccessContainer>::map_type		     map_type;
-        typedef typename wt_trait<RandomAccessContainer>::inv_map_type	inv_map_type;
+        typedef typename wt_trait<RandomAccessContainer>::map_type		    map_type;
+        typedef typename wt_trait<RandomAccessContainer>::inv_map_type		inv_map_type;
+		typedef wt_tag														index_category;
+		typedef byte_alphabet_tag											alphabet_category;
     private:
         size_type 			m_size;
         size_type 			m_sigma; 		//<- \f$ |\Sigma| \f$

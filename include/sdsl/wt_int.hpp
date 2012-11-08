@@ -23,6 +23,7 @@
 #ifndef INCLUDED_SDSL_INT_WAVELET_TREE
 #define INCLUDED_SDSL_INT_WAVELET_TREE
 
+#include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "rank_support_v.hpp"
 #include "select_support_mcl.hpp"
@@ -70,6 +71,8 @@ class wt_int {
         typedef RankSupport						rank_1_type;
         typedef SelectSupport					select_1_type;
         typedef SelectSupportZero				select_0_type;
+		typedef wt_tag							index_category;
+		typedef int_alphabet_tag				alphabet_category;
     protected:
         size_type 				m_size;
         size_type 				m_sigma; 		//<- \f$ |\Sigma| \f$

@@ -92,10 +92,6 @@ const char* key_trait<int_width>::KEY_BWT = constants::KEY_BWT_INT;
 template<uint8_t int_width>
 const char* key_trait<int_width>::KEY_TEXT = constants::KEY_TEXT_INT;
 
-
-
-
-
 //! A simple space greedy representation for byte alphabets.
 /*!
  *  \par Space consumption:

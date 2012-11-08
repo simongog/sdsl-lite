@@ -22,6 +22,7 @@
 #ifndef INCLUDED_SDSL_WT_RLG
 #define INCLUDED_SDSL_WT_RLG
 
+#include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "rank_support_v.hpp"
 #include "rank_support_v5.hpp"
@@ -64,7 +65,7 @@ typedef wt_huff<bit_vector, rank_support_v5<>, select_support_bs<>, select_suppo
  *       We denote the length of the longest run in the sequence with \f$ L \f$
  *   @ingroup wt
  */
-template<class RankSupport = rank_support_v5<>, class WaveletTree = wt_without_select >
+template<class RankSupport = rank_support_v5<>, class WaveletTree = wt_without_select>
 class wt_rlg
 {
     public:
@@ -72,7 +73,8 @@ class wt_rlg
         typedef unsigned char		 	value_type;
         typedef RankSupport				rank_support_type;
         typedef WaveletTree             wt_type;
-
+		typedef wt_tag					index_category;
+		typedef byte_alphabet_tag		alphabet_category;
     private:
         size_type 				m_size;           // size of the original input sequence
         wt_type					m_wt;	          // wavelet tree for all levels
@@ -139,7 +141,6 @@ class wt_rlg
 
             m_b = bit_vector(size,0);
             int_vector<8> next_bwt(size/2+1); // space for the bwt of the next level
-//		bit_vector same_prev_char(size/2+1,0); //
 
             m_b_border.resize(bit_magic::l1BP(size) + 1);
             m_b_border[0] = 0;

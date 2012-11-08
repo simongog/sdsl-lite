@@ -88,10 +88,8 @@ inline void calculate_pioneers_bitmap(const bit_vector& bp, bit_vector::size_typ
  *  \pre The parentheses sequence represented by bp has to be balanced.
  */
 template<class size_type>
-void calculate_pioneers_bitmap_succinct(const bit_vector& bp, size_type block_size, bit_vector& pioneer_bitmap)
-{
-    pioneer_bitmap.resize(bp.size());    // resize pioneers bitmap to the resulting size
-    util::set_zero_bits(pioneer_bitmap); // initialize bitmap with zeros
+void calculate_pioneers_bitmap_succinct(const bit_vector& bp, size_type block_size, bit_vector& pioneer_bitmap) {
+	util::assign(pioneer_bitmap, bit_vector(bp.size(), 0)); // resize pioneers bitmap to the resulting size and initialize with zeros
 
     sorted_stack_support opening_parenthesis(bp.size());
     bit_vector::size_type cur_pioneer_block = 0, last_start = 0, last_j = 0, cur_block=0, first_index_in_block=0;

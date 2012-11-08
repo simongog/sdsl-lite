@@ -24,9 +24,9 @@
 namespace sdsl
 {
 
-struct csa_tag {};
-
-struct cst_tag {};
+struct csa_tag {}; // compressed suffix array tag
+struct cst_tag {}; // compressed suffix tree tag
+struct wt_tag {};  // wavelet tree tag
 
 struct lcp_plain_tag {};
 struct lcp_permuted_tag {};
