@@ -179,6 +179,14 @@ std::string cache_file_name(const char* key, const cache_config &config){
 	return config.dir+"/"+std::string(key)+"_"+config.id;
 }
 
+void register_cache_file(const char* key, cache_config &config){
+	std::string file_name = cache_file_name(key, config);
+	std::ifstream in(file_name.c_str());
+	if ( in ){ // if file exists, register it.
+		config.file_map[std::string(key)] = file_name;
+	}
+}
+
 
 }// end namespace util
 }// end namespace sdsl

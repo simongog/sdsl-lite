@@ -148,7 +148,7 @@ class cst_sada
                 for (cst_sct3<>::const_iterator it=temp_cst.begin(), end=temp_cst.end(); it!=end; ++it) {
                     if (1 == it.visit())
                         m_bp[idx] = 1;
-                    if (temp_cst.is_leaf(*it))
+                    if (temp_cst.is_leaf(*it) and temp_cst.root()!= *it)
                         ++idx;
                     ++idx;
                 }
@@ -222,9 +222,9 @@ class cst_sada
         const_iterator begin()const {
             if (0 == m_bp.size())  // special case: tree is unintialized
                 return end();
-            else if (m_csa.size() == 1) { // special case: the root is a leaf
-                return const_iterator(this, root(), true, true);
-            }
+ //           else if (m_csa.size() == 1) { // special case: the root is a leaf
+//                return const_iterator(this, root(), true, true);
+//            }
             return const_iterator(this, root(), false, true);
         }
 
@@ -539,7 +539,7 @@ class cst_sada
                 i = inorder(v);
             }
             size_type  	order	= get_char_pos(i, d-1, m_csa);
-            sigma_type	c_begin	= 1, c_end = m_csa.sigma+1, mid;
+            size_type	c_begin	= 1, c_end = ((size_type)m_csa.sigma)+1, mid;
             while (c_begin < c_end) {
                 mid = (c_begin+c_end)>>1;
                 if (m_csa.C[mid] <= order) {

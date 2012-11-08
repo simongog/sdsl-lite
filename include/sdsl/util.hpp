@@ -153,6 +153,10 @@ bool load_vector_from_file(int_vector_type &v, const char* file_name, uint8_t nu
 		return load_from_file(v, file_name);
 	}else {
 		off_t file_size = get_file_size( file_name );
+		if ( file_size == 0 ){
+			v.resize(0);
+			return true;
+		}
 		if ( file_size % num_bytes != 0 ){
 			throw std::logic_error("file size "+to_string(file_size)+" of \""+to_string(file_name)
 											   +"\" is not a multiple of "+to_string(num_bytes));
@@ -462,6 +466,8 @@ void write_structure(const X& x, std::ostream& out)
 }
 
 std::string cache_file_name(const char* key, const cache_config &config);
+
+void register_cache_file(const char* key, cache_config &config);
 
 template<class T>
 bool load_from_cache(T&v, const char* key, const cache_config &config){

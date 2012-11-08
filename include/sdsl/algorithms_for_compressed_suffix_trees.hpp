@@ -163,7 +163,7 @@ void construct_supercartesian_tree_bp_succinct(int_vector_file_buffer<fixedIntWi
     typedef int_vector_size_type size_type;
     lcp_buf.reset();
     size_type n = lcp_buf.int_vector_size;
-    bp.resize(2*n);      // resize bit vector for balanaced parantheses to 2 n bits
+    bp.resize(2*n);      // resize bit vector for balanced parentheses to 2 n bits
     if (n == 0)	// if n == 0 we are done
         return;
     util::set_zero_bits(bp);
@@ -204,14 +204,6 @@ void construct_supercartesian_tree_bp_succinct(int_vector_file_buffer<fixedIntWi
             r_sum += r; r = lcp_buf.load_next_block();
         }
     }
-#ifdef SDSL_DEBUG
-// not neccessary as bp is already initialized to zero
-    while (!vec_stack.empty()) {
-        vec_stack.pop();
-        bp[k++] = 0; // writing a closing parenthesis
-    }
-    assert(k == 2*vec.size());
-#endif
 }
 
 //! Calculate the balanced parentheses of the Super-Cartesian tree, described in Ohlebusch and Gog (SPIRE 2009) and the first_child bit_vector

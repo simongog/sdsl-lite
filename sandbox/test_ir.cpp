@@ -7,6 +7,7 @@ using namespace sdsl;
 using namespace std;
 
 typedef csa_wt<wt_int<rrr_vector<63> >, 32, 128, sa_order_sa_sampling<>, int_vector<>, int_alphabet_strategy<> > tCsa;
+//typedef csa_wt<wt_int<>, 32, 128, sa_order_sa_sampling<>, int_vector<>, int_alphabet_strategy<> > tCsa;
 //typedef csa_wt<wt_int<>, 32, 16, sa_order_sa_sampling<>, int_vector<>, int_alphabet_strategy<> > tCsa;
 typedef cst_sada<tCsa, lcp_dac<> > tCst;
 typedef int_vector<>::size_type size_type;
@@ -52,12 +53,14 @@ int main(int argc, char *argv[]){
 		cout << "Usage: "<<argv[0]<<" file"<<endl;
 		cout <<"        Format of the file sequence of 64-bit integers."<<endl;
 	}
+/*	
 	tCsa csa;
 	{
 		string csa_file = string(argv[1])+"."+util::class_to_hash(csa)+".csa";
 		ifstream in(csa_file.c_str());
 		if ( !in ){
-			construct(csa, argv[1], cache_config(false, "./tmp/", util::basename(argv[1])), 8);
+			cache_config config(false, "./tmp/", util::basename(argv[1]));
+			construct(csa, argv[1], config, 8);
 			util::store_to_file(csa, csa_file.c_str());
 		}else{
 			util::load_from_file(csa, csa_file.c_str());
@@ -66,6 +69,7 @@ int main(int argc, char *argv[]){
 	cout << "csa.size() = " << csa.size() << endl;
 	cout << "csa.sigma = " << csa.sigma << endl;
 	cout << "csa.rank_bwt(csa.size(), 1) = " << csa.rank_bwt(csa.size(), 1) << endl;
+*/	
 /*	
 	cout << "Test permutation property of LF" << endl;
 	bit_vector visited(csa.size(),0);
@@ -93,31 +97,33 @@ int main(int argc, char *argv[]){
 	}
 	cout<<"done"<<endl;
 */	
-/*	
+	
 	tCst cst;
 	{
-		string cst_file = string(argv[1])+"."+util::class_to_hash(csa)+".cst";
+		string cst_file = string(argv[1])+"."+util::class_to_hash(cst)+".cst";
 		ifstream in(cst_file.c_str());
 		if ( !in ){
-			construct(cst, argv[1], 8);
+			cache_config config(false, "./tmp/", util::basename(argv[1]));
+			construct(cst, argv[1], config, 8);
 			util::store_to_file(cst, cst_file.c_str());
 		}else{
 			util::load_from_file(cst, cst_file.c_str());
 		}
 	}
-*/	
+	
 //	cout << "cst.size() = " << csa.size() << endl;
 //	util::write_structure<JSON_FORMAT>(cst, cout);
-/*	cout << "\nk     Hk      context/n\n";
-	for(size_t i=0; i<4; ++i){
+	cout << "\nk     Hk      context/n\n";
+	for(size_t i=0; i<10; ++i){
 		size_type context;
 		double x = Hk(cst, i, context);
 		cout << i<<" "<<x<<" "<<((double)context)/cst.csa.size()<<endl;
 	}
 	cout << endl;
-*/	
+/*	
 	size_type sp,ep;
 	while ( cin >> sp >> ep ){
 		print_csa(csa, sp, ep);
 	}
+*/	
 }

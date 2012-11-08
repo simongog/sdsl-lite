@@ -29,7 +29,6 @@ namespace sdsl{
 
 	//! Helper class for construction process
 	struct cache_config{
-		tMSS 		file_map;		// Files stored during the construction process.
 		bool 		delete_files;   // Flag which indicates if all files which were created
 									// during construction should be deleted.
 		std::string dir;    		// Directory for temporary files.
@@ -37,6 +36,7 @@ namespace sdsl{
 									// id is the empty string, then it will be replace
 									// a concatenation of PID and a unique ID inside the
 									// current process.
+		tMSS 		file_map;		// Files stored during the construction process.
 		cache_config(bool f_delete_files=true, std::string f_dir="./", std::string f_id="", tMSS f_file_map=tMSS()); 
 	};
 }

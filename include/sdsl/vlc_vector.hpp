@@ -245,13 +245,7 @@ vlc_vector<Coder, SampleDens, fixedIntWidth>::vlc_vector(const Container& c) : m
     }
     samples = (c.size()+get_sample_dens()-1)/get_sample_dens();
 //	(2) Write z
-
-    m_sample_pointer.set_int_width(bit_magic::l1BP(z_size+1) + 1);
-    m_sample_pointer.resize(samples+1); // add 1 for last entry
-
-    std::cout<<"z_size="<<z_size<<std::endl;
-    std::cout<<"int_width = "<<bit_magic::l1BP(z_size+1)+1<<std::endl;
-    std::cout<<samples<<std::endl;
+	util::assign(m_sample_pointer, int_vector<>(samples+1, 0, bit_magic::l1BP(z_size+1)+1) );
 
     m_z.bit_resize(z_size);
     z_size = 0;
@@ -293,8 +287,7 @@ vlc_vector<Coder, SampleDens, fixedIntWidth>::vlc_vector(int_vector_file_buffer<
     samples = (n+get_sample_dens()-1)/get_sample_dens();
 //	(2) Write z
 
-    m_sample_pointer.set_int_width(bit_magic::l1BP(z_size+1) + 1);
-    m_sample_pointer.resize(samples+1); // add 1 for last entry
+	util::assign(m_sample_pointer, int_vector<>(samples+1, 0, bit_magic::l1BP(z_size+1)+1) ); // add 1 for last entry
 
 //     (b) Initilize bit_vector for encoded data
     m_z.bit_resize(z_size);

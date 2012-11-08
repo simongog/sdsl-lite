@@ -21,6 +21,7 @@
 #ifndef INCLUDED_SDSL_WT_RLMN
 #define INCLUDED_SDSL_WT_RLMN
 
+#include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "sd_vector.hpp"  // for standard initialisation of template parameters 
 #include "bitmagic.hpp"
@@ -79,7 +80,8 @@ class wt_rlmn
         typedef RankSupport				rank_support_type;
         typedef SelectSupport           select_support_type;
         typedef WaveletTree             wt_type;
-
+		typedef wt_tag					index_category;
+		typedef byte_alphabet_tag		alphabet_category;
     private:
         size_type 				m_size;         // size of the original input sequence
         bit_vector_type			m_bl;	        // bit vector which indicates the starts of runs in

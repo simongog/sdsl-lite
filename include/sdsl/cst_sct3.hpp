@@ -210,7 +210,7 @@ class cst_sct3
             if (1 == i) {
                 kpos	= m_bp_support.find_open(ckpos);
                 return m_bp_support.rank(kpos)-1;
-            } else { // i > 1
+            } else { // i > 1   // TODO for integer-alphabets: replace this linear search 
                 size_type r = ckpos - m_bp_support.rank(ckpos); // numbers of closing parentheses - 1 = index of first child in m_first_child
                 if (r+1 >= i) { // if there exist more than i l-indices
                     // check if m_first_child[r-i+1..r-1] consists of zeros
@@ -221,7 +221,7 @@ class cst_sct3
                     if (w) {
                         children = offset - bit_magic::l1BP(w) + 1;
                     } else if (m_first_child.data() == p) { // w==0 and we are in the first word
-                        children = offset + 2; // da bit_magic::l1BP(w)=-1 sein muesste
+                        children = offset + 2; // since bit_magic::l1BP(w)=-1 holds
                     } else {
                         children = offset + 2;
                         while (p > m_first_child.data()) {
@@ -235,7 +235,7 @@ class cst_sct3
                         }
                         children += (w==0);
                     }
-                    if (i < children) {  // there exists an ith l-index
+                    if (i < children) {  // there exists an i-th l-index
                         ckpos -= (i-1);
                         assert(m_bp[ckpos] == 0);
                         kpos   = m_bp_support.find_open(ckpos);
@@ -252,7 +252,7 @@ class cst_sct3
             }
         }
 
-        // Get the postion of the first l index of a l-[i,j] interval in the balanced parentheses sequence.
+        // Get the position of the first l-index of a l-[i,j] interval in the balanced parentheses sequence.
         /* \par Time complexity
          * 		\f$ \Order{1} \f$
          */
@@ -281,7 +281,7 @@ class cst_sct3
          *    \f$ \Order{\frac{\sigma}{w}} \f$, where w=64 is the word size, can be implemented in \f$\Order{1}\f$ with rank and select
          */
         inline size_type psv(size_type i, size_type ipos, size_type cipos, size_type& psvpos, size_type& psvcpos)const {
-            if (cipos + m_sigma >= m_bp.size()) {  // if lcp[i]==0 => psv is the 0th index by definition
+            if ( (cipos + (size_type)m_sigma) >= m_bp.size() ) {  // if lcp[i]==0 => psv is the 0-th index by definition
                 psvpos = 0;
                 psvcpos = m_bp.size()-1;
                 return 0;
@@ -303,7 +303,7 @@ class cst_sct3
                     psvcpos = m_bp_support.find_close(psvpos);
                     return m_bp_support.rank(psvpos)-1;
                 }
-            } else {
+            } else { // TODO for integer-alphabets: replace this linear process by a binary search
                 cipos += 64-(r0&0x3F);
                 ++p;
                 while (!(w=*p)) { // while w==0
@@ -429,9 +429,9 @@ class cst_sct3
         const_iterator begin()const {
             if (0 == m_bp.size())  // special case: tree is uninitialized
                 return end();
-            else if (2 == m_bp.size()) { // special case: the root is a leaf
-                return const_iterator(this, root(), true, true);
-            }
+//            else if (2 == m_bp.size()) { // special case: the root is a leaf
+//                return const_iterator(this, root(), true, true);
+//            }
             return const_iterator(this, root(), false, true);
         };
 
@@ -803,7 +803,7 @@ class cst_sct3
             }
 #endif
             size_type 	order 	= get_char_pos(v.i, d-1, m_csa);
-            sigma_type 	c_begin	= 1, c_end = m_sigma+1, mid;
+            size_type 	c_begin	= 1, c_end = ((size_type)m_sigma)+1, mid;
             while (c_begin < c_end) {
                 mid = (c_begin+c_end)>>1;
                 if (m_csa.C[mid] <= order) {
@@ -835,7 +835,7 @@ class cst_sct3
                 size_type min_index_pos 	= m_bp_support.select(min_index+1);
                 size_type min_index_cpos 	= m_bp_support.find_close(min_index_pos);
 
-                if (min_index_cpos >= m_bp.size() - m_sigma) { // if lcp[min_index]==0 => return root
+                if ( min_index_cpos >= (m_bp.size() - m_sigma) ) { // if lcp[min_index]==0 => return root
                     return root();
                 }
                 size_type new_j = nsv(min_index, min_index_pos)-1;
@@ -908,7 +908,7 @@ class cst_sct3
             size_type min_index = rmq(i+1, j); // rmq
             size_type min_index_pos 	= m_bp_support.select(min_index+1);
             size_type min_index_cpos 	= m_bp_support.find_close(min_index_pos);
-            if (min_index_cpos >= m_bp.size() - m_sigma) { // if lcp[min_index]==0 => return root
+            if (min_index_cpos >= (m_bp.size() - m_sigma) ) { // if lcp[min_index]==0 => return root
                 return root();
             }
             size_type new_j = nsv(min_index, min_index_pos)-1;
@@ -1106,8 +1106,11 @@ template<class Csa, class Lcp, class Bp_support, class Rank_support>
 cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
 {
     write_R_output("cst", "construct BPS", "begin", 1, 0);
-    int_vector_file_buffer<> lcp_buf(file_map["lcp"].c_str());
+    int_vector_file_buffer<> lcp_buf(file_map[constants::KEY_LCP].c_str());
     m_nodes = algorithm::construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child) + m_bp.size()/2;
+	if ( m_bp.size() == 2 ){ // handle special case, when the tree consists only of the root node
+		m_nodes = 1;
+	}
     write_R_output("cst", "construct BPS", "end", 1, 0);
     write_R_output("cst", "construct BPSS", "begin", 1, 0);
     util::init_support(m_bp_support, &m_bp);
@@ -1124,7 +1127,8 @@ cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(tMSS& file_map, const std
     if (!build_only_bps) {
         util::load_from_file(m_csa, file_map[util::class_to_hash(m_csa)].c_str());
     }
-    m_sigma = degree(root());
+    m_sigma = std::max(degree(root()), (size_type)1);
+	//handle special case 'CST for empty text'  --^
 }
 
 template<class Csa, class Lcp, class Bp_support, class Rank_support>

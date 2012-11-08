@@ -21,6 +21,7 @@
 #ifndef INCLUDED_SDSL_WT_HUFF
 #define INCLUDED_SDSL_WT_HUFF
 
+#include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "rank_support_v.hpp"
 #include "rank_support_v5.hpp"
@@ -50,8 +51,7 @@
 #endif
 
 //! Namespace for the succinct data structure library.
-namespace sdsl
-{
+namespace sdsl {
 
 const int_vector<>::size_type ZoO[2] = {0, (int_vector<>::size_type)-1};
 
@@ -141,6 +141,8 @@ class wt_huff
         typedef RankSupport				rank_1_type;
         typedef SelectSupport           select_1_type;
         typedef SelectSupportZero		select_0_type;
+		typedef wt_tag					index_category;
+		typedef byte_alphabet_tag		alphabet_category;
 
     private:
 #ifdef WT_HUFF_CACHE
@@ -163,7 +165,6 @@ class wt_huff
         uint64_t			m_path[256];	 // path information for each char; the bits at position
         // 0..55 hold path information; bits 56..63 the length
         // of the path in binary representation
-//		wavelet_tree<>		m_check;
 
         typedef std::pair<size_type, size_type> tPII;  // pair (frequency, node_number) for constructing the Huffman tree
         typedef std::priority_queue<tPII, std::vector<tPII>, std::greater<tPII> >  tMPQPII; // minimum priority queue
@@ -277,9 +278,7 @@ class wt_huff
                     uint64_t l = 0; // path len
                     while (node != 0) { // while node is not the root
                         w <<= 1;
-//						if( (node & 1) == 0 )// if the node is a right child
-//							w |= 1ULL;
-                        if (m_nodes[m_nodes[node].parent].child[1] == node)
+                        if (m_nodes[m_nodes[node].parent].child[1] == node) // if the node is a right child
                             w |= 1ULL;
                         ++l;
                         node = m_nodes[node].parent; // go up the tree
@@ -347,7 +346,6 @@ class wt_huff
 
 
     public:
-
         const size_type& sigma;
         const bit_vector_type& tree;
 
