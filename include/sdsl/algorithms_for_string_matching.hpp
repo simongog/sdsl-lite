@@ -205,7 +205,7 @@ static std::string extract(const Csa& csa, typename Csa::size_type begin, typena
     assert(begin <= end);
     std::string result(end-begin+1,' ');
     for (typename Csa::size_type i=begin, order = csa(begin); i<=end; ++i, order =  csa.psi[order]) {
-        uint16_t c_begin = 1, c_end = 257, mid;
+        typename Csa::size_type c_begin = 1, c_end = csa.sigma+1, mid;
         while (c_begin < c_end) {
             mid = (c_begin+c_end)>>1;
             if (csa.C[mid] <= order) {
