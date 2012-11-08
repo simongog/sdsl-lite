@@ -25,6 +25,7 @@
 #include "util.hpp"
 #include <iostream>
 #include <cmath>
+#include <set>
 
 using std::cout;
 using std::endl;
@@ -40,8 +41,7 @@ namespace sdsl
           s in the original text.
  */
 template<class tCst>
-double H0(const typename tCst::node_type& v, const tCst& cst)
-{
+double H0(const typename tCst::node_type& v, const tCst& cst) {
     if (cst.is_leaf(v)) {
         return 0;
     } else {
@@ -64,19 +64,29 @@ double H0(const typename tCst::node_type& v, const tCst& cst)
  * \param context	A output reference which will hold the number of different contexts.
  */
 template<class tCst>
-double Hk(const tCst& cst, typename tCst::size_type k, typename tCst::size_type& context)
-{
+double Hk(const tCst& cst, typename tCst::size_type k, typename tCst::size_type& context) {
     double hk = 0;
     context = 0;
+	std::set<typename tCst::size_type> leafs_with_d_smaller_k;
+	for (typename tCst::size_type d = 1; d < k; ++d){
+		leafs_with_d_smaller_k.insert( cst.csa(cst.csa.size()-d) );
+	}
     for (typename tCst::const_iterator it = cst.begin(), end=cst.end(); it != end; ++it) {
         if (it.visit() == 1) {
-            typename tCst::size_type d = cst.depth(*it);
-            if (d >= k) {
-                if (d == k)
-                    hk += cst.leaves_in_the_subtree(*it) * H0(*it, cst);
-                ++context;
-                it.skip_subtree();
-            }
+			if ( !cst.is_leaf(*it) ){ 
+				typename tCst::size_type d = cst.depth(*it);
+				if (d >= k) {
+					if (d == k)
+						hk += cst.leaves_in_the_subtree(*it) * H0(*it, cst);
+					++context;
+					it.skip_subtree();
+				}
+			}else{
+				// if d of leaf is >= k, add context
+				if ( leafs_with_d_smaller_k.find( cst.lb(*it) ) == leafs_with_d_smaller_k.end() ) {
+					++context;
+				}
+			}
         }
     }
     hk /= cst.size();
@@ -139,15 +149,6 @@ void cst_info(const Cst& cst)
 
 #include "csa_bitcompressed.hpp"
 #include "int_vector.hpp"
-
-/*
-namespace sdsl{
-
-typedef cst_sct3<csa_bitcompressed, int_vector<0> > cst_sct3_bitcompressed;
-typedef cst_sada<csa_bitcompressed, int_vector<0> > cst_sada_bitcompressed;
-
-}
-*/
 
 #include <iostream>
 #include <string>
