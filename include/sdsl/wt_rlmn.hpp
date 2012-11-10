@@ -371,12 +371,6 @@ class wt_rlmn
             m_C.load(in);
             m_C_bf_rank.load(in);
         }
-
-        void print_info()const {
-            std::cout<<"# m_wt.size in MB="<<util::get_size_in_bytes(m_wt)/(1024.0*1024.0)<<std::endl;
-            std::cout<<"# m_bf.size in MB="<<util::get_size_in_bytes(m_bf)/(1024.0*1024.0)<<std::endl;
-            std::cout<<"# m_bl.size in MB="<<util::get_size_in_bytes(m_bl)/(1024.0*1024.0)<<std::endl;
-        }
 };
 
 
