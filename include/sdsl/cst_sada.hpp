@@ -740,22 +740,7 @@ class cst_sada
             // all right, as bp[ii] = 0
             return ii - m_bp_support.rank(ii) - m_bp_rank10(ii);
         }
-
-        //! Print some infos about the size of the compressed suffix tree
-        void print_info()const {
-            std::cout << "# size of cst in bytes per character" << std::endl;
-            size_type cst_size = util::get_size_in_bytes(*this);
-            std::cout << ((double)cst_size)/csa.size() << " # = "<< ((double)cst_size)/(1<<20) <<" MB"<<std::endl;
-            std::cout<< ((double)util::get_size_in_bytes(csa))/cst_size << " # ratio of csa size" << std::endl;
-            std::cout<< ((double)util::get_size_in_bytes(lcp))/cst_size << " # ratio of lcp size" << std::endl;
-            std::cout<< ((double)util::get_size_in_bytes(bp))/cst_size << " # ratio of bp size" << std::endl;
-            std::cout<< ((double)util::get_size_in_bytes(bp_support))/cst_size << " # ratio of bp_support size" << std::endl;
-            std::cout<< ((double)util::get_size_in_bytes(bp_rank_10))/cst_size << " # ratio of bp_rank_10 size" << std::endl;
-            std::cout<< ((double)util::get_size_in_bytes(bp_select_10))/cst_size << " # ratio of bp_select_10 size" << std::endl;
-        }
-
         /* @} */
-
 };
 
 // == template functions ==
