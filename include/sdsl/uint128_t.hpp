@@ -24,8 +24,7 @@
 #include <iostream>
 #include "bitmagic.hpp"
 
-namespace sdsl
-{
+namespace sdsl {
 
 typedef unsigned int uint128_t __attribute__((mode(TI)));
 
