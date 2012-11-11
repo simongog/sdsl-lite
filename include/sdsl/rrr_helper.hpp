@@ -233,8 +233,7 @@ typename binomial_table<n,number_type>::impl binomial_table<n,number_type>::data
  * \pre The template parameter n should be in the range [7..256].
  */
 template<uint16_t n>
-class binomial_coefficients
-{
+class binomial_coefficients {
     public:
         static class impl
         {

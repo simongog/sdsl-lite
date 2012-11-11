@@ -303,7 +303,7 @@ void select_support_mcl<b,pattern_len>::init_fast(const bit_vector* v) {
                     if (m_longsuperblock == NULL) m_longsuperblock = new int_vector<0>[sb+1]; // create longsuperblock
                     // GEANDERT am 2010-07-17 +1 nach pos_of_last_arg..
                     m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bit_magic::l1BP(pos_of_last_arg_in_the_block) + 1);
-                    for (size_type j=arg_position[0], k=0; j < pos_of_last_arg_in_the_block; ++j)
+                    for (size_type j=arg_position[0], k=0; j <= pos_of_last_arg_in_the_block; ++j)
                         if (select_support_trait<b, pattern_len>::found_arg(j, *v)) {
 //							if(k>=SUPER_BLOCK_SIZE){
 //								std::cout<<"k="<<k<<" SUPER_BLOCK_SIZE="<<SUPER_BLOCK_SIZE<<std::endl;
@@ -323,7 +323,13 @@ void select_support_mcl<b,pattern_len>::init_fast(const bit_vector* v) {
         cnt_old = cnt_new;
     }
     // TODO: handle last block!!! einfach ein longsuperblock anhaengen?
+#ifdef SDSL_DEBUG_SELECT_SUPPORT_JMC
+	std::cout<<"last_k64 = "<<last_k64<<std::endl;
+#endif		
     if (last_k64 > 1) {
+#ifdef SDSL_DEBUG_SELECT_SUPPORT_JMC
+	std::cout<<"append superblock"<<std::endl;
+#endif		
         // GEANDERT am 2010-09-27 +1 nach sb, da wir den superblock extra zu den existierenden anhaengen koennen
         if (m_longsuperblock == NULL) m_longsuperblock = new int_vector<0>[sb+1]; // create longsuperblock
         m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bit_magic::l1BP(v->size()-1) + 1);
