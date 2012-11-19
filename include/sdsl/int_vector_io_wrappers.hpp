@@ -23,11 +23,11 @@
 namespace sdsl
 {
 
-template<uint8_t fixedIntWidth=0, class size_type_class=int_vector<0>::size_type>
+template<uint8_t fixedIntWidth=0>
 class int_vector_serialize_vbyte_wrapper
 {
     public:
-        typedef int_vector<fixedIntWidth, size_type_class> int_vector_type;
+        typedef int_vector<fixedIntWidth> int_vector_type;
         typedef typename int_vector_type::size_type size_type;
         typedef typename int_vector_type::value_type value_type;
 
@@ -62,11 +62,11 @@ class int_vector_serialize_vbyte_wrapper
         }
 };
 
-template<uint8_t fixedIntWidth=0, class size_type_class=int_vector<0>::size_type>
+template<uint8_t fixedIntWidth=0>
 class int_vector_load_vbyte_wrapper
 {
     public:
-        typedef int_vector<fixedIntWidth, size_type_class> int_vector_type;
+        typedef int_vector<fixedIntWidth> int_vector_type;
         typedef typename int_vector_type::size_type size_type;
         typedef typename int_vector_type::value_type value_type;
 
@@ -80,7 +80,7 @@ class int_vector_load_vbyte_wrapper
             size_type size;
             typename int_vector_type::int_width_type int_width;
             // (1) read size and int_width
-            int_vector_trait<fixedIntWidth, size_type_class>::read_header(size, int_width, in);
+            int_vector_trait<fixedIntWidth>::read_header(size, int_width, in);
             // (2) resize the vector
             m_vec.set_int_width(int_width);
             m_vec.bit_resize(size);
