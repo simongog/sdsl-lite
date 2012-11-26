@@ -36,7 +36,7 @@ namespace sdsl
 //bool construct_bwt(tMSS& file_map, const std::string& dir, const std::string& id) {
 void construct_bwt(int_vector<8>& bwt, const cache_config& config){
     typedef int_vector<>::size_type size_type;
-	typename tMSS::const_iterator key;
+	tMSS::const_iterator key;
 	key = config.file_map.find(constants::KEY_BWT);
     if ( config.file_map.end() == key) { // if bwt is not already registered in file_map
         std::string bwt_tmp_file_name = config.dir+"/tmp_bwt_"+util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()); 

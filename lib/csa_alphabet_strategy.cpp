@@ -87,7 +87,7 @@ namespace sdsl{
 		std::swap(m_sigma, bas.m_sigma);
 	}
 
-	typename byte_alphabet_strategy::size_type byte_alphabet_strategy::serialize(std::ostream& out, structure_tree_node*v, std::string name)const{
+	byte_alphabet_strategy::size_type byte_alphabet_strategy::serialize(std::ostream& out, structure_tree_node*v, std::string name)const{
 		structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
 		size_type written_bytes = 0;
         written_bytes += m_char2comp.serialize(out, child, "m_char2comp");
