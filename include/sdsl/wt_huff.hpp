@@ -132,8 +132,7 @@ template<class BitVector 		 = bit_vector,
          class SelectSupport	 = typename BitVector::select_1_type,
          class SelectSupportZero = typename BitVector::select_0_type,
          bool  dfs_shape         = 0>
-class wt_huff
-{
+class wt_huff {
     public:
         typedef int_vector<>::size_type	size_type;
         typedef unsigned char		 	value_type;
@@ -311,7 +310,7 @@ class wt_huff
 
         // recursive internal version of the method interval_symbols
         void _interval_symbols(size_type i, size_type j, size_type& k,
-                               std::vector<unsigned char>& cs,
+                               std::vector<value_type>& cs,
                                std::vector<size_type>& rank_c_i,
                                std::vector<size_type>& rank_c_j, uint16_t node) const {
             // invariant: j>i
@@ -600,7 +599,7 @@ class wt_huff
          *       \f$ rank_c_j.size() \geq \sigma \f$
          */
         void interval_symbols(size_type i, size_type j, size_type& k,
-                              std::vector<unsigned char>& cs,
+                              std::vector<value_type>& cs,
                               std::vector<size_type>& rank_c_i,
                               std::vector<size_type>& rank_c_j) const {
             if (i==j) {
