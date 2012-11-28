@@ -165,7 +165,7 @@ typename Csa::char_type get_ith_character_of_the_first_row(const typename Csa::s
     assert(i < csa.size());
     if (csa.sigma < 16) { //<- if sigma is small search linear
         typename Csa::size_type res=1;
-        while (csa.C[res] <= i)
+        while (res < csa.sigma and csa.C[res] <= i)
             ++res;
         return csa.comp2char[res-1];
     } else {
