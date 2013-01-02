@@ -145,6 +145,32 @@ class louds_tree
         size_type id(const node_type& v)const {
             return v.nr;
         }
+
+
+		void swap(louds_tree &tree){
+			m_bv.swap(tree.m_bv);
+			util::swap_support(m_bv_select1, tree.m_select1, &m_bv, &(tree.m_bv));
+			util::swap_support(m_bv_select0, tree.m_select0, &m_bv, &(tree.m_bv));
+		}
+
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+            size_type written_bytes = 0;
+			m_bv.serialize(out, child, "bitvector");
+			m_bv_select1(out, child, "select1");
+			m_bv_select0(out, child, "select0");
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+		}
+
+		void load(std::istream& in){
+			m_bv.load(in);
+			m_bv_select1.load(in);
+			m_bv_select1.set_vector(&m_bv);
+			m_bv_select0.load(in);
+			m_bv_select0.set_vector(&m_bv);
+		}
+
 };
 
 }// end namespace sdsl
