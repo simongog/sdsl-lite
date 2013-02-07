@@ -86,9 +86,9 @@ class sorter{
 	uint64_t m_msb_mask;// mask for 1ULL<<msb
 
 	// return the absolute value of integer x 
-	inline int64_t mark_pos(uint64_t x)const{ return x&~m_msb_mask; }
+	inline int64_t mark_pos(uint64_t x)const{ return (x&~m_msb_mask); }
 	// mark the number x as negative 
-	inline int64_t mark_neg(uint64_t x)const{ return x|m_msb_mask; }
+	inline int64_t mark_neg(uint64_t x)const{ return (x|m_msb_mask); }
 	// check if x is not negative
 	inline bool     not_neg(uint64_t x)const{ return !(x>>m_msb); }
 	// check if x is negative
@@ -152,10 +152,10 @@ class sorter{
 	   int64_t s;
 	   
 	   pm=p+(n>>1);                 /* small arrays, middle element.*/
-	   if (n>7) {
+	   if (n>7LL) {
 		  pl=p;
 		  pn=p+n-1;
-		  if (n>40) {               /* big arrays, pseudomedian of 9.*/
+		  if (n>40LL) {               /* big arrays, pseudomedian of 9.*/
 			 s=n>>3;
 			 pl=med3(pl, pl+s, pl+s+s);
 			 pm=med3(pm-s, pm, pm+s);
@@ -172,6 +172,9 @@ class sorter{
 	   Software -- Practice and Experience 23(11), 1249-1265 (November 1993). This
 	   function is based on Program 7.*/
 	void sort_split(const int_iter &p, int64_t n) {
+if( n == 542871){
+
+}
 	   int_iter pa, pb, pc, pd, pl, pm, pn;
 	   uint64_t f, v;
 	   int64_t  s, t;
@@ -214,6 +217,16 @@ class sorter{
 		  swap(pl, pm);
 	   s=pb-pa;
 	   t=pd-pc;
+	   if ( pa > pb ){
+	     if(s>0){
+			 std::cout<<"s="<<s<<">0 but should be <0; n="<<n<<std::endl;
+		 }
+	   }
+	   if( pc > pd ){
+	   	 if(t>0){
+			 std::cout<<"t="<<t<<">0 but should be <0; n="<<n<<std::endl;
+		 }
+	   }
 	   if (s>0)
 		  sort_split(p, s);
 	   update_group(p+s, p+n-t-1);
@@ -275,6 +288,11 @@ class sorter{
 
 	int64_t transform(const int_iter &x, const int_iter &p, int64_t n, int64_t k, int64_t l, int64_t q)
 	{
+		if ( ! (q >= k-l) ){
+			std::cout << "q="<<q<<" k-l="<<k-l<<std::endl;
+		}
+		assert( q >= k-l );
+		std::cout<<"transform(n="<<n<<",k="<<k<<",l="<<l<<"q="<<q<<")"<<std::endl;
 		uint64_t bb, cc,dd;
 		int64_t jj;
 		int_iter pi, pj;
@@ -285,6 +303,7 @@ class sorter{
 		  bb=bb<<s|(x[m_rr]-l+1);        /* bb is start of x in chunk alphabet.*/
 		  dd=cc;                      /* dd is max symbol in chunk alphabet.*/
 		}
+std::cout<<"m_rr="<<m_rr<<std::endl;		
 		uint64_t mm=(1ULL<<(m_rr-1)*s)-1;            /* mm masks off top old symbol from chunk.*/
 		x[n]=l-1;                    /* emulate zero terminator.*/
 		if ((int64_t)dd <= n) {                  /* if bucketing possible, compact alphabet.*/
@@ -321,6 +340,7 @@ class sorter{
 		  jj=dd+1;                    /* new alphabet size.*/
 		}
 		x[n]=0;                      /* end-of-string symbol is zero.*/
+std::cout<<"end transformation jj="<<jj<<std::endl;
 		return jj;                    /* return new alphabet size.*/
 	}
 
@@ -334,11 +354,15 @@ class sorter{
 	   m_SA=p;
 	   if (n>=k-l) {                /* if bucketing possible,*/
 		  int64_t j = transform(m_VV, m_SA, n, k, l, n);
+std::cout<<"begin bucketsort j="<<j<<std::endl;
 		  bucketsort(m_VV, m_SA, n, j);   /* bucketsort on first r positions.*/
+std::cout<<"end bucketsort"<<std::endl;
 	   } else {
 		  transform(m_VV, m_SA, n, k, l, m_msb_mask-1); 
+std::cout<<"initialize SA begin"<<std::endl;		   
 		  for (int64_t i=0; i<=n; ++i)
 			 m_SA[i]=i;                /* initialize I with suffix numbers.*/
+std::cout<<"initialize SA end"<<std::endl;		   
 		  m_hh=0;
 		  sort_split(m_SA, n+1);       /* quicksort on first r positions.*/
 	   }
@@ -348,8 +372,9 @@ class sorter{
 //std::cout<<"*m_SA="<<*m_SA<<std::endl;
 //std::cout<<"mark_pos(*m_SA)="<<mark_pos(*m_SA)<<std::endl;
 		  pi=m_SA;                     /* pi is first position of group.*/
-		  int64_t s;
+		  uint64_t s;
 		  int64_t sl=0;              /* sl is length of sorted groups.*/
+std::cout<<"m_hh="<<m_hh<<std::endl;		  
 		  do {
 			 if ( is_neg( (s=*pi) ) ) { 
 				pi+= mark_pos(s);   /* skip over sorted group.*/ 
@@ -367,6 +392,7 @@ class sorter{
 		  if (sl)                   /* if the array ends with a sorted group.*/
 			 *(pi-sl)=mark_neg(sl);           /* combine sorted groups at end of m_SA.*/ 
 		  m_hh=2*m_hh;                    /* double sorted-depth.*/
+std::cout<<"m_hh="<<m_hh<<std::endl;		  
 	   }
 	   for (int64_t i=0; i<=n; ++i)         /* reconstruct suffix array from inverse.*/
 		  m_SA[m_VV[i]]=i;
@@ -374,12 +400,24 @@ class sorter{
 
 	
 	void sort(tIV& sa, const char* file_name, uint8_t num_bytes){
+std::cout<<"sorter: sort("<<file_name<<")"<<std::endl;		
+std::cout<<"sizeof(int_vector<>::difference_type)="<<sizeof(int_vector<>::difference_type)<<std::endl;
 		util::clear(sa); // free space for sa
 		tIV x;
-		util::load_vector_from_file(x, file_name, num_bytes);
+		if ( num_bytes == 0 and typeid(typename tIV::reference) == typeid(uint64_t) ){
+std::cout<<"sorter: use int_vector<64>"<<std::endl;
+			int_vector<> temp;
+			util::load_vector_from_file(temp, file_name, num_bytes);
+			x.resize(temp.size());
+			for(size_type i=0; i<temp.size();++i) x[i] = temp[i];
+		}else{
+			util::load_vector_from_file(x, file_name, num_bytes);
+		}
 		assert(x.size()>0);
+std::cout<<"x.get_int_width()="<< (int)x.get_int_width() <<std::endl;
 
-		int64_t max_symbol = 0, min_symbol = bit_magic::Li1Mask[x.get_int_width()];
+		int64_t max_symbol = 0, min_symbol = x.get_int_width() < 64 ? bit_magic::Li1Mask[x.get_int_width()] : 0x7FFFFFFFFFFFFFFFLL;
+		
 		for(size_type i=0; i < x.size()-1; ++i){
 //			if(i<10){
 //				cout<<"x["<<i<<"]="<<x[i]<<" min_symbol="<<min_symbol<<endl;
@@ -398,11 +436,19 @@ class sorter{
 		if ( x[x.size()-1] > 0 ){
 			throw std::logic_error("Last symbol is not 0-symbol. Suffix array can not be constructed.");
 		}
+//if ( util::verbose ){
+	std::cout<<"sorter: min_symbol="<<min_symbol<<std::endl;
+	std::cout<<"sorter: max_symbol="<<max_symbol<<std::endl;
+//}	
 
 //		x.resize(x.size()+1);
 //		x[x.size()-1] = 0;
 		int64_t n = x.size()-1;
+		std::cout<<"x.size()-1="<<x.size()-1<<" n="<<n<<std::endl;	
 		uint8_t width = std::max(bit_magic::l1BP(max_symbol)+2, bit_magic::l1BP(n)+2);
+//if ( util::verbose ){
+	std::cout<<"sorter: width="<<(int)width<<" max_symbol_width="<<bit_magic::l1BP(max_symbol)+1<<" n_width="<< bit_magic::l1BP(n) <<std::endl;
+//}	
 		util::expand_width(x, width);
 		sa = x;
 		if ( sa.get_int_width() < x.get_int_width() ){
@@ -412,7 +458,9 @@ class sorter{
 	
 		m_msb = sa.get_int_width()-1;
 		m_msb_mask = 1ULL<<m_msb;
-
+//if ( util::verbose ){
+	std::cout<<"sorter: m_msb="<< (int)m_msb <<" m_msb_mask="<<m_msb_mask<<std::endl;
+//}
 		
 		sort(x.begin(), sa.begin(), x.size()-1, max_symbol+1, min_symbol);
 /*		

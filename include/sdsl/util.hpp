@@ -469,6 +469,8 @@ std::string cache_file_name(const char* key, const cache_config &config);
 
 void register_cache_file(const char* key, cache_config &config);
 
+bool cache_file_exists(const char* key, const cache_config &config);
+
 template<class T>
 bool load_from_cache(T&v, const char* key, const cache_config &config){
 	std::string file_name = cache_file_name(key, config);
