@@ -188,6 +188,17 @@ void register_cache_file(const char* key, cache_config &config){
 }
 
 
+bool cache_file_exists(const char* key, const cache_config &config){
+	std::string file_name = cache_file_name(key, config);
+	std::ifstream in(file_name.c_str());
+	if ( in ){
+		in.close();
+		return true;
+	}
+	return false;
+}
+
+
 }// end namespace util
 }// end namespace sdsl
 

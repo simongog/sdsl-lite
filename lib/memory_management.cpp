@@ -12,7 +12,7 @@
 //! Namespace for the succinct data structure library
 namespace sdsl
 {
-	static int nifty_counter;
+	static int nifty_counter = 0;
 	std::map<uint64_t, mm_item_base*> mm::m_items;
 	uint64_t mm::m_total_memory;
 	uint64_t *mm::m_data;
@@ -21,6 +21,7 @@ namespace sdsl
 		if ( 0 == nifty_counter++ ){
 			// initialize static members object here
 			// mm::m_items.clear();
+			mm::m_items = mm::tMVecItem();
 			mm::m_total_memory = 0;
 			mm::m_data = NULL;
 		}
