@@ -74,8 +74,8 @@ class _sa_order_sampling_strategy : public int_vector<fixedIntWidth>{
 		 */
 		_sa_order_sampling_strategy(int_vector_file_buffer<> &sa_buf){
 			size_type n = sa_buf.int_vector_size;
-		    set_int_width(bit_magic::l1BP(n)+1);
-			resize((n+sample_dens-1)/sample_dens);
+		    this->set_int_width(bit_magic::l1BP(n)+1);
+			this->resize((n+sample_dens-1)/sample_dens);
 
 			sa_buf.reset();
 			for (size_type i=0, r_sum = 0, r = sa_buf.load_next_block(), cnt_mod=sample_dens, cnt_sum=0; r_sum < n;) {
