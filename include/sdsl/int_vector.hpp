@@ -1136,7 +1136,7 @@ void int_vector<fixedIntWidth>::bit_resize(const size_type size) {
         // The allocated memory is aligned such that it can be used for any data type, including AltiVec- and SSE-related types.
         m_data = data;
         // initialize unreachable bits to 0
-        if (m_size > old_size and bit_size() < capacity()) {//m_size>0
+        if ( bit_size() < capacity() ) {//m_size>0
             bit_magic::write_int(m_data+(bit_size()>>6), 0, bit_size()&0x3F, capacity()-bit_size());
         }
         if ((m_size % 64) == 0) {  // initialize unreachable bits with 0
