@@ -1,4 +1,3 @@
-#include "csa_typedefs.hpp"
 #include <sdsl/csa_wt.hpp>
 #include <sdsl/csa_sada.hpp>
 #include <sdsl/wavelet_trees.hpp>
