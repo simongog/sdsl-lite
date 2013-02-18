@@ -28,7 +28,7 @@ We use the benchmark code and test cases form the
           index construction (suffix array, BWT).
   * visualize: `R` and `pdflatex` scripts to generate
                reports of the collected data.
-  * results: 
+  * results: Contains the results of the experiments.
 
 	Files included in this archive form the Pizza&Chili website:
 	  * src/genpatterns.c
@@ -56,8 +56,7 @@ We use the benchmark code and test cases form the
    [Pizza&Chili][pz] data the project will produce about
    12GB of additional data.
  * Finally, you can change into the `visualize` directory and
-   if you have used the [Pizza&Chili][pz] files then a call of
-   `make` will produce a report of the results and store
+   a call of `make` will produce a report of the results and store
    it in the file `count.pdf`.
  * All created indexes and test results can be deleted
    by calling `make cleanall`.
