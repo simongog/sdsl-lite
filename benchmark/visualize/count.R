@@ -36,7 +36,7 @@ form_table <- function(d, order=NA){
 	for( prog in prog_name ){
 		sel <- dByProgram[[prog]]
 		table <- cbind(table, " "=rep("", length(sel["Time"])))
-		table <- cbind(table, sel["Time"])
+		table <- cbind(table, round(sel["Time"],3))
 		table <- cbind(table, sel["Space"]*100)
 	}
 	table <- rbind(c("", rep(c("","($\\mu s$)","(\\%)"),length(prog_name))), table)
@@ -45,7 +45,7 @@ form_table <- function(d, order=NA){
 
 
 make_latex_header <- function(names){
-	x <- paste("&\\hspace{1ex}&\\multicolumn{2}{c}{", names,"}")
+	x <- paste("&&\\multicolumn{2}{c}{", names,"}")
 	x <- paste(x, collapse=" ")
 	clines=""
 	for(i in 1:length(names)){
@@ -56,8 +56,8 @@ make_latex_header <- function(names){
 }
 
 print_latex <- function( table, names ){
-	ali <- c("l","l", rep("c", ncol(table)-1)) 
-	dig <- c(0, 0, rep(c(0,2,0),(ncol(table)-1)/3 ))	
+	ali <- c("l","l", rep(c("@{\\hspace{1ex}}l","c","c"), (ncol(table)-1)/3) ) 
+	dig <- c(0, 0, rep(c(0,3,0),(ncol(table)-1)/3 ))	
 	print( xtable( table, align=ali, digits=dig ), 
 		   type="latex", hline.after=c(),  # TODO replace by bottomrule
 		   floating = F, # don't use table environment
