@@ -1,0 +1,36 @@
+\documentclass{article}
+
+
+\begin{document}
+	\begin{table}	
+		\input{tbl-count-NOOPT.tex}
+	\caption{Time in $\mu$sec per pattern symbol in a count query.
+	         Index space as fraction of original file size.
+			 Enabled features: Popcount with lookup table.
+			 \label{tbl-count-NOOPT}}
+	\end{table}
+
+	\begin{table}	
+		\input{tbl-count-NOSSE.tex}
+	\caption{Time in $\mu$sec per pattern symbol in a count query.
+	         Index space as fraction of original file size.
+			 Enabled features: Broadword popcount.
+			 \label{tbl-count-NOSSE}}
+	\end{table}
+
+	\begin{table}	
+		\input{tbl-count-SSE.tex}
+	\caption{Time in $\mu$sec per pattern symbol in a count query.
+	         Index space as fraction of original file size.
+			 Enabled features: SSE 4.2 popcount.
+			 \label{tbl-count-SSE}}
+	\end{table}
+
+	\begin{table}	
+		\input{tbl-count-HP.tex}
+	\caption{Time in $\mu$sec per pattern symbol in a count query.
+	         Index space as fraction of original file size.
+			 Enabled features: SSE 4.2 popcount, 1GB pages.
+			 \label{tbl-count-HP}}
+	\end{table}
+\end{document}
