@@ -1121,7 +1121,6 @@ void int_vector<fixedIntWidth>::resize(const size_type size) {
 template<uint8_t fixedIntWidth>
 void int_vector<fixedIntWidth>::bit_resize(const size_type size) {
     bool do_realloc = ((size+63)>>6) != ((m_size+63)>>6);
-    const size_type old_size = m_size;
     m_size = size;                       // set new size
     // special case: bitvector of size 0
     if (do_realloc or m_data==NULL) { // or (fixedIntWidth==1 and m_size==0) ) {
