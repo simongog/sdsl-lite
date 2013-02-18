@@ -4,7 +4,6 @@
 #include "csa_typedefs.hpp"
 #include <sdsl/csa_wt.hpp>
 #include <sdsl/csa_sada.hpp>
-#include <sdsl/cst_construct.hpp>
 #include <sdsl/wavelet_trees.hpp>
 #include <sdsl/algorithms_for_string_matching.hpp>
 #include <string>
