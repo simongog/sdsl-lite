@@ -81,7 +81,7 @@ bin/genpatterns: ${SRC_DIR}/genpatterns.c
 	gcc -O3 -o $@ ${SRC_DIR}/genpatterns.c
 
 # Targets for the executables which build the indexes for the count experiments.
-bin/build_count_%: $(SRC_DIR)/build_index_sdsl.cpp $(SRC_DIR)/index.config
+bin/build_count_%: $(SRC_DIR)/build_index_sdsl.cpp index.config
 	$(eval INDEX_TYPE:=$(shell cat index.config | grep "$*;" | cut -f 2 -d';'))
 	$(CC) $(CFLAGS) \
 					-DSUF=\"$*\" \
@@ -92,7 +92,7 @@ bin/build_count_%: $(SRC_DIR)/build_index_sdsl.cpp $(SRC_DIR)/index.config
 					$(LIBS)
 
 # Targets for the count experiment.
-bin/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/index.config 
+bin/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config 
 	$(eval INDEX_TYPE:=$(shell cat index.config | grep "$*;" | cut -f 2 -d';'))
 	$(CC) $(CFLAGS) \
 					-DSUF=\"$*\" \
@@ -103,7 +103,7 @@ bin/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/index.config
 					$(LIBS)
 
 # Targets for the count experiment without enabled SSE.
-bin/NOSSE/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/index.config 
+bin/NOSSE/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config 
 	$(eval INDEX_TYPE:=$(shell cat index.config | grep "$*;" | cut -f 2 -d';'))
 	$(CC) $(CFLAGS_NOSSE) \
 					-DSUF=\"$*\" \
@@ -114,7 +114,7 @@ bin/NOSSE/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/index.conf
 					$(LIBS)
 
 # Targets for the count experiment without enabled SSE.
-bin/NOOPT/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/index.config 
+bin/NOOPT/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config 
 	$(eval INDEX_TYPE:=$(shell cat index.config | grep "$*;" | cut -f 2 -d';'))
 	$(CC) $(CFLAGS_NOOPT) \
 					-DSUF=\"$*\" \
@@ -125,7 +125,7 @@ bin/NOOPT/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/index.conf
 					$(LIBS)
 
 # Targets for the count experiment without enabled SSE.
-bin/HP/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/index.config 
+bin/HP/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config 
 	$(eval INDEX_TYPE:=$(shell cat index.config | grep "$*;" | cut -f 2 -d';'))
 	$(CC) $(CFLAGS) -DUSE_HP \
 					-DSUF=\"$*\" \
@@ -136,7 +136,7 @@ bin/HP/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/index.config
 					$(LIBS)
 
 # Targets for the executables which output the indexes structure.
-bin/get_index_structure_%: $(SRC_DIR)/get_index_structure.cpp $(SRC_DIR)/index.config 
+bin/get_index_structure_%: $(SRC_DIR)/get_index_structure.cpp index.config 
 	$(eval INDEX_TYPE:=$(shell cat index.config | grep "$*;" | cut -f 2 -d';'))
 	$(CC) $(CFLAGS) \
 					-DSUF=\"$*\" \
@@ -147,7 +147,7 @@ bin/get_index_structure_%: $(SRC_DIR)/get_index_structure.cpp $(SRC_DIR)/index.c
 					$(LIBS)
 
 # Targets for the locate experiment.
-bin/locate_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/index.config 
+bin/locate_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config 
 	$(eval INDEX_TYPE:=$(shell cat index.config | grep "$*;" | cut -f 2 -d';'))
 	$(eval SUFFIX:=$(suffix $*))				   
 	$(eval LOCAL_INDEX:=$(subst $(SUFFIX),,$*))    
