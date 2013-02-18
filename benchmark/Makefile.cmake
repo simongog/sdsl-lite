@@ -9,10 +9,10 @@ SRC_DIR = src
 TEST_CASES = $(shell find data -name "*[0-9][0-9]MB")
 
 # List of index names. See file csa_typedefs for index type definitions.
-INDEXES = FM_HUFF FM_HUFF_RRR15 FM_HUFF_RRR63 FM_HUFF_RRR127 FM_HUFF_RRR255\
-		  CSA_SADA FM_RLMN
+INDEX_NAME:=$(shell cat index.config | grep -v "^\#" | cut -f 1 -d";")
+INDEXES := $(INDEX_NAME)
 # List of sample rates for the locate experiment.		  
-SAMPLES = 4 8 16 32 128 256
+SAMPLES = 4 # 8 16 32 128 256
 TMP_DIR = tmp
 
 COUNT_RESULT_FILE=results/count.txt
@@ -82,8 +82,10 @@ bin/genpatterns: ${SRC_DIR}/genpatterns.c
 
 # Targets for the executables which build the indexes for the count experiments.
 bin/build_count_%: $(SRC_DIR)/build_index_sdsl.cpp $(SRC_DIR)/csa_typedefs.hpp
+	$(eval INDEX_TYPE:=$(shell cat index.config | grep "$*;" | cut -f 2 -d';'))
 	$(CC) $(CFLAGS) \
-					-D$* \
+					-DSUF=\"$*\" \
+					-DCSA_TYPE="$(INDEX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/build_index_sdsl.cpp \
 					-I$(INC_DIR) \
 					-o $@ \
@@ -91,8 +93,10 @@ bin/build_count_%: $(SRC_DIR)/build_index_sdsl.cpp $(SRC_DIR)/csa_typedefs.hpp
 
 # Targets for the count experiment.
 bin/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/csa_typedefs.hpp 
+	$(eval INDEX_TYPE:=$(shell cat index.config | grep "$*;" | cut -f 2 -d';'))
 	$(CC) $(CFLAGS) \
-					-D$* \
+					-DSUF=\"$*\" \
+					-DCSA_TYPE="$(INDEX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/run_queries_sdsl.cpp \
 					-I$(INC_DIR) \
 					-o $@ \
@@ -100,8 +104,10 @@ bin/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/csa_typedefs.hpp
 
 # Targets for the count experiment without enabled SSE.
 bin/NOSSE/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/csa_typedefs.hpp 
+	$(eval INDEX_TYPE:=$(shell cat index.config | grep "$*;" | cut -f 2 -d';'))
 	$(CC) $(CFLAGS_NOSSE) \
-					-D$* \
+					-DSUF=\"$*\" \
+					-DCSA_TYPE="$(INDEX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/run_queries_sdsl.cpp \
 					-I$(INC_DIR) \
 					-o $@ \
@@ -109,8 +115,10 @@ bin/NOSSE/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/csa_typede
 
 # Targets for the count experiment without enabled SSE.
 bin/NOOPT/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/csa_typedefs.hpp 
+	$(eval INDEX_TYPE:=$(shell cat index.config | grep "$*;" | cut -f 2 -d';'))
 	$(CC) $(CFLAGS_NOOPT) \
-					-D$* \
+					-DSUF=\"$*\" \
+					-DCSA_TYPE="$(INDEX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/run_queries_sdsl.cpp \
 					-I$(INC_DIR) \
 					-o $@ \
@@ -118,8 +126,10 @@ bin/NOOPT/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/csa_typede
 
 # Targets for the count experiment without enabled SSE.
 bin/HP/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/csa_typedefs.hpp 
+	$(eval INDEX_TYPE:=$(shell cat index.config | grep "$*;" | cut -f 2 -d';'))
 	$(CC) $(CFLAGS) -DUSE_HP \
-					-D$* \
+					-DSUF=\"$*\" \
+					-DCSA_TYPE="$(INDEX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/run_queries_sdsl.cpp \
 					-I$(INC_DIR) \
 					-o $@ \
@@ -127,8 +137,10 @@ bin/HP/count_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/csa_typedefs.
 
 # Targets for the executables which output the indexes structure.
 bin/get_index_structure_%: $(SRC_DIR)/get_index_structure.cpp $(SRC_DIR)/csa_typedefs.hpp 
+	$(eval INDEX_TYPE:=$(shell cat index.config | grep "$*;" | cut -f 2 -d';'))
 	$(CC) $(CFLAGS) \
-					-D$* \
+					-DSUF=\"$*\" \
+					-DCSA_TYPE="$(INDEX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/get_index_structure.cpp \
 					-I$(INC_DIR) \
 					-o $@ \
@@ -136,11 +148,13 @@ bin/get_index_structure_%: $(SRC_DIR)/get_index_structure.cpp $(SRC_DIR)/csa_typ
 
 # Targets for the locate experiment.
 bin/locate_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/csa_typedefs.hpp 
+	$(eval INDEX_TYPE:=$(shell cat index.config | grep "$*;" | cut -f 2 -d';'))
 	$(eval SUFFIX:=$(suffix $*))				   
 	$(eval LOCAL_INDEX:=$(subst $(SUFFIX),,$*))    
 	$(eval SA_SAMPLE_RATE:=$(subst .,,$(SUFFIX)))  
 	$(CC) $(CFLAGS) \
-					-D$(LOCAL_INDEX) \
+					-DSUF=\"$(LOCAL_INDEX)\" \
+					-DCSA_TYPE="$(INDEX_TYPE)" \
 					-DS_SA=$(SA_SAMPLE_RATE) \
 					-DS_ISA=$(SA_SAMPLE_RATE) \
 					-L$(LIB_DIR) $(SRC_DIR)/run_queries_sdsl.cpp \
