@@ -54,12 +54,22 @@ We use the benchmark code and test cases form the
    Indexes and temporary files are stored in the
    directory `data` and `tmp`. For the 1GB of
    [Pizza&Chili][pz] data the project will produce about
-   12GB of additional data.
+   12GB of additional data. On a machine equipped with
+   2GB of main memory and a recent processor the benchmark
+   will take about 45 minutes.
  * Finally, you can change into the `visualize` directory and
    a call of `make` will produce a report of the results and store
    it in the file `count.pdf`.
  * All created indexes and test results can be deleted
    by calling `make cleanall`.
+
+## Customization of the benchmark
+  The project contains a configuration file `index.config` which
+  allows you to easily benchmark other parametrizations of 
+  [sdsl][sdsl] index structures.
+  The visualization can be configured by changing editing the
+  file `visualization/count.config`. 
+
 
 ## Author
 
