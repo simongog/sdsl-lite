@@ -1,8 +1,9 @@
-\documentclass{article}
-
+\documentclass[9pt,a4paper]{scrartcl}
+\usepackage{booktabs}
 
 \begin{document}
-	\begin{table}	
+	\begin{table}
+	\centering
 		\input{tbl-count-NOOPT.tex}
 	\caption{Time in $\mu$sec per pattern symbol in a count query.
 	         Index space as fraction of original file size.
@@ -26,7 +27,7 @@
 			 \label{tbl-count-SSE}}
 	\end{table}
 
-	\begin{table}	
+	\begin{table}
 		\input{tbl-count-HP.tex}
 	\caption{Time in $\mu$sec per pattern symbol in a count query.
 	         Index space as fraction of original file size.

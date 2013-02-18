@@ -28,34 +28,41 @@ form_table <- function(d, order=NA){
 	dByProgram <- split(d, d[["program"]])
 	table <- data.frame(dByProgram[[1]]["test_case"])
 	names(table) <- c("Text")
+	table[["Text"]] <- paste("\\textsc{",table[['Text']],"}") # paste(t(rep(nrow(table),"\\textsc{"), table[["Text"]],t(rep(nrow(table),"}"))))
 	prog_name <- names(dByProgram)
 	if( !is.na(order) ){
 		prog_name <- order
 	}
 	for( prog in prog_name ){
 		sel <- dByProgram[[prog]]
+		table <- cbind(table, " "=rep("", length(sel["Time"])))
 		table <- cbind(table, sel["Time"])
-		table <- cbind(table, sel["Space"])
+		table <- cbind(table, sel["Space"]*100)
 	}
+	table <- rbind(c("", rep(c("","($\\mu s$)","(\\%)"),length(prog_name))), table)
 	list("table" = table, "names" = prog_name)
 }
 
 
 make_latex_header <- function(names){
-	x <- paste("&\\multicolumn{2}{c|}{", names,"}")
+	x <- paste("&\\hspace{1ex}&\\multicolumn{2}{c}{", names,"}")
 	x <- paste(x, collapse=" ")
-	y <- paste("\\hline",x, "\\\\\\hline\n")	
+	clines=""
+	for(i in 1:length(names)){
+		clines <- paste(clines,"\\cmidrule{",3*i,"-",3*i+1,"}",sep="")
+	}
+	y <- paste("\\toprule",x, "\\\\",clines,"\n")	# TODO: replace by \toprule \medsep
 	gsub("_","\\\\_",y)
 }
 
 print_latex <- function( table, names ){
-	ali <- c("|l|","|l|", rep("c|", ncol(table)-1)) 
-	dig <- c(0, 0, rep(c(3,2),(ncol(table)-1)/2 ))	
+	ali <- c("l","l", rep("c", ncol(table)-1)) 
+	dig <- c(0, 0, rep(c(0,2,0),(ncol(table)-1)/3 ))	
 	print( xtable( table, align=ali, digits=dig ), 
-		   type="latex",  hline.after = c(0,0,seq(1, nrow(table))),
+		   type="latex", hline.after=c(),  # TODO replace by bottomrule
 		   floating = F, # don't use table environment
-		   add.to.row=list(pos=list(-1), 
-				           command=(make_latex_header(names))),
+		   add.to.row=list(pos=list(-1,1,nrow(table)), 
+				           command=c(make_latex_header(names),"\\\\[-1ex]","\\bottomrule")),
 		   sanitize.rownames.function = identity, 
 		   sanitize.text.function = identity,
 		   include.rownames = FALSE
