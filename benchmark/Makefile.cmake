@@ -150,7 +150,8 @@ bin/locate_queries_%: $(SRC_DIR)/run_queries_sdsl.cpp $(SRC_DIR)/csa_typedefs.hp
 
 clean:
 	rm -f $(COUNT_EXECS) $(COUNT_EXECS_NOSSE) $(COUNT_EXECS_HP) $(LOCATE_EXECS) \
-	   	  $(BUILD_COUNT_EXECS) $(GET_INDEX_STRUCTURE_EXECS) $(COUNT_EXECS_NOOPT)
+	   	  $(BUILD_COUNT_EXECS) $(GET_INDEX_STRUCTURE_EXECS) $(COUNT_EXECS_NOOPT) \
+		  bin/genpatterns
 
 cleanresults: 
 	rm -f $(TIME_FILES) $(COUNT_RESULT_FILE)
@@ -158,4 +159,3 @@ cleanresults:
 cleanall: clean cleanresults
 	rm -f $(COUNT_INDEXES) $(STRUCTURE_FILES) $(TEST_CASES_PATTERNS)
 	rm -f tmp/*
-
