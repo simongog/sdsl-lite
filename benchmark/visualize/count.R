@@ -58,7 +58,7 @@ form_table <- function(d, order=NA){
 		table <- cbind(table, round(sel["Time"],3))
 		table <- cbind(table, sel["Space"]*100)
 	}
-	unitrow <- paste0(c("", rep(c("&","&($\\mu s$)","&(\\%)"),length(prog_name)), "\\\\[1ex]"),collapse="")
+	unitrow <- paste(c("", rep(c("&","&($\\mu s$)","&(\\%)"),length(prog_name)), "\\\\[1ex]"),collapse="",sep='')
 	list("table" = table, "names" = prog_name, "unitrow"=unitrow)
 }
 
@@ -108,7 +108,7 @@ sanitize_column <- function(column){
 }
 
 for ( feature in names(data) ){
-	generate_table(paste0("tbl-count-",feature,".tex"), data[[feature]])
+	generate_table(paste("tbl-count-",feature,".tex",sep=''), data[[feature]])
 }
 
 sink("tbl-index-info.tex")
