@@ -86,7 +86,7 @@ class csa_sada {
         typedef const char_type*									                pattern_type;
 
         typedef csa_tag													            index_category;
-
+		typedef psi_tag																extract_category;
 
         friend class psi_of_csa_psi<csa_sada>;
         friend class bwt_of_csa_psi<csa_sada>;
