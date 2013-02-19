@@ -97,6 +97,7 @@ class csa_wt {
         typedef const char_type*									                pattern_type;
 
         typedef csa_tag																index_category;
+		typedef lf_tag																extract_category;
 		typedef typename alphabet_type::alphabet_category  							alphabet_category;
 
         friend class psi_of_csa_wt<csa_wt>;
