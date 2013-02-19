@@ -70,12 +70,12 @@ make_latex_header <- function(names){
 	for(i in 1:length(names)){
 		clines <- paste(clines,"\\cmidrule{",3*i,"-",3*i+1,"}",sep="")
 	}
-	y <- paste("\\toprule",x, "\\\\",clines,"\n")	# TODO: replace by \toprule \medsep
+	y <- paste("\\toprule",x, "\\\\",clines,"\n")	
 	gsub("_","\\\\_",y)
 }
 
 print_latex <- function( table, names, unitrow ){
-	ali <- c("l","l", rep(c("@{\\hspace{1ex}}l","c","c"), (ncol(table)-1)/3) ) 
+	ali <- c("l","r", rep(c("@{\\hspace{1ex}}l","c","c"), (ncol(table)-1)/3) ) 
 	dig <- c(0, 0, rep(c(0,3,0),(ncol(table)-1)/3 ))	
 	print( xtable( table, align=ali, digits=dig ), 
 		   type="latex", hline.after=c(),  # TODO replace by bottomrule
@@ -99,31 +99,31 @@ generate_table <- function(file, data){
 	sink(NULL)
 }
 
+sanitize_column <- function(column){
+	column <- gsub("_","\\\\_",column)
+	column <- gsub("<","{\\\\textless}",column)
+	column <- gsub(">","{\\\\textgreater}",column)
+	column <- gsub(",",", ",column)
+#	column <- gsub(",",",\\\\hspace{0px}",column)
+}
+
 for ( feature in names(data) ){
-#	print(paste0("tbl-count-",feature,".tex"))
-#	print(nrow(data[[feature]]))
 	generate_table(paste0("tbl-count-",feature,".tex"), data[[feature]])
 }
-#sink("tbl-count-NOOPT.tex")
-#x3 <- form_table(d_NOOPT,index_ids)
-#print_latex(x3[["table"]], index_id2latex_name(index_ids),x3[["unitrow"]])	
-#sink(NULL)
-#
-#sink("tbl-count-NOSSE.tex")
-#x4 <- form_table(d_NOSSE,index_ids)
-#print_latex(x4[["table"]], index_id2latex_name(index_ids),x4[["unitrow"]])	
-#sink(NULL)
-#
-#sink("tbl-count-SSE.tex")
-#x5 <- form_table(d_SSE,index_ids)
-#print_latex(x5[["table"]], index_id2latex_name(index_ids),x5[["unitrow"]])	
-#sink(NULL)
-#
-#sink("tbl-count-HP.tex")
-#if ( nrow(d_HP) > 0 ){
-#	x6 <- form_table(d_HP,index_ids)
-#	print_latex(x6[["table"]], index_id2latex_name(index_ids), x6[["unitrow"]])	
-#}else{
-#	cat("\\begin{center}1 GB pages were not supported\\end{center}")
-#}
-#sink(NULL)
+
+sink("tbl-index-info.tex")
+info_table <- index_info[c(3,2)]
+info_table[[2]] <- sanitize_column(info_table[[2]])
+
+info_table <- cbind(info_table[1], " " = rep("",nrow(info_table)), info_table[2])
+ali <- c("l","l","l","p{8cm}")
+cat("\\renewcommand{\\arraystretch}{1.3}")
+print(xtable(info_table, align=ali), type="latex", hline.after=c(), floating = F, 
+	  include.colnames=FALSE, 
+	  include.rownames=FALSE, 
+	  sanitize.text.function=identity,
+	  add.to.row=list(pos=list(-1,nrow(info_table)), 
+          			  command=c("\\toprule Identifier&&sdsl class\\\\\\cmidrule{1-1}\\cmidrule{3-3}","\\bottomrule"))
+	 ) 
+sink(NULL)
+
