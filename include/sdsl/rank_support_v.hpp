@@ -131,6 +131,8 @@ rank_support_v<b, pattern_len>::rank_support_v(const bit_vector* v) {
 
 template<uint8_t b, uint8_t pattern_len>
 inline const typename rank_support_v<b, pattern_len>::size_type rank_support_v<b, pattern_len>::rank(size_type idx)const {
+	assert( m_v != NULL );
+	assert( idx <= m_v->size() );
     const uint64_t* p = m_basic_block.data() + ((idx>>8)&0xFFFFFFFFFFFFFFFEULL);// (idx/512)*2
     if (idx&0x3F)  // if (idx%64)!=0
         return  *p + ((*(p+1)>>(63 - 9*((idx&0x1FF)>>6)))&0x1FF) +

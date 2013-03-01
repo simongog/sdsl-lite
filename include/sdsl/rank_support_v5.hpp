@@ -128,8 +128,9 @@ rank_support_v5<b, pattern_len>::rank_support_v5(const bit_vector* v) {
 }
 
 template<uint8_t b, uint8_t pattern_len>
-inline const typename rank_support_v5<b, pattern_len>::size_type rank_support_v5<b, pattern_len>::rank(size_type idx)const
-{
+inline const typename rank_support_v5<b, pattern_len>::size_type rank_support_v5<b, pattern_len>::rank(size_type idx)const {
+	assert( m_v != NULL );
+	assert( idx <= m_v->size() );
     const uint64_t* p = m_basic_block.data() + ((idx>>10)&0xFFFFFFFFFFFFFFFEULL);// (idx/2048)*2
     size_type result = *p + ((*(p+1)>>(60-12*((idx&0x7FF)/(64*6))))&0x7FFULL)+     // ( prefix sum of the 6x64bit blocks | (idx%2048)/(64*6)  )
                        rank_support_trait<b, pattern_len>::word_rank(m_v->data(), idx);
