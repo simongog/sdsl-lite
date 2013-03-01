@@ -196,13 +196,13 @@ void construct(Index& idx, const char* file, cache_config& config, uint8_t num_b
 	typename Index::csa_type::alphabet_category alph_t;
 	{// (1) check, if the compressed suffix array is cached
 		typename Index::csa_type csa;
-		if ( !util::cache_file_exists(csa, util::class_to_hash(csa).c_str(), config) ){
+		if ( !util::cache_file_exists(util::class_to_hash(csa).c_str(), config) ){
 			cache_config csa_config(false, config.dir, config.id, config.file_map);
 			construct(csa, file, csa_config, num_bytes, csa_t, alph_t);
 			config.file_map = csa_config.file_map;
 			util::store_to_cache(csa, util::class_to_hash(csa).c_str(), config); 
 		}
-		util::register_cache_file(util::class_to_hash(csa), config);
+		util::register_cache_file(util::class_to_hash(csa).c_str(), config);
 	}
 	{// (2) check, if the longest common prefix array is cached
 		util::register_cache_file(constants::KEY_TEXT_INT, config);
@@ -228,7 +228,7 @@ void construct(Index& idx, const char* file, cache_config& config, uint8_t num_b
 	typename Index::csa_type::alphabet_category alph_t;
 	{// (1) check, if the compressed suffix array is cached
 		typename Index::csa_type csa;
-		if ( !util::cache_file_exists(csa, util::class_to_hash(csa).c_str(), config) ){
+		if ( !util::cache_file_exists(util::class_to_hash(csa).c_str(), config) ){
 			cache_config csa_config(false, config.dir, config.id, config.file_map);
 			construct(csa, file, csa_config, num_bytes, csa_t, alph_t);
 			config.file_map = csa_config.file_map;
