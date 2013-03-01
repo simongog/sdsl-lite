@@ -21,7 +21,7 @@ class SelectSupportTest : public ::testing::Test
 {
     protected:
 
-        static const size_t n = 40;
+        static const size_t n = 41;
 
         SelectSupportTest() {
             // You can do set-up work for each test here
@@ -47,7 +47,7 @@ class SelectSupportTest : public ::testing::Test
                 bs[i] = bit_vector(i, i%2);
             }
             // dense vectors of different sizes
-            for (size_type i=14; i<n-4; ++i) {
+            for (size_type i=14; i<n-5; ++i) {
                 bs[i] = bit_vector(rand() % (8<< (i-14)));
                 for (size_type j=0; j < bs[i].size(); ++j) {
                     if (rand() % 2)
@@ -55,25 +55,38 @@ class SelectSupportTest : public ::testing::Test
                 }
             }
             size_type last_size = 1000000;
-            bs[n-4] = bit_vector(last_size, 1);
-            bs[n-3] = bit_vector(last_size, 0);
+            bs[n-5] = bit_vector(last_size, 1);
+            bs[n-4] = bit_vector(last_size, 0);
             // populate vectors with some other bits
             for (size_type i=0; i<last_size/1000; ++i) {
                 size_type x = rand()%last_size;
-                bs[n-4][x] = 0;
-                bs[n-3][x] = 1;
+                bs[n-5][x] = 0;
+                bs[n-4][x] = 1;
             }
-            bs[n-2] = bit_vector(last_size, 1);
-            bs[n-1] = bit_vector(last_size, 0);
+            bs[n-3] = bit_vector(last_size, 1);
+            bs[n-2] = bit_vector(last_size, 0);
             // populate vectors with some blocks of other bits
             for (size_type i=0; i<last_size/1000; ++i) {
                 size_type x = rand()%last_size;
                 size_type len = rand()%1000;
                 for (size_type j=x; j<x+len and j<last_size; ++j) {
-                    bs[n-2][j] = 0;
-                    bs[n-1][j] = 1;
+                    bs[n-3][j] = 0;
+                    bs[n-2][j] = 1;
                 }
             }
+			{// Matthias Petri's test
+				srand(4711);
+	 			size_type size = 1000000;
+	 			size_type ones = 4030+(rand()%80);
+				sdsl::util::assign(bs[n-1], bit_vector(size));
+	 			for(size_type i=0;i<ones;i++) {
+		 			size_type rnd = rand();
+		 			while(bs[n-1][rnd%size]==1) {
+			 			rnd = rand();
+		 			}
+		 			bs[n-1][rnd%size] = 1;
+	 			}
+			}
         }
 
         virtual void TearDown() {

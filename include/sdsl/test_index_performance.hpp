@@ -533,7 +533,7 @@ void test_cst_parent_operation(const Cst& cst, typename Cst::size_type times=100
     // take \f$ time \f$ random leaves
     std::vector<node_type> rand_leaf(times);
     for (size_type i=0; i<rand_leaf.size(); ++i) {
-        rand_leaf[i] = cst.ith_leaf(1+ (rand() % n));
+        rand_leaf[i] = cst.select_leaf(1+ (rand() % n));
     }
 
     node_type p;
@@ -566,7 +566,7 @@ void generate_nodes_from_random_leaves(const Cst& cst, typename Cst::size_type t
     size_type n = cst.csa.size();
     // generate nodes
     for (size_type i=0; i<times; ++i) {
-        node_type p = cst.ith_leaf(1+ (rand() % n));
+        node_type p = cst.select_leaf(1+ (rand() % n));
         nodes.push_back(p);
         while (p != cst.root()) {
             p = cst.parent(p);
@@ -634,7 +634,7 @@ void test_cst_1th_child_operation(const Cst& cst, typename Cst::size_type times=
     size_type cnt=0;
     write_R_output("cst","1th_child","begin",nodes.size(),cnt);
     for (size_type i=0; i<nodes.size(); ++i) {
-        c = cst.ith_child(nodes[i], 1);
+        c = cst.select_child(nodes[i], 1);
         if (c==cst.root())
             ++cnt;
     }
@@ -740,7 +740,7 @@ void test_cst_lca_operation(const Cst& cst, typename Cst::size_type times=100000
     std::vector<node_type> nodes(1<<20);
     srand(x);
     for (size_type i=0; i < nodes.size(); ++i) {
-        nodes[i] = cst.ith_leaf(rand()%n + 1);
+        nodes[i] = cst.select_leaf(rand()%n + 1);
     }
 
     size_type cnt=0;
@@ -769,7 +769,7 @@ void test_cst_sl_operation(const Cst& cst, typename Cst::size_type times=500, ui
     srand(x);
     // take \f$ times \f$ random leaves and calculate each parent
     for (size_type i=0; i<times; ++i) {
-        nodes[i] = cst.parent(cst.ith_leaf(rand()%n + 1));
+        nodes[i] = cst.parent(cst.select_leaf(rand()%n + 1));
     }
 
     size_type cnt=0;

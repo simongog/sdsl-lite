@@ -89,60 +89,62 @@ template<class RandomAccessContainer>
 void construct_supercartesian_tree_bp_succinct(const RandomAccessContainer& vec, bit_vector& bp, const bool minimum=true)
 {
     typedef typename RandomAccessContainer::size_type size_type;
-    bp.resize(2*vec.size());      // resize bit vector for balanaced parantheses to 2 n bits
-    util::set_zero_bits(bp);
-    sorted_stack_support vec_stack(vec.size()); // <- das ist ein Problem fuer int_vector_file_buffer
+    bp.resize(2*vec.size());      // resize bit vector for balanced parentheses to 2 n bits
+	if ( vec.size() > 0 ) {
+		util::set_zero_bits(bp);
+		sorted_stack_support vec_stack(vec.size()); // <- das ist ein Problem fuer int_vector_file_buffer
 
-    size_type k=0;
-    if (minimum) {
-        bp[k++] = 1;
-        for (size_type i=1; i < vec.size(); ++i) {
-            if (vec[i] < vec[i-1]) {
-                ++k;
-                while (vec_stack.size() > 0 and vec[i] < vec[vec_stack.top()]) {
-                    vec_stack.pop(); ++k; // writing a closing parenthesis, bp is already initialized to zero
-                }
-            } else {
-                vec_stack.push(i-1); // "lazy stack" trick: Beschleunigung: ca. 25%
-            }
-            bp[k++] = 1; // writing an opening  parenthesis
-        }
-        /*
-        vec_stack.push(0);
-        bp[k++] = 1;
-        for(size_type i=1,j, start_run=1; i < vec.size(); ++i){
-        	if( vec[i] < vec[i-1] ){
-        		j = i;
-        		while( --j >= start_run and vec[i] < vec[j]) ++k;
-        		while(start_run <= j){	// auf den stack pushen
-        			vec_stack.push(start_run++);
-        		}
-        		while( vec_stack.size() > 0 and vec[i] < vec[vec_stack.top()] ){
-        			vec_stack.pop(); ++k;
-        		}
-        		start_run = i;
-        	}
-        	bp[k++] = 1;
-        }
-        */
-    } else {
-        // hier noch ohne "lazy stack" trick
-        for (size_type i=0; i < vec.size(); ++i) {
-            while (vec_stack.size() > 0 and vec[i] > vec[vec_stack.top()]) {
-                vec_stack.pop(); ++k; /*bp[k++] = 0; bp is already initialized to zero*/ // writing a closing parenthesis
-            }
-            vec_stack.push(i);
-            bp[k++] = 1; // writing an opening  parenthesis
-        }
-    }
+		size_type k=0;
+		if ( minimum ) {
+			bp[k++] = 1;
+			for (size_type i=1; i < vec.size(); ++i) {
+				if (vec[i] < vec[i-1]) {
+					++k;
+					while (vec_stack.size() > 0 and vec[i] < vec[vec_stack.top()]) {
+						vec_stack.pop(); ++k; // writing a closing parenthesis, bp is already initialized to zero
+					}
+				} else {
+					vec_stack.push(i-1); // "lazy stack" trick: speed-up ca. 25%
+				}
+				bp[k++] = 1; // writing an opening  parenthesis
+			}
+			/*
+			vec_stack.push(0);
+			bp[k++] = 1;
+			for(size_type i=1,j, start_run=1; i < vec.size(); ++i){
+				if( vec[i] < vec[i-1] ){
+					j = i;
+					while( --j >= start_run and vec[i] < vec[j]) ++k;
+					while(start_run <= j){	// auf den stack pushen
+						vec_stack.push(start_run++);
+					}
+					while( vec_stack.size() > 0 and vec[i] < vec[vec_stack.top()] ){
+						vec_stack.pop(); ++k;
+					}
+					start_run = i;
+				}
+				bp[k++] = 1;
+			}
+			*/
+		} else {
+			// hier noch ohne "lazy stack" trick
+			for (size_type i=0; i < vec.size(); ++i) {
+				while (vec_stack.size() > 0 and vec[i] > vec[vec_stack.top()]) {
+					vec_stack.pop(); ++k; /*bp[k++] = 0; bp is already initialized to zero*/ // writing a closing parenthesis
+				}
+				vec_stack.push(i);
+				bp[k++] = 1; // writing an opening  parenthesis
+			}
+		}
 #ifdef SDSL_DEBUG
-// not neccessary as bp is already initialized to zero
-    while (!vec_stack.empty()) {
-        vec_stack.pop();
-        bp[k++] = 0; // writing a closing parenthesis
-    }
-    assert(k == 2*vec.size());
+	// not necessary as bp is already initialized to zero
+		while (!vec_stack.empty()) {
+			vec_stack.pop();
+			bp[k++] = 0; // writing a closing parenthesis
+		}
+		assert(k == 2*vec.size());
 #endif
+	}
 }
 
 //! Calculate the balanced parentheses of the Super-Cartesian tree, described in Ohlebusch and Gog (SPIRE 2009).
@@ -155,13 +157,13 @@ void construct_supercartesian_tree_bp_succinct(const RandomAccessContainer& vec,
  *  \par Space complexity
  *       \f$\Order{2n}\f$ bits, by the multi_stack_support
  */
-template<uint8_t fixedIntWidth, class size_type_class>
-void construct_supercartesian_tree_bp_succinct(int_vector_file_buffer<fixedIntWidth, size_type_class>& lcp_buf, bit_vector& bp, const bool minimum=true)
+template<uint8_t fixedIntWidth>
+void construct_supercartesian_tree_bp_succinct(int_vector_file_buffer<fixedIntWidth>& lcp_buf, bit_vector& bp, const bool minimum=true)
 {
-    typedef size_type_class size_type;
+    typedef int_vector_size_type size_type;
     lcp_buf.reset();
     size_type n = lcp_buf.int_vector_size;
-    bp.resize(2*n);      // resize bit vector for balanaced parantheses to 2 n bits
+    bp.resize(2*n);      // resize bit vector for balanced parentheses to 2 n bits
     if (n == 0)	// if n == 0 we are done
         return;
     util::set_zero_bits(bp);
@@ -202,14 +204,6 @@ void construct_supercartesian_tree_bp_succinct(int_vector_file_buffer<fixedIntWi
             r_sum += r; r = lcp_buf.load_next_block();
         }
     }
-#ifdef SDSL_DEBUG
-// not neccessary as bp is already initialized to zero
-    while (!vec_stack.empty()) {
-        vec_stack.pop();
-        bp[k++] = 0; // writing a closing parenthesis
-    }
-    assert(k == 2*vec.size());
-#endif
 }
 
 //! Calculate the balanced parentheses of the Super-Cartesian tree, described in Ohlebusch and Gog (SPIRE 2009) and the first_child bit_vector
@@ -223,10 +217,10 @@ void construct_supercartesian_tree_bp_succinct(int_vector_file_buffer<fixedIntWi
  *  \par Space complexity
  *       \f$\Order{2n}\f$ bits, by the multi_stack_support
  */
-template<uint8_t fixedIntWidth, class size_type_class>
-size_type_class construct_supercartesian_tree_bp_succinct_and_first_child(int_vector_file_buffer<fixedIntWidth, size_type_class>& lcp_buf, bit_vector& bp, bit_vector& bp_fc, const bool minimum=true)
+template<uint8_t fixedIntWidth>
+int_vector_size_type construct_supercartesian_tree_bp_succinct_and_first_child(int_vector_file_buffer<fixedIntWidth>& lcp_buf, bit_vector& bp, bit_vector& bp_fc, const bool minimum=true)
 {
-    typedef size_type_class size_type;
+    typedef int_vector_size_type size_type;
     lcp_buf.reset();
     size_type n = lcp_buf.int_vector_size;
     bp.resize(2*n);      // resize bit vector for balanaced parantheses to 2 n bits
@@ -291,10 +285,10 @@ size_type_class construct_supercartesian_tree_bp_succinct_and_first_child(int_ve
     return fc_cnt;
 }
 
-template<uint8_t fixedIntWidth, class size_type_class>
-size_type_class construct_first_child_lcp(int_vector_file_buffer<fixedIntWidth, size_type_class>& lcp_buf, int_vector<fixedIntWidth, size_type_class>& fc_lcp, size_type_class first_child_size=0)
+template<uint8_t fixedIntWidth>
+int_vector_size_type construct_first_child_lcp(int_vector_file_buffer<fixedIntWidth>& lcp_buf, int_vector<fixedIntWidth>& fc_lcp, int_vector_size_type first_child_size=0)
 {
-    typedef size_type_class size_type;
+    typedef int_vector_size_type size_type;
     lcp_buf.reset();
     size_type n = lcp_buf.int_vector_size;
     if (n == 0) {	// if n == 0 we are done
@@ -336,17 +330,17 @@ size_type_class construct_first_child_lcp(int_vector_file_buffer<fixedIntWidth, 
 }
 
 
-template<uint32_t SampleDens, uint8_t fixedIntWidth, class size_type_class>
-size_type_class construct_first_child_and_lf_lcp(int_vector_file_buffer<fixedIntWidth, size_type_class>& lcp_buf,
-        int_vector_file_buffer<8, size_type_class>& bwt_buf,
+template<uint32_t SampleDens, uint8_t fixedIntWidth, uint8_t bwtIntWidth>
+int_vector_size_type construct_first_child_and_lf_lcp(int_vector_file_buffer<fixedIntWidth>& lcp_buf,
+        int_vector_file_buffer<bwtIntWidth>& bwt_buf,
         std::string small_lcp_file_name,
         std::string big_lcp_file_name,
         int_vector<>& big_lcp,
-        size_type_class first_child_size=0)
+        int_vector_size_type first_child_size=0)
 {
-    typedef size_type_class size_type;
-    const size_type M = 255;
-    size_type_class buf_len = 1000000;
+    typedef int_vector_size_type size_type;
+    const size_type M = 255;	// limit for values represented in the small LCP part
+    size_type 		buf_len = 1000000;
     lcp_buf.reset(buf_len);
     bwt_buf.reset(buf_len);
     size_type n = lcp_buf.int_vector_size;
@@ -365,7 +359,7 @@ size_type_class construct_first_child_and_lf_lcp(int_vector_file_buffer<fixedInt
     bool is_one_big_and_not_reducable = false; // all positions have to be reducable
 
     size_type y, max_lcp=0;
-    uint8_t last_bwti=0, val;
+    uint64_t last_bwti=0, val;
     for (size_type i=0, r_sum = 0, r = 0, x; r_sum < n;) {
         for (; i < r_sum + r; ++i) {
             x = lcp_buf[i-r_sum];
@@ -529,9 +523,8 @@ typename RandomAccessContainer::size_type construct_first_p_index(const RandomAc
     return nr_of_first_indices;
 }
 
-//TODO implementation
-template<uint8_t fixedIntWidth, class size_type_class>
-bit_vector::size_type construct_first_p_index(int_vector_file_buffer<fixedIntWidth, size_type_class>& lcp_buf, bit_vector& bp, const bool minimum=true)
+template<uint8_t fixedIntWidth>
+bit_vector::size_type construct_first_p_index(int_vector_file_buffer<fixedIntWidth>& lcp_buf, bit_vector& bp, const bool minimum=true)
 {
     typedef bit_vector::size_type size_type;
     size_type nr_of_first_indices = 0;

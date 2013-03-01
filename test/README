@@ -12,8 +12,8 @@ call the test with valgrind.
 In some test instances we generate data structures, e.g. 
 compressed suffix trees,  for real world inputs. 
 These inputs are downloaded with the command
-`curl` from a ``Project Gutenberg'' mirror before the
-first execution of the test.
+`curl` from a ``Project Gutenberg'' mirror and Simon's
+homepage before the first execution of the test.
 
 The tests use google's gtest framework which should
 be installed, since you have already executed
@@ -21,3 +21,10 @@ the `install.sh` bash script to install the sdsl
 library.
 
 If you find a bug, please report it to us. Thanks. 
+
+### Acknowledgements
+  We thank 
+  * Project Gutenberg for providing test inputs for the
+    byte-alphabet data structures.
+  * Shane Culpepper for providing the test inputs 
+    `keeper.int` and `moby.int` for the integer-alphabet CSA and CSTs.

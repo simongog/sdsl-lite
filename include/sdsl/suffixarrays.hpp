@@ -25,10 +25,10 @@
 
 /** \defgroup csa Compressed Suffix Arrays (CSA) */
 
-#include "csa_uncompressed.hpp"
+#include "csa_bitcompressed.hpp"
 #include "csa_wt.hpp"
-#include "csa_sada_theo.hpp"
 #include "csa_sada.hpp"
-#include "csa_construct.hpp"
+#include "wavelet_trees.hpp"
+#include "construct.hpp"
 
 #endif

@@ -124,8 +124,6 @@ class clock
         static std::string get_time_string();
 };
 
-//! Get the size of a file in bytes
-off_t get_file_size(const char* file_name);
 
 
 //! A helper class to handle files.
@@ -135,7 +133,7 @@ class file
         //! Read the file with the given file_name
         /*! \param file_name The file name of the text to read.
          *  \param c A char pointer which will point to the text that was read.
-         *           New memory is allocated for the text. So free c if read_text
+         *           New memory is allocated for the text. So free c if `read_text`
          *           was successful and c is not needed anymore.
          *  \param trunc Indicated if the file should be truncated.
          *  \param lim Maximal number of bytes which are read when trunc is true.

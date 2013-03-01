@@ -21,6 +21,7 @@
 #ifndef INCLUDED_SDSL_WT_RLMN
 #define INCLUDED_SDSL_WT_RLMN
 
+#include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "sd_vector.hpp"  // for standard initialisation of template parameters 
 #include "bitmagic.hpp"
@@ -79,7 +80,8 @@ class wt_rlmn
         typedef RankSupport				rank_support_type;
         typedef SelectSupport           select_support_type;
         typedef WaveletTree             wt_type;
-
+		typedef wt_tag					index_category;
+		typedef byte_alphabet_tag		alphabet_category;
     private:
         size_type 				m_size;         // size of the original input sequence
         bit_vector_type			m_bl;	        // bit vector which indicates the starts of runs in
@@ -115,40 +117,30 @@ class wt_rlmn
         }
 
     public:
-
         const size_type& sigma;
 
         // Default constructor
         wt_rlmn():m_size(0), sigma(m_wt.sigma) {};
 
-
-
-        //! Constructor
-        /*!
+        // Construct the wavelet tree from a random access container
+        /*
          *	\param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
          *	\param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
          *	\par Time complexity
          *		\f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
         wt_rlmn(const unsigned char* rac, size_type size):m_size(size), sigma(m_wt.sigma) {
-            // TODO
+            // TODO: Delegate this to the file_buffer constructor using a wrapper for the file_buffer
             std::cerr << "ERROR: Constructor of wt_rlmn not implemented yet!!!" << std::endl;
             throw std::logic_error("This constructor of wt_rlmn is not yet implemented!");
         }
 
-        template<class size_type_class>
-        wt_rlmn(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), sigma(m_wt.sigma) {
-            construct(rac, size);
-        }
-
-        //! Construct the wavelet tree from a random access container
-        /*! \param rac A random access container
-         *	\param size The length of the prefix of the random access container, for which the wavelet tree should be build
+        //! Construct the wavelet tree from a file_buffer
+        /*! \param text_buf	A int_vector_file_buffer to the original text.
+         *	\param size The length of the prefix of the text, for which the wavelet tree should be build.
          */
-        template<class size_type_class>
-        void construct(int_vector_file_buffer<8, size_type_class>& rac, size_type size) {
-            m_size = size;
-            typedef size_type_class size_type;
+        wt_rlmn(int_vector_file_buffer<8>& text_buf, size_type size):m_size(size), sigma(m_wt.sigma) {
+			// TODO: remove absolute file name
             std::string temp_file = "tmp_wt_rlmn_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
             std::ofstream wt_out(temp_file.c_str(), std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
@@ -157,14 +149,14 @@ class wt_rlmn
                 // scope for bl and bf
                 bit_vector bl = bit_vector(size, 0);
                 m_C  = int_vector<64>(256, 0);
-                rac.reset();
+                text_buf.reset();
                 uint8_t last_c = '\0';
                 for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
                     if (r_sum + r > size) {  // read not more than size chars in the next loop
                         r = size-r_sum;
                     }
                     for (; i < r+r_sum; ++i) {
-                        uint8_t c = rac[i-r_sum];
+                        uint8_t c = text_buf[i-r_sum];
                         if (last_c != c or i==0) {
                             bl[i] = 1;
                             wt_out.write((char*)&c, sizeof(c));
@@ -174,7 +166,7 @@ class wt_rlmn
                         last_c = c;
                     }
                     r_sum += r;
-                    r = rac.load_next_block();
+                    r = text_buf.load_next_block();
                 }
 
                 wt_out.seekp(0, std::ios::beg);
@@ -190,25 +182,24 @@ class wt_rlmn
                 int_vector<64> lf_map = m_C;
                 bit_vector bf = bit_vector(size+1, 0);
                 bf[size] = 1; // initialize last element
-                rac.reset();
+                text_buf.reset();
                 for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
                     if (r_sum + r > size) {  // read not more than size chars in the next loop
                         r = size-r_sum;
                     }
                     for (; i < r+r_sum; ++i) {
-                        uint8_t c = rac[i-r_sum];
+                        uint8_t c = text_buf[i-r_sum];
                         if (bl[i]) {
                             bf[lf_map[c]] = 1;
                         }
                         ++lf_map[c];
                     }
                     r_sum += r;
-                    r = rac.load_next_block();
+                    r = text_buf.load_next_block();
                 }
                 {
-                    int_vector_file_buffer<8, size_type> temp_bwt_buf(temp_file.c_str());
-                    m_wt.construct(temp_bwt_buf, temp_bwt_buf.int_vector_size);
-
+                    int_vector_file_buffer<8> temp_bwt_buf(temp_file.c_str());
+					util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
                 }
                 util::assign(m_bl, bl);
                 util::assign(m_bf, bf);
@@ -289,8 +280,8 @@ class wt_rlmn
         //! Calculates how many symbols c are in the prefix [0..i-1] of the supported vector.
         /*!
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
-         *  \param c The symbol to count the occurences in the prefix.
-         *	\return The number of occurences of symbol c in the prefix [0..i-1] of the supported vector.
+         *  \param c The symbol to count the occurrences in the prefix.
+         *	\return The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
          *  \par Time complexity
          *		\f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order entropy of
          *      the sequence
@@ -310,21 +301,21 @@ class wt_rlmn
             }
         };
 
-        //! Calculates how many occurences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
+        //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
         /*!
          *	\param i The index of the symbol.
          *  \param c Reference that will contain the symbol at position i after the execution of the method.
-         *  \return The number of occurences of symbol wt[i] in the prefix [0..i-1]
+         *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
          *	\par Time complexity
          *		\f$ \Order{H_0} \f$
          */
-        size_type rank_ith_symbol(size_type i, value_type& c)const {
+        size_type inverse_select(size_type i, value_type& c)const {
             if (i == 0) {
                 c = m_wt[0];
                 return 0;
             }
             size_type wt_ex_pos = m_bl_rank(i+1);
-            size_type c_runs = m_wt.rank_ith_symbol(wt_ex_pos-1, c)+1;
+            size_type c_runs = m_wt.inverse_select(wt_ex_pos-1, c)+1;
             if (c_runs == 0)
                 return 0;
             if (m_wt[wt_ex_pos-1] == c) {
@@ -335,9 +326,9 @@ class wt_rlmn
             }
         }
 
-        //! Calculates the ith occurence of the symbol c in the supported vector.
+        //! Calculates the ith occurrence of the symbol c in the supported vector.
         /*!
-         *  \param i The ith occurence. \f$i\in [1..rank(size(),c)]\f$.
+         *  \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
          *  \param c The symbol c.
          *  \par Time complexity
          *		\f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order
@@ -379,12 +370,6 @@ class wt_rlmn
             m_bf_select.load(in, &m_bf);
             m_C.load(in);
             m_C_bf_rank.load(in);
-        }
-
-        void print_info()const {
-            std::cout<<"# m_wt.size in MB="<<util::get_size_in_bytes(m_wt)/(1024.0*1024.0)<<std::endl;
-            std::cout<<"# m_bf.size in MB="<<util::get_size_in_bytes(m_bf)/(1024.0*1024.0)<<std::endl;
-            std::cout<<"# m_bl.size in MB="<<util::get_size_in_bytes(m_bl)/(1024.0*1024.0)<<std::endl;
         }
 };
 

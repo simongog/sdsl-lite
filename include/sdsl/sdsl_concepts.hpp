@@ -24,14 +24,21 @@
 namespace sdsl
 {
 
-struct csa_tag {};
+struct csa_tag {}; // compressed suffix array (CSAs) tag
+struct cst_tag {}; // compressed suffix tree (CST) tag
+struct wt_tag {};  // wavelet tree tag
 
-struct cst_tag {};
+struct psi_tag{}; // tag for CSAs based on the psi function
+struct lf_tag{};  // tag for CSAs based on the LF function
 
 struct lcp_plain_tag {};
 struct lcp_permuted_tag {};
 struct lcp_tree_compressed_tag {};
 struct lcp_tree_and_lf_compressed_tag {};
+
+
+struct byte_alphabet_tag{};
+struct int_alphabet_tag{};
 
 } // end namespace sdsl
 

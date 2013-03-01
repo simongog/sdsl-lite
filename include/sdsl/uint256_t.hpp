@@ -38,19 +38,16 @@ class uint256_t
         uint128_t m_high;
 
     public:
-        uint256_t(uint64_t lo=0, uint64_t mid=0,
-                  uint128_t high=0):m_lo(lo),
-            m_mid(mid),
-            m_high(high) {}
+        inline uint256_t(uint64_t lo=0, uint64_t mid=0, uint128_t high=0):m_lo(lo), m_mid(mid), m_high(high) {}
 
-        uint256_t(const uint256_t& x):m_lo(x.m_lo), m_mid(x.m_mid), m_high(x.m_high) {}
+        inline uint256_t(const uint256_t& x):m_lo(x.m_lo), m_mid(x.m_mid), m_high(x.m_high) {}
 
-        uint16_t popcount() {
+        inline uint16_t popcount() {
             return ((uint16_t)bit_magic::b1Cnt(m_lo)) + bit_magic::b1Cnt(m_mid)
                    + bit_magic::b1Cnt(m_high>>64) + bit_magic::b1Cnt(m_high);
         }
 
-        uint16_t l1BP() {
+        inline uint16_t l1BP() {
             if (m_high == 0) {
                 if (m_mid) {
                     return bit_magic::l1BP(m_mid) + 64;
@@ -67,7 +64,7 @@ class uint256_t
             }
         }
 
-        uint16_t select(uint32_t i) {
+        inline uint16_t select(uint32_t i) {
             uint16_t x = 0;
             if ((x=bit_magic::b1Cnt(m_lo)) >= i) {
                 return bit_magic::i1BP(m_lo, i);
@@ -86,7 +83,7 @@ class uint256_t
             return bit_magic::i1BP(hh, i) + 192;
         }
 
-        uint256_t& operator+=(const uint256_t& x) {
+        inline uint256_t& operator+=(const uint256_t& x) {
             uint128_t lo = (uint128_t)m_lo + x.m_lo;
             uint128_t mid = (uint128_t)m_mid + x.m_mid + (lo >> 64);
             m_lo = lo; m_mid = mid;
@@ -95,20 +92,20 @@ class uint256_t
 //			return uint256_t(lo, mid, m_high + x.m_high + (mid >> 64));
         }
 
-        uint256_t operator+(uint256_t x) {
-            uint128_t lo = (uint128_t)m_lo + x.m_lo;
+        inline uint256_t operator+(const uint256_t& x) {
+            uint128_t lo = ((uint128_t)m_lo) + x.m_lo;
             uint128_t mid = (uint128_t)m_mid + x.m_mid + (lo >> 64);
             return uint256_t(lo, mid, m_high + x.m_high + (mid >> 64));
         }
 
-        uint256_t operator-(uint256_t x) {
+        inline uint256_t operator-(const uint256_t& x) {
 //			add two's complement of x
             uint128_t lo = (uint128_t)m_lo + (~x.m_lo) + 1;
             uint128_t mid = (uint128_t)m_mid + (~x.m_mid) + (lo >> 64);
             return uint256_t(lo, mid, m_high + (~x.m_high) + (mid >> 64));
         }
 
-        uint256_t& operator-=(const uint256_t& x) {
+        inline uint256_t& operator-=(const uint256_t& x) {
 //			add two's complement of x
             uint128_t lo = (uint128_t)m_lo + (~x.m_lo) + 1;
             uint128_t mid = (uint128_t)m_mid + (~x.m_mid) + (lo >> 64);
@@ -119,16 +116,16 @@ class uint256_t
         }
 
 
-        uint256_t operator|(const uint256_t& x) {
+        inline uint256_t operator|(const uint256_t& x) {
             return uint256_t(m_lo|x.m_lo, m_mid|x.m_mid, m_high|x.m_high);
         }
 
-        uint256_t& operator|=(const uint256_t& x) {
+        inline uint256_t& operator|=(const uint256_t& x) {
             m_lo |= x.m_lo; m_mid |= x.m_mid; m_high |= x.m_high;
             return *this;
         }
 
-        uint256_t operator&(const uint256_t& x) {
+        inline uint256_t operator&(const uint256_t& x) {
             return uint256_t(m_lo&x.m_lo, m_mid&x.m_mid, m_high&x.m_high);
         }
         /* // is not needed since we can convert uint256_t to uint64_t
@@ -137,7 +134,7 @@ class uint256_t
         		}
         */
 
-        uint256_t operator<<(int x) {
+        inline uint256_t operator<<(int x) {
             if (x < 128) {
                 uint128_t high = m_high << x;
                 uint128_t low  = (((uint128_t)m_mid<<64) | m_lo);
@@ -150,7 +147,7 @@ class uint256_t
             }
         }
 
-        uint256_t operator>>(int x) {
+        inline uint256_t operator>>(int x) {
             if (x < 128) {
                 uint128_t low  = (((uint128_t)m_mid<<64) | m_lo) >> x;
                 low |= ((m_high << (127-x))<<1);
@@ -161,22 +158,22 @@ class uint256_t
             }
         }
 
-        uint256_t& operator=(const uint64_t& x) {
+        inline uint256_t& operator=(const uint64_t& x) {
             m_high = 0;
             m_mid = 0;
             m_lo = x;
             return *this;
         }
 
-        bool operator==(const uint256_t& x) const {
-            return (m_lo == x.m_lo) and(m_mid == x.m_mid) and(m_high == x.m_high);
+        inline bool operator==(const uint256_t& x) const {
+            return (m_lo == x.m_lo) and (m_mid == x.m_mid) and (m_high == x.m_high);
         }
 
-        bool operator!=(const uint256_t& x) const {
+        inline bool operator!=(const uint256_t& x) const {
             return !(*this == x);
         }
 
-        bool operator>=(const uint256_t& x) const {
+        inline bool operator>=(const uint256_t& x) const {
             if (m_high != x.m_high) {
                 return m_high > x.m_high;
             }
@@ -187,7 +184,7 @@ class uint256_t
             }
         }
 
-        bool operator<=(const uint256_t& x) const {
+        inline bool operator<=(const uint256_t& x) const {
             if (m_high != x.m_high) {
                 return m_high < x.m_high;
             }
@@ -198,7 +195,7 @@ class uint256_t
             }
         }
 
-        bool operator>(const uint256_t& x) const {
+        inline bool operator>(const uint256_t& x) const {
             if (m_high != x.m_high) {
                 return m_high > x.m_high;
             }
@@ -209,14 +206,14 @@ class uint256_t
             }
         }
 
-        bool operator>(const uint64_t& x) const {
+        inline bool operator>(const uint64_t& x) const {
             if (m_high > 0 or m_mid > 0) {
                 return true;
             }
             return m_lo > x;
         }
 
-        bool operator<(const uint256_t& x) const {
+        inline bool operator<(const uint256_t& x) const {
             if (m_high != x.m_high) {
                 return m_high < x.m_high;
             }
@@ -227,23 +224,12 @@ class uint256_t
             }
         }
 
-        operator uint64_t() {
+        inline operator uint64_t() {
             return m_lo;
         }
 };
 
-inline
-std::ostream& operator<<(std::ostream& os, const uint256_t& x)
-{
-    uint64_t X[4] = {(uint64_t)(x.m_high >> 64), (uint64_t)x.m_high, x.m_mid, x.m_lo};
-    for (int j=0; j < 4; ++j) {
-        for (int i=0; i < 16; ++i) {
-            os << std::hex << ((X[j]>>60)&0xFULL) << std::dec;
-            X[j] <<= 4;
-        }
-    }
-    return os;
-}
+std::ostream& operator<<(std::ostream& os, const uint256_t& x);
 
 } // end namespace
 

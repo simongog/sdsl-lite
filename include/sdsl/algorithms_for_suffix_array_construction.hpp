@@ -23,10 +23,8 @@
 #ifndef INCLUDED_SDSL_ALGORITHMS_FOR_SUFFIX_ARRAY_CONSTRUCTION
 #define INCLUDED_SDSL_ALGORITHMS_FOR_SUFFIX_ARRAY_CONSTRUCTION
 
+#include "config.hpp"
 #include "int_vector.hpp"
-
-#cmakedefine divsufsort_FOUND
-#cmakedefine divsufsort64_FOUND
 
 #ifdef divsufsort_FOUND
 	#include "divsufsort.h"

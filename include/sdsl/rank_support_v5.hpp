@@ -22,14 +22,13 @@
 #define INCLUDED_SDSL_RANK_SUPPORT_VFIVE
 
 #include "rank_support.hpp"
-#include "rank_support_v.hpp"
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
 
 template<uint8_t, uint8_t>
-struct rank_support_v_trait;
+struct rank_support_trait;
 
 //! A class supporting rank queries in constant time. The implementation is a space saving version of the data structure proposed by Vigna (WEA 2008).
 /*! \par Space complexity
@@ -56,7 +55,6 @@ class rank_support_v5 : public rank_support
         explicit rank_support_v5(const bit_vector* v = NULL);
         rank_support_v5(const rank_support_v5& rs);
         ~rank_support_v5();
-        void init(const bit_vector* v=NULL);
         const size_type rank(size_type idx) const;
         const size_type operator()(size_type idx)const;
         const size_type size()const;
@@ -73,38 +71,16 @@ class rank_support_v5 : public rank_support
          *  Required for the Container Concept of the STL.
          */
         void swap(rank_support_v5& rs);
-        //! Equality Operator
-        /*! Two rank_support_v5s are equal if all member variables are equal.
-         *
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator!=
-         */
-        bool operator==(const rank_support_v5& rs)const;
-        //! Unequality Operator
-        /*! Two rank_support_v5s are not equal if any member variable are not equal.
-         *
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator==
-         */
-        bool operator!=(const rank_support_v5& rs)const;
 };
 
 template<uint8_t b, uint8_t pattern_len>
-inline rank_support_v5<b, pattern_len>::rank_support_v5(const bit_vector* v)
-{
-    init(v);
-}
-
-template<uint8_t b, uint8_t pattern_len>
-inline rank_support_v5<b, pattern_len>::rank_support_v5(const rank_support_v5& rs)
-{
+inline rank_support_v5<b, pattern_len>::rank_support_v5(const rank_support_v5& rs) {
     m_v = rs.m_v;
     m_basic_block = rs.m_basic_block;
 }
 
 template<uint8_t b, uint8_t pattern_len>
-inline void rank_support_v5<b, pattern_len>::init(const bit_vector* v)
-{
+rank_support_v5<b, pattern_len>::rank_support_v5(const bit_vector* v) {
     set_vector(v);
     if (v == NULL) {
         return;
@@ -121,8 +97,8 @@ inline void rank_support_v5<b, pattern_len>::init(const bit_vector* v)
     m_basic_block[0] = m_basic_block[1] = 0;
 //	uint64_t carry = 0;
 
-    uint64_t carry = rank_support_v_trait<b, pattern_len>::init_carry();
-    uint64_t sum = rank_support_v_trait<b, pattern_len>::args_in_the_word(*data, carry), second_level_cnt = 0;
+    uint64_t carry = rank_support_trait<b, pattern_len>::init_carry();
+    uint64_t sum = rank_support_trait<b, pattern_len>::args_in_the_word(*data, carry), second_level_cnt = 0;
     uint64_t cnt_words=1;
     for (i = 1; i < (m_v->capacity()>>6) ; ++i, ++cnt_words) {
         if (cnt_words == 32) {
@@ -134,7 +110,7 @@ inline void rank_support_v5<b, pattern_len>::init(const bit_vector* v)
             // pack the prefix sum for each 6x64bit block into the second_level_cnt
             second_level_cnt |= sum<<(60-12*(cnt_words/6));//  48, 36, 24, 12, 0
         }
-        sum += rank_support_v_trait<b, pattern_len>::args_in_the_word(*(++data), carry);
+        sum += rank_support_trait<b, pattern_len>::args_in_the_word(*(++data), carry);
     }
 
     if ((cnt_words%6)==0) {
@@ -156,14 +132,14 @@ inline const typename rank_support_v5<b, pattern_len>::size_type rank_support_v5
 {
     const uint64_t* p = m_basic_block.data() + ((idx>>10)&0xFFFFFFFFFFFFFFFEULL);// (idx/2048)*2
     size_type result = *p + ((*(p+1)>>(60-12*((idx&0x7FF)/(64*6))))&0x7FFULL)+     // ( prefix sum of the 6x64bit blocks | (idx%2048)/(64*6)  )
-                       rank_support_v_trait<b, pattern_len>::word_rank(m_v->data(), idx);
+                       rank_support_trait<b, pattern_len>::word_rank(m_v->data(), idx);
 //	std::cerr<<"idx="<<idx<<std::endl;
     idx -= (idx&0x3F);
 //	uint32_t to_do = ((idx>>6)&0x1FULL)%6;
     uint8_t to_do = ((idx>>6)&0x1FULL)%6;
     --idx;
     while (to_do) {
-        result +=	rank_support_v_trait<b, pattern_len>::full_word_rank(m_v->data(), idx);
+        result +=	rank_support_trait<b, pattern_len>::full_word_rank(m_v->data(), idx);
         --to_do;
         idx-=64;
     }
@@ -174,8 +150,7 @@ inline const typename rank_support_v5<b, pattern_len>::size_type rank_support_v5
 
 
 template<uint8_t b, uint8_t pattern_len>
-inline const typename rank_support_v5<b, pattern_len>::size_type rank_support_v5<b, pattern_len>::operator()(size_type idx)const
-{
+inline const typename rank_support_v5<b, pattern_len>::size_type rank_support_v5<b, pattern_len>::operator()(size_type idx)const {
     return rank(idx);
 }
 
@@ -183,21 +158,18 @@ template<uint8_t b, uint8_t pattern_len>
 inline rank_support_v5<b, pattern_len>::~rank_support_v5() {}
 
 template<uint8_t b, uint8_t pattern_len>
-inline void rank_support_v5<b, pattern_len>::set_vector(const bit_vector* v)
-{
+inline void rank_support_v5<b, pattern_len>::set_vector(const bit_vector* v) {
     m_v = v;
 }
 
 
 template<uint8_t b, uint8_t pattern_len>
-inline const typename rank_support_v5<b,pattern_len>::size_type rank_support_v5<b, pattern_len>::size()const
-{
+inline const typename rank_support_v5<b,pattern_len>::size_type rank_support_v5<b, pattern_len>::size()const {
     return m_v->size();
 }
 
 template<uint8_t b, uint8_t pattern_len>
-inline typename rank_support_v5<b, pattern_len>::size_type rank_support_v5<b, pattern_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
-{
+typename rank_support_v5<b, pattern_len>::size_type rank_support_v5<b, pattern_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
     size_type written_bytes = 0;
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     written_bytes += m_basic_block.serialize(out, child, "cumulative_counts");
@@ -206,16 +178,14 @@ inline typename rank_support_v5<b, pattern_len>::size_type rank_support_v5<b, pa
 }
 
 template<uint8_t b, uint8_t pattern_len>
-inline void rank_support_v5<b, pattern_len>::load(std::istream& in, const bit_vector* v)
-{
+void rank_support_v5<b, pattern_len>::load(std::istream& in, const bit_vector* v) {
     set_vector(v);
     assert(m_v != NULL); // supported bit vector should be known
     m_basic_block.load(in);
 }
 
 template<uint8_t b, uint8_t pattern_len>
-inline rank_support_v5<b, pattern_len>& rank_support_v5<b, pattern_len>::operator=(const rank_support_v5& rs)
-{
+rank_support_v5<b, pattern_len>& rank_support_v5<b, pattern_len>::operator=(const rank_support_v5& rs) {
     if (this != &rs) {
         set_vector(rs.m_v);
         m_basic_block = rs.m_basic_block;
@@ -224,26 +194,10 @@ inline rank_support_v5<b, pattern_len>& rank_support_v5<b, pattern_len>::operato
 }
 
 template<uint8_t b, uint8_t pattern_len>
-inline void rank_support_v5<b, pattern_len>::swap(rank_support_v5& rs)
-{
+inline void rank_support_v5<b, pattern_len>::swap(rank_support_v5& rs) {
     if (this != &rs) { // if rs and _this_ are not the same object
         m_basic_block.swap(rs.m_basic_block);
     }
-}
-
-// TODO: == operator remove pointer comparison
-template<uint8_t b, uint8_t pattern_len>
-inline bool rank_support_v5<b, pattern_len>::operator==(const rank_support_v5& rs)const
-{
-    if (this == &rs)
-        return true;
-    return m_basic_block == rs.m_basic_block and *(rs.m_v) == *m_v;
-}
-
-template<uint8_t b, uint8_t pattern_len>
-inline bool rank_support_v5<b, pattern_len>::operator!=(const rank_support_v5& rs)const
-{
-    return !(*this == rs);
 }
 
 }// end namespace sds

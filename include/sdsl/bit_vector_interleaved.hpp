@@ -91,6 +91,14 @@ class bit_vector_interleaved
 
     public:
         bit_vector_interleaved():m_size(0), m_totalBlocks(0), m_superblocks(0), m_blockShift(0) {}
+        bit_vector_interleaved(const bit_vector_interleaved& bv):m_size(0), m_totalBlocks(0), m_superblocks(0), m_blockShift(0) {
+			m_size = bv.m_size;
+			m_totalBlocks = bv.m_totalBlocks;
+			m_superblocks = bv.m_superblocks;
+			m_blockShift = bv.m_blockShift;
+			util::assign(m_data, bv.m_data);
+			util::assign(m_rank_samples, bv.m_rank_samples);
+		}
 
         bit_vector_interleaved(const bit_vector& bv):m_size(0), m_totalBlocks(0), m_superblocks(0), m_blockShift(0) {
             m_size = bv.size();
@@ -232,14 +240,10 @@ class rank_support_interleaved
     public:
 
         rank_support_interleaved(const bit_vector_type* v=NULL) {
-            init(v);
+            set_vector(v);
             m_blockShift = bit_magic::l1BP(blockSize);
             m_blockMask = blockSize - 1;
             m_blockSize_U64 = bit_magic::l1BP(blockSize>>6);
-        }
-
-        void init(const bit_vector_type* v=NULL) {
-            set_vector(v);
         }
 
         //! Returns the position of the i-th occurrence in the bit vector.
@@ -268,17 +272,6 @@ class rank_support_interleaved
         }
 
         void swap(rank_support_interleaved& rs) { }
-
-        bool operator==(const rank_support_interleaved& ss)const {
-            if (this == &ss)
-                return true;
-            return ss.m_v == m_v;
-        }
-
-        bool operator!=(const rank_support_interleaved& rs)const {
-            return !(*this == rs);
-        }
-
 
         void load(std::istream& in, const bit_vector_type* v=NULL) {
             set_vector(v);
@@ -316,6 +309,7 @@ class select_support_interleaved
             //            m_data[ pos(rb) ] >= i, initial since i < rank(size())
             while (lb < rb) {
                 size_type mid = (lb+rb)/2; // select mid \in [lb..rb)
+#ifndef NOSELCACHE
                 if (idx < m_v->m_rank_samples.size()) {
                     if (m_v->m_rank_samples[idx] >= i) {
                         idx = (idx<<1) + 1;
@@ -325,6 +319,7 @@ class select_support_interleaved
                         lb = mid + 1;
                     }
                 } else {
+#endif
                     size_type pos = (mid << m_blockSize_U64) + mid;
 //                                  ^^^^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^
 //                                    data blocks to jump      superblock position
@@ -333,7 +328,9 @@ class select_support_interleaved
                     } else {
                         lb = mid + 1;
                     }
+#ifndef NOSELCACHE
                 }
+#endif
             }
             res = (rb-1) << m_blockShift;
             /* iterate in 64 bit steps */
@@ -361,6 +358,7 @@ class select_support_interleaved
             //            m_data[ pos(rb) ] >= i, initial since i < rank(size())
             while (lb < rb) {
                 size_type mid = (lb+rb)/2; // select mid \in [lb..rb)
+#ifndef NOSELCACHE
                 if (idx < m_v->m_rank_samples.size()) {
                     if (((mid << m_blockShift) - m_v->m_rank_samples[idx]) >= i) {
                         idx = (idx<<1) + 1;
@@ -370,6 +368,7 @@ class select_support_interleaved
                         lb = mid + 1;
                     }
                 } else {
+#endif
                     size_type pos = (mid << m_blockSize_U64) + mid;
 //                                  ^^^^^^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^
 //                                    data blocks to jump      superblock position
@@ -378,7 +377,9 @@ class select_support_interleaved
                     } else {
                         lb = mid + 1;
                     }
+#ifndef NOSELCACHE
                 }
+#endif
             }
             res = (rb-1) << m_blockShift;
 
@@ -400,14 +401,10 @@ class select_support_interleaved
     public:
 
         select_support_interleaved(const bit_vector_type* v=NULL) {
-            init(v);
-        }
-
-
-        void init(const bit_vector_type* v=NULL) {
             set_vector(v);
             m_blockShift = bit_magic::l1BP(blockSize);
             m_blockSize_U64 = bit_magic::l1BP(blockSize>>6);
+
         }
 
         //! Returns the position of the i-th occurrence in the bit vector.
@@ -436,17 +433,6 @@ class select_support_interleaved
         }
 
         void swap(select_support_interleaved& rs) { }
-
-        bool operator==(const select_support_interleaved& ss)const {
-            if (this == &ss)
-                return true;
-            return ss.m_v == m_v;
-        }
-
-        bool operator!=(const select_support_interleaved& rs)const {
-            return !(*this == rs);
-        }
-
 
         void load(std::istream& in, const bit_vector_type* v=NULL) {
             set_vector(v);

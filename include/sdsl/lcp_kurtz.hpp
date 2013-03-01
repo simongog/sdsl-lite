@@ -90,8 +90,7 @@ class lcp_kurtz
     public:
         //! Default Constructor
         lcp_kurtz() {}
-        //! Default Destructor
-        ~lcp_kurtz() {}
+
         //! Copy constructor
         lcp_kurtz(const lcp_kurtz& lcp_c) {
             copy(lcp_c);
@@ -102,14 +101,8 @@ class lcp_kurtz
         lcp_kurtz(const Text& text, const Sa& sa);
 
         //! Construct the lcp array from an int_vector_file_buffer
-        template<uint8_t int_width, class size_type_class>
-        lcp_kurtz(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
-
-        template<class Text, class Sa>
-        void construct(const Text& text, const Sa& sa);
-
-        template<uint8_t int_width, class size_type_class>
-        void construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
+        template<uint8_t int_width>
+        lcp_kurtz(int_vector_file_buffer<int_width>& lcp_buf);
 
         //! Number of elements in the instance.
         /*! Required for the Container Concept of the STL.
@@ -171,22 +164,6 @@ class lcp_kurtz
          */
         lcp_kurtz& operator=(const lcp_kurtz& lcp_c);
 
-        //! Equality Operator
-        /*! Two Instances of lcp_kurtz are equal if
-         *  all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator!=
-         */
-        bool operator==(const lcp_kurtz& lcp_c)const;
-
-        //! Unequality Operator
-        /*! Two Instances of lcp_kurtz are equal if
-         *  not all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator==
-         */
-        bool operator!=(const lcp_kurtz& lcp_c)const;
-
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
@@ -203,15 +180,7 @@ class lcp_kurtz
 
 template<uint8_t width>
 template<class Text, class Sa>
-lcp_kurtz<width>::lcp_kurtz(const Text& text, const Sa& sa)
-{
-    construct(text, sa);
-}
-
-template<uint8_t width>
-template<class Text, class Sa>
-void lcp_kurtz<width>::construct(const Text& text, const Sa& sa)
-{
+lcp_kurtz<width>::lcp_kurtz(const Text& text, const Sa& sa) {
     if (sa.size() == 0) {
         return;
     }
@@ -250,16 +219,8 @@ void lcp_kurtz<width>::construct(const Text& text, const Sa& sa)
 
 
 template<uint8_t width>
-template<uint8_t int_width, class size_type_class>
-lcp_kurtz<width>::lcp_kurtz(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
-{
-    construct(lcp_buf);
-}
-
-template<uint8_t width>
-template<uint8_t int_width, class size_type_class>
-void lcp_kurtz<width>::construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
-{
+template<uint8_t int_width>
+lcp_kurtz<width>::lcp_kurtz(int_vector_file_buffer<int_width>& lcp_buf) {
     m_small_lcp = int_vector<8>(lcp_buf.int_vector_size);
     typename int_vector<>::size_type l=0, max_l=0, max_big_idx=0, big_sum=0;
     lcp_buf.reset();
@@ -296,16 +257,14 @@ void lcp_kurtz<width>::construct(int_vector_file_buffer<int_width, size_type_cla
 }
 
 template<uint8_t width>
-void lcp_kurtz<width>::swap(lcp_kurtz& lcp_c)
-{
+void lcp_kurtz<width>::swap(lcp_kurtz& lcp_c) {
     m_small_lcp.swap(lcp_c.m_small_lcp);
     m_big_lcp.swap(lcp_c.m_big_lcp);
     m_big_lcp_idx.swap(lcp_c.m_big_lcp_idx);
 }
 
 template<uint8_t width>
-inline typename lcp_kurtz<width>::value_type lcp_kurtz<width>::operator[](size_type i)const
-{
+inline typename lcp_kurtz<width>::value_type lcp_kurtz<width>::operator[](size_type i)const {
     if (m_small_lcp[i]!=255) {
         return m_small_lcp[i];
     } else {
@@ -316,8 +275,7 @@ inline typename lcp_kurtz<width>::value_type lcp_kurtz<width>::operator[](size_t
 
 
 template<uint8_t width>
-typename lcp_kurtz<width>::size_type lcp_kurtz<width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
-{
+typename lcp_kurtz<width>::size_type lcp_kurtz<width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
     written_bytes += m_small_lcp.serialize(out, child, "small_lcp");
@@ -328,8 +286,7 @@ typename lcp_kurtz<width>::size_type lcp_kurtz<width>::serialize(std::ostream& o
 }
 
 template<uint8_t width>
-void lcp_kurtz<width>::load(std::istream& in)
-{
+void lcp_kurtz<width>::load(std::istream& in) {
     m_small_lcp.load(in);
     m_big_lcp.load(in);
     m_big_lcp_idx.load(in);
@@ -337,38 +294,20 @@ void lcp_kurtz<width>::load(std::istream& in)
 
 
 template<uint8_t width>
-lcp_kurtz<width>& lcp_kurtz<width>::operator=(const lcp_kurtz& lcp_c)
-{
+lcp_kurtz<width>& lcp_kurtz<width>::operator=(const lcp_kurtz& lcp_c) {
     if (this != &lcp_c) {
         copy(lcp_c);
     }
     return *this;
 }
 
-
 template<uint8_t width>
-bool lcp_kurtz<width>::operator==(const lcp_kurtz& lcp_c)const
-{
-    if (this == &lcp_c)
-        return true;
-    return m_small_lcp == lcp_c.m_small_lcp and m_big_lcp == lcp_c.m_big_lcp and m_big_lcp_idx == lcp_c.m_big_lcp_idx;
-}
-
-template<uint8_t width>
-bool lcp_kurtz<width>::operator!=(const lcp_kurtz& lcp_c)const
-{
-    return !(*this == lcp_c);
-}
-
-template<uint8_t width>
-typename lcp_kurtz<width>::const_iterator lcp_kurtz<width>::begin()const
-{
+typename lcp_kurtz<width>::const_iterator lcp_kurtz<width>::begin()const {
     return const_iterator(this, 0);
 }
 
 template<uint8_t width>
-typename lcp_kurtz<width>::const_iterator lcp_kurtz<width>::end()const
-{
+typename lcp_kurtz<width>::const_iterator lcp_kurtz<width>::end()const {
     return const_iterator(this, size());
 }
 

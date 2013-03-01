@@ -69,10 +69,6 @@ class enc_vector
         int_vector_type   m_sample_vals_and_pointer;
         size_type		  m_elements;    // number of elements
 
-        // workaround function for the constructor
-        void construct() {
-            m_elements = 0;
-        }
         void copy(const enc_vector& v);
 
         void clear() {
@@ -83,9 +79,7 @@ class enc_vector
 
     public:
         //! Default Constuctor
-        enc_vector() {
-            construct();
-        };
+        enc_vector() : m_elements(0) { }
         //! Copy constructor
         /*! \param v The enc_vector to copy.
           	Required for the Assignable Concept of the STL
@@ -97,27 +91,15 @@ class enc_vector
         	\pre No two adjacent values should be equal.
           */
         template<class Container>
-        enc_vector(const Container& c) {
-            construct();
-            init(c);
-        }
+        enc_vector(const Container& c);
 
         //! Constructor for an int_vector_file_buffer of positive integers.
         /*
             \param v_buf A int_vector_file_buf.
         	\pre No two adjacent values should be equal.
         */
-        template<uint8_t int_width, class size_type_class>
-        enc_vector(int_vector_file_buffer<int_width, size_type_class>& v_buf) {
-            construct();
-            init(v_buf);
-        }
-
-        template<class Container>
-        void init(const Container& c);
-
-        template<uint8_t int_width, class size_type_class>
-        void init(int_vector_file_buffer<int_width, size_type_class>& v_buf);
+        template<uint8_t int_width>
+        enc_vector(int_vector_file_buffer<int_width>& v_buf); 
 
         //! Default Destructor
         ~enc_vector() {
@@ -353,8 +335,7 @@ void enc_vector<Coder, SampleDens,fixedIntWidth>::swap(enc_vector<Coder, SampleD
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
 template<class Container>
-void enc_vector<Coder, SampleDens,fixedIntWidth>::init(const Container& c)
-{
+enc_vector<Coder, SampleDens,fixedIntWidth>::enc_vector(const Container& c) : m_elements(0) {
     // clear bit_vectors
     clear();
 
@@ -427,8 +408,8 @@ void enc_vector<Coder, SampleDens,fixedIntWidth>::init(const Container& c)
 
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-template<uint8_t int_width, class size_type_class>
-void enc_vector<Coder, SampleDens,fixedIntWidth>::init(int_vector_file_buffer<int_width, size_type_class>& v_buf)
+template<uint8_t int_width>
+enc_vector<Coder, SampleDens,fixedIntWidth>::enc_vector(int_vector_file_buffer<int_width>& v_buf) : m_elements(0)
 {
     // clear bit_vectors
     clear();

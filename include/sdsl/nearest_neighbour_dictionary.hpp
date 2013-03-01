@@ -74,8 +74,7 @@ class nearest_neighbour_dictionary
     public:
 
         //! Default constructor
-        nearest_neighbour_dictionary():m_ones(0),m_size(0) {
-        }
+        nearest_neighbour_dictionary():m_ones(0),m_size(0) { }
 
         //! Constructor
         /*! \param v The supported bit_vector.

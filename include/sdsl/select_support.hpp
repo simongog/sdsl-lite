@@ -55,14 +55,7 @@ class select_support
         select_support(const select_support& f_v);
         //! Destructor of select_support.
         virtual ~select_support() {};
-        //! Initalization method for select_support.
-        /*! Init takes no arguments and should be called
-        	before the first call to the select method if not
-        	  - load is called to initialize the select_support or
-        	  - the constructor is called with the pointer to the supported bit_vector.
-        	\sa select, load.
-         */
-        virtual void init(const int_vector<1>* v=NULL) = 0;
+
         //! Select returns the index of the i-th 1-bit in the supported bit_vector.
         /*!	\param i Argument to calculate the index of the i-th 1-bit in the supported bit_vector.
         	\return The index \f$\in [0..v.size()-1]\f$ of the i-th 1-bit in the supported bit_vector.
@@ -77,8 +70,6 @@ class select_support
         virtual size_type serialize(std::ostream& out, structure_tree_node* v, std::string name)const = 0;
         //! Load the select_support from an in file stream.
         /*!	Load an previously serialized select_support from a std::istream.
-            This method could replace the call of init before
-        	the first call of the select method.
         	\param in The std::istream to load the select_support.
         	\param v The bit_vector to be supported.
         	\sa init, select.
@@ -86,17 +77,149 @@ class select_support
         virtual void load(std::istream& in, const int_vector<1>* v=NULL) = 0;
 
         //! This method sets the supported bit_vector
-        /*! \note Call the init function before you call select
-         *   the first time after you changed the supported bit_vector.
-         */
         virtual void set_vector(const int_vector<1>* v=NULL) = 0;
 };
 
+
+template<uint8_t bit_pattern, uint8_t pattern_len>
+struct select_support_trait {
+    typedef select_support::size_type	size_type;
+
+    /* Count the number of arguments for the specific select support */
+    static size_type arg_cnt(const bit_vector&) { return 0; }
+
+    static size_type args_in_the_first_word(uint64_t, uint8_t, uint64_t) { return 0; }
+
+    static size_type ith_arg_pos_in_the_first_word(uint64_t, size_type, uint8_t, uint64_t) { return 0; }
+
+    static size_type args_in_the_word(uint64_t, uint64_t&) { return 0; }
+
+    static size_type ith_arg_pos_in_the_word(uint64_t, size_type, uint64_t) { return 0; }
+
+    static bool found_arg(size_type, const bit_vector&) { return 0; }
+
+    static uint64_t init_carry(const uint64_t*, size_type) { return 0; }
+
+    static uint64_t get_carry(uint64_t) { return 0; }
+};
+
+template<>
+struct select_support_trait<0,1> {
+    typedef select_support::size_type	size_type;
+
+    static size_type arg_cnt(const bit_vector& v) {
+        return v.bit_size()-util::get_one_bits(v);
+    }
+    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t) {
+        return bit_magic::b1Cnt((~w)& bit_magic::Li0Mask[offset]);
+    }
+    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t) {
+        return bit_magic::i1BP(~w & bit_magic::Li0Mask[offset], i);
+    }
+    static size_type args_in_the_word(uint64_t w, uint64_t&) {
+        return bit_magic::b1Cnt(~w);
+    }
+    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t) {
+        return bit_magic::i1BP(~w, i);
+    }
+    static bool found_arg(size_type i, const bit_vector& v) { return !v[i]; }
+    static uint64_t init_carry(const uint64_t*, size_type) { return 0; }
+    static uint64_t get_carry(uint64_t) { return 0; }
+};
+
+template<>
+struct select_support_trait<1,1> {
+    typedef select_support::size_type	size_type;
+
+    static size_type arg_cnt(const bit_vector& v) {
+        return util::get_one_bits(v);
+    }
+    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t) {
+        return bit_magic::b1Cnt(w & bit_magic::Li0Mask[offset]);
+    }
+    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t) {
+        return bit_magic::i1BP(w & bit_magic::Li0Mask[offset], i);
+    }
+    static size_type args_in_the_word(uint64_t w, uint64_t&) {
+        return bit_magic::b1Cnt(w);
+    }
+    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t) {
+        return bit_magic::i1BP(w, i);
+    }
+    static bool found_arg(size_type i, const bit_vector& v) { return v[i]; }
+    static uint64_t init_carry(const uint64_t*, size_type) { return 0; }
+    static uint64_t get_carry(uint64_t) { return 0; }
+};
+
+template<>
+struct select_support_trait<10,2> {
+    typedef select_support::size_type	size_type;
+
+    static size_type arg_cnt(const bit_vector& v) {
+        return util::get_onezero_bits(v);
+    }
+    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry) {
+        return bit_magic::b1Cnt(bit_magic::b10Map(w, carry) & bit_magic::Li0Mask[offset]);
+    }
+    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry) {
+        return bit_magic::i1BP(bit_magic::b10Map(w, carry) & bit_magic::Li0Mask[offset], i);
+    }
+    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
+        return bit_magic::b10Cnt(w, carry);
+    }
+    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry) {
+        return bit_magic::i1BP(bit_magic::b10Map(w, carry), i);
+    }
+    static bool found_arg(size_type i, const bit_vector& v) {
+        if (i > 0 and v[i-1] and !v[i])
+            return true;
+        return false;
+    }
+    static uint64_t init_carry(const uint64_t* data, size_type word_pos) {
+        return word_pos ? (*(data-1)>>63) : 0;
+    }
+    static uint64_t get_carry(uint64_t w) {
+        return w>>63;
+    }
+};
+
+template<>
+struct select_support_trait<01,2> {
+    typedef select_support::size_type	size_type;
+
+    static size_type arg_cnt(const bit_vector& v) {
+        return util::get_zeroone_bits(v);
+    }
+    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry) {
+        return bit_magic::b1Cnt(bit_magic::b01Map(w, carry) & bit_magic::Li0Mask[offset]);
+    }
+    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry) {
+        return bit_magic::i1BP(bit_magic::b01Map(w, carry) & bit_magic::Li0Mask[offset], i);
+    }
+    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
+        return bit_magic::b01Cnt(w, carry);
+    }
+    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry) {
+        return bit_magic::i1BP(bit_magic::b01Map(w, carry), i);
+    }
+    static bool found_arg(size_type i, const bit_vector& v) {
+        if (i > 0 and !v[i-1] and v[i])
+            return true;
+        return false;
+    }
+    static uint64_t init_carry(const uint64_t* data, size_type word_pos) {
+        return word_pos ? (*(data-1)>>63) : 1;
+    }
+    static uint64_t get_carry(uint64_t w) {
+        return w>>63;
+    }
+};
 
 } // end namespace sdsl
 
 #include "select_support_bs.hpp"
 #include "select_support_mcl.hpp"
+#include "select_support_scan.hpp"
 #include "select_support_dummy.hpp"
 
 #endif

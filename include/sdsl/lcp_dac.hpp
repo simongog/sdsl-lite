@@ -119,19 +119,16 @@ class lcp_dac
             // m_level_pointer_and_rank[2] contains the length of the LCP array
             m_level_pointer_and_rank = int_vector<64>(4,0);
         }
-        //! Default Destructor
-        ~lcp_dac() {}
+
         //! Copy constructor
         lcp_dac(const lcp_dac& lcp_c) {
             copy(lcp_c);
         }
 
         //! Construct the lcp array from an int_vector_file_buffer
-        template<uint8_t int_width, class size_type_class>
-        lcp_dac(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
+        template<uint8_t int_width>
+        lcp_dac(int_vector_file_buffer<int_width>& lcp_buf);
 
-        template<uint8_t int_width, class size_type_class>
-        void construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
 
         //! Number of elements in the instance.
         /*! Required for the Container Concept of the STL.
@@ -193,22 +190,6 @@ class lcp_dac
          */
         lcp_dac& operator=(const lcp_dac& lcp_c);
 
-        //! Equality Operator
-        /*! Two Instances of lcp_dac are equal if
-         *  all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator!=
-         */
-        bool operator==(const lcp_dac& lcp_c)const;
-
-        //! Unequality Operator
-        /*! Two Instances of lcp_dac are equal if
-         *  not all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator==
-         */
-        bool operator!=(const lcp_dac& lcp_c)const;
-
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
@@ -225,17 +206,9 @@ class lcp_dac
 
 
 template<uint8_t b, class rank_support_type>
-template<uint8_t int_width, class size_type_class>
-lcp_dac<b, rank_support_type>::lcp_dac(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
+template<uint8_t int_width>
+lcp_dac<b, rank_support_type>::lcp_dac(int_vector_file_buffer<int_width>& lcp_buf)
 {
-    construct(lcp_buf);
-}
-
-template<uint8_t b, class rank_support_type>
-template<uint8_t int_width, class size_type_class>
-void lcp_dac<b, rank_support_type>::construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
-{
-
 //  (1) Count for each level, how many blocks are needed for the representation
 //      Running time: \f$ O(n \times \frac{\log n}{b}  \f$
 //      Result is sorted in m_level_pointer_and_rank
@@ -326,8 +299,7 @@ void lcp_dac<b, rank_support_type>::construct(int_vector_file_buffer<int_width, 
 }
 
 template<uint8_t b, class rank_support_type>
-void lcp_dac<b, rank_support_type>::swap(lcp_dac& lcp_c)
-{
+void lcp_dac<b, rank_support_type>::swap(lcp_dac& lcp_c) {
     m_data.swap(lcp_c.m_data);
     m_overflow.swap(lcp_c.m_overflow);
     util::swap_support(m_overflow_rank, lcp_c.m_overflow_rank, &m_overflow, &(lcp_c.m_overflow));
@@ -337,8 +309,7 @@ void lcp_dac<b, rank_support_type>::swap(lcp_dac& lcp_c)
 }
 
 template<uint8_t b, class rank_support_type>
-inline typename lcp_dac<b, rank_support_type>::value_type lcp_dac<b, rank_support_type>::operator[](size_type i)const
-{
+inline typename lcp_dac<b, rank_support_type>::value_type lcp_dac<b, rank_support_type>::operator[](size_type i)const {
     uint8_t level = 1;
     uint8_t offset = b;
     size_type result = m_data[i];
@@ -357,8 +328,7 @@ inline typename lcp_dac<b, rank_support_type>::value_type lcp_dac<b, rank_suppor
 
 
 template<uint8_t b, class rank_support_type>
-typename lcp_dac<b, rank_support_type>::size_type lcp_dac<b, rank_support_type>::serialize(std::ostream& out, structure_tree_node* v, std::string name) const
-{
+typename lcp_dac<b, rank_support_type>::size_type lcp_dac<b, rank_support_type>::serialize(std::ostream& out, structure_tree_node* v, std::string name) const {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
     written_bytes += m_data.serialize(out, child, "data");
@@ -371,8 +341,7 @@ typename lcp_dac<b, rank_support_type>::size_type lcp_dac<b, rank_support_type>:
 }
 
 template<uint8_t b, class rank_support_type>
-void lcp_dac<b, rank_support_type>::load(std::istream& in)
-{
+void lcp_dac<b, rank_support_type>::load(std::istream& in) {
     m_data.load(in);
     m_overflow.load(in);
     m_overflow_rank.load(in, &m_overflow); // FIXED that at 2012-02-01 15:34
@@ -380,43 +349,21 @@ void lcp_dac<b, rank_support_type>::load(std::istream& in)
     util::read_member(m_max_level, in);
 }
 
-
 template<uint8_t b, class rank_support_type>
-lcp_dac<b, rank_support_type>& lcp_dac<b, rank_support_type>::operator=(const lcp_dac& lcp_c)
-{
+lcp_dac<b, rank_support_type>& lcp_dac<b, rank_support_type>::operator=(const lcp_dac& lcp_c) {
     if (this != &lcp_c) {
         copy(lcp_c);
     }
     return *this;
 }
 
-
 template<uint8_t b, class rank_support_type>
-bool lcp_dac<b, rank_support_type>::operator==(const lcp_dac& lcp_c)const
-{
-    if (this == &lcp_c)
-        return true;
-    return 	m_data == lcp_c.m_data and m_overflow == lcp_c.overflow
-            and m_overflow_rank == lcp_c.m_overflow_rank
-            and m_level_pointer_and_rank = lcp_c.m_level_pointer_and_rank
-                                           and m_max_level = lcp_c.m_max_level;
-}
-
-template<uint8_t b, class rank_support_type>
-bool lcp_dac<b, rank_support_type>::operator!=(const lcp_dac& lcp_c)const
-{
-    return !(*this == lcp_c);
-}
-
-template<uint8_t b, class rank_support_type>
-typename lcp_dac<b, rank_support_type>::const_iterator lcp_dac<b, rank_support_type>::begin()const
-{
+typename lcp_dac<b, rank_support_type>::const_iterator lcp_dac<b, rank_support_type>::begin()const {
     return const_iterator(this, 0);
 }
 
 template<uint8_t b, class rank_support_type>
-typename lcp_dac<b, rank_support_type>::const_iterator lcp_dac<b, rank_support_type>::end()const
-{
+typename lcp_dac<b, rank_support_type>::const_iterator lcp_dac<b, rank_support_type>::end()const {
     return const_iterator(this, size());
 }
 

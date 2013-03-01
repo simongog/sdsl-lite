@@ -92,22 +92,6 @@ class sorted_stack_support
         /*! Required for the Assignable Concept of the STL.
          */
         sorted_stack_support& operator=(const sorted_stack_support& sis);
-
-        //! Equality Operator
-        /*! Two sorted_stack_supports are equal if all member variables are equal.
-         *
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator!=
-         */
-        bool operator==(const sorted_stack_support& sis)const;
-        //! Unequality Operator
-        /*! Two sorted_stack_supports are not equal if any member variable are not equal.
-         *
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator==
-         */
-        bool operator!=(const sorted_stack_support& sis)const;
-
 };
 
 inline sorted_stack_support::sorted_stack_support(size_type n):m_n(n), m_cnt(0), m_top(0), m_stack()
@@ -130,16 +114,6 @@ inline sorted_stack_support& sorted_stack_support::operator=(const sorted_stack_
         m_stack 	= sis.m_stack;
     }
     return *this;
-}
-
-inline bool sorted_stack_support::operator==(const sorted_stack_support& sis)const
-{
-    return m_n == sis.m_n and m_cnt == sis.m_cnt and m_top == sis.m_top and m_stack == sis.m_stack;
-}
-
-inline bool sorted_stack_support::operator!=(const sorted_stack_support& sis)const
-{
-    return !(*this==sis);
 }
 
 inline const sorted_stack_support::size_type sorted_stack_support::top()const
