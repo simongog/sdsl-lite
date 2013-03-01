@@ -276,6 +276,7 @@ class wt_int_rlmn
          *      the sequence
          */
         value_type operator[](size_type i)const {
+			assert( i < size() );
             return m_wt[m_bl_rank(i+1)-1];
         };
 
@@ -289,6 +290,7 @@ class wt_int_rlmn
          *      the sequence
          */
         size_type rank(size_type i, value_type c)const {
+			assert( i <= size() );
             if (i == 0)
                 return 0;
             size_type wt_ex_pos = m_bl_rank(i);
@@ -312,6 +314,7 @@ class wt_int_rlmn
          *		\f$ \Order{H_0} \f$
          */
         size_type inverse_select(size_type i, value_type& c)const {
+			assert( i < size() );
             if (i == 0) {
                 c = m_wt[0];
                 return 0;
@@ -337,6 +340,8 @@ class wt_int_rlmn
          *      entropy of the sequence
          */
         size_type select(size_type i, value_type c)const {
+			assert( i > 0 );
+			assert( i <= rank(size(), c) );
             size_type c_runs = m_bf_rank(m_C[c]+i) - m_C_bf_rank[c];
             size_type offset = m_C[c] + i - 1 - m_bf_select(c_runs + m_C_bf_rank[c]);
             return m_bl_select(m_wt.select(c_runs, c)+1) + offset;

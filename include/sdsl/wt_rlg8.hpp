@@ -304,6 +304,7 @@ class wt_rlg8
          *      the sequence and \f$L\f$ the maximal length of a run in the sequence.
          */
         value_type operator[](size_type i)const {
+			assert( i < size() );
             size_type level = 0;
             while (m_b[(i>>3) + m_b_border[level]]) {
                 i = m_b_rank((i>>3) + m_b_border[level]) - m_b_border_rank[level];
@@ -323,6 +324,7 @@ class wt_rlg8
          *      the sequence and \f$L\f$ the maximal length of a run of \f$c\f$s in the sequence.
          */
         size_type rank(size_type i, value_type c)const {
+			assert( i <= size() );
             value_type cc    = m_char2comp[c];
             if (((size_type)cc) >= m_char_occ.size()) { // char does not occur
                 return 0;
@@ -373,6 +375,7 @@ class wt_rlg8
          *		\f$ \Order{H_0 \log L} \f$
          */
         size_type inverse_select(size_type i, value_type& c)const {
+			assert( i < size() );
             return rank(i, c=(*this)[i]);
         }
 
@@ -386,6 +389,8 @@ class wt_rlg8
          *      of \f$c\f$s in the sequence.
          */
         size_type select(size_type i, value_type c)const {
+			assert( i > 0 );
+			assert( i <= rank(size(), c) );
             if (((size_type)m_char2comp[c]) >= m_char_occ.size()) { // char does not occur
                 return size();
             }
