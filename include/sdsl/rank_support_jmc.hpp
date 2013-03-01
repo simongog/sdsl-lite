@@ -127,6 +127,8 @@ inline rank_support_jmc::rank_support_jmc(const int_vector<1>* v) {
 }
 
 inline const rank_support_jmc::size_type rank_support_jmc::rank(size_type idx)const {
+	assert( m_v != NULL );
+	assert( idx <= m_v->size() );
     if ((idx & 0x3F) ==0)
         return m_blockrank[idx>>6]
                + m_superblockrank[idx>>12];

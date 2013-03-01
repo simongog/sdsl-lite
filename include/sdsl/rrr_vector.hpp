@@ -362,6 +362,8 @@ class rrr_rank_support
         		\f$ \Order{ sample\_rate of the rrr\_vector} \f$
         */
         const size_type rank(size_type i)const {
+			assert( m_v != NULL );
+			assert( i <= m_v->size() );
             size_type bt_idx = i/block_size;
             size_type sample_pos = bt_idx/m_sample_rate;
             size_type btnrp = m_v->m_btnrp[ sample_pos ];
