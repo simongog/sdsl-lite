@@ -61,7 +61,7 @@ namespace sdsl
  *
  *  @ingroup bps
  */
-template<class NearestNeighbourDictionary = nearest_neighbour_dictionary<30>,
+template<class NearestNeighbourDictionary = nearest_neighbour_dictionary<30>, // TODO: make it possible that also rrr_vector can be used
          class RankSupport = rank_support_v<>,
          class SelectSupport = select_support_mcl<> >
 class bp_support_gg
@@ -134,10 +134,8 @@ class bp_support_gg
             util::init_support(m_select_bp, bp);
             {
                 bit_vector pioneer;
-                // calulate pioneers
-//				algorithm::calculate_pioneers_bitmap(*m_bp, m_block_size, pioneer);
                 algorithm::calculate_pioneers_bitmap_succinct(*m_bp, m_block_size, pioneer);
-                m_nnd = nnd_type(pioneer);
+				util::assign(m_nnd, nnd_type(pioneer));
             }
 
             m_pioneer_bp.resize(m_nnd.ones());

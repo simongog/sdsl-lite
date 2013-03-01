@@ -83,37 +83,22 @@ class _lcp_support_tree
          *	\param fc_bpss 	A pointer to balanced parentheses support of the balanced parentheses representation of the Super-Cartesian Tree of the lcp array
          *  \param fcr		A pointer to the rank support of the first child bit_vector.
         */
-        template<uint8_t int_width, class size_type_class>
-        _lcp_support_tree(int_vector_file_buffer<int_width, size_type_class>& lcp_buf, const Cst* cst = NULL) {
-            construct(lcp_buf, cst);
-        }
-
-        /*!
-         * \see _lcp_support_tree
-         */
-        template<class Text, class Sa>
-        void construct(const Text& text, const Sa& sa, const Cst* cst);
-
-
-        //! Construct the lcp array from an lcp array
-        template<uint8_t int_width, class size_type_class>
-        void construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                       const Cst* cst=NULL) {
+        template<uint8_t int_width>
+        _lcp_support_tree(int_vector_file_buffer<int_width>& lcp_buf, const Cst* cst = NULL) {
             m_cst = cst;
             std::string id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str() + "_fc_lcp";
             {
-                int_vector<int_width, size_type_class> temp_lcp;
-                algorithm::construct_first_child_lcp(lcp_buf, temp_lcp, (size_type_class) 0);
+                int_vector<int_width> temp_lcp;
+                algorithm::construct_first_child_lcp(lcp_buf, temp_lcp, (int_vector_size_type) 0);
                 // TODO: store lcp values directly to disk
                 util::store_to_file(temp_lcp, id.c_str());
             }
             {
-                int_vector_file_buffer<int_width, size_type_class> temp_lcp_buf(id.c_str());
+                int_vector_file_buffer<int_width> temp_lcp_buf(id.c_str());
                 m_lcp = Lcp(temp_lcp_buf); // works for lcp_kurtz, lcp_wt and lcp_bitcompressed
             }
             std::remove(id.c_str());
         }
-
 
         size_type size()const {
             return m_cst->size(); // corresponds to the length of the
@@ -172,28 +157,6 @@ class _lcp_support_tree
                 copy(lcp_c);
             }
             return *this;
-        }
-
-        //! Equality Operator
-        /*! Two Instances of lcp_kurtz are equal if
-         *  all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator!=
-         */
-        bool operator==(const _lcp_support_tree& lcp_c)const {
-            if (this == &lcp_c)
-                return true;
-            return m_cst == lcp_c.m_cst and m_lcp == lcp_c.m_lcp;
-        }
-
-        //! Unequality Operator
-        /*! Two Instances of lcp_kurtz are equal if
-         *  not all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator==
-         */
-        bool operator!=(const _lcp_support_tree& lcp_c)const {
-            return !(*this == lcp_c);
         }
 
         //! Serialize to a stream.

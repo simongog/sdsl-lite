@@ -31,194 +31,7 @@
 #endif
 
 //! Namespace for the succinct data structure library.
-namespace sdsl
-{
-
-
-template<uint8_t bit_pattern, uint8_t pattern_len>
-struct select_support_mcl_trait {
-    typedef select_support::size_type	size_type;
-
-    /* Count the number of arguments for the specific select support */
-    static size_type arg_cnt(const bit_vector&) {
-        return 0;
-    }
-
-    static size_type args_in_the_first_word(uint64_t, uint8_t, uint64_t) {
-        return 0;
-    }
-
-    static size_type ith_arg_pos_in_the_first_word(uint64_t, size_type, uint8_t, uint64_t) {
-        return 0;
-    }
-
-    static size_type args_in_the_word(uint64_t, uint64_t&) {
-        return 0;
-    }
-
-    static size_type ith_arg_pos_in_the_word(uint64_t, size_type, uint64_t) {
-        return 0;
-    }
-
-    static bool found_arg(size_type, const bit_vector&) {
-        return 0;
-    }
-
-    static uint64_t init_carry(const uint64_t*, size_type) {
-        return 0;
-    }
-    static uint64_t get_carry(uint64_t) {
-        return 0;
-    }
-};
-
-template<>
-struct select_support_mcl_trait<0,1> {
-    typedef select_support::size_type	size_type;
-
-    static size_type arg_cnt(const bit_vector& v) {
-        return v.bit_size()-util::get_one_bits(v);
-    }
-
-    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t) {
-        return bit_magic::b1Cnt((~w)& bit_magic::Li0Mask[offset]);
-    }
-
-    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t) {
-        return bit_magic::i1BP(~w & bit_magic::Li0Mask[offset], i);
-    }
-    static size_type args_in_the_word(uint64_t w, uint64_t&) {
-        return bit_magic::b1Cnt(~w);
-    }
-    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t) {
-        return bit_magic::i1BP(~w, i);
-    }
-    static bool found_arg(size_type i, const bit_vector& v) {
-        return !v[i];
-    }
-    static uint64_t init_carry(const uint64_t*, size_type) {
-        return 0;
-    }
-    static uint64_t get_carry(uint64_t) {
-        return 0;
-    }
-};
-
-template<>
-struct select_support_mcl_trait<1,1> {
-    typedef select_support::size_type	size_type;
-
-    /* Count the number of arguments for the specific select support */
-    static size_type arg_cnt(const bit_vector& v) {
-        return util::get_one_bits(v);
-    }
-
-    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t) {
-        return bit_magic::b1Cnt(w & bit_magic::Li0Mask[offset]);
-    }
-
-    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t) {
-        return bit_magic::i1BP(w & bit_magic::Li0Mask[offset], i);
-    }
-
-    static size_type args_in_the_word(uint64_t w, uint64_t&) {
-        return bit_magic::b1Cnt(w);
-    }
-
-    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t) {
-        return bit_magic::i1BP(w, i);
-    }
-
-    static bool found_arg(size_type i, const bit_vector& v) {
-        return v[i];
-    }
-
-    static uint64_t init_carry(const uint64_t*, size_type) {
-        return 0;
-    }
-    static uint64_t get_carry(uint64_t) {
-        return 0;
-    }
-};
-
-template<>
-struct select_support_mcl_trait<10,2> {
-    typedef select_support::size_type	size_type;
-
-    /* Count the number of arguments for the specific select support */
-    static size_type arg_cnt(const bit_vector& v) {
-        return util::get_onezero_bits(v);
-    }
-
-    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry) {
-        return bit_magic::b1Cnt(bit_magic::b10Map(w, carry) & bit_magic::Li0Mask[offset]);
-    }
-
-    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry) {
-        return bit_magic::i1BP(bit_magic::b10Map(w, carry) & bit_magic::Li0Mask[offset], i);
-    }
-
-    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
-        return bit_magic::b10Cnt(w, carry);
-    }
-
-    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry) {
-        return bit_magic::i1BP(bit_magic::b10Map(w, carry), i);
-    }
-
-    static bool found_arg(size_type i, const bit_vector& v) {
-        if (i > 0 and v[i-1] and !v[i])
-            return true;
-        return false;
-    }
-
-    static uint64_t init_carry(const uint64_t* data, size_type word_pos) {
-        return word_pos ? (*(data-1)>>63) : 0;
-    }
-    static uint64_t get_carry(uint64_t w) {
-        return w>>63;
-    }
-};
-
-template<>
-struct select_support_mcl_trait<01,2> {
-    typedef select_support::size_type	size_type;
-
-    /* Count the number of arguments for the specific select support */
-    static size_type arg_cnt(const bit_vector& v) {
-        return util::get_zeroone_bits(v);
-    }
-
-    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry) {
-        return bit_magic::b1Cnt(bit_magic::b01Map(w, carry) & bit_magic::Li0Mask[offset]);
-    }
-
-    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry) {
-        return bit_magic::i1BP(bit_magic::b01Map(w, carry) & bit_magic::Li0Mask[offset], i);
-    }
-
-    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
-        return bit_magic::b01Cnt(w, carry);
-    }
-
-    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry) {
-        return bit_magic::i1BP(bit_magic::b01Map(w, carry), i);
-    }
-
-    static bool found_arg(size_type i, const bit_vector& v) {
-        if (i > 0 and !v[i-1] and v[i])
-            return true;
-        return false;
-    }
-
-    static uint64_t init_carry(const uint64_t* data, size_type word_pos) {
-        return word_pos ? (*(data-1)>>63) : 1;
-    }
-    static uint64_t get_carry(uint64_t w) {
-        return w>>63;
-    }
-};
-
+namespace sdsl {
 
 //! A class supporting constant time select queries (proposed by Munro/Clark, 1996) enhanced by broadword computing tricks.
 /*!
@@ -258,13 +71,12 @@ class select_support_mcl : public select_support
         void copy(const select_support_mcl<b, pattern_len>& ss);
         void construct();
         void initData();
-        void init_fast(const int_vector<1>* v=NULL);
+        void init_fast(const bit_vector* v=NULL);
     public:
-        explicit select_support_mcl(const int_vector<1>* v=NULL);
+        explicit select_support_mcl(const bit_vector* v=NULL);
         select_support_mcl(const select_support_mcl<b,pattern_len>& ss);
         ~select_support_mcl();
-        void init(const int_vector<1>* v=NULL);
-        void init_slow(const int_vector<1>* v=NULL);
+        void init_slow(const bit_vector* v=NULL);
         //! Select function
         /*! \sa select_support.select
          */
@@ -272,54 +84,42 @@ class select_support_mcl : public select_support
         //! Alias for select(i).
         inline const size_type operator()(size_type i)const;
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
-        void load(std::istream& in, const int_vector<1>* v=NULL);
-        void set_vector(const int_vector<1>* v=NULL);
+        void load(std::istream& in, const bit_vector* v=NULL);
+        void set_vector(const bit_vector* v=NULL);
         select_support_mcl<b, pattern_len>& operator=(const select_support_mcl& ss);
 
         //! Swap operator
         /*! This swap operator swaps two select_support_mcls in constant time.
          */
         void swap(select_support_mcl<b, pattern_len>& ss);
-        //! Equality Operator
-        /*! Two select_support_mcls are equal if all member variables are equal.
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator!=
-         */
-        bool operator==(const select_support_mcl<b, pattern_len>& ss)const;
-        //! Unequality Operator
-        /*! Two select_support_mcls are not equal if any member variable are not equal.
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator==
-         */
-        bool operator!=(const select_support_mcl<b, pattern_len>& ss)const;
 };
 
 
 template<uint8_t b, uint8_t pattern_len>
-void select_support_mcl<b,pattern_len>::construct()
-{
+void select_support_mcl<b,pattern_len>::construct() {
     m_longsuperblock	= NULL;
     m_miniblock			= NULL;
     m_arg_cnt			= 0;
 }
 
 template<uint8_t b, uint8_t pattern_len>
-select_support_mcl<b,pattern_len>::select_support_mcl(const int_vector<1>* f_v):select_support(f_v)
-{
+select_support_mcl<b,pattern_len>::select_support_mcl(const bit_vector* f_v):select_support(f_v) {
     construct();
-    init(f_v);
+    if (pattern_len>1 or (v!=NULL and  v->size() < 100000))
+        init_slow(v);
+    else
+        init_fast(v);
+    return;
 }
 
 template<uint8_t b, uint8_t pattern_len>
-select_support_mcl<b,pattern_len>::select_support_mcl(const select_support_mcl& ss):select_support(ss.m_v)
-{
+select_support_mcl<b,pattern_len>::select_support_mcl(const select_support_mcl& ss):select_support(ss.m_v) {
     construct();
     copy(ss);
 }
 
 template<uint8_t b, uint8_t pattern_len>
-select_support_mcl<b, pattern_len>& select_support_mcl<b,pattern_len>::operator=(const select_support_mcl& ss)
-{
+select_support_mcl<b, pattern_len>& select_support_mcl<b,pattern_len>::operator=(const select_support_mcl& ss) {
     if (this != &ss) {
         copy(ss);
     }
@@ -327,8 +127,7 @@ select_support_mcl<b, pattern_len>& select_support_mcl<b,pattern_len>::operator=
 }
 
 template<uint8_t b, uint8_t pattern_len>
-void select_support_mcl<b,pattern_len>::swap(select_support_mcl& ss)
-{
+void select_support_mcl<b,pattern_len>::swap(select_support_mcl& ss) {
     std::swap(m_logn, ss.m_logn);
     std::swap(m_logn2, ss.m_logn2);
     std::swap(m_logn4, ss.m_logn4);
@@ -340,8 +139,7 @@ void select_support_mcl<b,pattern_len>::swap(select_support_mcl& ss)
 }
 
 template<uint8_t b, uint8_t pattern_len>
-void select_support_mcl<b,pattern_len>::copy(const select_support_mcl<b, pattern_len>& ss)
-{
+void select_support_mcl<b,pattern_len>::copy(const select_support_mcl<b, pattern_len>& ss) {
     m_logn			= ss.m_logn;		// copy log n
     m_logn2			= ss.m_logn2;		// copy (logn)^2
     m_logn4			= ss.m_logn4;		// copy (logn)^4
@@ -370,8 +168,7 @@ void select_support_mcl<b,pattern_len>::copy(const select_support_mcl<b, pattern
 }
 
 template<uint8_t b, uint8_t pattern_len>
-select_support_mcl<b,pattern_len>::~select_support_mcl()
-{
+select_support_mcl<b,pattern_len>::~select_support_mcl() {
     if (m_longsuperblock!=NULL)
         delete[] m_longsuperblock;
     if (m_miniblock!=NULL)
@@ -379,8 +176,7 @@ select_support_mcl<b,pattern_len>::~select_support_mcl()
 }
 
 template<uint8_t b, uint8_t pattern_len>
-void select_support_mcl<b,pattern_len>::init_slow(const int_vector<1>* v)
-{
+void select_support_mcl<b,pattern_len>::init_slow(const bit_vector* v) {
     set_vector(v);
     initData();
     if (m_v==NULL)
@@ -390,7 +186,7 @@ void select_support_mcl<b,pattern_len>::init_slow(const int_vector<1>* v)
     sw.start();
 #endif
     // Count the number of arguments in the bit vector
-    m_arg_cnt = select_support_mcl_trait<b,pattern_len>::arg_cnt(*v);
+    m_arg_cnt = select_support_trait<b,pattern_len>::arg_cnt(*v);
 #ifdef SDSL_DEBUG_SELECT_SUPPORT_JMC
     sw.stop();
     std::cerr<<"Count arguments takes "<<sw.get_real_time()<<" ms"<<std::endl;
@@ -412,7 +208,7 @@ void select_support_mcl<b,pattern_len>::init_slow(const int_vector<1>* v)
     size_type arg_position[SUPER_BLOCK_SIZE], arg_cnt=0;
     size_type sb_cnt=0;
     for (size_type i=0; i < v->size(); ++i) {
-        if (select_support_mcl_trait<b,pattern_len>::found_arg(i, *v)) {
+        if (select_support_trait<b,pattern_len>::found_arg(i, *v)) {
             arg_position[ arg_cnt%SUPER_BLOCK_SIZE ] = i;
             assert(arg_position[arg_cnt%SUPER_BLOCK_SIZE] == i);
             ++arg_cnt;
@@ -447,8 +243,7 @@ void select_support_mcl<b,pattern_len>::init_slow(const int_vector<1>* v)
 
 // TODO: find bug, detected by valgrind
 template<uint8_t b, uint8_t pattern_len>
-void select_support_mcl<b,pattern_len>::init_fast(const int_vector<1>* v)
-{
+void select_support_mcl<b,pattern_len>::init_fast(const bit_vector* v) {
     set_vector(v);
     initData();
     if (m_v==NULL)
@@ -459,7 +254,7 @@ void select_support_mcl<b,pattern_len>::init_fast(const int_vector<1>* v)
     sw.start();
 #endif
     // Count the number of arguments in the bit vector
-    m_arg_cnt = select_support_mcl_trait<b,pattern_len>::arg_cnt(*v);
+    m_arg_cnt = select_support_trait<b,pattern_len>::arg_cnt(*v);
 #ifdef SDSL_DEBUG_SELECT_SUPPORT_JMC
     sw.stop();
     std::cerr<<"Count arguments takes "<<sw.get_real_time()<<" ms"<<std::endl;
@@ -488,9 +283,9 @@ void select_support_mcl<b,pattern_len>::init_fast(const int_vector<1>* v)
     uint64_t carry_new=0;
     size_type last_k64 = 1, sb_cnt=0;
     for (size_type i=0, cnt_old=0, cnt_new=0, last_k64_sum=1; i < v->capacity(); i+=64, ++data) {
-        cnt_new += select_support_mcl_trait<b, pattern_len>::args_in_the_word(*data, carry_new);
+        cnt_new += select_support_trait<b, pattern_len>::args_in_the_word(*data, carry_new);
         if (cnt_new >= last_k64_sum) {
-            arg_position[last_k64-1] = i + select_support_mcl_trait<b, pattern_len>::ith_arg_pos_in_the_word(*data, last_k64_sum  - cnt_old, carry_new);
+            arg_position[last_k64-1] = i + select_support_trait<b, pattern_len>::ith_arg_pos_in_the_word(*data, last_k64_sum  - cnt_old, carry_new);
             last_k64 += 64;
             last_k64_sum += 64;
 
@@ -499,7 +294,7 @@ void select_support_mcl<b,pattern_len>::init_fast(const int_vector<1>* v)
                 size_type pos_of_last_arg_in_the_block = arg_position[last_k64-65];
 
                 for (size_type i=arg_position[last_k64-65]+1, j=last_k64-65; i < v->size() and j < SUPER_BLOCK_SIZE; ++i)
-                    if (select_support_mcl_trait<b,pattern_len>::found_arg(i, *v)) {
+                    if (select_support_trait<b,pattern_len>::found_arg(i, *v)) {
                         pos_of_last_arg_in_the_block = i;
                         ++j;
                     }
@@ -508,8 +303,8 @@ void select_support_mcl<b,pattern_len>::init_fast(const int_vector<1>* v)
                     if (m_longsuperblock == NULL) m_longsuperblock = new int_vector<0>[sb+1]; // create longsuperblock
                     // GEANDERT am 2010-07-17 +1 nach pos_of_last_arg..
                     m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bit_magic::l1BP(pos_of_last_arg_in_the_block) + 1);
-                    for (size_type j=arg_position[0], k=0; j < pos_of_last_arg_in_the_block; ++j)
-                        if (select_support_mcl_trait<b, pattern_len>::found_arg(j, *v)) {
+                    for (size_type j=arg_position[0], k=0; j <= pos_of_last_arg_in_the_block; ++j)
+                        if (select_support_trait<b, pattern_len>::found_arg(j, *v)) {
 //							if(k>=SUPER_BLOCK_SIZE){
 //								std::cout<<"k="<<k<<" SUPER_BLOCK_SIZE="<<SUPER_BLOCK_SIZE<<std::endl;
 //							}
@@ -528,12 +323,18 @@ void select_support_mcl<b,pattern_len>::init_fast(const int_vector<1>* v)
         cnt_old = cnt_new;
     }
     // TODO: handle last block!!! einfach ein longsuperblock anhaengen?
+#ifdef SDSL_DEBUG_SELECT_SUPPORT_JMC
+	std::cout<<"last_k64 = "<<last_k64<<std::endl;
+#endif		
     if (last_k64 > 1) {
+#ifdef SDSL_DEBUG_SELECT_SUPPORT_JMC
+	std::cout<<"append superblock"<<std::endl;
+#endif		
         // GEANDERT am 2010-09-27 +1 nach sb, da wir den superblock extra zu den existierenden anhaengen koennen
         if (m_longsuperblock == NULL) m_longsuperblock = new int_vector<0>[sb+1]; // create longsuperblock
         m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bit_magic::l1BP(v->size()-1) + 1);
         for (size_type i=arg_position[0],k=0; i < v->size(); ++i) {
-            if (select_support_mcl_trait<b, pattern_len>::found_arg(i, *v)) {
+            if (select_support_trait<b, pattern_len>::found_arg(i, *v)) {
                 m_longsuperblock[sb_cnt][k++] = i;
             }
         }
@@ -545,19 +346,9 @@ void select_support_mcl<b,pattern_len>::init_fast(const int_vector<1>* v)
 #endif
 }
 
-template<uint8_t b, uint8_t pattern_len>
-void select_support_mcl<b,pattern_len>::init(const int_vector<1>* v)
-{
-    if (pattern_len>1 or (v!=NULL and  v->size() < 100000))
-        init_slow(v);
-    else
-        init_fast(v);
-    return;
-}
 
 template<uint8_t b, uint8_t pattern_len>
-inline const typename select_support_mcl<b,pattern_len>::size_type select_support_mcl<b,pattern_len>::select(size_type i)const
-{
+inline const typename select_support_mcl<b,pattern_len>::size_type select_support_mcl<b,pattern_len>::select(size_type i)const {
     assert(i > 0 and i <= m_arg_cnt);
 
     i = i-1;
@@ -591,39 +382,37 @@ inline const typename select_support_mcl<b,pattern_len>::size_type select_suppor
 //	std::cout<<"m_v->size()="<<m_v->size()<<" 64*word_pos="<<64*word_pos<<std::endl;
 //}
             const uint64_t* data = m_v->data() + word_pos;
-            uint64_t carry = select_support_mcl_trait<b,pattern_len>::init_carry(data, word_pos);
-            size_type args = select_support_mcl_trait<b,pattern_len>::args_in_the_first_word(*data, word_off, carry);
+            uint64_t carry = select_support_trait<b,pattern_len>::init_carry(data, word_pos);
+            size_type args = select_support_trait<b,pattern_len>::args_in_the_first_word(*data, word_off, carry);
 
             if (args >= i) {
-                return (word_pos<<6)+select_support_mcl_trait<b,pattern_len>::ith_arg_pos_in_the_first_word(*data, i, word_off, carry);
+                return (word_pos<<6)+select_support_trait<b,pattern_len>::ith_arg_pos_in_the_first_word(*data, i, word_off, carry);
             }
             word_pos+=1;
             size_type sum_args = args;
-            carry = select_support_mcl_trait<b,pattern_len>::get_carry(*data);
+            carry = select_support_trait<b,pattern_len>::get_carry(*data);
             uint64_t old_carry = carry;
-            args = select_support_mcl_trait<b,pattern_len>::args_in_the_word(*(++data), carry);
+            args = select_support_trait<b,pattern_len>::args_in_the_word(*(++data), carry);
             while (sum_args + args < i) {
                 sum_args += args;
                 assert(data+1 < m_v->data() + (m_v->capacity()>>6));
                 old_carry = carry;
-                args = select_support_mcl_trait<b,pattern_len>::args_in_the_word(*(++data), carry);
+                args = select_support_trait<b,pattern_len>::args_in_the_word(*(++data), carry);
                 word_pos+=1;
             }
             return (word_pos<<6) +
-                   select_support_mcl_trait<b,pattern_len>::ith_arg_pos_in_the_word(*data, i-sum_args, old_carry);
+                   select_support_trait<b,pattern_len>::ith_arg_pos_in_the_word(*data, i-sum_args, old_carry);
         }
     }
 }
 
 template<uint8_t b, uint8_t pattern_len>
-inline const typename select_support_mcl<b,pattern_len>::size_type select_support_mcl<b,pattern_len>::operator()(size_type i)const
-{
+inline const typename select_support_mcl<b,pattern_len>::size_type select_support_mcl<b,pattern_len>::operator()(size_type i)const {
     return select(i);
 }
 
 template<uint8_t b, uint8_t pattern_len>
-void select_support_mcl<b,pattern_len>::initData()
-{
+void select_support_mcl<b,pattern_len>::initData() {
     m_arg_cnt = 0;
     if (m_v==NULL) {
         m_logn = m_logn2 = m_logn4 = 0;
@@ -641,14 +430,12 @@ void select_support_mcl<b,pattern_len>::initData()
 }
 
 template<uint8_t b, uint8_t pattern_len>
-void select_support_mcl<b,pattern_len>::set_vector(const int_vector<1>* v)
-{
+void select_support_mcl<b,pattern_len>::set_vector(const bit_vector* v) {
     m_v = v;
 }
 
 template<uint8_t b, uint8_t pattern_len>
-typename select_support_mcl<b,pattern_len>::size_type select_support_mcl<b,pattern_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
-{
+typename select_support_mcl<b,pattern_len>::size_type select_support_mcl<b,pattern_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
     // write the number of 1-bits in the supported bit_vector
@@ -659,7 +446,7 @@ typename select_support_mcl<b,pattern_len>::size_type select_support_mcl<b,patte
 
     if (m_arg_cnt) { // if there exists 1-bits to be supported
         written_bytes += m_superblock.serialize(out, child, "superblock"); // serialize superblocks
-        int_vector<1> mini_or_long;// Helper vector: mini or long block?
+        bit_vector mini_or_long;// Helper vector: mini or long block?
         if (m_longsuperblock!=NULL) {
             mini_or_long.resize(sb); // resize indicator bit_vector to the number of superblocks
             for (size_type i=0; i< sb; ++i)
@@ -686,8 +473,7 @@ typename select_support_mcl<b,pattern_len>::size_type select_support_mcl<b,patte
 }
 
 template<uint8_t b, uint8_t pattern_len>
-void select_support_mcl<b,pattern_len>::load(std::istream& in, const int_vector<1>* v)
-{
+void select_support_mcl<b,pattern_len>::load(std::istream& in, const bit_vector* v) {
     set_vector(v);
     initData();
     // read the number of 1-bits in the supported bit_vector
@@ -706,7 +492,7 @@ void select_support_mcl<b,pattern_len>::load(std::istream& in, const int_vector<
             m_longsuperblock = NULL;
         }
 
-        int_vector<1> mini_or_long;// Helper vector: mini or long block?
+        bit_vector mini_or_long;// Helper vector: mini or long block?
         mini_or_long.load(in); // Load the helper vector
         m_miniblock = new int_vector<0>[sb]; // Create miniblock int_vector<0>
         if (!mini_or_long.empty())
@@ -720,48 +506,6 @@ void select_support_mcl<b,pattern_len>::load(std::istream& in, const int_vector<
             }
     }
 }
-
-template<uint8_t b, uint8_t pattern_len>
-bool select_support_mcl<b,pattern_len>::operator==(const select_support_mcl& ss)const
-{
-    if (this == &ss)
-        return true;
-    if (m_logn == ss.m_logn and m_logn2 == ss.m_logn2 and m_logn4 == ss.m_logn4
-        and m_arg_cnt == ss.m_arg_cnt and  m_superblock == ss.m_superblock) {
-        if (m_longsuperblock == NULL and ss.m_longsuperblock != NULL)
-            return false;
-        if (ss.m_longsuperblock == NULL and m_longsuperblock != NULL)
-            return false;
-        if (m_miniblock == NULL and ss.m_miniblock != NULL)
-            return false;
-        if (ss.m_miniblock == NULL and m_miniblock != NULL)
-            return false;
-        size_type sb		= (m_arg_cnt+4095)>>12;
-        if (m_miniblock != NULL)
-            for (size_type i=0; i < sb; ++i)
-                if (m_miniblock[i] != ss.m_miniblock[i])
-                    return false;
-        if (m_longsuperblock != NULL)
-            for (size_type i=0; i < sb; ++i)
-                if (m_longsuperblock[i] != ss.m_longsuperblock[i])
-                    return false;
-        if (m_v == NULL and ss.m_v != NULL)
-            return false;
-        if (m_v != NULL and ss.m_v == NULL)
-            return false;
-        if (m_v == NULL and ss.m_v == NULL)
-            return false;
-        return *ss.m_v == *m_v;// supported vectors have to be equal. See docu!!!
-    } else
-        return false;
-}
-
-template<uint8_t b, uint8_t pattern_len>
-bool select_support_mcl<b,pattern_len>::operator!=(const select_support_mcl& ss)const
-{
-    return !(*this == ss);
-}
-
 
 }
 

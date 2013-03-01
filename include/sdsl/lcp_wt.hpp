@@ -62,6 +62,9 @@ class lcp_wt
         typedef const pointer								 const_pointer;
         typedef int_vector<>::size_type						 size_type;		// STL Container requirement
         typedef ptrdiff_t  									 difference_type; // STL Container requirement
+        typedef select_support_bs< rank_support_v<> > 		 tDummySS;
+		typedef wt_huff<bit_vector, rank_support_v<>,
+				        tDummySS, tDummySS>					 small_lcp_type;
 
         typedef lcp_plain_tag								 lcp_category;
 
@@ -78,9 +81,8 @@ class lcp_wt
         };
 
     private:
-        typedef select_support_bs< rank_support_v<> > tDummySS;
-        wt_huff<bit_vector, rank_support_v<>, tDummySS, tDummySS > m_small_lcp; // vector for lcp values < 255
-        int_vector<width>   m_big_lcp;		// vector for lcp values > 254
+        small_lcp_type 		m_small_lcp; // vector for lcp values < 255
+        int_vector<width>   m_big_lcp;	 // vector for lcp values > 254
 
         typedef std::pair<size_type, size_type> tPII;
         typedef std::vector<tPII> tVPII;
@@ -105,14 +107,8 @@ class lcp_wt
         lcp_wt(const Text& text, const Sa& sa);
 
         //! Construct the lcp array from an int_vector_file_buffer
-        template<uint8_t int_width, class size_type_class>
-        lcp_wt(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
-
-        template<class Text, class Sa>
-        void construct(const Text& text, const Sa& sa);
-
-        template<uint8_t int_width, class size_type_class>
-        void construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
+        template<uint8_t int_width>
+        lcp_wt(int_vector_file_buffer<int_width>& lcp_buf);
 
         //! Number of elements in the instance.
         /*! Required for the Container Concept of the STL.
@@ -174,22 +170,6 @@ class lcp_wt
          */
         lcp_wt& operator=(const lcp_wt& lcp_c);
 
-        //! Equality Operator
-        /*! Two Instances of lcp_wt are equal if
-         *  all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator!=
-         */
-        bool operator==(const lcp_wt& lcp_c)const;
-
-        //! Unequality Operator
-        /*! Two Instances of lcp_wt are equal if
-         *  not all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator==
-         */
-        bool operator!=(const lcp_wt& lcp_c)const;
-
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
@@ -208,32 +188,16 @@ template<uint8_t width>
 template<class Text, class Sa>
 lcp_wt<width>::lcp_wt(const Text& text, const Sa& sa)
 {
-    construct(text, sa);
-}
-
-template<uint8_t width>
-template<class Text, class Sa>
-void lcp_wt<width>::construct(const Text& text, const Sa& sa)
-{
     if (sa.size() == 0) {
         return;
     }
     throw std::logic_error("This constructor of lcp_wt is not yet implemented!");
-    /*
-    */
 }
 
 
 template<uint8_t width>
-template<uint8_t int_width, class size_type_class>
-lcp_wt<width>::lcp_wt(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
-{
-    construct(lcp_buf);
-}
-
-template<uint8_t width>
-template<uint8_t int_width, class size_type_class>
-void lcp_wt<width>::construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
+template<uint8_t int_width>
+lcp_wt<width>::lcp_wt(int_vector_file_buffer<int_width>& lcp_buf)
 {
     std::string temp_file = "/tmp/lcp_sml" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id()) ;// TODO: remove absolute file name
 //	write_R_output("lcp","construct sml","begin");
@@ -257,7 +221,9 @@ void lcp_wt<width>::construct(int_vector_file_buffer<int_width, size_type_class>
     }
 //	write_R_output("lcp","construct sml","end");
     int_vector_file_buffer<8> lcp_sml_buf(temp_file.c_str());
-    m_small_lcp.construct(lcp_sml_buf, lcp_sml_buf.int_vector_size);
+
+	util::assign( m_small_lcp, small_lcp_type(lcp_sml_buf, lcp_sml_buf.int_vector_size) );
+
     std::remove(temp_file.c_str());
 //	write_R_output("lcp","construct big","begin");
     m_big_lcp 		= int_vector<>(big_sum, 0, bit_magic::l1BP(max_l)+1);
@@ -319,21 +285,6 @@ lcp_wt<width>& lcp_wt<width>::operator=(const lcp_wt& lcp_c)
         copy(lcp_c);
     }
     return *this;
-}
-
-
-template<uint8_t width>
-bool lcp_wt<width>::operator==(const lcp_wt& lcp_c)const
-{
-    if (this == &lcp_c)
-        return true;
-    return m_small_lcp == lcp_c.m_small_lcp and m_big_lcp == lcp_c.m_big_lcp;
-}
-
-template<uint8_t width>
-bool lcp_wt<width>::operator!=(const lcp_wt& lcp_c)const
-{
-    return !(*this == lcp_c);
 }
 
 template<uint8_t width>

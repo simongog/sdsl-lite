@@ -67,6 +67,7 @@ add_subdirectory(include)
 add_subdirectory(lib)
 add_subdirectory(test)
 add_subdirectory(examples)
+add_subdirectory(benchmark)	
 
 message("Options")
 message("USE_LIBDIVSUFSORT = ${USE_LIBDIVSUFSORT}")

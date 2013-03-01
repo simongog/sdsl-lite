@@ -32,7 +32,7 @@
 namespace sdsl
 {
 
-bool construct_isa(tMSS& file_map, const std::string& dir, const std::string& id);
+void construct_isa(cache_config &config);
 // TODO methode die den isa auf der bwt berechnet
 
 }// end namespace

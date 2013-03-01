@@ -112,21 +112,10 @@ class _lcp_support_sada
 
 
         //! Construct the lcp array from an lcp array and an int_vector_file_buffer of the inverse suffix array
-        template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1>
-        _lcp_support_sada(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                          int_vector_file_buffer<int_width_1, size_type_class_1>& isa_buf,
+        template<uint8_t int_width, uint8_t int_width_1>
+        _lcp_support_sada(int_vector_file_buffer<int_width>& lcp_buf,
+                          int_vector_file_buffer<int_width_1>& isa_buf,
                           const Csa* f_csa);
-
-        template<class Text, class Sa>
-        void construct(const Text& text, const Sa& sa, const Csa* csa);
-
-        template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1>
-        void construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-                       int_vector_file_buffer<int_width_1, size_type_class_1>& isa_buf,
-                       const Csa* f_csa);
-
-
-
 
         void set_csa(const Csa* f_csa) {
             if (f_csa==NULL) {
@@ -195,22 +184,6 @@ class _lcp_support_sada
          */
         _lcp_support_sada& operator=(const _lcp_support_sada& lcp_c);
 
-        //! Equality Operator
-        /*! Two Instances of _lcp_support_sada are equal if
-         *  all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator!=
-         */
-        bool operator==(const _lcp_support_sada& lcp_c)const;
-
-        //! Unequality Operator
-        /*! Two Instances of _lcp_support_sada are equal if
-         *  not all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator==
-         */
-        bool operator!=(const _lcp_support_sada& lcp_c)const;
-
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
@@ -229,13 +202,6 @@ class _lcp_support_sada
 template<class Csa, class BitVector, class SelectSupport>
 template<class Text, class Sa>
 _lcp_support_sada<Csa, BitVector, SelectSupport>::_lcp_support_sada(const Text& text, const Sa& sa, const Csa* csa):csa(m_csa)
-{
-    construct(text, sa, csa);
-}
-
-template<class Csa, class BitVector, class SelectSupport>
-template<class Text, class Sa>
-void _lcp_support_sada<Csa, BitVector, SelectSupport>::construct(const Text& text, const Sa& sa, const Csa* csa)
 {
     set_csa(csa);
 #ifdef SDSL_DEBUG
@@ -266,26 +232,17 @@ void _lcp_support_sada<Csa, BitVector, SelectSupport>::construct(const Text& tex
 }
 
 template<class Csa, class BitVector, class SelectSupport>
-template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1>
-_lcp_support_sada<Csa, BitVector, SelectSupport>::_lcp_support_sada(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-        int_vector_file_buffer<int_width_1, size_type_class_1>& isa_buf,
+template<uint8_t int_width, uint8_t int_width_1>
+_lcp_support_sada<Csa, BitVector, SelectSupport>::_lcp_support_sada(int_vector_file_buffer<int_width>& lcp_buf,
+        int_vector_file_buffer<int_width_1>& isa_buf,
         const Csa* f_csa):csa(m_csa)
-{
-    construct(lcp_buf, isa_buf, f_csa);
-}
-
-template<class Csa, class BitVector, class SelectSupport>
-template<uint8_t int_width, class size_type_class, uint8_t int_width_1, class size_type_class_1>
-void _lcp_support_sada<Csa, BitVector, SelectSupport>::construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf,
-        int_vector_file_buffer<int_width_1, size_type_class_1>& isa_buf,
-        const Csa* f_csa)
 {
     typedef typename Csa::size_type size_type;
     set_csa(f_csa);
 #ifdef SDSL_DEBUG
     std::cerr<<"start building _lcp_support_sada"<<std::endl;
 #endif
-    int_vector<int_width, size_type_class> lcp;
+    int_vector<int_width> lcp;
     util::load_from_file(lcp, lcp_buf.file_name.c_str());
     isa_buf.reset();
     size_type n = lcp.size();
@@ -352,21 +309,6 @@ _lcp_support_sada<Csa, BitVector, SelectSupport>& _lcp_support_sada<Csa, BitVect
         copy(lcp_c);
     }
     return *this;
-}
-
-
-template<class Csa, class BitVector, class SelectSupport>
-bool _lcp_support_sada<Csa, BitVector, SelectSupport>::operator==(const _lcp_support_sada& lcp_c)const
-{
-    if (this == &lcp_c)
-        return true;
-    return m_csa == lcp_c.m_csa and m_data == lcp_c.m_data and m_select_support == lcp_c.m_select_support;
-}
-
-template<class Csa, class BitVector, class SelectSupport>
-bool _lcp_support_sada<Csa, BitVector, SelectSupport>::operator!=(const _lcp_support_sada& lcp_c)const
-{
-    return !(*this == lcp_c);
 }
 
 template<class Csa, class BitVector, class SelectSupport>

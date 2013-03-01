@@ -81,8 +81,8 @@ void set_text(const unsigned char* str, typename Csa::size_type len, int_vector<
 #endif
 }
 
-template<class Csa, class size_type_class>
-void set_text(int_vector_file_buffer<8, size_type_class>& str_buf, typename Csa::size_type len, int_vector<64>& C, int_vector<8>& char2comp, int_vector<8>& comp2char, uint16_t& sigma)
+template<class Csa>
+void set_text(int_vector_file_buffer<8>& str_buf, typename Csa::size_type len, int_vector<64>& C, int_vector<8>& char2comp, int_vector<8>& comp2char, uint16_t& sigma)
 {
 #ifdef SDSL_DEBUG_ALGORITHMS_FOR_COMPRESSED_SUFFIX_ARRAYS
     stop_watch sw; sw.start();
@@ -121,7 +121,6 @@ void set_text(int_vector_file_buffer<8, size_type_class>& str_buf, typename Csa:
         std::cerr<<"C[256]="<<C[256]<<" "<<len<<std::endl;
     }
     assert(C[256]==len);
-    assert(C[sigma+1]==len);
 #ifdef SDSL_DEBUG_ALGORITHMS_FOR_COMPRESSED_SUFFIX_ARRAYS
     sw.stop();
     std::cerr<<"set_text takes "<<sw.get_real_time()<<" ms real time";
@@ -129,68 +128,31 @@ void set_text(int_vector_file_buffer<8, size_type_class>& str_buf, typename Csa:
 #endif
 }
 
-//! Calculates if a character c occures in the text of the compressed suffix array c.
-/*!
- * \param csa 	The csa in which we search for the occurence of c.
- * \param c		The character c for which we search in the text of the compressed suffix array.
- * \return 		True, if c occures in the text of the compressed suffix array and False otherwise.
- * \pre \f$ csa.size()>0 \f$
- */
-template<class Csa>
-bool char_occures_in_text_of_csa(const Csa& csa, typename Csa::char_type c)
-{
-    return (csa.char2comp[c] > 0) or (csa.char2comp[c]==c);
-}
-
-template<class Csa, uint8_t int_width, class size_type_class>
-void set_sa_and_isa_samples(int_vector_file_buffer<int_width, size_type_class>& sa_buf, typename Csa::sa_sample_type& sa_sample, typename Csa::isa_sample_type& isa_sample)
+template<class Csa, uint8_t int_width>
+void set_isa_samples(int_vector_file_buffer<int_width>& sa_buf, typename Csa::isa_sample_type& isa_sample)
 {
     typedef typename Csa::size_type size_type;
     size_type  n = sa_buf.int_vector_size;
-
-    sa_sample.set_int_width(bit_magic::l1BP(n)+1);
-    sa_sample.resize((n+Csa::sa_sample_dens-1)/Csa::sa_sample_dens);
 
     isa_sample.set_int_width(bit_magic::l1BP(n)+1);
     if (n >= 1) { // so n+Csa::isa_sample_dens >= 2
         isa_sample.resize((n-1+Csa::isa_sample_dens-1)/Csa::isa_sample_dens + 1);
     }
-
-    util::set_one_bits(sa_sample);
     util::set_one_bits(isa_sample);
 
     sa_buf.reset();
-    for (size_type i=0, r_sum = 0, r = sa_buf.load_next_block(), cnt_mod=Csa::sa_sample_dens, cnt_sum=0; r_sum < n;) {
-        for (; i < r_sum+r; ++i, ++cnt_mod) {
+    for (size_type i=0, r_sum = 0, r = sa_buf.load_next_block(); r_sum < n;) {
+        for (; i < r_sum+r; ++i) {
             size_type sa = sa_buf[i-r_sum];
             if ((sa % Csa::isa_sample_dens) == 0) {
                 isa_sample[sa/Csa::isa_sample_dens] = i;
             } else if (sa+1 == n) {
                 isa_sample[(sa+Csa::isa_sample_dens-1)/Csa::isa_sample_dens] = i;
             }
-            if (Csa::sa_sample_dens == cnt_mod) {
-                cnt_mod = 0;
-                sa_sample[cnt_sum++] = sa;
-            }
         }
         r_sum += r; r = sa_buf.load_next_block();
     }
-    /*	if(isa_sample.size() < 20 ){
-    		std::cerr<<"isa_samples = ";
-    		for(int_vector<>::size_type i=0;i<isa_sample.size(); ++i)
-    			std::cerr<<isa_sample[i]<<" ";
-    		std::cerr<<std::endl;
-    		std::cerr<<"Csa::isa_sample_dens = "<<Csa::isa_sample_dens <<std::endl;
-    		std::cerr<<"n = "<<n <<std::endl;
-    		std::cerr<<"isa_sample.size() = "<< isa_sample.size() <<std::endl;
-    	}
-    */
 }
-
-//template<class Csa>
-//bool char_at_char_pos_equals_char(const Csa &csa, typename Csa::size_type char_pos, typename Csa::char_type c){
-//	typename Csa::
-//}
 
 /*
  * \par Time complexity
@@ -198,19 +160,18 @@ void set_sa_and_isa_samples(int_vector_file_buffer<int_width, size_type_class>& 
  *  TODO: add hinted binary search? Two way binary search?
 */
 template<class Csa>
-const unsigned char get_ith_character_of_the_first_row(const typename Csa::size_type i, const Csa& csa)
+typename Csa::char_type get_ith_character_of_the_first_row(const typename Csa::size_type i, const Csa& csa)
 {
     assert(i < csa.size());
     if (csa.sigma < 16) { //<- if sigma is small search linear
         typename Csa::size_type res=1;
-        while (csa.C[res] <= i)
+        while (res < csa.sigma and csa.C[res] <= i)
             ++res;
         return csa.comp2char[res-1];
     } else {
         // binary search the character with C
         typename Csa::size_type upper_c = csa.sigma, lower_c = 0; // lower_c inclusive, upper_c exclusive
         typename Csa::size_type res=0;
-//std::cout<<" binary search: csa.sigma= "<<upper_c<<" i="<<i<<std::endl;
         do {
             res = (upper_c+lower_c)/2;
             if (i < csa.C[res]) {

@@ -23,9 +23,10 @@
 #ifndef INCLUDED_SDSL_WT
 #define INCLUDED_SDSL_WT
 
+#include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "bitmagic.hpp"
-#include "util.hpp" // for util::ssign
+#include "util.hpp" // for util::assign
 #include <set> // for calculating the alphabet size
 #include <map> // for mapping a symbol to its lexicographical index
 #include <algorithm> // for std::swap
@@ -243,15 +244,14 @@ class wt_trait<unsigned char*>
         }
 };
 
-template<class size_type_class>
-class wt_trait<int_vector_file_buffer<8, size_type_class> >
-{
+template<>
+class wt_trait<int_vector_file_buffer<8> >{
     public:
-        typedef size_type_class		size_type;
-        typedef unsigned char		value_type;
-        typedef int_vector_file_buffer<8, size_type_class>&		reference_type;
-        typedef unsigned_char_map 	map_type;
-        typedef unsigned_char_map 	inv_map_type;
+        typedef int_vector_size_type		size_type;
+        typedef unsigned char				value_type;
+        typedef int_vector_file_buffer<8>&	reference_type;
+        typedef unsigned_char_map 			map_type;
+        typedef unsigned_char_map 			inv_map_type;
         enum { char_node_map_size=256 };
 
         static size_type alphabet_size_and_map(reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
@@ -343,13 +343,14 @@ template<class RandomAccessContainer=unsigned char*,
          class RankSupport       = typename BitVector::rank_1_type,
          class SelectSupport     = typename BitVector::select_1_type,
          class SelectSupportZero = typename BitVector::select_0_type>
-class wt
-{
+class wt {
     public:
         typedef typename wt_trait<RandomAccessContainer>::size_type 		size_type;
         typedef typename wt_trait<RandomAccessContainer>::value_type 		value_type;
-        typedef typename wt_trait<RandomAccessContainer>::map_type		     map_type;
-        typedef typename wt_trait<RandomAccessContainer>::inv_map_type	inv_map_type;
+        typedef typename wt_trait<RandomAccessContainer>::map_type		    map_type;
+        typedef typename wt_trait<RandomAccessContainer>::inv_map_type		inv_map_type;
+		typedef wt_tag														index_category;
+		typedef byte_alphabet_tag											alphabet_category;
     private:
         size_type 			m_size;
         size_type 			m_sigma; 		//<- \f$ |\Sigma| \f$
@@ -393,13 +394,10 @@ class wt
         }
 
     public:
-
         const size_type& sigma;
 
         // Default constructor
         wt():m_size(0),m_sigma(0), sigma(m_sigma) {};
-
-
 
         //! Constructor
         /*!
@@ -481,7 +479,7 @@ class wt
                     while (sigma >= 2) {
                         if (lex_idx >= ((sigma+1)/2))
                             tree[m_node_pointers[node]+node_sizes[node]] = 1;
-                        node_sizes[node] = node_sizes[node]+1;
+                        	node_sizes[node] = node_sizes[node]+1;
                         if (lex_idx < (sigma+1)/2) {
                             sigma = (sigma+1)/2;
                             node = 2*node+1;
@@ -502,20 +500,11 @@ class wt
             }
         }
 
-        template<class size_type_class>
-        wt(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
-            construct(rac, size);
-        }
-
         //! Construct the wavelet tree from a random access container
-        /*! \param rac A random access container
-         *	\param size The length of the prefix of the random access container, for which the wavelet tree should be build
-         */
-        template<class size_type_class>
-        void construct(int_vector_file_buffer<8, size_type_class>& rac, size_type size) {
+        wt(int_vector_file_buffer<8>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
             m_size = size;
             init_char_node_map();
-            typedef int_vector_file_buffer<8, size_type_class> tIVFB;
+            typedef int_vector_file_buffer<8> tIVFB;
 //#define SDSL_DEBUG_WT
 #ifdef SDSL_DEBUG_WT
             std::cerr<<"Wavelet Tree construct for int_vector_file_buffer: size="<<size<<std::endl;
@@ -798,7 +787,7 @@ class wt
          *		\f$ \Order{\log |\Sigma|} \f$
          */
 
-        size_type rank_ith_symbol(size_type i, value_type& c)const {
+        size_type inverse_select(size_type i, value_type& c)const {
             assert(i>=0 and i < size());
             size_type lex_idx	= 0;
             size_type sigma		= m_sigma;
@@ -914,12 +903,12 @@ class wt
                 return;
             } else if ((j-i)==1) {
                 k = 1;
-                rank_c_i[0] = rank_ith_symbol(i, cs[0]);
+                rank_c_i[0] = inverse_select(i, cs[0]);
                 rank_c_j[0] = rank_c_i[0]+1;
                 return;
             } else if ((j-i)==2) {
-                rank_c_i[0] = rank_ith_symbol(i, cs[0]);
-                rank_c_i[1] = rank_ith_symbol(i+1, cs[1]);
+                rank_c_i[0] = inverse_select(i, cs[0]);
+                rank_c_i[1] = inverse_select(i+1, cs[1]);
                 if (cs[0]==cs[1]) {
                     k = 1;
                     rank_c_j[0] = rank_c_i[0]+2;

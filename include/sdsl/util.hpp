@@ -24,12 +24,14 @@
 #include "bitmagic.hpp"
 #include "typedefs.hpp"
 #include "structure_tree.hpp"
+#include "config.hpp"  // for constants 
 #include <iosfwd>      // forward declaration of ostream
 #include <stdint.h>    // for uint64_t uint32_t declaration
 #include <cassert>
 #include <fstream>     // file stream for storeToFile and loadFromFile
 #include <ctime>       // for rand initialization
 #include <string>
+#include <locale>       // for class_to_hash
 #include <string.h>    // for strlen and strdup
 #include <libgen.h>    // for basename
 #include <cstdlib>
@@ -47,13 +49,7 @@
 namespace sdsl
 {
 
-//class structure_tree_node; // forward declaration of data structure in structure_tree.hpp
-//class structure_tree; // forward declaration of data structure in structure.hpp
-
-template<uint8_t, class size_type_class>
-class int_vector_file_buffer; // forward declaration
-
-template<uint8_t, class size_type_class>
+template<uint8_t>
 class int_vector;	 // forward declaration
 
 //! A namespace for helper functions
@@ -63,6 +59,9 @@ namespace util
 static bool verbose = false;
 
 void set_verbose();
+
+//! Get the size of a file in bytes
+off_t get_file_size(const char* file_name);
 
 //! Returns the basename of a file_name
 std::string basename(const std::string& file_name);
@@ -93,9 +92,13 @@ void set_one_bits(int_vector_type& v);
 template<class int_vector_type>
 void bit_compress(int_vector_type& v);
 
+//! Expands the integer width to new_width >= v.get_int_width()
+template<class int_vector_type>
+void expand_width(int_vector_type&v, uint8_t new_width);
+
 //! All elements of v modulo m
-template<class int_vector_type, class size_type_class>
-void all_elements_mod(int_vector_type& v, size_type_class m);
+template<class int_vector_type>
+void all_elements_mod(int_vector_type& v, typename int_vector_type::size_type m);
 
 
 //! Set all entries of int_vector to value k
@@ -142,14 +145,84 @@ bool load_from_file(T& v, const char* file_name);
 template<>
 bool load_from_file(void*&, const char* file_name);
 
-template<class size_type_class>
-bool load_from_int_vector_buffer(unsigned char*& text, int_vector_file_buffer<8, size_type_class>& text_buf);
+//! Load an int_vector from a plain array of `num_bytes`-byte integers with X in \{0, 1,2,4,8\} from disk.
+// TODO: Remove ENDIAN dependency: currently in BIG_ENDIAN format
+template<class int_vector_type>
+bool load_vector_from_file(int_vector_type &v, const char* file_name, uint8_t num_bytes=1, uint8_t max_int_width=64){
+	if ( (uint8_t)0 == num_bytes ){ // if byte size is variable read int_vector<0> from file
+		return load_from_file(v, file_name);
+	}else {
+		off_t file_size = get_file_size( file_name );
+		if ( file_size == 0 ){
+			v.resize(0);
+			return true;
+		}
+		if ( file_size % num_bytes != 0 ){
+			throw std::logic_error("file size "+to_string(file_size)+" of \""+to_string(file_name)
+											   +"\" is not a multiple of "+to_string(num_bytes));
+			return false;
+		}
+		std::ifstream in(file_name);
+		if ( in ){
+			v.set_int_width( std::min( (int)8*num_bytes, (int)max_int_width ) );
+			v.resize( file_size / num_bytes );
+			if ( 8 == int_vector_type::fixed_int_width and 1 == num_bytes ){ // if int_vector<8> is created from byte alphabet file 
+				in.read((char*)v.m_data, file_size);
+			}else{
+				size_t idx=0;
+				const size_t block_size = constants::SDSL_BLOCK_SIZE*num_bytes;
+				uint8_t * buf = new uint8_t[block_size];
+				// TODO: check for larger alphabets with num_bytes*8 = v::fixed_int_width
+
+				uint64_t x = 0; // value
+				uint8_t  cur_byte = 0;
+				do{
+					in.read((char*)buf, block_size);
+					size_t read = in.gcount();
+					uint8_t* begin = buf;
+					uint8_t* end   = begin+read;
+					while ( begin < end ){
+						x |= (*begin) << (cur_byte*8);
+						++cur_byte;
+						if ( cur_byte == num_bytes ){
+							v[idx++] = x;
+							cur_byte = 0;
+							x = 0ULL;
+						}
+						++begin;
+					}
+				} while( idx < v.size() );
+				delete [] buf;
+				in.close();
+			}
+			return true;
+		}else{
+			return false;
+		}
+	}
+}
+
+//! Store an int_vector as plain int_type array to disk 
+template<class int_type, class int_vector_type>
+bool store_to_plain_array(int_vector_type &v, const char* file_name){
+	std::ofstream out(file_name);
+	if ( out ){
+		for (typename int_vector_type::size_type i=0; i<v.size(); ++i){
+			int_type x = v[i];
+			out.write((char*)&x, sizeof(int_type));
+		}
+		return true;
+	}else{
+		return false;
+	}
+}
 
 //! Specialization of load_from_file for a char array
 /*  \pre v=NULL
  *
  */
 bool load_from_file(char*& v, const char* file_name);
+
 
 //! Store a data structure to a file.
 /*! The data structure has to provide a serialize function.
@@ -164,8 +237,8 @@ bool store_to_file(const T& v, const char* file_name);
 bool store_to_file(const char* v, const char* file_name);
 
 //! Specialization of store_to_file for int_vector
-template<uint8_t fixed_int_width, class size_type_class>
-bool store_to_file(const int_vector<fixed_int_width, size_type_class>& v, const char* file_name, bool write_fixed_as_variable=false);
+template<uint8_t fixed_int_width>
+bool store_to_file(const int_vector<fixed_int_width>& v, const char* file_name, bool write_fixed_as_variable=false);
 
 //! Demangle the class name of typeid(...).name()
 /*!
@@ -175,6 +248,16 @@ std::string demangle(const char* name);
 
 //! Demangle the class name of typeid(...).name() and remove the "sdsl::"-prefix, "unsigned int",...
 std::string demangle2(const char* name);
+
+//! Transforms the demangled class name of an object to a hash value.
+template<class T>
+std::string class_to_hash(const T& t){
+	std::locale loc;
+	const std::collate<char>& coll = std::use_facet<std::collate<char> >(loc);
+	std::string name = sdsl::util::demangle2(typeid(T).name());
+	uint64_t my_hash = coll.hash(name.data(),name.data()+name.length());
+	return to_string(my_hash);
+}
 
 template<class T>
 std::string class_name(const T& t)
@@ -194,7 +277,7 @@ std::string class_name(const T& t)
 template<class T>
 typename T::size_type get_size_in_bytes(const T& t);
 
-//! Get the size of a data structure in mega bytes (MB).
+//! Get the size of a data structure in mega bytes (MiB).
 /*!
  *	\param t A reference to the data structure for which the size in bytes should be calculated.
  */
@@ -223,7 +306,8 @@ size_t write_member(const T& t, std::ostream& out, sdsl::structure_tree_node* v=
 
 // Specialization for std::string
 template<>
-size_t write_member<std::string>(const std::string& t, std::ostream& out, structure_tree_node* v, std::string name);
+size_t write_member<std::string>(const std::string& t, std::ostream& out, sdsl::structure_tree_node* v, std::string name);
+
 
 // Writes primitive-typed variable t to stream out
 template<class T>
@@ -236,11 +320,49 @@ void read_member(T& t, std::istream& in)
 template<>
 void read_member<std::string>(std::string& t, std::istream& in);
 
+//! Serialize each element of an std::vector 
+/*!
+ * \param vec	The vector which should be serialized.
+ * \param out	Output stream to which should be written.
+ * \param v		Structure tree node. Note: If all elements have the same
+ *              structure, then it is tried to combine all elements (i.e.
+ *              make one node w with size set to the cumulative sum of all
+ *              sizes of the children) 
+ */
+template<class T>
+size_t serialize_vector(const std::vector<T> &vec, std::ostream& out, sdsl::structure_tree_node* v=NULL, std::string name=""){
+	if ( vec.size() > 0 ){
+		sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, "std::vector<"+util::class_name(vec[0])+">" );
+		size_t written_bytes = 0;
+		for (typename std::vector<T>::size_type i = 0; i < vec.size(); ++i ){
+			written_bytes += vec[i].serialize(out, child, "[]");
+		}
+		structure_tree::add_size(child, written_bytes);
+		sdsl::structure_tree::merge_children(child);
+		return written_bytes;
+	}else{
+		return 0;
+	}
+}
+
+//! Load all elements of a vector from a input stream
+/*! \param vec	Vector whose elements should be loaded.
+ *  \param in   Input stream.
+ *  \par Note
+ *   The vector has to be resized prior the loading 
+ *   of its elements.
+ */
+template<class T>
+void load_vector(std::vector<T> &vec, std::istream& in){
+	for (typename std::vector<T>::size_type i = 0; i < vec.size(); ++i){
+		vec[i].load(in);
+	}
+}
+
 //! Get the process id of the current process
 uint64_t get_pid();
 
-class _id_helper
-{
+class _id_helper {
     private:
         static uint64_t id;
     public:
@@ -251,8 +373,7 @@ class _id_helper
 
 
 //! Get a unique id inside the process
-inline uint64_t get_id()
-{
+inline uint64_t get_id() {
     return _id_helper::getId();
 }
 
@@ -336,12 +457,39 @@ template<format_type F, class X>
 void write_structure(const X& x, std::ostream& out)
 {
     structure_tree_node* v = new structure_tree_node();
-    nullstream ns;
+	nullstream ns;
     x.serialize(ns, v, "");
     if (v->children.size() > 0) {
         sdsl::write_structure_tree<F>(v->children[0], out);
     }
     delete v;
+}
+
+std::string cache_file_name(const char* key, const cache_config &config);
+
+void register_cache_file(const char* key, cache_config &config);
+
+bool cache_file_exists(const char* key, const cache_config &config);
+
+template<class T>
+bool load_from_cache(T&v, const char* key, const cache_config &config){
+	std::string file_name = cache_file_name(key, config);
+	if( load_from_file(v, file_name.c_str()) ){
+		return true;
+	}
+	return false;
+}
+
+
+template<class T>
+bool store_to_cache(const T& v, const char* key, cache_config &config){
+	std::string file_name = cache_file_name(key, config);
+	if ( store_to_file(v, file_name.c_str()) ){
+		config.file_map[std::string(key)] = file_name;
+		return true;	
+	}else{
+		return false;
+	}
 }
 
 } // end namespace util
@@ -350,8 +498,7 @@ void write_structure(const X& x, std::ostream& out)
 
 
 template<class T>
-typename T::size_type util::get_size_in_bytes(const T& t)
-{
+typename T::size_type util::get_size_in_bytes(const T& t) {
     if ((&t) == NULL)
         return 0;
     util::nullstream ns;
@@ -359,14 +506,12 @@ typename T::size_type util::get_size_in_bytes(const T& t)
 }
 
 template<class T>
-double util::get_size_in_mega_bytes(const T& t)
-{
+double util::get_size_in_mega_bytes(const T& t) {
     return get_size_in_bytes(t)/(1024.0*1024.0);
 }
 
 template<class T>
-bool util::store_to_file(const T& t, const char* file_name)
-{
+bool util::store_to_file(const T& t, const char* file_name) {
     std::ofstream out;
     out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
@@ -376,8 +521,7 @@ bool util::store_to_file(const T& t, const char* file_name)
     return true;
 }
 
-inline bool util::store_to_file(const char* v, const char* file_name)
-{
+inline bool util::store_to_file(const char* v, const char* file_name) {
     std::ofstream out;
     out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
@@ -388,9 +532,8 @@ inline bool util::store_to_file(const char* v, const char* file_name)
     return true;
 }
 
-template<uint8_t fixed_int_width, class size_type_class>
-bool util::store_to_file(const int_vector<fixed_int_width, size_type_class>& v, const char* file_name, bool write_fixed_as_variable)
-{
+template<uint8_t fixed_int_width>
+bool util::store_to_file(const int_vector<fixed_int_width>& v, const char* file_name, bool write_fixed_as_variable) {
     std::ofstream out;
     out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
@@ -401,8 +544,7 @@ bool util::store_to_file(const int_vector<fixed_int_width, size_type_class>& v, 
 }
 
 template<class T>
-bool util::load_from_file(T& v, const char* file_name)
-{
+bool util::load_from_file(T& v, const char* file_name) {
     std::ifstream in;
     in.open(file_name, std::ios::binary | std::ios::in);
     if (!in)
@@ -413,31 +555,8 @@ bool util::load_from_file(T& v, const char* file_name)
 }
 
 
-template<class size_type_class>
-bool util::load_from_int_vector_buffer(unsigned char*& text, int_vector_file_buffer<8, size_type_class>& text_buf)
-{
-    text_buf.reset();
-    size_type_class n = text_buf.int_vector_size;
-    if (text != NULL) {
-        delete [] text;
-        text = NULL;
-    }
-    text = new unsigned char[n];
-    for (size_type_class i=0, r_sum=0, r=text_buf.load_next_block(); r_sum < n;) {
-        for (; i < r_sum+r; ++i) {
-            text[i] = text_buf[i-r_sum];
-        }
-        r_sum += r; r = text_buf.load_next_block();
-    }
-    return true;
-}
-
-
-
-
 template<class int_vector_type>
-void util::set_random_bits(int_vector_type& v, int seed)
-{
+void util::set_random_bits(int_vector_type& v, int seed) {
     if (0 == seed) {
         srand48((int)time(NULL));
     } else
@@ -459,17 +578,15 @@ void util::set_random_bits(int_vector_type& v, int seed)
 }
 
 // all elements of vector v modulo m
-template<class int_vector_type, class size_type_class>
-void util::all_elements_mod(int_vector_type& v, size_type_class m)
-{
+template<class int_vector_type>
+void util::all_elements_mod(int_vector_type& v, typename int_vector_type::size_type m) {
     for (typename int_vector_type::size_type i=0; i < v.size(); ++i) {
         v[i] = v[i] % m;
     }
 }
 
 template<class int_vector_type>
-void util::set_zero_bits(int_vector_type& v)
-{
+void util::set_zero_bits(int_vector_type& v) {
     uint64_t* data = v.m_data;
     if (v.empty())
         return;
@@ -481,8 +598,7 @@ void util::set_zero_bits(int_vector_type& v)
 }
 
 template<class int_vector_type>
-void util::set_one_bits(int_vector_type& v)
-{
+void util::set_one_bits(int_vector_type& v) {
     uint64_t* data = v.m_data;
     if (v.empty())
         return;
@@ -493,8 +609,7 @@ void util::set_one_bits(int_vector_type& v)
 }
 
 template<class int_vector_type>
-void util::bit_compress(int_vector_type& v)
-{
+void util::bit_compress(int_vector_type& v) {
     typename int_vector_type::value_type max=0;
     for (typename int_vector_type::size_type i=0; i < v.size(); ++i) {
         if (v[i] > max) {
@@ -517,10 +632,24 @@ void util::bit_compress(int_vector_type& v)
     }
 }
 
+template<class int_vector_type>
+void util::expand_width(int_vector_type&v, uint8_t new_width){
+	uint8_t old_width = v.get_int_width();
+	typename int_vector_type::size_type n = v.size();
+	if ( new_width > old_width and n > 0 ){
+		typename int_vector_type::size_type i, old_pos, new_pos;
+		new_pos = (n-1)*new_width;
+		old_pos = (n-1)*old_width;
+		v.bit_resize(v.size()*new_width);
+    	for (i=0; i < n; ++i, new_pos-=new_width, old_pos-=old_width) {
+			v.set_int(new_pos, v.get_int(old_pos, old_width), new_width);
+		}
+		v.set_int_width(new_width);
+	}
+}
 
 template<class int_vector_type>
-void util::set_all_values_to_k(int_vector_type& v, uint64_t k)
-{
+void util::set_all_values_to_k(int_vector_type& v, uint64_t k) {
     uint64_t* data = v.m_data;
     if (v.empty())
         return;
@@ -552,18 +681,16 @@ void util::set_all_values_to_k(int_vector_type& v, uint64_t k)
     }
 }
 
-
+//! Set v[i] = i for i=[0..v.size()-1]
 template<class int_vector_type>
-void util::set_to_id(int_vector_type& v)
-{
+void util::set_to_id(int_vector_type& v) {
     for (typename int_vector_type::size_type i=0; i < v.size(); ++i) {
         v[i] = i;
     }
 }
 
 template<class int_vector_type>
-typename int_vector_type::size_type util::get_one_bits(const int_vector_type& v)
-{
+typename int_vector_type::size_type util::get_one_bits(const int_vector_type& v) {
     const uint64_t* data = v.data();
     if (v.empty())
         return 0;
@@ -579,8 +706,7 @@ typename int_vector_type::size_type util::get_one_bits(const int_vector_type& v)
 
 
 template<class int_vector_type>
-typename int_vector_type::size_type util::get_onezero_bits(const int_vector_type& v)
-{
+typename int_vector_type::size_type util::get_onezero_bits(const int_vector_type& v) {
     const uint64_t* data = v.data();
     if (v.empty())
         return 0;
@@ -597,8 +723,7 @@ typename int_vector_type::size_type util::get_onezero_bits(const int_vector_type
 }
 
 template<class int_vector_type>
-typename int_vector_type::size_type util::get_zeroone_bits(const int_vector_type& v)
-{
+typename int_vector_type::size_type util::get_zeroone_bits(const int_vector_type& v) {
     const uint64_t* data = v.data();
     if (v.empty())
         return 0;
@@ -615,16 +740,14 @@ typename int_vector_type::size_type util::get_zeroone_bits(const int_vector_type
 }
 
 template<typename T>
-std::string util::to_string(const T& t)
-{
+std::string util::to_string(const T& t) {
     std::stringstream ss;
     ss<<t;
     return ss.str();
 }
 
 template<typename T>
-std::string util::to_latex_string(const T& t)
-{
+std::string util::to_latex_string(const T& t) {
     return to_string(t);
 }
 

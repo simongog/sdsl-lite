@@ -23,6 +23,7 @@
 #define INCLUDED_SDSL_ALGORITHMS_FOR_STRING_MATCHING
 
 #include "int_vector.hpp"
+#include "sdsl_concepts.hpp"
 
 #include <stdexcept> // for exceptions
 #include <iostream>
@@ -106,7 +107,7 @@ static typename Csa::csa_size_type backward_search(const Csa& csa, typename Csa:
 
 // TODO: forward search. Include original text???
 
-//! Counts the number of occurences of pattern pat in the string of the compressed suffix array csa.
+//! Counts the number of occurrences of pattern pat in the string of the compressed suffix array csa.
 /*!
  * \param csa The compressed suffix array.
  * \param pat The pattern for which we count the occurences in the string of the compressed suffix array.
@@ -121,7 +122,7 @@ static typename Csa::csa_size_type count(const Csa& csa, typename Csa::pattern_t
 {
     if (len > csa.size())
         return 0;
-    typename Csa::size_type t1,t2; t1=t2=0; // dummy varaiable for the backward_search call
+    typename Csa::size_type t1,t2; t1=t2=0; // dummy variable for the backward_search call
     return backward_search(csa, 0, csa.size()-1, pat, len, t1, t2);
 }
 
@@ -150,26 +151,16 @@ static typename Csa::csa_size_type locate(const Csa&  csa, typename Csa::pattern
     return occs;
 }
 
-//! Returns the substring T[begin..end] of the original text T from the corresponding compressed suffix array.
-/*!
- * \param csa The compressed suffix array.
- * \param begin Index of the starting position (inclusive) of the substring in the original text.
- * \param end   Index of the end position (inclusive) of the substring in the original text.
- * \param text	A pointer to the extracted text. The memory has to be initialized before the call of the function!
- * \pre text has to be initialized with enough memory (end-begin+2 bytes) to hold the extracted text.
- * \pre \f$begin <= end\f$ and \f$ end < csa.size() \f$
- * \par Time complexity
- *		\f$ \Order{ (end-begin+1) \cdot t_{\Psi} + t_{SA^{-1}} } \f$
- */
-// Is it cheaper to call T[i] = BWT[iSA[i+1]]??? Additional ranks but H_0 average access
-// TODO: extract backward!!! is faster in most cases!
+
 template<class Csa>
-static void extract(const Csa& csa, typename Csa::size_type begin, typename Csa::size_type end, unsigned char* text)
+static void extract(const Csa& csa, typename Csa::size_type begin, typename Csa::size_type end, 
+		           typename Csa::char_type* text, typename Csa::size_type& len, lf_tag)
 {
-    assert(end <= csa.size());
+    assert(end < csa.size());
     assert(begin <= end);
-    for (typename Csa::size_type i=begin, order = csa(begin); i<=end; ++i, order =  csa.psi[order]) {
-        uint16_t c_begin = 1, c_end = 257, mid;
+	len = 0;
+    for (typename Csa::size_type i=end, order = csa(end); (i+1) >= 0 and i >= begin; --i, order =  csa.psi(order)) {
+        typename Csa::size_type c_begin = 1, c_end = csa.sigma+1, mid;
         while (c_begin < c_end) {
             mid = (c_begin+c_end)>>1;
             if (csa.C[mid] <= order) {
@@ -179,10 +170,63 @@ static void extract(const Csa& csa, typename Csa::size_type begin, typename Csa:
             }
         }
         text[i-begin] = csa.comp2char[c_begin-1];
+		++len;
+    }
+    if (text[end-begin]!=0)
+        text[end-begin+1] = 0; // set terminal character
+	if ( len < end-begin+1 ){  // shift symbols to the beginning of the reserved block 
+		for (typename Csa::size_type i=0, diff=(end-begin+1)-len; i < len; ++i){
+			text[i] = text[i+diff];
+		}
+	}
+}
+
+// specialization for csa_sada
+template<class Csa>
+static void extract(const Csa& csa, typename Csa::size_type begin, typename Csa::size_type end, 
+		            typename Csa::char_type* text, typename Csa::size_type& len, psi_tag)
+{
+    assert(end < csa.size());
+    assert(begin <= end);
+	len = 0;
+    for (typename Csa::size_type i=begin, order = csa(begin); i<=end and i<csa.size(); ++i, order =  csa.psi[order]) {
+        typename Csa::size_type c_begin = 1, c_end = csa.sigma+1, mid;
+        while (c_begin < c_end) {
+            mid = (c_begin+c_end)>>1;
+            if (csa.C[mid] <= order) {
+                c_begin = mid+1;
+            } else {
+                c_end = mid;
+            }
+        }
+        text[i-begin] = csa.comp2char[c_begin-1];
+		++len;
     }
     if (text[end-begin]!=0)
         text[end-begin+1] = 0; // set terminal character
 }
+
+//! Returns the substring T[begin..end] of the original text T from the corresponding compressed suffix array.
+/*!
+ * \param csa The compressed suffix array.
+ * \param begin Index of the starting position (inclusive) of the substring in the original text.
+ * \param end   Index of the end position (inclusive) of the substring in the original text.
+ * \param text	A pointer to the extracted text. The memory has to be initialized before the call of the function.
+ * \param len	Length of the extracted text.
+ * \pre text has to be initialized with enough memory (end-begin+2 bytes) to hold the extracted text.
+ * \pre \f$begin <= end\f$ and \f$ end < csa.size() \f$
+ * \par Time complexity
+ *		\f$ \Order{ (end-begin+1) \cdot t_{\Psi} + t_{SA^{-1}} } \f$
+ */
+// Is it cheaper to call T[i] = BWT[iSA[i+1]]??? Additional ranks but H_0 average access
+// TODO: extract backward!!! is faster in most cases!
+template<class Csa>
+static void extract(const Csa& csa, typename Csa::size_type begin, typename Csa::size_type end, 
+		           typename Csa::char_type* text, typename Csa::size_type& len) {
+	typename Csa::extract_category extract_tag;
+	extract(csa, begin, end, text, len, extract_tag);
+}
+
 
 //! Reconstructs the text from position \f$begin\f$ to position \f$end\f$ (inclusive) from the compressed suffix array.
 /*!
@@ -202,7 +246,7 @@ static std::string extract(const Csa& csa, typename Csa::size_type begin, typena
     assert(begin <= end);
     std::string result(end-begin+1,' ');
     for (typename Csa::size_type i=begin, order = csa(begin); i<=end; ++i, order =  csa.psi[order]) {
-        uint16_t c_begin = 1, c_end = 257, mid;
+        typename Csa::size_type c_begin = 1, c_end = csa.sigma+1, mid;
         while (c_begin < c_end) {
             mid = (c_begin+c_end)>>1;
             if (csa.C[mid] <= order) {

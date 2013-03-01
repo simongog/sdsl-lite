@@ -65,6 +65,13 @@ class lcp_vlc
                sa_order	  = 1
              };
 
+        template<class Cst>  // template inner class which is used in CSTs to parametrize lcp classes
+        class type           // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
+        {
+            public:
+                typedef lcp_vlc lcp_type;
+        };
+
     private:
 
         vlc_vec_type		m_vec;
@@ -76,8 +83,7 @@ class lcp_vlc
     public:
         //! Default Constructor
         lcp_vlc() {}
-        //! Default Destructor
-        ~lcp_vlc() {}
+
         //! Copy constructor
         lcp_vlc(const lcp_vlc& lcp_c) {
             copy(lcp_c);
@@ -88,14 +94,8 @@ class lcp_vlc
         lcp_vlc(const Text& text, const Sa& sa);
 
         //! Construct the lcp array from an int_vector_file_buffer
-        template<uint8_t int_width, class size_type_class>
-        lcp_vlc(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
-
-        template<class Text, class Sa>
-        void construct(const Text& text, const Sa& sa);
-
-        template<uint8_t int_width, class size_type_class>
-        void construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf);
+        template<uint8_t int_width>
+        lcp_vlc(int_vector_file_buffer<int_width>& lcp_buf);
 
         //! Number of elements in the instance.
         /*! Required for the Container Concept of the STL.
@@ -122,33 +122,15 @@ class lcp_vlc
         }
 
         //! Swap method for lcp_vlc
-        /*! The swap method can be defined in terms of assignment.
-        	This requires three assignments, each of which, for a container type, is linear
-        	in the container's size. In a sense, then, a.swap(b) is redundant.
-        	This implementation guaranties a run-time complexity that is constant rather than linear.
-        	\param lcp_c lcp_vlc to swap.
-
-        	Required for the Assignable Conecpt of the STL.
-          */
         void swap(lcp_vlc& lcp_c);
 
         //! Returns a const_iterator to the first element.
-        /*! Required for the STL Container Concept.
-         *  \sa end
-         */
         const_iterator begin()const;
 
         //! Returns a const_iterator to the element after the last element.
-        /*! Required for the STL Container Concept.
-         *  \sa begin.
-         */
         const_iterator end()const;
 
         //! []-operator
-        /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
-         * Time complexity: O(suffix array access)
-         * Required for the STL Random Access Container Concept.
-         */
         inline value_type operator[](size_type i)const;
 
         //! Assignment Operator.
@@ -157,31 +139,10 @@ class lcp_vlc
          */
         lcp_vlc& operator=(const lcp_vlc& lcp_c);
 
-        //! Equality Operator
-        /*! Two Instances of lcp_vlc are equal if
-         *  all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator!=
-         */
-        bool operator==(const lcp_vlc& lcp_c)const;
-
-        //! Unequality Operator
-        /*! Two Instances of lcp_vlc are equal if
-         *  not all their members are equal.
-         *  \par Required for the Equality Comparable Concept of the STL.
-         *  \sa operator==
-         */
-        bool operator!=(const lcp_vlc& lcp_c)const;
-
         //! Serialize to a stream.
-        /*! \param out Outstream to write the data structure.
-         *  \return The number of written bytes.
-         */
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
 
         //! Load from a stream.
-        /*! \param in Inputstream to load the data structure from.
-         */
         void load(std::istream& in);
 };
 
@@ -189,15 +150,7 @@ class lcp_vlc
 
 template<class vlc_vec_type>
 template<class Text, class Sa>
-lcp_vlc<vlc_vec_type>::lcp_vlc(const Text& text, const Sa& sa)
-{
-    construct(text, sa);
-}
-
-template<class vlc_vec_type>
-template<class Text, class Sa>
-void lcp_vlc<vlc_vec_type>::construct(const Text& text, const Sa& sa)
-{
+lcp_vlc<vlc_vec_type>::lcp_vlc(const Text& text, const Sa& sa) {
     if (sa.size() == 0) {
         return;
     }
@@ -223,35 +176,24 @@ void lcp_vlc<vlc_vec_type>::construct(const Text& text, const Sa& sa)
 
 
 template<class vlc_vec_type>
-template<uint8_t int_width, class size_type_class>
-lcp_vlc<vlc_vec_type>::lcp_vlc(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
-{
-    construct(lcp_buf);
+template<uint8_t int_width>
+lcp_vlc<vlc_vec_type>::lcp_vlc(int_vector_file_buffer<int_width>& lcp_buf) {
+	util::assign(m_vec, vlc_vec_type(lcp_buf));
 }
 
 template<class vlc_vec_type>
-template<uint8_t int_width, class size_type_class>
-void lcp_vlc<vlc_vec_type>::construct(int_vector_file_buffer<int_width, size_type_class>& lcp_buf)
-{
-    m_vec.init(lcp_buf);
-}
-
-template<class vlc_vec_type>
-void lcp_vlc<vlc_vec_type>::swap(lcp_vlc& lcp_c)
-{
+void lcp_vlc<vlc_vec_type>::swap(lcp_vlc& lcp_c) {
     m_vec.swap(lcp_c.m_vec);
 }
 
 template<class vlc_vec_type>
-inline typename lcp_vlc<vlc_vec_type>::value_type lcp_vlc<vlc_vec_type>::operator[](size_type i)const
-{
+inline typename lcp_vlc<vlc_vec_type>::value_type lcp_vlc<vlc_vec_type>::operator[](size_type i)const {
     return m_vec[i];
 }
 
 
 template<class vlc_vec_type>
-typename lcp_vlc<vlc_vec_type>::size_type lcp_vlc<vlc_vec_type>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
-{
+typename lcp_vlc<vlc_vec_type>::size_type lcp_vlc<vlc_vec_type>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
     written_bytes += m_vec.serialize(out, child, "vec");
@@ -260,45 +202,26 @@ typename lcp_vlc<vlc_vec_type>::size_type lcp_vlc<vlc_vec_type>::serialize(std::
 }
 
 template<class vlc_vec_type>
-void lcp_vlc<vlc_vec_type>::load(std::istream& in)
-{
+void lcp_vlc<vlc_vec_type>::load(std::istream& in) {
     m_vec.load(in);
 }
 
 
 template<class vlc_vec_type>
-lcp_vlc<vlc_vec_type>& lcp_vlc<vlc_vec_type>::operator=(const lcp_vlc& lcp_c)
-{
+lcp_vlc<vlc_vec_type>& lcp_vlc<vlc_vec_type>::operator=(const lcp_vlc& lcp_c) {
     if (this != &lcp_c) {
         copy(lcp_c);
     }
     return *this;
 }
 
-
 template<class vlc_vec_type>
-bool lcp_vlc<vlc_vec_type>::operator==(const lcp_vlc& lcp_c)const
-{
-    if (this == &lcp_c)
-        return true;
-    return m_vec == lcp_c.m_vec;
-}
-
-template<class vlc_vec_type>
-bool lcp_vlc<vlc_vec_type>::operator!=(const lcp_vlc& lcp_c)const
-{
-    return !(*this == lcp_c);
-}
-
-template<class vlc_vec_type>
-typename lcp_vlc<vlc_vec_type>::const_iterator lcp_vlc<vlc_vec_type>::begin()const
-{
+typename lcp_vlc<vlc_vec_type>::const_iterator lcp_vlc<vlc_vec_type>::begin()const {
     return const_iterator(this, 0);
 }
 
 template<class vlc_vec_type>
-typename lcp_vlc<vlc_vec_type>::const_iterator lcp_vlc<vlc_vec_type>::end()const
-{
+typename lcp_vlc<vlc_vec_type>::const_iterator lcp_vlc<vlc_vec_type>::end()const {
     return const_iterator(this, size());
 }
 

@@ -13,6 +13,7 @@ all: $(EXECS)
 
 clean:
 	rm -f $(EXECS)
+	rm -rf *.dSYM
 
 # TODO special test case for BitMagicTestSSE
 

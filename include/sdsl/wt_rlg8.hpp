@@ -22,6 +22,7 @@
 #ifndef INCLUDED_SDSL_WT_RLG8
 #define INCLUDED_SDSL_WT_RLG8
 
+#include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "rank_support_v.hpp"
 #include "rank_support_v5.hpp"
@@ -54,8 +55,8 @@ typedef wt_huff<bit_vector, rank_support_v5<>, select_support_bs<>, select_suppo
  * This class should be used only for small alphabets \f$\Sigma \ll n\f$ (see wt_int for a wavelet tree for big alphabets).
  * The wavelet tree \f$wt\f$ consists of a tree of bitvectors and provides three efficient methods:
  *   - The "[]"-operator: \f$wt[i]\f$ returns the ith symbol of vector for which the wavelet tree was build for.
- *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurences of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the wavelet tree was build for.
- *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurence of symbol \f$c\f$.
+ *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurrences of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the wavelet tree was build for.
+ *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurrence of symbol \f$c\f$.
  *
  *	\par Space complexity
  *		 \f$\Order{n\log|\Sigma| + 2|\Sigma|\log n}\f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
@@ -63,7 +64,7 @@ typedef wt_huff<bit_vector, rank_support_v5<>, select_support_bs<>, select_suppo
  *  \par Note
  *       We denote the length of the longest run in the sequence with \f$ L \f$
  */
-template<class RankSupport = rank_support_v5<>, class WaveletTree = wt_without_select >
+template<class RankSupport = rank_support_v5<>, class WaveletTree = wt_without_select>
 class wt_rlg8
 {
     public:
@@ -71,7 +72,8 @@ class wt_rlg8
         typedef unsigned char		 	value_type;
         typedef RankSupport				rank_support_type;
         typedef WaveletTree             wt_type;
-
+		typedef wt_tag					index_category;
+		typedef byte_alphabet_tag		alphabet_category;
     private:
         size_type 				m_size;         // size of the original input sequence
         wt_type					m_wt;	        // wavelet tree for all levels
@@ -110,10 +112,8 @@ class wt_rlg8
         // Default constructor
         wt_rlg8():m_size(0), m_sigma(0), sigma(m_sigma) {};
 
-
-
-        //! Constructor
-        /*!
+        // Constructor
+        /*
          *	\param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
          *	\param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
          *	\par Time complexity
@@ -124,19 +124,11 @@ class wt_rlg8
             throw std::logic_error("This constructor of wt_rlg8 is not yet implemented!");
         }
 
-        template<class size_type_class>
-        wt_rlg8(int_vector_file_buffer<8, size_type_class>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
-            construct(rac, size);
-        }
-
-        //! Construct the wavelet tree from a random access container
-        /*! \param rac A random access container
-         *	\param size The length of the prefix of the random access container, for which the wavelet tree should be build
+        //! Construct the wavelet tree from a file_buffer
+        /*! \param text_buf	A int_vector_file_buffer to the original text.
+         *	\param size The length of the prefix of the text, for which the wavelet tree should be build.
          */
-        template<class size_type_class>
-        void construct(int_vector_file_buffer<8, size_type_class>& rac, size_type size) {
-            m_size = size;
-            typedef size_type_class size_type;
+        wt_rlg8(int_vector_file_buffer<8>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
             // TODO: remove absolute file name
             std::string temp_file = "wt_rlg8_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
             std::ofstream wt_out(temp_file.c_str(), std::ios::binary | std::ios::trunc);
@@ -145,7 +137,6 @@ class wt_rlg8
 
             m_b = bit_vector(size/4+1,0);
             uint8_t* next_bwt = new uint8_t[size/4+4];
-//		bit_vector same_prev_char(size/2+1,0); //
 
             m_b_border.resize(bit_magic::l1BP(size) + 1);
             m_b_border[0] = 0;
@@ -169,7 +160,7 @@ class wt_rlg8
                         if (last_c[0] == last_c[1] and last_c[2] == last_c[3] and last_c[0] == last_c[2] and
                             last_c[4] == last_c[5] and last_c[6] == last_c[7] and last_c[4] == last_c[6]  and
                             last_c[0] == last_c[4]
-                           ) { // join octtrupel
+                           ) { // join octuple
                             m_b[b_cnt] = 1;
                             next_bwt[pair1cnt] = c;
                             ++pair1cnt;
@@ -232,8 +223,8 @@ class wt_rlg8
             wt_out.close();
 
             {
-                int_vector_file_buffer<8, size_type> temp_bwt_buf(temp_file.c_str());
-                m_wt.construct(temp_bwt_buf, temp_bwt_buf.int_vector_size);
+                int_vector_file_buffer<8> temp_bwt_buf(temp_file.c_str());
+				util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
             }
 
             util::init_support(m_b_rank, &m_b);
@@ -381,7 +372,7 @@ class wt_rlg8
          *	\par Time complexity
          *		\f$ \Order{H_0 \log L} \f$
          */
-        size_type rank_ith_symbol(size_type i, value_type& c)const {
+        size_type inverse_select(size_type i, value_type& c)const {
             return rank(i, c=(*this)[i]);
         }
 

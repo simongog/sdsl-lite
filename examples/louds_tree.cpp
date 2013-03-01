@@ -27,12 +27,12 @@ void print_tree(const tTree& tree, const tNode& v, int depth, bit_vector& visite
 }
 
 template<class tCst>
-void test(string file)
+void test(const char* file)
 {
     std::cout << file << std::endl;
     tCst cst;
 //	util::verbose = true;
-    construct_cst(file, cst);
+    construct(cst, file, 1);
 
     typedef cst_bfs_iterator<tCst> iterator;
     iterator begin = iterator(&cst, cst.root());
@@ -50,7 +50,7 @@ void test(string file)
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
-        cout << "usage: "<<argv[0]<< " file_name" << std::endl;
+        cout << "usage: "<<argv[0]<< " file" << std::endl;
     } else {
         test<cst_sct3<> >(argv[1]);
     }

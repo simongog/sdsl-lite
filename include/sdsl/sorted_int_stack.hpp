@@ -89,22 +89,6 @@ class sorted_int_stack
         /*! Required for the Assignable Concept of the STL.
          */
         sorted_int_stack& operator=(const sorted_int_stack& sis);
-
-        //! Equality Operator
-        /*! Two sorted_int_stacks are equal if all member variables are equal.
-         *
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator!=
-         */
-        bool operator==(const sorted_int_stack& sis)const;
-        //! Unequality Operator
-        /*! Two sorted_int_stacks are not equal if any member variable are not equal.
-         *
-         * Required for the Equality Comparable Concept of the STL.
-         * \sa operator==
-         */
-        bool operator!=(const sorted_int_stack& sis)const;
-
 };
 
 inline sorted_int_stack::sorted_int_stack(size_type n):m_n(n), m_cnt(0), m_top(0)
@@ -128,16 +112,6 @@ inline sorted_int_stack& sorted_int_stack::operator=(const sorted_int_stack& sis
         m_overflow 	= sis.m_overflow;
     }
     return *this;
-}
-
-inline bool sorted_int_stack::operator==(const sorted_int_stack& sis)const
-{
-    return m_n == sis.m_n and m_cnt == sis.m_cnt and m_top == sis.m_top and m_stack == sis.m_stack and m_overflow == sis.m_overflow;
-}
-
-inline bool sorted_int_stack::operator!=(const sorted_int_stack& sis)const
-{
-    return !(*this==sis);
 }
 
 inline const sorted_int_stack::size_type sorted_int_stack::top()const
