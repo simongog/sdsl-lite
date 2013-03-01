@@ -17,6 +17,7 @@ OLD_DIR="$( cd "$( dirname "$0" )" && pwd )" # gets the directory where the scri
 cd "${OLD_DIR}"
 
 cd "${sufsort_dir}/build"  # step into the build dir of libdivsufsort
+rm -f CMakeCache.txt
 
 cmake -DCMAKE_INSTALL_PREFIX=${SDSL_INSTALL_PREFIX} -DBUILD_DIVSUFSORT64=ON \
 	  -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE="Release" -DBUILD_EXAMPLES=OFF .. # run cmake 
@@ -40,6 +41,7 @@ rm -rf "${sufsort_dir}/build/*"
 # (2) Install gtest
 
 cd "${gtest_dir}/build"  # step into the build dir of gtest
+rm -f CMakeCache.txt
 
 cmake -DCMAKE_INSTALL_PREFIX=${SDSL_INSTALL_PREFIX} \
 	  -DBUILD_SHARED_LIBS=OFF -Dgtest_disable_pthreads=ON .. 
@@ -69,6 +71,7 @@ cd build # change into the build directory
 if [ $? != 0 ]; then
 	exit 1
 fi
+rm -f CMakeCache.txt
 
 cmake -DCMAKE_INSTALL_PREFIX=${SDSL_INSTALL_PREFIX} .. # run cmake 
 if [ $? != 0 ]; then
