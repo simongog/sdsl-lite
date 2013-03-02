@@ -29,6 +29,7 @@
 #include "testutils.hpp"
 #include "isa_construct.hpp"
 #include "bwt_construct.hpp"
+#include "wt_huff.hpp"
 
 #include <iostream>
 #include <stdexcept>

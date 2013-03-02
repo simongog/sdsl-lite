@@ -1580,6 +1580,623 @@ void construct_int_lcp_kasai(int_vector<>& lcp, const cache_config& config){
 //    }
 //}
 //
+
+//! Merges the LCP array \f$ lcp_small\f$ in memory () and the LCP array on harddisk to one LCP array on harddisk
+/*!
+ * \param lcp_small First LCP array which should be merged
+ * \param finished_filename Path to second LCP array which should be merged
+ * \param finished_valid Array which values of the second LCP array are valid
+ * \param out_filename Path where resulting LCP array should be stored
+ * \param buffer_size Size of the buffer in byte
+ * \param N length of input
+ * \param LCP_value current LCP value
+ * \param lcp_value_offset: Largest LCP value in LCP array, that was written on harddisk
+ */
+void mergeToHD(int_vector<> &lcp_small, std::string finished_filename, bit_vector &finished_valid, std::string out_filename, int_vector<>::size_type buffer_size, unsigned long long N, unsigned long long LCP_value, unsigned long long lcp_value_offset)
+{
+    typedef int_vector<>::size_type size_type;
+    // open finshed array
+    int_vector_file_buffer<> finished_lcp_buffer(finished_filename.c_str(), buffer_size);
+
+    // open output array
+    uint8_t int_width = bit_magic::l1BP(LCP_value-1)+1;
+    size_type bit_size = N*int_width;								// Size of output file
+    size_type wb = 0;												// Number of bits that were already written
+    int_vector<> out_buf(buffer_size, 0, int_width); 				// Outputbuffer
+    std::ofstream lcp_out_buf( (out_filename).c_str(), std::ios::binary | std::ios::trunc | std::ios::out );
+    lcp_out_buf.write((char *) &(bit_size), sizeof(bit_size));		// Write length of vector
+    lcp_out_buf.write((char *) &(int_width), sizeof(int_width));	// Write int-width of vector
+
+    // Write values into buffer
+    for(size_type i=0, r_sum=0, calc_idx=0, r=0, finished_lcp_buffer_valid=0; r_sum < N; ) {
+        // Copy next r values into buffer
+        for( ; i < r_sum+r; ++i) {
+            // Load finished_buffer
+            if(!finished_lcp_buffer_valid) {
+                finished_lcp_buffer_valid = finished_lcp_buffer.load_next_block();
+            }
+            --finished_lcp_buffer_valid;
+
+            // If values was already calculated
+            if(finished_valid[i]) {
+                // Copy value
+                out_buf[i-r_sum] = finished_lcp_buffer[i-r_sum];
+            } else {
+                // If values was now calculated
+                if(lcp_small[calc_idx]) {
+                    // Insert value
+                    out_buf[i-r_sum] = lcp_small[calc_idx]+lcp_value_offset;
+                    finished_valid[i] = true;
+                } else {
+                    // Insert nothing
+                    out_buf[i-r_sum] = 0;
+                }
+                ++calc_idx;
+            }
+        }
+
+        // Write next r values from buffer to harddisk
+        if(r>0) {
+            size_type cur_wb = (r*out_buf.get_int_width()+7)/8;
+            lcp_out_buf.write((const char*)out_buf.data(), cur_wb );
+            wb += cur_wb;
+        }
+
+        // Count how many values were written and how many values will be written next
+        r_sum += r;
+        r = N-r_sum;
+        if(r>buffer_size) {
+                r = buffer_size;
+        }
+    }
+    // Close file
+    if(wb%8) {
+        lcp_out_buf.write("\0\0\0\0\0\0\0\0", 8-wb%8);
+    }
+    lcp_out_buf.close();
+
+    // Reset
+    util::set_zero_bits(lcp_small);
+    return;
+}
+
+void construct_lcp_bwt_based(tMSS& file_map, const std::string& dir, const std::string& id)
+{
+    typedef int_vector<>::size_type size_type;
+    write_R_output("lcp","construct LCP    ","begin", 1, 0);
+    size_type buffer_size=1000000;				// Size of the buffer
+    std::string outputfilenameschema = dir+"lcp_"+id+"_tmp_";		// Pattern for the temporary LCP arrays
+
+    // create WaveletTree
+    write_R_output("bwt","load huffman WT  ","begin", 0, 0);
+    int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str(), buffer_size);
+    size_type N = bwt_buf.int_vector_size;			// Input size
+    wt_huff<bit_vector, rank_support_v<>, select_support_dummy, select_support_dummy> wt_bwt(bwt_buf, N);
+    write_R_output("bwt","load huffman WT  ","end", 0, 0);
+
+    // init
+    write_R_output("lcp","init             ","begin", 0, 0);
+    size_type lcp_value = 0;					// current LCP value
+    size_type lcp_value_offset = 0;				// Largest LCP value in LCP array, that was written on harddisk
+    size_type phase = 0;						// Count how often the LCP array was written on disk
+
+    size_type intervals = 0;					// Number of intervals which are currently stored
+    size_type intervals_new = 0;				// Number of new intervals
+
+    std::queue<size_type> q;					// Queue for storing the intervals
+    vector<bit_vector> dict(2);					// BitVector for storing the intervals
+    size_type source = 0, target = 1;			// Defines which bitree is source and which is target
+    char last_used = 'q';
+    size_type use_queue_and_wt = N/2048;		// if intervals < use_queue_and_wt, then use queue and wavelet tree
+												// else use dictionary and wavelet tree
+
+
+    size_type quantity;							// quantity of characters in interval
+    vector<unsigned char> pos2char(wt_bwt.sigma);	// list of characters in the interval
+    vector<size_type> rank_c_i(wt_bwt.sigma);		// number of occurrence of character in [0 .. i-1]
+    vector<size_type> rank_c_j(wt_bwt.sigma);		// number of occurrence of character in [0 .. j-1]
+
+    // Calculate how many bit are for each lcp value available, to limit the memory usage to 20n bit = 2,5n byte, use at moste 8 bit
+    size_type bb = (N*20-util::get_size_in_bytes(wt_bwt)*8*1.25-5*N)/N; 	// 20n - size of wavelet tree * 1.25 for rank support - 8n for bit arrays - n for finished array
+    if(N*20 < util::get_size_in_bytes(wt_bwt)*8*1.25+5*N) {
+#ifdef STUDY_INFORMATIONS
+        std::cout << "Cannot caluclate LCP-Array with less than 2.5n bytes." << std::endl;
+#endif
+        bb = 6;
+    }
+    if(bb>8) {
+        bb = 8;
+    }
+    size_type lcp_value_max = (1ULL<<bb)-1;		// Largest LCP value that can be stored into the LCP array
+    size_type space_in_bit_for_lcp = (N+1)*bb;	// Space for the LCP array in main memory
+
+#ifdef STUDY_INFORMATIONS
+std::cout << "# l=" << N+1 << " b=" << (int)bb << " lcp_value_max=" << lcp_value_max << " size_in_bytes(wt_bwt<v,bs,bs>)=" << util::get_size_in_bytes(wt_bwt) << std::endl;
+#endif
+
+    // init lcp2
+    int_vector<> lcp2(N+1, 0, bb);				// LCP array
+
+    // init finished
+    bit_vector finished(N+1, false);			// Bitvector which is true, if corresponding LCP value was already calculated
+    rank_support_v<> ds_rank_support;			// Rank support for bit_vector finished
+
+    // create C-array
+    vector<size_type> C(256, 0);				// C-Array: C[i] = number of occurrences of characters < i in the input
+    wt_bwt.interval_symbols(0, N, quantity, pos2char, rank_c_i, rank_c_j);
+    for(size_type i=0; i<quantity; ++i) {
+        unsigned char c = pos2char[i];
+        C[c+1] = rank_c_j[i];
+    }
+    for(size_type i=1; i<C.size()-1; ++i) {
+        C[i+1] += C[i];
+    }
+    write_R_output("lcp","init             ","end", 0, 0);
+
+    // calculate lcp
+    write_R_output("lcp","calc lcp values  ","begin", 0, 0);
+
+    // store first interval
+    q.push(0);
+    q.push(N);
+    intervals = 1;
+    lcp2[0] = 0;
+    finished[0] = true;
+
+    // calulate LCP values
+    while(intervals) {
+        if(intervals < use_queue_and_wt && last_used == 'b') {
+            write_R_output("lcp","BitVector -> Queue","begin", 0, lcp_value);
+            dict[target].resize(1);
+
+            // copy from bitvector to queue
+            size_type a2 = util::next_bit(dict[source], 0);
+            size_type b2 = util::next_bit(dict[source], a2+1);
+            while( b2 < dict[source].size() ) {
+                q.push((a2-1)>>1);
+                q.push(b2>>1);
+                // get next interval
+                a2 = util::next_bit(dict[source], b2+1);
+                b2 = util::next_bit(dict[source], a2+1);
+            }
+            dict[source].resize(1);
+            write_R_output("lcp","BitVector -> Queue","end  ", 0, lcp_value);
+        }
+        if(intervals >= use_queue_and_wt && last_used == 'q') {
+            write_R_output("lcp","Queue -> BitVector","begin", 0, lcp_value);
+            size_type bitarray_length = N+1+64-(N+1)%64;			// Length of the bitarray
+            dict[source].resize((bitarray_length<<1)+10);
+            util::set_zero_bits(dict[source]);
+             // copy from queue to bitvector
+            while(!q.empty()) {
+                dict[source][ (q.front()<<1)+1 ] = 1; q.pop();
+                dict[source][ (q.front()<<1)   ] = 1; q.pop();
+            }
+            dict[target].resize((bitarray_length<<1)+10);
+            util::set_zero_bits(dict[target]);
+            write_R_output("lcp","Queue -> BitVector","end  ", 0, lcp_value);
+        }
+
+        if(intervals < use_queue_and_wt) {
+            last_used = 'q';
+            intervals_new = 0;
+            while(intervals) {
+                // get next interval
+                size_type a = q.front(); q.pop();
+                size_type b = q.front(); q.pop();
+                --intervals;
+
+                wt_bwt.interval_symbols(a, b, quantity, pos2char, rank_c_i, rank_c_j);
+                for(size_type i=0; i<quantity; ++i) {
+                    unsigned char c = pos2char[i];
+                    size_type a_new = C[c] + rank_c_i[i];
+                    size_type b_new = C[c] + rank_c_j[i];
+
+                    // Save LCP-Value if not seen before
+                    if(!finished[b_new] and phase == 0) {
+                        lcp2[b_new] = lcp_value;
+                        finished[b_new] = true;
+                        // Save interval
+                        q.push(a_new);
+                        q.push(b_new);
+                        ++intervals_new;
+                    } else if(!finished[b_new]) {
+                        size_type insert_pos = b_new-ds_rank_support.rank(b_new);
+                        if(!lcp2[insert_pos]) {
+                            lcp2[insert_pos] = lcp_value-lcp_value_offset;
+                            // Save interval
+                            q.push(a_new);
+                            q.push(b_new);
+                            ++intervals_new;
+                        }
+                    }
+                }
+            }
+            intervals = intervals_new;
+        } else {
+            last_used = 'b';
+            intervals = 0;
+
+            // get next interval
+            size_type a2 = util::next_bit(dict[source], 0);
+            size_type b2 = util::next_bit(dict[source], a2+1);
+
+            while( b2 < dict[source].size() ) {
+                wt_bwt.interval_symbols(((a2-1)>>1), (b2>>1), quantity, pos2char, rank_c_i, rank_c_j);
+                for(size_type i=0; i<quantity; ++i) {
+                    unsigned char c = pos2char[i];
+                    size_type a_new = C[c] + rank_c_i[i];
+                    size_type b_new = C[c] + rank_c_j[i];
+                    // Save LCP-Value if not seen before
+                    if(!finished[b_new] and phase == 0) {
+                        lcp2[b_new] = lcp_value;
+                        finished[b_new] = true;
+                        // Save interval
+                        dict[target][ (a_new<<1)+1] = 1;
+                        dict[target][ (b_new<<1)  ] = 1;
+                        ++intervals;
+                    } else if(!finished[b_new]) {
+                        size_type insert_pos = b_new-ds_rank_support.rank(b_new);
+                        if(!lcp2[insert_pos]) {
+                            lcp2[insert_pos] = lcp_value-lcp_value_offset;
+                            // Save interval
+                            dict[target][ (a_new<<1)+1] = 1;
+                            dict[target][ (b_new<<1)  ] = 1;
+                            ++intervals;
+                        }
+                    }
+                }
+                // get next interval
+                a2 = util::next_bit(dict[source], b2+1);
+                b2 = util::next_bit(dict[source], a2+1);
+            }
+            // switch source and target
+            source = 1-source;
+            target = 1-target;
+            util::set_zero_bits(dict[target]);
+        }
+        ++lcp_value;
+        if(lcp_value>=lcp_value_max) {
+            write_R_output("lcp","write to file    ","begin", lcp_value, 0);
+            if(phase) {
+                mergeToHD(lcp2, outputfilenameschema + util::to_string(phase-1), finished, outputfilenameschema + util::to_string(phase), buffer_size, N, lcp_value, lcp_value_offset);
+            } else {
+                lcp2.resize(N);
+                util::store_to_file(lcp2, (outputfilenameschema + util::to_string(phase)).c_str() );
+                lcp2.resize(N+1);
+                util::set_zero_bits(lcp2);
+            }
+            write_R_output("lcp","write to file    ","end", lcp_value, 0);
+
+            write_R_output("lcp","resize variables ","begin", 0, 0);
+            // Create rank support
+            ds_rank_support.set_vector(&finished);
+
+            // Recalculate lcp_value_max and resize lcp2
+            lcp_value_offset = lcp_value_max-1;
+            size_type remaining_lcp_values = finished.size()-ds_rank_support.rank(finished.size());
+
+            size_type int_width_new = space_in_bit_for_lcp / remaining_lcp_values;
+            if(int_width_new > bit_magic::l1BP(N-1)+1){
+                int_width_new = bit_magic::l1BP(N-1)+1;
+            }
+            lcp_value_max = lcp_value_offset + (1ULL<<int_width_new);
+#ifdef STUDY_INFORMATIONS
+std::cout << "# l=" << remaining_lcp_values << " b=" << (int)int_width_new << " lcp_value_max=" << lcp_value_max << std::endl;
+#endif
+            lcp2.set_int_width(int_width_new);
+            lcp2.resize(remaining_lcp_values);
+            ++phase;
+            write_R_output("lcp","resize variables ","end", 0, 0);
+        }
+    }
+    write_R_output("lcp","calc lcp values  ","end  ", 0, 0);
+
+    // merge to file
+    write_R_output("lcp","merge to file    ","begin", 0, 0);
+    std::string final_output_filename = dir+"lcp_"+id;
+    if(phase) {
+        mergeToHD(lcp2, outputfilenameschema + util::to_string(phase-1), finished, final_output_filename, buffer_size, N, lcp_value, lcp_value_offset);
+    } else {
+        lcp2.resize(N);
+        util::store_to_file(lcp2, final_output_filename.c_str() );
+        lcp2.resize(N+1);
+        util::set_zero_bits(lcp2);
+    }
+    file_map["lcp"] = final_output_filename;
+
+    // Delete temporary created files
+    while(phase--) {
+        remove( (outputfilenameschema + util::to_string(phase)).c_str() );
+    }
+    write_R_output("lcp","merge to file    ","end  ", 0, 0);
+    write_R_output("lcp","construct LCP    ","end  ", 1, 0);
+
+    return;
+}
+
+// void construct_lcp_kasai(int_vector<>& lcp, cache_config& config){
+void construct_lcp_bwt_based2(tMSS& file_map, const std::string& dir, const std::string& id)
+{
+    write_R_output("lcp","construct LCP    ","begin", 1, 0);
+    typedef int_vector<>::size_type size_type;
+
+    size_type N;                                                        // Input length
+    size_type buffer_size=1000000;                                      // Size of the buffer
+    size_type lcp_value = 0;                                            // current LCP value
+    std::string filename_lcp_positions=dir+"lcp_"+id+"_tmp";
+
+    { // Begin of phase 1: Calculate LCP-Positions-Array
+        write_R_output("bwt","load huffman WT  ","begin", 0, 0);
+        int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str(), buffer_size);
+        N = bwt_buf.int_vector_size;                                    // Input size
+        wt_huff<bit_vector, rank_support_v<>, select_support_dummy, select_support_dummy> wt_bwt(bwt_buf, N);
+        write_R_output("bwt","load huffman WT  ","end", 0, 0);
+
+        // Declare needed variables
+        write_R_output("lcp","init             ","begin", 0, 0);
+
+        size_type intervals = 0;                                        // Number of intervals which are currently stored
+        size_type intervals_new = 0;                                    // Number of new intervals
+
+        std::queue<size_type> q;                                        // Queue for storing the intervals
+        vector<bit_vector> dict(2);                                     // BitVector for storing the intervals
+        size_type source = 0, target = 1;                               // Defines which bitree is source and which is target
+        char last_used = 'q';
+        size_type use_queue_and_wt = N/2048;                            // if intervals < use_queue_and_wt, then use queue and wavelet tree
+                                                                        // else use dictionary and wavelet tree
+
+        size_type quantity;                                             // quantity of characters in interval
+        vector<unsigned char> pos2char(wt_bwt.sigma);                   // list of characters in the interval
+        vector<size_type> rank_c_i(wt_bwt.sigma);                       // number of occurrence of character in [0 .. i-1]
+        vector<size_type> rank_c_j(wt_bwt.sigma);                       // number of occurrence of character in [0 .. j-1]
+
+        // External storage of LCP-Positions
+        bool new_lcp_value = 0;
+        uint8_t int_width = bit_magic::l1BP(2*N+1)+1;
+
+        size_type bit_size = (N+1)*int_width;                           // Size of output file in bit
+        size_type wb = 0;                                               // Number of bits already written
+        std::ofstream lcp_positions((filename_lcp_positions).c_str(), std::ios::binary | std::ios::trunc | std::ios::out);
+        lcp_positions.write((char *) &(bit_size), sizeof(bit_size));    // Write length of vector
+        lcp_positions.write((char *) &(int_width), sizeof(int_width));  // Write int-width of vector
+
+        int_vector<> lcp_tmp_buf(buffer_size, 0, int_width);            // Create buffer for lcp_tmp
+        size_type idx_out_buf = 0;
+
+        bit_vector finished(N+1, 0);                                    // Bitvector which is true, if corresponding LCP value was already calculated
+
+        // Create C-array
+        vector<size_type> C(256, 0);                                    // C-Array: C[i] = number of occurrences of characters < i in the input
+        wt_bwt.interval_symbols(0, N, quantity, pos2char, rank_c_i, rank_c_j);
+        for(size_type i=0; i<quantity; ++i) {
+            unsigned char c = pos2char[i];
+            C[c+1] = rank_c_j[i];
+        }
+        for(size_type i=1; i<C.size()-1; ++i) {
+            C[i+1] += C[i];
+        }
+        write_R_output("lcp","init             ","end", 0, 0);
+
+        // Calculate LCP-Positions
+        write_R_output("lcp","calc lcp values  ","begin", 0, 0);
+
+        // Save position of first LCP-value
+        lcp_tmp_buf[idx_out_buf++] = 0;
+        if(new_lcp_value) {
+            lcp_tmp_buf[idx_out_buf-1] = lcp_tmp_buf[idx_out_buf-1] + N;
+            new_lcp_value = false;
+        }
+        if(idx_out_buf>=lcp_tmp_buf.size()) {
+            // Write all values from buffer to harddisk
+            size_type cur_wb = (idx_out_buf*lcp_tmp_buf.get_int_width()+7)/8;
+            lcp_positions.write((const char*)lcp_tmp_buf.data(), cur_wb);
+            wb += cur_wb;
+            idx_out_buf = 0;
+        }
+        finished[0] = true;
+
+        // Save first interval
+        q.push(0);
+        q.push(N);
+        intervals = 1;
+
+        // Calulate LCP-Positions
+        while(intervals) {
+            if(intervals < use_queue_and_wt && last_used == 'b') {
+                write_R_output("lcp","BitVector -> Queue","begin", 0, lcp_value);
+                dict[target].resize(1);
+
+                // Copy from bitvector to queue
+                size_type a2 = util::next_bit(dict[source], 0);
+                size_type b2 = util::next_bit(dict[source], a2+1);
+                while( b2 < dict[source].size() ) {
+                    q.push((a2-1)>>1);
+                    q.push(b2>>1);
+                    // Get next interval
+                    a2 = util::next_bit(dict[source], b2+1);
+                    b2 = util::next_bit(dict[source], a2+1);
+                }
+                dict[source].resize(1);
+                write_R_output("lcp","BitVector -> Queue","end  ", 0, lcp_value);
+            }
+            if(intervals >= use_queue_and_wt && last_used == 'q') {
+                write_R_output("lcp","Queue -> BitVector","begin", 0, lcp_value);
+                size_type bitarray_length = N+1+64-(N+1)%64;            // Length of the bitarray
+                dict[source].resize((bitarray_length<<1)+10);
+                util::set_zero_bits(dict[source]);
+                // Copy from queue to bitvector
+                while(!q.empty()) {
+                    dict[source][ (q.front()<<1)+1 ] = 1; q.pop();
+                    dict[source][ (q.front()<<1)   ] = 1; q.pop();
+                }
+                dict[target].resize((bitarray_length<<1)+10);
+                util::set_zero_bits(dict[target]);
+                write_R_output("lcp","Queue -> BitVector","end  ", 0, lcp_value);
+            }
+
+            if(intervals < use_queue_and_wt) {
+                last_used = 'q';
+                intervals_new = 0;
+                while(intervals) {
+                    // Get next interval
+                    size_type a = q.front(); q.pop();
+                    size_type b = q.front(); q.pop();
+                    --intervals;
+
+                    wt_bwt.interval_symbols(a, b, quantity, pos2char, rank_c_i, rank_c_j);
+                    for(size_type i=0; i<quantity; ++i) {
+                        unsigned char c = pos2char[i];
+                        size_type a_new = C[c] + rank_c_i[i];
+                        size_type b_new = C[c] + rank_c_j[i];
+
+                        // Save LCP-Value and corresponding interval if not seen before
+                        if(!finished[b_new]) {
+                            // Save position of LCP-value
+                            lcp_tmp_buf[idx_out_buf++] = b_new;
+                            if(new_lcp_value) {
+                                // Mark new LCP-value
+                                lcp_tmp_buf[idx_out_buf-1] = lcp_tmp_buf[idx_out_buf-1]+N;
+                                new_lcp_value = false;
+                            }
+                            if(idx_out_buf>=lcp_tmp_buf.size()) {
+                                // Write all values from buffer to harddisk
+                                size_type cur_wb = (idx_out_buf*lcp_tmp_buf.get_int_width()+7)/8;
+                                lcp_positions.write((const char*)lcp_tmp_buf.data(), cur_wb);
+                                wb += cur_wb;
+                                idx_out_buf = 0;
+                            }
+                            finished[b_new] = true;
+
+                            // Save interval
+                            q.push(a_new);
+                            q.push(b_new);
+                            ++intervals_new;
+                        }
+                    }
+                }
+                intervals = intervals_new;
+            } else {
+                last_used = 'b';
+                intervals = 0;
+
+                // get next interval
+                size_type a2 = util::next_bit(dict[source], 0);
+                size_type b2 = util::next_bit(dict[source], a2+1);
+
+                while( b2 < dict[source].size() ) {
+                    wt_bwt.interval_symbols(((a2-1)>>1), (b2>>1), quantity, pos2char, rank_c_i, rank_c_j);
+                    for(size_type i=0; i<quantity; ++i) {
+                        unsigned char c = pos2char[i];
+                        size_type a_new = C[c] + rank_c_i[i];
+                        size_type b_new = C[c] + rank_c_j[i];
+                        // Save LCP-Value if not seen before
+                        if(!finished[b_new]) {
+                            // Save position of LCP-value
+                            lcp_tmp_buf[idx_out_buf++] = b_new;
+                            if(new_lcp_value) {
+                                // Mark new LCP-value
+                                lcp_tmp_buf[idx_out_buf-1] = lcp_tmp_buf[idx_out_buf-1]+N;
+                                new_lcp_value = false;
+                            }
+                            if(idx_out_buf>=lcp_tmp_buf.size()) {
+                                // Write all values from buffer to harddisk
+                                size_type cur_wb = (idx_out_buf*lcp_tmp_buf.get_int_width()+7)/8;
+                                lcp_positions.write((const char*)lcp_tmp_buf.data(), cur_wb);
+                                wb += cur_wb;
+                                idx_out_buf = 0;
+                            }
+                            finished[b_new] = true;
+
+                            // Save interval
+                            dict[target][ (a_new<<1)+1] = 1;
+                            dict[target][ (b_new<<1)  ] = 1;
+                            ++intervals;
+                        }
+                    }
+                    // get next interval
+                    a2 = util::next_bit(dict[source], b2+1);
+                    b2 = util::next_bit(dict[source], a2+1);
+                }
+                // switch source and target
+                source = 1-source;
+                target = 1-target;
+                util::set_zero_bits(dict[target]);
+            }
+            ++lcp_value;
+            new_lcp_value = true;
+        }
+        write_R_output("lcp","calc lcp values  ","end  ", 0, 0);
+
+        // Write remaining values from buffer to harddisk
+        size_type cur_wb = (idx_out_buf*lcp_tmp_buf.get_int_width()+7)/8;
+        lcp_positions.write((const char*)lcp_tmp_buf.data(), cur_wb);
+        wb += cur_wb;
+        if(wb%8) {
+            lcp_positions.write("\0\0\0\0\0\0\0\0", 8-wb%8);
+        }
+        lcp_positions.close();
+    } // End of phase 1
+
+    {   // Begin phase 2: Calculate LCP-Array from the Positions-Array
+        write_R_output("lcp","reordering       ","begin", 0, 0);
+
+        int_vector_file_buffer<> lcp_positions((filename_lcp_positions).c_str(), buffer_size);
+
+        uint8_t int_width = bit_magic::l1BP(lcp_value+1)+1;             // How many bits are needed for one lcp_value?
+        size_type number_of_values = ((8*N)/int_width) & (~(0x7ULL));   // Determine number of lcp-values that can fit in n bytes = 8n bit and is a multiple of 8
+        int_vector<> out_buf(number_of_values, 0, int_width);           // Create Output Buffer
+
+        // Create lcp_array
+        std::string output_filename = dir+"lcp_"+id;
+        size_type bit_size = N*int_width;                               // Length of LCP-array in bit
+        std::ofstream lcp_array(output_filename.c_str(), std::ios::binary | std::ios::trunc | std::ios::out );
+        lcp_array.write((char *) &(bit_size), sizeof(bit_size));        // Write length of vector
+        lcp_array.write((char *) &(int_width), sizeof(int_width));      // Write int-width of vector
+
+        size_type wb = 0;
+        for(size_type position_begin=0, position_end = number_of_values; position_begin<N and number_of_values>0; position_begin=position_end, position_end+=number_of_values) {
+#ifdef STUDY_INFORMATIONS
+std::cout << "# fill lcp_values with " << position_begin << " <= position <" << position_end << ", each lcp-value has " << (int)int_width << " bit, lcp_value_max=" << lcp_value << std::endl;
+#endif
+
+            size_type lcp_value = 0, values=0;
+            lcp_positions.reset();
+            for(size_type i=0, r_sum=0, r=0; r_sum < N; ) {
+                for( ; i < r_sum+r; ++i) {
+                    size_type position = lcp_positions[i-r_sum];
+                    if(position>N) {
+                        position = position-N;
+                        ++lcp_value;
+                    }
+                    if(position_begin <= position and position < position_end) {
+                        out_buf[position-position_begin] = lcp_value;
+                        ++values;
+                    }
+                }
+                r_sum += r;
+                r = lcp_positions.load_next_block();
+            }
+            // Write next values from buffer to harddisk
+            if(values>0) {
+                size_type cur_wb = (values*out_buf.get_int_width()+7)/8;
+                lcp_array.write((const char*)out_buf.data(), cur_wb);
+                wb += cur_wb;
+            }
+        }
+        // Close file
+        if(wb%8) {
+            lcp_array.write("\0\0\0\0\0\0\0\0", 8-wb%8);
+        }
+        lcp_array.close();
+        file_map["lcp"] = output_filename;
+        write_R_output("lcp","reordering       ","end  ", 0, 0);
+    } // End of phase 2
+    remove( filename_lcp_positions.c_str() );
+    write_R_output("lcp","construct LCP    ","begin", 1, 0);
+    return;
+}
+
 void lcp_info(tMSS& file_map)
 {
     typedef int_vector<>::size_type size_type;
