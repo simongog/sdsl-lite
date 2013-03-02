@@ -265,6 +265,7 @@ class wt_int {
          *	\returns The i-th symbol of the original vector.
          */
         value_type operator[](size_type i)const {
+			assert( i < size() );
             size_type offset = 0;
             value_type res = 0;
             size_type node_size = m_size;
@@ -287,18 +288,6 @@ class wt_int {
             return res;
         };
 
-        //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the original sequence.
-        /*!
-         *	\param i The index of the symbol.
-         *  \param c Reference that will contain symbol wt[i].
-         *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
-         */
-		size_type inverse_select(size_type i, value_type&c )const{
-			assert(i>=0 and i < size());
-			c = (*this)[i];
-			return rank(i, c);
-		}
-
         //! Calculates how many symbols c are in the prefix [0..i-1] of the supported vector.
         /*!
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
@@ -308,6 +297,7 @@ class wt_int {
          *		\f$ \Order{\log |\Sigma|} \f$
          */
         size_type rank(size_type i, value_type c)const {
+			assert( i <= size() );
             size_type offset = 0;
             uint64_t mask	 = (1ULL) << (m_max_depth-1);
             size_type node_size = m_size;
@@ -329,6 +319,20 @@ class wt_int {
             return i;
         };
 
+
+
+        //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the original sequence.
+        /*!
+         *	\param i The index of the symbol.
+         *  \param c Reference that will contain symbol wt[i].
+         *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
+         */
+		size_type inverse_select(size_type i, value_type&c )const{
+			assert( i < size() );
+			c = (*this)[i];
+			return rank(i, c);
+		}
+
         //! Calculates the i-th occurrence of the symbol c in the supported vector.
         /*!
          *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
@@ -337,7 +341,8 @@ class wt_int {
          *		\f$ \Order{\log |\Sigma|} \f$
          */
         size_type select(size_type i, value_type c)const {
-			assert( rank(size(), c) >= i );
+			assert( i > 0);
+			assert( i <= rank(size(), c) );
             // possible optimization: if the array is a permutation we can start at the bottom of the tree
             size_type offset = 0;
             uint64_t mask	 = (1ULL) << (m_max_depth-1);

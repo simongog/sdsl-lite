@@ -485,10 +485,30 @@ void write_structure(const X& x, std::ostream& out)
     delete v;
 }
 
+//! Returns the file name of the resource.
+/*!
+ *  \param	key		Resource key.
+ *	\param	config	Cache configuration.
+ *	\reutrn The file name of the resource.
+ */
 std::string cache_file_name(const char* key, const cache_config &config);
 
+//! Register the existing resource specified by the key to the cache
+/*!
+ *  \param key		Resource key.
+ *  \param config	Cache configuration.
+ *
+ *  Note: If the resource does not exist under the given key,
+ *  it will be not added to the cache configuration.
+ */
 void register_cache_file(const char* key, cache_config &config);
 
+//! Checks if the resource specified by the key exists in the cache.
+/*!
+  \param key	Resource key.
+  \param config Cache configuration.
+  \return True, if the file exists, false otherwise.
+*/
 bool cache_file_exists(const char* key, const cache_config &config);
 
 template<class T>
@@ -500,7 +520,10 @@ bool load_from_cache(T&v, const char* key, const cache_config &config){
 	return false;
 }
 
-
+//! Stores the object v as a resource in the cache.
+/*!
+ *  \param	
+ */
 template<class T>
 bool store_to_cache(const T& v, const char* key, cache_config &config){
 	std::string file_name = cache_file_name(key, config);
