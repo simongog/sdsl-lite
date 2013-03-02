@@ -8,7 +8,8 @@
 namespace sdsl
 {
 
-void construct_lcp_kasai(int_vector<>& lcp, cache_config& config){
+void construct_lcp_kasai(cache_config& config){
+    int_vector<> lcp;
     typedef int_vector<>::size_type size_type;
     write_R_output("lcp", "construct LCP", "begin", 1, 0);
     construct_isa(config);  
@@ -52,10 +53,12 @@ void construct_lcp_kasai(int_vector<>& lcp, cache_config& config){
 		lcp.swap(sa);
     }
     write_R_output("lcp", "construct LCP", "end", 1, 0);
+	util::store_to_cache(lcp, constants::KEY_LCP, config);
 }
 
 
-void construct_int_lcp_kasai(int_vector<>& lcp, const cache_config& config){
+void construct_int_lcp_kasai(cache_config& config){
+    int_vector<> lcp;
     typedef int_vector<>::size_type size_type;
     write_R_output("lcp", "construct LCP", "begin", 1, 0);
 	tMSS::const_iterator sa_entry = config.file_map.find(constants::KEY_SA); // TODO: use load from cache
@@ -88,6 +91,7 @@ void construct_int_lcp_kasai(int_vector<>& lcp, const cache_config& config){
 		lcp[i-1] = lcp[i-2];
 	}
 	lcp[0] = 0;
+	util::store_to_cache(lcp, constants::KEY_LCP, config);
 }
 
 //bool construct_lcp_semi_extern_PHI(tMSS& file_map, const std::string& dir, const std::string& id)
@@ -1660,17 +1664,19 @@ void mergeToHD(int_vector<> &lcp_small, std::string finished_filename, bit_vecto
     return;
 }
 
-void construct_lcp_bwt_based(tMSS& file_map, const std::string& dir, const std::string& id)
+void construct_lcp_bwt_based(cache_config& config)
 {
+std::cout << "this is construct_lcp_bwt_based" << std::endl;
     typedef int_vector<>::size_type size_type;
     write_R_output("lcp","construct LCP    ","begin", 1, 0);
     size_type buffer_size=1000000;				// Size of the buffer
-    std::string outputfilenameschema = dir+"lcp_"+id+"_tmp_";		// Pattern for the temporary LCP arrays
+    std::string outputfilenameschema = util::cache_file_name(constants::KEY_LCP, config)+"_tmp_";		// Pattern for the temporary LCP arrays
 
     // create WaveletTree
     write_R_output("bwt","load huffman WT  ","begin", 0, 0);
-    int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str(), buffer_size);
+    int_vector_file_buffer<8> bwt_buf(config.file_map[constants::KEY_BWT].c_str(), buffer_size);
     size_type N = bwt_buf.int_vector_size;			// Input size
+std::cout << "N=" << N << std::endl;
     wt_huff<bit_vector, rank_support_v<>, select_support_dummy, select_support_dummy> wt_bwt(bwt_buf, N);
     write_R_output("bwt","load huffman WT  ","end", 0, 0);
 
@@ -1894,7 +1900,8 @@ std::cout << "# l=" << remaining_lcp_values << " b=" << (int)int_width_new << " 
 
     // merge to file
     write_R_output("lcp","merge to file    ","begin", 0, 0);
-    std::string final_output_filename = dir+"lcp_"+id;
+
+    std::string final_output_filename = util::cache_file_name(constants::KEY_LCP, config);
     if(phase) {
         mergeToHD(lcp2, outputfilenameschema + util::to_string(phase-1), finished, final_output_filename, buffer_size, N, lcp_value, lcp_value_offset);
     } else {
@@ -1903,7 +1910,7 @@ std::cout << "# l=" << remaining_lcp_values << " b=" << (int)int_width_new << " 
         lcp2.resize(N+1);
         util::set_zero_bits(lcp2);
     }
-    file_map["lcp"] = final_output_filename;
+    config.file_map["lcp"] = final_output_filename;
 
     // Delete temporary created files
     while(phase--) {
@@ -1915,20 +1922,20 @@ std::cout << "# l=" << remaining_lcp_values << " b=" << (int)int_width_new << " 
     return;
 }
 
-// void construct_lcp_kasai(int_vector<>& lcp, cache_config& config){
-void construct_lcp_bwt_based2(tMSS& file_map, const std::string& dir, const std::string& id)
+void construct_lcp_bwt_based2(cache_config& config)
 {
+std::cout << " construct_lcp_bwt_based2" << std::endl;
     write_R_output("lcp","construct LCP    ","begin", 1, 0);
     typedef int_vector<>::size_type size_type;
 
     size_type N;                                                        // Input length
     size_type buffer_size=1000000;                                      // Size of the buffer
     size_type lcp_value = 0;                                            // current LCP value
-    std::string filename_lcp_positions=dir+"lcp_"+id+"_tmp";
+    std::string filename_lcp_positions = util::cache_file_name(constants::KEY_LCP, config)+"_tmp";
 
     { // Begin of phase 1: Calculate LCP-Positions-Array
         write_R_output("bwt","load huffman WT  ","begin", 0, 0);
-        int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str(), buffer_size);
+        int_vector_file_buffer<8> bwt_buf(config.file_map[constants::KEY_BWT].c_str(), buffer_size);
         N = bwt_buf.int_vector_size;                                    // Input size
         wt_huff<bit_vector, rank_support_v<>, select_support_dummy, select_support_dummy> wt_bwt(bwt_buf, N);
         write_R_output("bwt","load huffman WT  ","end", 0, 0);
@@ -2148,7 +2155,7 @@ void construct_lcp_bwt_based2(tMSS& file_map, const std::string& dir, const std:
         int_vector<> out_buf(number_of_values, 0, int_width);           // Create Output Buffer
 
         // Create lcp_array
-        std::string output_filename = dir+"lcp_"+id;
+        std::string output_filename = util::cache_file_name(constants::KEY_LCP, config);
         size_type bit_size = N*int_width;                               // Length of LCP-array in bit
         std::ofstream lcp_array(output_filename.c_str(), std::ios::binary | std::ios::trunc | std::ios::out );
         lcp_array.write((char *) &(bit_size), sizeof(bit_size));        // Write length of vector
@@ -2189,7 +2196,7 @@ std::cout << "# fill lcp_values with " << position_begin << " <= position <" << 
             lcp_array.write("\0\0\0\0\0\0\0\0", 8-wb%8);
         }
         lcp_array.close();
-        file_map["lcp"] = output_filename;
+        config.file_map["lcp"] = output_filename;
         write_R_output("lcp","reordering       ","end  ", 0, 0);
     } // End of phase 2
     remove( filename_lcp_positions.c_str() );

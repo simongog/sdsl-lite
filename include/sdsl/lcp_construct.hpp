@@ -44,16 +44,30 @@
 namespace sdsl
 {
 
-//! 5n byte variant of the algorithm of Kasai et al. (CPM 2001, "Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications")
+//! Semi-external variant of the algorithm of Kasai et al. 
 /*!	The algorithm computes the lcp array and stores it to disk.
- *  \param file_map A map which contains the filenames of previous computed structures (like suffix array, Burrows and Wheeler transform, inverse suffix array, text,...)
- *  \param dir		Directory where the lcp array should be stored.
- *  \param id		Id for the file name of the lcp array.
+ *  \param config	Reference to cache configuration
  *  \par Space complexity
- *		\f$ 5n \f$ bytes
+ *		\f$ n (8+\log n) \f$ bits
+ *  \pre Text and Suffix array exist in the cache
+ *  \post LCP array exist in the cache (key: constant::KEY_LCP)
+ *  \par Reference 
+ *  Toru Kasai, Gunho Lee, Hiroki Arimura, Setsuo Arikawa, Kunsoo Park:
+ *  Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications.
+ *  CPM 2001: 181-192
  */
-void construct_lcp_kasai(int_vector<>& lcp, cache_config& config);
-void construct_int_lcp_kasai(int_vector<>& lcp, const cache_config& config);
+void construct_lcp_kasai(cache_config& config);
+
+//! Semi-external variant of the algorithm of Kasai et al. for integer alphabets
+/*!	The algorithm computes the lcp array and stores it to disk.
+ *  \param config	Reference to cache configuration
+ *  \par Space complexity
+ *		\f$ n (\log \sigma + \log n) \f$ bits
+ *  \pre Text and Suffix array exist in the cache
+ *  \post LCP array exist in the cache (key: constant::KEY_LCP)
+ *  \sa construct_lcp_kasai
+ */
+void construct_int_lcp_kasai(cache_config& config);
 
 
 //
@@ -169,7 +183,7 @@ void construct_int_lcp_kasai(int_vector<>& lcp, const cache_config& config);
  *  \par Space complexity
  *		Usually less than \f$ 2.5n \f$ bytes
  */
-void construct_lcp_bwt_based(tMSS& file_map, const std::string& dir, const std::string& id);
+void construct_lcp_bwt_based(cache_config& config);
 
 //! 1.5n byte variant of the algorithm of Beller et al. (Journal of Discrete Algorithms ISSN 1570-8667, 10.1016/j.jda.2012.07.007, "Computing the Longest Common Prefix Array Based on the Burrows-Wheeler Transform")
 /*!	The algorithm computes the lcp array and stores it to disk. It needs only the Burrows and Wheeler transform.
@@ -181,7 +195,7 @@ void construct_lcp_bwt_based(tMSS& file_map, const std::string& dir, const std::
  *  \par Space complexity
  *		Usually not more than \f$ 1.5n \f$ bytes
  */
-void construct_lcp_bwt_based2(tMSS& file_map, const std::string& dir, const std::string& id);
+void construct_lcp_bwt_based2(cache_config& config);
 
 void lcp_info(tMSS& file_map);
 
