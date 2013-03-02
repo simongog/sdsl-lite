@@ -209,9 +209,7 @@ void construct(Index& idx, const char* file, cache_config& config, uint8_t num_b
 		util::register_cache_file(constants::KEY_BWT_INT, config);
 		util::register_cache_file(constants::KEY_SA, config);
 		if ( !util::cache_file_exists(constants::KEY_LCP, config) ){
-			int_vector<> lcp;
-			construct_int_lcp_kasai(lcp, config);
-			util::store_to_cache(lcp, constants::KEY_LCP, config);
+			construct_int_lcp_kasai(config);
 		}
 		util::register_cache_file(constants::KEY_LCP, config);
 	}
@@ -241,9 +239,7 @@ void construct(Index& idx, const char* file, cache_config& config, uint8_t num_b
 		util::register_cache_file(constants::KEY_BWT, config);
 		util::register_cache_file(constants::KEY_SA, config);
 		if ( !util::cache_file_exists(constants::KEY_LCP, config) ){
-			int_vector<> lcp;
-			construct_lcp_kasai(lcp, config);
-			util::store_to_cache(lcp, constants::KEY_LCP, config);
+			construct_lcp_kasai(config);
 		}
 		util::register_cache_file(constants::KEY_LCP, config);
 	}
