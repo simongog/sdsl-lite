@@ -159,6 +159,30 @@ void construct_int_lcp_kasai(int_vector<>& lcp, const cache_config& config);
 // */
 //bool construct_lcp_go2(tMSS& file_map, const std::string& dir, const std::string& id);
 //
+//! 2.5n byte variant of the algorithm of Beller et al. (SPIRE 2011, "Computing the Longest Common Prefix Array Based on the Burrows-Wheeler Transform")
+/*!	The algorithm computes the lcp array and stores it to disk. It needs only the Burrows and Wheeler transform.
+ *  \param file_map A map which contains the filenames of previous computed structures (like Burrows and Wheeler transform)
+ *  \param dir		Directory where the lcp array should be stored.
+ *  \param id		Id for the file name of the lcp array.
+ *  \par Time complexity
+ *		Usually \f$ \Order{n \log{\sigma}} \f$
+ *  \par Space complexity
+ *		Usually less than \f$ 2.5n \f$ bytes
+ */
+void construct_lcp_bwt_based(tMSS& file_map, const std::string& dir, const std::string& id);
+
+//! 1.5n byte variant of the algorithm of Beller et al. (Journal of Discrete Algorithms ISSN 1570-8667, 10.1016/j.jda.2012.07.007, "Computing the Longest Common Prefix Array Based on the Burrows-Wheeler Transform")
+/*!	The algorithm computes the lcp array and stores it to disk. It needs only the Burrows and Wheeler transform.
+ *  \param file_map A map which contains the filenames of previous computed structures (like Burrows and Wheeler transform)
+ *  \param dir		Directory where the lcp array should be stored.
+ *  \param id		Id for the file name of the lcp array.
+ *  \par Time complexity
+ *		\f$ \Order{n \log{\sigma}} \f$
+ *  \par Space complexity
+ *		Usually not more than \f$ 1.5n \f$ bytes
+ */
+void construct_lcp_bwt_based2(tMSS& file_map, const std::string& dir, const std::string& id);
+
 void lcp_info(tMSS& file_map);
 
 }// end namespace
