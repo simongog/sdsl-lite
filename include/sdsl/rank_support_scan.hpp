@@ -62,6 +62,8 @@ inline const typename rank_support_scan<b, pattern_len>::size_type rank_support_
 
 template<uint8_t b, uint8_t pattern_len>
 inline const typename rank_support_scan<b, pattern_len>::size_type rank_support_scan<b, pattern_len>::rank(size_type idx)const {
+	assert( m_v != NULL );
+	assert( idx <= m_v->size() );
     const uint64_t* p 	= m_v->data();
 	size_type 	i		= 0;
 	size_type   result  = 0;

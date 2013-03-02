@@ -321,9 +321,9 @@ class wt_trait<int_vector_file_buffer<8> >{
  * A wavelet tree is build for a vector of characters over the alphabet \f$\Sigma\f$.
  * This class should be used only for small alphabets \f$\Sigma << n\f$ (see wt_int for a wavelet tree for big alphabets).
  * The wavelet tree \f$wt\f$ consists of a tree of  bitvectors and provides three efficient methods:
- *   - The "[]"-operator: \f$wt[i]\f$ returns the ith symbol of vector for which the wavelet tree was build for.
- *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurences of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the wavelet tree was build for.
- *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurence of symbol \f$c\f$.
+ *   - The "[]"-operator: \f$wt[i]\f$ returns the i-th symbol of vector for which the wavelet tree was build for.
+ *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurrences of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the wavelet tree was build for.
+ *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurrence of symbol \f$c\f$.
  *
  *
  *	\par Space complexity
@@ -730,6 +730,7 @@ class wt {
          *	\returns The ith symbol of the original vector.
          */
         value_type operator[](size_type i)const {
+			assert( i < size() );
             size_type lex_idx	= 0;
             size_type sigma		= m_sigma;
             size_type node		= 0;
@@ -757,6 +758,7 @@ class wt {
          *		\f$ \Order{\log |\Sigma|} \f$
          */
         size_type rank(size_type i, value_type c)const {
+			assert( i <= size() );
             if (!wt_trait<RandomAccessContainer>::symbol_available(m_char_map, c, m_first_symbol, m_sigma)) {
                 return 0;
             }
@@ -788,7 +790,7 @@ class wt {
          */
 
         size_type inverse_select(size_type i, value_type& c)const {
-            assert(i>=0 and i < size());
+            assert( i < size() );
             size_type lex_idx	= 0;
             size_type sigma		= m_sigma;
             size_type node		= 0;
@@ -928,7 +930,7 @@ class wt {
 
         //! Calculates the ith occurence of the symbol c in the supported vector.
         /*!
-         *  \param i The ith occurence. \f$i\in [1..rank(size(),c)]\f$.
+         *  \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
          *  \param c The symbol c.
          *  \par Time complexity
          *		\f$ \Order{\log |\Sigma|} \f$
@@ -938,7 +940,8 @@ class wt {
             if (!wt_trait<RandomAccessContainer>::symbol_available(m_char_map, c, m_first_symbol, m_sigma)) {
                 return size();
             }
-            assert(i > 0);
+            assert( i > 0 );
+			assert( i <= rank(size(), c) );
 #ifdef SDSL_DEBUG_WT
             std::cerr<<"wt: select("<<i<<", "<<c<<")"<<std::endl;
             std::cerr<<" i="<<i<< " <= "<< rank(size(),c) <<" ?" <<std::endl;

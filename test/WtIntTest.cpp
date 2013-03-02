@@ -78,7 +78,7 @@ TYPED_TEST(WtIntTest, Constructor) {
 			for (size_type j=0; j < iv.size(); ++j) {
 				ASSERT_EQ(iv[j], wt[j])<<j;
 			}
-			ASSERT_TRUE( util::store_to_file(wt, get_tmp_file_name(wt, i).c_str()) );
+			ASSERT_TRUE( util::store_to_file(wt, this->get_tmp_file_name(wt, i).c_str()) );
 		}
 		{
 			int_vector_file_buffer<> buf(tmp_file_name.c_str());
@@ -103,7 +103,7 @@ TYPED_TEST(WtIntTest, LoadAndAccess) {
 		int_vector<>& iv = this->test_cases[i];
 		std::string tmp_file_name = this->tmp_file+util::to_string(i);
 		TypeParam wt;
-		ASSERT_TRUE(util::load_from_file(wt, get_tmp_file_name(wt, i).c_str()));
+		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i).c_str()));
 		ASSERT_EQ(iv.size(), wt.size());
 		for (size_type j=0; j < iv.size(); ++j) {
 			ASSERT_EQ(iv[j], wt[j])<<j;
@@ -117,7 +117,7 @@ TYPED_TEST(WtIntTest, LoadAndRank) {
 		int_vector<>& iv = this->test_cases[i];
 		std::string tmp_file_name = this->tmp_file+util::to_string(i);
 		TypeParam wt;
-		ASSERT_TRUE(util::load_from_file(wt, get_tmp_file_name(wt, i).c_str()));
+		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i).c_str()));
 		ASSERT_EQ(iv.size(), wt.size());
 		tMII check_rank;
 		for (size_type j=0; j < iv.size(); ++j) {
@@ -136,7 +136,7 @@ TYPED_TEST(WtIntTest, LoadAndSelect) {
 		int_vector<>& iv = this->test_cases[i];
 		std::string tmp_file_name = this->tmp_file+util::to_string(i);
 		TypeParam wt;
-		ASSERT_TRUE(util::load_from_file(wt, get_tmp_file_name(wt, i).c_str()));
+		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i).c_str()));
 		ASSERT_EQ(iv.size(), wt.size());
 		tMII count;
 		for (size_type j=0; j < iv.size(); ++j) {
@@ -153,7 +153,7 @@ TYPED_TEST(WtIntTest, LoadAndInverseSelect) {
 		int_vector<>& iv = this->test_cases[i];
 		std::string tmp_file_name = this->tmp_file+util::to_string(i);
 		TypeParam wt;
-		ASSERT_TRUE(util::load_from_file(wt, get_tmp_file_name(wt, i).c_str()));
+		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i).c_str()));
 		ASSERT_EQ(iv.size(), wt.size());
 		tMII check_rank;
 		for (size_type j=0; j < iv.size(); ++j) {
@@ -170,7 +170,7 @@ TYPED_TEST(WtIntTest, DeleteTest) {
 		std::string tmp_file_name = this->tmp_file+util::to_string(i);
         std::remove(tmp_file_name.c_str());
 		TypeParam wt;
-		std::remove(get_tmp_file_name(wt, i).c_str());
+		std::remove(this->get_tmp_file_name(wt, i).c_str());
     }
 }
 

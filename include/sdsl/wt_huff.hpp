@@ -476,6 +476,7 @@ class wt_huff {
          *      of the sequence.
          */
         value_type operator[](size_type i)const { // TODO: Maybe it is good to integrate a cache here
+			assert( i < size() );
             // which stores how many of the next symbols are equal
             // with the current char
             size_type node = 0; // start at root node
@@ -500,6 +501,7 @@ class wt_huff {
          *		\f$ \Order{H_0} \f$
          */
         size_type rank(size_type i, value_type c)const {
+			assert( i <= size() );
             uint64_t p = m_path[c];
             uint32_t path_len = (m_path[c]>>56); // equals zero if char was not present in the original text or m_sigma=1
             if (!path_len and 1 == m_sigma) {    // if m_sigma == 1 return result immediately
@@ -531,7 +533,7 @@ class wt_huff {
          */
         size_type inverse_select(size_type i, value_type& c)const {
             // TODO: handle m_sigma=1
-            assert(i>=0 and i < size());
+            assert( i < size() );
             uint32_t node=0;
             while (m_nodes[node].child[0] != _undef_node) { // while node is not a leaf
                 if (m_tree[m_nodes[node].tree_pos + i]) { // if bit is set at position goto right child
@@ -554,6 +556,8 @@ class wt_huff {
          *		\f$ \Order{H_0} \f$
          */
         size_type select(size_type i, value_type c)const {
+			assert( i > 0 );
+			assert( i <= rank(size(), c) );
             uint16_t node = m_c_to_leaf[c];
             if (node == _undef_node) { // if c was not present in the original text
                 return m_size;		   // -> return a position right to the end

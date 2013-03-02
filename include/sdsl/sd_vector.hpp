@@ -248,6 +248,8 @@ class sd_rank_support
         }
 
         size_type rank(size_type i)const {
+			assert( m_v != NULL );
+			assert( i <= m_v->size() );
             // split problem in two parts:
             // (1) find  >=
             size_type high_val = (i >> (m_v->m_wl));

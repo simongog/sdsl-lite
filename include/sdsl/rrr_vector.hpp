@@ -53,6 +53,9 @@ class rrr_select_support;                // in rrr_vector
 	Succinct Indexable Dictionaries with Applications to representations
 	of k-ary trees and multi-sets.
 
+	On the fly-decoding and encoding was discovered in;
+	Gonzalo Navarro, Eliana Providel: Fast, Small, Simple Rank/Select on Bitmaps. SEA 2012
+
 	In this version the block size can be adjust by the template parameter block_size!
 	\sa sdsl::rrr_vector for a specialized version for block_size=15
 */
@@ -362,6 +365,8 @@ class rrr_rank_support
         		\f$ \Order{ sample\_rate of the rrr\_vector} \f$
         */
         const size_type rank(size_type i)const {
+			assert( m_v != NULL );
+			assert( i <= m_v->size() );
             size_type bt_idx = i/block_size;
             size_type sample_pos = bt_idx/m_sample_rate;
             size_type btnrp = m_v->m_btnrp[ sample_pos ];
