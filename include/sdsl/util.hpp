@@ -134,6 +134,26 @@ typename int_vector_type::size_type get_onezero_bits(const int_vector_type& v);
 template <class int_vector_type>
 typename int_vector_type::size_type get_zeroone_bits(const int_vector_type& v);
 
+//! Get the smallest position \f$i\geq idx\f$ where a bit is set
+/*! \param v The int_vector in which the bit is searched
+ *	\param idx The start position for the search \f$ 0\leq idx < v.bit_size()\f$
+ *	\return The smallest position greater or equal to idx, where corresponding bit is 1 or v.bit_size() if no such position exists
+ *	\par Time complexity
+ *		\f$ \Order{n} \f$
+ */
+template <class int_vector_type>
+typename int_vector_type::size_type next_bit(const int_vector_type& v, uint64_t idx);
+
+//! Get the greatest position \f$i\leq idx\f$ where a bit is set
+/*! \param v The int_vector in which the bit is searched
+ *	\param idx The start position for the search \f$ 0\leq idx < v.bit_size()\f$
+ *	\return The greatest position smaller or equal to idx, where corresponding bit is 1 or v.bit_size() if no such position exists
+ *	\par Time complexity
+ *		\f$ \Order{n} \f$
+*/
+template <class int_vector_type>
+typename int_vector_type::size_type prev_bit(const int_vector_type& v, uint64_t idx);
+
 //! Load a data structure from a file.
 /*! The data structure has to provide a load function.
  * \param v Data structure to load.
@@ -737,6 +757,46 @@ typename int_vector_type::size_type util::get_zeroone_bits(const int_vector_type
         result -= bit_magic::b1Cnt(bit_magic::b01Map(*data, oldcarry) & bit_magic::Li0Mask[v.bit_size()&0x3F]);
     }
     return result;
+}
+
+template <class int_vector_type>
+typename int_vector_type::size_type util::next_bit(const int_vector_type& v, uint64_t idx)
+{
+    uint64_t pos = idx>>6;
+    uint64_t node = v.data()[pos];
+    node >>= (idx&0x3F);
+    if(node) {
+        return idx+bit_magic::r1BP(node);
+    } else {
+        ++pos;
+        while((pos<<6) < v.bit_size()) {
+            if(v.data()[pos]) {
+                return (pos<<6)|bit_magic::r1BP(v.data()[pos]);
+            }
+            ++pos;
+        }
+        return v.bit_size();
+    }
+}
+
+template <class int_vector_type>
+typename int_vector_type::size_type util::prev_bit(const int_vector_type& v, uint64_t idx)
+{
+    uint64_t pos = idx>>6;
+    uint64_t node = v.data()[pos];
+    node <<= 63-(idx&0x3F);
+    if(node) {
+        return bit_magic::l1BP(node)+(pos<<6)-(63-(idx&0x3F));
+    } else {
+        --pos;
+        while((pos<<6) < v.bit_size() ) {
+            if(v.data()[pos]) {
+                return (pos<<6)|bit_magic::l1BP(v.data()[pos]);
+            }
+            --pos;
+        }
+        return v.bit_size();
+    }
 }
 
 template<typename T>
