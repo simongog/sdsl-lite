@@ -1666,7 +1666,6 @@ void mergeToHD(int_vector<> &lcp_small, std::string finished_filename, bit_vecto
 
 void construct_lcp_bwt_based(cache_config& config)
 {
-std::cout << "this is construct_lcp_bwt_based" << std::endl;
     typedef int_vector<>::size_type size_type;
     write_R_output("lcp","construct LCP    ","begin", 1, 0);
     size_type buffer_size=1000000;				// Size of the buffer
@@ -1676,7 +1675,6 @@ std::cout << "this is construct_lcp_bwt_based" << std::endl;
     write_R_output("bwt","load huffman WT  ","begin", 0, 0);
     int_vector_file_buffer<8> bwt_buf(config.file_map[constants::KEY_BWT].c_str(), buffer_size);
     size_type N = bwt_buf.int_vector_size;			// Input size
-std::cout << "N=" << N << std::endl;
     wt_huff<bit_vector, rank_support_v<>, select_support_dummy, select_support_dummy> wt_bwt(bwt_buf, N);
     write_R_output("bwt","load huffman WT  ","end", 0, 0);
 
@@ -1876,7 +1874,7 @@ std::cout << "# l=" << N+1 << " b=" << (int)bb << " lcp_value_max=" << lcp_value
 
             write_R_output("lcp","resize variables ","begin", 0, 0);
             // Create rank support
-            ds_rank_support.set_vector(&finished);
+            util::init_support(ds_rank_support, &finished);
 
             // Recalculate lcp_value_max and resize lcp2
             lcp_value_offset = lcp_value_max-1;
@@ -1924,7 +1922,6 @@ std::cout << "# l=" << remaining_lcp_values << " b=" << (int)int_width_new << " 
 
 void construct_lcp_bwt_based2(cache_config& config)
 {
-std::cout << " construct_lcp_bwt_based2" << std::endl;
     write_R_output("lcp","construct LCP    ","begin", 1, 0);
     typedef int_vector<>::size_type size_type;
 
