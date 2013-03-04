@@ -41,14 +41,13 @@ class LcpConstructTest : public ::testing::Test
                         test_cases.push_back(sdsl::cache_config(false, test_cases_dir+"/small/", "zarathustra.txt"));
 
 // 			lcp_function["construct_lcp_semi_extern_PHI"] = &sdsl::construct_lcp_semi_extern_PHI; // TODO: Handle empty test case
-                        // lcp_function["construct_lcp_PHI_false"] = &sdsl::construct_lcp_PHI_wrapper_false;
-                        // lcp_function["construct_lcp_PHI_true"] = &sdsl::construct_lcp_PHI_wrapper_true;
                         // lcp_function["construct_lcp_simple2_9n"] = &sdsl::construct_lcp_simple2_9n;
                         // lcp_function["construct_lcp_go"] = &sdsl::construct_lcp_go;
                         // lcp_function["construct_lcp_goPHI"] = &sdsl::construct_lcp_goPHI;
                         // lcp_function["construct_lcp_go2"] = &sdsl::construct_lcp_go2;
                         lcp_function["construct_lcp_bwt_based"] = &sdsl::construct_lcp_bwt_based;
                         lcp_function["construct_lcp_bwt_based2"] = &sdsl::construct_lcp_bwt_based2;
+                        lcp_function["construct_lcp_PHI"] = &sdsl::construct_lcp_PHI<8>;
 
 
                         sdsl::tMSS tmp_file_map;
@@ -100,7 +99,7 @@ TEST_F(LcpConstructTest, construct_lcp)
 {
         for (tMSFP::const_iterator it = this->lcp_function.begin(), end = this->lcp_function.end(); it != end; ++it) {
                 for (size_t i=0; i< this->test_cases.size(); ++i) {
-// 			std::cout << (it->first) << " on test file " << this->test_cases[i] << std::endl;
+			 			std::cout << (it->first) << " on test file " << sdsl::util::cache_file_name(sdsl::constants::KEY_TEXT, this->test_cases[i]) << std::endl;
 
                         // Prepare LCP-Array construction
 						sdsl::cache_config config_new = this->test_cases[i];
