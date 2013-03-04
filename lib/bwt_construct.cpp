@@ -34,6 +34,7 @@ namespace sdsl
  *        \f$n\f$ bytes
  */
 //bool construct_bwt(tMSS& file_map, const std::string& dir, const std::string& id) {
+template<>
 void construct_bwt(int_vector<8>& bwt, const cache_config& config){
     typedef int_vector<>::size_type size_type;
 	tMSS::const_iterator key;
@@ -79,7 +80,8 @@ void construct_bwt(int_vector<8>& bwt, const cache_config& config){
 	}
 }
 
-void construct_int_bwt(int_vector<> &bwt, const cache_config& config){
+template<>
+void construct_bwt(int_vector<> &bwt, const cache_config& config){
 	int_vector<> text;
 	tMSS::const_iterator text_entry = config.file_map.find(constants::KEY_TEXT_INT);
 	if ( config.file_map.end() == text_entry ){ return; }

@@ -21,6 +21,8 @@
 #ifndef INCLUDED_SDSL_CONCEPTS
 #define INCLUDED_SDSL_CONCEPTS
 
+#include "uintx_t.hpp" // for uint8_t
+
 namespace sdsl
 {
 
@@ -37,8 +39,12 @@ struct lcp_tree_compressed_tag {};
 struct lcp_tree_and_lf_compressed_tag {};
 
 
-struct byte_alphabet_tag{};
-struct int_alphabet_tag{};
+struct byte_alphabet_tag{
+	static const uint8_t WIDTH=8;
+};
+struct int_alphabet_tag{
+	static const uint8_t WIDTH=0;
+};
 
 } // end namespace sdsl
 

@@ -44,48 +44,87 @@
 namespace sdsl
 {
 
-//! Semi-external variant of the algorithm of Kasai et al. 
+//! Construct the LCP array for text over byte- or integer-alphabet.
 /*!	The algorithm computes the lcp array and stores it to disk.
+ *  \tparam t_width Width of the text. 0==integer alphabet, 8=byte alphabet.
  *  \param config	Reference to cache configuration
  *  \par Space complexity
  *		\f$ n (8+\log n) \f$ bits
- *  \pre Text and Suffix array exist in the cache
- *  \post LCP array exist in the cache (key: constant::KEY_LCP)
+ *  \pre Text and Suffix array exist in the cache. Keys:
+ *         * constants::KEY_TEXT for t_width=8  or constants::KEY_TEXT_INT for t_width=0
+ *         * constants::KEY_SA
+ *  \post LCP array exist in the cache. Key
+ *         * constants::KEY_LCP
  *  \par Reference 
- *  Toru Kasai, Gunho Lee, Hiroki Arimura, Setsuo Arikawa, Kunsoo Park:
- *  Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications.
- *  CPM 2001: 181-192
+ *    Toru Kasai, Gunho Lee, Hiroki Arimura, Setsuo Arikawa, Kunsoo Park:
+ *    Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications.
+ *    CPM 2001: 181-192
  */
-void construct_lcp_kasai(cache_config& config);
+template<uint8_t t_width>
+void construct_lcp_kasai(cache_config& config){
+    int_vector<> lcp;
+    typedef int_vector<>::size_type size_type;
+    write_R_output("lcp", "construct LCP", "begin", 1, 0);
+    construct_isa(config);  
+    {
+        write_R_output("lcp", "load text", "begin", 1, 0);
+		int_vector<t_width> text;
+        if (!util::load_from_cache(text, key_text_trait<t_width>::KEY_TEXT, config)) { return; }
+        write_R_output("lcp", "load text", "end", 1, 0);
+        int_vector_file_buffer<> isa_buf(config.file_map[constants::KEY_ISA].c_str(), 1000000);   // init isa file_buffer
+        int_vector<> sa;
+        if (!util::load_from_cache(sa, constants::KEY_SA, config)) { return; }
+        // use Kasai algorithm to compute the lcp values
+        for (size_type i=0,j=0,sa_1=0,l=0, r_sum=0, r=isa_buf.load_next_block(), n=isa_buf.int_vector_size; r_sum < n;) {
+            for (; i < r_sum+r; ++i) {
+                sa_1 =  isa_buf[i-r_sum]; // = isa[i]
+                if (sa_1) {
+                    j = sa[sa_1-1];
+                    if (l) --l;
+                    assert(i!=j);
+                    while (text[i+l]==text[j+l]) { // i+l < n and j+l < n are not necessary, since text[n]=0 and text[i]!=0 (i<n) and i!=j
+                        ++l;
+                    }
+                    sa[ sa_1-1 ] = l; //overwrite sa array with lcp values
+                } else {
+                    l = 0;
+                    sa[ n-1 ] = 0;
+                }
+            }
+            r_sum += r;
+            r = isa_buf.load_next_block();
+        }
 
-//! Semi-external variant of the algorithm of Kasai et al. for integer alphabets
+		for (size_type i=sa.size(); i>1; --i){
+			sa[i-1] = sa[i-2];
+		}
+		sa[0] = 0;
+		lcp.swap(sa);
+    }
+    write_R_output("lcp", "construct LCP", "end", 1, 0);
+	util::store_to_cache(lcp, constants::KEY_LCP, config);
+}
+
+//! Construct the LCP array for byte alphabet text.
 /*!	The algorithm computes the lcp array and stores it to disk.
- *  \param config	Reference to cache configuration
  *  \par Space complexity
- *		\f$ n (\log \sigma + \log n) \f$ bits
- *  \pre Text and Suffix array exist in the cache
- *  \post LCP array exist in the cache (key: constant::KEY_LCP)
- *  \sa construct_lcp_kasai
+ *		\f$ 5n \f$ bytes 
+ *  \pre Text and Suffix array exist in the cache. Keys:
+ *         * constants::KEY_TEXT_INT
+ *         * constants::KEY_SA 
+ *  \post LCP array exist in the cache. Key
+ *         * constants::KEY_LCP
+ *  \par Reference
+ *     Juha Kärkkäinen, Giovanni Manzini, Simon J. Puglisi: 
+ *     Permuted Longest-Common-Prefix Array. 
+ *     CPM 2009: 181-192
  */
-void construct_int_lcp_kasai(cache_config& config);
+//bool construct_lcp_PHI(cache_config& config);
 
 
-//
-//
-//// semi extern PHI algorithm of Karkainen, Manzini and Puglisi CPM 2009
+// semi extern PHI algorithm of Karkainen, Manzini and Puglisi CPM 2009
 //bool construct_lcp_semi_extern_PHI(tMSS& file_map, const std::string& dir, const std::string& id);
-//
-////! 5n byte variant of the algorithm of Kaerkkaeinen et al. (CPM 2009, "Permuted Longest Common Prefix Array")
-///*!	The algorithm computes the lcp array and stores it to disk.
-// *  \param file_map A map which contains the filenames of previous computed structures (like suffix array, Burrows and Wheeler transform, inverse suffix array, text,...)
-// *  \param dir		Directory where the lcp array should be stored.
-// *  \param id		Id for the file name of the lcp array.
-// *  \param semi_external Boolean flag, which indicates if the algorithm should use only 4n bytes or 5n bytes
-// *  \par Space complexity
-// *		\f$ 5n \f$ bytes or \f$ 4n \f$ bytes if semi_external is set to true
-// */
-//bool construct_lcp_PHI(tMSS& file_map, const std::string& dir, const std::string& id, bool semi_external=false);
-//
+
 //class buffered_char_queue
 //{
 //        typedef bit_vector::size_type size_type;

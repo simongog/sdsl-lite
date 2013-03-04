@@ -33,7 +33,6 @@ namespace sdsl
 {
 
 void construct_isa(cache_config &config);
-// TODO methode die den isa auf der bwt berechnet
 
 }// end namespace
 

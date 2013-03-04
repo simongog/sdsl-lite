@@ -70,20 +70,19 @@ template<class Index>
 void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes=0){
 	// delegate to CSA or CST construction	
 	typename Index::index_category 		index_tag;
-	typename Index::alphabet_category 	alphabet_tag;
-	construct(idx, file, config, num_bytes, index_tag, alphabet_tag);
+	construct(idx, file, config, num_bytes, index_tag);
 }
 
-// Specialization for WTs and integer-alphabet
+// Specialization for WTs 
 template<class Index>
-void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes, wt_tag, int_alphabet_tag){
-	int_vector<> text;	
+void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes, wt_tag){
+	int_vector<Index::alphabet_category::WIDTH> text;	
 	util::load_vector_from_file(text, file, num_bytes);
 	std::string tmp_key = util::to_string(util::get_pid())+"_"+util::to_string(util::get_id());
 	std::string tmp_file_name = util::cache_file_name(tmp_key.c_str(), config);
 	util::store_to_file(text, tmp_file_name.c_str());
 	util::clear(text);
-	int_vector_file_buffer<> text_buf(tmp_file_name.c_str());
+	int_vector_file_buffer<Index::alphabet_category::WIDTH> text_buf(tmp_file_name.c_str());
 	{
 		Index tmp(text_buf, text_buf.int_vector_size);
 		idx.swap(tmp);
@@ -91,94 +90,50 @@ void construct(Index& idx, const char* file, cache_config& config, uint8_t num_b
 	std::remove(tmp_file_name.c_str());
 }
 
-// Specialization for WTs and byte-alphabet
+// Specialization for CSAs
 template<class Index>
-void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes, wt_tag, byte_alphabet_tag){
-	int_vector<8> text;	
-	util::load_vector_from_file(text, file, num_bytes);
-	std::string tmp_key = util::to_string(util::get_pid())+"_"+util::to_string(util::get_id());
-	std::string tmp_file_name = util::cache_file_name(tmp_key.c_str(), config);
-	util::store_to_file(text, tmp_file_name.c_str());
-	util::clear(text);
-	int_vector_file_buffer<8> text_buf(tmp_file_name.c_str());
-	{
-		Index tmp(text_buf, text_buf.int_vector_size);
-		idx.swap(tmp);
-	}
-	std::remove(tmp_file_name.c_str());
-}
-
-// Specialization for CSAs and integer-alphabet
-template<class Index>
-void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes, csa_tag, int_alphabet_tag){
+void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes, csa_tag){
+	const char * KEY_TEXT = key_text_trait<Index::alphabet_category::WIDTH>::KEY_TEXT;
+	const char * KEY_BWT  = key_bwt_trait<Index::alphabet_category::WIDTH>::KEY_BWT;
+	typedef int_vector<Index::alphabet_category::WIDTH> text_type;
 	{// (1) check, if the text is cached
-		if ( !util::cache_file_exists(constants::KEY_TEXT_INT, config) ){
-			int_vector<> text;
+		if ( !util::cache_file_exists(KEY_TEXT, config) ){
+			text_type text;
 			util::load_vector_from_file(text, file, num_bytes);
 			if ( contains_no_zero_symbol(text, file) ){
 				append_zero_symbol(text);
-				util::store_to_cache(text, constants::KEY_TEXT_INT, config);
+				util::store_to_cache(text, KEY_TEXT, config);
 			}
 		}
-		util::register_cache_file(constants::KEY_TEXT_INT, config);
+		util::register_cache_file(KEY_TEXT, config);
 	}
 	{// (2) check, if the suffix array is cached 
 		if ( !util::cache_file_exists(constants::KEY_SA, config) ){
-			int_vector<> sa; 
-			sdsl::qsufsort::construct_sa(sa, config.file_map[constants::KEY_TEXT_INT].c_str(), 0);
-			util::store_to_cache(sa, constants::KEY_SA, config);
+			text_type text;
+			util::load_from_cache(text, KEY_TEXT, config);
+			if ( typeid(typename Index::alphabet_category) == typeid(byte_alphabet_tag) ) {
+				// call divsufsort
+				int_vector<> sa(text.size(), 0, bit_magic::l1BP(text.size())+1);
+				algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
+				util::store_to_cache(sa, constants::KEY_SA, config);
+			} else if ( typeid(typename Index::alphabet_category) == typeid(int_alphabet_tag) ) {
+				// call qsufsort
+				int_vector<> sa;
+				sdsl::qsufsort::construct_sa(sa, config.file_map[KEY_TEXT].c_str(), 0);
+				util::store_to_cache(sa, constants::KEY_SA, config);
+			} else {
+				std::cerr << "Unknown alphabet type" << std::endl;
+			}
 		}
 		util::register_cache_file(constants::KEY_SA, config);
 	}
 	{//  (3) construct BWT
-		if ( !util::cache_file_exists(constants::KEY_BWT_INT, config) ){
-			int_vector<> bwt;
-			construct_int_bwt(bwt, config);
-			util::store_to_cache(bwt, constants::KEY_BWT_INT, config);
-		}
-		util::register_cache_file(constants::KEY_BWT_INT, config);
-	}
-	{
-		Index tmp(config.file_map, config.dir, config.id);
-		idx.swap(tmp);
-	}
-	if ( config.delete_files ){
-		util::delete_all_files(config.file_map);	
-	}
-}
-
-// Specialization for CSAs and byte-alphabet
-template<class Index>
-void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes, csa_tag, byte_alphabet_tag){
-	{// (1) check, if the text is cached
-		if ( !util::cache_file_exists(constants::KEY_TEXT, config) ){
-			int_vector<8> text;
-			util::load_vector_from_file(text, file, num_bytes);
-			if ( contains_no_zero_symbol(text, file) ){
-				append_zero_symbol(text);
-				util::store_to_cache(text, constants::KEY_TEXT, config);
-			}
-		}
-		util::register_cache_file(constants::KEY_TEXT, config);
-	}
-	{// (2) check, if the suffix array is cached 
-		if ( !util::cache_file_exists(constants::KEY_SA, config) ){
-			int_vector<8> text;
-			util::load_from_cache(text, constants::KEY_TEXT, config);
-			// call divsufsort
-			int_vector<> sa(text.size(), 0, bit_magic::l1BP(text.size())+1);
-			algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
-			util::store_to_cache(sa, constants::KEY_SA, config);
-		}
-		util::register_cache_file(constants::KEY_SA, config);
-	}
-	{//  (3) construct BWT
-		if ( !util::cache_file_exists(constants::KEY_BWT, config) ){
-			int_vector<8> bwt;
+		if ( !util::cache_file_exists(KEY_BWT, config) ){
+			text_type bwt;
 			construct_bwt(bwt, config);
-			util::store_to_cache(bwt, constants::KEY_BWT, config);
+			util::store_to_cache(bwt, KEY_BWT, config);
 		}
-		util::register_cache_file(constants::KEY_BWT, config);
+		util::register_cache_file(KEY_BWT, config);
 	}
 	{
 		Index tmp(config.file_map, config.dir, config.id);
@@ -189,27 +144,28 @@ void construct(Index& idx, const char* file, cache_config& config, uint8_t num_b
 	}
 }
 
-// Specialization for CSTs and integer-alphabet
+// Specialization for CSTs
 template<class Index>
-void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes, cst_tag, int_alphabet_tag){
+void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes, cst_tag){
+	const char * KEY_TEXT = key_text_trait<Index::alphabet_category::WIDTH>::KEY_TEXT;
+	const char * KEY_BWT  = key_bwt_trait<Index::alphabet_category::WIDTH>::KEY_BWT;
 	csa_tag csa_t;
-	typename Index::csa_type::alphabet_category alph_t;
 	{// (1) check, if the compressed suffix array is cached
 		typename Index::csa_type csa;
 		if ( !util::cache_file_exists(util::class_to_hash(csa).c_str(), config) ){
 			cache_config csa_config(false, config.dir, config.id, config.file_map);
-			construct(csa, file, csa_config, num_bytes, csa_t, alph_t);
+			construct(csa, file, csa_config, num_bytes, csa_t);
 			config.file_map = csa_config.file_map;
 			util::store_to_cache(csa, util::class_to_hash(csa).c_str(), config); 
 		}
 		util::register_cache_file(util::class_to_hash(csa).c_str(), config);
 	}
 	{// (2) check, if the longest common prefix array is cached
-		util::register_cache_file(constants::KEY_TEXT_INT, config);
-		util::register_cache_file(constants::KEY_BWT_INT, config);
+		util::register_cache_file(KEY_TEXT, config);
+		util::register_cache_file(KEY_BWT, config);
 		util::register_cache_file(constants::KEY_SA, config);
 		if ( !util::cache_file_exists(constants::KEY_LCP, config) ){
-			construct_int_lcp_kasai(config);
+			construct_lcp_kasai<Index::alphabet_category::WIDTH>(config);
 		}
 		util::register_cache_file(constants::KEY_LCP, config);
 	}
@@ -218,37 +174,6 @@ void construct(Index& idx, const char* file, cache_config& config, uint8_t num_b
 		util::delete_all_files(config.file_map);	
 	}
 }
-
-// Specialization for CSTs and byte-alphabet
-template<class Index>
-void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes, cst_tag, byte_alphabet_tag){
-	csa_tag csa_t;
-	typename Index::csa_type::alphabet_category alph_t;
-	{// (1) check, if the compressed suffix array is cached
-		typename Index::csa_type csa;
-		if ( !util::cache_file_exists(util::class_to_hash(csa).c_str(), config) ){
-			cache_config csa_config(false, config.dir, config.id, config.file_map);
-			construct(csa, file, csa_config, num_bytes, csa_t, alph_t);
-			config.file_map = csa_config.file_map;
-			util::store_to_cache(csa, util::class_to_hash(csa).c_str(), config); 
-		}
-		util::register_cache_file(util::class_to_hash(csa).c_str(), config); 
-	}
-	{// (2) check, if the longest common prefix array is cached
-		util::register_cache_file(constants::KEY_TEXT, config);
-		util::register_cache_file(constants::KEY_BWT, config);
-		util::register_cache_file(constants::KEY_SA, config);
-		if ( !util::cache_file_exists(constants::KEY_LCP, config) ){
-			construct_lcp_kasai(config);
-		}
-		util::register_cache_file(constants::KEY_LCP, config);
-	}
-	util::assign(idx, Index(config.file_map, config.dir, config.id));
-	if ( config.delete_files ){
-		util::delete_all_files(config.file_map);	
-	}
-}
-
 
 } // end namespace sdsl
 #endif

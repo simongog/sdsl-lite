@@ -41,9 +41,14 @@ namespace sdsl
  * \par Space complexity:
  *        \f$n\f$ bytes
  */
+template<class tVec>
+void construct_bwt(tVec& bwt, const  cache_config& config);
+
+template<>
 void construct_bwt(int_vector<8>& bwt, const cache_config& conf);
 
-void construct_int_bwt(int_vector<> &bwt, const cache_config& conf);
+template<>
+void construct_bwt(int_vector<> &bwt, const cache_config& conf);
 
 }// end namespace
 
