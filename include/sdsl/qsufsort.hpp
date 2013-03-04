@@ -415,6 +415,11 @@ std::cout<<"sorter: use int_vector<64>"<<std::endl;
 		}
 		assert(x.size()>0);
 std::cout<<"x.get_int_width()="<< (int)x.get_int_width() <<std::endl;
+std::cout<<"x.size()="<<x.size()<<std::endl;
+		if ( x.size() == 1 ){
+			sa = tIV(1, 0);
+			return;
+		}
 
 		int64_t max_symbol = 0, min_symbol = x.get_int_width() < 64 ? bit_magic::Li1Mask[x.get_int_width()] : 0x7FFFFFFFFFFFFFFFLL;
 		
