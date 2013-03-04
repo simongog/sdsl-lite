@@ -516,8 +516,11 @@ bool load_from_cache(T&v, const char* key, const cache_config &config){
 	std::string file_name = cache_file_name(key, config);
 	if( load_from_file(v, file_name.c_str()) ){
 		return true;
+	}else{
+		std::cerr << "WARNING: Could not load file '";
+	    std::cerr << file_name << "'" << std::endl;
+		return false;
 	}
-	return false;
 }
 
 //! Stores the object v as a resource in the cache.
