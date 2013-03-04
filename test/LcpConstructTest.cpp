@@ -73,7 +73,7 @@ class LcpConstructTest : public ::testing::Test
 								ASSERT_EQ(true, sdsl::util::store_to_cache(bwt, sdsl::constants::KEY_BWT, test_cases[i]));
 							}
 							{// Construct LCP
-								construct_lcp_kasai(test_cases[i]);
+								sdsl::construct_lcp_kasai<8>(test_cases[i]);
 								std::rename(sdsl::util::cache_file_name(sdsl::constants::KEY_LCP, test_cases[i]).c_str(), 
 									        sdsl::util::cache_file_name((checkprefix+sdsl::constants::KEY_LCP).c_str(), test_cases[i]).c_str());
 								test_cases[i].file_map.erase(sdsl::constants::KEY_LCP);
