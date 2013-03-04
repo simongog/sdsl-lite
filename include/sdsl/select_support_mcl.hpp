@@ -303,11 +303,17 @@ void select_support_mcl<b,pattern_len>::init_fast(const bit_vector* v) {
                     if (m_longsuperblock == NULL) m_longsuperblock = new int_vector<0>[sb+1]; // create longsuperblock
                     // GEANDERT am 2010-07-17 +1 nach pos_of_last_arg..
                     m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bit_magic::l1BP(pos_of_last_arg_in_the_block) + 1);
-                    for (size_type j=arg_position[0], k=0; j <= pos_of_last_arg_in_the_block; ++j)
+                    for (size_type j=arg_position[0], k=0; k < SUPER_BLOCK_SIZE and j <= pos_of_last_arg_in_the_block; ++j)
                         if (select_support_trait<b, pattern_len>::found_arg(j, *v)) {
-//							if(k>=SUPER_BLOCK_SIZE){
-//								std::cout<<"k="<<k<<" SUPER_BLOCK_SIZE="<<SUPER_BLOCK_SIZE<<std::endl;
-//							}
+							if(k>=SUPER_BLOCK_SIZE){
+								for (size_type ii=0; ii < SUPER_BLOCK_SIZE; ++ii){
+									std::cout<<"("<<ii<<","<<m_longsuperblock[sb_cnt][ii]<<") ";
+								}
+								std::cout << std::endl;
+								std::cout<<"k="<<k<<" SUPER_BLOCK_SIZE="<<SUPER_BLOCK_SIZE<<std::endl;
+								std::cout<<"pos_of_last_arg_in_the_block"<< pos_of_last_arg_in_the_block<<std::endl;
+								std::cout.flush();
+							}
                             m_longsuperblock[sb_cnt][k++] = j;
                         }
                 } else {
