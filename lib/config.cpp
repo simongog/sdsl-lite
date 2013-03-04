@@ -7,4 +7,15 @@ namespace sdsl{
 			id = util::to_string(util::get_pid())+"_"+util::to_string(util::get_id());
 		}
 	}
+
+	template<>
+	const char* key_text_trait<0>::KEY_TEXT = constants::KEY_TEXT_INT;
+	template<>
+	const char* key_text_trait<8>::KEY_TEXT = constants::KEY_TEXT;
+
+	template<>
+	const char* key_bwt_trait<0>::KEY_BWT = constants::KEY_BWT_INT;
+	template<>
+	const char* key_bwt_trait<8>::KEY_BWT = constants::KEY_BWT;
+
 }// end namespace sdsl

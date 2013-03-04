@@ -39,6 +39,18 @@ namespace sdsl{
 		tMSS 		file_map;		// Files stored during the construction process.
 		cache_config(bool f_delete_files=true, std::string f_dir="./", std::string f_id="", tMSS f_file_map=tMSS()); 
 	};
+
+	//! Helper classes to transform width=0 and width=8 to corresponding text key
+	template<uint8_t width>
+	struct key_text_trait{
+		static const char* KEY_TEXT;
+	};
+
+	//! Helper classes to transform width=0 and width=8 to corresponding bwt key
+	template<uint8_t width>
+	struct key_bwt_trait{
+		static const char* KEY_BWT;
+	};
 }
 
 #endif
