@@ -4,87 +4,10 @@
 
 #include "sdsl/lcp_construct.hpp"
 #include <stdexcept>
+#include <algorithm>
 
 namespace sdsl
 {
-
-/*
-void construct_lcp_PHI(cache_config& config)
-{
-    typedef int_vector<>::size_type size_type;
-    write_R_output("lcp", "construct LCP", "begin", 1, 0);
-    int_vector_file_buffer<> sa_buf(config.file_map[constants::KEY_SA].c_str());
-
-    size_type n = sa_buf.int_vector_size; // TODO: handle case n=0
-//	(1) Calculate PHI (stored in array plcp)
-    int_vector<> plcp(n, 0, sa_buf.int_width);
-    for (size_type i=0, r_sum=0, r=sa_buf.load_next_block(), sai_1 = 0; r_sum < n;) {
-        for (; i < r_sum+r; ++i) {
-            size_type sai = sa_buf[i-r_sum];
-            plcp[ sai ] = sai_1;
-            sai_1 = sai;
-        }
-        r_sum += r; r = sa_buf.load_next_block();
-    }
-
-    std::string file_name_PLCP = dir+"plcp_"+id;
-
-    write_R_output("lcp", "load text", "begin", 1, 0);
-	int_vector<8> text;
-	if (!util::load_from_cache(
-    if (!util::load_vector_from_file(text, config.file_map[constants::KEY_TEXT].c_str(), 0)) { // load text
-        throw std::ios_base::failure("construct_lcp_PHI: Cannot load ");
-		return;
-    }
-    write_R_output("lcp", "load text", "end", 1, 0);
-
-	for (size_type i=0, l=0; i < n-1; ++i) {
-		size_type phii = plcp[i];
-		while (text[i+l] == text[phii+l]) {
-			++l;
-		}
-		plcp[i] = l;
-		if (l)
-			--l;
-	}
-
-	util::clear(text);
-
-    std::ofstream lcp_out_buf((dir+"lcp_"+id).c_str(), std::ios::binary | std::ios::app | std::ios::out);   // open buffer for lcp
-    file_map[constants::KEY_LCP] = dir+"lcp_"+id;
-
-    size_type bit_size = n*sa_buf.int_width;
-    lcp_out_buf.write((char*) &(bit_size), sizeof(sa_buf.int_vector_size));		// write size of vector
-    lcp_out_buf.write((char*) &(sa_buf.int_width), sizeof(sa_buf.int_width));       // write int_width of vector
-    size_type wb = 0;
-
-    size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
-
-    int_vector<> lcp_buf(buffer_size, 0, sa_buf.int_width);
-    lcp_buf[0] = 0;
-    sa_buf.reset(buffer_size);
-    size_type r = 0;// sa_buf.load_next_block();
-    for (size_type i=1, r_sum=0; r_sum < n;) {
-        for (; i < r_sum+r; ++i) {
-            size_type sai = sa_buf[i-r_sum];
-            lcp_buf[ i-r_sum ] = plcp[sai];
-        }
-        if (r > 0) {
-            size_type cur_wb = (r*lcp_buf.get_int_width()+7)/8;
-            lcp_out_buf.write((const char*)lcp_buf.data(), cur_wb);
-            wb += cur_wb;
-        }
-        r_sum += r; r = sa_buf.load_next_block();
-    }
-    if (wb%8) {
-        lcp_out_buf.write("\0\0\0\0\0\0\0\0", 8-wb%8);
-    }
-    lcp_out_buf.close();
-
-    write_R_output("lcp", "construct LCP", "end", 1, 0);
-    return true;
-}
-*/
 
 //bool construct_lcp_semi_extern_PHI(tMSS& file_map, const std::string& dir, const std::string& id)
 //{

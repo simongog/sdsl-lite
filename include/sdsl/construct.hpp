@@ -165,7 +165,8 @@ void construct(Index& idx, const char* file, cache_config& config, uint8_t num_b
 		util::register_cache_file(KEY_BWT, config);
 		util::register_cache_file(constants::KEY_SA, config);
 		if ( !util::cache_file_exists(constants::KEY_LCP, config) ){
-			construct_lcp_kasai<Index::alphabet_category::WIDTH>(config);
+//			construct_lcp_kasai<Index::alphabet_category::WIDTH>(config);
+			construct_lcp_PHI<Index::alphabet_category::WIDTH>(config);
 		}
 		util::register_cache_file(constants::KEY_LCP, config);
 	}

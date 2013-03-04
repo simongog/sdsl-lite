@@ -119,7 +119,90 @@ void construct_lcp_kasai(cache_config& config){
  *     Permuted Longest-Common-Prefix Array. 
  *     CPM 2009: 181-192
  */
-//bool construct_lcp_PHI(cache_config& config);
+template<uint8_t t_width>
+void construct_lcp_PHI(cache_config& config) {
+    typedef int_vector<>::size_type size_type;
+	typedef int_vector<t_width> text_type;
+	const char * KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
+    write_R_output("lcp", "construct LCP", "begin", 1, 0);
+    int_vector_file_buffer<> sa_buf(config.file_map[constants::KEY_SA].c_str());
+    size_type n = sa_buf.int_vector_size; 
+
+	assert( n > 0 );
+	if ( 1 == n ){ // Handle special case: Input only the sentinel character.
+		int_vector<> lcp(1, 0);
+		util::store_to_cache( lcp, constants::KEY_LCP, config );
+	}
+
+//	(1) Calculate PHI (stored in array plcp)
+    int_vector<> plcp(n, 0, sa_buf.int_width);
+    for (size_type i=0, r_sum=0, r=sa_buf.load_next_block(), sai_1 = 0; r_sum < n;) {
+        for (; i < r_sum+r; ++i) {
+            size_type sai = sa_buf[i-r_sum];
+            plcp[ sai ] = sai_1;
+            sai_1 = sai;
+        }
+        r_sum += r; r = sa_buf.load_next_block();
+    }
+
+//  (2) Load text from disk
+    write_R_output("lcp", "load text", "begin", 1, 0);
+	text_type text;
+	util::load_from_cache(text, KEY_TEXT, config);
+    write_R_output("lcp", "load text", "end", 1, 0);
+
+//  (3) Calculate permuted LCP array (text order), called PLCP
+	size_type max_l = 0;
+	for (size_type i=0, l=0; i < n-1; ++i) {
+		size_type phii = plcp[i];
+		while (text[i+l] == text[phii+l]) {
+			++l;
+		}
+		plcp[i] = l;
+		if ( l ){
+			max_l = std::max(max_l, l);
+			--l;
+		}
+	}
+	util::clear(text);
+	uint8_t lcp_width = bit_magic::l1BP(max_l)+1;
+
+//	(4) Transform PLCP into LCP
+	std::string lcp_file = util::cache_file_name(constants::KEY_LCP, config);
+    std::ofstream lcp_out_buf(lcp_file.c_str(), std::ios::binary | std::ios::app | std::ios::out);   // open buffer for lcp
+
+    size_type bit_size = n*lcp_width;
+    lcp_out_buf.write((char*) &(bit_size), sizeof(bit_size));	// write size of vector
+    lcp_out_buf.write((char*) &(lcp_width),sizeof(lcp_width));  // write int_width of vector
+    size_type wb = 0;  // bytes written into lcp int_vector
+
+    size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
+
+    int_vector<> lcp_buf(buffer_size, 0, lcp_width);
+    lcp_buf[0] = 0;
+    sa_buf.reset(buffer_size);
+    size_type r = 0;// sa_buf.load_next_block();
+    for (size_type i=1, r_sum=0; r_sum < n;) {
+        for (; i < r_sum+r; ++i) {
+            size_type sai = sa_buf[i-r_sum];
+            lcp_buf[ i-r_sum ] = plcp[sai];
+        }
+        if (r > 0) {
+            size_type cur_wb = (r*lcp_buf.get_int_width()+7)/8;
+            lcp_out_buf.write((const char*)lcp_buf.data(), cur_wb);
+            wb += cur_wb;
+        }
+        r_sum += r; r = sa_buf.load_next_block();
+    }
+    if (wb%8) {
+        lcp_out_buf.write("\0\0\0\0\0\0\0\0", 8-wb%8);
+    }
+    lcp_out_buf.close();
+	util::register_cache_file(constants::KEY_LCP, config);
+    write_R_output("lcp", "construct LCP", "end", 1, 0);
+}
+
+
 
 
 // semi extern PHI algorithm of Karkainen, Manzini and Puglisi CPM 2009
