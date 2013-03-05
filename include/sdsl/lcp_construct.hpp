@@ -49,7 +49,7 @@ namespace sdsl
  *  \tparam t_width Width of the text. 0==integer alphabet, 8=byte alphabet.
  *  \param config	Reference to cache configuration
  *  \par Space complexity
- *		\f$ n (8+\log n) \f$ bits
+ *		\f$ n (\log \sigma + \log n) \f$ bits
  *  \pre Text and Suffix array exist in the cache. Keys:
  *         * constants::KEY_TEXT for t_width=8  or constants::KEY_TEXT_INT for t_width=0
  *         * constants::KEY_SA
@@ -105,10 +105,10 @@ void construct_lcp_kasai(cache_config& config){
 	util::store_to_cache(lcp, constants::KEY_LCP, config);
 }
 
-//! Construct the LCP array for byte alphabet text.
+//! Construct the LCP array for text over byte- or integer-alphabet.
 /*!	The algorithm computes the lcp array and stores it to disk.
  *  \par Space complexity
- *		\f$ 5n \f$ bytes 
+ *		\f$ n( \log \sigma + \log \n ) \f$ bits 
  *  \pre Text and Suffix array exist in the cache. Keys:
  *         * constants::KEY_TEXT_INT
  *         * constants::KEY_SA 
@@ -203,6 +203,43 @@ void construct_lcp_PHI(cache_config& config) {
 }
 
 
+//! Construct the LCP array out of the BWT (only for byte strings)
+/*!	The algorithm computes the lcp array and stores it to disk. It needs only the Burrows and Wheeler transform.
+ *  \param config	Reference to cache configuration
+ *  \pre BWT exist in the cache. Keys:
+ *         * constants::KEY_BWT
+ *  \post LCP array exist in the cache. Key
+ *         * constants::KEY_LCP
+ *
+ *  \par Time complexity
+ *		  \f$ \Order{n \log{\sigma}} \f$
+ *  \par Space complexity
+ *		  Usually not more than \f$ 2.5n \f$ bytes
+ *  \par Reference
+ *        Timo Beller, Simon Gog, Enno Ohlebusch, Thomas Schnattinger: 
+ *        Computing the Longest Common Prefix Array Based on the Burrows-Wheeler Transform.
+ *        SPIRE 2011: 197-208
+ */
+void construct_lcp_bwt_based(cache_config& config);
+
+//! Construct the LCP array out of the BWT (only for byte strings)
+/*!	The algorithm computes the lcp array and stores it to disk. It needs only the Burrows and Wheeler transform.
+ *  \param config	Reference to cache configuration
+ *  \pre BWT exist in the cache. Keys:
+ *         * constants::KEY_BWT
+ *  \post LCP array exist in the cache. Key
+ *         * constants::KEY_LCP
+ *
+ *  \par Time complexity
+ *		  \f$ \Order{n \log{\sigma}} \f$
+ *  \par Space complexity
+ *		  Usually not more than \f$ 1.5n \f$ bytes
+ *  \par Reference
+ * 	      Timo Beller, Simon Gog, Enno Ohlebusch, Thomas Schnattinger: 
+ *        Computing the longest common prefix array based on the Burrows-Wheeler transform. 
+ *        J. Discrete Algorithms 18: 22-31 (2013)
+ */
+void construct_lcp_bwt_based2(cache_config& config);
 
 
 // semi extern PHI algorithm of Karkainen, Manzini and Puglisi CPM 2009
@@ -295,29 +332,8 @@ void construct_lcp_PHI(cache_config& config) {
 // */
 //bool construct_lcp_go2(tMSS& file_map, const std::string& dir, const std::string& id);
 //
-//! 2.5n byte variant of the algorithm of Beller et al. (SPIRE 2011, "Computing the Longest Common Prefix Array Based on the Burrows-Wheeler Transform")
-/*!	The algorithm computes the lcp array and stores it to disk. It needs only the Burrows and Wheeler transform.
- *  \param file_map A map which contains the filenames of previous computed structures (like Burrows and Wheeler transform)
- *  \param dir		Directory where the lcp array should be stored.
- *  \param id		Id for the file name of the lcp array.
- *  \par Time complexity
- *		Usually \f$ \Order{n \log{\sigma}} \f$
- *  \par Space complexity
- *		Usually less than \f$ 2.5n \f$ bytes
- */
-void construct_lcp_bwt_based(cache_config& config);
 
-//! 1.5n byte variant of the algorithm of Beller et al. (Journal of Discrete Algorithms ISSN 1570-8667, 10.1016/j.jda.2012.07.007, "Computing the Longest Common Prefix Array Based on the Burrows-Wheeler Transform")
-/*!	The algorithm computes the lcp array and stores it to disk. It needs only the Burrows and Wheeler transform.
- *  \param file_map A map which contains the filenames of previous computed structures (like Burrows and Wheeler transform)
- *  \param dir		Directory where the lcp array should be stored.
- *  \param id		Id for the file name of the lcp array.
- *  \par Time complexity
- *		\f$ \Order{n \log{\sigma}} \f$
- *  \par Space complexity
- *		Usually not more than \f$ 1.5n \f$ bytes
- */
-void construct_lcp_bwt_based2(cache_config& config);
+
 
 void lcp_info(tMSS& file_map);
 
