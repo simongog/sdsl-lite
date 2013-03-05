@@ -40,7 +40,7 @@ namespace sdsl
  *  \tparam t_width Width of the text. 0==integer alphabet, 8=byte alphabet.
  *  \param config	Reference to cache configuration
  *  \par Space complexity
- *		\f$ n \log sigma \f$ bits
+ *		\f$ n \log \sigma \f$ bits
  *  \pre Text and Suffix array exist in the cache. Keys:
  *         * constants::KEY_TEXT for t_width=8 or constants::KEY_TEXT_INT for t_width=0
  *         * constants::KEY_SA
@@ -83,7 +83,7 @@ void construct_bwt(cache_config& config){
     //  (3) Construct BWT sequentially by streaming SA and random access to text
     write_R_output("bwt", "construct BWT", "begin", 1, 0);
     size_type wb = 0;  // bytes written into bwt int_vector
-    size_type to_add[2] = {-1,n-1};
+    size_type to_add[2] = {(size_type)-1,n-1};
     for (size_type i=0, r_sum=0, r=0; r_sum < n;) {
         for (; i < r_sum+r; ++i) {
             bwt_buf[i-r_sum] = text[ sa_buf[i-r_sum]+to_add[sa_buf[i-r_sum]==0] ]; 
