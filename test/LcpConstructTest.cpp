@@ -1,6 +1,7 @@
 #include <sdsl/suffixarrays.hpp>
 #include <sdsl/lcp_construct.hpp>
 #include <sdsl/bwt_construct.hpp>
+#include <sdsl/testutils.hpp>
 #include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
 #include "gtest/gtest.h"
 #include <vector>
@@ -31,34 +32,34 @@ class LcpConstructTest : public ::testing::Test
                 virtual void SetUp() {
                         // Code here will be called immediately after the constructor (right
                         // before each test).
-                        std::string test_cases_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
-                        test_cases.push_back(sdsl::cache_config(false, test_cases_dir+"/crafted/", "example01.txt"));
-                        test_cases.push_back(sdsl::cache_config(false, test_cases_dir+"/crafted/", "100a.txt"));
-                        test_cases.push_back(sdsl::cache_config(false, test_cases_dir+"/crafted/", "empty.txt"));
-                        // test_cases.push_back(sdsl::cache_config(false, test_cases_dir+"/crafted/", "abc_abc_abc.txt"));
-                        // test_cases.push_back(sdsl::cache_config(false, test_cases_dir+"/crafted/", "abc_abc_abc2.txt")); //TODO check the problem with this one
-                        test_cases.push_back(sdsl::cache_config(false, test_cases_dir+"/small/", "faust.txt"));
-                        test_cases.push_back(sdsl::cache_config(false, test_cases_dir+"/small/", "zarathustra.txt"));
-
-// 			lcp_function["construct_lcp_semi_extern_PHI"] = &sdsl::construct_lcp_semi_extern_PHI; // TODO: Handle empty test case
+//                        std::string test_cases_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
+						std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
+						std::string config_file = prefix + "/LcpConstructTest.config";
+						std::string tc_prefix	= prefix + "/test_cases";
+						std::vector<std::string> paths = sdsl::paths_from_config_file(config_file.c_str(), tc_prefix.c_str());
+						
+						for ( size_t i = 0; i < paths.size(); ++i ) {
+							std::string dirname = sdsl::util::dirname(paths[i]);
+							std::string basename = sdsl::util::basename(paths[i]);
+							test_cases.push_back( sdsl::cache_config(false, dirname, basename) );
+						}
+                        lcp_function["construct_lcp_bwt_based"] = &sdsl::construct_lcp_bwt_based;
+                        lcp_function["construct_lcp_bwt_based2"] = &sdsl::construct_lcp_bwt_based2;
+                        lcp_function["construct_lcp_PHI"] = &sdsl::construct_lcp_PHI<8>;
                         // lcp_function["construct_lcp_simple2_9n"] = &sdsl::construct_lcp_simple2_9n;
                         // lcp_function["construct_lcp_go"] = &sdsl::construct_lcp_go;
                         // lcp_function["construct_lcp_goPHI"] = &sdsl::construct_lcp_goPHI;
                         // lcp_function["construct_lcp_go2"] = &sdsl::construct_lcp_go2;
-                        lcp_function["construct_lcp_bwt_based"] = &sdsl::construct_lcp_bwt_based;
-                        lcp_function["construct_lcp_bwt_based2"] = &sdsl::construct_lcp_bwt_based2;
-                        lcp_function["construct_lcp_PHI"] = &sdsl::construct_lcp_PHI<8>;
-
 
                         sdsl::tMSS tmp_file_map;
                         for (size_t i=0; i< this->test_cases.size(); ++i) {
-							const char* file = (test_cases[i].dir+"/"+test_cases[i].id).c_str();
 							uint8_t num_bytes = 1;
 							{
 								// Prepare Input
+								std::string file = test_cases[i].dir+"/"+test_cases[i].id;
 								sdsl::int_vector<8> text;
-								ASSERT_EQ(true, sdsl::util::load_vector_from_file(text, file, num_bytes));
-								ASSERT_EQ(true, sdsl::contains_no_zero_symbol(text, file) );
+								ASSERT_EQ(true, sdsl::util::load_vector_from_file(text, file.c_str(), num_bytes));
+								ASSERT_EQ(true, sdsl::contains_no_zero_symbol(text, file.c_str()) );
 								sdsl::append_zero_symbol(text);
 								ASSERT_EQ(true, sdsl::util::store_to_cache(text, sdsl::constants::KEY_TEXT, test_cases[i]));
 								// Construct SA

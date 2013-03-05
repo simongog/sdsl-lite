@@ -28,6 +28,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <vector>
 
 namespace sdsl
 {
@@ -124,8 +125,6 @@ class clock
         static std::string get_time_string();
 };
 
-
-
 //! A helper class to handle files.
 class file
 {
@@ -146,6 +145,18 @@ class file
 
         static void write_text(const char* file_name, const char* c, uint64_t len);
 };
+
+//! Read a list of file paths from a config file
+/*!
+ *  \param		file	The configuration file.
+ *  \param		prefix	Prepend this prefix to the read file paths.
+ *	\return		A vector of strings containing the paths.
+ *  \par Config file format
+ *       Each line starting with a `#` is ignored.
+ *       All other lines are interpreted as path and end up in the
+ *       result.
+ */ 
+std::vector<std::string> paths_from_config_file(const char* file, const char *prefix = NULL);
 
 } // end of namespace sdsl
 
