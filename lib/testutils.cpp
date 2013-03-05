@@ -175,5 +175,28 @@ uint64_t file::read_text(const char* file_name, char*& c, bool trunc, uint64_t l
 }
 
 
+std::vector<std::string> paths_from_config_file(const char* file, const char *prefix){
+		std::ifstream config_in(file);
+		if ( config_in ){ // opened file successfully
+			std::vector<std::string> result;
+			const size_t name_max_size = 1024;
+			char * name = new char [name_max_size];
+			while ( config_in.getline( name, name_max_size ) ) {
+				if ( '#' != name[0] ){ // check for comment
+					std::string path = std::string(name);
+					if ( prefix != NULL ){
+						path = std::string(prefix) + "/" + path;
+					}
+					result.push_back( path );
+				}
+			}
+			delete [] name;
+			return result;
+		} else {
+			std::cerr << "WARNING: Could not open config file: `";
+			std::cerr << file << "`" << std::endl;
+			return std::vector<std::string>();
+		}
+}
 
 } // end of namespace sdsl
