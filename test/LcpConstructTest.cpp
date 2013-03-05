@@ -67,9 +67,7 @@ class LcpConstructTest : public ::testing::Test
 								ASSERT_EQ(true, sdsl::util::store_to_cache(sa, sdsl::constants::KEY_SA, test_cases[i]));
 							}
 							{// Construct BWT
-								sdsl::int_vector<8> bwt;
-								sdsl::construct_bwt(bwt, test_cases[i]);
-								ASSERT_EQ(true, sdsl::util::store_to_cache(bwt, sdsl::constants::KEY_BWT, test_cases[i]));
+								sdsl::construct_bwt<8>(test_cases[i]);
 							}
 							{// Construct LCP
 								sdsl::construct_lcp_kasai<8>(test_cases[i]);

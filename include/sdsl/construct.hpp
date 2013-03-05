@@ -129,9 +129,7 @@ void construct(Index& idx, const char* file, cache_config& config, uint8_t num_b
 	}
 	{//  (3) construct BWT
 		if ( !util::cache_file_exists(KEY_BWT, config) ){
-			text_type bwt;
-			construct_bwt(bwt, config);
-			util::store_to_cache(bwt, KEY_BWT, config);
+			construct_bwt<Index::alphabet_category::WIDTH>(config);
 		}
 		util::register_cache_file(KEY_BWT, config);
 	}
