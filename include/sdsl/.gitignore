@@ -1,4 +1,4 @@
-rrr_vector2.hpp
-rrr_vector3.hpp
-rrr_vector4.hpp
-wt_rlg4.hpp
+*
+!.gitignore
+!*.hpp$
+!*.cmake$
