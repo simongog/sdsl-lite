@@ -133,6 +133,7 @@ void construct_lcp_PHI(cache_config& config) {
 	if ( 1 == n ){ // Handle special case: Input only the sentinel character.
 		int_vector<> lcp(1, 0);
 		util::store_to_cache( lcp, constants::KEY_LCP, config );
+		return;
 	}
 
 //	(1) Calculate PHI (stored in array plcp)
