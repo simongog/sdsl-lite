@@ -1,5 +1,6 @@
 #include "sdsl/suffixarrays.hpp"
 #include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
+#include "sdsl/testutils.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()
@@ -17,41 +18,61 @@ std::vector<tMSS>  test_cases_file_map;
 template<class T>
 class CsaIntTest : public ::testing::Test { 
 	protected:
-        CsaIntTest() { }
+	CsaIntTest() { }
 
-        virtual ~CsaIntTest() { }
+	virtual ~CsaIntTest() { }
 
-        virtual void SetUp() {
-			std::string test_cases_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
-            tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
-            test_cases.push_back(test_cases_dir + "/small/keeper.int"); num_bytes.push_back(8);
-            test_cases.push_back(test_cases_dir + "/small/moby.int"); num_bytes.push_back(8);
-			test_cases.push_back(test_cases_dir + "/crafted/empty.txt"); num_bytes.push_back(8);
-            test_cases.push_back(test_cases_dir + "/small/faust.txt"); num_bytes.push_back(1);
-            test_cases.push_back(test_cases_dir + "/small/zarathustra.txt"); num_bytes.push_back(1);
-            test_cases.push_back(test_cases_dir + "/crafted/100a.txt"); num_bytes.push_back(1);
-            tmp_file = "tmp_csa_int_test_" + util::to_string(util::get_pid()) + "_";
-			if ( test_cases_file_map.size() == 0 ){
-				test_cases_file_map.resize(test_cases.size());
+	virtual void SetUp() {
+		tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
+
+		std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
+		std::string config_file = prefix + "/CsaIntTest.config";
+		std::string tc_prefix	= prefix + "/test_cases";
+		std::vector<std::string> read_test_cases;
+		read_test_cases = sdsl::paths_from_config_file(config_file.c_str(), tc_prefix.c_str());
+		
+		for (size_t i=0; i < read_test_cases.size(); ++i){
+			std::string tc = read_test_cases[i];
+			size_t extentsion_len = 4;
+			bool valid = true;
+			if ( (valid = (tc.size() >= extentsion_len)) ){
+				std::string extension = tc.substr(tc.size()-extentsion_len, tc.size()-1);
+				if ( (valid = (extension == ".int" or extension == ".txt")) ){
+					test_cases.push_back(tc);
+					if ( extension == ".int" ){
+						num_bytes.push_back(8);
+					}else if ( extension == ".txt" ){
+						num_bytes.push_back(1);
+					} 
+				}
 			}
-        }
+			if ( !valid ) {
+				std::cerr << "Test case `"<<read_test_cases[i]<<"` was ignored." << std::endl;
+				std::cerr << "It did not have the extension `.int` or `.txt`" << std::endl;
+			}
+		}
+		tmp_file = "tmp_csa_int_test_" + util::to_string(util::get_pid()) + "_";
+		if ( test_cases_file_map.size() == 0 ){
+			test_cases_file_map.resize(test_cases.size());
+		}
+	}
 
-        virtual void TearDown() { }
+	virtual void TearDown() { }
 
-        std::vector<std::string> test_cases;
-        std::vector<uint8_t> num_bytes;
-        std::string tmp_file;
-        std::string tmp_dir;
+	std::vector<std::string> test_cases;
+	std::vector<uint8_t> num_bytes;
+	std::string tmp_file;
+	std::string tmp_dir;
 
-        template<class Csa>
-        std::string get_tmp_file_name(const Csa& csa, size_type i) {
-            return tmp_file + util::class_to_hash(csa) + "_" + util::basename(test_cases[i].c_str());
-        }
+	template<class Csa>
+	std::string get_tmp_file_name(const Csa& csa, size_type i) {
+		return tmp_file + util::class_to_hash(csa) + "_" + util::basename(test_cases[i].c_str());
+	}
 
-        template<class Csa>
-        bool load_csa(Csa& csa, size_type i) {
-            return util::load_from_file(csa, get_tmp_file_name(csa, i).c_str());
-        }
+	template<class Csa>
+	bool load_csa(Csa& csa, size_type i) {
+		return util::load_from_file(csa, get_tmp_file_name(csa, i).c_str());
+	}
 };
 
 

@@ -3,6 +3,7 @@
 #include "sdsl/bit_vector_interleaved.hpp"
 #include "sdsl/util.hpp"
 #include "sdsl/bwt_construct.hpp"
+#include "sdsl/testutils.hpp"
 #include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
 #include "gtest/gtest.h"
 #include <vector>
@@ -26,15 +27,14 @@ class WtByteTest : public ::testing::Test
 
         virtual ~WtByteTest() { }
 
-        virtual void SetUp() {
-			std::string test_cases_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
-			std::string tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
-            test_cases.push_back(test_cases_dir + "/crafted/100a.txt");
-            test_cases.push_back(test_cases_dir + "/small/faust.txt");
-            test_cases.push_back(test_cases_dir + "/small/zarathustra.txt");
-            test_cases.push_back(test_cases_dir + "/crafted/empty.txt");
-            tmp_file = tmp_dir + "wt_ascii_test_" + util::to_string(util::get_pid()) + "_";
-        }
+	virtual void SetUp() {
+		std::string tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";	
+		std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
+		std::string config_file = prefix + "/WtByteTest.config";
+		std::string tc_prefix	= prefix + "/test_cases";
+		test_cases = sdsl::paths_from_config_file(config_file.c_str(), tc_prefix.c_str());
+		tmp_file = tmp_dir + "wt_ascii_test_" + util::to_string(util::get_pid()) + "_";
+	}
 
         virtual void TearDown() { }
 

@@ -4,6 +4,7 @@
 #include "sdsl/test_index_performance.hpp"
 #include "sdsl/util.hpp" // for store_to_file, load_to_file,...
 #include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
+#include "sdsl/testutils.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()
@@ -20,51 +21,39 @@ typedef bit_vector bit_vector;
 std::vector<sdsl::tMSS>  test_cases_file_map;
 
 template<class T>
-class CstByteTest : public ::testing::Test
-{
+class CstByteTest : public ::testing::Test {
     protected:
+	CstByteTest() { }
 
-        CstByteTest() {
-            // You can do set-up work for each test here
-        }
+	virtual ~CstByteTest() { }
 
-        virtual ~CstByteTest() {
-            // You can do clean-up work that doesn't throw exceptions here.
-        }
+	virtual void SetUp() {
+		tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
+		std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
+		std::string config_file = prefix + "/CstByteTest.config";
+		std::string tc_prefix	= prefix + "/test_cases";
+		test_cases = sdsl::paths_from_config_file(config_file.c_str(), tc_prefix.c_str());
+		tmp_file = "cst_test_" + util::to_string(util::get_pid()) + "_";
+		if ( test_cases_file_map.size() == 0 ){
+			test_cases_file_map.resize(test_cases.size());
+		}
+	}
 
-        // If the constructor and destructor are not enough for setting up
-        // and cleaning up each test, you can define the following methods:
-        virtual void SetUp() {
-			std::string test_cases_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
-            tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
-            test_cases.push_back(test_cases_dir + "/crafted/100a.txt");
-			test_cases.push_back(test_cases_dir + "/crafted/empty.txt"); 
-            test_cases.push_back(test_cases_dir + "/small/faust.txt");
-            test_cases.push_back(test_cases_dir + "/small/zarathustra.txt");
-            tmp_file = "cst_test_" + util::to_string(util::get_pid()) + "_";
-			if ( test_cases_file_map.size() == 0 ){
-				test_cases_file_map.resize(test_cases.size());
-			}
-        }
+	virtual void TearDown() { }
 
-        virtual void TearDown() {
-            // Code here will be called immediately after each test (right
-            // before the destructor).
-        }
+	std::vector<std::string> test_cases;
+	std::string tmp_file;
+	std::string tmp_dir;
 
-        std::vector<std::string> test_cases;
-        std::string tmp_file;
-        std::string tmp_dir;
+	template<class Cst>
+	std::string get_tmp_file_name(const Cst& cst, size_type i) {
+		return tmp_dir+tmp_file + util::class_to_hash(cst) + "_" + util::basename(test_cases[i].c_str());
+	}
 
-        template<class Cst>
-        std::string get_tmp_file_name(const Cst& cst, size_type i) {
-            return tmp_dir+tmp_file + util::class_to_hash(cst) + "_" + util::basename(test_cases[i].c_str());
-        }
-
-        template<class Cst>
-        bool load_cst(Cst& cst, size_type i) {
-            return util::load_from_file(cst, get_tmp_file_name(cst, i).c_str());
-        }
+	template<class Cst>
+	bool load_cst(Cst& cst, size_type i) {
+		return util::load_from_file(cst, get_tmp_file_name(cst, i).c_str());
+	}
 };
 
 using testing::Types;

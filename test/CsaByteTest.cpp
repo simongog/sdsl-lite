@@ -1,5 +1,6 @@
 #include "sdsl/suffixarrays.hpp"
 #include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
+#include "sdsl/testutils.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()
@@ -15,53 +16,39 @@ typedef int_vector<>::size_type size_type;
 std::vector<tMSS>  test_cases_file_map;
 
 template<class T>
-class CsaByteTest : public ::testing::Test
-{
-    protected:
+class CsaByteTest : public ::testing::Test {
+	protected:
+	CsaByteTest() { }
 
-        CsaByteTest() {
-            // You can do set-up work for each test here.
-        }
+	virtual ~CsaByteTest() { }
 
-        virtual ~CsaByteTest() {
-            // You can do clean-up work that doesn't throw exceptions here.
-        }
+	virtual void SetUp() {
+		tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";	
+		std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
+		std::string config_file = prefix + "/CsaByteTest.config";
+		std::string tc_prefix	= prefix + "/test_cases";
+		test_cases = sdsl::paths_from_config_file(config_file.c_str(), tc_prefix.c_str());
+		tmp_file = "csa_ascii_test_" + util::to_string(util::get_pid()) + "_";
+		if ( test_cases_file_map.size() == 0 ){
+			test_cases_file_map.resize(test_cases.size());
+		}
+	}
 
-        // If the constructor and destructor are not enough for setting up
-        // and cleaning up each test, you can define the following methods:
-        virtual void SetUp() {
-            // Code here will be called immediately after the constructor (right
-            // before each test).
-			std::string test_cases_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
-            tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
-            test_cases.push_back(test_cases_dir + "/crafted/100a.txt");
-            test_cases.push_back(test_cases_dir + "/small/faust.txt");
-            test_cases.push_back(test_cases_dir + "/small/zarathustra.txt");
-            test_cases.push_back(test_cases_dir + "/crafted/empty.txt");
-            tmp_file = "csa_ascii_test_" + util::to_string(util::get_pid()) + "_";
-			if ( test_cases_file_map.size() == 0 ){
-				test_cases_file_map.resize(test_cases.size());
-			}
-        }
+	virtual void TearDown() {}
 
-        virtual void TearDown() {
-            // Code here will be called immediately after each test (right
-            // before the destructor).
-        }
+	std::vector<std::string> test_cases;
+	std::string tmp_file;
+	std::string tmp_dir;
 
-        std::vector<std::string> test_cases;
-        std::string tmp_file;
-        std::string tmp_dir;
+	template<class Csa>
+	std::string get_tmp_file_name(const Csa& csa, size_type i) {
+		return tmp_dir+ tmp_file + util::class_to_hash(csa) + "_" + util::basename(test_cases[i].c_str());
+	}
 
-        template<class Csa>
-        std::string get_tmp_file_name(const Csa& csa, size_type i) {
-            return tmp_dir+ tmp_file + util::class_to_hash(csa) + "_" + util::basename(test_cases[i].c_str());
-        }
-
-        template<class Csa>
-        bool load_csa(Csa& csa, size_type i) {
-            return util::load_from_file(csa, get_tmp_file_name(csa, i).c_str());
-        }
+	template<class Csa>
+	bool load_csa(Csa& csa, size_type i) {
+		return util::load_from_file(csa, get_tmp_file_name(csa, i).c_str());
+	}
 };
 
 
