@@ -1,4 +1,5 @@
 #include "sdsl/wt_int.hpp"
+#include "sdsl/construct.hpp"
 #include "sdsl/util.hpp"
 #include "sdsl/rrr_vector.hpp"
 #include "sdsl/sd_vector.hpp"
@@ -21,36 +22,33 @@ class WtIntTest : public ::testing::Test
 {
     protected:
 
-        WtIntTest() { }
+	WtIntTest() { }
 
-        virtual ~WtIntTest() { }
+	virtual ~WtIntTest() { }
 
-        virtual void SetUp() {
-			std::string test_cases_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/test_cases";
-			std::string tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
-            tmp_file = tmp_dir+"wt_int_test_" + util::to_string(util::get_pid()) + "_";
-			test_cases.push_back( int_vector<>() );
-			test_cases.push_back( int_vector<>(1023,0,1) );
-			test_cases.push_back( int_vector<>(100023,0,1) );
-			test_cases.push_back( int_vector<>(64,0,2) );
-			int_vector<> iv(1000000,0,18);
-    		util::set_random_bits(iv, 17);
-			test_cases.push_back( iv );
-        }
+	virtual void SetUp() {
+		std::string tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
+		tmp_file = tmp_dir+"wt_int_test_" + util::to_string(util::get_pid()) + "_";
+		std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
+		std::string config_file = prefix + "/WtIntTest.config";
+		std::string tc_prefix	= prefix + "/test_cases";
+		std::vector<std::string> read_test_cases;
+		test_cases = sdsl::paths_from_config_file(config_file.c_str(), tc_prefix.c_str());
+	}
 
-        virtual void TearDown() { }
+	virtual void TearDown() { }
 
-        template<class Wt>
-        std::string get_tmp_file_name(const Wt& wt, size_type i) {
-            return tmp_file + util::class_to_hash(wt) + "_" + util::to_string(i);
-        }
+	template<class Wt>
+	std::string get_tmp_file_name(const Wt& wt, size_type i) {
+		return tmp_file + util::class_to_hash(wt) + "_" + util::to_string(i);
+	}
 
-        template<class Wt>
-        bool load_wt(Wt& wt, size_type i) {
-            return util::load_from_file(wt, get_tmp_file_name(wt, i).c_str());
-        }
-        std::string tmp_file;
-        std::vector<int_vector<> > test_cases;
+	template<class Wt>
+	bool load_wt(Wt& wt, size_type i) {
+		return util::load_from_file(wt, get_tmp_file_name(wt, i).c_str());
+	}
+	std::string tmp_file;
+	std::vector<std::string> test_cases;
 };
 
 using testing::Types;
@@ -66,13 +64,13 @@ TYPED_TEST_CASE(WtIntTest, Implementations);
 //! Test the parametrized constructor
 TYPED_TEST(WtIntTest, Constructor) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
-		int_vector<>& iv = this->test_cases[i];
+		int_vector<> iv;
+		util::load_from_file(iv, this->test_cases[i].c_str());
 		double iv_size = util::get_size_in_mega_bytes(iv);
-		std::string tmp_file_name = this->tmp_file+util::to_string(i);
-		ASSERT_TRUE( util::store_to_file(iv, tmp_file_name.c_str()) );
+		std::cout << "tc = " << this->test_cases[i] << std::endl;
 		{
-		int_vector_file_buffer<> buf(tmp_file_name.c_str());
-			TypeParam wt(buf, buf.int_vector_size);
+			TypeParam wt;
+			sdsl::construct( wt, this->test_cases[i].c_str() );
 			std::cout << "compression = " << util::get_size_in_mega_bytes(wt)/iv_size << std::endl;
 			ASSERT_EQ(iv.size(), wt.size());
 			for (size_type j=0; j < iv.size(); ++j) {
@@ -81,14 +79,14 @@ TYPED_TEST(WtIntTest, Constructor) {
 			ASSERT_TRUE( util::store_to_file(wt, this->get_tmp_file_name(wt, i).c_str()) );
 		}
 		{
-			int_vector_file_buffer<> buf(tmp_file_name.c_str());
-			TypeParam wt(buf, 0);
+			int_vector_file_buffer<> iv_buf(this->test_cases[i].c_str());
+			TypeParam wt(iv_buf, 0);
 			ASSERT_EQ( wt.size(), (size_type)0 );
 		}
 		{
-			int_vector_file_buffer<> buf(tmp_file_name.c_str());
+			int_vector_file_buffer<> iv_buf(this->test_cases[i].c_str());
 			size_type len = (iv.size() >= 6) ? 6 : iv.size(); 
-			TypeParam wt(buf, len);
+			TypeParam wt(iv_buf, len);
 			ASSERT_EQ( wt.size(), len );
 			for (size_type j=0; j < len; ++j) {
 				ASSERT_EQ(iv[j], wt[j])<<j;
@@ -100,7 +98,8 @@ TYPED_TEST(WtIntTest, Constructor) {
 //! Test loading and accessing the wavelet tree
 TYPED_TEST(WtIntTest, LoadAndAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
-		int_vector<>& iv = this->test_cases[i];
+		int_vector<> iv;
+		util::load_from_file(iv, this->test_cases[i].c_str());
 		std::string tmp_file_name = this->tmp_file+util::to_string(i);
 		TypeParam wt;
 		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i).c_str()));
@@ -114,7 +113,8 @@ TYPED_TEST(WtIntTest, LoadAndAccess) {
 //! Test the load method and rank method
 TYPED_TEST(WtIntTest, LoadAndRank) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
-		int_vector<>& iv = this->test_cases[i];
+		int_vector<> iv;
+		util::load_from_file(iv, this->test_cases[i].c_str());
 		std::string tmp_file_name = this->tmp_file+util::to_string(i);
 		TypeParam wt;
 		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i).c_str()));
@@ -133,7 +133,8 @@ TYPED_TEST(WtIntTest, LoadAndRank) {
 //! Test the load method and select method
 TYPED_TEST(WtIntTest, LoadAndSelect) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
-		int_vector<>& iv = this->test_cases[i];
+		int_vector<> iv;
+		util::load_from_file(iv, this->test_cases[i].c_str());
 		std::string tmp_file_name = this->tmp_file+util::to_string(i);
 		TypeParam wt;
 		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i).c_str()));
@@ -150,7 +151,8 @@ TYPED_TEST(WtIntTest, LoadAndSelect) {
 //! Test the load method and inverse_select method
 TYPED_TEST(WtIntTest, LoadAndInverseSelect) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
-		int_vector<>& iv = this->test_cases[i];
+		int_vector<> iv;
+		util::load_from_file(iv, this->test_cases[i].c_str());
 		std::string tmp_file_name = this->tmp_file+util::to_string(i);
 		TypeParam wt;
 		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i).c_str()));
