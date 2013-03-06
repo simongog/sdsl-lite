@@ -1,4 +1,4 @@
 *
 !.gitignore
-!*.hpp$
-!*.cmake$
+!*.hpp
+!*.cmake
