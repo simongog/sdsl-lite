@@ -8,7 +8,7 @@ EXEC_LIST_VAL=$(patsubst %,valgrind ./%;,$(EXECS))   # list of executables prece
 
 all: $(EXECS)
 	        
-%:%.cpp
+%:%.cpp @CMAKE_INSTALL_PREFIX@/lib/libsdsl.a
 	$(CC) $(CC_FLAGS) -o $@ $< $(CCLIB) 
 
 clean:
