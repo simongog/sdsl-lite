@@ -58,7 +58,7 @@ class int_vector;	 // forward declaration
 namespace util
 {
 
-static bool verbose = false;
+SDSL_UNUSED static bool verbose = false;
 
 void set_verbose();
 
@@ -517,6 +517,9 @@ template<class T>
 bool load_from_cache(T&v, const char* key, const cache_config &config){
 	std::string file_name = cache_file_name(key, config);
 	if( load_from_file(v, file_name.c_str()) ){
+		if ( util::verbose ){
+			std::cerr << "Load `" << file_name << std::endl;
+		}
 		return true;
 	}else{
 		std::cerr << "WARNING: Could not load file '";
@@ -562,10 +565,17 @@ template<class T>
 bool util::store_to_file(const T& t, const char* file_name) {
     std::ofstream out;
     out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
-    if (!out)
+    if (!out){
+		if ( util::verbose ){
+			std::cerr<<"ERROR: store_to_file not successful for: `"<<file_name<<"`"<<std::endl;
+		}
         return false;
+	}
     t.serialize(out);
     out.close();
+	if ( util::verbose ){
+		std::cerr<<"INFO: store_to_file: `"<<file_name<<"`"<<std::endl;
+	}
     return true;
 }
 
@@ -595,10 +605,17 @@ template<class T>
 bool util::load_from_file(T& v, const char* file_name) {
     std::ifstream in;
     in.open(file_name, std::ios::binary | std::ios::in);
-    if (!in)
+    if (!in){
+		if ( util::verbose ){
+			std::cerr << "Could not load file `" << file_name << "`" << std::endl;
+		}
         return false;
+	}
     v.load(in);
     in.close();
+	if ( util::verbose ){
+		std::cerr << "Load file `" << file_name << "`" << std::endl;
+	}
     return true;
 }
 
