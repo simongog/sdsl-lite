@@ -360,7 +360,7 @@ class cst_sct3
             first_child_rank(m_first_child_rank) {}
 
 		//! Construct CST from file_map
-        cst_sct3(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps=false);
+        cst_sct3(cache_config &cache, bool build_only_bps=false);
 
         //! Copy constructor
         /*!
@@ -1103,10 +1103,10 @@ class cst_sct3
 
 
 template<class Csa, class Lcp, class Bp_support, class Rank_support>
-cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(tMSS& file_map, const std::string& dir, const std::string& id, bool build_only_bps):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
+cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(cache_config& config, bool build_only_bps):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
 {
     write_R_output("cst", "construct BPS", "begin", 1, 0);
-    int_vector_file_buffer<> lcp_buf(file_map[constants::KEY_LCP].c_str());
+    int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config).c_str());
     m_nodes = algorithm::construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child) + m_bp.size()/2;
 	if ( m_bp.size() == 2 ){ // handle special case, when the tree consists only of the root node
 		m_nodes = 1;
@@ -1119,13 +1119,13 @@ cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(tMSS& file_map, const std
 
     if (!build_only_bps) {
         write_R_output("cst", "construct CLCP", "begin", 1, 0);
-		cache_config config(false, dir, id, file_map);
-        construct_lcp(m_lcp, *this, config);
-		file_map = config.file_map;
+		cache_config tmp_config(false, config.dir, config.id, config.file_map);
+        construct_lcp(m_lcp, *this, tmp_config);
+		config.file_map = tmp_config.file_map;
         write_R_output("cst", "construct CLCP", "end", 1, 0);
     }
     if (!build_only_bps) {
-        util::load_from_file(m_csa, file_map[util::class_to_hash(m_csa)].c_str());
+		util::load_from_cache(m_csa, util::class_to_hash(m_csa).c_str(), config);
     }
     m_sigma = std::max(degree(root()), (size_type)1);
 	//handle special case 'CST for empty text'  --^
