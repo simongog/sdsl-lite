@@ -227,11 +227,12 @@ class wt_trait<unsigned char*>
             return alphabet_size;
         }
 
-        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type sigma) {
+        static bool symbol_available(const map_type& map, const value_type c, SDSL_UNUSED const value_type first_symbol, const size_type sigma) {
             return sigma==256 or map[c] < 255;
         }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, std::string name="") {
+        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, 
+				                        SDSL_UNUSED std::string name="") {
             size_type written_bytes = 0;
             written_bytes += map.serialize(out, v, "alphabet_map");
             written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
@@ -299,11 +300,11 @@ class wt_trait<int_vector_file_buffer<8> >{
             return alphabet_size;
         }
 
-        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type sigma) {
+        static bool symbol_available(const map_type& map, const value_type c, SDSL_UNUSED const value_type first_symbol, const size_type sigma) {
             return sigma==256 or map[c] < 255;
         }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, std::string name="") {
+        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, SDSL_UNUSED std::string name="") {
             size_type written_bytes = 0;
             written_bytes += map.serialize(out, v, "alphabet_map");
             written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
