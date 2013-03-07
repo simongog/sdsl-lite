@@ -140,8 +140,8 @@ class csa_wt {
             copy(csa);
         }
 
-		//! Constructor taking a file_map of containing the location of BWT and SA on disk
-        csa_wt(tMSS& file_map, const std::string& dir, const std::string& id);
+		//! Constructor taking a cache_config 
+        csa_wt(cache_config &config);
 
         //! Number of elements in the \f$\CSA\f$.
         /*! Required for the Container Concept of the STL.
@@ -266,15 +266,15 @@ class csa_wt {
 // == template functions ==
 
 template<class WaveletTree, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
-csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::csa_wt(tMSS& file_map, const std::string& dir, const std::string& id) : 
-	  char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma), psi(this), bwt(this),sa_sample(m_sa_sample),isa_sample(m_isa_sample),wavelet_tree(m_wavelet_tree)
+csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::csa_wt(cache_config& config) : 
+	                             char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma), 
+								 psi(this), bwt(this),sa_sample(m_sa_sample),isa_sample(m_isa_sample),wavelet_tree(m_wavelet_tree)
 {
-    if (file_map.find(key_trait<alphabet_type::int_width>::KEY_BWT) == file_map.end()) { // check if bwt is on disk
-		throw std::logic_error("csa_wt: BWT is required for construction! Exiting...");
+    if ( !util::cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config) ) { 
 		return;
     }
-    int_vector_file_buffer<alphabet_type::int_width> bwt_buf(file_map[key_trait<alphabet_type::int_width>::KEY_BWT].c_str()); 
-    int_vector_file_buffer<>  sa_buf(file_map[constants::KEY_SA].c_str());
+    int_vector_file_buffer<alphabet_type::int_width> bwt_buf(util::cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config).c_str()); 
+    int_vector_file_buffer<>  sa_buf(util::cache_file_name(constants::KEY_SA, config).c_str());
     size_type n = bwt_buf.int_vector_size;
     write_R_output("csa", "construct alphabet", "begin", 1, 0);
 	util::assign(m_alphabet, alphabet_type(bwt_buf, n));          

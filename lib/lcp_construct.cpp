@@ -1826,9 +1826,11 @@ void construct_lcp_bwt_based2(cache_config& config)
         int_vector_file_buffer<> lcp_positions((tmp_lcp_file).c_str(), buffer_size);
 
         uint8_t int_width = bit_magic::l1BP(lcp_value+1)+1;             // How many bits are needed for one lcp_value?
-        size_type number_of_values = ((8*n)/int_width) & (~(0x7ULL));   // Determine number of lcp-values that can fit in n bytes = 8n bit and is a multiple of 8
-        // size_type number_of_values = ((n / ( (int_width-1ULL)/8 + 1 ) + 16) & (~(0x7ULL))); // Determine number of sa values that can fit in n bytes = 8n bit and is a multiple of 8
 
+        // Algorithm does r=ceil(int_width/8) runs over LCP-Positions-Array.
+        // So in each run k>=(n/r) values of the lcp array must be calculated.
+        // Because k has to be a multiple of 8, we choose number_of_values = (k+16) - ((k+16)%8)
+        size_type number_of_values = ((n / ( (int_width-1ULL)/8 + 1 ) + 16) & (~(0x7ULL)));
         int_vector<> lcp_array_out_buf(number_of_values, 0, int_width);           // Create Output Buffer
 
         std::string lcp_file = util::cache_file_name(constants::KEY_LCP, config);
