@@ -137,11 +137,11 @@ class cst_sada
         }
 
 		//! Construct CST from file_map
-        cst_sada(tMSS& file_map, const std::string dir, const std::string id, bool build_only_bps=false) : csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), 
+        cst_sada(cache_config& config) : csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), 
 		                                                                                                   bp_rank_10(m_bp_rank10), bp_select_10(m_bp_select10) {
             {
                 write_R_output("cst", "construct BPS", "begin", 1, 0);
-                cst_sct3<> temp_cst(file_map, dir, id, true);
+                cst_sct3<> temp_cst(config, true);
                 m_bp.resize(4*(temp_cst.bp.size()/2));
                 util::set_zero_bits(m_bp);
                 size_type idx=0;
@@ -162,12 +162,12 @@ class cst_sada
             write_R_output("cst", "construct BPSS", "end", 1,0);
 
             write_R_output("cst", "construct CLCP", "begin", 1,0);
-			cache_config config(false, dir, id, file_map);
-            construct_lcp(m_lcp, *this, config);
-			file_map = config.file_map;
+			cache_config tmp_config(false, config.dir, config.id, config.file_map);
+            construct_lcp(m_lcp, *this, tmp_config);
+			config.file_map = tmp_config.file_map;
             write_R_output("cst", "construct CLCP", "end", 1,0);
 
-            util::load_from_file(m_csa, file_map[util::class_to_hash(m_csa)].c_str());
+			util::load_from_cache(m_csa, util::class_to_hash(m_csa).c_str(), config);
         }
 
         //! Number of leaves in the suffix tree.
