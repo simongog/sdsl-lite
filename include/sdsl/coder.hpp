@@ -15,7 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file coder.hpp
-    \brief coder.hpp contains the coder namespace and includes the header files of sdsl::coder::fibonacci, sdsl::coder::elias_delta, sdsl::coder::ternary, and sdsl::coder::run_length
+    \brief coder.hpp contains the coder namespace and includes the header files of sdsl::coder::fibonacci, sdsl::coder::elias_delta, and sdsl::coder::run_length
 	\author Simon Gog
  */
 #ifndef SDSL_CODER
@@ -24,7 +24,6 @@
 #include "int_vector.hpp"
 #include "fibonacci_coder.hpp"
 #include "elias_delta_coder.hpp"
-#include "ternary_coder.hpp"
 
 namespace sdsl
 {
