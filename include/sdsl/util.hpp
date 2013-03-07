@@ -45,6 +45,8 @@
 #define SDSL_STR(x) #x
 #define SDSL_XSTR(s) SDSL_STR(s)
 
+#define SDSL_UNUSED __attribute__ ((unused))
+
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
