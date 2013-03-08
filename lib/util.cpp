@@ -176,7 +176,7 @@ off_t get_file_size(const char* file_name) {
 }
 
 std::string cache_file_name(const char* key, const cache_config &config){
-	return config.dir+"/"+std::string(key)+"_"+config.id;
+	return config.dir+"/"+std::string(key)+"_"+config.id+".sdsl";
 }
 
 void register_cache_file(const char* key, cache_config &config){
