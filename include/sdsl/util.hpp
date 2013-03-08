@@ -63,7 +63,7 @@ SDSL_UNUSED static bool verbose = false;
 void set_verbose();
 
 //! Get the size of a file in bytes
-off_t get_file_size(const char* file_name);
+off_t get_file_size(const std::string &file_name);
 
 //! Returns the basename of a file_name
 std::string basename(const std::string& file_name);
@@ -162,15 +162,15 @@ typename int_vector_type::size_type prev_bit(const int_vector_type& v, uint64_t 
    \param file_name Name of the serialized file.
  */
 template<class T>
-bool load_from_file(T& v, const char* file_name);
+bool load_from_file(T& v, const std::string &file_name);
 
 template<>
-bool load_from_file(void*&, const char* file_name);
+bool load_from_file(void*&, const std::string &file_name);
 
 //! Load an int_vector from a plain array of `num_bytes`-byte integers with X in \{0, 1,2,4,8\} from disk.
 // TODO: Remove ENDIAN dependency: currently in BIG_ENDIAN format
 template<class int_vector_type>
-bool load_vector_from_file(int_vector_type &v, const char* file_name, uint8_t num_bytes=1, uint8_t max_int_width=64){
+bool load_vector_from_file(int_vector_type &v, const std::string &file_name, uint8_t num_bytes=1, uint8_t max_int_width=64){
 	if ( (uint8_t)0 == num_bytes ){ // if byte size is variable read int_vector<0> from file
 		return load_from_file(v, file_name);
 	}else {
@@ -180,11 +180,11 @@ bool load_vector_from_file(int_vector_type &v, const char* file_name, uint8_t nu
 			return true;
 		}
 		if ( file_size % num_bytes != 0 ){
-			throw std::logic_error("file size "+to_string(file_size)+" of \""+to_string(file_name)
+			throw std::logic_error("file size "+to_string(file_size)+" of \""+ file_name
 											   +"\" is not a multiple of "+to_string(num_bytes));
 			return false;
 		}
-		std::ifstream in(file_name);
+		std::ifstream in(file_name.c_str());
 		if ( in ){
 			v.set_int_width( std::min( (int)8*num_bytes, (int)max_int_width ) );
 			v.resize( file_size / num_bytes );
@@ -226,8 +226,8 @@ bool load_vector_from_file(int_vector_type &v, const char* file_name, uint8_t nu
 
 //! Store an int_vector as plain int_type array to disk 
 template<class int_type, class int_vector_type>
-bool store_to_plain_array(int_vector_type &v, const char* file_name){
-	std::ofstream out(file_name);
+bool store_to_plain_array(int_vector_type &v, const std::string &file_name){
+	std::ofstream out(file_name.c_str());
 	if ( out ){
 		for (typename int_vector_type::size_type i=0; i<v.size(); ++i){
 			int_type x = v[i];
@@ -243,7 +243,7 @@ bool store_to_plain_array(int_vector_type &v, const char* file_name){
 /*  \pre v=NULL
  *
  */
-bool load_from_file(char*& v, const char* file_name);
+bool load_from_file(char*& v, const std::string &file_name);
 
 
 //! Store a data structure to a file.
@@ -253,23 +253,23 @@ bool load_from_file(char*& v, const char* file_name);
 	\param Return if the data structure was stored successfully
  */
 template<class T>
-bool store_to_file(const T& v, const char* file_name);
+bool store_to_file(const T& v, const std::string &file_name);
 
 //! Specialization of store_to_file for a char array
-bool store_to_file(const char* v, const char* file_name);
+bool store_to_file(const char* v, const std::string &file_name);
 
 //! Specialization of store_to_file for int_vector
 template<uint8_t fixed_int_width>
-bool store_to_file(const int_vector<fixed_int_width>& v, const char* file_name, bool write_fixed_as_variable=false);
+bool store_to_file(const int_vector<fixed_int_width>& v, const std::string &file_name, bool write_fixed_as_variable=false);
 
 //! Demangle the class name of typeid(...).name()
 /*!
  *	\param name A pointer to the the result of typeid(...).name()
  */
-std::string demangle(const char* name);
+std::string demangle(const std::string &name);
 
 //! Demangle the class name of typeid(...).name() and remove the "sdsl::"-prefix, "unsigned int",...
-std::string demangle2(const char* name);
+std::string demangle2(const std::string &name);
 
 //! Transforms the demangled class name of an object to a hash value.
 template<class T>
@@ -493,7 +493,7 @@ void write_structure(const X& x, std::ostream& out)
  *	\param	config	Cache configuration.
  *	\reutrn The file name of the resource.
  */
-std::string cache_file_name(const char* key, const cache_config &config);
+std::string cache_file_name(const std::string &key, const cache_config &config);
 
 //! Register the existing resource specified by the key to the cache
 /*!
@@ -503,7 +503,7 @@ std::string cache_file_name(const char* key, const cache_config &config);
  *  Note: If the resource does not exist under the given key,
  *  it will be not added to the cache configuration.
  */
-void register_cache_file(const char* key, cache_config &config);
+void register_cache_file(const std::string &key, cache_config &config);
 
 //! Checks if the resource specified by the key exists in the cache.
 /*!
@@ -511,10 +511,10 @@ void register_cache_file(const char* key, cache_config &config);
   \param config Cache configuration.
   \return True, if the file exists, false otherwise.
 */
-bool cache_file_exists(const char* key, const cache_config &config);
+bool cache_file_exists(const std::string &key, const cache_config &config);
 
 template<class T>
-bool load_from_cache(T&v, const char* key, const cache_config &config){
+bool load_from_cache(T&v, const std::string &key, const cache_config &config){
 	std::string file_name = cache_file_name(key, config);
 	if( load_from_file(v, file_name.c_str()) ){
 		if ( util::verbose ){
@@ -533,7 +533,7 @@ bool load_from_cache(T&v, const char* key, const cache_config &config){
  *  \param	
  */
 template<class T>
-bool store_to_cache(const T& v, const char* key, cache_config &config){
+bool store_to_cache(const T& v, const std::string &key, cache_config &config){
 	std::string file_name = cache_file_name(key, config);
 	if ( store_to_file(v, file_name.c_str()) ){
 		config.file_map[std::string(key)] = file_name;
@@ -562,9 +562,9 @@ double util::get_size_in_mega_bytes(const T& t) {
 }
 
 template<class T>
-bool util::store_to_file(const T& t, const char* file_name) {
+bool util::store_to_file(const T& t, const std::string &file_name) {
     std::ofstream out;
-    out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
+    out.open(file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out){
 		if ( util::verbose ){
 			std::cerr<<"ERROR: store_to_file not successful for: `"<<file_name<<"`"<<std::endl;
@@ -579,9 +579,9 @@ bool util::store_to_file(const T& t, const char* file_name) {
     return true;
 }
 
-inline bool util::store_to_file(const char* v, const char* file_name) {
+inline bool util::store_to_file(const char* v, const std::string &file_name) {
     std::ofstream out;
-    out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
+    out.open(file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
         return false;
     uint64_t n = strlen((const char*)v);
@@ -591,9 +591,9 @@ inline bool util::store_to_file(const char* v, const char* file_name) {
 }
 
 template<uint8_t fixed_int_width>
-bool util::store_to_file(const int_vector<fixed_int_width>& v, const char* file_name, bool write_fixed_as_variable) {
+bool util::store_to_file(const int_vector<fixed_int_width>& v, const std::string &file_name, bool write_fixed_as_variable) {
     std::ofstream out;
-    out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
+    out.open(file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
         return false;
     v.serialize(out, NULL, "", write_fixed_as_variable);
@@ -602,9 +602,9 @@ bool util::store_to_file(const int_vector<fixed_int_width>& v, const char* file_
 }
 
 template<class T>
-bool util::load_from_file(T& v, const char* file_name) {
+bool util::load_from_file(T& v, const std::string &file_name) {
     std::ifstream in;
-    in.open(file_name, std::ios::binary | std::ios::in);
+    in.open(file_name.c_str(), std::ios::binary | std::ios::in);
     if (!in){
 		if ( util::verbose ){
 			std::cerr << "Could not load file `" << file_name << "`" << std::endl;
