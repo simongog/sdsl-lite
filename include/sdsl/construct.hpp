@@ -32,10 +32,10 @@
 namespace sdsl{
 
 template<class int_vector>
-bool contains_no_zero_symbol(const int_vector& text, const char* file){
+bool contains_no_zero_symbol(const int_vector& text, const std::string &file){
 	for (int_vector_size_type i=0; i < text.size(); ++i){
 		if ( (uint64_t)0 == text[i] ){
-			throw std::logic_error((std::string("Error: File \"")+std::string(file)+std::string("\" contains zero symbol.")).c_str());
+			throw std::logic_error((std::string("Error: File \"")+file+std::string("\" contains zero symbol.")).c_str());
 			return false;
 		}
 	}
@@ -50,7 +50,7 @@ void append_zero_symbol(int_vector& text){
 
 
 template<class Index>
-void construct(Index& idx, const char* file, uint8_t num_bytes=0){
+void construct(Index& idx, const std::string &file, uint8_t num_bytes=0){
 	tMSS file_map;
 	cache_config config;
 	construct(idx, file, config, num_bytes);
@@ -67,7 +67,7 @@ void construct(Index& idx, const char* file, uint8_t num_bytes=0){
  *                  	of `num_bytes`-byte integer stored in big endian order.
  */
 template<class Index>
-void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes=0){
+void construct(Index& idx, const std::string &file, cache_config& config, uint8_t num_bytes=0){
 	// delegate to CSA or CST construction	
 	typename Index::index_category 		index_tag;
 	construct(idx, file, config, num_bytes, index_tag);
@@ -75,7 +75,7 @@ void construct(Index& idx, const char* file, cache_config& config, uint8_t num_b
 
 // Specialization for WTs 
 template<class Index>
-void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes, wt_tag){
+void construct(Index& idx, const std::string &file, cache_config& config, uint8_t num_bytes, wt_tag){
 	int_vector<Index::alphabet_category::WIDTH> text;	
 	util::load_vector_from_file(text, file, num_bytes);
 	std::string tmp_key = util::to_string(util::get_pid())+"_"+util::to_string(util::get_id());
@@ -92,7 +92,7 @@ void construct(Index& idx, const char* file, cache_config& config, uint8_t num_b
 
 // Specialization for CSAs
 template<class Index>
-void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes, csa_tag){
+void construct(Index& idx, const std::string &file, cache_config& config, uint8_t num_bytes, csa_tag){
 	const char * KEY_TEXT = key_text_trait<Index::alphabet_category::WIDTH>::KEY_TEXT;
 	const char * KEY_BWT  = key_bwt_trait<Index::alphabet_category::WIDTH>::KEY_BWT;
 	typedef int_vector<Index::alphabet_category::WIDTH> text_type;
@@ -144,7 +144,7 @@ void construct(Index& idx, const char* file, cache_config& config, uint8_t num_b
 
 // Specialization for CSTs
 template<class Index>
-void construct(Index& idx, const char* file, cache_config& config, uint8_t num_bytes, cst_tag){
+void construct(Index& idx, const std::string &file, cache_config& config, uint8_t num_bytes, cst_tag){
 	const char * KEY_TEXT = key_text_trait<Index::alphabet_category::WIDTH>::KEY_TEXT;
 	const char * KEY_BWT  = key_bwt_trait<Index::alphabet_category::WIDTH>::KEY_BWT;
 	csa_tag csa_t;

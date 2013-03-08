@@ -156,7 +156,7 @@ class file
  *       All other lines are interpreted as path and end up in the
  *       result.
  */ 
-std::vector<std::string> paths_from_config_file(const char* file, const char *prefix = NULL);
+std::vector<std::string> paths_from_config_file(const std::string &file, const char *prefix = NULL);
 
 } // end of namespace sdsl
 
