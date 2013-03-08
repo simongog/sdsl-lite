@@ -338,7 +338,7 @@ class int_vector {
         friend void util::set_one_bits<int_vector>(int_vector&);
         friend void util::bit_compress<int_vector>(int_vector&);
         friend void util::set_all_values_to_k<int_vector>(int_vector&, uint64_t);
-		friend bool util::load_vector_from_file<int_vector>(int_vector&, const char*,uint8_t,uint8_t);
+		friend bool util::load_vector_from_file<int_vector>(int_vector&, const std::string&,uint8_t,uint8_t);
         friend void algorithm::calculate_sa<fixedIntWidth>(const unsigned char* c, typename int_vector<fixedIntWidth>::size_type len, int_vector<fixedIntWidth>& sa);
 
 		enum{ fixed_int_width = fixedIntWidth };  // make template parameter accessible 

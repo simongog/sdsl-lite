@@ -48,21 +48,21 @@ uint64_t get_pid() {
     return getpid();
 }
 
-std::string demangle(const char* name) {
+std::string demangle(const std::string &name) {
 #ifndef HAVE_CXA_DEMANGLE
     char buf[4096];
     size_t size = 4096;
     int status = 0;
-    abi::__cxa_demangle(name, buf, &size, &status);
+    abi::__cxa_demangle(name.c_str(), buf, &size, &status);
     if (status==0)
         return std::string(buf);
-    return std::string(name);
+    return name;
 #else
-    return std::string(name);
+    return name;
 #endif
 }
 
-std::string demangle2(const char* name) {
+std::string demangle2(const std::string &name) {
     std::string result = demangle(name);
     std::vector<std::string> words_to_delete;
     words_to_delete.push_back("sdsl::");
@@ -123,17 +123,17 @@ void read_member<std::string>(std::string& t, std::istream& in) {
 }
 
 template<>
-bool load_from_file(void*& v, const char* file_name) {
+bool load_from_file(void*& v, const std::string &file_name) {
     return true;
 }
 
-bool load_from_file(char*& v, const char* file_name) {
+bool load_from_file(char*& v, const std::string &file_name) {
     if (v != NULL) {
         delete [] v;
         v = NULL;
     }
     std::ifstream in;
-    in.open(file_name, std::ios::binary | std::ios::in);
+    in.open(file_name.c_str(), std::ios::binary | std::ios::in);
     if (in) {
         const uint64_t SDSL_BLOCK_SIZE = (1<<20);
         uint64_t n=0, read = 0;
@@ -147,7 +147,7 @@ bool load_from_file(char*& v, const char* file_name) {
             return false;
         v = new char[n+1];
         in.close();
-        in.open(file_name);
+        in.open(file_name.c_str());
         if (!in) {
             delete [] v;
             v = NULL;
@@ -169,26 +169,26 @@ void set_verbose(){
 	verbose = true;
 }
 
-off_t get_file_size(const char* file_name) {
+off_t get_file_size(const std::string &file_name) {
     struct stat filestatus;
-    stat(file_name, &filestatus);
+    stat(file_name.c_str(), &filestatus);
     return filestatus.st_size;
 }
 
-std::string cache_file_name(const char* key, const cache_config &config){
-	return config.dir+"/"+std::string(key)+"_"+config.id;
+std::string cache_file_name(const std::string &key, const cache_config &config){
+	return config.dir+"/"+key+"_"+config.id+".sdsl";
 }
 
-void register_cache_file(const char* key, cache_config &config){
+void register_cache_file(const std::string &key, cache_config &config){
 	std::string file_name = cache_file_name(key, config);
 	std::ifstream in(file_name.c_str());
 	if ( in ){ // if file exists, register it.
-		config.file_map[std::string(key)] = file_name;
+		config.file_map[key] = file_name;
 	}
 }
 
 
-bool cache_file_exists(const char* key, const cache_config &config){
+bool cache_file_exists(const std::string &key, const cache_config &config){
 	std::string file_name = cache_file_name(key, config);
 	std::ifstream in(file_name.c_str());
 	if ( in ){
