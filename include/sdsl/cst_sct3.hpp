@@ -1106,7 +1106,7 @@ template<class Csa, class Lcp, class Bp_support, class Rank_support>
 cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(cache_config& config, bool build_only_bps):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
 {
     write_R_output("cst", "construct BPS", "begin", 1, 0);
-    int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config).c_str());
+    int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config));
     m_nodes = algorithm::construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child) + m_bp.size()/2;
 	if ( m_bp.size() == 2 ){ // handle special case, when the tree consists only of the root node
 		m_nodes = 1;
@@ -1125,7 +1125,7 @@ cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(cache_config& config, boo
         write_R_output("cst", "construct CLCP", "end", 1, 0);
     }
     if (!build_only_bps) {
-		util::load_from_cache(m_csa, util::class_to_hash(m_csa).c_str(), config);
+		util::load_from_cache(m_csa, util::class_to_hash(m_csa), config);
     }
     m_sigma = std::max(degree(root()), (size_type)1);
 	//handle special case 'CST for empty text'  --^

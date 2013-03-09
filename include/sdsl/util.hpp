@@ -516,7 +516,7 @@ bool cache_file_exists(const std::string &key, const cache_config &config);
 template<class T>
 bool load_from_cache(T&v, const std::string &key, const cache_config &config){
 	std::string file_name = cache_file_name(key, config);
-	if( load_from_file(v, file_name.c_str()) ){
+	if( load_from_file(v, file_name) ){
 		if ( util::verbose ){
 			std::cerr << "Load `" << file_name << std::endl;
 		}
@@ -535,7 +535,7 @@ bool load_from_cache(T&v, const std::string &key, const cache_config &config){
 template<class T>
 bool store_to_cache(const T& v, const std::string &key, cache_config &config){
 	std::string file_name = cache_file_name(key, config);
-	if ( store_to_file(v, file_name.c_str()) ){
+	if ( store_to_file(v, file_name) ){
 		config.file_map[std::string(key)] = file_name;
 		return true;	
 	}else{

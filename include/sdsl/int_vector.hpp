@@ -1562,7 +1562,7 @@ class int_vector_file_buffer {
             if (!m_load_from_plain) {
                 load_size_and_width();
             } else {
-                m_int_vector_size = util::get_file_size(m_file_name.c_str());
+                m_int_vector_size = util::get_file_size(m_file_name);
             }
             if (new_buf_len > 0 and new_buf_len != m_len) {
                 if (m_buf != NULL)

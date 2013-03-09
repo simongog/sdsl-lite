@@ -66,7 +66,7 @@ void construct_bwt(cache_config& config){
     //  (2) Prepare to stream SA from disc and BWT to disc
     write_R_output("bwt", "prepare io", "begin", 1, 0);
     size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
-    int_vector_file_buffer<> sa_buf(util::cache_file_name(constants::KEY_SA, config).c_str());
+    int_vector_file_buffer<> sa_buf(util::cache_file_name(constants::KEY_SA, config));
     sa_buf.reset(buffer_size);
 
     bwt_type bwt_buf(buffer_size, 0, bwt_width);

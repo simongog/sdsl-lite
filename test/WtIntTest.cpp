@@ -79,12 +79,12 @@ TYPED_TEST(WtIntTest, Constructor) {
 			ASSERT_TRUE( util::store_to_file(wt, this->get_tmp_file_name(wt, i)) );
 		}
 		{
-			int_vector_file_buffer<> iv_buf(this->test_cases[i].c_str());
+			int_vector_file_buffer<> iv_buf(this->test_cases[i]);
 			TypeParam wt(iv_buf, 0);
 			ASSERT_EQ( wt.size(), (size_type)0 );
 		}
 		{
-			int_vector_file_buffer<> iv_buf(this->test_cases[i].c_str());
+			int_vector_file_buffer<> iv_buf(this->test_cases[i]);
 			size_type len = (iv.size() >= 6) ? 6 : iv.size(); 
 			TypeParam wt(iv_buf, len);
 			ASSERT_EQ( wt.size(), len );

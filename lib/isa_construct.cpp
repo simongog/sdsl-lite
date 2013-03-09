@@ -13,11 +13,11 @@ void construct_isa(cache_config &config) {
     if ( config.file_map.end() == key ) { // if isa is not already on disk => calculate it
         write_R_output("cst", "construct ISA", "begin", 1, 0);
         int_vector<> isa;
-        if (!util::load_from_file(isa, config.file_map[constants::KEY_SA].c_str())) {
+        if (!util::load_from_file(isa, config.file_map[constants::KEY_SA])) {
             throw std::ios_base::failure("cst_construct: Cannot load SA from file system!");
         }
         {
-            int_vector_file_buffer<> sa_buf(config.file_map[constants::KEY_SA].c_str());
+            int_vector_file_buffer<> sa_buf(config.file_map[constants::KEY_SA]);
 
             for (size_type i=0, r_sum=0, r = sa_buf.load_next_block(); r_sum < isa.size();) {
                 for (; i<r_sum+r; ++i) {

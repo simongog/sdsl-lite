@@ -72,7 +72,7 @@ void construct_lcp_kasai(cache_config& config){
 		int_vector<t_width> text;
         if (!util::load_from_cache(text, key_text_trait<t_width>::KEY_TEXT, config)) { return; }
         write_R_output("lcp", "load text", "end", 1, 0);
-        int_vector_file_buffer<> isa_buf(config.file_map[constants::KEY_ISA].c_str(), 1000000);   // init isa file_buffer
+        int_vector_file_buffer<> isa_buf(config.file_map[constants::KEY_ISA], 1000000);   // init isa file_buffer
         int_vector<> sa;
         if (!util::load_from_cache(sa, constants::KEY_SA, config)) { return; }
         // use Kasai algorithm to compute the lcp values
@@ -126,7 +126,7 @@ void construct_lcp_PHI(cache_config& config) {
 	typedef int_vector<t_width> text_type;
 	const char * KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
     write_R_output("lcp", "construct LCP", "begin", 1, 0);
-    int_vector_file_buffer<> sa_buf(config.file_map[constants::KEY_SA].c_str());
+    int_vector_file_buffer<> sa_buf(config.file_map[constants::KEY_SA]);
     size_type n = sa_buf.int_vector_size; 
 
 	assert( n > 0 );

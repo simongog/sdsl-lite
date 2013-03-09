@@ -91,10 +91,10 @@ class _lcp_support_tree
                 int_vector<int_width> temp_lcp;
                 algorithm::construct_first_child_lcp(lcp_buf, temp_lcp, (int_vector_size_type) 0);
                 // TODO: store lcp values directly to disk
-                util::store_to_file(temp_lcp, id.c_str());
+                util::store_to_file(temp_lcp, id);
             }
             {
-                int_vector_file_buffer<int_width> temp_lcp_buf(id.c_str());
+                int_vector_file_buffer<int_width> temp_lcp_buf(id);
                 m_lcp = Lcp(temp_lcp_buf); // works for lcp_kurtz, lcp_wt and lcp_bitcompressed
             }
             std::remove(id.c_str());

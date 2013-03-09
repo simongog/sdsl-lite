@@ -1397,7 +1397,7 @@ void construct_lcp_bwt_based(cache_config& config)
     // create WaveletTree
     write_R_output("lcp","create huffman WT","begin", 0, 0);
     wt_huff<bit_vector, rank_support_v<>, select_support_dummy, select_support_dummy> wt_bwt;
-    construct( wt_bwt, util::cache_file_name(constants::KEY_BWT, config).c_str() );
+    construct( wt_bwt, util::cache_file_name(constants::KEY_BWT, config) );
     uint64_t n = wt_bwt.size();
     write_R_output("lcp","create huffman WT","end", 0, 0);
 
@@ -1572,7 +1572,7 @@ std::cout << "# l=" << n << " b=" << (int)bb << " lcp_value_max=" << lcp_value_m
             if(phase) {
                 insert_lcp_values(partial_lcp, index_done, lcp_file, lcp_value, lcp_value_offset);
             } else {
-                util::store_to_file(partial_lcp, lcp_file.c_str() );
+                util::store_to_file(partial_lcp, lcp_file);
             }
             write_R_output("lcp","write to file    ","end", lcp_value, 0);
             write_R_output("lcp","resize variables ","begin", 0, 0);
@@ -1602,7 +1602,7 @@ std::cout << "# l=" << remaining_lcp_values << " b=" << (int)int_width_new << " 
     if ( phase ) {
         insert_lcp_values(partial_lcp, index_done, lcp_file, lcp_value, lcp_value_offset);
     } else {
-        util::store_to_file(partial_lcp, lcp_file.c_str() );
+        util::store_to_file(partial_lcp, lcp_file);
     }
     util::register_cache_file( constants::KEY_LCP, config );
 
@@ -1625,7 +1625,7 @@ void construct_lcp_bwt_based2(cache_config& config)
     { 
         write_R_output("lcp","create Huffman WT","begin", 0, 0);
         wt_huff<bit_vector, rank_support_v<>, select_support_dummy, select_support_dummy> wt_bwt;
-        construct( wt_bwt, util::cache_file_name(constants::KEY_BWT, config).c_str() );
+        construct( wt_bwt, util::cache_file_name(constants::KEY_BWT, config) );
         n = wt_bwt.size();
         write_R_output("lcp","create Huffman WT","end", 0, 0);
 
@@ -1823,7 +1823,7 @@ void construct_lcp_bwt_based2(cache_config& config)
     {   
         write_R_output("lcp","reordering       ","begin", 0, 0);
 
-        int_vector_file_buffer<> lcp_positions((tmp_lcp_file).c_str(), buffer_size);
+        int_vector_file_buffer<> lcp_positions(tmp_lcp_file, buffer_size);
 
         uint8_t int_width = bit_magic::l1BP(lcp_value+1)+1;             // How many bits are needed for one lcp_value?
 
@@ -1884,7 +1884,7 @@ std::cout << "# number_of_values=" << number_of_values << " fill lcp_values with
 void lcp_info(tMSS& file_map)
 {
     typedef int_vector<>::size_type size_type;
-    int_vector_file_buffer<> lcp_buf(file_map[constants::KEY_LCP].c_str());
+    int_vector_file_buffer<> lcp_buf(file_map[constants::KEY_LCP]);
     size_type n = lcp_buf.int_vector_size;
 
     size_type max_lcp = 0;

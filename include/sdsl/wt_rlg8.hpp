@@ -223,7 +223,7 @@ class wt_rlg8
             wt_out.close();
 
             {
-                int_vector_file_buffer<8> temp_bwt_buf(temp_file.c_str());
+                int_vector_file_buffer<8> temp_bwt_buf(temp_file);
 				util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
             }
 

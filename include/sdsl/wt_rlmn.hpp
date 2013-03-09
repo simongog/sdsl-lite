@@ -198,7 +198,7 @@ class wt_rlmn
                     r = text_buf.load_next_block();
                 }
                 {
-                    int_vector_file_buffer<8> temp_bwt_buf(temp_file.c_str());
+                    int_vector_file_buffer<8> temp_bwt_buf(temp_file);
 					util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
                 }
                 util::assign(m_bl, bl);
