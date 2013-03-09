@@ -31,7 +31,7 @@ class CstIntTest : public ::testing::Test {
 		std::string config_file = prefix + "/CstIntTest.config";
 		std::string tc_prefix	= prefix + "/test_cases";
 		std::vector<std::string> read_test_cases;
-		read_test_cases = sdsl::paths_from_config_file(config_file.c_str(), tc_prefix.c_str());
+		read_test_cases = sdsl::paths_from_config_file(config_file, tc_prefix.c_str());
 		
 		for (size_t i=0; i < read_test_cases.size(); ++i){
 			std::string tc = read_test_cases[i];
@@ -74,7 +74,7 @@ class CstIntTest : public ::testing::Test {
 
 	template<class Cst>
 	bool load_cst(Cst& cst, size_type i) {
-		return util::load_from_file(cst, get_tmp_file_name(cst, i).c_str());
+		return util::load_from_file(cst, get_tmp_file_name(cst, i));
 	}
 };
 
@@ -124,9 +124,9 @@ TYPED_TEST(CstIntTest, CreateAndStoreTest){
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
 		cache_config config(false, this->tmp_dir, util::basename(this->test_cases[i].c_str()));
-		construct(cst, this->test_cases[i].c_str(), config, this->num_bytes[i]);
+		construct(cst, this->test_cases[i], config, this->num_bytes[i]);
 		test_cases_file_map[i] = config.file_map;
-        bool success = util::store_to_file(cst, this->get_tmp_file_name(cst, i).c_str());
+        bool success = util::store_to_file(cst, this->get_tmp_file_name(cst, i));
         ASSERT_EQ(true, success);
     }
 }
@@ -180,7 +180,7 @@ TYPED_TEST(CstIntTest, SaAccess) {
         TypeParam cst;
         ASSERT_EQ(this->load_cst(cst, i), true);
 		sdsl::int_vector<> sa;
-		sdsl::util::load_from_file(sa, test_cases_file_map[i][sdsl::constants::KEY_SA].c_str());
+		sdsl::util::load_from_file(sa, test_cases_file_map[i][sdsl::constants::KEY_SA]);
         size_type n = sa.size();
         ASSERT_EQ(n, cst.csa.size());
         for (size_type j=0; j<n; ++j) { ASSERT_EQ(sa[j], cst.csa[j])<<" j="<<j; }
@@ -193,7 +193,7 @@ TYPED_TEST(CstIntTest, BwtAccess) {
         TypeParam cst;
         ASSERT_EQ(this->load_cst(cst, i), true);
 		sdsl::int_vector<> bwt;
-		sdsl::util::load_from_file(bwt, test_cases_file_map[i][sdsl::constants::KEY_BWT_INT].c_str());
+		sdsl::util::load_from_file(bwt, test_cases_file_map[i][sdsl::constants::KEY_BWT_INT]);
         size_type n = bwt.size();
         ASSERT_EQ(n, cst.csa.bwt.size());
         for (size_type j=0; j<n; ++j) { ASSERT_EQ(bwt[j], cst.csa.bwt[j])<<" j="<<j; }
@@ -206,7 +206,7 @@ TYPED_TEST(CstIntTest, LcpAccess) {
         TypeParam cst;
         ASSERT_EQ(this->load_cst(cst, i), true);
 		sdsl::int_vector<> lcp;
-		sdsl::util::load_from_file(lcp, test_cases_file_map[i][sdsl::constants::KEY_LCP].c_str());
+		sdsl::util::load_from_file(lcp, test_cases_file_map[i][sdsl::constants::KEY_LCP]);
         size_type n = lcp.size();
         ASSERT_EQ(n, cst.lcp.size());
         for (size_type j=0; j<n; ++j) { ASSERT_EQ(lcp[j], cst.lcp[j])<<" j="<<j; }
