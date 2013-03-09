@@ -19,7 +19,7 @@ void insert_lcp_values(int_vector<> &partial_lcp, bit_vector &index_done, std::s
 	std::string tmp_lcp_file  = lcp_file+"_TMP";
 	const uint64_t buffer_size = 1000000; // has to be a multiple of 64 
     typedef int_vector<>::size_type size_type;
-    int_vector_file_buffer<> lcp_buffer(lcp_file.c_str(), buffer_size); // open lcp_file
+    int_vector_file_buffer<> lcp_buffer(lcp_file, buffer_size); // open lcp_file
 	uint64_t n = lcp_buffer.int_vector_size;
 
     // open tmp_lcp_file

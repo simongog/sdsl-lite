@@ -79,31 +79,31 @@ void construct_lcp(Lcp& lcp, const Cst& cst, cache_config &config) {
 
 template<class Lcp, class Cst>
 void construct_lcp(Lcp& lcp, const Cst& cst, cache_config &config, lcp_plain_tag) {
-    int_vector_file_buffer<> lcp_buf(config.file_map[constants::KEY_LCP].c_str());
+    int_vector_file_buffer<> lcp_buf(config.file_map[constants::KEY_LCP]);
 	util::assign( lcp, Lcp(lcp_buf) );
 }
 
 template<class Lcp, class Cst>
 void construct_lcp(Lcp& lcp, const Cst& cst, cache_config &config, lcp_permuted_tag) {
-    int_vector_file_buffer<> lcp_buf(config.file_map[constants::KEY_LCP].c_str());
+    int_vector_file_buffer<> lcp_buf(config.file_map[constants::KEY_LCP]);
 	tMSS::const_iterator key = config.file_map.find(constants::KEY_ISA);
     if ( config.file_map.end() == key ) {
         construct_isa(config);
     }
-    int_vector_file_buffer<> isa_buf(config.file_map[constants::KEY_ISA].c_str());
+    int_vector_file_buffer<> isa_buf(config.file_map[constants::KEY_ISA]);
 	util::assign( lcp, Lcp(lcp_buf, isa_buf, &(cst.csa)) );
 }
 
 template<class Lcp, class Cst>
 void construct_lcp(Lcp& lcp, const Cst& cst, cache_config &config, lcp_tree_compressed_tag) {
-    int_vector_file_buffer<> lcp_buf(config.file_map[constants::KEY_LCP].c_str());
+    int_vector_file_buffer<> lcp_buf(config.file_map[constants::KEY_LCP]);
 	util::assign( lcp, Lcp(lcp_buf, &cst) );
 }
 
 template<class Lcp, class Cst>
 void construct_lcp(Lcp& lcp, const Cst& cst, cache_config &config, lcp_tree_and_lf_compressed_tag) {
-    int_vector_file_buffer<> lcp_buf(config.file_map[constants::KEY_LCP].c_str());
-    int_vector_file_buffer<Cst::csa_type::alphabet_type::int_width> bwt_buf( config.file_map[key_trait<Cst::csa_type::alphabet_type::int_width>::KEY_BWT].c_str() ); 
+    int_vector_file_buffer<> lcp_buf(config.file_map[constants::KEY_LCP]);
+    int_vector_file_buffer<Cst::csa_type::alphabet_type::int_width> bwt_buf( config.file_map[key_trait<Cst::csa_type::alphabet_type::int_width>::KEY_BWT] ); 
 	util::assign( lcp, Lcp(lcp_buf, bwt_buf, &cst) );
 }
 

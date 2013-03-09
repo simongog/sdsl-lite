@@ -217,10 +217,10 @@ lcp_wt<width>::lcp_wt(int_vector_file_buffer<int_width>& lcp_buf)
             }
             r_sum += r; r = lcp_buf.load_next_block();
         }
-        util::store_to_file(small_lcp, temp_file.c_str());
+        util::store_to_file(small_lcp, temp_file);
     }
 //	write_R_output("lcp","construct sml","end");
-    int_vector_file_buffer<8> lcp_sml_buf(temp_file.c_str());
+    int_vector_file_buffer<8> lcp_sml_buf(temp_file);
 
 	util::assign( m_small_lcp, small_lcp_type(lcp_sml_buf, lcp_sml_buf.int_vector_size) );
 

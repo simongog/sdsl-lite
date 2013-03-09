@@ -243,7 +243,7 @@ _lcp_support_sada<Csa, BitVector, SelectSupport>::_lcp_support_sada(int_vector_f
     std::cerr<<"start building _lcp_support_sada"<<std::endl;
 #endif
     int_vector<int_width> lcp;
-    util::load_from_file(lcp, lcp_buf.file_name.c_str());
+    util::load_from_file(lcp, lcp_buf.file_name);
     isa_buf.reset();
     size_type n = lcp.size();
     bit_vector data = bit_vector(2*n, 0);

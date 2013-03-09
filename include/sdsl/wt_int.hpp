@@ -214,7 +214,7 @@ class wt_int {
             tree_out_buf.close();
             rac.resize(0);
             bit_vector tree;
-            util::load_from_file(tree, tree_out_buf_file_name.c_str());
+            util::load_from_file(tree, tree_out_buf_file_name);
             std::remove(tree_out_buf_file_name.c_str());
             util::assign(m_tree, tree);
             util::init_support(m_tree_rank, &m_tree);

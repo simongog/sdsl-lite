@@ -79,10 +79,10 @@ void construct(Index& idx, const std::string &file, cache_config& config, uint8_
 	int_vector<Index::alphabet_category::WIDTH> text;	
 	util::load_vector_from_file(text, file, num_bytes);
 	std::string tmp_key = util::to_string(util::get_pid())+"_"+util::to_string(util::get_id());
-	std::string tmp_file_name = util::cache_file_name(tmp_key.c_str(), config);
-	util::store_to_file(text, tmp_file_name.c_str());
+	std::string tmp_file_name = util::cache_file_name(tmp_key, config);
+	util::store_to_file(text, tmp_file_name);
 	util::clear(text);
-	int_vector_file_buffer<Index::alphabet_category::WIDTH> text_buf(tmp_file_name.c_str());
+	int_vector_file_buffer<Index::alphabet_category::WIDTH> text_buf(tmp_file_name);
 	{
 		Index tmp(text_buf, text_buf.int_vector_size);
 		idx.swap(tmp);
@@ -150,13 +150,13 @@ void construct(Index& idx, const std::string &file, cache_config& config, uint8_
 	csa_tag csa_t;
 	{// (1) check, if the compressed suffix array is cached
 		typename Index::csa_type csa;
-		if ( !util::cache_file_exists(util::class_to_hash(csa).c_str(), config) ){
+		if ( !util::cache_file_exists(util::class_to_hash(csa), config) ){
 			cache_config csa_config(false, config.dir, config.id, config.file_map);
 			construct(csa, file, csa_config, num_bytes, csa_t);
 			config.file_map = csa_config.file_map;
-			util::store_to_cache(csa, util::class_to_hash(csa).c_str(), config); 
+			util::store_to_cache(csa, util::class_to_hash(csa), config); 
 		}
-		util::register_cache_file(util::class_to_hash(csa).c_str(), config);
+		util::register_cache_file(util::class_to_hash(csa), config);
 	}
 	{// (2) check, if the longest common prefix array is cached
 		util::register_cache_file(KEY_TEXT, config);

@@ -347,7 +347,7 @@ csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleCont
     if ( !util::cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config) ) { 
 		return;	
     }
-    int_vector_file_buffer<alphabet_type::int_width> bwt_buf(util::cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config).c_str()); 
+    int_vector_file_buffer<alphabet_type::int_width> bwt_buf(util::cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config)); 
     size_type n = bwt_buf.int_vector_size;
     write_R_output("csa", "construct alphabet", "begin", 1, 0);
 	util::assign(m_alphabet, alphabet_type(bwt_buf, n));
@@ -374,11 +374,11 @@ csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleCont
 		}
     }
     write_R_output("csa", "construct PSI","end");
-    int_vector_file_buffer<> psi_buf(util::cache_file_name(constants::KEY_PSI, config).c_str());
+    int_vector_file_buffer<> psi_buf(util::cache_file_name(constants::KEY_PSI, config));
 	write_R_output("csa", "encoded PSI", "begin");
 	util::assign(m_psi, EncVector(psi_buf));
 	write_R_output("csa", "encoded PSI", "end");
-    int_vector_file_buffer<>  sa_buf(util::cache_file_name(constants::KEY_SA, config).c_str());
+    int_vector_file_buffer<>  sa_buf(util::cache_file_name(constants::KEY_SA, config));
 	util::assign(m_sa_sample, sa_sample_type(sa_buf));
     algorithm::set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
 }

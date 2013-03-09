@@ -273,8 +273,8 @@ csa_wt<WaveletTree, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleCont
     if ( !util::cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config) ) { 
 		return;
     }
-    int_vector_file_buffer<alphabet_type::int_width> bwt_buf(util::cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config).c_str()); 
-    int_vector_file_buffer<>  sa_buf(util::cache_file_name(constants::KEY_SA, config).c_str());
+    int_vector_file_buffer<alphabet_type::int_width> bwt_buf(util::cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config)); 
+    int_vector_file_buffer<>  sa_buf(util::cache_file_name(constants::KEY_SA, config));
     size_type n = bwt_buf.int_vector_size;
     write_R_output("csa", "construct alphabet", "begin", 1, 0);
 	util::assign(m_alphabet, alphabet_type(bwt_buf, n));          
