@@ -27,7 +27,7 @@ class CsaByteTest : public ::testing::Test {
 		std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
 		std::string config_file = prefix + "/CsaByteTest.config";
 		std::string tc_prefix	= prefix + "/test_cases";
-		test_cases = sdsl::paths_from_config_file(config_file.c_str(), tc_prefix.c_str());
+		test_cases = sdsl::paths_from_config_file(config_file, tc_prefix.c_str());
 		tmp_file = "csa_ascii_test_" + util::to_string(util::get_pid()) + "_";
 		if ( test_cases_file_map.size() == 0 ){
 			test_cases_file_map.resize(test_cases.size());
@@ -47,7 +47,7 @@ class CsaByteTest : public ::testing::Test {
 
 	template<class Csa>
 	bool load_csa(Csa& csa, size_type i) {
-		return util::load_from_file(csa, get_tmp_file_name(csa, i).c_str());
+		return util::load_from_file(csa, get_tmp_file_name(csa, i));
 	}
 };
 
@@ -71,9 +71,9 @@ TYPED_TEST(CsaByteTest, CreateAndStoreTest) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		TypeParam csa;
 		cache_config config(false, this->tmp_dir, util::basename(this->test_cases[i].c_str()));
-		construct(csa, this->test_cases[i].c_str(), config, 1);
+		construct(csa, this->test_cases[i], config, 1);
 		test_cases_file_map[i] = config.file_map;
-        bool success = util::store_to_file(csa, this->get_tmp_file_name(csa, i).c_str());
+        bool success = util::store_to_file(csa, this->get_tmp_file_name(csa, i));
         ASSERT_EQ(success, true);
     }
 }
@@ -105,7 +105,7 @@ TYPED_TEST(CsaByteTest, SaAccess) {
         TypeParam csa;
         ASSERT_EQ(this->load_csa(csa, i), true);
 		int_vector<> sa;
-		util::load_from_file(sa, test_cases_file_map[i][constants::KEY_SA].c_str());
+		util::load_from_file(sa, test_cases_file_map[i][constants::KEY_SA]);
         size_type n = sa.size();
         ASSERT_EQ(n, csa.size());
         for (size_type j=0; j<n; ++j) {
@@ -123,7 +123,7 @@ TYPED_TEST(CsaByteTest, IsaAccess) {
 		size_type n = 0;
 		{
 			int_vector<> sa;
-			util::load_from_file(sa, test_cases_file_map[i][constants::KEY_SA].c_str());
+			util::load_from_file(sa, test_cases_file_map[i][constants::KEY_SA]);
 			n = sa.size();
 			ASSERT_EQ(n, csa.size());
 			isa = sa;
@@ -144,7 +144,7 @@ TYPED_TEST(CsaByteTest, BwtAccess) {
 			TypeParam csa;
 			ASSERT_EQ(this->load_csa(csa, i), true);
 			int_vector<8> bwt;
-			util::load_from_file(bwt, test_cases_file_map[i][constants::KEY_BWT].c_str());
+			util::load_from_file(bwt, test_cases_file_map[i][constants::KEY_BWT]);
 			size_type n = bwt.size();
 			ASSERT_EQ(n, csa.size());
 			for (size_type j=0; j<n; ++j) {
@@ -161,7 +161,7 @@ TYPED_TEST(CsaByteTest, PsiAccess) {
 			TypeParam csa;
 			ASSERT_EQ(this->load_csa(csa, i), true);
 			int_vector<> psi;
-			util::load_from_file(psi, test_cases_file_map[i][constants::KEY_PSI].c_str());
+			util::load_from_file(psi, test_cases_file_map[i][constants::KEY_PSI]);
 			size_type n = psi.size();
 			ASSERT_EQ(n, csa.size());
 			for (size_type j=0; j<n; ++j) {
@@ -194,7 +194,7 @@ TYPED_TEST(CsaByteTest, SwapTest) {
         TypeParam csa2;
         csa1.swap(csa2);
 		int_vector<> sa;
-		util::load_from_file(sa, test_cases_file_map[i][constants::KEY_SA].c_str());
+		util::load_from_file(sa, test_cases_file_map[i][constants::KEY_SA]);
         size_type n = sa.size();
         ASSERT_EQ(n, csa2.size());
         for (size_type j=0; j<n; ++j) {

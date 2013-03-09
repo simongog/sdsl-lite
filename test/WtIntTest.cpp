@@ -33,7 +33,7 @@ class WtIntTest : public ::testing::Test
 		std::string config_file = prefix + "/WtIntTest.config";
 		std::string tc_prefix	= prefix + "/test_cases";
 		std::vector<std::string> read_test_cases;
-		test_cases = sdsl::paths_from_config_file(config_file.c_str(), tc_prefix.c_str());
+		test_cases = sdsl::paths_from_config_file(config_file, tc_prefix.c_str());
 	}
 
 	virtual void TearDown() { }
@@ -45,7 +45,7 @@ class WtIntTest : public ::testing::Test
 
 	template<class Wt>
 	bool load_wt(Wt& wt, size_type i) {
-		return util::load_from_file(wt, get_tmp_file_name(wt, i).c_str());
+		return util::load_from_file(wt, get_tmp_file_name(wt, i));
 	}
 	std::string tmp_file;
 	std::vector<std::string> test_cases;
@@ -65,18 +65,18 @@ TYPED_TEST_CASE(WtIntTest, Implementations);
 TYPED_TEST(WtIntTest, Constructor) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		int_vector<> iv;
-		util::load_from_file(iv, this->test_cases[i].c_str());
+		util::load_from_file(iv, this->test_cases[i]);
 		double iv_size = util::get_size_in_mega_bytes(iv);
 		std::cout << "tc = " << this->test_cases[i] << std::endl;
 		{
 			TypeParam wt;
-			sdsl::construct( wt, this->test_cases[i].c_str() );
+			sdsl::construct( wt, this->test_cases[i] );
 			std::cout << "compression = " << util::get_size_in_mega_bytes(wt)/iv_size << std::endl;
 			ASSERT_EQ(iv.size(), wt.size());
 			for (size_type j=0; j < iv.size(); ++j) {
 				ASSERT_EQ(iv[j], wt[j])<<j;
 			}
-			ASSERT_TRUE( util::store_to_file(wt, this->get_tmp_file_name(wt, i).c_str()) );
+			ASSERT_TRUE( util::store_to_file(wt, this->get_tmp_file_name(wt, i)) );
 		}
 		{
 			int_vector_file_buffer<> iv_buf(this->test_cases[i].c_str());
@@ -99,10 +99,10 @@ TYPED_TEST(WtIntTest, Constructor) {
 TYPED_TEST(WtIntTest, LoadAndAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		int_vector<> iv;
-		util::load_from_file(iv, this->test_cases[i].c_str());
+		util::load_from_file(iv, this->test_cases[i]);
 		std::string tmp_file_name = this->tmp_file+util::to_string(i);
 		TypeParam wt;
-		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i).c_str()));
+		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i)));
 		ASSERT_EQ(iv.size(), wt.size());
 		for (size_type j=0; j < iv.size(); ++j) {
 			ASSERT_EQ(iv[j], wt[j])<<j;
@@ -114,10 +114,10 @@ TYPED_TEST(WtIntTest, LoadAndAccess) {
 TYPED_TEST(WtIntTest, LoadAndRank) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		int_vector<> iv;
-		util::load_from_file(iv, this->test_cases[i].c_str());
+		util::load_from_file(iv, this->test_cases[i]);
 		std::string tmp_file_name = this->tmp_file+util::to_string(i);
 		TypeParam wt;
-		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i).c_str()));
+		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i)));
 		ASSERT_EQ(iv.size(), wt.size());
 		tMII check_rank;
 		for (size_type j=0; j < iv.size(); ++j) {
@@ -134,10 +134,10 @@ TYPED_TEST(WtIntTest, LoadAndRank) {
 TYPED_TEST(WtIntTest, LoadAndSelect) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		int_vector<> iv;
-		util::load_from_file(iv, this->test_cases[i].c_str());
+		util::load_from_file(iv, this->test_cases[i]);
 		std::string tmp_file_name = this->tmp_file+util::to_string(i);
 		TypeParam wt;
-		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i).c_str()));
+		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i)));
 		ASSERT_EQ(iv.size(), wt.size());
 		tMII count;
 		for (size_type j=0; j < iv.size(); ++j) {
@@ -152,10 +152,10 @@ TYPED_TEST(WtIntTest, LoadAndSelect) {
 TYPED_TEST(WtIntTest, LoadAndInverseSelect) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		int_vector<> iv;
-		util::load_from_file(iv, this->test_cases[i].c_str());
+		util::load_from_file(iv, this->test_cases[i]);
 		std::string tmp_file_name = this->tmp_file+util::to_string(i);
 		TypeParam wt;
-		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i).c_str()));
+		ASSERT_TRUE(util::load_from_file(wt, this->get_tmp_file_name(wt, i)));
 		ASSERT_EQ(iv.size(), wt.size());
 		tMII check_rank;
 		for (size_type j=0; j < iv.size(); ++j) {
