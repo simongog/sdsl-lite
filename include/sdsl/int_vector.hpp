@@ -1508,7 +1508,7 @@ class int_vector_file_buffer {
          * \param f_file_name 	File which contains the int_vector.
          * \param len 			Length of the buffer in elements.
          */
-        int_vector_file_buffer(const char* f_file_name=NULL, size_type len=1000000, uint8_t int_width=0):m_in(), m_buf(NULL), m_off(0), m_read_values(0), 
+        int_vector_file_buffer(std::string f_file_name="", size_type len=1000000, uint8_t int_width=0):m_in(), m_buf(NULL), m_off(0), m_read_values(0), 
 		                                                                                                 m_len(0), m_int_vector_size(0), m_read_values_sum(0), 
 																										 m_int_width(fixedIntWidth), m_file_name(), 
 																										 m_load_from_plain(false), int_vector_size(m_int_vector_size),
@@ -1517,7 +1517,7 @@ class int_vector_file_buffer {
             int_vector_trait<fixedIntWidth>::set_int_width(m_int_width, int_width);
             m_len		 		= len;
             init();
-            if (f_file_name == NULL) {
+            if ( f_file_name == "" ) {
                 return;
             }
             m_file_name = f_file_name;
@@ -1532,11 +1532,7 @@ class int_vector_file_buffer {
 
         // initialize int_vector_file_buffer from a plain file
         // works only for fixedIntWidth = 8 // TODO extent to 1,16,32,64
-        bool load_from_plain(const char* f_file_name, size_type len=1000000, uint8_t int_width=0) {
-            if (f_file_name == NULL) {
-                std::logic_error("ERROR: int_vector_file_buffer::load_from_plain expects a file name.");
-                return false;
-            }
+        bool load_from_plain(const std::string &f_file_name, size_type len=1000000, uint8_t int_width=0) {
             if (fixedIntWidth != 8) {
                 std::logic_error("ERROR: int_vector_file_buffer: load_from_plain is only implemented for fixedIntWidth=8.");
                 return false;
