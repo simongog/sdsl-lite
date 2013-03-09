@@ -32,7 +32,7 @@ class WtByteTest : public ::testing::Test
 		std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
 		std::string config_file = prefix + "/WtByteTest.config";
 		std::string tc_prefix	= prefix + "/test_cases";
-		test_cases = sdsl::paths_from_config_file(config_file.c_str(), tc_prefix.c_str());
+		test_cases = sdsl::paths_from_config_file(config_file, tc_prefix.c_str());
 		tmp_file = tmp_dir + "wt_ascii_test_" + util::to_string(util::get_pid()) + "_";
 	}
 
@@ -48,7 +48,7 @@ class WtByteTest : public ::testing::Test
 
         template<class Wt>
         bool load_wt(Wt& wt, size_type i) {
-            return util::load_from_file(wt, get_tmp_file_name(wt, i).c_str());
+            return util::load_from_file(wt, get_tmp_file_name(wt, i));
         }
 };
 
@@ -76,7 +76,7 @@ TYPED_TEST(WtByteTest, CreateAndStoreTest) {
         text_buf.load_from_plain(this->test_cases[i].c_str());
         size_type n = text_buf.int_vector_size;
         TypeParam wt(text_buf, n);
-        bool success = util::store_to_file(wt, this->get_tmp_file_name(wt, i).c_str());
+        bool success = util::store_to_file(wt, this->get_tmp_file_name(wt, i));
         ASSERT_EQ(success, true);
     }
 }

@@ -142,9 +142,9 @@ TEST_F(IntVectorTest, SerializeAndLoad)
     for (size_type i=0; i<iv.size(); ++i)
         iv[i] = rand();
     std::string file_name = "/tmp/int_vector";
-    sdsl::util::store_to_file(iv, file_name.c_str());
+    sdsl::util::store_to_file(iv, file_name);
     sdsl::int_vector<> iv2;
-    sdsl::util::load_from_file(iv2, file_name.c_str());
+    sdsl::util::load_from_file(iv2, file_name);
     ASSERT_EQ(iv.size(), iv2.size());
     for (size_type i=0; i<iv.size(); ++i)
         EXPECT_EQ(iv[i], iv2[i]);
