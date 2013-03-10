@@ -24,8 +24,8 @@
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
-#include "lcp_construct.hpp"
-#include "bwt_construct.hpp"
+#include "construct_lcp.hpp"
+#include "construct_bwt.hpp"
 #include "qsufsort.hpp"
 #include <string>
 

@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file isa_construct.hpp
-    \brief isa_construct.hpp contains a space and time efficient construction method for the inverse suffix array
+/*! \file construct_isa.hpp
+    \brief construct_isa.hpp contains a space and time efficient construction method for the inverse suffix array
 	\author Simon Gog
 */
-#ifndef INCLUDED_SDSL_ISA_CONSTRUCT
-#define INCLUDED_SDSL_ISA_CONSTRUCT
+#ifndef INCLUDED_SDSL_CONSTRUCT_ISA
+#define INCLUDED_SDSL_CONSTRUCT_ISA
 
 #include "int_vector.hpp"
 #include "util.hpp"

@@ -178,7 +178,7 @@ TYPED_TEST(CstIntTest, BasicMethods) {
 TYPED_TEST(CstIntTest, SaAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-        ASSERT_EQ(this->load_cst(cst, i), true);
+        ASSERT_EQ(true, this->load_cst(cst, i));
 		sdsl::int_vector<> sa;
 		sdsl::util::load_from_file(sa, test_cases_file_map[i][sdsl::constants::KEY_SA]);
         size_type n = sa.size();
@@ -191,7 +191,7 @@ TYPED_TEST(CstIntTest, SaAccess) {
 TYPED_TEST(CstIntTest, BwtAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-        ASSERT_EQ(this->load_cst(cst, i), true);
+        ASSERT_EQ(true, this->load_cst(cst, i));
 		sdsl::int_vector<> bwt;
 		sdsl::util::load_from_file(bwt, test_cases_file_map[i][sdsl::constants::KEY_BWT_INT]);
         size_type n = bwt.size();
@@ -204,7 +204,7 @@ TYPED_TEST(CstIntTest, BwtAccess) {
 TYPED_TEST(CstIntTest, LcpAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-        ASSERT_EQ(this->load_cst(cst, i), true);
+        ASSERT_EQ(true, this->load_cst(cst, i));
 		sdsl::int_vector<> lcp;
 		sdsl::util::load_from_file(lcp, test_cases_file_map[i][sdsl::constants::KEY_LCP]);
         size_type n = lcp.size();

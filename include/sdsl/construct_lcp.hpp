@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file lcp_construct.hpp
-    \brief lcp_construct.hpp contains a space and time efficient construction method for lcp arrays
+/*! \file construct_lcp.hpp
+    \brief construct_lcp.hpp contains a space and time efficient construction method for lcp arrays
 	\author Simon Gog
 */
-#ifndef INCLUDED_SDSL_LCP_CONSTRUCT
-#define INCLUDED_SDSL_LCP_CONSTRUCT
+#ifndef INCLUDED_SDSL_CONSTRUCT_LCP
+#define INCLUDED_SDSL_CONSTRUCT_LCP
 
 #include "typedefs.hpp"  // includes definition of tMSS
 #include "config.hpp"
@@ -27,8 +27,8 @@
 #include "rank_support_v.hpp"
 #include "util.hpp"
 #include "testutils.hpp"
-#include "isa_construct.hpp"
-#include "bwt_construct.hpp"
+#include "construct_isa.hpp"
+#include "construct_bwt.hpp"
 #include "wt_huff.hpp"
 #include "lcp_construct_helper.hpp"
 

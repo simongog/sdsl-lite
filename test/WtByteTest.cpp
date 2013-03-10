@@ -2,7 +2,6 @@
 #include "sdsl/rrr_vector.hpp"
 #include "sdsl/bit_vector_interleaved.hpp"
 #include "sdsl/util.hpp"
-#include "sdsl/bwt_construct.hpp"
 #include "sdsl/testutils.hpp"
 #include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
 #include "gtest/gtest.h"

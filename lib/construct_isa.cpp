@@ -1,7 +1,7 @@
 /* sdsl - succinct data structures library
     Copyright (C) 2010 Simon Gog
 */
-#include "sdsl/isa_construct.hpp"
+#include "sdsl/construct_isa.hpp"
 #include <string>
 
 namespace sdsl

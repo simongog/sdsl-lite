@@ -18,7 +18,7 @@
     \brief bwt_construct.hpp contains a space and time efficient construction method for the Burrows and Wheeler Transform (BWT).
 	\author Simon Gog
 */
-#include "sdsl/bwt_construct.hpp"
+#include "sdsl/construct_bwt.hpp"
 #include <string>
 #include <iostream>
 #include <iomanip>
