@@ -72,12 +72,10 @@ TYPED_TEST_CASE(WtByteTest, Implementations);
 
 TYPED_TEST(WtByteTest, CreateAndStoreTest) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
-        int_vector_file_buffer<8> text_buf;
-        text_buf.load_from_plain(this->test_cases[i].c_str());
-        size_type n = text_buf.int_vector_size;
-        TypeParam wt(text_buf, n);
+        TypeParam wt;
+		construct(wt, this->test_cases[i], 1);
         bool success = util::store_to_file(wt, this->get_tmp_file_name(wt, i));
-        ASSERT_EQ(success, true);
+        ASSERT_EQ(true, success);
     }
 }
 
@@ -85,20 +83,19 @@ TYPED_TEST(WtByteTest, CreateAndStoreTest) {
 TYPED_TEST(WtByteTest, Sigma) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam wt;
-        ASSERT_EQ(this->load_wt(wt, i), true);
-        char* text = NULL;
-        size_type n = file::read_text((this->test_cases[i]).c_str(), text)-1;
-        ASSERT_EQ(n, wt.size());
+        ASSERT_EQ(true, this->load_wt(wt, i));
+		int_vector<8> text;
+		ASSERT_EQ(true, util::load_vector_from_file(text, this->test_cases[i], 1));
+        ASSERT_EQ(text.size(), wt.size());
         bit_vector occur(256, 0);
         uint16_t sigma = 0;
-        for (size_type j=0; j<n; ++j) {
+        for (size_type j=0; j<text.size(); ++j) {
             if (!occur[(unsigned char)text[j]]) {
                 occur[(unsigned char)text[j]] = 1;
                 ++sigma;
             }
         }
         ASSERT_EQ(sigma, wt.sigma);
-        delete [] text;
     }
 }
 
@@ -106,19 +103,18 @@ TYPED_TEST(WtByteTest, Sigma) {
 TYPED_TEST(WtByteTest, Access) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam wt;
-        ASSERT_EQ(this->load_wt(wt, i), true);
-        char* text = NULL;
-        size_type n = file::read_text((this->test_cases[i]).c_str(), text)-1;
-        ASSERT_EQ(n, wt.size());
-        for (size_type j=0; j<n; ++j) {
+        ASSERT_EQ(true, this->load_wt(wt, i));
+		int_vector<8> text;
+		ASSERT_EQ(true, util::load_vector_from_file(text, this->test_cases[i], 1));
+        ASSERT_EQ(text.size(), wt.size());
+        for (size_type j=0; j<text.size(); ++j) {
             ASSERT_EQ((typename TypeParam::value_type)text[j], wt[j])<<" j="<<j;
         }
-        delete [] text;
     }
 }
 
 template<class tWt>
-void test_rank(const tWt& wt, const unsigned char* text, size_type n) {
+void test_rank(const tWt& wt, const int_vector<8> &text, size_type n) {
     std::vector<size_type> cnt(256, 0);
     ASSERT_EQ(n, wt.size());
     for (size_type j=0; j < wt.size(); ++j) {
@@ -144,11 +140,10 @@ void test_rank(const tWt& wt, const unsigned char* text, size_type n) {
 TYPED_TEST(WtByteTest, Rank) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam wt;
-        ASSERT_EQ(this->load_wt(wt, i), true);
-        unsigned char* text = NULL;
-        size_type n = file::read_text((this->test_cases[i]).c_str(), (char*&)text)-1;
-        ::test_rank(wt, text, n);
-        delete [] text;
+        ASSERT_EQ(true, this->load_wt(wt, i));
+		int_vector<8> text;
+		ASSERT_EQ(true, util::load_vector_from_file(text, this->test_cases[i], 1));
+        ::test_rank(wt, text, text.size());
     }
 }
 
@@ -156,16 +151,15 @@ TYPED_TEST(WtByteTest, Rank) {
 TYPED_TEST(WtByteTest, Select) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam wt;
-        ASSERT_EQ(this->load_wt(wt, i), true);
-        unsigned char* text = NULL;
-        size_type n = file::read_text((this->test_cases[i]).c_str(), (char*&)text)-1;
+        ASSERT_EQ(true, this->load_wt(wt, i));
+		int_vector<8> text;
+		ASSERT_EQ(true, util::load_vector_from_file(text, this->test_cases[i], 1));
         std::vector<size_type> cnt(256, 0);
-        ASSERT_EQ(n, wt.size());
-        for (size_type j=0; j<n; ++j) {
+        ASSERT_EQ(text.size(), wt.size());
+        for (size_type j=0; j<text.size(); ++j) {
             cnt[text[j]]++;
             ASSERT_EQ(j, wt.select(cnt[text[j]], text[j]))<< " j = "<<j<<" text[j]"<<text[j];
         }
-        delete [] text;
     }
 }
 
@@ -174,29 +168,27 @@ TYPED_TEST(WtByteTest, Select) {
 TYPED_TEST(WtByteTest, SwapTest) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam wt1;
-        ASSERT_EQ(this->load_wt(wt1, i), true);
+        ASSERT_EQ(true, this->load_wt(wt1, i));
         TypeParam wt2;
         wt1.swap(wt2);
-        unsigned char* text = NULL;
-        size_type n = file::read_text((this->test_cases[i]).c_str(), (char*&)text)-1;
-        ASSERT_EQ(n, wt2.size());
-        for (size_type j=0; j<n; ++j) {
+		int_vector<8> text;
+		ASSERT_EQ(true, util::load_vector_from_file(text, this->test_cases[i], 1));
+        ASSERT_EQ(text.size(), wt2.size());
+        for (size_type j=0; j<text.size(); ++j) {
             ASSERT_EQ(wt2[j], (typename TypeParam::value_type)text[j]);
         }
-        delete [] text;
     }
 }
 
 TYPED_TEST(WtByteTest, CreatePartiallyTest) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         int_vector_file_buffer<8> text_buf;
-        text_buf.load_from_plain(this->test_cases[i].c_str());
-        unsigned char* text = NULL;
-        size_type n = file::read_text((this->test_cases[i]).c_str(), (char*&)text)-1;
-        n = std::min(n, (size_type)50);
+        text_buf.load_from_plain(this->test_cases[i]);
+		int_vector<8> text;
+		ASSERT_EQ(true, util::load_vector_from_file(text, this->test_cases[i], 1));
+        size_type n = std::min(text.size(), (size_type)50);
         TypeParam wt(text_buf, n);
         ::test_rank(wt, text, n);
-        delete [] text;
     }
 }
 
