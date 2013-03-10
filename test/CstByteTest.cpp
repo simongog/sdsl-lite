@@ -47,7 +47,7 @@ class CstByteTest : public ::testing::Test {
 
 	template<class Cst>
 	std::string get_tmp_file_name(const Cst& cst, size_type i) {
-		return tmp_dir+tmp_file + util::class_to_hash(cst) + "_" + util::basename(test_cases[i].c_str());
+		return tmp_dir+tmp_file + util::class_to_hash(cst) + "_" + util::basename(test_cases[i]);
 	}
 
 	template<class Cst>

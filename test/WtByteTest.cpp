@@ -43,7 +43,7 @@ class WtByteTest : public ::testing::Test
 
         template<class Wt>
         std::string get_tmp_file_name(const Wt& wt, size_type i) {
-            return tmp_file + util::class_to_hash(wt) + "_" + util::basename(test_cases[i].c_str());
+            return tmp_file + util::class_to_hash(wt) + "_" + util::basename(test_cases[i]);
         }
 
         template<class Wt>

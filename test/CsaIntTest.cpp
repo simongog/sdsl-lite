@@ -66,7 +66,7 @@ class CsaIntTest : public ::testing::Test {
 
 	template<class Csa>
 	std::string get_tmp_file_name(const Csa& csa, size_type i) {
-		return tmp_file + util::class_to_hash(csa) + "_" + util::basename(test_cases[i].c_str());
+		return tmp_file + util::class_to_hash(csa) + "_" + util::basename(test_cases[i]);
 	}
 
 	template<class Csa>

@@ -69,7 +69,7 @@ class CstIntTest : public ::testing::Test {
 
 	template<class Cst>
 	std::string get_tmp_file_name(const Cst& cst, size_type i) {
-		return tmp_dir + tmp_file + util::class_to_hash(cst) + "_" + util::basename(test_cases[i].c_str());
+		return tmp_dir + tmp_file + util::class_to_hash(cst) + "_" + util::basename(test_cases[i]);
 	}
 
 	template<class Cst>
@@ -123,7 +123,7 @@ TYPED_TEST_CASE(CstIntTest, Implementations);
 TYPED_TEST(CstIntTest, CreateAndStoreTest){
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-		cache_config config(false, this->tmp_dir, util::basename(this->test_cases[i].c_str()));
+		cache_config config(false, this->tmp_dir, util::basename(this->test_cases[i]));
 		construct(cst, this->test_cases[i], config, this->num_bytes[i]);
 		test_cases_file_map[i] = config.file_map;
         bool success = util::store_to_file(cst, this->get_tmp_file_name(cst, i));
