@@ -684,7 +684,7 @@ bool equal_container_values(const Container1& c1, Container2& c2)
 
 } // end namespace sdsl
 
-#include "algorithms_for_suffix_array_construction.hpp"
+#include "construct_sa.hpp"
 #include "algorithms_for_balanced_parentheses.hpp"
 #include "algorithms_for_compressed_suffix_arrays.hpp"
 #include "algorithms_for_compressed_suffix_trees.hpp"
