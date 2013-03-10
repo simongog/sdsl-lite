@@ -95,7 +95,7 @@ TYPED_TEST(CsaIntTest, CreateAndStoreTest) {
 		construct(csa, this->test_cases[i], config, this->num_bytes[i]);
 		test_cases_file_map[i] = config.file_map;
         bool success = util::store_to_file(csa, this->get_tmp_file_name(csa, i));
-        ASSERT_EQ(success, true);
+        ASSERT_EQ(true, success);
     }
 }
 
@@ -103,7 +103,7 @@ TYPED_TEST(CsaIntTest, CreateAndStoreTest) {
 TYPED_TEST(CsaIntTest, Sigma) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam csa;
-        ASSERT_EQ(this->load_csa(csa, i), true);
+        ASSERT_EQ(true, this->load_csa(csa, i));
 		int_vector<> text;
         util::load_vector_from_file(text, this->test_cases[i], this->num_bytes[i]);
 		text.resize(text.size()+1);
@@ -126,7 +126,7 @@ TYPED_TEST(CsaIntTest, Sigma) {
 TYPED_TEST(CsaIntTest, SaAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam csa;
-        ASSERT_EQ(this->load_csa(csa, i), true);
+        ASSERT_EQ(true, this->load_csa(csa, i));
 		int_vector<> sa;
 		util::load_from_file(sa, test_cases_file_map[i][constants::KEY_SA]);
         size_type n = sa.size();
@@ -142,7 +142,7 @@ TYPED_TEST(CsaIntTest, SaAccess) {
 TYPED_TEST(CsaIntTest, IsaAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam csa;
-        ASSERT_EQ(this->load_csa(csa, i), true);
+        ASSERT_EQ(true, this->load_csa(csa, i));
 		int_vector<> isa;
 		size_type n = 0;
 		{
@@ -164,7 +164,7 @@ TYPED_TEST(CsaIntTest, BwtAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		if ( test_cases_file_map[i].end() != test_cases_file_map[i].find(constants::KEY_BWT_INT)  ){
 			TypeParam csa;
-			ASSERT_EQ(this->load_csa(csa, i), true);
+			ASSERT_EQ(true, this->load_csa(csa, i));
 			int_vector<> bwt;
 			util::load_from_file(bwt, test_cases_file_map[i][constants::KEY_BWT_INT]);
 			size_type n = bwt.size();
@@ -176,12 +176,29 @@ TYPED_TEST(CsaIntTest, BwtAccess) {
     }
 }
 
+//! Test text access methods
+TYPED_TEST(CsaIntTest, TextAccess) {
+    for (size_t i=0; i< this->test_cases.size(); ++i) {
+		if ( test_cases_file_map[i].end() != test_cases_file_map[i].find(constants::KEY_TEXT_INT)  ){
+			TypeParam csa;
+			ASSERT_EQ(true, this->load_csa(csa, i));
+			int_vector<> text;
+			util::load_from_file(text, test_cases_file_map[i][constants::KEY_TEXT_INT]);
+			size_type n = text.size();
+			ASSERT_EQ(n, csa.size());
+			for (size_type j=0; j<n; ++j) {
+				ASSERT_EQ(text[j], csa.text[j])<<" j="<<j;
+			}
+		}
+    }
+}
+
 //! Test Psi access methods
 TYPED_TEST(CsaIntTest, PsiAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		if ( test_cases_file_map[i].end() != test_cases_file_map[i].find(constants::KEY_PSI) ){
 			TypeParam csa;
-			ASSERT_EQ(this->load_csa(csa, i), true);
+			ASSERT_EQ(true, this->load_csa(csa, i));
 			int_vector<> psi;
 			util::load_from_file(psi, test_cases_file_map[i][constants::KEY_PSI]);
 			size_type n = psi.size();
@@ -197,7 +214,7 @@ TYPED_TEST(CsaIntTest, PsiAccess) {
 TYPED_TEST(CsaIntTest, PsiLFAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		TypeParam csa;
-		ASSERT_EQ(this->load_csa(csa, i), true);
+		ASSERT_EQ(true, this->load_csa(csa, i));
 		for (size_type j=0; j<csa.size(); ++j) {
 			size_type lf = csa.psi(j);
 			ASSERT_TRUE( lf >= 0 );
@@ -212,7 +229,7 @@ TYPED_TEST(CsaIntTest, PsiLFAccess) {
 TYPED_TEST(CsaIntTest, SwapTest) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam csa1;
-        ASSERT_EQ(this->load_csa(csa1, i), true);
+        ASSERT_EQ(true, this->load_csa(csa1, i));
         TypeParam csa2;
         csa1.swap(csa2);
 		int_vector<> sa;
@@ -220,7 +237,7 @@ TYPED_TEST(CsaIntTest, SwapTest) {
         size_type n = sa.size();
         ASSERT_EQ(n, csa2.size());
         for (size_type j=0; j<n; ++j) {
-            ASSERT_EQ(csa2[j], (typename TypeParam::value_type)sa[j]);
+            ASSERT_EQ((typename TypeParam::value_type)sa[j], csa2[j]);
         }
     }
 }

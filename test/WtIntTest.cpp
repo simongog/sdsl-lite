@@ -81,13 +81,13 @@ TYPED_TEST(WtIntTest, Constructor) {
 		{
 			int_vector_file_buffer<> iv_buf(this->test_cases[i]);
 			TypeParam wt(iv_buf, 0);
-			ASSERT_EQ( wt.size(), (size_type)0 );
+			ASSERT_EQ( (size_type)0,  wt.size() );
 		}
 		{
 			int_vector_file_buffer<> iv_buf(this->test_cases[i]);
 			size_type len = (iv.size() >= 6) ? 6 : iv.size(); 
 			TypeParam wt(iv_buf, len);
-			ASSERT_EQ( wt.size(), len );
+			ASSERT_EQ( len, wt.size() );
 			for (size_type j=0; j < len; ++j) {
 				ASSERT_EQ(iv[j], wt[j])<<j;
 			}
@@ -142,7 +142,7 @@ TYPED_TEST(WtIntTest, LoadAndSelect) {
 		tMII count;
 		for (size_type j=0; j < iv.size(); ++j) {
 			count[iv[j]]++;
-			ASSERT_EQ(wt.select(count[iv[j]], iv[j]), j) << "iv[j]=" << iv[j] << " "
+			ASSERT_EQ(j, wt.select(count[iv[j]], iv[j])) << "iv[j]=" << iv[j] << " "
 			         << " j="<<j; 
 		}
 	}
@@ -160,8 +160,8 @@ TYPED_TEST(WtIntTest, LoadAndInverseSelect) {
 		tMII check_rank;
 		for (size_type j=0; j < iv.size(); ++j) {
 			typename TypeParam::value_type x;
-			ASSERT_EQ(wt.inverse_select(j, x), check_rank[iv[j]]);
-			ASSERT_EQ(x, iv[j]);
+			ASSERT_EQ(check_rank[iv[j]], wt.inverse_select(j, x));
+			ASSERT_EQ(iv[j], x);
 			check_rank[iv[j]]++;
 		}
 	}
