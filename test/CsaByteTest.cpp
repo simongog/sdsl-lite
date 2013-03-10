@@ -42,7 +42,7 @@ class CsaByteTest : public ::testing::Test {
 
 	template<class Csa>
 	std::string get_tmp_file_name(const Csa& csa, size_type i) {
-		return tmp_dir+ tmp_file + util::class_to_hash(csa) + "_" + util::basename(test_cases[i].c_str());
+		return tmp_dir+ tmp_file + util::class_to_hash(csa) + "_" + util::basename(test_cases[i]);
 	}
 
 	template<class Csa>
@@ -70,7 +70,7 @@ TYPED_TEST_CASE(CsaByteTest, Implementations);
 TYPED_TEST(CsaByteTest, CreateAndStoreTest) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		TypeParam csa;
-		cache_config config(false, this->tmp_dir, util::basename(this->test_cases[i].c_str()));
+		cache_config config(false, this->tmp_dir, util::basename(this->test_cases[i]));
 		construct(csa, this->test_cases[i], config, 1);
 		test_cases_file_map[i] = config.file_map;
         bool success = util::store_to_file(csa, this->get_tmp_file_name(csa, i));
