@@ -58,18 +58,14 @@ class int_vector;	 // forward declaration
 namespace util
 {
 
+//============= Debug information =========================
+
 SDSL_UNUSED static bool verbose = false;
 
 void set_verbose();
 
-//! Get the size of a file in bytes
-off_t get_file_size(const std::string &file_name);
+//============ Manipulating int_vectors ===================
 
-//! Returns the basename of a file_name
-std::string basename(const std::string& file_name);
-
-//! Returns the directory of a file_name. Trailing / are removed.
-std::string dirname(const std::string& file_name);
 
 //! Sets all bits of the int_vector to pseudo-random bits.
 /*! \param v The int_vector whose bits should be set to random bits
@@ -156,6 +152,25 @@ typename int_vector_type::size_type next_bit(const int_vector_type& v, uint64_t 
 template <class int_vector_type>
 typename int_vector_type::size_type prev_bit(const int_vector_type& v, uint64_t idx);
 
+
+
+
+
+//============= Handling files =============================
+
+//! Get the size of a file in bytes
+off_t get_file_size(const std::string &file_name);
+
+//! Returns the basename of a file_name
+std::string basename(const std::string& file_name);
+
+//! Returns the directory of a file_name. Trailing / are removed.
+std::string dirname(const std::string& file_name);
+
+
+
+//============= Load and store data ========================
+
 //! Load a data structure from a file.
 /*! The data structure has to provide a load function.
  * \param v Data structure to load.
@@ -166,6 +181,13 @@ bool load_from_file(T& v, const std::string &file_name);
 
 template<>
 bool load_from_file(void*&, const std::string &file_name);
+
+//! Specialization of load_from_file for a char array
+/*  \pre v=NULL
+ */
+bool load_from_file(char*& v, const std::string &file_name);
+
+
 
 //! Load an int_vector from a plain array of `num_bytes`-byte integers with X in \{0, 1,2,4,8\} from disk.
 // TODO: Remove ENDIAN dependency: currently in BIG_ENDIAN format
@@ -224,28 +246,6 @@ bool load_vector_from_file(int_vector_type &v, const std::string &file_name, uin
 	}
 }
 
-//! Store an int_vector as plain int_type array to disk 
-template<class int_type, class int_vector_type>
-bool store_to_plain_array(int_vector_type &v, const std::string &file_name){
-	std::ofstream out(file_name.c_str());
-	if ( out ){
-		for (typename int_vector_type::size_type i=0; i<v.size(); ++i){
-			int_type x = v[i];
-			out.write((char*)&x, sizeof(int_type));
-		}
-		return true;
-	}else{
-		return false;
-	}
-}
-
-//! Specialization of load_from_file for a char array
-/*  \pre v=NULL
- *
- */
-bool load_from_file(char*& v, const std::string &file_name);
-
-
 //! Store a data structure to a file.
 /*! The data structure has to provide a serialize function.
 	\param v Data structure to store.
@@ -262,6 +262,24 @@ bool store_to_file(const char* v, const std::string &file_name);
 template<uint8_t fixed_int_width>
 bool store_to_file(const int_vector<fixed_int_width>& v, const std::string &file_name, bool write_fixed_as_variable=false);
 
+
+//! Store an int_vector as plain int_type array to disk 
+template<class int_type, class int_vector_type>
+bool store_to_plain_array(int_vector_type &v, const std::string &file_name){
+	std::ofstream out(file_name.c_str());
+	if ( out ){
+		for (typename int_vector_type::size_type i=0; i<v.size(); ++i){
+			int_type x = v[i];
+			out.write((char*)&x, sizeof(int_type));
+		}
+		return true;
+	}else{
+		return false;
+	}
+}
+
+
+
 //! Demangle the class name of typeid(...).name()
 /*!
  *	\param name A pointer to the the result of typeid(...).name()
@@ -273,7 +291,7 @@ std::string demangle2(const std::string &name);
 
 //! Transforms the demangled class name of an object to a hash value.
 template<class T>
-std::string class_to_hash(const T& t){
+std::string class_to_hash(const T&){
 	std::locale loc;
 	const std::collate<char>& coll = std::use_facet<std::collate<char> >(loc);
 	std::string name = sdsl::util::demangle2(typeid(T).name());
@@ -282,8 +300,7 @@ std::string class_to_hash(const T& t){
 }
 
 template<class T>
-std::string class_name(const T& t)
-{
+std::string class_name(const T& t) {
     std::string result = demangle2(typeid(t).name());
     size_t template_pos = result.find("<");
     if (template_pos != std::string::npos) {
@@ -544,6 +561,9 @@ bool store_to_cache(const T& v, const std::string &key, cache_config &config){
 }
 
 } // end namespace util
+
+
+
 
 //==================== Template functions ====================
 
