@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file suffixarray_helper.hpp
-    \brief suffixarray_helper.hpp contains some helper classes for (compressed suffix arrays)
+/*! \file suffix_array_helper.hpp
+    \brief suffix_array_helper.hpp contains some helper classes for CSTs
 	\author Simon Gog
 */
-#ifndef INCLUDED_SDSL_SUFFIXARRAY_HELPER
-#define INCLUDED_SDSL_SUFFIXARRAY_HELPER
+#ifndef INCLUDED_SDSL_SUFFIX_ARRAY_HELPER
+#define INCLUDED_SDSL_SUFFIX_ARRAY_HELPER
 
 #include <stdint.h>
 #include <cstdlib>

@@ -1,5 +1,5 @@
 #include "sdsl/int_vector.hpp"
-#include "sdsl/bitmagic.hpp"
+#include "sdsl/bit_magic.hpp"
 #include "sdsl/util.hpp"
 #include "gtest/gtest.h"
 #include <vector>

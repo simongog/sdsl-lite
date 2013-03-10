@@ -23,7 +23,6 @@
 #define SDSL_RRR_VECTOR
 
 #include "int_vector.hpp"
-#include "bitmagic.hpp"
 #include "util.hpp"
 #include "rrr_helper.hpp" // for binomial helper class
 #include <vector>

@@ -24,7 +24,6 @@
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "sd_vector.hpp"  // for standard initialisation of template parameters 
-#include "bitmagic.hpp"
 #include "util.hpp"
 #include "wt_int.hpp"
 #include "rrr_vector.hpp"

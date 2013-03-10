@@ -23,7 +23,6 @@
 #define INCLUDED_SDSL_SORTED_MUTLI_STACK_SUPPORT
 
 #include "int_vector.hpp"
-#include "bitmagic.hpp"
 #include <vector>
 
 //! Namespace for the succinct data structure library.

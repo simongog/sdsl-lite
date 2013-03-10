@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file suffixtrees.hpp
-    \brief suffixtrees.hpp contains generic classes for different suffix tree classes.
+/*! \file suffix_trees.hpp
+    \brief suffix_trees.hpp contains generic classes for different suffix tree classes.
 	\author Simon Gog
 */
-#ifndef INCLUDED_SDSL_SUFFIXTREES
-#define INCLUDED_SDSL_SUFFIXTREES
+#ifndef INCLUDED_SDSL_SUFFIX_TREES
+#define INCLUDED_SDSL_SUFFIX_TREES
 
 #include "sdsl_concepts.hpp"
 #include "util.hpp"

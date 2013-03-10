@@ -25,7 +25,6 @@
 #include "int_vector.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
-#include "bitmagic.hpp"
 #include <iostream>
 #include <algorithm> // for lower_bound
 #include <cassert>

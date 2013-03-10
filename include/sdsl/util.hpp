@@ -21,7 +21,7 @@
 #ifndef INCLUDED_SDSL_UTIL
 #define INCLUDED_SDSL_UTIL
 
-#include "bitmagic.hpp"
+#include "bit_magic.hpp"
 #include "typedefs.hpp"
 #include "structure_tree.hpp"
 #include "config.hpp"  // for constants 

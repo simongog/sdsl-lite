@@ -21,7 +21,6 @@
 #ifndef INCLUDED_SDSL_NEAREST_NEIGHBOUR_DICTIONARY
 #define INCLUDED_SDSL_NEAREST_NEIGHBOUR_DICTIONARY
 
-#include "bitmagic.hpp"
 #include "int_vector.hpp"
 #include "rank_support.hpp"
 #include "util.hpp"

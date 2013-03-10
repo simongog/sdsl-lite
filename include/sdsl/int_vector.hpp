@@ -28,7 +28,7 @@
 #define HUGE_FLAGS (MAP_HUGETLB | MAP_ANONYMOUS | MAP_PRIVATE)
 
 #include "compatibility.hpp"
-#include "bitmagic.hpp"
+#include "bit_magic.hpp"
 #include "structure_tree.hpp"
 #include "util.hpp"
 #include "testutils.hpp"

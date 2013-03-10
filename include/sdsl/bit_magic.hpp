@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file bitmagic.hpp
-    \brief bitmagic.hpp contains the sdsl::bit_magic class.
+/*! \file bit_magic.hpp
+    \brief bit_magic.hpp contains the sdsl::bit_magic class.
 	\author Simon Gog
 */
-#ifndef INCLUDED_SDSL_BITMAGIC
-#define INCLUDED_SDSL_BITMAGIC
+#ifndef INCLUDED_SDSL_BIT_MAGIC
+#define INCLUDED_SDSL_BIT_MAGIC
 
 #include <stdint.h> // for uint64_t uint32_t declaration
 #include <iostream>// for cerr
