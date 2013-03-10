@@ -26,7 +26,7 @@
 #include "int_vector.hpp"
 #include "construct_lcp.hpp"
 #include "construct_bwt.hpp"
-#include "qsufsort.hpp"
+#include "construct_sa.hpp"
 #include <string>
 
 namespace sdsl{
@@ -109,21 +109,7 @@ void construct(Index& idx, const std::string &file, cache_config& config, uint8_
 	}
 	{// (2) check, if the suffix array is cached 
 		if ( !util::cache_file_exists(constants::KEY_SA, config) ){
-			text_type text;
-			util::load_from_cache(text, KEY_TEXT, config);
-			if ( typeid(typename Index::alphabet_category) == typeid(byte_alphabet_tag) ) {
-				// call divsufsort
-				int_vector<> sa(text.size(), 0, bit_magic::l1BP(text.size())+1);
-				algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
-				util::store_to_cache(sa, constants::KEY_SA, config);
-			} else if ( typeid(typename Index::alphabet_category) == typeid(int_alphabet_tag) ) {
-				// call qsufsort
-				int_vector<> sa;
-				sdsl::qsufsort::construct_sa(sa, config.file_map[KEY_TEXT].c_str(), 0);
-				util::store_to_cache(sa, constants::KEY_SA, config);
-			} else {
-				std::cerr << "Unknown alphabet type" << std::endl;
-			}
+			construct_sa<Index::alphabet_category::WIDTH>(config);
 		}
 		util::register_cache_file(constants::KEY_SA, config);
 	}
