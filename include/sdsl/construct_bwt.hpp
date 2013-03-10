@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file bwt_construct.hpp
-    \brief bwt_construct.hpp contains a space and time efficient construction method for the Burrows and Wheeler Transform (BWT).
+/*! \file construct_bwt.hpp
+    \brief construct_bwt.hpp contains a space and time efficient construction method for the Burrows and Wheeler Transform (BWT).
     \author Simon Gog
 */
-#ifndef INCLUDED_SDSL_BWT_CONSTRUCT
-#define INCLUDED_SDSL_BWT_CONSTRUCT
+#ifndef INCLUDED_SDSL_CONSTRUCT_BWT
+#define INCLUDED_SDSL_CONSTRUCT_BWT
 
 #include "typedefs.hpp"
 #include "int_vector.hpp"

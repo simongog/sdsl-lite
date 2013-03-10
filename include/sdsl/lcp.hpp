@@ -26,7 +26,7 @@
 #include "int_vector.hpp"
 #include "csa_alphabet_strategy.hpp" // for key_trait
 #include "select_support_mcl.hpp"
-#include "isa_construct.hpp"
+#include "construct_isa.hpp"
 #include <istream>
 
 //! Namespace for the succinct data structure library.

@@ -2,7 +2,7 @@
     Copyright (C) 2012 Simon Gog
 */
 
-#include "sdsl/lcp_construct.hpp"
+#include "sdsl/construct_lcp.hpp"
 #include "sdsl/construct.hpp"
 #include <stdexcept>
 #include <algorithm>
