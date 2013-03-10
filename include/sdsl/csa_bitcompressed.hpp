@@ -70,6 +70,7 @@ class csa_bitcompressed {
         typedef ptrdiff_t  										difference_type; // STL Container requirement
         typedef psi_of_sa_and_isa<csa_bitcompressed>			psi_type;
         typedef bwt_of_csa_psi<csa_bitcompressed>				bwt_type;
+        typedef text_of_csa<csa_bitcompressed>         	        text_type;
         typedef _sa_order_sampling_strategy<1,0>				sa_sample_type;
         typedef int_vector<>									isa_sample_type;
 		typedef AlphabetStrategy								alphabet_type;
@@ -84,8 +85,6 @@ class csa_bitcompressed {
                isa_sample_dens = 1
              };
 
-        friend class psi_of_sa_and_isa<csa_bitcompressed>;
-        friend class bwt_of_csa_psi<csa_bitcompressed>;
     private:
         sa_sample_type	m_sa;  // vector for suffix array values
         isa_sample_type	m_isa; // vector for inverse suffix array values
@@ -105,23 +104,24 @@ class csa_bitcompressed {
 		const typename alphabet_type::sigma_type& 		sigma;
         const psi_type& 								psi;
         const bwt_type 									bwt;
+		const text_type									text;
         const sa_sample_type& 							sa_sample;
         const isa_sample_type& 							isa_sample;
 
         //! Default Constructor
         csa_bitcompressed() :char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-		                   psi(m_psi), bwt(this), sa_sample(m_sa), isa_sample(m_isa) {}
+		                   psi(m_psi), bwt(this), text(this),sa_sample(m_sa), isa_sample(m_isa) {}
 
         //! Copy constructor
         csa_bitcompressed(const csa_bitcompressed& csa) : char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma), 
-		                                               psi(m_psi), bwt(this), sa_sample(m_sa), isa_sample(m_isa) {
+		                                               psi(m_psi), bwt(this), text(this), sa_sample(m_sa), isa_sample(m_isa) {
             copy(csa);
         }
 
 		//! Constructor
         csa_bitcompressed(cache_config& config) : char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), 
 												  C(m_alphabet.C), sigma(m_alphabet.sigma), psi(m_psi), bwt(this), 
-												  sa_sample(m_sa), isa_sample(m_isa) 
+												  text(this), sa_sample(m_sa), isa_sample(m_isa) 
 		{
 			int_vector_file_buffer<alphabet_type::int_width> text_buf(util::cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config));
 			int_vector_file_buffer<>  sa_buf(util::cache_file_name(constants::KEY_SA,config));
