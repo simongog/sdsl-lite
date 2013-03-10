@@ -26,7 +26,6 @@
 #include "int_vector.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
-#include "bitmagic.hpp"
 #include "util.hpp"
 #include "testutils.hpp"
 #include "rank_support_v.hpp"

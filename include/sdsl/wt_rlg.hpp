@@ -28,7 +28,6 @@
 #include "rank_support_v5.hpp"
 #include "select_support_mcl.hpp"
 #include "select_support_bs.hpp"
-#include "bitmagic.hpp"
 #include "util.hpp"
 #include "wt_huff.hpp"
 #include <algorithm> // for std::swap

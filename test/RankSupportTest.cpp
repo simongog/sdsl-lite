@@ -6,7 +6,6 @@
 #include "sdsl/bit_vector_interleaved.hpp" // for rank_support_interleaved
 #include "sdsl/sd_vector.hpp" // for sd_rank_support
 #include "sdsl/gap_vector.hpp" // for gap_rank_support
-#include "sdsl/bitmagic.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()

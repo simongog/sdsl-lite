@@ -29,7 +29,6 @@
 #include "algorithms.hpp"
 #include "iterators.hpp"
 #include "util.hpp"
-#include "suffixarrays.hpp"
 #include "fast_cache.hpp"
 #include "csa_sampling_strategy.hpp"
 #include "csa_alphabet_strategy.hpp"

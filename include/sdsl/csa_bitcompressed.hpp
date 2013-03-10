@@ -22,7 +22,7 @@
 #define INCLUDED_SDSL_CSA_UNCOMPRESSED
 
 #include "sdsl_concepts.hpp"
-#include "suffixarray_helper.hpp"
+#include "suffix_array_helper.hpp"
 #include "int_vector.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"

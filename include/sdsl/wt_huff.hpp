@@ -27,7 +27,6 @@
 #include "rank_support_v5.hpp"
 #include "select_support_mcl.hpp"
 #include "rrr_vector.hpp"
-#include "bitmagic.hpp"
 #include "util.hpp"
 #include "wt_helper.hpp"
 #include "wt.hpp"

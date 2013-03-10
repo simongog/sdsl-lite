@@ -22,11 +22,10 @@
 #define INCLUDED_SDSL_LCP_WT
 
 #include "lcp.hpp"
+#include "wt_huff.hpp"
 #include "int_vector.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
-#include "bitmagic.hpp"
-#include "wt_huff.hpp"
 #include "select_support_bs.hpp" // dummy select support for wavelet tree, as we don't use select in this application
 #include "util.hpp"
 #include "testutils.hpp"

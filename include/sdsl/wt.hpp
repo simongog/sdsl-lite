@@ -25,7 +25,6 @@
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
-#include "bitmagic.hpp"
 #include "util.hpp" // for util::assign
 #include <set> // for calculating the alphabet size
 #include <map> // for mapping a symbol to its lexicographical index

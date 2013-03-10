@@ -25,7 +25,6 @@
 #include "int_vector.hpp"
 #include "select_support_mcl.hpp"
 #include "util.hpp"
-#include "bitmagic.hpp"
 
 //! Namespace for the succinct data structure library
 namespace sdsl

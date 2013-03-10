@@ -30,7 +30,7 @@
 
 #include <algorithm> // for next permutation
 #include <iostream>
-#include "bitmagic.hpp"
+#include "bit_magic.hpp"
 #include "uint128_t.hpp"
 #include "uint256_t.hpp"
 

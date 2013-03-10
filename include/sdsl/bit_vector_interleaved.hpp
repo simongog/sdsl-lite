@@ -23,7 +23,6 @@
 #define SDSL_BIT_VECTOR_INTERLEAVED
 
 #include "int_vector.hpp"
-#include "bitmagic.hpp"
 #include "util.hpp"
 
 #include <queue>

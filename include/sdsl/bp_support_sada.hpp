@@ -25,7 +25,6 @@
 #include "rank_support.hpp"
 #include "select_support.hpp"
 #include "algorithms.hpp"
-#include "bitmagic.hpp"
 #include "fast_cache.hpp"
 #include <stack>
 #include <map>
