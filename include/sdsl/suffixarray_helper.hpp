@@ -44,14 +44,10 @@ class psi_of_csa_psi
     public:
 
         //! Constructor
-        psi_of_csa_psi(const CsaPsi* csa_psi=NULL) {
-            m_csa = csa_psi;
-        }
+        psi_of_csa_psi(const CsaPsi* csa_psi) : m_csa(csa_psi) { }
 
         //! Copy constructor
-        psi_of_csa_psi(const psi_of_csa_psi& psi_of_csa) {
-            m_csa = psi_of_csa.m_csa;
-        }
+        psi_of_csa_psi(const psi_of_csa_psi& psi_of_csa) : m_csa(psi_of_csa.m_csa){ }
 
         //! Calculate the \f$\Psi\f$ value at position i.
         /*!	\param i The index for which the \f$\Psi\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
@@ -69,8 +65,10 @@ class psi_of_csa_psi
          *  \param i The index for which the LF value should be calculated, \f$i\in [0..size()-1]\f$.
          */
         value_type operator()(size_type i)const {
-            // TODO: replace by \sigma binary searches on PSI function??
-            return (*m_csa)(((*m_csa)[i]+size()-1)%size());   // TODO:replace % by to_add table
+            // TODO: in case of a very sparse sampling of SA it may be faster to
+		    //  use \sigma binary searches on PSI function to determine the 
+			// LF values.
+            return (*m_csa)(((*m_csa)[i]+size()-1)%size());
         }
 
         //! Returns the size of the \f$\Psi\f$ function.
@@ -228,7 +226,6 @@ class psi_of_sa_and_isa
         uint32_t get_sample_dens()const {
             return 0;
         }
-
 };
 
 //! A wrapper for the bwt of a compressed suffix array that is based on the \f$\psi\f$ function.
@@ -246,9 +243,7 @@ class bwt_of_csa_psi
     public:
 
         //! Constructor
-        bwt_of_csa_psi(const CsaPsi* csa) {
-            m_csa = csa;
-        }
+        bwt_of_csa_psi(const CsaPsi* csa) : m_csa(csa) { }
 
         //! Calculate the Burrows Wheeler Transform (BWT) at position i.
         /*!	\param i The index for which the BWT value should be calculated, \f$i\in [0..size()-1]\f$.
@@ -268,6 +263,213 @@ class bwt_of_csa_psi
         }
 
         //! Returns if the bwt is empty.
+        size_type empty()const {
+            return m_csa->empty();
+        }
+
+        //! Returns a const_iterator to the first element.
+        /*! Required for the STL Container Concept.
+         *  \sa end
+         */
+        const_iterator begin()const {
+            return const_iterator(this, 0);
+        }
+
+        //! Returns a const_iterator to the element after the last element.
+        /*! Required for the STL Container Concept.
+         *  \sa begin.
+         */
+        const_iterator end()const {
+            return const_iterator(this, size());
+        }
+};
+
+//! A wrapper class for the \f$\Psi\f$ and LF function for (compressed) suffix arrays that are based on a wavelet tree (like sdsl::csa_wt).
+template<class CsaWT>
+class psi_of_csa_wt {
+    public:
+        typedef typename CsaWT::value_type value_type;
+        typedef typename CsaWT::size_type size_type;
+        typedef typename CsaWT::char_type char_type;
+        typedef typename CsaWT::difference_type difference_type;
+        typedef random_access_const_iterator<psi_of_csa_wt> const_iterator;// STL Container requirement
+    private:
+        const CsaWT* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
+        psi_of_csa_wt() {};    // disable default constructor
+    public:
+        //! Constructor
+        psi_of_csa_wt(CsaWT* csa_wt) {
+            m_csa_wt = csa_wt;
+        }
+        //! Calculate the \f$\Psi\f$ value at position i.
+        /*!	\param i The index for which the \f$\Psi\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
+         *	\par Time complexity
+         *		\f$ \Order{\log |\Sigma|} \f$
+         */
+        value_type operator[](size_type i)const {
+            assert(m_csa_wt != NULL);
+			assert(i < m_csa_wt->size() );
+            char_type c = algorithm::get_ith_character_of_the_first_row(i, *m_csa_wt);
+            return m_csa_wt->wavelet_tree.select(i - m_csa_wt->C[m_csa_wt->char2comp[c]] + 1 , c);
+        }
+        //! Apply \f$\Psi\f$ k times to the value at position i.
+        /*!	\param i The index for which \f$\Psi\f$ should be applied k times, \f$i\in [0..size()-1]\f$.
+         *  \param k Number of times \f$\Psi\f$ should be applied
+         *	\par Time complexity
+         *		\f$ \Order{\min\{k\cdot \log |\Sigma|, (s_{\SUF}+s_{\ISA})\log|\Sigma|\}} \f$
+         */
+        value_type psi_k(size_type i, size_type k)const {
+            assert(m_csa_wt != NULL);
+            if (k < m_csa_wt->sa_sample_dens + m_csa_wt->isa_sample_dens) {
+                for (size_type j=0; j<k; ++j) {
+                    i = (*this)[i];
+                }
+                return i;
+            } else {
+                size_type x = (*m_csa_wt)[i];
+                x += k;
+                if (x >= m_csa_wt->size()) {
+                    x -= m_csa_wt->size();
+                }
+                return (*m_csa_wt)(x);
+            }
+        }
+        //! Calculate the LF mapping at position i.
+        /*! The LF mapping function is the inverse to the \f$\Psi\f$ function. That is \f$LF[\Psi(i)]=i\f$.
+         *  \param i The index for which the LF value should be calculated, \f$i\in [0..size()-1]\f$.
+         *	\par Time complexity
+         *		\f$ \Order{\log |\Sigma|} \f$
+         */
+        value_type operator()(size_type i)const {
+            assert(m_csa_wt != NULL);
+            assert(i < size());
+            typename CsaWT::char_type c;
+            size_type j = m_csa_wt->wavelet_tree.inverse_select(i,c); // see documentation of inverse_select in wt_huff
+            return m_csa_wt->C[ m_csa_wt->char2comp[c] ] + j;
+        }
+        //! Apply LF k times to the value at position i.
+        /*!	\param i The index for which LF should be applied k times, \f$i\in [0..size()-1]\f$.
+         *  \param k Number of times LF should be applied
+         *	\par Time complexity
+         *		\f$ \Order{\min\{k\cdot \log |\Sigma|, (s_{\SUF}+s_{\ISA})\log|\Sigma|\}} \f$
+         */
+        value_type lf_k(size_type i, size_type k)const {
+            assert(m_csa_wt != NULL);
+            if (k < m_csa_wt->sa_sample_dens + m_csa_wt->isa_sample_dens) {
+                for (size_type j=0; j<k; ++j) {
+                    i = (*this)(i);
+                }
+                return i;
+            } else {
+                size_type x = (*m_csa_wt)[i];
+                if (x < k) {
+                    x += m_csa_wt->size();
+                }
+                x -= k;
+                return (*m_csa_wt)(x);
+            }
+        }
+        //! Returns the size of the \f$\Psi\f$ function.
+        size_type size()const {
+            return m_csa_wt->size();
+        }
+        //! Returns if the \f$\Psi\f$ function is empty.
+        size_type empty()const {
+            return m_csa_wt->empty();
+        }
+        //! Returns a const_iterator to the first element.
+        const_iterator begin()const {
+            return const_iterator(this, 0);
+        }
+        //! Returns a const_iterator to the element after the last element.
+        const_iterator end()const {
+            return const_iterator(this, size());
+        }
+        // Get the number of sampled \f$\Psi\f$ values. In the wavelet tree approach the number of sampled (i.e. explicitly stored) \f$\Psi\f$ values is zero.
+        uint32_t get_sample_dens()const {
+            return 0;
+        }
+};
+
+template<class CsaWT>
+class bwt_of_csa_wt {
+    public:
+        typedef const typename CsaWT::char_type value_type;
+        typedef typename CsaWT::size_type size_type;
+        typedef typename CsaWT::difference_type difference_type;
+        typedef random_access_const_iterator<bwt_of_csa_wt> const_iterator;// STL Container requirement
+    private:
+        const CsaWT* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
+        bwt_of_csa_wt(){};     // disable default constructor
+    public:
+        //! Constructor
+        bwt_of_csa_wt(CsaWT* csa_wt) {
+            m_csa_wt = csa_wt;
+        }
+        //! Calculate the Burrows Wheeler Transform (BWT) at position i.
+        /*!	\param i The index for which the \f$\Psi\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
+         *	\par Time complexity
+         *		\f$ \Order{\log |\Sigma|} \f$
+         */
+        value_type operator[](size_type i)const {
+            assert(m_csa_wt != NULL);
+            assert(i < size());
+            return m_csa_wt->wavelet_tree[i];
+        }
+        //! Returns the size of the BWT function.
+        size_type size()const {
+            return m_csa_wt->size();
+        }
+        //! Returns if the BWT function is empty.
+        size_type empty()const {
+            return m_csa_wt->empty();
+        }
+        //! Returns a const_iterator to the first element.
+        const_iterator begin()const {
+            return const_iterator(this, 0);
+        }
+        //! Returns a const_iterator to the element after the last element.
+        const_iterator end()const {
+            return const_iterator(this, size());
+        }
+};
+
+
+
+template<class Csa>
+class text_of_csa
+{
+    public:
+        typedef typename Csa::char_type value_type;
+        typedef typename Csa::size_type size_type;
+        typedef typename Csa::difference_type difference_type;
+        typedef random_access_const_iterator<text_of_csa> const_iterator;// STL Container requirement
+    private:
+        const Csa* m_csa; //<- pointer to the (compressed) suffix array 
+        text_of_csa() {}
+    public:
+
+        //! Constructor
+        text_of_csa(const Csa* csa):m_csa(csa) { }
+
+        //! Character at index \f$i\f$ of the original text.
+        /*!	\param i Text position , \f$i\in [0..size()-1]\f$.
+         *	\par Time complexity
+         *		\f$ t_{ISA} \log\sigma \f$
+         */
+        value_type operator[](size_type i)const {
+            assert(m_csa != NULL);
+            assert(i < size());
+            size_type pos = (*m_csa)(i);
+            return algorithm::get_ith_character_of_the_first_row(pos, *m_csa);
+        }
+
+        //! Returns the size of the original text.
+        size_type size()const {
+            return m_csa->size();
+        }
+
+        //! Returns if text text has size 0.
         size_type empty()const {
             return m_csa->empty();
         }
