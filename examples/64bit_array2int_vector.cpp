@@ -13,7 +13,7 @@ using namespace sdsl;
 using namespace std;
 
 int main(int argc, char *argv[]){
-	size_t x = util::get_file_size(argv[1]);
+	size_t x = util::file_size(argv[1]);
 	const int BPI=8;
 	cout<<"file size in bytes = "<<x<<endl;
 	if ( x % BPI != 0 ){

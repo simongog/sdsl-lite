@@ -26,6 +26,7 @@
 #endif
 
 #include "wt_huff.hpp"
+#include "suffix_array_helper.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
 #include "util.hpp"

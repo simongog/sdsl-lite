@@ -166,7 +166,7 @@ TYPED_TEST(CstIntTest, BasicMethods) {
         typedef typename TypeParam::node_type node_type;
         node_type r = cst.root(); // get root node
         // Size of the subtree rooted at r should the size of the suffix array
-        ASSERT_EQ(cst.csa.size(), cst.leaves_in_the_subtree(r));
+        ASSERT_EQ(cst.csa.size(), cst.size(r));
         // Check leaf methods
         for (size_type i=0; i < cst.csa.size(); ++i) {
             ASSERT_EQ(true, cst.is_leaf(cst.select_leaf(i+1)));
