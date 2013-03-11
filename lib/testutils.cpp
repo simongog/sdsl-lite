@@ -19,7 +19,7 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-#include <unistd.h> // for get_file_size, also contains clock_gettime 
+#include <unistd.h> // for file_size, also contains clock_gettime 
 
 
 namespace sdsl
@@ -122,7 +122,7 @@ uint64_t file::read_text(const char* file_name, char*& c, bool trunc, uint64_t l
         delete [] c;
         c = NULL;
     }
-    uint64_t n = util::get_file_size(file_name) + 1; // add one for the 0 byte
+    uint64_t n = util::file_size(file_name) + 1; // add one for the 0 byte
     if (trunc and lim+1 < n) {
         n = lim+1;
     }

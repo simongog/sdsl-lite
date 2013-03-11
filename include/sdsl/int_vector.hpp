@@ -1541,7 +1541,7 @@ class int_vector_file_buffer {
             int_vector_trait<fixedIntWidth>::set_int_width(m_int_width, int_width);
             m_len = len;
             m_file_name = f_file_name;
-            m_int_vector_size = util::get_file_size(m_file_name.c_str());
+            m_int_vector_size = util::file_size(m_file_name.c_str());
             m_in.open(m_file_name.c_str(), std::ifstream::in);
             if (m_in.is_open()) {
                 m_buf = new uint64_t[(m_len*m_int_width+63)/64 + 2];
@@ -1562,7 +1562,7 @@ class int_vector_file_buffer {
             if (!m_load_from_plain) {
                 load_size_and_width();
             } else {
-                m_int_vector_size = util::get_file_size(m_file_name);
+                m_int_vector_size = util::file_size(m_file_name);
             }
             if (new_buf_len > 0 and new_buf_len != m_len) {
                 if (m_buf != NULL)
