@@ -159,7 +159,7 @@ typename int_vector_type::size_type prev_bit(const int_vector_type& v, uint64_t 
 //============= Handling files =============================
 
 //! Get the size of a file in bytes
-off_t get_file_size(const std::string &file_name);
+off_t file_size(const std::string &file_name);
 
 //! Returns the basename of a file_name
 std::string basename(const std::string& file_name);
@@ -196,7 +196,7 @@ bool load_vector_from_file(int_vector_type &v, const std::string &file_name, uin
 	if ( (uint8_t)0 == num_bytes ){ // if byte size is variable read int_vector<0> from file
 		return load_from_file(v, file_name);
 	}else {
-		off_t file_size = get_file_size( file_name );
+		off_t file_size = util::file_size( file_name );
 		if ( file_size == 0 ){
 			v.resize(0);
 			return true;
