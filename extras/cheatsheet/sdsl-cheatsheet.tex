@@ -1,0 +1,307 @@
+\documentclass[10pt,landscape]{article}
+\usepackage{multicol}
+\usepackage{calc}
+\usepackage{ifthen}
+\usepackage[landscape]{geometry}
+
+
+\usepackage[colorlinks]{hyperref}
+% To make this come out properly in landscape mode, do one of the following
+% 1.
+%  pdflatex latexsheet.tex
+%
+% 2.
+%  latex latexsheet.tex
+%  dvips -P pdf  -t landscape latexsheet.dvi
+%  ps2pdf latexsheet.ps
+
+
+% If you're reading this, be prepared for confusion.  Making this was
+% a learning experience for me, and it shows.  Much of the placement
+% was hacked in; if you make it better, let me know...
+
+
+% 2008-04
+% Changed page margin code to use the geometry package. Also added code for
+% conditional page margins, depending on paper size. Thanks to Uwe Ziegenhagen
+% for the suggestions.
+
+% 2006-08
+% Made changes based on suggestions from Gene Cooperman. <gene at ccs.neu.edu>
+
+
+% To Do:
+% \listoffigures \listoftables
+% \setcounter{secnumdepth}{0}
+
+
+% This sets page margins to .5 inch if using letter paper, and to 1cm
+% if using A4 paper. (This probably isn't strictly necessary.)
+% If using another size paper, use default 1cm margins.
+\ifthenelse{\lengthtest { \paperwidth = 11in}}
+	{ \geometry{top=.5in,left=.5in,right=.5in,bottom=.5in} }
+	{\ifthenelse{ \lengthtest{ \paperwidth = 297mm}}
+		{\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+		{\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+	}
+
+% Turn off header and footer
+\pagestyle{empty}
+ 
+
+% Redefine section commands to use less space
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%x
+                                {\normalfont\large\bfseries}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}%
+                                {-1explus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%
+                                {\normalfont\normalsize\bfseries}}
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {1ex plus .2ex}%
+                                {\normalfont\small\bfseries}}
+\makeatother
+
+% Define BibTeX command
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+% Don't print section numbers
+\setcounter{secnumdepth}{0}
+
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt plus 0.5ex}
+
+
+% -----------------------------------------------------------------------
+
+\begin{document}
+\newlength{\MyLen}
+
+\raggedright
+\footnotesize
+\begin{multicols}{3}
+
+
+% multicol parameters
+% These lengths are set only within the two main columns
+%\setlength{\columnseprule}{0.25pt}
+\setlength{\premulticols}{1pt}
+\setlength{\postmulticols}{1pt}
+\setlength{\multicolsep}{1pt}
+\setlength{\columnsep}{2pt}
+
+\newcommand{\Order}[1]{\ensuremath{{\mathcal O}(#1)}}
+
+\newcommand{\sdsl}{\ensuremath{\mathit{sdsl}}}
+\newcommand{\sdslgit}{https://github.com/simongog/sdsl-lite/blob/master}
+\newcommand{\code}[1]{\texttt{#1}}
+%%% int vector representations
+\newcommand{\sdslintvector}{\code{int\_vector}}
+\newcommand{\sdslencvector}{\code{enc\_vector}}
+%%% bit vector representations
+\newcommand{\sdslbitvector}{\code{bit\_vector}}
+\newcommand{\sdslrrrvector}{\code{rrr\_vector}}
+\newcommand{\sdslsdvector}{\code{sd\_vector}}
+%%%% rank support structures
+\newcommand{\sdslranksupportv}{\code{rank\_support\_v}}
+\newcommand{\sdslranksupportvV}{\code{rank\_support\_v5}}
+\newcommand{\sdslrrrranksupport}{\code{rrr\_rank\_support}}
+\newcommand{\sdslsdranksupport}{\code{sd\_rank\_support}}
+\newcommand{\sdslranksupportscan}{\code{rank\_support\_scan}}
+%%%% select support structures
+\newcommand{\sdslselectsupportmcl}{\code{select\_support\_mcl}}
+\newcommand{\sdslselectsupportscan}{\code{select\_support\_scan}}
+%%%% WTs
+\newcommand{\sdslwthuff}{\code{wt\_huff}}
+\newcommand{\sdslwt}{\code{wt}}
+\newcommand{\sdslwtint}{\code{wt\_int}}
+\newcommand{\sdslwtrlmn}{\code{wt\_rlmn}}
+%%%% CSAs
+\newcommand{\sdslcsasada}{\code{csa\_sada}}
+\newcommand{\sdslcsawt}{\code{csa\_wt}}
+%%%% CSTs
+\newcommand{\sdslcstsada}{\code{cst\_sada}}
+\newcommand{\sdslcstsctIII}{\code{cst\_sct3}}
+
+\begin{center}
+     \Large{\textbf{\sdsl\ Cheat Sheet}} \\
+\end{center}
+
+\section{Data structure}
+
+The library code is in the
+sdsl namespace. Either import
+the namespace in your program
+(\code{using~namespace~sdsl;}) or
+qualify all identifieres by
+a \code{sdsl::}-prefix.
+
+\subsection{Dynamic vector}
+\begin{tabular}{@{}lll@{}}
+\textit{Class}    & \textit{Description}       & \textit{Space in bits}  \\
+\href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslintvector<>} & 
+bitcompressed            & $n \lceil w\rceil+72$ \\
+\end{tabular}
+
+\subsection{Static Vector}
+\begin{tabular}{@{}ll@{}}
+\textit{Class}    & \textit{Description}      \\
+\href{\sdslgit/include/sdsl/enc_vector.hpp}{\sdslencvector} & 
+delta and self-delimiting encoded.. \\
+\end{tabular}
+
+\subsection{Bitvectors (BV)}
+Representations for a bitvector of length $n$ with $m$ set bits.
+\begin{tabular}{@{}lll@{}}
+\textit{Class}    & \textit{Description}       & \textit{Space in bits}  \\
+\href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslbitvector} & 
+plain bitvector            & $\lceil n/64\rceil+64$ \\
+\href{\sdslgit/include/sdsl/rrr_vector.hpp}{\sdslrrrvector} & 
+$H_0$-compressed bitvector & $\approx \lceil \log {m\choose n} \rceil$ \\
+\href{\sdslgit/include/sdsl/sd_vector.hpp}{\sdslsdvector}  & sparse bitvector
+& $\approx\ 2 m\cdot log\frac{n}{m}$ \\	
+\end{tabular}
+
+\subsection{Rank supports (RS)}
+Support structure adding rank functionality to BV. Method
+\code{rank(i)} or \code{operator(i)} for \code{i}$\in [0,n]$ returns the number
+of set bits\footnote{It is also possible to rank \code{0} or
+the patterns \code{10} and \code{01}.} in the prefix $[0..i)$ of the
+supported BV.
+\begin{tabular}{@{}llll@{}}
+\textit{Class}    & \textit{Compatible BV} & \textit{Space (bits)} & \textit{Time} \\
+\href{\sdslgit/include/sdsl/rank_support_v.hpp}{\sdslranksupportv} &
+\sdslbitvector & $0.25 n$ & \Order{1} \\
+\href{\sdslgit/include/sdsl/rank_support_v5.hpp}{\sdslranksupportvV} &
+\sdslbitvector & $0.0625 n$ & \Order{1} \\
+\href{\sdslgit/include/sdsl/rank_vector_scan.hpp}{\sdslranksupportscan} &
+\sdslbitvector & 64 & \Order{n} \\
+\href{\sdslgit/include/sdsl/rrr_vector.hpp}{\sdslrrrranksupport} &
+\sdslrrrvector & 80 & \Order{k} \\
+\href{\sdslgit/include/sdsl/sd_vector.hpp}{\sdslsdranksupport} &
+\sdslsdvector & 64 & \Order{1} \\
+\end{tabular}
+Call \code{util::init\_support(rs, bv)} to initialize rank
+structure \code{rs} to bitvector \code{bv}. Call \code{rs(i)}
+to get $\code{rank(i)}=\sum_{k=0}^{k<i}\code{bv[}i\code{]}$
+
+\subsection{Select supports (SS)}
+\begin{tabular}{@{}lll@{}}
+\textit{Class}    & \textit{Compatible BV}           & \textit{Space in bits}  \\
+\href{\sdslgit/include/sdsl/select_support_mcl.hpp}{\sdslselectsupportmcl} &
+\sdslbitvector & $\leq 0.2 n$ \\
+\href{\sdslgit/include/sdsl/select_support_scan.hpp}{\sdslselectsupportscan} &
+\sdslbitvector & $64$ \\
+
+\end{tabular}
+
+\subsection{Wavelet trees (WT)}
+\begin{tabular}{@{}ll@{}}
+\href{\sdslgit/include/sdsl/wt_huff.hpp}{\sdslwthuff} &
+Huffman shaped wavelet tree for byte alphabets.\\
+\href{\sdslgit/include/sdsl/wt_int.hpp}{\sdslwtint} &
+Complete wavelet tree for integer alphabets.\\
+\href{\sdslgit/include/sdsl/wt.hpp}{\sdslwt} &
+Complete wavelet tree for byte alphabets.\\
+\href{\sdslgit/include/sdsl/wt_rlmn.hpp}{\sdslwtrlmn} &
+Run-length compressed wavelet tree. 
+                 %The run heads are stored in another WT and a bitvector
+				 %is used to map between the domains.
+				 \\ 
+% TODO: \verb!wt_rlg!
+\end{tabular}
+\textit{Public~methods:} \code{operator[i]}, \code{rank(i, c)},
+\code{select(i, c)}	\\
+
+\subsection{Compressed Suffix arrays (CSA)}
+\begin{tabular}{@{}ll@{}}
+\href{\sdslgit/include/sdsl/csa_sada.hpp}{\sdslcsasada} &
+Based on the compressed $\Psi$ function.\\
+\href{\sdslgit/include/sdsl/csa_wt.hpp}{\sdslcsawt} &
+Based on the WT of the texts BWT.\\
+\end{tabular}	
+\textit{Public~methods:} \code{operator[i]}, \code{operator(i)} \\
+\textit{Public~members:} \code{bwt}, \code{text}, 
+\code{psi}\footnote{LF[i] is accessible by \code{operator(i)} of \code{psi}}.
+
+\subsection{Compressed Suffix trees (CST)}
+\settowidth{\MyLen}{\sdslcstsada\quad}
+\begin{tabular}{@{}p{\the\MyLen}%
+                @{}p{\linewidth-\the\MyLen}@{}}
+\href{\sdslgit/include/sdsl/cst_sada.hpp}{\sdslcstsada} &
+Represents the nodes as an explicit pair of parenthesis.\\
+\href{\sdslgit/include/sdsl/cst_sct3.hpp}{\sdslcstsctIII} &
+Represents the nodes as intervals.\\
+\end{tabular}
+\textit{Public~types:} \code{node\_type}. 
+In the following let \code{v}, \code{w} be nodes 
+and \code{i}, \code{d}, \code{lb}, \code{rb} integers.\\ 
+\textit{Public~methods:} 
+ \code{root()}, \code{is\_leaf(v)}, \code{select\_leaf(i)},
+ \code{size(v)}, \code{leftmost\_leaf(v)}, \code{rightmost\_leaf(v)},
+ \code{lb(v)}, \code{rb(v)}, \code{parent(v)}, \code{sibling(v)},
+ \code{select\_child(v, i)}, \code{degree(v)}, 
+ \code{child(v,c)}, \code{edge(v, d)}, \code{lca(v,w)},
+ \code{depth(v)}, \code{node\_depth}, \code{sl(v)},
+ \code{wl(v,c)}, \code{sn(v)}, \code{id(v)}, \code{inv\_id(i)},
+ \code{node(lb, rb)}.\\
+\textit{Public~members:} \code{csa}, \code{lcp}.
+
+\section{Constructing data structures}
+Let \code{x} be a WT-, CSA-, or CST-object.
+Object \code{x} is build with \code{construct(x,file,num\_bytes=0)}
+from a sequence stored in \code{file}. File is interpreted
+dependent on the value of \code{num\_bytes}:
+
+\settowidth{\MyLen}{\code{num\_bytes=1}  }
+\begin{tabular}{@{}p{\the\MyLen}%
+                @{}p{\linewidth-\the\MyLen}@{}}
+%\begin{tabular}{@{}ll@{}}
+\textit{Value}      & \textit{File interpreted as}  \\
+\code{num\_bytes=0} & serialized \code{int\_vector<>}.\\
+\code{num\_bytes=1} & byte sequence of length \code{util::file\_size(file)}.\\
+\code{num\_bytes=2} & 16-bit word sequence.\\
+\code{num\_bytes=4} & 32-bit word sequence.\\
+\code{num\_bytes=8} & 64-bit word sequence.\\	
+\end{tabular}
+
+
+\section{Reading and writing data}
+\subsection{Importing data into \sdsl\ structures}
+\begin{tabular}{@{}p{0.9\linewidth}@{}}
+\code{util::load\_vector\_from\_file(v, file, num\_bytes)} \\
+Load \code{file} into an \code{int\_vector}. Interpretation
+of \code{file} depends on \code{num\_bytes}; see method \code{construct}.
+\end{tabular}
+
+
+\subsection{Load \sdsl\ structures}
+\begin{tabular}{@{}p{0.9\linewidth}@{}}
+\code{util::load\_from\_file(x, file)} \\
+Load an \sdsl\ object \code{x}, which is stored in \code{file}. \\
+\code{x.load(in)} \\
+Read an \sdsl\ object \code{x} from \code{std::istream}-object \code{in}.\\
+\end{tabular}
+
+
+\subsection{Store \sdsl\ structures}
+\begin{tabular}{@{}p{0.9\linewidth}@{}}
+\code{util::store\_to\_file(x, file)} \\
+Store an \sdsl\ object \code{x} to \code{file}. \\
+\code{x.serialize(out)}\\
+Write \sdsl\ object \code{x} to \code{std::ostream}-object \code{out}.\\
+\end{tabular}
+
+\rule{0.3\linewidth}{0.25pt}
+\scriptsize
+
+Cheatsheet template provided by Winston Chang
+http://www.stdout.org/$\sim$winston/latex/
+
+\end{multicols}
+\end{document}
