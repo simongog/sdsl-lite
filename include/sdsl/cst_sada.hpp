@@ -366,7 +366,7 @@ class cst_sada
          *
          *  This method is used e.g. in the algorithm::count method.
          */
-        size_type leaves_in_the_subtree(node_type v)const {
+        size_type size(node_type v)const {
             size_type r = m_bp_support.find_close(v);
             return m_bp_rank10(r+1) - m_bp_rank10(v);
         }
@@ -378,7 +378,7 @@ class cst_sada
          *		\f$ \Order{1} \f$
          */
         // 2010-12-08: Fixed method.
-        node_type leftmost_leaf_in_the_subtree(const node_type& v)const {
+        node_type leftmost_leaf(const node_type& v)const {
             return m_bp_select10(m_bp_rank10(v)+1)-1;
         }
 
@@ -388,8 +388,7 @@ class cst_sada
          *	\par Time complexity
          *		\f$ \Order{1} \f$
          */
-        // 2010-12-08: Fixed method.
-        node_type rightmost_leaf_in_the_subtree(const node_type& v)const {
+        node_type rightmost_leaf(const node_type& v)const {
             size_type r = m_bp_support.find_close(v);
             return m_bp_select10(m_bp_rank10(r+1))-1;
         }

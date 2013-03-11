@@ -447,7 +447,7 @@ class cst_sct3
         const_bottom_up_iterator begin_bottom_up()const {
             if (0 == m_bp.size())  // special case: tree is uninitialized
                 return end_bottom_up();
-            return const_bottom_up_iterator(this, leftmost_leaf_in_the_subtree(root()));
+            return const_bottom_up_iterator(this, leftmost_leaf(root()));
         }
 
         //! Returns an iterator to the element after the last element of a bottom-up traversal of the tree.
@@ -524,7 +524,7 @@ class cst_sct3
          *
          *  This method is used e.g. in the sdsl::algorithm::count<Cst> method.
          */
-        size_type leaves_in_the_subtree(const node_type& v)const {
+        size_type size(const node_type& v)const {
             return v.j-v.i+1;
         }
 
@@ -534,7 +534,7 @@ class cst_sct3
          *	\par Time complexity
          *		\f$ \Order{1} \f$
          */
-        node_type leftmost_leaf_in_the_subtree(const node_type& v)const {
+        node_type leftmost_leaf(const node_type& v)const {
             return select_leaf(v.i+1);
         }
 
@@ -544,7 +544,7 @@ class cst_sct3
          *	\par Time complexity
          *		\f$ \Order{1} \f$
          */
-        node_type rightmost_leaf_in_the_subtree(const node_type& v)const {
+        node_type rightmost_leaf(const node_type& v)const {
             return select_leaf(v.j+1);
         }
 
