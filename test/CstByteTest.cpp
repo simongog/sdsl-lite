@@ -1,5 +1,5 @@
 #include "CstHelper.hpp"
-#include "sdsl/suffixtrees.hpp"
+#include "sdsl/suffix_trees.hpp"
 #include "sdsl/lcp.hpp"
 #include "sdsl/test_index_performance.hpp"
 #include "sdsl/util.hpp" // for store_to_file, load_to_file,...

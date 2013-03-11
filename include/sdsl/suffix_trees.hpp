@@ -22,6 +22,8 @@
 #define INCLUDED_SDSL_SUFFIX_TREES
 
 #include "sdsl_concepts.hpp"
+#include "suffix_arrays.hpp"
+#include "construct.hpp"
 #include "util.hpp"
 #include <iostream>
 #include <cmath>
