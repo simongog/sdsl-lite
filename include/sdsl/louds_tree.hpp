@@ -73,7 +73,7 @@ class louds_tree
         //! Constructor for a cst and a root node for the traversal
         template<class Cst, class CstBfsIterator>
         louds_tree(const Cst& cst, const CstBfsIterator begin, const CstBfsIterator end):m_bv(), m_bv_select1(), m_bv_select0(), bv(m_bv) {
-            bit_vector tmp_bv(4*cst.leaves_in_the_subtree(*begin) , 0); // resize the bit_vector to the maximal
+            bit_vector tmp_bv(4*cst.size(*begin) , 0); // resize the bit_vector to the maximal
             // possible size 2*2*#leaves in the tree
             size_type pos = 0;
             for (CstBfsIterator it = begin; it != end;) {
