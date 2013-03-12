@@ -78,7 +78,7 @@ template<class Index>
 void construct(Index& idx, const std::string &file, cache_config& config, uint8_t num_bytes, wt_tag){
 	int_vector<Index::alphabet_category::WIDTH> text;	
 	util::load_vector_from_file(text, file, num_bytes);
-	std::string tmp_key = util::to_string(util::get_pid())+"_"+util::to_string(util::get_id());
+	std::string tmp_key = util::to_string(util::pid())+"_"+util::to_string(util::id());
 	std::string tmp_file_name = util::cache_file_name(tmp_key, config);
 	util::store_to_file(text, tmp_file_name);
 	util::clear(text);

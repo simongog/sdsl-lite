@@ -35,11 +35,13 @@
 #include <string.h>    // for strlen and strdup
 #include <libgen.h>    // for basename
 #include <cstdlib>
-#include <unistd.h>    // for getpid 
+#include <unistd.h>    // for getpid, file_size, clock_gettime
 #include <sstream>     // for to_string method
 #include <stdexcept>   // for std::logic_error
 #include <typeinfo>    // for typeid
-
+#include <sys/time.h> // for struct timeval
+#include <sys/resource.h> // for struct rusage
+#include <iomanip>
 
 // macros to transform a defined name to a string
 #define SDSL_STR(x) #x
@@ -53,6 +55,8 @@ namespace sdsl
 
 template<uint8_t>
 class int_vector;	 // forward declaration
+
+
 
 //! A namespace for helper functions
 namespace util
@@ -399,7 +403,7 @@ void load_vector(std::vector<T> &vec, std::istream& in){
 }
 
 //! Get the process id of the current process
-uint64_t get_pid();
+uint64_t pid();
 
 class _id_helper {
     private:
@@ -412,7 +416,7 @@ class _id_helper {
 
 
 //! Get a unique id inside the process
-inline uint64_t get_id() {
+inline uint64_t id() {
     return _id_helper::getId();
 }
 
@@ -559,6 +563,79 @@ bool store_to_cache(const T& v, const std::string &key, cache_config &config){
 		return false;
 	}
 }
+
+//! Get the current data and time as formated string.
+std::string time_string();
+
+//! A helper class to meassure the time consumption of program pieces.
+/*! stop_watch is a stopwatch based on the commands getrusage and
+ *  gettimeofday. Where getrusage is used to determine the user and system time
+ *  and gettimeofday to determine the elapsed real time.
+ */
+class stop_watch
+{
+    private:
+        rusage m_ruse1, m_ruse2;
+        timeval m_timeOfDay1, m_timeOfDay2;
+        static timeval m_first_t;
+        static rusage m_first_r;
+    public:
+
+        stop_watch() : m_ruse1(), m_ruse2(), m_timeOfDay1(), m_timeOfDay2() {
+            timeval t;
+            t.tv_sec = 0; t.tv_usec = 0;
+            m_ruse1.ru_utime = t; m_ruse1.ru_stime = t; // init m_ruse1
+            m_ruse2.ru_utime = t; m_ruse2.ru_stime = t; // init m_ruse2
+            m_timeOfDay1 = t; m_timeOfDay2 = t;
+            if (m_first_t.tv_sec == 0) {
+                gettimeofday(&m_first_t, 0);
+            }
+            if (m_first_r.ru_utime.tv_sec == 0 and m_first_r.ru_utime.tv_usec ==0) {
+                getrusage(RUSAGE_SELF, &m_first_r);
+            }
+        }
+        //! Start the stopwatch.
+        /*! \sa stop
+         */
+        void start();
+
+        //! Stop the stopwatch.
+        /*! \sa start
+         */
+        void stop();
+
+        //! Get the elapsed user time in milliseconds between start and stop.
+        /*! \sa start, stop, real_time, sys_time
+         */
+        double user_time();
+
+        //! Get the elapsed system time in milliseconds between start and stop.
+        /*! \sa start, stop, real_time, user_time
+         */
+        double sys_time();
+
+        //! Get the elapsed real time in milliseconds between start and stop.
+        /*! \sa start, stop, sys_time, user_time
+         */
+        double real_time();
+
+        //! Get the elapsed user time in milliseconds since the first construction of a stop_watch in the current process.
+        /*! \sa user_time
+         */
+        uint64_t abs_user_time();
+
+        //! Get the elapsed system time in milliseconds since the first construction of a stop_watch in the current process.
+        /*! \sa sys_time
+         */
+        uint64_t abs_sys_time();
+
+        //! Get the elapsed real time in milliseconds since the first construction of a stop_watch in the current process.
+        /*! \sa real_time
+         */
+        uint64_t abs_real_time();
+
+        uint64_t abs_page_faults();
+};
 
 } // end namespace util
 
@@ -875,6 +952,37 @@ template<typename T>
 std::string util::to_latex_string(const T& t) {
     return to_string(t);
 }
+
+
+//! Write stopwatch output in readable format
+inline void write_R_output(std::string data_structure, std::string action,
+                           std::string state="begin", uint64_t times=1, uint64_t check=0)
+{
+    if (util::verbose) {
+		util::stop_watch _sw;
+        _sw.stop();
+        std::cout << data_structure << "\t" << action << "\t" << state << "\t"
+                  << std::setw(9)<< times << "\t" << std::setw(9) << check << "\t"
+                  << std::setw(9) << _sw.abs_real_time() << "\t "
+                  << std::setw(9) << _sw.abs_user_time() << "\t"
+                  << std::setw(9) << _sw.abs_sys_time() << std::endl;
+    }
+}
+
+
+//! Read a list of file paths from a config file
+/*!
+ *  \param		file	The configuration file.
+ *  \param		prefix	Prepend this prefix to the read file paths.
+ *	\return		A vector of strings containing the paths.
+ *  \par Config file format
+ *       Each line starting with a `#` is ignored.
+ *       All other lines are interpreted as path and end up in the
+ *       result.
+ */ 
+std::vector<std::string> paths_from_config_file(const std::string &file, const char *prefix = NULL);
+
+
 
 }// end namespace sdsl
 

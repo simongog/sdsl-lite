@@ -20,6 +20,7 @@
 #include "cxxabi.h"
 #include <sys/types.h> // for file_size
 #include <sys/stat.h>  // for file_size
+#include <iomanip>
 #include <vector>
 
 namespace sdsl
@@ -29,6 +30,10 @@ namespace util
 {
 
 uint64_t _id_helper::id = 0;
+timeval stop_watch::m_first_t = {0,0};
+rusage stop_watch::m_first_r = {{0,0},{0,0}};
+
+
 
 std::string basename(const std::string& file_name) {
     char* c = strdup((const char*)file_name.c_str());
@@ -44,7 +49,7 @@ std::string dirname(const std::string& file_name) {
     return res;
 }
 
-uint64_t get_pid() {
+uint64_t pid() {
     return getpid();
 }
 
@@ -198,7 +203,110 @@ bool cache_file_exists(const std::string &key, const cache_config &config){
 	return false;
 }
 
+void stop_watch::start()
+{
+    gettimeofday(&m_timeOfDay1, 0);
+    getrusage(RUSAGE_SELF, &m_ruse1);
+}
+
+void stop_watch::stop()
+{
+    getrusage(RUSAGE_SELF, &m_ruse2);
+    gettimeofday(&m_timeOfDay2, 0);
+}
+
+double stop_watch::user_time()
+{
+    timeval t1, t2;
+    t1 = m_ruse1.ru_utime;
+    t2 = m_ruse2.ru_utime;
+    return ((double)(t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec)))/1000.0;
+}
+
+double stop_watch::sys_time()
+{
+    timeval t1, t2;
+    t1 = m_ruse1.ru_stime;
+    t2 = m_ruse2.ru_stime;
+    return ((double)(t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec)))/1000.0;
+}
+
+double stop_watch::real_time()
+{
+    double result = ((double)((m_timeOfDay2.tv_sec*1000000 + m_timeOfDay2.tv_usec)-(m_timeOfDay1.tv_sec*1000000 + m_timeOfDay1.tv_usec)))/1000.0;
+    if (result < sys_time() + user_time())
+        return sys_time()+user_time();
+    return result;
+}
+
+uint64_t stop_watch::abs_real_time()
+{
+    uint64_t result = (((m_timeOfDay2.tv_sec*1000000 + m_timeOfDay2.tv_usec - (m_first_t.tv_sec*1000000 + m_first_t.tv_usec))))/1000;
+    return result;
+}
+
+uint64_t stop_watch::abs_user_time()
+{
+    timeval t1, t2;
+    t1 = m_first_r.ru_utime;
+    t2 = m_ruse2.ru_utime;
+    return (t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec))/1000;
+}
+
+
+uint64_t stop_watch::abs_sys_time()
+{
+    timeval t1, t2;
+    t1 = m_first_r.ru_stime;
+    t2 = m_ruse2.ru_stime;
+    return (t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec))/1000;
+}
+
+uint64_t stop_watch::abs_page_faults()
+{
+    return m_ruse2.ru_majflt - m_first_r.ru_majflt; // does not work on my platform
+}
+
+std::string time_string() {
+    time_t rawtime;
+    struct tm* timeinfo;
+    char buffer[1024];
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer, 1024, "%Y-%m-%d-%H%M%S", timeinfo);
+    return buffer;
+}
 
 }// end namespace util
+
+
+std::vector<std::string> paths_from_config_file(const std::string &file, const char *prefix){
+		std::ifstream config_in(file.c_str());
+		if ( config_in ){ // opened file successfully
+			std::vector<std::string> result;
+			const size_t name_max_size = 1024;
+			char * name = new char [name_max_size];
+			while ( config_in.getline( name, name_max_size ) ) {
+				if ( strlen(name) > 0 and '#' != name[0] ){ // check empty line and comment
+					std::string path = std::string(name);
+					if ( prefix != NULL ){
+						path = std::string(prefix) + "/" + path;
+					}
+					result.push_back( path );
+				}
+			}
+			delete [] name;
+			return result;
+		} else {
+			std::cerr << "WARNING: Could not open config file: `";
+			std::cerr << file << "`" << std::endl;
+			return std::vector<std::string>();
+		}
+}
+
+
+
+
 }// end namespace sdsl
 

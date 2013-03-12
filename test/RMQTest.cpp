@@ -39,7 +39,7 @@ class RMQTest : public ::testing::Test
         virtual void SetUp() {
             // Code here will be called immediately after the constructor (right
             // before each test).
-            tmp_file = "tmp_rmq_test_" + sdsl::util::to_string(sdsl::util::get_pid()) + "_";
+            tmp_file = "tmp_rmq_test_" + sdsl::util::to_string(sdsl::util::pid()) + "_";
 			test_cases.push_back(tVUI(0)); // empty vector
 			test_cases.push_back(tVUI(1,42)); // 1-element vector
 			tVUI v;

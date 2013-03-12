@@ -32,7 +32,7 @@ class WtByteTest : public ::testing::Test
 		std::string config_file = prefix + "/WtByteTest.config";
 		std::string tc_prefix	= prefix + "/test_cases";
 		test_cases = sdsl::paths_from_config_file(config_file, tc_prefix.c_str());
-		tmp_file = tmp_dir + "wt_ascii_test_" + util::to_string(util::get_pid()) + "_";
+		tmp_file = tmp_dir + "wt_ascii_test_" + util::to_string(util::pid()) + "_";
 	}
 
         virtual void TearDown() { }

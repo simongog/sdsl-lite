@@ -172,7 +172,7 @@ bitcompressed            & $n \lceil w\rceil+72$ \\
 \end{tabular}
 
 \textit{Public~methods:} \code{operator[i]}, \code{resize(n)},
-\code{}
+\code{size()}, \code{data()}
 
 \subsection{Manipulating vectors}
 \code{util::set\_random\_bits(v)}
@@ -323,17 +323,19 @@ and \code{i}, \code{d}, \code{lb}, \code{rb} integers.\\
  \code{child(v,c)}, \code{edge(v, d)}, \code{lca(v,w)},
  \code{depth(v)}, \code{node\_depth}, \code{sl(v)},
  \code{wl(v,c)}, \code{sn(v)}, \code{id(v)}, \code{inv\_id(i)},
- \code{node(lb, rb)}.\\
+ \code{node(lb, rb)}, \code{nodes()}, \code{size()},
+ \code{begin()}, \code{end()}, \code{begin\_bottom\_up()},
+ \code{end\_bottom\_up}.\\
 \textit{Public~members:} \code{csa}, \code{lcp}.
 
 \subsection{Range Minimum/Maximum Query (RMQ)}
 \begin{tabular}{@{}ll@{}}
 \href{\sdslgit/include/sdsl/rmq_support_sparse_table.hpp}{\sdslrmqsupportsparsetable} &
-$n\Order{\log n}$ word structure.\\
+$\Order{n \log^2 n}$.\\
 \href{\sdslgit/include/sdsl/rmq_succinct_sada.hpp}{\sdslrmqsuccinctsada} &
 $4n+o(n)$ bit \\
 \href{\sdslgit/include/sdsl/rmq_succinct_sct.hpp}{\sdslrmqsuccinctsct} &
-$2n+o(n)$ bit based on Super-Cartesian-Tree\\
+$2n+o(n)$ bit \\
 \end{tabular}
 
 \section{Constructing data structures}
@@ -384,8 +386,8 @@ Write \sdsl\ object \code{x} to \code{std::ostream}-object \code{out}.\\
 
 
 \section{Utility methods}
-\code{util::get\_pid()}, % reomve get?
-\code{util::get\_id()}, % remove get?
+\code{util::pid()}, 
+\code{util::id()}, 
 \code{util::to\_string(x)},
 \code{util::to\_latex\_string(x)}
 
@@ -404,14 +406,14 @@ Write \sdsl\ object \code{x} to \code{std::ostream}-object \code{out}.\\
 \code{util::store\_to\_cache(x, key, config)}
 
 \section{Helper}
-\code{stop\_watch}\\
+\code{util::stop\_watch}\\
 \textit{Public methods:} \code{start()}, \code{stop()},
-\code{get\_user\_time()},  % get rid of prefix "get_" ???
-\code{get\_sys\_time()},
-\code{get\_real\_time()},
-\code{get\_abs\_user\_time()},
-\code{get\_abs\_sys\_time()},
-\code{get\_abs\_real\_time()},
+\code{user\_time()},  
+\code{sys\_time()},
+\code{real\_time()},
+\code{abs\_user\_time()},
+\code{abs\_sys\_time()},
+\code{abs\_real\_time()},
 
 
 \code{paths\_from\_config\_file(file, prefix)}
@@ -423,6 +425,22 @@ $5n$ bytes peak memory for inputs $<2$ GiB,
 $9n$ bytes peak memory for inputs $\geq 2$ GiB.
 TODO: insert time space graph for different
 construction processes.
+
+\section{Bitmagic}
+Let \code{x} be a 64-bit word. Positions in
+$x$ start from $0$.
+\settowidth{\MyLen}{\code{num\_bytes=1} }
+\begin{tabular}{@{}p{\the\MyLen}%
+                @{}p{\linewidth-\the\MyLen}@{}}
+%\begin{tabular}{@{}ll@{}}
+\textit{Method}      & \textit{Description}  \\
+\code{b1Cnt(x)}  & Count the number of set bits in \code{x}.\\
+\code{i1BP(x,i)} & Get the position of the $i$-th set bit in \code{x},
+	$i~\in~[0,\code{b1Cnt(x)}\!-\!1)$.
+\end{tabular}
+
+\section{Debugging}
+Mention: gdb config file, verbose
 
 \section{Acknowledgements}
 Yuta Mori for implementing libdivsufsort, which

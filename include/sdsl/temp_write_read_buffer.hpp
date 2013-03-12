@@ -52,8 +52,8 @@ class temp_write_read_buffer
             m_buf = buffer_type(buf_size, 0, width);    // initialize buffer
             m_in_buf_idx = 0;
             m_buf_cnt = 0;
-            m_file_name =  dir + "temp_write_read_buffer_" + util::to_string(util::get_pid())+"_"
-                           + util::to_string(util::get_id())+"_"
+            m_file_name =  dir + "temp_write_read_buffer_" + util::to_string(util::pid())+"_"
+                           + util::to_string(util::id())+"_"
                            + util::to_string(m_buffer_id);
             m_buffer_id++; // increase the object counter
             m_output_exists = false;

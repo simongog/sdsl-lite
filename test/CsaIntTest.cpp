@@ -51,7 +51,7 @@ class CsaIntTest : public ::testing::Test {
 				std::cerr << "It did not have the extension `.int` or `.txt`" << std::endl;
 			}
 		}
-		tmp_file = "tmp_csa_int_test_" + util::to_string(util::get_pid()) + "_";
+		tmp_file = "tmp_csa_int_test_" + util::to_string(util::pid()) + "_";
 		if ( test_cases_file_map.size() == 0 ){
 			test_cases_file_map.resize(test_cases.size());
 		}

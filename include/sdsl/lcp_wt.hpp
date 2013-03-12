@@ -198,7 +198,7 @@ template<uint8_t width>
 template<uint8_t int_width>
 lcp_wt<width>::lcp_wt(int_vector_file_buffer<int_width>& lcp_buf)
 {
-    std::string temp_file = "/tmp/lcp_sml" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id()) ;// TODO: remove absolute file name
+    std::string temp_file = "/tmp/lcp_sml" + util::to_string(util::pid()) + "_" + util::to_string(util::id()) ;// TODO: remove absolute file name
 //	write_R_output("lcp","construct sml","begin");
     typename int_vector<>::size_type l=0, max_l=0, big_sum=0, n = lcp_buf.int_vector_size;
     {

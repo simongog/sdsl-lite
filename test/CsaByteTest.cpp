@@ -28,7 +28,7 @@ class CsaByteTest : public ::testing::Test {
 		std::string config_file = prefix + "/CsaByteTest.config";
 		std::string tc_prefix	= prefix + "/test_cases";
 		test_cases = sdsl::paths_from_config_file(config_file, tc_prefix.c_str());
-		tmp_file = "csa_ascii_test_" + util::to_string(util::get_pid()) + "_";
+		tmp_file = "csa_ascii_test_" + util::to_string(util::pid()) + "_";
 		if ( test_cases_file_map.size() == 0 ){
 			test_cases_file_map.resize(test_cases.size());
 		}

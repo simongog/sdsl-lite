@@ -28,7 +28,7 @@ class WtIntTest : public ::testing::Test
 
 	virtual void SetUp() {
 		std::string tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
-		tmp_file = tmp_dir+"wt_int_test_" + util::to_string(util::get_pid()) + "_";
+		tmp_file = tmp_dir+"wt_int_test_" + util::to_string(util::pid()) + "_";
 		std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
 		std::string config_file = prefix + "/WtIntTest.config";
 		std::string tc_prefix	= prefix + "/test_cases";
