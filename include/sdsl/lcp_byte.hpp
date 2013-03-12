@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file lcp_kurtz.hpp
-    \brief lcp_kurtz.hpp contains an implementation of a (compressed) lcp array proposed by Stefan Kurtz.
+/*! \file lcp_byte.hpp
+    \brief lcp_byte.hpp contains an implementation of a (compressed) lcp array proposed by Stefan Kurtz.
 	\author Simon Gog
 */
-#ifndef INCLUDED_SDSL_LCP_KURTZ
-#define INCLUDED_SDSL_LCP_KURTZ
+#ifndef INCLUDED_SDSL_LCP_BYTE
+#define INCLUDED_SDSL_LCP_BYTE
 
 #include "lcp.hpp"
 #include "int_vector.hpp"
@@ -37,18 +37,24 @@
 namespace sdsl
 {
 
-//! A class for the compressed version of lcp information of an suffix array proposed by Stefan Kurtz in the paper "Reducing the Space Requirement of Suffix Trees".
-/*! We use 8 bit for each lcp values + \f$ log n \f$ bits for each lcp value which is greater than 254.
+//! A class for a simple compressed version of LCP information
+/*! Each small LCP value x=LCP[i] (\f$\leq 254\f$) is represented in a byte.
+ *  For x=LCP[i] \f$\geq 255\f$ a pair (i, x) is store an list of word  pairs.
+ *  This list is binary search to access LCP[i].
  *  \par Time complexity
  *		- \f$\Order{1}\f$ if the value is less than 255 and
-		- \f$\Order{\log n}\f$ (\f$n=size()\f$) otherwise.
+ *		- \f$\Order{\log n}\f$ (\f$n=size()\f$) otherwise.
+ * \par Reference
+ *   Mohamed Ibrahim Abouelhoda, Stefan Kurtz, Enno Ohlebusch: 
+ *   Replacing suffix trees with enhanced suffix arrays.
+ *   J. Discrete Algorithms 2(1): 53-86 (2004)
  */
 template<uint8_t width=0>
-class lcp_kurtz
+class lcp_byte
 {
     public:
         typedef typename int_vector<width>::value_type		 value_type;	// STL Container requirement
-        typedef random_access_const_iterator<lcp_kurtz>		 const_iterator;// STL Container requirement
+        typedef random_access_const_iterator<lcp_byte>		 const_iterator;// STL Container requirement
         typedef const_iterator 								 iterator;		// STL Container requirement
         typedef const value_type							 const_reference;
         typedef const_reference								 reference;
@@ -62,13 +68,13 @@ class lcp_kurtz
         enum { fast_access = 0,
                text_order  = 0,
                sa_order	  = 1
-             }; // as the lcp_kurtz is not fast for texts with long repetition
+             }; // as the lcp_byte is not fast for texts with long repetition
 
         template<class Cst>  // template inner class which is used in CSTs to parametrize lcp classes
         class type           // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
         {
             public:
-                typedef lcp_kurtz lcp_type;
+                typedef lcp_byte lcp_type;
         };
 
     private:
@@ -80,7 +86,7 @@ class lcp_kurtz
         typedef std::pair<size_type, size_type> tPII;
         typedef std::vector<tPII> tVPII;
 
-        void copy(const lcp_kurtz& lcp_c) {
+        void copy(const lcp_byte& lcp_c) {
             m_small_lcp 	= lcp_c.m_small_lcp;
             m_big_lcp		= lcp_c.m_big_lcp;
             m_big_lcp_idx	= lcp_c.m_big_lcp_idx;
@@ -88,20 +94,20 @@ class lcp_kurtz
 
     public:
         //! Default Constructor
-        lcp_kurtz() {}
+        lcp_byte() {}
 
         //! Copy constructor
-        lcp_kurtz(const lcp_kurtz& lcp_c) {
+        lcp_byte(const lcp_byte& lcp_c) {
             copy(lcp_c);
         }
 
         //! Constructor for the compressed lcp from a compressed suffix array.
         template<class Text, class Sa>
-        lcp_kurtz(const Text& text, const Sa& sa);
+        lcp_byte(const Text& text, const Sa& sa);
 
         //! Construct the lcp array from an int_vector_file_buffer
         template<uint8_t int_width>
-        lcp_kurtz(int_vector_file_buffer<int_width>& lcp_buf);
+        lcp_byte(int_vector_file_buffer<int_width>& lcp_buf);
 
         //! Number of elements in the instance.
         /*! Required for the Container Concept of the STL.
@@ -111,7 +117,7 @@ class lcp_kurtz
             return m_small_lcp.size();
         }
 
-        //! Returns the largest size that lcp_kurtz can ever have.
+        //! Returns the largest size that lcp_byte can ever have.
         /*! Required for the Container Concept of the STL.
          *  \sa size
          */
@@ -127,16 +133,16 @@ class lcp_kurtz
             return m_small_lcp.empty();
         }
 
-        //! Swap method for lcp_kurtz
+        //! Swap method for lcp_byte
         /*! The swap method can be defined in terms of assignment.
         	This requires three assignments, each of which, for a container type, is linear
         	in the container's size. In a sense, then, a.swap(b) is redundant.
         	This implementation guaranties a run-time complexity that is constant rather than linear.
-        	\param lcp_c lcp_kurtz to swap.
+        	\param lcp_c lcp_byte to swap.
 
         	Required for the Assignable Conecpt of the STL.
           */
-        void swap(lcp_kurtz& lcp_c);
+        void swap(lcp_byte& lcp_c);
 
         //! Returns a const_iterator to the first element.
         /*! Required for the STL Container Concept.
@@ -161,7 +167,7 @@ class lcp_kurtz
         /*!
          *	Required for the Assignable Concept of the STL.
          */
-        lcp_kurtz& operator=(const lcp_kurtz& lcp_c);
+        lcp_byte& operator=(const lcp_byte& lcp_c);
 
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
@@ -179,7 +185,7 @@ class lcp_kurtz
 
 template<uint8_t width>
 template<class Text, class Sa>
-lcp_kurtz<width>::lcp_kurtz(const Text& text, const Sa& sa) {
+lcp_byte<width>::lcp_byte(const Text& text, const Sa& sa) {
     if (sa.size() == 0) {
         return;
     }
@@ -219,7 +225,7 @@ lcp_kurtz<width>::lcp_kurtz(const Text& text, const Sa& sa) {
 
 template<uint8_t width>
 template<uint8_t int_width>
-lcp_kurtz<width>::lcp_kurtz(int_vector_file_buffer<int_width>& lcp_buf) {
+lcp_byte<width>::lcp_byte(int_vector_file_buffer<int_width>& lcp_buf) {
     m_small_lcp = int_vector<8>(lcp_buf.int_vector_size);
     typename int_vector<>::size_type l=0, max_l=0, max_big_idx=0, big_sum=0;
     lcp_buf.reset();
@@ -256,14 +262,14 @@ lcp_kurtz<width>::lcp_kurtz(int_vector_file_buffer<int_width>& lcp_buf) {
 }
 
 template<uint8_t width>
-void lcp_kurtz<width>::swap(lcp_kurtz& lcp_c) {
+void lcp_byte<width>::swap(lcp_byte& lcp_c) {
     m_small_lcp.swap(lcp_c.m_small_lcp);
     m_big_lcp.swap(lcp_c.m_big_lcp);
     m_big_lcp_idx.swap(lcp_c.m_big_lcp_idx);
 }
 
 template<uint8_t width>
-inline typename lcp_kurtz<width>::value_type lcp_kurtz<width>::operator[](size_type i)const {
+inline typename lcp_byte<width>::value_type lcp_byte<width>::operator[](size_type i)const {
     if (m_small_lcp[i]!=255) {
         return m_small_lcp[i];
     } else {
@@ -274,7 +280,7 @@ inline typename lcp_kurtz<width>::value_type lcp_kurtz<width>::operator[](size_t
 
 
 template<uint8_t width>
-typename lcp_kurtz<width>::size_type lcp_kurtz<width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
+typename lcp_byte<width>::size_type lcp_byte<width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
     written_bytes += m_small_lcp.serialize(out, child, "small_lcp");
@@ -285,7 +291,7 @@ typename lcp_kurtz<width>::size_type lcp_kurtz<width>::serialize(std::ostream& o
 }
 
 template<uint8_t width>
-void lcp_kurtz<width>::load(std::istream& in) {
+void lcp_byte<width>::load(std::istream& in) {
     m_small_lcp.load(in);
     m_big_lcp.load(in);
     m_big_lcp_idx.load(in);
@@ -293,7 +299,7 @@ void lcp_kurtz<width>::load(std::istream& in) {
 
 
 template<uint8_t width>
-lcp_kurtz<width>& lcp_kurtz<width>::operator=(const lcp_kurtz& lcp_c) {
+lcp_byte<width>& lcp_byte<width>::operator=(const lcp_byte& lcp_c) {
     if (this != &lcp_c) {
         copy(lcp_c);
     }
@@ -301,12 +307,12 @@ lcp_kurtz<width>& lcp_kurtz<width>::operator=(const lcp_kurtz& lcp_c) {
 }
 
 template<uint8_t width>
-typename lcp_kurtz<width>::const_iterator lcp_kurtz<width>::begin()const {
+typename lcp_byte<width>::const_iterator lcp_byte<width>::begin()const {
     return const_iterator(this, 0);
 }
 
 template<uint8_t width>
-typename lcp_kurtz<width>::const_iterator lcp_kurtz<width>::end()const {
+typename lcp_byte<width>::const_iterator lcp_byte<width>::end()const {
     return const_iterator(this, size());
 }
 

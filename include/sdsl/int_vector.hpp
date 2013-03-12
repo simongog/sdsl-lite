@@ -888,6 +888,9 @@ class int_vector_const_iterator : public int_vector_iterator_base<int_vector>
         typedef int_vector_const_iterator		const_iterator;
         typedef typename int_vector::size_type		size_type;
         typedef typename int_vector::difference_type difference_type;
+
+		template<class X>
+		friend typename int_vector_const_iterator<X>::difference_type operator-(const int_vector_const_iterator<X>& x, const int_vector_const_iterator<X>& y);
     private:
         using int_vector_iterator_base<int_vector>::m_offset; // make m_offset easy usable
         using int_vector_iterator_base<int_vector>::m_len;    // make m_len easy usable

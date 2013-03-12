@@ -102,31 +102,54 @@
 \newcommand{\code}[1]{\texttt{#1}}
 %%% int vector representations
 \newcommand{\sdslintvector}{\code{int\_vector}}
+\newcommand{\sdslintvectorZ}{\code{int\_vector\textless\textgreater}}
 \newcommand{\sdslencvector}{\code{enc\_vector}}
 %%% bit vector representations
 \newcommand{\sdslbitvector}{\code{bit\_vector}}
+\newcommand{\sdslbitvectoril}{\code{bit\_vector\_il}}
 \newcommand{\sdslrrrvector}{\code{rrr\_vector}}
 \newcommand{\sdslsdvector}{\code{sd\_vector}}
 %%%% rank support structures
 \newcommand{\sdslranksupportv}{\code{rank\_support\_v}}
 \newcommand{\sdslranksupportvV}{\code{rank\_support\_v5}}
+\newcommand{\sdslranksupportil}{\code{rank\_support\_il}}
 \newcommand{\sdslrrrranksupport}{\code{rrr\_rank\_support}}
 \newcommand{\sdslsdranksupport}{\code{sd\_rank\_support}}
 \newcommand{\sdslranksupportscan}{\code{rank\_support\_scan}}
 %%%% select support structures
 \newcommand{\sdslselectsupportmcl}{\code{select\_support\_mcl}}
 \newcommand{\sdslselectsupportscan}{\code{select\_support\_scan}}
+\newcommand{\sdslselectsupportil}{\code{select\_support\_il}}
+\newcommand{\sdslrrrselectsupport}{\code{rrr\_select\_support}}
+\newcommand{\sdslsdselectsupport}{\code{sd\_select\_support}}
 %%%% WTs
 \newcommand{\sdslwthuff}{\code{wt\_huff}}
 \newcommand{\sdslwt}{\code{wt}}
 \newcommand{\sdslwtint}{\code{wt\_int}}
 \newcommand{\sdslwtrlmn}{\code{wt\_rlmn}}
 %%%% CSAs
+\newcommand{\sdslcsabitcompressed}{\code{csa\_bitcompressed}}
 \newcommand{\sdslcsasada}{\code{csa\_sada}}
 \newcommand{\sdslcsawt}{\code{csa\_wt}}
+%%%% LCPs
+\newcommand{\sdsllcpbitcompressed}{\code{lcp\_bitcompressed}}
+\newcommand{\sdsllcpdac}{\code{lcp\_dac}}
+\newcommand{\sdsllcpbyte}{\code{lcp\_byte}}
+\newcommand{\sdsllcpsupportsada}{\code{lcp\_support\_sada}}
+\newcommand{\sdsllcpwt}{\code{lcp\_wt}}
+\newcommand{\sdsllcpsupporttree}{\code{lcp\_support\_tree}}
+\newcommand{\sdsllcpsupporttreeII}{\code{lcp\_support\_tree2}}
+%%%% PBSs
+\newcommand{\sdslbpsupportg}{\code{bp\_support\_g}}
+\newcommand{\sdslbpsupportgg}{\code{bp\_support\_gg}}
+\newcommand{\sdslbpsupportsada}{\code{bp\_support\_sada}}
 %%%% CSTs
 \newcommand{\sdslcstsada}{\code{cst\_sada}}
 \newcommand{\sdslcstsctIII}{\code{cst\_sct3}}
+%%%% RMQs
+\newcommand{\sdslrmqsupportsparsetable}{\code{rmq\_support\_sparse\_table}}
+\newcommand{\sdslrmqsuccinctsada}{\code{rmq\_succint\_sada}}
+\newcommand{\sdslrmqsuccinctsct}{\code{rmq\_succint\_sct}}
 
 \begin{center}
      \Large{\textbf{\sdsl\ Cheat Sheet}} \\
@@ -144,9 +167,20 @@ a \code{sdsl::}-prefix.
 \subsection{Dynamic vector}
 \begin{tabular}{@{}lll@{}}
 \textit{Class}    & \textit{Description}       & \textit{Space in bits}  \\
-\href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslintvector<>} & 
+\href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslintvectorZ} & 
 bitcompressed            & $n \lceil w\rceil+72$ \\
 \end{tabular}
+
+\textit{Public~methods:} \code{operator[i]}, \code{resize(n)},
+\code{}
+
+\subsection{Manipulating vectors}
+\code{util::set\_random\_bits(v)}
+\code{util::set\_one\_bits(v)},
+\code{util::set\_zero\_bits(v)},
+\code{util::bit\_compress(v)},
+\code{util::expand\_width(v)},
+\code{util::all\_elements\_mod}	
 
 \subsection{Static Vector}
 \begin{tabular}{@{}ll@{}}
@@ -161,13 +195,15 @@ Representations for a bitvector of length $n$ with $m$ set bits.
 \textit{Class}    & \textit{Description}       & \textit{Space in bits}  \\
 \href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslbitvector} & 
 plain bitvector            & $\lceil n/64\rceil+64$ \\
+\href{\sdslgit/include/sdsl/bit_vector_il.hpp}{\sdslbitvectoril} &
+interleaved  bitvector & $\approx n(1+K/64)$  \\
 \href{\sdslgit/include/sdsl/rrr_vector.hpp}{\sdslrrrvector} & 
 $H_0$-compressed bitvector & $\approx \lceil \log {m\choose n} \rceil$ \\
 \href{\sdslgit/include/sdsl/sd_vector.hpp}{\sdslsdvector}  & sparse bitvector
 & $\approx\ 2 m\cdot log\frac{n}{m}$ \\	
 \end{tabular}
 
-\subsection{Rank supports (RS)}
+\subsection{Rank Supports (RS)}
 Support structure adding rank functionality to BV. Method
 \code{rank(i)} or \code{operator(i)} for \code{i}$\in [0,n]$ returns the number
 of set bits\footnote{It is also possible to rank \code{0} or
@@ -179,8 +215,10 @@ supported BV.
 \sdslbitvector & $0.25 n$ & \Order{1} \\
 \href{\sdslgit/include/sdsl/rank_support_v5.hpp}{\sdslranksupportvV} &
 \sdslbitvector & $0.0625 n$ & \Order{1} \\
-\href{\sdslgit/include/sdsl/rank_vector_scan.hpp}{\sdslranksupportscan} &
+\href{\sdslgit/include/sdsl/rank_support_scan.hpp}{\sdslranksupportscan} &
 \sdslbitvector & 64 & \Order{n} \\
+\href{\sdslgit/include/sdsl/rank_support_il.hpp}{\sdslranksupportil} &
+\sdslbitvector & 128 & \Order{1} \\
 \href{\sdslgit/include/sdsl/rrr_vector.hpp}{\sdslrrrranksupport} &
 \sdslrrrvector & 80 & \Order{k} \\
 \href{\sdslgit/include/sdsl/sd_vector.hpp}{\sdslsdranksupport} &
@@ -188,19 +226,24 @@ supported BV.
 \end{tabular}
 Call \code{util::init\_support(rs, bv)} to initialize rank
 structure \code{rs} to bitvector \code{bv}. Call \code{rs(i)}
-to get $\code{rank(i)}=\sum_{k=0}^{k<i}\code{bv[}i\code{]}$
+to get $\code{rank(i)}=\sum_{k=0}^{k<i}\code{bv[}k\code{]}$
 
-\subsection{Select supports (SS)}
+\subsection{Select Supports (SS)}
 \begin{tabular}{@{}lll@{}}
 \textit{Class}    & \textit{Compatible BV}           & \textit{Space in bits}  \\
 \href{\sdslgit/include/sdsl/select_support_mcl.hpp}{\sdslselectsupportmcl} &
 \sdslbitvector & $\leq 0.2 n$ \\
 \href{\sdslgit/include/sdsl/select_support_scan.hpp}{\sdslselectsupportscan} &
 \sdslbitvector & $64$ \\
-
+\href{\sdslgit/include/sdsl/select_support_il.hpp}{\sdslselectsupportil} &
+\sdslbitvectoril & $64$ \\
+\href{\sdslgit/include/sdsl/rrr_select_support.hpp}{\sdslrrrselectsupport} &
+\sdslrrrvector & $64$ \\
+\href{\sdslgit/include/sdsl/sd_select_support.hpp}{\sdslsdselectsupport} &
+\sdslsdvector & $64$ \\
 \end{tabular}
 
-\subsection{Wavelet trees (WT)}
+\subsection{Wavelet Trees (WT)}
 \begin{tabular}{@{}ll@{}}
 \href{\sdslgit/include/sdsl/wt_huff.hpp}{\sdslwthuff} &
 Huffman shaped wavelet tree for byte alphabets.\\
@@ -218,8 +261,11 @@ Run-length compressed wavelet tree.
 \textit{Public~methods:} \code{operator[i]}, \code{rank(i, c)},
 \code{select(i, c)}	\\
 
-\subsection{Compressed Suffix arrays (CSA)}
+\subsection{Compressed Suffix Arrays (CSA)}
 \begin{tabular}{@{}ll@{}}
+\href{\sdslgit/include/sdsl/csa_bitcompressed.hpp}{\sdslcsabitcompressed} &
+Stores SA, ISA, and BWT.\\
+
 \href{\sdslgit/include/sdsl/csa_sada.hpp}{\sdslcsasada} &
 Based on the compressed $\Psi$ function.\\
 \href{\sdslgit/include/sdsl/csa_wt.hpp}{\sdslcsawt} &
@@ -229,7 +275,35 @@ Based on the WT of the texts BWT.\\
 \textit{Public~members:} \code{bwt}, \code{text}, 
 \code{psi}\footnote{LF[i] is accessible by \code{operator(i)} of \code{psi}}.
 
-\subsection{Compressed Suffix trees (CST)}
+\subsection{Longest Common Prefix (LCP) Arrays}
+\begin{tabular}{@{}ll@{}}
+\href{\sdslgit/include/sdsl/lcp_bitcompressed.hpp}{\sdsllcpbitcompressed} &
+\sdslintvectorZ.\\
+\href{\sdslgit/include/sdsl/lcp_dac.hpp}{\sdsllcpdac} &
+direct accessible code.\\
+\href{\sdslgit/include/sdsl/lcp_byte.hpp}{\sdsllcpbyte} &
+use byte or words dependent.\\
+\href{\sdslgit/include/sdsl/lcp_wt.hpp}{\sdsllcpwt} &
+store small values in a WT.\\
+\href{\sdslgit/include/sdsl/lcp_support_sada.hpp}{\sdsllcpsupportsada} &
+store values permuted. CSA needed. \\
+\href{\sdslgit/include/sdsl/lcp_support_tree.hpp}{\sdsllcpsupporttree} &
+using tree topology.\\
+\href{\sdslgit/include/sdsl/lcp_support_tree2.hpp}{\sdsllcpsupporttreeII} &
+using tree topology and LF.\\
+\end{tabular}	
+
+\subsection{Balanced Parentheses Support (BPS)}
+\begin{tabular}{@{}ll@{}}
+\href{\sdslgit/include/sdsl/bp_support_g.hpp}{\sdslbpsupportg} &
+2 level pioneer structure.\\
+\href{\sdslgit/include/sdsl/bp_support_gg.hpp}{\sdslbpsupportgg} &
+multi level pioneer structure.\\
+\href{\sdslgit/include/sdsl/bp_support_sada.hpp}{\sdslbpsupportsada} &
+min-max-tree.\\
+\end{tabular}
+
+\subsection{Compressed Suffix Trees (CST)}
 \settowidth{\MyLen}{\sdslcstsada\quad}
 \begin{tabular}{@{}p{\the\MyLen}%
                 @{}p{\linewidth-\the\MyLen}@{}}
@@ -251,6 +325,16 @@ and \code{i}, \code{d}, \code{lb}, \code{rb} integers.\\
  \code{wl(v,c)}, \code{sn(v)}, \code{id(v)}, \code{inv\_id(i)},
  \code{node(lb, rb)}.\\
 \textit{Public~members:} \code{csa}, \code{lcp}.
+
+\subsection{Range Minimum/Maximum Query (RMQ)}
+\begin{tabular}{@{}ll@{}}
+\href{\sdslgit/include/sdsl/rmq_support_sparse_table.hpp}{\sdslrmqsupportsparsetable} &
+$n\Order{\log n}$ word structure.\\
+\href{\sdslgit/include/sdsl/rmq_succinct_sada.hpp}{\sdslrmqsuccinctsada} &
+$4n+o(n)$ bit \\
+\href{\sdslgit/include/sdsl/rmq_succinct_sct.hpp}{\sdslrmqsuccinctsct} &
+$2n+o(n)$ bit based on Super-Cartesian-Tree\\
+\end{tabular}
 
 \section{Constructing data structures}
 Let \code{x} be a WT-, CSA-, or CST-object.
@@ -296,6 +380,52 @@ Store an \sdsl\ object \code{x} to \code{file}. \\
 \code{x.serialize(out)}\\
 Write \sdsl\ object \code{x} to \code{std::ostream}-object \code{out}.\\
 \end{tabular}
+
+
+\section{Utility methods}
+\code{util::get\_pid()}, % reomve get?
+\code{util::get\_id()}, % remove get?
+\code{util::to\_string(x)},
+\code{util::to\_latex\_string(x)}
+
+\code{util::assign(x,y)}
+\code{util::clear(x)}
+\code{util::swap\_support(s1, s2, x1, x2)}
+\code{util::init\_support(s, x)}
+\code{write\_structure<JSON\_FORMAT>(x, out)}
+\code{get\_size\_in\_bytes(x)}
+
+\section{Construction}
+\code{util::cache\_file\_name(key, config)}
+\code{util::register\_cache\_file(key, config)}
+\code{util::cache\_file\_exists(key, config)}
+\code{util::load\_from\_cache(x, key, config)}
+\code{util::store\_to\_cache(x, key, config)}
+
+\section{Helper}
+\code{stop\_watch}\\
+\textit{Public methods:} \code{start()}, \code{stop()},
+\code{get\_user\_time()},  % get rid of prefix "get_" ???
+\code{get\_sys\_time()},
+\code{get\_real\_time()},
+\code{get\_abs\_user\_time()},
+\code{get\_abs\_sys\_time()},
+\code{get\_abs\_real\_time()},
+
+
+\code{paths\_from\_config\_file(file, prefix)}
+
+\section{Performance}
+Describe here how many resources are required 
+for standard tasks. E.g. construct CSA:
+$5n$ bytes peak memory for inputs $<2$ GiB,
+$9n$ bytes peak memory for inputs $\geq 2$ GiB.
+TODO: insert time space graph for different
+construction processes.
+
+\section{Acknowledgements}
+Yuta Mori for implementing libdivsufsort, which
+is used to construct SAs.
 
 \rule{0.3\linewidth}{0.25pt}
 \scriptsize

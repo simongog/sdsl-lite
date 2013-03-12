@@ -40,7 +40,7 @@
 namespace sdsl
 {
 
-//! A class that provides support for bit_vectors that represent a balanced parentheses sequence. Implementation was proposed by Geary et al. (CPM 2004) and extended by Ohlebusch and Gog (SPIRE 2009).
+//! A class that provides support for bit_vectors that represent a balanced parentheses sequence. 
 /*! This data structure supports the following methods on a bit_vector b that represents a balanced parentheses sequence:
  *    - excess
  *    - find_open
@@ -51,11 +51,14 @@ namespace sdsl
  *  An opening parenthesis in the balanced parentheses sequence is represented by a 1 in the bit_vector
  *  and a closing parenthesis by a 0.
  *
- *  This class could be parametrized by four parameters:
- *    - NearestNeighbourDictionary is a class which supports rank and select with little space on sparse populated bit_vectors.
- *    - RankSupport is a class which support the rank operation on bit_vectors.
- *    - SelectSupport is a class which support the select operation on bit_vectors.
- *    - RangeMaxType is a class which supports range maximum queries on a int_vector<>.
+ *  \tparam NearestNeighbourDictionary	A class which supports rank and select with little space on sparse populated bit_vectors.
+ *  \tparam RankSupport 				A rank support structure.
+ *  \tparam SelectSupport 				A select support structure.
+ *  \tparam RangeMaxType 				A class which supports range maximum queries on a int_vector<>.
+ * \par Reference
+ *      Richard F. Geary, Naila Rahman, Rajeev Raman, Venkatesh Raman:
+ *      A Simple Optimal Representation for Balanced Parentheses.
+ *      CPM 2004: 159-172 
  *
  *  @ingroup bps
  */
