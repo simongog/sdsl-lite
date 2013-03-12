@@ -1,4 +1,4 @@
-#include "sdsl/lcp_construct_helper.hpp"
+#include "sdsl/construct_lcp_helper.hpp"
 #include "sdsl/int_vector.hpp"
 #include <algorithm>
 
