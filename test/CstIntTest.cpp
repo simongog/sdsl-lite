@@ -54,7 +54,7 @@ class CstIntTest : public ::testing::Test {
 			}
 		}
 
-		tmp_file = "cst_test_" + util::to_string(util::get_pid()) + "_";
+		tmp_file = "cst_test_" + util::to_string(util::pid()) + "_";
 		if ( test_cases_file_map.size() == 0 ){
 			test_cases_file_map.resize(test_cases.size());
 		}

@@ -10,7 +10,7 @@ using namespace sdsl;
 int main(int argc, char* argv[]){
 	int_vector<> v;
 	util::load_from_file(v, argv[1]);
-	cout<<"loaded vector of size "<<v.size()<<" and "<<(int)v.get_int_width()<<"-bit integers from file";
+	cout<<"loaded vector of size "<<v.size()<<" and "<<(int)v.width()<<"-bit integers from file";
 	cout<<" "<<argv[1]<<endl;
 	if ( v.size() == 0 )
 		return 0;

@@ -83,8 +83,8 @@ class _lcp_support_tree2
                        int_vector_file_buffer<Cst::csa_type::alphabet_type::int_width>& bwt_buf,
                        const cst_type* cst = NULL) {
             m_cst = cst;
-            std::string small_lcp_file_name =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str() + "_fc_lf_lcp_sml";
-            std::string big_lcp_file_name =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str() + "_fc_lf_lcp_big";
+            std::string small_lcp_file_name =  util::to_string(util::pid())+"_"+util::to_string(util::id()).c_str() + "_fc_lf_lcp_sml";
+            std::string big_lcp_file_name =  util::to_string(util::pid())+"_"+util::to_string(util::id()).c_str() + "_fc_lf_lcp_big";
 
             algorithm::construct_first_child_and_lf_lcp<SampleDens>(lcp_buf, bwt_buf, small_lcp_file_name, big_lcp_file_name, m_big_lcp);
             // construct wavelet tree huffman from file buffer
