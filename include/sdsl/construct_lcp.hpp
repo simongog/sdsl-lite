@@ -30,7 +30,7 @@
 #include "construct_isa.hpp"
 #include "construct_bwt.hpp"
 #include "wt_huff.hpp"
-#include "lcp_construct_helper.hpp"
+#include "construct_lcp_helper.hpp"
 
 #include <iostream>
 #include <stdexcept>
