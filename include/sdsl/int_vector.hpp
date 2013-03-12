@@ -125,7 +125,7 @@ struct int_vector_trait {
     typedef int_vector_iterator<int_vector_type> 		iterator;
     typedef int_vector_const_iterator<int_vector_type> 	const_iterator;
     // Sets int_width to new_int_width
-    static void set_int_width(int_width_type& int_width, const uint8_t new_int_width) {
+    static void width(int_width_type& int_width, const uint8_t new_int_width) {
         if (fixedIntWidth==1)
             return;
         if (new_int_width>0 and new_int_width<=64)
@@ -139,7 +139,7 @@ struct int_vector_trait {
         util::read_member(size, in);
         if (0 == fixedIntWidth) {
             util::read_member(int_width, in);
-            set_int_width(int_width, int_width);
+            width(int_width, int_width);
         }
     }
 
@@ -147,13 +147,13 @@ struct int_vector_trait {
         return iterator(v, 0);
     }
     static iterator end(int_vector_type* v, uint64_t*, int_vector_size_type) {
-        return iterator(v, v->size()*v->get_int_width()) ;
+        return iterator(v, v->size()*v->width()) ;
     }
     static const_iterator begin(const int_vector_type* v, const uint64_t*) {
         return const_iterator(v, 0);
     }
     static const_iterator end(const int_vector_type* v, const uint64_t*, int_vector_size_type) {
-        return const_iterator(v, v->size()*v->get_int_width());
+        return const_iterator(v, v->size()*v->width());
     }
 };
 
@@ -168,7 +168,7 @@ struct int_vector_trait<64> {
     typedef const uint64_t*	const_iterator;
 
 
-    static void set_int_width(int_width_type&, const uint8_t) {}
+    static void width(int_width_type&, const uint8_t) {}
 
     // read the size and int_width of a bit_vector
     static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
@@ -198,7 +198,7 @@ struct int_vector_trait<32> {
     typedef const uint8_t 	int_width_type;
     typedef uint32_t* 		iterator;
     typedef const uint32_t* const_iterator;
-    static void set_int_width(int_width_type&, const uint8_t) {}
+    static void width(int_width_type&, const uint8_t) {}
 
     // read the size and int_width of a bit_vector
     static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
@@ -228,7 +228,7 @@ struct int_vector_trait<16> {
     typedef const uint8_t 	int_width_type;
     typedef uint16_t* 		iterator;
     typedef const uint16_t* const_iterator;
-    static void set_int_width(int_width_type&, const uint8_t) {}
+    static void width(int_width_type&, const uint8_t) {}
 
     // read the size and int_width of a bit_vector
     static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
@@ -258,7 +258,7 @@ struct int_vector_trait<8> {
     typedef const uint8_t 	int_width_type;
     typedef uint8_t* 		iterator;
     typedef const uint8_t*  const_iterator;
-    static void set_int_width(int_width_type&, const uint8_t) {}
+    static void width(int_width_type&, const uint8_t) {}
 
     // read the size and int_width of a bit_vector
     static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
@@ -300,8 +300,6 @@ sdsl::int_vector<34> v(10);
 sdsl::int_vector<0> v(10);
 	\endcode
 	you get a vector v of 10 elements which can each hold a 64-bit integer by default.
-	See the int_vector_variable.e.cpp example for the behavior of the vector if
-    you change the int width by calling the set_int_width() method.
 
 	@ingroup int_vector
  */
@@ -352,7 +350,7 @@ class int_vector {
         /*! \param elements The number of elements in the int_vector. Default value is 0.
           	\param default_value The default value to initialize the elements.
             \param intWidth The width of integers which could be accessed via the [] operator.
-        	\sa resize, set_int_width
+        	\sa resize, width
          */
         int_vector(size_type elements = 0, value_type default_value = 0, uint8_t intWidth = fixedIntWidth);
 
@@ -448,16 +446,16 @@ class int_vector {
 
         //! Returns the width of the integers which are accessed via the [] operator.
         /*! \returns The width of the integers which are accessed via the [] operator.
-            \sa set_int_width
+            \sa width
         */
-        const uint8_t get_int_width() const;
+        const uint8_t width() const;
 
         //! Sets the width of the integers which are accessed via the [] operator, if fixedIntWidth equals 0.
         /*! \param intWidth New width of the integers accessed via the [] operator.
             \note This method has no effect if fixedIntWidth is in the range [1..64].
-          	\sa get_int_width
+          	\sa width
         */
-        void set_int_width(uint8_t intWidth);
+        void width(uint8_t intWidth);
 
         //! Serializes the int_vector to a stream.
         /*!
@@ -470,16 +468,16 @@ class int_vector {
         void load(std::istream& in);
 
         //! non const version of [] operator
-        /*! \param i Index the i-th integer of length get_int_width().
-         * 	\return A reference to the i-th integer of length get_int_width().
+        /*! \param i Index the i-th integer of length width().
+         * 	\return A reference to the i-th integer of length width().
          *
          * Required for the STL Random Access Container Concept.
          */
         inline reference operator[](const size_type& i);
 
         //! const version of [] operator
-        /*! \param i Index the i-th integer of length get_int_width().
-         *  \return The value of the i-th integer of length get_int_width().
+        /*! \param i Index the i-th integer of length width().
+         *  \return The value of the i-th integer of length width().
          *
          *  Required for the STL Random Access Container Concept.
          */
@@ -603,7 +601,7 @@ class int_vector_reference
         //! Constructor for the reference class
         /*! \param word Pointer to the corresponding 64bit word in the int_vector.
         	\param offset Offset to the starting bit (offset in [0..63])
-        	\param len length of the integer, should be v->get_int_width()!!!
+        	\param len length of the integer, should be v->width()!!!
         */
         int_vector_reference(typename int_vector::value_type* word, uint8_t offset, uint8_t len):
             m_word(word),m_offset(offset),m_len(len) {};
@@ -1053,7 +1051,7 @@ inline std::ostream& operator<<(std::ostream& os, const int_vector<0>& v) {
 template<uint8_t fixedIntWidth>
 inline int_vector<fixedIntWidth>::int_vector(size_type elements, value_type default_value, uint8_t intWidth):m_size(0), m_data(NULL), m_int_width(intWidth) {
 	mm::add( this );
-    int_vector_trait<fixedIntWidth>::set_int_width(m_int_width, intWidth);
+    int_vector_trait<fixedIntWidth>::width(m_int_width, intWidth);
     resize(elements);
     if (default_value == 0) {
         util::set_zero_bits(*this);
@@ -1073,8 +1071,7 @@ inline int_vector<fixedIntWidth>::int_vector(const int_vector& v):m_size(0), m_d
             throw std::bad_alloc();
         }
     }
-    int_vector_trait<fixedIntWidth>::set_int_width(m_int_width, v.m_int_width);
-//	set_int_width(v.get_int_width());
+    int_vector_trait<fixedIntWidth>::width(m_int_width, v.m_int_width);
 }
 
 template<uint8_t fixedIntWidth>
@@ -1086,7 +1083,7 @@ int_vector<fixedIntWidth>& int_vector<fixedIntWidth>::operator=(const int_vector
                 throw std::bad_alloc();
             }
         }
-        set_int_width(v.get_int_width());
+        width(v.width());
     }
     return *this;
 }
@@ -1108,16 +1105,16 @@ void int_vector<fixedIntWidth>::swap(int_vector& v) {
         uint8_t		intWidth 	= m_int_width;
         m_size 		= v.m_size;
         m_data 		= v.m_data;
-        int_vector_trait<fixedIntWidth>::set_int_width(m_int_width, v.m_int_width);
+        int_vector_trait<fixedIntWidth>::width(m_int_width, v.m_int_width);
         v.m_size	= size;
         v.m_data	= data;
-        int_vector_trait<fixedIntWidth>::set_int_width(v.m_int_width, intWidth);
+        int_vector_trait<fixedIntWidth>::width(v.m_int_width, intWidth);
     }
 }
 
 template<uint8_t fixedIntWidth>
 void int_vector<fixedIntWidth>::resize(const size_type size) {
-    bit_resize(size * get_int_width());
+    bit_resize(size * width());
 }
 
 
@@ -1225,13 +1222,13 @@ inline typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::
 }
 
 template<uint8_t fixedIntWidth>
-const uint8_t int_vector<fixedIntWidth>::get_int_width()const {
+const uint8_t int_vector<fixedIntWidth>::width()const {
     return m_int_width;
 }
 
 template<uint8_t fixedIntWidth>
-void int_vector<fixedIntWidth>::set_int_width(uint8_t width) {
-    int_vector_trait<fixedIntWidth>::set_int_width(m_int_width, width); // delegate to trait function
+void int_vector<fixedIntWidth>::width(uint8_t width) {
+    int_vector_trait<fixedIntWidth>::width(m_int_width, width); // delegate to trait function
 }
 
 template<uint8_t fixedIntWidth>
@@ -1503,7 +1500,7 @@ class int_vector_file_buffer {
     public:
 
         const size_type& int_vector_size;
-        const uint8_t& int_width;
+        const uint8_t& width;
         const std::string& file_name;
 
         //! Constructor
@@ -1515,9 +1512,9 @@ class int_vector_file_buffer {
 		                                                                                                 m_len(0), m_int_vector_size(0), m_read_values_sum(0), 
 																										 m_int_width(fixedIntWidth), m_file_name(), 
 																										 m_load_from_plain(false), int_vector_size(m_int_vector_size),
-																										 int_width(m_int_width), file_name(m_file_name) {
+																										 width(m_int_width), file_name(m_file_name) {
             m_load_from_plain = false;
-            int_vector_trait<fixedIntWidth>::set_int_width(m_int_width, int_width);
+            int_vector_trait<fixedIntWidth>::width(m_int_width, int_width);
             m_len		 		= len;
             init();
             if ( f_file_name == "" ) {
@@ -1541,7 +1538,7 @@ class int_vector_file_buffer {
                 return false;
             }
             m_load_from_plain = true;
-            int_vector_trait<fixedIntWidth>::set_int_width(m_int_width, int_width);
+            int_vector_trait<fixedIntWidth>::width(m_int_width, int_width);
             m_len = len;
             m_file_name = f_file_name;
             m_int_vector_size = util::file_size(m_file_name.c_str());

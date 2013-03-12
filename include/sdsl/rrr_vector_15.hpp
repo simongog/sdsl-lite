@@ -173,8 +173,6 @@ class rrr_vector<15, wt_type>
             m_size = bv.size();
             int_vector<> bt_array;
             util::assign(bt_array, int_vector<>(m_size/block_size+1, 0, bit_magic::l1BP(block_size)+1));
-//            bt_array.set_int_width(bit_magic::l1BP(block_size)+1);
-//            bt_array.resize((m_size+block_size)/block_size);
 
             // (1) calculate the block types and store them in m_bt
             size_type pos = 0, i = 0, x;

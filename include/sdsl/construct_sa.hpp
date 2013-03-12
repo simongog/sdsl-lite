@@ -54,20 +54,20 @@ void calculate_sa(const unsigned char *c, typename int_vector<fixedIntWidth>::si
 	}
 	bool small_file = (sizeof(len) <= 4 or len < 0x7FFFFFFFULL );
 	if( small_file ){
-		uint8_t oldIntWidth = sa.get_int_width();
+		uint8_t oldIntWidth = sa.width();
 		if( 32 == fixedIntWidth or (0==fixedIntWidth and 32 >= oldIntWidth) ){
-			sa.set_int_width(32);
+			sa.width(32);
 			sa.resize( len );
 			divsufsort(c, (int32_t*)sa.m_data, len);
 			// copy integers back to the right positions
 			if(oldIntWidth!=32){
 				for(size_type i=0; i<len; ++i) { sa.set_int(i*oldIntWidth, sa.get_int(i<<5, 32), oldIntWidth);  }
-				sa.set_int_width(oldIntWidth);
+				sa.width(oldIntWidth);
 				sa.resize(len);
 			}
 		}
 		else{
-			if( sa.get_int_width() < bit_magic::l1BP(len)+1 ){
+			if( sa.width() < bit_magic::l1BP(len)+1 ){
 				throw std::logic_error( "width of int_vector is to small for the text!!!" ); 
 			}
 			int32_t *sufarray = new int32_t[len];
@@ -76,14 +76,14 @@ void calculate_sa(const unsigned char *c, typename int_vector<fixedIntWidth>::si
 			delete [] sufarray;
 		}
 	}else{
-		uint8_t oldIntWidth = sa.get_int_width();
-		sa.set_int_width(64);
+		uint8_t oldIntWidth = sa.width();
+		sa.width(64);
 		sa.resize( len );
 		divsufsort64(c, (int64_t*)sa.m_data, len);
 		// copy integers back to the right positions
 		if(oldIntWidth!=64){
 			for(size_type i=0; i<len; ++i) { sa.set_int(i*oldIntWidth, sa.get_int(i<<6, 64), oldIntWidth);  }
-			sa.set_int_width(oldIntWidth);
+			sa.width(oldIntWidth);
 			sa.resize(len);
 		}
 	}

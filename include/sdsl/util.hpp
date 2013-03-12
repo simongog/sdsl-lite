@@ -90,7 +90,7 @@ void set_one_bits(int_vector_type& v);
 template<class int_vector_type>
 void bit_compress(int_vector_type& v);
 
-//! Expands the integer width to new_width >= v.get_int_width()
+//! Expands the integer width to new_width >= v.width()
 template<class int_vector_type>
 void expand_width(int_vector_type&v, uint8_t new_width);
 
@@ -208,7 +208,7 @@ bool load_vector_from_file(int_vector_type &v, const std::string &file_name, uin
 		}
 		std::ifstream in(file_name.c_str());
 		if ( in ){
-			v.set_int_width( std::min( (int)8*num_bytes, (int)max_int_width ) );
+			v.width( std::min( (int)8*num_bytes, (int)max_int_width ) );
 			v.resize( file_size / num_bytes );
 			if ( 8 == int_vector_type::fixed_int_width and 1 == num_bytes ){ // if int_vector<8> is created from byte alphabet file 
 				in.read((char*)v.m_data, file_size);
@@ -702,7 +702,7 @@ void util::bit_compress(int_vector_type& v) {
         }
     }
     uint8_t min_width = bit_magic::l1BP(max)+1;
-    uint8_t old_width = v.get_int_width();
+    uint8_t old_width = v.width();
     if (old_width > min_width) {
         const uint64_t* read_data = v.m_data;
         uint64_t* write_data = v.m_data;
@@ -713,13 +713,13 @@ void util::bit_compress(int_vector_type& v) {
             bit_magic::write_int_and_move(write_data,  x, write_offset, min_width);
         }
         v.bit_resize(v.size()*min_width);
-        v.set_int_width(min_width);
+        v.width(min_width);
     }
 }
 
 template<class int_vector_type>
 void util::expand_width(int_vector_type&v, uint8_t new_width){
-	uint8_t old_width = v.get_int_width();
+	uint8_t old_width = v.width();
 	typename int_vector_type::size_type n = v.size();
 	if ( new_width > old_width and n > 0 ){
 		typename int_vector_type::size_type i, old_pos, new_pos;
@@ -729,7 +729,7 @@ void util::expand_width(int_vector_type&v, uint8_t new_width){
     	for (i=0; i < n; ++i, new_pos-=new_width, old_pos-=old_width) {
 			v.set_int(new_pos, v.get_int(old_pos, old_width), new_width);
 		}
-		v.set_int_width(new_width);
+		v.width(new_width);
 	}
 }
 

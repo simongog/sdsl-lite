@@ -88,14 +88,14 @@ inline rank_support_jmc::rank_support_jmc(const int_vector<1>* v) {
     set_vector(v);
     if (m_v == NULL) return;
     if (m_v->empty()) {
-        m_blockrank.set_int_width(1); m_superblockrank.set_int_width(1);
+        m_blockrank.width(1); m_superblockrank.width(1);
         m_blockrank.resize(1);		m_superblockrank.resize(1);
         m_blockrank[0] = 0; m_superblockrank[0] = 0;
         return;
     }
-    m_blockrank.set_int_width(12);
+    m_blockrank.width(12);
     m_blockrank.resize((m_v->capacity()>>6) + (0==(m_v->size()&0x3F)));     // n/64 + 2*loglog 64
-    m_superblockrank.set_int_width(m_logn);
+    m_superblockrank.width(m_logn);
     m_superblockrank.resize((m_blockrank.size()+63)>>6);
 
     m_blockrank[0]=0;

@@ -60,7 +60,7 @@ void construct_bwt(cache_config& config){
     text_type text;
     util::load_from_cache(text, KEY_TEXT, config);
     size_type n = text.size(); 
-    uint8_t bwt_width = text.get_int_width();
+    uint8_t bwt_width = text.width();
     write_R_output("bwt", "load text", "end", 1, 0);
 
     //  (2) Prepare to stream SA from disc and BWT to disc
@@ -89,7 +89,7 @@ void construct_bwt(cache_config& config){
             bwt_buf[i-r_sum] = text[ sa_buf[i-r_sum]+to_add[sa_buf[i-r_sum]==0] ]; 
         }
         if (r > 0) {
-            size_type cur_wb = (r*bwt_buf.get_int_width()+7)/8;
+            size_type cur_wb = (r*bwt_buf.width()+7)/8;
             bwt_out_buf.write((const char*)bwt_buf.data(), cur_wb);
             wb += cur_wb;
         }
