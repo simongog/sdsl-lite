@@ -137,7 +137,7 @@ void construct_lcp_PHI(cache_config& config) {
 	}
 
 //	(1) Calculate PHI (stored in array plcp)
-    int_vector<> plcp(n, 0, sa_buf.int_width);
+    int_vector<> plcp(n, 0, sa_buf.width);
     for (size_type i=0, r_sum=0, r=sa_buf.load_next_block(), sai_1 = 0; r_sum < n;) {
         for (; i < r_sum+r; ++i) {
             size_type sai = sa_buf[i-r_sum];
@@ -190,7 +190,7 @@ void construct_lcp_PHI(cache_config& config) {
             lcp_buf[ i-r_sum ] = plcp[sai];
         }
         if (r > 0) {
-            size_type cur_wb = (r*lcp_buf.get_int_width()+7)/8;
+            size_type cur_wb = (r*lcp_buf.width()+7)/8;
             lcp_out_buf.write((const char*)lcp_buf.data(), cur_wb);
             wb += cur_wb;
         }

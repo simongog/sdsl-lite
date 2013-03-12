@@ -73,9 +73,9 @@ namespace sdsl
 //
 //    file_map[constants::KEY_LCP] = dir+"lcp_"+id;
 //    std::ofstream lcp_out_buf(file_map[constants::KEY_LCP].c_str(), std::ios::binary | std::ios::app | std::ios::out);   // open buffer for plcp
-//    size_type bit_size = n*sa_buf.int_width;
+//    size_type bit_size = n*sa_buf.width;
 //    lcp_out_buf.write((char*) &(bit_size), sizeof(sa_buf.int_vector_size));		// write size of vector
-//    lcp_out_buf.write((char*) &(sa_buf.int_width), sizeof(sa_buf.int_width));       // write int_width of vector
+//    lcp_out_buf.write((char*) &(sa_buf.width), sizeof(sa_buf.width));       // write int_width of vector
 //    size_type wb = 0;
 //
 //    size_type buffer_size = 4000000; // buffer_size is a multiple of 8!
@@ -111,7 +111,7 @@ namespace sdsl
 //            sai_1 = sai;
 //        }
 //        if (r > 0) {
-//            size_type cur_wb = (r*sa_buf.int_width+7)/8;
+//            size_type cur_wb = (r*sa_buf.width+7)/8;
 //            lcp_out_buf.write((const char*)sa_buf.data(), cur_wb);
 //            wb += cur_wb;
 //        }
@@ -214,7 +214,7 @@ namespace sdsl
 //    }
 //    for (size_type i=0; i<256; ++i) prev_occ_in_bwt[i] = (size_type)-1; // initialze the array with -1
 //
-//    int_vector<> lcp(n, 0, sa_buf.int_width);
+//    int_vector<> lcp(n, 0, sa_buf.width);
 //    lcp[ cnt_cc[bwti_1]++ ] = 0;   // lcp[ LF[0] ] = 0
 //
 //    const size_type update_stack = 1024;
@@ -641,10 +641,10 @@ namespace sdsl
 //
 //        std::ofstream lcp_out_buf((dir+"lcp_"+id).c_str(), std::ios::binary | std::ios::trunc | std::ios::out);    // open out file stream
 //        file_map[constants::KEY_LCP] = dir+"lcp_"+id;  																		   // and save result to disk
-//        int_vector<> lcp_buf(buffer_size, 0, lcp_big_buf.int_width); // buffer for the resulting LCP array
-//        size_type bit_size = n*lcp_big_buf.int_width;
+//        int_vector<> lcp_buf(buffer_size, 0, lcp_big_buf.width); // buffer for the resulting LCP array
+//        size_type bit_size = n*lcp_big_buf.width;
 //        lcp_out_buf.write((char*) &(bit_size), sizeof(lcp_big_buf.int_vector_size));		   // write size
-//        lcp_out_buf.write((char*) &(lcp_big_buf.int_width), sizeof(lcp_big_buf.int_width));   // write int_width
+//        lcp_out_buf.write((char*) &(lcp_big_buf.width), sizeof(lcp_big_buf.width));   // write int_width
 //        size_type wb = 0; // written bytes of data
 //
 //        for (size_type i=0, r_sum=0, r=0, i2=0 ,r2_sum=0, r2=0; r_sum < n;) {
@@ -660,7 +660,7 @@ namespace sdsl
 //                lcp_buf[i-r_sum] = l;
 //            }
 //            if (r > 0) {
-//                size_type cur_wb = r*lcp_buf.get_int_width();
+//                size_type cur_wb = r*lcp_buf.width();
 //                if (cur_wb%8 != 0)
 //                    cur_wb += 7;
 //                cur_wb /= 8;
@@ -968,10 +968,10 @@ namespace sdsl
 //
 //        std::ofstream lcp_out_buf((dir+"lcp_"+id).c_str(), std::ios::binary | std::ios::trunc | std::ios::out);    // open out file stream
 //        file_map[constants::KEY_LCP] = dir+"lcp_"+id;  																		   // and save result to disk
-//        int_vector<> lcp_buf(buffer_size, 0, lcp_big_buf.int_width); // buffer for the resulting LCP array
-//        size_type bit_size = n*lcp_big_buf.int_width;
+//        int_vector<> lcp_buf(buffer_size, 0, lcp_big_buf.width); // buffer for the resulting LCP array
+//        size_type bit_size = n*lcp_big_buf.width;
 //        lcp_out_buf.write((char*) &(bit_size), sizeof(lcp_big_buf.int_vector_size));		   // write size
-//        lcp_out_buf.write((char*) &(lcp_big_buf.int_width), sizeof(lcp_big_buf.int_width));   // write int_width
+//        lcp_out_buf.write((char*) &(lcp_big_buf.width), sizeof(lcp_big_buf.width));   // write int_width
 //        size_type wb = 0; // written bytes of data
 //
 //        for (size_type i=0, r_sum=0, r=0, i2=0 ,r2_sum=0, r2=0; r_sum < n;) {
@@ -987,7 +987,7 @@ namespace sdsl
 //                lcp_buf[i-r_sum] = l;
 //            }
 //            if (r > 0) {
-//                size_type cur_wb = r*lcp_buf.get_int_width();
+//                size_type cur_wb = r*lcp_buf.width();
 //                if (cur_wb%8 != 0)
 //                    cur_wb += 7;
 //                cur_wb /= 8;
@@ -1330,10 +1330,10 @@ namespace sdsl
 //
 //        std::ofstream lcp_out_buf((dir+"lcp_"+id).c_str(), std::ios::binary | std::ios::trunc | std::ios::out);    // open out file stream
 //        file_map[constants::KEY_LCP] = dir+"lcp_"+id;  																		   // and save result to disk
-//        int_vector<> lcp_buf(buffer_size, 0, lcp_big_buf.int_width); // buffer for the resulting LCP array
-//        size_type bit_size = n*lcp_big_buf.int_width;
+//        int_vector<> lcp_buf(buffer_size, 0, lcp_big_buf.width); // buffer for the resulting LCP array
+//        size_type bit_size = n*lcp_big_buf.width;
 //        lcp_out_buf.write((char*) &(bit_size), sizeof(lcp_big_buf.int_vector_size));		   // write size
-//        lcp_out_buf.write((char*) &(lcp_big_buf.int_width), sizeof(lcp_big_buf.int_width));   // write int_width
+//        lcp_out_buf.write((char*) &(lcp_big_buf.width), sizeof(lcp_big_buf.width));   // write int_width
 //        size_type wb = 0; // written bytes of data
 //
 //        for (size_type i=0, r_sum=0, r=0, i2=0 ,r2_sum=0, r2=0; r_sum < n;) {
@@ -1349,7 +1349,7 @@ namespace sdsl
 //                lcp_buf[i-r_sum] = l;
 //            }
 //            if (r > 0) {
-//                size_type cur_wb = r*lcp_buf.get_int_width();
+//                size_type cur_wb = r*lcp_buf.width();
 //                if (cur_wb%8 != 0)
 //                    cur_wb += 7;
 //                cur_wb /= 8;
@@ -1587,7 +1587,7 @@ std::cout << "# l=" << n << " b=" << (int)bb << " lcp_value_max=" << lcp_value_m
 #ifdef STUDY_INFORMATIONS
 std::cout << "# l=" << remaining_lcp_values << " b=" << (int)int_width_new << " lcp_value_max=" << lcp_value_max << std::endl;
 #endif
-            partial_lcp.set_int_width(int_width_new);
+            partial_lcp.width(int_width_new);
             partial_lcp.resize(remaining_lcp_values);
             util::set_zero_bits(partial_lcp);
             ++phase;
@@ -1678,7 +1678,7 @@ void construct_lcp_bwt_based2(cache_config& config)
         }
         if (idx_out_buf>=lcp_positions_buf.size()) {
             // Write all values from buffer to disk
-            size_type cur_wb = (idx_out_buf*lcp_positions_buf.get_int_width()+7)/8;
+            size_type cur_wb = (idx_out_buf*lcp_positions_buf.width()+7)/8;
             lcp_positions.write((const char*)lcp_positions_buf.data(), cur_wb);
             wb += cur_wb;
             idx_out_buf = 0;
@@ -1747,7 +1747,7 @@ void construct_lcp_bwt_based2(cache_config& config)
                                 new_lcp_value = false;
                             }
                             if (idx_out_buf>=lcp_positions_buf.size()) { // Write all values from buffer to disk
-                                size_type cur_wb = (idx_out_buf*lcp_positions_buf.get_int_width()+7)/8;
+                                size_type cur_wb = (idx_out_buf*lcp_positions_buf.width()+7)/8;
                                 lcp_positions.write((const char*)lcp_positions_buf.data(), cur_wb);
                                 wb += cur_wb;
                                 idx_out_buf = 0;
@@ -1786,7 +1786,7 @@ void construct_lcp_bwt_based2(cache_config& config)
                             }
                             if ( idx_out_buf >= lcp_positions_buf.size() ) {
                                 // Write all values from buffer to disk
-                                size_type cur_wb = (idx_out_buf*lcp_positions_buf.get_int_width()+7)/8;
+                                size_type cur_wb = (idx_out_buf*lcp_positions_buf.width()+7)/8;
                                 lcp_positions.write((const char*)lcp_positions_buf.data(), cur_wb);
                                 wb += cur_wb;
                                 idx_out_buf = 0;
@@ -1811,7 +1811,7 @@ void construct_lcp_bwt_based2(cache_config& config)
         write_R_output("lcp","calc lcp values  ","end  ", 0, 0);
 
         // Write remaining values from buffer to disk
-        size_type cur_wb = (idx_out_buf*lcp_positions_buf.get_int_width()+7)/8;
+        size_type cur_wb = (idx_out_buf*lcp_positions_buf.width()+7)/8;
         lcp_positions.write((const char*)lcp_positions_buf.data(), cur_wb);
         wb += cur_wb;
         if (wb%8) {
@@ -1864,7 +1864,7 @@ std::cout << "# number_of_values=" << number_of_values << " fill lcp_values with
             }
             // Write next values from buffer to disk
             if (values>0) {
-                size_type cur_wb = (values*lcp_array_out_buf.get_int_width()+7)/8;
+                size_type cur_wb = (values*lcp_array_out_buf.width()+7)/8;
                 lcp_array.write((const char*)lcp_array_out_buf.data(), cur_wb);
                 wb += cur_wb;
             }

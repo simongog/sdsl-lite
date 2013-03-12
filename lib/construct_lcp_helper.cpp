@@ -50,7 +50,7 @@ void insert_lcp_values(int_vector<> &partial_lcp, bit_vector &index_done, std::s
         }
         // Write next r values from buffer to harddisk
         if(r>0) {
-            size_type cur_wb = (r*out_buf.get_int_width()+7)/8;
+            size_type cur_wb = (r*out_buf.width()+7)/8;
             tmp_lcp_out_buf.write((const char*)out_buf.data(), cur_wb );
             wb += cur_wb;
         }

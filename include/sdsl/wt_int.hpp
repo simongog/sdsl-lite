@@ -136,8 +136,8 @@ class wt_int {
 				return;
 			}
             m_sigma = 0; // init sigma
-            temp_write_read_buffer<> buf1(5000000, buf.int_width, dir);   // buffer for elements in the right node
-            int_vector<int_width> rac(m_size, 0, buf.int_width);		  // initialize rac
+            temp_write_read_buffer<> buf1(5000000, buf.width, dir);   // buffer for elements in the right node
+            int_vector<int_width> rac(m_size, 0, buf.width);		  // initialize rac
 
             value_type x = 1;  // variable for the biggest value in rac
             for (size_type i=0,r=0,r_sum=0; i < m_size;) { // detect the largest value in rac

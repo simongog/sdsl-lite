@@ -125,7 +125,7 @@ class bp_support_j
             // assert that the sequence is balanced
             assert(opening_parenthesis.empty());
             // store matching positions of pioneers
-            m_pioneer.set_int_width(bit_magic::l1BP(m_size)+1);
+            m_pioneer.width(bit_magic::l1BP(m_size)+1);
             m_pioneer.resize(pioneer_matches.size());
             size_type cnt=0;
             for (std::map<size_type, size_type>::const_iterator mit = pioneer_matches.begin(); mit!= pioneer_matches.end();  ++mit) {
@@ -136,7 +136,7 @@ class bp_support_j
             util::init_support(m_rank_pioneer_bitmap, &m_pioneer_bitmap);
 
             // store matching positions of enclose pioneers
-            m_enclose_pioneer.set_int_width(bit_magic::l1BP(m_size)+1);
+            m_enclose_pioneer.width(bit_magic::l1BP(m_size)+1);
             m_enclose_pioneer.resize(pioneer_matches_for_enclose.size());
             cnt = 0;
             for (std::map<size_type, size_type>::const_iterator mit = pioneer_matches_for_enclose.begin(); mit != pioneer_matches_for_enclose.end(); ++mit) {
