@@ -215,7 +215,7 @@ void load_lcp(Lcp& lcp, std::istream& in, const Cst& cst, lcp_tree_and_lf_compre
 } // end namespace sdsl
 
 #include "lcp_support_sada.hpp"     // type (b)
-#include "lcp_kurtz.hpp"            // type (a)
+#include "lcp_byte.hpp"            // type (a)
 #include "lcp_wt.hpp"               // type (a)
 #include "lcp_dac.hpp"              // type (a)
 #include "lcp_vlc.hpp"              // type (a)

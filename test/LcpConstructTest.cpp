@@ -1,4 +1,4 @@
-#include <sdsl/suffixarrays.hpp>
+#include <sdsl/suffix_arrays.hpp>
 #include <sdsl/construct_lcp.hpp>
 #include <sdsl/construct_bwt.hpp>
 #include <sdsl/testutils.hpp>

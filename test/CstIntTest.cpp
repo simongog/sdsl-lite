@@ -94,6 +94,7 @@ typedef Types<
          cst_sada<tCSA1, lcp_vlc<> >,
          cst_sada<tCSA2, lcp_vlc<> >,
          cst_sada<tCSA3, lcp_vlc<> >,
+         cst_sada<tCSA1, lcp_byte<> >,
          cst_sada<tCSA1, lcp_support_tree2<>, bp_support_gg<> >,
          cst_sada<tCSA2, lcp_support_tree2<>, bp_support_gg<> >,
          cst_sada<tCSA3, lcp_support_tree2<>, bp_support_gg<> >,

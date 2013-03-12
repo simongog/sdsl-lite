@@ -4,7 +4,7 @@
  * Author: Simon Gog
  */
 
-#include <sdsl/suffixarrays.hpp>
+#include <sdsl/suffix_arrays.hpp>
 #include <iostream>
 #include <string>
 
