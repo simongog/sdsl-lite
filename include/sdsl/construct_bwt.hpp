@@ -24,7 +24,6 @@
 #include "typedefs.hpp"
 #include "int_vector.hpp"
 #include "util.hpp"
-#include "testutils.hpp"
 #include "config.hpp" // for cache_config
 
 #include <iostream>

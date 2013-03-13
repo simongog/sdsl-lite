@@ -23,7 +23,6 @@
 
 #include "int_vector.hpp"
 #include "util.hpp"
-#include "testutils.hpp"
 
 #include <iostream>
 #include <stdexcept>

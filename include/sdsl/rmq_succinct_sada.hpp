@@ -25,8 +25,8 @@
 #include "int_vector.hpp"
 #include "algorithms_for_compressed_suffix_trees.hpp"
 #include "bp_support_sada.hpp"
-#include "rank_support_v.hpp"
-#include "select_support_mcl.hpp"
+#include "rank_support.hpp"
+#include "select_support.hpp"
 #include "util.hpp"
 #include <utility> // for pair
 #include <stack>
@@ -37,11 +37,11 @@ namespace sdsl
 
 
 template<bool Minimum = true, 
-	     class Bp_support = bp_support_sada<256, 32, rank_support_v5<>, select_support_dummy>, 
+	     class Bp_support = bp_support_sada<256, 32, rank_support_v5<1>, select_support_scan<1> >, 
 	     class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
 class rmq_succinct_sada;
 
-template<class Bp_support = bp_support_sada<256, 32, rank_support_v5<>, select_support_dummy>, 
+template<class Bp_support = bp_support_sada<256, 32, rank_support_v5<>, select_support_scan<1> >, 
 	     class Rank_support10 = rank_support_v<10,2>, class Select_support10 = select_support_mcl<10,2> >
 struct range_maximum_support_sada {
     typedef rmq_succinct_sada<false, Bp_support, Rank_support10, Select_support10> type;

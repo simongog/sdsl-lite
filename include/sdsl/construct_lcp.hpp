@@ -24,9 +24,9 @@
 #include "typedefs.hpp"  // includes definition of tMSS
 #include "config.hpp"
 #include "int_vector.hpp"
-#include "rank_support_v.hpp"
+#include "rank_support.hpp"
+#include "select_support.hpp"
 #include "util.hpp"
-#include "testutils.hpp"
 #include "construct_isa.hpp"
 #include "construct_bwt.hpp"
 #include "wt_huff.hpp"

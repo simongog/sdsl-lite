@@ -28,7 +28,6 @@
 #include "iterators.hpp"
 #include "select_support_bs.hpp" // dummy select support for wavelet tree, as we don't use select in this application
 #include "util.hpp"
-#include "testutils.hpp"
 #include <iostream>
 #include <algorithm> // for lower_bound
 #include <cassert>
