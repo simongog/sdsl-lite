@@ -21,7 +21,15 @@ rm -f CMakeCache.txt
 
 cmake -DCMAKE_INSTALL_PREFIX=${SDSL_INSTALL_PREFIX} -DBUILD_DIVSUFSORT64=ON \
 	  -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE="Release" -DBUILD_EXAMPLES=OFF .. # run cmake 
+if [ $? != 0 ]; then
+	echo "ERROR: libdivsuftsort cmake call failed."
+	exit 1
+fi
 make # run make
+if [ $? != 0 ]; then
+	echo "ERROR: libdivsuftsort build failed."
+	exit 1
+fi
 
 if [ ! -d "${SDSL_INSTALL_PREFIX}/include" ]; then # if there exists not include dir 
 	mkdir "${SDSL_INSTALL_PREFIX}/include"              # try to create one
@@ -30,6 +38,10 @@ if [ ! -d "${SDSL_INSTALL_PREFIX}/lib" ]; then     #if there exits no lib dir
 	mkdir "${SDSL_INSTALL_PREFIX}/lib"
 fi
 make install  # install libdivsufsort
+if [ $? != 0 ]; then
+	echo "ERROR: libdivsuftsort install failed."
+	exit 1
+fi
 
 cd ../.. # go to the original directory
 if [ "`pwd`" != "${OLD_DIR}" ]; then
@@ -45,7 +57,15 @@ rm -f CMakeCache.txt
 
 cmake -DCMAKE_INSTALL_PREFIX=${SDSL_INSTALL_PREFIX} \
 	  -DBUILD_SHARED_LIBS=OFF -Dgtest_disable_pthreads=ON .. 
+if [ $? != 0 ]; then
+	echo "ERROR: gtest cmake call failed."
+	exit 1
+fi
 make # run make
+if [ $? != 0 ]; then
+	echo "ERROR: gtest build failed."
+	exit 1
+fi
 cp -f ./libgtest* "${SDSL_INSTALL_PREFIX}/lib" # copy generated libraries to the destination
 if [ $? != 0 ]; then
 	echo "ERROR: could not copy libgtest* to ${SDSL_INSTALL_PREFIX}/lib"
@@ -82,6 +102,17 @@ make # run make
 if [ $? != 0 ]; then
 	echo "ERROR: Build failed."
 	exit 1
+fi
+echo "Removing old files"
+echo "rm -rf ${SDSL_INSTALL_PREFIX}/include/sdsl/*"
+rm -rf "${SDSL_INSTALL_PREFIX}/include/sdsl/*"
+if [ $? != 0 ]; then
+	echo "WARNING: Could not remove old header files."
+fi
+echo "rm -f ${SDSL_INSTALL_PREFIX}/lib/libsdsl*"
+rm -f "${SDSL_INSTALL_PREFIX}/lib/libsdsl*"
+if [ $? != 0 ]; then
+	echo "WARNING: Could not remove old library file."
 fi
 make install # install library
 if [ $? != 0 ]; then
