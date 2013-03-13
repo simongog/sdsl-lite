@@ -116,6 +116,7 @@ void _construct_bwt_from_text(std::string text_filename, uint64_t sigma, int_vec
  *  \post BWT exist in the cache. Key
  *         * constants::KEY_BWT
  */
+/*
 void construct_bwt_from_text(cache_config& config)
 {
 	std::string text_filename = util::cache_file_name(constants::KEY_TEXT, config);
@@ -1332,7 +1333,7 @@ std::cerr << "rekursion=" << rekursion << " text_rek.size()=" << text_rek.size()
 	#endif
 	return;
 }
-
+*/
 
 }// end namespace
 
