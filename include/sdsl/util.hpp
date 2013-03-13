@@ -273,7 +273,7 @@ std::string demangle2(const char* name);
 
 //! Transforms the demangled class name of an object to a hash value.
 template<class T>
-std::string class_to_hash(const T& t){
+std::string class_to_hash(const T&){
 	std::locale loc;
 	const std::collate<char>& coll = std::use_facet<std::collate<char> >(loc);
 	std::string name = sdsl::util::demangle2(typeid(T).name());
