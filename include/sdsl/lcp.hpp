@@ -34,43 +34,6 @@ namespace sdsl
 {
 
 // construct lcp arrays
-template<class Lcp, class Cst, uint8_t int_width, uint8_t int_width1>
-void construct_lcp(Lcp& lcp, const Cst& cst,
-                   int_vector_file_buffer<int_width>& lcp_buf,
-                   int_vector_file_buffer<int_width1>& isa_buf)
-{
-    typename Lcp::lcp_category tag;
-    construct_lcp(lcp, cst, lcp_buf, isa_buf, tag);
-}
-
-template<class Lcp, class Cst, uint8_t int_width, uint8_t int_width1>
-void construct_lcp(Lcp& lcp, const Cst& cst,
-                   int_vector_file_buffer<int_width>& lcp_buf,
-                   int_vector_file_buffer<int_width1>& isa_buf,
-                   lcp_plain_tag)
-{
-	util::assign( lcp, Lcp(lcp_buf) );
-}
-
-template<class Lcp, class Cst, uint8_t int_width, uint8_t int_width1>
-void construct_lcp(Lcp& lcp, const Cst& cst,
-                   int_vector_file_buffer<int_width>& lcp_buf,
-                   int_vector_file_buffer<int_width1>& isa_buf,
-                   lcp_permuted_tag)
-{
-	util::assign( lcp, Lcp(lcp_buf, isa_buf, &(cst.csa)) );
-}
-
-template<class Lcp, class Cst, uint8_t int_width, uint8_t int_width1>
-void construct_lcp(Lcp& lcp, const Cst& cst,
-                   int_vector_file_buffer<int_width>& lcp_buf,
-                   int_vector_file_buffer<int_width1>& isa_buf,
-                   lcp_tree_compressed_tag)
-{
-	util::assign( lcp, Lcp( lcp_buf, &(cst.bp_support), &(cst.first_child_rank) ) );
-}
-
-// construct lcp arrays
 template<class Lcp, class Cst>
 void construct_lcp(Lcp& lcp, const Cst& cst, cache_config &config) {
     typename Lcp::lcp_category tag;
@@ -80,7 +43,8 @@ void construct_lcp(Lcp& lcp, const Cst& cst, cache_config &config) {
 template<class Lcp, class Cst>
 void construct_lcp(Lcp& lcp, const Cst& cst, cache_config &config, lcp_plain_tag) {
     int_vector_file_buffer<> lcp_buf(config.file_map[constants::KEY_LCP]);
-	util::assign( lcp, Lcp(lcp_buf) );
+	Lcp tmp_lcp(lcp_buf);
+	lcp.swap(tmp_lcp);
 }
 
 template<class Lcp, class Cst>
@@ -91,20 +55,23 @@ void construct_lcp(Lcp& lcp, const Cst& cst, cache_config &config, lcp_permuted_
         construct_isa(config);
     }
     int_vector_file_buffer<> isa_buf(config.file_map[constants::KEY_ISA]);
-	util::assign( lcp, Lcp(lcp_buf, isa_buf, &(cst.csa)) );
+	Lcp tmp_lcp(lcp_buf, isa_buf, &(cst.csa));
+	lcp.swap(tmp_lcp);
 }
 
 template<class Lcp, class Cst>
 void construct_lcp(Lcp& lcp, const Cst& cst, cache_config &config, lcp_tree_compressed_tag) {
     int_vector_file_buffer<> lcp_buf(config.file_map[constants::KEY_LCP]);
-	util::assign( lcp, Lcp(lcp_buf, &cst) );
+	Lcp tmp_lcp(lcp_buf, &cst);
+	lcp.swap(tmp_lcp);
 }
 
 template<class Lcp, class Cst>
 void construct_lcp(Lcp& lcp, const Cst& cst, cache_config &config, lcp_tree_and_lf_compressed_tag) {
     int_vector_file_buffer<> lcp_buf(config.file_map[constants::KEY_LCP]);
     int_vector_file_buffer<Cst::csa_type::alphabet_type::int_width> bwt_buf( config.file_map[key_trait<Cst::csa_type::alphabet_type::int_width>::KEY_BWT] ); 
-	util::assign( lcp, Lcp(lcp_buf, bwt_buf, &cst) );
+	Lcp tmp_lcp(lcp_buf, bwt_buf, &cst);
+	lcp.swap(tmp_lcp);
 }
 
 // copy lcp arrays

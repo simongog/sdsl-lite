@@ -641,6 +641,20 @@ class int_vector_reference
             return val;
         }
 
+        //! Add assign from the proxy object
+        int_vector_reference& operator+=(const typename int_vector::value_type x) {
+            typename int_vector::value_type w = bit_magic::read_int(m_word, m_offset, m_len);
+			bit_magic::write_int(m_word, w+x, m_offset, m_len);
+            return *this;
+        }
+
+        //! Subtract assign from the proxy object
+        int_vector_reference& operator-=(const typename int_vector::value_type x) {
+            typename int_vector::value_type w = bit_magic::read_int(m_word, m_offset, m_len);
+			bit_magic::write_int(m_word, w-x, m_offset, m_len);
+            return *this;
+        }
+
         bool operator==(const int_vector_reference& x)const {
             return typename int_vector::value_type(*this) == typename int_vector::value_type(x);
         }
@@ -769,7 +783,7 @@ class int_vector_iterator : public int_vector_iterator_base<int_vector>
         }
 
         //! Postfix increment of the Iterator
-        iterator operator++(int x) {
+        iterator operator++(int) {
             int_vector_iterator it = *this;
             ++(*this);
             return it;
