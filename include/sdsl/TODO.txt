@@ -1,2 +1,0 @@
-wt_rlgX: do a generalize version of the implementations so that 
-    	 the X is a template parameter of wt_rlg
