@@ -27,8 +27,6 @@
 #include "int_vector.hpp"
 #include "rank_support_v.hpp"
 #include "select_support_mcl.hpp"
-#include "bitmagic.hpp"
-#include "testutils.hpp"
 #include "temp_write_read_buffer.hpp"
 #include "util.hpp"
 #include <set> // for calculating the alphabet size
@@ -137,8 +135,8 @@ class wt_int {
 				return;
 			}
             m_sigma = 0; // init sigma
-            temp_write_read_buffer<> buf1(5000000, buf.int_width, dir);   // buffer for elements in the right node
-            int_vector<int_width> rac(m_size, 0, buf.int_width);		  // initialize rac
+            temp_write_read_buffer<> buf1(5000000, buf.width, dir);   // buffer for elements in the right node
+            int_vector<int_width> rac(m_size, 0, buf.width);		  // initialize rac
 
             value_type x = 1;  // variable for the biggest value in rac
             for (size_type i=0,r=0,r_sum=0; i < m_size;) { // detect the largest value in rac
@@ -160,7 +158,7 @@ class wt_int {
             }
 			init_buffers(m_max_depth);
 
-            std::string tree_out_buf_file_name = (dir+"m_tree"+util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()));
+            std::string tree_out_buf_file_name = (dir+"m_tree"+util::to_string(util::pid())+"_"+util::to_string(util::id()));
             std::ofstream tree_out_buf(tree_out_buf_file_name.c_str(),
                                        std::ios::binary | std::ios::trunc | std::ios::out);   // open buffer for tree
             size_type bit_size = m_size*m_max_depth;
@@ -214,7 +212,7 @@ class wt_int {
             tree_out_buf.close();
             rac.resize(0);
             bit_vector tree;
-            util::load_from_file(tree, tree_out_buf_file_name.c_str());
+            util::load_from_file(tree, tree_out_buf_file_name);
             std::remove(tree_out_buf_file_name.c_str());
             util::assign(m_tree, tree);
             util::init_support(m_tree_rank, &m_tree);

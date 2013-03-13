@@ -25,7 +25,6 @@
 #include "rank_support.hpp"
 #include "select_support.hpp"
 #include "algorithms.hpp"
-#include "bitmagic.hpp"
 #include "fast_cache.hpp"
 #include <stack>
 #include <map>
@@ -42,7 +41,7 @@
 namespace sdsl
 {
 
-//! A class that provides support for bit_vectors that represent a balanced parentheses sequence. Implementation was proposed by Kunihiko Sadakane in the paper "The Ultimate Balanced Parentheses" (Technical Report 2008).
+//! A class that provides support for bit_vectors that represent a balanced parentheses sequence. 
 /*! This data structure supports the following methods on a bit_vector b that represents a balanced parentheses sequence:
  *    - rank
  *    - select
@@ -55,11 +54,18 @@ namespace sdsl
  *  An opening parenthesis in the balanced parentheses sequence is represented by a 1 in the bit_vector
  *  and a closing parenthesis by a 0.
  *
- *  This class could be parametrized by four parameters:
- *    - SmlBlkSize is the size of the small blocks. Denoted as "s" in Sadakane's paper.
- *    - MedBlkDeg  is the number of small blocks that a medium block contains. Denoted as "l" in Sadakane's paper.
- *    - RankSupport is a class which support the rank operation on bit_vectors.
- *    - SelectSupport is a class which support the select operation on bit_vectors.
+ *  \tparam SmlBlkSize is the size of the small blocks. Denoted as "s" in Sadakane's paper.
+ *  \tparam MedBlkDeg  is the number of small blocks that a medium block contains. Denoted as "l" in Sadakane's paper.
+ *  \tparam RankSupport is a class which support the rank operation on bit_vectors.
+ *  \tparam SelectSupport is a class which support the select operation on bit_vectors.
+ *
+ *  \par References
+ *  	- Kunihiko Sadakane:
+ *        The Ultimate Balanced Parentheses
+ *        Technical Report 2008.
+ *      - Kunihiko Sadakane, Gonzalo Navarro:
+ *        Fully-Functional Succinct Trees. 
+ *        SODA 2010: 134-149 
  *
  *  @ingroup bps
  */

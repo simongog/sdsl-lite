@@ -5,7 +5,6 @@
 #include "util.hpp"
 #include "algorithms_for_compressed_suffix_trees.hpp"
 #include "rank_support_v.hpp"
-#include "select_support_dummy.hpp"
 #include "wt_huff.hpp"
 #include <iostream>
 #include <string>
@@ -35,11 +34,11 @@ class _lcp_support_tree2
         typedef int_vector<>::size_type					    		size_type;		 // STL Container requirement
         typedef int_vector<>::difference_type			    		difference_type; // STL Container requirement
         typedef Cst										    		cst_type;
-        typedef select_support_dummy 					    		tDummySS;
         typedef wt_huff<bit_vector, rank_support_v5<>, 
-				        tDummySS, tDummySS>  						small_lcp_type; 
+				        select_support_scan<1>, 
+						select_support_scan<0> > 					small_lcp_type; 
 
-        typedef lcp_tree_and_lf_compressed_tag					lcp_category;
+        typedef lcp_tree_and_lf_compressed_tag						lcp_category;
 
         enum { fast_access = 0,
                text_order = 0,
@@ -83,12 +82,12 @@ class _lcp_support_tree2
                        int_vector_file_buffer<Cst::csa_type::alphabet_type::int_width>& bwt_buf,
                        const cst_type* cst = NULL) {
             m_cst = cst;
-            std::string small_lcp_file_name =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str() + "_fc_lf_lcp_sml";
-            std::string big_lcp_file_name =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str() + "_fc_lf_lcp_big";
+            std::string small_lcp_file_name =  util::to_string(util::pid())+"_"+util::to_string(util::id()).c_str() + "_fc_lf_lcp_sml";
+            std::string big_lcp_file_name =  util::to_string(util::pid())+"_"+util::to_string(util::id()).c_str() + "_fc_lf_lcp_big";
 
             algorithm::construct_first_child_and_lf_lcp<SampleDens>(lcp_buf, bwt_buf, small_lcp_file_name, big_lcp_file_name, m_big_lcp);
             // construct wavelet tree huffman from file buffer
-            int_vector_file_buffer<8> small_lcp_buf(small_lcp_file_name.c_str());
+            int_vector_file_buffer<8> small_lcp_buf(small_lcp_file_name);
 			util::assign(m_small_lcp, small_lcp_type(small_lcp_buf, small_lcp_buf.int_vector_size));
             std::remove(small_lcp_file_name.c_str());
         }

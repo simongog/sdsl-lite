@@ -22,7 +22,7 @@
 #define INCLUDED_SDSL_UINT256
 
 #include <iostream>
-#include "bitmagic.hpp"
+#include "bit_magic.hpp"
 #include "uint128_t.hpp"
 
 namespace sdsl

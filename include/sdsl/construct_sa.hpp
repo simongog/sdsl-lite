@@ -14,13 +14,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file algorithms_for_suffix_array_construction.hpp
-    \brief algorithms_for_suffix_array_construction.hpp contains an interface to access suffix array construction algorithms
+/*! \file construct_sa.hpp
+    \brief construct_sa.hpp contains an interface to access suffix array construction algorithms
 	\author Simon Gog
 */ 
 
-#ifndef INCLUDED_SDSL_ALGORITHMS_FOR_SUFFIX_ARRAY_CONSTRUCTION
-#define INCLUDED_SDSL_ALGORITHMS_FOR_SUFFIX_ARRAY_CONSTRUCTION
+#ifndef INCLUDED_SDSL_CONSTRUCT_SA
+#define INCLUDED_SDSL_CONSTRUCT_SA
 
 #include "config.hpp"
 #include "int_vector.hpp"
@@ -28,9 +28,11 @@
 #include "divsufsort.h"
 #include "divsufsort64.h"
 
+#include "qsufsort.hpp"
+
 namespace sdsl{
 
-namespace algorithm{	
+namespace algorithm{
 
 //	
 // Forward declarations
@@ -43,33 +45,6 @@ namespace algorithm{
  * \param sa Reference to a RandomAccessContainer which will contain the result of the calculation. 
  * \pre sa.size() has to be equal to len.
  */
-template<class RandomAccessContainer>
-static void calculate_sa(const unsigned char *c, typename RandomAccessContainer::size_type len, RandomAccessContainer &sa);
-
-template<uint8_t fixedIntWidth>
-static void calculate_sa(const unsigned char *c, typename int_vector<fixedIntWidth>::size_type len, int_vector<fixedIntWidth> &sa);
-
-template<class RandomAccessContainer>
-void calculate_sa(const unsigned char *c, typename RandomAccessContainer::size_type len, RandomAccessContainer &sa){
-	typedef typename RandomAccessContainer::size_type size_type;
-	if(len<=1){ // handle special case 
-		sa = RandomAccessContainer(len,0);
-		return;
-	}
-	bool small_file = (sizeof(len) <= 4 or len < 0x7FFFFFFFULL );
-	if( small_file ){
-		int32_t *sufarray = new int32_t[len];
-		divsufsort(c, sufarray, len);		
-		for(size_type i=0; i<len; ++i) { sa[i] = sufarray[i]; }
-		delete [] sufarray;
-	}else{
-		int64_t *sufarray = new int64_t[len];
-		divsufsort64(c, sufarray, len);		
-		for(size_type i=0; i<len; ++i) { sa[i] = sufarray[i]; }
-		delete [] sufarray;
-	}
-}
-
 template<uint8_t fixedIntWidth>
 void calculate_sa(const unsigned char *c, typename int_vector<fixedIntWidth>::size_type len, int_vector<fixedIntWidth> &sa){
 	typedef typename int_vector<fixedIntWidth>::size_type size_type;
@@ -79,46 +54,80 @@ void calculate_sa(const unsigned char *c, typename int_vector<fixedIntWidth>::si
 	}
 	bool small_file = (sizeof(len) <= 4 or len < 0x7FFFFFFFULL );
 	if( small_file ){
-		uint8_t oldIntWidth = sa.get_int_width();
+		uint8_t oldIntWidth = sa.width();
 		if( 32 == fixedIntWidth or (0==fixedIntWidth and 32 >= oldIntWidth) ){
-			sa.set_int_width(32);
+			sa.width(32);
 			sa.resize( len );
 			divsufsort(c, (int32_t*)sa.m_data, len);
 			// copy integers back to the right positions
 			if(oldIntWidth!=32){
 				for(size_type i=0; i<len; ++i) { sa.set_int(i*oldIntWidth, sa.get_int(i<<5, 32), oldIntWidth);  }
-				sa.set_int_width(oldIntWidth);
+				sa.width(oldIntWidth);
 				sa.resize(len);
 			}
 		}
 		else{
-			if( sa.get_int_width() < bit_magic::l1BP(len)+1 ){
+			if( sa.width() < bit_magic::l1BP(len)+1 ){
 				throw std::logic_error( "width of int_vector is to small for the text!!!" ); 
 			}
 			int32_t *sufarray = new int32_t[len];
-			divsufsort(c, sufarray, len);		
+			divsufsort(c, sufarray, len);
 			for(size_type i=0; i<len; ++i) { sa[i] = sufarray[i]; }
 			delete [] sufarray;
 		}
 	}else{
-		uint8_t oldIntWidth = sa.get_int_width();
-		sa.set_int_width(64);
+		uint8_t oldIntWidth = sa.width();
+		sa.width(64);
 		sa.resize( len );
 		divsufsort64(c, (int64_t*)sa.m_data, len);
 		// copy integers back to the right positions
 		if(oldIntWidth!=64){
 			for(size_type i=0; i<len; ++i) { sa.set_int(i*oldIntWidth, sa.get_int(i<<6, 64), oldIntWidth);  }
-			sa.set_int_width(oldIntWidth);
+			sa.width(oldIntWidth);
 			sa.resize(len);
 		}
 	}
 }
 
-// \param c Char array pointing to the text
-// \param n Length of the text
-bool shift_text(char *c, uint64_t n, bool shift=true);
 
 } // end namespace algorithm
+
+//! Constructs the Suffix Array (SA) from text over byte- or integer-alphabet.
+/*!	The algorithm constructs the SA and stores it to disk.
+ *  \tparam t_width Width of the text. 0==integer alphabet, 8=byte alphabet.
+ *  \param config	Reference to cache configuration
+ *  \par Space complexity
+ *      \f$ 5n \f$ byte for t_width=8 and input < 2GB
+ *      \f$ 9n \f$ byte for t_width=8 and input > 2GB
+ *      \f$ n \log \sigma \f$ bits for t_width=0
+ *  \pre Text exist in the cache. Keys:
+ *         * constants::KEY_TEXT for t_width=8 or constants::KEY_TEXT_INT for t_width=0
+ *  \post SA exist in the cache. Key
+ *         * constants::KEY_SA
+ *  \par Reference
+ *    For t_width=8: DivSufSort (http://code.google.com/p/libdivsufsort/)
+ *    For t_width=0: qsufsort (http://www.larsson.dogma.net/qsufsort.c)
+ */
+template<uint8_t t_width>
+void construct_sa(cache_config& config) {
+	const char * KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
+	typedef int_vector<t_width> text_type;
+	text_type text;
+	util::load_from_cache(text, KEY_TEXT, config);
+	if ( t_width == 8 ) {
+		// call divsufsort
+		int_vector<> sa(text.size(), 0, bit_magic::l1BP(text.size())+1);
+		algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
+		util::store_to_cache(sa, constants::KEY_SA, config);
+	} else if ( t_width == 0 ) {
+		// call qsufsort
+		int_vector<> sa;
+		sdsl::qsufsort::construct_sa(sa, config.file_map[KEY_TEXT].c_str(), 0);
+		util::store_to_cache(sa, constants::KEY_SA, config);
+	} else {
+		std::cerr << "Unknown alphabet type" << std::endl;
+	}
+}
 
 } // end namespace sdsl
 

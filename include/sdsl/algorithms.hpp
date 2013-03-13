@@ -40,23 +40,6 @@ namespace sdsl
  */
 namespace algorithm
 {
-//	private:
-//		algorithm(); // This helper class can not be instantiated
-
-// Returns if the pair (a1,a2) is lex. less or equal than (b1,b2)
-template<typename I>
-static bool leq(I a1, I a2, I b1, I b2)
-{
-    return a1 < b1 || (a1 == b1 && a2 <= b2);
-}
-
-// Returns if the triple (a1,a2,a3) is lex. less or equal than (b1,b2,b3)
-template<typename I>
-static bool leq(I a1, I a2, I a3, I b1, I b2, I b3)
-{
-    return a1 < b1 || (a1 == b1 && leq(a2,a3,b2,b3));
-}
-
 
 //	public:
 //! Calculate the zero-order entropy for a text T
@@ -431,7 +414,7 @@ void sa2isa(const RandomAccessContainer1& sa, RandomAccessContainer2& isa)
 template<class RandomAccessContainer>
 void sa2isa(const RandomAccessContainer& sa, int_vector<>& isa)
 {
-    isa.set_int_width(bit_magic::l1BP(sa.size())+1);
+    isa.width(bit_magic::l1BP(sa.size())+1);
     isa.resize(sa.size()); // init isa
     typename RandomAccessContainer::size_type i = 0;
     for (typename RandomAccessContainer::const_iterator sa_it = sa.begin(), end = sa.end(); sa_it != end; ++sa_it, ++i) {
@@ -524,7 +507,7 @@ void sa2psi(const RandomAccessContainer& sa, int_vector<>& psi)
 {
     int_vector<> isa; // temporary array for the inverse suffix array
     sa2isa(sa, isa);
-    psi.set_int_width(bit_magic::l1BP(sa.size())+1);
+    psi.width(bit_magic::l1BP(sa.size())+1);
     psi.resize(sa.size());
     typename RandomAccessContainer::value_type tmp; //
     int_vector<>::iterator psi_it = psi.begin();
@@ -579,7 +562,7 @@ void psi2sa(const RandomAccessContainer1& psi, const typename RandomAccessContai
 template<class RandomAccessContainer>
 void psi2sa(const RandomAccessContainer& psi, const typename RandomAccessContainer::size_type isa_0, int_vector<>& sa)
 {
-    sa.set_int_width(bit_magic::l1BP(psi.size())+1);
+    sa.width(bit_magic::l1BP(psi.size())+1);
     sa.resize(psi.size());
     if (psi.empty())
         return;
@@ -684,7 +667,7 @@ bool equal_container_values(const Container1& c1, Container2& c2)
 
 } // end namespace sdsl
 
-#include "algorithms_for_suffix_array_construction.hpp"
+#include "construct_sa.hpp"
 #include "algorithms_for_balanced_parentheses.hpp"
 #include "algorithms_for_compressed_suffix_arrays.hpp"
 #include "algorithms_for_compressed_suffix_trees.hpp"

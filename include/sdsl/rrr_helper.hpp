@@ -30,14 +30,14 @@
 
 #include <algorithm> // for next permutation
 #include <iostream>
-#include "bitmagic.hpp"
+#include "bit_magic.hpp"
 #include "uint128_t.hpp"
 #include "uint256_t.hpp"
 
 namespace sdsl
 {
 
-//! Trait class for the binomial coefficient class to handle different type of intergers
+//! Trait class for the binomial coefficient class to handle different type of integers.
 /*! This generic implementation works for 64-bit integers.
  */
 template<uint16_t log_n>

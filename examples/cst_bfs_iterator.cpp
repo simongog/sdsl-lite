@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <sdsl/util.hpp>
-#include <sdsl/suffixtrees.hpp>
+#include <sdsl/suffix_trees.hpp>
 
 using namespace std;
 using namespace sdsl;

@@ -5,7 +5,6 @@
 #include "sdsl/rrr_vector.hpp" // for rrr_select_support
 #include "sdsl/sd_vector.hpp" // for sd_select_support
 #include "sdsl/gap_vector.hpp" // for gap_select_suport
-#include "sdsl/bitmagic.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()

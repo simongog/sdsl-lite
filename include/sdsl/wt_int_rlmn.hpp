@@ -24,7 +24,6 @@
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "sd_vector.hpp"  // for standard initialisation of template parameters 
-#include "bitmagic.hpp"
 #include "util.hpp"
 #include "wt_int.hpp"
 #include "rrr_vector.hpp"
@@ -197,10 +196,10 @@ class wt_int_rlmn
                 }
                 {
 					// TODO: remove absolute file name
-					std::string temp_file = "tmp_wt_int_rlmn_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
-					util::store_to_file(condensed_bwt, temp_file.c_str());
+					std::string temp_file = "tmp_wt_int_rlmn_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
+					util::store_to_file(condensed_bwt, temp_file);
 					util::clear(condensed_bwt);
-                    int_vector_file_buffer<> temp_bwt_buf(temp_file.c_str());
+                    int_vector_file_buffer<> temp_bwt_buf(temp_file);
 					util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
 					std::remove(temp_file.c_str());
                 }

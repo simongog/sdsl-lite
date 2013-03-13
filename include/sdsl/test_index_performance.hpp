@@ -15,17 +15,15 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file test_index_performance.hpp
- *  \brief test_index_performance.hpp contains a set of functions which test the speed of operations of compressed suffix arrays and compressed suffix trees
+ *  \brief test_index_performance.hpp contains a set of benchmark methods
  *  \author Simon Gog
  */
 #ifndef INCLUDE_SDSL_TEST_INDEX_PERFORMANCE
 #define INCLUDE_SDSL_TEST_INDEX_PERFORMANCE
 
 #include "int_vector.hpp"	// for bit_vector and int_vector
-#include "testutils.hpp"	// for write_R_output 
 #include "util.hpp"			// for 
 #include "algorithms.hpp"	// for backward_search
-#include "testutils.hpp"    // for file
 #include <cstdlib>			// for rand 
 #include <algorithm>		// for swap
 #include <vector>			// for std::vector	
@@ -270,16 +268,18 @@ void test_pattern_matching(const Csa& csa,
     write_R_output("csa","extract patterns","begin",times,0);
 
     size_type file_size = 0;
-    char* ccc = NULL;
-    if ((file_size=file::read_text(file_name, ccc)) == 0) {
-        throw std::logic_error("file " + std::string(file_name) + " has size 0 or could not be read");
-    }
-
-    for (size_type i=0; i<rands.size(); ++i) {
-        for (size_type j=rands[i]; j < rands[i] + pattern_len; ++j)
-            patterns[i*pattern_len + (j-rands[i])] = ccc[j];
-    }
-    delete [] ccc;
+	{
+		int_vector<8> text;
+		if ( util::load_vector_from_file(text, file_name, 1) ){
+			for (size_type i=0; i<rands.size(); ++i) {
+				for (size_type j=rands[i]; j < rands[i] + pattern_len; ++j)
+					patterns[i*pattern_len + (j-rands[i])] = text[j];
+			}
+		} else {
+			std::cerr << "ERROR: test_pattern_matching: could not open";
+			std::cerr << "file `" << file_name << "`" << std::endl;
+		}
+	}
     write_R_output("csa","extract patterns","end",times,0);
 
     size_type cnt=0;

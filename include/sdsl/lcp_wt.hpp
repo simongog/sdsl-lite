@@ -22,14 +22,12 @@
 #define INCLUDED_SDSL_LCP_WT
 
 #include "lcp.hpp"
+#include "wt_huff.hpp"
 #include "int_vector.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
-#include "bitmagic.hpp"
-#include "wt_huff.hpp"
 #include "select_support_bs.hpp" // dummy select support for wavelet tree, as we don't use select in this application
 #include "util.hpp"
-#include "testutils.hpp"
 #include <iostream>
 #include <algorithm> // for lower_bound
 #include <cassert>
@@ -199,7 +197,7 @@ template<uint8_t width>
 template<uint8_t int_width>
 lcp_wt<width>::lcp_wt(int_vector_file_buffer<int_width>& lcp_buf)
 {
-    std::string temp_file = "/tmp/lcp_sml" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id()) ;// TODO: remove absolute file name
+    std::string temp_file = "/tmp/lcp_sml" + util::to_string(util::pid()) + "_" + util::to_string(util::id()) ;// TODO: remove absolute file name
 //	write_R_output("lcp","construct sml","begin");
     typename int_vector<>::size_type l=0, max_l=0, big_sum=0, n = lcp_buf.int_vector_size;
     {
@@ -217,10 +215,10 @@ lcp_wt<width>::lcp_wt(int_vector_file_buffer<int_width>& lcp_buf)
             }
             r_sum += r; r = lcp_buf.load_next_block();
         }
-        util::store_to_file(small_lcp, temp_file.c_str());
+        util::store_to_file(small_lcp, temp_file);
     }
 //	write_R_output("lcp","construct sml","end");
-    int_vector_file_buffer<8> lcp_sml_buf(temp_file.c_str());
+    int_vector_file_buffer<8> lcp_sml_buf(temp_file);
 
 	util::assign( m_small_lcp, small_lcp_type(lcp_sml_buf, lcp_sml_buf.int_vector_size) );
 

@@ -1,4 +1,4 @@
-#include "sdsl/lcp_construct_helper.hpp"
+#include "sdsl/construct_lcp_helper.hpp"
 #include "sdsl/int_vector.hpp"
 #include <algorithm>
 
@@ -19,7 +19,7 @@ void insert_lcp_values(int_vector<> &partial_lcp, bit_vector &index_done, std::s
 	std::string tmp_lcp_file  = lcp_file+"_TMP";
 	const uint64_t buffer_size = 1000000; // has to be a multiple of 64 
     typedef int_vector<>::size_type size_type;
-    int_vector_file_buffer<> lcp_buffer(lcp_file.c_str(), buffer_size); // open lcp_file
+    int_vector_file_buffer<> lcp_buffer(lcp_file, buffer_size); // open lcp_file
 	uint64_t n = lcp_buffer.int_vector_size;
 
     // open tmp_lcp_file
@@ -50,7 +50,7 @@ void insert_lcp_values(int_vector<> &partial_lcp, bit_vector &index_done, std::s
         }
         // Write next r values from buffer to harddisk
         if(r>0) {
-            size_type cur_wb = (r*out_buf.get_int_width()+7)/8;
+            size_type cur_wb = (r*out_buf.width()+7)/8;
             tmp_lcp_out_buf.write((const char*)out_buf.data(), cur_wb );
             wb += cur_wb;
         }

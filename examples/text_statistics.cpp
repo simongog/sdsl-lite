@@ -1,4 +1,4 @@
-#include <sdsl/suffixtrees.hpp>
+#include <sdsl/suffix_trees.hpp>
 #include <iostream>
 
 using namespace std;

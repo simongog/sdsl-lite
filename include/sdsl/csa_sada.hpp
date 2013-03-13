@@ -25,11 +25,8 @@
 #include "int_vector.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
-#include "suffixarrays.hpp"
-#include "suffixarray_helper.hpp"
+#include "suffix_array_helper.hpp"
 #include "util.hpp"
-#include "testutils.hpp"
-#include "bwt_construct.hpp"
 #include "csa_sampling_strategy.hpp"
 #include "csa_alphabet_strategy.hpp"
 #include <iostream>
@@ -77,6 +74,7 @@ class csa_sada {
         typedef EncVector											                enc_vector_type;
         typedef psi_of_csa_psi<csa_sada>						 	                psi_type;
         typedef bwt_of_csa_psi<csa_sada>						 	                bwt_type;
+        typedef text_of_csa<csa_sada>						 	         	        text_type;
         typedef typename SaSamplingStrategy::template type<csa_sada>::sample_type   sa_sample_type;
         typedef IsaSampleContainer  												isa_sample_type;
 		typedef AlphabetStrategy													alphabet_type;
@@ -88,8 +86,7 @@ class csa_sada {
         typedef csa_tag													            index_category;
 		typedef psi_tag																extract_category;
 
-        friend class psi_of_csa_psi<csa_sada>;
-        friend class bwt_of_csa_psi<csa_sada>;
+        friend class psi_of_csa_psi<csa_sada>; // for access of m_psi
 
 		static const uint32_t linear_decode_limit = 100000;
     private:
@@ -128,13 +125,14 @@ class csa_sada {
 		const typename alphabet_type::sigma_type& 		sigma;
         const psi_type 									psi;
         const bwt_type 									bwt;
+		const text_type									text;
         const sa_sample_type& 							sa_sample;
         const isa_sample_type& 							isa_sample;
 
 
         //! Default Constructor
         csa_sada(): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma), 
-		            psi(this), bwt(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
+		            psi(this), bwt(this), text(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
 			create_buffer();
         }
         //! Default Destructor
@@ -144,7 +142,7 @@ class csa_sada {
 
         //! Copy constructor
         csa_sada(const csa_sada& csa): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-								       psi(this), bwt(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
+								       psi(this), bwt(this), text(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
 			create_buffer();
             copy(csa);
         }
@@ -342,12 +340,12 @@ finish:
 
 template<class EncVector, uint32_t SampleDens, uint32_t InvSampleDens, class SaSamplingStrategy, class IsaSampleContainer, class AlphabetStrategy>
 csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleContainer, AlphabetStrategy>::csa_sada(cache_config &config):
-    char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),C(m_alphabet.C), sigma(m_alphabet.sigma), psi(this), bwt(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
+    char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),C(m_alphabet.C), sigma(m_alphabet.sigma), psi(this), bwt(this), text(this),sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
 	create_buffer();
     if ( !util::cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config) ) { 
 		return;	
     }
-    int_vector_file_buffer<alphabet_type::int_width> bwt_buf(util::cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config).c_str()); 
+    int_vector_file_buffer<alphabet_type::int_width> bwt_buf(util::cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config)); 
     size_type n = bwt_buf.int_vector_size;
     write_R_output("csa", "construct alphabet", "begin", 1, 0);
 	util::assign(m_alphabet, alphabet_type(bwt_buf, n));
@@ -374,11 +372,11 @@ csa_sada<EncVector, SampleDens, InvSampleDens, SaSamplingStrategy, IsaSampleCont
 		}
     }
     write_R_output("csa", "construct PSI","end");
-    int_vector_file_buffer<> psi_buf(util::cache_file_name(constants::KEY_PSI, config).c_str());
+    int_vector_file_buffer<> psi_buf(util::cache_file_name(constants::KEY_PSI, config));
 	write_R_output("csa", "encoded PSI", "begin");
 	util::assign(m_psi, EncVector(psi_buf));
 	write_R_output("csa", "encoded PSI", "end");
-    int_vector_file_buffer<>  sa_buf(util::cache_file_name(constants::KEY_SA, config).c_str());
+    int_vector_file_buffer<>  sa_buf(util::cache_file_name(constants::KEY_SA, config));
 	util::assign(m_sa_sample, sa_sample_type(sa_buf));
     algorithm::set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
 }

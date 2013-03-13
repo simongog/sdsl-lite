@@ -25,7 +25,6 @@
 #include "int_vector.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
-#include "bitmagic.hpp"
 #include <iostream>
 #include <algorithm> // for lower_bound
 #include <cassert>
@@ -193,7 +192,7 @@ template<uint8_t int_width>
 lcp_bitcompressed<width>::lcp_bitcompressed(int_vector_file_buffer<int_width>& lcp_buf)
 {
     lcp_buf.reset();
-    m_lcp = int_vector<width>(lcp_buf.int_vector_size, 0, lcp_buf.int_width);
+    m_lcp = int_vector<width>(lcp_buf.int_vector_size, 0, lcp_buf.width);
     for (size_type i=0, r_sum=0, r = lcp_buf.load_next_block(); r_sum < m_lcp.size();) {
         for (; i < r_sum+r; ++i) {
             m_lcp[i] = lcp_buf[i-r_sum];

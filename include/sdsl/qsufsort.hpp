@@ -414,14 +414,14 @@ std::cout<<"sorter: use int_vector<64>"<<std::endl;
 			util::load_vector_from_file(x, file_name, num_bytes);
 		}
 		assert(x.size()>0);
-std::cout<<"x.get_int_width()="<< (int)x.get_int_width() <<std::endl;
+std::cout<<"x.width()="<< (int)x.width() <<std::endl;
 std::cout<<"x.size()="<<x.size()<<std::endl;
 		if ( x.size() == 1 ){
 			sa = tIV(1, 0);
 			return;
 		}
 
-		int64_t max_symbol = 0, min_symbol = x.get_int_width() < 64 ? bit_magic::Li1Mask[x.get_int_width()] : 0x7FFFFFFFFFFFFFFFLL;
+		int64_t max_symbol = 0, min_symbol = x.width() < 64 ? bit_magic::Li1Mask[x.width()] : 0x7FFFFFFFFFFFFFFFLL;
 		
 		for(size_type i=0; i < x.size()-1; ++i){
 //			if(i<10){
@@ -456,12 +456,12 @@ std::cout<<"x.size()="<<x.size()<<std::endl;
 //}	
 		util::expand_width(x, width);
 		sa = x;
-		if ( sa.get_int_width() < x.get_int_width() ){
+		if ( sa.width() < x.width() ){
 			throw std::logic_error("Fixed size suffix array is to small for the specified text.");
 			return;
 		}
 	
-		m_msb = sa.get_int_width()-1;
+		m_msb = sa.width()-1;
 		m_msb_mask = 1ULL<<m_msb;
 //if ( util::verbose ){
 	std::cout<<"sorter: m_msb="<< (int)m_msb <<" m_msb_mask="<<m_msb_mask<<std::endl;

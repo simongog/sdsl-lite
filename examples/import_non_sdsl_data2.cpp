@@ -16,7 +16,7 @@ int main(int argc, char* argv[]){
 	util::load_vector_from_file(v, argv[1], 4);
 	
 	cout << "v.size() = " << v.size() << endl;
-	cout << "v.get_int_width() = "  << (int)v.get_int_width() << endl;
+	cout << "v.width() = "  << (int)v.width() << endl;
 	cout << "v =";
 	size_t max_out = 10;
 	if ( argc > 2 ){

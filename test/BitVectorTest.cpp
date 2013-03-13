@@ -1,9 +1,4 @@
-#include "sdsl/int_vector.hpp" // vor bit_vector
-#include "sdsl/rrr_vector.hpp" // for rrr_vector
-#include "sdsl/bit_vector_interleaved.hpp" // for rank_support_interleaved
-#include "sdsl/sd_vector.hpp" // for sd_vector
-#include "sdsl/gap_vector.hpp" // for gap_vector
-#include "sdsl/bitmagic.hpp"
+#include "sdsl/bit_vectors.hpp" // for rrr_vector
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()
@@ -87,9 +82,9 @@ using testing::Types;
 
 typedef Types<
 sdsl::bit_vector,
-     sdsl::bit_vector_interleaved<256>,
-     sdsl::bit_vector_interleaved<512>,
-     sdsl::bit_vector_interleaved<1024>,
+     sdsl::bit_vector_il<256>,
+     sdsl::bit_vector_il<512>,
+     sdsl::bit_vector_il<1024>,
      sdsl::rrr_vector<64>,
      sdsl::rrr_vector<256>,
      sdsl::rrr_vector<129>,

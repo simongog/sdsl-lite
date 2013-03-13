@@ -91,10 +91,10 @@ template<class int_vector>
 bool elias_delta::encode(const int_vector& v, int_vector& z)
 {
     typedef typename int_vector::size_type size_type;
-    z.set_int_width(v.get_int_width());
+    z.width(v.width());
     size_type z_bit_size = 0;
     uint64_t w;
-    const uint64_t zero_val = v.get_int_width() < 64 ? (1ULL)<<v.get_int_width() : 0;
+    const uint64_t zero_val = v.width() < 64 ? (1ULL)<<v.width() : 0;
     for (typename int_vector::const_iterator it = v.begin(), end = v.end(); it != end; ++it) {
         if ((w=*it) == 0) {
             w = zero_val;
@@ -161,7 +161,7 @@ bool elias_delta::decode(const int_vector& z, int_vector& v)
         }
         ++n;
     }
-    v.set_int_width(z.get_int_width());
+    v.width(z.width());
     v.resize(n);
     return decode<false, true>(z.data(), 0, n, v.begin());
 }

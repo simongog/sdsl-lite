@@ -21,7 +21,7 @@
 #ifndef INCLUDED_SDSL_UTIL
 #define INCLUDED_SDSL_UTIL
 
-#include "bitmagic.hpp"
+#include "bit_magic.hpp"
 #include "typedefs.hpp"
 #include "structure_tree.hpp"
 #include "config.hpp"  // for constants 
@@ -35,11 +35,13 @@
 #include <string.h>    // for strlen and strdup
 #include <libgen.h>    // for basename
 #include <cstdlib>
-#include <unistd.h>    // for getpid 
+#include <unistd.h>    // for getpid, file_size, clock_gettime
 #include <sstream>     // for to_string method
 #include <stdexcept>   // for std::logic_error
 #include <typeinfo>    // for typeid
-
+#include <sys/time.h> // for struct timeval
+#include <sys/resource.h> // for struct rusage
+#include <iomanip>
 
 // macros to transform a defined name to a string
 #define SDSL_STR(x) #x
@@ -54,22 +56,20 @@ namespace sdsl
 template<uint8_t>
 class int_vector;	 // forward declaration
 
+
+
 //! A namespace for helper functions
 namespace util
 {
+
+//============= Debug information =========================
 
 SDSL_UNUSED static bool verbose = false;
 
 void set_verbose();
 
-//! Get the size of a file in bytes
-off_t get_file_size(const char* file_name);
+//============ Manipulating int_vectors ===================
 
-//! Returns the basename of a file_name
-std::string basename(const std::string& file_name);
-
-//! Returns the directory of a file_name. Trailing / are removed.
-std::string dirname(const std::string& file_name);
 
 //! Sets all bits of the int_vector to pseudo-random bits.
 /*! \param v The int_vector whose bits should be set to random bits
@@ -94,7 +94,7 @@ void set_one_bits(int_vector_type& v);
 template<class int_vector_type>
 void bit_compress(int_vector_type& v);
 
-//! Expands the integer width to new_width >= v.get_int_width()
+//! Expands the integer width to new_width >= v.width()
 template<class int_vector_type>
 void expand_width(int_vector_type&v, uint8_t new_width);
 
@@ -156,37 +156,63 @@ typename int_vector_type::size_type next_bit(const int_vector_type& v, uint64_t 
 template <class int_vector_type>
 typename int_vector_type::size_type prev_bit(const int_vector_type& v, uint64_t idx);
 
+
+
+
+
+//============= Handling files =============================
+
+//! Get the size of a file in bytes
+off_t file_size(const std::string &file_name);
+
+//! Returns the basename of a file_name
+std::string basename(const std::string& file_name);
+
+//! Returns the directory of a file_name. Trailing / are removed.
+std::string dirname(const std::string& file_name);
+
+
+
+//============= Load and store data ========================
+
 //! Load a data structure from a file.
 /*! The data structure has to provide a load function.
  * \param v Data structure to load.
    \param file_name Name of the serialized file.
  */
 template<class T>
-bool load_from_file(T& v, const char* file_name);
+bool load_from_file(T& v, const std::string &file_name);
 
 template<>
-bool load_from_file(void*&, const char* file_name);
+bool load_from_file(void*&, const std::string &file_name);
+
+//! Specialization of load_from_file for a char array
+/*  \pre v=NULL
+ */
+bool load_from_file(char*& v, const std::string &file_name);
+
+
 
 //! Load an int_vector from a plain array of `num_bytes`-byte integers with X in \{0, 1,2,4,8\} from disk.
 // TODO: Remove ENDIAN dependency: currently in BIG_ENDIAN format
 template<class int_vector_type>
-bool load_vector_from_file(int_vector_type &v, const char* file_name, uint8_t num_bytes=1, uint8_t max_int_width=64){
+bool load_vector_from_file(int_vector_type &v, const std::string &file_name, uint8_t num_bytes=1, uint8_t max_int_width=64){
 	if ( (uint8_t)0 == num_bytes ){ // if byte size is variable read int_vector<0> from file
 		return load_from_file(v, file_name);
 	}else {
-		off_t file_size = get_file_size( file_name );
+		off_t file_size = util::file_size( file_name );
 		if ( file_size == 0 ){
 			v.resize(0);
 			return true;
 		}
 		if ( file_size % num_bytes != 0 ){
-			throw std::logic_error("file size "+to_string(file_size)+" of \""+to_string(file_name)
+			throw std::logic_error("file size "+to_string(file_size)+" of \""+ file_name
 											   +"\" is not a multiple of "+to_string(num_bytes));
 			return false;
 		}
-		std::ifstream in(file_name);
+		std::ifstream in(file_name.c_str());
 		if ( in ){
-			v.set_int_width( std::min( (int)8*num_bytes, (int)max_int_width ) );
+			v.width( std::min( (int)8*num_bytes, (int)max_int_width ) );
 			v.resize( file_size / num_bytes );
 			if ( 8 == int_vector_type::fixed_int_width and 1 == num_bytes ){ // if int_vector<8> is created from byte alphabet file 
 				in.read((char*)v.m_data, file_size);
@@ -224,10 +250,27 @@ bool load_vector_from_file(int_vector_type &v, const char* file_name, uint8_t nu
 	}
 }
 
+//! Store a data structure to a file.
+/*! The data structure has to provide a serialize function.
+	\param v Data structure to store.
+	\param file_name Name of the file where to store the data structure.
+	\param Return if the data structure was stored successfully
+ */
+template<class T>
+bool store_to_file(const T& v, const std::string &file_name);
+
+//! Specialization of store_to_file for a char array
+bool store_to_file(const char* v, const std::string &file_name);
+
+//! Specialization of store_to_file for int_vector
+template<uint8_t fixed_int_width>
+bool store_to_file(const int_vector<fixed_int_width>& v, const std::string &file_name, bool write_fixed_as_variable=false);
+
+
 //! Store an int_vector as plain int_type array to disk 
 template<class int_type, class int_vector_type>
-bool store_to_plain_array(int_vector_type &v, const char* file_name){
-	std::ofstream out(file_name);
+bool store_to_plain_array(int_vector_type &v, const std::string &file_name){
+	std::ofstream out(file_name.c_str());
 	if ( out ){
 		for (typename int_vector_type::size_type i=0; i<v.size(); ++i){
 			int_type x = v[i];
@@ -239,37 +282,16 @@ bool store_to_plain_array(int_vector_type &v, const char* file_name){
 	}
 }
 
-//! Specialization of load_from_file for a char array
-/*  \pre v=NULL
- *
- */
-bool load_from_file(char*& v, const char* file_name);
 
-
-//! Store a data structure to a file.
-/*! The data structure has to provide a serialize function.
-	\param v Data structure to store.
-	\param file_name Name of the file where to store the data structure.
-	\param Return if the data structure was stored successfully
- */
-template<class T>
-bool store_to_file(const T& v, const char* file_name);
-
-//! Specialization of store_to_file for a char array
-bool store_to_file(const char* v, const char* file_name);
-
-//! Specialization of store_to_file for int_vector
-template<uint8_t fixed_int_width>
-bool store_to_file(const int_vector<fixed_int_width>& v, const char* file_name, bool write_fixed_as_variable=false);
 
 //! Demangle the class name of typeid(...).name()
 /*!
  *	\param name A pointer to the the result of typeid(...).name()
  */
-std::string demangle(const char* name);
+std::string demangle(const std::string &name);
 
 //! Demangle the class name of typeid(...).name() and remove the "sdsl::"-prefix, "unsigned int",...
-std::string demangle2(const char* name);
+std::string demangle2(const std::string &name);
 
 //! Transforms the demangled class name of an object to a hash value.
 template<class T>
@@ -282,8 +304,7 @@ std::string class_to_hash(const T&){
 }
 
 template<class T>
-std::string class_name(const T& t)
-{
+std::string class_name(const T& t) {
     std::string result = demangle2(typeid(t).name());
     size_t template_pos = result.find("<");
     if (template_pos != std::string::npos) {
@@ -382,7 +403,7 @@ void load_vector(std::vector<T> &vec, std::istream& in){
 }
 
 //! Get the process id of the current process
-uint64_t get_pid();
+uint64_t pid();
 
 class _id_helper {
     private:
@@ -395,7 +416,7 @@ class _id_helper {
 
 
 //! Get a unique id inside the process
-inline uint64_t get_id() {
+inline uint64_t id() {
     return _id_helper::getId();
 }
 
@@ -493,7 +514,7 @@ void write_structure(const X& x, std::ostream& out)
  *	\param	config	Cache configuration.
  *	\reutrn The file name of the resource.
  */
-std::string cache_file_name(const char* key, const cache_config &config);
+std::string cache_file_name(const std::string &key, const cache_config &config);
 
 //! Register the existing resource specified by the key to the cache
 /*!
@@ -503,7 +524,7 @@ std::string cache_file_name(const char* key, const cache_config &config);
  *  Note: If the resource does not exist under the given key,
  *  it will be not added to the cache configuration.
  */
-void register_cache_file(const char* key, cache_config &config);
+void register_cache_file(const std::string &key, cache_config &config);
 
 //! Checks if the resource specified by the key exists in the cache.
 /*!
@@ -511,12 +532,12 @@ void register_cache_file(const char* key, cache_config &config);
   \param config Cache configuration.
   \return True, if the file exists, false otherwise.
 */
-bool cache_file_exists(const char* key, const cache_config &config);
+bool cache_file_exists(const std::string &key, const cache_config &config);
 
 template<class T>
-bool load_from_cache(T&v, const char* key, const cache_config &config){
+bool load_from_cache(T&v, const std::string &key, const cache_config &config){
 	std::string file_name = cache_file_name(key, config);
-	if( load_from_file(v, file_name.c_str()) ){
+	if( load_from_file(v, file_name) ){
 		if ( util::verbose ){
 			std::cerr << "Load `" << file_name << std::endl;
 		}
@@ -533,9 +554,9 @@ bool load_from_cache(T&v, const char* key, const cache_config &config){
  *  \param	
  */
 template<class T>
-bool store_to_cache(const T& v, const char* key, cache_config &config){
+bool store_to_cache(const T& v, const std::string &key, cache_config &config){
 	std::string file_name = cache_file_name(key, config);
-	if ( store_to_file(v, file_name.c_str()) ){
+	if ( store_to_file(v, file_name) ){
 		config.file_map[std::string(key)] = file_name;
 		return true;	
 	}else{
@@ -543,7 +564,83 @@ bool store_to_cache(const T& v, const char* key, cache_config &config){
 	}
 }
 
+//! Get the current data and time as formated string.
+std::string time_string();
+
+//! A helper class to meassure the time consumption of program pieces.
+/*! stop_watch is a stopwatch based on the commands getrusage and
+ *  gettimeofday. Where getrusage is used to determine the user and system time
+ *  and gettimeofday to determine the elapsed real time.
+ */
+class stop_watch
+{
+    private:
+        rusage m_ruse1, m_ruse2;
+        timeval m_timeOfDay1, m_timeOfDay2;
+        static timeval m_first_t;
+        static rusage m_first_r;
+    public:
+
+        stop_watch() : m_ruse1(), m_ruse2(), m_timeOfDay1(), m_timeOfDay2() {
+            timeval t;
+            t.tv_sec = 0; t.tv_usec = 0;
+            m_ruse1.ru_utime = t; m_ruse1.ru_stime = t; // init m_ruse1
+            m_ruse2.ru_utime = t; m_ruse2.ru_stime = t; // init m_ruse2
+            m_timeOfDay1 = t; m_timeOfDay2 = t;
+            if (m_first_t.tv_sec == 0) {
+                gettimeofday(&m_first_t, 0);
+            }
+            if (m_first_r.ru_utime.tv_sec == 0 and m_first_r.ru_utime.tv_usec ==0) {
+                getrusage(RUSAGE_SELF, &m_first_r);
+            }
+        }
+        //! Start the stopwatch.
+        /*! \sa stop
+         */
+        void start();
+
+        //! Stop the stopwatch.
+        /*! \sa start
+         */
+        void stop();
+
+        //! Get the elapsed user time in milliseconds between start and stop.
+        /*! \sa start, stop, real_time, sys_time
+         */
+        double user_time();
+
+        //! Get the elapsed system time in milliseconds between start and stop.
+        /*! \sa start, stop, real_time, user_time
+         */
+        double sys_time();
+
+        //! Get the elapsed real time in milliseconds between start and stop.
+        /*! \sa start, stop, sys_time, user_time
+         */
+        double real_time();
+
+        //! Get the elapsed user time in milliseconds since the first construction of a stop_watch in the current process.
+        /*! \sa user_time
+         */
+        uint64_t abs_user_time();
+
+        //! Get the elapsed system time in milliseconds since the first construction of a stop_watch in the current process.
+        /*! \sa sys_time
+         */
+        uint64_t abs_sys_time();
+
+        //! Get the elapsed real time in milliseconds since the first construction of a stop_watch in the current process.
+        /*! \sa real_time
+         */
+        uint64_t abs_real_time();
+
+        uint64_t abs_page_faults();
+};
+
 } // end namespace util
+
+
+
 
 //==================== Template functions ====================
 
@@ -562,9 +659,9 @@ double util::get_size_in_mega_bytes(const T& t) {
 }
 
 template<class T>
-bool util::store_to_file(const T& t, const char* file_name) {
+bool util::store_to_file(const T& t, const std::string &file_name) {
     std::ofstream out;
-    out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
+    out.open(file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out){
 		if ( util::verbose ){
 			std::cerr<<"ERROR: store_to_file not successful for: `"<<file_name<<"`"<<std::endl;
@@ -579,9 +676,9 @@ bool util::store_to_file(const T& t, const char* file_name) {
     return true;
 }
 
-inline bool util::store_to_file(const char* v, const char* file_name) {
+inline bool util::store_to_file(const char* v, const std::string &file_name) {
     std::ofstream out;
-    out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
+    out.open(file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
         return false;
     uint64_t n = strlen((const char*)v);
@@ -591,9 +688,9 @@ inline bool util::store_to_file(const char* v, const char* file_name) {
 }
 
 template<uint8_t fixed_int_width>
-bool util::store_to_file(const int_vector<fixed_int_width>& v, const char* file_name, bool write_fixed_as_variable) {
+bool util::store_to_file(const int_vector<fixed_int_width>& v, const std::string &file_name, bool write_fixed_as_variable) {
     std::ofstream out;
-    out.open(file_name, std::ios::binary | std::ios::trunc | std::ios::out);
+    out.open(file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
         return false;
     v.serialize(out, NULL, "", write_fixed_as_variable);
@@ -602,9 +699,9 @@ bool util::store_to_file(const int_vector<fixed_int_width>& v, const char* file_
 }
 
 template<class T>
-bool util::load_from_file(T& v, const char* file_name) {
+bool util::load_from_file(T& v, const std::string &file_name) {
     std::ifstream in;
-    in.open(file_name, std::ios::binary | std::ios::in);
+    in.open(file_name.c_str(), std::ios::binary | std::ios::in);
     if (!in){
 		if ( util::verbose ){
 			std::cerr << "Could not load file `" << file_name << "`" << std::endl;
@@ -682,7 +779,7 @@ void util::bit_compress(int_vector_type& v) {
         }
     }
     uint8_t min_width = bit_magic::l1BP(max)+1;
-    uint8_t old_width = v.get_int_width();
+    uint8_t old_width = v.width();
     if (old_width > min_width) {
         const uint64_t* read_data = v.m_data;
         uint64_t* write_data = v.m_data;
@@ -693,13 +790,13 @@ void util::bit_compress(int_vector_type& v) {
             bit_magic::write_int_and_move(write_data,  x, write_offset, min_width);
         }
         v.bit_resize(v.size()*min_width);
-        v.set_int_width(min_width);
+        v.width(min_width);
     }
 }
 
 template<class int_vector_type>
 void util::expand_width(int_vector_type&v, uint8_t new_width){
-	uint8_t old_width = v.get_int_width();
+	uint8_t old_width = v.width();
 	typename int_vector_type::size_type n = v.size();
 	if ( new_width > old_width and n > 0 ){
 		typename int_vector_type::size_type i, old_pos, new_pos;
@@ -709,7 +806,7 @@ void util::expand_width(int_vector_type&v, uint8_t new_width){
     	for (i=0; i < n; ++i, new_pos-=new_width, old_pos-=old_width) {
 			v.set_int(new_pos, v.get_int(old_pos, old_width), new_width);
 		}
-		v.set_int_width(new_width);
+		v.width(new_width);
 	}
 }
 
@@ -855,6 +952,37 @@ template<typename T>
 std::string util::to_latex_string(const T& t) {
     return to_string(t);
 }
+
+
+//! Write stopwatch output in readable format
+inline void write_R_output(std::string data_structure, std::string action,
+                           std::string state="begin", uint64_t times=1, uint64_t check=0)
+{
+    if (util::verbose) {
+		util::stop_watch _sw;
+        _sw.stop();
+        std::cout << data_structure << "\t" << action << "\t" << state << "\t"
+                  << std::setw(9)<< times << "\t" << std::setw(9) << check << "\t"
+                  << std::setw(9) << _sw.abs_real_time() << "\t "
+                  << std::setw(9) << _sw.abs_user_time() << "\t"
+                  << std::setw(9) << _sw.abs_sys_time() << std::endl;
+    }
+}
+
+
+//! Read a list of file paths from a config file
+/*!
+ *  \param		file	The configuration file.
+ *  \param		prefix	Prepend this prefix to the read file paths.
+ *	\return		A vector of strings containing the paths.
+ *  \par Config file format
+ *       Each line starting with a `#` is ignored.
+ *       All other lines are interpreted as path and end up in the
+ *       result.
+ */ 
+std::vector<std::string> paths_from_config_file(const std::string &file, const char *prefix = NULL);
+
+
 
 }// end namespace sdsl
 

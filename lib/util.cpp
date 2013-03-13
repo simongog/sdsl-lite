@@ -18,8 +18,9 @@
 #include "sdsl/util.hpp"
 #include "sdsl/structure_tree.hpp"
 #include "cxxabi.h"
-#include <sys/types.h> // for get_file_size
-#include <sys/stat.h>  // for get_file_size
+#include <sys/types.h> // for file_size
+#include <sys/stat.h>  // for file_size
+#include <iomanip>
 #include <vector>
 
 namespace sdsl
@@ -29,6 +30,10 @@ namespace util
 {
 
 uint64_t _id_helper::id = 0;
+timeval stop_watch::m_first_t = {0,0};
+rusage stop_watch::m_first_r = {{0,0},{0,0}};
+
+
 
 std::string basename(const std::string& file_name) {
     char* c = strdup((const char*)file_name.c_str());
@@ -44,25 +49,25 @@ std::string dirname(const std::string& file_name) {
     return res;
 }
 
-uint64_t get_pid() {
+uint64_t pid() {
     return getpid();
 }
 
-std::string demangle(const char* name) {
+std::string demangle(const std::string &name) {
 #ifndef HAVE_CXA_DEMANGLE
     char buf[4096];
     size_t size = 4096;
     int status = 0;
-    abi::__cxa_demangle(name, buf, &size, &status);
+    abi::__cxa_demangle(name.c_str(), buf, &size, &status);
     if (status==0)
         return std::string(buf);
-    return std::string(name);
+    return name;
 #else
-    return std::string(name);
+    return name;
 #endif
 }
 
-std::string demangle2(const char* name) {
+std::string demangle2(const std::string &name) {
     std::string result = demangle(name);
     std::vector<std::string> words_to_delete;
     words_to_delete.push_back("sdsl::");
@@ -123,17 +128,17 @@ void read_member<std::string>(std::string& t, std::istream& in) {
 }
 
 template<>
-bool load_from_file(void*& v, const char* file_name) {
+bool load_from_file(void*& v, const std::string &file_name) {
     return true;
 }
 
-bool load_from_file(char*& v, const char* file_name) {
+bool load_from_file(char*& v, const std::string &file_name) {
     if (v != NULL) {
         delete [] v;
         v = NULL;
     }
     std::ifstream in;
-    in.open(file_name, std::ios::binary | std::ios::in);
+    in.open(file_name.c_str(), std::ios::binary | std::ios::in);
     if (in) {
         const uint64_t SDSL_BLOCK_SIZE = (1<<20);
         uint64_t n=0, read = 0;
@@ -147,7 +152,7 @@ bool load_from_file(char*& v, const char* file_name) {
             return false;
         v = new char[n+1];
         in.close();
-        in.open(file_name);
+        in.open(file_name.c_str());
         if (!in) {
             delete [] v;
             v = NULL;
@@ -169,26 +174,26 @@ void set_verbose(){
 	verbose = true;
 }
 
-off_t get_file_size(const char* file_name) {
+off_t file_size(const std::string &file_name) {
     struct stat filestatus;
-    stat(file_name, &filestatus);
+    stat(file_name.c_str(), &filestatus);
     return filestatus.st_size;
 }
 
-std::string cache_file_name(const char* key, const cache_config &config){
-	return config.dir+"/"+std::string(key)+"_"+config.id+".sdsl";
+std::string cache_file_name(const std::string &key, const cache_config &config){
+	return config.dir+"/"+key+"_"+config.id+".sdsl";
 }
 
-void register_cache_file(const char* key, cache_config &config){
+void register_cache_file(const std::string &key, cache_config &config){
 	std::string file_name = cache_file_name(key, config);
 	std::ifstream in(file_name.c_str());
 	if ( in ){ // if file exists, register it.
-		config.file_map[std::string(key)] = file_name;
+		config.file_map[key] = file_name;
 	}
 }
 
 
-bool cache_file_exists(const char* key, const cache_config &config){
+bool cache_file_exists(const std::string &key, const cache_config &config){
 	std::string file_name = cache_file_name(key, config);
 	std::ifstream in(file_name.c_str());
 	if ( in ){
@@ -198,7 +203,110 @@ bool cache_file_exists(const char* key, const cache_config &config){
 	return false;
 }
 
+void stop_watch::start()
+{
+    gettimeofday(&m_timeOfDay1, 0);
+    getrusage(RUSAGE_SELF, &m_ruse1);
+}
+
+void stop_watch::stop()
+{
+    getrusage(RUSAGE_SELF, &m_ruse2);
+    gettimeofday(&m_timeOfDay2, 0);
+}
+
+double stop_watch::user_time()
+{
+    timeval t1, t2;
+    t1 = m_ruse1.ru_utime;
+    t2 = m_ruse2.ru_utime;
+    return ((double)(t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec)))/1000.0;
+}
+
+double stop_watch::sys_time()
+{
+    timeval t1, t2;
+    t1 = m_ruse1.ru_stime;
+    t2 = m_ruse2.ru_stime;
+    return ((double)(t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec)))/1000.0;
+}
+
+double stop_watch::real_time()
+{
+    double result = ((double)((m_timeOfDay2.tv_sec*1000000 + m_timeOfDay2.tv_usec)-(m_timeOfDay1.tv_sec*1000000 + m_timeOfDay1.tv_usec)))/1000.0;
+    if (result < sys_time() + user_time())
+        return sys_time()+user_time();
+    return result;
+}
+
+uint64_t stop_watch::abs_real_time()
+{
+    uint64_t result = (((m_timeOfDay2.tv_sec*1000000 + m_timeOfDay2.tv_usec - (m_first_t.tv_sec*1000000 + m_first_t.tv_usec))))/1000;
+    return result;
+}
+
+uint64_t stop_watch::abs_user_time()
+{
+    timeval t1, t2;
+    t1 = m_first_r.ru_utime;
+    t2 = m_ruse2.ru_utime;
+    return (t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec))/1000;
+}
+
+
+uint64_t stop_watch::abs_sys_time()
+{
+    timeval t1, t2;
+    t1 = m_first_r.ru_stime;
+    t2 = m_ruse2.ru_stime;
+    return (t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec))/1000;
+}
+
+uint64_t stop_watch::abs_page_faults()
+{
+    return m_ruse2.ru_majflt - m_first_r.ru_majflt; // does not work on my platform
+}
+
+std::string time_string() {
+    time_t rawtime;
+    struct tm* timeinfo;
+    char buffer[1024];
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer, 1024, "%Y-%m-%d-%H%M%S", timeinfo);
+    return buffer;
+}
 
 }// end namespace util
+
+
+std::vector<std::string> paths_from_config_file(const std::string &file, const char *prefix){
+		std::ifstream config_in(file.c_str());
+		if ( config_in ){ // opened file successfully
+			std::vector<std::string> result;
+			const size_t name_max_size = 1024;
+			char * name = new char [name_max_size];
+			while ( config_in.getline( name, name_max_size ) ) {
+				if ( strlen(name) > 0 and '#' != name[0] ){ // check empty line and comment
+					std::string path = std::string(name);
+					if ( prefix != NULL ){
+						path = std::string(prefix) + "/" + path;
+					}
+					result.push_back( path );
+				}
+			}
+			delete [] name;
+			return result;
+		} else {
+			std::cerr << "WARNING: Could not open config file: `";
+			std::cerr << file << "`" << std::endl;
+			return std::vector<std::string>();
+		}
+}
+
+
+
+
 }// end namespace sdsl
 

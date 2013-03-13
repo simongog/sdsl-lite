@@ -14,23 +14,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file lcp_construct.hpp
-    \brief lcp_construct.hpp contains a space and time efficient construction method for lcp arrays
+/*! \file construct_lcp.hpp
+    \brief construct_lcp.hpp contains a space and time efficient construction method for lcp arrays
 	\author Simon Gog
 */
-#ifndef INCLUDED_SDSL_LCP_CONSTRUCT
-#define INCLUDED_SDSL_LCP_CONSTRUCT
+#ifndef INCLUDED_SDSL_CONSTRUCT_LCP
+#define INCLUDED_SDSL_CONSTRUCT_LCP
 
 #include "typedefs.hpp"  // includes definition of tMSS
 #include "config.hpp"
 #include "int_vector.hpp"
-#include "rank_support_v.hpp"
+#include "rank_support.hpp"
+#include "select_support.hpp"
 #include "util.hpp"
-#include "testutils.hpp"
-#include "isa_construct.hpp"
-#include "bwt_construct.hpp"
+#include "construct_isa.hpp"
+#include "construct_bwt.hpp"
 #include "wt_huff.hpp"
-#include "lcp_construct_helper.hpp"
+#include "construct_lcp_helper.hpp"
 
 #include <iostream>
 #include <stdexcept>
@@ -72,7 +72,7 @@ void construct_lcp_kasai(cache_config& config){
 		int_vector<t_width> text;
         if (!util::load_from_cache(text, key_text_trait<t_width>::KEY_TEXT, config)) { return; }
         write_R_output("lcp", "load text", "end", 1, 0);
-        int_vector_file_buffer<> isa_buf(config.file_map[constants::KEY_ISA].c_str(), 1000000);   // init isa file_buffer
+        int_vector_file_buffer<> isa_buf(config.file_map[constants::KEY_ISA], 1000000);   // init isa file_buffer
         int_vector<> sa;
         if (!util::load_from_cache(sa, constants::KEY_SA, config)) { return; }
         // use Kasai algorithm to compute the lcp values
@@ -126,7 +126,7 @@ void construct_lcp_PHI(cache_config& config) {
 	typedef int_vector<t_width> text_type;
 	const char * KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
     write_R_output("lcp", "construct LCP", "begin", 1, 0);
-    int_vector_file_buffer<> sa_buf(config.file_map[constants::KEY_SA].c_str());
+    int_vector_file_buffer<> sa_buf(config.file_map[constants::KEY_SA]);
     size_type n = sa_buf.int_vector_size; 
 
 	assert( n > 0 );
@@ -137,7 +137,7 @@ void construct_lcp_PHI(cache_config& config) {
 	}
 
 //	(1) Calculate PHI (stored in array plcp)
-    int_vector<> plcp(n, 0, sa_buf.int_width);
+    int_vector<> plcp(n, 0, sa_buf.width);
     for (size_type i=0, r_sum=0, r=sa_buf.load_next_block(), sai_1 = 0; r_sum < n;) {
         for (; i < r_sum+r; ++i) {
             size_type sai = sa_buf[i-r_sum];
@@ -190,7 +190,7 @@ void construct_lcp_PHI(cache_config& config) {
             lcp_buf[ i-r_sum ] = plcp[sai];
         }
         if (r > 0) {
-            size_type cur_wb = (r*lcp_buf.get_int_width()+7)/8;
+            size_type cur_wb = (r*lcp_buf.width()+7)/8;
             lcp_out_buf.write((const char*)lcp_buf.data(), cur_wb);
             wb += cur_wb;
         }

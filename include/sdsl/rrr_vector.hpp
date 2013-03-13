@@ -23,7 +23,6 @@
 #define SDSL_RRR_VECTOR
 
 #include "int_vector.hpp"
-#include "bitmagic.hpp"
 #include "util.hpp"
 #include "rrr_helper.hpp" // for binomial helper class
 #include <vector>
@@ -123,7 +122,7 @@ class rrr_vector
         rrr_vector(const bit_vector& bv, uint16_t sample_rate=32): m_sample_rate(sample_rate), bt(m_bt), btnr(m_btnr) {
             m_size = bv.size();
             int_vector<> bt_array;
-            bt_array.set_int_width(bit_magic::l1BP(block_size)+1);
+            bt_array.width(bit_magic::l1BP(block_size)+1);
             bt_array.resize((m_size+block_size)/((size_type)block_size)); // blocks for the bt_array + a dummy block at the end,
 			                                                              // if m_size%block_size == 0
 
