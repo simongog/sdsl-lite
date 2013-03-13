@@ -22,10 +22,8 @@
 #define INCLUDE_SDSL_TEST_INDEX_PERFORMANCE
 
 #include "int_vector.hpp"	// for bit_vector and int_vector
-#include "testutils.hpp"	// for write_R_output 
 #include "util.hpp"			// for 
 #include "algorithms.hpp"	// for backward_search
-#include "testutils.hpp"    // for file
 #include <cstdlib>			// for rand 
 #include <algorithm>		// for swap
 #include <vector>			// for std::vector	

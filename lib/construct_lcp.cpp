@@ -1396,7 +1396,7 @@ void construct_lcp_bwt_based(cache_config& config)
 
     // create WaveletTree
     write_R_output("lcp","create huffman WT","begin", 0, 0);
-    wt_huff<bit_vector, rank_support_v<>, select_support_dummy, select_support_dummy> wt_bwt;
+    wt_huff<bit_vector, rank_support_v<>, select_support_scan<1>, select_support_scan<0> > wt_bwt;
     construct( wt_bwt, util::cache_file_name(constants::KEY_BWT, config) );
     uint64_t n = wt_bwt.size();
     write_R_output("lcp","create huffman WT","end", 0, 0);
@@ -1624,7 +1624,7 @@ void construct_lcp_bwt_based2(cache_config& config)
 // (1) Calculate LCP-Positions-Array: For each lcp_value (in ascending order) all its occurrences (in any order) in the lcp array
     { 
         write_R_output("lcp","create Huffman WT","begin", 0, 0);
-        wt_huff<bit_vector, rank_support_v<>, select_support_dummy, select_support_dummy> wt_bwt;
+        wt_huff<bit_vector, rank_support_v<>, select_support_scan<1>, select_support_scan<0> > wt_bwt;
         construct( wt_bwt, util::cache_file_name(constants::KEY_BWT, config) );
         n = wt_bwt.size();
         write_R_output("lcp","create Huffman WT","end", 0, 0);

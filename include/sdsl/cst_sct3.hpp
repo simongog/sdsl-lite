@@ -31,7 +31,6 @@
 #include "cst_iterators.hpp"
 #include "rank_support.hpp"
 #include "select_support.hpp"
-#include "testutils.hpp"
 #include "util.hpp"
 #include <iostream>
 #include <algorithm>

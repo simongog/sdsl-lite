@@ -27,7 +27,6 @@
 #include "iterators.hpp"
 #include "suffix_array_helper.hpp"
 #include "util.hpp"
-#include "testutils.hpp"
 #include "csa_sampling_strategy.hpp"
 #include "csa_alphabet_strategy.hpp"
 #include <iostream>
