@@ -1,7 +1,7 @@
 
 #include "sdsl/int_vector.hpp"
 #include "sdsl/select_support_mcl.hpp" // for select_support_mcl
-#include "sdsl/bit_vector_interleaved.hpp" // for rank_support_interleaved
+#include "sdsl/bit_vector_il.hpp" // for rank_support_interleaved
 #include "sdsl/rrr_vector.hpp" // for rrr_select_support
 #include "sdsl/sd_vector.hpp" // for sd_select_support
 #include "sdsl/gap_vector.hpp" // for gap_select_suport
@@ -111,9 +111,9 @@ typedef Types<sdsl::select_support_mcl<>,
         sdsl::rrr_select_support<1, 128>,
         sdsl::sd_select_support<>,
         sdsl::gap_select_support<>,
-        sdsl::select_support_interleaved<1, 256>,
-        sdsl::select_support_interleaved<1, 512>,
-        sdsl::select_support_interleaved<1, 1024>
+        sdsl::select_support_il<1, 256>,
+        sdsl::select_support_il<1, 512>,
+        sdsl::select_support_il<1, 1024>
         > Implementations;
 
 TYPED_TEST_CASE(SelectSupportTest, Implementations);
