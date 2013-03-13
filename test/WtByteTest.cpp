@@ -1,6 +1,6 @@
 #include "sdsl/wavelet_trees.hpp"
 #include "sdsl/rrr_vector.hpp"
-#include "sdsl/bit_vector_interleaved.hpp"
+#include "sdsl/bit_vector_il.hpp"
 #include "sdsl/util.hpp"
 #include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
 #include "gtest/gtest.h"
@@ -54,9 +54,9 @@ using testing::Types;
 
 typedef Types<
 	 wt<unsigned char*, rrr_vector<63> >,
-     wt<unsigned char*, bit_vector_interleaved<>  >,
+     wt<unsigned char*, bit_vector_il<>  >,
      wt<unsigned char*, bit_vector>,
-     wt_huff<bit_vector_interleaved<> >,
+     wt_huff<bit_vector_il<> >,
      wt_huff<bit_vector, rank_support_v<> >,
      wt_huff<bit_vector, rank_support_v5<> >,
      wt_huff<rrr_vector<63> >,
