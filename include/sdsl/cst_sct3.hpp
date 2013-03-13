@@ -105,7 +105,7 @@ inline std::ostream& operator<<(std::ostream& os, const bp_interval<Int>& interv
 
 //! A class for the Compressed Suffix Tree (CST) proposed by Ohlebusch and Gog.
 /*! The CST is parameterized by
- *    - a (compressed) suffix array (accessible via member \f$csa\f$, default clas is sdsl::csa_wt),
+ *    - a (compressed) suffix array (accessible via member \f$csa\f$, default class is sdsl::csa_wt),
  *    - a (compressed) longest common prefix array data structure (accessible via member \f$lcp\f$, default class is sdsl::lcp_support_tree), and
  *    - a support data structure for balanced parentheses sequences (accessible via member \f$bp\_support\f$, default class is sdsl::bp_support_sada).
  *    - a rank support data structure for the bitvector which indicates the first child property
