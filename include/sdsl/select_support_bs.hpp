@@ -111,7 +111,7 @@ inline const typename select_support_bs<RankSupport>::size_type select_support_b
 
 
 template<class RankSupport>
-typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
+typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::serialize(SDSL_UNUSED std::ostream& out, structure_tree_node* v, std::string name)const {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     structure_tree::add_size(child, 0);
     return 0;
