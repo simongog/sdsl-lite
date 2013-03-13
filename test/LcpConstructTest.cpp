@@ -1,7 +1,6 @@
 #include <sdsl/suffix_arrays.hpp>
 #include <sdsl/construct_lcp.hpp>
 #include <sdsl/construct_bwt.hpp>
-#include <sdsl/testutils.hpp>
 #include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
 #include "gtest/gtest.h"
 #include <vector>

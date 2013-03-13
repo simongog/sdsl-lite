@@ -22,11 +22,8 @@
 #define INCLUDED_SDSL_ALGORITHMS_FOR_COMPRESSED_SUFFIX_ARRAYS
 
 #include "int_vector.hpp" // for bit_vector
+#include "util.hpp"
 #include <stack> // for calculate_supercartesian_tree_bp
-
-#ifdef SDSL_DEBUG_ALGORITHMS_FOR_COMPRESSED_SUFFIX_ARRAYS
-#include "testutils.hpp"
-#endif
 
 namespace sdsl
 {

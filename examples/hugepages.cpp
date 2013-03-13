@@ -1,7 +1,6 @@
 #include <sdsl/int_vector.hpp>
 #include <sdsl/suffix_trees.hpp>
 #include <sdsl/wt_rlmn.hpp>
-#include <sdsl/testutils.hpp>
 #include <sdsl/bit_vector_interleaved.hpp>
 #include <iostream>
 #include <string>

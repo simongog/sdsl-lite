@@ -37,18 +37,6 @@
 #include <deque>
 #include <queue>
 
-
-#ifdef SDSL_DEBUG
-#define SDSL_DEBUG_WT_HUFF
-#endif
-
-
-//#define SDSL_DEBUG_WAVELET_TREE
-
-#ifdef SDSL_DEBUG_WAVELET_TREE
-#include "testutils.hpp"
-#endif
-
 //! Namespace for the succinct data structure library.
 namespace sdsl {
 

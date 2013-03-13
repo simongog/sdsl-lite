@@ -3,7 +3,6 @@
 #include "sdsl/lcp.hpp"
 #include "sdsl/test_index_performance.hpp"
 #include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
-#include "sdsl/testutils.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()

@@ -27,10 +27,11 @@
  *   - find_open
  *   - find_close
  *   - enclose
+ *   - double_enclose
  *   - rank
  *   - select
  *   - excess
- *   - (rr_enclose)
+ *   - rr_enclose
  */
 
 #include "bp_support_j.hpp"

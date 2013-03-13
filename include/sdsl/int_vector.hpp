@@ -31,7 +31,6 @@
 #include "bit_magic.hpp"
 #include "structure_tree.hpp"
 #include "util.hpp"
-#include "testutils.hpp"
 #include "config.hpp"
 #include "uintx_t.hpp"
 

@@ -5,7 +5,6 @@
 #include "util.hpp"
 #include "algorithms_for_compressed_suffix_trees.hpp"
 #include "rank_support_v.hpp"
-#include "select_support_dummy.hpp"
 #include "wt_huff.hpp"
 #include <iostream>
 #include <string>
@@ -35,11 +34,11 @@ class _lcp_support_tree2
         typedef int_vector<>::size_type					    		size_type;		 // STL Container requirement
         typedef int_vector<>::difference_type			    		difference_type; // STL Container requirement
         typedef Cst										    		cst_type;
-        typedef select_support_dummy 					    		tDummySS;
         typedef wt_huff<bit_vector, rank_support_v5<>, 
-				        tDummySS, tDummySS>  						small_lcp_type; 
+				        select_support_scan<1>, 
+						select_support_scan<0> > 					small_lcp_type; 
 
-        typedef lcp_tree_and_lf_compressed_tag					lcp_category;
+        typedef lcp_tree_and_lf_compressed_tag						lcp_category;
 
         enum { fast_access = 0,
                text_order = 0,
