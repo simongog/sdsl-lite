@@ -36,13 +36,6 @@
 #define SDSL_DEBUG_WT
 #endif
 
-
-//#define SDSL_DEBUG_WT
-
-#ifdef SDSL_DEBUG_WT
-#include "testutils.hpp"
-#endif
-
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {

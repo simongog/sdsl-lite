@@ -4,7 +4,6 @@
 #include "sdsl/test_index_performance.hpp"
 #include "sdsl/util.hpp" // for store_to_file, load_to_file,...
 #include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
-#include "sdsl/testutils.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()

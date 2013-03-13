@@ -22,13 +22,8 @@
 #define INCLUDED_SDSL_SELECT_SUPPORT_SCAN
 
 #include "int_vector.hpp"
+#include "util.hpp"
 #include "select_support.hpp"
-
-//#define SDSL_DEBUG_SELECT_SUPPORT_JMC
-
-#ifdef SDSL_DEBUG_SELECT_SUPPORT_JMC
-#include "testutils.hpp"
-#endif
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -51,7 +46,11 @@ class select_support_scan : public select_support
         inline const size_type select(size_type i) const;
         //! Alias for select(i).
         inline const size_type operator()(size_type i)const{return select(i);}
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const{return 0;}
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const{
+    		structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+    		structure_tree::add_size(child, 0);
+			return 0;
+		}
         void load(std::istream& in, const bit_vector* v=NULL){}
         void set_vector(const bit_vector* v=NULL){m_v = v;}
         select_support_scan<b, pattern_len>& operator=(const select_support_scan& ss){set_vector(ss.m_v); return *this;}

@@ -22,13 +22,8 @@
 #define INCLUDED_SDSL_SELECT_SUPPORT_JMC
 
 #include "int_vector.hpp"
+#include "util.hpp"
 #include "select_support.hpp"
-
-//#define SDSL_DEBUG_SELECT_SUPPORT_JMC
-
-#ifdef SDSL_DEBUG_SELECT_SUPPORT_JMC
-#include "testutils.hpp"
-#endif
 
 //! Namespace for the succinct data structure library.
 namespace sdsl {

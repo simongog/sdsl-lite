@@ -27,7 +27,6 @@
 #include "algorithms.hpp"
 #include "iterators.hpp"
 #include "util.hpp"
-#include "testutils.hpp"
 #include "rank_support_v.hpp"
 #include "rank_support_v5.hpp"
 #include <iostream>

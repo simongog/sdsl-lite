@@ -27,7 +27,6 @@
 #include "int_vector.hpp"
 #include "rank_support_v.hpp"
 #include "select_support_mcl.hpp"
-#include "testutils.hpp"
 #include "temp_write_read_buffer.hpp"
 #include "util.hpp"
 #include <set> // for calculating the alphabet size
