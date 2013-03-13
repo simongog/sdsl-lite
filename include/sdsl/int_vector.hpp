@@ -772,7 +772,7 @@ class int_vector_iterator : public int_vector_iterator_base<int_vector>
         }
 
         //! Postfix increment of the Iterator
-        iterator operator++(int x) {
+        iterator operator++(int) {
             int_vector_iterator it = *this;
             ++(*this);
             return it;
