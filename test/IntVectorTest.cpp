@@ -1,5 +1,4 @@
 #include "sdsl/int_vector.hpp"
-#include "sdsl/bitmagic.hpp"
 #include "sdsl/util.hpp"
 #include "gtest/gtest.h"
 #include <vector>
@@ -57,32 +56,32 @@ TEST_F(IntVectorTest, DefaultConstruct)
     {
         sdsl::int_vector<> iv;
         ASSERT_EQ((size_type)0, iv.size());			   // size should be 0
-        ASSERT_EQ((uint8_t)64, iv.get_int_width());   // default width of each element should be 64 bits
+        ASSERT_EQ((uint8_t)64, iv.width());   // default width of each element should be 64 bits
     }
     {
         sdsl::bit_vector bv;
         ASSERT_EQ((size_type)0, bv.size());
-        ASSERT_EQ(bv.get_int_width(), 1);  // for a bit vector the width should be 1 bits
+        ASSERT_EQ(bv.width(), 1);  // for a bit vector the width should be 1 bits
     }
     {
         sdsl::int_vector<8> iv;
         ASSERT_EQ((size_type)0, iv.size());
-        ASSERT_EQ(iv.get_int_width(), 8);   // default width of each element should be 8 bits
+        ASSERT_EQ(iv.width(), 8);   // default width of each element should be 8 bits
     }
     {
         sdsl::int_vector<16> iv;
         ASSERT_EQ((size_type)0, iv.size());
-        ASSERT_EQ(iv.get_int_width(), 16);   // default width of each element should be 16 bits
+        ASSERT_EQ(iv.width(), 16);   // default width of each element should be 16 bits
     }
     {
         sdsl::int_vector<32> iv;
         ASSERT_EQ((size_type)0, iv.size());
-        ASSERT_EQ(iv.get_int_width(), 32);   // default width of each element should be 32 bits
+        ASSERT_EQ(iv.width(), 32);   // default width of each element should be 32 bits
     }
     {
         sdsl::int_vector<64> iv;
         ASSERT_EQ((size_type)0, iv.size());
-        ASSERT_EQ(iv.get_int_width(), 64);   // default width of each element should be 64 bits
+        ASSERT_EQ(iv.width(), 64);   // default width of each element should be 64 bits
     }
 }
 
@@ -142,9 +141,9 @@ TEST_F(IntVectorTest, SerializeAndLoad)
     for (size_type i=0; i<iv.size(); ++i)
         iv[i] = rand();
     std::string file_name = "/tmp/int_vector";
-    sdsl::util::store_to_file(iv, file_name.c_str());
+    sdsl::util::store_to_file(iv, file_name);
     sdsl::int_vector<> iv2;
-    sdsl::util::load_from_file(iv2, file_name.c_str());
+    sdsl::util::load_from_file(iv2, file_name);
     ASSERT_EQ(iv.size(), iv2.size());
     for (size_type i=0; i<iv.size(); ++i)
         EXPECT_EQ(iv[i], iv2[i]);

@@ -74,7 +74,7 @@ class _sa_order_sampling_strategy : public int_vector<fixedIntWidth>{
 		 */
 		_sa_order_sampling_strategy(int_vector_file_buffer<> &sa_buf){
 			size_type n = sa_buf.int_vector_size;
-		    this->set_int_width(bit_magic::l1BP(n)+1);
+		    this->width(bit_magic::l1BP(n)+1);
 			this->resize((n+sample_dens-1)/sample_dens);
 
 			sa_buf.reset();
@@ -139,7 +139,7 @@ class _text_order_sampling_strategy : public int_vector<fixedIntWidth>{
 		_text_order_sampling_strategy(int_vector_file_buffer<> &sa_buf){
 			size_type n = sa_buf.int_vector_size;
 			bit_vector marked(n, 0);                // temporary bitvector for the marked text positions
-		    this->set_int_width(bit_magic::l1BP(n)+1);    
+		    this->width(bit_magic::l1BP(n)+1);    
 			this->resize((n+sample_dens-1)/sample_dens);
 
 			sa_buf.reset(); // first pass: mark the text positions

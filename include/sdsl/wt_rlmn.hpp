@@ -24,7 +24,6 @@
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "sd_vector.hpp"  // for standard initialisation of template parameters 
-#include "bitmagic.hpp"
 #include "util.hpp"
 #include "wt_huff.hpp"
 #include <algorithm> // for std::swap
@@ -141,7 +140,7 @@ class wt_rlmn
          */
         wt_rlmn(int_vector_file_buffer<8>& text_buf, size_type size):m_size(size), sigma(m_wt.sigma) {
 			// TODO: remove absolute file name
-            std::string temp_file = "tmp_wt_rlmn_" + util::to_string(util::get_pid()) + "_" + util::to_string(util::get_id());
+            std::string temp_file = "tmp_wt_rlmn_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
             std::ofstream wt_out(temp_file.c_str(), std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
@@ -198,7 +197,7 @@ class wt_rlmn
                     r = text_buf.load_next_block();
                 }
                 {
-                    int_vector_file_buffer<8> temp_bwt_buf(temp_file.c_str());
+                    int_vector_file_buffer<8> temp_bwt_buf(temp_file);
 					util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
                 }
                 util::assign(m_bl, bl);

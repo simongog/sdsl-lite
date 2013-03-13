@@ -86,15 +86,15 @@ class _lcp_support_tree
         template<uint8_t int_width>
         _lcp_support_tree(int_vector_file_buffer<int_width>& lcp_buf, const Cst* cst = NULL) {
             m_cst = cst;
-            std::string id =  util::to_string(util::get_pid())+"_"+util::to_string(util::get_id()).c_str() + "_fc_lcp";
+            std::string id =  util::to_string(util::pid())+"_"+util::to_string(util::id()).c_str() + "_fc_lcp";
             {
                 int_vector<int_width> temp_lcp;
                 algorithm::construct_first_child_lcp(lcp_buf, temp_lcp, (int_vector_size_type) 0);
                 // TODO: store lcp values directly to disk
-                util::store_to_file(temp_lcp, id.c_str());
+                util::store_to_file(temp_lcp, id);
             }
             {
-                int_vector_file_buffer<int_width> temp_lcp_buf(id.c_str());
+                int_vector_file_buffer<int_width> temp_lcp_buf(id);
                 m_lcp = Lcp(temp_lcp_buf); // works for lcp_kurtz, lcp_wt and lcp_bitcompressed
             }
             std::remove(id.c_str());

@@ -63,24 +63,24 @@ int main(int argc, char** argv)
     typedef csa_wt<wt_huff<rrr_vector<127> >, 512, 1024> fm_index_type;
     typedef fm_index_type::size_type size_type;
     fm_index_type fm_index;
-    if (!util::load_from_file(fm_index, index_file.c_str())) {
+    if (!util::load_from_file(fm_index, index_file)) {
 		ifstream in(argv[1]);
 		if( !in ){ cout << "ERROR: File " << argv[1] << " does not exist. Exit." << endl; return 1; }
 		cout << "No index "<<index_file<< " located. Building index now." << endl;
         construct(fm_index, argv[1], 1); // generate index
-        util::store_to_file(fm_index, index_file.c_str()); // save it
+        util::store_to_file(fm_index, index_file); // save it
     }
     string rmq_suffix = ".rmq";
     string rmq_file   = string(argv[1])+rmq_suffix;
     rmq_succinct_sct<> rmq;
     csa_wt<wt_huff<>, 1,1<<20 > tmp_csa;
-    if (!util::load_from_file(rmq, rmq_file.c_str())) {
+    if (!util::load_from_file(rmq, rmq_file)) {
 		ifstream in(argv[1]);
 		if( !in ){ cout << "ERROR: File " << argv[1] << " does not exist. Exit." << endl; return 1; }
 		cout << "No index "<<rmq_file<< " located. Building index now." << endl;
         construct(tmp_csa, argv[1], 1);
         util::assign(rmq, rmq_succinct_sct<>(&tmp_csa));
-        util::store_to_file(rmq, rmq_file.c_str());
+        util::store_to_file(rmq, rmq_file);
     }
 	double index_size = util::get_size_in_mega_bytes(fm_index) + util::get_size_in_mega_bytes(rmq);
 	cout << "Index construction complete, index requires " << index_size << " MiB." << endl;

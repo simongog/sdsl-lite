@@ -26,7 +26,6 @@
 #include "int_vector.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
-#include "bitmagic.hpp"
 #include <iostream>
 #include <algorithm> // for lower_bound
 #include <cassert>
@@ -155,7 +154,7 @@ lcp_vlc<vlc_vec_type>::lcp_vlc(const Text& text, const Sa& sa) {
         return;
     }
     int_vector<> lcp;
-    lcp.set_int_width(bit_magic::l1BP(sa.size()) + 1);
+    lcp.width(bit_magic::l1BP(sa.size()) + 1);
     lcp.resize(sa.size());
 
     // use Kasai algorithm to compute the lcp values

@@ -31,7 +31,6 @@
 #include "cst_iterators.hpp"
 #include "rank_support.hpp"
 #include "select_support.hpp"
-#include "testutils.hpp"
 #include "util.hpp"
 #include <iostream>
 #include <algorithm>
@@ -106,7 +105,7 @@ inline std::ostream& operator<<(std::ostream& os, const bp_interval<Int>& interv
 
 //! A class for the Compressed Suffix Tree (CST) proposed by Ohlebusch and Gog.
 /*! The CST is parameterized by
- *    - a (compressed) suffix array (accessible via member \f$csa\f$, default clas is sdsl::csa_wt),
+ *    - a (compressed) suffix array (accessible via member \f$csa\f$, default class is sdsl::csa_wt),
  *    - a (compressed) longest common prefix array data structure (accessible via member \f$lcp\f$, default class is sdsl::lcp_support_tree), and
  *    - a support data structure for balanced parentheses sequences (accessible via member \f$bp\_support\f$, default class is sdsl::bp_support_sada).
  *    - a rank support data structure for the bitvector which indicates the first child property
@@ -447,7 +446,7 @@ class cst_sct3
         const_bottom_up_iterator begin_bottom_up()const {
             if (0 == m_bp.size())  // special case: tree is uninitialized
                 return end_bottom_up();
-            return const_bottom_up_iterator(this, leftmost_leaf_in_the_subtree(root()));
+            return const_bottom_up_iterator(this, leftmost_leaf(root()));
         }
 
         //! Returns an iterator to the element after the last element of a bottom-up traversal of the tree.
@@ -524,7 +523,7 @@ class cst_sct3
          *
          *  This method is used e.g. in the sdsl::algorithm::count<Cst> method.
          */
-        size_type leaves_in_the_subtree(const node_type& v)const {
+        size_type size(const node_type& v)const {
             return v.j-v.i+1;
         }
 
@@ -534,7 +533,7 @@ class cst_sct3
          *	\par Time complexity
          *		\f$ \Order{1} \f$
          */
-        node_type leftmost_leaf_in_the_subtree(const node_type& v)const {
+        node_type leftmost_leaf(const node_type& v)const {
             return select_leaf(v.i+1);
         }
 
@@ -544,7 +543,7 @@ class cst_sct3
          *	\par Time complexity
          *		\f$ \Order{1} \f$
          */
-        node_type rightmost_leaf_in_the_subtree(const node_type& v)const {
+        node_type rightmost_leaf(const node_type& v)const {
             return select_leaf(v.j+1);
         }
 
@@ -1106,7 +1105,7 @@ template<class Csa, class Lcp, class Bp_support, class Rank_support>
 cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(cache_config& config, bool build_only_bps):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
 {
     write_R_output("cst", "construct BPS", "begin", 1, 0);
-    int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config).c_str());
+    int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config));
     m_nodes = algorithm::construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child) + m_bp.size()/2;
 	if ( m_bp.size() == 2 ){ // handle special case, when the tree consists only of the root node
 		m_nodes = 1;
@@ -1125,7 +1124,7 @@ cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(cache_config& config, boo
         write_R_output("cst", "construct CLCP", "end", 1, 0);
     }
     if (!build_only_bps) {
-		util::load_from_cache(m_csa, util::class_to_hash(m_csa).c_str(), config);
+		util::load_from_cache(m_csa, util::class_to_hash(m_csa), config);
     }
     m_sigma = std::max(degree(root()), (size_type)1);
 	//handle special case 'CST for empty text'  --^

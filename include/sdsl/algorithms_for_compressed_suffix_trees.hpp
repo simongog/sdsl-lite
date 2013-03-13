@@ -428,7 +428,7 @@ int_vector_size_type construct_first_child_and_lf_lcp(int_vector_file_buffer<fix
 
     big_lcp_out.close();
     std::ifstream big_lcp_in(big_lcp_file_name.c_str());
-    big_lcp.set_int_width(bit_magic::l1BP(max_lcp)+1);
+    big_lcp.width(bit_magic::l1BP(max_lcp)+1);
     big_lcp.resize(fc_cnt_big);
 
     for (size_type i=0; i<fc_cnt_big; ++i) {

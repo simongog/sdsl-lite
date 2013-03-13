@@ -14,17 +14,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file bwt_construct.hpp
-    \brief bwt_construct.hpp contains a space and time efficient construction method for the Burrows and Wheeler Transform (BWT).
+/*! \file construct_bwt.hpp
+    \brief construct_bwt.hpp contains a space and time efficient construction method for the Burrows and Wheeler Transform (BWT).
     \author Simon Gog
 */
-#ifndef INCLUDED_SDSL_BWT_CONSTRUCT
-#define INCLUDED_SDSL_BWT_CONSTRUCT
+#ifndef INCLUDED_SDSL_CONSTRUCT_BWT
+#define INCLUDED_SDSL_CONSTRUCT_BWT
 
 #include "typedefs.hpp"
 #include "int_vector.hpp"
 #include "util.hpp"
-#include "testutils.hpp"
 #include "config.hpp" // for cache_config
 
 #include <iostream>
@@ -60,13 +59,13 @@ void construct_bwt(cache_config& config){
     text_type text;
     util::load_from_cache(text, KEY_TEXT, config);
     size_type n = text.size(); 
-    uint8_t bwt_width = text.get_int_width();
+    uint8_t bwt_width = text.width();
     write_R_output("bwt", "load text", "end", 1, 0);
 
     //  (2) Prepare to stream SA from disc and BWT to disc
     write_R_output("bwt", "prepare io", "begin", 1, 0);
     size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
-    int_vector_file_buffer<> sa_buf(util::cache_file_name(constants::KEY_SA, config).c_str());
+    int_vector_file_buffer<> sa_buf(util::cache_file_name(constants::KEY_SA, config));
     sa_buf.reset(buffer_size);
 
     bwt_type bwt_buf(buffer_size, 0, bwt_width);
@@ -89,7 +88,7 @@ void construct_bwt(cache_config& config){
             bwt_buf[i-r_sum] = text[ sa_buf[i-r_sum]+to_add[sa_buf[i-r_sum]==0] ]; 
         }
         if (r > 0) {
-            size_type cur_wb = (r*bwt_buf.get_int_width()+7)/8;
+            size_type cur_wb = (r*bwt_buf.width()+7)/8;
             bwt_out_buf.write((const char*)bwt_buf.data(), cur_wb);
             wb += cur_wb;
         }

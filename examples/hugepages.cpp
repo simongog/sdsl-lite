@@ -1,7 +1,6 @@
 #include <sdsl/int_vector.hpp>
-#include <sdsl/suffixtrees.hpp>
+#include <sdsl/suffix_trees.hpp>
 #include <sdsl/wt_rlmn.hpp>
-#include <sdsl/testutils.hpp>
 #include <sdsl/bit_vector_interleaved.hpp>
 #include <iostream>
 #include <string>
@@ -11,14 +10,14 @@ using namespace std;
 
 template<class tCsa>
 void do_something(const tCsa &csa){
-	stop_watch sw;
+	util::stop_watch sw;
 	uint64_t sum=0;
 	sw.start();
 	for(size_t i=0; i<csa.size() and i<10000000;++i){
 		sum+=csa.psi(i);
 	}
 	sw.stop();
-	cout << sw.get_real_time() << endl;
+	cout << sw.real_time() << endl;
 	cout<<"sum="<<sum<<endl;
 }
 

@@ -23,7 +23,6 @@
 
 #include "rmq_support.hpp"
 #include "int_vector.hpp"
-#include "bitmagic.hpp"
 #include <ostream>
 
 //! Namespace for the succinct data structure library.

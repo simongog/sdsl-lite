@@ -14,8 +14,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file suffixarray_helper.hpp
-    \brief suffixarray_helper.hpp contains some helper classes for (compressed suffix arrays)
+/*! \file sdsl_concepts.hpp
+    \brief Contains declarations and definitions of data structure concepts.
 	\author Simon Gog
 */
 #ifndef INCLUDED_SDSL_CONCEPTS

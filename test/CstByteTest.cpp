@@ -1,10 +1,9 @@
 #include "CstHelper.hpp"
-#include "sdsl/suffixtrees.hpp"
+#include "sdsl/suffix_trees.hpp"
 #include "sdsl/lcp.hpp"
 #include "sdsl/test_index_performance.hpp"
 #include "sdsl/util.hpp" // for store_to_file, load_to_file,...
 #include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
-#include "sdsl/testutils.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()
@@ -32,8 +31,8 @@ class CstByteTest : public ::testing::Test {
 		std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
 		std::string config_file = prefix + "/CstByteTest.config";
 		std::string tc_prefix	= prefix + "/test_cases";
-		test_cases = sdsl::paths_from_config_file(config_file.c_str(), tc_prefix.c_str());
-		tmp_file = "cst_test_" + util::to_string(util::get_pid()) + "_";
+		test_cases = sdsl::paths_from_config_file(config_file, tc_prefix.c_str());
+		tmp_file = "cst_test_" + util::to_string(util::pid()) + "_";
 		if ( test_cases_file_map.size() == 0 ){
 			test_cases_file_map.resize(test_cases.size());
 		}
@@ -47,12 +46,12 @@ class CstByteTest : public ::testing::Test {
 
 	template<class Cst>
 	std::string get_tmp_file_name(const Cst& cst, size_type i) {
-		return tmp_dir+tmp_file + util::class_to_hash(cst) + "_" + util::basename(test_cases[i].c_str());
+		return tmp_dir+tmp_file + util::class_to_hash(cst) + "_" + util::basename(test_cases[i]);
 	}
 
 	template<class Cst>
 	bool load_cst(Cst& cst, size_type i) {
-		return util::load_from_file(cst, get_tmp_file_name(cst, i).c_str());
+		return util::load_from_file(cst, get_tmp_file_name(cst, i));
 	}
 };
 
@@ -62,6 +61,7 @@ typedef Types<
 		 cst_sct3<cst_sada<>::csa_type, lcp_bitcompressed<> >,
          cst_sada<cst_sada<>::csa_type, lcp_dac<> >,
          cst_sada<cst_sada<>::csa_type, lcp_vlc<> >,
+         cst_sada<cst_sada<>::csa_type, lcp_byte<> >,
          cst_sada<cst_sada<>::csa_type, lcp_support_tree2<>, bp_support_gg<> >,
          cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_gg<> >,
          cst_sct3<>,
@@ -87,10 +87,10 @@ TYPED_TEST_CASE(CstByteTest, Implementations);
 TYPED_TEST(CstByteTest, CreateAndStoreTest){
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-		cache_config config(false, this->tmp_dir, util::basename(this->test_cases[i].c_str()));
-		construct(cst, this->test_cases[i].c_str(), config, 1);
+		cache_config config(false, this->tmp_dir, util::basename(this->test_cases[i]));
+		construct(cst, this->test_cases[i], config, 1);
 		test_cases_file_map[i] = config.file_map;
-        bool success = util::store_to_file(cst, this->get_tmp_file_name(cst, i).c_str());
+        bool success = util::store_to_file(cst, this->get_tmp_file_name(cst, i));
         ASSERT_EQ(true, success);
     }
 }
@@ -130,7 +130,7 @@ TYPED_TEST(CstByteTest, BasicMethods) {
         typedef typename TypeParam::node_type node_type;
         node_type r = cst.root(); // get root node
         // Size of the subtree rooted at r should the size of the suffix array
-        ASSERT_EQ(cst.csa.size(), cst.leaves_in_the_subtree(r));
+        ASSERT_EQ(cst.csa.size(), cst.size(r));
         // Check leaf methods
         for (size_type i=0; i < cst.csa.size(); ++i) {
             ASSERT_EQ(true, cst.is_leaf(cst.select_leaf(i+1)));
@@ -142,9 +142,9 @@ TYPED_TEST(CstByteTest, BasicMethods) {
 TYPED_TEST(CstByteTest, SaAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-        ASSERT_EQ(this->load_cst(cst, i), true);
+        ASSERT_EQ(true, this->load_cst(cst, i));
 		sdsl::int_vector<> sa;
-		sdsl::util::load_from_file(sa, test_cases_file_map[i][sdsl::constants::KEY_SA].c_str());
+		sdsl::util::load_from_file(sa, test_cases_file_map[i][sdsl::constants::KEY_SA]);
         size_type n = sa.size();
         ASSERT_EQ(n, cst.csa.size());
         for (size_type j=0; j<n; ++j) { ASSERT_EQ(sa[j], cst.csa[j])<<" j="<<j; }
@@ -155,9 +155,9 @@ TYPED_TEST(CstByteTest, SaAccess) {
 TYPED_TEST(CstByteTest, BwtAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-        ASSERT_EQ(this->load_cst(cst, i), true);
+        ASSERT_EQ(true, this->load_cst(cst, i));
 		sdsl::int_vector<8> bwt;
-		sdsl::util::load_from_file(bwt, test_cases_file_map[i][sdsl::constants::KEY_BWT].c_str());
+		sdsl::util::load_from_file(bwt, test_cases_file_map[i][sdsl::constants::KEY_BWT]);
         size_type n = bwt.size();
         ASSERT_EQ(n, cst.csa.bwt.size());
         for (size_type j=0; j<n; ++j) { ASSERT_EQ(bwt[j], cst.csa.bwt[j])<<" j="<<j; }
@@ -168,9 +168,9 @@ TYPED_TEST(CstByteTest, BwtAccess) {
 TYPED_TEST(CstByteTest, LcpAccess) {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-        ASSERT_EQ(this->load_cst(cst, i), true);
+        ASSERT_EQ(true, this->load_cst(cst, i));
 		sdsl::int_vector<> lcp;
-		sdsl::util::load_from_file(lcp, test_cases_file_map[i][sdsl::constants::KEY_LCP].c_str());
+		sdsl::util::load_from_file(lcp, test_cases_file_map[i][sdsl::constants::KEY_LCP]);
         size_type n = lcp.size();
         ASSERT_EQ(n, cst.lcp.size());
         for (size_type j=0; j<n; ++j) { ASSERT_EQ(lcp[j], cst.lcp[j])<<" j="<<j; }

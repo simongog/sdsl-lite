@@ -41,7 +41,7 @@ class int_vector_serialize_vbyte_wrapper
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             // (1) write size and int_width
-            written_bytes += _sdsl_serialize_size_and_int_width(out, fixedIntWidth, m_vec.get_int_width(), m_vec.bit_size());
+            written_bytes += _sdsl_serialize_size_and_int_width(out, fixedIntWidth, m_vec.width(), m_vec.bit_size());
             // (2) write entries in vbyte coding
             for (size_type i=0; i < m_vec.size(); ++i) {
                 value_type ww = m_vec[i];
@@ -82,7 +82,7 @@ class int_vector_load_vbyte_wrapper
             // (1) read size and int_width
             int_vector_trait<fixedIntWidth>::read_header(size, int_width, in);
             // (2) resize the vector
-            m_vec.set_int_width(int_width);
+            m_vec.width(int_width);
             m_vec.bit_resize(size);
             // (3) read vbyte encoded entries an put them into the vector
             size_type i = 0;

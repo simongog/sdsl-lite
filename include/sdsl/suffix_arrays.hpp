@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file suffixarrays.hpp
-    \brief suffixarrays.hpp contains generic classes for different suffix array classes.
+/*! \file suffix_arrays.hpp
+    \brief suffix_arrays.hpp contains generic classes for different suffix array classes.
 	\author Simon Gog
 */
-#ifndef INCLUDED_SDSL_SUFFIXARRAYS
-#define INCLUDED_SDSL_SUFFIXARRAYS
+#ifndef INCLUDED_SDSL_SUFFIX_ARRAYS
+#define INCLUDED_SDSL_SUFFIX_ARRAYS
 
 #include "sdsl_concepts.hpp"
 

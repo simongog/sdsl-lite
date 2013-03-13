@@ -14,16 +14,25 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file bwt_construct.hpp
-    \brief bwt_construct.hpp contains a space and time efficient construction method for the Burrows and Wheeler Transform (BWT).
+/*! \file construct_isa.hpp
+    \brief construct_isa.hpp contains a space and time efficient construction method for the inverse suffix array
 	\author Simon Gog
 */
-#include "sdsl/bwt_construct.hpp"
-#include <string>
+#ifndef INCLUDED_SDSL_CONSTRUCT_ISA
+#define INCLUDED_SDSL_CONSTRUCT_ISA
+
+#include "int_vector.hpp"
+#include "util.hpp"
+
 #include <iostream>
-#include <iomanip>
+#include <stdexcept>
+#include <list>
 
 namespace sdsl
 {
 
+void construct_isa(cache_config &config);
+
 }// end namespace
+
+#endif

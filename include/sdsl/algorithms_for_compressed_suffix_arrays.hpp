@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 20010 Simon Gog
+    Copyright (C) 2010 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,11 +22,8 @@
 #define INCLUDED_SDSL_ALGORITHMS_FOR_COMPRESSED_SUFFIX_ARRAYS
 
 #include "int_vector.hpp" // for bit_vector
+#include "util.hpp"
 #include <stack> // for calculate_supercartesian_tree_bp
-
-#ifdef SDSL_DEBUG_ALGORITHMS_FOR_COMPRESSED_SUFFIX_ARRAYS
-#include "testutils.hpp"
-#endif
 
 namespace sdsl
 {
@@ -134,7 +131,7 @@ void set_isa_samples(int_vector_file_buffer<int_width>& sa_buf, typename Csa::is
     typedef typename Csa::size_type size_type;
     size_type  n = sa_buf.int_vector_size;
 
-    isa_sample.set_int_width(bit_magic::l1BP(n)+1);
+    isa_sample.width(bit_magic::l1BP(n)+1);
     if (n >= 1) { // so n+Csa::isa_sample_dens >= 2
         isa_sample.resize((n-1+Csa::isa_sample_dens-1)/Csa::isa_sample_dens + 1);
     }

@@ -39,7 +39,7 @@ class RMQTest : public ::testing::Test
         virtual void SetUp() {
             // Code here will be called immediately after the constructor (right
             // before each test).
-            tmp_file = "tmp_rmq_test_" + sdsl::util::to_string(sdsl::util::get_pid()) + "_";
+            tmp_file = "tmp_rmq_test_" + sdsl::util::to_string(sdsl::util::pid()) + "_";
 			test_cases.push_back(tVUI(0)); // empty vector
 			test_cases.push_back(tVUI(1,42)); // 1-element vector
 			tVUI v;
@@ -70,7 +70,7 @@ class RMQTest : public ::testing::Test
 
         template<class Rmq>
         bool load_rmq(Rmq& rmq, typename Rmq::size_type i) {
-            return sdsl::util::load_from_file(rmq, get_tmp_file_name(rmq, i).c_str());
+            return sdsl::util::load_from_file(rmq, get_tmp_file_name(rmq, i));
         }
 
         std::string tmp_file;
@@ -91,7 +91,7 @@ TYPED_TEST(RMQTest, ConstructAndStore)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 		TypeParam rmq( &(this->test_cases[i]) );
-        bool success = sdsl::util::store_to_file(rmq, this->get_tmp_file_name(rmq, i).c_str());
+        bool success = sdsl::util::store_to_file(rmq, this->get_tmp_file_name(rmq, i));
         ASSERT_EQ(success, true);
     }
 }

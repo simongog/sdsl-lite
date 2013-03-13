@@ -22,7 +22,6 @@
 #define INCLUDED_SDSL_SORTED_INT_STACK
 
 #include "int_vector.hpp"
-#include "bitmagic.hpp"
 #include <vector>
 
 //! Namespace for the succinct data structure library.

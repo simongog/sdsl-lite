@@ -117,10 +117,10 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
 {
     uint64_t z_bit_size = 0;
     register uint64_t w;
-    const uint64_t zero_val = v.get_int_width() < 64 ? (1ULL)<<v.get_int_width() : 0;
+    const uint64_t zero_val = v.width() < 64 ? (1ULL)<<v.width() : 0;
     for (typename int_vector1::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
         if ((w=*it) == 0) {
-            if (v.get_int_width() < 64) {
+            if (v.width() < 64) {
                 w = zero_val;
             }
         }
@@ -192,7 +192,7 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
             bit_magic::write_int_and_move(z_data, fibword_low, offset, (len_1&0x3F) +1);
         }
     }
-    z.set_int_width(v.get_int_width());
+    z.width(v.width());
     return true;
 }
 
@@ -260,7 +260,7 @@ bool fibonacci::decode(const int_vector1& z, int_vector2& v)
     const uint64_t* data = z.data();
     // Determine size of v
     if (z.empty()) {// if z is empty we are ready with decoding
-        v.set_int_width(z.get_int_width());
+        v.width(z.width());
         v.resize(0);
         return true;
     }
@@ -273,7 +273,7 @@ bool fibonacci::decode(const int_vector1& z, int_vector2& v)
         n += bit_magic::b11Cnt(*data, carry);
     }
     std::cout<<"n="<<n<<std::endl;
-    v.set_int_width(z.get_int_width()); v.resize(n);
+    v.width(z.width()); v.resize(n);
     return decode<false, true>(z.data(), 0, n, v.begin());
 }
 
