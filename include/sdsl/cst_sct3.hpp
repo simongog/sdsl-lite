@@ -264,11 +264,17 @@ class cst_sct3
         }
 
         // Get the next smaller value.
-        /* \par Time complexity
+		/*
+		 * \param i    Position in the original vector.
+		 * \param ipos Position of the corresponding opening parenthesis in BP.
+		 * \return Position of the next smaller value in [i+1..n-1], and n when
+		 *         no such value exists.
+         * \par Time complexity
          *      \f$ \Order{1} \f$
          */
-        // Returns n if there is no next smaller value in [i+1..n-1]
-        inline size_type nsv(size_type i, size_type ipos)const { // possible optimization: calculate also position of nsv, i.e. next ( following position cipos
+		// possible optimization: calculate also position of nsv, 
+		// i.e. next ( following position cipos
+        inline size_type nsv(SDSL_UNUSED size_type i, size_type ipos)const { 
             size_type cipos = m_bp_support.find_close(ipos);
             size_type result = m_bp_support.rank(cipos);
             return result;
@@ -276,11 +282,17 @@ class cst_sct3
 
         // Get the previous smaller value.
         /*
+		 * \param i      Position in the original vector.
+		 * \param ipos   Corr
          * \par Time complexity
-         *    \f$ \Order{\frac{\sigma}{w}} \f$, where w=64 is the word size, can be implemented in \f$\Order{1}\f$ with rank and select
+         *    \f$ \Order{\frac{\sigma}{w}} \f$, where w=64 is the word size, 
+		 *    can be implemented in \f$\Order{1}\f$ with rank and select.
          */
-        inline size_type psv(size_type i, size_type ipos, size_type cipos, size_type& psvpos, size_type& psvcpos)const {
-            if ( (cipos + (size_type)m_sigma) >= m_bp.size() ) {  // if lcp[i]==0 => psv is the 0-th index by definition
+        inline size_type psv(SDSL_UNUSED size_type i, size_type ipos, 
+							 size_type cipos, size_type& psvpos, 
+							 size_type& psvcpos)const {
+			// if lcp[i]==0 => psv is the 0-th index by definition
+            if ( (cipos + (size_type)m_sigma) >= m_bp.size() ) {  
                 psvpos = 0;
                 psvcpos = m_bp.size()-1;
                 return 0;
@@ -290,8 +302,8 @@ class cst_sct3
                 psvcpos = m_bp_support.find_close(psvpos);
                 return m_bp_support.rank(psvpos)-1;
             }
-
-            size_type r0 = cipos - m_bp_support.rank(cipos); // index of clothing parenthesis in first_child bp
+			// r0 = index of clothing parenthesis in m_first_child 
+            size_type r0 = cipos - m_bp_support.rank(cipos); 
             size_type next_first_child = 0;
             const uint64_t* p = m_first_child.data() + (r0>>6);
             uint64_t w = (*p) >> (r0&0x3F);
@@ -302,7 +314,7 @@ class cst_sct3
                     psvcpos = m_bp_support.find_close(psvpos);
                     return m_bp_support.rank(psvpos)-1;
                 }
-            } else { // TODO for integer-alphabets: replace this linear process by a binary search
+            } else {// TODO for integer-alphabets: replace this linear process by a binary search
                 cipos += 64-(r0&0x3F);
                 ++p;
                 while (!(w=*p)) { // while w==0
@@ -1072,9 +1084,11 @@ class cst_sct3
         /* \param lb Left bound of the lcp-interval [lb..rb] (inclusive).
          * \param rb Right bound of the lcp-interval [lb..rb] (inclusive).
          * \param l  Depth of the lcp-interval.
-         *\ return The node in the suffix tree corresponding lcp-interval [lb..rb]
+         * \return The node in the suffix tree corresponding lcp-interval [lb..rb]
+		 * \par Time complexity
+		 *		\f$ \Order{1} \f$
          */
-        node_type node(size_type lb, size_type rb, size_type l=0) const {
+        node_type node(size_type lb, size_type rb, SDSL_UNUSED size_type l=0) const {
             size_type ipos = m_bp_support.select(lb+1);
             size_type jp1pos;
             if (rb == size()-1) {
