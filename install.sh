@@ -12,10 +12,18 @@ fi
 sufsort_dir="libdivsufsort-2.0.1"
 gtest_dir="gtest-1.6.0"
 
-# (1) Install libdivsufsort-2.0.1
 OLD_DIR="$( cd "$( dirname "$0" )" && pwd )" # gets the directory where the script is located in
 cd "${OLD_DIR}"
 
+if [ -d ".git/hooks" ]; then
+	echo "Copy pre-commit into .git/hooks"
+	cp extras/pre-commit .git/hooks/
+else
+	echo "WARNING: .git/hooks directory does not exists."
+	echo "         The pre-commit hook is not installed."
+fi
+
+# (1) Install libdivsufsort-2.0.1
 cd "${sufsort_dir}/build"  # step into the build dir of libdivsufsort
 rm -f CMakeCache.txt
 
