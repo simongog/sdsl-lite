@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file fibonacci_coder.hpp
-    \brief fibonacci_coder.hpp contains the class sdsl::coder::fibonacci
+/*! \file coder_fibonacci.hpp
+    \brief coder_fibonacci.hpp contains the class sdsl::coder::fibonacci
 	\author Simon Gog
  */
-#ifndef SDSL_FIBONACCI_CODER
-#define SDSL_FIBONACCI_CODER
+#ifndef SDSL_CODER_FIBONACCI_INCLUDED
+#define SDSL_CODER_FIBONACCI_INCLUDED
 
 #include "int_vector.hpp"
 

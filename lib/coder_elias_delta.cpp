@@ -1,4 +1,4 @@
-#include "sdsl/elias_delta_coder.hpp"
+#include "sdsl/coder_elias_delta.hpp"
 
 namespace sdsl
 {

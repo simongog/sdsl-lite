@@ -19,7 +19,7 @@
    \author Simon Gog
 */
 #include "int_vector.hpp"
-#include "elias_delta_coder.hpp"
+#include "coder_elias_delta.hpp"
 #include "iterators.hpp"
 
 #ifndef SDSL_VLC_VECTOR
@@ -45,8 +45,8 @@ struct vlc_vector_trait<32> {
  *
  */
 template<class Coder=coder::elias_delta,
-         uint32_t SampleDens = 16, 
-		 uint8_t fixedIntWidth=0>
+         uint32_t SampleDens = 16,
+         uint8_t fixedIntWidth=0>
 class vlc_vector
 {
     public:
@@ -121,7 +121,7 @@ class vlc_vector
          */
         vlc_vector& operator=(const vlc_vector& v);
 
-		//! Equality Operator
+        //! Equality Operator
         bool operator==(const vlc_vector& v)const;
 
         //! Inequality Operator
@@ -142,7 +142,8 @@ class vlc_vector
 
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-inline uint32_t vlc_vector<Coder, SampleDens, fixedIntWidth>::get_sample_dens() const {
+inline uint32_t vlc_vector<Coder, SampleDens, fixedIntWidth>::get_sample_dens() const
+{
     if (SampleDens == 0)
         return m_sample_dens;
     else
@@ -150,12 +151,14 @@ inline uint32_t vlc_vector<Coder, SampleDens, fixedIntWidth>::get_sample_dens() 
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-inline void vlc_vector<Coder, SampleDens, fixedIntWidth>::set_sample_dens(const uint32_t sample_dens) {
+inline void vlc_vector<Coder, SampleDens, fixedIntWidth>::set_sample_dens(const uint32_t sample_dens)
+{
     m_sample_dens = sample_dens;
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-inline typename vlc_vector<Coder, SampleDens,fixedIntWidth>::value_type vlc_vector<Coder, SampleDens,fixedIntWidth>::operator[](const size_type i)const {
+inline typename vlc_vector<Coder, SampleDens,fixedIntWidth>::value_type vlc_vector<Coder, SampleDens,fixedIntWidth>::operator[](const size_type i)const
+{
     assert(i+1 != 0);
 #ifdef SDSL_DEBUG
     if (i >= m_elements) {
@@ -168,36 +171,42 @@ inline typename vlc_vector<Coder, SampleDens,fixedIntWidth>::value_type vlc_vect
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-inline vlc_vector<>::size_type vlc_vector<Coder, SampleDens,fixedIntWidth>::size()const {
+inline vlc_vector<>::size_type vlc_vector<Coder, SampleDens,fixedIntWidth>::size()const
+{
     return m_elements;
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-inline vlc_vector<>::size_type vlc_vector<Coder, SampleDens,fixedIntWidth>::max_size() {
+inline vlc_vector<>::size_type vlc_vector<Coder, SampleDens,fixedIntWidth>::max_size()
+{
     return int_vector<>::max_size()/2; // each element could possible occupy double space with selfdelimiting codes
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-inline bool vlc_vector<Coder, SampleDens,fixedIntWidth>::empty()const {
+inline bool vlc_vector<Coder, SampleDens,fixedIntWidth>::empty()const
+{
     return 0==m_elements;
 }
 
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-void vlc_vector<Coder, SampleDens,fixedIntWidth>::copy(const vlc_vector<Coder, SampleDens,fixedIntWidth>& v) {
+void vlc_vector<Coder, SampleDens,fixedIntWidth>::copy(const vlc_vector<Coder, SampleDens,fixedIntWidth>& v)
+{
     m_z					= v.m_z;				// copy compressed bit stream
     m_sample_pointer	= v.m_sample_pointer;   // copy sample values
     m_elements			= v.m_elements;			// copy number of stored elements
-	m_sample_dens       = v.m_sample_dens;
+    m_sample_dens       = v.m_sample_dens;
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-vlc_vector<Coder, SampleDens,fixedIntWidth>::vlc_vector(const vlc_vector& v) : m_elements(0), m_sample_dens(16) {
+vlc_vector<Coder, SampleDens,fixedIntWidth>::vlc_vector(const vlc_vector& v) : m_elements(0), m_sample_dens(16)
+{
     copy(v);
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-vlc_vector<Coder, SampleDens,fixedIntWidth>& vlc_vector<Coder, SampleDens,fixedIntWidth>::operator=(const vlc_vector<Coder, SampleDens,fixedIntWidth>& v) {
+vlc_vector<Coder, SampleDens,fixedIntWidth>& vlc_vector<Coder, SampleDens,fixedIntWidth>::operator=(const vlc_vector<Coder, SampleDens,fixedIntWidth>& v)
+{
     if (this != &v) {// if v and _this_ are not the same object
         copy(v);
     }
@@ -205,7 +214,8 @@ vlc_vector<Coder, SampleDens,fixedIntWidth>& vlc_vector<Coder, SampleDens,fixedI
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-bool vlc_vector<Coder, SampleDens,fixedIntWidth>::operator==(const vlc_vector<Coder, SampleDens,fixedIntWidth>& v)const {
+bool vlc_vector<Coder, SampleDens,fixedIntWidth>::operator==(const vlc_vector<Coder, SampleDens,fixedIntWidth>& v)const
+{
     if (this == &v)
         return true;
     return	 	m_elements == v.m_elements
@@ -214,12 +224,14 @@ bool vlc_vector<Coder, SampleDens,fixedIntWidth>::operator==(const vlc_vector<Co
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-bool vlc_vector<Coder, SampleDens,fixedIntWidth>::operator!=(const vlc_vector<Coder, SampleDens,fixedIntWidth>& v)const {
+bool vlc_vector<Coder, SampleDens,fixedIntWidth>::operator!=(const vlc_vector<Coder, SampleDens,fixedIntWidth>& v)const
+{
     return !(*this == v);
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-void vlc_vector<Coder, SampleDens,fixedIntWidth>::swap(vlc_vector<Coder, SampleDens,fixedIntWidth>& v) {
+void vlc_vector<Coder, SampleDens,fixedIntWidth>::swap(vlc_vector<Coder, SampleDens,fixedIntWidth>& v)
+{
     if (this != &v) { // if v and _this_ are not the same object
         m_z.swap(v.m_z);					// swap compressed bit streams
         m_sample_pointer.swap(v.m_sample_pointer);
@@ -230,7 +242,8 @@ void vlc_vector<Coder, SampleDens,fixedIntWidth>::swap(vlc_vector<Coder, SampleD
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
 template<class Container>
-vlc_vector<Coder, SampleDens, fixedIntWidth>::vlc_vector(const Container& c) : m_elements(0), m_sample_dens(16) {
+vlc_vector<Coder, SampleDens, fixedIntWidth>::vlc_vector(const Container& c) : m_elements(0), m_sample_dens(16)
+{
     clear(); // clear bit_vectors
 
     if (c.empty())  // if c is empty there is nothing to do...
@@ -245,7 +258,7 @@ vlc_vector<Coder, SampleDens, fixedIntWidth>::vlc_vector(const Container& c) : m
     }
     samples = (c.size()+get_sample_dens()-1)/get_sample_dens();
 //	(2) Write z
-	util::assign(m_sample_pointer, int_vector<>(samples+1, 0, bit_magic::l1BP(z_size+1)+1) );
+    util::assign(m_sample_pointer, int_vector<>(samples+1, 0, bit_magic::l1BP(z_size+1)+1));
 
     m_z.bit_resize(z_size);
     z_size = 0;
@@ -265,8 +278,9 @@ vlc_vector<Coder, SampleDens, fixedIntWidth>::vlc_vector(const Container& c) : m
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
 template<uint8_t int_width>
-vlc_vector<Coder, SampleDens, fixedIntWidth>::vlc_vector(int_vector_file_buffer<int_width>& v_buf) 
-	: m_elements(0), m_sample_dens(16) {
+vlc_vector<Coder, SampleDens, fixedIntWidth>::vlc_vector(int_vector_file_buffer<int_width>& v_buf)
+    : m_elements(0), m_sample_dens(16)
+{
     clear(); // clear bit_vectors
     size_type n = v_buf.int_vector_size;
     if (n == 0)  // if c is empty there is nothing to do...
@@ -287,7 +301,7 @@ vlc_vector<Coder, SampleDens, fixedIntWidth>::vlc_vector(int_vector_file_buffer<
     samples = (n+get_sample_dens()-1)/get_sample_dens();
 //	(2) Write z
 
-	util::assign(m_sample_pointer, int_vector<>(samples+1, 0, bit_magic::l1BP(z_size+1)+1) ); // add 1 for last entry
+    util::assign(m_sample_pointer, int_vector<>(samples+1, 0, bit_magic::l1BP(z_size+1)+1));  // add 1 for last entry
 
 //     (b) Initilize bit_vector for encoded data
     m_z.bit_resize(z_size);
@@ -315,10 +329,11 @@ vlc_vector<Coder, SampleDens, fixedIntWidth>::vlc_vector(int_vector_file_buffer<
 
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-vlc_vector<>::size_type vlc_vector<Coder, SampleDens,fixedIntWidth>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
+vlc_vector<>::size_type vlc_vector<Coder, SampleDens,fixedIntWidth>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
+{
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-	written_bytes += util::write_member(m_elements, out, child, "m_elements");
+    written_bytes += util::write_member(m_elements, out, child, "m_elements");
     written_bytes += m_z.serialize(out, child, "m_z");
     written_bytes += m_sample_pointer.serialize(out, child, "m_sample_pointer");
     structure_tree::add_size(child, written_bytes);
@@ -326,19 +341,22 @@ vlc_vector<>::size_type vlc_vector<Coder, SampleDens,fixedIntWidth>::serialize(s
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-void vlc_vector<Coder, SampleDens,fixedIntWidth>::load(std::istream& in) {
+void vlc_vector<Coder, SampleDens,fixedIntWidth>::load(std::istream& in)
+{
     in.read((char*) &m_elements, sizeof(m_elements));
     m_z.load(in);
     m_sample_pointer.load(in);
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-const typename vlc_vector<Coder,SampleDens,fixedIntWidth>::const_iterator vlc_vector<Coder, SampleDens,fixedIntWidth>::begin()const {
+const typename vlc_vector<Coder,SampleDens,fixedIntWidth>::const_iterator vlc_vector<Coder, SampleDens,fixedIntWidth>::begin()const
+{
     return const_iterator(this, 0);
 }
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
-const typename vlc_vector<Coder,SampleDens,fixedIntWidth>::const_iterator vlc_vector<Coder, SampleDens,fixedIntWidth>::end()const {
+const typename vlc_vector<Coder,SampleDens,fixedIntWidth>::const_iterator vlc_vector<Coder, SampleDens,fixedIntWidth>::end()const
+{
     return const_iterator(this, this->m_elements);
 }
 

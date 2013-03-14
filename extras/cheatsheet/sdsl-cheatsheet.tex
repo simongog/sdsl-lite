@@ -156,16 +156,12 @@
      \Large{\textbf{\sdsl\ Cheat Sheet}} \\
 \end{center}
 
-\section{Data structure}
+\section{Data structures}
+The library code is in the sdsl namespace. Either import
+the namespace in your program (\code{using~namespace~sdsl;}) or
+qualify all identifieres by a \code{sdsl::}-prefix.
 
-The library code is in the
-sdsl namespace. Either import
-the namespace in your program
-(\code{using~namespace~sdsl;}) or
-qualify all identifieres by
-a \code{sdsl::}-prefix.
-
-\subsection{Unsigned Integer Vector (dynamic)}
+\subsection{Unsigned Integer Vector}
 The core of the libary is the class 
 \href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslintvector\textless$w$\textgreater}.
 Paramter $w$ corresonds to the fixed length of each
@@ -175,17 +171,19 @@ correspond to \code{std::vector\textless uint$w$\_t\textgreater}.
 If $w=0$ (default) the length can be set during runtime.
 \textit{Constructor:} \sdslintvectorZ\code{($n$, $x$, $\ell$)}, where
 $n$ size in integers, $x$ default integer value, $\ell$ width
-of integer.
+of integer (has no effect for $w>0$).
 
 \textit{Public~methods:} \code{operator[i]}, \code{size()}, \code{width()}, 
-\code{data()},\code{resize($n$)}. For $w=0$ set the width
-with \code{width($\ell$)}.
+\code{data()}. 
 
-\subsection{Manipulating \sdslintvector s}
+\subsubsection{Manipulating \sdslintvector\textless$w$\textgreater\ \code{v}}
 \settowidth{\MyLen}{\code{util::set\_random\_bits(v)}\quad}
 \begin{tabular}{@{}p{\the\MyLen}%
                 @{}p{\linewidth-\the\MyLen}@{}}
 \textit{Method}                     & \textit{Description} \\
+\code{v[$i$]=$x$}                   & Set entry \code{v[$i$]} to $x$. \\
+\code{v.width($\ell$)}	            & Set width to $\ell$, if $w=0$.\\
+\code{v.resize($n$)}				& Resize $v$ to $n$ elements. \\
 \code{util::set\_one\_bits(v)}      & Set elements of \code{v} to \code{1}. \\
 \code{util::set\_zero\_bits(v)}     & Set elements of \code{v} to \code{0}. \\
 \code{util::set\_to\_id(v)}         & Set \code{v[$i$]=$i$} for each $i$.\\
@@ -200,10 +198,14 @@ with \code{width($\ell$)}.
 										$\ell$ bits, if \code{$\ell\geq$~v.width()}\\
 \end{tabular}
 
-\subsection{Compressed Vector}
+\subsection{Compressed Unsigned Integer Vector}
+For a vector \code{v}, \href{\sdslgit/include/sdsl/enc_vector.hpp}{\sdslencvector} stores the
+self-delimiting coded deltas (\code{v[$i+1$]-v[$i$]}). Fast random access is
+achieved by sampling values of \code{v}. 
+
+
 \begin{tabular}{@{}ll@{}}
 \textit{Class}    & \textit{Description}      \\
-\href{\sdslgit/include/sdsl/enc_vector.hpp}{\sdslencvector} & 
 delta and self-delimiting encoded.. \\
 \end{tabular}
 
@@ -267,7 +269,7 @@ in BV for \code{i}$\in [1..m]$.
 \end{tabular}
 Call~\code{util::init\_support(ss, bv)}~to initialize \code{ss} 
 to bitvector \code{bv}. Call \code{ss($i$)} to get
-$\code{select(}i\code{)}=\min\{j\mid \code{rank(}j+1\code{)}=i\}$. 
+$\code{select(}i\code{)}=\min\{j\mid \code{rank(}j\!+\!1\code{)}=i\}$. 
 
 \subsection{Wavelet Trees (WT)}
 \begin{tabular}{@{}ll@{}}
