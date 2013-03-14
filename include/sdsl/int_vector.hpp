@@ -23,7 +23,7 @@
 
 #include <sys/mman.h>
 
-#define HUGE_LEN 1073741824 
+#define HUGE_LEN 1073741824
 #define HUGE_PROTECTION (PROT_READ | PROT_WRITE)
 #define HUGE_FLAGS (MAP_HUGETLB | MAP_ANONYMOUS | MAP_PRIVATE)
 
@@ -303,14 +303,15 @@ sdsl::int_vector<0> v(10);
 	@ingroup int_vector
  */
 template<uint8_t fixedIntWidth>
-class int_vector {
+class int_vector
+{
     public:
         typedef typename int_vector_trait<fixedIntWidth>::value_type		value_type;  	// STL Container requirement
         typedef typename int_vector_trait<fixedIntWidth>::iterator 			iterator;    	// STL Container requirement
         typedef typename int_vector_trait<fixedIntWidth>::const_iterator	const_iterator;
         typedef typename int_vector_trait<fixedIntWidth>::reference 		reference;
         typedef typename int_vector_trait<fixedIntWidth>::const_reference	const_reference;
-        typedef int_vector_reference<int_vector>*							pointer; 
+        typedef int_vector_reference<int_vector>*							pointer;
         typedef const value_type*											const_pointer;
         typedef ptrdiff_t 													difference_type;// STL Container requirement
         typedef int_vector_size_type										size_type;		// STL Container requirement
@@ -328,17 +329,17 @@ class int_vector {
         friend class  coder::fibonacci;
         friend class  coder::ternary;
         friend class  int_vector_file_buffer<fixedIntWidth>;
-		friend class  mm_item<int_vector>;
+        friend class  mm_item<int_vector>;
 
         friend void util::set_random_bits<int_vector>(int_vector& v, int);
         friend void util::set_zero_bits<int_vector>(int_vector&);
         friend void util::set_one_bits<int_vector>(int_vector&);
         friend void util::bit_compress<int_vector>(int_vector&);
-        friend void util::set_all_values_to_k<int_vector>(int_vector&, uint64_t);
-		friend bool util::load_vector_from_file<int_vector>(int_vector&, const std::string&,uint8_t,uint8_t);
+        friend void util::set_to_value<int_vector>(int_vector&, uint64_t);
+        friend bool util::load_vector_from_file<int_vector>(int_vector&, const std::string&,uint8_t,uint8_t);
         friend void algorithm::calculate_sa<fixedIntWidth>(const unsigned char* c, typename int_vector<fixedIntWidth>::size_type len, int_vector<fixedIntWidth>& sa);
 
-		enum{ fixed_int_width = fixedIntWidth };  // make template parameter accessible 
+        enum { fixed_int_width = fixedIntWidth }; // make template parameter accessible
     private:
         size_type		m_size; 		//!< Number of bits needed to store int_vector.
         uint64_t*   	m_data; 		//!< Pointer to the memory for the bits.
@@ -523,7 +524,7 @@ class int_vector {
          	Required for the STL LessThan Comparable Concept.
         	\sa operator>
         */
-        bool operator<(const int_vector& v) const; 
+        bool operator<(const int_vector& v) const;
 
         //! Greater operator for two int_vectors
         /*! int_vector w is greater than v if
@@ -630,7 +631,7 @@ class int_vector_reference
         //! Prefix increment of the proxy object
         int_vector_reference& operator++() {
             typename int_vector::value_type x = bit_magic::read_int(m_word, m_offset, m_len);
-			bit_magic::write_int(m_word, x+1, m_offset, m_len);
+            bit_magic::write_int(m_word, x+1, m_offset, m_len);
             return *this;
         }
 
@@ -644,7 +645,7 @@ class int_vector_reference
         //! Prefix decrement of the proxy object
         int_vector_reference& operator--() {
             typename int_vector::value_type x = bit_magic::read_int(m_word, m_offset, m_len);
-			bit_magic::write_int(m_word, x-1, m_offset, m_len);
+            bit_magic::write_int(m_word, x-1, m_offset, m_len);
             return *this;
         }
 
@@ -658,14 +659,14 @@ class int_vector_reference
         //! Add assign from the proxy object
         int_vector_reference& operator+=(const typename int_vector::value_type x) {
             typename int_vector::value_type w = bit_magic::read_int(m_word, m_offset, m_len);
-			bit_magic::write_int(m_word, w+x, m_offset, m_len);
+            bit_magic::write_int(m_word, w+x, m_offset, m_len);
             return *this;
         }
 
         //! Subtract assign from the proxy object
         int_vector_reference& operator-=(const typename int_vector::value_type x) {
             typename int_vector::value_type w = bit_magic::read_int(m_word, m_offset, m_len);
-			bit_magic::write_int(m_word, w-x, m_offset, m_len);
+            bit_magic::write_int(m_word, w-x, m_offset, m_len);
             return *this;
         }
 
@@ -900,7 +901,8 @@ class int_vector_iterator : public int_vector_iterator_base<int_vector>
 };
 
 template<class int_vector>
-inline int_vector_iterator<int_vector> operator+(typename int_vector_iterator<int_vector>::difference_type n, const int_vector_iterator<int_vector>& it) {
+inline int_vector_iterator<int_vector> operator+(typename int_vector_iterator<int_vector>::difference_type n, const int_vector_iterator<int_vector>& it)
+{
     return it+n;
 }
 
@@ -914,8 +916,8 @@ class int_vector_const_iterator : public int_vector_iterator_base<int_vector>
         typedef typename int_vector::size_type		size_type;
         typedef typename int_vector::difference_type difference_type;
 
-		template<class X>
-		friend typename int_vector_const_iterator<X>::difference_type operator-(const int_vector_const_iterator<X>& x, const int_vector_const_iterator<X>& y);
+        template<class X>
+        friend typename int_vector_const_iterator<X>::difference_type operator-(const int_vector_const_iterator<X>& x, const int_vector_const_iterator<X>& y);
     private:
         using int_vector_iterator_base<int_vector>::m_offset; // make m_offset easy usable
         using int_vector_iterator_base<int_vector>::m_len;    // make m_len easy usable
@@ -1044,18 +1046,21 @@ class int_vector_const_iterator : public int_vector_iterator_base<int_vector>
 };
 
 template<class int_vector>
-inline typename int_vector_const_iterator<int_vector>::difference_type operator-(const int_vector_const_iterator<int_vector>& x, const int_vector_const_iterator<int_vector>& y) {
+inline typename int_vector_const_iterator<int_vector>::difference_type operator-(const int_vector_const_iterator<int_vector>& x, const int_vector_const_iterator<int_vector>& y)
+{
     return (((x.m_word - y.m_word)<<6) + x.m_offset - y.m_offset) / x.m_len;
 }
 
 template<class int_vector>
-inline int_vector_const_iterator<int_vector> operator+(typename int_vector_const_iterator<int_vector>::difference_type n, const int_vector_const_iterator<int_vector>& it) {
+inline int_vector_const_iterator<int_vector> operator+(typename int_vector_const_iterator<int_vector>::difference_type n, const int_vector_const_iterator<int_vector>& it)
+{
     return it + n;
 }
 
 //std::ostream& operator<<(std::ostream&, const int_vector<1> &);
 
-inline std::ostream& operator<<(std::ostream& os, const int_vector<1>& v) {
+inline std::ostream& operator<<(std::ostream& os, const int_vector<1>& v)
+{
     for (int_vector<1>::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
         os << *it;
     }
@@ -1063,7 +1068,8 @@ inline std::ostream& operator<<(std::ostream& os, const int_vector<1>& v) {
     return os;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const int_vector<0>& v) {
+inline std::ostream& operator<<(std::ostream& os, const int_vector<0>& v)
+{
     for (int_vector<0>::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
         os << *it;
         if (it+1 != end) os << " ";
@@ -1076,8 +1082,9 @@ inline std::ostream& operator<<(std::ostream& os, const int_vector<0>& v) {
 // ==== int_vector implemenation  ====
 
 template<uint8_t fixedIntWidth>
-inline int_vector<fixedIntWidth>::int_vector(size_type elements, value_type default_value, uint8_t intWidth):m_size(0), m_data(NULL), m_int_width(intWidth) {
-	mm::add( this );
+inline int_vector<fixedIntWidth>::int_vector(size_type elements, value_type default_value, uint8_t intWidth):m_size(0), m_data(NULL), m_int_width(intWidth)
+{
+    mm::add(this);
     int_vector_trait<fixedIntWidth>::width(m_int_width, intWidth);
     resize(elements);
     if (default_value == 0) {
@@ -1085,13 +1092,14 @@ inline int_vector<fixedIntWidth>::int_vector(size_type elements, value_type defa
     } else if (default_value == 1 and m_int_width == 1) {
         util::set_one_bits(*this);
     } else {
-        util::set_all_values_to_k(*this, default_value); // new initialization
+        util::set_to_value(*this, default_value); // new initialization
     }
 }
 
 template<uint8_t fixedIntWidth>
-inline int_vector<fixedIntWidth>::int_vector(const int_vector& v):m_size(0), m_data(NULL), m_int_width(v.m_int_width) {
-	mm::add( this );
+inline int_vector<fixedIntWidth>::int_vector(const int_vector& v):m_size(0), m_data(NULL), m_int_width(v.m_int_width)
+{
+    mm::add(this);
     bit_resize(v.bit_size());
     if (v.capacity() > 0) {
         if (memcpy(m_data, v.data() ,v.capacity()/8)==NULL) {
@@ -1102,7 +1110,8 @@ inline int_vector<fixedIntWidth>::int_vector(const int_vector& v):m_size(0), m_d
 }
 
 template<uint8_t fixedIntWidth>
-int_vector<fixedIntWidth>& int_vector<fixedIntWidth>::operator=(const int_vector& v) {
+int_vector<fixedIntWidth>& int_vector<fixedIntWidth>::operator=(const int_vector& v)
+{
     if (this != &v) {// if v is not the same object
         bit_resize(v.bit_size());
         if (v.bit_size()>0) {
@@ -1117,15 +1126,17 @@ int_vector<fixedIntWidth>& int_vector<fixedIntWidth>::operator=(const int_vector
 
 // Destructor
 template<uint8_t fixedIntWidth>
-int_vector<fixedIntWidth>::~int_vector() {
-	mm::remove( this );
+int_vector<fixedIntWidth>::~int_vector()
+{
+    mm::remove(this);
     if (m_data != NULL) {
         free(m_data); //fixed delete
     }
 }
 
 template<uint8_t fixedIntWidth>
-void int_vector<fixedIntWidth>::swap(int_vector& v) {
+void int_vector<fixedIntWidth>::swap(int_vector& v)
+{
     if (this != &v) { // if v and _this_ are not the same object
         size_type	size 		= m_size;
         uint64_t*	 data		= m_data;
@@ -1140,13 +1151,15 @@ void int_vector<fixedIntWidth>::swap(int_vector& v) {
 }
 
 template<uint8_t fixedIntWidth>
-void int_vector<fixedIntWidth>::resize(const size_type size) {
+void int_vector<fixedIntWidth>::resize(const size_type size)
+{
     bit_resize(size * width());
 }
 
 
 template<uint8_t fixedIntWidth>
-void int_vector<fixedIntWidth>::bit_resize(const size_type size) {
+void int_vector<fixedIntWidth>::bit_resize(const size_type size)
+{
     bool do_realloc = ((size+63)>>6) != ((m_size+63)>>6);
     m_size = size;                       // set new size
     // special case: bitvector of size 0
@@ -1162,7 +1175,7 @@ void int_vector<fixedIntWidth>::bit_resize(const size_type size) {
         // The allocated memory is aligned such that it can be used for any data type, including AltiVec- and SSE-related types.
         m_data = data;
         // initialize unreachable bits to 0
-        if ( bit_size() < capacity() ) {//m_size>0
+        if (bit_size() < capacity()) {  //m_size>0
             bit_magic::write_int(m_data+(bit_size()>>6), 0, bit_size()&0x3F, capacity()-bit_size());
         }
         if ((m_size % 64) == 0) {  // initialize unreachable bits with 0
@@ -1172,7 +1185,8 @@ void int_vector<fixedIntWidth>::bit_resize(const size_type size) {
 }
 
 template<uint8_t fixedIntWidth>
-inline void int_vector<fixedIntWidth>::setBit(size_type idx,const bool value) {
+inline void int_vector<fixedIntWidth>::setBit(size_type idx,const bool value)
+{
 #ifdef SDSL_DEBUG
     if (idx >= m_size) {
         throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::setBit(size_type idx, const bool value); idx >= size()!");
@@ -1188,7 +1202,8 @@ inline void int_vector<fixedIntWidth>::setBit(size_type idx,const bool value) {
 }
 
 template<uint8_t fixedIntWidth>
-inline const bool int_vector<fixedIntWidth>::getBit(size_type idx)const {
+inline const bool int_vector<fixedIntWidth>::getBit(size_type idx)const
+{
 #ifdef SDSL_DEBUG
     if (idx >= m_size) {
         throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::getBit(size_type idx); idx >= size()!");
@@ -1198,7 +1213,8 @@ inline const bool int_vector<fixedIntWidth>::getBit(size_type idx)const {
 }
 
 template<uint8_t fixedIntWidth>
-inline const typename int_vector<fixedIntWidth>::value_type int_vector<fixedIntWidth>::get_int(size_type idx, const uint8_t len)const {
+inline const typename int_vector<fixedIntWidth>::value_type int_vector<fixedIntWidth>::get_int(size_type idx, const uint8_t len)const
+{
 #ifdef SDSL_DEBUG
     if (idx+len > m_size) {
         throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); idx+len > size()!");
@@ -1211,7 +1227,8 @@ inline const typename int_vector<fixedIntWidth>::value_type int_vector<fixedIntW
 }
 
 template<uint8_t fixedIntWidth>
-inline void int_vector<fixedIntWidth>::set_int(size_type idx, value_type x, const uint8_t len) {
+inline void int_vector<fixedIntWidth>::set_int(size_type idx, value_type x, const uint8_t len)
+{
 #ifdef SDSL_DEBUG
     if (idx+len > m_size) {
         throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::set_int(size_type, uint8_t); idx+len > size()!");
@@ -1224,139 +1241,163 @@ inline void int_vector<fixedIntWidth>::set_int(size_type idx, value_type x, cons
 }
 
 template<uint8_t fixedIntWidth>
-typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::size() const {
+typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::size() const
+{
     return m_size/m_int_width;
 }
 
 template<uint8_t fixedIntWidth>
-typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::max_size() {
+typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::max_size()
+{
     return ((size_type)1)<<(sizeof(size_type)*8-6);// TODO: motivation for this expression
 }
 
 template<uint8_t fixedIntWidth>
-typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::bit_size() const {
+typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::bit_size() const
+{
     return m_size;
 }
 
 template<uint8_t fixedIntWidth>
-bool int_vector<fixedIntWidth>::empty() const {
+bool int_vector<fixedIntWidth>::empty() const
+{
     return m_size==0;
 }
 
 template<uint8_t fixedIntWidth>
-inline typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::capacity() const {
+inline typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::capacity() const
+{
     return ((m_size+63)>>6)<<6;
 }
 
 template<uint8_t fixedIntWidth>
-const uint8_t int_vector<fixedIntWidth>::width()const {
+const uint8_t int_vector<fixedIntWidth>::width()const
+{
     return m_int_width;
 }
 
 template<uint8_t fixedIntWidth>
-void int_vector<fixedIntWidth>::width(uint8_t width) {
+void int_vector<fixedIntWidth>::width(uint8_t width)
+{
     int_vector_trait<fixedIntWidth>::width(m_int_width, width); // delegate to trait function
 }
 
 template<uint8_t fixedIntWidth>
-inline typename int_vector<fixedIntWidth>::reference int_vector<fixedIntWidth>::operator[](const size_type& idx) {
-	assert( idx < this->size() );
+inline typename int_vector<fixedIntWidth>::reference int_vector<fixedIntWidth>::operator[](const size_type& idx)
+{
+    assert(idx < this->size());
     size_type i = idx * m_int_width;
     return reference(this->m_data + (i>>6), i&0x3F, m_int_width);
 }
 
 // specialized [] operator for 64 bit access.
 template<>
-inline int_vector<64>::reference int_vector<64>::operator[](const size_type& idx) {
-	assert( idx < this->size() );
+inline int_vector<64>::reference int_vector<64>::operator[](const size_type& idx)
+{
+    assert(idx < this->size());
     return *(this->m_data+idx);
 }
 
 // specialized [] operator for 32 bit access.
 template<>
-inline int_vector<32>::reference int_vector<32>::operator[](const size_type& idx) {
-	assert( idx < this->size() );
+inline int_vector<32>::reference int_vector<32>::operator[](const size_type& idx)
+{
+    assert(idx < this->size());
     return *(((uint32_t*)(this->m_data))+idx);
 }
 
 // specialized [] operator for 16 bit access.
 template<>
-inline int_vector<16>::reference int_vector<16>::operator[](const size_type& idx) {
-	assert( idx < this->size() );
+inline int_vector<16>::reference int_vector<16>::operator[](const size_type& idx)
+{
+    assert(idx < this->size());
     return *(((uint16_t*)(this->m_data))+idx);
 }
 
 // specialized [] operator for 8 bit access.
 template<>
-inline int_vector<8>::reference int_vector<8>::operator[](const size_type& idx) {
-	assert( idx < this->size() );
+inline int_vector<8>::reference int_vector<8>::operator[](const size_type& idx)
+{
+    assert(idx < this->size());
     return *(((uint8_t*)(this->m_data))+idx);
 }
 
 template<uint8_t fixedIntWidth>
-inline typename int_vector<fixedIntWidth>::const_reference int_vector<fixedIntWidth>::operator[](const size_type& idx)const {
-	assert( idx < this->size() );
+inline typename int_vector<fixedIntWidth>::const_reference int_vector<fixedIntWidth>::operator[](const size_type& idx)const
+{
+    assert(idx < this->size());
     return get_int(idx * fixedIntWidth, fixedIntWidth);
 }
 
 template<>
-inline int_vector<0>::const_reference int_vector<0>::operator[](const size_type& idx)const {
-	assert( idx < this->size() );
+inline int_vector<0>::const_reference int_vector<0>::operator[](const size_type& idx)const
+{
+    assert(idx < this->size());
     return get_int(idx * m_int_width, m_int_width);
 }
 
 template<>
-inline int_vector<64>::const_reference int_vector<64>::operator[](const size_type& idx)const {
-	assert( idx < this->size() );
+inline int_vector<64>::const_reference int_vector<64>::operator[](const size_type& idx)const
+{
+    assert(idx < this->size());
     return *(this->m_data+idx);
 }
 
 template<>
-inline int_vector<32>::const_reference int_vector<32>::operator[](const size_type& idx)const {
-	assert( idx < this->size() );
+inline int_vector<32>::const_reference int_vector<32>::operator[](const size_type& idx)const
+{
+    assert(idx < this->size());
     return *(((uint32_t*)this->m_data)+idx);
 }
 
 template<>
-inline int_vector<16>::const_reference int_vector<16>::operator[](const size_type& idx)const {
-	assert( idx < this->size() );
+inline int_vector<16>::const_reference int_vector<16>::operator[](const size_type& idx)const
+{
+    assert(idx < this->size());
     return *(((uint16_t*)this->m_data)+idx);
 }
 
 template<>
-inline int_vector<8>::const_reference int_vector<8>::operator[](const size_type& idx)const {
-	assert( idx < this->size() );
+inline int_vector<8>::const_reference int_vector<8>::operator[](const size_type& idx)const
+{
+    assert(idx < this->size());
     return *(((uint8_t*)this->m_data)+idx);
 }
 
 template<>
-inline int_vector<1>::const_reference int_vector<1>::operator[](const size_type& idx)const {
-	assert( idx < this->size() );
+inline int_vector<1>::const_reference int_vector<1>::operator[](const size_type& idx)const
+{
+    assert(idx < this->size());
     return ((*(m_data+(idx>>6)))>>(idx&0x3F))&1;
 }
 
 template<uint8_t fixedIntWidth>
-inline const typename int_vector<fixedIntWidth>::iterator int_vector<fixedIntWidth>::begin() {
+inline const typename int_vector<fixedIntWidth>::iterator int_vector<fixedIntWidth>::begin()
+{
     return int_vector_trait<fixedIntWidth>::begin(this, m_data);
 }
 
 template<uint8_t fixedIntWidth>
-inline const typename int_vector<fixedIntWidth>::iterator int_vector<fixedIntWidth>::end() {
+inline const typename int_vector<fixedIntWidth>::iterator int_vector<fixedIntWidth>::end()
+{
     return int_vector_trait<fixedIntWidth>::end(this, m_data, (m_size/m_int_width));
 }
 
 template<uint8_t fixedIntWidth>
-inline const typename int_vector<fixedIntWidth>::const_iterator int_vector<fixedIntWidth>::begin()const {
+inline const typename int_vector<fixedIntWidth>::const_iterator int_vector<fixedIntWidth>::begin()const
+{
     return int_vector_trait<fixedIntWidth>::begin(this, m_data);
 }
 
 template<uint8_t fixedIntWidth>
-inline const typename int_vector<fixedIntWidth>::const_iterator int_vector<fixedIntWidth>::end()const {
+inline const typename int_vector<fixedIntWidth>::const_iterator int_vector<fixedIntWidth>::end()const
+{
     return int_vector_trait<fixedIntWidth>::end(this, m_data, (m_size/m_int_width));
 }
 
 template<uint8_t fixedIntWidth>
-bool int_vector<fixedIntWidth>::operator==(const int_vector& v)const {
+bool int_vector<fixedIntWidth>::operator==(const int_vector& v)const
+{
     if (capacity() != v.capacity())
         return false;
     if (bit_size() != v.bit_size())
@@ -1374,7 +1415,8 @@ bool int_vector<fixedIntWidth>::operator==(const int_vector& v)const {
 }
 
 template<uint8_t fixedIntWidth>
-bool int_vector<fixedIntWidth>::operator<(const int_vector& v)const {
+bool int_vector<fixedIntWidth>::operator<(const int_vector& v)const
+{
     size_type min_size = size();
     if (min_size > v.size())
         min_size = v.size();
@@ -1388,7 +1430,8 @@ bool int_vector<fixedIntWidth>::operator<(const int_vector& v)const {
 }
 
 template<uint8_t fixedIntWidth>
-bool int_vector<fixedIntWidth>::operator>(const int_vector& v)const {
+bool int_vector<fixedIntWidth>::operator>(const int_vector& v)const
+{
     size_type min_size = size();
     if (min_size > v.size())
         min_size = v.size();
@@ -1402,22 +1445,26 @@ bool int_vector<fixedIntWidth>::operator>(const int_vector& v)const {
 }
 
 template<uint8_t fixedIntWidth>
-bool int_vector<fixedIntWidth>::operator<=(const int_vector& v)const {
+bool int_vector<fixedIntWidth>::operator<=(const int_vector& v)const
+{
     return *this==v or *this<v;
 }
 
 template<uint8_t fixedIntWidth>
-bool int_vector<fixedIntWidth>::operator>=(const int_vector& v)const {
+bool int_vector<fixedIntWidth>::operator>=(const int_vector& v)const
+{
     return *this==v or *this>v;
 }
 
 template<uint8_t fixedIntWidth>
-bool int_vector<fixedIntWidth>::operator!=(const int_vector& v)const {
+bool int_vector<fixedIntWidth>::operator!=(const int_vector& v)const
+{
     return !(*this==v);
 }
 
 template<class size_type_class>
-size_type_class _sdsl_serialize_size_and_int_width(std::ostream& out, uint8_t fixed_int_width, uint8_t int_width, size_type_class size) {
+size_type_class _sdsl_serialize_size_and_int_width(std::ostream& out, uint8_t fixed_int_width, uint8_t int_width, size_type_class size)
+{
     size_type_class written_bytes = 0;
     out.write((char*) &size, sizeof(size));
     written_bytes += sizeof(size);
@@ -1432,7 +1479,8 @@ template<uint8_t fixedIntWidth>
 typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::serialize(std::ostream& out,
         structure_tree_node* v,
         std::string name,
-        bool write_fixed_as_variable) const {
+        bool write_fixed_as_variable) const
+{
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
     if (fixedIntWidth > 0 and write_fixed_as_variable) {
@@ -1455,7 +1503,8 @@ typename int_vector<fixedIntWidth>::size_type int_vector<fixedIntWidth>::seriali
 }
 
 template<uint8_t fixedIntWidth>
-void int_vector<fixedIntWidth>::load(std::istream& in) {
+void int_vector<fixedIntWidth>::load(std::istream& in)
+{
     size_type size;
     int_vector_trait<fixedIntWidth>::read_header(size, m_int_width, in);
 
@@ -1471,7 +1520,8 @@ void int_vector<fixedIntWidth>::load(std::istream& in) {
 }
 
 //! A wrapper class which allows us to serialize an char array as an int_vector.
-class char_array_serialize_wrapper {
+class char_array_serialize_wrapper
+{
     public:
         typedef int_vector_size_type	size_type;
     private:
@@ -1484,7 +1534,8 @@ class char_array_serialize_wrapper {
 
 //! A class for reading an int_vector buffered from a file.
 template<uint8_t fixedIntWidth>
-class int_vector_file_buffer {
+class int_vector_file_buffer
+{
     public:
         typedef typename int_vector<fixedIntWidth>::size_type 			size_type;
         typedef typename int_vector<fixedIntWidth>::value_type 		value_type;
@@ -1535,16 +1586,16 @@ class int_vector_file_buffer {
          * \param f_file_name 	File which contains the int_vector.
          * \param len 			Length of the buffer in elements.
          */
-        int_vector_file_buffer(std::string f_file_name="", size_type len=1000000, uint8_t int_width=0):m_in(), m_buf(NULL), m_off(0), m_read_values(0), 
-		                                                                                                 m_len(0), m_int_vector_size(0), m_read_values_sum(0), 
-																										 m_int_width(fixedIntWidth), m_file_name(), 
-																										 m_load_from_plain(false), int_vector_size(m_int_vector_size),
-																										 width(m_int_width), file_name(m_file_name) {
+        int_vector_file_buffer(std::string f_file_name="", size_type len=1000000, uint8_t int_width=0):m_in(), m_buf(NULL), m_off(0), m_read_values(0),
+            m_len(0), m_int_vector_size(0), m_read_values_sum(0),
+            m_int_width(fixedIntWidth), m_file_name(),
+            m_load_from_plain(false), int_vector_size(m_int_vector_size),
+            width(m_int_width), file_name(m_file_name) {
             m_load_from_plain = false;
             int_vector_trait<fixedIntWidth>::width(m_int_width, int_width);
             m_len		 		= len;
             init();
-            if ( f_file_name == "" ) {
+            if (f_file_name == "") {
                 return;
             }
             m_file_name = f_file_name;
@@ -1559,7 +1610,7 @@ class int_vector_file_buffer {
 
         // initialize int_vector_file_buffer from a plain file
         // works only for fixedIntWidth = 8 // TODO extent to 1,16,32,64
-        bool load_from_plain(const std::string &f_file_name, size_type len=1000000, uint8_t int_width=0) {
+        bool load_from_plain(const std::string& f_file_name, size_type len=1000000, uint8_t int_width=0) {
             if (fixedIntWidth != 8) {
                 std::logic_error("ERROR: int_vector_file_buffer: load_from_plain is only implemented for fixedIntWidth=8.");
                 return false;
