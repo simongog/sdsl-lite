@@ -22,8 +22,8 @@
 #define SDSL_CODER
 
 #include "int_vector.hpp"
-#include "fibonacci_coder.hpp"
-#include "elias_delta_coder.hpp"
+#include "coder_fibonacci.hpp"
+#include "coder_elias_delta.hpp"
 
 namespace sdsl
 {

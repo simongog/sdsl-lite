@@ -1,4 +1,4 @@
-#include "sdsl/fibonacci_coder.hpp"
+#include "sdsl/coder_fibonacci.hpp"
 
 namespace sdsl
 {
@@ -31,7 +31,7 @@ uint64_t fibonacci::decode_prefix_sum(const uint64_t* data, const size_type star
     } else { // i>=n
         bits_to_decode = bit_magic::i11BP(*data >> read, n)+1;
     }
-    if (((size_type)bits_to_decode) == n<<1) // TODO: comparison between unsigned and signed int
+    if (((size_type)bits_to_decode) == n<<1)
         return n;
     if (((size_type)bits_to_decode) == (n<<1)+1)
         return n+1;
@@ -79,11 +79,9 @@ uint64_t fibonacci::decode_prefix_sum(const uint64_t* data, const size_type star
                     buffered -= 12;
                     i = 1;
                     break;
-//					goto decode_single;
                 }
             } while (buffered>15);
         } else { // i > 0
-//decode_single:
             value += Fib2bin_0_95[(i<<12) | (w&0xFFF)];
             shift  = Fib2binShift[w&0x1FFF];
             if (shift > 0) { // if end of decoding

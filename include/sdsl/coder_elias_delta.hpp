@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file elias_delta_coder.hpp
-    \brief elias_delta_coder.hpp contains the class sdsl::coder::elias_delta
+/*! \file coder_elias_delta.hpp
+    \brief coder_elias_delta.hpp contains the class sdsl::coder::elias_delta
 	\author Simon Gog
  */
-#ifndef SDSL_ELIAS_DELTA_CODER
-#define SDSL_ELIAS_DELTA_CODER
+#ifndef SDSL_CODER_ELIAS_DELTA
+#define SDSL_CODER_ELIAS_DELTA
 
 #include "int_vector.hpp"
 

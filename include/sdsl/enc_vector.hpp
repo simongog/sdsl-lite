@@ -19,7 +19,7 @@
    \author Simon Gog
 */
 #include "int_vector.hpp"
-#include "elias_delta_coder.hpp"
+#include "coder_elias_delta.hpp"
 #include "iterators.hpp"
 
 #ifndef SDSL_ENC_VECTOR
@@ -99,7 +99,7 @@ class enc_vector
         	\pre No two adjacent values should be equal.
         */
         template<uint8_t int_width>
-        enc_vector(int_vector_file_buffer<int_width>& v_buf); 
+        enc_vector(int_vector_file_buffer<int_width>& v_buf);
 
         //! Default Destructor
         ~enc_vector() {
@@ -335,7 +335,8 @@ void enc_vector<Coder, SampleDens,fixedIntWidth>::swap(enc_vector<Coder, SampleD
 
 template<class Coder, uint32_t SampleDens, uint8_t fixedIntWidth>
 template<class Container>
-enc_vector<Coder, SampleDens,fixedIntWidth>::enc_vector(const Container& c) : m_elements(0) {
+enc_vector<Coder, SampleDens,fixedIntWidth>::enc_vector(const Container& c) : m_elements(0)
+{
     // clear bit_vectors
     clear();
 
