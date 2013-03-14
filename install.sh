@@ -18,6 +18,13 @@ cd "${OLD_DIR}"
 if [ -d ".git/hooks" ]; then
 	echo "Copy pre-commit into .git/hooks"
 	cp extras/pre-commit .git/hooks/
+	if [ $? != 0 ]; then
+		echo "WARNING: could not copy pre-commit script into .git/hooks"
+	fi
+	chmod u+x .git/hooks/pre-commit
+	if [ $? != 0 ]; then
+		echo "WARNING: could not make pre-commit script executable"
+	fi
 else
 	echo "WARNING: .git/hooks directory does not exists."
 	echo "         The pre-commit hook is not installed."
