@@ -54,8 +54,9 @@ namespace sdsl
  *		\f$ 2n\cdot \log n\f$ bits, where \f$n\f$ equals the \f$size()\f$ of the suffix array.
  * @ingroup csa
  */
-template<class AlphabetStrategy=byte_alphabet_strategy>	
-class csa_bitcompressed {
+template<class AlphabetStrategy=byte_alphabet_strategy>
+class csa_bitcompressed
+{
     public:
         typedef uint64_t										value_type;	// STL Container requirement
         typedef random_access_const_iterator<csa_bitcompressed> const_iterator;// STL Container requirement
@@ -72,10 +73,10 @@ class csa_bitcompressed {
         typedef text_of_csa<csa_bitcompressed>         	        text_type;
         typedef _sa_order_sampling_strategy<1,0>				sa_sample_type;
         typedef int_vector<>									isa_sample_type;
-		typedef AlphabetStrategy								alphabet_type;
+        typedef AlphabetStrategy								alphabet_type;
         typedef typename alphabet_type::char_type 				char_type; // Note: This is the char type of the CSA not the WT!
-		typedef typename alphabet_type::comp_char_type			comp_char_type;
-		typedef typename alphabet_type::alphabet_category  							alphabet_category;
+        typedef typename alphabet_type::comp_char_type			comp_char_type;
+        typedef typename alphabet_type::alphabet_category  							alphabet_category;
         typedef const char_type*								pattern_type;
 
         typedef csa_tag											index_category;
@@ -88,55 +89,54 @@ class csa_bitcompressed {
         sa_sample_type	m_sa;  // vector for suffix array values
         isa_sample_type	m_isa; // vector for inverse suffix array values
         psi_type		m_psi; // wrapper class for psi function values
-		alphabet_type   m_alphabet;
+        alphabet_type   m_alphabet;
 
-        void copy(const csa_bitcompressed& csa){
-		    m_sa 		 = csa.m_sa;
-			m_isa 		 = csa.m_isa;
-			m_alphabet   = csa.m_alphabet;
-			m_psi 		 = psi_type(this);
-		}
+        void copy(const csa_bitcompressed& csa) {
+            m_sa 		 = csa.m_sa;
+            m_isa 		 = csa.m_isa;
+            m_alphabet   = csa.m_alphabet;
+            m_psi 		 = psi_type(this);
+        }
     public:
-		const typename alphabet_type::char2comp_type&   char2comp;
-		const typename alphabet_type::comp2char_type&  	comp2char;
-		const typename alphabet_type::C_type& 			C;
-		const typename alphabet_type::sigma_type& 		sigma;
+        const typename alphabet_type::char2comp_type&   char2comp;
+        const typename alphabet_type::comp2char_type&  	comp2char;
+        const typename alphabet_type::C_type& 			C;
+        const typename alphabet_type::sigma_type& 		sigma;
         const psi_type& 								psi;
         const bwt_type 									bwt;
-		const text_type									text;
+        const text_type									text;
         const sa_sample_type& 							sa_sample;
         const isa_sample_type& 							isa_sample;
 
         //! Default Constructor
         csa_bitcompressed() :char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-		                   psi(m_psi), bwt(this), text(this),sa_sample(m_sa), isa_sample(m_isa) {}
+            psi(m_psi), bwt(this), text(this),sa_sample(m_sa), isa_sample(m_isa) {}
 
         //! Copy constructor
-        csa_bitcompressed(const csa_bitcompressed& csa) : char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma), 
-		                                               psi(m_psi), bwt(this), text(this), sa_sample(m_sa), isa_sample(m_isa) {
+        csa_bitcompressed(const csa_bitcompressed& csa) : char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
+            psi(m_psi), bwt(this), text(this), sa_sample(m_sa), isa_sample(m_isa) {
             copy(csa);
         }
 
-		//! Constructor
-        csa_bitcompressed(cache_config& config) : char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), 
-												  C(m_alphabet.C), sigma(m_alphabet.sigma), psi(m_psi), bwt(this), 
-												  text(this), sa_sample(m_sa), isa_sample(m_isa) 
-		{
-			int_vector_file_buffer<alphabet_type::int_width> text_buf(util::cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config));
-			int_vector_file_buffer<>  sa_buf(util::cache_file_name(constants::KEY_SA,config));
-			size_type n = text_buf.int_vector_size;
-			util::assign(m_alphabet, alphabet_type(text_buf, n));
-			util::assign(m_sa, sa_sample_type(sa_buf));
-			algorithm::set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
-			m_psi = psi_type(this);
-			write_R_output("csa", "store ISA","begin",1,0);
-			if (!util::store_to_file(m_isa, util::cache_file_name(constants::KEY_ISA,config), true)) {
-				throw std::ios_base::failure("#csa_bitcompressed: Cannot store ISA to file system!");
-			} else {
-				util::register_cache_file(constants::KEY_ISA, config);
-			}
-			write_R_output("csa", "store ISA","end",1,0);
-		}
+        //! Constructor
+        csa_bitcompressed(cache_config& config) : char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),
+            C(m_alphabet.C), sigma(m_alphabet.sigma), psi(m_psi), bwt(this),
+            text(this), sa_sample(m_sa), isa_sample(m_isa) {
+            int_vector_file_buffer<alphabet_type::int_width> text_buf(util::cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config));
+            int_vector_file_buffer<>  sa_buf(util::cache_file_name(constants::KEY_SA,config));
+            size_type n = text_buf.int_vector_size;
+            util::assign(m_alphabet, alphabet_type(text_buf, n));
+            util::assign(m_sa, sa_sample_type(sa_buf));
+            algorithm::set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
+            m_psi = psi_type(this);
+            write_R_output("csa", "store ISA","begin",1,0);
+            if (!util::store_to_file(m_isa, util::cache_file_name(constants::KEY_ISA,config), true)) {
+                throw std::ios_base::failure("#csa_bitcompressed: Cannot store ISA to file system!");
+            } else {
+                util::register_cache_file(constants::KEY_ISA, config);
+            }
+            write_R_output("csa", "store ISA","end",1,0);
+        }
 
 
         //! Number of elements in the instance.
@@ -155,8 +155,8 @@ class csa_bitcompressed {
             return int_vector<>::max_size();
         }
 
-        //! Returns if the data strucutre is empty.
-        /*! Required for the Container Concept of the STL.A
+        //! Returns if the data structure is empty.
+        /*! Required for the Container Concept of the STL.
          * \sa size
          */
         bool empty()const {
@@ -165,38 +165,36 @@ class csa_bitcompressed {
 
         //! Swap method for csa_bitcompressed
         /*! The swap method can be defined in terms of assignment.
-        	This requires three assignments, each of which, for a container type, is linear
-        	in the container's size. In a sense, then, a.swap(b) is redundant.
-        	This implementation guaranties a run-time complexity that is constant rather than linear.
-        	\param csa csa_bitcompressed to swap.
-
-        	Required for the Assignable Conecpt of the STL.
-          */
-        void swap(csa_bitcompressed& csa){
-			if (this != &csa) {
-				m_sa.swap(csa.m_sa);
-				m_isa.swap(csa.m_isa);
-				m_alphabet.swap(csa.m_alphabet);
-				m_psi = psi_type(this);
-				csa.m_psi = psi_type(&csa);
-			}	
-		}
+         *  This requires three assignments, each of which, for a container type, is linear
+         *  in the container's size. In a sense, then, a.swap(b) is redundant.
+         *	This implementation guaranties a run-time complexity that is constant rather than linear.
+         *	\param csa csa_bitcompressed to swap.
+         */
+        void swap(csa_bitcompressed& csa) {
+            if (this != &csa) {
+                m_sa.swap(csa.m_sa);
+                m_isa.swap(csa.m_isa);
+                m_alphabet.swap(csa.m_alphabet);
+                m_psi = psi_type(this);
+                csa.m_psi = psi_type(&csa);
+            }
+        }
 
         //! Returns a const_iterator to the first element.
         /*! Required for the STL Container Concept.
          *  \sa end
          */
-        const_iterator begin()const{
-    		return const_iterator(this, 0);
-		}
+        const_iterator begin()const {
+            return const_iterator(this, 0);
+        }
 
         //! Returns a const_iterator to the element after the last element.
         /*! Required for the STL Container Concept.
          *  \sa begin.
          */
-        const_iterator end()const{
-			return const_iterator(this, size());
-		}
+        const_iterator end()const {
+            return const_iterator(this, size());
+        }
 
         //! []-operator
         /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
@@ -218,36 +216,33 @@ class csa_bitcompressed {
         /*!
          *	Required for the Assignable Concept of the STL.
          */
-        csa_bitcompressed& operator=(const csa_bitcompressed& csa){
-			if (this != &csa) {
-        		copy(csa);
-			}
-			return *this;
-		}
+        csa_bitcompressed& operator=(const csa_bitcompressed& csa) {
+            if (this != &csa) {
+                copy(csa);
+            }
+            return *this;
+        }
 
         //! Serialize to a stream.
-        /*! \param out Outstream to write the data structure.
+        /*! \param out Output stream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const{
-			structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-			size_type written_bytes = 0;
-			written_bytes += m_sa.serialize(out, child, "m_sa");
-			written_bytes += m_isa.serialize(out, child, "m_isa");
-			written_bytes += m_alphabet.serialize(out, child, "m_alphabet");
-			structure_tree::add_size(child, written_bytes);
-			return written_bytes;	
-		}
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+            size_type written_bytes = 0;
+            written_bytes += m_sa.serialize(out, child, "m_sa");
+            written_bytes += m_isa.serialize(out, child, "m_isa");
+            written_bytes += m_alphabet.serialize(out, child, "m_alphabet");
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
 
-        //! Load from a stream.
-        /*! \param in Inputstream to load the data structure from.
-         */
-        void load(std::istream& in){
-			m_sa.load(in);
-			m_isa.load(in);
-			m_alphabet.load(in);
-			m_psi = psi_type(this);
-		}
+        void load(std::istream& in) {
+            m_sa.load(in);
+            m_isa.load(in);
+            m_alphabet.load(in);
+            m_psi = psi_type(this);
+        }
 
         size_type get_sample_dens()const {
             return 1;
@@ -261,44 +256,45 @@ class csa_bitcompressed {
          *  \par Time complexity
          *		\f$ \Order{\log n} \f$
          */
-        size_type rank_bwt(size_type i, const char_type c) const{
-			// TODO: special case if c == BWT[i-1] we can use LF to get a constant time answer
-			comp_char_type cc = char2comp[c];
-			if (cc==0 and c!=0)  // character is not in the text => return 0
-				return 0;
-			// binary search the interval [C[cc]..C[cc+1]-1] for the result
-			size_type lower_b = C[cc], upper_b = C[((size_type)1)+cc]; // lower_b inclusive, upper_b exclusive
-			while (lower_b+1 < upper_b) {
-				size_type mid = (lower_b+upper_b)/2;
-				if (m_psi[mid] >= i)
-					upper_b = mid;
-				else
-					lower_b = mid;
-			}
-			if (lower_b > C[cc])
-				return lower_b - C[cc] + 1;
-			else { // lower_b == m_C[cc]
-				return m_psi[lower_b] < i;// 1 if m_psi[lower_b]<i, 0 otherwise
-			}	
-		}
+        size_type rank_bwt(size_type i, const char_type c) const {
+            // TODO: special case if c == BWT[i-1] we can use LF to get a constant time answer
+            comp_char_type cc = char2comp[c];
+            if (cc==0 and c!=0)  // character is not in the text => return 0
+                return 0;
+            // binary search the interval [C[cc]..C[cc+1]-1] for the result
+            size_type lower_b = C[cc], upper_b = C[((size_type)1)+cc]; // lower_b inclusive, upper_b exclusive
+            while (lower_b+1 < upper_b) {
+                size_type mid = (lower_b+upper_b)/2;
+                if (m_psi[mid] >= i)
+                    upper_b = mid;
+                else
+                    lower_b = mid;
+            }
+            if (lower_b > C[cc])
+                return lower_b - C[cc] + 1;
+            else { // lower_b == m_C[cc]
+                return m_psi[lower_b] < i;// 1 if m_psi[lower_b]<i, 0 otherwise
+            }
+        }
 
-        //! Calculates the ith occurence of symbol c in the BWT of the original text.
+        //! Calculates the i-th occurrence of symbol c in the BWT of the original text.
         /*!
-         *  \param i The ith occurence. \f$i\in [1..rank(size(),c)]\f$.
-         *  \param c The symbol c.
-         *	\returns The ith occurence symbol c in the the BWT or size() if no ith occurence of the symbol exists in the BWT.
+         *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
+         *  \param c Character c.
+         *	\returns The i-th occurrence of c in the BWT or size() if c does
+         *           not occur t times in BWT>
          *  \par Time complexity
          *		\f$ \Order{t_{\Psi}} \f$
          */
-        size_type select_bwt(size_type i, const char_type c) const{
-			comp_char_type cc = char2comp[c];
-			if (cc==0 and c!=0)  // character is not in the text => return size()
-				return size();
-			if (C[cc]+i-1 <  C[((size_type)1)+cc]) {
-				return m_psi[C[cc]+i-1];
-			} 
-			return size();	
-		}
+        size_type select_bwt(size_type i, const char_type c) const {
+            comp_char_type cc = char2comp[c];
+            if (cc==0 and c!=0)  // character is not in the text => return size()
+                return size();
+            if (C[cc]+i-1 <  C[((size_type)1)+cc]) {
+                return m_psi[C[cc]+i-1];
+            }
+            return size();
+        }
 };
 
 
