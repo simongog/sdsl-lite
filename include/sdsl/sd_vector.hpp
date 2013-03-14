@@ -287,15 +287,12 @@ class sd_rank_support
 
         void swap(sd_rank_support&) { }
 
-        void load(std::istream& in, const bit_vector_type* v=NULL) {
+        void load(std::istream&, const bit_vector_type* v=NULL) {
             set_vector(v);
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
-            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-            size_type written_bytes = 0;
-            structure_tree::add_size(child, written_bytes);
-            return written_bytes;
+            return util::serialize_empty_object(out, v, name, this);
         }
 };
 
@@ -348,15 +345,12 @@ class sd_select_support
 
         void swap(sd_select_support&) { }
 
-        void load(std::istream& in, const bit_vector_type* v=NULL) {
+        void load(std::istream&, const bit_vector_type* v=NULL) {
             set_vector(v);
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
-            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-            size_type written_bytes = 0;
-            structure_tree::add_size(child, written_bytes);
-            return written_bytes;
+			return util::serialize_empty_object(out, v, name, this);
         }
 };
 

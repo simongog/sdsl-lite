@@ -3,7 +3,7 @@
 #include "sdsl/rank_support_v5.hpp" // for rank_support_v5
 #include "sdsl/rank_support_jmc.hpp" // for rank_support_jmc
 #include "sdsl/rrr_vector.hpp" // for rrr_rank_support
-#include "sdsl/bit_vector_interleaved.hpp" // for rank_support_interleaved
+#include "sdsl/bit_vector_il.hpp" // for rank_support_interleaved
 #include "sdsl/sd_vector.hpp" // for sd_rank_support
 #include "sdsl/gap_vector.hpp" // for gap_rank_support
 #include "gtest/gtest.h"
@@ -88,9 +88,9 @@ class RankSupportTest : public ::testing::Test
 using testing::Types;
 
 typedef Types<
-sdsl::rank_support_interleaved<1,256>,
-     sdsl::rank_support_interleaved<1, 512>,
-     sdsl::rank_support_interleaved<1, 1024>,
+sdsl::rank_support_il<1,256>,
+     sdsl::rank_support_il<1, 512>,
+     sdsl::rank_support_il<1, 1024>,
      sdsl::rrr_rank_support<>,
      sdsl::rank_support_v<>,
      sdsl::rank_support_v5<>,
