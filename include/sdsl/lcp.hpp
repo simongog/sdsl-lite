@@ -41,7 +41,7 @@ void construct_lcp(Lcp& lcp, const Cst& cst, cache_config &config) {
 }
 
 template<class Lcp, class Cst>
-void construct_lcp(Lcp& lcp, const Cst& cst, cache_config &config, lcp_plain_tag) {
+void construct_lcp(Lcp& lcp, const Cst&, cache_config &config, lcp_plain_tag) {
     int_vector_file_buffer<> lcp_buf(config.file_map[constants::KEY_LCP]);
 	Lcp tmp_lcp(lcp_buf);
 	lcp.swap(tmp_lcp);
@@ -118,7 +118,7 @@ void swap_lcp(Lcp& lcp1, Lcp& lcp2, const Cst& cst1, const Cst& cst2)
 }
 
 template<class Lcp, class Cst>
-void swap_lcp(Lcp& lcp1, Lcp& lcp2, const Cst& cst1, const Cst& cst2, lcp_plain_tag)
+void swap_lcp(Lcp& lcp1, Lcp& lcp2, const Cst&, const Cst&, lcp_plain_tag)
 {
     lcp1.swap(lcp2);
 }
@@ -156,7 +156,7 @@ void load_lcp(Lcp& lcp, std::istream& in, const Cst& cst)
 }
 
 template<class Lcp, class Cst>
-void load_lcp(Lcp& lcp, std::istream& in, const Cst& cst, lcp_plain_tag)
+void load_lcp(Lcp& lcp, std::istream& in, const Cst&, lcp_plain_tag)
 {
     lcp.load(in);
 }
