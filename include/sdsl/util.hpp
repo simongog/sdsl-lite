@@ -282,8 +282,6 @@ bool store_to_plain_array(int_vector_type &v, const std::string &file_name){
 	}
 }
 
-
-
 //! Demangle the class name of typeid(...).name()
 /*!
  *	\param name A pointer to the the result of typeid(...).name()
@@ -312,6 +310,17 @@ std::string class_name(const T& t) {
     }
     return result;
 }
+
+
+template<class T>
+size_t serialize_empty_object(std::ostream&, structure_tree_node* v=NULL, std::string name="", const T* t=NULL){
+	structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*t));
+	size_t written_bytes = 0;
+	structure_tree::add_size(child, written_bytes);
+	return written_bytes;
+}
+
+
 
 //! Get the size of a data structure in bytes.
 /*!
