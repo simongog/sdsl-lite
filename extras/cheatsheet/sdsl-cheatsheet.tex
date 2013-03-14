@@ -82,6 +82,7 @@
 
 \begin{document}
 \newlength{\MyLen}
+\newlength{\MidLen}
 
 \raggedright
 \footnotesize
@@ -105,6 +106,9 @@
 \newcommand{\sdslintvector}{\code{int\_vector}}
 \newcommand{\sdslintvectorZ}{\code{int\_vector\textless\textgreater}}
 \newcommand{\sdslencvector}{\code{enc\_vector}}
+%%% coder 
+\newcommand{\sdslcodereliasdelta}{\code{coder::elias\_delta}}
+\newcommand{\sdslcoderfibonacci}{\code{coder::fibonacci}}
 %%% bit vector representations
 \newcommand{\sdslbitvector}{\code{bit\_vector}}
 \newcommand{\sdslbitvectoril}{\code{bit\_vector\_il}}
@@ -190,10 +194,10 @@ of integer (has no effect for $w>0$).
 \code{util::set\_to\_value(v, $k$)} & Set \code{v[$i$]=$k$} for each $i$.\\
 \code{util::set\_random\_bits(v)}   & Set elements to random bits. \\
 \code{util::mod(v, $m$)}            & Set \code{v[$i$]=v[$i$]$\bmod m$} for each $i$.\\
-\code{util::bit\_compress(v)}       & Determine \code{$x=\max_i$v[$i$]} and 
-                                      $\ell=\lceil\log(x-1)\rceil+1$.  
-                                      And bitcompress each entry to a $\ell$-bit integer
-									  and call \code{v.width($\ell$)}.\\
+\code{util::bit\_compress(v)}       & Determine \code{$x\!=\!\max_i$v[$i$]} and 
+                                      $\ell\!=\!\lceil\log(x\!-\!1)\rceil\!+\!1$.  
+                                      And pack the entries in $\ell$-bit integers.\\
+%									  and call \code{v.width($\ell$)}.\\
 \code{util::expand\_width(v, $\ell$)} & Expands the width of each integer to
 										$\ell$ bits, if \code{$\ell\geq$~v.width()}\\
 \end{tabular}
@@ -201,18 +205,14 @@ of integer (has no effect for $w>0$).
 \subsection{Compressed Unsigned Integer Vector}
 For a vector \code{v}, \href{\sdslgit/include/sdsl/enc_vector.hpp}{\sdslencvector} stores the
 self-delimiting coded deltas (\code{v[$i+1$]-v[$i$]}). Fast random access is
-achieved by sampling values of \code{v}. 
-
-
-\begin{tabular}{@{}ll@{}}
-\textit{Class}    & \textit{Description}      \\
-delta and self-delimiting encoded.. \\
-\end{tabular}
+achieved by sampling values of \code{v} at rate \code{t\_dens}. Available coder
+are \href{\sdslgit/include/sdsl/coder_elias_delta.hpp}{\sdslcodereliasdelta} and
+\href{\sdslgit/include/sdsl/coder_fibonacci.hpp}{\sdslcoderfibonacci}. 
 
 \subsection{Bitvector (BV)}
 Representations for a bitvector of length $n$ with $m$ set bits.
 \begin{tabular}{@{}lll@{}}
-\textit{Class}    & \textit{Description}       & \textit{Space in bits}  \\
+\textit{Class}    & \textit{Description}       & \textit{Space (bits)}  \\
 \href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslbitvector} & 
 plain bitvector            & $\lceil n/64\rceil+64$ \\
 \href{\sdslgit/include/sdsl/bit_vector_il.hpp}{\sdslbitvectoril} &
@@ -254,18 +254,18 @@ position of the $i$-th set bit%
 \footnote{It is also possible to select \code{0} or
 the patterns \code{10} and \code{01}.}
 in BV for \code{i}$\in [1..m]$.
-\begin{tabular}{@{}lll@{}}
-\textit{Class}    & \textit{Compatible BV}           & \textit{Space in bits}  \\
+\begin{tabular}{@{~}l@{~}l@{~}p{13ex}l@{}}
+\textit{Class}    &\textit{Compatible BV}           &\textit{Space (bits)}&\textit{Time}\\
 \href{\sdslgit/include/sdsl/select_support_mcl.hpp}{\sdslselectsupportmcl} &
-\sdslbitvector & $\leq 0.2 n$ \\
+\sdslbitvector & $\leq\!0.2 n$ & \Order{1}\\
 \href{\sdslgit/include/sdsl/select_support_scan.hpp}{\sdslselectsupportscan} &
-\sdslbitvector & $64$ \\
+\sdslbitvector & $64$ & \Order{n}\\
 \href{\sdslgit/include/sdsl/select_support_il.hpp}{\sdslselectsupportil} &
-\sdslbitvectoril & $64$ \\
+\sdslbitvectoril & $64$ & \Order{\log n}\\
 \href{\sdslgit/include/sdsl/rrr_select_support.hpp}{\sdslrrrselectsupport} &
-\sdslrrrvector & $64$ \\
+\sdslrrrvector & $64$ & $\Order{\log n}$ \\
 \href{\sdslgit/include/sdsl/sd_select_support.hpp}{\sdslsdselectsupport} &
-\sdslsdvector & $64$ \\
+\sdslsdvector & $64$ & \Order{1} \\
 \end{tabular}
 Call~\code{util::init\_support(ss, bv)}~to initialize \code{ss} 
 to bitvector \code{bv}. Call \code{ss($i$)} to get
@@ -273,6 +273,7 @@ $\code{select(}i\code{)}=\min\{j\mid \code{rank(}j\!+\!1\code{)}=i\}$.
 
 \subsection{Wavelet Trees (WT)}
 \begin{tabular}{@{}ll@{}}
+\textit{Class}    &\textit{Description} \\
 \href{\sdslgit/include/sdsl/wt_huff.hpp}{\sdslwthuff} &
 Huffman shaped wavelet tree for byte alphabets.\\
 \href{\sdslgit/include/sdsl/wt_int.hpp}{\sdslwtint} &
@@ -291,6 +292,7 @@ Run-length compressed wavelet tree.
 
 \subsection{Compressed Suffix Arrays (CSA)}
 \begin{tabular}{@{}ll@{}}
+\textit{Class}    &\textit{Description} \\
 \href{\sdslgit/include/sdsl/csa_bitcompressed.hpp}{\sdslcsabitcompressed} &
 Stores SA, ISA, and BWT.\\
 \href{\sdslgit/include/sdsl/csa_sada.hpp}{\sdslcsasada} &
@@ -304,6 +306,7 @@ Based on the WT of the texts BWT.\\
 
 \subsection{Longest Common Prefix (LCP) Arrays}
 \begin{tabular}{@{}ll@{}}
+\textit{Class}    &\textit{Description} \\
 \href{\sdslgit/include/sdsl/lcp_bitcompressed.hpp}{\sdsllcpbitcompressed} &
 \sdslintvectorZ.\\
 \href{\sdslgit/include/sdsl/lcp_dac.hpp}{\sdsllcpdac} &
@@ -325,6 +328,7 @@ using tree topology and LF.\\
 An opening (closing) parenthesis is represented as 
 \code{1} (\code{0}) in a \code{bit\_vector}.\\
 \begin{tabular}{@{}ll@{}}
+\textit{Class}    &\textit{Description} \\
 \href{\sdslgit/include/sdsl/bp_support_g.hpp}{\sdslbpsupportg} &
 2 level pioneer structure.\\
 \href{\sdslgit/include/sdsl/bp_support_gg.hpp}{\sdslbpsupportgg} &
@@ -345,13 +349,18 @@ Call~\code{util::init\_support(bps, bv)}~to initialize a BPS
 \settowidth{\MyLen}{\sdslcstsada\quad}
 \begin{tabular}{@{}p{\the\MyLen}%
                 @{}p{\linewidth-\the\MyLen}@{}}
+
+\textit{Class} & \textit{Description} \\				
 \href{\sdslgit/include/sdsl/cst_sada.hpp}{\sdslcstsada} &
-Represents the nodes as an explicit pair of parenthesis.\\
+Represents a node as position in BPS. Navigational operations
+are fast (they are directly translated in BPS operations on 
+the DFS-BPS). Space: $4n\!+\!o(n)\!+\!|CSA|\!+\!|LCP|$ bits.\\
 \href{\sdslgit/include/sdsl/cst_sct3.hpp}{\sdslcstsctIII} &
-Represents the nodes as intervals.\\
+Represents nodes as intervals. Fast construction, but
+slower navigational operations. Space: $3n\!+\!o(n)\!+\!|CSA|\!+\!|LCP|$ \\
 \end{tabular}
 \textit{Public~types:} \code{node\_type}. 
-In the following let $v$, $w$ be nodes 
+In the following let $v$ and $w$ be nodes 
 and $i$, $d$, $lb$, $rb$ integers.\\ 
 \textit{Public~methods:} 
  \code{root()}, \code{is\_leaf($v$)}, \code{select\_leaf($i$)},
@@ -371,13 +380,18 @@ A RMS \code{rms} can be used to determine the position of the miniumum
 value\footnote{Or maximum value; can be set by a template parameter.}
 in an arbitrary subrange $[i,j]$ of an prepocessed vector \code{v}.
 Operator \code{operator($i$,$j$)} returns $x=\min\{$r$\mid r\in [i,j] \wedge \mbox{\code{v}[$r$]}\leq\mbox{\code{v[$k$]}}\ \forall k\in[i,j]\}$
-\begin{tabular}{@{}ll@{}}
+
+\settowidth{\MyLen}{\sdslrmqsupportsparsetable\quad }
+\settowidth{\MidLen}{$4n+o(n)$\quad}
+\begin{tabular}{@{}p{\the\MyLen}%
+                @{}p{\linewidth-\the\MidLen-\the\MyLen}@{}p{\the\MidLen}@{}}
+\textit{Class} & \textit{Space (bits)} & \textit{Time} \\				
 \href{\sdslgit/include/sdsl/rmq_support_sparse_table.hpp}{\sdslrmqsupportsparsetable} &
-$\Order{n \log^2 n}$ bit.\\
+$n \log^2 n$ & \Order{1} \\
 \href{\sdslgit/include/sdsl/rmq_succinct_sada.hpp}{\sdslrmqsuccinctsada} &
-$4n+o(n)$ bit \\
+$4n+o(n)$    & \Order{1} \\
 \href{\sdslgit/include/sdsl/rmq_succinct_sct.hpp}{\sdslrmqsuccinctsct} &
-$2n+o(n)$ bit \\
+$2n+o(n)$    & \Order{1} \\
 \end{tabular}
 
 \section{Constructing data structures}
