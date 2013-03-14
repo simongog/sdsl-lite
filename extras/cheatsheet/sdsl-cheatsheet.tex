@@ -4,7 +4,7 @@
 \usepackage{ifthen}
 \usepackage[landscape]{geometry}
 
-
+\usepackage{amsmath} 
 \usepackage[colorlinks]{hyperref}
 % To make this come out properly in landscape mode, do one of the following
 % 1.
@@ -76,8 +76,9 @@
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0pt plus 0.5ex}
 
-
 % -----------------------------------------------------------------------
+
+\DeclareMathOperator*{\argmin}{arg\!\min}
 
 \begin{document}
 \newlength{\MyLen}
@@ -164,25 +165,42 @@ the namespace in your program
 qualify all identifieres by
 a \code{sdsl::}-prefix.
 
-\subsection{Dynamic vector}
-\begin{tabular}{@{}lll@{}}
-\textit{Class}    & \textit{Description}       & \textit{Space in bits}  \\
-\href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslintvectorZ} & 
-bitcompressed            & $n \lceil w\rceil+72$ \\
+\subsection{Unsigned Integer Vector (dynamic)}
+The core of the libary is the class 
+\href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslintvector\textless$w$\textgreater}.
+Paramter $w$ corresonds to the fixed length of each
+element in bits.  For $w=8,16,32,64$ the length is
+to during compile time and the vectors
+correspond to \code{std::vector\textless uint$w$\_t\textgreater}. 
+If $w=0$ (default) the length can be set during runtime.
+\textit{Constructor:} \sdslintvectorZ\code{($n$, $x$, $\ell$)}, where
+$n$ size in integers, $x$ default integer value, $\ell$ width
+of integer.
+
+\textit{Public~methods:} \code{operator[i]}, \code{size()}, \code{width()}, 
+\code{data()},\code{resize($n$)}. For $w=0$ set the width
+with \code{width($\ell$)}.
+
+\subsection{Manipulating \sdslintvector s}
+\settowidth{\MyLen}{\code{util::set\_random\_bits(v)}\quad}
+\begin{tabular}{@{}p{\the\MyLen}%
+                @{}p{\linewidth-\the\MyLen}@{}}
+\textit{Method}                     & \textit{Description} \\
+\code{util::set\_one\_bits(v)}      & Set elements of \code{v} to \code{1}. \\
+\code{util::set\_zero\_bits(v)}     & Set elements of \code{v} to \code{0}. \\
+\code{util::set\_to\_id(v)}         & Set \code{v[$i$]=$i$} for each $i$.\\
+\code{util::set\_to\_value(v, $k$)} & Set \code{v[$i$]=$k$} for each $i$.\\
+\code{util::set\_random\_bits(v)}   & Set elements to random bits. \\
+\code{util::mod(v, $m$)}            & Set \code{v[$i$]=v[$i$]$\bmod m$} for each $i$.\\
+\code{util::bit\_compress(v)}       & Determine \code{$x=\max_i$v[$i$]} and 
+                                      $\ell=\lceil\log(x-1)\rceil+1$.  
+                                      And bitcompress each entry to a $\ell$-bit integer
+									  and call \code{v.width($\ell$)}.\\
+\code{util::expand\_width(v, $\ell$)} & Expands the width of each integer to
+										$\ell$ bits, if \code{$\ell\geq$~v.width()}\\
 \end{tabular}
 
-\textit{Public~methods:} \code{operator[i]}, \code{resize(n)},
-\code{size()}, \code{data()}
-
-\subsection{Manipulating vectors}
-\code{util::set\_random\_bits(v)}
-\code{util::set\_one\_bits(v)},
-\code{util::set\_zero\_bits(v)},
-\code{util::bit\_compress(v)},
-\code{util::expand\_width(v)},
-\code{util::all\_elements\_mod}	
-
-\subsection{Static Vector}
+\subsection{Compressed Vector}
 \begin{tabular}{@{}ll@{}}
 \textit{Class}    & \textit{Description}      \\
 \href{\sdslgit/include/sdsl/enc_vector.hpp}{\sdslencvector} & 
@@ -225,8 +243,7 @@ supported BV for $i \in [0,n]$.
 \sdslsdvector & 64 & \Order{1} \\
 \end{tabular}
 Call~\code{util::init\_support(rs, bv)}~to initialize rank
-structure \code{rs} to bitvector \code{bv}. Call \code{rs($i$)}
-to get $\code{rank(}i\code{)}=\sum_{k=0}^{k<i}\code{bv[}k\code{]}$
+structure \code{rs} to bitvector \code{bv}. Call \code{rs($i$)} to get $\code{rank(}i\code{)}=\sum_{k=0}^{k<i}\code{bv[}k\code{]}$
 
 \subsection{Select Support (SS)}\label{sec-SS}
 SS adds select functionality to BV. Let $m$ be the number of set bits
@@ -268,13 +285,12 @@ Run-length compressed wavelet tree.
 % TODO: \verb!wt_rlg!
 \end{tabular}
 \textit{Public~methods:} \code{operator[i]}, \code{rank(i, c)},
-\code{select(i, c)}	\\
+\code{select(i, c)}, \code{inverse\_select(i, c)}	\\
 
 \subsection{Compressed Suffix Arrays (CSA)}
 \begin{tabular}{@{}ll@{}}
 \href{\sdslgit/include/sdsl/csa_bitcompressed.hpp}{\sdslcsabitcompressed} &
 Stores SA, ISA, and BWT.\\
-
 \href{\sdslgit/include/sdsl/csa_sada.hpp}{\sdslcsasada} &
 Based on the compressed $\Psi$ function.\\
 \href{\sdslgit/include/sdsl/csa_wt.hpp}{\sdslcsawt} &
@@ -301,6 +317,7 @@ using tree topology.\\
 \href{\sdslgit/include/sdsl/lcp_support_tree2.hpp}{\sdsllcpsupporttreeII} &
 using tree topology and LF.\\
 \end{tabular}	
+\textit{Public~methods:} \code{operator[i]} \\
 
 \subsection{Balanced Parentheses Support (BPS)}
 An opening (closing) parenthesis is represented as 
@@ -318,6 +335,9 @@ min-max-tree.\\
 \code{rr\_enclose($i$,$j$)}, \code{rank($i$)}\footnote{For PBS the
 bits are counted in the prefix $[0..i]$.}, \code{select($i$)}.
 \\
+Call~\code{util::init\_support(bps, bv)}~to initialize a BPS 
+\code{bps} to bitvector \code{bv}. 
+
 
 \subsection{Compressed Suffix Trees (CST)}
 \settowidth{\MyLen}{\sdslcstsada\quad}
@@ -344,10 +364,14 @@ and $i$, $d$, $lb$, $rb$ integers.\\
  \code{end\_bottom\_up}.\\
 \textit{Public~members:} \code{csa}, \code{lcp}.
 
-\subsection{Range Minimum/Maximum Query (RMQ)}
+\subsection{Range Min/Max Support (RMS)}
+A RMS \code{rms} can be used to determine the position of the miniumum
+value\footnote{Or maximum value; can be set by a template parameter.}
+in an arbitrary subrange $[i,j]$ of an prepocessed vector \code{v}.
+Operator \code{operator($i$,$j$)} returns $x=\min\{$r$\mid r\in [i,j] \wedge \mbox{\code{v}[$r$]}\leq\mbox{\code{v[$k$]}}\ \forall k\in[i,j]\}$
 \begin{tabular}{@{}ll@{}}
 \href{\sdslgit/include/sdsl/rmq_support_sparse_table.hpp}{\sdslrmqsupportsparsetable} &
-$\Order{n \log^2 n}$.\\
+$\Order{n \log^2 n}$ bit.\\
 \href{\sdslgit/include/sdsl/rmq_succinct_sada.hpp}{\sdslrmqsuccinctsada} &
 $4n+o(n)$ bit \\
 \href{\sdslgit/include/sdsl/rmq_succinct_sct.hpp}{\sdslrmqsuccinctsct} &
@@ -404,22 +428,22 @@ Write \sdsl\ object \code{x} to \code{std::ostream}-object \code{out}.\\
 \section{Utility methods}
 \code{util::pid()}, 
 \code{util::id()}, 
-\code{util::to\_string(x)},
-\code{util::to\_latex\_string(x)}
+\code{util::to\_string(t)},
+\code{util::to\_latex\_string(t)}
 
-\code{util::assign(x,y)}
-\code{util::clear(x)}
-\code{util::swap\_support(s1, s2, x1, x2)}
-\code{util::init\_support(s, x)}
-\code{write\_structure<JSON\_FORMAT>(x, out)}
-\code{get\_size\_in\_bytes(x)}
+\code{util::assign(t1,t2)}
+\code{util::clear(t)}
+\code{util::swap\_support(s1, s2, t1, t2)}
+\code{util::init\_support(s, t)}
+\code{write\_structure<JSON\_FORMAT>(t, out)}
+\code{get\_size\_in\_bytes(t)}
 
 \section{Construction}
 \code{util::cache\_file\_name(key, config)}
 \code{util::register\_cache\_file(key, config)}
 \code{util::cache\_file\_exists(key, config)}
-\code{util::load\_from\_cache(x, key, config)}
-\code{util::store\_to\_cache(x, key, config)}
+\code{util::load\_from\_cache(t, key, config)}
+\code{util::store\_to\_cache(t, key, config)}
 
 \section{Helper}
 \code{util::stop\_watch}\\
@@ -441,6 +465,8 @@ $5n$ bytes peak memory for inputs $<2$ GiB,
 $9n$ bytes peak memory for inputs $\geq 2$ GiB.
 TODO: insert time space graph for different
 construction processes.
+
+TODO: mention benchmarks
 
 \section{Bitmagic}
 Let \code{x} be a 64-bit word. Positions in
