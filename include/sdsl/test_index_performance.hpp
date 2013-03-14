@@ -126,7 +126,7 @@ void test_select_random_access(const Select& select, bit_vector::size_type times
     int_vector<64> rands(1<<s ,0);
     util::set_random_bits(rands, 17);
     size_type args = util::get_one_bits(*(select.v));
-    util::all_elements_mod(rands, args);
+    util::mod(rands, args);
     for (size_type i=0; i<rands.size(); ++i)
         rands[i] = rands[i]+1;
     size_type cnt=0;
@@ -148,7 +148,7 @@ void test_select_random_access(const Select& select, bit_vector::size_type args,
     const uint64_t mask = (1<<s)-1;
     int_vector<64> rands(1<<s ,0);
     util::set_random_bits(rands, 17);
-    util::all_elements_mod(rands, args);
+    util::mod(rands, args);
     for (size_type i=0; i<rands.size(); ++i)
         rands[i] = rands[i]+1;
     size_type cnt=0;

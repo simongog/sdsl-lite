@@ -100,7 +100,7 @@ void expand_width(int_vector_type&v, uint8_t new_width);
 
 //! All elements of v modulo m
 template<class int_vector_type>
-void all_elements_mod(int_vector_type& v, typename int_vector_type::size_type m);
+void mod(int_vector_type& v, typename int_vector_type::size_type m);
 
 
 //! Set all entries of int_vector to value k
@@ -741,7 +741,7 @@ void util::set_random_bits(int_vector_type& v, int seed) {
 
 // all elements of vector v modulo m
 template<class int_vector_type>
-void util::all_elements_mod(int_vector_type& v, typename int_vector_type::size_type m) {
+void util::mod(int_vector_type& v, typename int_vector_type::size_type m) {
     for (typename int_vector_type::size_type i=0; i < v.size(); ++i) {
         v[i] = v[i] % m;
     }
