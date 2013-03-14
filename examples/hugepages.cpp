@@ -1,7 +1,7 @@
 #include <sdsl/int_vector.hpp>
 #include <sdsl/suffix_trees.hpp>
 #include <sdsl/wt_rlmn.hpp>
-#include <sdsl/bit_vector_interleaved.hpp>
+#include <sdsl/bit_vector_il.hpp>
 #include <iostream>
 #include <string>
 
@@ -9,40 +9,42 @@ using namespace sdsl;
 using namespace std;
 
 template<class tCsa>
-void do_something(const tCsa &csa){
-	util::stop_watch sw;
-	uint64_t sum=0;
-	sw.start();
-	for(size_t i=0; i<csa.size() and i<10000000;++i){
-		sum+=csa.psi(i);
-	}
-	sw.stop();
-	cout << sw.real_time() << endl;
-	cout<<"sum="<<sum<<endl;
+void do_something(const tCsa& csa)
+{
+    util::stop_watch sw;
+    uint64_t sum=0;
+    sw.start();
+    for (size_t i=0; i<csa.size() and i<10000000; ++i) {
+        sum+=csa.psi(i);
+    }
+    sw.stop();
+    cout << sw.real_time() << endl;
+    cout<<"sum="<<sum<<endl;
 }
 
-int main(int argc, char** argv){
+int main(int argc, char** argv)
+{
 //	util::verbose = true;
-	{
-		bit_vector b(32,1);
-		cout << b << endl;
-	}
-	{
-		bit_vector b(32,0);
-		bool mapped = mm::map_hp();
-		if ( mapped ) mm::unmap_hp();
-		cout << b << endl;
-	}
-	bool mapped;
+    {
+        bit_vector b(32,1);
+        cout << b << endl;
+    }
+    {
+        bit_vector b(32,0);
+        bool mapped = mm::map_hp();
+        if (mapped) mm::unmap_hp();
+        cout << b << endl;
+    }
+    bool mapped;
 //	bool mapped = mm::map_hp();
 //	if( mapped ) mm::unmap_hp();
 
-	csa_wt<wt_huff<bit_vector_interleaved<> > > csa;
-	construct(csa, argv[1], 1);
-	do_something(csa); // before it is mapped
-	mapped = mm::map_hp();
-	do_something(csa); // while it is mapped
-	if ( mapped ) mm::unmap_hp();
-	do_something(csa); // after it is unmapped 
-	util::clear(csa);
+    csa_wt<wt_huff<bit_vector_il<> > > csa;
+    construct(csa, argv[1], 1);
+    do_something(csa); // before it is mapped
+    mapped = mm::map_hp();
+    do_something(csa); // while it is mapped
+    if (mapped) mm::unmap_hp();
+    do_something(csa); // after it is unmapped
+    util::clear(csa);
 }
