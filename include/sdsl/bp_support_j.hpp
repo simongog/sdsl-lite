@@ -536,27 +536,6 @@ class bp_support_j
             m_rank_enclose_pioneer_bitmap.load(in, &m_enclose_pioneer_bitmap);
             m_enclose_pioneer.load(in);
         }
-
-        std::string get_info()const {
-            std::stringstream ss;
-            if (m_bp == NULL) {
-                ss<<"ERROR: bp_support_j is unitialized!"<<std::endl;
-                return ss.str();
-            }
-            ss<<"number of parentheses: "<<m_bp->size()<<std::endl;
-            ss<<"number of pioneers: "<< m_pioneer.size()<<std::endl;
-            std::ofstream out("/dev/null");
-            ss<<"size of parentheses sequence: "<< m_bp->serialize(out) << std::endl;
-            ss<<"size of pioneer bitmap: "<< m_pioneer_bitmap.serialize(out) << std::endl;
-            ss<<"size of pioneer data  : "<< m_pioneer.serialize(out) << std::endl;
-            ss<<"size of rank for pioneers: "<< m_rank_pioneer_bitmap.serialize(out) << std::endl;
-
-            ss<<"size of enclose  pioneer bitmap: "<< m_enclose_pioneer_bitmap.serialize(out) << std::endl;
-            ss<<"size of pioneer data  : "<< m_pioneer.serialize(out) << std::endl;
-            ss<<"size of rank for pioneers: "<< m_rank_enclose_pioneer_bitmap.serialize(out) << std::endl;
-
-            return ss.str();
-        }
 };
 }// end namespace sdsl
 
