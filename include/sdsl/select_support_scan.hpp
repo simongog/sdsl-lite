@@ -41,45 +41,54 @@ class select_support_scan : public select_support
     public:
         typedef bit_vector bit_vector_type;
     public:
-        explicit select_support_scan(const bit_vector* v=NULL){set_vector(v);}
-        select_support_scan(const select_support_scan<b,pattern_len>& ss){set_vector(ss.m_v);}
+        explicit select_support_scan(const bit_vector* v=NULL) {
+            set_vector(v);
+        }
+        select_support_scan(const select_support_scan<b,pattern_len>& ss) {
+            set_vector(ss.m_v);
+        }
         inline const size_type select(size_type i) const;
-        //! Alias for select(i).
-        inline const size_type operator()(size_type i)const{return select(i);}
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const{
-    		structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-    		structure_tree::add_size(child, 0);
-			return 0;
-		}
-        void load(std::istream& in, const bit_vector* v=NULL){}
-        void set_vector(const bit_vector* v=NULL){m_v = v;}
-        select_support_scan<b, pattern_len>& operator=(const select_support_scan& ss){set_vector(ss.m_v); return *this;}
-        void swap(select_support_scan<b, pattern_len>& ss){}
+        inline const size_type operator()(size_type i)const {
+            return select(i);
+        }
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            return util::serialize_empty_object(out, v, name, this);
+        }
+        void load(std::istream&, SDSL_UNUSED const bit_vector* v=NULL) {}
+        void set_vector(const bit_vector* v=NULL) {
+            m_v = v;
+        }
+        select_support_scan<b, pattern_len>& operator=(const select_support_scan& ss) {
+            set_vector(ss.m_v);
+            return *this;
+        }
+        void swap(select_support_scan<b, pattern_len>&) {}
 };
 
 template<uint8_t b, uint8_t pattern_len>
-inline const typename select_support_scan<b,pattern_len>::size_type select_support_scan<b,pattern_len>::select(size_type i)const {
-	const uint64_t* data = m_v->data();
-	size_type word_pos = 0;
-	size_type word_off = 0;
-	uint64_t carry = select_support_trait<b,pattern_len>::init_carry(data, word_pos);
-	size_type args = select_support_trait<b,pattern_len>::args_in_the_first_word(*data, word_off, carry);
-	if (args >= i) {
-		return (word_pos<<6)+select_support_trait<b,pattern_len>::ith_arg_pos_in_the_first_word(*data, i, word_off, carry);
-	}
-	word_pos+=1;
-	size_type sum_args = args;
-	carry = select_support_trait<b,pattern_len>::get_carry(*data);
-	uint64_t old_carry = carry;
-	args = select_support_trait<b,pattern_len>::args_in_the_word(*(++data), carry);
-	while (sum_args + args < i) {
-		sum_args += args;
-		assert(data+1 < m_v->data() + (m_v->capacity()>>6));
-		old_carry = carry;
-		args = select_support_trait<b,pattern_len>::args_in_the_word(*(++data), carry);
-		word_pos+=1;
-	}
-	return (word_pos<<6) + select_support_trait<b,pattern_len>::ith_arg_pos_in_the_word(*data, i-sum_args, old_carry);
+inline const typename select_support_scan<b,pattern_len>::size_type select_support_scan<b,pattern_len>::select(size_type i)const
+{
+    const uint64_t* data = m_v->data();
+    size_type word_pos = 0;
+    size_type word_off = 0;
+    uint64_t carry = select_support_trait<b,pattern_len>::init_carry(data, word_pos);
+    size_type args = select_support_trait<b,pattern_len>::args_in_the_first_word(*data, word_off, carry);
+    if (args >= i) {
+        return (word_pos<<6)+select_support_trait<b,pattern_len>::ith_arg_pos_in_the_first_word(*data, i, word_off, carry);
+    }
+    word_pos+=1;
+    size_type sum_args = args;
+    carry = select_support_trait<b,pattern_len>::get_carry(*data);
+    uint64_t old_carry = carry;
+    args = select_support_trait<b,pattern_len>::args_in_the_word(*(++data), carry);
+    while (sum_args + args < i) {
+        sum_args += args;
+        assert(data+1 < m_v->data() + (m_v->capacity()>>6));
+        old_carry = carry;
+        args = select_support_trait<b,pattern_len>::args_in_the_word(*(++data), carry);
+        word_pos+=1;
+    }
+    return (word_pos<<6) + select_support_trait<b,pattern_len>::ith_arg_pos_in_the_word(*data, i-sum_args, old_carry);
 }
 
 } // end namespace

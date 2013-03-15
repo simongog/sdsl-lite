@@ -312,7 +312,7 @@ template<uint8_t bit_pattern>
 struct rank_support_rrr_trait {
     typedef bit_vector::size_type size_type;
 
-    static size_type adjust_rank(size_type r, size_type n) {
+    static size_type adjust_rank(size_type r, SDSL_UNUSED size_type n) {
         return r;
     }
 };

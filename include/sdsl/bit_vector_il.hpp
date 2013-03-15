@@ -91,13 +91,13 @@ class bit_vector_il
     public:
         bit_vector_il():m_size(0), m_totalBlocks(0), m_superblocks(0), m_blockShift(0) {}
         bit_vector_il(const bit_vector_il& bv):m_size(0), m_totalBlocks(0), m_superblocks(0), m_blockShift(0) {
-			m_size = bv.m_size;
-			m_totalBlocks = bv.m_totalBlocks;
-			m_superblocks = bv.m_superblocks;
-			m_blockShift = bv.m_blockShift;
-			util::assign(m_data, bv.m_data);
-			util::assign(m_rank_samples, bv.m_rank_samples);
-		}
+            m_size = bv.m_size;
+            m_totalBlocks = bv.m_totalBlocks;
+            m_superblocks = bv.m_superblocks;
+            m_blockShift = bv.m_blockShift;
+            util::assign(m_data, bv.m_data);
+            util::assign(m_rank_samples, bv.m_rank_samples);
+        }
 
         bit_vector_il(const bit_vector& bv):m_size(0), m_totalBlocks(0), m_superblocks(0), m_blockShift(0) {
             m_size = bv.size();
@@ -270,17 +270,14 @@ class rank_support_il
             return *this;
         }
 
-        void swap(rank_support_il& rs) { }
+        void swap(rank_support_il&) { }
 
-        void load(std::istream& in, const bit_vector_type* v=NULL) {
+        void load(std::istream&, const bit_vector_type* v=NULL) {
             set_vector(v);
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
-            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-            size_type written_bytes = 0;
-            structure_tree::add_size(child, written_bytes);
-            return written_bytes;
+            return util::serialize_empty_object(out, v, name, this);
         }
 };
 
@@ -431,17 +428,14 @@ class select_support_il
             return *this;
         }
 
-        void swap(select_support_il& rs) { }
+        void swap(select_support_il&) { }
 
-        void load(std::istream& in, const bit_vector_type* v=NULL) {
+        void load(std::istream&, const bit_vector_type* v=NULL) {
             set_vector(v);
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
-            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-            size_type written_bytes = 0;
-            structure_tree::add_size(child, written_bytes);
-            return written_bytes;
+            return util::serialize_empty_object(out, v, name, this);
         }
 };
 
