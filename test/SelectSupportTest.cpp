@@ -2,8 +2,8 @@
 #include "sdsl/int_vector.hpp"
 #include "sdsl/select_support_mcl.hpp" // for select_support_mcl
 #include "sdsl/bit_vector_il.hpp" // for rank_support_interleaved
-#include "sdsl/rrr_vector.hpp" // for rrr_select_support
-#include "sdsl/sd_vector.hpp" // for sd_select_support
+#include "sdsl/rrr_vector.hpp" // for select_support_rrr
+#include "sdsl/sd_vector.hpp" // for select_support_sd
 #include "sdsl/gap_vector.hpp" // for gap_select_suport
 #include "gtest/gtest.h"
 #include <vector>
@@ -73,19 +73,20 @@ class SelectSupportTest : public ::testing::Test
                     bs[n-2][j] = 1;
                 }
             }
-			{// Matthias Petri's test
-				srand(4711);
-	 			size_type size = 1000000;
-	 			size_type ones = 4030+(rand()%80);
-				sdsl::util::assign(bs[n-1], bit_vector(size));
-	 			for(size_type i=0;i<ones;i++) {
-		 			size_type rnd = rand();
-		 			while(bs[n-1][rnd%size]==1) {
-			 			rnd = rand();
-		 			}
-		 			bs[n-1][rnd%size] = 1;
-	 			}
-			}
+            {
+                // Matthias Petri's test
+                srand(4711);
+                size_type size = 1000000;
+                size_type ones = 4030+(rand()%80);
+                sdsl::util::assign(bs[n-1], bit_vector(size));
+                for (size_type i=0; i<ones; i++) {
+                    size_type rnd = rand();
+                    while (bs[n-1][rnd%size]==1) {
+                        rnd = rand();
+                    }
+                    bs[n-1][rnd%size] = 1;
+                }
+            }
         }
 
         virtual void TearDown() {
@@ -100,16 +101,16 @@ class SelectSupportTest : public ::testing::Test
 using testing::Types;
 
 typedef Types<sdsl::select_support_mcl<>,
-        sdsl::rrr_select_support<1, 256>,
-        sdsl::rrr_select_support<1, 129>,
-        sdsl::rrr_select_support<1, 192>,
-        sdsl::rrr_select_support<1, 255>,
-        sdsl::rrr_select_support<1, 15>,
-        sdsl::rrr_select_support<1, 31>,
-        sdsl::rrr_select_support<1, 63>,
-        sdsl::rrr_select_support<1, 127>,
-        sdsl::rrr_select_support<1, 128>,
-        sdsl::sd_select_support<>,
+        sdsl::select_support_rrr<1, 256>,
+        sdsl::select_support_rrr<1, 129>,
+        sdsl::select_support_rrr<1, 192>,
+        sdsl::select_support_rrr<1, 255>,
+        sdsl::select_support_rrr<1, 15>,
+        sdsl::select_support_rrr<1, 31>,
+        sdsl::select_support_rrr<1, 63>,
+        sdsl::select_support_rrr<1, 127>,
+        sdsl::select_support_rrr<1, 128>,
+        sdsl::select_support_sd<>,
         sdsl::gap_select_support<>,
         sdsl::select_support_il<1, 256>,
         sdsl::select_support_il<1, 512>,

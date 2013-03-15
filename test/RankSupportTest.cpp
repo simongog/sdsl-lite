@@ -2,9 +2,9 @@
 #include "sdsl/rank_support_v.hpp" // for rank_support_v
 #include "sdsl/rank_support_v5.hpp" // for rank_support_v5
 #include "sdsl/rank_support_jmc.hpp" // for rank_support_jmc
-#include "sdsl/rrr_vector.hpp" // for rrr_rank_support
+#include "sdsl/rrr_vector.hpp" // for rank_support_rrr
 #include "sdsl/bit_vector_il.hpp" // for rank_support_interleaved
-#include "sdsl/sd_vector.hpp" // for sd_rank_support
+#include "sdsl/sd_vector.hpp" // for rank_support_sd
 #include "sdsl/gap_vector.hpp" // for gap_rank_support
 #include "gtest/gtest.h"
 #include <vector>
@@ -91,21 +91,21 @@ typedef Types<
 sdsl::rank_support_il<1,256>,
      sdsl::rank_support_il<1, 512>,
      sdsl::rank_support_il<1, 1024>,
-     sdsl::rrr_rank_support<>,
+     sdsl::rank_support_rrr<>,
      sdsl::rank_support_v<>,
      sdsl::rank_support_v5<>,
-     sdsl::rrr_rank_support<1, 64>,
-     sdsl::rrr_rank_support<1, 192>,
-     sdsl::rrr_rank_support<1, 256>,
-     sdsl::rrr_rank_support<1, 255>,
-     sdsl::rrr_rank_support<1, 15>,
-     sdsl::rrr_rank_support<1, 31>,
-     sdsl::rrr_rank_support<1, 63>,
-     sdsl::rrr_rank_support<1, 83>,
-     sdsl::rrr_rank_support<1, 127>,
-     sdsl::rrr_rank_support<1, 128>,
-     sdsl::rrr_rank_support<1, 129>,
-     sdsl::sd_rank_support<>,
+     sdsl::rank_support_rrr<1, 64>,
+     sdsl::rank_support_rrr<1, 192>,
+     sdsl::rank_support_rrr<1, 256>,
+     sdsl::rank_support_rrr<1, 255>,
+     sdsl::rank_support_rrr<1, 15>,
+     sdsl::rank_support_rrr<1, 31>,
+     sdsl::rank_support_rrr<1, 63>,
+     sdsl::rank_support_rrr<1, 83>,
+     sdsl::rank_support_rrr<1, 127>,
+     sdsl::rank_support_rrr<1, 128>,
+     sdsl::rank_support_rrr<1, 129>,
+     sdsl::rank_support_sd<>,
      sdsl::gap_rank_support<>,
      sdsl::rank_support_jmc
      > Implementations;

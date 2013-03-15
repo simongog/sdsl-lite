@@ -1,8 +1,9 @@
-*.x           # ignore executables
+*
 Makefile			  
 *.x.DSYM/     # 
 !*.cpp        # don't ignore .cpp-files
 !*.config     # don't ignore .config-files
-!*.cmake      # don't ignore cmake-files
+!Makefile.cmake
+!CMakeLists.txt
 !.gitignore   # don't ignore the .gitignore file
 !README       # don't ignore the README file
