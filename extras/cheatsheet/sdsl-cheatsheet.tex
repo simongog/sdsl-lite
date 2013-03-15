@@ -118,15 +118,15 @@
 \newcommand{\sdslranksupportv}{\code{rank\_support\_v}}
 \newcommand{\sdslranksupportvV}{\code{rank\_support\_v5}}
 \newcommand{\sdslranksupportil}{\code{rank\_support\_il}}
-\newcommand{\sdslrrrranksupport}{\code{rrr\_rank\_support}}
-\newcommand{\sdslsdranksupport}{\code{sd\_rank\_support}}
+\newcommand{\sdslranksupportrrr}{\code{rank\_support\_rrr}}
+\newcommand{\sdslranksupportsd}{\code{rank\_support\_sd}}
 \newcommand{\sdslranksupportscan}{\code{rank\_support\_scan}}
 %%%% select support structures
 \newcommand{\sdslselectsupportmcl}{\code{select\_support\_mcl}}
 \newcommand{\sdslselectsupportscan}{\code{select\_support\_scan}}
 \newcommand{\sdslselectsupportil}{\code{select\_support\_il}}
-\newcommand{\sdslrrrselectsupport}{\code{rrr\_select\_support}}
-\newcommand{\sdslsdselectsupport}{\code{sd\_select\_support}}
+\newcommand{\sdslselectsupportrrr}{\code{select\_support\_rrr}}
+\newcommand{\sdslselectsupportsd}{\code{select\_support\_sd}}
 %%%% WTs
 \newcommand{\sdslwthuff}{\code{wt\_huff}}
 \newcommand{\sdslwt}{\code{wt}}
@@ -165,13 +165,19 @@ The library code is in the sdsl namespace. Either import
 the namespace in your program (\code{using~namespace~sdsl;}) or
 qualify all identifieres by a \code{sdsl::}-prefix.
 
+We decide between two types of data structure in \sdsl.
+The \emph{self-contained} and the \emph{support}
+structures. A support object \code{s} can extend
+a self-contained object \code{t} (e.g. add functionality), but 
+needs access to \code{t}. 
+
 \subsection{Unsigned Integer Vector}
 The core of the libary is the class 
 \href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslintvector\textless$w$\textgreater}.
 Paramter $w$ corresonds to the fixed length of each
 element in bits.  For $w=8,16,32,64$ the length is
 to during compile time and the vectors
-correspond to \code{std::vector\textless uint$w$\_t\textgreater}. 
+correspond to \href{http://www.sgi.com/tech/stl/Vector.html}{\code{std::vector\textless uint$w$\_t\textgreater}}. 
 If $w=0$ (default) the length can be set during runtime.
 \textit{Constructor:} \sdslintvectorZ\code{($n$, $x$, $\ell$)}, where
 $n$ size in integers, $x$ default integer value, $\ell$ width
@@ -191,9 +197,9 @@ of integer (has no effect for $w>0$).
 \code{util::set\_one\_bits(v)}      & Set elements of \code{v} to \code{1}. \\
 \code{util::set\_zero\_bits(v)}     & Set elements of \code{v} to \code{0}. \\
 \code{util::set\_to\_id(v)}         & Set \code{v[$i$]=$i$} for each $i$.\\
-\code{util::set\_to\_value(v, $k$)} & Set \code{v[$i$]=$k$} for each $i$.\\
+\code{util::set\_to\_value(v,$k$)} & Set \code{v[$i$]=$k$} for each $i$.\\
 \code{util::set\_random\_bits(v)}   & Set elements to random bits. \\
-\code{util::mod(v, $m$)}            & Set \code{v[$i$]=v[$i$]$\bmod m$} for each $i$.\\
+\code{util::mod(v,$m$)}            & Set \code{v[$i$]=v[$i$]$\bmod m$} for each $i$.\\
 \code{util::bit\_compress(v)}       & Determine \code{$x\!=\!\max_i$v[$i$]} and 
                                       $\ell\!=\!\lceil\log(x\!-\!1)\rceil\!+\!1$.  
                                       And pack the entries in $\ell$-bit integers.\\
@@ -204,7 +210,7 @@ of integer (has no effect for $w>0$).
 
 \subsection{Compressed Unsigned Integer Vector}
 For a vector \code{v}, \href{\sdslgit/include/sdsl/enc_vector.hpp}{\sdslencvector} stores the
-self-delimiting coded deltas (\code{v[$i+1$]-v[$i$]}). Fast random access is
+self-delimiting coded deltas (\code{v[$i\!+\!1$]$-$v[$i$]}). Fast random access is
 achieved by sampling values of \code{v} at rate \code{t\_dens}. Available coder
 are \href{\sdslgit/include/sdsl/coder_elias_delta.hpp}{\sdslcodereliasdelta} and
 \href{\sdslgit/include/sdsl/coder_fibonacci.hpp}{\sdslcoderfibonacci}. 
@@ -212,9 +218,9 @@ are \href{\sdslgit/include/sdsl/coder_elias_delta.hpp}{\sdslcodereliasdelta} and
 \subsection{Bitvector (BV)}
 Representations for a bitvector of length $n$ with $m$ set bits.
 \begin{tabular}{@{}lll@{}}
-\textit{Class}    & \textit{Description}       & \textit{Space (bits)}  \\
+\textit{Class}    & \textit{Description}       & \textit{Space}  \\
 \href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslbitvector} & 
-plain bitvector            & $\lceil n/64\rceil+64$ \\
+plain bitvector            & 64$\lceil n/64\!+\!1\rceil$ \\
 \href{\sdslgit/include/sdsl/bit_vector_il.hpp}{\sdslbitvectoril} &
 interleaved  bitvector & $\approx n(1+K/64)$  \\
 \href{\sdslgit/include/sdsl/rrr_vector.hpp}{\sdslrrrvector} & 
@@ -222,6 +228,8 @@ $H_0$-compressed bitvector & $\approx \lceil \log {m\choose n} \rceil$ \\
 \href{\sdslgit/include/sdsl/sd_vector.hpp}{\sdslsdvector}  & sparse bitvector
 & $\approx\ 2 m\cdot log\frac{n}{m}$ \\	
 \end{tabular}
+\textit{Public Types:} \code{rank\_1\_type}, \code{select\_1\_type},
+                       \code{select\_0\_type}\footnote{\code{select\_0\_type} not defined for \sdslsdvector.}.
 
 \subsection{Rank Support (RS)}
 RS adds rank functionality to BV. Method
@@ -230,7 +238,7 @@ of set bits\footnote{It is also possible to rank \code{0} or
 the patterns \code{10} and \code{01}.} in the prefix $[0..i)$ of the
 supported BV for $i \in [0,n]$.
 \begin{tabular}{@{}llll@{}}
-\textit{Class}    & \textit{Compatible BV} & \textit{Space (bits)} & \textit{Time} \\
+\textit{Class}    & \textit{Compatible BV} & \textit{Space} & \textit{Time} \\
 \href{\sdslgit/include/sdsl/rank_support_v.hpp}{\sdslranksupportv} &
 \sdslbitvector & $0.25 n$ & \Order{1} \\
 \href{\sdslgit/include/sdsl/rank_support_v5.hpp}{\sdslranksupportvV} &
@@ -239,9 +247,9 @@ supported BV for $i \in [0,n]$.
 \sdslbitvector & 64 & \Order{n} \\
 \href{\sdslgit/include/sdsl/rank_support_il.hpp}{\sdslranksupportil} &
 \sdslbitvectoril & 128 & \Order{1} \\
-\href{\sdslgit/include/sdsl/rrr_vector.hpp}{\sdslrrrranksupport} &
+\href{\sdslgit/include/sdsl/rrr_vector.hpp}{\sdslranksupportrrr} &
 \sdslrrrvector & 80 & \Order{k} \\
-\href{\sdslgit/include/sdsl/sd_vector.hpp}{\sdslsdranksupport} &
+\href{\sdslgit/include/sdsl/sd_vector.hpp}{\sdslranksupportsd} &
 \sdslsdvector & 64 & \Order{1} \\
 \end{tabular}
 Call~\code{util::init\_support(rs, bv)}~to initialize rank
@@ -254,17 +262,17 @@ position of the $i$-th set bit%
 \footnote{It is also possible to select \code{0} or
 the patterns \code{10} and \code{01}.}
 in BV for \code{i}$\in [1..m]$.
-\begin{tabular}{@{~}l@{~}l@{~}p{13ex}l@{}}
-\textit{Class}    &\textit{Compatible BV}           &\textit{Space (bits)}&\textit{Time}\\
+\begin{tabular}{@{~}l@{~}l@{~~}p{9ex}l@{}}
+\textit{Class}    &\textit{Compatible BV}           &\textit{Space}&\textit{Time}\\
 \href{\sdslgit/include/sdsl/select_support_mcl.hpp}{\sdslselectsupportmcl} &
 \sdslbitvector & $\leq\!0.2 n$ & \Order{1}\\
 \href{\sdslgit/include/sdsl/select_support_scan.hpp}{\sdslselectsupportscan} &
 \sdslbitvector & $64$ & \Order{n}\\
 \href{\sdslgit/include/sdsl/select_support_il.hpp}{\sdslselectsupportil} &
 \sdslbitvectoril & $64$ & \Order{\log n}\\
-\href{\sdslgit/include/sdsl/rrr_select_support.hpp}{\sdslrrrselectsupport} &
+\href{\sdslgit/include/sdsl/rrr_select_support.hpp}{\sdslselectsupportrrr} &
 \sdslrrrvector & $64$ & $\Order{\log n}$ \\
-\href{\sdslgit/include/sdsl/sd_select_support.hpp}{\sdslsdselectsupport} &
+\href{\sdslgit/include/sdsl/sd_select_support.hpp}{\sdslselectsupportsd} &
 \sdslsdvector & $64$ & \Order{1} \\
 \end{tabular}
 Call~\code{util::init\_support(ss, bv)}~to initialize \code{ss} 
@@ -294,7 +302,7 @@ Run-length compressed wavelet tree.
 \begin{tabular}{@{}ll@{}}
 \textit{Class}    &\textit{Description} \\
 \href{\sdslgit/include/sdsl/csa_bitcompressed.hpp}{\sdslcsabitcompressed} &
-Stores SA, ISA, and BWT.\\
+Stores SA, ISA and C.\\
 \href{\sdslgit/include/sdsl/csa_sada.hpp}{\sdslcsasada} &
 Based on the compressed $\Psi$ function.\\
 \href{\sdslgit/include/sdsl/csa_wt.hpp}{\sdslcsawt} &
@@ -302,7 +310,8 @@ Based on the WT of the texts BWT.\\
 \end{tabular}	
 \textit{Public~methods:} \code{operator[i]}, \code{operator(i)} \\
 \textit{Public~members:} \code{bwt}, \code{text}, 
-\code{psi}\footnote{LF[i] is accessible by \code{operator(i)} of \code{psi}}.
+\code{psi}\footnote{LF[i] is accessible by \code{operator(i)} of \code{psi}},
+\code{C}, \code{char2comp}, \code{comp2char}, \code{sigma}.
 
 \subsection{Longest Common Prefix (LCP) Arrays}
 \begin{tabular}{@{}ll@{}}
@@ -366,11 +375,11 @@ and $i$, $d$, $lb$, $rb$ integers.\\
  \code{root()}, \code{is\_leaf($v$)}, \code{select\_leaf($i$)},
  \code{size($v$)}, \code{leftmost\_leaf($v$)}, \code{rightmost\_leaf($v$)},
  \code{lb($v$)}, \code{rb($v$)}, \code{parent($v$)}, \code{sibling($v$)},
- \code{select\_child($v$, $i$)}, \code{degree($v$)}, 
- \code{child($v$,$c$)}, \code{edge($v$, $d$)}, \code{lca($v$,w)},
+ \code{select\_child($v$,$i$)}, \code{degree($v$)}, 
+ \code{child($v$,$c$)}, \code{edge($v$,$d$)}, \code{lca($v$,$w$)},
  \code{depth($v$)}, \code{node\_depth}, \code{sl($v$)},
  \code{wl($v$,$c$)}, \code{sn($v$)}, \code{id($v$)}, \code{inv\_id($i$)},
- \code{node($lb$, $rb$)}, \code{nodes()}, \code{size()},
+ \code{node($lb$,$rb$)}, \code{nodes()}, \code{size()},
  \code{begin()}, \code{end()}, \code{begin\_bottom\_up()},
  \code{end\_bottom\_up}.\\
 \textit{Public~members:} \code{csa}, \code{lcp}.
@@ -385,7 +394,7 @@ Operator \code{operator($i$,$j$)} returns $x=\min\{$r$\mid r\in [i,j] \wedge \mb
 \settowidth{\MidLen}{$4n+o(n)$\quad}
 \begin{tabular}{@{}p{\the\MyLen}%
                 @{}p{\linewidth-\the\MidLen-\the\MyLen}@{}p{\the\MidLen}@{}}
-\textit{Class} & \textit{Space (bits)} & \textit{Time} \\				
+\textit{Class} & \textit{Space} & \textit{Time} \\				
 \href{\sdslgit/include/sdsl/rmq_support_sparse_table.hpp}{\sdslrmqsupportsparsetable} &
 $n \log^2 n$ & \Order{1} \\
 \href{\sdslgit/include/sdsl/rmq_succinct_sada.hpp}{\sdslrmqsuccinctsada} &
@@ -497,12 +506,18 @@ $x$ start from $0$.
 	$i~\in~[0,\code{b1Cnt(x)}\!-\!1)$.
 \end{tabular}
 
+\section{Tests}
+
+Describe here, how to run the tests.
+
 \section{Debugging}
 Mention: gdb config file, verbose
 
 \section{Acknowledgements}
 Yuta Mori for implementing libdivsufsort, which
 is used to construct SAs.
+
+Jesper Larsson for integer-alphabet SA construction.
 
 \rule{0.3\linewidth}{0.25pt}
 \scriptsize

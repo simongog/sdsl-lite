@@ -32,15 +32,15 @@ namespace sdsl
 
 // forward declaration needed for friend declaration
 template<class hi_bit_vector_type = bit_vector,
-         class Select1Support	  = typename hi_bit_vector_type::select_1_type,
-         class Select0Support	  = typename hi_bit_vector_type::select_0_type>
-class sd_rank_support;  // in sd_vector
+         class Select1Support     = typename hi_bit_vector_type::select_1_type,
+         class Select0Support     = typename hi_bit_vector_type::select_0_type>
+class rank_support_sd;  // in sd_vector
 
 // forward declaration needed for friend declaration
 template<class hi_bit_vector_type = bit_vector,
-         class Select1Support	  = typename hi_bit_vector_type::select_1_type,
-         class Select0Support	  = typename hi_bit_vector_type::select_0_type>
-class sd_select_support;  // in sd_vector
+         class Select1Support     = typename hi_bit_vector_type::select_1_type,
+         class Select0Support     = typename hi_bit_vector_type::select_0_type>
+class select_support_sd;  // in sd_vector
 
 //! A bit vector which compresses very sparse populated bit vectors by
 // representing the positions of 1 by the Elias-Fano representation for non-decreasing sequences
@@ -57,13 +57,13 @@ class sd_select_support;  // in sd_vector
  *  - D. Okanohara, K. Sadakane: ,,Practical Entropy-Compressed Rank/Select Dictionary'',
  *             Proceedings of ALENEX 2007.
  *
- *	\tparam hi_bit_vector_type	Type of the bitvector HI used for representing the high part of the positions of the 1s.
- *  \tparam hi_select_1			Type of the select support data structure which is used to select ones in HI.
- *  \tparam hi_select_0			Type of the select support data structure which is used to select zeros in HI.
+ *    \tparam hi_bit_vector_type    Type of the bitvector HI used for representing the high part of the positions of the 1s.
+ *  \tparam hi_select_1            Type of the select support data structure which is used to select ones in HI.
+ *  \tparam hi_select_0            Type of the select support data structure which is used to select zeros in HI.
  */
-template<class hi_bit_vector_type	= bit_vector,
-           class hi_select_1			= typename hi_bit_vector_type::select_1_type,
-           class hi_select_0			= typename hi_bit_vector_type::select_0_type>
+template<class hi_bit_vector_type = bit_vector,
+         class hi_select_1      = typename hi_bit_vector_type::select_1_type,
+         class hi_select_0      = typename hi_bit_vector_type::select_0_type>
 class sd_vector
 {
     public:
@@ -72,22 +72,22 @@ class sd_vector
         typedef hi_select_0 select_0_support_type;
         typedef hi_select_1 select_1_support_type;
 
-        friend class sd_rank_support<hi_bit_vector_type, select_1_support_type, select_0_support_type>;
-        friend class sd_select_support<hi_bit_vector_type, select_1_support_type, select_0_support_type>;
+        friend class rank_support_sd<hi_bit_vector_type, select_1_support_type, select_0_support_type>;
+        friend class select_support_sd<hi_bit_vector_type, select_1_support_type, select_0_support_type>;
 
-        typedef sd_rank_support<hi_bit_vector_type, select_1_support_type, select_0_support_type> rank_1_type;
-        typedef sd_select_support<hi_bit_vector_type, select_1_support_type, select_0_support_type> select_1_type;
+        typedef rank_support_sd<hi_bit_vector_type, select_1_support_type, select_0_support_type> rank_1_type;
+        typedef select_support_sd<hi_bit_vector_type, select_1_support_type, select_0_support_type> select_1_type;
     private:
         // we need this variables to represent the m ones of the original bit vector of size n
-        size_type m_size;		 // length of the original bit vector
-        uint8_t   m_wl;			 // log n - log m, where n is the length of the original bit vector
+        size_type m_size;  // length of the original bit vector
+        uint8_t   m_wl;    // log n - log m, where n is the length of the original bit vector
         // and m is the number of ones in the bit vector, wl is the abbreviation
         // for ,,width (of) low (part)''
 
-        int_vector<> 			m_low;      	 // vector for the least significant bits of the positions of the m ones
-        hi_bit_vector_type   	m_high;     	 // bit vector that represents the most significant bit in permuted order
-        select_1_support_type 	m_high_1_select; // select support for the ones in m_high
-        select_0_support_type 	m_high_0_select; // select support for the zeros in m_high
+        int_vector<>          m_low;           // vector for the least significant bits of the positions of the m ones
+        hi_bit_vector_type    m_high;          // bit vector that represents the most significant bit in permuted order
+        select_1_support_type m_high_1_select; // select support for the ones in m_high
+        select_0_support_type m_high_0_select; // select support for the zeros in m_high
 
         void copy(const sd_vector& v) {
             m_size = v.m_size;
@@ -103,8 +103,8 @@ class sd_vector
     public:
         const hi_bit_vector_type& high;
         const int_vector<>& low;
-        const select_1_support_type&	 high_1_select;
-        const select_0_support_type&	 high_0_select;
+        const select_1_support_type&     high_1_select;
+        const select_0_support_type&     high_0_select;
 
         sd_vector():m_size(0), m_wl(0),
             high(m_high), low(m_low),
@@ -153,9 +153,9 @@ class sd_vector
         /*! \param i An index i with \f$ 0 \leq i < size()  \f$.
         *   \return The i-th bit of the original bit_vector
         *   \par Time complexity
-        *   		\f$ \Order{t_{select0} + n/m} \f$, where m equals the number of zeros
-        *	\par Remark
-         *	     The time complexity can be easily improved to
+        *           \f$ \Order{t_{select0} + n/m} \f$, where m equals the number of zeros
+        *    \par Remark
+         *         The time complexity can be easily improved to
         *            \f$\Order{t_{select0}+\log(n/m)}\f$
         *        by using binary search in the second step.
         */
@@ -227,12 +227,12 @@ class sd_vector
 
 //! Rank data structure for sd_vector
 /*
- *	\tparam hi_bit_vector_type	Type of the bitvector HI used for representing the high part of the positions of the 1s in sd_vector.
- *  \tparam hi_select_1			Type of the select support data structure which is used to select ones in HI in sd_vector.
- *  \tparam hi_select_0			Type of the select support data structure which is used to select zeros in HI in sd_vector.
+ *  \tparam hi_bit_vector_type Type of the bitvector HI used for representing the high part of the positions of the 1s in sd_vector.
+ *  \tparam hi_select_1        Type of the select support data structure which is used to select ones in HI in sd_vector.
+ *  \tparam hi_select_0        Type of the select support data structure which is used to select zeros in HI in sd_vector.
  */
 template<class hi_bit_vector_type, class Select1Support, class Select0Support>
-class sd_rank_support
+class rank_support_sd
 {
     public:
         typedef bit_vector::size_type size_type;
@@ -242,13 +242,13 @@ class sd_rank_support
 
     public:
 
-        explicit sd_rank_support(const bit_vector_type* v=NULL) {
+        explicit rank_support_sd(const bit_vector_type* v=NULL) {
             set_vector(v);
         }
 
         size_type rank(size_type i)const {
-			assert( m_v != NULL );
-			assert( i <= m_v->size() );
+            assert(m_v != NULL);
+            assert(i <= m_v->size());
             // split problem in two parts:
             // (1) find  >=
             size_type high_val = (i >> (m_v->m_wl));
@@ -278,14 +278,14 @@ class sd_rank_support
             m_v = v;
         }
 
-        sd_rank_support& operator=(const sd_rank_support& rs) {
+        rank_support_sd& operator=(const rank_support_sd& rs) {
             if (this != &rs) {
                 set_vector(rs.m_v);
             }
             return *this;
         }
 
-        void swap(sd_rank_support&) { }
+        void swap(rank_support_sd&) { }
 
         void load(std::istream&, const bit_vector_type* v=NULL) {
             set_vector(v);
@@ -298,12 +298,12 @@ class sd_rank_support
 
 //! Select data structure for sd_vector
 /*
- *	\tparam hi_bit_vector_type	Type of the bitvector HI used for representing the high part of the positions of the 1s in sd_vector.
- *  \tparam hi_select_1			Type of the select support data structure which is used to select ones in HI in sd_vector.
- *  \tparam hi_select_0			Type of the select support data structure which is used to select zeros in HI in sd_vector.
+ *  \tparam hi_bit_vector_type Type of the bitvector HI used for representing the high part of the positions of the 1s in sd_vector.
+ *  \tparam hi_select_1        Type of the select support data structure which is used to select ones in HI in sd_vector.
+ *  \tparam hi_select_0        Type of the select support data structure which is used to select zeros in HI in sd_vector.
  */
 template<class hi_bit_vector_type, class Select1Support, class Select0Support>
-class sd_select_support
+class select_support_sd
 {
     public:
         typedef bit_vector::size_type size_type;
@@ -313,7 +313,7 @@ class sd_select_support
 
     public:
 
-        explicit sd_select_support(const bit_vector_type* v=NULL) {
+        explicit select_support_sd(const bit_vector_type* v=NULL) {
             set_vector(v);
         }
 
@@ -336,21 +336,21 @@ class sd_select_support
             m_v = v;
         }
 
-        sd_select_support& operator=(const sd_select_support& rs) {
+        select_support_sd& operator=(const select_support_sd& rs) {
             if (this != &rs) {
                 set_vector(rs.m_v);
             }
             return *this;
         }
 
-        void swap(sd_select_support&) { }
+        void swap(select_support_sd&) { }
 
         void load(std::istream&, const bit_vector_type* v=NULL) {
             set_vector(v);
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
-			return util::serialize_empty_object(out, v, name, this);
+            return util::serialize_empty_object(out, v, name, this);
         }
 };
 
