@@ -2,16 +2,31 @@
 # This script builds all dependencies of sdsl
 # and installs the library on a LINUX or Mac OS X system
 
+CUR_DIR=`pwd`
 SDSL_INSTALL_PREFIX=${HOME}
 if [ $# -ge 1 ]; then
 	SDSL_INSTALL_PREFIX=${1}
-	echo "Library will be installed in ${1}"
 fi
+
+# Get absolute path name of install directory
+cd ${SDSL_INSTALL_PREFIX}  > /dev/null 2>&1
+if [ $? != 0 ] ; then
+	echo "ERROR: directory '${SDSL_INSTALL_PREFIX}' does not exist."
+	echo "Please choose an existing directory."
+	exit 1
+else
+	SDSL_INSTALL_PREFIX=`pwd -P`
+fi
+
+echo "Library will be installed in ${SDSL_INSTALL_PREFIX}"
+
+cd "${CUR_DIR}"
+OLD_DIR="$( cd "$( dirname "$0" )" && pwd )" # gets the directory where the script is located in
+cd "${OLD_DIR}"
+OLD_DIR=`pwd`
 
 # (1) Copy pre-commit hook
 
-OLD_DIR="$( cd "$( dirname "$0" )" && pwd )" # gets the directory where the script is located in
-cd "${OLD_DIR}"
 
 if [ -d ".git/hooks" ]; then
 	echo "Copy pre-commit into .git/hooks"
@@ -75,11 +90,11 @@ echo "The sdsl include files are located in ${SDSL_INSTALL_PREFIX}/include."
 echo "The library files are located in ${SDSL_INSTALL_PREFIX}/lib."
 echo " "
 echo "Sample programs can be found in the examples-directory."
-echo "Test cases in the test-directory"
 echo "A program 'example.cpp' can be compiled with the command: "
 echo "g++ -DNDEBUG -O3 [-msse4.2] \\"
 echo "   -I${SDSL_INSTALL_PREFIX}/include -L${SDSL_INSTALL_PREFIX}/lib \\"
 echo "   example.cpp -lsdsl -ldivsufsort -ldivsufsort64"
 echo " "
-echo "Tests can be found in the test-directory."
+echo "Tests in the test-directory"
+echo "A cheat sheet in the extras/cheatsheet-directory."
 echo "Have fun!"

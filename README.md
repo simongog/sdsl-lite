@@ -163,18 +163,19 @@ Installation
 The installation requires that the [cmake tool](http://www.cmake.org/)
 and a C++ compiler (e.g. from the [GNU Compiler Collection](http://gcc.gnu.org/))
 is installed.
-You can than install the library into a directory `SDSL_INSTALL_DIR` by
+You can than install the library into an existing directory `SDSL_INSTALL_DIR` by
 calling
 ``
 ./install SDSL_INSTALL_DIR
 ``
 If `SDSL_INSTALL_DIR` is not specified your home directory is used.
-Please use an absolute path name for `SDSL_INSTALL_DIR`.
 The library header files will be located in the directory
 `SDSL_INSTALL_DIR/include` and the library in the directory
 `SDSL_INSTALL_DIR/lib`. After the installation you can 
 execute the tests in the `test` directory or start
 with some code examples in the `examples` folder.
+A cheat sheet can be generated my running make in the 
+`extras/cheatsheet` folder.
 
 Tests
 -----
