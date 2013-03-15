@@ -63,7 +63,7 @@ class random_access_const_iterator: public std::iterator<std::random_access_iter
         }
 
         //! Postfix increment of the Iterator.
-        iterator operator++(int x) {
+        iterator operator++(int) {
             random_access_const_iterator it = *this;
             ++(*this);
             return it;
@@ -76,7 +76,7 @@ class random_access_const_iterator: public std::iterator<std::random_access_iter
         }
 
         //! Postfix decrement of the Iterator.
-        iterator operator--(int x) {
+        iterator operator--(int) {
             random_access_const_iterator it = *this;
             ++(*this);
             return it;

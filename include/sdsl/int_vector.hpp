@@ -636,7 +636,7 @@ class int_vector_reference
         }
 
         //! Postfix increment of the proxy object
-        typename int_vector::value_type operator++(int x) {
+        typename int_vector::value_type operator++(int) {
             typename int_vector::value_type val = (typename int_vector::value_type)*this;
             ++(*this);
             return val;
@@ -650,7 +650,7 @@ class int_vector_reference
         }
 
         //! Postfix decrement of the proxy object
-        typename int_vector::value_type operator--(int x) {
+        typename int_vector::value_type operator--(int) {
             typename int_vector::value_type val = (typename int_vector::value_type)*this;
             --(*this);
             return val;
@@ -815,7 +815,7 @@ class int_vector_iterator : public int_vector_iterator_base<int_vector>
         }
 
         //! Postfix decrement of the Iterator
-        iterator operator--(int x) {
+        iterator operator--(int) {
             int_vector_iterator it = *this;
             --(*this);
             return it;
@@ -954,7 +954,7 @@ class int_vector_const_iterator : public int_vector_iterator_base<int_vector>
         }
 
         //! Postfix increment of the Iterator
-        const_iterator operator++(int x) {
+        const_iterator operator++(int) {
             int_vector_const_iterator it = *this;
             ++(*this);
             return it;
@@ -971,7 +971,7 @@ class int_vector_const_iterator : public int_vector_iterator_base<int_vector>
         }
 
         //! Postfix decrement of the Iterator
-        const_iterator operator--(int x) {
+        const_iterator operator--(int) {
             int_vector_const_iterator it = *this;
             --(*this);
             return it;

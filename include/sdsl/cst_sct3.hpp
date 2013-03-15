@@ -150,8 +150,8 @@ class cst_sct3
         typedef bp_interval<size_type>							node_type; //!< Type for the nodes in the tree
         typedef Rank_support									fc_rank_support_type;
 
-		typedef typename Csa::alphabet_type::comp_char_type		comp_char_type;
-		typedef typename Csa::alphabet_type::sigma_type			sigma_type;	
+        typedef typename Csa::alphabet_type::comp_char_type		comp_char_type;
+        typedef typename Csa::alphabet_type::sigma_type			sigma_type;
 
         typedef typename Csa::alphabet_category					alphabet_category;
         typedef cst_tag											index_category;
@@ -162,7 +162,7 @@ class cst_sct3
         bp_support_type			m_bp_support;
         bit_vector				m_first_child; // implementation note: no rank structure is needed for the first_child bit_vector, except for id()
         fc_rank_support_type	m_first_child_rank;
-        sigma_type				m_sigma; 
+        sigma_type				m_sigma;
         size_type				m_nodes;
 
         void copy(const cst_sct3& cst) {
@@ -209,7 +209,7 @@ class cst_sct3
             if (1 == i) {
                 kpos	= m_bp_support.find_open(ckpos);
                 return m_bp_support.rank(kpos)-1;
-            } else { // i > 1   // TODO for integer-alphabets: replace this linear search 
+            } else { // i > 1   // TODO for integer-alphabets: replace this linear search
                 size_type r = ckpos - m_bp_support.rank(ckpos); // numbers of closing parentheses - 1 = index of first child in m_first_child
                 if (r+1 >= i) { // if there exist more than i l-indices
                     // check if m_first_child[r-i+1..r-1] consists of zeros
@@ -264,17 +264,17 @@ class cst_sct3
         }
 
         // Get the next smaller value.
-		/*
-		 * \param i    Position in the original vector.
-		 * \param ipos Position of the corresponding opening parenthesis in BP.
-		 * \return Position of the next smaller value in [i+1..n-1], and n when
-		 *         no such value exists.
+        /*
+         * \param i    Position in the original vector.
+         * \param ipos Position of the corresponding opening parenthesis in BP.
+         * \return Position of the next smaller value in [i+1..n-1], and n when
+         *         no such value exists.
          * \par Time complexity
          *      \f$ \Order{1} \f$
          */
-		// possible optimization: calculate also position of nsv, 
-		// i.e. next ( following position cipos
-        inline size_type nsv(SDSL_UNUSED size_type i, size_type ipos)const { 
+        // possible optimization: calculate also position of nsv,
+        // i.e. next ( following position cipos
+        inline size_type nsv(SDSL_UNUSED size_type i, size_type ipos)const {
             size_type cipos = m_bp_support.find_close(ipos);
             size_type result = m_bp_support.rank(cipos);
             return result;
@@ -282,17 +282,17 @@ class cst_sct3
 
         // Get the previous smaller value.
         /*
-		 * \param i      Position in the original vector.
-		 * \param ipos   Corr
+         * \param i      Position in the original vector.
+         * \param ipos   Corr
          * \par Time complexity
-         *    \f$ \Order{\frac{\sigma}{w}} \f$, where w=64 is the word size, 
-		 *    can be implemented in \f$\Order{1}\f$ with rank and select.
+         *    \f$ \Order{\frac{\sigma}{w}} \f$, where w=64 is the word size,
+         *    can be implemented in \f$\Order{1}\f$ with rank and select.
          */
-        inline size_type psv(SDSL_UNUSED size_type i, size_type ipos, 
-							 size_type cipos, size_type& psvpos, 
-							 size_type& psvcpos)const {
-			// if lcp[i]==0 => psv is the 0-th index by definition
-            if ( (cipos + (size_type)m_sigma) >= m_bp.size() ) {  
+        inline size_type psv(SDSL_UNUSED size_type i, size_type ipos,
+                             size_type cipos, size_type& psvpos,
+                             size_type& psvcpos)const {
+            // if lcp[i]==0 => psv is the 0-th index by definition
+            if ((cipos + (size_type)m_sigma) >= m_bp.size()) {
                 psvpos = 0;
                 psvcpos = m_bp.size()-1;
                 return 0;
@@ -302,8 +302,8 @@ class cst_sct3
                 psvcpos = m_bp_support.find_close(psvpos);
                 return m_bp_support.rank(psvpos)-1;
             }
-			// r0 = index of clothing parenthesis in m_first_child 
-            size_type r0 = cipos - m_bp_support.rank(cipos); 
+            // r0 = index of clothing parenthesis in m_first_child
+            size_type r0 = cipos - m_bp_support.rank(cipos);
             size_type next_first_child = 0;
             const uint64_t* p = m_first_child.data() + (r0>>6);
             uint64_t w = (*p) >> (r0&0x3F);
@@ -370,8 +370,8 @@ class cst_sct3
         cst_sct3(): csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child),
             first_child_rank(m_first_child_rank) {}
 
-		//! Construct CST from file_map
-        cst_sct3(cache_config &cache, bool build_only_bps=false);
+        //! Construct CST from file_map
+        cst_sct3(cache_config& cache, bool build_only_bps=false);
 
         //! Copy constructor
         /*!
@@ -622,9 +622,9 @@ class cst_sct3
 //          (2)	There exists a right sibling, LCP[j+1] >= LCP[i] and j>i
             // Now it holds:  v.cipos > v.jp1pos
             size_type cjp1posm1 = m_bp_support.find_close(v.jp1pos)-1; // v.cipos-2 ???
-            // m_bp[cjp1posm1] equals 1 =>  v is the last child 
+            // m_bp[cjp1posm1] equals 1 =>  v is the last child
             bool last_child = m_bp[cjp1posm1];
-            // otherwise if m_bp[cjp1posm1] equals 0 => we don't know if it is the last child 
+            // otherwise if m_bp[cjp1posm1] equals 0 => we don't know if it is the last child
             if (!last_child) {
                 size_type first_child_idx = cjp1posm1 - m_bp_support.rank(cjp1posm1);
                 last_child = m_first_child[first_child_idx]; // if first_child indicator is true => the new sibling is the rightmost sibling
@@ -846,7 +846,7 @@ class cst_sct3
                 size_type min_index_pos 	= m_bp_support.select(min_index+1);
                 size_type min_index_cpos 	= m_bp_support.find_close(min_index_pos);
 
-                if ( min_index_cpos >= (m_bp.size() - m_sigma) ) { // if lcp[min_index]==0 => return root
+                if (min_index_cpos >= (m_bp.size() - m_sigma)) {   // if lcp[min_index]==0 => return root
                     return root();
                 }
                 size_type new_j = nsv(min_index, min_index_pos)-1;
@@ -919,7 +919,7 @@ class cst_sct3
             size_type min_index = rmq(i+1, j); // rmq
             size_type min_index_pos 	= m_bp_support.select(min_index+1);
             size_type min_index_cpos 	= m_bp_support.find_close(min_index_pos);
-            if (min_index_cpos >= (m_bp.size() - m_sigma) ) { // if lcp[min_index]==0 => return root
+            if (min_index_cpos >= (m_bp.size() - m_sigma)) {  // if lcp[min_index]==0 => return root
                 return root();
             }
             size_type new_j = nsv(min_index, min_index_pos)-1;
@@ -1083,12 +1083,11 @@ class cst_sct3
         //! Get the node in the suffix tree which corresponds to the lcp-interval [lb..rb]
         /* \param lb Left bound of the lcp-interval [lb..rb] (inclusive).
          * \param rb Right bound of the lcp-interval [lb..rb] (inclusive).
-         * \param l  Depth of the lcp-interval.
          * \return The node in the suffix tree corresponding lcp-interval [lb..rb]
-		 * \par Time complexity
-		 *		\f$ \Order{1} \f$
+         * \par Time complexity
+         *		\f$ \Order{1} \f$
          */
-        node_type node(size_type lb, size_type rb, SDSL_UNUSED size_type l=0) const {
+        node_type node(size_type lb, size_type rb) const {
             size_type ipos = m_bp_support.select(lb+1);
             size_type jp1pos;
             if (rb == size()-1) {
@@ -1121,9 +1120,9 @@ cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(cache_config& config, boo
     write_R_output("cst", "construct BPS", "begin", 1, 0);
     int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config));
     m_nodes = algorithm::construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child) + m_bp.size()/2;
-	if ( m_bp.size() == 2 ){ // handle special case, when the tree consists only of the root node
-		m_nodes = 1;
-	}
+    if (m_bp.size() == 2) {  // handle special case, when the tree consists only of the root node
+        m_nodes = 1;
+    }
     write_R_output("cst", "construct BPS", "end", 1, 0);
     write_R_output("cst", "construct BPSS", "begin", 1, 0);
     util::init_support(m_bp_support, &m_bp);
@@ -1132,16 +1131,16 @@ cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(cache_config& config, boo
 
     if (!build_only_bps) {
         write_R_output("cst", "construct CLCP", "begin", 1, 0);
-		cache_config tmp_config(false, config.dir, config.id, config.file_map);
+        cache_config tmp_config(false, config.dir, config.id, config.file_map);
         construct_lcp(m_lcp, *this, tmp_config);
-		config.file_map = tmp_config.file_map;
+        config.file_map = tmp_config.file_map;
         write_R_output("cst", "construct CLCP", "end", 1, 0);
     }
     if (!build_only_bps) {
-		util::load_from_cache(m_csa, util::class_to_hash(m_csa), config);
+        util::load_from_cache(m_csa, util::class_to_hash(m_csa), config);
     }
     m_sigma = std::max(degree(root()), (size_type)1);
-	//handle special case 'CST for empty text'  --^
+    //handle special case 'CST for empty text'  --^
 }
 
 template<class Csa, class Lcp, class Bp_support, class Rank_support>

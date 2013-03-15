@@ -171,12 +171,12 @@ structures. A support object \code{s} can extend
 a self-contained object \code{t} (e.g. add functionality), but 
 needs access to \code{t}. 
 
-\subsection{Unsigned Integer Vector}
+\subsection{Unsigned Integer Vectors}
 The core of the libary is the class 
 \href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslintvector\textless$w$\textgreater}.
 Paramter $w$ corresonds to the fixed length of each
 element in bits.  For $w=8,16,32,64$ the length is
-to during compile time and the vectors
+fixed during compile time and the vectors
 correspond to \href{http://www.sgi.com/tech/stl/Vector.html}{\code{std::vector\textless uint$w$\_t\textgreater}}. 
 If $w=0$ (default) the length can be set during runtime.
 \textit{Constructor:} \sdslintvectorZ\code{($n$, $x$, $\ell$)}, where
@@ -215,7 +215,7 @@ achieved by sampling values of \code{v} at rate \code{t\_dens}. Available coder
 are \href{\sdslgit/include/sdsl/coder_elias_delta.hpp}{\sdslcodereliasdelta} and
 \href{\sdslgit/include/sdsl/coder_fibonacci.hpp}{\sdslcoderfibonacci}. 
 
-\subsection{Bitvector (BV)}
+\subsection{Bitvectors (BV)}
 Representations for a bitvector of length $n$ with $m$ set bits.
 \begin{tabular}{@{}lll@{}}
 \textit{Class}    & \textit{Description}       & \textit{Space}  \\
@@ -231,7 +231,7 @@ $H_0$-compressed bitvector & $\approx \lceil \log {m\choose n} \rceil$ \\
 \textit{Public Types:} \code{rank\_1\_type}, \code{select\_1\_type},
                        \code{select\_0\_type}\footnote{\code{select\_0\_type} not defined for \sdslsdvector.}.
 
-\subsection{Rank Support (RS)}
+\subsection{Rank Supports (RS)}
 RS adds rank functionality to BV. Method
 \code{rank($i$)} or \code{operator($i$)} returns the number
 of set bits\footnote{It is also possible to rank \code{0} or
@@ -255,7 +255,7 @@ supported BV for $i \in [0,n]$.
 Call~\code{util::init\_support(rs, bv)}~to initialize rank
 structure \code{rs} to bitvector \code{bv}. Call \code{rs($i$)} to get $\code{rank(}i\code{)}=\sum_{k=0}^{k<i}\code{bv[}k\code{]}$
 
-\subsection{Select Support (SS)}\label{sec-SS}
+\subsection{Select Supports (SS)}\label{sec-SS}
 SS adds select functionality to BV. Let $m$ be the number of set bits
 in BV. Method \code{select($i$)} or \code{operator($i$)} return the
 position of the $i$-th set bit%
@@ -280,6 +280,7 @@ to bitvector \code{bv}. Call \code{ss($i$)} to get
 $\code{select(}i\code{)}=\min\{j\mid \code{rank(}j\!+\!1\code{)}=i\}$. 
 
 \subsection{Wavelet Trees (WT)}
+Mention: alphabet strategies
 \begin{tabular}{@{}ll@{}}
 \textit{Class}    &\textit{Description} \\
 \href{\sdslgit/include/sdsl/wt_huff.hpp}{\sdslwthuff} &
@@ -460,8 +461,10 @@ Write \sdsl\ object \code{x} to \code{std::ostream}-object \code{out}.\\
 \code{util::clear(t)}
 \code{util::swap\_support(s1, s2, t1, t2)}
 \code{util::init\_support(s, t)}
-\code{write\_structure<JSON\_FORMAT>(t, out)}
-\code{get\_size\_in\_bytes(t)}
+\code{util::get\_size\_in\_bytes(t)}
+\code{util::write\_member(t, out)}
+\code{util::read\_member(t, in)}
+\code{util::write\_structure<JSON\_FORMAT>(t, out)} % in IO???
 
 \section{Construction}
 \code{util::cache\_file\_name(key, config)}

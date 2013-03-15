@@ -88,8 +88,8 @@ class cst_sada
         typedef size_type										node_type; //!< Type for the nodes  in the tree.
         typedef Bp_support										bp_support_type;
 
-		typedef typename Csa::alphabet_type::comp_char_type		comp_char_type;
-		typedef typename Csa::alphabet_type::sigma_type			sigma_type;	
+        typedef typename Csa::alphabet_type::comp_char_type		comp_char_type;
+        typedef typename Csa::alphabet_type::sigma_type			sigma_type;
 
         typedef typename Csa::alphabet_category					alphabet_category;
         typedef cst_tag											index_category;
@@ -136,9 +136,9 @@ class cst_sada
             copy(cst);
         }
 
-		//! Construct CST from file_map
-        cst_sada(cache_config& config) : csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), 
-		                                                                                                   bp_rank_10(m_bp_rank10), bp_select_10(m_bp_select10) {
+        //! Construct CST from file_map
+        cst_sada(cache_config& config) : csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support),
+            bp_rank_10(m_bp_rank10), bp_select_10(m_bp_select10) {
             {
                 write_R_output("cst", "construct BPS", "begin", 1, 0);
                 cst_sct3<> temp_cst(config, true);
@@ -156,18 +156,18 @@ class cst_sada
                 write_R_output("cst", "construct BPS", "end", 1, 0);
             }
             write_R_output("cst", "construct BPSS", "begin", 1,0);
-			util::assign(m_bp_support, Bp_support(&m_bp));
+            util::assign(m_bp_support, Bp_support(&m_bp));
             util::init_support(m_bp_rank10,   &m_bp);
             util::init_support(m_bp_select10, &m_bp);
             write_R_output("cst", "construct BPSS", "end", 1,0);
 
             write_R_output("cst", "construct CLCP", "begin", 1,0);
-			cache_config tmp_config(false, config.dir, config.id, config.file_map);
+            cache_config tmp_config(false, config.dir, config.id, config.file_map);
             construct_lcp(m_lcp, *this, tmp_config);
-			config.file_map = tmp_config.file_map;
+            config.file_map = tmp_config.file_map;
             write_R_output("cst", "construct CLCP", "end", 1,0);
 
-			util::load_from_cache(m_csa, util::class_to_hash(m_csa), config);
+            util::load_from_cache(m_csa, util::class_to_hash(m_csa), config);
         }
 
         //! Number of leaves in the suffix tree.
@@ -222,7 +222,7 @@ class cst_sada
         const_iterator begin()const {
             if (0 == m_bp.size())  // special case: tree is unintialized
                 return end();
- //           else if (m_csa.size() == 1) { // special case: the root is a leaf
+//           else if (m_csa.size() == 1) { // special case: the root is a leaf
 //                return const_iterator(this, root(), true, true);
 //            }
             return const_iterator(this, root(), false, true);
@@ -699,10 +699,9 @@ class cst_sada
         //! Get the node in the suffix tree which corresponds to the lcp-interval [lb..rb]
         /* \param lb Left bound of the lcp-interval [lb..rb] (inclusive).
          * \param rb Right bound of the lcp-interval [lb..rb] (inclusive).
-         * \param l  Depth of the lcp-interval.
          *\ return The node in the suffix tree corresponding lcp-interval [lb..rb]
          */
-        node_type node(size_type lb, size_type rb, size_type l=0) const {
+        node_type node(size_type lb, size_type rb) const {
             return lca(select_leaf(lb+1), select_leaf(rb+1));
         }
 

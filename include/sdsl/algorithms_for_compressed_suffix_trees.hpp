@@ -90,61 +90,61 @@ void construct_supercartesian_tree_bp_succinct(const RandomAccessContainer& vec,
 {
     typedef typename RandomAccessContainer::size_type size_type;
     bp.resize(2*vec.size());      // resize bit vector for balanced parentheses to 2 n bits
-	if ( vec.size() > 0 ) {
-		util::set_zero_bits(bp);
-		sorted_stack_support vec_stack(vec.size()); // <- das ist ein Problem fuer int_vector_file_buffer
+    if (vec.size() > 0) {
+        util::set_zero_bits(bp);
+        sorted_stack_support vec_stack(vec.size()); // <- das ist ein Problem fuer int_vector_file_buffer
 
-		size_type k=0;
-		if ( minimum ) {
-			bp[k++] = 1;
-			for (size_type i=1; i < vec.size(); ++i) {
-				if (vec[i] < vec[i-1]) {
-					++k;
-					while (vec_stack.size() > 0 and vec[i] < vec[vec_stack.top()]) {
-						vec_stack.pop(); ++k; // writing a closing parenthesis, bp is already initialized to zero
-					}
-				} else {
-					vec_stack.push(i-1); // "lazy stack" trick: speed-up ca. 25%
-				}
-				bp[k++] = 1; // writing an opening  parenthesis
-			}
-			/*
-			vec_stack.push(0);
-			bp[k++] = 1;
-			for(size_type i=1,j, start_run=1; i < vec.size(); ++i){
-				if( vec[i] < vec[i-1] ){
-					j = i;
-					while( --j >= start_run and vec[i] < vec[j]) ++k;
-					while(start_run <= j){	// auf den stack pushen
-						vec_stack.push(start_run++);
-					}
-					while( vec_stack.size() > 0 and vec[i] < vec[vec_stack.top()] ){
-						vec_stack.pop(); ++k;
-					}
-					start_run = i;
-				}
-				bp[k++] = 1;
-			}
-			*/
-		} else {
-			// hier noch ohne "lazy stack" trick
-			for (size_type i=0; i < vec.size(); ++i) {
-				while (vec_stack.size() > 0 and vec[i] > vec[vec_stack.top()]) {
-					vec_stack.pop(); ++k; /*bp[k++] = 0; bp is already initialized to zero*/ // writing a closing parenthesis
-				}
-				vec_stack.push(i);
-				bp[k++] = 1; // writing an opening  parenthesis
-			}
-		}
+        size_type k=0;
+        if (minimum) {
+            bp[k++] = 1;
+            for (size_type i=1; i < vec.size(); ++i) {
+                if (vec[i] < vec[i-1]) {
+                    ++k;
+                    while (vec_stack.size() > 0 and vec[i] < vec[vec_stack.top()]) {
+                        vec_stack.pop(); ++k; // writing a closing parenthesis, bp is already initialized to zero
+                    }
+                } else {
+                    vec_stack.push(i-1); // "lazy stack" trick: speed-up ca. 25%
+                }
+                bp[k++] = 1; // writing an opening  parenthesis
+            }
+            /*
+            vec_stack.push(0);
+            bp[k++] = 1;
+            for(size_type i=1,j, start_run=1; i < vec.size(); ++i){
+            	if( vec[i] < vec[i-1] ){
+            		j = i;
+            		while( --j >= start_run and vec[i] < vec[j]) ++k;
+            		while(start_run <= j){	// auf den stack pushen
+            			vec_stack.push(start_run++);
+            		}
+            		while( vec_stack.size() > 0 and vec[i] < vec[vec_stack.top()] ){
+            			vec_stack.pop(); ++k;
+            		}
+            		start_run = i;
+            	}
+            	bp[k++] = 1;
+            }
+            */
+        } else {
+            // hier noch ohne "lazy stack" trick
+            for (size_type i=0; i < vec.size(); ++i) {
+                while (vec_stack.size() > 0 and vec[i] > vec[vec_stack.top()]) {
+                    vec_stack.pop(); ++k; /*bp[k++] = 0; bp is already initialized to zero*/ // writing a closing parenthesis
+                }
+                vec_stack.push(i);
+                bp[k++] = 1; // writing an opening  parenthesis
+            }
+        }
 #ifdef SDSL_DEBUG
-	// not necessary as bp is already initialized to zero
-		while (!vec_stack.empty()) {
-			vec_stack.pop();
-			bp[k++] = 0; // writing a closing parenthesis
-		}
-		assert(k == 2*vec.size());
+        // not necessary as bp is already initialized to zero
+        while (!vec_stack.empty()) {
+            vec_stack.pop();
+            bp[k++] = 0; // writing a closing parenthesis
+        }
+        assert(k == 2*vec.size());
 #endif
-	}
+    }
 }
 
 //! Calculate the balanced parentheses of the Super-Cartesian tree, described in Ohlebusch and Gog (SPIRE 2009).
@@ -336,7 +336,7 @@ int_vector_size_type construct_first_child_and_lf_lcp(int_vector_file_buffer<fix
         std::string small_lcp_file_name,
         std::string big_lcp_file_name,
         int_vector<>& big_lcp,
-        int_vector_size_type first_child_size=0)
+        SDSL_UNUSED int_vector_size_type first_child_size=0)
 {
     typedef int_vector_size_type size_type;
     const size_type M = 255;	// limit for values represented in the small LCP part
