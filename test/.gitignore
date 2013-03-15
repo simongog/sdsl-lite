@@ -1,6 +1,6 @@
+*.x           # ignore executables
 Makefile			  
-./*           # ignore every file in the current directory
-!*/           # don't ignore subdirectories
+*.x.DSYM/     # 
 !*.cpp        # don't ignore .cpp-files
 !*.config     # don't ignore .config-files
 !*.cmake      # don't ignore cmake-files
