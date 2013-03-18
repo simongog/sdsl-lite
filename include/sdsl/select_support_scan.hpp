@@ -16,7 +16,7 @@
 */
 /*! \file select_support_scan.hpp
     \brief select_support_scan.hpp contains classes that support a sdsl::bit_vector with linear time select.
-	\author Simon Gog
+    \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_SELECT_SUPPORT_SCAN
 #define INCLUDED_SDSL_SELECT_SUPPORT_SCAN
@@ -33,9 +33,14 @@ namespace sdsl
 //! A class supporting linear time select queries.
 /*! \par Space complexity
  *       Constant.
+ *  \par Time complexity
+ *       Linear in the size of the supported vector.
+ *
+ *  \tparam t_b       Bit pattern which should be supported. Either `0`,`1`,`10`,`01`.
+ *  \tparam t_pat_len Length of the bit pattern.
  * @ingroup select_support_group
  */
-template<uint8_t b=1, uint8_t pattern_len=1>
+template<uint8_t t_b=1, uint8_t t_pat_len=1>
 class select_support_scan : public select_support
 {
     public:
@@ -44,7 +49,7 @@ class select_support_scan : public select_support
         explicit select_support_scan(const bit_vector* v=NULL) {
             set_vector(v);
         }
-        select_support_scan(const select_support_scan<b,pattern_len>& ss) {
+        select_support_scan(const select_support_scan<t_b,t_pat_len>& ss) {
             set_vector(ss.m_v);
         }
         inline const size_type select(size_type i) const;
@@ -58,37 +63,37 @@ class select_support_scan : public select_support
         void set_vector(const bit_vector* v=NULL) {
             m_v = v;
         }
-        select_support_scan<b, pattern_len>& operator=(const select_support_scan& ss) {
+        select_support_scan<t_b, t_pat_len>& operator=(const select_support_scan& ss) {
             set_vector(ss.m_v);
             return *this;
         }
-        void swap(select_support_scan<b, pattern_len>&) {}
+        void swap(select_support_scan<t_b, t_pat_len>&) {}
 };
 
-template<uint8_t b, uint8_t pattern_len>
-inline const typename select_support_scan<b,pattern_len>::size_type select_support_scan<b,pattern_len>::select(size_type i)const
+template<uint8_t t_b, uint8_t t_pat_len>
+inline const typename select_support_scan<t_b,t_pat_len>::size_type select_support_scan<t_b,t_pat_len>::select(size_type i)const
 {
     const uint64_t* data = m_v->data();
     size_type word_pos = 0;
     size_type word_off = 0;
-    uint64_t carry = select_support_trait<b,pattern_len>::init_carry(data, word_pos);
-    size_type args = select_support_trait<b,pattern_len>::args_in_the_first_word(*data, word_off, carry);
+    uint64_t carry = select_support_trait<t_b,t_pat_len>::init_carry(data, word_pos);
+    size_type args = select_support_trait<t_b,t_pat_len>::args_in_the_first_word(*data, word_off, carry);
     if (args >= i) {
-        return (word_pos<<6)+select_support_trait<b,pattern_len>::ith_arg_pos_in_the_first_word(*data, i, word_off, carry);
+        return (word_pos<<6)+select_support_trait<t_b,t_pat_len>::ith_arg_pos_in_the_first_word(*data, i, word_off, carry);
     }
     word_pos+=1;
     size_type sum_args = args;
-    carry = select_support_trait<b,pattern_len>::get_carry(*data);
+    carry = select_support_trait<t_b,t_pat_len>::get_carry(*data);
     uint64_t old_carry = carry;
-    args = select_support_trait<b,pattern_len>::args_in_the_word(*(++data), carry);
+    args = select_support_trait<t_b,t_pat_len>::args_in_the_word(*(++data), carry);
     while (sum_args + args < i) {
         sum_args += args;
         assert(data+1 < m_v->data() + (m_v->capacity()>>6));
         old_carry = carry;
-        args = select_support_trait<b,pattern_len>::args_in_the_word(*(++data), carry);
+        args = select_support_trait<t_b,t_pat_len>::args_in_the_word(*(++data), carry);
         word_pos+=1;
     }
-    return (word_pos<<6) + select_support_trait<b,pattern_len>::ith_arg_pos_in_the_word(*data, i-sum_args, old_carry);
+    return (word_pos<<6) + select_support_trait<t_b,t_pat_len>::ith_arg_pos_in_the_word(*data, i-sum_args, old_carry);
 }
 
 } // end namespace

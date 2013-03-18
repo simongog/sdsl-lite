@@ -76,11 +76,13 @@ class rank_support
         virtual void set_vector(const bit_vector* v=NULL) = 0;
 };
 
-inline rank_support::rank_support(const bit_vector* v) {
+inline rank_support::rank_support(const bit_vector* v)
+{
     m_v = v;
 }
 
-inline rank_support::rank_support(const rank_support& rs) {
+inline rank_support::rank_support(const rank_support& rs)
+{
     m_v = rs.m_v;
 }
 
@@ -204,6 +206,5 @@ struct rank_support_trait<01,2> {
 #include "rank_support_v.hpp"
 #include "rank_support_v5.hpp"
 #include "rank_support_scan.hpp"
-#include "rank_support_jmc.hpp"
 
 #endif // end file 

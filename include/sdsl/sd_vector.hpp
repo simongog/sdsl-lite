@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2012 Simon Gog
+    Copyright (C) 2012-2013 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,15 +31,15 @@ namespace sdsl
 {
 
 // forward declaration needed for friend declaration
-template<class hi_bit_vector_type = bit_vector,
-         class Select1Support     = typename hi_bit_vector_type::select_1_type,
-         class Select0Support     = typename hi_bit_vector_type::select_0_type>
+template<class t_hi_bit_vector= bit_vector,
+         class t_select_1     = typename t_hi_bit_vector::select_1_type,
+         class t_select_0     = typename t_hi_bit_vector::select_0_type>
 class rank_support_sd;  // in sd_vector
 
 // forward declaration needed for friend declaration
-template<class hi_bit_vector_type = bit_vector,
-         class Select1Support     = typename hi_bit_vector_type::select_1_type,
-         class Select0Support     = typename hi_bit_vector_type::select_0_type>
+template<class t_hi_bit_vector= bit_vector,
+         class t_select_1     = typename t_hi_bit_vector::select_1_type,
+         class t_select_0     = typename t_hi_bit_vector::select_0_type>
 class select_support_sd;  // in sd_vector
 
 //! A bit vector which compresses very sparse populated bit vectors by
@@ -57,26 +57,29 @@ class select_support_sd;  // in sd_vector
  *  - D. Okanohara, K. Sadakane: ,,Practical Entropy-Compressed Rank/Select Dictionary'',
  *             Proceedings of ALENEX 2007.
  *
- *    \tparam hi_bit_vector_type    Type of the bitvector HI used for representing the high part of the positions of the 1s.
- *  \tparam hi_select_1            Type of the select support data structure which is used to select ones in HI.
- *  \tparam hi_select_0            Type of the select support data structure which is used to select zeros in HI.
+ *  \tparam t_hi_bit_vector Type of the bitvector used for the unary decoded differences of
+ *                          the high part of the positions of the 1s.
+ *  \tparam t_select_1      Type of the select structure which is used to select ones in HI.
+ *  \tparam t_select_0      Type of the select structure which is used to select zeros in HI.
  */
-template<class hi_bit_vector_type = bit_vector,
-         class hi_select_1      = typename hi_bit_vector_type::select_1_type,
-         class hi_select_0      = typename hi_bit_vector_type::select_0_type>
+template<class t_hi_bit_vector = bit_vector,
+         class t_select_1     = typename t_hi_bit_vector::select_1_type,
+         class t_select_0     = typename t_hi_bit_vector::select_0_type>
 class sd_vector
 {
     public:
         typedef bit_vector::size_type size_type;
         typedef size_type value_type;
-        typedef hi_select_0 select_0_support_type;
-        typedef hi_select_1 select_1_support_type;
+        typedef t_select_0 select_0_support_type;
+        typedef t_select_1 select_1_support_type;
 
-        friend class rank_support_sd<hi_bit_vector_type, select_1_support_type, select_0_support_type>;
-        friend class select_support_sd<hi_bit_vector_type, select_1_support_type, select_0_support_type>;
+        friend class rank_support_sd<t_hi_bit_vector, select_1_support_type, select_0_support_type>;
+        friend class select_support_sd<t_hi_bit_vector, select_1_support_type, select_0_support_type>;
 
-        typedef rank_support_sd<hi_bit_vector_type, select_1_support_type, select_0_support_type> rank_1_type;
-        typedef select_support_sd<hi_bit_vector_type, select_1_support_type, select_0_support_type> select_1_type;
+        typedef rank_support_sd<t_hi_bit_vector, select_1_support_type, select_0_support_type> rank_1_type;
+        typedef select_support_sd<t_hi_bit_vector, select_1_support_type, select_0_support_type> select_1_type;
+
+        typedef t_hi_bit_vector hi_bit_vector_type;
     private:
         // we need this variables to represent the m ones of the original bit vector of size n
         size_type m_size;  // length of the original bit vector
@@ -226,17 +229,17 @@ class sd_vector
 };
 
 //! Rank data structure for sd_vector
-/*
- *  \tparam hi_bit_vector_type Type of the bitvector HI used for representing the high part of the positions of the 1s in sd_vector.
- *  \tparam hi_select_1        Type of the select support data structure which is used to select ones in HI in sd_vector.
- *  \tparam hi_select_0        Type of the select support data structure which is used to select zeros in HI in sd_vector.
+/*! \tparam t_hi_bit_vector Type of the bitvector used for the unary decoded differences of
+ *                          the high part of the positions of the 1s.
+ *  \tparam t_select_1      Type of the select structure which is used to select ones in HI.
+ *  \tparam t_select_0      Type of the select structure which is used to select zeros in HI.
  */
-template<class hi_bit_vector_type, class Select1Support, class Select0Support>
+template<class t_hi_bit_vector, class t_select_1, class t_select_0>
 class rank_support_sd
 {
     public:
         typedef bit_vector::size_type size_type;
-        typedef sd_vector<hi_bit_vector_type, Select1Support, Select0Support> bit_vector_type;
+        typedef sd_vector<t_hi_bit_vector, t_select_1, t_select_0> bit_vector_type;
     private:
         const bit_vector_type* m_v;
 
@@ -297,17 +300,17 @@ class rank_support_sd
 };
 
 //! Select data structure for sd_vector
-/*
- *  \tparam hi_bit_vector_type Type of the bitvector HI used for representing the high part of the positions of the 1s in sd_vector.
- *  \tparam hi_select_1        Type of the select support data structure which is used to select ones in HI in sd_vector.
- *  \tparam hi_select_0        Type of the select support data structure which is used to select zeros in HI in sd_vector.
+/*! \tparam t_hi_bit_vector Type of the bitvector used for the unary decoded differences of
+ *                          the high part of the positions of the 1s.
+ *  \tparam t_select_1      Type of the select structure which is used to select ones in HI.
+ *  \tparam t_select_0      Type of the select structure which is used to select zeros in HI.
  */
-template<class hi_bit_vector_type, class Select1Support, class Select0Support>
+template<class t_hi_bit_vector, class t_select_1, class t_select_0>
 class select_support_sd
 {
     public:
         typedef bit_vector::size_type size_type;
-        typedef sd_vector<hi_bit_vector_type, Select1Support, Select0Support> bit_vector_type;
+        typedef sd_vector<t_hi_bit_vector, t_select_1, t_select_0> bit_vector_type;
     private:
         const bit_vector_type* m_v;
 

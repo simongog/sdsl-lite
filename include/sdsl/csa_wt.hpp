@@ -21,11 +21,7 @@
 #ifndef INCLUDED_SDSL_CSA_WT
 #define INCLUDED_SDSL_CSA_WT
 
-#ifdef SDSL_DEBUG
-#define SDSL_DEBUG_CSA_WT
-#endif
-
-#include "wt_huff.hpp"
+#include "wavelet_trees.hpp"
 #include "suffix_array_helper.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
@@ -43,10 +39,10 @@
 namespace sdsl
 {
 
-template<class CsaWT>
+template<class t_csa>
 class psi_of_csa_wt;  // forward declaration of PSI-array class
 
-template<class CsaWT>
+template<class t_csa>
 class bwt_of_csa_wt;   // forward declaration of BWT-array class
 
 

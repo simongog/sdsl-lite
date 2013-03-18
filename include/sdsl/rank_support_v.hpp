@@ -40,9 +40,17 @@ namespace sdsl
  * The relative counts add another 64/512 bits on top of each supported bit.
  * In total this results in 128/512=25% overhead.
  *
+ * \tparam t_b       Bit pattern `0`,`1`,`10`,`01` which should be ranked.
+ * \tparam t_pat_len Length of the bit pattern.
+ *
+ * \par Reference
+ *    Sebastiano Vigna:
+ *    Broadword Implementation of Rank/Select Queries.
+ *    WEA 2008: 154-168
+ *
  * @ingroup rank_support_group
  */
-template<uint8_t b=1, uint8_t pattern_len=1>
+template<uint8_t t_b=1, uint8_t t_pat_len=1>
 class rank_support_v : public rank_support
 {
     public:
@@ -71,25 +79,29 @@ class rank_support_v : public rank_support
         void swap(rank_support_v& rs);
 };
 
-template<uint8_t b, uint8_t pattern_len>
-inline rank_support_v<b, pattern_len>::rank_support_v(const rank_support_v& rs) {
+template<uint8_t t_b, uint8_t t_pat_len>
+inline rank_support_v<t_b, t_pat_len>::rank_support_v(const rank_support_v& rs)
+{
     m_v = rs.m_v;
     m_basic_block = rs.m_basic_block;
 }
 
 
-template<uint8_t b, uint8_t pattern_len>
-inline void rank_support_v<b, pattern_len>::set_vector(const bit_vector* v) {
+template<uint8_t t_b, uint8_t t_pat_len>
+inline void rank_support_v<t_b, t_pat_len>::set_vector(const bit_vector* v)
+{
     m_v = v;
 }
 
-template<uint8_t b, uint8_t pattern_len>
-inline const typename rank_support_v<b, pattern_len>::size_type rank_support_v<b, pattern_len>::size()const {
+template<uint8_t t_b, uint8_t t_pat_len>
+inline const typename rank_support_v<t_b, t_pat_len>::size_type rank_support_v<t_b, t_pat_len>::size()const
+{
     return m_v->size();
 }
 
-template<uint8_t b, uint8_t pattern_len>
-rank_support_v<b, pattern_len>::rank_support_v(const bit_vector* v) {
+template<uint8_t t_b, uint8_t t_pat_len>
+rank_support_v<t_b, t_pat_len>::rank_support_v(const bit_vector* v)
+{
     set_vector(v);
     if (v == NULL) {
         return;
@@ -105,8 +117,8 @@ rank_support_v<b, pattern_len>::rank_support_v(const bit_vector* v) {
     size_type i, j=0;
     m_basic_block[0] = m_basic_block[1] = 0;
 
-    uint64_t carry = rank_support_trait<b, pattern_len>::init_carry();
-    uint64_t sum = rank_support_trait<b, pattern_len>::args_in_the_word(*data, carry), second_level_cnt = 0;
+    uint64_t carry = rank_support_trait<t_b, t_pat_len>::init_carry();
+    uint64_t sum = rank_support_trait<t_b, t_pat_len>::args_in_the_word(*data, carry), second_level_cnt = 0;
     for (i = 1; i < (m_v->capacity()>>6) ; ++i) {
         if (!(i&0x7)) {// if i%8==0
             j += 2;
@@ -116,7 +128,7 @@ rank_support_v<b, pattern_len>::rank_support_v(const bit_vector* v) {
         } else {
             second_level_cnt |= sum<<(63-9*(i&0x7));//  54, 45, 36, 27, 18, 9, 0
         }
-        sum += rank_support_trait<b, pattern_len>::args_in_the_word(*(++data), carry);
+        sum += rank_support_trait<t_b, t_pat_len>::args_in_the_word(*(++data), carry);
     }
     if (i&0x7) { // if i%8 != 0
         second_level_cnt |= sum << (63-9*(i&0x7));
@@ -129,26 +141,29 @@ rank_support_v<b, pattern_len>::rank_support_v(const bit_vector* v) {
     }
 }
 
-template<uint8_t b, uint8_t pattern_len>
-inline const typename rank_support_v<b, pattern_len>::size_type rank_support_v<b, pattern_len>::rank(size_type idx)const {
-	assert( m_v != NULL );
-	assert( idx <= m_v->size() );
+template<uint8_t t_b, uint8_t t_pat_len>
+inline const typename rank_support_v<t_b, t_pat_len>::size_type rank_support_v<t_b, t_pat_len>::rank(size_type idx)const
+{
+    assert(m_v != NULL);
+    assert(idx <= m_v->size());
     const uint64_t* p = m_basic_block.data() + ((idx>>8)&0xFFFFFFFFFFFFFFFEULL);// (idx/512)*2
     if (idx&0x3F)  // if (idx%64)!=0
         return  *p + ((*(p+1)>>(63 - 9*((idx&0x1FF)>>6)))&0x1FF) +
-                rank_support_trait<b, pattern_len>::word_rank(m_v->data(), idx);
+                rank_support_trait<t_b, t_pat_len>::word_rank(m_v->data(), idx);
     else
         return  *p + ((*(p+1)>>(63 - 9*((idx&0x1FF)>>6)))&0x1FF);
 }
 
 
-template<uint8_t b, uint8_t pattern_len>
-inline const typename rank_support_v<b, pattern_len>::size_type rank_support_v<b, pattern_len>::operator()(size_type idx)const {
+template<uint8_t t_b, uint8_t t_pat_len>
+inline const typename rank_support_v<t_b, t_pat_len>::size_type rank_support_v<t_b, t_pat_len>::operator()(size_type idx)const
+{
     return rank(idx);
 }
 
-template<uint8_t b, uint8_t pattern_len>
-typename rank_support_v<b, pattern_len>::size_type rank_support_v<b, pattern_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
+template<uint8_t t_b, uint8_t t_pat_len>
+typename rank_support_v<t_b, t_pat_len>::size_type rank_support_v<t_b, t_pat_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
+{
     size_type written_bytes = 0;
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     written_bytes += m_basic_block.serialize(out, child, "cumulative_counts");
@@ -156,14 +171,16 @@ typename rank_support_v<b, pattern_len>::size_type rank_support_v<b, pattern_len
     return written_bytes;
 }
 
-template<uint8_t b, uint8_t pattern_len>
-void rank_support_v<b, pattern_len>::load(std::istream& in, const int_vector<1>* v) {
+template<uint8_t t_b, uint8_t t_pat_len>
+void rank_support_v<t_b, t_pat_len>::load(std::istream& in, const int_vector<1>* v)
+{
     set_vector(v);
     m_basic_block.load(in);
 }
 
-template<uint8_t b, uint8_t pattern_len>
-rank_support_v<b, pattern_len>& rank_support_v<b, pattern_len>::operator=(const rank_support_v& rs) {
+template<uint8_t t_b, uint8_t t_pat_len>
+rank_support_v<t_b, t_pat_len>& rank_support_v<t_b, t_pat_len>::operator=(const rank_support_v& rs)
+{
     if (this != &rs) {
         set_vector(rs.m_v);
         m_basic_block = rs.m_basic_block;
@@ -171,8 +188,9 @@ rank_support_v<b, pattern_len>& rank_support_v<b, pattern_len>::operator=(const 
     return *this;
 }
 
-template<uint8_t b, uint8_t pattern_len>
-void rank_support_v<b, pattern_len>::swap(rank_support_v& rs) {
+template<uint8_t t_b, uint8_t t_pat_len>
+void rank_support_v<t_b, t_pat_len>::swap(rank_support_v& rs)
+{
     if (this != &rs) { // if rs and _this_ are not the same object
         m_basic_block.swap(rs.m_basic_block);
     }

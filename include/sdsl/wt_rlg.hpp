@@ -15,9 +15,9 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file wt_rlg.hpp
-    \brief wt_rlg.hpp contains a class for the wavelet tree of byte sequences which is in Huffman shape and runs of character
-	       are compressed.
-	\author Simon Gog
+    \brief wt_rlg.hpp contains a class for the wavelet tree of byte sequences
+       which is in Huffman shape and runs of character are compressed.
+    \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_WT_RLG
 #define INCLUDED_SDSL_WT_RLG
@@ -37,11 +37,6 @@
 #include <queue>
 
 
-#ifdef SDSL_DEBUG
-#define SDSL_DEBUG_WT_RLG
-#endif
-
-
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
@@ -50,46 +45,40 @@ typedef wt_huff<bit_vector, rank_support_v5<>, select_support_bs<>, select_suppo
 
 //! A Wavelet Tree class for byte sequences.
 /*!
- * A wavelet tree is build for a vector of characters over the alphabet \f$\Sigma\f$.
- * This class should be used only for small alphabets \f$\Sigma \ll n\f$ (see wt_int for a wavelet tree for big alphabets).
- * The wavelet tree \f$wt\f$ consists of a tree of bitvectors and provides three efficient methods:
- *   - The "[]"-operator: \f$wt[i]\f$ returns the ith symbol of vector for which the wavelet tree was build for.
- *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurrences of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the wavelet tree was build for.
- *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurrence of symbol \f$c\f$.
+ * \par Space complexity
+ *   \f$\Order{n\log|\Sigma| + 2|\Sigma|\log n}\f$ bits, where \f$n\f$
+ *    is the size of the vector the wavelet tree was build for.
  *
- *	\par Space complexity
- *		 \f$\Order{n\log|\Sigma| + 2|\Sigma|\log n}\f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
- *
- *  \par Note
- *       We denote the length of the longest run in the sequence with \f$ L \f$
+ * \par Note
+ *   We denote the length of the longest run in the sequence with \f$L\f$.
  *   @ingroup wt
  */
-template<class RankSupport = rank_support_v5<>, class WaveletTree = wt_without_select>
+template<class t_rank = rank_support_v5<>, class t_wt = wt_without_select>
 class wt_rlg
 {
     public:
-        typedef int_vector<>::size_type	size_type;
-        typedef unsigned char		 	value_type;
-        typedef RankSupport				rank_support_type;
-        typedef WaveletTree             wt_type;
-		typedef wt_tag					index_category;
-		typedef byte_alphabet_tag		alphabet_category;
+        typedef int_vector<>::size_type size_type;
+        typedef unsigned char           value_type;
+        typedef t_rank                  rank_support_type;
+        typedef t_wt                    wt_type;
+        typedef wt_tag                  index_category;
+        typedef byte_alphabet_tag       alphabet_category;
     private:
-        size_type 				m_size;           // size of the original input sequence
-        wt_type					m_wt;	          // wavelet tree for all levels
-        bit_vector				m_b;	          // bit vector which indicates if a pair consists of
+        size_type         m_size;           // size of the original input sequence
+        wt_type           m_wt;              // wavelet tree for all levels
+        bit_vector        m_b;              // bit vector which indicates if a pair consists of
         // two equal chars
-        rank_support_type		m_b_rank;         // rank support for vector b
-        int_vector<64>          m_b_border_rank;  // Vector in which we store the rank values of m_b at the
+        rank_support_type m_b_rank;         // rank support for vector b
+        int_vector<64>    m_b_border_rank;  // Vector in which we store the rank values of m_b at the
         // border positions.
-        int_vector<64>          m_b_border;       // Vector in which we store the borders of the different levels
+        int_vector<64>    m_b_border;       // Vector in which we store the borders of the different levels
         // Takes \f$\Order{\max(1, \log L)\log n}\f$ bits.
-        int_vector<64>          m_wt_rank;  	  // Vector in which we store the rank value for each character
+        int_vector<64>    m_wt_rank;        // Vector in which we store the rank value for each character
         // and each border.
         // Takes \f$\Order{\sigma\max(1, \log L)\log n}\f bits
-        int_vector<8>			m_char2comp;      //
-        int_vector<64>          m_char_occ;       //
-        uint16_t				m_sigma;
+        int_vector<8>     m_char2comp;      //
+        int_vector<64>    m_char_occ;       //
+        uint16_t          m_sigma;
 
         void copy(const wt_rlg& wt) {
             m_size          = wt.m_size;
@@ -102,7 +91,7 @@ class wt_rlg
             m_wt_rank       = wt.m_wt_rank;
             m_char2comp     = wt.m_char2comp;
             m_char_occ      = wt.m_char_occ;
-            m_size			= wt.m_size;
+            m_size            = wt.m_size;
         }
 
     public:
@@ -114,10 +103,10 @@ class wt_rlg
 
         //! Constructor
         /*!
-         *	\param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
-         *	\param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
-         *	\par Time complexity
-         *		\f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
+         * \param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
+         * \param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
+         * \par Time complexity
+         *    \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
         wt_rlg(const unsigned char* rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
             // TODO
@@ -127,8 +116,8 @@ class wt_rlg
 
 
         //! Construct the wavelet tree from a file_buffer
-        /*! \param text_buf	A int_vector_file_buffer to the original text.
-         *	\param size The length of the prefix of the text, for which the wavelet tree should be build.
+        /*! \param text_buf    A int_vector_file_buffer to the original text.
+         *  \param size The length of the prefix of the text, for which the wavelet tree should be build.
          */
         wt_rlg(int_vector_file_buffer<8>& text_buf, size_type size):m_size(size), sigma(m_sigma) {
             typedef int_vector_size_type size_type;
@@ -161,7 +150,6 @@ class wt_rlg
                     if (i & 1) { // if position is odd
                         if (c == last_c) { // join pair
                             m_b[b_cnt] = 1;
-                            /*						same_prev_char[pair1cnt] = (pair1cnt>0) && m_b[b_cnt-1] && next_bwt[pair1cnt-1]==c;*/
                             next_bwt[pair1cnt] = c;
                             ++pair1cnt;
                         } else { // write pair to stream
@@ -198,7 +186,6 @@ class wt_rlg
                 for (size_type i=1; i < level_size; i+=2) {
                     if (next_bwt[i] == next_bwt[i-1] /*and same_prev_char[i]*/) { // pair can be joined
                         m_b[b_cnt] = 1;
-//				   same_prev_char[pair1cnt] = (pair1cnt>0) && m_b[b_cnt-1] && next_bwt[pair1cnt-1]==next_bwt[i] && same_prev_char[i-1];
                         next_bwt[pair1cnt] = next_bwt[i];
                         ++pair1cnt;
                     } else {
@@ -226,7 +213,7 @@ class wt_rlg
 
             {
                 int_vector_file_buffer<8> temp_bwt_buf(temp_file);
-				util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
+                util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
             }
 
             util::init_support(m_b_rank, &m_b);
@@ -297,15 +284,15 @@ class wt_rlg
             return m_size == 0;
         }
 
-        //! Recovers the ith symbol of the original vector.
+        //! Recovers the i-th symbol of the original vector.
         /*! \param i The index of the symbol in the original vector. \f$i \in [0..size()-1]\f$
-         *	\return The ith symbol of the original vector.
+         *  \return The i-th symbol of the original vector.
          *  \par Time complexity
-         *		\f$ \Order{H_0 + \log L} \f$ on average, where \f$ H_0 \f$ is the zero order entropy of
-         *      the sequence and \f$L\f$ the maximal length of a run in the sequence.
+         *    \f$ \Order{H_0 + \log L} \f$ on average, where \f$ H_0 \f$ is the zero order entropy of
+         *    the sequence and \f$L\f$ the maximal length of a run in the sequence.
          */
         value_type operator[](size_type i)const {
-			assert( i < size() );
+            assert(i < size());
             size_type level = 0;
             while (m_b[(i>>1) + m_b_border[level]]) {
                 i = m_b_rank((i>>1) + m_b_border[level]) - m_b_border_rank[level];
@@ -319,13 +306,13 @@ class wt_rlg
         /*!
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
          *  \param c The symbol to count the occurrences in the prefix.
-         *	\return The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
+         *  \return The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
          *  \par Time complexity
-         *		\f$ \Order{H_0 \log L} \f$ on average, where \f$ H_0 \f$ is the zero order entropy of
+         *        \f$ \Order{H_0 \log L} \f$ on average, where \f$ H_0 \f$ is the zero order entropy of
          *      the sequence and \f$L\f$ the maximal length of a run of \f$c\f$s in the sequence.
          */
         size_type rank(size_type i, value_type c)const {
-			assert( i <= size() );
+            assert(i <= size());
             value_type cc    = m_char2comp[c];
             if (((size_type)cc) >= m_char_occ.size()) { // char does not occur
                 return 0;
@@ -365,29 +352,29 @@ class wt_rlg
 
         //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
         /*!
-         *	\param i The index of the symbol.
-         *  \param c Reference that will contain the symbol at position i after the execution of the method.
-         *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
-         *	\par Time complexity
-         *		\f$ \Order{H_0 \log L} \f$
+         * \param i The index of the symbol.
+         * \param c Reference that will contain the symbol at position i after the execution of the method.
+         * \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
+         * \par Time complexity
+         *    \f$ \Order{H_0 \log L} \f$
          */
         size_type inverse_select(size_type i, value_type& c)const {
-			assert( i < size() );
+            assert(i < size());
             return rank(i, c=(*this)[i]);
         }
 
-        //! Calculates the ith occurrence of the symbol c in the supported vector.
+        //! Calculates the i-th occurrence of the symbol c in the supported vector.
         /*!
-         *  \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
-         *  \param c The symbol c.
-         *  \par Time complexity
-         *		\f$ \Order{\log n H_0 \log L} \f$ on average, where \f$ H_0 \f$ is the zero order
-         *      entropy of the sequence and \f$L\f$ the maximal length of a run
-         *      of \f$c\f$s in the sequence.
+         * \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
+         * \param c The symbol c.
+         * \par Time complexity
+         *   \f$ \Order{\log n H_0 \log L} \f$ on average, where \f$ H_0 \f$
+         *   is the zero order entropy of the sequence and \f$L\f$ the
+         *   maximal length of a run of \f$c\f$s in the sequence.
          */
         size_type select(size_type i, value_type c)const {
-			assert( i > 0 );
-			assert( i <= rank(size(), c) );
+            assert(i > 0);
+            assert(i <= rank(size(), c));
             if (((size_type)m_char2comp[c]) >= m_char_occ.size()) { // char does not occur
                 return size();
             }

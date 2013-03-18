@@ -16,7 +16,7 @@
 */
 /*! \file bp_support.hpp
     \brief bp_support.hpp contains several classed which support find_open, find_close, enclose and rr-enclose queries.
-	\author Simon Gog
+    \author Simon Gog
 */
 
 #ifndef INCLUDED_SDSL_BP_SUPPORT
@@ -34,7 +34,6 @@
  *   - rr_enclose
  */
 
-#include "bp_support_j.hpp"
 #include "bp_support_g.hpp"
 #include "bp_support_gg.hpp"
 #include "bp_support_sada.hpp"

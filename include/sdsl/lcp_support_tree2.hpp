@@ -14,31 +14,33 @@ namespace sdsl
 
 
 /*! An lcp array class for cst_sct3 and cst_sada.
- *	The time consumption of the []-operator depends on:
- *    - The time consumption of the []-operation of the wt_huff
- *    - The time consumption of the LF calculation of the underlying CSA of the CST
- *    - The time consumption of the tlcp_idx function of the CST
+ *    The time of the []-operator depends on:
+ *    - The time of the []-operation of the wt_huff
+ *    - The time of the LF calculation of the underlying CSA of the CST
+ *    - The time of the tlcp_idx function of the CST
  *
+ *  \tparam t_dens Sample density in the CST.
+ *  \tparam t_cst  Underlying CST.
  */
-template<uint32_t SampleDens, class Cst>
+template<uint32_t t_dens, class t_cst>
 class _lcp_support_tree2
 {
     public:
-        typedef int_vector<>::value_type				            value_type; 	 // STL Container requirement
-        typedef random_access_const_iterator<_lcp_support_tree2>	const_iterator;  // STL Container requirement
-        typedef const_iterator							    		iterator;		 // STL Container requirement
-        typedef const value_type						    		const_reference;
-        typedef const_reference							    		reference;
-        typedef const_reference*						    		pointer;
-        typedef const pointer							    		const_pointer;
-        typedef int_vector<>::size_type					    		size_type;		 // STL Container requirement
-        typedef int_vector<>::difference_type			    		difference_type; // STL Container requirement
-        typedef Cst										    		cst_type;
-        typedef wt_huff<bit_vector, rank_support_v5<>, 
-				        select_support_scan<1>, 
-						select_support_scan<0> > 					small_lcp_type; 
+        typedef int_vector<>::value_type                         value_type;      // STL Container requirement
+        typedef random_access_const_iterator<_lcp_support_tree2> const_iterator;  // STL Container requirement
+        typedef const_iterator                                   iterator;         // STL Container requirement
+        typedef const value_type                                 const_reference;
+        typedef const_reference                                  reference;
+        typedef const_reference*                                 pointer;
+        typedef const pointer                                    const_pointer;
+        typedef int_vector<>::size_type                          size_type;         // STL Container requirement
+        typedef int_vector<>::difference_type                    difference_type; // STL Container requirement
+        typedef t_cst                                            cst_type;
+        typedef wt_huff<bit_vector, rank_support_v5<>,
+                select_support_scan<1>,
+                select_support_scan<0> >                 small_lcp_type;
 
-        typedef lcp_tree_and_lf_compressed_tag						lcp_category;
+        typedef lcp_tree_and_lf_compressed_tag                   lcp_category;
 
         enum { fast_access = 0,
                text_order = 0,
@@ -53,8 +55,8 @@ class _lcp_support_tree2
         };
 
     private:
-        const cst_type*	m_cst;
-		small_lcp_type  m_small_lcp; // vector for lcp values < 254
+        const cst_type*    m_cst;
+        small_lcp_type  m_small_lcp; // vector for lcp values < 254
         int_vector<> m_big_lcp;      // vector for lcp values >= 254
 
         void copy(const _lcp_support_tree2& lcp_c) {
@@ -79,16 +81,16 @@ class _lcp_support_tree2
          */
         template<uint8_t int_width>
         _lcp_support_tree2(int_vector_file_buffer<int_width>& lcp_buf,
-                       int_vector_file_buffer<Cst::csa_type::alphabet_type::int_width>& bwt_buf,
-                       const cst_type* cst = NULL) {
+                           int_vector_file_buffer<t_cst::csa_type::alphabet_type::int_width>& bwt_buf,
+                           const cst_type* cst = NULL) {
             m_cst = cst;
             std::string small_lcp_file_name =  util::to_string(util::pid())+"_"+util::to_string(util::id()).c_str() + "_fc_lf_lcp_sml";
             std::string big_lcp_file_name =  util::to_string(util::pid())+"_"+util::to_string(util::id()).c_str() + "_fc_lf_lcp_big";
 
-            algorithm::construct_first_child_and_lf_lcp<SampleDens>(lcp_buf, bwt_buf, small_lcp_file_name, big_lcp_file_name, m_big_lcp);
+            algorithm::construct_first_child_and_lf_lcp<t_dens>(lcp_buf, bwt_buf, small_lcp_file_name, big_lcp_file_name, m_big_lcp);
             // construct wavelet tree huffman from file buffer
             int_vector_file_buffer<8> small_lcp_buf(small_lcp_file_name);
-			util::assign(m_small_lcp, small_lcp_type(small_lcp_buf, small_lcp_buf.int_vector_size));
+            util::assign(m_small_lcp, small_lcp_type(small_lcp_buf, small_lcp_buf.int_vector_size));
             std::remove(small_lcp_file_name.c_str());
         }
 
@@ -97,8 +99,7 @@ class _lcp_support_tree2
         }
 
         size_type size()const {
-            return m_cst->size(); // corresponds to the length of the
-            // original lcp array
+            return m_cst->size();
         }
 
         static size_type max_size() {
@@ -115,17 +116,11 @@ class _lcp_support_tree2
         }
 
         //! Returns a const_iterator to the first element.
-        /*! Required for the STL Container Concept.
-         *  \sa end
-         */
         const_iterator begin()const {
             return const_iterator(this, 0);
         }
 
         //! Returns a const_iterator to the element after the last element.
-        /*! Required for the STL Container Concept.
-         *  \sa begin.
-         */
         const_iterator end()const {
             return const_iterator(this, size());
         }
@@ -156,7 +151,7 @@ start:
 
         //! Assignment Operator.
         /*!
-         *	Required for the Assignable Concept of the STL.
+         *    Required for the Assignable Concept of the STL.
          */
         _lcp_support_tree2& operator=(const _lcp_support_tree2& lcp_c) {
             if (this != &lcp_c) {
@@ -166,9 +161,6 @@ start:
         }
 
         //! Serialize to a stream.
-        /*! \param out Outstream to write the data structure.
-         *  \return The number of written bytes.
-         */
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
@@ -179,11 +171,7 @@ start:
         }
 
         //! Load from a stream.
-        /*! \param in Inputstream to load the data structure from.
-         *	\param fc_bpss A pointer to the balanced parentheses support for the first child bit_vector
-         *	\param fcr	A pointer to the rank support for the first child bit_vector
-         */
-        void load(std::istream& in, const Cst* cst=NULL) {
+        void load(std::istream& in, const t_cst* cst=NULL) {
             m_small_lcp.load(in);
             m_big_lcp.load(in);
             m_cst = cst;
@@ -191,15 +179,15 @@ start:
 };
 
 //! Helper class which provides _lcp_support_tree2 the context of a CST.
-template<uint32_t SampleDens=16>
+template<uint32_t t_dens=16>
 class lcp_support_tree2
 {
     public:
-        template<class Cst>  // template inner class which is used in CSTs to parametrize lcp classes
-        class type           // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
+        template<class t_cst> // template inner class which is used in CSTs to parametrize lcp classes
+        class type            // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
         {
             public:
-                typedef _lcp_support_tree2<SampleDens, Cst> lcp_type;
+                typedef _lcp_support_tree2<t_dens, t_cst> lcp_type;
         };
 };
 

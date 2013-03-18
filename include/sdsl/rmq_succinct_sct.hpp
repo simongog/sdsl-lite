@@ -16,7 +16,7 @@
 */
 /*! \file rmq_succinct_sct.hpp
     \brief rmq_succinct_sct.hpp contains the class rmq_succinct_sct which supports range minimum or range maximum queries on a random access container in constant time and \f$2 n+o(n) bits\f$ space.
-	\author Simon Gog
+    \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_RMQ_SUCCINCT_SCT
 #define INCLUDED_SDSL_RMQ_SUCCINCT_SCT
@@ -31,30 +31,30 @@
 namespace sdsl
 {
 
-template<bool Minimum = true, 
-	     class Bp_support = bp_support_sada<256,32,rank_support_v5<> > >
+template<bool t_min = true,
+         class t_bp_support = bp_support_sada<256,32,rank_support_v5<> > >
 class rmq_succinct_sct;
 
-template<class Bp_support = bp_support_sada<256,32,rank_support_v5<> > >
+template<class t_bp_support = bp_support_sada<256,32,rank_support_v5<> > >
 struct range_maximum_sct {
-    typedef rmq_succinct_sct<false, Bp_support> type;
+    typedef rmq_succinct_sct<false, t_bp_support> type;
 };
 
 //! A class to support range minimum or range maximum queries on a random access container.
 /*!
- * This class takes three template parameters:
- *  - minumum 				specifies whether the data structure should answer range minimum queries (mimumum=true) of range maximum queries (maximum=false), and
- *  - Bp_support			is the support structure for the balanced parentheses sequence of the Super-Cartesian tree used internal in the class.
+ *  \tparam t_min        Specifies whether the data structure should answer range min/max queries (mimumum=true)
+ *  \tparam t_bp_support Type of Support structure for the BPS-SCT.
+ *
  * \par Time complexity
- *		\f$ \Order{1} \f$ for the range minimum/maximum queries if the balanced parentheses support structure supports constant time operations.
+ *        \f$ \Order{1} \f$ for the range minimum/maximum queries if the balanced parentheses support structure supports constant time operations.
  * \par Space complexity:
- *		\f$ \Order{2n}+o(n) \f$ bits for the data structure ( \f$ n=size() \f$ ).
+ *        \f$ \Order{2n}+o(n) \f$ bits for the data structure ( \f$ n=size() \f$ ).
  */
-template<bool Minimum, class Bp_support>
+template<bool t_min, class t_bp_support>
 class rmq_succinct_sct
 {
-        bit_vector					m_sct_bp; 		//!< A bit vector which contains the balanced parentheses sequence of the Super-Cartesian tree of the input container.
-        Bp_support					m_sct_bp_support; 	//!< Support structure for the balanced parentheses of the Super-Cartesian tree.
+        bit_vector    m_sct_bp;         //!< A bit vector which contains the BPS-SCT of the input container.
+        t_bp_support  m_sct_bp_support; //!< Support structure for the BPS-SCT
 
         void copy(const rmq_succinct_sct& rm) {
             m_sct_bp = rm.m_sct_bp;
@@ -65,28 +65,29 @@ class rmq_succinct_sct
     public:
         typedef typename bit_vector::size_type size_type;
         typedef typename bit_vector::size_type value_type;
+        typedef t_bp_support                   bp_support_type;
 
         const bit_vector& sct_bp;
-        const Bp_support& sct_bp_support;
+        const bp_support_type& sct_bp_support;
 
-		//! Default constructor
-		rmq_succinct_sct() : sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {}
+        //! Default constructor
+        rmq_succinct_sct() : sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {}
 
         //! Constructor
-		template<class RandomAccessContainer>
+        template<class RandomAccessContainer>
         rmq_succinct_sct(const RandomAccessContainer* v=NULL) : sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
             if (v == NULL) {
-				util::assign(m_sct_bp, bit_vector()); util::assign(m_sct_bp_support, Bp_support());
+                util::assign(m_sct_bp, bit_vector()); util::assign(m_sct_bp_support, bp_support_type());
             } else {
 #ifdef RMQ_SCT_BUILD_BP_NOT_SUCCINCT
                 // this method takes \f$n\log n\f$ bits extra space in the worst case
-                algorithm::construct_supercartesian_tree_bp(*v, m_sct_bp, Minimum);
+                algorithm::construct_supercartesian_tree_bp(*v, m_sct_bp, t_min);
 #else
                 // this method takes only \f$n\f$ bits extra space in all cases
-                algorithm::construct_supercartesian_tree_bp_succinct(*v, m_sct_bp, Minimum);
+                algorithm::construct_supercartesian_tree_bp_succinct(*v, m_sct_bp, t_min);
                 //  TODO: constructor which uses int_vector_file_buffer
 #endif
-                util::assign(m_sct_bp_support, Bp_support(&m_sct_bp));
+                util::assign(m_sct_bp_support, bp_support_type(&m_sct_bp));
             }
         }
 
@@ -105,8 +106,8 @@ class rmq_succinct_sct
         }
 
         void swap(rmq_succinct_sct& rm) {
-			m_sct_bp.swap(rm.m_sct_bp);
-			util::swap_support(m_sct_bp_support, rm.m_sct_bp_support, &m_sct_bp, &(rm.m_sct_bp));
+            m_sct_bp.swap(rm.m_sct_bp);
+            util::swap_support(m_sct_bp_support, rm.m_sct_bp_support, &m_sct_bp, &(rm.m_sct_bp));
         }
 
         //! Range minimum/maximum query for the supported random access container v.
@@ -124,9 +125,9 @@ class rmq_succinct_sct
             assert(l <= r); assert(r < size());
             if (l==r)
                 return l;
-            size_type i		= m_sct_bp_support.select(l+1);
-            size_type j		= m_sct_bp_support.select(r+1);
-            size_type fc_i	= m_sct_bp_support.find_close(i);
+            size_type i    = m_sct_bp_support.select(l+1);
+            size_type j    = m_sct_bp_support.select(r+1);
+            size_type fc_i = m_sct_bp_support.find_close(i);
             if (j < fc_i) { // i < j < find_close(j) < find_close(i)
                 return l;
             } else { // if i < find_close(i) < j < find_close(j)
@@ -143,12 +144,12 @@ class rmq_succinct_sct
             return m_sct_bp.size()/2;
         }
 
-    	size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
-        	structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_sct_bp.serialize(out, child, "sct_bp");
             written_bytes += m_sct_bp_support.serialize(out, child, "sct_bp_support");
-        	structure_tree::add_size(child, written_bytes);
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 

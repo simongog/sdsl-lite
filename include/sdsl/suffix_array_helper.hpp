@@ -30,24 +30,58 @@
 namespace sdsl
 {
 
+//! Get the symbol at position i in the first row of the sorted suffixes of CSA
+/*
+ * \param i   Position in the first row.
+ * \param csa CSA
+ * \par Time complexity
+ *    \f$ \Order{\log \sigma} \f$
+ *  TODO: add hinted binary search? Two way binary search?
+*/
+template <class t_csa>
+typename t_csa::char_type first_row_symbol(const typename t_csa::size_type i, const t_csa& csa)
+{
+    assert(i < csa.size());
+    if (csa.sigma < 16) { //<- if sigma is small search linear
+        typename t_csa::size_type res=1;
+        while (res < csa.sigma and csa.C[res] <= i)
+            ++res;
+        return csa.comp2char[res-1];
+    } else {
+        // binary search the character with C
+        typename t_csa::size_type upper_c = csa.sigma, lower_c = 0; // lower_c inclusive, upper_c exclusive
+        typename t_csa::size_type res=0;
+        do {
+            res = (upper_c+lower_c)/2;
+            if (i < csa.C[res]) {
+                upper_c = res;
+            } else if (i >= csa.C[res+1]) {
+                lower_c = res+1;
+            }
+        } while (i < csa.C[res] or i >= csa.C[res+1]);  // i is not in the interval
+        return csa.comp2char[res];
+    }
+
+}
+
 //! A helper class for the \f$\Psi\f$ and LF function for (compressed) suffix arrays that are based on the compressed \f$\Psi\f$ function.
-template<class CsaPsi>
+template<class t_csa>
 class psi_of_csa_psi
 {
     public:
-        typedef typename CsaPsi::value_type value_type;
-        typedef typename CsaPsi::size_type size_type;
-        typedef typename CsaPsi::difference_type difference_type;
-        typedef typename CsaPsi::enc_vector_type::const_iterator const_iterator;
+        typedef typename t_csa::value_type value_type;
+        typedef typename t_csa::size_type size_type;
+        typedef typename t_csa::difference_type difference_type;
+        typedef typename t_csa::enc_vector_type::const_iterator const_iterator;
     private:
-        const CsaPsi* m_csa; //<-	pointer to the (compressed) suffix array that is based on the compressed psi function
+        const t_csa* m_csa; //<-	pointer to the (compressed) suffix array that is based on the compressed psi function
     public:
 
         //! Constructor
-        psi_of_csa_psi(const CsaPsi* csa_psi) : m_csa(csa_psi) { }
+        psi_of_csa_psi(const t_csa* csa_psi) : m_csa(csa_psi) { }
 
         //! Copy constructor
-        psi_of_csa_psi(const psi_of_csa_psi& psi_of_csa) : m_csa(psi_of_csa.m_csa){ }
+        psi_of_csa_psi(const psi_of_csa_psi& psi_of_csa) : m_csa(psi_of_csa.m_csa) { }
 
         //! Calculate the \f$\Psi\f$ value at position i.
         /*!	\param i The index for which the \f$\Psi\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
@@ -66,8 +100,8 @@ class psi_of_csa_psi
          */
         value_type operator()(size_type i)const {
             // TODO: in case of a very sparse sampling of SA it may be faster to
-		    //  use \sigma binary searches on PSI function to determine the 
-			// LF values.
+            //  use \sigma binary searches on PSI function to determine the
+            // LF values.
             return (*m_csa)(((*m_csa)[i]+size()-1)%size());
         }
 
@@ -111,22 +145,22 @@ class psi_of_csa_psi
 };
 
 //! A helper class for the \f$\Psi\f$ function for (compressed) suffix arrays which provide also the inverse suffix array values (like sdsl::csa_bitcompressed).
-template<class Csa>
+template<class t_csa>
 class psi_of_sa_and_isa
 {
     public:
-        typedef typename Csa::value_type value_type;
-        typedef typename Csa::size_type size_type;
-        typedef typename Csa::difference_type	difference_type;
+        typedef typename t_csa::value_type value_type;
+        typedef typename t_csa::size_type size_type;
+        typedef typename t_csa::difference_type	difference_type;
         typedef random_access_const_iterator<psi_of_sa_and_isa> 		 const_iterator;// STL Container requirement
     private:
-        Csa* m_csa; //<- pointer to the (full text index) suffix array
+        t_csa* m_csa; //<- pointer to the (full text index) suffix array
         value_type m_size_m1; // size minus 1
         value_type to_add1[2], to_add2[2];
     public:
 
         //! Constructor
-        psi_of_sa_and_isa(Csa* csa=NULL) {
+        psi_of_sa_and_isa(t_csa* csa=NULL) {
             m_csa = csa;
             if (csa != NULL)
                 m_size_m1 = m_csa->size()-1;
@@ -229,21 +263,21 @@ class psi_of_sa_and_isa
 };
 
 //! A wrapper for the bwt of a compressed suffix array that is based on the \f$\psi\f$ function.
-template<class CsaPsi>
+template<class t_csa>
 class bwt_of_csa_psi
 {
     public:
-        typedef typename CsaPsi::char_type value_type;
-        typedef typename CsaPsi::size_type size_type;
-        typedef typename CsaPsi::difference_type difference_type;
+        typedef typename t_csa::char_type value_type;
+        typedef typename t_csa::size_type size_type;
+        typedef typename t_csa::difference_type difference_type;
         typedef random_access_const_iterator<bwt_of_csa_psi> const_iterator;// STL Container requirement
     private:
-        const CsaPsi* m_csa; //<- pointer to the (compressed) suffix array that is based on the \f$\Psi\f$ function.
+        const t_csa* m_csa; //<- pointer to the (compressed) suffix array that is based on the \f$\Psi\f$ function.
         bwt_of_csa_psi() {}
     public:
 
         //! Constructor
-        bwt_of_csa_psi(const CsaPsi* csa) : m_csa(csa) { }
+        bwt_of_csa_psi(const t_csa* csa) : m_csa(csa) { }
 
         //! Calculate the Burrows Wheeler Transform (BWT) at position i.
         /*!	\param i The index for which the BWT value should be calculated, \f$i\in [0..size()-1]\f$.
@@ -254,7 +288,7 @@ class bwt_of_csa_psi
             assert(m_csa != NULL);
             assert(i < size());
             size_type pos = m_csa->psi(i);
-            return algorithm::get_ith_character_of_the_first_row(pos, *m_csa);
+            return first_row_symbol(pos, *m_csa);
         }
 
         //! Returns the size of the \f$\Psi\f$ function.
@@ -285,20 +319,21 @@ class bwt_of_csa_psi
 };
 
 //! A wrapper class for the \f$\Psi\f$ and LF function for (compressed) suffix arrays that are based on a wavelet tree (like sdsl::csa_wt).
-template<class CsaWT>
-class psi_of_csa_wt {
+template<class t_csa>
+class psi_of_csa_wt
+{
     public:
-        typedef typename CsaWT::value_type value_type;
-        typedef typename CsaWT::size_type size_type;
-        typedef typename CsaWT::char_type char_type;
-        typedef typename CsaWT::difference_type difference_type;
+        typedef typename t_csa::value_type value_type;
+        typedef typename t_csa::size_type size_type;
+        typedef typename t_csa::char_type char_type;
+        typedef typename t_csa::difference_type difference_type;
         typedef random_access_const_iterator<psi_of_csa_wt> const_iterator;// STL Container requirement
     private:
-        const CsaWT* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
+        const t_csa* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
         psi_of_csa_wt() {};    // disable default constructor
     public:
         //! Constructor
-        psi_of_csa_wt(CsaWT* csa_wt) {
+        psi_of_csa_wt(t_csa* csa_wt) {
             m_csa_wt = csa_wt;
         }
         //! Calculate the \f$\Psi\f$ value at position i.
@@ -308,8 +343,8 @@ class psi_of_csa_wt {
          */
         value_type operator[](size_type i)const {
             assert(m_csa_wt != NULL);
-			assert(i < m_csa_wt->size() );
-            char_type c = algorithm::get_ith_character_of_the_first_row(i, *m_csa_wt);
+            assert(i < m_csa_wt->size());
+            char_type c = first_row_symbol(i, *m_csa_wt);
             return m_csa_wt->wavelet_tree.select(i - m_csa_wt->C[m_csa_wt->char2comp[c]] + 1 , c);
         }
         //! Apply \f$\Psi\f$ k times to the value at position i.
@@ -343,7 +378,7 @@ class psi_of_csa_wt {
         value_type operator()(size_type i)const {
             assert(m_csa_wt != NULL);
             assert(i < size());
-            typename CsaWT::char_type c;
+            typename t_csa::char_type c;
             size_type j = m_csa_wt->wavelet_tree.inverse_select(i,c); // see documentation of inverse_select in wt_huff
             return m_csa_wt->C[ m_csa_wt->char2comp[c] ] + j;
         }
@@ -391,19 +426,20 @@ class psi_of_csa_wt {
         }
 };
 
-template<class CsaWT>
-class bwt_of_csa_wt {
+template<class t_csa>
+class bwt_of_csa_wt
+{
     public:
-        typedef const typename CsaWT::char_type value_type;
-        typedef typename CsaWT::size_type size_type;
-        typedef typename CsaWT::difference_type difference_type;
+        typedef const typename t_csa::char_type value_type;
+        typedef typename t_csa::size_type size_type;
+        typedef typename t_csa::difference_type difference_type;
         typedef random_access_const_iterator<bwt_of_csa_wt> const_iterator;// STL Container requirement
     private:
-        const CsaWT* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
-        bwt_of_csa_wt(){};     // disable default constructor
+        const t_csa* m_csa_wt; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
+        bwt_of_csa_wt() {};    // disable default constructor
     public:
         //! Constructor
-        bwt_of_csa_wt(CsaWT* csa_wt) {
+        bwt_of_csa_wt(t_csa* csa_wt) {
             m_csa_wt = csa_wt;
         }
         //! Calculate the Burrows Wheeler Transform (BWT) at position i.
@@ -436,21 +472,21 @@ class bwt_of_csa_wt {
 
 
 
-template<class Csa>
+template<class t_csa>
 class text_of_csa
 {
     public:
-        typedef typename Csa::char_type value_type;
-        typedef typename Csa::size_type size_type;
-        typedef typename Csa::difference_type difference_type;
+        typedef typename t_csa::char_type value_type;
+        typedef typename t_csa::size_type size_type;
+        typedef typename t_csa::difference_type difference_type;
         typedef random_access_const_iterator<text_of_csa> const_iterator;// STL Container requirement
     private:
-        const Csa* m_csa; //<- pointer to the (compressed) suffix array 
+        const t_csa* m_csa; //<- pointer to the (compressed) suffix array
         text_of_csa() {}
     public:
 
         //! Constructor
-        text_of_csa(const Csa* csa):m_csa(csa) { }
+        text_of_csa(const t_csa* csa):m_csa(csa) { }
 
         //! Character at index \f$i\f$ of the original text.
         /*!	\param i Text position , \f$i\in [0..size()-1]\f$.
@@ -461,7 +497,7 @@ class text_of_csa
             assert(m_csa != NULL);
             assert(i < size());
             size_type pos = (*m_csa)(i);
-            return algorithm::get_ith_character_of_the_first_row(pos, *m_csa);
+            return first_row_symbol(pos, *m_csa);
         }
 
         //! Returns the size of the original text.
