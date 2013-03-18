@@ -16,7 +16,7 @@
 */
 /*! \file rank_support_scan.hpp
     \brief rank_support_scan.hpp contains rank_support_scan that support a sdsl::bit_vector with linear time rank information.
-	\author Simon Gog
+    \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_RANK_SUPPORT_SCAN
 #define INCLUDED_SDSL_RANK_SUPPORT_SCAN
@@ -30,9 +30,14 @@ namespace sdsl
 //! A class supporting rank queries in linear time.
 /*! \par Space complexity
  *       Constant.
+ *  \par Time complexity
+ *       Linear in the size of the supported vector.
+ *
+ *  \tparam t_b       Bit pattern which should be supported. Either `0`,`1`,`10`,`01`.
+ *  \tparam t_pat_len Length of the bit pattern.
  * @ingroup rank_support_group
  */
-template<uint8_t b=1, uint8_t pattern_len=1>
+template<uint8_t t_b=1, uint8_t t_pat_len=1>
 class rank_support_scan : public rank_support
 {
     public:
@@ -71,19 +76,19 @@ class rank_support_scan : public rank_support
         void swap(rank_support_scan&) {}
 };
 
-template<uint8_t b, uint8_t pattern_len>
-inline const typename rank_support_scan<b, pattern_len>::size_type rank_support_scan<b, pattern_len>::rank(size_type idx)const
+template<uint8_t t_b, uint8_t t_pat_len>
+inline const typename rank_support_scan<t_b, t_pat_len>::size_type rank_support_scan<t_b, t_pat_len>::rank(size_type idx)const
 {
     assert(m_v != NULL);
     assert(idx <= m_v->size());
-    const uint64_t* p 	= m_v->data();
-    size_type 	i		= 0;
+    const uint64_t* p   = m_v->data();
+    size_type       i   = 0;
     size_type   result  = 0;
     while (i+64 <= idx) {
-        result += rank_support_trait<b, pattern_len>::full_word_rank(p, i);
+        result += rank_support_trait<t_b, t_pat_len>::full_word_rank(p, i);
         i += 64;
     }
-    return  result+rank_support_trait<b, pattern_len>::word_rank(p, idx);
+    return  result+rank_support_trait<t_b, t_pat_len>::word_rank(p, idx);
 }
 
 }// end namespace sds

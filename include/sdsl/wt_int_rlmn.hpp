@@ -17,6 +17,7 @@
 /*! \file wt_int_rlmn.hpp
     \brief wt_int_rlmn.hpp contains a class for a compressed wavelet tree. Compression is achieved by exploiting runs in the input sequence.
 	\author Simon Gog
+TODO: merge with wt_rlmn
 */
 #ifndef INCLUDED_SDSL_WT_INT_RLMN
 #define INCLUDED_SDSL_WT_INT_RLMN
@@ -80,8 +81,8 @@ class wt_int_rlmn
         typedef RankSupport					rank_support_type;
         typedef SelectSupport           	select_support_type;
         typedef WaveletTree             	wt_type;
-		typedef wt_tag						index_category;
-		typedef int_alphabet_tag			alphabet_category;
+        typedef wt_tag						index_category;
+        typedef int_alphabet_tag			alphabet_category;
     private:
         size_type 				m_size;         // size of the original input sequence
         bit_vector_type			m_bl;	        // bit vector which indicates the starts of runs in
@@ -140,16 +141,16 @@ class wt_int_rlmn
          *	\param size The length of the prefix of the text, for which the wavelet tree should be build.
          */
         wt_int_rlmn(int_vector_file_buffer<>& text_buf, size_type size):m_size(size), sigma(m_wt.sigma) {
-			if ( 0 == text_buf.int_vector_size or 0 == size )
-			   return;
-			int_vector<> condensed_bwt;
+            if (0 == text_buf.int_vector_size or 0 == size)
+                return;
+            int_vector<> condensed_bwt;
             {
                 // scope for bl and bf
                 bit_vector bl = bit_vector(size, 0);
-				std::map<uint64_t, uint64_t> C; 
+                std::map<uint64_t, uint64_t> C;
                 text_buf.reset();
                 uint64_t last_c = 0;
-				size_type runs = 0;
+                size_type runs = 0;
                 for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
                     if (r_sum + r > size) {  // read not more than size chars in the next loop
                         r = size-r_sum;
@@ -158,7 +159,7 @@ class wt_int_rlmn
                         uint64_t c = text_buf[i-r_sum];
                         if (last_c != c or i==0) {
                             bl[i] = 1;
-							++runs;
+                            ++runs;
                         }
                         ++C[c];
                         last_c = c;
@@ -166,8 +167,8 @@ class wt_int_rlmn
                     r_sum += r;
                     r = text_buf.load_next_block();
                 }
-				uint64_t max_symbol = (--C.end())->first;
-				util::assign(m_C, int_vector<>(max_symbol+1, 0, bit_magic::l1BP(size)+1));	
+                uint64_t max_symbol = (--C.end())->first;
+                util::assign(m_C, int_vector<>(max_symbol+1, 0, bit_magic::l1BP(size)+1));
                 for (size_type i=0, prefix_sum=0; i<=max_symbol; ++i) {
                     m_C[i] = prefix_sum;
                     prefix_sum += C[i];
@@ -177,8 +178,8 @@ class wt_int_rlmn
                 bit_vector bf = bit_vector(size+1, 0);
                 bf[size] = 1; // initialize last element
                 text_buf.reset();
-				util::assign(condensed_bwt, int_vector<>(runs, 0, bit_magic::l1BP(max_symbol)+1));
-				runs = 0;
+                util::assign(condensed_bwt, int_vector<>(runs, 0, bit_magic::l1BP(max_symbol)+1));
+                runs = 0;
                 for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
                     if (r_sum + r > size) {  // read not more than size chars in the next loop
                         r = size-r_sum;
@@ -187,7 +188,7 @@ class wt_int_rlmn
                         uint64_t c = text_buf[i-r_sum];
                         if (bl[i]) {
                             bf[lf_map[c]] = 1;
-							condensed_bwt[runs++] = c;
+                            condensed_bwt[runs++] = c;
                         }
                         ++lf_map[c];
                     }
@@ -195,13 +196,13 @@ class wt_int_rlmn
                     r = text_buf.load_next_block();
                 }
                 {
-					// TODO: remove absolute file name
-					std::string temp_file = "tmp_wt_int_rlmn_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
-					util::store_to_file(condensed_bwt, temp_file);
-					util::clear(condensed_bwt);
+                    // TODO: remove absolute file name
+                    std::string temp_file = "tmp_wt_int_rlmn_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
+                    util::store_to_file(condensed_bwt, temp_file);
+                    util::clear(condensed_bwt);
                     int_vector_file_buffer<> temp_bwt_buf(temp_file);
-					util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
-					std::remove(temp_file.c_str());
+                    util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
+                    std::remove(temp_file.c_str());
                 }
                 util::assign(m_bl, bl);
                 util::assign(m_bf, bf);
@@ -211,7 +212,7 @@ class wt_int_rlmn
             util::init_support(m_bf_rank, &m_bf);
             util::init_support(m_bf_select, &m_bf);
             util::init_support(m_bl_select, &m_bl);
-			util::assign(m_C_bf_rank, int_vector<>(m_C.size(), 0, bit_magic::l1BP(size)+1));	
+            util::assign(m_C_bf_rank, int_vector<>(m_C.size(), 0, bit_magic::l1BP(size)+1));
             for (size_type i=0; i<m_C.size(); ++i) {
                 m_C_bf_rank[i] = m_bf_rank(m_C[i]);
             }
@@ -275,7 +276,7 @@ class wt_int_rlmn
          *      the sequence
          */
         value_type operator[](size_type i)const {
-			assert( i < size() );
+            assert(i < size());
             return m_wt[m_bl_rank(i+1)-1];
         };
 
@@ -289,7 +290,7 @@ class wt_int_rlmn
          *      the sequence
          */
         size_type rank(size_type i, value_type c)const {
-			assert( i <= size() );
+            assert(i <= size());
             if (i == 0)
                 return 0;
             size_type wt_ex_pos = m_bl_rank(i);
@@ -313,7 +314,7 @@ class wt_int_rlmn
          *		\f$ \Order{H_0} \f$
          */
         size_type inverse_select(size_type i, value_type& c)const {
-			assert( i < size() );
+            assert(i < size());
             if (i == 0) {
                 c = m_wt[0];
                 return 0;
@@ -339,8 +340,8 @@ class wt_int_rlmn
          *      entropy of the sequence
          */
         size_type select(size_type i, value_type c)const {
-			assert( i > 0 );
-			assert( i <= rank(size(), c) );
+            assert(i > 0);
+            assert(i <= rank(size(), c));
             size_type c_runs = m_bf_rank(m_C[c]+i) - m_C_bf_rank[c];
             size_type offset = m_C[c] + i - 1 - m_bf_select(c_runs + m_C_bf_rank[c]);
             return m_bl_select(m_wt.select(c_runs, c)+1) + offset;

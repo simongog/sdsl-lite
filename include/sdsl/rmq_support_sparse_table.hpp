@@ -15,8 +15,8 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file rmq_support_sparse_table.hpp
-    \brief rmq_support_sparse_table.hpp contains the class rmq_support_sparse_table which supports range minimum or range maximum queries on a random access container in constant time and \f$\Order{n\log^2 n} bits\f$ space. See paper LCP revisted of Bender and Farach.
-	\author Simon Gog
+    \brief rmq_support_sparse_table.hpp contains the class rmq_support_sparse_table.
+    \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_RMQ_SUPPORT_SPARSE_TABLE
 #define INCLUDED_SDSL_RMQ_SUPPORT_SPARSE_TABLE
@@ -30,36 +30,58 @@ namespace sdsl
 {
 
 
-template<class RandomAccessContainer = int_vector<>, bool Minimum=true>
+template<class t_rac = int_vector<>, bool t_min=true>
 class rmq_support_sparse_table;
 
 
 // see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2002/n1406.pdf for a proposal for a better solution
-template<class RandomAccessContainer = int_vector<> >
+template<class t_rac = int_vector<> >
 struct range_maximum_support_sparse_table {
-    typedef rmq_support_sparse_table<RandomAccessContainer, false> type;
+    typedef rmq_support_sparse_table<t_rac, false> type;
 };
 
 //! A class to support range minimum or range maximum queries on a random access container.
 /*!
- * This class takes two template parameters. The first on is the type of random access container, for which
- * the range minimum/maximum support should be build. The second one specifies whether the data structure
- * should answer range minimum queries (Minimum=true) or range maximum queries (Maximum=false).
+ * \tparam t_rac Type of random access container for which the structure should be build.
+ * \tparam t_min        Specifies whether the data structure should answer range min/max queries (mimumum=true)
+ *
+ * \par Reference
+ *      Michael A. Bender, Martin Farach-Colton:
+ *      The LCA Problem Revisited.
+ *      LATIN 2000: 88-94
  *
  * \par Time complexity
- *		\f$ \Order{1} \f$ for the range minimum/maximum queries.
+ *        \f$ \Order{1} \f$ for the range minimum/maximum queries.
  * \par Space complexity:
  *      \f$ \Order{n\log^2 n} \f$ bits for the data structure ( \f$ n=size() \f$ ). We used bit compression to get a good result in practice.
  */
-template<class RandomAccessContainer, bool Minimum>
+template<class t_rac, bool t_min>
 class rmq_support_sparse_table
 {
-        const RandomAccessContainer* m_v; // pointer to the supported random access container
-        bit_vector::size_type 		m_k; // size of m_table
-        int_vector<>*	   			m_table;
-        typedef min_max_trait<RandomAccessContainer, Minimum> mm_trait;
+        const t_rac*            m_v;    // pointer to the supported random access container
+        bit_vector::size_type   m_k;    // size of m_table
+        int_vector<>*           m_table;
+        typedef min_max_trait<t_rac, t_min> mm_trait;
 
-        void construct() {
+        void copy(const rmq_support_sparse_table& rm) {
+            m_v = rm.m_v;
+            m_k = rm.m_k;
+            if (m_table != NULL) {
+                delete [] m_table;
+                m_table = NULL;
+            }
+            if (m_k > 0) {
+                m_table = new int_vector<>[m_k];
+                for (size_type i=0; i<m_k; ++i)
+                    m_table[i] = rm.m_table[i];
+            }
+        }
+
+    public:
+        typedef typename t_rac::size_type size_type;
+        typedef typename t_rac::size_type value_type;
+
+        rmq_support_sparse_table(const t_rac* v=NULL):m_v(v), m_k(0), m_table(NULL) {
             if (m_v == NULL)
                 return;
             const size_type n = m_v->size();
@@ -77,38 +99,12 @@ class rmq_support_sparse_table
             for (size_type i=0; i<n-1; ++i) {
                 if (!mm_trait::compare((*m_v)[i], (*m_v)[i+1]))
                     m_table[0][i] = 1;
-//				std::cerr<<i+m_table[0][i]<<" ";
             }
-//			std::cerr<<std::endl;
             for (size_type i=1; i<k; ++i) {
                 for (size_type j=0; j<m_table[i].size(); ++j) {
                     m_table[i][j] = mm_trait::compare((*m_v)[j+m_table[i-1][j]], (*m_v)[j+(1<<i)+m_table[i-1][j+(1<<i)]]) ? m_table[i-1][j] : (1<<i)+m_table[i-1][j+(1<<i)];
-//					std::cerr<<j+m_table[i][j]<<" ";
                 }
-//				std::cerr<<std::endl;
             }
-        }
-
-        void copy(const rmq_support_sparse_table& rm) {
-            m_v = rm.m_v;
-            m_k = rm.m_k;
-            if (m_table != NULL) {
-                delete [] m_table;
-                m_table = NULL;
-            }
-            if (m_k > 0) {
-                m_table = new int_vector<>[m_k];
-                for (size_type i=0; i<m_k; ++i)
-                    m_table[i] = rm.m_table[i];
-            }
-        }
-
-    public:
-        typedef typename RandomAccessContainer::size_type size_type;
-        typedef typename RandomAccessContainer::size_type value_type;
-
-        rmq_support_sparse_table(const RandomAccessContainer* v=NULL):m_v(v), m_k(0), m_table(NULL) {
-            construct();
         }
 
         //! Copy constructor
@@ -136,7 +132,7 @@ class rmq_support_sparse_table
             std::swap(m_table, rm.m_table);
         }
 
-        void set_vector(const RandomAccessContainer* v) {
+        void set_vector(const t_rac* v) {
             m_v = v;
         }
 
@@ -182,7 +178,7 @@ class rmq_support_sparse_table
             return written_bytes;
         }
 
-        void load(std::istream& in, const RandomAccessContainer* v) {
+        void load(std::istream& in, const t_rac* v) {
             set_vector(v);
             util::read_member(m_k, in);
             if (m_k >0) {

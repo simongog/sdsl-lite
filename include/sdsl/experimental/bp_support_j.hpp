@@ -29,9 +29,6 @@
 #include <map>
 #include <set>
 #include <utility>
-#include <iostream>
-#include <sstream> // for get_info method
-#include <fstream>
 
 namespace sdsl
 {
@@ -450,37 +447,7 @@ class bp_support_j
             } else {
                 return i;
             }
-            /*
-            			size_type im1 = i-1;
-            			const uint64_t *data = m_bp->data()+(im1>>6);
-            			uint8_t offset = (im1&0x3F)+1;
-            			uint64_t w = *data << (64-offset);//& bit_magic::Li1Mask[offset];
-            			if( offset != 64 ){
-            				w |= *(--data)>>(offset);
-            			}
-            			size_type result = 0;
-            */
         }
-        /*
-        		size_type restricted_enclose2(size_type i, size_type j)const{
-        			assert( j > i );
-        			size_type mi = find_close(i); // matching parenthesis to i
-        			assert(  find_close(i) > i and mi < j  );
-        			//
-        //				m_rank_pioneer_bitmap.rank(mi)
-
-        			assert( find_close(j) > j );
-        			size_type k = enclose(j);
-        			if( k == m_size or k < i )// there exists no opening parenthesis at position mi<k<j.
-        				return m_size;
-        			size_type kk;
-        			do{
-        				kk = k;
-        				k = enclose(k);
-        			}while( k != m_size and k > mi );
-        			return kk;
-        		}
-        */
 
         /*! The size of the supported balanced parentheses sequence.
          * \return the size of the supported balanced parentheses sequence.

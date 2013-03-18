@@ -1,4 +1,5 @@
 *
+!experimental/
 !CMakeLists.txt
 !.gitignore
 !*.hpp

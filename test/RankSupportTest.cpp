@@ -1,7 +1,6 @@
 #include "sdsl/int_vector.hpp"
 #include "sdsl/rank_support_v.hpp" // for rank_support_v
 #include "sdsl/rank_support_v5.hpp" // for rank_support_v5
-#include "sdsl/rank_support_jmc.hpp" // for rank_support_jmc
 #include "sdsl/rrr_vector.hpp" // for rank_support_rrr
 #include "sdsl/bit_vector_il.hpp" // for rank_support_interleaved
 #include "sdsl/sd_vector.hpp" // for rank_support_sd
@@ -107,7 +106,6 @@ sdsl::rank_support_il<1,256>,
      sdsl::rank_support_rrr<1, 129>,
      sdsl::rank_support_sd<>,
      sdsl::gap_rank_support<>,
-     sdsl::rank_support_jmc
      > Implementations;
 
 TYPED_TEST_CASE(RankSupportTest, Implementations);

@@ -15,8 +15,8 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file cst_sct3.hpp
-    \brief cst_sct3.hpp contains an implementation of an compressed suffix tree (CST).
-	\author Simon Gog
+    \brief cst_sct3.hpp contains an implementation of the interval based CST.
+    \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_CST_SCT3
 #define INCLUDED_SDSL_CST_SCT3
@@ -38,7 +38,7 @@
 #include <cstring> // for strlen
 #include <iomanip>
 #include <iterator>
-#include <stack> // for the calculation of the balanced parantheses sequence
+#include <stack> // for the calculation of the balanced parentheses sequence
 #include <ostream>
 
 namespace sdsl
@@ -46,18 +46,16 @@ namespace sdsl
 
 struct cst_tag; // forward declaration
 
-template<class Int = int_vector<>::size_type>
+template<class t_int = int_vector<>::size_type>
 struct bp_interval {
-    Int i; 	//!< The left border of the lcp-interval \f$\ell-[left..right]\f$.
-    Int j;	//!< The right border of the lcp-interval \f$\ell-[left..right]\f$.
-    Int ipos;  // position of the i+1th opening parenthesis in the balanced parentheses sequence
-    Int cipos; // position of the matching closing parenthesis of the i+1th opening parenthesis in the balanced parentheses sequence
-    Int jp1pos; // position of the j+2th opening parenthesis in the balanced parentheses sequence
+    t_int i;     //!< The left border of the lcp-interval \f$\ell-[left..right]\f$.
+    t_int j;     //!< The right border of the lcp-interval \f$\ell-[left..right]\f$.
+    t_int ipos;  // position of the i+1th opening parenthesis in the balanced parentheses sequence
+    t_int cipos; // position of the matching closing parenthesis of the i+1th opening parenthesis in the balanced parentheses sequence
+    t_int jp1pos;// position of the j+2th opening parenthesis in the balanced parentheses sequence
 
     //! Constructor
-    /*!
-     */
-    bp_interval(Int i=0, Int j=0, Int ipos=0, Int cipos=0, Int jp1pos=0):i(i),j(j),ipos(ipos),cipos(cipos),jp1pos(jp1pos) {};
+    bp_interval(t_int i=0, t_int j=0, t_int ipos=0, t_int cipos=0, t_int jp1pos=0):i(i),j(j),ipos(ipos),cipos(cipos),jp1pos(jp1pos) {};
 
 
     bool operator<(const bp_interval& interval)const {
@@ -70,8 +68,7 @@ struct bp_interval {
     /*! Two lcp-intervals are equal if and only if all their corresponding member variables have the same values.
      */
     bool operator==(const bp_interval& interval)const {
-        return i==interval.i and
-               j==interval.j;
+        return i==interval.i and j==interval.j;
     }
 
     //! Inequality operator.
@@ -95,8 +92,8 @@ struct bp_interval {
 };
 
 
-template<class Int>
-inline std::ostream& operator<<(std::ostream& os, const bp_interval<Int>& interval)
+template<class t_int>
+inline std::ostream& operator<<(std::ostream& os, const bp_interval<t_int>& interval)
 {
     os<<"-["<<interval.i<<","<<interval.j<<"]("<<interval.ipos<<","<<interval.cipos<<","<<interval.jp1pos<<")";
     return os;
@@ -104,113 +101,122 @@ inline std::ostream& operator<<(std::ostream& os, const bp_interval<Int>& interv
 
 
 //! A class for the Compressed Suffix Tree (CST) proposed by Ohlebusch and Gog.
-/*! The CST is parameterized by
- *    - a (compressed) suffix array (accessible via member \f$csa\f$, default class is sdsl::csa_wt),
- *    - a (compressed) longest common prefix array data structure (accessible via member \f$lcp\f$, default class is sdsl::lcp_support_tree), and
- *    - a support data structure for balanced parentheses sequences (accessible via member \f$bp\_support\f$, default class is sdsl::bp_support_sada).
- *    - a rank support data structure for the bitvector which indicates the first child property
+/*!
+ * \tparam t_csa       Type of a CSA (member of this type is accessible via
+ *                     member `csa`, default class is sdsl::csa_sada).
+ * \tparam t_lcp       Type of a LCP structure (member is accessible via member
+ *                     `lcp`, default class is sdsl::lcp_support_sada),
+ * \tparam t_bp_support Type of a BPS structure (member accessible via member
+ *                      `bp_support`, default class is sdsl::bp_support_sada),
+ * \tparam t_rank       Type of rank structure which supports the bitvector
+ *                      which indicates the leftmost child of the nodes.
  *
- *  It also contains a sdsl::bit_vector which represents the balanced parentheses sequence of the
- *  Super-Cartesian tree of the lcp array. This bit_vector can be accessed via the member \f$bp\f$.
- *  Another sdsl::bit_vector stores information, if a node is a first child of another node. This
- *  bit_vector can be access via the member first_child_bv and takes \f$n\f$ bits.
+ * It also contains a sdsl::bit_vector which represents the BP sequence of the
+ * Super-Cartesian tree of the LCP array. This bitvector can be accessed via
+ * the member `bp`. Another sdsl::bit_vector stores information, if a node is
+ * the leftmost child of another node. This bitvector can be access via the
+ * member first_child_bv and takes n bits.
  *
- *  A node \f$v\f$ of the csa_sct is represented by an sdsl::bp_interval . The size
- *  of the sdsl::cst_sct3 is smaller than the size of a sdsl::cst_sada since the
- *  tree topology needs only \f$2n+n=3n\f$ bits in contrast to the \f$4n\f$ bits in sdsl::cst_sada.
+ * A node \f$v\f$ of the csa_sct is represented by an sdsl::bp_interval. The
+ * size of the sdsl::cst_sct3 is smaller than the size of a sdsl::cst_sada
+ * since the tree topology needs only \f$2n+n=3n\f$ bits in contrast to the
+ * \f$4n\f$ bits in sdsl::cst_sada.
  *
- *  Applications of the CST: The compressed suffix tree could be used for string matching and
- *  many other application in sequence analysis. 17 applications are in the book
- *  "Algorithms on Strings, Trees, and Sequences" of Dan Gusfield.
- *  @ingroup cst
+ * \par Reference
+ * Enno Ohlebusch, Johannes Fischer, Simon Gog:
+ * CST++.
+ * SPIRE 2010: 322-333
+ *
+ * \par Applications of the CST
+ * The compressed suffix tree could be used for string matching and many other
+ * application in sequence analysis. 17 applications are in the book
+ * "Algorithms on Strings, Trees, and Sequences" of Dan Gusfield.
+ *
+ * @ingroup cst
  */
-template<class Csa = csa_wt<>,                        // CSA type
-         class Lcp = lcp_support_tree<lcp_wt<> >,     // LCP type
-         class Bp_support = bp_support_sada<>,        // for the balanced parentheses
-         class Rank_support = rank_support_v5<>       // for the 'first child' bit_vector
+template<class t_csa = csa_wt<>,
+         class t_lcp = lcp_support_tree<lcp_wt<> >,
+         class t_bp_support = bp_support_sada<>,
+         class t_rank = rank_support_v5<>
          >
 class cst_sct3
 {
     public:
-        typedef typename Csa::value_type						value_type;	// STL Container requirement/TODO: ist das nicht gleich node type???
-        typedef cst_dfs_const_forward_iterator<cst_sct3>		const_iterator;// STL Container requirement
-        typedef cst_bottom_up_const_forward_iterator<cst_sct3>	const_bottom_up_iterator;
-        typedef const value_type								const_reference;
-        typedef const_reference									reference;
-        typedef const_reference*								pointer;
-        typedef const pointer									const_pointer;
-        typedef typename Csa::size_type							size_type;		// STL Container requirement
-        typedef size_type										cst_size_type;
-        typedef ptrdiff_t  										difference_type; // STL Container requirement
-        typedef Csa												csa_type;
-        typedef typename Lcp::template type<cst_sct3>::lcp_type	lcp_type;
-        typedef Bp_support										bp_support_type;
-        typedef typename Csa::pattern_type						pattern_type;
-        typedef typename Csa::char_type							char_type;
-        typedef bp_interval<size_type>							node_type; //!< Type for the nodes in the tree
-        typedef Rank_support									fc_rank_support_type;
+        typedef cst_dfs_const_forward_iterator<cst_sct3>          const_iterator;
+        typedef cst_bottom_up_const_forward_iterator<cst_sct3>    const_bottom_up_iterator;
+        typedef typename t_csa::size_type                         size_type;
+        typedef ptrdiff_t                                         difference_type;
+        typedef t_csa                                             csa_type;
+        typedef typename t_lcp::template type<cst_sct3>::lcp_type lcp_type;
+        typedef t_bp_support                                      bp_support_type;
+        typedef typename t_csa::pattern_type                      pattern_type;
+        typedef typename t_csa::char_type                         char_type;
+        typedef bp_interval<size_type>                            node_type; //!< Type for the nodes in the tree
+        typedef t_rank                                            fc_rank_support_type;
 
-        typedef typename Csa::alphabet_type::comp_char_type		comp_char_type;
-        typedef typename Csa::alphabet_type::sigma_type			sigma_type;
+        typedef typename t_csa::alphabet_type::comp_char_type     comp_char_type;
+        typedef typename t_csa::alphabet_type::sigma_type         sigma_type;
 
-        typedef typename Csa::alphabet_category					alphabet_category;
-        typedef cst_tag											index_category;
+        typedef typename t_csa::alphabet_category                 alphabet_category;
+        typedef cst_tag                                           index_category;
     private:
-        Csa 					m_csa;
-        lcp_type				m_lcp;
-        bit_vector				m_bp;
-        bp_support_type			m_bp_support;
-        bit_vector				m_first_child; // implementation note: no rank structure is needed for the first_child bit_vector, except for id()
-        fc_rank_support_type	m_first_child_rank;
-        sigma_type				m_sigma;
-        size_type				m_nodes;
+        csa_type             m_csa;
+        lcp_type             m_lcp;
+        bit_vector           m_bp;
+        bp_support_type      m_bp_support;
+        bit_vector           m_first_child; // Note: no rank structure is needed for the first_child bit_vector, except for id()
+        fc_rank_support_type m_first_child_rank;
+        sigma_type           m_sigma;
+        size_type            m_nodes;
 
         void copy(const cst_sct3& cst) {
-            m_csa 			= cst.m_csa;
+            m_csa              = cst.m_csa;
             copy_lcp(m_lcp, cst.m_lcp, *this);
-            m_bp  			= cst.m_bp;
-            m_bp_support 	= cst.m_bp_support;
+            m_bp               = cst.m_bp;
+            m_bp_support       = cst.m_bp_support;
             m_bp_support.set_vector(&m_bp);
-            m_first_child 	= cst.m_first_child;
+            m_first_child      = cst.m_first_child;
             m_first_child_rank = cst.m_first_child_rank;
             m_first_child_rank.set_vector(&m_first_child);
-            m_sigma			= cst.m_sigma;
-            m_nodes			= cst.m_nodes;
+            m_sigma            = cst.m_sigma;
+            m_nodes            = cst.m_nodes;
         }
 
         // Get the first l index of a [i,j] interval.
-        /* I.e. given an interval [i,j], the function returns the position of the smallest entry lcp[k] with \f$ i<k\leq j \f$
+        /* I.e. given an interval [i,j], the function returns the position of
+         * the smallest entry lcp[k] with \f$ i<k\leq j \f$
          * \par Time complexity
-         * 	 \f$ \Order{1} \f$
+         *      \f$ \Order{1} \f$
          */
         inline size_type get_first_l_index(const node_type& node, size_type& kpos, size_type& ckpos)const {
             if (node.cipos > node.jp1pos) { // corresponds to m_lcp[i] <= m_lcp[j+1]
-                ckpos 	= node.jp1pos-1;
+                ckpos     = node.jp1pos-1;
             } else { // corresponds to m_lcp[i] > m_lcp[j+1]
-                ckpos	= node.cipos-1;
+                ckpos    = node.cipos-1;
             }
             assert(m_bp[ckpos]==0);
-            kpos	= m_bp_support.find_open(ckpos);
+            kpos    = m_bp_support.find_open(ckpos);
             return m_bp_support.rank(kpos)-1;
         }
 
-        // Get the ith l index of a node
+        // Get the i-th l-index of a node
         // if there exists no ith l-index return node.j+1
         size_type get_ith_l_index(const node_type& node, size_type i, size_type& kpos, size_type& ckpos)const {
             uint64_t children = 0;
 
             assert(i > 0);
             if (node.cipos > node.jp1pos) { // corresponds to m_lcp[i] <= m_lcp[j+1]
-                ckpos	= node.jp1pos-1;
+                ckpos    = node.jp1pos-1;
             } else { // corresponds to m_lcp[i] > m_lcp[j+1]
-                ckpos	= node.cipos-1;
+                ckpos    = node.cipos-1;
             }
             assert(m_bp[ckpos] == 0);   // at least the first l-index should be present, i.e. node is not leaf
             if (1 == i) {
-                kpos	= m_bp_support.find_open(ckpos);
+                kpos    = m_bp_support.find_open(ckpos);
                 return m_bp_support.rank(kpos)-1;
             } else { // i > 1   // TODO for integer-alphabets: replace this linear search
-                size_type r = ckpos - m_bp_support.rank(ckpos); // numbers of closing parentheses - 1 = index of first child in m_first_child
+                // numbers of closing parentheses - 1 = index of first child in m_first_child
+                size_type r = ckpos - m_bp_support.rank(ckpos);
                 if (r+1 >= i) { // if there exist more than i l-indices
                     // check if m_first_child[r-i+1..r-1] consists of zeros
                     const uint64_t* p = m_first_child.data() + (r>>6);
@@ -251,11 +257,11 @@ class cst_sct3
             }
         }
 
-        // Get the position of the first l-index of a l-[i,j] interval in the balanced parentheses sequence.
+        // Position of the first l-index of a l-[i,j] interval in the BP.
         /* \par Time complexity
-         * 		\f$ \Order{1} \f$
+         *   \f$ \Order{1} \f$
          */
-        inline size_type get_pos_of_closing_parenthesis_of_the_first_l_index(const node_type& node)const {
+        inline size_type closing_pos_of_first_l_index(const node_type& node)const {
             if (node.cipos > node.jp1pos) { // corresponds to m_lcp[i] <= m_lcp[j+1]
                 return node.jp1pos-1;
             } else { // corresponds to m_lcp[i] > m_lcp[j+1]
@@ -336,12 +342,12 @@ class cst_sct3
 
         // Range minimum query based on the rr_enclose method.
         /* \par Time complexity
-         *     \f$ \Order{\rrenclose} \f$
+         *   \f$ \Order{\rrenclose} \f$
          */
         inline size_type rmq(size_type l, size_type r)const {
-            size_type i 	= m_bp_support.select(l+1);
-            size_type j 	= m_bp_support.select(r+1);
-            size_type fc_i 	= m_bp_support.find_close(i);
+            size_type i     = m_bp_support.select(l+1);
+            size_type j     = m_bp_support.select(r+1);
+            size_type fc_i     = m_bp_support.find_close(i);
             if (j < fc_i) { // i < j < find_close(j) < find_close(i)
                 return l;
             } else { // i < find_close(i) < j < find_close(j)
@@ -355,19 +361,20 @@ class cst_sct3
         }
 
     public:
-        const Csa& csa;       				//!< The compressed suffix array the suffix tree is based on.
-        const lcp_type& lcp;       			//!< The lcp array the suffix tree is based on.
-        const bit_vector& bp; 				//!< The balanced parentheses sequence of the Super-Cartesian tree the suffix tree is based on.
-        const bp_support_type& bp_support;	//!< The balanced parentheses sequence support for member bp.
+        const csa_type&             csa;       //!< Underlying CSA
+        const lcp_type&             lcp;       //!< Underlying LCP array
+        const bit_vector&           bp;        //!< Underlying BP of the SCT
+        const bp_support_type&      bp_support;//!< BPS for BP
 
-        const bit_vector& first_child_bv;
+        const bit_vector&           first_child_bv;
         const fc_rank_support_type& first_child_rank;
 
         /*! \defgroup cst_sct3_constructors Constructors of cst_sct3 */
         /* @{ */
 
         //! Default Constructor
-        cst_sct3(): csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child),
+        cst_sct3(): csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support),
+            first_child_bv(m_first_child),
             first_child_rank(m_first_child_rank) {}
 
         //! Construct CST from file_map
@@ -379,7 +386,9 @@ class cst_sct3
          *  \par Time complexity
          *       \f$ \Order{n} \f$, where \f$n=\f$cst_sct3.size()
          */
-        cst_sct3(const cst_sct3& cst):csa(m_csa),lcp(m_lcp),bp(m_bp),bp_support(m_bp_support),first_child_bv(m_first_child),
+        cst_sct3(const cst_sct3& cst): csa(m_csa),lcp(m_lcp),bp(m_bp),
+            bp_support(m_bp_support),
+            first_child_bv(m_first_child),
             first_child_rank(m_first_child_rank) {
             copy(cst);
         }
@@ -399,7 +408,7 @@ class cst_sct3
          *  \sa size
          */
         static size_type max_size() {
-            return Csa::max_size();
+            return t_csa::max_size();
         }
 
         //! Returns if the data strucutre is empty.
@@ -412,12 +421,12 @@ class cst_sct3
 
         //! Swap method for cst_sct3
         /*! The swap method can be defined in terms of assignment.
-        	This requires three assignments, each of which, for a container type, is linear
-        	in the container's size. In a sense, then, a.swap(b) is redundant.
-        	This implementation guaranties a run-time complexity that is constant rather than linear.
-        	\param cst cst_sct3 to swap.
+            This requires three assignments, each of which, for a container type, is linear
+            in the container's size. In a sense, then, a.swap(b) is redundant.
+            This implementation guaranties a run-time complexity that is constant rather than linear.
+            \param cst cst_sct3 to swap.
 
-        	Required for the Assignable Conecpt of the STL.
+            Required for the Assignable Conecpt of the STL.
           */
         void swap(cst_sct3& cst) {
             if (this != &cst) {
@@ -468,7 +477,7 @@ class cst_sct3
 
         //! Assignment Operator.
         /*!
-         *	Required for the Assignable Concept of the STL.
+         *    Required for the Assignable Concept of the STL.
          */
         cst_sct3& operator=(const cst_sct3& cst);
 
@@ -495,9 +504,9 @@ class cst_sct3
             return node_type(0, size()-1, 0, m_bp.size()-1, m_bp.size());
         }
 
-        //! Decide if a node is a leaf in the suffix tree.
+        //! Decide if a node is a leaf.
         /*!
-         * \param v A valid node of a cst_sct3.
+         * \param v A valid node.
          * \returns A boolean value indicating if v is a leaf.
          * \par Time complexity
          *      \f$ \Order{1} \f$
@@ -506,9 +515,9 @@ class cst_sct3
             return v.i==v.j;
         }
 
-        //! Return the i-th leaf (1-based from left to right) of the suffix tree.
+        //! Return the i-th leaf (1-based from left to right).
         /*!
-         * \param i 1-based position of the leaf. \f$1\leq i\leq size()\f$.
+         * \param i 1-based position of the leaf.
          * \return The i-th leave.
          * \par Time complexity
          *      \f$ \Order{1} \f$
@@ -531,9 +540,7 @@ class cst_sct3
         /*! \param v A valid node of the suffix tree.
          *  \return The number of leaves in the subtree rooted at node v.
          *  \par Time complexity
-         *       \f$ \Order{1} \f$
-         *
-         *  This method is used e.g. in the sdsl::algorithm::count<Cst> method.
+         *    \f$ \Order{1} \f$
          */
         size_type size(const node_type& v)const {
             return v.j-v.i+1;
@@ -541,9 +548,9 @@ class cst_sct3
 
         //! Calculates the leftmost leaf in the subtree rooted at node v.
         /*! \param v A valid node of the suffix tree.
-         * 	\return The leftmost leaf in the subtree rooted at node v.
-         *	\par Time complexity
-         *		\f$ \Order{1} \f$
+         *  \return The leftmost leaf in the subtree rooted at node v.
+         *  \par Time complexity
+         *    \f$ \Order{1} \f$
          */
         node_type leftmost_leaf(const node_type& v)const {
             return select_leaf(v.i+1);
@@ -551,9 +558,9 @@ class cst_sct3
 
         //! Calculates the rightmost leaf in the subtree rooted at node v.
         /*! \param v A valid node of the suffix tree.
-         * 	\return The rightmost leaf in the subtree rooted at node v.
-         *	\par Time complexity
-         *		\f$ \Order{1} \f$
+         *  \return The rightmost leaf in the subtree rooted at node v.
+         *  \par Time complexity
+         *    \f$ \Order{1} \f$
          */
         node_type rightmost_leaf(const node_type& v)const {
             return select_leaf(v.j+1);
@@ -561,9 +568,9 @@ class cst_sct3
 
         //! Calculates the index of the leftmost leaf in the corresponding suffix array.
         /*! \param v A valid node of the suffix tree.
-         * 	\return The index of the leftmost leaf in the corresponding suffix array.
-         *	\par Time complexity
-         *		\f$ \Order{1} \f$
+         *  \return The index of the leftmost leaf in the corresponding suffix array.
+         *  \par Time complexity
+         *    \f$ \Order{1} \f$
          *  \par Note
          *  lb is an abbreviation for ,,left bound''
          */
@@ -573,9 +580,9 @@ class cst_sct3
 
         //! Calculates the index of the rightmost leaf in the corresponding suffix array.
         /*! \param v A valid node of the suffix tree.
-         * 	\return The index of the rightmost leaf in the corresponding suffix array.
-         *	\par Time complexity
-         *		\f$ \Order{1} \f$
+         *     \return The index of the rightmost leaf in the corresponding suffix array.
+         *    \par Time complexity
+         *        \f$ \Order{1} \f$
          *  \par Note
          *   rb is an abbreviation for ,,right bound''
          */
@@ -587,7 +594,7 @@ class cst_sct3
         /*! \param v A valid node of the suffix tree.
          *  \return The parent node of v or the root if v==root().
          *  \par Time complexity
-         *       \f$ \Order{1}\f$
+         *     \f$ \Order{1}\f$
          */
         node_type parent(const node_type& v) const {
             if (v.cipos > v.jp1pos) { // LCP[i] <= LCP[j+1]
@@ -612,14 +619,14 @@ class cst_sct3
          * \param v A valid node v of the suffix tree.
          * \return The next (right) sibling of node v or root() if v has no next (right) sibling.
          * \par Time complexity
-         *      \f$ \Order{1} \f$
+         *   \f$ \Order{1} \f$
          */
         node_type sibling(const node_type& v)const {
-//Procedure:(1) Determine, if v has a right sibling.   Entsp. parent hat gleicht rechte Grenze wie v. Speziallfall rechter Rand ist hier schon behandelt!
+//Procedure:(1) Determine, if v has a right sibling.
             if (v.cipos < v.jp1pos) { // LCP[i] > LCP[j+1] => v has the same right border as parent(v) => no right sibling
                 return root();
             }
-//          (2)	There exists a right sibling, LCP[j+1] >= LCP[i] and j>i
+//          (2)    There exists a right sibling, LCP[j+1] >= LCP[i] and j>i
             // Now it holds:  v.cipos > v.jp1pos
             size_type cjp1posm1 = m_bp_support.find_close(v.jp1pos)-1; // v.cipos-2 ???
             // m_bp[cjp1posm1] equals 1 =>  v is the last child
@@ -645,12 +652,13 @@ class cst_sct3
 
         //! Get the i-th child of a node v.
         /*!
-         * 	\param v A valid tree node of the cst.
-         *  \param i 1-based index of the child which should be returned. \f$i \geq 1\f$.
-         *  \return The i-th child node of v or root() if v has no i-th child.
-         *  \par Time complexity
-         *    	\f$ \Order{\frac{\sigma}{w}} \f$, where w=64 is the word size, can be implemented in \f$\Order{1}\f$ with rank and select
-         *  \pre \f$ 1 \leq i \leq degree(v) \f$
+         * \param v A valid tree node of the cst.
+         * \param i 1-based index of the child which should be returned.
+         * \return The i-th child node of v or root() if v has no i-th child.
+         * \par Time complexity
+         * \f$ \Order{\frac{\sigma}{w}} \f$, where w=64 is the word size,
+         * can be implemented in \f$\Order{1}\f$ with rank and select.
+         * \pre \f$ 1 \leq i \leq degree(v) \f$
          */
 
         node_type select_child(const node_type& v, size_type i)const {
@@ -675,19 +683,20 @@ class cst_sct3
 
         //! Get the number of children of a node v.
         /*!
-         *  \param v A valid node v of a cst_sct3.
-         *  \returns The number of children of node v.
+         * \param v A valid node v.
+         * \returns The number of children of node v.
          *  \par Time complexity
-         *    	\f$ \Order{\frac{\sigma}{w}} \f$, where w=64 is the word size, can be implemented in \f$\Order{1}\f$ with rank and select
+         *    \f$ \Order{\frac{\sigma}{w}} \f$, where w=64 is the word size,
+         *    can be implemented in \f$\Order{1}\f$ with rank and select.
          */
         size_type degree(const node_type& v)const {
             if (is_leaf(v))  // if v is a leave, v has no child
                 return 0;
             // v is not a leave: v has at least two children
-            size_type r = get_pos_of_closing_parenthesis_of_the_first_l_index(v);
-            /*			if( m_bp[r-1] ){// if there exists no next l-index
-            				return 2;
-            			}
+            size_type r = closing_pos_of_first_l_index(v);
+            /*            if( m_bp[r-1] ){// if there exists no next l-index
+                            return 2;
+                        }
             */
             size_type r0 = r - m_bp_support.rank(r);
             const uint64_t* p = m_first_child.data() + (r0>>6);
@@ -728,25 +737,27 @@ class cst_sct3
 
         //! Get the child w of node v which edge label (v,w) starts with character c.
         /*!
-         * 	\param v A valid tree node of the cst.
-         *  \param c First character of the edge label from v to the desired child.
-         *  \param char_pos Reference which will hold the position (0-based) of the matching char c in the sorted text/suffix array.
-         *  \return The child node w which edge label (v,w) starts with c or root() if it does not exist.
-         *  \par Time complexity
-         *       \f$ \Order{(\saaccess+\isaaccess) \cdot \log\sigma + \lcpaccess} \f$
+         * \param v        A valid tree node of the cst.
+         * \param c        First character on the edge label.
+         * \param char_pos Reference which will hold the position (0-based) of
+         *                 the matching char c in the sorted text/suffix array.
+         * \return The child node w which edge label (v,w) starts with c or
+         *         root() if it does not exist.
+         * \par Time complexity
+         *   \f$ \Order{(\saaccess+\isaaccess) \cdot \log\sigma + \lcpaccess} \f$
          */
         node_type child(const node_type& v, const char_type c, size_type& char_pos)const {
             if (is_leaf(v))  // if v is a leaf = (), v has no child
                 return root();
             // else v = ( (     ))
             comp_char_type cc = m_csa.char2comp[c];
-            if (cc==0 and c!=0) // TODO: aendere char2comp so ab, dass man diesen sonderfall nicht braucht
+            if (cc==0 and c!=0) // TODO: change char2comp so that we don't need this special case
                 return root();
             size_type char_ex_max_pos = m_csa.C[((size_type)1)+cc], char_inc_min_pos = m_csa.C[cc];
 
-            size_type d			= depth(v);
+            size_type d            = depth(v);
 
-//			(1) check the first child
+//            (1) check the first child
             char_pos = get_char_pos(v.i, d, m_csa);
             if (char_pos >= char_ex_max_pos) {// the first character of the first child interval is lex. greater than c
                 // => all other first characters of the child intervals are also greater than c => no solution
@@ -755,18 +766,18 @@ class cst_sct3
                 return select_child(v, 1);
             }
 
-            size_type child_cnt 	= degree(v);
+            size_type child_cnt     = degree(v);
 
-//			(2) check the last child
+//            (2) check the last child
             char_pos = get_char_pos(v.j, d, m_csa);
             if (char_pos < char_inc_min_pos) {// the first character of the last child interval is lex. smaller than c
-                // =>	all other first characters of the child intervals are also smaller than c => no solution
+                // =>    all other first characters of the child intervals are also smaller than c => no solution
                 return root();
             } else if (char_pos < char_ex_max_pos) { // i.e. char_pos < char_ex_max_pos and char_pos >= char_inc_min_pos
                 return select_child(v, child_cnt);
             }
 
-// 			(3) binary search for c in the children [2..children)
+//             (3) binary search for c in the children [2..children)
             size_type l_bound = 2, r_bound = child_cnt, mid, kpos, ckpos, l_index;
             while (l_bound < r_bound) {
                 mid = (l_bound + r_bound) >> 1;
@@ -800,21 +811,19 @@ class cst_sct3
         }
 
         //! Returns the d-th character (1-based indexing) of the edge-label pointing to v.
-        /*! \param v The node at which the edge path ends.
-         * \param d The position (1-based indexing) of the requested character on the edge path from the root to v. \f$ d > 0 \wedge d < depth(v) \f$
-         * \return The character at position d on the edge path from the root to v.
+        /*!\param v The node at which the edge path ends.
+         * \param d The position (1-based indexing) on the edge path from the
+         *           root to v. \f$ d > 0 \wedge d < depth(v) \f$
+         * \return  The character at position d on the edge path from the root to v.
          * \par Time complexity
          *       \f$ \Order{ \log\sigma + (\saaccess+\isaaccess) } \f$
          * \pre \f$ 1 \leq d \leq depth(v)  \f$
          */
         char_type edge(const node_type& v, size_type d)const {
-#ifndef NDEBUG
-            if (d < 1 or d > depth(v)) {
-                throw std::out_of_range("OUT_OF_RANGE_ERROR: "+util::demangle(typeid(this).name())+"::edge(node_type v, size_type d). d == 0 or d > depth(v)!");
-            }
-#endif
-            size_type 	order 	= get_char_pos(v.i, d-1, m_csa);
-            size_type 	c_begin	= 1, c_end = ((size_type)m_sigma)+1, mid;
+            assert(1 <= d);
+            assert(d <= depth(v));
+            size_type     order     = get_char_pos(v.i, d-1, m_csa);
+            size_type     c_begin    = 1, c_end = ((size_type)m_sigma)+1, mid;
             while (c_begin < c_end) {
                 mid = (c_begin+c_end)>>1;
                 if (m_csa.C[mid] <= order) {
@@ -826,13 +835,13 @@ class cst_sct3
             return m_csa.comp2char[c_begin-1];
         }
 
-        //! Calculate the lowest common ancestor (lca) of two nodes v and w of the suffix tree.
+        //! Calculate the LCA of two nodes `v` and `w`
         /*!
-         * \param v The first node for which the lca with the second node should be computed.
-         * \param w The second node for which the lca with the first node should be computed.
-         * \return A node that is the lowest common ancestor of v and w in the suffix tree.
+         * \param v The first node.
+         * \param w The second node.
+         * \return The lowest common ancestor of v and w.
          * \par Time complexity
-         *      \f$ \Order{\rrenclose}\   \f$
+         *   \f$ \Order{\rrenclose}\   \f$
          */
 
         node_type lca(node_type v, node_type w)const {
@@ -843,8 +852,8 @@ class cst_sct3
                 return v;
             } else { // v.i < v.j < w.i < w.j
                 size_type min_index = rmq(v.i+1, w.j);
-                size_type min_index_pos 	= m_bp_support.select(min_index+1);
-                size_type min_index_cpos 	= m_bp_support.find_close(min_index_pos);
+                size_type min_index_pos     = m_bp_support.select(min_index+1);
+                size_type min_index_cpos     = m_bp_support.find_close(min_index_pos);
 
                 if (min_index_cpos >= (m_bp.size() - m_sigma)) {   // if lcp[min_index]==0 => return root
                     return root();
@@ -865,7 +874,7 @@ class cst_sct3
          * \param v A valid node of a cst_sct3.
          * \return The string depth of node v.
          * \par Time complexity
-         *     \f$ \Order{1} \f$ for non-leaves and \f$\Order{t_{SA}}\f$ for leaves
+         *  \f$ \Order{1} \f$ for non-leaves and \f$\Order{t_{SA}}\f$ for leaves
          */
         size_type depth(const node_type& v)const {
             if (v.i == v.j) {
@@ -881,12 +890,16 @@ class cst_sct3
 
         //! Returns the node depth of node v
         /*!
-         *  \param v A valid node of a cst_sct3.
-         *  \return The node depth of node v.
-         *	\par Time complexity
-         *		\f$ \Order{z} \f$, where \f$z\f$ is the resulting node depth.
+         * \param v A valid node of a cst_sct3.
+         * \return The node depth of node v.
+         * \par Time complexity
+         *   \f$ \Order{z} \f$, where \f$z\f$ is the resulting node depth.
+         * \par Note
+         * Can be implemented in O(1) with o(n) space. See
+         * Jansson, Sadakane, Sung:
+         * Ultra-succinct Representation of Ordered Trees
+         * SODA 2007
          */
-        // TODO: can be implemented in O(1) with o(n) space. See Jansson, Sadakane, Sung, SODA 2007, "Ultra-succinct Representation of Ordered Trees"
         size_type node_depth(node_type v)const {
             size_type d = 0;
             while (v != root()) {
@@ -907,18 +920,18 @@ class cst_sct3
             if (v == root())
                 return root();
             // get interval with first char deleted
-            size_type i	 = m_csa.psi[v.i];
+            size_type i     = m_csa.psi[v.i];
             if (is_leaf(v)) {
                 if (v.i==0 and v.j==0) // if( v.l==1 )
                     return root();
                 else
                     return select_leaf(i+1);
             }
-            size_type j	 = m_csa.psi[v.j];
+            size_type j     = m_csa.psi[v.j];
             assert(i < j);
             size_type min_index = rmq(i+1, j); // rmq
-            size_type min_index_pos 	= m_bp_support.select(min_index+1);
-            size_type min_index_cpos 	= m_bp_support.find_close(min_index_pos);
+            size_type min_index_pos     = m_bp_support.select(min_index+1);
+            size_type min_index_cpos     = m_bp_support.find_close(min_index_pos);
             if (min_index_cpos >= (m_bp.size() - m_sigma)) {  // if lcp[min_index]==0 => return root
                 return root();
             }
@@ -934,24 +947,24 @@ class cst_sct3
 
 
         //! Compute the Weiner link of node v and character c.
-        /*
-         *  \param v A valid not of a cst_sct3.
-         *  \param c The character which should be prepended to the string of the current node.
-         *	\return root() if the Weiner link of (v, c) does not exist, otherwise the Weiner link is returned.
+        /*!
+         * \param v A valid not of a cst_sct3.
+         * \param c The character which should be prepended to the string of the current node.
+         * \return  root() if the Weiner link of (v, c) does not exist,
+         *          otherwise the Weiner link is returned.
          *  \par Time complexity
-         *		\f$ \Order{ t_{rank\_bwt} } \f$
-         *
+         *        \f$ \Order{ t_{rank\_bwt} } \f$
          */
         node_type wl(const node_type& v, const char_type c) const {
-            size_type c_left	= m_csa.rank_bwt(v.i, c);
-            size_type c_right	= m_csa.rank_bwt(v.j+1, c);
+            size_type c_left    = m_csa.rank_bwt(v.i, c);
+            size_type c_right    = m_csa.rank_bwt(v.j+1, c);
             if (c_left == c_right)  // there exists no Weiner link
                 return root();
             if (c_left+1 == c_right)
                 return select_leaf(m_csa.C[m_csa.char2comp[c]] + c_left + 1);
             else {
-                size_type left	= m_csa.C[m_csa.char2comp[c]] + c_left;
-                size_type right	= m_csa.C[m_csa.char2comp[c]] + c_right - 1;
+                size_type left    = m_csa.C[m_csa.char2comp[c]] + c_left;
+                size_type right    = m_csa.C[m_csa.char2comp[c]] + c_right - 1;
                 assert(left < right);
 
                 size_type ipos = m_bp_support.select(left+1);
@@ -965,10 +978,10 @@ class cst_sct3
         }
 
         //! Computes the suffix number of a leaf node v.
-        /*! \param v A valid leaf node of a cst_sct3.
-         *  \return The suffix array value corresponding to the leaf node v.
-         *  \par Time complexity
-         *		\f$ \Order{ \saaccess } \f$
+        /*!\param v A valid leaf node of a cst_sct3.
+         * \return The suffix array value corresponding to the leaf node v.
+         * \par Time complexity
+         *   \f$ \Order{ \saaccess } \f$
          */
         size_type sn(const node_type& v)const {
             assert(is_leaf(v));
@@ -977,10 +990,10 @@ class cst_sct3
 
         //! Computes a unique identification number for a node of the suffx tree in the range [0..nodes()-1]
         /*!
-         *	\param v A valid node of a cst_sct3.
-         *  \return A unique identification number for the node v in the range [0..nodes()-1]
-         *  \par Time complexity
-         *		\f$ \Order{1} \f$
+         * \param v A valid node of a cst_sct3.
+         * \return A unique identification number for the node v in the range [0..nodes()-1]
+         * \par Time complexity
+         *    \f$ \Order{1} \f$
          */
         size_type id(const node_type& v)const {
             if (is_leaf(v)) { // return id in the range from 0..csa.size()-1
@@ -988,9 +1001,9 @@ class cst_sct3
             }
             size_type ckpos; // closing parentheses of the l-index
             if (v.cipos > v.jp1pos) { // corresponds to m_lcp[i] <= m_lcp[j+1]
-                ckpos 	= v.jp1pos-1;
+                ckpos     = v.jp1pos-1;
             } else { // corresponds to m_lcp[i] > m_lcp[j+1]
-                ckpos	= v.cipos-1;
+                ckpos    = v.cipos-1;
             }
             assert(m_bp[ckpos]==0);
             size_type r0ckpos = ckpos-m_bp_support.rank(ckpos); // determine the rank of the closing parenthesis
@@ -999,11 +1012,11 @@ class cst_sct3
 
         //! Computes the node for such that id(v)=id.
         /*!
-         *	\param id An id in the range [0..nodes()-1].
-         *  \return A node v of the CST such that id(v)=id.
-         *  \par Time complexity
-         *		\f$ \Order{1} \f$ for leaves and \f$ \Order{\log size()} \f$ for inner nodes
-         *  \sa id(node_type v)
+         * \param id An id in the range [0..nodes()-1].
+         * \return A node v of the CST such that id(v)=id.
+         * \par Time complexity
+         *   \f$ \Order{1} \f$ for leaves and \f$ \Order{\log size()} \f$ for inner nodes
+         * \sa id(node_type v)
          */
         node_type inv_id(size_type id) {
             if (id < size()) {  // the corresponding node is a leaf
@@ -1044,24 +1057,18 @@ class cst_sct3
                     }
                     ckpos = lb;
                 }
-//				if ( m_bp[ckpos] ){
-//					std::cerr<<"m_bp[ckpos] should be zero! id=" << id << std::endl;
-//					std::cerr<<"r0ckpos="<<r0ckpos<<" rank_0(ckpos)="<< ckpos - m_bp_support.rank(ckpos-1)  << std::endl;
-//				}
                 if (ckpos == m_bp.size()-1) {
                     return root();
                 }
                 if (m_bp[ckpos+1]) {  // jp1pos < cipos
-//					std::cout<<"case1"<<std::endl;
                     size_type jp1pos= ckpos+1;
-                    size_type j 	= m_bp_support.rank(jp1pos-1)-1;
+                    size_type j     = m_bp_support.rank(jp1pos-1)-1;
                     size_type kpos  = m_bp_support.find_open(ckpos);
-                    size_type ipos	= m_bp_support.enclose(kpos);
+                    size_type ipos    = m_bp_support.enclose(kpos);
                     size_type cipos = m_bp_support.find_close(ipos);
-                    size_type i		= m_bp_support.rank(ipos-1);
+                    size_type i        = m_bp_support.rank(ipos-1);
                     return node_type(i, j, ipos, cipos, jp1pos);
                 } else { //
-//					std::cout<<"case2"<<std::endl;
                     size_type cipos = ckpos+1;
                     size_type ipos  = m_bp_support.find_open(cipos);
                     size_type i     = m_bp_support.rank(ipos-1);
@@ -1085,7 +1092,7 @@ class cst_sct3
          * \param rb Right bound of the lcp-interval [lb..rb] (inclusive).
          * \return The node in the suffix tree corresponding lcp-interval [lb..rb]
          * \par Time complexity
-         *		\f$ \Order{1} \f$
+         *        \f$ \Order{1} \f$
          */
         node_type node(size_type lb, size_type rb) const {
             size_type ipos = m_bp_support.select(lb+1);
@@ -1104,7 +1111,7 @@ class cst_sct3
          * \return The corresponding position in the TLCP array
          */
         size_type tlcp_idx(size_type i) const {
-            size_type ipos 	= m_bp_support.select(i+1);
+            size_type ipos     = m_bp_support.select(i+1);
             size_type cipos = m_bp_support.find_close(ipos);
             return m_first_child_rank.rank(((ipos+cipos-1)>>1)-i);
         }
@@ -1114,8 +1121,8 @@ class cst_sct3
 // == template functions ==
 
 
-template<class Csa, class Lcp, class Bp_support, class Rank_support>
-cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(cache_config& config, bool build_only_bps):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
+template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
+cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::cst_sct3(cache_config& config, bool build_only_bps):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
 {
     write_R_output("cst", "construct BPS", "begin", 1, 0);
     int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config));
@@ -1143,8 +1150,8 @@ cst_sct3<Csa, Lcp, Bp_support, Rank_support>::cst_sct3(cache_config& config, boo
     //handle special case 'CST for empty text'  --^
 }
 
-template<class Csa, class Lcp, class Bp_support, class Rank_support>
-typename cst_sct3<Csa, Lcp, Bp_support, Rank_support>::size_type cst_sct3<Csa, Lcp, Bp_support, Rank_support>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
+template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
+typename cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::size_type cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
@@ -1160,8 +1167,8 @@ typename cst_sct3<Csa, Lcp, Bp_support, Rank_support>::size_type cst_sct3<Csa, L
     return written_bytes;
 }
 
-template<class Csa, class Lcp, class Bp_support, class Rank_support>
-void cst_sct3<Csa, Lcp, Bp_support, Rank_support>::load(std::istream& in)
+template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
+void cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::load(std::istream& in)
 {
     m_csa.load(in);
     load_lcp(m_lcp, in, *this);
@@ -1171,14 +1178,10 @@ void cst_sct3<Csa, Lcp, Bp_support, Rank_support>::load(std::istream& in)
     m_first_child_rank.load(in, &m_first_child);
     util::read_member(m_sigma, in);
     util::read_member(m_nodes, in);
-#ifdef SDSL_DEBUG
-    assert(algorithm::check_bp_support(m_bp, m_bp_support));
-    std::cerr<<"checked bp_support"<<std::endl;
-#endif
 }
 
-template<class Csa, class Lcp, class Bp_support, class Rank_support>
-cst_sct3<Csa, Lcp, Bp_support, Rank_support>& cst_sct3<Csa, Lcp, Bp_support, Rank_support>::operator=(const cst_sct3& cst)
+template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
+cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>& cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::operator=(const cst_sct3& cst)
 {
     if (this != &cst) {
         copy(cst);
@@ -1186,11 +1189,5 @@ cst_sct3<Csa, Lcp, Bp_support, Rank_support>& cst_sct3<Csa, Lcp, Bp_support, Ran
     return *this;
 }
 
-
-
-
-
 } // end namespace sdsl
-
-
 #endif

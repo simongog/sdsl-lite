@@ -42,11 +42,12 @@ class temp_write_read_buffer
 
     public:
 
-        //! Constructior
+        //! Constructor
         /*! \param buf_size The size of the buffer.
-         *	\param width	The width of the integers if template paramter int_width=0.
+         *	\param width	The width of the integers if template parameter int_width=0.
          *	\param dir		Directory in which the temporary file is stored.
-         * */
+         */
+        // TODO: should pass a temporary file NOT a directory
         temp_write_read_buffer(size_type buf_size, uint8_t width, std::string dir="./") {
             m_buf_size = buf_size;
             m_buf = buffer_type(buf_size, 0, width);    // initialize buffer

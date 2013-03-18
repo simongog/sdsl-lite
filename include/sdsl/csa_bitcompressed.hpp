@@ -61,26 +61,26 @@ template<class t_alphabet_strat=byte_alphabet_strategy>
 class csa_bitcompressed
 {
     public:
-        typedef uint64_t                                        value_type;    // STL Container requirement
-        typedef random_access_const_iterator<csa_bitcompressed> const_iterator;// STL Container requirement
-        typedef const_iterator                                  iterator;        // STL Container requirement
-        typedef const value_type                                const_reference;
-        typedef const_reference                                 reference;
-        typedef const_reference*                                pointer;
-        typedef const pointer                                   const_pointer;
-        typedef int_vector<>::size_type                         size_type;        // STL Container requirement
-        typedef size_type                                       csa_size_type;
-        typedef ptrdiff_t                                       difference_type; // STL Container requirement
-        typedef psi_of_sa_and_isa<csa_bitcompressed>            psi_type;
-        typedef bwt_of_csa_psi<csa_bitcompressed>               bwt_type;
-        typedef text_of_csa<csa_bitcompressed>                  text_type;
-        typedef _sa_order_sampling_strategy<1,0>                sa_sample_type;
-        typedef int_vector<>                                    isa_sample_type;
-        typedef t_alphabet_strat                                alphabet_type;
-        typedef typename alphabet_type::char_type               char_type; // Note: This is the char type of the CSA not the WT!
-        typedef typename alphabet_type::comp_char_type          comp_char_type;
-        typedef typename alphabet_type::alphabet_category       alphabet_category;
-        typedef const char_type*                                pattern_type;
+        typedef uint64_t                                         value_type;    // STL Container requirement
+        typedef random_access_const_iterator<csa_bitcompressed>  const_iterator;// STL Container requirement
+        typedef const_iterator                                   iterator;        // STL Container requirement
+        typedef const value_type                                 const_reference;
+        typedef const_reference                                  reference;
+        typedef const_reference*                                 pointer;
+        typedef const pointer                                    const_pointer;
+        typedef int_vector<>::size_type                          size_type;        // STL Container requirement
+        typedef size_type                                        csa_size_type;
+        typedef ptrdiff_t                                        difference_type; // STL Container requirement
+        typedef psi_of_sa_and_isa<csa_bitcompressed>             psi_type;
+        typedef bwt_of_csa_psi<csa_bitcompressed>                bwt_type;
+        typedef text_of_csa<csa_bitcompressed>                   text_type;
+        typedef _sa_order_sampling_strategy<csa_bitcompressed,0> sa_sample_type;
+        typedef int_vector<>                                     isa_sample_type;
+        typedef t_alphabet_strat                                 alphabet_type;
+        typedef typename alphabet_type::char_type                char_type; // Note: This is the char type of the CSA not the WT!
+        typedef typename alphabet_type::comp_char_type           comp_char_type;
+        typedef typename alphabet_type::alphabet_category        alphabet_category;
+        typedef const char_type*                                 pattern_type;
 
         typedef csa_tag                                         index_category;
         typedef psi_tag                                         extract_category;
@@ -90,8 +90,8 @@ class csa_bitcompressed
              };
 
     private:
-        sa_sample_type    m_sa;  // vector for suffix array values
-        isa_sample_type    m_isa; // vector for inverse suffix array values
+        sa_sample_type  m_sa;  // vector for suffix array values
+        isa_sample_type m_isa; // vector for inverse suffix array values
         psi_type        m_psi; // wrapper class for psi function values
         alphabet_type   m_alphabet;
 
@@ -113,24 +113,36 @@ class csa_bitcompressed
         const isa_sample_type&                        isa_sample;
 
         //! Default Constructor
-        csa_bitcompressed() :char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-            psi(m_psi), bwt(this), text(this),sa_sample(m_sa), isa_sample(m_isa) {}
+        csa_bitcompressed(): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),
+            C(m_alphabet.C), sigma(m_alphabet.sigma), psi(m_psi), bwt(this),
+            text(this),sa_sample(m_sa), isa_sample(m_isa) {}
 
         //! Copy constructor
-        csa_bitcompressed(const csa_bitcompressed& csa) : char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-            psi(m_psi), bwt(this), text(this), sa_sample(m_sa), isa_sample(m_isa) {
+        csa_bitcompressed(const csa_bitcompressed& csa): char2comp(m_alphabet.char2comp),
+            comp2char(m_alphabet.comp2char),
+            C(m_alphabet.C), sigma(m_alphabet.sigma),
+            psi(m_psi), bwt(this), text(this),
+            sa_sample(m_sa), isa_sample(m_isa) {
             copy(csa);
         }
 
         //! Constructor
-        csa_bitcompressed(cache_config& config) : char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),
-            C(m_alphabet.C), sigma(m_alphabet.sigma), psi(m_psi), bwt(this),
+        csa_bitcompressed(cache_config& config): char2comp(m_alphabet.char2comp),
+            comp2char(m_alphabet.comp2char), C(m_alphabet.C),
+            sigma(m_alphabet.sigma), psi(m_psi), bwt(this),
             text(this), sa_sample(m_sa), isa_sample(m_isa) {
-            int_vector_file_buffer<alphabet_type::int_width> text_buf(util::cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config));
+            std::string text_file = util::cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config);
+            int_vector_file_buffer<alphabet_type::int_width> text_buf(text_file);
             int_vector_file_buffer<>  sa_buf(util::cache_file_name(constants::KEY_SA,config));
             size_type n = text_buf.int_vector_size;
-            util::assign(m_alphabet, alphabet_type(text_buf, n));
-            util::assign(m_sa, sa_sample_type(sa_buf));
+            {
+                alphabet_type tmp_alphabet(text_buf, n);
+                m_alphabet.swap(tmp_alphabet);
+            }
+            {
+                sa_sample_type tmp_sample(sa_buf);
+                m_sa.swap(tmp_sample);
+            }
             algorithm::set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
             m_psi = psi_type(this);
             write_R_output("csa", "store ISA","begin",1,0);
@@ -168,12 +180,6 @@ class csa_bitcompressed
         }
 
         //! Swap method for csa_bitcompressed
-        /*! The swap method can be defined in terms of assignment.
-         *  This requires three assignments, each of which, for a container type, is linear
-         *  in the container's size. In a sense, then, a.swap(b) is redundant.
-         *    This implementation guaranties a run-time complexity that is constant rather than linear.
-         *    \param csa csa_bitcompressed to swap.
-         */
         void swap(csa_bitcompressed& csa) {
             if (this != &csa) {
                 m_sa.swap(csa.m_sa);
@@ -255,8 +261,8 @@ class csa_bitcompressed
         //! Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
         /*!
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
-         *  \param c The symbol to count the occurences in the prefix.
-         *    \returns The number of occurences of symbol c in the prefix [0..i-1] of the BWT.
+         *  \param c The symbol to count the occurrences in the prefix.
+         *    \returns The number of occurrences of symbol c in the prefix [0..i-1] of the BWT.
          *  \par Time complexity
          *        \f$ \Order{\log n} \f$
          */

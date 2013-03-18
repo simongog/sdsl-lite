@@ -15,8 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file lcp_dac.hpp
-    \brief lcp_dac.hpp contains an implementation of a (compressed) lcp array proposed by Brisaboa, Ladra and Navarro
-           in the paper "Direct addressable variable-length codes" (SPIRE 2009).
+    \brief lcp_dac.hpp contains an implementation of a (compressed) LCP array.
 	\author Simon Gog
 */
 #ifndef INCLUDED_SDSL_LCP_DAC
@@ -27,21 +26,14 @@
 #include "algorithms.hpp"
 #include "iterators.hpp"
 #include "util.hpp"
-#include "rank_support_v.hpp"
 #include "rank_support_v5.hpp"
-#include <iostream>
 #include <cassert>
-#include <cstring> // for strlen
-#include <iomanip>
-#include <iterator>
-#include <vector>
 #include <algorithm> // for max
-#include <stdexcept>
 
 namespace sdsl
 {
 
-//! A class for the compressed version of lcp information of an suffix array
+//! A class for the compressed version of LCP information of an suffix array
 /*! We use a technique called ,,escaping'' to encode the values.
  *  This is defined as follows (see [1]):
  *  A k-bit integer is split into \f$K=\lceil k/(b-1)\rceil\f$ bits each and
@@ -60,22 +52,26 @@ namespace sdsl
  *           access'', Computing Journal Vol 43, No.3, 1999
  *       [3] N. Brisboa, S. Ladra, G. Navarro: ,,Directly addressable variable-
  *           length codes'', Proceedings of SPIRE 2009.
+ *
+ * \tparam t_b    Split block size.
+ * \tparam t_rank Rank structure to navigate between the different levels.
  */
-template<uint8_t b=4, class rank_support_type=rank_support_v5<> >
+template<uint8_t t_b=4, class t_rank=rank_support_v5<> >
 class lcp_dac
 {
     public:
-        typedef typename int_vector<>::value_type		 value_type;	// STL Container requirement
-        typedef random_access_const_iterator<lcp_dac>		 const_iterator;// STL Container requirement
-        typedef const_iterator 								 iterator;		// STL Container requirement
+        typedef typename int_vector<>::value_type		 value_type;
+        typedef random_access_const_iterator<lcp_dac>		 const_iterator;
+        typedef const_iterator 								 iterator;
         typedef const value_type							 const_reference;
         typedef const_reference								 reference;
         typedef const_reference*							 pointer;
         typedef const pointer								 const_pointer;
-        typedef int_vector<>::size_type						 size_type;		// STL Container requirement
-        typedef ptrdiff_t  									 difference_type; // STL Container requirement
+        typedef int_vector<>::size_type						 size_type;
+        typedef ptrdiff_t  									 difference_type;
+        typedef t_rank										rank_support_type;
 
-        typedef lcp_plain_tag								 lcp_category; // TODO?
+        typedef lcp_plain_tag								 lcp_category;
 
         enum { fast_access = 0,
                text_order  = 0,
@@ -91,7 +87,7 @@ class lcp_dac
 
     private:
 
-        int_vector<b> 		m_data;			  	// vector which holds the block data for every level
+        int_vector<t_b> 		m_data;			  	// vector which holds the block data for every level
         bit_vector	 		m_overflow;			// indicates, if there exists another block for the current number
         rank_support_type 	m_overflow_rank;	// rank data structure for m_overflow
         int_vector<64> 		m_level_pointer_and_rank;
@@ -167,13 +163,17 @@ class lcp_dac
         /*! Required for the STL Container Concept.
          *  \sa end
          */
-        const_iterator begin()const;
+        const_iterator begin()const {
+            return const_iterator(this, 0);
+        }
 
         //! Returns a const_iterator to the element after the last element.
         /*! Required for the STL Container Concept.
          *  \sa begin.
          */
-        const_iterator end()const;
+        const_iterator end()const {
+            return const_iterator(this, size());
+        }
 
         //! []-operator
         /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
@@ -203,9 +203,9 @@ class lcp_dac
 // == template functions ==
 
 
-template<uint8_t b, class rank_support_type>
+template<uint8_t t_b, class t_rank>
 template<uint8_t int_width>
-lcp_dac<b, rank_support_type>::lcp_dac(int_vector_file_buffer<int_width>& lcp_buf)
+lcp_dac<t_b, t_rank>::lcp_dac(int_vector_file_buffer<int_width>& lcp_buf)
 {
 //  (1) Count for each level, how many blocks are needed for the representation
 //      Running time: \f$ O(n \times \frac{\log n}{b}  \f$
@@ -215,7 +215,7 @@ lcp_dac<b, rank_support_type>::lcp_dac(int_vector_file_buffer<int_width>& lcp_bu
     if (n == 0)
         return;
 // 		initialize counter
-    m_level_pointer_and_rank.resize(std::max(4*bit_magic::l1BP(2), 2*(((bit_magic::l1BP(n)+1)+b-1) / b)));
+    m_level_pointer_and_rank.resize(std::max(4*bit_magic::l1BP(2), 2*(((bit_magic::l1BP(n)+1)+t_b-1) / t_b)));
     for (size_type i=0; i < m_level_pointer_and_rank.size(); ++i)
         m_level_pointer_and_rank[i] = 0;
     m_level_pointer_and_rank[0] = n; // level 0 has n entries
@@ -224,11 +224,11 @@ lcp_dac<b, rank_support_type>::lcp_dac(int_vector_file_buffer<int_width>& lcp_bu
     for (size_type i=0, r_sum=0, r = lcp_buf.load_next_block(); r_sum < n;) {
         for (; i < r_sum+r; ++i) {
             val=lcp_buf[i-r_sum];
-            val >>= b; // shift value b bits to the right
+            val >>= t_b; // shift value b bits to the right
             level_x_2 = 2;
             while (val) {
                 ++m_level_pointer_and_rank[level_x_2]; // increase counter for current level by 1
-                val >>= b; // shift value b bits to the right
+                val >>= t_b; // shift value b bits to the right
                 level_x_2 += 2; // increase level by 1
             }
         }
@@ -242,7 +242,6 @@ lcp_dac<b, rank_support_type>::lcp_dac(int_vector_file_buffer<int_width>& lcp_bu
         t = sum_blocks;
         sum_blocks += m_level_pointer_and_rank[i];
         m_level_pointer_and_rank[i] = t;
-//		std::cout<<"i="<<i<<" cnt="<<t<<std::endl;
         if (sum_blocks > t) {
             ++m_max_level;
             last_block_size = sum_blocks - t;
@@ -251,14 +250,11 @@ lcp_dac<b, rank_support_type>::lcp_dac(int_vector_file_buffer<int_width>& lcp_bu
     m_overflow = bit_vector(sum_blocks - last_block_size, 0);
     m_data.resize(sum_blocks);
 
-//	std::cerr<<"m_overflow.size()="<<m_overflow.size()<<" "<<"m_data.size()="<<m_data.size()<<std::endl;
-    if (last_block_size == 0) {
-        std::cerr<<"ERROR: lcp_dac constructor: last_block_size=0"<<std::endl;
-    }
+    assert(last_block_size > 0);
 
 //  (3)	Enter block and overflow data
     int_vector<64> cnt = m_level_pointer_and_rank;
-    const uint64_t mask = bit_magic::Li1Mask[b];
+    const uint64_t mask = bit_magic::Li1Mask[t_b];
 
     lcp_buf.reset();
     for (size_type i=0,j=0, r_sum=0, r = lcp_buf.load_next_block(); r_sum < n;) {
@@ -266,27 +262,19 @@ lcp_dac<b, rank_support_type>::lcp_dac(int_vector_file_buffer<int_width>& lcp_bu
             val=lcp_buf[i-r_sum];
             j = cnt[0]++;
             m_data[ j ] =  val & mask;
-            val >>= b; // shift value b bits to the right
+            val >>= t_b; // shift value b bits to the right
             level_x_2 = 2;
             while (val) {
-//					if(j >= m_overflow.size()){
-//						std::cerr<<"i="<<i<<" j="<<j<<" n="<<n<<" m_overflow.size()="<<m_overflow.size()<<" val="<<val<<" level="<<level_x_2/2<<std::endl;
-//						return;
-//					}
                 m_overflow[j] = 1;
                 j = cnt[level_x_2]++; // increase counter for current level by 1
-//					if(j >= m_data.size()){
-//						std::cerr<<"i="<<i<<" j="<<j<<" n="<<n<<" m_data.size()="<<m_data.size()<<" val="<<val<<" level="<<level_x_2/2<<std::endl;
-//					}
                 m_data[ j ] = val & mask;
-                val >>= b; // shift value b bits to the right
+                val >>= t_b; // shift value b bits to the right
                 level_x_2 += 2; // increase level by 1
             }
         }
         r_sum += r; r = lcp_buf.load_next_block();
     }
 
-//	std::cerr<<"m_overflow.size()="<<m_overflow.size()<<" "<<"m_data.size()="<<m_data.size()<<std::endl;
 //  (4) Initialize rank data structure for m_overflow and precalc rank for
 //      pointers
     util::init_support(m_overflow_rank, &m_overflow);
@@ -296,8 +284,9 @@ lcp_dac<b, rank_support_type>::lcp_dac(int_vector_file_buffer<int_width>& lcp_bu
     }
 }
 
-template<uint8_t b, class rank_support_type>
-void lcp_dac<b, rank_support_type>::swap(lcp_dac& lcp_c) {
+template<uint8_t t_b, class t_rank>
+void lcp_dac<t_b, t_rank>::swap(lcp_dac& lcp_c)
+{
     m_data.swap(lcp_c.m_data);
     m_overflow.swap(lcp_c.m_overflow);
     util::swap_support(m_overflow_rank, lcp_c.m_overflow_rank, &m_overflow, &(lcp_c.m_overflow));
@@ -306,27 +295,28 @@ void lcp_dac<b, rank_support_type>::swap(lcp_dac& lcp_c) {
     std::swap(m_max_level, lcp_c.m_max_level);
 }
 
-template<uint8_t b, class rank_support_type>
-inline typename lcp_dac<b, rank_support_type>::value_type lcp_dac<b, rank_support_type>::operator[](size_type i)const {
+template<uint8_t t_b, class t_rank>
+inline typename lcp_dac<t_b, t_rank>::value_type lcp_dac<t_b, t_rank>::operator[](size_type i)const
+{
     uint8_t level = 1;
-    uint8_t offset = b;
+    uint8_t offset = t_b;
     size_type result = m_data[i];
-//	return result;
     const uint64_t* p = m_level_pointer_and_rank.data();
-    uint64_t ppi = (*p)+i; // *p plus i
+    uint64_t ppi = (*p)+i;
     while (level < m_max_level and m_overflow[ppi]) {
         p += 2;
         ppi = *p + (m_overflow_rank(ppi) - *(p-1));
         result |= (m_data[ppi] << (offset));
         ++level;
-        offset += b;
+        offset += t_b;
     }
     return result;
 }
 
 
-template<uint8_t b, class rank_support_type>
-typename lcp_dac<b, rank_support_type>::size_type lcp_dac<b, rank_support_type>::serialize(std::ostream& out, structure_tree_node* v, std::string name) const {
+template<uint8_t t_b, class t_rank>
+typename lcp_dac<t_b, t_rank>::size_type lcp_dac<t_b, t_rank>::serialize(std::ostream& out, structure_tree_node* v, std::string name) const
+{
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
     written_bytes += m_data.serialize(out, child, "data");
@@ -338,34 +328,24 @@ typename lcp_dac<b, rank_support_type>::size_type lcp_dac<b, rank_support_type>:
     return written_bytes;
 }
 
-template<uint8_t b, class rank_support_type>
-void lcp_dac<b, rank_support_type>::load(std::istream& in) {
+template<uint8_t t_b, class t_rank>
+void lcp_dac<t_b, t_rank>::load(std::istream& in)
+{
     m_data.load(in);
     m_overflow.load(in);
-    m_overflow_rank.load(in, &m_overflow); // FIXED that at 2012-02-01 15:34
+    m_overflow_rank.load(in, &m_overflow);
     m_level_pointer_and_rank.load(in);
     util::read_member(m_max_level, in);
 }
 
-template<uint8_t b, class rank_support_type>
-lcp_dac<b, rank_support_type>& lcp_dac<b, rank_support_type>::operator=(const lcp_dac& lcp_c) {
+template<uint8_t t_b, class t_rank>
+lcp_dac<t_b, t_rank>& lcp_dac<t_b, t_rank>::operator=(const lcp_dac& lcp_c)
+{
     if (this != &lcp_c) {
         copy(lcp_c);
     }
     return *this;
 }
-
-template<uint8_t b, class rank_support_type>
-typename lcp_dac<b, rank_support_type>::const_iterator lcp_dac<b, rank_support_type>::begin()const {
-    return const_iterator(this, 0);
-}
-
-template<uint8_t b, class rank_support_type>
-typename lcp_dac<b, rank_support_type>::const_iterator lcp_dac<b, rank_support_type>::end()const {
-    return const_iterator(this, size());
-}
-
-
 
 } // end namespace sdsl
 

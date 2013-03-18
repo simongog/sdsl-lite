@@ -15,8 +15,9 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file wt_rlmn.hpp
-    \brief wt_rlmn.hpp contains a class for a compressed wavelet tree. Compression is achieved by exploiting runs in the input sequence.
-	\author Simon Gog
+    \brief wt_rlmn.hpp contains a class for a compressed wavelet tree.
+	  Compression is achieved by exploiting runs in the input sequence.
+    \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_WT_RLMN
 #define INCLUDED_SDSL_WT_RLMN
@@ -33,68 +34,59 @@
 #include <queue>
 #include <iostream>
 
-
-#ifdef SDSL_DEBUG
-#define SDSL_DEBUG_WAVELET_TREE_HUFFMAN_RL
-#endif
-
-
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
 
 //! A Wavelet Tree class for byte sequences.
 /*!
- * A wavelet tree is build for a vector of characters over the alphabet \f$\Sigma\f$.
- * This class should be used only for small alphabets \f$\Sigma \ll n\f$ (see wt_int for a wavelet tree for big alphabets).
- * The wavelet tree \f$wt\f$ consists of a tree of bitvectors and provides three efficient methods:
- *   - The "[]"-operator: \f$wt[i]\f$ returns the ith symbol of vector for which the wavelet tree was build for.
- *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurrences of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the wavelet tree was build for.
- *   - The select method: \f$wt.select(j,c)\f$ returns the index \f$i\in [0..size()-1]\f$ of the jth occurrence of symbol \f$c\f$.
- *
- *	\par Space complexity
- *		 \f$ nH_0 + 2|\Sigma|\log n + 2n + o(n) \f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
- *
- *  \par Note
- *       This implementation is based on the idea of Veli Mäkinen and Gonzalo Navarro presented in the paper
- *       "Succinct Suffix Arrays Based on Run-Length Encoding" (CPM 2005)
+ *    \par Space complexity
+ *         \f$ nH_0 + 2|\Sigma|\log n + 2n + o(n) \f$ bits, where \f$n\f$
+ *          is the size of the vector the wavelet tree was build for.
  *
  *   @ingroup wt
  *
- *  \tparam BitVector 		Type of the bitvector which is used to represent bf and bl which mark the head of each run in the original sequence.
- *  \tparam RankSupport		Type of the rank support for bitvectors bf and bl.
- *  \tparam SelectSupport   Type of the select support for bitvectors bf and lb.
- *  \tparam WaveletTree		Type of the wavelet tree for the string consisting of the heads of the runs of the original sequence.
+ *  \tparam t_bitvector Type of the bitvector which is used to represent bf and
+ *                      bl which mark the head of each run in the original
+ *                      sequence.
+ *  \tparam t_rank      Type of the rank support for bitvectors bf and bl.
+ *  \tparam t_select    Type of the select support for bitvectors bf and lb.
+ *  \tparam t_wt        Type of the wavelet tree for the string consisting of
+ *                      the heads of the runs of the original sequence.
+ *  \par Reference:
+ *     Veli Mäkinen, Gonzalo Navarro:
+ *     Succinct Suffix Arrays Based on Run-Length Encoding.
+ *     CPM 2005: 45-56
  */
-template<class BitVector = sd_vector<>,
-         class RankSupport = typename BitVector::rank_1_type,
-         class SelectSupport = typename BitVector::select_1_type,
-         class WaveletTree = wt_huff<> >
+template<class t_bitvector = sd_vector<>,
+         class t_rank = typename t_bitvector::rank_1_type,
+         class t_select = typename t_bitvector::select_1_type,
+         class t_wt = wt_huff<> >
 class wt_rlmn
 {
     public:
-        typedef int_vector<>::size_type	size_type;
-        typedef unsigned char		 	value_type;
-        typedef BitVector				bit_vector_type;
-        typedef RankSupport				rank_support_type;
-        typedef SelectSupport           select_support_type;
-        typedef WaveletTree             wt_type;
-		typedef wt_tag					index_category;
-		typedef byte_alphabet_tag		alphabet_category;
+        typedef int_vector<>::size_type size_type;
+        typedef unsigned char           value_type;
+        typedef t_bitvector             bit_vector_type;
+        typedef t_rank                  rank_support_type;
+        typedef t_select                select_support_type;
+        typedef t_wt                    wt_type;
+        typedef wt_tag                  index_category;
+        typedef byte_alphabet_tag       alphabet_category;
     private:
-        size_type 				m_size;         // size of the original input sequence
-        bit_vector_type			m_bl;	        // bit vector which indicates the starts of runs in
+        size_type            m_size;      // size of the original input sequence
+        bit_vector_type      m_bl;        // bit vector which indicates the starts of runs in
         // the BWT (or last column), i.e. _b_ _l_ast
-        bit_vector_type         m_bf;           // bit vector which indicates the starts of runs in
+        bit_vector_type      m_bf;        // bit vector which indicates the starts of runs in
         // the first column of the sorted suffixes, i.e _b_ _f_irst
-        wt_type					m_wt;	        // wavelet tree for all levels
+        wt_type              m_wt;        // wavelet tree for all levels
         // two equal chars
-        rank_support_type		m_bl_rank;      // rank support for bit vector bl
-        rank_support_type		m_bf_rank;	    // rank support for bit vector bf
-        select_support_type     m_bl_select;    // select support for bit vector bl
-        select_support_type     m_bf_select;    // select support for bit vector bf
-        int_vector<64>          m_C;     		//
-        int_vector<64>          m_C_bf_rank;    // stores the number of 1s in m_bf for the prefixes
+        rank_support_type    m_bl_rank;   // rank support for bit vector bl
+        rank_support_type    m_bf_rank;   // rank support for bit vector bf
+        select_support_type  m_bl_select; // select support for bit vector bl
+        select_support_type  m_bf_select; // select support for bit vector bf
+        int_vector<64>       m_C;         //
+        int_vector<64>       m_C_bf_rank; // stores the number of 1s in m_bf for the prefixes
         // m_bf[0..m_C[0]],m_bf[0..m_C[1]],....,m_bf[0..m_C[255]];
         // named C_s in the original paper
 
@@ -123,10 +115,10 @@ class wt_rlmn
 
         // Construct the wavelet tree from a random access container
         /*
-         *	\param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
-         *	\param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
-         *	\par Time complexity
-         *		\f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
+         * \param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
+         * \param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
+         * \par Time complexity
+         *      \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
         wt_rlmn(const unsigned char* rac, size_type size):m_size(size), sigma(m_wt.sigma) {
             // TODO: Delegate this to the file_buffer constructor using a wrapper for the file_buffer
@@ -135,11 +127,12 @@ class wt_rlmn
         }
 
         //! Construct the wavelet tree from a file_buffer
-        /*! \param text_buf	A int_vector_file_buffer to the original text.
-         *	\param size The length of the prefix of the text, for which the wavelet tree should be build.
+        /*! \param text_buf  A int_vector_file_buffer to the original text.
+         *  \param size      The length of the prefix of the text, for which the wavelet tree should be build.
          */
+        // TODO: new signature: sdsl::file, size_type size
         wt_rlmn(int_vector_file_buffer<8>& text_buf, size_type size):m_size(size), sigma(m_wt.sigma) {
-			// TODO: remove absolute file name
+            // TODO: remove absolute file name
             std::string temp_file = "tmp_wt_rlmn_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
             std::ofstream wt_out(temp_file.c_str(), std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
@@ -198,7 +191,8 @@ class wt_rlmn
                 }
                 {
                     int_vector_file_buffer<8> temp_bwt_buf(temp_file);
-					util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
+                    util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
+                    std::remove(temp_file.c_str());
                 }
                 util::assign(m_bl, bl);
                 util::assign(m_bf, bf);
@@ -212,7 +206,6 @@ class wt_rlmn
             for (size_type i=0; i<256; ++i) {
                 m_C_bf_rank[i] = m_bf_rank(m_C[i]);
             }
-            std::remove(temp_file.c_str());
         }
 
         //! Copy constructor
@@ -262,18 +255,18 @@ class wt_rlmn
 
         //! Returns whether the wavelet tree contains no data.
         bool empty()const {
-            return m_size == 0;
+            return 0 == m_size;
         }
 
-        //! Recovers the ith symbol of the original vector.
+        //! Recovers the i-th symbol of the original vector.
         /*! \param i The index of the symbol in the original vector. \f$i \in [0..size()-1]\f$
-         *	\return The ith symbol of the original vector.
+         *    \return The i-th symbol of the original vector.
          *  \par Time complexity
-         *		\f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order entropy of
+         *        \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order entropy of
          *      the sequence
          */
         value_type operator[](size_type i)const {
-			assert( i < size() );
+            assert(i < size());
             return m_wt[m_bl_rank(i+1)-1];
         };
 
@@ -281,13 +274,13 @@ class wt_rlmn
         /*!
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
          *  \param c The symbol to count the occurrences in the prefix.
-         *	\return The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
+         *  \return The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
          *  \par Time complexity
-         *		\f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order entropy of
+         *        \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order entropy of
          *      the sequence
          */
         size_type rank(size_type i, value_type c)const {
-			assert( i <= size() );
+            assert(i <= size());
             if (i == 0)
                 return 0;
             size_type wt_ex_pos = m_bl_rank(i);
@@ -304,14 +297,14 @@ class wt_rlmn
 
         //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
         /*!
-         *	\param i The index of the symbol.
+         *  \param i The index of the symbol.
          *  \param c Reference that will contain the symbol at position i after the execution of the method.
          *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
-         *	\par Time complexity
-         *		\f$ \Order{H_0} \f$
+         *    \par Time complexity
+         *        \f$ \Order{H_0} \f$
          */
         size_type inverse_select(size_type i, value_type& c)const {
-			assert( i < size() );
+            assert(i < size());
             if (i == 0) {
                 c = m_wt[0];
                 return 0;
@@ -333,12 +326,12 @@ class wt_rlmn
          *  \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
          *  \param c The symbol c.
          *  \par Time complexity
-         *		\f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order
-         *      entropy of the sequence
+         *       \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order
+         *        entropy of the sequence
          */
         size_type select(size_type i, value_type c)const {
-			assert( i > 0 );
-			assert( i <= rank(size(), c) );
+            assert(i > 0);
+            assert(i <= rank(size(), c));
             size_type c_runs = m_bf_rank(m_C[c]+i) - m_C_bf_rank[c];
             size_type offset = m_C[c] + i - 1 - m_bf_select(c_runs + m_C_bf_rank[c]);
             return m_bl_select(m_wt.select(c_runs, c)+1) + offset;

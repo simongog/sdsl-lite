@@ -16,7 +16,7 @@
 */
 /*! \file wt_huff.hpp
     \brief wt_huff.hpp contains a class for the wavelet tree of byte sequences which is in Huffman shape.
-	\author Simon Gog and Timo Beller
+    \author Simon Gog and Timo Beller
 */
 #ifndef INCLUDED_SDSL_WT_HUFF
 #define INCLUDED_SDSL_WT_HUFF
@@ -38,16 +38,17 @@
 #include <queue>
 
 //! Namespace for the succinct data structure library.
-namespace sdsl {
+namespace sdsl
+{
 
 const int_vector<>::size_type ZoO[2] = {0, (int_vector<>::size_type)-1};
 
 template<class size_type>
 struct _node {
-    size_type 	tree_pos; 		// pointer into the bit_vector, which represents the wavelet tree
-    size_type 	tree_pos_rank;	// pre-calculated rank for the prefix up to but not including tree_pos
-    uint16_t	parent;			// pointer to the parent
-    uint16_t	child[2];		// pointer to the children
+    size_type  tree_pos;      // pointer into the bit_vector, which represents the wavelet tree
+    size_type  tree_pos_rank; // pre-calculated rank for the prefix up to but not including tree_pos
+    uint16_t   parent;        // pointer to the parent
+    uint16_t   child[2];      // pointer to the children
 
     _node(size_type tree_pos=0, size_type tree_pos_rank=0, uint16_t parent=_undef_node,
           uint16_t child_left=_undef_node, uint16_t child_right=_undef_node):
@@ -58,11 +59,11 @@ struct _node {
 
     _node& operator=(const _node& v) {
         if (this != &v) {
-            tree_pos 		= v.tree_pos;
-            tree_pos_rank 	= v.tree_pos_rank;
-            parent			= v.parent;
-            child[0] 		= v.child[0];
-            child[1] 		= v.child[1];
+            tree_pos         = v.tree_pos;
+            tree_pos_rank     = v.tree_pos_rank;
+            parent            = v.parent;
+            child[0]         = v.child[0];
+            child[1]         = v.child[1];
         }
         return *this;
     }
@@ -89,46 +90,54 @@ struct _node {
 
 //! A Wavelet Tree class for byte sequences.
 /*!
- * A wavelet tree is build for a vector of characters over the byte alphabet 
+ * A wavelet tree is build for a vector of characters over the byte alphabet
  * \f$\Sigma\f$. If you need a wavelet tree for a integer alphabet you should
  * use `wt_int`.
- * The wavelet tree \f$wt\f$ consists of a tree of bitvectors and provides 
+ * The wavelet tree \f$wt\f$ consists of a tree of bitvectors and provides
  * three efficient methods:
  *   - The "[]"-operator: \f$wt[i]\f$ returns the i-th symbol of vector for
  *     which the wavelet tree was build for.
- *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurrences 
- *     of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the 
+ *   - The rank method: \f$wt.rank(i,c)\f$ returns the number of occurrences
+ *     of symbol \f$c\f$ in the prefix [0..i-1] in the vector for which the
  *     wavelet tree was build for.
- *   - The select method: \f$wt.select(j,c)\f$ returns the index 
+ *   - The select method: \f$wt.select(j,c)\f$ returns the index
  *     \f$i\in [0..size()-1]\f$ of the j-th occurrence of symbol \f$c\f$.
  *
  *  The idea of using a Huffman shaped wavelet was first mentioned on page 17
  *  of the following technical report:
- *  Veli Mäkinen and Gonzalo Navarro: 
+ *  Veli Mäkinen and Gonzalo Navarro:
  *  ,,Succinct Suffix Arrays based on Run-Length Encoding.''
  *  Available under: http://swp.dcc.uchile.cl/TR/2005/TR_DCC-2005-004.pdf
  *
- *	\par Space complexity
- *		\f$\Order{n H_0 + 2|\Sigma|\log n}\f$ bits, where \f$n\f$ is the size 
- *      of the vector the wavelet tree was build for.
+ *  \tparam t_bitvector   Underlying bitvector structure.
+ *  \tparam t_rank        Rank support for pattern `1` on the bitvector.
+ *  \tparam t_select      Select support for pattern `1` on the bitvector.
+ *  \tparam t_select_zero Select support for pattern `0` on the bitvector.
+ *  \tparam t_dfs_shape   Layout of the tree structure in memory. Set 0
+ *                        for BFS layout and 1 fro DFS layout.
+ *
+ *  \par Space complexity
+ *       \f$\Order{n H_0 + 2|\Sigma|\log n}\f$ bits, where \f$n\f$ is the size
+ *        of the vector the wavelet tree was build for.
  *
  *   @ingroup wt
  */
-template<class BitVector 		 = bit_vector,
-         class RankSupport 		 = typename BitVector::rank_1_type,
-         class SelectSupport	 = typename BitVector::select_1_type,
-         class SelectSupportZero = typename BitVector::select_0_type,
-         bool  dfs_shape         = 0>
-class wt_huff {
+template<class t_bitvector   = bit_vector,
+         class t_rank        = typename t_bitvector::rank_1_type,
+         class t_select      = typename t_bitvector::select_1_type,
+         class t_select_zero = typename t_bitvector::select_0_type,
+         bool  t_dfs_shape   = 0>
+class wt_huff
+{
     public:
-        typedef int_vector<>::size_type	size_type;
-        typedef unsigned char		 	value_type;
-        typedef BitVector				bit_vector_type;
-        typedef RankSupport				rank_1_type;
-        typedef SelectSupport           select_1_type;
-        typedef SelectSupportZero		select_0_type;
-		typedef wt_tag					index_category;
-		typedef byte_alphabet_tag		alphabet_category;
+        typedef int_vector<>::size_type size_type;
+        typedef unsigned char           value_type;
+        typedef t_bitvector             bit_vector_type;
+        typedef t_rank                  rank_1_type;
+        typedef t_select                select_1_type;
+        typedef t_select_zero           select_0_type;
+        typedef wt_tag                  index_category;
+        typedef byte_alphabet_tag       alphabet_category;
 
     private:
 #ifdef WT_HUFF_CACHE
@@ -137,18 +146,18 @@ class wt_huff {
         mutable size_type  m_last_access_rl;
 #endif
 
-        size_type 			m_size;
-        size_type 			m_sigma; 		//<- \f$ |\Sigma| \f$
-        bit_vector_type		m_tree;			// bit vector to store the wavelet tree
-        RankSupport			m_tree_rank;	// rank support for the wavelet tree bit vector
-        SelectSupport		m_tree_select1;	// select support for the wavelet tree bit vector
-        SelectSupportZero	m_tree_select0;
+        size_type        m_size;
+        size_type        m_sigma;         //<- \f$ |\Sigma| \f$
+        bit_vector_type  m_tree;            // bit vector to store the wavelet tree
+        rank_1_type      m_tree_rank;    // rank support for the wavelet tree bit vector
+        select_1_type    m_tree_select1;    // select support for the wavelet tree bit vector
+        select_0_type    m_tree_select0;
 
-        _node<size_type> 	m_nodes[511];	 // nodes for the Huffman tree structure
-        uint16_t			m_c_to_leaf[256];// map symbol c to a leaf in the tree structure
+        _node<size_type>     m_nodes[511];     // nodes for the Huffman tree structure
+        uint16_t            m_c_to_leaf[256];// map symbol c to a leaf in the tree structure
         // if m_c_to_leaf[c] == _undef_node the char does
         // not exists in the text
-        uint64_t			m_path[256];	 // path information for each char; the bits at position
+        uint64_t            m_path[256];     // path information for each char; the bits at position
         // 0..55 hold path information; bits 56..63 the length
         // of the path in binary representation
 
@@ -156,14 +165,14 @@ class wt_huff {
         typedef std::priority_queue<tPII, std::vector<tPII>, std::greater<tPII> >  tMPQPII; // minimum priority queue
 
         void copy(const wt_huff& wt) {
-            m_size 			= wt.m_size;
-            m_sigma 		= wt.m_sigma;
-            m_tree			= wt.m_tree;
-            m_tree_rank 	= wt.m_tree_rank;
+            m_size            = wt.m_size;
+            m_sigma           = wt.m_sigma;
+            m_tree            = wt.m_tree;
+            m_tree_rank       = wt.m_tree_rank;
             m_tree_rank.set_vector(&m_tree);
-            m_tree_select1	= wt.m_tree_select1;
+            m_tree_select1    = wt.m_tree_select1;
             m_tree_select1.set_vector(&m_tree);
-            m_tree_select0	= wt.m_tree_select0;
+            m_tree_select0    = wt.m_tree_select0;
             m_tree_select0.set_vector(&m_tree);
             for (size_type i=0; i < 511; ++i)
                 m_nodes[i] = wt.m_nodes[i];
@@ -191,7 +200,7 @@ class wt_huff {
         size_type construct_huffman_tree(size_type* C) {
             tMPQPII pq; // priority queue
             std::vector<_node<size_type> > temp_nodes(2*m_sigma-1);  // vector for nodes of the Huffman tree
-            size_type node_cnt=0;								// counter for the nodes
+            size_type node_cnt=0;                                // counter for the nodes
             for (size_type i=0; i < 256; ++i) // add leafs of Huffman tree
                 if (C[i] > 0) {
                     pq.push(tPII(C[i], node_cnt));   // push (frequency, pointer to node)
@@ -219,7 +228,7 @@ class wt_huff {
             q.push_back(0);
             while (!q.empty()) {
                 size_type idx;
-                if (!dfs_shape) {
+                if (!t_dfs_shape) {
                     idx = q.front(); q.pop_front();
                 } else {
                     idx = q.back(); q.pop_back();
@@ -227,7 +236,7 @@ class wt_huff {
                 size_type frq = m_nodes[idx].tree_pos; // frq_sum was stored in tree_pos
                 m_nodes[idx].tree_pos = tree_size;
                 if (m_nodes[idx].child[0] != _undef_node)  // if node is not a leaf
-                    tree_size += frq;					   // add frequency, as leaves have size 0
+                    tree_size += frq;                       // add frequency, as leaves have size 0
                 if (idx > 0) { // node is not the root
                     if (last_parent != m_nodes[idx].parent)
                         m_nodes[m_nodes[idx].parent].child[0] = idx;
@@ -236,7 +245,7 @@ class wt_huff {
                     last_parent = m_nodes[idx].parent;
                 }
                 if (m_nodes[idx].child[0] != _undef_node) { // if node is not a leaf
-                    for (size_type k=0; k<2; ++k) {			// add children to tree
+                    for (size_type k=0; k<2; ++k) {            // add children to tree
                         m_nodes[node_cnt] = temp_nodes[ m_nodes[idx].child[k] ];
                         m_nodes[node_cnt].parent = idx;
                         q.push_back(node_cnt);
@@ -249,14 +258,14 @@ class wt_huff {
             for (size_type i=0; i<256; ++i)
                 m_c_to_leaf[i] = _undef_node; // if c is not in the alphabet m_c_to_leaf[c] = _undef_node
             for (size_type i=0; i < 2*sigma-1; ++i) {
-                if (m_nodes[i].child[0] == _undef_node) 				// if node is a leaf
+                if (m_nodes[i].child[0] == _undef_node)                 // if node is a leaf
                     m_c_to_leaf[(uint8_t)m_nodes[i].tree_pos_rank] = i; // calculate value
             }
             // initialize path information
             // Note: In the case of a bfs search order,
-            // we can classify nodes as rigth child and left child with an easy criterion:
-            //       node is a left child, if node%2==1
-            //       node is a rigth child, if node%2==0
+            // we can classify nodes as right child and left child with an easy criterion:
+            //   node is a left child, if node%2==1
+            //   node is a right child, if node%2==0
             for (size_type c=0; c<256; ++c) {
                 if (m_c_to_leaf[c] != _undef_node) { // if char exists in the alphabet
                     size_type node = m_c_to_leaf[c];
@@ -340,10 +349,10 @@ class wt_huff {
 
         // Construct the wavelet tree from a random access container
         /*
-         *	\param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
-         *	\param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
-         *	\par Time complexity
-         *		\f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
+         *    \param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
+         *    \param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
+         *    \par Time complexity
+         *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
         template<typename RandomAccessContainer>
         wt_huff(const RandomAccessContainer& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
@@ -353,11 +362,11 @@ class wt_huff {
         }
 
         //! Construct the wavelet tree from a file_buffer
-        /*! \param input_buf 	File buffer of the input.
-         *	\param size 		The length of the prefix of the random access container, for which the wavelet tree should be build.
+        /*! \param input_buf     File buffer of the input.
+         *  \param size         The length of the prefix of the random access container, for which the wavelet tree should be build.
          */
         wt_huff(int_vector_file_buffer<8>& input_buf, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
-            if ( 0 == m_size )
+            if (0 == m_size)
                 return;
             // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
             size_type C[256] = {0};
@@ -387,7 +396,7 @@ class wt_huff {
                 uint8_t old_chr = input_buf[i-r_sum], times = 0;
                 for (; i < r_sum+r; ++i) {
                     uint8_t chr = input_buf[i-r_sum];
-                    if (chr	!= old_chr) {
+                    if (chr    != old_chr) {
                         insert_char(old_chr, tree_pos, times, tmp_tree);
                         times = 1;
                         old_chr = chr;
@@ -455,15 +464,15 @@ class wt_huff {
             return m_size == 0;
         }
 
-        //! Recovers the ith symbol of the original vector.
+        //! Recovers the i-th symbol of the original vector.
         /*! \param i The index of the symbol in the original vector. \f$i \in [0..size()-1]\f$
-         *	\return The ith symbol of the original vector.
+         *  \return The i-th symbol of the original vector.
          *  \par Time complexity
-         *		\f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order entropy
+         *        \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order entropy
          *      of the sequence.
          */
         value_type operator[](size_type i)const { // TODO: Maybe it is good to integrate a cache here
-			assert( i < size() );
+            assert(i < size());
             // which stores how many of the next symbols are equal
             // with the current char
             size_type node = 0; // start at root node
@@ -483,12 +492,12 @@ class wt_huff {
         /*!
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
          *  \param c The symbol to count the occurrences in the prefix.
-         *	\return The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
+         *    \return The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
          *  \par Time complexity
-         *		\f$ \Order{H_0} \f$
+         *        \f$ \Order{H_0} \f$
          */
         size_type rank(size_type i, value_type c)const {
-			assert( i <= size() );
+            assert(i <= size());
             uint64_t p = m_path[c];
             uint32_t path_len = (m_path[c]>>56); // equals zero if char was not present in the original text or m_sigma=1
             if (!path_len and 1 == m_sigma) {    // if m_sigma == 1 return result immediately
@@ -501,7 +510,7 @@ class wt_huff {
             uint32_t node=0;
             for (uint32_t l=0; l<path_len and result; ++l, p >>= 1) {
                 if (p&1) {
-                    result 	= (m_tree_rank(m_nodes[node].tree_pos+result) -  m_nodes[node].tree_pos_rank);
+                    result     = (m_tree_rank(m_nodes[node].tree_pos+result) -  m_nodes[node].tree_pos_rank);
                 } else {
                     result -= (m_tree_rank(m_nodes[node].tree_pos+result) -  m_nodes[node].tree_pos_rank);
                 }
@@ -512,19 +521,19 @@ class wt_huff {
 
         //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the original sequence.
         /*!
-         *	\param i The index of the symbol.
+         *  \param i The index of the symbol.
          *  \param c Reference that will contain symbol wt[i].
          *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
-         *	\par Time complexity
-         *		\f$ \Order{H_0} \f$
+         *  \par Time complexity
+         *        \f$ \Order{H_0} \f$
          */
         size_type inverse_select(size_type i, value_type& c)const {
             // TODO: handle m_sigma=1
-            assert( i < size() );
+            assert(i < size());
             uint32_t node=0;
             while (m_nodes[node].child[0] != _undef_node) { // while node is not a leaf
                 if (m_tree[m_nodes[node].tree_pos + i]) { // if bit is set at position goto right child
-                    i 	= (m_tree_rank(m_nodes[node].tree_pos + i) -  m_nodes[node].tree_pos_rank);
+                    i     = (m_tree_rank(m_nodes[node].tree_pos + i) -  m_nodes[node].tree_pos_rank);
                     node = m_nodes[node].child[1];
                 } else { // goto left child
                     i -= (m_tree_rank(m_nodes[node].tree_pos + i) -  m_nodes[node].tree_pos_rank);
@@ -540,24 +549,24 @@ class wt_huff {
          *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
          *  \param c The symbol c.
          *  \par Time complexity
-         *		\f$ \Order{H_0} \f$
+         *        \f$ \Order{H_0} \f$
          */
         size_type select(size_type i, value_type c)const {
-			assert( i > 0 );
-			assert( i <= rank(size(), c) );
+            assert(i > 0);
+            assert(i <= rank(size(), c));
             uint16_t node = m_c_to_leaf[c];
             if (node == _undef_node) { // if c was not present in the original text
-                return m_size;		   // -> return a position right to the end
+                return m_size;           // -> return a position right to the end
             }
             if (m_sigma == 1) {
                 return std::min(i-1,m_size);
             }
-            size_type result = i-1;		// otherwise
+            size_type result = i-1;        // otherwise
             uint64_t p = m_path[c];
             uint32_t path_len = (p>>56);
             p <<= (64-path_len); // Note: path_len > 0, since we have handled m_sigma = 1.
             for (uint32_t l=0; l<path_len; ++l, p <<= 1) {
-//			if( node & 1 ){ // node was a left child, in the case of bfs order
+//            if( node & 1 ){ // node was a left child, in the case of bfs order
                 if ((p & 0x8000000000000000ULL)==0) { // node was a left child
                     node = m_nodes[node].parent;
                     result = m_tree_select0(m_nodes[node].tree_pos-m_nodes[node].tree_pos_rank + result + 1)
@@ -574,14 +583,14 @@ class wt_huff {
 
         //! Calculates for each symbol c in wt[i..j-1], how many times c occurs in wt[0..i-1] and wt[0..j-1].
         /*!
-         *	\param i The start index (inclusive) of the interval.
-         *	\param j The end index (exclusive) of the interval.
-         *	\param k Reference that will contain the number of different symbols in wt[i..j-1].
+         *  \param i The start index (inclusive) of the interval.
+         *  \param j The end index (exclusive) of the interval.
+         *  \param k Reference that will contain the number of different symbols in wt[i..j-1].
          *  \param cs Reference to a vector of size k that will contain all symbols that occur in wt[i..j-1] in arbitrary order.
          *  \param rank_c_i Reference to a vector which equals rank_c_i[p] = rank(i,cs[p]), for \f$ 0 \leq p < k \f$
          *  \param rank_c_j Reference to a vector which equals rank_c_j[p] = rank(j,cs[p]), for \f$ 0 \leq p < k \f$
-         *	\par Time complexity
-         *		\f$ \Order{\min{\sigma, k \log \sigma}} \f$
+         *    \par Time complexity
+         *        \f$ \Order{\min{\sigma, k \log \sigma}} \f$
          *
          *  \par Precondition
          *       \f$ i\leq j \f$
