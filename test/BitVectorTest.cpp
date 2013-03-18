@@ -97,8 +97,7 @@ sdsl::bit_vector,
      sdsl::rrr_vector<127>,
      sdsl::rrr_vector<128>,
      sdsl::sd_vector<>,
-     sdsl::sd_vector<sdsl::rrr_vector<63> >,
-     sdsl::gap_vector<>
+     sdsl::sd_vector<sdsl::rrr_vector<63> >
      > Implementations;
 
 TYPED_TEST_CASE(BitVectorTest, Implementations);

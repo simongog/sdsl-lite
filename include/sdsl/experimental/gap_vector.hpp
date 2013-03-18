@@ -29,14 +29,14 @@
 namespace sdsl
 {
 
-template<bool b=true>// forward declaration needed for friend declaration
+template<bool t_b=true>// forward declaration needed for friend declaration
 class gap_rank_support;  // in gap_vector
 
-template<bool b=true>// forward declaration needed for friend declaration
+template<bool t_b=true>// forward declaration needed for friend declaration
 class gap_select_support;  // in gap_vector
 
-//! A bit vector which compresses very sparse populated bit vectors by representing the 1 or 0 by gap encoding
-template<bool b=true>
+//! A bit vector which compresses very sparse populated bit vectors by representing either 1's or 0's by gap encoding
+template<bool t_b=true>
 class gap_vector
 {
     public:
@@ -125,12 +125,12 @@ class gap_vector
         }
 };
 
-template<bool b>
+template<bool t_b>
 class gap_rank_support
 {
     public:
         typedef bit_vector::size_type size_type;
-        typedef gap_vector<b> bit_vector_type;
+        typedef gap_vector<t_b> bit_vector_type;
     private:
         const bit_vector_type* m_v;
 
@@ -191,12 +191,12 @@ class gap_rank_support
 
 
 
-template<bool b>
+template<bool t_b>
 class gap_select_support
 {
     public:
         typedef bit_vector::size_type size_type;
-        typedef gap_vector<b> bit_vector_type;
+        typedef gap_vector<t_b> bit_vector_type;
     private:
         const bit_vector_type* m_v;
 
