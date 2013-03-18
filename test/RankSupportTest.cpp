@@ -4,7 +4,6 @@
 #include "sdsl/rrr_vector.hpp" // for rank_support_rrr
 #include "sdsl/bit_vector_il.hpp" // for rank_support_interleaved
 #include "sdsl/sd_vector.hpp" // for rank_support_sd
-#include "sdsl/gap_vector.hpp" // for gap_rank_support
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()
@@ -104,8 +103,7 @@ sdsl::rank_support_il<1,256>,
      sdsl::rank_support_rrr<1, 127>,
      sdsl::rank_support_rrr<1, 128>,
      sdsl::rank_support_rrr<1, 129>,
-     sdsl::rank_support_sd<>,
-     sdsl::gap_rank_support<>,
+     sdsl::rank_support_sd<>
      > Implementations;
 
 TYPED_TEST_CASE(RankSupportTest, Implementations);
