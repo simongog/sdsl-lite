@@ -24,11 +24,11 @@
 #include "bit_magic.hpp"
 #include "typedefs.hpp"
 #include "structure_tree.hpp"
+#include "sfstream.hpp"
 #include "config.hpp"  // for constants 
 #include <iosfwd>      // forward declaration of ostream
 #include <stdint.h>    // for uint64_t uint32_t declaration
 #include <cassert>
-#include <fstream>     // file stream for storeToFile and loadFromFile
 #include <ctime>       // for rand initialization
 #include <string>
 #include <locale>       // for class_to_hash
@@ -163,13 +163,13 @@ typename t_int_vec::size_type prev_bit(const t_int_vec& v, uint64_t idx);
 //============= Handling files =============================
 
 //! Get the size of a file in bytes
-off_t file_size(const std::string& file_name);
+off_t file_size(const std::string& file);
 
-//! Returns the basename of a file_name
-std::string basename(const std::string& file_name);
+//! Returns the basename of a file
+std::string basename(const std::string& file);
 
-//! Returns the directory of a file_name. Trailing / are removed.
-std::string dirname(const std::string& file_name);
+//! Returns the directory of a file. Trailing / are removed.
+std::string dirname(const std::string& file);
 
 
 
@@ -178,40 +178,40 @@ std::string dirname(const std::string& file_name);
 //! Load a data structure from a file.
 /*! The data structure has to provide a load function.
  * \param v Data structure to load.
- * \param file_name Name of the serialized file.
+ * \param file Name of the serialized file.
  */
 template<class T>
-bool load_from_file(T& v, const std::string& file_name);
+bool load_from_file(T& v, const std::string& file);
 
 template<>
-bool load_from_file(void*&, const std::string& file_name);
+bool load_from_file(void*&, const std::string& file);
 
 //! Specialization of load_from_file for a char array
 /*  \pre v=NULL
  */
-bool load_from_file(char*& v, const std::string& file_name);
+bool load_from_file(char*& v, const std::string& file);
 
 
 
 //! Load an int_vector from a plain array of `num_bytes`-byte integers with X in \{0, 1,2,4,8\} from disk.
 // TODO: Remove ENDIAN dependency: currently in BIG_ENDIAN format
 template<class t_int_vec>
-bool load_vector_from_file(t_int_vec& v, const std::string& file_name, uint8_t num_bytes=1, uint8_t max_int_width=64)
+bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_bytes=1, uint8_t max_int_width=64)
 {
     if ((uint8_t)0 == num_bytes) {  // if byte size is variable read int_vector<0> from file
-        return load_from_file(v, file_name);
+        return load_from_file(v, file);
     } else {
-        off_t file_size = util::file_size(file_name);
+        off_t file_size = util::file_size(file);
         if (file_size == 0) {
             v.resize(0);
             return true;
         }
         if (file_size % num_bytes != 0) {
-            throw std::logic_error("file size "+to_string(file_size)+" of \""+ file_name
+            throw std::logic_error("file size "+to_string(file_size)+" of \""+ file
                                    +"\" is not a multiple of "+to_string(num_bytes));
             return false;
         }
-        std::ifstream in(file_name.c_str());
+        isfstream in(file);
         if (in) {
             v.width(std::min((int)8*num_bytes, (int)max_int_width));
             v.resize(file_size / num_bytes);
@@ -254,25 +254,25 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file_name, uint8_t n
 //! Store a data structure to a file.
 /*! The data structure has to provide a serialize function.
  *  \param v Data structure to store.
- *  \param file_name Name of the file where to store the data structure.
+ *  \param file Name of the file where to store the data structure.
  *  \param Return if the data structure was stored successfully
  */
 template<class T>
-bool store_to_file(const T& v, const std::string& file_name);
+bool store_to_file(const T& v, const std::string& file);
 
 //! Specialization of store_to_file for a char array
-bool store_to_file(const char* v, const std::string& file_name);
+bool store_to_file(const char* v, const std::string& file);
 
 //! Specialization of store_to_file for int_vector
 template<uint8_t fixed_int_width>
-bool store_to_file(const int_vector<fixed_int_width>& v, const std::string& file_name, bool write_fixed_as_variable=false);
+bool store_to_file(const int_vector<fixed_int_width>& v, const std::string& file, bool write_fixed_as_variable=false);
 
 
 //! Store an int_vector as plain int_type array to disk
 template<class int_type, class t_int_vec>
-bool store_to_plain_array(t_int_vec& v, const std::string& file_name)
+bool store_to_plain_array(t_int_vec& v, const std::string& file)
 {
-    std::ofstream out(file_name.c_str());
+    osfstream out(file);
     if (out) {
         for (typename t_int_vec::size_type i=0; i<v.size(); ++i) {
             int_type x = v[i];
@@ -404,7 +404,7 @@ size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::stru
 }
 
 //! Load all elements of a vector from a input stream
-/*! \param vec    Vector whose elements should be loaded.
+/*! \param vec  Vector whose elements should be loaded.
  *  \param in   Input stream.
  *  \par Note
  *   The vector has to be resized prior the loading
@@ -555,15 +555,15 @@ bool cache_file_exists(const std::string& key, const cache_config& config);
 template<class T>
 bool load_from_cache(T& v, const std::string& key, const cache_config& config)
 {
-    std::string file_name = cache_file_name(key, config);
-    if (load_from_file(v, file_name)) {
+    std::string file = cache_file_name(key, config);
+    if (load_from_file(v, file)) {
         if (util::verbose) {
-            std::cerr << "Load `" << file_name << std::endl;
+            std::cerr << "Load `" << file << std::endl;
         }
         return true;
     } else {
         std::cerr << "WARNING: Could not load file '";
-        std::cerr << file_name << "'" << std::endl;
+        std::cerr << file << "'" << std::endl;
         return false;
     }
 }
@@ -575,11 +575,13 @@ bool load_from_cache(T& v, const std::string& key, const cache_config& config)
 template<class T>
 bool store_to_cache(const T& v, const std::string& key, cache_config& config)
 {
-    std::string file_name = cache_file_name(key, config);
-    if (store_to_file(v, file_name)) {
-        config.file_map[std::string(key)] = file_name;
+    std::string file = cache_file_name(key, config);
+    if (store_to_file(v, file)) {
+        config.file_map[std::string(key)] = file;
+        std::cerr<<"store_to_cache: could not store file `"<< file <<"`" << std::endl;
         return true;
     } else {
+        std::cerr<<"WARNING: store_to_cache: could not store file `"<< file <<"`" << std::endl;
         return false;
     }
 }
@@ -681,28 +683,26 @@ double util::get_size_in_mega_bytes(const T& t)
 }
 
 template<class T>
-bool util::store_to_file(const T& t, const std::string& file_name)
+bool util::store_to_file(const T& t, const std::string& file)
 {
-    std::ofstream out;
-    out.open(file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out);
+    osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out) {
         if (util::verbose) {
-            std::cerr<<"ERROR: store_to_file not successful for: `"<<file_name<<"`"<<std::endl;
+            std::cerr<<"ERROR: store_to_file not successful for: `"<<file<<"`"<<std::endl;
         }
         return false;
     }
     t.serialize(out);
     out.close();
     if (util::verbose) {
-        std::cerr<<"INFO: store_to_file: `"<<file_name<<"`"<<std::endl;
+        std::cerr<<"INFO: store_to_file: `"<<file<<"`"<<std::endl;
     }
     return true;
 }
 
-inline bool util::store_to_file(const char* v, const std::string& file_name)
+inline bool util::store_to_file(const char* v, const std::string& file)
 {
-    std::ofstream out;
-    out.open(file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out);
+    osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out)
         return false;
     uint64_t n = strlen((const char*)v);
@@ -712,32 +712,36 @@ inline bool util::store_to_file(const char* v, const std::string& file_name)
 }
 
 template<uint8_t fixed_int_width>
-bool util::store_to_file(const int_vector<fixed_int_width>& v, const std::string& file_name, bool write_fixed_as_variable)
+bool util::store_to_file(const int_vector<fixed_int_width>& v, const std::string& file, bool write_fixed_as_variable)
 {
-    std::ofstream out;
-    out.open(file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out);
-    if (!out)
+    osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
+    if (!out) {
+        std::cerr<<"ERROR: util::store_to_file:: Could not open file `"<<file<<"`"<<std::endl;
         return false;
+    } else {
+        if (util::verbose) {
+            std::cerr<<"INFO: store_to_file: `"<<file<<"`"<<std::endl;
+        }
+    }
     v.serialize(out, NULL, "", write_fixed_as_variable);
     out.close();
     return true;
 }
 
 template<class T>
-bool util::load_from_file(T& v, const std::string& file_name)
+bool util::load_from_file(T& v, const std::string& file)
 {
-    std::ifstream in;
-    in.open(file_name.c_str(), std::ios::binary | std::ios::in);
+    isfstream in(file, std::ios::binary | std::ios::in);
     if (!in) {
         if (util::verbose) {
-            std::cerr << "Could not load file `" << file_name << "`" << std::endl;
+            std::cerr << "Could not load file `" << file << "`" << std::endl;
         }
         return false;
     }
     v.load(in);
     in.close();
     if (util::verbose) {
-        std::cerr << "Load file `" << file_name << "`" << std::endl;
+        std::cerr << "Load file `" << file << "`" << std::endl;
     }
     return true;
 }

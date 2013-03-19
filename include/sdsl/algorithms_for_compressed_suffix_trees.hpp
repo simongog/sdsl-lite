@@ -345,11 +345,11 @@ int_vector_size_type construct_first_child_and_lf_lcp(int_vector_file_buffer<fix
     bwt_buf.reset(buf_len);
     size_type n = lcp_buf.int_vector_size;
 
-    std::ofstream sml_lcp_out(small_lcp_file_name.c_str());
+    osfstream sml_lcp_out(small_lcp_file_name);
     size_type bit_size = 8*n;
     sml_lcp_out.write((char*) &bit_size, sizeof(bit_size));
 
-    std::ofstream big_lcp_out(big_lcp_file_name.c_str());
+    osfstream big_lcp_out(big_lcp_file_name);
 
     size_type fc_cnt = 0; // number of lcp values at the first child r
     size_type fc_cnt_big = 0; // number of lcp values at the first child which are big and not reducable
@@ -427,7 +427,7 @@ int_vector_size_type construct_first_child_and_lf_lcp(int_vector_file_buffer<fix
     sml_lcp_out.close();
 
     big_lcp_out.close();
-    std::ifstream big_lcp_in(big_lcp_file_name.c_str());
+    isfstream big_lcp_in(big_lcp_file_name);
     big_lcp.width(bit_magic::l1BP(max_lcp)+1);
     big_lcp.resize(fc_cnt_big);
 
@@ -436,7 +436,7 @@ int_vector_size_type construct_first_child_and_lf_lcp(int_vector_file_buffer<fix
         big_lcp[i] = y;
     }
     big_lcp_in.close();
-    std::remove(big_lcp_file_name.c_str());
+    sdsl::remove(big_lcp_file_name);
 
 //    std::cout<<"#n="<<n<<" fc_cnt="<<fc_cnt<<" fc_cnt_big="<<fc_cnt_big<<" fc_cnt_big2="<<fc_cnt_big2<<std::endl;
 

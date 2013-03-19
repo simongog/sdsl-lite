@@ -182,15 +182,16 @@ a self-contained object \code{t} (e.g. add functionality), but
 needs access to \code{t}. 
 
 \subsection{Unsigned Integer Vectors}
-The core of the libary is the class 
+The core of the library is the class 
 \href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslintvector\textless$w$\textgreater}.
-Paramter $w$ corresonds to the fixed length of each
-element in bits.  For $w=8,16,32,64$ the length is
+Parameter $w$ corresponds to the fixed length of each
+element in bits.  For $w=8,16,32,64,1$ the length is
 fixed during compile time and the vectors
-correspond to \href{http://www.sgi.com/tech/stl/Vector.html}{\code{std::vector\textless uint$w$\_t\textgreater}}. 
+correspond to \href{http://www.sgi.com/tech/stl/Vector.html}{\code{std::vector\textless uint$w$\_t\textgreater}}
+resp. \code{std::vector<bool>}.
 If $w=0$ (default) the length can be set during runtime.
-\textit{Constructor:} \sdslintvectorZ\code{($n$, $x$, $\ell$)}, where
-$n$ size in integers, $x$ default integer value, $\ell$ width
+\textit{Constructor:} \sdslintvectorZ\code{($n$, $x$, $\ell$)}, with 
+$n$ equals size, $x$ default integer value, $\ell$ width
 of integer (has no effect for $w>0$).
 
 \textit{Public~methods:} \code{operator[i]}, \code{size()}, \code{width()}, 
@@ -241,8 +242,13 @@ $H_0$-compressed bitvector & $\approx \lceil \log {m\choose n} \rceil$ \\
 \href{\sdslgit/include/sdsl/sd_vector.hpp}{\sdslsdvector}  & sparse bitvector
 & $\approx\ 2 m\cdot log\frac{n}{m}$ \\	
 \end{tabular}
+\sdslbitvector\ equals \sdslintvector\code{\textless1\textgreater} and
+is therefore dynamic.\\
+\textit{Public Methods:} \code{operator[]}, \code{size()}\\
 \textit{Public Types:} \code{rank\_1\_type}, \code{select\_1\_type},
                        \code{select\_0\_type}\footnote{\code{select\_0\_type} not defined for \sdslsdvector.}.
+Each bitvector can be constructed out of an
+\sdslbitvector\ object.
 
 \subsection{Rank Supports (RS)}
 RS adds rank functionality to BV. Method
@@ -433,7 +439,7 @@ $2n+o(n)$    & \Order{1} \\
 
 \section{Constructing data structures}
 Let \code{x} be a WT-, CSA-, or CST-object.
-Object \code{x} is build with \code{construct(x,file,num\_bytes=0)}
+Object \code{x} is built with \code{construct(x,file,num\_bytes=0)}
 from a sequence stored in \code{file}. File is interpreted
 dependent on the value of \code{num\_bytes}:
 
@@ -444,9 +450,9 @@ dependent on the value of \code{num\_bytes}:
 \textit{Value}      & \textit{File interpreted as}  \\
 \code{num\_bytes=0} & serialized \code{int\_vector<>}.\\
 \code{num\_bytes=1} & byte sequence of length \code{util::file\_size(file)}.\\
-\code{num\_bytes=2} & 16-bit word sequence.\\
-\code{num\_bytes=4} & 32-bit word sequence.\\
-\code{num\_bytes=8} & 64-bit word sequence.\\	
+\code{num\_bytes=2} & 16-bit word sequence (little endian).\\
+\code{num\_bytes=4} & 32-bit word sequence (little endian).\\
+\code{num\_bytes=8} & 64-bit word sequence (little endian).\\	
 \end{tabular}
 
 
@@ -475,6 +481,7 @@ TODO: mention io wrappers
 Store an \sdsl\ object \code{x} to \code{file}. \\
 \code{x.serialize(out)}\\
 Write \sdsl\ object \code{x} to \code{std::ostream}-object \code{out}.\\
+TODO: add \code{serialize\_vector}	  \\
 \end{tabular}
 
 

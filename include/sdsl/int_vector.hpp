@@ -35,6 +35,8 @@
 #include "uintx_t.hpp"
 
 #include "memory_management.hpp"
+#include "ram_fs.hpp"
+#include "sfstream.hpp"
 
 #include <iosfwd>    // forward declaration of ostream
 #include <stdexcept> // for exceptions
@@ -1415,16 +1417,16 @@ class int_vector_file_buffer
 
     private:
 
-        std::ifstream m_in;
-        uint64_t* m_buf;
-        size_type m_off; // offset in the first 64bit word of the buffer
-        size_type m_read_values; // number of values read in the last buffer operation
-        size_type m_len;
-        size_type m_int_vector_size;
-        size_type m_read_values_sum;
-        int_width_type   m_width;
-        std::string m_file_name;
-        bool	m_load_from_plain;
+        isfstream      m_in;
+        uint64_t*      m_buf;
+        size_type      m_off; // offset in the first 64bit word of the buffer
+        size_type      m_read_values; // number of values read in the last buffer operation
+        size_type      m_len;
+        size_type      m_int_vector_size;
+        size_type      m_read_values_sum;
+        int_width_type m_width;
+        std::string    m_file_name;
+        bool	       m_load_from_plain;
 
         void load_size_and_width() {
             int_vector_trait<t_width>::read_header(m_int_vector_size, m_width, m_in);
@@ -1470,7 +1472,7 @@ class int_vector_file_buffer
                 return;
             }
             m_file_name = f_file_name;
-            m_in.open(m_file_name.c_str());
+            m_in.open(m_file_name);
             if (m_in.is_open()) {
                 load_size_and_width();
                 m_buf = new uint64_t[(m_len*m_width+63)/64 + 2];
@@ -1504,6 +1506,7 @@ class int_vector_file_buffer
         bool reset(size_type new_buf_len=0) {
             m_in.clear();
             if (!m_in.seekg(0, std::ios::beg)) {
+                std::cout<<"m_file_name="<<m_file_name<<std::endl;
                 throw std::ios_base::failure("int_vector_file_buffer: reset()");
                 return false;
             };
@@ -1568,7 +1571,7 @@ class int_vector_file_buffer
 
         ~int_vector_file_buffer() {
             if (m_in.is_open()) {
-                m_in.close(); // close ifstream
+                m_in.close(); // close stream
                 delete [] m_buf;
             }
         }

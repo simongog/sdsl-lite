@@ -23,11 +23,11 @@
 
 #include "typedefs.hpp"
 #include "int_vector.hpp"
+#include "sfstream.hpp"
 #include "util.hpp"
 #include "config.hpp" // for cache_config
 
 #include <iostream>
-#include <fstream>
 #include <stdexcept>
 #include <list>
 
@@ -47,18 +47,19 @@ namespace sdsl
  *         * constants::KEY_BWT for t_width=8 or constants::KEY_BWT_INT for t_width=0
  */
 template<uint8_t t_width>
-void construct_bwt(cache_config& config){
+void construct_bwt(cache_config& config)
+{
     typedef int_vector<>::size_type size_type;
     typedef int_vector<t_width> text_type;
     typedef int_vector<t_width> bwt_type;
-    const char * KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
-    const char * KEY_BWT = key_bwt_trait<t_width>::KEY_BWT;
+    const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
+    const char* KEY_BWT = key_bwt_trait<t_width>::KEY_BWT;
 
     //  (1) Load text from disk
     write_R_output("bwt", "load text", "begin", 1, 0);
     text_type text;
     util::load_from_cache(text, KEY_TEXT, config);
-    size_type n = text.size(); 
+    size_type n = text.size();
     uint8_t bwt_width = text.width();
     write_R_output("bwt", "load text", "end", 1, 0);
 
@@ -71,10 +72,10 @@ void construct_bwt(cache_config& config){
     bwt_type bwt_buf(buffer_size, 0, bwt_width);
 
     std::string bwt_file = util::cache_file_name(KEY_BWT, config);
-    std::ofstream bwt_out_buf(bwt_file.c_str(), std::ios::binary | std::ios::app | std::ios::out);   // open buffer for bwt
+    osfstream bwt_out_buf(bwt_file, std::ios::binary | std::ios::app | std::ios::out);   // open buffer for bwt
     size_type bit_size = n*bwt_width;
     bwt_out_buf.write((char*) &(bit_size), sizeof(bit_size));	// write size of vector
-    if ( t_width != 8) {
+    if (t_width != 8) {
         bwt_out_buf.write((char*) &(bwt_width),sizeof(bwt_width));  // write int_width of vector
     }
     write_R_output("bwt", "prepare io", "end", 1, 0);
@@ -85,7 +86,7 @@ void construct_bwt(cache_config& config){
     size_type to_add[2] = {(size_type)-1,n-1};
     for (size_type i=0, r_sum=0, r=0; r_sum < n;) {
         for (; i < r_sum+r; ++i) {
-            bwt_buf[i-r_sum] = text[ sa_buf[i-r_sum]+to_add[sa_buf[i-r_sum]==0] ]; 
+            bwt_buf[i-r_sum] = text[ sa_buf[i-r_sum]+to_add[sa_buf[i-r_sum]==0] ];
         }
         if (r > 0) {
             size_type cur_wb = (r*bwt_buf.width()+7)/8;
@@ -104,7 +105,7 @@ void construct_bwt(cache_config& config){
 }
 
 template <class T_charsize, class T_nsize, class int_vector_type >
-void _construct_bwt_from_text(std::string text_filename, uint64_t sigma, int_vector_type &bwt, uint64_t rekursion);
+void _construct_bwt_from_text(std::string text_filename, uint64_t sigma, int_vector_type& bwt, uint64_t rekursion);
 
 //! Constructs the Burrows and Wheeler Transform (BWT) from text over byte-alphabet.
 /*! The algorithm constructs the BWT and stores it to disk.
@@ -239,7 +240,7 @@ void _construct_bwt_from_text(std::string text_filename, uint64_t sigma, int_vec
 				}
 			}
 			util::clear(text);
-			{ 
+			{
 				// Order lms_positions according to first character
 				int_vector<> lms_strings(number_of_lms_strings, 0, int_width);
 				for(size_t i=0; i<lms_positions_pointer; )
