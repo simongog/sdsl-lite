@@ -134,7 +134,7 @@ class wt_rlmn
         wt_rlmn(int_vector_file_buffer<8>& text_buf, size_type size):m_size(size), sigma(m_wt.sigma) {
             // TODO: remove absolute file name
             std::string temp_file = "tmp_wt_rlmn_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
-            std::ofstream wt_out(temp_file.c_str(), std::ios::binary | std::ios::trunc);
+            osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
             {
@@ -192,7 +192,7 @@ class wt_rlmn
                 {
                     int_vector_file_buffer<8> temp_bwt_buf(temp_file);
                     util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
-                    std::remove(temp_file.c_str());
+                    remove(temp_file);
                 }
                 util::assign(m_bl, bl);
                 util::assign(m_bf, bf);

@@ -34,7 +34,6 @@
 #include <stdexcept>
 #include <vector>
 #include <utility> // for pair
-#include <queue>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -118,7 +117,7 @@ class wt_rlg8
         wt_rlg8(int_vector_file_buffer<8>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
             // TODO: remove absolute file name
             std::string temp_file = "wt_rlg8_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
-            std::ofstream wt_out(temp_file.c_str(), std::ios::binary | std::ios::trunc);
+            osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
 
@@ -241,7 +240,7 @@ class wt_rlg8
                     m_char_occ[cc] = m_wt.rank(m_wt.size(), c);
                 }
             }
-            std::remove(temp_file.c_str());
+            remove(temp_file);
         }
 
         //! Copy constructor

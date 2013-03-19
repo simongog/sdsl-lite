@@ -34,7 +34,6 @@
 #include <stdexcept>
 #include <vector>
 #include <utility> // for pair
-#include <queue>
 
 
 //! Namespace for the succinct data structure library.
@@ -123,7 +122,7 @@ class wt_rlg
             typedef int_vector_size_type size_type;
             // TODO: remove absolute file name
             std::string temp_file = "wt_rlg_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
-            std::ofstream wt_out(temp_file.c_str(), std::ios::binary | std::ios::trunc);
+            osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
 
@@ -242,7 +241,7 @@ class wt_rlg
                     m_char_occ[cc] = m_wt.rank(m_wt.size(), c);
                 }
             }
-            std::remove(temp_file.c_str());
+            remove(temp_file);
         }
 
         //! Copy constructor
