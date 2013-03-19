@@ -22,7 +22,6 @@ void check_node_method(const tCst& cst)
     for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it) {
         if (it.visit() == 1) {
             node_type v = *it;
-            size_type d = cst.depth(v);
             size_type lb = cst.lb(v), rb = cst.rb(v);
             ASSERT_EQ(v, cst.node(lb, rb));
         }
