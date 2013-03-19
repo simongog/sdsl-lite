@@ -9,10 +9,11 @@ if [ $# -ge 1 ]; then
 fi
 
 # Get absolute path name of install directory
+mkdir -p ${SDSL_INSTALL_PREFIX}
 cd ${SDSL_INSTALL_PREFIX}  > /dev/null 2>&1
 if [ $? != 0 ] ; then
-	echo "ERROR: directory '${SDSL_INSTALL_PREFIX}' does not exist."
-	echo "Please choose an existing directory."
+	echo "ERROR: directory '${SDSL_INSTALL_PREFIX}' does not exist nor could be created."
+	echo "Please choose another directory."
 	exit 1
 else
 	SDSL_INSTALL_PREFIX=`pwd -P`
