@@ -9,8 +9,8 @@ if [ $# -ge 1 ]; then
 fi
 
 # Get absolute path name of install directory
-mkdir -p ${SDSL_INSTALL_PREFIX}
-cd ${SDSL_INSTALL_PREFIX}  > /dev/null 2>&1
+mkdir -p "${SDSL_INSTALL_PREFIX}" 2> /dev/null
+cd "${SDSL_INSTALL_PREFIX}" > /dev/null 2>&1
 if [ $? != 0 ] ; then
 	echo "ERROR: directory '${SDSL_INSTALL_PREFIX}' does not exist nor could be created."
 	echo "Please choose another directory."
@@ -19,7 +19,7 @@ else
 	SDSL_INSTALL_PREFIX=`pwd -P`
 fi
 
-echo "Library will be installed in ${SDSL_INSTALL_PREFIX}"
+echo "Library will be installed in '${SDSL_INSTALL_PREFIX}'"
 
 cd "${CUR_DIR}"
 OLD_DIR="$( cd "$( dirname "$0" )" && pwd )" # gets the directory where the script is located in
@@ -52,7 +52,7 @@ if [ $? != 0 ]; then
 fi
 rm -f CMakeCache.txt
 
-cmake -DCMAKE_INSTALL_PREFIX=${SDSL_INSTALL_PREFIX} .. # run cmake 
+cmake -DCMAKE_INSTALL_PREFIX="${SDSL_INSTALL_PREFIX}" .. # run cmake 
 if [ $? != 0 ]; then
 	echo "ERROR: CMake build failed."
 	exit 1
@@ -63,12 +63,12 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 echo "Removing old files"
-echo "rm -rf ${SDSL_INSTALL_PREFIX}/include/sdsl/*"
+echo "rm -rf '${SDSL_INSTALL_PREFIX}/include/sdsl/*'"
 rm -rf "${SDSL_INSTALL_PREFIX}/include/sdsl/*"
 if [ $? != 0 ]; then
 	echo "WARNING: Could not remove old header files."
 fi
-echo "rm -f ${SDSL_INSTALL_PREFIX}/lib/libsdsl*"
+echo "rm -f '${SDSL_INSTALL_PREFIX}/lib/libsdsl*'"
 rm -f "${SDSL_INSTALL_PREFIX}/lib/libsdsl*"
 if [ $? != 0 ]; then
 	echo "WARNING: Could not remove old library file."
@@ -87,8 +87,8 @@ if [ "`pwd`" != "${OLD_DIR}" ]; then
 fi
 
 echo "SUCCESS: sdsl was installed successfully!"
-echo "The sdsl include files are located in ${SDSL_INSTALL_PREFIX}/include."
-echo "The library files are located in ${SDSL_INSTALL_PREFIX}/lib."
+echo "The sdsl include files are located in '${SDSL_INSTALL_PREFIX}/include'."
+echo "The library files are located in '${SDSL_INSTALL_PREFIX}/lib'."
 echo " "
 echo "Sample programs can be found in the examples-directory."
 echo "A program 'example.cpp' can be compiled with the command: "
