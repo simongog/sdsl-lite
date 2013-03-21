@@ -301,7 +301,7 @@ void construct_first_child_and_lf_lcp(int_vector_file_buffer<>& lcp_buf,
 
     big_lcp_out.close();
     isfstream big_lcp_in(big_lcp_file);
-    big_lcp.width(bit_magic::l1BP(max_lcp)+1);
+    big_lcp.width(bits::l1BP(max_lcp)+1);
     big_lcp.resize(fc_cnt_big);
 
     for (size_type i=0; i<fc_cnt_big; ++i) {

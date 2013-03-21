@@ -12,7 +12,7 @@ void construct_first_child_lcp(int_vector_file_buffer<>& lcp_buf, int_vector<>& 
         fc_lcp = int_vector<>(0);
     }
     {
-        int_vector<> tmp(n, 0, bit_magic::l1BP(n)+1);
+        int_vector<> tmp(n, 0, bits::l1BP(n)+1);
         fc_lcp.swap(tmp);
     }
 

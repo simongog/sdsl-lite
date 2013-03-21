@@ -192,11 +192,15 @@ void set_verbose()
     verbose = true;
 }
 
-off_t file_size(const std::string& file_name)
+off_t file_size(const std::string& file)
 {
-    struct stat filestatus;
-    stat(file_name.c_str(), &filestatus);
-    return filestatus.st_size;
+    if (is_ram_file(file)) {
+        return ram_fs::file_size(file);
+    } else {
+        struct stat filestatus;
+        stat(file.c_str(), &filestatus);
+        return filestatus.st_size;
+    }
 }
 
 std::string cache_file_name(const std::string& key, const cache_config& config)

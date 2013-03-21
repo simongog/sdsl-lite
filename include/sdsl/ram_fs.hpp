@@ -5,6 +5,7 @@
 #ifndef INCLUDED_SDSL_RAM_FS
 #define INCLUDED_SDSL_RAM_FS
 
+#include "uintx_t.hpp"
 #include <string>
 #include <map>
 
@@ -41,7 +42,11 @@ class ram_fs
         //! Default construct
         ram_fs();
         //! Store data under key `name`
-        static void store(const std::string& name, const std::string& data);
+        static void store(const std::string& name, std::string data);
+        //! Check if the file exists
+        static bool exists(const std::string& name);
+        //! Get the file size
+        static size_t file_size(const std::string& name);
         //! Get the content
         static const std::string& content(const std::string& name);
         //! Remove the file with key `name`

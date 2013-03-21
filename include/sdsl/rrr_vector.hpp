@@ -132,7 +132,7 @@ class rrr_vector
         rrr_vector(const bit_vector& bv, uint16_t k=32): m_k(k), bt(m_bt), btnr(m_btnr) {
             m_size = bv.size();
             int_vector<> bt_array;
-            bt_array.width(bit_magic::l1BP(t_bs)+1);
+            bt_array.width(bits::l1BP(t_bs)+1);
             bt_array.resize((m_size+t_bs)/((size_type)t_bs)); // blocks for the bt_array + a dummy block at the end,
             // if m_size%t_bs == 0
 
@@ -152,8 +152,8 @@ class rrr_vector
                 btnr_pos += rrr_helper_type::space_for_bt(x);
             }
             util::assign(m_btnr, bit_vector(std::max(btnr_pos, (size_type)64), 0));      // max necessary for case: t_bs == 1
-            util::assign(m_btnrp, int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bit_magic::l1BP(btnr_pos)+1));
-            util::assign(m_rank, int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*t_bs))>0), 0, bit_magic::l1BP(sum_rank)+1));
+            util::assign(m_btnrp, int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bits::l1BP(btnr_pos)+1));
+            util::assign(m_rank, int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*t_bs))>0), 0, bits::l1BP(sum_rank)+1));
             //                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             //                                                                      only add a finishing block, if the last block of the superblock is not a dummy block
             util::assign(m_invert, bit_vector((bt_array.size()+m_k-1)/m_k, 0));

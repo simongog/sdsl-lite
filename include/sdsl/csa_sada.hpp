@@ -372,7 +372,7 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     }
     write_R_output("csa", "construct alphabet", "end", 1, 0);
 
-    int_vector<> cnt_chr(sigma, 0, bit_magic::l1BP(n)+1);
+    int_vector<> cnt_chr(sigma, 0, bits::l1BP(n)+1);
     for (typename alphabet_type::sigma_type i=0; i < sigma; ++i) {
         cnt_chr[i] = C[i];
     }
@@ -380,7 +380,7 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     // calculate psi
     {
         bwt_buf.reset();
-        int_vector<> psi(n, 0, bit_magic::l1BP(n)+1);
+        int_vector<> psi(n, 0, bits::l1BP(n)+1);
         for (size_type i=0, r_sum=0, r=bwt_buf.load_next_block(); r_sum < n;) {
             for (; i < r_sum+r; ++i) {
                 psi[ cnt_chr[ char2comp[bwt_buf[i-r_sum]] ]++ ] = i;

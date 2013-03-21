@@ -77,7 +77,7 @@ class binomial15
                         if (class_cnt == 1)
                             m_space_for_bt[i] = 0;
                         else
-                            m_space_for_bt[i] = bit_magic::l1BP(class_cnt)+1;
+                            m_space_for_bt[i] = bits::l1BP(class_cnt)+1;
                     }
                     if (n == 15) {
                         for (int x=0; x<256; ++x) {
@@ -178,27 +178,27 @@ class rrr_vector<15, t_rac>
         rrr_vector(const bit_vector& bv, uint16_t k=32): m_k(k), bt(m_bt), btnr(m_btnr) {
             m_size = bv.size();
             int_vector<> bt_array;
-            util::assign(bt_array, int_vector<>(m_size/block_size+1, 0, bit_magic::l1BP(block_size)+1));
+            util::assign(bt_array, int_vector<>(m_size/block_size+1, 0, bits::l1BP(block_size)+1));
 
             // (1) calculate the block types and store them in m_bt
             size_type pos = 0, i = 0, x;
             size_type btnr_pos = 0;
             size_type sum_rank = 0;
             while (pos + block_size <= m_size) { // handle all full blocks
-                bt_array[ i++ ] = x = bit_magic::b1Cnt(bv.get_int(pos, block_size));
+                bt_array[ i++ ] = x = bits::cnt(bv.get_int(pos, block_size));
                 sum_rank += x;
                 btnr_pos += bi_type::space_for_bt(x);
                 pos += block_size;
             }
             if (pos < m_size) { // handle last full block
-                bt_array[ i++ ] = x = bit_magic::b1Cnt(bv.get_int(pos, m_size - pos));
+                bt_array[ i++ ] = x = bits::cnt(bv.get_int(pos, m_size - pos));
                 sum_rank += x;
                 btnr_pos += bi_type::space_for_bt(x);
             }
             util::assign(m_btnr, bit_vector(std::max(btnr_pos, (size_type)64), 0));      // max necessary for case: block_size == 1
-            util::assign(m_btnrp, int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bit_magic::l1BP(btnr_pos)+1));
+            util::assign(m_btnrp, int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bits::l1BP(btnr_pos)+1));
 
-            util::assign(m_rank, int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*block_size))>0), 0, bit_magic::l1BP(sum_rank)+1));
+            util::assign(m_rank, int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*block_size))>0), 0, bits::l1BP(sum_rank)+1));
             //                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             //                                                                      only add a finishing block, if the last block of the superblock is not a dummy block
             // (2) calculate block type numbers and pointers into btnr and rank samples
@@ -397,7 +397,7 @@ class rank_support_rrr<t_b, 15, t_rac>
                 uint8_t bt64_end_off = bt_idx & 0x3F;
                 // Case (1)
                 if (bt64 == bt64_end) {
-                    uint64_t w = ((*bt64) >> bt64_off) & bit_magic::Li1Mask[bt64_end_off-bt64_off];
+                    uint64_t w = ((*bt64) >> bt64_off) & bits::Li1Mask[bt64_end_off-bt64_off];
                     w = (w & 0x0f0f0f0f0f0f0f0full) + ((w >> 4) & 0x0f0f0f0f0f0f0f0full);
                     rank += ((0x0101010101010101ull*w) >> 56);
                 } else { // Case (2)
@@ -445,7 +445,7 @@ class rank_support_rrr<t_b, 15, t_rac>
             }
             uint32_t btnr = m_v->m_btnr.get_int(btnrp, bi_type::space_for_bt(last_bt));
             return rank_support_rrr_trait<t_b>::adjust_rank(rank +
-                    bit_magic::b1Cnt(((uint64_t)(bi_type::nr_to_bin(last_bt, btnr))) & bit_magic::Li1Mask[off]), i);
+                    bits::cnt(((uint64_t)(bi_type::nr_to_bin(last_bt, btnr))) & bits::Li1Mask[off]), i);
         }
 
         //! Short hand for rank(i)
@@ -545,7 +545,7 @@ class select_support_rrr<t_b, 15, t_rac>
             }
             rank -= bt;
             uint32_t btnr = m_v->m_btnr.get_int(btnrp-s, s);
-            return (idx-1) * bit_vector_type::block_size + bit_magic::i1BP(bi_type::nr_to_bin(bt, btnr), i-rank);
+            return (idx-1) * bit_vector_type::block_size + bits::sel(bi_type::nr_to_bin(bt, btnr), i-rank);
         }
 
         // TODO: hinted binary search
@@ -581,7 +581,7 @@ class select_support_rrr<t_b, 15, t_rac>
             }
             rank -= (bit_vector_type::block_size-bt);
             uint32_t btnr = m_v->m_btnr.get_int(btnrp-s, s);
-            return (idx-1) * bit_vector_type::block_size + bit_magic::i1BP(~((uint64_t)bi_type::nr_to_bin(bt, btnr)), i-rank);
+            return (idx-1) * bit_vector_type::block_size + bits::sel(~((uint64_t)bi_type::nr_to_bin(bt, btnr)), i-rank);
         }
 
 

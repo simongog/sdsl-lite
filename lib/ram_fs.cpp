@@ -26,21 +26,39 @@ namespace sdsl
 ram_fs::ram_fs() {};
 
 void
-ram_fs::store(const std::string& name, const std::string& data)
+ram_fs::store(const std::string& name, std::string data)
 {
+//    std::cout<<"ram_fs: store `"<<name<<"`"<<std::endl;
     m_map[name] = data;
+}
+
+bool
+ram_fs::exists(const std::string& name)
+{
+    return m_map.find(name) != m_map.end();
 }
 
 const std::string&
 ram_fs::content(const std::string& name)
 {
-    std::cout<<"content of `"<<name<<"`"<<std::endl;
+//    std::cout<<"ram_fs: content of `"<<name<<"`"<<std::endl;
     return m_map[name];
+}
+
+size_t
+ram_fs::file_size(const std::string& name)
+{
+    if (exists(name)) {
+        return m_map[name].size();
+    } else {
+        return 0;
+    }
 }
 
 int
 ram_fs::remove(const std::string& name)
 {
+//	std::cout<<"ram_fs: remove `"<<name<<"`"<<std::endl;
     m_map.erase(name);
     return 0;
 }
@@ -94,7 +112,9 @@ int remove(const std::string& file)
 int rename(const std::string& old_filename, const std::string& new_filename)
 {
     if (is_ram_file(old_filename)) {
-        // TODO: check if new_file is also RAM file name
+        if (!is_ram_file(new_filename)) {  // error, if new file is not also RAM-file
+            return -1;
+        }
         return ram_fs::rename(old_filename, new_filename);
     } else {
         return std::rename(old_filename.c_str(), new_filename.c_str());

@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file bit_magic.hpp
-    \brief bit_magic.hpp contains the sdsl::bit_magic class.
+/*! \file bits.hpp
+    \brief bits.hpp contains the sdsl::bits class.
 	\author Simon Gog
 */
-#ifndef INCLUDED_SDSL_BIT_MAGIC
-#define INCLUDED_SDSL_BIT_MAGIC
+#ifndef INCLUDED_SDSL_BITS
+#define INCLUDED_SDSL_BITS
 
 #include <stdint.h> // for uint64_t uint32_t declaration
 #include <iostream>// for cerr
@@ -34,7 +34,7 @@ namespace sdsl
 
 //! A helper class for bitwise tricks on 64 bit words.
 /*!
-	bit_magic is a helper class for bitwise tricks and
+	bits is a helper class for bitwise tricks and
 	techniques. For the basic tricks and techiques we refer to Donald E. Knuth's
 	"The Art of Computer Programming", Volume 4A, Chapter 7.1.3 and
 	the informative website of Sean E. Anderson about the topic:
@@ -47,10 +47,10 @@ namespace sdsl
 
 	\author Simon Gog
  */
-class bit_magic
+class bits
 {
     private:
-        bit_magic(); // This helper class can not be instantiated
+        bits(); // This helper class can not be instantiated
     public:
         //! 64bit mask with all bits set to 1.
         static const int64_t  All1Mask = -1LL;
@@ -68,7 +68,7 @@ class bit_magic
         */
         static const uint32_t DeBruijn64ToIndex[64];
 
-        //! Array containing fibonacci numbers less than \f$2^64\f$.
+        //! Array containing Fibonacci numbers less than \f$2^64\f$.
         static const uint64_t Fib[92];
 
         //! Array containing the popcnts for all 2^8 possible byte values
@@ -145,7 +145,7 @@ class bit_magic
         static const uint8_t first_pos_of_excess_val[256*9];
 
         static void generate_last_pos_of_excess_val() {
-            std::cout<<"const uint8_t bit_magic::last_pos_of_excess_val[]={"<<std::endl;
+            std::cout<<"const uint8_t bits::last_pos_of_excess_val[]={"<<std::endl;
             for (int i=-8; i<9; ++i) {
                 for (int j=0; j<256; ++j) {
                     int x = j;
@@ -174,7 +174,7 @@ class bit_magic
         static const uint8_t last_pos_of_excess_val[256*17];
 
         static void generate_very_near_find_open() {
-            std::cout<<"const uint8_t bit_magic::very_near_find_open[]={"<<std::endl;
+            std::cout<<"const uint8_t bits::very_near_find_open[]={"<<std::endl;
             for (int w=0; w<256; ++w) {
                 int excess_val=0;
                 for (int i=0; i<8; ++i) {
@@ -210,7 +210,7 @@ class bit_magic
         static const uint8_t very_near_find_open[256];
 
         static void generate_very_near_enclose() {
-            std::cout<<"const uint8_t bit_magic::very_near_enclose[]={"<<std::endl;
+            std::cout<<"const uint8_t bits::very_near_enclose[]={"<<std::endl;
             for (int w=0; w<256; ++w) {
                 int excess_val = 0, res=0;
                 for (int i=7; i>=0 and !res; --i) {
@@ -237,19 +237,19 @@ class bit_magic
             \param x 64bit integer to count the bits.
             \return The number of 1-bits in x.
          */
-        static uint64_t b1Cnt(uint64_t x);
+        static uint64_t cnt(uint64_t x);
 
         //! Counts the number of 1-bits in the 32bit integer x.
-        /*! This function is a variant of the method b1Cnt. If
-        	32bit multiplication is fast, this method beats the b1Cnt.
+        /*! This function is a variant of the method cnt. If
+        	32bit multiplication is fast, this method beats the cnt.
         	for 32bit integers.
         	\param x 64bit integer to count the bits.
         	\return The number of 1-bits in x.
          */
-        static uint32_t b1Cnt32(uint32_t x);
+        static uint32_t cnt32(uint32_t x);
 
-        //! Naive implementation of the b1Cnt function.
-        static uint32_t b1CntNaive(uint64_t x);
+        //! Naive implementation of the cnt function.
+        static uint32_t cntNaive(uint64_t x);
 
         //! Count the number of consecutive and distinct 11 in the 64bit integer x.
         /*!
@@ -298,33 +298,33 @@ class bit_magic
         //! Calculate the position of the i-th rightmost 1 bit in the 64bit integer x
         /*!
           	\param x 64bit integer.
-        	\param i Argument i must be in the range \f$[1..b1Cnt(x)]\f$.
-        	\pre Argument i must be in the range \f$[1..b1Cnt(x)]\f$.
+        	\param i Argument i must be in the range \f$[1..cnt(x)]\f$.
+        	\pre Argument i must be in the range \f$[1..cnt(x)]\f$.
           	\sa l1BP, r1BP
          */
-        static uint32_t i1BP(uint64_t x, uint32_t i);
-        static uint32_t i1BP2(uint64_t x, uint32_t i);
+        static uint32_t sel(uint64_t x, uint32_t i);
+        static uint32_t sel2(uint64_t x, uint32_t i);
 
-        //! i1BP implementation proposed by Vigna.
-        /*! \sa i1BP
+        //! sel implementation proposed by Vigna.
+        /*! \sa sel
          */
-        static uint32_t j1BP(uint64_t x, uint32_t j);
+        static uint32_t selv(uint64_t x, uint32_t j);
 
-        //! i1BP implementation using SSE4.2.
-        /*! \sa i1BP
+        //! sel implementation using SSE4.2.
+        /*! \sa sel
          */
-        static uint32_t k1BP(uint64_t x, uint32_t j);
+        static uint32_t sel3(uint64_t x, uint32_t j);
 
 
 
-        //! Naive implementation of i1BP.
-        static uint32_t i1BPNaive(uint64_t x, uint32_t i);
+        //! Naive implementation of sel.
+        static uint32_t selNaive(uint64_t x, uint32_t i);
 
         //! Calculates the position of the leftmost 1-bit in the 64bit integer x if it exists
         /*! \param x 64 bit integer.
             \return The position (in 0..63) of the leftmost 1-bit in the 64bit integer x if
         	        x>0 and 0 if x equals 0.
-        	\sa i1BP, r1BP
+        	\sa sel, r1BP
         */
         static uint32_t l1BP(uint64_t x);
 
@@ -336,20 +336,20 @@ class bit_magic
         	\param x 64 bit integer.
         	\return The position (in 0..63) of the rightmost 1-bit in the 64bit integer x if
         	        x>0 and 0 if x equals 0.
-        	\sa i1BP, l1BP
+        	\sa sel, l1BP
         */
         static uint32_t r1BP(uint64_t x);
 
         //! Naive implementation of r1BP.
         static uint32_t r1BPNaive(uint64_t x);
 
-        //! Calcluates the position of the i-th rightmost 11-bit-pattern which terminates a fibonacci coded integer in x.
+        //! Calculates the position of the i-th rightmost 11-bit-pattern which terminates a Fibonacci coded integer in x.
         /*!	\param x 64 bit integer.
             \param i Index of 11-bit-pattern. \f$i \in [1..b11Cnt(x)]\f$
         	\param c Carry bit from word before
-         	\return The position (in 1..63) of the i-th 11-bit-pattern which terminates a fibonacci coded integer in x if
+         	\return The position (in 1..63) of the i-th 11-bit-pattern which terminates a Fibonacci coded integer in x if
         	        x contains at least i 11-bit-patterns and a undefined value otherwise.
-            \sa b11Cnt, l11BP, i1BP
+            \sa b11Cnt, l11BP, sel
 
          */
         static uint32_t i11BP(uint64_t x, uint32_t i, uint32_t c=0);
@@ -373,10 +373,10 @@ class bit_magic
         //! Calculates the position of the i-th rightmost 11-bit-pattern which terminates a Ternary coded integer in x.
         static uint32_t eI11BP(uint64_t x, uint32_t i);
 
-        //! Calculates the position of the leftmost 11-bit-pattern which terminates a fibonacci coded integer in x.
+        //! Calculates the position of the leftmost 11-bit-pattern which terminates a Fibonacci coded integer in x.
         /*! \param x 64 bit integer.
             \return The position (in 1..63) of the leftmost 1 of the leftmost 11-bit-pattern which
-        	        terminates a fibonacci coded integer in x if x contains a 11-bit-pattern
+        	        terminates a Fibonacci coded integer in x if x contains a 11-bit-pattern
         			and 0 otherwise.
         	\sa b11Cnt, i11BP
         */
@@ -462,9 +462,9 @@ class bit_magic
         			}
         		}
         */
-        static uint16_t max_excess(uint64_t x, uint16_t& b1Cnt);
-        static uint16_t max_excess2(uint64_t x, uint16_t& b1Cnt);
-        static uint16_t max_excess3(uint64_t x, uint16_t& b1Cnt);
+        static uint16_t max_excess(uint64_t x, uint16_t& cnt);
+        static uint16_t max_excess2(uint64_t x, uint16_t& cnt);
+        static uint16_t max_excess3(uint64_t x, uint16_t& cnt);
         /*! Calculates the maximal excess values for the eight byte prefixes of a 64 bit word.
          *  \param w The 64 bit word representing a parentheses sequence.
          *  \param max_byte_excesses The \e i th byte contains the maximal excess value that
@@ -507,7 +507,7 @@ class bit_magic
 
 // ============= inline - implementations ================
 
-inline uint16_t bit_magic::max_excess(uint64_t max2, uint16_t& b1Cnt)
+inline uint16_t bits::max_excess(uint64_t max2, uint16_t& cnt)
 {
     uint64_t sum = max2-((max2>>1)&0x5555555555555555ULL);
     uint64_t max = sum&max2;//(~(x&0x5555555555555555ULL&sum))&sum;
@@ -545,7 +545,7 @@ inline uint16_t bit_magic::max_excess(uint64_t max2, uint16_t& b1Cnt)
     max  = (max2 ^((max2^max) & mask)) & 0x0000003F0000003FULL;
     // Summe fuer 32 bit Bloecke
     sum = (sum + (sum>>16)) & 0x0000FFFF0000FFFFULL;
-    b1Cnt = (sum+(sum>>32))>>1;
+    cnt = (sum+(sum>>32))>>1;
     // Maxima fuer 64bit Bloecke
     max2 = (max>>32) + 0x0000000000000060ULL + (sum&0x00000000FFFFFFFFULL);
     return ((max2 - (max&0x00000000FFFFFFFFULL)) & 0x0000000000000080ULL) ? max2 & 0x000000000000007FULL : max & 0x00000000FFFFFFFFULL;
@@ -553,11 +553,11 @@ inline uint16_t bit_magic::max_excess(uint64_t max2, uint16_t& b1Cnt)
     	return max2;*/
 }
 
-inline uint16_t bit_magic::max_excess2(uint64_t x, uint16_t& b1Cnt)
+inline uint16_t bits::max_excess2(uint64_t x, uint16_t& cnt)
 {
     uint64_t _max_byte_excesses, byte_prefix_sums_x_2;
     max_byte_excesses(x, _max_byte_excesses, byte_prefix_sums_x_2);
-    b1Cnt = byte_prefix_sums_x_2 >> 57;
+    cnt = byte_prefix_sums_x_2 >> 57;
     uint8_t maxi1 = _max_byte_excesses, maxi2 = _max_byte_excesses>>32;
     for (uint8_t i=1, m; i<4; ++i) {
         if ((m = (_max_byte_excesses >>= 8)) > maxi1) maxi1 = m;
@@ -596,7 +596,7 @@ inline uint16_t bit_magic::max_excess2(uint64_t x, uint16_t& b1Cnt)
     */
 }
 
-inline void bit_magic::max_byte_excesses(uint64_t max2, uint64_t& max_byte_excesses, uint64_t& byte_prefix_sums_x_2)
+inline void bits::max_byte_excesses(uint64_t max2, uint64_t& max_byte_excesses, uint64_t& byte_prefix_sums_x_2)
 {
     byte_prefix_sums_x_2 = max2-((max2>>1)&0x5555555555555555ULL);
     uint64_t max = byte_prefix_sums_x_2&max2;
@@ -618,7 +618,7 @@ inline void bit_magic::max_byte_excesses(uint64_t max2, uint64_t& max_byte_exces
     max_byte_excesses = (((byte_prefix_sums_x_2<<8) | 0x8080808080808080ULL) - 0x3830282018100800ULL) + max;
 }
 
-inline void bit_magic::max_byte_excesses2(uint64_t max2, uint64_t& max_byte_excesses, uint64_t& byte_prefix_sums_x_2)
+inline void bits::max_byte_excesses2(uint64_t max2, uint64_t& max_byte_excesses, uint64_t& byte_prefix_sums_x_2)
 {
     byte_prefix_sums_x_2 = max2-((max2>>1)&0x5555555555555555ULL);
 //	uint64_t max = (byte_prefix_sums_x_2&max2)+((max2|(max2>>1))&0x5555555555555555ULL);// add one to each max if max != 0
@@ -641,7 +641,7 @@ inline void bit_magic::max_byte_excesses2(uint64_t max2, uint64_t& max_byte_exce
     max_byte_excesses = (byte_prefix_sums_x_2<<8) + 0x474f575f676F777FULL + max;
 }
 
-inline void bit_magic::min_max_byte_excesses(uint64_t max2, uint64_t& min_byte_excesses, uint64_t& max_byte_excesses, uint64_t& byte_prefix_sums_x_2)
+inline void bits::min_max_byte_excesses(uint64_t max2, uint64_t& min_byte_excesses, uint64_t& max_byte_excesses, uint64_t& byte_prefix_sums_x_2)
 {
     byte_prefix_sums_x_2 = max2-((max2>>1)&0x5555555555555555ULL);
 //	uint64_t max = (byte_prefix_sums_x_2&max2)+((max2|(max2>>1))&0x5555555555555555ULL);// add one to each max if max != 0
@@ -684,10 +684,10 @@ inline void bit_magic::min_max_byte_excesses(uint64_t max2, uint64_t& min_byte_e
 }
 
 
-inline uint8_t bit_magic::first_excess_position(uint64_t w, uint8_t excess_val, uint64_t& byte_prefix_sums_x_2)
+inline uint8_t bits::first_excess_position(uint64_t w, uint8_t excess_val, uint64_t& byte_prefix_sums_x_2)
 {
     uint64_t max_byte_excesses;
-    bit_magic::max_byte_excesses(w, max_byte_excesses, byte_prefix_sums_x_2);
+    bits::max_byte_excesses(w, max_byte_excesses, byte_prefix_sums_x_2);
     assert(excess_val <= 64);
     max_byte_excesses = (max_byte_excesses-_8_x_the_byte[excess_val])&0x8080808080808080ULL;
     if (max_byte_excesses) {
@@ -702,7 +702,7 @@ inline uint8_t bit_magic::first_excess_position(uint64_t w, uint8_t excess_val, 
     }
 }
 
-inline uint8_t bit_magic::first_excess_position_naive(uint64_t w, uint8_t excess_val, uint64_t& byte_prefix_sums_x_2)
+inline uint8_t bits::first_excess_position_naive(uint64_t w, uint8_t excess_val, uint64_t& byte_prefix_sums_x_2)
 {
     byte_prefix_sums_x_2 = w-((w>>1) & 0x5555555555555555ull);
     byte_prefix_sums_x_2 = (byte_prefix_sums_x_2 & 0x3333333333333333ull) + ((byte_prefix_sums_x_2 >> 2) & 0x3333333333333333ull);
@@ -717,7 +717,7 @@ inline uint8_t bit_magic::first_excess_position_naive(uint64_t w, uint8_t excess
     return 64;
 }
 
-inline uint8_t bit_magic::find_open(uint64_t w, uint8_t close_parenthesis_index)
+inline uint8_t bits::find_open(uint64_t w, uint8_t close_parenthesis_index)
 {
     if (!close_parenthesis_index)
         return 64;
@@ -731,7 +731,7 @@ inline uint8_t bit_magic::find_open(uint64_t w, uint8_t close_parenthesis_index)
         // calculate
         uint64_t min_byte_excesses, max_byte_excesses, byte_prefix_sums_x_2;
 //std::cerr<<"w="<<w<<" excess_val="<<(int)excess_val<<std::endl;
-        bit_magic::min_max_byte_excesses(w, min_byte_excesses, max_byte_excesses, byte_prefix_sums_x_2);
+        bits::min_max_byte_excesses(w, min_byte_excesses, max_byte_excesses, byte_prefix_sums_x_2);
         int8_t desired_excess = (byte_prefix_sums_x_2 >> 56) - 65;
 //		std::cerr<<"desired_excess="<<(int)desired_excess<<"  "<<(int)(64-close_parenthesis_index)<<std::endl;
         if (desired_excess >= 0) {
@@ -767,7 +767,7 @@ inline uint8_t bit_magic::find_open(uint64_t w, uint8_t close_parenthesis_index)
     }
 }
 
-inline uint8_t bit_magic::find_open_naive(uint64_t w, uint8_t close_parenthesis_index)
+inline uint8_t bits::find_open_naive(uint64_t w, uint8_t close_parenthesis_index)
 {
     for (int i=close_parenthesis_index-1, excess_val=-1; i>=0; --i) {
         if ((w>>i)&1)
@@ -780,7 +780,7 @@ inline uint8_t bit_magic::find_open_naive(uint64_t w, uint8_t close_parenthesis_
     return 64;
 }
 
-inline uint8_t bit_magic::find_enclose_naive(uint64_t w, uint8_t open_parenthesis_index)
+inline uint8_t bits::find_enclose_naive(uint64_t w, uint8_t open_parenthesis_index)
 {
     for (int i=open_parenthesis_index-1, excess_val=0; i>=0; --i) {
         if ((w>>i)&1)
@@ -793,16 +793,16 @@ inline uint8_t bit_magic::find_enclose_naive(uint64_t w, uint8_t open_parenthesi
     return 64;
 }
 
-inline uint8_t bit_magic::find_enclose(uint64_t w, uint8_t open_parenthesis_index)
+inline uint8_t bits::find_enclose(uint64_t w, uint8_t open_parenthesis_index)
 {
     return find_open(w, open_parenthesis_index);
 }
 
-inline uint8_t bit_magic::last_excess_position(uint64_t w, uint8_t excess_val, uint64_t& byte_prefix_sums_x_2)
+inline uint8_t bits::last_excess_position(uint64_t w, uint8_t excess_val, uint64_t& byte_prefix_sums_x_2)
 {
     uint64_t min_byte_excesses, max_byte_excesses;
 //std::cerr<<"w="<<w<<" excess_val="<<(int)excess_val<<std::endl;
-    bit_magic::min_max_byte_excesses(w, min_byte_excesses, max_byte_excesses, byte_prefix_sums_x_2);
+    bits::min_max_byte_excesses(w, min_byte_excesses, max_byte_excesses, byte_prefix_sums_x_2);
 //std::cerr<<"min_byte_accesses="<<min_byte_excesses<<std::endl;
 //std::cerr<<"max_byte_accesses="<<max_byte_excesses<<std::endl;
     assert(excess_val <= 64);
@@ -846,7 +846,7 @@ inline uint8_t bit_magic::last_excess_position(uint64_t w, uint8_t excess_val, u
 }
 
 
-inline uint8_t bit_magic::last_excess_position_naive(uint64_t w, uint8_t excess_val, uint64_t& byte_prefix_sums_x_2)
+inline uint8_t bits::last_excess_position_naive(uint64_t w, uint8_t excess_val, uint64_t& byte_prefix_sums_x_2)
 {
     byte_prefix_sums_x_2 = w-((w>>1) & 0x5555555555555555ull);
     byte_prefix_sums_x_2 = (byte_prefix_sums_x_2 & 0x3333333333333333ull) + ((byte_prefix_sums_x_2 >> 2) & 0x3333333333333333ull);
@@ -870,13 +870,13 @@ inline uint8_t bit_magic::last_excess_position_naive(uint64_t w, uint8_t excess_
 }
 
 
-inline uint16_t bit_magic::max_excess3(uint64_t x, uint16_t& b1Cnt)
+inline uint16_t bits::max_excess3(uint64_t x, uint16_t& cnt)
 {
     uint64_t sum = x-((x>>1) & 0x5555555555555555ull);
     sum = (sum & 0x3333333333333333ull) + ((sum >> 2) & 0x3333333333333333ull);
     sum = (sum + (sum >> 4)) & 0x0f0f0f0f0f0f0f0full;
     sum *= 0x0101010101010101ull;
-    b1Cnt = sum>>56;
+    cnt = sum>>56;
     sum = (((sum<<1) | 0x8080808080808080ULL) - 0x4038302820181008ULL);
     /*	uint8_t maxi = max_excess_8bit[(uint8_t)x] | 0x80;
     	x>>=8;
@@ -904,7 +904,7 @@ inline uint16_t bit_magic::max_excess3(uint64_t x, uint16_t& b1Cnt)
 }
 
 // see page 11, Knuth TAOCP Vol 4 F1A
-inline uint64_t bit_magic::b1Cnt(uint64_t x)
+inline uint64_t bits::cnt(uint64_t x)
 {
 #ifdef __SSE4_2__
     return __builtin_popcountll(x);
@@ -923,14 +923,14 @@ inline uint64_t bit_magic::b1Cnt(uint64_t x)
 #endif
 }
 
-inline uint32_t bit_magic::b1Cnt32(uint32_t x)
+inline uint32_t bits::cnt32(uint32_t x)
 {
     x = x-((x>>1) & 0x55555555);
     x = (x & 0x33333333) + ((x>>2) & 0x33333333);
     return (0x10101010*x >>28)+(0x01010101*x >>28);
 }
 
-inline uint32_t bit_magic::b1CntNaive(uint64_t x)
+inline uint32_t bits::cntNaive(uint64_t x)
 {
     uint32_t res = 0;
     for (int i=0; i<64; ++i) {
@@ -941,7 +941,7 @@ inline uint32_t bit_magic::b1CntNaive(uint64_t x)
 }
 
 /*
-inline uint32_t bit_magic::b11Cnt(uint64_t x){
+inline uint32_t bits::b11Cnt(uint64_t x){
 	// extract "10" 2bit blocks
 	uint64_t ex10 = ((x^(x<<1))&0xAAAAAAAAAAAAAAAAULL)&x;
 	// extract "10" 2bit blocks
@@ -955,7 +955,7 @@ inline uint32_t bit_magic::b11Cnt(uint64_t x){
 	return  (0x0101010101010101ULL*x >> 56);
 }*/
 
-inline uint32_t bit_magic::b11Cnt(uint64_t x, uint64_t& c)
+inline uint32_t bits::b11Cnt(uint64_t x, uint64_t& c)
 {
     // extract "11" 2bit blocks
     uint64_t ex11 = (x&(x>>1))&0x5555555555555555ULL, t;
@@ -970,7 +970,7 @@ inline uint32_t bit_magic::b11Cnt(uint64_t x, uint64_t& c)
     return (0x0101010101010101ULL*x >> 56);
 }
 
-inline uint32_t bit_magic::b11Cnt(uint64_t x)
+inline uint32_t bits::b11Cnt(uint64_t x)
 {
     // extract "11" 2bit blocks
     uint64_t ex11 = (x&(x>>1))&0x5555555555555555ULL;
@@ -984,7 +984,7 @@ inline uint32_t bit_magic::b11Cnt(uint64_t x)
     return (0x0101010101010101ULL*x >> 56);
 }
 
-inline uint32_t bit_magic::b11CntS(uint64_t x, uint64_t& c)
+inline uint32_t bits::b11CntS(uint64_t x, uint64_t& c)
 {
     uint64_t ex11 = (x&(x>>1))&0x5555555555555555ULL;
     uint64_t ex10or01 = (ex11|(ex11<<1))^x;
@@ -996,7 +996,7 @@ inline uint32_t bit_magic::b11CntS(uint64_t x, uint64_t& c)
     return (0x0101010101010101ULL*x >> 56);
 }
 
-inline uint32_t bit_magic::b11CntS(uint64_t x)
+inline uint32_t bits::b11CntS(uint64_t x)
 {
     uint64_t ex11 = (x&(x>>1))&0x5555555555555555ULL;
     uint64_t ex10or01 = (ex11|(ex11<<1))^x;
@@ -1007,7 +1007,7 @@ inline uint32_t bit_magic::b11CntS(uint64_t x)
     return (0x0101010101010101ULL*x >> 56);
 }
 
-inline uint32_t bit_magic::b11CntNaive(uint64_t x)
+inline uint32_t bits::b11CntNaive(uint64_t x)
 {
     uint32_t res = 0;
     for (int i=0; i<64; ++i) {
@@ -1021,7 +1021,7 @@ inline uint32_t bit_magic::b11CntNaive(uint64_t x)
     return res;
 }
 
-inline uint32_t bit_magic::eB11Cnt(uint64_t x)
+inline uint32_t bits::eB11Cnt(uint64_t x)
 {
     x = (x&(x>>1))&0x5555555555555555ULL;
     x = (x & 0x3333333333333333ULL) + ((x >> 2) & 0x3333333333333333ULL);
@@ -1029,30 +1029,30 @@ inline uint32_t bit_magic::eB11Cnt(uint64_t x)
     return (0x0101010101010101ULL*x >> 56);
 }
 
-inline uint32_t bit_magic::b10Cnt(uint64_t x, uint64_t& c)
+inline uint32_t bits::b10Cnt(uint64_t x, uint64_t& c)
 {
-    uint32_t res = b1Cnt((x ^((x<<1) | c)) & (~x));
+    uint32_t res = cnt((x ^((x<<1) | c)) & (~x));
     c = (x >> 63);
     return res;
 }
 
-inline uint64_t bit_magic::b10Map(uint64_t x, uint64_t c)
+inline uint64_t bits::b10Map(uint64_t x, uint64_t c)
 {
     return ((x ^((x << 1) | c)) & (~x));
 }
 
-inline uint32_t bit_magic::b01Cnt(uint64_t x, uint64_t& c)
+inline uint32_t bits::b01Cnt(uint64_t x, uint64_t& c)
 {
-    uint32_t res = b1Cnt((x ^((x<<1) | c)) & x);
+    uint32_t res = cnt((x ^((x<<1) | c)) & x);
     c = (x >> 63);
     return res;
 }
-inline uint64_t bit_magic::b01Map(uint64_t x, uint64_t c)
+inline uint64_t bits::b01Map(uint64_t x, uint64_t c)
 {
     return ((x ^((x << 1) | c)) &  x);
 }
 
-inline uint32_t bit_magic::b10CntNaive(uint64_t x, uint64_t& c)
+inline uint32_t bits::b10CntNaive(uint64_t x, uint64_t& c)
 {
     uint32_t sum = 0, lastbit = c;
     for (uint32_t i=0; i<64; ++i) {
@@ -1066,7 +1066,7 @@ inline uint32_t bit_magic::b10CntNaive(uint64_t x, uint64_t& c)
     return sum;
 }
 
-inline uint32_t bit_magic::k1BP(uint64_t x, uint32_t i)
+inline uint32_t bits::sel3(uint64_t x, uint32_t i)
 {
 //	if ( i == 1 ){
 //		return __builtin_ctzll(x);
@@ -1096,11 +1096,11 @@ inline uint32_t bit_magic::k1BP(uint64_t x, uint32_t i)
 //	std::cout << "i = " << i << std::endl;
     return (byte_nr << 3) + Select256[((i-1) << 8) + ((uint8_t*)&x)[byte_nr] ];
 #endif
-    return i1BP(x, i);
+    return sel(x, i);
 }
 
 
-inline uint32_t bit_magic::i1BP(uint64_t x, uint32_t i)
+inline uint32_t bits::sel(uint64_t x, uint32_t i)
 {
 #ifdef __SSE4_2__
 //__m64 v;
@@ -1131,14 +1131,14 @@ inline uint32_t bit_magic::i1BP(uint64_t x, uint32_t i)
 //      std::cout << "i = " << i << std::endl;
     return (byte_nr << 3) + Select256[((i-1) << 8) + ((x>>(byte_nr<<3))&0xFFULL) ];
 #endif
-    return i1BP2(x, i);
+    return sel2(x, i);
 }
 
 
-inline uint32_t bit_magic::i1BP2(uint64_t x, uint32_t i)
+inline uint32_t bits::sel2(uint64_t x, uint32_t i)
 {
 // TODO: Maybe case i<16 as a special case
-//	assert(i>0 && i<=b1Cnt(x));
+//	assert(i>0 && i<=cnt(x));
     /*register*/ uint64_t s = x, b;  // s = sum
     s = s-((s>>1) & 0x5555555555555555ULL);
     s = (s & 0x3333333333333333ULL) + ((s >> 2) & 0x3333333333333333ULL);
@@ -1172,7 +1172,7 @@ inline uint32_t bit_magic::i1BP2(uint64_t x, uint32_t i)
     return 0;
 }
 
-inline uint32_t bit_magic::j1BP(uint64_t x, uint32_t j)
+inline uint32_t bits::selv(uint64_t x, uint32_t j)
 {
     register uint64_t s = x, b, l;  // s = sum   b = byte [1..8] multiplied by 8 in which the j 1 is located
     s = s-((s>>1) & 0x5555555555555555ULL);
@@ -1187,7 +1187,7 @@ inline uint32_t bit_magic::j1BP(uint64_t x, uint32_t j)
     return b + ((((((((l-1)*0x0101010101010101ULL)|0x8080808080808080ULL)-s)&0x8080808080808080ULL)>>7)*0x0101010101010101ULL)>>56);
 }
 
-inline uint32_t bit_magic::i1BPNaive(uint64_t x, uint32_t i)
+inline uint32_t bits::selNaive(uint64_t x, uint32_t i)
 {
     uint32_t pos = 0;
     while (x) {
@@ -1202,7 +1202,7 @@ inline uint32_t bit_magic::i1BPNaive(uint64_t x, uint32_t i)
 // builtin version of sse version or
 // 64 bit version of 32 bit proposial of
 // http://www-graphics.stanford.edu/~seander/bithacks.html
-inline uint32_t bit_magic::l1BP(uint64_t x)
+inline uint32_t bits::l1BP(uint64_t x)
 {
 #ifdef __SSE4_2__
     if (x == 0)
@@ -1226,7 +1226,7 @@ inline uint32_t bit_magic::l1BP(uint64_t x)
 #endif
 }
 
-inline uint32_t bit_magic::l1BPNaive(uint64_t x)
+inline uint32_t bits::l1BPNaive(uint64_t x)
 {
     if (x&0x8000000000000000ULL)
         return 63;
@@ -1241,7 +1241,7 @@ inline uint32_t bit_magic::l1BPNaive(uint64_t x)
 
 // details see: http://citeseer.ist.psu.edu/leiserson98using.html
 // or page 10, Knuth TAOCP Vol 4 F1A
-inline uint32_t bit_magic::r1BP(uint64_t x)
+inline uint32_t bits::r1BP(uint64_t x)
 {
 #ifdef __SSE4_2__
     if (x==0)
@@ -1261,7 +1261,7 @@ inline uint32_t bit_magic::r1BP(uint64_t x)
 #endif
 }
 
-inline uint32_t bit_magic::r1BPNaive(uint64_t x)
+inline uint32_t bits::r1BPNaive(uint64_t x)
 {
     if (x&1)
         return 0;
@@ -1274,7 +1274,7 @@ inline uint32_t bit_magic::r1BPNaive(uint64_t x)
     return 63;
 }
 
-inline uint32_t bit_magic::l11BP(uint64_t x)
+inline uint32_t bits::l11BP(uint64_t x)
 {
     // extract "11" 2bit blocks
     uint64_t ex11 = (x&(x>>1))&0x5555555555555555ULL;
@@ -1296,7 +1296,7 @@ inline uint32_t bit_magic::l11BP(uint64_t x)
 	*/
 }
 /*
-inline uint64_t bit_magic::all11BPs(uint64_t x, uint32_t c){
+inline uint64_t bits::all11BPs(uint64_t x, uint32_t c){
 	uint64_t ex11 =  (x&(x>>1))&0x5555555555555555ULL;
 	uint64_t ex10or01 = (ex11|(ex11<<1))^x;
 	ex11 += ( ((ex11|(ex11<<1))+(((ex10or01<<1)&0x5555555555555555ULL)|c)) & ((ex10or01&0x5555555555555555ULL)|ex11) );
@@ -1304,7 +1304,7 @@ inline uint64_t bit_magic::all11BPs(uint64_t x, uint32_t c){
 }
 */
 
-inline uint64_t bit_magic::all11BPs(uint64_t x, bool& c)
+inline uint64_t bits::all11BPs(uint64_t x, bool& c)
 {
     uint64_t ex11 = (x&(x>>1))&0x5555555555555555ULL;
     uint64_t ex10or01 = (ex11|(ex11<<1))^x;
@@ -1313,65 +1313,65 @@ inline uint64_t bit_magic::all11BPs(uint64_t x, bool& c)
     return ex11;
 }
 
-inline uint32_t bit_magic::i11BP(uint64_t x, uint32_t i, uint32_t c)
+inline uint32_t bits::i11BP(uint64_t x, uint32_t i, uint32_t c)
 {
     uint64_t ex11 = (x&(x>>1))&0x5555555555555555ULL;
     uint64_t ex10or01 = (ex11|(ex11<<1))^x;
     ex11 += (((ex11|(ex11<<1))+(((ex10or01<<1)&0x5555555555555555ULL)|c)) & ((ex10or01&0x5555555555555555ULL)|ex11));
-    return i1BP(ex11,i);
+    return sel(ex11,i);
 }
 
-inline uint32_t bit_magic::eI11BP(uint64_t x, uint32_t i)
+inline uint32_t bits::eI11BP(uint64_t x, uint32_t i)
 {
-    return i1BP((x&(x<<1))&0xAAAAAAAAAAAAAAAAULL, i);
+    return sel((x&(x<<1))&0xAAAAAAAAAAAAAAAAULL, i);
 }
 
-inline void bit_magic::write_int(uint64_t* word, uint64_t x, uint8_t offset, const uint8_t len)
+inline void bits::write_int(uint64_t* word, uint64_t x, uint8_t offset, const uint8_t len)
 {
-    x &= bit_magic::Li1Mask[len];
+    x &= bits::Li1Mask[len];
     if (offset + len < 64) {
         *word &=
-            ((bit_magic::All1Mask << (offset+len)) | bit_magic::Li1Mask[offset]); // mask 1..10..01..1
+            ((bits::All1Mask << (offset+len)) | bits::Li1Mask[offset]); // mask 1..10..01..1
         *word |= (x << offset);
-//		*word ^= ((*word ^ x) & (bit_magic::Li1Mask[len] << offset) );
+//		*word ^= ((*word ^ x) & (bits::Li1Mask[len] << offset) );
 //      surprisingly the above line is slower than the lines above
     } else {
         *word &=
-            ((bit_magic::Li1Mask[offset]));  // mask 0....01..1
+            ((bits::Li1Mask[offset]));  // mask 0....01..1
         *word |= (x << offset);
         if ((offset = (offset+len)&0x3F)) { // offset+len > 64
-            *(word+1) &= (~bit_magic::Li1Mask[offset]); // mask 1...10..0
-//			*(word+1) &= bit_magic::Li0Mask[offset]; // mask 1...10..0
+            *(word+1) &= (~bits::Li1Mask[offset]); // mask 1...10..0
+//			*(word+1) &= bits::Li0Mask[offset]; // mask 1...10..0
 //          surprisingly the above line is slower than the line above
             *(word+1) |= (x >> (len-offset));
         }
     }
 }
 
-//inline void bit_magic::writeInt2(uint64_t *word, uint64_t x, uint8_t offset, const uint8_t len){
+//inline void bits::writeInt2(uint64_t *word, uint64_t x, uint8_t offset, const uint8_t len){
 //	*word ^= ((x)& 111ULL << offset);
-//	*word ^= ((*word ^ x)& bit_magic::Li1Mask[len] << offset);
+//	*word ^= ((*word ^ x)& bits::Li1Mask[len] << offset);
 //	if( offset + len > 64 ){
 //		offset = offset + len - 64;
-//		*(word+1) ^= (( *(word+1) ^ (x >> (len-offset)) ) & bit_magic::Li1Mask[offset]);
+//		*(word+1) ^= (( *(word+1) ^ (x >> (len-offset)) ) & bits::Li1Mask[offset]);
 //	}
 //}
 
-inline void bit_magic::write_int_and_move(uint64_t*& word, uint64_t x, uint8_t& offset, const uint8_t len)
+inline void bits::write_int_and_move(uint64_t*& word, uint64_t x, uint8_t& offset, const uint8_t len)
 {
-    x &= bit_magic::Li1Mask[len];
+    x &= bits::Li1Mask[len];
     if (offset + len < 64) {
         *word &=
-            ((bit_magic::All1Mask << (offset+len)) | bit_magic::Li1Mask[offset]); // mask 1..10..01..1
+            ((bits::All1Mask << (offset+len)) | bits::Li1Mask[offset]); // mask 1..10..01..1
         *word |= (x << offset);
         offset += len;
     } else {
         *word &=
-            ((bit_magic::Li1Mask[offset]));  // mask 0....01..1
+            ((bits::Li1Mask[offset]));  // mask 0....01..1
         *word |= (x << offset);
         if ((offset= (offset+len))>64) {// offset+len >= 64
             offset &= 0x3F;
-            *(++word) &= (~bit_magic::Li1Mask[offset]); // mask 1...10..0
+            *(++word) &= (~bits::Li1Mask[offset]); // mask 1...10..0
             *word |= (x >> (len-offset));
         } else {
             offset = 0;
@@ -1380,19 +1380,19 @@ inline void bit_magic::write_int_and_move(uint64_t*& word, uint64_t x, uint8_t& 
     }
 }
 
-inline uint64_t bit_magic::read_int(const uint64_t* word, uint8_t offset, const uint8_t len)
+inline uint64_t bits::read_int(const uint64_t* word, uint8_t offset, const uint8_t len)
 {
     uint64_t w1 = (*word)>>offset;
     if ((offset+len) > 64) { // if offset+len > 64
         return w1 |  // w1 or w2 adepted:
-               ((*(word+1) & bit_magic::Li1Mask[(offset+len)&0x3F])   // set higher bits zero
+               ((*(word+1) & bits::Li1Mask[(offset+len)&0x3F])   // set higher bits zero
                 << (64-offset));  // move bits to the left
     } else {
-        return w1 & bit_magic::Li1Mask[len];
+        return w1 & bits::Li1Mask[len];
     }
 }
 
-inline uint64_t bit_magic::read_int_and_move(const uint64_t*& word, uint8_t& offset, const uint8_t len)
+inline uint64_t bits::read_int_and_move(const uint64_t*& word, uint8_t& offset, const uint8_t len)
 {
     uint64_t w1 = (*word)>>offset;
     if ((offset = (offset+len))>=64) {  // if offset+len > 64
@@ -1403,34 +1403,34 @@ inline uint64_t bit_magic::read_int_and_move(const uint64_t*& word, uint8_t& off
         } else {
             offset &= 0x3F;
             return w1 |
-                   (((*(++word)) & bit_magic::Li1Mask[offset]) << (len-offset));
+                   (((*(++word)) & bits::Li1Mask[offset]) << (len-offset));
         }
     } else {
-        return w1 & bit_magic::Li1Mask[len];
+        return w1 & bits::Li1Mask[len];
     }
 }
 
-inline uint64_t bit_magic::readUnaryInt(const uint64_t* word, uint8_t offset)
+inline uint64_t bits::readUnaryInt(const uint64_t* word, uint8_t offset)
 {
     register uint64_t w = *word >> offset;
     if (w) {
-        return bit_magic::r1BP(w)/*+1*/;
+        return bits::r1BP(w)/*+1*/;
     } else {
         if (0!=(w=*(++word)))
-            return bit_magic::r1BP(w)+64-offset/*+1*/;
+            return bits::r1BP(w)+64-offset/*+1*/;
         uint64_t cnt=2;
         while (0==(w=*(++word)))
             ++cnt;
-        return bit_magic::r1BP(w)+(cnt<<6)/*cnt*64*/-offset/*+1*/;//+(64-offset)
+        return bits::r1BP(w)+(cnt<<6)/*cnt*64*/-offset/*+1*/;//+(64-offset)
     }
     return 0;
 }
 
-inline uint64_t bit_magic::readUnaryIntAndMove(const uint64_t*& word, uint8_t& offset)
+inline uint64_t bits::readUnaryIntAndMove(const uint64_t*& word, uint8_t& offset)
 {
     register uint64_t w = (*word) >> offset; // temporary variable is good for the performance
     if (w) {
-        uint8_t r = bit_magic::r1BP(w);
+        uint8_t r = bits::r1BP(w);
         offset = (offset + r+1)&0x3F;
         // we know that offset + r +1 <= 64, so if the new offset equals 0 increase word
         word += (offset==0);
@@ -1438,7 +1438,7 @@ inline uint64_t bit_magic::readUnaryIntAndMove(const uint64_t*& word, uint8_t& o
     } else {
         uint8_t rr=0;
         if (0!=(w=*(++word))) {
-            rr = bit_magic::r1BP(w)+64-offset;
+            rr = bits::r1BP(w)+64-offset;
             offset = (offset+rr+1)&0x3F;
             word += (offset==0);
             return rr;
@@ -1446,7 +1446,7 @@ inline uint64_t bit_magic::readUnaryIntAndMove(const uint64_t*& word, uint8_t& o
             uint64_t cnt_1=1;
             while (0==(w=*(++word)))
                 ++cnt_1;
-            rr = bit_magic::r1BP(w)+64-offset;
+            rr = bits::r1BP(w)+64-offset;
             offset = (offset+rr+1)&0x3F;
             word += (offset==0);
             return ((cnt_1)<<6) + rr;
@@ -1455,7 +1455,7 @@ inline uint64_t bit_magic::readUnaryIntAndMove(const uint64_t*& word, uint8_t& o
     return 0;
 }
 
-inline void bit_magic::move_right(const uint64_t*& word, uint8_t& offset, const uint8_t len)
+inline void bits::move_right(const uint64_t*& word, uint8_t& offset, const uint8_t len)
 {
     if ((offset+=len)&0xC0) { // if offset >= 65
         offset&=0x3F;
@@ -1463,7 +1463,7 @@ inline void bit_magic::move_right(const uint64_t*& word, uint8_t& offset, const 
     }
 }
 
-inline void bit_magic::move_left(const uint64_t*& word, uint8_t& offset, const uint8_t len)
+inline void bits::move_left(const uint64_t*& word, uint8_t& offset, const uint8_t len)
 {
     if ((offset-=len)&0xC0) {  // if offset-len<0
         offset&=0x3F;
@@ -1471,7 +1471,7 @@ inline void bit_magic::move_left(const uint64_t*& word, uint8_t& offset, const u
     }
 }
 
-inline uint64_t bit_magic::next(const uint64_t* word, uint64_t idx)
+inline uint64_t bits::next(const uint64_t* word, uint64_t idx)
 {
     word += (idx>>6);
     if (*word & ~Li1Mask[idx&0x3F]) {
@@ -1486,7 +1486,7 @@ inline uint64_t bit_magic::next(const uint64_t* word, uint64_t idx)
     return idx + r1BP(*word);
 }
 
-inline uint64_t bit_magic::prev(const uint64_t* word, uint64_t idx)
+inline uint64_t bits::prev(const uint64_t* word, uint64_t idx)
 {
     word += (idx>>6);
     if (*word & Li1Mask[(idx&0x3F)+1]) {

@@ -22,7 +22,7 @@
 #define INCLUDED_SDSL_UINT256
 
 #include <iostream>
-#include "bit_magic.hpp"
+#include "bits.hpp"
 #include "uint128_t.hpp"
 
 namespace sdsl
@@ -43,44 +43,44 @@ class uint256_t
         inline uint256_t(const uint256_t& x):m_lo(x.m_lo), m_mid(x.m_mid), m_high(x.m_high) {}
 
         inline uint16_t popcount() {
-            return ((uint16_t)bit_magic::b1Cnt(m_lo)) + bit_magic::b1Cnt(m_mid)
-                   + bit_magic::b1Cnt(m_high>>64) + bit_magic::b1Cnt(m_high);
+            return ((uint16_t)bits::cnt(m_lo)) + bits::cnt(m_mid)
+                   + bits::cnt(m_high>>64) + bits::cnt(m_high);
         }
 
         inline uint16_t l1BP() {
             if (m_high == 0) {
                 if (m_mid) {
-                    return bit_magic::l1BP(m_mid) + 64;
+                    return bits::l1BP(m_mid) + 64;
                 } else {
-                    return bit_magic::l1BP(m_lo);
+                    return bits::l1BP(m_lo);
                 }
             } else {
                 uint64_t hh = (m_high >> 64);
                 if (hh) {
-                    return bit_magic::l1BP(hh) + 192;
+                    return bits::l1BP(hh) + 192;
                 } else {
-                    return bit_magic::l1BP(m_high) + 128;
+                    return bits::l1BP(m_high) + 128;
                 }
             }
         }
 
         inline uint16_t select(uint32_t i) {
             uint16_t x = 0;
-            if ((x=bit_magic::b1Cnt(m_lo)) >= i) {
-                return bit_magic::i1BP(m_lo, i);
+            if ((x=bits::cnt(m_lo)) >= i) {
+                return bits::sel(m_lo, i);
             }
             i -= x;
-            if ((x=bit_magic::b1Cnt(m_mid)) >= i) {
-                return bit_magic::i1BP(m_mid, i) + 64;
+            if ((x=bits::cnt(m_mid)) >= i) {
+                return bits::sel(m_mid, i) + 64;
             }
             i -= x;
             uint64_t hh = m_high >> 64;
             uint64_t lh = m_high;
-            if ((x=bit_magic::b1Cnt(lh)) >= i) {
-                return bit_magic::i1BP(lh, i) + 128;
+            if ((x=bits::cnt(lh)) >= i) {
+                return bits::sel(lh, i) + 128;
             }
             i -= x;
-            return bit_magic::i1BP(hh, i) + 192;
+            return bits::sel(hh, i) + 192;
         }
 
         inline uint256_t& operator+=(const uint256_t& x) {

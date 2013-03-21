@@ -30,7 +30,7 @@
 
 #include <algorithm> // for next permutation
 #include <iostream>
-#include "bit_magic.hpp"
+#include "bits.hpp"
 #include "uint128_t.hpp"
 #include "uint256_t.hpp"
 
@@ -44,7 +44,7 @@ template<uint16_t log_n>
 struct binomial_coefficients_trait {
     typedef uint64_t number_type;
     static inline uint16_t l1BP(number_type x) {
-        return bit_magic::l1BP(x);
+        return bits::l1BP(x);
     }
 
     //! Read a \f$len\f$-bit integer of type number_type from a bitvector.
@@ -79,7 +79,7 @@ struct binomial_coefficients_trait {
      *  \param x The integer x.
      */
     static inline uint16_t popcount(number_type x) {
-        return bit_magic::b1Cnt(x);
+        return bits::cnt(x);
     }
 };
 
@@ -89,9 +89,9 @@ struct binomial_coefficients_trait<7> {
     typedef uint128_t number_type;
     static inline uint16_t l1BP(number_type x) {
         if ((x >> 64)) {
-            return bit_magic::l1BP(x >> 64) + 64;
+            return bits::l1BP(x >> 64) + 64;
         } else {
-            return bit_magic::l1BP(x);
+            return bits::l1BP(x);
         }
     }
 
@@ -118,7 +118,7 @@ struct binomial_coefficients_trait<7> {
     }
 
     static inline uint16_t popcount(number_type x) {
-        return bit_magic::b1Cnt(x >> 64) + bit_magic::b1Cnt(x);
+        return bits::cnt(x >> 64) + bits::cnt(x);
     }
 };
 

@@ -24,7 +24,7 @@ namespace sdsl
 //    }
 //    const uint8_t log_q = 6; // => q=64
 //    const uint32_t q = 1<<log_q;
-//    const uint64_t modq = bit_magic::Li1Mask[log_q];
+//    const uint64_t modq = bits::Li1Mask[log_q];
 //
 //    // n-1 is the maximum entry in SA
 //    int_vector<64> plcp((n-1+q)>>log_q);
@@ -87,7 +87,7 @@ namespace sdsl
 //            if ((sai & modq) == 0) { // we have already worked the value out ;)
 //                sa_buf.set_int(i-r_sum, l=plcp[sai>>log_q]);
 //            } else {
-//                /*size_type*/ iq = sai & bit_magic::Li0Mask[log_q];
+//                /*size_type*/ iq = sai & bits::Li0Mask[log_q];
 //                l  = plcp[sai>>log_q];
 //                if (l >	(sai-iq))
 //                    l -= (sai-iq);
@@ -488,7 +488,7 @@ namespace sdsl
 //    // phase 2: calculate lcp_big
 //    {
 ////			std::cout<<"# begin calculating LF' values"<<std::endl;
-//        int_vector<> lcp_big(nn, 0, bit_magic::l1BP(n-1)+1); // lcp_big first contains adapted LF values and finally the big LCP values
+//        int_vector<> lcp_big(nn, 0, bits::l1BP(n-1)+1); // lcp_big first contains adapted LF values and finally the big LCP values
 //        {
 //            // initialize lcp_big with adapted LF values
 //            bit_vector todo(n,0);  // bit_vector todo indicates which values are >= m in lcp_sml
@@ -839,7 +839,7 @@ namespace sdsl
 //
 //    // phase 2: calculate lcp_big with PHI algorithm on remaining entries of LCP
 //    {
-//        int_vector<> lcp_big(0, 0, bit_magic::l1BP(n-1)+1);//nn, 0, bit_magic::l1BP(n-1)+1);
+//        int_vector<> lcp_big(0, 0, bits::l1BP(n-1)+1);//nn, 0, bits::l1BP(n-1)+1);
 //        {
 //
 //            write_R_output("lcp","init phi","begin");
@@ -877,7 +877,7 @@ namespace sdsl
 //#endif
 //
 //            const size_type bot = sa_n_1;
-//            int_vector<> phi(nn, bot, bit_magic::l1BP(n-1)+1); // phi
+//            int_vector<> phi(nn, bot, bits::l1BP(n-1)+1); // phi
 //
 //            int_vector_file_buffer<8> bwt_buf(file_map["bwt"].c_str()); // load BWT
 //            int_vector_file_buffer<> sa_buf(file_map[constants::KEY_SA].c_str()); // load sa
@@ -1188,7 +1188,7 @@ namespace sdsl
 //    // phase 2: calculate lcp_big
 //    {
 ////			std::cout<<"# begin calculating LF' values"<<std::endl;
-//        int_vector<> lcp_big(nn, 0, bit_magic::l1BP(n-1)+1); // lcp_big first contains adapted LF values and finally the big LCP values
+//        int_vector<> lcp_big(nn, 0, bits::l1BP(n-1)+1); // lcp_big first contains adapted LF values and finally the big LCP values
 //        {
 //            // initialize lcp_big with adapted LF values
 //            bit_vector todo(n,0);  // bit_vector todo indicates which values are >= m in lcp_sml
@@ -1582,7 +1582,7 @@ void construct_lcp_bwt_based(cache_config& config)
             lcp_value_offset = lcp_value_max-1;
             size_type remaining_lcp_values = index_done.size()-ds_rank_support.rank(index_done.size());
 
-            uint8_t int_width_new = std::max(space_in_bit_for_lcp / remaining_lcp_values , (size_type)bit_magic::l1BP(n-1)+1);
+            uint8_t int_width_new = std::max(space_in_bit_for_lcp / remaining_lcp_values , (size_type)bits::l1BP(n-1)+1);
             lcp_value_max = lcp_value_offset + (1ULL<<int_width_new);
 #ifdef STUDY_INFORMATIONS
             std::cout << "# l=" << remaining_lcp_values << " b=" << (int)int_width_new << " lcp_value_max=" << lcp_value_max << std::endl;
@@ -1649,7 +1649,7 @@ void construct_lcp_bwt_based2(cache_config& config)
 
         // External storage of LCP-Positions-Array
         bool new_lcp_value = 0;
-        uint8_t int_width = bit_magic::l1BP(n)+2; //
+        uint8_t int_width = bits::l1BP(n)+2; //
 
         size_type bit_size = (n+1)*int_width;                           // Size of output file in bit
         size_type wb = 0;                                               // Number of bits already written
@@ -1825,7 +1825,7 @@ void construct_lcp_bwt_based2(cache_config& config)
 
         int_vector_file_buffer<> lcp_positions(tmp_lcp_file, buffer_size);
 
-        uint8_t int_width = bit_magic::l1BP(lcp_value+1)+1;             // How many bits are needed for one lcp_value?
+        uint8_t int_width = bits::l1BP(lcp_value+1)+1;             // How many bits are needed for one lcp_value?
 
         // Algorithm does r=ceil(int_width/8) runs over LCP-Positions-Array.
         // So in each run k>=(n/r) values of the lcp array must be calculated.

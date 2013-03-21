@@ -21,7 +21,7 @@
 #ifndef INCLUDED_SDSL_UTIL
 #define INCLUDED_SDSL_UTIL
 
-#include "bit_magic.hpp"
+#include "bits.hpp"
 #include "typedefs.hpp"
 #include "structure_tree.hpp"
 #include "sfstream.hpp"
@@ -265,8 +265,8 @@ bool store_to_file(const T& v, const std::string& file);
 bool store_to_file(const char* v, const std::string& file);
 
 //! Specialization of store_to_file for int_vector
-template<uint8_t fixed_int_width>
-bool store_to_file(const int_vector<fixed_int_width>& v, const std::string& file, bool write_fixed_as_variable=false);
+template<uint8_t t_width>
+bool store_to_file(const int_vector<t_width>& v, const std::string& file, bool write_fixed_as_variable=false);
 
 
 //! Store an int_vector as plain int_type array to disk
@@ -718,8 +718,8 @@ inline bool util::store_to_file(const char* v, const std::string& file)
     return true;
 }
 
-template<uint8_t fixed_int_width>
-bool util::store_to_file(const int_vector<fixed_int_width>& v, const std::string& file, bool write_fixed_as_variable)
+template<uint8_t t_width>
+bool util::store_to_file(const int_vector<t_width>& v, const std::string& file, bool write_fixed_as_variable)
 {
     osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out) {
@@ -820,7 +820,7 @@ void util::bit_compress(t_int_vec& v)
             max = v[i];
         }
     }
-    uint8_t min_width = bit_magic::l1BP(max)+1;
+    uint8_t min_width = bits::l1BP(max)+1;
     uint8_t old_width = v.width();
     if (old_width > min_width) {
         const uint64_t* read_data = v.m_data;
@@ -828,8 +828,8 @@ void util::bit_compress(t_int_vec& v)
         uint8_t read_offset = 0;
         uint8_t write_offset = 0;
         for (typename t_int_vec::size_type i=0; i < v.size(); ++i) {
-            uint64_t x = bit_magic::read_int_and_move(read_data, read_offset, old_width);
-            bit_magic::write_int_and_move(write_data,  x, write_offset, min_width);
+            uint64_t x = bits::read_int_and_move(read_data, read_offset, old_width);
+            bits::write_int_and_move(write_data,  x, write_offset, min_width);
         }
         v.bit_resize(v.size()*min_width);
         v.width(min_width);
@@ -902,12 +902,12 @@ typename t_int_vec::size_type util::get_one_bits(const t_int_vec& v)
     const uint64_t* data = v.data();
     if (v.empty())
         return 0;
-    typename t_int_vec::size_type result = bit_magic::b1Cnt(*data);
+    typename t_int_vec::size_type result = bits::cnt(*data);
     for (typename t_int_vec::size_type i=1; i < (v.capacity()>>6); ++i) {
-        result += bit_magic::b1Cnt(*(++data));
+        result += bits::cnt(*(++data));
     }
     if (v.bit_size()&0x3F) {
-        result -= bit_magic::b1Cnt((*data) & (~bit_magic::Li1Mask[v.bit_size()&0x3F]));
+        result -= bits::cnt((*data) & (~bits::Li1Mask[v.bit_size()&0x3F]));
     }
     return result;
 }
@@ -920,13 +920,13 @@ typename t_int_vec::size_type util::get_onezero_bits(const t_int_vec& v)
     if (v.empty())
         return 0;
     uint64_t carry = 0, oldcarry=0;
-    typename t_int_vec::size_type result = bit_magic::b10Cnt(*data, carry);
+    typename t_int_vec::size_type result = bits::b10Cnt(*data, carry);
     for (typename t_int_vec::size_type i=1; i < (v.capacity()>>6); ++i) {
         oldcarry = carry;
-        result += bit_magic::b10Cnt(*(++data), carry);
+        result += bits::b10Cnt(*(++data), carry);
     }
-    if (v.bit_size()&0x3F) {// if bit_size is not a multiple of 64, substract the counts of the additional bits
-        result -= bit_magic::b1Cnt(bit_magic::b10Map(*data, oldcarry) & bit_magic::Li0Mask[v.bit_size()&0x3F]);
+    if (v.bit_size()&0x3F) {// if bit_size is not a multiple of 64, subtract the counts of the additional bits
+        result -= bits::cnt(bits::b10Map(*data, oldcarry) & bits::Li0Mask[v.bit_size()&0x3F]);
     }
     return result;
 }
@@ -938,13 +938,13 @@ typename t_int_vec::size_type util::get_zeroone_bits(const t_int_vec& v)
     if (v.empty())
         return 0;
     uint64_t carry = 1, oldcarry = 1;
-    typename t_int_vec::size_type result = bit_magic::b01Cnt(*data, carry);
+    typename t_int_vec::size_type result = bits::b01Cnt(*data, carry);
     for (typename t_int_vec::size_type i=1; i < (v.capacity()>>6); ++i) {
         oldcarry = carry;
-        result += bit_magic::b01Cnt(*(++data), carry);
+        result += bits::b01Cnt(*(++data), carry);
     }
-    if (v.bit_size()&0x3F) {// if bit_size is not a multiple of 64, substract the counts of the additional bits
-        result -= bit_magic::b1Cnt(bit_magic::b01Map(*data, oldcarry) & bit_magic::Li0Mask[v.bit_size()&0x3F]);
+    if (v.bit_size()&0x3F) {// if bit_size is not a multiple of 64, subtract the counts of the additional bits
+        result -= bits::cnt(bits::b01Map(*data, oldcarry) & bits::Li0Mask[v.bit_size()&0x3F]);
     }
     return result;
 }
@@ -956,12 +956,12 @@ typename t_int_vec::size_type util::next_bit(const t_int_vec& v, uint64_t idx)
     uint64_t node = v.data()[pos];
     node >>= (idx&0x3F);
     if (node) {
-        return idx+bit_magic::r1BP(node);
+        return idx+bits::r1BP(node);
     } else {
         ++pos;
         while ((pos<<6) < v.bit_size()) {
             if (v.data()[pos]) {
-                return (pos<<6)|bit_magic::r1BP(v.data()[pos]);
+                return (pos<<6)|bits::r1BP(v.data()[pos]);
             }
             ++pos;
         }
@@ -976,12 +976,12 @@ typename t_int_vec::size_type util::prev_bit(const t_int_vec& v, uint64_t idx)
     uint64_t node = v.data()[pos];
     node <<= 63-(idx&0x3F);
     if (node) {
-        return bit_magic::l1BP(node)+(pos<<6)-(63-(idx&0x3F));
+        return bits::l1BP(node)+(pos<<6)-(63-(idx&0x3F));
     } else {
         --pos;
         while ((pos<<6) < v.bit_size()) {
             if (v.data()[pos]) {
-                return (pos<<6)|bit_magic::l1BP(v.data()[pos]);
+                return (pos<<6)|bits::l1BP(v.data()[pos]);
             }
             --pos;
         }
