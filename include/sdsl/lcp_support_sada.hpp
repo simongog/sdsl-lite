@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2009 Simon Gog
+    Copyright (C) 2009-2013 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -106,11 +106,8 @@ class _lcp_support_sada
             copy(lcp_c);
         }
 
-        //! Construct the lcp array from an lcp array and an int_vector_file_buffer of the inverse suffix array
-        template<uint8_t int_width, uint8_t int_width_1>
-        _lcp_support_sada(int_vector_file_buffer<int_width>& lcp_buf,
-                          int_vector_file_buffer<int_width_1>& isa_buf,
-                          const t_csa* f_csa);
+        //! Constructor
+        _lcp_support_sada(cache_config& config, const t_csa* f_csa);
 
         void set_csa(const t_csa* f_csa) {
             m_csa = f_csa;
@@ -126,7 +123,7 @@ class _lcp_support_sada
             return t_csa::max_size();
         }
 
-        //! Returns if the data strucutre is empty.
+        //! Returns if the data structure is empty.
         bool empty()const {
             return m_csa->empty();
         }
@@ -164,16 +161,16 @@ class _lcp_support_sada
 // == template functions ==
 
 template<class t_csa, class t_bitvec, class t_select>
-template<uint8_t int_width, uint8_t int_width_1>
-_lcp_support_sada<t_csa, t_bitvec, t_select>::_lcp_support_sada(int_vector_file_buffer<int_width>& lcp_buf,
-        int_vector_file_buffer<int_width_1>& isa_buf,
-        const t_csa* f_csa):csa(m_csa)
+_lcp_support_sada<t_csa, t_bitvec, t_select>::_lcp_support_sada(cache_config& config, const t_csa* f_csa):csa(m_csa)
 {
     typedef typename t_csa::size_type size_type;
     set_csa(f_csa);
-    int_vector<int_width> lcp;
-    util::load_from_file(lcp, lcp_buf.file_name);
-    isa_buf.reset();
+    int_vector<> lcp;
+    util::load_from_file(lcp, util::cache_file_name(constants::KEY_LCP, config));
+    if (!util::cache_file_exists(constants::KEY_ISA, config)) {
+        construct_isa(config);
+    }
+    int_vector_file_buffer<> isa_buf(util::cache_file_name(constants::KEY_ISA, config));
     size_type n = lcp.size();
     bit_vector data = bit_vector(2*n, 0);
     size_type data_cnt=0;

@@ -16,7 +16,7 @@
 */
 /*! \file lcp_dac.hpp
     \brief lcp_dac.hpp contains an implementation of a (compressed) LCP array.
-	\author Simon Gog
+    \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_LCP_DAC
 #define INCLUDED_SDSL_LCP_DAC
@@ -42,7 +42,7 @@ namespace sdsl
  *  also known as vbyte-coding (see [2]). A experimental study of using escaping
  *  for the LCP array is given in [3].
  *  \par Time complexity
- *		- \f$\Order{\log n/b}\f$ worst case, where b is the number of bits
+ *        - \f$\Order{\log n/b}\f$ worst case, where b is the number of bits
           in a block
  *  \par References
  *       [1] F. Transier and P. Sanders: ,,Engineering Basic Search Algorithms
@@ -60,22 +60,22 @@ template<uint8_t t_b=4, class t_rank=rank_support_v5<> >
 class lcp_dac
 {
     public:
-        typedef typename int_vector<>::value_type		 value_type;
-        typedef random_access_const_iterator<lcp_dac>		 const_iterator;
-        typedef const_iterator 								 iterator;
-        typedef const value_type							 const_reference;
-        typedef const_reference								 reference;
-        typedef const_reference*							 pointer;
-        typedef const pointer								 const_pointer;
-        typedef int_vector<>::size_type						 size_type;
-        typedef ptrdiff_t  									 difference_type;
-        typedef t_rank										rank_support_type;
+        typedef typename int_vector<>::value_type         value_type;
+        typedef random_access_const_iterator<lcp_dac>         const_iterator;
+        typedef const_iterator                                  iterator;
+        typedef const value_type                             const_reference;
+        typedef const_reference                                 reference;
+        typedef const_reference*                             pointer;
+        typedef const pointer                                 const_pointer;
+        typedef int_vector<>::size_type                         size_type;
+        typedef ptrdiff_t                                       difference_type;
+        typedef t_rank                                        rank_support_type;
 
-        typedef lcp_plain_tag								 lcp_category;
+        typedef lcp_plain_tag                                 lcp_category;
 
         enum { fast_access = 0,
                text_order  = 0,
-               sa_order	  = 1
+               sa_order      = 1
              }; // as the lcp_dac is not fast for texts with long repetition
 
         template<class Cst>  // template inner class which is used in CSTs to parametrize lcp classes
@@ -87,29 +87,29 @@ class lcp_dac
 
     private:
 
-        int_vector<t_b> 		m_data;			  	// vector which holds the block data for every level
-        bit_vector	 		m_overflow;			// indicates, if there exists another block for the current number
-        rank_support_type 	m_overflow_rank;	// rank data structure for m_overflow
-        int_vector<64> 		m_level_pointer_and_rank;
-        uint8_t				m_max_level;   // maximal number of levels, at most (log n)/b+1
+        int_vector<t_b>   m_data;                  // vector which holds the block data for every level
+        bit_vector        m_overflow;              // indicates, if there exists another block for the current number
+        rank_support_type m_overflow_rank;         // rank for m_overflow
+        int_vector<64>    m_level_pointer_and_rank;
+        uint8_t           m_max_level;             // maximal number of levels, at most (log n)/b+1
 #ifdef LCP_DAC_CACHING
-        int_vector<64>		m_rank_cache;
+        int_vector<64>    m_rank_cache;
 #endif
 
 
         void copy(const lcp_dac& lcp_c) {
-            m_data						= lcp_c.m_data;
-            m_overflow					= lcp_c.m_overflow;
-            m_overflow_rank				= lcp_c.m_overflow_rank;
+            m_data                       = lcp_c.m_data;
+            m_overflow                   = lcp_c.m_overflow;
+            m_overflow_rank              = lcp_c.m_overflow_rank;
             m_overflow_rank.set_vector(&m_overflow);
-            m_level_pointer_and_rank 	= lcp_c.m_level_pointer_and_rank;
-            m_max_level					= lcp_c.m_max_level;
+            m_level_pointer_and_rank     = lcp_c.m_level_pointer_and_rank;
+            m_max_level                  = lcp_c.m_max_level;
         }
 
     public:
         //! Default Constructor
         lcp_dac() {
-            // has to be initialized for size() methode
+            // has to be initialized for size() method
             // m_level_pointer_and_rank[2] contains the length of the LCP array
             m_level_pointer_and_rank = int_vector<64>(4,0);
         }
@@ -119,84 +119,50 @@ class lcp_dac
             copy(lcp_c);
         }
 
-        //! Construct the lcp array from an int_vector_file_buffer
-        template<uint8_t int_width>
-        lcp_dac(int_vector_file_buffer<int_width>& lcp_buf);
-
+        //! Constructor
+        lcp_dac(cache_config& config);
 
         //! Number of elements in the instance.
-        /*! Required for the Container Concept of the STL.
-         *  \sa max_size, empty
-         */
         size_type size()const {
             return m_level_pointer_and_rank[2];
         }
 
         //! Returns the largest size that lcp_dac can ever have.
-        /*! Required for the Container Concept of the STL.
-         *  \sa size
-         */
         static size_type max_size() {
             return int_vector<>::max_size();
         }
 
-        //! Returns if the data strucutre is empty.
-        /*! Required for the Container Concept of the STL.A
-         * \sa size
-         */
+        //! Returns if the data structure is empty.
         bool empty()const {
-            return m_level_pointer_and_rank[2]==0;
+            return 0 == m_level_pointer_and_rank[2];
         }
 
         //! Swap method for lcp_dac
-        /*! The swap method can be defined in terms of assignment.
-        	This requires three assignments, each of which, for a container type, is linear
-        	in the container's size. In a sense, then, a.swap(b) is redundant.
-        	This implementation guaranties a run-time complexity that is constant rather than linear.
-        	\param lcp_c lcp_dac to swap.
-
-        	Required for the Assignable Conecpt of the STL.
-          */
         void swap(lcp_dac& lcp_c);
 
         //! Returns a const_iterator to the first element.
-        /*! Required for the STL Container Concept.
-         *  \sa end
-         */
         const_iterator begin()const {
             return const_iterator(this, 0);
         }
 
         //! Returns a const_iterator to the element after the last element.
-        /*! Required for the STL Container Concept.
-         *  \sa begin.
-         */
         const_iterator end()const {
             return const_iterator(this, size());
         }
 
         //! []-operator
         /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
-         * Time complexity: O(suffix array access)
-         * Required for the STL Random Access Container Concept.
+         * Time complexity: O(log n/k)
          */
         inline value_type operator[](size_type i)const;
 
         //! Assignment Operator.
-        /*!
-         *	Required for the Assignable Concept of the STL.
-         */
         lcp_dac& operator=(const lcp_dac& lcp_c);
 
         //! Serialize to a stream.
-        /*! \param out Outstream to write the data structure.
-         *  \return The number of written bytes.
-         */
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="") const;
 
         //! Load from a stream.
-        /*! \param in Inputstream to load the data structure from.
-         */
         void load(std::istream& in);
 };
 
@@ -204,17 +170,16 @@ class lcp_dac
 
 
 template<uint8_t t_b, class t_rank>
-template<uint8_t int_width>
-lcp_dac<t_b, t_rank>::lcp_dac(int_vector_file_buffer<int_width>& lcp_buf)
+lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
 {
 //  (1) Count for each level, how many blocks are needed for the representation
 //      Running time: \f$ O(n \times \frac{\log n}{b}  \f$
 //      Result is sorted in m_level_pointer_and_rank
-    lcp_buf.reset();
+    int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config));
     size_type n = lcp_buf.int_vector_size, val=0;
     if (n == 0)
         return;
-// 		initialize counter
+//         initialize counter
     m_level_pointer_and_rank.resize(std::max(4*bit_magic::l1BP(2), 2*(((bit_magic::l1BP(n)+1)+t_b-1) / t_b)));
     for (size_type i=0; i < m_level_pointer_and_rank.size(); ++i)
         m_level_pointer_and_rank[i] = 0;
@@ -235,7 +200,7 @@ lcp_dac<t_b, t_rank>::lcp_dac(int_vector_file_buffer<int_width>& lcp_buf)
         r_sum += r; r = lcp_buf.load_next_block();
     }
 
-//  (2)	Determine maximum level and prefix sums of level counters
+//  (2)    Determine maximum level and prefix sums of level counters
     m_max_level = 0;
     size_type sum_blocks = 0, last_block_size=0;
     for (size_type i=0, t=0; i < m_level_pointer_and_rank.size(); i+=2) {
@@ -252,7 +217,7 @@ lcp_dac<t_b, t_rank>::lcp_dac(int_vector_file_buffer<int_width>& lcp_buf)
 
     assert(last_block_size > 0);
 
-//  (3)	Enter block and overflow data
+//  (3)    Enter block and overflow data
     int_vector<64> cnt = m_level_pointer_and_rank;
     const uint64_t mask = bit_magic::Li1Mask[t_b];
 

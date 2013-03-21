@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2010 Simon Gog
+    Copyright (C) 2010-2013 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ class lcp_wt
         typedef ptrdiff_t                                difference_type; // STL Container requirement
         typedef select_support_bs< rank_support_v<> >    tDummySS;
         typedef wt_huff<bit_vector, rank_support_v<>,
-                tDummySS, tDummySS>              small_lcp_type;
+                tDummySS, tDummySS>                      small_lcp_type;
 
         typedef lcp_plain_tag                            lcp_category;
 
@@ -99,9 +99,8 @@ class lcp_wt
             copy(lcp_c);
         }
 
-        //! Construct the lcp array from an int_vector_file_buffer
-        template<uint8_t int_width>
-        lcp_wt(int_vector_file_buffer<int_width>& lcp_buf);
+        //! Constructor
+        lcp_wt(cache_config& config, std::string other_key="");
 
         //! Number of elements in the instance.
         size_type size()const {
@@ -113,9 +112,9 @@ class lcp_wt
             return int_vector<8>::max_size();
         }
 
-        //! Returns if the data strucutre is empty.
+        //! Returns if the data structure is empty.
         bool empty()const {
-            return m_small_lcp.size()==0;
+            return 0==m_small_lcp.size();
         }
 
         //! Swap method for lcp_wt
@@ -151,15 +150,17 @@ class lcp_wt
 
 
 template<uint8_t t_width>
-template<uint8_t int_width>
-lcp_wt<t_width>::lcp_wt(int_vector_file_buffer<int_width>& lcp_buf)
+lcp_wt<t_width>::lcp_wt(cache_config& config, std::string other_key)
 {
-    std::string temp_file = "/tmp/lcp_sml" + util::to_string(util::pid()) + "_" + util::to_string(util::id()) ;// TODO: remove absolute file name
-//    write_R_output("lcp","construct sml","begin");
+    std::string tmp_file = util::tmp_file(config, "_lcp_sml");
+    std::string lcp_key  = constants::KEY_LCP;
+    if ("" != other_key) {
+        lcp_key = other_key;
+    }
+    int_vector_file_buffer<> lcp_buf(util::cache_file_name(lcp_key, config));
     typename int_vector<>::size_type l=0, max_l=0, big_sum=0, n = lcp_buf.int_vector_size;
     {
         int_vector<8> small_lcp = int_vector<8>(n);
-        lcp_buf.reset();
         for (size_type i=0, r_sum=0, r = lcp_buf.load_next_block(); r_sum < n;) {
             for (; i < r_sum+r; ++i) {
                 if ((l=lcp_buf[i-r_sum]) < 255) {
@@ -172,13 +173,14 @@ lcp_wt<t_width>::lcp_wt(int_vector_file_buffer<int_width>& lcp_buf)
             }
             r_sum += r; r = lcp_buf.load_next_block();
         }
-        util::store_to_file(small_lcp, temp_file);
+        util::store_to_file(small_lcp, tmp_file);
     }
-    int_vector_file_buffer<8> lcp_sml_buf(temp_file);
-
-    util::assign(m_small_lcp, small_lcp_type(lcp_sml_buf, lcp_sml_buf.int_vector_size));
-
-    std::remove(temp_file.c_str());
+    int_vector_file_buffer<8> lcp_sml_buf(tmp_file);
+    {
+        small_lcp_type tmp_small_lcp(lcp_sml_buf, lcp_sml_buf.int_vector_size);
+        m_small_lcp.swap(tmp_small_lcp);
+    }
+    sdsl::remove(tmp_file);
     m_big_lcp         = int_vector<>(big_sum, 0, bit_magic::l1BP(max_l)+1);
     {
         lcp_buf.reset();

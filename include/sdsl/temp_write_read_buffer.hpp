@@ -46,12 +46,12 @@ class temp_write_read_buffer
          *	\param dir		Directory in which the temporary file is stored.
          */
         // TODO: should pass a temporary file NOT a directory
-        temp_write_read_buffer(size_type buf_size, uint8_t width, std::string dir="./") {
+        temp_write_read_buffer(size_type buf_size, uint8_t width, std::string dir=".") {
             m_buf_size = buf_size;
             m_buf = buffer_type(buf_size, 0, width);    // initialize buffer
             m_in_buf_idx = 0;
             m_buf_cnt = 0;
-            m_file_name =  dir + "temp_write_read_buffer_" + util::to_string(util::pid())+"_"
+            m_file_name =  dir + "/temp_write_read_buffer_" + util::to_string(util::pid())+"_"
                            + util::to_string(util::id())+"_"
                            + util::to_string(m_buffer_id);
             m_buffer_id++; // increase the object counter

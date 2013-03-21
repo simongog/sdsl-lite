@@ -64,7 +64,7 @@ void insert_lcp_values(int_vector<>& partial_lcp, bit_vector& index_done, std::s
         tmp_lcp_out_buf.write("\0\0\0\0\0\0\0\0", 8-wb%8);
     }
     tmp_lcp_out_buf.close();
-    std::rename(tmp_lcp_file.c_str(), lcp_file.c_str());
+    sdsl::rename(tmp_lcp_file, lcp_file);
 }
 
 } // end namespace sdsl
