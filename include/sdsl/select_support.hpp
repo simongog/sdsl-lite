@@ -86,21 +86,37 @@ struct select_support_trait {
     typedef select_support::size_type	size_type;
 
     /* Count the number of arguments for the specific select support */
-    static size_type arg_cnt(const bit_vector&) { return 0; }
+    static size_type arg_cnt(const bit_vector&) {
+        return 0;
+    }
 
-    static size_type args_in_the_first_word(uint64_t, uint8_t, uint64_t) { return 0; }
+    static size_type args_in_the_first_word(uint64_t, uint8_t, uint64_t) {
+        return 0;
+    }
 
-    static size_type ith_arg_pos_in_the_first_word(uint64_t, size_type, uint8_t, uint64_t) { return 0; }
+    static size_type ith_arg_pos_in_the_first_word(uint64_t, size_type, uint8_t, uint64_t) {
+        return 0;
+    }
 
-    static size_type args_in_the_word(uint64_t, uint64_t&) { return 0; }
+    static size_type args_in_the_word(uint64_t, uint64_t&) {
+        return 0;
+    }
 
-    static size_type ith_arg_pos_in_the_word(uint64_t, size_type, uint64_t) { return 0; }
+    static size_type ith_arg_pos_in_the_word(uint64_t, size_type, uint64_t) {
+        return 0;
+    }
 
-    static bool found_arg(size_type, const bit_vector&) { return 0; }
+    static bool found_arg(size_type, const bit_vector&) {
+        return 0;
+    }
 
-    static uint64_t init_carry(const uint64_t*, size_type) { return 0; }
+    static uint64_t init_carry(const uint64_t*, size_type) {
+        return 0;
+    }
 
-    static uint64_t get_carry(uint64_t) { return 0; }
+    static uint64_t get_carry(uint64_t) {
+        return 0;
+    }
 };
 
 template<>
@@ -111,20 +127,26 @@ struct select_support_trait<0,1> {
         return v.bit_size()-util::get_one_bits(v);
     }
     static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t) {
-        return bit_magic::b1Cnt((~w)& bit_magic::Li0Mask[offset]);
+        return bits::cnt((~w)& bits::Li0Mask[offset]);
     }
     static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t) {
-        return bit_magic::i1BP(~w & bit_magic::Li0Mask[offset], i);
+        return bits::sel(~w & bits::Li0Mask[offset], i);
     }
     static size_type args_in_the_word(uint64_t w, uint64_t&) {
-        return bit_magic::b1Cnt(~w);
+        return bits::cnt(~w);
     }
     static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t) {
-        return bit_magic::i1BP(~w, i);
+        return bits::sel(~w, i);
     }
-    static bool found_arg(size_type i, const bit_vector& v) { return !v[i]; }
-    static uint64_t init_carry(const uint64_t*, size_type) { return 0; }
-    static uint64_t get_carry(uint64_t) { return 0; }
+    static bool found_arg(size_type i, const bit_vector& v) {
+        return !v[i];
+    }
+    static uint64_t init_carry(const uint64_t*, size_type) {
+        return 0;
+    }
+    static uint64_t get_carry(uint64_t) {
+        return 0;
+    }
 };
 
 template<>
@@ -135,20 +157,26 @@ struct select_support_trait<1,1> {
         return util::get_one_bits(v);
     }
     static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t) {
-        return bit_magic::b1Cnt(w & bit_magic::Li0Mask[offset]);
+        return bits::cnt(w & bits::Li0Mask[offset]);
     }
     static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t) {
-        return bit_magic::i1BP(w & bit_magic::Li0Mask[offset], i);
+        return bits::sel(w & bits::Li0Mask[offset], i);
     }
     static size_type args_in_the_word(uint64_t w, uint64_t&) {
-        return bit_magic::b1Cnt(w);
+        return bits::cnt(w);
     }
     static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t) {
-        return bit_magic::i1BP(w, i);
+        return bits::sel(w, i);
     }
-    static bool found_arg(size_type i, const bit_vector& v) { return v[i]; }
-    static uint64_t init_carry(const uint64_t*, size_type) { return 0; }
-    static uint64_t get_carry(uint64_t) { return 0; }
+    static bool found_arg(size_type i, const bit_vector& v) {
+        return v[i];
+    }
+    static uint64_t init_carry(const uint64_t*, size_type) {
+        return 0;
+    }
+    static uint64_t get_carry(uint64_t) {
+        return 0;
+    }
 };
 
 template<>
@@ -159,16 +187,16 @@ struct select_support_trait<10,2> {
         return util::get_onezero_bits(v);
     }
     static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry) {
-        return bit_magic::b1Cnt(bit_magic::b10Map(w, carry) & bit_magic::Li0Mask[offset]);
+        return bits::cnt(bits::b10Map(w, carry) & bits::Li0Mask[offset]);
     }
     static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry) {
-        return bit_magic::i1BP(bit_magic::b10Map(w, carry) & bit_magic::Li0Mask[offset], i);
+        return bits::sel(bits::b10Map(w, carry) & bits::Li0Mask[offset], i);
     }
     static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
-        return bit_magic::b10Cnt(w, carry);
+        return bits::b10Cnt(w, carry);
     }
     static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry) {
-        return bit_magic::i1BP(bit_magic::b10Map(w, carry), i);
+        return bits::sel(bits::b10Map(w, carry), i);
     }
     static bool found_arg(size_type i, const bit_vector& v) {
         if (i > 0 and v[i-1] and !v[i])
@@ -191,16 +219,16 @@ struct select_support_trait<01,2> {
         return util::get_zeroone_bits(v);
     }
     static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry) {
-        return bit_magic::b1Cnt(bit_magic::b01Map(w, carry) & bit_magic::Li0Mask[offset]);
+        return bits::cnt(bits::b01Map(w, carry) & bits::Li0Mask[offset]);
     }
     static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry) {
-        return bit_magic::i1BP(bit_magic::b01Map(w, carry) & bit_magic::Li0Mask[offset], i);
+        return bits::sel(bits::b01Map(w, carry) & bits::Li0Mask[offset], i);
     }
     static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
-        return bit_magic::b01Cnt(w, carry);
+        return bits::b01Cnt(w, carry);
     }
     static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry) {
-        return bit_magic::i1BP(bit_magic::b01Map(w, carry), i);
+        return bits::sel(bits::b01Map(w, carry), i);
     }
     static bool found_arg(size_type i, const bit_vector& v) {
         if (i > 0 and !v[i-1] and v[i])

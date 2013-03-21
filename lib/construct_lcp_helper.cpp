@@ -24,7 +24,7 @@ void insert_lcp_values(int_vector<>& partial_lcp, bit_vector& index_done, std::s
     uint64_t n = lcp_buffer.int_vector_size;
 
     // open tmp_lcp_file
-    uint8_t int_width = bit_magic::l1BP(max_lcp_value-1)+1;
+    uint8_t int_width = bits::l1BP(max_lcp_value-1)+1;
     uint64_t bit_size = n*int_width;								// Size of output file
     size_type wb = 0;												// Number of bits that were already written
     int_vector<> out_buf(buffer_size, 0, int_width); 				// Output buffer

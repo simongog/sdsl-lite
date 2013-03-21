@@ -113,7 +113,7 @@ class wt_rlg8
             m_b = bit_vector(size/4+1,0);
             uint8_t* next_bwt = new uint8_t[size/4+4];
 
-            m_b_border.resize(bit_magic::l1BP(size) + 1);
+            m_b_border.resize(bits::l1BP(size) + 1);
             m_b_border[0] = 0;
 
             int m=0;

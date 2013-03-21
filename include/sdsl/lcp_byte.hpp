@@ -173,8 +173,8 @@ lcp_byte<t_width>::lcp_byte(cache_config& config)
         r_sum	+=	r;
         r 		=	lcp_buf.load_next_block();
     }
-    m_big_lcp 		= int_vector<>(big_sum, 0, bit_magic::l1BP(max_l)+1);
-    m_big_lcp_idx 	= int_vector<>(big_sum, 0, bit_magic::l1BP(max_big_idx)+1);
+    m_big_lcp 		= int_vector<>(big_sum, 0, bits::l1BP(max_l)+1);
+    m_big_lcp_idx 	= int_vector<>(big_sum, 0, bits::l1BP(max_big_idx)+1);
 
     lcp_buf.reset();
     for (size_type i=0, r_sum=0, r = lcp_buf.load_next_block(),ii=0; r_sum<m_small_lcp.size();) {

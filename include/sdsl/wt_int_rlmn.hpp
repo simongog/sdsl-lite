@@ -168,7 +168,7 @@ class wt_int_rlmn
                     r = text_buf.load_next_block();
                 }
                 uint64_t max_symbol = (--C.end())->first;
-                util::assign(m_C, int_vector<>(max_symbol+1, 0, bit_magic::l1BP(size)+1));
+                util::assign(m_C, int_vector<>(max_symbol+1, 0, bits::l1BP(size)+1));
                 for (size_type i=0, prefix_sum=0; i<=max_symbol; ++i) {
                     m_C[i] = prefix_sum;
                     prefix_sum += C[i];
@@ -178,7 +178,7 @@ class wt_int_rlmn
                 bit_vector bf = bit_vector(size+1, 0);
                 bf[size] = 1; // initialize last element
                 text_buf.reset();
-                util::assign(condensed_bwt, int_vector<>(runs, 0, bit_magic::l1BP(max_symbol)+1));
+                util::assign(condensed_bwt, int_vector<>(runs, 0, bits::l1BP(max_symbol)+1));
                 runs = 0;
                 for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
                     if (r_sum + r > size) {  // read not more than size chars in the next loop
@@ -212,7 +212,7 @@ class wt_int_rlmn
             util::init_support(m_bf_rank, &m_bf);
             util::init_support(m_bf_select, &m_bf);
             util::init_support(m_bl_select, &m_bl);
-            util::assign(m_C_bf_rank, int_vector<>(m_C.size(), 0, bit_magic::l1BP(size)+1));
+            util::assign(m_C_bf_rank, int_vector<>(m_C.size(), 0, bits::l1BP(size)+1));
             for (size_type i=0; i<m_C.size(); ++i) {
                 m_C_bf_rank[i] = m_bf_rank(m_C[i]);
             }

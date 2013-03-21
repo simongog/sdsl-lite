@@ -181,7 +181,7 @@ lcp_wt<t_width>::lcp_wt(cache_config& config, std::string other_key)
         m_small_lcp.swap(tmp_small_lcp);
     }
     sdsl::remove(tmp_file);
-    m_big_lcp         = int_vector<>(big_sum, 0, bit_magic::l1BP(max_l)+1);
+    m_big_lcp         = int_vector<>(big_sum, 0, bits::l1BP(max_l)+1);
     {
         lcp_buf.reset();
         for (size_type i=0, ii=0, r_sum=0, r = lcp_buf.load_next_block(); r_sum < n;) {

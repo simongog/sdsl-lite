@@ -414,7 +414,7 @@ void sa2isa(const RandomAccessContainer1& sa, RandomAccessContainer2& isa)
 template<class RandomAccessContainer>
 void sa2isa(const RandomAccessContainer& sa, int_vector<>& isa)
 {
-    isa.width(bit_magic::l1BP(sa.size())+1);
+    isa.width(bits::l1BP(sa.size())+1);
     isa.resize(sa.size()); // init isa
     typename RandomAccessContainer::size_type i = 0;
     for (typename RandomAccessContainer::const_iterator sa_it = sa.begin(), end = sa.end(); sa_it != end; ++sa_it, ++i) {
@@ -439,7 +439,7 @@ void inverse_permutation_inplace(RandomAccessContainer& perm)
         }
     }
 #endif
-    uint8_t  w 		= bit_magic::l1BP(perm.size()-1)+1;
+    uint8_t  w 		= bits::l1BP(perm.size()-1)+1;
     uint64_t b 		= 1ULL << ((w+1)%64);
     uint64_t biggest = b | (perm.size()-1);
     uint64_t perm_0 = perm[0];
@@ -507,7 +507,7 @@ void sa2psi(const RandomAccessContainer& sa, int_vector<>& psi)
 {
     int_vector<> isa; // temporary array for the inverse suffix array
     sa2isa(sa, isa);
-    psi.width(bit_magic::l1BP(sa.size())+1);
+    psi.width(bits::l1BP(sa.size())+1);
     psi.resize(sa.size());
     typename RandomAccessContainer::value_type tmp; //
     int_vector<>::iterator psi_it = psi.begin();
@@ -562,7 +562,7 @@ void psi2sa(const RandomAccessContainer1& psi, const typename RandomAccessContai
 template<class RandomAccessContainer>
 void psi2sa(const RandomAccessContainer& psi, const typename RandomAccessContainer::size_type isa_0, int_vector<>& sa)
 {
-    sa.width(bit_magic::l1BP(psi.size())+1);
+    sa.width(bits::l1BP(psi.size())+1);
     sa.resize(psi.size());
     if (psi.empty())
         return;

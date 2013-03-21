@@ -107,8 +107,8 @@ inline uint8_t fibonacci::encoding_length(uint64_t w)
         return 93;
     }
     // This limit for the leftmost 1bit in the resulting fib code could be improved using a table
-    uint8_t len_1 = bit_magic::l1BP(w); // len-1 of the fib code
-    while (++len_1 < (uint8_t)(sizeof(bit_magic::Fib)/sizeof(bit_magic::Fib[0])) && w >= bit_magic::Fib[len_1]);
+    uint8_t len_1 = bits::l1BP(w); // len-1 of the fib code
+    while (++len_1 < (uint8_t)(sizeof(bits::Fib)/sizeof(bits::Fib[0])) && w >= bits::Fib[len_1]);
     return len_1+1;
 }
 
@@ -149,12 +149,12 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
                 fibword_high <<= 1;
                 fibword_high |= 1;
                 fibword_high <<= 1;
-                w -= bit_magic::Fib[len_1-1];
+                w -= bits::Fib[len_1-1];
                 j -= 2;
             }
             for (; j>63; --j) {
                 fibword_high <<= 1;
-                if (w >= (t=bit_magic::Fib[j])) {
+                if (w >= (t=bits::Fib[j])) {
                     w -= t;
                     fibword_high |= 1;
                     if (w and j>64) {
@@ -173,7 +173,7 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
 
         for (; j >= 0; --j) {
             fibword_low <<= 1;
-            if (w >= (t=bit_magic::Fib[j])) {
+            if (w >= (t=bits::Fib[j])) {
                 w -= t;
                 fibword_low |= 1;
                 if (w) {
@@ -186,10 +186,10 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
             }
         }
         if (len_1 >=64) {
-            bit_magic::write_int_and_move(z_data, fibword_low, offset, 64);
-            bit_magic::write_int_and_move(z_data, fibword_high, offset, len_1 - 63);
+            bits::write_int_and_move(z_data, fibword_low, offset, 64);
+            bits::write_int_and_move(z_data, fibword_high, offset, len_1 - 63);
         } else {
-            bit_magic::write_int_and_move(z_data, fibword_low, offset, (len_1&0x3F) +1);
+            bits::write_int_and_move(z_data, fibword_low, offset, (len_1&0x3F) +1);
         }
     }
     z.width(v.width());
@@ -210,12 +210,12 @@ inline void fibonacci::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
             fibword_high <<= 1;
             fibword_high |= 1;
             fibword_high <<= 1;
-            x -= bit_magic::Fib[len_1-1];
+            x -= bits::Fib[len_1-1];
             j -= 2;
         }
         for (; j>63; --j) {
             fibword_high <<= 1;
-            if (x >= (t=bit_magic::Fib[j])) {
+            if (x >= (t=bits::Fib[j])) {
                 x -= t;
                 fibword_high |= 1;
                 if (x and j>64) {
@@ -233,7 +233,7 @@ inline void fibonacci::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
     }
     for (; j >= 0; --j) {
         fibword_low <<= 1;
-        if (x >= (t=bit_magic::Fib[j])) {
+        if (x >= (t=bits::Fib[j])) {
             x -= t;
             fibword_low |= 1;
             if (x) {
@@ -246,10 +246,10 @@ inline void fibonacci::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
         }
     }
     if (len_1 >=64) {
-        bit_magic::write_int_and_move(z, fibword_low, offset, 64);
-        bit_magic::write_int_and_move(z, fibword_high, offset, len_1 - 63);
+        bits::write_int_and_move(z, fibword_low, offset, 64);
+        bits::write_int_and_move(z, fibword_high, offset, len_1 - 63);
     } else {
-        bit_magic::write_int_and_move(z, fibword_low, offset, (len_1&0x3F) +1);
+        bits::write_int_and_move(z, fibword_low, offset, (len_1&0x3F) +1);
     }
 }
 
@@ -265,12 +265,12 @@ bool fibonacci::decode(const int_vector1& z, int_vector2& v)
         return true;
     }
     for (typename int_vector1::size_type i=0; i < (z.capacity()>>6)-1; ++i, ++data) {
-        n += bit_magic::b11Cnt(*data, carry);
+        n += bits::b11Cnt(*data, carry);
     }
     if (z.capacity() != z.bit_size()) {
-        n += bit_magic::b11Cnt((*data) & bit_magic::Li1Mask[z.bit_size()&0x3F], carry);
+        n += bits::b11Cnt((*data) & bits::Li1Mask[z.bit_size()&0x3F], carry);
     } else {
-        n += bit_magic::b11Cnt(*data, carry);
+        n += bits::b11Cnt(*data, carry);
     }
     std::cout<<"n="<<n<<std::endl;
     v.width(z.width()); v.resize(n);
@@ -287,7 +287,7 @@ inline uint64_t fibonacci::decode(const uint64_t* data, const size_type start_id
     int8_t shift = 0;
     uint32_t fibtable = 0;
     while (n) {// while not all values are decoded
-        while (buffered < 13 and bit_magic::b11Cnt(w) < n) {
+        while (buffered < 13 and bits::b11Cnt(w) < n) {
             w |= (((*data)>>read)<<buffered);
             if (read >= buffered) {
                 ++data;
@@ -327,7 +327,7 @@ inline uint64_t fibonacci::decode1(const uint64_t* data, const size_type start_i
     uint32_t fibtable = 0;
     uint8_t blocknr = (start_idx>>6)%9;
     while (n) {// while not all values are decoded
-        while (buffered < 13 and bit_magic::b11Cnt(w) < n) {
+        while (buffered < 13 and bits::b11Cnt(w) < n) {
             w |= (((*data)>>read)<<buffered);
             if (read >= buffered) {
                 ++blocknr;

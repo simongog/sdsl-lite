@@ -45,6 +45,7 @@ class isfstream : public std::istream
         std::streambuf* m_streambuf;
         std::string      m_file;
         bool             m_use_ram;
+        bool             m_closed; // indicates if the buffer is closed
     public:
         typedef void* voidptr;
         //! Standard constructor.

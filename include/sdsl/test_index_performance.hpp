@@ -69,7 +69,7 @@ template<class Vector>
 void test_int_vector_sequential_write(Vector& v, bit_vector::size_type times=100000000)
 {
     typedef bit_vector::size_type size_type;
-    const uint64_t mask = (1ULL << bit_magic::l1BP(v.size()))-1;
+    const uint64_t mask = (1ULL << bits::l1BP(v.size()))-1;
 //	std::cout<<" mask="<<mask<<std::endl;
     size_type cnt=0;
     write_R_output("int_vector","seq write","begin",times,cnt);
@@ -268,18 +268,18 @@ void test_pattern_matching(const Csa& csa,
     write_R_output("csa","extract patterns","begin",times,0);
 
     size_type file_size = 0;
-	{
-		int_vector<8> text;
-		if ( util::load_vector_from_file(text, file_name, 1) ){
-			for (size_type i=0; i<rands.size(); ++i) {
-				for (size_type j=rands[i]; j < rands[i] + pattern_len; ++j)
-					patterns[i*pattern_len + (j-rands[i])] = text[j];
-			}
-		} else {
-			std::cerr << "ERROR: test_pattern_matching: could not open";
-			std::cerr << "file `" << file_name << "`" << std::endl;
-		}
-	}
+    {
+        int_vector<8> text;
+        if (util::load_vector_from_file(text, file_name, 1)) {
+            for (size_type i=0; i<rands.size(); ++i) {
+                for (size_type j=rands[i]; j < rands[i] + pattern_len; ++j)
+                    patterns[i*pattern_len + (j-rands[i])] = text[j];
+            }
+        } else {
+            std::cerr << "ERROR: test_pattern_matching: could not open";
+            std::cerr << "file `" << file_name << "`" << std::endl;
+        }
+    }
     write_R_output("csa","extract patterns","end",times,0);
 
     size_type cnt=0;

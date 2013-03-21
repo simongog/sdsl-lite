@@ -16,10 +16,10 @@ uint64_t elias_delta::decode_prefix_sum(const uint64_t* data, const size_type st
     int16_t buffered = 0, read = start_idx & 0x3F;
     size_type i = 0;
     if (n + read <= 64) {
-        if (((*data >> read)&bit_magic::Li1Mask[n]) == bit_magic::Li1Mask[n])
+        if (((*data >> read)&bits::Li1Mask[n]) == bits::Li1Mask[n])
             return n;
     } else { // n+read > 64
-        if ((*data >> read) == bit_magic::Li1Mask[64-read]) {// all bits are set to 1
+        if ((*data >> read) == bits::Li1Mask[64-read]) {// all bits are set to 1
             value = 64-read;
             ++data;
             n -= (64-read);
@@ -33,7 +33,7 @@ uint64_t elias_delta::decode_prefix_sum(const uint64_t* data, const size_type st
                     goto start_decoding;
             }
             // 0 <= n <= 64
-            if ((*data&bit_magic::Li1Mask[n]) == bit_magic::Li1Mask[n])
+            if ((*data&bits::Li1Mask[n]) == bits::Li1Mask[n])
                 return value + n;
         }
     }
@@ -63,8 +63,8 @@ fill_buffer:
         			goto fill_buffer;
         		}
         */
-//		uint32_t rbp = (w == 0xFFFFFFFFFFFFFFFFULL)?64:bit_magic::r1BP(~w);
-        uint32_t rbp = bit_magic::r1BP(~w);
+//		uint32_t rbp = (w == 0xFFFFFFFFFFFFFFFFULL)?64:bits::r1BP(~w);
+        uint32_t rbp = bits::r1BP(~w);
         if (rbp > 0) {
             i += rbp;
             value += rbp;
@@ -108,7 +108,7 @@ begin_decode:
                     }
                 }
 //				assert(w>0);
-                uint16_t len_1_len = bit_magic::r1BP(w); // read length of length
+                uint16_t len_1_len = bits::r1BP(w); // read length of length
                 buffered -= (len_1_len+1);
                 w >>= (len_1_len+1);
                 if (len_1_len > buffered) {// buffer is not full
@@ -134,7 +134,7 @@ begin_decode:
                     }
                 }
 //				assert(len_1_len <= buffered);
-                uint16_t len_1 = (w&bit_magic::Li1Mask[len_1_len]) + (1ULL << len_1_len) - 1;
+                uint16_t len_1 = (w&bits::Li1Mask[len_1_len]) + (1ULL << len_1_len) - 1;
                 buffered -= len_1_len;
                 w >>= len_1_len;
                 if (len_1 > buffered) {// buffer is not full
@@ -163,7 +163,7 @@ begin_decode:
 //					std::cerr<<"len_1="<<len_1<<" buffered = "<<buffered<<std::endl;
 //				}
 //				assert(len_1 <= buffered);
-                value	+= (w&bit_magic::Li1Mask[len_1]) + (len_1<64) * (1ULL << (len_1));
+                value	+= (w&bits::Li1Mask[len_1]) + (len_1<64) * (1ULL << (len_1));
                 buffered -= len_1;
                 if (len_1 < 64) {
                     w >>= len_1;
@@ -204,10 +204,10 @@ uint64_t elias_delta::decode_prefix_sum(const uint64_t* data, const size_type st
 
     if (n < 24) {
         if (n + offset <= 64) {
-            if (((*data >> offset)&bit_magic::Li1Mask[n]) == bit_magic::Li1Mask[n])
+            if (((*data >> offset)&bits::Li1Mask[n]) == bits::Li1Mask[n])
                 return n;
         } else { // n+offset > 64
-            if ((*data >> offset) == bit_magic::Li1Mask[64-offset]) {// all bits are set to 1
+            if ((*data >> offset) == bits::Li1Mask[64-offset]) {// all bits are set to 1
                 value = 64-offset;
                 ++data;
                 n -= (64-offset);
@@ -218,7 +218,7 @@ uint64_t elias_delta::decode_prefix_sum(const uint64_t* data, const size_type st
                         ++data;
                         n -= 64;
                     } else {
-                        uint8_t temp = bit_magic::r1BP(~(*data));
+                        uint8_t temp = bits::r1BP(~(*data));
                         value += temp;
                         n -= temp;
                         offset = temp;
@@ -226,7 +226,7 @@ uint64_t elias_delta::decode_prefix_sum(const uint64_t* data, const size_type st
                     }
                 }
                 // 0 <= n <= 64
-                if ((*data&bit_magic::Li1Mask[n]) == bit_magic::Li1Mask[n])
+                if ((*data&bits::Li1Mask[n]) == bits::Li1Mask[n])
                     return value + n;
             }//else{
 
@@ -240,7 +240,7 @@ start_decoding:
         // n-i values to decode
         if (((*data>>offset)&0xF)==0xF) {
             uint8_t maxdecode = n-i > 63 ? 63 : n-i;
-            uint8_t rbp = bit_magic::r1BP(~bit_magic::read_int(data, offset,maxdecode));
+            uint8_t rbp = bits::r1BP(~bits::read_int(data, offset,maxdecode));
             i += rbp;
             value += rbp;
             if (rbp+offset>=64) {
@@ -253,13 +253,13 @@ start_decoding:
                 continue;
         }
         while (i < n) {
-            uint32_t psum = EliasDeltaPrefixSum[bit_magic::read_int(data, offset, 16)];
+            uint32_t psum = EliasDeltaPrefixSum[bits::read_int(data, offset, 16)];
 //			if( psum == 0 or i+((psum>>16)&0x00FF) > n ){ // value does not fit in 16 bits
             if (psum == 0) { // value does not fit in 16 bits
                 goto decode_single;
             } else if (i+((psum>>16)&0x00FF) > n) { // decoded too much
                 if (n-i <= 8) {
-                    psum = EliasDeltaPrefixSum8bit[bit_magic::read_int(data, offset, 8) | ((n-i-1)<<8)];
+                    psum = EliasDeltaPrefixSum8bit[bits::read_int(data, offset, 8) | ((n-i-1)<<8)];
                     if (psum > 0) {
                         value += (psum&0xF);
                         i += ((psum>>4)&0xF);
@@ -284,9 +284,9 @@ start_decoding:
         if (i<n) {
 decode_single:
             i++;
-            uint16_t len_1_len = bit_magic::readUnaryIntAndMove(data, offset); // read length of length of x
-            uint16_t len_1 	=  bit_magic::read_int_and_move(data, offset, len_1_len) + (1ULL << len_1_len) - 1;
-            value	+= bit_magic::read_int_and_move(data, offset, len_1) + (len_1<64) * (1ULL << (len_1));
+            uint16_t len_1_len = bits::readUnaryIntAndMove(data, offset); // read length of length of x
+            uint16_t len_1 	=  bits::read_int_and_move(data, offset, len_1_len) + (1ULL << len_1_len) - 1;
+            value	+= bits::read_int_and_move(data, offset, len_1) + (len_1<64) * (1ULL << (len_1));
 //			std::cout<<"decode single ("<<len_1_len<<","<<len_1<<","<<value<<")"<<std::endl;
         }
     }
@@ -301,9 +301,9 @@ uint64_t elias_delta::decode_prefix_sum(const uint64_t *data, const size_type st
 	size_type i = 0;
 	uint8_t offset = start_idx & 0x3F;//, maxdecode;
 	while( i++ < n ){// while not all values are decoded
-			uint16_t len_1_len = bit_magic::readUnaryIntAndMove(data, offset); // read length of length of x
-			uint16_t len_1 	=  bit_magic::read_int_and_move(data, offset, len_1_len) + (1ULL << len_1_len) - 1;
-			value	+= bit_magic::read_int_and_move(data, offset, len_1) + (1ULL << (len_1));
+			uint16_t len_1_len = bits::readUnaryIntAndMove(data, offset); // read length of length of x
+			uint16_t len_1 	=  bits::read_int_and_move(data, offset, len_1_len) + (1ULL << len_1_len) - 1;
+			value	+= bits::read_int_and_move(data, offset, len_1) + (1ULL << (len_1));
 	}
 	return value;
 }

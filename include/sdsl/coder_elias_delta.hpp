@@ -83,8 +83,8 @@ class elias_delta
 // \sa coder::elias_delta::encoding_length
 inline uint8_t elias_delta::encoding_length(uint64_t w)
 {
-    uint8_t len_1 = w ? bit_magic::l1BP(w) : 64;
-    return len_1 + (bit_magic::l1BP(len_1+1)<<1) + 1;
+    uint8_t len_1 = w ? bits::l1BP(w) : 64;
+    return len_1 + (bits::l1BP(len_1+1)<<1) + 1;
 }
 
 template<class int_vector>
@@ -115,14 +115,14 @@ bool elias_delta::encode(const int_vector& v, int_vector& z)
             w = zero_val;
         }
         // (number of bits to represent w)
-        len 		= w ? bit_magic::l1BP(w)+1 : 65;
+        len 		= w ? bits::l1BP(w)+1 : 65;
         // (number of bits to represent the length of w) -1
-        len_1_len	= bit_magic::l1BP(len);
+        len_1_len	= bits::l1BP(len);
         // Write unary representation for the length of the length of w
-        bit_magic::write_int_and_move(z_data, 1ULL << len_1_len, offset, len_1_len+1);
+        bits::write_int_and_move(z_data, 1ULL << len_1_len, offset, len_1_len+1);
         if (len_1_len) {
-            bit_magic::write_int_and_move(z_data, len, offset, len_1_len);
-            bit_magic::write_int_and_move(z_data, w, offset, len-1);
+            bits::write_int_and_move(z_data, len, offset, len_1_len);
+            bits::write_int_and_move(z_data, w, offset, len-1);
         }
     }
     return true;
@@ -135,14 +135,14 @@ inline void elias_delta::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
 //    }
     uint8_t len, len_1_len;
     // (number of bits to represent w)
-    len = x ? bit_magic::l1BP(x)+1 : 65;
+    len = x ? bits::l1BP(x)+1 : 65;
     // (number of bits to represent the length of w) - 1
-    len_1_len	= bit_magic::l1BP(len);
+    len_1_len	= bits::l1BP(len);
     // Write unary representation for the length of the length of w
-    bit_magic::write_int_and_move(z, 1ULL << len_1_len, offset, len_1_len+1);
+    bits::write_int_and_move(z, 1ULL << len_1_len, offset, len_1_len+1);
     if (len_1_len) {
-        bit_magic::write_int_and_move(z, len, offset, len_1_len);
-        bit_magic::write_int_and_move(z, x, offset, len-1);
+        bits::write_int_and_move(z, len, offset, len_1_len);
+        bits::write_int_and_move(z, x, offset, len-1);
     }
 }
 
@@ -154,10 +154,10 @@ bool elias_delta::decode(const int_vector& z, int_vector& v)
     const uint64_t* z_end	= z.data()+(z.bit_size()>>6);
     uint8_t offset 		= 0;
     while ((z_data < z_end) or (z_data==z_end and offset < (z.bit_size()&0x3F))) {
-        len_1_len = bit_magic::readUnaryIntAndMove(z_data, offset);
+        len_1_len = bits::readUnaryIntAndMove(z_data, offset);
         if (len_1_len) {
-            len 	= bit_magic::read_int_and_move(z_data, offset, len_1_len) + (1 << len_1_len);
-            bit_magic::move_right(z_data, offset, len-1);
+            len 	= bits::read_int_and_move(z_data, offset, len_1_len) + (1 << len_1_len);
+            bits::move_right(z_data, offset, len-1);
         }
         ++n;
     }
@@ -176,12 +176,12 @@ inline uint64_t elias_delta::decode(const uint64_t* data, const size_type start_
     uint8_t offset = start_idx & 0x3F;
     while (i++ < n) {// while not all values are decoded
         if (!sumup) value = 0;
-        len_1_len = bit_magic::readUnaryIntAndMove(data, offset); // read length of length of x
+        len_1_len = bits::readUnaryIntAndMove(data, offset); // read length of length of x
         if (!len_1_len) {
             value += 1;
         } else {
-            len 	=  bit_magic::read_int_and_move(data, offset, len_1_len) + (1ULL << len_1_len);
-            value	+= bit_magic::read_int_and_move(data, offset, len-1) + (len-1<64) * (1ULL << (len-1));
+            len 	=  bits::read_int_and_move(data, offset, len_1_len) + (1ULL << len_1_len);
+            value	+= bits::read_int_and_move(data, offset, len-1) + (len-1<64) * (1ULL << (len-1));
         }
         if (increment) *(it++) = value;
     }

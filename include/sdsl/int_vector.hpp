@@ -28,7 +28,7 @@
 #define HUGE_FLAGS (MAP_HUGETLB | MAP_ANONYMOUS | MAP_PRIVATE)
 
 #include "compatibility.hpp"
-#include "bit_magic.hpp"
+#include "bits.hpp"
 #include "structure_tree.hpp"
 #include "util.hpp"
 #include "config.hpp"
@@ -592,7 +592,7 @@ class int_vector_reference
             \return A const_reference to the assigned reference
          */
         int_vector_reference& operator=(typename t_int_vector::value_type x) {
-            bit_magic::write_int(m_word, x, m_offset, m_len);
+            bits::write_int(m_word, x, m_offset, m_len);
             return *this;
         };
 
@@ -602,13 +602,13 @@ class int_vector_reference
 
         //! Cast the reference to a int_vector<>::value_type
         operator typename t_int_vector::value_type()const {
-            return bit_magic::read_int(m_word, m_offset, m_len);
+            return bits::read_int(m_word, m_offset, m_len);
         }
 
         //! Prefix increment of the proxy object
         int_vector_reference& operator++() {
-            typename t_int_vector::value_type x = bit_magic::read_int(m_word, m_offset, m_len);
-            bit_magic::write_int(m_word, x+1, m_offset, m_len);
+            typename t_int_vector::value_type x = bits::read_int(m_word, m_offset, m_len);
+            bits::write_int(m_word, x+1, m_offset, m_len);
             return *this;
         }
 
@@ -621,8 +621,8 @@ class int_vector_reference
 
         //! Prefix decrement of the proxy object
         int_vector_reference& operator--() {
-            typename t_int_vector::value_type x = bit_magic::read_int(m_word, m_offset, m_len);
-            bit_magic::write_int(m_word, x-1, m_offset, m_len);
+            typename t_int_vector::value_type x = bits::read_int(m_word, m_offset, m_len);
+            bits::write_int(m_word, x-1, m_offset, m_len);
             return *this;
         }
 
@@ -635,15 +635,15 @@ class int_vector_reference
 
         //! Add assign from the proxy object
         int_vector_reference& operator+=(const typename t_int_vector::value_type x) {
-            typename t_int_vector::value_type w = bit_magic::read_int(m_word, m_offset, m_len);
-            bit_magic::write_int(m_word, w+x, m_offset, m_len);
+            typename t_int_vector::value_type w = bits::read_int(m_word, m_offset, m_len);
+            bits::write_int(m_word, w+x, m_offset, m_len);
             return *this;
         }
 
         //! Subtract assign from the proxy object
         int_vector_reference& operator-=(const typename t_int_vector::value_type x) {
-            typename t_int_vector::value_type w = bit_magic::read_int(m_word, m_offset, m_len);
-            bit_magic::write_int(m_word, w-x, m_offset, m_len);
+            typename t_int_vector::value_type w = bits::read_int(m_word, m_offset, m_len);
+            bits::write_int(m_word, w-x, m_offset, m_len);
             return *this;
         }
 
@@ -907,9 +907,9 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
 
         const_reference operator*() const {
             if (m_offset+m_len <= 64) {
-                return ((*m_word)>>m_offset)&bit_magic::Li1Mask[m_len];
+                return ((*m_word)>>m_offset)&bits::Li1Mask[m_len];
             } else {
-                return ((*m_word)>>m_offset) | ((*(m_word+1) & bit_magic::Li1Mask[(m_offset+m_len)&0x3F])<<(64-m_offset));
+                return ((*m_word)>>m_offset) | ((*(m_word+1) & bits::Li1Mask[(m_offset+m_len)&0x3F])<<(64-m_offset));
             }
         }
 
@@ -1036,9 +1036,10 @@ inline std::ostream& operator<<(std::ostream& os, const int_vector<1>& v)
     return os;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const int_vector<0>& v)
+template<uint8_t t_width>
+inline std::ostream& operator<<(std::ostream& os, const int_vector<t_width>& v)
 {
-    for (int_vector<0>::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
+    for (typename int_vector<t_width>::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
         os << *it;
         if (it+1 != end) os << " ";
     }
@@ -1137,7 +1138,7 @@ void int_vector<t_width>::bit_resize(const size_type size)
         m_data = data;
         // initialize unreachable bits to 0
         if (bit_size() < capacity()) {  //m_size>0
-            bit_magic::write_int(m_data+(bit_size()>>6), 0, bit_size()&0x3F, capacity()-bit_size());
+            bits::write_int(m_data+(bit_size()>>6), 0, bit_size()&0x3F, capacity()-bit_size());
         }
         if ((m_size % 64) == 0) {  // initialize unreachable bits with 0
             m_data[m_size/64] = 0;
@@ -1156,7 +1157,7 @@ inline const typename int_vector<t_width>::value_type int_vector<t_width>::get_i
         throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); len>64!");
     }
 #endif
-    return bit_magic::read_int(m_data+(idx>>6), idx&0x3F, len);
+    return bits::read_int(m_data+(idx>>6), idx&0x3F, len);
 }
 
 template<uint8_t t_width>
@@ -1170,7 +1171,7 @@ inline void int_vector<t_width>::set_int(size_type idx, value_type x, const uint
         throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::set_int(size_type, uint8_t); len>64!");
     }
 #endif
-    bit_magic::write_int(m_data+(idx>>6), x, idx&0x3F, len);
+    bits::write_int(m_data+(idx>>6), x, idx&0x3F, len);
 }
 
 template<uint8_t t_width>
@@ -1277,7 +1278,7 @@ bool int_vector<t_width>::operator==(const int_vector& v)const
             return false;
     }
     int8_t l = 64-(capacity()-bit_size());
-    return ((*data1)&bit_magic::Li1Mask[l])==((*data2)&bit_magic::Li1Mask[l]);
+    return ((*data1)&bits::Li1Mask[l])==((*data2)&bits::Li1Mask[l]);
 }
 
 template<uint8_t t_width>
@@ -1551,12 +1552,12 @@ class int_vector_file_buffer
         value_type operator[](const size_type i)const {
             assert(i<m_len);
             size_type idx = i*m_width+m_off;
-            return bit_magic::read_int(m_buf + (idx>>6), idx&0x3F, m_width);
+            return bits::read_int(m_buf + (idx>>6), idx&0x3F, m_width);
         }
 
         void set_int(const size_type i, uint64_t x) {
             size_type idx = i*m_width+m_off;
-            bit_magic::write_int(m_buf + (idx>>6), x, idx&0x3F, m_width);
+            bits::write_int(m_buf + (idx>>6), x, idx&0x3F, m_width);
         }
 
         const uint64_t* data()const {

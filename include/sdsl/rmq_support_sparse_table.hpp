@@ -153,7 +153,7 @@ class rmq_support_sparse_table
                 return l;
             if (l+1 == r)
                 return mm_trait::compare((*m_v)[l],(*m_v)[r]) ? l : r;
-            size_type k = bit_magic::l1BP(r-l);
+            size_type k = bits::l1BP(r-l);
             const size_type rr = r-(1<<k)+1;
             return mm_trait::compare((*m_v)[l+m_table[k-1][l]], (*m_v)[rr+m_table[k-1][rr]]) ? l+m_table[k-1][l] : rr+m_table[k-1][rr];
         }

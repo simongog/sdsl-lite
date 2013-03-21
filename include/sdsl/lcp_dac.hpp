@@ -180,7 +180,7 @@ lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
     if (n == 0)
         return;
 //         initialize counter
-    m_level_pointer_and_rank.resize(std::max(4*bit_magic::l1BP(2), 2*(((bit_magic::l1BP(n)+1)+t_b-1) / t_b)));
+    m_level_pointer_and_rank.resize(std::max(4*bits::l1BP(2), 2*(((bits::l1BP(n)+1)+t_b-1) / t_b)));
     for (size_type i=0; i < m_level_pointer_and_rank.size(); ++i)
         m_level_pointer_and_rank[i] = 0;
     m_level_pointer_and_rank[0] = n; // level 0 has n entries
@@ -219,7 +219,7 @@ lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
 
 //  (3)    Enter block and overflow data
     int_vector<64> cnt = m_level_pointer_and_rank;
-    const uint64_t mask = bit_magic::Li1Mask[t_b];
+    const uint64_t mask = bits::Li1Mask[t_b];
 
     lcp_buf.reset();
     for (size_type i=0,j=0, r_sum=0, r = lcp_buf.load_next_block(); r_sum < n;) {

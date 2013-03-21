@@ -59,7 +59,7 @@ void construct(Index& idx, std::string file, uint8_t num_bytes=0)
     cache_config config;
     if (is_ram_file(file)) {
         config.dir = "@";
-        file = disk_file_name(file);
+//        file = disk_file_name(file);
     }
     construct(idx, file, config, num_bytes);
 }
@@ -97,7 +97,7 @@ void construct(Index& idx, const std::string& file, cache_config& config, uint8_
         Index tmp(text_buf, text_buf.int_vector_size);
         idx.swap(tmp);
     }
-    std::remove(tmp_file_name.c_str());
+    sdsl::remove(tmp_file_name);
 }
 
 // Specialization for CSAs

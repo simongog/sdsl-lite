@@ -222,11 +222,11 @@ class cst_sct3
                     const uint64_t* p = m_first_child.data() + (r>>6);
                     uint8_t offset = r&0x3F;
 
-                    uint64_t w = (*p) & bit_magic::Li1Mask[offset];
+                    uint64_t w = (*p) & bits::Li1Mask[offset];
                     if (w) {
-                        children = offset - bit_magic::l1BP(w) + 1;
+                        children = offset - bits::l1BP(w) + 1;
                     } else if (m_first_child.data() == p) { // w==0 and we are in the first word
-                        children = offset + 2; // since bit_magic::l1BP(w)=-1 holds
+                        children = offset + 2; // since bits::l1BP(w)=-1 holds
                     } else {
                         children = offset + 2;
                         while (p > m_first_child.data()) {
@@ -234,7 +234,7 @@ class cst_sct3
                             if (0==w)
                                 children += 64;
                             else {
-                                children += (63-bit_magic::l1BP(w));
+                                children += (63-bits::l1BP(w));
                                 break;
                             }
                         }
@@ -314,7 +314,7 @@ class cst_sct3
             const uint64_t* p = m_first_child.data() + (r0>>6);
             uint64_t w = (*p) >> (r0&0x3F);
             if (w) { // if w!=0
-                next_first_child = cipos + bit_magic::r1BP(w);
+                next_first_child = cipos + bits::r1BP(w);
                 if (cipos == next_first_child and m_bp[next_first_child+1]) {
                     psvpos = m_bp_support.enclose(ipos);
                     psvcpos = m_bp_support.find_close(psvpos);
@@ -327,7 +327,7 @@ class cst_sct3
                     ++p;
                     cipos += 64;
                 }
-                next_first_child = cipos + bit_magic::r1BP(w);
+                next_first_child = cipos + bits::r1BP(w);
             }
             if (!m_bp[next_first_child+1]) { // if next parenthesis is a closing one
                 psvcpos = next_first_child+1;
@@ -702,11 +702,11 @@ class cst_sct3
             const uint64_t* p = m_first_child.data() + (r0>>6);
             uint8_t offset = r0&0x3F;
 
-            uint64_t w = (*p) & bit_magic::Li1Mask[offset];
+            uint64_t w = (*p) & bits::Li1Mask[offset];
             if (w) {
-                return offset-bit_magic::l1BP(w)+1;
+                return offset-bits::l1BP(w)+1;
             } else if (m_first_child.data() == p) { // w==0 and we are in the first word
-                return offset+2; // da bit_magic::l1BP(w)=-1 sein muesste
+                return offset+2; // da bits::l1BP(w)=-1 sein muesste
             } else {
                 size_type res = offset+2;
                 while (p > m_first_child.data()) {
@@ -714,7 +714,7 @@ class cst_sct3
                     if (0==w)
                         res += 64;
                     else {
-                        return res + (63-bit_magic::l1BP(w));
+                        return res + (63-bits::l1BP(w));
                     }
                 }
                 return res + (w==0);
