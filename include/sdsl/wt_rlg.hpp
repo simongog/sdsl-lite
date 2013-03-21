@@ -100,28 +100,15 @@ class wt_rlg
         // Default constructor
         wt_rlg():m_size(0), m_sigma(0), sigma(m_sigma) {};
 
-        //! Constructor
-        /*!
-         * \param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
-         * \param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
-         * \par Time complexity
-         *    \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
-         */
-        wt_rlg(const unsigned char* rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
-            // TODO
-            std::cerr << "ERROR: Constructor of wt_rlg not implemented yet!!!" << std::endl;
-            throw std::logic_error("This constructor of wt_rlg is not yet implemented!");
-        }
-
-
         //! Construct the wavelet tree from a file_buffer
         /*! \param text_buf    A int_vector_file_buffer to the original text.
          *  \param size The length of the prefix of the text, for which the wavelet tree should be build.
+         * \par Time complexity
+         *    \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
         wt_rlg(int_vector_file_buffer<8>& text_buf, size_type size):m_size(size), sigma(m_sigma) {
             typedef int_vector_size_type size_type;
-            // TODO: remove absolute file name
-            std::string temp_file = "wt_rlg_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
+            std::string temp_file = text_buf.file_name + "_wt_rlg_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
             osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
@@ -241,7 +228,7 @@ class wt_rlg
                     m_char_occ[cc] = m_wt.rank(m_wt.size(), c);
                 }
             }
-            remove(temp_file);
+            sdsl::remove(temp_file);
         }
 
         //! Copy constructor

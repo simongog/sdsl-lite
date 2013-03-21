@@ -12,6 +12,11 @@
 namespace sdsl
 {
 
+// Forward declaration of helper method
+template<uint32_t t_dens, uint8_t t_bwt_width>
+void construct_first_child_and_lf_lcp(int_vector_file_buffer<>&,
+                                      int_vector_file_buffer<t_bwt_width>&, const std::string&, const std::string&, int_vector<>&);
+
 
 /*! An lcp array class for cst_sct3 and cst_sada.
  *    The time of the []-operator depends on:
@@ -38,7 +43,7 @@ class _lcp_support_tree2
         typedef t_cst                                            cst_type;
         typedef wt_huff<bit_vector, rank_support_v5<>,
                 select_support_scan<1>,
-                select_support_scan<0> >                 small_lcp_type;
+                select_support_scan<0> >                         small_lcp_type;
 
         typedef lcp_tree_and_lf_compressed_tag                   lcp_category;
 
@@ -75,23 +80,30 @@ class _lcp_support_tree2
             copy(lcp);
         }
 
-        //! Construct the lcp array from an lcp array
-        /*! \param lcp_buf Buffer to the uncompressed lcp array
-         *  \param sa_buf
-         */
-        template<uint8_t int_width>
-        _lcp_support_tree2(int_vector_file_buffer<int_width>& lcp_buf,
-                           int_vector_file_buffer<t_cst::csa_type::alphabet_type::int_width>& bwt_buf,
-                           const cst_type* cst = NULL) {
-            m_cst = cst;
-            std::string small_lcp_file_name =  util::to_string(util::pid())+"_"+util::to_string(util::id()).c_str() + "_fc_lf_lcp_sml";
-            std::string big_lcp_file_name =  util::to_string(util::pid())+"_"+util::to_string(util::id()).c_str() + "_fc_lf_lcp_big";
+        //! Constructor
+        /*! \param config Cache configuration.
 
-            algorithm::construct_first_child_and_lf_lcp<t_dens>(lcp_buf, bwt_buf, small_lcp_file_name, big_lcp_file_name, m_big_lcp);
-            // construct wavelet tree huffman from file buffer
-            int_vector_file_buffer<8> small_lcp_buf(small_lcp_file_name);
-            util::assign(m_small_lcp, small_lcp_type(small_lcp_buf, small_lcp_buf.int_vector_size));
-            std::remove(small_lcp_file_name.c_str());
+         */
+        _lcp_support_tree2(cache_config& config, const cst_type* cst = NULL) {
+            m_cst = cst;
+
+            int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config));
+            std::string bwt_file = util::cache_file_name(key_trait<t_cst::csa_type::alphabet_type::int_width>::KEY_BWT, config);
+            int_vector_file_buffer<t_cst::csa_type::alphabet_type::int_width> bwt_buf(bwt_file);
+
+            std::string sml_lcp_file = util::tmp_file(config, "_fc_lf_lcp_sml");
+            std::string big_lcp_file = util::tmp_file(config, "_fc_lf_lcp_big");
+
+            construct_first_child_and_lf_lcp<t_dens>(lcp_buf, bwt_buf, sml_lcp_file, big_lcp_file, m_big_lcp);
+            int_vector_file_buffer<8> sml_lcp_buf(sml_lcp_file);
+
+            {
+                small_lcp_type tmp_small_lcp(sml_lcp_buf, sml_lcp_buf.int_vector_size);
+                m_small_lcp.swap(tmp_small_lcp);
+            }
+
+            sdsl::remove(big_lcp_file);
+            sdsl::remove(sml_lcp_file);
         }
 
         void set_cst(const cst_type* cst) {
@@ -129,8 +141,6 @@ class _lcp_support_tree2
         /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
          * \par Time complexity
          *     \f$ \Order{t_{find\_close} + t_{rank}} \f$
-         * \par Note
-         *  Required for the STL Random Access Container Concept.
          */
         inline value_type operator[](size_type i)const {
             size_type idx, offset=0;
@@ -150,9 +160,6 @@ start:
         }
 
         //! Assignment Operator.
-        /*!
-         *    Required for the Assignable Concept of the STL.
-         */
         _lcp_support_tree2& operator=(const _lcp_support_tree2& lcp_c) {
             if (this != &lcp_c) {
                 copy(lcp_c);
@@ -191,6 +198,117 @@ class lcp_support_tree2
         };
 };
 
+
+/*!
+ * \tparam t_dens       Sample an LCP value x if x modulo t_dens == 0
+ * \tparam t_bwt_width  Width of the integers of the streamed BWT array.
+ * \tparam
+ */
+template<uint32_t t_dens, uint8_t t_bwt_width>
+void construct_first_child_and_lf_lcp(int_vector_file_buffer<>& lcp_buf,
+                                      int_vector_file_buffer<t_bwt_width>& bwt_buf,
+                                      const std::string& small_lcp_file,
+                                      const std::string& big_lcp_file,
+                                      int_vector<>& big_lcp)
+{
+    typedef int_vector<>::size_type size_type;
+    const size_type M = 255;	// limit for values represented in the small LCP part
+    size_type 		buf_len = 1000000;
+    lcp_buf.reset(buf_len);
+    bwt_buf.reset(buf_len);
+    size_type n = lcp_buf.int_vector_size;
+
+    osfstream sml_lcp_out(small_lcp_file, std::ios::out | std::ios::trunc);
+//	std::ofstream sml_lcp_out(small_lcp_file.c_str());
+    uint64_t bit_size = 8*n;
+    sml_lcp_out.write((char*) &bit_size, sizeof(bit_size));
+
+    osfstream big_lcp_out(big_lcp_file, std::ios::out | std::ios::trunc);
+
+    size_type fc_cnt = 0; // number of lcp values at the first child r
+    size_type fc_cnt_big = 0; // number of lcp values at the first child which are big and not reducible
+    size_type fc_cnt_big2 = 0;
+    sorted_multi_stack_support vec_stack(n); // occupies 2n bits
+    bit_vector is_big_and_not_reducable(n, 0); // initialized with 0s
+    bool is_one_big_and_not_reducable = false; // all positions have to be reducible
+
+    size_type y, max_lcp=0;
+    uint64_t last_bwti=0, val;
+    for (size_type i=0, r_sum = 0, r = 0, x; r_sum < n;) {
+        for (; i < r_sum + r; ++i) {
+            x = lcp_buf[i-r_sum];
+            is_one_big_and_not_reducable = false;
+
+            while (!vec_stack.empty() and x < vec_stack.top()) {
+                y = vec_stack.top();
+                is_one_big_and_not_reducable |= is_big_and_not_reducable[vec_stack.size()-1];
+                if (vec_stack.pop()) { // if y was the last copy of y on the stack
+                    if (y > M-2) {
+                        if (is_one_big_and_not_reducable) {
+                            val = M;
+                            big_lcp_out.write((char*)&y, sizeof(y));
+                            ++fc_cnt_big;
+                            if (y > max_lcp) max_lcp = y;
+                        } else {
+                            val = M-1;
+                            ++fc_cnt_big2;
+                        }
+                    } else {
+                        val = y;
+                    }
+                    sml_lcp_out.write((const char*)&val, 1);
+                    ++fc_cnt;
+                    is_one_big_and_not_reducable = false;
+                }
+            }
+            if (x > M-2 and (0 == i or last_bwti != bwt_buf[i - r_sum] or x % t_dens == 0)) {
+                is_big_and_not_reducable[vec_stack.size()] = 1;
+            } else {
+                is_big_and_not_reducable[vec_stack.size()] = 0;
+            }
+            vec_stack.push(x);
+            last_bwti = bwt_buf[i - r_sum];
+        }
+        r_sum += r; r = lcp_buf.load_next_block();
+        bwt_buf.load_next_block();
+    }
+
+    while (!vec_stack.empty()) {
+        y = vec_stack.top();
+        if (vec_stack.pop()) {
+            if (y > M-2) {
+                if (is_big_and_not_reducable[vec_stack.size()]) {
+                    val = M;
+                    big_lcp_out.write((char*)&y, sizeof(y));
+                    ++fc_cnt_big;
+                    if (y > max_lcp) max_lcp = y;
+                } else {
+                    val = M-1;
+                    ++fc_cnt_big2;
+                }
+            } else {
+                val = y;
+            }
+            sml_lcp_out.write((const char*)&val, 1);
+            ++fc_cnt;
+        }
+    }
+    // write number of elements of sml_lcp into the out file stream
+    sml_lcp_out.seekp(0);
+    bit_size = 8*fc_cnt;
+    sml_lcp_out.write((char*) &bit_size, sizeof(bit_size));
+    sml_lcp_out.close();
+
+    big_lcp_out.close();
+    isfstream big_lcp_in(big_lcp_file);
+    big_lcp.width(bit_magic::l1BP(max_lcp)+1);
+    big_lcp.resize(fc_cnt_big);
+
+    for (size_type i=0; i<fc_cnt_big; ++i) {
+        big_lcp_in.read((char*)&y, sizeof(y));
+        big_lcp[i] = y;
+    }
+}
 
 
 } // end namespace

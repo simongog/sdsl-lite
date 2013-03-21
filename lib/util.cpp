@@ -36,19 +36,25 @@ rusage stop_watch::m_first_r = {{0,0},{0,0}};
 
 
 
-std::string basename(const std::string& file_name)
+std::string basename(std::string file)
 {
-    char* c = strdup((const char*)file_name.c_str());
+    file = disk_file_name(file); // remove RAM-prefix
+    char* c = strdup((const char*)file.c_str());
     std::string res = std::string(::basename(c));
     free(c);
     return res;
 }
 
-std::string dirname(const std::string& file_name)
+std::string dirname(std::string file)
 {
-    char* c = strdup((const char*)file_name.c_str());
+    bool ram_file = is_ram_file(file);
+    file = disk_file_name(file); // remove RAM-prefix
+    char* c = strdup((const char*)file.c_str());
     std::string res = std::string(::dirname(c));
     free(c);
+    if (ram_file and "." == res) {
+        res = ram_file_name("");
+    }
     return res;
 }
 
@@ -217,6 +223,11 @@ bool cache_file_exists(const std::string& key, const cache_config& config)
         return true;
     }
     return false;
+}
+
+std::string tmp_file(const cache_config& config, std::string name_part)
+{
+    return config.dir+"/"+ to_string(pid()) + "_" + to_string(id()) + name_part + ".sdsl";
 }
 
 void stop_watch::start()

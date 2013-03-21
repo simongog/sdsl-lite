@@ -109,10 +109,9 @@ class wt_int
         };
 
         //! Semi-external constructor
-        /*!    \param buf            File buffer of the int_vector for which the wt_int should be build.
-         *  \param size         Size of the prefix of v, which should be indexed.
-         *    \param max_depth    Maximal depth of the wavelet tree. If set to 0, determined automatically.
-         *    \param dir    Directory in which temporary files should be stored during the construction.
+        /*! \param buf         File buffer of the int_vector for which the wt_int should be build.
+         *  \param size        Size of the prefix of v, which should be indexed.
+         *  \param max_depth   Maximal depth of the wavelet tree. If set to 0, determined automatically.
          *    \par Time complexity
          *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          *        I.e. we need \Order{n\log n} if rac is a permutation of 0..n-1.
@@ -120,7 +119,7 @@ class wt_int
          *        \f$ n\log|\Sigma| + O(1)\f$ bits, where \f$n=size\f$.
          */
         template<uint8_t int_width>
-        wt_int(int_vector_file_buffer<int_width>& buf, size_type size, uint32_t max_depth=0, std::string dir="./")
+        wt_int(int_vector_file_buffer<int_width>& buf, size_type size, uint32_t max_depth=0)
             : m_size(size),m_sigma(0), m_max_depth(0), sigma(m_sigma), tree(m_tree) {
             init_buffers(m_max_depth);
             if (0 == m_size)
@@ -132,6 +131,9 @@ class wt_int
                 return;
             }
             m_sigma = 0; // init sigma
+
+            std::string dir = util::dirname(buf.file_name);
+
             temp_write_read_buffer<> buf1(5000000, buf.width, dir);   // buffer for elements in the right node
             int_vector<int_width> rac(m_size, 0, buf.width);          // initialize rac
 
@@ -155,7 +157,7 @@ class wt_int
             }
             init_buffers(m_max_depth);
 
-            std::string tree_out_buf_file_name = (dir+"m_tree"+util::to_string(util::pid())+"_"+util::to_string(util::id()));
+            std::string tree_out_buf_file_name = (dir+"/m_tree"+util::to_string(util::pid())+"_"+util::to_string(util::id()));
             osfstream tree_out_buf(tree_out_buf_file_name, std::ios::binary | std::ios::trunc | std::ios::out);   // open buffer for tree
             size_type bit_size = m_size*m_max_depth;
             tree_out_buf.write((char*) &bit_size, sizeof(bit_size));    // write size of bit_vector

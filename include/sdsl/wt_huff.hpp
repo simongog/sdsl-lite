@@ -347,23 +347,11 @@ class wt_huff
         // Default constructor
         wt_huff():m_size(0),m_sigma(0), sigma(m_sigma),tree(m_tree) {};
 
-        // Construct the wavelet tree from a random access container
-        /*
-         *    \param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
-         *    \param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
-         *    \par Time complexity
-         *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
-         */
-        template<typename RandomAccessContainer>
-        wt_huff(const RandomAccessContainer& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
-            // TODO: Delegate this to the file_buffer constructor using a wrapper for the file_buffer
-            std::cerr << "ERROR: Constructor of wt_rlmn not implemented yet!!!" << std::endl;
-            throw std::logic_error("This constructor of wt_rlmn is not yet implemented!");
-        }
-
         //! Construct the wavelet tree from a file_buffer
         /*! \param input_buf     File buffer of the input.
          *  \param size         The length of the prefix of the random access container, for which the wavelet tree should be build.
+         *    \par Time complexity
+         *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
         wt_huff(int_vector_file_buffer<8>& input_buf, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
             if (0 == m_size)

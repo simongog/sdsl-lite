@@ -113,27 +113,13 @@ class wt_rlmn
         // Default constructor
         wt_rlmn():m_size(0), sigma(m_wt.sigma) {};
 
-        // Construct the wavelet tree from a random access container
-        /*
-         * \param rac Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
-         * \param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
-         * \par Time complexity
-         *      \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
-         */
-        wt_rlmn(const unsigned char* rac, size_type size):m_size(size), sigma(m_wt.sigma) {
-            // TODO: Delegate this to the file_buffer constructor using a wrapper for the file_buffer
-            std::cerr << "ERROR: Constructor of wt_rlmn not implemented yet!!!" << std::endl;
-            throw std::logic_error("This constructor of wt_rlmn is not yet implemented!");
-        }
-
         //! Construct the wavelet tree from a file_buffer
         /*! \param text_buf  A int_vector_file_buffer to the original text.
          *  \param size      The length of the prefix of the text, for which the wavelet tree should be build.
          */
         // TODO: new signature: sdsl::file, size_type size
         wt_rlmn(int_vector_file_buffer<8>& text_buf, size_type size):m_size(size), sigma(m_wt.sigma) {
-            // TODO: remove absolute file name
-            std::string temp_file = "tmp_wt_rlmn_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
+            std::string temp_file = text_buf.file_name + "_wt_rlmn_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
             osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
@@ -192,7 +178,7 @@ class wt_rlmn
                 {
                     int_vector_file_buffer<8> temp_bwt_buf(temp_file);
                     util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
-                    remove(temp_file);
+                    sdsl::remove(temp_file);
                 }
                 util::assign(m_bl, bl);
                 util::assign(m_bf, bf);

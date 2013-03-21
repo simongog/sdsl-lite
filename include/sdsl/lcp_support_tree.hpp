@@ -11,6 +11,7 @@
 namespace sdsl
 {
 
+void construct_first_child_lcp(int_vector_file_buffer<>& lcp_buf, int_vector<>& fc_lcp);
 
 /*! This class composes a virtual LCP array from a LCP arrays which is in suffix array order
  * (e.g. lcp_byte or lcp_bitcompressed) and a CST.
@@ -25,15 +26,15 @@ template<class t_lcp, class t_cst>
 class _lcp_support_tree
 {
     public:
-        typedef typename t_lcp::value_type                      value_type;      // STL Container requirement
-        typedef random_access_const_iterator<_lcp_support_tree> const_iterator;  // STL Container requirement
-        typedef const_iterator                                  iterator;         // STL Container requirement
+        typedef typename t_lcp::value_type                      value_type;
+        typedef random_access_const_iterator<_lcp_support_tree> const_iterator;
+        typedef const_iterator                                  iterator;
         typedef const value_type                                const_reference;
         typedef const_reference                                 reference;
         typedef const_reference*                                pointer;
         typedef const pointer                                   const_pointer;
-        typedef typename t_lcp::size_type                       size_type;         // STL Container requirement
-        typedef typename t_lcp::difference_type                 difference_type; // STL Container requirement
+        typedef typename t_lcp::size_type                       size_type;
+        typedef typename t_lcp::difference_type                 difference_type;
 
         typedef lcp_tree_compressed_tag                         lcp_category;
 
@@ -73,26 +74,29 @@ class _lcp_support_tree
             m_lcp = lcp.m_lcp;
         }
 
-        //! Construct the lcp array from an int_vector_file_buffer of the lcp array
+        //! Constructor
         /*!
-         *  \param lcp_buf An int_vector_file_buf of the lcp array
-         *  \param fc_bpss A pointer to the CST
+         *  \param config  Cache configuration.
+         *  \param cst     A pointer to the CST.
         */
-        template<uint8_t int_width>
-        _lcp_support_tree(int_vector_file_buffer<int_width>& lcp_buf, const t_cst* cst = NULL) {
+        _lcp_support_tree(cache_config& config, const t_cst* cst = NULL) {
             m_cst = cst;
-            std::string id =  util::to_string(util::pid())+"_"+util::to_string(util::id()).c_str() + "_fc_lcp";
+            std::string fc_lcp_key = "fc_lcp_" + util::to_string(util::id());
+            std::string tmp_file = util::cache_file_name(fc_lcp_key, config);
             {
-                int_vector<int_width> temp_lcp;
-                algorithm::construct_first_child_lcp(lcp_buf, temp_lcp, (int_vector_size_type) 0);
-                // TODO: store lcp values directly to disk
-                util::store_to_file(temp_lcp, id);
+                int_vector<0> temp_lcp;
+                int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config));
+                construct_first_child_lcp(lcp_buf, temp_lcp);
+                // TODO: store LCP values directly
+                util::store_to_file(temp_lcp, tmp_file);
             }
             {
-                int_vector_file_buffer<int_width> temp_lcp_buf(id);
-                m_lcp = t_lcp(temp_lcp_buf); // works for lcp_kurtz, lcp_wt and lcp_bitcompressed
+                {
+                    t_lcp tmp_lcp(config, fc_lcp_key); // works for lcp_kurtz, lcp_wt and lcp_bitcompressed
+                    m_lcp.swap(tmp_lcp);
+                }
             }
-            std::remove(id.c_str());
+            sdsl::remove(tmp_file);
         }
 
         size_type size()const {

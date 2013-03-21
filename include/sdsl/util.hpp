@@ -25,6 +25,7 @@
 #include "typedefs.hpp"
 #include "structure_tree.hpp"
 #include "sfstream.hpp"
+#include "ram_fs.hpp"
 #include "config.hpp"  // for constants 
 #include <iosfwd>      // forward declaration of ostream
 #include <stdint.h>    // for uint64_t uint32_t declaration
@@ -166,10 +167,10 @@ typename t_int_vec::size_type prev_bit(const t_int_vec& v, uint64_t idx);
 off_t file_size(const std::string& file);
 
 //! Returns the basename of a file
-std::string basename(const std::string& file);
+std::string basename(std::string file);
 
 //! Returns the directory of a file. Trailing / are removed.
-std::string dirname(const std::string& file);
+std::string dirname(std::string file);
 
 
 
@@ -552,6 +553,9 @@ void register_cache_file(const std::string& key, cache_config& config);
 */
 bool cache_file_exists(const std::string& key, const cache_config& config);
 
+//! Returns a name for a temporary file. I.e. the name was not used before.
+std::string tmp_file(const cache_config& config, std::string name_part="");
+
 template<class T>
 bool load_from_cache(T& v, const std::string& key, const cache_config& config)
 {
@@ -578,7 +582,6 @@ bool store_to_cache(const T& v, const std::string& key, cache_config& config)
     std::string file = cache_file_name(key, config);
     if (store_to_file(v, file)) {
         config.file_map[std::string(key)] = file;
-        std::cerr<<"store_to_cache: could not store file `"<< file <<"`" << std::endl;
         return true;
     } else {
         std::cerr<<"WARNING: store_to_cache: could not store file `"<< file <<"`" << std::endl;
@@ -703,8 +706,12 @@ bool util::store_to_file(const T& t, const std::string& file)
 inline bool util::store_to_file(const char* v, const std::string& file)
 {
     osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
-    if (!out)
-        return false;
+    if (!out) {
+        if (util::verbose) {
+            std::cerr<<"ERROR: store_to_file(const char *v, const std::string&)"<<std::endl;
+            return false;
+        }
+    }
     uint64_t n = strlen((const char*)v);
     out.write(v, n);
     out.close();
