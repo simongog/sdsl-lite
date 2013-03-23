@@ -331,7 +331,7 @@ class int_vector
 
         //! Constructor for int_vector.
         /*! \param size          The number of elements in the int_vector. Default value is 0.
-              \param default_value Initialize all value to `default value`.
+            \param default_value Initialize all value to `default value`.
             \param int_width     The width of each integer.
             \sa resize, width
          */
