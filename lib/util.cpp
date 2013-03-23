@@ -52,8 +52,12 @@ std::string dirname(std::string file)
     char* c = strdup((const char*)file.c_str());
     std::string res = std::string(::dirname(c));
     free(c);
-    if (ram_file and "." == res) {
-        res = ram_file_name("");
+    if (ram_file) {
+        if ("." == res) {
+            res = ram_file_name("");
+        } else if ("/" ==res) {
+            res = ram_file_name(res);
+        }
     }
     return res;
 }
