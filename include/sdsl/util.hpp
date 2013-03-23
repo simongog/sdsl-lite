@@ -201,6 +201,23 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
 {
     if ((uint8_t)0 == num_bytes) {  // if byte size is variable read int_vector<0> from file
         return load_from_file(v, file);
+    } else if (num_bytes == 'd') {
+        uint64_t x = 0, max_x = 0;
+        isfstream in(file);
+        if (!in) {
+            return false;
+        } else {
+            std::vector<uint64_t> tmp;
+            while (in >> x) {
+                tmp.push_back(x);
+                max_x = std::max(x, max_x);
+            }
+            v.width(bits::l1BP(max_x)+1); v.resize(tmp.size());
+            for (size_t i=0; i < tmp.size(); ++i) {
+                v[i] = tmp[i];
+            }
+            return true;
+        }
     } else {
         off_t file_size = util::file_size(file);
         if (file_size == 0) {
