@@ -205,8 +205,8 @@ of integer (has no effect for $w>0$).
 \code{v[$i$]=$x$}                   & Set entry \code{v[$i$]} to $x$. \\
 \code{v.width($\ell$)}	            & Set width to $\ell$, if $w=0$.\\
 \code{v.resize($n$)}				& Resize $v$ to $n$ elements. \\
-\code{util::set\_one\_bits(v)}      & Set elements of \code{v} to \code{1}. \\
-\code{util::set\_zero\_bits(v)}     & Set elements of \code{v} to \code{0}. \\
+\code{util::set\_one\_bits(v)}      & Set elements of \code{v} to \code{1}.Really needed? Special case of below \\
+\code{util::set\_zero\_bits(v)}     & Set elements of \code{v} to \code{0}. Really needed? Special case of below \\
 \code{util::set\_to\_id(v)}         & Set \code{v[$i$]=$i$} for each $i$.\\
 \code{util::set\_to\_value(v,$k$)} & Set \code{v[$i$]=$k$} for each $i$.\\
 \code{util::set\_random\_bits(v)}   & Set elements to random bits. \\
@@ -453,6 +453,7 @@ dependent on the value of \code{num\_bytes}:
 \code{num\_bytes=2} & 16-bit word sequence (little endian).\\
 \code{num\_bytes=4} & 32-bit word sequence (little endian).\\
 \code{num\_bytes=8} & 64-bit word sequence (little endian).\\	
+\code{num\_bytes=d} & Parse decimal numbers.\\
 \end{tabular}
 
 
