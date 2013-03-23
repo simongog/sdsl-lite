@@ -267,7 +267,7 @@ class wt_int
             size_type node_size = m_size;
             for (uint32_t k=0; k < m_max_depth; ++k) {
                 res <<= 1;
-                size_type ones_before_o      = m_tree_rank(offset);
+                size_type ones_before_o   = m_tree_rank(offset);
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
                 if (m_tree[offset+i]) { // one at position i => follow right child
@@ -298,7 +298,7 @@ class wt_int
             uint64_t mask     = (1ULL) << (m_max_depth-1);
             size_type node_size = m_size;
             for (uint32_t k=0; k < m_max_depth and i; ++k) {
-                size_type ones_before_o      = m_tree_rank(offset);
+                size_type ones_before_o   = m_tree_rank(offset);
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
                 if (c & mask) { // search for a one at this level
@@ -346,7 +346,7 @@ class wt_int
             m_path_off[0] = m_path_rank_off[0] = 0;
 
             for (uint32_t k=0; k < m_max_depth and node_size; ++k) {
-                size_type ones_before_o      = m_tree_rank(offset);
+                size_type ones_before_o   = m_tree_rank(offset);
                 m_path_rank_off[k] = ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
                 if (c & mask) { // search for a one at this level

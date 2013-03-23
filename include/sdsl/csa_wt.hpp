@@ -269,7 +269,7 @@ class csa_wt
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
 csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::csa_wt(cache_config& config) :
     char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-    psi(this), bwt(this), text(this), sa_sample(m_sa_sample),isa_sample(m_isa_sample),wavelet_tree(m_wavelet_tree)
+    psi(this), bwt(this), text(this), sa_sample(m_sa_sample),isa_sample(m_isa_sample), wavelet_tree(m_wavelet_tree)
 {
     if (!util::cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
         return;
