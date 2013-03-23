@@ -19,7 +19,7 @@ define pv
 	if $argc == 0
 		help pv
 	else
-		set $width= $arg0.m_int_width
+		set $width= $arg0.m_width
 		set $size = $arg0.m_size / $width
 	end
 	set $i = 0
