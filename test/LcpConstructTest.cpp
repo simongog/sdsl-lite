@@ -52,7 +52,7 @@ class LcpConstructTest : public ::testing::Test {
 				sdsl::append_zero_symbol(text);
 				ASSERT_EQ(true, sdsl::util::store_to_cache(text, sdsl::constants::KEY_TEXT, test_cases[i]));
 				// Construct SA
-				sdsl::int_vector<> sa(text.size(), 0, sdsl::bit_magic::l1BP(text.size())+1);
+				sdsl::int_vector<> sa(text.size(), 0, sdsl::bits::hi(text.size())+1);
 				sdsl::algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
 				ASSERT_EQ(true, sdsl::util::store_to_cache(sa, sdsl::constants::KEY_SA, test_cases[i]));
 			}
@@ -82,42 +82,42 @@ class LcpConstructTest : public ::testing::Test {
 
 TEST_F(LcpConstructTest, construct_lcp)
 {
-	for (tMSFP::const_iterator it = this->lcp_function.begin(), end = this->lcp_function.end(); it != end; ++it) {
-		for (size_t i=0; i< this->test_cases.size(); ++i) {
-			std::cout << (it->first) << " on test file " << sdsl::util::cache_file_name(sdsl::constants::KEY_TEXT, this->test_cases[i]) << std::endl;
+    for (tMSFP::const_iterator it = this->lcp_function.begin(), end = this->lcp_function.end(); it != end; ++it) {
+        for (size_t i=0; i< this->test_cases.size(); ++i) {
+            std::cout << (it->first) << " on test file " << sdsl::util::cache_file_name(sdsl::constants::KEY_TEXT, this->test_cases[i]) << std::endl;
 
-			// Prepare LCP array construction
-			sdsl::cache_config config_new = this->test_cases[i];
+            // Prepare LCP array construction
+            sdsl::cache_config config_new = this->test_cases[i];
 
-			// Construct LCP array
-			(it->second)(this->test_cases[i]);
+            // Construct LCP array
+            (it->second)(this->test_cases[i]);
 
-			// Check LCP array
-			sdsl::int_vector<> lcp_check, lcp;
-			std::string lcp_check_filename = sdsl::util::cache_file_name((checkprefix+sdsl::constants::KEY_LCP), this->test_cases[i]);
-			std::string lcp_filename = sdsl::util::cache_file_name((sdsl::constants::KEY_LCP), this->test_cases[i]);
-			ASSERT_EQ(true, sdsl::util::load_from_file(lcp_check, lcp_check_filename))
-			<< (it->first) << " on test file " << this->test_cases[i].id << " could not load reference lcp array";
-			ASSERT_EQ(true, sdsl::util::load_from_file(lcp, lcp_filename))
-			<< (it->first) << " on test file " << this->test_cases[i].id << " could not load created lcp array";
-			ASSERT_EQ(lcp_check.size(), lcp.size())
-			<< (it->first) << " on test file " << this->test_cases[i].id << " lcp array size differ";
-			for (size_type j=0; j<lcp_check.size() and j<lcp.size(); ++j) {
-				ASSERT_EQ(lcp_check[j], lcp[j])
-				<< (it->first) << " on test file '" << this->test_cases[i].id << "' value differ:"
-				<< " lcp_check[" << j << "]=" << lcp_check[j] << "!=" << lcp[j] << "=lcp["<< j << "]";
-			}
-			// Clean up LCP array
-			std::remove(sdsl::util::cache_file_name(sdsl::constants::KEY_LCP, config_new).c_str());
-		}
-	}
+            // Check LCP array
+            sdsl::int_vector<> lcp_check, lcp;
+            std::string lcp_check_filename = sdsl::util::cache_file_name((checkprefix+sdsl::constants::KEY_LCP), this->test_cases[i]);
+            std::string lcp_filename = sdsl::util::cache_file_name((sdsl::constants::KEY_LCP), this->test_cases[i]);
+            ASSERT_EQ(true, sdsl::util::load_from_file(lcp_check, lcp_check_filename))
+                    << (it->first) << " on test file " << this->test_cases[i].id << " could not load reference lcp array";
+            ASSERT_EQ(true, sdsl::util::load_from_file(lcp, lcp_filename))
+                    << (it->first) << " on test file " << this->test_cases[i].id << " could not load created lcp array";
+            ASSERT_EQ(lcp_check.size(), lcp.size())
+                    << (it->first) << " on test file " << this->test_cases[i].id << " lcp array size differ";
+            for (size_type j=0; j<lcp_check.size() and j<lcp.size(); ++j) {
+                ASSERT_EQ(lcp_check[j], lcp[j])
+                        << (it->first) << " on test file '" << this->test_cases[i].id << "' value differ:"
+                        << " lcp_check[" << j << "]=" << lcp_check[j] << "!=" << lcp[j] << "=lcp["<< j << "]";
+            }
+            // Clean up LCP array
+            std::remove(sdsl::util::cache_file_name(sdsl::constants::KEY_LCP, config_new).c_str());
+        }
+    }
 }
 
 }  // namespace
 
 int main(int argc, char** argv)
 {
-        ::testing::InitGoogleTest(&argc, argv);
-        return RUN_ALL_TESTS();
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
 

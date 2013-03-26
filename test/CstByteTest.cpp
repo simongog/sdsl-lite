@@ -20,45 +20,47 @@ typedef bit_vector bit_vector;
 std::vector<sdsl::tMSS>  test_cases_file_map;
 
 template<class T>
-class CstByteTest : public ::testing::Test {
+class CstByteTest : public ::testing::Test
+{
     protected:
-	CstByteTest() { }
+        CstByteTest() { }
 
-	virtual ~CstByteTest() { }
+        virtual ~CstByteTest() { }
 
-	virtual void SetUp() {
-		tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
-		std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
-		std::string config_file = prefix + "/CstByteTest.config";
-		std::string tc_prefix	= prefix + "/test_cases";
-		test_cases = sdsl::paths_from_config_file(config_file, tc_prefix.c_str());
-		tmp_file = "cst_test_" + util::to_string(util::pid()) + "_";
-		if ( test_cases_file_map.size() == 0 ){
-			test_cases_file_map.resize(test_cases.size());
-		}
-	}
+        virtual void SetUp() {
+            tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
+            std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
+            std::string config_file = prefix + "/CstByteTest.config";
+            std::string tc_prefix	= prefix + "/test_cases";
+            test_cases = sdsl::paths_from_config_file(config_file, tc_prefix.c_str());
+            tmp_file = "cst_test_" + util::to_string(util::pid()) + "_";
+            if (test_cases_file_map.size() == 0) {
+                test_cases_file_map.resize(test_cases.size());
+            }
+        }
 
-	virtual void TearDown() { }
+        virtual void TearDown() { }
 
-	std::vector<std::string> test_cases;
-	std::string tmp_file;
-	std::string tmp_dir;
+        std::vector<std::string> test_cases;
+        std::string tmp_file;
+        std::string tmp_dir;
 
-	template<class Cst>
-	std::string get_tmp_file_name(const Cst& cst, size_type i) {
-		return tmp_dir+tmp_file + util::class_to_hash(cst) + "_" + util::basename(test_cases[i]);
-	}
+        template<class Cst>
+        std::string get_tmp_file_name(const Cst& cst, size_type i) {
+            return tmp_dir+tmp_file + util::class_to_hash(cst) + "_" + util::basename(test_cases[i]);
+        }
 
-	template<class Cst>
-	bool load_cst(Cst& cst, size_type i) {
-		return util::load_from_file(cst, get_tmp_file_name(cst, i));
-	}
+        template<class Cst>
+        bool load_cst(Cst& cst, size_type i) {
+            return util::load_from_file(cst, get_tmp_file_name(cst, i));
+        }
 };
 
 using testing::Types;
 
 typedef Types<
-		 cst_sct3<cst_sada<>::csa_type, lcp_bitcompressed<> >,
+cst_sct3<cst_sada<>::csa_type, lcp_bitcompressed<> >,
+         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree2<> >,
          cst_sada<cst_sada<>::csa_type, lcp_dac<> >,
          cst_sada<cst_sada<>::csa_type, lcp_vlc<> >,
          cst_sada<cst_sada<>::csa_type, lcp_byte<> >,
@@ -67,7 +69,6 @@ typedef Types<
          cst_sct3<>,
          cst_sada<>,
          cst_sada<cst_sada<>::csa_type, lcp_support_tree<> >,
-         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree2<> >,
          cst_sada<cst_sada<>::csa_type, lcp_dac<> >,
          cst_sct3<cst_sct3<>::csa_type, lcp_support_sada<> >,
          cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<> >,
@@ -77,26 +78,28 @@ typedef Types<
          cst_sada<cst_sada<>::csa_type, lcp_support_tree2<> >,
          cst_sada<cst_sada<>::csa_type, lcp_wt<> >,
          cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_g<> >,
-		 cst_sct3<csa_bitcompressed<>, lcp_bitcompressed<> >, 
+         cst_sct3<csa_bitcompressed<>, lcp_bitcompressed<> >,
          cst_sada<cst_sada<>::csa_type, lcp_dac<>, bp_support_g<> >
          > Implementations;
 
 TYPED_TEST_CASE(CstByteTest, Implementations);
 
 
-TYPED_TEST(CstByteTest, CreateAndStoreTest){
+TYPED_TEST(CstByteTest, CreateAndStoreTest)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-		cache_config config(false, this->tmp_dir, util::basename(this->test_cases[i]));
-		construct(cst, this->test_cases[i], config, 1);
-		test_cases_file_map[i] = config.file_map;
+        cache_config config(false, this->tmp_dir, util::basename(this->test_cases[i]));
+        construct(cst, this->test_cases[i], config, 1);
+        test_cases_file_map[i] = config.file_map;
         bool success = util::store_to_file(cst, this->get_tmp_file_name(cst, i));
         ASSERT_EQ(true, success);
     }
 }
 
 //! Test the swap method
-TYPED_TEST(CstByteTest, SwapMethod) {
+TYPED_TEST(CstByteTest, SwapMethod)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst1;
         ASSERT_EQ(true, this->load_cst(cst1, i));
@@ -113,7 +116,8 @@ TYPED_TEST(CstByteTest, SwapMethod) {
 }
 
 //! Test the node method
-TYPED_TEST(CstByteTest, NodeMethod) {
+TYPED_TEST(CstByteTest, NodeMethod)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
@@ -123,7 +127,8 @@ TYPED_TEST(CstByteTest, NodeMethod) {
 }
 
 //! Test basic methods
-TYPED_TEST(CstByteTest, BasicMethods) {
+TYPED_TEST(CstByteTest, BasicMethods)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
@@ -138,47 +143,57 @@ TYPED_TEST(CstByteTest, BasicMethods) {
     }
 }
 
-//! Test suffix array access 
-TYPED_TEST(CstByteTest, SaAccess) {
+//! Test suffix array access
+TYPED_TEST(CstByteTest, SaAccess)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
-		sdsl::int_vector<> sa;
-		sdsl::util::load_from_file(sa, test_cases_file_map[i][sdsl::constants::KEY_SA]);
+        sdsl::int_vector<> sa;
+        sdsl::util::load_from_file(sa, test_cases_file_map[i][sdsl::constants::KEY_SA]);
         size_type n = sa.size();
         ASSERT_EQ(n, cst.csa.size());
-        for (size_type j=0; j<n; ++j) { ASSERT_EQ(sa[j], cst.csa[j])<<" j="<<j; }
+        for (size_type j=0; j<n; ++j) {
+            ASSERT_EQ(sa[j], cst.csa[j])<<" j="<<j;
+        }
     }
 }
 
-//! Test BWT access 
-TYPED_TEST(CstByteTest, BwtAccess) {
+//! Test BWT access
+TYPED_TEST(CstByteTest, BwtAccess)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
-		sdsl::int_vector<8> bwt;
-		sdsl::util::load_from_file(bwt, test_cases_file_map[i][sdsl::constants::KEY_BWT]);
+        sdsl::int_vector<8> bwt;
+        sdsl::util::load_from_file(bwt, test_cases_file_map[i][sdsl::constants::KEY_BWT]);
         size_type n = bwt.size();
         ASSERT_EQ(n, cst.csa.bwt.size());
-        for (size_type j=0; j<n; ++j) { ASSERT_EQ(bwt[j], cst.csa.bwt[j])<<" j="<<j; }
+        for (size_type j=0; j<n; ++j) {
+            ASSERT_EQ(bwt[j], cst.csa.bwt[j])<<" j="<<j;
+        }
     }
 }
 
-//! Test LCP access 
-TYPED_TEST(CstByteTest, LcpAccess) {
+//! Test LCP access
+TYPED_TEST(CstByteTest, LcpAccess)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
-		sdsl::int_vector<> lcp;
-		sdsl::util::load_from_file(lcp, test_cases_file_map[i][sdsl::constants::KEY_LCP]);
+        sdsl::int_vector<> lcp;
+        sdsl::util::load_from_file(lcp, test_cases_file_map[i][sdsl::constants::KEY_LCP]);
         size_type n = lcp.size();
         ASSERT_EQ(n, cst.lcp.size());
-        for (size_type j=0; j<n; ++j) { ASSERT_EQ(lcp[j], cst.lcp[j])<<" j="<<j; }
+        for (size_type j=0; j<n; ++j) {
+            ASSERT_EQ(lcp[j], cst.lcp[j])<<" j="<<j;
+        }
     }
 }
 
 //! Test the id and inverse id method
-TYPED_TEST(CstByteTest, IdMethod) {
+TYPED_TEST(CstByteTest, IdMethod)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
@@ -187,7 +202,9 @@ TYPED_TEST(CstByteTest, IdMethod) {
         typedef typename TypeParam::node_type node_type;
         size_type node_count=0;
         for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it) {
-            if (it.visit() == 1) { ++node_count; }
+            if (it.visit() == 1) {
+                ++node_count;
+            }
         }
         // counted nodes should be equal to nodes
         ASSERT_EQ(node_count, cst.nodes());
@@ -206,7 +223,8 @@ TYPED_TEST(CstByteTest, IdMethod) {
     }
 }
 
-TYPED_TEST(CstByteTest, LcaMethod) {
+TYPED_TEST(CstByteTest, LcaMethod)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
@@ -246,7 +264,8 @@ TYPED_TEST(CstByteTest, LcaMethod) {
 }
 
 //! Test the bottom-up iterator
-TYPED_TEST(CstByteTest, BottomUpIterator) {
+TYPED_TEST(CstByteTest, BottomUpIterator)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 //        TypeParam cst;
 //        ASSERT_EQ(this->load_cst(cst, i), true);
@@ -255,11 +274,12 @@ TYPED_TEST(CstByteTest, BottomUpIterator) {
     }
 }
 
-TYPED_TEST(CstByteTest, DeleteTest) {
+TYPED_TEST(CstByteTest, DeleteTest)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         std::remove(this->get_tmp_file_name(cst, i).c_str());
-		util::delete_all_files(test_cases_file_map[i]);	
+        util::delete_all_files(test_cases_file_map[i]);
     }
 }
 

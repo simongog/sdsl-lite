@@ -254,9 +254,9 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c) : m_size(0)
 //    (2) Write sample values and deltas
     {
         if (max_sample_value > z_size+1)
-            m_sample_vals_and_pointer.width(bit_magic::l1BP(max_sample_value) + 1);
+            m_sample_vals_and_pointer.width(bits::hi(max_sample_value) + 1);
         else
-            m_sample_vals_and_pointer.width(bit_magic::l1BP(z_size+1) + 1);
+            m_sample_vals_and_pointer.width(bits::hi(z_size+1) + 1);
         m_sample_vals_and_pointer.resize(2*samples+2); // add 2 for last entry
         util::set_zero_bits(m_sample_vals_and_pointer);
         typename int_vector_type::iterator sv_it = m_sample_vals_and_pointer.begin();
@@ -327,9 +327,9 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width
 //    (2) Write sample values and deltas
 //    (a) Initialize array for sample values and pointers
     if (max_sample_value > z_size+1)
-        m_sample_vals_and_pointer.width(bit_magic::l1BP(max_sample_value) + 1);
+        m_sample_vals_and_pointer.width(bits::hi(max_sample_value) + 1);
     else
-        m_sample_vals_and_pointer.width(bit_magic::l1BP(z_size+1) + 1);
+        m_sample_vals_and_pointer.width(bits::hi(z_size+1) + 1);
     m_sample_vals_and_pointer.resize(2*samples+2); // add 2 for last entry
     util::set_zero_bits(m_sample_vals_and_pointer);
 

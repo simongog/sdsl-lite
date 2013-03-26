@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-#include "sdsl/bit_magic.hpp"
+#include "sdsl/bits.hpp"
 
 namespace sdsl
 {
 
-const uint8_t bit_magic::B1CntBytes[] = {
+const uint8_t bits::B1CntBytes[] = {
     0, 1, 1, 2, 1, 2, 2, 3,
     1, 2, 2, 3, 2, 3, 3, 4,
     1, 2, 2, 3, 2, 3, 3, 4,
@@ -56,7 +56,7 @@ const uint8_t bit_magic::B1CntBytes[] = {
 
 
 
-const uint32_t bit_magic::DeBruijn64ToIndex[] = {
+const uint32_t bits::DeBruijn64ToIndex[] = {
     0, 1, 2, 7, 3,13, 8,19,
     4,25,14,28, 9,34,20,40,
     5,17,26,38,15,46,29,48,
@@ -67,7 +67,7 @@ const uint32_t bit_magic::DeBruijn64ToIndex[] = {
     61,22,43,51,60,42,59,58
 };
 
-const uint32_t bit_magic::L1BP[] = {
+const uint32_t bits::L1BP[] = {
     0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
@@ -86,7 +86,7 @@ const uint32_t bit_magic::L1BP[] = {
     7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
 };
 
-const uint64_t bit_magic::Li1Mask[] = {
+const uint64_t bits::Li1Mask[] = {
     0x0000000000000000ULL,
     0x0000000000000001ULL,
     0x0000000000000003ULL,
@@ -154,7 +154,7 @@ const uint64_t bit_magic::Li1Mask[] = {
     0xFFFFFFFFFFFFFFFFULL
 };
 
-const uint64_t bit_magic::Li0Mask[] = {
+const uint64_t bits::Li0Mask[] = {
     0xFFFFFFFFFFFFFFFFULL,
     0xFFFFFFFFFFFFFFFEULL,
     0xFFFFFFFFFFFFFFFCULL,
@@ -222,7 +222,7 @@ const uint64_t bit_magic::Li0Mask[] = {
     0x0000000000000000ULL
 };
 
-const uint64_t bit_magic::PsOverflow[] = {
+const uint64_t bits::PsOverflow[] = {
     0x8080808080808080ULL,
     0x7f7f7f7f7f7f7f7fULL,
     0x7e7e7e7e7e7e7e7eULL,
@@ -290,7 +290,7 @@ const uint64_t bit_magic::PsOverflow[] = {
     0x4040404040404040ULL
 };
 
-const uint8_t bit_magic::Select256[] = {
+const uint8_t bits::Select256[] = {
     0,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
     4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
     5,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
@@ -428,9 +428,9 @@ const uint8_t bit_magic::Select256[] = {
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7
 };
 
-const uint32_t bit_magic::powerOf3[] = {1,3,9,27,81,243,729,2187,6561};
+const uint32_t bits::powerOf3[] = {1,3,9,27,81,243,729,2187,6561};
 
-const uint64_t bit_magic::Fib[] = {
+const uint64_t bits::Fib[] = {
     1,
     2,
     3,
@@ -525,7 +525,7 @@ const uint64_t bit_magic::Fib[] = {
     0xa94fad42221f2702ULL
 };
 
-const uint8_t bit_magic::lookupr1BP[]= {
+const uint8_t bits::lookuplo[]= {
     0x00,0x00,0x01,0x00,0x02,0x00,0x01,0x00,
     0x03,0x00,0x01,0x00,0x02,0x00,0x01,0x00,
     0x04,0x00,0x01,0x00,0x02,0x00,0x01,0x00,
@@ -560,7 +560,7 @@ const uint8_t bit_magic::lookupr1BP[]= {
     0x03,0x00,0x01,0x00,0x02,0x00,0x01,0x00
 };
 
-const uint8_t bit_magic::max_excess_8bit[]= {
+const uint8_t bits::max_excess_8bit[]= {
     0,1,0,2,0,1,1,3,
     0,1,0,2,0,2,2,4,
     0,1,0,2,0,1,1,3,
@@ -595,7 +595,7 @@ const uint8_t bit_magic::max_excess_8bit[]= {
     2,4,4,6,4,6,6,8
 };
 
-const uint64_t bit_magic::_8_x_the_byte[]= {
+const uint64_t bits::_8_x_the_byte[]= {
     0x0000000000000000ULL,
     0x0101010101010101ULL,
     0x0202020202020202ULL,
@@ -664,7 +664,7 @@ const uint64_t bit_magic::_8_x_the_byte[]= {
 };
 
 
-const uint8_t bit_magic::first_pos_of_excess_val[]= {
+const uint8_t bits::first_pos_of_excess_val[]= {
     0,1,1,3,0,1,1,5,0,1,1,5,3,1,1,7,
     0,1,1,3,0,1,1,7,0,1,1,7,3,1,1,0,
     0,1,1,3,0,1,1,7,0,1,1,7,3,1,1,0,
@@ -820,7 +820,7 @@ const uint8_t bit_magic::first_pos_of_excess_val[]= {
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7
 };
 
-const uint8_t bit_magic::last_pos_of_excess_val[]= {
+const uint8_t bits::last_pos_of_excess_val[]= {
     7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -1111,7 +1111,7 @@ const uint8_t bit_magic::last_pos_of_excess_val[]= {
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7
 };
 
-const uint8_t bit_magic::very_near_find_open[]= {
+const uint8_t bits::very_near_find_open[]= {
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,7,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,7,
@@ -1130,7 +1130,7 @@ const uint8_t bit_magic::very_near_find_open[]= {
     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 };
 
-const uint8_t bit_magic::very_near_enclose[]= {
+const uint8_t bits::very_near_enclose[]= {
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,7,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,7,
@@ -1150,18 +1150,18 @@ const uint8_t bit_magic::very_near_enclose[]= {
 };
 
 // Difference covers for 2^0, 2^1,...,2^8 Elements from the implementation of Simon Puglisi
-const uint8_t bit_magic::cover0[] = {0};
-const uint8_t bit_magic::cover1[] = {0,1};
-const uint8_t bit_magic::cover2[] = {0,1,2};
-const uint8_t bit_magic::cover3[] = {0,1,2,4};
-const uint8_t bit_magic::cover4[] = {0,1,2,5,8};
-const uint8_t bit_magic::cover5[] = {0,1,2,3,7,11,19};
-const uint8_t bit_magic::cover6[] = {0,1,2,5,14,16,34,42,59};
-const uint8_t bit_magic::cover7[] = {0,1,3,7,17,40,55,64,75,85,104,109,117};
-const uint8_t bit_magic::cover8[] = {0,1,3,7,12,20,30,44,65,80,89,96,114,122,
-                                     128,150,196,197,201,219
-                                    };
-const uint8_t* bit_magic::covers[] = { cover0, cover1, cover2, cover3, cover4, cover5, cover6, cover7, cover8 };
+const uint8_t bits::cover0[] = {0};
+const uint8_t bits::cover1[] = {0,1};
+const uint8_t bits::cover2[] = {0,1,2};
+const uint8_t bits::cover3[] = {0,1,2,4};
+const uint8_t bits::cover4[] = {0,1,2,5,8};
+const uint8_t bits::cover5[] = {0,1,2,3,7,11,19};
+const uint8_t bits::cover6[] = {0,1,2,5,14,16,34,42,59};
+const uint8_t bits::cover7[] = {0,1,3,7,17,40,55,64,75,85,104,109,117};
+const uint8_t bits::cover8[] = {0,1,3,7,12,20,30,44,65,80,89,96,114,122,
+                                128,150,196,197,201,219
+                               };
+const uint8_t* bits::covers[] = { cover0, cover1, cover2, cover3, cover4, cover5, cover6, cover7, cover8 };
 
 const uint32_t cover_sizes[] = {1,2,3,4,5,7,9,13,20};
 

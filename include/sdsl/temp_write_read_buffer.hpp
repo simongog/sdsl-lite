@@ -5,13 +5,11 @@
 #ifndef INCLUDED_SDSL_TEMP_WRITE_READ_BUFFER
 #define INCLUDED_SDSL_TEMP_WRITE_READ_BUFFER
 #include "int_vector.hpp"
+#include "sfstream.hpp"
 #include <string>
-#include <fstream>
 
 namespace sdsl
 {
-
-
 
 /*!
  * FIFO data structure
@@ -33,8 +31,8 @@ class temp_write_read_buffer
         size_type 			m_in_buf_idx;// current index in the buffer
         size_type			m_buf_idx;// index of the current buffer
         size_type			m_buf_cnt;// number of buffers written to disk
-        std::ofstream		m_out;		 // file out stream
-        std::ifstream		m_in;		 // file in stream
+        osfstream			m_out;		 // file out stream
+        isfstream			m_in;		 // file in stream
         bool				m_output_exists; // if there exists output to the file
         size_type			m_r;// remaining entries in the buffer
         size_type			m_last_block_size; // size of the last block written to disk
@@ -48,12 +46,12 @@ class temp_write_read_buffer
          *	\param dir		Directory in which the temporary file is stored.
          */
         // TODO: should pass a temporary file NOT a directory
-        temp_write_read_buffer(size_type buf_size, uint8_t width, std::string dir="./") {
+        temp_write_read_buffer(size_type buf_size, uint8_t width, std::string dir=".") {
             m_buf_size = buf_size;
             m_buf = buffer_type(buf_size, 0, width);    // initialize buffer
             m_in_buf_idx = 0;
             m_buf_cnt = 0;
-            m_file_name =  dir + "temp_write_read_buffer_" + util::to_string(util::pid())+"_"
+            m_file_name =  dir + "/temp_write_read_buffer_" + util::to_string(util::pid())+"_"
                            + util::to_string(util::id())+"_"
                            + util::to_string(m_buffer_id);
             m_buffer_id++; // increase the object counter
@@ -69,7 +67,7 @@ class temp_write_read_buffer
                 m_in.close();	  // close it
             }
             if (m_output_exists)  // if we have written output to a file
-                std::remove(m_file_name.c_str());   // delete it
+                remove(m_file_name);   // delete it
         }
 
         value_type operator<<(value_type x) {
@@ -77,7 +75,7 @@ class temp_write_read_buffer
                 m_in_buf_idx = 0;
                 ++m_buf_cnt; ++m_buf_idx; // increase the number of buffers written to disk; increase the number of the current buffer
                 if (m_buf_cnt == 1) {
-                    m_out.open(m_file_name.c_str(), std::ios::trunc | std::ios::out | std::ios::binary);   // open file buffer
+                    m_out.open(m_file_name, std::ios::trunc | std::ios::out | std::ios::binary);   // open file buffer
                 }
                 m_buf.serialize(m_out);   // write buffer to disk
                 m_output_exists = true;
@@ -94,7 +92,7 @@ class temp_write_read_buffer
                 ++m_buf_cnt;
                 m_out.close();
                 m_r = 0;
-                m_in.open(m_file_name.c_str(), std::ios::in | std::ios::binary);
+                m_in.open(m_file_name, std::ios::in | std::ios::binary);
             } else {
                 m_r = m_in_buf_idx;
                 m_last_block_size = 0;

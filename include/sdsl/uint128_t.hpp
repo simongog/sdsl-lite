@@ -22,13 +22,14 @@
 #define INCLUDED_SDSL_UINT128
 
 #include <iostream>
-#include "bit_magic.hpp"
+#include "bits.hpp"
 
-namespace sdsl {
+namespace sdsl
+{
 
 typedef unsigned int uint128_t __attribute__((mode(TI)));
 
-std::ostream& operator<<(std::ostream& os, const uint128_t& x); 
+std::ostream& operator<<(std::ostream& os, const uint128_t& x);
 
 } // end namespace
 

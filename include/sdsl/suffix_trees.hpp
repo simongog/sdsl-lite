@@ -43,15 +43,16 @@ namespace sdsl
           s in the original text.
  */
 template<class tCst>
-double H0(const typename tCst::node_type& v, const tCst& cst) {
+double H0(const typename tCst::node_type& v, const tCst& cst)
+{
     if (cst.is_leaf(v)) {
         return 0;
     } else {
         double h0=0;
-        typename tCst::size_type n = cst.leaves_in_the_subtree(v);
+        typename tCst::size_type n = cst.size(v);
         typename tCst::node_type w = cst.select_child(v, 1);
         do {
-            double p = ((double)cst.leaves_in_the_subtree(w))/n;
+            double p = ((double)cst.size(w))/n;
             h0 -= p*log2(p);
             w = cst.sibling(w);
         } while (w != cst.root());
@@ -66,29 +67,30 @@ double H0(const typename tCst::node_type& v, const tCst& cst) {
  * \param context	A output reference which will hold the number of different contexts.
  */
 template<class tCst>
-double Hk(const tCst& cst, typename tCst::size_type k, typename tCst::size_type& context) {
+double Hk(const tCst& cst, typename tCst::size_type k, typename tCst::size_type& context)
+{
     double hk = 0;
     context = 0;
-	std::set<typename tCst::size_type> leafs_with_d_smaller_k;
-	for (typename tCst::size_type d = 1; d < k; ++d){
-		leafs_with_d_smaller_k.insert( cst.csa(cst.csa.size()-d) );
-	}
+    std::set<typename tCst::size_type> leafs_with_d_smaller_k;
+    for (typename tCst::size_type d = 1; d < k; ++d) {
+        leafs_with_d_smaller_k.insert(cst.csa(cst.csa.size()-d));
+    }
     for (typename tCst::const_iterator it = cst.begin(), end=cst.end(); it != end; ++it) {
         if (it.visit() == 1) {
-			if ( !cst.is_leaf(*it) ){ 
-				typename tCst::size_type d = cst.depth(*it);
-				if (d >= k) {
-					if (d == k)
-						hk += cst.leaves_in_the_subtree(*it) * H0(*it, cst);
-					++context;
-					it.skip_subtree();
-				}
-			}else{
-				// if d of leaf is >= k, add context
-				if ( leafs_with_d_smaller_k.find( cst.lb(*it) ) == leafs_with_d_smaller_k.end() ) {
-					++context;
-				}
-			}
+            if (!cst.is_leaf(*it)) {
+                typename tCst::size_type d = cst.depth(*it);
+                if (d >= k) {
+                    if (d == k)
+                        hk += cst.size(*it) * H0(*it, cst);
+                    ++context;
+                    it.skip_subtree();
+                }
+            } else {
+                // if d of leaf is >= k, add context
+                if (leafs_with_d_smaller_k.find(cst.lb(*it)) == leafs_with_d_smaller_k.end()) {
+                    ++context;
+                }
+            }
         }
     }
     hk /= cst.size();

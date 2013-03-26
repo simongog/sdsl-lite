@@ -21,14 +21,15 @@
 #ifndef INCLUDED_SDSL_UTIL
 #define INCLUDED_SDSL_UTIL
 
-#include "bit_magic.hpp"
+#include "bits.hpp"
 #include "typedefs.hpp"
 #include "structure_tree.hpp"
+#include "sfstream.hpp"
+#include "ram_fs.hpp"
 #include "config.hpp"  // for constants 
 #include <iosfwd>      // forward declaration of ostream
 #include <stdint.h>    // for uint64_t uint32_t declaration
 #include <cassert>
-#include <fstream>     // file stream for storeToFile and loadFromFile
 #include <ctime>       // for rand initialization
 #include <string>
 #include <locale>       // for class_to_hash
@@ -163,13 +164,13 @@ typename t_int_vec::size_type prev_bit(const t_int_vec& v, uint64_t idx);
 //============= Handling files =============================
 
 //! Get the size of a file in bytes
-off_t file_size(const std::string& file_name);
+off_t file_size(const std::string& file);
 
-//! Returns the basename of a file_name
-std::string basename(const std::string& file_name);
+//! Returns the basename of a file
+std::string basename(std::string file);
 
-//! Returns the directory of a file_name. Trailing / are removed.
-std::string dirname(const std::string& file_name);
+//! Returns the directory of a file. Trailing / are removed.
+std::string dirname(std::string file);
 
 
 
@@ -178,40 +179,57 @@ std::string dirname(const std::string& file_name);
 //! Load a data structure from a file.
 /*! The data structure has to provide a load function.
  * \param v Data structure to load.
- * \param file_name Name of the serialized file.
+ * \param file Name of the serialized file.
  */
 template<class T>
-bool load_from_file(T& v, const std::string& file_name);
+bool load_from_file(T& v, const std::string& file);
 
 template<>
-bool load_from_file(void*&, const std::string& file_name);
+bool load_from_file(void*&, const std::string& file);
 
 //! Specialization of load_from_file for a char array
 /*  \pre v=NULL
  */
-bool load_from_file(char*& v, const std::string& file_name);
+bool load_from_file(char*& v, const std::string& file);
 
 
 
 //! Load an int_vector from a plain array of `num_bytes`-byte integers with X in \{0, 1,2,4,8\} from disk.
 // TODO: Remove ENDIAN dependency: currently in BIG_ENDIAN format
 template<class t_int_vec>
-bool load_vector_from_file(t_int_vec& v, const std::string& file_name, uint8_t num_bytes=1, uint8_t max_int_width=64)
+bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_bytes=1, uint8_t max_int_width=64)
 {
     if ((uint8_t)0 == num_bytes) {  // if byte size is variable read int_vector<0> from file
-        return load_from_file(v, file_name);
+        return load_from_file(v, file);
+    } else if (num_bytes == 'd') {
+        uint64_t x = 0, max_x = 0;
+        isfstream in(file);
+        if (!in) {
+            return false;
+        } else {
+            std::vector<uint64_t> tmp;
+            while (in >> x) {
+                tmp.push_back(x);
+                max_x = std::max(x, max_x);
+            }
+            v.width(bits::hi(max_x)+1); v.resize(tmp.size());
+            for (size_t i=0; i < tmp.size(); ++i) {
+                v[i] = tmp[i];
+            }
+            return true;
+        }
     } else {
-        off_t file_size = util::file_size(file_name);
+        off_t file_size = util::file_size(file);
         if (file_size == 0) {
             v.resize(0);
             return true;
         }
         if (file_size % num_bytes != 0) {
-            throw std::logic_error("file size "+to_string(file_size)+" of \""+ file_name
+            throw std::logic_error("file size "+to_string(file_size)+" of \""+ file
                                    +"\" is not a multiple of "+to_string(num_bytes));
             return false;
         }
-        std::ifstream in(file_name.c_str());
+        isfstream in(file);
         if (in) {
             v.width(std::min((int)8*num_bytes, (int)max_int_width));
             v.resize(file_size / num_bytes);
@@ -254,25 +272,25 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file_name, uint8_t n
 //! Store a data structure to a file.
 /*! The data structure has to provide a serialize function.
  *  \param v Data structure to store.
- *  \param file_name Name of the file where to store the data structure.
+ *  \param file Name of the file where to store the data structure.
  *  \param Return if the data structure was stored successfully
  */
 template<class T>
-bool store_to_file(const T& v, const std::string& file_name);
+bool store_to_file(const T& v, const std::string& file);
 
 //! Specialization of store_to_file for a char array
-bool store_to_file(const char* v, const std::string& file_name);
+bool store_to_file(const char* v, const std::string& file);
 
 //! Specialization of store_to_file for int_vector
-template<uint8_t fixed_int_width>
-bool store_to_file(const int_vector<fixed_int_width>& v, const std::string& file_name, bool write_fixed_as_variable=false);
+template<uint8_t t_width>
+bool store_to_file(const int_vector<t_width>& v, const std::string& file, bool write_fixed_as_variable=false);
 
 
 //! Store an int_vector as plain int_type array to disk
 template<class int_type, class t_int_vec>
-bool store_to_plain_array(t_int_vec& v, const std::string& file_name)
+bool store_to_plain_array(t_int_vec& v, const std::string& file)
 {
-    std::ofstream out(file_name.c_str());
+    osfstream out(file);
     if (out) {
         for (typename t_int_vec::size_type i=0; i<v.size(); ++i) {
             int_type x = v[i];
@@ -404,7 +422,7 @@ size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::stru
 }
 
 //! Load all elements of a vector from a input stream
-/*! \param vec    Vector whose elements should be loaded.
+/*! \param vec  Vector whose elements should be loaded.
  *  \param in   Input stream.
  *  \par Note
  *   The vector has to be resized prior the loading
@@ -552,18 +570,21 @@ void register_cache_file(const std::string& key, cache_config& config);
 */
 bool cache_file_exists(const std::string& key, const cache_config& config);
 
+//! Returns a name for a temporary file. I.e. the name was not used before.
+std::string tmp_file(const cache_config& config, std::string name_part="");
+
 template<class T>
 bool load_from_cache(T& v, const std::string& key, const cache_config& config)
 {
-    std::string file_name = cache_file_name(key, config);
-    if (load_from_file(v, file_name)) {
+    std::string file = cache_file_name(key, config);
+    if (load_from_file(v, file)) {
         if (util::verbose) {
-            std::cerr << "Load `" << file_name << std::endl;
+            std::cerr << "Load `" << file << std::endl;
         }
         return true;
     } else {
         std::cerr << "WARNING: Could not load file '";
-        std::cerr << file_name << "'" << std::endl;
+        std::cerr << file << "'" << std::endl;
         return false;
     }
 }
@@ -575,11 +596,12 @@ bool load_from_cache(T& v, const std::string& key, const cache_config& config)
 template<class T>
 bool store_to_cache(const T& v, const std::string& key, cache_config& config)
 {
-    std::string file_name = cache_file_name(key, config);
-    if (store_to_file(v, file_name)) {
-        config.file_map[std::string(key)] = file_name;
+    std::string file = cache_file_name(key, config);
+    if (store_to_file(v, file)) {
+        config.file_map[std::string(key)] = file;
         return true;
     } else {
+        std::cerr<<"WARNING: store_to_cache: could not store file `"<< file <<"`" << std::endl;
         return false;
     }
 }
@@ -681,63 +703,69 @@ double util::get_size_in_mega_bytes(const T& t)
 }
 
 template<class T>
-bool util::store_to_file(const T& t, const std::string& file_name)
+bool util::store_to_file(const T& t, const std::string& file)
 {
-    std::ofstream out;
-    out.open(file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out);
+    osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
     if (!out) {
         if (util::verbose) {
-            std::cerr<<"ERROR: store_to_file not successful for: `"<<file_name<<"`"<<std::endl;
+            std::cerr<<"ERROR: store_to_file not successful for: `"<<file<<"`"<<std::endl;
         }
         return false;
     }
     t.serialize(out);
     out.close();
     if (util::verbose) {
-        std::cerr<<"INFO: store_to_file: `"<<file_name<<"`"<<std::endl;
+        std::cerr<<"INFO: store_to_file: `"<<file<<"`"<<std::endl;
     }
     return true;
 }
 
-inline bool util::store_to_file(const char* v, const std::string& file_name)
+inline bool util::store_to_file(const char* v, const std::string& file)
 {
-    std::ofstream out;
-    out.open(file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out);
-    if (!out)
-        return false;
+    osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
+    if (!out) {
+        if (util::verbose) {
+            std::cerr<<"ERROR: store_to_file(const char *v, const std::string&)"<<std::endl;
+            return false;
+        }
+    }
     uint64_t n = strlen((const char*)v);
     out.write(v, n);
     out.close();
     return true;
 }
 
-template<uint8_t fixed_int_width>
-bool util::store_to_file(const int_vector<fixed_int_width>& v, const std::string& file_name, bool write_fixed_as_variable)
+template<uint8_t t_width>
+bool util::store_to_file(const int_vector<t_width>& v, const std::string& file, bool write_fixed_as_variable)
 {
-    std::ofstream out;
-    out.open(file_name.c_str(), std::ios::binary | std::ios::trunc | std::ios::out);
-    if (!out)
+    osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
+    if (!out) {
+        std::cerr<<"ERROR: util::store_to_file:: Could not open file `"<<file<<"`"<<std::endl;
         return false;
+    } else {
+        if (util::verbose) {
+            std::cerr<<"INFO: store_to_file: `"<<file<<"`"<<std::endl;
+        }
+    }
     v.serialize(out, NULL, "", write_fixed_as_variable);
     out.close();
     return true;
 }
 
 template<class T>
-bool util::load_from_file(T& v, const std::string& file_name)
+bool util::load_from_file(T& v, const std::string& file)
 {
-    std::ifstream in;
-    in.open(file_name.c_str(), std::ios::binary | std::ios::in);
+    isfstream in(file, std::ios::binary | std::ios::in);
     if (!in) {
         if (util::verbose) {
-            std::cerr << "Could not load file `" << file_name << "`" << std::endl;
+            std::cerr << "Could not load file `" << file << "`" << std::endl;
         }
         return false;
     }
     v.load(in);
     in.close();
     if (util::verbose) {
-        std::cerr << "Load file `" << file_name << "`" << std::endl;
+        std::cerr << "Load file `" << file << "`" << std::endl;
     }
     return true;
 }
@@ -809,7 +837,7 @@ void util::bit_compress(t_int_vec& v)
             max = v[i];
         }
     }
-    uint8_t min_width = bit_magic::l1BP(max)+1;
+    uint8_t min_width = bits::hi(max)+1;
     uint8_t old_width = v.width();
     if (old_width > min_width) {
         const uint64_t* read_data = v.m_data;
@@ -817,8 +845,8 @@ void util::bit_compress(t_int_vec& v)
         uint8_t read_offset = 0;
         uint8_t write_offset = 0;
         for (typename t_int_vec::size_type i=0; i < v.size(); ++i) {
-            uint64_t x = bit_magic::read_int_and_move(read_data, read_offset, old_width);
-            bit_magic::write_int_and_move(write_data,  x, write_offset, min_width);
+            uint64_t x = bits::read_int_and_move(read_data, read_offset, old_width);
+            bits::write_int_and_move(write_data,  x, write_offset, min_width);
         }
         v.bit_resize(v.size()*min_width);
         v.width(min_width);
@@ -891,12 +919,12 @@ typename t_int_vec::size_type util::get_one_bits(const t_int_vec& v)
     const uint64_t* data = v.data();
     if (v.empty())
         return 0;
-    typename t_int_vec::size_type result = bit_magic::b1Cnt(*data);
+    typename t_int_vec::size_type result = bits::cnt(*data);
     for (typename t_int_vec::size_type i=1; i < (v.capacity()>>6); ++i) {
-        result += bit_magic::b1Cnt(*(++data));
+        result += bits::cnt(*(++data));
     }
     if (v.bit_size()&0x3F) {
-        result -= bit_magic::b1Cnt((*data) & (~bit_magic::Li1Mask[v.bit_size()&0x3F]));
+        result -= bits::cnt((*data) & (~bits::Li1Mask[v.bit_size()&0x3F]));
     }
     return result;
 }
@@ -909,13 +937,13 @@ typename t_int_vec::size_type util::get_onezero_bits(const t_int_vec& v)
     if (v.empty())
         return 0;
     uint64_t carry = 0, oldcarry=0;
-    typename t_int_vec::size_type result = bit_magic::b10Cnt(*data, carry);
+    typename t_int_vec::size_type result = bits::b10Cnt(*data, carry);
     for (typename t_int_vec::size_type i=1; i < (v.capacity()>>6); ++i) {
         oldcarry = carry;
-        result += bit_magic::b10Cnt(*(++data), carry);
+        result += bits::b10Cnt(*(++data), carry);
     }
-    if (v.bit_size()&0x3F) {// if bit_size is not a multiple of 64, substract the counts of the additional bits
-        result -= bit_magic::b1Cnt(bit_magic::b10Map(*data, oldcarry) & bit_magic::Li0Mask[v.bit_size()&0x3F]);
+    if (v.bit_size()&0x3F) {// if bit_size is not a multiple of 64, subtract the counts of the additional bits
+        result -= bits::cnt(bits::b10Map(*data, oldcarry) & bits::Li0Mask[v.bit_size()&0x3F]);
     }
     return result;
 }
@@ -927,13 +955,13 @@ typename t_int_vec::size_type util::get_zeroone_bits(const t_int_vec& v)
     if (v.empty())
         return 0;
     uint64_t carry = 1, oldcarry = 1;
-    typename t_int_vec::size_type result = bit_magic::b01Cnt(*data, carry);
+    typename t_int_vec::size_type result = bits::b01Cnt(*data, carry);
     for (typename t_int_vec::size_type i=1; i < (v.capacity()>>6); ++i) {
         oldcarry = carry;
-        result += bit_magic::b01Cnt(*(++data), carry);
+        result += bits::b01Cnt(*(++data), carry);
     }
-    if (v.bit_size()&0x3F) {// if bit_size is not a multiple of 64, substract the counts of the additional bits
-        result -= bit_magic::b1Cnt(bit_magic::b01Map(*data, oldcarry) & bit_magic::Li0Mask[v.bit_size()&0x3F]);
+    if (v.bit_size()&0x3F) {// if bit_size is not a multiple of 64, subtract the counts of the additional bits
+        result -= bits::cnt(bits::b01Map(*data, oldcarry) & bits::Li0Mask[v.bit_size()&0x3F]);
     }
     return result;
 }
@@ -945,12 +973,12 @@ typename t_int_vec::size_type util::next_bit(const t_int_vec& v, uint64_t idx)
     uint64_t node = v.data()[pos];
     node >>= (idx&0x3F);
     if (node) {
-        return idx+bit_magic::r1BP(node);
+        return idx+bits::lo(node);
     } else {
         ++pos;
         while ((pos<<6) < v.bit_size()) {
             if (v.data()[pos]) {
-                return (pos<<6)|bit_magic::r1BP(v.data()[pos]);
+                return (pos<<6)|bits::lo(v.data()[pos]);
             }
             ++pos;
         }
@@ -965,12 +993,12 @@ typename t_int_vec::size_type util::prev_bit(const t_int_vec& v, uint64_t idx)
     uint64_t node = v.data()[pos];
     node <<= 63-(idx&0x3F);
     if (node) {
-        return bit_magic::l1BP(node)+(pos<<6)-(63-(idx&0x3F));
+        return bits::hi(node)+(pos<<6)-(63-(idx&0x3F));
     } else {
         --pos;
         while ((pos<<6) < v.bit_size()) {
             if (v.data()[pos]) {
-                return (pos<<6)|bit_magic::l1BP(v.data()[pos]);
+                return (pos<<6)|bits::hi(v.data()[pos]);
             }
             --pos;
         }

@@ -37,7 +37,7 @@ void set_isa_samples(int_vector_file_buffer<int_width>& sa_buf, typename Csa::is
     typedef typename Csa::size_type size_type;
     size_type  n = sa_buf.int_vector_size;
 
-    isa_sample.width(bit_magic::l1BP(n)+1);
+    isa_sample.width(bits::hi(n)+1);
     if (n >= 1) { // so n+Csa::isa_sample_dens >= 2
         isa_sample.resize((n-1+Csa::isa_sample_dens-1)/Csa::isa_sample_dens + 1);
     }
