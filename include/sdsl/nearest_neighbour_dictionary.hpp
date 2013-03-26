@@ -100,9 +100,9 @@ class nearest_neighbour_dictionary
             m_size = v.size();
 //			std::cerr<<ones<<std::endl;
             // initialize absolute samples m_abs_samples[0]=0
-            m_abs_samples = int_vector<>(m_ones/sample_dens + 1, 0,  bit_magic::l1BP(v.size())+1);
+            m_abs_samples = int_vector<>(m_ones/sample_dens + 1, 0,  bits::hi(v.size())+1);
             // initialize different values
-            m_differences = int_vector<>(m_ones - m_ones/sample_dens, 0, bit_magic::l1BP(max_distance_between_two_ones)+1);
+            m_differences = int_vector<>(m_ones - m_ones/sample_dens, 0, bits::hi(max_distance_between_two_ones)+1);
             // initialize m_contains_abs_sample
             m_contains_abs_sample = bit_vector((v.size()+sample_dens-1)/sample_dens, 0);
             ones = 0;
@@ -225,8 +225,8 @@ class nearest_neighbour_dictionary
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             written_bytes += m_abs_samples.serialize(out, child, "absolute_samples");
             written_bytes += m_differences.serialize(out, child, "differences");
-			written_bytes += util::write_member(m_ones, out, child, "ones");
-			written_bytes += util::write_member(m_size,out,  child, "size");
+            written_bytes += util::write_member(m_ones, out, child, "ones");
+            written_bytes += util::write_member(m_size,out,  child, "size");
             written_bytes += m_contains_abs_sample.serialize(out, child, "contains_abs_sample");
             written_bytes += m_rank_contains_abs_sample.serialize(out, child, "rank_contains_abs_sample");
             structure_tree::add_size(child, written_bytes);
@@ -239,8 +239,8 @@ class nearest_neighbour_dictionary
         void load(std::istream& in) {
             m_abs_samples.load(in);
             m_differences.load(in);
-			util::read_member(m_ones, in);
-			util::read_member(m_size, in);
+            util::read_member(m_ones, in);
+            util::read_member(m_size, in);
             m_contains_abs_sample.load(in);
             m_rank_contains_abs_sample.load(in, &m_contains_abs_sample);
         }

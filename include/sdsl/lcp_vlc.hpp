@@ -83,9 +83,8 @@ class lcp_vlc
             copy(lcp_c);
         }
 
-        //! Construct the lcp array from an int_vector_file_buffer
-        template<uint8_t int_width>
-        lcp_vlc(int_vector_file_buffer<int_width>& lcp_buf);
+        //! Construct
+        lcp_vlc(cache_config& config, std::string other_key="");
 
         //! Number of elements in the instance.
         size_type size()const {
@@ -103,7 +102,9 @@ class lcp_vlc
         }
 
         //! Swap method for lcp_vlc
-        void swap(lcp_vlc& lcp_c);
+        void swap(lcp_vlc& lcp_c) {
+            m_vec.swap(lcp_c.m_vec);
+        }
 
         //! Returns a const_iterator to the first element.
         const_iterator begin()const {
@@ -117,7 +118,9 @@ class lcp_vlc
         }
 
         //! []-operator
-        inline value_type operator[](size_type i)const;
+        inline value_type operator[](size_type i)const {
+            return m_vec[i];
+        }
 
         //! Assignment Operator.
         lcp_vlc& operator=(const lcp_vlc& lcp_c);
@@ -132,24 +135,16 @@ class lcp_vlc
 // == template functions ==
 
 template<class t_vlc_vec>
-template<uint8_t int_width>
-lcp_vlc<t_vlc_vec>::lcp_vlc(int_vector_file_buffer<int_width>& lcp_buf)
+lcp_vlc<t_vlc_vec>::lcp_vlc(cache_config& config, std::string other_key)
 {
-    util::assign(m_vec, vlc_vec_type(lcp_buf));
+    std::string lcp_key  = constants::KEY_LCP;
+    if ("" != other_key) {
+        lcp_key = other_key;
+    }
+    int_vector_file_buffer<> lcp_buf(util::cache_file_name(lcp_key, config));
+    vlc_vec_type tmp_vec(lcp_buf);
+    m_vec.swap(tmp_vec);
 }
-
-template<class t_vlc_vec>
-void lcp_vlc<t_vlc_vec>::swap(lcp_vlc& lcp_c)
-{
-    m_vec.swap(lcp_c.m_vec);
-}
-
-template<class t_vlc_vec>
-inline typename lcp_vlc<t_vlc_vec>::value_type lcp_vlc<t_vlc_vec>::operator[](size_type i)const
-{
-    return m_vec[i];
-}
-
 
 template<class t_vlc_vec>
 typename lcp_vlc<t_vlc_vec>::size_type lcp_vlc<t_vlc_vec>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const

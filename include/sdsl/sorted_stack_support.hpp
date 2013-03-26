@@ -142,13 +142,13 @@ inline void sorted_stack_support::pop()
         w ^= (1ULL << block_pos(m_top));
         m_stack[ bn ] = w;
         if (w>0) {
-            m_top = bn*63 + bit_magic::l1BP(w);
+            m_top = bn*63 + bits::hi(w);
         } else { // w==0 and cnt>0
             assert(bn > 0);
             w = m_stack[ bn-1 ];
             if ((w>>63) == 0) { // highest bit is not set => the block contains no pointer
                 assert(w>0);
-                m_top = (bn-1)*63 + bit_magic::l1BP(w);
+                m_top = (bn-1)*63 + bits::hi(w);
             } else { // block contains pointers
                 m_stack[bn-1] = 0;
                 m_top = w&0x7FFFFFFFFFFFFFFFULL;

@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2009 Simon Gog
+    Copyright (C) 2009-2013 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -252,12 +252,12 @@ template<class t_rac=unsigned char*,
 class wt
 {
     public:
-        typedef typename wt_trait<t_rac>::size_type         size_type;
-        typedef typename wt_trait<t_rac>::value_type         value_type;
-        typedef typename wt_trait<t_rac>::map_type            map_type;
-        typedef typename wt_trait<t_rac>::inv_map_type        inv_map_type;
-        typedef wt_tag                                                        index_category;
-        typedef byte_alphabet_tag                                            alphabet_category;
+        typedef typename wt_trait<t_rac>::size_type    size_type;
+        typedef typename wt_trait<t_rac>::value_type   value_type;
+        typedef typename wt_trait<t_rac>::map_type     map_type;
+        typedef typename wt_trait<t_rac>::inv_map_type inv_map_type;
+        typedef wt_tag                                 index_category;
+        typedef byte_alphabet_tag                      alphabet_category;
     private:
         size_type       m_size;
         size_type       m_sigma;        //<- \f$ |\Sigma| \f$
@@ -275,20 +275,20 @@ class wt
         mutable inv_map_type  m_inv_char_map; // map the integers back to characters; we use mutable " "  "  " "  "  "  "  "  "  "  "  "  "  "    "
 
         void copy(const wt& wt) {
-            m_size             = wt.m_size;
+            m_size          = wt.m_size;
             m_sigma         = wt.m_sigma;
-            m_tree            = wt.m_tree;
+            m_tree          = wt.m_tree;
             m_tree_rank     = wt.m_tree_rank;
             m_tree_rank.set_vector(&m_tree);
-            m_tree_select1    = wt.m_tree_select1;
+            m_tree_select1  = wt.m_tree_select1;
             m_tree_select1.set_vector(&m_tree);
-            m_tree_select0    = wt.m_tree_select0;
+            m_tree_select0  = wt.m_tree_select0;
             m_tree_select0.set_vector(&m_tree);
-            m_node_pointers    = wt.m_node_pointers;
+            m_node_pointers = wt.m_node_pointers;
             m_node_pointers_rank = wt.m_node_pointers_rank;
-            m_first_symbol    = wt.m_first_symbol;
-            m_char_map        = wt.m_char_map;
-            m_inv_char_map    = wt.m_inv_char_map;
+            m_first_symbol  = wt.m_first_symbol;
+            m_char_map      = wt.m_char_map;
+            m_inv_char_map  = wt.m_inv_char_map;
             if (wt_trait<t_rac>::char_node_map_size == 256) {
                 for (size_type i=0; i<256; ++i) m_char_node_map[i] = wt.m_char_node_map[i];
             }
@@ -314,7 +314,7 @@ class wt
             // calculate alphabet size and the mappings for the symbols to the integers and back
             m_sigma = wt_trait<tIVFB>::alphabet_size_and_map(rac, m_size, m_char_map, m_inv_char_map, m_first_symbol);
 
-            int_vector<64> node_sizes = int_vector<64>(2*m_sigma+1, 0/*, bit_magic::l1BP(m_size)+1*/);
+            int_vector<64> node_sizes = int_vector<64>(2*m_sigma+1, 0/*, bits::hi(m_size)+1*/);
             m_node_pointers = int_vector<64>(node_sizes.size()+1, 0);
             m_node_pointers_rank = int_vector<64>(node_sizes.size()+1, 0);
 
@@ -537,9 +537,9 @@ class wt
             size_type result  = i;
             while (sigma >= 2 and result > 0) {
                 if (lex_idx < (sigma+1)/2) {
-                    result     = result - (m_tree_rank(m_node_pointers[node]+result) -  m_node_pointers_rank[node]);
-                    sigma     = (sigma+1)/2;
-                    node    = 2*node+1;
+                    result = result - (m_tree_rank(m_node_pointers[node]+result) -  m_node_pointers_rank[node]);
+                    sigma  = (sigma+1)/2;
+                    node   = 2*node+1;
                 } else {
                     result = m_tree_rank(m_node_pointers[node]+result) -  m_node_pointers_rank[node];
                     lex_idx -= (sigma+1)/2;
@@ -559,9 +559,9 @@ class wt
          */
         size_type inverse_select(size_type i, value_type& c)const {
             assert(i < size());
-            size_type lex_idx    = 0;
-            size_type sigma        = m_sigma;
-            size_type node        = 0;
+            size_type lex_idx = 0;
+            size_type sigma   = m_sigma;
+            size_type node    = 0;
             while (sigma >= 2) {
                 if (m_tree[ m_node_pointers[node]+i ]) { // go to the right child
                     lex_idx += (sigma+1)/2;
@@ -613,10 +613,10 @@ class wt
             if (!wt_trait<t_rac>::symbol_available(m_char_map, c, m_first_symbol, m_sigma)) {
                 return 0;
             }
-            size_type lex_idx     = m_char_map[c];
-            size_type sigma     = m_sigma;  // start with the whole alphabet
-            size_type node        = 0;
-            size_type result    = 0;
+            size_type lex_idx = m_char_map[c];
+            size_type sigma   = m_sigma;  // start with the whole alphabet
+            size_type node    = 0;
+            size_type result  = 0;
             while (sigma >= 2) {
                 if (lex_idx < (sigma+1)/2) { // symbols belongs to the left half of the alphabet
                     // calculate new i for the left child bit_vector
@@ -696,14 +696,13 @@ class wt
         }
 
 
-        //! Calculates the ith occurence of the symbol c in the supported vector.
+        //! Calculates the i-th occurrence of the symbol c in the supported vector.
         /*!
-         *  \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
+         *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
          *  \param c The symbol c.
          *  \par Time complexity
          *        \f$ \Order{\log |\Sigma|} \f$
          */
-        // TODO: was ist wenn c gar nicht vorkommt, oder es keine i Vorkommen gibt?
         size_type select(size_type i, value_type c)const {
             if (!wt_trait<t_rac>::symbol_available(m_char_map, c, m_first_symbol, m_sigma)) {
                 return size();
@@ -773,13 +772,13 @@ class wt
                 return;
             }
             size_type lex_mid = (sigma+1)/2;
-            size_type lsigma = lex_mid;
-            size_type rsigma = sigma - lex_mid;
+            size_type lsigma  = lex_mid;
+            size_type rsigma  = sigma - lex_mid;
 
-            size_type ones_lb_1 = m_tree_rank(m_node_pointers[node]+lb) -  m_node_pointers_rank[node];  // ones in [0,lb)
-            size_type ones_rb     = m_tree_rank(m_node_pointers[node]+rb+1) -    m_node_pointers_rank[node]; // ones in [0,rb]
+            size_type ones_lb_1  = m_tree_rank(m_node_pointers[node]+lb) -  m_node_pointers_rank[node];  // ones in [0,lb)
+            size_type ones_rb    = m_tree_rank(m_node_pointers[node]+rb+1) -    m_node_pointers_rank[node]; // ones in [0,rb]
             size_type zeros_lb_1 = lb-ones_lb_1; // zeros in [0,lb)
-            size_type zeros_rb    = rb+1-ones_rb; // zeros in [0,rb]
+            size_type zeros_rb   = rb+1-ones_rb; // zeros in [0,rb]
 
             if (lex_idx_1 < lex_mid and zeros_rb) {
                 _range_search_2d(2*node+1, zeros_lb_1, zeros_rb-1, lex_idx_1, std::min(lex_idx_2,lex_mid-1), lsigma, result);

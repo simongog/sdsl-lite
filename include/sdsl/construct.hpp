@@ -29,137 +29,162 @@
 #include "construct_sa.hpp"
 #include <string>
 
-namespace sdsl{
+namespace sdsl
+{
 
 template<class int_vector>
-bool contains_no_zero_symbol(const int_vector& text, const std::string &file){
-	for (int_vector_size_type i=0; i < text.size(); ++i){
-		if ( (uint64_t)0 == text[i] ){
-			throw std::logic_error((std::string("Error: File \"")+file+std::string("\" contains zero symbol.")).c_str());
-			return false;
-		}
-	}
-	return true;
+bool contains_no_zero_symbol(const int_vector& text, const std::string& file)
+{
+    for (int_vector_size_type i=0; i < text.size(); ++i) {
+        if ((uint64_t)0 == text[i]) {
+            throw std::logic_error((std::string("Error: File \"")+file+std::string("\" contains zero symbol.")).c_str());
+            return false;
+        }
+    }
+    return true;
 }
 
 template<class int_vector>
-void append_zero_symbol(int_vector& text){
-	text.resize(text.size()+1);
-	text[text.size()-1] = 0;
+void append_zero_symbol(int_vector& text)
+{
+    text.resize(text.size()+1);
+    text[text.size()-1] = 0;
 }
 
 
-template<class Index>
-void construct(Index& idx, const std::string &file, uint8_t num_bytes=0){
-	tMSS file_map;
-	cache_config config;
-	construct(idx, file, config, num_bytes);
+template<class t_index>
+void construct(t_index& idx, std::string file, uint8_t num_bytes=0)
+{
+    tMSS file_map;
+    cache_config config;
+    if (is_ram_file(file)) {
+        config.dir = "@";
+    }
+    construct(idx, file, config, num_bytes);
 }
-	
-//! Constructs an index object of class Index for a text stored on disk.
+
+template<class t_index, class t_data>
+void construct_im(t_index& idx, t_data data, uint8_t num_bytes=0)
+{
+    std::string tmp_file = ram_file_name(util::to_string(util::pid())+"_"+util::to_string(util::id()));
+    util::store_to_file(data, tmp_file);
+    construct(idx, tmp_file, num_bytes);
+    ram_fs::remove(tmp_file);
+}
+
+//! Constructs an index object of type t_index for a text stored on disk.
 /*!
- * \param idx       	Index object.  Any sdsl suffix array of suffix tree.
+ * \param idx       	t_index object.  Any sdsl suffix array of suffix tree.
  * \param file      	Name of the text file. The representation of the file
  *                  	is dependent on the next parameter.
  * \
- * \param num_bytes 	If `num_bytes` equals 0, the file format is a serialized 
+ * \param num_bytes 	If `num_bytes` equals 0, the file format is a serialized
  *				    	int_vector<>. Otherwise the file is interpreted as sequence
  *                  	of `num_bytes`-byte integer stored in big endian order.
  */
-template<class Index>
-void construct(Index& idx, const std::string &file, cache_config& config, uint8_t num_bytes=0){
-	// delegate to CSA or CST construction	
-	typename Index::index_category 		index_tag;
-	construct(idx, file, config, num_bytes, index_tag);
+template<class t_index>
+void construct(t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes=0)
+{
+    // delegate to CSA or CST construction
+    typename t_index::index_category 		index_tag;
+    construct(idx, file, config, num_bytes, index_tag);
 }
 
-// Specialization for WTs 
-template<class Index>
-void construct(Index& idx, const std::string &file, cache_config& config, uint8_t num_bytes, wt_tag){
-	int_vector<Index::alphabet_category::WIDTH> text;	
-	util::load_vector_from_file(text, file, num_bytes);
-	std::string tmp_key = util::to_string(util::pid())+"_"+util::to_string(util::id());
-	std::string tmp_file_name = util::cache_file_name(tmp_key, config);
-	util::store_to_file(text, tmp_file_name);
-	util::clear(text);
-	int_vector_file_buffer<Index::alphabet_category::WIDTH> text_buf(tmp_file_name);
-	{
-		Index tmp(text_buf, text_buf.int_vector_size);
-		idx.swap(tmp);
-	}
-	std::remove(tmp_file_name.c_str());
+// Specialization for WTs
+template<class t_index>
+void construct(t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes, wt_tag)
+{
+    int_vector<t_index::alphabet_category::WIDTH> text;
+    util::load_vector_from_file(text, file, num_bytes);
+    std::string tmp_key = util::to_string(util::pid())+"_"+util::to_string(util::id());
+    std::string tmp_file_name = util::cache_file_name(tmp_key, config);
+    util::store_to_file(text, tmp_file_name);
+    util::clear(text);
+    int_vector_file_buffer<t_index::alphabet_category::WIDTH> text_buf(tmp_file_name);
+    {
+        t_index tmp(text_buf, text_buf.int_vector_size);
+        idx.swap(tmp);
+    }
+    sdsl::remove(tmp_file_name);
 }
 
 // Specialization for CSAs
-template<class Index>
-void construct(Index& idx, const std::string &file, cache_config& config, uint8_t num_bytes, csa_tag){
-	const char * KEY_TEXT = key_text_trait<Index::alphabet_category::WIDTH>::KEY_TEXT;
-	const char * KEY_BWT  = key_bwt_trait<Index::alphabet_category::WIDTH>::KEY_BWT;
-	typedef int_vector<Index::alphabet_category::WIDTH> text_type;
-	{// (1) check, if the text is cached
-		if ( !util::cache_file_exists(KEY_TEXT, config) ){
-			text_type text;
-			util::load_vector_from_file(text, file, num_bytes);
-			if ( contains_no_zero_symbol(text, file) ){
-				append_zero_symbol(text);
-				util::store_to_cache(text, KEY_TEXT, config);
-			}
-		}
-		util::register_cache_file(KEY_TEXT, config);
-	}
-	{// (2) check, if the suffix array is cached 
-		if ( !util::cache_file_exists(constants::KEY_SA, config) ){
-			construct_sa<Index::alphabet_category::WIDTH>(config);
-		}
-		util::register_cache_file(constants::KEY_SA, config);
-	}
-	{//  (3) construct BWT
-		if ( !util::cache_file_exists(KEY_BWT, config) ){
-			construct_bwt<Index::alphabet_category::WIDTH>(config);
-		}
-		util::register_cache_file(KEY_BWT, config);
-	}
-	{
-		Index tmp(config);
-		idx.swap(tmp);
-	}
-	if ( config.delete_files ){
-		util::delete_all_files(config.file_map);
-	}
+template<class t_index>
+void construct(t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes, csa_tag)
+{
+    const char* KEY_TEXT = key_text_trait<t_index::alphabet_category::WIDTH>::KEY_TEXT;
+    const char* KEY_BWT  = key_bwt_trait<t_index::alphabet_category::WIDTH>::KEY_BWT;
+    typedef int_vector<t_index::alphabet_category::WIDTH> text_type;
+    {
+        // (1) check, if the text is cached
+        if (!util::cache_file_exists(KEY_TEXT, config)) {
+            text_type text;
+            util::load_vector_from_file(text, file, num_bytes);
+            if (contains_no_zero_symbol(text, file)) {
+                append_zero_symbol(text);
+                util::store_to_cache(text, KEY_TEXT, config);
+            }
+        }
+        util::register_cache_file(KEY_TEXT, config);
+    }
+    {
+        // (2) check, if the suffix array is cached
+        if (!util::cache_file_exists(constants::KEY_SA, config)) {
+            construct_sa<t_index::alphabet_category::WIDTH>(config);
+        }
+        util::register_cache_file(constants::KEY_SA, config);
+    }
+    {
+        //  (3) construct BWT
+        if (!util::cache_file_exists(KEY_BWT, config)) {
+            construct_bwt<t_index::alphabet_category::WIDTH>(config);
+        }
+        util::register_cache_file(KEY_BWT, config);
+    }
+    {
+        t_index tmp(config);
+        idx.swap(tmp);
+    }
+    if (config.delete_files) {
+        util::delete_all_files(config.file_map);
+    }
 }
 
 // Specialization for CSTs
-template<class Index>
-void construct(Index& idx, const std::string &file, cache_config& config, uint8_t num_bytes, cst_tag){
-	const char * KEY_TEXT = key_text_trait<Index::alphabet_category::WIDTH>::KEY_TEXT;
-	const char * KEY_BWT  = key_bwt_trait<Index::alphabet_category::WIDTH>::KEY_BWT;
-	csa_tag csa_t;
-	{// (1) check, if the compressed suffix array is cached
-		typename Index::csa_type csa;
-		if ( !util::cache_file_exists(util::class_to_hash(csa), config) ){
-			cache_config csa_config(false, config.dir, config.id, config.file_map);
-			construct(csa, file, csa_config, num_bytes, csa_t);
-			config.file_map = csa_config.file_map;
-			util::store_to_cache(csa, util::class_to_hash(csa), config); 
-		}
-		util::register_cache_file(util::class_to_hash(csa), config);
-	}
-	{// (2) check, if the longest common prefix array is cached
-		util::register_cache_file(KEY_TEXT, config);
-		util::register_cache_file(KEY_BWT, config);
-		util::register_cache_file(constants::KEY_SA, config);
-		if ( !util::cache_file_exists(constants::KEY_LCP, config) ){
-			construct_lcp_PHI<Index::alphabet_category::WIDTH>(config);
-		}
-		util::register_cache_file(constants::KEY_LCP, config);
-	}
-	{
-		Index tmp(config);
-		tmp.swap(idx);
-	}
-	if ( config.delete_files ){
-		util::delete_all_files(config.file_map);	
-	}
+template<class t_index>
+void construct(t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes, cst_tag)
+{
+    const char* KEY_TEXT = key_text_trait<t_index::alphabet_category::WIDTH>::KEY_TEXT;
+    const char* KEY_BWT  = key_bwt_trait<t_index::alphabet_category::WIDTH>::KEY_BWT;
+    csa_tag csa_t;
+    {
+        // (1) check, if the compressed suffix array is cached
+        typename t_index::csa_type csa;
+        if (!util::cache_file_exists(util::class_to_hash(csa), config)) {
+            cache_config csa_config(false, config.dir, config.id, config.file_map);
+            construct(csa, file, csa_config, num_bytes, csa_t);
+            config.file_map = csa_config.file_map;
+            util::store_to_cache(csa, util::class_to_hash(csa), config);
+        }
+        util::register_cache_file(util::class_to_hash(csa), config);
+    }
+    {
+        // (2) check, if the longest common prefix array is cached
+        util::register_cache_file(KEY_TEXT, config);
+        util::register_cache_file(KEY_BWT, config);
+        util::register_cache_file(constants::KEY_SA, config);
+        if (!util::cache_file_exists(constants::KEY_LCP, config)) {
+            construct_lcp_PHI<t_index::alphabet_category::WIDTH>(config);
+        }
+        util::register_cache_file(constants::KEY_LCP, config);
+    }
+    {
+        t_index tmp(config);
+        tmp.swap(idx);
+    }
+    if (config.delete_files) {
+        util::delete_all_files(config.file_map);
+    }
 }
 
 } // end namespace sdsl

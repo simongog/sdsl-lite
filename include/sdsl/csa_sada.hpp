@@ -372,15 +372,16 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     }
     write_R_output("csa", "construct alphabet", "end", 1, 0);
 
-    int_vector<> cnt_chr(sigma, 0, bit_magic::l1BP(n)+1);
+    int_vector<> cnt_chr(sigma, 0, bits::hi(n)+1);
     for (typename alphabet_type::sigma_type i=0; i < sigma; ++i) {
         cnt_chr[i] = C[i];
     }
     write_R_output("csa", "construct PSI","begin",1,0);
     // calculate psi
     {
+        // TODO: move PSI construct into construct_PSI.hpp
         bwt_buf.reset();
-        int_vector<> psi(n, 0, bit_magic::l1BP(n)+1);
+        int_vector<> psi(n, 0, bits::hi(n)+1);
         for (size_type i=0, r_sum=0, r=bwt_buf.load_next_block(); r_sum < n;) {
             for (; i < r_sum+r; ++i) {
                 psi[ cnt_chr[ char2comp[bwt_buf[i-r_sum]] ]++ ] = i;
@@ -396,9 +397,9 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     int_vector_file_buffer<> psi_buf(util::cache_file_name(constants::KEY_PSI, config));
     write_R_output("csa", "encoded PSI", "begin");
     {
-
+        t_enc_vec tmp_psi(psi_buf);
+        m_psi.swap(tmp_psi);
     }
-    util::assign(m_psi, t_enc_vec(psi_buf));
     write_R_output("csa", "encoded PSI", "end");
     int_vector_file_buffer<>  sa_buf(util::cache_file_name(constants::KEY_SA, config));
     util::assign(m_sa_sample, sa_sample_type(sa_buf));

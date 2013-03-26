@@ -75,9 +75,8 @@ class lcp_bitcompressed
             copy(lcp_c);
         }
 
-        //! Construct the lcp array from an int_vector_file_buffer
-        template<uint8_t int_width>
-        lcp_bitcompressed(int_vector_file_buffer<int_width>& lcp_buf);
+        //! Constructor taking a cache_config
+        lcp_bitcompressed(cache_config& config);
 
         //! Number of elements in the instance.
         size_type size()const {
@@ -125,10 +124,9 @@ class lcp_bitcompressed
 // == template functions ==
 
 template<uint8_t t_width>
-template<uint8_t int_width>
-lcp_bitcompressed<t_width>::lcp_bitcompressed(int_vector_file_buffer<int_width>& lcp_buf)
+lcp_bitcompressed<t_width>::lcp_bitcompressed(cache_config& config)
 {
-    lcp_buf.reset();
+    int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config));
     m_lcp = int_vector<t_width>(lcp_buf.int_vector_size, 0, lcp_buf.width);
     for (size_type i=0, r_sum=0, r = lcp_buf.load_next_block(); r_sum < m_lcp.size();) {
         for (; i < r_sum+r; ++i) {

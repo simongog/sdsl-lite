@@ -117,7 +117,7 @@ TEST_F(IntVectorTest, AssignElement)
     for (unsigned char w=1; w <= 64; ++w) { // for each possible width
         sdsl::int_vector<> iv(100000, 0, w);
         for (size_type i=0; i < iv.size(); ++i) {
-            value_type x = rand() & sdsl::bit_magic::Li1Mask[w];
+            value_type x = rand() & sdsl::bits::Li1Mask[w];
             iv[i] = x;
             ASSERT_EQ(x, iv[i]);
         }
@@ -131,19 +131,19 @@ TEST_F(IntVectorTest, AddAndSub)
         sdsl::util::set_random_bits(iv);
         for (size_type i=0; i < iv.size(); ++i) {
             value_type x = iv[i];
-            value_type y = rand() & sdsl::bit_magic::Li1Mask[w];
+            value_type y = rand() & sdsl::bits::Li1Mask[w];
             iv[i] += y;
-            ASSERT_EQ((x+y)&sdsl::bit_magic::Li1Mask[w], iv[i]);
+            ASSERT_EQ((x+y)&sdsl::bits::Li1Mask[w], iv[i]);
             iv[i] -= y;
-            ASSERT_EQ( x & sdsl::bit_magic::Li1Mask[w], iv[i]);
+            ASSERT_EQ(x & sdsl::bits::Li1Mask[w], iv[i]);
             iv[i]++;
-            ASSERT_EQ((x+1)&sdsl::bit_magic::Li1Mask[w], iv[i]);
+            ASSERT_EQ((x+1)&sdsl::bits::Li1Mask[w], iv[i]);
             iv[i]--;
-            ASSERT_EQ( x & sdsl::bit_magic::Li1Mask[w], iv[i]);
+            ASSERT_EQ(x & sdsl::bits::Li1Mask[w], iv[i]);
             ++iv[i];
-            ASSERT_EQ((x+1)&sdsl::bit_magic::Li1Mask[w], iv[i]);
+            ASSERT_EQ((x+1)&sdsl::bits::Li1Mask[w], iv[i]);
             --iv[i];
-            ASSERT_EQ( x & sdsl::bit_magic::Li1Mask[w], iv[i]);
+            ASSERT_EQ(x & sdsl::bits::Li1Mask[w], iv[i]);
         }
     }
 }

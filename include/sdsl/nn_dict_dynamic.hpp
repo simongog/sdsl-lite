@@ -84,7 +84,7 @@ class nn_dict_dynamic
             uint64_t tmp;				// tmp-variable
 
             /* Calc depth and begin of leaves */
-            m_depth = bit_magic::l1BP(n)/6; // if, n>0 calculate  \f$ \lfloor log_64(n) \rfloor \f$
+            m_depth = bits::hi(n)/6; // if, n>0 calculate  \f$ \lfloor log_64(n) \rfloor \f$
             m_v_begin_leaves = (1ULL<<(m_depth*6))/63;
 
             /* Calc how many nodes to skip on each level */
@@ -176,7 +176,7 @@ class nn_dict_dynamic
                 }
             }
             // Calculate the position of the 1-bit
-            position = bit_magic::r1BP(node)+off;
+            position = bits::lo(node)+off;
 
             // Go down to the leaf
             while (v_node_position < m_v_begin_leaves) {
@@ -185,7 +185,7 @@ class nn_dict_dynamic
                 node = m_tree[ v_node_position-m_offset[depth] ];
 
                 // Calculate the position of the 1-bit
-                position = bit_magic::r1BP(node);
+                position = bits::lo(node);
             }
             return ((v_node_position - m_v_begin_leaves)<<6) + position;
         }
@@ -223,7 +223,7 @@ class nn_dict_dynamic
                 }
             }
             // Calculate the position of the 1-bit
-            position = bit_magic::l1BP(node)-(63-off);
+            position = bits::hi(node)-(63-off);
 
             // Go down to the leaf
             while (v_node_position < m_v_begin_leaves) {
@@ -232,7 +232,7 @@ class nn_dict_dynamic
                 node = m_tree[ v_node_position-m_offset[depth] ];
 
                 // Calculate the position of the 1-bit
-                position = bit_magic::l1BP(node); //-(63-off)
+                position = bits::hi(node); //-(63-off)
             }
             return ((v_node_position - m_v_begin_leaves)<<6) + position;
         }
@@ -240,9 +240,9 @@ class nn_dict_dynamic
 
         //! Load the data structure
         void load(std::istream& in) {
-			util::read_member(m_depth, in);
-			util::read_member(m_v_begin_leaves, in);
-			util::read_member(m_size, in);
+            util::read_member(m_depth, in);
+            util::read_member(m_v_begin_leaves, in);
+            util::read_member(m_size, in);
             m_offset.load(in);
             m_tree.load(in);
         }
@@ -251,9 +251,9 @@ class nn_dict_dynamic
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-			written_bytes += util::write_member(m_depth, out, child, "depth");
-			written_bytes += util::write_member(m_v_begin_leaves, out, child, "v_begin_leaves");
-			written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += util::write_member(m_depth, out, child, "depth");
+            written_bytes += util::write_member(m_v_begin_leaves, out, child, "v_begin_leaves");
+            written_bytes += util::write_member(m_size, out, child, "size");
             written_bytes += m_offset.serialize(out, child, "offset");
             written_bytes += m_tree.serialize(out, child, "tree");
             structure_tree::add_size(child, written_bytes);

@@ -18,18 +18,18 @@ uint64_t fibonacci::decode_prefix_sum(const uint64_t* data, const size_type star
     int16_t buffered = 0, read = start_idx & 0x3F, shift = 0;
     uint16_t temp=0;
     uint64_t carry=0;
-    i = bit_magic::b11Cnt(*data & ~bit_magic::Li1Mask[read], carry);
+    i = bits::b11Cnt(*data & ~bits::Li1Mask[read], carry);
     if (i<n) {
         uint64_t oldcarry;
         w = 0;
         do {
             oldcarry = carry;
-            i += (temp = bit_magic::b11Cnt(*(data+(++w)), carry));
+            i += (temp = bits::b11Cnt(*(data+(++w)), carry));
         } while (i<n);
-        bits_to_decode += ((w-1)<<6) + bit_magic::i11BP(*(data+w), n-(i-temp), oldcarry) + 65 - read;
+        bits_to_decode += ((w-1)<<6) + bits::i11BP(*(data+w), n-(i-temp), oldcarry) + 65 - read;
         w = 0;
     } else { // i>=n
-        bits_to_decode = bit_magic::i11BP(*data >> read, n)+1;
+        bits_to_decode = bits::i11BP(*data >> read, n)+1;
     }
     if (((size_type)bits_to_decode) == n<<1)
         return n;
@@ -52,7 +52,7 @@ uint64_t fibonacci::decode_prefix_sum(const uint64_t* data, const size_type star
             }
             if (bits_to_decode < 0) {
                 buffered += bits_to_decode;
-                w &= bit_magic::Li1Mask[buffered];
+                w &= bits::Li1Mask[buffered];
                 bits_to_decode = 0;
             }
         }

@@ -118,8 +118,8 @@ class sd_vector
             high_1_select(m_high_1_select), high_0_select(m_high_0_select) {
             m_size = bv.size();
             size_type m = util::get_one_bits(bv);
-            uint8_t logm = bit_magic::l1BP(m)+1;
-            uint8_t logn = bit_magic::l1BP(m_size)+1;
+            uint8_t logm = bits::hi(m)+1;
+            uint8_t logn = bits::hi(m_size)+1;
             if (logm == logn) {
                 --logm;    // to ensure logn-logm > 0
             }
@@ -131,7 +131,7 @@ class sd_vector
                 size_type position = 64*i;
                 uint64_t  w = *bvp;
                 while (w) {  // process bit_vector word by word
-                    uint8_t offset = bit_magic::r1BP(w);
+                    uint8_t offset = bits::lo(w);
                     w >>= offset;   // note:  w >>= (offset+1) can not be applied for offset=63!
                     position += offset;
                     if (position >= bv.size()) // check that we have not reached the end of the bitvector
@@ -168,7 +168,7 @@ class sd_vector
             size_type rank_low = sel_high - high_val;
             if (0 == rank_low)
                 return 0;
-            size_type val_low = i & bit_magic::Li1Mask[ m_wl ]; // extract the low m_wl = log n -log m bits
+            size_type val_low = i & bits::Li1Mask[ m_wl ]; // extract the low m_wl = log n -log m bits
             --sel_high; --rank_low;
             while (m_high[sel_high] and m_low[rank_low] > val_low) {
                 if (sel_high > 0) {
@@ -259,7 +259,7 @@ class rank_support_sd
             size_type rank_low = sel_high - high_val; //
             if (0 == rank_low)
                 return 0;
-            size_type val_low = i & bit_magic::Li1Mask[ m_v->m_wl ];
+            size_type val_low = i & bits::Li1Mask[ m_v->m_wl ];
             // now since rank_low > 0 => sel_high > 0
             do {
                 if (!sel_high)
