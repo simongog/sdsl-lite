@@ -113,13 +113,8 @@ void construct_lcp_kasai(cache_config& config)
  *  \par Space complexity
  *		\f$ n( \log \sigma + \log \n ) \f$ bits
  *  \pre Text and Suffix array exist in the cache. Keys:
-<<<<<<< HEAD
  *         * constants::KEY_TEXT for t_width=8  or constants::KEY_TEXT_INT for t_width=0
- *         * constants::KEY_SA 
-=======
- *         * constants::KEY_TEXT_INT
  *         * constants::KEY_SA
->>>>>>> a00c179f56b156fe04760de9b1a7a804854f5430
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
  *  \par Reference
