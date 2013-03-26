@@ -142,7 +142,7 @@ void _construct_bwt_from_text(std::string text_filename, uint64_t sigma, int_vec
 	util::load_from_file(text, text_filename);
 	uint64_t n = text.size();
 	uint64_t buffersize = 1024*1024/8;
-	uint8_t int_width = bits::l1BP(n-1)+1;
+	uint8_t int_width = bits::hi(n-1)+1;
 	#if DEBUGLEVEL > 0
 	std::cout << std::string(rekursion, '\t') << "recursion level=" << rekursion << " n=" << n << " text.int_width=" << (uint64_t)text.get_int_width() << " sigma=" << sigma << std::endl;
 	uint64_t ts_begin = get_current_timestamp();
@@ -749,11 +749,11 @@ void _construct_bwt_from_text(std::string text_filename, uint64_t sigma, int_vec
 	int_vector<> text_rek;
 	if(rekursion==0)
 	{
-		text_rek.set_int_width((bits::l1BP(ordnung+1)+1));
+		text_rek.set_int_width((bits::hi(ordnung+1)+1));
 	}
 	else
 	{
-		text_rek.set_int_width((bits::l1BP(number_of_lms_strings+1)+1));
+		text_rek.set_int_width((bits::hi(number_of_lms_strings+1)+1));
 	}
 	text_rek.resize(number_of_lms_strings);
 std::cerr << "rekursion=" << rekursion << " text_rek.size()=" << text_rek.size() << " text_rek.get_int_width()=" << (uint64_t)text_rek.get_int_width() << std::endl;
@@ -784,7 +784,7 @@ std::cerr << "rekursion=" << rekursion << " text_rek.size()=" << text_rek.size()
 		}
 		else
 		{
-			int_vector<> names_in_correct_order(n/2+1, 0, (bits::l1BP(ordnung)+1));
+			int_vector<> names_in_correct_order(n/2+1, 0, (bits::hi(ordnung)+1));
 			ordnung = 0;
 			for(size_t i=number_of_lms_strings-1; i<number_of_lms_strings; --i)
 			{

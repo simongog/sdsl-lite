@@ -173,7 +173,7 @@ void construct_lcp_PHI(cache_config& config)
         }
     }
     util::clear(text);
-    uint8_t lcp_width = bits::l1BP(max_l)+1;
+    uint8_t lcp_width = bits::hi(max_l)+1;
 
 //	(4) Transform PLCP into LCP
     std::string lcp_file = util::cache_file_name(constants::KEY_LCP, config);

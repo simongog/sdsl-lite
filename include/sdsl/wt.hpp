@@ -314,7 +314,7 @@ class wt
             // calculate alphabet size and the mappings for the symbols to the integers and back
             m_sigma = wt_trait<tIVFB>::alphabet_size_and_map(rac, m_size, m_char_map, m_inv_char_map, m_first_symbol);
 
-            int_vector<64> node_sizes = int_vector<64>(2*m_sigma+1, 0/*, bits::l1BP(m_size)+1*/);
+            int_vector<64> node_sizes = int_vector<64>(2*m_sigma+1, 0/*, bits::hi(m_size)+1*/);
             m_node_pointers = int_vector<64>(node_sizes.size()+1, 0);
             m_node_pointers_rank = int_vector<64>(node_sizes.size()+1, 0);
 

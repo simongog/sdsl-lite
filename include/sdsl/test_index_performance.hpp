@@ -69,7 +69,7 @@ template<class Vector>
 void test_int_vector_sequential_write(Vector& v, bit_vector::size_type times=100000000)
 {
     typedef bit_vector::size_type size_type;
-    const uint64_t mask = (1ULL << bits::l1BP(v.size()))-1;
+    const uint64_t mask = (1ULL << bits::hi(v.size()))-1;
 //	std::cout<<" mask="<<mask<<std::endl;
     size_type cnt=0;
     write_R_output("int_vector","seq write","begin",times,cnt);

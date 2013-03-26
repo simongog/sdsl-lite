@@ -47,19 +47,19 @@ class uint256_t
                    + bits::cnt(m_high>>64) + bits::cnt(m_high);
         }
 
-        inline uint16_t l1BP() {
+        inline uint16_t hi() {
             if (m_high == 0) {
                 if (m_mid) {
-                    return bits::l1BP(m_mid) + 64;
+                    return bits::hi(m_mid) + 64;
                 } else {
-                    return bits::l1BP(m_lo);
+                    return bits::hi(m_lo);
                 }
             } else {
                 uint64_t hh = (m_high >> 64);
                 if (hh) {
-                    return bits::l1BP(hh) + 192;
+                    return bits::hi(hh) + 192;
                 } else {
-                    return bits::l1BP(m_high) + 128;
+                    return bits::hi(m_high) + 128;
                 }
             }
         }

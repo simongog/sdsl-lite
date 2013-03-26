@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
         }
     }
     cout<<"Max value: "<<max<<endl;
-    uint8_t width = bits::l1BP(max)+1;
+    uint8_t width = bits::hi(max)+1;
     cout<<"width="<<(int)width<<endl;
 
 //  (2) scan file, bit-compress values and write to outfile

@@ -118,8 +118,8 @@ class sd_vector
             high_1_select(m_high_1_select), high_0_select(m_high_0_select) {
             m_size = bv.size();
             size_type m = util::get_one_bits(bv);
-            uint8_t logm = bits::l1BP(m)+1;
-            uint8_t logn = bits::l1BP(m_size)+1;
+            uint8_t logm = bits::hi(m)+1;
+            uint8_t logn = bits::hi(m_size)+1;
             if (logm == logn) {
                 --logm;    // to ensure logn-logm > 0
             }
@@ -131,7 +131,7 @@ class sd_vector
                 size_type position = 64*i;
                 uint64_t  w = *bvp;
                 while (w) {  // process bit_vector word by word
-                    uint8_t offset = bits::r1BP(w);
+                    uint8_t offset = bits::lo(w);
                     w >>= offset;   // note:  w >>= (offset+1) can not be applied for offset=63!
                     position += offset;
                     if (position >= bv.size()) // check that we have not reached the end of the bitvector

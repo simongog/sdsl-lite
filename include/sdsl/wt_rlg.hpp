@@ -116,7 +116,7 @@ class wt_rlg
             m_b = bit_vector(size,0);
             int_vector<8> next_bwt(size/2+1); // space for the bwt of the next level
 
-            m_b_border.resize(bits::l1BP(size) + 1);
+            m_b_border.resize(bits::hi(size) + 1);
             m_b_border[0] = 0;
 
             typedef std::pair<int, char> tPIC;

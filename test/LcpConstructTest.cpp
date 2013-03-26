@@ -48,7 +48,7 @@ class LcpConstructTest : public ::testing::Test
                     sdsl::append_zero_symbol(text);
                     ASSERT_EQ(true, sdsl::util::store_to_cache(text, sdsl::constants::KEY_TEXT, test_cases[i]));
                     // Construct SA
-                    sdsl::int_vector<> sa(text.size(), 0, sdsl::bits::l1BP(text.size())+1);
+                    sdsl::int_vector<> sa(text.size(), 0, sdsl::bits::hi(text.size())+1);
                     sdsl::algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
                     ASSERT_EQ(true, sdsl::util::store_to_cache(sa, sdsl::constants::KEY_SA, test_cases[i]));
                 }

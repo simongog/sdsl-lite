@@ -100,9 +100,9 @@ class nearest_neighbour_dictionary
             m_size = v.size();
 //			std::cerr<<ones<<std::endl;
             // initialize absolute samples m_abs_samples[0]=0
-            m_abs_samples = int_vector<>(m_ones/sample_dens + 1, 0,  bits::l1BP(v.size())+1);
+            m_abs_samples = int_vector<>(m_ones/sample_dens + 1, 0,  bits::hi(v.size())+1);
             // initialize different values
-            m_differences = int_vector<>(m_ones - m_ones/sample_dens, 0, bits::l1BP(max_distance_between_two_ones)+1);
+            m_differences = int_vector<>(m_ones - m_ones/sample_dens, 0, bits::hi(max_distance_between_two_ones)+1);
             // initialize m_contains_abs_sample
             m_contains_abs_sample = bit_vector((v.size()+sample_dens-1)/sample_dens, 0);
             ones = 0;

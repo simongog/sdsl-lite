@@ -43,8 +43,8 @@ namespace sdsl
 template<uint16_t log_n>
 struct binomial_coefficients_trait {
     typedef uint64_t number_type;
-    static inline uint16_t l1BP(number_type x) {
-        return bits::l1BP(x);
+    static inline uint16_t hi(number_type x) {
+        return bits::hi(x);
     }
 
     //! Read a \f$len\f$-bit integer of type number_type from a bitvector.
@@ -87,11 +87,11 @@ struct binomial_coefficients_trait {
 template<>
 struct binomial_coefficients_trait<7> {
     typedef uint128_t number_type;
-    static inline uint16_t l1BP(number_type x) {
+    static inline uint16_t hi(number_type x) {
         if ((x >> 64)) {
-            return bits::l1BP(x >> 64) + 64;
+            return bits::hi(x >> 64) + 64;
         } else {
-            return bits::l1BP(x);
+            return bits::hi(x);
         }
     }
 
@@ -126,8 +126,8 @@ struct binomial_coefficients_trait<7> {
 template<>
 struct binomial_coefficients_trait<8> {
     typedef uint256_t number_type;
-    static inline uint16_t l1BP(number_type x) {
-        return x.l1BP();
+    static inline uint16_t hi(number_type x) {
+        return x.hi();
     }
 
     template<class bit_vector_type>
@@ -276,7 +276,7 @@ class binomial_coefficients
                         }
                     }
                     for (int k=0; k<=n; ++k) {
-                        space[k] = (ttable[n][k] == (number_type)1) ? 0 : trait::l1BP(ttable[n][k]) + 1;
+                        space[k] = (ttable[n][k] == (number_type)1) ? 0 : trait::hi(ttable[n][k]) + 1;
                     }
                 }
         } data;

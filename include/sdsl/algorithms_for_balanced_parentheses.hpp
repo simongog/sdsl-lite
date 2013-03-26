@@ -156,7 +156,7 @@ template<class int_vector>
 void calculate_matches(const bit_vector& bp, int_vector& matches)
 {
     typedef bit_vector::size_type size_type;
-    matches = int_vector(bp.size(), 0, bits::l1BP(bp.size())+1);
+    matches = int_vector(bp.size(), 0, bits::hi(bp.size())+1);
     std::stack<size_type> opening_parenthesis;
     for (size_type i=0; i < bp.size(); ++i) {
         if (bp[i]) {// opening parenthesis
@@ -180,7 +180,7 @@ void calculate_matches_for_pioneers(const bit_vector& bp, const bit_vector& pion
 {
     assert(pioneer_bitmap.size()==bp.size());
     typedef bit_vector::size_type size_type;
-    matches = int_vector(pioneer_bitmap.size(), 0, bits::l1BP(bp.size())+1);
+    matches = int_vector(pioneer_bitmap.size(), 0, bits::hi(bp.size())+1);
     std::stack<size_type> opening_parenthesis;
     for (size_type i=0; i < bp.size(); ++i) {
         if (pioneer_bitmap[i]) {
@@ -215,7 +215,7 @@ template<class int_vector>
 void calculate_enclose(const bit_vector& bp, int_vector& enclose)
 {
     typedef bit_vector::size_type size_type;
-    enclose = int_vector(bp.size(), 0, bits::l1BP(bp.size())+1);
+    enclose = int_vector(bp.size(), 0, bits::hi(bp.size())+1);
     std::stack<size_type> opening_parenthesis;
     for (size_type i=0; i < bp.size(); ++i) {
         if (bp[i]) {// opening parenthesis

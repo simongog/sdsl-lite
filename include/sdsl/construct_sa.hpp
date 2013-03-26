@@ -71,7 +71,7 @@ void calculate_sa(const unsigned char* c, typename int_vector<fixedIntWidth>::si
                 sa.resize(len);
             }
         } else {
-            if (sa.width() < bits::l1BP(len)+1) {
+            if (sa.width() < bits::hi(len)+1) {
                 throw std::logic_error("width of int_vector is to small for the text!!!");
             }
             int32_t* sufarray = new int32_t[len];
@@ -125,7 +125,7 @@ void construct_sa(cache_config& config)
     util::load_from_cache(text, KEY_TEXT, config);
     if (t_width == 8) {
         // call divsufsort
-        int_vector<> sa(text.size(), 0, bits::l1BP(text.size())+1);
+        int_vector<> sa(text.size(), 0, bits::hi(text.size())+1);
         algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
         util::store_to_cache(sa, constants::KEY_SA, config);
     } else if (t_width == 0) {

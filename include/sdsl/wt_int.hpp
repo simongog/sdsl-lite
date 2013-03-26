@@ -151,7 +151,7 @@ class wt_int
             }
 
             if (max_depth == 0) {
-                m_max_depth    = bits::l1BP(x)+1; // we need max_depth bits to represent all values in the range [0..x]
+                m_max_depth = bits::hi(x)+1; // we need max_depth bits to represent all values in the range [0..x]
             } else {
                 m_max_depth = max_depth;
             }
