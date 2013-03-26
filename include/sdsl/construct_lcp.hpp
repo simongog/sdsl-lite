@@ -24,6 +24,7 @@
 #include "typedefs.hpp"  // includes definition of tMSS
 #include "config.hpp"
 #include "int_vector.hpp"
+#include "sfstream.hpp"
 #include "rank_support.hpp"
 #include "select_support.hpp"
 #include "util.hpp"
@@ -36,7 +37,6 @@
 #include <stdexcept>
 #include <list>
 #include <algorithm>
-#include <fstream>
 #include <queue>
 #include <list>
 
@@ -56,25 +56,30 @@ namespace sdsl
  *         * constants::KEY_SA
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
- *  \par Reference 
+ *  \par Reference
  *    Toru Kasai, Gunho Lee, Hiroki Arimura, Setsuo Arikawa, Kunsoo Park:
  *    Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications.
  *    CPM 2001: 181-192
  */
 template<uint8_t t_width>
-void construct_lcp_kasai(cache_config& config){
+void construct_lcp_kasai(cache_config& config)
+{
     int_vector<> lcp;
     typedef int_vector<>::size_type size_type;
     write_R_output("lcp", "construct LCP", "begin", 1, 0);
-    construct_isa(config);  
+    construct_isa(config);
     {
         write_R_output("lcp", "load text", "begin", 1, 0);
-		int_vector<t_width> text;
-        if (!util::load_from_cache(text, key_text_trait<t_width>::KEY_TEXT, config)) { return; }
+        int_vector<t_width> text;
+        if (!util::load_from_cache(text, key_text_trait<t_width>::KEY_TEXT, config)) {
+            return;
+        }
         write_R_output("lcp", "load text", "end", 1, 0);
         int_vector_file_buffer<> isa_buf(config.file_map[constants::KEY_ISA], 1000000);   // init isa file_buffer
         int_vector<> sa;
-        if (!util::load_from_cache(sa, constants::KEY_SA, config)) { return; }
+        if (!util::load_from_cache(sa, constants::KEY_SA, config)) {
+            return;
+        }
         // use Kasai algorithm to compute the lcp values
         for (size_type i=0,j=0,sa_1=0,l=0, r_sum=0, r=isa_buf.load_next_block(), n=isa_buf.int_vector_size; r_sum < n;) {
             for (; i < r_sum+r; ++i) {
@@ -96,45 +101,46 @@ void construct_lcp_kasai(cache_config& config){
             r = isa_buf.load_next_block();
         }
 
-		for (size_type i=sa.size(); i>1; --i){
-			sa[i-1] = sa[i-2];
-		}
-		sa[0] = 0;
-		lcp.swap(sa);
+        for (size_type i=sa.size(); i>1; --i) {
+            sa[i-1] = sa[i-2];
+        }
+        sa[0] = 0;
+        lcp.swap(sa);
     }
     write_R_output("lcp", "construct LCP", "end", 1, 0);
-	util::store_to_cache(lcp, constants::KEY_LCP, config);
+    util::store_to_cache(lcp, constants::KEY_LCP, config);
 }
 
 //! Construct the LCP array for text over byte- or integer-alphabet.
 /*!	The algorithm computes the lcp array and stores it to disk.
  *  \par Space complexity
- *		\f$ n( \log \sigma + \log \n ) \f$ bits 
+ *		\f$ n( \log \sigma + \log \n ) \f$ bits
  *  \pre Text and Suffix array exist in the cache. Keys:
  *         * constants::KEY_TEXT_INT
- *         * constants::KEY_SA 
+ *         * constants::KEY_SA
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
  *  \par Reference
- *     Juha Kärkkäinen, Giovanni Manzini, Simon J. Puglisi: 
- *     Permuted Longest-Common-Prefix Array. 
+ *     Juha Kärkkäinen, Giovanni Manzini, Simon J. Puglisi:
+ *     Permuted Longest-Common-Prefix Array.
  *     CPM 2009: 181-192
  */
 template<uint8_t t_width>
-void construct_lcp_PHI(cache_config& config) {
+void construct_lcp_PHI(cache_config& config)
+{
     typedef int_vector<>::size_type size_type;
-	typedef int_vector<t_width> text_type;
-	const char * KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
+    typedef int_vector<t_width> text_type;
+    const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
     write_R_output("lcp", "construct LCP", "begin", 1, 0);
     int_vector_file_buffer<> sa_buf(config.file_map[constants::KEY_SA]);
-    size_type n = sa_buf.int_vector_size; 
+    size_type n = sa_buf.int_vector_size;
 
-	assert( n > 0 );
-	if ( 1 == n ){ // Handle special case: Input only the sentinel character.
-		int_vector<> lcp(1, 0);
-		util::store_to_cache( lcp, constants::KEY_LCP, config );
-		return;
-	}
+    assert(n > 0);
+    if (1 == n) {  // Handle special case: Input only the sentinel character.
+        int_vector<> lcp(1, 0);
+        util::store_to_cache(lcp, constants::KEY_LCP, config);
+        return;
+    }
 
 //	(1) Calculate PHI (stored in array plcp)
     int_vector<> plcp(n, 0, sa_buf.width);
@@ -149,29 +155,29 @@ void construct_lcp_PHI(cache_config& config) {
 
 //  (2) Load text from disk
     write_R_output("lcp", "load text", "begin", 1, 0);
-	text_type text;
-	util::load_from_cache(text, KEY_TEXT, config);
+    text_type text;
+    util::load_from_cache(text, KEY_TEXT, config);
     write_R_output("lcp", "load text", "end", 1, 0);
 
 //  (3) Calculate permuted LCP array (text order), called PLCP
-	size_type max_l = 0;
-	for (size_type i=0, l=0; i < n-1; ++i) {
-		size_type phii = plcp[i];
-		while (text[i+l] == text[phii+l]) {
-			++l;
-		}
-		plcp[i] = l;
-		if ( l ){
-			max_l = std::max(max_l, l);
-			--l;
-		}
-	}
-	util::clear(text);
-	uint8_t lcp_width = bit_magic::l1BP(max_l)+1;
+    size_type max_l = 0;
+    for (size_type i=0, l=0; i < n-1; ++i) {
+        size_type phii = plcp[i];
+        while (text[i+l] == text[phii+l]) {
+            ++l;
+        }
+        plcp[i] = l;
+        if (l) {
+            max_l = std::max(max_l, l);
+            --l;
+        }
+    }
+    util::clear(text);
+    uint8_t lcp_width = bits::hi(max_l)+1;
 
 //	(4) Transform PLCP into LCP
-	std::string lcp_file = util::cache_file_name(constants::KEY_LCP, config);
-    std::ofstream lcp_out_buf(lcp_file.c_str(), std::ios::binary | std::ios::app | std::ios::out);   // open buffer for lcp
+    std::string lcp_file = util::cache_file_name(constants::KEY_LCP, config);
+    osfstream lcp_out_buf(lcp_file, std::ios::binary | std::ios::app | std::ios::out);   // open buffer for lcp
 
     size_type bit_size = n*lcp_width;
     lcp_out_buf.write((char*) &(bit_size), sizeof(bit_size));	// write size of vector
@@ -200,7 +206,7 @@ void construct_lcp_PHI(cache_config& config) {
         lcp_out_buf.write("\0\0\0\0\0\0\0\0", 8-wb%8);
     }
     lcp_out_buf.close();
-	util::register_cache_file(constants::KEY_LCP, config);
+    util::register_cache_file(constants::KEY_LCP, config);
     write_R_output("lcp", "construct LCP", "end", 1, 0);
 }
 
@@ -218,7 +224,7 @@ void construct_lcp_PHI(cache_config& config) {
  *  \par Space complexity
  *		  Usually not more than \f$ 2.5n \f$ bytes
  *  \par Reference
- *        Timo Beller, Simon Gog, Enno Ohlebusch, Thomas Schnattinger: 
+ *        Timo Beller, Simon Gog, Enno Ohlebusch, Thomas Schnattinger:
  *        Computing the Longest Common Prefix Array Based on the Burrows-Wheeler Transform.
  *        SPIRE 2011: 197-208
  */
@@ -237,8 +243,8 @@ void construct_lcp_bwt_based(cache_config& config);
  *  \par Space complexity
  *		  Usually not more than \f$ 1.5n \f$ bytes
  *  \par Reference
- * 	      Timo Beller, Simon Gog, Enno Ohlebusch, Thomas Schnattinger: 
- *        Computing the longest common prefix array based on the Burrows-Wheeler transform. 
+ * 	      Timo Beller, Simon Gog, Enno Ohlebusch, Thomas Schnattinger:
+ *        Computing the longest common prefix array based on the Burrows-Wheeler transform.
  *        J. Discrete Algorithms 18: 22-31 (2013)
  */
 void construct_lcp_bwt_based2(cache_config& config);

@@ -370,8 +370,8 @@ class bp_support_sada
             --m_med_inner_blocks;
             assert((m_med_inner_blocks == 0) or (m_med_inner_blocks%2==1));
 
-            m_sml_block_min_max = int_vector<>(2*m_sml_blocks, 0, bit_magic::l1BP(t_sml_blk+2)+1);
-            m_med_block_min_max    = int_vector<>(2*(m_med_blocks+m_med_inner_blocks), 0, bit_magic::l1BP(2*m_size+2)+1);
+            m_sml_block_min_max = int_vector<>(2*m_sml_blocks, 0, bits::hi(t_sml_blk+2)+1);
+            m_med_block_min_max    = int_vector<>(2*(m_med_blocks+m_med_inner_blocks), 0, bits::hi(2*m_size+2)+1);
 
             // calculate min/max excess values of the small blocks and medium blocks
             difference_type min_ex = 1, max_ex = -1, curr_rel_ex = 0, curr_abs_ex = 0;

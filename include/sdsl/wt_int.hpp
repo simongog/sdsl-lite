@@ -109,10 +109,9 @@ class wt_int
         };
 
         //! Semi-external constructor
-        /*!    \param buf            File buffer of the int_vector for which the wt_int should be build.
-         *  \param size         Size of the prefix of v, which should be indexed.
-         *    \param max_depth    Maximal depth of the wavelet tree. If set to 0, determined automatically.
-         *    \param dir    Directory in which temporary files should be stored during the construction.
+        /*! \param buf         File buffer of the int_vector for which the wt_int should be build.
+         *  \param size        Size of the prefix of v, which should be indexed.
+         *  \param max_depth   Maximal depth of the wavelet tree. If set to 0, determined automatically.
          *    \par Time complexity
          *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          *        I.e. we need \Order{n\log n} if rac is a permutation of 0..n-1.
@@ -120,7 +119,7 @@ class wt_int
          *        \f$ n\log|\Sigma| + O(1)\f$ bits, where \f$n=size\f$.
          */
         template<uint8_t int_width>
-        wt_int(int_vector_file_buffer<int_width>& buf, size_type size, uint32_t max_depth=0, std::string dir="./")
+        wt_int(int_vector_file_buffer<int_width>& buf, size_type size, uint32_t max_depth=0)
             : m_size(size),m_sigma(0), m_max_depth(0), sigma(m_sigma), tree(m_tree) {
             init_buffers(m_max_depth);
             if (0 == m_size)
@@ -132,6 +131,9 @@ class wt_int
                 return;
             }
             m_sigma = 0; // init sigma
+
+            std::string dir = util::dirname(buf.file_name);
+
             temp_write_read_buffer<> buf1(5000000, buf.width, dir);   // buffer for elements in the right node
             int_vector<int_width> rac(m_size, 0, buf.width);          // initialize rac
 
@@ -149,15 +151,14 @@ class wt_int
             }
 
             if (max_depth == 0) {
-                m_max_depth    = bit_magic::l1BP(x)+1; // we need max_depth bits to represent all values in the range [0..x]
+                m_max_depth = bits::hi(x)+1; // we need max_depth bits to represent all values in the range [0..x]
             } else {
                 m_max_depth = max_depth;
             }
             init_buffers(m_max_depth);
 
-            std::string tree_out_buf_file_name = (dir+"m_tree"+util::to_string(util::pid())+"_"+util::to_string(util::id()));
-            std::ofstream tree_out_buf(tree_out_buf_file_name.c_str(),
-                                       std::ios::binary | std::ios::trunc | std::ios::out);   // open buffer for tree
+            std::string tree_out_buf_file_name = (dir+"/m_tree"+util::to_string(util::pid())+"_"+util::to_string(util::id()));
+            osfstream tree_out_buf(tree_out_buf_file_name, std::ios::binary | std::ios::trunc | std::ios::out);   // open buffer for tree
             size_type bit_size = m_size*m_max_depth;
             tree_out_buf.write((char*) &bit_size, sizeof(bit_size));    // write size of bit_vector
 
@@ -266,7 +267,7 @@ class wt_int
             size_type node_size = m_size;
             for (uint32_t k=0; k < m_max_depth; ++k) {
                 res <<= 1;
-                size_type ones_before_o      = m_tree_rank(offset);
+                size_type ones_before_o   = m_tree_rank(offset);
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
                 if (m_tree[offset+i]) { // one at position i => follow right child
@@ -297,7 +298,7 @@ class wt_int
             uint64_t mask     = (1ULL) << (m_max_depth-1);
             size_type node_size = m_size;
             for (uint32_t k=0; k < m_max_depth and i; ++k) {
-                size_type ones_before_o      = m_tree_rank(offset);
+                size_type ones_before_o   = m_tree_rank(offset);
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
                 if (c & mask) { // search for a one at this level
@@ -345,7 +346,7 @@ class wt_int
             m_path_off[0] = m_path_rank_off[0] = 0;
 
             for (uint32_t k=0; k < m_max_depth and node_size; ++k) {
-                size_type ones_before_o      = m_tree_rank(offset);
+                size_type ones_before_o   = m_tree_rank(offset);
                 m_path_rank_off[k] = ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
                 if (c & mask) { // search for a one at this level

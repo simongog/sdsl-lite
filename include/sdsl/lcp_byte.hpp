@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2009 Simon Gog
+    Copyright (C) 2009-2013 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -101,57 +101,33 @@ class lcp_byte
             copy(lcp_c);
         }
 
-        //! Construct the lcp array from an int_vector_file_buffer
-        template<uint8_t int_width>
-        lcp_byte(int_vector_file_buffer<int_width>& lcp_buf);
+        //! Constructor
+        lcp_byte(cache_config& config);
 
         //! Number of elements in the instance.
-        /*! Required for the Container Concept of the STL.
-         *  \sa max_size, empty
-         */
         size_type size()const {
             return m_small_lcp.size();
         }
 
         //! Returns the largest size that lcp_byte can ever have.
-        /*! Required for the Container Concept of the STL.
-         *  \sa size
-         */
         static size_type max_size() {
             return int_vector<8>::max_size();
         }
 
         //! Returns if the data strucutre is empty.
-        /*! Required for the Container Concept of the STL.A
-         * \sa size
-         */
         bool empty()const {
             return m_small_lcp.empty();
         }
 
         //! Swap method for lcp_byte
-        /*! The swap method can be defined in terms of assignment.
-        	This requires three assignments, each of which, for a container type, is linear
-        	in the container's size. In a sense, then, a.swap(b) is redundant.
-        	This implementation guaranties a run-time complexity that is constant rather than linear.
-        	\param lcp_c lcp_byte to swap.
-
-        	Required for the Assignable Conecpt of the STL.
-          */
         void swap(lcp_byte& lcp_c);
 
         //! Returns a const_iterator to the first element.
-        /*! Required for the STL Container Concept.
-         *  \sa end
-         */
         const_iterator begin()const {
             return const_iterator(this, 0);
         }
 
         //! Returns a const_iterator to the element after the last element.
-        /*! Required for the STL Container Concept.
-         *  \sa begin.
-         */
         const_iterator end()const {
             return const_iterator(this, size());
         }
@@ -160,38 +136,28 @@ class lcp_byte
 
         //! []-operator
         /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
-         * Time complexity: O(suffix array access)
-         * Required for the STL Random Access Container Concept.
+         * Time complexity: O(1) for small and O(log n) for large values
          */
         inline value_type operator[](size_type i)const;
 
         //! Assignment Operator.
-        /*!
-         *	Required for the Assignable Concept of the STL.
-         */
         lcp_byte& operator=(const lcp_byte& lcp_c);
 
         //! Serialize to a stream.
-        /*! \param out Outstream to write the data structure.
-         *  \return The number of written bytes.
-         */
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
 
         //! Load from a stream.
-        /*! \param in Inputstream to load the data structure from.
-         */
         void load(std::istream& in);
 };
 
 // == template functions ==
 
 template<uint8_t t_width>
-template<uint8_t int_width>
-lcp_byte<t_width>::lcp_byte(int_vector_file_buffer<int_width>& lcp_buf)
+lcp_byte<t_width>::lcp_byte(cache_config& config)
 {
+    int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config));
     m_small_lcp = int_vector<8>(lcp_buf.int_vector_size);
     typename int_vector<>::size_type l=0, max_l=0, max_big_idx=0, big_sum=0;
-    lcp_buf.reset();
 
     for (size_type i=0, r_sum=0, r = lcp_buf.load_next_block(); r_sum < m_small_lcp.size();) {
         for (; i < r_sum+r; ++i) {
@@ -207,8 +173,8 @@ lcp_byte<t_width>::lcp_byte(int_vector_file_buffer<int_width>& lcp_buf)
         r_sum	+=	r;
         r 		=	lcp_buf.load_next_block();
     }
-    m_big_lcp 		= int_vector<>(big_sum, 0, bit_magic::l1BP(max_l)+1);
-    m_big_lcp_idx 	= int_vector<>(big_sum, 0, bit_magic::l1BP(max_big_idx)+1);
+    m_big_lcp 		= int_vector<>(big_sum, 0, bits::hi(max_l)+1);
+    m_big_lcp_idx 	= int_vector<>(big_sum, 0, bits::hi(max_big_idx)+1);
 
     lcp_buf.reset();
     for (size_type i=0, r_sum=0, r = lcp_buf.load_next_block(),ii=0; r_sum<m_small_lcp.size();) {
