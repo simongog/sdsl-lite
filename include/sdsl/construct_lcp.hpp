@@ -267,7 +267,7 @@ void construct_lcp_semi_extern_PHI(cache_config& config);
  *  \par Reference
  * 	      ToDo
  */
-void construct_lcp_simple_5n(cache_config& config);
+// void construct_lcp_simple_5n(cache_config& config);
 
 //// only phase 2 of the new algorithm
 //// TODO: assert n > 0
@@ -328,7 +328,7 @@ void construct_lcp_goPHI(cache_config& config);
  *  \par Reference
  * 	      ToDo
  */
-void construct_lcp_go2(cache_config& config);
+// void construct_lcp_go2(cache_config& config);
 
 
 void lcp_info(tMSS& file_map);
