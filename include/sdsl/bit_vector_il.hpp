@@ -72,7 +72,7 @@ class bit_vector_il
 
         // precondition: m_rank_samples.size() <= m_superblocks
         void init_rank_samples() {
-            uint32_t blockSize_U64 = bits::l1BP(t_bs>>6);
+            uint32_t blockSize_U64 = bits::hi(t_bs>>6);
             size_type idx = 0;
             std::queue<size_type> lbs, rbs;
             lbs.push(0); rbs.push(m_superblocks);
@@ -105,7 +105,7 @@ class bit_vector_il
             /* calculate the number of superblocks */
 //          each block of size > 0 gets suberblock in which we store the cumulative sum up to this block
             m_superblocks = (m_size+t_bs) / t_bs;
-            m_block_shift = bits::l1BP(t_bs);
+            m_block_shift = bits::hi(t_bs);
             /* allocate new data */
             size_type blocks = (m_size+64)/64;
             size_type mem =  blocks +         m_superblocks + 1;
@@ -136,7 +136,7 @@ class bit_vector_il
                 // we store at most m_superblocks+1 rank_samples:
                 // we do a cache efficient binary search for the select on X=1024
                 // or X=the smallest power of two smaller than m_superblock
-                m_rank_samples.resize(std::min(1024ULL, 1ULL << bits::l1BP(m_superblocks)));
+                m_rank_samples.resize(std::min(1024ULL, 1ULL << bits::hi(m_superblocks)));
             }
             init_rank_samples();
         }
@@ -242,9 +242,9 @@ class rank_support_il
 
         rank_support_il(const bit_vector_type* v=NULL) {
             set_vector(v);
-            m_block_shift = bits::l1BP(t_bs);
+            m_block_shift = bits::hi(t_bs);
             m_block_mask = t_bs - 1;
-            m_block_size_U64 = bits::l1BP(t_bs>>6);
+            m_block_size_U64 = bits::hi(t_bs>>6);
         }
 
         //! Returns the position of the i-th occurrence in the bit vector.
@@ -400,8 +400,8 @@ class select_support_il
 
         select_support_il(const bit_vector_type* v=NULL) {
             set_vector(v);
-            m_block_shift = bits::l1BP(t_bs);
-            m_block_size_U64 = bits::l1BP(t_bs>>6);
+            m_block_shift = bits::hi(t_bs);
+            m_block_size_U64 = bits::hi(t_bs>>6);
 
         }
 

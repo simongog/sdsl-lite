@@ -77,7 +77,7 @@ class binomial15
                         if (class_cnt == 1)
                             m_space_for_bt[i] = 0;
                         else
-                            m_space_for_bt[i] = bits::l1BP(class_cnt)+1;
+                            m_space_for_bt[i] = bits::hi(class_cnt)+1;
                     }
                     if (n == 15) {
                         for (int x=0; x<256; ++x) {
@@ -178,7 +178,7 @@ class rrr_vector<15, t_rac>
         rrr_vector(const bit_vector& bv, uint16_t k=32): m_k(k), bt(m_bt), btnr(m_btnr) {
             m_size = bv.size();
             int_vector<> bt_array;
-            util::assign(bt_array, int_vector<>(m_size/block_size+1, 0, bits::l1BP(block_size)+1));
+            util::assign(bt_array, int_vector<>(m_size/block_size+1, 0, bits::hi(block_size)+1));
 
             // (1) calculate the block types and store them in m_bt
             size_type pos = 0, i = 0, x;
@@ -196,9 +196,9 @@ class rrr_vector<15, t_rac>
                 btnr_pos += bi_type::space_for_bt(x);
             }
             util::assign(m_btnr, bit_vector(std::max(btnr_pos, (size_type)64), 0));      // max necessary for case: block_size == 1
-            util::assign(m_btnrp, int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bits::l1BP(btnr_pos)+1));
+            util::assign(m_btnrp, int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bits::hi(btnr_pos)+1));
 
-            util::assign(m_rank, int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*block_size))>0), 0, bits::l1BP(sum_rank)+1));
+            util::assign(m_rank, int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*block_size))>0), 0, bits::hi(sum_rank)+1));
             //                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             //                                                                      only add a finishing block, if the last block of the superblock is not a dummy block
             // (2) calculate block type numbers and pointers into btnr and rank samples

@@ -212,7 +212,7 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
                 tmp.push_back(x);
                 max_x = std::max(x, max_x);
             }
-            v.width(bits::l1BP(max_x)+1); v.resize(tmp.size());
+            v.width(bits::hi(max_x)+1); v.resize(tmp.size());
             for (size_t i=0; i < tmp.size(); ++i) {
                 v[i] = tmp[i];
             }
@@ -837,7 +837,7 @@ void util::bit_compress(t_int_vec& v)
             max = v[i];
         }
     }
-    uint8_t min_width = bits::l1BP(max)+1;
+    uint8_t min_width = bits::hi(max)+1;
     uint8_t old_width = v.width();
     if (old_width > min_width) {
         const uint64_t* read_data = v.m_data;
@@ -973,12 +973,12 @@ typename t_int_vec::size_type util::next_bit(const t_int_vec& v, uint64_t idx)
     uint64_t node = v.data()[pos];
     node >>= (idx&0x3F);
     if (node) {
-        return idx+bits::r1BP(node);
+        return idx+bits::lo(node);
     } else {
         ++pos;
         while ((pos<<6) < v.bit_size()) {
             if (v.data()[pos]) {
-                return (pos<<6)|bits::r1BP(v.data()[pos]);
+                return (pos<<6)|bits::lo(v.data()[pos]);
             }
             ++pos;
         }
@@ -993,12 +993,12 @@ typename t_int_vec::size_type util::prev_bit(const t_int_vec& v, uint64_t idx)
     uint64_t node = v.data()[pos];
     node <<= 63-(idx&0x3F);
     if (node) {
-        return bits::l1BP(node)+(pos<<6)-(63-(idx&0x3F));
+        return bits::hi(node)+(pos<<6)-(63-(idx&0x3F));
     } else {
         --pos;
         while ((pos<<6) < v.bit_size()) {
             if (v.data()[pos]) {
-                return (pos<<6)|bits::l1BP(v.data()[pos]);
+                return (pos<<6)|bits::hi(v.data()[pos]);
             }
             --pos;
         }

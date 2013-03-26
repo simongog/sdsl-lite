@@ -84,7 +84,7 @@ class nn_dict_dynamic
             uint64_t tmp;				// tmp-variable
 
             /* Calc depth and begin of leaves */
-            m_depth = bits::l1BP(n)/6; // if, n>0 calculate  \f$ \lfloor log_64(n) \rfloor \f$
+            m_depth = bits::hi(n)/6; // if, n>0 calculate  \f$ \lfloor log_64(n) \rfloor \f$
             m_v_begin_leaves = (1ULL<<(m_depth*6))/63;
 
             /* Calc how many nodes to skip on each level */
@@ -176,7 +176,7 @@ class nn_dict_dynamic
                 }
             }
             // Calculate the position of the 1-bit
-            position = bits::r1BP(node)+off;
+            position = bits::lo(node)+off;
 
             // Go down to the leaf
             while (v_node_position < m_v_begin_leaves) {
@@ -185,7 +185,7 @@ class nn_dict_dynamic
                 node = m_tree[ v_node_position-m_offset[depth] ];
 
                 // Calculate the position of the 1-bit
-                position = bits::r1BP(node);
+                position = bits::lo(node);
             }
             return ((v_node_position - m_v_begin_leaves)<<6) + position;
         }
@@ -223,7 +223,7 @@ class nn_dict_dynamic
                 }
             }
             // Calculate the position of the 1-bit
-            position = bits::l1BP(node)-(63-off);
+            position = bits::hi(node)-(63-off);
 
             // Go down to the leaf
             while (v_node_position < m_v_begin_leaves) {
@@ -232,7 +232,7 @@ class nn_dict_dynamic
                 node = m_tree[ v_node_position-m_offset[depth] ];
 
                 // Calculate the position of the 1-bit
-                position = bits::l1BP(node); //-(63-off)
+                position = bits::hi(node); //-(63-off)
             }
             return ((v_node_position - m_v_begin_leaves)<<6) + position;
         }

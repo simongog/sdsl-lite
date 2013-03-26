@@ -64,7 +64,7 @@ class sorter;
  *                                 loads it.
  * \par Note
  *      If `int_vector_type` is `int_vector<>` then the bit-width of `sa` is
- *      the maximum of `bits::l1BP( max(sa.size()-1, 0) )` and the
+ *      the maximum of `bits::hi( max(sa.size()-1, 0) )` and the
  *      bit-width of the text.
  */
 // TODO: problem when int_width==64!!!
@@ -313,7 +313,7 @@ class sorter
             uint64_t bb, cc,dd;
             int64_t jj;
             int_iter pi, pj;
-            int s = bits::l1BP(k-l)+(k>l); /* s is number of bits in old symbol.*/
+            int s = bits::hi(k-l)+(k>l); /* s is number of bits in old symbol.*/
             uint8_t len = 0;                /* len is for overflow checking.*/
             m_rr = 0;
             for (bb=dd=0; (int)m_rr<n && (int)len <= m_msb+1-s && (int64_t)(cc=dd<<s|(k-l)) <= q; ++m_rr, len+=s) {
@@ -487,9 +487,9 @@ class sorter
 //		x[x.size()-1] = 0;
             int64_t n = x.size()-1;
             DBG_OUT<<"x.size()-1="<<x.size()-1<<" n="<<n<<std::endl;
-            uint8_t width = std::max(bits::l1BP(max_symbol)+2, bits::l1BP(n+1)+2);
+            uint8_t width = std::max(bits::hi(max_symbol)+2, bits::hi(n+1)+2);
 //if ( util::verbose ){
-            DBG_OUT<<"sorter: width="<<(int)width<<" max_symbol_width="<<bits::l1BP(max_symbol)+1<<" n_width="<< bits::l1BP(n) <<std::endl;
+            DBG_OUT<<"sorter: width="<<(int)width<<" max_symbol_width="<<bits::hi(max_symbol)+1<<" n_width="<< bits::hi(n) <<std::endl;
 //}
             util::expand_width(x, width);
             sa = x;

@@ -83,8 +83,8 @@ class elias_delta
 // \sa coder::elias_delta::encoding_length
 inline uint8_t elias_delta::encoding_length(uint64_t w)
 {
-    uint8_t len_1 = w ? bits::l1BP(w) : 64;
-    return len_1 + (bits::l1BP(len_1+1)<<1) + 1;
+    uint8_t len_1 = w ? bits::hi(w) : 64;
+    return len_1 + (bits::hi(len_1+1)<<1) + 1;
 }
 
 template<class int_vector>
@@ -115,9 +115,9 @@ bool elias_delta::encode(const int_vector& v, int_vector& z)
             w = zero_val;
         }
         // (number of bits to represent w)
-        len 		= w ? bits::l1BP(w)+1 : 65;
+        len 		= w ? bits::hi(w)+1 : 65;
         // (number of bits to represent the length of w) -1
-        len_1_len	= bits::l1BP(len);
+        len_1_len	= bits::hi(len);
         // Write unary representation for the length of the length of w
         bits::write_int_and_move(z_data, 1ULL << len_1_len, offset, len_1_len+1);
         if (len_1_len) {
@@ -135,9 +135,9 @@ inline void elias_delta::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
 //    }
     uint8_t len, len_1_len;
     // (number of bits to represent w)
-    len = x ? bits::l1BP(x)+1 : 65;
+    len = x ? bits::hi(x)+1 : 65;
     // (number of bits to represent the length of w) - 1
-    len_1_len	= bits::l1BP(len);
+    len_1_len	= bits::hi(len);
     // Write unary representation for the length of the length of w
     bits::write_int_and_move(z, 1ULL << len_1_len, offset, len_1_len+1);
     if (len_1_len) {
@@ -154,7 +154,7 @@ bool elias_delta::decode(const int_vector& z, int_vector& v)
     const uint64_t* z_end	= z.data()+(z.bit_size()>>6);
     uint8_t offset 		= 0;
     while ((z_data < z_end) or (z_data==z_end and offset < (z.bit_size()&0x3F))) {
-        len_1_len = bits::readUnaryIntAndMove(z_data, offset);
+        len_1_len = bits::read_unary_and_move(z_data, offset);
         if (len_1_len) {
             len 	= bits::read_int_and_move(z_data, offset, len_1_len) + (1 << len_1_len);
             bits::move_right(z_data, offset, len-1);
@@ -176,7 +176,7 @@ inline uint64_t elias_delta::decode(const uint64_t* data, const size_type start_
     uint8_t offset = start_idx & 0x3F;
     while (i++ < n) {// while not all values are decoded
         if (!sumup) value = 0;
-        len_1_len = bits::readUnaryIntAndMove(data, offset); // read length of length of x
+        len_1_len = bits::read_unary_and_move(data, offset); // read length of length of x
         if (!len_1_len) {
             value += 1;
         } else {

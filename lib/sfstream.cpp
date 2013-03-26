@@ -100,6 +100,7 @@ osfstream::~osfstream()
 
 osfstream::operator voidptr()const
 {
+    // TODO: && is->valid() ...
     return m_streambuf;
 }
 
@@ -204,6 +205,7 @@ isfstream::~isfstream()
 
 isfstream::operator voidptr()const
 {
+    // TODO: && is->valid() ...
     return m_streambuf;
 }
 

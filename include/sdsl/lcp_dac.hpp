@@ -180,7 +180,7 @@ lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
     if (n == 0)
         return;
 //         initialize counter
-    m_level_pointer_and_rank.resize(std::max(4*bits::l1BP(2), 2*(((bits::l1BP(n)+1)+t_b-1) / t_b)));
+    m_level_pointer_and_rank.resize(std::max(4*bits::hi(2), 2*(((bits::hi(n)+1)+t_b-1) / t_b)));
     for (size_type i=0; i < m_level_pointer_and_rank.size(); ++i)
         m_level_pointer_and_rank[i] = 0;
     m_level_pointer_and_rank[0] = n; // level 0 has n entries

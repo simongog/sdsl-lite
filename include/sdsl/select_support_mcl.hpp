@@ -225,11 +225,11 @@ void select_support_mcl<t_b,t_pat_len>::init_slow(const bit_vector* v)
                 size_type pos_diff = arg_position[(arg_cnt-1)%SUPER_BLOCK_SIZE]-arg_position[0];
                 if (pos_diff > m_logn4) { // longblock
                     if (m_longsuperblock == NULL) m_longsuperblock = new int_vector<0>[sb]; // create longsuperblock
-                    m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bits::l1BP(arg_position[(arg_cnt-1)%SUPER_BLOCK_SIZE]) + 1);
+                    m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bits::hi(arg_position[(arg_cnt-1)%SUPER_BLOCK_SIZE]) + 1);
 
                     for (size_type j=0; j <= (arg_cnt-1)%SUPER_BLOCK_SIZE ; ++j) m_longsuperblock[sb_cnt][j] = arg_position[j]; // copy argument positions to longsuperblock
                 } else { // short block
-                    m_miniblock[sb_cnt] = int_vector<0>(64, 0, bits::l1BP(pos_diff)+1);
+                    m_miniblock[sb_cnt] = int_vector<0>(64, 0, bits::hi(pos_diff)+1);
                     for (size_type j=0; j <= (arg_cnt-1)%SUPER_BLOCK_SIZE; j+=64) {
                         m_miniblock[sb_cnt][j/64] = arg_position[j]-arg_position[0];
                     }
@@ -287,7 +287,7 @@ void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
                 if (pos_diff > m_logn4) { // long block
                     if (m_longsuperblock == NULL) m_longsuperblock = new int_vector<0>[sb+1]; // create longsuperblock
                     // GEANDERT am 2010-07-17 +1 nach pos_of_last_arg..
-                    m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bits::l1BP(pos_of_last_arg_in_the_block) + 1);
+                    m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bits::hi(pos_of_last_arg_in_the_block) + 1);
                     for (size_type j=arg_position[0], k=0; k < SUPER_BLOCK_SIZE and j <= pos_of_last_arg_in_the_block; ++j)
                         if (select_support_trait<t_b, t_pat_len>::found_arg(j, *v)) {
                             if (k>=SUPER_BLOCK_SIZE) {
@@ -302,7 +302,7 @@ void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
                             m_longsuperblock[sb_cnt][k++] = j;
                         }
                 } else {
-                    m_miniblock[sb_cnt] = int_vector<0>(64, 0, bits::l1BP(pos_diff)+1);
+                    m_miniblock[sb_cnt] = int_vector<0>(64, 0, bits::hi(pos_diff)+1);
                     for (size_type j=0; j < SUPER_BLOCK_SIZE; j+=64) {
                         m_miniblock[sb_cnt][j/64] = arg_position[j]-arg_position[0];
                     }
@@ -316,7 +316,7 @@ void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
     // handle last block: append long superblock
     if (last_k64 > 1) {
         if (m_longsuperblock == NULL) m_longsuperblock = new int_vector<0>[sb+1]; // create longsuperblock
-        m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bits::l1BP(v->size()-1) + 1);
+        m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bits::hi(v->size()-1) + 1);
         for (size_type i=arg_position[0],k=0; i < v->size(); ++i) {
             if (select_support_trait<t_b, t_pat_len>::found_arg(i, *v)) {
                 m_longsuperblock[sb_cnt][k++] = i;
@@ -389,7 +389,7 @@ void select_support_mcl<t_b,t_pat_len>::initData()
     if (NULL == m_v) {
         m_logn = m_logn2 = m_logn4 = 0;
     } else {
-        m_logn = bits::l1BP(m_v->capacity())+1; // TODO maybe it's better here to take a max(...,12)
+        m_logn = bits::hi(m_v->capacity())+1; // TODO maybe it's better here to take a max(...,12)
         m_logn2 = m_logn*m_logn;
         m_logn4 = m_logn2*m_logn2;
     }

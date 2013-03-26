@@ -107,7 +107,7 @@ inline uint8_t fibonacci::encoding_length(uint64_t w)
         return 93;
     }
     // This limit for the leftmost 1bit in the resulting fib code could be improved using a table
-    uint8_t len_1 = bits::l1BP(w); // len-1 of the fib code
+    uint8_t len_1 = bits::hi(w); // len-1 of the fib code
     while (++len_1 < (uint8_t)(sizeof(bits::Fib)/sizeof(bits::Fib[0])) && w >= bits::Fib[len_1]);
     return len_1+1;
 }

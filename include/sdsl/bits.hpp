@@ -75,7 +75,7 @@ class bits
         static const uint8_t B1CntBytes[256];
 
         //! Array containing precomputed values for the leftmost 1-bit in a 8bit integer.
-        /*! \sa l1BP
+        /*! \sa hi
          */
         static const uint32_t L1BP[256];
 
@@ -85,7 +85,7 @@ class bits
         //! An array with entry i containing a 64bit integer with the last i bits not set.
         static const uint64_t Li0Mask[65];
 
-        static const uint8_t lookupr1BP[256];
+        static const uint8_t lookuplo[256];
 
         //! An array with precomputed select queries on a 8-bit integer.
         /*! Entry at idx = 256*j + i equals the position of the
@@ -300,7 +300,7 @@ class bits
           	\param x 64bit integer.
         	\param i Argument i must be in the range \f$[1..cnt(x)]\f$.
         	\pre Argument i must be in the range \f$[1..cnt(x)]\f$.
-          	\sa l1BP, r1BP
+          	\sa hi, lo
          */
         static uint32_t sel(uint64_t x, uint32_t i);
         static uint32_t sel2(uint64_t x, uint32_t i);
@@ -320,28 +320,28 @@ class bits
         //! Naive implementation of sel.
         static uint32_t selNaive(uint64_t x, uint32_t i);
 
-        //! Calculates the position of the leftmost 1-bit in the 64bit integer x if it exists
-        /*! \param x 64 bit integer.
-            \return The position (in 0..63) of the leftmost 1-bit in the 64bit integer x if
-        	        x>0 and 0 if x equals 0.
-        	\sa sel, r1BP
+        //! Position of the most significant set bit the 64-bit word x
+        /*! \param x 64-bit word
+            \return The position (in 0..63) of the least significant set bit
+                    in `x` or 0 if x equals 0.
+        	\sa sel, lo
         */
-        static uint32_t l1BP(uint64_t x);
+        static uint32_t hi(uint64_t x);
 
-        //! Naive implementation of l1BP.
-        static uint32_t l1BPNaive(uint64_t x);
+        //! Naive implementation of hi.
+        static uint32_t hiNaive(uint64_t x);
 
         //! Calculates the position of the rightmost 1-bit in the 64bit integer x if it exists
         /*! This method is e.g. used in the getUnaryBit method.
         	\param x 64 bit integer.
         	\return The position (in 0..63) of the rightmost 1-bit in the 64bit integer x if
         	        x>0 and 0 if x equals 0.
-        	\sa sel, l1BP
+        	\sa sel, hi
         */
-        static uint32_t r1BP(uint64_t x);
+        static uint32_t lo(uint64_t x);
 
-        //! Naive implementation of r1BP.
-        static uint32_t r1BPNaive(uint64_t x);
+        //! Naive implementation of lo.
+        static uint32_t loNaive(uint64_t x);
 
         //! Calculates the position of the i-th rightmost 11-bit-pattern which terminates a Fibonacci coded integer in x.
         /*!	\param x 64 bit integer.
@@ -396,10 +396,10 @@ class bits
         static uint64_t read_int_and_move(const uint64_t*& word, uint8_t& offset, const uint8_t len=64);
 
         //! TODO: Documentation for this function
-        static uint64_t readUnaryInt(const uint64_t* word, uint8_t offset=0);
+        static uint64_t read_unary(const uint64_t* word, uint8_t offset=0);
 
         //! TODO: Documentation for this function
-        static uint64_t readUnaryIntAndMove(const uint64_t*& word, uint8_t& offset);
+        static uint64_t read_unary_and_move(const uint64_t*& word, uint8_t& offset);
 
         //! Move the bit pointer consisting of a uint64_t pointer and an offset len positions to the right.
         /*!
@@ -1202,7 +1202,7 @@ inline uint32_t bits::selNaive(uint64_t x, uint32_t i)
 // builtin version of sse version or
 // 64 bit version of 32 bit proposial of
 // http://www-graphics.stanford.edu/~seander/bithacks.html
-inline uint32_t bits::l1BP(uint64_t x)
+inline uint32_t bits::hi(uint64_t x)
 {
 #ifdef __SSE4_2__
     if (x == 0)
@@ -1210,23 +1210,23 @@ inline uint32_t bits::l1BP(uint64_t x)
     return 63 - __builtin_clzll(x);
 #else
     register uint64_t t,tt; // temporaries
-    if ((tt = x >> 32)) { // l1BP >= 32
-        if ((t = tt >> 16)) { // l1BP >= 48
+    if ((tt = x >> 32)) { // hi >= 32
+        if ((t = tt >> 16)) { // hi >= 48
             return (tt = t >> 8) ? 56 + L1BP[tt] : 48 + L1BP[t];
-        } else { // l1BP < 48
+        } else { // hi < 48
             return (t = tt >> 8) ? 40 + L1BP[t] : 32 + L1BP[tt];
         }
-    } else { // l1BP < 32
-        if ((t = x >> 16)) { // l1BP >= 16
+    } else { // hi < 32
+        if ((t = x >> 16)) { // hi >= 16
             return (tt = t >> 8) ? 24 + L1BP[tt] : 16 + L1BP[t];
-        } else { // l1BP < 16
+        } else { // hi < 16
             return (tt = x >> 8) ?  8 + L1BP[tt] : L1BP[x];
         }
     }
 #endif
 }
 
-inline uint32_t bits::l1BPNaive(uint64_t x)
+inline uint32_t bits::hiNaive(uint64_t x)
 {
     if (x&0x8000000000000000ULL)
         return 63;
@@ -1241,7 +1241,7 @@ inline uint32_t bits::l1BPNaive(uint64_t x)
 
 // details see: http://citeseer.ist.psu.edu/leiserson98using.html
 // or page 10, Knuth TAOCP Vol 4 F1A
-inline uint32_t bits::r1BP(uint64_t x)
+inline uint32_t bits::lo(uint64_t x)
 {
 #ifdef __SSE4_2__
     if (x==0)
@@ -1253,7 +1253,7 @@ inline uint32_t bits::r1BP(uint64_t x)
     if (x&7) return 2;
     if (x&0x7F) { // in average every second random number x can be answered this way
 //		return 0;
-        return lookupr1BP[(x&0x7F)>>3]+3;
+        return lookuplo[(x&0x7F)>>3]+3;
     }
     // x&-x equals x with only the lsb set
     //default:
@@ -1261,7 +1261,7 @@ inline uint32_t bits::r1BP(uint64_t x)
 #endif
 }
 
-inline uint32_t bits::r1BPNaive(uint64_t x)
+inline uint32_t bits::loNaive(uint64_t x)
 {
     if (x&1)
         return 0;
@@ -1287,9 +1287,9 @@ inline uint32_t bits::l11BP(uint64_t x)
     ex11 += (((ex11|(ex11<<1))+((ex10or01<<1)&0x5555555555555555ULL)) & ((ex10or01&0x5555555555555555ULL)|ex11));
     //
 //	std::cerr<<"ex11="<<ex11<<std::endl;
-//	uint32_t p = l1BP(ex11);// p % 2 == 0  and (x&(1<<p))==1
+//	uint32_t p = hi(ex11);// p % 2 == 0  and (x&(1<<p))==1
 //	std::cerr<<"p="<<p<<std::endl;
-    return l1BP(ex11);/*
+    return hi(ex11);/*
 	if( p == 0 and (x&1) == 0 )
 		return 0;
 	return p + (x>>(p+1)&1);
@@ -1410,27 +1410,27 @@ inline uint64_t bits::read_int_and_move(const uint64_t*& word, uint8_t& offset, 
     }
 }
 
-inline uint64_t bits::readUnaryInt(const uint64_t* word, uint8_t offset)
+inline uint64_t bits::read_unary(const uint64_t* word, uint8_t offset)
 {
     register uint64_t w = *word >> offset;
     if (w) {
-        return bits::r1BP(w)/*+1*/;
+        return bits::lo(w);
     } else {
         if (0!=(w=*(++word)))
-            return bits::r1BP(w)+64-offset/*+1*/;
+            return bits::lo(w)+64-offset;
         uint64_t cnt=2;
         while (0==(w=*(++word)))
             ++cnt;
-        return bits::r1BP(w)+(cnt<<6)/*cnt*64*/-offset/*+1*/;//+(64-offset)
+        return bits::lo(w)+(cnt<<6)-offset;
     }
     return 0;
 }
 
-inline uint64_t bits::readUnaryIntAndMove(const uint64_t*& word, uint8_t& offset)
+inline uint64_t bits::read_unary_and_move(const uint64_t*& word, uint8_t& offset)
 {
     register uint64_t w = (*word) >> offset; // temporary variable is good for the performance
     if (w) {
-        uint8_t r = bits::r1BP(w);
+        uint8_t r = bits::lo(w);
         offset = (offset + r+1)&0x3F;
         // we know that offset + r +1 <= 64, so if the new offset equals 0 increase word
         word += (offset==0);
@@ -1438,7 +1438,7 @@ inline uint64_t bits::readUnaryIntAndMove(const uint64_t*& word, uint8_t& offset
     } else {
         uint8_t rr=0;
         if (0!=(w=*(++word))) {
-            rr = bits::r1BP(w)+64-offset;
+            rr = bits::lo(w)+64-offset;
             offset = (offset+rr+1)&0x3F;
             word += (offset==0);
             return rr;
@@ -1446,7 +1446,7 @@ inline uint64_t bits::readUnaryIntAndMove(const uint64_t*& word, uint8_t& offset
             uint64_t cnt_1=1;
             while (0==(w=*(++word)))
                 ++cnt_1;
-            rr = bits::r1BP(w)+64-offset;
+            rr = bits::lo(w)+64-offset;
             offset = (offset+rr+1)&0x3F;
             word += (offset==0);
             return ((cnt_1)<<6) + rr;
@@ -1475,7 +1475,7 @@ inline uint64_t bits::next(const uint64_t* word, uint64_t idx)
 {
     word += (idx>>6);
     if (*word & ~Li1Mask[idx&0x3F]) {
-        return (idx & ~((size_t)0x3F)) + r1BP(*word & ~Li1Mask[idx&0x3F]);
+        return (idx & ~((size_t)0x3F)) + lo(*word & ~Li1Mask[idx&0x3F]);
     }
     idx = (idx & ~((size_t)0x3F)) + 64;
     ++word;
@@ -1483,14 +1483,14 @@ inline uint64_t bits::next(const uint64_t* word, uint64_t idx)
         idx += 64;
         ++word;
     }
-    return idx + r1BP(*word);
+    return idx + lo(*word);
 }
 
 inline uint64_t bits::prev(const uint64_t* word, uint64_t idx)
 {
     word += (idx>>6);
     if (*word & Li1Mask[(idx&0x3F)+1]) {
-        return (idx & ~((size_t)0x3F)) + l1BP(*word & Li1Mask[(idx&0x3F)+1]);
+        return (idx & ~((size_t)0x3F)) + hi(*word & Li1Mask[(idx&0x3F)+1]);
     }
     idx = (idx & ~((size_t)0x3F)) - 64;
     --word;
@@ -1498,7 +1498,7 @@ inline uint64_t bits::prev(const uint64_t* word, uint64_t idx)
         idx -= 64;
         --word;
     }
-    return idx + l1BP(*word);
+    return idx + hi(*word);
 }
 
 } // end namespace sdsl

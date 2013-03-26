@@ -266,7 +266,7 @@ class succinct_byte_alphabet_strategy
                     ++m_sigma;
                 }
             // resize to sigma+1, since CSAs also need the sum of all elements
-            util::assign(m_C, C_type(m_sigma+1, 0, bits::l1BP(len)+1));
+            util::assign(m_C, C_type(m_sigma+1, 0, bits::hi(len)+1));
 
             for (int i=(int)m_sigma; i > 0; --i) m_C[i] = D[i-1];
             m_C[0] = 0;
@@ -461,7 +461,7 @@ class int_alphabet_strategy
             assert(D.find(0) != D.end() and 1 == D[0]); // null-byte should occur exactly once
 
             // resize to sigma+1, since CSAs also need the sum of all elements
-            util::assign(m_C, C_type(m_sigma+1, 0, bits::l1BP(len)+1));
+            util::assign(m_C, C_type(m_sigma+1, 0, bits::hi(len)+1));
             size_type sum = 0, idx=0;
             for (std::map<size_type, size_type>::const_iterator it = D.begin(), end=D.end(); it != end; ++it) {
                 m_C[idx++] = sum;
