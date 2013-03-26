@@ -1,5 +1,5 @@
 #include "sdsl/int_vector.hpp"
-#include "sdsl/bit_magic.hpp"
+#include "sdsl/bits.hpp"
 #include "sdsl/util.hpp"
 #include "gtest/gtest.h"
 #include <vector>
@@ -43,7 +43,7 @@ class BitMagicTest : public ::testing::Test
 TEST_F(BitMagicTest, Rank)
 {
     for (size_type i=0; i<64; ++i) {
-        ASSERT_EQ(sdsl::bit_magic::b1Cnt(1ULL<<i), (uint64_t)1);
+        ASSERT_EQ(sdsl::bits::cnt(1ULL<<i), (uint64_t)1);
     }
 }
 
@@ -51,18 +51,18 @@ TEST_F(BitMagicTest, Rank)
 TEST_F(BitMagicTest, Select)
 {
     for (size_type i=0; i<64; ++i) {
-        ASSERT_EQ(sdsl::bit_magic::i1BP(1ULL<<i, 1), i);
-        ASSERT_EQ(sdsl::bit_magic::j1BP(1ULL<<i, 1), i);
-        ASSERT_EQ(sdsl::bit_magic::k1BP(1ULL<<i, 1), i);
+        ASSERT_EQ(sdsl::bits::sel(1ULL<<i, 1), i);
+        ASSERT_EQ(sdsl::bits::selv(1ULL<<i, 1), i);
+        ASSERT_EQ(sdsl::bits::sel3(1ULL<<i, 1), i);
     }
     for (size_type i=0; i < 10000000; ++i) {
         uint64_t x = (((size_type)rand())<<32) + rand();
         for (size_type j=0, ones=0; j<64; ++j) {
             if ((x >> j)&1) {
                 ++ones;
-                ASSERT_EQ(sdsl::bit_magic::i1BP(x, ones), j);
-                ASSERT_EQ(sdsl::bit_magic::j1BP(x, ones), j);
-                ASSERT_EQ(sdsl::bit_magic::k1BP(x, ones), j);
+                ASSERT_EQ(sdsl::bits::sel(x, ones), j);
+                ASSERT_EQ(sdsl::bits::selv(x, ones), j);
+                ASSERT_EQ(sdsl::bits::sel3(x, ones), j);
             }
         }
     }
