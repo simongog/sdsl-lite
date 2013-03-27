@@ -418,10 +418,10 @@ and $i$, $d$, $lb$, $rb$ integers.\\
  \code{end\_bottom\_up}.\\
 \textit{Public~members:} \code{csa}, \code{lcp}.
 
-\subsection{Range Min/Max Support (RMS)}
-A RMS \code{rms} can be used to determine the position of the miniumum
+\subsection{Range Min/Max Query (RMQ)}
+A RMQ \code{rmq} can be used to determine the position of the miniumum
 value\footnote{Or maximum value; can be set by a template parameter.}
-in an arbitrary subrange $[i,j]$ of an prepocessed vector \code{v}.
+in an arbitrary subrange $[i,j]$ of an preprocessed vector \code{v}.
 Operator \code{operator($i$,$j$)} returns $x=\min\{$r$\mid r\in [i,j] \wedge \mbox{\code{v}[$r$]}\leq\mbox{\code{v[$k$]}}\ \forall k\in[i,j]\}$
 
 \settowidth{\MyLen}{\sdslrmqsupportsparsetable\quad }
@@ -460,7 +460,7 @@ dependent on the value of \code{num\_bytes}:
 \section{Reading and writing data}
 \subsection{Importing data into \sdsl\ structures}
 \begin{tabular}{@{}p{0.9\linewidth}@{}}
-\code{util::load\_vector\_from\_file(v, file, num\_bytes)} \\
+\code{load\_vector\_from\_file(v, file, num\_bytes)} \\
 Load \code{file} into an \code{int\_vector}~\code{v}. Interpretation
 of \code{file} depends on \code{num\_bytes}; see method \code{construct}.
 \end{tabular}
@@ -468,7 +468,7 @@ TODO: mention io wrappers
 
 \subsection{Load \sdsl\ structures}
 \begin{tabular}{@{}p{0.9\linewidth}@{}}
-\code{util::load\_from\_file(x, file)} \\
+\code{load\_from\_file(x, file)} \\
 Load an \sdsl\ object \code{x}, which is stored in \code{file}. \\
 \code{x.load(in)} \\
 Read an \sdsl\ object \code{x} from \code{std::istream}-object \code{in}.\\
@@ -478,35 +478,42 @@ TODO: mention io wrappers
 
 \subsection{Store \sdsl\ structures}
 \begin{tabular}{@{}p{0.9\linewidth}@{}}
-\code{util::store\_to\_file(x, file)} \\
+\code{store\_to\_file(x, file)} \\
 Store an \sdsl\ object \code{x} to \code{file}. \\
 \code{x.serialize(out)}\\
 Write \sdsl\ object \code{x} to \code{std::ostream}-object \code{out}.\\
 TODO: add \code{serialize\_vector}	  \\
 \end{tabular}
 
+\code{size\_in\_bytes(t)}
+\code{write\_member(t, out)}
+\code{read\_member(t, in)}
+\code{write\_structure<JSON\_FORMAT>(t, out)} 
+
+
+
 
 \section{Utility methods}
-\code{util::pid()}, 
-\code{util::id()}, 
-\code{util::to\_string(t)},
-\code{util::to\_latex\_string(t)}
+\code{util::pid()}\\
+\code{util::id()}\\
+\code{util::basenam()}\\
+\code{util::dirname()}\\
+\code{util::demangle()}\\
+\code{util::demangle2()}\\
+\code{util::to\_string(t)}\\
+\code{util::to\_latex\_string(t)}\\
 
-\code{util::assign(t1,t2)}
-\code{util::clear(t)}
-\code{util::swap\_support(s1, s2, t1, t2)}
-\code{util::init\_support(s, t)}
-\code{util::get\_size\_in\_bytes(t)}
-\code{util::write\_member(t, out)}
-\code{util::read\_member(t, in)}
-\code{util::write\_structure<JSON\_FORMAT>(t, out)} % in IO???
+\code{util::assign(t1,t2)}\\
+\code{util::clear(t)}\\
+\code{util::swap\_support(s1, s2, t1, t2)}\\
+\code{util::init\_support(s, t)}\\
 
 \section{Construction}
-\code{util::cache\_file\_name(key, config)}
-\code{util::register\_cache\_file(key, config)}
-\code{util::cache\_file\_exists(key, config)}
-\code{util::load\_from\_cache(t, key, config)}
-\code{util::store\_to\_cache(t, key, config)}
+\code{cache\_file\_name(key, config)}
+\code{register\_cache\_file(key, config)}
+\code{cache\_file\_exists(key, config)}
+\code{load\_from\_cache(t, key, config)}
+\code{store\_to\_cache(t, key, config)}
 
 \section{Helper}
 \code{util::stop\_watch}\\

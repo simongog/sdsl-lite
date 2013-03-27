@@ -16,10 +16,10 @@ uint64_t elias_delta::decode_prefix_sum(const uint64_t* data, const size_type st
     int16_t buffered = 0, read = start_idx & 0x3F;
     size_type i = 0;
     if (n + read <= 64) {
-        if (((*data >> read)&bits::Li1Mask[n]) == bits::Li1Mask[n])
+        if (((*data >> read)&bits::lo_set[n]) == bits::lo_set[n])
             return n;
     } else { // n+read > 64
-        if ((*data >> read) == bits::Li1Mask[64-read]) {// all bits are set to 1
+        if ((*data >> read) == bits::lo_set[64-read]) {// all bits are set to 1
             value = 64-read;
             ++data;
             n -= (64-read);
@@ -33,7 +33,7 @@ uint64_t elias_delta::decode_prefix_sum(const uint64_t* data, const size_type st
                     goto start_decoding;
             }
             // 0 <= n <= 64
-            if ((*data&bits::Li1Mask[n]) == bits::Li1Mask[n])
+            if ((*data&bits::lo_set[n]) == bits::lo_set[n])
                 return value + n;
         }
     }
@@ -134,7 +134,7 @@ begin_decode:
                     }
                 }
 //				assert(len_1_len <= buffered);
-                uint16_t len_1 = (w&bits::Li1Mask[len_1_len]) + (1ULL << len_1_len) - 1;
+                uint16_t len_1 = (w&bits::lo_set[len_1_len]) + (1ULL << len_1_len) - 1;
                 buffered -= len_1_len;
                 w >>= len_1_len;
                 if (len_1 > buffered) {// buffer is not full
@@ -163,7 +163,7 @@ begin_decode:
 //					std::cerr<<"len_1="<<len_1<<" buffered = "<<buffered<<std::endl;
 //				}
 //				assert(len_1 <= buffered);
-                value	+= (w&bits::Li1Mask[len_1]) + (len_1<64) * (1ULL << (len_1));
+                value	+= (w&bits::lo_set[len_1]) + (len_1<64) * (1ULL << (len_1));
                 buffered -= len_1;
                 if (len_1 < 64) {
                     w >>= len_1;
@@ -204,10 +204,10 @@ uint64_t elias_delta::decode_prefix_sum(const uint64_t* data, const size_type st
 
     if (n < 24) {
         if (n + offset <= 64) {
-            if (((*data >> offset)&bits::Li1Mask[n]) == bits::Li1Mask[n])
+            if (((*data >> offset)&bits::lo_set[n]) == bits::lo_set[n])
                 return n;
         } else { // n+offset > 64
-            if ((*data >> offset) == bits::Li1Mask[64-offset]) {// all bits are set to 1
+            if ((*data >> offset) == bits::lo_set[64-offset]) {// all bits are set to 1
                 value = 64-offset;
                 ++data;
                 n -= (64-offset);
@@ -226,7 +226,7 @@ uint64_t elias_delta::decode_prefix_sum(const uint64_t* data, const size_type st
                     }
                 }
                 // 0 <= n <= 64
-                if ((*data&bits::Li1Mask[n]) == bits::Li1Mask[n])
+                if ((*data&bits::lo_set[n]) == bits::lo_set[n])
                     return value + n;
             }//else{
 

@@ -827,10 +827,10 @@ class bp_support_sada
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out, child, "size");
-            written_bytes += util::write_member(m_sml_blocks, out, child, "sml_block_cnt");
-            written_bytes += util::write_member(m_med_blocks, out, child, "med_block_cnt");
-            written_bytes += util::write_member(m_med_inner_blocks, out, child, "med_inner_blocks");
+            written_bytes += write_member(m_size, out, child, "size");
+            written_bytes += write_member(m_sml_blocks, out, child, "sml_block_cnt");
+            written_bytes += write_member(m_med_blocks, out, child, "med_block_cnt");
+            written_bytes += write_member(m_med_inner_blocks, out, child, "med_inner_blocks");
 
             written_bytes += m_bp_rank.serialize(out, child, "bp_rank");
             written_bytes += m_bp_select.serialize(out, child, "bp_select");
@@ -849,11 +849,11 @@ class bp_support_sada
          */
         void load(std::istream& in, const bit_vector* bp) {
             m_bp = bp;
-            util::read_member(m_size, in);
+            read_member(m_size, in);
             assert(m_size == bp->size());
-            util::read_member(m_sml_blocks, in);
-            util::read_member(m_med_blocks, in);
-            util::read_member(m_med_inner_blocks, in);
+            read_member(m_sml_blocks, in);
+            read_member(m_med_blocks, in);
+            read_member(m_med_inner_blocks, in);
 
             m_bp_rank.load(in, m_bp);
             m_bp_select.load(in, m_bp);

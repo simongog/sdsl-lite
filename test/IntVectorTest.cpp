@@ -117,7 +117,7 @@ TEST_F(IntVectorTest, AssignElement)
     for (unsigned char w=1; w <= 64; ++w) { // for each possible width
         sdsl::int_vector<> iv(100000, 0, w);
         for (size_type i=0; i < iv.size(); ++i) {
-            value_type x = rand() & sdsl::bits::Li1Mask[w];
+            value_type x = rand() & sdsl::bits::lo_set[w];
             iv[i] = x;
             ASSERT_EQ(x, iv[i]);
         }
@@ -131,19 +131,19 @@ TEST_F(IntVectorTest, AddAndSub)
         sdsl::util::set_random_bits(iv);
         for (size_type i=0; i < iv.size(); ++i) {
             value_type x = iv[i];
-            value_type y = rand() & sdsl::bits::Li1Mask[w];
+            value_type y = rand() & sdsl::bits::lo_set[w];
             iv[i] += y;
-            ASSERT_EQ((x+y)&sdsl::bits::Li1Mask[w], iv[i]);
+            ASSERT_EQ((x+y)&sdsl::bits::lo_set[w], iv[i]);
             iv[i] -= y;
-            ASSERT_EQ(x & sdsl::bits::Li1Mask[w], iv[i]);
+            ASSERT_EQ(x & sdsl::bits::lo_set[w], iv[i]);
             iv[i]++;
-            ASSERT_EQ((x+1)&sdsl::bits::Li1Mask[w], iv[i]);
+            ASSERT_EQ((x+1)&sdsl::bits::lo_set[w], iv[i]);
             iv[i]--;
-            ASSERT_EQ(x & sdsl::bits::Li1Mask[w], iv[i]);
+            ASSERT_EQ(x & sdsl::bits::lo_set[w], iv[i]);
             ++iv[i];
-            ASSERT_EQ((x+1)&sdsl::bits::Li1Mask[w], iv[i]);
+            ASSERT_EQ((x+1)&sdsl::bits::lo_set[w], iv[i]);
             --iv[i];
-            ASSERT_EQ(x & sdsl::bits::Li1Mask[w], iv[i]);
+            ASSERT_EQ(x & sdsl::bits::lo_set[w], iv[i]);
         }
     }
 }
@@ -154,9 +154,9 @@ TEST_F(IntVectorTest, SerializeAndLoad)
     for (size_type i=0; i<iv.size(); ++i)
         iv[i] = rand();
     std::string file_name = "/tmp/int_vector";
-    sdsl::util::store_to_file(iv, file_name);
+    sdsl::store_to_file(iv, file_name);
     sdsl::int_vector<> iv2;
-    sdsl::util::load_from_file(iv2, file_name);
+    sdsl::load_from_file(iv2, file_name);
     ASSERT_EQ(iv.size(), iv2.size());
     for (size_type i=0; i<iv.size(); ++i)
         ASSERT_EQ(iv[i], iv2[i]);

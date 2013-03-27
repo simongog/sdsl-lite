@@ -152,12 +152,12 @@ class lcp_wt
 template<uint8_t t_width>
 lcp_wt<t_width>::lcp_wt(cache_config& config, std::string other_key)
 {
-    std::string tmp_file = util::tmp_file(config, "_lcp_sml");
+    std::string temp_file = tmp_file(config, "_lcp_sml");
     std::string lcp_key  = constants::KEY_LCP;
     if ("" != other_key) {
         lcp_key = other_key;
     }
-    int_vector_file_buffer<> lcp_buf(util::cache_file_name(lcp_key, config));
+    int_vector_file_buffer<> lcp_buf(cache_file_name(lcp_key, config));
     typename int_vector<>::size_type l=0, max_l=0, big_sum=0, n = lcp_buf.int_vector_size;
     {
         int_vector<8> small_lcp = int_vector<8>(n);
@@ -173,14 +173,14 @@ lcp_wt<t_width>::lcp_wt(cache_config& config, std::string other_key)
             }
             r_sum += r; r = lcp_buf.load_next_block();
         }
-        util::store_to_file(small_lcp, tmp_file);
+        store_to_file(small_lcp, temp_file);
     }
-    int_vector_file_buffer<8> lcp_sml_buf(tmp_file);
+    int_vector_file_buffer<8> lcp_sml_buf(temp_file);
     {
         small_lcp_type tmp_small_lcp(lcp_sml_buf, lcp_sml_buf.int_vector_size);
         m_small_lcp.swap(tmp_small_lcp);
     }
-    sdsl::remove(tmp_file);
+    sdsl::remove(temp_file);
     m_big_lcp         = int_vector<>(big_sum, 0, bits::hi(max_l)+1);
     {
         lcp_buf.reset();

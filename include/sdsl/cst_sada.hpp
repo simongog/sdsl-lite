@@ -151,10 +151,10 @@ class cst_sada
             bp_rank_10(m_bp_rank10),
             bp_select_10(m_bp_select10) {
             {
-                write_R_output("cst", "construct BPS", "begin", 1, 0);
+                util::write_R_output("cst", "construct BPS", "begin", 1, 0);
                 cst_sct3<> temp_cst(config, true);
                 m_bp.resize(4*(temp_cst.bp.size()/2));
-                util::set_zero_bits(m_bp);
+                util::set_to_value(m_bp, 0);
                 size_type idx=0;
                 for (cst_sct3<>::const_iterator it=temp_cst.begin(), end=temp_cst.end(); it!=end; ++it) {
                     if (1 == it.visit())
@@ -164,21 +164,21 @@ class cst_sada
                     ++idx;
                 }
                 m_bp.resize(idx);
-                write_R_output("cst", "construct BPS", "end", 1, 0);
+                util::write_R_output("cst", "construct BPS", "end", 1, 0);
             }
-            write_R_output("cst", "construct BPSS", "begin", 1,0);
+            util::write_R_output("cst", "construct BPSS", "begin", 1,0);
             util::assign(m_bp_support, bp_support_type(&m_bp));
             util::init_support(m_bp_rank10,   &m_bp);
             util::init_support(m_bp_select10, &m_bp);
-            write_R_output("cst", "construct BPSS", "end", 1,0);
+            util::write_R_output("cst", "construct BPSS", "end", 1,0);
 
-            write_R_output("cst", "construct CLCP", "begin", 1,0);
+            util::write_R_output("cst", "construct CLCP", "begin", 1,0);
             cache_config tmp_config(false, config.dir, config.id, config.file_map);
             construct_lcp(m_lcp, *this, tmp_config);
             config.file_map = tmp_config.file_map;
-            write_R_output("cst", "construct CLCP", "end", 1,0);
+            util::write_R_output("cst", "construct CLCP", "end", 1,0);
 
-            util::load_from_cache(m_csa, util::class_to_hash(m_csa), config);
+            load_from_cache(m_csa, util::class_to_hash(m_csa), config);
         }
 
         //! Number of leaves in the suffix tree.

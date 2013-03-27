@@ -56,32 +56,32 @@ void construct_bwt(cache_config& config)
     const char* KEY_BWT = key_bwt_trait<t_width>::KEY_BWT;
 
     //  (1) Load text from disk
-    write_R_output("bwt", "load text", "begin", 1, 0);
+    util::write_R_output("bwt", "load text", "begin", 1, 0);
     text_type text;
-    util::load_from_cache(text, KEY_TEXT, config);
+    load_from_cache(text, KEY_TEXT, config);
     size_type n = text.size();
     uint8_t bwt_width = text.width();
-    write_R_output("bwt", "load text", "end", 1, 0);
+    util::write_R_output("bwt", "load text", "end", 1, 0);
 
     //  (2) Prepare to stream SA from disc and BWT to disc
-    write_R_output("bwt", "prepare io", "begin", 1, 0);
+    util::write_R_output("bwt", "prepare io", "begin", 1, 0);
     size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
-    int_vector_file_buffer<> sa_buf(util::cache_file_name(constants::KEY_SA, config));
+    int_vector_file_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config));
     sa_buf.reset(buffer_size);
 
     bwt_type bwt_buf(buffer_size, 0, bwt_width);
 
-    std::string bwt_file = util::cache_file_name(KEY_BWT, config);
+    std::string bwt_file = cache_file_name(KEY_BWT, config);
     osfstream bwt_out_buf(bwt_file, std::ios::binary | std::ios::app | std::ios::out);   // open buffer for bwt
     size_type bit_size = n*bwt_width;
     bwt_out_buf.write((char*) &(bit_size), sizeof(bit_size));	// write size of vector
     if (t_width != 8) {
         bwt_out_buf.write((char*) &(bwt_width),sizeof(bwt_width));  // write int_width of vector
     }
-    write_R_output("bwt", "prepare io", "end", 1, 0);
+    util::write_R_output("bwt", "prepare io", "end", 1, 0);
 
     //  (3) Construct BWT sequentially by streaming SA and random access to text
-    write_R_output("bwt", "construct BWT", "begin", 1, 0);
+    util::write_R_output("bwt", "construct BWT", "begin", 1, 0);
     size_type wb = 0;  // bytes written into bwt int_vector
     size_type to_add[2] = {(size_type)-1,n-1};
     for (size_type i=0, r_sum=0, r=0; r_sum < n;) {
@@ -100,8 +100,8 @@ void construct_bwt(cache_config& config)
         bwt_out_buf.write("\0\0\0\0\0\0\0\0", 8-wb%8);
     }
     bwt_out_buf.close();
-    util::register_cache_file(KEY_BWT, config);
-    write_R_output("bwt", "construct BWT", "end", 1, 0);
+    register_cache_file(KEY_BWT, config);
+    util::write_R_output("bwt", "construct BWT", "end", 1, 0);
 }
 
 }// end namespace

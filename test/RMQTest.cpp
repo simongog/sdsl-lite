@@ -74,7 +74,7 @@ class RMQTest : public ::testing::Test
 
         template<class Rmq>
         bool load_rmq(Rmq& rmq, typename Rmq::size_type i) {
-            return sdsl::util::load_from_file(rmq, get_tmp_file_name(rmq, i));
+            return sdsl::load_from_file(rmq, get_tmp_file_name(rmq, i));
         }
 
         std::string tmp_file;
@@ -95,7 +95,7 @@ TYPED_TEST(RMQTest, ConstructAndStore)
 {
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam rmq(&(this->test_cases[i]));
-        bool success = sdsl::util::store_to_file(rmq, this->get_tmp_file_name(rmq, i));
+        bool success = sdsl::store_to_file(rmq, this->get_tmp_file_name(rmq, i));
         ASSERT_EQ(success, true);
     }
 }

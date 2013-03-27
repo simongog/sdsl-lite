@@ -63,18 +63,18 @@ void construct_lcp_kasai(cache_config& config)
 {
     int_vector<> lcp;
     typedef int_vector<>::size_type size_type;
-    write_R_output("lcp", "construct LCP", "begin", 1, 0);
+    util::write_R_output("lcp", "construct LCP", "begin", 1, 0);
     construct_isa(config);
     {
-        write_R_output("lcp", "load text", "begin", 1, 0);
+        util::write_R_output("lcp", "load text", "begin", 1, 0);
         int_vector<t_width> text;
-        if (!util::load_from_cache(text, key_text_trait<t_width>::KEY_TEXT, config)) {
+        if (!load_from_cache(text, key_text_trait<t_width>::KEY_TEXT, config)) {
             return;
         }
-        write_R_output("lcp", "load text", "end", 1, 0);
+        util::write_R_output("lcp", "load text", "end", 1, 0);
         int_vector_file_buffer<> isa_buf(config.file_map[constants::KEY_ISA], 1000000);   // init isa file_buffer
         int_vector<> sa;
-        if (!util::load_from_cache(sa, constants::KEY_SA, config)) {
+        if (!load_from_cache(sa, constants::KEY_SA, config)) {
             return;
         }
         // use Kasai algorithm to compute the lcp values
@@ -104,8 +104,8 @@ void construct_lcp_kasai(cache_config& config)
         sa[0] = 0;
         lcp.swap(sa);
     }
-    write_R_output("lcp", "construct LCP", "end", 1, 0);
-    util::store_to_cache(lcp, constants::KEY_LCP, config);
+    util::write_R_output("lcp", "construct LCP", "end", 1, 0);
+    store_to_cache(lcp, constants::KEY_LCP, config);
 }
 
 //! Construct the LCP array for text over byte- or integer-alphabet.
@@ -128,14 +128,14 @@ void construct_lcp_PHI(cache_config& config)
     typedef int_vector<>::size_type size_type;
     typedef int_vector<t_width> text_type;
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
-    write_R_output("lcp", "construct LCP", "begin", 1, 0);
+    util::write_R_output("lcp", "construct LCP", "begin", 1, 0);
     int_vector_file_buffer<> sa_buf(config.file_map[constants::KEY_SA]);
     size_type n = sa_buf.int_vector_size;
 
     assert(n > 0);
     if (1 == n) {  // Handle special case: Input only the sentinel character.
         int_vector<> lcp(1, 0);
-        util::store_to_cache(lcp, constants::KEY_LCP, config);
+        store_to_cache(lcp, constants::KEY_LCP, config);
         return;
     }
 
@@ -151,10 +151,10 @@ void construct_lcp_PHI(cache_config& config)
     }
 
 //  (2) Load text from disk
-    write_R_output("lcp", "load text", "begin", 1, 0);
+    util::write_R_output("lcp", "load text", "begin", 1, 0);
     text_type text;
-    util::load_from_cache(text, KEY_TEXT, config);
-    write_R_output("lcp", "load text", "end", 1, 0);
+    load_from_cache(text, KEY_TEXT, config);
+    util::write_R_output("lcp", "load text", "end", 1, 0);
 
 //  (3) Calculate permuted LCP array (text order), called PLCP
     size_type max_l = 0;
@@ -173,7 +173,7 @@ void construct_lcp_PHI(cache_config& config)
     uint8_t lcp_width = bits::hi(max_l)+1;
 
 //	(4) Transform PLCP into LCP
-    std::string lcp_file = util::cache_file_name(constants::KEY_LCP, config);
+    std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
     osfstream lcp_out_buf(lcp_file, std::ios::binary | std::ios::app | std::ios::out);   // open buffer for lcp
 
     size_type bit_size = n*lcp_width;
@@ -203,8 +203,8 @@ void construct_lcp_PHI(cache_config& config)
         lcp_out_buf.write("\0\0\0\0\0\0\0\0", 8-wb%8);
     }
     lcp_out_buf.close();
-    util::register_cache_file(constants::KEY_LCP, config);
-    write_R_output("lcp", "construct LCP", "end", 1, 0);
+    register_cache_file(constants::KEY_LCP, config);
+    util::write_R_output("lcp", "construct LCP", "end", 1, 0);
 }
 
 
@@ -256,8 +256,8 @@ void construct_lcp_semi_extern_PHI(cache_config& config);
  *  \param config	Reference to cache configuration
  *  \pre Text, Suffix array and BWT exist in the cache. Keys:
  *         * constants::KEY_TEXT
- *         * constants::KEY_SA 
- *         * constants::KEY_BWT 
+ *         * constants::KEY_SA
+ *         * constants::KEY_BWT
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
  *  \par Time complexity
@@ -279,8 +279,8 @@ void construct_lcp_semi_extern_PHI(cache_config& config);
  *  \param config	Reference to cache configuration
  *  \pre Text, Suffix array and BWT exist in the cache. Keys:
  *         * constants::KEY_TEXT
- *         * constants::KEY_SA 
- *         * constants::KEY_BWT 
+ *         * constants::KEY_SA
+ *         * constants::KEY_BWT
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
  *  \par Time complexity
@@ -298,8 +298,8 @@ void construct_lcp_go(cache_config& config);
  *  \param config	Reference to cache configuration
  *  \pre Text, Suffix array and BWT exist in the cache. Keys:
  *         * constants::KEY_TEXT
- *         * constants::KEY_SA 
- *         * constants::KEY_BWT 
+ *         * constants::KEY_SA
+ *         * constants::KEY_BWT
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
  *  \par Time complexity
@@ -317,8 +317,8 @@ void construct_lcp_goPHI(cache_config& config);
  *  \param config	Reference to cache configuration
  *  \pre Text, Suffix array and BWT exist in the cache. Keys:
  *         * constants::KEY_TEXT
- *         * constants::KEY_SA 
- *         * constants::KEY_BWT 
+ *         * constants::KEY_SA
+ *         * constants::KEY_BWT
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
  *  \par Time complexity

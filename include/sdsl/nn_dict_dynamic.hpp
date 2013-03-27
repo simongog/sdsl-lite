@@ -240,9 +240,9 @@ class nn_dict_dynamic
 
         //! Load the data structure
         void load(std::istream& in) {
-            util::read_member(m_depth, in);
-            util::read_member(m_v_begin_leaves, in);
-            util::read_member(m_size, in);
+            read_member(m_depth, in);
+            read_member(m_v_begin_leaves, in);
+            read_member(m_size, in);
             m_offset.load(in);
             m_tree.load(in);
         }
@@ -251,9 +251,9 @@ class nn_dict_dynamic
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_depth, out, child, "depth");
-            written_bytes += util::write_member(m_v_begin_leaves, out, child, "v_begin_leaves");
-            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += write_member(m_depth, out, child, "depth");
+            written_bytes += write_member(m_v_begin_leaves, out, child, "v_begin_leaves");
+            written_bytes += write_member(m_size, out, child, "size");
             written_bytes += m_offset.serialize(out, child, "offset");
             written_bytes += m_tree.serialize(out, child, "tree");
             structure_tree::add_size(child, written_bytes);

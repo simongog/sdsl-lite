@@ -796,8 +796,8 @@ class wt
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out, child, "size");
-            written_bytes += util::write_member(m_sigma, out, child, "sigma");
+            written_bytes += write_member(m_size, out, child, "size");
+            written_bytes += write_member(m_sigma, out, child, "sigma");
             written_bytes += m_tree.serialize(out, child, "tree");
             written_bytes += m_tree_rank.serialize(out, child, "tree_rank");
             written_bytes += m_tree_select1.serialize(out, child, "tree_select_1");
@@ -805,12 +805,12 @@ class wt
             written_bytes += m_node_pointers.serialize(out, child, "node_pointers");
             written_bytes += m_node_pointers_rank.serialize(out, child, "node_pointers_rank");
             written_bytes += wt_trait<t_rac>::serialize_maps(out, m_char_map, m_inv_char_map, child, "alphabet_mapping");
-            written_bytes += util::write_member(m_first_symbol, out, child, "first symbol");
+            written_bytes += write_member(m_first_symbol, out, child, "first symbol");
             // serialize char_node_map
             if (wt_trait<t_rac>::char_node_map_size == 256) {
                 size_type written_bytes2 = 0;
                 for (size_type i=0; i<256; ++i) {
-                    written_bytes2 += util::write_member(m_char_node_map[i], out);
+                    written_bytes2 += write_member(m_char_node_map[i], out);
                 }
                 structure_tree_node* child2 = structure_tree::add_child(child, "char_node_map", "char_map");
                 structure_tree::add_size(child2, written_bytes2);
@@ -822,8 +822,8 @@ class wt
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            util::read_member(m_size, in);
-            util::read_member(m_sigma, in);
+            read_member(m_size, in);
+            read_member(m_sigma, in);
             m_tree.load(in);
             m_tree_rank.load(in, &m_tree);
             m_tree_select1.load(in, &m_tree);
@@ -831,11 +831,11 @@ class wt
             m_node_pointers.load(in);
             m_node_pointers_rank.load(in);
             wt_trait<t_rac>::load_maps(in, m_char_map, m_inv_char_map);
-            util::read_member(m_first_symbol, in);
+            read_member(m_first_symbol, in);
             // serialize char_node_map
             if (wt_trait<t_rac>::char_node_map_size == 256) {
                 for (size_type i=0; i<256; ++i) {
-                    util::read_member(m_char_node_map[i], in);
+                    read_member(m_char_node_map[i], in);
                 }
             }
         }

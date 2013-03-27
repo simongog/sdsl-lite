@@ -222,7 +222,7 @@ class cst_sct3
                     const uint64_t* p = m_first_child.data() + (r>>6);
                     uint8_t offset = r&0x3F;
 
-                    uint64_t w = (*p) & bits::Li1Mask[offset];
+                    uint64_t w = (*p) & bits::lo_set[offset];
                     if (w) {
                         children = offset - bits::hi(w) + 1;
                     } else if (m_first_child.data() == p) { // w==0 and we are in the first word
@@ -702,7 +702,7 @@ class cst_sct3
             const uint64_t* p = m_first_child.data() + (r0>>6);
             uint8_t offset = r0&0x3F;
 
-            uint64_t w = (*p) & bits::Li1Mask[offset];
+            uint64_t w = (*p) & bits::lo_set[offset];
             if (w) {
                 return offset-bits::hi(w)+1;
             } else if (m_first_child.data() == p) { // w==0 and we are in the first word
@@ -1124,27 +1124,27 @@ class cst_sct3
 template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
 cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::cst_sct3(cache_config& config, bool build_only_bps):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
 {
-    write_R_output("cst", "construct BPS", "begin", 1, 0);
-    int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config));
+    util::write_R_output("cst", "construct BPS", "begin", 1, 0);
+    int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
     m_nodes = algorithm::construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child) + m_bp.size()/2;
     if (m_bp.size() == 2) {  // handle special case, when the tree consists only of the root node
         m_nodes = 1;
     }
-    write_R_output("cst", "construct BPS", "end", 1, 0);
-    write_R_output("cst", "construct BPSS", "begin", 1, 0);
+    util::write_R_output("cst", "construct BPS", "end", 1, 0);
+    util::write_R_output("cst", "construct BPSS", "begin", 1, 0);
     util::init_support(m_bp_support, &m_bp);
     util::init_support(m_first_child_rank, &m_first_child);
-    write_R_output("cst", "construct BPSS", "end", 1, 0);
+    util::write_R_output("cst", "construct BPSS", "end", 1, 0);
 
     if (!build_only_bps) {
-        write_R_output("cst", "construct CLCP", "begin", 1, 0);
+        util::write_R_output("cst", "construct CLCP", "begin", 1, 0);
         cache_config tmp_config(false, config.dir, config.id, config.file_map);
         construct_lcp(m_lcp, *this, tmp_config);
         config.file_map = tmp_config.file_map;
-        write_R_output("cst", "construct CLCP", "end", 1, 0);
+        util::write_R_output("cst", "construct CLCP", "end", 1, 0);
     }
     if (!build_only_bps) {
-        util::load_from_cache(m_csa, util::class_to_hash(m_csa), config);
+        load_from_cache(m_csa, util::class_to_hash(m_csa), config);
     }
     m_sigma = std::max(degree(root()), (size_type)1);
     //handle special case 'CST for empty text'  --^
@@ -1161,8 +1161,8 @@ typename cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::size_type cst_sct3<t_csa,
     written_bytes += m_bp_support.serialize(out, child, "bp_support");
     written_bytes += m_first_child.serialize(out, child, "mark_child");
     written_bytes += m_first_child_rank.serialize(out, child, "mark_child_rank");
-    written_bytes += util::write_member(m_sigma, out, child, "sigma");
-    written_bytes += util::write_member(m_nodes, out, child, "node_cnt");
+    written_bytes += write_member(m_sigma, out, child, "sigma");
+    written_bytes += write_member(m_nodes, out, child, "node_cnt");
     structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
@@ -1176,8 +1176,8 @@ void cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::load(std::istream& in)
     m_bp_support.load(in, &m_bp);
     m_first_child.load(in);
     m_first_child_rank.load(in, &m_first_child);
-    util::read_member(m_sigma, in);
-    util::read_member(m_nodes, in);
+    read_member(m_sigma, in);
+    read_member(m_nodes, in);
 }
 
 template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
