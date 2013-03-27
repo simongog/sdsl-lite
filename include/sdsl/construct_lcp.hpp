@@ -51,6 +51,8 @@ namespace sdsl
  *         * constants::KEY_SA
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
+ *  \par Time complexity
+ *         \f$ \Order{n} \f$
  *  \par Space complexity
  *         \f$ n (\log \sigma + \log n) \f$ bits
  *  \par Reference
@@ -116,6 +118,8 @@ void construct_lcp_kasai(cache_config& config)
  *         * constants::KEY_SA
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
+ *  \par Time complexity
+ *         \f$ \Order{n} \f$
  *  \par Space complexity
  *         \f$ n( \log \sigma + \log \n ) \f$ bits
  *  \par Reference
@@ -325,16 +329,13 @@ void construct_lcp_go(cache_config& config);
  *  \par Time complexity
  *         ToDo \f$ \Order{n} \f$
  *  \par Space complexity
- *         Usually \f$ 2n \f$ bytes, worst case \f$5n bytes\f$
+ *         Usually \f$ 2n \f$ bytes
  *  \par Reference
  *         ToDo
  */
 void construct_lcp_goPHI(cache_config& config);
 
 // void construct_lcp_simple_5n(cache_config& config);
-
-//// only phase 2 of the new algorithm
-//bool construct_lcp_simple2_9n(tMSS& file_map, const std::string& dir, const std::string& id);
 
 }// end namespace
 
