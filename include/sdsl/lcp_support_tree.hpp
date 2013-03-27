@@ -82,13 +82,13 @@ class _lcp_support_tree
         _lcp_support_tree(cache_config& config, const t_cst* cst = NULL) {
             m_cst = cst;
             std::string fc_lcp_key = "fc_lcp_" + util::to_string(util::id());
-            std::string tmp_file = util::cache_file_name(fc_lcp_key, config);
+            std::string tmp_file = cache_file_name(fc_lcp_key, config);
             {
                 int_vector<0> temp_lcp;
-                int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config));
+                int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
                 construct_first_child_lcp(lcp_buf, temp_lcp);
                 // TODO: store LCP values directly
-                util::store_to_file(temp_lcp, tmp_file);
+                store_to_file(temp_lcp, tmp_file);
             }
             {
                 {

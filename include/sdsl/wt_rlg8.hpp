@@ -385,7 +385,7 @@ class wt_rlg8
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += write_member(m_size, out, child, "size");
             written_bytes += m_wt.serialize(out, child, "wt");
             written_bytes += m_b.serialize(out, child, "b");
             written_bytes += m_b_rank.serialize(out, child, "b_rank");
@@ -394,14 +394,14 @@ class wt_rlg8
             written_bytes += m_wt_rank.serialize(out, child, "wt_rank");
             written_bytes += m_char2comp.serialize(out, child, "char2comp");
             written_bytes += m_char_occ.serialize(out, child, "char_occ");
-            written_bytes += util::write_member(m_sigma, out, child, "sigma");
+            written_bytes += write_member(m_sigma, out, child, "sigma");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            util::read_member(m_size, in);
+            read_member(m_size, in);
             m_wt.load(in);
             m_b.load(in);
             m_b_rank.load(in, &m_b);
@@ -410,7 +410,7 @@ class wt_rlg8
             m_wt_rank.load(in);
             m_char2comp.load(in);
             m_char_occ.load(in);
-            util::read_member(m_sigma, in);
+            read_member(m_sigma, in);
         }
 };
 

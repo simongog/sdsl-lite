@@ -304,8 +304,8 @@ class rrr_vector<15, t_rac>
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             size_type written_bytes = 0;
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-            written_bytes += util::write_member(m_size, out, child, "size");
-            written_bytes += util::write_member(m_k, out, child, "k");
+            written_bytes += write_member(m_size, out, child, "size");
+            written_bytes += write_member(m_k, out, child, "k");
             written_bytes += m_bt.serialize(out, child, "bt");
             written_bytes += m_btnr.serialize(out, child, "btnr");
             written_bytes += m_btnrp.serialize(out, child, "btnrp");
@@ -316,8 +316,8 @@ class rrr_vector<15, t_rac>
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            util::read_member(m_size, in);
-            util::read_member(m_k, in);
+            read_member(m_size, in);
+            read_member(m_k, in);
             m_bt.load(in);
             m_btnr.load(in);
             m_btnrp.load(in);
@@ -397,7 +397,7 @@ class rank_support_rrr<t_b, 15, t_rac>
                 uint8_t bt64_end_off = bt_idx & 0x3F;
                 // Case (1)
                 if (bt64 == bt64_end) {
-                    uint64_t w = ((*bt64) >> bt64_off) & bits::Li1Mask[bt64_end_off-bt64_off];
+                    uint64_t w = ((*bt64) >> bt64_off) & bits::lo_set[bt64_end_off-bt64_off];
                     w = (w & 0x0f0f0f0f0f0f0f0full) + ((w >> 4) & 0x0f0f0f0f0f0f0f0full);
                     rank += ((0x0101010101010101ull*w) >> 56);
                 } else { // Case (2)
@@ -445,7 +445,7 @@ class rank_support_rrr<t_b, 15, t_rac>
             }
             uint32_t btnr = m_v->m_btnr.get_int(btnrp, bi_type::space_for_bt(last_bt));
             return rank_support_rrr_trait<t_b>::adjust_rank(rank +
-                    bits::cnt(((uint64_t)(bi_type::nr_to_bin(last_bt, btnr))) & bits::Li1Mask[off]), i);
+                    bits::cnt(((uint64_t)(bi_type::nr_to_bin(last_bt, btnr))) & bits::lo_set[off]), i);
         }
 
         //! Short hand for rank(i)
@@ -483,7 +483,7 @@ class rank_support_rrr<t_b, 15, t_rac>
 
         //! Load the data structure from a stream and set the supported vector.
         void load(std::istream& in, const bit_vector_type* v=NULL) {
-            util::read_member(m_k, in);
+            read_member(m_k, in);
             set_vector(v);
         }
 
@@ -491,7 +491,7 @@ class rank_support_rrr<t_b, 15, t_rac>
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_k, out, child, "k");
+            written_bytes += write_member(m_k, out, child, "k");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -629,14 +629,14 @@ class select_support_rrr<t_b, 15, t_rac>
         }
 
         void load(std::istream& in, const bit_vector_type* v=NULL) {
-            util::read_member(m_k, in);
+            read_member(m_k, in);
             set_vector(v);
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_k, out, child, "k");
+            written_bytes += write_member(m_k, out, child, "k");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }

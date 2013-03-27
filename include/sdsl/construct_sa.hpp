@@ -122,17 +122,17 @@ void construct_sa(cache_config& config)
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
     typedef int_vector<t_width> text_type;
     text_type text;
-    util::load_from_cache(text, KEY_TEXT, config);
+    load_from_cache(text, KEY_TEXT, config);
     if (t_width == 8) {
         // call divsufsort
         int_vector<> sa(text.size(), 0, bits::hi(text.size())+1);
         algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
-        util::store_to_cache(sa, constants::KEY_SA, config);
+        store_to_cache(sa, constants::KEY_SA, config);
     } else if (t_width == 0) {
         // call qsufsort
         int_vector<> sa;
         sdsl::qsufsort::construct_sa(sa, config.file_map[KEY_TEXT].c_str(), 0);
-        util::store_to_cache(sa, constants::KEY_SA, config);
+        store_to_cache(sa, constants::KEY_SA, config);
     } else {
         std::cerr << "Unknown alphabet type" << std::endl;
     }

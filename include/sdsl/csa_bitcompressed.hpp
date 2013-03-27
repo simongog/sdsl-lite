@@ -131,9 +131,9 @@ class csa_bitcompressed
             comp2char(m_alphabet.comp2char), C(m_alphabet.C),
             sigma(m_alphabet.sigma), psi(m_psi), bwt(this),
             text(this), sa_sample(m_sa), isa_sample(m_isa) {
-            std::string text_file = util::cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config);
+            std::string text_file = cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config);
             int_vector_file_buffer<alphabet_type::int_width> text_buf(text_file);
-            int_vector_file_buffer<>  sa_buf(util::cache_file_name(constants::KEY_SA,config));
+            int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA,config));
             size_type n = text_buf.int_vector_size;
             {
                 alphabet_type tmp_alphabet(text_buf, n);
@@ -145,13 +145,13 @@ class csa_bitcompressed
             }
             algorithm::set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
             m_psi = psi_type(this);
-            write_R_output("csa", "store ISA","begin",1,0);
-            if (!util::store_to_file(m_isa, util::cache_file_name(constants::KEY_ISA,config), true)) {
+            util::write_R_output("csa", "store ISA","begin",1,0);
+            if (!store_to_file(m_isa, cache_file_name(constants::KEY_ISA,config), true)) {
                 throw std::ios_base::failure("#csa_bitcompressed: Cannot store ISA to file system!");
             } else {
-                util::register_cache_file(constants::KEY_ISA, config);
+                register_cache_file(constants::KEY_ISA, config);
             }
-            write_R_output("csa", "store ISA","end",1,0);
+            util::write_R_output("csa", "store ISA","end",1,0);
         }
 
 

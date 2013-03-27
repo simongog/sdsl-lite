@@ -52,7 +52,7 @@ class CstByteTest : public ::testing::Test
 
         template<class Cst>
         bool load_cst(Cst& cst, size_type i) {
-            return util::load_from_file(cst, get_tmp_file_name(cst, i));
+            return load_from_file(cst, get_tmp_file_name(cst, i));
         }
 };
 
@@ -92,7 +92,7 @@ TYPED_TEST(CstByteTest, CreateAndStoreTest)
         cache_config config(false, this->tmp_dir, util::basename(this->test_cases[i]));
         construct(cst, this->test_cases[i], config, 1);
         test_cases_file_map[i] = config.file_map;
-        bool success = util::store_to_file(cst, this->get_tmp_file_name(cst, i));
+        bool success = store_to_file(cst, this->get_tmp_file_name(cst, i));
         ASSERT_EQ(true, success);
     }
 }
@@ -150,7 +150,7 @@ TYPED_TEST(CstByteTest, SaAccess)
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
         sdsl::int_vector<> sa;
-        sdsl::util::load_from_file(sa, test_cases_file_map[i][sdsl::constants::KEY_SA]);
+        sdsl::load_from_file(sa, test_cases_file_map[i][sdsl::constants::KEY_SA]);
         size_type n = sa.size();
         ASSERT_EQ(n, cst.csa.size());
         for (size_type j=0; j<n; ++j) {
@@ -166,7 +166,7 @@ TYPED_TEST(CstByteTest, BwtAccess)
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
         sdsl::int_vector<8> bwt;
-        sdsl::util::load_from_file(bwt, test_cases_file_map[i][sdsl::constants::KEY_BWT]);
+        sdsl::load_from_file(bwt, test_cases_file_map[i][sdsl::constants::KEY_BWT]);
         size_type n = bwt.size();
         ASSERT_EQ(n, cst.csa.bwt.size());
         for (size_type j=0; j<n; ++j) {
@@ -182,7 +182,7 @@ TYPED_TEST(CstByteTest, LcpAccess)
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
         sdsl::int_vector<> lcp;
-        sdsl::util::load_from_file(lcp, test_cases_file_map[i][sdsl::constants::KEY_LCP]);
+        sdsl::load_from_file(lcp, test_cases_file_map[i][sdsl::constants::KEY_LCP]);
         size_type n = lcp.size();
         ASSERT_EQ(n, cst.lcp.size());
         for (size_type j=0; j<n; ++j) {

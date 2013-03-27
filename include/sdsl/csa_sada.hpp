@@ -360,23 +360,23 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),C(m_alphabet.C), sigma(m_alphabet.sigma), psi(this), bwt(this), text(this),sa_sample(m_sa_sample), isa_sample(m_isa_sample)
 {
     create_buffer();
-    if (!util::cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
+    if (!cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
         return;
     }
-    int_vector_file_buffer<alphabet_type::int_width> bwt_buf(util::cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
+    int_vector_file_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
     size_type n = bwt_buf.int_vector_size;
-    write_R_output("csa", "construct alphabet", "begin", 1, 0);
+    util::write_R_output("csa", "construct alphabet", "begin", 1, 0);
     {
         alphabet_type tmp_alphabet(bwt_buf, n);
         m_alphabet.swap(tmp_alphabet);
     }
-    write_R_output("csa", "construct alphabet", "end", 1, 0);
+    util::write_R_output("csa", "construct alphabet", "end", 1, 0);
 
     int_vector<> cnt_chr(sigma, 0, bits::hi(n)+1);
     for (typename alphabet_type::sigma_type i=0; i < sigma; ++i) {
         cnt_chr[i] = C[i];
     }
-    write_R_output("csa", "construct PSI","begin",1,0);
+    util::write_R_output("csa", "construct PSI","begin",1,0);
     // calculate psi
     {
         // TODO: move PSI construct into construct_PSI.hpp
@@ -388,20 +388,20 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
             }
             r_sum += r; r = bwt_buf.load_next_block();
         }
-        std::string psi_file = util::cache_file_name(constants::KEY_PSI, config);
-        if (!util::store_to_cache(psi, constants::KEY_PSI, config)) {
+        std::string psi_file = cache_file_name(constants::KEY_PSI, config);
+        if (!store_to_cache(psi, constants::KEY_PSI, config)) {
             return;
         }
     }
-    write_R_output("csa", "construct PSI","end");
-    int_vector_file_buffer<> psi_buf(util::cache_file_name(constants::KEY_PSI, config));
-    write_R_output("csa", "encoded PSI", "begin");
+    util::write_R_output("csa", "construct PSI","end");
+    int_vector_file_buffer<> psi_buf(cache_file_name(constants::KEY_PSI, config));
+    util::write_R_output("csa", "encoded PSI", "begin");
     {
         t_enc_vec tmp_psi(psi_buf);
         m_psi.swap(tmp_psi);
     }
-    write_R_output("csa", "encoded PSI", "end");
-    int_vector_file_buffer<>  sa_buf(util::cache_file_name(constants::KEY_SA, config));
+    util::write_R_output("csa", "encoded PSI", "end");
+    int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config));
     util::assign(m_sa_sample, sa_sample_type(sa_buf));
     algorithm::set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
 }

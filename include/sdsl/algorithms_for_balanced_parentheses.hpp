@@ -46,7 +46,7 @@ inline void calculate_pioneers_bitmap(const bit_vector& bp, bit_vector::size_typ
 {
     typedef bit_vector::size_type size_type;
     pioneer_bitmap.resize(bp.size());      // resize pioneers bitmap
-    util::set_zero_bits(pioneer_bitmap);  // initialize bitmap with zeros
+    util::set_to_value(pioneer_bitmap, 0);  // initialize bitmap with zeros
 
     std::stack<size_type> opening_parenthesis;
     size_type blocks = (bp.size()+block_size-1)/block_size;
@@ -134,7 +134,7 @@ template<class size_type>
 void calculate_pioneers_bitmap_succinct2(const bit_vector& bp, SDSL_UNUSED size_type block_size, bit_vector& pioneer_bitmap)
 {
     pioneer_bitmap.resize(bp.size());    // resize pioneers bitmap to the resulting size
-    util::set_zero_bits(pioneer_bitmap); // initialize bitmap with zeros
+    util::set_to_value(pioneer_bitmap, 0); // initialize bitmap with zeros
     const uint64_t* data = bp.data();
     bit_vector::size_type cnt=0;
     for (bit_vector::size_type i=0; i < bp.size() ; i+=64, ++data) {

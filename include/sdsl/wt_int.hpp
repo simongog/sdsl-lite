@@ -210,7 +210,7 @@ class wt_int
             tree_out_buf.close();
             rac.resize(0);
             bit_vector tree;
-            util::load_from_file(tree, tree_out_buf_file_name);
+            load_from_file(tree, tree_out_buf_file_name);
             std::remove(tree_out_buf_file_name.c_str());
             util::assign(m_tree, tree);
             util::init_support(m_tree_rank, &m_tree);
@@ -470,26 +470,26 @@ class wt_int
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out, child, "size");
-            written_bytes += util::write_member(m_sigma, out, child, "sigma");
+            written_bytes += write_member(m_size, out, child, "size");
+            written_bytes += write_member(m_sigma, out, child, "sigma");
             written_bytes += m_tree.serialize(out, child, "tree");
             written_bytes += m_tree_rank.serialize(out, child, "tree_rank");
             written_bytes += m_tree_select1.serialize(out, child, "tree_select_1");
             written_bytes += m_tree_select0.serialize(out, child, "tree_select_0");
-            written_bytes += util::write_member(m_max_depth, out, child, "max_depth");
+            written_bytes += write_member(m_max_depth, out, child, "max_depth");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            util::read_member(m_size, in);
-            util::read_member(m_sigma, in);
+            read_member(m_size, in);
+            read_member(m_sigma, in);
             m_tree.load(in);
             m_tree_rank.load(in, &m_tree);
             m_tree_select1.load(in, &m_tree);
             m_tree_select0.load(in, &m_tree);
-            util::read_member(m_max_depth, in);
+            read_member(m_max_depth, in);
             init_buffers(m_max_depth);
         }
 };

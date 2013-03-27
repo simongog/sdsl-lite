@@ -587,9 +587,9 @@ class bp_support_g
             written_bytes += m_enclose.serialize(out, child, "enclose_answers");
             written_bytes += m_range_max_match.serialize(out, child, "rmq_answers");
 
-            written_bytes += util::write_member(m_block_size, out, child, "block_size");
-            written_bytes += util::write_member(m_size, out, child, "size");
-            written_bytes += util::write_member(m_blocks, out, child, "block_cnt");
+            written_bytes += write_member(m_block_size, out, child, "block_size");
+            written_bytes += write_member(m_size, out, child, "size");
+            written_bytes += write_member(m_blocks, out, child, "block_cnt");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -611,10 +611,10 @@ class bp_support_g
             m_match.load(in);
             m_enclose.load(in);
             m_range_max_match.load(in, &m_match);
-            util::read_member(m_block_size, in);
-            util::read_member(m_size, in);
+            read_member(m_block_size, in);
+            read_member(m_size, in);
             assert(m_size == bp->size());
-            util::read_member(m_blocks, in);
+            read_member(m_blocks, in);
         }
 };
 

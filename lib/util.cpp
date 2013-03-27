@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2009 Simon Gog
+    Copyright (C) 2009-2013 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,13 +16,12 @@
 */
 
 #include "sdsl/util.hpp"
-#include "sdsl/structure_tree.hpp"
-#include "sdsl/ram_fs.hpp"
 #include "cxxabi.h"
 #include <sys/types.h> // for file_size
 #include <sys/stat.h>  // for file_size
 #include <iomanip>
 #include <vector>
+#include <string>
 
 namespace sdsl
 {
@@ -65,6 +64,11 @@ std::string dirname(std::string file)
 uint64_t pid()
 {
     return getpid();
+}
+
+uint64_t id()
+{
+    return _id_helper::getId();
 }
 
 std::string demangle(const std::string& name)
@@ -123,72 +127,19 @@ std::string to_latex_string(unsigned char c)
         return to_string(c);
 }
 
-template<>
-size_t write_member<std::string>(const std::string& t, std::ostream& out, structure_tree_node* v, std::string name)
+//! Write stopwatch output in readable format
+void
+write_R_output(std::string data_structure, std::string action, std::string state, uint64_t times, uint64_t check)
 {
-    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(t));
-    size_t written_bytes = 0;
-    written_bytes += write_member(t.size(), out, child, "length");
-    out.write(t.c_str(), t.size());
-    written_bytes += t.size();
-    structure_tree::add_size(v, written_bytes);
-    return written_bytes;
-}
-
-template<>
-void read_member<std::string>(std::string& t, std::istream& in)
-{
-    std::string::size_type size;
-    read_member(size, in);
-    char* buf = new char[size];
-    in.read(buf, size);
-    std::string temp(buf, size);
-    delete [] buf;
-    t.swap(temp);
-}
-
-template<>
-bool load_from_file(void*& v, const std::string& file_name)
-{
-    return true;
-}
-
-bool load_from_file(char*& v, const std::string& file_name)
-{
-    if (v != NULL) {
-        delete [] v;
-        v = NULL;
+    if (util::verbose) {
+        util::stop_watch _sw;
+        _sw.stop();
+        std::cout << data_structure << "\t" << action << "\t" << state << "\t"
+                  << std::setw(9)<< times << "\t" << std::setw(9) << check << "\t"
+                  << std::setw(9) << _sw.abs_real_time() << "\t "
+                  << std::setw(9) << _sw.abs_user_time() << "\t"
+                  << std::setw(9) << _sw.abs_sys_time() << std::endl;
     }
-    isfstream in(file_name, std::ios::binary | std::ios::in);
-    if (in) {
-        const uint64_t SDSL_BLOCK_SIZE = (1<<20);
-        uint64_t n=0, read = 0;
-        char buf[SDSL_BLOCK_SIZE], *cp;
-        do {
-            in.read(buf, SDSL_BLOCK_SIZE);
-            read = in.gcount();
-            n+=read;
-        } while (SDSL_BLOCK_SIZE == read);
-        if (n==0)
-            return false;
-        v = new char[n+1];
-        in.close();
-        in.open(file_name.c_str());
-        if (!in) {
-            delete [] v;
-            v = NULL;
-            return false;
-        }
-        cp=v;
-        do {
-            in.read(cp, SDSL_BLOCK_SIZE);
-            read = in.gcount();
-            cp+= read;
-        } while (SDSL_BLOCK_SIZE == read);
-        *(v+n) = '\0';
-        return true;
-    } else
-        return false;
 }
 
 void set_verbose()
@@ -207,35 +158,19 @@ off_t file_size(const std::string& file)
     }
 }
 
-std::string cache_file_name(const std::string& key, const cache_config& config)
+stop_watch::stop_watch() : m_ruse1(), m_ruse2(), m_timeOfDay1(), m_timeOfDay2()
 {
-    return config.dir+"/"+key+"_"+config.id+".sdsl";
-}
-
-void register_cache_file(const std::string& key, cache_config& config)
-{
-    std::string file_name = cache_file_name(key, config);
-    isfstream in(file_name);
-    if (in) {  // if file exists, register it.
-        config.file_map[key] = file_name;
+    timeval t;
+    t.tv_sec = 0; t.tv_usec = 0;
+    m_ruse1.ru_utime = t; m_ruse1.ru_stime = t; // init m_ruse1
+    m_ruse2.ru_utime = t; m_ruse2.ru_stime = t; // init m_ruse2
+    m_timeOfDay1 = t; m_timeOfDay2 = t;
+    if (m_first_t.tv_sec == 0) {
+        gettimeofday(&m_first_t, 0);
     }
-}
-
-
-bool cache_file_exists(const std::string& key, const cache_config& config)
-{
-    std::string file_name = cache_file_name(key, config);
-    isfstream in(file_name);
-    if (in) {
-        in.close();
-        return true;
+    if (m_first_r.ru_utime.tv_sec == 0 and m_first_r.ru_utime.tv_usec ==0) {
+        getrusage(RUSAGE_SELF, &m_first_r);
     }
-    return false;
-}
-
-std::string tmp_file(const cache_config& config, std::string name_part)
-{
-    return config.dir+"/"+ to_string(pid()) + "_" + to_string(id()) + name_part + ".sdsl";
 }
 
 void stop_watch::start()
@@ -341,9 +276,6 @@ std::vector<std::string> paths_from_config_file(const std::string& file, const c
         return std::vector<std::string>();
     }
 }
-
-
-
 
 }// end namespace sdsl
 

@@ -277,8 +277,8 @@ class rrr_vector
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out, child, "size");
-            written_bytes += util::write_member(m_k, out, child, "k");
+            written_bytes += write_member(m_size, out, child, "size");
+            written_bytes += write_member(m_k, out, child, "k");
             written_bytes += m_bt.serialize(out, child, "bt");
             written_bytes += m_btnr.serialize(out, child, "btnr");
             written_bytes += m_btnrp.serialize(out, child, "btnrp");
@@ -290,8 +290,8 @@ class rrr_vector
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            util::read_member(m_size, in);
-            util::read_member(m_k, in);
+            read_member(m_size, in);
+            read_member(m_k, in);
             m_bt.load(in);
             m_btnr.load(in);
             m_btnrp.load(in);
@@ -427,7 +427,7 @@ class rank_support_rrr
 
         //! Load the data structure from a stream and set the supported vector.
         void load(std::istream& in, const bit_vector_type* v=NULL) {
-            util::read_member(m_k, in);
+            read_member(m_k, in);
             set_vector(v);
         }
 
@@ -435,7 +435,7 @@ class rank_support_rrr
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_k, out, child, "k");
+            written_bytes += write_member(m_k, out, child, "k");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -586,14 +586,14 @@ class select_support_rrr
         }
 
         void load(std::istream& in, const bit_vector_type* v=NULL) {
-            util::read_member(m_k, in);
+            read_member(m_k, in);
             set_vector(v);
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_k, out, child, "k");
+            written_bytes += write_member(m_k, out, child, "k");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }

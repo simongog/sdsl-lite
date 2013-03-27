@@ -174,9 +174,9 @@ inline void sorted_int_stack::pop()
 inline sorted_int_stack::size_type sorted_int_stack::serialize(std::ostream& out)const
 {
     size_type written_bytes = 0;
-    written_bytes += util::write_member(m_n);
-    written_bytes += util::write_member(m_top);
-    written_bytes += util::write_member(m_cnt);
+    written_bytes += write_member(m_n);
+    written_bytes += write_member(m_top);
+    written_bytes += write_member(m_cnt);
     written_bytes += m_stack.serialize(out);
     int_vector<sizeof(written_bytes)*8> v(m_overflow.size());
     for (size_type i=0; i<v.size(); ++i) v[i] = m_overflow[i];
@@ -186,9 +186,9 @@ inline sorted_int_stack::size_type sorted_int_stack::serialize(std::ostream& out
 
 inline void sorted_int_stack::load(std::istream& in)
 {
-    util::read_member(m_n, in);
-    util::read_member(m_top, in);
-    util::read_member(m_cnt, in);
+    read_member(m_n, in);
+    read_member(m_top, in);
+    read_member(m_cnt, in);
     m_stack.load(in);
     size_type t;
     int_vector<sizeof(t)*8> v(m_overflow.size());

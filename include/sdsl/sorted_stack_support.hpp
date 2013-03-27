@@ -160,18 +160,18 @@ inline void sorted_stack_support::pop()
 inline sorted_stack_support::size_type sorted_stack_support::serialize(std::ostream& out)const
 {
     size_type written_bytes = 0;
-    written_bytes += util::write_member(m_n, out);
-    written_bytes += util::write_member(m_top, out);
-    written_bytes += util::write_member(m_cnt, out);
+    written_bytes += write_member(m_n, out);
+    written_bytes += write_member(m_top, out);
+    written_bytes += write_member(m_cnt, out);
     written_bytes += m_stack.serialize(out);
     return written_bytes;
 }
 
 inline void sorted_stack_support::load(std::istream& in)
 {
-    util::read_member(m_n, in);
-    util::read_member(m_top, in);
-    util::read_member(m_cnt, in);
+    read_member(m_n, in);
+    read_member(m_top, in);
+    read_member(m_cnt, in);
     m_stack.load(in);
 }
 

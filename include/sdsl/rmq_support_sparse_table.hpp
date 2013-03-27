@@ -168,7 +168,7 @@ class rmq_support_sparse_table
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             size_type written_bytes = 0;
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-            written_bytes += util::write_member(m_k, out);
+            written_bytes += write_member(m_k, out);
             if (m_k > 0) {
                 assert(m_table != NULL);
                 for (size_type i=0; i < m_k; ++i)
@@ -180,7 +180,7 @@ class rmq_support_sparse_table
 
         void load(std::istream& in, const t_rac* v) {
             set_vector(v);
-            util::read_member(m_k, in);
+            read_member(m_k, in);
             if (m_k >0) {
                 if (m_table != NULL)
                     delete [] m_table;

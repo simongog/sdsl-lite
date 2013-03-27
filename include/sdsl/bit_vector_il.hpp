@@ -163,10 +163,10 @@ class bit_vector_il
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out, child, "size");
-            written_bytes += util::write_member(m_block_num, out, child, "block_num");
-            written_bytes += util::write_member(m_superblocks, out, child, "superblocks");
-            written_bytes += util::write_member(m_block_shift, out, child, "block_shift");
+            written_bytes += write_member(m_size, out, child, "size");
+            written_bytes += write_member(m_block_num, out, child, "block_num");
+            written_bytes += write_member(m_superblocks, out, child, "superblocks");
+            written_bytes += write_member(m_block_shift, out, child, "block_shift");
             written_bytes += m_data.serialize(out, child, "data");
             written_bytes += m_rank_samples.serialize(out, child, "rank_samples");
             structure_tree::add_size(child, written_bytes);
@@ -175,10 +175,10 @@ class bit_vector_il
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            util::read_member(m_size, in);
-            util::read_member(m_block_num, in);
-            util::read_member(m_superblocks, in);
-            util::read_member(m_block_shift, in);
+            read_member(m_size, in);
+            read_member(m_block_num, in);
+            read_member(m_superblocks, in);
+            read_member(m_block_shift, in);
             m_data.load(in);
             m_rank_samples.load(in);
         }
@@ -218,7 +218,7 @@ class rank_support_il
                 resp += bits::cnt(*B++);
                 bits -= 64;
             }
-            resp += bits::cnt(*B & bits::Li1Mask[rem]);
+            resp += bits::cnt(*B & bits::lo_set[rem]);
             return resp;
         }
 
@@ -234,7 +234,7 @@ class rank_support_il
                 resp += bits::cnt(~(*B)); B++;
                 bits -= 64;
             }
-            resp += bits::cnt((~(*B)) & bits::Li1Mask[rem]);
+            resp += bits::cnt((~(*B)) & bits::lo_set[rem]);
             return resp;
         }
 
@@ -279,7 +279,7 @@ class rank_support_il
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
-            return util::serialize_empty_object(out, v, name, this);
+            return serialize_empty_object(out, v, name, this);
         }
 };
 
@@ -437,7 +437,7 @@ class select_support_il
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
-            return util::serialize_empty_object(out, v, name, this);
+            return serialize_empty_object(out, v, name, this);
         }
 };
 

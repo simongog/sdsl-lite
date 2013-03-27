@@ -444,11 +444,11 @@ class sorter
             if (num_bytes == 0 and typeid(typename tIV::reference) == typeid(uint64_t)) {
                 DBG_OUT<<"sorter: use int_vector<64>"<<std::endl;
                 int_vector<> temp;
-                util::load_vector_from_file(temp, file_name, num_bytes);
+                load_vector_from_file(temp, file_name, num_bytes);
                 x.resize(temp.size());
                 for (size_type i=0; i<temp.size(); ++i) x[i] = temp[i];
             } else {
-                util::load_vector_from_file(x, file_name, num_bytes);
+                load_vector_from_file(x, file_name, num_bytes);
             }
             assert(x.size()>0);
             DBG_OUT<<"x.width()="<< (int)x.width() <<std::endl;
@@ -458,7 +458,7 @@ class sorter
                 return;
             }
 
-            int64_t max_symbol = 0, min_symbol = x.width() < 64 ? bits::Li1Mask[x.width()] : 0x7FFFFFFFFFFFFFFFLL;
+            int64_t max_symbol = 0, min_symbol = x.width() < 64 ? bits::lo_set[x.width()] : 0x7FFFFFFFFFFFFFFFLL;
 
             for (size_type i=0; i < x.size()-1; ++i) {
 //			if(i<10){
@@ -478,19 +478,15 @@ class sorter
             if (x[x.size()-1] > 0) {
                 throw std::logic_error("Last symbol is not 0-symbol. Suffix array can not be constructed.");
             }
-//if ( util::verbose ){
             DBG_OUT<<"sorter: min_symbol="<<min_symbol<<std::endl;
             DBG_OUT<<"sorter: max_symbol="<<max_symbol<<std::endl;
-//}
 
 //		x.resize(x.size()+1);
 //		x[x.size()-1] = 0;
             int64_t n = x.size()-1;
             DBG_OUT<<"x.size()-1="<<x.size()-1<<" n="<<n<<std::endl;
             uint8_t width = std::max(bits::hi(max_symbol)+2, bits::hi(n+1)+2);
-//if ( util::verbose ){
             DBG_OUT<<"sorter: width="<<(int)width<<" max_symbol_width="<<bits::hi(max_symbol)+1<<" n_width="<< bits::hi(n) <<std::endl;
-//}
             util::expand_width(x, width);
             sa = x;
             if (sa.width() < x.width()) {
@@ -500,14 +496,12 @@ class sorter
 
             m_msb = sa.width()-1;
             m_msb_mask = 1ULL<<m_msb;
-//if ( util::verbose ){
             DBG_OUT<<"sorter: m_msb="<< (int)m_msb <<" m_msb_mask="<<m_msb_mask<<std::endl;
-//}
 
             sort(x.begin(), sa.begin(), x.size()-1, max_symbol+1, min_symbol);
             /*
             		// TODO: move test code in test suite
-            		util::load_vector_from_file(x, file_name, num_bytes);
+            		load_vector_from_file(x, file_name, num_bytes);
 
             		// Naive check:
             		bool valid = true;

@@ -10,71 +10,73 @@
 
 using namespace sdsl;
 
-namespace {
+namespace
+{
 
 typedef int_vector<>::size_type size_type;
 typedef bit_vector bit_vector;
 std::vector<sdsl::tMSS>  test_cases_file_map;
 
 template<class T>
-class CstIntTest : public ::testing::Test {
+class CstIntTest : public ::testing::Test
+{
     protected:
-	CstIntTest() { }
-	virtual ~CstIntTest() { }
+        CstIntTest() { }
+        virtual ~CstIntTest() { }
 
-	virtual void SetUp() {
-		tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
+        virtual void SetUp() {
+            tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
 
 
-		std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
-		std::string config_file = prefix + "/CstIntTest.config";
-		std::string tc_prefix	= prefix + "/test_cases";
-		std::vector<std::string> read_test_cases;
-		read_test_cases = sdsl::paths_from_config_file(config_file, tc_prefix.c_str());
-		
-		for (size_t i=0; i < read_test_cases.size(); ++i){
-			std::string tc = read_test_cases[i];
-			size_t extentsion_len = 4;
-			bool valid = true;
-			if ( (valid = (tc.size() >= extentsion_len)) ){
-				std::string extension = tc.substr(tc.size()-extentsion_len, tc.size()-1);
-				if ( (valid = (extension == ".int" or extension == ".txt")) ){
-					test_cases.push_back(tc);
-					if ( extension == ".int" ){
-						num_bytes.push_back(8);
-					}else if ( extension == ".txt" ){
-						num_bytes.push_back(1);
-					} 
-				}
-			}
-			if ( !valid ) {
-				std::cerr << "Test case `"<<read_test_cases[i]<<"` was ignored." << std::endl;
-				std::cerr << "It did not have the extension `.int` or `.txt`" << std::endl;
-			}
-		}
+            std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
+            std::string config_file = prefix + "/CstIntTest.config";
+            std::string tc_prefix	= prefix + "/test_cases";
+            std::vector<std::string> read_test_cases;
+            read_test_cases = sdsl::paths_from_config_file(config_file, tc_prefix.c_str());
 
-		tmp_file = "cst_test_" + util::to_string(util::pid()) + "_";
-		if ( test_cases_file_map.size() == 0 ){
-			test_cases_file_map.resize(test_cases.size());
-		}
-	}
+            for (size_t i=0; i < read_test_cases.size(); ++i) {
+                std::string tc = read_test_cases[i];
+                size_t extentsion_len = 4;
+                bool valid = true;
+                if ((valid = (tc.size() >= extentsion_len))) {
+                    std::string extension = tc.substr(tc.size()-extentsion_len, tc.size()-1);
+                    if ((valid = (extension == ".int" or extension == ".txt"))) {
+                        test_cases.push_back(tc);
+                        if (extension == ".int") {
+                            num_bytes.push_back(8);
+                        } else if (extension == ".txt") {
+                            num_bytes.push_back(1);
+                        }
+                    }
+                }
+                if (!valid) {
+                    std::cerr << "Test case `"<<read_test_cases[i]<<"` was ignored." << std::endl;
+                    std::cerr << "It did not have the extension `.int` or `.txt`" << std::endl;
+                }
+            }
 
-	virtual void TearDown() { }
+            tmp_file = "cst_test_" + util::to_string(util::pid()) + "_";
+            if (test_cases_file_map.size() == 0) {
+                test_cases_file_map.resize(test_cases.size());
+            }
+        }
 
-	std::vector<std::string> test_cases;
-	std::vector<uint8_t> num_bytes;
-	std::string tmp_file;
-	std::string tmp_dir;
+        virtual void TearDown() { }
 
-	template<class Cst>
-	std::string get_tmp_file_name(const Cst& cst, size_type i) {
-		return tmp_dir + tmp_file + util::class_to_hash(cst) + "_" + util::basename(test_cases[i]);
-	}
+        std::vector<std::string> test_cases;
+        std::vector<uint8_t> num_bytes;
+        std::string tmp_file;
+        std::string tmp_dir;
 
-	template<class Cst>
-	bool load_cst(Cst& cst, size_type i) {
-		return util::load_from_file(cst, get_tmp_file_name(cst, i));
-	}
+        template<class Cst>
+        std::string get_tmp_file_name(const Cst& cst, size_type i) {
+            return tmp_dir + tmp_file + util::class_to_hash(cst) + "_" + util::basename(test_cases[i]);
+        }
+
+        template<class Cst>
+        bool load_cst(Cst& cst, size_type i) {
+            return load_from_file(cst, get_tmp_file_name(cst, i));
+        }
 };
 
 using testing::Types;
@@ -84,9 +86,9 @@ typedef csa_sada<enc_vector<>, 32, 32, text_order_sa_sampling<>, int_vector<>, i
 typedef csa_bitcompressed<int_alphabet_strategy<> > tCSA3;
 
 typedef Types<
-		 cst_sct3<tCSA1, lcp_bitcompressed<> >,
-		 cst_sct3<tCSA2, lcp_bitcompressed<> >,
-		 cst_sct3<tCSA3, lcp_bitcompressed<> >,
+cst_sct3<tCSA1, lcp_bitcompressed<> >,
+         cst_sct3<tCSA2, lcp_bitcompressed<> >,
+         cst_sct3<tCSA3, lcp_bitcompressed<> >,
          cst_sada<tCSA1, lcp_dac<> >,
          cst_sada<tCSA2, lcp_dac<> >,
          cst_sada<tCSA3, lcp_dac<> >,
@@ -113,26 +115,28 @@ typedef Types<
          cst_sada<tCSA3, lcp_support_tree2<> >,
          cst_sada<tCSA3, lcp_wt<> >,
          cst_sct3<tCSA3, lcp_support_tree<>, bp_support_g<> >,
-		 cst_sct3<tCSA3, lcp_bitcompressed<> >, 
+         cst_sct3<tCSA3, lcp_bitcompressed<> >,
          cst_sada<tCSA2, lcp_dac<>, bp_support_g<> >
          > Implementations;
 
 TYPED_TEST_CASE(CstIntTest, Implementations);
 
 
-TYPED_TEST(CstIntTest, CreateAndStoreTest){
+TYPED_TEST(CstIntTest, CreateAndStoreTest)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
-		cache_config config(false, this->tmp_dir, util::basename(this->test_cases[i]));
-		construct(cst, this->test_cases[i], config, this->num_bytes[i]);
-		test_cases_file_map[i] = config.file_map;
-        bool success = util::store_to_file(cst, this->get_tmp_file_name(cst, i));
+        cache_config config(false, this->tmp_dir, util::basename(this->test_cases[i]));
+        construct(cst, this->test_cases[i], config, this->num_bytes[i]);
+        test_cases_file_map[i] = config.file_map;
+        bool success = store_to_file(cst, this->get_tmp_file_name(cst, i));
         ASSERT_EQ(true, success);
     }
 }
 
 //! Test the swap method
-TYPED_TEST(CstIntTest, SwapMethod) {
+TYPED_TEST(CstIntTest, SwapMethod)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst1;
         ASSERT_EQ(true, this->load_cst(cst1, i));
@@ -149,7 +153,8 @@ TYPED_TEST(CstIntTest, SwapMethod) {
 }
 
 //! Test the node method
-TYPED_TEST(CstIntTest, NodeMethod) {
+TYPED_TEST(CstIntTest, NodeMethod)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
@@ -159,7 +164,8 @@ TYPED_TEST(CstIntTest, NodeMethod) {
 }
 
 //! Test basic methods
-TYPED_TEST(CstIntTest, BasicMethods) {
+TYPED_TEST(CstIntTest, BasicMethods)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
@@ -174,47 +180,57 @@ TYPED_TEST(CstIntTest, BasicMethods) {
     }
 }
 
-//! Test suffix array access 
-TYPED_TEST(CstIntTest, SaAccess) {
+//! Test suffix array access
+TYPED_TEST(CstIntTest, SaAccess)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
-		sdsl::int_vector<> sa;
-		sdsl::util::load_from_file(sa, test_cases_file_map[i][sdsl::constants::KEY_SA]);
+        sdsl::int_vector<> sa;
+        sdsl::load_from_file(sa, test_cases_file_map[i][sdsl::constants::KEY_SA]);
         size_type n = sa.size();
         ASSERT_EQ(n, cst.csa.size());
-        for (size_type j=0; j<n; ++j) { ASSERT_EQ(sa[j], cst.csa[j])<<" j="<<j; }
+        for (size_type j=0; j<n; ++j) {
+            ASSERT_EQ(sa[j], cst.csa[j])<<" j="<<j;
+        }
     }
 }
 
-//! Test BWT access 
-TYPED_TEST(CstIntTest, BwtAccess) {
+//! Test BWT access
+TYPED_TEST(CstIntTest, BwtAccess)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
-		sdsl::int_vector<> bwt;
-		sdsl::util::load_from_file(bwt, test_cases_file_map[i][sdsl::constants::KEY_BWT_INT]);
+        sdsl::int_vector<> bwt;
+        sdsl::load_from_file(bwt, test_cases_file_map[i][sdsl::constants::KEY_BWT_INT]);
         size_type n = bwt.size();
         ASSERT_EQ(n, cst.csa.bwt.size());
-        for (size_type j=0; j<n; ++j) { ASSERT_EQ(bwt[j], cst.csa.bwt[j])<<" j="<<j; }
+        for (size_type j=0; j<n; ++j) {
+            ASSERT_EQ(bwt[j], cst.csa.bwt[j])<<" j="<<j;
+        }
     }
 }
 
-//! Test LCP access 
-TYPED_TEST(CstIntTest, LcpAccess) {
+//! Test LCP access
+TYPED_TEST(CstIntTest, LcpAccess)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
-		sdsl::int_vector<> lcp;
-		sdsl::util::load_from_file(lcp, test_cases_file_map[i][sdsl::constants::KEY_LCP]);
+        sdsl::int_vector<> lcp;
+        sdsl::load_from_file(lcp, test_cases_file_map[i][sdsl::constants::KEY_LCP]);
         size_type n = lcp.size();
         ASSERT_EQ(n, cst.lcp.size());
-        for (size_type j=0; j<n; ++j) { ASSERT_EQ(lcp[j], cst.lcp[j])<<" j="<<j; }
+        for (size_type j=0; j<n; ++j) {
+            ASSERT_EQ(lcp[j], cst.lcp[j])<<" j="<<j;
+        }
     }
 }
 
 //! Test the id and inverse id method
-TYPED_TEST(CstIntTest, IdMethod) {
+TYPED_TEST(CstIntTest, IdMethod)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
@@ -223,7 +239,9 @@ TYPED_TEST(CstIntTest, IdMethod) {
         typedef typename TypeParam::node_type node_type;
         size_type node_count=0;
         for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it) {
-            if (it.visit() == 1) { ++node_count; }
+            if (it.visit() == 1) {
+                ++node_count;
+            }
         }
         // counted nodes should be equal to nodes
         ASSERT_EQ(node_count, cst.nodes());
@@ -242,7 +260,8 @@ TYPED_TEST(CstIntTest, IdMethod) {
     }
 }
 
-TYPED_TEST(CstIntTest, LcaMethod) {
+TYPED_TEST(CstIntTest, LcaMethod)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         ASSERT_EQ(true, this->load_cst(cst, i));
@@ -282,7 +301,8 @@ TYPED_TEST(CstIntTest, LcaMethod) {
 }
 
 //! Test the bottom-up iterator
-TYPED_TEST(CstIntTest, BottomUpIterator) {
+TYPED_TEST(CstIntTest, BottomUpIterator)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 //        TypeParam cst;
 //        ASSERT_EQ(this->load_cst(cst, i), true);
@@ -291,11 +311,12 @@ TYPED_TEST(CstIntTest, BottomUpIterator) {
     }
 }
 
-TYPED_TEST(CstIntTest, DeleteTest) {
+TYPED_TEST(CstIntTest, DeleteTest)
+{
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         TypeParam cst;
         std::remove(this->get_tmp_file_name(cst, i).c_str());
-		util::delete_all_files(test_cases_file_map[i]);	
+        util::delete_all_files(test_cases_file_map[i]);
     }
 }
 

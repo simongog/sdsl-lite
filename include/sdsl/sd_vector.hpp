@@ -117,7 +117,7 @@ class sd_vector
         sd_vector(const bit_vector& bv):high(m_high),low(m_low),
             high_1_select(m_high_1_select), high_0_select(m_high_0_select) {
             m_size = bv.size();
-            size_type m = util::get_one_bits(bv);
+            size_type m = util::cnt_one_bits(bv);
             uint8_t logm = bits::hi(m)+1;
             uint8_t logn = bits::hi(m_size)+1;
             if (logm == logn) {
@@ -168,7 +168,7 @@ class sd_vector
             size_type rank_low = sel_high - high_val;
             if (0 == rank_low)
                 return 0;
-            size_type val_low = i & bits::Li1Mask[ m_wl ]; // extract the low m_wl = log n -log m bits
+            size_type val_low = i & bits::lo_set[ m_wl ]; // extract the low m_wl = log n -log m bits
             --sel_high; --rank_low;
             while (m_high[sel_high] and m_low[rank_low] > val_low) {
                 if (sel_high > 0) {
@@ -207,8 +207,8 @@ class sd_vector
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out, child, "size");
-            written_bytes += util::write_member(m_wl, out, child, "wl");
+            written_bytes += write_member(m_size, out, child, "size");
+            written_bytes += write_member(m_wl, out, child, "wl");
             written_bytes += m_low.serialize(out, child, "low");
             written_bytes += m_high.serialize(out, child, "high");
             written_bytes += m_high_1_select.serialize(out, child, "high_1_select");
@@ -219,8 +219,8 @@ class sd_vector
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            util::read_member(m_size, in);
-            util::read_member(m_wl, in);
+            read_member(m_size, in);
+            read_member(m_wl, in);
             m_low.load(in);
             m_high.load(in);
             m_high_1_select.load(in, &m_high);
@@ -259,7 +259,7 @@ class rank_support_sd
             size_type rank_low = sel_high - high_val; //
             if (0 == rank_low)
                 return 0;
-            size_type val_low = i & bits::Li1Mask[ m_v->m_wl ];
+            size_type val_low = i & bits::lo_set[ m_v->m_wl ];
             // now since rank_low > 0 => sel_high > 0
             do {
                 if (!sel_high)
@@ -295,7 +295,7 @@ class rank_support_sd
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
-            return util::serialize_empty_object(out, v, name, this);
+            return serialize_empty_object(out, v, name, this);
         }
 };
 
@@ -353,7 +353,7 @@ class select_support_sd
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
-            return util::serialize_empty_object(out, v, name, this);
+            return serialize_empty_object(out, v, name, this);
         }
 };
 

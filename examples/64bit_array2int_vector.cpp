@@ -72,13 +72,13 @@ int main(int argc, char* argv[])
     free(buf);
     fclose(f);
     fclose(of);
-    util::load_from_file(v, ofile.c_str());
+    load_from_file(v, ofile);
     cout<<"v.size()="<<v.size()<<endl;
     cout<<"v[0]="<<v[0]<<endl;
     const bool do_check = false;
     if (do_check) {
         int_vector<> check;
-        util::load_vector_from_file(check, argv[1], BPI);
+        load_vector_from_file(check, argv[1], BPI);
         if (check.size() != v.size()) {
             cout<<"Vectors differ in size: "<<check.size()<<"!="<<v.size()<<endl;
             return 1;

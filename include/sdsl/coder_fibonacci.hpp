@@ -268,7 +268,7 @@ bool fibonacci::decode(const int_vector1& z, int_vector2& v)
         n += bits::b11Cnt(*data, carry);
     }
     if (z.capacity() != z.bit_size()) {
-        n += bits::b11Cnt((*data) & bits::Li1Mask[z.bit_size()&0x3F], carry);
+        n += bits::b11Cnt((*data) & bits::lo_set[z.bit_size()&0x3F], carry);
     } else {
         n += bits::b11Cnt(*data, carry);
     }

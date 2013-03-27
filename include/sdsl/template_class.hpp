@@ -69,8 +69,8 @@ class template_class
         // the number of written bytes.
         void serialize(std::ostream& out)const {
             size_type written_bytes = 0;
-            // variables of basic primitive types can be written using util::write_member
-            written_bytes += util::write_member(m_size, out);
+            // variables of basic primitive types can be written using write_member
+            written_bytes += write_member(m_size, out);
             // other sdsl classes can be written by calling their serialize method
             written_bytes += m_data.serialize(out);
             return written_bytes;
@@ -79,8 +79,8 @@ class template_class
         // The load method reads the data structure from a stream ``in''. Note that
         // the members have to be read in the same order in which they were written.
         void load(std::istream& in) {
-            // variables of basic primitive types can be read using util::read_member
-            util::read_member(m_size, in);
+            // variables of basic primitive types can be read using read_member
+            read_member(m_size, in);
             // other sdsl classes can be read by calling their load method
             m_data.load(in);
         }

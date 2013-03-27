@@ -35,7 +35,7 @@ void insert_lcp_values(int_vector<>& partial_lcp, bit_vector& index_done, std::s
     // Write values into buffer
     for (size_type i=0, r_sum=0, calc_idx=0, r=0; r_sum < n;) {
         // Copy next r values into buffer
-        util::set_zero_bits(out_buf); // initialize buffer with zeros
+        util::set_to_value(out_buf, 0); // initialize buffer with zeros
         for (; i < r_sum+r; ++i) {
             // If values was already calculated
             if (index_done[i]) {
@@ -71,54 +71,54 @@ buffered_char_queue::buffered_char_queue():m_widx(0), m_ridx(0), m_sync(true), m
 
 void buffered_char_queue::init(const std::string& dir, char c)
 {
-   m_c = c;
-   m_file_name = dir+"buffered_char_queue_"+util::to_string(util::pid());
+    m_c = c;
+    m_file_name = dir+"buffered_char_queue_"+util::to_string(util::pid());
 //		m_stream.rdbuf()->pubsetbuf(0, 0);
 }
 
 buffered_char_queue::~buffered_char_queue()
 {
-   m_stream.close();
-   std::remove(m_file_name.c_str());
+    m_stream.close();
+    std::remove(m_file_name.c_str());
 }
 
 void buffered_char_queue::push_back(uint8_t x)
 {
-   m_write_buf[m_widx] = x;
-   if (m_sync) {
-       m_read_buf[m_widx] = x;
-   }
-   ++m_widx;
-   if (m_widx == m_buffer_size) {
-       if (!m_sync) { // if not sync, write block to disk
-           if (!m_stream.is_open()) {
-               m_stream.open(m_file_name.c_str(), std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
-           }
-           m_stream.seekp(m_buffer_size * (m_wb++), std::ios::beg);
-           m_stream.write((char*) m_write_buf, m_buffer_size);
-           ++m_disk_buffered_blocks;
-       }
-       m_sync = 0;
-       m_widx = 0;
-   }
+    m_write_buf[m_widx] = x;
+    if (m_sync) {
+        m_read_buf[m_widx] = x;
+    }
+    ++m_widx;
+    if (m_widx == m_buffer_size) {
+        if (!m_sync) { // if not sync, write block to disk
+            if (!m_stream.is_open()) {
+                m_stream.open(m_file_name.c_str(), std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+            }
+            m_stream.seekp(m_buffer_size * (m_wb++), std::ios::beg);
+            m_stream.write((char*) m_write_buf, m_buffer_size);
+            ++m_disk_buffered_blocks;
+        }
+        m_sync = 0;
+        m_widx = 0;
+    }
 }
 
 uint8_t buffered_char_queue::pop_front()
 {
-   uint8_t x = m_read_buf[m_ridx];
-   ++m_ridx;
-   if (m_ridx ==  m_buffer_size) {
-       if (m_disk_buffered_blocks > 0) {
-           m_stream.seekg(m_buffer_size * (m_rb++), std::ios::beg);
-           m_stream.read((char*) m_read_buf, m_buffer_size);
-           --m_disk_buffered_blocks;
-       } else { // m_disk_buffered_blocks == 0
-           m_sync = 1;
-           memcpy(m_read_buf, m_write_buf, m_widx+1);
-       }
-       m_ridx = 0;
-   }
-   return x;
+    uint8_t x = m_read_buf[m_ridx];
+    ++m_ridx;
+    if (m_ridx ==  m_buffer_size) {
+        if (m_disk_buffered_blocks > 0) {
+            m_stream.seekg(m_buffer_size * (m_rb++), std::ios::beg);
+            m_stream.read((char*) m_read_buf, m_buffer_size);
+            --m_disk_buffered_blocks;
+        } else { // m_disk_buffered_blocks == 0
+            m_sync = 1;
+            memcpy(m_read_buf, m_write_buf, m_widx+1);
+        }
+        m_ridx = 0;
+    }
+    return x;
 }
 
 } // end namespace sdsl

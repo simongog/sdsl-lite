@@ -71,9 +71,9 @@ struct _node {
     size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
         structure_tree_node* st_child = structure_tree::add_child(v, name, util::class_name(*this));
         size_type written_bytes = 0;
-        written_bytes += util::write_member(tree_pos, out);
-        written_bytes += util::write_member(tree_pos_rank, out);
-        written_bytes += util::write_member(parent, out);
+        written_bytes += write_member(tree_pos, out);
+        written_bytes += write_member(tree_pos_rank, out);
+        written_bytes += write_member(parent, out);
         out.write((char*)child, 2*sizeof(child[0]));
         written_bytes += 2*sizeof(child[0]);
         structure_tree::add_size(st_child, written_bytes);
@@ -81,9 +81,9 @@ struct _node {
     }
 
     void load(std::istream& in) {
-        util::read_member(tree_pos, in);
-        util::read_member(tree_pos_rank, in);
-        util::read_member(parent, in);
+        read_member(tree_pos, in);
+        read_member(tree_pos_rank, in);
+        read_member(parent, in);
         in.read((char*) child, 2*sizeof(child[0]));
     }
 };
@@ -623,8 +623,8 @@ class wt_huff
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out, child, "size");
-            written_bytes += util::write_member(m_sigma, out, child, "sigma");
+            written_bytes += write_member(m_size, out, child, "size");
+            written_bytes += write_member(m_sigma, out, child, "sigma");
             written_bytes += m_tree.serialize(out, child, "tree");
             written_bytes += m_tree_rank.serialize(out, child, "tree_rank");
             written_bytes += m_tree_select1.serialize(out, child, "tree_select_1");
@@ -642,8 +642,8 @@ class wt_huff
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            util::read_member(m_size, in);
-            util::read_member(m_sigma, in);
+            read_member(m_size, in);
+            read_member(m_sigma, in);
             m_tree.load(in);
             m_tree_rank.load(in, &m_tree);
             m_tree_select1.load(in, &m_tree);
