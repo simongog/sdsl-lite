@@ -250,7 +250,6 @@ void construct_lcp_semi_extern_PHI(cache_config& config)
    // return;
 // }
 
-// bool construct_lcp_go(tMSS& file_map, const std::string& dir, const std::string& id)
 void construct_lcp_go(cache_config& config)
 {
    typedef int_vector<>::size_type size_type;
@@ -612,7 +611,6 @@ void construct_lcp_go(cache_config& config)
    return;
 }
 
-// bool construct_lcp_goPHI(tMSS& file_map, const std::string& dir, const std::string& id)
 void construct_lcp_goPHI(cache_config& config)
 {
    typedef int_vector<>::size_type size_type;
@@ -931,7 +929,6 @@ void construct_lcp_goPHI(cache_config& config)
    return;
 }
 
-// bool construct_lcp_go2(tMSS& file_map, const std::string& dir, const std::string& id)
 // void construct_lcp_go2(cache_config& config)
 // {
    // typedef int_vector<>::size_type size_type;
@@ -1790,28 +1787,5 @@ void construct_lcp_bwt_based2(cache_config& config)
     } // End of phase 2
     write_R_output("lcp","construct LCP    ","end", 1, 0);
 }
-
-void lcp_info(tMSS& file_map)
-{
-    typedef int_vector<>::size_type size_type;
-    int_vector_file_buffer<> lcp_buf(file_map[constants::KEY_LCP]);
-    size_type n = lcp_buf.int_vector_size;
-
-    size_type max_lcp = 0;
-    size_type sum_lcp = 0;
-    for (size_type i=0, r_sum=0, r=0; i < n;) {
-        for (; i < r_sum+r; ++i) {
-            if (lcp_buf[i-r_sum] > max_lcp)
-                max_lcp = lcp_buf[i-r_sum];
-            sum_lcp += lcp_buf[i-r_sum];
-        }
-        r_sum += r; r = lcp_buf.load_next_block();
-    }
-    std::cout<<"# max lcp = " << max_lcp << std::endl;
-    std::cout<<"# sum lcp = " << sum_lcp << std::endl;
-    std::cout<<"# avg lcp = " << sum_lcp/(double)n << std::endl;
-}
-
-
 
 } // end namespace sdsl
