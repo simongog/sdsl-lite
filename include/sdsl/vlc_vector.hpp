@@ -296,7 +296,7 @@ vlc_vector<>::size_type vlc_vector<t_coder, t_dens,t_width>::serialize(std::ostr
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    written_bytes += util::write_member(m_size, out, child, "m_size");
+    written_bytes += write_member(m_size, out, child, "m_size");
     written_bytes += m_z.serialize(out, child, "m_z");
     written_bytes += m_sample_pointer.serialize(out, child, "m_sample_pointer");
     structure_tree::add_size(child, written_bytes);
@@ -306,7 +306,7 @@ vlc_vector<>::size_type vlc_vector<t_coder, t_dens,t_width>::serialize(std::ostr
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 void vlc_vector<t_coder, t_dens,t_width>::load(std::istream& in)
 {
-    in.read((char*) &m_size, sizeof(m_size));
+    read_member(m_size, in);
     m_z.load(in);
     m_sample_pointer.load(in);
 }

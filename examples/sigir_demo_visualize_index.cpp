@@ -226,33 +226,34 @@ string create_js_body(const std::string& jsonsize)
 
 
 
-int main(int argc, char **argv){
-	if( argc <  2 ){
-		cout << "Usage " << argv[0] << " text_file" << endl;
-		cout << "      This program generates a visualization of the" << endl;
-		cout << "      components of the FM-index of type" << endl;
-		cout << "      csa_wt<wt_huff<rrr_vector<255> >, 512, 1024>" << endl;
-		cout << "      constructed for the input text_file." << endl;
-		cout << "      The output is stored as text_file.html." << endl;
-		return 1;
-	}
-	string index_suffix = ".fm9";
-	string index_file   = string(argv[1])+index_suffix;
-	csa_wt<wt_huff<rrr_vector<255> >, 512, 1024> fm_index;
+int main(int argc, char** argv)
+{
+    if (argc <  2) {
+        cout << "Usage " << argv[0] << " text_file" << endl;
+        cout << "      This program generates a visualization of the" << endl;
+        cout << "      components of the FM-index of type" << endl;
+        cout << "      csa_wt<wt_huff<rrr_vector<255> >, 512, 1024>" << endl;
+        cout << "      constructed for the input text_file." << endl;
+        cout << "      The output is stored as text_file.html." << endl;
+        return 1;
+    }
+    string index_suffix = ".fm9";
+    string index_file   = string(argv[1])+index_suffix;
+    csa_wt<wt_huff<rrr_vector<255> >, 512, 1024> fm_index;
 
-	if( !util::load_from_file(fm_index, index_file.c_str()) ){
-		cout << "Index file "<< index_file << " not found." << endl;
-		cout << "Please generate it by running " << endl;
-		cout << "./sigir_demo_fm_index " << argv[1] << endl;
-		return 1;
-	}
-	stringstream json;
-	util::write_structure<JSON_FORMAT>(fm_index, json);
-	string html = "";
-	html += create_html_header(argv[1]);
-	html += create_js_body(json.str());
+    if (!load_from_file(fm_index, index_file)) {
+        cout << "Index file "<< index_file << " not found." << endl;
+        cout << "Please generate it by running " << endl;
+        cout << "./sigir_demo_fm_index " << argv[1] << endl;
+        return 1;
+    }
+    stringstream json;
+    write_structure<JSON_FORMAT>(fm_index, json);
+    string html = "";
+    html += create_html_header(argv[1]);
+    html += create_js_body(json.str());
 
-	ofstream html_file( (string(argv[1])+".html").c_str() );
-	html_file << html;
+    osfstream html_file(string(argv[1])+".html");
+    html_file << html;
 }
 

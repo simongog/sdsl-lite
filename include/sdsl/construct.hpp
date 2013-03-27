@@ -67,7 +67,7 @@ template<class t_index, class t_data>
 void construct_im(t_index& idx, t_data data, uint8_t num_bytes=0)
 {
     std::string tmp_file = ram_file_name(util::to_string(util::pid())+"_"+util::to_string(util::id()));
-    util::store_to_file(data, tmp_file);
+    store_to_file(data, tmp_file);
     construct(idx, tmp_file, num_bytes);
     ram_fs::remove(tmp_file);
 }
@@ -95,10 +95,10 @@ template<class t_index>
 void construct(t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes, wt_tag)
 {
     int_vector<t_index::alphabet_category::WIDTH> text;
-    util::load_vector_from_file(text, file, num_bytes);
+    load_vector_from_file(text, file, num_bytes);
     std::string tmp_key = util::to_string(util::pid())+"_"+util::to_string(util::id());
-    std::string tmp_file_name = util::cache_file_name(tmp_key, config);
-    util::store_to_file(text, tmp_file_name);
+    std::string tmp_file_name = cache_file_name(tmp_key, config);
+    store_to_file(text, tmp_file_name);
     util::clear(text);
     int_vector_file_buffer<t_index::alphabet_category::WIDTH> text_buf(tmp_file_name);
     {
@@ -117,29 +117,29 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     typedef int_vector<t_index::alphabet_category::WIDTH> text_type;
     {
         // (1) check, if the text is cached
-        if (!util::cache_file_exists(KEY_TEXT, config)) {
+        if (!cache_file_exists(KEY_TEXT, config)) {
             text_type text;
-            util::load_vector_from_file(text, file, num_bytes);
+            load_vector_from_file(text, file, num_bytes);
             if (contains_no_zero_symbol(text, file)) {
                 append_zero_symbol(text);
-                util::store_to_cache(text, KEY_TEXT, config);
+                store_to_cache(text, KEY_TEXT, config);
             }
         }
-        util::register_cache_file(KEY_TEXT, config);
+        register_cache_file(KEY_TEXT, config);
     }
     {
         // (2) check, if the suffix array is cached
-        if (!util::cache_file_exists(constants::KEY_SA, config)) {
+        if (!cache_file_exists(constants::KEY_SA, config)) {
             construct_sa<t_index::alphabet_category::WIDTH>(config);
         }
-        util::register_cache_file(constants::KEY_SA, config);
+        register_cache_file(constants::KEY_SA, config);
     }
     {
         //  (3) construct BWT
-        if (!util::cache_file_exists(KEY_BWT, config)) {
+        if (!cache_file_exists(KEY_BWT, config)) {
             construct_bwt<t_index::alphabet_category::WIDTH>(config);
         }
-        util::register_cache_file(KEY_BWT, config);
+        register_cache_file(KEY_BWT, config);
     }
     {
         t_index tmp(config);
@@ -160,23 +160,23 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     {
         // (1) check, if the compressed suffix array is cached
         typename t_index::csa_type csa;
-        if (!util::cache_file_exists(util::class_to_hash(csa), config)) {
+        if (!cache_file_exists(util::class_to_hash(csa), config)) {
             cache_config csa_config(false, config.dir, config.id, config.file_map);
             construct(csa, file, csa_config, num_bytes, csa_t);
             config.file_map = csa_config.file_map;
-            util::store_to_cache(csa, util::class_to_hash(csa), config);
+            store_to_cache(csa, util::class_to_hash(csa), config);
         }
-        util::register_cache_file(util::class_to_hash(csa), config);
+        register_cache_file(util::class_to_hash(csa), config);
     }
     {
         // (2) check, if the longest common prefix array is cached
-        util::register_cache_file(KEY_TEXT, config);
-        util::register_cache_file(KEY_BWT, config);
-        util::register_cache_file(constants::KEY_SA, config);
-        if (!util::cache_file_exists(constants::KEY_LCP, config)) {
+        register_cache_file(KEY_TEXT, config);
+        register_cache_file(KEY_BWT, config);
+        register_cache_file(constants::KEY_SA, config);
+        if (!cache_file_exists(constants::KEY_LCP, config)) {
             construct_lcp_PHI<t_index::alphabet_category::WIDTH>(config);
         }
-        util::register_cache_file(constants::KEY_LCP, config);
+        register_cache_file(constants::KEY_LCP, config);
     }
     {
         t_index tmp(config);

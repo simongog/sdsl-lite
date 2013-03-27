@@ -124,13 +124,13 @@ struct select_support_trait<0,1> {
     typedef select_support::size_type	size_type;
 
     static size_type arg_cnt(const bit_vector& v) {
-        return v.bit_size()-util::get_one_bits(v);
+        return v.bit_size()-util::cnt_one_bits(v);
     }
     static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t) {
-        return bits::cnt((~w)& bits::Li0Mask[offset]);
+        return bits::cnt((~w)& bits::lo_unset[offset]);
     }
     static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t) {
-        return bits::sel(~w & bits::Li0Mask[offset], i);
+        return bits::sel(~w & bits::lo_unset[offset], i);
     }
     static size_type args_in_the_word(uint64_t w, uint64_t&) {
         return bits::cnt(~w);
@@ -154,13 +154,13 @@ struct select_support_trait<1,1> {
     typedef select_support::size_type	size_type;
 
     static size_type arg_cnt(const bit_vector& v) {
-        return util::get_one_bits(v);
+        return util::cnt_one_bits(v);
     }
     static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t) {
-        return bits::cnt(w & bits::Li0Mask[offset]);
+        return bits::cnt(w & bits::lo_unset[offset]);
     }
     static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t) {
-        return bits::sel(w & bits::Li0Mask[offset], i);
+        return bits::sel(w & bits::lo_unset[offset], i);
     }
     static size_type args_in_the_word(uint64_t w, uint64_t&) {
         return bits::cnt(w);
@@ -184,13 +184,13 @@ struct select_support_trait<10,2> {
     typedef select_support::size_type	size_type;
 
     static size_type arg_cnt(const bit_vector& v) {
-        return util::get_onezero_bits(v);
+        return util::cnt_onezero_bits(v);
     }
     static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry) {
-        return bits::cnt(bits::b10Map(w, carry) & bits::Li0Mask[offset]);
+        return bits::cnt(bits::b10Map(w, carry) & bits::lo_unset[offset]);
     }
     static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry) {
-        return bits::sel(bits::b10Map(w, carry) & bits::Li0Mask[offset], i);
+        return bits::sel(bits::b10Map(w, carry) & bits::lo_unset[offset], i);
     }
     static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
         return bits::b10Cnt(w, carry);
@@ -216,13 +216,13 @@ struct select_support_trait<01,2> {
     typedef select_support::size_type	size_type;
 
     static size_type arg_cnt(const bit_vector& v) {
-        return util::get_zeroone_bits(v);
+        return util::cnt_zeroone_bits(v);
     }
     static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry) {
-        return bits::cnt(bits::b01Map(w, carry) & bits::Li0Mask[offset]);
+        return bits::cnt(bits::b01Map(w, carry) & bits::lo_unset[offset]);
     }
     static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry) {
-        return bits::sel(bits::b01Map(w, carry) & bits::Li0Mask[offset], i);
+        return bits::sel(bits::b01Map(w, carry) & bits::lo_unset[offset], i);
     }
     static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
         return bits::b01Cnt(w, carry);

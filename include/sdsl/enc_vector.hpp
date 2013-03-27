@@ -258,7 +258,7 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c) : m_size(0)
         else
             m_sample_vals_and_pointer.width(bits::hi(z_size+1) + 1);
         m_sample_vals_and_pointer.resize(2*samples+2); // add 2 for last entry
-        util::set_zero_bits(m_sample_vals_and_pointer);
+        util::set_to_value(m_sample_vals_and_pointer, 0);
         typename int_vector_type::iterator sv_it = m_sample_vals_and_pointer.begin();
         z_size = 0;
         size_type no_sample=0;
@@ -331,7 +331,7 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width
     else
         m_sample_vals_and_pointer.width(bits::hi(z_size+1) + 1);
     m_sample_vals_and_pointer.resize(2*samples+2); // add 2 for last entry
-    util::set_zero_bits(m_sample_vals_and_pointer);
+    util::set_to_value(m_sample_vals_and_pointer, 0);
 
 //    (b) Initilize bit_vector for encoded data
     util::assign(m_z, int_vector<>(z_size, 0, 1));
@@ -365,7 +365,7 @@ enc_vector<>::size_type enc_vector<t_coder, t_dens,t_width>::serialize(std::ostr
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    written_bytes += util::write_member(m_size, out, child, "size");
+    written_bytes += write_member(m_size, out, child, "size");
     written_bytes += m_z.serialize(out, child, "encoded deltas");
     written_bytes += m_sample_vals_and_pointer.serialize(out, child, "samples_and_pointers");
     structure_tree::add_size(child, written_bytes);
@@ -375,7 +375,7 @@ enc_vector<>::size_type enc_vector<t_coder, t_dens,t_width>::serialize(std::ostr
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 void enc_vector<t_coder, t_dens,t_width>::load(std::istream& in)
 {
-    util::read_member(m_size, in);
+    read_member(m_size, in);
     m_z.load(in);
     m_sample_vals_and_pointer.load(in);
 }

@@ -166,11 +166,11 @@ _lcp_support_sada<t_csa, t_bitvec, t_select>::_lcp_support_sada(cache_config& co
     typedef typename t_csa::size_type size_type;
     set_csa(f_csa);
     int_vector<> lcp;
-    util::load_from_file(lcp, util::cache_file_name(constants::KEY_LCP, config));
-    if (!util::cache_file_exists(constants::KEY_ISA, config)) {
+    load_from_file(lcp, cache_file_name(constants::KEY_LCP, config));
+    if (!cache_file_exists(constants::KEY_ISA, config)) {
         construct_isa(config);
     }
-    int_vector_file_buffer<> isa_buf(util::cache_file_name(constants::KEY_ISA, config));
+    int_vector_file_buffer<> isa_buf(cache_file_name(constants::KEY_ISA, config));
     size_type n = lcp.size();
     bit_vector data = bit_vector(2*n, 0);
     size_type data_cnt=0;

@@ -141,7 +141,7 @@ lcp_vlc<t_vlc_vec>::lcp_vlc(cache_config& config, std::string other_key)
     if ("" != other_key) {
         lcp_key = other_key;
     }
-    int_vector_file_buffer<> lcp_buf(util::cache_file_name(lcp_key, config));
+    int_vector_file_buffer<> lcp_buf(cache_file_name(lcp_key, config));
     vlc_vec_type tmp_vec(lcp_buf);
     m_vec.swap(tmp_vec);
 }

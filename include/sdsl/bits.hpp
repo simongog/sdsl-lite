@@ -79,11 +79,15 @@ class bits
          */
         static const uint32_t L1BP[256];
 
-        //! An array with entry i containing a 64bit integer with the last i bits set.
-        static const uint64_t Li1Mask[65];
+        //! lo_set[i] is a 64-bit word with the i least significant bits set and the high bits not set.
+        /*! lo_set[0] = 0ULL, lo_set[1]=1ULL, lo_set[2]=3ULL...
+         */
+        static const uint64_t lo_set[65];
 
-        //! An array with entry i containing a 64bit integer with the last i bits not set.
-        static const uint64_t Li0Mask[65];
+        //! lo_unset[i] is a 64-bit word with the i least significant bits not set and the high bits set.
+        /*! lo_unset[0] = FFFFFFFFFFFFFFFFULL, lo_unset_set[1]=FFFFFFFFFFFFFFFEULL, ...
+         */
+        static const uint64_t lo_unset[65];
 
         static const uint8_t lookuplo[256];
 
@@ -1328,20 +1332,20 @@ inline uint32_t bits::eI11BP(uint64_t x, uint32_t i)
 
 inline void bits::write_int(uint64_t* word, uint64_t x, uint8_t offset, const uint8_t len)
 {
-    x &= bits::Li1Mask[len];
+    x &= bits::lo_set[len];
     if (offset + len < 64) {
         *word &=
-            ((bits::All1Mask << (offset+len)) | bits::Li1Mask[offset]); // mask 1..10..01..1
+            ((bits::All1Mask << (offset+len)) | bits::lo_set[offset]); // mask 1..10..01..1
         *word |= (x << offset);
-//		*word ^= ((*word ^ x) & (bits::Li1Mask[len] << offset) );
+//		*word ^= ((*word ^ x) & (bits::lo_set[len] << offset) );
 //      surprisingly the above line is slower than the lines above
     } else {
         *word &=
-            ((bits::Li1Mask[offset]));  // mask 0....01..1
+            ((bits::lo_set[offset]));  // mask 0....01..1
         *word |= (x << offset);
         if ((offset = (offset+len)&0x3F)) { // offset+len > 64
-            *(word+1) &= (~bits::Li1Mask[offset]); // mask 1...10..0
-//			*(word+1) &= bits::Li0Mask[offset]; // mask 1...10..0
+            *(word+1) &= (~bits::lo_set[offset]); // mask 1...10..0
+//			*(word+1) &= bits::lo_unset[offset]; // mask 1...10..0
 //          surprisingly the above line is slower than the line above
             *(word+1) |= (x >> (len-offset));
         }
@@ -1350,28 +1354,28 @@ inline void bits::write_int(uint64_t* word, uint64_t x, uint8_t offset, const ui
 
 //inline void bits::writeInt2(uint64_t *word, uint64_t x, uint8_t offset, const uint8_t len){
 //	*word ^= ((x)& 111ULL << offset);
-//	*word ^= ((*word ^ x)& bits::Li1Mask[len] << offset);
+//	*word ^= ((*word ^ x)& bits::lo_set[len] << offset);
 //	if( offset + len > 64 ){
 //		offset = offset + len - 64;
-//		*(word+1) ^= (( *(word+1) ^ (x >> (len-offset)) ) & bits::Li1Mask[offset]);
+//		*(word+1) ^= (( *(word+1) ^ (x >> (len-offset)) ) & bits::lo_set[offset]);
 //	}
 //}
 
 inline void bits::write_int_and_move(uint64_t*& word, uint64_t x, uint8_t& offset, const uint8_t len)
 {
-    x &= bits::Li1Mask[len];
+    x &= bits::lo_set[len];
     if (offset + len < 64) {
         *word &=
-            ((bits::All1Mask << (offset+len)) | bits::Li1Mask[offset]); // mask 1..10..01..1
+            ((bits::All1Mask << (offset+len)) | bits::lo_set[offset]); // mask 1..10..01..1
         *word |= (x << offset);
         offset += len;
     } else {
         *word &=
-            ((bits::Li1Mask[offset]));  // mask 0....01..1
+            ((bits::lo_set[offset]));  // mask 0....01..1
         *word |= (x << offset);
         if ((offset= (offset+len))>64) {// offset+len >= 64
             offset &= 0x3F;
-            *(++word) &= (~bits::Li1Mask[offset]); // mask 1...10..0
+            *(++word) &= (~bits::lo_set[offset]); // mask 1...10..0
             *word |= (x >> (len-offset));
         } else {
             offset = 0;
@@ -1385,10 +1389,10 @@ inline uint64_t bits::read_int(const uint64_t* word, uint8_t offset, const uint8
     uint64_t w1 = (*word)>>offset;
     if ((offset+len) > 64) { // if offset+len > 64
         return w1 |  // w1 or w2 adepted:
-               ((*(word+1) & bits::Li1Mask[(offset+len)&0x3F])   // set higher bits zero
+               ((*(word+1) & bits::lo_set[(offset+len)&0x3F])   // set higher bits zero
                 << (64-offset));  // move bits to the left
     } else {
-        return w1 & bits::Li1Mask[len];
+        return w1 & bits::lo_set[len];
     }
 }
 
@@ -1403,10 +1407,10 @@ inline uint64_t bits::read_int_and_move(const uint64_t*& word, uint8_t& offset, 
         } else {
             offset &= 0x3F;
             return w1 |
-                   (((*(++word)) & bits::Li1Mask[offset]) << (len-offset));
+                   (((*(++word)) & bits::lo_set[offset]) << (len-offset));
         }
     } else {
-        return w1 & bits::Li1Mask[len];
+        return w1 & bits::lo_set[len];
     }
 }
 
@@ -1474,8 +1478,8 @@ inline void bits::move_left(const uint64_t*& word, uint8_t& offset, const uint8_
 inline uint64_t bits::next(const uint64_t* word, uint64_t idx)
 {
     word += (idx>>6);
-    if (*word & ~Li1Mask[idx&0x3F]) {
-        return (idx & ~((size_t)0x3F)) + lo(*word & ~Li1Mask[idx&0x3F]);
+    if (*word & ~lo_set[idx&0x3F]) {
+        return (idx & ~((size_t)0x3F)) + lo(*word & ~lo_set[idx&0x3F]);
     }
     idx = (idx & ~((size_t)0x3F)) + 64;
     ++word;
@@ -1489,8 +1493,8 @@ inline uint64_t bits::next(const uint64_t* word, uint64_t idx)
 inline uint64_t bits::prev(const uint64_t* word, uint64_t idx)
 {
     word += (idx>>6);
-    if (*word & Li1Mask[(idx&0x3F)+1]) {
-        return (idx & ~((size_t)0x3F)) + hi(*word & Li1Mask[(idx&0x3F)+1]);
+    if (*word & lo_set[(idx&0x3F)+1]) {
+        return (idx & ~((size_t)0x3F)) + hi(*word & lo_set[(idx&0x3F)+1]);
     }
     idx = (idx & ~((size_t)0x3F)) - 64;
     --word;

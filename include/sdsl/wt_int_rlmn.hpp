@@ -351,7 +351,7 @@ class wt_int_rlmn
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_size, out, child, "size");
+            written_bytes += write_member(m_size, out, child, "size");
             written_bytes += m_bl.serialize(out, child, "bl");
             written_bytes += m_bf.serialize(out, child, "bf");
             written_bytes += m_wt.serialize(out, child, "wt");
@@ -367,7 +367,7 @@ class wt_int_rlmn
 
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
-            util::read_member(m_size, in);
+            read_member(m_size, in);
             m_bl.load(in);
             m_bf.load(in);
             m_wt.load(in);

@@ -126,7 +126,7 @@ class lcp_bitcompressed
 template<uint8_t t_width>
 lcp_bitcompressed<t_width>::lcp_bitcompressed(cache_config& config)
 {
-    int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config));
+    int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
     m_lcp = int_vector<t_width>(lcp_buf.int_vector_size, 0, lcp_buf.width);
     for (size_type i=0, r_sum=0, r = lcp_buf.load_next_block(); r_sum < m_lcp.size();) {
         for (; i < r_sum+r; ++i) {
