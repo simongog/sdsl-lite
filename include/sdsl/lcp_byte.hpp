@@ -155,7 +155,7 @@ class lcp_byte
 template<uint8_t t_width>
 lcp_byte<t_width>::lcp_byte(cache_config& config)
 {
-    int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config));
+    int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
     m_small_lcp = int_vector<8>(lcp_buf.int_vector_size);
     typename int_vector<>::size_type l=0, max_l=0, max_big_idx=0, big_sum=0;
 

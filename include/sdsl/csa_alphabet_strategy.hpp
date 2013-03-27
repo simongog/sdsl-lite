@@ -306,7 +306,7 @@ class succinct_byte_alphabet_strategy
             written_bytes += m_char_rank.serialize(out, child, "m_char_rank");
             written_bytes += m_char_select.serialize(out, child, "m_char_select");
             written_bytes += m_C.serialize(out, child, "m_C");
-            written_bytes += util::write_member(m_sigma, out, child, "m_sigma");
+            written_bytes += write_member(m_sigma, out, child, "m_sigma");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -319,7 +319,7 @@ class succinct_byte_alphabet_strategy
             m_char_select.load(in);
             m_char_select.set_vector(&m_char);
             m_C.load(in);
-            util::read_member(m_sigma, in);
+            read_member(m_sigma, in);
         }
 };
 
@@ -499,7 +499,7 @@ class int_alphabet_strategy
             written_bytes += m_char_rank.serialize(out, child, "m_char_rank");
             written_bytes += m_char_select.serialize(out, child, "m_char_select");
             written_bytes += m_C.serialize(out, child, "m_C");
-            written_bytes += util::write_member(m_sigma, out, child, "m_sigma");
+            written_bytes += write_member(m_sigma, out, child, "m_sigma");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -512,7 +512,7 @@ class int_alphabet_strategy
             m_char_select.load(in);
             m_char_select.set_vector(&m_char);
             m_C.load(in);
-            util::read_member(m_sigma, in);
+            read_member(m_sigma, in);
         }
 };
 

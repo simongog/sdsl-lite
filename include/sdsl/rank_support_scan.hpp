@@ -57,7 +57,7 @@ class rank_support_scan : public rank_support
             return m_v->size();
         };
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
-            return util::serialize_empty_object(out, v, name, this);
+            return serialize_empty_object(out, v, name, this);
         }
         void load(std::istream&, const int_vector<1>* v=NULL) {
             set_vector(v);

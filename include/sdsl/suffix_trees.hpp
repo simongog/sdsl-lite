@@ -124,10 +124,10 @@ void cst_info(const Cst& cst)
     cout << "# alphabet size: " << (int)cst.csa.sigma << endl;
     cout << "# text size: " << (text_size = cst.csa.size()) << endl;
     cout << "# nodes: " << cst.nodes() << endl;
-    cout << "# cst in MB: " << (cst_size=(((double)util::get_size_in_bytes(cst))/(1024.0*1024.0))) << endl;
-    cout << "# csa in MB: " << (csa_size=(((double)util::get_size_in_bytes(cst.csa))/(1024.0*1024.0))) << endl;
-    cout << "# csa samples in MB: " << ((double)util::get_size_in_bytes(cst.csa.sa_sample)+util::get_size_in_bytes(cst.csa.isa_sample))/(1024.0*1024.0) << endl;
-    cout << "# lcp in MB: " << (lcp_size=(((double)util::get_size_in_bytes(cst.lcp))/(1024.0*1024.0))) << endl;
+    cout << "# cst in MB: " << (cst_size=(((double)size_in_bytes(cst))/(1024.0*1024.0))) << endl;
+    cout << "# csa in MB: " << (csa_size=(((double)size_in_bytes(cst.csa))/(1024.0*1024.0))) << endl;
+    cout << "# csa samples in MB: " << ((double)size_in_bytes(cst.csa.sa_sample)+size_in_bytes(cst.csa.isa_sample))/(1024.0*1024.0) << endl;
+    cout << "# lcp in MB: " << (lcp_size=(((double)size_in_bytes(cst.lcp))/(1024.0*1024.0))) << endl;
     cout << "# nav in MB: " << (nav_size=(cst_size-lcp_size-csa_size)) << endl;
     text_size /= 1024*1024;
     cout << "# "<< 8*csa_size/text_size <<" " << 8*lcp_size/text_size << " " << 8*nav_size/text_size << endl;

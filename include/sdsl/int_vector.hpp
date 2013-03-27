@@ -31,6 +31,7 @@
 #include "bits.hpp"
 #include "structure_tree.hpp"
 #include "util.hpp"
+#include "io.hpp"
 #include "config.hpp"
 #include "uintx_t.hpp"
 
@@ -114,13 +115,13 @@ class char_array_serialize_wrapper;
 
 template<uint8_t t_width>
 struct int_vector_trait {
-    typedef uint64_t                                       value_type;
-    typedef int_vector<t_width>                     int_vector_type;
-    typedef int_vector_reference<int_vector_type>         reference;
-    typedef const uint64_t                                 const_reference;
+    typedef uint64_t                                    value_type;
+    typedef int_vector<t_width>                         int_vector_type;
+    typedef int_vector_reference<int_vector_type>       reference;
+    typedef const uint64_t                              const_reference;
     typedef uint8_t                                     int_width_type;
-    typedef int_vector_iterator<int_vector_type>         iterator;
-    typedef int_vector_const_iterator<int_vector_type>     const_iterator;
+    typedef int_vector_iterator<int_vector_type>        iterator;
+    typedef int_vector_const_iterator<int_vector_type>  const_iterator;
     // Sets int_width to new_int_width
     static void width(int_width_type& int_width, const uint8_t new_int_width) {
         if (t_width==1)
@@ -133,9 +134,9 @@ struct int_vector_trait {
 
     // read the size and int_width of a bit_vector
     static void read_header(int_vector_size_type& size, int_width_type& int_width, std::istream& in) {
-        util::read_member(size, in);
+        read_member(size, in);
         if (0 == t_width) {
-            util::read_member(int_width, in);
+            read_member(int_width, in);
             width(int_width, int_width);
         }
     }
@@ -169,7 +170,7 @@ struct int_vector_trait<64> {
 
     // read the size and int_width of a bit_vector
     static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
-        util::read_member(size, in);
+        read_member(size, in);
     }
 
     static iterator begin(int_vector_type*, uint64_t* begin) {
@@ -199,7 +200,7 @@ struct int_vector_trait<32> {
 
     // read the size and int_width of a bit_vector
     static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
-        util::read_member(size, in);
+        read_member(size, in);
     }
 
     static iterator begin(int_vector_type*, uint64_t* begin) {
@@ -229,7 +230,7 @@ struct int_vector_trait<16> {
 
     // read the size and int_width of a bit_vector
     static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
-        util::read_member(size, in);
+        read_member(size, in);
     }
 
     static iterator begin(int_vector_type*, uint64_t* begin) {
@@ -259,7 +260,7 @@ struct int_vector_trait<8> {
 
     // read the size and int_width of a bit_vector
     static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
-        util::read_member(size, in);
+        read_member(size, in);
     }
 
     static iterator begin(int_vector_type*, uint64_t* begin) {
@@ -315,11 +316,11 @@ class int_vector
         friend class  mm_item<int_vector>;
 
         friend void util::set_random_bits<int_vector>(int_vector& v, int);
-        friend void util::set_zero_bits<int_vector>(int_vector&);
-        friend void util::set_one_bits<int_vector>(int_vector&);
+        friend void util::_set_zero_bits<int_vector>(int_vector&);
+        friend void util::_set_one_bits<int_vector>(int_vector&);
         friend void util::bit_compress<int_vector>(int_vector&);
         friend void util::set_to_value<int_vector>(int_vector&, uint64_t);
-        friend bool util::load_vector_from_file<int_vector>(int_vector&, const std::string&,uint8_t,uint8_t);
+        friend bool load_vector_from_file<int_vector>(int_vector&, const std::string&,uint8_t,uint8_t);
         friend void algorithm::calculate_sa<t_width>(const unsigned char* c, typename int_vector<t_width>::size_type len, int_vector<t_width>& sa);
 
         enum { fixed_int_width = t_width }; // make template parameter accessible
@@ -907,9 +908,9 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
 
         const_reference operator*() const {
             if (m_offset+m_len <= 64) {
-                return ((*m_word)>>m_offset)&bits::Li1Mask[m_len];
+                return ((*m_word)>>m_offset)&bits::lo_set[m_len];
             } else {
-                return ((*m_word)>>m_offset) | ((*(m_word+1) & bits::Li1Mask[(m_offset+m_len)&0x3F])<<(64-m_offset));
+                return ((*m_word)>>m_offset) | ((*(m_word+1) & bits::lo_set[(m_offset+m_len)&0x3F])<<(64-m_offset));
             }
         }
 
@@ -1048,7 +1049,7 @@ inline std::ostream& operator<<(std::ostream& os, const int_vector<t_width>& v)
 }
 
 
-// ==== int_vector implemenation  ====
+// ==== int_vector implementation  ====
 
 template<uint8_t t_width>
 inline int_vector<t_width>::int_vector(size_type size, value_type default_value, uint8_t intWidth):m_size(0), m_data(NULL), m_width(intWidth)
@@ -1056,13 +1057,7 @@ inline int_vector<t_width>::int_vector(size_type size, value_type default_value,
     mm::add(this);
     int_vector_trait<t_width>::width(m_width, intWidth);
     resize(size);
-    if (default_value == 0) {
-        util::set_zero_bits(*this);
-    } else if (default_value == 1 and m_width == 1) {
-        util::set_one_bits(*this);
-    } else {
-        util::set_to_value(*this, default_value); // new initialization
-    }
+    util::set_to_value(*this, default_value); // new initialization
 }
 
 template<uint8_t t_width>
@@ -1278,7 +1273,7 @@ bool int_vector<t_width>::operator==(const int_vector& v)const
             return false;
     }
     int8_t l = 64-(capacity()-bit_size());
-    return ((*data1)&bits::Li1Mask[l])==((*data2)&bits::Li1Mask[l]);
+    return ((*data1)&bits::lo_set[l])==((*data2)&bits::lo_set[l]);
 }
 
 template<uint8_t t_width>

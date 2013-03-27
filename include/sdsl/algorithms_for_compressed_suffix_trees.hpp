@@ -49,7 +49,7 @@ void construct_supercartesian_tree_bp(const RandomAccessContainer& vec, bit_vect
 {
     typedef typename RandomAccessContainer::size_type size_type;
     bp.resize(2*vec.size());      // resize bit vector for balanaced parantheses to 2 n bits
-    util::set_zero_bits(bp);
+    util::set_to_value(bp, 0);
     std::stack<typename RandomAccessContainer::value_type> vec_stack;
 
     size_type k=0;
@@ -91,7 +91,7 @@ void construct_supercartesian_tree_bp_succinct(const RandomAccessContainer& vec,
     typedef typename RandomAccessContainer::size_type size_type;
     bp.resize(2*vec.size());      // resize bit vector for balanced parentheses to 2 n bits
     if (vec.size() > 0) {
-        util::set_zero_bits(bp);
+        util::set_to_value(bp, 0);
         sorted_stack_support vec_stack(vec.size()); // <- das ist ein Problem fuer int_vector_file_buffer
 
         size_type k=0;
@@ -166,7 +166,7 @@ void construct_supercartesian_tree_bp_succinct(int_vector_file_buffer<fixedIntWi
     bp.resize(2*n);      // resize bit vector for balanced parentheses to 2 n bits
     if (n == 0)	// if n == 0 we are done
         return;
-    util::set_zero_bits(bp);
+    util::set_to_value(bp, 0);
     sorted_multi_stack_support vec_stack(n);
 
     size_type k=0;
@@ -228,8 +228,8 @@ int_vector_size_type construct_supercartesian_tree_bp_succinct_and_first_child(i
     if (n == 0)	// if n == 0 we are done
         return 0;
     size_type fc_cnt=0; // first child counter
-    util::set_zero_bits(bp);
-    util::set_zero_bits(bp_fc);
+    util::set_to_value(bp, 0);
+    util::set_to_value(bp_fc, 0);
     sorted_multi_stack_support vec_stack(n);
 
     size_type k=0;
@@ -291,7 +291,7 @@ void construct_supercartesian_tree_bp_succinct2(const RandomAccessContainer& vec
 {
     typedef typename RandomAccessContainer::size_type size_type;
     bp.resize(2*vec.size());      // resize bit vector for balanced parentheses to 2 n bits
-    util::set_zero_bits(bp);
+    util::set_to_value(bp, 0);
     sorted_stack_support vec_stack(vec.size()); // <- das ist ein Problem fuer int_vector_file_buffer
 
     size_type k=0;

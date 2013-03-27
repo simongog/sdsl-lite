@@ -44,11 +44,11 @@ void test_int_vector_random_access(const Vector& v, bit_vector::size_type times=
     uint64_t mask;
     int_vector<64> rands = get_rnd_positions(20, mask, v.size());
     size_type cnt=0;
-    write_R_output("int_vector","random access","begin",times,cnt);
+    util::write_R_output("int_vector","random access","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += v[rands[ i&mask ]];
     }
-    write_R_output("int_vector","random access","end",times,cnt);
+    util::write_R_output("int_vector","random access","end",times,cnt);
 }
 
 template<class Vector>
@@ -58,11 +58,11 @@ void test_int_vector_random_write(Vector& v, bit_vector::size_type times=1000000
     uint64_t mask;
     int_vector<64> rands = get_rnd_positions(20, mask, v.size());
     size_type cnt=0;
-    write_R_output("int_vector","random write","begin",times,cnt);
+    util::write_R_output("int_vector","random write","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += (v[rands[ i&mask ]] = i);
     }
-    write_R_output("int_vector","random write","end",times,cnt);
+    util::write_R_output("int_vector","random write","end",times,cnt);
 }
 
 template<class Vector>
@@ -72,11 +72,11 @@ void test_int_vector_sequential_write(Vector& v, bit_vector::size_type times=100
     const uint64_t mask = (1ULL << bits::hi(v.size()))-1;
 //	std::cout<<" mask="<<mask<<std::endl;
     size_type cnt=0;
-    write_R_output("int_vector","seq write","begin",times,cnt);
+    util::write_R_output("int_vector","seq write","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += (v[i&mask] = i);
     }
-    write_R_output("int_vector","seq write","end",times,cnt);
+    util::write_R_output("int_vector","seq write","end",times,cnt);
 }
 
 //! Test random queries on rank data structure
@@ -89,11 +89,11 @@ void test_rank_random_access(const Rank& rank, bit_vector::size_type times=20000
     uint64_t mask;
     int_vector<64> rands = get_rnd_positions(20, mask, rank.size()+1);
     size_type cnt=0;
-    write_R_output("rank","random access","begin",times,cnt);
+    util::write_R_output("rank","random access","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += rank.rank(rands[ i&mask ]);
     }
-    write_R_output("rank","random access","end",times,cnt);
+    util::write_R_output("rank","random access","end",times,cnt);
 }
 
 //! Test creation time for a rank data structure
@@ -107,9 +107,9 @@ void test_rank_construction(bit_vector::size_type size=838860800)
     bit_vector b(size);
     util::set_random_bits(b, 17);
     std::cout<<"# bit vector size of rank construct : "<<size<<std::endl;
-    write_R_output("rank","construct","begin",1,0);
+    util::write_R_output("rank","construct","begin",1,0);
     Rank rs(&b); // construct rank_support data structure
-    write_R_output("rank","construct","end",1,rs(size));
+    util::write_R_output("rank","construct","end",1,rs(size));
 }
 
 
@@ -125,16 +125,16 @@ void test_select_random_access(const Select& select, bit_vector::size_type times
     const uint64_t mask = (1<<s)-1;
     int_vector<64> rands(1<<s ,0);
     util::set_random_bits(rands, 17);
-    size_type args = util::get_one_bits(*(select.v));
+    size_type args = util::cnt_one_bits(*(select.v));
     util::mod(rands, args);
     for (size_type i=0; i<rands.size(); ++i)
         rands[i] = rands[i]+1;
     size_type cnt=0;
-    write_R_output("select","random access","begin",times,cnt);
+    util::write_R_output("select","random access","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += select.select(rands[ i&mask ]);
     }
-    write_R_output("select","random access","end",times,cnt);
+    util::write_R_output("select","random access","end",times,cnt);
 }
 
 //! Test random queries on select data structure
@@ -152,11 +152,11 @@ void test_select_random_access(const Select& select, bit_vector::size_type args,
     for (size_type i=0; i<rands.size(); ++i)
         rands[i] = rands[i]+1;
     size_type cnt=0;
-    write_R_output("select","random access","begin",times,cnt);
+    util::write_R_output("select","random access","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += select.select(rands[ i&mask ]);
     }
-    write_R_output("select","random access","end",times,cnt);
+    util::write_R_output("select","random access","end",times,cnt);
 }
 
 //! Test creation time for a rank data structure
@@ -170,10 +170,10 @@ void test_select_construction(bit_vector::size_type size=838860800)
     bit_vector b(size);
     util::set_random_bits(b, 17);
     std::cout<<"# bit vector size of select construct : "<<size<<std::endl;
-    write_R_output("select","construct","begin",1,0);
+    util::write_R_output("select","construct","begin",1,0);
     Select sls(&b); // construct rank_support data structure
-    write_R_output("select","construct","end",1, sls(1));
-    std::cout<<"# size of the select_support_mcl :  "<< ((double)util::get_size_in_bytes(sls))/util::get_size_in_bytes(b) <<std::endl;
+    util::write_R_output("select","construct","end",1, sls(1));
+    std::cout<<"# size of the select_support_mcl :  "<< ((double)size_in_bytes(sls))/size_in_bytes(b) <<std::endl;
 }
 
 template<class Csa>
@@ -183,11 +183,11 @@ void test_csa_access(const Csa& csa, typename Csa::size_type times=1000000)
     size_type cnt=0;
     uint64_t mask;
     int_vector<64> rands = get_rnd_positions(20, mask, csa.size());
-    write_R_output("csa","csa[]","begin",times,cnt);
+    util::write_R_output("csa","csa[]","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += csa[ rands[ i&mask ] ];
     }
-    write_R_output("csa","csa[]","end",times,cnt);
+    util::write_R_output("csa","csa[]","end",times,cnt);
 }
 
 template<class Csa>
@@ -197,11 +197,11 @@ void test_icsa_access(const Csa& csa, typename Csa::size_type times=1000000)
     size_type cnt=0;
     uint64_t mask;
     int_vector<64> rands = get_rnd_positions(20, mask, csa.size());
-    write_R_output("csa","csa()","begin",times,cnt);
+    util::write_R_output("csa","csa()","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += csa(rands[ i&mask ]);
     }
-    write_R_output("csa","csa()","end",times,cnt);
+    util::write_R_output("csa","csa()","end",times,cnt);
 }
 
 // Test random access on \f$\Psi\f$ function
@@ -212,11 +212,11 @@ void test_psi_access(const Csa& csa, typename Csa::size_type times=1000000)
     size_type cnt=0;
     uint64_t mask;
     int_vector<64> rands = get_rnd_positions(20, mask, csa.size());
-    write_R_output("csa","psi[]","begin",times,cnt);
+    util::write_R_output("csa","psi[]","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += csa.psi[rands[ i&mask ]];
     }
-    write_R_output("csa","psi[]","end",times,cnt);
+    util::write_R_output("csa","psi[]","end",times,cnt);
 }
 
 //! Test random access on LF function
@@ -227,11 +227,11 @@ void test_lf_access(const Csa& csa, typename Csa::size_type times=1000000)
     size_type cnt=0;
     uint64_t mask;
     int_vector<64> rands = get_rnd_positions(20, mask, csa.size());
-    write_R_output("csa","psi()","begin",times,cnt);
+    util::write_R_output("csa","psi()","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += csa.psi(rands[ i&mask ]);
     }
-    write_R_output("csa","psi()","end",times,cnt);
+    util::write_R_output("csa","psi()","end",times,cnt);
 }
 
 //! Test random access on bwt
@@ -242,11 +242,11 @@ void test_bwt_access(const Csa& csa, typename Csa::size_type times=1000000)
     uint64_t mask;
     int_vector<64> rands = get_rnd_positions(20, mask, csa.size());
     size_type cnt=0;
-    write_R_output("csa","bwt[]","begin",times,cnt);
+    util::write_R_output("csa","bwt[]","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += csa.bwt[ rands[ i&mask ] ];
     }
-    write_R_output("csa","bwt[]","end",times,cnt);
+    util::write_R_output("csa","bwt[]","end",times,cnt);
 }
 
 //! Test speed for pattern matching
@@ -265,12 +265,12 @@ void test_pattern_matching(const Csa& csa,
     uint64_t mask;
     int_vector<64> rands = get_rnd_positions(15, mask, csa.size()-pattern_len);
     unsigned char* patterns = new unsigned char[rands.size()*pattern_len + 2];
-    write_R_output("csa","extract patterns","begin",times,0);
+    util::write_R_output("csa","extract patterns","begin",times,0);
 
     size_type file_size = 0;
     {
         int_vector<8> text;
-        if (util::load_vector_from_file(text, file_name, 1)) {
+        if (load_vector_from_file(text, file_name, 1)) {
             for (size_type i=0; i<rands.size(); ++i) {
                 for (size_type j=rands[i]; j < rands[i] + pattern_len; ++j)
                     patterns[i*pattern_len + (j-rands[i])] = text[j];
@@ -280,16 +280,16 @@ void test_pattern_matching(const Csa& csa,
             std::cerr << "file `" << file_name << "`" << std::endl;
         }
     }
-    write_R_output("csa","extract patterns","end",times,0);
+    util::write_R_output("csa","extract patterns","end",times,0);
 
     size_type cnt=0;
-    write_R_output("csa","pattern_matching","begin",times,cnt);
+    util::write_R_output("csa","pattern_matching","begin",times,cnt);
     for (size_type i=0, l_res=0, r_res=0; i<times; ++i) {
         cnt += algorithm::backward_search(csa, 0, csa.size(),
                                           (patterns + ((i&mask)*pattern_len)),
                                           pattern_len, l_res, r_res);
     }
-    write_R_output("csa","pattern_matching","end",times,cnt);
+    util::write_R_output("csa","pattern_matching","end",times,cnt);
     delete [] patterns;
 }
 
@@ -306,11 +306,11 @@ void test_rank_bwt_access(const Csa& csa, typename Csa::size_type times=1000000)
     for (size_type i=0; i<rands.size(); ++i)
         c_rands[i] = csa.bwt[ rands[i] ];
 
-    write_R_output("csa","rank_bwt","begin",times,cnt);
+    util::write_R_output("csa","rank_bwt","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += csa.rank_bwt(rands[ i&mask ], c_rands[ i&mask ]);
     }
-    write_R_output("csa","rank_bwt","end",times,cnt);
+    util::write_R_output("csa","rank_bwt","end",times,cnt);
     delete [] c_rands;
 }
 
@@ -328,13 +328,13 @@ void test_select_bwt_access(const Csa& csa, typename Csa::size_type times=500000
         c_rands[i] = csa.bwt[ rands[i] ];
         rands[i] = csa.rank_bwt(rands[i]+1, c_rands[i]);
     }
-    write_R_output("csa","select_bwt","begin",times,cnt);
+    util::write_R_output("csa","select_bwt","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
 //		size_type c = i % csa.sigma;
 //		cnt += csa.select_bwt( (i % (csa.C[c+1]-csa.C[c])) + 1, csa.comp2char[c]);
         cnt += csa.select_bwt(rands[ i&mask ], c_rands[ i&mask]);
     }
-    write_R_output("csa","select_bwt","end",times,cnt);
+    util::write_R_output("csa","select_bwt","end",times,cnt);
 }
 
 //! Test performance of the depth first iterator of a CST
@@ -359,12 +359,12 @@ void test_cst_dfs_iterator(Cst& cst, typename Cst::size_type times=100000)
             cnt += cst.depth(*it);
         }
     }
-    write_R_output("cst","dfs","begin",times,cnt);
+    util::write_R_output("cst","dfs","begin",times,cnt);
     typename Cst::const_iterator it = cst.begin();
     for (size_type i=0; i<times; ++i) {
         ++it;
     }
-    write_R_output("cst", "dfs", "end", times, cnt + cst.depth(*it));
+    util::write_R_output("cst", "dfs", "end", times, cnt + cst.depth(*it));
 }
 
 //! Test performance of the depth first iterator and the LCP array of a CST
@@ -382,7 +382,7 @@ void test_cst_dfs_iterator_and_depth(Cst& cst, typename Cst::size_type times=100
         times = 2*cst.nodes()-cst.size();
     typedef typename Cst::size_type size_type;
     size_type cnt=0;
-    write_R_output("cst","dfs and depth","begin",times,cnt);
+    util::write_R_output("cst","dfs and depth","begin",times,cnt);
     typename Cst::const_iterator it = cst.begin();
     if (!output) {
         for (size_type i=0; i<times; ++i, ++it) {
@@ -403,7 +403,7 @@ void test_cst_dfs_iterator_and_depth(Cst& cst, typename Cst::size_type times=100
             }
         }
     }
-    write_R_output("cst","dfs and depth","end",times,cnt);
+    util::write_R_output("cst","dfs and depth","end",times,cnt);
 }
 
 //! Test performance of the depth first iterator and the id method of the CST
@@ -421,7 +421,7 @@ void test_cst_dfs_iterator_and_id(Cst& cst, typename Cst::size_type times=100000
         times = 2*cst.nodes()-cst.size();
     typedef typename Cst::size_type size_type;
     size_type cnt=0;
-    write_R_output("cst","dfs and id","begin",times,cnt);
+    util::write_R_output("cst","dfs and id","begin",times,cnt);
     typename Cst::const_iterator it = cst.begin();
     if (!output) {
         for (size_type i=0; i<times; ++i, ++it) {
@@ -434,7 +434,7 @@ void test_cst_dfs_iterator_and_id(Cst& cst, typename Cst::size_type times=100000
             cnt += id;
         }
     }
-    write_R_output("cst","dfs and id","end",times,cnt);
+    util::write_R_output("cst","dfs and id","end",times,cnt);
 }
 
 
@@ -452,11 +452,11 @@ void test_lcp_random_access(Lcp& lcp, typename Lcp::size_type times=10000000)
     uint64_t mask;
     int_vector<64> rands = get_rnd_positions(20, mask, n);
     size_type cnt=0;
-    write_R_output("lcp","random access","begin",times,cnt);
+    util::write_R_output("lcp","random access","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += lcp[ rands[ i&mask ] ];
     }
-    write_R_output("lcp","random access","end",times,cnt);
+    util::write_R_output("lcp","random access","end",times,cnt);
 }
 
 //! Make sequential accesses to an LCP array
@@ -473,11 +473,11 @@ void test_lcp_sequential_access(Lcp& lcp, typename Lcp::size_type times=10000000
     if (times > n)
         times = n;
     size_type cnt=0;
-    write_R_output("lcp","sequential access","begin",times,cnt);
+    util::write_R_output("lcp","sequential access","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += lcp[ i ];
     }
-    write_R_output("lcp","sequential access","end",times,cnt);
+    util::write_R_output("lcp","sequential access","end",times,cnt);
 }
 
 
@@ -507,13 +507,13 @@ void test_lcp_random_sequential_access(Lcp& lcp, typename Lcp::size_type times=1
             rands[i] = n - 1 - seq_len;
     }
     size_type cnt=0;
-    write_R_output("lcp","random sequential access","begin",times*(seq_len+1),cnt);
+    util::write_R_output("lcp","random sequential access","begin",times*(seq_len+1),cnt);
     for (size_type i=0; i<times; ++i) {
         for (size_type j=rands[i&mask], k=0; k<=seq_len; ++k, ++j) {
             cnt += lcp[ j ];
         }
     }
-    write_R_output("lcp","random sequential access","end",times*(seq_len+1),cnt);
+    util::write_R_output("lcp","random sequential access","end",times*(seq_len+1),cnt);
 }
 
 //! Test the speed of the parent operation
@@ -538,7 +538,7 @@ void test_cst_parent_operation(const Cst& cst, typename Cst::size_type times=100
 
     node_type p;
     size_type cnt=0;
-    write_R_output("cst","parent","begin",times,cnt);
+    util::write_R_output("cst","parent","begin",times,cnt);
     for (size_type i=0; i<times; ++i, ++cnt) {
         p = cst.parent(rand_leaf[i]);
         while (p != cst.root()) {
@@ -546,7 +546,7 @@ void test_cst_parent_operation(const Cst& cst, typename Cst::size_type times=100
             ++cnt;
         }
     }
-    write_R_output("cst","parent","end",times,cnt);
+    util::write_R_output("cst","parent","end",times,cnt);
 }
 
 
@@ -601,7 +601,7 @@ void test_cst_child_operation(const Cst& cst, typename Cst::size_type times=5000
     node_type c;  // for child node
     size_type char_pos=0;
     size_type cnt=0;
-    write_R_output("cst","child","begin",nodes.size(),cnt);
+    util::write_R_output("cst","child","begin",nodes.size(),cnt);
     for (size_type i=0; i<nodes.size(); ++i) {
 //		if(i<20){
 //			std::cout<<"i="<<i<<" vl="<<cst.lb(nodes[i])<<" rb="<<cst.rb(nodes[i])<<std::endl;
@@ -611,7 +611,7 @@ void test_cst_child_operation(const Cst& cst, typename Cst::size_type times=5000
         if (c==cst.root())
             ++cnt;
     }
-    write_R_output("cst","child","end",nodes.size(),cnt);
+    util::write_R_output("cst","child","end",nodes.size(),cnt);
     delete [] letters;
 }
 
@@ -632,13 +632,13 @@ void test_cst_1th_child_operation(const Cst& cst, typename Cst::size_type times=
 
     node_type c;  // for 1th_child node
     size_type cnt=0;
-    write_R_output("cst","1th_child","begin",nodes.size(),cnt);
+    util::write_R_output("cst","1th_child","begin",nodes.size(),cnt);
     for (size_type i=0; i<nodes.size(); ++i) {
         c = cst.select_child(nodes[i], 1);
         if (c==cst.root())
             ++cnt;
     }
-    write_R_output("cst","1th_child","end",nodes.size(),cnt);
+    util::write_R_output("cst","1th_child","end",nodes.size(),cnt);
 }
 
 //! Test the speed of the sibling operation
@@ -661,13 +661,13 @@ void test_cst_sibling_operation(const Cst& cst, typename Cst::size_type times=10
 
     node_type c;  // for sibling node
     size_type cnt=0;
-    write_R_output("cst","sibling","begin",nodes.size(),cnt);
+    util::write_R_output("cst","sibling","begin",nodes.size(),cnt);
     for (size_type i=0; i<nodes.size(); ++i) {
         c = cst.sibling(nodes[i]);
         if (c==cst.root())
             ++cnt;
     }
-    write_R_output("cst","sibling","end",nodes.size(),cnt);
+    util::write_R_output("cst","sibling","end",nodes.size(),cnt);
 }
 
 //! Test id operation
@@ -680,11 +680,11 @@ void test_cst_id_operation(const Cst& cst, typename Cst::size_type times=100000,
     generate_nodes_from_random_leaves(cst, times, nodes, x);
 
     size_type cnt = 0;
-    write_R_output("cst","id","begin",nodes.size(),cnt);
+    util::write_R_output("cst","id","begin",nodes.size(),cnt);
     for (size_type i=0; i < nodes.size(); ++i) {
         cnt += cst.id(nodes[i]);
     }
-    write_R_output("cst","id","end",nodes.size(),cnt);
+    util::write_R_output("cst","id","end",nodes.size(),cnt);
 }
 
 //! Test depth operations for leaves and inner nodes
@@ -697,11 +697,11 @@ void test_cst_depth_operation(const Cst& cst, typename Cst::size_type times=1000
     generate_nodes_from_random_leaves(cst, times, nodes, x);
 
     size_type cnt = 0;
-    write_R_output("cst","depth","begin",nodes.size(),cnt);
+    util::write_R_output("cst","depth","begin",nodes.size(),cnt);
     for (size_type i=0; i < nodes.size(); ++i) {
         cnt += cst.depth(nodes[i]);
     }
-    write_R_output("cst","depth","end",nodes.size(),cnt);
+    util::write_R_output("cst","depth","end",nodes.size(),cnt);
 }
 
 
@@ -721,11 +721,11 @@ void test_cst_depth_operation_for_inner_nodes(const Cst& cst, typename Cst::size
             }
     }
     size_type cnt = 0;
-    write_R_output("cst","depth of inner nodes","begin",nodes.size(),cnt);
+    util::write_R_output("cst","depth of inner nodes","begin",nodes.size(),cnt);
     for (size_type i=0; i < nodes.size(); ++i) {
         cnt += cst.depth(nodes[i]);
     }
-    write_R_output("cst","depth of inner nodes","end",nodes.size(),cnt);
+    util::write_R_output("cst","depth of inner nodes","end",nodes.size(),cnt);
 }
 
 //! Test lca operation
@@ -744,7 +744,7 @@ void test_cst_lca_operation(const Cst& cst, typename Cst::size_type times=100000
     }
 
     size_type cnt=0;
-    write_R_output("cst","lca","begin",times,cnt);
+    util::write_R_output("cst","lca","begin",times,cnt);
     for (size_type i=0; i<times; ++i) {
         node_type v = cst.lca(nodes[(2*i) & mask], nodes[(2*i+1) & mask]);
         if (v == cst.root())
@@ -752,7 +752,7 @@ void test_cst_lca_operation(const Cst& cst, typename Cst::size_type times=100000
 //		if(i<30)
 //			std::cout<<"lca("<<cst.lb(nodes[(2*i)&mask])<<","<<cst.lb(nodes[(2*i+1)&mask])<<")=("<<cst.lb(v)<<","<<cst.rb(v)<<")"<<std::endl;
     }
-    write_R_output("cst","lca","end",times,cnt);
+    util::write_R_output("cst","lca","end",times,cnt);
 }
 
 //! Test suffix link operation
@@ -774,7 +774,7 @@ void test_cst_sl_operation(const Cst& cst, typename Cst::size_type times=500, ui
 
     size_type cnt=0;
     times = 0;
-    write_R_output("cst","sl","begin",0,cnt);
+    util::write_R_output("cst","sl","begin",0,cnt);
     for (size_type i=0; i<nodes.size(); ++i) {
         node_type v = nodes[i];
 //		std::cout<<"v="<<cst.lb(v)<<" "<<cst.rb(v)<<std::endl;
@@ -792,7 +792,7 @@ void test_cst_sl_operation(const Cst& cst, typename Cst::size_type times=500, ui
 //			d = d2;
         }
     }
-    write_R_output("cst","sl","end",cnt,cnt);
+    util::write_R_output("cst","sl","end",cnt,cnt);
 }
 
 //! Test matching statistics
@@ -807,7 +807,7 @@ void test_cst_matching_statistics(const Cst& cst, unsigned char* S2, typename Cs
     typedef typename Cst::node_type node_type;
 
     size_type cnt = 0;
-    write_R_output("cst","mstats","begin",n2,cnt);
+    util::write_R_output("cst","mstats","begin",n2,cnt);
     size_type q  = 0;						// current match length
     size_type p2 = n2-1;              // position in S2
     size_type i  = 0, j = cst.csa.size()-1; // \f$ \epsilon \f$ matches all suffixes of S1
@@ -830,7 +830,7 @@ void test_cst_matching_statistics(const Cst& cst, unsigned char* S2, typename Cs
         }
         cnt += q;
     }
-    write_R_output("cst","mstats","end",n2,cnt);
+    util::write_R_output("cst","mstats","end",n2,cnt);
 }
 
 // test the speed of find_close at random opening parentheses
@@ -847,22 +847,22 @@ void test_bps_find_close_and_enclose(const Bps& bps, const bit_vector& b, uint64
         }
     }
     uint64_t cnt = 0;
-    write_R_output("bps","find_close","begin",times, cnt);
+    util::write_R_output("bps","find_close","begin",times, cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += bps.find_close(rands[i&mask]);
     }
-    write_R_output("bps","find_close","end",times, cnt);
+    util::write_R_output("bps","find_close","end",times, cnt);
 
     cnt = 0;
-    write_R_output("bps","enclose rand","begin",times, cnt);
+    util::write_R_output("bps","enclose rand","begin",times, cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += bps.enclose(rands[i&mask]);
     }
-    write_R_output("bps","enclose rand","end",times, cnt);
+    util::write_R_output("bps","enclose rand","end",times, cnt);
 
     cnt = 0;
     size_type cnt2=0;
-    write_R_output("bps","enclose tree","begin",times, cnt);
+    util::write_R_output("bps","enclose tree","begin",times, cnt);
     for (size_type i=0,enc, size=bps.size(); cnt2 < times; ++i) {
         enc = rands[i&mask];
         while ((enc = bps.enclose(enc)) != size) {
@@ -871,7 +871,7 @@ void test_bps_find_close_and_enclose(const Bps& bps, const bit_vector& b, uint64
         }
         ++cnt2;
     }
-    write_R_output("bps","enclose tree","end",times, cnt);
+    util::write_R_output("bps","enclose tree","end",times, cnt);
 }
 
 // test the speed of find_close at random opening parentheses
@@ -888,11 +888,11 @@ void test_bps_find_open(const Bps& bps, const bit_vector& b, uint64_t times=1000
         }
     }
     uint64_t cnt = 0;
-    write_R_output("bps","find_open","begin",times, cnt);
+    util::write_R_output("bps","find_open","begin",times, cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += bps.find_open(rands[i&mask]);
     }
-    write_R_output("bps","find_open","end",times, cnt);
+    util::write_R_output("bps","find_open","end",times, cnt);
 }
 
 // test the speed of the double enclose method for random opening parentheses i and i+1
@@ -920,11 +920,11 @@ void test_bps_double_enclose(const Bps& bps, const bit_vector& b, uint64_t times
         }
     }
     uint64_t cnt = 0;
-    write_R_output("bps","double_enclose","begin",times, cnt);
+    util::write_R_output("bps","double_enclose","begin",times, cnt);
     for (size_type i=0; i<times; ++i) {
         cnt += bps.double_enclose(rands[(i*2)&mask], rands[(i*2+1)&mask]);
     }
-    write_R_output("bps","double_enclose","end",times, cnt);
+    util::write_R_output("bps","double_enclose","end",times, cnt);
 }
 
 

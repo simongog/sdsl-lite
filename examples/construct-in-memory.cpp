@@ -10,7 +10,7 @@ int main()
     string v = "abracadabradabarab";
     cout<<"v.size()="<<v.size()<<endl;
     cout<<v<<endl;
-    util::store_to_file((const char*)v.c_str(), file);
+    store_to_file((const char*)v.c_str(), file);
     cout<<"---------"<<endl;
     cout << util::file_size(file) << endl;
     cout<<"--------- construct wt_huff<> ----------"<<endl;

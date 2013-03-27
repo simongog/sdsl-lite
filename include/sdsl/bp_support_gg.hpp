@@ -468,9 +468,9 @@ class bp_support_gg
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += util::write_member(m_block_size, out, child, "block_size");
-            written_bytes += util::write_member(m_size, out, child, "size");
-            written_bytes += util::write_member(m_blocks, out, child, "block_cnt");
+            written_bytes += write_member(m_block_size, out, child, "block_size");
+            written_bytes += write_member(m_size, out, child, "size");
+            written_bytes += write_member(m_blocks, out, child, "block_cnt");
 
             written_bytes += m_rank_bp.serialize(out, child, "bp_rank");
             written_bytes += m_select_bp.serialize(out, child, "bp_select");
@@ -490,9 +490,9 @@ class bp_support_gg
          */
         void load(std::istream& in, const bit_vector* bp) {
             m_bp = bp;
-            util::read_member(m_block_size, in);
-            util::read_member(m_size, in);
-            util::read_member(m_blocks, in);
+            read_member(m_block_size, in);
+            read_member(m_size, in);
+            read_member(m_blocks, in);
 
             m_rank_bp.load(in, m_bp);
             m_select_bp.load(in, m_bp);

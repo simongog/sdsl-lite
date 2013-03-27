@@ -595,8 +595,7 @@ bool verify_sa(const unsigned char* c, typename RandomAccessContainer::size_type
     }
     {
         // check if values are in the range [0..len) and all are different
-        int_vector<> occ(len);
-        util::set_zero_bits(occ);
+        bit_vector occ(len, 0);
         for (typename RandomAccessContainer::const_iterator it=sa.begin(), end=sa.end(); it!=end; ++it) {
             size_type value = *it;
             if (value < len and !occ[value])

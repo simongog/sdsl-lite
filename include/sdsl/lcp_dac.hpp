@@ -175,7 +175,7 @@ lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
 //  (1) Count for each level, how many blocks are needed for the representation
 //      Running time: \f$ O(n \times \frac{\log n}{b}  \f$
 //      Result is sorted in m_level_pointer_and_rank
-    int_vector_file_buffer<> lcp_buf(util::cache_file_name(constants::KEY_LCP, config));
+    int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
     size_type n = lcp_buf.int_vector_size, val=0;
     if (n == 0)
         return;
@@ -219,7 +219,7 @@ lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
 
 //  (3)    Enter block and overflow data
     int_vector<64> cnt = m_level_pointer_and_rank;
-    const uint64_t mask = bits::Li1Mask[t_b];
+    const uint64_t mask = bits::lo_set[t_b];
 
     lcp_buf.reset();
     for (size_type i=0,j=0, r_sum=0, r = lcp_buf.load_next_block(); r_sum < n;) {
@@ -288,7 +288,7 @@ typename lcp_dac<t_b, t_rank>::size_type lcp_dac<t_b, t_rank>::serialize(std::os
     written_bytes += m_overflow.serialize(out, child, "overflow");
     written_bytes += m_overflow_rank.serialize(out, child, "overflow_rank");
     written_bytes += m_level_pointer_and_rank.serialize(out, child, "level_pointer_and_rank");
-    written_bytes += util::write_member(m_max_level, out, child, "max_level");
+    written_bytes += write_member(m_max_level, out, child, "max_level");
     structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
@@ -300,7 +300,7 @@ void lcp_dac<t_b, t_rank>::load(std::istream& in)
     m_overflow.load(in);
     m_overflow_rank.load(in, &m_overflow);
     m_level_pointer_and_rank.load(in);
-    util::read_member(m_max_level, in);
+    read_member(m_max_level, in);
 }
 
 template<uint8_t t_b, class t_rank>

@@ -86,7 +86,7 @@ const uint32_t bits::L1BP[] = {
     7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
 };
 
-const uint64_t bits::Li1Mask[] = {
+const uint64_t bits::lo_set[] = {
     0x0000000000000000ULL,
     0x0000000000000001ULL,
     0x0000000000000003ULL,
@@ -154,7 +154,7 @@ const uint64_t bits::Li1Mask[] = {
     0xFFFFFFFFFFFFFFFFULL
 };
 
-const uint64_t bits::Li0Mask[] = {
+const uint64_t bits::lo_unset[] = {
     0xFFFFFFFFFFFFFFFFULL,
     0xFFFFFFFFFFFFFFFEULL,
     0xFFFFFFFFFFFFFFFCULL,
