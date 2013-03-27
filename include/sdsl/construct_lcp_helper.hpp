@@ -80,6 +80,8 @@ void push_back_m_index(size_type_class i, uint8_t c, tLI(&m_list)[256], uint8_t 
    m_list[c].push_back(i);
 }
 
+void lcp_info(tMSS& file_map);
+
 }
 
 #endif
