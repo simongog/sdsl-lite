@@ -46,17 +46,17 @@ namespace sdsl
 /*!	The algorithm computes the lcp array and stores it to disk.
  *  \tparam t_width Width of the text. 0==integer alphabet, 8=byte alphabet.
  *  \param config	Reference to cache configuration
- *  \par Space complexity
- *		\f$ n (\log \sigma + \log n) \f$ bits
  *  \pre Text and Suffix array exist in the cache. Keys:
  *         * constants::KEY_TEXT for t_width=8  or constants::KEY_TEXT_INT for t_width=0
  *         * constants::KEY_SA
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
+ *  \par Space complexity
+ *         \f$ n (\log \sigma + \log n) \f$ bits
  *  \par Reference
- *    Toru Kasai, Gunho Lee, Hiroki Arimura, Setsuo Arikawa, Kunsoo Park:
- *    Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications.
- *    CPM 2001: 181-192
+ *         Toru Kasai, Gunho Lee, Hiroki Arimura, Setsuo Arikawa, Kunsoo Park:
+ *         Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications.
+ *         CPM 2001: 181-192
  */
 template<uint8_t t_width>
 void construct_lcp_kasai(cache_config& config)
@@ -108,19 +108,20 @@ void construct_lcp_kasai(cache_config& config)
     util::store_to_cache(lcp, constants::KEY_LCP, config);
 }
 
+
 //! Construct the LCP array for text over byte- or integer-alphabet.
 /*!	The algorithm computes the lcp array and stores it to disk.
- *  \par Space complexity
- *		\f$ n( \log \sigma + \log \n ) \f$ bits
  *  \pre Text and Suffix array exist in the cache. Keys:
  *         * constants::KEY_TEXT for t_width=8  or constants::KEY_TEXT_INT for t_width=0
  *         * constants::KEY_SA
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
+ *  \par Space complexity
+ *         \f$ n( \log \sigma + \log \n ) \f$ bits
  *  \par Reference
- *     Juha Kärkkäinen, Giovanni Manzini, Simon J. Puglisi:
- *     Permuted Longest-Common-Prefix Array.
- *     CPM 2009: 181-192
+ *         Juha Kärkkäinen, Giovanni Manzini, Simon J. Puglisi:
+ *         Permuted Longest-Common-Prefix Array.
+ *         CPM 2009: 181-192
  */
 template<uint8_t t_width>
 void construct_lcp_PHI(cache_config& config)
@@ -215,17 +216,17 @@ void construct_lcp_PHI(cache_config& config)
  *         * constants::KEY_BWT
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
- *
  *  \par Time complexity
- *		  \f$ \Order{n \log{\sigma}} \f$
+ *         \f$ \Order{n \log{\sigma}} \f$
  *  \par Space complexity
- *		  Usually not more than \f$ 2.5n \f$ bytes
+ *         Usually not more than \f$ 2.5n \f$ bytes
  *  \par Reference
- *        Timo Beller, Simon Gog, Enno Ohlebusch, Thomas Schnattinger:
- *        Computing the Longest Common Prefix Array Based on the Burrows-Wheeler Transform.
- *        SPIRE 2011: 197-208
+ *         Timo Beller, Simon Gog, Enno Ohlebusch, Thomas Schnattinger:
+ *         Computing the Longest Common Prefix Array Based on the Burrows-Wheeler Transform.
+ *         SPIRE 2011: 197-208
  */
 void construct_lcp_bwt_based(cache_config& config);
+
 
 //! Construct the LCP array out of the BWT (only for byte strings)
 /*!	The algorithm computes the lcp array and stores it to disk. It needs only the Burrows and Wheeler transform.
@@ -234,25 +235,20 @@ void construct_lcp_bwt_based(cache_config& config);
  *         * constants::KEY_BWT
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
- *
  *  \par Time complexity
- *		  \f$ \Order{n \log{\sigma}} \f$
+ *         \f$ \Order{n \log{\sigma}} \f$
  *  \par Space complexity
- *		  Usually not more than \f$ 1.5n \f$ bytes
+ *         Usually not more than \f$ 1.5n \f$ bytes
  *  \par Reference
- * 	      Timo Beller, Simon Gog, Enno Ohlebusch, Thomas Schnattinger:
- *        Computing the longest common prefix array based on the Burrows-Wheeler transform.
- *        J. Discrete Algorithms 18: 22-31 (2013)
+ *         Timo Beller, Simon Gog, Enno Ohlebusch, Thomas Schnattinger:
+ *         Computing the longest common prefix array based on the Burrows-Wheeler transform.
+ *         J. Discrete Algorithms 18: 22-31 (2013)
  */
 void construct_lcp_bwt_based2(cache_config& config);
 
 
-// semi extern PHI algorithm of Karkainen, Manzini and Puglisi CPM 2009
-void construct_lcp_semi_extern_PHI(cache_config& config);
-
 //! Construct the LCP array (only for byte strings)
 /*!	The algorithm computes the lcp array and stores it to disk.
- *  Only phase 1 of the new algorithm
  *  \param config	Reference to cache configuration
  *  \pre Text, Suffix array and BWT exist in the cache. Keys:
  *         * constants::KEY_TEXT
@@ -261,17 +257,16 @@ void construct_lcp_semi_extern_PHI(cache_config& config);
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
  *  \par Time complexity
- *		  ToDo \f$ \Order{n} \f$
+ *         \f$ \Order{n*q} \f$ implmented with \f$ q=64 \f$
  *  \par Space complexity
- *		  ToDo \f$ 5n \f$ bytes
+ *         \f$ n + \frac{n*\log{n}}{q} \f$ bytes, implmented with \f$ q=64 \f$
  *  \par Reference
- * 	      ToDo
+ *         Juha Kärkkäinen, Giovanni Manzini, Simon J. Puglisi:
+ *         Permuted Longest-Common-Prefix Array.
+ *         CPM 2009: 181-192
  */
-// void construct_lcp_simple_5n(cache_config& config);
+void construct_lcp_semi_extern_PHI(cache_config& config);
 
-//// only phase 2 of the new algorithm
-//// TODO: assert n > 0
-//bool construct_lcp_simple2_9n(tMSS& file_map, const std::string& dir, const std::string& id);
 
 //! Construct the LCP array (only for byte strings)
 /*!	The algorithm computes the lcp array and stores it to disk.
@@ -284,32 +279,16 @@ void construct_lcp_semi_extern_PHI(cache_config& config);
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
  *  \par Time complexity
- *		  ToDo \f$ \Order{n} \f$
+ *         ToDo \f$ \Order{n} \f$
  *  \par Space complexity
- *		  Usually \f$ 2n \f$ bytes, worst case \f$5n bytes\f$
+ *         Usually \f$ 2n \f$ bytes, worst case \f$5n bytes\f$
  *  \par Reference
- * 	      ToDo
+ *         Simon Gog, Enno Ohlebusch:
+ *         Fast and Lightweight LCP-Array Construction Algorithms.
+ *         ALENEX 2011: 25-34
  */
 void construct_lcp_go(cache_config& config);
 
-//! Construct the LCP array (only for byte strings)
-/*!	The algorithm computes the lcp array and stores it to disk.
- *  Our new 2 phases lcp algorithm
- *  \param config	Reference to cache configuration
- *  \pre Text, Suffix array and BWT exist in the cache. Keys:
- *         * constants::KEY_TEXT
- *         * constants::KEY_SA 
- *         * constants::KEY_BWT 
- *  \post LCP array exist in the cache. Key
- *         * constants::KEY_LCP
- *  \par Time complexity
- *		  ToDo \f$ \Order{n} \f$
- *  \par Space complexity
- *		  Usually \f$ 2n \f$ bytes, worst case \f$5n bytes\f$
- *  \par Reference
- * 	      ToDo
- */
-void construct_lcp_goPHI(cache_config& config);
 
 //! Construct the LCP array (only for byte strings)
 /*!	The algorithm computes the lcp array and stores it to disk.
@@ -322,16 +301,40 @@ void construct_lcp_goPHI(cache_config& config);
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
  *  \par Time complexity
- *		  ToDo \f$ \Order{n} \f$
+ *         ToDo \f$ \Order{n} \f$
  *  \par Space complexity
- *		 Usually \f$ n+\Order{1} \f$ bytes, worst case \f$ 5n \f$ bytes
+ *         Usually \f$ n+\Order{1} \f$ bytes, worst case \f$ 5n \f$ bytes
  *  \par Reference
- * 	      ToDo
+ *         Simon Gog, Enno Ohlebusch:
+ *         Fast and Lightweight LCP-Array Construction Algorithms.
+ *         ALENEX 2011: 25-34
  */
 // void construct_lcp_go2(cache_config& config);
 
 
-void lcp_info(tMSS& file_map);
+//! Construct the LCP array (only for byte strings)
+/*!	The algorithm computes the lcp array and stores it to disk.
+ *  Our new 2 phases lcp algorithm
+ *  \param config	Reference to cache configuration
+ *  \pre Text, Suffix array and BWT exist in the cache. Keys:
+ *         * constants::KEY_TEXT
+ *         * constants::KEY_SA 
+ *         * constants::KEY_BWT 
+ *  \post LCP array exist in the cache. Key
+ *         * constants::KEY_LCP
+ *  \par Time complexity
+ *         ToDo \f$ \Order{n} \f$
+ *  \par Space complexity
+ *         Usually \f$ 2n \f$ bytes, worst case \f$5n bytes\f$
+ *  \par Reference
+ *         ToDo
+ */
+void construct_lcp_goPHI(cache_config& config);
+
+// void construct_lcp_simple_5n(cache_config& config);
+
+//// only phase 2 of the new algorithm
+//bool construct_lcp_simple2_9n(tMSS& file_map, const std::string& dir, const std::string& id);
 
 }// end namespace
 
