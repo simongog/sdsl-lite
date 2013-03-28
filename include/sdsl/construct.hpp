@@ -174,7 +174,11 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         register_cache_file(KEY_BWT, config);
         register_cache_file(constants::KEY_SA, config);
         if (!cache_file_exists(constants::KEY_LCP, config)) {
-            construct_lcp_PHI<t_index::alphabet_category::WIDTH>(config);
+            if(t_index::alphabet_category::WIDTH==8){
+                construct_lcp_semi_extern_PHI(config);
+            } else {
+                construct_lcp_PHI<t_index::alphabet_category::WIDTH>(config);
+            }
         }
         register_cache_file(constants::KEY_LCP, config);
     }
