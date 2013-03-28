@@ -1,5 +1,6 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2010 Simon Gog
+    Copyright (C) 2010-2013 Simon Gog
+    Copyright (C) 2013 Timo Beller
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,7 +17,7 @@
 */
 /*! \file construct_lcp.hpp
     \brief construct_lcp.hpp contains a space and time efficient construction method for lcp arrays
-	\author Simon Gog
+	\author Simon Gog, Timo Beller
 */
 #ifndef INCLUDED_SDSL_CONSTRUCT_LCP
 #define INCLUDED_SDSL_CONSTRUCT_LCP
@@ -267,11 +268,13 @@ void construct_lcp_go(cache_config& config);
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
  *  \par Time complexity
- *         ToDo \f$ \Order{n} \f$
+ *         \f$ \Order{n} \f$
  *  \par Space complexity
  *         Usually \f$ 2n \f$ bytes
  *  \par Reference
- *         ToDo
+ *         Simon Gog, Enno Ohlebusch:
+ *         Lightweight LCP-Array Construction in Linear Time.
+ *         CoRR abs/1012.4263 (2010)
  */
 void construct_lcp_goPHI(cache_config& config);
 

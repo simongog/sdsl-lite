@@ -33,21 +33,71 @@ namespace coder
 class fibonacci
 {
     public:
-        //! Array contains precomputed values for the decoding of a number in the Fibonacci system.
-        static const uint64_t Fib2bin_0_95[(1<<12)*8];
+        static struct impl {
+            uint64_t fib12bit_to_bin[(1<<12)*8];
+            //! End position of the first Fibonacci encoded number in the 13-bit word.
+            /*! fib2bin_shift[x] = 0 if bit-pattern `11` does not occur in x. Otherwise
+            	fib2bin_shift[x] = end position of the first Fibonacci encoded word.
+            	E.g. Fib2binShift[3] = 2 and Fib2binShift[6] = 3.
+                Space: 256.0 kBytes
+             */
+            uint8_t  fib2bin_shift[(1<<13)];
+            //! Array contains precomputed values for the decoding of a prefix sum of Fibonacci encoded integers
+            /*! The 5 most significant bits contain information about how far to shift to get to the next encoded integer.
+                If this 5 bits equal zero, there is no whole Fibonacci number encoded in the 16 bits...
+                space for Fib2bin_greedy-table 128.0 kBytes
+                maxentry = 1596  index of maxentry = 54613
+            */
+            uint16_t fib2bin_16_greedy[(1<<16)];
 
-        //! Array contains precomputed values for the decoding of a number in the Fibonacci system
-        /*! Entry x equals 0 if no 11 substring is in the binary representation of x otherwise
-            Fib2binShift[x] contains the position (1..13) of the left 1 in the rightmost 11 substring in x.
-        	E.g. Fib2binShift[3] = 2 and Fib2binShift[6] = 3.
-         */
-        static const uint8_t Fib2binShift[(1<<13)];
+            //! Array contains precomputed values for the decoding of a number in the Fibonacci system.
+            uint64_t fib2bin_0_95[(1<<12)*8];
 
-        //! Array contains precomputed values for the decoding of a prefix sum of Fibonacci encoded integers
-        /*! The 5 most significant bits contain information about how far to shift to get to the next encoded integer.
-            If this 5 bits equal zero, there is no whole Fibonacci number encoded in the 16 bits...
-         */
-        static const uint16_t Fib2bin_0_16_greedy[1<<16];
+            impl() {
+                for (uint32_t x=0; x <= 0x1FFF; ++x) {
+                    if (bits::cnt11(x)) {
+                        fib2bin_shift[x] = bits::sel11(x, 1)+1;
+                    } else {
+                        fib2bin_shift[x] = 0;
+                    }
+                }
+                for (uint32_t x=0; x < 1<<16; ++x) {
+                    uint16_t w = 0;
+                    uint32_t offset=0;
+                    if (uint32_t cnt = bits::cnt11(x)) {
+                        uint32_t y=x;
+                        uint32_t fib_pos=1;
+                        do {
+                            if (y&1) {
+                                w += bits::lt_fib[fib_pos-1];
+                                if (y&2) {
+                                    --cnt; ++offset;
+                                    fib_pos=0;
+                                    y>>=1;
+                                }
+                            }
+                            ++fib_pos; ++offset;
+                            y>>=1;
+                        } while (cnt);
+                    }
+                    fib2bin_16_greedy[x] = (offset<<11) | w;
+                }
+                for (uint32_t p=0; p<8; ++p) {
+                    for (uint32_t x=0; x<=0xFFF; ++x) {
+                        uint64_t w = 0;
+                        for (uint32_t j=0; j < 12 and 12*p+j < 92; ++j) {
+                            if ((x>>j)&1ULL) {
+                                w += bits::lt_fib[12*p+j];
+                                if (x>>(j+1)&1ULL) {
+                                    break;
+                                }
+                            }
+                        }
+                        fib2bin_0_95[(p<<12) | x] = w;
+                    }
+                }
+            }
+        } data;
 
         typedef uint64_t size_type;
 
@@ -298,8 +348,8 @@ inline uint64_t fibonacci::decode(const uint64_t* data, const size_type start_id
                 buffered = 64;
             }
         }
-        value += Fib2bin_0_95[(fibtable<<12) | (w&0xFFF)];
-        shift  = Fib2binShift[w&0x1FFF];
+        value += fibonacci::data.fib2bin_0_95[(fibtable<<12) | (w&0xFFF)];
+        shift  = fibonacci::data.fib2bin_shift[w&0x1FFF];
         if (shift > 0) {// if end of decoding
             w >>= shift;
             buffered -= shift;
@@ -343,8 +393,8 @@ inline uint64_t fibonacci::decode1(const uint64_t* data, const size_type start_i
                 buffered = 64;
             }
         }
-        value += Fib2bin_0_95[(fibtable<<12) | (w&0xFFF)];
-        shift  = Fib2binShift[w&0x1FFF];
+        value += fibonacci::data.fib2bin_0_95[(fibtable<<12) | (w&0xFFF)];
+        shift  = fibonacci::data.fib2bin_shift[w&0x1FFF];
         if (shift > 0) {// if end of decoding
             w >>= shift;
             buffered -= shift;
