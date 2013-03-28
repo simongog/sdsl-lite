@@ -234,9 +234,6 @@ void construct_lcp_PHI(cache_config& config)
 void construct_lcp_semi_extern_PHI(cache_config& config);
 
 
-// void construct_lcp_simple_5n(cache_config& config);
-
-
 //! Construct the LCP array (only for byte strings)
 /*!	The algorithm computes the lcp array and stores it to disk.
  *  Our new 2 phases lcp algorithm
@@ -277,28 +274,6 @@ void construct_lcp_go(cache_config& config);
  *         ToDo
  */
 void construct_lcp_goPHI(cache_config& config);
-
-
-//! Construct the LCP array (only for byte strings)
-/*!	The algorithm computes the lcp array and stores it to disk.
- *  Our new 2 phases lcp algorithm using usually 1 n bytes.
- *  \param config	Reference to cache configuration
- *  \pre Text, Suffix array and BWT exist in the cache. Keys:
- *         * constants::KEY_TEXT
- *         * constants::KEY_SA
- *         * constants::KEY_BWT
- *  \post LCP array exist in the cache. Key
- *         * constants::KEY_LCP
- *  \par Time complexity
- *         ToDo \f$ \Order{n} \f$
- *  \par Space complexity
- *         Usually \f$ n+\Order{1} \f$ bytes, worst case \f$ 5n \f$ bytes
- *  \par Reference
- *         Simon Gog, Enno Ohlebusch:
- *         Fast and Lightweight LCP-Array Construction Algorithms.
- *         ALENEX 2011: 25-34
- */
-// void construct_lcp_go2(cache_config& config);
 
 
 //! Construct the LCP array out of the BWT (only for byte strings)
