@@ -915,8 +915,10 @@ void construct_lcp_goPHI(cache_config& config)
             lcp_out_buf.write("\0\0\0\0\0\0\0\0", 8-wb%8);
         }
     }
-#ifdef STUDY_INFORMATIONS
+    sdsl::remove(cache_file_name("lcp_sml", config));
+    sdsl::remove(cache_file_name("lcp_big", config));
     register_cache_file(constants::KEY_LCP, config);
+#ifdef STUDY_INFORMATIONS
     util::write_R_output("lcp","goPHI phase 3", "end", 1, 0);
 #endif
     util::write_R_output("lcp","construct LCP", "end", 1, 0);
