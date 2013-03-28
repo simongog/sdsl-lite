@@ -187,16 +187,16 @@ struct select_support_trait<10,2> {
         return util::cnt_onezero_bits(v);
     }
     static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry) {
-        return bits::cnt(bits::b10Map(w, carry) & bits::lo_unset[offset]);
+        return bits::cnt(bits::map10(w, carry) & bits::lo_unset[offset]);
     }
     static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry) {
-        return bits::sel(bits::b10Map(w, carry) & bits::lo_unset[offset], i);
+        return bits::sel(bits::map10(w, carry) & bits::lo_unset[offset], i);
     }
     static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
-        return bits::b10Cnt(w, carry);
+        return bits::cnt10(w, carry);
     }
     static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry) {
-        return bits::sel(bits::b10Map(w, carry), i);
+        return bits::sel(bits::map10(w, carry), i);
     }
     static bool found_arg(size_type i, const bit_vector& v) {
         if (i > 0 and v[i-1] and !v[i])
@@ -219,16 +219,16 @@ struct select_support_trait<01,2> {
         return util::cnt_zeroone_bits(v);
     }
     static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry) {
-        return bits::cnt(bits::b01Map(w, carry) & bits::lo_unset[offset]);
+        return bits::cnt(bits::map01(w, carry) & bits::lo_unset[offset]);
     }
     static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry) {
-        return bits::sel(bits::b01Map(w, carry) & bits::lo_unset[offset], i);
+        return bits::sel(bits::map01(w, carry) & bits::lo_unset[offset], i);
     }
     static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
-        return bits::b01Cnt(w, carry);
+        return bits::cnt01(w, carry);
     }
     static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry) {
-        return bits::sel(bits::b01Map(w, carry), i);
+        return bits::sel(bits::map01(w, carry), i);
     }
     static bool found_arg(size_type i, const bit_vector& v) {
         if (i > 0 and !v[i-1] and v[i])

@@ -156,19 +156,19 @@ struct rank_support_trait<10,2> {
     typedef rank_support::size_type	size_type;
 
     static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
-        return bits::b10Cnt(w, carry);
+        return bits::cnt10(w, carry);
     }
 
     static uint32_t word_rank(const uint64_t* data, size_type idx) {
         data = data+(idx>>6);
         uint64_t carry = (idx>63) ? *(data-1)>>63 : 0;
-        return	bits::cnt(bits::b10Map(*data, carry) & bits::lo_set[idx&0x3F]);
+        return	bits::cnt(bits::map10(*data, carry) & bits::lo_set[idx&0x3F]);
     }
 
     static uint32_t full_word_rank(const uint64_t* data, size_type idx) {
         data = data+(idx>>6);
         uint64_t carry = (idx>63) ? *(data-1)>>63 : 0;
-        return	bits::cnt(bits::b10Map(*data, carry));
+        return	bits::cnt(bits::map10(*data, carry));
     }
 
     static uint64_t init_carry() {
@@ -181,19 +181,19 @@ struct rank_support_trait<01,2> {
     typedef rank_support::size_type	size_type;
 
     static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
-        return bits::b01Cnt(w, carry);
+        return bits::cnt01(w, carry);
     }
 
     static uint32_t word_rank(const uint64_t* data, size_type idx) {
         data = data+(idx>>6);
         uint64_t carry = (idx>63) ? *(data-1)>>63 : 0;
-        return	bits::cnt(bits::b01Map(*data, carry) & bits::lo_set[idx&0x3F]);
+        return	bits::cnt(bits::map01(*data, carry) & bits::lo_set[idx&0x3F]);
     }
 
     static uint32_t full_word_rank(const uint64_t* data, size_type idx) {
         data = data+(idx>>6);
         uint64_t carry = (idx>63) ? *(data-1)>>63 : 0;
-        return	bits::cnt(bits::b01Map(*data, carry));
+        return	bits::cnt(bits::map01(*data, carry));
     }
 
     static uint64_t init_carry() {

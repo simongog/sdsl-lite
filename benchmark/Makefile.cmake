@@ -8,9 +8,8 @@ INC_DIR = @CMAKE_INSTALL_PREFIX@/include
 SRC_DIR = src
 TEST_CASES = $(shell find data -name "*[0-9][0-9]MB")
 
-# List of index names. See file csa_typedefs for index type definitions.
-INDEX_NAME:=$(shell cat index.config | grep -v "^\#" | cut -f 1 -d";")
-INDEXES := $(INDEX_NAME)
+INDEXES:=$(shell cat count_index.config | grep -v "^\#" | cut -f 1 -d";")
+
 # List of sample rates for the locate experiment.		  
 SAMPLES = 4 # 8 16 32 128 256
 TMP_DIR = tmp

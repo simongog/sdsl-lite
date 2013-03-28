@@ -18,18 +18,18 @@ uint64_t fibonacci::decode_prefix_sum(const uint64_t* data, const size_type star
     int16_t buffered = 0, read = start_idx & 0x3F, shift = 0;
     uint16_t temp=0;
     uint64_t carry=0;
-    i = bits::b11Cnt(*data & ~bits::lo_set[read], carry);
+    i = bits::cnt11(*data & ~bits::lo_set[read], carry);
     if (i<n) {
         uint64_t oldcarry;
         w = 0;
         do {
             oldcarry = carry;
-            i += (temp = bits::b11Cnt(*(data+(++w)), carry));
+            i += (temp = bits::cnt11(*(data+(++w)), carry));
         } while (i<n);
-        bits_to_decode += ((w-1)<<6) + bits::i11BP(*(data+w), n-(i-temp), oldcarry) + 65 - read;
+        bits_to_decode += ((w-1)<<6) + bits::sel11(*(data+w), n-(i-temp), oldcarry) + 65 - read;
         w = 0;
     } else { // i>=n
-        bits_to_decode = bits::i11BP(*data >> read, n)+1;
+        bits_to_decode = bits::sel11(*data >> read, n)+1;
     }
     if (((size_type)bits_to_decode) == n<<1)
         return n;
