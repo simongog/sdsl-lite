@@ -1,4 +1,5 @@
 #include "sdsl/suffix_arrays.hpp"
+#include "sdsl/coder.hpp"
 #include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
 #include "gtest/gtest.h"
 #include <vector>
@@ -55,6 +56,7 @@ class CsaByteTest : public ::testing::Test
 using testing::Types;
 
 typedef Types<  csa_wt<>,
+        csa_sada<enc_vector<coder::fibonacci> >,
         csa_wt<wt_huff<>, 8, 16, text_order_sa_sampling<> >,
         csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<> >,
         csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, int_vector<>,

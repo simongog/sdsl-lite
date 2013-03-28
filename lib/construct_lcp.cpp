@@ -1,5 +1,6 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2012 Simon Gog
+    Copyright (C) 2012-2013 Simon Gog
+    Copyright (C) 2013 Timo Beller
 */
 
 #include "sdsl/construct_lcp.hpp"
@@ -1064,11 +1065,11 @@ void construct_lcp_bwt_based2(cache_config& config)
 
         // External storage of LCP-Positions-Array
         bool new_lcp_value = 0;
-        uint8_t int_width = bits::hi(n)+2; //
+        uint8_t int_width = bits::hi(n)+2;
 
         size_type bit_size = (n+1)*int_width;                           // Size of output file in bit
         size_type wb = 0;                                               // Number of bits already written
-        osfstream lcp_positions(tmp_lcp_file, std::ios::binary | std::ios::trunc | std::ios::out);
+        osfstream lcp_positions(tmp_lcp_file, std::ios::binary | std::ios::trunc);
         lcp_positions.write((char*) &(bit_size), sizeof(bit_size));     // Write length of vector
         lcp_positions.write((char*) &(int_width), sizeof(int_width));   // Write int-width of vector
 
@@ -1078,7 +1079,7 @@ void construct_lcp_bwt_based2(cache_config& config)
         bit_vector index_done(n, 0);                                    // Bitvector which is true, if corresponding LCP value was already calculated
 
         // Create C-array
-        vector<size_type> C;                                    // C-Array: C[i] = number of occurrences of characters < i in the input
+        vector<size_type> C;          // C-Array: C[i] = number of occurrences of characters < i in the input
         create_C_array(C, wt_bwt);
         util::write_R_output("lcp","init             ","end", 0, 0);
 
