@@ -548,13 +548,13 @@ typename t_int_vec::size_type util::cnt_onezero_bits(const t_int_vec& v)
     if (v.empty())
         return 0;
     uint64_t carry = 0, oldcarry=0;
-    typename t_int_vec::size_type result = bits::b10Cnt(*data, carry);
+    typename t_int_vec::size_type result = bits::cnt10(*data, carry);
     for (typename t_int_vec::size_type i=1; i < (v.capacity()>>6); ++i) {
         oldcarry = carry;
-        result += bits::b10Cnt(*(++data), carry);
+        result += bits::cnt10(*(++data), carry);
     }
     if (v.bit_size()&0x3F) {// if bit_size is not a multiple of 64, subtract the counts of the additional bits
-        result -= bits::cnt(bits::b10Map(*data, oldcarry) & bits::lo_unset[v.bit_size()&0x3F]);
+        result -= bits::cnt(bits::map10(*data, oldcarry) & bits::lo_unset[v.bit_size()&0x3F]);
     }
     return result;
 }
@@ -566,13 +566,13 @@ typename t_int_vec::size_type util::cnt_zeroone_bits(const t_int_vec& v)
     if (v.empty())
         return 0;
     uint64_t carry = 1, oldcarry = 1;
-    typename t_int_vec::size_type result = bits::b01Cnt(*data, carry);
+    typename t_int_vec::size_type result = bits::cnt01(*data, carry);
     for (typename t_int_vec::size_type i=1; i < (v.capacity()>>6); ++i) {
         oldcarry = carry;
-        result += bits::b01Cnt(*(++data), carry);
+        result += bits::cnt01(*(++data), carry);
     }
     if (v.bit_size()&0x3F) {// if bit_size is not a multiple of 64, subtract the counts of the additional bits
-        result -= bits::cnt(bits::b01Map(*data, oldcarry) & bits::lo_unset[v.bit_size()&0x3F]);
+        result -= bits::cnt(bits::map01(*data, oldcarry) & bits::lo_unset[v.bit_size()&0x3F]);
     }
     return result;
 }

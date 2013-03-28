@@ -33,26 +33,26 @@ namespace coder
 class fibonacci
 {
     public:
-        //! Array contains precomputed values for the decoding of a number in the fibonacci system.
+        //! Array contains precomputed values for the decoding of a number in the Fibonacci system.
         static const uint64_t Fib2bin_0_95[(1<<12)*8];
 
-        //! Array contains precomputed values for the decoding of a number in the fibonacci system
+        //! Array contains precomputed values for the decoding of a number in the Fibonacci system
         /*! Entry x equals 0 if no 11 substring is in the binary representation of x otherwise
             Fib2binShift[x] contains the position (1..13) of the left 1 in the rightmost 11 substring in x.
         	E.g. Fib2binShift[3] = 2 and Fib2binShift[6] = 3.
          */
         static const uint8_t Fib2binShift[(1<<13)];
 
-        //! Array contains precomputed values for the deconding of a prefix sum of fibonacci encoded integers
+        //! Array contains precomputed values for the decoding of a prefix sum of Fibonacci encoded integers
         /*! The 5 most significant bits contain information about how far to shift to get to the next encoded integer.
-            If this 5 bits equal zero, there is no whole fibonacci number encoded in the 16 bits...
+            If this 5 bits equal zero, there is no whole Fibonacci number encoded in the 16 bits...
          */
         static const uint16_t Fib2bin_0_16_greedy[1<<16];
 
         typedef uint64_t size_type;
 
         static const uint8_t min_codeword_length = 2; // 11 represents 1 and is the code word with minimum length
-        //! Get the number of bits that are necessary to encode the value w in fibonacci code.
+        //! Get the number of bits that are necessary to encode the value w in Fibonacci code.
         /*! \param w 64bit integer to get the length of its fibonacci encoding. Inclusive the terminating 1 of the code.
          */
         static uint8_t encoding_length(uint64_t w);
@@ -72,12 +72,12 @@ class fibonacci
 
         //! Decode n Fibonacci encoded integers beginning at start_idx in the bitstring "data"  and return the sum of these values.
         /*! \param data Pointer to the beginning of the Fibonacci encoded bitstring.
-            \param start_idx Index of the first bit to endcode the values from.
+            \param start_idx Index of the first bit to encode the values from.
         	\param n Number of values to decode from the bitstring. Attention: There have to be at least n encoded values in the bitstring.
          */
         static uint64_t decode_prefix_sum(const uint64_t* data, const size_type start_idx, size_type n);
 
-        //! Deocde n Fibonacci encoded integers beginning at start_idx and ending at end_idx (exclusive) in the bitstring "data" and return the sum of these values.
+        //! Decode n Fibonacci encoded integers beginning at start_idx and ending at end_idx (exclusive) in the bitstring "data" and return the sum of these values.
         /*! \sa decode_prefix_sum
           */
         static uint64_t decode_prefix_sum(const uint64_t* data, const size_type start_idx, const size_type end_idx, size_type n);
@@ -108,7 +108,7 @@ inline uint8_t fibonacci::encoding_length(uint64_t w)
     }
     // This limit for the leftmost 1bit in the resulting fib code could be improved using a table
     uint8_t len_1 = bits::hi(w); // len-1 of the fib code
-    while (++len_1 < (uint8_t)(sizeof(bits::Fib)/sizeof(bits::Fib[0])) && w >= bits::Fib[len_1]);
+    while (++len_1 < (uint8_t)(sizeof(bits::lt_fib)/sizeof(bits::lt_fib[0])) && w >= bits::lt_fib[len_1]);
     return len_1+1;
 }
 
@@ -149,12 +149,12 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
                 fibword_high <<= 1;
                 fibword_high |= 1;
                 fibword_high <<= 1;
-                w -= bits::Fib[len_1-1];
+                w -= bits::lt_fib[len_1-1];
                 j -= 2;
             }
             for (; j>63; --j) {
                 fibword_high <<= 1;
-                if (w >= (t=bits::Fib[j])) {
+                if (w >= (t=bits::lt_fib[j])) {
                     w -= t;
                     fibword_high |= 1;
                     if (w and j>64) {
@@ -173,7 +173,7 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
 
         for (; j >= 0; --j) {
             fibword_low <<= 1;
-            if (w >= (t=bits::Fib[j])) {
+            if (w >= (t=bits::lt_fib[j])) {
                 w -= t;
                 fibword_low |= 1;
                 if (w) {
@@ -210,12 +210,12 @@ inline void fibonacci::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
             fibword_high <<= 1;
             fibword_high |= 1;
             fibword_high <<= 1;
-            x -= bits::Fib[len_1-1];
+            x -= bits::lt_fib[len_1-1];
             j -= 2;
         }
         for (; j>63; --j) {
             fibword_high <<= 1;
-            if (x >= (t=bits::Fib[j])) {
+            if (x >= (t=bits::lt_fib[j])) {
                 x -= t;
                 fibword_high |= 1;
                 if (x and j>64) {
@@ -233,7 +233,7 @@ inline void fibonacci::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
     }
     for (; j >= 0; --j) {
         fibword_low <<= 1;
-        if (x >= (t=bits::Fib[j])) {
+        if (x >= (t=bits::lt_fib[j])) {
             x -= t;
             fibword_low |= 1;
             if (x) {
@@ -265,12 +265,12 @@ bool fibonacci::decode(const int_vector1& z, int_vector2& v)
         return true;
     }
     for (typename int_vector1::size_type i=0; i < (z.capacity()>>6)-1; ++i, ++data) {
-        n += bits::b11Cnt(*data, carry);
+        n += bits::cnt11(*data, carry);
     }
     if (z.capacity() != z.bit_size()) {
-        n += bits::b11Cnt((*data) & bits::lo_set[z.bit_size()&0x3F], carry);
+        n += bits::cnt11((*data) & bits::lo_set[z.bit_size()&0x3F], carry);
     } else {
-        n += bits::b11Cnt(*data, carry);
+        n += bits::cnt11(*data, carry);
     }
     std::cout<<"n="<<n<<std::endl;
     v.width(z.width()); v.resize(n);
@@ -287,7 +287,7 @@ inline uint64_t fibonacci::decode(const uint64_t* data, const size_type start_id
     int8_t shift = 0;
     uint32_t fibtable = 0;
     while (n) {// while not all values are decoded
-        while (buffered < 13 and bits::b11Cnt(w) < n) {
+        while (buffered < 13 and bits::cnt11(w) < n) {
             w |= (((*data)>>read)<<buffered);
             if (read >= buffered) {
                 ++data;
@@ -327,7 +327,7 @@ inline uint64_t fibonacci::decode1(const uint64_t* data, const size_type start_i
     uint32_t fibtable = 0;
     uint8_t blocknr = (start_idx>>6)%9;
     while (n) {// while not all values are decoded
-        while (buffered < 13 and bits::b11Cnt(w) < n) {
+        while (buffered < 13 and bits::cnt11(w) < n) {
             w |= (((*data)>>read)<<buffered);
             if (read >= buffered) {
                 ++blocknr;
