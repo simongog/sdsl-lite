@@ -7,7 +7,7 @@ include(CheckSSE4_2)
 project(sdsl CXX C)
 set(PROJECT_VEDOR "Simon Gog")
 set(PROJECT_CONTACT "simon.gog@gmail.com")
-set(PROJECT_URL "https://github.com/simongog/sdsl")
+set(PROJECT_URL "https://github.com/simongog/sdsl-lite")
 set(PROJECT_DESCRIPTION "SDSL: Succinct Data Structure Library")
 set(CMAKE_BUILD_TYPE "Release")
 
