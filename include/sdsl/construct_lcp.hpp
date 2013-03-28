@@ -1,5 +1,6 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2010 Simon Gog
+    Copyright (C) 2010-2013 Simon Gog
+    Copyright (C) 2013 Timo Beller
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,7 +17,7 @@
 */
 /*! \file construct_lcp.hpp
     \brief construct_lcp.hpp contains a space and time efficient construction method for lcp arrays
-	\author Simon Gog
+	\author Simon Gog, Timo Beller
 */
 #ifndef INCLUDED_SDSL_CONSTRUCT_LCP
 #define INCLUDED_SDSL_CONSTRUCT_LCP
@@ -283,7 +284,7 @@ void construct_lcp_semi_extern_PHI(cache_config& config);
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
  *  \par Time complexity
- *         ToDo \f$ \Order{n} \f$
+ *         \f$ \Order{n^2} \f$
  *  \par Space complexity
  *         Usually \f$ 2n \f$ bytes, worst case \f$5n bytes\f$
  *  \par Reference
@@ -292,29 +293,6 @@ void construct_lcp_semi_extern_PHI(cache_config& config);
  *         ALENEX 2011: 25-34
  */
 void construct_lcp_go(cache_config& config);
-
-
-//! Construct the LCP array (only for byte strings)
-/*!	The algorithm computes the lcp array and stores it to disk.
- *  Our new 2 phases lcp algorithm using usually 1 n bytes.
- *  \param config	Reference to cache configuration
- *  \pre Text, Suffix array and BWT exist in the cache. Keys:
- *         * constants::KEY_TEXT
- *         * constants::KEY_SA
- *         * constants::KEY_BWT
- *  \post LCP array exist in the cache. Key
- *         * constants::KEY_LCP
- *  \par Time complexity
- *         ToDo \f$ \Order{n} \f$
- *  \par Space complexity
- *         Usually \f$ n+\Order{1} \f$ bytes, worst case \f$ 5n \f$ bytes
- *  \par Reference
- *         Simon Gog, Enno Ohlebusch:
- *         Fast and Lightweight LCP-Array Construction Algorithms.
- *         ALENEX 2011: 25-34
- */
-// void construct_lcp_go2(cache_config& config);
-
 
 //! Construct the LCP array (only for byte strings)
 /*!	The algorithm computes the lcp array and stores it to disk.
@@ -327,15 +305,15 @@ void construct_lcp_go(cache_config& config);
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
  *  \par Time complexity
- *         ToDo \f$ \Order{n} \f$
+ *         \f$ \Order{n} \f$
  *  \par Space complexity
  *         Usually \f$ 2n \f$ bytes
  *  \par Reference
- *         ToDo
+ *         Simon Gog, Enno Ohlebusch:
+ *         Lightweight LCP-Array Construction in Linear Time.
+ *         CoRR abs/1012.4263 (2010)
  */
 void construct_lcp_goPHI(cache_config& config);
-
-// void construct_lcp_simple_5n(cache_config& config);
 
 }// end namespace
 
