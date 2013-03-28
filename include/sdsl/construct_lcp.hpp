@@ -283,7 +283,7 @@ void construct_lcp_semi_extern_PHI(cache_config& config);
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
  *  \par Time complexity
- *         ToDo \f$ \Order{n} \f$
+ *         \f$ \Order{n^2} \f$, but usually faster than goPHI
  *  \par Space complexity
  *         Usually \f$ 2n \f$ bytes, worst case \f$5n bytes\f$
  *  \par Reference
@@ -314,7 +314,7 @@ void construct_lcp_go(cache_config& config);
  *         ALENEX 2011: 25-34
  */
 // void construct_lcp_go2(cache_config& config);
-
+// void construct_lcp_simple_5n(cache_config& config);
 
 //! Construct the LCP array (only for byte strings)
 /*!	The algorithm computes the lcp array and stores it to disk.
@@ -335,7 +335,6 @@ void construct_lcp_go(cache_config& config);
  */
 void construct_lcp_goPHI(cache_config& config);
 
-// void construct_lcp_simple_5n(cache_config& config);
 
 }// end namespace
 
