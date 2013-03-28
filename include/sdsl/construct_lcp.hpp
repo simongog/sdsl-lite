@@ -284,7 +284,7 @@ void construct_lcp_semi_extern_PHI(cache_config& config);
  *  \post LCP array exist in the cache. Key
  *         * constants::KEY_LCP
  *  \par Time complexity
- *         \f$ \Order{n^2} \f$
+ *         \f$ \Order{n^2} \f$, but usually faster than goPHI
  *  \par Space complexity
  *         Usually \f$ 2n \f$ bytes, worst case \f$5n bytes\f$
  *  \par Reference
