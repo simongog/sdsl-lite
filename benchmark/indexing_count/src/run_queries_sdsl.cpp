@@ -23,9 +23,6 @@
 #define DISPLAY 	('D')
 #define VERBOSE 	('V')
 
-/* macro to detect and to notify errors */
-#define IFERROR(error) {{if (error) { fprintf(stderr, "%s\n", error_index(error)); exit(1); }}}
-
 using namespace sdsl;
 using namespace std;
 
@@ -49,7 +46,6 @@ static double Load_time;
  */
 int main(int argc, char* argv[])
 {
-    int error = 0;
     char* filename;
     char querytype;
 
@@ -66,16 +62,12 @@ int main(int argc, char* argv[])
     fprintf(stderr, "# program = %s\n",string(SUF).c_str());
     Load_time = getTime();
     load_from_file(csa, (string(argv[1]) + "." + string(SUF)).c_str());
-    IFERROR(error);
     Load_time = getTime() - Load_time;
     fprintf(stderr, "# Load_index_time_in_sec = %.2f\n", Load_time);
     fprintf(stderr, "# text_size = %lld\n", csa.size());
 
     Index_size = size_in_bytes(csa);
-    IFERROR(error);
     Text_length = csa.size()-1; // -1 since we added a sentinel character
-//	error = get_length(Index, &Text_length);
-    IFERROR(error);
     /*	Index_size /=1024; */
     fprintf(stderr, "# Index_size_in_bytes = %lu\n", Index_size);
     bool mapped = false;
@@ -142,10 +134,6 @@ int main(int argc, char* argv[])
         mm::unmap_hp();
     }
 #endif
-
-//	error = free_index(Index);
-    IFERROR(error);
-
     return 0;
 }
 
@@ -153,7 +141,6 @@ int main(int argc, char* argv[])
 void
 do_count(const CSA_TYPE& csa)
 {
-    int error = 0;
     ulong numocc, length, tot_numocc = 0, numpatt, res_patt;
     double time, tot_time = 0;
     uchar* pattern;
@@ -171,15 +158,12 @@ do_count(const CSA_TYPE& csa)
 
         if (fread(pattern, sizeof(*pattern), length, stdin) != length) {
             fprintf(stderr, "Error: cannot read patterns file\n");
-            perror("run_queries");
             exit(1);
         }
 
         /* Count */
         time = getTime();
         numocc = algorithm::count(csa, pattern, length);
-//		error = count (Index, pattern, length, &numocc);
-        IFERROR(error);
 
         if (Verbose) {
             fwrite(&length, sizeof(length), 1, stdout);
@@ -209,7 +193,6 @@ do_count(const CSA_TYPE& csa)
 void
 do_locate(const CSA_TYPE& csa)
 {
-    int error = 0;
     ulong numocc, length; //, *occ,
     int_vector<32> occ;
     ulong tot_numocc = 0, numpatt;
@@ -233,9 +216,7 @@ do_locate(const CSA_TYPE& csa)
         }
         // Locate
         time = getTime();
-//		error =	locate (Index, pattern, length, &occ, &numocc);
         numocc = algorithm::locate(csa, pattern, length, occ);
-        IFERROR(error);
         tot_time += (getTime() - time);
 
         tot_numocc += numocc;
