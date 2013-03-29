@@ -214,44 +214,6 @@ void construct_lcp_PHI(cache_config& config)
 }
 
 
-//! Construct the LCP array out of the BWT (only for byte strings)
-/*!	The algorithm computes the lcp array and stores it to disk. It needs only the Burrows and Wheeler transform.
- *  \param config	Reference to cache configuration
- *  \pre BWT exist in the cache. Keys:
- *         * constants::KEY_BWT
- *  \post LCP array exist in the cache. Key
- *         * constants::KEY_LCP
- *  \par Time complexity
- *         \f$ \Order{n \log{\sigma}} \f$
- *  \par Space complexity
- *         Usually not more than \f$ 2.5n \f$ bytes
- *  \par Reference
- *         Timo Beller, Simon Gog, Enno Ohlebusch, Thomas Schnattinger:
- *         Computing the Longest Common Prefix Array Based on the Burrows-Wheeler Transform.
- *         SPIRE 2011: 197-208
- */
-void construct_lcp_bwt_based(cache_config& config);
-
-
-//! Construct the LCP array out of the BWT (only for byte strings)
-/*!	The algorithm computes the lcp array and stores it to disk. It needs only the Burrows and Wheeler transform.
- *  \param config	Reference to cache configuration
- *  \pre BWT exist in the cache. Keys:
- *         * constants::KEY_BWT
- *  \post LCP array exist in the cache. Key
- *         * constants::KEY_LCP
- *  \par Time complexity
- *         \f$ \Order{n \log{\sigma}} \f$
- *  \par Space complexity
- *         Usually not more than \f$ 1.5n \f$ bytes
- *  \par Reference
- *         Timo Beller, Simon Gog, Enno Ohlebusch, Thomas Schnattinger:
- *         Computing the longest common prefix array based on the Burrows-Wheeler transform.
- *         J. Discrete Algorithms 18: 22-31 (2013)
- */
-void construct_lcp_bwt_based2(cache_config& config);
-
-
 //! Construct the LCP array (only for byte strings)
 /*!	The algorithm computes the lcp array and stores it to disk.
  *  \param config	Reference to cache configuration
@@ -294,6 +256,7 @@ void construct_lcp_semi_extern_PHI(cache_config& config);
  */
 void construct_lcp_go(cache_config& config);
 
+
 //! Construct the LCP array (only for byte strings)
 /*!	The algorithm computes the lcp array and stores it to disk.
  *  Our new 2 phases lcp algorithm
@@ -314,6 +277,44 @@ void construct_lcp_go(cache_config& config);
  *         CoRR abs/1012.4263 (2010)
  */
 void construct_lcp_goPHI(cache_config& config);
+
+
+//! Construct the LCP array out of the BWT (only for byte strings)
+/*!	The algorithm computes the lcp array and stores it to disk. It needs only the Burrows and Wheeler transform.
+ *  \param config	Reference to cache configuration
+ *  \pre BWT exist in the cache. Keys:
+ *         * constants::KEY_BWT
+ *  \post LCP array exist in the cache. Key
+ *         * constants::KEY_LCP
+ *  \par Time complexity
+ *         \f$ \Order{n \log{\sigma}} \f$
+ *  \par Space complexity
+ *         Usually not more than \f$ 2.5n \f$ bytes
+ *  \par Reference
+ *         Timo Beller, Simon Gog, Enno Ohlebusch, Thomas Schnattinger:
+ *         Computing the Longest Common Prefix Array Based on the Burrows-Wheeler Transform.
+ *         SPIRE 2011: 197-208
+ */
+void construct_lcp_bwt_based(cache_config& config);
+
+
+//! Construct the LCP array out of the BWT (only for byte strings)
+/*!	The algorithm computes the lcp array and stores it to disk. It needs only the Burrows and Wheeler transform.
+ *  \param config	Reference to cache configuration
+ *  \pre BWT exist in the cache. Keys:
+ *         * constants::KEY_BWT
+ *  \post LCP array exist in the cache. Key
+ *         * constants::KEY_LCP
+ *  \par Time complexity
+ *         \f$ \Order{n \log{\sigma}} \f$
+ *  \par Space complexity
+ *         Usually not more than \f$ 1.5n \f$ bytes
+ *  \par Reference
+ *         Timo Beller, Simon Gog, Enno Ohlebusch, Thomas Schnattinger:
+ *         Computing the longest common prefix array based on the Burrows-Wheeler transform.
+ *         J. Discrete Algorithms 18: 22-31 (2013)
+ */
+void construct_lcp_bwt_based2(cache_config& config);
 
 }// end namespace
 

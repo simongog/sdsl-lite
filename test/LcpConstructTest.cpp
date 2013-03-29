@@ -37,10 +37,8 @@ class LcpConstructTest : public ::testing::Test
             lcp_function["construct_lcp_bwt_based2"] = &sdsl::construct_lcp_bwt_based2;
             lcp_function["construct_lcp_PHI"] = &sdsl::construct_lcp_PHI<8>;
             lcp_function["construct_lcp_semi_extern_PHI"] = &sdsl::construct_lcp_semi_extern_PHI;
-// 		lcp_function["construct_lcp_simple_5n"] = &sdsl::construct_lcp_simple_5n; // fail on 100a.txt
             lcp_function["construct_lcp_go"] = &sdsl::construct_lcp_go;
             lcp_function["construct_lcp_goPHI"] = &sdsl::construct_lcp_goPHI;
-// 		lcp_function["construct_lcp_go2"] = &sdsl::construct_lcp_go2; // fail on zarathustra.txt
 
             for (size_t i=0; i< this->test_cases.size(); ++i) {
                 uint8_t num_bytes = 1;
