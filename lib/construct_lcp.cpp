@@ -788,8 +788,10 @@ void construct_lcp_goPHI(cache_config& config)
             lcp_out_buf.write("\0\0\0\0\0\0\0\0", 8-wb%8);
         }
     }
-#ifdef STUDY_INFORMATIONS
+    sdsl::remove(cache_file_name("lcp_sml", config));
+    sdsl::remove(cache_file_name("lcp_big", config));
     register_cache_file(constants::KEY_LCP, config);
+#ifdef STUDY_INFORMATIONS
     util::write_R_output("lcp","goPHI phase 3", "end", 1, 0);
 #endif
     util::write_R_output("lcp","construct LCP", "end", 1, 0);
@@ -1295,4 +1297,21 @@ void construct_lcp_bwt_based2(cache_config& config)
     util::write_R_output("lcp","construct LCP    ","end", 1, 0);
 }
 
+//void check_lcp(std::string lcpI, std::string lcpII, std::string id)
+//{
+//    typedef int_vector<>::size_type size_type;
+//    int_vector<> lcp1,lcp2;
+//    load_from_file(lcp1, (lcpI+"_"+id).c_str());
+//    load_from_file(lcp2, (lcpII+"_"+id).c_str());
+//    if (lcp1 != lcp2) {
+//        std::cout<<"lcp results of "<<  lcpI << "and " <<lcpII<<" differ"<<std::endl;
+//        for (size_type i=0, cnt=0; i<lcp1.size() and cnt<10; ++i) {
+//            if (lcp1[i] != lcp2[i]) {
+//                std::cout<<"i="<<i<<" "<<lcpI<<"[i]="<<lcp1[i]<<" "<<lcpII<<"[i]="<<lcp2[i]<<std::endl;
+//                ++cnt;
+//            }
+//        }
+//    }
+//}
+//
 } // end namespace sdsl
