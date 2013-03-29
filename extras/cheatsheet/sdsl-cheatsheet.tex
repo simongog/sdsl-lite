@@ -198,24 +198,23 @@ of integer (has no effect for $w>0$).
 \code{data()}. 
 
 \subsubsection{Manipulating \sdslintvector\textless$w$\textgreater\ \code{v}}
-\settowidth{\MyLen}{\code{util::set\_random\_bits(v)}\quad}
+\settowidth{\MyLen}{\code{set\_random\_bits(v)}\quad}
 \begin{tabular}{@{}p{\the\MyLen}%
                 @{}p{\linewidth-\the\MyLen}@{}}
 \textit{Method}                     & \textit{Description} \\
 \code{v[$i$]=$x$}                   & Set entry \code{v[$i$]} to $x$. \\
 \code{v.width($\ell$)}	            & Set width to $\ell$, if $w=0$.\\
 \code{v.resize($n$)}				& Resize $v$ to $n$ elements. \\
-\code{util::set\_one\_bits(v)}      & Set elements of \code{v} to \code{1}.Really needed? Special case of below \\
-\code{util::set\_zero\_bits(v)}     & Set elements of \code{v} to \code{0}. Really needed? Special case of below \\
-\code{util::set\_to\_id(v)}         & Set \code{v[$i$]=$i$} for each $i$.\\
-\code{util::set\_to\_value(v,$k$)} & Set \code{v[$i$]=$k$} for each $i$.\\
-\code{util::set\_random\_bits(v)}   & Set elements to random bits. \\
-\code{util::mod(v,$m$)}            & Set \code{v[$i$]=v[$i$]$\bmod m$} for each $i$.\\
-\code{util::bit\_compress(v)}       & Determine \code{$x\!=\!\max_i$v[$i$]} and 
-                                      $\ell\!=\!\lceil\log(x\!-\!1)\rceil\!+\!1$.  
-                                      And pack the entries in $\ell$-bit integers.\\
+\multicolumn{2}{@{}l@{}}{Useful methods in namespace \code{sdsl::util}:}	\\
+\code{set\_to\_value(v,$k$)} & Set \code{v[$i$]=$k$} for each $i$.\\
+\code{set\_to\_id(v)}         & Set \code{v[$i$]=$i$} for each $i$.\\
+\code{set\_random\_bits(v)}   & Set elements to random bits. \\
+\code{mod(v,$m$)}            & Set \code{v[$i$]=v[$i$]$\bmod m$} for each $i$.\\
+\code{bit\_compress(v)}       & Gets \code{$x\!=\!\max_i$v[$i$]} and 
+                                      $\ell\!=\!\lceil\log(x\!-\!1)\rceil\!+\!1$  
+                                      and packs the entries in $\ell$-bit integers.\\
 %									  and call \code{v.width($\ell$)}.\\
-\code{util::expand\_width(v,$\ell$)} & Expands the width of each integer to
+\code{expand\_width(v,$\ell$)} & Expands the width of each integer to
 										$\ell$ bits, if \code{$\ell\geq$~v.width()}\\
 \end{tabular}
 
@@ -438,8 +437,8 @@ $2n+o(n)$    & \Order{1} \\
 \end{tabular}
 
 \section{Constructing data structures}
-Let \code{x} be a WT-, CSA-, or CST-object.
-Object \code{x} is built with \code{construct(x,file,num\_bytes=0)}
+Let \code{o} be a WT-, CSA-, or CST-object.
+Object \code{o} is built with \code{construct(o,file,num\_bytes=0)}
 from a sequence stored in \code{file}. File is interpreted
 dependent on the value of \code{num\_bytes}:
 
@@ -469,9 +468,10 @@ TODO: mention io wrappers
 \subsection{Load \sdsl\ structures}
 \begin{tabular}{@{}p{0.9\linewidth}@{}}
 \code{load\_from\_file(x, file)} \\
-Load an \sdsl\ object \code{x}, which is stored in \code{file}. \\
-\code{x.load(in)} \\
-Read an \sdsl\ object \code{x} from \code{std::istream}-object \code{in}.\\
+Load an \sdsl\ object \code{o}, which is stored in \code{file}. \\
+\code{o.load(in)} \\
+Read an \sdsl\ object \code{o} from \code{std::istream}-object \code{in}.\\
+\code{load\_vector} \\
 \end{tabular}
 TODO: mention io wrappers
 
@@ -479,10 +479,10 @@ TODO: mention io wrappers
 \subsection{Store \sdsl\ structures}
 \begin{tabular}{@{}p{0.9\linewidth}@{}}
 \code{store\_to\_file(x, file)} \\
-Store an \sdsl\ object \code{x} to \code{file}. \\
-\code{x.serialize(out)}\\
-Write \sdsl\ object \code{x} to \code{std::ostream}-object \code{out}.\\
-TODO: add \code{serialize\_vector}	  \\
+Store an \sdsl\ object \code{o} to \code{file}. \\
+\code{o.serialize(out)}\\
+Write \sdsl\ object \code{o} to \code{std::ostream}-object \code{out}.\\
+\code{serialize\_vector}	  \\
 \end{tabular}
 
 \code{size\_in\_bytes(t)}
@@ -490,23 +490,27 @@ TODO: add \code{serialize\_vector}	  \\
 \code{read\_member(t, in)}
 \code{write\_structure<JSON\_FORMAT>(t, out)} 
 
-
-
-
 \section{Utility methods}
-\code{util::pid()}\\
-\code{util::id()}\\
-\code{util::basenam()}\\
-\code{util::dirname()}\\
-\code{util::demangle()}\\
-\code{util::demangle2()}\\
-\code{util::to\_string(t)}\\
-\code{util::to\_latex\_string(t)}\\
+More useful methods in the \code{sdsl::util} namespace:
 
-\code{util::assign(t1,t2)}\\
-\code{util::clear(t)}\\
-\code{util::swap\_support(s1, s2, t1, t2)}\\
-\code{util::init\_support(s, t)}\\
+
+\settowidth{\MyLen}{\code{assign(t1,t2)}~}
+\begin{tabular}{@{}p{\the\MyLen}%
+                @{}p{\linewidth-\the\MyLen}@{}}
+%\begin{tabular}{@{}ll@{}}
+\textit{Method}      & \textit{Description}  \\
+\code{pid()}         & Id of current process. \\
+\code{id()}          & Get unique id inside the process. \\
+\code{basename(p)}   & Get filename part of a path \code{p}.  \\
+\code{dirname(p)}    & Get directory part of a path \code{p}. \\
+\code{demangle(x)}   & Demangles output of \code{typeid(x).name()}.\\
+\code{demangle2(x)}  & Simplifies output of \code{demangle}. E.g. removes \code{sdsl::}-prefixes, \ldots \\
+\code{to\_string(o)} & Transform object \code{o} to a string. \\
+\code{assign(o1,o2)} & Assign \code{o1} to \code{o2}, or swap \code{o1} and \code{o2} if
+                       the objects are of the same type.\\
+\code{clear(o)}      & Set o to the empty object.\\
+%\code{swap\_support(s1, s2, t1, t2)}\\
+\end{tabular}
 
 \section{Construction}
 \code{cache\_file\_name(key, config)}
@@ -536,18 +540,22 @@ $9n$ bytes peak memory for inputs $\geq 2$ GiB.
 TODO: insert time space graph for different
 construction processes.
 
-TODO: mention benchmarks
+\section{Benchmarks}
+Configurable benchmarks (see .config-files) 
+for operations \code{count}, \code{locate},
+and \code{extract} are in the subdirectory
+\code{benachmark}.
 
 \section{Methods on words}
 Class \code{bits} contains various fast methods
-on a $64$-bit word \code{x}. Here the most important ones.
-\settowidth{\MyLen}{\code{bits::sel($x$, i)}~}
+on a $64$-bit word $x$. Here the most important ones.
+\settowidth{\MyLen}{\code{bits::sel($x$, $i$)}~}
 \begin{tabular}{@{}p{\the\MyLen}%
                 @{}p{\linewidth-\the\MyLen}@{}}
 %\begin{tabular}{@{}ll@{}}
 \textit{Method}      & \textit{Description}  \\
 \code{bits::cnt($x$)}  & Number of set bits in $x$.\\
-\code{bits::sel($x$,i)}& Position of $i$-th set bit, $i\in[0,\code{cnt($x$)}\!-\!1)$. \\
+\code{bits::sel($x$,$i$)}& Position of $i$-th set bit, $i\in[0,\code{cnt($x$)}\!-\!1)$. \\
 \code{bits::lo($x$)}   & Position of least significant set bit.\\
 \code{bits::hi($x$)}   & Position of most significant set bit.\\
 \end{tabular}
