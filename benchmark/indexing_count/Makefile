@@ -1,6 +1,6 @@
 include ../Make.helper
 CC = g++ 
-CFLAGS = -O9 -funroll-loops -fomit-frame-pointer -ffast-math -DNDEBUG
+CFLAGS = # in compile_options.config
 LIBS = -lsdsl -ldivsufsort -ldivsufsort64
 SRC_DIR = src
 TMP_DIR = ../tmp
@@ -37,6 +37,7 @@ pattern: $(PATTERNS) $(BIN_DIR)/genpatterns
 
 timing: $(INDEXES) pattern $(TIME_FILES)
 	@cat $(TIME_FILES) > $(RESULT_FILE)
+	@cd visualize; make
 
 results/%: $(BUILD_EXECS) $(QUERY_EXECS) $(PATTERNS) $(INDEXES)
 	$(eval TC_ID:=$(call dim, 1, $*)) 
@@ -80,7 +81,7 @@ $(BIN_DIR)/genpatterns: $(SRC_DIR)/genpatterns.c
 $(BIN_DIR)/build_idx_%: $(SRC_DIR)/build_index_sdsl.cpp index.config
 	$(eval IDX_TYPE:=$(call config_select,index.config,$*,2))
 	@echo "Compiling build_idx_$*"
-	@$(CC) $(CFLAGS) \
+	@$(CC) $(CFLAGS) -O9 -DNDEBUG \
 					-DSUF=\"$*\" \
 					-DCSA_TYPE="$(IDX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/build_index_sdsl.cpp \
@@ -107,7 +108,7 @@ $(BIN_DIR)/query_idx_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config
 $(BIN_DIR)/info_%: $(SRC_DIR)/info.cpp index.config 
 	$(eval IDX_TYPE:=$(call config_select,index.config,$*,2))
 	@echo "Compiling info_$*"
-	@$(CC) $(CFLAGS) \
+	@$(CC) $(CFLAGS) -O9 -DNDEBUG \
 					-DSUF=\"$*\" \
 					-DCSA_TYPE="$(IDX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/info.cpp \
