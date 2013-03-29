@@ -75,3 +75,7 @@ and test cases form the [Pizza&Chili][pz] website.
   * `visualization/count.config` Here you can specify which
   indexes should be listed in the report. 
 
+[sdsl]: https://github.com/simongog/sdsl "sdsl"
+[pz]: http://pizzachili.di.unipi.it "Pizza&Chili"
+[RPJ]: http://www.r-project.org/ "R"
+[LT]: http://www.tug.org/applications/pdftex/ "pdflatex"
