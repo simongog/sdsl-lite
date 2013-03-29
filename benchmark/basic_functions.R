@@ -60,3 +60,30 @@ format_str_fixed_width <- function(x, width=4){
 # Check if package is installed
 # found at: http://r.789695.n4.nabble.com/test-if-a-package-is-installed-td1750671.html#a1750674
 is.installed <- function(mypkg) is.element(mypkg, installed.packages()[,1]) 
+
+
+sanitize_column <- function(column){
+	column <- gsub("_","\\\\_",column)
+	column <- gsub("<","{\\\\textless}",column)
+	column <- gsub(">","{\\\\textgreater}",column)
+	column <- gsub(",",", ",column)
+}
+
+# tranforms a vector of index ids to a vector which contains the
+# corresponding latex names.
+# Note: each id should only appear once in the input vector
+mapids <- function(ids, mapit){
+	as.character(unlist(mapit[ids]))
+}
+
+id2latex <- function(config_file, latexcol, idcol=1){
+  index_info <- read.csv(config_file, sep=";",header=F, comment.char="#")
+  res <- data.frame( t(as.character(index_info[[latexcol]])), stringsAsFactors=F )
+  names(res) <- as.character(index_info[[idcol]]) 
+  res 
+}
+
+idAndValue <- function(config_file, valuecol, idcol=1){
+  res <- read.csv(config_file, sep=";",header=F, comment.char="#")
+  res[c(idcol, valuecol)]
+}
