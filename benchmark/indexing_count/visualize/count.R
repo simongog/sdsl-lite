@@ -37,7 +37,8 @@ form_table <- function(d, order=NA){
 	dByProgram <- split(d, d[["IDX_ID"]])
 	table <- data.frame(dByProgram[[1]]["TC_ID"])
 	names(table) <- c("Text")
-	table[["Text"]] <- paste("\\textsc{",tc2latex[[table[['Text']][1]]],"}") 
+#	table[["Text"]] <- paste("\\textsc{",tc2latex[[table[['Text']][1]]],"}") 
+	table[["Text"]] <- paste("\\textsc{",table[['Text']],"}") 
 	names(table) <- c(" ")
 	prog_name <- names(dByProgram)
 	if( !is.na(order) ){
