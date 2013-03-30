@@ -378,7 +378,7 @@ template<class t_int_vec>
 void util::set_random_bits(t_int_vec& v, int seed)
 {
     if (0 == seed) {
-        srand48((int)time(NULL));
+        srand48((int)time(NULL)+(int)util::id());
     } else
         srand48(seed);
 
