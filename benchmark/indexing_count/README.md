@@ -81,4 +81,4 @@ and test cases form the [Pizza&Chili][pz] website.
 [pz]: http://pizzachili.di.unipi.it "Pizza&Chili"
 [RPJ]: http://www.r-project.org/ "R"
 [LT]: http://www.tug.org/applications/pdftex/ "pdflatex"
-[RES]: "https://github.com/simongog/simongog.github.com/raw/master/assets/images/count.pdf"
+[RES]: https://github.com/simongog/simongog.github.com/raw/master/assets/images/count.pdf "count.pdf"
