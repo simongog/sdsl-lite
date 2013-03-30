@@ -13,7 +13,8 @@ tbl-count-%: ../results/all.txt ../index.config ../../basic_functions.R count.R 
 		
 
 count.tex:
-	R --vanilla < count.R > R.log 2>&1
+	@echo "Use R to generate count.tex"
+	@R --vanilla < count.R > R.log 2>&1
 
 clean:
 	rm -f $(TABLES) count.pdf count.aux count.tex \

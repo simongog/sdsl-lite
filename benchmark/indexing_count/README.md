@@ -38,7 +38,8 @@ and test cases form the [Pizza&Chili][pz] website.
     - [R][RPJ] with package `xtable`. You can install the
       package by calling `install.packages("xtable")` in R.
     - [pdflatex][LT] to generate the pdf reports.
-
+  * The construction of the 200MB indexes needs about 1GB
+    of RAM.
 		
 ## Usage
 
@@ -50,11 +51,12 @@ and test cases form the [Pizza&Chili][pz] website.
    `visualization/count.pdf`. The raw numbers of the timing
    can be found in the `results/all.txt`. 
    Indexes and temporary files are stored in the
-   directory `data` and `tmp`. For the 1GB of
+   directory `data` and `tmp`. For the 5 x 200 MB of
    [Pizza&Chili][pz] data the project will produce about
-   12GB of additional data. On a machine equipped with
-   2GB of main memory and a recent processor the benchmark
-   will take about 45 minutes.
+   7.2 GB of additional data. On my machine (MacBookPro Retina
+   2.6GHz Intel Core i7, 16GB 1600 Mhz DDR3, SSD) the
+   benchmark, invoced by `make timing`, took about 11 minutes.
+   Have a look at the [generated report][RES].
  * All created indexes and test results can be deleted
    by calling `make cleanall`.
 
@@ -79,3 +81,4 @@ and test cases form the [Pizza&Chili][pz] website.
 [pz]: http://pizzachili.di.unipi.it "Pizza&Chili"
 [RPJ]: http://www.r-project.org/ "R"
 [LT]: http://www.tug.org/applications/pdftex/ "pdflatex"
+[RES]: "https://github.com/simongog/simongog.github.com/raw/master/assets/images/count.pdf"
