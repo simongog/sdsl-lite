@@ -8,9 +8,9 @@ PAT_DIR = pattern
 BIN_DIR = bin
 
 
-TC_IDS:=$(call config_ids, test_case.config)
-IDX_IDS:=$(call config_ids, index.config)
-COMPILE_IDS:=$(call config_ids, compile_options.config)
+TC_IDS:=$(call config_ids,test_case.config)
+IDX_IDS:=$(call config_ids,index.config)
+COMPILE_IDS:=$(call config_ids,compile_options.config)
 
 RESULT_FILE=results/all.txt
 
@@ -39,10 +39,11 @@ timing: $(INDEXES) pattern $(TIME_FILES)
 	@cat $(TIME_FILES) > $(RESULT_FILE)
 	@cd visualize; make
 
+# results/[TC_ID].[IDX_ID].[COMPILE_ID]
 results/%: $(BUILD_EXECS) $(QUERY_EXECS) $(PATTERNS) $(INDEXES)
-	$(eval TC_ID:=$(call dim, 1, $*)) 
-	$(eval IDX_ID:=$(call dim, 2, $*)) 
-	$(eval COMPILE_ID:=$(call dim, 3, $*)) 
+	$(eval TC_ID:=$(call dim,1,$*)) 
+	$(eval IDX_ID:=$(call dim,2,$*)) 
+	$(eval COMPILE_ID:=$(call dim,3,$*)) 
 	$(eval TC_NAME:=$(call config_select,test_case.config,$(TC_ID),3))
 	@echo "# TC_ID = $(TC_ID)" >> $@
 	@echo "# IDX_ID = $(IDX_ID)" >> $@
