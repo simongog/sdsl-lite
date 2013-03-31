@@ -18,20 +18,20 @@ and test cases form the [Pizza&Chili][pz] website.
 
 ## Directory structure
 
-  * bin: Contains the executables of the project.
+  * [bin](./bin): Contains the executables of the project.
     * `build_idx_*` generates indexes
     * `query_idx_*` executes the count experiments 
     * `info_*` outputs the space breakdown of an index.
     * `genpattern` pattern generation form [Pizza&Chili][pz] website.
-  * src:  Contains the source code of the benchmark.
-  * visualize: `R` and `pdflatex` scripts to generate
+  * [src](./src):  Contains the source code of the benchmark.
+  * [visualize](./visualize): `R` and `pdflatex` scripts to generate
                reports of the collected data.
-  * results: Contains the results of the experiments.
+  * [results](./visualize): Contains the results of the experiments.
 
 	Files included in this archive form the Pizza&Chili website:
-	  * src/genpatterns.c
-      * src/run_quries_sdsl.cpp is a adapted version of the
-	    Pizza&Chili file run_queries.c .
+	  * [src/genpatterns.c](./src/genpatterns.c)
+      * [src/run_quries_sdsl.cpp](./src/run_quries_sdsl.cpp) 
+	    is a customized version of the Pizza&Chili file run_queries.c .
 
 ## Prerequisites
   * For the visualization you need the following software:
@@ -45,7 +45,7 @@ and test cases form the [Pizza&Chili][pz] website.
 
  * Populate the data directory with some test files. E.g. you
    can download the 200MB [Pizza&Chili][pz] test cases by 
-   executing `../data/get_corpus.sh`. 
+   executing [../data/get_corpus.sh](../data/get_corpus.sh). 
  * `make timing`  compiles the programs, builds the indexes and
    runs the performance tests and generated a report located as
    `visualization/count.pdf`. The raw numbers of the timing
@@ -63,19 +63,19 @@ and test cases form the [Pizza&Chili][pz] website.
 ## Customization of the benchmark
   The project contains several configuration files:
  
-  * `index.config`: Here you can specify the data structures. Select a
-                    ID, sdsl-class and a LaTeX name for the report.
-  * `test_case.config`: Specify ID, path to the test case and LaTeX
-                        name for the report.
-  * `compile_options.config`: Specify ID and compile options string.
+  * [index.config](./index.config): Specify data structures'
+			ID, sdsl-class, and LaTeX-name for the report.
+  * [test_case.config](./test_case.config): Specify test cases' 
+			ID, path, and LaTeX-name for the report.
+  * [compile_options.config](./compile_options.config): Specify 
+			compile options' ID and string.
 
-  Note that the benchmark will execute every combination of your
-  choices. 
+  Note that the benchmark will execute every combination of your choices. 
 
   Finally, the visualization can also be configured:
 
-  * `visualization/index-filter.config` Here you can specify which
-  indexes should be listed in the report. 
+  * [visualize/index-filter.config](./visualize/index-filter.config): 
+	  Specify which indexes should be listed in the report. 
 
 [sdsl]: https://github.com/simongog/sdsl "sdsl"
 [pz]: http://pizzachili.di.unipi.it "Pizza&Chili"

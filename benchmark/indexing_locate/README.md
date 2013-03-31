@@ -63,18 +63,19 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
 ## Customization of the benchmark
   The project contains several configuration files:
  
-  * [index.config][IDXCONFIG]: Here you can specify the data structures. Select a
-                    ID, sdsl-class and a LaTeX name for the report.
-  * [test_case.config][TCCONF]: Specify ID, path to the test case and LaTeX
-                        name for the report.
-  * [sample.config][SCONF]: Specify ID, sampling rate for SA and ISA. 
+  * [index.config][IDXCONFIG]: Specify data structures' 
+       ID, sdsl-class and LaTeX-name for the report.
+  * [test_case.config][TCCONF]: Specify test cases's
+       ID, path, and LaTeX-name for the report.
+  * [sample.config][SCONF]: Specify samplings' ID,
+       rate for SA, and rate for ISA. 
 
   Note that the benchmark will execute every combination of your
   choices. 
 
   Finally, the visualization can also be configured:
 
-  * [visualization/index-filter.config][VCONF]: Here you can specify which 
+  * [visualize/index-filter.config][VCONF]: Specify which 
    indexes should be listed in the report and which style should be used.
 
 [sdsl]: https://github.com/simongog/sdsl "sdsl"
@@ -86,4 +87,4 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
 [IDXCONFIG]: ./index.config "index.config"
 [TCCONF]: ./test_case.config "test_case.config"
 [SCONF]: ./sample.config "sample.config"
-[VCONF]: ./visualization/index-filter.config "index-filter.config"
+[VCONF]: ./visualize/index-filter.config "index-filter.config"
