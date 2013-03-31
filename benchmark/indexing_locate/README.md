@@ -67,7 +67,7 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
                     ID, sdsl-class and a LaTeX name for the report.
   * `test_case.config`: Specify ID, path to the test case and LaTeX
                         name for the report.
-  * `samaple.config`: Specify ID, sampling rate for SA and ISA. 
+  * [sample.config][SCONF]: Specify ID, sampling rate for SA and ISA. 
 
   Note that the benchmark will execute every combination of your
   choices. 
@@ -83,3 +83,4 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
 [LT]: http://www.tug.org/applications/pdftex/ "pdflatex"
 [RES]: https://github.com/simongog/simongog.github.com/raw/master/assets/images/locate.pdf "locate.pdf"
 [FGNV08]: http://dl.acm.org/citation.cfm?doid=1412228.1455268 "FGNV08"
+[SCONF]: ./sample.config "sample.config"
