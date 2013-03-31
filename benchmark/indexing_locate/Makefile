@@ -40,7 +40,7 @@ pattern: $(PATTERNS) $(BIN_DIR)/pattern_random
 
 timing: $(INDEXES) pattern $(TIME_FILES)
 	@cat $(TIME_FILES) > $(RESULT_FILE)
-#	@cd visualize; make
+	@cd visualize; make
 
 # results/[TC_ID].[IDX_ID].[SAMPLE_ID]
 results/%: $(BUILD_EXECS) $(QUERY_EXECS) $(PATTERNS) $(INDEXES)
