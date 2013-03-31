@@ -18,7 +18,7 @@ inputs by executing the script
 [get_corpus.sh](./get_corpus.sh). This will download
 test inputs form the excellent [Pizza&Chili][pz] website.
 
-Directory `tmp` is used to store temporary files (like
+Directory [tmp](./tmp) is used to store temporary files (like
 plain suffix arrays) which are used to generate compressed
 structures. 
 
