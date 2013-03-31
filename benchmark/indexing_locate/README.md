@@ -19,18 +19,18 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
 
 ## Directory structure
 
-  * bin: Contains the executables of the project.
+  * [bin](./bin): Contains the executables of the project.
     * `build_idx_*` generates indexes
     * `query_idx_*` executes the count experiments 
     * `info_*` outputs the space breakdown of an index.
     * `pattern_random` pattern generator.
-  * src:  Contains the source code of the benchmark.
-  * visualize: `R` and `pdflatex` scripts to generate
+  * [src](./src):  Contains the source code of the benchmark.
+  * [visualize](./visualize): `R` and `pdflatex` scripts to generate
                reports of the collected data.
-  * results: Contains the results of the experiments.
+  * [results](./results): Contains the results of the experiments.
 
 	Files included in this archive form the Pizza&Chili website:
-      * src/run_quries_sdsl.cpp is a adapted version of the
+      * [src/run_quries_sdsl.cpp](src/run_queries_sdsl.cpp) is a adapted version of the
 	    Pizza&Chili file run_queries.c .
 
 ## Prerequisites
@@ -45,7 +45,7 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
 
  * Populate the data directory with some test files. E.g. you
    can download the 200MB [Pizza&Chili][pz] test cases by 
-   executing `../data/get_corpus.sh`. 
+   executing [../data/get_corpus.sh](../data/get_corpus.sh). 
  * `make timing`  compiles the programs, builds the indexes and
    runs the performance tests and generated a report located as
    `visualization/count.pdf`. The raw numbers of the timing
@@ -63,9 +63,9 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
 ## Customization of the benchmark
   The project contains several configuration files:
  
-  * `index.config`: Here you can specify the data structures. Select a
+  * [index.config][IDXCONFIG]: Here you can specify the data structures. Select a
                     ID, sdsl-class and a LaTeX name for the report.
-  * `test_case.config`: Specify ID, path to the test case and LaTeX
+  * [test_case.config][TCCONF]: Specify ID, path to the test case and LaTeX
                         name for the report.
   * [sample.config][SCONF]: Specify ID, sampling rate for SA and ISA. 
 
@@ -74,8 +74,8 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
 
   Finally, the visualization can also be configured:
 
-  * `visualization/locate.config` Here you can specify which
-  indexes should be listed in the report. 
+  * [visualization/index-filter.config][VCONF]: Here you can specify which 
+   indexes should be listed in the report and which style should be used.
 
 [sdsl]: https://github.com/simongog/sdsl "sdsl"
 [pz]: http://pizzachili.di.unipi.it "Pizza&Chili"
@@ -83,4 +83,7 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
 [LT]: http://www.tug.org/applications/pdftex/ "pdflatex"
 [RES]: https://github.com/simongog/simongog.github.com/raw/master/assets/images/locate.pdf "locate.pdf"
 [FGNV08]: http://dl.acm.org/citation.cfm?doid=1412228.1455268 "FGNV08"
+[IDXCONFIG]: ./index.config "index.config"
+[TCCONF]: ./test_case.config "test_case.config"
 [SCONF]: ./sample.config "sample.config"
+[VCONF]: ./visualization/index-filter.config "index-filter.config"
