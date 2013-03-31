@@ -138,16 +138,15 @@ Each _sdsl_-class `X` has to implement the following methods:
   * serialize operator `serialize(std::ostream &out, structure_tree_node* v, std::string name)`
   * load operator `load(std::istream &in)`
 
-We provide many handy methods for _sdsl_ objects in the `util` namespace: 
-  * `util::store_to_file(const X &x, const char* file_name)` stores the object `x` to the file
-  * `util::clear(X &x)` deletes the object and frees the space 
-  * `util::load_from_file(X &x, const char* file_name)` loads the object `x` from the file
-  * `util::assign(X &x, Y &y)` if the type of `X` equals `Y`, then `x` and `y` are swapped,
-     otherwise `y` is assigned to `x` by `x = T(y)`
-  * `util::get_size_in_bytes(const X &x)` returns the number of bytes needed to represent 
-     object `x` in memory.
-  * `util::write_structure<FORMAT>(const X &x, std::ostream &out)` writes the structure
-     of the data structure in JSON or R format (`FORMAT`=`JSON_FORMAT` or `R_FORMAT`)
+We provide many handy methods for _sdsl_ objects: 
+  * `store_to_file(const T &o, std::string file)` stores object `o` to `file`
+  * `load_from_file(T &o, std::string file)` loads object `o` from `file`
+  * `size_in_bytes(const T &o)` returns the number of bytes needed to represent 
+     object `o` in memory.
+  * `write_structure<FORMAT>(const T &o, std::ostream &out)` writes the structure
+     of object `o` in JSON or R format (`FORMAT`=`JSON_FORMAT` or `R_FORMAT`) into `out`
+  * `util::clear(T &o)` frees space by setting o to the empty object.
+  * ...for more have a look into the cheat sheet in `extras/cheatsheet`.
 
 Supported platforms
 -------------------
@@ -163,7 +162,7 @@ Installation
 The installation requires that the [cmake tool](http://www.cmake.org/)
 and a C++ compiler (e.g. from the [GNU Compiler Collection](http://gcc.gnu.org/))
 is installed.
-You can than install the library into an existing directory `SDSL_INSTALL_DIR` by
+You can than install the library into an directory `SDSL_INSTALL_DIR` by
 calling
 ``
 ./install SDSL_INSTALL_DIR
