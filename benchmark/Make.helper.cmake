@@ -11,3 +11,5 @@ config_select=$(shell cat $1 | grep "$2;" | cut -f $3 -d';' )
 # Get all IDs from a config file $1
 config_ids=$(shell cat $1 | grep -v "^\#" | cut -f 1 -d';')
 
+# Get size of file $1 in bytes
+file_size=$(shell wc -c < $1 | tr -d ' ')

@@ -63,15 +63,23 @@ for( tc_id in names(data) ){
 			                                              col=config[idx_id, "COL"]
 		 )
   }
-  rect(xleft=par("usr")[1], xright=par("usr")[2], ybottom=par("usr")[4], ytop=par("usr")[4]*1.10 ,xpd=NA,
-       col="grey80", border="grey80" )
-  text(labels=sprintf("instance = \\textsc{%s}",tc_config[tc_id,"LATEX-NAME"]),y=par("usr")[4]*1.03,adj=c(0.5, 0),x=(par("usr")[1]+par("usr")[2])/2,xpd=NA,cex=1.4)
+  rect(xleft=par("usr")[1], xright=par("usr")[2], ybottom=par("usr")[4], 
+	   ytop=par("usr")[4]*1.10 ,xpd=NA, col="grey80", border="grey80" )
+  text(labels=sprintf("instance = \\textsc{%s}",tc_config[tc_id,"LATEX-NAME"]),
+	   y=par("usr")[4]*1.03,adj=c(0.5, 0),x=(par("usr")[1]+par("usr")[2])/2,xpd=NA,cex=1.4)
+  
+  comp_info <- readConfig(paste("../results/compression_",tc_id,sep=""),c("NAME","RATIO","COMMAND"))
+  abline(v=comp_info["xz","RATIO"],lty=1);
+  abline(v=comp_info["gzip","RATIO"],lty=4);
+
   nr <- nr+1
   if ( nr == 1 ){ # plot legend
     plot(NA, NA, xlim=c(0,1),ylim=c(0,1),ylab="", xlab="", bty="n", type="n", yaxt="n", xaxt="n")
 	idx_ids <- as.character(unique(raw[["IDX_ID"]]))
     legend( "top", legend=idx_config[idx_ids,"LATEX-NAME"], pch=config[idx_ids,"PCH"], col=config[idx_ids,"COL"],
 		    lty=config[idx_ids,"LTY"], bty="n", y.intersp=1.5, ncol=2, title="Index", cex=1.2)
+	legend( "bottom", legend=c("\\textsc{xz}~(\\texttt{-9})","\\textsc{gzip}~(\\texttt{-9})"), 
+			lty=c(1,4), bty="n", y.intersp=1.5, ncol=2, title="Compression baseline", cex=1.2)
     nr <- nr+1
   }
 }
