@@ -68,6 +68,7 @@ int main(int argc, char* argv[])
     IFERROR(error);
     Load_time = getTime() - Load_time;
     fprintf(stderr, "# Load_index_time_in_sec = %.2f\n", Load_time);
+    fprintf(stderr, "# text_size = %lld\n", csa.size()-1);
 
     Index_size = size_in_bytes(csa);
     IFERROR(error);
@@ -199,7 +200,7 @@ do_locate(const CSA_TYPE& csa)
     int error = 0;
     ulong numocc, length; //, *occ,
     int_vector<32> occ;
-    ulong tot_numocc = 0, numpatt;
+    ulong tot_numocc = 0, numpatt = 0, processed_pat = 0;
     double time, tot_time = 0;
     uchar* pattern;
 
@@ -211,7 +212,7 @@ do_locate(const CSA_TYPE& csa)
         exit(1);
     }
     /*SG: added timeout of 60 seconds */
-    while (numpatt and tot_time < 60) {
+    while (numpatt and tot_time < 60.0) {
 
         if (fread(pattern, sizeof(*pattern), length, stdin) != length) {
             fprintf(stderr, "Error: cannot read patterns file\n");
@@ -220,10 +221,10 @@ do_locate(const CSA_TYPE& csa)
         }
         // Locate
         time = getTime();
-//		error =	locate (Index, pattern, length, &occ, &numocc);
         numocc = algorithm::locate(csa, pattern, length, occ);
         IFERROR(error);
         tot_time += (getTime() - time);
+        ++processed_pat;
 
         tot_numocc += numocc;
         numpatt--;
@@ -233,10 +234,9 @@ do_locate(const CSA_TYPE& csa)
             fwrite(pattern, sizeof(*pattern), length, stdout);
             fwrite(&numocc, sizeof(numocc), 1, stdout);
         }
-
-//		if (numocc) free (occ);
     }
 
+    fprintf(stderr, "# processed_pattern = %lu\n", processed_pat);
     fprintf(stderr, "# Total_Num_occs_found = %lu\n", tot_numocc);
     fprintf(stderr, "# Locate_time_in_secs = %.2f\n", tot_time);
     fprintf(stderr, "# Locate_time/Num_occs = %.4f\n\n", (tot_time * 1000) / tot_numocc);

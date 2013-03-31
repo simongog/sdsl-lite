@@ -2,18 +2,19 @@ library(xtable) # if not installed call install.packages("xtable")
 
 source("../../basic_functions.R")
 
-#load index information
-idx2latex <- id2latex("../index.config", 3)
-tc2latex  <- id2latex("../test_case.config", 3)
-compileOps2text  <- id2latex("../compile_options.config", 2)
+# Load index information
+idx_config <- readConfig("../index.config",c("IDX_ID","SDSL_TYPE","LATEX-NAME"))
+tc_config <- readConfig("../test_case.config",c("TC_ID","PATH","LATEX-NAME"))
+compile_config <- readConfig("../compile_options.config",c("COMPILE_ID","OPTIONS"))
 
-#load report information
-report_info <- read.csv("count.config", sep=";",header=F, comment.char="#")
-index_ids <- as.character(unlist(report_info))
+
+# Load report information
+index_filter <- read.csv("index-filter.config", sep=";",header=F, comment.char="#")
+index_ids <- as.character(unlist(index_filter))
 
 # Load data
 raw <- data_frame_from_key_value_pairs( "../results/all.txt" )
-# Filer indexes (keep only the ones listed in index.config)
+# Filer indexes
 raw               <- raw[raw[["IDX_ID"]]%in%index_ids,] 
 raw[["IDX_ID"]] <- factor(raw[["IDX_ID"]])
 # Normalize data
@@ -36,9 +37,8 @@ form_table <- function(d, order=NA){
 				   FUN=mean,na.rm=TRUE)
 	dByProgram <- split(d, d[["IDX_ID"]])
 	table <- data.frame(dByProgram[[1]]["TC_ID"])
-	names(table) <- c("Text")
-#	table[["Text"]] <- paste("\\textsc{",tc2latex[[table[['Text']][1]]],"}") 
-	table[["Text"]] <- paste("\\textsc{",table[['Text']],"}") 
+	names(table) <- c("TC_ID")
+	table[["TC_ID"]] <- paste("\\textsc{", tc_config[table[['TC_ID']], "LATEX-NAME"],"}") 
 	names(table) <- c(" ")
 	prog_name <- names(dByProgram)
 	if( !is.na(order) ){
@@ -84,7 +84,7 @@ generate_table <- function(file, data){
 	sink(file)
 	if ( nrow(data) > 0 ){
 		x <- form_table(data, index_ids)
-		print_latex(x[["table"]], mapids(index_ids, idx2latex), x[["unitrow"]])
+		print_latex(x[["table"]], idx_config[index_ids, "LATEX-NAME"], x[["unitrow"]])
 	}else{
 		cat("\\begin{center}No data for this experiment\\end{center}")
 	}
@@ -105,7 +105,7 @@ for ( compile_id in names(data) ){
 	\\caption{Time in $\\mu$sec per pattern symbol in a count query.
 	         Index space as fraction of original file size.
 			 Compile options: 
-			 \\texttt{",gsub("_","\\\\_",compileOps2text[[compile_id]][1]),"}.
+			 \\texttt{",gsub("_","\\\\_",compile_config[compile_id, "OPTIONS"]),"}.
 			 \\label{tbl-count-",compile_id,"}}
 	\\end{table}",sep="")
 }
@@ -115,10 +115,7 @@ idx2desc <- read.csv("../index.config", sep=";",header=F, comment.char="#")
 idx2desc <- subset(idx2desc, idx2desc[[1]] %in%index_ids)
 idx2desc <- idx2desc[-1]
 idx2desc <- idx2desc[c(2,1)]
-#sink("tbl-index-info.tex")
-#idx2desc <- index_info[c(3,2)] // TODO
 idx2desc[[2]] <- paste("\\texttt{",sanitize_column(idx2desc[[2]]),"}",sep="")
-#
 idx2desc <- cbind(idx2desc[1], " " = rep("",nrow(idx2desc)), idx2desc[2])
 
 cat("\\begin{table}
