@@ -38,6 +38,7 @@ max_space <- 100*2.5 #1.3 # 2.5 #1.8
 max_time  <- 25    # in microseconds
 count <- 0
 nr <- 0
+xlabnr = (2*(length(data)/2)-1) 
 for( tc_id in names(data) ){
   d <- data[[tc_id]]
 
@@ -49,8 +50,8 @@ for( tc_id in names(data) ){
     axis( 2, at = axTicks(2),  mgp=c(2,0.5,0), tcl=-0.2, cex.axis=1, las=1 )
     mtext(ylable, side=2, line=2, las=0)
   }
-  axis( 1, at = axTicks(1), labels=(nr>3), mgp=c(2,0.5,0), tcl=-0.2, cex.axis=1, las=1 )
-  if ( nr >= (2*(length(data)/2)-1) ){
+  axis( 1, at = axTicks(1), labels=(nr>=xlabnr), mgp=c(2,0.5,0), tcl=-0.2, cex.axis=1, las=1 )
+  if ( nr >= xlabnr ){
     xlable <- "Index size in (\\%)"
     mtext(xlable, side=1, line=2, las=0)
   }
