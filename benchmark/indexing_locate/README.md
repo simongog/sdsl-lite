@@ -37,6 +37,8 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
   * For the visualization you need the following software:
     - [R][RPJ] with package `tikzdevice`. You can install the
       package by calling `install.packages("tikzdevice")` in R.
+    - Compressors [xz][XZ] and [gzip][GZIP] are used to get
+	  compression baselines.
     - [pdflatex][LT] to generate the pdf reports.
   * The construction of the 200MB indexes needs about 1GB
     of RAM.
@@ -88,3 +90,5 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
 [TCCONF]: ./test_case.config "test_case.config"
 [SCONF]: ./sample.config "sample.config"
 [VCONF]: ./visualize/index-filter.config "index-filter.config"
+[XZ]: http://tukaani.org/xz/ "XZ Compressor"
+[GZIP]: http://www.gnu.org/software/gzip/ "Gzip Compressor"
