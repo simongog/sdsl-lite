@@ -87,3 +87,10 @@ idAndValue <- function(config_file, valuecol, idcol=1){
   res <- read.csv(config_file, sep=";",header=F, comment.char="#")
   res[c(idcol, valuecol)]
 }
+
+readConfig <- function(config_file, mycolnames){
+  config <- read.csv(config_file, sep=";",header=F, comment.char="#",stringsAsFactors=F)
+  rownames(config) <- config[[1]]
+  colnames(config) <- mycolnames
+  config
+}

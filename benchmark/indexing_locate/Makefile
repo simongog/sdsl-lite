@@ -53,11 +53,12 @@ results/%: $(BUILD_EXECS) $(QUERY_EXECS) $(PATTERNS) $(INDEXES)
 	@echo "# TC_ID = $(TC_ID)" >> $@
 	@echo "# IDX_ID = $(IDX_ID)" >> $@
 	@echo "# test_case = $(TC_NAME)" >>  $@
+	@echo "# SAMPLE_ID = $(SAMPLE_ID)" >> $@
 	@echo "# S_SA = $(S_SA)" >> $@
 	@echo "# S_ISA = $(S_ISA)" >> $@
 	@echo "Run timing for $(IDX_ID).$(SAMPLE_ID) on $(TC_ID)"
 	@$(BIN_DIR)/query_idx_$(IDX_ID).$(SAMPLE_ID) \
-		indexes/$(TC_ID) C < $(PAT_DIR)/$(TC_ID).pattern 2>> $@ 
+		indexes/$(TC_ID) L < $(PAT_DIR)/$(TC_ID).pattern 2>> $@ 
  
 
 # indexes/[TC_ID].[IDX_ID].[SAMPLE_ID]
@@ -89,7 +90,7 @@ $(BIN_DIR)/pattern_random: $(SRC_DIR)/pattern_random.cpp
 					 $(SRC_DIR)/pattern_random.cpp  -o $@ $(LIBS)
 
 # $(BIN_DIR)/build_idx_[IDX_ID].[SAMPLE_ID]
-$(BIN_DIR)/build_idx_%: $(SRC_DIR)/build_index_sdsl.cpp index.config
+$(BIN_DIR)/build_idx_%: $(SRC_DIR)/build_index_sdsl.cpp index.config sample.config
 	$(eval IDX_ID:=$(call dim,1,$*)) 
 	$(eval SAMPLE_ID:=$(call dim,2,$*)) 
 	$(eval IDX_TYPE:=$(call config_select,index.config,$(IDX_ID),2))
@@ -109,7 +110,7 @@ $(BIN_DIR)/build_idx_%: $(SRC_DIR)/build_index_sdsl.cpp index.config
 					$(LIBS)
 
 # Targets for the count experiment. $(BIN_DIR)/count_queries_[IDX_ID].[SAMPLE_ID]
-$(BIN_DIR)/query_idx_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config 
+$(BIN_DIR)/query_idx_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config sample.config
 	$(eval IDX_ID:=$(call dim,1,$*)) 
 	$(eval SAMPLE_ID:=$(call dim,2,$*)) 
 	$(eval IDX_TYPE:=$(call config_select,index.config,$(IDX_ID),2))
