@@ -33,7 +33,7 @@ to easily reproduce the results presented in the paper.
 
 Simon Gog, Matthias Petri: _Optimized Succinct Data Structures for Massive Data_. 2013.
 Accepted for publication in Software, Practice and Experience. 
-[Preprint][http://people.eng.unimelb.edu.au/sgog/optimized.pdf]
+[Preprint][PP]
 
 
 ## Author
