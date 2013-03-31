@@ -55,7 +55,7 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
    [Pizza&Chili][pz] data the project will produce about
    36 GB of additional data. On my machine (MacBookPro Retina
    2.6GHz Intel Core i7, 16GB 1600 Mhz DDR3, SSD) the
-   benchmark, invoced by `make timing`, took about 32 minutes.
+   benchmark, invoced by `make timing`, took about 2 hours.
    Have a look at the [generated report][RES].
  * All created indexes and test results can be deleted
    by calling `make cleanall`.
