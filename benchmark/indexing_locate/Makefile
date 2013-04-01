@@ -30,7 +30,7 @@ INFO_FILES  = $(foreach IDX_ID,$(IDX_IDS),\
 TIME_FILES  = $(foreach IDX_ID,$(IDX_IDS),\
 		        $(foreach TC_ID,$(TC_IDS),\
 				  $(foreach SAMPLE_ID,$(SAMPLE_IDS),results/$(TC_ID).$(IDX_ID).$(SAMPLE_ID))))
-COMP_FILES  = $(foreach TC_ID,$(TC_IDS),results/compression_$(TC_ID))
+COMP_FILES  = $(addsuffix .z.info,$(TC_PATHS))
 
 all: $(BUILD_EXECS) $(QUERY_EXECS) info pattern
 
@@ -38,35 +38,15 @@ info: $(INFO_EXECS) $(INFO_FILES)
 
 indexes: $(INDEXES)
 
-pattern: $(PATTERNS) $(BIN_DIR)/pattern_random
-
 input: $(TC_PATHS)
+
+pattern: input $(PATTERNS) $(BIN_DIR)/pattern_random
 
 compression: input $(COMP_FILES)
 
 timing: input $(INDEXES) pattern $(TIME_FILES) compression
 	@cat $(TIME_FILES) > $(RESULT_FILE)
 	@cd visualize; make
-
-# results/baseline_[TC_ID]
-results/compression_%: test_case.config
-	$(eval TC_ID:=$(call dim,1,$*)) 
-	$(eval TC_PATH:=$(call config_select,test_case.config,$(TC_ID),2))
-	@echo "Get compression of xz for $(TC_ID)"
-	$(eval TC_XZ:=$(shell basename $(TC_PATH)).xz)
-	$(shell xz -9 -z -k -c $(TC_PATH) > $(TC_XZ))  
-	$(eval XZ_SIZE:=$(call file_size,$(TC_XZ))) 
-	$(shell rm $(TC_XZ))
-	@echo "Get compression of gizp for $(TC_ID)"
-	$(eval TC_GZ:=$(shell basename $(TC_PATH)).gz)
-	$(shell gzip -9 -c $(TC_PATH) > $(TC_GZ))  
-	$(eval GZ_SIZE:=$(call file_size,$(TC_GZ))) 
-	$(shell rm $(TC_GZ))
-	$(eval SIZE:=$(call file_size,$(TC_PATH)))
-	$(eval XZ_RATIO:=$(shell echo "scale=2;100*$(XZ_SIZE)/$(SIZE)" | bc -q))
-	$(eval GZ_RATIO:=$(shell echo "scale=2;100*$(GZ_SIZE)/$(SIZE)" | bc -q))
-	@echo "xz;$(XZ_RATIO);xz -9\ngzip;$(GZ_RATIO);gzip -9" > $@
-	
 
 # results/[TC_ID].[IDX_ID].[SAMPLE_ID]
 results/%: $(BUILD_EXECS) $(QUERY_EXECS) $(PATTERNS) $(INDEXES)
@@ -172,4 +152,3 @@ cleanall: clean cleanresults
 	@rm -f $(INDEXES) $(INFO_FILES) $(PATTERNS)
 	@rm -f $(TMP_DIR)/* 
 	@rm -f $(PAT_DIR)/*
-	@rm -f $(BIN_DIR)/pattern_random

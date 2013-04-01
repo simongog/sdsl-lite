@@ -67,8 +67,7 @@ for( tc_id in names(data) ){
 	   ytop=par("usr")[4]*1.10 ,xpd=NA, col="grey80", border="grey80" )
   text(labels=sprintf("instance = \\textsc{%s}",tc_config[tc_id,"LATEX-NAME"]),
 	   y=par("usr")[4]*1.03,adj=c(0.5, 0),x=(par("usr")[1]+par("usr")[2])/2,xpd=NA,cex=1.4)
-  
-  comp_info <- readConfig(paste("../results/compression_",tc_id,sep=""),c("NAME","RATIO","COMMAND"))
+  comp_info <- readConfig(paste("../",tc_config[tc_id,"PATH"],".z.info",sep=""),c("NAME","RATIO","COMMAND"))
   abline(v=comp_info["xz","RATIO"],lty=1);
   abline(v=comp_info["gzip","RATIO"],lty=4);
 

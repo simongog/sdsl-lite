@@ -33,9 +33,9 @@ info: $(INFO_EXECS) $(INFO_FILES)
 
 indexes: $(INDEXES)
 
-pattern: $(PATTERNS) $(BIN_DIR)/genpatterns
-
 input: $(TC_PATHS)
+
+pattern: input $(PATTERNS) $(BIN_DIR)/genpatterns
 
 timing: input $(INDEXES) pattern $(TIME_FILES)
 	@cat $(TIME_FILES) > $(RESULT_FILE)
@@ -124,4 +124,3 @@ cleanall: clean cleanresults
 	@rm -f $(INDEXES) $(INFO_FILES) $(PATTERNS)
 	@rm -f $(TMP_DIR)/* 
 	@rm -f $(PAT_DIR)/*
-	@rm -f $(BIN_DIR)/genpatterns
