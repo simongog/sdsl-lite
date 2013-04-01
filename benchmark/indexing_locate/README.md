@@ -1,13 +1,11 @@
 # Benchmarking operation `locate` on FM-indexes
 
-
-
 ## Methodology
 
-Explored Dimensions:
+Explored dimensions:
   
   * text type
-  * text size (just adjust the test_case.config file for this)
+  * instance size (just adjust the test_case.config file for this)
   * suffix array sampling density
   * index implementations
 
@@ -21,13 +19,14 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
 
   * [bin](./bin): Contains the executables of the project.
     * `build_idx_*` generates indexes
-    * `query_idx_*` executes the count experiments 
+    * `query_idx_*` executes the locate experiments 
     * `info_*` outputs the space breakdown of an index.
     * `pattern_random` pattern generator.
-  * [src](./src):  Contains the source code of the benchmark.
-  * [visualize](./visualize): `R` and `pdflatex` scripts to generate
-               reports of the collected data.
+  * [indexes](./indexes): Contains the generated indexes.
   * [results](./results): Contains the results of the experiments.
+  * [src](./src):  Contains the source code of the benchmark.
+  * [visualize](./visualize): Contains a `R`-script which
+			   generates a report in LaTeX format. 
 
 	Files included in this archive form the Pizza&Chili website:
       * [src/run_quries_sdsl.cpp](src/run_queries_sdsl.cpp) is a adapted version of the
@@ -36,26 +35,27 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
 ## Prerequisites
   * For the visualization you need the following software:
     - [R][RPJ] with package `tikzdevice`. You can install the
-      package by calling `install.packages("tikzdevice")` in R.
+      package by calling `install.packages("tikzdevice")` in `R`.
     - Compressors [xz][XZ] and [gzip][GZIP] are used to get
 	  compression baselines.
     - [pdflatex][LT] to generate the pdf reports.
-  * The construction of the 200MB indexes needs about 1GB
+  * The construction of the 200MB indexes requires about 1GB
     of RAM.
 		
 ## Usage
 
  * `make timing` compiles the programs, downloads the 200MB
-    [Pizza&Chili][pz] test cases, builds the indexes and
-   runs the performance tests and generated a report located as
-   `visualization/count.pdf`. The raw numbers of the timing
+    [Pizza&Chili][pz] test cases, builds the indexes,
+   runs the performance tests, and generated a report located at
+   `visualize/locate.pdf`. The raw numbers of the timings
    can be found in the `results/all.txt`. 
    Indexes and temporary files are stored in the
-   directory `data` and `tmp`. For the 5 x 200 MB of
+   directory `indexes` and `tmp`. For the 5 x 200 MB of
    [Pizza&Chili][pz] data the project will produce about
    36 GB of additional data. On my machine (MacBookPro Retina
    2.6GHz Intel Core i7, 16GB 1600 Mhz DDR3, SSD) the
-   benchmark, invoced by `make timing`, took about 2 hours.
+   benchmark, invoced by `make timing`, took about 2 hours
+   and 20 minutes (excluding the time to download the test instances).
    Have a look at the [generated report][RES].
  * All created indexes and test results can be deleted
    by calling `make cleanall`.
@@ -66,7 +66,7 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
   * [index.config][IDXCONFIG]: Specify data structures' 
        ID, sdsl-class and LaTeX-name for the report.
   * [test_case.config][TCCONF]: Specify test cases's
-       ID, path, and LaTeX-name for the report.
+       ID, path, LaTeX-name for the report, and download URL.
   * [sample.config][SCONF]: Specify samplings' ID,
        rate for SA, and rate for ISA. 
 
