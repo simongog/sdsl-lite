@@ -69,7 +69,7 @@ namespace sdsl
  */
 template<uint32_t t_sml_blk = 256,
          uint32_t t_med_deg = 32,
-         class t_rank       = rank_support_v<>,
+         class t_rank       = rank_support_v5<>,
          class t_select     = select_support_mcl<> >
 class bp_support_sada
 {

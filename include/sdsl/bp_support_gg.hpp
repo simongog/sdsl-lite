@@ -63,7 +63,7 @@ namespace sdsl
  *  @ingroup bps
  */
 template<class t_nnd = nearest_neighbour_dictionary<30>, // TODO: make it possible that also rrr_vector can be used
-         class t_rank = rank_support_v<>,
+         class t_rank = rank_support_v5<>,
          class t_select = select_support_mcl<> >
 class bp_support_gg
 {
