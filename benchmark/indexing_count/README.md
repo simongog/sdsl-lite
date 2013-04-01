@@ -1,13 +1,11 @@
 # Benchmarking operation `count` on FM-indexes
 
-
-
 ## Methodology
 
-Explored Dimensions:
+Explored dimensions:
   
-  * text type
-  * text size (just adjust the test_case.config file for this)
+  * text type 
+  * instance size (just adjust the test_case.config file for this)
   * compile options
   * index implementations
 
@@ -23,10 +21,11 @@ and test cases form the [Pizza&Chili][pz] website.
     * `query_idx_*` executes the count experiments 
     * `info_*` outputs the space breakdown of an index.
     * `genpattern` pattern generation form [Pizza&Chili][pz] website.
-  * [src](./src):  Contains the source code of the benchmark.
-  * [visualize](./visualize): `R` and `pdflatex` scripts to generate
-               reports of the collected data.
+  * [indexes](./indexes): Contains the generated indexes.
   * [results](./visualize): Contains the results of the experiments.
+  * [src](./src):  Contains the source code of the benchmark.
+  * [visualize](./visualize): Contains a `R`-script which generates
+               a report.
 
 	Files included in this archive form the Pizza&Chili website:
 	  * [src/genpatterns.c](./src/genpatterns.c)
@@ -38,22 +37,23 @@ and test cases form the [Pizza&Chili][pz] website.
     - [R][RPJ] with package `xtable`. You can install the
       package by calling `install.packages("xtable")` in R.
     - [pdflatex][LT] to generate the pdf reports.
-  * The construction of the 200MB indexes needs about 1GB
+  * The construction of the 200MB indexes requires about 1GB
     of RAM.
 		
 ## Usage
 
  * `make timing`  compiles the programs, downloads test the
-   200MB [Pizza&Chili][pz] test cases, builds the indexes and
-   runs the performance tests and generated a report located as
-   `visualization/count.pdf`. The raw numbers of the timing
+   200MB [Pizza&Chili][pz] test cases, builds the indexes,
+   runs the performance tests, and generated a report located at
+   `visualize/count.pdf`. The raw numbers of the timings
    can be found in the `results/all.txt`. 
    Indexes and temporary files are stored in the
-   directory `data` and `tmp`. For the 5 x 200 MB of
+   directory `indexes` and `tmp`. For the 5 x 200 MB of
    [Pizza&Chili][pz] data the project will produce about
    7.2 GB of additional data. On my machine (MacBookPro Retina
    2.6GHz Intel Core i7, 16GB 1600 Mhz DDR3, SSD) the
-   benchmark, invoced by `make timing`, took about 11 minutes.
+   benchmark, invoced by `make timing`, took about 11 minutes
+   (excluding the time to downlaod the test instances).
    Have a look at the [generated report][RES].
  * All created indexes and test results can be deleted
    by calling `make cleanall`.
@@ -64,7 +64,7 @@ and test cases form the [Pizza&Chili][pz] website.
   * [index.config](./index.config): Specify data structures'
 			ID, sdsl-class, and LaTeX-name for the report.
   * [test_case.config](./test_case.config): Specify test cases' 
-			ID, path, LaTeX-name for the report, and online source.
+			ID, path, LaTeX-name for the report, and download URL.
   * [compile_options.config](./compile_options.config): Specify 
 			compile options' ID and string.
 
