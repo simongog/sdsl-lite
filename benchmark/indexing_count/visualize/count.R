@@ -4,7 +4,7 @@ source("../../basic_functions.R")
 
 # Load index information
 idx_config <- readConfig("../index.config",c("IDX_ID","SDSL_TYPE","LATEX-NAME"))
-tc_config <- readConfig("../test_case.config",c("TC_ID","PATH","LATEX-NAME"))
+tc_config <- readConfig("../test_case.config",c("TC_ID","PATH","LATEX-NAME","URL"))
 compile_config <- readConfig("../compile_options.config",c("COMPILE_ID","OPTIONS"))
 
 

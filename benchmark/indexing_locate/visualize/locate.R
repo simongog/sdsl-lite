@@ -7,7 +7,7 @@ source("../../basic_functions.R")
 # Load filter information
 config <- readConfig("index-filter.config",c("IDX_ID","PCH","LTY","COL"))
 idx_config <- readConfig("../index.config",c("IDX_ID","SDSL_TYPE","LATEX-NAME"))
-tc_config <- readConfig("../test_case.config",c("TC_ID","PATH","LATEX-NAME"))
+tc_config <- readConfig("../test_case.config",c("TC_ID","PATH","LATEX-NAME","URL"))
 
 # Load data
 raw <- data_frame_from_key_value_pairs( "../results/all.txt" )

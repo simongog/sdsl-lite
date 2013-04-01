@@ -45,10 +45,8 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
 		
 ## Usage
 
- * Populate the data directory with some test files. E.g. you
-   can download the 200MB [Pizza&Chili][pz] test cases by 
-   executing [../data/get_corpus.sh](../data/get_corpus.sh). 
- * `make timing`  compiles the programs, builds the indexes and
+ * `make timing` compiles the programs, downloads the 200MB
+    [Pizza&Chili][pz] test cases, builds the indexes and
    runs the performance tests and generated a report located as
    `visualization/count.pdf`. The raw numbers of the timing
    can be found in the `results/all.txt`. 

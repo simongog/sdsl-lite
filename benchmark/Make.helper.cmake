@@ -20,3 +20,18 @@ config_column=$(shell cat $1 | grep -v "^\#" | cut -f $2 -d';')
 
 # Get size of file $1 in bytes
 file_size=$(shell wc -c < $1 | tr -d ' ')
+
+../data/%: 
+	$(eval URL:=$(call config_filter,test_case.config,$@,4))
+	@$(if $(URL),,\
+		$(error "No downlaod link nor generation program specified for test case $@") )
+	@echo "Downlaod input from $(URL) using curl"
+	$(eval DEST_DIR:=$(shell dirname $@))
+	cd $(DEST_DIR); curl -O $(URL)
+	$(eval FILE:=$(DEST_DIR)/$(notdir $(URL)))
+	@$(if $(filter-out ".gz",$(FILE)),\
+		echo "Extract file $(FILE) using gunzip";\
+		gunzip $(FILE))
+
+
+
