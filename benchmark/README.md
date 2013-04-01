@@ -7,10 +7,11 @@ so far we have:
 * [indexing_count](./indexing_count): Evaluates the performance
   of count queries on different FM-Indexes/CSAs. Count query
   means _How many times occurs my pattern P in the text T?_
+* [indexing_extract](./indexing_extract): Evaluates the performance
+  of extracting continues sequences of text out of FM-Indexes/CSAs.
 * [indexing_locate](./indexing_locate): Evaluates the performance
   of _locate queries_ on different FM-Indexes/CSAs. Locate query
   means _At which positions does pattern P occure in T?_
-
 * [rrr_vector](./rrr_vector): Evaluates the performance of
   the ![H_0](http://latex.codecogs.com/gif.latex?H_0)-compressed
   bitvector [rrr_vector](../include/sdsl/rrr_vector.hpp).
