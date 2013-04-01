@@ -137,7 +137,7 @@ for ( compile_id in compile_config[["COMPILE_ID"]] ){
 	if ( nr == 0 ){
     	plot(NA, NA, xlim=c(0,1),ylim=c(0,1),ylab="", xlab="", bty="n", type="n", yaxt="n", xaxt="n")
 		legend("topleft", legend=rev(c("access","rank","select")), box.lwd=0, lty=rev(c(1,1,1)), 
-			  title="Operation", col=rev(terrain.colors(6)[seq(1,5,2)]), bg="white")
+			  title="Operation", col=rev(terrain.colors(6)[seq(1,5,2)]), bg="white", cex=1.5)
 		nr <- nr+1
 	}
 	nr <-nr+1 
@@ -170,7 +170,7 @@ for ( tc_id in tc_config[["TC_ID"]] ){
   if ( nr == 0 ){
   	plot(NA, NA, xlim=c(0,1),ylim=c(0,1),ylab="", xlab="", bty="n", type="n", yaxt="n", xaxt="n")
   	legend_text <- rev(c('pointers/samples','encoded block','block type'))
-  	legend( "top", legend=legend_text, fill=colors, bg="white", box.col="white", title="Space of" )
+  	legend( "top", legend=legend_text, fill=colors, bg="white", box.col="white", title="Space of",cex=1.5 )
   	nr <- nr+1
   }
   nr <-nr+1 
