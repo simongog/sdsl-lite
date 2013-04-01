@@ -23,12 +23,13 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
     * `info_*` outputs the space breakdown of an index.
     * `pattern_random` pattern generator.
   * [indexes](./indexes): Contains the generated indexes.
+  * [pattern](./pattern): Contains the generated pattern.
   * [results](./results): Contains the results of the experiments.
   * [src](./src):  Contains the source code of the benchmark.
   * [visualize](./visualize): Contains a `R`-script which
 			   generates a report in LaTeX format. 
 
-	Files included in this archive form the Pizza&Chili website:
+	Files included in this archive form the [Pizza&Chili][pz] website:
       * [src/run_quries_sdsl.cpp](src/run_queries_sdsl.cpp) is a adapted version of the
 	    Pizza&Chili file run_queries.c .
 
@@ -54,7 +55,7 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
    [Pizza&Chili][pz] data the project will produce about
    36 GB of additional data. On my machine (MacBookPro Retina
    2.6GHz Intel Core i7, 16GB 1600 Mhz DDR3, SSD) the
-   benchmark, invoced by `make timing`, took about 2 hours
+   benchmark, triggerd by `make timing`, took about 2 hours
    and 20 minutes (excluding the time to download the test instances).
    Have a look at the [generated report][RES].
  * All created indexes and test results can be deleted
