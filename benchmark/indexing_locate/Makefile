@@ -7,6 +7,7 @@ TMP_DIR = ../tmp
 PAT_DIR = pattern
 BIN_DIR = bin
 
+TC_PATHS:=$(call config_column,test_case.config,2)
 TC_IDS:=$(call config_ids,test_case.config)
 IDX_IDS:=$(call config_ids,index.config)
 SAMPLE_IDS:=$(call config_ids,sample.config)
@@ -39,9 +40,11 @@ indexes: $(INDEXES)
 
 pattern: $(PATTERNS) $(BIN_DIR)/pattern_random
 
-compression: $(COMP_FILES)
+input: $(TC_PATHS)
 
-timing: $(INDEXES) pattern $(TIME_FILES) compression
+compression: input $(COMP_FILES)
+
+timing: input $(INDEXES) pattern $(TIME_FILES) compression
 	@cat $(TIME_FILES) > $(RESULT_FILE)
 	@cd visualize; make
 

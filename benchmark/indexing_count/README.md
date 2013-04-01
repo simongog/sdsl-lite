@@ -43,10 +43,8 @@ and test cases form the [Pizza&Chili][pz] website.
 		
 ## Usage
 
- * Populate the data directory with some test files. E.g. you
-   can download the 200MB [Pizza&Chili][pz] test cases by 
-   executing [../data/get_corpus.sh](../data/get_corpus.sh). 
- * `make timing`  compiles the programs, builds the indexes and
+ * `make timing`  compiles the programs, downloads test the
+   200MB [Pizza&Chili][pz] test cases, builds the indexes and
    runs the performance tests and generated a report located as
    `visualization/count.pdf`. The raw numbers of the timing
    can be found in the `results/all.txt`. 
@@ -66,7 +64,7 @@ and test cases form the [Pizza&Chili][pz] website.
   * [index.config](./index.config): Specify data structures'
 			ID, sdsl-class, and LaTeX-name for the report.
   * [test_case.config](./test_case.config): Specify test cases' 
-			ID, path, and LaTeX-name for the report.
+			ID, path, LaTeX-name for the report, and online source.
   * [compile_options.config](./compile_options.config): Specify 
 			compile options' ID and string.
 

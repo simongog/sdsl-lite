@@ -11,19 +11,29 @@ so far we have:
   of _locate queries_ on different FM-Indexes/CSAs. Locate query
   means _At which positions does pattern P occure in T?_
 
-You can executed the benchmarks by going into benchmark's 
-directory and typing `make timing`. But before doing this
-you should populate the directory [data](./data) with test
-inputs by executing the script 
-[get_corpus.sh](./get_corpus.sh). This will download
-test inputs form the excellent [Pizza&Chili][pz] website.
+* [rrr_vector](./rrr_vector): Evaluates the performance of
+  the ![H_0](http://latex.codecogs.com/gif.latex?H_0)-compressed
+  bitvector [rrr_vector](../include/sdsl/rrr_vector.hpp).
+  Operations `access`, `rank`, and `select` are benchmarked one
+  different inputs.
+
+You can executed the benchmarks by calling `make timing`
+in the specific subdirectory. 
+Test inputs will be automatically generated or downloaded
+from internet sources, such as the excellent [Pizza&Chili][pz] 
+website, and stored in the [data](./data) directory.
 
 Directory [tmp](./tmp) is used to store temporary files (like
 plain suffix arrays) which are used to generate compressed
 structures. 
 
+## Prerequisites
 
+The following tools, which are available as packages for Mac OS X and
+most Linux distributions, are required:
 
+ * [cURL][CURL] is required by the test input download script.
+ * [gzip][GZIP] is required to extract compressed files.
 
 ## Literature
 
@@ -43,3 +53,5 @@ Simon Gog (simon.gog@gmail.com)
 [sdsl]: https://github.com/simongog/sdsl "sdsl"
 [pz]: http://pizzachili.di.unipi.it "Pizza&Chili"
 [PP]: http://people.eng.unimelb.edu.au/sgog/optimized.pdf "Preprint"
+[CURL]: http://curl.haxx.se/ "cURL"
+[GZIP]: http://www.gnu.org/software/gzip/ "Gzip Compressor"
