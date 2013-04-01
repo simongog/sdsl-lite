@@ -34,7 +34,7 @@ Explored dimensions:
  * `make timing` compiles the programs, downloads or generates
     the test instances, builds the compressed bitvectors, 
     runs the performance tests and generated a report located at
-   `visualize/count.pdf`. The raw numbers of the timings 
+   `visualize/rrr.pdf`. The raw numbers of the timings 
    can be found in the `results/all.txt`.
    On my machine (MacBookPro Retina 2.6GHz Intel Core i7,
    16GB 1600 Mhz DDR3, SSD) the benchmark took about 58 minutes
