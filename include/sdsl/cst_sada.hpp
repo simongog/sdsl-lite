@@ -52,7 +52,7 @@ namespace sdsl
  *                      `bp_support`, default class is sdsl::bp_support_sada),
  * \tparam t_rank_10    Type of a rank structure for the 2-bit pattern `10`
  *                      (accessible via member `bp_rank_10`, default class is
- *                      sdsl::rank_support_v)
+ *                      sdsl::rank_support_v5)
  * \tparam t_select_10  Type of a select structure for the 2-bit pattern `10`
  *                      (accessible via member \f$bp\_select\_10\f$, default
  *                      class is sdsl::select_support_mcl).
@@ -75,7 +75,7 @@ namespace sdsl
 template<class t_csa = csa_sada<>,
          class t_lcp = lcp_support_sada<>,
          class t_bp_support = bp_support_sada<>,
-         class t_rank_10 = rank_support_v<10,2>,
+         class t_rank_10 = rank_support_v5<10,2>,
          class t_select_10 = select_support_mcl<10,2>     >
 class cst_sada
 {

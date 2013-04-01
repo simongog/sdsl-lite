@@ -62,7 +62,7 @@ namespace sdsl
  *  @ingroup bps
  */
 template<class t_nnd = nearest_neighbour_dictionary<30>,
-         class t_rank = rank_support_v<>,
+         class t_rank = rank_support_v5<>,
          class t_select = select_support_mcl<>,
          class t_rmq = range_maximum_support_sparse_table<int_vector<> >::type >
 class bp_support_g
