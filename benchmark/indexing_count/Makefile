@@ -7,7 +7,6 @@ TMP_DIR = ../tmp
 PAT_DIR = pattern
 BIN_DIR = bin
 
-
 TC_IDS:=$(call config_ids,test_case.config)
 IDX_IDS:=$(call config_ids,index.config)
 COMPILE_IDS:=$(call config_ids,compile_options.config)
@@ -83,12 +82,9 @@ $(BIN_DIR)/build_idx_%: $(SRC_DIR)/build_index_sdsl.cpp index.config
 	$(eval IDX_TYPE:=$(call config_select,index.config,$*,2))
 	@echo "Compiling build_idx_$*"
 	@$(CC) $(CFLAGS) -O9 -DNDEBUG \
-					-DSUF=\"$*\" \
-					-DCSA_TYPE="$(IDX_TYPE)" \
+					-DSUF=\"$*\" -DCSA_TYPE="$(IDX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/build_index_sdsl.cpp \
-					-I$(INC_DIR) \
-					-o $@ \
-					$(LIBS)
+					-I$(INC_DIR) -o $@ $(LIBS)
 
 # Targets for the count experiment. $(BIN_DIR)/count_queries_[IDX_ID].[COMPILE_ID]
 $(BIN_DIR)/query_idx_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config 
@@ -98,24 +94,18 @@ $(BIN_DIR)/query_idx_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config
 	$(eval COMPILE_OPTIONS:=$(call config_select,compile_options.config,$(COMPILE_ID),2))
 	@echo "Compiling query_idx_$*"
 	@$(CC) $(CFLAGS) $(COMPILE_OPTIONS) \
-					-DSUF=\"$(IDX_ID)\" \
-					-DCSA_TYPE="$(IDX_TYPE)" \
+					-DSUF=\"$(IDX_ID)\" -DCSA_TYPE="$(IDX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/run_queries_sdsl.cpp \
-					-I$(INC_DIR) \
-					-o $@ \
-					$(LIBS)
+					-I$(INC_DIR) -o $@ $(LIBS)
 
 # Targets for the executables which output the indexes structure.
 $(BIN_DIR)/info_%: $(SRC_DIR)/info.cpp index.config 
 	$(eval IDX_TYPE:=$(call config_select,index.config,$*,2))
 	@echo "Compiling info_$*"
 	@$(CC) $(CFLAGS) -O9 -DNDEBUG \
-					-DSUF=\"$*\" \
-					-DCSA_TYPE="$(IDX_TYPE)" \
+					-DSUF=\"$*\" -DCSA_TYPE="$(IDX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/info.cpp \
-					-I$(INC_DIR) \
-					-o $@ \
-					$(LIBS)
+					-I$(INC_DIR) -o $@ $(LIBS)
 
 clean:
 	@echo "Remove executables"

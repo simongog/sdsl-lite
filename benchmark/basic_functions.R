@@ -94,3 +94,13 @@ readConfig <- function(config_file, mycolnames){
   colnames(config) <- mycolnames
   config
 }
+
+
+# returns x concatenated with x reversed 
+x_for_polygon <- function(x){
+	c( x, rev(x) )
+}
+
+y_for_polygon <- function(y){
+	c( y, rep(0, length(y)) )
+}

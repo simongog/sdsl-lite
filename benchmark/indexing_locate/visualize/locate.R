@@ -38,7 +38,7 @@ max_space <- 100*2.5 #1.3 # 2.5 #1.8
 max_time  <- 25    # in microseconds
 count <- 0
 nr <- 0
-xlabnr = (2*(length(data)/2)-1) 
+xlabnr <- (2*(length(data)/2)-1) 
 for( tc_id in names(data) ){
   d <- data[[tc_id]]
 
