@@ -663,5 +663,4 @@ typedef wt_huff<rrr_vector<>,
         rrr_vector<>::select_0_type, 0> wt_huff_rrr;
 
 }// end namespace sdsl
-
-#endif // end file 
+#endif

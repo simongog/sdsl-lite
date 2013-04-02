@@ -70,8 +70,7 @@ class _lcp_support_tree
 
         //! Copy constructor
         _lcp_support_tree(const _lcp_support_tree& lcp) {
-            m_cst = lcp.m_cst;
-            m_lcp = lcp.m_lcp;
+            copy(lcp);
         }
 
         //! Constructor
@@ -176,5 +175,4 @@ class lcp_support_tree
 };
 
 } // end namespace
-
 #endif

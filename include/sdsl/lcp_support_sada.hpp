@@ -248,5 +248,4 @@ class lcp_support_sada
 };
 
 } // end namespace sdsl
-
 #endif

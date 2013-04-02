@@ -296,7 +296,6 @@ class select_support_il
         size_type m_block_shift;
         size_type m_block_size_U64;
 
-
         //! Returns the position of the i-th occurrence in the bit vector.
         size_type select1(size_type i) const {
             size_type lb = 0, rb = m_v->m_superblocks; // search interval [lb..rb)
@@ -441,6 +440,5 @@ class select_support_il
         }
 };
 
-}
-
+} // end namespace sdsl
 #endif

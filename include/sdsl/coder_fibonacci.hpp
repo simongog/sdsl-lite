@@ -414,5 +414,4 @@ inline uint64_t fibonacci::decode1(const uint64_t* data, const size_type start_i
 
 } // end namespace coder
 } // end namespace sdsl
-
 #endif

@@ -751,9 +751,5 @@ class cst_sada
         /* @} */
 };
 
-// == template functions ==
-
-
 } // end namespace sdsl
-
 #endif

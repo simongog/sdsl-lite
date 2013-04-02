@@ -466,5 +466,4 @@ void csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabe
 }
 
 } // end namespace sdsl
-
 #endif

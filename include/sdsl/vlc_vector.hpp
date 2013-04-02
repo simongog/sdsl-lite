@@ -65,7 +65,7 @@ class vlc_vector
         vlc_vector_trait<t_width>::int_vector_type      int_vector_type;
 
         static  const uint32_t                           sample_dens = t_dens;
-        bit_vector         m_z;         // compressed bit stream
+        bit_vector         m_z;     // compressed bit stream
     private:
         int_vector_type m_sample_pointer;
         size_type        m_size;    // number of elements
@@ -142,7 +142,6 @@ class vlc_vector
         uint32_t get_sample_dens() const;
         void set_sample_dens(const uint32_t sample_dens);
 };
-
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 inline uint32_t vlc_vector<t_coder, t_dens, t_width>::get_sample_dens() const
@@ -290,7 +289,6 @@ vlc_vector<t_coder, t_dens, t_width>::vlc_vector(int_vector_file_buffer<int_widt
     m_size = n;
 }
 
-
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 vlc_vector<>::size_type vlc_vector<t_coder, t_dens,t_width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
@@ -310,6 +308,6 @@ void vlc_vector<t_coder, t_dens,t_width>::load(std::istream& in)
     m_z.load(in);
     m_sample_pointer.load(in);
 }
-} // end namespace sdsl
 
+} // end namespace sdsl
 #endif

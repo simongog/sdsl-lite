@@ -60,22 +60,22 @@ template<uint8_t t_b=4, class t_rank=rank_support_v5<> >
 class lcp_dac
 {
     public:
-        typedef typename int_vector<>::value_type         value_type;
-        typedef random_access_const_iterator<lcp_dac>         const_iterator;
-        typedef const_iterator                                  iterator;
-        typedef const value_type                             const_reference;
-        typedef const_reference                                 reference;
-        typedef const_reference*                             pointer;
-        typedef const pointer                                 const_pointer;
-        typedef int_vector<>::size_type                         size_type;
-        typedef ptrdiff_t                                       difference_type;
-        typedef t_rank                                        rank_support_type;
+        typedef typename int_vector<>::value_type     value_type;
+        typedef random_access_const_iterator<lcp_dac> const_iterator;
+        typedef const_iterator                        iterator;
+        typedef const value_type                      const_reference;
+        typedef const_reference                       reference;
+        typedef const_reference*                      pointer;
+        typedef const pointer                         const_pointer;
+        typedef int_vector<>::size_type               size_type;
+        typedef ptrdiff_t                             difference_type;
+        typedef t_rank                                rank_support_type;
 
-        typedef lcp_plain_tag                                 lcp_category;
+        typedef lcp_plain_tag                          lcp_category;
 
         enum { fast_access = 0,
                text_order  = 0,
-               sa_order      = 1
+               sa_order    = 1
              }; // as the lcp_dac is not fast for texts with long repetition
 
         template<class Cst>  // template inner class which is used in CSTs to parametrize lcp classes
@@ -98,12 +98,12 @@ class lcp_dac
 
 
         void copy(const lcp_dac& lcp_c) {
-            m_data                       = lcp_c.m_data;
-            m_overflow                   = lcp_c.m_overflow;
-            m_overflow_rank              = lcp_c.m_overflow_rank;
+            m_data                   = lcp_c.m_data;
+            m_overflow               = lcp_c.m_overflow;
+            m_overflow_rank          = lcp_c.m_overflow_rank;
             m_overflow_rank.set_vector(&m_overflow);
-            m_level_pointer_and_rank     = lcp_c.m_level_pointer_and_rank;
-            m_max_level                  = lcp_c.m_max_level;
+            m_level_pointer_and_rank = lcp_c.m_level_pointer_and_rank;
+            m_max_level              = lcp_c.m_max_level;
         }
 
     public:
@@ -313,5 +313,4 @@ lcp_dac<t_b, t_rank>& lcp_dac<t_b, t_rank>::operator=(const lcp_dac& lcp_c)
 }
 
 } // end namespace sdsl
-
 #endif

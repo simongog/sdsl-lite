@@ -495,5 +495,4 @@ class wt_int
 };
 
 }// end namespace sdsl
-
-#endif // end file 
+#endif

@@ -410,5 +410,4 @@ void csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat
 }
 
 } // end namespace sdsl
-
 #endif

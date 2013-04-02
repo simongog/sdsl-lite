@@ -15,7 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file lcp_bitcompressed.hpp
-    \brief lcp_bitcompressed.hpp contains an implementation of an uncompressed lcp array.
+    \brief lcp_bitcompressed.hpp contains an implementation of an bitcompressed LCP array.
     \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_LCP_BITCOMPRESSED
@@ -25,26 +25,23 @@
 #include "int_vector.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
-#include <cassert>
-#include <utility> // for pair
 
 namespace sdsl
 {
 
-//! A class which stores the lcp array uncompressed.
 template<uint8_t t_width=0>
 class lcp_bitcompressed
 {
     public:
-        typedef typename int_vector<t_width>::value_type        value_type;    // STL Container requirement
-        typedef typename int_vector<t_width>::size_type         size_type;        // STL Container requirement
-        typedef random_access_const_iterator<lcp_bitcompressed> const_iterator;// STL Container requirement
-        typedef const_iterator                                  iterator;        // STL Container requirement
+        typedef typename int_vector<t_width>::value_type        value_type;
+        typedef typename int_vector<t_width>::size_type         size_type;
+        typedef random_access_const_iterator<lcp_bitcompressed> const_iterator;
+        typedef const_iterator                                  iterator;
         typedef const value_type                                const_reference;
         typedef const_reference                                 reference;
         typedef const_reference*                                pointer;
         typedef const pointer                                   const_pointer;
-        typedef ptrdiff_t                                       difference_type; // STL Container requirement
+        typedef ptrdiff_t                                       difference_type;
 
         typedef lcp_plain_tag                                   lcp_category;
 
@@ -94,7 +91,9 @@ class lcp_bitcompressed
         }
 
         //! Swap method for lcp_bitcompressed
-        void swap(lcp_bitcompressed& lcp_c);
+        void swap(lcp_bitcompressed& lcp_c) {
+            m_lcp.swap(lcp_c.m_lcp);
+        }
 
         //! Returns a const_iterator to the first element.
         const_iterator begin()const {
@@ -109,16 +108,20 @@ class lcp_bitcompressed
         //! Access operator
         /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
          */
-        inline value_type operator[](size_type i)const;
+        value_type operator[](size_type i)const {
+            return m_lcp[i]
+        }
 
-        //! Assignment Operator.
-        lcp_bitcompressed& operator=(const lcp_bitcompressed& lcp_c);
+               //! Assignment Operator.
+               lcp_bitcompressed& operator=(const lcp_bitcompressed& lcp_c);
 
         //! Serialize to a stream.
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
 
         //! Load from a stream.
-        void load(std::istream& in);
+        void load(std::istream& in) {
+            m_lcp.load(in);
+        }
 };
 
 // == template functions ==
@@ -138,19 +141,6 @@ lcp_bitcompressed<t_width>::lcp_bitcompressed(cache_config& config)
 }
 
 template<uint8_t t_width>
-void lcp_bitcompressed<t_width>::swap(lcp_bitcompressed& lcp_c)
-{
-    m_lcp.swap(lcp_c.m_lcp);
-}
-
-template<uint8_t t_width>
-inline typename lcp_bitcompressed<t_width>::value_type lcp_bitcompressed<t_width>::operator[](size_type i)const
-{
-    return m_lcp[i];
-}
-
-
-template<uint8_t t_width>
 typename lcp_bitcompressed<t_width>::size_type lcp_bitcompressed<t_width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
@@ -158,12 +148,6 @@ typename lcp_bitcompressed<t_width>::size_type lcp_bitcompressed<t_width>::seria
     written_bytes += m_lcp.serialize(out, child, "lcp");
     structure_tree::add_size(child, written_bytes);
     return written_bytes;
-}
-
-template<uint8_t t_width>
-void lcp_bitcompressed<t_width>::load(std::istream& in)
-{
-    m_lcp.load(in);
 }
 
 
@@ -176,7 +160,5 @@ lcp_bitcompressed<t_width>& lcp_bitcompressed<t_width>::operator=(const lcp_bitc
     return *this;
 }
 
-
 } // end namespace sdsl
-
 #endif

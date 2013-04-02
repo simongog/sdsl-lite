@@ -219,7 +219,6 @@ void construct_first_child_and_lf_lcp(int_vector_file_buffer<>& lcp_buf,
     size_type n = lcp_buf.int_vector_size;
 
     osfstream sml_lcp_out(small_lcp_file, std::ios::out | std::ios::trunc);
-//	std::ofstream sml_lcp_out(small_lcp_file.c_str());
     uint64_t bit_size = 8*n;
     sml_lcp_out.write((char*) &bit_size, sizeof(bit_size));
 
@@ -310,7 +309,5 @@ void construct_first_child_and_lf_lcp(int_vector_file_buffer<>& lcp_buf,
     }
 }
 
-
 } // end namespace
-
 #endif

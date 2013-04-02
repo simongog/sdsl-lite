@@ -358,5 +358,4 @@ class select_support_sd
 };
 
 } // end namespace
-
 #endif

@@ -841,6 +841,5 @@ class wt
         }
 };
 
-}// end namespace sds
-
-#endif // end file 
+}// end namespace sdsl
+#endif

@@ -1568,5 +1568,4 @@ class int_vector_file_buffer
 };
 
 }// end namespace sdsl
-
-#endif // end file 
+#endif

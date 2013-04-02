@@ -356,7 +356,5 @@ class wt_rlmn
         }
 };
 
-
 }// end namespace sdsl
-
-#endif // end file 
+#endif

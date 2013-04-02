@@ -60,19 +60,19 @@ template<class t_coder=coder::elias_delta,
 class enc_vector
 {
     public:
-        typedef uint64_t                                 value_type;      // STL Container requirement
-        typedef random_access_const_iterator<enc_vector> iterator;// STL Container requirement
-        typedef iterator                                 const_iterator; // STL Container requirement
+        typedef uint64_t                                 value_type;
+        typedef random_access_const_iterator<enc_vector> iterator;
+        typedef iterator                                 const_iterator;
         typedef const value_type                         reference;
         typedef const value_type                         const_reference;
         typedef const value_type*                        const_pointer;
-        typedef ptrdiff_t                                difference_type;// STL Container requirement
-        typedef int_vector<>::size_type                  size_type;        // STL Container requirement
+        typedef ptrdiff_t                                difference_type;
+        typedef int_vector<>::size_type                  size_type;
         typedef t_coder                                  coder;
         typedef typename enc_vector_trait<t_width>::int_vector_type int_vector_type;
-        static  const uint32_t                           sample_dens    = t_dens;    // Required member
+        static  const uint32_t                           sample_dens    = t_dens;
 
-        int_vector<0>     m_z;                         // storage for encoded deltas
+        int_vector<0>     m_z;                       // storage for encoded deltas
     private:
         int_vector_type   m_sample_vals_and_pointer; // samples and pointers
         size_type         m_size;                    // number of vector elements
@@ -109,8 +109,7 @@ class enc_vector
         enc_vector(int_vector_file_buffer<int_width>& v_buf);
 
         //! Default Destructor
-        ~enc_vector() {
-        }
+        ~enc_vector() { }
 
         //! The number of elements in the enc_vector.
         size_type size()const {
@@ -188,7 +187,6 @@ class enc_vector
         };
 };
 
-
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 inline typename enc_vector<t_coder, t_dens,t_width>::value_type enc_vector<t_coder, t_dens,t_width>::operator[](const size_type i)const
 {
@@ -214,7 +212,6 @@ void enc_vector<t_coder, t_dens,t_width>::copy(const enc_vector<t_coder, t_dens,
     m_size                     = v.m_size;                    // copy number of stored elements
 }
 
-
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 void enc_vector<t_coder, t_dens,t_width>::swap(enc_vector<t_coder, t_dens,t_width>& v)
 {
@@ -224,7 +221,6 @@ void enc_vector<t_coder, t_dens,t_width>::swap(enc_vector<t_coder, t_dens,t_widt
         std::swap(m_size, v.m_size);
     }
 }
-
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 template<class Container>
@@ -294,7 +290,6 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c) : m_size(0)
     m_size = c.size();
 }
 
-
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 template<uint8_t int_width>
 enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width>& v_buf) : m_size(0)
@@ -359,7 +354,6 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width
     m_size = n;
 }
 
-
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 enc_vector<>::size_type enc_vector<t_coder, t_dens,t_width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
@@ -381,5 +375,4 @@ void enc_vector<t_coder, t_dens,t_width>::load(std::istream& in)
 }
 
 } // end namespace sdsl
-
 #endif

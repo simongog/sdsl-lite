@@ -15,7 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file csa_bitcompressed.hpp
-    \brief csa_bitcompressed.hpp contains an implementation of an bitcompressed suffix array providing information of the suffix array, the inverse suffix array and the psi function.
+    \brief csa_bitcompressed.hpp contains a bitcompressed suffix array.
     \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_CSA_UNCOMPRESSED
@@ -31,8 +31,6 @@
 #include "csa_alphabet_strategy.hpp"
 #include <iostream>
 #include <algorithm>
-#include <cassert>
-#include <cstring> // for strlen
 #include <string>
 #include <iomanip>
 #include <iterator>
@@ -307,8 +305,5 @@ class csa_bitcompressed
         }
 };
 
-
-
 } // end namespace sdsl
-
 #endif
