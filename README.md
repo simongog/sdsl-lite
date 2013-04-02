@@ -1,5 +1,4 @@
-SDSL: Succinct Data Structure Library
-=====================================
+# SDSL: Succinct Data Structure Library
 
 This is a C++ template library for succinct data structures
 called _sdsl_. 
@@ -24,7 +23,7 @@ they are negligible in practice is galactic.
 The aim of the library is to provide basic and complex succinct
 data structure which are
   * easy to use (the library is structure like the 
-    [STL](http://www.sgi.com/tech/stl/), which provides
+    [STL][STL], which provides
     classical data structures),
   * capable of handling large inputs (yes, we support 64-bit),
   * provide excellent performance in construction, and 
@@ -35,53 +34,80 @@ reach the performance goal, for instance the use a semi-external
 algorithm, bit-parallelism on 64-bit words,
 and cache-friendly algorithms. 
 
-List of implemented data structures
------------------------------------
-  * Bitvectors
-    * An uncompressed mutual bitvector (`bit_vector`)
-    * An uncompressed immutable bitvector (`bit_vector_interleaved`)
-    * A ![H_0](http://latex.codecogs.com/gif.latex?H_0)-compressed immutable bitvector (`rrr_vector<>`)
-    * A bitvector for sparse populated arrays (`sd_vector<>`)
-  * Rank and Select Support Structures
-    * Several rank and select implementations with different time-space
-      trade-offs for the uncompressed bitvectors 
-      (`rank_support_v`,`rank_support_v5`,`select_support_mcl`,...)
-    * Rank and select for compressed bitvectors (`rrr_rank_support<>`, `sd_rank_support<>`,...) 
-  * Variable-length Coders
-    * Elias- ![\delta](http://latex.codecogs.com/gif.latex?%5Cdelta) coder (`coder::elias_delta`)
-    * Fibonacci-coder (`coder::fibonacci`)
-  * Integer Vectors
-    * Mutable vectors for (compile-time) fixed `w`-bit integers (`int_vector<w>`)
-    * Mutable vector for (run-time) fixed `w`-bit integers (`int_vector<0>`, `w` passed to the constructor)
-    * Immutable compressed integer vector using a variable-length coder `coder` (`enc_vector<coder>`)
-  * Wavelet Trees (all immutable)
-    * Balanced wavelet tree for a byte-alphabet (`wt`)
-    * Balanced wavelet tree for a integer-alphabet (`wt_int`)
-    * Huffman-shaped wavelet tree for a byte-alphabet (`wt_huff`) 
-    * Run-length compressed wavelet trees for a byte-alphabet (`wt_rlmn`, `wt_rlg`, and `wt_rlg8`)
-  * Compressed Suffix Arrays (CSA) (all immutable)
-    * CSA based on a wavelet tree (`csa_wt`)
-    * CSA based on the compressed ![\Psi](http://latex.codecogs.com/gif.latex?%5CPsi)-function `csa_sada`
-  * Balanced Parentheses Support Structures (all immutable)
-    * A range-min-max-tree implementation (`bp_support_sada`) to `find_open`, `find_close`,
-	  `enclose`, `double_enclose`,...
-    * Hierarchical solution with pioneer parentheses (`bp_support_g`, `bp_support_gg`)
-  * Range Minimum Support (RMQ) Structures (all immutable)
-    * Self-contained RMQ structure using 2n+o(n) bits or 4n+o(n) bits (`rmq_succinct_sct`, `rmq_succinct_sada`)
-    * Non-succinct support structure for RMQ (`rmq_support_sparse_table`)
-  * Longest Common Prefix (LCP) Arrays (all immutable)
-    * LCP-array based on direct accessible codes (`lcp_dac`)
-    * LCP-array encodes small values with a byte and large values with a word (`lcp_kurtz`)
-    * LCP-array encodes all values in a wavelet tree (`lcp_wt`)
-    * Compressed LCP-array dependent on the corresponding CSA (`lcp_support_sada`)
-    * Compressed LCP-array dependent on the corresponding CST (`lcp_support_tree`)
-    * Compressed LCP-array dependent on the corresponding CSA and CST (`lcp_support_tree2`)
-  * Compressed Suffix Trees(CSTs) (all immutable)
-    * CST providing very fast navigation operations (`cst_sada`)
-    * CST representing nodes as intervals in the suffix array (`cst_sct3`)
 
-Example of a complex data structure
------------------------------------
+## List of implemented data structures
+
+ * Bitvectors
+   * An uncompressed mutual bitvector (`bit_vector`)
+   * An uncompressed immutable bitvector ([bit_vector_il](./include/sdsl/bit_vector_il.hpp))
+   * A ![H_0](http://latex.codecogs.com/gif.latex?H_0)-compressed
+     immutable bitvector ([rrr_vector<>](./include/sdsl/rrr_vector.hpp))
+   * A bitvector for sparse populated arrays ([sd_vector<>](./include/sdsl/sd_vector.hpp))
+ * Rank Support (RS) and Select Support (SS)
+   * Several rank and select implementations with different time-space
+     trade-offs for the uncompressed bitvectors 
+     ([rank_support_v](./include/sdsl/rank_support_v.hpp),
+      [rank_support_v5](./include/sdsl/ran_support_v5.hpp),
+      [select_support_mcl](./include/sdsl/select_support_mcl.hpp), ...)
+   * Rank and select for compressed bitvectors 
+     ([rank_support_rrr](./include/sdsl/rrr_vector.hpp),
+      [rank_support_sd](./include/sdsl/sd_vector.hpp), ...)
+ * Variable-length Coders
+   * Elias- ![\delta](http://latex.codecogs.com/gif.latex?%5Cdelta) coder 
+     ([coder::elias_delta](./include/sdsl/coder_elias_delta.hpp))
+   * Fibonacci-coder ([coder::fibonacci](./include/sdsl/coder_fibonacci.hpp))
+ * Integer Vectors
+   * Mutable vectors for (compile-time) fixed `w`-bit integers ([int_vector<w>](./include/sdsl/int_vector.hpp))
+   * Mutable vector for (run-time) fixed `w`-bit integers ([int_vector<0>](./include/sdsl/int_vector.hpp),
+     `w` passed to the constructor)
+   * Immutable compressed integer vectors using a variable-length coder `coder` 
+     ([enc_vector<coder>](./include/sdsl/enc_vector.hpp), 
+     [vlc_vector<coder>](./include/sdsl/vlc_vector.hpp))
+ * Wavelet Trees (WT) (all immutable)
+   * Balanced wavelet tree for a byte-alphabet ([wt](./include/sdsl/wt.hpp))
+   * Balanced wavelet tree for a integer-alphabet ([wt_int](./include/sdsl/wt_int.hpp))
+   * Huffman-shaped wavelet tree for a byte-alphabet ([wt_huff](./include/sdsl/wt_huff.hpp)) 
+   * Run-length compressed wavelet trees for a byte-alphabet 
+     ([wt_rlmn](./include/sdsl/wt_rlmn.hpp),
+      [wt_rlg](./include/sdsl/wt_rlg.hpp),
+      [wt_rlg8](./include/sdsl/wt_rlg8.hpp))
+ * Compressed Suffix Arrays (CSA) (all immutable)
+   * CSA based on a wavelet tree ([csa_wt](./include/sdsl/csa_wt.hpp))
+   * CSA based on the compressed ![\Psi](http://latex.codecogs.com/gif.latex?%5CPsi)-function
+     [csa_sada](./include/sdsl/csa_sada.hpp)
+ * Balanced Parentheses Support (BPS) (all immutable)
+   * A range-min-max-tree implementation ([bp_support_sada](./include/sdsl/bp_support_sada.hpp))
+     to support operations `find_open`, `find_close`, `enclose`, `double_enclose`,...
+   * Hierarchical solutions with pioneer parentheses 
+     ([bp_support_g](./include/sdsl/bp_support_g.hpp),
+      [bp_support_gg](./include/sdsl/bp_support_gg.hpp))
+ * Longest Common Prefix (LCP) Arrays (all immutable)
+   * [lcp_bitcompressed](./include/sdsl/lcp_bitcompressed.hpp) is a bitcompressed version
+   * [lcp_byte](./include/sdsl/lcp_byte.hpp) encodes small values with one
+     byte and large values with two words 
+   * [lcp_dac](./include/sdsl/lcp_dac.hpp) used direct accessible codes 
+   * [lcp_wt](./include/sdsl/lcp_wt.hpp) stores small values in a WT and
+     large value in on word.
+   * [lcp_support_sada](./include/sdsl/lcp_support_sada.hpp) uses a bitvector of 2n bits, a
+     select structure supporting it, and the corresponding CSA.
+   * [lcp_support_tree](./include/sdsl/lcp_support_tree.hpp) uses the topology of the
+     corresponding CST.
+   * [lcp_support_tree2](./include/sdsl/lcp_support_tree2.hpp) uses the corresponding CSA 
+	 and CST.
+ * Compressed Suffix Trees (CST) (all immutable)
+   * [cst_sada](./include/sdsl/cst_sada.hpp) provides very fast navigation operations; worst case  
+     space |CSA|+|LCP|+4n+o(n)
+   * [cst_sct3](./include/sdsl/cst_sct3.hpp) representing nodes as intervals in the suffix array;
+     worst case space |CSA|+|LCP|+3n+o(n)
+ * Range Minimum/Maximum Query (RMQ) Structures (all immutable)
+   * Self-contained RMQ structure using 2n+o(n) bits or 4n+o(n) bits
+     ([rmq_succinct_sct](./include/sdsl/rmq_succinct_sct.hpp),
+      [rmq_succinct_sada](./include/sdsl/rmq_succinct_sada.hpp))
+   * Non-succinct support structure for RMQ ([rmq_support_sparse_table](./include/sdsl/rmq_support_sparse_table.hpp))
+
+
+## Example of a complex data structure
+
 Let us now show how you can assemble even a very
 complex data structure very easily. Lets begin with
 the most complex one, a CST!
@@ -110,14 +136,14 @@ types. So the final type looks like this:
 
 Now, lets explore the data structure a little bit.
 We take the english.100MB input from 
-the [Pizza&amp;Chili](http://pizzachili.di.unipi.it/)-corpus,
+the [Pizza&amp;Chili][pz]-corpus,
 construct the CST-object, output its structure, and visualise
-it using the [d3js](http://d3js.org/)-library. Have fun with 
-[the result](http://people.eng.unimelb.edu.au/sgog/sdsl_explore/dblp.xml.100MB_cst_sada_wt_rlmn_lcp_tree2.html).
+it using the [d3js][d3js]-library. Have fun with 
+[the result][DBLPCSTRES]
 
 
-Types of data structures
-------------------------
+## Types of data structures
+
 The data structures in the library can be divided into several classes:
   * Objects of _mutable_ classes can be changed after construction (e.g.
     we can assign new values to the elements of an `int_vector`)
@@ -148,8 +174,9 @@ We provide many handy methods for _sdsl_ objects:
   * `util::clear(T &o)` frees space by setting o to the empty object.
   * ...for more have a look into the cheat sheet in `extras/cheatsheet`.
 
-Supported platforms
--------------------
+
+## Supported platforms
+
 The library was successfully tested on the following
 configurations
   * Mac OS X 10.7.3 on a MacBookPro equipped with a Intel Core i5 CPU
@@ -157,10 +184,11 @@ configurations
 
 We plan to support Windows in the near future.
 
-Installation
-------------
-The installation requires that the [cmake tool](http://www.cmake.org/)
-and a C++ compiler (e.g. from the [GNU Compiler Collection](http://gcc.gnu.org/))
+
+## Installation
+
+The installation requires that the [cmake tool][cmake]
+and a C++ compiler (e.g. from the [GNU Compiler Collection][gcc]
 is installed.
 You can than install the library into an directory `SDSL_INSTALL_DIR` by
 calling
@@ -176,29 +204,34 @@ with some code examples in the `examples` folder.
 A cheat sheet can be generated my running make in the 
 `extras/cheatsheet` folder.
 
-Tests
------
+
+## Tests
+
 We have used the gtest framework for the tests.
 Compile with `make` and run tests with `make test`. We have another
 target `vtest` which runs the test with the valgrind tool.
 `make test` will try to download some texts from a
 gutenberg.org mirror. See the README file in the directory for details.
 
-Examples
---------
+## Benchmarks
+
+You can find out how efficient the library works on your system by
+running experiments in the [benchmark][./benchmark] directory.
+
+## Examples
+
 Compile the examples with `make` and experience
 how esay it is to use succinct data structures.
 
-Construction of Suffix Arrays
------------------------------
+
+## Construction of Suffix Arrays
+
 The current version includes Yuta Mori's incredible fast suffix array
 construction library [libdivsufsort](http://code.google.com/p/libdivsufsort/)
 version 2.0.1.
 
 
-
-Contributors
-------------
+## Contributors
 
 Here is a list of contributes:
 
@@ -213,7 +246,9 @@ Bug reports:
   * Kalle Karhu
   * Dominik Kempa
 
-New contributors are welcome any time!
-
-Have fun with the library!
-
+[STL]: http://www.sgi.com/tech/stl/ "Standart Template Library"
+[pz]: http://pizzachili.di.unipi.it/ "Pizza&amp;Chli"
+[d3js]: http://d3js.org "D3JS library"
+[cmake]: http://www.cmake.org/ "CMake tool"
+[gcc]: http://gcc.gnu.org/ "GNU Compiler Collection"
+[DBLPCSTRES]: http://people.eng.unimelb.edu.au/sgog/sdsl_explore/dblp.xml.100MB_cst_sada_wt_rlmn_lcp_tree2.html "CST visualization"
