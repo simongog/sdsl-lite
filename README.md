@@ -89,6 +89,7 @@ and cache-friendly algorithms.
    * [lcp_dac](./include/sdsl/lcp_dac.hpp) used direct accessible codes 
    * [lcp_wt](./include/sdsl/lcp_wt.hpp) stores small values in a WT and
      large value in on word.
+   * [lcp_vlc](./include/sdsl/lcp_vlc.hpp) stores the values in a `vlc_vector`.
    * [lcp_support_sada](./include/sdsl/lcp_support_sada.hpp) uses a bitvector of 2n bits, a
      select structure supporting it, and the corresponding CSA.
    * [lcp_support_tree](./include/sdsl/lcp_support_tree.hpp) uses the topology of the
