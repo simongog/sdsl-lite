@@ -72,9 +72,10 @@ and cache-friendly algorithms.
       [wt_rlg](./include/sdsl/wt_rlg.hpp),
       [wt_rlg8](./include/sdsl/wt_rlg8.hpp))
  * Compressed Suffix Arrays (CSA) (all immutable)
-   * CSA based on a wavelet tree ([csa_wt](./include/sdsl/csa_wt.hpp))
-   * CSA based on the compressed ![\Psi](http://latex.codecogs.com/gif.latex?%5CPsi)-function
-     [csa_sada](./include/sdsl/csa_sada.hpp)
+   * [csa_bitcompressed][./include/sdsl/csa_bitcompressed.hpp] is based on the bitcompressed SA and inverse SA.
+   * [csa_wt](./include/sdsl/csa_wt.hpp) is based on a WT of the BWT.
+   * [csa_sada](./include/sdsl/csa_sada.hpp) is based on the compressed
+      ![\Psi](http://latex.codecogs.com/gif.latex?%5CPsi)-function
  * Balanced Parentheses Support (BPS) (all immutable)
    * A range-min-max-tree implementation ([bp_support_sada](./include/sdsl/bp_support_sada.hpp))
      to support operations `find_open`, `find_close`, `enclose`, `double_enclose`,...
@@ -216,7 +217,7 @@ gutenberg.org mirror. See the README file in the directory for details.
 ## Benchmarks
 
 You can find out how efficient the library works on your system by
-running experiments in the [benchmark][./benchmark] directory.
+running experiments in the [benchmark](./benchmark) directory.
 
 ## Examples
 
