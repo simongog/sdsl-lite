@@ -12,7 +12,7 @@ TC_IDS:=$(call config_ids,test_case.config)
 COMPILE_IDS:=$(call config_ids,compile_options.config)
 KS:=$(call config_ids,block_size.config)
 
-input: $(TC_PATHS)
+input: bin/generate_rnd_bitvector $(TC_PATHS)
 
 RRR_EXECS = $(foreach K,$(KS),\
 			  $(foreach COMPILE_ID,$(COMPILE_IDS),bin/rrr_time_and_space_$(K).$(COMPILE_ID)))
@@ -64,6 +64,8 @@ results/%:
 	$(eval SIZE:=$(call dim,2,$*)) 
 	@echo "Generating bitvector of density $(DENSITY) and size $(SIZE)"
 	@bin/generate_rnd_bitvector $(SIZE) $(DENSITY) $@
+
+include ../Make.download
 
 clean:
 	rm -f $(RRR_EXECS) bin/generate_rnd_bitvector   
