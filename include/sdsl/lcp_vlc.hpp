@@ -15,7 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /* \file lcp_vlc.hpp
-    \brief lcp_vlc.hpp contains an implementation of a (compressed) lcp array.
+    \brief lcp_vlc.hpp contains an implementation of a (compressed) LCP array.
     \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_LCP_VLC
@@ -41,15 +41,15 @@ template<class t_vlc_vec = vlc_vector<> >
 class lcp_vlc
 {
     public:
-        typedef typename t_vlc_vec::value_type        value_type;    // STL Container requirement
-        typedef random_access_const_iterator<lcp_vlc> const_iterator;// STL Container requirement
-        typedef const_iterator                        iterator;        // STL Container requirement
+        typedef typename t_vlc_vec::value_type        value_type;
+        typedef random_access_const_iterator<lcp_vlc> const_iterator;
+        typedef const_iterator                        iterator;
         typedef const value_type                      const_reference;
         typedef const_reference                       reference;
         typedef const_reference*                      pointer;
         typedef const pointer                         const_pointer;
-        typedef typename t_vlc_vec::size_type         size_type;        // STL Container requirement
-        typedef typename t_vlc_vec::difference_type   difference_type; // STL Container requirement
+        typedef typename t_vlc_vec::size_type         size_type;
+        typedef typename t_vlc_vec::difference_type   difference_type;
         typedef t_vlc_vec                             vlc_vec_type;
 
         typedef lcp_plain_tag                         lcp_category;
@@ -129,7 +129,9 @@ class lcp_vlc
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
 
         //! Load from a stream.
-        void load(std::istream& in);
+        void load(std::istream& in) {
+            m_vec.load(in);
+        }
 };
 
 // == template functions ==
@@ -157,13 +159,6 @@ typename lcp_vlc<t_vlc_vec>::size_type lcp_vlc<t_vlc_vec>::serialize(std::ostrea
 }
 
 template<class t_vlc_vec>
-void lcp_vlc<t_vlc_vec>::load(std::istream& in)
-{
-    m_vec.load(in);
-}
-
-
-template<class t_vlc_vec>
 lcp_vlc<t_vlc_vec>& lcp_vlc<t_vlc_vec>::operator=(const lcp_vlc& lcp_c)
 {
     if (this != &lcp_c) {
@@ -171,6 +166,6 @@ lcp_vlc<t_vlc_vec>& lcp_vlc<t_vlc_vec>::operator=(const lcp_vlc& lcp_c)
     }
     return *this;
 }
-} // end namespace sdsl
 
+} // end namespace sdsl
 #endif

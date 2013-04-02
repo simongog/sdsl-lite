@@ -16,7 +16,7 @@
 */
 /*! \file lcp_byte.hpp
     \brief lcp_byte.hpp contains an implementation of a (compressed) lcp array.
-	\author Simon Gog
+    \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_LCP_BYTE
 #define INCLUDED_SDSL_LCP_BYTE
@@ -28,7 +28,6 @@
 #include <iostream>
 #include <algorithm> // for lower_bound
 #include <cassert>
-#include <cstring> // for strlen
 #include <iomanip>
 #include <iterator>
 #include <vector>
@@ -42,8 +41,8 @@ namespace sdsl
  *  For x=LCP[i] \f$\geq 255\f$ a pair (i, x) is store an list of word  pairs.
  *  This list is binary search to access LCP[i].
  *  \par Time complexity
- *		- \f$\Order{1}\f$ if the value is less than 255 and
- *		- \f$\Order{\log n}\f$ (\f$n=size()\f$) otherwise.
+ *        - \f$\Order{1}\f$ if the value is less than 255 and
+ *        - \f$\Order{\log n}\f$ (\f$n=size()\f$) otherwise.
  * \par Reference
  *   Mohamed Ibrahim Abouelhoda, Stefan Kurtz, Enno Ohlebusch:
  *   Replacing suffix trees with enhanced suffix arrays.
@@ -53,21 +52,21 @@ template<uint8_t t_width=0>
 class lcp_byte
 {
     public:
-        typedef typename int_vector<t_width>::value_type		 value_type;	// STL Container requirement
-        typedef random_access_const_iterator<lcp_byte>		 const_iterator;// STL Container requirement
-        typedef const_iterator 								 iterator;		// STL Container requirement
-        typedef const value_type							 const_reference;
-        typedef const_reference								 reference;
-        typedef const_reference*							 pointer;
-        typedef const pointer								 const_pointer;
-        typedef int_vector<>::size_type						 size_type;		// STL Container requirement
-        typedef ptrdiff_t  									 difference_type; // STL Container requirement
+        typedef typename int_vector<t_width>::value_type value_type;
+        typedef random_access_const_iterator<lcp_byte>   const_iterator;
+        typedef const_iterator                           iterator;
+        typedef const value_type                         const_reference;
+        typedef const_reference                          reference;
+        typedef const_reference*                         pointer;
+        typedef const pointer                            const_pointer;
+        typedef int_vector<>::size_type                  size_type;
+        typedef ptrdiff_t                                difference_type;
 
-        typedef lcp_plain_tag								 lcp_category;
+        typedef lcp_plain_tag                            lcp_category;
 
         enum { fast_access = 0,
                text_order  = 0,
-               sa_order	  = 1
+               sa_order    = 1
              }; // as the lcp_byte is not fast for texts with long repetition
 
         template<class Cst>  // template inner class which is used in CSTs to parametrize lcp classes
@@ -79,17 +78,17 @@ class lcp_byte
 
     private:
 
-        int_vector<8>      m_small_lcp;		// vector for lcp values < 255
-        int_vector<t_width>   m_big_lcp;		// vector for lcp values > 254
-        int_vector<t_width>   m_big_lcp_idx;   // index of the lcp entries in the lcp array
+        int_vector<8>       m_small_lcp;   // vector for lcp values < 255
+        int_vector<t_width> m_big_lcp;     // vector for lcp values > 254
+        int_vector<t_width> m_big_lcp_idx; // index of the lcp entries in the lcp array
 
         typedef std::pair<size_type, size_type> tPII;
         typedef std::vector<tPII> tVPII;
 
         void copy(const lcp_byte& lcp_c) {
-            m_small_lcp 	= lcp_c.m_small_lcp;
-            m_big_lcp		= lcp_c.m_big_lcp;
-            m_big_lcp_idx	= lcp_c.m_big_lcp_idx;
+            m_small_lcp   = lcp_c.m_small_lcp;
+            m_big_lcp     = lcp_c.m_big_lcp;
+            m_big_lcp_idx = lcp_c.m_big_lcp_idx;
         }
 
     public:
@@ -132,8 +131,6 @@ class lcp_byte
             return const_iterator(this, size());
         }
 
-
-
         //! []-operator
         /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
          * Time complexity: O(1) for small and O(log n) for large values
@@ -170,11 +167,11 @@ lcp_byte<t_width>::lcp_byte(cache_config& config)
                 ++big_sum;
             }
         }
-        r_sum	+=	r;
-        r 		=	lcp_buf.load_next_block();
+        r_sum += r;
+        r      = lcp_buf.load_next_block();
     }
-    m_big_lcp 		= int_vector<>(big_sum, 0, bits::hi(max_l)+1);
-    m_big_lcp_idx 	= int_vector<>(big_sum, 0, bits::hi(max_big_idx)+1);
+    m_big_lcp     = int_vector<>(big_sum, 0, bits::hi(max_l)+1);
+    m_big_lcp_idx = int_vector<>(big_sum, 0, bits::hi(max_big_idx)+1);
 
     lcp_buf.reset();
     for (size_type i=0, r_sum=0, r = lcp_buf.load_next_block(),ii=0; r_sum<m_small_lcp.size();) {
@@ -185,8 +182,8 @@ lcp_byte<t_width>::lcp_byte(cache_config& config)
                 ++ii;
             }
         }
-        r_sum	+=	r;
-        r 		=	lcp_buf.load_next_block();
+        r_sum += r;
+        r      = lcp_buf.load_next_block();
     }
 }
 

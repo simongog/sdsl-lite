@@ -414,7 +414,5 @@ class wt_rlg8
         }
 };
 
-
 }// end namespace sdsl
-
-#endif // end file 
+#endif

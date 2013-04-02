@@ -191,6 +191,5 @@ class rmq_support_sparse_table
         }
 };
 
-}// end namespace sds
-
-#endif // end file 
+}// end namespace sds;
+#endif

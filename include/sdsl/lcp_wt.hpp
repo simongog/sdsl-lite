@@ -146,9 +146,6 @@ class lcp_wt
         void load(std::istream& in);
 };
 
-// == template functions ==
-
-
 template<uint8_t t_width>
 lcp_wt<t_width>::lcp_wt(cache_config& config, std::string other_key)
 {
@@ -212,7 +209,6 @@ inline typename lcp_wt<t_width>::value_type lcp_wt<t_width>::operator[](size_typ
     }
 }
 
-
 template<uint8_t t_width>
 typename lcp_wt<t_width>::size_type lcp_wt<t_width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
@@ -231,7 +227,6 @@ void lcp_wt<t_width>::load(std::istream& in)
     m_big_lcp.load(in);
 }
 
-
 template<uint8_t t_width>
 lcp_wt<t_width>& lcp_wt<t_width>::operator=(const lcp_wt& lcp_c)
 {
@@ -240,6 +235,6 @@ lcp_wt<t_width>& lcp_wt<t_width>::operator=(const lcp_wt& lcp_c)
     }
     return *this;
 }
-} // end namespace sdsl
 
+} // end namespace sdsl
 #endif

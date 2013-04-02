@@ -410,7 +410,5 @@ class wt_rlg
 
 };
 
-
 }// end namespace sdsl
-
-#endif // end file 
+#endif

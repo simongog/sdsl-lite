@@ -154,8 +154,8 @@ class rrr_vector
             util::assign(m_btnr, bit_vector(std::max(btnr_pos, (size_type)64), 0));      // max necessary for case: t_bs == 1
             util::assign(m_btnrp, int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bits::hi(btnr_pos)+1));
             util::assign(m_rank, int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*t_bs))>0), 0, bits::hi(sum_rank)+1));
-            //                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            //                                                                      only add a finishing block, if the last block of the superblock is not a dummy block
+            //                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            //   only add a finishing block, if the last block of the superblock is not a dummy block
             util::assign(m_invert, bit_vector((bt_array.size()+m_k-1)/m_k, 0));
 
             // (2) calculate block type numbers and pointers into btnr and rank samples

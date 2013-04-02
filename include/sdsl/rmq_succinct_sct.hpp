@@ -159,8 +159,5 @@ class rmq_succinct_sct
         }
 };
 
-
-}
-
-
+} // end namespace sdsl
 #endif

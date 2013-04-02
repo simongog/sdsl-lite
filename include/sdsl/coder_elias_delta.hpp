@@ -190,5 +190,4 @@ inline uint64_t elias_delta::decode(const uint64_t* data, const size_type start_
 
 } // end namespace coder
 } // end namespace sdsl
-
 #endif

@@ -228,8 +228,5 @@ class rmq_succinct_sada
         }
 };
 
-
-}
-
-
+} // end namespace sdsl
 #endif
