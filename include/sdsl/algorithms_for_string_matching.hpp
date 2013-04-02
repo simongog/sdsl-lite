@@ -368,7 +368,7 @@ typename Cst::cst_size_type locate(const Cst& cst, typename Cst::pattern_type pa
 /*!
  *	\param cst A const reference to the compressed suffix tree.
  *	\param v The node where the concatenation of the edge labels ends.
- *	\param text A pointer in which the string representing the concatenation of edge labels form the root to the node v will be stored.
+ *	\param text A pointer in which the string representing the concatenation of edge labels from the root to the node v will be stored.
  *   \pre text has to be initialized with enough memory (\f$ cst.depth(v)+1\f$ bytes) to hold the extracted text.
  */
 template<class Cst>
