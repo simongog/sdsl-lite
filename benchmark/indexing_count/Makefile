@@ -110,6 +110,8 @@ $(BIN_DIR)/info_%: $(SRC_DIR)/info.cpp index.config
 					-L$(LIB_DIR) $(SRC_DIR)/info.cpp \
 					-I$(INC_DIR) -o $@ $(LIBS)
 
+include ../Make.download
+
 clean:
 	@echo "Remove executables"
 	@rm -f $(QUERY_EXECS) $(LOCATE_EXECS) $(BUILD_EXECS) $(INFO_EXECS) \

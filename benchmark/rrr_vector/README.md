@@ -23,8 +23,12 @@ Explored dimensions:
 
 ## Prerequisites
   * For the visualization you need the following software:
-    - [R][RPJ] with package `tikzdevice`. You can install the
-      package by calling `install.packages("tikzdevice")` in `R`.
+    - [R][RPJ] with package `tikzDevice`. You can install the
+      package by calling 
+      `install.packages("filehash", repos="http://cran.r-project.org")`
+	  and 
+	  `install.packages("tikzDevice", repos="http://R-Forge.R-project.org")`
+	  in `R`.
     - [pdflatex][LT] to generate the pdf reports.
   * The processing of the 1GB bitvectors requires about
     1.5GB of RAM.

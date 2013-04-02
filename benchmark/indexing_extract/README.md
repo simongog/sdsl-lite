@@ -37,8 +37,12 @@ are extracted.
 
 ## Prerequisites
   * For the visualization you need the following software:
-    - [R][RPJ] with package `tikzdevice`. You can install the
-      package by calling `install.packages("tikzdevice")` in `R`.
+    - [R][RPJ] with package `tikzDevice`. You can install the
+      package by calling 
+      `install.packages("filehash", repos="http://cran.r-project.org")`
+	  and 
+	  `install.packages("tikzDevice", repos="http://R-Forge.R-project.org")`
+	  in `R`.
     - Compressors [xz][XZ] and [gzip][GZIP] are used to get
 	  compression baselines.
     - [pdflatex][LT] to generate the pdf reports.
