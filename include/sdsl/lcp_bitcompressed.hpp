@@ -109,11 +109,11 @@ class lcp_bitcompressed
         /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
          */
         value_type operator[](size_type i)const {
-            return m_lcp[i]
+            return m_lcp[i];
         }
 
-               //! Assignment Operator.
-               lcp_bitcompressed& operator=(const lcp_bitcompressed& lcp_c);
+        //! Assignment Operator.
+        lcp_bitcompressed& operator=(const lcp_bitcompressed& lcp_c);
 
         //! Serialize to a stream.
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
