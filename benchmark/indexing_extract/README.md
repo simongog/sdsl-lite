@@ -29,7 +29,7 @@ are extracted.
   * [visualize](./visualize): Contains a `R`-script which
 			   generates a report in LaTeX format. 
 
-	Files included in this archive form the [Pizza&Chili][pz] website:
+	Files included in this archive from the [Pizza&Chili][pz] website:
       * [src/run_quries_sdsl.cpp](src/run_queries_sdsl.cpp) is a adapted version of the
 	    Pizza&Chili file run_queries.c .
 	  * [src/genintervals.c](src/genintervals.c) is their interval generation

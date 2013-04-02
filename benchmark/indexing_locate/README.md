@@ -29,7 +29,7 @@ We use the methodology of [Ferragina et al.][FGNV08] (Section 5.3):
   * [visualize](./visualize): Contains a `R`-script which
 			   generates a report in LaTeX format. 
 
-	Files included in this archive form the [Pizza&Chili][pz] website:
+	Files included in this archive from the [Pizza&Chili][pz] website:
       * [src/run_quries_sdsl.cpp](src/run_queries_sdsl.cpp) is a adapted version of the
 	    Pizza&Chili file run_queries.c .
 
