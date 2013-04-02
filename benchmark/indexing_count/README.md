@@ -12,7 +12,7 @@ Explored dimensions:
 Pattern selection:
 
 We use the benchmark code including the random pattern selection
-and test cases form the [Pizza&Chili][pz] website.
+and test cases from the [Pizza&Chili][pz] website.
 
 ## Directory structure
 
@@ -20,14 +20,14 @@ and test cases form the [Pizza&Chili][pz] website.
     * `build_idx_*` generates indexes
     * `query_idx_*` executes the count experiments 
     * `info_*` outputs the space breakdown of an index.
-    * `genpattern` pattern generation form [Pizza&Chili][pz] website.
+    * `genpattern` pattern generation from [Pizza&Chili][pz] website.
   * [indexes](./indexes): Contains the generated indexes.
   * [results](./visualize): Contains the results of the experiments.
   * [src](./src):  Contains the source code of the benchmark.
   * [visualize](./visualize): Contains a `R`-script which generates
                a report.
 
-	Files included in this archive form the Pizza&Chili website:
+	Files included in this archive from the Pizza&Chili website:
 	  * [src/genpatterns.c](./src/genpatterns.c)
       * [src/run_quries_sdsl.cpp](./src/run_quries_sdsl.cpp) 
 	    is a customized version of the Pizza&Chili file run_queries.c .
