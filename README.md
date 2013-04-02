@@ -22,18 +22,19 @@ they are negligible in practice is galactic.
 
 The aim of the library is to provide basic and complex succinct
 data structure which are
-  * easy to use (the library is structure like the 
-    [STL][STL], which provides
-    classical data structures),
+  * easy to use (like the [STL][STL], which provides classical data structures),
   * capable of handling large inputs (yes, we support 64-bit),
   * provide excellent performance in construction, and 
   * provide excellent operation performance 
 
-A lot of engineering tricks had to be applied to
-reach the performance goal, for instance the use a semi-external
-algorithm, bit-parallelism on 64-bit words,
-and cache-friendly algorithms. 
+We used several techniques to reach the performance goals:
+  * bit-parallelism on 64-bit word
+  * cache-friendly data structure layouts
+  * semi-external construction algorithms
+  * the built-in popcount operation
+  * hugepages to bypass the TLB bottleneck
 
+Details are in our [comprehensive experimental study][SPE].
 
 ## List of implemented data structures
 
@@ -176,15 +177,12 @@ We provide many handy methods for _sdsl_ objects:
   * `util::clear(T &o)` frees space by setting o to the empty object.
   * ...for more have a look into the cheat sheet in `extras/cheatsheet`.
 
-
 ## Supported platforms
 
 The library was successfully tested on the following
 configurations
   * Mac OS X 10.7.3 on a MacBookPro equipped with a Intel Core i5 CPU
   * Ubuntu Linux 12.04 running on a server equipped with Intel Xeon (E5640) CPUs
-
-We plan to support Windows in the near future.
 
 
 ## Installation
@@ -254,3 +252,4 @@ Bug reports:
 [cmake]: http://www.cmake.org/ "CMake tool"
 [gcc]: http://gcc.gnu.org/ "GNU Compiler Collection"
 [DBLPCSTRES]: http://people.eng.unimelb.edu.au/sgog/sdsl_explore/dblp.xml.100MB_cst_sada_wt_rlmn_lcp_tree2.html "CST visualization"
+[SPE]: http://people.eng.unimelb.edu.au/sgog/optimized.pdf "Preprint SP&amp;E article"
