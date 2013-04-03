@@ -1,5 +1,5 @@
 if ( !exists( "tikzDeviceLoaded" ) ){  
-	require(tikzDevice) #if not installed call install.packages("tikzDevice", repos="http://R-Forge.R-project.org")
+	require(tikzDevice)
 	tikzDeviceLoaded = T
 }
 source("../../basic_functions.R")
