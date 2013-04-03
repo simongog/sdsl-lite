@@ -3,58 +3,58 @@
 # '# key = value'
 # (2) Each unique key gets a column
 data_frame_from_key_value_pairs <- function(file_name){
-	lines <- readLines(file_name)
-	lines <- lines[grep("^#.*=.*",lines)]
-	d <- gsub("^#","",gsub("[[:space:]]","",unlist(strsplit(lines,split="="))))
-	keys <- unique(d[seq(1,length(d),2)])
-	keynr <- length(keys)
-	dd <- d[seq(2,length(d),2)]
-	dim(dd) <- c( keynr, length(dd)/keynr )
-	data <- data.frame(t(dd))	
-	names(data) <- keys	
+    lines <- readLines(file_name)
+    lines <- lines[grep("^#.*=.*",lines)]
+    d <- gsub("^#","",gsub("[[:space:]]","",unlist(strsplit(lines,split="="))))
+    keys <- unique(d[seq(1,length(d),2)])
+    keynr <- length(keys)
+    dd <- d[seq(2,length(d),2)]
+    dim(dd) <- c( keynr, length(dd)/keynr )
+    data <- data.frame(t(dd))    
+    names(data) <- keys    
 
-	for (col in keys){
-		t <- as.character(data[[col]])
-		suppressWarnings( tt <- as.numeric(t) )
-		if ( length( tt[is.na(tt)] ) == 0 ){ # if there are not NA in tt
-			data[[col]] <- tt 
-		}
-	} 	
-	data
+    for (col in keys){
+        t <- as.character(data[[col]])
+        suppressWarnings( tt <- as.numeric(t) )
+        if ( length( tt[is.na(tt)] ) == 0 ){ # if there are not NA in tt
+            data[[col]] <- tt 
+        }
+    }     
+    data
 }
 
 # Takes a vector v=(v1,v2,v3,....)
 # and returns a vector which repeats
 # each element x times. So for two we get
-# (v1,v1,v2,v2,v3,v3....)	
+# (v1,v1,v2,v2,v3,v3....)    
 expand_vec <- function( v, x ){
-	v <- rep(v,x)
-	dim(v) <- c(length(v)/x,x)
-	v <- t(v)
-	dim(v) <- c(1,nrow(v)*ncol(v))
-	v
+    v <- rep(v,x)
+    dim(v) <- c(length(v)/x,x)
+    v <- t(v)
+    dim(v) <- c(1,nrow(v)*ncol(v))
+    v
 }
 
 # Takes a vector v=(v1,v2,v3,....)
 # and returns a vector which appends x-1
 # NA after each value. So for x=2 we get
-# (v1,NA,v2,NA,v3,NA....)	
+# (v1,NA,v2,NA,v3,NA....)    
 expand_vec_by_NA <- function( v, x ){
-	v <- c(v, rep(NA,length(v)*(x-1)))
-	dim(v) <- c(length(v)/x,x)
-	v <- t(v)
-	dim(v) <- c(1,nrow(v)*ncol(v))
-	v
+    v <- c(v, rep(NA,length(v)*(x-1)))
+    dim(v) <- c(length(v)/x,x)
+    v <- t(v)
+    dim(v) <- c(1,nrow(v)*ncol(v))
+    v
 }
 
 format_str_fixed_width <- function(x, width=4){
-	sx <- as.character(x)
-	if ( nchar(sx) < width ){
-		for (i in 1:(width-nchar(sx))){
-			sx <- paste("\\D",sx, sep="")
-		}
-	}
-	sx
+    sx <- as.character(x)
+    if ( nchar(sx) < width ){
+        for (i in 1:(width-nchar(sx))){
+            sx <- paste("\\D",sx, sep="")
+        }
+    }
+    sx
 }
 
 # Check if package is installed
@@ -63,17 +63,18 @@ is.installed <- function(mypkg) is.element(mypkg, installed.packages()[,1])
 
 
 sanitize_column <- function(column){
-	column <- gsub("_","\\\\_",column)
-	column <- gsub("<","{\\\\textless}",column)
-	column <- gsub(">","{\\\\textgreater}",column)
-	column <- gsub(",",", ",column)
+    column <- gsub("_","\\\\_",column)
+    column <- gsub(" >",">",column)
+    column <- gsub("<","{\\\\textless}",column)
+    column <- gsub(">","{\\\\textgreater}",column)
+    column <- gsub(",",", ",column)
 }
 
 # tranforms a vector of index ids to a vector which contains the
 # corresponding latex names.
 # Note: each id should only appear once in the input vector
 mapids <- function(ids, mapit){
-	as.character(unlist(mapit[ids]))
+    as.character(unlist(mapit[ids]))
 }
 
 id2latex <- function(config_file, latexcol, idcol=1){
@@ -95,12 +96,31 @@ readConfig <- function(config_file, mycolnames){
   config
 }
 
+#
+#
+#
+typeInfoTable <- function(config_file, index_ids, id_col=1, name_col=3, type_col=2){
+    x <- read.csv(config_file, sep=";", header=F, comment.char="#",stringsAsFactors=F)
+    rownames(x) <- x[[id_col]]
+    x <- x[index_ids,] # filter
+    sdsl_type <- sanitize_column(x[[type_col]])
+    sdsl_name <- x[[name_col]]
+    res <- "
+        \\renewcommand{\\arraystretch}{1.3}
+        \\begin{tabular}{@{}llp{10cm}@{}}
+          \\toprule
+          Identifier&&sdsl type\\\\ \\cmidrule{1-1}\\cmidrule{3-3}"
+    res <- paste(res, paste(sdsl_name,"&&\\footnotesize\\RaggedRight\\texttt{",sdsl_type,"}\\\\",sep="",collapse=" "))
+    res <- paste(res,"
+        \\bottomrule
+        \\end{tabular}")
+}
 
 # returns x concatenated with x reversed 
 x_for_polygon <- function(x){
-	c( x, rev(x) )
+  c( x, rev(x) )
 }
 
 y_for_polygon <- function(y){
-	c( y, rep(0, length(y)) )
+  c( y, rep(0, length(y)) )
 }

@@ -3,14 +3,14 @@ CONFIG_FILES=index-filter.config ../index.config ../test_case.config ../sample.c
 
 all: extract.pdf
 
-extract.pdf: extract.tex 
+extract.pdf: extract.tex tbl-extract.tex fig-extract.tex
 	@echo "Use pdflatex to generate extract.pdf"
 	@pdflatex extract.tex >> LaTeX.Log 2>&1
 
-extract.tex: ../../basic_functions.R extract.R $(CONFIG_FILES) ../results/all.txt
-	@echo "Use R to generate extract.tex"
+tbl-extract.tex fig-extract.tex: ../../basic_functions.R extract.R $(CONFIG_FILES) ../results/all.txt
+	@echo "Use R to generate fig-extract.tex and tbl-extract.tex"
 	@R --vanilla < extract.R > R.log 2>&1
 
 clean:
-	rm -f extract.pdf extract.aux extract.tex \
-	   extract.log R.log LaTeX.log
+	rm -f extract.pdf extract.aux extract.log R.log LaTeX.log \
+          tbl-extract.tex fig-extract.tex

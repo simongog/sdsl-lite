@@ -1,0 +1,23 @@
+\documentclass[9pt,a4paper]{scrartcl}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{ragged2e}
+\usepackage{tikz}
+
+\begin{document}
+\pagestyle{empty}
+
+\begin{figure}
+\input{fig-extract.tex}
+\caption{Time-space trade-offs for operation extract.}
+\end{figure}
+
+\begin{table}
+\centering
+\input{tbl-extract.tex}
+\caption{Class definition of the indexes used in the experiment.
+The sampling rates \texttt{S\_SA} and \texttt{S\_ISA} for
+suffix and inverse suffix values was varied.}
+\end{table}
+
+\end{document}
