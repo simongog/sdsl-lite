@@ -1,5 +1,5 @@
 if ( !exists( "tikzDeviceLoaded" ) ){  
-	require(tikzDevice) #if not installed call install.packages("tikzDevice", repos="http://R-Forge.R-project.org")
+	require(tikzDevice) 
 	tikzDeviceLoaded = T
 }
 source("../../basic_functions.R")
@@ -23,7 +23,7 @@ raw <- raw[order(raw[["TC_ID"]]),]
 
 data <- split(raw, raw[["TC_ID"]])
 
-tikz("locate.tex", width = 5.5, height = 6, standAlone = T)
+tikz("fig-locate.tex", width = 5.5, height = 6, standAlone = F)
 
 par(mfrow=c((length(data)+2)/2, 2))
 
@@ -83,3 +83,7 @@ for( tc_id in names(data) ){
   }
 }
 dev.off()
+
+sink("tbl-locate.tex")
+cat(typeInfoTable("../index.config", config[["IDX_ID"]], 1, 3, 2))
+sink(NULL)
