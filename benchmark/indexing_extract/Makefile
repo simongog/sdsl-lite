@@ -153,4 +153,4 @@ cleanall: clean cleanresults
 	@echo "Remove all generated files."
 	@rm -f $(INDEXES) $(INFO_FILES) $(PATTERNS)
 	@rm -f $(TMP_DIR)/* 
-	@rm -f $(PAT_DIR)/*
+	@rm -f $(IVL_DIR)/*
