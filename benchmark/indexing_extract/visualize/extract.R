@@ -23,7 +23,7 @@ raw <- raw[order(raw[["TC_ID"]]),]
 
 data <- split(raw, raw[["TC_ID"]])
 
-tikz("extract.tex", width = 5.5, height = 6, standAlone = T)
+tikz("fig-extract.tex", width = 5.5, height = 6, standAlone = F)
 
 par(mfrow=c((length(data)+2)/2, 2))
 
@@ -83,3 +83,7 @@ for( tc_id in names(data) ){
   }
 }
 dev.off()
+
+sink("tbl-extract.tex")
+cat(typeInfoTable("../index.config", config[["IDX_ID"]], 1, 3, 2))
+sink(NULL)
