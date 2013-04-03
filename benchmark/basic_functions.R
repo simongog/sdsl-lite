@@ -96,9 +96,12 @@ readConfig <- function(config_file, mycolnames){
   config
 }
 
-#
-#
-#
+# Creates a LaTeX table containing index names and sdsl type
+# config_file   The index.config stroing the type information
+# index_ids     Filter the index.config entires with this index ids
+# id_col        Column `id_col` contains the IDs
+# name_col      Column `name_col` contains the latex names
+# type_col      Column `type_col` contains the type
 typeInfoTable <- function(config_file, index_ids, id_col=1, name_col=3, type_col=2){
     x <- read.csv(config_file, sep=";", header=F, comment.char="#",stringsAsFactors=F)
     rownames(x) <- x[[id_col]]
