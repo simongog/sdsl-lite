@@ -12,12 +12,12 @@ int main(int argc, char** argv)
 {
     if (argc <  2) {
         cout << "Usage " << argv[0] << " text_file [max_locations] [post_context] [pre_context]" << endl;
-        cout << "      This program constructs a very compact FM-index" << endl;
-        cout << "      which supports count, locate, and extract queries." << endl;
-        cout << "      text_file      Original text file." << endl;
-        cout << "      max_locations  Maximal number of location to report." <<endl;
-        cout << "      post_context   Maximal length of the reported post-context." << endl;
-        cout << "      pre_context    Maximal length of the pre-context." << endl;
+        cout << "    This program constructs a very compact FM-index" << endl;
+        cout << "    which supports count, locate, and extract queries." << endl;
+        cout << "    text_file    Original text file." << endl;
+        cout << "    max_locations  Maximal number of location to report." <<endl;
+        cout << "    post_context   Maximal length of the reported post-context." << endl;
+        cout << "    pre_context  Maximal length of the pre-context." << endl;
         return 1;
     }
     size_t max_locations = 5;
@@ -52,7 +52,7 @@ int main(int argc, char** argv)
     cout << prompt;
     string query;
     while (getline(cin, query)) {
-        size_t m    = query.size();
+        size_t m  = query.size();
         size_t occs = algorithm::count(fm_index, (const unsigned char*)query.c_str(), m);
         cout << "# of occurrences: " << occs << endl;
         if (occs > 0) {

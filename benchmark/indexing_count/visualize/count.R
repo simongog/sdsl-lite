@@ -1,4 +1,5 @@
 library(xtable) # if not installed call install.packages("xtable")
+library(plyr)
 
 source("../../basic_functions.R")
 
@@ -7,6 +8,9 @@ idx_config <- readConfig("../index.config",c("IDX_ID","SDSL_TYPE","LATEX-NAME"))
 tc_config <- readConfig("../test_case.config",c("TC_ID","PATH","LATEX-NAME","URL"))
 compile_config <- readConfig("../compile_options.config",c("COMPILE_ID","OPTIONS"))
 
+# Create data frame which maps test cases names to their index in the list
+tc_ord <- data.frame("ord"=seq(1,nrow(tc_config)),"LATEX-NAME")
+rownames(tc_ord) <- tc_config[["TC_ID"]]
 
 # Load report information
 
@@ -14,6 +18,7 @@ config <- readConfig("index-filter.config",c("IDX_ID"))
 
 # Load data
 raw <- data_frame_from_key_value_pairs( "../results/all.txt" )
+#
 # Filer indexes
 raw               <- raw[raw[["IDX_ID"]]%in%config[["IDX_ID"]],] 
 raw[["IDX_ID"]] <- factor(raw[["IDX_ID"]])
@@ -29,23 +34,26 @@ raw <- raw[order(raw[["TC_ID"]]),]
 
 data <- split(raw, raw[["COMPILE_ID"]])
 
+
+
 form_table <- function(d, order=NA){
+# calculate the mean time per IDX_ID,TC_ID
     d <- aggregate(d[c('Time','Space')], 
                    by=list(IDX_ID=d[['IDX_ID']],
-                           TC_ID=d[['TC_ID']],
-                           COMPILE_ID=d[['COMPILE_ID']]),
+                           TC_ID=d[['TC_ID']]),
                    FUN=mean,na.rm=TRUE)
-    dByProgram <- split(d, d[["IDX_ID"]])
-    table <- data.frame(dByProgram[[1]]["TC_ID"])
+	d <- d[ order(tc_ord[as.character(d[["TC_ID"]]),"ord"]), ]
+    dd <- split(d, d[["IDX_ID"]])
+    table <- data.frame(dd[[1]]["TC_ID"])
     names(table) <- c("TC_ID")
     table[["TC_ID"]] <- paste("\\textsc{", tc_config[table[['TC_ID']], "LATEX-NAME"],"}") 
     names(table) <- c(" ")
-    prog_name <- names(dByProgram)
+    prog_name <- names(dd)
     if( !is.na(order) ){
         prog_name <- order
     }
     for( prog in prog_name ){
-        sel <- dByProgram[[prog]]
+        sel <- dd[[prog]]
         table <- cbind(table, " "=rep("", length(sel["Time"])))
         table <- cbind(table, round(sel["Time"],3))
         table <- cbind(table, sel["Space"]*100)

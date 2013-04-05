@@ -3,7 +3,7 @@
 */
 /*! \file louds_tree.hpp
     \brief louds_tree.hpp contains a classes for the succinct tree representation LOUDS (level order unary degree sequence).
-	\author Simon Gog
+    \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_LOUDS_TREE
 #define INCLUDED_SDSL_LOUDS_TREE
@@ -22,7 +22,7 @@ class louds_node
     public:
         typedef bit_vector::size_type size_type;
     private:
-        size_type m_nr; 	// node number
+        size_type m_nr;     // node number
         size_type m_pos;  // position in the LOUDS
     public:
         const size_type& nr;
@@ -43,9 +43,9 @@ std::ostream& operator<<(std::ostream& os, const louds_node& v);
 
 //! A tree class based on the level order unary degree sequence (LOUDS) representation.
 /*!
- * \tparam BitVector The bit vector representation used for LOUDS.
- * \tparam SelectSupport1 A select_support on 1-bits; it is needed for the child(v,i) operation.
- * \tparam SelectSupport0 A select_support on 0-bits; it is needed for the parent operation.
+ * \tparam bit_vec_t  The bit vector representation used for LOUDS.
+ * \tparam select_1_t A select_support on 1-bits required for the child(v,i) operation.
+ * \tparam select_0_t A select_support on 0-bits required for the parent operation.
  *
  * Example of the structure: A tree with balanced parentheses representation (()()(()()))
  * is translated into 10001110011. Traverse the tree in breadth-first order an write
@@ -53,22 +53,22 @@ std::ostream& operator<<(std::ostream& os, const louds_node& v);
  *
  * Disadvantages of louds: No efficient support for subtree size.
 */
-template<class BitVector = bit_vector, class SelectSupport1 = typename BitVector::select_1_type, class SelectSupport0 = typename BitVector::select_0_type>
+template<class bit_vec_t = bit_vector, class select_1_t = typename bit_vec_t::select_1_type, class select_0_t = typename bit_vec_t::select_0_type>
 class louds_tree
 {
     public:
-        typedef bit_vector::size_type 	size_type;
-        typedef	louds_node				node_type;
-        typedef	BitVector				bit_vector_type;
-        typedef SelectSupport1			select_1_type;
-        typedef SelectSupport0			select_0_type;
+        typedef bit_vector::size_type size_type;
+        typedef louds_node            node_type;
+        typedef bit_vec_t             bit_vector_type;
+        typedef select_1_t            select_1_type;
+        typedef select_0_t            select_0_type;
 
     private:
-        bit_vector_type m_bv;  			// bit vector for the LOUDS sequence
-        select_1_type   m_bv_select1;	// select support for 1-bits on m_bv
-        select_0_type   m_bv_select0;	// select support for 0-bits on m_bv
+        bit_vector_type m_bv;         // bit vector for the LOUDS sequence
+        select_1_type   m_bv_select1; // select support for 1-bits on m_bv
+        select_0_type   m_bv_select0; // select support for 0-bits on m_bv
     public:
-        const bit_vector_type& bv;      // const reference to the LOUDS sequence
+        const bit_vector_type& bv;    // const reference to the LOUDS sequence
 
         //! Constructor for a cst and a root node for the traversal
         template<class Cst, class CstBfsIterator>
@@ -95,7 +95,7 @@ class louds_tree
 
         //! Returns the number of nodes in the tree.
         size_type nodes()const {
-            return m_bv.size()/2;
+            return  m_bv.size()+1/2;
         }
 
         //! Indicates if a node is a leaf.
@@ -120,7 +120,7 @@ class louds_tree
 
         //! Returns the i-child of a node.
         /*!
-         * \param v	The parent node.
+         * \param v    The parent node.
          * \param i Index of the child. Indexing starts at 1.
          * \pre \f$ i \in [1..degree(v)] \f$
          */
@@ -147,32 +147,30 @@ class louds_tree
         }
 
 
-		void swap(louds_tree &tree){
-			m_bv.swap(tree.m_bv);
-			util::swap_support(m_bv_select1, tree.m_select1, &m_bv, &(tree.m_bv));
-			util::swap_support(m_bv_select0, tree.m_select0, &m_bv, &(tree.m_bv));
-		}
+        void swap(louds_tree& tree) {
+            m_bv.swap(tree.m_bv);
+            util::swap_support(m_bv_select1, tree.m_select1, &m_bv, &(tree.m_bv));
+            util::swap_support(m_bv_select0, tree.m_select0, &m_bv, &(tree.m_bv));
+        }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-			m_bv.serialize(out, child, "bitvector");
-			m_bv_select1(out, child, "select1");
-			m_bv_select0(out, child, "select0");
+            m_bv.serialize(out, child, "bitvector");
+            m_bv_select1(out, child, "select1");
+            m_bv_select0(out, child, "select0");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
-		}
+        }
 
-		void load(std::istream& in){
-			m_bv.load(in);
-			m_bv_select1.load(in);
-			m_bv_select1.set_vector(&m_bv);
-			m_bv_select0.load(in);
-			m_bv_select0.set_vector(&m_bv);
-		}
-
+        void load(std::istream& in) {
+            m_bv.load(in);
+            m_bv_select1.load(in);
+            m_bv_select1.set_vector(&m_bv);
+            m_bv_select0.load(in);
+            m_bv_select0.set_vector(&m_bv);
+        }
 };
 
 }// end namespace sdsl
-
-#endif // end file 
+#endif

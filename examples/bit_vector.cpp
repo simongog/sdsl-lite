@@ -1,11 +1,10 @@
-#include <sdsl/int_vector.hpp>
-#include <sdsl/suffix_trees.hpp>
+#include <sdsl/bit_vectors.hpp>
 #include <iostream>
 
 using namespace std;
 using namespace sdsl;
 
-int main(int argc, char* argv[])
+int main()
 {
 
     bit_vector b(10000000, 0);
@@ -44,16 +43,4 @@ int main(int argc, char* argv[])
 
     write_structure<JSON_FORMAT>(rrrb, cout);
     cout<<endl;
-
-    typedef cst_sada<> tCst;
-    tCst cst;
-
-    construct(cst, argv[1], 1);
-
-    for (tCst::const_iterator it = cst.begin(); it!=cst.end(); ++it) {
-        if (it.visit() == 1) {
-            cout << cst.depth(*it) << "-["<< cst.lb(*it)<<","<<cst.rb(*it)<<"]" << endl;
-
-        }
-    }
 }

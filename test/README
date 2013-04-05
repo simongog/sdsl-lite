@@ -1,30 +1,36 @@
-This is a set of tests for the succinct data structure library (sdsl).
+# Tests for sdsl data structures
 
-You can compile the tests by calling 
-`make` 
-and execute them by calling 
-`make test`
-or
-`make vtest`, if you would like to
-call the test with valgrind.
-.
+In directory contains test code for various data structures.
+We used the gtest framework for testing. The test suite 
+consists of test of basic to complex data structures.
 
-In some test instances we generate data structures, e.g. 
-compressed suffix trees,  for real world inputs. 
-These inputs are downloaded with the command
-`curl` from a ``Project Gutenberg'' mirror and Simon's
+You can compile the tests by calling `make` 
+and execute them by calling `make test`
+or `make vtest`, if you would like to
+execute the tests with [valgrind][VG].
+
+
+
+Test inputs  are downloaded as needed from a 
+[Project Gutenberg][PG] mirror and Simon's
 homepage before the first execution of the test.
+Two tools have to be installed for the downloading
+and extracting process:
 
-The tests use google's gtest framework which should
-be installed, since you have already executed
-the `install.sh` bash script to install the sdsl
-library.
+ * [cURL][CURL] is required by the test input download script.
+ * [gzip][GZIP] is required to extract compressed files.
 
-If you find a bug, please report it to us. Thanks. 
 
-### Acknowledgements
+Please report, if the test fail. Thanks. 
+
+## Acknowledgements
   We thank 
   * Project Gutenberg for providing test inputs for the
     byte-alphabet data structures.
   * Shane Culpepper for providing the test inputs 
     `keeper.int` and `moby.int` for the integer-alphabet CSA and CSTs.
+
+[VG]: http://valgrind.org/ "Valgrind"
+[PG]: http://www.gutenberg.org/ "Project Gutenberg"
+[CURL]: http://curl.haxx.se/ "cURL"
+[GZIP]: http://www.gnu.org/software/gzip/ "Gzip Compressor"

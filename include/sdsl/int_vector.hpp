@@ -305,6 +305,7 @@ class int_vector
         typedef rank_support_v<0,1>                                 rank_0_type;
         typedef select_support_mcl<1,1>                             select_1_type;
         typedef select_support_mcl<0,1>                             select_0_type;
+        typedef int_vector_file_buffer<t_width>                     file_buffer;
 
         friend struct int_vector_trait<t_width>;
         friend class  int_vector_iterator_base<int_vector>;

@@ -32,7 +32,7 @@ TIME_FILES  = $(foreach IDX_ID,$(IDX_IDS),\
 				  $(foreach SAMPLE_ID,$(SAMPLE_IDS),results/$(TC_ID).$(IDX_ID).$(SAMPLE_ID))))
 COMP_FILES  = $(addsuffix .z.info,$(TC_PATHS))
 
-all: $(BUILD_EXECS) $(QUERY_EXECS) info pattern
+all: $(BUILD_EXECS) $(QUERY_EXECS) pattern
 
 info: $(INFO_EXECS) $(INFO_FILES) 
 
@@ -44,7 +44,7 @@ pattern: input $(PATTERNS) $(BIN_DIR)/pattern_random
 
 compression: input $(COMP_FILES)
 
-timing: input $(INDEXES) pattern $(TIME_FILES) compression
+timing: input $(INDEXES) pattern $(TIME_FILES) compression info
 	@cat $(TIME_FILES) > $(RESULT_FILE)
 	@cd visualize; make
 

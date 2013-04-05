@@ -1,9 +1,6 @@
 /* This example shows how the representation of the alphabet dependent
  * part of a CST can be altered by using policy classes.
- *
- * Author: Simon Gog
  */
-
 #include <sdsl/suffix_arrays.hpp>
 #include <iostream>
 #include <string>
@@ -11,24 +8,30 @@
 using namespace sdsl;
 using namespace std;
 
-template<class Csa>
-void csa_info(Csa& csa, const char* file, bool json)
+template<class csa_t>
+void csa_info(csa_t& csa, const char* file, bool json)
 {
-    cout << "file: " << file << endl;
+    cout << "file          : " << file << endl;
     construct(csa, file, 1);
-    cout << "csa of type " << util::demangle(typeid(csa).name()) << endl;
+    cout << "csa of type   : " << util::demangle(typeid(csa).name()) << endl;
     cout << "size in bytes : " << size_in_bytes(csa) << endl;
     if (json) {
+        cout << "---------------" << endl;
         cout << "json output: " << endl;
         write_structure<JSON_FORMAT>(csa, cout);
         cout << endl;
     }
+    cout << "---------------" << endl;
 }
 
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
-        cout << "Usage: " << argv[0] << " file [json]" << endl;
+        cout << "Usage: " << argv[0] << " file [JSON]" << endl;
+        cout << " (1) Constructs CSAs 2 csa_sada and 2 csa_wt, with" << endl;
+        cout << "     alphabet strategies." << endl;
+        cout << " (2) Outputs type and size. If JSON is specified," << endl;
+        cout << "     also the structure in JSON-format." << endl;
         return 1;
     }
     bool json = false;

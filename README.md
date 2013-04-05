@@ -73,7 +73,7 @@ Details are in our [comprehensive experimental study][SPE].
       [wt_rlg](./include/sdsl/wt_rlg.hpp),
       [wt_rlg8](./include/sdsl/wt_rlg8.hpp))
  * Compressed Suffix Arrays (CSA) (all immutable)
-   * [csa_bitcompressed][./include/sdsl/csa_bitcompressed.hpp] is based on the bitcompressed SA and inverse SA.
+   * [csa_bitcompressed](./include/sdsl/csa_bitcompressed.hpp) is based on the bitcompressed SA and inverse SA.
    * [csa_wt](./include/sdsl/csa_wt.hpp) is based on a WT of the BWT.
    * [csa_sada](./include/sdsl/csa_sada.hpp) is based on the compressed
       ![\Psi](http://latex.codecogs.com/gif.latex?%5CPsi)-function
@@ -226,9 +226,13 @@ how esay it is to use succinct data structures.
 
 ## Construction of Suffix Arrays
 
-The current version includes Yuta Mori's incredible fast suffix array
-construction library [libdivsufsort](http://code.google.com/p/libdivsufsort/)
-version 2.0.1.
+We have included the code of two excellent suffix array
+construction algorithms.
+
+* Yuta Mori's incredible fast suffix [libdivsufsort][DIVSUF]
+  algorithm (version 2.0.1) for byte-alphabets.
+* An adapted version of Jesper Larsson's implementation of the
+  algorithm of [Larson and Sadakane][LS] for integer-alphabets.
 
 
 ## Contributors
@@ -253,3 +257,5 @@ Bug reports:
 [gcc]: http://gcc.gnu.org/ "GNU Compiler Collection"
 [DBLPCSTRES]: http://people.eng.unimelb.edu.au/sgog/sdsl_explore/dblp.xml.100MB_cst_sada_wt_rlmn_lcp_tree2.html "CST visualization"
 [SPE]: http://people.eng.unimelb.edu.au/sgog/optimized.pdf "Preprint SP&amp;E article"
+[DIVSUF]: http://code.google.com/p/libdivsufsort/ "libdivsufsort"
+[LS]: http://www.sciencedirect.com/science/article/pii/S0304397507005257 "Larson &amp; Sadakane Algorithm"

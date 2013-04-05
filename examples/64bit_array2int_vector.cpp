@@ -14,6 +14,10 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
+    if (argc < 2) {
+        cout << "Usage: " << argv[0] << " int_file" << endl;
+        return 1;
+    }
     size_t x = util::file_size(argv[1]);
     const int BPI=8;
     cout<<"file size in bytes = "<<x<<endl;

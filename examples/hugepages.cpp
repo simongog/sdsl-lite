@@ -1,9 +1,5 @@
-#include <sdsl/int_vector.hpp>
 #include <sdsl/suffix_trees.hpp>
-#include <sdsl/wt_rlmn.hpp>
-#include <sdsl/bit_vector_il.hpp>
 #include <iostream>
-#include <string>
 
 using namespace sdsl;
 using namespace std;
@@ -24,27 +20,21 @@ void do_something(const tCsa& csa)
 
 int main(int argc, char** argv)
 {
-//	util::verbose = true;
-    {
-        bit_vector b(32,1);
-        cout << b << endl;
+    if (argc < 2) {
+        cout << "Usage: " << argv[0] << " file" << endl;
+        cout << " (1) Creates a CST for a byte file. " << endl;
+        cout << " (2) Runs a benchmark with enabled/disabled 1GB=hugepages." << endl;
+        return 1;
     }
-    {
-        bit_vector b(32,0);
-        bool mapped = mm::map_hp();
-        if (mapped) mm::unmap_hp();
-        cout << b << endl;
-    }
-    bool mapped;
-//	bool mapped = mm::map_hp();
-//	if( mapped ) mm::unmap_hp();
-
-    csa_wt<wt_huff<bit_vector_il<> > > csa;
+    csa_wt<> csa;
     construct(csa, argv[1], 1);
     do_something(csa); // before it is mapped
-    mapped = mm::map_hp();
-    do_something(csa); // while it is mapped
-    if (mapped) mm::unmap_hp();
+    if (mm::map_hp()) {
+        cout << "Now the memory is mapped to hugepages " << endl;
+        do_something(csa); // while it is mapped
+        mm::unmap_hp();
+    } else {
+        cout << "Not able to map the memory to hugepages" << endl;
+    }
     do_something(csa); // after it is unmapped
-    util::clear(csa);
 }
