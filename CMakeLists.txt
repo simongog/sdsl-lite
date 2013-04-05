@@ -34,7 +34,6 @@ endif()
 add_subdirectory(external)
 add_subdirectory(include)
 add_subdirectory(lib)
-add_subdirectory(test)
-add_subdirectory(examples)
-add_subdirectory(benchmark)	
 
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake" 
+		       "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)	

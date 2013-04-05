@@ -9,12 +9,15 @@ using namespace sdsl;
 
 int main(int argc, char* argv[])
 {
+    if (argc < 2) {
+        cout << "Usage: " << argv[0] << " file [lb] [rb]" << endl;
+        cout << " Reads a serialized int_vector<> from disk." <<endl;
+        cout << " Outputs elements in the range [lb..rb], if specified." << endl;
+        cout << " Otherwise, reads indexes from stdin and outputs values. "<<endl;
+    }
     int_vector<> v;
     load_from_file(v, argv[1]);
-    cout<<"loaded vector of size "<<v.size()<<" and "<<(int)v.width()<<"-bit integers from file";
-    cout<<" "<<argv[1]<<endl;
-    if (v.size() == 0)
-        return 0;
+    cout<<"loaded int_vector<> containing "<<v.size()<<" "<<(int)v.width()<<"-bit integers";
     if (argc>3) {
         size_t a=atoi(argv[2]);
         size_t b=atoi(argv[3]);
@@ -24,9 +27,11 @@ int main(int argc, char* argv[])
             a = b;
         for (size_t i=a; i<=b; ++i)
             cout<<"v["<<i<<"]="<<v[i]<<endl;
-    }
-    size_t i;
-    while (cin>>i) {
-        cout<<v[i]<<endl;
+    } else {
+        cout << "Interactive mode." << endl;
+        size_t i;
+        while (cin>>i) {
+            cout<<"v["<<i<<"]="<<v[i]<<endl;
+        }
     }
 }

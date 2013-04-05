@@ -32,7 +32,7 @@ TIME_FILES  = $(foreach IDX_ID,$(IDX_IDS),\
 				  $(foreach SAMPLE_ID,$(SAMPLE_IDS),results/$(TC_ID).$(IDX_ID).$(SAMPLE_ID))))
 COMP_FILES  = $(addsuffix .z.info,$(TC_PATHS))
 
-all: $(BUILD_EXECS) $(QUERY_EXECS) info intervals
+all: $(BUILD_EXECS) $(QUERY_EXECS) intervals
 
 info: $(INFO_EXECS) $(INFO_FILES) 
 
@@ -44,7 +44,7 @@ input: $(TC_PATHS)
 
 compression: input $(COMP_FILES)
 
-timing: input $(INDEXES) intervals $(TIME_FILES) compression
+timing: input $(INDEXES) intervals $(TIME_FILES) compression info
 	@cat $(TIME_FILES) > $(RESULT_FILE)
 	@cd visualize; make
 
@@ -153,4 +153,4 @@ cleanall: clean cleanresults
 	@echo "Remove all generated files."
 	@rm -f $(INDEXES) $(INFO_FILES) $(PATTERNS)
 	@rm -f $(TMP_DIR)/* 
-	@rm -f $(IVL_DIR)/*
+	@rm -f $(INTERVALS)

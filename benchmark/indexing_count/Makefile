@@ -26,10 +26,12 @@ INFO_FILES  = $(foreach IDX_ID,$(IDX_IDS),\
 TIME_FILES  = $(foreach IDX_ID,$(IDX_IDS),\
 		         $(foreach TC_ID,$(TC_IDS),\
 					 $(foreach COMPILE_ID,$(COMPILE_IDS),results/$(TC_ID).$(IDX_ID).$(COMPILE_ID))))
-
-all: $(BUILD_EXECS) $(QUERY_EXECS) info pattern
+COMP_FILES  = $(addsuffix .z.info,$(TC_PATHS))
+	
+all: $(BUILD_EXECS) $(QUERY_EXECS) pattern
 
 info: $(INFO_EXECS) $(INFO_FILES) 
+	cd ../../examples; make json2html.x
 
 indexes: $(INDEXES)
 
@@ -37,7 +39,9 @@ input: $(TC_PATHS)
 
 pattern: input $(PATTERNS) $(BIN_DIR)/genpatterns
 
-timing: input $(INDEXES) pattern $(TIME_FILES)
+compression: input $(COMP_FILES)
+
+timing: input $(INDEXES) pattern $(TIME_FILES) compression info
 	@cat $(TIME_FILES) > $(RESULT_FILE)
 	@cd visualize; make
 
@@ -70,6 +74,7 @@ info/%.json: $(INDEXES)
 	$(eval IDX_ID:=$(call dim,2,$*)) 
 	@echo "Generating info for $(IDX_ID) on $(TC_ID)"
 	@$(BIN_DIR)/info_$(IDX_ID) indexes/$(TC_ID).$(IDX_ID) > $@ 
+	@../../examples/json2html.x $@ > $@.html
 
 $(PAT_DIR)/%.pattern: $(BIN_DIR)/genpatterns
 	@echo $*
@@ -113,16 +118,16 @@ $(BIN_DIR)/info_%: $(SRC_DIR)/info.cpp index.config
 include ../Make.download
 
 clean:
-	@echo "Remove executables"
+	@echo "Remove executables and indexes"
 	@rm -f $(QUERY_EXECS) $(LOCATE_EXECS) $(BUILD_EXECS) $(INFO_EXECS) \
-		   $(BIN_DIR)/genpatterns
+		   $(INFO_FILES) $(INDEXES) $(BIN_DIR)/genpatterns
 
 cleanresults: 
 	@echo "Remove result files"
-	@rm -f $(TIME_FILES) $(RESULT_FILE)
+	@rm -f $(TIME_FILES) $(RESULT_FILE) $(INFO_FILES)
+	@rm -f $(PATTERNS)
 
 cleanall: clean cleanresults
 	@echo "Remove all generated files."
-	@rm -f $(INDEXES) $(INFO_FILES) $(PATTERNS)
 	@rm -f $(TMP_DIR)/* 
 	@rm -f $(PAT_DIR)/*

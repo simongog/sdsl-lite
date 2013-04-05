@@ -101,6 +101,7 @@
 
 \newcommand{\sdsl}{\ensuremath{\mathit{sdsl}}}
 \newcommand{\sdslgit}{https://github.com/simongog/sdsl-lite/blob/master}
+\newcommand{\sdslgitinc}{\sdslgit/include/sdsl}
 \newcommand{\code}[1]{\texttt{#1}}
 %%% int vector representations
 \newcommand{\sdslintvector}{\code{int\_vector}}
@@ -183,7 +184,7 @@ needs access to \code{t}.
 
 \subsection{Unsigned Integer Vectors}
 The core of the library is the class 
-\href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslintvector\textless$w$\textgreater}.
+\href{\sdslgitinc/int_vector.hpp}{\sdslintvector\textless$w$\textgreater}.
 Parameter $w$ corresponds to the fixed length of each
 element in bits.  For $w=8,16,32,64,1$ the length is
 fixed during compile time and the vectors
@@ -218,27 +219,27 @@ of integer (has no effect for $w>0$).
 										$\ell$ bits, if \code{$\ell\geq$~v.width()}\\
 \end{tabular}
 
-\subsection{Compressed Unsigned Integer Vector}
-For a vector \code{v}, \href{\sdslgit/include/sdsl/enc_vector.hpp}{\sdslencvector} stores the
+\subsection{Compressed Unsigned Integer Vectors}
+For a vector \code{v}, \href{\sdslgitinc/enc_vector.hpp}{\sdslencvector} stores the
 self-delimiting coded deltas (\code{v[$i\!+\!1$]$-$v[$i$]}). Fast random access is
 achieved by sampling values of \code{v} at rate \code{t\_dens}. Available coder
-are \href{\sdslgit/include/sdsl/coder_elias_delta.hpp}{\sdslcodereliasdelta} and
-\href{\sdslgit/include/sdsl/coder_fibonacci.hpp}{\sdslcoderfibonacci}. 
+are \href{\sdslgitinc/coder_elias_delta.hpp}{\sdslcodereliasdelta} and
+\href{\sdslgitinc/coder_fibonacci.hpp}{\sdslcoderfibonacci}. 
 
 TODO: describe 
-\href{\sdslgit/include/sdsl/vlc_vector.hpp}{\sdslvlcvector} 
+\href{\sdslgitinc/vlc_vector.hpp}{\sdslvlcvector} 
 
-\subsection{Bitvectors (BV)}
+\subsection{Bitvectors (\href{\sdslgitinc/bit_vectors.hpp}{BV})}
 Representations for a bitvector of length $n$ with $m$ set bits.
 \begin{tabular}{@{}lll@{}}
 \textit{Class}    & \textit{Description}       & \textit{Space}  \\
-\href{\sdslgit/include/sdsl/int_vector.hpp}{\sdslbitvector} & 
+\href{\sdslgitinc/int_vector.hpp}{\sdslbitvector} & 
 plain bitvector            & 64$\lceil n/64\!+\!1\rceil$ \\
-\href{\sdslgit/include/sdsl/bit_vector_il.hpp}{\sdslbitvectoril} &
+\href{\sdslgitinc/bit_vector_il.hpp}{\sdslbitvectoril} &
 interleaved  bitvector & $\approx n(1+K/64)$  \\
-\href{\sdslgit/include/sdsl/rrr_vector.hpp}{\sdslrrrvector} & 
+\href{\sdslgitinc/rrr_vector.hpp}{\sdslrrrvector} & 
 $H_0$-compressed bitvector & $\approx \lceil \log {m\choose n} \rceil$ \\
-\href{\sdslgit/include/sdsl/sd_vector.hpp}{\sdslsdvector}  & sparse bitvector
+\href{\sdslgitinc/sd_vector.hpp}{\sdslsdvector}  & sparse bitvector
 & $\approx\ 2 m\cdot log\frac{n}{m}$ \\	
 \end{tabular}
 \sdslbitvector\ equals \sdslintvector\code{\textless1\textgreater} and
@@ -249,7 +250,7 @@ is therefore dynamic.\\
 Each bitvector can be constructed out of an
 \sdslbitvector\ object.
 
-\subsection{Rank Supports (RS)}
+\subsection{Rank Supports (\href{\sdslgitinc/rank_support.hpp}{RS})}
 RS adds rank functionality to BV. Method
 \code{rank($i$)} or \code{operator($i$)} returns the number
 of set bits\footnote{It is also possible to rank \code{0} or
@@ -257,23 +258,23 @@ the patterns \code{10} and \code{01}.} in the prefix $[0..i)$ of the
 supported BV for $i \in [0,n]$.
 \begin{tabular}{@{}llll@{}}
 \textit{Class}    & \textit{Compatible BV} & \textit{Space} & \textit{Time} \\
-\href{\sdslgit/include/sdsl/rank_support_v.hpp}{\sdslranksupportv} &
+\href{\sdslgitinc/rank_support_v.hpp}{\sdslranksupportv} &
 \sdslbitvector & $0.25 n$ & \Order{1} \\
-\href{\sdslgit/include/sdsl/rank_support_v5.hpp}{\sdslranksupportvV} &
+\href{\sdslgitinc/rank_support_v5.hpp}{\sdslranksupportvV} &
 \sdslbitvector & $0.0625 n$ & \Order{1} \\
-\href{\sdslgit/include/sdsl/rank_support_scan.hpp}{\sdslranksupportscan} &
+\href{\sdslgitinc/rank_support_scan.hpp}{\sdslranksupportscan} &
 \sdslbitvector & 64 & \Order{n} \\
-\href{\sdslgit/include/sdsl/rank_support_il.hpp}{\sdslranksupportil} &
+\href{\sdslgitinc/rank_support_il.hpp}{\sdslranksupportil} &
 \sdslbitvectoril & 128 & \Order{1} \\
-\href{\sdslgit/include/sdsl/rrr_vector.hpp}{\sdslranksupportrrr} &
+\href{\sdslgitinc/rrr_vector.hpp}{\sdslranksupportrrr} &
 \sdslrrrvector & 80 & \Order{k} \\
-\href{\sdslgit/include/sdsl/sd_vector.hpp}{\sdslranksupportsd} &
+\href{\sdslgitinc/sd_vector.hpp}{\sdslranksupportsd} &
 \sdslsdvector & 64 & \Order{1} \\
 \end{tabular}
 Call~\code{util::init\_support(rs, bv)}~to initialize rank
 structure \code{rs} to bitvector \code{bv}. Call \code{rs($i$)} to get $\code{rank(}i\code{)}=\sum_{k=0}^{k<i}\code{bv[}k\code{]}$
 
-\subsection{Select Supports (SS)}\label{sec-SS}
+\subsection{Select Supports (\href{\sdslgitinc/select_support.hpp}{SS})}\label{sec-SS}
 SS adds select functionality to BV. Let $m$ be the number of set bits
 in BV. Method \code{select($i$)} or \code{operator($i$)} return the
 position of the $i$-th set bit%
@@ -282,32 +283,32 @@ the patterns \code{10} and \code{01}.}
 in BV for \code{i}$\in [1..m]$.
 \begin{tabular}{@{~}l@{~}l@{~~}p{9ex}l@{}}
 \textit{Class}    &\textit{Compatible BV}           &\textit{Space}&\textit{Time}\\
-\href{\sdslgit/include/sdsl/select_support_mcl.hpp}{\sdslselectsupportmcl} &
+\href{\sdslgitinc/select_support_mcl.hpp}{\sdslselectsupportmcl} &
 \sdslbitvector & $\leq\!0.2 n$ & \Order{1}\\
-\href{\sdslgit/include/sdsl/select_support_scan.hpp}{\sdslselectsupportscan} &
+\href{\sdslgitinc/select_support_scan.hpp}{\sdslselectsupportscan} &
 \sdslbitvector & $64$ & \Order{n}\\
-\href{\sdslgit/include/sdsl/select_support_il.hpp}{\sdslselectsupportil} &
+\href{\sdslgitinc/select_support_il.hpp}{\sdslselectsupportil} &
 \sdslbitvectoril & $64$ & \Order{\log n}\\
-\href{\sdslgit/include/sdsl/rrr_select_support.hpp}{\sdslselectsupportrrr} &
+\href{\sdslgitinc/rrr_select_support.hpp}{\sdslselectsupportrrr} &
 \sdslrrrvector & $64$ & $\Order{\log n}$ \\
-\href{\sdslgit/include/sdsl/sd_select_support.hpp}{\sdslselectsupportsd} &
+\href{\sdslgitinc/sd_select_support.hpp}{\sdslselectsupportsd} &
 \sdslsdvector & $64$ & \Order{1} \\
 \end{tabular}
 Call~\code{util::init\_support(ss, bv)}~to initialize \code{ss} 
 to bitvector \code{bv}. Call \code{ss($i$)} to get
 $\code{select(}i\code{)}=\min\{j\mid \code{rank(}j\!+\!1\code{)}=i\}$. 
 
-\subsection{Wavelet Trees (WT)}
+\subsection{Wavelet Trees (\href{\sdslgitinc/wavelet_trees.hpp}{WT})}
 Mention: alphabet strategies
 \begin{tabular}{@{}ll@{}}
 \textit{Class}    &\textit{Description} \\
-\href{\sdslgit/include/sdsl/wt_huff.hpp}{\sdslwthuff} &
+\href{\sdslgitinc/wt_huff.hpp}{\sdslwthuff} &
 Huffman shaped wavelet tree for byte alphabets.\\
-\href{\sdslgit/include/sdsl/wt_int.hpp}{\sdslwtint} &
-Complete wavelet tree for integer alphabets.\\
-\href{\sdslgit/include/sdsl/wt.hpp}{\sdslwt} &
-Complete wavelet tree for byte alphabets.\\
-\href{\sdslgit/include/sdsl/wt_rlmn.hpp}{\sdslwtrlmn} &
+\href{\sdslgitinc/wt_int.hpp}{\sdslwtint} &
+Balanced wavelet tree for integer alphabets.\\
+\href{\sdslgitinc/wt.hpp}{\sdslwt} &
+Balanced wavelet tree for byte alphabets.\\
+\href{\sdslgitinc/wt_rlmn.hpp}{\sdslwtrlmn} &
 Run-length compressed wavelet tree. 
                  %The run heads are stored in another WT and a bitvector
 				 %is used to map between the domains.
@@ -317,14 +318,14 @@ Run-length compressed wavelet tree.
 \textit{Public~methods:} \code{operator[i]}, \code{rank(i, c)},
 \code{select(i, c)}, \code{inverse\_select(i, c)}	\\
 
-\subsection{Compressed Suffix Arrays (CSA)}
+\subsection{Compressed Suffix Arrays (\href{\sdslgitinc/suffix_arrays.hpp}{CSA})}
 \begin{tabular}{@{}ll@{}}
 \textit{Class}    &\textit{Description} \\
-\href{\sdslgit/include/sdsl/csa_bitcompressed.hpp}{\sdslcsabitcompressed} &
+\href{\sdslgitinc/csa_bitcompressed.hpp}{\sdslcsabitcompressed} &
 Stores SA, ISA and C.\\
-\href{\sdslgit/include/sdsl/csa_sada.hpp}{\sdslcsasada} &
+\href{\sdslgitinc/csa_sada.hpp}{\sdslcsasada} &
 Based on the compressed $\Psi$ function.\\
-\href{\sdslgit/include/sdsl/csa_wt.hpp}{\sdslcsawt} &
+\href{\sdslgitinc/csa_wt.hpp}{\sdslcsawt} &
 Based on the WT of the texts BWT.\\
 \end{tabular}	
 \textit{Public~methods:} \code{operator[i]}, \code{operator(i)}, 
@@ -334,48 +335,48 @@ Based on the WT of the texts BWT.\\
 \code{C}, \code{char2comp}, \code{comp2char}, \code{sigma}.\\
 \textit{Policy classes: } alphabet strategy 
 (e.g.
-\href{\sdslgit/include/sdsl/csa_alphabet_strategy}{\sdslbytealphabetstrategy},
-\href{\sdslgit/include/sdsl/csa_alphabet_strategy}{\sdslsuccinctbytealphabetstrategy},
-\href{\sdslgit/include/sdsl/csa_alphabet_strategy}{\sdslintalphabetstrategy})
+\href{\sdslgitinc/csa_alphabet_strategy}{\sdslbytealphabetstrategy},
+\href{\sdslgitinc/csa_alphabet_strategy}{\sdslsuccinctbytealphabetstrategy},
+\href{\sdslgitinc/csa_alphabet_strategy}{\sdslintalphabetstrategy})
 and SA sampling strategy 
 (e.g. 
- \href{\sdslgit/include/sdsl/csa_sampling_strategt}{\sdslsaordersasampling},
- \href{\sdslgit/include/sdsl/csa_sampling_strategt}{\sdsltextordersasampling}
+ \href{\sdslgitinc/csa_sampling_strategt}{\sdslsaordersasampling},
+ \href{\sdslgitinc/csa_sampling_strategt}{\sdsltextordersasampling}
 )
 
 
-\subsection{Longest Common Prefix (LCP) Arrays}
+\subsection{Longest Common Prefix (\href{\sdslgitinc/lcp.hpp}{LCP}) Arrays}
 \begin{tabular}{@{}ll@{}}
 \textit{Class}    &\textit{Description} \\
-\href{\sdslgit/include/sdsl/lcp_bitcompressed.hpp}{\sdsllcpbitcompressed} &
+\href{\sdslgitinc/lcp_bitcompressed.hpp}{\sdsllcpbitcompressed} &
 \sdslintvectorZ.\\
-\href{\sdslgit/include/sdsl/lcp_dac.hpp}{\sdsllcpdac} &
+\href{\sdslgitinc/lcp_dac.hpp}{\sdsllcpdac} &
 direct accessible code.\\
-\href{\sdslgit/include/sdsl/lcp_byte.hpp}{\sdsllcpbyte} &
+\href{\sdslgitinc/lcp_byte.hpp}{\sdsllcpbyte} &
 use byte or words dependent.\\
-\href{\sdslgit/include/sdsl/lcp_wt.hpp}{\sdsllcpwt} &
+\href{\sdslgitinc/lcp_wt.hpp}{\sdsllcpwt} &
 store small values in a WT.\\
-\href{\sdslgit/include/sdsl/lcp_vlc.hpp}{\sdsllcpvlc} &
+\href{\sdslgitinc/lcp_vlc.hpp}{\sdsllcpvlc} &
 uses self-delimiting code \\
-\href{\sdslgit/include/sdsl/lcp_support_sada.hpp}{\sdsllcpsupportsada} &
+\href{\sdslgitinc/lcp_support_sada.hpp}{\sdsllcpsupportsada} &
 store values permuted. CSA needed. \\
-\href{\sdslgit/include/sdsl/lcp_support_tree.hpp}{\sdsllcpsupporttree} &
+\href{\sdslgitinc/lcp_support_tree.hpp}{\sdsllcpsupporttree} &
 using tree topology.\\
-\href{\sdslgit/include/sdsl/lcp_support_tree2.hpp}{\sdsllcpsupporttreeII} &
+\href{\sdslgitinc/lcp_support_tree2.hpp}{\sdsllcpsupporttreeII} &
 using tree topology and LF.\\
 \end{tabular}	
 \textit{Public~methods:} \code{operator[i]} \\
 
-\subsection{Balanced Parentheses Support (BPS)}
+\subsection{Balanced Parentheses Supports (\href{\sdslgitinc/bp_support.hpp}{BPS})}
 An opening (closing) parenthesis is represented as 
 \code{1} (\code{0}) in a \code{bit\_vector}.\\
 \begin{tabular}{@{}ll@{}}
 \textit{Class}    &\textit{Description} \\
-\href{\sdslgit/include/sdsl/bp_support_g.hpp}{\sdslbpsupportg} &
+\href{\sdslgitinc/bp_support_g.hpp}{\sdslbpsupportg} &
 2 level pioneer structure.\\
-\href{\sdslgit/include/sdsl/bp_support_gg.hpp}{\sdslbpsupportgg} &
+\href{\sdslgitinc/bp_support_gg.hpp}{\sdslbpsupportgg} &
 multi level pioneer structure.\\
-\href{\sdslgit/include/sdsl/bp_support_sada.hpp}{\sdslbpsupportsada} &
+\href{\sdslgitinc/bp_support_sada.hpp}{\sdslbpsupportsada} &
 min-max-tree.\\
 \end{tabular}
 \textit{Public~methods:} \code{find\_open($i$)}, \code{find\_close($i$)},
@@ -383,21 +384,22 @@ min-max-tree.\\
 \code{rr\_enclose($i$,$j$)}, \code{rank($i$)}\footnote{For PBS the
 bits are counted in the prefix $[0..i]$.}, \code{select($i$)}.
 \\
+
 Call~\code{util::init\_support(bps, bv)}~to initialize a BPS 
 \code{bps} to bitvector \code{bv}. 
 
 
-\subsection{Compressed Suffix Trees (CST)}
+\subsection{Compressed Suffix Trees (\href{\sdslgitinc/suffix_trees.hpp}{CST})}
 \settowidth{\MyLen}{\sdslcstsada\quad}
 \begin{tabular}{@{}p{\the\MyLen}%
                 @{}p{\linewidth-\the\MyLen}@{}}
 
 \textit{Class} & \textit{Description} \\				
-\href{\sdslgit/include/sdsl/cst_sada.hpp}{\sdslcstsada} &
+\href{\sdslgitinc/cst_sada.hpp}{\sdslcstsada} &
 Represents a node as position in BPS. Navigational operations
 are fast (they are directly translated in BPS operations on 
 the DFS-BPS). Space: $4n\!+\!o(n)\!+\!|CSA|\!+\!|LCP|$ bits.\\
-\href{\sdslgit/include/sdsl/cst_sct3.hpp}{\sdslcstsctIII} &
+\href{\sdslgitinc/cst_sct3.hpp}{\sdslcstsctIII} &
 Represents nodes as intervals. Fast construction, but
 slower navigational operations. Space: $3n\!+\!o(n)\!+\!|CSA|\!+\!|LCP|$ \\
 \end{tabular}
@@ -415,9 +417,13 @@ and $i$, $d$, $lb$, $rb$ integers.\\
  \code{node($lb$,$rb$)}, \code{nodes()}, \code{size()},
  \code{begin()}, \code{end()}, \code{begin\_bottom\_up()},
  \code{end\_bottom\_up}.\\
-\textit{Public~members:} \code{csa}, \code{lcp}.
+\textit{Public~members:} \code{csa}, \code{lcp}.\\
+The \href{https://gist.github.com/simongog/5315738}{traversal example}
+shows how to use the DFS-iterator.
+%\textit{Iterators methods:} \code{operator++},
+%\code{visit()}, \code{skip\_subtree()}   	
 
-\subsection{Range Min/Max Query (RMQ)}
+\subsection{Range Min/Max Query (\href{\sdslgitinc/rmq_support.hpp}{RMQ})}
 A RMQ \code{rmq} can be used to determine the position of the miniumum
 value\footnote{Or maximum value; can be set by a template parameter.}
 in an arbitrary subrange $[i,j]$ of an preprocessed vector \code{v}.
@@ -428,11 +434,11 @@ Operator \code{operator($i$,$j$)} returns $x=\min\{$r$\mid r\in [i,j] \wedge \mb
 \begin{tabular}{@{}p{\the\MyLen}%
                 @{}p{\linewidth-\the\MidLen-\the\MyLen}@{}p{\the\MidLen}@{}}
 \textit{Class} & \textit{Space} & \textit{Time} \\				
-\href{\sdslgit/include/sdsl/rmq_support_sparse_table.hpp}{\sdslrmqsupportsparsetable} &
+\href{\sdslgitinc/rmq_support_sparse_table.hpp}{\sdslrmqsupportsparsetable} &
 $n \log^2 n$ & \Order{1} \\
-\href{\sdslgit/include/sdsl/rmq_succinct_sada.hpp}{\sdslrmqsuccinctsada} &
+\href{\sdslgitinc/rmq_succinct_sada.hpp}{\sdslrmqsuccinctsada} &
 $4n+o(n)$    & \Order{1} \\
-\href{\sdslgit/include/sdsl/rmq_succinct_sct.hpp}{\sdslrmqsuccinctsct} &
+\href{\sdslgitinc/rmq_succinct_sct.hpp}{\sdslrmqsuccinctsct} &
 $2n+o(n)$    & \Order{1} \\
 \end{tabular}
 
@@ -485,10 +491,10 @@ Write \sdsl\ object \code{o} to \code{std::ostream}-object \code{out}.\\
 \code{serialize\_vector}	  \\
 \end{tabular}
 
-\code{size\_in\_bytes(t)}
-\code{write\_member(t, out)}
-\code{read\_member(t, in)}
-\code{write\_structure<JSON\_FORMAT>(t, out)} 
+\code{size\_in\_bytes(o)}
+\code{write\_member($x$, out)}
+\code{read\_member($x$, in)}
+\code{write\_structure<JSON\_FORMAT>(o, out)} 
 
 \section{Utility methods}
 More useful methods in the \code{sdsl::util} namespace:
@@ -540,12 +546,6 @@ $9n$ bytes peak memory for inputs $\geq 2$ GiB.
 TODO: insert time space graph for different
 construction processes.
 
-\section{Benchmarks}
-Configurable benchmarks (see .config-files) 
-for operations \code{count}, \code{locate},
-and \code{extract} are in the subdirectory
-\code{benachmark}.
-
 \section{Methods on words}
 Class \code{bits} contains various fast methods
 on a $64$-bit word $x$. Here the most important ones.
@@ -563,11 +563,22 @@ on a $64$-bit word $x$. Here the most important ones.
 \code{lo} and \code{hi} return $0$ for $x=0$.
 
 \section{Tests}
+A \code{make test} call in the \href{\sdslgit/test}{test}
+directory, downloads test inputs, compiles tests,
+and executes them.
 
-Describe here, how to run the tests.
+\section{Benchmarks}
+Configurable benchmarks (see .config-files) 
+for operations \code{count}, \code{locate},
+and \code{extract} are in the subdirectory
+\code{benachmark}.
 
 \section{Debugging}
-Mention: gdb config file, verbose
+You get the gdb command \code{pv <int\_vector> <idx1> <idx2>},
+which displays the elements of an \sdslintvector\ in the
+range $[\code{idx1},\code{idx2}]$ by appending  the file
+\href{\sdslgit/extras/sdsl.gdb}{sdsl.gdb} to your
+\code{.gdbinit}.
 
 \section{Acknowledgements}
 Yuta Mori for implementing libdivsufsort, which

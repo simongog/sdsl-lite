@@ -1,19 +1,19 @@
 #include <sdsl/rmq_support.hpp> // include header for range minimum queries
 #include <iostream>
-#include <cstdlib> // for atoi
+#include <cstdlib>
 
 using namespace sdsl;
 using namespace std;
 
 int main(int argc, char** argv)
 {
-    size_t len = 50;
+    uint64_t len = 50;
     if (argc > 1) {
-        len = atoi(argv[1]);
+        len = atoll(argv[1]);
     }
     int_vector<> v(len, 7); // create a vector of length 50
-    for (size_t i=1; i < v.size(); ++i) {
-        size_t x = v[i-1];
+    for (uint64_t i=1; i < v.size(); ++i) {
+        uint64_t x = v[i-1];
         v[i] = (x*7-1) % 97;
     }
     cout << "size_in_bytes(v)=" << size_in_bytes(v) << endl;
@@ -24,15 +24,15 @@ int main(int argc, char** argv)
     if (v.size() < 100) {   // if the vector is small
         cout << "v = " << v << endl; // output it
     }
-    size_t left = 0, right = v.size()-1;
+    uint64_t left = 0, right = v.size()-1;
 
     // rmq does not need v to answer the queries
     util::clear(v); // so we can free the space for v
 
-    size_t count = 0;
+    uint64_t count = 0;
 
     while (left < right) {
-        size_t min_pos = rmq(left, right);
+        uint64_t min_pos = rmq(left, right);
         if (++count < 10) {
             cout << "minimum of v[" << left << "..." << right << "] at index ";
             cout << min_pos << endl;
@@ -44,7 +44,8 @@ int main(int argc, char** argv)
         }
     }
     cout << endl;
-    cout << "Breakdown of the data structure: " << endl;
+    cout << "write_structure<JSON_FORMAT>:" << endl;
+    cout << "----------------------------- " << endl;
     write_structure<JSON_FORMAT>(rmq, cout);
     cout << endl;
 }

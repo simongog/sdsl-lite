@@ -38,12 +38,12 @@ int main(int argc, char** argv)
 {
     if (argc <  2) {
         cout << "Usage " << argv[0] << " text_file [max_locations] [post_context] [pre_context]" << endl;
-        cout << "      This program constructs a very compact FM-index" << endl;
-        cout << "      which supports count, locate, and extract queries." << endl;
-        cout << "      text_file      Original text file." << endl;
-        cout << "      max_locations  Maximal number of location to report." <<endl;
-        cout << "      post_context   Maximal length of the reported post-context." << endl;
-        cout << "      pre_context    Maximal length of the pre-context." << endl;
+        cout << "    This program constructs a very compact FM-index" << endl;
+        cout << "    which supports count, locate, and extract queries." << endl;
+        cout << "    text_file    Original text file." << endl;
+        cout << "    max_locations  Maximal number of location to report." <<endl;
+        cout << "    post_context   Maximal length of the reported post-context." << endl;
+        cout << "    pre_context  Maximal length of the pre-context." << endl;
         return 1;
     }
     size_t max_locations = 5;
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
     cout << prompt;
     string query;
     while (getline(cin, query)) {
-        size_type m    = query.size();
+        size_type m  = query.size();
         size_type lb = 0, rb=0; // left and right bound of the matching interval in the suffix array
         size_t occs = algorithm::backward_search(fm_index, 0, fm_index.size()-1, (const unsigned char*)query.c_str(), m, lb, rb);
         cout << "# of occcurences: " << occs << endl;

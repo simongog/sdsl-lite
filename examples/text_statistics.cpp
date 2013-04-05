@@ -4,31 +4,34 @@
 using namespace std;
 using namespace sdsl;
 
-int main(int argc, char* argv[]){
-	if ( argc < 2 ){
-		cout << "Usage: "<<argv[0]<<" file"<<endl;
-		return 1;
-	}
-	cst_sct3<> cst;
-	typedef cst_sct3<>::size_type size_type;
-	typedef cst_sct3<>::char_type char_type;
-	construct(cst, argv[1], 1);
+typedef cst_sct3<> cst_t;
+typedef cst_t::char_type char_type;
 
-	long double red = 0;
-	long double lcp_mean = 0;
-	if( cst.csa.size() ){
-		char_type bwti_1 = cst.csa.bwt[0];
-		for(size_type i=1; i<cst.csa.size(); ++i){
-			char_type bwti = cst.csa.bwt[i];
-			if ( bwti_1 == bwti  ){
-				red += 1.0;
-			}else{
-				bwti_1 = bwti;
-			}
-			lcp_mean += cst.lcp[i];
-		}
-		lcp_mean /= cst.csa.size();
-		cout << "reducible ratio in percent: " << (red/cst.csa.size())*100 << endl;
-		cout << "lcp mean: " << lcp_mean << endl;
-	}
+int main(int argc, char* argv[])
+{
+    if (argc < 2) {
+        cout << "Usage: "<< argv[0] << " file" << endl;
+        cout << "(1) Generates the CST of file." << endl;
+        cout << "(2) Calculates the avg LCP value and the runs in the BWT." << endl;
+        return 1;
+    }
+    cst_t cst;
+    construct(cst, argv[1], 1);
+
+    long double runs = 1;
+    long double avg_lcp = 0;
+    if (cst.csa.size()) {
+        char_type prev_bwt = cst.csa.bwt[0];
+        for (uint64_t i=1; i<cst.csa.size(); ++i) {
+            char_type bwt = cst.csa.bwt[i];
+            if (prev_bwt != bwt) {
+                runs += 1.0;
+            }
+            prev_bwt = bwt;
+            avg_lcp += cst.lcp[i];
+        }
+        avg_lcp /= cst.csa.size();
+        cout << "avg LCP: " << avg_lcp << endl;
+        cout << "runs in BWT: " << runs << endl;
+    }
 }

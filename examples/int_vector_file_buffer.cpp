@@ -7,23 +7,27 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
+    if (argc < 2) {
+        cout << "Usage: " << argv[0] << " temp_file" << endl;
+        cout << "(1) Generates an int_vector" << endl;
+        cout << "(2) Stores it to temp_file" << endl;
+        cout << "(3) Streams the content of temp_file" << endl;
+        cout << "(4) Deletes temp_file" << endl;
+        return 1;
+    }
+    string tmp_file = argv[1];
     size_t size = 10000000;
-    // create a int_vector (each int of fixed size 8 bits) of length 10000000
-    int_vector<8> v(size);
+    // create an int_vector
+    int_vector<> v(size);
 
     // initialize vector with random bits, seed of the random process = 42
     util::set_random_bits(v, 42);
 
     // store int_vector to temporary file
-    string tmp_file = "file_buffer_example.int_vector";
     store_to_file(v, tmp_file);
 
     // open file buffer
-    int_vector_file_buffer<8> v_buf(tmp_file);
-
-    if (v.size() != v_buf.int_vector_size) {
-        std::cerr << "ERROR: v.size() = " << v.size() << " != " << v_buf.int_vector_size << " = v_buf.int_vector_size" << std::endl;
-    }
+    int_vector<>::file_buffer v_buf(tmp_file);
 
     // stream vector data from disk and compare it with in-memory data
     for (size_t i = 0, r_sum = 0, r = v_buf.load_next_block(); i < v.size();) {
@@ -35,7 +39,6 @@ int main(int argc, char* argv[])
         }
         r_sum += r; r = v_buf.load_next_block();
     }
-
     // remove temporary file
     sdsl::remove(tmp_file);
 }

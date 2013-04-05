@@ -7,51 +7,51 @@
 using namespace std;
 using namespace sdsl;
 
-template<class tTree, class tNode>
-void print_tree(const tTree& tree, const tNode& v, int depth, bit_vector& visited)
+typedef cst_sct3<>       cst_t;
+typedef cst_t::node_type node_t;
+
+
+void print_tree(const louds_tree<>& tree, const louds_tree<>::node_type& v, int depth, bit_vector& visited)
 {
-    typedef typename tTree::size_type size_type;
-    if (tree.nodes() < 60) {
-        for (int i=0; i<depth; ++i) cout << " ";
-        cout << v << "  tree.id(v) = "<<tree.id(v)<<endl;
-        visited[tree.id(v)] = 1;
-    }
-    for (size_type i = 1; i <= tree.degree(v); ++i) {
-        tNode child = tree.child(v, i);
+    typedef louds_tree<>::node_type louds_node_t;
+    for (int i=0; i < depth; ++i) cout << " ";
+    cout << v << "  tree.id(v) = " << tree.id(v) << endl;
+    visited[tree.id(v)] = 1;
+    for (uint64_t i = 1; i <= tree.degree(v); ++i) {
+        louds_node_t child = tree.child(v, i);
         print_tree(tree, child, depth+1, visited);
-        tNode parent = tree.parent(child);
-        if (parent != v) {
-            cout << "ERROR: tree.parent("<<child<<")="<< parent << "!=" << v <<endl;
-        }
-    }
-}
-
-template<class tCst>
-void test(const char* file)
-{
-    std::cout << file << std::endl;
-    tCst cst;
-//	util::verbose = true;
-    construct(cst, file, 1);
-
-    typedef cst_bfs_iterator<tCst> iterator;
-    iterator begin = iterator(&cst, cst.root());
-    iterator end   = iterator(&cst, cst.root(), true, true);
-
-    louds_tree<> louds(cst, begin, end);
-    if (louds.nodes() < 60) {
-        cout << "LOUDS = " << louds.bv << endl;
-        bit_vector visited(louds.nodes(), 0);
-        print_tree(louds, louds.root(), 0, visited);
-        cout << "visited = " << visited << endl;
+        louds_node_t parent = tree.parent(child);
+        assert(parent == v);
     }
 }
 
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
-        cout << "usage: "<<argv[0]<< " file" << std::endl;
-    } else {
-        test<cst_sct3<> >(argv[1]);
+        cout << "Usage: "<<argv[0]<< " file [max_print=80]" << std::endl;
+        cout << " (1) Builds the CST of file" << std::endl;
+        cout << " (2) Builds a LOUDS tree " << std::endl;
+        cout << " (3) Prints information about the tree, if file size < 59." << std::endl;
+        return 1;
+    }
+    string file = argv[1];
+    cout << file << endl;
+    cst_t cst;
+    construct(cst, file, 1);
+    uint64_t max_print = 80;
+    if (argc > 2) {
+        max_print = atoll(argv[2]);
+    }
+
+    typedef cst_bfs_iterator<cst_t> iterator;
+    iterator begin = iterator(&cst, cst.root());
+    iterator end   = iterator(&cst, cst.root(), true, true);
+
+    louds_tree<> louds(cst, begin, end);
+    if (cst.size() <= max_print+1) {
+        cout << "LOUDS = " << louds.bv << endl;
+        bit_vector visited(louds.nodes(), 0);
+        print_tree(louds, louds.root(), 0, visited);
+        cout << "visited = " << visited << endl;
     }
 }
