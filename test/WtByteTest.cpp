@@ -1,11 +1,8 @@
 #include "sdsl/wavelet_trees.hpp"
 #include "sdsl/rrr_vector.hpp"
 #include "sdsl/bit_vector_il.hpp"
-#include "sdsl/util.hpp"
-#include "sdsl/config.hpp" // for CMAKE_SOURCE_DIR
 #include "gtest/gtest.h"
 #include <vector>
-#include <cstdlib> // for rand()
 #include <string>
 #include <algorithm> // for std::min
 
@@ -13,42 +10,15 @@ namespace
 {
 
 using namespace sdsl;
+using namespace std;
 
 typedef int_vector<>::size_type size_type;
 
+string test_file;
+string temp_file;
+
 template<class T>
-class WtByteTest : public ::testing::Test
-{
-    protected:
-
-        WtByteTest() { }
-
-        virtual ~WtByteTest() { }
-
-        virtual void SetUp() {
-            std::string tmp_dir = std::string(SDSL_XSTR(CMAKE_SOURCE_DIR)) + "/test/tmp/";
-            std::string prefix		= std::string(SDSL_XSTR(CMAKE_SOURCE_DIR))+"/test";
-            std::string config_file = prefix + "/WtByteTest.config";
-            std::string tc_prefix	= prefix + "/test_cases";
-            test_cases = sdsl::paths_from_config_file(config_file, tc_prefix.c_str());
-            tmp_file = tmp_dir + "wt_ascii_test_" + util::to_string(util::pid()) + "_";
-        }
-
-        virtual void TearDown() { }
-
-        std::vector<std::string> test_cases;
-        std::string tmp_file;
-
-        template<class Wt>
-        std::string get_tmp_file_name(const Wt& wt, size_type i) {
-            return tmp_file + util::class_to_hash(wt) + "_" + util::basename(test_cases[i]);
-        }
-
-        template<class Wt>
-        bool load_wt(Wt& wt, size_type i) {
-            return load_from_file(wt, get_tmp_file_name(wt, i));
-        }
-};
+class WtByteTest : public ::testing::Test { };
 
 using testing::Types;
 
@@ -70,54 +40,48 @@ TYPED_TEST_CASE(WtByteTest, Implementations);
 
 TYPED_TEST(WtByteTest, CreateAndStoreTest)
 {
-    for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam wt;
-        construct(wt, this->test_cases[i], 1);
-        bool success = store_to_file(wt, this->get_tmp_file_name(wt, i));
-        ASSERT_EQ(true, success);
-    }
+    TypeParam wt;
+    construct(wt, test_file, 1);
+    bool success = store_to_file(wt, temp_file);
+    ASSERT_EQ(true, success);
 }
 
 //! Test access methods
 TYPED_TEST(WtByteTest, Sigma)
 {
-    for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam wt;
-        ASSERT_EQ(true, this->load_wt(wt, i));
-        int_vector<8> text;
-        ASSERT_EQ(true, load_vector_from_file(text, this->test_cases[i], 1));
-        ASSERT_EQ(text.size(), wt.size());
-        bit_vector occur(256, 0);
-        uint16_t sigma = 0;
-        for (size_type j=0; j<text.size(); ++j) {
-            if (!occur[(unsigned char)text[j]]) {
-                occur[(unsigned char)text[j]] = 1;
-                ++sigma;
-            }
+    TypeParam wt;
+    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    int_vector<8> text;
+    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    ASSERT_EQ(text.size(), wt.size());
+    bit_vector occur(256, 0);
+    uint16_t sigma = 0;
+    for (size_type j=0; j<text.size(); ++j) {
+        if (!occur[(unsigned char)text[j]]) {
+            occur[(unsigned char)text[j]] = 1;
+            ++sigma;
         }
-        ASSERT_EQ(sigma, wt.sigma);
     }
+    ASSERT_EQ(sigma, wt.sigma);
 }
 
 //! Test access methods
 TYPED_TEST(WtByteTest, Access)
 {
-    for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam wt;
-        ASSERT_EQ(true, this->load_wt(wt, i));
-        int_vector<8> text;
-        ASSERT_EQ(true, load_vector_from_file(text, this->test_cases[i], 1));
-        ASSERT_EQ(text.size(), wt.size());
-        for (size_type j=0; j<text.size(); ++j) {
-            ASSERT_EQ((typename TypeParam::value_type)text[j], wt[j])<<" j="<<j;
-        }
+    TypeParam wt;
+    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    int_vector<8> text;
+    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    ASSERT_EQ(text.size(), wt.size());
+    for (size_type j=0; j<text.size(); ++j) {
+        ASSERT_EQ((typename TypeParam::value_type)text[j], wt[j])<<" j="<<j;
     }
 }
 
 template<class tWt>
 void test_rank(const tWt& wt, const int_vector<8>& text, size_type n)
 {
-    std::vector<size_type> cnt(256, 0);
+    vector<size_type> cnt(256, 0);
     ASSERT_EQ(n, wt.size());
     for (size_type j=0; j < wt.size(); ++j) {
         cnt[text[j]]++;
@@ -141,69 +105,57 @@ void test_rank(const tWt& wt, const int_vector<8>& text, size_type n)
 //! Test rank methods
 TYPED_TEST(WtByteTest, Rank)
 {
-    for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam wt;
-        ASSERT_EQ(true, this->load_wt(wt, i));
-        int_vector<8> text;
-        ASSERT_EQ(true, load_vector_from_file(text, this->test_cases[i], 1));
-        ::test_rank(wt, text, text.size());
-    }
+    TypeParam wt;
+    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    int_vector<8> text;
+    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    ::test_rank(wt, text, text.size());
 }
 
 //! Test select methods
 TYPED_TEST(WtByteTest, Select)
 {
-    for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam wt;
-        ASSERT_EQ(true, this->load_wt(wt, i));
-        int_vector<8> text;
-        ASSERT_EQ(true, load_vector_from_file(text, this->test_cases[i], 1));
-        std::vector<size_type> cnt(256, 0);
-        ASSERT_EQ(text.size(), wt.size());
-        for (size_type j=0; j<text.size(); ++j) {
-            cnt[text[j]]++;
-            ASSERT_EQ(j, wt.select(cnt[text[j]], text[j]))<< " j = "<<j<<" text[j]"<<text[j];
-        }
+    TypeParam wt;
+    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    int_vector<8> text;
+    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    vector<size_type> cnt(256, 0);
+    ASSERT_EQ(text.size(), wt.size());
+    for (size_type j=0; j<text.size(); ++j) {
+        cnt[text[j]]++;
+        ASSERT_EQ(j, wt.select(cnt[text[j]], text[j]))<< " j = "<<j<<" text[j]"<<text[j];
     }
 }
-
 
 //! Test access after swap
 TYPED_TEST(WtByteTest, SwapTest)
 {
-    for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam wt1;
-        ASSERT_EQ(true, this->load_wt(wt1, i));
-        TypeParam wt2;
-        wt1.swap(wt2);
-        int_vector<8> text;
-        ASSERT_EQ(true, load_vector_from_file(text, this->test_cases[i], 1));
-        ASSERT_EQ(text.size(), wt2.size());
-        for (size_type j=0; j<text.size(); ++j) {
-            ASSERT_EQ(wt2[j], (typename TypeParam::value_type)text[j]);
-        }
+    TypeParam wt1;
+    ASSERT_EQ(true, load_from_file(wt1, temp_file));
+    TypeParam wt2;
+    wt1.swap(wt2);
+    int_vector<8> text;
+    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    ASSERT_EQ(text.size(), wt2.size());
+    for (size_type j=0; j<text.size(); ++j) {
+        ASSERT_EQ(wt2[j], (typename TypeParam::value_type)text[j]);
     }
 }
 
 TYPED_TEST(WtByteTest, CreatePartiallyTest)
 {
-    for (size_t i=0; i< this->test_cases.size(); ++i) {
-        int_vector_file_buffer<8> text_buf;
-        text_buf.load_from_plain(this->test_cases[i]);
-        int_vector<8> text;
-        ASSERT_EQ(true, load_vector_from_file(text, this->test_cases[i], 1));
-        size_type n = std::min(text.size(), (size_type)50);
-        TypeParam wt(text_buf, n);
-        ::test_rank(wt, text, n);
-    }
+    int_vector_file_buffer<8> text_buf;
+    text_buf.load_from_plain(test_file);
+    int_vector<8> text;
+    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    size_type n = min(text.size(), (size_type)50);
+    TypeParam wt(text_buf, n);
+    ::test_rank(wt, text, n);
 }
 
 TYPED_TEST(WtByteTest, DeleteTest)
 {
-    for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam wt;
-        std::remove(this->get_tmp_file_name(wt, i).c_str());
-    }
+    std::remove(temp_file.c_str());
 }
 
 }  // namespace
@@ -211,5 +163,15 @@ TYPED_TEST(WtByteTest, DeleteTest)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
+    if (argc < 3) {
+        cout << "Usage: " << argv[0] << " test_file temp_file" << endl;
+        cout << " (1) Generates a WT out of test_file; stores it in temp_file." << endl;
+        cout << " (2) Performs tests." << endl;
+        cout << " (3) Deletes temp_file." << endl;
+        return 1;
+    }
+    test_file = argv[1];
+    temp_file  = argv[2];
+
     return RUN_ALL_TESTS();
 }
