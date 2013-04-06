@@ -12,7 +12,7 @@ using namespace std;
 
 typedef int_vector<>::size_type size_type;
 
-tMSS test_case_file_map;
+tMSS   test_case_file_map;
 string test_file;
 string temp_file;
 string temp_dir;
