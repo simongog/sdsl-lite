@@ -17,6 +17,9 @@ WT_INT_TESTS:=$(patsubst %,%.wt-int-test ,$(WT_INT_TC_PATHS))
 CSA_BYTE_TC_PATHS:=$(call config_column,CsaByteTest.config,2)
 CSA_BYTE_TESTS:=$(patsubst %,%.csa-byte-test ,$(CSA_BYTE_TC_PATHS))
 
+CSA_INT_TC_PATHS:=$(call config_column,CsaByteTest.config,2)
+CSA_INT_TESTS:=$(patsubst %,%.csa-int-test ,$(CSA_INT_TC_PATHS))
+
 
 
 all: $(WT_INT_TC_PATHS) \
@@ -28,6 +31,8 @@ wt-byte-test: $(WT_BYTE_TESTS)
 wt-int-test: $(WT_INT_TESTS)
 
 csa-byte-test: $(CSA_BYTE_TESTS)
+
+csa-int-test: $(CSA_INT_TESTS)
 
 test_cases/%.wt-byte-test: ./WtByteTest.x test_cases/%
 	@echo "TEST_CASE: test_cases/$*"
@@ -41,7 +46,10 @@ test_cases/%.csa-byte-test: ./CsaByteTest.x test_cases/%
 	@echo "TEST_CASE: test_cases/$*"
 	@./CsaByteTest.x test_cases/$* $(TMP_DIR)/csa-byte.tmp $(TMP_DIR)
 
-
+test_cases/%.csa-int-test: ./CsaIntTest.x test_cases/%
+	$(eval NUM_BYTES:=$(call config_filter,CsaIntTest.config,test_cases/$*,4))
+	@echo "TEST_CASE: test_cases/$* NUM_BYTES=$(NUM_BYTES)"
+	@./CsaIntTest.x test_cases/$* $(NUM_BYTES) $(TMP_DIR)/csa-int.tmp $(TMP_DIR)
 
 %.x:%.cpp /Users/sgog/lib/libsdsl.a
 	$(CC) $(CC_FLAGS) -o $@ $< $(CCLIB) 
