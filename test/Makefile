@@ -8,12 +8,16 @@ EXECS=$(SOURCES:.cpp=.x)
 EXEC_LIST=$(patsubst %,./%;,$(EXECS))                # list of executables
 EXEC_LIST_VAL=$(patsubst %,valgrind ./%;,$(EXECS))   # list of executables preceded by valgrind command
 
+WT_BYTE_TC_PATHS:=$(call config_column,WtByteTest.config,2)
+WT_BYTE_TESTS:=$(patsubst %,%.wt-byte-test ,$(WT_BYTE_TC_PATHS))
 
 WT_INT_TC_PATHS:=$(call config_column,WtIntTest.config,2)
 WT_INT_TESTS:=$(patsubst %,%.wt-int-test ,$(WT_INT_TC_PATHS))
 
-WT_BYTE_TC_PATHS:=$(call config_column,WtByteTest.config,2)
-WT_BYTE_TESTS:=$(patsubst %,%.wt-byte-test ,$(WT_BYTE_TC_PATHS))
+CSA_BYTE_TC_PATHS:=$(call config_column,CsaByteTest.config,2)
+CSA_BYTE_TESTS:=$(patsubst %,%.csa-byte-test ,$(CSA_BYTE_TC_PATHS))
+
+
 
 all: $(WT_INT_TC_PATHS) \
      $(WT_BYTE_TC_PATHS) \
@@ -23,12 +27,21 @@ wt-byte-test: $(WT_BYTE_TESTS)
 
 wt-int-test: $(WT_INT_TESTS)
 
+csa-byte-test: $(CSA_BYTE_TESTS)
+
 test_cases/%.wt-byte-test: ./WtByteTest.x test_cases/%
-	@echo "test_cases/$*"
+	@echo "TEST_CASE: test_cases/$*"
 	@./WtByteTest.x test_cases/$* $(TMP_DIR)/wt-byte.tmp
 
 test_cases/%.wt-int-test: ./WtIntTest.x test_cases/%
-	./WtIntTest.x test_cases/$* $(TMP_DIR)/wt-int.tmp
+	@echo "TEST_CASE: test_cases/$*"
+	@./WtIntTest.x test_cases/$* $(TMP_DIR)/wt-int.tmp
+
+test_cases/%.csa-byte-test: ./CsaByteTest.x test_cases/%
+	@echo "TEST_CASE: test_cases/$*"
+	@./CsaByteTest.x test_cases/$* $(TMP_DIR)/csa-byte.tmp $(TMP_DIR)
+
+
 
 %.x:%.cpp /Users/sgog/lib/libsdsl.a
 	$(CC) $(CC_FLAGS) -o $@ $< $(CCLIB) 

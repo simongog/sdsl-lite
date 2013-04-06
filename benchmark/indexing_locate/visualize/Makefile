@@ -1,4 +1,4 @@
-include ../../Make.helper
+include ../../../Make.helper
 CONFIG_FILES=index-filter.config ../index.config ../test_case.config ../sample.config
 
 all: locate.pdf
