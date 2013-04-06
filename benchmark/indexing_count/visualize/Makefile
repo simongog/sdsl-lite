@@ -1,4 +1,4 @@
-include ../../Make.helper
+include ../../../Make.helper
 COMPILE_IDS:=$(call config_ids,../compile_options.config)
 TABLES = $(foreach COMPILE_ID,$(COMPILE_IDS),tbl-count-$(COMPILE_ID).tex)
 
