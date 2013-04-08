@@ -26,18 +26,21 @@
 namespace sdsl
 {
 
-template<class RandomAccessContainer>
-class random_access_const_iterator: public std::iterator<std::random_access_iterator_tag, typename RandomAccessContainer::value_type, typename RandomAccessContainer::difference_type>
+//! Generic iterator for a random access container
+/*! \tparam t_rac Type of random access container.
+ */
+template<class t_rac>
+class random_access_const_iterator: public std::iterator<std::random_access_iterator_tag, typename t_rac::value_type, typename t_rac::difference_type>
 {
     public:
-        typedef const typename RandomAccessContainer::value_type  const_reference;
-        typedef typename RandomAccessContainer::size_type size_type;
-        typedef random_access_const_iterator<RandomAccessContainer> iterator;
-        typedef typename RandomAccessContainer::difference_type difference_type;
+        typedef const typename t_rac::value_type  const_reference;
+        typedef typename t_rac::size_type size_type;
+        typedef random_access_const_iterator<t_rac> iterator;
+        typedef typename t_rac::difference_type difference_type;
 
     private:
-        const RandomAccessContainer* m_rac;// pointer to the random access container
-        typename RandomAccessContainer::size_type m_idx;
+        const t_rac* m_rac;// pointer to the random access container
+        typename t_rac::size_type m_idx;
 
         template<class RAC>
         friend typename random_access_const_iterator<RAC>::difference_type operator-(const random_access_const_iterator<RAC>& x,
@@ -46,7 +49,7 @@ class random_access_const_iterator: public std::iterator<std::random_access_iter
 
     public:
         //! Constructor
-        random_access_const_iterator(const RandomAccessContainer* rac, size_type idx = 0) {
+        random_access_const_iterator(const t_rac* rac, size_type idx = 0) {
             m_rac = rac;
             m_idx = idx;
         }
@@ -136,19 +139,18 @@ class random_access_const_iterator: public std::iterator<std::random_access_iter
 
 };
 
-template<class RandomAccessContainer>
-inline typename random_access_const_iterator<RandomAccessContainer>::difference_type operator-(const random_access_const_iterator<RandomAccessContainer>& x, const random_access_const_iterator<RandomAccessContainer>& y)
+template<class t_rac>
+inline typename random_access_const_iterator<t_rac>::difference_type operator-(const random_access_const_iterator<t_rac>& x, const random_access_const_iterator<t_rac>& y)
 {
-    return (typename random_access_const_iterator<RandomAccessContainer>::difference_type)x.m_idx
-           - (typename random_access_const_iterator<RandomAccessContainer>::difference_type)y.m_idx;
+    return (typename random_access_const_iterator<t_rac>::difference_type)x.m_idx
+           - (typename random_access_const_iterator<t_rac>::difference_type)y.m_idx;
 }
 
-template<class RandomAccessContainer>
-inline random_access_const_iterator<RandomAccessContainer> operator+(typename random_access_const_iterator<RandomAccessContainer>::difference_type n, const random_access_const_iterator<RandomAccessContainer>& it)
+template<class t_rac>
+inline random_access_const_iterator<t_rac> operator+(typename random_access_const_iterator<t_rac>::difference_type n, const random_access_const_iterator<t_rac>& it)
 {
     return it+n;
 }
 
 } // end namespace sdsl
-
-#endif // end of include guard
+#endif
