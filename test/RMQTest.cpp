@@ -1,90 +1,27 @@
 #include "sdsl/rmq_support.hpp"
 #include "gtest/gtest.h"
 #include <vector>
-#include <cstdlib> // for rand()
 #include <string>
-#include <algorithm> // for std::min, random permutation
 #include <stack>
+
+using namespace std;
+using namespace sdsl;
 
 namespace
 {
 
-typedef std::vector<uint64_t> tVUI;
+typedef vector<uint64_t> tVUI;
 
-ptrdiff_t myrandom(ptrdiff_t i)
-{
-    return rand()%i;
-}
-ptrdiff_t (*p_myrandom)(ptrdiff_t) = myrandom;
-
-
-void gen_increasing_vector(tVUI& v, tVUI::size_type len)
-{
-    v.resize(len);
-    for (tVUI::size_type i=0; i < v.size(); ++i)
-        v[i] = i;
-}
+string  test_file;
+string  temp_file;
 
 template<class T>
-class RMQTest : public ::testing::Test
-{
-    protected:
-
-        RMQTest() {
-            // You can do set-up work for each test here.
-        }
-
-        virtual ~RMQTest() {
-            // You can do clean-up work that doesn't throw exceptions here.
-        }
-
-        // If the constructor and destructor are not enough for setting up
-        // and cleaning up each test, you can define the following methods:
-        virtual void SetUp() {
-            // Code here will be called immediately after the constructor (right
-            // before each test).
-            tmp_file = "tmp_rmq_test_" + sdsl::util::to_string(sdsl::util::pid()) + "_";
-            test_cases.push_back(tVUI(0)); // empty vector
-            test_cases.push_back(tVUI(1,42)); // 1-element vector
-            tVUI v;
-            gen_increasing_vector(v, 1000000);
-            test_cases.push_back(v); // increasing sequence
-            srand(17);
-            tVUI w;
-            gen_increasing_vector(w, 1000000);
-            std::random_shuffle(w.begin(), w.end(), p_myrandom);
-            test_cases.push_back(w); // random permutation
-            std::random_shuffle(w.begin(), w.end(), p_myrandom);
-            test_cases.push_back(w); // random permutation
-        }
-
-        virtual void TearDown() {
-            // Code here will be called immediately after each test (right
-            // before the destructor).
-        }
-
-        template<class Rmq>
-        std::string get_tmp_file_name(const Rmq&, typename Rmq::size_type i) {
-            std::locale loc;                 // the "C" locale
-            const std::collate<char>& coll = std::use_facet<std::collate<char> >(loc);
-            std::string name = sdsl::util::demangle2(typeid(Rmq).name());
-            uint64_t myhash = coll.hash(name.data(),name.data()+name.length());
-            return tmp_file + sdsl::util::to_string(myhash) + "_" + sdsl::util::to_string(i);
-        }
-
-        template<class Rmq>
-        bool load_rmq(Rmq& rmq, typename Rmq::size_type i) {
-            return sdsl::load_from_file(rmq, get_tmp_file_name(rmq, i));
-        }
-
-        std::string tmp_file;
-        std::vector<tVUI> test_cases;
-};
+class RMQTest : public ::testing::Test { };
 
 
 using testing::Types;
 
-typedef Types<  sdsl::rmq_succinct_sct<>,
+typedef Types<sdsl::rmq_succinct_sct<>,
         sdsl::rmq_succinct_sada<>
         > Implementations;
 
@@ -93,11 +30,11 @@ TYPED_TEST_CASE(RMQTest, Implementations);
 
 TYPED_TEST(RMQTest, ConstructAndStore)
 {
-    for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam rmq(&(this->test_cases[i]));
-        bool success = sdsl::store_to_file(rmq, this->get_tmp_file_name(rmq, i));
-        ASSERT_EQ(success, true);
-    }
+    int_vector<> v;
+    load_from_file(v, test_file);
+    TypeParam rmq(&v);
+    bool success = sdsl::store_to_file(rmq, temp_file);
+    ASSERT_EQ(success, true);
 }
 
 // helper class for next test
@@ -114,38 +51,37 @@ class state
 //! Test range minimum queries
 TYPED_TEST(RMQTest, RmqLoadAndQuery)
 {
-    typedef typename TypeParam::size_type size_type;
-    for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam rmq;
-        ASSERT_EQ(this->load_rmq(rmq, i), true);
-        ASSERT_EQ(rmq.size(), this->test_cases[i].size());
-        if (rmq.size() > 0) {
-            std::stack<state> s;
-            size_type idx = rmq(0, rmq.size()-1);
-            ASSERT_TRUE(idx >= (size_type)0); ASSERT_TRUE(idx <= rmq.size());
-            s.push(state(0, rmq.size()-1, idx, this->test_cases[i][idx]));
-            while (!s.empty()) {
-                state st = s.top(); s.pop();
-                if (st.l < st.idx) {
-                    idx = rmq(st.l, st.idx-1);
-                    ASSERT_TRUE(idx >= st.l); ASSERT_TRUE(idx <= st.idx-1);
-                    ASSERT_TRUE(this->test_cases[i][idx] >= this->test_cases[i][st.idx])
-                            << "this->test_cases["<<i<<"]["<<idx<<"]="<< this->test_cases[i][idx]
-                            << " < " << "this->test_cases["<<i<<"]["<<st.idx<<"]="
-                            << this->test_cases[i][st.idx] << std::endl
-                            << "[" << st.l << "," << st.r << "]" << std::endl;
-                    s.push(state(st.l, st.idx-1, idx, this->test_cases[i][idx]));
-                }
-                if (st.idx < st.r) {
-                    idx = rmq(st.idx+1, st.r);
-                    ASSERT_TRUE(idx >= st.idx+1); ASSERT_TRUE(idx <= st.r);
-                    ASSERT_TRUE(this->test_cases[i][idx] >= this->test_cases[i][st.idx])
-                            << "this->test_cases["<<i<<"]["<<idx<<"]="<< this->test_cases[i][idx]
-                            << " < " << "this->test_cases["<<i<<"]["<<st.idx<<"]="
-                            << this->test_cases[i][st.idx] << std::endl
-                            << "[" << st.l << "," << st.r << "]" << std::endl;
-                    s.push(state(st.idx+1, st.r, idx, this->test_cases[i][idx]));
-                }
+    int_vector<> v;
+    ASSERT_TRUE(load_from_file(v, test_file));
+    TypeParam rmq;
+    ASSERT_TRUE(load_from_file(rmq, temp_file));
+    ASSERT_EQ(v.size(), rmq.size());
+    if (rmq.size() > 0) {
+        stack<state> s;
+        uint64_t idx = rmq(0, rmq.size()-1);
+        ASSERT_TRUE(idx >= (uint64_t)0); ASSERT_TRUE(idx <= rmq.size());
+        s.push(state(0, rmq.size()-1, idx,  v[idx]));
+        while (!s.empty()) {
+            state st = s.top(); s.pop();
+            if (st.l < st.idx) {
+                idx = rmq(st.l, st.idx-1);
+                ASSERT_TRUE(idx >= st.l); ASSERT_TRUE(idx <= st.idx-1);
+                ASSERT_TRUE(v[idx] >= v[st.idx])
+                        << "v["<<idx<<"]="<< v[idx]
+                        << " < " << "v["<<st.idx<<"]="
+                        << v[st.idx] << endl
+                        << "[" << st.l << "," << st.r << "]" << endl;
+                s.push(state(st.l, st.idx-1, idx, v[idx]));
+            }
+            if (st.idx < st.r) {
+                idx = rmq(st.idx+1, st.r);
+                ASSERT_TRUE(idx >= st.idx+1); ASSERT_TRUE(idx <= st.r);
+                ASSERT_TRUE(v[idx] >= v[st.idx])
+                        << "v["<<idx<<"]="<< v[idx]
+                        << " < " << "v["<<st.idx<<"]="
+                        << v[st.idx] << endl
+                        << "[" << st.l << "," << st.r << "]" << endl;
+                s.push(state(st.idx+1, st.r, idx, v[idx]));
             }
         }
     }
@@ -154,10 +90,7 @@ TYPED_TEST(RMQTest, RmqLoadAndQuery)
 
 TYPED_TEST(RMQTest, DeleteTest)
 {
-    for (size_t i=0; i< this->test_cases.size(); ++i) {
-        TypeParam rmq;
-        std::remove(this->get_tmp_file_name(rmq, i).c_str());
-    }
+    std::remove(temp_file.c_str());
 }
 
 }  // namespace
@@ -165,5 +98,16 @@ TYPED_TEST(RMQTest, DeleteTest)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
+    if (argc < 3) {
+        cout << "Usage: " << argv[0] << " test_file temp_file" << endl;
+        cout << " (1) Generates a RMQ out of the serialized int_vector in test_file." << endl;
+        cout << "     in test_file. Stores RMQ in temp_file." << endl;
+        cout << " (2) Performs tests." << endl;
+        cout << " (3) Deletes temp_file." << endl;
+        return 1;
+    }
+    test_file = argv[1];
+    temp_file = argv[2];
+
     return RUN_ALL_TESTS();
 }

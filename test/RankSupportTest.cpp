@@ -1,129 +1,56 @@
-#include "sdsl/int_vector.hpp"
-#include "sdsl/rank_support_v.hpp" // for rank_support_v
-#include "sdsl/rank_support_v5.hpp" // for rank_support_v5
-#include "sdsl/rrr_vector.hpp" // for rank_support_rrr
-#include "sdsl/bit_vector_il.hpp" // for rank_support_interleaved
-#include "sdsl/sd_vector.hpp" // for rank_support_sd
+#include "sdsl/bit_vectors.hpp"
+#include "sdsl/rank_support.hpp"
 #include "gtest/gtest.h"
-#include <vector>
-#include <cstdlib> // for rand()
+#include <string>
+
+using namespace sdsl;
+using namespace std;
+
+string test_file;
 
 namespace
 {
 
-typedef sdsl::int_vector<>::size_type size_type;
-typedef sdsl::bit_vector bit_vector;
-
 template<class T>
-class RankSupportTest : public ::testing::Test
-{
-    protected:
-
-        static const size_t n = 40;
-
-        RankSupportTest() {
-            // You can do set-up work for each test here
-        }
-
-        virtual ~RankSupportTest() {
-            // You can do clean-up work that doesn't throw exceptions here.
-        }
-
-        // If the constructor and destructor are not enough for setting up
-        // and cleaning up each test, you can define the following methods:
-        virtual void SetUp() {
-            srand(13);
-            // crafted small examples
-            bs[0] = bit_vector(32,0);
-            bs[0][1] = bs[0][4] = bs[0][7] = bs[0][18] =
-                                                 bs[0][24] = bs[0][26] = bs[0][30] = bs[0][31] = 1;
-            bs[1] = bit_vector(1,0);
-            bs[2] = bit_vector(1000000,0);
-            bs[3] = bit_vector(1000000,1);
-            bs[4] = bit_vector(0);   // test empty bitvector
-            for (size_type i=5; i<14; ++i) {
-                bs[i] = bit_vector(i, i%2);
-            }
-            // dense vectors of different sizes
-            for (size_type i=14; i<n-4; ++i) {
-                bs[i] = bit_vector(rand() % (8<< (i-14)));
-                for (size_type j=0; j < bs[i].size(); ++j) {
-                    if (rand() % 2)
-                        bs[i][j] = 1;
-                }
-            }
-            size_type last_size = 1000000;
-            bs[n-4] = bit_vector(last_size, 1);
-            bs[n-3] = bit_vector(last_size, 0);
-            // populate vectors with some other bits
-            for (size_type i=0; i<last_size/1000; ++i) {
-                size_type x = rand()%last_size;
-                bs[n-4][x] = 0;
-                bs[n-3][x] = 1;
-            }
-            bs[n-2] = bit_vector(last_size, 1);
-            bs[n-1] = bit_vector(last_size, 0);
-            // populate vectors with some blocks of other bits
-            for (size_type i=0; i<last_size/1000; ++i) {
-                size_type x = rand()%last_size;
-                size_type len = rand()%1000;
-                for (size_type j=x; j<x+len and j<last_size; ++j) {
-                    bs[n-2][j] = 0;
-                    bs[n-1][j] = 1;
-                }
-            }
-        }
-
-        virtual void TearDown() {
-            // Code here will be called immediately after each test (right
-            // before the destructor).
-        }
-
-        // Objects declared here can be used by all tests in the test case for Foo.
-        bit_vector bs[n];
-};
+class RankSupportTest : public ::testing::Test { };
 
 using testing::Types;
 
-typedef Types<
-sdsl::rank_support_il<1,256>,
-     sdsl::rank_support_il<1, 512>,
-     sdsl::rank_support_il<1, 1024>,
-     sdsl::rank_support_rrr<>,
-     sdsl::rank_support_v<>,
-     sdsl::rank_support_v5<>,
-     sdsl::rank_support_rrr<1, 64>,
-     sdsl::rank_support_rrr<1, 192>,
-     sdsl::rank_support_rrr<1, 256>,
-     sdsl::rank_support_rrr<1, 255>,
-     sdsl::rank_support_rrr<1, 15>,
-     sdsl::rank_support_rrr<1, 31>,
-     sdsl::rank_support_rrr<1, 63>,
-     sdsl::rank_support_rrr<1, 83>,
-     sdsl::rank_support_rrr<1, 127>,
-     sdsl::rank_support_rrr<1, 128>,
-     sdsl::rank_support_rrr<1, 129>,
-     sdsl::rank_support_sd<>
-     > Implementations;
+typedef Types<rank_support_il<1,256>,
+        rank_support_il<1, 512>,
+        rank_support_il<1, 1024>,
+        rank_support_rrr<>,
+        rank_support_v<>,
+        rank_support_v5<>,
+        rank_support_rrr<1, 64>,
+        rank_support_rrr<1, 192>,
+        rank_support_rrr<1, 256>,
+        rank_support_rrr<1, 255>,
+        rank_support_rrr<1, 15>,
+        rank_support_rrr<1, 31>,
+        rank_support_rrr<1, 63>,
+        rank_support_rrr<1, 83>,
+        rank_support_rrr<1, 127>,
+        rank_support_rrr<1, 128>,
+        rank_support_rrr<1, 129>,
+        rank_support_sd<>
+        > Implementations;
 
 TYPED_TEST_CASE(RankSupportTest, Implementations);
 
 //! Test the rank method
 TYPED_TEST(RankSupportTest, RankMethod)
 {
-    for (size_type i=0; i<this->n; ++i) {
-        typename TypeParam::bit_vector_type bv(this->bs[i]);
-        TypeParam rs(&bv);
-        size_type rank=0;
-        for (size_type j=0; j < (this->bs[i]).size(); ++j) {
-            ASSERT_EQ(rank, rs.rank(j)) << " at index "<< j
-                                        <<" of vector "<<i<<" of length "<<(this->bs[i]).size();
-            rank += (this->bs)[i][j];
-        }
-        EXPECT_EQ(rank, rs.rank(this->bs[i].size())) << " at index "
-                << this->bs[i].size()<<" of vector "<< i
-                <<" of length "<<(this->bs[i]).size();
+    bit_vector bvec;
+    ASSERT_TRUE(load_from_file(bvec, test_file));
+    typename TypeParam::bit_vector_type bv(bvec);
+    TypeParam rs(&bv);
+    uint64_t rank=0;
+    for (uint64_t j=0; j < bvec.size(); ++j) {
+        ASSERT_EQ(rank, rs.rank(j));
+        rank += bvec[j];
     }
+    EXPECT_EQ(rank, rs.rank(bvec.size()));
 }
 
 }// end namespace
@@ -131,6 +58,12 @@ TYPED_TEST(RankSupportTest, RankMethod)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
+    if (argc < 2) {
+        cout << "Usage: " << argv[0] << " FILE " << endl;
+        cout << "  Reads a bitvector from FILE and executes tests." << endl;
+        return 1;
+    }
+    test_file = argv[1];
     return RUN_ALL_TESTS();
 }
 

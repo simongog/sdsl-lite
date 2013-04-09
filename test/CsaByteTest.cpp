@@ -196,7 +196,7 @@ int main(int argc, char** argv)
     ::testing::InitGoogleTest(&argc, argv);
     if (argc < 4) {
         cout << "Usage: " << argv[0] << " test_file temp_file tmp_dir" << endl;
-        cout << " (1) Generates a WT out of test_file; stores it in temp_file." << endl;
+        cout << " (1) Generates a CSA out of test_file; stores it in temp_file." << endl;
         cout << "     Temporary files (SA/BWT/TEXT) are stored in tmp_dir." << endl;
         cout << " (2) Performs tests." << endl;
         cout << " (3) Deletes temp_file." << endl;
@@ -207,5 +207,4 @@ int main(int argc, char** argv)
     temp_dir  = argv[3];
 
     return RUN_ALL_TESTS();
-
 }

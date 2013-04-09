@@ -176,11 +176,11 @@ The library code is in the sdsl namespace. Either import
 the namespace in your program (\code{using~namespace~sdsl;}) or
 qualify all identifieres by a \code{sdsl::}-prefix.
 
-We decide between two types of data structure in \sdsl.
-The \emph{self-contained} and the \emph{support}
+We have two types of data structures in \sdsl.
+\emph{Self-contained} and \emph{support}
 structures. A support object \code{s} can extend
-a self-contained object \code{t} (e.g. add functionality), but 
-needs access to \code{t}. 
+a self-contained object \code{o} (e.g. add functionality), but 
+requires access to \code{o}. 
 
 \subsection{Unsigned Integer Vectors}
 The core of the library is the class 
@@ -226,8 +226,9 @@ achieved by sampling values of \code{v} at rate \code{t\_dens}. Available coder
 are \href{\sdslgitinc/coder_elias_delta.hpp}{\sdslcodereliasdelta} and
 \href{\sdslgitinc/coder_fibonacci.hpp}{\sdslcoderfibonacci}. 
 
-TODO: describe 
-\href{\sdslgitinc/vlc_vector.hpp}{\sdslvlcvector} 
+Class \href{\sdslgitinc/vlc_vector.hpp}{\sdslvlcvector} stores each
+\code{v[i]} as self-delimiting codeword. Samples at rate
+\code{t\_dens} are inserted for fast random access.
 
 \subsection{Bitvectors (\href{\sdslgitinc/bit_vectors.hpp}{BV})}
 Representations for a bitvector of length $n$ with $m$ set bits.
@@ -519,6 +520,7 @@ More useful methods in the \code{sdsl::util} namespace:
 \end{tabular}
 
 \section{Construction}
+\code{cache\_config(del\_file, tmp\_dir, id, file\_map)}
 \code{cache\_file\_name(key, config)}
 \code{register\_cache\_file(key, config)}
 \code{cache\_file\_exists(key, config)}

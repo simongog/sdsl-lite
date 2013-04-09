@@ -631,22 +631,5 @@ std::string util::to_latex_string(const T& t)
     return to_string(t);
 }
 
-
-
-//! Read a list of file paths from a config file
-/*!
- *  \param   file    The configuration file.
- *  \param   prefix    Prepend this prefix to the read file paths.
- *  \return  A vector of strings containing the paths.
- *  \par Config file format
- *       Each line starting with a `#` is ignored.
- *       All other lines are interpreted as path and end up in the
- *       result.
- */
-std::vector<std::string> paths_from_config_file(const std::string& file, const char* prefix = NULL);
-
-
-
 }// end namespace sdsl
-
-#endif // end file 
+#endif

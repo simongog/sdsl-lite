@@ -1,142 +1,81 @@
 #include "sdsl/bit_vectors.hpp" // for rrr_vector
 #include "gtest/gtest.h"
-#include <vector>
-#include <cstdlib> // for rand()
+#include <string>
+
+using namespace sdsl;
+using namespace std;
+
+string test_file;
 
 namespace
 {
 
-typedef sdsl::int_vector<>::size_type size_type;
-typedef sdsl::bit_vector bit_vector;
-
 template<class T>
-class BitVectorTest : public ::testing::Test
-{
-    protected:
-
-        static const size_t n = 40;
-
-        BitVectorTest() {
-            // You can do set-up work for each test here
-        }
-
-        virtual ~BitVectorTest() {
-            // You can do clean-up work that doesn't throw exceptions here.
-        }
-
-        // If the constructor and destructor are not enough for setting up
-        // and cleaning up each test, you can define the following methods:
-        virtual void SetUp() {
-            srand(13);
-            // crafted small examples
-            bs[0] = bit_vector(32,0);
-            bs[0][1] = bs[0][4] = bs[0][7] = bs[0][18] =
-                                                 bs[0][24] = bs[0][26] = bs[0][30] = bs[0][31] = 1;
-            bs[1] = bit_vector(1,0);
-            bs[2] = bit_vector(1000000,0);
-            bs[3] = bit_vector(1000000,1);
-            bs[4] = bit_vector(0);
-            for (size_type i=5; i<14; ++i) {
-                bs[i] = bit_vector(i, i%2);
-            }
-            // dense vectors of different sizes
-            for (size_type i=14; i<n-4; ++i) {
-                bs[i] = bit_vector(rand() % (8<< (i-14)));
-                for (size_type j=0; j < bs[i].size(); ++j) {
-                    if (rand() % 2)
-                        bs[i][j] = 1;
-                }
-            }
-            size_type last_size = 1000000;
-            bs[n-4] = bit_vector(last_size, 1);
-            bs[n-3] = bit_vector(last_size, 0);
-            // populate vectors with some other bits
-            for (size_type i=0; i<last_size/1000; ++i) {
-                size_type x = rand()%last_size;
-                bs[n-4][x] = 0;
-                bs[n-3][x] = 1;
-            }
-            bs[n-2] = bit_vector(last_size, 1);
-            bs[n-1] = bit_vector(last_size, 0);
-            // populate vectors with some blocks of other bits
-            for (size_type i=0; i<last_size/1000; ++i) {
-                size_type x = rand()%last_size;
-                size_type len = rand()%1000;
-                for (size_type j=x; j<x+len and j<last_size; ++j) {
-                    bs[n-2][j] = 0;
-                    bs[n-1][j] = 1;
-                }
-            }
-        }
-
-        virtual void TearDown() {
-            // Code here will be called immediately after each test (right
-            // before the destructor).
-        }
-
-        // Objects declared here can be used by all tests in the test case for Foo.
-        bit_vector bs[n];
-};
+class BitVectorTest : public ::testing::Test { };
 
 using testing::Types;
 
 typedef Types<
-sdsl::bit_vector,
-     sdsl::bit_vector_il<256>,
-     sdsl::bit_vector_il<512>,
-     sdsl::bit_vector_il<1024>,
-     sdsl::rrr_vector<64>,
-     sdsl::rrr_vector<256>,
-     sdsl::rrr_vector<129>,
-     sdsl::rrr_vector<192>,
-     sdsl::rrr_vector<255>,
-     sdsl::rrr_vector<15>,
-     sdsl::rrr_vector<31>,
-     sdsl::rrr_vector<63>,
-     sdsl::rrr_vector<83>,
-     sdsl::rrr_vector<127>,
-     sdsl::rrr_vector<128>,
-     sdsl::sd_vector<>,
-     sdsl::sd_vector<sdsl::rrr_vector<63> >
-     > Implementations;
+bit_vector,
+bit_vector_il<256>,
+bit_vector_il<512>,
+bit_vector_il<1024>,
+rrr_vector<64>,
+rrr_vector<256>,
+rrr_vector<129>,
+rrr_vector<192>,
+rrr_vector<255>,
+rrr_vector<15>,
+rrr_vector<31>,
+rrr_vector<63>,
+rrr_vector<83>,
+rrr_vector<127>,
+rrr_vector<128>,
+sd_vector<>,
+sd_vector<rrr_vector<63> >
+> Implementations;
 
 TYPED_TEST_CASE(BitVectorTest, Implementations);
 
 //! Test operator[]
 TYPED_TEST(BitVectorTest, Access)
 {
-    for (size_type i=0; i<this->n; ++i) {
-        TypeParam copied_bs(this->bs[i]);
-        ASSERT_EQ((this->bs[i]).size(), copied_bs.size());
-        for (size_type j=0; j < (this->bs[i]).size(); ++j) {
-            ASSERT_EQ((bool)(this->bs[i][j]), (bool)(copied_bs[j])) << " at index "<<j<<" of vector "<<i<<" of length "<<(this->bs[i]).size();
-        }
+    bit_vector bv;
+    ASSERT_TRUE(load_from_file(bv, test_file));
+    TypeParam c_bv(bv);
+    ASSERT_EQ(bv.size(), c_bv.size());
+    for (uint64_t j=0; j < bv.size(); ++j) {
+        ASSERT_EQ((bool)(bv[j]), (bool)(c_bv[j]));
     }
 }
 
 TYPED_TEST(BitVectorTest, Swap)
 {
-    for (size_type i=0; i<this->n; ++i) {
-        TypeParam copied_bs(this->bs[i]);
-        ASSERT_EQ(this->bs[i].size(), copied_bs.size());
-
-        TypeParam bs_empty;
-        ASSERT_EQ((size_type)0, bs_empty.size());
-
-        bs_empty.swap(copied_bs);
-        ASSERT_EQ((size_type)0, copied_bs.size());
-        ASSERT_EQ(this->bs[i].size(), bs_empty.size());
-        for (size_type j=0; j < (this->bs[i]).size(); ++j) {
-            ASSERT_EQ((bool)(this->bs[i][j]), (bool)(bs_empty[j])) << " at index "<<j<<" of vector "<<i<<" of length "<<(this->bs[i]).size();
-        }
+    bit_vector bv;
+    ASSERT_TRUE(load_from_file(bv, test_file));
+    TypeParam c_bv(bv);
+    ASSERT_EQ(bv.size(), c_bv.size());
+    TypeParam bv_empty;
+    ASSERT_EQ((uint64_t)0, bv_empty.size());
+    bv_empty.swap(c_bv);
+    ASSERT_EQ((uint64_t)0, c_bv.size());
+    ASSERT_EQ(bv.size(), bv_empty.size());
+    for (uint64_t j=0; j < bv.size(); ++j) {
+        ASSERT_EQ((bool)(bv[j]), (bool)(bv_empty[j]));
     }
 }
 
 }// end namespace
 
-int main(int argc, char** argv)
+int main(int argc, char* argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
+    if (argc < 2) {
+        cout << "Usage: " << argv[0] << " FILE " << endl;
+        cout << "  Reads a bitvector from FILE and executes tests." << endl;
+        return 1;
+    }
+    test_file = argv[1];
     return RUN_ALL_TESTS();
 }
 

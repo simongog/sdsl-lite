@@ -251,31 +251,5 @@ std::string time_string()
 
 }// end namespace util
 
-
-std::vector<std::string> paths_from_config_file(const std::string& file, const char* prefix)
-{
-    std::ifstream config_in(file.c_str());
-    if (config_in) {  // opened file successfully
-        std::vector<std::string> result;
-        const size_t name_max_size = 1024;
-        char* name = new char [name_max_size];
-        while (config_in.getline(name, name_max_size)) {
-            if (strlen(name) > 0 and '#' != name[0]) {  // check empty line and comment
-                std::string path = std::string(name);
-                if (prefix != NULL) {
-                    path = std::string(prefix) + "/" + path;
-                }
-                result.push_back(path);
-            }
-        }
-        delete [] name;
-        return result;
-    } else {
-        std::cerr << "WARNING: Could not open config file: `";
-        std::cerr << file << "`" << std::endl;
-        return std::vector<std::string>();
-    }
-}
-
 }// end namespace sdsl
 
