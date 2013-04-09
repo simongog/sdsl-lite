@@ -16,13 +16,13 @@ int main()
         char* text = new char[BUF_SIZE];
         while (cin.getline(text, BUF_SIZE)) {
             construct_im(cst, (const char*)text, 'd');
-            printf("   i  SA LCP     T\n");
+            cout << "   i  SA LCP     T" << endl;
             for (uint64_t i=0; i <cst.csa.size(); ++i) {
-                printf("%4llu %3llu %3llu     ", i, cst.csa[i], cst.lcp[i]);
+                cout << std::setw(4) << i << std::setw(3) << cst.csa[i] << std::setw(3) << cst.lcp[i];
                 for (uint64_t j=cst.csa[i]; j < cst.csa.size(); ++j) {
-                    printf("%llu ", (uint64_t)cst.csa.text[j]);
+                    cout << (uint64_t)cst.csa.text[j];
                 }
-                printf("\n");
+                cout << endl;
             }
         }
     }
