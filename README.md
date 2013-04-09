@@ -207,11 +207,9 @@ A cheat sheet can be generated my running make in the
 
 ## Tests
 
-We have used the gtest framework for the tests.
-Compile with `make` and run tests with `make test`. We have another
-target `vtest` which runs the test with the valgrind tool.
-`make test` will try to download some texts from a
-gutenberg.org mirror. See the README file in the directory for details.
+The [test](./test) directory contains test code for many library
+structures. We use [googletest][GTEST] framework and [make][MAKE]
+to run the tests. See the README file in the directory for details.
 
 ## Benchmarks
 
@@ -254,6 +252,7 @@ Bug reports:
 [pz]: http://pizzachili.di.unipi.it/ "Pizza&amp;Chli"
 [d3js]: http://d3js.org "D3JS library"
 [cmake]: http://www.cmake.org/ "CMake tool"
+[MAKE]: http://www.gnu.org/software/make/ "GNU Make"
 [gcc]: http://gcc.gnu.org/ "GNU Compiler Collection"
 [DBLPCSTRES]: http://people.eng.unimelb.edu.au/sgog/sdsl_explore/dblp.xml.100MB_cst_sada_wt_rlmn_lcp_tree2.html "CST visualization"
 [SPE]: http://people.eng.unimelb.edu.au/sgog/optimized.pdf "Preprint SP&amp;E article"

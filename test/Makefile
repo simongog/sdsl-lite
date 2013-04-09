@@ -156,10 +156,6 @@ test_cases/bit-vec.%: BitVectorGenerator.x
 %.x:%.cpp /Users/sgog/lib/libsdsl.a
 	$(CC) $(CC_FLAGS) -o $@ $< $(CCLIB) 
 
-#vtest:
-#	./test_cases/small/get_corpus.sh
-#	$(EXEC_LIST_VAL)
-
 test_cases/%: 
 	$(eval URL:=$(call config_filter,download.config,$@,2))
 	@$(if $(URL),,\
