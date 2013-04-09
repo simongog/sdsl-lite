@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
         if (i+len > x) {
             len = x-i;
         }
-        fread((char*)buf, 1, len, f);
+        size_t read = fread((char*)buf, 1, len, f);
         for (size_t j=0; j<len/BPI; ++j) {
             if (buf[j] > max)
                 max = buf[j];
@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
         if (i+len > x) {
             len = x-i;
         }
-        fread((char*)buf, 1, len, f);
+        size_t read = fread((char*)buf, 1, len, f);
         for (size_t j=0; j<len/BPI; ++j) {
             v[j] = buf[j];
         }
