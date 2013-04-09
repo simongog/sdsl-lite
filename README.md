@@ -219,7 +219,7 @@ running experiments in the [benchmark](./benchmark) directory.
 ## Examples
 
 Compile the examples with `make` and experience
-how esay it is to use succinct data structures.
+how easy it is to use succinct data structures.
 
 
 ## Construction of Suffix Arrays
@@ -235,18 +235,24 @@ construction algorithms.
 
 ## Contributors
 
-Here is a list of contributes:
+This project profits from excellent input of many coders. Timo Beller improved the construction
+process during the last month and Matthias Petri contributed new bitvectors and helped a lot
+in making the library more accessible. Stefan Arnold helped us with tricky template questions.
+We a grateful to Kalle Karhu, Dominik Kempa, and Shanika Kuruppu for bug reports.
 
-Code:
-  * Stefan Arnold
-  * Timo Beller
-  * Simon Gog
-  * Shanika Kuruppu
-  * Matthias Petri
+## References
 
-Bug reports:
-  * Kalle Karhu
-  * Dominik Kempa
+The header file of each data structure should contain all relevant references for the
+data structure. If you find a header file, where a reference is missing, please contact
+Simon.
+
+
+The latest paper about the library itself is:
+
+
+ * Simon Gog, Matthias Petri: _Optimized Succinct Data Structures for Massive Data_,
+   Accepted for publication in Software, Practice and Experience.
+
 
 [STL]: http://www.sgi.com/tech/stl/ "Standart Template Library"
 [pz]: http://pizzachili.di.unipi.it/ "Pizza&amp;Chli"
@@ -258,3 +264,4 @@ Bug reports:
 [SPE]: http://people.eng.unimelb.edu.au/sgog/optimized.pdf "Preprint SP&amp;E article"
 [DIVSUF]: http://code.google.com/p/libdivsufsort/ "libdivsufsort"
 [LS]: http://www.sciencedirect.com/science/article/pii/S0304397507005257 "Larson &amp; Sadakane Algorithm"
+[GTEST]: https://code.google.com/p/googletest/ "Google C++ Testing Framework"

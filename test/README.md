@@ -28,6 +28,8 @@ Two tools have to be installed for the downloading and extracting process:
  * [cURL][CURL] is required by the test input download script.
  * [gzip][GZIP] is required to extract compressed files.
 
+Executing `make test` should take about 30 minutes on a recent machine. 
+
 You can run also run the test with the [valgrind][VG] tool by
 calling `make PREFIX=valgrind test`.
 
