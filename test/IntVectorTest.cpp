@@ -44,7 +44,7 @@ TEST_F(IntVectorTest, DefaultConstruct)
 {
     {
         sdsl::int_vector<> iv;
-        ASSERT_EQ((size_type)0, iv.size());			   // size should be 0
+        ASSERT_EQ((size_type)0, iv.size());	   // size should be 0
         ASSERT_EQ((uint8_t)64, iv.width());   // default width of each element should be 64 bits
     }
     {
