@@ -153,7 +153,7 @@ test_cases/bit-vec.%: BitVectorGenerator.x
 	@echo "Generate input test_cases/bit-vec.$*"
 	@./BitVectorGenerator.x $@ $*
 
-%.x:%.cpp /Users/sgog/lib/libsdsl.a
+%.x:%.cpp 
 	$(CC) $(CC_FLAGS) -o $@ $< $(CCLIB) 
 
 test_cases/%: 
