@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
             len = x-i;
         }
         size_t read = fread((char*)buf, 1, len, f);
-        for (size_t j=0; j<len/BPI; ++j) {
+        for (size_t j=0; j<len/BPI and read; ++j) {
             if (buf[j] > max)
                 max = buf[j];
 //			cout<<" "<<buf[j]<<endl;
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
             len = x-i;
         }
         size_t read = fread((char*)buf, 1, len, f);
-        for (size_t j=0; j<len/BPI; ++j) {
+        for (size_t j=0; j<len/BPI and read; ++j) {
             v[j] = buf[j];
         }
         fwrite((char*)v.data(), 8, ((len/BPI*width+63)/64), of);
