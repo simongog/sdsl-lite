@@ -25,9 +25,10 @@ static const char STRUCTURE_TREE_CLASS_NAME_KEY[] = "class_name";
 
 class structure_tree; // forward declaration
 
-namespace util{
+namespace util
+{
 template<typename T>
-std::string to_string(const T&); // forward declaration
+std::string to_string(const T&, int w=1); // forward declaration
 }
 
 //! Class for a node of the structure tree
@@ -41,9 +42,9 @@ class structure_tree_node
         vector<structure_tree_node*> 	m_children;
         map<std::string, std::string> 	m_key_values;
         void copy(const structure_tree_node& v);
-		void delete_children();
-		bool equal_key_value_pairs(const tKeyValue& kv1, const tKeyValue& kv2)const;
-	public:
+        void delete_children();
+        bool equal_key_value_pairs(const tKeyValue& kv1, const tKeyValue& kv2)const;
+    public:
 
         structure_tree_node*&			 parent;
         vector<structure_tree_node*>&	 children;
@@ -73,16 +74,16 @@ class structure_tree_node
         void add_key_value(const std::string& key, const std::string& value);
         void add_size(uint64_t value);
 
-		//! Adds the size values of structure_tree_node v recursively to that of the current node.
-		/*! \return True, if the recursive structure of both nodes is exactly the same and 
-		 *          the size values were integers. 
-		 */
-		bool merge(const structure_tree_node &v);
+        //! Adds the size values of structure_tree_node v recursively to that of the current node.
+        /*! \return True, if the recursive structure of both nodes is exactly the same and
+         *          the size values were integers.
+         */
+        bool merge(const structure_tree_node& v);
 
-	private:
-		bool equal_structure(const structure_tree_node &v)const;
+    private:
+        bool equal_structure(const structure_tree_node& v)const;
 
-		void rec_merge(const structure_tree_node &v);
+        void rec_merge(const structure_tree_node& v);
 };
 
 class structure_tree
@@ -91,7 +92,7 @@ class structure_tree
         static structure_tree_node* add_child(structure_tree_node* v, const std::string& name, const std::string& class_name);
         static void add_size(structure_tree_node* v, uint64_t value);
         static structure_tree_node* parent(const structure_tree_node* v);
-		static bool merge_children(structure_tree_node *v);
+        static bool merge_children(structure_tree_node* v);
 };
 
 
