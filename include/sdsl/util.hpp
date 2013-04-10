@@ -188,7 +188,7 @@ std::string demangle2(const std::string& name);
 
 //! Convert type to string
 template<typename T>
-std::string to_string(const T& t);
+std::string to_string(const T& t, int w=1);
 
 
 
@@ -618,10 +618,10 @@ typename t_int_vec::size_type util::prev_bit(const t_int_vec& v, uint64_t idx)
 }
 
 template<typename T>
-std::string util::to_string(const T& t)
+std::string util::to_string(const T& t, int w)
 {
     std::stringstream ss;
-    ss<<t;
+    ss<<std::setw(w)<<t;
     return ss.str();
 }
 
