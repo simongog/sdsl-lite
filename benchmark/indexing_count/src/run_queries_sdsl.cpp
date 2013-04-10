@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
     load_from_file(csa, (string(argv[1]) + "." + string(SUF)).c_str());
     Load_time = getTime() - Load_time;
     fprintf(stderr, "# Load_index_time_in_sec = %.2f\n", Load_time);
-    fprintf(stderr, "# text_size = %lld\n", csa.size()-1);
+    fprintf(stderr, "# text_size = %llu\n", csa.size()-1);
 
     Index_size = size_in_bytes(csa);
     Text_length = csa.size()-1; // -1 since we added a sentinel character
