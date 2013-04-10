@@ -68,9 +68,9 @@ void construct_lcp_semi_extern_PHI(cache_config& config)
     }
     util::write_R_output("lcp", "calculate sparse plcp", "end", 1, 0);
 
-    std::ofstream lcp_out_buf(cache_file_name(constants::KEY_LCP, config).c_str(), std::ios::binary | std::ios::app | std::ios::out);   // open buffer for plcp
+    osfstream lcp_out_buf(cache_file_name(constants::KEY_LCP, config), std::ios::binary | std::ios::trunc);   // open buffer for plcp
     size_type bit_size = n*sa_buf.width;
-    lcp_out_buf.write((char*) &(bit_size), sizeof(sa_buf.int_vector_size));		// write size of vector
+    lcp_out_buf.write((char*) &(bit_size), sizeof(sa_buf.int_vector_size));	// write size of vector
     lcp_out_buf.write((char*) &(sa_buf.width), sizeof(sa_buf.width));       // write int_width of vector
     size_type wb = 0;
 
@@ -440,7 +440,7 @@ void construct_lcp_go(cache_config& config)
         int_vector_file_buffer<> lcp_big_buf(cache_file_name("lcp_big", config)); 				// file buffer containing the big LCP values
         int_vector_file_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config), buffer_size);// file buffer containing the small LCP values
 
-        std::ofstream lcp_out_buf(cache_file_name(constants::KEY_LCP, config).c_str(), std::ios::binary | std::ios::trunc | std::ios::out);    // open out file stream
+        osfstream lcp_out_buf(cache_file_name(constants::KEY_LCP, config), std::ios::binary | std::ios::trunc);    // open out file stream
         int_vector<> lcp_buf(buffer_size, 0, lcp_big_buf.width); // buffer for the resulting LCP array
         size_type bit_size = n*lcp_big_buf.width;
         lcp_out_buf.write((char*) &(bit_size), sizeof(lcp_big_buf.int_vector_size));		   // write size
@@ -755,7 +755,7 @@ void construct_lcp_goPHI(cache_config& config)
         int_vector_file_buffer<> lcp_big_buf(cache_file_name("lcp_big", config)); 				// file buffer containing the big LCP values
         int_vector_file_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config), buffer_size);// file buffer containing the small LCP values
 
-        std::ofstream lcp_out_buf((cache_file_name(constants::KEY_LCP, config)).c_str(), std::ios::binary | std::ios::trunc | std::ios::out);    // open out file stream
+        osfstream lcp_out_buf(cache_file_name(constants::KEY_LCP, config), std::ios::binary | std::ios::trunc);    // open out file stream
         int_vector<> lcp_buf(buffer_size, 0, lcp_big_buf.width); // buffer for the resulting LCP array
         size_type bit_size = n*lcp_big_buf.width;
         lcp_out_buf.write((char*) &(bit_size), sizeof(lcp_big_buf.int_vector_size));		   // write size
