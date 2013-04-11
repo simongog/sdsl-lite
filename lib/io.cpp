@@ -91,6 +91,17 @@ bool load_from_file(char*& v, const std::string& file_name)
         return false;
 }
 
+uint64_t _parse_number(std::string::const_iterator& c, const std::string::const_iterator& end)
+{
+    std::string::const_iterator s = c;
+    while (c != end and isdigit(*c)) ++c;
+    if (c > s) {
+        return atoll(std::string(s,c).c_str());
+    } else {
+        return 0;
+    }
+}
+
 std::string cache_file_name(const std::string& key, const cache_config& config)
 {
     return config.dir+"/"+key+"_"+config.id+".sdsl";

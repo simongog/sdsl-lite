@@ -51,12 +51,12 @@ namespace sdsl
   *  \sa sdsl::csa_wt, sdsl::csa_bitcompressed
   * @ingroup csa
  */
-template<class t_enc_vec          = enc_vector<>,          // Vector type used to store the Psi-function
-         uint32_t t_dens          = 32,                    // Sample density for suffix array (SA) values
+template<class t_enc_vec         = enc_vector<>,          // Vector type used to store the Psi-function
+         uint32_t t_dens         = 32,                    // Sample density for suffix array (SA) values
          uint32_t t_inv_dens     = 64,                    // Sample density for inverse suffix array (ISA) values
          class t_sa_sample_strat = sa_order_sa_sampling<>,// Policy class for the SA sampling. Alternative text_order_sa_sampling.
          class t_isa             = int_vector<>,          // Container for the ISA samples.
-         class t_alphabet_strat  = byte_alphabet_strategy // Policy class for the representation of the alphabet.
+         class t_alphabet_strat  = byte_alphabet          // Policy class for the representation of the alphabet.
          >
 class csa_sada
 {
@@ -65,30 +65,31 @@ class csa_sada
                isa_sample_dens = t_inv_dens
              };
 
-        typedef uint64_t                                                          value_type;    // STL Container requirement
-        typedef random_access_const_iterator<csa_sada>                            const_iterator;// STL Container requirement
-        typedef const_iterator                                                    iterator;        // STL Container requirement
-        typedef const value_type                                                  const_reference;
-        typedef const_reference                                                   reference;
-        typedef const_reference*                                                  pointer;
-        typedef const pointer                                                     const_pointer;
-        typedef int_vector<>::size_type                                           size_type;        // STL Container requirement
-        typedef size_type                                                         csa_size_type;
-        typedef ptrdiff_t                                                         difference_type; // STL Container requirement
-        typedef t_enc_vec                                                         enc_vector_type;
-        typedef psi_of_csa_psi<csa_sada>                                          psi_type;
-        typedef bwt_of_csa_psi<csa_sada>                                          bwt_type;
-        typedef text_of_csa<csa_sada>                                             text_type;
-        typedef typename t_sa_sample_strat::template type<csa_sada>::sample_type  sa_sample_type;
-        typedef t_isa                                                             isa_sample_type;
-        typedef t_alphabet_strat                                                  alphabet_type;
-        typedef typename alphabet_type::alphabet_category                         alphabet_category;
-        typedef typename alphabet_type::comp_char_type                            comp_char_type;
-        typedef typename alphabet_type::char_type                                 char_type; // Note: This is the char type of the CSA not the WT!
-        typedef const char_type*                                                  pattern_type;
+        typedef uint64_t                                                         value_type;
+        typedef random_access_const_iterator<csa_sada>                           const_iterator;
+        typedef const_iterator                                                   iterator;
+        typedef const value_type                                                 const_reference;
+        typedef const_reference                                                  reference;
+        typedef const_reference*                                                 pointer;
+        typedef const pointer                                                    const_pointer;
+        typedef int_vector<>::size_type                                          size_type;
+        typedef size_type                                                        csa_size_type;
+        typedef ptrdiff_t                                                        difference_type;
+        typedef t_enc_vec                                                        enc_vector_type;
+        typedef psi_of_csa_psi<csa_sada>                                         psi_type;
+        typedef bwt_of_csa_psi<csa_sada>                                         bwt_type;
+        typedef text_of_csa<csa_sada>                                            text_type;
+        typedef typename t_sa_sample_strat::template type<csa_sada>::sample_type sa_sample_type;
+        typedef t_isa                                                            isa_sample_type;
+        typedef t_alphabet_strat                                                 alphabet_type;
+        typedef typename alphabet_type::alphabet_category                        alphabet_category;
+        typedef typename alphabet_type::comp_char_type                           comp_char_type;
+        typedef typename alphabet_type::char_type                                char_type; // Note: This is the char type of the CSA not the WT!
+        typedef const char_type*                                                 pattern_type;
+        typedef csa_sada                                                         csa_type;
 
-        typedef csa_tag                                                           index_category;
-        typedef psi_tag                                                           extract_category;
+        typedef csa_tag                                                          index_category;
+        typedef psi_tag                                                          extract_category;
 
         friend class psi_of_csa_psi<csa_sada>; // for access of m_psi
 

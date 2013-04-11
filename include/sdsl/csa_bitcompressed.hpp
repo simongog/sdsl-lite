@@ -55,30 +55,31 @@ namespace sdsl
  * \sa sdsl::csa_sada, sdsl::csa_wt
  * @ingroup csa
  */
-template<class t_alphabet_strat=byte_alphabet_strategy>
+template<class t_alphabet_strat=byte_alphabet>
 class csa_bitcompressed
 {
     public:
-        typedef uint64_t                                         value_type;    // STL Container requirement
-        typedef random_access_const_iterator<csa_bitcompressed>  const_iterator;// STL Container requirement
-        typedef const_iterator                                   iterator;        // STL Container requirement
-        typedef const value_type                                 const_reference;
-        typedef const_reference                                  reference;
-        typedef const_reference*                                 pointer;
-        typedef const pointer                                    const_pointer;
-        typedef int_vector<>::size_type                          size_type;        // STL Container requirement
-        typedef size_type                                        csa_size_type;
-        typedef ptrdiff_t                                        difference_type; // STL Container requirement
-        typedef psi_of_sa_and_isa<csa_bitcompressed>             psi_type;
-        typedef bwt_of_csa_psi<csa_bitcompressed>                bwt_type;
-        typedef text_of_csa<csa_bitcompressed>                   text_type;
-        typedef _sa_order_sampling_strategy<csa_bitcompressed,0> sa_sample_type;
-        typedef int_vector<>                                     isa_sample_type;
-        typedef t_alphabet_strat                                 alphabet_type;
-        typedef typename alphabet_type::char_type                char_type; // Note: This is the char type of the CSA not the WT!
-        typedef typename alphabet_type::comp_char_type           comp_char_type;
-        typedef typename alphabet_type::alphabet_category        alphabet_category;
-        typedef const char_type*                                 pattern_type;
+        typedef uint64_t                                        value_type;    // STL Container requirement
+        typedef random_access_const_iterator<csa_bitcompressed> const_iterator;// STL Container requirement
+        typedef const_iterator                                  iterator;        // STL Container requirement
+        typedef const value_type                                const_reference;
+        typedef const_reference                                 reference;
+        typedef const_reference*                                pointer;
+        typedef const pointer                                   const_pointer;
+        typedef int_vector<>::size_type                         size_type;        // STL Container requirement
+        typedef size_type                                       csa_size_type;
+        typedef ptrdiff_t                                       difference_type; // STL Container requirement
+        typedef psi_of_sa_and_isa<csa_bitcompressed>            psi_type;
+        typedef bwt_of_csa_psi<csa_bitcompressed>               bwt_type;
+        typedef text_of_csa<csa_bitcompressed>                  text_type;
+        typedef _sa_order_sampling<csa_bitcompressed,0>         sa_sample_type;
+        typedef int_vector<>                                    isa_sample_type;
+        typedef t_alphabet_strat                                alphabet_type;
+        typedef typename alphabet_type::char_type               char_type; // Note: This is the char type of the CSA not the WT!
+        typedef typename alphabet_type::comp_char_type          comp_char_type;
+        typedef typename alphabet_type::alphabet_category       alphabet_category;
+        typedef const char_type*                                pattern_type;
+        typedef csa_bitcompressed                               csa_type;
 
         typedef csa_tag                                         index_category;
         typedef psi_tag                                         extract_category;

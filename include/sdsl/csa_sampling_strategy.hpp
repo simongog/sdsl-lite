@@ -57,7 +57,7 @@ namespace sdsl
 {
 
 template<class t_csa, uint8_t t_width=0>
-class _sa_order_sampling_strategy : public int_vector<t_width>
+class _sa_order_sampling : public int_vector<t_width>
 {
     public:
         typedef int_vector<t_width> base_type;
@@ -66,7 +66,7 @@ class _sa_order_sampling_strategy : public int_vector<t_width>
         enum { sample_dens = t_csa::sa_sample_dens };
 
         //! Default constructor
-        _sa_order_sampling_strategy() {}
+        _sa_order_sampling() {}
 
         //! Constructor
         /*
@@ -75,7 +75,7 @@ class _sa_order_sampling_strategy : public int_vector<t_width>
          * \par Time complexity
          *      Linear in the size of the suffix array.
          */
-        _sa_order_sampling_strategy(int_vector_file_buffer<>& sa_buf, SDSL_UNUSED const t_csa* csa=NULL) {
+        _sa_order_sampling(int_vector_file_buffer<>& sa_buf, SDSL_UNUSED const t_csa* csa=NULL) {
             size_type n = sa_buf.int_vector_size;
             this->width(bits::hi(n)+1);
             this->resize((n+sample_dens-1)/sample_dens);
@@ -112,7 +112,7 @@ class sa_order_sa_sampling
         class type            // sampling strategy class with the Sampling density of the CSA
         {
             public:
-                typedef _sa_order_sampling_strategy<t_csa, t_width> sample_type;
+                typedef _sa_order_sampling<t_csa, t_width> sample_type;
         };
 };
 
@@ -122,7 +122,7 @@ template<class t_csa,
          class rank_support_type=typename bit_vector_type::rank_1_type,
          uint8_t t_width=0
          >
-class _text_order_sampling_strategy : public int_vector<t_width>
+class _text_order_sampling : public int_vector<t_width>
 {
     private:
         bit_vector_type		m_marked;
@@ -134,7 +134,7 @@ class _text_order_sampling_strategy : public int_vector<t_width>
         enum { sample_dens = t_csa::sa_sample_dens };
 
         //! Default constructor
-        _text_order_sampling_strategy() {}
+        _text_order_sampling() {}
 
         //! Constructor
         /*
@@ -143,7 +143,7 @@ class _text_order_sampling_strategy : public int_vector<t_width>
          * \par Time complexity
          *      Linear in the size of the suffix array.
          */
-        _text_order_sampling_strategy(int_vector_file_buffer<>& sa_buf, SDSL_UNUSED const t_csa* csa=NULL) {
+        _text_order_sampling(int_vector_file_buffer<>& sa_buf, SDSL_UNUSED const t_csa* csa=NULL) {
             size_type n = sa_buf.int_vector_size;
             bit_vector marked(n, 0);                // temporary bitvector for the marked text positions
             this->width(bits::hi(n)+1);
@@ -165,7 +165,7 @@ class _text_order_sampling_strategy : public int_vector<t_width>
         }
 
         //! Copy constructor
-        _text_order_sampling_strategy(const _text_order_sampling_strategy& st) : base_type(st) {
+        _text_order_sampling(const _text_order_sampling& st) : base_type(st) {
             m_marked = st.m_marked;
             m_rank_marked = st.m_rank_marked;
             m_rank_marked.set_vector(&m_marked);
@@ -182,7 +182,7 @@ class _text_order_sampling_strategy : public int_vector<t_width>
         }
 
         //! Assignment operation
-        _text_order_sampling_strategy& operator=(const _text_order_sampling_strategy& st) {
+        _text_order_sampling& operator=(const _text_order_sampling& st) {
             if (this != &st) {
                 base_type::operator=(st);
                 m_marked = st.m_marked;
@@ -193,7 +193,7 @@ class _text_order_sampling_strategy : public int_vector<t_width>
         }
 
         //! Swap operation
-        void swap(_text_order_sampling_strategy& st) {
+        void swap(_text_order_sampling& st) {
             base_type::swap(st);
             m_marked.swap(st.m_marked);
             util::swap_support(m_rank_marked, st.m_rank_marked, &m_marked, &(st.m_marked));
@@ -225,7 +225,7 @@ class text_order_sa_sampling
         class type            // sampling strategy class with the Sampling density of the CSA
         {
             public:
-                typedef _text_order_sampling_strategy<t_csa,
+                typedef _text_order_sampling<t_csa,
                         t_bit_vec,
                         t_rank_sup,
                         t_width
@@ -241,11 +241,11 @@ class one_character_sampling{
 		template<class Csa> // template inner class which is used in CSAs to parametrize the
 		class type{         // sampling strategy class with the Sampling density of the CSA
 			public:
-			typedef _one_character_sampling_strategy<Csa, t_width> sample_type;
+			typedef _one_character_sampling<Csa, t_width> sample_type;
 		};
 };
 */
-// TODO: implement _one_character_sampling_strategy
+// TODO: implement _one_character_sampling
 
 } // end namespace
 

@@ -22,7 +22,7 @@ namespace sdsl
 const char* key_trait<8>::KEY_BWT = constants::KEY_BWT;
 const char* key_trait<8>::KEY_TEXT = constants::KEY_TEXT;
 
-byte_alphabet_strategy::byte_alphabet_strategy(int_vector_file_buffer<8>& text_buf, int_vector_size_type len):
+byte_alphabet::byte_alphabet(int_vector_file_buffer<8>& text_buf, int_vector_size_type len):
     char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma)
 {
     m_sigma = 0;
@@ -59,12 +59,12 @@ byte_alphabet_strategy::byte_alphabet_strategy(int_vector_file_buffer<8>& text_b
 }
 
 
-byte_alphabet_strategy::byte_alphabet_strategy(): char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma)
+byte_alphabet::byte_alphabet(): char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma)
 {
     m_sigma = 0;
 }
 
-void byte_alphabet_strategy::copy(const byte_alphabet_strategy& bas)
+void byte_alphabet::copy(const byte_alphabet& bas)
 {
     m_char2comp = bas.m_char2comp;
     m_comp2char = bas.m_comp2char;
@@ -72,12 +72,12 @@ void byte_alphabet_strategy::copy(const byte_alphabet_strategy& bas)
     m_sigma		= bas.m_sigma;
 }
 
-byte_alphabet_strategy::byte_alphabet_strategy(const byte_alphabet_strategy& bas): char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma)
+byte_alphabet::byte_alphabet(const byte_alphabet& bas): char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma)
 {
     copy(bas);
 }
 
-byte_alphabet_strategy& byte_alphabet_strategy::operator=(const byte_alphabet_strategy& bas)
+byte_alphabet& byte_alphabet::operator=(const byte_alphabet& bas)
 {
     if (this != &bas) {
         copy(bas);
@@ -85,7 +85,7 @@ byte_alphabet_strategy& byte_alphabet_strategy::operator=(const byte_alphabet_st
     return *this;
 }
 
-void byte_alphabet_strategy::swap(byte_alphabet_strategy& bas)
+void byte_alphabet::swap(byte_alphabet& bas)
 {
     m_char2comp.swap(bas.m_char2comp);
     m_comp2char.swap(bas.m_comp2char);
@@ -93,7 +93,7 @@ void byte_alphabet_strategy::swap(byte_alphabet_strategy& bas)
     std::swap(m_sigma, bas.m_sigma);
 }
 
-byte_alphabet_strategy::size_type byte_alphabet_strategy::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
+byte_alphabet::size_type byte_alphabet::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
@@ -105,7 +105,7 @@ byte_alphabet_strategy::size_type byte_alphabet_strategy::serialize(std::ostream
     return written_bytes;
 }
 
-void byte_alphabet_strategy::load(std::istream& in)
+void byte_alphabet::load(std::istream& in)
 {
     m_char2comp.load(in);
     m_comp2char.load(in);

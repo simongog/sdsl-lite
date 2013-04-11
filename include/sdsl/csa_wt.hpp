@@ -58,12 +58,12 @@ class bwt_of_csa_wt;   // forward declaration of BWT-array class
   *  \sa sdsl::csa_sada, sdsl::csa_bitcompressed
   * @ingroup csa
  */
-template<class t_wt              = wt_huff<>,                // Wavelet tree type
-         uint32_t t_dens         = 32,                       // Sample density for suffix array (SA) values
-         uint32_t t_inv_dens     = 64,                       // Sample density for inverse suffix array (ISA) values
-         class t_sa_sample_strat = sa_order_sa_sampling<>,   // Policy class for the SA sampling. Alternative text_order_sa_sampling.
-         class t_isa             = int_vector<>,             // Container for the ISA samples.
-         class t_alphabet_strat  = byte_alphabet_strategy    // Policy class for the representation of the alphabet.
+template<class t_wt              = wt_huff<>,              // Wavelet tree type
+         uint32_t t_dens         = 32,                     // Sample density for suffix array (SA) values
+         uint32_t t_inv_dens     = 64,                     // Sample density for inverse suffix array (ISA) values
+         class t_sa_sample_strat = sa_order_sa_sampling<>, // Policy class for the SA sampling. Alternative text_order_sa_sampling.
+         class t_isa             = int_vector<>,           // Container for the ISA samples.
+         class t_alphabet_strat  = byte_alphabet           // Policy class for the representation of the alphabet.
          >
 class csa_wt
 {
@@ -92,6 +92,7 @@ class csa_wt
         typedef typename alphabet_type::char_type                              char_type; // Note: This is the char type of the CSA not the WT!
         typedef typename alphabet_type::comp_char_type                         comp_char_type;
         typedef const char_type*                                               pattern_type;
+        typedef csa_wt                                                         csa_type;
 
         typedef csa_tag                                                        index_category;
         typedef lf_tag                                                         extract_category;
