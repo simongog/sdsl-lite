@@ -22,7 +22,13 @@
 #define INCLUDED_SDSL_IO
 
 #include "util.hpp"
-#include "sdsl/structure_tree.hpp"
+#include "sdsl_concepts.hpp"
+#include "structure_tree.hpp"
+#include <algorithm>
+#include <string>
+#include <vector>
+#include <iostream>
+#include <cctype>
 
 namespace sdsl
 {
@@ -264,6 +270,118 @@ void write_structure(const X& x, std::ostream& out)
     }
     delete v;
 }
+
+//! Internal function used by csXprintf
+uint64_t _parse_number(std::string::const_iterator& c, const std::string::const_iterator& end);
+
+//! Internal function used by csXprintf
+template<class t_csa>
+const t_csa& _idx_csa(const t_csa& t, csa_tag)
+{
+    return t;
+};
+
+//! Internal function used by csXprintf
+template<class t_cst>
+const typename t_cst::csa_type& _idx_csa(const t_cst& t, cst_tag)
+{
+    return t.csa;
+};
+
+//! Internal function used by csXprintf
+template<class t_csa>
+std::string _idx_lcp_val(const t_csa&, uint64_t, uint64_t, csa_tag)
+{
+    return "";
+}
+
+//! Internal function used by csXprintf
+template<class t_cst>
+std::string _idx_lcp_val(const t_cst& t, uint64_t i, uint64_t w, cst_tag)
+{
+    return util::to_string(t.lcp[i], w);
+}
+
+//! Prints members of CSAs and CSTs
+/*! This is a printf like method to write members of CSAs and CSTs into an outstream.
+ * \tparam t_idx   Type of the index. Class should be of concept csa_tag or cst_tag.
+ * \param out      Output stream.
+ * \param format   Format string. See explanation below.
+ * \param idx      CSA or CST object.
+ * \param sentinel Character which should replace the \0-symbol in BWT/ TEXT.
+ *
+ * \par Format string
+ *   Each line of the output will be formatted according to the format string.
+ *   All content, except tokens which start with `%` will be copied to. Tokens
+ *   which stat with `%` will be replaced as follows (let w be a positive
+ *    number. setw(w) is used to format single numbers):
+ *
+ *      Token      |  Replacement | Comment
+ *      -----------------------------------------------------------------------
+ *       %[w]I     | Row index i.                           |
+ *       %[w]S     | SA[i]                                  |
+ *       %[w]s     | ISA[i]                                 |
+ *       %[w]P     | PSI[i]                                 |
+ *       %[w]p     | LF[i]                                  |
+ *       %[w]L     | LCP[i]                                 | only for CSTs
+ *       %[w]B     | BWT[i]                                 |
+ *       %[w[:W]]T | Print min(idx.size(),w) chars of each  |
+ *                 | suffix, each char formatted by setw(W).|
+ *       %%        | %                                      |
+ */
+template<class t_idx>
+void csXprintf(std::ostream& out, const std::string& format, const t_idx& idx, char sentinel='$')
+{
+    typename t_idx::index_category cat;
+    const typename t_idx::csa_type& csa = _idx_csa(idx, cat);
+    vector<std::string> res(csa.size());
+    for (std::string::const_iterator c = format.begin(), s=c; c != format.end(); s=c) {
+        while (c != format.end() and *c != '%') ++c;   // string before the next `%`
+        if (c > s) {  // copy format string part
+            vector<std::string> to_copy(csa.size(), std::string(s, c));
+            transform(res.begin(), res.end(), to_copy.begin(), res.begin(), std::plus<std::string>());
+        }
+        if (c == format.end()) break;
+        ++c; // skip `%`
+        uint64_t w = _parse_number(c, format.end());  // element width
+        if (c == format.end()) break;
+        uint64_t W = 0; // character width
+        if (':' == *c) {
+            ++c;
+            W = _parse_number(c, format.end());
+        }
+        if (c == format.end()) break;
+        for (uint64_t i=0; i<csa.size(); ++i) {
+            switch (*c) {
+                case 'I': res[i] += util::to_string(i,w); break;
+                case 'S': res[i] += util::to_string(csa[i],w); break;
+                case 's': res[i] += util::to_string(csa(i),w); break;
+                case 'P': res[i] += util::to_string(csa.psi[i],w); break;
+                case 'p': res[i] += util::to_string(csa.psi(i),w); break;
+                case 'L': res[i] += _idx_lcp_val(idx,i,w, cat); break;
+                case 'B': if (0 == csa.bwt[i]) {
+                        res[i] += util::to_string(sentinel,w);
+                    } else {
+                        res[i] += util::to_string(csa.bwt[i],w);
+                    }
+                    break;
+                case 'T': for (uint64_t k=0; (w>0 and k < w) or (0==w and k < csa.size()); ++k) {
+                        if (0 == csa.text[(csa[i]+k)%csa.size()]) {
+                            res[i] += util::to_string(sentinel, W);
+                        } else {
+                            res[i] += util::to_string(csa.text[(csa[i]+k)%csa.size()], W);
+                        }
+                    }
+                    break;
+                case '%': res[i] += "%"; break;
+            }
+        }
+        ++c;
+    }
+    for (size_t i=0; i<res.size(); ++i) out << res[i] << std::endl;
+}
+
+
 
 //! Returns the file name of the resource.
 /*!

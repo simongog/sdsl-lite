@@ -28,9 +28,9 @@ typedef Types<  csa_wt<>,
         csa_wt<wt_huff<>, 8, 16, text_order_sa_sampling<> >,
         csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<> >,
         csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, int_vector<>,
-        succinct_byte_alphabet_strategy<bit_vector, rank_support_v<>, select_support_mcl<> > >,
+        succinct_byte_alphabet<bit_vector, rank_support_v<>, select_support_mcl<> > >,
         csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, int_vector<>,
-        succinct_byte_alphabet_strategy<> >,
+        succinct_byte_alphabet<> >,
         csa_sada<>,
         csa_bitcompressed<>
         > Implementations;

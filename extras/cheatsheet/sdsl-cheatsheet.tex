@@ -1,4 +1,9 @@
 \documentclass[10pt,landscape]{article}
+% next two lines required for sdsl command
+\usepackage[T1]{fontenc} 
+\newcommand{\changefont}[3]{\fontfamily{#1}\fontseries{#2}\fontshape{#3}\selectfont} 
+
+\usepackage{color}
 \usepackage{multicol}
 \usepackage{calc}
 \usepackage{ifthen}
@@ -6,6 +11,39 @@
 
 \usepackage{amsmath} 
 \usepackage[colorlinks]{hyperref}
+\usepackage{xcolor}
+
+\usepackage{endnotes} % see http://tex.stackexchange.com/questions/56145/is-there-a-way-to-move-all-footnotes-to-the-end-of-the-document
+\usepackage{hyperendnotes} % see http://tex.stackexchange.com/questions/8452/making-endnotes-clickable-links-with-hyperref
+\let\footnote=\endnote
+
+\definecolor{githublink}{HTML}{4183c4}
+
+% TODO: Add header information for classes:
+%       Almost done, since abbreviations contain link to header
+%
+
+\hypersetup{
+bookmarks=true,         % show bookmarks bar?
+unicode=false,          % non-Latin characters in Acrobat’s bookmarks
+pdftoolbar=true,        % show Acrobat’s toolbar?
+pdfmenubar=true,        % show Acrobat’s menu?
+pdffitwindow=false,     % window fit to page when opened
+pdfstartview={FitH},    % fits the width of the page to the window
+pdftitle={sdsl cheat sheet},    % title
+pdfauthor={Simon Gog},     % author
+pdfsubject={sdsl short reference},   % subject of the document
+pdfcreator={Creator},   % creator of the document
+pdfproducer={Producer}, % producer of the document
+pdfkeywords={keyword1} {key2} {key3}, % list of keywords
+pdfnewwindow=true,      % links in new window
+colorlinks=true,       % false: boxed links; true: colored links
+linkcolor=red,          % color of internal links (change box color with linkbordercolor)
+citecolor=green,        % color of links to bibliography
+filecolor=magenta,      % color of file links
+urlcolor=githublink           % color of external links
+}
+% link color #4183c4
 % To make this come out properly in landscape mode, do one of the following
 % 1.
 %  pdflatex latexsheet.tex
@@ -99,10 +137,16 @@
 
 \newcommand{\Order}[1]{\ensuremath{{\mathcal O}(#1)}}
 
-\newcommand{\sdsl}{\ensuremath{\mathit{sdsl}}}
+
 \newcommand{\sdslgit}{https://github.com/simongog/sdsl-lite/blob/master}
 \newcommand{\sdslgitinc}{\sdslgit/include/sdsl}
 \newcommand{\code}[1]{\texttt{#1}}
+
+%\newcommand{\sdsl}{\ensuremath{\mathit{sdsl}}}
+\newcommand{\sdsl}{%
+{\changefont{cmss}{bx}{n}\href{\sdslgit}{sdsl}%
+}%\changefont{cmr}{m}{n}%
+}
 %%% int vector representations
 \newcommand{\sdslintvector}{\code{int\_vector}}
 \newcommand{\sdslintvectorZ}{\code{int\_vector\textless\textgreater}}
@@ -139,9 +183,9 @@
 \newcommand{\sdslcsasada}{\code{csa\_sada}}
 \newcommand{\sdslcsawt}{\code{csa\_wt}}
 %%%% Alphabet strategy (policy parametrization see Stroustrup C++ 24.4.1)
-\newcommand{\sdslbytealphabetstrategy}{\code{byte\_alphabet\_strategy}}
-\newcommand{\sdslsuccinctbytealphabetstrategy}{\code{succinct\_byte\_alphabet\_strategy}}
-\newcommand{\sdslintalphabetstrategy}{\code{int\_alphabet\_strategy}}
+\newcommand{\sdslbytealphabetstrategy}{\code{byte\_alphabet}}
+\newcommand{\sdslsuccinctbytealphabetstrategy}{\code{succinct\_byte\_alphabet}}
+\newcommand{\sdslintalphabetstrategy}{\code{int\_alphabet}}
 %%%% Alphabet strategy (policy parametrization see Stroustrup C++ 24.4.1)
 \newcommand{\sdslsaordersasampling}{\code{sa\_order\_sa\_sampling}}
 \newcommand{\sdsltextordersasampling}{\code{text\_order\_sa\_sampling}}
@@ -172,17 +216,21 @@
 \end{center}
 
 \section{Data structures}
-The library code is in the sdsl namespace. Either import
+The library code is in the \code{sdsl} namespace. Either import
 the namespace in your program (\code{using~namespace~sdsl;}) or
 qualify all identifieres by a \code{sdsl::}-prefix.
+
+The header which is required to used the data structure
+of each subsection is linked in the heading.
 
 We have two types of data structures in \sdsl.
 \emph{Self-contained} and \emph{support}
 structures. A support object \code{s} can extend
 a self-contained object \code{o} (e.g. add functionality), but 
-requires access to \code{o}. 
+requires access to \code{o}. Support structures contain
+the substring \code{support} in their class names.
 
-\subsection{Unsigned Integer Vectors}
+\subsection{Integer Vectors (\href{\sdslgitinc/vectors.hpp}{IV})}
 The core of the library is the class 
 \href{\sdslgitinc/int_vector.hpp}{\sdslintvector\textless$w$\textgreater}.
 Parameter $w$ corresponds to the fixed length of each
@@ -219,7 +267,7 @@ of integer (has no effect for $w>0$).
 										$\ell$ bits, if \code{$\ell\geq$~v.width()}\\
 \end{tabular}
 
-\subsection{Compressed Unsigned Integer Vectors}
+\subsubsection{Compressed Integer Vectors (\href{\sdslgitinc/vectors.hpp}{CIV})}
 For a vector \code{v}, \href{\sdslgitinc/enc_vector.hpp}{\sdslencvector} stores the
 self-delimiting coded deltas (\code{v[$i\!+\!1$]$-$v[$i$]}). Fast random access is
 achieved by sampling values of \code{v} at rate \code{t\_dens}. Available coder
@@ -252,7 +300,7 @@ Each bitvector can be constructed out of an
 \sdslbitvector\ object.
 
 \subsection{Rank Supports (\href{\sdslgitinc/rank_support.hpp}{RS})}
-RS adds rank functionality to BV. Method
+RSs add rank functionality to BV. Method
 \code{rank($i$)} or \code{operator($i$)} returns the number
 of set bits\footnote{It is also possible to rank \code{0} or
 the patterns \code{10} and \code{01}.} in the prefix $[0..i)$ of the
@@ -275,8 +323,8 @@ supported BV for $i \in [0,n]$.
 Call~\code{util::init\_support(rs, bv)}~to initialize rank
 structure \code{rs} to bitvector \code{bv}. Call \code{rs($i$)} to get $\code{rank(}i\code{)}=\sum_{k=0}^{k<i}\code{bv[}k\code{]}$
 
-\subsection{Select Supports (\href{\sdslgitinc/select_support.hpp}{SS})}\label{sec-SS}
-SS adds select functionality to BV. Let $m$ be the number of set bits
+\subsection{Select Supports (\href{\sdslgitinc/select_support.hpp}{SLS})}\label{sec-SLS}
+SLSs add select functionality to BV. Let $m$ be the number of set bits
 in BV. Method \code{select($i$)} or \code{operator($i$)} return the
 position of the $i$-th set bit%
 \footnote{It is also possible to select \code{0} or
@@ -299,50 +347,54 @@ Call~\code{util::init\_support(ss, bv)}~to initialize \code{ss}
 to bitvector \code{bv}. Call \code{ss($i$)} to get
 $\code{select(}i\code{)}=\min\{j\mid \code{rank(}j\!+\!1\code{)}=i\}$. 
 
-\subsection{Wavelet Trees (\href{\sdslgitinc/wavelet_trees.hpp}{WT})}
-Mention: alphabet strategies
+\subsection{Wavelet Trees (\href{\sdslgitinc/wavelet_trees.hpp}{WT}=BV+RS+SLS)}
+Wavelet trees represent sequences over byte or integer alphabets of size $\sigma$ 
+and consist of a tree of BVs. Rank and select on the sequences is reduced to rank and select on BVs,
+and the runtime is multiplied by a factor in $[H_0,\log\sigma]$.
 \begin{tabular}{@{}ll@{}}
 \textit{Class}    &\textit{Description} \\
 \href{\sdslgitinc/wt_huff.hpp}{\sdslwthuff} &
-Huffman shaped wavelet tree for byte alphabets.\\
+Huffman WT for byte alphabets.\\
 \href{\sdslgitinc/wt_int.hpp}{\sdslwtint} &
-Balanced wavelet tree for integer alphabets.\\
+Balanced WT for integer alphabets.\\
 \href{\sdslgitinc/wt.hpp}{\sdslwt} &
-Balanced wavelet tree for byte alphabets.\\
+Balanced WT for byte alphabets.\\
 \href{\sdslgitinc/wt_rlmn.hpp}{\sdslwtrlmn} &
-Run-length compressed wavelet tree. 
-                 %The run heads are stored in another WT and a bitvector
-				 %is used to map between the domains.
+Run-length compressed WT. 
+%The run heads are stored in another WT and a bitvector
+%is used to map between the domains.
 				 \\ 
 % TODO: \verb!wt_rlg!
 \end{tabular}
-\textit{Public~methods:} \code{operator[i]}, \code{rank(i, c)},
-\code{select(i, c)}, \code{inverse\_select(i, c)}	\\
+\textit{Public~methods:} \code{operator[$i$]}, \code{rank($i$,c)},
+\code{select($i$,c)}, \code{inverse\_select($i$,c)}	\\
 
-\subsection{Compressed Suffix Arrays (\href{\sdslgitinc/suffix_arrays.hpp}{CSA})}
+\subsection{Suffix Arrays (\href{\sdslgitinc/suffix_arrays.hpp}{CSA}=IV+WT)}
+Compressed suffix arrays use CIVs or WTs to represent
+the suffix arrays (SA) and its inverse (ISA). Note that 
 \begin{tabular}{@{}ll@{}}
 \textit{Class}    &\textit{Description} \\
 \href{\sdslgitinc/csa_bitcompressed.hpp}{\sdslcsabitcompressed} &
-Stores SA, ISA and C.\\
+Based on SA and ISA stored in a IV.\\
 \href{\sdslgitinc/csa_sada.hpp}{\sdslcsasada} &
-Based on the compressed $\Psi$ function.\\
+Based on $\Psi$ stored in a CIV.\\
 \href{\sdslgitinc/csa_wt.hpp}{\sdslcsawt} &
-Based on the WT of the texts BWT.\\
+Based on the BWT stored in a WT.\\
 \end{tabular}	
-\textit{Public~methods:} \code{operator[i]}, \code{operator(i)}, 
-\code{rank\_bwt(i,c)}, \code{select\_bwt(i,c)}\\
+\textit{Public~methods:} \code{operator[$i$]}, \code{operator($i$)}, 
+\code{rank\_bwt($i$,c)}, \code{select\_bwt($i$,c)}\\
 \textit{Public~members:} \code{bwt}, \code{text}, 
-\code{psi}\footnote{LF[i] is accessible by \code{operator(i)} of \code{psi}},
+\code{psi}\footnote{LF[$i$] is accessible by \code{operator($i$)} of \code{psi}},
 \code{C}, \code{char2comp}, \code{comp2char}, \code{sigma}.\\
 \textit{Policy classes: } alphabet strategy 
 (e.g.
-\href{\sdslgitinc/csa_alphabet_strategy}{\sdslbytealphabetstrategy},
-\href{\sdslgitinc/csa_alphabet_strategy}{\sdslsuccinctbytealphabetstrategy},
-\href{\sdslgitinc/csa_alphabet_strategy}{\sdslintalphabetstrategy})
+\href{\sdslgitinc/csa_alphabet_strategy.hpp}{\sdslbytealphabetstrategy},
+\href{\sdslgitinc/csa_alphabet_strategy.hpp}{\sdslsuccinctbytealphabetstrategy},
+\href{\sdslgitinc/csa_alphabet_strategy.hpp}{\sdslintalphabetstrategy})
 and SA sampling strategy 
 (e.g. 
- \href{\sdslgitinc/csa_sampling_strategt}{\sdslsaordersasampling},
- \href{\sdslgitinc/csa_sampling_strategt}{\sdsltextordersasampling}
+ \href{\sdslgitinc/csa_sampling_strategy.hpp}{\sdslsaordersasampling},
+ \href{\sdslgitinc/csa_sampling_strategy.hpp}{\sdsltextordersasampling}
 )
 
 
@@ -366,11 +418,11 @@ using tree topology.\\
 \href{\sdslgitinc/lcp_support_tree2.hpp}{\sdsllcpsupporttreeII} &
 using tree topology and LF.\\
 \end{tabular}	
-\textit{Public~methods:} \code{operator[i]} \\
+\textit{Public~methods:} \code{operator[$i$]} \\
 
 \subsection{Balanced Parentheses Supports (\href{\sdslgitinc/bp_support.hpp}{BPS})}
-An opening (closing) parenthesis is represented as 
-\code{1} (\code{0}) in a \code{bit\_vector}.\\
+We represented a parentheses sequence as \code{bit\_vector}. 
+An opening/closing parenthesis corresponds to \code{1}/\code{0}.\\
 \begin{tabular}{@{}ll@{}}
 \textit{Class}    &\textit{Description} \\
 \href{\sdslgitinc/bp_support_g.hpp}{\sdslbpsupportg} &
@@ -387,10 +439,10 @@ bits are counted in the prefix $[0..i]$.}, \code{select($i$)}.
 \\
 
 Call~\code{util::init\_support(bps, bv)}~to initialize a BPS 
-\code{bps} to bitvector \code{bv}. 
+\code{bps} to \code{bit\_vector} \code{bv}. 
 
 
-\subsection{Compressed Suffix Trees (\href{\sdslgitinc/suffix_trees.hpp}{CST})}
+\subsection{Suffix Trees (\href{\sdslgitinc/suffix_trees.hpp}{CST}=CSA+LCP+BPS)}
 \settowidth{\MyLen}{\sdslcstsada\quad}
 \begin{tabular}{@{}p{\the\MyLen}%
                 @{}p{\linewidth-\the\MyLen}@{}}
@@ -443,12 +495,11 @@ $4n+o(n)$    & \Order{1} \\
 $2n+o(n)$    & \Order{1} \\
 \end{tabular}
 
-\section{Constructing data structures}
+\section{Constructing data structures (1)}
 Let \code{o} be a WT-, CSA-, or CST-object.
 Object \code{o} is built with \code{construct(o,file,num\_bytes=0)}
 from a sequence stored in \code{file}. File is interpreted
 dependent on the value of \code{num\_bytes}:
-
 \settowidth{\MyLen}{\code{num\_bytes=1}  }
 \begin{tabular}{@{}p{\the\MyLen}%
                 @{}p{\linewidth-\the\MyLen}@{}}
@@ -461,7 +512,7 @@ dependent on the value of \code{num\_bytes}:
 \code{num\_bytes=8} & 64-bit word sequence (little endian).\\	
 \code{num\_bytes=d} & Parse decimal numbers.\\
 \end{tabular}
-
+Object can also be  \code{construct\_im(o,data,num\_bytes=0)}
 
 \section{Reading and writing data}
 \subsection{Importing data into \sdsl\ structures}
@@ -470,32 +521,26 @@ dependent on the value of \code{num\_bytes}:
 Load \code{file} into an \code{int\_vector}~\code{v}. Interpretation
 of \code{file} depends on \code{num\_bytes}; see method \code{construct}.
 \end{tabular}
-TODO: mention io wrappers
-
-\subsection{Load \sdsl\ structures}
-\begin{tabular}{@{}p{0.9\linewidth}@{}}
-\code{load\_from\_file(x, file)} \\
-Load an \sdsl\ object \code{o}, which is stored in \code{file}. \\
-\code{o.load(in)} \\
-Read an \sdsl\ object \code{o} from \code{std::istream}-object \code{in}.\\
-\code{load\_vector} \\
-\end{tabular}
-TODO: mention io wrappers
+%TODO: mention io wrappers
 
 
 \subsection{Store \sdsl\ structures}
-\begin{tabular}{@{}p{0.9\linewidth}@{}}
-\code{store\_to\_file(x, file)} \\
-Store an \sdsl\ object \code{o} to \code{file}. \\
-\code{o.serialize(out)}\\
-Write \sdsl\ object \code{o} to \code{std::ostream}-object \code{out}.\\
-\code{serialize\_vector}	  \\
-\end{tabular}
+Use \code{store\_to\_file(o, file)} 
+to store an \sdsl\ object \code{o} to \code{file}.
+In general \code{o} can also be serialized
+into a \code{std::ostream}-object \code{out}
+with \code{o.serialize(o)}.
 
-\code{size\_in\_bytes(o)}
-\code{write\_member($x$, out)}
-\code{read\_member($x$, in)}
-\code{write\_structure<JSON\_FORMAT>(o, out)} 
+%\code{write\_member($x$,out)}
+%\code{read\_member($x$,in)}
+
+\subsection{Load \sdsl\ structures}
+Use \code{load\_from\_file(o, file)} to load 
+an \sdsl\ object \code{o}, which is stored in \code{file}. 
+In general \code{o.load(in)} can load \code{o} from
+a \code{std::istream}-object \code{in}.
+
+%TODO: mention io wrappers
 
 \section{Utility methods}
 More useful methods in the \code{sdsl::util} namespace:
@@ -510,8 +555,8 @@ More useful methods in the \code{sdsl::util} namespace:
 \code{id()}          & Get unique id inside the process. \\
 \code{basename(p)}   & Get filename part of a path \code{p}.  \\
 \code{dirname(p)}    & Get directory part of a path \code{p}. \\
-\code{demangle(x)}   & Demangles output of \code{typeid(x).name()}.\\
-\code{demangle2(x)}  & Simplifies output of \code{demangle}. E.g. removes \code{sdsl::}-prefixes, \ldots \\
+\code{demangle(o)}   & Demangles output of \code{typeid(o).name()}.\\
+\code{demangle2(o)}  & Simplifies output of \code{demangle}. E.g. removes \code{sdsl::}-prefixes, \ldots \\
 \code{to\_string(o)} & Transform object \code{o} to a string. \\
 \code{assign(o1,o2)} & Assign \code{o1} to \code{o2}, or swap \code{o1} and \code{o2} if
                        the objects are of the same type.\\
@@ -519,7 +564,8 @@ More useful methods in the \code{sdsl::util} namespace:
 %\code{swap\_support(s1, s2, t1, t2)}\\
 \end{tabular}
 
-\section{Construction}
+\section{Constructing data structures (2)}
+\code{construct\_im(o,file,num\_bytes=0)}\\
 \code{cache\_config(del\_file, tmp\_dir, id, file\_map)}
 \code{cache\_file\_name(key, config)}
 \code{register\_cache\_file(key, config)}
@@ -527,18 +573,23 @@ More useful methods in the \code{sdsl::util} namespace:
 \code{load\_from\_cache(t, key, config)}
 \code{store\_to\_cache(t, key, config)}
 
-\section{Helper}
-\code{util::stop\_watch}\\
-\textit{Public methods:} \code{start()}, \code{stop()},
-\code{user\_time()},  
-\code{sys\_time()},
-\code{real\_time()},
-\code{abs\_user\_time()},
-\code{abs\_sys\_time()},
-\code{abs\_real\_time()},
+\section{Measuring Time \& Space}
+Create an instance \code{sw} of class \code{util::stop\_watch}
+to measure time. Call \code{sw.start()} to start
+the timing and \code{sw.stop()} to stop it. Methods
+\code{user\_time()}, \code{sys\_time()}, and
+\code{real\_time()} return user, system and
+elapse time in milliseconds. Use  \code{sw.stop()} and
+\code{abs\_user\_time()}, \code{abs\_sys\_time()}, and \code{abs\_real\_time()}
+to get the times since the creation of the process.
 
 
-\code{paths\_from\_config\_file(file, prefix)}
+\code{size\_in\_bytes(o)} returns the space used by an
+\sdsl\ object \code{o}. Call
+\code{write\_structure<JSON\_FORMAT>(o,out)} to get
+a detailed space breakdown written in 
+\href{http://www.json.org/}{JSON} format to stream \code{out}.
+
 
 \section{Performance}
 Describe here how many resources are required 
@@ -570,10 +621,13 @@ directory, downloads test inputs, compiles tests,
 and executes them.
 
 \section{Benchmarks}
-Configurable benchmarks (see .config-files) 
-for operations \code{count}, \code{locate},
-and \code{extract} are in the subdirectory
-\code{benachmark}.
+Directory \href{\sdslgit/benachmark}{benchmark}
+contains configurable benchmarks for various
+data structure, like CSAs/FM-indexes (measuring
+time and space for operations 
+\href{\sdslgit/benchmark/indexing_count}{count},
+\href{\sdslgit/benchmark/indexing_locate}{locate}, and
+\href{\sdslgit/benchmark/indexing_extract}{extract}).
 
 \section{Debugging}
 You get the gdb command \code{pv <int\_vector> <idx1> <idx2>},
@@ -596,5 +650,9 @@ Jesper Larsson for integer-alphabet SA construction.
 Cheatsheet template provided by Winston Chang
 http://www.stdout.org/$\sim$winston/latex/
 
+\theendnotes
+
 \end{multicols}
+%\newpage
+%~
 \end{document}
