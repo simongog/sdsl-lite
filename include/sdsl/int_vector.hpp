@@ -316,6 +316,7 @@ class int_vector
         friend class  int_vector_file_buffer<t_width>;
         friend class  mm_item<int_vector>;
 
+        friend void mm::realloc<int_vector>(int_vector&, const size_type);
         friend void util::set_random_bits<int_vector>(int_vector& v, int);
         friend void util::_set_zero_bits<int_vector>(int_vector&);
         friend void util::_set_one_bits<int_vector>(int_vector&);
@@ -1118,28 +1119,7 @@ void int_vector<t_width>::swap(int_vector& v)
 template<uint8_t t_width>
 void int_vector<t_width>::bit_resize(const size_type size)
 {
-    bool do_realloc = ((size+63)>>6) != ((m_size+63)>>6);
-    m_size = size;                       // set new size
-    // special case: bitvector of size 0
-    if (do_realloc or m_data==NULL) { // or (t_width==1 and m_size==0) ) {
-        uint64_t* data = NULL;
-        // Note that we allocate 8 additional bytes if m_size % 64 == 0.
-        // We need this padding since rank data structures do a memory
-        // access to this padding to answer rank(size()) if size()%64 ==0.
-        // Note that this padding is not counted in the serialize method!
-        data = (uint64_t*)realloc(m_data, (((m_size+64)>>6)<<3)); // if m_data == NULL realloc
-        // Method realloc is equivalent to malloc if m_data == NULL.
-        // If size is zero and ptr is not NULL, a new, minimum sized object is allocated and the original object is freed.
-        // The allocated memory is aligned such that it can be used for any data type, including AltiVec- and SSE-related types.
-        m_data = data;
-        // initialize unreachable bits to 0
-        if (bit_size() < capacity()) {  //m_size>0
-            bits::write_int(m_data+(bit_size()>>6), 0, bit_size()&0x3F, capacity()-bit_size());
-        }
-        if ((m_size % 64) == 0) {  // initialize unreachable bits with 0
-            m_data[m_size/64] = 0;
-        }
-    }
+    mm::realloc(*this, size);
 }
 
 template<uint8_t t_width>

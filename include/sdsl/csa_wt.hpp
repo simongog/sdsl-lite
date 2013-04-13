@@ -278,30 +278,30 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
     int_vector_file_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
     int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config));
     size_type n = bwt_buf.int_vector_size;
-    util::write_R_output("csa", "construct alphabet", "begin", 1, 0);
+    mm::log("csa-alphabet-construct-begin");
     {
         alphabet_type tmp_alphabet(bwt_buf, n);
         m_alphabet.swap(tmp_alphabet);
     }
-    util::write_R_output("csa", "construct alphabet", "end", 1, 0);
+    mm::log("csa-alphabet-construct-end");
 
-    util::write_R_output("csa", "construct WT", "begin", 1, 0);
+    mm::log("wt-begin");
     {
         wavelet_tree_type tmp_wt(bwt_buf, n);
         m_wavelet_tree.swap(tmp_wt);
     }
-    util::write_R_output("csa", "construct WT", "end", 1, 0);
+    mm::log("wt-end");
 
-    util::write_R_output("csa", "construct SA samples", "begin", 1, 0);
+    mm::log("sa-sample-begin");
     {
         sa_sample_type tmp_sa_sample(sa_buf);
         m_sa_sample.swap(tmp_sa_sample);
     }
-    util::write_R_output("csa", "construct SA samples", "end", 1, 0);
+    mm::log("sa-sample-end");
 
-    util::write_R_output("csa", "construct ISA samples", "begin", 1, 0);
+    mm::log("isa-sample-begin");
     algorithm::set_isa_samples<csa_wt>(sa_buf, m_isa_sample);
-    util::write_R_output("csa", "construct ISA samples", "end", 1, 0);
+    mm::log("isa-sample-end");
 }
 
 

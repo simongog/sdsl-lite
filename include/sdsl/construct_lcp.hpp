@@ -66,15 +66,12 @@ void construct_lcp_kasai(cache_config& config)
 {
     int_vector<> lcp;
     typedef int_vector<>::size_type size_type;
-    util::write_R_output("lcp", "construct LCP", "begin", 1, 0);
     construct_isa(config);
     {
-        util::write_R_output("lcp", "load text", "begin", 1, 0);
         int_vector<t_width> text;
         if (!load_from_cache(text, key_text_trait<t_width>::KEY_TEXT, config)) {
             return;
         }
-        util::write_R_output("lcp", "load text", "end", 1, 0);
         int_vector_file_buffer<> isa_buf(config.file_map[constants::KEY_ISA], 1000000);   // init isa file_buffer
         int_vector<> sa;
         if (!load_from_cache(sa, constants::KEY_SA, config)) {
@@ -107,7 +104,6 @@ void construct_lcp_kasai(cache_config& config)
         sa[0] = 0;
         lcp.swap(sa);
     }
-    util::write_R_output("lcp", "construct LCP", "end", 1, 0);
     store_to_cache(lcp, constants::KEY_LCP, config);
 }
 
@@ -134,7 +130,6 @@ void construct_lcp_PHI(cache_config& config)
     typedef int_vector<>::size_type size_type;
     typedef int_vector<t_width> text_type;
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
-    util::write_R_output("lcp", "construct LCP", "begin", 1, 0);
     int_vector_file_buffer<> sa_buf(config.file_map[constants::KEY_SA]);
     size_type n = sa_buf.int_vector_size;
 
@@ -157,10 +152,8 @@ void construct_lcp_PHI(cache_config& config)
     }
 
 //  (2) Load text from disk
-    util::write_R_output("lcp", "load text", "begin", 1, 0);
     text_type text;
     load_from_cache(text, KEY_TEXT, config);
-    util::write_R_output("lcp", "load text", "end", 1, 0);
 
 //  (3) Calculate permuted LCP array (text order), called PLCP
     size_type max_l = 0;
@@ -210,7 +203,6 @@ void construct_lcp_PHI(cache_config& config)
     }
     lcp_out_buf.close();
     register_cache_file(constants::KEY_LCP, config);
-    util::write_R_output("lcp", "construct LCP", "end", 1, 0);
 }
 
 

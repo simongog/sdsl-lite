@@ -24,14 +24,14 @@
 #include "int_vector.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
-#include "lcp_support_tree.hpp"
-#include "lcp_wt.hpp"
+#include "lcp.hpp"
 #include "bp_support.hpp"
 #include "csa_wt.hpp" // for std initialization of cst_sct3 
 #include "cst_iterators.hpp"
 #include "rank_support.hpp"
 #include "select_support.hpp"
 #include "util.hpp"
+#include "sdsl_concepts.hpp"
 #include <iostream>
 #include <algorithm>
 #include <cassert>
@@ -44,61 +44,9 @@
 namespace sdsl
 {
 
-struct cst_tag; // forward declaration
-
+// Declaration of the CST's node type
 template<class t_int = int_vector<>::size_type>
-struct bp_interval {
-    t_int i;     //!< The left border of the lcp-interval \f$\ell-[left..right]\f$.
-    t_int j;     //!< The right border of the lcp-interval \f$\ell-[left..right]\f$.
-    t_int ipos;  // position of the i+1th opening parenthesis in the balanced parentheses sequence
-    t_int cipos; // position of the matching closing parenthesis of the i+1th opening parenthesis in the balanced parentheses sequence
-    t_int jp1pos;// position of the j+2th opening parenthesis in the balanced parentheses sequence
-
-    //! Constructor
-    bp_interval(t_int i=0, t_int j=0, t_int ipos=0, t_int cipos=0, t_int jp1pos=0):i(i),j(j),ipos(ipos),cipos(cipos),jp1pos(jp1pos) {};
-
-
-    bool operator<(const bp_interval& interval)const {
-        if (i!=interval.i)
-            return i<interval.i;
-        return j<interval.j;
-    }
-
-    //! Equality operator.
-    /*! Two lcp-intervals are equal if and only if all their corresponding member variables have the same values.
-     */
-    bool operator==(const bp_interval& interval)const {
-        return i==interval.i and j==interval.j;
-    }
-
-    //! Inequality operator.
-    /*! Two lcp-intervals are not equal if and only if not all their corresponding member variables have the same values.
-      */
-    bool operator!=(const bp_interval& interval)const {
-        return !(*this==interval);
-    }
-
-    //! Assignment operator.
-    /*! \param interval The interval which should be assigned to the current object.
-    */
-    bp_interval& operator=(const bp_interval& interval) {
-        i = interval.i;
-        j = interval.j;
-        ipos = interval.ipos;
-        cipos = interval.cipos;
-        jp1pos = interval.jp1pos;
-        return *this;
-    }
-};
-
-
-template<class t_int>
-inline std::ostream& operator<<(std::ostream& os, const bp_interval<t_int>& interval)
-{
-    os<<"-["<<interval.i<<","<<interval.j<<"]("<<interval.ipos<<","<<interval.cipos<<","<<interval.jp1pos<<")";
-    return os;
-}
-
+struct bp_interval;
 
 //! A class for the Compressed Suffix Tree (CST) proposed by Ohlebusch and Gog.
 /*!
@@ -135,7 +83,7 @@ inline std::ostream& operator<<(std::ostream& os, const bp_interval<t_int>& inte
  * @ingroup cst
  */
 template<class t_csa = csa_wt<>,
-         class t_lcp = lcp_support_tree<lcp_wt<> >,
+         class t_lcp = lcp_dac<>,
          class t_bp_support = bp_support_sada<>,
          class t_rank = rank_support_v5<>
          >
@@ -1124,24 +1072,24 @@ class cst_sct3
 template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
 cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::cst_sct3(cache_config& config, bool build_only_bps):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
 {
-    util::write_R_output("cst", "construct BPS", "begin", 1, 0);
+    mm::log("bps-sct-begin");
     int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
     m_nodes = algorithm::construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child) + m_bp.size()/2;
     if (m_bp.size() == 2) {  // handle special case, when the tree consists only of the root node
         m_nodes = 1;
     }
-    util::write_R_output("cst", "construct BPS", "end", 1, 0);
-    util::write_R_output("cst", "construct BPSS", "begin", 1, 0);
+    mm::log("bps-sct-end");
+    mm::log("bpss-sct-begin");
     util::init_support(m_bp_support, &m_bp);
     util::init_support(m_first_child_rank, &m_first_child);
-    util::write_R_output("cst", "construct BPSS", "end", 1, 0);
+    mm::log("bpss-sct-end");
 
     if (!build_only_bps) {
-        util::write_R_output("cst", "construct CLCP", "begin", 1, 0);
+        mm::log("clcp-begin");
         cache_config tmp_config(false, config.dir, config.id, config.file_map);
         construct_lcp(m_lcp, *this, tmp_config);
         config.file_map = tmp_config.file_map;
-        util::write_R_output("cst", "construct CLCP", "end", 1, 0);
+        mm::log("clcp-end");
     }
     if (!build_only_bps) {
         load_from_cache(m_csa, util::class_to_hash(m_csa), config);
@@ -1188,6 +1136,61 @@ cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>& cst_sct3<t_csa, t_lcp, t_bp_suppor
     }
     return *this;
 }
+
+template<class t_int>
+struct bp_interval {
+    t_int i;     //!< The left border of the lcp-interval \f$\ell-[left..right]\f$.
+    t_int j;     //!< The right border of the lcp-interval \f$\ell-[left..right]\f$.
+    t_int ipos;  // position of the i+1th opening parenthesis in the balanced parentheses sequence
+    t_int cipos; // position of the matching closing parenthesis of the i+1th opening parenthesis in the balanced parentheses sequence
+    t_int jp1pos;// position of the j+2th opening parenthesis in the balanced parentheses sequence
+
+    //! Constructor
+    bp_interval(t_int i=0, t_int j=0, t_int ipos=0, t_int cipos=0, t_int jp1pos=0):i(i),j(j),ipos(ipos),cipos(cipos),jp1pos(jp1pos) {};
+
+    bool operator<(const bp_interval& interval)const {
+        if (i!=interval.i)
+            return i<interval.i;
+        return j<interval.j;
+    }
+
+    //! Equality operator.
+    /*! Two lcp-intervals are equal if and only if all their corresponding member variables have the same values.
+     */
+    bool operator==(const bp_interval& interval)const {
+        return i==interval.i and j==interval.j;
+    }
+
+    //! Inequality operator.
+    /*! Two lcp-intervals are not equal if and only if not all their corresponding member variables have the same values.
+      */
+    bool operator!=(const bp_interval& interval)const {
+        return !(*this==interval);
+    }
+
+    //! Assignment operator.
+    /*! \param interval The interval which should be assigned to the current object.
+    */
+    bp_interval& operator=(const bp_interval& interval) {
+        i = interval.i;
+        j = interval.j;
+        ipos = interval.ipos;
+        cipos = interval.cipos;
+        jp1pos = interval.jp1pos;
+        return *this;
+    }
+};
+
+
+template<class t_int>
+inline std::ostream& operator<<(std::ostream& os, const bp_interval<t_int>& interval)
+{
+    os<<"-["<<interval.i<<","<<interval.j<<"]("<<interval.ipos<<","<<interval.cipos<<","<<interval.jp1pos<<")";
+    return os;
+}
+
+
+
 
 } // end namespace sdsl
 #endif

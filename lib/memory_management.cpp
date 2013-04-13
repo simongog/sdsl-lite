@@ -14,15 +14,24 @@ static int nifty_counter = 0;
 std::map<uint64_t, sdsl::mm_item_base*> sdsl::mm::m_items;
 uint64_t sdsl::mm::m_total_memory;
 uint64_t* sdsl::mm::m_data;
+std::ostream* sdsl::mm::m_out;
+sdsl::util::stop_watch sdsl::mm::m_sw;
+uint64_t sdsl::mm::m_granularity;
+uint64_t sdsl::mm::m_pre_rtime;
+uint64_t sdsl::mm::m_pre_max_mem;
 
 sdsl::mm_initializer::mm_initializer()
 {
     if (0 == nifty_counter++) {
+        mm::m_total_memory = 0;
+        mm::m_granularity = 0;
+        mm::m_pre_rtime = 0;
+        mm::m_pre_max_mem = 0;
         // initialize static members object here
         // mm::m_items.clear();
         mm::m_items = mm::tMVecItem();
-        mm::m_total_memory = 0;
         mm::m_data = NULL;
+        mm::m_out = NULL;
     }
 }
 sdsl::mm_initializer::~mm_initializer()
@@ -40,22 +49,11 @@ namespace sdsl
 bool mm::map_hp()
 {
 #ifdef MAP_HUGETLB
-    m_total_memory = 0; // memory of all int_vectors
-    for (tMVecItem::const_iterator it=m_items.begin(); it!=m_items.end(); ++it) {
-        m_total_memory += it->second->size();
-    }
-    if (util::verbose) {
-        std::cout<<"m_total_memory"<<m_total_memory<<std::endl;
-    }
     size_t hpgs= (m_total_memory+HUGE_LEN-1)/HUGE_LEN; // number of huge pages required to store the int_vectors
     m_data = (uint64_t*)mmap(NULL, hpgs*HUGE_LEN, HUGE_PROTECTION, HUGE_FLAGS, 0, 0);
     if (m_data == MAP_FAILED) {
         std::cout << "mmap was not successful" << std::endl;
         return false;
-    } else {
-        if (util::verbose) {
-            std::cerr<<"map " << m_total_memory << " bytes" << std::endl;
-        }
     }
     // map int_vectors
     uint64_t* addr = m_data;
@@ -73,10 +71,6 @@ bool mm::unmap_hp()
 {
 #ifdef MAP_HUGETLB
     size_t hpgs= (m_total_memory+HUGE_LEN-1)/HUGE_LEN; // number of huge pages
-    if (util::verbose) {
-        std::cerr<<"unmap "<< m_total_memory << " bytes" <<std::endl;
-        std::cerr.flush();
-    }
     bool success = true;
     for (tMVecItem::const_iterator it=m_items.begin(); it!=m_items.end(); ++it) {
         success = success && it->second->unmap_hp();
@@ -92,6 +86,16 @@ bool mm::unmap_hp()
 #else
     return true;
 #endif
+}
+
+void mm::log_stream(std::ostream* out)
+{
+    m_out = out;
+}
+
+void mm::log_granularity(uint64_t granularity)
+{
+    m_granularity = granularity;
 }
 
 } // end namespace

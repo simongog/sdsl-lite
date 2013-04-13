@@ -45,16 +45,21 @@ int main(int argc, char* argv[])
         cout << "# bt_size = "    << size_in_bytes(rrr_vector.bt) << endl;
         cout << "# btnr_size = "  << size_in_bytes(rrr_vector.btnr) << endl;
         const uint64_t reps = 10000000;
+        uint64_t mask = 0;
+        int_vector<64> rands = get_rnd_positions(20, mask, rrr_vector.size(), 17);
         sw.start();
-        test_int_vector_random_access(rrr_vector, reps);
+        test_random_access(rrr_vector, rands, mask, reps);
         sw.stop();
         cout << "# access_time = " << (sw.real_time()/reps)*1000 << endl;
+        rands = get_rnd_positions(20, mask, rrr_vector.size()+1, 17);
         sw.start();
-        test_rank_random_access(rrr_rank, reps);
+        test_inv_random_access(rrr_rank, rands, mask, reps);
         sw.stop();
         cout << "# rank_time = " << (sw.real_time()/reps)*1000 << endl;
+        rands = get_rnd_positions(20, mask, args, 17);
+        for (uint64_t i=0; i<rands.size(); ++i) rands[i] = rands[i]+1;
         sw.start();
-        test_select_random_access(rrr_sel, args, reps);
+        test_inv_random_access(rrr_sel, rands, mask, reps);
         sw.stop();
         cout << "# select_time = " << (sw.real_time()/reps)*1000 << endl;
     }

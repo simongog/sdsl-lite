@@ -14,4 +14,4 @@ int_vector<64> get_rnd_positions(uint8_t log_s, uint64_t& mask, uint64_t mod, ui
     return rands;
 }
 
-}
+}// end namespace

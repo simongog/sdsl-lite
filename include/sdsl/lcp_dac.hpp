@@ -71,7 +71,7 @@ class lcp_dac
         typedef ptrdiff_t                             difference_type;
         typedef t_rank                                rank_support_type;
 
-        typedef lcp_plain_tag                          lcp_category;
+        typedef lcp_plain_tag                         lcp_category;
 
         enum { fast_access = 0,
                text_order  = 0,

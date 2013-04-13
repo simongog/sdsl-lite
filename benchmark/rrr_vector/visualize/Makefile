@@ -1,4 +1,4 @@
-include ../../Make.helper
+include ../../../Make.helper
 
 CONFIG_FILES= ../test_case.config
 
