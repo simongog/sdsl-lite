@@ -50,7 +50,7 @@ bool load_from_file(void*&, const std::string& file);
 bool load_from_file(char*& v, const std::string& file);
 
 //! Load an int_vector from a plain array of `num_bytes`-byte integers with X in \{0, 1,2,4,8\} from disk.
-// TODO: Remove ENDIAN dependency: currently in BIG_ENDIAN format
+// TODO: Remove ENDIAN dependency.
 template<class t_int_vec>
 bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_bytes=1, uint8_t max_int_width=64)
 {
@@ -312,8 +312,8 @@ std::string _idx_lcp_val(const t_cst& t, uint64_t i, uint64_t w, cst_tag)
  *
  * \par Format string
  *   Each line of the output will be formatted according to the format string.
- *   All content, except tokens which start with `%` will be copied to. Tokens
- *   which stat with `%` will be replaced as follows (let w be a positive
+ *   All content, except tokens which start with `%` will be copied. Tokens
+ *   which start with `%` will be replaced as follows (let w be a positive
  *    number. setw(w) is used to format single numbers):
  *
  *      Token      |  Replacement | Comment

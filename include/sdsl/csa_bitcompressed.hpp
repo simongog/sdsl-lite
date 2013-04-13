@@ -144,13 +144,11 @@ class csa_bitcompressed
             }
             algorithm::set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
             m_psi = psi_type(this);
-            util::write_R_output("csa", "store ISA","begin",1,0);
             if (!store_to_file(m_isa, cache_file_name(constants::KEY_ISA,config), true)) {
                 throw std::ios_base::failure("#csa_bitcompressed: Cannot store ISA to file system!");
             } else {
                 register_cache_file(constants::KEY_ISA, config);
             }
-            util::write_R_output("csa", "store ISA","end",1,0);
         }
 
 

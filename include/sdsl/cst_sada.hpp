@@ -151,7 +151,7 @@ class cst_sada
             bp_rank_10(m_bp_rank10),
             bp_select_10(m_bp_select10) {
             {
-                util::write_R_output("cst", "construct BPS", "begin", 1, 0);
+                mm::log("bps-dfs-begin");
                 cst_sct3<> temp_cst(config, true);
                 m_bp.resize(4*(temp_cst.bp.size()/2));
                 util::set_to_value(m_bp, 0);
@@ -164,19 +164,19 @@ class cst_sada
                     ++idx;
                 }
                 m_bp.resize(idx);
-                util::write_R_output("cst", "construct BPS", "end", 1, 0);
+                mm::log("bps-dfs-end");
             }
-            util::write_R_output("cst", "construct BPSS", "begin", 1,0);
+            mm::log("bpss-dfs-begin");
             util::assign(m_bp_support, bp_support_type(&m_bp));
             util::init_support(m_bp_rank10,   &m_bp);
             util::init_support(m_bp_select10, &m_bp);
-            util::write_R_output("cst", "construct BPSS", "end", 1,0);
+            mm::log("bpss-dfs-end");
 
-            util::write_R_output("cst", "construct CLCP", "begin", 1,0);
+            mm::log("bpss-clcp-begin");
             cache_config tmp_config(false, config.dir, config.id, config.file_map);
             construct_lcp(m_lcp, *this, tmp_config);
             config.file_map = tmp_config.file_map;
-            util::write_R_output("cst", "construct CLCP", "end", 1,0);
+            mm::log("bpss-clcp-end");
 
             load_from_cache(m_csa, util::class_to_hash(m_csa), config);
         }

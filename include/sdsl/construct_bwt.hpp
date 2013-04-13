@@ -56,15 +56,12 @@ void construct_bwt(cache_config& config)
     const char* KEY_BWT = key_bwt_trait<t_width>::KEY_BWT;
 
     //  (1) Load text from disk
-    util::write_R_output("bwt", "load text", "begin", 1, 0);
     text_type text;
     load_from_cache(text, KEY_TEXT, config);
     size_type n = text.size();
     uint8_t bwt_width = text.width();
-    util::write_R_output("bwt", "load text", "end", 1, 0);
 
     //  (2) Prepare to stream SA from disc and BWT to disc
-    util::write_R_output("bwt", "prepare io", "begin", 1, 0);
     size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
     int_vector_file_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config));
     sa_buf.reset(buffer_size);
@@ -78,10 +75,8 @@ void construct_bwt(cache_config& config)
     if (t_width != 8) {
         bwt_out_buf.write((char*) &(bwt_width),sizeof(bwt_width));  // write int_width of vector
     }
-    util::write_R_output("bwt", "prepare io", "end", 1, 0);
 
     //  (3) Construct BWT sequentially by streaming SA and random access to text
-    util::write_R_output("bwt", "construct BWT", "begin", 1, 0);
     size_type wb = 0;  // bytes written into bwt int_vector
     size_type to_add[2] = {(size_type)-1,n-1};
     for (size_type i=0, r_sum=0, r=0; r_sum < n;) {
@@ -101,7 +96,6 @@ void construct_bwt(cache_config& config)
     }
     bwt_out_buf.close();
     register_cache_file(KEY_BWT, config);
-    util::write_R_output("bwt", "construct BWT", "end", 1, 0);
 }
 
 }// end namespace

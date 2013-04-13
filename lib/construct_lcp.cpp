@@ -14,7 +14,6 @@ namespace sdsl
 void construct_lcp_semi_extern_PHI(cache_config& config)
 {
     typedef int_vector<>::size_type size_type;
-    util::write_R_output("lcp", "construct LCP", "begin", 1, 0);
     int_vector_file_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config));
     size_type n = sa_buf.int_vector_size;
     if (1==n) {
@@ -29,7 +28,7 @@ void construct_lcp_semi_extern_PHI(cache_config& config)
     // n-1 is the maximum entry in SA
     int_vector<64> plcp((n-1+q)>>log_q);
 
-    util::write_R_output("lcp", "calculate sparse phi", "begin", 1, 0);
+    mm::log("lcp-calc-sparse-phi-begin");
     sa_buf.reset();
     for (size_type i=0, sai_1=0, r=0, r_sum=0; r_sum < n;) {   // we can start at i=0. if SA[i]%q==0
         for (; i < r_sum+r; ++i) {               // we set PHI[(SA[i]=n-1)%q]=0, since T[0]!=T[n-1]
@@ -45,15 +44,15 @@ void construct_lcp_semi_extern_PHI(cache_config& config)
         }
         r_sum += r; r = sa_buf.load_next_block();
     }
-    util::write_R_output("lcp", "calculate sparse phi", "begin", 1, 0);
+    mm::log("lcp-calc-sparse-phi-end");
 
-    util::write_R_output("lcp", "load text", "begin", 1, 0);
+    mm::log("lcp-load-text-begin");
     int_vector<8> text;
     load_from_cache(text, constants::KEY_TEXT, config);
-    util::write_R_output("lcp", "load text", "end", 1, 0);
+    mm::log("lcp-load-text-end");
 
 
-    util::write_R_output("lcp", "calculate sparse plcp", "begin", 1, 0);
+    mm::log("lcp-calc-sparse-plcp-begin");
     for (size_type i=0,j,k,l=0; i < plcp.size(); ++i) {
         j =	i<<log_q;   // j=i*q
         k = plcp[i];
@@ -66,7 +65,7 @@ void construct_lcp_semi_extern_PHI(cache_config& config)
             l = 0;
         }
     }
-    util::write_R_output("lcp", "calculate sparse plcp", "end", 1, 0);
+    mm::log("lcp-calc-sparse-plcp-end");
 
     osfstream lcp_out_buf(cache_file_name(constants::KEY_LCP, config), std::ios::binary | std::ios::trunc);   // open buffer for plcp
     size_type bit_size = n*sa_buf.width;
@@ -119,7 +118,6 @@ void construct_lcp_semi_extern_PHI(cache_config& config)
     }
     lcp_out_buf.close();
     register_cache_file(constants::KEY_LCP, config);
-    util::write_R_output("lcp", "construct LCP", "end", 1, 0);
     return;
 }
 
@@ -131,7 +129,6 @@ void construct_lcp_go(cache_config& config)
     size_type matches = 0;
     size_type comps2 = 0; // comparisons the second phase
 #endif
-    util::write_R_output("lcp","construct LCP", "begin", 1, 0);
     int_vector<8> text;
     load_from_cache(text, constants::KEY_TEXT, config);
     int_vector_file_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config));   // initialize buffer for suffix array
@@ -240,7 +237,6 @@ void construct_lcp_go(cache_config& config)
                             util::clear(text);
                             util::clear(lcp_sml);
                             construct_lcp_PHI<8>(config);
-                            util::write_R_output("lcp","construct LCP", "end", 1, 0);
                             return;
                         }
                     }
@@ -282,7 +278,6 @@ void construct_lcp_go(cache_config& config)
         if (n > 1000 and nn > 5*(n/6)) {  // if we would occupy more space than the PHI algorithm => switch to PHI algorithm
             util::clear(lcp_sml);
             construct_lcp_PHI<8>(config);
-            util::write_R_output("lcp","construct LCP", "end", 1, 0);
             return;
         }
         store_to_cache(lcp_sml, "lcp_sml", config);
@@ -475,7 +470,6 @@ void construct_lcp_go(cache_config& config)
     }
     register_cache_file(constants::KEY_LCP, config);
 
-    util::write_R_output("lcp","construct LCP", "end", 1, 0);
 #ifdef STUDY_INFORMATIONS
     std::cout<<"# racs: "<<racs<<std::endl;
     std::cout<<"# matches: "<<matches<<std::endl;
@@ -487,16 +481,6 @@ void construct_lcp_go(cache_config& config)
 void construct_lcp_goPHI(cache_config& config)
 {
     typedef int_vector<>::size_type size_type;
-#ifdef STUDY_INFORMATIONS
-    size_type racs  = 0; // random accesses to the text
-    size_type dcnt1 = 0; // random access character comparisons in the first phase
-    size_type dcnt2 = 0; // total character comparisons in the first phase
-    size_type comps2 = 0; // comparisons the second phase
-#endif
-    util::write_R_output("lcp","construct LCP", "begin", 1, 0);
-#ifdef STUDY_INFORMATIONS
-    util::write_R_output("lcp","goPHI phase 1", "begin", 1, 0);
-#endif
     int_vector<8> text;
     load_from_cache(text, constants::KEY_TEXT, config);  // load text from file system
     int_vector_file_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config));   // initialize buffer for suffix array
@@ -511,9 +495,9 @@ void construct_lcp_goPHI(cache_config& config)
 
     size_type cnt_c[257] = {0};   // counter for each character in the text
     size_type cnt_cc[257] = {0};  // prefix sum of the counter cnt_c
-    size_type omitted_c[257] = {0};  // counts the omitted occurences for the second phase
-    size_type prev_occ_in_bwt[256] = {0};  // position of the previous occurence of each character c in the bwt
-    for (size_type i=0; i<256; ++i) prev_occ_in_bwt[i] = (size_type)-1; // initialze the array with -1
+    size_type omitted_c[257] = {0};  // counts the omitted occurrences for the second phase
+    size_type prev_occ_in_bwt[256] = {0};  // position of the previous occurrence of each character c in the bwt
+    for (size_type i=0; i<256; ++i) prev_occ_in_bwt[i] = (size_type)-1; // initialize the array with -1
     unsigned char alphabet[257] = {0};
     uint8_t sigma = 0;
 
@@ -567,26 +551,14 @@ void construct_lcp_goPHI(cache_config& config)
                             l = lcp_sml[lf] ? lcp_sml[lf]-1 : 0; // l = LCP[LF[i]]-1; l < m+1
                             if (l == m) { // if LCP[LF[i]] == m+1; otherwise LCP[LF[i]] < m+1  the result is correct
                                 l += (text[sai_1+m] == text[sai+m]);
-#ifdef STUDY_INFORMATIONS
-                                if ((sai_1^sai)>>6) // if i and phii are not in the same cache line
-                                    ++racs;
-#endif
                             }
                             lcp_sml[i] = l;
                             ++done_cnt;
                         } else { // BWT[i] != BWT[i-1] or LF[i] > i
                             if (lf < i)
                                 l = lcp_sml[lf] ? lcp_sml[lf]-1 : 0;
-#ifdef STUDY_INFORMATIONS
-                            if ((sai_1^sai)>>6) // if i and phii are not in the same cache line
-                                ++racs;
-                            ++dcnt1; ++dcnt2;
-#endif
                             while (text[sai_1+l] == text[sai+l] and l < m+1) {
                                 ++l;
-#ifdef STUDY_INFORMATIONS
-                                ++dcnt2;
-#endif
                             }
                             lcp_sml[i] = l;
                         }
@@ -626,21 +598,13 @@ void construct_lcp_goPHI(cache_config& config)
         }
         store_to_cache(lcp_sml, "lcp_sml", config);
     }
-#ifdef STUDY_INFORMATIONS
-    util::write_R_output("lcp","goPHI phase 1", "end", 1, 0);
-    std::cout<<"# n="<<n<<" nn="<<nn<<" nn/n="<<((double)nn)/n<<std::endl;
-    util::write_R_output("lcp","goPHI phase 2", "begin", 1, 0);
-#endif
 
     // phase 2: calculate lcp_big with PHI algorithm on remaining entries of LCP
     {
         int_vector<> lcp_big(0, 0, bits::hi(n-1)+1);//nn, 0, bits::hi(n-1)+1);
         {
 
-            util::write_R_output("lcp","init phi","begin");
-#ifdef STUDY_INFORMATIONS
-            util::write_R_output("lcp","initialize todo","begin");
-#endif
+            mm::log("lcp-init-phi-begin");
             size_type sa_n_1 = 0;  // value for SA[n-1]
             bit_vector todo(n,0);  // bit_vector todo indicates which values are > m in lcp_sml
             {
@@ -660,16 +624,7 @@ void construct_lcp_goPHI(cache_config& config)
                     sa_buf.load_next_block();
                 }
             }
-//				std::cerr<<"todo="<<todo<<std::endl;
-#ifdef STUDY_INFORMATIONS
-            util::write_R_output("lcp","initialize todo","end");
-            util::write_R_output("lcp","initialize todo rank","begin");
-#endif
             rank_support_v<> todo_rank(&todo); // initialize rank for todo
-#ifdef STUDY_INFORMATIONS
-            util::write_R_output("lcp","initialize todo rank","end");
-            util::write_R_output("lcp","initialize phi'","begin");
-#endif
 
             const size_type bot = sa_n_1;
             int_vector<> phi(nn, bot, bits::hi(n-1)+1); // phi
@@ -695,15 +650,9 @@ void construct_lcp_goPHI(cache_config& config)
                 sa_buf.load_next_block();
                 lcp_sml_buf.load_next_block();
             }
-#ifdef STUDY_INFORMATIONS
-            util::write_R_output("lcp","initialize phi'","end");
-#endif
-            util::write_R_output("lcp","init phi","end");
+            mm::log("lcp-init-phi-end");
 
-            util::write_R_output("lcp","calc plcp","begin");
-#ifdef STUDY_INFORMATIONS
-            size_type irreducible_nn=0;
-#endif
+            mm::log("lcp-calc-plcp-begin");
             for (size_type i=0, ii=0, l=m+1,p=0; i < n and ii<nn; ++i) { // execute compact Phi algorithm
                 if (todo[i]) {
                     if (i > 0 and todo[i-1])
@@ -711,21 +660,15 @@ void construct_lcp_goPHI(cache_config& config)
                     else
                         l = m+1;
                     if ((p=phi[ii]) != bot) {
-#ifdef STUDY_INFORMATIONS
-                        ++irreducible_nn;
-#endif
                         while (text[i+l] == text[p+l]) ++l;
                     }
                     phi[ii++] = l;
                 }
             }
-            util::write_R_output("lcp","calc plcp","end");
-#ifdef STUDY_INFORMATIONS
-            std::cout<<"# irreducible: "<<irreducible_nn<<" nn: "<<nn<<" ratio: "<< ((double)irreducible_nn)/nn <<std::endl;
-#endif
+            mm::log("lcp-calc-plcp-end");
             util::clear(text);
 
-            util::write_R_output("lcp","calc lcp","begin");
+            mm::log("lcp-calc-lcp-begin");
             lcp_big.resize(nn);
             sa_buf.reset();
             lcp_sml_buf.reset();
@@ -739,14 +682,10 @@ void construct_lcp_goPHI(cache_config& config)
                 r_sum += r; r = sa_buf.load_next_block();
                 lcp_sml_buf.load_next_block();
             }
-            util::write_R_output("lcp","calc lcp","end");
+            mm::log("lcp-calc-lcp-end");
         }
         store_to_cache(lcp_big, "lcp_big", config);
     } // end phase 2
-#ifdef STUDY_INFORMATIONS
-    util::write_R_output("lcp","goPHI phase 2", "end", 1, 0);
-    util::write_R_output("lcp","goPHI phase 3", "begin", 1, 0);
-#endif
 
 //		std::cout<<"# merge lcp_sml and lcp_big"<<std::endl;
     // phase 3: merge lcp_sml and lcp_big and save to disk
@@ -791,34 +730,23 @@ void construct_lcp_goPHI(cache_config& config)
     sdsl::remove(cache_file_name("lcp_sml", config));
     sdsl::remove(cache_file_name("lcp_big", config));
     register_cache_file(constants::KEY_LCP, config);
-#ifdef STUDY_INFORMATIONS
-    util::write_R_output("lcp","goPHI phase 3", "end", 1, 0);
-#endif
-    util::write_R_output("lcp","construct LCP", "end", 1, 0);
-#ifdef STUDY_INFORMATIONS
-    std::cout<<"# racs: "<<racs<<std::endl;
-    std::cout<<"# dcnt1: "<<dcnt1<<std::endl;
-    std::cout<<"# dcnt2: "<<dcnt2<<std::endl;
-    std::cout<<"# comps2: "<<comps2<<std::endl;
-#endif
     return;
 }
 
 void construct_lcp_bwt_based(cache_config& config)
 {
-    util::write_R_output("lcp","construct LCP    ","begin", 1, 0);
     typedef int_vector<>::size_type size_type;
     std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
 
-    // create WaveletTree
-    util::write_R_output("lcp","create huffman WT","begin", 0, 0);
+    // create WT
+    mm::log("lcp-bwt-create-wt-huff-begin");
     wt_huff<bit_vector, rank_support_v<>, select_support_scan<1>, select_support_scan<0> > wt_bwt;
     construct(wt_bwt, cache_file_name(constants::KEY_BWT, config));
     uint64_t n = wt_bwt.size();
-    util::write_R_output("lcp","create huffman WT","end", 0, 0);
+    mm::log("lcp-bwt-create-wt-huff-end");
 
     // init
-    util::write_R_output("lcp","init             ","begin", 0, 0);
+    mm::log("lcp-bwt-init-begin");
     size_type lcp_value = 0;							// current LCP value
     size_type lcp_value_offset = 0;						// Largest LCP value in LCP array, that was written on disk
     size_type phase = 0;								// Count how often the LCP array was written on disk
@@ -862,10 +790,9 @@ void construct_lcp_bwt_based(cache_config& config)
     // create C-array
     vector<size_type> C;				// C-Array: C[i] = number of occurrences of characters < i in the input
     create_C_array(C, wt_bwt);
-    util::write_R_output("lcp","init             ","end", 0, 0);
-
+    mm::log("lcp-bwt-init-begin-end");
     // calculate lcp
-    util::write_R_output("lcp","calc lcp values  ","begin", 0, 0);
+    mm::log("lcp-bwt-calc-values-begin");
 
     // store root interval
     q.push(0);
@@ -877,7 +804,7 @@ void construct_lcp_bwt_based(cache_config& config)
     // calculate LCP values phase by phase
     while (intervals) {
         if (intervals < use_queue_and_wt && !queue_used) {
-            util::write_R_output("lcp","BitVector -> Queue","begin", 0, lcp_value);
+            mm::log("lcp-bwt-bitvec2queue-begin");
             util::clear(dict[target]);
 
             // copy from bitvector to queue
@@ -890,10 +817,10 @@ void construct_lcp_bwt_based(cache_config& config)
                 b2 = util::next_bit(dict[source], a2+1);
             }
             util::clear(dict[source]);
-            util::write_R_output("lcp","BitVector -> Queue","end  ", 0, lcp_value);
+            mm::log("lcp-bwt-bitvec2queue-end");
         }
         if (intervals >= use_queue_and_wt && queue_used) {
-            util::write_R_output("lcp","Queue -> BitVector","begin", 0, lcp_value);
+            mm::log("lcp-bwt-queue2bitvec-begin");
             dict[source].resize(2*(n+1));
 
             util::set_to_value(dict[source], 0);
@@ -905,7 +832,7 @@ void construct_lcp_bwt_based(cache_config& config)
             dict[target].resize(2*(n+1));
 
             util::set_to_value(dict[target], 0);
-            util::write_R_output("lcp","Queue -> BitVector","end  ", 0, lcp_value);
+            mm::log("lcp-bwt-queue2bitvec-end");
         }
 
         if (intervals < use_queue_and_wt) {
@@ -984,14 +911,14 @@ void construct_lcp_bwt_based(cache_config& config)
         }
         ++lcp_value;
         if (lcp_value>=lcp_value_max) {
-            util::write_R_output("lcp","write to file    ","begin", lcp_value, 0);
+            mm::log("lcp-bwt-write-to-file-begin");
             if (phase) {
                 insert_lcp_values(partial_lcp, index_done, lcp_file, lcp_value, lcp_value_offset);
             } else {
                 store_to_file(partial_lcp, lcp_file);
             }
-            util::write_R_output("lcp","write to file    ","end", lcp_value, 0);
-            util::write_R_output("lcp","resize variables ","begin", 0, 0);
+            mm::log("lcp-bwt-write-to-file-end");
+            mm::log("lcp-bwt-resize-variables-begin");
             util::init_support(ds_rank_support, &index_done); // Create rank support
 
             // Recalculate lcp_value_max and resize partial_lcp
@@ -1007,30 +934,24 @@ void construct_lcp_bwt_based(cache_config& config)
             partial_lcp.resize(remaining_lcp_values);
             util::set_to_value(partial_lcp, 0);
             ++phase;
-            util::write_R_output("lcp","resize variables ","end", 0, 0);
+            mm::log("lcp-bwt-resize-variables-end");
         }
     }
-    util::write_R_output("lcp","calc lcp values  ","end  ", 0, 0);
+    mm::log("lcp-bwt-calc-values-end");
 
     // merge to file
-    util::write_R_output("lcp","merge to file    ","begin", 0, 0);
-
+    mm::log("lcp-bwt-merge-to-file-begin");
     if (phase) {
         insert_lcp_values(partial_lcp, index_done, lcp_file, lcp_value, lcp_value_offset);
     } else {
         store_to_file(partial_lcp, lcp_file);
     }
     register_cache_file(constants::KEY_LCP, config);
-
-    util::write_R_output("lcp","merge to file    ","end  ", 0, 0);
-    util::write_R_output("lcp","construct LCP    ","end  ", 1, 0);
-
-    return;
+    mm::log("lcp-bwt-merge-to-file-end");
 }
 
 void construct_lcp_bwt_based2(cache_config& config)
 {
-    util::write_R_output("lcp","construct LCP    ","begin", 1, 0);
     typedef int_vector<>::size_type size_type;
 
     uint64_t n;                         // Input length
@@ -1039,15 +960,14 @@ void construct_lcp_bwt_based2(cache_config& config)
     std::string tmp_lcp_file = cache_file_name(constants::KEY_LCP, config)+"_tmp";
 // (1) Calculate LCP-Positions-Array: For each lcp_value (in ascending order) all its occurrences (in any order) in the lcp array
     {
-        util::write_R_output("lcp","create Huffman WT","begin", 0, 0);
+        mm::log("lcp-bwt2-create-wt-huff-begin");
         wt_huff<bit_vector, rank_support_v<>, select_support_scan<1>, select_support_scan<0> > wt_bwt;
         construct(wt_bwt, cache_file_name(constants::KEY_BWT, config));
         n = wt_bwt.size();
-        util::write_R_output("lcp","create Huffman WT","end", 0, 0);
+        mm::log("lcp-bwt2-create-wt-huff-begin");
 
         // Declare needed variables
-        util::write_R_output("lcp","init             ","begin", 0, 0);
-
+        mm::log("lcp-bwt2-init-begin");
         size_type intervals = 0;                                        // Number of intervals which are currently stored
         size_type intervals_new = 0;                                    // Number of new intervals
 
@@ -1081,10 +1001,9 @@ void construct_lcp_bwt_based2(cache_config& config)
         // Create C-array
         vector<size_type> C;          // C-Array: C[i] = number of occurrences of characters < i in the input
         create_C_array(C, wt_bwt);
-        util::write_R_output("lcp","init             ","end", 0, 0);
-
+        mm::log("lcp-bwt2-init-end");
         // Calculate LCP-Positions-Array
-        util::write_R_output("lcp","calc lcp values  ","begin", 0, 0);
+        mm::log("lcp-bwt2-calc-values-begin");
 
         // Save position of first LCP-value
         lcp_positions_buf[idx_out_buf++] = 0;
@@ -1108,7 +1027,7 @@ void construct_lcp_bwt_based2(cache_config& config)
         // Calculate LCP positions
         while (intervals) {
             if (intervals < use_queue_and_wt && !queue_used) {
-                util::write_R_output("lcp","BitVector -> Queue","begin", 0, lcp_value);
+                mm::log("lcp-bwt2-bitvec2queue-begin");
                 util::clear(dict[target]);
 
                 // Copy from bitvector to queue
@@ -1122,10 +1041,10 @@ void construct_lcp_bwt_based2(cache_config& config)
                     b2 = util::next_bit(dict[source], a2+1);
                 }
                 util::clear(dict[source]);
-                util::write_R_output("lcp","BitVector -> Queue","end  ", 0, lcp_value);
+                mm::log("lcp-bwt2-bitvec2queue-end");
             }
             if (intervals >= use_queue_and_wt && queue_used) {
-                util::write_R_output("lcp","Queue -> BitVector","begin", 0, lcp_value);
+                mm::log("lcp-bwt2-queue2bitvec-begin");
                 dict[source].resize(2*(n+1));
                 util::set_to_value(dict[source], 0);
                 // Copy from queue to bitvector
@@ -1135,7 +1054,7 @@ void construct_lcp_bwt_based2(cache_config& config)
                 }
                 dict[target].resize(2*(n+1));
                 util::set_to_value(dict[target], 0);
-                util::write_R_output("lcp","Queue -> BitVector","end  ", 0, lcp_value);
+                mm::log("lcp-bwt2-queue2bitvec-end");
             }
 
             if (intervals < use_queue_and_wt) {
@@ -1224,7 +1143,7 @@ void construct_lcp_bwt_based2(cache_config& config)
             ++lcp_value;
             new_lcp_value = true;
         }
-        util::write_R_output("lcp","calc lcp values  ","end  ", 0, 0);
+        mm::log("lcp-bwt2-calc-values-end");
 
         // Write remaining values from buffer to disk
         size_type cur_wb = (idx_out_buf*lcp_positions_buf.width()+7)/8;
@@ -1237,7 +1156,7 @@ void construct_lcp_bwt_based2(cache_config& config)
     }
 // (2) Insert LCP entires into LCP array
     {
-        util::write_R_output("lcp","reordering       ","begin", 0, 0);
+        mm::log("lcp-bwt2-reordering-begin");
 
         int_vector_file_buffer<> lcp_positions(tmp_lcp_file, buffer_size);
 
@@ -1292,9 +1211,8 @@ void construct_lcp_bwt_based2(cache_config& config)
         lcp_array.close();
         register_cache_file(constants::KEY_LCP, config);
         sdsl::remove(tmp_lcp_file);
-        util::write_R_output("lcp","reordering       ","end  ", 0, 0);
+        mm::log("lcp-bwt2-reordering-end");
     } // End of phase 2
-    util::write_R_output("lcp","construct LCP    ","end", 1, 0);
 }
 
 //void check_lcp(std::string lcpI, std::string lcpII, std::string id)

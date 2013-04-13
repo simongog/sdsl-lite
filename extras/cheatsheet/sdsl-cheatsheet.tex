@@ -13,6 +13,8 @@
 \usepackage[colorlinks]{hyperref}
 \usepackage{xcolor}
 
+
+\usepackage{tikz}
 \usepackage{endnotes} % see http://tex.stackexchange.com/questions/56145/is-there-a-way-to-move-all-footnotes-to-the-end-of-the-document
 \usepackage{hyperendnotes} % see http://tex.stackexchange.com/questions/8452/making-endnotes-clickable-links-with-hyperref
 \let\footnote=\endnote
@@ -140,6 +142,7 @@ urlcolor=githublink           % color of external links
 
 \newcommand{\sdslgit}{https://github.com/simongog/sdsl-lite/blob/master}
 \newcommand{\sdslgitinc}{\sdslgit/include/sdsl}
+\newcommand{\pizzachili}{http://pizzachili.di.unipi.it/texts.html}
 \newcommand{\code}[1]{\texttt{#1}}
 
 %\newcommand{\sdsl}{\ensuremath{\mathit{sdsl}}}
@@ -220,8 +223,8 @@ The library code is in the \code{sdsl} namespace. Either import
 the namespace in your program (\code{using~namespace~sdsl;}) or
 qualify all identifieres by a \code{sdsl::}-prefix.
 
-The header which is required to used the data structure
-of each subsection is linked in the heading.
+Each section corresponds to a header file. The file
+is hyperlinked as part of the section heading.
 
 We have two types of data structures in \sdsl.
 \emph{Self-contained} and \emph{support}
@@ -239,7 +242,7 @@ fixed during compile time and the vectors
 correspond to \href{http://www.sgi.com/tech/stl/Vector.html}{\code{std::vector\textless uint$w$\_t\textgreater}}
 resp. \code{std::vector<bool>}.
 If $w=0$ (default) the length can be set during runtime.
-\textit{Constructor:} \sdslintvectorZ\code{($n$, $x$, $\ell$)}, with 
+\textit{Constructor:} \sdslintvectorZ\code{($n$,$x$,$\ell$)}, with 
 $n$ equals size, $x$ default integer value, $\ell$ width
 of integer (has no effect for $w>0$).
 
@@ -253,7 +256,7 @@ of integer (has no effect for $w>0$).
 \textit{Method}                     & \textit{Description} \\
 \code{v[$i$]=$x$}                   & Set entry \code{v[$i$]} to $x$. \\
 \code{v.width($\ell$)}	            & Set width to $\ell$, if $w=0$.\\
-\code{v.resize($n$)}				& Resize $v$ to $n$ elements. \\
+\code{v.resize($n$)}				& Resize \code{v} to $n$ elements. \\
 \multicolumn{2}{@{}l@{}}{Useful methods in namespace \code{sdsl::util}:}	\\
 \code{set\_to\_value(v,$k$)} & Set \code{v[$i$]=$k$} for each $i$.\\
 \code{set\_to\_id(v)}         & Set \code{v[$i$]=$i$} for each $i$.\\
@@ -264,7 +267,7 @@ of integer (has no effect for $w>0$).
                                       and packs the entries in $\ell$-bit integers.\\
 %									  and call \code{v.width($\ell$)}.\\
 \code{expand\_width(v,$\ell$)} & Expands the width of each integer to
-										$\ell$ bits, if \code{$\ell\geq$~v.width()}\\
+										$\ell$ bits, if \code{$\ell\geq$~v.width().}\\
 \end{tabular}
 
 \subsubsection{Compressed Integer Vectors (\href{\sdslgitinc/vectors.hpp}{CIV})}
@@ -289,24 +292,23 @@ interleaved  bitvector & $\approx n(1+K/64)$  \\
 \href{\sdslgitinc/rrr_vector.hpp}{\sdslrrrvector} & 
 $H_0$-compressed bitvector & $\approx \lceil \log {m\choose n} \rceil$ \\
 \href{\sdslgitinc/sd_vector.hpp}{\sdslsdvector}  & sparse bitvector
-& $\approx\ 2 m\cdot log\frac{n}{m}$ \\	
+& $\approx\ 2 m\cdot \log\frac{n}{m}$ \\	
 \end{tabular}
 \sdslbitvector\ equals \sdslintvector\code{\textless1\textgreater} and
 is therefore dynamic.\\
-\textit{Public Methods:} \code{operator[]}, \code{size()}\\
+\textit{Public Methods:} \code{operator[$i$]}, \code{size()}\\
 \textit{Public Types:} \code{rank\_1\_type}, \code{select\_1\_type},
                        \code{select\_0\_type}\footnote{\code{select\_0\_type} not defined for \sdslsdvector.}.
-Each bitvector can be constructed out of an
-\sdslbitvector\ object.
+Each bitvector can be constructed out of a \sdslbitvector\ object.
 
 \subsection{Rank Supports (\href{\sdslgitinc/rank_support.hpp}{RS})}
-RSs add rank functionality to BV. Method
-\code{rank($i$)} or \code{operator($i$)} returns the number
+RSs add rank functionality to BV. Methods 
+\code{rank($i$)} and \code{operator($i$)} return the number
 of set bits\footnote{It is also possible to rank \code{0} or
 the patterns \code{10} and \code{01}.} in the prefix $[0..i)$ of the
 supported BV for $i \in [0,n]$.
 \begin{tabular}{@{}llll@{}}
-\textit{Class}    & \textit{Compatible BV} & \textit{Space} & \textit{Time} \\
+\textit{Class}    & \textit{Compatible BV} & \textit{+Bits} & \textit{Time} \\
 \href{\sdslgitinc/rank_support_v.hpp}{\sdslranksupportv} &
 \sdslbitvector & $0.25 n$ & \Order{1} \\
 \href{\sdslgitinc/rank_support_v5.hpp}{\sdslranksupportvV} &
@@ -320,18 +322,18 @@ supported BV for $i \in [0,n]$.
 \href{\sdslgitinc/sd_vector.hpp}{\sdslranksupportsd} &
 \sdslsdvector & 64 & \Order{1} \\
 \end{tabular}
-Call~\code{util::init\_support(rs, bv)}~to initialize rank
+Call~\code{util::init\_support(rs,bv)}~to initialize rank
 structure \code{rs} to bitvector \code{bv}. Call \code{rs($i$)} to get $\code{rank(}i\code{)}=\sum_{k=0}^{k<i}\code{bv[}k\code{]}$
 
 \subsection{Select Supports (\href{\sdslgitinc/select_support.hpp}{SLS})}\label{sec-SLS}
 SLSs add select functionality to BV. Let $m$ be the number of set bits
-in BV. Method \code{select($i$)} or \code{operator($i$)} return the
+in BV. Methods \code{select($i$)} and \code{operator($i$)} return the
 position of the $i$-th set bit%
 \footnote{It is also possible to select \code{0} or
 the patterns \code{10} and \code{01}.}
-in BV for \code{i}$\in [1..m]$.
+in BV for $i\in [1..m]$.
 \begin{tabular}{@{~}l@{~}l@{~~}p{9ex}l@{}}
-\textit{Class}    &\textit{Compatible BV}           &\textit{Space}&\textit{Time}\\
+\textit{Class}    &\textit{Compatible BV}  &\textit{+Bits}&\textit{Time}\\
 \href{\sdslgitinc/select_support_mcl.hpp}{\sdslselectsupportmcl} &
 \sdslbitvector & $\leq\!0.2 n$ & \Order{1}\\
 \href{\sdslgitinc/select_support_scan.hpp}{\sdslselectsupportscan} &
@@ -343,8 +345,8 @@ in BV for \code{i}$\in [1..m]$.
 \href{\sdslgitinc/sd_select_support.hpp}{\sdslselectsupportsd} &
 \sdslsdvector & $64$ & \Order{1} \\
 \end{tabular}
-Call~\code{util::init\_support(ss, bv)}~to initialize \code{ss} 
-to bitvector \code{bv}. Call \code{ss($i$)} to get
+Call~\code{util::init\_support(sls,bv)}~to initialize \code{sls} 
+to bitvector \code{bv}. Call \code{sls($i$)} to get
 $\code{select(}i\code{)}=\min\{j\mid \code{rank(}j\!+\!1\code{)}=i\}$. 
 
 \subsection{Wavelet Trees (\href{\sdslgitinc/wavelet_trees.hpp}{WT}=BV+RS+SLS)}
@@ -371,7 +373,8 @@ Run-length compressed WT.
 
 \subsection{Suffix Arrays (\href{\sdslgitinc/suffix_arrays.hpp}{CSA}=IV+WT)}
 Compressed suffix arrays use CIVs or WTs to represent
-the suffix arrays (SA) and its inverse (ISA). Note that 
+the suffix arrays (SA), its inverse (ISA), BWT, $\Psi$, and
+LF. CSAs can be built over byte and integer alphabets. 
 \begin{tabular}{@{}ll@{}}
 \textit{Class}    &\textit{Description} \\
 \href{\sdslgitinc/csa_bitcompressed.hpp}{\sdslcsabitcompressed} &
@@ -402,35 +405,35 @@ and SA sampling strategy
 \begin{tabular}{@{}ll@{}}
 \textit{Class}    &\textit{Description} \\
 \href{\sdslgitinc/lcp_bitcompressed.hpp}{\sdsllcpbitcompressed} &
-\sdslintvectorZ.\\
+Values in a \href{\sdslgitinc/int_vector.hpp}{\sdslintvectorZ}.\\
 \href{\sdslgitinc/lcp_dac.hpp}{\sdsllcpdac} &
-direct accessible code.\\
+Direct accessible codes used.\\
 \href{\sdslgitinc/lcp_byte.hpp}{\sdsllcpbyte} &
-use byte or words dependent.\\
+Small values in a byte; 2 words per large.\\
 \href{\sdslgitinc/lcp_wt.hpp}{\sdsllcpwt} &
-store small values in a WT.\\
+Small values in a WT; 1 word per large.\\
 \href{\sdslgitinc/lcp_vlc.hpp}{\sdsllcpvlc} &
-uses self-delimiting code \\
+Values in a \href{\sdslgitinc/vlc_vector.hpp}{vlc\_vector}. \\
 \href{\sdslgitinc/lcp_support_sada.hpp}{\sdsllcpsupportsada} &
-store values permuted. CSA needed. \\
+Values stored permuted. CSA needed. \\
 \href{\sdslgitinc/lcp_support_tree.hpp}{\sdsllcpsupporttree} &
-using tree topology.\\
+Only depths of CST inner nodes stored.\\
 \href{\sdslgitinc/lcp_support_tree2.hpp}{\sdsllcpsupporttreeII} &
-using tree topology and LF.\\
+~+ large values are sampled using LF.\\
 \end{tabular}	
 \textit{Public~methods:} \code{operator[$i$]} \\
 
 \subsection{Balanced Parentheses Supports (\href{\sdslgitinc/bp_support.hpp}{BPS})}
-We represented a parentheses sequence as \code{bit\_vector}. 
+We represent a sequence of parentheses as a \code{bit\_vector}. 
 An opening/closing parenthesis corresponds to \code{1}/\code{0}.\\
 \begin{tabular}{@{}ll@{}}
 \textit{Class}    &\textit{Description} \\
 \href{\sdslgitinc/bp_support_g.hpp}{\sdslbpsupportg} &
-2 level pioneer structure.\\
+Two-level pioneer structure.\\
 \href{\sdslgitinc/bp_support_gg.hpp}{\sdslbpsupportgg} &
-multi level pioneer structure.\\
+Multi-level pioneer structure.\\
 \href{\sdslgitinc/bp_support_sada.hpp}{\sdslbpsupportsada} &
-min-max-tree.\\
+Min-max-tree over excess sequence.\\
 \end{tabular}
 \textit{Public~methods:} \code{find\_open($i$)}, \code{find\_close($i$)},
 \code{enclode($i$)}, \code{double\_enclose($i$,$j$)}, \code{excess($i$)},
@@ -438,11 +441,15 @@ min-max-tree.\\
 bits are counted in the prefix $[0..i]$.}, \code{select($i$)}.
 \\
 
-Call~\code{util::init\_support(bps, bv)}~to initialize a BPS 
+Call~\code{util::init\_support(bps,bv)}~to initialize a BPS 
 \code{bps} to \code{bit\_vector} \code{bv}. 
 
 
 \subsection{Suffix Trees (\href{\sdslgitinc/suffix_trees.hpp}{CST}=CSA+LCP+BPS)}
+A CST can be parametrized by any combination of CSA ,LCP, and BPS.
+The operation of each part can still be accessed through member varaibles.
+The additional operations are listed below.
+CSTs can be built for byte or integer alphabets.
 \settowidth{\MyLen}{\sdslcstsada\quad}
 \begin{tabular}{@{}p{\the\MyLen}%
                 @{}p{\linewidth-\the\MyLen}@{}}
@@ -495,24 +502,84 @@ $4n+o(n)$    & \Order{1} \\
 $2n+o(n)$    & \Order{1} \\
 \end{tabular}
 
-\section{Constructing data structures (1)}
+\section{Constructing data structures}
 Let \code{o} be a WT-, CSA-, or CST-object.
-Object \code{o} is built with \code{construct(o,file,num\_bytes=0)}
+Object \code{o} is built with \code{construct(o,file,num\_bytes=$0$)}
 from a sequence stored in \code{file}. File is interpreted
 dependent on the value of \code{num\_bytes}:
-\settowidth{\MyLen}{\code{num\_bytes=1}  }
+\settowidth{\MyLen}{\code{num\_bytes=$1$}  }
 \begin{tabular}{@{}p{\the\MyLen}%
                 @{}p{\linewidth-\the\MyLen}@{}}
 %\begin{tabular}{@{}ll@{}}
 \textit{Value}      & \textit{File interpreted as}  \\
-\code{num\_bytes=0} & serialized \code{int\_vector<>}.\\
-\code{num\_bytes=1} & byte sequence of length \code{util::file\_size(file)}.\\
-\code{num\_bytes=2} & 16-bit word sequence (little endian).\\
-\code{num\_bytes=4} & 32-bit word sequence (little endian).\\
-\code{num\_bytes=8} & 64-bit word sequence (little endian).\\	
+\code{num\_bytes=$0$} & serialized \code{int\_vector<>}.\\
+\code{num\_bytes=$1$} & byte sequence of length \code{util::file\_size(file)}.\\
+\code{num\_bytes=$2$} & 16-bit word sequence.\\
+\code{num\_bytes=$4$} & 32-bit word sequence.\\
+\code{num\_bytes=$8$} & 64-bit word sequence.\\	
 \code{num\_bytes=d} & Parse decimal numbers.\\
 \end{tabular}
-Object can also be  \code{construct\_im(o,data,num\_bytes=0)}
+Note: \code{construct} writes/reads data to/from
+disk during construction. Accessing disk for small
+instances is a considerable overhead. \code{construct\_im(o,data,num\_bytes=$0$)} will
+build \code{o} using only main memory. Have a look
+at \href{\sdslgit/tutorial/csx-printf.cpp}{this handy tool for an example}.
+
+\subsection{Configuring construction}
+The locations and names of the intermediate files
+can be configured by a \code{cache\_config} object.
+It is constructed by 
+\code{cache\_config(del,tmp\_dir,id, map)}
+where
+\code{del} is a boolean variable which specifies
+if the intermediate files should be deleted after construction,
+\code{tmp\_dir} is a path to the directory where
+the intermediate files should be stored,
+\code{id} is used as part of the file names,
+and \code{map} contains a mapping of keys
+(e.g. \href{\sdslgitinc/config.hpp.cmake}{\code{constant::KEY\_BWT}}, 
+      \href{\sdslgitinc/config.hpp.cmake}{\code{constant::KEY\_SA}},\ldots)
+to file paths.\\
+The \code{cache\_config} parameter extends the construction method to:
+\code{construct(o,file,config,num\_bytes)}.\\
+The following methods (\code{key} is a key string, \code{config} represenet a  
+\code{cache\_config} object, and \code{o} a \sdsl\ object) should be handy
+in customized construction processes:\\
+\code{cache\_file\_name(key,config)}\\
+\code{cache\_file\_exists(key,config)}\\
+\code{register\_cache\_file(key,config)}\\
+\code{load\_from\_cache(o,key,config)}\\
+\code{store\_to\_cache(o,key,config)}\\
+
+\subsection{Resource requirements}
+\textit{Memory}: The memory peak of CSA and CST construction occurs during the SA
+construction, which is $5$ times the texts size for byte-alphabets
+and inputs $<2$ GiB (see Phase \#2 in the Figure below 
+for a $200$ MB text) 
+and $9$ times for larger inputs. For integer
+alphabets the construction takes about twice the space of
+the resulting output.\\
+\textit{Time}: A CST construction processes at about $2\mbox{ MB}/s$.
+The Figure below shows the resource consumption during the construction
+of a \code{cst\_sct3<>} CST for \href{\pizzachili}{$200$ MB English text}.
+\emph{Phases description}: \#1=copy TEXT, \#2=SA, \#3=BWT, \#4=\code{wt\_huff<>},
+\#7=LCP, \#8=BP, \#9=\code{bp\_support\_sada<>}, \#10=\code{lcp\_dac<>}.
+
+\input{mm-log-200MB.tex}
+
+This diagram was generated from the output of this
+\href{\sdslgit/tutorial/mm-log.cpp}{example program},
+which print the memory log to \code{stdout}.
+%\section{Performance}
+%Describe here how many resources are required 
+%for standard tasks. E.g. construct CSA:
+%$5n$ bytes peak memory for inputs $<2$ GiB,
+%$9n$ bytes peak memory for inputs $\geq 2$ GiB.
+%TODO: insert time space graph for different
+%construction processes.
+
+
+
 
 \section{Reading and writing data}
 \subsection{Importing data into \sdsl\ structures}
@@ -564,15 +631,6 @@ More useful methods in the \code{sdsl::util} namespace:
 %\code{swap\_support(s1, s2, t1, t2)}\\
 \end{tabular}
 
-\section{Constructing data structures (2)}
-\code{construct\_im(o,file,num\_bytes=0)}\\
-\code{cache\_config(del\_file, tmp\_dir, id, file\_map)}
-\code{cache\_file\_name(key, config)}
-\code{register\_cache\_file(key, config)}
-\code{cache\_file\_exists(key, config)}
-\code{load\_from\_cache(t, key, config)}
-\code{store\_to\_cache(t, key, config)}
-
 \section{Measuring Time \& Space}
 Create an instance \code{sw} of class \code{util::stop\_watch}
 to measure time. Call \code{sw.start()} to start
@@ -590,14 +648,6 @@ to get the times since the creation of the process.
 a detailed space breakdown written in 
 \href{http://www.json.org/}{JSON} format to stream \code{out}.
 
-
-\section{Performance}
-Describe here how many resources are required 
-for standard tasks. E.g. construct CSA:
-$5n$ bytes peak memory for inputs $<2$ GiB,
-$9n$ bytes peak memory for inputs $\geq 2$ GiB.
-TODO: insert time space graph for different
-construction processes.
 
 \section{Methods on words}
 Class \code{bits} contains various fast methods
@@ -634,14 +684,14 @@ You get the gdb command \code{pv <int\_vector> <idx1> <idx2>},
 which displays the elements of an \sdslintvector\ in the
 range $[\code{idx1},\code{idx2}]$ by appending  the file
 \href{\sdslgit/extras/sdsl.gdb}{sdsl.gdb} to your
-\code{.gdbinit}.
+\code{.gdbinit}. 
 
-\section{Acknowledgements}
-Yuta Mori for implementing libdivsufsort, which
-is used to construct SAs.
-
-Jesper Larsson for integer-alphabet SA construction.
-
+%\section{Acknowledgements}
+%Yuta Mori for implementing libdivsufsort, which
+%is used to construct SAs.
+%
+%Jesper Larsson for integer-alphabet SA construction.
+%
 \rule{0.3\linewidth}{0.25pt}
 \scriptsize
 

@@ -366,18 +366,18 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     }
     int_vector_file_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
     size_type n = bwt_buf.int_vector_size;
-    util::write_R_output("csa", "construct alphabet", "begin", 1, 0);
+    mm::log("csa-alphabet-construct-begin");
     {
         alphabet_type tmp_alphabet(bwt_buf, n);
         m_alphabet.swap(tmp_alphabet);
     }
-    util::write_R_output("csa", "construct alphabet", "end", 1, 0);
+    mm::log("csa-alphabet-construct-end");
 
     int_vector<> cnt_chr(sigma, 0, bits::hi(n)+1);
     for (typename alphabet_type::sigma_type i=0; i < sigma; ++i) {
         cnt_chr[i] = C[i];
     }
-    util::write_R_output("csa", "construct PSI","begin",1,0);
+    mm::log("csa-psi-begin");
     // calculate psi
     {
         // TODO: move PSI construct into construct_PSI.hpp
@@ -394,17 +394,25 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
             return;
         }
     }
-    util::write_R_output("csa", "construct PSI","end");
+    mm::log("csa-psi-end");
     int_vector_file_buffer<> psi_buf(cache_file_name(constants::KEY_PSI, config));
-    util::write_R_output("csa", "encoded PSI", "begin");
+    mm::log("csa-psi-encode-begin");
     {
         t_enc_vec tmp_psi(psi_buf);
         m_psi.swap(tmp_psi);
     }
-    util::write_R_output("csa", "encoded PSI", "end");
+    mm::log("csa-psi-encode-end");
     int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config));
-    util::assign(m_sa_sample, sa_sample_type(sa_buf));
+    mm::log("sa-sample-begin");
+    {
+        sa_sample_type tmp_sa_sample(sa_buf);
+        m_sa_sample.swap(tmp_sa_sample);
+    }
+    mm::log("sa-sample-end");
+
+    mm::log("isa-sample-begin");
     algorithm::set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
+    mm::log("isa-sample-end");
 }
 
 template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>

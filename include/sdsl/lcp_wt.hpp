@@ -69,7 +69,7 @@ class lcp_wt
 
         enum { fast_access = 0,
                text_order  = 0,
-               sa_order      = 1
+               sa_order    = 1
              }; // as the lcp_wt is not fast for texts with long repetition
 
         template<class Cst>  // template inner class which is used in CSTs to parametrize lcp classes
@@ -80,15 +80,15 @@ class lcp_wt
         };
 
     private:
-        small_lcp_type         m_small_lcp; // vector for lcp values < 255
-        int_vector<t_width>   m_big_lcp;     // vector for lcp values > 254
+        small_lcp_type      m_small_lcp; // vector for lcp values < 255
+        int_vector<t_width> m_big_lcp;     // vector for lcp values > 254
 
         typedef std::pair<size_type, size_type> tPII;
         typedef std::vector<tPII> tVPII;
 
         void copy(const lcp_wt& lcp_c) {
-            m_small_lcp     = lcp_c.m_small_lcp;
-            m_big_lcp        = lcp_c.m_big_lcp;
+            m_small_lcp = lcp_c.m_small_lcp;
+            m_big_lcp   = lcp_c.m_big_lcp;
         }
 
     public:
@@ -214,7 +214,7 @@ typename lcp_wt<t_width>::size_type lcp_wt<t_width>::serialize(std::ostream& out
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
-    written_bytes += m_small_lcp.serialize(out, child,  "small_lcp");
+    written_bytes += m_small_lcp.serialize(out, child, "small_lcp");
     written_bytes += m_big_lcp.serialize(out, child, "large_lcp");
     structure_tree::add_size(child, written_bytes);
     return written_bytes;

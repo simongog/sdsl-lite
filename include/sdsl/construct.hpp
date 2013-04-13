@@ -94,6 +94,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
 template<class t_index>
 void construct(t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes, wt_tag)
 {
+    mm::log("wt-begin");
     int_vector<t_index::alphabet_category::WIDTH> text;
     load_vector_from_file(text, file, num_bytes);
     std::string tmp_key = util::to_string(util::pid())+"_"+util::to_string(util::id());
@@ -106,6 +107,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         idx.swap(tmp);
     }
     sdsl::remove(tmp_file_name);
+    mm::log("wt-end");
 }
 
 // Specialization for CSAs
@@ -119,25 +121,31 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         // (1) check, if the text is cached
         if (!cache_file_exists(KEY_TEXT, config)) {
             text_type text;
+            mm::log("text-begin");
             load_vector_from_file(text, file, num_bytes);
             if (contains_no_zero_symbol(text, file)) {
                 append_zero_symbol(text);
                 store_to_cache(text, KEY_TEXT, config);
             }
+            mm::log("text-end");
         }
         register_cache_file(KEY_TEXT, config);
     }
     {
         // (2) check, if the suffix array is cached
         if (!cache_file_exists(constants::KEY_SA, config)) {
+            mm::log("sa-begin");
             construct_sa<t_index::alphabet_category::WIDTH>(config);
+            mm::log("sa-end");
         }
         register_cache_file(constants::KEY_SA, config);
     }
     {
         //  (3) construct BWT
         if (!cache_file_exists(KEY_BWT, config)) {
+            mm::log("bwt-begin");
             construct_bwt<t_index::alphabet_category::WIDTH>(config);
+            mm::log("bwt-end");
         }
         register_cache_file(KEY_BWT, config);
     }
@@ -174,11 +182,13 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         register_cache_file(KEY_BWT, config);
         register_cache_file(constants::KEY_SA, config);
         if (!cache_file_exists(constants::KEY_LCP, config)) {
-            if(t_index::alphabet_category::WIDTH==8){
+            mm::log("lcp-begin");
+            if (t_index::alphabet_category::WIDTH==8) {
                 construct_lcp_semi_extern_PHI(config);
             } else {
                 construct_lcp_PHI<t_index::alphabet_category::WIDTH>(config);
             }
+            mm::log("lcp-end");
         }
         register_cache_file(constants::KEY_LCP, config);
     }

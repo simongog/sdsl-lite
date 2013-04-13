@@ -127,21 +127,6 @@ std::string to_latex_string(unsigned char c)
         return to_string(c);
 }
 
-//! Write stopwatch output in readable format
-void
-write_R_output(std::string data_structure, std::string action, std::string state, uint64_t times, uint64_t check)
-{
-    if (util::verbose) {
-        util::stop_watch _sw;
-        _sw.stop();
-        std::cout << data_structure << "\t" << action << "\t" << state << "\t"
-                  << std::setw(9)<< times << "\t" << std::setw(9) << check << "\t"
-                  << std::setw(9) << _sw.abs_real_time() << "\t "
-                  << std::setw(9) << _sw.abs_user_time() << "\t"
-                  << std::setw(9) << _sw.abs_sys_time() << std::endl;
-    }
-}
-
 void set_verbose()
 {
     verbose = true;

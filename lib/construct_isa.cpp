@@ -12,7 +12,6 @@ void construct_isa(cache_config& config)
     typedef int_vector<>::size_type size_type;
     tMSS::const_iterator key = config.file_map.find(constants::KEY_ISA);
     if (config.file_map.end() == key) {   // if isa is not already on disk => calculate it
-        util::write_R_output("cst", "construct ISA", "begin", 1, 0);
         int_vector<> isa;
         if (!load_from_file(isa, config.file_map[constants::KEY_SA])) {
             throw std::ios_base::failure("cst_construct: Cannot load SA from file system!");
@@ -28,7 +27,6 @@ void construct_isa(cache_config& config)
             }
         }
         store_to_cache(isa, constants::KEY_ISA, config);
-        util::write_R_output("cst", "construct ISA", "end", 1, 0);
     }
 }
 
