@@ -594,9 +594,9 @@ of \code{file} depends on \code{num\_bytes}; see method \code{construct}.
 \subsection{Store \sdsl\ structures}
 Use \code{store\_to\_file(o, file)} 
 to store an \sdsl\ object \code{o} to \code{file}.
-In general \code{o} can also be serialized
+Object \code{o} can also be serialized
 into a \code{std::ostream}-object \code{out}
-with \code{o.serialize(o)}.
+by the call \code{o.serialize(out)}.
 
 %\code{write\_member($x$,out)}
 %\code{read\_member($x$,in)}
@@ -604,8 +604,8 @@ with \code{o.serialize(o)}.
 \subsection{Load \sdsl\ structures}
 Use \code{load\_from\_file(o, file)} to load 
 an \sdsl\ object \code{o}, which is stored in \code{file}. 
-In general \code{o.load(in)} can load \code{o} from
-a \code{std::istream}-object \code{in}.
+Call \code{o.load(in)} reads \code{o} from
+\code{std::istream}-object \code{in}.
 
 %TODO: mention io wrappers
 
