@@ -1,7 +1,4 @@
-if ( !exists( "tikzDeviceLoaded" ) ){  
-	require(tikzDevice) 
-	tikzDeviceLoaded = T
-}
+require(tikzDevice) 
 source("../../basic_functions.R")
 
 # Load filter information
@@ -25,14 +22,7 @@ data <- split(raw, raw[["TC_ID"]])
 
 tikz("fig-locate.tex", width = 5.5, height = 6, standAlone = F)
 
-par(mfrow=c((length(data)+2)/2, 2))
-
-par(oma=c(2.5,2.7,0,0))
-par(mar=c(1,1,1.5,0.5))
-par(mgp=c(2,0.5,0))	
-
-par(yaxs="i") # don't add +- 4% to the yaxis
-par(xaxs="i") # don't add +- 4% to the xaxis
+multi_figure_style( length(data)/2+1, 2 )  
 
 max_space <- 100*2.5 #1.3 # 2.5 #1.8 
 max_time  <- 25    # in microseconds
@@ -47,10 +37,10 @@ for( tc_id in names(data) ){
   grid(lty="solid")
   if ( nr %% 2 == 0 ){
     ylable <- "Time per occurrence ($\\mu s$)" 
-    axis( 2, at = axTicks(2),  mgp=c(2,0.5,0), tcl=-0.2, cex.axis=1, las=1 )
+    axis( 2, at = axTicks(2) )
     mtext(ylable, side=2, line=2, las=0)
   }
-  axis( 1, at = axTicks(1), labels=(nr>=xlabnr), mgp=c(2,0.5,0), tcl=-0.2, cex.axis=1, las=1 )
+  axis( 1, at = axTicks(1), labels=(nr>=xlabnr)  )
   if ( nr >= xlabnr ){
     xlable <- "Index size in (\\%)"
     mtext(xlable, side=1, line=2, las=0)
@@ -63,10 +53,7 @@ for( tc_id in names(data) ){
 			                                              col=config[idx_id, "COL"]
 		 )
   }
-  rect(xleft=par("usr")[1], xright=par("usr")[2], ybottom=par("usr")[4], 
-	   ytop=par("usr")[4]*1.10 ,xpd=NA, col="grey80", border="grey80" )
-  text(labels=sprintf("instance = \\textsc{%s}",tc_config[tc_id,"LATEX-NAME"]),
-	   y=par("usr")[4]*1.03,adj=c(0.5, 0),x=(par("usr")[1]+par("usr")[2])/2,xpd=NA,cex=1.4)
+  draw_figure_heading( sprintf("instance = \\textsc{%s}",tc_config[tc_id,"LATEX-NAME"]) )
   comp_info <- readConfig(paste("../",tc_config[tc_id,"PATH"],".z.info",sep=""),c("NAME","RATIO","COMMAND"))
   abline(v=comp_info["xz","RATIO"],lty=1);
   abline(v=comp_info["gzip","RATIO"],lty=4);
