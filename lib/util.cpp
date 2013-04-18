@@ -189,8 +189,6 @@ double stop_watch::sys_time()
 double stop_watch::real_time()
 {
     double result = ((double)((m_timeOfDay2.tv_sec*1000000 + m_timeOfDay2.tv_usec)-(m_timeOfDay1.tv_sec*1000000 + m_timeOfDay1.tv_usec)))/1000.0;
-    if (result < sys_time() + user_time())
-        return sys_time()+user_time();
     return result;
 }
 
