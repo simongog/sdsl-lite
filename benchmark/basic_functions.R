@@ -124,6 +124,48 @@ x_for_polygon <- function(x){
   c( x, rev(x) )
 }
 
+# return y concatenated with rep(0, length(y))
 y_for_polygon <- function(y){
   c( y, rep(0, length(y)) )
+}
+
+# ncols Number of columns in the figure
+# nrows Number of rows in the figure
+multi_figure_style <- function(nrows, ncols){
+  par(mfrow=c(nrows, ncols))
+
+  par(las=1) # axis labels always horizontal
+  par(yaxs="i") # don't add +- 4% to the yaxis
+  par(xaxs="i") # don't add +- 4% to the xaxis
+
+
+  # distance (x1,x2,x3) of axis parts from the axis. x1=axis labels or titles
+  # x2=tick marks, x3=tick marks symbol
+  par(mgp=c(2,0.5,0)) 
+
+  # length of tick mark as a fraction of the height of a line of text, default=-0.5
+  par(tcl=-0.2) 
+
+  par(oma=c(2.5,2.7,0,0.2)) # outer margin (bottom,left,top,right)
+  par(mar=c(1,1,1.5,0.5)) # inner margin (bottom,left,top,right)
+
+}
+
+# Draw the heading of diagrams
+# text  Text which should be displayed in the heading
+draw_figure_heading <- function(text){
+    rect(xleft=par("usr")[1], xright=par("usr")[2], ybottom=par("usr")[4], ytop=par("usr")[4]*1.1 ,xpd=NA,
+         col="grey80", border="grey80" )
+    text(labels=text,y=par("usr")[4]*1.02, adj=c(0.5, 0),x=(par("usr")[1]+par("usr")[2])/2,xpd=NA,cex=1.4)
+}
+
+print_info <- function(){
+	Sys.info("release")
+	Sys.info("sysname")
+	Sys.info("version")
+	Sys.info("nodename")
+	Sys.info("machine")
+	Sys.info("login")
+	Sys.info("user")
+	Sys.info("effective_user")
 }
