@@ -1,10 +1,7 @@
 /*
  * Run Queries
  */
-#include <sdsl/csa_wt.hpp>
-#include <sdsl/csa_sada.hpp>
-#include <sdsl/wavelet_trees.hpp>
-#include <sdsl/algorithms_for_string_matching.hpp>
+#include <sdsl/suffix_arrays.hpp>
 #include <string>
 
 #include <stdlib.h>
@@ -163,7 +160,7 @@ do_count(const CSA_TYPE& csa)
 
         /* Count */
         time = getTime();
-        numocc = algorithm::count(csa, pattern, length);
+        numocc = count(csa, pattern, pattern+length);
 
         if (Verbose) {
             fwrite(&length, sizeof(length), 1, stdout);
@@ -216,7 +213,7 @@ do_locate(const CSA_TYPE& csa)
         }
         // Locate
         time = getTime();
-        numocc = algorithm::locate(csa, pattern, length, occ);
+        numocc = locate(csa, pattern, pattern+length, occ);
         tot_time += (getTime() - time);
 
         tot_numocc += numocc;

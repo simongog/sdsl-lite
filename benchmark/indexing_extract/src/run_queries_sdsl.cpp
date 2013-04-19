@@ -1,10 +1,7 @@
 /*
  * Run Queries
  */
-#include <sdsl/csa_wt.hpp>
-#include <sdsl/csa_sada.hpp>
-#include <sdsl/wavelet_trees.hpp>
-#include <sdsl/algorithms_for_string_matching.hpp>
+#include <sdsl/suffix_arrays.hpp>
 #include <string>
 
 #include <stdlib.h>
@@ -165,7 +162,7 @@ do_count(const CSA_TYPE& csa)
 
         /* Count */
         time = getTime();
-        numocc = algorithm::count(csa, pattern, length);
+        numocc = count(csa, pattern, pattern+length);
 //		error = count (Index, pattern, length, &numocc);
         IFERROR(error);
 
@@ -221,7 +218,7 @@ do_locate(const CSA_TYPE& csa)
         }
         // Locate
         time = getTime();
-        numocc = algorithm::locate(csa, pattern, length, occ);
+        numocc = locate(csa, pattern, pattern+length, occ);
         IFERROR(error);
         tot_time += (getTime() - time);
         ++processed_pat;
@@ -374,8 +371,7 @@ do_extract(const CSA_TYPE& csa)
 
         time = getTime();
         text = (uchar*)malloc(to-from+2);
-//		fprintf(stderr,"from=%d to=%d, size=%d\n",from,to,csa.size());
-        algorithm::extract(csa, from, to, text, readlen);
+        readlen = sdsl::extract(csa, from, to, text);
         tot_time += (getTime() - time);
 
         tot_ext += readlen;

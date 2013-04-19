@@ -1,5 +1,4 @@
-#include <sdsl/csa_wt.hpp>
-#include <sdsl/wavelet_trees.hpp>
+#include <sdsl/suffix_arrays.hpp>
 #include <sdsl/rmq_support.hpp>
 #include <string>
 #include <iostream>
@@ -97,8 +96,8 @@ int main(int argc, char** argv)
     while (getline(cin, query)) {
         size_type m  = query.size();
         size_type lb = 0, rb=0; // left and right bound of the matching interval in the suffix array
-        size_t occs = algorithm::backward_search(fm_index, 0, fm_index.size()-1, (const unsigned char*)query.c_str(), m, lb, rb);
-        cout << "# of occcurences: " << occs << endl;
+        size_t occs = backward_search(fm_index, 0, fm_index.size()-1, query.begin(), query.end(), lb, rb);
+        cout << "# of occurrences: " << occs << endl;
         if (occs > 0) {
             cout << "Location and context of first occurrences: " << endl;
             size_t min_idx = rmq(lb, rb);
@@ -123,7 +122,7 @@ int main(int argc, char** argv)
                 if (location+m+ post_extract > fm_index.size()) {
                     post_extract = fm_index.size()-location-m;
                 }
-                string s   = algorithm::extract(fm_index, location-pre_extract, location+m+ post_extract-1);
+                string s   = extract<string>(fm_index, location-pre_extract, location+m+ post_extract-1);
                 string pre = s.substr(0, pre_extract);
                 s = s.substr(pre_extract);
                 if (pre.find_last_of('\n') != string::npos) {

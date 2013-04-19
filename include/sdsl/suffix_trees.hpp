@@ -23,6 +23,7 @@
 
 #include "sdsl_concepts.hpp"
 #include "suffix_arrays.hpp"
+#include "suffix_tree_algorithm.hpp"
 #include "construct.hpp"
 #include "util.hpp"
 #include <iostream>

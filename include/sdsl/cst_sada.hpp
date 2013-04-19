@@ -86,7 +86,6 @@ class cst_sada
         typedef ptrdiff_t                                         difference_type;
         typedef t_csa                                             csa_type;
         typedef typename t_lcp::template type<cst_sada>::lcp_type lcp_type;
-        typedef typename t_csa::pattern_type                      pattern_type;
         typedef typename t_csa::char_type                         char_type;
         typedef size_type                                         node_type; //!< Type for the nodes  in the tree.
         typedef t_bp_support                                      bp_support_type;

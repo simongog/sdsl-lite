@@ -91,7 +91,6 @@ class csa_wt
         typedef t_alphabet_strat                                               alphabet_type;
         typedef typename alphabet_type::char_type                              char_type; // Note: This is the char type of the CSA not the WT!
         typedef typename alphabet_type::comp_char_type                         comp_char_type;
-        typedef const char_type*                                               pattern_type;
         typedef csa_wt                                                         csa_type;
 
         typedef csa_tag                                                        index_category;
