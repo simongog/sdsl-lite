@@ -68,7 +68,7 @@ template<class bit_vector_type     = bit_vector,
          >
 class succinct_byte_alphabet;
 
-template<class bit_vector_type         = sd_vector<>,
+template<class bit_vector_type     = sd_vector<>,
          class rank_support_type   = typename bit_vector_type::rank_1_type,
          class select_support_type = typename bit_vector_type::select_1_type,
          class C_array_type        = int_vector<>
@@ -421,8 +421,8 @@ class int_alphabet
 
         //! Construct from a byte-stream
         /*!
-         *  \param text_buf    Byte stream.
-         *  \param len        Length of the byte stream.
+         *  \param text_buf Byte stream.
+         *  \param len      Length of the byte stream.
          */
         int_alphabet(int_vector_file_buffer<0>& text_buf, int_vector_size_type len):
             char2comp(this), comp2char(this), C(m_C), sigma(m_sigma) {
