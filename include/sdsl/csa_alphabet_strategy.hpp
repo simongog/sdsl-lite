@@ -16,7 +16,7 @@
 */
 /*! \file csa_alphabet_strategy.hpp
     \brief csa_alphabet_strategy.hpp includes different strategy classes for representing an alphabet of a CSA.
-	\author Simon Gog
+    \author Simon Gog
 */
 
 #ifndef INCLUDED_CSA_ALPHABET_STRATEGY
@@ -27,7 +27,7 @@
 //       This can be also used for a integer based CSA.
 
 /* A alphabet strategy provides the following features:
- *   * Member `sigma` which contains the size (=number of unique symbols) of the alphabet.
+ *   * Member `sigma` which contains the size (=umber of unique symbols) of the alphabet.
  *   * Method `is_present(char_type c)` which indicates if character c occurs in the text.
  *   * Container `char2comp` which maps a symbol to a number [0..sigma-1]. The alphabetic
  *     order is preserved.
@@ -42,7 +42,7 @@
  *   * Constructor. Takes a int_vector_file_buffer<8, size_type_class> for byte-alphabets
  *     and int_vector_file_buffer<0, size_type_class> for integer-alphabets.
  *
- *	\par Note
+ *    \par Note
  *   sigma_type has to be large enough to represent the alphabet size 2*sigma,
  *   since there is code which will perform a binary search on array `C`.
  */
@@ -64,15 +64,15 @@ class byte_alphabet;
 template<class bit_vector_type     = bit_vector,
          class rank_support_type   = rank_support_scan<>,   //typename bit_vector_type::rank_1_type,
          class select_support_type = select_support_scan<>, //typename bit_vector_type::select_1_type,
-         class C_array_type		   = int_vector<>
+         class C_array_type        = int_vector<>
          >
 class succinct_byte_alphabet;
 
-template<class bit_vector_type		= sd_vector<>,
-             class rank_support_type		= typename bit_vector_type::rank_1_type,
-             class select_support_type   = typename bit_vector_type::select_1_type,
-             class C_array_type 			= int_vector<>
-             >
+template<class bit_vector_type         = sd_vector<>,
+         class rank_support_type   = typename bit_vector_type::rank_1_type,
+         class select_support_type = typename bit_vector_type::select_1_type,
+         class C_array_type        = int_vector<>
+         >
 class int_alphabet;
 
 template <uint8_t int_width>
@@ -105,27 +105,27 @@ class byte_alphabet
 {
     public:
         typedef int_vector<>::size_type size_type;
-        typedef int_vector<8>			char2comp_type;
-        typedef int_vector<8>			comp2char_type;
-        typedef int_vector<64>			C_type;
-        typedef uint16_t				sigma_type;
-        typedef uint8_t					char_type;
-        typedef uint8_t					comp_char_type;
-        enum {   int_width = 8 };
+        typedef int_vector<8>           char2comp_type;
+        typedef int_vector<8>           comp2char_type;
+        typedef int_vector<64>          C_type;
+        typedef uint16_t                sigma_type;
+        typedef uint8_t                 char_type;
+        typedef uint8_t                 comp_char_type;
+        enum { int_width = 8 };
 
-        typedef byte_alphabet_tag		alphabet_category;
+        typedef byte_alphabet_tag       alphabet_category;
     private:
-        char2comp_type	m_char2comp; // mapping from a character into the compact alphabet
-        comp2char_type	m_comp2char; // inverse mapping of m_char2comp
-        C_type  		m_C; 		 // cumulative counts for the compact alphabet [0..sigma]
-        sigma_type		m_sigma;     // effective size of the alphabet
+        char2comp_type m_char2comp; // Mapping from a character into the compact alphabet.
+        comp2char_type m_comp2char; // Inverse mapping of m_char2comp.
+        C_type         m_C;         // Cumulative counts for the compact alphabet [0..sigma].
+        sigma_type     m_sigma;     // Effective size of the alphabet.
 
         void copy(const byte_alphabet&);
     public:
 
         const char2comp_type& char2comp;
         const comp2char_type& comp2char;
-        const C_type&		  C;
+        const C_type&         C;
         const sigma_type&     sigma;
 
         //! Default constructor
@@ -133,23 +133,19 @@ class byte_alphabet
 
         //! Construct from a byte-stream
         /*!
-         *  \param text_buf	Byte stream.
-         *  \param len		Length of the byte stream.
+         *  \param text_buf Byte stream.
+         *  \param len      Length of the byte stream.
          */
         byte_alphabet(int_vector_file_buffer<8>& text_buf, int_vector_size_type len);
 
-        //! Copy constructor
         byte_alphabet(const byte_alphabet&);
 
         byte_alphabet& operator=(const byte_alphabet&);
 
-        //! Swap operator
         void swap(byte_alphabet&);
 
-        //! Serialize method
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
 
-        //! Load method
         void load(std::istream& in);
 };
 
@@ -173,15 +169,15 @@ class succinct_byte_alphabet
         friend class char2comp_wrapper;
         friend class comp2char_wrapper;
 
-        typedef int_vector<>::size_type 	size_type;
-        typedef char2comp_wrapper			char2comp_type;
-        typedef comp2char_wrapper			comp2char_type;
-        typedef C_array_type				C_type;
-        typedef uint16_t					sigma_type;
-        typedef uint8_t						char_type;
-        typedef uint8_t						comp_char_type;
-        typedef byte_alphabet_tag			alphabet_category;
-        enum {   int_width = 8 };
+        typedef int_vector<>::size_type size_type;
+        typedef char2comp_wrapper       char2comp_type;
+        typedef comp2char_wrapper       comp2char_type;
+        typedef C_array_type            C_type;
+        typedef uint16_t                sigma_type;
+        typedef uint8_t                 char_type;
+        typedef uint8_t                 comp_char_type;
+        typedef byte_alphabet_tag       alphabet_category;
+        enum { int_width = 8 };
 
         //! Helper class for the char2comp mapping
         class char2comp_wrapper
@@ -208,27 +204,27 @@ class succinct_byte_alphabet
         };
 
     private:
-        bit_vector_type 	m_char;        // `m_char[i]` indicates if character with code i is present or not
-        rank_support_type	m_char_rank;   // rank data structure for `m_char` to answer char2comp
+        bit_vector_type     m_char;        // `m_char[i]` indicates if character with code i is present or not
+        rank_support_type   m_char_rank;   // rank data structure for `m_char` to answer char2comp
         select_support_type m_char_select; // select data structure for `m_char` to answer comp2char
-        C_type  			m_C; 		   // cumulative counts for the compact alphabet [0..sigma]
-        sigma_type			m_sigma;       // effective size of the alphabet
+        C_type              m_C;            // cumulative counts for the compact alphabet [0..sigma]
+        sigma_type          m_sigma;       // effective size of the alphabet
 
         void copy(const succinct_byte_alphabet& strat) {
-            m_char			= strat.m_char;
-            m_char_rank		= strat.m_char_rank;
+            m_char        = strat.m_char;
+            m_char_rank   = strat.m_char_rank;
             m_char_rank.set_vector(&m_char);
-            m_char_select   = strat.m_char_select;
+            m_char_select = strat.m_char_select;
             m_char_select.set_vector(&m_char);
-            m_C				= strat.m_C;
-            m_sigma			= strat.m_sigma;
+            m_C           = strat.m_C;
+            m_sigma       = strat.m_sigma;
         }
     public:
 
-        const char2comp_type  char2comp;
-        const comp2char_type  comp2char;
-        const C_type&		  C;
-        const sigma_type&     sigma;
+        const char2comp_type char2comp;
+        const comp2char_type comp2char;
+        const C_type&        C;
+        const sigma_type&    sigma;
 
         //! Default constructor
         succinct_byte_alphabet() : char2comp(this), comp2char(this), C(m_C), sigma(m_sigma) {
@@ -237,8 +233,8 @@ class succinct_byte_alphabet
 
         //! Construct from a byte-stream
         /*!
-         *  \param text_buf	Byte stream.
-         *  \param len		Length of the byte stream.
+         *  \param text_buf Byte stream.
+         *  \param len      Length of the byte stream.
          */
         succinct_byte_alphabet(int_vector_file_buffer<8>& text_buf, int_vector_size_type len):
             char2comp(this), comp2char(this), C(m_C), sigma(m_sigma) {
@@ -261,7 +257,7 @@ class succinct_byte_alphabet
             m_sigma = 0;
             for (int i=0; i<256; ++i)
                 if (D[i]) {
-                    tmp_char[i] = 1;	// mark occurring character
+                    tmp_char[i] = 1;    // mark occurring character
                     D[m_sigma] = D[i];  // compactify m_C
                     ++m_sigma;
                 }
@@ -343,15 +339,15 @@ class int_alphabet
         friend class char2comp_wrapper;
         friend class comp2char_wrapper;
 
-        typedef int_vector<>::size_type 	size_type;
-        typedef char2comp_wrapper			char2comp_type;
-        typedef comp2char_wrapper			comp2char_type;
-        typedef C_array_type				C_type;
-        typedef uint64_t					sigma_type;
-        typedef uint64_t					char_type;
-        typedef uint64_t					comp_char_type;
-        typedef int_alphabet_tag			alphabet_category;
-        enum {   int_width = 0 };
+        typedef int_vector<>::size_type size_type;
+        typedef char2comp_wrapper       char2comp_type;
+        typedef comp2char_wrapper       comp2char_type;
+        typedef C_array_type            C_type;
+        typedef uint64_t                sigma_type;
+        typedef uint64_t                char_type;
+        typedef uint64_t                comp_char_type;
+        typedef int_alphabet_tag        alphabet_category;
+        enum { int_width = 0 };
 
         //! Helper class for the char2comp mapping
         class char2comp_wrapper
@@ -386,20 +382,20 @@ class int_alphabet
         };
 
     private:
-        bit_vector_type 	m_char;        // `m_char[i]` indicates if character with code i is present or not
-        rank_support_type	m_char_rank;   // rank data structure for `m_char` to answer char2comp
+        bit_vector_type     m_char;        // `m_char[i]` indicates if character with code i is present or not
+        rank_support_type   m_char_rank;   // rank data structure for `m_char` to answer char2comp
         select_support_type m_char_select; // select data structure for `m_char` to answer comp2char
-        C_type  			m_C; 		   // cumulative counts for the compact alphabet [0..sigma]
-        sigma_type			m_sigma;       // effective size of the alphabet
+        C_type              m_C;           // cumulative counts for the compact alphabet [0..sigma]
+        sigma_type          m_sigma;       // effective size of the alphabet
 
         void copy(const int_alphabet& strat) {
-            m_char			= strat.m_char;
-            m_char_rank		= strat.m_char_rank;
+            m_char        = strat.m_char;
+            m_char_rank   = strat.m_char_rank;
             m_char_rank.set_vector(&m_char);
-            m_char_select   = strat.m_char_select;
+            m_char_select = strat.m_char_select;
             m_char_select.set_vector(&m_char);
-            m_C				= strat.m_C;
-            m_sigma			= strat.m_sigma;
+            m_C           = strat.m_C;
+            m_sigma       = strat.m_sigma;
         }
 
         //! Check if the alphabet is continuous.
@@ -407,16 +403,16 @@ class int_alphabet
             if (D.size() == 0) {  // an empty alphabet is continuous
                 return true;
             } else {
-                //            max key     + 1  ==  size of map
+                //            max key      + 1  ==  size of map
                 return ((--D.end())->first + 1) ==  D.size();
             }
         }
     public:
 
-        const char2comp_type  char2comp;
-        const comp2char_type  comp2char;
-        const C_type&		  C;
-        const sigma_type&     sigma;
+        const char2comp_type char2comp;
+        const comp2char_type comp2char;
+        const C_type&        C;
+        const sigma_type&    sigma;
 
         //! Default constructor
         int_alphabet() : char2comp(this), comp2char(this), C(m_C), sigma(m_sigma) {
@@ -425,8 +421,8 @@ class int_alphabet
 
         //! Construct from a byte-stream
         /*!
-         *  \param text_buf	Byte stream.
-         *  \param len		Length of the byte stream.
+         *  \param text_buf    Byte stream.
+         *  \param len        Length of the byte stream.
          */
         int_alphabet(int_vector_file_buffer<0>& text_buf, int_vector_size_type len):
             char2comp(this), comp2char(this), C(m_C), sigma(m_sigma) {
@@ -515,9 +511,6 @@ class int_alphabet
             read_member(m_sigma, in);
         }
 };
-
-
-
 
 } // end namespace sdsl
 

@@ -44,9 +44,9 @@ form_table <- function(d, order=NA){
                    FUN=mean,na.rm=TRUE)
 	d <- d[ order(tc_ord[as.character(d[["TC_ID"]]),"ord"]), ]
     dd <- split(d, d[["IDX_ID"]])
-    table <- data.frame(dd[[1]]["TC_ID"])
+    table <- data.frame(dd[[1]]["TC_ID"], stringsAsFactors=F)
     names(table) <- c("TC_ID")
-    table[["TC_ID"]] <- paste("\\textsc{", tc_config[table[['TC_ID']], "LATEX-NAME"],"}") 
+    table[["TC_ID"]] <- paste("\\textsc{", tc_config[as.character(table[['TC_ID']]), "LATEX-NAME"],"}") 
     names(table) <- c(" ")
     prog_name <- names(dd)
     if( !is.na(order) ){
@@ -59,7 +59,7 @@ form_table <- function(d, order=NA){
         table <- cbind(table, sel["Space"]*100)
     }
     unitrow <- paste(c("", rep(c("&","&($\\mu s$)","&(\\%)"),length(prog_name)), "\\\\[1ex]"),collapse="",sep='')
-    list("table" = table, "names" = prog_name, "unitrow"=unitrow)
+    list("table" = table, "names" = table[["TC_ID"]], "unitrow"=unitrow)
 }
 
 
@@ -92,7 +92,7 @@ generate_table <- function(file, data){
     sink(file)
     if ( nrow(data) > 0 ){
         x <- form_table(data, config[["IDX_ID"]])
-        print_latex(x[["table"]], idx_config[config[["IDX_ID"]], "LATEX-NAME"], x[["unitrow"]])
+        print_latex(x[["table"]], idx_config[as.character(config[["IDX_ID"]]), "LATEX-NAME"], x[["unitrow"]])
     }else{
         cat("\\begin{center}No data for this experiment\\end{center}")
     }

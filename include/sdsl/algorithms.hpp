@@ -670,8 +670,5 @@ bool equal_container_values(const Container1& c1, Container2& c2)
 #include "algorithms_for_balanced_parentheses.hpp"
 #include "algorithms_for_compressed_suffix_arrays.hpp"
 #include "algorithms_for_compressed_suffix_trees.hpp"
-#include "algorithms_for_string_matching.hpp"
-
-
 
 #endif

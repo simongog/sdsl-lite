@@ -712,16 +712,20 @@ class int_vector_iterator_base: public std::iterator<std::random_access_iterator
     protected:
         uint8_t           m_offset;
         uint8_t           m_len;
-    public:
-        int_vector_iterator_base(uint8_t offset, uint8_t len):m_offset(offset),m_len(len)
-        {}
 
-        int_vector_iterator_base(const t_int_vector* v=NULL, size_type idx=0) { /*:m_offset(idx&0x3F), m_len(v->m_width)*/
+        void init(const t_int_vector* v, size_type idx) {
             m_offset = idx&0x3F;
             if (v==NULL)
                 m_len = 0;
             else
                 m_len = v->m_width;
+        }
+    public:
+        int_vector_iterator_base(uint8_t offset, uint8_t len):m_offset(offset),m_len(len)
+        {}
+
+        int_vector_iterator_base(const t_int_vector* v=NULL, size_type idx=0) { /*:m_offset(idx&0x3F), m_len(v->m_width)*/
+            init(v, idx);
         }
 };
 
@@ -744,7 +748,8 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
 
     public:
 
-        inline int_vector_iterator(t_int_vector* v=NULL, size_type idx=0) : int_vector_iterator_base<t_int_vector>(v, idx) {
+        int_vector_iterator(t_int_vector* v=NULL, size_type idx=0) {
+            this->init(v, idx);
             if (v!=NULL)
                 m_word = v->m_data + (idx>>6);
             else
@@ -752,8 +757,9 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
         }
 
 
-        inline int_vector_iterator(const int_vector_iterator<t_int_vector>& it) : int_vector_iterator_base<t_int_vector>(it.m_offset, it.m_len) {
-            m_word = it.m_word;
+        int_vector_iterator(const int_vector_iterator<t_int_vector>& it) : m_word(it.m_word) {
+            m_offset = it.m_offset;
+            m_len = it.m_len;
         }
 
         reference operator*() const {
@@ -891,6 +897,8 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
 
         template<class X>
         friend typename int_vector_const_iterator<X>::difference_type operator-(const int_vector_const_iterator<X>& x, const int_vector_const_iterator<X>& y);
+        friend class int_vector_iterator<t_int_vector>;
+        friend class int_vector_iterator_base<t_int_vector>;
     private:
         using int_vector_iterator_base<t_int_vector>::m_offset; // make m_offset easy usable
         using int_vector_iterator_base<t_int_vector>::m_len;    // make m_len easy usable
@@ -898,15 +906,23 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
         const typename t_int_vector::value_type* m_word;
     public:
 
-        int_vector_const_iterator(const t_int_vector* v=NULL, size_type idx=0) : int_vector_iterator_base<t_int_vector>(v, idx) {
+        int_vector_const_iterator(const t_int_vector* v=NULL, size_type idx=0) {
+            this->init(v, idx);
             if (v!=NULL)
                 m_word = v->m_data + (idx>>6);
             else
                 m_word = NULL;
         }
 
-        int_vector_const_iterator(const int_vector_iterator<t_int_vector>& it):int_vector_iterator_base<t_int_vector>(it.m_offset, it.m_len),m_word(it.m_word)
-        { }
+        int_vector_const_iterator(const int_vector_const_iterator& it) : m_word(it.m_word) {
+            m_offset = it.m_offset;
+            m_len = it.m_len;
+        }
+
+        int_vector_const_iterator(const int_vector_iterator<t_int_vector>& it) : m_word(it.m_word) {
+            m_offset = it.m_offset;
+            m_len = it.m_len;
+        }
 
         const_reference operator*() const {
             if (m_offset+m_len <= 64) {
@@ -1035,7 +1051,6 @@ inline std::ostream& operator<<(std::ostream& os, const int_vector<1>& v)
     for (int_vector<1>::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
         os << *it;
     }
-    os << std::endl;
     return os;
 }
 
@@ -1046,7 +1061,6 @@ inline std::ostream& operator<<(std::ostream& os, const int_vector<t_width>& v)
         os << *it;
         if (it+1 != end) os << " ";
     }
-    os << std::endl;
     return os;
 }
 

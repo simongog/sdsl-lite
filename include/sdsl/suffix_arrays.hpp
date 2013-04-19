@@ -30,5 +30,6 @@
 #include "csa_sada.hpp"
 #include "wavelet_trees.hpp"
 #include "construct.hpp"
+#include "suffix_array_algorithm.hpp"
 
 #endif

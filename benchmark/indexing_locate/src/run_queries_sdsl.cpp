@@ -1,10 +1,7 @@
 /*
  * Run Queries
  */
-#include <sdsl/csa_wt.hpp>
-#include <sdsl/csa_sada.hpp>
-#include <sdsl/wavelet_trees.hpp>
-#include <sdsl/algorithms_for_string_matching.hpp>
+#include <sdsl/suffix_arrays.hpp>
 #include <string>
 
 #include <stdlib.h>
@@ -165,8 +162,7 @@ do_count(const CSA_TYPE& csa)
 
         /* Count */
         time = getTime();
-        numocc = algorithm::count(csa, pattern, length);
-//		error = count (Index, pattern, length, &numocc);
+        numocc = count(csa, pattern, pattern+length);
         IFERROR(error);
 
         if (Verbose) {
@@ -221,7 +217,7 @@ do_locate(const CSA_TYPE& csa)
         }
         // Locate
         time = getTime();
-        numocc = algorithm::locate(csa, pattern, length, occ);
+        numocc = locate(csa, pattern, pattern+length, occ);
         IFERROR(error);
         tot_time += (getTime() - time);
         ++processed_pat;
@@ -354,7 +350,7 @@ do_extract(const CSA_TYPE& csa)
     int error = 0;
     uchar* text, orig_file[257];
     ulong num_pos, from, to, numchars, tot_ext = 0;
-    CSA_TYPE::size_type readen = 0;
+    CSA_TYPE::size_type readlen = 0;
     double time, tot_time = 0;
 
     error = fscanf(stdin, "# number=%lu length=%lu file=%s\n", &num_pos, &numchars, orig_file);
@@ -375,15 +371,15 @@ do_extract(const CSA_TYPE& csa)
         time = getTime();
         text = (uchar*)malloc(to-from+2);
 //		fprintf(stderr,"from=%d to=%d, size=%d\n",from,to,csa.size());
-        algorithm::extract(csa, from, to, text, readen);
+        readlen += extract(csa, from, to, text);
         tot_time += (getTime() - time);
 
-        tot_ext += readen;
+        tot_ext += readlen;
 
         if (Verbose) {
             fwrite(&from,sizeof(ulong),1,stdout);
-            fwrite(&readen,sizeof(ulong),1,stdout);
-            fwrite(text,sizeof(uchar),readen, stdout);
+            fwrite(&readlen,sizeof(ulong),1,stdout);
+            fwrite(text,sizeof(uchar),readlen, stdout);
         }
 
         num_pos--;

@@ -97,7 +97,6 @@ class cst_sct3
         typedef t_csa                                             csa_type;
         typedef typename t_lcp::template type<cst_sct3>::lcp_type lcp_type;
         typedef t_bp_support                                      bp_support_type;
-        typedef typename t_csa::pattern_type                      pattern_type;
         typedef typename t_csa::char_type                         char_type;
         typedef bp_interval<size_type>                            node_type; //!< Type for the nodes in the tree
         typedef t_rank                                            fc_rank_support_type;
