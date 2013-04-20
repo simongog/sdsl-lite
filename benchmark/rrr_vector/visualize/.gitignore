@@ -1,0 +1,6 @@
+*
+!.gitignore
+!Makefile
+!rrr-footer.tex
+!rrr-header.tex
+!rrr.R

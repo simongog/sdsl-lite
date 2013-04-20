@@ -1,0 +1,6 @@
+*
+!.gitignore
+!Makefile
+!extract.R
+!extract.tex
+!index-filter.config
