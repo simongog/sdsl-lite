@@ -24,7 +24,7 @@ class osfstream : public std::ostream
         //! Standard constructor.
         osfstream();
         //! Constructor taking a file name and open mode.
-        osfstream(const std::string& file, std::ios_base::openmode mode = std::ios_base::in);
+        osfstream(const std::string& file, std::ios_base::openmode mode = std::ios_base::out);
         //! Open the stream.
         std::streambuf*
         open(const std::string& file, std::ios_base::openmode mode = std::ios_base::out);
