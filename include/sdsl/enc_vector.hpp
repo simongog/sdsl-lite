@@ -228,14 +228,13 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c) : m_size(0)
 {
     // clear bit_vectors
     clear();
-
     if (c.empty())  // if c is empty there is nothing to do...
         return;
-    typename Container::const_iterator    it             = c.begin(), end = c.end();
-    typename Container::value_type         v1            = *it, v2, max_sample_value=0, x;
+    typename Container::const_iterator it = c.begin(), end = c.end();
+    typename Container::value_type     v1 = *it, v2, max_sample_value=0, x;
     size_type samples=0;
     size_type z_size = 0;
-//  (1) Calculate maximal value of samples and of deltas
+// (1) Calculate maximal value of samples and of deltas
     for (size_type i=0, no_sample=0; it != end; ++it,++i, --no_sample) {
         v2 = *it;
         if (!no_sample) { // add a sample
@@ -247,7 +246,7 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c) : m_size(0)
         }
         v1=v2;
     }
-//    (2) Write sample values and deltas
+// (2) Write sample values and deltas
     {
         if (max_sample_value > z_size+1)
             m_sample_vals_and_pointer.width(bits::hi(max_sample_value) + 1);
@@ -294,8 +293,7 @@ template<class t_coder, uint32_t t_dens, uint8_t t_width>
 template<uint8_t int_width>
 enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width>& v_buf) : m_size(0)
 {
-    // clear bit_vectors
-    clear();
+    clear(); // clear bit_vectors
     size_type n = v_buf.int_vector_size;
     if (n == 0)  // if c is empty there is nothing to do...
         return;
@@ -303,7 +301,7 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width
     value_type     v1=0, v2=0, max_sample_value=0;
     size_type samples=0, z_size=0;
     const size_type sd = get_sample_dens();
-//  (1) Calculate maximal value of samples and of deltas
+// (1) Calculate maximal value of samples and of deltas
     for (size_type i=0, r_sum=0, r = v_buf.load_next_block(), no_sample = 0; r_sum < n;) {
         for (; i < r_sum+r; ++i, --no_sample) {
             v2 = v_buf[i-r_sum];
@@ -319,8 +317,8 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width
         r_sum += r; r = v_buf.load_next_block();
     }
 
-//    (2) Write sample values and deltas
-//    (a) Initialize array for sample values and pointers
+// (2) Write sample values and deltas
+//  (a) Initialize array for sample values and pointers
     if (max_sample_value > z_size+1)
         m_sample_vals_and_pointer.width(bits::hi(max_sample_value) + 1);
     else
@@ -328,12 +326,12 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width
     m_sample_vals_and_pointer.resize(2*samples+2); // add 2 for last entry
     util::set_to_value(m_sample_vals_and_pointer, 0);
 
-//    (b) Initilize bit_vector for encoded data
+//  (b) Initialize bit_vector for encoded data
     util::assign(m_z, int_vector<>(z_size, 0, 1));
     uint64_t* z_data = t_coder::raw_data(m_z);
     uint8_t offset = 0;
 
-//    (c) Write sample values and deltas
+//  (c) Write sample values and deltas
     v_buf.reset();
     z_size = 0;
     for (size_type i=0, j=0, r_sum=0, r = v_buf.load_next_block(), no_sample = 0; r_sum < n;) {
