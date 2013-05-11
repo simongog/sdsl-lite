@@ -108,7 +108,7 @@ typename t_csa::size_type backward_search(
     t_pat_iter it = end;
     while (begin < it and r+1-l > 0) {
         --it;
-        typename t_csa::size_type size = backward_search(csa, l, r, (typename t_csa::char_type)*it, l, r);
+        backward_search(csa, l, r, (typename t_csa::char_type)*it, l, r);
     }
     l_res = l;
     r_res = r;
