@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
     IFERROR(error);
     Load_time = getTime() - Load_time;
     fprintf(stderr, "# Load_index_time_in_sec = %.2f\n", Load_time);
-    fprintf(stderr, "# text_size = %lld\n", csa.size()-1);
+    std::cerr<<"# text_size = " << csa.size()-1 << std::endl;
 
     Index_size = size_in_bytes(csa);
     IFERROR(error);

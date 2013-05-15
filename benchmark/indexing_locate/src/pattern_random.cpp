@@ -41,7 +41,7 @@ int main(int argc, char** argv)
     cache_config cconfig(false, argv[2], file);
     construct(csa, argv[1], cconfig, 1);
     if (pat_len>=csa.size()) {
-        printf("pat_len=%llu to long.", pat_len);
+        std::cout << "pat_len=" << pat_len << " too long." << std::endl;
         return 1;
     }
 // (2)
