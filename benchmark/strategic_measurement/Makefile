@@ -160,7 +160,7 @@ results/%.locate: $(BIN_DIR)/run_queries_sdsl
 	@echo "# PAT_MIN_OCC = $(PAT_MIN_OCC)" >> $@
 	@echo "# PAT_MAX_OCC = $(PAT_MAX_OCC)" >> $@
 	@$(BIN_DIR)/run_queries_sdsl \
-	indexes/$(TC_ID) L $(MAX_PAT) $(SKIP) < pattern/$(TC_ID).$(PAT_ID) 2>> $@ 
+	indexes/$(TC_ID) L $(MAX_PAT) $(SKIP) < pattern/$(TC_ID).$(PAT_ID) 2>> $@ > $@.info
 
 # Format: results/[TC_ID].[PAT_ID].cand
 results/%.cand: $(BIN_DIR)/extract_candidates
@@ -183,4 +183,3 @@ results/%.occ: $(BIN_DIR)/occurrence_statistics
 	$(eval TC_PATH:=$(call config_select,test_case.config,$(TC_ID),2))
 	@echo "Processing $(TC_ID) with pattern length $(MS)"
 	@echo $(MS) | ${BIN_DIR}/occurrence_statistics $(TC_PATH) $(TMP_DIR) $(TC_ID) > $@
-

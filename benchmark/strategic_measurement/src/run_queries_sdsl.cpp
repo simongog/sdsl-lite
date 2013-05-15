@@ -4,6 +4,7 @@
 #include <sdsl/suffix_arrays.hpp>
 #include <string>
 #include <algorithm>
+#include <iostream>
 
 #include <stdlib.h>
 #include "interface.h"
@@ -181,14 +182,16 @@ do_locate(const CSA_TYPE& csa)
 {
     int error = 0;
     ulong numocc, length; //, *occ,
-    int_vector<32> occ;
+    int_vector<64> occ;
+    uint64_t steps=0;
     ulong tot_numocc = 0, numpatt = 0, processed_pat = 0;
     double time, tot_time = 0;
     uchar* pattern;
 
     pfile_info(&length, &numpatt);
 
-    pattern = (uchar*) malloc(sizeof(uchar) * (length));
+    pattern = (uchar*) malloc(sizeof(uchar) * (length+1));
+    pattern[length] = '\0';
     if (pattern == NULL) {
         fprintf(stderr, "Error: cannot allocate\n");
         exit(1);
@@ -208,6 +211,10 @@ do_locate(const CSA_TYPE& csa)
         IFERROR(error);
         tot_time += (getTime() - time);
         ++processed_pat;
+        for (size_t i=0; i<numocc; ++i) {
+            std::cout<<SKIP/1000<<" "<<pattern<<" "<<occ[i]<<std::endl;
+            steps+=occ[i] % CSA_TYPE::sa_sample_dens;
+        }
 
         tot_numocc += numocc;
         numpatt--;
@@ -224,6 +231,7 @@ do_locate(const CSA_TYPE& csa)
     fprintf(stderr, "# Locate_time_in_secs = %.5f\n", tot_time);
     fprintf(stderr, "# Locate_time/Num_occs = %.4f\n\n", (tot_time * 1000) / tot_numocc);
     fprintf(stderr, "# (Load_time+Locate_time)/Num_occs = %.4f\n\n", ((tot_time+Load_time) * 1000) / tot_numocc);
+    std::cerr << "# steps = " << steps << std::endl;
 
     free(pattern);
 }
