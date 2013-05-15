@@ -160,7 +160,7 @@ do_count(const CSA_TYPE& csa)
 
         /* Count */
         time = getTime();
-        numocc = count(csa, pattern, pattern+length);
+        numocc = sdsl::count(csa, pattern, pattern+length);
 
         if (Verbose) {
             fwrite(&length, sizeof(length), 1, stdout);
@@ -213,7 +213,7 @@ do_locate(const CSA_TYPE& csa)
         }
         // Locate
         time = getTime();
-        numocc = locate(csa, pattern, pattern+length, occ);
+        numocc = sdsl::locate(csa, pattern, pattern+length, occ);
         tot_time += (getTime() - time);
 
         tot_numocc += numocc;
