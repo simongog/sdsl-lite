@@ -552,7 +552,7 @@ class wt
             return result;
         };
 
-		//! Calculates for symbol c, how many symbols smaller and bigger c occure in wt[start..end-1].
+        //! Calculates for symbol c, how many symbols smaller and bigger c occure in wt[start..end-1].
         /*!
          *	\param start The start index (inclusive) of the interval.
          *	\param end The end index (exclusive) of the interval.
