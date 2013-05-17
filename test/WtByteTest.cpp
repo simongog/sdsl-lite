@@ -281,7 +281,6 @@ void test_bounds(t_T& wt)
                     num_c = rank_c_j_n[j]-rank_c_i_n[j];
                     num_b -= num_c;
                     size_type s, b;
-// 						std::cout << "l=" << l << ", r=" << r << ", j=" << (unsigned char)j << std::endl;
                     ASSERT_EQ(rank_c_i_n[j], wt.bounds(l, r, (value_type)j, s, b));
                     ASSERT_EQ(num_s, s);
                     ASSERT_EQ(num_b, b);

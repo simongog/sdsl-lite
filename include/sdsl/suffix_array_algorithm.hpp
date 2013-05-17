@@ -156,8 +156,7 @@ static typename csa_wt<>::csa_size_type bidirectional_search(
     typename csa_wt<>::size_type& l_res,
     typename csa_wt<>::size_type& r_res,
     typename csa_wt<>::size_type& l_rev_res,
-    typename csa_wt<>::size_type& r_rev_res
-    ,
+    typename csa_wt<>::size_type& r_rev_res,
     SDSL_UNUSED typename enable_if< wt_has_bounds_trait<t_wt>::value, csa_tag>::type x = csa_tag()
 )
 {
