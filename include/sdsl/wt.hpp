@@ -710,7 +710,7 @@ class wt
          *        \f$ \Order{\min{\sigma, k \log \sigma}} \f$
          *
          *  \par Precondition
-         *       \f$ i\leq j \f$
+         *       \f$ i \leq j and i < n and j \leq n \f$
          *       \f$ cs.size() \geq \sigma \f$
          *       \f$ rank_{c_i}.size() \geq \sigma \f$
          *       \f$ rank_{c_j}.size() \geq \sigma \f$
@@ -719,7 +719,7 @@ class wt
                               std::vector<unsigned char>& cs,
                               std::vector<size_type>& rank_c_i,
                               std::vector<size_type>& rank_c_j) const {
-            assert(0 < i and i <= j and i < size() and j <= size())
+            assert(i<=j and i < size() and j <= size());
             if (i==j) {
                 k = 0;
             } else if ((j-i)==1) {
