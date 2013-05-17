@@ -138,7 +138,7 @@ class wt_huff
         typedef t_select_zero           select_0_type;
         typedef wt_tag                  index_category;
         typedef byte_alphabet_tag       alphabet_category;
-		enum { lex_ordered=0 };
+        enum { lex_ordered=0 };
 
     private:
 #ifdef WT_HUFF_CACHE
@@ -592,11 +592,11 @@ class wt_huff
                               std::vector<size_type>& rank_c_j) const {
             if (i==j) {
                 k = 0;
-			} else if (1==m_sigma) {
-				k = 1;
-				cs[0] = m_nodes[0].tree_pos_rank;
-				rank_c_i[0] = std::min(i,m_size);
-				rank_c_j[0] = std::min(j,m_size);
+            } else if (1==m_sigma) {
+                k = 1;
+                cs[0] = m_nodes[0].tree_pos_rank;
+                rank_c_i[0] = std::min(i,m_size);
+                rank_c_j[0] = std::min(j,m_size);
             } else if ((j-i)==1) {
                 k = 1;
                 rank_c_i[0] = inverse_select(i, cs[0]);
