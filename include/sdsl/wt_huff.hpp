@@ -138,6 +138,7 @@ class wt_huff
         typedef t_select_zero           select_0_type;
         typedef wt_tag                  index_category;
         typedef byte_alphabet_tag       alphabet_category;
+		enum { lex_ordered=0 };
 
     private:
 #ifdef WT_HUFF_CACHE
@@ -516,7 +517,6 @@ class wt_huff
          *        \f$ \Order{H_0} \f$
          */
         size_type inverse_select(size_type i, value_type& c)const {
-            // TODO: handle m_sigma=1
             assert(i < size());
             uint32_t node=0;
             while (m_nodes[node].child[0] != _undef_node) { // while node is not a leaf
@@ -574,7 +574,7 @@ class wt_huff
          *  \param i The start index (inclusive) of the interval.
          *  \param j The end index (exclusive) of the interval.
          *  \param k Reference that will contain the number of different symbols in wt[i..j-1].
-         *  \param cs Reference to a vector of size k that will contain all symbols that occur in wt[i..j-1] in arbitrary order.
+         *  \param cs Reference to a vector that will contain in cs[0..k-1] all symbols that occur in wt[i..j-1] in arbitrary order.
          *  \param rank_c_i Reference to a vector which equals rank_c_i[p] = rank(i,cs[p]), for \f$ 0 \leq p < k \f$
          *  \param rank_c_j Reference to a vector which equals rank_c_j[p] = rank(j,cs[p]), for \f$ 0 \leq p < k \f$
          *    \par Time complexity
@@ -592,24 +592,25 @@ class wt_huff
                               std::vector<size_type>& rank_c_j) const {
             if (i==j) {
                 k = 0;
-                return;
+			} else if (1==m_sigma) {
+				k = 1;
+				cs[0] = m_nodes[0].tree_pos_rank;
+				rank_c_i[0] = std::min(i,m_size);
+				rank_c_j[0] = std::min(j,m_size);
             } else if ((j-i)==1) {
                 k = 1;
                 rank_c_i[0] = inverse_select(i, cs[0]);
                 rank_c_j[0] = rank_c_i[0]+1;
-                return;
             } else if ((j-i)==2) {
                 rank_c_i[0] = inverse_select(i, cs[0]);
                 rank_c_i[1] = inverse_select(i+1, cs[1]);
                 if (cs[0]==cs[1]) {
                     k = 1;
                     rank_c_j[0] = rank_c_i[0]+2;
-                    return;
                 } else {
                     k = 2;
                     rank_c_j[0] = rank_c_i[0]+1;
                     rank_c_j[1] = rank_c_i[1]+1;
-                    return;
                 }
             } else {
                 k = 0;
