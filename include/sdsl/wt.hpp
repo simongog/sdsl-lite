@@ -552,28 +552,28 @@ class wt
             return result;
         };
 
-        //! Calculates for symbol c, how many symbols smaller and bigger c occure in wt[start..end-1].
+        //! Calculates for symbol c, how many symbols smaller and bigger c occure in wt[i..j-1].
         /*!
-         *  \param start The start index (inclusive) of the interval.
-         *  \param end The end index (exclusive) of the interval.
+         *  \param i The start index (inclusive) of the interval.
+         *  \param j The end index (exclusive) of the interval.
          *  \param c The symbol to count the occurences in the interval.
-         *  \param smaller Reference that will contain the number of symbols smaller than c in wt[start..end-1].
-         *  \param bigger Reference that will contain the number of symbols bigger than c in wt[start..end-1].
-         *  \return The number of occurences of symbol c in wt[0..start-1].
+         *  \param smaller Reference that will contain the number of symbols smaller than c in wt[i..j-1].
+         *  \param bigger Reference that will contain the number of symbols bigger than c in wt[i..j-1].
+         *  \return The number of occurences of symbol c in wt[0..i-1].
          *
          *  \par Precondition
-         *       \f$ start \leq end \f$
+         *       \f$ i \leq j and i < n and j \leq n \f$
          *       \f$ c must exist in wt \f$
          */
-        size_type bounds(size_type start, size_type end, value_type c, size_type& smaller, size_type& bigger)const {
-            assert(0 <= start and start < size() and end <= size() and start<=end);
+        size_type bounds(size_type i, size_type j, value_type c, size_type& smaller, size_type& bigger)const {
+            assert(i<=j and i < size() and j <= size());
             smaller = 0;
             bigger = 0;
-            if (start==end) {
-                return rank(start,c);
+            if (i==j) {
+                return rank(i, c);
             }
-            size_type res1 = start;
-            size_type res2 = end;
+            size_type res1 = i;
+            size_type res2 = j;
             size_type node=0;
             size_type lex_idx = m_char_map[c]; // koennte man auch nur path, path_len ersetzen
             size_type sigma   = m_sigma;
@@ -710,7 +710,7 @@ class wt
          *        \f$ \Order{\min{\sigma, k \log \sigma}} \f$
          *
          *  \par Precondition
-         *       \f$ i\leq j \f$
+         *       \f$ i\leq j and i < n and j \leq n \f$
          *       \f$ cs.size() \geq \sigma \f$
          *       \f$ rank_{c_i}.size() \geq \sigma \f$
          *       \f$ rank_{c_j}.size() \geq \sigma \f$
@@ -719,7 +719,7 @@ class wt
                               std::vector<unsigned char>& cs,
                               std::vector<size_type>& rank_c_i,
                               std::vector<size_type>& rank_c_j) const {
-            assert(0 < i and i <= j and i < size() and j <= size());
+            assert(i <= j and i < size() and j <= size());
             if (i==j) {
                 k = 0;
             } else if ((j-i)==1) {
