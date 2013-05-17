@@ -41,6 +41,17 @@ struct wt_test_trait<wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> >{
 	static void bounds_test(SDSL_UNUSED wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> &wt){}
 };
 
+template<class t_bv, class t_rs, class t_ss1, class t_ss0, bool t_dfs_shape>
+struct wt_test_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> >{
+	static void interval_symbols_test(wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> &wt){
+		test_interval_symbols(wt);
+	}
+	static void bounds_test(wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> &wt){
+		test_bounds(wt);
+	}
+};
+
+
 template<class T>
 class WtByteTest : public ::testing::Test { };
 
@@ -57,7 +68,11 @@ typedef Types<
    wt_rlmn<>,
    wt_rlmn<bit_vector>,
    wt_rlg<>,
-   wt_rlg8<>
+   wt_rlg8<>,
+   wt_hutu<bit_vector_il<> >,
+   wt_hutu<bit_vector, rank_support_v<> >
+   wt_hutu<bit_vector, rank_support_v5<> >,
+   wt_hutu<rrr_vector<63> >
    > Implementations;
 
 TYPED_TEST_CASE(WtByteTest, Implementations);
@@ -279,7 +294,6 @@ void test_bounds(t_T& wt){
 					num_c = rank_c_j_n[j]-rank_c_i_n[j];
 					num_b -= num_c;
 					size_type s, b;
-// 						std::cout << "l=" << l << ", r=" << r << ", j=" << (unsigned char)j << std::endl;
 					ASSERT_EQ(rank_c_i_n[j], wt.bounds(l, r, (value_type)j, s, b));
 					ASSERT_EQ(num_s, s);
 					ASSERT_EQ(num_b, b);
