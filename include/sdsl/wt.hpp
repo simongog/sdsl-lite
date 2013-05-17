@@ -16,7 +16,7 @@
 */
 /*! \file wt.hpp
  *  \brief wt.hpp contains a generic class for the wavelet tree proposed first by
- *	      Grossi et al. 2003 and applied to the BWT in Foschini et al. 2004.
+ *         Grossi et al. 2003 and applied to the BWT in Foschini et al. 2004.
  *  \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_WT
@@ -258,8 +258,8 @@ class wt
         typedef typename wt_trait<t_rac>::inv_map_type inv_map_type;
         typedef wt_tag                                 index_category;
         typedef byte_alphabet_tag                      alphabet_category;
-		enum { lex_ordered=1 };
-		
+        enum { lex_ordered=1 };
+
     private:
         size_type       m_size;
         size_type       m_sigma;        //<- \f$ |\Sigma| \f$
@@ -554,12 +554,12 @@ class wt
 
         //! Calculates for symbol c, how many symbols smaller and bigger c occure in wt[start..end-1].
         /*!
-         *	\param start The start index (inclusive) of the interval.
-         *	\param end The end index (exclusive) of the interval.
-         *	\param c The symbol to count the occurences in the interval.
+         *  \param start The start index (inclusive) of the interval.
+         *  \param end The end index (exclusive) of the interval.
+         *  \param c The symbol to count the occurences in the interval.
          *  \param smaller Reference that will contain the number of symbols smaller than c in wt[start..end-1].
          *  \param bigger Reference that will contain the number of symbols bigger than c in wt[start..end-1].
-         *	\return The number of occurences of symbol c in wt[0..start-1].
+         *  \return The number of occurences of symbol c in wt[0..start-1].
          *
          *  \par Precondition
          *       \f$ start \leq end \f$
@@ -567,32 +567,32 @@ class wt
          */
         size_type bounds(size_type start, size_type end, value_type c, size_type& smaller, size_type& bigger)const {
             assert(0 <= start and start < size() and end <= size() and start<=end);
-			smaller = 0;
-			bigger = 0;			
-			if(start==end){
-				return rank(start,c);
-			}			
-			size_type res1 = start;
-			size_type res2 = end;
-			size_type node=0;
-			size_type lex_idx = m_char_map[c]; // koennte man auch nur path, path_len ersetzen
+            smaller = 0;
+            bigger = 0;
+            if (start==end) {
+                return rank(start,c);
+            }
+            size_type res1 = start;
+            size_type res2 = end;
+            size_type node=0;
+            size_type lex_idx = m_char_map[c]; // koennte man auch nur path, path_len ersetzen
             size_type sigma   = m_sigma;
 //             while (sigma >= 2 and res2 > res1) {
-			while (sigma >= 2) {
+            while (sigma >= 2) {
                 if (lex_idx < (sigma+1)/2) {
-					size_type r1_1 = (m_tree_rank(m_node_pointers[node]+res1)-m_node_pointers_rank[node]);
-					size_type r1_2 = (m_tree_rank(m_node_pointers[node]+res2)-m_node_pointers_rank[node]);
-					bigger += r1_2 - r1_1;
-					res1 -= r1_1;
-					res2 -= r1_2;
+                    size_type r1_1 = (m_tree_rank(m_node_pointers[node]+res1)-m_node_pointers_rank[node]);
+                    size_type r1_2 = (m_tree_rank(m_node_pointers[node]+res2)-m_node_pointers_rank[node]);
+                    bigger += r1_2 - r1_1;
+                    res1 -= r1_1;
+                    res2 -= r1_2;
                     sigma  = (sigma+1)/2;
                     node   = 2*node+1;
                 } else {
-					size_type r1_1 = (m_tree_rank(m_node_pointers[node]+res1)-m_node_pointers_rank[node]);
-					size_type r1_2 = (m_tree_rank(m_node_pointers[node]+res2)-m_node_pointers_rank[node]);
-					smaller += res2 - r1_2 - res1 + r1_1;
-					res1 = r1_1;
-					res2 = r1_2;
+                    size_type r1_1 = (m_tree_rank(m_node_pointers[node]+res1)-m_node_pointers_rank[node]);
+                    size_type r1_2 = (m_tree_rank(m_node_pointers[node]+res2)-m_node_pointers_rank[node]);
+                    smaller += res2 - r1_2 - res1 + r1_1;
+                    res1 = r1_1;
+                    res2 = r1_2;
                     lex_idx -= (sigma+1)/2;
                     sigma -= (sigma+1)/2;
                     node = 2*node+2;
@@ -732,13 +732,13 @@ class wt
                     k = 1;
                     rank_c_j[0] = rank_c_i[0]+2;
                 } else {
-					k = 2;
-					if(cs[0] > cs[1]) {
-						std::swap(cs[0],cs[1]);
-						std::swap(rank_c_i[0],rank_c_i[1]);
-					}
-					rank_c_j[0] = rank_c_i[0]+1;
-					rank_c_j[1] = rank_c_i[1]+1;
+                    k = 2;
+                    if (cs[0] > cs[1]) {
+                        std::swap(cs[0],cs[1]);
+                        std::swap(rank_c_i[0],rank_c_i[1]);
+                    }
+                    rank_c_j[0] = rank_c_i[0]+1;
+                    rank_c_j[1] = rank_c_i[1]+1;
                 }
             } else {
                 k = 0;
