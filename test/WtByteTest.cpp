@@ -70,7 +70,7 @@ wt<unsigned char*, rrr_vector<63> >,
    wt_rlg<>,
    wt_rlg8<>,
    wt_hutu<bit_vector_il<> >,
-   wt_hutu<bit_vector, rank_support_v<> >
+   wt_hutu<bit_vector, rank_support_v<> >,
    wt_hutu<bit_vector, rank_support_v5<> >,
    wt_hutu<rrr_vector<63> >
    > Implementations;
@@ -190,23 +190,12 @@ void test_interval_symbols(t_T& wt)
     ASSERT_EQ(true, load_from_file(wt, temp_file));
     int_vector<8> text;
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
-    {
-        size_type k;
-        std::vector<value_type> cs(wt.sigma);
-        std::vector<size_type> rank_c_i(wt.sigma);
-        std::vector<size_type> rank_c_j(wt.sigma);
-        wt.interval_symbols(0, 0, k, cs, rank_c_i, rank_c_j);
-        size_type k_n = 0;
-        ASSERT_EQ(k_n, k);
-    }
     if (wt.size()) {
         for (size_type t=0; t<10000; ++t) {
-            size_type l = rand()%(wt.size());
+            size_type l = rand()%(wt.size()-1);
             size_type r = rand()%(wt.size());
             if (r<l) {
-                size_type tmp = r;
-                r = l;
-                l = tmp;
+                std::swap(l,r);
             }
             size_type k;
             std::vector<value_type> cs(wt.sigma);
@@ -268,12 +257,10 @@ void test_bounds(t_T& wt)
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
     if (wt.size()) {
         for (size_type t=0; t<10000; ++t) {
-            size_type l = rand()%(wt.size());
+            size_type l = rand()%(wt.size()-1);
             size_type r = rand()%(wt.size());
             if (r<l) {
-                size_type tmp = r;
-                r = l;
-                l = tmp;
+                std::swap(l,r);
             }
             size_type k_n = 0;
             std::vector<size_type> rank_c_i_n(256,0);
