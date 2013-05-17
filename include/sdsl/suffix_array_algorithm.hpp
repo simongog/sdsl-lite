@@ -126,6 +126,11 @@ struct wt_has_bounds_trait<wt<t_rac, t_bv, t_rs, t_ss1, t_ss0> >{
     enum {value = true};
 };
 
+template<class t_bv, class t_rs, class t_ss1, class t_ss0, bool t_dfs_shape>
+struct wt_has_bounds_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> >{
+    enum {value = true};
+};
+
 //! Bidirectional search for a character c on an interval \f$[\ell..r]\f$ of the suffix array.
 /*!
  * \param csa The csa in which the backward_search should be done.
