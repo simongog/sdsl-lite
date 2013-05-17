@@ -57,7 +57,6 @@ class wt_trait
         typedef std::map<value_type, size_type> map_type;
         typedef std::map<value_type, size_type> inv_map_type;
         enum { char_node_map_size=0 };
-		
 
         static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
             if (n > 0)
@@ -259,8 +258,8 @@ class wt
         typedef typename wt_trait<t_rac>::inv_map_type inv_map_type;
         typedef wt_tag                                 index_category;
         typedef byte_alphabet_tag                      alphabet_category;
-		enum { lex_ordered=1 };
-		
+        enum { lex_ordered=1 };
+
     private:
         size_type       m_size;
         size_type       m_sigma;        //<- \f$ |\Sigma| \f$
@@ -553,7 +552,7 @@ class wt
             return result;
         };
 
-		//! Calculates for symbol c, how many symbols smaller and bigger c occure in wt[start..end-1].
+        //! Calculates for symbol c, how many symbols smaller and bigger c occure in wt[start..end-1].
         /*!
          *	\param start The start index (inclusive) of the interval.
          *	\param end The end index (exclusive) of the interval.
@@ -568,32 +567,32 @@ class wt
          */
         size_type bounds(size_type start, size_type end, value_type c, size_type& smaller, size_type& bigger)const {
             assert(0 <= start and start < size() and end <= size() and start<=end);
-			smaller = 0;
-			bigger = 0;			
-			if(start==end){
-				return rank(start,c);
-			}			
-			size_type res1 = start;
-			size_type res2 = end;
-			size_type node=0;
-			size_type lex_idx = m_char_map[c]; // koennte man auch nur path, path_len ersetzen
+            smaller = 0;
+            bigger = 0;
+            if (start==end) {
+                return rank(start,c);
+            }
+            size_type res1 = start;
+            size_type res2 = end;
+            size_type node=0;
+            size_type lex_idx = m_char_map[c]; // koennte man auch nur path, path_len ersetzen
             size_type sigma   = m_sigma;
 //             while (sigma >= 2 and res2 > res1) {
-			while (sigma >= 2) {
+            while (sigma >= 2) {
                 if (lex_idx < (sigma+1)/2) {
-					size_type r1_1 = (m_tree_rank(m_node_pointers[node]+res1)-m_node_pointers_rank[node]);
-					size_type r1_2 = (m_tree_rank(m_node_pointers[node]+res2)-m_node_pointers_rank[node]);
-					bigger += r1_2 - r1_1;
-					res1 -= r1_1;
-					res2 -= r1_2;
+                    size_type r1_1 = (m_tree_rank(m_node_pointers[node]+res1)-m_node_pointers_rank[node]);
+                    size_type r1_2 = (m_tree_rank(m_node_pointers[node]+res2)-m_node_pointers_rank[node]);
+                    bigger += r1_2 - r1_1;
+                    res1 -= r1_1;
+                    res2 -= r1_2;
                     sigma  = (sigma+1)/2;
                     node   = 2*node+1;
                 } else {
-					size_type r1_1 = (m_tree_rank(m_node_pointers[node]+res1)-m_node_pointers_rank[node]);
-					size_type r1_2 = (m_tree_rank(m_node_pointers[node]+res2)-m_node_pointers_rank[node]);
-					smaller += res2 - r1_2 - res1 + r1_1;
-					res1 = r1_1;
-					res2 = r1_2;
+                    size_type r1_1 = (m_tree_rank(m_node_pointers[node]+res1)-m_node_pointers_rank[node]);
+                    size_type r1_2 = (m_tree_rank(m_node_pointers[node]+res2)-m_node_pointers_rank[node]);
+                    smaller += res2 - r1_2 - res1 + r1_1;
+                    res1 = r1_1;
+                    res2 = r1_2;
                     lex_idx -= (sigma+1)/2;
                     sigma -= (sigma+1)/2;
                     node = 2*node+2;
@@ -733,13 +732,13 @@ class wt
                     k = 1;
                     rank_c_j[0] = rank_c_i[0]+2;
                 } else {
-					k = 2;
-					if(cs[0] > cs[1]) {
-						std::swap(cs[0],cs[1]);
-						std::swap(rank_c_i[0],rank_c_i[1]);
-					}
-					rank_c_j[0] = rank_c_i[0]+1;
-					rank_c_j[1] = rank_c_i[1]+1;
+                    k = 2;
+                    if (cs[0] > cs[1]) {
+                        std::swap(cs[0],cs[1]);
+                        std::swap(rank_c_i[0],rank_c_i[1]);
+                    }
+                    rank_c_j[0] = rank_c_i[0]+1;
+                    rank_c_j[1] = rank_c_i[1]+1;
                 }
             } else {
                 k = 0;

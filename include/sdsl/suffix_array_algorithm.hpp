@@ -102,7 +102,7 @@ typename t_csa::size_type backward_search(
     t_pat_iter end,
     typename t_csa::size_type& l_res,
     typename t_csa::size_type& r_res,
-	SDSL_UNUSED typename enable_if<is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename enable_if<is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
 )
 {
     t_pat_iter it = end;
@@ -117,17 +117,17 @@ typename t_csa::size_type backward_search(
 
 
 template<class t_T>
-struct wt_has_bounds_trait{
+struct wt_has_bounds_trait {
     enum {value = false};
 };
 
 template<class t_rac, class t_bv, class t_rs, class t_ss1, class t_ss0>
-struct wt_has_bounds_trait<wt<t_rac, t_bv, t_rs, t_ss1, t_ss0> >{
+struct wt_has_bounds_trait<wt<t_rac, t_bv, t_rs, t_ss1, t_ss0> > {
     enum {value = true};
 };
 
 template<class t_bv, class t_rs, class t_ss1, class t_ss0, bool t_dfs_shape>
-struct wt_has_bounds_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> >{
+struct wt_has_bounds_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> > {
     enum {value = true};
 };
 
@@ -158,26 +158,25 @@ static typename csa_wt<>::csa_size_type bidirectional_search(
     typename csa_wt<>::size_type l_rev,
     typename csa_wt<>::size_type r_rev,
     typename csa_wt<>::char_type c,
-	typename csa_wt<>::size_type& l_res,
-	typename csa_wt<>::size_type& r_res,
+    typename csa_wt<>::size_type& l_res,
+    typename csa_wt<>::size_type& r_res,
     typename csa_wt<>::size_type& l_rev_res,
-    typename csa_wt<>::size_type& r_rev_res
-    ,
-	SDSL_UNUSED typename enable_if< wt_has_bounds_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+    typename csa_wt<>::size_type& r_rev_res,
+    SDSL_UNUSED typename enable_if< wt_has_bounds_trait<t_wt>::value, csa_tag>::type x = csa_tag()
 )
 {
-	assert(l <= r); assert(r < csa.size());
-	typedef typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::size_type size_type;
+    assert(l <= r); assert(r < csa.size());
+    typedef typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::size_type size_type;
     size_type c_begin = csa.C[csa.char2comp[c]];
-	size_type s, b;
-	size_type rank_l = csa.wavelet_tree.bounds(l, r+1, c, s, b);
-	size_type rank_r = r - l - s - b + rank_l;
+    size_type s, b;
+    size_type rank_l = csa.wavelet_tree.bounds(l, r+1, c, s, b);
+    size_type rank_r = r - l - s - b + rank_l;
     l_res = c_begin + rank_l;
     r_res = c_begin + rank_r;
     assert(r_res+1 >= l_res);
-	l_rev_res = l_rev + s;
-	r_rev_res = r_rev - b;
-	assert(r_rev_res-l_rev_res == r_res-l_res);
+    l_rev_res = l_rev + s;
+    r_rev_res = r_rev - b;
+    assert(r_rev_res-l_rev_res == r_res-l_res);
     return r_res+1-l_res;
 }
 
@@ -209,30 +208,30 @@ static typename csa_wt<>::csa_size_type bidirectional_search(
 template<class t_pat_iter, class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
 typename csa_wt<>::size_type bidirectional_search_backward(
     const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa,
-	SDSL_UNUSED const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_rev,
+    SDSL_UNUSED const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_rev,
     typename csa_wt<>::size_type l,
     typename csa_wt<>::size_type r,
-	typename csa_wt<>::size_type l_rev,
+    typename csa_wt<>::size_type l_rev,
     typename csa_wt<>::size_type r_rev,
     t_pat_iter begin,
     t_pat_iter end,
-	typename csa_wt<>::size_type& l_res,
+    typename csa_wt<>::size_type& l_res,
     typename csa_wt<>::size_type& r_res,
     typename csa_wt<>::size_type& l_rev_res,
     typename csa_wt<>::size_type& r_rev_res
     ,
-	SDSL_UNUSED typename enable_if< wt_has_bounds_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename enable_if< wt_has_bounds_trait<t_wt>::value, csa_tag>::type x = csa_tag()
 )
 {
     t_pat_iter it = end;
     while (begin < it and r+1-l > 0) {
         --it;
-		bidirectional_search(csa, l, r, l_rev, r_rev, (typename csa_wt<>::char_type)*it, l, r, l_rev, r_rev);
+        bidirectional_search(csa, l, r, l_rev, r_rev, (typename csa_wt<>::char_type)*it, l, r, l_rev, r_rev);
     }
     l_res = l;
     r_res = r;
-	l_rev_res = l_rev;
-	r_rev_res = r_rev;
+    l_rev_res = l_rev;
+    r_rev_res = r_rev;
     return r+1-l;
 }
 
@@ -264,30 +263,30 @@ typename csa_wt<>::size_type bidirectional_search_backward(
 template<class t_pat_iter, class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
 typename csa_wt<>::size_type bidirectional_search_forward(
     SDSL_UNUSED const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa,
-	const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_rev,
+    const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_rev,
     typename csa_wt<>::size_type l,
     typename csa_wt<>::size_type r,
-	typename csa_wt<>::size_type l_rev,
+    typename csa_wt<>::size_type l_rev,
     typename csa_wt<>::size_type r_rev,
     t_pat_iter begin,
     t_pat_iter end,
-	typename csa_wt<>::size_type& l_res,
+    typename csa_wt<>::size_type& l_res,
     typename csa_wt<>::size_type& r_res,
     typename csa_wt<>::size_type& l_rev_res,
     typename csa_wt<>::size_type& r_rev_res
     ,
-	SDSL_UNUSED typename enable_if< wt_has_bounds_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename enable_if< wt_has_bounds_trait<t_wt>::value, csa_tag>::type x = csa_tag()
 )
 {
     t_pat_iter it = begin;
     while (it < end and r+1-l > 0) {
-		bidirectional_search(csa_rev, l_rev, r_rev, l, r, (typename csa_wt<>::char_type)*it, l_rev, r_rev, l, r);
+        bidirectional_search(csa_rev, l_rev, r_rev, l, r, (typename csa_wt<>::char_type)*it, l_rev, r_rev, l, r);
         ++it;
     }
     l_res = l;
     r_res = r;
-	l_rev_res = l_rev;
-	r_rev_res = r_rev;
+    l_rev_res = l_rev;
+    r_rev_res = r_rev;
     return r+1-l;
 }
 

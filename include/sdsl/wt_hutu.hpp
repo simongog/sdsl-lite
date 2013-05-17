@@ -16,7 +16,7 @@
 */
 /*! \file wt_hutu.hpp
     \brief wt_hutu.hpp contains a class for the wavelet tree of byte sequences which is in Hu Tucker shape.
-	\author Simon Gog, Timo Beller and Markus Brenner
+    \author Simon Gog, Timo Beller and Markus Brenner
 */
 #ifndef INCLUDED_SDSL_WT_HUTU
 #define INCLUDED_SDSL_WT_HUTU
@@ -61,190 +61,189 @@ template<class size_type> class MNode;
 
 //node as used by the leftist heap
 template <class Element>
-class HeapNode{
-	public:
-    	Element * item;  //pointer to the represented item
+class HeapNode
+{
+    public:
+        Element* item;   //pointer to the represented item
 
-    	HeapNode * left; //left child
-    	HeapNode * right;//right child
-    	HeapNode * parent;//parent node (needed to delete elements)
-    	int rank; //rank of the heap node
+        HeapNode* left;  //left child
+        HeapNode* right; //right child
+        HeapNode* parent; //parent node (needed to delete elements)
+        int rank; //rank of the heap node
 
         //constructor
-		HeapNode(){
+        HeapNode() {
             item = NULL;
-			left = NULL;
-			right = NULL;
-			parent = NULL;
-			rank = 0;
-		}
+            left = NULL;
+            right = NULL;
+            parent = NULL;
+            rank = 0;
+        }
 
         //comparison operators needed for the heap structure
-        bool operator< (HeapNode<Element> other){
-        	return item->operator<(* other.item);
+        bool operator< (HeapNode<Element> other) {
+            return item->operator<(* other.item);
         }
-        bool operator> (HeapNode<Element> other){
-        	return *item < other.*item;
+        bool operator> (HeapNode<Element> other) {
+            return *item < other.*item;
         }
 };
 
 //Implementation of a leftist heap as needed in the first phase
 template <class Element>
-class LHeap{
+class LHeap
+{
     private:
         HeapNode<Element> * root; //pointer to the root
 
         //fixes node information after the deletion of elements
-		void fixNode(HeapNode<Element> * item){
-			if(item){
-				if(!item->left || !item->right){ //if node has only one child
-				    if(item->rank != 0){ //only go on fixing if the node information needs to be changed
-				        item->rank = 0;
-				        if(item->parent) fixNode(item->parent);
-				    }
-				}
-				else{ //node information has to be adapted
-				    int nn = (item->left->rank > item->right->rank) ? item->right->rank : item->left->rank;
-				    if(item->rank != nn && item->parent != 0){
-				        item->rank = nn;
-				        fixNode(item->parent);
-				    }
-				}
-			}
-		}
+        void fixNode(HeapNode<Element> * item) {
+            if (item) {
+                if (!item->left || !item->right) { //if node has only one child
+                    if (item->rank != 0) { //only go on fixing if the node information needs to be changed
+                        item->rank = 0;
+                        if (item->parent) fixNode(item->parent);
+                    }
+                } else { //node information has to be adapted
+                    int nn = (item->left->rank > item->right->rank) ? item->right->rank : item->left->rank;
+                    if (item->rank != nn && item->parent != 0) {
+                        item->rank = nn;
+                        fixNode(item->parent);
+                    }
+                }
+            }
+        }
 
         //helper function to remove the data structure from memory
-		void freeNode(HeapNode<Element> * item){
-			if(item->left){
-				freeNode(item->left);
-				delete item->left;
-				item->left = NULL;
-			}
-			if(item->right){
-				freeNode(item->right);
-				delete item->right;
-				item->right = NULL;
-			}
-		}
+        void freeNode(HeapNode<Element> * item) {
+            if (item->left) {
+                freeNode(item->left);
+                delete item->left;
+                item->left = NULL;
+            }
+            if (item->right) {
+                freeNode(item->right);
+                delete item->right;
+                item->right = NULL;
+            }
+        }
 
         //internal merge function
-		HeapNode<Element> * merge(HeapNode<Element> *h1, HeapNode<Element> *h2){
-		    if(!h1) return h2;
-		    if(!h2) return h1;
+        HeapNode<Element> * merge(HeapNode<Element> *h1, HeapNode<Element> *h2) {
+            if (!h1) return h2;
+            if (!h2) return h1;
 
-			if(*(h1->item) < *(h2->item))   return merge1(h1, h2);
-			else                            return merge1(h2, h1);
-		}
+            if (*(h1->item) < *(h2->item))   return merge1(h1, h2);
+            else                            return merge1(h2, h1);
+        }
         //internal merge function
-    	HeapNode<Element> * merge1(HeapNode<Element> *h1, HeapNode<Element> *h2){
-    		if(!h1->left){ //if h1 has no children, the merge is simple
-				h1->left = h2;
-				h2->parent = h1; //adjust the parent pointer
-			}
-			else{
-				h1->right = merge(h1->right, h2);
-				if(h1->right) h1->right->parent = h1;
+        HeapNode<Element> * merge1(HeapNode<Element> *h1, HeapNode<Element> *h2) {
+            if (!h1->left) { //if h1 has no children, the merge is simple
+                h1->left = h2;
+                h2->parent = h1; //adjust the parent pointer
+            } else {
+                h1->right = merge(h1->right, h2);
+                if (h1->right) h1->right->parent = h1;
 
-				if(h1->left->rank < h1->right->rank){
-				    HeapNode<Element> *tmp = h1->left;
+                if (h1->left->rank < h1->right->rank) {
+                    HeapNode<Element> *tmp = h1->left;
                     h1->left = h1->right;
                     h1->right = tmp;
-				}
+                }
 
-				h1 -> rank = h1 -> right -> rank + 1;
-			}
-			return h1;
-    	}
+                h1 -> rank = h1 -> right -> rank + 1;
+            }
+            return h1;
+        }
 
     public:
         //constructor
-        LHeap(){
-        	root = NULL;
+        LHeap() {
+            root = NULL;
         }
 
-		bool isEmpty(){
-			return (root==NULL);
-		}
+        bool isEmpty() {
+            return (root==NULL);
+        }
 
         //the minimum is always at the root
-		HeapNode<Element> * findMin(){
-			return root;
-		}
+        HeapNode<Element> * findMin() {
+            return root;
+        }
 
-		//returns the second smallest node, which is one of
-		//the two children of the root (if existent)
-		HeapNode<Element> * findSndMin (){
-			if(!root) return NULL;
-			if(root->left == NULL) return root->right;
-			if(root->right == NULL) return root->left;
+        //returns the second smallest node, which is one of
+        //the two children of the root (if existent)
+        HeapNode<Element> * findSndMin() {
+            if (!root) return NULL;
+            if (root->left == NULL) return root->right;
+            if (root->right == NULL) return root->left;
 
-			if(root->left->operator< (*root->right)) return root->left;
-			else return root->right;
-		}
+            if (root->left->operator< (*root->right)) return root->left;
+            else return root->right;
+        }
 
         //inserts a node into the heap
-		HeapNode<Element> * insert(Element * x){
-			HeapNode<Element> * n = new HeapNode<Element>();
-			n->item = x;
+        HeapNode<Element> * insert(Element* x) {
+            HeapNode<Element> * n = new HeapNode<Element>();
+            n->item = x;
 
-			LHeap<Element> lh;
-			lh.root = n;
-			merge(&lh);
-			return n;
-		}
+            LHeap<Element> lh;
+            lh.root = n;
+            merge(&lh);
+            return n;
+        }
 
         //removes the minimum (the root) from the heap
-		void deleteMin(){
-			HeapNode<Element> *oldRoot = root;
-    		root = merge( root->left, root->right );
-    		if(root) root->parent = 0;
-    		delete oldRoot;
-		}
+        void deleteMin() {
+            HeapNode<Element> *oldRoot = root;
+            root = merge(root->left, root->right);
+            if (root) root->parent = 0;
+            delete oldRoot;
+        }
 
         //deletes an arbitrary element from the heap
         //this function assumes, that item is an element of the heap
-		void deleteElement(HeapNode<Element> * item){
-			if(item){
-				if(root == item){ //trivial case: we want to delete the root
-				    deleteMin();
-				}
-				else{
-				    //otherwise we have to adapt the parent node and
-				    //the children of item
-				    HeapNode<Element> * h1 = merge(item->left, item->right);
-				    if(h1) h1->parent = item->parent;
-				    if(item == item->parent->left){
-				        item->parent->left = h1;
-				    }
-				    else if(item == item->parent->right){
-				        item->parent->right = h1;
-				    }
-				    //fix node information considering rank
-				    fixNode(item->parent);
-				    delete item; //remove the item from memory
-				}
-			}
-		}
+        void deleteElement(HeapNode<Element> * item) {
+            if (item) {
+                if (root == item) { //trivial case: we want to delete the root
+                    deleteMin();
+                } else {
+                    //otherwise we have to adapt the parent node and
+                    //the children of item
+                    HeapNode<Element> * h1 = merge(item->left, item->right);
+                    if (h1) h1->parent = item->parent;
+                    if (item == item->parent->left) {
+                        item->parent->left = h1;
+                    } else if (item == item->parent->right) {
+                        item->parent->right = h1;
+                    }
+                    //fix node information considering rank
+                    fixNode(item->parent);
+                    delete item; //remove the item from memory
+                }
+            }
+        }
 
         //public merge function
-		void merge(LHeap<Element> *rhs){
-			root = merge(root, rhs->root);
-    		rhs->root = NULL;
-		}
+        void merge(LHeap<Element> *rhs) {
+            root = merge(root, rhs->root);
+            rhs->root = NULL;
+        }
 
         //removes the whole data structure from memory
-		void freeMemory(){
-			if(root){
-				freeNode(root);
-				delete root;
-				root = NULL;
-			}
-		}
+        void freeMemory() {
+            if (root) {
+                freeNode(root);
+                delete root;
+                root = NULL;
+            }
+        }
 };
 
 //Master node as used in the first phase of the hutucker algorithm
 template <class size_type>
-class MNode{
+class MNode
+{
     public:
         size_type MinSum; //minimal sum of the two minimal elements of the hpq this mnode points to
         int i; //position of the left node in the working sequence
@@ -255,35 +254,36 @@ class MNode{
         HTNode<size_type> * lt; //pointer to the left- and rightmost leafs of the hpq
         HTNode<size_type> * rt; //need for merge operations
 
-        MNode(){
+        MNode() {
             qel = 0;
             myhpq = 0;
             lt = 0;
             rt = 0;
         }
 
-        bool operator< (const MNode other){
-            if(MinSum < other.MinSum) return true;
+        bool operator< (const MNode other) {
+            if (MinSum < other.MinSum) return true;
             else if (other.MinSum < MinSum) return false;
             else if (i < other.i) return true;
             else if (other.i < i) return false;
             else return j < other.j;
         }
-        bool operator> (const MNode other){
-            if(MinSum > other.MinSum) return true;
+        bool operator> (const MNode other) {
+            if (MinSum > other.MinSum) return true;
             else if (other.MinSum > MinSum) return false;
             else if (i > other.i) return true;
             else if (other.i > i) return false;
             else return j > other.j;
         }
-        bool operator== (const MNode other){
+        bool operator== (const MNode other) {
             return MinSum == other.MinSum;
         }
 };
 
 //Huffman node as used in the first phase of the hutucker algorithm
 template <class size_type>
-class HTNode{
+class HTNode
+{
     public:
         int pos;     // position of the node
         char c;      // the represented letter
@@ -300,7 +300,7 @@ class HTNode{
         HTNode<size_type> *left;  //left child
         HTNode<size_type> *right; //right child
 
-        HTNode(){
+        HTNode() {
             mpql = 0;
             mpqr = 0;
             ql = 0;
@@ -309,23 +309,23 @@ class HTNode{
             right = NULL;
         }
 
-        bool operator< (const HTNode other){
-            if(w < other.w) return true;
-            if(other.w < w) return false;
-            else{
+        bool operator< (const HTNode other) {
+            if (w < other.w) return true;
+            if (other.w < w) return false;
+            else {
                 return pos < other.pos;
             }
 
             return w < other.w;
         }
-        bool operator> (const HTNode other){
-        	if(w > other.w) return true;
-        	if(other.w < w) return false;
-        	else{
-        		return pos > other.pos;
-        	}
+        bool operator> (const HTNode other) {
+            if (w > other.w) return true;
+            if (other.w < w) return false;
+            else {
+                return pos > other.pos;
+            }
         }
-        bool operator== (const HTNode other){
+        bool operator== (const HTNode other) {
             return w == other.w;
         }
 };
@@ -341,7 +341,7 @@ struct _node_ht {
     uint16_t	child[2];		// pointer to the children
 
     _node_ht(size_type tree_pos=0, size_type tree_pos_rank=0, uint16_t parent=_undef_node,
-          uint16_t child_left=_undef_node, uint16_t child_right=_undef_node):
+             uint16_t child_left=_undef_node, uint16_t child_right=_undef_node):
         tree_pos(tree_pos), tree_pos_rank(tree_pos_rank), parent(parent) {
         child[0] = child_left;
         child[1] = child_right;
@@ -391,8 +391,8 @@ struct _node_ht {
  *		\f$\Order{n H_0 + 2|\Sigma|\log n}\f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
  *
  *   @ingroup wt
- */        
-         
+ */
+
 template<class BitVector 		 = bit_vector,
               class RankSupport 		 = typename BitVector::rank_1_type,
               class SelectSupport	 = typename BitVector::select_1_type,
@@ -407,9 +407,9 @@ class wt_hutu
         typedef RankSupport				rank_1_type;
         typedef SelectSupport           select_1_type;
         typedef SelectSupportZero		select_0_type;
-		typedef wt_tag                  index_category;
-		typedef byte_alphabet_tag       alphabet_category;
-		enum { lex_ordered=1 };
+        typedef wt_tag                  index_category;
+        typedef byte_alphabet_tag       alphabet_category;
+        enum { lex_ordered=1 };
 
     private:
 #ifdef WT_HUTU_CACHE
@@ -460,9 +460,9 @@ class wt_hutu
             for (uint32_t node=0, l=0; l<path_len; ++l, p >>= 1) {
                 if (p&1) {
                     f_tree.set_int(tree_pos[node], 0xFFFFFFFFFFFFFFFFULL,times);
-                    #ifdef MBRENNER_WT_TEST_WRITE_OUT
+#ifdef MBRENNER_WT_TEST_WRITE_OUT
                     std::cout<<"write"<<std::endl;
-                    #endif
+#endif
                 }
                 tree_pos[node] += times;
                 node = m_nodes[node].child[p&1];
@@ -471,11 +471,11 @@ class wt_hutu
 
 
         // constructs the Hu-Tucker tree, writes the node to the given array and returns the number of nodes
-        size_type construct_hutucker_tree(size_type* C, _node_ht<size_type>* tmp_nodes){
-        	//create a leaf for every letter
+        size_type construct_hutucker_tree(size_type* C, _node_ht<size_type>* tmp_nodes) {
+            //create a leaf for every letter
             std::vector<HTNode<size_type> > node_vector;
-            for(int i = 0; i < 256; i++){
-                if(C[i]){
+            for (int i = 0; i < 256; i++) {
+                if (C[i]) {
                     HTNode<size_type> n;
                     n.c = (char)i;
                     n.w = C[i];
@@ -484,14 +484,14 @@ class wt_hutu
                     node_vector.push_back(n);
                 }
             }
-            
-            if(node_vector.size() == 1){
+
+            if (node_vector.size() == 1) {
                 //special case of an alphabet of size 1:
                 //just instantly create the tree and return it
                 tmp_nodes[0] = _node_ht<size_type>(node_vector[0].w, (size_type)node_vector[0].c);
-                return 1;   
+                return 1;
             }
-            
+
             size_type sigma = node_vector.size();
             //physical Leafs
             HTNode<size_type> T[sigma];
@@ -501,13 +501,13 @@ class wt_hutu
             LHeap<HTNode<size_type> > HPQ[sigma];
             //Master Priority Queue
             LHeap<MNode<size_type> > MPQ;
-			
+
             //init T, A, HPQs and MPQ
             T[0] = node_vector[0];
             A[0] = &T[0];
-            
+
             //initialization needed for every leaf
-            for(size_type i = 1; i < sigma; i++){
+            for (size_type i = 1; i < sigma; i++) {
                 T[i] = node_vector[i];
                 A[i] = &T[i];
 
@@ -527,9 +527,9 @@ class wt_hutu
                 T[i-1].mpqr = m;
                 T[i].mpql = m;
             }
-            
+
             //main action loop
-            for(size_type k = 1; k < sigma; k++){
+            for (size_type k = 1; k < sigma; k++) {
                 MNode<size_type> * m = MPQ.findMin()->item;
                 HTNode<size_type> * l = A[m->i];
                 HTNode<size_type> * r = A[m->j];
@@ -539,84 +539,79 @@ class wt_hutu
                 LHeap<HTNode<size_type> > * n_hpq = NULL;
                 HTNode<size_type> * n_rt = NULL;
                 HTNode<size_type> * n_lt = NULL;
-				
+
                 //create a new Master Priority Queue
                 MNode<size_type> * n_m = new MNode<size_type>();
                 //delete old nodes from all hpqs
-                if(l->t){
-                    if(l->mpql) l->mpql->myhpq->deleteElement(l->ql);
+                if (l->t) {
+                    if (l->mpql) l->mpql->myhpq->deleteElement(l->ql);
                     l->ql = NULL;
-                    if(l->mpqr) l->mpqr->myhpq->deleteElement(l->qr);
+                    if (l->mpqr) l->mpqr->myhpq->deleteElement(l->qr);
                     l->qr = NULL;
-                }
-                else{
+                } else {
                     m->myhpq->deleteElement(l->ql);
                     l->ql = NULL;
                 }
-                if(r->t){
-                    if(r->mpql) r->mpql->myhpq->deleteElement(r->ql);
+                if (r->t) {
+                    if (r->mpql) r->mpql->myhpq->deleteElement(r->ql);
                     l->ql = NULL;
 
-                    if(r->mpqr) r->mpqr->myhpq->deleteElement(r->qr);
+                    if (r->mpqr) r->mpqr->myhpq->deleteElement(r->qr);
                     r->qr = NULL;
-                }
-                else{
+                } else {
                     m->myhpq->deleteElement(r->ql);
                     r->ql = NULL;
                 }
                 //handle the merge of hpqs
-                if(l->t && r ->t){
+                if (l->t && r ->t) {
                     //both nodes are leaves
                     LHeap<HTNode<size_type> > * h1 = NULL;
                     LHeap<HTNode<size_type> > * h2 = NULL;
                     LHeap<HTNode<size_type> > * h3 = NULL;
-                	if(l -> mpql){
+                    if (l -> mpql) {
                         n_lt = l->mpql->lt;
-                        if(n_lt == l) n_lt = NULL;
-                        if(n_lt) n_lt -> mpqr = n_m;
+                        if (n_lt == l) n_lt = NULL;
+                        if (n_lt) n_lt -> mpqr = n_m;
 
                         h1 = l->mpql->myhpq;
                         h2 = l->mpqr->myhpq;
 
-                		h1 -> merge(h2);
-                		MPQ.deleteElement(l->mpql->qel);
-                		MPQ.deleteElement(l->mpqr->qel);
+                        h1 -> merge(h2);
+                        MPQ.deleteElement(l->mpql->qel);
+                        MPQ.deleteElement(l->mpqr->qel);
                         delete l->mpql;
                         delete l->mpqr;
 
-                	}
-                	else{
+                    } else {
                         h1 = l->mpqr->myhpq;
                         h2 = l->mpqr->myhpq;
                         n_lt = NULL;
 
                         MPQ.deleteElement(l->mpqr->qel);
                         delete l->mpqr;
-                	}
-                	if(r->mpqr){
+                    }
+                    if (r->mpqr) {
                         n_rt = r->mpqr->rt;
-                        if(n_rt == r) n_rt = NULL;
-                        if(n_rt) n_rt -> mpql = n_m;
+                        if (n_rt == r) n_rt = NULL;
+                        if (n_rt) n_rt -> mpql = n_m;
 
                         h3 = r->mpqr->myhpq;
-                		h1->merge(h3);
-                		MPQ.deleteElement(r->mpqr->qel);
+                        h1->merge(h3);
+                        MPQ.deleteElement(r->mpqr->qel);
                         delete r->mpqr;
 
                         n_hpq = h1;
-                        if(n_rt) n_rt -> mpql = n_m;
-                	}
-                    else{
+                        if (n_rt) n_rt -> mpql = n_m;
+                    } else {
                         n_rt = NULL;
                         n_hpq = h1;
                     }
-                }
-                else if(l->t){ //the left node is a leaf
-                    if(l->mpql){
+                } else if (l->t) { //the left node is a leaf
+                    if (l->mpql) {
                         n_lt = l->mpql->lt;
-                        if(n_lt) n_lt->mpqr = n_m;
+                        if (n_lt) n_lt->mpqr = n_m;
                         n_rt = l->mpqr->rt;
-                        if(n_rt) n_rt ->mpql = n_m;
+                        if (n_rt) n_rt ->mpql = n_m;
 
                         l -> mpql ->myhpq -> merge(l->mpqr->myhpq);
                         n_hpq=l->mpql->myhpq;
@@ -624,23 +619,21 @@ class wt_hutu
                         MPQ.deleteElement(l->mpqr->qel);
                         delete l->mpql;
                         delete l->mpqr;
-                    }
-                    else{
+                    } else {
                         n_lt = NULL;
                         n_rt = l->mpqr->rt;
-                        if(n_rt) n_rt->mpql = n_m;
+                        if (n_rt) n_rt->mpql = n_m;
 
                         n_hpq = l->mpqr->myhpq;
                         MPQ.deleteElement(l->mpqr->qel);
                         delete l->mpqr;
                     }
-                }
-                else if(r->t){ //right node is a leaf
-                    if(r->mpqr){
+                } else if (r->t) { //right node is a leaf
+                    if (r->mpqr) {
                         n_lt = r->mpql->lt;
-                        if(n_lt) n_lt->mpqr = n_m;
+                        if (n_lt) n_lt->mpqr = n_m;
                         n_rt = r->mpqr->rt;
-                        if(n_rt) n_rt->mpql = n_m;
+                        if (n_rt) n_rt->mpql = n_m;
 
                         r -> mpql ->myhpq -> merge(r->mpqr->myhpq);
                         n_hpq=r->mpql->myhpq;
@@ -648,18 +641,16 @@ class wt_hutu
                         MPQ.deleteElement(r->mpqr->qel);
                         delete r->mpql;
                         delete r->mpqr;
-                    }
-                    else{
+                    } else {
                         n_lt = r->mpql->lt;
-                        if(n_lt) n_lt->mpqr = n_m;
+                        if (n_lt) n_lt->mpqr = n_m;
                         n_rt = NULL;
 
                         n_hpq = r->mpql->myhpq;
                         MPQ.deleteElement(r->mpql->qel);
                         delete r->mpql;
                     }
-                }
-                else{
+                } else {
                     //merge of two inner nodes
                     //no need to merge hpqs
                     MPQ.deleteElement(m->qel);
@@ -668,12 +659,12 @@ class wt_hutu
                     n_lt = m->lt;
                     n_rt = m->rt;
 
-                    if(n_lt) n_lt->mpqr = n_m;
-                    if(n_rt) n_rt->mpql = n_m;
+                    if (n_lt) n_lt->mpqr = n_m;
+                    if (n_rt) n_rt->mpql = n_m;
 
                     delete m;
                 }
-		
+
                 //create a new node with the information gained above
                 HTNode<size_type> * new_node = new HTNode<size_type>();
                 new_node -> c = ' ';
@@ -691,15 +682,14 @@ class wt_hutu
                 //update information in the new master node and reinsert it to the mpq
                 HTNode<size_type> * tmp_min = n_hpq->findMin()->item;
                 HeapNode<HTNode<size_type> > * tmpsnd = n_hpq->findSndMin();
-                if(tmpsnd){
+                if (tmpsnd) {
                     HTNode<size_type> * tmp_snd = n_hpq->findSndMin()->item;
                     n_m->MinSum = tmp_min->w + tmp_snd->w;
 
-                    if(tmp_min -> pos < tmp_snd->pos){
+                    if (tmp_min -> pos < tmp_snd->pos) {
                         n_m->i = tmp_min -> pos;
                         n_m->j = tmp_snd -> pos;
-                    }
-                    else{
+                    } else {
                         n_m->i = tmp_snd -> pos;
                         n_m->j = tmp_min -> pos;
                     }
@@ -707,33 +697,32 @@ class wt_hutu
                     n_m->myhpq = n_hpq;
                     n_m->lt = n_lt;
                     n_m->rt = n_rt;
-                }
-                else{
+                } else {
                     //free the last remaining hpq
                     n_hpq->freeMemory();
                     delete n_m;
                 }
             }
-           
+
             //level assignment and deletion of unneeded nodes
             assignLevel(A[0], 0);
-			
+
             //reconstruction phase using the stack algorithm
             HTNode<size_type>* stack[sigma];
 
             size_type node_count=0;
-            for(size_type i = 0; i < sigma; i++){
-            	stack[i] = NULL;
+            for (size_type i = 0; i < sigma; i++) {
+                stack[i] = NULL;
                 tmp_nodes[i] = _node_ht<size_type>(T[i].w, (size_type)T[i].c);
                 T[i].pos = i;
                 node_count++;
             }
-            
+
             int spointer = -1;
-			unsigned int qpointer = 0; //use the Array T as a stack
+            unsigned int qpointer = 0; //use the Array T as a stack
             int max_nodes = sigma;
-            while(qpointer < sigma || spointer >= 1){
-                if(spointer >= 1 && (stack[spointer]->level == stack[spointer-1]->level)){
+            while (qpointer < sigma || spointer >= 1) {
+                if (spointer >= 1 && (stack[spointer]->level == stack[spointer-1]->level)) {
                     HTNode<size_type>* n_node = new HTNode<size_type>();
                     max_nodes++;
                     n_node->t = false;
@@ -742,32 +731,31 @@ class wt_hutu
                     n_node->level = stack[spointer]->level-1;
                     n_node->w = stack[spointer]->w + stack[spointer-1]->w;
                     n_node->c = '|';
-                    
+
                     n_node->pos = node_count;
                     tmp_nodes[stack[spointer-1]->pos].parent = node_count;
                     tmp_nodes[stack[spointer]->pos].parent = node_count;
                     tmp_nodes[node_count++] = _node_ht<size_type>(n_node->w, 0, _undef_node, stack[spointer-1]->pos, stack[spointer]->pos);
-                    
-					if(!stack[spointer-1]->t) delete stack[spointer-1];
-                    if(!stack[spointer]->t) delete stack[spointer];
+
+                    if (!stack[spointer-1]->t) delete stack[spointer-1];
+                    if (!stack[spointer]->t) delete stack[spointer];
 
                     stack[--spointer] = n_node;
-                }
-                else{
-                    stack[++spointer] = &T[qpointer++]; 
+                } else {
+                    stack[++spointer] = &T[qpointer++];
                 }
             }
             delete stack[0];
             return node_count;
         }
-        
-        void assignLevel(HTNode<size_type> *n, int lvl){
-            if(n){
+
+        void assignLevel(HTNode<size_type> *n, int lvl) {
+            if (n) {
                 n->level = lvl;
                 assignLevel(n->left, lvl + 1);
                 assignLevel(n->right, lvl + 1);
 
-                if(!n->t){
+                if (!n->t) {
                     delete n;
                 }
             }
@@ -1134,9 +1122,9 @@ class wt_hutu
             }
             return result;
         };
-        
 
-		//! Calculates for symbol c, how many symbols smaller and bigger c occure in wt[start..end-1].
+
+        //! Calculates for symbol c, how many symbols smaller and bigger c occure in wt[start..end-1].
         /*!
          *	\param start The start index (inclusive) of the interval.
          *	\param end The end index (exclusive) of the interval.
@@ -1151,17 +1139,17 @@ class wt_hutu
          */
         size_type bounds(size_type start, size_type end, value_type c, size_type& smaller, size_type& bigger)const {
             assert(0 <= start and start < size() and end <= size() and start<=end);
-			smaller = 0;
-			bigger = 0;
-			if(1==m_sigma){
-				return start;
-			}
-			if(start==end){
-				return rank(start,c);
-			}
+            smaller = 0;
+            bigger = 0;
+            if (1==m_sigma) {
+                return start;
+            }
+            if (start==end) {
+                return rank(start,c);
+            }
             uint64_t p = m_path[c];
             uint32_t path_len = (m_path[c]>>56); // equals zero if char was not present in the original text
-			assert(path_len>0);
+            assert(path_len>0);
             size_type res1 = start;
             size_type res2 = end;
             uint32_t node=0;
@@ -1169,22 +1157,21 @@ class wt_hutu
                 if (p&1) {
                     size_type r1_1 = (m_tree_rank(m_nodes[node].tree_pos+res1)-m_nodes[node].tree_pos_rank);
                     size_type r1_2 = (m_tree_rank(m_nodes[node].tree_pos+res2)-m_nodes[node].tree_pos_rank);
-                
+
                     smaller += res2 - r1_2 - res1 + r1_1;
-                    
+
                     res1 = r1_1;
-                    res2 = r1_2; 
-                }
-                else{
+                    res2 = r1_2;
+                } else {
                     size_type r1_1 = (m_tree_rank(m_nodes[node].tree_pos+res1)-m_nodes[node].tree_pos_rank);
                     size_type r1_2 = (m_tree_rank(m_nodes[node].tree_pos+res2)-m_nodes[node].tree_pos_rank);
-                
+
                     bigger += r1_2 - r1_1;
-                
+
                     res1 -= r1_1;
                     res2 -= r1_2;
                 }
-				node = m_nodes[node].child[p&1]; 
+                node = m_nodes[node].child[p&1];
             }
             return res1;
         };
@@ -1273,11 +1260,11 @@ class wt_hutu
             if (i==j) {
                 k = 0;
             } else if (1==m_sigma) {
-				k = 1;
-				cs[0] = m_nodes[0].tree_pos_rank;
-				rank_c_i[0] = std::min(i,m_size);
-				rank_c_j[0] = std::min(j,m_size);
-			} else if ((j-i)==1) {
+                k = 1;
+                cs[0] = m_nodes[0].tree_pos_rank;
+                rank_c_i[0] = std::min(i,m_size);
+                rank_c_j[0] = std::min(j,m_size);
+            } else if ((j-i)==1) {
                 k = 1;
                 rank_c_i[0] = inverse_select(i, cs[0]);
                 rank_c_j[0] = rank_c_i[0]+1;
@@ -1289,12 +1276,12 @@ class wt_hutu
                     rank_c_j[0] = rank_c_i[0]+2;
                 } else {
                     k = 2;
-					if(cs[0] > cs[1]) {
-						std::swap(cs[0],cs[1]);
-						std::swap(rank_c_i[0],rank_c_i[1]);
-					}
-					rank_c_j[0] = rank_c_i[0]+1;
-					rank_c_j[1] = rank_c_i[1]+1;
+                    if (cs[0] > cs[1]) {
+                        std::swap(cs[0],cs[1]);
+                        std::swap(rank_c_i[0],rank_c_i[1]);
+                    }
+                    rank_c_j[0] = rank_c_i[0]+1;
+                    rank_c_j[1] = rank_c_i[1]+1;
                 }
             } else {
                 k = 0;
