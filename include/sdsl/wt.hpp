@@ -719,6 +719,7 @@ class wt
                               std::vector<unsigned char>& cs,
                               std::vector<size_type>& rank_c_i,
                               std::vector<size_type>& rank_c_j) const {
+            assert(0 < i and i <= j and i < size() and j <= size())
             if (i==j) {
                 k = 0;
             } else if ((j-i)==1) {
@@ -759,7 +760,6 @@ class wt
                 return size();
             }
             assert(i > 0);
-            assert(i <= rank(size(), c));
             assert(i <= rank(size(), c));
 
             size_type node        = 0;
