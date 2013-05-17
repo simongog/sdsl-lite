@@ -401,12 +401,12 @@ template<class BitVector 		 = bit_vector,
 class wt_hutu
 {
     public:
-        typedef int_vector<>::size_type	size_type;
-        typedef unsigned char		 	value_type;
-        typedef BitVector				bit_vector_type;
-        typedef RankSupport				rank_1_type;
+        typedef int_vector<>::size_type size_type;
+        typedef unsigned char           value_type;
+        typedef BitVector               bit_vector_type;
+        typedef RankSupport             rank_1_type;
         typedef SelectSupport           select_1_type;
-        typedef SelectSupportZero		select_0_type;
+        typedef SelectSupportZero       select_0_type;
         typedef wt_tag                  index_category;
         typedef byte_alphabet_tag       alphabet_category;
         enum { lex_ordered=1 };
@@ -430,9 +430,6 @@ class wt_hutu
         // if m_c_to_leaf[c] == _undef_node the char does not exists in the text
         uint64_t			m_path[256];	 // path information for each char; the bits at position 0..55 hold path information;
         // bits 56..63 the length of the path in binary representation
-
-        typedef std::pair<size_type, size_type> tPII;  // pair (frequency, node_number) for constructing the Huffman tree
-        typedef std::priority_queue<tPII, std::vector<tPII>, std::greater<tPII> >  tMPQPII; // minimum priority queue
 
         void copy(const wt_hutu& wt) {
             m_size 			= wt.m_size;
@@ -460,9 +457,6 @@ class wt_hutu
             for (uint32_t node=0, l=0; l<path_len; ++l, p >>= 1) {
                 if (p&1) {
                     f_tree.set_int(tree_pos[node], 0xFFFFFFFFFFFFFFFFULL,times);
-#ifdef MBRENNER_WT_TEST_WRITE_OUT
-                    std::cout<<"write"<<std::endl;
-#endif
                 }
                 tree_pos[node] += times;
                 node = m_nodes[node].child[p&1];
@@ -1072,7 +1066,7 @@ class wt_hutu
 
         //! Recovers the ith symbol of the original vector.
         /*! \param i The index of the symbol in the original vector. \f$i \in [0..size()-1]\f$
-         *	\return The ith symbol of the original vector.
+         *  \return The ith symbol of the original vector.
          *  \par Time complexity
          *		\f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order entropy
          *      of the sequence.
@@ -1080,6 +1074,7 @@ class wt_hutu
         value_type operator[](size_type i)const { // TODO: Maybe it is good to integrate a cache here
             // which stores how many of the next symbols are equal
             // with the current char
+            assert(i < size());
             size_type node = 0; // start at root node
             while (m_nodes[node].child[0] != _undef_node) { // while node is not a leaf
                 if (m_tree[ m_nodes[node].tree_pos + i]) {  // goto the right child
@@ -1102,6 +1097,7 @@ class wt_hutu
          *		\f$ \Order{H_0} \f$
          */
         size_type rank(size_type i, value_type c)const {
+            assert(i <= size());
             uint64_t p = m_path[c];
             uint32_t path_len = (m_path[c]>>56); // equals zero if char was not present in the original text or m_sigma=1
             if (!path_len and 1 == m_sigma) {    // if m_sigma == 1 return result immediately
@@ -1126,12 +1122,12 @@ class wt_hutu
 
         //! Calculates for symbol c, how many symbols smaller and bigger c occure in wt[start..end-1].
         /*!
-         *	\param start The start index (inclusive) of the interval.
-         *	\param end The end index (exclusive) of the interval.
-         *	\param c The symbol to count the occurences in the interval.
+         *  \param start The start index (inclusive) of the interval.
+         *  \param end The end index (exclusive) of the interval.
+         *  \param c The symbol to count the occurences in the interval.
          *  \param smaller Reference that will contain the number of symbols smaller than c in wt[start..end-1].
          *  \param bigger Reference that will contain the number of symbols bigger than c in wt[start..end-1].
-         *	\return The number of occurences of symbol c in wt[0..start-1].
+         *  \return The number of occurences of symbol c in wt[0..start-1].
          *
          *  \par Precondition
          *       \f$ start \leq end \f$
@@ -1186,7 +1182,7 @@ class wt_hutu
          *        \f$ \Order{H_0} \f$
          */
         size_type inverse_select(size_type i, value_type& c)const {
-            assert(i>=0 and i < size());
+            assert(i < size());
             uint32_t node=0;
             while (m_nodes[node].child[0] != _undef_node) { // while node is not a leaf
                 if (m_tree[m_nodes[node].tree_pos + i]) { // if bit is set at position goto right child
@@ -1209,6 +1205,8 @@ class wt_hutu
          *		\f$ \Order{H_0} \f$
          */
         size_type select(size_type i, value_type c)const {
+            assert(i > 0);
+            assert(i <= rank(size(), c));
             uint16_t node = m_c_to_leaf[c];
             if (node == _undef_node) { // if c was not present in the original text
                 return m_size;		   // -> return a position right to the end
@@ -1257,6 +1255,7 @@ class wt_hutu
                               std::vector<unsigned char>& cs,
                               std::vector<size_type>& rank_c_i,
                               std::vector<size_type>& rank_c_j) const {
+            assert(0 < i and i <= j and i < size() and j <= size())
             if (i==j) {
                 k = 0;
             } else if (1==m_sigma) {
