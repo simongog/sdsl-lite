@@ -590,6 +590,7 @@ class wt_huff
                               std::vector<value_type>& cs,
                               std::vector<size_type>& rank_c_i,
                               std::vector<size_type>& rank_c_j) const {
+            assert(0 < i and i <= j and i < size() and j <= size());
             if (i==j) {
                 k = 0;
             } else if (1==m_sigma) {
