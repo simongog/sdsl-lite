@@ -54,24 +54,24 @@
 namespace sdsl
 {
 
-//predeclarations of node classes
+// predeclarations of node classes
 template<class size_type> class HTNode;
 
 template<class size_type> class MNode;
 
-//node as used by the leftist heap
+// node as used by the leftist heap
 template <class Element>
 class HeapNode
 {
     public:
-        Element* item;   //pointer to the represented item
+        Element* item;   // pointer to the represented item
 
-        HeapNode* left;  //left child
-        HeapNode* right; //right child
-        HeapNode* parent; //parent node (needed to delete elements)
-        int rank; //rank of the heap node
+        HeapNode* left;  // pointer to left child
+        HeapNode* right; // pointer to right child
+        HeapNode* parent; // pointer to parent node (needed to delete elements)
+        int rank; // rank of the heap node
 
-        //constructor
+        // constructor
         HeapNode() {
             item = NULL;
             left = NULL;
@@ -80,7 +80,7 @@ class HeapNode
             rank = 0;
         }
 
-        //comparison operators needed for the heap structure
+        // comparison operators needed for the heap structure
         bool operator< (HeapNode<Element> other) {
             return item->operator<(* other.item);
         }
@@ -89,22 +89,22 @@ class HeapNode
         }
 };
 
-//Implementation of a leftist heap as needed in the first phase
+// Implementation of a leftist heap as needed in the first phase of HuTucker Code construction
 template <class Element>
 class LHeap
 {
     private:
-        HeapNode<Element> * root; //pointer to the root
+        HeapNode<Element> * root; // pointer to the root
 
-        //fixes node information after the deletion of elements
+        // fixes node information after the deletion of elements
         void fixNode(HeapNode<Element> * item) {
             if (item) {
-                if (!item->left || !item->right) { //if node has only one child
-                    if (item->rank != 0) { //only go on fixing if the node information needs to be changed
+                if (!item->left || !item->right) { // if node has only one child
+                    if (item->rank != 0) { // only go on fixing if the node information needs to be changed
                         item->rank = 0;
                         if (item->parent) fixNode(item->parent);
                     }
-                } else { //node information has to be adapted
+                } else { // node information has to be adapted
                     int nn = (item->left->rank > item->right->rank) ? item->right->rank : item->left->rank;
                     if (item->rank != nn && item->parent != 0) {
                         item->rank = nn;
@@ -114,7 +114,7 @@ class LHeap
             }
         }
 
-        //helper function to remove the data structure from memory
+        // helper function to remove the data structure from memory
         void freeNode(HeapNode<Element> * item) {
             if (item->left) {
                 freeNode(item->left);
@@ -128,7 +128,7 @@ class LHeap
             }
         }
 
-        //internal merge function
+        // internal merge function
         HeapNode<Element> * merge(HeapNode<Element> *h1, HeapNode<Element> *h2) {
             if (!h1) return h2;
             if (!h2) return h1;
@@ -136,11 +136,11 @@ class LHeap
             if (*(h1->item) < *(h2->item))   return merge1(h1, h2);
             else                            return merge1(h2, h1);
         }
-        //internal merge function
+        // internal merge function
         HeapNode<Element> * merge1(HeapNode<Element> *h1, HeapNode<Element> *h2) {
-            if (!h1->left) { //if h1 has no children, the merge is simple
+            if (!h1->left) { // if h1 has no children, the merge is simple
                 h1->left = h2;
-                h2->parent = h1; //adjust the parent pointer
+                h2->parent = h1; // adjust the parent pointer
             } else {
                 h1->right = merge(h1->right, h2);
                 if (h1->right) h1->right->parent = h1;
@@ -157,7 +157,7 @@ class LHeap
         }
 
     public:
-        //constructor
+        // constructor
         LHeap() {
             root = NULL;
         }
@@ -166,13 +166,13 @@ class LHeap
             return (root==NULL);
         }
 
-        //the minimum is always at the root
+        // the minimum is always at the root
         HeapNode<Element> * findMin() {
             return root;
         }
 
-        //returns the second smallest node, which is one of
-        //the two children of the root (if existent)
+        // returns the second smallest node, which is one of
+        // the two children of the root (if existent)
         HeapNode<Element> * findSndMin() {
             if (!root) return NULL;
             if (root->left == NULL) return root->right;
@@ -182,7 +182,7 @@ class LHeap
             else return root->right;
         }
 
-        //inserts a node into the heap
+        // inserts a node into the heap
         HeapNode<Element> * insert(Element* x) {
             HeapNode<Element> * n = new HeapNode<Element>();
             n->item = x;
@@ -193,7 +193,7 @@ class LHeap
             return n;
         }
 
-        //removes the minimum (the root) from the heap
+        // removes the minimum (the root) from the heap
         void deleteMin() {
             HeapNode<Element> *oldRoot = root;
             root = merge(root->left, root->right);
@@ -201,15 +201,15 @@ class LHeap
             delete oldRoot;
         }
 
-        //deletes an arbitrary element from the heap
-        //this function assumes, that item is an element of the heap
+        // deletes an arbitrary element from the heap
+        // this function assumes, that item is an element of the heap
         void deleteElement(HeapNode<Element> * item) {
             if (item) {
-                if (root == item) { //trivial case: we want to delete the root
+                if (root == item) { // trivial case: we want to delete the root
                     deleteMin();
                 } else {
-                    //otherwise we have to adapt the parent node and
-                    //the children of item
+                    // otherwise we have to adapt the parent node and
+                    // the children of item
                     HeapNode<Element> * h1 = merge(item->left, item->right);
                     if (h1) h1->parent = item->parent;
                     if (item == item->parent->left) {
@@ -217,20 +217,20 @@ class LHeap
                     } else if (item == item->parent->right) {
                         item->parent->right = h1;
                     }
-                    //fix node information considering rank
+                    // fix node information considering rank
                     fixNode(item->parent);
-                    delete item; //remove the item from memory
+                    delete item; // remove the item from memory
                 }
             }
         }
 
-        //public merge function
+        // public merge function
         void merge(LHeap<Element> *rhs) {
             root = merge(root, rhs->root);
             rhs->root = NULL;
         }
 
-        //removes the whole data structure from memory
+        // removes the whole data structure from memory
         void freeMemory() {
             if (root) {
                 freeNode(root);
@@ -240,19 +240,19 @@ class LHeap
         }
 };
 
-//Master node as used in the first phase of the hutucker algorithm
+// Master node as used in the first phase of the HuTucker algorithm
 template <class size_type>
 class MNode
 {
     public:
-        size_type MinSum; //minimal sum of the two minimal elements of the hpq this mnode points to
-        int i; //position of the left node in the working sequence
-        int j; //position of the right node in the working sequence
-        HeapNode<MNode<size_type> > * qel; //pointer to the corresponding heap element (used for deletion)
-        LHeap<HTNode<size_type> > * myhpq; //pointer to the hpq
+        size_type MinSum; // minimal sum of the two minimal elements of the hpq this node points to
+        int i; // position of the left node in the working sequence
+        int j; // position of the right node in the working sequence
+        HeapNode<MNode<size_type> > * qel; // pointer to the corresponding heap element (used for deletion)
+        LHeap<HTNode<size_type> > * myhpq; // pointer to the hpq
 
-        HTNode<size_type> * lt; //pointer to the left- and rightmost leafs of the hpq
-        HTNode<size_type> * rt; //need for merge operations
+        HTNode<size_type> * lt; // pointer to the left- and rightmost leafs of the hpq
+        HTNode<size_type> * rt; // need for merge operations
 
         MNode() {
             qel = 0;
@@ -280,7 +280,7 @@ class MNode
         }
 };
 
-//Huffman node as used in the first phase of the hutucker algorithm
+// HuTucker node as used in the first phase of the HuTucker algorithm
 template <class size_type>
 class HTNode
 {
@@ -289,16 +289,16 @@ class HTNode
         char c;      // the represented letter
         size_type w; // frequency of the node
         bool t;      // wether the node is a leaf
-        int level;   // höhe im baum
+        int level;   // level in the tree
 
         MNode<size_type> *mpql; // pointer to the two master nodes (as a node can belong to up to two hpqs)
         MNode<size_type> *mpqr; // only mpql is used for inner nodes
 
-        HeapNode<HTNode> * ql; //pointer to the two heap nodes (as a node can belong to up to two hpqs)
-        HeapNode<HTNode> * qr; //only ql is used for inner nodes
+        HeapNode<HTNode> * ql; // pointer to the two heap nodes (as a node can belong to up to two hpqs)
+        HeapNode<HTNode> * qr; // only ql is used for inner nodes
 
-        HTNode<size_type> *left;  //left child
-        HTNode<size_type> *right; //right child
+        HTNode<size_type> *left;  // left child
+        HTNode<size_type> *right; // right child
 
         HTNode() {
             mpql = 0;
@@ -425,10 +425,11 @@ class wt_hutu
         SelectSupport		m_tree_select1;	// select support for the wavelet tree bit vector
         SelectSupportZero	m_tree_select0;
 
-        _node_ht<size_type> 	m_nodes[511];	 // nodes for the Hu Tucker tree structure
-        uint16_t			m_c_to_leaf[256];// map symbol c to a leaf in the tree structure
+        _node_ht<size_type> 	m_nodes[511]; // nodes for the HuTucker tree structure
+        uint16_t			m_c_to_leaf[256]; // map symbol c to a leaf in the tree structure
         // if m_c_to_leaf[c] == _undef_node the char does not exists in the text
-        uint64_t			m_path[256];	 // path information for each char; the bits at position 0..55 hold path information;
+        uint64_t			m_path[256];     // path information for each char:
+        // the bits at position 0..55 hold path information and
         // bits 56..63 the length of the path in binary representation
 
         void copy(const wt_hutu& wt) {
@@ -480,27 +481,27 @@ class wt_hutu
             }
 
             if (node_vector.size() == 1) {
-                //special case of an alphabet of size 1:
-                //just instantly create the tree and return it
+                // special case of an alphabet of size 1:
+                // just instantly create the tree and return it
                 tmp_nodes[0] = _node_ht<size_type>(node_vector[0].w, (size_type)node_vector[0].c);
                 return 1;
             }
 
             size_type sigma = node_vector.size();
-            //physical Leafs
+            // physical Leafs
             HTNode<size_type> T[sigma];
-            //the current working sequence
+            // the current working sequence
             HTNode<size_type> *A[sigma];
-            //Priority Queues, containing the Huffman Sequences
+            // Priority Queues, containing the Huffman Sequences
             LHeap<HTNode<size_type> > HPQ[sigma];
-            //Master Priority Queue
+            // Master Priority Queue
             LHeap<MNode<size_type> > MPQ;
 
-            //init T, A, HPQs and MPQ
+            // init T, A, HPQs and MPQ
             T[0] = node_vector[0];
             A[0] = &T[0];
 
-            //initialization needed for every leaf
+            // initialization needed for every leaf
             for (size_type i = 1; i < sigma; i++) {
                 T[i] = node_vector[i];
                 A[i] = &T[i];
@@ -522,7 +523,7 @@ class wt_hutu
                 T[i].mpql = m;
             }
 
-            //main action loop
+            // main action loop
             for (size_type k = 1; k < sigma; k++) {
                 MNode<size_type> * m = MPQ.findMin()->item;
                 HTNode<size_type> * l = A[m->i];
@@ -534,9 +535,9 @@ class wt_hutu
                 HTNode<size_type> * n_rt = NULL;
                 HTNode<size_type> * n_lt = NULL;
 
-                //create a new Master Priority Queue
+                // create a new master priority queue
                 MNode<size_type> * n_m = new MNode<size_type>();
-                //delete old nodes from all hpqs
+                // delete old nodes from all hpqs
                 if (l->t) {
                     if (l->mpql) l->mpql->myhpq->deleteElement(l->ql);
                     l->ql = NULL;
@@ -556,9 +557,9 @@ class wt_hutu
                     m->myhpq->deleteElement(r->ql);
                     r->ql = NULL;
                 }
-                //handle the merge of hpqs
+                // handle the merge of hpqs
                 if (l->t && r ->t) {
-                    //both nodes are leaves
+                    // both nodes are leaves
                     LHeap<HTNode<size_type> > * h1 = NULL;
                     LHeap<HTNode<size_type> > * h2 = NULL;
                     LHeap<HTNode<size_type> > * h3 = NULL;
@@ -600,7 +601,7 @@ class wt_hutu
                         n_rt = NULL;
                         n_hpq = h1;
                     }
-                } else if (l->t) { //the left node is a leaf
+                } else if (l->t) { // the left node is a leaf
                     if (l->mpql) {
                         n_lt = l->mpql->lt;
                         if (n_lt) n_lt->mpqr = n_m;
@@ -622,7 +623,7 @@ class wt_hutu
                         MPQ.deleteElement(l->mpqr->qel);
                         delete l->mpqr;
                     }
-                } else if (r->t) { //right node is a leaf
+                } else if (r->t) { // right node is a leaf
                     if (r->mpqr) {
                         n_lt = r->mpql->lt;
                         if (n_lt) n_lt->mpqr = n_m;
@@ -645,8 +646,8 @@ class wt_hutu
                         delete r->mpql;
                     }
                 } else {
-                    //merge of two inner nodes
-                    //no need to merge hpqs
+                    // merge of two inner nodes
+                    // no need to merge hpqs
                     MPQ.deleteElement(m->qel);
 
                     n_hpq = m->myhpq;
@@ -659,7 +660,7 @@ class wt_hutu
                     delete m;
                 }
 
-                //create a new node with the information gained above
+                // create a new node with the information gained above
                 HTNode<size_type> * new_node = new HTNode<size_type>();
                 new_node -> c = ' ';
                 new_node -> w = l->w + r->w;
@@ -667,13 +668,13 @@ class wt_hutu
                 new_node -> pos = lpos;
                 new_node -> left = l;
                 new_node -> right = r;
-                //insert node to the correct hpq
+                // insert node to the correct hpq
                 new_node -> ql = n_hpq->insert(new_node);
 
-                //update working sequence
+                // update working sequence
                 A[lpos] = new_node;
                 A[rpos] = NULL;
-                //update information in the new master node and reinsert it to the mpq
+                // update information in the new master node and reinsert it to the mpq
                 HTNode<size_type> * tmp_min = n_hpq->findMin()->item;
                 HeapNode<HTNode<size_type> > * tmpsnd = n_hpq->findSndMin();
                 if (tmpsnd) {
@@ -692,16 +693,16 @@ class wt_hutu
                     n_m->lt = n_lt;
                     n_m->rt = n_rt;
                 } else {
-                    //free the last remaining hpq
+                    // free the last remaining hpq
                     n_hpq->freeMemory();
                     delete n_m;
                 }
             }
 
-            //level assignment and deletion of unneeded nodes
+            // level assignment and deletion of unneeded nodes
             assignLevel(A[0], 0);
 
-            //reconstruction phase using the stack algorithm
+            // reconstruction phase using the stack algorithm
             HTNode<size_type>* stack[sigma];
 
             size_type node_count=0;
@@ -713,7 +714,7 @@ class wt_hutu
             }
 
             int spointer = -1;
-            unsigned int qpointer = 0; //use the Array T as a stack
+            unsigned int qpointer = 0; // use the Array T as a stack
             int max_nodes = sigma;
             while (qpointer < sigma || spointer >= 1) {
                 if (spointer >= 1 && (stack[spointer]->level == stack[spointer-1]->level)) {
@@ -973,7 +974,7 @@ class wt_hutu
             calculate_character_occurences(rac, m_size, C);
             // 2. Calculate effective alphabet size
             calculate_effective_alphabet_size(C, m_sigma);
-            // 3. Generate hu tucker tree
+            // 3. Generate HuTucker tree
             size_type tree_size = construct_wavelet_tree(C);
 
             // 4. Generate wavelet tree bit sequence m_tree
