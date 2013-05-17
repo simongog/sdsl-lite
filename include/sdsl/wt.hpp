@@ -57,7 +57,6 @@ class wt_trait
         typedef std::map<value_type, size_type> map_type;
         typedef std::map<value_type, size_type> inv_map_type;
         enum { char_node_map_size=0 };
-		
 
         static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
             if (n > 0)
