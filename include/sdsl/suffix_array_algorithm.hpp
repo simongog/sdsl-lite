@@ -115,7 +115,7 @@ typename t_csa::size_type backward_search(
     return r+1-l;
 }
 
-
+// Maybe one should replace these traits with a member variable in each wavelet tree
 template<class t_T>
 struct wt_has_bounds_trait {
     enum {value = false};

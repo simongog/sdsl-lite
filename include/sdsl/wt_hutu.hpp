@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2010 Simon Gog
+    Copyright (C) 2013 Simon Gog, Timo Beller and Markus Brenner
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file wt_hutu.hpp
-    \brief wt_hutu.hpp contains a class for the wavelet tree of byte sequences which is in Hu Tucker shape.
+    \brief wt_hutu.hpp contains a class for the wavelet tree of byte sequences which is in Hu-Tucker shape.
     \author Simon Gog, Timo Beller and Markus Brenner
 */
 #ifndef INCLUDED_SDSL_WT_HUTU
@@ -37,18 +37,6 @@
 #include <deque>
 #include <queue>
 #include <iostream>
-
-
-#ifdef SDSL_DEBUG
-#define SDSL_DEBUG_WT_HUTU
-#endif
-
-
-//#define SDSL_DEBUG_WAVELET_TREE
-
-#ifdef SDSL_DEBUG_WAVELET_TREE
-#include "testutils.hpp"
-#endif
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -89,7 +77,7 @@ class HeapNode
         }
 };
 
-// Implementation of a leftist heap as needed in the first phase of HuTucker Code construction
+// Implementation of a leftist heap as needed in the first phase of Hu-Tucker Code construction
 template <class Element>
 class LHeap
 {
@@ -240,7 +228,7 @@ class LHeap
         }
 };
 
-// Master node as used in the first phase of the HuTucker algorithm
+// Master node as used in the first phase of the Hu-Tucker algorithm
 template <class size_type>
 class MNode
 {
@@ -280,7 +268,7 @@ class MNode
         }
 };
 
-// HuTucker node as used in the first phase of the HuTucker algorithm
+// Hu-Tucker node as used in the first phase of the Hu-Tucker algorithm
 template <class size_type>
 class HTNode
 {
@@ -425,7 +413,7 @@ class wt_hutu
         SelectSupport		m_tree_select1;	// select support for the wavelet tree bit vector
         SelectSupportZero	m_tree_select0;
 
-        _node_ht<size_type> 	m_nodes[511]; // nodes for the HuTucker tree structure
+        _node_ht<size_type> 	m_nodes[511]; // nodes for the Hu-Tucker tree structure
         uint16_t			m_c_to_leaf[256]; // map symbol c to a leaf in the tree structure
         // if m_c_to_leaf[c] == _undef_node the char does not exists in the text
         uint64_t			m_path[256];     // path information for each char:
@@ -756,11 +744,11 @@ class wt_hutu
             }
         }
 
-        // calculates the HuTucker tree and returns the size of the WT bit vector
+        // calculates the Hu-Tucker tree and returns the size of the WT bit vector
         size_type construct_wavelet_tree(size_type* C) {
             _node_ht<size_type> temp_nodes[2*m_sigma-1];
             size_type node_cnt = construct_hutucker_tree(C, temp_nodes);
-            // Convert HuTucker tree into breadth first search order in memory and
+            // Convert Hu-Tucker tree into breadth first search order in memory and
             // calculate tree_pos values
             m_nodes[0] = temp_nodes[node_cnt-1];  // insert root at index 0
             size_type tree_size = 0;
@@ -821,8 +809,8 @@ class wt_hutu
                         node = m_nodes[node].parent; // go up the tree
                     }
                     if (l > 56) {
-                        std::cerr<<"HuTucker tree has max depth > 56!!! ERROR"<<std::endl;
-                        throw std::logic_error("HuTucker tree size is greater than 56!!!");
+                        std::cerr<<"Hu-Tucker tree has max depth > 56!!! ERROR"<<std::endl;
+                        throw std::logic_error("Hu-Tucker tree size is greater than 56!!!");
                     }
                     m_path[c] = w | (l << 56);
                 } else {
@@ -922,7 +910,7 @@ class wt_hutu
             }
             // 2. Calculate effective alphabet size
             calculate_effective_alphabet_size(C, m_sigma);
-            // 3. Generate HuTucker tree
+            // 3. Generate Hu-Tucker tree
             size_type tree_size = construct_wavelet_tree(C);
             // 4. Generate wavelet tree bit sequence m_tree
             bit_vector tmp_tree(tree_size, 0);  // initialize bit_vector for the tree
@@ -974,7 +962,7 @@ class wt_hutu
             calculate_character_occurences(rac, m_size, C);
             // 2. Calculate effective alphabet size
             calculate_effective_alphabet_size(C, m_sigma);
-            // 3. Generate HuTucker tree
+            // 3. Generate Hu-Tucker tree
             size_type tree_size = construct_wavelet_tree(C);
 
             // 4. Generate wavelet tree bit sequence m_tree
@@ -1326,21 +1314,6 @@ class wt_hutu
             in.read((char*) m_c_to_leaf, 256*sizeof(m_c_to_leaf[0]));
             in.read((char*) m_path, 256*sizeof(m_path[0]));
         }
-
-#ifdef MEM_INFO
-        //! Print some infos about the size of the compressed suffix tree
-        void mem_info(std::string label="")const {
-            if (label=="")
-                label="wt_hutu";
-            size_type bytes = util::get_size_in_bytes(*this);
-            std::cout << "list(label = \""<<label<<"\", size = "<< bytes/(1024.0*1024.0) <<"\n,";
-            m_tree.mem_info("data"); std::cout<<",";
-            m_tree_rank.mem_info("rank"); std::cout<<",";
-            m_tree_select1.mem_info("select 1"); std::cout<<",";
-            m_tree_select0.mem_info("select 0"); std::cout << ")\n";
-            // TODO: add m_nodes, m_c_to_leaf, m_path?
-        }
-#endif
 };
 
 typedef wt_hutu<rrr_vector<>,
