@@ -192,10 +192,13 @@ void test_interval_symbols(t_T& wt)
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
     if (wt.size()) {
         for (size_type t=0; t<10000; ++t) {
-            size_type l = rand()%(wt.size()-1);
+            size_type l = rand()%(wt.size());
             size_type r = rand()%(wt.size());
             if (r<l) {
                 std::swap(l,r);
+            }
+            if (l==wt.size()) {
+                --l;
             }
             size_type k;
             std::vector<value_type> cs(wt.sigma);
@@ -257,10 +260,13 @@ void test_bounds(t_T& wt)
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
     if (wt.size()) {
         for (size_type t=0; t<10000; ++t) {
-            size_type l = rand()%(wt.size()-1);
+            size_type l = rand()%(wt.size());
             size_type r = rand()%(wt.size());
             if (r<l) {
                 std::swap(l,r);
+            }
+            if (l==wt.size()) {
+                --l;
             }
             size_type k_n = 0;
             std::vector<size_type> rank_c_i_n(256,0);

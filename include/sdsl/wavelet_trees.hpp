@@ -35,7 +35,7 @@
 #include "wt_rlmn.hpp"
 #include "wt_rlg.hpp"
 #include "wt_rlg8.hpp"
-#include "construct.hpp"
 #include "wt_hutu.hpp"
+#include "construct.hpp"
 
 #endif
