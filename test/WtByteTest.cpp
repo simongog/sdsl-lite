@@ -20,34 +20,34 @@ string temp_file;
 template<class t_T>
 struct wt_test_trait {
     static void interval_symbols_test(SDSL_UNUSED t_T& wt) {}
-    static void bounds_test(SDSL_UNUSED t_T& wt) {}
+    static void lex_count_test(SDSL_UNUSED t_T& wt) {}
 };
 
 template<class t_rac, class t_bv, class t_rs, class t_ss1, class t_ss0>
 struct wt_test_trait<wt<t_rac, t_bv, t_rs, t_ss1, t_ss0> > {
-    static void interval_symbols_test(wt<t_rac, t_bv, t_rs, t_ss1, t_ss0> &wt) {
+    static void interval_symbols_test(wt<t_rac, t_bv, t_rs, t_ss1, t_ss0>& wt) {
         test_interval_symbols(wt);
     }
-    static void bounds_test(wt<t_rac, t_bv, t_rs, t_ss1, t_ss0> &wt) {
-        test_bounds(wt);
+    static void lex_count_test(wt<t_rac, t_bv, t_rs, t_ss1, t_ss0>& wt) {
+        test_lex_count(wt);
     }
 };
 
 template<class t_bv, class t_rs, class t_ss1, class t_ss0, bool t_dfs_shape>
 struct wt_test_trait<wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> > {
-    static void interval_symbols_test(wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> &wt) {
+    static void interval_symbols_test(wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape>& wt) {
         test_interval_symbols(wt);
     }
-    static void bounds_test(SDSL_UNUSED wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> &wt) {}
+    static void lex_count_test(SDSL_UNUSED wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape>& wt) {}
 };
 
 template<class t_bv, class t_rs, class t_ss1, class t_ss0, bool t_dfs_shape>
 struct wt_test_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> > {
-    static void interval_symbols_test(wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> &wt) {
+    static void interval_symbols_test(wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape>& wt) {
         test_interval_symbols(wt);
     }
-    static void bounds_test(wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> &wt) {
-        test_bounds(wt);
+    static void lex_count_test(wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape>& wt) {
+        test_lex_count(wt);
     }
 };
 
@@ -59,21 +59,21 @@ using testing::Types;
 
 typedef Types<
 wt<unsigned char*, rrr_vector<63> >,
-   wt<unsigned char*, bit_vector_il<>  >,
-   wt<unsigned char*, bit_vector>,
-   wt_huff<bit_vector_il<> >,
-   wt_huff<bit_vector, rank_support_v<> >,
-   wt_huff<bit_vector, rank_support_v5<> >,
-   wt_huff<rrr_vector<63> >,
-   wt_rlmn<>,
-   wt_rlmn<bit_vector>,
-   wt_rlg<>,
-   wt_rlg8<>,
-   wt_hutu<bit_vector_il<> >,
-   wt_hutu<bit_vector, rank_support_v<> >,
-   wt_hutu<bit_vector, rank_support_v5<> >,
-   wt_hutu<rrr_vector<63> >
-   > Implementations;
+wt<unsigned char*, bit_vector_il<>  >,
+wt<unsigned char*, bit_vector>,
+wt_huff<bit_vector_il<> >,
+wt_huff<bit_vector, rank_support_v<> >,
+wt_huff<bit_vector, rank_support_v5<> >,
+wt_huff<rrr_vector<63> >,
+wt_rlmn<>,
+wt_rlmn<bit_vector>,
+wt_rlg<>,
+wt_rlg8<>,
+wt_hutu<bit_vector_il<> >,
+wt_hutu<bit_vector, rank_support_v<> >,
+wt_hutu<bit_vector, rank_support_v5<> >,
+wt_hutu<rrr_vector<63> >
+> Implementations;
 
 TYPED_TEST_CASE(WtByteTest, Implementations);
 
@@ -192,13 +192,10 @@ void test_interval_symbols(t_T& wt)
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
     if (wt.size()) {
         for (size_type t=0; t<10000; ++t) {
-            size_type l = rand()%(wt.size());
-            size_type r = rand()%(wt.size());
+            size_type l = rand()%(wt.size()+1);
+            size_type r = rand()%(wt.size()+1);
             if (r<l) {
                 std::swap(l,r);
-            }
-            if (l==wt.size()) {
-                --l;
             }
             size_type k;
             std::vector<value_type> cs(wt.sigma);
@@ -252,7 +249,7 @@ TYPED_TEST(WtByteTest, IntervalSymbols)
 }
 
 template<class t_T>
-void test_bounds(t_T& wt)
+void test_lex_count(t_T& wt)
 {
     typedef typename t_T::value_type value_type;
     ASSERT_EQ(true, load_from_file(wt, temp_file));
@@ -260,13 +257,10 @@ void test_bounds(t_T& wt)
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
     if (wt.size()) {
         for (size_type t=0; t<10000; ++t) {
-            size_type l = rand()%(wt.size());
-            size_type r = rand()%(wt.size());
+            size_type l = rand()%(wt.size()+1);
+            size_type r = rand()%(wt.size()+1);
             if (r<l) {
                 std::swap(l,r);
-            }
-            if (l==wt.size()) {
-                --l;
             }
             size_type k_n = 0;
             std::vector<size_type> rank_c_i_n(256,0);
@@ -282,16 +276,16 @@ void test_bounds(t_T& wt)
             }
             size_type num_c = 0;
             size_type num_s = 0;
-            size_type num_b = r-l;
+            size_type num_g = r-l;
             for (size_type j=0; j<256; ++j) {
                 if (wt.rank(wt.size(),(value_type)j)) {
                     num_s += num_c;
                     num_c = rank_c_j_n[j]-rank_c_i_n[j];
-                    num_b -= num_c;
-                    size_type s, b;
-                    ASSERT_EQ(rank_c_i_n[j], wt.bounds(l, r, (value_type)j, s, b));
+                    num_g -= num_c;
+                    size_type s, g;
+                    ASSERT_EQ(rank_c_i_n[j], wt.lex_count(l, r, (value_type)j, s, g));
                     ASSERT_EQ(num_s, s);
-                    ASSERT_EQ(num_b, b);
+                    ASSERT_EQ(num_g, g);
 
                 }
             }
@@ -299,11 +293,11 @@ void test_bounds(t_T& wt)
     }
 }
 
-//! Test bounds method
+//! Test lex_count method
 TYPED_TEST(WtByteTest, Bounds)
 {
     TypeParam wt;
-    ::wt_test_trait<TypeParam>::bounds_test(wt);
+    ::wt_test_trait<TypeParam>::lex_count_test(wt);
 }
 
 //! Test access after swap
