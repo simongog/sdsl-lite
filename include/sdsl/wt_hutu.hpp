@@ -452,7 +452,6 @@ class wt_hutu
             }
         }
 
-
         // constructs the Hu-Tucker tree, writes the node to the given array and returns the number of nodes
         size_type construct_hutucker_tree(size_type* C, _node_ht<size_type>* tmp_nodes) {
             //create a leaf for every letter
@@ -745,7 +744,7 @@ class wt_hutu
         }
 
         // calculates the Hu-Tucker tree and returns the size of the WT bit vector
-        size_type construct_wavelet_tree(size_type* C) {
+        size_type construct_hu_tucker_tree(size_type* C) {
             _node_ht<size_type> temp_nodes[2*m_sigma-1];
             size_type node_cnt = construct_hutucker_tree(C, temp_nodes);
             // Convert Hu-Tucker tree into breadth first search order in memory and
@@ -877,83 +876,12 @@ class wt_hutu
         // Default constructor
         wt_hutu():m_size(0),m_sigma(0), sigma(m_sigma),tree(m_tree) {};
 
-
-
-        //! Constructor
-        /*!
-         *  \param rac  Reference to the vector (or unsigned char array) for which the wavelet tree should be build.
-         *  \param size Size of the prefix of the vector (or unsigned char array) for which the wavelet tree should be build.
-         *  \par Time complexity
-         *    \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
+        /*! \param input_buf    File buffer of the input.
+         *  \param size         The length of the prefix of the random access container, for which the wavelet tree should be build.
+         *    \par Time complexity
+         *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        template<typename t_rac>
-        wt_hutu(const t_rac& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
-            construct(rac, size);
-        }
-
-        template<uint8_t w>
-        wt_hutu(const int_vector<w>& rac):m_size(rac.size()), m_sigma(0), sigma(m_sigma), tree(m_tree) {
-            construct(rac, rac.size());
-        }
-
-
-        template<typename t_rac>
-        void construct(const t_rac& rac, size_type size) {
-            m_size = size;
-            if (m_size == 0)
-                return;
-            // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
-            size_type C[256] = {0};
-            //  1. Count occurences of characters
-            for (size_type i=0; i < size; ++i) {
-                ++C[rac[i]];
-            }
-            // 2. Calculate effective alphabet size
-            calculate_effective_alphabet_size(C, m_sigma);
-            // 3. Generate Hu-Tucker tree
-            size_type tree_size = construct_wavelet_tree(C);
-            // 4. Generate wavelet tree bit sequence m_tree
-            bit_vector tmp_tree(tree_size, 0);  // initialize bit_vector for the tree
-            //  Calculate starting position of wavelet tree nodes
-            size_type tree_pos[511];
-            for (size_type i=0; i < 2*sigma-1; ++i) {
-                tree_pos[i] = m_nodes[i].tree_pos;
-            }
-            uint8_t old_chr = rac[0], times = 0;
-            for (size_type i=0; i < m_size; ++i) {
-                uint8_t chr = rac[i];
-                if (chr != old_chr) {
-                    insert_char(old_chr, tree_pos, times, tmp_tree);
-                    times = 1;
-                    old_chr = chr;
-                } else { // chr == old_chr
-                    ++times;
-                    if (times == 64) {
-                        insert_char(old_chr, tree_pos, times, tmp_tree);
-                        times = 0;
-                    }
-                }
-            }
-            if (times > 0) {
-                insert_char(old_chr, tree_pos, times, tmp_tree);
-            }
-            util::assign(m_tree, tmp_tree);
-            // 5. Initialize rank and select data structures for m_tree
-            construct_init_rank_select();
-            // 6. Finish inner nodes by precalculating the tree_pos_rank values
-            construct_precalc_node_ranks();
-        }
-
         wt_hutu(int_vector_file_buffer<8>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
-            construct(rac, size);
-        }
-
-        //! Construct the wavelet tree from a random access container
-        /*!
-         *  \param rac  A random access container
-         *  \param size The length of the prefix of the random access container, for which the wavelet tree should be build
-         */
-        void construct(int_vector_file_buffer<8>& rac, size_type size) {
             m_size = size;
             if (m_size == 0)
                 return;
@@ -964,7 +892,7 @@ class wt_hutu
             // 2. Calculate effective alphabet size
             calculate_effective_alphabet_size(C, m_sigma);
             // 3. Generate Hu-Tucker tree
-            size_type tree_size = construct_wavelet_tree(C);
+            size_type tree_size = construct_hu_tucker_tree(C);
 
             // 4. Generate wavelet tree bit sequence m_tree
 
