@@ -17,6 +17,14 @@ typedef int_vector<>::size_type size_type;
 string test_file;
 string temp_file;
 
+// forward declaration
+template<class t_T>
+void test_interval_symbols(t_T& wt);
+// forward declaration
+template<class t_T>
+void test_lex_count(t_T& wt);
+
+
 template<class t_T>
 struct wt_test_trait {
     static void interval_symbols_test(SDSL_UNUSED t_T& wt) {}
@@ -59,21 +67,21 @@ using testing::Types;
 
 typedef Types<
 wt<unsigned char*, rrr_vector<63> >,
-wt<unsigned char*, bit_vector_il<>  >,
-wt<unsigned char*, bit_vector>,
-wt_huff<bit_vector_il<> >,
-wt_huff<bit_vector, rank_support_v<> >,
-wt_huff<bit_vector, rank_support_v5<> >,
-wt_huff<rrr_vector<63> >,
-wt_rlmn<>,
-wt_rlmn<bit_vector>,
-wt_rlg<>,
-wt_rlg8<>,
-wt_hutu<bit_vector_il<> >,
-wt_hutu<bit_vector, rank_support_v<> >,
-wt_hutu<bit_vector, rank_support_v5<> >,
-wt_hutu<rrr_vector<63> >
-> Implementations;
+   wt<unsigned char*, bit_vector_il<>  >,
+   wt<unsigned char*, bit_vector>,
+   wt_huff<bit_vector_il<> >,
+   wt_huff<bit_vector, rank_support_v<> >,
+   wt_huff<bit_vector, rank_support_v5<> >,
+   wt_huff<rrr_vector<63> >,
+   wt_rlmn<>,
+   wt_rlmn<bit_vector>,
+   wt_rlg<>,
+   wt_rlg8<>,
+   wt_hutu<bit_vector_il<> >,
+   wt_hutu<bit_vector, rank_support_v<> >,
+   wt_hutu<bit_vector, rank_support_v5<> >,
+   wt_hutu<rrr_vector<63> >
+   > Implementations;
 
 TYPED_TEST_CASE(WtByteTest, Implementations);
 
