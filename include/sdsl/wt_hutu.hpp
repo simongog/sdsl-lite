@@ -766,7 +766,7 @@ class wt_hutu
                 size_type frq = m_nodes[idx].tree_pos; // frq_sum was stored in tree_pos
                 m_nodes[idx].tree_pos = tree_size;
                 if (m_nodes[idx].child[0] != _undef_node)  // if node is not a leaf
-                    tree_size += frq;					   // add frequency, as leaves have size 0
+                    tree_size += frq;                      // add frequency, as leaves have size 0
                 if (idx > 0) { // node is not the root
                     if (last_parent != m_nodes[idx].parent)
                         m_nodes[m_nodes[idx].parent].child[0] = idx;
@@ -775,7 +775,7 @@ class wt_hutu
                     last_parent = m_nodes[idx].parent;
                 }
                 if (m_nodes[idx].child[0] != _undef_node) { // if node is not a leaf
-                    for (size_type k=0; k<2; ++k) {			// add children to tree
+                    for (size_type k=0; k<2; ++k) {         // add children to tree
                         m_nodes[node_cnt] = temp_nodes[ m_nodes[idx].child[k] ];
                         m_nodes[node_cnt].parent = idx;
                         q.push_back(node_cnt);
@@ -788,7 +788,7 @@ class wt_hutu
             for (size_type i=0; i<256; ++i)
                 m_c_to_leaf[i] = _undef_node; // if c is not in the alphabet m_c_to_leaf[c] = _undef_node
             for (size_type i=0; i < 2*sigma-1; ++i) {
-                if (m_nodes[i].child[0] == _undef_node) 				// if node is a leaf
+                if (m_nodes[i].child[0] == _undef_node) // if node is a leaf
                     m_c_to_leaf[(uint8_t)m_nodes[i].tree_pos_rank] = i; // calculate value
             }
             // initialize path information
@@ -922,7 +922,7 @@ class wt_hutu
             uint8_t old_chr = rac[0], times = 0;
             for (size_type i=0; i < m_size; ++i) {
                 uint8_t chr = rac[i];
-                if (chr	!= old_chr) {
+                if (chr != old_chr) {
                     insert_char(old_chr, tree_pos, times, tmp_tree);
                     times = 1;
                     old_chr = chr;
@@ -986,7 +986,7 @@ class wt_hutu
                 uint8_t old_chr = rac[i-r_sum], times = 0;
                 for (; i < r_sum+r; ++i) {
                     uint8_t chr = rac[i-r_sum];
-                    if (chr	!= old_chr) {
+                    if (chr != old_chr) {
                         insert_char(old_chr, tree_pos, times, tmp_tree);
                         times = 1;
                         old_chr = chr;
@@ -1100,7 +1100,7 @@ class wt_hutu
             uint32_t node=0;
             for (uint32_t l=0; l<path_len and result; ++l, p >>= 1) {
                 if (p&1) {
-                    result 	= (m_tree_rank(m_nodes[node].tree_pos+result) -  m_nodes[node].tree_pos_rank);
+                    result  = (m_tree_rank(m_nodes[node].tree_pos+result) -  m_nodes[node].tree_pos_rank);
                 } else {
                     result -= (m_tree_rank(m_nodes[node].tree_pos+result) -  m_nodes[node].tree_pos_rank);
                 }
@@ -1176,7 +1176,7 @@ class wt_hutu
             uint32_t node=0;
             while (m_nodes[node].child[0] != _undef_node) { // while node is not a leaf
                 if (m_tree[m_nodes[node].tree_pos + i]) { // if bit is set at position goto right child
-                    i 	= (m_tree_rank(m_nodes[node].tree_pos + i) -  m_nodes[node].tree_pos_rank);
+                    i  = (m_tree_rank(m_nodes[node].tree_pos + i) -  m_nodes[node].tree_pos_rank);
                     node = m_nodes[node].child[1];
                 } else { // goto left child
                     i -= (m_tree_rank(m_nodes[node].tree_pos + i) -  m_nodes[node].tree_pos_rank);
@@ -1199,12 +1199,12 @@ class wt_hutu
             assert(i <= rank(size(), c));
             uint16_t node = m_c_to_leaf[c];
             if (node == _undef_node) { // if c was not present in the original text
-                return m_size;		   // -> return a position right to the end
+                return m_size;         // -> return a position right to the end
             }
             if (m_sigma == 1) {
                 return std::min(i-1,m_size);
             }
-            size_type result = i-1;		// otherwise
+            size_type result = i-1; // otherwise
             uint64_t p = m_path[c];
             uint32_t path_len = (p>>56);
             p <<= (64-path_len); // Note: path_len > 0, since we have handled m_sigma = 1.

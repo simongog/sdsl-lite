@@ -16,7 +16,7 @@
 */
 /*! \file wt.hpp
  *  \brief wt.hpp contains a generic class for the wavelet tree proposed first by
- *	      Grossi et al. 2003 and applied to the BWT in Foschini et al. 2004.
+ *         Grossi et al. 2003 and applied to the BWT in Foschini et al. 2004.
  *  \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_WT
@@ -244,10 +244,10 @@ class wt_trait<int_vector_file_buffer<8> >
  *   The wavelet tree was proposed first by Grossi et al. 2003 and applied to the BWT in Foschini et al. 2004.
  *   @ingroup wt
  */
-template<class t_rac=unsigned char*,
-         class BitVector         = bit_vector,
-         class RankSupport       = typename BitVector::rank_1_type,
-         class SelectSupport     = typename BitVector::select_1_type,
+template<class t_rac         = unsigned char*,
+         class BitVector     = bit_vector,
+         class RankSupport   = typename BitVector::rank_1_type,
+         class SelectSupport = typename BitVector::select_1_type,
          class t_select_zero = typename BitVector::select_0_type>
 class wt
 {
