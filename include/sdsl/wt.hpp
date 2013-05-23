@@ -552,37 +552,36 @@ class wt
             return result;
         };
 
-        //! Calculates for symbol c, how many symbols smaller and bigger c occure in wt[start..end-1].
+        //! Calculates for symbol c, how many symbols smaller and greater c occure in wt[i..j-1].
         /*!
-         *	\param start The start index (inclusive) of the interval.
-         *	\param end The end index (exclusive) of the interval.
-         *	\param c The symbol to count the occurences in the interval.
-         *  \param smaller Reference that will contain the number of symbols smaller than c in wt[start..end-1].
-         *  \param bigger Reference that will contain the number of symbols bigger than c in wt[start..end-1].
-         *	\return The number of occurences of symbol c in wt[0..start-1].
+         *  \param i       The start index (inclusive) of the interval.
+         *  \param j       The end index (exclusive) of the interval.
+         *  \param c       The symbol to count the occurences in the interval.
+         *  \param smaller Reference that will contain the number of symbols smaller than c in wt[i..j-1].
+         *  \param greater Reference that will contain the number of symbols greater than c in wt[i..j-1].
+         *  \return The number of occurences of symbol c in wt[0..i-1].
          *
          *  \par Precondition
-         *       \f$ start \leq end \f$
+         *       \f$ i \leq j \leq n \f$
          *       \f$ c must exist in wt \f$
          */
-        size_type bounds(size_type start, size_type end, value_type c, size_type& smaller, size_type& bigger)const {
-            assert(0 <= start and start < size() and end <= size() and start<=end);
+        size_type lex_count(size_type i, size_type j, value_type c, size_type& smaller, size_type& greater)const {
+            assert(i <= j and j <= size());
             smaller = 0;
-            bigger = 0;
-            if (start==end) {
-                return rank(start,c);
+            greater = 0;
+            if (i==j) {
+                return rank(i,c);
             }
-            size_type res1 = start;
-            size_type res2 = end;
+            size_type res1 = i;
+            size_type res2 = j;
             size_type node=0;
-            size_type lex_idx = m_char_map[c]; // koennte man auch nur path, path_len ersetzen
+            size_type lex_idx = m_char_map[c];
             size_type sigma   = m_sigma;
-//             while (sigma >= 2 and res2 > res1) {
             while (sigma >= 2) {
                 if (lex_idx < (sigma+1)/2) {
                     size_type r1_1 = (m_tree_rank(m_node_pointers[node]+res1)-m_node_pointers_rank[node]);
                     size_type r1_2 = (m_tree_rank(m_node_pointers[node]+res2)-m_node_pointers_rank[node]);
-                    bigger += r1_2 - r1_1;
+                    greater += r1_2 - r1_1;
                     res1 -= r1_1;
                     res2 -= r1_2;
                     sigma  = (sigma+1)/2;
@@ -700,17 +699,17 @@ class wt
 
         //! Calculates for each symbol c in wt[i..j-1], how many times c occurres in wt[0..i-1] and wt[0..j-1].
         /*!
-         *  \param i The start index (inclusive) of the interval.
-         *  \param j The end index (exclusive) of the interval.
-         *  \param k Reference that will contain the number of different symbols in wt[i..j-1].
-         *  \param cs Reference to a vector that will contain in cs[0..k-1] all symbols that occur in wt[i..j-1] in ascending order.
+         *  \param i        The start index (inclusive) of the interval.
+         *  \param j        The end index (exclusive) of the interval.
+         *  \param k        Reference that will contain the number of different symbols in wt[i..j-1].
+         *  \param cs       Reference to a vector that will contain in cs[0..k-1] all symbols that occur in wt[i..j-1] in ascending order.
          *  \param rank_c_i Reference to a vector which equals rank_c_i[p] = rank(cs[p],i), for \f$ 0 \leq p < k \f$
          *  \param rank_c_j Reference to a vector which equals rank_c_j[p] = rank(cs[p],j), for \f$ 0 \leq p < k \f$
          *    \par Time complexity
          *        \f$ \Order{\min{\sigma, k \log \sigma}} \f$
          *
          *  \par Precondition
-         *       \f$ i \leq j and i < n and j \leq n \f$
+         *       \f$ i \leq j \leq n \f$
          *       \f$ cs.size() \geq \sigma \f$
          *       \f$ rank_{c_i}.size() \geq \sigma \f$
          *       \f$ rank_{c_j}.size() \geq \sigma \f$
@@ -719,7 +718,7 @@ class wt
                               std::vector<unsigned char>& cs,
                               std::vector<size_type>& rank_c_i,
                               std::vector<size_type>& rank_c_j) const {
-            assert(i<=j and i < size() and j <= size());
+            assert(i<=j and j <= size());
             if (i==j) {
                 k = 0;
             } else if ((j-i)==1) {

@@ -60,8 +60,8 @@ struct _node {
     _node& operator=(const _node& v) {
         if (this != &v) {
             tree_pos         = v.tree_pos;
-            tree_pos_rank     = v.tree_pos_rank;
-            parent            = v.parent;
+            tree_pos_rank    = v.tree_pos_rank;
+            parent           = v.parent;
             child[0]         = v.child[0];
             child[1]         = v.child[1];
         }
@@ -349,7 +349,7 @@ class wt_huff
         wt_huff():m_size(0),m_sigma(0), sigma(m_sigma),tree(m_tree) {};
 
         //! Construct the wavelet tree from a file_buffer
-        /*! \param input_buf     File buffer of the input.
+        /*! \param input_buf    File buffer of the input.
          *  \param size         The length of the prefix of the random access container, for which the wavelet tree should be build.
          *    \par Time complexity
          *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
@@ -571,17 +571,17 @@ class wt_huff
 
         //! Calculates for each symbol c in wt[i..j-1], how many times c occurs in wt[0..i-1] and wt[0..j-1].
         /*!
-         *  \param i The start index (inclusive) of the interval.
-         *  \param j The end index (exclusive) of the interval.
-         *  \param k Reference that will contain the number of different symbols in wt[i..j-1].
-         *  \param cs Reference to a vector that will contain in cs[0..k-1] all symbols that occur in wt[i..j-1] in arbitrary order.
+         *  \param i        The start index (inclusive) of the interval.
+         *  \param j        The end index (exclusive) of the interval.
+         *  \param k        Reference that will contain the number of different symbols in wt[i..j-1].
+         *  \param cs       Reference to a vector that will contain in cs[0..k-1] all symbols that occur in wt[i..j-1] in arbitrary order.
          *  \param rank_c_i Reference to a vector which equals rank_c_i[p] = rank(i,cs[p]), for \f$ 0 \leq p < k \f$
          *  \param rank_c_j Reference to a vector which equals rank_c_j[p] = rank(j,cs[p]), for \f$ 0 \leq p < k \f$
          *    \par Time complexity
          *        \f$ \Order{\min{\sigma, k \log \sigma}} \f$
          *
          *  \par Precondition
-         *       \f$ i \leq j and i < n and j \leq n \f$
+         *       \f$ i \leq j \leq n \f$
          *       \f$ cs.size() \geq \sigma \f$
          *       \f$ rank_{c_i}.size() \geq \sigma \f$
          *       \f$ rank_{c_j}.size() \geq \sigma \f$
@@ -590,7 +590,7 @@ class wt_huff
                               std::vector<value_type>& cs,
                               std::vector<size_type>& rank_c_i,
                               std::vector<size_type>& rank_c_j) const {
-            assert(i<=j and i < size() and j <= size());
+            assert(i <= j and j <= size());
             if (i==j) {
                 k = 0;
             } else if (1==m_sigma) {
