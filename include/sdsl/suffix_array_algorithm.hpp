@@ -117,17 +117,17 @@ typename t_csa::size_type backward_search(
 
 // Maybe one should replace these traits with a member variable in each wavelet tree
 template<class t_T>
-struct wt_has_bounds_trait {
+struct wt_has_lex_count_trait {
     enum {value = false};
 };
 
 template<class t_rac, class t_bv, class t_rs, class t_ss1, class t_ss0>
-struct wt_has_bounds_trait<wt<t_rac, t_bv, t_rs, t_ss1, t_ss0> > {
+struct wt_has_lex_count_trait<wt<t_rac, t_bv, t_rs, t_ss1, t_ss0> > {
     enum {value = true};
 };
 
 template<class t_bv, class t_rs, class t_ss1, class t_ss0, bool t_dfs_shape>
-struct wt_has_bounds_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> > {
+struct wt_has_lex_count_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> > {
     enum {value = true};
 };
 
@@ -162,14 +162,14 @@ static typename csa_wt<>::csa_size_type bidirectional_search(
     typename csa_wt<>::size_type& r_fwd_res,
     typename csa_wt<>::size_type& l_bwd_res,
     typename csa_wt<>::size_type& r_bwd_res,
-    SDSL_UNUSED typename enable_if< wt_has_bounds_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
 )
 {
     assert(l_fwd <= r_fwd); assert(r_fwd < csa_fwd.size());
     typedef typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::size_type size_type;
     size_type c_begin = csa_fwd.C[csa_fwd.char2comp[c]];
     size_type s, b;
-    size_type rank_l = csa_fwd.wavelet_tree.bounds(l_fwd, r_fwd+1, c, s, b);
+    size_type rank_l = csa_fwd.wavelet_tree.lex_count(l_fwd, r_fwd+1, c, s, b);
     size_type rank_r = r_fwd - l_fwd - s - b + rank_l;
     l_fwd_res = c_begin + rank_l;
     r_fwd_res = c_begin + rank_r;
@@ -224,7 +224,7 @@ typename csa_wt<>::size_type bidirectional_search_backward(
     typename csa_wt<>::size_type& r_fwd_res,
     typename csa_wt<>::size_type& l_bwd_res,
     typename csa_wt<>::size_type& r_bwd_res,
-    SDSL_UNUSED typename enable_if< wt_has_bounds_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
 )
 {
     t_pat_iter it = end;
@@ -283,7 +283,7 @@ typename csa_wt<>::size_type bidirectional_search_forward(
     typename csa_wt<>::size_type& r_fwd_res,
     typename csa_wt<>::size_type& l_bwd_res,
     typename csa_wt<>::size_type& r_bwd_res,
-    SDSL_UNUSED typename enable_if< wt_has_bounds_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
 )
 {
     t_pat_iter it = begin;

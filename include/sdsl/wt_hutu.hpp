@@ -191,7 +191,7 @@ class l_heap
 
         // deletes an arbitrary element from the heap
         // this function assumes, that item is an element of the heap
-        void deletet_element(heap_node<t_element>* item) {
+        void delete_element(heap_node<t_element>* item) {
             if (item) {
                 if (root == item) { // trivial case: we want to delete the root
                     delete_min();
@@ -527,22 +527,22 @@ class wt_hutu
                 m_node<size_type>* n_m = new m_node<size_type>();
                 // delete old nodes from all hpqs
                 if (l->t) {
-                    if (l->mpql) l->mpql->myhpq->deleteElement(l->ql);
+                    if (l->mpql) l->mpql->myhpq->delete_element(l->ql);
                     l->ql = NULL;
-                    if (l->mpqr) l->mpqr->myhpq->deleteElement(l->qr);
+                    if (l->mpqr) l->mpqr->myhpq->delete_element(l->qr);
                     l->qr = NULL;
                 } else {
-                    m->myhpq->deleteElement(l->ql);
+                    m->myhpq->delete_element(l->ql);
                     l->ql = NULL;
                 }
                 if (r->t) {
-                    if (r->mpql) r->mpql->myhpq->deleteElement(r->ql);
+                    if (r->mpql) r->mpql->myhpq->delete_element(r->ql);
                     l->ql = NULL;
 
-                    if (r->mpqr) r->mpqr->myhpq->deleteElement(r->qr);
+                    if (r->mpqr) r->mpqr->myhpq->delete_element(r->qr);
                     r->qr = NULL;
                 } else {
-                    m->myhpq->deleteElement(r->ql);
+                    m->myhpq->delete_element(r->ql);
                     r->ql = NULL;
                 }
                 // handle the merge of hpqs
@@ -560,8 +560,8 @@ class wt_hutu
                         h2 = l->mpqr->myhpq;
 
                         h1 -> merge(h2);
-                        MPQ.deleteElement(l->mpql->qel);
-                        MPQ.deleteElement(l->mpqr->qel);
+                        MPQ.delete_element(l->mpql->qel);
+                        MPQ.delete_element(l->mpqr->qel);
                         delete l->mpql;
                         delete l->mpqr;
 
@@ -570,7 +570,7 @@ class wt_hutu
                         h2 = l->mpqr->myhpq;
                         n_lt = NULL;
 
-                        MPQ.deleteElement(l->mpqr->qel);
+                        MPQ.delete_element(l->mpqr->qel);
                         delete l->mpqr;
                     }
                     if (r->mpqr) {
@@ -580,7 +580,7 @@ class wt_hutu
 
                         h3 = r->mpqr->myhpq;
                         h1->merge(h3);
-                        MPQ.deleteElement(r->mpqr->qel);
+                        MPQ.delete_element(r->mpqr->qel);
                         delete r->mpqr;
 
                         n_hpq = h1;
@@ -598,8 +598,8 @@ class wt_hutu
 
                         l -> mpql ->myhpq -> merge(l->mpqr->myhpq);
                         n_hpq=l->mpql->myhpq;
-                        MPQ.deleteElement(l->mpql->qel);
-                        MPQ.deleteElement(l->mpqr->qel);
+                        MPQ.delete_element(l->mpql->qel);
+                        MPQ.delete_element(l->mpqr->qel);
                         delete l->mpql;
                         delete l->mpqr;
                     } else {
@@ -608,7 +608,7 @@ class wt_hutu
                         if (n_rt) n_rt->mpql = n_m;
 
                         n_hpq = l->mpqr->myhpq;
-                        MPQ.deleteElement(l->mpqr->qel);
+                        MPQ.delete_element(l->mpqr->qel);
                         delete l->mpqr;
                     }
                 } else if (r->t) { // right node is a leaf
@@ -620,8 +620,8 @@ class wt_hutu
 
                         r -> mpql ->myhpq -> merge(r->mpqr->myhpq);
                         n_hpq=r->mpql->myhpq;
-                        MPQ.deleteElement(r->mpql->qel);
-                        MPQ.deleteElement(r->mpqr->qel);
+                        MPQ.delete_element(r->mpql->qel);
+                        MPQ.delete_element(r->mpqr->qel);
                         delete r->mpql;
                         delete r->mpqr;
                     } else {
@@ -630,13 +630,13 @@ class wt_hutu
                         n_rt = NULL;
 
                         n_hpq = r->mpql->myhpq;
-                        MPQ.deleteElement(r->mpql->qel);
+                        MPQ.delete_element(r->mpql->qel);
                         delete r->mpql;
                     }
                 } else {
                     // merge of two inner nodes
                     // no need to merge hpqs
-                    MPQ.deleteElement(m->qel);
+                    MPQ.delete_element(m->qel);
 
                     n_hpq = m->myhpq;
                     n_lt = m->lt;
