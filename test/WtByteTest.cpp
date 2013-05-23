@@ -294,7 +294,7 @@ void test_lex_count(t_T& wt)
 }
 
 //! Test lex_count method
-TYPED_TEST(WtByteTest, Bounds)
+TYPED_TEST(WtByteTest, LexCount)
 {
     TypeParam wt;
     ::wt_test_trait<TypeParam>::lex_count_test(wt);
