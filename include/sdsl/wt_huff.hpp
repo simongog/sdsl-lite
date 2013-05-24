@@ -21,6 +21,7 @@
 #ifndef INCLUDED_SDSL_WT_HUFF
 #define INCLUDED_SDSL_WT_HUFF
 
+#include "wt_pc.hpp"
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "rank_support_v.hpp"
@@ -42,51 +43,6 @@ namespace sdsl
 {
 
 const int_vector<>::size_type ZoO[2] = {0, (int_vector<>::size_type)-1};
-
-template<class size_type>
-struct _node {
-    size_type  tree_pos;      // pointer into the bit_vector, which represents the wavelet tree
-    size_type  tree_pos_rank; // pre-calculated rank for the prefix up to but not including tree_pos
-    uint16_t   parent;        // pointer to the parent
-    uint16_t   child[2];      // pointer to the children
-
-    _node(size_type tree_pos=0, size_type tree_pos_rank=0, uint16_t parent=_undef_node,
-          uint16_t child_left=_undef_node, uint16_t child_right=_undef_node):
-        tree_pos(tree_pos), tree_pos_rank(tree_pos_rank), parent(parent) {
-        child[0] = child_left;
-        child[1] = child_right;
-    }
-
-    _node& operator=(const _node& v) {
-        if (this != &v) {
-            tree_pos         = v.tree_pos;
-            tree_pos_rank    = v.tree_pos_rank;
-            parent           = v.parent;
-            child[0]         = v.child[0];
-            child[1]         = v.child[1];
-        }
-        return *this;
-    }
-
-    size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
-        structure_tree_node* st_child = structure_tree::add_child(v, name, util::class_name(*this));
-        size_type written_bytes = 0;
-        written_bytes += write_member(tree_pos, out);
-        written_bytes += write_member(tree_pos_rank, out);
-        written_bytes += write_member(parent, out);
-        out.write((char*)child, 2*sizeof(child[0]));
-        written_bytes += 2*sizeof(child[0]);
-        structure_tree::add_size(st_child, written_bytes);
-        return written_bytes;
-    }
-
-    void load(std::istream& in) {
-        read_member(tree_pos, in);
-        read_member(tree_pos_rank, in);
-        read_member(parent, in);
-        in.read((char*) child, 2*sizeof(child[0]));
-    }
-};
 
 //! A Wavelet Tree class for byte sequences.
 /*!
@@ -197,10 +153,8 @@ class wt_huff
             }
         }
 
-        // calculates the Huffman tree and returns the size of the WT bit vector
-        size_type construct_huffman_tree(size_type* C) {
+        size_type construct_huffman_tree(const size_type* C, std::vector<_node<size_type> >& temp_nodes) {
             tMPQPII pq; // priority queue
-            std::vector<_node<size_type> > temp_nodes(2*m_sigma-1);  // vector for nodes of the Huffman tree
             size_type node_cnt=0;                                // counter for the nodes
             for (size_type i=0; i < 256; ++i) // add leafs of Huffman tree
                 if (C[i] > 0) {
@@ -219,6 +173,13 @@ class wt_huff
                 pq.push(tPII(frq_sum, node_cnt));   // push new node to the priority queue
                 temp_nodes[ node_cnt++ ] = _node<size_type>(frq_sum, 0, _undef_node, v1.second, v2.second);
             }
+            return node_cnt;
+        }
+
+        // calculates the Huffman tree and returns the size of the WT bit vector
+        size_type construct_tree_shape(const size_type* C) {
+            std::vector<_node<size_type> > temp_nodes(2*m_sigma-1);  // vector for nodes of the Huffman tree
+            size_type node_cnt = construct_huffman_tree(C, temp_nodes);
             // Convert Huffman tree into breadth first search order in memory and
             // calculate tree_pos values
             m_nodes[0] = temp_nodes[node_cnt-1];  // insert root at index 0
@@ -281,7 +242,7 @@ class wt_huff
                     }
                     if (l > 56) {
                         std::cerr<<"Huffman tree has max depth > 56!!! ERROR"<<std::endl;
-                        throw std::logic_error("Huffman tree size is greater than 56!!!");
+                        throw std::logic_error("Huffman tree depth is greater than 56!!!");
                     }
                     m_path[c] = w | (l << 56);
                 } else {
@@ -363,8 +324,8 @@ class wt_huff
             calculate_character_occurences(input_buf, m_size, C);
             // 2. Calculate effective alphabet size
             calculate_effective_alphabet_size(C, m_sigma);
-            // 3. Generate Huffman tree
-            size_type tree_size = construct_huffman_tree(C);
+            // 3. Generate tree shape
+            size_type tree_size = construct_tree_shape(C);
             // 4. Generate wavelet tree bit sequence m_tree
 
             bit_vector tmp_tree(tree_size, 0);  // initialize bit_vector for the tree

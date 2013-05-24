@@ -21,6 +21,7 @@
 #ifndef INCLUDED_SDSL_WT_HUTU
 #define INCLUDED_SDSL_WT_HUTU
 
+#include "wt_pc.hpp"
 #include "int_vector.hpp"
 #include "rank_support_v.hpp"
 #include "rank_support_v5.hpp"
@@ -321,51 +322,6 @@ class ht_node
 
 const int_vector<>::size_type ZOO[2] = {0, (int_vector<>::size_type)-1};
 
-template<class size_type>
-struct _node_ht {
-    size_type tree_pos;      // pointer into the bit_vector, which represents the wavelet tree
-    size_type tree_pos_rank; // pre-calculated rank for the prefix up to but not including tree_pos
-    uint16_t  parent;        // pointer to the parent
-    uint16_t  child[2];      // pointer to the children
-
-    _node_ht(size_type tree_pos=0, size_type tree_pos_rank=0, uint16_t parent=_undef_node,
-             uint16_t child_left=_undef_node, uint16_t child_right=_undef_node):
-        tree_pos(tree_pos), tree_pos_rank(tree_pos_rank), parent(parent) {
-        child[0] = child_left;
-        child[1] = child_right;
-    }
-
-    _node_ht& operator=(const _node_ht& v) {
-        if (this != &v) {
-            tree_pos      = v.tree_pos;
-            tree_pos_rank = v.tree_pos_rank;
-            parent        = v.parent;
-            child[0]      = v.child[0];
-            child[1]      = v.child[1];
-        }
-        return *this;
-    }
-
-    size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
-        structure_tree_node* st_child = structure_tree::add_child(v, name, util::class_name(*this));
-        size_type written_bytes = 0;
-        written_bytes += write_member(tree_pos, out);
-        written_bytes += write_member(tree_pos_rank, out);
-        written_bytes += write_member(parent, out);
-        out.write((char*)child, 2*sizeof(child[0]));
-        written_bytes += 2*sizeof(child[0]);
-        structure_tree::add_size(st_child, written_bytes);
-        return written_bytes;
-    }
-
-    void load(std::istream& in) {
-        read_member(tree_pos, in);
-        read_member(tree_pos_rank, in);
-        read_member(parent, in);
-        in.read((char*) child, 2*sizeof(child[0]));
-    }
-};
-
 //! A Wavelet Tree class for byte sequences.
 /*!
  * A wavelet tree is build for a vector of characters over the alphabet \f$\Sigma\f$.
@@ -380,7 +336,6 @@ struct _node_ht {
  *
  *   @ingroup wt
  */
-
 template<class t_bitvector   = bit_vector,
          class t_rank        = typename t_bitvector::rank_1_type,
          class t_select      = typename t_bitvector::select_1_type,
@@ -413,7 +368,7 @@ class wt_hutu
         t_select         m_tree_select1; // select support for the wavelet tree bit vector
         t_select_zero    m_tree_select0;
 
-        _node_ht<size_type>  m_nodes[511];     // nodes for the Hu-Tucker tree structure
+        _node<size_type>  m_nodes[511];     // nodes for the Hu-Tucker tree structure
         uint16_t             m_c_to_leaf[256]; // map symbol c to a leaf in the tree structure
         // if m_c_to_leaf[c] == _undef_node the char does not exists in the text
         uint64_t             m_path[256];      // path information for each char:
@@ -453,7 +408,7 @@ class wt_hutu
         }
 
         // constructs the Hu-Tucker tree, writes the node to the given array and returns the number of nodes
-        size_type construct_hutucker_tree(size_type* C, _node_ht<size_type>* tmp_nodes) {
+        size_type construct_hutucker_tree(const size_type* C, std::vector<_node<size_type> >& tmp_nodes) {
             //create a leaf for every letter
             std::vector<ht_node<size_type> > node_vector;
             for (int i = 0; i < 256; i++) {
@@ -470,7 +425,7 @@ class wt_hutu
             if (node_vector.size() == 1) {
                 // special case of an alphabet of size 1:
                 // just instantly create the tree and return it
-                tmp_nodes[0] = _node_ht<size_type>(node_vector[0].w, (size_type)node_vector[0].c);
+                tmp_nodes[0] = _node<size_type>(node_vector[0].w, (size_type)node_vector[0].c);
                 return 1;
             }
 
@@ -695,7 +650,7 @@ class wt_hutu
             size_type node_count=0;
             for (size_type i = 0; i < sigma; i++) {
                 stack[i] = NULL;
-                tmp_nodes[i] = _node_ht<size_type>(T[i].w, (size_type)T[i].c);
+                tmp_nodes[i] = _node<size_type>(T[i].w, (size_type)T[i].c);
                 T[i].pos = i;
                 node_count++;
             }
@@ -717,7 +672,7 @@ class wt_hutu
                     n_node->pos = node_count;
                     tmp_nodes[stack[spointer-1]->pos].parent = node_count;
                     tmp_nodes[stack[spointer]->pos].parent = node_count;
-                    tmp_nodes[node_count++] = _node_ht<size_type>(n_node->w, 0, _undef_node, stack[spointer-1]->pos, stack[spointer]->pos);
+                    tmp_nodes[node_count++] = _node<size_type>(n_node->w, 0, _undef_node, stack[spointer-1]->pos, stack[spointer]->pos);
 
                     if (!stack[spointer-1]->t) delete stack[spointer-1];
                     if (!stack[spointer]->t) delete stack[spointer];
@@ -744,8 +699,8 @@ class wt_hutu
         }
 
         // calculates the Hu-Tucker tree and returns the size of the WT bit vector
-        size_type construct_hu_tucker_tree(size_type* C) {
-            _node_ht<size_type> temp_nodes[2*m_sigma-1];
+        size_type construct_tree_shape(const size_type* C) {
+            std::vector<_node<size_type> > temp_nodes(2*m_sigma-1);
             size_type node_cnt = construct_hutucker_tree(C, temp_nodes);
             // Convert Hu-Tucker tree into breadth first search order in memory and
             // calculate tree_pos values
@@ -809,7 +764,7 @@ class wt_hutu
                     }
                     if (l > 56) {
                         std::cerr<<"Hu-Tucker tree has max depth > 56!!! ERROR"<<std::endl;
-                        throw std::logic_error("Hu-Tucker tree size is greater than 56!!!");
+                        throw std::logic_error("Hu-Tucker tree depth is greater than 56!!!");
                     }
                     m_path[c] = w | (l << 56);
                 } else {
@@ -887,12 +842,12 @@ class wt_hutu
                 return;
             // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
             size_type C[256] = {0};
-            // 1. Count occurences of characters
+            // 1. Count occurrences of characters
             calculate_character_occurences(rac, m_size, C);
             // 2. Calculate effective alphabet size
             calculate_effective_alphabet_size(C, m_sigma);
-            // 3. Generate Hu-Tucker tree
-            size_type tree_size = construct_hu_tucker_tree(C);
+            // 3. Generate tree shape
+            size_type tree_size = construct_tree_shape(C);
 
             // 4. Generate wavelet tree bit sequence m_tree
 
