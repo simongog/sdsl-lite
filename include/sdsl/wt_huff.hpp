@@ -35,8 +35,6 @@
 #include <stdexcept>
 #include <vector>
 #include <utility> // for pair
-#include <deque>
-#include <queue>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -94,7 +92,8 @@ class wt_huff
         typedef t_select_zero           select_0_type;
         typedef wt_tag                  index_category;
         typedef byte_alphabet_tag       alphabet_category;
-        enum { lex_ordered=0 };
+        typedef huff_shape<wt_huff>     shape;
+        enum { lex_ordered=shape::lex_ordered };
 
     private:
 #ifdef WT_HUFF_CACHE
@@ -110,16 +109,13 @@ class wt_huff
         select_1_type    m_tree_select1;    // select support for the wavelet tree bit vector
         select_0_type    m_tree_select0;
 
-        _node<size_type>     m_nodes[511];     // nodes for the Huffman tree structure
-        uint16_t            m_c_to_leaf[256];// map symbol c to a leaf in the tree structure
+        _node<size_type> m_nodes[511];     // nodes for the Huffman tree structure
+        uint16_t         m_c_to_leaf[256];// map symbol c to a leaf in the tree structure
         // if m_c_to_leaf[c] == _undef_node the char does
         // not exists in the text
         uint64_t            m_path[256];     // path information for each char; the bits at position
         // 0..55 hold path information; bits 56..63 the length
         // of the path in binary representation
-
-        typedef std::pair<size_type, size_type> tPII;  // pair (frequency, node_number) for constructing the Huffman tree
-        typedef std::priority_queue<tPII, std::vector<tPII>, std::greater<tPII> >  tMPQPII; // minimum priority queue
 
         void copy(const wt_huff& wt) {
             m_size            = wt.m_size;
@@ -153,33 +149,12 @@ class wt_huff
             }
         }
 
-        size_type construct_huffman_tree(const size_type* C, std::vector<_node<size_type> >& temp_nodes) {
-            tMPQPII pq; // priority queue
-            size_type node_cnt=0;                                // counter for the nodes
-            for (size_type i=0; i < 256; ++i) // add leafs of Huffman tree
-                if (C[i] > 0) {
-                    pq.push(tPII(C[i], node_cnt));   // push (frequency, pointer to node)
-                    temp_nodes[node_cnt++] = _node<size_type>(C[i], i);   // initial tree_pos with number of occurences
-                    // and tree_pos_rank value with the code of the corresponding char
-                    // parent, child[0], and child[1] are set to _undef_node
-                }
-            while (pq.size() > 1) {
-                tPII v1, v2;
-                v1 = pq.top(); pq.pop();
-                v2 = pq.top(); pq.pop();
-                temp_nodes[ v1.second ].parent = node_cnt; // parent is new node
-                temp_nodes[ v2.second ].parent = node_cnt; // parent is new node
-                size_type frq_sum = v1.first + v2.first;
-                pq.push(tPII(frq_sum, node_cnt));   // push new node to the priority queue
-                temp_nodes[ node_cnt++ ] = _node<size_type>(frq_sum, 0, _undef_node, v1.second, v2.second);
-            }
-            return node_cnt;
-        }
+
 
         // calculates the Huffman tree and returns the size of the WT bit vector
         size_type construct_tree_shape(const size_type* C) {
             std::vector<_node<size_type> > temp_nodes(2*m_sigma-1);  // vector for nodes of the Huffman tree
-            size_type node_cnt = construct_huffman_tree(C, temp_nodes);
+            size_type node_cnt = shape::construct_tree(C, temp_nodes);
             // Convert Huffman tree into breadth first search order in memory and
             // calculate tree_pos values
             m_nodes[0] = temp_nodes[node_cnt-1];  // insert root at index 0
@@ -241,8 +216,8 @@ class wt_huff
                         node = m_nodes[node].parent; // go up the tree
                     }
                     if (l > 56) {
-                        std::cerr<<"Huffman tree has max depth > 56!!! ERROR"<<std::endl;
-                        throw std::logic_error("Huffman tree depth is greater than 56!!!");
+                        std::cerr<<"Code tree has max depth > 56!!! ERROR"<<std::endl;
+                        throw std::logic_error("Code tree depth is greater than 56!!!");
                     }
                     m_path[c] = w | (l << 56);
                 } else {
@@ -336,7 +311,7 @@ class wt_huff
             }
             input_buf.reset();
             if (input_buf.int_vector_size < size) {
-                throw std::logic_error("wt_huff::construct: stream size is smaller than size!");
+                throw std::logic_error("Stream size is smaller than size!");
                 return;
             }
             for (size_type i=0, r_sum=0, r = input_buf.load_next_block(); r_sum < m_size;) {
@@ -421,7 +396,7 @@ class wt_huff
          *        \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order entropy
          *      of the sequence.
          */
-        value_type operator[](size_type i)const { // TODO: Maybe it is good to integrate a cache here
+        value_type operator[](size_type i)const {
             assert(i < size());
             // which stores how many of the next symbols are equal
             // with the current char
