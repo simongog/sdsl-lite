@@ -70,12 +70,13 @@ class _sa_order_sampling : public int_vector<t_width>
 
         //! Constructor
         /*
-         * \param sa_buf File buffer to the suffix array.
-         * \param csa    Pointer to the corresponding CSA. Not used in this class.
+         * \param cconfig Cache configuration (SA is expected to be cached.).
+         * \param csa     Pointer to the corresponding CSA. Not used in this class.
          * \par Time complexity
          *      Linear in the size of the suffix array.
          */
-        _sa_order_sampling(int_vector_file_buffer<>& sa_buf, SDSL_UNUSED const t_csa* csa=NULL) {
+        _sa_order_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=NULL) {
+            int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig));
             size_type n = sa_buf.int_vector_size;
             this->width(bits::hi(n)+1);
             this->resize((n+sample_dens-1)/sample_dens);
@@ -138,12 +139,13 @@ class _text_order_sampling : public int_vector<t_width>
 
         //! Constructor
         /*
-         * \param sa_buf File buffer to the suffix array.
+         * \param cconfig Cache configuration (SA is expected to be cached.).
          * \param csa    Pointer to the corresponding CSA. Not used in this class.
          * \par Time complexity
          *      Linear in the size of the suffix array.
          */
-        _text_order_sampling(int_vector_file_buffer<>& sa_buf, SDSL_UNUSED const t_csa* csa=NULL) {
+        _text_order_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=NULL) {
+            int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig));
             size_type n = sa_buf.int_vector_size;
             bit_vector marked(n, 0);                // temporary bitvector for the marked text positions
             this->width(bits::hi(n)+1);

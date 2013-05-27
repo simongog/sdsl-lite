@@ -94,10 +94,10 @@ class csa_sada
 
         static const uint32_t linear_decode_limit = 100000;
     private:
-        enc_vector_type m_psi;  // psi function
-        sa_sample_type     m_sa_sample; // suffix array samples
-        isa_sample_type m_isa_sample; // inverse suffix array samples
-        alphabet_type   m_alphabet;   // alphabet component
+        enc_vector_type m_psi;       // psi function
+        sa_sample_type  m_sa_sample; // suffix array samples
+        isa_sample_type m_isa_sample;// inverse suffix array samples
+        alphabet_type   m_alphabet;  // alphabet component
 
         uint64_t* m_psi_buf; //[t_dens+1]; // buffer for decoded psi values
 
@@ -404,7 +404,7 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config));
     mm::log("sa-sample-begin");
     {
-        sa_sample_type tmp_sa_sample(sa_buf);
+        sa_sample_type tmp_sa_sample(config);
         m_sa_sample.swap(tmp_sa_sample);
     }
     mm::log("sa-sample-end");
