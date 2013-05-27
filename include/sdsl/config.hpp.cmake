@@ -22,6 +22,7 @@ namespace sdsl{
 		const char KEY_TEXT_INT[] 	= "text_int";
 		const char KEY_PSI[] 		= "psi";
 		const char KEY_LCP[] 		= "lcp";
+        const char KEY_SAMPLE_CHAR[]= "sample_char";
 	}
 	typedef uint64_t int_vector_size_type;
 

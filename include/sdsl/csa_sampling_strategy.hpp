@@ -44,7 +44,7 @@
  *
  *    The first sampling (*1) is called suffix order sampling. It has the advantage, that
  *    we don't need to store a bitvector, which marks the sampled suffixes, since a suffix
- *    at index \(i\) in the suffix array is marked if \(i \mod sa_sample_dens \).
+ *    at index \(i\) in the suffix array is marked if \( 0 \equiv i \mod sa_sample_dens \).
  *
  *   The second sampling (*2) is called text order sampling. It is also called regular in [1].
  *
@@ -52,6 +52,8 @@
  */
 
 #include "int_vector.hpp"
+#include "csa_alphabet_strategy.hpp" // for key_trait
+#include <set>
 
 namespace sdsl
 {
@@ -81,7 +83,6 @@ class _sa_order_sampling : public int_vector<t_width>
             this->width(bits::hi(n)+1);
             this->resize((n+sample_dens-1)/sample_dens);
 
-            sa_buf.reset();
             for (size_type i=0, r_sum = 0, r = sa_buf.load_next_block(), cnt_mod=sample_dens, cnt_sum=0; r_sum < n;) {
                 for (; i < r_sum+r; ++i, ++cnt_mod) {
                     size_type sa = sa_buf[i-r_sum];
@@ -151,7 +152,6 @@ class _text_order_sampling : public int_vector<t_width>
             this->width(bits::hi(n)+1);
             this->resize((n+sample_dens-1)/sample_dens);
 
-            sa_buf.reset(); // first pass: mark the text positions
             for (size_type i=0, r_sum = 0, r = sa_buf.load_next_block(), sa_cnt=0; r_sum < n;) {
                 for (; i < r_sum+r; ++i) {
                     size_type sa = sa_buf[i-r_sum];
@@ -235,19 +235,171 @@ class text_order_sa_sampling
         };
 };
 
-
 /*
-template<uint64_t t_c, uint8_t t_width=0>
-class one_character_sampling{
-	public:
-		template<class Csa> // template inner class which is used in CSAs to parametrize the
-		class type{         // sampling strategy class with the Sampling density of the CSA
-			public:
-			typedef _one_character_sampling<Csa, t_width> sample_type;
-		};
+ *       Text = ABCDEFABCDEF$
+ *              0123456789012
+ *       sa_sample_dens = 4
+ *       sa_sample_chars = {B,E}
+ *     SA BWT (1)
+ *     12  F   * $
+ *     06  F     ABCDEF$
+ *     00  $   * ABCDEFABCDEF$
+ *     07  A     BCDEF$
+ *     01  A     BCDEFABCDEF$
+ *     08  B   * CDEF$
+ *     02  B   * CDEFABCDEF$
+ *     09  C     DEF$
+ *     03  C     DEFABCDEF$
+ *     10  D     EF$
+ *     04  D   * EFABCDEF$
+ *     11  E   * F$
+ *     05  E   * FABCDEF$
+ *
+ *    In this sampling a suffix x=SA[i] is marked if x \( 0 \equiv x \mod sa_sample_dens \) or
+ *    BWT[i] is contained in sa_sample_chars.
+ */
+
+template<class t_csa,
+         class bit_vector_type=bit_vector,
+         class rank_support_type=typename bit_vector_type::rank_1_type,
+         uint8_t t_width=0
+         >
+class _bwt_sampling : public int_vector<t_width>
+{
+    private:
+        bit_vector_type		m_marked;
+        rank_support_type	m_rank_marked;
+    public:
+        typedef int_vector<t_width> base_type;
+        typedef typename base_type::size_type  size_type;	// make typedefs of base_type visible
+        typedef typename base_type::value_type value_type;	//
+        enum { sample_dens = t_csa::sa_sample_dens };
+
+        //! Default constructor
+        _bwt_sampling() {}
+
+        //! Constructor
+        /*
+         * \param cconfig Cache configuration (BWT,SA, and SAMPLE_CHARS are expected to be cached.).
+         * \param csa    Pointer to the corresponding CSA. Not used in this class.
+         * \par Time complexity
+         *      Linear in the size of the suffix array.
+         */
+        _bwt_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=NULL) {
+            int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig));
+            int_vector_file_buffer<t_csa::alphabet_type::int_width>
+            bwt_buf(cache_file_name(key_trait<t_csa::alphabet_type::int_width>::KEY_BWT,cconfig));
+            size_type n = sa_buf.int_vector_size;
+            bit_vector marked(n, 0);                // temporary bitvector for the marked text positions
+            this->width(bits::hi(n)+1);
+            int_vector<> sample_char;
+            typedef typename t_csa::char_type char_type;
+            std::set<char_type> char_map;
+            if (load_from_cache(sample_char, constants::KEY_SAMPLE_CHAR,cconfig)) {
+                for (uint64_t i=0; i<sample_char.size(); ++i) {
+                    char_map.insert((char_type)sample_char[i]);
+                }
+            }
+            size_type sa_cnt = 0;
+            for (size_type i=0, r_sum = 0, r = 0; r_sum < n;) {
+                for (; i < r_sum+r; ++i) {
+                    size_type sa  = sa_buf[i-r_sum];
+                    char_type bwt = bwt_buf[i-r_sum];
+                    if (0 == (sa % sample_dens)) {
+                        marked[i] = 1;
+                        ++sa_cnt;
+                    } else if (char_map.find(bwt) != char_map.end()) {
+                        marked[i] = 1;
+                        ++sa_cnt;
+                    }
+                }
+                r_sum += r; r = sa_buf.load_next_block();
+                bwt_buf.load_next_block();
+            }
+            sa_buf.reset();
+            this->resize(sa_cnt);
+            sa_cnt = 0;
+            for (size_type i=0, r_sum = 0, r = sa_buf.load_next_block(); r_sum < n;) {
+                for (; i < r_sum+r; ++i) {
+                    size_type sa  = sa_buf[i-r_sum];
+                    if (marked[i]) {
+                        (*this)[sa_cnt++] = sa;
+                    }
+                }
+                r_sum += r; r = sa_buf.load_next_block();
+            }
+            util::assign(m_marked, marked);
+            util::init_support(m_rank_marked, &m_marked);
+        }
+
+        //! Copy constructor
+        _bwt_sampling(const _bwt_sampling& st) : base_type(st) {
+            m_marked = st.m_marked;
+            m_rank_marked = st.m_rank_marked;
+            m_rank_marked.set_vector(&m_marked);
+        }
+
+        //! Determine if index i is sampled or not
+        inline bool is_sampled(size_type i) const {
+            return m_marked[i];
+        }
+
+        //! Return the suffix array value for the sampled index i
+        inline value_type sa_value(size_type i) const {
+            return (*this)[m_rank_marked(i)];
+        }
+
+        //! Assignment operation
+        _bwt_sampling& operator=(const _bwt_sampling& st) {
+            if (this != &st) {
+                base_type::operator=(st);
+                m_marked = st.m_marked;
+                m_rank_marked = st.m_rank_marked;
+                m_rank_marked.set_vector(&m_marked);
+            }
+            return *this;
+        }
+
+        //! Swap operation
+        void swap(_bwt_sampling& st) {
+            base_type::swap(st);
+            m_marked.swap(st.m_marked);
+            util::swap_support(m_rank_marked, st.m_rank_marked, &m_marked, &(st.m_marked));
+        }
+
+        size_type serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+            size_type written_bytes = 0;
+            written_bytes += base_type::serialize(out, child, "samples");
+            written_bytes += m_marked.serialize(out, child, "marked");
+            written_bytes += m_rank_marked.serialize(out, child, "rank_marked");
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
+
+        void load(std::istream& in) {
+            base_type::load(in);
+            m_marked.load(in);
+            m_rank_marked.load(in);
+            m_rank_marked.set_vector(&m_marked);
+        }
 };
-*/
-// TODO: implement _one_character_sampling
+
+template<class t_bit_vec=bit_vector, class t_rank_sup=typename t_bit_vec::rank_1_type, uint8_t t_width=0>
+class sa_bwt_sampling
+{
+    public:
+        template<class t_csa> // template inner class which is used in CSAs to parametrize the
+        class type            // sampling strategy class with the Sampling density of the CSA
+        {
+            public:
+                typedef _bwt_sampling<t_csa,
+                        t_bit_vec,
+                        t_rank_sup,
+                        t_width
+                        > sample_type;
+        };
+};
 
 } // end namespace
 
