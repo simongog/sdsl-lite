@@ -99,8 +99,8 @@ class csa_wt
 
     private:
         t_wt            m_wavelet_tree; // the wavelet tree
-        sa_sample_type  m_sa_sample; // suffix array samples
-        isa_sample_type m_isa_sample; // inverse suffix array samples
+        sa_sample_type  m_sa_sample;    // suffix array samples
+        isa_sample_type m_isa_sample;   // inverse suffix array samples
         alphabet_type   m_alphabet;
 //#define USE_CSA_CACHE
 #ifdef USE_CSA_CACHE
@@ -293,7 +293,7 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
 
     mm::log("sa-sample-begin");
     {
-        sa_sample_type tmp_sa_sample(sa_buf);
+        sa_sample_type tmp_sa_sample(config);
         m_sa_sample.swap(tmp_sa_sample);
     }
     mm::log("sa-sample-end");

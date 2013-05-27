@@ -138,7 +138,7 @@ class csa_bitcompressed
                 m_alphabet.swap(tmp_alphabet);
             }
             {
-                sa_sample_type tmp_sample(sa_buf);
+                sa_sample_type tmp_sample(config);
                 m_sa.swap(tmp_sample);
             }
             algorithm::set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
