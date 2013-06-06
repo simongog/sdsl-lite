@@ -97,6 +97,10 @@ class rmq_succinct_sada
                 : l(fl), r(fr), m(fm), visit(fvisit) {}
         };
 
+        //! Constructor
+        /*! \tparam t_rac A random access container.
+         *  \param  v     Ponter to container object.
+         */
         template<class t_rac>
         void construct_bp_of_extended_cartesian_tree(const t_rac* v, const rmq_construct_helper_type& rmq_helper) {
             m_ect_bp.resize(4*v->size());

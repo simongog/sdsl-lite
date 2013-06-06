@@ -74,8 +74,11 @@ class rmq_succinct_sct
         rmq_succinct_sct() : sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {}
 
         //! Constructor
-        template<class RandomAccessContainer>
-        rmq_succinct_sct(const RandomAccessContainer* v=NULL) : sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
+        /*! \tparam t_rac A random access container.
+         *  \param  v     Pointer to container object.
+         */
+        template<class t_rac>
+        rmq_succinct_sct(const t_rac* v=NULL) : sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
             if (v == NULL) {
                 util::assign(m_sct_bp, bit_vector()); util::assign(m_sct_bp_support, bp_support_type());
             } else {
