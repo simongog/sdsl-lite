@@ -46,7 +46,7 @@ class select_support_scan : public select_support
     public:
         typedef bit_vector bit_vector_type;
     public:
-        explicit select_support_scan(const bit_vector* v=NULL) {
+        explicit select_support_scan(const bit_vector* v=nullptr) {
             set_vector(v);
         }
         select_support_scan(const select_support_scan<t_b,t_pat_len>& ss) {
@@ -56,11 +56,11 @@ class select_support_scan : public select_support
         inline const size_type operator()(size_type i)const {
             return select(i);
         }
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             return serialize_empty_object(out, v, name, this);
         }
-        void load(std::istream&, SDSL_UNUSED const bit_vector* v=NULL) {}
-        void set_vector(const bit_vector* v=NULL) {
+        void load(std::istream&, SDSL_UNUSED const bit_vector* v=nullptr) {}
+        void set_vector(const bit_vector* v=nullptr) {
             m_v = v;
         }
         select_support_scan<t_b, t_pat_len>& operator=(const select_support_scan& ss) {

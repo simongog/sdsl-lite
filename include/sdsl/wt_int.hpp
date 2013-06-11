@@ -386,8 +386,8 @@ class wt_int
          *  \param val_result Reference to a vector to which the resulting values should be added
          */
         size_type range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb,
-                                  std::vector<size_type>* idx_result=NULL,
-                                  std::vector<value_type>* val_result=NULL
+                                  std::vector<size_type>* idx_result=nullptr,
+                                  std::vector<value_type>* val_result=nullptr
                                  ) const {
             size_type offsets[m_max_depth+1];
             size_type ones_before_os[m_max_depth+1];
@@ -411,7 +411,7 @@ class wt_int
             if (lb > rb)
                 return;
             if (depth == m_max_depth) {
-                if (idx_result != NULL) {
+                if (idx_result != nullptr) {
                     for (size_type j=1; j <= node_size; ++j) {
                         size_type i = j;
                         size_type c = path;
@@ -428,7 +428,7 @@ class wt_int
                         idx_result->push_back(i-1); // add resulting index; -1 cause of 0 based indexing
                     }
                 }
-                if (val_result != NULL) {
+                if (val_result != nullptr) {
                     for (size_type j=1; j <= node_size; ++j) {
                         val_result->push_back(path);
                     }
@@ -467,7 +467,7 @@ class wt_int
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");

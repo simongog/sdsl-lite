@@ -17,16 +17,18 @@ int main(int argc, char* argv[])
     }
     int_vector<> v;
     load_from_file(v, argv[1]);
-    cout<<"loaded int_vector<> containing "<<v.size()<<" "<<(int)v.width()<<"-bit integers";
+    cout<<"loaded int_vector<> containing "<<v.size()<<" "<<
+        (int)v.width()<<"-bit integers"<<endl;
     if (argc>3) {
-        size_t a=atoi(argv[2]);
-        size_t b=atoi(argv[3]);
+        size_t a=atoll(argv[2]);;
+        size_t b=atoll(argv[3]);
         if (b >= v.size())
             b = v.size()-1;
         if (a > b)
             a = b;
-        for (size_t i=a; i<=b; ++i)
+        for (size_t i=a; i<=b; ++i) {
             cout<<"v["<<i<<"]="<<v[i]<<endl;
+        }
     } else {
         cout << "Interactive mode." << endl;
         size_t i;

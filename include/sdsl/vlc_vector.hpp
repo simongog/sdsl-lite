@@ -131,7 +131,7 @@ class vlc_vector
         vlc_vector& operator=(const vlc_vector& v);
 
         //! Serializes the vlc_vector to a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
 
         //! Load the vlc_vector from a stream.
         void load(std::istream& in);

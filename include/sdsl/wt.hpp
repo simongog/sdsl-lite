@@ -41,7 +41,7 @@ struct unsigned_char_map {
     unsigned char& operator[](unsigned char i);
     unsigned char operator[](unsigned char i)const;
     void clear();
-    uint16_t serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
+    uint16_t serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
     void load(std::istream& in);
     void swap(unsigned_char_map& map);
 };
@@ -81,7 +81,7 @@ class wt_trait
             return map.find(c)!=map.end();
         }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, std::string name="") {
+        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=nullptr, std::string name="") {
             throw std::logic_error(util::demangle(typeid(wt_trait<t_rac>).name())+": serialize not implemented");
             return 0;
         }
@@ -142,7 +142,7 @@ class wt_trait<unsigned char*>
             return sigma==256 or map[c] < 255;
         }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL,
+        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=nullptr,
                                         SDSL_UNUSED std::string name="") {
             size_type written_bytes = 0;
             written_bytes += map.serialize(out, v, "alphabet_map");
@@ -216,7 +216,7 @@ class wt_trait<int_vector_file_buffer<8> >
             return sigma==256 or map[c] < 255;
         }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, SDSL_UNUSED std::string name="") {
+        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=nullptr, SDSL_UNUSED std::string name="") {
             size_type written_bytes = 0;
             written_bytes += map.serialize(out, v, "alphabet_map");
             written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
@@ -843,7 +843,7 @@ class wt
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");

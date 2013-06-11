@@ -52,7 +52,7 @@ class elias_delta
            \param it Iterator to decode the values.
          */
         template<bool sumup, bool increment,class Iterator>
-        static uint64_t decode(const uint64_t* data, const size_type start_idx, size_type n, Iterator it=(Iterator)NULL);
+        static uint64_t decode(const uint64_t* data, const size_type start_idx, size_type n, Iterator it=(Iterator)nullptr);
 
         //! Decode n EliasDelta encoded integers beginning at start_idx in the bitstring "data"  and return the sum of these values.
         /*! \param data Pointer to the beginning of the EliasDelta encoded bitstring.

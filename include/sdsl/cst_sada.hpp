@@ -273,7 +273,7 @@ class cst_sada
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_csa.serialize(out, child, "csa");

@@ -339,13 +339,13 @@ class bp_support_sada
         const sml_block_array_type& sml_block_min_max; //!< Small blocks array. Rel. min/max for the small blocks.
         const med_block_array_type& med_block_min_max; //!< Array containing the min max tree of the medium blocks.
 
-        bp_support_sada():m_bp(NULL), m_size(0), m_sml_blocks(0), m_med_blocks(0), m_med_inner_blocks(0),
+        bp_support_sada():m_bp(nullptr), m_size(0), m_sml_blocks(0), m_med_blocks(0), m_med_inner_blocks(0),
             bp_rank(m_bp_rank), bp_select(m_bp_select), sml_block_min_max(m_sml_block_min_max), med_block_min_max(m_med_block_min_max)
         {}
 
         //! Constructor
         explicit bp_support_sada(const bit_vector* bp): m_bp(bp),
-            m_size(bp==NULL?0:bp->size()),
+            m_size(bp==nullptr?0:bp->size()),
             m_sml_blocks((m_size+t_sml_blk-1)/t_sml_blk),
             m_med_blocks((m_size+t_sml_blk*t_med_deg-1)/(t_sml_blk* t_med_deg)),
             m_med_inner_blocks(0),
@@ -356,7 +356,7 @@ class bp_support_sada
             if (t_sml_blk==0) {
                 throw std::logic_error(util::demangle(typeid(this).name())+": t_sml_blk should be greater than 0!");
             }
-            if (bp == NULL or bp->size()==0)
+            if (bp == nullptr or bp->size()==0)
                 return;
             // initialize rank and select
             util::init_support(m_bp_rank, bp);
@@ -824,7 +824,7 @@ class bp_support_sada
          * \param out The outstream to which the data structure is written.
          * \return The number of bytes written to out.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");

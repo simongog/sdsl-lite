@@ -160,7 +160,7 @@ class lcp_dac
         lcp_dac& operator=(const lcp_dac& lcp_c);
 
         //! Serialize to a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="") const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="") const;
 
         //! Load from a stream.
         void load(std::istream& in);
