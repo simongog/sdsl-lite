@@ -301,7 +301,7 @@ class rrr_vector<15, t_rac>
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             size_type written_bytes = 0;
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             written_bytes += write_member(m_size, out, child, "size");
@@ -349,7 +349,7 @@ class rank_support_rrr<t_b, 15, t_rac>
         //! Standard constructor
         /*! \param v Pointer to the rrr_vector, which should be supported
          */
-        explicit rank_support_rrr(const bit_vector_type* v=NULL) {
+        explicit rank_support_rrr(const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
@@ -459,9 +459,9 @@ class rank_support_rrr<t_b, 15, t_rac>
         }
 
         //! Set the supported vector.
-        void set_vector(const bit_vector_type* v=NULL) {
+        void set_vector(const bit_vector_type* v=nullptr) {
             m_v = v;
-            if (v != NULL) {
+            if (v != nullptr) {
                 m_k = m_v->m_k;
             } else {
                 m_k = 0;
@@ -482,13 +482,13 @@ class rank_support_rrr<t_b, 15, t_rac>
         }
 
         //! Load the data structure from a stream and set the supported vector.
-        void load(std::istream& in, const bit_vector_type* v=NULL) {
+        void load(std::istream& in, const bit_vector_type* v=nullptr) {
             read_member(m_k, in);
             set_vector(v);
         }
 
         //! Serializes the data structure into a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_k, out, child, "k");
@@ -587,7 +587,7 @@ class select_support_rrr<t_b, 15, t_rac>
 
 
     public:
-        select_support_rrr(const bit_vector_type* v=NULL) {
+        select_support_rrr(const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
@@ -605,9 +605,9 @@ class select_support_rrr<t_b, 15, t_rac>
             return m_v->size();
         }
 
-        void set_vector(const bit_vector_type* v=NULL) {
+        void set_vector(const bit_vector_type* v=nullptr) {
             m_v = v;
-            if (v != NULL) {
+            if (v != nullptr) {
                 m_k = m_v->m_k;
             } else {
                 m_k = 0;
@@ -628,12 +628,12 @@ class select_support_rrr<t_b, 15, t_rac>
             }
         }
 
-        void load(std::istream& in, const bit_vector_type* v=NULL) {
+        void load(std::istream& in, const bit_vector_type* v=nullptr) {
             read_member(m_k, in);
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_k, out, child, "k");

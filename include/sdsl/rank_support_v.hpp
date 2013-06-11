@@ -58,14 +58,14 @@ class rank_support_v : public rank_support
     private:
         int_vector<64> m_basic_block; // basic block for interleaved storage of superblockrank and blockrank
     public:
-        explicit rank_support_v(const bit_vector* v = NULL);
+        explicit rank_support_v(const bit_vector* v = nullptr);
         rank_support_v(const rank_support_v& rs);
         const size_type rank(size_type idx) const;
         const size_type operator()(size_type idx)const;
         const size_type size()const;
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
-        void load(std::istream& in, const int_vector<1>* v=NULL);
-        void set_vector(const bit_vector* v=NULL);
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
+        void load(std::istream& in, const int_vector<1>* v=nullptr);
+        void set_vector(const bit_vector* v=nullptr);
 
         //! Assign Operator
         /*! Required for the Assignable Concept of the STL.
@@ -103,7 +103,7 @@ template<uint8_t t_b, uint8_t t_pat_len>
 rank_support_v<t_b, t_pat_len>::rank_support_v(const bit_vector* v)
 {
     set_vector(v);
-    if (v == NULL) {
+    if (v == nullptr) {
         return;
     } else if (v->empty()) {
         m_basic_block = int_vector<64>(2,0);   // resize structure for basic_blocks
@@ -144,7 +144,7 @@ rank_support_v<t_b, t_pat_len>::rank_support_v(const bit_vector* v)
 template<uint8_t t_b, uint8_t t_pat_len>
 inline const typename rank_support_v<t_b, t_pat_len>::size_type rank_support_v<t_b, t_pat_len>::rank(size_type idx)const
 {
-    assert(m_v != NULL);
+    assert(m_v != nullptr);
     assert(idx <= m_v->size());
     const uint64_t* p = m_basic_block.data() + ((idx>>8)&0xFFFFFFFFFFFFFFFEULL);// (idx/512)*2
     if (idx&0x3F)  // if (idx%64)!=0

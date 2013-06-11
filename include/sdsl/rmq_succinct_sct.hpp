@@ -78,8 +78,8 @@ class rmq_succinct_sct
          *  \param  v     Pointer to container object.
          */
         template<class t_rac>
-        rmq_succinct_sct(const t_rac* v=NULL) : sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
-            if (v == NULL) {
+        rmq_succinct_sct(const t_rac* v=nullptr) : sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
+            if (v == nullptr) {
                 util::assign(m_sct_bp, bit_vector()); util::assign(m_sct_bp_support, bp_support_type());
             } else {
 #ifdef RMQ_SCT_BUILD_BP_NOT_SUCCINCT
@@ -147,7 +147,7 @@ class rmq_succinct_sct
             return m_sct_bp.size()/2;
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_sct_bp.serialize(out, child, "sct_bp");

@@ -49,7 +49,7 @@ struct _node {
         return *this;
     }
 
-    size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+    size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
         structure_tree_node* st_child = structure_tree::add_child(v, name, util::class_name(*this));
         size_type written_bytes = 0;
         written_bytes += write_member(tree_pos, out);

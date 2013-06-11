@@ -160,7 +160,7 @@ class bit_vector_il
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
@@ -240,7 +240,7 @@ class rank_support_il
 
     public:
 
-        rank_support_il(const bit_vector_type* v=NULL) {
+        rank_support_il(const bit_vector_type* v=nullptr) {
             set_vector(v);
             m_block_shift = bits::hi(t_bs);
             m_block_mask = t_bs - 1;
@@ -261,7 +261,7 @@ class rank_support_il
             return m_v->size();
         }
 
-        void set_vector(const bit_vector_type* v=NULL) {
+        void set_vector(const bit_vector_type* v=nullptr) {
             m_v = v;
         }
 
@@ -274,11 +274,11 @@ class rank_support_il
 
         void swap(rank_support_il&) { }
 
-        void load(std::istream&, const bit_vector_type* v=NULL) {
+        void load(std::istream&, const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             return serialize_empty_object(out, v, name, this);
         }
 };
@@ -397,7 +397,7 @@ class select_support_il
 
     public:
 
-        select_support_il(const bit_vector_type* v=NULL) {
+        select_support_il(const bit_vector_type* v=nullptr) {
             set_vector(v);
             m_block_shift = bits::hi(t_bs);
             m_block_size_U64 = bits::hi(t_bs>>6);
@@ -418,7 +418,7 @@ class select_support_il
             return m_v->size();
         }
 
-        void set_vector(const bit_vector_type* v=NULL) {
+        void set_vector(const bit_vector_type* v=nullptr) {
             m_v = v;
         }
 
@@ -431,11 +431,11 @@ class select_support_il
 
         void swap(select_support_il&) { }
 
-        void load(std::istream&, const bit_vector_type* v=NULL) {
+        void load(std::istream&, const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             return serialize_empty_object(out, v, name, this);
         }
 };

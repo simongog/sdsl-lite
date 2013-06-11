@@ -204,7 +204,7 @@ class sd_vector
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
@@ -245,12 +245,12 @@ class rank_support_sd
 
     public:
 
-        explicit rank_support_sd(const bit_vector_type* v=NULL) {
+        explicit rank_support_sd(const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
         size_type rank(size_type i)const {
-            assert(m_v != NULL);
+            assert(m_v != nullptr);
             assert(i <= m_v->size());
             // split problem in two parts:
             // (1) find  >=
@@ -277,7 +277,7 @@ class rank_support_sd
             return m_v->size();
         }
 
-        void set_vector(const bit_vector_type* v=NULL) {
+        void set_vector(const bit_vector_type* v=nullptr) {
             m_v = v;
         }
 
@@ -290,11 +290,11 @@ class rank_support_sd
 
         void swap(rank_support_sd&) { }
 
-        void load(std::istream&, const bit_vector_type* v=NULL) {
+        void load(std::istream&, const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             return serialize_empty_object(out, v, name, this);
         }
 };
@@ -316,7 +316,7 @@ class select_support_sd
 
     public:
 
-        explicit select_support_sd(const bit_vector_type* v=NULL) {
+        explicit select_support_sd(const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
@@ -335,7 +335,7 @@ class select_support_sd
             return m_v->size();
         }
 
-        void set_vector(const bit_vector_type* v=NULL) {
+        void set_vector(const bit_vector_type* v=nullptr) {
             m_v = v;
         }
 
@@ -348,11 +348,11 @@ class select_support_sd
 
         void swap(select_support_sd&) { }
 
-        void load(std::istream&, const bit_vector_type* v=NULL) {
+        void load(std::istream&, const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             return serialize_empty_object(out, v, name, this);
         }
 };

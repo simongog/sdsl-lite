@@ -148,8 +148,8 @@ class rmq_succinct_sada
 
         //! Constructor
         template<class t_rac>
-        rmq_succinct_sada(const t_rac* v=NULL):ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {
-            if (v == NULL) {
+        rmq_succinct_sada(const t_rac* v=nullptr):ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {
+            if (v == nullptr) {
                 m_ect_bp = bit_vector(0); m_ect_bp_support = bp_support_type();
                 m_ect_bp_rank10 = rank_support10_type(); m_ect_bp_select10 = select_support10_type();
             } else {
@@ -213,7 +213,7 @@ class rmq_succinct_sada
             return m_ect_bp.size()/4;
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_ect_bp.serialize(out, child, "ect_bp");

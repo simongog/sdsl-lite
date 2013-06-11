@@ -66,9 +66,9 @@ class rmq_support_sparse_table
         void copy(const rmq_support_sparse_table& rm) {
             m_v = rm.m_v;
             m_k = rm.m_k;
-            if (m_table != NULL) {
+            if (m_table != nullptr) {
                 delete [] m_table;
-                m_table = NULL;
+                m_table = nullptr;
             }
             if (m_k > 0) {
                 m_table = new int_vector<>[m_k];
@@ -81,15 +81,15 @@ class rmq_support_sparse_table
         typedef typename t_rac::size_type size_type;
         typedef typename t_rac::size_type value_type;
 
-        rmq_support_sparse_table(const t_rac* v=NULL):m_v(v), m_k(0), m_table(NULL) {
-            if (m_v == NULL)
+        rmq_support_sparse_table(const t_rac* v=nullptr):m_v(v), m_k(0), m_table(nullptr) {
+            if (m_v == nullptr)
                 return;
             const size_type n = m_v->size();
             if (n < 2)  // for n<2 the queries could be answerd without any table
                 return;
             size_type k=0;
             while (2*(1ULL<<k) < n) ++k;  // calculate maximal
-            if (!(m_table == NULL))
+            if (!(m_table == nullptr))
                 delete [] m_table;
             m_table = new int_vector<>[k];
             m_k = k;
@@ -116,7 +116,7 @@ class rmq_support_sparse_table
 
 
         ~rmq_support_sparse_table() {
-            if (m_table != NULL)
+            if (m_table != nullptr)
                 delete [] m_table;
         }
 
@@ -159,18 +159,18 @@ class rmq_support_sparse_table
         }
 
         size_type size()const {
-            if (m_v == NULL)
+            if (m_v == nullptr)
                 return 0;
             else
                 return m_v->size();
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             size_type written_bytes = 0;
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             written_bytes += write_member(m_k, out);
             if (m_k > 0) {
-                assert(m_table != NULL);
+                assert(m_table != nullptr);
                 for (size_type i=0; i < m_k; ++i)
                     written_bytes += m_table[i].serialize(out);
             }
@@ -182,7 +182,7 @@ class rmq_support_sparse_table
             set_vector(v);
             read_member(m_k, in);
             if (m_k >0) {
-                if (m_table != NULL)
+                if (m_table != nullptr)
                     delete [] m_table;
                 m_table = new int_vector<>[m_k];
                 for (size_type i=0; i < m_k; ++i)

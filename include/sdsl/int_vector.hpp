@@ -452,7 +452,7 @@ class int_vector
          * \return The number of bytes written to out.
          * \sa load
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name = "", bool write_fixed_as_variable=false) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name = "", bool write_fixed_as_variable=false) const;
 
         //! Load the int_vector for a stream.
         void load(std::istream& in);
@@ -715,7 +715,7 @@ class int_vector_iterator_base: public std::iterator<std::random_access_iterator
 
         void init(const t_int_vector* v, size_type idx) {
             m_offset = idx&0x3F;
-            if (v==NULL)
+            if (v==nullptr)
                 m_len = 0;
             else
                 m_len = v->m_width;
@@ -724,7 +724,7 @@ class int_vector_iterator_base: public std::iterator<std::random_access_iterator
         int_vector_iterator_base(uint8_t offset, uint8_t len):m_offset(offset),m_len(len)
         {}
 
-        int_vector_iterator_base(const t_int_vector* v=NULL, size_type idx=0) { /*:m_offset(idx&0x3F), m_len(v->m_width)*/
+        int_vector_iterator_base(const t_int_vector* v=nullptr, size_type idx=0) { /*:m_offset(idx&0x3F), m_len(v->m_width)*/
             init(v, idx);
         }
 };
@@ -748,12 +748,12 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
 
     public:
 
-        int_vector_iterator(t_int_vector* v=NULL, size_type idx=0) {
+        int_vector_iterator(t_int_vector* v=nullptr, size_type idx=0) {
             this->init(v, idx);
-            if (v!=NULL)
+            if (v!=nullptr)
                 m_word = v->m_data + (idx>>6);
             else
-                m_word = NULL;
+                m_word = nullptr;
         }
 
 
@@ -906,12 +906,12 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
         const typename t_int_vector::value_type* m_word;
     public:
 
-        int_vector_const_iterator(const t_int_vector* v=NULL, size_type idx=0) {
+        int_vector_const_iterator(const t_int_vector* v=nullptr, size_type idx=0) {
             this->init(v, idx);
-            if (v!=NULL)
+            if (v!=nullptr)
                 m_word = v->m_data + (idx>>6);
             else
-                m_word = NULL;
+                m_word = nullptr;
         }
 
         int_vector_const_iterator(const int_vector_const_iterator& it) : m_word(it.m_word) {
@@ -1068,7 +1068,7 @@ inline std::ostream& operator<<(std::ostream& os, const int_vector<t_width>& v)
 // ==== int_vector implementation  ====
 
 template<uint8_t t_width>
-inline int_vector<t_width>::int_vector(size_type size, value_type default_value, uint8_t intWidth):m_size(0), m_data(NULL), m_width(intWidth)
+inline int_vector<t_width>::int_vector(size_type size, value_type default_value, uint8_t intWidth):m_size(0), m_data(nullptr), m_width(intWidth)
 {
     mm::add(this);
     int_vector_trait<t_width>::width(m_width, intWidth);
@@ -1077,12 +1077,12 @@ inline int_vector<t_width>::int_vector(size_type size, value_type default_value,
 }
 
 template<uint8_t t_width>
-inline int_vector<t_width>::int_vector(const int_vector& v):m_size(0), m_data(NULL), m_width(v.m_width)
+inline int_vector<t_width>::int_vector(const int_vector& v):m_size(0), m_data(nullptr), m_width(v.m_width)
 {
     mm::add(this);
     bit_resize(v.bit_size());
     if (v.capacity() > 0) {
-        if (memcpy(m_data, v.data() ,v.capacity()/8)==NULL) {
+        if (memcpy(m_data, v.data() ,v.capacity()/8)==nullptr) {
             throw std::bad_alloc();
         }
     }
@@ -1095,7 +1095,7 @@ int_vector<t_width>& int_vector<t_width>::operator=(const int_vector& v)
     if (this != &v) {// if v is not the same object
         bit_resize(v.bit_size());
         if (v.bit_size()>0) {
-            if (memcpy(m_data, v.data() ,v.capacity()/8)==NULL) {
+            if (memcpy(m_data, v.data() ,v.capacity()/8)==nullptr) {
                 throw std::bad_alloc();
             }
         }
@@ -1109,7 +1109,7 @@ template<uint8_t t_width>
 int_vector<t_width>::~int_vector()
 {
     mm::remove(this);
-    if (m_data != NULL) {
+    if (m_data != nullptr) {
         free(m_data); //fixed delete
     }
 }
@@ -1385,7 +1385,7 @@ class char_array_serialize_wrapper
         size_type m_n;  // number of char
         const unsigned char* m_cp;
     public:
-        inline char_array_serialize_wrapper(const unsigned char* c=NULL, size_type n=0):m_n(n), m_cp(c) {}
+        inline char_array_serialize_wrapper(const unsigned char* c=nullptr, size_type n=0):m_n(n), m_cp(c) {}
         size_type serialize(std::ostream& out)const;
 };
 
@@ -1443,7 +1443,7 @@ class int_vector_file_buffer
          * \param f_file     File which contains the int_vector.
          * \param len             Length of the buffer in elements.
          */
-        int_vector_file_buffer(std::string f_file="", size_type len=1000000, uint8_t int_width=0):m_in(), m_buf(NULL), m_off(0), m_read_values(0),
+        int_vector_file_buffer(std::string f_file="", size_type len=1000000, uint8_t int_width=0):m_in(), m_buf(nullptr), m_off(0), m_read_values(0),
             m_len(0), m_int_vector_size(0), m_read_values_sum(0),
             m_width(t_width), m_file(),
             m_load_from_plain(false), int_vector_size(m_int_vector_size),
@@ -1461,7 +1461,7 @@ class int_vector_file_buffer
                 load_size_and_width();
                 m_buf = new uint64_t[(m_len*m_width+63)/64 + 2];
             } else {
-                m_buf = NULL;
+                m_buf = nullptr;
                 std::cerr<<"WARNING: int_vector_file_buffer: could not open `"<<m_file<<std::endl;
             }
         }
@@ -1482,7 +1482,7 @@ class int_vector_file_buffer
             if (m_in.is_open()) {
                 m_buf = new uint64_t[(m_len*m_width+63)/64 + 2];
             } else {
-                m_buf = NULL;
+                m_buf = nullptr;
                 return false;
             }
             return true;
@@ -1502,7 +1502,7 @@ class int_vector_file_buffer
                 m_int_vector_size = util::file_size(m_file);
             }
             if (new_buf_len > 0 and new_buf_len != m_len) {
-                if (m_buf != NULL)
+                if (m_buf != nullptr)
                     delete [] m_buf;
                 m_len = new_buf_len;
                 m_buf = new uint64_t[(m_len*m_width+63)/64 + 2];
@@ -1511,7 +1511,7 @@ class int_vector_file_buffer
         }
 
         bool valid() {
-            return m_buf!=NULL;
+            return m_buf!=nullptr;
         }
 
         size_type load_next_block() {

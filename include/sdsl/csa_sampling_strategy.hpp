@@ -75,7 +75,7 @@ class _sa_order_sampling : public int_vector<t_width>
          * \par Time complexity
          *      Linear in the size of the suffix array.
          */
-        _sa_order_sampling(int_vector_file_buffer<>& sa_buf, SDSL_UNUSED const t_csa* csa=NULL) {
+        _sa_order_sampling(int_vector_file_buffer<>& sa_buf, SDSL_UNUSED const t_csa* csa=nullptr) {
             size_type n = sa_buf.int_vector_size;
             this->width(bits::hi(n)+1);
             this->resize((n+sample_dens-1)/sample_dens);
@@ -143,7 +143,7 @@ class _text_order_sampling : public int_vector<t_width>
          * \par Time complexity
          *      Linear in the size of the suffix array.
          */
-        _text_order_sampling(int_vector_file_buffer<>& sa_buf, SDSL_UNUSED const t_csa* csa=NULL) {
+        _text_order_sampling(int_vector_file_buffer<>& sa_buf, SDSL_UNUSED const t_csa* csa=nullptr) {
             size_type n = sa_buf.int_vector_size;
             bit_vector marked(n, 0);                // temporary bitvector for the marked text positions
             this->width(bits::hi(n)+1);

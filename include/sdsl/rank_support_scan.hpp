@@ -43,7 +43,7 @@ class rank_support_scan : public rank_support
     public:
         typedef bit_vector bit_vector_type;
     public:
-        explicit rank_support_scan(const bit_vector* v = NULL) {
+        explicit rank_support_scan(const bit_vector* v = nullptr) {
             set_vector(v);
         }
         rank_support_scan(const rank_support_scan& rs) {
@@ -56,13 +56,13 @@ class rank_support_scan : public rank_support
         const size_type size()const {
             return m_v->size();
         };
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             return serialize_empty_object(out, v, name, this);
         }
-        void load(std::istream&, const int_vector<1>* v=NULL) {
+        void load(std::istream&, const int_vector<1>* v=nullptr) {
             set_vector(v);
         }
-        void set_vector(const bit_vector* v=NULL) {
+        void set_vector(const bit_vector* v=nullptr) {
             m_v=v;
         }
 
@@ -79,7 +79,7 @@ class rank_support_scan : public rank_support
 template<uint8_t t_b, uint8_t t_pat_len>
 inline const typename rank_support_scan<t_b, t_pat_len>::size_type rank_support_scan<t_b, t_pat_len>::rank(size_type idx)const
 {
-    assert(m_v != NULL);
+    assert(m_v != nullptr);
     assert(idx <= m_v->size());
     const uint64_t* p   = m_v->data();
     size_type       i   = 0;

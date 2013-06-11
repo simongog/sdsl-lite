@@ -740,7 +740,7 @@ void construct_lcp_bwt_based(cache_config& config)
 
     // create WT
     mm::log("lcp-bwt-create-wt-huff-begin");
-    wt_huff<bit_vector, rank_support_v<>, select_support_scan<1>, select_support_scan<0> > wt_bwt;
+    wt_huff<bit_vector, rank_support_v<>, select_support_scan<1>, select_support_scan<0>> wt_bwt;
     construct(wt_bwt, cache_file_name(constants::KEY_BWT, config));
     uint64_t n = wt_bwt.size();
     mm::log("lcp-bwt-create-wt-huff-end");
@@ -961,7 +961,7 @@ void construct_lcp_bwt_based2(cache_config& config)
 // (1) Calculate LCP-Positions-Array: For each lcp_value (in ascending order) all its occurrences (in any order) in the lcp array
     {
         mm::log("lcp-bwt2-create-wt-huff-begin");
-        wt_huff<bit_vector, rank_support_v<>, select_support_scan<1>, select_support_scan<0> > wt_bwt;
+        wt_huff<bit_vector, rank_support_v<>, select_support_scan<1>, select_support_scan<0>> wt_bwt;
         construct(wt_bwt, cache_file_name(constants::KEY_BWT, config));
         n = wt_bwt.size();
         mm::log("lcp-bwt2-create-wt-huff-begin");

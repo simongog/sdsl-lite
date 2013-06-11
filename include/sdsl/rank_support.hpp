@@ -44,7 +44,7 @@ class rank_support
         //! Constructor
         /*! \param v The supported bit_vector.
          */
-        rank_support(const bit_vector* v = NULL);
+        rank_support(const bit_vector* v = nullptr);
         //! Copy constructor
         rank_support(const rank_support& rs);
         //! Destructor
@@ -67,13 +67,13 @@ class rank_support
         /*! \param in In-Stream to load the rank_support data from.
             \param v The supported bit_vector.
          */
-        virtual void load(std::istream& in, const bit_vector* v=NULL) = 0;
+        virtual void load(std::istream& in, const bit_vector* v=nullptr) = 0;
         //! Sets the supported bit_vector to the given pointer.
         /*! \param v The new bit_vector to support.
          *  \note Method init has to be called before the next call of rank.
          *  \sa init, rank
          */
-        virtual void set_vector(const bit_vector* v=NULL) = 0;
+        virtual void set_vector(const bit_vector* v=nullptr) = 0;
 };
 
 inline rank_support::rank_support(const bit_vector* v)

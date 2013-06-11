@@ -219,7 +219,7 @@ class csa_wt
         /*! \param out Output stream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
 
         //! Load from a stream.
         /*! \param in Input stream to load the data structure from.

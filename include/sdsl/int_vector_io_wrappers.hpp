@@ -37,7 +37,7 @@ class int_vector_serialize_vbyte_wrapper
     public:
         int_vector_serialize_vbyte_wrapper(const int_vector_type& vec):m_vec(vec) {}
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             // (1) write size and int_width
@@ -114,7 +114,7 @@ class int_vector_serialize_vlen_wrapper
     public:
         int_vector_serialize_vlen_wrapper(const int_vector_type& vec):m_vec(vec) {}
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             int_vector_type enc_vec;
@@ -159,7 +159,7 @@ class int_vector_serialize_wrapper
     public:
         int_vector_serialize_wrapper(const int_vector_type& vec):m_vec(vec) {}
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             return m_vec.serialize(out, v, name);
         }
 };

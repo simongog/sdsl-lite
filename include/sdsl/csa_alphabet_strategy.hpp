@@ -144,7 +144,7 @@ class byte_alphabet
 
         void swap(byte_alphabet&);
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
 
         void load(std::istream& in);
 };
@@ -295,7 +295,7 @@ class succinct_byte_alphabet
         }
 
         //! Serialize method
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_char.serialize(out, child, "m_char");
@@ -488,7 +488,7 @@ class int_alphabet
         }
 
         //! Serialize method
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_char.serialize(out, child, "m_char");

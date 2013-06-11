@@ -157,7 +157,7 @@ class enc_vector
         /*! \param out Out stream to write the data structure.
             \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
 
         //! Load the enc_vector from a stream.
         void load(std::istream& in);

@@ -55,15 +55,15 @@ class rank_support_v5 : public rank_support
     private:
         int_vector<64> m_basic_block; // basic block for interleaved storage of superblockrank and blockrank
     public:
-        explicit rank_support_v5(const bit_vector* v = NULL);
+        explicit rank_support_v5(const bit_vector* v = nullptr);
         rank_support_v5(const rank_support_v5& rs);
         ~rank_support_v5();
         const size_type rank(size_type idx) const;
         const size_type operator()(size_type idx)const;
         const size_type size()const;
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
-        void load(std::istream& in, const bit_vector* v=NULL);
-        void set_vector(const bit_vector* v=NULL);
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
+        void load(std::istream& in, const bit_vector* v=nullptr);
+        void set_vector(const bit_vector* v=nullptr);
 
         //! Assign Operator
         rank_support_v5& operator=(const rank_support_v5& rs);
@@ -82,7 +82,7 @@ template<uint8_t t_b, uint8_t t_pat_len>
 rank_support_v5<t_b, t_pat_len>::rank_support_v5(const bit_vector* v)
 {
     set_vector(v);
-    if (v == NULL) {
+    if (v == nullptr) {
         return;
     } else if (v->empty()) {
         m_basic_block = int_vector<64>(2,0);   // resize structure for basic_blocks
@@ -129,7 +129,7 @@ rank_support_v5<t_b, t_pat_len>::rank_support_v5(const bit_vector* v)
 template<uint8_t t_b, uint8_t t_pat_len>
 inline const typename rank_support_v5<t_b, t_pat_len>::size_type rank_support_v5<t_b, t_pat_len>::rank(size_type idx)const
 {
-    assert(m_v != NULL);
+    assert(m_v != nullptr);
     assert(idx <= m_v->size());
     const uint64_t* p = m_basic_block.data() + ((idx>>10)&0xFFFFFFFFFFFFFFFEULL);// (idx/2048)*2
     size_type result = *p + ((*(p+1)>>(60-12*((idx&0x7FF)/(64*6))))&0x7FFULL)+     // ( prefix sum of the 6x64bit blocks | (idx%2048)/(64*6)  )
@@ -186,7 +186,7 @@ template<uint8_t t_b, uint8_t t_pat_len>
 void rank_support_v5<t_b, t_pat_len>::load(std::istream& in, const bit_vector* v)
 {
     set_vector(v);
-    assert(m_v != NULL); // supported bit vector should be known
+    assert(m_v != nullptr); // supported bit vector should be known
     m_basic_block.load(in);
 }
 

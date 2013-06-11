@@ -84,7 +84,7 @@ class _lcp_support_tree2
         /*! \param config Cache configuration.
 
          */
-        _lcp_support_tree2(cache_config& config, const cst_type* cst = NULL) {
+        _lcp_support_tree2(cache_config& config, const cst_type* cst = nullptr) {
             m_cst = cst;
 
             int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
@@ -168,7 +168,7 @@ start:
         }
 
         //! Serialize to a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_small_lcp.serialize(out, child, "small_lcp");
@@ -178,7 +178,7 @@ start:
         }
 
         //! Load from a stream.
-        void load(std::istream& in, const t_cst* cst=NULL) {
+        void load(std::istream& in, const t_cst* cst=nullptr) {
             m_small_lcp.load(in);
             m_big_lcp.load(in);
             m_cst = cst;

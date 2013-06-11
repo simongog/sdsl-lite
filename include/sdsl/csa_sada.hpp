@@ -112,12 +112,12 @@ class csa_sada
             if (enc_vector_type::sample_dens < linear_decode_limit) {
                 m_psi_buf = new uint64_t[enc_vector_type::sample_dens+1];
             } else {
-                m_psi_buf = NULL;
+                m_psi_buf = nullptr;
             }
         }
 
         void delete_buffer() {
-            if (m_psi_buf != NULL) {
+            if (m_psi_buf != nullptr) {
                 delete [] m_psi_buf;
             }
         }
@@ -238,7 +238,7 @@ class csa_sada
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
 
         //! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
@@ -288,7 +288,7 @@ class csa_sada
 // TODO: don't use get_inter_sampled_values if t_dens is really
 //       large
                 lower_b = lower_sb*sd;
-                if (m_psi_buf == NULL) {
+                if (m_psi_buf == nullptr) {
                     upper_b = std::min(upper_sb*sd, C[cc+1]);
                     goto finish;
                 }

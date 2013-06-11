@@ -78,7 +78,7 @@ class _lcp_support_tree
          *  \param config  Cache configuration.
          *  \param cst     A pointer to the CST.
         */
-        _lcp_support_tree(cache_config& config, const t_cst* cst = NULL) {
+        _lcp_support_tree(cache_config& config, const t_cst* cst = nullptr) {
             m_cst = cst;
             std::string fc_lcp_key = "fc_lcp_" + util::to_string(util::id());
             std::string tmp_file = cache_file_name(fc_lcp_key, config);
@@ -146,7 +146,7 @@ class _lcp_support_tree
         }
 
         //! Serialize to a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             size_type written_bytes = 0;
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             written_bytes += m_lcp.serialize(out, child, "lcp");
@@ -155,7 +155,7 @@ class _lcp_support_tree
         }
 
         //! Load from a stream.
-        void load(std::istream& in, const t_cst* cst=NULL) {
+        void load(std::istream& in, const t_cst* cst=nullptr) {
             m_lcp.load(in); // works for lcp_byte and lcp_bitcompressed
             m_cst = cst;
         }

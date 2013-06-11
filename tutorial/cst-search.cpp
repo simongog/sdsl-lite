@@ -18,7 +18,7 @@ void execute(const char* input, uint8_t num_bytes, t_pat& pat, const char* forma
     cout << "---- backward search step by step ----" << endl;
     {
         uint64_t lb=0, rb=cst.size()-1;
-        for (typename t_pat::iterator it=pat.end(); it != pat.begin() and lb <= rb;) {
+        for (auto it=pat.end(); it != pat.begin() and lb <= rb;) {
             --it;
             if (backward_search(cst.csa, lb, rb, (typename t_cst::char_type)*it, lb, rb) > 0) {
                 cout << "[" << lb << "," << rb << "]" << endl;
@@ -42,7 +42,7 @@ void execute(const char* input, uint8_t num_bytes, t_pat& pat, const char* forma
         typedef int_vector<> vec_t;
         vec_t occ;
         cout << "locate(cst.csa, \"" << pat << "\")=" << locate(cst.csa, pat.begin(), pat.end(), occ) << endl;
-        for (vec_t::iterator it=occ.begin(); it != occ.end(); ++it) {
+        for (auto it=occ.begin(); it != occ.end(); ++it) {
             cout << *it << " ";
         }
         cout << endl;
@@ -55,7 +55,7 @@ void execute(const char* input, uint8_t num_bytes, t_pat& pat, const char* forma
     cout << "---- forward search step by step  ----" << endl;
     {
         node_t v = cst.root();
-        typename t_pat::iterator it = pat.begin();
+        auto it = pat.begin();
         for (uint64_t char_pos=0; it != pat.end(); ++it) {
             if (forward_search(cst, v, it-pat.begin(), *it, char_pos) > 0) {
                 cout << it-pat.begin() << "-[" << cst.lb(v) << "," << cst.rb(v) << "]" << endl;
