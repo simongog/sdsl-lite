@@ -123,11 +123,12 @@ class bp_support_g
         }
 
     public:
-        const rank_type&   bp_rank;
-        const select_type& bp_select;
+        const rank_type&   bp_rank   = m_rank_bp;
+        const select_type& bp_select = m_select_bp;
 
         //! Constructor
-        explicit bp_support_g(const bit_vector* bp = nullptr, uint32_t used_block_size = 840):m_bp(bp), m_block_size(used_block_size), m_size(bp==nullptr?0:bp->size()), m_blocks((m_size+used_block_size-1)/used_block_size),bp_rank(m_rank_bp), bp_select(m_select_bp) {
+        explicit
+        bp_support_g(const bit_vector* bp = nullptr, uint32_t used_block_size = 840) : m_bp(bp), m_block_size(used_block_size), m_size(bp==nullptr?0:bp->size()), m_blocks((m_size+used_block_size-1)/used_block_size) {
             if (m_block_size<=2) {
                 throw std::logic_error(util::demangle(typeid(this).name())+": block_size should be greater than 2!");
             }
@@ -155,7 +156,7 @@ class bp_support_g
         }
 
         //! Copy constructor
-        bp_support_g(const bp_support_g& bp_support): bp_rank(m_rank_bp), bp_select(m_select_bp) {
+        bp_support_g(const bp_support_g& bp_support) {
             copy(bp_support);
         }
 

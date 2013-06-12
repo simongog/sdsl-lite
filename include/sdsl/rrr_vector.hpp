@@ -89,8 +89,8 @@ class rrr_vector
 
         enum { block_size = t_bs };
     private:
-        size_type    m_size;   // Size of the original bit_vector.
-        uint16_t     m_k;      // Store rank samples and pointers each m_k-th block.
+        size_type    m_size = 0;  // Size of the original bit_vector.
+        uint16_t     m_k    = 32; // Store rank samples and pointers each m_k-th block.
         rac_type     m_bt;     // Vector for the block types (bt). bt equals the
         // number of set bits in the block.
         bit_vector   m_btnr;   // Compressed block type numbers.
@@ -111,16 +111,16 @@ class rrr_vector
         }
 
     public:
-        const rac_type& bt;
-        const bit_vector& btnr;
+        const rac_type& bt     = m_bt;
+        const bit_vector& btnr = m_btnr;
 
         //! Default constructor
         /*! \param k Store rank samples and pointers each k-th blocks.
          */
-        rrr_vector(uint16_t k=32):m_size(0), m_k(k), bt(m_bt), btnr(m_btnr) {};
+        rrr_vector(uint16_t k=32): m_k(k) {};
 
         //! Copy constructor
-        rrr_vector(const rrr_vector& rrr):bt(m_bt), btnr(m_btnr) {
+        rrr_vector(const rrr_vector& rrr) {
             copy(rrr);
         }
 
@@ -129,7 +129,7 @@ class rrr_vector
         *  \param bv  Uncompressed bitvector.
         *  \param k Store rank samples and pointers each k-th blocks.
         */
-        rrr_vector(const bit_vector& bv, uint16_t k=32): m_k(k), bt(m_bt), btnr(m_btnr) {
+        rrr_vector(const bit_vector& bv, uint16_t k=32): m_k(k) {
             m_size = bv.size();
             int_vector<> bt_array;
             bt_array.width(bits::hi(t_bs)+1);

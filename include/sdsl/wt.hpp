@@ -261,8 +261,8 @@ class wt
         enum { lex_ordered=1 };
 
     private:
-        size_type       m_size;
-        size_type       m_sigma;        //<- \f$ |\Sigma| \f$
+        size_type       m_size  = 0;
+        size_type       m_sigma = 0;    //<- \f$ |\Sigma| \f$
         BitVector       m_tree;         // bit vector to store the wavelet tree
         RankSupport     m_tree_rank;    // rank support for the wavelet tree bit vector
         SelectSupport   m_tree_select1; // select support for the wavelet tree bit vector
@@ -303,13 +303,13 @@ class wt
         }
 
     public:
-        const size_type& sigma;
+        const size_type& sigma = m_sigma;
 
         // Default constructor
-        wt():m_size(0),m_sigma(0), sigma(m_sigma) {};
+        wt() {};
 
         //! Construct the wavelet tree from a random access container
-        wt(int_vector_file_buffer<8>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
+        wt(int_vector_file_buffer<8>& rac, size_type size) {
             m_size = size;
             init_char_node_map();
             typedef int_vector_file_buffer<8> tIVFB;
@@ -451,7 +451,7 @@ class wt
         }
 
         //! Copy constructor
-        wt(const wt& wt):sigma(m_sigma) {
+        wt(const wt& wt) {
             copy(wt);
         }
 

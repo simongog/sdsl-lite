@@ -74,7 +74,7 @@ class wt_rlmn
         typedef wt_tag                  index_category;
         typedef byte_alphabet_tag       alphabet_category;
     private:
-        size_type            m_size;      // size of the original input sequence
+        size_type            m_size  = 0; // size of the original input sequence
         bit_vector_type      m_bl;        // bit vector which indicates the starts of runs in
         // the BWT (or last column), i.e. _b_ _l_ast
         bit_vector_type      m_bf;        // bit vector which indicates the starts of runs in
@@ -108,17 +108,17 @@ class wt_rlmn
         }
 
     public:
-        const size_type& sigma;
+        const size_type& sigma = m_wt.sigma;
 
         // Default constructor
-        wt_rlmn():m_size(0), sigma(m_wt.sigma) {};
+        wt_rlmn() {};
 
         //! Construct the wavelet tree from a file_buffer
         /*! \param text_buf  A int_vector_file_buffer to the original text.
          *  \param size      The length of the prefix of the text, for which the wavelet tree should be build.
          */
         // TODO: new signature: sdsl::file, size_type size
-        wt_rlmn(int_vector_file_buffer<8>& text_buf, size_type size):m_size(size), sigma(m_wt.sigma) {
+        wt_rlmn(int_vector_file_buffer<8>& text_buf, size_type size):m_size(size) {
             std::string temp_file = text_buf.file_name + "_wt_rlmn_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
             osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
@@ -195,7 +195,7 @@ class wt_rlmn
         }
 
         //! Copy constructor
-        wt_rlmn(const wt_rlmn& wt):sigma(wt.sigma) {
+        wt_rlmn(const wt_rlmn& wt) {
             copy(wt);
         }
 

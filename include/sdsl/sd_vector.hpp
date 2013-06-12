@@ -82,8 +82,8 @@ class sd_vector
         typedef t_hi_bit_vector hi_bit_vector_type;
     private:
         // we need this variables to represent the m ones of the original bit vector of size n
-        size_type m_size;  // length of the original bit vector
-        uint8_t   m_wl;    // log n - log m, where n is the length of the original bit vector
+        size_type m_size = 0;  // length of the original bit vector
+        uint8_t   m_wl   = 0;  // log n - log m, where n is the length of the original bit vector
         // and m is the number of ones in the bit vector, wl is the abbreviation
         // for ,,width (of) low (part)''
 
@@ -104,18 +104,14 @@ class sd_vector
         }
 
     public:
-        const hi_bit_vector_type& high;
-        const int_vector<>& low;
-        const select_1_support_type&     high_1_select;
-        const select_0_support_type&     high_0_select;
+        const hi_bit_vector_type&    high          = m_high;
+        const int_vector<>&          low           = m_low;
+        const select_1_support_type& high_1_select = m_high_1_select;
+        const select_0_support_type& high_0_select = m_high_0_select;
 
-        sd_vector():m_size(0), m_wl(0),
-            high(m_high), low(m_low),
-            high_1_select(m_high_1_select), high_0_select(m_high_0_select) {
-        }
+        sd_vector() { }
 
-        sd_vector(const bit_vector& bv):high(m_high),low(m_low),
-            high_1_select(m_high_1_select), high_0_select(m_high_0_select) {
+        sd_vector(const bit_vector& bv) {
             m_size = bv.size();
             size_type m = util::cnt_one_bits(bv);
             uint8_t logm = bits::hi(m)+1;

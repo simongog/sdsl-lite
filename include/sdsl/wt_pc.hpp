@@ -54,7 +54,8 @@ class wt_pc
         typedef t_select_zero                    select_0_type;
         typedef wt_tag                           index_category;
         typedef byte_alphabet_tag                alphabet_category;
-        typedef typename t_shape::template type<wt_pc>::t shape;
+        typedef typename
+        t_shape::template type<wt_pc>::t shape;
         enum { lex_ordered=shape::lex_ordered };
 
     private:
@@ -64,14 +65,14 @@ class wt_pc
         mutable size_type  m_last_access_rl;
 #endif
 
-        size_type        m_size;         // original text size
-        size_type        m_sigma;        // alphabet size
+        size_type        m_size  = 0;    // original text size
+        size_type        m_sigma = 0;    // alphabet size
         bit_vector_type  m_tree;         // bit vector to store the wavelet tree
         rank_1_type      m_tree_rank;    // rank support for the wavelet tree bit vector
         select_1_type    m_tree_select1; // select support for the wavelet tree bit vector
         select_0_type    m_tree_select0;
 
-        _node<size_type> m_nodes[511];     // nodes for the Huffman tree structure
+        _node<size_type> m_nodes[511];    // nodes for the Huffman tree structure
         uint16_t         m_c_to_leaf[256];// map symbol c to a leaf in the tree structure
         // if m_c_to_leaf[c] == _undef_node the char does
         // not exists in the text
@@ -241,11 +242,11 @@ class wt_pc
 
 
     public:
-        const size_type& sigma;
-        const bit_vector_type& tree;
+        const size_type&       sigma = m_sigma;
+        const bit_vector_type& tree  = m_tree;
 
         // Default constructor
-        wt_pc():m_size(0),m_sigma(0), sigma(m_sigma),tree(m_tree) {};
+        wt_pc() {};
 
         //! Construct the wavelet tree from a file_buffer
         /*! \param input_buf    File buffer of the input.
@@ -253,7 +254,7 @@ class wt_pc
          *    \par Time complexity
          *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        wt_pc(int_vector_file_buffer<8>& input_buf, size_type size):m_size(size), m_sigma(0), sigma(m_sigma), tree(m_tree) {
+        wt_pc(int_vector_file_buffer<8>& input_buf, size_type size):m_size(size) {
             if (0 == m_size)
                 return;
             // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
@@ -310,7 +311,7 @@ class wt_pc
 
 
         //! Copy constructor
-        wt_pc(const wt_pc& wt):sigma(m_sigma), tree(m_tree) {
+        wt_pc(const wt_pc& wt) {
             copy(wt);
         }
 
