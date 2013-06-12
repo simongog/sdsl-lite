@@ -97,18 +97,17 @@ class _lcp_support_sada
             m_select_support.set_vector(&m_data);
         }
     public:
-        const t_csa*& csa;
+        const t_csa*& csa = m_csa;
         //! Default Constructor
-        _lcp_support_sada(): csa(m_csa) {}
-        //! Default Destructor
-        ~_lcp_support_sada() {}
+        _lcp_support_sada() {}
+
         //! Copy constructor
-        _lcp_support_sada(const _lcp_support_sada& lcp_c):csa(m_csa) {
+        _lcp_support_sada(const _lcp_support_sada& lcp_c) {
             copy(lcp_c);
         }
 
         //! Constructor
-        _lcp_support_sada(cache_config& config, const t_csa* f_csa):csa(m_csa) {
+        _lcp_support_sada(cache_config& config, const t_csa* f_csa) {
             typedef typename t_csa::size_type size_type;
             set_csa(f_csa);
             int_vector<> lcp;

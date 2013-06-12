@@ -308,23 +308,21 @@ class cst_sct3
         }
 
     public:
-        const csa_type&             csa;       //!< Underlying CSA
-        const lcp_type&             lcp;       //!< Underlying LCP array
-        const bit_vector&           bp;        //!< Underlying BP of the SCT
-        const bp_support_type&      bp_support;//!< BPS for BP
+        const csa_type&             csa              = m_csa;
+        const lcp_type&             lcp              = m_lcp;
+        const bit_vector&           bp               = m_bp;
+        const bp_support_type&      bp_support       = m_bp_support;
 
-        const bit_vector&           first_child_bv;
-        const fc_rank_support_type& first_child_rank;
+        const bit_vector&           first_child_bv   = m_first_child;
+        const fc_rank_support_type& first_child_rank = m_first_child_rank;
 
         /*! \defgroup cst_sct3_constructors Constructors of cst_sct3 */
         /* @{ */
 
-        //! Default Constructor
-        cst_sct3(): csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support),
-            first_child_bv(m_first_child),
-            first_child_rank(m_first_child_rank) {}
+        //! Default constructor
+        cst_sct3() {}
 
-        //! Construct CST from file_map
+        //! Construct CST from cache config
         cst_sct3(cache_config& cache, bool build_only_bps=false);
 
         //! Copy constructor
@@ -333,10 +331,7 @@ class cst_sct3
          *  \par Time complexity
          *       \f$ \Order{n} \f$, where \f$n=\f$cst_sct3.size()
          */
-        cst_sct3(const cst_sct3& cst): csa(m_csa),lcp(m_lcp),bp(m_bp),
-            bp_support(m_bp_support),
-            first_child_bv(m_first_child),
-            first_child_rank(m_first_child_rank) {
+        cst_sct3(const cst_sct3& cst) {
             copy(cst);
         }
 
@@ -1069,7 +1064,7 @@ class cst_sct3
 
 
 template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
-cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::cst_sct3(cache_config& config, bool build_only_bps):csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support), first_child_bv(m_first_child), first_child_rank(m_first_child_rank)
+cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::cst_sct3(cache_config& config, bool build_only_bps)
 {
     mm::log("bps-sct-begin");
     int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));

@@ -74,12 +74,12 @@ template<uint32_t t_sml_blk = 256,
 class bp_support_sada
 {
     public:
-        typedef bit_vector::size_type         size_type;
+        typedef bit_vector::size_type       size_type;
         typedef bit_vector::difference_type difference_type;
         typedef int_vector<>                sml_block_array_type;
         typedef int_vector<>                med_block_array_type;
         typedef t_rank                      rank_type;
-        typedef t_select                      select_type;
+        typedef t_select                    select_type;
     private:
         const bit_vector* m_bp;        // the supported balanced parentheses sequence as bit_vector
         rank_type         m_bp_rank;   // RS for the BP sequence => see excess() and rank()
@@ -334,13 +334,12 @@ class bp_support_sada
         }
 
     public:
-        const rank_type&            bp_rank;           //!< RS for the underlying BP sequence.
-        const select_type&          bp_select;         //!< SS for the underlying BP sequence.
-        const sml_block_array_type& sml_block_min_max; //!< Small blocks array. Rel. min/max for the small blocks.
-        const med_block_array_type& med_block_min_max; //!< Array containing the min max tree of the medium blocks.
+        const rank_type&            bp_rank           = m_bp_rank;           //!< RS for the underlying BP sequence.
+        const select_type&          bp_select         = m_bp_select;         //!< SS for the underlying BP sequence.
+        const sml_block_array_type& sml_block_min_max = m_sml_block_min_max; //!< Small blocks array. Rel. min/max for the small blocks.
+        const med_block_array_type& med_block_min_max = m_med_block_min_max; //!< Array containing the min max tree of the medium blocks.
 
-        bp_support_sada():m_bp(nullptr), m_size(0), m_sml_blocks(0), m_med_blocks(0), m_med_inner_blocks(0),
-            bp_rank(m_bp_rank), bp_select(m_bp_select), sml_block_min_max(m_sml_block_min_max), med_block_min_max(m_med_block_min_max)
+        bp_support_sada():m_bp(nullptr), m_size(0), m_sml_blocks(0), m_med_blocks(0), m_med_inner_blocks(0)
         {}
 
         //! Constructor
@@ -348,11 +347,7 @@ class bp_support_sada
             m_size(bp==nullptr?0:bp->size()),
             m_sml_blocks((m_size+t_sml_blk-1)/t_sml_blk),
             m_med_blocks((m_size+t_sml_blk*t_med_deg-1)/(t_sml_blk* t_med_deg)),
-            m_med_inner_blocks(0),
-            bp_rank(m_bp_rank),
-            bp_select(m_bp_select),
-            sml_block_min_max(m_sml_block_min_max),
-            med_block_min_max(m_med_block_min_max) {
+            m_med_inner_blocks(0) {
             if (t_sml_blk==0) {
                 throw std::logic_error(util::demangle(typeid(this).name())+": t_sml_blk should be greater than 0!");
             }
@@ -412,8 +407,7 @@ class bp_support_sada
         }
 
         //! Copy constructor
-        bp_support_sada(const bp_support_sada& bp_support):
-            bp_rank(m_bp_rank), bp_select(m_bp_select), sml_block_min_max(m_sml_block_min_max), med_block_min_max(m_med_block_min_max) {
+        bp_support_sada(const bp_support_sada& bp_support) {
             copy(bp_support);
         }
 

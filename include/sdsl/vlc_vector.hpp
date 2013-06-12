@@ -65,11 +65,11 @@ class vlc_vector
         vlc_vector_trait<t_width>::int_vector_type      int_vector_type;
 
         static  const uint32_t                           sample_dens = t_dens;
-        bit_vector         m_z;     // compressed bit stream
+        bit_vector      m_z;     // compressed bit stream
     private:
         int_vector_type m_sample_pointer;
-        size_type        m_size;    // number of elements
-        uint32_t        m_sample_dens;
+        size_type       m_size        = 0;    // number of elements
+        uint32_t        m_sample_dens = t_dens;
 
         void copy(const vlc_vector& v);
 
@@ -80,8 +80,8 @@ class vlc_vector
         }
 
     public:
-        //! Default Constuctor
-        vlc_vector() : m_size(0), m_sample_dens(16) {}
+        //! Default Constructor
+        vlc_vector() {}
         //! Copy constructor
         vlc_vector(const vlc_vector& v);
 
@@ -177,7 +177,7 @@ void vlc_vector<t_coder, t_dens,t_width>::copy(const vlc_vector<t_coder, t_dens,
 }
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
-vlc_vector<t_coder, t_dens,t_width>::vlc_vector(const vlc_vector& v) : m_size(0), m_sample_dens(16)
+vlc_vector<t_coder, t_dens,t_width>::vlc_vector(const vlc_vector& v)
 {
     copy(v);
 }
@@ -204,7 +204,7 @@ void vlc_vector<t_coder, t_dens,t_width>::swap(vlc_vector<t_coder, t_dens,t_widt
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 template<class Container>
-vlc_vector<t_coder, t_dens, t_width>::vlc_vector(const Container& c) : m_size(0), m_sample_dens(16)
+vlc_vector<t_coder, t_dens, t_width>::vlc_vector(const Container& c)
 {
     clear(); // clear bit_vectors
 
@@ -241,7 +241,6 @@ vlc_vector<t_coder, t_dens, t_width>::vlc_vector(const Container& c) : m_size(0)
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 template<uint8_t int_width>
 vlc_vector<t_coder, t_dens, t_width>::vlc_vector(int_vector_file_buffer<int_width>& v_buf)
-    : m_size(0), m_sample_dens(16)
 {
     clear(); // clear bit_vectors
     size_type n = v_buf.int_vector_size;

@@ -100,27 +100,20 @@ class csa_bitcompressed
             m_psi      = psi_type(this);
         }
     public:
-        const typename alphabet_type::char2comp_type& char2comp;
-        const typename alphabet_type::comp2char_type& comp2char;
-        const typename alphabet_type::C_type&         C;
-        const typename alphabet_type::sigma_type&     sigma;
-        const psi_type&                               psi;
-        const bwt_type                                bwt;
-        const text_type                               text;
-        const sa_sample_type&                         sa_sample;
-        const isa_sample_type&                        isa_sample;
+        const typename alphabet_type::char2comp_type& char2comp  = m_alphabet.char2comp;
+        const typename alphabet_type::comp2char_type& comp2char  = m_alphabet.comp2char;
+        const typename alphabet_type::C_type&         C          = m_alphabet.C;
+        const typename alphabet_type::sigma_type&     sigma      = m_alphabet.sigma;
+        const psi_type&                               psi        = m_psi;
+        const bwt_type                                bwt        = bwt_type(this);
+        const text_type                               text       = text_type(this);
+        const sa_sample_type&                         sa_sample  = m_sa;
+        const isa_sample_type&                        isa_sample = m_isa;
 
-        //! Default Constructor
-        csa_bitcompressed(): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),
-            C(m_alphabet.C), sigma(m_alphabet.sigma), psi(m_psi), bwt(this),
-            text(this),sa_sample(m_sa), isa_sample(m_isa) {}
-
+        //! Default constructor
+        csa_bitcompressed() {}
         //! Copy constructor
-        csa_bitcompressed(const csa_bitcompressed& csa): char2comp(m_alphabet.char2comp),
-            comp2char(m_alphabet.comp2char),
-            C(m_alphabet.C), sigma(m_alphabet.sigma),
-            psi(m_psi), bwt(this), text(this),
-            sa_sample(m_sa), isa_sample(m_isa) {
+        csa_bitcompressed(const csa_bitcompressed& csa) {
             copy(csa);
         }
 

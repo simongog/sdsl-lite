@@ -190,11 +190,9 @@ template<uint32_t t_dens=16>
 class lcp_support_tree2
 {
     public:
-        template<class t_cst> // template inner class which is used in CSTs to parametrize lcp classes
-        class type            // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
-        {
-            public:
-                typedef _lcp_support_tree2<t_dens, t_cst> lcp_type;
+        template<class t_cst>
+        struct type {
+            typedef _lcp_support_tree2<t_dens, t_cst> lcp_type;
         };
 };
 

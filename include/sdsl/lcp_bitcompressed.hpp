@@ -51,10 +51,8 @@ class lcp_bitcompressed
              };
 
         template<class Cst>  // template inner class which is used in CSTs to parametrize lcp classes
-        class type           // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
-        {
-            public:
-                typedef lcp_bitcompressed lcp_type;
+        struct type {         // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
+            typedef lcp_bitcompressed lcp_type;
         };
 
     private:

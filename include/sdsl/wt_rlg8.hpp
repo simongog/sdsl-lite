@@ -54,14 +54,14 @@ template<class t_rank = rank_support_v5<>, class t_wt = wt_without_select>
 class wt_rlg8
 {
     public:
-        typedef int_vector<>::size_type    size_type;
-        typedef unsigned char             value_type;
-        typedef t_rank                rank_support_type;
-        typedef t_wt             wt_type;
-        typedef wt_tag                    index_category;
-        typedef byte_alphabet_tag        alphabet_category;
+        typedef int_vector<>::size_type size_type;
+        typedef unsigned char           value_type;
+        typedef t_rank                  rank_support_type;
+        typedef t_wt                    wt_type;
+        typedef wt_tag                  index_category;
+        typedef byte_alphabet_tag       alphabet_category;
     private:
-        size_type         m_size;         // size of the original input sequence
+        size_type         m_size = 0;     // size of the original input sequence
         wt_type           m_wt;           // wavelet tree for all levels
         bit_vector        m_b;            // bit vector which indicates if a pair consists of
         // two equal chars
@@ -75,7 +75,7 @@ class wt_rlg8
         // Takes \f$\Order{\sigma\max(1, \log L)\log n}\f bits
         int_vector<8>     m_char2comp;    //
         int_vector<64>    m_char_occ;     //
-        uint16_t          m_sigma;
+        uint16_t          m_sigma = 0;
 
         void copy(const wt_rlg8& wt) {
             m_size          = wt.m_size;
@@ -93,10 +93,10 @@ class wt_rlg8
 
     public:
 
-        const uint16_t& sigma;
+        const uint16_t& sigma = m_sigma;
 
         // Default constructor
-        wt_rlg8():m_size(0), m_sigma(0), sigma(m_sigma) {};
+        wt_rlg8() {};
 
         //! Construct the wavelet tree from a file_buffer
         /*! \param text_buf    A int_vector_file_buffer to the original text.
@@ -104,7 +104,7 @@ class wt_rlg8
          * \par Time complexity
          *   \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        wt_rlg8(int_vector_file_buffer<8>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
+        wt_rlg8(int_vector_file_buffer<8>& rac, size_type size) : m_size(size) {
             std::string temp_file = rac.file_name + "_wt_rlg8_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
             osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
@@ -233,7 +233,7 @@ class wt_rlg8
         }
 
         //! Copy constructor
-        wt_rlg8(const wt_rlg8& wt):sigma(m_sigma) {
+        wt_rlg8(const wt_rlg8& wt) {
             copy(wt);
         }
 

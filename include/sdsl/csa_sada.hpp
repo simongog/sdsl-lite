@@ -123,20 +123,19 @@ class csa_sada
         }
 
     public:
-        const typename alphabet_type::char2comp_type& char2comp;
-        const typename alphabet_type::comp2char_type& comp2char;
-        const typename alphabet_type::C_type&         C;
-        const typename alphabet_type::sigma_type&     sigma;
-        const psi_type                                psi;
-        const bwt_type                                bwt;
-        const text_type                               text;
-        const sa_sample_type&                         sa_sample;
-        const isa_sample_type&                        isa_sample;
+        const typename alphabet_type::char2comp_type& char2comp  = m_alphabet.char2comp;
+        const typename alphabet_type::comp2char_type& comp2char  = m_alphabet.comp2char;
+        const typename alphabet_type::C_type&         C          = m_alphabet.C;
+        const typename alphabet_type::sigma_type&     sigma      = m_alphabet.sigma;
+        const psi_type                                psi        = psi_type(this);
+        const bwt_type                                bwt        = bwt_type(this);
+        const text_type                               text       = text_type(this);
+        const sa_sample_type&                         sa_sample  = m_sa_sample;
+        const isa_sample_type&                        isa_sample = m_isa_sample;
 
 
         //! Default Constructor
-        csa_sada(): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-            psi(this), bwt(this), text(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
+        csa_sada() {
             create_buffer();
         }
         //! Default Destructor
@@ -145,8 +144,7 @@ class csa_sada
         }
 
         //! Copy constructor
-        csa_sada(const csa_sada& csa): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-            psi(this), bwt(this), text(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
+        csa_sada(const csa_sada& csa) {
             create_buffer();
             copy(csa);
         }
@@ -356,8 +354,7 @@ finish:
 // == template functions ==
 
 template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::csa_sada(cache_config& config):
-    char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),C(m_alphabet.C), sigma(m_alphabet.sigma), psi(this), bwt(this), text(this),sa_sample(m_sa_sample), isa_sample(m_isa_sample)
+csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::csa_sada(cache_config& config)
 {
     create_buffer();
     if (!cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {

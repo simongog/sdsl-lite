@@ -76,13 +76,13 @@ class rmq_succinct_sada
         typedef typename bit_vector::size_type value_type;
 
         typedef t_bp_support bp_support_type;
-        typedef    t_rank_10 rank_support10_type;
+        typedef t_rank_10    rank_support10_type;
         typedef t_select_10  select_support10_type;
 
-        const bit_vector&            ect_bp;
-        const bp_support_type&       ect_bp_support;
-        const rank_support10_type&   ect_bp_rank10;
-        const select_support10_type& ect_bp_select10;
+        const bit_vector&            ect_bp          = m_ect_bp;
+        const bp_support_type&       ect_bp_support  = m_ect_bp_support;
+        const rank_support10_type&   ect_bp_rank10   = m_ect_bp_rank10;
+        const select_support10_type& ect_bp_select10 = m_ect_bp_select10;
 
     private:
 
@@ -144,11 +144,11 @@ class rmq_succinct_sada
 
     public:
         //! Default Constructor
-        rmq_succinct_sada():ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {}
+        rmq_succinct_sada() {}
 
         //! Constructor
         template<class t_rac>
-        rmq_succinct_sada(const t_rac* v=nullptr):ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {
+        rmq_succinct_sada(const t_rac* v=nullptr) {
             if (v == nullptr) {
                 m_ect_bp = bit_vector(0); m_ect_bp_support = bp_support_type();
                 m_ect_bp_rank10 = rank_support10_type(); m_ect_bp_select10 = select_support10_type();
@@ -163,7 +163,7 @@ class rmq_succinct_sada
         }
 
         //! Copy constructor
-        rmq_succinct_sada(const rmq_succinct_sada& rm):ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {
+        rmq_succinct_sada(const rmq_succinct_sada& rm) {
             if (this != &rm) { // if v is not the same object
                 copy(rm);
             }

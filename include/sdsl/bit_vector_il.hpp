@@ -63,10 +63,10 @@ class bit_vector_il
         typedef select_support_il<1,t_bs> select_1_type;
         typedef select_support_il<0,t_bs> select_0_type;
     private:
-        size_type m_size;             //!< Size of the original bitvector
-        size_type m_block_num;        //!< Total size of m_data in uint64_t ss
-        size_type m_superblocks;      //!< Number of superblocks
-        size_type m_block_shift;
+        size_type m_size        = 0;  //!< Size of the original bitvector
+        size_type m_block_num   = 0;  //!< Total size of m_data in uint64_t ss
+        size_type m_superblocks = 0;  //!< Number of superblocks
+        size_type m_block_shift = 0;
         int_vector<64> m_data;        //!< Data container
         int_vector<64> m_rank_samples;//!< Space for additional rank samples
 
@@ -90,8 +90,8 @@ class bit_vector_il
         }
 
     public:
-        bit_vector_il():m_size(0), m_block_num(0), m_superblocks(0), m_block_shift(0) {}
-        bit_vector_il(const bit_vector_il& bv):m_size(0), m_block_num(0), m_superblocks(0), m_block_shift(0) {
+        bit_vector_il() {}
+        bit_vector_il(const bit_vector_il& bv) {
             m_size = bv.m_size;
             m_block_num = bv.m_block_num;
             m_superblocks = bv.m_superblocks;
@@ -100,7 +100,7 @@ class bit_vector_il
             util::assign(m_rank_samples, bv.m_rank_samples);
         }
 
-        bit_vector_il(const bit_vector& bv):m_size(0), m_block_num(0), m_superblocks(0), m_block_shift(0) {
+        bit_vector_il(const bit_vector& bv) {
             m_size = bv.size();
             /* calculate the number of superblocks */
 //          each block of size > 0 gets suberblock in which we store the cumulative sum up to this block

@@ -75,7 +75,7 @@ class enc_vector
         int_vector<0>     m_z;                       // storage for encoded deltas
     private:
         int_vector_type   m_sample_vals_and_pointer; // samples and pointers
-        size_type         m_size;                    // number of vector elements
+        size_type         m_size = 0;                // number of vector elements
 
         void copy(const enc_vector& v);
 
@@ -87,7 +87,7 @@ class enc_vector
 
     public:
         //! Default Constructor
-        enc_vector() : m_size(0) { }
+        enc_vector() { }
         //! Copy constructor
         /*! \param v The enc_vector to copy.
          */
@@ -224,7 +224,7 @@ void enc_vector<t_coder, t_dens,t_width>::swap(enc_vector<t_coder, t_dens,t_widt
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 template<class Container>
-enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c) : m_size(0)
+enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c)
 {
     // clear bit_vectors
     clear();
@@ -292,7 +292,7 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c) : m_size(0)
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 template<uint8_t int_width>
-enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width>& v_buf) : m_size(0)
+enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width>& v_buf)
 {
     // clear bit_vectors
     clear();

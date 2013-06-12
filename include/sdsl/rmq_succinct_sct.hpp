@@ -67,18 +67,18 @@ class rmq_succinct_sct
         typedef typename bit_vector::size_type value_type;
         typedef t_bp_support                   bp_support_type;
 
-        const bit_vector& sct_bp;
-        const bp_support_type& sct_bp_support;
+        const bit_vector&      sct_bp         = m_sct_bp;
+        const bp_support_type& sct_bp_support = m_sct_bp_support;
 
         //! Default constructor
-        rmq_succinct_sct() : sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {}
+        rmq_succinct_sct() {}
 
         //! Constructor
         /*! \tparam t_rac A random access container.
          *  \param  v     Pointer to container object.
          */
         template<class t_rac>
-        rmq_succinct_sct(const t_rac* v=nullptr) : sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
+        rmq_succinct_sct(const t_rac* v=nullptr) {
             if (v == nullptr) {
                 util::assign(m_sct_bp, bit_vector()); util::assign(m_sct_bp_support, bp_support_type());
             } else {
@@ -95,7 +95,7 @@ class rmq_succinct_sct
         }
 
         //! Copy constructor
-        rmq_succinct_sct(const rmq_succinct_sct& rm): sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
+        rmq_succinct_sct(const rmq_succinct_sct& rm) {
             if (this != &rm) { // if v is not the same object
                 copy(rm);
             }
@@ -110,7 +110,8 @@ class rmq_succinct_sct
 
         void swap(rmq_succinct_sct& rm) {
             m_sct_bp.swap(rm.m_sct_bp);
-            util::swap_support(m_sct_bp_support, rm.m_sct_bp_support, &m_sct_bp, &(rm.m_sct_bp));
+            util::swap_support(m_sct_bp_support, rm.m_sct_bp_support,
+                               &m_sct_bp, &(rm.m_sct_bp));
         }
 
         //! Range minimum/maximum query for the supported random access container v.

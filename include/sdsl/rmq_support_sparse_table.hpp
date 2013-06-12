@@ -60,7 +60,7 @@ class rmq_support_sparse_table
 {
         const t_rac*            m_v;    // pointer to the supported random access container
         bit_vector::size_type   m_k;    // size of m_table
-        int_vector<>*           m_table;
+        int_vector<>*           m_table = nullptr;
         typedef min_max_trait<t_rac, t_min> mm_trait;
 
         void copy(const rmq_support_sparse_table& rm) {
@@ -81,7 +81,7 @@ class rmq_support_sparse_table
         typedef typename t_rac::size_type size_type;
         typedef typename t_rac::size_type value_type;
 
-        rmq_support_sparse_table(const t_rac* v=nullptr):m_v(v), m_k(0), m_table(nullptr) {
+        rmq_support_sparse_table(const t_rac* v=nullptr):m_v(v), m_k(0) {
             if (m_v == nullptr)
                 return;
             const size_type n = m_v->size();
