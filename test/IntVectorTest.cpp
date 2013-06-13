@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdlib> // for rand()
 #include <string>
+#include <algorithm>
 
 namespace
 {
@@ -144,6 +145,24 @@ TEST_F(IntVectorTest, AddAndSub)
             ASSERT_EQ((x+1)&sdsl::bits::lo_set[w], iv[i]);
             --iv[i];
             ASSERT_EQ(x & sdsl::bits::lo_set[w], iv[i]);
+        }
+    }
+}
+
+TEST_F(IntVectorTest, STL)
+{
+    for (size_type i=0; i < vec_sizes.size(); ++i) {
+        sdsl::int_vector<> iv(vec_sizes[i]);
+        ASSERT_EQ(vec_sizes[i], iv.size());
+        auto cnt = iv.size();
+for (auto x : iv) {
+            x = --cnt;
+        }
+        std::sort(iv.begin(), iv.end());
+        sdsl::int_vector<>::value_type last = 0;
+for (const auto& x : iv) {
+            ASSERT_TRUE(x >= last);
+            last = x;
         }
     }
 }
