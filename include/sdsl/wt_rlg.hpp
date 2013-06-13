@@ -119,7 +119,6 @@ class wt_rlg
             m_b_border.resize(bits::hi(size) + 1);
             m_b_border[0] = 0;
 
-            typedef std::pair<int, char> tPIC;
             int m=0;
 
             text_buf.reset();
