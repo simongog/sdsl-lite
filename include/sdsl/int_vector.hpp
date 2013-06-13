@@ -70,7 +70,9 @@ class mm_item; // forward declaration
 namespace algorithm
 {
 template<uint8_t t_width>
-static void calculate_sa(const unsigned char* c, typename int_vector<t_width>::size_type len, int_vector<t_width>& sa);
+static void calculate_sa(const unsigned char* c,
+                         typename int_vector<t_width>::size_type len,
+                         int_vector<t_width>& sa);
 }
 
 
@@ -157,13 +159,13 @@ struct int_vector_trait {
 
 template<>
 struct int_vector_trait<64> {
-    typedef uint64_t           value_type;
-    typedef int_vector<64>     int_vector_type;
-    typedef uint64_t&         reference;
-    typedef const uint64_t     const_reference;
-    typedef const uint8_t     int_width_type;
-    typedef uint64_t*         iterator;
-    typedef const uint64_t*    const_iterator;
+    typedef uint64_t        value_type;
+    typedef int_vector<64>  int_vector_type;
+    typedef uint64_t&       reference;
+    typedef const uint64_t  const_reference;
+    typedef const uint8_t   int_width_type;
+    typedef uint64_t*       iterator;
+    typedef const uint64_t* const_iterator;
 
 
     static void width(int_width_type&, const uint8_t) {}
@@ -189,12 +191,12 @@ struct int_vector_trait<64> {
 
 template<>
 struct int_vector_trait<32> {
-    typedef uint32_t                   value_type;
-    typedef int_vector<32>     int_vector_type;
-    typedef uint32_t&         reference;
-    typedef const uint32_t     const_reference;
-    typedef const uint8_t     int_width_type;
-    typedef uint32_t*         iterator;
+    typedef uint32_t        value_type;
+    typedef int_vector<32>  int_vector_type;
+    typedef uint32_t&       reference;
+    typedef const uint32_t  const_reference;
+    typedef const uint8_t   int_width_type;
+    typedef uint32_t*       iterator;
     typedef const uint32_t* const_iterator;
     static void width(int_width_type&, const uint8_t) {}
 
@@ -219,12 +221,12 @@ struct int_vector_trait<32> {
 
 template<>
 struct int_vector_trait<16> {
-    typedef uint16_t           value_type;
-    typedef int_vector<16>     int_vector_type;
-    typedef uint16_t&         reference;
-    typedef const uint16_t     const_reference;
-    typedef const uint8_t     int_width_type;
-    typedef uint16_t*         iterator;
+    typedef uint16_t        value_type;
+    typedef int_vector<16>  int_vector_type;
+    typedef uint16_t&       reference;
+    typedef const uint16_t  const_reference;
+    typedef const uint8_t   int_width_type;
+    typedef uint16_t*       iterator;
     typedef const uint16_t* const_iterator;
     static void width(int_width_type&, const uint8_t) {}
 
@@ -249,12 +251,12 @@ struct int_vector_trait<16> {
 
 template<>
 struct int_vector_trait<8> {
-    typedef uint8_t            value_type;
-    typedef int_vector<8>     int_vector_type;
-    typedef uint8_t&         reference;
-    typedef const uint8_t     const_reference;
-    typedef const uint8_t     int_width_type;
-    typedef uint8_t*         iterator;
+    typedef uint8_t         value_type;
+    typedef int_vector<8>   int_vector_type;
+    typedef uint8_t&        reference;
+    typedef const uint8_t   const_reference;
+    typedef const uint8_t   int_width_type;
+    typedef uint8_t*        iterator;
     typedef const uint8_t*  const_iterator;
     static void width(int_width_type&, const uint8_t) {}
 
@@ -291,6 +293,7 @@ template<uint8_t t_width>
 class int_vector
 {
     public:
+
         typedef typename int_vector_trait<t_width>::value_type      value_type;
         typedef typename int_vector_trait<t_width>::iterator        iterator;
         typedef typename int_vector_trait<t_width>::const_iterator  const_iterator;
@@ -326,19 +329,23 @@ class int_vector
         friend void algorithm::calculate_sa<t_width>(const unsigned char* c, typename int_vector<t_width>::size_type len, int_vector<t_width>& sa);
 
         enum { fixed_int_width = t_width }; // make template parameter accessible
+
     private:
-        size_type        m_size;         //!< Number of bits needed to store int_vector.
-        uint64_t*       m_data;         //!< Pointer to the memory for the bits.
-        int_width_type     m_width;    //!< Width of the integers that are accessed via the [] operator .
+
+        size_type      m_size;  //!< Number of bits needed to store int_vector.
+        uint64_t*      m_data;  //!< Pointer to the memory for the bits.
+        int_width_type m_width; //!< Width of the integers.
+
     public:
 
         //! Constructor for int_vector.
-        /*! \param size          The number of elements in the int_vector. Default value is 0.
+        /*! \param size          Number of elements. Default value is 0.
             \param default_value Initialize all value to `default value`.
             \param int_width     The width of each integer.
             \sa resize, width
          */
-        int_vector(size_type size = 0, value_type default_value = 0, uint8_t int_width = t_width);
+        int_vector(size_type size = 0, value_type default_value = 0,
+                   uint8_t int_width = t_width);
 
         //! Copy constructor for int_vector.
         int_vector(const int_vector& v);
@@ -346,7 +353,7 @@ class int_vector
         //! Destructor for int_vector.
         ~int_vector();
 
-        //!    Equivalent to size() == 0.
+        //! Equivalent to size() == 0.
         bool empty() const {
             return 0==m_size;
         }
@@ -356,8 +363,6 @@ class int_vector
 
         //! Resize the int_vector in terms of elements.
         /*! \param size The size to resize the int_vector in terms of elements.
-         *
-         *  Required for the Sequence Concept of the STL.
          */
         void resize(const size_type size) {
             bit_resize(size * width());
@@ -369,27 +374,21 @@ class int_vector
         void bit_resize(const size_type size);
 
         //! The number of elements in the int_vector.
-        /*!
-             Required for the Container Concept of the STL.
-            \sa max_size, bit_size, capacity
+        /*! \sa max_size, bit_size, capacity
          */
         size_type size() const {
             return m_size/m_width;
         }
 
         //! Maximum size of the int_vector.
-        /*!
-              Required for the Container Concept of the STL.
-            \sa size, bit_size, capacity
+        /*! \sa size, bit_size, capacity
         */
         static size_type max_size() {
             return ((size_type)1)<<(sizeof(size_type)*8-6);
         }
 
-
         //! The number of bits in the int_vector.
-        /*!
-             \sa size, max_size, bit_size, capacity
+        /*!  \sa size, max_size, bit_size, capacity
          */
         size_type bit_size() const {
             return m_size;
@@ -405,8 +404,7 @@ class int_vector
         }
 
         //! Pointer to the raw data of the int_vector
-        /*!
-             \returns Const pointer to the raw data of the int_vector
+        /*! \returns Const pointer to the raw data of the int_vector
          */
         const uint64_t* data() const {
             return m_data;
@@ -448,120 +446,89 @@ class int_vector
         }
 
         //! Serializes the int_vector to a stream.
-        /*!
-         * \return The number of bytes written to out.
-         * \sa load
+        /*! \return The number of bytes written to out.
+         *  \sa load
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name = "", bool write_fixed_as_variable=false) const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
+                            std::string name = "", bool write_fixed_as_variable=false) const;
 
         //! Load the int_vector for a stream.
         void load(std::istream& in);
 
         //! non const version of [] operator
         /*! \param i Index the i-th integer of length width().
-         *     \return A reference to the i-th integer of length width().
-         *
-         * Required for the STL Random Access Container Concept.
+         *  \return A reference to the i-th integer of length width().
          */
         inline reference operator[](const size_type& i);
 
         //! const version of [] operator
         /*! \param i Index the i-th integer of length width().
          *  \return The value of the i-th integer of length width().
-         *
-         *  Required for the STL Random Access Container Concept.
          */
         inline const_reference operator[](const size_type& i) const;
 
         //! Assignment operator for the int_vector.
         /*! \param v The vector v which should be assigned
-              \returns A copy of v.
-            Required for the Assignable Concept of the STL.
-          */
+         */
         int_vector& operator=(const int_vector& v);
-
 
         //! Equality operator for two int_vectors.
         /*! Two int_vectors are equal if
-              - capacities and sizes are equal and
-              - width are equal and
-              - the bits in the range [0..bit_size()-1] are equal.
-              Required for the STL Equality Comparable Concept.
-              \sa operator!=
+         *    - capacities and sizes are equal and
+         *    - width are equal and
+         *    - the bits in the range [0..bit_size()-1] are equal.
          */
         bool operator==(const int_vector& v) const;
 
         //! Inequality operator for two int_vectors.
         /*! Two int_vectors are not equal if
-              - capacities and sizes are not equal or
-              - int widths are not equal or
-              - the bits in the range [0..bit_size()-1] are not equal.
-
-
-              Required for the STL Equality Comparable Concept.
-              \sa operator==
+         *    - capacities and sizes are not equal or
+         *    - int widths are not equal or
+         *    - the bits in the range [0..bit_size()-1] are not equal.
          */
-
         bool operator!=(const int_vector& v) const;
 
         //! Less operator for two int_vectors
         /*! int_vector w is less than v if
-              - w[i]==v[i] for i<j and w[j]<v[j] with j in [0, min(w.size(), v.size()) )
-              - or w[i]==v[i] for all i < min(w.size(), v.size()) and w.size()<v.size().
-
-             Required for the STL LessThan Comparable Concept.
-            \sa operator>
+         *    - w[i]==v[i] for i<j and w[j]<v[j] with j in [0, min(w.size(), v.size()) )
+         *    - or w[i]==v[i] for all i < min(w.size(), v.size()) and w.size()<v.size().
+         *  \sa operator>
         */
         bool operator<(const int_vector& v) const;
 
         //! Greater operator for two int_vectors
         /*! int_vector w is greater than v if
-              - w[i]==v[i] for i<j and w[j]>v[j] with j in [0, min(w.size(), v.size()) )
-              - or w[i]==v[i] for all i < min(w.size(), v.size()) and w.size()>v.size().
-
-             Required for the STL LessThan Comparable Concept.
-            \sa operator<
+         *    - w[i]==v[i] for i<j and w[j]>v[j] with j in [0, min(w.size(), v.size()) )
+         *    - or w[i]==v[i] for all i < min(w.size(), v.size()) and w.size()>v.size().
         */
         bool operator>(const int_vector& v) const;
+
         //! Less or equal operator
-        /*!
-             Required for the STL LessThan Comparable Concept.
-            \sa operator>=, operator==, operator<
-        */
         bool operator<=(const int_vector& v) const;
+
         //! Greater of equal operator
-        /*!
-             Required for the STL LessThan Comparable Concept.
-            \sa operator<=, operator==, operator>
-        */
         bool operator>=(const int_vector& v) const;
 
         //! Iterator that points to the first element of the int_vector.
-        /*! Required for Container Concept of the STL.
-         *     Complexity guaranty is O(1).
+        /*!  Time complexity guaranty is O(1).
          */
         const iterator begin() {
             return int_vector_trait<t_width>::begin(this, m_data);
         }
 
         //! Iterator that points to the element after the last element of int_vector.
-        /*! Required for Container Concept of the STL.
-         *  Complexity guaranty is O(1).
+        /*! Time complexity guaranty is O(1).
          */
         const iterator end() {
             return int_vector_trait<t_width>::end(this, m_data, (m_size/m_width));
         }
 
         //! Const iterator that points to the first element of the int_vector.
-        /*! Required for Container Concept of the STL.
-          */
         const const_iterator begin() const {
             return int_vector_trait<t_width>::begin(this, m_data);
         }
 
         //! Const iterator that points to the element after the last element of int_vector.
-        /*! Required for Container Concept of the STL.
-          */
         const const_iterator end() const {
             return int_vector_trait<t_width>::end(this, m_data, (m_size/m_width));
         }
@@ -573,6 +540,8 @@ class int_vector
 template<class t_int_vector>
 class int_vector_reference
 {
+    public:
+        typedef typename t_int_vector::value_type value_type;
     private:
         typename t_int_vector::value_type* const m_word;
         const uint8_t m_offset;
@@ -583,7 +552,7 @@ class int_vector_reference
             \param offset Offset to the starting bit (offset in [0..63])
             \param len length of the integer, should be v->width()!!!
         */
-        int_vector_reference(typename t_int_vector::value_type* word, uint8_t offset, uint8_t len):
+        int_vector_reference(value_type* word, uint8_t offset, uint8_t len):
             m_word(word),m_offset(offset),m_len(len) {};
 
         //! Assignment operator for the proxy class
@@ -594,79 +563,117 @@ class int_vector_reference
             \param x 64bit integer to assign
             \return A const_reference to the assigned reference
          */
-        int_vector_reference& operator=(typename t_int_vector::value_type x) {
+        int_vector_reference& operator=(value_type x) {
             bits::write_int(m_word, x, m_offset, m_len);
             return *this;
         };
 
         int_vector_reference& operator=(const int_vector_reference& x) {
-            return *this = typename t_int_vector::value_type(x);
+            return *this = value_type(x);
         };
 
         //! Cast the reference to a int_vector<>::value_type
-        operator typename t_int_vector::value_type()const {
+        operator value_type()const {
             return bits::read_int(m_word, m_offset, m_len);
         }
 
         //! Prefix increment of the proxy object
         int_vector_reference& operator++() {
-            typename t_int_vector::value_type x = bits::read_int(m_word, m_offset, m_len);
+            value_type x = bits::read_int(m_word, m_offset, m_len);
             bits::write_int(m_word, x+1, m_offset, m_len);
             return *this;
         }
 
         //! Postfix increment of the proxy object
-        typename t_int_vector::value_type operator++(int) {
-            typename t_int_vector::value_type val = (typename t_int_vector::value_type)*this;
+        value_type operator++(int) {
+            value_type val = (typename t_int_vector::value_type)*this;
             ++(*this);
             return val;
         }
 
         //! Prefix decrement of the proxy object
         int_vector_reference& operator--() {
-            typename t_int_vector::value_type x = bits::read_int(m_word, m_offset, m_len);
+            value_type x = bits::read_int(m_word, m_offset, m_len);
             bits::write_int(m_word, x-1, m_offset, m_len);
             return *this;
         }
 
         //! Postfix decrement of the proxy object
-        typename t_int_vector::value_type operator--(int) {
-            typename t_int_vector::value_type val = (typename t_int_vector::value_type)*this;
+        value_type operator--(int) {
+            value_type val = (value_type)*this;
             --(*this);
             return val;
         }
 
         //! Add assign from the proxy object
-        int_vector_reference& operator+=(const typename t_int_vector::value_type x) {
-            typename t_int_vector::value_type w = bits::read_int(m_word, m_offset, m_len);
+        int_vector_reference& operator+=(const value_type x) {
+            value_type w = bits::read_int(m_word, m_offset, m_len);
             bits::write_int(m_word, w+x, m_offset, m_len);
             return *this;
         }
 
         //! Subtract assign from the proxy object
-        int_vector_reference& operator-=(const typename t_int_vector::value_type x) {
-            typename t_int_vector::value_type w = bits::read_int(m_word, m_offset, m_len);
+        int_vector_reference& operator-=(const value_type x) {
+            value_type w = bits::read_int(m_word, m_offset, m_len);
             bits::write_int(m_word, w-x, m_offset, m_len);
             return *this;
         }
 
         bool operator==(const int_vector_reference& x)const {
-            return typename t_int_vector::value_type(*this) == typename t_int_vector::value_type(x);
+            return value_type(*this) == value_type(x);
         }
 
         bool operator<(const int_vector_reference& x)const {
-            return typename t_int_vector::value_type(*this) < typename t_int_vector::value_type(x);
+            return value_type(*this) < value_type(x);
         }
+
+
 };
+
+// For C++11
+template<class t_int_vector>
+inline void swap(int_vector_reference<t_int_vector> x,
+                 int_vector_reference<t_int_vector> y)
+{
+    // TODO: more efficient solution?
+    typename int_vector_reference<t_int_vector>::value_type tmp = x;
+    x = y;
+    y = tmp;
+}
+
+// For C++11
+template<class t_int_vector>
+inline void swap(typename int_vector_reference<t_int_vector>::value_type& x,
+                 int_vector_reference<t_int_vector> y)
+{
+    // TODO: more efficient solution?
+    typename int_vector_reference<t_int_vector>::value_type tmp = x;
+    x = y;
+    y = tmp;
+}
+
+// For C++11
+template<class t_int_vector>
+inline void swap(int_vector_reference<t_int_vector> x,
+                 typename int_vector_reference<t_int_vector>::value_type& y)
+{
+    // TODO: more efficient solution?
+    typename int_vector_reference<t_int_vector>::value_type tmp = x;
+    x = y;
+    y = tmp;
+}
 
 // specialization for int_vector_reference for int_vector == bit_vector
 // special thanks to Timo Beller, who pointed out that the specialization is missing
+// Same implementation as in stl_bvector.h.
 template<>
 class int_vector_reference<bit_vector>
 {
+    public:
+        typedef bool value_type;
     private:
         uint64_t* const m_word;
-        uint64_t m_mask; // TODO make it const
+        uint64_t m_mask;
     public:
         //! Constructor for the reference class
         /*! \param word Pointer to the corresponding 64bit word in the int_vector.
@@ -702,6 +709,39 @@ class int_vector_reference<bit_vector>
         }
 };
 
+// For C++11
+template<>
+inline void swap(int_vector_reference<bit_vector> x,
+                 int_vector_reference<bit_vector> y)
+{
+    // TODO: more efficient solution?
+    bool tmp = x;
+    x = y;
+    y = tmp;
+}
+
+// For C++11
+template<>
+inline void swap(bool& x,
+                 int_vector_reference<bit_vector> y)
+{
+    // TODO: more efficient solution?
+    bool tmp = x;
+    x = y;
+    y = tmp;
+}
+
+// For C++11
+template<>
+inline void swap(int_vector_reference<bit_vector> x,
+                 bool& y)
+{
+    // TODO: more efficient solution?
+    bool tmp = x;
+    x = y;
+    y = tmp;
+}
+
 
 
 template<class t_int_vector>
@@ -713,27 +753,21 @@ class int_vector_iterator_base: public std::iterator<std::random_access_iterator
         uint8_t           m_offset;
         uint8_t           m_len;
 
-        void init(const t_int_vector* v, size_type idx) {
-            m_offset = idx&0x3F;
-            if (v==nullptr)
-                m_len = 0;
-            else
-                m_len = v->m_width;
-        }
     public:
-        int_vector_iterator_base(uint8_t offset, uint8_t len):m_offset(offset),m_len(len)
-        {}
+        int_vector_iterator_base(uint8_t offset, uint8_t len):
+            m_offset(offset),m_len(len) {}
 
-        int_vector_iterator_base(const t_int_vector* v=nullptr, size_type idx=0) { /*:m_offset(idx&0x3F), m_len(v->m_width)*/
-            init(v, idx);
-        }
+        int_vector_iterator_base(const t_int_vector* v=nullptr, size_type idx=0):
+            m_offset(idx&0x3F), m_len(v==nullptr ? 0 : v->m_width) {}
 };
 
 template<class t_int_vector>
 class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
 {
     public:
+
         typedef int_vector_reference<t_int_vector>     reference;
+        typedef uint64_t                               value_type;
         typedef int_vector_iterator                    iterator;
         typedef reference*                             pointer;
         typedef typename t_int_vector::size_type       size_type;
@@ -748,16 +782,13 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
 
     public:
 
-        int_vector_iterator(t_int_vector* v=nullptr, size_type idx=0) {
-            this->init(v, idx);
-            if (v!=nullptr)
-                m_word = v->m_data + (idx>>6);
-            else
-                m_word = nullptr;
-        }
+        int_vector_iterator(t_int_vector* v=nullptr, size_type idx=0):
+            int_vector_iterator_base<t_int_vector>(v, idx),
+            m_word((v != nullptr) ? v->m_data + (idx>>6) : nullptr) {}
 
 
-        int_vector_iterator(const int_vector_iterator<t_int_vector>& it) : m_word(it.m_word) {
+        int_vector_iterator(const int_vector_iterator<t_int_vector>& it) :
+            m_word(it.m_word) {
             m_offset = it.m_offset;
             m_len = it.m_len;
         }
@@ -826,9 +857,9 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
 
         iterator& operator=(const int_vector_iterator<t_int_vector>& it) {
             if (this != &it) {
-                m_word         = it.m_word;
-                m_offset     = it.m_offset;
-                m_len         = it.m_len;
+                m_word   = it.m_word;
+                m_offset = it.m_offset;
+                m_len    = it.m_len;
             }
             return *this;
         }
@@ -879,6 +910,11 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
         }
 };
 
+//template<class t_int_vector>
+//void swap(const int_vector_iterator<t_int_vector> &x, const int_vector_iterator<t_int_vector> &y){
+//  x->swap(*y);
+//}
+
 template<class t_int_vector>
 inline int_vector_iterator<t_int_vector> operator+(typename int_vector_iterator<t_int_vector>::difference_type n, const int_vector_iterator<t_int_vector>& it)
 {
@@ -889,6 +925,7 @@ template<class t_int_vector>
 class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
 {
     public:
+
         typedef typename t_int_vector::value_type        const_reference;
         typedef const typename t_int_vector::value_type* pointer;
         typedef int_vector_const_iterator                const_iterator;
@@ -899,27 +936,28 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
         friend typename int_vector_const_iterator<X>::difference_type operator-(const int_vector_const_iterator<X>& x, const int_vector_const_iterator<X>& y);
         friend class int_vector_iterator<t_int_vector>;
         friend class int_vector_iterator_base<t_int_vector>;
+
     private:
+
         using int_vector_iterator_base<t_int_vector>::m_offset; // make m_offset easy usable
         using int_vector_iterator_base<t_int_vector>::m_len;    // make m_len easy usable
 
         const typename t_int_vector::value_type* m_word;
+
     public:
 
-        int_vector_const_iterator(const t_int_vector* v=nullptr, size_type idx=0) {
-            this->init(v, idx);
-            if (v!=nullptr)
-                m_word = v->m_data + (idx>>6);
-            else
-                m_word = nullptr;
-        }
+        int_vector_const_iterator(const t_int_vector* v=nullptr, size_type idx=0):
+            int_vector_iterator_base<t_int_vector>(v, idx),
+            m_word((v != nullptr) ? v->m_data + (idx>>6) : nullptr) {}
 
-        int_vector_const_iterator(const int_vector_const_iterator& it) : m_word(it.m_word) {
+        int_vector_const_iterator(const int_vector_const_iterator& it):
+            m_word(it.m_word) {
             m_offset = it.m_offset;
             m_len = it.m_len;
         }
 
-        int_vector_const_iterator(const int_vector_iterator<t_int_vector>& it) : m_word(it.m_word) {
+        int_vector_const_iterator(const int_vector_iterator<t_int_vector>& it):
+            m_word(it.m_word) {
             m_offset = it.m_offset;
             m_len = it.m_len;
         }
@@ -927,9 +965,9 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
         const_reference operator*() const {
             if (m_offset+m_len <= 64) {
                 return ((*m_word)>>m_offset)&bits::lo_set[m_len];
-            } else {
-                return ((*m_word)>>m_offset) | ((*(m_word+1) & bits::lo_set[(m_offset+m_len)&0x3F])<<(64-m_offset));
             }
+            return ((*m_word)>>m_offset) |
+                   ((*(m_word+1) & bits::lo_set[(m_offset+m_len)&0x3F])<<(64-m_offset));
         }
 
         //! Prefix increment of the Iterator
@@ -1035,20 +1073,24 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
 };
 
 template<class t_int_vector>
-inline typename int_vector_const_iterator<t_int_vector>::difference_type operator-(const int_vector_const_iterator<t_int_vector>& x, const int_vector_const_iterator<t_int_vector>& y)
+inline typename int_vector_const_iterator<t_int_vector>::difference_type
+operator-(const int_vector_const_iterator<t_int_vector>& x,
+          const int_vector_const_iterator<t_int_vector>& y)
 {
     return (((x.m_word - y.m_word)<<6) + x.m_offset - y.m_offset) / x.m_len;
 }
 
 template<class t_int_vector>
-inline int_vector_const_iterator<t_int_vector> operator+(typename int_vector_const_iterator<t_int_vector>::difference_type n, const int_vector_const_iterator<t_int_vector>& it)
+inline int_vector_const_iterator<t_int_vector>
+operator+(typename int_vector_const_iterator<t_int_vector>::difference_type n,
+          const int_vector_const_iterator<t_int_vector>& it)
 {
     return it + n;
 }
 
 inline std::ostream& operator<<(std::ostream& os, const int_vector<1>& v)
 {
-    for (int_vector<1>::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
+    for (auto it=v.begin(), end = v.end(); it != end; ++it) {
         os << *it;
     }
     return os;
@@ -1057,7 +1099,7 @@ inline std::ostream& operator<<(std::ostream& os, const int_vector<1>& v)
 template<uint8_t t_width>
 inline std::ostream& operator<<(std::ostream& os, const int_vector<t_width>& v)
 {
-    for (typename int_vector<t_width>::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
+    for (auto it=v.begin(), end = v.end(); it != end; ++it) {
         os << *it;
         if (it+1 != end) os << " ";
     }
@@ -1068,7 +1110,8 @@ inline std::ostream& operator<<(std::ostream& os, const int_vector<t_width>& v)
 // ==== int_vector implementation  ====
 
 template<uint8_t t_width>
-inline int_vector<t_width>::int_vector(size_type size, value_type default_value, uint8_t intWidth):m_size(0), m_data(nullptr), m_width(intWidth)
+inline int_vector<t_width>::int_vector(size_type size, value_type default_value, uint8_t intWidth):
+    m_size(0), m_data(nullptr), m_width(intWidth)
 {
     mm::add(this);
     int_vector_trait<t_width>::width(m_width, intWidth);
@@ -1077,7 +1120,8 @@ inline int_vector<t_width>::int_vector(size_type size, value_type default_value,
 }
 
 template<uint8_t t_width>
-inline int_vector<t_width>::int_vector(const int_vector& v):m_size(0), m_data(nullptr), m_width(v.m_width)
+inline int_vector<t_width>::int_vector(const int_vector& v):
+    m_size(0), m_data(nullptr), m_width(v.m_width)
 {
     mm::add(this);
     bit_resize(v.bit_size());
@@ -1137,17 +1181,17 @@ void int_vector<t_width>::bit_resize(const size_type size)
 }
 
 template<uint8_t t_width>
-inline const typename int_vector<t_width>::value_type int_vector<t_width>::get_int(size_type idx, const uint8_t len)const
+auto int_vector<t_width>::get_int(size_type idx, const uint8_t len)const -> const value_type
 {
 #ifdef SDSL_DEBUG
-    if (idx+len > m_size) {
-        throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); idx+len > size()!");
-    }
-    if (len > 64) {
-        throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); len>64!");
-    }
+if (idx+len > m_size) {
+throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); idx+len > size()!");
+}
+if (len > 64) {
+throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); len>64!");
+}
 #endif
-    return bits::read_int(m_data+(idx>>6), idx&0x3F, len);
+return bits::read_int(m_data+(idx>>6), idx&0x3F, len);
 }
 
 template<uint8_t t_width>
@@ -1165,8 +1209,7 @@ inline void int_vector<t_width>::set_int(size_type idx, value_type x, const uint
 }
 
 template<uint8_t t_width>
-inline typename int_vector<t_width>::reference int_vector<t_width>::operator[](const size_type& idx)
-{
+inline auto int_vector<t_width>::operator[](const size_type& idx) -> reference {
     assert(idx < this->size());
     size_type i = idx * m_width;
     return reference(this->m_data + (i>>6), i&0x3F, m_width);
@@ -1174,80 +1217,83 @@ inline typename int_vector<t_width>::reference int_vector<t_width>::operator[](c
 
 // specialized [] operator for 64 bit access.
 template<>
-inline int_vector<64>::reference int_vector<64>::operator[](const size_type& idx)
-{
+inline auto int_vector<64>::operator[](const size_type& idx) -> reference {
     assert(idx < this->size());
     return *(this->m_data+idx);
 }
 
 // specialized [] operator for 32 bit access.
 template<>
-inline int_vector<32>::reference int_vector<32>::operator[](const size_type& idx)
-{
+inline auto int_vector<32>::operator[](const size_type& idx) -> reference {
     assert(idx < this->size());
     return *(((uint32_t*)(this->m_data))+idx);
 }
 
 // specialized [] operator for 16 bit access.
 template<>
-inline int_vector<16>::reference int_vector<16>::operator[](const size_type& idx)
-{
+inline auto int_vector<16>::operator[](const size_type& idx) -> reference {
     assert(idx < this->size());
     return *(((uint16_t*)(this->m_data))+idx);
 }
 
 // specialized [] operator for 8 bit access.
 template<>
-inline int_vector<8>::reference int_vector<8>::operator[](const size_type& idx)
-{
+inline auto int_vector<8>::operator[](const size_type& idx) -> reference {
     assert(idx < this->size());
     return *(((uint8_t*)(this->m_data))+idx);
 }
 
 template<uint8_t t_width>
-inline typename int_vector<t_width>::const_reference int_vector<t_width>::operator[](const size_type& idx)const
+inline auto
+int_vector<t_width>::operator[](const size_type& idx)const -> const_reference
 {
     assert(idx < this->size());
     return get_int(idx * t_width, t_width);
 }
 
 template<>
-inline int_vector<0>::const_reference int_vector<0>::operator[](const size_type& idx)const
+inline auto
+int_vector<0>::operator[](const size_type& idx)const -> const_reference
 {
     assert(idx < this->size());
     return get_int(idx * m_width, m_width);
 }
 
 template<>
-inline int_vector<64>::const_reference int_vector<64>::operator[](const size_type& idx)const
+inline auto
+int_vector<64>::operator[](const size_type& idx)const -> const_reference
 {
     assert(idx < this->size());
     return *(this->m_data+idx);
 }
 
 template<>
-inline int_vector<32>::const_reference int_vector<32>::operator[](const size_type& idx)const
+inline auto
+int_vector<32>::operator[](const size_type& idx)const -> const_reference
 {
     assert(idx < this->size());
     return *(((uint32_t*)this->m_data)+idx);
 }
 
 template<>
-inline int_vector<16>::const_reference int_vector<16>::operator[](const size_type& idx)const
+inline auto
+int_vector<16>::operator[](const size_type& idx)const -> const_reference
 {
     assert(idx < this->size());
     return *(((uint16_t*)this->m_data)+idx);
 }
 
 template<>
-inline int_vector<8>::const_reference int_vector<8>::operator[](const size_type& idx)const
+inline auto
+int_vector<8>::operator[](const size_type& idx)const -> const_reference
 {
     assert(idx < this->size());
     return *(((uint8_t*)this->m_data)+idx);
 }
 
 template<>
-inline int_vector<1>::const_reference int_vector<1>::operator[](const size_type& idx)const
+inline auto
+int_vector<1>::operator[](const size_type& idx)const -> const_reference
 {
     assert(idx < this->size());
     return ((*(m_data+(idx>>6)))>>(idx&0x3F))&1;
@@ -1277,7 +1323,7 @@ bool int_vector<t_width>::operator<(const int_vector& v)const
     size_type min_size = size();
     if (min_size > v.size())
         min_size = v.size();
-    for (typename int_vector<t_width>::const_iterator it = begin(), end = begin()+min_size, it_v = v.begin(); it!=end; ++it, ++it_v) {
+    for (auto it = begin(), end = begin()+min_size, it_v = v.begin(); it!=end; ++it, ++it_v) {
         if (*it == *it_v)
             continue;
         else
@@ -1292,7 +1338,7 @@ bool int_vector<t_width>::operator>(const int_vector& v)const
     size_type min_size = size();
     if (min_size > v.size())
         min_size = v.size();
-    for (typename int_vector<t_width>::const_iterator it = begin(), end = begin()+min_size, it_v = v.begin(); it!=end; ++it, ++it_v) {
+    for (auto it = begin(), end = begin()+min_size, it_v = v.begin(); it!=end; ++it, ++it_v) {
         if (*it == *it_v)
             continue;
         else
@@ -1394,6 +1440,7 @@ template<uint8_t t_width>
 class int_vector_file_buffer
 {
     public:
+
         typedef typename int_vector<t_width>::size_type        size_type;
         typedef typename int_vector<t_width>::value_type       value_type;
         typedef typename int_vector<t_width>::const_reference  const_reference;
@@ -1402,15 +1449,15 @@ class int_vector_file_buffer
     private:
 
         isfstream      m_in;
-        uint64_t*      m_buf;
-        size_type      m_off; // offset in the first 64bit word of the buffer
-        size_type      m_read_values; // number of values read in the last buffer operation
-        size_type      m_len;
-        size_type      m_int_vector_size;
-        size_type      m_read_values_sum;
-        int_width_type m_width;
-        std::string    m_file;
-        bool           m_load_from_plain;
+        uint64_t*      m_buf = nullptr;
+        size_type      m_off = 0; // offset in the first 64bit word of the buffer
+        size_type      m_read_values = 0; // number of values read in the last buffer operation
+        size_type      m_len = 0;
+        size_type      m_int_vector_size = 0;
+        size_type      m_read_values_sum = 0;
+        int_width_type m_width = 0;
+        std::string    m_file = "";
+        bool           m_load_from_plain = false;
 
         void load_size_and_width() {
             int_vector_trait<t_width>::read_header(m_int_vector_size, m_width, m_in);
@@ -1434,20 +1481,17 @@ class int_vector_file_buffer
 
     public:
 
-        const size_type& int_vector_size;
-        const uint8_t& width;
-        const std::string& file_name;
+        const size_type& int_vector_size  = m_int_vector_size;
+        const uint8_t& width              = m_width;
+        const std::string& file_name      = m_file;
 
         //! Constructor
         /*
          * \param f_file     File which contains the int_vector.
          * \param len             Length of the buffer in elements.
          */
-        int_vector_file_buffer(std::string f_file="", size_type len=1000000, uint8_t int_width=0):m_in(), m_buf(nullptr), m_off(0), m_read_values(0),
-            m_len(0), m_int_vector_size(0), m_read_values_sum(0),
-            m_width(t_width), m_file(),
-            m_load_from_plain(false), int_vector_size(m_int_vector_size),
-            width(m_width), file_name(m_file) {
+        int_vector_file_buffer(std::string f_file="", size_type len=1000000,
+                               uint8_t int_width=0): m_in(), m_width(t_width) {
             m_load_from_plain = false;
             int_vector_trait<t_width>::width(m_width, int_width);
             m_len             = len;
@@ -1462,15 +1506,18 @@ class int_vector_file_buffer
                 m_buf = new uint64_t[(m_len*m_width+63)/64 + 2];
             } else {
                 m_buf = nullptr;
-                std::cerr<<"WARNING: int_vector_file_buffer: could not open `"<<m_file<<std::endl;
+                std::cerr<< "WARNING: int_vector_file_buffer:\
+                         could not open `"<<m_file<<std::endl;
             }
         }
 
         // initialize int_vector_file_buffer from a plain file
         // works only for t_width = 8 // TODO extent to 1,16,32,64
-        bool load_from_plain(const std::string& f_file, size_type len=1000000, uint8_t int_width=0) {
+        bool load_from_plain(const std::string& f_file, size_type len=1000000,
+                             uint8_t int_width=0) {
             if (t_width != 8) {
-                std::logic_error("ERROR: int_vector_file_buffer: load_from_plain is only implemented for t_width=8.");
+                std::logic_error("ERROR: int_vector_file_buffer: load_from_plain\
+                              is only implemented for t_width=8.");
                 return false;
             }
             m_load_from_plain = true;
