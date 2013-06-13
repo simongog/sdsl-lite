@@ -60,6 +60,7 @@ class wt_pc
         enum { lex_ordered=shape::lex_ordered };
 
     private:
+
 #ifdef WT_HUFF_CACHE
         mutable value_type m_last_access_answer;
         mutable size_type  m_last_access_i;
@@ -101,7 +102,8 @@ class wt_pc
         }
 
         // insert a character into the wavelet tree, see construct method
-        void insert_char(uint8_t old_chr, size_type* tree_pos, size_type times, bit_vector& f_tree) {
+        void insert_char(uint8_t old_chr, size_type* tree_pos, size_type times,
+                         bit_vector& f_tree) {
             uint32_t path_len = (m_path[old_chr]>>56);
             uint64_t p = m_path[old_chr];
             for (uint32_t node=0, l=0; l<path_len; ++l, p >>= 1) {
@@ -115,11 +117,12 @@ class wt_pc
 
 
 
-        // calculates the Huffman tree and returns the size of the WT bit vector
+        // calculates the tree shape returns the size of the WT bit vector
         size_type construct_tree_shape(const size_type* C) {
-            std::vector<_node<size_type> > temp_nodes(2*m_sigma-1);  // vector for nodes of the Huffman tree
+            // vector  for node of the tree
+            std::vector<_node<size_type>> temp_nodes(2*m_sigma-1);
             size_type node_cnt = shape::construct_tree(C, temp_nodes);
-            // Convert Huffman tree into breadth first search order in memory and
+            // Convert code tree into BFS order in memory and
             // calculate tree_pos values
             m_nodes[0] = temp_nodes[node_cnt-1];  // insert root at index 0
             size_type tree_size = 0;
@@ -134,10 +137,11 @@ class wt_pc
                 } else {
                     idx = q.back(); q.pop_back();
                 }
-                size_type frq = m_nodes[idx].tree_pos; // frq_sum was stored in tree_pos
+                // frq_sum is store in tree_pos value
+                size_type frq = m_nodes[idx].tree_pos;
                 m_nodes[idx].tree_pos = tree_size;
-                if (m_nodes[idx].child[0] != _undef_node)  // if node is not a leaf
-                    tree_size += frq;                       // add frequency, as leaves have size 0
+                if (m_nodes[idx].child[0] != _undef_node)// if node is not a leaf
+                    tree_size += frq;                    // add frequency
                 if (idx > 0) { // node is not the root
                     if (last_parent != m_nodes[idx].parent)
                         m_nodes[m_nodes[idx].parent].child[0] = idx;
@@ -146,7 +150,7 @@ class wt_pc
                     last_parent = m_nodes[idx].parent;
                 }
                 if (m_nodes[idx].child[0] != _undef_node) { // if node is not a leaf
-                    for (size_type k=0; k<2; ++k) {            // add children to tree
+                    for (size_type k=0; k<2; ++k) {       // add children to tree
                         m_nodes[node_cnt] = temp_nodes[ m_nodes[idx].child[k] ];
                         m_nodes[node_cnt].parent = idx;
                         q.push_back(node_cnt);
@@ -180,12 +184,11 @@ class wt_pc
                         node = m_nodes[node].parent; // go up the tree
                     }
                     if (l > 56) {
-                        std::cerr<<"Code tree has max depth > 56!!! ERROR"<<std::endl;
-                        throw std::logic_error("Code tree depth is greater than 56!!!");
+                        throw std::logic_error("Code depth greater than 56!!!");
                     }
                     m_path[c] = w | (l << 56);
                 } else {
-                    m_path[c] = 0; // i.e. len is also 0, good for special case in rank()
+                    m_path[c] = 0;// i.e. len is  0, good for special case in rank
                 }
             }
             return tree_size;
@@ -206,14 +209,17 @@ class wt_pc
 
 
         // recursive internal version of the method interval_symbols
-        void _interval_symbols(size_type i, size_type j, size_type& k,
-                               std::vector<value_type>& cs,
-                               std::vector<size_type>& rank_c_i,
-                               std::vector<size_type>& rank_c_j, uint16_t node) const {
+        void
+        _interval_symbols(size_type i, size_type j, size_type& k,
+                          std::vector<value_type>& cs,
+                          std::vector<size_type>& rank_c_i,
+                          std::vector<size_type>& rank_c_j, uint16_t node) const {
             // invariant: j>i
             // goto right child
-            size_type i_new = (m_tree_rank(m_nodes[node].tree_pos + i) - m_nodes[node].tree_pos_rank);
-            size_type j_new = (m_tree_rank(m_nodes[node].tree_pos + j) - m_nodes[node].tree_pos_rank);
+            size_type i_new = (m_tree_rank(m_nodes[node].tree_pos + i)
+                               - m_nodes[node].tree_pos_rank);
+            size_type j_new = (m_tree_rank(m_nodes[node].tree_pos + j)
+                               - m_nodes[node].tree_pos_rank);
             // goto left child
             i -= i_new; j -= j_new;
             if (i != j) {
@@ -232,7 +238,8 @@ class wt_pc
                 uint16_t node_new = m_nodes[node].child[1];
                 // if node is not a leaf
                 if (m_nodes[node_new].child[0] != _undef_node) {
-                    _interval_symbols(i_new, j_new, k, cs, rank_c_i, rank_c_j, node_new);
+                    _interval_symbols(i_new, j_new, k, cs, rank_c_i, rank_c_j,
+                                      node_new);
                 } else {
                     rank_c_i[k] = i_new;
                     rank_c_j[k] = j_new;
@@ -240,7 +247,6 @@ class wt_pc
                 }
             }
         }
-
 
     public:
 
@@ -252,7 +258,7 @@ class wt_pc
 
         //! Construct the wavelet tree from a file_buffer
         /*! \param input_buf    File buffer of the input.
-         *  \param size         The length of the prefix of the random access container, for which the wavelet tree should be build.
+         *  \param size         The length of the prefix.
          *    \par Time complexity
          *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
@@ -269,7 +275,7 @@ class wt_pc
             size_type tree_size = construct_tree_shape(C);
             // 4. Generate wavelet tree bit sequence m_tree
 
-            bit_vector tmp_tree(tree_size, 0);  // initialize bit_vector for the tree
+            bit_vector tmp_tree(tree_size, 0);
             //  Calculate starting position of wavelet tree nodes
             size_type tree_pos[511];
             for (size_type i=0; i < 2*sigma-1; ++i) {
@@ -280,8 +286,10 @@ class wt_pc
                 throw std::logic_error("Stream size is smaller than size!");
                 return;
             }
-            for (size_type i=0, r_sum=0, r = input_buf.load_next_block(); r_sum < m_size;) {
-                if (r_sum + r > size) {  // read not more than size chars in the next loop
+            for (size_type i=0, r_sum=0, r = input_buf.load_next_block();
+                 r_sum < m_size;) {
+                // read not more than size chars in the next loop
+                if (r_sum + r > size) {
                     r = size-r_sum;
                 }
                 uint8_t old_chr = input_buf[i-r_sum], times = 0;
@@ -331,10 +339,13 @@ class wt_pc
                 std::swap(m_size, wt.m_size);
                 std::swap(m_sigma,  wt.m_sigma);
                 m_tree.swap(wt.m_tree);
-                util::swap_support(m_tree_rank, wt.m_tree_rank, &m_tree, &(wt.m_tree));
+                util::swap_support(m_tree_rank, wt.m_tree_rank,
+                                   &m_tree, &(wt.m_tree));
 
-                util::swap_support(m_tree_select1, wt.m_tree_select1, &m_tree, &(wt.m_tree));
-                util::swap_support(m_tree_select0, wt.m_tree_select0, &m_tree, &(wt.m_tree));
+                util::swap_support(m_tree_select1, wt.m_tree_select1,
+                                   &m_tree, &(wt.m_tree));
+                util::swap_support(m_tree_select0, wt.m_tree_select0,
+                                   &m_tree, &(wt.m_tree));
 
                 for (size_type i=0; i < 511; ++i)
                     std::swap(m_nodes[i], wt.m_nodes[i]);
@@ -356,77 +367,85 @@ class wt_pc
         }
 
         //! Recovers the i-th symbol of the original vector.
-        /*! \param i The index of the symbol in the original vector. \f$i \in [0..size()-1]\f$
+        /*! \param i Index in the original vector. \f$i \in [0..size()-1]\f$.
          *  \return The i-th symbol of the original vector.
          *  \par Time complexity
-         *        \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order entropy
-         *      of the sequence.
+         *        \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the
+         *        zero order entropy of the sequence
          */
         value_type operator[](size_type i)const {
             assert(i < size());
             // which stores how many of the next symbols are equal
             // with the current char
             size_type node = 0; // start at root node
-            while (m_nodes[node].child[0] != _undef_node) { // while node is not a leaf
-                if (m_tree[ m_nodes[node].tree_pos + i]) {  // goto the right child
-                    i = m_tree_rank(m_nodes[node].tree_pos + i) - m_nodes[node].tree_pos_rank;
+            while (m_nodes[node].child[0] != _undef_node) { // while  not a leaf
+                if (m_tree[ m_nodes[node].tree_pos + i]) {  // goto right child
+                    i = m_tree_rank(m_nodes[node].tree_pos + i)
+                        - m_nodes[node].tree_pos_rank;
                     node = m_nodes[node].child[1];
                 } else { // goto the left child
-                    i -= (m_tree_rank(m_nodes[node].tree_pos + i) - m_nodes[node].tree_pos_rank);
+                    i -= (m_tree_rank(m_nodes[node].tree_pos + i)
+                          - m_nodes[node].tree_pos_rank);
                     node = m_nodes[node].child[0];
                 }
             }
             return m_nodes[node].tree_pos_rank;
         };
 
-        //! Calculates how many symbols c are in the prefix [0..i-1] of the supported vector.
+        //! Calculates how many symbols c are in the prefix [0..i-1].
         /*!
-         *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
-         *  \param c The symbol to count the occurrences in the prefix.
-         *    \return The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
+         *  \param i Exclusive right bound of the range (\f$i\in[0..size()]\f$).
+         *  \param c Symbol c.
+         *  \return Number of occurrences of symbol c in the prefix [0..i-1].
          *  \par Time complexity
-         *        \f$ \Order{H_0} \f$
+         *        \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the
+         *        zero order entropy of the sequence
          */
         size_type rank(size_type i, value_type c)const {
             assert(i <= size());
             uint64_t p = m_path[c];
-            uint32_t path_len = (m_path[c]>>56); // equals zero if char was not present in the original text or m_sigma=1
-            if (!path_len and 1 == m_sigma) {    // if m_sigma == 1 return result immediately
-                if (m_c_to_leaf[c] == _undef_node) { // if character does not exist return 0
+            // path_len == 0, if `c` was not in the text or m_sigma=1
+            uint32_t path_len = (m_path[c]>>56);
+            if (!path_len and 1 == m_sigma) {
+                if (m_c_to_leaf[c] == _undef_node) { // if `c` was not in the text
                     return 0;
                 }
-                return std::min(i, m_size);
+                return std::min(i, m_size); // if m_sigma == 1 answer is trivial
             }
-            size_type result = i & ZoO[path_len>0]; // important: result has type size_type and ZoO has type size_type
+            size_type result = i & ZoO[path_len>0];
             uint32_t node=0;
             for (uint32_t l=0; l<path_len and result; ++l, p >>= 1) {
                 if (p&1) {
-                    result     = (m_tree_rank(m_nodes[node].tree_pos+result) -  m_nodes[node].tree_pos_rank);
+                    result  = (m_tree_rank(m_nodes[node].tree_pos+result)
+                               -  m_nodes[node].tree_pos_rank);
                 } else {
-                    result -= (m_tree_rank(m_nodes[node].tree_pos+result) -  m_nodes[node].tree_pos_rank);
+                    result -= (m_tree_rank(m_nodes[node].tree_pos+result)
+                               -  m_nodes[node].tree_pos_rank);
                 }
                 node = m_nodes[node].child[p&1]; // goto child
             }
             return result;
         };
 
-        //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the original sequence.
+        //! Calculates how many times symbol wt[i] occurs in the prefix [0..i-1].
         /*!
          *  \param i The index of the symbol.
-         *  \param c Reference that will contain symbol wt[i].
-         *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
-         *  \par Time complexity
+         *  \param c Reference that will contain the symbol at position i.
+         *  \return  Number of occurrences of symbol wt[i] in the prefix [0..i-1].
+         *    \par Time complexity
          *        \f$ \Order{H_0} \f$
          */
         size_type inverse_select(size_type i, value_type& c)const {
             assert(i < size());
             uint32_t node=0;
-            while (m_nodes[node].child[0] != _undef_node) { // while node is not a leaf
-                if (m_tree[m_nodes[node].tree_pos + i]) { // if bit is set goto right child
-                    i     = (m_tree_rank(m_nodes[node].tree_pos + i) -  m_nodes[node].tree_pos_rank);
+            while (m_nodes[node].child[0] != _undef_node) { // while not a leaf
+                if (m_tree[m_nodes[node].tree_pos + i]) {   //  goto right child
+                    i    = (m_tree_rank(m_nodes[node].tree_pos + i)
+                            - m_nodes[node].tree_pos_rank);
                     node = m_nodes[node].child[1];
                 } else { // goto left child
-                    i -= (m_tree_rank(m_nodes[node].tree_pos + i) -  m_nodes[node].tree_pos_rank);
+                    i -= (m_tree_rank(m_nodes[node].tree_pos + i)
+                          - m_nodes[node].tree_pos_rank);
                     node = m_nodes[node].child[0];
                 }
             }
@@ -434,35 +453,39 @@ class wt_pc
             return i;
         }
 
-        //! Calculates the i-th occurrence of the symbol c in the supported vector.
+        //! Calculates the ith occurrence of the symbol c in the supported vector.
         /*!
-         *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
+         *  \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
          *  \param c The symbol c.
          *  \par Time complexity
-         *        \f$ \Order{H_0} \f$
+         *       \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order
+         *        entropy of the sequence
          */
         size_type select(size_type i, value_type c)const {
             assert(i > 0);
             assert(i <= rank(size(), c));
             uint16_t node = m_c_to_leaf[c];
-            if (node == _undef_node) { // if c was not present in the original text
-                return m_size;           // -> return a position right to the end
+            if (node == _undef_node) { // if c was not in the text
+                return m_size;         // -> return a position right to the end
             }
             if (m_sigma == 1) {
                 return std::min(i-1,m_size);
             }
-            size_type result = i-1;        // otherwise
+            size_type result = i-1;    // otherwise
             uint64_t p = m_path[c];
             uint32_t path_len = (p>>56);
-            p <<= (64-path_len); // Note: path_len > 0, since we have handled m_sigma = 1.
+            // path_len > 0, since we have handled m_sigma = 1.
+            p <<= (64-path_len);
             for (uint32_t l=0; l<path_len; ++l, p <<= 1) {
                 if ((p & 0x8000000000000000ULL)==0) { // node was a left child
-                    node = m_nodes[node].parent;
-                    result = m_tree_select0(m_nodes[node].tree_pos-m_nodes[node].tree_pos_rank + result + 1)
+                    node   = m_nodes[node].parent;
+                    result = m_tree_select0(m_nodes[node].tree_pos
+                                            - m_nodes[node].tree_pos_rank + result + 1)
                              - m_nodes[node].tree_pos;
                 } else { // node was a right child
-                    node = m_nodes[node].parent;
-                    result = m_tree_select1(m_nodes[node].tree_pos_rank + result + 1)
+                    node   = m_nodes[node].parent;
+                    result = m_tree_select1(
+                                 m_nodes[node].tree_pos_rank + result + 1)
                              - m_nodes[node].tree_pos;
                 }
             }
@@ -470,20 +493,19 @@ class wt_pc
         };
 
 
-        //! Calculates for each symbol c in wt[i..j-1], how many times c occurs in wt[0..i-1] and wt[0..j-1].
+        //! For each symbol c in wt[i..j-1] get rank(i,c) and rank(j,c).
         /*!
          *  \param i        The start index (inclusive) of the interval.
          *  \param j        The end index (exclusive) of the interval.
-         *  \param k        Reference that will contain the number of different
-         *                  symbols in wt[i..j-1].
+         *  \param k        Reference for number of different symbols in [i..j-1].
          *  \param cs       Reference to a vector that will contain in
-         *                  cs[0..k-1] all symbols that occur in wt[i..j-1] in
+         *                  cs[0..k-1] all symbols that occur in [i..j-1] in
          *                  arbitrary order (for Huffman shape) and ascending
          *                  order (for Hu-Tucker shape).
          *  \param rank_c_i Reference to a vector which equals
-         *                  rank_c_i[p] = rank(i,cs[p]), for \f$ 0 \leq p < k \f$
+         *                  rank_c_i[p] = rank(i,cs[p]), for \f$ 0 \leq p < k \f$.
          *  \param rank_c_j Reference to a vector which equals
-         *                  rank_c_j[p] = rank(j,cs[p]), for \f$ 0 \leq p < k \f$
+         *                  rank_c_j[p] = rank(j,cs[p]), for \f$ 0 \leq p < k \f$.
          *    \par Time complexity
          *        \f$ \Order{\min{\sigma, k \log \sigma}} \f$
          *
@@ -531,20 +553,21 @@ class wt_pc
         }
 
 
-        //! Calculates for symbol c, how many symbols smaller and greater c occur in wt[i..j-1].
+        //! How many symbols are lexicographic smaller/greater than c in [i..j-1].
         /*!
-         *  \param i       The start index (inclusive) of the interval.
-         *  \param j       The end index (exclusive) of the interval.
-         *  \param c       The symbol to count the occurences in the interval.
-         *  \param smaller Reference that will contain the number of symbols smaller than c in wt[i..j-1].
-         *  \param greater Reference that will contain the number of symbols greater than c in wt[i..j-1].
-         *  \return The number of occurrences of symbol c in wt[0..i-1].
+         *  \param i       Start index (inclusive) of the interval.
+         *  \param j       End index (exclusive) of the interval.
+         *  \param c       Symbol c.
+         *  \param smaller Reference for symbols smaller than c in [i..j-1].
+         *  \param greater Reference for symbols greater than c in [i..j-1].
+         *  \return The number of occurrences of symbol c in [0..i-1].
          *
          *  \par Precondition
          *       \f$ i \leq j \leq n \f$
          *       \f$ c must exist in wt \f$
          */
-        size_type lex_count(size_type i, size_type j, value_type c, size_type& smaller, size_type& greater)const {
+        size_type lex_count(size_type i, size_type j, value_type c,
+                            size_type& smaller, size_type& greater) const {
             if (lex_ordered) {
                 assert(i <= j and j <= size());
                 smaller = 0;
@@ -556,23 +579,28 @@ class wt_pc
                     return rank(i,c);
                 }
                 uint64_t p = m_path[c];
-                uint32_t path_len = (m_path[c]>>56); // equals zero if char was not present in the original text
+                uint32_t path_len = (m_path[c]>>56);
+                // path_len equals zero if c was not present
                 assert(path_len>0);
                 size_type res1 = i;
                 size_type res2 = j;
                 uint32_t node=0;
                 for (uint32_t l=0; l<path_len; ++l, p >>= 1) {
                     if (p&1) {
-                        size_type r1_1 = (m_tree_rank(m_nodes[node].tree_pos+res1)-m_nodes[node].tree_pos_rank);
-                        size_type r1_2 = (m_tree_rank(m_nodes[node].tree_pos+res2)-m_nodes[node].tree_pos_rank);
+                        size_type r1_1 = (m_tree_rank(m_nodes[node].tree_pos+res1)
+                                          - m_nodes[node].tree_pos_rank);
+                        size_type r1_2 = (m_tree_rank(m_nodes[node].tree_pos+res2)
+                                          - m_nodes[node].tree_pos_rank);
 
                         smaller += res2 - r1_2 - res1 + r1_1;
 
                         res1 = r1_1;
                         res2 = r1_2;
                     } else {
-                        size_type r1_1 = (m_tree_rank(m_nodes[node].tree_pos+res1)-m_nodes[node].tree_pos_rank);
-                        size_type r1_2 = (m_tree_rank(m_nodes[node].tree_pos+res2)-m_nodes[node].tree_pos_rank);
+                        size_type r1_1 = (m_tree_rank(m_nodes[node].tree_pos+res1)
+                                          - m_nodes[node].tree_pos_rank);
+                        size_type r1_2 = (m_tree_rank(m_nodes[node].tree_pos+res2)
+                                          - m_nodes[node].tree_pos_rank);
 
                         greater += r1_2 - r1_1;
 
@@ -588,22 +616,25 @@ class wt_pc
         };
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
-            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
+                            std::string name="") const {
+            structure_tree_node* child = structure_tree::add_child(
+                                             v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += write_member(m_size, out, child, "size");
-            written_bytes += write_member(m_sigma, out, child, "sigma");
-            written_bytes += m_tree.serialize(out, child, "tree");
-            written_bytes += m_tree_rank.serialize(out, child, "tree_rank");
-            written_bytes += m_tree_select1.serialize(out, child, "tree_select_1");
-            written_bytes += m_tree_select0.serialize(out, child, "tree_select_0");
-            for (size_type i=0; i < 511; ++i) {               // TODO: use serialize vector
-                written_bytes += m_nodes[i].serialize(out);   // is it surely possible to use
-            }                                                 // less space
+            written_bytes += write_member(m_size,out,child, "size");
+            written_bytes += write_member(m_sigma,out,child, "sigma");
+            written_bytes += m_tree.serialize(out,child,"tree");
+            written_bytes += m_tree_rank.serialize(out,child,"tree_rank");
+            written_bytes += m_tree_select1.serialize(out,child,"tree_select_1");
+            written_bytes += m_tree_select0.serialize(out,child,"tree_select_0");
+// TODO: use serialize vector. It is surely possible to use less space
+            for (size_type i=0; i < 511; ++i) {
+                written_bytes += m_nodes[i].serialize(out);
+            }
             out.write((char*) m_c_to_leaf, 256*sizeof(m_c_to_leaf[0]));
-            written_bytes += 256*sizeof(m_c_to_leaf[0]); // add written bytes from previous loop
+            written_bytes += 256*sizeof(m_c_to_leaf[0]);// bytes from previous loop
             out.write((char*) m_path, 256*sizeof(m_path[0]));
-            written_bytes += 256*sizeof(m_path[0]); // add written bytes from previous loop
+            written_bytes += 256*sizeof(m_path[0]);// bytes from previous loop
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
