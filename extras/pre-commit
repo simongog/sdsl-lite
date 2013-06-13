@@ -66,8 +66,10 @@ ASTYLE_PARAMETERS="--suffix=none \
     --indent-switches \
     --indent-classes \
     --unpad-paren \
-    --keep-one-line-statements \
     --align-pointer=type \
+    --close-templates\
+    --keep-one-line-statements\
+    --keep-one-line-blocks\
     --pad-header"
 
 echo "--Formatting source code--"

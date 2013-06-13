@@ -321,9 +321,7 @@ class wt_pc
 
 
         //! Copy constructor
-        wt_pc(const wt_pc& wt) {
-            copy(wt);
-        }
+        wt_pc(const wt_pc& wt) { copy(wt); }
 
         //! Assignment operator
         wt_pc& operator=(const wt_pc& wt) {
@@ -357,14 +355,10 @@ class wt_pc
         }
 
         //! Returns the size of the original vector.
-        size_type size()const {
-            return m_size;
-        }
+        size_type size()const { return m_size; }
 
         //! Returns whether the wavelet tree contains no data.
-        bool empty()const {
-            return m_size == 0;
-        }
+        bool empty()const { return m_size == 0; } 
 
         //! Recovers the i-th symbol of the original vector.
         /*! \param i Index in the original vector. \f$i \in [0..size()-1]\f$.
