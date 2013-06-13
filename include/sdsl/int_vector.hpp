@@ -52,7 +52,7 @@
 #include <ostream>
 #include <istream>
 #include <string>
-
+#include <initializer_list>
 
 
 //! Namespace for the succinct data structure library.
@@ -62,10 +62,10 @@ namespace sdsl
 typedef uint64_t std_size_type_for_int_vector;
 
 template<uint8_t t_width=0>
-class int_vector; // forward declaration
+class int_vector;
 
 template<class int_vector_type>
-class mm_item; // forward declaration
+class mm_item;
 
 namespace algorithm
 {
@@ -83,13 +83,13 @@ template<class t_int_vector>
 class int_vector_reference;
 
 template<class t_int_vector>
-class int_vector_iterator_base;     // forward declaration
+class int_vector_iterator_base;
 
 template<class t_int_vector>
-class int_vector_iterator; // forward declaration
+class int_vector_iterator;
 
 template<class t_int_vector>
-class int_vector_const_iterator;  // forward declaration
+class int_vector_const_iterator;
 
 template<uint8_t b, uint8_t t_patter_len>  // forward declaration
 class rank_support_v;
@@ -98,10 +98,7 @@ class rank_support;
 
 class select_support;
 
-template<class t_rank>
-class select_support_bs;
-
-template<uint8_t t_bit_pattern, uint8_t t_pattern_len> // forward declaration
+template<uint8_t t_bit_pattern, uint8_t t_pattern_len>
 class select_support_mcl;
 
 namespace coder
@@ -346,6 +343,15 @@ class int_vector
          */
         int_vector(size_type size = 0, value_type default_value = 0,
                    uint8_t int_width = t_width);
+
+        template<class t_T>
+        int_vector(std::initializer_list<t_T> il) : int_vector() {
+            resize(il.size());
+            size_type idx = 0;
+for (auto x : il) {
+                (*this)[idx++] = x;
+            }
+        }
 
         //! Copy constructor for int_vector.
         int_vector(const int_vector& v);
