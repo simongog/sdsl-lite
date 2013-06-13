@@ -43,11 +43,9 @@ class _lcp_support_tree
                sa_order    = t_lcp::sa_order
              };
 
-        template<class CST>  // template inner class which is used in CSTs to parametrize lcp classes
-        class type           // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
-        {
-            public:
-                typedef _lcp_support_tree lcp_type;
+        template<class CST>
+        struct type {
+            typedef _lcp_support_tree lcp_type;
         };
 
     private:
@@ -163,13 +161,11 @@ class _lcp_support_tree
 
 //! Helper class which provides _lcp_support_tree the context of a CST.
 template<class t_lcp = lcp_wt<> >
-class lcp_support_tree
-{
-    public:
-        template<class t_cst>
-        struct type {
-            typedef _lcp_support_tree<t_lcp, t_cst> lcp_type;
-        };
+struct lcp_support_tree {
+    template<class t_cst>
+    struct type {
+        typedef _lcp_support_tree<t_lcp, t_cst> lcp_type;
+    };
 };
 
 } // end namespace

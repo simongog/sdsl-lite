@@ -301,7 +301,7 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
 
 
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-inline typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::value_type csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator[](size_type i)const
+inline auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator[](size_type i)const -> value_type
 {
     size_type off = 0;
     while (!m_sa_sample.is_sampled(i)) {
@@ -346,7 +346,7 @@ inline typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alp
 }
 
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-inline typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::value_type csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator()(size_type i)const
+auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator()(size_type i)const -> value_type
 {
     size_type ii;
     value_type result = m_isa_sample[ ii = ((i+t_inv_dens-1)/t_inv_dens) ]; // get the leftmost sampled isa value to the right of i
@@ -363,8 +363,7 @@ inline typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alp
 }
 
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator=(const csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa)
-{
+auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator=(const csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa) -> csa_wt& {
     if (this != &csa) {
         copy(csa);
     }
@@ -373,7 +372,7 @@ csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa
 
 
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::size_type csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
+auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const -> size_type
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;

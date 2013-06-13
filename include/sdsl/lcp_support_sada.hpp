@@ -182,7 +182,6 @@ class _lcp_support_sada
             return s-(j<<1);
         }
 
-
         //! Assignment Operator.
         _lcp_support_sada& operator=(const _lcp_support_sada& lcp_c) {
             if (this != &lcp_c) {

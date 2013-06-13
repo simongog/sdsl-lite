@@ -48,185 +48,179 @@ struct unsigned_char_map {
 
 
 template<class t_rac>
-class wt_trait
-{
-    public:
-        typedef typename t_rac::size_type       size_type;
-        typedef typename t_rac::value_type      value_type;
-        typedef t_rac&                          reference_type;
-        typedef std::map<value_type, size_type> map_type;
-        typedef std::map<value_type, size_type> inv_map_type;
-        enum { char_node_map_size=0 };
+struct wt_trait {
+    typedef typename t_rac::size_type       size_type;
+    typedef typename t_rac::value_type      value_type;
+    typedef t_rac&                          reference_type;
+    typedef std::map<value_type, size_type> map_type;
+    typedef std::map<value_type, size_type> inv_map_type;
+    enum { char_node_map_size=0 };
 
-        static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
-            if (n > 0)
-                first_symbol = rac[0];
-            map.clear();
-            inv_map.clear();
-            size_type alphabet_size = 0;
-            for (size_type i=0; i<n; ++i) {
-                if (map.find(rac[i]) == map.end()) {
-                    map[rac[i]]    = 1;
-                }
+    static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
+        if (n > 0)
+            first_symbol = rac[0];
+        map.clear();
+        inv_map.clear();
+        size_type alphabet_size = 0;
+        for (size_type i=0; i<n; ++i) {
+            if (map.find(rac[i]) == map.end()) {
+                map[rac[i]]    = 1;
             }
-            for (typename map_type::iterator it = map.begin(); it != map.end(); ++it) { // this preserves the order
-                it->second = alphabet_size;
-                inv_map[alphabet_size] = it->first;
-                ++alphabet_size;
-            }
-            return alphabet_size;
         }
+        for (typename map_type::iterator it = map.begin(); it != map.end(); ++it) { // this preserves the order
+            it->second = alphabet_size;
+            inv_map[alphabet_size] = it->first;
+            ++alphabet_size;
+        }
+        return alphabet_size;
+    }
 
-        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type) {
-            return map.find(c)!=map.end();
-        }
+    static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type) {
+        return map.find(c)!=map.end();
+    }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=nullptr, std::string name="") {
-            throw std::logic_error(util::demangle(typeid(wt_trait<t_rac>).name())+": serialize not implemented");
-            return 0;
-        }
+    static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=nullptr, std::string name="") {
+        throw std::logic_error(util::demangle(typeid(wt_trait<t_rac>).name())+": serialize not implemented");
+        return 0;
+    }
 
-        static size_type load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
-            throw std::logic_error(util::demangle(typeid(wt_trait<t_rac>).name())+": load not implemented");
-            return 0;
-        }
+    static size_type load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
+        throw std::logic_error(util::demangle(typeid(wt_trait<t_rac>).name())+": load not implemented");
+        return 0;
+    }
 };
 
 template<>
-class wt_trait<unsigned char*>
-{
-    public:
-        typedef bit_vector::size_type   size_type;
-        typedef unsigned char           value_type;
-        typedef unsigned char*          reference_type;
-        typedef unsigned_char_map       map_type;
-        typedef unsigned_char_map       inv_map_type;
-        enum { char_node_map_size=256 };
+struct wt_trait<unsigned char*> {
+    typedef bit_vector::size_type   size_type;
+    typedef unsigned char           value_type;
+    typedef unsigned char*          reference_type;
+    typedef unsigned_char_map       map_type;
+    typedef unsigned_char_map       inv_map_type;
+    enum { char_node_map_size=256 };
 
-        static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
-            map.clear();
-            inv_map.clear();
-            if (n==0) {
-                for (size_type i=0; i<256; ++i) {
-                    map[i] = 255;    // mark each symbol as absent
-                }
-                return 0;
-            }
-            first_symbol    = *rac;
-            map[*rac] = 0;
-            inv_map[0] = *rac;
-            size_type alphabet_size = 0;
-
+    static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
+        map.clear();
+        inv_map.clear();
+        if (n==0) {
             for (size_type i=0; i<256; ++i) {
-                map[i] = 0;
+                map[i] = 255;    // mark each symbol as absent
             }
+            return 0;
+        }
+        first_symbol    = *rac;
+        map[*rac] = 0;
+        inv_map[0] = *rac;
+        size_type alphabet_size = 0;
 
-            for (size_type i=0; i<n; ++i) {
-                value_type c = *(rac+i);
+        for (size_type i=0; i<256; ++i) {
+            map[i] = 0;
+        }
+
+        for (size_type i=0; i<n; ++i) {
+            value_type c = *(rac+i);
+            map[c] = 1;
+        }
+
+        for (size_type i=0; i<256; ++i) {
+            if (map[i]) {
+                map[i] = alphabet_size;
+                ++alphabet_size;
+            } else {
+                map[i] = 255;
+            }
+            inv_map[map[i]] = i;
+        }
+        return alphabet_size;
+    }
+
+    static bool symbol_available(const map_type& map, const value_type c, SDSL_UNUSED const value_type first_symbol, const size_type sigma) {
+        return sigma==256 or map[c] < 255;
+    }
+
+    static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=nullptr,
+                                    SDSL_UNUSED std::string name="") {
+        size_type written_bytes = 0;
+        written_bytes += map.serialize(out, v, "alphabet_map");
+        written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
+        return written_bytes;
+    }
+
+    static void load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
+        map.load(in);
+        inv_map.load(in);
+    }
+};
+
+template<>
+struct wt_trait<int_vector_file_buffer<8> > {
+    typedef int_vector_size_type        size_type;
+    typedef unsigned char               value_type;
+    typedef int_vector_file_buffer<8>&  reference_type;
+    typedef unsigned_char_map           map_type;
+    typedef unsigned_char_map           inv_map_type;
+    enum { char_node_map_size=256 };
+
+    static size_type alphabet_size_and_map(reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
+        map.clear();
+        inv_map.clear();
+        if (n==0) {
+            for (size_type i=0; i<256; ++i) {
+                map[i] = 255;    // mark each symbol as absent
+            }
+            return 0;
+        }
+        rac.reset();
+        if (rac.int_vector_size < n) {
+            throw std::logic_error("wt<int_vector_file_buffer<8> >: n > rac.int_vector_size!");
+            return 0;
+        }
+
+        for (size_type i=0; i<256; ++i) {
+            map[i] = 0;
+        }
+
+        size_type alphabet_size = 0;
+        size_type r = rac.load_next_block();
+        first_symbol = rac[0];
+        for (size_type i=0, r_sum=0; r_sum < n;) {
+            if (r_sum +r > n) {  // make sure that not more than n characters are read
+                r = n-r_sum;
+            }
+            for (; i< r_sum+r; ++i) {
+                value_type c = rac[i-r_sum];
                 map[c] = 1;
             }
+            r_sum += r; r = rac.load_next_block();
+        }
 
-            for (size_type i=0; i<256; ++i) {
-                if (map[i]) {
-                    map[i] = alphabet_size;
-                    ++alphabet_size;
-                } else {
-                    map[i] = 255;
-                }
-                inv_map[map[i]] = i;
+        for (size_type i=0; i<256; ++i) {
+            if (map[i]) {
+                map[i] = alphabet_size;
+                ++alphabet_size;
+            } else {
+                map[i] = 255;
             }
-            return alphabet_size;
+            inv_map[map[i]] = i;
         }
+        return alphabet_size;
+    }
 
-        static bool symbol_available(const map_type& map, const value_type c, SDSL_UNUSED const value_type first_symbol, const size_type sigma) {
-            return sigma==256 or map[c] < 255;
-        }
+    static bool symbol_available(const map_type& map, const value_type c, SDSL_UNUSED const value_type first_symbol, const size_type sigma) {
+        return sigma==256 or map[c] < 255;
+    }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=nullptr,
-                                        SDSL_UNUSED std::string name="") {
-            size_type written_bytes = 0;
-            written_bytes += map.serialize(out, v, "alphabet_map");
-            written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
-            return written_bytes;
-        }
+    static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=nullptr, SDSL_UNUSED std::string name="") {
+        size_type written_bytes = 0;
+        written_bytes += map.serialize(out, v, "alphabet_map");
+        written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
+        return written_bytes;
+    }
 
-        static void load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
-            map.load(in);
-            inv_map.load(in);
-        }
-};
-
-template<>
-class wt_trait<int_vector_file_buffer<8> >
-{
-    public:
-        typedef int_vector_size_type        size_type;
-        typedef unsigned char               value_type;
-        typedef int_vector_file_buffer<8>&  reference_type;
-        typedef unsigned_char_map           map_type;
-        typedef unsigned_char_map           inv_map_type;
-        enum { char_node_map_size=256 };
-
-        static size_type alphabet_size_and_map(reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
-            map.clear();
-            inv_map.clear();
-            if (n==0) {
-                for (size_type i=0; i<256; ++i) {
-                    map[i] = 255;    // mark each symbol as absent
-                }
-                return 0;
-            }
-            rac.reset();
-            if (rac.int_vector_size < n) {
-                throw std::logic_error("wt<int_vector_file_buffer<8> >: n > rac.int_vector_size!");
-                return 0;
-            }
-
-            for (size_type i=0; i<256; ++i) {
-                map[i] = 0;
-            }
-
-            size_type alphabet_size = 0;
-            size_type r = rac.load_next_block();
-            first_symbol = rac[0];
-            for (size_type i=0, r_sum=0; r_sum < n;) {
-                if (r_sum +r > n) {  // make sure that not more than n characters are read
-                    r = n-r_sum;
-                }
-                for (; i< r_sum+r; ++i) {
-                    value_type c = rac[i-r_sum];
-                    map[c] = 1;
-                }
-                r_sum += r; r = rac.load_next_block();
-            }
-
-            for (size_type i=0; i<256; ++i) {
-                if (map[i]) {
-                    map[i] = alphabet_size;
-                    ++alphabet_size;
-                } else {
-                    map[i] = 255;
-                }
-                inv_map[map[i]] = i;
-            }
-            return alphabet_size;
-        }
-
-        static bool symbol_available(const map_type& map, const value_type c, SDSL_UNUSED const value_type first_symbol, const size_type sigma) {
-            return sigma==256 or map[c] < 255;
-        }
-
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=nullptr, SDSL_UNUSED std::string name="") {
-            size_type written_bytes = 0;
-            written_bytes += map.serialize(out, v, "alphabet_map");
-            written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
-            return written_bytes;
-        }
-
-        static void load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
-            map.load(in);
-            inv_map.load(in);
-        }
+    static void load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
+        map.load(in);
+        inv_map.load(in);
+    }
 };
 
 //! A wavelet tree class for byte sequences.
@@ -252,6 +246,7 @@ template<class t_rac         = unsigned char*,
 class wt
 {
     public:
+
         typedef typename wt_trait<t_rac>::size_type    size_type;
         typedef typename wt_trait<t_rac>::value_type   value_type;
         typedef typename wt_trait<t_rac>::map_type     map_type;
@@ -261,6 +256,7 @@ class wt
         enum { lex_ordered=1 };
 
     private:
+
         size_type       m_size  = 0;
         size_type       m_sigma = 0;    //<- \f$ |\Sigma| \f$
         BitVector       m_tree;         // bit vector to store the wavelet tree
@@ -303,6 +299,7 @@ class wt
         }
 
     public:
+
         const size_type& sigma = m_sigma;
 
         // Default constructor
