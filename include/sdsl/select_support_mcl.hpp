@@ -328,7 +328,7 @@ void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
 
 
 template<uint8_t t_b, uint8_t t_pat_len>
-inline const typename select_support_mcl<t_b,t_pat_len>::size_type select_support_mcl<t_b,t_pat_len>::select(size_type i)const
+inline auto select_support_mcl<t_b,t_pat_len>::select(size_type i)const -> const size_type
 {
     assert(i > 0 and i <= m_arg_cnt);
 
@@ -377,7 +377,7 @@ inline const typename select_support_mcl<t_b,t_pat_len>::size_type select_suppor
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
-inline const typename select_support_mcl<t_b,t_pat_len>::size_type select_support_mcl<t_b,t_pat_len>::operator()(size_type i)const
+inline auto select_support_mcl<t_b,t_pat_len>::operator()(size_type i)const -> const size_type
 {
     return select(i);
 }
@@ -408,7 +408,7 @@ void select_support_mcl<t_b,t_pat_len>::set_vector(const bit_vector* v)
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
-typename select_support_mcl<t_b,t_pat_len>::size_type select_support_mcl<t_b,t_pat_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
+auto select_support_mcl<t_b,t_pat_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const -> size_type
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;

@@ -60,6 +60,7 @@ template<uint8_t t_b=4, class t_rank=rank_support_v5<> >
 class lcp_dac
 {
     public:
+
         typedef typename int_vector<>::value_type     value_type;
         typedef random_access_const_iterator<lcp_dac> const_iterator;
         typedef const_iterator                        iterator;
@@ -78,20 +79,18 @@ class lcp_dac
                sa_order    = 1
              }; // as the lcp_dac is not fast for texts with long repetition
 
-        template<class Cst>  // template inner class which is used in CSTs to parametrize lcp classes
-        class type           // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
-        {
-            public:
-                typedef lcp_dac lcp_type;
+        template<class Cst>
+        struct type {
+            typedef lcp_dac lcp_type;
         };
 
     private:
 
-        int_vector<t_b>   m_data;                  // vector which holds the block data for every level
-        bit_vector        m_overflow;              // indicates, if there exists another block for the current number
-        rank_support_type m_overflow_rank;         // rank for m_overflow
+        int_vector<t_b>   m_data;           // block data for every level
+        bit_vector        m_overflow;       // mark non-end bytes
+        rank_support_type m_overflow_rank;  // rank for m_overflow
         int_vector<64>    m_level_pointer_and_rank;
-        uint8_t           m_max_level;             // maximal number of levels, at most (log n)/b+1
+        uint8_t           m_max_level;      // maximum level < (log n)/b+1
 #ifdef LCP_DAC_CACHING
         int_vector<64>    m_rank_cache;
 #endif
@@ -138,7 +137,15 @@ class lcp_dac
         }
 
         //! Swap method for lcp_dac
-        void swap(lcp_dac& lcp_c);
+        void swap(lcp_dac& lcp_c) {
+            m_data.swap(lcp_c.m_data);
+            m_overflow.swap(lcp_c.m_overflow);
+            util::swap_support(m_overflow_rank, lcp_c.m_overflow_rank,
+                               &m_overflow, &(lcp_c.m_overflow));
+
+            m_level_pointer_and_rank.swap(lcp_c.m_level_pointer_and_rank);
+            std::swap(m_max_level, lcp_c.m_max_level);
+        }
 
         //! Returns a const_iterator to the first element.
         const_iterator begin()const {
@@ -154,16 +161,43 @@ class lcp_dac
         /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
          * Time complexity: O(log n/k)
          */
-        inline value_type operator[](size_type i)const;
+        inline value_type operator[](size_type i)const {
+            uint8_t level = 1;
+            uint8_t offset = t_b;
+            size_type result = m_data[i];
+            const uint64_t* p = m_level_pointer_and_rank.data();
+            uint64_t ppi = (*p)+i;
+            while (level < m_max_level and m_overflow[ppi]) {
+                p += 2;
+                ppi = *p + (m_overflow_rank(ppi) - *(p-1));
+                result |= (m_data[ppi] << (offset));
+                ++level;
+                offset += t_b;
+            }
+            return result;
+        }
 
         //! Assignment Operator.
-        lcp_dac& operator=(const lcp_dac& lcp_c);
+        lcp_dac& operator=(const lcp_dac& lcp_c) {
+            if (this != &lcp_c) {
+                copy(lcp_c);
+            }
+            return *this;
+        }
 
         //! Serialize to a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="") const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
+                            std::string name="") const;
 
         //! Load from a stream.
-        void load(std::istream& in);
+        void load(std::istream& in) {
+            m_data.load(in);
+            m_overflow.load(in);
+            m_overflow_rank.load(in, &m_overflow);
+            m_level_pointer_and_rank.load(in);
+            read_member(m_max_level, in);
+        }
+
 };
 
 // == template functions ==
@@ -175,24 +209,27 @@ lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
 //  (1) Count for each level, how many blocks are needed for the representation
 //      Running time: \f$ O(n \times \frac{\log n}{b}  \f$
 //      Result is sorted in m_level_pointer_and_rank
-    int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
+    std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
+    int_vector_file_buffer<> lcp_buf(lcp_file);
     size_type n = lcp_buf.int_vector_size, val=0;
     if (n == 0)
         return;
-//         initialize counter
-    m_level_pointer_and_rank.resize(std::max(4*bits::hi(2), 2*(((bits::hi(n)+1)+t_b-1) / t_b)));
+// initialize counter
+    auto _size =  std::max(4*bits::hi(2), 2*(((bits::hi(n)+1)+t_b-1) / t_b));
+    m_level_pointer_and_rank.resize(_size);
     for (size_type i=0; i < m_level_pointer_and_rank.size(); ++i)
         m_level_pointer_and_rank[i] = 0;
     m_level_pointer_and_rank[0] = n; // level 0 has n entries
 
     uint8_t level_x_2 = 0;
-    for (size_type i=0, r_sum=0, r = lcp_buf.load_next_block(); r_sum < n;) {
+    for (size_type i=0, r_sum=0, r = 0; r_sum < n;) {
         for (; i < r_sum+r; ++i) {
             val=lcp_buf[i-r_sum];
             val >>= t_b; // shift value b bits to the right
             level_x_2 = 2;
             while (val) {
-                ++m_level_pointer_and_rank[level_x_2]; // increase counter for current level by 1
+                // increase counter for current level by 1
+                ++m_level_pointer_and_rank[level_x_2];
                 val >>= t_b; // shift value b bits to the right
                 level_x_2 += 2; // increase level by 1
             }
@@ -222,7 +259,7 @@ lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
     const uint64_t mask = bits::lo_set[t_b];
 
     lcp_buf.reset();
-    for (size_type i=0,j=0, r_sum=0, r = lcp_buf.load_next_block(); r_sum < n;) {
+    for (size_type i=0,j=0, r_sum=0, r = 0; r_sum < n;) {
         for (; i < r_sum+r; ++i) {
             val=lcp_buf[i-r_sum];
             j = cnt[0]++;
@@ -231,7 +268,8 @@ lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
             level_x_2 = 2;
             while (val) {
                 m_overflow[j] = 1;
-                j = cnt[level_x_2]++; // increase counter for current level by 1
+                // increase counter for current level by 1
+                j = cnt[level_x_2]++;
                 m_data[ j ] = val & mask;
                 val >>= t_b; // shift value b bits to the right
                 level_x_2 += 2; // increase level by 1
@@ -245,71 +283,28 @@ lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
     util::init_support(m_overflow_rank, &m_overflow);
     for (size_type i=0; 2*i < m_level_pointer_and_rank.size() and
          m_level_pointer_and_rank[2*i] < m_overflow.size(); ++i) {
-        m_level_pointer_and_rank[2*i+1] = m_overflow_rank(m_level_pointer_and_rank[2*i]);
+        m_level_pointer_and_rank[2*i+1] = m_overflow_rank(
+                                              m_level_pointer_and_rank[2*i]);
     }
 }
 
-template<uint8_t t_b, class t_rank>
-void lcp_dac<t_b, t_rank>::swap(lcp_dac& lcp_c)
-{
-    m_data.swap(lcp_c.m_data);
-    m_overflow.swap(lcp_c.m_overflow);
-    util::swap_support(m_overflow_rank, lcp_c.m_overflow_rank, &m_overflow, &(lcp_c.m_overflow));
-
-    m_level_pointer_and_rank.swap(lcp_c.m_level_pointer_and_rank);
-    std::swap(m_max_level, lcp_c.m_max_level);
-}
 
 template<uint8_t t_b, class t_rank>
-inline typename lcp_dac<t_b, t_rank>::value_type lcp_dac<t_b, t_rank>::operator[](size_type i)const
+auto lcp_dac<t_b, t_rank>::serialize(std::ostream& out,
+                                     structure_tree_node* v,
+                                     std::string name) const -> size_type
 {
-    uint8_t level = 1;
-    uint8_t offset = t_b;
-    size_type result = m_data[i];
-    const uint64_t* p = m_level_pointer_and_rank.data();
-    uint64_t ppi = (*p)+i;
-    while (level < m_max_level and m_overflow[ppi]) {
-        p += 2;
-        ppi = *p + (m_overflow_rank(ppi) - *(p-1));
-        result |= (m_data[ppi] << (offset));
-        ++level;
-        offset += t_b;
-    }
-    return result;
-}
-
-
-template<uint8_t t_b, class t_rank>
-typename lcp_dac<t_b, t_rank>::size_type lcp_dac<t_b, t_rank>::serialize(std::ostream& out, structure_tree_node* v, std::string name) const
-{
-    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+    structure_tree_node* child = structure_tree::add_child(
+                                     v, name, util::class_name(*this));
     size_type written_bytes = 0;
     written_bytes += m_data.serialize(out, child, "data");
     written_bytes += m_overflow.serialize(out, child, "overflow");
     written_bytes += m_overflow_rank.serialize(out, child, "overflow_rank");
-    written_bytes += m_level_pointer_and_rank.serialize(out, child, "level_pointer_and_rank");
+    written_bytes += m_level_pointer_and_rank.serialize(out,
+                     child, "level_pointer_and_rank");
     written_bytes += write_member(m_max_level, out, child, "max_level");
     structure_tree::add_size(child, written_bytes);
     return written_bytes;
-}
-
-template<uint8_t t_b, class t_rank>
-void lcp_dac<t_b, t_rank>::load(std::istream& in)
-{
-    m_data.load(in);
-    m_overflow.load(in);
-    m_overflow_rank.load(in, &m_overflow);
-    m_level_pointer_and_rank.load(in);
-    read_member(m_max_level, in);
-}
-
-template<uint8_t t_b, class t_rank>
-lcp_dac<t_b, t_rank>& lcp_dac<t_b, t_rank>::operator=(const lcp_dac& lcp_c)
-{
-    if (this != &lcp_c) {
-        copy(lcp_c);
-    }
-    return *this;
 }
 
 } // end namespace sdsl

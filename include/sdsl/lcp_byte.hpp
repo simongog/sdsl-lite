@@ -15,7 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file lcp_byte.hpp
-    \brief lcp_byte.hpp contains an implementation of a (compressed) lcp array.
+    \brief lcp_byte.hpp contains a (compressed) lcp array.
     \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_LCP_BYTE
@@ -52,6 +52,7 @@ template<uint8_t t_width=0>
 class lcp_byte
 {
     public:
+
         typedef typename int_vector<t_width>::value_type value_type;
         typedef random_access_const_iterator<lcp_byte>   const_iterator;
         typedef const_iterator                           iterator;
@@ -69,18 +70,16 @@ class lcp_byte
                sa_order    = 1
              }; // as the lcp_byte is not fast for texts with long repetition
 
-        template<class Cst>  // template inner class which is used in CSTs to parametrize lcp classes
-        class type           // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
-        {
-            public:
-                typedef lcp_byte lcp_type;
+        template<class Cst>
+        struct type {
+            typedef lcp_byte lcp_type;
         };
 
     private:
 
-        int_vector<8>       m_small_lcp;   // vector for lcp values < 255
-        int_vector<t_width> m_big_lcp;     // vector for lcp values > 254
-        int_vector<t_width> m_big_lcp_idx; // index of the lcp entries in the lcp array
+        int_vector<8>       m_small_lcp;   // vector for LCP values < 255
+        int_vector<t_width> m_big_lcp;     // vector for LCP values > 254
+        int_vector<t_width> m_big_lcp_idx; // index of LCP entries in the LCP array
 
         typedef std::pair<size_type, size_type> tPII;
         typedef std::vector<tPII> tVPII;
@@ -92,6 +91,7 @@ class lcp_byte
         }
 
     public:
+
         //! Default Constructor
         lcp_byte() {}
 
@@ -101,7 +101,42 @@ class lcp_byte
         }
 
         //! Constructor
-        lcp_byte(cache_config& config);
+        lcp_byte(cache_config& config) {
+            std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
+            int_vector_file_buffer<> lcp_buf(lcp_file);
+            m_small_lcp = int_vector<8>(lcp_buf.int_vector_size);
+            size_type l=0, max_l=0, max_big_idx=0, big_sum=0;
+
+            for (size_type i=0, r_sum=0, r = 0; r_sum < m_small_lcp.size();) {
+                for (; i < r_sum+r; ++i) {
+                    if ((l=lcp_buf[i-r_sum]) < 255) {
+                        m_small_lcp[i] = l;
+                    } else {
+                        m_small_lcp[i] = 255;
+                        if (l > max_l) max_l = l;
+                        max_big_idx = i;
+                        ++big_sum;
+                    }
+                }
+                r_sum += r;
+                r      = lcp_buf.load_next_block();
+            }
+            m_big_lcp     = int_vector<>(big_sum, 0, bits::hi(max_l)+1);
+            m_big_lcp_idx = int_vector<>(big_sum, 0, bits::hi(max_big_idx)+1);
+
+            lcp_buf.reset();
+            for (size_type i=0, r_sum=0, r = 0,ii=0; r_sum<m_small_lcp.size();) {
+                for (; i < r_sum+r; ++i) {
+                    if ((l=lcp_buf[i-r_sum]) >= 255) {
+                        m_big_lcp[ii] = l;
+                        m_big_lcp_idx[ii] = i;
+                        ++ii;
+                    }
+                }
+                r_sum += r;
+                r      = lcp_buf.load_next_block();
+            }
+        }
 
         //! Number of elements in the instance.
         size_type size()const {
@@ -119,7 +154,12 @@ class lcp_byte
         }
 
         //! Swap method for lcp_byte
-        void swap(lcp_byte& lcp_c);
+        void swap(lcp_byte& lcp_c) {
+            m_small_lcp.swap(lcp_c.m_small_lcp);
+            m_big_lcp.swap(lcp_c.m_big_lcp);
+            m_big_lcp_idx.swap(lcp_c.m_big_lcp_idx);
+        }
+
 
         //! Returns a const_iterator to the first element.
         const_iterator begin()const {
@@ -135,105 +175,45 @@ class lcp_byte
         /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
          * Time complexity: O(1) for small and O(log n) for large values
          */
-        inline value_type operator[](size_type i)const;
+        inline value_type operator[](size_type i)const {
+            if (m_small_lcp[i]!=255) {
+                return m_small_lcp[i];
+            } else {
+                size_type idx = lower_bound(m_big_lcp_idx.begin(),
+                                            m_big_lcp_idx.end(),i)
+                                - m_big_lcp_idx.begin();
+                return m_big_lcp[idx];
+            }
+        }
 
         //! Assignment Operator.
-        lcp_byte& operator=(const lcp_byte& lcp_c);
+        lcp_byte& operator=(const lcp_byte& lcp_c) {
+            if (this != &lcp_c) {
+                copy(lcp_c);
+            }
+            return *this;
+        }
 
         //! Serialize to a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
+                            std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name,
+                                         util::class_name(*this));
+            size_type written_bytes = 0;
+            written_bytes += m_small_lcp.serialize(out, child, "small_lcp");
+            written_bytes += m_big_lcp.serialize(out, child, "large_lcp");
+            written_bytes += m_big_lcp_idx.serialize(out, child, "large_lcp_idx");
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
 
         //! Load from a stream.
-        void load(std::istream& in);
+        void load(std::istream& in) {
+            m_small_lcp.load(in);
+            m_big_lcp.load(in);
+            m_big_lcp_idx.load(in);
+        }
 };
-
-// == template functions ==
-
-template<uint8_t t_width>
-lcp_byte<t_width>::lcp_byte(cache_config& config)
-{
-    int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
-    m_small_lcp = int_vector<8>(lcp_buf.int_vector_size);
-    typename int_vector<>::size_type l=0, max_l=0, max_big_idx=0, big_sum=0;
-
-    for (size_type i=0, r_sum=0, r = lcp_buf.load_next_block(); r_sum < m_small_lcp.size();) {
-        for (; i < r_sum+r; ++i) {
-            if ((l=lcp_buf[i-r_sum]) < 255) {
-                m_small_lcp[i] = l;
-            } else {
-                m_small_lcp[i] = 255;
-                if (l > max_l) max_l = l;
-                max_big_idx = i;
-                ++big_sum;
-            }
-        }
-        r_sum += r;
-        r      = lcp_buf.load_next_block();
-    }
-    m_big_lcp     = int_vector<>(big_sum, 0, bits::hi(max_l)+1);
-    m_big_lcp_idx = int_vector<>(big_sum, 0, bits::hi(max_big_idx)+1);
-
-    lcp_buf.reset();
-    for (size_type i=0, r_sum=0, r = lcp_buf.load_next_block(),ii=0; r_sum<m_small_lcp.size();) {
-        for (; i < r_sum+r; ++i) {
-            if ((l=lcp_buf[i-r_sum]) >= 255) {
-                m_big_lcp[ii] = l;
-                m_big_lcp_idx[ii] = i;
-                ++ii;
-            }
-        }
-        r_sum += r;
-        r      = lcp_buf.load_next_block();
-    }
-}
-
-template<uint8_t t_width>
-void lcp_byte<t_width>::swap(lcp_byte& lcp_c)
-{
-    m_small_lcp.swap(lcp_c.m_small_lcp);
-    m_big_lcp.swap(lcp_c.m_big_lcp);
-    m_big_lcp_idx.swap(lcp_c.m_big_lcp_idx);
-}
-
-template<uint8_t t_width>
-inline typename lcp_byte<t_width>::value_type lcp_byte<t_width>::operator[](size_type i)const
-{
-    if (m_small_lcp[i]!=255) {
-        return m_small_lcp[i];
-    } else {
-        size_type idx = lower_bound(m_big_lcp_idx.begin(), m_big_lcp_idx.end(), i) - m_big_lcp_idx.begin();
-        return m_big_lcp[idx];
-    }
-}
-
-template<uint8_t t_width>
-typename lcp_byte<t_width>::size_type lcp_byte<t_width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
-{
-    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-    size_type written_bytes = 0;
-    written_bytes += m_small_lcp.serialize(out, child, "small_lcp");
-    written_bytes += m_big_lcp.serialize(out, child, "large_lcp");
-    written_bytes += m_big_lcp_idx.serialize(out, child, "large_lcp_idx");
-    structure_tree::add_size(child, written_bytes);
-    return written_bytes;
-}
-
-template<uint8_t t_width>
-void lcp_byte<t_width>::load(std::istream& in)
-{
-    m_small_lcp.load(in);
-    m_big_lcp.load(in);
-    m_big_lcp_idx.load(in);
-}
-
-template<uint8_t t_width>
-lcp_byte<t_width>& lcp_byte<t_width>::operator=(const lcp_byte& lcp_c)
-{
-    if (this != &lcp_c) {
-        copy(lcp_c);
-    }
-    return *this;
-}
 
 } // end namespace sdsl
 #endif

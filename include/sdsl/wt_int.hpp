@@ -58,6 +58,7 @@ template<class t_bitvector   = bit_vector,
 class wt_int
 {
     public:
+
         typedef int_vector<>::size_type  size_type;
         typedef int_vector<>::value_type value_type;
         typedef t_bitvector              bit_vector_type;
@@ -66,7 +67,9 @@ class wt_int
         typedef t_select_zero            select_0_type;
         typedef wt_tag                   index_category;
         typedef int_alphabet_tag         alphabet_category;
+
     protected:
+
         size_type              m_size  = 0;
         size_type              m_sigma = 0;    //<- \f$ |\Sigma| \f$
         bit_vector_type        m_tree;         // bit vector to store the wavelet tree
@@ -93,6 +96,7 @@ class wt_int
         }
 
     private:
+
         void init_buffers(uint32_t max_depth) {
             util::assign(m_path_off, int_vector<64>(max_depth+1));
             util::assign(m_path_rank_off, int_vector<64>(max_depth+1));

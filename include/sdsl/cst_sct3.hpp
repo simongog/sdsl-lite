@@ -1093,7 +1093,7 @@ cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::cst_sct3(cache_config& config, boo
 }
 
 template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
-typename cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::size_type cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
+auto cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::serialize(std::ostream& out, structure_tree_node* v, std::string name) const -> size_type
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;

@@ -46,6 +46,7 @@ template<class t_shape,
 class wt_pc
 {
     public:
+
         typedef int_vector<>::size_type          size_type;
         typedef unsigned char                    value_type;
         typedef t_bitvector                      bit_vector_type;
@@ -242,6 +243,7 @@ class wt_pc
 
 
     public:
+
         const size_type&       sigma = m_sigma;
         const bit_vector_type& tree  = m_tree;
 
