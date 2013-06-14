@@ -344,6 +344,7 @@ public:
     int_vector(size_type size = 0, value_type default_value = 0,
                uint8_t int_width = t_width);
 
+    //! Constructor for initializer_list.
     template<class t_T>
     int_vector(std::initializer_list<t_T> il) : int_vector() {
         resize(il.size());
@@ -353,10 +354,13 @@ public:
         }
     }
 
-    //! Copy constructor for int_vector.
+    //! Move constructor.
+    int_vector(int_vector&& v);
+
+    //! Copy constructor.
     int_vector(const int_vector& v);
 
-    //! Destructor for int_vector.
+    //! Destructor.
     ~int_vector();
 
     //! Equivalent to size() == 0.
@@ -473,10 +477,13 @@ public:
      */
     inline const_reference operator[](const size_type& i) const;
 
-    //! Assignment operator for the int_vector.
+    //! Assignment operator.
     /*! \param v The vector v which should be assigned
      */
     int_vector& operator=(const int_vector& v);
+
+    //! Move assignment operator.
+    int_vector& operator=(int_vector&& v);
 
     //! Equality operator for two int_vectors.
     /*! Two int_vectors are equal if
@@ -1125,6 +1132,14 @@ inline int_vector<t_width>::int_vector(size_type size, value_type default_value,
 }
 
 template<uint8_t t_width>
+inline int_vector<t_width>::int_vector(int_vector&& v) : 
+    m_size(v.m_size), m_data(v.m_data), m_width(v.m_width){
+  v.m_size = 0;       // has to be set for mm::remove
+  v.m_data = nullptr; // ownership of v.m_data now transfered
+  mm::add(this, true);
+}
+
+template<uint8_t t_width>
 inline int_vector<t_width>::int_vector(const int_vector& v):
     m_size(0), m_data(nullptr), m_width(v.m_width)
 {
@@ -1153,14 +1168,19 @@ int_vector<t_width>& int_vector<t_width>::operator=(const int_vector& v)
     return *this;
 }
 
+template<uint8_t t_width>
+int_vector<t_width>& int_vector<t_width>::operator=(int_vector&& v)
+{
+    swap(v);
+    return *this;
+}
+
 // Destructor
 template<uint8_t t_width>
 int_vector<t_width>::~int_vector()
 {
     mm::remove(this);
-    if (m_data != nullptr) {
-        free(m_data); //fixed delete
-    }
+    free(m_data); 
 }
 
 template<uint8_t t_width>
