@@ -67,7 +67,6 @@ ASTYLE_PARAMETERS="--suffix=none \
     --indent-classes \
     --unpad-paren \
     --align-pointer=type \
-    --close-templates\
     --keep-one-line-statements\
     --keep-one-line-blocks\
     --pad-header"
