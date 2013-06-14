@@ -110,7 +110,7 @@ class mm
         mm();
 
         template<class int_vec_t>
-        static void add(int_vec_t* v) {
+        static void add(int_vec_t* v, bool moved=false) {
             if (mm::m_items.find((uint64_t)v) == mm::m_items.end()) {
                 mm_item_base* item = new mm_item<int_vec_t>(v);
                 if (false and util::verbose) {
@@ -118,7 +118,7 @@ class mm
                     std::cout.flush();
                 }
                 mm::m_items[(uint64_t)v] = item;
-                if (item->size()) {
+                if ( !moved and item->size() ) {
                     log("");
                     m_total_memory += item->size(); // add space
                     log("");
