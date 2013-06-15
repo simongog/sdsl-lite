@@ -48,7 +48,7 @@ forward_search(
     const typename t_cst::size_type d,
     const typename t_cst::char_type c,
     typename t_cst::size_type& char_pos,
-    SDSL_UNUSED typename enable_if<is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag()
+    SDSL_UNUSED typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag()
 )
 {
     unsigned char cc = cst.csa.char2comp[c]; // check if c occurs in the text of the csa
@@ -92,7 +92,7 @@ forward_search(const t_cst& cst,
                t_pat_iter end,
                typename t_cst::size_type len,
                typename t_cst::size_type& char_pos,
-               SDSL_UNUSED typename enable_if<is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag()
+               SDSL_UNUSED typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag()
               )
 {
     if (begin==end)
@@ -153,7 +153,7 @@ typename t_cst::size_type locate(
     t_pat_iter begin,
     t_pat_iter end,
     t_rac& occ,
-    SDSL_UNUSED typename enable_if<is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag()
+    SDSL_UNUSED typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag()
 )
 {
     locate(cst.csa, begin, end, occ);
@@ -175,7 +175,7 @@ typename t_cst::size_type extract(
     const t_cst& cst,
     const typename t_cst::node_type& v,
     t_text_iter text,
-    SDSL_UNUSED typename enable_if<is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag()
+    SDSL_UNUSED typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag()
 )
 {
     if (v == cst.root()) {
@@ -201,7 +201,7 @@ template<class t_rac, class t_cst>
 t_rac extract(
     const t_cst& cst,
     const typename t_cst::node_type& v,
-    SDSL_UNUSED typename enable_if<is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag()
+    SDSL_UNUSED typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag()
 )
 {
     if (v==cst.root()) {

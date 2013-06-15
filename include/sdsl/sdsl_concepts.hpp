@@ -39,42 +39,9 @@ struct lcp_tree_compressed_tag {};
 struct lcp_tree_and_lf_compressed_tag {};
 
 
-struct byte_alphabet_tag {
-    static const uint8_t WIDTH=8;
-};
-struct int_alphabet_tag {
-    static const uint8_t WIDTH=0;
-};
+struct byte_alphabet_tag { static const uint8_t WIDTH=8; };
+struct int_alphabet_tag { static const uint8_t WIDTH=0; };
 
 } // end namespace sdsl
-
-
-/*
-  Define enable_if (which is now in C++11),
-  and is_same.
-  Reference:
-    * http://en.cppreference.com/w/cpp/types/enable_if
-    * http://stackoverflow.com/questions/4354665/function-that-takes-an-stl-iterator-over-any-container-of-a-elements-of-a-specif
-*/
-
-template <bool, typename T>
-struct enable_if;
-
-template <typename T>
-struct enable_if<true, T> {
-    typedef T type;
-};
-
-template <typename T, typename U>
-struct is_same {
-    enum {value = false};
-};
-
-template <typename T>
-struct is_same<T, T> {
-    enum {value = true};
-};
-
-
 
 #endif
