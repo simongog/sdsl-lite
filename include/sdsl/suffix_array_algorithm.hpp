@@ -57,7 +57,7 @@ typename t_csa::csa_size_type backward_search(
     typename t_csa::char_type c,
     typename t_csa::size_type& l_res,
     typename t_csa::size_type& r_res,
-    SDSL_UNUSED typename enable_if<is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
 )
 {
     assert(l <= r); assert(r < csa.size());
@@ -102,7 +102,7 @@ typename t_csa::size_type backward_search(
     t_pat_iter end,
     typename t_csa::size_type& l_res,
     typename t_csa::size_type& r_res,
-    SDSL_UNUSED typename enable_if<is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
 )
 {
     t_pat_iter it = end;
@@ -162,7 +162,7 @@ static typename csa_wt<>::csa_size_type bidirectional_search(
     typename csa_wt<>::size_type& r_fwd_res,
     typename csa_wt<>::size_type& l_bwd_res,
     typename csa_wt<>::size_type& r_bwd_res,
-    SDSL_UNUSED typename enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
 )
 {
     assert(l_fwd <= r_fwd); assert(r_fwd < csa_fwd.size());
@@ -224,7 +224,7 @@ typename csa_wt<>::size_type bidirectional_search_backward(
     typename csa_wt<>::size_type& r_fwd_res,
     typename csa_wt<>::size_type& l_bwd_res,
     typename csa_wt<>::size_type& r_bwd_res,
-    SDSL_UNUSED typename enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
 )
 {
     t_pat_iter it = end;
@@ -269,8 +269,14 @@ typename csa_wt<>::size_type bidirectional_search_backward(
  *         Bidirectional search in a string with wavelet trees and bidirectional matching statistics.
  *         Inf. Comput. 213: 13-22
  */
-template<class t_pat_iter, class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-typename csa_wt<>::size_type bidirectional_search_forward(
+template<class t_pat_iter,
+         class t_wt,
+         uint32_t t_dens,
+         uint32_t t_inv_dens,
+         class t_sa_sample_strat,
+         class t_isa,
+         class t_alphabet_strat>
+typename t_wt::size_type bidirectional_search_forward(
     SDSL_UNUSED const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_fwd,
     const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_bwd,
     typename csa_wt<>::size_type l_fwd,
@@ -283,7 +289,7 @@ typename csa_wt<>::size_type bidirectional_search_forward(
     typename csa_wt<>::size_type& r_fwd_res,
     typename csa_wt<>::size_type& l_bwd_res,
     typename csa_wt<>::size_type& r_bwd_res,
-    SDSL_UNUSED typename enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
 )
 {
     t_pat_iter it = begin;
@@ -359,7 +365,7 @@ typename t_csa::size_type locate(
     t_pat_iter begin,
     t_pat_iter end,
     t_rac& occ,
-    SDSL_UNUSED typename enable_if<is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
 )
 {
     typename t_csa::size_type occ_begin, occ_end, occs;
@@ -392,7 +398,7 @@ typename t_csa::size_type extract(
     typename t_csa::size_type begin,
     typename t_csa::size_type end,
     t_text_iter text,
-    SDSL_UNUSED typename enable_if<is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
 )
 {
     typename t_csa::extract_category extract_tag;
@@ -457,7 +463,7 @@ t_rac extract(
     const t_csa& csa,
     typename t_csa::size_type begin,
     typename t_csa::size_type end,
-    SDSL_UNUSED typename enable_if<is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
 )
 {
     assert(end <= csa.size());

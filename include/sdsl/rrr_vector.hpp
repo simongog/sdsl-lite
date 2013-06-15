@@ -33,11 +33,12 @@
 namespace sdsl
 {
 
-
-template<uint8_t t_b=1, uint16_t t_bs=15, class t_rac=int_vector<> >  // forward declaration needed for friend declaration
+// forward declaration needed for friend declaration
+template<uint8_t t_b=1, uint16_t t_bs=15, class t_rac=int_vector<> >
 class rank_support_rrr;                // in rrr_vector
 
-template<uint8_t t_b=1, uint16_t t_bs=15, class t_rac=int_vector<> >  // forward declaration needed for friend declaration
+// forward declaration needed for friend declaration
+template<uint8_t t_b=1, uint16_t t_bs=15, class t_rac=int_vector<> >
 class select_support_rrr;                // in rrr_vector
 
 //! A \f$H_0f$-compressed bitvector representation.
@@ -90,7 +91,7 @@ class rrr_vector
         enum { block_size = t_bs };
     private:
         size_type    m_size = 0;  // Size of the original bit_vector.
-        uint16_t     m_k    = 32; // Store rank samples and pointers each m_k-th block.
+        uint16_t     m_k    = 0; // Store rank samples and pointers each m_k-th block.
         rac_type     m_bt;     // Vector for the block types (bt). bt equals the
         // number of set bits in the block.
         bit_vector   m_btnr;   // Compressed block type numbers.
@@ -115,14 +116,18 @@ class rrr_vector
         const bit_vector& btnr = m_btnr;
 
         //! Default constructor
-        /*! \param k Store rank samples and pointers each k-th blocks.
-         */
-        rrr_vector(uint16_t k=32): m_k(k) {};
+        rrr_vector() {};
 
         //! Copy constructor
         rrr_vector(const rrr_vector& rrr) {
             copy(rrr);
         }
+
+        //! Move constructor
+        rrr_vector(rrr_vector&& rrr) : m_size(std::move(rrr.m_size)),
+            m_k(std::move(rrr.m_k)), m_bt(std::move(rrr.m_bt)),
+            m_btnr(std::move(rrr.m_btnr)), m_btnrp(std::move(rrr.m_btnrp)),
+            m_rank(std::move(rrr.m_rank)), m_invert(std::move(rrr.m_invert)) {}
 
         //! Constructor
         /*!
@@ -151,12 +156,12 @@ class rrr_vector
                 sum_rank += x;
                 btnr_pos += rrr_helper_type::space_for_bt(x);
             }
-            util::assign(m_btnr, bit_vector(std::max(btnr_pos, (size_type)64), 0));      // max necessary for case: t_bs == 1
-            util::assign(m_btnrp, int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bits::hi(btnr_pos)+1));
-            util::assign(m_rank, int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*t_bs))>0), 0, bits::hi(sum_rank)+1));
+            m_btnr  = bit_vector(std::max(btnr_pos, (size_type)64), 0);      // max necessary for case: t_bs == 1
+            m_btnrp = int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bits::hi(btnr_pos)+1);
+            m_rank  = int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*t_bs))>0), 0, bits::hi(sum_rank)+1);
             //                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             //   only add a finishing block, if the last block of the superblock is not a dummy block
-            util::assign(m_invert, bit_vector((bt_array.size()+m_k-1)/m_k, 0));
+            m_invert = bit_vector((bt_array.size()+m_k-1)/m_k, 0);
 
             // (2) calculate block type numbers and pointers into btnr and rank samples
             pos = 0; i = 0;
@@ -218,7 +223,7 @@ class rrr_vector
             }
             // for technical reasons we add a last element to m_rank
             m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
-            util::assign(m_bt, bt_array);
+            m_bt = bt_array;
         }
 
         //! Swap method
@@ -264,6 +269,12 @@ class rrr_vector
             if (this != &rrr) {
                 copy(rrr);
             }
+            return *this;
+        }
+
+        //! Move assignment operator
+        rrr_vector& operator=(rrr_vector&& rrr) {
+            swap(rrr);
             return *this;
         }
 
@@ -318,15 +329,15 @@ struct rank_support_rrr_trait<0> {
 
 //! rank_support for the rrr_vector class
 /*!
- * \tparam t_b   The bit pattern of size one. (so `0` or `1`)
- * \tparam t_bs  The block size of the corresponding rrr_vector
- * \tparam t_rac Type used to store the block type in the corresponding rrr_vector.
- *  TODO: Test if the binary search can be speed up by
- *        saving the (n/2)-th rank value in T[0], the (n/4)-th in T[1],
- *        the (3n/4)-th in T[2],... for small number of rank values
- *    is this called hinted binary search???
- *    or is this called
- */
+* \tparam t_b   The bit pattern of size one. (so `0` or `1`)
+* \tparam t_bs  The block size of the corresponding rrr_vector
+* \tparam t_rac Type used to store the block type in the corresponding rrr_vector.
+*  TODO: Test if the binary search can be speed up by
+*        saving the (n/2)-th rank value in T[0], the (n/4)-th in T[1],
+*        the (3n/4)-th in T[2],... for small number of rank values
+*    is this called hinted binary search???
+*    or is this called
+*/
 template< uint8_t t_b, uint16_t t_bs, class t_rac>
 class rank_support_rrr
 {
@@ -444,15 +455,15 @@ class rank_support_rrr
 
 //! Select support for the rrr_vector class.
 /*
- * \tparam t_b   The bit pattern of size one. (so `0` or `1`)
- * \tparam t_bs  The block size of the corresponding rrr_vector
- * \tparam t_rac Type used to store the block type in the corresponding rrr_vector.
- *
- * Possible TODO: Add heap which contains the 10 first items of
- * each binary search could increase performance.
- * Experiments on select_support_interleaved showed about
- * 25%.
- */
+* \tparam t_b   The bit pattern of size one. (so `0` or `1`)
+* \tparam t_bs  The block size of the corresponding rrr_vector
+* \tparam t_rac Type used to store the block type in the corresponding rrr_vector.
+*
+* Possible TODO: Add heap which contains the 10 first items of
+* each binary search could increase performance.
+* Experiments on select_support_interleaved showed about
+* 25%.
+*/
 template< uint8_t t_b, uint16_t t_bs, class t_rac>
 class select_support_rrr
 {

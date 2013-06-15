@@ -163,12 +163,18 @@ class rrr_vector<15, t_rac>
         //! Default constructor
         /*! \param k Store rank samples and pointers each k-th blocks.
          */
-        rrr_vector(uint16_t k=32) : m_k(k) {};
+        rrr_vector() {};
 
         //! Copy constructor
         rrr_vector(const rrr_vector& rrr) {
             copy(rrr);
         }
+
+        //! Move constructor
+        rrr_vector(rrr_vector&& rrr) : m_size(std::move(rrr.m_size)),
+            m_k(std::move(rrr.m_k)), m_bt(std::move(rrr.m_bt)),
+            m_btnr(std::move(rrr.m_btnr)), m_btnrp(std::move(rrr.m_btnrp)),
+            m_rank(std::move(rrr.m_rank)) {}
 
         //! Constructor
         /*!
@@ -292,6 +298,12 @@ class rrr_vector<15, t_rac>
             if (this != &rrr) {
                 copy(rrr);
             }
+            return *this;
+        }
+
+        //! Move assignment
+        rrr_vector& operator=(rrr_vector&& rrr) {
+            swap(rrr);
             return *this;
         }
 
