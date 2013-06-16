@@ -50,7 +50,7 @@ namespace sdsl
  *         FOCS 2000: 390-398
  */
 template<class t_csa>
-typename t_csa::csa_size_type backward_search(
+auto backward_search(
     const t_csa& csa,
     typename t_csa::size_type l,
     typename t_csa::size_type r,
@@ -58,7 +58,7 @@ typename t_csa::csa_size_type backward_search(
     typename t_csa::size_type& l_res,
     typename t_csa::size_type& r_res,
     SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
-)
+) -> decltype(r_res+1-l_res)
 {
     assert(l <= r); assert(r < csa.size());
     typename t_csa::size_type c_begin = csa.C[csa.char2comp[c]];
@@ -94,7 +94,7 @@ typename t_csa::csa_size_type backward_search(
  *         FOCS 2000: 390-398
  */
 template<class t_csa, class t_pat_iter>
-typename t_csa::size_type backward_search(
+auto backward_search(
     const t_csa& csa,
     typename t_csa::size_type l,
     typename t_csa::size_type r,
@@ -103,7 +103,7 @@ typename t_csa::size_type backward_search(
     typename t_csa::size_type& l_res,
     typename t_csa::size_type& r_res,
     SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
-)
+) -> decltype(r+1-l)
 {
     t_pat_iter it = end;
     while (begin < it and r+1-l > 0) {
@@ -151,7 +151,7 @@ struct wt_has_lex_count_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> > {
  *         Inf. Comput. 213: 13-22
  */
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-static typename csa_wt<>::csa_size_type bidirectional_search(
+auto bidirectional_search(
     const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_fwd,
     typename csa_wt<>::size_type l_fwd,
     typename csa_wt<>::size_type r_fwd,
@@ -163,7 +163,7 @@ static typename csa_wt<>::csa_size_type bidirectional_search(
     typename csa_wt<>::size_type& l_bwd_res,
     typename csa_wt<>::size_type& r_bwd_res,
     SDSL_UNUSED typename std::enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
-)
+) -> decltype(r_fwd_res+1-l_fwd_res)
 {
     assert(l_fwd <= r_fwd); assert(r_fwd < csa_fwd.size());
     typedef typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::size_type size_type;
@@ -211,7 +211,7 @@ static typename csa_wt<>::csa_size_type bidirectional_search(
  *         Inf. Comput. 213: 13-22
  */
 template<class t_pat_iter, class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-typename csa_wt<>::size_type bidirectional_search_backward(
+auto bidirectional_search_backward(
     const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_fwd,
     SDSL_UNUSED const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_bwd,
     typename csa_wt<>::size_type l_fwd,
@@ -225,7 +225,7 @@ typename csa_wt<>::size_type bidirectional_search_backward(
     typename csa_wt<>::size_type& l_bwd_res,
     typename csa_wt<>::size_type& r_bwd_res,
     SDSL_UNUSED typename std::enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
-)
+) -> decltype(r_fwd+1-l_fwd)
 {
     t_pat_iter it = end;
     while (begin < it and r_fwd+1-l_fwd > 0) {
@@ -276,7 +276,7 @@ template<class t_pat_iter,
          class t_sa_sample_strat,
          class t_isa,
          class t_alphabet_strat>
-typename t_wt::size_type bidirectional_search_forward(
+auto bidirectional_search_forward(
     SDSL_UNUSED const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_fwd,
     const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_bwd,
     typename csa_wt<>::size_type l_fwd,
@@ -290,7 +290,7 @@ typename t_wt::size_type bidirectional_search_forward(
     typename csa_wt<>::size_type& l_bwd_res,
     typename csa_wt<>::size_type& r_bwd_res,
     SDSL_UNUSED typename std::enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
-)
+) -> decltype(r_fwd+1-l_fwd)
 {
     t_pat_iter it = begin;
     while (it < end and r_fwd+1-l_fwd > 0) {
@@ -318,7 +318,7 @@ typename t_wt::size_type bidirectional_search_forward(
  *        \f$ \Order{ t_{backward\_search} } \f$
  */
 template<class t_csa, class t_pat_iter>
-static typename t_csa::size_type count(
+typename t_csa::size_type count(
     const t_csa& csa,
     t_pat_iter begin,
     t_pat_iter end,

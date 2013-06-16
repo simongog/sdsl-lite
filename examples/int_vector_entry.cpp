@@ -3,6 +3,7 @@
 // which is read from stdin, the value v[i].
 #include <sdsl/int_vector.hpp>
 #include <iostream>
+#include <string>
 
 using namespace std;
 using namespace sdsl;
@@ -20,8 +21,8 @@ int main(int argc, char* argv[])
     cout<<"loaded int_vector<> containing "<<v.size()<<" "<<
         (int)v.width()<<"-bit integers"<<endl;
     if (argc>3) {
-        size_t a=atoll(argv[2]);;
-        size_t b=atoll(argv[3]);
+        size_t a=stoull(argv[2]);;
+        size_t b=stoull(argv[3]);
         if (b >= v.size())
             b = v.size()-1;
         if (a > b)
