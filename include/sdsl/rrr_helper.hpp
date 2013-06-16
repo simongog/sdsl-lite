@@ -49,7 +49,7 @@ struct binomial_coefficients_trait {
 
     //! Read a \f$len\f$-bit integer of type number_type from a bitvector.
     /*!
-     * \param bv     A bit_vector of int_vector from which we extract the integer.
+     * \param bv   A bit_vector of int_vector from which we extract the integer.
      * \param pos  Position of the least significant bit of the integer which should be read.
      * \param len  bit-width of the integer which should be read.
      * \return The len-bit integer.
@@ -256,7 +256,7 @@ class binomial_coefficients
                 number_type(&O1Mask)[MAX_SIZE];    // O1Mask[i] contains a word with the i least significant bits set to 0.
 
                 impl() : table(tBinom::data.table), L1Mask(tBinom::data.L1Mask), O1Mask(tBinom::data.O1Mask) {
-                    /* Note: ttable contains the same content as table, whoever table is -- in the current
+                    /* TODO: ttable contains the same content as table, whoever table is -- in the current
                      *       implementation initialized too late, to be used here. A solution to this problem
                      *       would be appreciated.
                      */
