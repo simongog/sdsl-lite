@@ -220,7 +220,7 @@ vlc_vector<t_coder, t_dens, t_width>::vlc_vector(const Container& c)
     }
     samples = (c.size()+get_sample_dens()-1)/get_sample_dens();
 //    (2) Write z
-    util::assign(m_sample_pointer, int_vector<>(samples+1, 0, bits::hi(z_size+1)+1));
+    m_sample_pointer = int_vector<>(samples+1, 0, bits::hi(z_size+1)+1);
 
     m_z.bit_resize(z_size);
     z_size = 0;
@@ -262,7 +262,7 @@ vlc_vector<t_coder, t_dens, t_width>::vlc_vector(int_vector_file_buffer<int_widt
     samples = (n+get_sample_dens()-1)/get_sample_dens();
 //    (2) Write z
 
-    util::assign(m_sample_pointer, int_vector<>(samples+1, 0, bits::hi(z_size+1)+1));  // add 1 for last entry
+    m_sample_pointer = int_vector<>(samples+1, 0, bits::hi(z_size+1)+1);  // add 1 for last entry
 
 //     (b) Initilize bit_vector for encoded data
     m_z.bit_resize(z_size);

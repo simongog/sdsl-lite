@@ -312,7 +312,7 @@ class wt_pc
                 }
                 r_sum += r; r = input_buf.load_next_block();
             }
-            util::assign(m_tree, tmp_tree);
+            m_tree = bit_vector_type(std::move(tmp_tree));
             // 5. Initialize rank and select data structures for m_tree
             construct_init_rank_select();
             // 6. Finish inner nodes by precalculating the tree_pos_rank values
@@ -358,7 +358,7 @@ class wt_pc
         size_type size()const { return m_size; }
 
         //! Returns whether the wavelet tree contains no data.
-        bool empty()const { return m_size == 0; } 
+        bool empty()const { return m_size == 0; }
 
         //! Recovers the i-th symbol of the original vector.
         /*! \param i Index in the original vector. \f$i \in [0..size()-1]\f$.

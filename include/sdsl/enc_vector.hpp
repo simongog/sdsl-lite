@@ -273,7 +273,7 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c)
         *sv_it = 0; ++sv_it;        // initialize
         *sv_it = z_size+1; ++sv_it; // last entry
 
-        util::assign(m_z, int_vector<>(z_size, 0, 1));
+        m_z = int_vector<>(z_size, 0, 1);
         uint64_t* z_data = t_coder::raw_data(m_z);
         uint8_t offset = 0;
         no_sample = 0;
@@ -329,7 +329,7 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width
     util::set_to_value(m_sample_vals_and_pointer, 0);
 
 //    (b) Initilize bit_vector for encoded data
-    util::assign(m_z, int_vector<>(z_size, 0, 1));
+    m_z = int_vector<>(z_size, 0, 1);
     uint64_t* z_data = t_coder::raw_data(m_z);
     uint8_t offset = 0;
 

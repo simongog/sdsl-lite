@@ -38,9 +38,14 @@ class uint256_t
         uint128_t m_high;
 
     public:
-        inline uint256_t(uint64_t lo=0, uint64_t mid=0, uint128_t high=0):m_lo(lo), m_mid(mid), m_high(high) {}
+        inline uint256_t(uint64_t lo=0, uint64_t mid=0, uint128_t high=0):m_lo(lo),
+            m_mid(mid), m_high(high) {}
 
-        inline uint256_t(const uint256_t& x):m_lo(x.m_lo), m_mid(x.m_mid), m_high(x.m_high) {}
+        inline uint256_t(const uint256_t& x):m_lo(x.m_lo), m_mid(x.m_mid),
+            m_high(x.m_high) {}
+
+        inline uint256_t(uint256_t& x):m_lo(std::move(x.m_lo)),
+            m_mid(std::move(x.m_mid)), m_high(std::move(x.m_high)) {}
 
         inline uint16_t popcount() {
             return ((uint16_t)bits::cnt(m_lo)) + bits::cnt(m_mid)
@@ -129,9 +134,9 @@ class uint256_t
             return uint256_t(m_lo&x.m_lo, m_mid&x.m_mid, m_high&x.m_high);
         }
         /* // is not needed since we can convert uint256_t to uint64_t
-        		uint64_t operator&(uint64_t x){
-        			return m_lo & x;
-        		}
+                uint64_t operator&(uint64_t x){
+                    return m_lo & x;
+                }
         */
 
         inline uint256_t operator<<(int x) {

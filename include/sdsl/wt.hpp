@@ -24,7 +24,7 @@
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
-#include "util.hpp" // for util::assign
+#include "util.hpp"
 #include <set> // for calculating the alphabet size
 #include <map> // for mapping a symbol to its lexicographical index
 #include <algorithm> // for std::swap
@@ -239,10 +239,10 @@ struct wt_trait<int_vector_file_buffer<8> > {
  *   @ingroup wt
  */
 template<class t_rac         = unsigned char*,
-         class BitVector     = bit_vector,
-         class RankSupport   = typename BitVector::rank_1_type,
-         class SelectSupport = typename BitVector::select_1_type,
-         class t_select_zero = typename BitVector::select_0_type>
+         class t_bit_vector     = bit_vector,
+         class RankSupport   = typename t_bit_vector::rank_1_type,
+         class SelectSupport = typename t_bit_vector::select_1_type,
+         class t_select_zero = typename t_bit_vector::select_0_type>
 class wt
 {
     public:
@@ -251,6 +251,7 @@ class wt
         typedef typename wt_trait<t_rac>::value_type   value_type;
         typedef typename wt_trait<t_rac>::map_type     map_type;
         typedef typename wt_trait<t_rac>::inv_map_type inv_map_type;
+        typedef t_bit_vector                           bv_type;
         typedef wt_tag                                 index_category;
         typedef byte_alphabet_tag                      alphabet_category;
         enum { lex_ordered=1 };
@@ -259,7 +260,7 @@ class wt
 
         size_type       m_size  = 0;
         size_type       m_sigma = 0;    //<- \f$ |\Sigma| \f$
-        BitVector       m_tree;         // bit vector to store the wavelet tree
+        bv_type         m_tree;         // bit vector to store the wavelet tree
         RankSupport     m_tree_rank;    // rank support for the wavelet tree bit vector
         SelectSupport   m_tree_select1; // select support for the wavelet tree bit vector
         t_select_zero   m_tree_select0;
@@ -437,7 +438,7 @@ class wt
                     }
                     r_sum += r; r = rac.load_next_block();
                 }
-                util::assign(m_tree, tree);
+                m_tree = bv_type(std::move(tree));
                 util::init_support(m_tree_rank,&m_tree);
                 for (size_type i=0; i < m_node_pointers.size(); ++i) {
                     m_node_pointers_rank[i] = m_tree_rank(m_node_pointers[i]);

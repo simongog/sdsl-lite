@@ -15,7 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file rank_support_v.hpp
-    \brief rank_support_v.hpp contains rank_support_v that support a sdsl::bit_vector with constant time rank information.
+    \brief rank_support_v.hpp contains rank_support_v.
 	\author Simon Gog
 */
 #ifndef INCLUDED_SDSL_RANK_SUPPORT_V
@@ -28,16 +28,15 @@ namespace sdsl
 {
 
 
-//! A class supporting rank queries in constant time. The implementation is a version of the data structure proposed by Vigna (WEA 2008).
+//! A rank structure proposed by Sebastiano Vigna
 /*! \par Space complexity
  *  \f$ 0.25n\f$ for a bit vector of length n bits.
  *
- * The superblock size is 512.
- * Each superblock is subdivided into 512/64 = 8 blocks.
- * So absolute counts for the superblock add 64/512 bits on top of each supported bit.
- * Since the first of the 8 relative count values is 0, we can fit the remaining
- * 7 (each of width log(512)=9) in a 64bit word.
- * The relative counts add another 64/512 bits on top of each supported bit.
+ * The superblock size is 512. Each superblock is subdivided into 512/64 = 8
+ * blocks. So absolute counts for the superblock add 64/512 bits on top of each
+ * supported bit. Since the first of the 8 relative count values is 0, we can
+ * fit the remaining 7 (each of width log(512)=9) in a 64bit word.  The relative
+ * counts add another 64/512 bits on top of each supported bit.
  * In total this results in 128/512=25% overhead.
  *
  * \tparam t_b       Bit pattern `0`,`1`,`10`,`01` which should be ranked.
@@ -54,9 +53,11 @@ template<uint8_t t_b=1, uint8_t t_pat_len=1>
 class rank_support_v : public rank_support
 {
     public:
-        typedef bit_vector bit_vector_type;
+        typedef bit_vector                          bit_vector_type;
+        typedef rank_support_trait<t_b, t_pat_len>  trait_type;
     private:
-        int_vector<64> m_basic_block; // basic block for interleaved storage of superblockrank and blockrank
+        // basic block for interleaved storage of superblockrank and blockrank
+        int_vector<64> m_basic_block;
     public:
         explicit rank_support_v(const bit_vector* v = nullptr) {
             set_vector(v);
@@ -74,8 +75,9 @@ class rank_support_v : public rank_support
             size_type i, j=0;
             m_basic_block[0] = m_basic_block[1] = 0;
 
-            uint64_t carry = rank_support_trait<t_b, t_pat_len>::init_carry();
-            uint64_t sum = rank_support_trait<t_b, t_pat_len>::args_in_the_word(*data, carry), second_level_cnt = 0;
+            uint64_t carry = trait_type::init_carry();
+            uint64_t sum   = trait_type::args_in_the_word(*data, carry);
+            uint64_t second_level_cnt = 0;
             for (i = 1; i < (m_v->capacity()>>6) ; ++i) {
                 if (!(i&0x7)) {// if i%8==0
                     j += 2;
@@ -85,7 +87,7 @@ class rank_support_v : public rank_support
                 } else {
                     second_level_cnt |= sum<<(63-9*(i&0x7));//  54, 45, 36, 27, 18, 9, 0
                 }
-                sum += rank_support_trait<t_b, t_pat_len>::args_in_the_word(*(++data), carry);
+                sum += trait_type::args_in_the_word(*(++data), carry);
             }
             if (i&0x7) { // if i%8 != 0
                 second_level_cnt |= sum << (63-9*(i&0x7));
@@ -103,13 +105,16 @@ class rank_support_v : public rank_support
             m_basic_block = rs.m_basic_block;
         }
 
+        rank_support_v(rank_support_v&&) = default;
+
         const size_type rank(size_type idx) const {
             assert(m_v != nullptr);
             assert(idx <= m_v->size());
-            const uint64_t* p = m_basic_block.data() + ((idx>>8)&0xFFFFFFFFFFFFFFFEULL);// (idx/512)*2
+            const uint64_t* p = m_basic_block.data()
+                                + ((idx>>8)&0xFFFFFFFFFFFFFFFEULL); // (idx/512)*2
             if (idx&0x3F)  // if (idx%64)!=0
                 return  *p + ((*(p+1)>>(63 - 9*((idx&0x1FF)>>6)))&0x1FF) +
-                        rank_support_trait<t_b, t_pat_len>::word_rank(m_v->data(), idx);
+                        trait_type::word_rank(m_v->data(), idx);
             else
                 return  *p + ((*(p+1)>>(63 - 9*((idx&0x1FF)>>6)))&0x1FF);
         }
@@ -122,10 +127,13 @@ class rank_support_v : public rank_support
             return m_v->size();
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
+                            std::string name="")const {
             size_type written_bytes = 0;
-            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-            written_bytes += m_basic_block.serialize(out, child, "cumulative_counts");
+            structure_tree_node* child = structure_tree::add_child(v, name,
+                                         util::class_name(*this));
+            written_bytes += m_basic_block.serialize(out, child,
+                             "cumulative_counts");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -146,6 +154,8 @@ class rank_support_v : public rank_support
             }
             return *this;
         }
+
+        rank_support_v& operator=(rank_support_v&&) = default;
 
         void swap(rank_support_v& rs) {
             if (this != &rs) { // if rs and _this_ are not the same object

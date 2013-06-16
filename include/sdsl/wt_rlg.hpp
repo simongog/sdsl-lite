@@ -198,7 +198,7 @@ class wt_rlg
 
             {
                 int_vector_file_buffer<8> temp_bwt_buf(temp_file);
-                util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
+                m_wt = wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size);
             }
 
             util::init_support(m_b_rank, &m_b);

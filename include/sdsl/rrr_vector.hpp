@@ -209,7 +209,8 @@ class rrr_vector
                     invert = false;
                 }
                 uint16_t space_for_bt = rrr_helper_type::space_for_bt(x=bt_array[i++]);
-                assert(i == bt_array.size());   // no extra dummy block added to bt_array, therefore this condition should hold
+//          no extra dummy block added to bt_array, therefore this condition should hold
+                assert(i == bt_array.size());
                 sum_rank += invert ? (t_bs - x) : x;
                 if (space_for_bt) {
                     number_type bin = rrr_helper_type::decode_btnr(bv, pos, m_size-pos);
@@ -259,8 +260,8 @@ class rrr_vector
             for (size_type j = sample_pos*m_k; j < bt_idx; ++j) {
                 btnrp += rrr_helper_type::space_for_bt(m_bt[j]);
             }
-            uint16_t btnrlen     = rrr_helper_type::space_for_bt(bt);
-            number_type    btnr    = rrr_helper_type::decode_btnr(m_btnr, btnrp, btnrlen);
+            uint16_t btnrlen = rrr_helper_type::space_for_bt(bt);
+            number_type btnr = rrr_helper_type::decode_btnr(m_btnr, btnrp, btnrlen);
             return rrr_helper_type::decode_bit(bt, btnr, off);
         }
 
@@ -396,9 +397,9 @@ class rank_support_rrr
             }
             uint16_t bt = inv ? t_bs - m_v->m_bt[ bt_idx ] : m_v->m_bt[ bt_idx ];
 
-            uint16_t btnrlen     = rrr_helper_type::space_for_bt(bt);
-            number_type    btnr    = rrr_helper_type::decode_btnr(m_v->m_btnr, btnrp, btnrlen);
-            uint16_t popcnt     = rrr_helper_type::decode_popcount(bt, btnr, off);
+            uint16_t btnrlen = rrr_helper_type::space_for_bt(bt);
+            number_type btnr = rrr_helper_type::decode_btnr(m_v->m_btnr, btnrp, btnrlen);
+            uint16_t popcnt  = rrr_helper_type::decode_popcount(bt, btnr, off);
             return rank_support_rrr_trait<t_b>::adjust_rank(rank + popcnt, i);
         }
 
@@ -512,11 +513,11 @@ class select_support_rrr
                 btnrp += (btnrlen=rrr_helper_type::space_for_bt(bt));
             }
             rank -= bt;
-            number_type    btnr = rrr_helper_type::decode_btnr(m_v->m_btnr, btnrp-btnrlen, btnrlen);
+            number_type btnr = rrr_helper_type::decode_btnr(m_v->m_btnr, btnrp-btnrlen, btnrlen);
             return (idx-1) * t_bs + rrr_helper_type::decode_select(bt, btnr, i-rank);
         }
 
-        size_type  select0(size_type i)const {
+        size_type select0(size_type i)const {
             if ((size() - m_v->m_rank[m_v->m_rank.size()-1]) < i) {
                 return size();
             }
@@ -549,7 +550,7 @@ class select_support_rrr
                 btnrp += (btnrlen=rrr_helper_type::space_for_bt(bt));
             }
             rank -= (t_bs-bt);
-            number_type    btnr = rrr_helper_type::decode_btnr(m_v->m_btnr, btnrp-btnrlen, btnrlen);
+            number_type btnr = rrr_helper_type::decode_btnr(m_v->m_btnr, btnrp-btnrlen, btnrlen);
             return (idx-1) * t_bs + rrr_helper_type::template decode_select_bitpattern<0, 1>(bt, btnr, i-rank);
         }
 

@@ -96,8 +96,8 @@ class bit_vector_il
             m_block_num = bv.m_block_num;
             m_superblocks = bv.m_superblocks;
             m_block_shift = bv.m_block_shift;
-            util::assign(m_data, bv.m_data);
-            util::assign(m_rank_samples, bv.m_rank_samples);
+            m_data = bv.m_data;
+            m_rank_samples = bv.m_rank_samples;
         }
 
         bit_vector_il(const bit_vector& bv) {
@@ -111,7 +111,7 @@ class bit_vector_il
             size_type mem =  blocks +         m_superblocks + 1;
 //                          ^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^   ^
 //                          bit vector data | cum. sum data | sum after last block
-            util::assign(m_data, int_vector<64>(mem));
+            m_data = int_vector<64>(mem);
             m_block_num = mem;
 
             /* assign data and calculate super block values */

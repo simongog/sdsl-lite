@@ -160,7 +160,7 @@ class _text_order_sampling : public int_vector<t_width>
                 }
                 r_sum += r; r = sa_buf.load_next_block();
             }
-            util::assign(m_marked, marked);
+            m_marked = std::move(bit_vector_type(marked));
             util::init_support(m_rank_marked, &m_marked);
         }
 

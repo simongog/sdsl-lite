@@ -184,7 +184,7 @@ class rrr_vector<15, t_rac>
         rrr_vector(const bit_vector& bv, uint16_t k=32): m_k(k) {
             m_size = bv.size();
             int_vector<> bt_array;
-            util::assign(bt_array, int_vector<>(m_size/block_size+1, 0, bits::hi(block_size)+1));
+            bt_array = int_vector<>(m_size/block_size+1, 0, bits::hi(block_size)+1);
 
             // (1) calculate the block types and store them in m_bt
             size_type pos = 0, i = 0, x;
@@ -201,10 +201,10 @@ class rrr_vector<15, t_rac>
                 sum_rank += x;
                 btnr_pos += bi_type::space_for_bt(x);
             }
-            util::assign(m_btnr, bit_vector(std::max(btnr_pos, (size_type)64), 0));      // max necessary for case: block_size == 1
-            util::assign(m_btnrp, int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bits::hi(btnr_pos)+1));
+            m_btnr  = bit_vector(std::max(btnr_pos, (size_type)64), 0); // max necessary for case: block_size == 1
+            m_btnrp = int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bits::hi(btnr_pos)+1);
 
-            util::assign(m_rank, int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*block_size))>0), 0, bits::hi(sum_rank)+1));
+            m_rank  = int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*block_size))>0), 0, bits::hi(sum_rank)+1);
             //                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             //                                                                      only add a finishing block, if the last block of the superblock is not a dummy block
             // (2) calculate block type numbers and pointers into btnr and rank samples
@@ -240,7 +240,7 @@ class rrr_vector<15, t_rac>
             }
             // for technical reasons add an additional element to m_rank
             m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
-            util::assign(m_bt, bt_array);
+            m_bt = rac_type(std::move(bt_array));
         }
 
         //! Swap method
@@ -340,7 +340,7 @@ class rrr_vector<15, t_rac>
 
 //! rank_support for the specialized rrr_vector class of block size 15.
 /*! The first template parameter is the bit pattern of size one.
- */
+*/
 template<uint8_t t_b, class t_rac>
 class rank_support_rrr<t_b, 15, t_rac>
 {
