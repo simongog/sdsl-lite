@@ -70,24 +70,24 @@ class select_support_mcl : public select_support
     public:
         typedef bit_vector bit_vector_type;
     private:
-        uint32_t m_logn, m_logn2, m_logn4; // log(size of the supported bit_vector), logn2=\f$ (\log n)^2\f$, \f$logn4=(\log n)^4\f$
-        int_vector<0> m_superblock;        // there exists \f$\frac{n}{4096} < \frac{n}{\log n}\f$ entries
-        // entry i equals the answer to select_1(B,i*4096)
-        int_vector<0>* m_longsuperblock;
-        int_vector<0>* m_miniblock;
-        size_type m_arg_cnt;
+        uint32_t m_logn                 = 0,     // \f$ log(size) \f$
+                 m_logn2                = 0,     // \f$ log^2(size) \f$
+                 m_logn4                = 0;     // \f$ log^4(size) \f$
+        // entry i of m_superblock equals the answer to select_1(B,i*4096)
+        int_vector<0> m_superblock;
+        int_vector<0>* m_longsuperblock = nullptr;
+        int_vector<0>* m_miniblock      = nullptr;
+        size_type m_arg_cnt             = 0;
         void copy(const select_support_mcl<t_b, t_pat_len>& ss);
-        void construct();
         void initData();
         void init_fast(const bit_vector* v=nullptr);
     public:
         explicit select_support_mcl(const bit_vector* v=nullptr);
         select_support_mcl(const select_support_mcl<t_b,t_pat_len>& ss);
+        select_support_mcl(select_support_mcl<t_b,t_pat_len>&& ss) = default;
         ~select_support_mcl();
         void init_slow(const bit_vector* v=nullptr);
         //! Select function
-        /*! \sa select_support.select
-         */
         inline const size_type select(size_type i) const;
         //! Alias for select(i).
         inline const size_type operator()(size_type i)const;
@@ -95,26 +95,14 @@ class select_support_mcl : public select_support
         void load(std::istream& in, const bit_vector* v=nullptr);
         void set_vector(const bit_vector* v=nullptr);
         select_support_mcl<t_b, t_pat_len>& operator=(const select_support_mcl& ss);
-
-        //! Swap operator
-        /*! This swap operator swaps two select_support_mcls in constant time.
-         */
+        select_support_mcl<t_b, t_pat_len>& operator=(select_support_mcl&& ss) = default;
         void swap(select_support_mcl<t_b, t_pat_len>& ss);
 };
 
 
 template<uint8_t t_b, uint8_t t_pat_len>
-void select_support_mcl<t_b,t_pat_len>::construct()
-{
-    m_longsuperblock= nullptr;
-    m_miniblock     = nullptr;
-    m_arg_cnt       = 0;
-}
-
-template<uint8_t t_b, uint8_t t_pat_len>
 select_support_mcl<t_b,t_pat_len>::select_support_mcl(const bit_vector* f_v):select_support(f_v)
 {
-    construct();
     if (t_pat_len>1 or (v!=nullptr and  v->size() < 100000))
         init_slow(v);
     else
@@ -125,7 +113,6 @@ select_support_mcl<t_b,t_pat_len>::select_support_mcl(const bit_vector* f_v):sel
 template<uint8_t t_b, uint8_t t_pat_len>
 select_support_mcl<t_b,t_pat_len>::select_support_mcl(const select_support_mcl& ss):select_support(ss.m_v)
 {
-    construct();
     copy(ss);
 }
 
@@ -208,7 +195,7 @@ void select_support_mcl<t_b,t_pat_len>::init_slow(const bit_vector* v)
     if (m_miniblock != nullptr) delete [] m_miniblock;
     m_miniblock = new int_vector<0>[sb];
 
-    m_superblock = int_vector<0>(sb, 0, m_logn);// TODO: hier koennte man logn noch optimieren...s
+    m_superblock = int_vector<0>(sb, 0, m_logn);
 
 
     size_type arg_position[SUPER_BLOCK_SIZE], arg_cnt=0;

@@ -186,11 +186,11 @@ class wt_rlmn
                 }
                 {
                     int_vector_file_buffer<8> temp_bwt_buf(temp_file);
-                    util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
+                    m_wt = wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size);
                     sdsl::remove(temp_file);
                 }
-                util::assign(m_bl, bl);
-                util::assign(m_bf, bf);
+                m_bl = bit_vector_type(std::move(bl));
+                m_bf = bit_vector_type(std::move(bf));
             }
 
             util::init_support(m_bl_rank, &m_bl);

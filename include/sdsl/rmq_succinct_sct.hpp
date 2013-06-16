@@ -79,9 +79,7 @@ class rmq_succinct_sct
          */
         template<class t_rac>
         rmq_succinct_sct(const t_rac* v=nullptr) {
-            if (v == nullptr) {
-                util::assign(m_sct_bp, bit_vector()); util::assign(m_sct_bp_support, bp_support_type());
-            } else {
+            if (v != nullptr) {
 #ifdef RMQ_SCT_BUILD_BP_NOT_SUCCINCT
                 // this method takes \f$n\log n\f$ bits extra space in the worst case
                 algorithm::construct_supercartesian_tree_bp(*v, m_sct_bp, t_min);

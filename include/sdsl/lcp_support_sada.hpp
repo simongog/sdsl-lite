@@ -131,7 +131,7 @@ class _lcp_support_sada
                 r      = isa_buf.load_next_block();
             }
             data.resize(data_cnt);
-            util::assign(m_data, data);
+            m_data = bit_vector_type(data);
             util::init_support(m_select_support, &m_data);
         }
 

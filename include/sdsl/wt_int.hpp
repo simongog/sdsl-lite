@@ -98,8 +98,8 @@ class wt_int
     private:
 
         void init_buffers(uint32_t max_depth) {
-            util::assign(m_path_off, int_vector<64>(max_depth+1));
-            util::assign(m_path_rank_off, int_vector<64>(max_depth+1));
+            m_path_off = int_vector<64>(max_depth+1);
+            m_path_rank_off = int_vector<64>(max_depth+1);
         }
 
     public:
@@ -216,7 +216,7 @@ class wt_int
             bit_vector tree;
             load_from_file(tree, tree_out_buf_file_name);
             std::remove(tree_out_buf_file_name.c_str());
-            util::assign(m_tree, tree);
+            m_tree = bit_vector_type(std::move(tree));
             util::init_support(m_tree_rank, &m_tree);
             util::init_support(m_tree_select0, &m_tree);
             util::init_support(m_tree_select1, &m_tree);
