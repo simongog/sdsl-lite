@@ -30,9 +30,9 @@ int main(int argc, char* argv[])
     uint64_t size  = stoull(argv[2]);
     uint64_t width = stoull(argv[3]);
     int_vector<> v(size, 0, width);
-    if ('r' == argv[4][1]) {
+    if ('r' == argv[4][0]) {
         util::set_random_bits(v);
-    } else if ('i' == argv[4][1]) {
+    } else if ('i' == argv[4][0]) {
         util::set_to_id(v);
     } else {
         uint64_t default_value = stoull(argv[4]);
