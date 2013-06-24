@@ -84,7 +84,7 @@ class select_support_mcl : public select_support
     public:
         explicit select_support_mcl(const bit_vector* v=nullptr);
         select_support_mcl(const select_support_mcl<t_b,t_pat_len>& ss);
-        select_support_mcl(select_support_mcl<t_b,t_pat_len>&& ss) = default;
+        select_support_mcl(select_support_mcl<t_b,t_pat_len>&&) = default;
         ~select_support_mcl();
         void init_slow(const bit_vector* v=nullptr);
         //! Select function
@@ -95,7 +95,7 @@ class select_support_mcl : public select_support
         void load(std::istream& in, const bit_vector* v=nullptr);
         void set_vector(const bit_vector* v=nullptr);
         select_support_mcl<t_b, t_pat_len>& operator=(const select_support_mcl& ss);
-        select_support_mcl<t_b, t_pat_len>& operator=(select_support_mcl&& ss) = default;
+        select_support_mcl<t_b, t_pat_len>& operator=(select_support_mcl&&) = default;
         void swap(select_support_mcl<t_b, t_pat_len>& ss);
 };
 
