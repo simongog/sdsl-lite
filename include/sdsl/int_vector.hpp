@@ -1123,7 +1123,7 @@ inline std::ostream& operator<<(std::ostream& os, const int_vector<t_width>& v)
 
 template<uint8_t t_width>
 inline int_vector<t_width>::int_vector(size_type size, value_type default_value, uint8_t intWidth):
-    m_size(0), m_data(nullptr), m_width(intWidth)
+    m_size(0), m_data(nullptr), m_width(t_width)
 {
     mm::add(this);
     int_vector_trait<t_width>::width(m_width, intWidth);
