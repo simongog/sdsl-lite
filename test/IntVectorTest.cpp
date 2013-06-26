@@ -40,59 +40,67 @@ class IntVectorTest : public ::testing::Test
         std::vector<size_type> vec_sizes; // different sizes for the vectors
 };
 
-//! Test the default constructor
-TEST_F(IntVectorTest, DefaultConstruct)
+template<class t_iv>
+void test_Constructors(bool special, uint8_t template_width, size_type constructor_size, uint8_t constructor_width)
 {
-    {
-        sdsl::int_vector<> iv;
-        ASSERT_EQ((size_type)0, iv.size());	   // size should be 0
-        ASSERT_EQ((uint8_t)64, iv.width());   // default width of each element should be 64 bits
-    }
-    {
-        sdsl::bit_vector bv;
-        ASSERT_EQ((size_type)0, bv.size());
-        ASSERT_EQ(1, bv.width());  // for a bit vector the width should be 1 bits
-    }
-    {
-        sdsl::int_vector<8> iv;
-        ASSERT_EQ((size_type)0, iv.size());
-        ASSERT_EQ(8, iv.width());   // default width of each element should be 8 bits
-    }
-    {
-        sdsl::int_vector<16> iv;
-        ASSERT_EQ((size_type)0, iv.size());
-        ASSERT_EQ(16, iv.width());   // default width of each element should be 16 bits
-    }
-    {
-        sdsl::int_vector<32> iv;
-        ASSERT_EQ((size_type)0, iv.size());
-        ASSERT_EQ(32, iv.width());   // default width of each element should be 32 bits
-    }
-    {
-        sdsl::int_vector<64> iv;
-        ASSERT_EQ((size_type)0, iv.size());
-        ASSERT_EQ(64, iv.width());   // default width of each element should be 64 bits
-    }
+	{ // Constructor without argument
+		t_iv iv;
+		ASSERT_EQ((size_type)0, iv.size()); // default size should be 0
+		ASSERT_EQ((uint8_t)template_width, iv.width()); // verify default width of each element
+	}
+	{ // Constructor with one argument
+		t_iv iv(constructor_size);
+		ASSERT_EQ(constructor_size, iv.size());
+		ASSERT_EQ(template_width, iv.width());
+		for (size_type j=0; j < iv.size(); ++j) { // should be initialized with 0s
+			ASSERT_EQ((size_type)0, iv[j]);
+		}
+	}
+	{ // Constructor with two arguments
+		size_type expected_val = rand();
+		t_iv iv(constructor_size, expected_val);
+		ASSERT_EQ(constructor_size, iv.size());
+		ASSERT_EQ(template_width, iv.width());
+		expected_val &= sdsl::bits::lo_set[iv.width()];
+		for (size_type j=0; j < iv.size(); ++j) { // should be initialized with expected_val
+			ASSERT_EQ(expected_val, iv[j]);
+		}
+	}
+	{ // Constructor with three arguments
+		size_type expected_val = rand();
+		t_iv iv(constructor_size, expected_val, constructor_width);
+		ASSERT_EQ(constructor_size, iv.size());
+		if(special) {
+		  ASSERT_EQ(template_width, iv.width());
+		}
+		else {
+		  ASSERT_EQ(constructor_width, iv.width());
+		}
+		expected_val &= sdsl::bits::lo_set[iv.width()];
+		for (size_type j=0; j < iv.size(); ++j) { // should be initialized with expected_val
+			ASSERT_EQ(expected_val, iv[j]);
+		}
+	}
 }
 
-//! Test the parametrized constructor
-TEST_F(IntVectorTest, Constructor)
+//! Test Constructors
+TEST_F(IntVectorTest, Constructors)
 {
+    std::vector<size_type> vec_widths = {15, 32, 55}; // different widths for the vectors
     for (size_type i=0; i < vec_sizes.size(); ++i) {
-        sdsl::int_vector<> iv(vec_sizes[i]);
-        ASSERT_EQ(vec_sizes[i], iv.size());
-        for (size_type j=0; j < iv.size(); ++j) { // should be initialized with 0s
-            ASSERT_EQ((size_type)0, iv[j]);
-        }
-    }
-    for (size_type i=0; i < vec_sizes.size(); ++i) {
-        const size_type val = rand();
-        sdsl::int_vector<> iv(vec_sizes[i], val);
-        ASSERT_EQ(vec_sizes[i], iv.size());
-        for (size_type j=0; j < iv.size(); ++j) { // each element should be initialized with val
-            ASSERT_EQ(val, iv[j]);
-        }
-    }
+	  for(size_type j=0; j<vec_widths.size(); ++j) {
+		// unspecialized
+		test_Constructors<sdsl::int_vector<>   >(false, 64, vec_sizes[i], vec_widths[j]);
+		test_Constructors<sdsl::int_vector<3>  >(false,  3, vec_sizes[i], vec_widths[j]);
+		test_Constructors<sdsl::int_vector<31> >(false, 31, vec_sizes[i], vec_widths[j]);
+		// specialized
+		test_Constructors<sdsl::bit_vector     >(true,  1, vec_sizes[i], vec_widths[j]);
+		test_Constructors<sdsl::int_vector<8>  >(true,  8, vec_sizes[i], vec_widths[j]);
+		test_Constructors<sdsl::int_vector<16> >(true, 16, vec_sizes[i], vec_widths[j]);
+		test_Constructors<sdsl::int_vector<32> >(true, 32, vec_sizes[i], vec_widths[j]);
+		test_Constructors<sdsl::int_vector<64> >(true, 64, vec_sizes[i], vec_widths[j]);
+	  }
+	}
 }
 
 TEST_F(IntVectorTest, Swap)
