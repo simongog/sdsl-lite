@@ -42,6 +42,7 @@
 #include <sys/time.h> // for struct timeval
 #include <sys/resource.h> // for struct rusage
 #include <iomanip>
+#include <numeric>
 
 // macros to transform a defined name to a string
 #define SDSL_STR(x) #x
@@ -514,9 +515,7 @@ void util::set_to_value(t_int_vec& v, uint64_t k)
 template<class t_int_vec>
 void util::set_to_id(t_int_vec& v)
 {
-    for (typename t_int_vec::size_type i=0; i < v.size(); ++i) {
-        v[i] = i;
-    }
+    std::iota(v.begin(), v.end(), 0ULL);
 }
 
 template<class t_int_vec>
