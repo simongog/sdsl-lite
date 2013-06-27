@@ -43,6 +43,7 @@
 #include <sys/resource.h> // for struct rusage
 #include <iomanip>
 #include <numeric>
+#include <random>
 
 // macros to transform a defined name to a string
 #define SDSL_STR(x) #x
@@ -373,23 +374,18 @@ class stop_watch
 template<class t_int_vec>
 void util::set_random_bits(t_int_vec& v, int seed)
 {
+    std::mt19937_64 rng;
     if (0 == seed) {
-        srand48((int)time(NULL)+(int)util::id());
+        rng.seed((uint32_t)time(NULL) + util::id());
     } else
-        srand48(seed);
+        rng.seed(seed);
 
     uint64_t* data = v.m_data;
     if (v.empty())
         return;
-    *data = (((uint64_t)lrand48()&0xFFFFULL)<<48)
-            |(((uint64_t)lrand48()&0xFFFFULL)<<32)
-            |(((uint64_t)lrand48()&0xFFFFULL)<<16)
-            |((uint64_t)lrand48()&0xFFFFULL);
+    *data = rng();
     for (typename t_int_vec::size_type i=1; i < (v.capacity()>>6); ++i) {
-        *(++data) = (((uint64_t)lrand48()&0xFFFFULL)<<48)
-                    |(((uint64_t)lrand48()&0xFFFFULL)<<32)
-                    |(((uint64_t)lrand48()&0xFFFFULL)<<16)
-                    |((uint64_t)lrand48()&0xFFFFULL);
+        *(++data) = rng();
     }
 }
 
