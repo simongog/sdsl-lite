@@ -349,7 +349,7 @@ class int_vector
         int_vector(std::initializer_list<t_T> il) : int_vector() {
             resize(il.size());
             size_type idx = 0;
-for (auto x : il) {
+            for (auto x : il) {
                 (*this)[idx++] = x;
             }
         }
@@ -1210,14 +1210,14 @@ template<uint8_t t_width>
 auto int_vector<t_width>::get_int(size_type idx, const uint8_t len)const -> const value_type
 {
 #ifdef SDSL_DEBUG
-if (idx+len > m_size) {
-throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); idx+len > size()!");
-}
-if (len > 64) {
-throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); len>64!");
-}
+    if (idx+len > m_size) {
+        throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); idx+len > size()!");
+    }
+    if (len > 64) {
+        throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); len>64!");
+    }
 #endif
-return bits::read_int(m_data+(idx>>6), idx&0x3F, len);
+    return bits::read_int(m_data+(idx>>6), idx&0x3F, len);
 }
 
 template<uint8_t t_width>
