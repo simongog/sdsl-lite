@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <algorithm> // for std::min
+#include <random>
 
 namespace
 {
@@ -67,21 +68,21 @@ using testing::Types;
 
 typedef Types<
 wt<unsigned char*, rrr_vector<63> >,
-   wt<unsigned char*, bit_vector_il<>  >,
-   wt<unsigned char*, bit_vector>,
-   wt_huff<bit_vector_il<> >,
-   wt_huff<bit_vector, rank_support_v<> >,
-   wt_huff<bit_vector, rank_support_v5<> >,
-   wt_huff<rrr_vector<63> >,
-   wt_rlmn<>,
-   wt_rlmn<bit_vector>,
-   wt_rlg<>,
-   wt_rlg8<>,
-   wt_hutu<bit_vector_il<> >,
-   wt_hutu<bit_vector, rank_support_v<> >,
-   wt_hutu<bit_vector, rank_support_v5<> >,
-   wt_hutu<rrr_vector<63> >
-   > Implementations;
+wt<unsigned char*, bit_vector_il<>  >,
+wt<unsigned char*, bit_vector>,
+wt_huff<bit_vector_il<> >,
+wt_huff<bit_vector, rank_support_v<> >,
+wt_huff<bit_vector, rank_support_v5<> >,
+wt_huff<rrr_vector<63> >,
+wt_rlmn<>,
+wt_rlmn<bit_vector>,
+wt_rlg<>,
+wt_rlg8<>,
+wt_hutu<bit_vector_il<> >,
+wt_hutu<bit_vector, rank_support_v<> >,
+wt_hutu<bit_vector, rank_support_v5<> >,
+wt_hutu<rrr_vector<63> >
+> Implementations;
 
 TYPED_TEST_CASE(WtByteTest, Implementations);
 
@@ -134,11 +135,12 @@ void test_rank(const tWt& wt, const int_vector<8>& text, size_type n)
         cnt[text[j]]++;
         ASSERT_EQ(cnt[text[j]], wt.rank(j+1, text[j]))<< " j = "<<j<<" text[j]"<<text[j];
     }
+    std::mt19937_64 rng;
     // Do random queries for all characters that do not occur in the string
     for (size_type j=0; j<cnt.size(); ++j) {
         if (cnt[j] == 0) {
             for (size_type k=0; k<1000; ++k) {
-                size_type pos = rand()%(wt.size()+1);
+                size_type pos = rng()%(wt.size()+1);
                 ASSERT_EQ((size_type)0, wt.rank(pos, (unsigned char)j))<<" pos="<<pos;
             }
         }
@@ -199,9 +201,10 @@ void test_interval_symbols(t_T& wt)
     int_vector<8> text;
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
     if (wt.size()) {
+        std::mt19937_64 rng;
         for (size_type t=0; t<10000; ++t) {
-            size_type l = rand()%(wt.size()+1);
-            size_type r = rand()%(wt.size()+1);
+            size_type l = rng()%(wt.size()+1);
+            size_type r = rng()%(wt.size()+1);
             if (r<l) {
                 std::swap(l,r);
             }
@@ -264,9 +267,10 @@ void test_lex_count(t_T& wt)
     int_vector<8> text;
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
     if (wt.size()) {
+        std::mt19937_64 rng;
         for (size_type t=0; t<10000; ++t) {
-            size_type l = rand()%(wt.size()+1);
-            size_type r = rand()%(wt.size()+1);
+            size_type l = rng()%(wt.size()+1);
+            size_type r = rng()%(wt.size()+1);
             if (r<l) {
                 std::swap(l,r);
             }

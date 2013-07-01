@@ -94,12 +94,12 @@ class csa_sada
 
         static const uint32_t linear_decode_limit = 100000;
     private:
-        enc_vector_type m_psi;  // psi function
-        sa_sample_type     m_sa_sample; // suffix array samples
+        enc_vector_type m_psi;        // psi function
+        sa_sample_type  m_sa_sample;  // suffix array samples
         isa_sample_type m_isa_sample; // inverse suffix array samples
         alphabet_type   m_alphabet;   // alphabet component
 
-        uint64_t* m_psi_buf; //[t_dens+1]; // buffer for decoded psi values
+        uint64_t* m_psi_buf = nullptr; //[t_dens+1]; // buffer for decoded psi values
 
         void copy(const csa_sada& csa) {
             m_psi        = csa.m_psi;
@@ -111,8 +111,6 @@ class csa_sada
         void create_buffer() {
             if (enc_vector_type::sample_dens < linear_decode_limit) {
                 m_psi_buf = new uint64_t[enc_vector_type::sample_dens+1];
-            } else {
-                m_psi_buf = nullptr;
             }
         }
 

@@ -162,7 +162,7 @@ uint64_t test_cst_dfs_iterator_and_id(t_cst& cst, uint64_t times=1000000, bool o
 //! Generate nodes of a cst by applying the child operation to each of \f$times\f$ random leaves until we get to the root
 /*!
  * \param t_cst The compressed suffix
- * \param times Numer of random leaves
+ * \param times Number of random leaves
  * \param nodes Reference to a vector which will contain the generated nodes
  * \param x     Seed for the random number generator for the generation of the leaves
  */
@@ -170,11 +170,11 @@ template<class t_cst>
 void generate_nodes_from_random_leaves(const t_cst& cst, uint64_t times, std::vector<typename t_cst::node_type>& nodes, uint64_t x=17)
 {
     typedef typename t_cst::node_type node_type;
-    srand(x);
+    std::mt19937_64 rng(x);
     uint64_t n = cst.csa.size();
     // generate nodes
     for (uint64_t i=0; i<times; ++i) {
-        node_type p = cst.select_leaf(1+ (rand() % n));
+        node_type p = cst.select_leaf(1+ (rng() % n));
         nodes.push_back(p);
         while (p != cst.root()) {
             p = cst.parent(p);
@@ -225,12 +225,12 @@ void test_cst_parent_operation(const t_cst& cst, uint64_t times=100000, uint64_t
 {
     typedef typename t_cst::node_type node_type;
 
-    srand(x);
+    std::mt19937_64 rng(x);
     uint64_t n = cst.csa.size();
     // take \f$ time \f$ random leaves
     std::vector<node_type> rand_leaf(times);
     for (uint64_t i=0; i<rand_leaf.size(); ++i) {
-        rand_leaf[i] = cst.select_leaf(1+ (rand() % n));
+        rand_leaf[i] = cst.select_leaf(1+ (rng() % n));
     }
 
     node_type p;
@@ -361,9 +361,9 @@ void test_cst_lca_operation(const t_cst& cst, uint64_t times=1000000, uint64_t x
     uint64_t n = cst.csa.size();
     uint64_t mask = (1<<20)-1;
     std::vector<node_type> nodes(1<<20);
-    srand(x);
+    std::mt19937_64 rng(x);
     for (uint64_t i=0; i < nodes.size(); ++i) {
-        nodes[i] = cst.select_leaf(rand()%n + 1);
+        nodes[i] = cst.select_leaf(rng()%n + 1);
     }
 
     uint64_t cnt=0;
@@ -386,10 +386,10 @@ void test_cst_sl_operation(const t_cst& cst, uint64_t times=500, uint64_t x=17)
         times = n;
 
     std::vector<node_type> nodes(times);
-    srand(x);
+    std::mt19937_64 rng(x);
     // take \f$ times \f$ random leaves and calculate each parent
     for (uint64_t i=0; i<times; ++i) {
-        nodes[i] = cst.parent(cst.select_leaf(rand()%n + 1));
+        nodes[i] = cst.parent(cst.select_leaf(rng()%n + 1));
     }
 
     uint64_t cnt=0;

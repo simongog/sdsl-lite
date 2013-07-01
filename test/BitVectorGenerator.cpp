@@ -1,6 +1,7 @@
 #include "sdsl/int_vector.hpp"
 #include <string>
 #include <cstdlib>
+#include <random>
 
 using namespace std;
 using namespace sdsl;
@@ -21,21 +22,21 @@ int main(int argc, char* argv[])
         bv[1] = bv[4] = bv[7] = bv[18] = bv[24] = bv[26] = bv[30] = bv[31] = 1;
     } else if ("CRAFTED-SPARSE-0" == ID or "CRAFTED-SPARSE-1" == ID) {
         bool default_value = ID[ID.length()-1]-'0';
-        srand48(13);
+        std::mt19937_64 rng(13);
         bv = bit_vector(1000000, default_value);
         // populate vectors with some other bits
         for (uint64_t i=0; i < bv.size()/1000; ++i) {
-            uint64_t x = lrand48()%bv.size();
+            uint64_t x = rng()%bv.size();
             bv[x] = !default_value;
         }
     } else if ("CRAFTED-BLOCK-0" == ID or "CRAFTED-BLOCK-1" == ID) {
         bool default_value = ID[ID.length()-1]-'0';
-        srand48(13);
+        std::mt19937_64 rng(13);
         bv = bit_vector(1000000, default_value);
         // populate vectors with some blocks of other bits
         for (uint64_t i=0; i< bv.size()/1000; ++i) {
-            uint64_t x = lrand48()%bv.size();
-            uint64_t len = lrand48()%1000;
+            uint64_t x = rng()%bv.size();
+            uint64_t len = rng()%1000;
             for (uint64_t j=x; j<x+len and j<bv.size(); ++j) {
                 bv[j] = 0;
             }

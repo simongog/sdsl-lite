@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
         cout << "     Vector will be initialized with random bits, if " << endl;
         cout << "     DEFAULT_VALUE=r. If DEFAULT_VALUE=i, v will be set to" << endl;
         cout << "     the identity." << endl;
-        cout << " (2) If PERM_SEED is specified, a random_shuffel seeded with" << endl;
+        cout << " (2) If PERM_SEED is specified, a random_shuffle seeded with" << endl;
         cout << "     PERM_SEED will be performed." << endl;
         cout << " (3) Stores the vector to FILE." << endl;
         return 1;
