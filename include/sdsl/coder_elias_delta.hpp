@@ -35,14 +35,79 @@ class elias_delta
     public:
         typedef uint64_t size_type;
 
-        //! Array contains precomputed values for the decoding of the prefix sum of Elias-Delta encoded numbers.
-        /*! The 8 most significant bits contain the length of decoded bits.
-         *  The following 8 bits contain the number of decoded values.
-         *  The last 16 bits contain the sum of the decoded values.
-         */
-        static const uint32_t EliasDeltaPrefixSum[1<<16];
+        static struct impl {
+            //! Array contains precomputed values for the decoding of the prefix sum of Elias-Delta encoded numbers.
+            /*! The 8 most significant bits contain the length of decoded bits.
+             *  The following 8 bits contain the number of decoded values.
+             *  The last 16 bits contain the sum of the decoded values.
+             */
+            uint32_t prefixsum[1<<16];
 
-        static const uint16_t EliasDeltaPrefixSum8bit[(1<<8)*8];
+            uint16_t prefixsum_8bit[(1<<8)*8];
+
+            impl() {
+                // initialize prefixsum
+                for (uint64_t x=0; x < (1<<16); ++x) {
+                    const uint64_t* w = &x; // copy of x
+                    uint64_t value = 0;
+                    uint16_t numbers = 0, offset=0, offset2=0;
+                    while ((x >> offset) !=0) {
+                        uint64_t len_1_len = bits::read_unary(w, offset), len = 0;
+                        if (len_1_len == 0) {
+                            offset += 1;
+                            value += 1;
+                            ++numbers;
+                        } else {
+                            offset2 = offset + len_1_len +1;
+                            len = bits::read_int(w, offset2, len_1_len) + (1ULL << len_1_len);
+                            offset2 += len_1_len;
+                            if (offset2 + len-1 <= 16) {
+                                value += bits::read_int(w, offset2, len-1) + (1ULL << (len-1));
+                                offset = offset2 + len - 1;
+                                ++numbers;
+                            } else break;
+                        }
+                    }
+                    uint32_t result=0;// the highest 8 bit equal the shift/offset, the second highest 8 bit equal the number of decoded values,
+                    // and the last 16 bit equals value of decoded prefix sum
+                    result = (offset << 24) | (numbers<<16) | value;
+                    if (value>0)
+                        assert(offset > 0  and numbers > 0 and offset<=16 and numbers <= 16);
+                    prefixsum[x] = result;
+                }
+                // initialize prefixsum_8bit
+
+                for (uint32_t maxi=1, idx=0; maxi<=8; ++maxi) {
+                    for (uint64_t x=0; x < (1<<8); ++x) {
+                        const uint64_t* w = &x; // copy of x
+                        uint64_t value = 0;
+                        uint32_t numbers = 0, offset=0, offset2=0;
+                        while ((x >> offset) !=0 and numbers < maxi) {
+                            uint64_t len_1_len = bits::read_unary(w, offset), len = 0;
+                            if (len_1_len == 0) {
+                                offset += 1;
+                                value += 1;
+                                ++numbers;
+                            } else {
+                                offset2 = offset + len_1_len +1;
+                                len = bits::read_int(w, offset2, len_1_len) + (1ULL << len_1_len);
+                                offset2 += len_1_len;
+                                if (offset2 + len-1 <= 8) {
+                                    value += bits::read_int(w, offset2, len-1) + (1ULL << (len-1));
+                                    offset = offset2 + len - 1;
+                                    ++numbers;
+                                } else break;
+                            }
+                        }
+                        uint16_t result=0;// the highest 8 bit equal the shift/offset, the second highest 8 bit equal the number of decoded values,
+                        // and the last 16 bit equals value of decoded prefix sum
+                        result = (offset << 8) | (numbers<<4) | value;
+                        prefixsum_8bit[idx++] = result;
+                    }
+                }
+            }
+        } data;
+
         static const uint8_t min_codeword_length = 1; // 1 represents 1 and is the code word with minimum length
         static uint8_t encoding_length(uint64_t);
         //! Decode n Elias-delta encoded bits beginning at start_idx in the bitstring "data"
