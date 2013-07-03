@@ -64,6 +64,7 @@ namespace sdsl
 template<uint8_t t_width>
 void construct_lcp_kasai(cache_config& config)
 {
+    static_assert(t_width == 0 or t_width == 8 , "construct_lcp_kasai: width must be `0` for integer alphabet and `8` for byte alphabet");
     int_vector<> lcp;
     typedef int_vector<>::size_type size_type;
     construct_isa(config);
@@ -127,6 +128,7 @@ void construct_lcp_kasai(cache_config& config)
 template<uint8_t t_width>
 void construct_lcp_PHI(cache_config& config)
 {
+    static_assert(t_width == 0 or t_width == 8 , "construct_lcp_PHI: width must be `0` for integer alphabet and `8` for byte alphabet");
     typedef int_vector<>::size_type size_type;
     typedef int_vector<t_width> text_type;
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
