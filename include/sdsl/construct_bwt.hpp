@@ -49,6 +49,8 @@ namespace sdsl
 template<uint8_t t_width>
 void construct_bwt(cache_config& config)
 {
+    static_assert(t_width == 0 or t_width == 8 , "construct_bwt: width must be `0` for integer alphabet and `8` for byte alphabet");
+
     typedef int_vector<>::size_type size_type;
     typedef int_vector<t_width> text_type;
     typedef int_vector<t_width> bwt_type;
