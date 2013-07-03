@@ -30,6 +30,7 @@
 #include <deque>
 #include <queue>
 #include <utility>
+#include <array>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -118,7 +119,7 @@ class wt_pc
 
 
         // calculates the tree shape returns the size of the WT bit vector
-        size_type construct_tree_shape(const size_type* C) {
+        size_type construct_tree_shape(const std::array<size_type, 256>& C) {
             // vector  for node of the tree
             std::vector<_node<size_type>> temp_nodes(2*m_sigma-1);
             size_type node_cnt = shape::construct_tree(C, temp_nodes);
@@ -266,7 +267,7 @@ class wt_pc
             if (0 == m_size)
                 return;
             // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
-            size_type C[256] = {0};
+            std::array<size_type,256> C = {{0}};
             // 1. Count occurrences of characters
             calculate_character_occurences(input_buf, m_size, C);
             // 2. Calculate effective alphabet size

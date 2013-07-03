@@ -85,21 +85,26 @@ struct _huff_shape {
     typedef std::pair<size_type, size_type>  tPII;    // (freq, nodenr)-pair
     typedef std::priority_queue
     <tPII, std::vector<tPII>,
-    std::greater<tPII>>           tMPQPII; // min priority queue
+    std::greater<tPII>>                      tMPQPII; // min priority queue
     enum { lex_ordered = 0 };
 
+    template<class t_rac>
     static size_type
-    construct_tree(const size_type* C, vector<_node<size_type>>& temp_nodes) {
+    construct_tree(t_rac& C, vector<_node<size_type>>& temp_nodes) {
         tMPQPII pq;
         size_type node_cnt=0;
-        for (size_type i=0; i < 256; ++i) // add leafs of Huffman tree
-            if (C[i] > 0) {
-                pq.push(tPII(C[i], node_cnt));// push (frequency, node pointer)
+        // add leaves of Huffman tree
+        std::for_each(std::begin(C), std::end(C), [&](decltype(*std::begin(C)) &freq) {
+            static size_type i=0;
+            if (freq > 0) {
+                pq.push(tPII(freq, node_cnt));// push (frequency, node pointer)
                 // initial tree_pos with number of occurrences and tree_pos_rank
                 // value with the code of the corresponding char, parent,
                 // child[0], and child[1] are set to _undef_node
-                temp_nodes[node_cnt++] = _node<size_type>(C[i], i);
+                temp_nodes[node_cnt++] = _node<size_type>(freq, i);
             }
+            ++i;
+        });
         while (pq.size() > 1) {
             tPII v1, v2;
             v1 = pq.top(); pq.pop();
