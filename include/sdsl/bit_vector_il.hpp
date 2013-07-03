@@ -202,7 +202,7 @@ template<uint8_t t_b, uint32_t t_bs>
 class rank_support_il
 {
     private:
-        static_assert(t_b != 1 and t_b != 0 , "rank_support_il only supports bitpatterns 0 or 1.");
+        static_assert(t_b == 1 or t_b == 0 , "rank_support_il only supports bitpatterns 0 or 1.");
     public:
         typedef bit_vector::size_type size_type;
         typedef bit_vector_il<t_bs>   bit_vector_type;
