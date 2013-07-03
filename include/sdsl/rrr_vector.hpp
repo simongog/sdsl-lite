@@ -70,6 +70,8 @@ class select_support_rrr;                // in rrr_vector
 template<uint16_t t_bs=15, class t_rac=int_vector<> >
 class rrr_vector
 {
+    private:
+        static_assert(t_bs >= 15 and t_bs <= 256 , "rrr_vector: block size t_bs must be 15 <= t_bs <= 256.");
     public:
         typedef bit_vector::size_type  size_type;
         typedef bit_vector::value_type value_type;
@@ -342,6 +344,8 @@ struct rank_support_rrr_trait<0> {
 template< uint8_t t_b, uint16_t t_bs, class t_rac>
 class rank_support_rrr
 {
+    private:
+        static_assert(t_b == 1u or t_b == 0u , "rank_support_rrr: bit pattern must be `0` or `1`");
     public:
         typedef rrr_vector<t_bs, t_rac> bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
@@ -468,6 +472,8 @@ class rank_support_rrr
 template< uint8_t t_b, uint16_t t_bs, class t_rac>
 class select_support_rrr
 {
+    private:
+        static_assert(t_b == 1u or t_b == 0u , "select_support_rrr: bit pattern must be `0` or `1`");
     public:
         typedef rrr_vector<t_bs, t_rac> bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
@@ -612,6 +618,6 @@ class select_support_rrr
 };
 
 }// end namespace sdsl
-#include "rrr_vector_15.hpp" // include specialization 
+#include "rrr_vector_15.hpp" // include specialization
 
 #endif

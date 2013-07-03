@@ -289,8 +289,9 @@ struct int_vector_trait<8> {
 template<uint8_t t_width>
 class int_vector
 {
+    private:
+        static_assert(t_width <= 64 , "int_vector: width of must be at most 64bits.");
     public:
-
         typedef typename int_vector_trait<t_width>::value_type      value_type;
         typedef typename int_vector_trait<t_width>::iterator        iterator;
         typedef typename int_vector_trait<t_width>::const_iterator  const_iterator;

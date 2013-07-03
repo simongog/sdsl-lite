@@ -119,6 +119,7 @@ void calculate_sa(const unsigned char* c, typename int_vector<fixedIntWidth>::si
 template<uint8_t t_width>
 void construct_sa(cache_config& config)
 {
+    static_assert(t_width == 0 or t_width == 8 , "construct_sa: width must be `0` for integer alphabet and `8` for byte alphabet");
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
     typedef int_vector<t_width> text_type;
     text_type text;

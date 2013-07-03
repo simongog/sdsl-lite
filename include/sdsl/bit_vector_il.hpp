@@ -49,6 +49,9 @@ class select_support_il;  // in bit_vector_il
 template<uint32_t t_bs=512>
 class bit_vector_il
 {
+    private:
+        static_assert(t_bs >= 64 , "bit_vector_il: blocksize must be be at least 64 bits.");
+        static_assert((t_bs > 1) & !(t_bs & (t_bs - 1)), "bit_vector_il: blocksize must be a power of two.");
     public:
         typedef bit_vector::size_type   size_type;
         typedef size_type               value_type;
@@ -198,6 +201,8 @@ class bit_vector_il
 template<uint8_t t_b, uint32_t t_bs>
 class rank_support_il
 {
+    private:
+        static_assert(t_b != 1 and t_b != 0 , "rank_support_il only supports bitpatterns 0 or 1.");
     public:
         typedef bit_vector::size_type size_type;
         typedef bit_vector_il<t_bs>   bit_vector_type;
@@ -287,6 +292,8 @@ class rank_support_il
 template<uint8_t t_b, uint32_t t_bs>
 class select_support_il
 {
+    private:
+        static_assert(t_b != 1 and t_b != 0 , "select_support_il only supports bitpatterns 0 or 1.");
     public:
         typedef bit_vector::size_type size_type;
         typedef bit_vector_il<t_bs>   bit_vector_type;

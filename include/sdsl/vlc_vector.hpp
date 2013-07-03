@@ -51,6 +51,8 @@ template<class    t_coder = coder::elias_delta,
          uint8_t  t_width = 0>
 class vlc_vector
 {
+    private:
+        static_assert(t_dens > 1 , "vlc_vector: Sampling density must be larger than 1");
     public:
         typedef uint64_t                                 value_type;
         typedef random_access_const_iterator<vlc_vector> iterator;
