@@ -37,6 +37,13 @@ class rank_support_il;  // in bit_vector_il
 template<uint8_t t_b=1,uint32_t t_bs=512>// forward declaration needed for friend declaration
 class select_support_il;  // in bit_vector_il
 
+template<class T>
+constexpr bool power_of_two(T x)
+{
+    return std::is_integral<T>::value and x > 1 and
+           !(x&(x-1));
+}
+
 //! A bit vector which interleaves the original bit_vector with rank information.
 /*!
  * This class is a uncompressed bit vector representation. It copies the original
@@ -51,7 +58,7 @@ class bit_vector_il
 {
     private:
         static_assert(t_bs >= 64 , "bit_vector_il: blocksize must be be at least 64 bits.");
-        static_assert((t_bs > 1) & !(t_bs & (t_bs - 1)), "bit_vector_il: blocksize must be a power of two.");
+        static_assert(power_of_two(t_bs), "bit_vector_il: blocksize must be a power of two.");
     public:
         typedef bit_vector::size_type   size_type;
         typedef size_type               value_type;
