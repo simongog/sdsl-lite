@@ -9,7 +9,7 @@ int main(int argc, char** argv)
 {
     uint64_t len = 50;
     if (argc > 1) {
-        len = atoll(argv[1]);
+        len = stoull(argv[1]);
     }
     int_vector<> v(len, 7); // create a vector of length 50
     for (uint64_t i=1; i < v.size(); ++i) {

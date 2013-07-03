@@ -102,15 +102,15 @@ class bp_support_gg
 
 
             m_pioneer_bp = bp_support.m_pioneer_bp;
-            if (bp_support.m_pioneer_bp_support == NULL) {
-                if (m_pioneer_bp_support != NULL)
+            if (bp_support.m_pioneer_bp_support == nullptr) {
+                if (m_pioneer_bp_support != nullptr)
                     delete m_pioneer_bp_support;
-                m_pioneer_bp_support = NULL;
+                m_pioneer_bp_support = nullptr;
             } else {
-                if (m_pioneer_bp_support != NULL)
+                if (m_pioneer_bp_support != nullptr)
                     delete m_pioneer_bp_support;
                 m_pioneer_bp_support = new bp_support_type(*(bp_support.m_pioneer_bp_support));
-                assert(m_pioneer_bp_support != NULL);
+                assert(m_pioneer_bp_support != nullptr);
                 m_pioneer_bp_support->set_vector(&m_pioneer_bp);
             }
         }
@@ -120,20 +120,20 @@ class bp_support_gg
         const rank_type& bp_rank;
         const select_type& bp_select;
 
-        bp_support_gg(): m_bp(NULL), m_pioneer_bp_support(NULL), m_block_size(840),
+        bp_support_gg(): m_bp(nullptr), m_pioneer_bp_support(nullptr), m_block_size(840),
             m_size(0), m_blocks(0),bp_rank(m_rank_bp),
             bp_select(m_select_bp) {}
 
         //! Constructor
         explicit bp_support_gg(const bit_vector* bp, uint32_t used_block_size = 840):m_bp(bp),
-            m_pioneer_bp_support(NULL), m_block_size(used_block_size),
-            m_size(bp==NULL?0:bp->size()),
+            m_pioneer_bp_support(nullptr), m_block_size(used_block_size),
+            m_size(bp==nullptr?0:bp->size()),
             m_blocks((m_size+used_block_size-1)/used_block_size),
             bp_rank(m_rank_bp),bp_select(m_select_bp) {
             if (m_block_size<=2) {
                 throw std::logic_error(util::demangle(typeid(this).name())+": block_size should be greater than 2!");
             }
-            if (bp == NULL) { // -> m_bp == NULL
+            if (bp == nullptr) { // -> m_bp == nullptr
                 return;
             }
             util::init_support(m_rank_bp, bp);
@@ -145,7 +145,7 @@ class bp_support_gg
             }
 
             m_pioneer_bp.resize(m_nnd.ones());
-            if (m_nnd.ones() > 0  and m_nnd.ones() == m_bp->size()) { // m_bp != NULL see above
+            if (m_nnd.ones() > 0  and m_nnd.ones() == m_bp->size()) { // m_bp != nullptr see above
                 throw std::logic_error(util::demangle(typeid(this).name())+": recursion in the construction does not terminate!");
             }
 
@@ -153,19 +153,19 @@ class bp_support_gg
                 m_pioneer_bp[i-1] = (*m_bp)[m_nnd.select(i)];
             }
 
-            if (m_bp->size() > 0) { // m_bp != NULL see above
+            if (m_bp->size() > 0) { // m_bp != nullptr see above
                 m_pioneer_bp_support = new bp_support_gg<nnd_type, rank_type, select_support_bs<rank_type> >(&m_pioneer_bp, m_block_size);
             }
         }
 
         //! Copy constructor
-        bp_support_gg(const bp_support_gg& bp_support):m_pioneer_bp_support(NULL),bp_rank(m_rank_bp),bp_select(m_select_bp) {
+        bp_support_gg(const bp_support_gg& bp_support):m_pioneer_bp_support(nullptr),bp_rank(m_rank_bp),bp_select(m_select_bp) {
             copy(bp_support);
         }
 
         //! Destructor
         ~bp_support_gg() {
-            if (m_pioneer_bp_support != NULL)
+            if (m_pioneer_bp_support != nullptr)
                 delete m_pioneer_bp_support;
         }
 
@@ -182,10 +182,10 @@ class bp_support_gg
             m_pioneer_bp.swap(bp_support.m_pioneer_bp);
 
             std::swap(m_pioneer_bp_support, bp_support.m_pioneer_bp_support);
-            if (m_pioneer_bp_support != NULL) {
+            if (m_pioneer_bp_support != nullptr) {
                 m_pioneer_bp_support->set_vector(&m_pioneer_bp);
             }
-            if (bp_support.m_pioneer_bp_support != NULL) {
+            if (bp_support.m_pioneer_bp_support != nullptr) {
                 bp_support.m_pioneer_bp_support->set_vector(&(bp_support.m_pioneer_bp));
             }
         }
@@ -465,7 +465,7 @@ class bp_support_gg
          * \param out The outstream to which the data structure is written.
          * \return The number of bytes written to out.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_block_size, out, child, "block_size");
@@ -477,7 +477,7 @@ class bp_support_gg
             written_bytes += m_nnd.serialize(out, child, "nearest_neighbour_dictionary");
 
             written_bytes += m_pioneer_bp.serialize(out, child, "pioneer_bp");
-            if (m_bp != NULL and m_bp->size() > 0)
+            if (m_bp != nullptr and m_bp->size() > 0)
                 written_bytes += m_pioneer_bp_support->serialize(out, child, "pioneer_bp_support");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
@@ -499,11 +499,11 @@ class bp_support_gg
             m_nnd.load(in);
 
             m_pioneer_bp.load(in);
-            if (m_pioneer_bp_support != NULL) {
+            if (m_pioneer_bp_support != nullptr) {
                 delete m_pioneer_bp_support;
-                m_pioneer_bp_support = NULL;
+                m_pioneer_bp_support = nullptr;
             }
-            if (m_bp != NULL and m_bp->size() > 0) {
+            if (m_bp != nullptr and m_bp->size() > 0) {
                 m_pioneer_bp_support = new bp_support_gg<nnd_type, rank_type, select_support_bs<rank_type> >();
                 m_pioneer_bp_support->load(in, &m_pioneer_bp);
             }

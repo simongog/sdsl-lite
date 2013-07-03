@@ -67,55 +67,46 @@ namespace sdsl
 template<uint8_t t_b=1, uint8_t t_pat_len=1>
 class select_support_mcl : public select_support
 {
+    private:
+        static_assert(t_b == 1u or t_b == 0u or t_b == 10u , "select_support_mcl: bit pattern must be `0`,`1`,`10` or `01`");
+        static_assert(t_pat_len == 1u or t_pat_len == 2u , "select_support_mcl: bit pattern length must be 1 or 2");
     public:
         typedef bit_vector bit_vector_type;
     private:
-        uint32_t m_logn, m_logn2, m_logn4; // log(size of the supported bit_vector), logn2=\f$ (\log n)^2\f$, \f$logn4=(\log n)^4\f$
-        int_vector<0> m_superblock;        // there exists \f$\frac{n}{4096} < \frac{n}{\log n}\f$ entries
-        // entry i equals the answer to select_1(B,i*4096)
-        int_vector<0>* m_longsuperblock;
-        int_vector<0>* m_miniblock;
-        size_type m_arg_cnt;
+        uint32_t m_logn                 = 0,     // \f$ log(size) \f$
+                 m_logn2                = 0,     // \f$ log^2(size) \f$
+                 m_logn4                = 0;     // \f$ log^4(size) \f$
+        // entry i of m_superblock equals the answer to select_1(B,i*4096)
+        int_vector<0> m_superblock;
+        int_vector<0>* m_longsuperblock = nullptr;
+        int_vector<0>* m_miniblock      = nullptr;
+        size_type m_arg_cnt             = 0;
         void copy(const select_support_mcl<t_b, t_pat_len>& ss);
-        void construct();
         void initData();
-        void init_fast(const bit_vector* v=NULL);
+        void init_fast(const bit_vector* v=nullptr);
     public:
-        explicit select_support_mcl(const bit_vector* v=NULL);
+        explicit select_support_mcl(const bit_vector* v=nullptr);
         select_support_mcl(const select_support_mcl<t_b,t_pat_len>& ss);
+        select_support_mcl(select_support_mcl<t_b,t_pat_len>&&) = default;
         ~select_support_mcl();
-        void init_slow(const bit_vector* v=NULL);
+        void init_slow(const bit_vector* v=nullptr);
         //! Select function
-        /*! \sa select_support.select
-         */
         inline const size_type select(size_type i) const;
         //! Alias for select(i).
         inline const size_type operator()(size_type i)const;
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
-        void load(std::istream& in, const bit_vector* v=NULL);
-        void set_vector(const bit_vector* v=NULL);
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
+        void load(std::istream& in, const bit_vector* v=nullptr);
+        void set_vector(const bit_vector* v=nullptr);
         select_support_mcl<t_b, t_pat_len>& operator=(const select_support_mcl& ss);
-
-        //! Swap operator
-        /*! This swap operator swaps two select_support_mcls in constant time.
-         */
+        select_support_mcl<t_b, t_pat_len>& operator=(select_support_mcl&&) = default;
         void swap(select_support_mcl<t_b, t_pat_len>& ss);
 };
 
 
 template<uint8_t t_b, uint8_t t_pat_len>
-void select_support_mcl<t_b,t_pat_len>::construct()
-{
-    m_longsuperblock= NULL;
-    m_miniblock     = NULL;
-    m_arg_cnt       = 0;
-}
-
-template<uint8_t t_b, uint8_t t_pat_len>
 select_support_mcl<t_b,t_pat_len>::select_support_mcl(const bit_vector* f_v):select_support(f_v)
 {
-    construct();
-    if (t_pat_len>1 or (v!=NULL and  v->size() < 100000))
+    if (t_pat_len>1 or (v!=nullptr and  v->size() < 100000))
         init_slow(v);
     else
         init_fast(v);
@@ -125,7 +116,6 @@ select_support_mcl<t_b,t_pat_len>::select_support_mcl(const bit_vector* f_v):sel
 template<uint8_t t_b, uint8_t t_pat_len>
 select_support_mcl<t_b,t_pat_len>::select_support_mcl(const select_support_mcl& ss):select_support(ss.m_v)
 {
-    construct();
     copy(ss);
 }
 
@@ -160,19 +150,19 @@ void select_support_mcl<t_b,t_pat_len>::copy(const select_support_mcl<t_b, t_pat
     m_arg_cnt    = ss.m_arg_cnt;    // copy count of 1-bits
     m_v          = ss.m_v;          // copy pointer to the supported bit vector
     size_type sb = (m_arg_cnt+4095)>>12;
-    if (m_longsuperblock!=NULL)
+    if (m_longsuperblock!=nullptr)
         delete [] m_longsuperblock;
-    m_longsuperblock = NULL;
-    if (ss.m_longsuperblock!=NULL) {
+    m_longsuperblock = nullptr;
+    if (ss.m_longsuperblock!=nullptr) {
         m_longsuperblock = new int_vector<0>[sb]; //copy longsuperblocks
         for (size_type i=0; i<sb; ++i) {
             m_longsuperblock[i] = ss.m_longsuperblock[i];
         }
     }
-    if (m_miniblock!=NULL)
+    if (m_miniblock!=nullptr)
         delete [] m_miniblock;
-    m_miniblock = NULL;
-    if (ss.m_miniblock!=NULL) {
+    m_miniblock = nullptr;
+    if (ss.m_miniblock!=nullptr) {
         m_miniblock = new int_vector<0>[sb]; // copy miniblocks
         for (size_type i=0; i<sb; ++i) {
             m_miniblock[i] = ss.m_miniblock[i];
@@ -183,9 +173,9 @@ void select_support_mcl<t_b,t_pat_len>::copy(const select_support_mcl<t_b, t_pat
 template<uint8_t t_b, uint8_t t_pat_len>
 select_support_mcl<t_b,t_pat_len>::~select_support_mcl()
 {
-    if (m_longsuperblock!=NULL)
+    if (m_longsuperblock!=nullptr)
         delete[] m_longsuperblock;
-    if (m_miniblock!=NULL)
+    if (m_miniblock!=nullptr)
         delete[] m_miniblock;
 }
 
@@ -194,7 +184,7 @@ void select_support_mcl<t_b,t_pat_len>::init_slow(const bit_vector* v)
 {
     set_vector(v);
     initData();
-    if (m_v==NULL)
+    if (m_v==nullptr)
         return;
     // Count the number of arguments in the bit vector
     m_arg_cnt = select_support_trait<t_b,t_pat_len>::arg_cnt(*v);
@@ -205,10 +195,10 @@ void select_support_mcl<t_b,t_pat_len>::init_slow(const bit_vector* v)
         return;
 
     size_type sb = (m_arg_cnt+SUPER_BLOCK_SIZE-1)/SUPER_BLOCK_SIZE; // number of superblocks
-    if (m_miniblock != NULL) delete [] m_miniblock;
+    if (m_miniblock != nullptr) delete [] m_miniblock;
     m_miniblock = new int_vector<0>[sb];
 
-    m_superblock = int_vector<0>(sb, 0, m_logn);// TODO: hier koennte man logn noch optimieren...s
+    m_superblock = int_vector<0>(sb, 0, m_logn);
 
 
     size_type arg_position[SUPER_BLOCK_SIZE], arg_cnt=0;
@@ -224,7 +214,7 @@ void select_support_mcl<t_b,t_pat_len>::init_slow(const bit_vector* v)
 
                 size_type pos_diff = arg_position[(arg_cnt-1)%SUPER_BLOCK_SIZE]-arg_position[0];
                 if (pos_diff > m_logn4) { // longblock
-                    if (m_longsuperblock == NULL) m_longsuperblock = new int_vector<0>[sb]; // create longsuperblock
+                    if (m_longsuperblock == nullptr) m_longsuperblock = new int_vector<0>[sb]; // create longsuperblock
                     m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bits::hi(arg_position[(arg_cnt-1)%SUPER_BLOCK_SIZE]) + 1);
 
                     for (size_type j=0; j <= (arg_cnt-1)%SUPER_BLOCK_SIZE ; ++j) m_longsuperblock[sb_cnt][j] = arg_position[j]; // copy argument positions to longsuperblock
@@ -246,7 +236,7 @@ void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
 {
     set_vector(v);
     initData();
-    if (m_v==NULL)
+    if (m_v==nullptr)
         return;
     // Count the number of arguments in the bit vector
     m_arg_cnt = select_support_trait<t_b,t_pat_len>::arg_cnt(*v);
@@ -258,7 +248,7 @@ void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
 
 //    size_type sb = (m_arg_cnt+63+SUPER_BLOCK_SIZE-1)/SUPER_BLOCK_SIZE; // number of superblocks, add 63 as the last block could contain 63 uninitialized bits
     size_type sb = (m_arg_cnt+SUPER_BLOCK_SIZE-1)/SUPER_BLOCK_SIZE; // number of superblocks
-    if (m_miniblock != NULL) delete [] m_miniblock;
+    if (m_miniblock != nullptr) delete [] m_miniblock;
     m_miniblock = new int_vector<0>[sb];
 
     m_superblock = int_vector<0>(sb, 0, m_logn);// TODO: hier koennte man logn noch optimieren...s
@@ -285,7 +275,7 @@ void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
                     }
                 size_type pos_diff = pos_of_last_arg_in_the_block - arg_position[0];
                 if (pos_diff > m_logn4) { // long block
-                    if (m_longsuperblock == NULL) m_longsuperblock = new int_vector<0>[sb+1]; // create longsuperblock
+                    if (m_longsuperblock == nullptr) m_longsuperblock = new int_vector<0>[sb+1]; // create longsuperblock
                     // GEANDERT am 2010-07-17 +1 nach pos_of_last_arg..
                     m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bits::hi(pos_of_last_arg_in_the_block) + 1);
                     for (size_type j=arg_position[0], k=0; k < SUPER_BLOCK_SIZE and j <= pos_of_last_arg_in_the_block; ++j)
@@ -315,7 +305,7 @@ void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
     }
     // handle last block: append long superblock
     if (last_k64 > 1) {
-        if (m_longsuperblock == NULL) m_longsuperblock = new int_vector<0>[sb+1]; // create longsuperblock
+        if (m_longsuperblock == nullptr) m_longsuperblock = new int_vector<0>[sb+1]; // create longsuperblock
         m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bits::hi(v->size()-1) + 1);
         for (size_type i=arg_position[0],k=0; i < v->size(); ++i) {
             if (select_support_trait<t_b, t_pat_len>::found_arg(i, *v)) {
@@ -328,14 +318,14 @@ void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
 
 
 template<uint8_t t_b, uint8_t t_pat_len>
-inline const typename select_support_mcl<t_b,t_pat_len>::size_type select_support_mcl<t_b,t_pat_len>::select(size_type i)const
+inline auto select_support_mcl<t_b,t_pat_len>::select(size_type i)const -> const size_type
 {
     assert(i > 0 and i <= m_arg_cnt);
 
     i = i-1;
     size_type sb_idx = i>>12;   // i/4096
     size_type offset = i&0xFFF; // i%4096
-    if (m_longsuperblock!=NULL and !m_longsuperblock[sb_idx].empty()) {
+    if (m_longsuperblock!=nullptr and !m_longsuperblock[sb_idx].empty()) {
         return m_longsuperblock[sb_idx][offset];
     } else {
         if ((offset&0x3F)==0) {
@@ -377,7 +367,7 @@ inline const typename select_support_mcl<t_b,t_pat_len>::size_type select_suppor
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
-inline const typename select_support_mcl<t_b,t_pat_len>::size_type select_support_mcl<t_b,t_pat_len>::operator()(size_type i)const
+inline auto select_support_mcl<t_b,t_pat_len>::operator()(size_type i)const -> const size_type
 {
     return select(i);
 }
@@ -386,19 +376,19 @@ template<uint8_t t_b, uint8_t t_pat_len>
 void select_support_mcl<t_b,t_pat_len>::initData()
 {
     m_arg_cnt = 0;
-    if (NULL == m_v) {
+    if (nullptr == m_v) {
         m_logn = m_logn2 = m_logn4 = 0;
     } else {
         m_logn = bits::hi(m_v->capacity())+1; // TODO maybe it's better here to take a max(...,12)
         m_logn2 = m_logn*m_logn;
         m_logn4 = m_logn2*m_logn2;
     }
-    if (NULL != m_longsuperblock)
+    if (nullptr != m_longsuperblock)
         delete[] m_longsuperblock;
-    m_longsuperblock = NULL;
-    if (NULL != m_miniblock)
+    m_longsuperblock = nullptr;
+    if (nullptr != m_miniblock)
         delete[] m_miniblock;
-    m_miniblock = NULL;
+    m_miniblock = nullptr;
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
@@ -408,7 +398,7 @@ void select_support_mcl<t_b,t_pat_len>::set_vector(const bit_vector* v)
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
-typename select_support_mcl<t_b,t_pat_len>::size_type select_support_mcl<t_b,t_pat_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
+auto select_support_mcl<t_b,t_pat_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const -> size_type
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
@@ -421,7 +411,7 @@ typename select_support_mcl<t_b,t_pat_len>::size_type select_support_mcl<t_b,t_p
     if (m_arg_cnt) { // if there exists 1-bits to be supported
         written_bytes += m_superblock.serialize(out, child, "superblock"); // serialize superblocks
         bit_vector mini_or_long;// Helper vector: mini or long block?
-        if (m_longsuperblock!=NULL) {
+        if (m_longsuperblock!=nullptr) {
             mini_or_long.resize(sb); // resize indicator bit_vector to the number of superblocks
             for (size_type i=0; i< sb; ++i)
                 mini_or_long[i] = !m_miniblock[i].empty();
@@ -458,13 +448,13 @@ void select_support_mcl<t_b,t_pat_len>::load(std::istream& in, const bit_vector*
     if (m_arg_cnt) { // if there exists 1-bits to be supported
         m_superblock.load(in); // load superblocks
 
-        if (m_miniblock!=NULL) {
+        if (m_miniblock!=nullptr) {
             delete[] m_miniblock;
-            m_miniblock = NULL;
+            m_miniblock = nullptr;
         }
-        if (m_longsuperblock!=NULL) {
+        if (m_longsuperblock!=nullptr) {
             delete[] m_longsuperblock;
-            m_longsuperblock = NULL;
+            m_longsuperblock = nullptr;
         }
 
         bit_vector mini_or_long;// Helper vector: mini or long block?

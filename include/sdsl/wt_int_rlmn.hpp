@@ -168,7 +168,7 @@ class wt_int_rlmn
                     r = text_buf.load_next_block();
                 }
                 uint64_t max_symbol = (--C.end())->first;
-                util::assign(m_C, int_vector<>(max_symbol+1, 0, bits::hi(size)+1));
+                m_C = int_vector<>(max_symbol+1, 0, bits::hi(size)+1);
                 for (size_type i=0, prefix_sum=0; i<=max_symbol; ++i) {
                     m_C[i] = prefix_sum;
                     prefix_sum += C[i];
@@ -178,7 +178,7 @@ class wt_int_rlmn
                 bit_vector bf = bit_vector(size+1, 0);
                 bf[size] = 1; // initialize last element
                 text_buf.reset();
-                util::assign(condensed_bwt, int_vector<>(runs, 0, bits::hi(max_symbol)+1));
+                condensed_bwt = int_vector<>(runs, 0, bits::hi(max_symbol)+1);
                 runs = 0;
                 for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
                     if (r_sum + r > size) {  // read not more than size chars in the next loop
@@ -201,18 +201,18 @@ class wt_int_rlmn
                     util::store_to_file(condensed_bwt, temp_file);
                     util::clear(condensed_bwt);
                     int_vector_file_buffer<> temp_bwt_buf(temp_file);
-                    util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
+                    m_wt = std::move(wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
                     std::remove(temp_file.c_str());
                 }
-                util::assign(m_bl, bl);
-                util::assign(m_bf, bf);
+                m_bl = std::move(bit_vector_type(bl));
+                m_bf = std::move(bit_vector_type(bf));
             }
 
             util::init_support(m_bl_rank, &m_bl);
             util::init_support(m_bf_rank, &m_bf);
             util::init_support(m_bf_select, &m_bf);
             util::init_support(m_bl_select, &m_bl);
-            util::assign(m_C_bf_rank, int_vector<>(m_C.size(), 0, bits::hi(size)+1));
+            m_C_bf_rank = int_vector<>(m_C.size(), 0, bits::hi(size)+1);
             for (size_type i=0; i<m_C.size(); ++i) {
                 m_C_bf_rank[i] = m_bf_rank(m_C[i]);
             }
@@ -348,7 +348,7 @@ class wt_int_rlmn
         };
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");

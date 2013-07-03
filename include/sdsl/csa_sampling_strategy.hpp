@@ -77,7 +77,7 @@ class _sa_order_sampling : public int_vector<t_width>
          * \par Time complexity
          *      Linear in the size of the suffix array.
          */
-        _sa_order_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=NULL) {
+        _sa_order_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=nullptr) {
             int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig));
             size_type n = sa_buf.int_vector_size;
             this->width(bits::hi(n)+1);
@@ -145,7 +145,7 @@ class _text_order_sampling : public int_vector<t_width>
          * \par Time complexity
          *      Linear in the size of the suffix array.
          */
-        _text_order_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=NULL) {
+        _text_order_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=nullptr) {
             int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig));
             size_type n = sa_buf.int_vector_size;
             bit_vector marked(n, 0);                // temporary bitvector for the marked text positions
@@ -162,7 +162,7 @@ class _text_order_sampling : public int_vector<t_width>
                 }
                 r_sum += r; r = sa_buf.load_next_block();
             }
-            util::assign(m_marked, marked);
+            m_marked = std::move(bit_vector_type(marked));
             util::init_support(m_rank_marked, &m_marked);
         }
 
@@ -285,7 +285,7 @@ class _bwt_sampling : public int_vector<t_width>
          * \par Time complexity
          *      Linear in the size of the suffix array.
          */
-        _bwt_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=NULL) {
+        _bwt_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=nullptr) {
             int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig));
             int_vector_file_buffer<t_csa::alphabet_type::int_width>
             bwt_buf(cache_file_name(key_trait<t_csa::alphabet_type::int_width>::KEY_BWT,cconfig));

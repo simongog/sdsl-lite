@@ -115,24 +115,22 @@ class csa_wt
         }
 
     public:
-        const typename alphabet_type::char2comp_type& char2comp;
-        const typename alphabet_type::comp2char_type& comp2char;
-        const typename alphabet_type::C_type&         C;
-        const typename alphabet_type::sigma_type&     sigma;
-        const psi_type                                psi;
-        const bwt_type                                bwt;
-        const text_type                               text;
-        const sa_sample_type&                         sa_sample;
-        const isa_sample_type&                        isa_sample;
-        const wavelet_tree_type&                      wavelet_tree;
+        const typename alphabet_type::char2comp_type& char2comp    = m_alphabet.char2comp;
+        const typename alphabet_type::comp2char_type& comp2char    = m_alphabet.comp2char;
+        const typename alphabet_type::C_type&         C            = m_alphabet.C;
+        const typename alphabet_type::sigma_type&     sigma        = m_alphabet.sigma;
+        const psi_type                                psi          = psi_type(this);
+        const bwt_type                                bwt          = bwt_type(this);
+        const text_type                               text         = text_type(this);
+        const sa_sample_type&                         sa_sample    = m_sa_sample;
+        const isa_sample_type&                        isa_sample   = m_isa_sample;
+        const wavelet_tree_type&                      wavelet_tree = m_wavelet_tree;
 
-        //! Default Constructor
-        csa_wt(): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-            psi(this), bwt(this), text(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample), wavelet_tree(m_wavelet_tree) {}
+        //! Default constructor
+        csa_wt() {}
 
         //! Copy constructor
-        csa_wt(const csa_wt& csa): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-            psi(this), bwt(this), text(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample), wavelet_tree(m_wavelet_tree) {
+        csa_wt(const csa_wt& csa) {
             copy(csa);
         }
 
@@ -219,7 +217,7 @@ class csa_wt
         /*! \param out Output stream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
 
         //! Load from a stream.
         /*! \param in Input stream to load the data structure from.
@@ -267,9 +265,7 @@ class csa_wt
 // == template functions ==
 
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::csa_wt(cache_config& config) :
-    char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-    psi(this), bwt(this), text(this), sa_sample(m_sa_sample),isa_sample(m_isa_sample), wavelet_tree(m_wavelet_tree)
+csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::csa_wt(cache_config& config)
 {
     if (!cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
         return;
@@ -305,7 +301,7 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
 
 
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-inline typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::value_type csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator[](size_type i)const
+inline auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator[](size_type i)const -> value_type
 {
     size_type off = 0;
     while (!m_sa_sample.is_sampled(i)) {
@@ -350,7 +346,7 @@ inline typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alp
 }
 
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-inline typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::value_type csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator()(size_type i)const
+auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator()(size_type i)const -> value_type
 {
     size_type ii;
     value_type result = m_isa_sample[ ii = ((i+t_inv_dens-1)/t_inv_dens) ]; // get the leftmost sampled isa value to the right of i
@@ -367,8 +363,7 @@ inline typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alp
 }
 
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator=(const csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa)
-{
+auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator=(const csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa) -> csa_wt& {
     if (this != &csa) {
         copy(csa);
     }
@@ -377,7 +372,7 @@ csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa
 
 
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::size_type csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
+auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const -> size_type
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;

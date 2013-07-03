@@ -33,11 +33,12 @@
 namespace sdsl
 {
 
-
-template<uint8_t t_b=1, uint16_t t_bs=15, class t_rac=int_vector<> >  // forward declaration needed for friend declaration
+// forward declaration needed for friend declaration
+template<uint8_t t_b=1, uint16_t t_bs=15, class t_rac=int_vector<> >
 class rank_support_rrr;                // in rrr_vector
 
-template<uint8_t t_b=1, uint16_t t_bs=15, class t_rac=int_vector<> >  // forward declaration needed for friend declaration
+// forward declaration needed for friend declaration
+template<uint8_t t_b=1, uint16_t t_bs=15, class t_rac=int_vector<> >
 class select_support_rrr;                // in rrr_vector
 
 //! A \f$H_0f$-compressed bitvector representation.
@@ -69,6 +70,8 @@ class select_support_rrr;                // in rrr_vector
 template<uint16_t t_bs=15, class t_rac=int_vector<> >
 class rrr_vector
 {
+    private:
+        static_assert(t_bs >= 15 and t_bs <= 256 , "rrr_vector: block size t_bs must be 15 <= t_bs <= 256.");
     public:
         typedef bit_vector::size_type  size_type;
         typedef bit_vector::value_type value_type;
@@ -89,8 +92,8 @@ class rrr_vector
 
         enum { block_size = t_bs };
     private:
-        size_type    m_size;   // Size of the original bit_vector.
-        uint16_t     m_k;      // Store rank samples and pointers each m_k-th block.
+        size_type    m_size = 0;  // Size of the original bit_vector.
+        uint16_t     m_k    = 0; // Store rank samples and pointers each m_k-th block.
         rac_type     m_bt;     // Vector for the block types (bt). bt equals the
         // number of set bits in the block.
         bit_vector   m_btnr;   // Compressed block type numbers.
@@ -111,25 +114,29 @@ class rrr_vector
         }
 
     public:
-        const rac_type& bt;
-        const bit_vector& btnr;
+        const rac_type& bt     = m_bt;
+        const bit_vector& btnr = m_btnr;
 
         //! Default constructor
-        /*! \param k Store rank samples and pointers each k-th blocks.
-         */
-        rrr_vector(uint16_t k=32):m_size(0), m_k(k), bt(m_bt), btnr(m_btnr) {};
+        rrr_vector() {};
 
         //! Copy constructor
-        rrr_vector(const rrr_vector& rrr):bt(m_bt), btnr(m_btnr) {
+        rrr_vector(const rrr_vector& rrr) {
             copy(rrr);
         }
+
+        //! Move constructor
+        rrr_vector(rrr_vector&& rrr) : m_size(std::move(rrr.m_size)),
+            m_k(std::move(rrr.m_k)), m_bt(std::move(rrr.m_bt)),
+            m_btnr(std::move(rrr.m_btnr)), m_btnrp(std::move(rrr.m_btnrp)),
+            m_rank(std::move(rrr.m_rank)), m_invert(std::move(rrr.m_invert)) {}
 
         //! Constructor
         /*!
         *  \param bv  Uncompressed bitvector.
         *  \param k Store rank samples and pointers each k-th blocks.
         */
-        rrr_vector(const bit_vector& bv, uint16_t k=32): m_k(k), bt(m_bt), btnr(m_btnr) {
+        rrr_vector(const bit_vector& bv, uint16_t k=32): m_k(k) {
             m_size = bv.size();
             int_vector<> bt_array;
             bt_array.width(bits::hi(t_bs)+1);
@@ -151,12 +158,12 @@ class rrr_vector
                 sum_rank += x;
                 btnr_pos += rrr_helper_type::space_for_bt(x);
             }
-            util::assign(m_btnr, bit_vector(std::max(btnr_pos, (size_type)64), 0));      // max necessary for case: t_bs == 1
-            util::assign(m_btnrp, int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bits::hi(btnr_pos)+1));
-            util::assign(m_rank, int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*t_bs))>0), 0, bits::hi(sum_rank)+1));
+            m_btnr  = bit_vector(std::max(btnr_pos, (size_type)64), 0);      // max necessary for case: t_bs == 1
+            m_btnrp = int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bits::hi(btnr_pos)+1);
+            m_rank  = int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*t_bs))>0), 0, bits::hi(sum_rank)+1);
             //                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             //   only add a finishing block, if the last block of the superblock is not a dummy block
-            util::assign(m_invert, bit_vector((bt_array.size()+m_k-1)/m_k, 0));
+            m_invert = bit_vector((bt_array.size()+m_k-1)/m_k, 0);
 
             // (2) calculate block type numbers and pointers into btnr and rank samples
             pos = 0; i = 0;
@@ -204,7 +211,8 @@ class rrr_vector
                     invert = false;
                 }
                 uint16_t space_for_bt = rrr_helper_type::space_for_bt(x=bt_array[i++]);
-                assert(i == bt_array.size());   // no extra dummy block added to bt_array, therefore this condition should hold
+//          no extra dummy block added to bt_array, therefore this condition should hold
+                assert(i == bt_array.size());
                 sum_rank += invert ? (t_bs - x) : x;
                 if (space_for_bt) {
                     number_type bin = rrr_helper_type::decode_btnr(bv, pos, m_size-pos);
@@ -218,7 +226,7 @@ class rrr_vector
             }
             // for technical reasons we add a last element to m_rank
             m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
-            util::assign(m_bt, bt_array);
+            m_bt = bt_array;
         }
 
         //! Swap method
@@ -254,8 +262,8 @@ class rrr_vector
             for (size_type j = sample_pos*m_k; j < bt_idx; ++j) {
                 btnrp += rrr_helper_type::space_for_bt(m_bt[j]);
             }
-            uint16_t btnrlen     = rrr_helper_type::space_for_bt(bt);
-            number_type    btnr    = rrr_helper_type::decode_btnr(m_btnr, btnrp, btnrlen);
+            uint16_t btnrlen = rrr_helper_type::space_for_bt(bt);
+            number_type btnr = rrr_helper_type::decode_btnr(m_btnr, btnrp, btnrlen);
             return rrr_helper_type::decode_bit(bt, btnr, off);
         }
 
@@ -267,6 +275,12 @@ class rrr_vector
             return *this;
         }
 
+        //! Move assignment operator
+        rrr_vector& operator=(rrr_vector&& rrr) {
+            swap(rrr);
+            return *this;
+        }
+
         //! Returns the size of the original bit vector.
         size_type size()const {
             return m_size;
@@ -274,7 +288,7 @@ class rrr_vector
 
         //! Answers select queries
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
@@ -318,18 +332,20 @@ struct rank_support_rrr_trait<0> {
 
 //! rank_support for the rrr_vector class
 /*!
- * \tparam t_b   The bit pattern of size one. (so `0` or `1`)
- * \tparam t_bs  The block size of the corresponding rrr_vector
- * \tparam t_rac Type used to store the block type in the corresponding rrr_vector.
- *  TODO: Test if the binary search can be speed up by
- *        saving the (n/2)-th rank value in T[0], the (n/4)-th in T[1],
- *        the (3n/4)-th in T[2],... for small number of rank values
- *    is this called hinted binary search???
- *    or is this called
- */
+* \tparam t_b   The bit pattern of size one. (so `0` or `1`)
+* \tparam t_bs  The block size of the corresponding rrr_vector
+* \tparam t_rac Type used to store the block type in the corresponding rrr_vector.
+*  TODO: Test if the binary search can be speed up by
+*        saving the (n/2)-th rank value in T[0], the (n/4)-th in T[1],
+*        the (3n/4)-th in T[2],... for small number of rank values
+*    is this called hinted binary search???
+*    or is this called
+*/
 template< uint8_t t_b, uint16_t t_bs, class t_rac>
 class rank_support_rrr
 {
+    private:
+        static_assert(t_b == 1u or t_b == 0u , "rank_support_rrr: bit pattern must be `0` or `1`");
     public:
         typedef rrr_vector<t_bs, t_rac> bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
@@ -344,7 +360,7 @@ class rank_support_rrr
         //! Standard constructor
         /*! \param v Pointer to the rrr_vector, which should be supported
          */
-        explicit rank_support_rrr(const bit_vector_type* v=NULL) {
+        explicit rank_support_rrr(const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
@@ -355,7 +371,7 @@ class rank_support_rrr
                 \f$ \Order{ sample\_rate of the rrr\_vector} \f$
         */
         const size_type rank(size_type i)const {
-            assert(m_v != NULL);
+            assert(m_v != nullptr);
             assert(i <= m_v->size());
             size_type bt_idx = i/t_bs;
             size_type sample_pos = bt_idx/m_k;
@@ -385,9 +401,9 @@ class rank_support_rrr
             }
             uint16_t bt = inv ? t_bs - m_v->m_bt[ bt_idx ] : m_v->m_bt[ bt_idx ];
 
-            uint16_t btnrlen     = rrr_helper_type::space_for_bt(bt);
-            number_type    btnr    = rrr_helper_type::decode_btnr(m_v->m_btnr, btnrp, btnrlen);
-            uint16_t popcnt     = rrr_helper_type::decode_popcount(bt, btnr, off);
+            uint16_t btnrlen = rrr_helper_type::space_for_bt(bt);
+            number_type btnr = rrr_helper_type::decode_btnr(m_v->m_btnr, btnrp, btnrlen);
+            uint16_t popcnt  = rrr_helper_type::decode_popcount(bt, btnr, off);
             return rank_support_rrr_trait<t_b>::adjust_rank(rank + popcnt, i);
         }
 
@@ -402,9 +418,9 @@ class rank_support_rrr
         }
 
         //! Set the supported vector.
-        void set_vector(const bit_vector_type* v=NULL) {
+        void set_vector(const bit_vector_type* v=nullptr) {
             m_v = v;
-            if (v != NULL) {
+            if (v != nullptr) {
                 m_k = m_v->m_k;
             } else {
                 m_k = 0;
@@ -426,13 +442,13 @@ class rank_support_rrr
         }
 
         //! Load the data structure from a stream and set the supported vector.
-        void load(std::istream& in, const bit_vector_type* v=NULL) {
+        void load(std::istream& in, const bit_vector_type* v=nullptr) {
             read_member(m_k, in);
             set_vector(v);
         }
 
         //! Serializes the data structure into a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_k, out, child, "k");
@@ -444,18 +460,20 @@ class rank_support_rrr
 
 //! Select support for the rrr_vector class.
 /*
- * \tparam t_b   The bit pattern of size one. (so `0` or `1`)
- * \tparam t_bs  The block size of the corresponding rrr_vector
- * \tparam t_rac Type used to store the block type in the corresponding rrr_vector.
- *
- * Possible TODO: Add heap which contains the 10 first items of
- * each binary search could increase performance.
- * Experiments on select_support_interleaved showed about
- * 25%.
- */
+* \tparam t_b   The bit pattern of size one. (so `0` or `1`)
+* \tparam t_bs  The block size of the corresponding rrr_vector
+* \tparam t_rac Type used to store the block type in the corresponding rrr_vector.
+*
+* Possible TODO: Add heap which contains the 10 first items of
+* each binary search could increase performance.
+* Experiments on select_support_interleaved showed about
+* 25%.
+*/
 template< uint8_t t_b, uint16_t t_bs, class t_rac>
 class select_support_rrr
 {
+    private:
+        static_assert(t_b == 1u or t_b == 0u , "select_support_rrr: bit pattern must be `0` or `1`");
     public:
         typedef rrr_vector<t_bs, t_rac> bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
@@ -501,11 +519,11 @@ class select_support_rrr
                 btnrp += (btnrlen=rrr_helper_type::space_for_bt(bt));
             }
             rank -= bt;
-            number_type    btnr = rrr_helper_type::decode_btnr(m_v->m_btnr, btnrp-btnrlen, btnrlen);
+            number_type btnr = rrr_helper_type::decode_btnr(m_v->m_btnr, btnrp-btnrlen, btnrlen);
             return (idx-1) * t_bs + rrr_helper_type::decode_select(bt, btnr, i-rank);
         }
 
-        size_type  select0(size_type i)const {
+        size_type select0(size_type i)const {
             if ((size() - m_v->m_rank[m_v->m_rank.size()-1]) < i) {
                 return size();
             }
@@ -538,14 +556,14 @@ class select_support_rrr
                 btnrp += (btnrlen=rrr_helper_type::space_for_bt(bt));
             }
             rank -= (t_bs-bt);
-            number_type    btnr = rrr_helper_type::decode_btnr(m_v->m_btnr, btnrp-btnrlen, btnrlen);
+            number_type btnr = rrr_helper_type::decode_btnr(m_v->m_btnr, btnrp-btnrlen, btnrlen);
             return (idx-1) * t_bs + rrr_helper_type::template decode_select_bitpattern<0, 1>(bt, btnr, i-rank);
         }
 
 
 
     public:
-        explicit select_support_rrr(const bit_vector_type* v=NULL) {
+        explicit select_support_rrr(const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
@@ -562,9 +580,9 @@ class select_support_rrr
             return m_v->size();
         }
 
-        void set_vector(const bit_vector_type* v=NULL) {
+        void set_vector(const bit_vector_type* v=nullptr) {
             m_v = v;
-            if (v != NULL) {
+            if (v != nullptr) {
                 m_k = m_v->m_k;
             } else {
                 m_k = 0;
@@ -585,12 +603,12 @@ class select_support_rrr
             }
         }
 
-        void load(std::istream& in, const bit_vector_type* v=NULL) {
+        void load(std::istream& in, const bit_vector_type* v=nullptr) {
             read_member(m_k, in);
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_k, out, child, "k");
@@ -600,6 +618,6 @@ class select_support_rrr
 };
 
 }// end namespace sdsl
-#include "rrr_vector_15.hpp" // include specialization 
+#include "rrr_vector_15.hpp" // include specialization
 
 #endif

@@ -140,13 +140,13 @@ class rrr_vector<15, t_rac>
         enum { block_size = 15 };
         typedef binomial15 bi_type;
     private:
-        size_type    m_size;  // Size of the original bit_vector.
-        uint16_t     m_k;     // Store rank samples and pointers each m_k-th block.
-        rac_type     m_bt;    // Vector for block types (bt). bt equals the
+        size_type    m_size = 0; // Size of the original bit_vector.
+        uint16_t     m_k    = 32;// Store rank samples and pointers each m_k-th block.
+        rac_type     m_bt;       // Vector for block types (bt). bt equals the
         // number of set bits in the block.
-        bit_vector   m_btnr;  // Compressed block type numbers.
-        int_vector<> m_btnrp; // Sample pointers into m_btnr.
-        int_vector<> m_rank;  // Sample rank values.
+        bit_vector   m_btnr;     // Compressed block type numbers.
+        int_vector<> m_btnrp;    // Sample pointers into m_btnr.
+        int_vector<> m_rank;     // Sample rank values.
 
         void copy(const rrr_vector& rrr) {
             m_size = rrr.m_size;
@@ -157,28 +157,34 @@ class rrr_vector<15, t_rac>
             m_rank = rrr.m_rank;
         }
     public:
-        const rac_type& bt;
-        const bit_vector& btnr;
+        const rac_type& bt     = m_bt;
+        const bit_vector& btnr = m_btnr;
 
         //! Default constructor
         /*! \param k Store rank samples and pointers each k-th blocks.
          */
-        rrr_vector(uint16_t k=32):m_size(0), m_k(k), bt(m_bt), btnr(m_btnr) {};
+        rrr_vector() {};
 
         //! Copy constructor
-        rrr_vector(const rrr_vector& rrr): bt(m_bt), btnr(m_btnr)  {
+        rrr_vector(const rrr_vector& rrr) {
             copy(rrr);
         }
+
+        //! Move constructor
+        rrr_vector(rrr_vector&& rrr) : m_size(std::move(rrr.m_size)),
+            m_k(std::move(rrr.m_k)), m_bt(std::move(rrr.m_bt)),
+            m_btnr(std::move(rrr.m_btnr)), m_btnrp(std::move(rrr.m_btnrp)),
+            m_rank(std::move(rrr.m_rank)) {}
 
         //! Constructor
         /*!
         *  \param bv Uncompressed bitvector.
         *  \param k  Store rank samples and pointers each k-th blocks.
         */
-        rrr_vector(const bit_vector& bv, uint16_t k=32): m_k(k), bt(m_bt), btnr(m_btnr) {
+        rrr_vector(const bit_vector& bv, uint16_t k=32): m_k(k) {
             m_size = bv.size();
             int_vector<> bt_array;
-            util::assign(bt_array, int_vector<>(m_size/block_size+1, 0, bits::hi(block_size)+1));
+            bt_array = int_vector<>(m_size/block_size+1, 0, bits::hi(block_size)+1);
 
             // (1) calculate the block types and store them in m_bt
             size_type pos = 0, i = 0, x;
@@ -195,10 +201,10 @@ class rrr_vector<15, t_rac>
                 sum_rank += x;
                 btnr_pos += bi_type::space_for_bt(x);
             }
-            util::assign(m_btnr, bit_vector(std::max(btnr_pos, (size_type)64), 0));      // max necessary for case: block_size == 1
-            util::assign(m_btnrp, int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bits::hi(btnr_pos)+1));
+            m_btnr  = bit_vector(std::max(btnr_pos, (size_type)64), 0); // max necessary for case: block_size == 1
+            m_btnrp = int_vector<>((bt_array.size()+m_k-1)/m_k, 0,  bits::hi(btnr_pos)+1);
 
-            util::assign(m_rank, int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*block_size))>0), 0, bits::hi(sum_rank)+1));
+            m_rank  = int_vector<>((bt_array.size()+m_k-1)/m_k + ((m_size % (m_k*block_size))>0), 0, bits::hi(sum_rank)+1);
             //                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             //                                                                      only add a finishing block, if the last block of the superblock is not a dummy block
             // (2) calculate block type numbers and pointers into btnr and rank samples
@@ -234,7 +240,7 @@ class rrr_vector<15, t_rac>
             }
             // for technical reasons add an additional element to m_rank
             m_rank[ m_rank.size()-1 ] = sum_rank; // sum_rank contains the total number of set bits in bv
-            util::assign(m_bt, bt_array);
+            m_bt = rac_type(std::move(bt_array));
         }
 
         //! Swap method
@@ -295,13 +301,19 @@ class rrr_vector<15, t_rac>
             return *this;
         }
 
+        //! Move assignment
+        rrr_vector& operator=(rrr_vector&& rrr) {
+            swap(rrr);
+            return *this;
+        }
+
         //! Returns the size of the original bit vector.
         size_type size()const {
             return m_size;
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             size_type written_bytes = 0;
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             written_bytes += write_member(m_size, out, child, "size");
@@ -328,7 +340,7 @@ class rrr_vector<15, t_rac>
 
 //! rank_support for the specialized rrr_vector class of block size 15.
 /*! The first template parameter is the bit pattern of size one.
- */
+*/
 template<uint8_t t_b, class t_rac>
 class rank_support_rrr<t_b, 15, t_rac>
 {
@@ -349,7 +361,7 @@ class rank_support_rrr<t_b, 15, t_rac>
         //! Standard constructor
         /*! \param v Pointer to the rrr_vector, which should be supported
          */
-        explicit rank_support_rrr(const bit_vector_type* v=NULL) {
+        explicit rank_support_rrr(const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
@@ -459,9 +471,9 @@ class rank_support_rrr<t_b, 15, t_rac>
         }
 
         //! Set the supported vector.
-        void set_vector(const bit_vector_type* v=NULL) {
+        void set_vector(const bit_vector_type* v=nullptr) {
             m_v = v;
-            if (v != NULL) {
+            if (v != nullptr) {
                 m_k = m_v->m_k;
             } else {
                 m_k = 0;
@@ -482,13 +494,13 @@ class rank_support_rrr<t_b, 15, t_rac>
         }
 
         //! Load the data structure from a stream and set the supported vector.
-        void load(std::istream& in, const bit_vector_type* v=NULL) {
+        void load(std::istream& in, const bit_vector_type* v=nullptr) {
             read_member(m_k, in);
             set_vector(v);
         }
 
         //! Serializes the data structure into a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_k, out, child, "k");
@@ -587,7 +599,7 @@ class select_support_rrr<t_b, 15, t_rac>
 
 
     public:
-        select_support_rrr(const bit_vector_type* v=NULL) {
+        select_support_rrr(const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
@@ -605,9 +617,9 @@ class select_support_rrr<t_b, 15, t_rac>
             return m_v->size();
         }
 
-        void set_vector(const bit_vector_type* v=NULL) {
+        void set_vector(const bit_vector_type* v=nullptr) {
             m_v = v;
-            if (v != NULL) {
+            if (v != nullptr) {
                 m_k = m_v->m_k;
             } else {
                 m_k = 0;
@@ -628,12 +640,12 @@ class select_support_rrr<t_b, 15, t_rac>
             }
         }
 
-        void load(std::istream& in, const bit_vector_type* v=NULL) {
+        void load(std::istream& in, const bit_vector_type* v=nullptr) {
             read_member(m_k, in);
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_k, out, child, "k");

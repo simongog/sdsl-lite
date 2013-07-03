@@ -24,30 +24,32 @@
 
 #include "int_vector.hpp"
 
-namespace sdsl{
+namespace sdsl
+{
 
 //! Class for tree based Huffman solution on byte alphabets.
-class fat_huff_byte{
-	public:
-		typedef bit_vector::size_type size_type;
-	public:
-		// Default constructor
-		fat_huff_byte();
-		// Construct from byte stream
-		template<class size_type_class>
-		fat_huff_byte(int_vector_file_buffer<8>& text_buf);
-		// The length of the code for symbol `c`
-		uint8_t  code_len(uint8_t c);
-		// The code for symbol `c` 
-		uint64_t code(uint8_t c);
-		// The symbol for a codeword `code` of length `len`
-		uint8_t  symbol(uint64_t code, uint8_t len);
-		
-		bool valid_code(uint64_t code, uint8_t len);
+class fat_huff_byte
+{
+    public:
+        typedef bit_vector::size_type size_type;
+    public:
+        // Default constructor
+        fat_huff_byte();
+        // Construct from byte stream
+        template<class size_type_class>
+        fat_huff_byte(int_vector_file_buffer<8>& text_buf);
+        // The length of the code for symbol `c`
+        uint8_t  code_len(uint8_t c);
+        // The code for symbol `c`
+        uint64_t code(uint8_t c);
+        // The symbol for a codeword `code` of length `len`
+        uint8_t  symbol(uint64_t code, uint8_t len);
 
-    	size_type serialize(std::ostream& out, structure_tree_node* v=NULL, 
-				            std::string name="")const;
-		void load(std::istream &in);
+        bool valid_code(uint64_t code, uint8_t len);
+
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
+                            std::string name="")const;
+        void load(std::istream& in);
 };
 
 
@@ -55,8 +57,8 @@ class fat_huff_byte{
 /*
 class canonical_huff_tree_byte{
 	private:
-		int_vector<> freq_order; // decreasing order 
-		int_vector<> code_len;   //	
+		int_vector<> freq_order; // decreasing order
+		int_vector<> code_len;   //
 
 	public:
 

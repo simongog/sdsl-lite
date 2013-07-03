@@ -16,7 +16,7 @@
 */
 /*! \file wt.hpp
  *  \brief wt.hpp contains a generic class for the wavelet tree proposed first by
- *	      Grossi et al. 2003 and applied to the BWT in Foschini et al. 2004.
+ *         Grossi et al. 2003 and applied to the BWT in Foschini et al. 2004.
  *  \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_WT
@@ -24,7 +24,7 @@
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
-#include "util.hpp" // for util::assign
+#include "util.hpp"
 #include <set> // for calculating the alphabet size
 #include <map> // for mapping a symbol to its lexicographical index
 #include <algorithm> // for std::swap
@@ -41,192 +41,186 @@ struct unsigned_char_map {
     unsigned char& operator[](unsigned char i);
     unsigned char operator[](unsigned char i)const;
     void clear();
-    uint16_t serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
+    uint16_t serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
     void load(std::istream& in);
     void swap(unsigned_char_map& map);
 };
 
 
 template<class t_rac>
-class wt_trait
-{
-    public:
-        typedef typename t_rac::size_type       size_type;
-        typedef typename t_rac::value_type      value_type;
-        typedef t_rac&                          reference_type;
-        typedef std::map<value_type, size_type> map_type;
-        typedef std::map<value_type, size_type> inv_map_type;
-        enum { char_node_map_size=0 };
+struct wt_trait {
+    typedef typename t_rac::size_type       size_type;
+    typedef typename t_rac::value_type      value_type;
+    typedef t_rac&                          reference_type;
+    typedef std::map<value_type, size_type> map_type;
+    typedef std::map<value_type, size_type> inv_map_type;
+    enum { char_node_map_size=0 };
 
-        static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
-            if (n > 0)
-                first_symbol = rac[0];
-            map.clear();
-            inv_map.clear();
-            size_type alphabet_size = 0;
-            for (size_type i=0; i<n; ++i) {
-                if (map.find(rac[i]) == map.end()) {
-                    map[rac[i]]    = 1;
-                }
+    static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
+        if (n > 0)
+            first_symbol = rac[0];
+        map.clear();
+        inv_map.clear();
+        size_type alphabet_size = 0;
+        for (size_type i=0; i<n; ++i) {
+            if (map.find(rac[i]) == map.end()) {
+                map[rac[i]]    = 1;
             }
-            for (typename map_type::iterator it = map.begin(); it != map.end(); ++it) { // this preserves the order
-                it->second = alphabet_size;
-                inv_map[alphabet_size] = it->first;
-                ++alphabet_size;
-            }
-            return alphabet_size;
         }
+        for (typename map_type::iterator it = map.begin(); it != map.end(); ++it) { // this preserves the order
+            it->second = alphabet_size;
+            inv_map[alphabet_size] = it->first;
+            ++alphabet_size;
+        }
+        return alphabet_size;
+    }
 
-        static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type) {
-            return map.find(c)!=map.end();
-        }
+    static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type) {
+        return map.find(c)!=map.end();
+    }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, std::string name="") {
-            throw std::logic_error(util::demangle(typeid(wt_trait<t_rac>).name())+": serialize not implemented");
-            return 0;
-        }
+    static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=nullptr, std::string name="") {
+        throw std::logic_error(util::demangle(typeid(wt_trait<t_rac>).name())+": serialize not implemented");
+        return 0;
+    }
 
-        static size_type load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
-            throw std::logic_error(util::demangle(typeid(wt_trait<t_rac>).name())+": load not implemented");
-            return 0;
-        }
+    static size_type load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
+        throw std::logic_error(util::demangle(typeid(wt_trait<t_rac>).name())+": load not implemented");
+        return 0;
+    }
 };
 
 template<>
-class wt_trait<unsigned char*>
-{
-    public:
-        typedef bit_vector::size_type   size_type;
-        typedef unsigned char           value_type;
-        typedef unsigned char*          reference_type;
-        typedef unsigned_char_map       map_type;
-        typedef unsigned_char_map       inv_map_type;
-        enum { char_node_map_size=256 };
+struct wt_trait<unsigned char*> {
+    typedef bit_vector::size_type   size_type;
+    typedef unsigned char           value_type;
+    typedef unsigned char*          reference_type;
+    typedef unsigned_char_map       map_type;
+    typedef unsigned_char_map       inv_map_type;
+    enum { char_node_map_size=256 };
 
-        static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
-            map.clear();
-            inv_map.clear();
-            if (n==0) {
-                for (size_type i=0; i<256; ++i) {
-                    map[i] = 255;    // mark each symbol as absent
-                }
-                return 0;
-            }
-            first_symbol    = *rac;
-            map[*rac] = 0;
-            inv_map[0] = *rac;
-            size_type alphabet_size = 0;
-
+    static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
+        map.clear();
+        inv_map.clear();
+        if (n==0) {
             for (size_type i=0; i<256; ++i) {
-                map[i] = 0;
+                map[i] = 255;    // mark each symbol as absent
             }
+            return 0;
+        }
+        first_symbol    = *rac;
+        map[*rac] = 0;
+        inv_map[0] = *rac;
+        size_type alphabet_size = 0;
 
-            for (size_type i=0; i<n; ++i) {
-                value_type c = *(rac+i);
+        for (size_type i=0; i<256; ++i) {
+            map[i] = 0;
+        }
+
+        for (size_type i=0; i<n; ++i) {
+            value_type c = *(rac+i);
+            map[c] = 1;
+        }
+
+        for (size_type i=0; i<256; ++i) {
+            if (map[i]) {
+                map[i] = alphabet_size;
+                ++alphabet_size;
+            } else {
+                map[i] = 255;
+            }
+            inv_map[map[i]] = i;
+        }
+        return alphabet_size;
+    }
+
+    static bool symbol_available(const map_type& map, const value_type c, SDSL_UNUSED const value_type first_symbol, const size_type sigma) {
+        return sigma==256 or map[c] < 255;
+    }
+
+    static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=nullptr,
+                                    SDSL_UNUSED std::string name="") {
+        size_type written_bytes = 0;
+        written_bytes += map.serialize(out, v, "alphabet_map");
+        written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
+        return written_bytes;
+    }
+
+    static void load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
+        map.load(in);
+        inv_map.load(in);
+    }
+};
+
+template<>
+struct wt_trait<int_vector_file_buffer<8> > {
+    typedef int_vector_size_type        size_type;
+    typedef unsigned char               value_type;
+    typedef int_vector_file_buffer<8>&  reference_type;
+    typedef unsigned_char_map           map_type;
+    typedef unsigned_char_map           inv_map_type;
+    enum { char_node_map_size=256 };
+
+    static size_type alphabet_size_and_map(reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
+        map.clear();
+        inv_map.clear();
+        if (n==0) {
+            for (size_type i=0; i<256; ++i) {
+                map[i] = 255;    // mark each symbol as absent
+            }
+            return 0;
+        }
+        rac.reset();
+        if (rac.int_vector_size < n) {
+            throw std::logic_error("wt<int_vector_file_buffer<8> >: n > rac.int_vector_size!");
+            return 0;
+        }
+
+        for (size_type i=0; i<256; ++i) {
+            map[i] = 0;
+        }
+
+        size_type alphabet_size = 0;
+        size_type r = rac.load_next_block();
+        first_symbol = rac[0];
+        for (size_type i=0, r_sum=0; r_sum < n;) {
+            if (r_sum +r > n) {  // make sure that not more than n characters are read
+                r = n-r_sum;
+            }
+            for (; i< r_sum+r; ++i) {
+                value_type c = rac[i-r_sum];
                 map[c] = 1;
             }
+            r_sum += r; r = rac.load_next_block();
+        }
 
-            for (size_type i=0; i<256; ++i) {
-                if (map[i]) {
-                    map[i] = alphabet_size;
-                    ++alphabet_size;
-                } else {
-                    map[i] = 255;
-                }
-                inv_map[map[i]] = i;
+        for (size_type i=0; i<256; ++i) {
+            if (map[i]) {
+                map[i] = alphabet_size;
+                ++alphabet_size;
+            } else {
+                map[i] = 255;
             }
-            return alphabet_size;
+            inv_map[map[i]] = i;
         }
+        return alphabet_size;
+    }
 
-        static bool symbol_available(const map_type& map, const value_type c, SDSL_UNUSED const value_type first_symbol, const size_type sigma) {
-            return sigma==256 or map[c] < 255;
-        }
+    static bool symbol_available(const map_type& map, const value_type c, SDSL_UNUSED const value_type first_symbol, const size_type sigma) {
+        return sigma==256 or map[c] < 255;
+    }
 
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL,
-                                        SDSL_UNUSED std::string name="") {
-            size_type written_bytes = 0;
-            written_bytes += map.serialize(out, v, "alphabet_map");
-            written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
-            return written_bytes;
-        }
+    static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=nullptr, SDSL_UNUSED std::string name="") {
+        size_type written_bytes = 0;
+        written_bytes += map.serialize(out, v, "alphabet_map");
+        written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
+        return written_bytes;
+    }
 
-        static void load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
-            map.load(in);
-            inv_map.load(in);
-        }
-};
-
-template<>
-class wt_trait<int_vector_file_buffer<8> >
-{
-    public:
-        typedef int_vector_size_type        size_type;
-        typedef unsigned char               value_type;
-        typedef int_vector_file_buffer<8>&  reference_type;
-        typedef unsigned_char_map           map_type;
-        typedef unsigned_char_map           inv_map_type;
-        enum { char_node_map_size=256 };
-
-        static size_type alphabet_size_and_map(reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
-            map.clear();
-            inv_map.clear();
-            if (n==0) {
-                for (size_type i=0; i<256; ++i) {
-                    map[i] = 255;    // mark each symbol as absent
-                }
-                return 0;
-            }
-            rac.reset();
-            if (rac.int_vector_size < n) {
-                throw std::logic_error("wt<int_vector_file_buffer<8> >: n > rac.int_vector_size!");
-                return 0;
-            }
-
-            for (size_type i=0; i<256; ++i) {
-                map[i] = 0;
-            }
-
-            size_type alphabet_size = 0;
-            size_type r = rac.load_next_block();
-            first_symbol = rac[0];
-            for (size_type i=0, r_sum=0; r_sum < n;) {
-                if (r_sum +r > n) {  // make sure that not more than n characters are read
-                    r = n-r_sum;
-                }
-                for (; i< r_sum+r; ++i) {
-                    value_type c = rac[i-r_sum];
-                    map[c] = 1;
-                }
-                r_sum += r; r = rac.load_next_block();
-            }
-
-            for (size_type i=0; i<256; ++i) {
-                if (map[i]) {
-                    map[i] = alphabet_size;
-                    ++alphabet_size;
-                } else {
-                    map[i] = 255;
-                }
-                inv_map[map[i]] = i;
-            }
-            return alphabet_size;
-        }
-
-        static bool symbol_available(const map_type& map, const value_type c, SDSL_UNUSED const value_type first_symbol, const size_type sigma) {
-            return sigma==256 or map[c] < 255;
-        }
-
-        static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=NULL, SDSL_UNUSED std::string name="") {
-            size_type written_bytes = 0;
-            written_bytes += map.serialize(out, v, "alphabet_map");
-            written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
-            return written_bytes;
-        }
-
-        static void load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
-            map.load(in);
-            inv_map.load(in);
-        }
+    static void load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
+        map.load(in);
+        inv_map.load(in);
+    }
 };
 
 //! A wavelet tree class for byte sequences.
@@ -244,24 +238,29 @@ class wt_trait<int_vector_file_buffer<8> >
  *   The wavelet tree was proposed first by Grossi et al. 2003 and applied to the BWT in Foschini et al. 2004.
  *   @ingroup wt
  */
-template<class t_rac=unsigned char*,
-         class BitVector         = bit_vector,
-         class RankSupport       = typename BitVector::rank_1_type,
-         class SelectSupport     = typename BitVector::select_1_type,
-         class t_select_zero = typename BitVector::select_0_type>
+template<class t_rac         = unsigned char*,
+         class t_bit_vector     = bit_vector,
+         class RankSupport   = typename t_bit_vector::rank_1_type,
+         class SelectSupport = typename t_bit_vector::select_1_type,
+         class t_select_zero = typename t_bit_vector::select_0_type>
 class wt
 {
     public:
+
         typedef typename wt_trait<t_rac>::size_type    size_type;
         typedef typename wt_trait<t_rac>::value_type   value_type;
         typedef typename wt_trait<t_rac>::map_type     map_type;
         typedef typename wt_trait<t_rac>::inv_map_type inv_map_type;
+        typedef t_bit_vector                           bv_type;
         typedef wt_tag                                 index_category;
         typedef byte_alphabet_tag                      alphabet_category;
+        enum { lex_ordered=1 };
+
     private:
-        size_type       m_size;
-        size_type       m_sigma;        //<- \f$ |\Sigma| \f$
-        BitVector       m_tree;         // bit vector to store the wavelet tree
+
+        size_type       m_size  = 0;
+        size_type       m_sigma = 0;    //<- \f$ |\Sigma| \f$
+        bv_type         m_tree;         // bit vector to store the wavelet tree
         RankSupport     m_tree_rank;    // rank support for the wavelet tree bit vector
         SelectSupport   m_tree_select1; // select support for the wavelet tree bit vector
         t_select_zero   m_tree_select0;
@@ -301,13 +300,14 @@ class wt
         }
 
     public:
-        const size_type& sigma;
+
+        const size_type& sigma = m_sigma;
 
         // Default constructor
-        wt():m_size(0),m_sigma(0), sigma(m_sigma) {};
+        wt() {};
 
         //! Construct the wavelet tree from a random access container
-        wt(int_vector_file_buffer<8>& rac, size_type size):m_size(size), m_sigma(0), sigma(m_sigma) {
+        wt(int_vector_file_buffer<8>& rac, size_type size) {
             m_size = size;
             init_char_node_map();
             typedef int_vector_file_buffer<8> tIVFB;
@@ -438,7 +438,7 @@ class wt
                     }
                     r_sum += r; r = rac.load_next_block();
                 }
-                util::assign(m_tree, tree);
+                m_tree = bv_type(std::move(tree));
                 util::init_support(m_tree_rank,&m_tree);
                 for (size_type i=0; i < m_node_pointers.size(); ++i) {
                     m_node_pointers_rank[i] = m_tree_rank(m_node_pointers[i]);
@@ -449,7 +449,7 @@ class wt
         }
 
         //! Copy constructor
-        wt(const wt& wt):sigma(m_sigma) {
+        wt(const wt& wt) {
             copy(wt);
         }
 
@@ -548,6 +548,54 @@ class wt
                 }
             }
             return result;
+        };
+
+        //! Calculates for symbol c, how many symbols smaller and greater c occure in wt[i..j-1].
+        /*!
+         *  \param i       The start index (inclusive) of the interval.
+         *  \param j       The end index (exclusive) of the interval.
+         *  \param c       The symbol to count the occurences in the interval.
+         *  \param smaller Reference that will contain the number of symbols smaller than c in wt[i..j-1].
+         *  \param greater Reference that will contain the number of symbols greater than c in wt[i..j-1].
+         *  \return The number of occurences of symbol c in wt[0..i-1].
+         *
+         *  \par Precondition
+         *       \f$ i \leq j \leq n \f$
+         *       \f$ c must exist in wt \f$
+         */
+        size_type lex_count(size_type i, size_type j, value_type c, size_type& smaller, size_type& greater)const {
+            assert(i <= j and j <= size());
+            smaller = 0;
+            greater = 0;
+            if (i==j) {
+                return rank(i,c);
+            }
+            size_type res1 = i;
+            size_type res2 = j;
+            size_type node=0;
+            size_type lex_idx = m_char_map[c];
+            size_type sigma   = m_sigma;
+            while (sigma >= 2) {
+                if (lex_idx < (sigma+1)/2) {
+                    size_type r1_1 = (m_tree_rank(m_node_pointers[node]+res1)-m_node_pointers_rank[node]);
+                    size_type r1_2 = (m_tree_rank(m_node_pointers[node]+res2)-m_node_pointers_rank[node]);
+                    greater += r1_2 - r1_1;
+                    res1 -= r1_1;
+                    res2 -= r1_2;
+                    sigma  = (sigma+1)/2;
+                    node   = 2*node+1;
+                } else {
+                    size_type r1_1 = (m_tree_rank(m_node_pointers[node]+res1)-m_node_pointers_rank[node]);
+                    size_type r1_2 = (m_tree_rank(m_node_pointers[node]+res2)-m_node_pointers_rank[node]);
+                    smaller += res2 - r1_2 - res1 + r1_1;
+                    res1 = r1_1;
+                    res2 = r1_2;
+                    lex_idx -= (sigma+1)/2;
+                    sigma -= (sigma+1)/2;
+                    node = 2*node+2;
+                }
+            }
+            return res1;
         };
 
         //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
@@ -649,17 +697,17 @@ class wt
 
         //! Calculates for each symbol c in wt[i..j-1], how many times c occurres in wt[0..i-1] and wt[0..j-1].
         /*!
-         *  \param i The start index (inclusive) of the interval.
-         *  \param j The end index (exclusive) of the interval.
-         *  \param k Reference that will contain the number of different symbols in wt[i..j-1].
-         *  \param cs Reference to a vector of size k that will contain all symbols that occur in wt[i..j-1] in ascending order.
+         *  \param i        The start index (inclusive) of the interval.
+         *  \param j        The end index (exclusive) of the interval.
+         *  \param k        Reference that will contain the number of different symbols in wt[i..j-1].
+         *  \param cs       Reference to a vector that will contain in cs[0..k-1] all symbols that occur in wt[i..j-1] in ascending order.
          *  \param rank_c_i Reference to a vector which equals rank_c_i[p] = rank(cs[p],i), for \f$ 0 \leq p < k \f$
          *  \param rank_c_j Reference to a vector which equals rank_c_j[p] = rank(cs[p],j), for \f$ 0 \leq p < k \f$
          *    \par Time complexity
          *        \f$ \Order{\min{\sigma, k \log \sigma}} \f$
          *
          *  \par Precondition
-         *       \f$ i\leq j \f$
+         *       \f$ i \leq j \leq n \f$
          *       \f$ cs.size() \geq \sigma \f$
          *       \f$ rank_{c_i}.size() \geq \sigma \f$
          *       \f$ rank_{c_j}.size() \geq \sigma \f$
@@ -668,26 +716,27 @@ class wt
                               std::vector<unsigned char>& cs,
                               std::vector<size_type>& rank_c_i,
                               std::vector<size_type>& rank_c_j) const {
+            assert(i<=j and j <= size());
             if (i==j) {
                 k = 0;
-                return;
             } else if ((j-i)==1) {
                 k = 1;
                 rank_c_i[0] = inverse_select(i, cs[0]);
                 rank_c_j[0] = rank_c_i[0]+1;
-                return;
             } else if ((j-i)==2) {
                 rank_c_i[0] = inverse_select(i, cs[0]);
                 rank_c_i[1] = inverse_select(i+1, cs[1]);
                 if (cs[0]==cs[1]) {
                     k = 1;
                     rank_c_j[0] = rank_c_i[0]+2;
-                    return;
                 } else {
                     k = 2;
+                    if (cs[0] > cs[1]) {
+                        std::swap(cs[0],cs[1]);
+                        std::swap(rank_c_i[0],rank_c_i[1]);
+                    }
                     rank_c_j[0] = rank_c_i[0]+1;
                     rank_c_j[1] = rank_c_i[1]+1;
-                    return;
                 }
             } else {
                 k = 0;
@@ -708,7 +757,6 @@ class wt
                 return size();
             }
             assert(i > 0);
-            assert(i <= rank(size(), c));
             assert(i <= rank(size(), c));
 
             size_type node        = 0;
@@ -793,7 +841,7 @@ class wt
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");

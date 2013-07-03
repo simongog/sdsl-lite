@@ -63,8 +63,8 @@ class wt_rlg
         typedef wt_tag                  index_category;
         typedef byte_alphabet_tag       alphabet_category;
     private:
-        size_type         m_size;           // size of the original input sequence
-        wt_type           m_wt;              // wavelet tree for all levels
+        size_type         m_size = 0;       // size of the original input sequence
+        wt_type           m_wt;             // wavelet tree for all levels
         bit_vector        m_b;              // bit vector which indicates if a pair consists of
         // two equal chars
         rank_support_type m_b_rank;         // rank support for vector b
@@ -77,7 +77,7 @@ class wt_rlg
         // Takes \f$\Order{\sigma\max(1, \log L)\log n}\f bits
         int_vector<8>     m_char2comp;      //
         int_vector<64>    m_char_occ;       //
-        uint16_t          m_sigma;
+        uint16_t          m_sigma = 0;
 
         void copy(const wt_rlg& wt) {
             m_size          = wt.m_size;
@@ -95,10 +95,10 @@ class wt_rlg
 
     public:
 
-        const uint16_t& sigma;
+        const uint16_t& sigma = m_sigma;
 
         // Default constructor
-        wt_rlg():m_size(0), m_sigma(0), sigma(m_sigma) {};
+        wt_rlg() {};
 
         //! Construct the wavelet tree from a file_buffer
         /*! \param text_buf    A int_vector_file_buffer to the original text.
@@ -106,7 +106,7 @@ class wt_rlg
          * \par Time complexity
          *    \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        wt_rlg(int_vector_file_buffer<8>& text_buf, size_type size):m_size(size), sigma(m_sigma) {
+        wt_rlg(int_vector_file_buffer<8>& text_buf, size_type size) : m_size(size) {
             typedef int_vector_size_type size_type;
             std::string temp_file = text_buf.file_name + "_wt_rlg_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
             osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
@@ -119,7 +119,6 @@ class wt_rlg
             m_b_border.resize(bits::hi(size) + 1);
             m_b_border[0] = 0;
 
-            typedef std::pair<int, char> tPIC;
             int m=0;
 
             text_buf.reset();
@@ -199,7 +198,7 @@ class wt_rlg
 
             {
                 int_vector_file_buffer<8> temp_bwt_buf(temp_file);
-                util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
+                m_wt = wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size);
             }
 
             util::init_support(m_b_rank, &m_b);
@@ -232,7 +231,7 @@ class wt_rlg
         }
 
         //! Copy constructor
-        wt_rlg(const wt_rlg& wt):sigma(m_sigma) {
+        wt_rlg(const wt_rlg& wt) {
             copy(wt);
         }
 
@@ -377,7 +376,7 @@ class wt_rlg
         };
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");

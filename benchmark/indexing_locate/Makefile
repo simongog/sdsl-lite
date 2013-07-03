@@ -1,6 +1,6 @@
 include ../Make.helper
 CC = g++ 
-CFLAGS = -msse4.2 -O9 -funroll-loops -fomit-frame-pointer -ffast-math -DNDEBUG
+CFLAGS = -std=c++11 -msse4.2 -O9 -funroll-loops -fomit-frame-pointer -ffast-math -DNDEBUG
 LIBS = -lsdsl -ldivsufsort -ldivsufsort64
 SRC_DIR = src
 TMP_DIR = ../tmp

@@ -111,8 +111,8 @@ std::string demangle2(const std::string& name)
 
 void delete_all_files(tMSS& file_map)
 {
-    for (tMSS::iterator file_it=file_map.begin(); file_it!=file_map.end(); ++file_it) {
-        sdsl::remove(file_it->second);
+for (auto file_pair : file_map) {
+        sdsl::remove(file_pair.second);
     }
     file_map.clear();
 }

@@ -63,29 +63,29 @@ class cst_dfs_const_forward_iterator: public std::iterator<std::forward_iterator
 
         inline node_type parent() {
             --m_stack_size; // decrease stack size
-            if (m_stack_cache != NULL and m_stack_size < cache_size) {
+            if (m_stack_cache != nullptr and m_stack_size < cache_size) {
                 return m_stack_cache[m_stack_size];
             } else
                 return m_cst->parent(m_v);
         }
 
         inline node_type first_child() {
-            if (m_stack_cache != NULL and m_stack_size < cache_size)   // push node to the stack
+            if (m_stack_cache != nullptr and m_stack_size < cache_size)   // push node to the stack
                 m_stack_cache[ m_stack_size ] = m_v;
             m_stack_size++;
             return m_cst->select_child(m_v, 1);
         }
 
         //! Default constructor
-        cst_dfs_const_forward_iterator():m_cst(NULL),m_visited(false),m_valid(false), m_stack_cache(NULL)
+        cst_dfs_const_forward_iterator():m_cst(nullptr),m_visited(false),m_valid(false), m_stack_cache(nullptr)
         {}
     public:
 
         //! Constructor
-        cst_dfs_const_forward_iterator(const Cst* cst, const value_type node, bool visited=false, bool valid=true):m_visited(visited), m_valid(valid), m_stack_cache(NULL) {
+        cst_dfs_const_forward_iterator(const Cst* cst, const value_type node, bool visited=false, bool valid=true):m_visited(visited), m_valid(valid), m_stack_cache(nullptr) {
             m_cst = cst;
             m_v = node;
-            if (m_cst == NULL) {
+            if (m_cst == nullptr) {
                 m_valid = false;
             } else if (m_v == m_cst->root() and !m_visited and m_valid) { // if the iterator equal cst.begin()
                 m_stack_cache = new node_type[cache_size];
@@ -95,18 +95,18 @@ class cst_dfs_const_forward_iterator: public std::iterator<std::forward_iterator
         }
 
         //! Copy Constructor
-//	cst_dfs_const_forward_iterator(const cst_dfs_const_forward_iterator &it):m_cst(it.cst),m_v(it.m_v),m_valid(m_valid), m_stack_cache(NULL),m_stack_size(0){
+//	cst_dfs_const_forward_iterator(const cst_dfs_const_forward_iterator &it):m_cst(it.cst),m_v(it.m_v),m_valid(m_valid), m_stack_cache(nullptr),m_stack_size(0){
 //	}
 
         ~cst_dfs_const_forward_iterator() {
-            if (m_stack_cache != NULL) {
+            if (m_stack_cache != nullptr) {
 //			std::cerr<<"#deleting stack "<<m_cst->lb(m_v)<<" "<<m_cst->rb(m_v)<<std::endl;
                 delete [] m_stack_cache;
             }
         }
 
         //! Returns how often the current node was already visited.
-        uint8_t visit()const { 
+        uint8_t visit()const {
             return 1+(uint8_t)m_visited;
         }
 
@@ -191,13 +191,13 @@ class cst_bottom_up_const_forward_iterator: public std::iterator<std::forward_it
     public:
 
         //! Default constructor
-        cst_bottom_up_const_forward_iterator():m_cst(NULL),m_valid(false) {}
+        cst_bottom_up_const_forward_iterator():m_cst(nullptr),m_valid(false) {}
 
         //! Constructor
         cst_bottom_up_const_forward_iterator(const Cst* cst, const value_type node, bool valid=true):m_valid(valid) {
             m_cst = cst;
             m_v = node;
-            if (m_cst == NULL)
+            if (m_cst == nullptr)
                 m_valid = false;
         }
 
@@ -276,7 +276,7 @@ class cst_bfs_iterator: public std::iterator<std::forward_iterator_tag, typename
         cst_bfs_iterator(const Cst* cst, const value_type node, bool valid=true, bool end_it=false) {
             m_cst = cst;
             m_valid = valid;
-            if (m_cst != NULL and !end_it) {
+            if (m_cst != nullptr and !end_it) {
                 m_queue.push(node);
             }
         }
