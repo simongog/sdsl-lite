@@ -59,6 +59,8 @@ template<class t_coder=coder::elias_delta,
          uint32_t t_dens = 8, uint8_t t_width=0>
 class enc_vector
 {
+    private:
+        static_assert(t_dens > 1 , "enc_vector: sample density must be larger than `1`");
     public:
         typedef uint64_t                                 value_type;
         typedef random_access_const_iterator<enc_vector> iterator;

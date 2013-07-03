@@ -40,6 +40,9 @@ namespace sdsl
 template<uint8_t t_b=1, uint8_t t_pat_len=1>
 class rank_support_scan : public rank_support
 {
+    private:
+        static_assert(t_b == 1u or t_b == 0u or t_b == 10u , "rank_support_scan: bit pattern must be `0`,`1`,`10` or `01`");
+        static_assert(t_pat_len == 1u or t_pat_len == 2u , "rank_support_scan: bit pattern length must be 1 or 2");
     public:
         typedef bit_vector bit_vector_type;
     public:
@@ -93,4 +96,4 @@ inline const typename rank_support_scan<t_b, t_pat_len>::size_type rank_support_
 
 }// end namespace sds
 
-#endif // end file 
+#endif // end file
