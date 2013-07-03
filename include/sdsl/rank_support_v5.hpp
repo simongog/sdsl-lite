@@ -50,6 +50,9 @@ struct rank_support_trait;
 template<uint8_t t_b=1, uint8_t t_pat_len=1>
 class rank_support_v5 : public rank_support
 {
+    private:
+        static_assert(t_b == 1u or t_b == 0u or t_b == 10u , "rank_support_v5: bit pattern must be `0`,`1`,`10` or `01`");
+        static_assert(t_pat_len == 1u or t_pat_len == 2u , "rank_support_v5: bit pattern length must be 1 or 2");
     public:
         typedef bit_vector bit_vector_type;
         typedef rank_support_trait<t_b, t_pat_len>  trait_type;
@@ -176,4 +179,4 @@ class rank_support_v5 : public rank_support
 
 }// end namespace sds
 
-#endif // end file 
+#endif // end file
