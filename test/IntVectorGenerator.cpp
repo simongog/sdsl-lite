@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <algorithm>
+#include <string>
 
 using namespace std;
 using namespace sdsl;
@@ -21,24 +22,24 @@ int main(int argc, char* argv[])
         cout << "     Vector will be initialized with random bits, if " << endl;
         cout << "     DEFAULT_VALUE=r. If DEFAULT_VALUE=i, v will be set to" << endl;
         cout << "     the identity." << endl;
-        cout << " (2) If PERM_SEED is specified, a random_shuffel seeded with" << endl;
+        cout << " (2) If PERM_SEED is specified, a random_shuffle seeded with" << endl;
         cout << "     PERM_SEED will be performed." << endl;
         cout << " (3) Stores the vector to FILE." << endl;
         return 1;
     }
-    uint64_t size  = atoll(argv[2]);
-    uint64_t width = atoll(argv[3]);
+    uint64_t size  = stoull(argv[2]);
+    uint64_t width = stoull(argv[3]);
     int_vector<> v(size, 0, width);
-    if ('r' == argv[4][1]) {
+    if ('r' == argv[4][0]) {
         util::set_random_bits(v);
-    } else if ('i' == argv[4][1]) {
+    } else if ('i' == argv[4][0]) {
         util::set_to_id(v);
     } else {
-        uint64_t default_value = atoll(argv[4]);
+        uint64_t default_value = stoull(argv[4]);
         util::set_to_value(v, default_value);
     }
     if (argc > 5) {
-        unsigned seed = atoll(argv[5]);
+        unsigned long seed = stoul(argv[5]);
         srand(seed);
         random_shuffle(v.begin(), v.end(), p_myrandom);
     }

@@ -15,7 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file lcp_bitcompressed.hpp
-    \brief lcp_bitcompressed.hpp contains an implementation of an bitcompressed LCP array.
+    \brief lcp_bitcompressed.hpp contains a  bitcompressed LCP array.
     \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_LCP_BITCOMPRESSED
@@ -33,6 +33,7 @@ template<uint8_t t_width=0>
 class lcp_bitcompressed
 {
     public:
+
         typedef typename int_vector<t_width>::value_type        value_type;
         typedef typename int_vector<t_width>::size_type         size_type;
         typedef random_access_const_iterator<lcp_bitcompressed> const_iterator;
@@ -50,20 +51,21 @@ class lcp_bitcompressed
                sa_order    = 1
              };
 
-        template<class Cst>  // template inner class which is used in CSTs to parametrize lcp classes
-        class type           // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
-        {
-            public:
-                typedef lcp_bitcompressed lcp_type;
+        template<class Cst>
+        struct type {
+            typedef lcp_bitcompressed lcp_type;
         };
 
     private:
+
         int_vector<t_width>  m_lcp;
 
         void copy(const lcp_bitcompressed& lcp_c) {
             m_lcp    = lcp_c.m_lcp;
         }
+
     public:
+
         //! Default Constructor
         lcp_bitcompressed() {}
 
@@ -73,7 +75,18 @@ class lcp_bitcompressed
         }
 
         //! Constructor taking a cache_config
-        lcp_bitcompressed(cache_config& config);
+        lcp_bitcompressed(cache_config& config) {
+            std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
+            int_vector_file_buffer<> lcp_buf(lcp_file);
+            m_lcp = int_vector<t_width>(lcp_buf.int_vector_size, 0, lcp_buf.width);
+            for (size_type i=0, r_sum=0, r = 0; r_sum < m_lcp.size();) {
+                for (; i < r_sum+r; ++i) {
+                    m_lcp[i] = lcp_buf[i-r_sum];
+                }
+                r_sum += r;
+                r      = lcp_buf.load_next_block();
+            }
+        }
 
         //! Number of elements in the instance.
         size_type size()const {
@@ -85,7 +98,7 @@ class lcp_bitcompressed
             return int_vector<t_width>::max_size();
         }
 
-        //! Returns if the data strucutre is empty.
+        //! Returns if the data structure is empty.
         bool empty()const {
             return m_lcp.empty();
         }
@@ -113,52 +126,29 @@ class lcp_bitcompressed
         }
 
         //! Assignment Operator.
-        lcp_bitcompressed& operator=(const lcp_bitcompressed& lcp_c);
+        lcp_bitcompressed& operator=(const lcp_bitcompressed& lcp_c) {
+            if (this != &lcp_c) {
+                copy(lcp_c);
+            }
+            return *this;
+        }
 
         //! Serialize to a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
+                            std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name,
+                                         util::class_name(*this));
+            size_type written_bytes = 0;
+            written_bytes += m_lcp.serialize(out, child, "lcp");
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
 
         //! Load from a stream.
         void load(std::istream& in) {
             m_lcp.load(in);
         }
 };
-
-// == template functions ==
-
-template<uint8_t t_width>
-lcp_bitcompressed<t_width>::lcp_bitcompressed(cache_config& config)
-{
-    int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
-    m_lcp = int_vector<t_width>(lcp_buf.int_vector_size, 0, lcp_buf.width);
-    for (size_type i=0, r_sum=0, r = lcp_buf.load_next_block(); r_sum < m_lcp.size();) {
-        for (; i < r_sum+r; ++i) {
-            m_lcp[i] = lcp_buf[i-r_sum];
-        }
-        r_sum += r;
-        r      = lcp_buf.load_next_block();
-    }
-}
-
-template<uint8_t t_width>
-typename lcp_bitcompressed<t_width>::size_type lcp_bitcompressed<t_width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
-{
-    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-    size_type written_bytes = 0;
-    written_bytes += m_lcp.serialize(out, child, "lcp");
-    structure_tree::add_size(child, written_bytes);
-    return written_bytes;
-}
-
-
-template<uint8_t t_width>
-lcp_bitcompressed<t_width>& lcp_bitcompressed<t_width>::operator=(const lcp_bitcompressed& lcp_c)
-{
-    if (this != &lcp_c) {
-        copy(lcp_c);
-    }
-    return *this;
-}
 
 } // end namespace sdsl
 #endif

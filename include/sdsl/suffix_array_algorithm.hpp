@@ -50,14 +50,14 @@ namespace sdsl
  *         FOCS 2000: 390-398
  */
 template<class t_csa>
-typename t_csa::csa_size_type backward_search(
+typename t_csa::size_type backward_search(
     const t_csa& csa,
     typename t_csa::size_type l,
     typename t_csa::size_type r,
     typename t_csa::char_type c,
     typename t_csa::size_type& l_res,
     typename t_csa::size_type& r_res,
-    SDSL_UNUSED typename enable_if<is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
 )
 {
     assert(l <= r); assert(r < csa.size());
@@ -71,7 +71,7 @@ typename t_csa::csa_size_type backward_search(
 
 //! Backward search for a pattern in an \f$\omega\f$-interval \f$[\ell..r]\f$ in the CSA.
 /*!
- * \tparam t_csa A    CSA type.
+ * \tparam t_csa      A CSA type.
  * \tparam t_pat_iter Pattern iterator type.
  *
  * \param csa   The CSA object.
@@ -94,7 +94,8 @@ typename t_csa::csa_size_type backward_search(
  *         FOCS 2000: 390-398
  */
 template<class t_csa, class t_pat_iter>
-typename t_csa::size_type backward_search(
+typename t_csa::size_type
+backward_search(
     const t_csa& csa,
     typename t_csa::size_type l,
     typename t_csa::size_type r,
@@ -102,7 +103,7 @@ typename t_csa::size_type backward_search(
     t_pat_iter end,
     typename t_csa::size_type& l_res,
     typename t_csa::size_type& r_res,
-    SDSL_UNUSED typename enable_if<is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
 )
 {
     t_pat_iter it = end;
@@ -113,6 +114,196 @@ typename t_csa::size_type backward_search(
     l_res = l;
     r_res = r;
     return r+1-l;
+}
+
+// Maybe one should replace these traits with a member variable in each wavelet tree
+template<class t_T>
+struct wt_has_lex_count_trait {
+    enum {value = false};
+};
+
+template<class t_rac, class t_bv, class t_rs, class t_ss1, class t_ss0>
+struct wt_has_lex_count_trait<wt<t_rac, t_bv, t_rs, t_ss1, t_ss0> > {
+    enum {value = true};
+};
+
+template<class t_bv, class t_rs, class t_ss1, class t_ss0, bool t_dfs_shape>
+struct wt_has_lex_count_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> > {
+    enum {value = true};
+};
+
+//! Bidirectional search for a character c on an interval \f$[l_fwd..r_fwd]\f$ of the suffix array.
+/*!
+ * \param csa_fwd   The CSA object of the forward text in which the backward_search should be done.
+ * \param l_fwd     Left border of the lcp-interval \f$ [l_fwd..r_fwd]\f$ in suffix array of the forward text.
+ * \param r_fwd     Right border of the lcp-interval \f$ [l_fwd..r_fwd]\f$ in suffix array of the forward text.
+ * \param l_bwd     Left border of the lcp-interval \f$ [l_bwd..r_bwd]\f$ in suffix array of the backward text.
+ * \param r_bwd     Right border of the lcp-interval \f$ [l_bwd..r_bwd]\f$ in suffix array of the backward text.
+ * \param c         The character c which is the starting character of the suffixes in the resulting interval \f$ [l_fwd_res..r_fwd_res] \f$ .
+ * \param l_fwd_res Reference to the resulting left border in suffix array of the forward text.
+ * \param r_fwd_res Reference to the resulting right border in suffix array of the forward text.
+ * \param l_bwd_res Reference to the resulting left border in suffix array of the backward text.
+ * \param r_bwd_res Reference to the resulting right border in suffix array of the backward text.
+ * \return The size of the new interval [l_fwd_res..r_fwd_res].
+ * \pre \f$ 0 \leq \ell \leq r_fwd < csa_fwd.size() \f$
+ * \par Reference
+ *         Thomas Schnattinger, Enno Ohlebusch, Simon Gog:
+ *         Bidirectional search in a string with wavelet trees and bidirectional matching statistics.
+ *         Inf. Comput. 213: 13-22
+ */
+template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
+typename csa_wt<t_wt>::size_type bidirectional_search(
+    const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_fwd,
+    typename csa_wt<>::size_type l_fwd,
+    typename csa_wt<>::size_type r_fwd,
+    typename csa_wt<>::size_type l_bwd,
+    typename csa_wt<>::size_type r_bwd,
+    typename csa_wt<>::char_type c,
+    typename csa_wt<>::size_type& l_fwd_res,
+    typename csa_wt<>::size_type& r_fwd_res,
+    typename csa_wt<>::size_type& l_bwd_res,
+    typename csa_wt<>::size_type& r_bwd_res,
+    SDSL_UNUSED typename std::enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+)
+{
+    assert(l_fwd <= r_fwd); assert(r_fwd < csa_fwd.size());
+    typedef typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::size_type size_type;
+    size_type c_begin = csa_fwd.C[csa_fwd.char2comp[c]];
+    size_type s, b;
+    size_type rank_l = csa_fwd.wavelet_tree.lex_count(l_fwd, r_fwd+1, c, s, b);
+    size_type rank_r = r_fwd - l_fwd - s - b + rank_l;
+    l_fwd_res = c_begin + rank_l;
+    r_fwd_res = c_begin + rank_r;
+    assert(r_fwd_res+1 >= l_fwd_res);
+    l_bwd_res = l_bwd + s;
+    r_bwd_res = r_bwd - b;
+    assert(r_bwd_res-l_bwd_res == r_fwd_res-l_fwd_res);
+    return r_fwd_res+1-l_fwd_res;
+}
+
+//! Bidirectional search in backward direction.
+/*!
+ * The function requires a pattern \f$p\f$, an \f$\omega\f$-interval \f$[l_fwd..r_fwd]\f$ in the CSA object
+ * of the forward text and an \f$\omega^{rev}\f$-interval \f$[l_bwd..r_bwd]\f$ in the CSA object of the backward text.
+ * The function returns the \f$p\omega\f$-interval in the CSA object of the forward text and
+ * the \f$\omega^{rev}p^{rev}\f$-interval in the CSA object of the backward text.
+ *
+ * \tparam t_pat_iter Pattern iterator type.
+ *
+ * \param csa_fwd   The CSA object of the forward text.
+ * \param csa_bwd   The CSA object of the backward text.
+ * \param l_fwd     Left border of the lcp-interval \f$ [l_fwd..r_fwd]\f$ in suffix array of the forward text.
+ * \param r_fwd     Right border of the lcp-interval \f$ [l_fwd..r_fwd]\f$ in suffix array of the forward text.
+ * \param l_bwd     Left border of the lcp-interval \f$ [l_bwd..r_bwd]\f$ in suffix array of the backward text.
+ * \param r_bwd     Right border of the lcp-interval \f$ [l_bwd..r_bwd]\f$ in suffix array of the backward text.
+ * \param begin     Iterator to the begin of the pattern (inclusive).
+ * \param end       Iterator to the end of the pattern (exclusive).
+ * \param l_fwd_res Reference to the resulting left border in suffix array of the forward text.
+ * \param r_fwd_res Reference to the resulting right border in suffix array of the forward text.
+ * \param l_bwd_res Reference to the resulting left border in suffix array of the backward text.
+ * \param r_bwd_res Reference to the resulting right border in suffix array of the backward text.
+ * \return The size of the new interval [l_fwd_res..r_fwd_res].
+ *         Equals zero, if no match is found.
+ *
+ * \pre \f$ 0 \leq \ell \leq r_fwd < csa_fwd.size() \f$
+ * \par Reference
+ *         Thomas Schnattinger, Enno Ohlebusch, Simon Gog:
+ *         Bidirectional search in a string with wavelet trees and bidirectional matching statistics.
+ *         Inf. Comput. 213: 13-22
+ */
+template<class t_pat_iter, class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
+typename csa_wt<>::size_type bidirectional_search_backward(
+    const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_fwd,
+    SDSL_UNUSED const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_bwd,
+    typename csa_wt<>::size_type l_fwd,
+    typename csa_wt<>::size_type r_fwd,
+    typename csa_wt<>::size_type l_bwd,
+    typename csa_wt<>::size_type r_bwd,
+    t_pat_iter begin,
+    t_pat_iter end,
+    typename csa_wt<>::size_type& l_fwd_res,
+    typename csa_wt<>::size_type& r_fwd_res,
+    typename csa_wt<>::size_type& l_bwd_res,
+    typename csa_wt<>::size_type& r_bwd_res,
+    SDSL_UNUSED typename std::enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+)
+{
+    t_pat_iter it = end;
+    while (begin < it and r_fwd+1-l_fwd > 0) {
+        --it;
+        bidirectional_search(csa_fwd, l_fwd, r_fwd, l_bwd, r_bwd, (typename csa_wt<>::char_type)*it, l_fwd, r_fwd, l_bwd, r_bwd);
+    }
+    l_fwd_res = l_fwd;
+    r_fwd_res = r_fwd;
+    l_bwd_res = l_bwd;
+    r_bwd_res = r_bwd;
+    return r_fwd+1-l_fwd;
+}
+
+//! Bidirectional search in forward direction.
+/*!
+ * The function requires a pattern \f$p\f$, an \f$\omega\f$-interval \f$[l_fwd..r_fwd]\f$ in the CSA object
+ * of the forward text and an \f$\omega^{rev}\f$-interval \f$[l_bwd..r_bwd]\f$ in the CSA object of the backward text.
+ * The function returns the \f$\omega p\f$-interval in the CSA object of the forward text and
+ * the \f$\p^{rev}omega^{rev}\f$-interval in the CSA object of the backward text.
+ *
+ * \tparam t_pat_iter Pattern iterator type.
+ *
+ * \param csa_fwd   The CSA object of the forward text.
+ * \param csa_bwd   The CSA object of the backward text.
+ * \param l_fwd     Left border of the lcp-interval \f$ [l_fwd..r_fwd]\f$ in suffix array of the forward text.
+ * \param r_fwd     Right border of the lcp-interval \f$ [l_fwd..r_fwd]\f$ in suffix array of the forward text.
+ * \param l_bwd     Left border of the lcp-interval \f$ [l_bwd..r_bwd]\f$ in suffix array of the backward text.
+ * \param r_bwd     Right border of the lcp-interval \f$ [l_bwd..r_bwd]\f$ in suffix array of the backward text.
+ * \param begin     Iterator to the begin of the pattern (inclusive).
+ * \param end       Iterator to the end of the pattern (exclusive).
+ * \param l_fwd_res Reference to the resulting left border in suffix array of the forward text.
+ * \param r_fwd_res Reference to the resulting right border in suffix array of the forward text.
+ * \param l_bwd_res Reference to the resulting left border in suffix array of the backward text.
+ * \param r_bwd_res Reference to the resulting right border in suffix array of the backward text.
+ * \return The size of the new interval [l_fwd_res..r_fwd_res].
+ *         Equals zero, if no match is found.
+ *
+ * \pre \f$ 0 \leq \ell \leq r_fwd < csa_fwd.size() \f$
+ * \par Reference
+ *         Thomas Schnattinger, Enno Ohlebusch, Simon Gog:
+ *         Bidirectional search in a string with wavelet trees and bidirectional matching statistics.
+ *         Inf. Comput. 213: 13-22
+ */
+template<class t_pat_iter,
+         class t_wt,
+         uint32_t t_dens,
+         uint32_t t_inv_dens,
+         class t_sa_sample_strat,
+         class t_isa,
+         class t_alphabet_strat>
+typename csa_wt<t_wt>::size_type
+bidirectional_search_forward(
+    SDSL_UNUSED const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_fwd,
+    const csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa_bwd,
+    typename csa_wt<>::size_type l_fwd,
+    typename csa_wt<>::size_type r_fwd,
+    typename csa_wt<>::size_type l_bwd,
+    typename csa_wt<>::size_type r_bwd,
+    t_pat_iter begin,
+    t_pat_iter end,
+    typename csa_wt<>::size_type& l_fwd_res,
+    typename csa_wt<>::size_type& r_fwd_res,
+    typename csa_wt<>::size_type& l_bwd_res,
+    typename csa_wt<>::size_type& r_bwd_res,
+    SDSL_UNUSED typename std::enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+)
+{
+    t_pat_iter it = begin;
+    while (it < end and r_fwd+1-l_fwd > 0) {
+        bidirectional_search(csa_bwd, l_bwd, r_bwd, l_fwd, r_fwd, (typename csa_wt<>::char_type)*it, l_bwd, r_bwd, l_fwd, r_fwd);
+        ++it;
+    }
+    l_fwd_res = l_fwd;
+    r_fwd_res = r_fwd;
+    l_bwd_res = l_bwd;
+    r_bwd_res = r_bwd;
+    return r_fwd+1-l_fwd;
 }
 
 //! Counts the number of occurrences of a pattern in a CSA.
@@ -129,7 +320,7 @@ typename t_csa::size_type backward_search(
  *        \f$ \Order{ t_{backward\_search} } \f$
  */
 template<class t_csa, class t_pat_iter>
-static typename t_csa::size_type count(
+typename t_csa::size_type count(
     const t_csa& csa,
     t_pat_iter begin,
     t_pat_iter end,
@@ -139,7 +330,8 @@ static typename t_csa::size_type count(
     if (end - begin > (typename std::iterator_traits<t_pat_iter>::difference_type)csa.size())
         return 0;
     typename t_csa::size_type t=0; // dummy variable for the backward_search call
-    return backward_search(csa, 0, csa.size()-1, begin, end, t, t);
+    typename t_csa::size_type result = backward_search(csa, 0, csa.size()-1, begin, end, t, t);
+    return result;
 }
 
 
@@ -176,7 +368,7 @@ typename t_csa::size_type locate(
     t_pat_iter begin,
     t_pat_iter end,
     t_rac& occ,
-    SDSL_UNUSED typename enable_if<is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
 )
 {
     typename t_csa::size_type occ_begin, occ_end, occs;
@@ -209,7 +401,7 @@ typename t_csa::size_type extract(
     typename t_csa::size_type begin,
     typename t_csa::size_type end,
     t_text_iter text,
-    SDSL_UNUSED typename enable_if<is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
 )
 {
     typename t_csa::extract_category extract_tag;
@@ -274,7 +466,7 @@ t_rac extract(
     const t_csa& csa,
     typename t_csa::size_type begin,
     typename t_csa::size_type end,
-    SDSL_UNUSED typename enable_if<is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
 )
 {
     assert(end <= csa.size());

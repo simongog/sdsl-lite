@@ -23,7 +23,7 @@ set(LIBRARY_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
 set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}")
 set(LIBRARY_VERSION_FULL "${LIBRARY_VERSION}.${LIBRARY_VERSION_PATCH}")
 
-append_cxx_compiler_flags("-ffast-math -Wall -O9 -funroll-loops -DNDEBUG" "GCC" CMAKE_CXX_FLAGS)
+append_cxx_compiler_flags("-std=c++11 -ffast-math -Wall -O9 -funroll-loops -DNDEBUG" "GCC" CMAKE_CXX_FLAGS)
 
 if( BUILTIN_POPCNT )
 	append_cxx_compiler_flags("-msse4.2" "GCC" CMAKE_CXX_FLAGS)

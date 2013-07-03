@@ -45,7 +45,7 @@ template<>
 bool load_from_file(void*&, const std::string& file);
 
 //! Specialization of load_from_file for a char array
-/*  \pre v=NULL
+/*  \pre v=nullptr
  */
 bool load_from_file(char*& v, const std::string& file);
 
@@ -158,7 +158,7 @@ bool store_to_plain_array(t_int_vec& v, const std::string& file)
 }
 
 template<class T>
-size_t serialize_empty_object(std::ostream&, structure_tree_node* v=NULL, std::string name="", const T* t=NULL)
+size_t serialize_empty_object(std::ostream&, structure_tree_node* v=nullptr, std::string name="", const T* t=nullptr)
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*t));
     size_t written_bytes = 0;
@@ -193,7 +193,7 @@ struct nullstream : std::ostream {
 
 // Writes primitive-typed variable t to stream out
 template<class T>
-size_t write_member(const T& t, std::ostream& out, sdsl::structure_tree_node* v=NULL, std::string name="")
+size_t write_member(const T& t, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
 {
     sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, util::class_name(t));
     out.write((char*)&t, sizeof(t));
@@ -228,7 +228,7 @@ void read_member<std::string>(std::string& t, std::istream& in);
  *           sizes of the children)
  */
 template<class T>
-size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::structure_tree_node* v=NULL, std::string name="")
+size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
 {
     if (vec.size() > 0) {
         sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, "std::vector<"+util::class_name(vec[0])+">");
@@ -450,7 +450,7 @@ bool store_to_cache(const T& v, const std::string& key, cache_config& config)
 template<class T>
 typename T::size_type size_in_bytes(const T& t)
 {
-    if ((&t) == NULL)
+    if ((&t) == nullptr)
         return 0;
     nullstream ns;
     return t.serialize(ns);
@@ -494,7 +494,7 @@ bool store_to_file(const int_vector<t_width>& v, const std::string& file, bool w
             std::cerr<<"INFO: store_to_file: `"<<file<<"`"<<std::endl;
         }
     }
-    v.serialize(out, NULL, "", write_fixed_as_variable);
+    v.serialize(out, nullptr, "", write_fixed_as_variable);
     out.close();
     return true;
 }

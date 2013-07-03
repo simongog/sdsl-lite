@@ -1,6 +1,6 @@
 include ../Make.helper
 CC = g++ 
-CFLAGS = # in compile_options.config
+CFLAGS = -std=c++11 # in compile_options.config
 LIBS = -lsdsl -ldivsufsort -ldivsufsort64
 SRC_DIR = src
 TMP_DIR = ../tmp

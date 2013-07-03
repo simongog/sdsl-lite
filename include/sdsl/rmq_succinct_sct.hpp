@@ -67,18 +67,19 @@ class rmq_succinct_sct
         typedef typename bit_vector::size_type value_type;
         typedef t_bp_support                   bp_support_type;
 
-        const bit_vector& sct_bp;
-        const bp_support_type& sct_bp_support;
+        const bit_vector&      sct_bp         = m_sct_bp;
+        const bp_support_type& sct_bp_support = m_sct_bp_support;
 
         //! Default constructor
-        rmq_succinct_sct() : sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {}
+        rmq_succinct_sct() {}
 
         //! Constructor
-        template<class RandomAccessContainer>
-        rmq_succinct_sct(const RandomAccessContainer* v=NULL) : sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
-            if (v == NULL) {
-                util::assign(m_sct_bp, bit_vector()); util::assign(m_sct_bp_support, bp_support_type());
-            } else {
+        /*! \tparam t_rac A random access container.
+         *  \param  v     Pointer to container object.
+         */
+        template<class t_rac>
+        rmq_succinct_sct(const t_rac* v=nullptr) {
+            if (v != nullptr) {
 #ifdef RMQ_SCT_BUILD_BP_NOT_SUCCINCT
                 // this method takes \f$n\log n\f$ bits extra space in the worst case
                 algorithm::construct_supercartesian_tree_bp(*v, m_sct_bp, t_min);
@@ -87,12 +88,12 @@ class rmq_succinct_sct
                 algorithm::construct_supercartesian_tree_bp_succinct(*v, m_sct_bp, t_min);
                 //  TODO: constructor which uses int_vector_file_buffer
 #endif
-                util::assign(m_sct_bp_support, bp_support_type(&m_sct_bp));
+                m_sct_bp_support = bp_support_type(&m_sct_bp);
             }
         }
 
         //! Copy constructor
-        rmq_succinct_sct(const rmq_succinct_sct& rm): sct_bp(m_sct_bp), sct_bp_support(m_sct_bp_support) {
+        rmq_succinct_sct(const rmq_succinct_sct& rm) {
             if (this != &rm) { // if v is not the same object
                 copy(rm);
             }
@@ -107,7 +108,8 @@ class rmq_succinct_sct
 
         void swap(rmq_succinct_sct& rm) {
             m_sct_bp.swap(rm.m_sct_bp);
-            util::swap_support(m_sct_bp_support, rm.m_sct_bp_support, &m_sct_bp, &(rm.m_sct_bp));
+            util::swap_support(m_sct_bp_support, rm.m_sct_bp_support,
+                               &m_sct_bp, &(rm.m_sct_bp));
         }
 
         //! Range minimum/maximum query for the supported random access container v.
@@ -144,7 +146,7 @@ class rmq_succinct_sct
             return m_sct_bp.size()/2;
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_sct_bp.serialize(out, child, "sct_bp");

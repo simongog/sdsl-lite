@@ -35,6 +35,7 @@
 #ifndef NDEBUG
 #include <algorithm>
 #endif
+#include <iostream>
 
 namespace sdsl
 {
@@ -74,24 +75,24 @@ template<uint32_t t_sml_blk = 256,
 class bp_support_sada
 {
     public:
-        typedef bit_vector::size_type         size_type;
+        typedef bit_vector::size_type       size_type;
         typedef bit_vector::difference_type difference_type;
         typedef int_vector<>                sml_block_array_type;
         typedef int_vector<>                med_block_array_type;
         typedef t_rank                      rank_type;
-        typedef t_select                      select_type;
+        typedef t_select                    select_type;
     private:
-        const bit_vector* m_bp;        // the supported balanced parentheses sequence as bit_vector
+        const bit_vector* m_bp        = nullptr;   // the supported balanced parentheses sequence as bit_vector
         rank_type         m_bp_rank;   // RS for the BP sequence => see excess() and rank()
         select_type       m_bp_select; // SS for the BP sequence => see select()
 
         sml_block_array_type  m_sml_block_min_max;
         med_block_array_type  m_med_block_min_max;
 
-        size_type m_size;            // number of supported parentheses
-        size_type m_sml_blocks;      // number of small sized blocks
-        size_type m_med_blocks;      // number of medium sized blocks
-        size_type m_med_inner_blocks;// number of inner nodes in the min max tree of the medium sized blocks
+        size_type m_size             = 0; // number of supported parentheses
+        size_type m_sml_blocks       = 0; // number of small sized blocks
+        size_type m_med_blocks       = 0; // number of medium sized blocks
+        size_type m_med_inner_blocks = 0; // number of inner nodes in the min max tree of the medium sized blocks
 //#define USE_CACHE
 #ifdef USE_CACHE
         mutable fast_cache find_close_cache;
@@ -334,29 +335,23 @@ class bp_support_sada
         }
 
     public:
-        const rank_type&            bp_rank;           //!< RS for the underlying BP sequence.
-        const select_type&          bp_select;         //!< SS for the underlying BP sequence.
-        const sml_block_array_type& sml_block_min_max; //!< Small blocks array. Rel. min/max for the small blocks.
-        const med_block_array_type& med_block_min_max; //!< Array containing the min max tree of the medium blocks.
+        const rank_type&            bp_rank           = m_bp_rank;           //!< RS for the underlying BP sequence.
+        const select_type&          bp_select         = m_bp_select;         //!< SS for the underlying BP sequence.
+        const sml_block_array_type& sml_block_min_max = m_sml_block_min_max; //!< Small blocks array. Rel. min/max for the small blocks.
+        const med_block_array_type& med_block_min_max = m_med_block_min_max; //!< Array containing the min max tree of the medium blocks.
 
-        bp_support_sada():m_bp(NULL), m_size(0), m_sml_blocks(0), m_med_blocks(0), m_med_inner_blocks(0),
-            bp_rank(m_bp_rank), bp_select(m_bp_select), sml_block_min_max(m_sml_block_min_max), med_block_min_max(m_med_block_min_max)
-        {}
+        bp_support_sada() {}
 
         //! Constructor
         explicit bp_support_sada(const bit_vector* bp): m_bp(bp),
-            m_size(bp==NULL?0:bp->size()),
+            m_size(bp==nullptr?0:bp->size()),
             m_sml_blocks((m_size+t_sml_blk-1)/t_sml_blk),
             m_med_blocks((m_size+t_sml_blk*t_med_deg-1)/(t_sml_blk* t_med_deg)),
-            m_med_inner_blocks(0),
-            bp_rank(m_bp_rank),
-            bp_select(m_bp_select),
-            sml_block_min_max(m_sml_block_min_max),
-            med_block_min_max(m_med_block_min_max) {
+            m_med_inner_blocks(0) {
             if (t_sml_blk==0) {
                 throw std::logic_error(util::demangle(typeid(this).name())+": t_sml_blk should be greater than 0!");
             }
-            if (bp == NULL or bp->size()==0)
+            if (bp == nullptr or bp->size()==0)
                 return;
             // initialize rank and select
             util::init_support(m_bp_rank, bp);
@@ -371,7 +366,7 @@ class bp_support_sada
             assert((m_med_inner_blocks == 0) or (m_med_inner_blocks%2==1));
 
             m_sml_block_min_max = int_vector<>(2*m_sml_blocks, 0, bits::hi(t_sml_blk+2)+1);
-            m_med_block_min_max    = int_vector<>(2*(m_med_blocks+m_med_inner_blocks), 0, bits::hi(2*m_size+2)+1);
+            m_med_block_min_max = int_vector<>(2*(m_med_blocks+m_med_inner_blocks), 0, bits::hi(2*m_size+2)+1);
 
             // calculate min/max excess values of the small blocks and medium blocks
             difference_type min_ex = 1, max_ex = -1, curr_rel_ex = 0, curr_abs_ex = 0;
@@ -412,11 +407,20 @@ class bp_support_sada
         }
 
         //! Copy constructor
-        bp_support_sada(const bp_support_sada& bp_support):
-            bp_rank(m_bp_rank), bp_select(m_bp_select), sml_block_min_max(m_sml_block_min_max), med_block_min_max(m_med_block_min_max) {
+        bp_support_sada(const bp_support_sada& bp_support) {
             copy(bp_support);
         }
-
+        /*
+                bp_support_sada(bp_support_sada&& bps): m_size(bps.m_size),
+                    m_sml_blocks(bps.m_sml_blocks), m_med_blocks(bps.m_med_blocks),
+                    m_med_inner_blocks(bps.m_med_inner_blocks)
+                {
+                    m_bp_rank           = std::move(bps.m_bp_rank);
+                    m_bp_select         = std::move(bps.m_bp_select);
+                    m_sml_block_min_max = std::move(bps.m_sml_block_min_max);
+                    m_med_block_min_max = std::move(bps.m_med_block_min_max);
+                }
+        */
         //! Swap method
         /*! Swaps the content of the two data structure.
          *  You have to use set_vector to adjust the supported bit_vector.
@@ -443,7 +447,13 @@ class bp_support_sada
             }
             return *this;
         }
-
+        /*
+                bp_support_sada& operator=(bp_support_sada&& bps)
+                {
+                    this->swap(bps);
+                    return *this;
+                }
+        */
         void set_vector(const bit_vector* bp) {
             m_bp = bp;
             m_bp_rank.set_vector(bp);
@@ -605,7 +615,7 @@ class bp_support_sada
                 } else if (res == r) {
                     size_type ec = enclose(res); // if m_bp[res]==0 => find_open(res), if m_bp[res]==1 => enclose(res)
                     if (ec >= l) {
-                        assert(excess(ec)==excess(res-1));
+                        assert(ec == size() or excess(ec)==excess(res-1));
                         return ec;
                     }
                 }
@@ -797,7 +807,7 @@ class bp_support_sada
                 return enclose(k);
         }
 
-        //! Return the number of zeros which procede position i in the balanced parentheses sequence.
+        //! Return the number of zeros which proceed position i in the balanced parentheses sequence.
         /*! \param i Index of an parenthesis.
          */
         size_type preceding_closing_parentheses(size_type i)const {
@@ -824,7 +834,7 @@ class bp_support_sada
          * \param out The outstream to which the data structure is written.
          * \return The number of bytes written to out.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");

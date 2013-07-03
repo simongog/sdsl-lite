@@ -16,7 +16,7 @@ class RankSupportTest : public ::testing::Test { };
 
 using testing::Types;
 
-typedef Types<rank_support_il<1,256>,
+typedef Types<rank_support_il<1, 256>,
         rank_support_il<1, 512>,
         rank_support_il<1, 1024>,
         rank_support_rrr<>,

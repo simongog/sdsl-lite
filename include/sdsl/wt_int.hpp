@@ -58,6 +58,7 @@ template<class t_bitvector   = bit_vector,
 class wt_int
 {
     public:
+
         typedef int_vector<>::size_type  size_type;
         typedef int_vector<>::value_type value_type;
         typedef t_bitvector              bit_vector_type;
@@ -66,14 +67,16 @@ class wt_int
         typedef t_select_zero            select_0_type;
         typedef wt_tag                   index_category;
         typedef int_alphabet_tag         alphabet_category;
+
     protected:
-        size_type              m_size;
-        size_type              m_sigma;         //<- \f$ |\Sigma| \f$
-        bit_vector_type        m_tree;            // bit vector to store the wavelet tree
+
+        size_type              m_size  = 0;
+        size_type              m_sigma = 0;    //<- \f$ |\Sigma| \f$
+        bit_vector_type        m_tree;         // bit vector to store the wavelet tree
         rank_1_type            m_tree_rank;    // rank support for the wavelet tree bit vector
-        select_1_type          m_tree_select1;    // select support for the wavelet tree bit vector
+        select_1_type          m_tree_select1; // select support for the wavelet tree bit vector
         select_0_type          m_tree_select0;
-        uint32_t               m_max_depth;
+        uint32_t               m_max_depth = 0;
         mutable int_vector<64> m_path_off;     // array keeps track of path offset in select-like methods
         mutable int_vector<64> m_path_rank_off;// array keeps track of rank values for the offsets
 
@@ -93,18 +96,19 @@ class wt_int
         }
 
     private:
+
         void init_buffers(uint32_t max_depth) {
-            util::assign(m_path_off, int_vector<64>(max_depth+1));
-            util::assign(m_path_rank_off, int_vector<64>(max_depth+1));
+            m_path_off = int_vector<64>(max_depth+1);
+            m_path_rank_off = int_vector<64>(max_depth+1);
         }
 
     public:
 
-        const size_type& sigma;    //!< Effective alphabet size of the wavelet tree.
-        const bit_vector_type& tree; //!< A concatenation of all bit vectors of the wavelet tree.
+        const size_type&       sigma = m_sigma; //!< Effective alphabet size of the wavelet tree.
+        const bit_vector_type& tree  = m_tree;  //!< A concatenation of all bit vectors of the wavelet tree.
 
         //! Default constructor
-        wt_int():m_size(0),m_sigma(0), m_max_depth(0), sigma(m_sigma), tree(m_tree) {
+        wt_int() {
             init_buffers(m_max_depth);
         };
 
@@ -119,8 +123,8 @@ class wt_int
          *        \f$ n\log|\Sigma| + O(1)\f$ bits, where \f$n=size\f$.
          */
         template<uint8_t int_width>
-        wt_int(int_vector_file_buffer<int_width>& buf, size_type size, uint32_t max_depth=0)
-            : m_size(size),m_sigma(0), m_max_depth(0), sigma(m_sigma), tree(m_tree) {
+        wt_int(int_vector_file_buffer<int_width>& buf, size_type size,
+               uint32_t max_depth=0) : m_size(size) {
             init_buffers(m_max_depth);
             if (0 == m_size)
                 return;
@@ -212,14 +216,14 @@ class wt_int
             bit_vector tree;
             load_from_file(tree, tree_out_buf_file_name);
             std::remove(tree_out_buf_file_name.c_str());
-            util::assign(m_tree, tree);
+            m_tree = bit_vector_type(std::move(tree));
             util::init_support(m_tree_rank, &m_tree);
             util::init_support(m_tree_select0, &m_tree);
             util::init_support(m_tree_select1, &m_tree);
         }
 
         //! Copy constructor
-        wt_int(const wt_int& wt):sigma(m_sigma), tree(m_tree) {
+        wt_int(const wt_int& wt) {
             copy(wt);
         }
 
@@ -386,8 +390,8 @@ class wt_int
          *  \param val_result Reference to a vector to which the resulting values should be added
          */
         size_type range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb,
-                                  std::vector<size_type>* idx_result=NULL,
-                                  std::vector<value_type>* val_result=NULL
+                                  std::vector<size_type>* idx_result=nullptr,
+                                  std::vector<value_type>* val_result=nullptr
                                  ) const {
             size_type offsets[m_max_depth+1];
             size_type ones_before_os[m_max_depth+1];
@@ -411,7 +415,7 @@ class wt_int
             if (lb > rb)
                 return;
             if (depth == m_max_depth) {
-                if (idx_result != NULL) {
+                if (idx_result != nullptr) {
                     for (size_type j=1; j <= node_size; ++j) {
                         size_type i = j;
                         size_type c = path;
@@ -428,7 +432,7 @@ class wt_int
                         idx_result->push_back(i-1); // add resulting index; -1 cause of 0 based indexing
                     }
                 }
-                if (val_result != NULL) {
+                if (val_result != nullptr) {
                     for (size_type j=1; j <= node_size; ++j) {
                         val_result->push_back(path);
                     }
@@ -467,7 +471,7 @@ class wt_int
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");

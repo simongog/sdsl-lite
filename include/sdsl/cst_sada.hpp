@@ -28,7 +28,7 @@
 #include "select_support_mcl.hpp"
 #include "bp_support.hpp"
 #include "bp_support_sada.hpp"
-#include "csa_sada.hpp" // for std initialization of cst_sada 
+#include "csa_sada.hpp" // for std initialization of cst_sada
 #include "cst_iterators.hpp"
 #include "cst_sct3.hpp" // this CST is used in the construction
 #include "util.hpp"
@@ -76,7 +76,8 @@ template<class t_csa = csa_sada<>,
          class t_lcp = lcp_support_sada<>,
          class t_bp_support = bp_support_sada<>,
          class t_rank_10 = rank_support_v5<10,2>,
-         class t_select_10 = select_support_mcl<10,2>     >
+         class t_select_10 = select_support_mcl<10,2>
+         >
 class cst_sada
 {
     public:
@@ -125,30 +126,24 @@ class cst_sada
         }
 
     public:
-        const t_csa&           csa;          //!< The compressed suffix array the suffix tree is based on.
-        const lcp_type&        lcp;          //!< The lcp array the suffix tree is based on.
-        const bit_vector&      bp;           //!< The balanced parentheses sequence of the suffix tree.
-        const bp_support_type& bp_support;   //!< The balanced parentheses sequence support for member bp.
-        const rank_10_type&    bp_rank_10;   //!< The rank support for the bit pattern "01" for member bp.
-        const select_10_type&  bp_select_10; //!< The select support for the bit pattern "01" for member bp.
+        const t_csa&           csa          = m_csa;
+        const lcp_type&        lcp          = m_lcp;
+        const bit_vector&      bp           = m_bp;
+        const bp_support_type& bp_support   = m_bp_support;
+        const rank_10_type&    bp_rank_10   = m_bp_rank10;
+        const select_10_type&  bp_select_10 = m_bp_select10;
 
-        //! Default Constructor
-        cst_sada(): csa(m_csa), lcp(m_lcp), bp(m_bp), bp_support(m_bp_support),
-            bp_rank_10(m_bp_rank10), bp_select_10(m_bp_select10) {}
+//! Default constructor
+        cst_sada() { }
 
-        //! Copy constructor
-        cst_sada(const cst_sada& cst):csa(m_csa), lcp(m_lcp), bp(m_bp),
-            bp_support(m_bp_support),
-            bp_rank_10(m_bp_rank10),
-            bp_select_10(m_bp_select10) {
+
+//! Copy constructor
+        cst_sada(const cst_sada& cst) {
             copy(cst);
         }
 
-        //! Construct CST from file_map
-        cst_sada(cache_config& config): csa(m_csa), lcp(m_lcp), bp(m_bp),
-            bp_support(m_bp_support),
-            bp_rank_10(m_bp_rank10),
-            bp_select_10(m_bp_select10) {
+//! Construct CST from file_map
+        cst_sada(cache_config& config) {
             {
                 mm::log("bps-dfs-begin");
                 cst_sct3<> temp_cst(config, true);
@@ -180,7 +175,7 @@ class cst_sada
             load_from_cache(m_csa, util::class_to_hash(m_csa), config);
         }
 
-        //! Number of leaves in the suffix tree.
+//! Number of leaves in the suffix tree.
         /*! Required for the Container Concept of the STL.
          *  \sa max_size, empty
          */
@@ -188,7 +183,7 @@ class cst_sada
             return m_csa.size();
         }
 
-        //! Returns the maximal lenght of text for that a suffix tree can be build.
+//! Returns the maximal lenght of text for that a suffix tree can be build.
         /*! Required for the Container Concept of the STL.
          *  \sa size
          */
@@ -196,7 +191,7 @@ class cst_sada
             return t_csa::max_size();
         }
 
-        //! Returns if the data strucutre is empty.
+//! Returns if the data strucutre is empty.
         /*! Required for the Container Concept of the STL.
          * \sa size
          */
@@ -204,7 +199,7 @@ class cst_sada
             return m_csa.empty();
         }
 
-        //! Swap method for cst_sada
+//! Swap method for cst_sada
         /*! The swap method can be defined in terms of assignment.
             This requires three assignments, each of which, for a container type, is linear
             in the container's size. In a sense, then, a.swap(b) is redundant.
@@ -225,20 +220,17 @@ class cst_sada
             }
         }
 
-        //! Returns a const_iterator to the first element.
+//! Returns a const_iterator to the first element.
         /*! Required for the STL Container Concept.
          *  \sa end
          */
         const_iterator begin()const {
             if (0 == m_bp.size())  // special case: tree is uninitialized
                 return end();
-//           else if (m_csa.size() == 1) { // special case: the root is a leaf
-//                return const_iterator(this, root(), true, true);
-//            }
             return const_iterator(this, root(), false, true);
         }
 
-        //! Returns a const_iterator to the element after the last element.
+//! Returns a const_iterator to the element after the last element.
         /*! Required for the STL Container Concept.
          *  \sa begin.
          */
@@ -246,19 +238,19 @@ class cst_sada
             return const_iterator(this, root(), true, false);
         }
 
-        //! Returns an iterator to the first element of a bottom-up traversal of the tree.
+//! Returns an iterator to the first element of a bottom-up traversal of the tree.
         const_bottom_up_iterator begin_bottom_up()const {
             if (0 == m_bp.size())  // special case: tree is uninitialized
                 return end_bottom_up();
             return const_bottom_up_iterator(this, leftmost_leaf_in_the_subtree(root()));
         }
 
-        //! Returns an iterator to the element after the last element of a bottom-up traversal of the tree.
+//! Returns an iterator to the element after the last element of a bottom-up traversal of the tree.
         const_bottom_up_iterator end_bottom_up()const {
             return const_bottom_up_iterator(this, root(), false);
         }
 
-        //! Assignment Operator.
+//! Assignment Operator.
         /*!
          *    Required for the Assignable Concept of the STL.
          */
@@ -269,11 +261,11 @@ class cst_sada
             return *this;
         }
 
-        //! Serialize to a stream.
+//! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_csa.serialize(out, child, "csa");
@@ -286,7 +278,7 @@ class cst_sada
             return written_bytes;
         }
 
-        //! Load from a stream.
+//! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
          */
         void load(std::istream& in) {
@@ -301,7 +293,7 @@ class cst_sada
         /*! \defgroup cst_sada_tree_methods Tree methods of cst_sada */
         /* @{ */
 
-        //! Return the root of the suffix tree.
+//! Return the root of the suffix tree.
         /*!
          * \par Time complexity
          *   \f$ \Order{1} \f$
@@ -310,7 +302,7 @@ class cst_sada
             return 0;
         }
 
-        //! Decide if a node is a leaf in the suffix tree.
+//! Decide if a node is a leaf in the suffix tree.
         /*!
         * \param v A valid node of a cst_sada.
         * \returns A boolean value indicating if v is a leaf.
@@ -323,7 +315,7 @@ class cst_sada
             return !m_bp[v+1];
         }
 
-        //! Return the i-th leaf (1-based from left to right) of the suffix tree.
+//! Return the i-th leaf (1-based from left to right) of the suffix tree.
         /*!
          * \param i 1-based position of the leaf. \f$1\leq i\leq csa.size()\f$.
          * \return The i-th leave.
@@ -337,7 +329,7 @@ class cst_sada
             return m_bp_select10.select(i)-1;
         }
 
-        //! Returns the depth of node v.
+//! Returns the depth of node v.
         /*!
          * \param v A valid node of the suffix tree.
          * \return The depth of the node.
@@ -356,7 +348,7 @@ class cst_sada
             return m_lcp[inorder(v)];
         }
 
-        //! Returns the node depth of node v.
+//! Returns the node depth of node v.
         /*!
          * \param v A valid node of a cst_sada.
          * \return The node depth of node v.
@@ -368,7 +360,7 @@ class cst_sada
             return (m_bp_support.rank(v)<<1)-v-2;
         }
 
-        //! Calculate the number of leaves in the subtree rooted at node v.
+//! Calculate the number of leaves in the subtree rooted at node v.
         /*! \param v A valid node of the suffix tree.
          *  \return The number of leaves in the subtree rooted at node v.
          *  \par Time complexity
@@ -381,7 +373,7 @@ class cst_sada
             return m_bp_rank10(r+1) - m_bp_rank10(v);
         }
 
-        //! Calculates the leftmost leaf in the subtree rooted at node v.
+//! Calculates the leftmost leaf in the subtree rooted at node v.
         /*! \param v A valid node of the suffix tree.
          *  \return The leftmost leaf in the subtree rooted at node v.
          *  \par Time complexity
@@ -391,7 +383,7 @@ class cst_sada
             return m_bp_select10(m_bp_rank10(v)+1)-1;
         }
 
-        //! Calculates the rightmost leaf in the subtree rooted at node v.
+//! Calculates the rightmost leaf in the subtree rooted at node v.
         /*!\param v A valid node of the suffix tree.
          * \return The rightmost leaf in the subtree rooted at node v.
          * \par Time complexity
@@ -402,7 +394,7 @@ class cst_sada
             return m_bp_select10(m_bp_rank10(r+1))-1;
         }
 
-        //!Calculates the index of the leftmost leaf in the corresponding suffix array.
+//!Calculates the index of the leftmost leaf in the corresponding suffix array.
         /*!\param v A valid node of the suffix tree.
          * \return The index of the leftmost leaf in the corresponding suffix array.
          * \par Time complexity
@@ -414,7 +406,7 @@ class cst_sada
             return m_bp_rank10(v);
         }
 
-        //! Calculates the index of the rightmost leaf in the corresponding suffix array.
+//! Calculates the index of the rightmost leaf in the corresponding suffix array.
         /*! \param v A valid node of the suffix tree.
          *  \return The index of the rightmost leaf in the corresponding suffix array.
          *  \par Time complexity
@@ -427,7 +419,7 @@ class cst_sada
             return m_bp_rank10(r+1)-1;
         }
 
-        //! Calculate the parent node of a node v.
+//! Calculate the parent node of a node v.
         /*! \param v A valid node of the suffix tree.
          *  \return The parent node of v or root() if v equals root().
          *  \par Time complexity
@@ -442,7 +434,7 @@ class cst_sada
             }
         }
 
-        //! Returns the next sibling of node v.
+//! Returns the next sibling of node v.
         /*!
          * \param v A valid node v of the suffix tree.
          * \return The next (right) sibling of node v or root() if v has no next (right) sibling.
@@ -459,7 +451,7 @@ class cst_sada
                 return root();
         }
 
-        //! Get the child w of node v which edge label (v,w) starts with character c.
+//! Get the child w of node v which edge label (v,w) starts with character c.
         /*
          * \param v A valid tree node of the cst.
          * \param c First character of the edge label from v to the desired child.
@@ -497,14 +489,14 @@ class cst_sada
             }
         }
 
-        //! Get the child w of node v which edge label (v,w) starts with character c.
-        // \sa child(node_type v, const char_type c, size_type &char_pos)
+//! Get the child w of node v which edge label (v,w) starts with character c.
+// \sa child(node_type v, const char_type c, size_type &char_pos)
         node_type child(node_type v, const char_type c) {
             size_type char_pos;
             return child(v, c, char_pos);
         }
 
-        //! Get the i-th child of a node v.
+//! Get the i-th child of a node v.
         /*!
          * \param v A valid tree node of the cst.
          * \param i 1-based Index of the child which should be returned. \f$i \geq 1\f$.
@@ -527,7 +519,7 @@ class cst_sada
             return res;
         }
 
-        //! Returns the d-th character (1-based indexing) of the edge-label pointing to v.
+//! Returns the d-th character (1-based indexing) of the edge-label pointing to v.
         /*!\param v The node at which the edge path ends.
          * \param d The position (1-based indexing) of the requested character on the edge path from the root to v. \f$ d > 0 \wedge d < depth(v) \f$
          * \return The character at position d on the edge path from the root to v.
@@ -559,7 +551,7 @@ class cst_sada
             return m_csa.comp2char[c_begin-1];
         }
 
-        //! Calculate the lowest common ancestor (lca) of two nodes v and w of the suffix tree.
+//! Calculate the lowest common ancestor (lca) of two nodes v and w of the suffix tree.
         /*!
          * \param v The first node for which the lca with the second node should be computed.
          * \param w The second node for which the lca with the first node should be computed.
@@ -579,7 +571,7 @@ class cst_sada
             return m_bp_support.double_enclose(v, w);
         }
 
-        //! Compute the suffix link of node v.
+//! Compute the suffix link of node v.
         /*!
          * \param v A valid node of a cst_sada.
          * \return The suffix link of node v.
@@ -602,7 +594,7 @@ class cst_sada
             return lca(left_leaf, right_leaf);
         }
 
-        //! Compute the Weiner link of node v and character c.
+//! Compute the Weiner link of node v and character c.
         /*
          * \param v A valid not of a cst_sada.
          * \param c The character which should be prepended to the string of the current node.
@@ -633,7 +625,7 @@ class cst_sada
             }
         }
 
-        //! Compute the suffix number of a leaf node v.
+//! Compute the suffix number of a leaf node v.
         /*!\param v A valid leaf node of a cst_sada.
          * \return The suffix array value corresponding to the leaf node v.
          * \par Time complexity
@@ -645,7 +637,7 @@ class cst_sada
             return m_csa[m_bp_rank10(v)];
         }
 
-        //! Computes a unique identification number for a node of the suffix tree in the range [0..nodes()-1]
+//! Computes a unique identification number for a node of the suffix tree in the range [0..nodes()-1]
         /*!
          *\param v A valid node of a cst_sada.
          * \return A unique identification number for the node v in the range [0..nodes()-1]
@@ -662,7 +654,7 @@ class cst_sada
             }
         }
 
-        //! Computes the node for such that id(v)=id.
+//! Computes the node for such that id(v)=id.
         /*!
          * \param id An id in the range [0..nodes()-1].
          * \return A node v of the CST such that id(v)=id.
@@ -695,7 +687,7 @@ class cst_sada
             }
         }
 
-        //! Get the number of nodes of the suffix tree.
+//! Get the number of nodes of the suffix tree.
         /*
          *  \return The number of nodes of the suffix tree.
          *  \par Time complexity
@@ -705,7 +697,7 @@ class cst_sada
             return m_bp.size()>>1;
         }
 
-        //! Get the node in the suffix tree which corresponds to the lcp-interval [lb..rb]
+//! Get the node in the suffix tree which corresponds to the lcp-interval [lb..rb]
         /* \param lb Left bound of the lcp-interval [lb..rb] (inclusive).
          * \param rb Right bound of the lcp-interval [lb..rb] (inclusive).
          *\ return The node in the suffix tree corresponding lcp-interval [lb..rb]
@@ -714,7 +706,7 @@ class cst_sada
             return lca(select_leaf(lb+1), select_leaf(rb+1));
         }
 
-        //! Get the number of children of a node v.
+//! Get the number of children of a node v.
         /*!
          *  \param v A valid node v of a cst_sada.
          *  \returns The number of children of node v.
@@ -731,7 +723,7 @@ class cst_sada
             return res;
         }
 
-        //! Maps an index i to the position in TLCP where LCP[i] can be found
+//! Maps an index i to the position in TLCP where LCP[i] can be found
         /*!
          * \param i The index in the LCP array
          * \return The corresponding position in the TLCP array

@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2011 Simon Gog
+    Copyright (C) 2011-2013 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
-#include "sd_vector.hpp"  // for standard initialisation of template parameters 
+#include "sd_vector.hpp"// for standard initialisation of template parameters
 #include "util.hpp"
 #include "wt_huff.hpp"
 #include <algorithm> // for std::swap
@@ -65,6 +65,7 @@ template<class t_bitvector = sd_vector<>,
 class wt_rlmn
 {
     public:
+
         typedef int_vector<>::size_type size_type;
         typedef unsigned char           value_type;
         typedef t_bitvector             bit_vector_type;
@@ -73,11 +74,13 @@ class wt_rlmn
         typedef t_wt                    wt_type;
         typedef wt_tag                  index_category;
         typedef byte_alphabet_tag       alphabet_category;
+
     private:
-        size_type            m_size;      // size of the original input sequence
-        bit_vector_type      m_bl;        // bit vector which indicates the starts of runs in
+
+        size_type            m_size  = 0; // size of the original input sequence
+        bit_vector_type      m_bl;        // bit vector for starts of runs in
         // the BWT (or last column), i.e. _b_ _l_ast
-        bit_vector_type      m_bf;        // bit vector which indicates the starts of runs in
+        bit_vector_type      m_bf;        // bit vector for starts of runs in
         // the first column of the sorted suffixes, i.e _b_ _f_irst
         wt_type              m_wt;        // wavelet tree for all levels
         // two equal chars
@@ -86,8 +89,8 @@ class wt_rlmn
         select_support_type  m_bl_select; // select support for bit vector bl
         select_support_type  m_bf_select; // select support for bit vector bf
         int_vector<64>       m_C;         //
-        int_vector<64>       m_C_bf_rank; // stores the number of 1s in m_bf for the prefixes
-        // m_bf[0..m_C[0]],m_bf[0..m_C[1]],....,m_bf[0..m_C[255]];
+        int_vector<64>       m_C_bf_rank; // stores the number of 1s in m_bf for
+        // the prefixes m_bf[0..m_C[0]],m_bf[0..m_C[1]],....,m_bf[0..m_C[255]];
         // named C_s in the original paper
 
         void copy(const wt_rlmn& wt) {
@@ -108,18 +111,22 @@ class wt_rlmn
         }
 
     public:
-        const size_type& sigma;
+
+        const size_type& sigma = m_wt.sigma;
 
         // Default constructor
-        wt_rlmn():m_size(0), sigma(m_wt.sigma) {};
+        wt_rlmn() {};
 
         //! Construct the wavelet tree from a file_buffer
         /*! \param text_buf  A int_vector_file_buffer to the original text.
-         *  \param size      The length of the prefix of the text, for which the wavelet tree should be build.
+         *  \param size      The length of the prefix of the text, for which
+         *                   the wavelet tree should be build.
          */
         // TODO: new signature: sdsl::file, size_type size
-        wt_rlmn(int_vector_file_buffer<8>& text_buf, size_type size):m_size(size), sigma(m_wt.sigma) {
-            std::string temp_file = text_buf.file_name + "_wt_rlmn_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
+        wt_rlmn(int_vector_file_buffer<8>& text_buf, size_type size):m_size(size) {
+            std::string temp_file = text_buf.file_name +
+                                    + "_wt_rlmn_" + util::to_string(util::pid())
+                                    + "_" + util::to_string(util::id());
             osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
@@ -130,7 +137,8 @@ class wt_rlmn
                 text_buf.reset();
                 uint8_t last_c = '\0';
                 for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
-                    if (r_sum + r > size) {  // read not more than size chars in the next loop
+                    // read not more than size chars in the next loop
+                    if (r_sum + r > size) {
                         r = size-r_sum;
                     }
                     for (; i < r+r_sum; ++i) {
@@ -162,7 +170,8 @@ class wt_rlmn
                 bf[size] = 1; // initialize last element
                 text_buf.reset();
                 for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
-                    if (r_sum + r > size) {  // read not more than size chars in the next loop
+                    // read not more than size chars in the next loop
+                    if (r_sum + r > size) {
                         r = size-r_sum;
                     }
                     for (; i < r+r_sum; ++i) {
@@ -177,11 +186,11 @@ class wt_rlmn
                 }
                 {
                     int_vector_file_buffer<8> temp_bwt_buf(temp_file);
-                    util::assign(m_wt, wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
+                    m_wt = wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size);
                     sdsl::remove(temp_file);
                 }
-                util::assign(m_bl, bl);
-                util::assign(m_bf, bf);
+                m_bl = bit_vector_type(std::move(bl));
+                m_bf = bit_vector_type(std::move(bf));
             }
 
             util::init_support(m_bl_rank, &m_bl);
@@ -195,7 +204,7 @@ class wt_rlmn
         }
 
         //! Copy constructor
-        wt_rlmn(const wt_rlmn& wt):sigma(wt.sigma) {
+        wt_rlmn(const wt_rlmn& wt) {
             copy(wt);
         }
 
@@ -245,25 +254,25 @@ class wt_rlmn
         }
 
         //! Recovers the i-th symbol of the original vector.
-        /*! \param i The index of the symbol in the original vector. \f$i \in [0..size()-1]\f$
-         *    \return The i-th symbol of the original vector.
+        /*! \param i Index in the original vector. \f$i \in [0..size()-1]\f$.
+         *  \return The i-th symbol of the original vector.
          *  \par Time complexity
-         *        \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order entropy of
-         *      the sequence
+         *        \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the
+         *        zero order entropy of the sequence
          */
         value_type operator[](size_type i)const {
             assert(i < size());
             return m_wt[m_bl_rank(i+1)-1];
         };
 
-        //! Calculates how many symbols c are in the prefix [0..i-1] of the supported vector.
+        //! Calculates how many symbols c are in the prefix [0..i-1].
         /*!
-         *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
-         *  \param c The symbol to count the occurrences in the prefix.
-         *  \return The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
+         *  \param i Exclusive right bound of the range (\f$i\in[0..size()]\f$).
+         *  \param c Symbol c.
+         *  \return Number of occurrences of symbol c in the prefix [0..i-1].
          *  \par Time complexity
-         *        \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order entropy of
-         *      the sequence
+         *        \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the
+         *        zero order entropy of the sequence
          */
         size_type rank(size_type i, value_type c)const {
             assert(i <= size());
@@ -275,17 +284,17 @@ class wt_rlmn
                 return 0;
             if (m_wt[wt_ex_pos-1] == c) {
                 size_type c_run_begin = m_bl_select(wt_ex_pos);
-                return m_bf_select(m_C_bf_rank[c] + c_runs) - m_C[c] + i - c_run_begin;
+                return m_bf_select(m_C_bf_rank[c]+c_runs)-m_C[c]+i-c_run_begin;
             } else {
                 return m_bf_select(m_C_bf_rank[c] + c_runs + 1) - m_C[c];
             }
         };
 
-        //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the supported sequence.
+        //! Calculates how many times symbol wt[i] occurs in the prefix [0..i-1].
         /*!
          *  \param i The index of the symbol.
-         *  \param c Reference that will contain the symbol at position i after the execution of the method.
-         *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
+         *  \param c Reference that will contain the symbol at position i.
+         *  \return  Number of occurrences of symbol wt[i] in the prefix [0..i-1].
          *    \par Time complexity
          *        \f$ \Order{H_0} \f$
          */
@@ -301,9 +310,9 @@ class wt_rlmn
                 return 0;
             if (m_wt[wt_ex_pos-1] == c) {
                 size_type c_run_begin = m_bl_select(wt_ex_pos);
-                return m_bf_select(m_C_bf_rank[c] + c_runs) - m_C[c] + i - c_run_begin;
+                return m_bf_select(m_C_bf_rank[c]+c_runs)-m_C[c]+i-c_run_begin;
             } else {
-                return m_bf_select(m_C_bf_rank[c] + c_runs + 1) - m_C[c];
+                return m_bf_select(m_C_bf_rank[c]+c_runs+1)-m_C[c];
             }
         }
 
@@ -319,13 +328,15 @@ class wt_rlmn
             assert(i > 0);
             assert(i <= rank(size(), c));
             size_type c_runs = m_bf_rank(m_C[c]+i) - m_C_bf_rank[c];
-            size_type offset = m_C[c] + i - 1 - m_bf_select(c_runs + m_C_bf_rank[c]);
+            size_type offset = m_C[c]+i-1-m_bf_select(c_runs + m_C_bf_rank[c]);
             return m_bl_select(m_wt.select(c_runs, c)+1) + offset;
         };
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
-            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
+                            std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(
+                                             v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
             written_bytes += m_bl.serialize(out, child, "bl");

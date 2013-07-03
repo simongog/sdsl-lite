@@ -21,7 +21,7 @@ Check out also the examples directory.
 
 You can compile your own program example.cc by
 
-g++ -O3 -DNDEBUG -funroll-loops -I YOUR_SDSL_INSTALL_PREFIX/include \
+g++ -std=c++11 -O3 -DNDEBUG -funroll-loops -I YOUR_SDSL_INSTALL_PREFIX/include \
     -LYOUR_SDSL_INSTALL_PREFIX/lib -o example example.cc \
 	-lsdsl -ldivsufsort -ldivsufsort64
 

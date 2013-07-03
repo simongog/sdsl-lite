@@ -15,7 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file rank_support_v5.hpp
-    \brief rank_support_v5.hpp contains rank_support_v5 that support a sdsl::bit_vector with constant time rank information.
+    \brief rank_support_v5.hpp contains rank_support_v5.5
     \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_RANK_SUPPORT_VFIVE
@@ -34,13 +34,13 @@ struct rank_support_trait;
 /*! \par Space complexity
  *  \f$ 0.0625n\f$ bits for a bit vector of length n bits.
  *
- * The superblock size is 2048.
- * Each superblock is subdivided into 2048/(6*64) = 5 blocks (with some bit remaining).
- * So absolute counts for the superblock add 64/2048 bits on top of each supported bit.
- * Since the first of the 6 relative count values is 0, we can fit the remaining
- * 5 in (each of width log(2048)=11) in a 64 bit word.
- * The relative counts add another 64/2048 bits bits on top of each supported bit.
- * In total this results is 128/2048= 6.25% overhead.
+ * The superblock size is 2048. Each superblock is subdivided into
+ * 2048/(6*64) = 5 blocks (with some bit remaining). So absolute counts for
+ * the superblock add 64/2048 bits on top of each supported bit. Since the
+ * first of the 6 relative count values is 0, we can fit the remaining 5 in
+ * (each of width log(2048)=11) in a 64 bit word. The relative counts add
+ * another 64/2048 bits bits on top of each supported bit. In total this
+ * results is 128/2048= 6.25% overhead.
  *
  * \tparam t_b       Bit pattern `0`,`1`,`10`,`01` which should be ranked.
  * \tparam t_pat_len Length of the bit pattern.
@@ -50,164 +50,133 @@ struct rank_support_trait;
 template<uint8_t t_b=1, uint8_t t_pat_len=1>
 class rank_support_v5 : public rank_support
 {
+    private:
+        static_assert(t_b == 1u or t_b == 0u or t_b == 10u , "rank_support_v5: bit pattern must be `0`,`1`,`10` or `01`");
+        static_assert(t_pat_len == 1u or t_pat_len == 2u , "rank_support_v5: bit pattern length must be 1 or 2");
     public:
         typedef bit_vector bit_vector_type;
+        typedef rank_support_trait<t_b, t_pat_len>  trait_type;
     private:
-        int_vector<64> m_basic_block; // basic block for interleaved storage of superblockrank and blockrank
+//      basic block for interleaved storage of superblockrank and blockrank
+        int_vector<64> m_basic_block;
     public:
-        explicit rank_support_v5(const bit_vector* v = NULL);
-        rank_support_v5(const rank_support_v5& rs);
-        ~rank_support_v5();
-        const size_type rank(size_type idx) const;
-        const size_type operator()(size_type idx)const;
-        const size_type size()const;
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
-        void load(std::istream& in, const bit_vector* v=NULL);
-        void set_vector(const bit_vector* v=NULL);
+        explicit rank_support_v5(const bit_vector* v = nullptr) {
+            set_vector(v);
+            if (v == nullptr) {
+                return;
+            } else if (v->empty()) {
+                m_basic_block = int_vector<64>(2,0);
+                return;
+            }
+            size_type basic_block_size = ((v->capacity() >> 11)+1)<<1;
+            m_basic_block.resize(basic_block_size);   // resize structure for basic_blocks
+            if (m_basic_block.empty())
+                return;
+            const uint64_t* data = m_v->data();
+            size_type i, j=0;
+            m_basic_block[0] = m_basic_block[1] = 0;
+
+            uint64_t carry = trait_type::init_carry();
+            uint64_t sum   = trait_type::args_in_the_word(*data, carry);
+            uint64_t second_level_cnt = 0;
+            uint64_t cnt_words=1;
+            for (i = 1; i < (m_v->capacity()>>6) ; ++i, ++cnt_words) {
+                if (cnt_words == 32) {
+                    j += 2;
+                    m_basic_block[j-1] = second_level_cnt;
+                    m_basic_block[j]     = m_basic_block[j-2] + sum;
+                    second_level_cnt = sum = cnt_words = 0;
+                } else if ((cnt_words%6)==0) {
+                    // pack the prefix sum for each 6x64bit block into the second_level_cnt
+                    second_level_cnt |= sum<<(60-12*(cnt_words/6));//  48, 36, 24, 12, 0
+                }
+                sum += trait_type::args_in_the_word(*(++data), carry);
+            }
+
+            if ((cnt_words%6)==0) {
+                second_level_cnt |= sum<<(60-12*(cnt_words/6));
+            }
+            if (cnt_words == 32) {
+                j += 2;
+                m_basic_block[j-1] = second_level_cnt;
+                m_basic_block[j]   = m_basic_block[j-2] + sum;
+                m_basic_block[j+1] = 0;
+            } else {
+                m_basic_block[j+1] = second_level_cnt;
+            }
+        }
+
+        rank_support_v5(const rank_support_v5& rs) {
+            m_v = rs.m_v;
+            m_basic_block = rs.m_basic_block;
+        }
+
+        rank_support_v5(rank_support_v5&&) = default;
+
+        const size_type rank(size_type idx) const {
+            assert(m_v != nullptr);
+            assert(idx <= m_v->size());
+            const uint64_t* p = m_basic_block.data()
+                                + ((idx>>10)&0xFFFFFFFFFFFFFFFEULL);// (idx/2048)*2
+//                     ( prefix sum of the 6x64bit blocks | (idx%2048)/(64*6) )
+            size_type result = *p
+                               + ((*(p+1)>>(60-12*((idx&0x7FF)/(64*6))))&0x7FFULL)
+                               + trait_type::word_rank(m_v->data(), idx);
+            idx -= (idx&0x3F);
+            uint8_t to_do = ((idx>>6)&0x1FULL)%6;
+            --idx;
+            while (to_do) {
+                result += trait_type::full_word_rank(m_v->data(), idx);
+                --to_do;
+                idx-=64;
+            }
+            return result;
+        }
+
+        inline const size_type operator()(size_type idx)const {
+            return rank(idx);
+        }
+        const size_type size()const {
+            return m_v->size();
+        }
+
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+            size_type written_bytes = 0;
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+            written_bytes += m_basic_block.serialize(out, child, "cumulative_counts");
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
+
+        void load(std::istream& in, const bit_vector* v=nullptr) {
+            set_vector(v);
+            assert(m_v != nullptr); // supported bit vector should be known
+            m_basic_block.load(in);
+        }
+
+        void set_vector(const bit_vector* v=nullptr) {
+            m_v = v;
+        }
 
         //! Assign Operator
-        rank_support_v5& operator=(const rank_support_v5& rs);
-        //! swap Operator
-        void swap(rank_support_v5& rs);
-};
-
-template<uint8_t t_b, uint8_t t_pat_len>
-inline rank_support_v5<t_b, t_pat_len>::rank_support_v5(const rank_support_v5& rs)
-{
-    m_v = rs.m_v;
-    m_basic_block = rs.m_basic_block;
-}
-
-template<uint8_t t_b, uint8_t t_pat_len>
-rank_support_v5<t_b, t_pat_len>::rank_support_v5(const bit_vector* v)
-{
-    set_vector(v);
-    if (v == NULL) {
-        return;
-    } else if (v->empty()) {
-        m_basic_block = int_vector<64>(2,0);   // resize structure for basic_blocks
-        return;
-    }
-    size_type basic_block_size = ((v->capacity() >> 11)+1)<<1;
-    m_basic_block.resize(basic_block_size);   // resize structure for basic_blocks
-    if (m_basic_block.empty())
-        return;
-    const uint64_t* data = m_v->data();
-    size_type i, j=0;
-    m_basic_block[0] = m_basic_block[1] = 0;
-
-    uint64_t carry = rank_support_trait<t_b, t_pat_len>::init_carry();
-    uint64_t sum = rank_support_trait<t_b, t_pat_len>::args_in_the_word(*data, carry), second_level_cnt = 0;
-    uint64_t cnt_words=1;
-    for (i = 1; i < (m_v->capacity()>>6) ; ++i, ++cnt_words) {
-        if (cnt_words == 32) {
-            j += 2;
-            m_basic_block[j-1] = second_level_cnt;
-            m_basic_block[j]     = m_basic_block[j-2] + sum;
-            second_level_cnt = sum = cnt_words = 0;
-        } else if ((cnt_words%6)==0) {
-            // pack the prefix sum for each 6x64bit block into the second_level_cnt
-            second_level_cnt |= sum<<(60-12*(cnt_words/6));//  48, 36, 24, 12, 0
+        rank_support_v5& operator=(const rank_support_v5& rs) {
+            if (this != &rs) {
+                set_vector(rs.m_v);
+                m_basic_block = rs.m_basic_block;
+            }
+            return *this;
         }
-        sum += rank_support_trait<t_b, t_pat_len>::args_in_the_word(*(++data), carry);
-    }
 
-    if ((cnt_words%6)==0) {
-        second_level_cnt |= sum<<(60-12*(cnt_words/6));
-    }
-    if (cnt_words == 32) {
-        j += 2;
-        m_basic_block[j-1] = second_level_cnt;
-        m_basic_block[j]   = m_basic_block[j-2] + sum;
-        m_basic_block[j+1] = 0;
-    } else {
-        m_basic_block[j+1] = second_level_cnt;
-    }
+        rank_support_v5& operator=(rank_support_v5&&) = default;
 
-}
-
-template<uint8_t t_b, uint8_t t_pat_len>
-inline const typename rank_support_v5<t_b, t_pat_len>::size_type rank_support_v5<t_b, t_pat_len>::rank(size_type idx)const
-{
-    assert(m_v != NULL);
-    assert(idx <= m_v->size());
-    const uint64_t* p = m_basic_block.data() + ((idx>>10)&0xFFFFFFFFFFFFFFFEULL);// (idx/2048)*2
-    size_type result = *p + ((*(p+1)>>(60-12*((idx&0x7FF)/(64*6))))&0x7FFULL)+     // ( prefix sum of the 6x64bit blocks | (idx%2048)/(64*6)  )
-                       rank_support_trait<t_b, t_pat_len>::word_rank(m_v->data(), idx);
-//    std::cerr<<"idx="<<idx<<std::endl;
-    idx -= (idx&0x3F);
-//    uint32_t to_do = ((idx>>6)&0x1FULL)%6;
-    uint8_t to_do = ((idx>>6)&0x1FULL)%6;
-    --idx;
-    while (to_do) {
-        result += rank_support_trait<t_b, t_pat_len>::full_word_rank(m_v->data(), idx);
-        --to_do;
-        idx-=64;
-    }
-    // could not be accelerated with switch command. 2009-12-04
-    return result;
-
-}
-
-
-template<uint8_t t_b, uint8_t t_pat_len>
-inline const typename rank_support_v5<t_b, t_pat_len>::size_type rank_support_v5<t_b, t_pat_len>::operator()(size_type idx)const
-{
-    return rank(idx);
-}
-
-template<uint8_t t_b, uint8_t t_pat_len>
-inline rank_support_v5<t_b, t_pat_len>::~rank_support_v5() {}
-
-template<uint8_t t_b, uint8_t t_pat_len>
-inline void rank_support_v5<t_b, t_pat_len>::set_vector(const bit_vector* v)
-{
-    m_v = v;
-}
-
-
-template<uint8_t t_b, uint8_t t_pat_len>
-inline const typename rank_support_v5<t_b,t_pat_len>::size_type rank_support_v5<t_b, t_pat_len>::size()const
-{
-    return m_v->size();
-}
-
-template<uint8_t t_b, uint8_t t_pat_len>
-typename rank_support_v5<t_b, t_pat_len>::size_type rank_support_v5<t_b, t_pat_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
-{
-    size_type written_bytes = 0;
-    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-    written_bytes += m_basic_block.serialize(out, child, "cumulative_counts");
-    structure_tree::add_size(child, written_bytes);
-    return written_bytes;
-}
-
-template<uint8_t t_b, uint8_t t_pat_len>
-void rank_support_v5<t_b, t_pat_len>::load(std::istream& in, const bit_vector* v)
-{
-    set_vector(v);
-    assert(m_v != NULL); // supported bit vector should be known
-    m_basic_block.load(in);
-}
-
-template<uint8_t t_b, uint8_t t_pat_len>
-rank_support_v5<t_b, t_pat_len>& rank_support_v5<t_b, t_pat_len>::operator=(const rank_support_v5& rs)
-{
-    if (this != &rs) {
-        set_vector(rs.m_v);
-        m_basic_block = rs.m_basic_block;
-    }
-    return *this;
-}
-
-template<uint8_t t_b, uint8_t t_pat_len>
-inline void rank_support_v5<t_b, t_pat_len>::swap(rank_support_v5& rs)
-{
-    if (this != &rs) { // if rs and _this_ are not the same object
-        m_basic_block.swap(rs.m_basic_block);
-    }
-}
+        //! swap Operator
+        void swap(rank_support_v5& rs) {
+            if (this != &rs) { // if rs and _this_ are not the same object
+                m_basic_block.swap(rs.m_basic_block);
+            }
+        }
+};
 
 }// end namespace sds
 
-#endif // end file 
+#endif // end file
