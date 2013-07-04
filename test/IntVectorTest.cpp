@@ -22,30 +22,32 @@ class IntVectorTest : public ::testing::Test
         virtual ~IntVectorTest() {}
 
         virtual void SetUp() {
-            rng.seed((uint32_t)time(NULL));
-            vec_sizes.push_back(64);
-            vec_sizes.push_back(0);
-            vec_sizes.push_back(65);
-            vec_sizes.push_back(127);
-            vec_sizes.push_back(128);
-            for (size_type i=0; i<128; ++i) {
-                vec_sizes.push_back(rng() % 100000);
+            std::mt19937_64 rng;
+            {
+                std::uniform_int_distribution<uint64_t> distribution(0, 100000);
+                auto dice = bind(distribution, rng);
+                for (size_type i=0; i<128; ++i) {
+                    vec_sizes.push_back(dice());
+                }
             }
-            for (size_type i=0; i < 10; ++i) {
-                vec_sizes.push_back(rng()%10000000);
+            {
+                std::uniform_int_distribution<uint64_t> distribution(0, 10000000);
+                auto dice = bind(distribution, rng);
+                for (size_type i=0; i < 10; ++i) {
+                    vec_sizes.push_back(dice());
+                }
             }
         }
 
         virtual void TearDown() {}
 
-        std::mt19937_64 rng; // random number generator
-        std::vector<size_type> vec_sizes; // different sizes for the vectors
+        std::vector<size_type> vec_sizes = {0,64,65,127,128}; // different sizes for the vectors
 };
 
 template<class t_iv>
 void test_Constructors(bool special, uint8_t template_width, size_type constructor_size, uint8_t constructor_width)
 {
-    std::mt19937_64 rng((uint32_t)time(NULL));
+    std::mt19937_64 rng;
     {
         // Constructor without argument
         t_iv iv;
@@ -92,25 +94,27 @@ void test_Constructors(bool special, uint8_t template_width, size_type construct
 //! Test Constructors
 TEST_F(IntVectorTest, Constructors)
 {
-    std::vector<size_type> vec_widths = {15, 32, 55}; // different widths for the vectors
-    for (size_type i=0; i < vec_sizes.size(); ++i) {
-        for (size_type j=0; j<vec_widths.size(); ++j) {
-            // unspecialized
-            test_Constructors<sdsl::int_vector<>   >(false, 64, vec_sizes[i], vec_widths[j]);
-            test_Constructors<sdsl::int_vector<3>  >(false,  3, vec_sizes[i], vec_widths[j]);
-            test_Constructors<sdsl::int_vector<31> >(false, 31, vec_sizes[i], vec_widths[j]);
-            // specialized
-            test_Constructors<sdsl::bit_vector     >(true,  1, vec_sizes[i], vec_widths[j]);
-            test_Constructors<sdsl::int_vector<8>  >(true,  8, vec_sizes[i], vec_widths[j]);
-            test_Constructors<sdsl::int_vector<16> >(true, 16, vec_sizes[i], vec_widths[j]);
-            test_Constructors<sdsl::int_vector<32> >(true, 32, vec_sizes[i], vec_widths[j]);
-            test_Constructors<sdsl::int_vector<64> >(true, 64, vec_sizes[i], vec_widths[j]);
+    for (auto size : vec_sizes) {
+        if (size<1000) {                                // Test only for short sizes,
+            for (uint8_t width=1; width<=64; ++width) { // but for all possible widths
+                // unspecialized
+                test_Constructors<sdsl::int_vector<>   >(false, 64, size, width);
+                test_Constructors<sdsl::int_vector<3>  >(false,  3, size, width);
+                test_Constructors<sdsl::int_vector<31> >(false, 31, size, width);
+                // specialized
+                test_Constructors<sdsl::bit_vector     >(true,  1, size, width);
+                test_Constructors<sdsl::int_vector<8>  >(true,  8, size, width);
+                test_Constructors<sdsl::int_vector<16> >(true, 16, size, width);
+                test_Constructors<sdsl::int_vector<32> >(true, 32, size, width);
+                test_Constructors<sdsl::int_vector<64> >(true, 64, size, width);
+            }
         }
     }
 }
 
 TEST_F(IntVectorTest, Swap)
 {
+    std::mt19937_64 rng;
     for (size_type i=0; i < vec_sizes.size(); ++i) {
         const size_type val = rng();
         sdsl::int_vector<> iv(vec_sizes[i], val);
@@ -127,40 +131,74 @@ TEST_F(IntVectorTest, Swap)
     }
 }
 
-TEST_F(IntVectorTest, AssignElement)
+template<class t_iv>
+void test_AssignAndModifyElement(uint64_t size, uint8_t width)
 {
-    for (unsigned char w=1; w <= 64; ++w) { // for each possible width
-        sdsl::int_vector<> iv(100000, 0, w);
-        for (size_type i=0; i < iv.size(); ++i) {
-            value_type x = rng() & sdsl::bits::lo_set[w];
-            iv[i] = x;
-            ASSERT_EQ(x, iv[i]);
-        }
+    std::mt19937_64 rng;
+    t_iv iv(size, 0, width);
+    for (size_type i=0; i<iv.size(); ++i) {
+        value_type exp_v = rng(), tmp = rng();
+
+        iv[i] = exp_v;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
+        exp_v += tmp;
+        iv[i] += tmp;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
+        exp_v -= tmp;
+        iv[i] -= tmp;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
+        tmp = exp_v++;
+        ASSERT_EQ(tmp   & sdsl::bits::lo_set[width], iv[i]);
+        iv[i]++;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
+        tmp = exp_v--;
+        ASSERT_EQ(tmp   & sdsl::bits::lo_set[width], iv[i]);
+        iv[i]--;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
+        tmp = ++exp_v;
+        ++iv[i];
+        ASSERT_EQ(tmp   & sdsl::bits::lo_set[width], iv[i]);
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
+        tmp = --exp_v;
+        --iv[i];
+        ASSERT_EQ(tmp   & sdsl::bits::lo_set[width], iv[i]);
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
     }
 }
 
-TEST_F(IntVectorTest, AddAndSub)
+template<>
+void test_AssignAndModifyElement<sdsl::bit_vector>(uint64_t size, uint8_t width)
 {
-    for (unsigned char w=1; w <= 64; ++w) { // for each possible width
-        sdsl::int_vector<> iv(100000, 0, w);
-        sdsl::util::set_random_bits(iv);
-        for (size_type i=0; i < iv.size(); ++i) {
-            value_type x = iv[i];
-            value_type y = rng() & sdsl::bits::lo_set[w];
-            iv[i] += y;
-            ASSERT_EQ((x+y)&sdsl::bits::lo_set[w], iv[i]);
-            iv[i] -= y;
-            ASSERT_EQ(x & sdsl::bits::lo_set[w], iv[i]);
-            iv[i]++;
-            ASSERT_EQ((x+1)&sdsl::bits::lo_set[w], iv[i]);
-            iv[i]--;
-            ASSERT_EQ(x & sdsl::bits::lo_set[w], iv[i]);
-            ++iv[i];
-            ASSERT_EQ((x+1)&sdsl::bits::lo_set[w], iv[i]);
-            --iv[i];
-            ASSERT_EQ(x & sdsl::bits::lo_set[w], iv[i]);
-        }
+    std::mt19937_64 rng(13);
+    std::uniform_int_distribution<uint64_t> distribution(0, 9);
+
+    sdsl::bit_vector bv(size, 0, width);
+    for (size_type i=0; i<bv.size(); ++i) {
+        value_type exp_v = distribution(rng);
+        bv[i] = exp_v;
+        ASSERT_EQ((bool)exp_v, bv[i]);
     }
+    bv.flip();
+
+    rng.seed(13); // To get the same values
+    for (size_type i=0; i<bv.size(); ++i) {
+        value_type exp_v = !distribution(rng);
+        ASSERT_EQ((bool)exp_v, bv[i]);
+    }
+}
+
+TEST_F(IntVectorTest, AssignAndModifyElement)
+{
+    // unspecialized vector for each possible width
+    for (uint8_t width=1; width <= 64; ++width) {
+        test_AssignAndModifyElement< sdsl::int_vector<> >(100000, width);
+    }
+    // specialized vectors
+    test_AssignAndModifyElement<sdsl::bit_vector     >(100000,  1);
+    test_AssignAndModifyElement<sdsl::int_vector< 8> >(100000,  8);
+    test_AssignAndModifyElement<sdsl::int_vector<16> >(100000, 16);
+    test_AssignAndModifyElement<sdsl::int_vector<32> >(100000, 32);
+    test_AssignAndModifyElement<sdsl::int_vector<64> >(100000, 64);
 }
 
 TEST_F(IntVectorTest, STL)
@@ -183,6 +221,7 @@ TEST_F(IntVectorTest, STL)
 
 TEST_F(IntVectorTest, SerializeAndLoad)
 {
+    std::mt19937_64 rng;
     sdsl::int_vector<> iv(1000000);
     for (size_type i=0; i<iv.size(); ++i)
         iv[i] = rng();

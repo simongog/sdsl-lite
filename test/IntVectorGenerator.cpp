@@ -1,6 +1,5 @@
 #include "sdsl/int_vector.hpp"
 #include <cstdlib>
-#include <cstdlib>
 #include <iostream>
 #include <algorithm>
 #include <string>

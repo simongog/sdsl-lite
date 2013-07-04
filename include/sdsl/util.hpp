@@ -44,6 +44,7 @@
 #include <iomanip>
 #include <numeric>
 #include <random>
+#include <chrono>
 
 // macros to transform a defined name to a string
 #define SDSL_STR(x) #x
@@ -376,7 +377,7 @@ void util::set_random_bits(t_int_vec& v, int seed)
 {
     std::mt19937_64 rng;
     if (0 == seed) {
-        rng.seed((uint32_t)time(NULL) + util::id());
+        rng.seed(std::chrono::system_clock::now().time_since_epoch().count() + util::id());
     } else
         rng.seed(seed);
 
