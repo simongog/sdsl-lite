@@ -34,7 +34,7 @@ class osfstream : public std::ostream
         void close();
         //! Standard destructor
         ~osfstream();
-        //! Casat to void*
+        //! Cast to void*
         operator  voidptr() const;
 };
 
@@ -61,7 +61,7 @@ class isfstream : public std::istream
         void close();
         //! Standard destructor
         ~isfstream();
-        //! Casat to void*
+        //! Cast to void*
         operator  voidptr() const;
 };
 

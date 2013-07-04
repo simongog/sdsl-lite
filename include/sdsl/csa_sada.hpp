@@ -94,12 +94,12 @@ class csa_sada
 
         static const uint32_t linear_decode_limit = 100000;
     private:
-        enc_vector_type m_psi;  // psi function
-        sa_sample_type     m_sa_sample; // suffix array samples
+        enc_vector_type m_psi;        // psi function
+        sa_sample_type  m_sa_sample;  // suffix array samples
         isa_sample_type m_isa_sample; // inverse suffix array samples
         alphabet_type   m_alphabet;   // alphabet component
 
-        uint64_t* m_psi_buf; //[t_dens+1]; // buffer for decoded psi values
+        uint64_t* m_psi_buf = nullptr; //[t_dens+1]; // buffer for decoded psi values
 
         void copy(const csa_sada& csa) {
             m_psi        = csa.m_psi;
@@ -111,32 +111,29 @@ class csa_sada
         void create_buffer() {
             if (enc_vector_type::sample_dens < linear_decode_limit) {
                 m_psi_buf = new uint64_t[enc_vector_type::sample_dens+1];
-            } else {
-                m_psi_buf = NULL;
             }
         }
 
         void delete_buffer() {
-            if (m_psi_buf != NULL) {
+            if (m_psi_buf != nullptr) {
                 delete [] m_psi_buf;
             }
         }
 
     public:
-        const typename alphabet_type::char2comp_type& char2comp;
-        const typename alphabet_type::comp2char_type& comp2char;
-        const typename alphabet_type::C_type&         C;
-        const typename alphabet_type::sigma_type&     sigma;
-        const psi_type                                psi;
-        const bwt_type                                bwt;
-        const text_type                               text;
-        const sa_sample_type&                         sa_sample;
-        const isa_sample_type&                        isa_sample;
+        const typename alphabet_type::char2comp_type& char2comp  = m_alphabet.char2comp;
+        const typename alphabet_type::comp2char_type& comp2char  = m_alphabet.comp2char;
+        const typename alphabet_type::C_type&         C          = m_alphabet.C;
+        const typename alphabet_type::sigma_type&     sigma      = m_alphabet.sigma;
+        const psi_type                                psi        = psi_type(this);
+        const bwt_type                                bwt        = bwt_type(this);
+        const text_type                               text       = text_type(this);
+        const sa_sample_type&                         sa_sample  = m_sa_sample;
+        const isa_sample_type&                        isa_sample = m_isa_sample;
 
 
         //! Default Constructor
-        csa_sada(): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-            psi(this), bwt(this), text(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
+        csa_sada() {
             create_buffer();
         }
         //! Default Destructor
@@ -145,8 +142,7 @@ class csa_sada
         }
 
         //! Copy constructor
-        csa_sada(const csa_sada& csa): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char), C(m_alphabet.C), sigma(m_alphabet.sigma),
-            psi(this), bwt(this), text(this), sa_sample(m_sa_sample), isa_sample(m_isa_sample) {
+        csa_sada(const csa_sada& csa) {
             create_buffer();
             copy(csa);
         }
@@ -238,7 +234,7 @@ class csa_sada
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
 
         //! Load from a stream.
         /*! \param in Inputstream to load the data structure from.
@@ -288,7 +284,7 @@ class csa_sada
 // TODO: don't use get_inter_sampled_values if t_dens is really
 //       large
                 lower_b = lower_sb*sd;
-                if (m_psi_buf == NULL) {
+                if (m_psi_buf == nullptr) {
                     upper_b = std::min(upper_sb*sd, C[cc+1]);
                     goto finish;
                 }
@@ -356,8 +352,7 @@ finish:
 // == template functions ==
 
 template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::csa_sada(cache_config& config):
-    char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),C(m_alphabet.C), sigma(m_alphabet.sigma), psi(this), bwt(this), text(this),sa_sample(m_sa_sample), isa_sample(m_isa_sample)
+csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::csa_sada(cache_config& config)
 {
     create_buffer();
     if (!cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
@@ -404,7 +399,7 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config));
     mm::log("sa-sample-begin");
     {
-        sa_sample_type tmp_sa_sample(sa_buf);
+        sa_sample_type tmp_sa_sample(config);
         m_sa_sample.swap(tmp_sa_sample);
     }
     mm::log("sa-sample-end");
@@ -415,7 +410,7 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
 }
 
 template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-inline typename csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::value_type csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator[](size_type i)const
+inline auto csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator[](size_type i)const -> value_type
 {
     size_type off = 0;
     while (!m_sa_sample.is_sampled(i)) {  // while i mod t_dens != 0 (SA[i] is not sampled)   SG: auf keinen Fall get_sample_dens nehmen, ist total langsam
@@ -430,7 +425,7 @@ inline typename csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa
 }
 
 template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-inline typename csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::value_type csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator()(size_type i)const
+inline auto csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator()(size_type i)const -> value_type
 {
     value_type result = m_isa_sample[i/t_inv_dens]; // get the rightmost sampled isa value
     i = i % t_inv_dens;
@@ -441,7 +436,7 @@ inline typename csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa
 }
 
 template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-typename csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::size_type csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
+auto csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const -> size_type
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;

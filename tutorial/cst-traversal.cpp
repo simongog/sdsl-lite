@@ -1,5 +1,6 @@
 #include <sdsl/suffix_trees.hpp>
 #include <iostream>
+#include <string>
 
 using namespace sdsl;
 using namespace std;
@@ -10,7 +11,7 @@ int main(int argc, char* argv[])
 {
     cst_t cst;
     construct(cst, argv[1], 1);
-    uint64_t max_depth = atoll(argv[2]);
+    uint64_t max_depth = stoull(argv[2]);
 
     // use the DFS iterator to traverse `cst`
     for (cst_t::const_iterator it=cst.begin(); it!=cst.end(); ++it) {

@@ -82,8 +82,8 @@ class sd_vector
         typedef t_hi_bit_vector hi_bit_vector_type;
     private:
         // we need this variables to represent the m ones of the original bit vector of size n
-        size_type m_size;  // length of the original bit vector
-        uint8_t   m_wl;    // log n - log m, where n is the length of the original bit vector
+        size_type m_size = 0;  // length of the original bit vector
+        uint8_t   m_wl   = 0;  // log n - log m, where n is the length of the original bit vector
         // and m is the number of ones in the bit vector, wl is the abbreviation
         // for ,,width (of) low (part)''
 
@@ -104,18 +104,14 @@ class sd_vector
         }
 
     public:
-        const hi_bit_vector_type& high;
-        const int_vector<>& low;
-        const select_1_support_type&     high_1_select;
-        const select_0_support_type&     high_0_select;
+        const hi_bit_vector_type&    high          = m_high;
+        const int_vector<>&          low           = m_low;
+        const select_1_support_type& high_1_select = m_high_1_select;
+        const select_0_support_type& high_0_select = m_high_0_select;
 
-        sd_vector():m_size(0), m_wl(0),
-            high(m_high), low(m_low),
-            high_1_select(m_high_1_select), high_0_select(m_high_0_select) {
-        }
+        sd_vector() { }
 
-        sd_vector(const bit_vector& bv):high(m_high),low(m_low),
-            high_1_select(m_high_1_select), high_0_select(m_high_0_select) {
+        sd_vector(const bit_vector& bv) {
             m_size = bv.size();
             size_type m = util::cnt_one_bits(bv);
             uint8_t logm = bits::hi(m)+1;
@@ -204,7 +200,7 @@ class sd_vector
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
@@ -245,12 +241,12 @@ class rank_support_sd
 
     public:
 
-        explicit rank_support_sd(const bit_vector_type* v=NULL) {
+        explicit rank_support_sd(const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
         size_type rank(size_type i)const {
-            assert(m_v != NULL);
+            assert(m_v != nullptr);
             assert(i <= m_v->size());
             // split problem in two parts:
             // (1) find  >=
@@ -277,7 +273,7 @@ class rank_support_sd
             return m_v->size();
         }
 
-        void set_vector(const bit_vector_type* v=NULL) {
+        void set_vector(const bit_vector_type* v=nullptr) {
             m_v = v;
         }
 
@@ -290,11 +286,11 @@ class rank_support_sd
 
         void swap(rank_support_sd&) { }
 
-        void load(std::istream&, const bit_vector_type* v=NULL) {
+        void load(std::istream&, const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             return serialize_empty_object(out, v, name, this);
         }
 };
@@ -316,7 +312,7 @@ class select_support_sd
 
     public:
 
-        explicit select_support_sd(const bit_vector_type* v=NULL) {
+        explicit select_support_sd(const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
@@ -335,7 +331,7 @@ class select_support_sd
             return m_v->size();
         }
 
-        void set_vector(const bit_vector_type* v=NULL) {
+        void set_vector(const bit_vector_type* v=nullptr) {
             m_v = v;
         }
 
@@ -348,11 +344,11 @@ class select_support_sd
 
         void swap(select_support_sd&) { }
 
-        void load(std::istream&, const bit_vector_type* v=NULL) {
+        void load(std::istream&, const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             return serialize_empty_object(out, v, name, this);
         }
 };

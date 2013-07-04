@@ -47,6 +47,11 @@ TYPED_TEST(BitVectorTest, Access)
     for (uint64_t j=0; j < bv.size(); ++j) {
         ASSERT_EQ((bool)(bv[j]), (bool)(c_bv[j]));
     }
+    TypeParam mo_bv = TypeParam(bv);
+    ASSERT_EQ(bv.size(), mo_bv.size());
+    for (uint64_t j=0; j < bv.size(); ++j) {
+        ASSERT_EQ((bool)(bv[j]), (bool)(c_bv[j]));
+    }
 }
 
 TYPED_TEST(BitVectorTest, Swap)

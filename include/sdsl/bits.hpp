@@ -47,191 +47,188 @@ namespace sdsl
 
 	\author Simon Gog
  */
-class bits
-{
-    private:
-        bits(); // This helper class can not be instantiated
-    public:
-        //! 64bit mask with all bits set to 1.
-        static const int64_t  all_set = -1LL;
+struct bits {
+    bits() = delete;
+    //! 64bit mask with all bits set to 1.
+    static const int64_t  all_set = -1LL;
 
-        //! This constant represents a de Bruijn sequence B(k,n) for k=2 and n=6.
-        /*! Details for de Bruijn sequences see
-           http://en.wikipedia.org/wiki/De_bruijn_sequence
-           deBruijn64 is used in combination with the
-           array lt_deBruijn_to_idx.
-        */
-        static const uint64_t deBruijn64 = 0x0218A392CD3D5DBFULL;
+    //! This constant represents a de Bruijn sequence B(k,n) for k=2 and n=6.
+    /*! Details for de Bruijn sequences see
+       http://en.wikipedia.org/wiki/De_bruijn_sequence
+       deBruijn64 is used in combination with the
+       array lt_deBruijn_to_idx.
+    */
+    static const uint64_t deBruijn64 = 0x0218A392CD3D5DBFULL;
 
-        //! This table maps a 6-bit subsequence S[idx...idx+5] of constant deBruijn64 to idx.
-        /*! \sa deBruijn64
-        */
-        static const uint32_t lt_deBruijn_to_idx[64];
+    //! This table maps a 6-bit subsequence S[idx...idx+5] of constant deBruijn64 to idx.
+    /*! \sa deBruijn64
+    */
+    static const uint32_t lt_deBruijn_to_idx[64];
 
-        //! Array containing Fibonacci numbers less than \f$2^64\f$.
-        static const uint64_t lt_fib[92];
+    //! Array containing Fibonacci numbers less than \f$2^64\f$.
+    static const uint64_t lt_fib[92];
 
-        //! Lookup table for byte popcounts.
-        static const uint8_t lt_cnt[256];
+    //! Lookup table for byte popcounts.
+    static const uint8_t lt_cnt[256];
 
-        //! Lookup table for most significant set bit in a byte.
-        static const uint32_t lt_hi[256];
+    //! Lookup table for most significant set bit in a byte.
+    static const uint32_t lt_hi[256];
 
-        //! lo_set[i] is a 64-bit word with the i least significant bits set and the high bits not set.
-        /*! lo_set[0] = 0ULL, lo_set[1]=1ULL, lo_set[2]=3ULL...
-         */
-        static const uint64_t lo_set[65];
+    //! lo_set[i] is a 64-bit word with the i least significant bits set and the high bits not set.
+    /*! lo_set[0] = 0ULL, lo_set[1]=1ULL, lo_set[2]=3ULL...
+     */
+    static const uint64_t lo_set[65];
 
-        //! lo_unset[i] is a 64-bit word with the i least significant bits not set and the high bits set.
-        /*! lo_unset[0] = FFFFFFFFFFFFFFFFULL, lo_unset_set[1]=FFFFFFFFFFFFFFFEULL, ...
-         */
-        static const uint64_t lo_unset[65];
+    //! lo_unset[i] is a 64-bit word with the i least significant bits not set and the high bits set.
+    /*! lo_unset[0] = FFFFFFFFFFFFFFFFULL, lo_unset_set[1]=FFFFFFFFFFFFFFFEULL, ...
+     */
+    static const uint64_t lo_unset[65];
 
-        //! Lookup table for least significant set bit in a byte.
-        static const uint8_t lt_lo[256];
+    //! Lookup table for least significant set bit in a byte.
+    static const uint8_t lt_lo[256];
 
-        //! Lookup table for select on bytes.
-        /*! Entry at idx = 256*j + i equals the position of the
-            (j+1)-th set bit in byte i. Positions lie in the range \f$[0..7]\f$.
-         */
-        static const uint8_t lt_sel[256*8];
+    //! Lookup table for select on bytes.
+    /*! Entry at idx = 256*j + i equals the position of the
+        (j+1)-th set bit in byte i. Positions lie in the range \f$[0..7]\f$.
+     */
+    static const uint8_t lt_sel[256*8];
 
-        //! Use to help to decide if a prefix sum stored in a byte overflows.
-        static const uint64_t ps_overflow[65];
+    //! Use to help to decide if a prefix sum stored in a byte overflows.
+    static const uint64_t ps_overflow[65];
 
-        //! Counts the number of set bits in x.
-        /*! \param  x 64-bit word
-            \return Number of set bits.
-         */
-        static uint64_t cnt(uint64_t x);
+    //! Counts the number of set bits in x.
+    /*! \param  x 64-bit word
+        \return Number of set bits.
+     */
+    static uint64_t cnt(uint64_t x);
 
-        //! Position of the most significant set bit the 64-bit word x
-        /*! \param x 64-bit word
-            \return The position (in 0..63) of the least significant set bit
-                    in `x` or 0 if x equals 0.
-        	\sa sel, lo
-        */
-        static uint32_t hi(uint64_t x);
+    //! Position of the most significant set bit the 64-bit word x
+    /*! \param x 64-bit word
+        \return The position (in 0..63) of the least significant set bit
+                in `x` or 0 if x equals 0.
+    	\sa sel, lo
+    */
+    static uint32_t hi(uint64_t x);
 
-        //! Calculates the position of the rightmost 1-bit in the 64bit integer x if it exists
-        /*! \param x 64 bit integer.
-        	\return The position (in 0..63) of the rightmost 1-bit in the 64bit integer x if
-        	        x>0 and 0 if x equals 0.
-        	\sa sel, hi
-        */
-        static uint32_t lo(uint64_t x);
+    //! Calculates the position of the rightmost 1-bit in the 64bit integer x if it exists
+    /*! \param x 64 bit integer.
+    	\return The position (in 0..63) of the rightmost 1-bit in the 64bit integer x if
+    	        x>0 and 0 if x equals 0.
+    	\sa sel, hi
+    */
+    static uint32_t lo(uint64_t x);
 
-        //! Counts the number of 1-bits in the 32bit integer x.
-        /*! This function is a variant of the method cnt. If
-        	32bit multiplication is fast, this method beats the cnt.
-        	for 32bit integers.
-        	\param x 64bit integer to count the bits.
-        	\return The number of 1-bits in x.
-         */
-        static uint32_t cnt32(uint32_t x);
+    //! Counts the number of 1-bits in the 32bit integer x.
+    /*! This function is a variant of the method cnt. If
+    	32bit multiplication is fast, this method beats the cnt.
+    	for 32bit integers.
+    	\param x 64bit integer to count the bits.
+    	\return The number of 1-bits in x.
+     */
+    static uint32_t cnt32(uint32_t x);
 
-        //! Count the number of consecutive and distinct 11 in the 64bit integer x.
-        /*!
-          	\param x 64bit integer to count the terminating sequence 11 of a Fibonacci code.
-        	\param c Carry equals msb of the previous 64bit integer.
-         */
-        static uint32_t cnt11(uint64_t x, uint64_t& c);
+    //! Count the number of consecutive and distinct 11 in the 64bit integer x.
+    /*!
+      	\param x 64bit integer to count the terminating sequence 11 of a Fibonacci code.
+    	\param c Carry equals msb of the previous 64bit integer.
+     */
+    static uint32_t cnt11(uint64_t x, uint64_t& c);
 
-        //! Count the number of consecutive and distinct 11 in the 64bit integer x.
-        /*!
-          	\param x 64bit integer to count the terminating sequence 11 of a Fibonacci code.
-         */
-        static uint32_t cnt11(uint64_t x);
+    //! Count the number of consecutive and distinct 11 in the 64bit integer x.
+    /*!
+      	\param x 64bit integer to count the terminating sequence 11 of a Fibonacci code.
+     */
+    static uint32_t cnt11(uint64_t x);
 
-        //! Count 10 bit pairs in the word x.
-        /*!
-         * \param x 64bit integer to count the 10 bit pairs.
-         * \param c Carry equals msb of the previous 64bit integer.
-         */
-        static uint32_t cnt10(uint64_t x, uint64_t& c);
+    //! Count 10 bit pairs in the word x.
+    /*!
+     * \param x 64bit integer to count the 10 bit pairs.
+     * \param c Carry equals msb of the previous 64bit integer.
+     */
+    static uint32_t cnt10(uint64_t x, uint64_t& c);
 
-        //! Count 01 bit pairs in the word x.
-        /*!
-         * \param x 64bit integer to count the 01 bit pairs.
-         * \param c Carry equals msb of the previous 64bit integer.
-         */
-        static uint32_t cnt01(uint64_t x, uint64_t& c);
+    //! Count 01 bit pairs in the word x.
+    /*!
+     * \param x 64bit integer to count the 01 bit pairs.
+     * \param c Carry equals msb of the previous 64bit integer.
+     */
+    static uint32_t cnt01(uint64_t x, uint64_t& c);
 
-        //! Map all 10 bit pairs to 01 or 1 if c=1 and the lsb=0. All other pairs are mapped to 00.
-        static uint64_t map10(uint64_t x, uint64_t c=0);
+    //! Map all 10 bit pairs to 01 or 1 if c=1 and the lsb=0. All other pairs are mapped to 00.
+    static uint64_t map10(uint64_t x, uint64_t c=0);
 
-        //! Map all 01 bit pairs to 01 of 1 if c=1 and the lsb=0. All other pairs are mapped to 00.
-        static uint64_t map01(uint64_t x, uint64_t c=1);
+    //! Map all 01 bit pairs to 01 of 1 if c=1 and the lsb=0. All other pairs are mapped to 00.
+    static uint64_t map01(uint64_t x, uint64_t c=1);
 
-        //! Calculate the position of the i-th rightmost 1 bit in the 64bit integer x
-        /*!
-          	\param x 64bit integer.
-        	\param i Argument i must be in the range \f$[1..cnt(x)]\f$.
-        	\pre Argument i must be in the range \f$[1..cnt(x)]\f$.
-          	\sa hi, lo
-         */
-        static uint32_t sel(uint64_t x, uint32_t i);
-        static uint32_t _sel(uint64_t x, uint32_t i);
+    //! Calculate the position of the i-th rightmost 1 bit in the 64bit integer x
+    /*!
+      	\param x 64bit integer.
+    	\param i Argument i must be in the range \f$[1..cnt(x)]\f$.
+    	\pre Argument i must be in the range \f$[1..cnt(x)]\f$.
+      	\sa hi, lo
+     */
+    static uint32_t sel(uint64_t x, uint32_t i);
+    static uint32_t _sel(uint64_t x, uint32_t i);
 
-        //! Calculates the position of the i-th rightmost 11-bit-pattern which terminates a Fibonacci coded integer in x.
-        /*!	\param x 64 bit integer.
-            \param i Index of 11-bit-pattern. \f$i \in [1..cnt11(x)]\f$
-        	\param c Carry bit from word before
-         	\return The position (in 1..63) of the i-th 11-bit-pattern which terminates a Fibonacci coded integer in x if
-        	        x contains at least i 11-bit-patterns and a undefined value otherwise.
-            \sa cnt11, hi11, sel
+    //! Calculates the position of the i-th rightmost 11-bit-pattern which terminates a Fibonacci coded integer in x.
+    /*!	\param x 64 bit integer.
+        \param i Index of 11-bit-pattern. \f$i \in [1..cnt11(x)]\f$
+    	\param c Carry bit from word before
+     	\return The position (in 1..63) of the i-th 11-bit-pattern which terminates a Fibonacci coded integer in x if
+    	        x contains at least i 11-bit-patterns and a undefined value otherwise.
+        \sa cnt11, hi11, sel
 
-         */
-        static uint32_t sel11(uint64_t x, uint32_t i, uint32_t c=0);
+     */
+    static uint32_t sel11(uint64_t x, uint32_t i, uint32_t c=0);
 
-        //! Calculates the position of the leftmost 11-bit-pattern which terminates a Fibonacci coded integer in x.
-        /*! \param x 64 bit integer.
-            \return The position (in 1..63) of the leftmost 1 of the leftmost 11-bit-pattern which
-        	        terminates a Fibonacci coded integer in x if x contains a 11-bit-pattern
-        			and 0 otherwise.
-        	\sa cnt11, sel11
-        */
-        static uint32_t hi11(uint64_t x);
+    //! Calculates the position of the leftmost 11-bit-pattern which terminates a Fibonacci coded integer in x.
+    /*! \param x 64 bit integer.
+        \return The position (in 1..63) of the leftmost 1 of the leftmost 11-bit-pattern which
+    	        terminates a Fibonacci coded integer in x if x contains a 11-bit-pattern
+    			and 0 otherwise.
+    	\sa cnt11, sel11
+    */
+    static uint32_t hi11(uint64_t x);
 
-        //! Writes value x to an bit position in an array.
-        static void write_int(uint64_t* word, uint64_t x, const uint8_t offset=0, const uint8_t len=64);
+    //! Writes value x to an bit position in an array.
+    static void write_int(uint64_t* word, uint64_t x, const uint8_t offset=0, const uint8_t len=64);
 
-        //! Writes value x to an bit position in an array and moves the bit-pointer.
-        static void write_int_and_move(uint64_t*& word, uint64_t x, uint8_t& offset, const uint8_t len);
+    //! Writes value x to an bit position in an array and moves the bit-pointer.
+    static void write_int_and_move(uint64_t*& word, uint64_t x, uint8_t& offset, const uint8_t len);
 
-        //! Reads a value from a bit position in an array.
-        static uint64_t read_int(const uint64_t* word, uint8_t offset=0, const uint8_t len=64);
+    //! Reads a value from a bit position in an array.
+    static uint64_t read_int(const uint64_t* word, uint8_t offset=0, const uint8_t len=64);
 
-        //! Reads a value from a bit position in an array and moved the bit-pointer.
-        static uint64_t read_int_and_move(const uint64_t*& word, uint8_t& offset, const uint8_t len=64);
+    //! Reads a value from a bit position in an array and moved the bit-pointer.
+    static uint64_t read_int_and_move(const uint64_t*& word, uint8_t& offset, const uint8_t len=64);
 
-        //! Reads an unary decoded value from a bit position in an array.
-        static uint64_t read_unary(const uint64_t* word, uint8_t offset=0);
+    //! Reads an unary decoded value from a bit position in an array.
+    static uint64_t read_unary(const uint64_t* word, uint8_t offset=0);
 
-        //! Reads an unary decoded value from a bit position in an array and moves the bit-pointer.
-        static uint64_t read_unary_and_move(const uint64_t*& word, uint8_t& offset);
+    //! Reads an unary decoded value from a bit position in an array and moves the bit-pointer.
+    static uint64_t read_unary_and_move(const uint64_t*& word, uint8_t& offset);
 
-        //! Move the bit-pointer (=uint64_t word and offset) `len` to the right.
-        /*!\param word   64-bit word part of the bit pointer
-         * \param offset Offset part of the bit pointer
-         * \param len    Move distance. \f$ len \in [0..64] \f$
-         * \sa move_left
-         */
-        static void move_right(const uint64_t*& word, uint8_t& offset, const uint8_t len);
+    //! Move the bit-pointer (=uint64_t word and offset) `len` to the right.
+    /*!\param word   64-bit word part of the bit pointer
+     * \param offset Offset part of the bit pointer
+     * \param len    Move distance. \f$ len \in [0..64] \f$
+     * \sa move_left
+     */
+    static void move_right(const uint64_t*& word, uint8_t& offset, const uint8_t len);
 
-        //! Move the bit-pointer (=uint64_t word and offset) `len` to the left.
-        /*!\param word   64-bit word part of the bit pointer
-         * \param offset Offset part of the bit pointer
-         * \param len    Move distance. \f$ len \in [0..64] \f$
-         * \sa move_right
-         */
-        static void move_left(const uint64_t*& word, uint8_t& offset, const uint8_t len);
+    //! Move the bit-pointer (=uint64_t word and offset) `len` to the left.
+    /*!\param word   64-bit word part of the bit pointer
+     * \param offset Offset part of the bit pointer
+     * \param len    Move distance. \f$ len \in [0..64] \f$
+     * \sa move_right
+     */
+    static void move_left(const uint64_t*& word, uint8_t& offset, const uint8_t len);
 
-        //! Get the first one bit in the interval \f$[idx..\infty )\f$
-        static uint64_t next(const uint64_t* word, uint64_t idx);
+    //! Get the first one bit in the interval \f$[idx..\infty )\f$
+    static uint64_t next(const uint64_t* word, uint64_t idx);
 
-        //! Get the one bit with the greatest position in the interval \f$[0..idx]\f$
-        static uint64_t prev(const uint64_t* word, uint64_t idx);
+    //! Get the one bit with the greatest position in the interval \f$[0..idx]\f$
+    static uint64_t prev(const uint64_t* word, uint64_t idx);
 };
 
 

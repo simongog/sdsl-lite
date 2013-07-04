@@ -41,6 +41,7 @@ template<class t_vlc_vec = vlc_vector<> >
 class lcp_vlc
 {
     public:
+
         typedef typename t_vlc_vec::value_type        value_type;
         typedef random_access_const_iterator<lcp_vlc> const_iterator;
         typedef const_iterator                        iterator;
@@ -59,11 +60,9 @@ class lcp_vlc
                sa_order    = 1
              };
 
-        template<class Cst>  // template inner class which is used in CSTs to parametrize lcp classes
-        class type           // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
-        {
-            public:
-                typedef lcp_vlc lcp_type;
+        template<class Cst>
+        struct type {
+            typedef lcp_vlc lcp_type;
         };
 
     private:
@@ -75,6 +74,7 @@ class lcp_vlc
         }
 
     public:
+
         //! Default Constructor
         lcp_vlc() {}
 
@@ -84,7 +84,15 @@ class lcp_vlc
         }
 
         //! Construct
-        lcp_vlc(cache_config& config, std::string other_key="");
+        lcp_vlc(cache_config& config, std::string other_key="") {
+            std::string lcp_key  = constants::KEY_LCP;
+            if ("" != other_key) {
+                lcp_key = other_key;
+            }
+            int_vector_file_buffer<> lcp_buf(cache_file_name(lcp_key, config));
+            vlc_vec_type tmp_vec(lcp_buf);
+            m_vec.swap(tmp_vec);
+        }
 
         //! Number of elements in the instance.
         size_type size()const {
@@ -123,49 +131,27 @@ class lcp_vlc
         }
 
         //! Assignment Operator.
-        lcp_vlc& operator=(const lcp_vlc& lcp_c);
+        lcp_vlc& operator=(const lcp_vlc& lcp_c) {
+            if (this != &lcp_c) {
+                copy(lcp_c);
+            }
+            return *this;
+        }
 
         //! Serialize to a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+            size_type written_bytes = 0;
+            written_bytes += m_vec.serialize(out, child, "vec");
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
 
         //! Load from a stream.
         void load(std::istream& in) {
             m_vec.load(in);
         }
 };
-
-// == template functions ==
-
-template<class t_vlc_vec>
-lcp_vlc<t_vlc_vec>::lcp_vlc(cache_config& config, std::string other_key)
-{
-    std::string lcp_key  = constants::KEY_LCP;
-    if ("" != other_key) {
-        lcp_key = other_key;
-    }
-    int_vector_file_buffer<> lcp_buf(cache_file_name(lcp_key, config));
-    vlc_vec_type tmp_vec(lcp_buf);
-    m_vec.swap(tmp_vec);
-}
-
-template<class t_vlc_vec>
-typename lcp_vlc<t_vlc_vec>::size_type lcp_vlc<t_vlc_vec>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
-{
-    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
-    size_type written_bytes = 0;
-    written_bytes += m_vec.serialize(out, child, "vec");
-    structure_tree::add_size(child, written_bytes);
-    return written_bytes;
-}
-
-template<class t_vlc_vec>
-lcp_vlc<t_vlc_vec>& lcp_vlc<t_vlc_vec>::operator=(const lcp_vlc& lcp_c)
-{
-    if (this != &lcp_c) {
-        copy(lcp_c);
-    }
-    return *this;
-}
 
 } // end namespace sdsl
 #endif

@@ -100,27 +100,20 @@ class csa_bitcompressed
             m_psi      = psi_type(this);
         }
     public:
-        const typename alphabet_type::char2comp_type& char2comp;
-        const typename alphabet_type::comp2char_type& comp2char;
-        const typename alphabet_type::C_type&         C;
-        const typename alphabet_type::sigma_type&     sigma;
-        const psi_type&                               psi;
-        const bwt_type                                bwt;
-        const text_type                               text;
-        const sa_sample_type&                         sa_sample;
-        const isa_sample_type&                        isa_sample;
+        const typename alphabet_type::char2comp_type& char2comp  = m_alphabet.char2comp;
+        const typename alphabet_type::comp2char_type& comp2char  = m_alphabet.comp2char;
+        const typename alphabet_type::C_type&         C          = m_alphabet.C;
+        const typename alphabet_type::sigma_type&     sigma      = m_alphabet.sigma;
+        const psi_type&                               psi        = m_psi;
+        const bwt_type                                bwt        = bwt_type(this);
+        const text_type                               text       = text_type(this);
+        const sa_sample_type&                         sa_sample  = m_sa;
+        const isa_sample_type&                        isa_sample = m_isa;
 
-        //! Default Constructor
-        csa_bitcompressed(): char2comp(m_alphabet.char2comp), comp2char(m_alphabet.comp2char),
-            C(m_alphabet.C), sigma(m_alphabet.sigma), psi(m_psi), bwt(this),
-            text(this),sa_sample(m_sa), isa_sample(m_isa) {}
-
+        //! Default constructor
+        csa_bitcompressed() {}
         //! Copy constructor
-        csa_bitcompressed(const csa_bitcompressed& csa): char2comp(m_alphabet.char2comp),
-            comp2char(m_alphabet.comp2char),
-            C(m_alphabet.C), sigma(m_alphabet.sigma),
-            psi(m_psi), bwt(this), text(this),
-            sa_sample(m_sa), isa_sample(m_isa) {
+        csa_bitcompressed(const csa_bitcompressed& csa) {
             copy(csa);
         }
 
@@ -138,7 +131,7 @@ class csa_bitcompressed
                 m_alphabet.swap(tmp_alphabet);
             }
             {
-                sa_sample_type tmp_sample(sa_buf);
+                sa_sample_type tmp_sample(config);
                 m_sa.swap(tmp_sample);
             }
             algorithm::set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
@@ -233,7 +226,7 @@ class csa_bitcompressed
         /*! \param out Output stream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_sa.serialize(out, child, "m_sa");

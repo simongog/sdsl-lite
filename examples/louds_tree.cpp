@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
     construct(cst, file, 1);
     uint64_t max_print = 80;
     if (argc > 2) {
-        max_print = atoll(argv[2]);
+        max_print = stoull(argv[2]);
     }
 
     typedef cst_bfs_iterator<cst_t> iterator;

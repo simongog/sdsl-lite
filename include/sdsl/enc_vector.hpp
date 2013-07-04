@@ -59,6 +59,8 @@ template<class t_coder=coder::elias_delta,
          uint32_t t_dens = 8, uint8_t t_width=0>
 class enc_vector
 {
+    private:
+        static_assert(t_dens > 1 , "enc_vector: sample density must be larger than `1`");
     public:
         typedef uint64_t                                 value_type;
         typedef random_access_const_iterator<enc_vector> iterator;
@@ -75,7 +77,7 @@ class enc_vector
         int_vector<0>     m_z;                       // storage for encoded deltas
     private:
         int_vector_type   m_sample_vals_and_pointer; // samples and pointers
-        size_type         m_size;                    // number of vector elements
+        size_type         m_size = 0;                // number of vector elements
 
         void copy(const enc_vector& v);
 
@@ -87,7 +89,7 @@ class enc_vector
 
     public:
         //! Default Constructor
-        enc_vector() : m_size(0) { }
+        enc_vector() { }
         //! Copy constructor
         /*! \param v The enc_vector to copy.
          */
@@ -157,7 +159,7 @@ class enc_vector
         /*! \param out Out stream to write the data structure.
             \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
 
         //! Load the enc_vector from a stream.
         void load(std::istream& in);
@@ -224,7 +226,7 @@ void enc_vector<t_coder, t_dens,t_width>::swap(enc_vector<t_coder, t_dens,t_widt
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 template<class Container>
-enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c) : m_size(0)
+enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c)
 {
     // clear bit_vectors
     clear();
@@ -273,7 +275,7 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c) : m_size(0)
         *sv_it = 0; ++sv_it;        // initialize
         *sv_it = z_size+1; ++sv_it; // last entry
 
-        util::assign(m_z, int_vector<>(z_size, 0, 1));
+        m_z = int_vector<>(z_size, 0, 1);
         uint64_t* z_data = t_coder::raw_data(m_z);
         uint8_t offset = 0;
         no_sample = 0;
@@ -292,7 +294,7 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c) : m_size(0)
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 template<uint8_t int_width>
-enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width>& v_buf) : m_size(0)
+enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width>& v_buf)
 {
     // clear bit_vectors
     clear();
@@ -329,7 +331,7 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width
     util::set_to_value(m_sample_vals_and_pointer, 0);
 
 //    (b) Initilize bit_vector for encoded data
-    util::assign(m_z, int_vector<>(z_size, 0, 1));
+    m_z = int_vector<>(z_size, 0, 1);
     uint64_t* z_data = t_coder::raw_data(m_z);
     uint8_t offset = 0;
 

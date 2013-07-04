@@ -15,7 +15,9 @@ namespace sdsl
 // Forward declaration of helper method
 template<uint32_t t_dens, uint8_t t_bwt_width>
 void construct_first_child_and_lf_lcp(int_vector_file_buffer<>&,
-                                      int_vector_file_buffer<t_bwt_width>&, const std::string&, const std::string&, int_vector<>&);
+                                      int_vector_file_buffer<t_bwt_width>&,
+                                      const std::string&,
+                                      const std::string&, int_vector<>&);
 
 
 /*! An lcp array class for cst_sct3 and cst_sada.
@@ -31,15 +33,15 @@ template<uint32_t t_dens, class t_cst>
 class _lcp_support_tree2
 {
     public:
-        typedef int_vector<>::value_type                         value_type;      // STL Container requirement
-        typedef random_access_const_iterator<_lcp_support_tree2> const_iterator;  // STL Container requirement
-        typedef const_iterator                                   iterator;         // STL Container requirement
+        typedef int_vector<>::value_type                         value_type;
+        typedef random_access_const_iterator<_lcp_support_tree2> const_iterator;
+        typedef const_iterator                                   iterator;
         typedef const value_type                                 const_reference;
         typedef const_reference                                  reference;
         typedef const_reference*                                 pointer;
         typedef const pointer                                    const_pointer;
-        typedef int_vector<>::size_type                          size_type;         // STL Container requirement
-        typedef int_vector<>::difference_type                    difference_type; // STL Container requirement
+        typedef int_vector<>::size_type                          size_type;
+        typedef int_vector<>::difference_type                    difference_type;
         typedef t_cst                                            cst_type;
         typedef wt_huff<bit_vector, rank_support_v5<>,
                 select_support_scan<1>,
@@ -52,11 +54,9 @@ class _lcp_support_tree2
                sa_order = 0
              };
 
-        template<class CST>  // template inner class which is used in CSTs to parametrize lcp classes
-        class type           // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
-        {
-            public:
-                typedef _lcp_support_tree2 lcp_type;
+        template<class CST>
+        struct type {
+            typedef _lcp_support_tree2 lcp_type;
         };
 
     private:
@@ -84,7 +84,7 @@ class _lcp_support_tree2
         /*! \param config Cache configuration.
 
          */
-        _lcp_support_tree2(cache_config& config, const cst_type* cst = NULL) {
+        _lcp_support_tree2(cache_config& config, const cst_type* cst = nullptr) {
             m_cst = cst;
 
             int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
@@ -168,7 +168,7 @@ start:
         }
 
         //! Serialize to a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_small_lcp.serialize(out, child, "small_lcp");
@@ -178,7 +178,7 @@ start:
         }
 
         //! Load from a stream.
-        void load(std::istream& in, const t_cst* cst=NULL) {
+        void load(std::istream& in, const t_cst* cst=nullptr) {
             m_small_lcp.load(in);
             m_big_lcp.load(in);
             m_cst = cst;
@@ -190,11 +190,9 @@ template<uint32_t t_dens=16>
 class lcp_support_tree2
 {
     public:
-        template<class t_cst> // template inner class which is used in CSTs to parametrize lcp classes
-        class type            // with information about the CST. Thanks Stefan Arnold! (2011-03-02)
-        {
-            public:
-                typedef _lcp_support_tree2<t_dens, t_cst> lcp_type;
+        template<class t_cst>
+        struct type {
+            typedef _lcp_support_tree2<t_dens, t_cst> lcp_type;
         };
 };
 
