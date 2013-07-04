@@ -546,7 +546,22 @@ class int_vector
         const const_iterator end() const {
             return int_vector_trait<t_width>::end(this, m_data, (m_size/m_width));
         }
+
+        //! Flip all bits of bit_vector
+        void flip() = delete; // Only for bit_vector implemented
 };
+
+template<>
+void bit_vector::flip()
+{
+    if (empty()) {
+        return;
+    }
+    m_data[0] = ~m_data[0];
+    for (uint64_t i=1; i<(capacity()>>6); ++i) {
+        m_data[i] = ~m_data[i];
+    }
+}
 
 //! A proxy class that acts as a reference to an integer of length \p len bits in a int_vector.
 /*! \tparam t_int_vector The specific int_vector class.

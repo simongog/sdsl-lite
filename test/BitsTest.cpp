@@ -3,7 +3,6 @@
 #include "sdsl/util.hpp"
 #include "gtest/gtest.h"
 #include <vector>
-#include <cstdlib> // for rand()
 #include <string>
 
 namespace
