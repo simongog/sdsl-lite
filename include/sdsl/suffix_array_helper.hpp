@@ -89,7 +89,7 @@ class psi_of_csa_psi
          *		\f$ \Order{1} \f$, if the enc_vector_type of the csa returns the entry in constant time.
          */
         value_type operator[](size_type i)const {
-            assert(m_csa != NULL);
+            assert(m_csa != nullptr);
             assert(i < size());
             return m_csa->m_psi[i];
         }
@@ -160,9 +160,9 @@ class psi_of_sa_and_isa
     public:
 
         //! Constructor
-        psi_of_sa_and_isa(t_csa* csa=NULL) {
+        psi_of_sa_and_isa(t_csa* csa=nullptr) {
             m_csa = csa;
-            if (csa != NULL)
+            if (csa != nullptr)
                 m_size_m1 = m_csa->size()-1;
             else
                 m_size_m1 = (size_type)-1;
@@ -188,7 +188,7 @@ class psi_of_sa_and_isa
          *		\f$ \Order{\saaccess+\isaaccess} \f$
         */
         value_type operator[](size_type i)const {
-            assert(m_csa!=NULL);
+            assert(m_csa!=nullptr);
             assert(i<size());
             // \f$\Psi[i] = SA^{-1}[SA[i]+1 \mod n]\f$, where \f$n\f$ is the length of the suffix array SA
             value_type sai = (*m_csa)[i];
@@ -200,7 +200,7 @@ class psi_of_sa_and_isa
          *  \param i The index for which the LF value should be calculated, \f$i\in [0..size()-1]\f$.
          */
         value_type operator()(size_type i)const {
-            assert(m_csa!=NULL);
+            assert(m_csa!=nullptr);
             assert(i<size());
             value_type sai = (*m_csa)[i];
             return (*m_csa)(sai + to_add2[(bool)sai ]);
@@ -285,7 +285,7 @@ class bwt_of_csa_psi
          *		\f$ \Order{\log |\Sigma|} \f$
          */
         value_type operator[](size_type i)const {
-            assert(m_csa != NULL);
+            assert(m_csa != nullptr);
             assert(i < size());
             size_type pos = m_csa->psi(i);
             return first_row_symbol(pos, *m_csa);
@@ -342,7 +342,7 @@ class psi_of_csa_wt
          *		\f$ \Order{\log |\Sigma|} \f$
          */
         value_type operator[](size_type i)const {
-            assert(m_csa_wt != NULL);
+            assert(m_csa_wt != nullptr);
             assert(i < m_csa_wt->size());
             char_type c = first_row_symbol(i, *m_csa_wt);
             return m_csa_wt->wavelet_tree.select(i - m_csa_wt->C[m_csa_wt->char2comp[c]] + 1 , c);
@@ -354,7 +354,7 @@ class psi_of_csa_wt
          *		\f$ \Order{\min\{k\cdot \log |\Sigma|, (s_{\SUF}+s_{\ISA})\log|\Sigma|\}} \f$
          */
         value_type psi_k(size_type i, size_type k)const {
-            assert(m_csa_wt != NULL);
+            assert(m_csa_wt != nullptr);
             if (k < m_csa_wt->sa_sample_dens + m_csa_wt->isa_sample_dens) {
                 for (size_type j=0; j<k; ++j) {
                     i = (*this)[i];
@@ -376,7 +376,7 @@ class psi_of_csa_wt
          *		\f$ \Order{\log |\Sigma|} \f$
          */
         value_type operator()(size_type i)const {
-            assert(m_csa_wt != NULL);
+            assert(m_csa_wt != nullptr);
             assert(i < size());
             typename t_csa::char_type c;
             size_type j = m_csa_wt->wavelet_tree.inverse_select(i,c); // see documentation of inverse_select in wt_huff
@@ -389,7 +389,7 @@ class psi_of_csa_wt
          *		\f$ \Order{\min\{k\cdot \log |\Sigma|, (s_{\SUF}+s_{\ISA})\log|\Sigma|\}} \f$
          */
         value_type lf_k(size_type i, size_type k)const {
-            assert(m_csa_wt != NULL);
+            assert(m_csa_wt != nullptr);
             if (k < m_csa_wt->sa_sample_dens + m_csa_wt->isa_sample_dens) {
                 for (size_type j=0; j<k; ++j) {
                     i = (*this)(i);
@@ -448,7 +448,7 @@ class bwt_of_csa_wt
          *		\f$ \Order{\log |\Sigma|} \f$
          */
         value_type operator[](size_type i)const {
-            assert(m_csa_wt != NULL);
+            assert(m_csa_wt != nullptr);
             assert(i < size());
             return m_csa_wt->wavelet_tree[i];
         }
@@ -494,7 +494,7 @@ class text_of_csa
          *		\f$ t_{ISA} \log\sigma \f$
          */
         value_type operator[](size_type i)const {
-            assert(m_csa != NULL);
+            assert(m_csa != nullptr);
             assert(i < size());
             size_type pos = (*m_csa)(i);
             return first_row_symbol(pos, *m_csa);

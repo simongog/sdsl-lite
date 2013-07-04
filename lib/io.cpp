@@ -96,7 +96,7 @@ uint64_t _parse_number(std::string::const_iterator& c, const std::string::const_
     std::string::const_iterator s = c;
     while (c != end and isdigit(*c)) ++c;
     if (c > s) {
-        return atoll(std::string(s,c).c_str());
+        return stoull(std::string(s,c));
     } else {
         return 0;
     }

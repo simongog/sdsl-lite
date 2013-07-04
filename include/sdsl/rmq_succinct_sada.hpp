@@ -76,13 +76,13 @@ class rmq_succinct_sada
         typedef typename bit_vector::size_type value_type;
 
         typedef t_bp_support bp_support_type;
-        typedef    t_rank_10 rank_support10_type;
+        typedef t_rank_10    rank_support10_type;
         typedef t_select_10  select_support10_type;
 
-        const bit_vector&            ect_bp;
-        const bp_support_type&       ect_bp_support;
-        const rank_support10_type&   ect_bp_rank10;
-        const select_support10_type& ect_bp_select10;
+        const bit_vector&            ect_bp          = m_ect_bp;
+        const bp_support_type&       ect_bp_support  = m_ect_bp_support;
+        const rank_support10_type&   ect_bp_rank10   = m_ect_bp_rank10;
+        const select_support10_type& ect_bp_select10 = m_ect_bp_select10;
 
     private:
 
@@ -97,6 +97,10 @@ class rmq_succinct_sada
                 : l(fl), r(fr), m(fm), visit(fvisit) {}
         };
 
+        //! Constructor
+        /*! \tparam t_rac A random access container.
+         *  \param  v     Ponter to container object.
+         */
         template<class t_rac>
         void construct_bp_of_extended_cartesian_tree(const t_rac* v, const rmq_construct_helper_type& rmq_helper) {
             m_ect_bp.resize(4*v->size());
@@ -140,12 +144,12 @@ class rmq_succinct_sada
 
     public:
         //! Default Constructor
-        rmq_succinct_sada():ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {}
+        rmq_succinct_sada() {}
 
         //! Constructor
         template<class t_rac>
-        rmq_succinct_sada(const t_rac* v=NULL):ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {
-            if (v == NULL) {
+        rmq_succinct_sada(const t_rac* v=nullptr) {
+            if (v == nullptr) {
                 m_ect_bp = bit_vector(0); m_ect_bp_support = bp_support_type();
                 m_ect_bp_rank10 = rank_support10_type(); m_ect_bp_select10 = select_support10_type();
             } else {
@@ -159,7 +163,7 @@ class rmq_succinct_sada
         }
 
         //! Copy constructor
-        rmq_succinct_sada(const rmq_succinct_sada& rm):ect_bp(m_ect_bp), ect_bp_support(m_ect_bp_support), ect_bp_rank10(m_ect_bp_rank10), ect_bp_select10(m_ect_bp_select10) {
+        rmq_succinct_sada(const rmq_succinct_sada& rm) {
             if (this != &rm) { // if v is not the same object
                 copy(rm);
             }
@@ -209,7 +213,7 @@ class rmq_succinct_sada
             return m_ect_bp.size()/4;
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_ect_bp.serialize(out, child, "ect_bp");

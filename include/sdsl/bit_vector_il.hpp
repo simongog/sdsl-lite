@@ -37,6 +37,13 @@ class rank_support_il;  // in bit_vector_il
 template<uint8_t t_b=1,uint32_t t_bs=512>// forward declaration needed for friend declaration
 class select_support_il;  // in bit_vector_il
 
+template<class T>
+constexpr bool power_of_two(T x)
+{
+    return std::is_integral<T>::value and x > 1 and
+           !(x&(x-1));
+}
+
 //! A bit vector which interleaves the original bit_vector with rank information.
 /*!
  * This class is a uncompressed bit vector representation. It copies the original
@@ -49,6 +56,9 @@ class select_support_il;  // in bit_vector_il
 template<uint32_t t_bs=512>
 class bit_vector_il
 {
+    private:
+        static_assert(t_bs >= 64 , "bit_vector_il: blocksize must be be at least 64 bits.");
+        static_assert(power_of_two(t_bs), "bit_vector_il: blocksize must be a power of two.");
     public:
         typedef bit_vector::size_type   size_type;
         typedef size_type               value_type;
@@ -63,10 +73,10 @@ class bit_vector_il
         typedef select_support_il<1,t_bs> select_1_type;
         typedef select_support_il<0,t_bs> select_0_type;
     private:
-        size_type m_size;             //!< Size of the original bitvector
-        size_type m_block_num;        //!< Total size of m_data in uint64_t ss
-        size_type m_superblocks;      //!< Number of superblocks
-        size_type m_block_shift;
+        size_type m_size        = 0;  //!< Size of the original bitvector
+        size_type m_block_num   = 0;  //!< Total size of m_data in uint64_t ss
+        size_type m_superblocks = 0;  //!< Number of superblocks
+        size_type m_block_shift = 0;
         int_vector<64> m_data;        //!< Data container
         int_vector<64> m_rank_samples;//!< Space for additional rank samples
 
@@ -90,17 +100,17 @@ class bit_vector_il
         }
 
     public:
-        bit_vector_il():m_size(0), m_block_num(0), m_superblocks(0), m_block_shift(0) {}
-        bit_vector_il(const bit_vector_il& bv):m_size(0), m_block_num(0), m_superblocks(0), m_block_shift(0) {
+        bit_vector_il() {}
+        bit_vector_il(const bit_vector_il& bv) {
             m_size = bv.m_size;
             m_block_num = bv.m_block_num;
             m_superblocks = bv.m_superblocks;
             m_block_shift = bv.m_block_shift;
-            util::assign(m_data, bv.m_data);
-            util::assign(m_rank_samples, bv.m_rank_samples);
+            m_data = bv.m_data;
+            m_rank_samples = bv.m_rank_samples;
         }
 
-        bit_vector_il(const bit_vector& bv):m_size(0), m_block_num(0), m_superblocks(0), m_block_shift(0) {
+        bit_vector_il(const bit_vector& bv) {
             m_size = bv.size();
             /* calculate the number of superblocks */
 //          each block of size > 0 gets suberblock in which we store the cumulative sum up to this block
@@ -111,7 +121,7 @@ class bit_vector_il
             size_type mem =  blocks +         m_superblocks + 1;
 //                          ^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^   ^
 //                          bit vector data | cum. sum data | sum after last block
-            util::assign(m_data, int_vector<64>(mem));
+            m_data = int_vector<64>(mem);
             m_block_num = mem;
 
             /* assign data and calculate super block values */
@@ -160,7 +170,7 @@ class bit_vector_il
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
@@ -198,6 +208,8 @@ class bit_vector_il
 template<uint8_t t_b, uint32_t t_bs>
 class rank_support_il
 {
+    private:
+        static_assert(t_b == 1 or t_b == 0 , "rank_support_il only supports bitpatterns 0 or 1.");
     public:
         typedef bit_vector::size_type size_type;
         typedef bit_vector_il<t_bs>   bit_vector_type;
@@ -240,7 +252,7 @@ class rank_support_il
 
     public:
 
-        rank_support_il(const bit_vector_type* v=NULL) {
+        rank_support_il(const bit_vector_type* v=nullptr) {
             set_vector(v);
             m_block_shift = bits::hi(t_bs);
             m_block_mask = t_bs - 1;
@@ -261,7 +273,7 @@ class rank_support_il
             return m_v->size();
         }
 
-        void set_vector(const bit_vector_type* v=NULL) {
+        void set_vector(const bit_vector_type* v=nullptr) {
             m_v = v;
         }
 
@@ -274,11 +286,11 @@ class rank_support_il
 
         void swap(rank_support_il&) { }
 
-        void load(std::istream&, const bit_vector_type* v=NULL) {
+        void load(std::istream&, const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             return serialize_empty_object(out, v, name, this);
         }
 };
@@ -287,6 +299,8 @@ class rank_support_il
 template<uint8_t t_b, uint32_t t_bs>
 class select_support_il
 {
+    private:
+        static_assert(t_b == 1 or t_b == 0 , "select_support_il only supports bitpatterns 0 or 1.");
     public:
         typedef bit_vector::size_type size_type;
         typedef bit_vector_il<t_bs>   bit_vector_type;
@@ -397,7 +411,7 @@ class select_support_il
 
     public:
 
-        select_support_il(const bit_vector_type* v=NULL) {
+        select_support_il(const bit_vector_type* v=nullptr) {
             set_vector(v);
             m_block_shift = bits::hi(t_bs);
             m_block_size_U64 = bits::hi(t_bs>>6);
@@ -418,7 +432,7 @@ class select_support_il
             return m_v->size();
         }
 
-        void set_vector(const bit_vector_type* v=NULL) {
+        void set_vector(const bit_vector_type* v=nullptr) {
             m_v = v;
         }
 
@@ -431,11 +445,11 @@ class select_support_il
 
         void swap(select_support_il&) { }
 
-        void load(std::istream&, const bit_vector_type* v=NULL) {
+        void load(std::istream&, const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             return serialize_empty_object(out, v, name, this);
         }
 };

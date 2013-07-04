@@ -123,15 +123,16 @@ class bp_support_g
         }
 
     public:
-        const rank_type&   bp_rank;
-        const select_type& bp_select;
+        const rank_type&   bp_rank   = m_rank_bp;
+        const select_type& bp_select = m_select_bp;
 
         //! Constructor
-        explicit bp_support_g(const bit_vector* bp = NULL, uint32_t used_block_size = 840):m_bp(bp), m_block_size(used_block_size), m_size(bp==NULL?0:bp->size()), m_blocks((m_size+used_block_size-1)/used_block_size),bp_rank(m_rank_bp), bp_select(m_select_bp) {
+        explicit
+        bp_support_g(const bit_vector* bp = nullptr, uint32_t used_block_size = 840) : m_bp(bp), m_block_size(used_block_size), m_size(bp==nullptr?0:bp->size()), m_blocks((m_size+used_block_size-1)/used_block_size) {
             if (m_block_size<=2) {
                 throw std::logic_error(util::demangle(typeid(this).name())+": block_size should be greater than 2!");
             }
-            if (bp == NULL)
+            if (bp == nullptr)
                 return;
             util::init_support(m_rank_bp, bp);
             util::init_support(m_select_bp, bp);
@@ -155,7 +156,7 @@ class bp_support_g
         }
 
         //! Copy constructor
-        bp_support_g(const bp_support_g& bp_support): bp_rank(m_rank_bp), bp_select(m_select_bp) {
+        bp_support_g(const bp_support_g& bp_support) {
             copy(bp_support);
         }
 
@@ -573,7 +574,7 @@ class bp_support_g
          * \param out The outstream to which the data structure is written.
          * \return The number of bytes written to out.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_rank_bp.serialize(out, child, "bp_rank");

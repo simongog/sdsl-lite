@@ -1233,7 +1233,6 @@ const unsigned char near_bwd_excess_8bits_lookup[4352]= {
  */
 inline bit_vector::size_type near_bwd_excess(const bit_vector& bp, bit_vector::size_type i, bit_vector::difference_type rel, const bit_vector::size_type block_size)
 {
-    typedef bit_vector::size_type size_type;
     typedef bit_vector::difference_type difference_type;
     difference_type excess = rel;
     const difference_type begin = ((difference_type)(i)/block_size)*block_size;
@@ -1303,7 +1302,6 @@ inline bit_vector::size_type near_find_open_naive(const bit_vector& bp, bit_vect
 
 inline bit_vector::size_type near_find_open(const bit_vector& bp, bit_vector::size_type i, const bit_vector::size_type block_size)
 {
-    typedef bit_vector::size_type size_type;
     typedef bit_vector::difference_type difference_type;
     difference_type excess = -1;
     const difference_type begin = ((difference_type)(i-1)/block_size)*block_size;
@@ -1343,7 +1341,6 @@ inline bit_vector::size_type near_find_open(const bit_vector& bp, bit_vector::si
 
 inline bit_vector::size_type near_find_opening(const bit_vector& bp, bit_vector::size_type i, const bit_vector::size_type openings,const bit_vector::size_type block_size)
 {
-    typedef bit_vector::size_type size_type;
     typedef bit_vector::difference_type difference_type;
     difference_type excess = 0;
     difference_type succ_excess = openings;

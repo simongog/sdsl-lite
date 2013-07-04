@@ -83,7 +83,7 @@ class louds_tree
                 pos += it.size()+1-size;
             }
             tmp_bv.resize(pos);
-            util::assign(m_bv, tmp_bv);
+            m_bv = bit_vector_type(std::move(tmp_bv));
             util::init_support(m_bv_select1, &m_bv);
             util::init_support(m_bv_select0, &m_bv);
         }
@@ -153,7 +153,7 @@ class louds_tree
             util::swap_support(m_bv_select0, tree.m_select0, &m_bv, &(tree.m_bv));
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             m_bv.serialize(out, child, "bitvector");

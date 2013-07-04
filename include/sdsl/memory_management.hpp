@@ -50,7 +50,7 @@ class mm_item : public mm_item_base
          */
         bool map_hp(uint64_t*& addr) {
             uint64_t len = size();
-            if (m_v->m_data != NULL) {
+            if (m_v->m_data != nullptr) {
                 memcpy((char*)addr, m_v->m_data, len); // copy old data
                 free(m_v->m_data);
                 m_v->m_data = addr;
@@ -110,7 +110,7 @@ class mm
         mm();
 
         template<class int_vec_t>
-        static void add(int_vec_t* v) {
+        static void add(int_vec_t* v, bool moved=false) {
             if (mm::m_items.find((uint64_t)v) == mm::m_items.end()) {
                 mm_item_base* item = new mm_item<int_vec_t>(v);
                 if (false and util::verbose) {
@@ -118,7 +118,7 @@ class mm
                     std::cout.flush();
                 }
                 mm::m_items[(uint64_t)v] = item;
-                if (item->size()) {
+                if (!moved and item->size()) {
                     log("");
                     m_total_memory += item->size(); // add space
                     log("");
@@ -134,15 +134,15 @@ class mm
             uint64_t old_size = ((v.m_size+63)>>6)<<3;
             v.m_size = size;                         // set new size
             // special case: bitvector of size 0
-            if (do_realloc or v.m_data==NULL) { // or (t_width==1 and m_size==0) ) {
-                uint64_t* data = NULL;
+            if (do_realloc or v.m_data==nullptr) { // or (t_width==1 and m_size==0) ) {
+                uint64_t* data = nullptr;
                 // Note that we allocate 8 additional bytes if m_size % 64 == 0.
                 // We need this padding since rank data structures do a memory
                 // access to this padding to answer rank(size()) if size()%64 ==0.
                 // Note that this padding is not counted in the serialize method!
-                data = (uint64_t*)::realloc(v.m_data, (((v.m_size+64)>>6)<<3)); // if m_data == NULL realloc
-                // Method realloc is equivalent to malloc if m_data == NULL.
-                // If size is zero and ptr is not NULL, a new, minimum sized object is allocated and the original object is freed.
+                data = (uint64_t*)::realloc(v.m_data, (((v.m_size+64)>>6)<<3)); // if m_data == nullptr realloc
+                // Method realloc is equivalent to malloc if m_data == nullptr.
+                // If size is zero and ptr is not nullptr, a new, minimum sized object is allocated and the original object is freed.
                 // The allocated memory is aligned such that it can be used for any data type, including AltiVec- and SSE-related types.
                 v.m_data = data;
                 // initialize unreachable bits to 0
@@ -187,7 +187,7 @@ class mm
         static void log_granularity(uint64_t granularity);
 
         static void log(const std::string& msg) {
-            if (m_out != NULL) {
+            if (m_out != nullptr) {
                 m_sw.stop();
                 uint64_t log_time = m_sw.abs_real_time();
                 if (log_time >= m_pre_rtime + m_granularity

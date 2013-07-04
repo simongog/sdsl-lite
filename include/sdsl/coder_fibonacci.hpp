@@ -113,10 +113,10 @@ class fibonacci
            \param it Iterator
          */
         template<bool sumup, bool increment, class Iterator>
-        static uint64_t decode(const uint64_t* data, const size_type start_idx, size_type n, Iterator it=(Iterator)NULL);
+        static uint64_t decode(const uint64_t* data, const size_type start_idx, size_type n, Iterator it=(Iterator)nullptr);
 
         template<bool sumup, bool increment, class Iterator>
-        static uint64_t decode1(const uint64_t* data, const size_type start_idx, size_type n, Iterator it=(Iterator)NULL);
+        static uint64_t decode1(const uint64_t* data, const size_type start_idx, size_type n, Iterator it=(Iterator)nullptr);
 
 
 

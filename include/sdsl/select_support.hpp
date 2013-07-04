@@ -45,7 +45,7 @@ class select_support
         //! Constructor of select_support.
         /*! \param v The bit_vector to support rank queries.
          */
-        select_support(const int_vector<1>* f_v=NULL):v(f_v) {
+        select_support(const int_vector<1>* f_v=nullptr):v(f_v) {
             m_v = f_v;
         }
         //! Copy constructor
@@ -74,10 +74,10 @@ class select_support
         	\param v The bit_vector to be supported.
         	\sa init, select.
          */
-        virtual void load(std::istream& in, const int_vector<1>* v=NULL) = 0;
+        virtual void load(std::istream& in, const int_vector<1>* v=nullptr) = 0;
 
         //! This method sets the supported bit_vector
-        virtual void set_vector(const int_vector<1>* v=NULL) = 0;
+        virtual void set_vector(const int_vector<1>* v=nullptr) = 0;
 };
 
 
