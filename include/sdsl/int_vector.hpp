@@ -548,7 +548,9 @@ class int_vector
         }
 
         //! Flip all bits of bit_vector
-        void flip() = delete; // Only for bit_vector implemented
+        void flip() {
+            static_assert(1 == t_width, "int_vector: flip() is available only for bit_vector.");
+        }
 };
 
 template<>
