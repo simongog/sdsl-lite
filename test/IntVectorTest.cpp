@@ -225,7 +225,7 @@ TEST_F(IntVectorTest, SerializeAndLoad)
     sdsl::int_vector<> iv(1000000);
     for (size_type i=0; i<iv.size(); ++i)
         iv[i] = rng();
-    std::string file_name = "/tmp/int_vector";
+    std::string file_name = "tmp/int_vector";
     sdsl::store_to_file(iv, file_name);
     sdsl::int_vector<> iv2;
     sdsl::load_from_file(iv2, file_name);

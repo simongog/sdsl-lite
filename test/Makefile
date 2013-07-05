@@ -45,6 +45,7 @@ LCP_CONSTRUCT_TESTS:=$(patsubst %,lcp-construct-test/%,$(LCP_CONSTRUCT_PATHS))
 
 test: bits-test \
       int-vector-test \
+      int-vector-buffer-test \
 	  bit-vector-test \
 	  rank-support-test\
 	  select-support-test\
@@ -64,6 +65,9 @@ bits-test: ./BitsTest.x
 
 int-vector-test: ./IntVectorTest.x
 	./IntVectorTest.x
+
+int-vector-buffer-test: ./IntVectorBufferTest.x
+	./IntVectorBufferTest.x
 
 bit-vector-test: generators $(BIT_VECTOR_TESTS)
 
