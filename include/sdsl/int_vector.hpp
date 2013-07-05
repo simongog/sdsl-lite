@@ -554,12 +554,10 @@ class int_vector
 template<>
 void bit_vector::flip()
 {
-    if (empty()) {
-        return;
-    }
-    m_data[0] = ~m_data[0];
-    for (uint64_t i=1; i<(capacity()>>6); ++i) {
-        m_data[i] = ~m_data[i];
+    if (!empty()) {
+        for (uint64_t i=0; i<(capacity()>>6); ++i) {
+            m_data[i] = ~m_data[i];
+        }
     }
 }
 
