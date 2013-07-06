@@ -50,7 +50,7 @@ namespace sdsl
 struct bits {
     bits() = delete;
     //! 64bit mask with all bits set to 1.
-    static const int64_t  all_set = -1LL;
+    constexpr static int64_t  all_set {-1LL};
 
     //! This constant represents a de Bruijn sequence B(k,n) for k=2 and n=6.
     /*! Details for de Bruijn sequences see
@@ -58,7 +58,7 @@ struct bits {
        deBruijn64 is used in combination with the
        array lt_deBruijn_to_idx.
     */
-    static const uint64_t deBruijn64 = 0x0218A392CD3D5DBFULL;
+    constexpr static uint64_t deBruijn64 {0x0218A392CD3D5DBFULL};
 
     //! This table maps a 6-bit subsequence S[idx...idx+5] of constant deBruijn64 to idx.
     /*! \sa deBruijn64
