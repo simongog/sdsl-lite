@@ -350,7 +350,7 @@ class int_vector
         int_vector(std::initializer_list<t_T> il) : int_vector() {
             resize(il.size());
             size_type idx = 0;
-            for (auto x : il) {
+for (auto x : il) {
                 (*this)[idx++] = x;
             }
         }
@@ -554,14 +554,7 @@ class int_vector
 };
 
 template<>
-void bit_vector::flip()
-{
-    if (!empty()) {
-        for (uint64_t i=0; i<(capacity()>>6); ++i) {
-            m_data[i] = ~m_data[i];
-        }
-    }
-}
+void bit_vector::flip();
 
 //! A proxy class that acts as a reference to an integer of length \p len bits in a int_vector.
 /*! \tparam t_int_vector The specific int_vector class.
