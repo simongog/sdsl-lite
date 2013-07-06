@@ -71,9 +71,7 @@ class lcp_byte
              }; // as the lcp_byte is not fast for texts with long repetition
 
         template<class Cst>
-        struct type {
-            typedef lcp_byte lcp_type;
-        };
+        using type = lcp_byte;
 
     private:
 

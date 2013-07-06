@@ -80,9 +80,7 @@ class lcp_dac
              }; // as the lcp_dac is not fast for texts with long repetition
 
         template<class Cst>
-        struct type {
-            typedef lcp_dac lcp_type;
-        };
+        using type = lcp_dac;
 
     private:
 

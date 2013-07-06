@@ -187,13 +187,9 @@ start:
 
 //! Helper class which provides _lcp_support_tree2 the context of a CST.
 template<uint32_t t_dens=16>
-class lcp_support_tree2
-{
-    public:
-        template<class t_cst>
-        struct type {
-            typedef _lcp_support_tree2<t_dens, t_cst> lcp_type;
-        };
+struct lcp_support_tree2 {
+    template<class t_cst>
+    using type = _lcp_support_tree2<t_dens, t_cst>;
 };
 
 

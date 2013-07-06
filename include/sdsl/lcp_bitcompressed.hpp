@@ -52,9 +52,7 @@ class lcp_bitcompressed
              };
 
         template<class Cst>
-        struct type {
-            typedef lcp_bitcompressed lcp_type;
-        };
+        using type = lcp_bitcompressed;
 
     private:
 
