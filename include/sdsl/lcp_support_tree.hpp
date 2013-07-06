@@ -163,9 +163,7 @@ class _lcp_support_tree
 template<class t_lcp = lcp_wt<> >
 struct lcp_support_tree {
     template<class t_cst>
-    struct type {
-        typedef _lcp_support_tree<t_lcp, t_cst> lcp_type;
-    };
+    using type = _lcp_support_tree<t_lcp, t_cst>;
 };
 
 } // end namespace
