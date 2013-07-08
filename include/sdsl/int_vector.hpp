@@ -123,12 +123,12 @@ struct int_vector_trait {
     typedef int_vector_const_iterator<int_vector_type>  const_iterator;
     // Sets int_width to new_int_width
     static void width(int_width_type& int_width, const uint8_t new_int_width) {
-        if (t_width==1)
-            return;
-        if (new_int_width>0 and new_int_width<=64)
-            int_width = new_int_width;
-        else
-            int_width = 64;
+        if (t_width==0) {
+            if (new_int_width>0 and new_int_width<=64)
+                int_width = new_int_width;
+            else
+                int_width = 64;
+        }
     }
 
     // read the size and int_width of a bit_vector
@@ -554,14 +554,7 @@ class int_vector
 };
 
 template<>
-void bit_vector::flip()
-{
-    if (!empty()) {
-        for (uint64_t i=0; i<(capacity()>>6); ++i) {
-            m_data[i] = ~m_data[i];
-        }
-    }
-}
+void bit_vector::flip();
 
 //! A proxy class that acts as a reference to an integer of length \p len bits in a int_vector.
 /*! \tparam t_int_vector The specific int_vector class.

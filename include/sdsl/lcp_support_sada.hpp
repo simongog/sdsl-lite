@@ -217,11 +217,10 @@ template<class t_bitvec = bit_vector,
          class t_select = typename t_bitvec::select_1_type>
 struct lcp_support_sada
 {
-    template<class Cst>
-    struct type {
-        typedef _lcp_support_sada<typename Cst::csa_type,
-                t_bitvec, t_select>      lcp_type;
-    };
+    template<class t_cst>
+    using type = _lcp_support_sada<typename t_cst::csa_type,
+          t_bitvec,
+          t_select>;
 };
 
 } // end namespace sdsl
