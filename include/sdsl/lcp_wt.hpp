@@ -75,9 +75,7 @@ class lcp_wt
              }; // as the lcp_wt is not fast for texts with long repetition
 
         template<class Cst>
-        struct type {
-            typedef lcp_wt lcp_type;
-        };
+        using type = lcp_wt;
 
     private:
 

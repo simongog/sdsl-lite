@@ -61,9 +61,7 @@ class lcp_vlc
              };
 
         template<class Cst>
-        struct type {
-            typedef lcp_vlc lcp_type;
-        };
+        using type = lcp_vlc;
 
     private:
 

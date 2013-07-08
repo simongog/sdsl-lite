@@ -45,7 +45,7 @@ class IntVectorTest : public ::testing::Test
 };
 
 template<class t_iv>
-void test_Constructors(bool special, uint8_t template_width, size_type constructor_size, uint8_t constructor_width)
+void test_Constructors(uint8_t template_width, size_type constructor_size, uint8_t constructor_width)
 {
     std::mt19937_64 rng;
     {
@@ -79,10 +79,10 @@ void test_Constructors(bool special, uint8_t template_width, size_type construct
         size_type expected_val = rng();
         t_iv iv(constructor_size, expected_val, constructor_width);
         ASSERT_EQ(constructor_size, iv.size());
-        if (special) {
-            ASSERT_EQ(template_width, iv.width());
-        } else {
+        if (iv.fixed_int_width == 0) {
             ASSERT_EQ(constructor_width, iv.width());
+        } else {
+            ASSERT_EQ(template_width, iv.width());
         }
         expected_val &= sdsl::bits::lo_set[iv.width()];
         for (size_type j=0; j < iv.size(); ++j) { // should be initialized with expected_val
@@ -98,15 +98,15 @@ TEST_F(IntVectorTest, Constructors)
         if (size<1000) {                                // Test only for short sizes,
             for (uint8_t width=1; width<=64; ++width) { // but for all possible widths
                 // unspecialized
-                test_Constructors<sdsl::int_vector<>   >(false, 64, size, width);
-                test_Constructors<sdsl::int_vector<3>  >(false,  3, size, width);
-                test_Constructors<sdsl::int_vector<31> >(false, 31, size, width);
+                test_Constructors<sdsl::int_vector<>   >(64, size, width);
+                test_Constructors<sdsl::int_vector<3>  >(3, size, width);
+                test_Constructors<sdsl::int_vector<31> >(31, size, width);
                 // specialized
-                test_Constructors<sdsl::bit_vector     >(true,  1, size, width);
-                test_Constructors<sdsl::int_vector<8>  >(true,  8, size, width);
-                test_Constructors<sdsl::int_vector<16> >(true, 16, size, width);
-                test_Constructors<sdsl::int_vector<32> >(true, 32, size, width);
-                test_Constructors<sdsl::int_vector<64> >(true, 64, size, width);
+                test_Constructors<sdsl::bit_vector     >(1, size, width);
+                test_Constructors<sdsl::int_vector<8>  >(8, size, width);
+                test_Constructors<sdsl::int_vector<16> >(16, size, width);
+                test_Constructors<sdsl::int_vector<32> >(32, size, width);
+                test_Constructors<sdsl::int_vector<64> >(64, size, width);
             }
         }
     }
