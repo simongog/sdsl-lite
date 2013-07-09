@@ -104,7 +104,7 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
                     uint8_t* begin = buf;
                     uint8_t* end   = begin+read;
                     while (begin < end) {
-                        x |= (*begin) << (cur_byte*8);
+                        x |= ((uint64_t)(*begin)) << (cur_byte*8);
                         ++cur_byte;
                         if (cur_byte == num_bytes) {
                             v[idx++] = x;
@@ -336,7 +336,7 @@ void csXprintf(std::ostream& out, const std::string& format, const t_idx& idx, c
     const typename t_idx::csa_type& csa = _idx_csa(idx, cat);
     vector<std::string> res(csa.size());
     for (std::string::const_iterator c = format.begin(), s=c; c != format.end(); s=c) {
-        while (c != format.end() and *c != '%') ++c;   // string before the next `%`
+        while (c != format.end() and* c != '%') ++c;   // string before the next `%`
         if (c > s) {  // copy format string part
             vector<std::string> to_copy(csa.size(), std::string(s, c));
             transform(res.begin(), res.end(), to_copy.begin(), res.begin(), std::plus<std::string>());
@@ -365,7 +365,7 @@ void csXprintf(std::ostream& out, const std::string& format, const t_idx& idx, c
                         res[i] += util::to_string(csa.bwt[i],w);
                     }
                     break;
-                case 'T': for (uint64_t k=0; (w>0 and k < w) or (0==w and k < csa.size()); ++k) {
+                case 'T': for (uint64_t k=0; (w>0 and k < w) or(0==w and k < csa.size()); ++k) {
                         if (0 == csa.text[(csa[i]+k)%csa.size()]) {
                             res[i] += util::to_string(sentinel, W);
                         } else {
