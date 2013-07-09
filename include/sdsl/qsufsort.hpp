@@ -88,7 +88,7 @@ class sorter
                  m_VV;    // inverse array, ultimately inverse of SA.
         uint64_t m_rr,    // number of symbols aggregated by transform.
                  m_hh;    // length of already-sorted prefixes.
-        uint8_t  m_msb;   // most significant bit position in starting from 0
+        uint8_t  m_msb;   // most significant bit position starting from 0
         uint64_t m_msb_mask;// mask for 1ULL<<msb
 
         inline int64_t to_sign(uint64_t x)const {
@@ -165,7 +165,7 @@ class sorter
         }
 
         /* Subroutine for sort_split, algorithm by Bentley & McIlroy.*/
-        int choose_pivot(const int_iter& p, int64_t n) {
+        uint64_t choose_pivot(const int_iter& p, int64_t n) {
             int_iter pl, pm, pn;
             int64_t s;
 
@@ -190,9 +190,6 @@ class sorter
            Software -- Practice and Experience 23(11), 1249-1265 (November 1993). This
            function is based on Program 7.*/
         void sort_split(const int_iter& p, int64_t n) {
-            if (n == 542871) {
-
-            }
             int_iter pa, pb, pc, pd, pl, pm, pn;
             uint64_t f, v;
             int64_t  s, t;
@@ -449,6 +446,7 @@ class sorter
                 for (size_type i=0; i<temp.size(); ++i) x[i] = temp[i];
             } else {
                 load_vector_from_file(x, file_name, num_bytes);
+                util::bit_compress(x);
             }
             assert(x.size()>0);
             DBG_OUT<<"x.width()="<< (int)x.width() <<std::endl;
