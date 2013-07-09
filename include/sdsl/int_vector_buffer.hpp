@@ -14,11 +14,12 @@ using namespace sdsl;
 
 namespace sdsl
 {
+
 template<uint8_t t_width=0>
 class int_vector_buffer
 {
-// TODO: static assert for t_width <= 64
     private:
+        static_assert(t_width <= 64 , "int_vector_buffer: width must be at most 64bits.");
         std::fstream               m_file;
         string                     m_filename;
         int_vector<t_width>        m_buffer;
@@ -73,24 +74,11 @@ class int_vector_buffer
         }
 
         int_vector_buffer(const std::string _filename, const bool _open_existing_file, const uint64_t _buffersize=1024*1024, const uint8_t _width=t_width, const bool _persistent=true) {
-            init(_filename, _open_existing_file, _buffersize, _width, _persistent);
-        }
-
-        ~int_vector_buffer() {
-            if (!m_closed) {
-                close();
-            }
-            if (!m_persistent) {
-                sdsl::remove(m_filename);
-            }
-        }
-
-        void init(const std::string _filename, const bool _open_existing_file, const uint64_t _buffersize=1024*1024, const uint8_t _width=t_width, const bool _persistent=true) {
             m_persistent = _persistent;
             m_filename = _filename;
-            if (0 == t_width) {
-                m_buffer.width(_width);
-            }
+//             if (0 == t_width) {
+            m_buffer.width(_width);
+//             }
             if (!_open_existing_file) {
                 // Create file, if it already exist it will be cleared
                 m_file.open(_filename.c_str(), std::ios::out|std::ios::binary);
@@ -107,9 +95,9 @@ class int_vector_buffer
                 uint8_t  width = 0;
                 int_vector_trait<t_width>::read_header(size, width, m_file);
                 assert(m_file.good());
-                if (0 == t_width) {
-                    m_buffer.width(width);
-                }
+//                 if (0 == t_width) {
+                m_buffer.width(width);
+//                 }
                 m_max_elements = size/this->width();
             }
             if (0==(_buffersize*8)%width()) {
@@ -122,6 +110,49 @@ class int_vector_buffer
             if (0!=m_buffersize) read_block(0);
             m_need_to_write = false;
             m_closed = false;
+        }
+
+        //! Move constructor.
+        int_vector_buffer(int_vector_buffer&& ivb) :
+            m_filename((string&&)ivb.m_filename),
+            m_buffer((int_vector<t_width>&&)ivb.m_buffer),
+            m_need_to_write(ivb.m_need_to_write),
+            m_buffersize(ivb.m_buffersize),
+            m_max_elements(ivb.m_max_elements),
+            m_begin(ivb.m_begin),
+            m_persistent(ivb.m_persistent),
+            m_closed(ivb.m_closed) {
+            ivb.m_file.close();
+            m_file.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+            assert(m_file.good());
+            ivb.m_persistent = true;
+            ivb.m_closed = true;
+        }
+
+        ~int_vector_buffer() {
+            if (!m_closed) {
+                close();
+            }
+            if (!m_persistent) {
+                sdsl::remove(m_filename);
+            }
+        }
+
+        //! Move assignment operator.
+        int_vector_buffer<t_width>& operator=(int_vector_buffer&& ivb) {
+            close();
+            ivb.m_file.close();
+            std::swap(m_filename, ivb.m_filename);
+            m_file.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+            assert(m_file.good());
+            std::swap(m_closed, ivb.m_closed);
+            std::swap(m_buffer, ivb.m_buffer);
+            std::swap(m_need_to_write, ivb.m_need_to_write);
+            std::swap(m_buffersize, ivb.m_buffersize);
+            std::swap(m_max_elements, ivb.m_max_elements);
+            std::swap(m_begin, ivb.m_begin);
+            std::swap(m_persistent, ivb.m_persistent);
+            return *this;
         }
 
         uint8_t width() const {
@@ -213,9 +244,8 @@ class int_vector_buffer
             if (!m_closed) {
                 write_block();
                 uint64_t size = m_max_elements*width();
-
-//                int_vector_trait<t_width>::write_header(size, width, m_file);
                 m_file.seekp(0, ios::beg);
+//                int_vector_trait<t_width>::write_header(size, width, m_file);
                 assert(m_file.good());
                 m_file.write((char*) &size, sizeof(size));
                 assert(m_file.good());
@@ -237,6 +267,7 @@ class int_vector_buffer
             }
         }
 
+        //old swap
         void swap(int_vector_buffer<t_width>& ivb) {
             if (this != &ivb) {
                 m_file.close();
@@ -255,6 +286,27 @@ class int_vector_buffer
                 std::swap(m_closed, ivb.m_closed);
             }
         }
+
+        //new swap ??????
+// 		void swap(int_vector_buffer<t_width>& ivb)
+// 		{
+// 			if (this != &ivb) { // if ivb and _this_ are not the same object
+//                 m_file.close();
+//                 ivb.m_file.close();
+// 				m_filename = ivb.m_filename;
+//                 m_file.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+//                 assert(m_file.good());
+//                 ivb.m_file.open(ivb.m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+//                 assert(ivb.m_file.good());
+//                 m_buffer = ivb.m_buffer;
+//                 m_need_to_write = ivb.m_need_to_write;
+//                 m_buffersize = ivb.m_buffersize;
+//                 m_max_elements = ivb.m_max_elements;
+//                 m_begin = ivb.m_begin;
+//                 m_persistent = ivb.m_persistent;
+//                 m_closed = ivb.m_closed;
+// 			}
+// 		}
 
 
         class int_vector_buffer_reference

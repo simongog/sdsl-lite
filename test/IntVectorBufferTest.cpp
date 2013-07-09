@@ -35,6 +35,7 @@ class IntVectorBufferTest : public ::testing::Test
         std::vector<size_type> vec_sizes = {0, 64, 65, 127, 128}; // different sizes for the vectors
 };
 
+
 template<class t_T>
 void test_default_constructor(size_type exp_w)
 {
@@ -425,6 +426,61 @@ TEST_F(IntVectorBufferTest, RandomAccess)
     test_random_access< sdsl::int_vector_buffer<64> >();
 }
 
+TEST_F(IntVectorBufferTest, MoveAssignment)
+{
+    {
+        // use array of int_vector_buffers
+        std::string file_name = "tmp/int_vector_buffer";
+        int_vector_buffer<>* v = new int_vector_buffer<>[3];
+        uint64_t value = 3;
+        for (uint64_t i=0; i<3; i++) {
+            v[i] = int_vector_buffer<>(file_name+util::to_string(i), false, 1000, i+1, false);
+            ASSERT_EQ((size_type)(i+1), (size_type)v[i].width());
+            v[i][5] = value;
+            ASSERT_EQ(value&sdsl::bits::lo_set[i+1], (size_type)v[i][5]);
+        }
+    }
+    {
+        // use vector of int_vector_buffers
+        std::string file_name = "tmp/int_vector_buffer";
+        vector<int_vector_buffer<>> v(3);
+        uint64_t value = 3;
+        for (uint64_t i=0; i<3; i++) {
+            v[i] = int_vector_buffer<>(file_name+util::to_string(i), false, 1000, i+1, false);
+            ASSERT_EQ((size_type)(i+1), (size_type)v[i].width());
+            v[i][5] = value;
+            ASSERT_EQ(value&sdsl::bits::lo_set[i+1], (size_type)v[i][5]);
+        }
+    }
+}
+
+TEST_F(IntVectorBufferTest, MoveConstructor)
+{
+    {
+        std::string file_name = "tmp/int_vector_buffer";
+        int_vector_buffer<> tmp(file_name, false, 1000, 13, false);
+        ASSERT_EQ((size_type)(13), (size_type)tmp.width());
+        int_vector_buffer<> ivb((int_vector_buffer<>&&)tmp);
+        ASSERT_EQ((size_type)(13), (size_type)ivb.width());
+    }
+    {
+        // use vector of int_vector_buffers with push_back
+        std::string file_name = "tmp/int_vector_buffer";
+        vector<int_vector_buffer<>> v;
+        uint64_t value = 3;
+        for (uint64_t i=0; i<3; i++) {
+            v.push_back(int_vector_buffer<>(file_name+util::to_string(i), false, 1000, i+1, false));
+            ASSERT_EQ((size_type)(i+1), (size_type)v[i].width());
+            v[i][5] = value;
+            ASSERT_EQ(value&sdsl::bits::lo_set[i+1], (size_type)v[i][5]);
+        }
+        for (uint64_t i=0; i<3; i++) {
+            ASSERT_EQ((size_type)(i+1), (size_type)v[i].width());
+            v[i][5] = value;
+            ASSERT_EQ(value&sdsl::bits::lo_set[i+1], (size_type)v[i][5]);
+        }
+    }
+}
 
 }  // namespace
 
