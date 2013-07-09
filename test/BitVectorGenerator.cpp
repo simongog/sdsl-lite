@@ -22,10 +22,10 @@ int main(int argc, char* argv[])
         bv[1] = bv[4] = bv[7] = bv[18] = bv[24] = bv[26] = bv[30] = bv[31] = 1;
     } else if ("CRAFTED-SPARSE-0" == ID or "CRAFTED-SPARSE-1" == ID) {
         bool default_value = ID[ID.length()-1]-'0';
+        bv = bit_vector(1000000, default_value);
         std::mt19937_64 rng;
         std::uniform_int_distribution<uint64_t> distribution(0, bv.size()-1);
         auto dice = bind(distribution, rng);
-        bv = bit_vector(1000000, default_value);
         // populate vectors with some other bits
         for (uint64_t i=0; i < bv.size()/1000; ++i) {
             uint64_t x = dice();
