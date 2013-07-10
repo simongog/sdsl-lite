@@ -123,7 +123,7 @@ struct int_vector_trait {
     typedef int_vector_const_iterator<int_vector_type>  const_iterator;
     // Sets int_width to new_int_width
     static void width(int_width_type& int_width, const uint8_t new_int_width) {
-        if (t_width==0) {
+        if (0 == t_width) {
             if (new_int_width>0 and new_int_width<=64)
                 int_width = new_int_width;
             else
@@ -131,13 +131,22 @@ struct int_vector_trait {
         }
     }
 
-    // read the size and int_width of a bit_vector
+    // read the size and int_width of a int_vector
     static void read_header(int_vector_size_type& size, int_width_type& int_width, std::istream& in) {
         read_member(size, in);
         if (0 == t_width) {
             read_member(int_width, in);
             width(int_width, int_width);
         }
+    }
+
+    // write the size and int_width of a int_vector
+    static uint64_t write_header(uint64_t size, uint8_t int_width, std::ostream& out) {
+        uint64_t written_bytes = write_member(size, out);
+        if (0 == t_width) {
+            written_bytes += write_member(int_width, out);
+        }
+        return written_bytes;
     }
 
     static iterator begin(int_vector_type* v, uint64_t*) {
@@ -167,9 +176,14 @@ struct int_vector_trait<64> {
 
     static void width(int_width_type&, const uint8_t) {}
 
-    // read the size and int_width of a bit_vector
+    // read the size of a int_vector<64>
     static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
         read_member(size, in);
+    }
+
+    // write the size of a int_vector<64>
+    static uint64_t write_header(uint64_t size, uint8_t, std::ostream& out) {
+        return write_member(size, out);
     }
 
     static iterator begin(int_vector_type*, uint64_t* begin) {
@@ -197,9 +211,14 @@ struct int_vector_trait<32> {
     typedef const uint32_t* const_iterator;
     static void width(int_width_type&, const uint8_t) {}
 
-    // read the size and int_width of a bit_vector
+    // read the size of a int_vector<32>
     static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
         read_member(size, in);
+    }
+
+    // write the size of a int_vector<32>
+    static uint64_t write_header(uint64_t size, uint8_t, std::ostream& out) {
+        return write_member(size, out);
     }
 
     static iterator begin(int_vector_type*, uint64_t* begin) {
@@ -227,9 +246,14 @@ struct int_vector_trait<16> {
     typedef const uint16_t* const_iterator;
     static void width(int_width_type&, const uint8_t) {}
 
-    // read the size and int_width of a bit_vector
+    // read the size of a int_vector<32>
     static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
         read_member(size, in);
+    }
+
+    // write the size of a int_vector<32>
+    static uint64_t write_header(uint64_t size, uint8_t, std::ostream& out) {
+        return write_member(size, out);
     }
 
     static iterator begin(int_vector_type*, uint64_t* begin) {
@@ -257,9 +281,14 @@ struct int_vector_trait<8> {
     typedef const uint8_t*  const_iterator;
     static void width(int_width_type&, const uint8_t) {}
 
-    // read the size and int_width of a bit_vector
+    // read the size of a int_vector<32>
     static void read_header(int_vector_size_type& size, int_width_type&, std::istream& in) {
         read_member(size, in);
+    }
+
+    // write the size of a int_vector<32>
+    static uint64_t write_header(uint64_t size, uint8_t, std::ostream& out) {
+        return write_member(size, out);
     }
 
     static iterator begin(int_vector_type*, uint64_t* begin) {
@@ -1400,19 +1429,6 @@ bool int_vector<t_width>::operator!=(const int_vector& v)const
     return !(*this==v);
 }
 
-template<class size_type_class>
-size_type_class _sdsl_serialize_size_and_int_width(std::ostream& out, uint8_t fixed_int_width, uint8_t int_width, size_type_class size)
-{
-    size_type_class written_bytes = 0;
-    out.write((char*) &size, sizeof(size));
-    written_bytes += sizeof(size);
-    if (fixed_int_width == 0) {
-        out.write((char*) &int_width, sizeof(int_width));
-        written_bytes += sizeof(int_width);
-    }
-    return written_bytes;
-}
-
 template<uint8_t t_width>
 typename int_vector<t_width>::size_type int_vector<t_width>::serialize(std::ostream& out,
         structure_tree_node* v,
@@ -1422,10 +1438,11 @@ typename int_vector<t_width>::size_type int_vector<t_width>::serialize(std::ostr
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
     if (t_width > 0 and write_fixed_as_variable) {
-        written_bytes += _sdsl_serialize_size_and_int_width(out, 0, t_width, m_size);
+        written_bytes += int_vector_trait<0>::write_header(m_size, t_width, out);
     } else {
-        written_bytes += _sdsl_serialize_size_and_int_width(out, t_width, m_width, m_size);
+        written_bytes += int_vector_trait<t_width>::write_header(m_size, m_width, out);
     }
+
     uint64_t* p = m_data;
     size_type idx = 0;
     while (idx+constants::SDSL_BLOCK_SIZE < (capacity()>>6)) {
