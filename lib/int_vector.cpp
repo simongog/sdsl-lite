@@ -6,8 +6,7 @@ namespace sdsl
 int_vector_size_type char_array_serialize_wrapper::serialize(std::ostream& out) const
 {
     size_type size = m_n*8; // number of bits
-    size_type written_bytes = 0;
-    written_bytes += _sdsl_serialize_size_and_int_width(out, 8, 8, size);
+    size_type written_bytes = int_vector_trait<8>::write_header(8, size, out);
     const char* p = (const char*)m_cp;
     size_type idx = 0;
     while (idx+constants::SDSL_BLOCK_SIZE < m_n) {
