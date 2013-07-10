@@ -459,18 +459,11 @@ class sorter
             int64_t max_symbol = 0, min_symbol = x.width() < 64 ? bits::lo_set[x.width()] : 0x7FFFFFFFFFFFFFFFLL;
 
             for (size_type i=0; i < x.size()-1; ++i) {
-//			if(i<10){
-//				cout<<"x["<<i<<"]="<<x[i]<<" min_symbol="<<min_symbol<<endl;
-//			}
                 max_symbol = std::max(max_symbol, (int64_t)x[i]);
                 min_symbol = std::min(min_symbol, (int64_t)x[i]);
-//			if( x[i]==0 ){
-//				cout<<"x["<<i<<"]="<<x[i]<<" min_symbol="<<min_symbol<<endl;
-//			}
             }
 
             if (0 == min_symbol) {
-//			cout<<"min_symbol="<<min_symbol<<endl;
                 throw std::logic_error("Text contains 0-symbol. Suffix array can not be constructed.");
             }
             if (x[x.size()-1] > 0) {
@@ -479,8 +472,6 @@ class sorter
             DBG_OUT<<"sorter: min_symbol="<<min_symbol<<std::endl;
             DBG_OUT<<"sorter: max_symbol="<<max_symbol<<std::endl;
 
-//		x.resize(x.size()+1);
-//		x[x.size()-1] = 0;
             int64_t n = x.size()-1;
             DBG_OUT<<"x.size()-1="<<x.size()-1<<" n="<<n<<std::endl;
             uint8_t width = std::max(bits::hi(max_symbol)+2, bits::hi(n+1)+2);
