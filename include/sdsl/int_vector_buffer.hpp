@@ -95,7 +95,7 @@ class int_vector_buffer
             if (_open_existing_file) {
                 uint64_t size  = 0;
                 uint8_t  width = 0;
-                int_vector_trait<t_width>::read_header(size, width, m_ifile);
+                int_vector<t_width>::read_header(size, width, m_ifile);
                 assert(m_ifile.good());
                 m_buffer.width(width);
                 m_max_elements = size/this->width();
@@ -274,7 +274,7 @@ class int_vector_buffer
                 write_block();
                 uint64_t size = m_max_elements*width();
                 m_ofile.seekp(0, ios::beg);
-                int_vector_trait<t_width>::write_header(size, width(), m_ofile);
+                int_vector<t_width>::write_header(size, width(), m_ofile);
                 assert(m_ofile.good());
                 uint64_t wb = (size+7)/8;
                 if (wb%8) {
