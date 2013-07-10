@@ -6,7 +6,7 @@ namespace sdsl
 int_vector_size_type char_array_serialize_wrapper::serialize(std::ostream& out) const
 {
     size_type size = m_n*8; // number of bits
-    size_type written_bytes = int_vector_trait<8>::write_header(8, size, out);
+    size_type written_bytes = int_vector<8>::write_header(8, size, out);
     const char* p = (const char*)m_cp;
     size_type idx = 0;
     while (idx+constants::SDSL_BLOCK_SIZE < m_n) {
@@ -24,6 +24,16 @@ int_vector_size_type char_array_serialize_wrapper::serialize(std::ostream& out) 
     return written_bytes;
 }
 
+
+template<>
+void int_vector<0>::width(const uint8_t new_int_width)
+{
+    if (0 < new_int_width and new_int_width <= 64)
+        m_width = new_int_width;
+    else
+        m_width = 64;
+}
+
 template<>
 void bit_vector::flip()
 {
@@ -32,6 +42,15 @@ void bit_vector::flip()
             m_data[i] = ~m_data[i];
         }
     }
+}
+
+template<>
+void int_vector_file_buffer<0>::set_width(uint8_t int_width)
+{
+    if (0 < int_width and int_width <= 64)
+        m_width = int_width;
+    else
+        m_width = 64;
 }
 
 }
