@@ -215,19 +215,36 @@ TEST_F(IntVectorTest, STL)
     }
 }
 
-TEST_F(IntVectorTest, SerializeAndLoad)
+template<class t_iv>
+void test_SerializeAndLoad(uint8_t width=1)
 {
     std::mt19937_64 rng;
-    sdsl::int_vector<> iv(1000000);
+    t_iv iv(1000000, 0, width);
     for (size_type i=0; i<iv.size(); ++i)
         iv[i] = rng();
     std::string file_name = "tmp/int_vector";
     sdsl::store_to_file(iv, file_name);
-    sdsl::int_vector<> iv2;
+    t_iv iv2;
     sdsl::load_from_file(iv2, file_name);
     ASSERT_EQ(iv.size(), iv2.size());
+    ASSERT_EQ(iv.width(), iv2.width());
     for (size_type i=0; i<iv.size(); ++i)
         ASSERT_EQ(iv[i], iv2[i]);
+    sdsl::remove(file_name);
+}
+
+TEST_F(IntVectorTest, SerializeAndLoad)
+{
+    // unspecialized vector for each possible width
+    for (uint8_t width=1; width <= 64; ++width) {
+        test_SerializeAndLoad< sdsl::int_vector<> >(width);
+    }
+    // specialized vectors
+    test_SerializeAndLoad<sdsl::bit_vector     >();
+    test_SerializeAndLoad<sdsl::int_vector< 8> >();
+    test_SerializeAndLoad<sdsl::int_vector<16> >();
+    test_SerializeAndLoad<sdsl::int_vector<32> >();
+    test_SerializeAndLoad<sdsl::int_vector<64> >();
 }
 
 }  // namespace
