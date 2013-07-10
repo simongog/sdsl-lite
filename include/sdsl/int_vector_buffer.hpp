@@ -18,7 +18,6 @@ namespace sdsl
 template<uint8_t t_width=0>
 class int_vector_buffer
 {
-// TODO: fstream -> ifstream und ofstream ersetzten???
 // TODO: iterator (Simon)
 // TODO: discuss mit Simon ++ on int_vector_buffer<1>
     private:
@@ -134,7 +133,14 @@ class int_vector_buffer
             m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
             assert(m_ifile.good());
             assert(m_ofile.good());
-            ivb.m_persistent = true;
+            // set ivb to default-constructor state
+            ivb.m_filename = "";
+            ivb.m_buffer = int_vector<t_width>();
+            ivb.m_need_to_write = false;
+            ivb.m_buffersize = 0;
+            ivb.m_max_elements = 0;
+            ivb.m_begin = 0;
+            ivb.m_persistent = false;
             ivb.m_closed = true;
         }
 
@@ -152,18 +158,28 @@ class int_vector_buffer
             close();
             ivb.m_ifile.close();
             ivb.m_ofile.close();
-            std::swap(m_filename, ivb.m_filename);
+            m_filename = ivb.m_filename;
             m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
             m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
             assert(m_ifile.good());
             assert(m_ofile.good());
-            std::swap(m_closed, ivb.m_closed);
-            std::swap(m_buffer, ivb.m_buffer);
-            std::swap(m_need_to_write, ivb.m_need_to_write);
-            std::swap(m_buffersize, ivb.m_buffersize);
-            std::swap(m_max_elements, ivb.m_max_elements);
-            std::swap(m_begin, ivb.m_begin);
-            std::swap(m_persistent, ivb.m_persistent);
+            // assign the values of ivb to this
+            m_buffer = (int_vector<t_width>&&)ivb.m_buffer;
+            m_need_to_write = ivb.m_need_to_write;
+            m_buffersize = ivb.m_buffersize;
+            m_max_elements = ivb.m_max_elements;
+            m_begin = ivb.m_begin;
+            m_persistent = ivb.m_persistent;
+            m_closed = ivb.m_closed;
+            // set ivb to default-constructor state
+            ivb.m_filename = "";
+            ivb.m_buffer = int_vector<t_width>();
+            ivb.m_need_to_write = false;
+            ivb.m_buffersize = 0;
+            ivb.m_max_elements = 0;
+            ivb.m_begin = 0;
+            ivb.m_persistent = false;
+            ivb.m_closed = true;
             return *this;
         }
 
@@ -411,38 +427,17 @@ class int_vector_buffer
         };
 };
 
-// maybe "delete" for the following:
 template<>
-int_vector_buffer<1>::int_vector_buffer_reference& int_vector_buffer<1>::int_vector_buffer_reference::operator++()
-{
-    uint64_t x = m_int_vector_buffer->read(m_idx);
-    m_int_vector_buffer->write(m_idx, (x+1)&1ULL);
-    return *this;
-}
+int_vector_buffer<1>::int_vector_buffer_reference& int_vector_buffer<1>::int_vector_buffer_reference::operator++() = delete;
 
 template<>
-uint64_t int_vector_buffer<1>::int_vector_buffer_reference::operator++(int)
-{
-    uint64_t val = (uint64_t)*this;
-    ++(*this);
-    return val;
-}
+uint64_t int_vector_buffer<1>::int_vector_buffer_reference::operator++(int) = delete;
 
 template<>
-int_vector_buffer<1>::int_vector_buffer_reference& int_vector_buffer<1>::int_vector_buffer_reference::operator-=(const uint64_t x)
-{
-    uint64_t w = m_int_vector_buffer->read(m_idx);
-    m_int_vector_buffer->write(m_idx, (w-x)&1ULL);
-    return *this;
-}
+int_vector_buffer<1>::int_vector_buffer_reference& int_vector_buffer<1>::int_vector_buffer_reference::operator-=(const uint64_t x) = delete;
 
 template<>
-int_vector_buffer<1>::int_vector_buffer_reference& int_vector_buffer<1>::int_vector_buffer_reference::operator+=(const uint64_t x)
-{
-    uint64_t w = m_int_vector_buffer->read(m_idx);
-    m_int_vector_buffer->write(m_idx, (w+x)&1ULL);
-    return *this;
-}
+int_vector_buffer<1>::int_vector_buffer_reference& int_vector_buffer<1>::int_vector_buffer_reference::operator+=(const uint64_t x) = delete;
 
 } // end of namespace
 

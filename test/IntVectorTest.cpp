@@ -141,27 +141,23 @@ void test_AssignAndModifyElement(uint64_t size, uint8_t width)
 
         iv[i] = exp_v;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
-        exp_v += tmp;
         iv[i] += tmp;
+        exp_v += tmp;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
-        exp_v -= tmp;
         iv[i] -= tmp;
+        exp_v -= tmp;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
-        tmp = exp_v++;
-        ASSERT_EQ(tmp   & sdsl::bits::lo_set[width], iv[i]);
-        iv[i]++;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]++);
+        exp_v++;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
-        tmp = exp_v--;
-        ASSERT_EQ(tmp   & sdsl::bits::lo_set[width], iv[i]);
-        iv[i]--;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]--);
+        exp_v--;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
-        tmp = ++exp_v;
-        ++iv[i];
-        ASSERT_EQ(tmp   & sdsl::bits::lo_set[width], iv[i]);
+        ++exp_v;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], ++iv[i]);
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
-        tmp = --exp_v;
-        --iv[i];
-        ASSERT_EQ(tmp   & sdsl::bits::lo_set[width], iv[i]);
+        --exp_v;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], --iv[i]);
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
     }
 }
