@@ -19,11 +19,10 @@ template<uint8_t t_width=0>
 class int_vector_buffer
 {
 // TODO: iterator (Simon)
-// TODO: discuss mit Simon ++ on int_vector_buffer<1>
     private:
         static_assert(t_width <= 64 , "int_vector_buffer: width must be at most 64bits.");
-        sdsl::isfstream              m_ifile;
-        sdsl::osfstream              m_ofile;
+        sdsl::isfstream            m_ifile;
+        sdsl::osfstream            m_ofile;
         string                     m_filename;
         int_vector<t_width>        m_buffer;
         bool                       m_need_to_write = false;
@@ -80,9 +79,7 @@ class int_vector_buffer
         int_vector_buffer(const std::string _filename, const bool _open_existing_file, const uint64_t _buffersize=1024*1024, const uint8_t _width=t_width, const bool _persistent=true) {
             m_persistent = _persistent;
             m_filename = _filename;
-//             if (0 == t_width) {
             m_buffer.width(_width);
-//             }
             if (!_open_existing_file) {
                 // Create file, if it already exist it will be cleared
                 m_ofile.open(_filename.c_str(), std::ios::out|std::ios::binary);
@@ -100,9 +97,7 @@ class int_vector_buffer
                 uint8_t  width = 0;
                 int_vector_trait<t_width>::read_header(size, width, m_ifile);
                 assert(m_ifile.good());
-//                 if (0 == t_width) {
                 m_buffer.width(width);
-//                 }
                 m_max_elements = size/this->width();
             }
             if (0==(_buffersize*8)%width()) {
@@ -279,15 +274,8 @@ class int_vector_buffer
                 write_block();
                 uint64_t size = m_max_elements*width();
                 m_ofile.seekp(0, ios::beg);
-//                int_vector_trait<t_width>::write_header(size, width, m_file);
+                int_vector_trait<t_width>::write_header(size, width(), m_ofile);
                 assert(m_ofile.good());
-                m_ofile.write((char*) &size, sizeof(size));
-                assert(m_ofile.good());
-                if (m_offset == 9) {
-                    uint8_t width = this->width();
-                    m_ofile.write((char*) &width, sizeof(width));
-                    assert(m_ofile.good());
-                }
                 uint64_t wb = (size+7)/8;
                 if (wb%8) {
                     m_ofile.seekp(m_offset+wb);
@@ -301,7 +289,6 @@ class int_vector_buffer
             }
         }
 
-        //old swap
         void swap(int_vector_buffer<t_width>& ivb) {
             if (this != &ivb) {
                 m_ifile.close();
@@ -326,28 +313,6 @@ class int_vector_buffer
                 std::swap(m_closed, ivb.m_closed);
             }
         }
-
-        //new swap ??????
-// 		void swap(int_vector_buffer<t_width>& ivb)
-// 		{
-// 			if (this != &ivb) { // if ivb and _this_ are not the same object
-//                 m_file.close();
-//                 ivb.m_file.close();
-// 				m_filename = ivb.m_filename;
-//                 m_file.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
-//                 assert(m_file.good());
-//                 ivb.m_file.open(ivb.m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
-//                 assert(ivb.m_file.good());
-//                 m_buffer = ivb.m_buffer;
-//                 m_need_to_write = ivb.m_need_to_write;
-//                 m_buffersize = ivb.m_buffersize;
-//                 m_max_elements = ivb.m_max_elements;
-//                 m_begin = ivb.m_begin;
-//                 m_persistent = ivb.m_persistent;
-//                 m_closed = ivb.m_closed;
-// 			}
-// 		}
-
 
         class int_vector_buffer_reference
         {
