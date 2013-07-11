@@ -125,7 +125,7 @@ uint64_t test_cst_dfs_iterator(t_cst& cst, uint64_t times=100000)
  *      a CST n times and calculates the depth for each visited node.
  */
 template<class t_cst>
-uint64_t test_cst_dfs_iterator_and_depth(t_cst& cst, uint64_t times=1000000, bool output=false)
+uint64_t test_cst_dfs_iterator_and_depth(t_cst& cst, uint64_t times=1000000)
 {
     uint64_t cnt=0;
     typename t_cst::const_iterator it = cst.begin();
@@ -146,7 +146,7 @@ uint64_t test_cst_dfs_iterator_and_depth(t_cst& cst, uint64_t times=1000000, boo
  *      a CST n times and calculates the function id for each visited node.
  */
 template<class t_cst>
-uint64_t test_cst_dfs_iterator_and_id(t_cst& cst, uint64_t times=1000000, bool output=false)
+uint64_t test_cst_dfs_iterator_and_id(t_cst& cst, uint64_t times=1000000)
 {
     uint64_t cnt=0;
     typename t_cst::const_iterator it = cst.begin();

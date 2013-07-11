@@ -1,5 +1,5 @@
 include ../Make.helper
-CFLAGS = $(FLAGS) # in compile_options.config
+CXX_FLAGS = $(MY_CXX_FLAGS) # in compile_options.config
 LIBS = -lsdsl 
 SRC_DIR = src
 TMP_DIR = ../tmp
@@ -25,7 +25,7 @@ RES_FILE=results/all.txt
 
 # Target for the generator programs for the random bitvectors of different densities
 bin/generate_rnd_bitvector: ${SRC_DIR}/generate_rnd_bitvector.cpp
-	$(MY_CXX) -O3 $(CFLAGS) $(SRC_DIR)/generate_rnd_bitvector.cpp -L$(LIB_DIR) -I$(INC_DIR) -o $@ $(LIBS)
+	$(MY_CXX) -O3 $(CXX_FLAGS) $(SRC_DIR)/generate_rnd_bitvector.cpp -L$(LIB_DIR) -I$(INC_DIR) -o $@ $(LIBS)
 
 # Targets for the access/rank/select rrr_vector experiment
 # Format: bin/rrr_time_and_space_[R].[COMPILE_ID]
@@ -33,7 +33,7 @@ bin/rrr_time_and_space_%: $(SRC_DIR)/rrr_time_and_space.cpp
 	$(eval K:=$(call dim,1,$*)) 
 	$(eval COMPILE_ID:=$(call dim,2,$*)) 
 	$(eval COMPILE_OPTIONS:=$(call config_select,compile_options.config,$(COMPILE_ID),2))
-	$(MY_CXX) $(CFLAGS) $(COMPILE_OPTIONS) -DBLOCK_SIZE=$(K) -L$(LIB_DIR) \
+	$(MY_CXX) $(CXX_FLAGS) $(COMPILE_OPTIONS) -DBLOCK_SIZE=$(K) -L$(LIB_DIR) \
 		  $(SRC_DIR)/rrr_time_and_space.cpp -I$(INC_DIR) -o $@ $(LIBS)
 
 execs: $(RRR_EXECS) 

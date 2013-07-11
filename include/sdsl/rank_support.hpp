@@ -92,15 +92,15 @@ template<uint8_t bit_pattern, uint8_t pattern_len>
 struct rank_support_trait {
     typedef rank_support::size_type	size_type;
 
-    static size_type args_in_the_word(uint64_t w, uint64_t& carry) {
+    static size_type args_in_the_word(uint64_t, uint64_t&) {
         return 0;
     }
 
-    static uint32_t word_rank(const uint64_t* data, size_type idx) {
+    static uint32_t word_rank(const uint64_t*, size_type) {
         return 0;
     }
 
-    static uint32_t full_word_rank(const uint64_t* data, size_type idx) {
+    static uint32_t full_word_rank(const uint64_t*, size_type) {
         return 0;
     }
 

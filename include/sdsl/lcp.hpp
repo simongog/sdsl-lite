@@ -78,7 +78,7 @@ void copy_lcp(t_lcp& lcp, const t_lcp& lcp_c, const t_cst& cst)
 }
 
 template<class t_lcp, class t_cst>
-void copy_lcp(t_lcp& lcp, const t_lcp& lcp_c, const t_cst& cst, lcp_plain_tag)
+void copy_lcp(t_lcp& lcp, const t_lcp& lcp_c, const t_cst&, lcp_plain_tag)
 {
     lcp = lcp_c;
 }
