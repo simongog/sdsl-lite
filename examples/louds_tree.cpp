@@ -20,8 +20,6 @@ void print_tree(const louds_tree<>& tree, const louds_tree<>::node_type& v, int 
     for (uint64_t i = 1; i <= tree.degree(v); ++i) {
         louds_node_t child = tree.child(v, i);
         print_tree(tree, child, depth+1, visited);
-        louds_node_t parent = tree.parent(child);
-        assert(parent == v);
     }
 }
 

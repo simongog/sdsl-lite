@@ -23,6 +23,7 @@
 #define INCLUDED_SDSL_WT_HUTU
 
 #include "wt_pc.hpp"
+#include <vector>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -327,10 +328,10 @@ struct _hutu_shape {
                 return 1;
             }
             size_type       sigma = node_vector.size();
-            ht_node         T[sigma]; // physical leaves
-            ht_node*        A[sigma]; // the current working sequence
+            std::vector<ht_node>  T(sigma); // physical leaves
+            std::vector<ht_node*> A(sigma); // the current working sequence
             // Priority Queues, containing the Huffman Sequences
-            l_heap<ht_node> HPQ[sigma];
+            std::vector<l_heap<ht_node>> HPQ(sigma);
             l_heap<m_node>  MPQ;      // Master Priority Queue
 
             // init T, A, HPQs and MPQ

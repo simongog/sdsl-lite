@@ -75,16 +75,18 @@ struct wt_trait {
         return alphabet_size;
     }
 
-    static bool symbol_available(const map_type& map, const value_type c, const value_type first_symbol, const size_type) {
+    static bool symbol_available(const map_type& map, const value_type c, SDSL_UNUSED const value_type first_symbol,
+                                 SDSL_UNUSED const size_type) {
         return map.find(c)!=map.end();
     }
 
-    static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=nullptr, std::string name="") {
+    static size_type serialize_maps(std::ostream&, const map_type&, const inv_map_type&, structure_tree_node*,
+                                    SDSL_UNUSED std::string name="") {
         throw std::logic_error(util::demangle(typeid(wt_trait<t_rac>).name())+": serialize not implemented");
         return 0;
     }
 
-    static size_type load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
+    static size_type load_maps(std::istream&, map_type&, inv_map_type&) {
         throw std::logic_error(util::demangle(typeid(wt_trait<t_rac>).name())+": load not implemented");
         return 0;
     }

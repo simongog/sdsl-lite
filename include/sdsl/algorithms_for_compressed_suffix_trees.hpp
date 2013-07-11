@@ -287,7 +287,8 @@ int_vector_size_type construct_supercartesian_tree_bp_succinct_and_first_child(i
 
 
 template<class RandomAccessContainer>
-void construct_supercartesian_tree_bp_succinct2(const RandomAccessContainer& vec, bit_vector& bp, const bool minimum=true)
+void construct_supercartesian_tree_bp_succinct2(const RandomAccessContainer& vec, bit_vector& bp,
+        SDSL_UNUSED const bool minimum=true)
 {
     typedef typename RandomAccessContainer::size_type size_type;
     bp.resize(2*vec.size());      // resize bit vector for balanced parentheses to 2 n bits
