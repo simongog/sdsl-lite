@@ -1,6 +1,5 @@
 include ../Make.helper
-CC=g++
-CC_FLAGS=-std=c++11 -Wall -Werror -Wunused-parameter -g -O3 -I$(INC_DIR) -L$(LIB_DIR) 
+CC_FLAGS= $(FLAGS) -Wall -Werror -Wunused-parameter -g -O3 -I$(INC_DIR) -L$(LIB_DIR) 
 CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest 
 TMP_DIR=tmp
 SOURCES=$(wildcard *Test.cpp)
@@ -154,7 +153,7 @@ test_cases/bit-vec.%: BitVectorGenerator.x
 	@./BitVectorGenerator.x $@ $*
 
 %.x:%.cpp 
-	$(CC) $(CC_FLAGS) -o $@ $< $(CCLIB) 
+	$(MY_CXX) $(CC_FLAGS) -o $@ $< $(CCLIB) 
 
 test_cases/%: 
 	$(eval URL:=$(call config_filter,download.config,$@,2))

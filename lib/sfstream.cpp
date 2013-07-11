@@ -9,12 +9,12 @@ namespace sdsl
 
 //  IMPLEMENTATION OF OSFSTREAM
 
-osfstream::osfstream() : m_streambuf(NULL), m_file(""), m_use_ram(true), m_closed(true)
+osfstream::osfstream() : std::ostream(m_streambuf), m_streambuf(NULL), m_file(""), m_use_ram(true), m_closed(true)
 {
     this->init(m_streambuf);
 }
 
-osfstream::osfstream(const std::string& file, std::ios_base::openmode mode) :
+osfstream::osfstream(const std::string& file, std::ios_base::openmode mode) : std::ostream(m_streambuf),
     m_streambuf(NULL), m_file(""), m_use_ram(true), m_closed(true)
 {
     this->init(m_streambuf);
@@ -106,12 +106,12 @@ osfstream::operator voidptr()const
 
 //  IMPLEMENTATION OF ISFSTREAM
 
-isfstream::isfstream() : m_streambuf(NULL), m_file(""), m_use_ram(true), m_closed(true)
+isfstream::isfstream() : std::istream(m_streambuf), m_streambuf(NULL), m_file(""), m_use_ram(true), m_closed(true)
 {
     this->init(m_streambuf);
 }
 
-isfstream::isfstream(const std::string& file, std::ios_base::openmode mode) :
+isfstream::isfstream(const std::string& file, std::ios_base::openmode mode) : std::istream(m_streambuf),
     m_streambuf(NULL), m_file(""), m_use_ram(true), m_closed(true)
 {
     this->init(m_streambuf);
