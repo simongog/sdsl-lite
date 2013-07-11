@@ -60,7 +60,7 @@ class OnTheFlyPrimeTable : public PrimeTable
         virtual bool IsPrime(int n) const {
             if (n <= 1) return false;
 
-            for (int i = 2; i* i <= n; i++) {
+            for (int i = 2; i*i <= n; i++) {
                 // n is divisible by an integer other than 1 and itself.
                 if ((n % i) == 0) return false;
             }
@@ -87,9 +87,7 @@ class PreCalculatedPrimeTable : public PrimeTable
             : is_prime_size_(max + 1), is_prime_(new bool[max + 1]) {
             CalculatePrimesUpTo(max);
         }
-        virtual ~PreCalculatedPrimeTable() {
-            delete[] is_prime_;
-        }
+        virtual ~PreCalculatedPrimeTable() { delete[] is_prime_; }
 
         virtual bool IsPrime(int n) const {
             return 0 <= n && n < is_prime_size_ && is_prime_[n];
