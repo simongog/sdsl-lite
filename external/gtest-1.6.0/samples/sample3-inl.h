@@ -52,22 +52,16 @@ class QueueNode
 
     public:
         // Gets the element in this node.
-        const E& element() const {
-            return element_;
-        }
+        const E& element() const { return element_; }
 
         // Gets the next node in the queue.
-        QueueNode* next() {
-            return next_;
-        }
-        const QueueNode* next() const {
-            return next_;
-        }
+        QueueNode* next() { return next_; }
+        const QueueNode* next() const { return next_; }
 
     private:
         // Creates a node with a given element value.  The next pointer is
         // set to NULL.
-        QueueNode(const E& an_element) : element_(an_element), next_(NULL) {}
+        explicit QueueNode(const E& an_element) : element_(an_element), next_(NULL) {}
 
         // We disable the default assignment operator and copy c'tor.
         const QueueNode& operator = (const QueueNode&);
@@ -81,14 +75,11 @@ template <typename E>  // E is the element type.
 class Queue
 {
     public:
-
         // Creates an empty queue.
         Queue() : head_(NULL), last_(NULL), size_(0) {}
 
         // D'tor.  Clears the queue.
-        ~Queue() {
-            Clear();
-        }
+        ~Queue() { Clear(); }
 
         // Clears the queue.
         void Clear() {
@@ -110,25 +101,15 @@ class Queue
         }
 
         // Gets the number of elements.
-        size_t Size() const {
-            return size_;
-        }
+        size_t Size() const { return size_; }
 
         // Gets the first element of the queue, or NULL if the queue is empty.
-        QueueNode<E>* Head() {
-            return head_;
-        }
-        const QueueNode<E>* Head() const {
-            return head_;
-        }
+        QueueNode<E>* Head() { return head_; }
+        const QueueNode<E>* Head() const { return head_; }
 
         // Gets the last element of the queue, or NULL if the queue is empty.
-        QueueNode<E>* Last() {
-            return last_;
-        }
-        const QueueNode<E>* Last() const {
-            return last_;
-        }
+        QueueNode<E>* Last() { return last_; }
+        const QueueNode<E>* Last() const { return last_; }
 
         // Adds an element to the end of the queue.  A copy of the element is
         // created using the copy constructor, and then stored in the queue.

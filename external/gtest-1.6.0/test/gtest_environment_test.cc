@@ -55,9 +55,7 @@ enum FailureType {
 class MyEnvironment : public testing::Environment
 {
     public:
-        MyEnvironment() {
-            Reset();
-        }
+        MyEnvironment() { Reset(); }
 
         // Depending on the value of failure_in_set_up_, SetUp() will
         // generate a non-fatal failure, generate a fatal failure, or
@@ -97,14 +95,11 @@ class MyEnvironment : public testing::Environment
         }
 
         // Was SetUp() run?
-        bool set_up_was_run() const {
-            return set_up_was_run_;
-        }
+        bool set_up_was_run() const { return set_up_was_run_; }
 
         // Was TearDown() run?
-        bool tear_down_was_run() const {
-            return tear_down_was_run_;
-        }
+        bool tear_down_was_run() const { return tear_down_was_run_; }
+
     private:
         FailureType failure_in_set_up_;
         bool set_up_was_run_;
