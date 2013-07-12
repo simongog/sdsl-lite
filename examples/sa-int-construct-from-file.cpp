@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     } else {
         cout << "Usage: " << argv[0] << " file [ofile]" << endl;
         cout << " Computes the SA from an array of 64-bit integers." << endl;
-        cout << " Result is stored in `ofile`, or `file`.sa is `ofile`" << endl;
+        cout << " Result is stored in `ofile`, or `file`.sa if `ofile`" << endl;
         cout << " is not specified." << endl;
     }
 }
