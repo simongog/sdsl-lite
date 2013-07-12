@@ -149,10 +149,7 @@ class rmq_succinct_sada
         //! Constructor
         template<class t_rac>
         rmq_succinct_sada(const t_rac* v=nullptr) {
-            if (v == nullptr) {
-                m_ect_bp = bit_vector(0); m_ect_bp_support = bp_support_type();
-                m_ect_bp_rank10 = rank_support10_type(); m_ect_bp_select10 = select_support10_type();
-            } else {
+            if (v != nullptr) {
                 rmq_construct_helper_type rmq_helper(v);
                 m_ect_bp.resize(4*v->size());
                 construct_bp_of_extended_cartesian_tree(v, rmq_helper);

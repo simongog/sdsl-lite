@@ -56,6 +56,14 @@ test: bits-test \
       cst-int-test \
       rmq-test 
 
+build-test: $(EXECS) 
+	cd ../tutorial; make build-test
+	cd ../examples; make build-test
+
+build-test-clean: clean
+	cd ../tutorial; make clean
+	cd ../examples; make clean
+
 generators: BitVectorGenerator.x IntVectorGenerator.x
 
 bits-test: ./BitsTest.x
