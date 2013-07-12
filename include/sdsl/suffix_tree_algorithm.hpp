@@ -73,10 +73,10 @@ forward_search(
 
 //! Forward search for a pattern pat on the path on depth \f$d\f$ to node \f$v\f$.
 /*!
- *    \param cst         The compressed suffix tree.
- *    \param v           The node at the endpoint of the current edge.
- *    \param d           The current depth of the path. 0 = first character on each edge of the root node.
- *    \param pat       The character c which should be matched at the path on depth \f$d\f$ to node \f$v\f$.
+ *    \param cst      The compressed suffix tree.
+ *    \param v        The node at the endpoint of the current edge.
+ *    \param d        The current depth of the path. 0 = first character on each edge of the root node.
+ *    \param pat      The character c which should be matched at the path on depth \f$d\f$ to node \f$v\f$.
  *    \param char_pos One position in the text, which corresponds to the text that is already matched. If v=cst.root() and d=0 => char_pos=0.
  *
  *    \par Time complexity
@@ -159,7 +159,7 @@ typename t_cst::size_type locate(
 
 //! Calculate the concatenation of edge labels from the root to the node v of a CST.
 /*!
- * \tparam t_cst      CST type.
+ * \tparam t_cst       CST type.
  * \tparam t_text_iter Random access iterator type.
  *
  * \param cst   The CST object.
