@@ -33,7 +33,6 @@ void pfile_info(ulong* length, ulong* numpatt);
 double getTime(void);
 void usage(char* progname);
 
-static void* Index;	 /* opaque data type */
 static int Verbose = 0;
 static ulong Index_size, Text_length;
 static double Load_time;

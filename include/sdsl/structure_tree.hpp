@@ -25,12 +25,6 @@ static const char STRUCTURE_TREE_CLASS_NAME_KEY[] = "class_name";
 
 class structure_tree; // forward declaration
 
-namespace util
-{
-template<typename T>
-std::string to_string(const T&, int w=1); // forward declaration
-}
-
 //! Class for a node of the structure tree
 class structure_tree_node
 {

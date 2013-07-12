@@ -77,7 +77,6 @@ forward_search(
  *    \param v           The node at the endpoint of the current edge.
  *    \param d           The current depth of the path. 0 = first character on each edge of the root node.
  *    \param pat       The character c which should be matched at the path on depth \f$d\f$ to node \f$v\f$.
- *    \param len         The length of the pattern.
  *    \param char_pos One position in the text, which corresponds to the text that is already matched. If v=cst.root() and d=0 => char_pos=0.
  *
  *    \par Time complexity
@@ -90,7 +89,6 @@ forward_search(const t_cst& cst,
                typename t_cst::size_type d,
                t_pat_iter begin,
                t_pat_iter end,
-               typename t_cst::size_type len,
                typename t_cst::size_type& char_pos,
                SDSL_UNUSED typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag()
               )

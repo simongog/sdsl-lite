@@ -82,9 +82,7 @@ class ValueArray1
         explicit ValueArray1(T1 v1) : v1_(v1) {}
 
         template <typename T>
-        operator ParamGenerator<T>() const {
-            return ValuesIn(&v1_, &v1_ + 1);
-        }
+        operator ParamGenerator<T>() const { return ValuesIn(&v1_, &v1_ + 1); }
 
     private:
         // No implementation - assignment is unsupported.
@@ -101,7 +99,7 @@ class ValueArray2
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_};
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_)};
             return ValuesIn(array);
         }
 
@@ -121,7 +119,9 @@ class ValueArray3
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_};
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_)
+                              };
             return ValuesIn(array);
         }
 
@@ -143,7 +143,9 @@ class ValueArray4
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_};
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_)
+                              };
             return ValuesIn(array);
         }
 
@@ -166,7 +168,9 @@ class ValueArray5
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_};
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_)
+                              };
             return ValuesIn(array);
         }
 
@@ -191,7 +195,10 @@ class ValueArray6
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_};
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_)
+                              };
             return ValuesIn(array);
         }
 
@@ -217,7 +224,10 @@ class ValueArray7
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_};
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_)
+                              };
             return ValuesIn(array);
         }
 
@@ -245,7 +255,10 @@ class ValueArray8
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_};
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_)
+                              };
             return ValuesIn(array);
         }
 
@@ -274,7 +287,11 @@ class ValueArray9
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_};
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_)
+                              };
             return ValuesIn(array);
         }
 
@@ -304,7 +321,11 @@ class ValueArray10
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_};
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_)
+                              };
             return ValuesIn(array);
         }
 
@@ -336,7 +357,11 @@ class ValueArray11
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_};
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_)
+                              };
             return ValuesIn(array);
         }
 
@@ -369,8 +394,11 @@ class ValueArray12
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_)
                               };
             return ValuesIn(array);
         }
@@ -406,8 +434,11 @@ class ValueArray13
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_)
                               };
             return ValuesIn(array);
         }
@@ -444,8 +475,11 @@ class ValueArray14
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_)
                               };
             return ValuesIn(array);
         }
@@ -483,8 +517,12 @@ class ValueArray15
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_)
                               };
             return ValuesIn(array);
         }
@@ -525,8 +563,12 @@ class ValueArray16
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_)
                               };
             return ValuesIn(array);
         }
@@ -568,8 +610,12 @@ class ValueArray17
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_)
                               };
             return ValuesIn(array);
         }
@@ -612,8 +658,13 @@ class ValueArray18
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_)
                               };
             return ValuesIn(array);
         }
@@ -657,8 +708,13 @@ class ValueArray19
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_)
                               };
             return ValuesIn(array);
         }
@@ -704,8 +760,13 @@ class ValueArray20
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_)
                               };
             return ValuesIn(array);
         }
@@ -753,8 +814,14 @@ class ValueArray21
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_)
                               };
             return ValuesIn(array);
         }
@@ -803,8 +870,14 @@ class ValueArray22
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_)
                               };
             return ValuesIn(array);
         }
@@ -855,9 +928,14 @@ class ValueArray23
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_,
-                               v23_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_)
                               };
             return ValuesIn(array);
         }
@@ -909,9 +987,15 @@ class ValueArray24
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_)
                               };
             return ValuesIn(array);
         }
@@ -964,9 +1048,15 @@ class ValueArray25
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_)
                               };
             return ValuesIn(array);
         }
@@ -1021,9 +1111,15 @@ class ValueArray26
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_)
                               };
             return ValuesIn(array);
         }
@@ -1080,9 +1176,16 @@ class ValueArray27
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_)
                               };
             return ValuesIn(array);
         }
@@ -1140,9 +1243,16 @@ class ValueArray28
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_)
                               };
             return ValuesIn(array);
         }
@@ -1201,9 +1311,16 @@ class ValueArray29
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_)
                               };
             return ValuesIn(array);
         }
@@ -1264,9 +1381,17 @@ class ValueArray30
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_)
                               };
             return ValuesIn(array);
         }
@@ -1329,9 +1454,17 @@ class ValueArray31
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_)
                               };
             return ValuesIn(array);
         }
@@ -1395,9 +1528,17 @@ class ValueArray32
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_)
                               };
             return ValuesIn(array);
         }
@@ -1463,9 +1604,18 @@ class ValueArray33
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_)
                               };
             return ValuesIn(array);
         }
@@ -1532,9 +1682,18 @@ class ValueArray34
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_)
                               };
             return ValuesIn(array);
         }
@@ -1602,10 +1761,18 @@ class ValueArray35
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_,
-                               v35_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_)
                               };
             return ValuesIn(array);
         }
@@ -1675,10 +1842,19 @@ class ValueArray36
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_)
                               };
             return ValuesIn(array);
         }
@@ -1750,10 +1926,19 @@ class ValueArray37
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_, v37_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_), static_cast<T>(v37_)
                               };
             return ValuesIn(array);
         }
@@ -1826,10 +2011,19 @@ class ValueArray38
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_, v37_, v38_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_)
                               };
             return ValuesIn(array);
         }
@@ -1903,10 +2097,20 @@ class ValueArray39
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_, v37_, v38_, v39_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
+                               static_cast<T>(v39_)
                               };
             return ValuesIn(array);
         }
@@ -1982,10 +2186,20 @@ class ValueArray40
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_, v37_, v38_, v39_, v40_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
+                               static_cast<T>(v39_), static_cast<T>(v40_)
                               };
             return ValuesIn(array);
         }
@@ -2063,10 +2277,20 @@ class ValueArray41
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_, v37_, v38_, v39_, v40_, v41_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
+                               static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_)
                               };
             return ValuesIn(array);
         }
@@ -2145,10 +2369,21 @@ class ValueArray42
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_, v37_, v38_, v39_, v40_, v41_, v42_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
+                               static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
+                               static_cast<T>(v42_)
                               };
             return ValuesIn(array);
         }
@@ -2228,10 +2463,21 @@ class ValueArray43
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_, v37_, v38_, v39_, v40_, v41_, v42_, v43_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
+                               static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
+                               static_cast<T>(v42_), static_cast<T>(v43_)
                               };
             return ValuesIn(array);
         }
@@ -2313,10 +2559,21 @@ class ValueArray44
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_, v37_, v38_, v39_, v40_, v41_, v42_, v43_, v44_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
+                               static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
+                               static_cast<T>(v42_), static_cast<T>(v43_), static_cast<T>(v44_)
                               };
             return ValuesIn(array);
         }
@@ -2399,10 +2656,22 @@ class ValueArray45
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_, v37_, v38_, v39_, v40_, v41_, v42_, v43_, v44_, v45_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
+                               static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
+                               static_cast<T>(v42_), static_cast<T>(v43_), static_cast<T>(v44_),
+                               static_cast<T>(v45_)
                               };
             return ValuesIn(array);
         }
@@ -2487,10 +2756,22 @@ class ValueArray46
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_, v37_, v38_, v39_, v40_, v41_, v42_, v43_, v44_, v45_, v46_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
+                               static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
+                               static_cast<T>(v42_), static_cast<T>(v43_), static_cast<T>(v44_),
+                               static_cast<T>(v45_), static_cast<T>(v46_)
                               };
             return ValuesIn(array);
         }
@@ -2577,11 +2858,22 @@ class ValueArray47
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_, v37_, v38_, v39_, v40_, v41_, v42_, v43_, v44_, v45_, v46_,
-                               v47_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
+                               static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
+                               static_cast<T>(v42_), static_cast<T>(v43_), static_cast<T>(v44_),
+                               static_cast<T>(v45_), static_cast<T>(v46_), static_cast<T>(v47_)
                               };
             return ValuesIn(array);
         }
@@ -2669,11 +2961,23 @@ class ValueArray48
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_, v37_, v38_, v39_, v40_, v41_, v42_, v43_, v44_, v45_, v46_, v47_,
-                               v48_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
+                               static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
+                               static_cast<T>(v42_), static_cast<T>(v43_), static_cast<T>(v44_),
+                               static_cast<T>(v45_), static_cast<T>(v46_), static_cast<T>(v47_),
+                               static_cast<T>(v48_)
                               };
             return ValuesIn(array);
         }
@@ -2762,11 +3066,23 @@ class ValueArray49
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_, v37_, v38_, v39_, v40_, v41_, v42_, v43_, v44_, v45_, v46_, v47_,
-                               v48_, v49_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
+                               static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
+                               static_cast<T>(v42_), static_cast<T>(v43_), static_cast<T>(v44_),
+                               static_cast<T>(v45_), static_cast<T>(v46_), static_cast<T>(v47_),
+                               static_cast<T>(v48_), static_cast<T>(v49_)
                               };
             return ValuesIn(array);
         }
@@ -2856,11 +3172,23 @@ class ValueArray50
 
         template <typename T>
         operator ParamGenerator<T>() const {
-            const T array[] = {v1_, v2_, v3_, v4_, v5_, v6_, v7_, v8_, v9_, v10_, v11_,
-                               v12_, v13_, v14_, v15_, v16_, v17_, v18_, v19_, v20_, v21_, v22_, v23_,
-                               v24_, v25_, v26_, v27_, v28_, v29_, v30_, v31_, v32_, v33_, v34_, v35_,
-                               v36_, v37_, v38_, v39_, v40_, v41_, v42_, v43_, v44_, v45_, v46_, v47_,
-                               v48_, v49_, v50_
+            const T array[] = {static_cast<T>(v1_), static_cast<T>(v2_),
+                               static_cast<T>(v3_), static_cast<T>(v4_), static_cast<T>(v5_),
+                               static_cast<T>(v6_), static_cast<T>(v7_), static_cast<T>(v8_),
+                               static_cast<T>(v9_), static_cast<T>(v10_), static_cast<T>(v11_),
+                               static_cast<T>(v12_), static_cast<T>(v13_), static_cast<T>(v14_),
+                               static_cast<T>(v15_), static_cast<T>(v16_), static_cast<T>(v17_),
+                               static_cast<T>(v18_), static_cast<T>(v19_), static_cast<T>(v20_),
+                               static_cast<T>(v21_), static_cast<T>(v22_), static_cast<T>(v23_),
+                               static_cast<T>(v24_), static_cast<T>(v25_), static_cast<T>(v26_),
+                               static_cast<T>(v27_), static_cast<T>(v28_), static_cast<T>(v29_),
+                               static_cast<T>(v30_), static_cast<T>(v31_), static_cast<T>(v32_),
+                               static_cast<T>(v33_), static_cast<T>(v34_), static_cast<T>(v35_),
+                               static_cast<T>(v36_), static_cast<T>(v37_), static_cast<T>(v38_),
+                               static_cast<T>(v39_), static_cast<T>(v40_), static_cast<T>(v41_),
+                               static_cast<T>(v42_), static_cast<T>(v43_), static_cast<T>(v44_),
+                               static_cast<T>(v45_), static_cast<T>(v46_), static_cast<T>(v47_),
+                               static_cast<T>(v48_), static_cast<T>(v49_), static_cast<T>(v50_)
                               };
             return ValuesIn(array);
         }
@@ -2979,9 +3307,7 @@ class CartesianProductGenerator2
                 virtual ParamIteratorInterface<ParamType>* Clone() const {
                     return new Iterator(*this);
                 }
-                virtual const ParamType* Current() const {
-                    return &current_value_;
-                }
+                virtual const ParamType* Current() const { return &current_value_; }
                 virtual bool Equals(const ParamIteratorInterface<ParamType>& other) const {
                     // Having the same base generator guarantees that the other
                     // iterator is of the same type and we can downcast.
@@ -3106,9 +3432,7 @@ class CartesianProductGenerator3
                 virtual ParamIteratorInterface<ParamType>* Clone() const {
                     return new Iterator(*this);
                 }
-                virtual const ParamType* Current() const {
-                    return &current_value_;
-                }
+                virtual const ParamType* Current() const { return &current_value_; }
                 virtual bool Equals(const ParamIteratorInterface<ParamType>& other) const {
                     // Having the same base generator guarantees that the other
                     // iterator is of the same type and we can downcast.
@@ -3251,9 +3575,7 @@ class CartesianProductGenerator4
                 virtual ParamIteratorInterface<ParamType>* Clone() const {
                     return new Iterator(*this);
                 }
-                virtual const ParamType* Current() const {
-                    return &current_value_;
-                }
+                virtual const ParamType* Current() const { return &current_value_; }
                 virtual bool Equals(const ParamIteratorInterface<ParamType>& other) const {
                     // Having the same base generator guarantees that the other
                     // iterator is of the same type and we can downcast.
@@ -3413,9 +3735,7 @@ class CartesianProductGenerator5
                 virtual ParamIteratorInterface<ParamType>* Clone() const {
                     return new Iterator(*this);
                 }
-                virtual const ParamType* Current() const {
-                    return &current_value_;
-                }
+                virtual const ParamType* Current() const { return &current_value_; }
                 virtual bool Equals(const ParamIteratorInterface<ParamType>& other) const {
                     // Having the same base generator guarantees that the other
                     // iterator is of the same type and we can downcast.
@@ -3594,9 +3914,7 @@ class CartesianProductGenerator6
                 virtual ParamIteratorInterface<ParamType>* Clone() const {
                     return new Iterator(*this);
                 }
-                virtual const ParamType* Current() const {
-                    return &current_value_;
-                }
+                virtual const ParamType* Current() const { return &current_value_; }
                 virtual bool Equals(const ParamIteratorInterface<ParamType>& other) const {
                     // Having the same base generator guarantees that the other
                     // iterator is of the same type and we can downcast.
@@ -3792,9 +4110,7 @@ class CartesianProductGenerator7
                 virtual ParamIteratorInterface<ParamType>* Clone() const {
                     return new Iterator(*this);
                 }
-                virtual const ParamType* Current() const {
-                    return &current_value_;
-                }
+                virtual const ParamType* Current() const { return &current_value_; }
                 virtual bool Equals(const ParamIteratorInterface<ParamType>& other) const {
                     // Having the same base generator guarantees that the other
                     // iterator is of the same type and we can downcast.
@@ -4009,9 +4325,7 @@ class CartesianProductGenerator8
                 virtual ParamIteratorInterface<ParamType>* Clone() const {
                     return new Iterator(*this);
                 }
-                virtual const ParamType* Current() const {
-                    return &current_value_;
-                }
+                virtual const ParamType* Current() const { return &current_value_; }
                 virtual bool Equals(const ParamIteratorInterface<ParamType>& other) const {
                     // Having the same base generator guarantees that the other
                     // iterator is of the same type and we can downcast.
@@ -4242,9 +4556,7 @@ class CartesianProductGenerator9
                 virtual ParamIteratorInterface<ParamType>* Clone() const {
                     return new Iterator(*this);
                 }
-                virtual const ParamType* Current() const {
-                    return &current_value_;
-                }
+                virtual const ParamType* Current() const { return &current_value_; }
                 virtual bool Equals(const ParamIteratorInterface<ParamType>& other) const {
                     // Having the same base generator guarantees that the other
                     // iterator is of the same type and we can downcast.
@@ -4493,9 +4805,7 @@ class CartesianProductGenerator10
                 virtual ParamIteratorInterface<ParamType>* Clone() const {
                     return new Iterator(*this);
                 }
-                virtual const ParamType* Current() const {
-                    return &current_value_;
-                }
+                virtual const ParamType* Current() const { return &current_value_; }
                 virtual bool Equals(const ParamIteratorInterface<ParamType>& other) const {
                     // Having the same base generator guarantees that the other
                     // iterator is of the same type and we can downcast.

@@ -293,12 +293,10 @@ class DogAdder
         bool operator<(const DogAdder& other) const {
             return value_ < other.value_;
         }
-        const ::testing::internal::String& value() const {
-            return value_;
-        }
+        const std::string& value() const { return value_; }
 
     private:
-        ::testing::internal::String value_;
+        std::string value_;
 };
 
 TEST(RangeTest, WorksWithACustomType)
@@ -327,15 +325,11 @@ class IntWrapper
             return *this;
         }
         // operator+() adds a different type.
-        IntWrapper operator+(int other) const {
-            return IntWrapper(value_ + other);
-        }
+        IntWrapper operator+(int other) const { return IntWrapper(value_ + other); }
         bool operator<(const IntWrapper& other) const {
             return value_ < other.value_;
         }
-        int value() const {
-            return value_;
-        }
+        int value() const { return value_; }
 
     private:
         int value_;
@@ -619,18 +613,10 @@ class TestGenerationEnvironment : public ::testing::Environment
             return instance;
         }
 
-        void FixtureConstructorExecuted() {
-            fixture_constructor_count_++;
-        }
-        void SetUpExecuted() {
-            set_up_count_++;
-        }
-        void TearDownExecuted() {
-            tear_down_count_++;
-        }
-        void TestBodyExecuted() {
-            test_body_count_++;
-        }
+        void FixtureConstructorExecuted() { fixture_constructor_count_++; }
+        void SetUpExecuted() { set_up_count_++; }
+        void TearDownExecuted() { tear_down_count_++; }
+        void TestBodyExecuted() { test_body_count_++; }
 
         virtual void TearDown() {
             // If all MultipleTestGenerationTest tests have been de-selected
@@ -661,6 +647,7 @@ class TestGenerationEnvironment : public ::testing::Environment
                         << "has not been run as expected.";
             }
         }
+
     private:
         TestGenerationEnvironment() : fixture_constructor_count_(0), set_up_count_(0),
             tear_down_count_(0), test_body_count_(0) {}
@@ -680,7 +667,7 @@ class TestGenerationTest : public TestWithParam<int>
     public:
         enum {
             PARAMETER_COUNT =
-            sizeof(test_generation_params)/sizeof(test_generation_params[0])
+                sizeof(test_generation_params)/sizeof(test_generation_params[0])
         };
 
         typedef TestGenerationEnvironment<PARAMETER_COUNT> Environment;
@@ -730,6 +717,7 @@ class TestGenerationTest : public TestWithParam<int>
 
             EXPECT_TRUE(collected_parameters_ == expected_values);
         }
+
     protected:
         int current_parameter_;
         static vector<int> collected_parameters_;
@@ -761,12 +749,8 @@ INSTANTIATE_TEST_CASE_P(TestExpansionModule, TestGenerationTest,
 class GeneratorEvaluationTest : public TestWithParam<int>
 {
     public:
-        static int param_value() {
-            return param_value_;
-        }
-        static void set_param_value(int param_value) {
-            param_value_ = param_value;
-        }
+        static int param_value() { return param_value_; }
+        static void set_param_value(int param_value) { param_value_ = param_value; }
 
     private:
         static int param_value_;
@@ -939,6 +923,14 @@ TEST_P(ParameterizedDerivedTest, SeesSequence)
     EXPECT_EQ(GetParam(), global_count_++);
 }
 
+class ParameterizedDeathTest : public ::testing::TestWithParam<int> { };
+
+TEST_F(ParameterizedDeathTest, GetParamDiesFromTestF)
+{
+    EXPECT_DEATH_IF_SUPPORTED(GetParam(),
+                              ".* value-parameterized test .*");
+}
+
 INSTANTIATE_TEST_CASE_P(RangeZeroToFive, ParameterizedDerivedTest, Range(0, 5));
 
 #endif  // GTEST_HAS_PARAM_TEST
@@ -950,7 +942,7 @@ TEST(CompileTest, CombineIsDefinedOnlyWhenGtestHasParamTestIsDefined)
 #endif
 }
 
-       int main(int argc, char** argv)
+int main(int argc, char** argv)
 {
 #if GTEST_HAS_PARAM_TEST
     // Used in TestGenerationTest test case.
