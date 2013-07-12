@@ -1,6 +1,5 @@
 include ../Make.helper
-CC = g++ 
-CFLAGS = -std=c++11 # in compile_options.config
+CFLAGS = $(MY_CXX_FLAGS) # in compile_options.config
 LIBS = -lsdsl -ldivsufsort -ldivsufsort64
 SRC_DIR = src
 TMP_DIR = ../tmp
@@ -89,7 +88,7 @@ $(BIN_DIR)/genpatterns: $(SRC_DIR)/genpatterns.c
 $(BIN_DIR)/build_idx_%: $(SRC_DIR)/build_index_sdsl.cpp index.config
 	$(eval IDX_TYPE:=$(call config_select,index.config,$*,2))
 	@echo "Compiling build_idx_$*"
-	@$(CC) $(CFLAGS) -O9 -DNDEBUG \
+	@$(MY_CXX) $(CFLAGS) -O3 -DNDEBUG \
 					-DSUF=\"$*\" -DCSA_TYPE="$(IDX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/build_index_sdsl.cpp \
 					-I$(INC_DIR) -o $@ $(LIBS)
@@ -101,7 +100,7 @@ $(BIN_DIR)/query_idx_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config
 	$(eval IDX_TYPE:=$(call config_select,index.config,$(IDX_ID),2))
 	$(eval COMPILE_OPTIONS:=$(call config_select,compile_options.config,$(COMPILE_ID),2))
 	@echo "Compiling query_idx_$*"
-	@$(CC) $(CFLAGS) $(COMPILE_OPTIONS) \
+	@$(MY_CXX) $(CFLAGS) $(COMPILE_OPTIONS) \
 					-DSUF=\"$(IDX_ID)\" -DCSA_TYPE="$(IDX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/run_queries_sdsl.cpp \
 					-I$(INC_DIR) -o $@ $(LIBS)
@@ -110,7 +109,7 @@ $(BIN_DIR)/query_idx_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config
 $(BIN_DIR)/info_%: $(SRC_DIR)/info.cpp index.config 
 	$(eval IDX_TYPE:=$(call config_select,index.config,$*,2))
 	@echo "Compiling info_$*"
-	@$(CC) $(CFLAGS) -O9 -DNDEBUG \
+	@$(MY_CXX) $(CFLAGS) -O3 -DNDEBUG \
 					-DSUF=\"$*\" -DCSA_TYPE="$(IDX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/info.cpp \
 					-I$(INC_DIR) -o $@ $(LIBS)

@@ -65,9 +65,7 @@ class CommonTest : public Test
 
         CommonTest() : value_(1) {}
 
-        virtual ~CommonTest() {
-            EXPECT_EQ(3, value_);
-        }
+        virtual ~CommonTest() { EXPECT_EQ(3, value_); }
 
         virtual void SetUp() {
             EXPECT_EQ(1, value_);

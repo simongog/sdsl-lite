@@ -64,73 +64,58 @@ class GTEST_API_ TestPartResult
                        int a_line_number,
                        const char* a_message)
             : type_(a_type),
-              file_name_(a_file_name),
+              file_name_(a_file_name == NULL ? "" : a_file_name),
               line_number_(a_line_number),
               summary_(ExtractSummary(a_message)),
               message_(a_message) {
         }
 
         // Gets the outcome of the test part.
-        Type type() const {
-            return type_;
-        }
+        Type type() const { return type_; }
 
         // Gets the name of the source file where the test part took place, or
         // NULL if it's unknown.
         const char* file_name() const {
-            return file_name_.c_str();
+            return file_name_.empty() ? NULL : file_name_.c_str();
         }
 
         // Gets the line in the source file where the test part took place,
         // or -1 if it's unknown.
-        int line_number() const {
-            return line_number_;
-        }
+        int line_number() const { return line_number_; }
 
         // Gets the summary of the failure message.
-        const char* summary() const {
-            return summary_.c_str();
-        }
+        const char* summary() const { return summary_.c_str(); }
 
         // Gets the message associated with the test part.
-        const char* message() const {
-            return message_.c_str();
-        }
+        const char* message() const { return message_.c_str(); }
 
         // Returns true iff the test part passed.
-        bool passed() const {
-            return type_ == kSuccess;
-        }
+        bool passed() const { return type_ == kSuccess; }
 
         // Returns true iff the test part failed.
-        bool failed() const {
-            return type_ != kSuccess;
-        }
+        bool failed() const { return type_ != kSuccess; }
 
         // Returns true iff the test part non-fatally failed.
-        bool nonfatally_failed() const {
-            return type_ == kNonFatalFailure;
-        }
+        bool nonfatally_failed() const { return type_ == kNonFatalFailure; }
 
         // Returns true iff the test part fatally failed.
-        bool fatally_failed() const {
-            return type_ == kFatalFailure;
-        }
+        bool fatally_failed() const { return type_ == kFatalFailure; }
+
     private:
         Type type_;
 
         // Gets the summary of the failure message by omitting the stack
         // trace in it.
-        static internal::String ExtractSummary(const char* message);
+        static std::string ExtractSummary(const char* message);
 
         // The name of the source file where the test part took place, or
-        // NULL if the source file is unknown.
-        internal::String file_name_;
+        // "" if the source file is unknown.
+        std::string file_name_;
         // The line in the source file where the test part took place, or -1
         // if the line number is unknown.
         int line_number_;
-        internal::String summary_;  // The test failure summary.
-        internal::String message_;  // The test failure message.
+        std::string summary_;  // The test failure summary.
+        std::string message_;  // The test failure message.
 };
 
 // Prints a TestPartResult object.
@@ -185,9 +170,7 @@ class GTEST_API_ HasNewFatalFailureHelper
         HasNewFatalFailureHelper();
         virtual ~HasNewFatalFailureHelper();
         virtual void ReportTestPartResult(const TestPartResult& result);
-        bool has_new_fatal_failure() const {
-            return has_new_fatal_failure_;
-        }
+        bool has_new_fatal_failure() const { return has_new_fatal_failure_; }
     private:
         bool has_new_fatal_failure_;
         TestPartResultReporterInterface* original_reporter_;

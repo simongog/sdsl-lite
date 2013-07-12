@@ -53,9 +53,7 @@ using testing::Test;
 class SehExceptionInConstructorTest : public Test
 {
     public:
-        SehExceptionInConstructorTest() {
-            RaiseException(42, 0, 0, NULL);
-        }
+        SehExceptionInConstructorTest() { RaiseException(42, 0, 0, NULL); }
 };
 
 TEST_F(SehExceptionInConstructorTest, ThrowsExceptionInConstructor) {}
@@ -63,9 +61,7 @@ TEST_F(SehExceptionInConstructorTest, ThrowsExceptionInConstructor) {}
 class SehExceptionInDestructorTest : public Test
 {
     public:
-        ~SehExceptionInDestructorTest() {
-            RaiseException(42, 0, 0, NULL);
-        }
+        ~SehExceptionInDestructorTest() { RaiseException(42, 0, 0, NULL); }
 };
 
 TEST_F(SehExceptionInDestructorTest, ThrowsExceptionInDestructor) {}
@@ -73,9 +69,7 @@ TEST_F(SehExceptionInDestructorTest, ThrowsExceptionInDestructor) {}
 class SehExceptionInSetUpTestCaseTest : public Test
 {
     public:
-        static void SetUpTestCase() {
-            RaiseException(42, 0, 0, NULL);
-        }
+        static void SetUpTestCase() { RaiseException(42, 0, 0, NULL); }
 };
 
 TEST_F(SehExceptionInSetUpTestCaseTest, ThrowsExceptionInSetUpTestCase) {}
@@ -83,9 +77,7 @@ TEST_F(SehExceptionInSetUpTestCaseTest, ThrowsExceptionInSetUpTestCase) {}
 class SehExceptionInTearDownTestCaseTest : public Test
 {
     public:
-        static void TearDownTestCase() {
-            RaiseException(42, 0, 0, NULL);
-        }
+        static void TearDownTestCase() { RaiseException(42, 0, 0, NULL); }
 };
 
 TEST_F(SehExceptionInTearDownTestCaseTest, ThrowsExceptionInTearDownTestCase) {}
@@ -93,9 +85,7 @@ TEST_F(SehExceptionInTearDownTestCaseTest, ThrowsExceptionInTearDownTestCase) {}
 class SehExceptionInSetUpTest : public Test
 {
     protected:
-        virtual void SetUp() {
-            RaiseException(42, 0, 0, NULL);
-        }
+        virtual void SetUp() { RaiseException(42, 0, 0, NULL); }
 };
 
 TEST_F(SehExceptionInSetUpTest, ThrowsExceptionInSetUp) {}
@@ -103,9 +93,7 @@ TEST_F(SehExceptionInSetUpTest, ThrowsExceptionInSetUp) {}
 class SehExceptionInTearDownTest : public Test
 {
     protected:
-        virtual void TearDown() {
-            RaiseException(42, 0, 0, NULL);
-        }
+        virtual void TearDown() { RaiseException(42, 0, 0, NULL); }
 };
 
 TEST_F(SehExceptionInTearDownTest, ThrowsExceptionInTearDown) {}
@@ -158,6 +146,8 @@ TEST_F(CxxExceptionInConstructorTest, ThrowsExceptionInConstructor)
                   << "called unexpectedly.";
 }
 
+// Exceptions in destructors are not supported in C++11.
+#if !defined(__GXX_EXPERIMENTAL_CXX0X__) &&  __cplusplus < 201103L
 class CxxExceptionInDestructorTest : public Test
 {
     public:
@@ -175,6 +165,7 @@ class CxxExceptionInDestructorTest : public Test
 };
 
 TEST_F(CxxExceptionInDestructorTest, ThrowsExceptionInDestructor) {}
+#endif  // C++11 mode
 
 class CxxExceptionInSetUpTestCaseTest : public Test
 {
@@ -248,9 +239,7 @@ class CxxExceptionInSetUpTest : public Test
                    "called as expected.\n");
         }
 
-        virtual void SetUp() {
-            throw std::runtime_error("Standard C++ exception");
-        }
+        virtual void SetUp() { throw std::runtime_error("Standard C++ exception"); }
 
         virtual void TearDown() {
             printf("%s",

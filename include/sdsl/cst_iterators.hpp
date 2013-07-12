@@ -156,7 +156,7 @@ class cst_dfs_const_forward_iterator: public std::iterator<std::forward_iterator
         }
 
         //! Postfix increment of the iterator.
-        void operator++(int x) {
+        void operator++(int) {
             ++(*this);
         }
 
@@ -224,7 +224,7 @@ class cst_bottom_up_const_forward_iterator: public std::iterator<std::forward_it
         }
 
         //! Postfix increment of the iterator.
-        iterator operator++(int x) {
+        iterator operator++(int) {
             iterator it = *this;
             ++(*this);
             return it;
@@ -310,7 +310,7 @@ class cst_bfs_iterator: public std::iterator<std::forward_iterator_tag, typename
         }
 
         //! Postfix increment of the iterator.
-        iterator operator++(int x) {
+        iterator operator++(int) {
             iterator it = *this;
             ++(*this);
             return it;

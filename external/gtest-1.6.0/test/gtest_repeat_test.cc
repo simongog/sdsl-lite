@@ -73,7 +73,7 @@ namespace
                   << "Which is: " << expected_val << "\n";\
       ::testing::internal::posix::Abort();\
     }\
-  } while(::testing::internal::AlwaysFalse())
+  } while (::testing::internal::AlwaysFalse())
 
 
 // Used for verifying that global environment set-up and tear-down are
@@ -86,12 +86,8 @@ class MyEnvironment : public testing::Environment
 {
     public:
         MyEnvironment() {}
-        virtual void SetUp() {
-            g_environment_set_up_count++;
-        }
-        virtual void TearDown() {
-            g_environment_tear_down_count++;
-        }
+        virtual void SetUp() { g_environment_set_up_count++; }
+        virtual void TearDown() { g_environment_tear_down_count++; }
 };
 
 // A test that should fail.

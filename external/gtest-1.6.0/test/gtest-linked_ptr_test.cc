@@ -48,15 +48,9 @@ Message* history = NULL;
 class A
 {
     public:
-        A(): mynum(num++) {
-            *history << "A" << mynum << " ctor\n";
-        }
-        virtual ~A() {
-            *history << "A" << mynum << " dtor\n";
-        }
-        virtual void Use() {
-            *history << "A" << mynum << " use\n";
-        }
+        A(): mynum(num++) { *history << "A" << mynum << " ctor\n"; }
+        virtual ~A() { *history << "A" << mynum << " dtor\n"; }
+        virtual void Use() { *history << "A" << mynum << " use\n"; }
     protected:
         int mynum;
 };
@@ -65,15 +59,9 @@ class A
 class B : public A
 {
     public:
-        B() {
-            *history << "B" << mynum << " ctor\n";
-        }
-        ~B() {
-            *history << "B" << mynum << " dtor\n";
-        }
-        virtual void Use() {
-            *history << "B" << mynum << " use\n";
-        }
+        B() { *history << "B" << mynum << " ctor\n"; }
+        ~B() { *history << "B" << mynum << " dtor\n"; }
+        virtual void Use() { *history << "B" << mynum << " use\n"; }
 };
 
 class LinkedPtrTest : public testing::Test
@@ -165,8 +153,7 @@ TEST_F(LinkedPtrTest, GeneralTest)
         "A0 dtor\n"
         "A3 dtor\n"
         "A1 dtor\n",
-        history->GetString().c_str()
-    );
+        history->GetString().c_str());
 }
 
 }  // Unnamed namespace
