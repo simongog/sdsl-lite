@@ -27,8 +27,6 @@
 #include "select_support.hpp"
 #include "wt_helper.hpp"
 #include <vector>
-#include <deque>
-#include <queue>
 #include <utility>
 #include <array>
 
@@ -43,22 +41,26 @@ template<class t_shape,
          class t_rank        = typename t_bitvector::rank_1_type,
          class t_select      = typename t_bitvector::select_1_type,
          class t_select_zero = typename t_bitvector::select_0_type,
-         bool  t_dfs_shape   = false>
+         bool  t_dfs_shape   = false,
+         class t_tree_strat  = byte_tree
+         >
+// TODO: move t_dfs_shape into t_tree_strat
 class wt_pc
 {
     public:
 
         typedef int_vector<>::size_type          size_type;
-        typedef unsigned char                    value_type;
+        typedef typename t_tree_strat::value_type    value_type;
         typedef t_bitvector                      bit_vector_type;
         typedef t_rank                           rank_1_type;
         typedef t_select                         select_1_type;
         typedef t_select_zero                    select_0_type;
         typedef wt_tag                           index_category;
-        typedef byte_alphabet_tag                alphabet_category;
+        typedef typename t_tree_strat::alphabet_category  alphabet_category;
         typedef typename
         t_shape::template type<wt_pc>::t shape;
         enum { lex_ordered=shape::lex_ordered };
+        using node_type = typename t_tree_strat::node_type;
 
     private:
 
@@ -70,181 +72,96 @@ class wt_pc
 
         size_type        m_size  = 0;    // original text size
         size_type        m_sigma = 0;    // alphabet size
-        bit_vector_type  m_tree;         // bit vector to store the wavelet tree
-        rank_1_type      m_tree_rank;    // rank support for the wavelet tree bit vector
-        select_1_type    m_tree_select1; // select support for the wavelet tree bit vector
-        select_0_type    m_tree_select0;
-
-        _node<size_type> m_nodes[511];    // nodes for the Huffman tree structure
-        uint16_t         m_c_to_leaf[256];// map symbol c to a leaf in the tree structure
-        // if m_c_to_leaf[c] == _undef_node the char does
-        // not exists in the text
-        uint64_t         m_path[256];     // path information for each char; the bits at position
-        // 0..55 hold path information; bits 56..63 the length
-        // of the path in binary representation
+        bit_vector_type  m_bv;           // bit vector to store the wavelet tree
+        rank_1_type      m_bv_rank;      // rank support for the wavelet tree bit vector
+        select_1_type    m_bv_select1;   // select support for the wavelet tree bit vector
+        select_0_type    m_bv_select0;
+        t_tree_strat    m_tree;
 
         void copy(const wt_pc& wt) {
             m_size            = wt.m_size;
             m_sigma           = wt.m_sigma;
-            m_tree            = wt.m_tree;
-            m_tree_rank       = wt.m_tree_rank;
-            m_tree_rank.set_vector(&m_tree);
-            m_tree_select1    = wt.m_tree_select1;
-            m_tree_select1.set_vector(&m_tree);
-            m_tree_select0    = wt.m_tree_select0;
-            m_tree_select0.set_vector(&m_tree);
-            for (size_type i=0; i < 511; ++i)
-                m_nodes[i] = wt.m_nodes[i];
-            for (size_type i=0; i<256; ++i)
-                m_c_to_leaf[i] = wt.m_c_to_leaf[i];
-            for (size_type i=0; i<256; ++i) {
-                m_path[i] = wt.m_path[i];
-            }
+            m_bv            = wt.m_bv;
+            m_bv_rank       = wt.m_bv_rank;
+            m_bv_rank.set_vector(&m_bv);
+            m_bv_select1    = wt.m_bv_select1;
+            m_bv_select1.set_vector(&m_bv);
+            m_bv_select0    = wt.m_bv_select0;
+            m_bv_select0.set_vector(&m_bv);
+            m_tree          = wt.m_tree;
         }
 
         // insert a character into the wavelet tree, see construct method
-        void insert_char(uint8_t old_chr, size_type* tree_pos, size_type times,
-                         bit_vector& f_tree) {
-            uint32_t path_len = (m_path[old_chr]>>56);
-            uint64_t p = m_path[old_chr];
+        void insert_char(uint8_t old_chr, size_type* bv_pos, size_type times,
+                         bit_vector& f_bv) {
+            uint64_t p = m_tree.bit_path(old_chr);
+            uint32_t path_len = p>>56;
             for (uint32_t node=0, l=0; l<path_len; ++l, p >>= 1) {
                 if (p&1) {
-                    f_tree.set_int(tree_pos[node], 0xFFFFFFFFFFFFFFFFULL,times);
+                    f_bv.set_int(bv_pos[node], 0xFFFFFFFFFFFFFFFFULL,times);
                 }
-                tree_pos[node] += times;
-                node = m_nodes[node].child[p&1];
+                bv_pos[node] += times;
+                node = m_tree.child(node, p&1);
             }
         }
 
 
 
         // calculates the tree shape returns the size of the WT bit vector
-        size_type construct_tree_shape(const std::array<size_type, 256>& C) {
+        size_type construct_tree_shape(const std::vector<size_type>& C) {
             // vector  for node of the tree
-            std::vector<_node<size_type>> temp_nodes(2*m_sigma-1);
+            std::vector<pc_node<size_type>> temp_nodes(2*m_sigma-1);
             size_type node_cnt = shape::construct_tree(C, temp_nodes);
             // Convert code tree into BFS order in memory and
-            // calculate tree_pos values
-            m_nodes[0] = temp_nodes[node_cnt-1];  // insert root at index 0
+            // calculate bv_pos values
             size_type tree_size = 0;
-            node_cnt = 1;
-            uint16_t last_parent = _undef_node;
-            std::deque<size_type> q;
-            q.push_back(0);
-            while (!q.empty()) {
-                size_type idx;
-                if (!t_dfs_shape) {
-                    idx = q.front(); q.pop_front();
-                } else {
-                    idx = q.back(); q.pop_back();
-                }
-                // frq_sum is store in tree_pos value
-                size_type frq = m_nodes[idx].tree_pos;
-                m_nodes[idx].tree_pos = tree_size;
-                if (m_nodes[idx].child[0] != _undef_node)// if node is not a leaf
-                    tree_size += frq;                    // add frequency
-                if (idx > 0) { // node is not the root
-                    if (last_parent != m_nodes[idx].parent)
-                        m_nodes[m_nodes[idx].parent].child[0] = idx;
-                    else
-                        m_nodes[m_nodes[idx].parent].child[1] = idx;
-                    last_parent = m_nodes[idx].parent;
-                }
-                if (m_nodes[idx].child[0] != _undef_node) { // if node is not a leaf
-                    for (size_type k=0; k<2; ++k) {       // add children to tree
-                        m_nodes[node_cnt] = temp_nodes[ m_nodes[idx].child[k] ];
-                        m_nodes[node_cnt].parent = idx;
-                        q.push_back(node_cnt);
-                        m_nodes[idx].child[k] = node_cnt++;
-                    }
-                }
-            }
-
-            // initialize m_c_to_leaf
-            for (size_type i=0; i<256; ++i)
-                m_c_to_leaf[i] = _undef_node; // if c is not in the alphabet m_c_to_leaf[c] = _undef_node
-            for (size_type i=0; i < 2*sigma-1; ++i) {
-                if (m_nodes[i].child[0] == _undef_node)                 // if node is a leaf
-                    m_c_to_leaf[(uint8_t)m_nodes[i].tree_pos_rank] = i; // calculate value
-            }
-            // initialize path information
-            // Note: In the case of a bfs search order,
-            // we can classify nodes as right child and left child with an easy criterion:
-            //   node is a left child, if node%2==1
-            //   node is a right child, if node%2==0
-            for (size_type c=0; c<256; ++c) {
-                if (m_c_to_leaf[c] != _undef_node) { // if char exists in the alphabet
-                    size_type node = m_c_to_leaf[c];
-                    uint64_t w = 0; // path
-                    uint64_t l = 0; // path len
-                    while (node != 0) { // while node is not the root
-                        w <<= 1;
-                        if (m_nodes[m_nodes[node].parent].child[1] == node) // if the node is a right child
-                            w |= 1ULL;
-                        ++l;
-                        node = m_nodes[node].parent; // go up the tree
-                    }
-                    if (l > 56) {
-                        throw std::logic_error("Code depth greater than 56!!!");
-                    }
-                    m_path[c] = w | (l << 56);
-                } else {
-                    m_path[c] = 0;// i.e. len is  0, good for special case in rank
-                }
-            }
+            t_tree_strat tmp_tree(temp_nodes, node_cnt, t_dfs_shape, sigma, tree_size);
+            m_tree.swap(tmp_tree);
             return tree_size;
         }
 
         void construct_init_rank_select() {
-            util::init_support(m_tree_rank, &m_tree);
-            util::init_support(m_tree_select0, &m_tree);
-            util::init_support(m_tree_select1, &m_tree);
+            util::init_support(m_bv_rank, &m_bv);
+            util::init_support(m_bv_select0, &m_bv);
+            util::init_support(m_bv_select1, &m_bv);
         }
-
-        void construct_precalc_node_ranks() {
-            for (size_type i=0; i<2*m_sigma-1; ++i) {
-                if (m_nodes[i].child[0] != _undef_node)  // if node is not a leaf
-                    m_nodes[i].tree_pos_rank = m_tree_rank(m_nodes[i].tree_pos);
-            }
-        }
-
 
         // recursive internal version of the method interval_symbols
         void
         _interval_symbols(size_type i, size_type j, size_type& k,
                           std::vector<value_type>& cs,
                           std::vector<size_type>& rank_c_i,
-                          std::vector<size_type>& rank_c_j, uint16_t node) const {
+                          std::vector<size_type>& rank_c_j, node_type v) const {
             // invariant: j>i
             // goto right child
-            size_type i_new = (m_tree_rank(m_nodes[node].tree_pos + i)
-                               - m_nodes[node].tree_pos_rank);
-            size_type j_new = (m_tree_rank(m_nodes[node].tree_pos + j)
-                               - m_nodes[node].tree_pos_rank);
+            size_type i_new = (m_bv_rank(m_tree.bv_pos(v) + i)
+                               - m_tree.bv_pos_rank(v));
+            size_type j_new = (m_bv_rank(m_tree.bv_pos(v) + j)
+                               - m_tree.bv_pos_rank(v));
             // goto left child
             i -= i_new; j -= j_new;
             if (i != j) {
-                uint16_t node_new = m_nodes[node].child[0];
+                node_type v_new = m_tree.child(v, 0);
                 // if node is not a leaf
-                if (m_nodes[node_new].child[0] != _undef_node) {
-                    _interval_symbols(i, j, k, cs, rank_c_i, rank_c_j, node_new);
+                if (m_tree.child(v_new, 0) != t_tree_strat::_undef_node) {
+                    _interval_symbols(i, j, k, cs, rank_c_i, rank_c_j, v_new);
                 } else {
                     rank_c_i[k] = i;
                     rank_c_j[k] = j;
-                    cs[k++] = m_nodes[node_new].tree_pos_rank;
+                    cs[k++] = m_tree.bv_pos_rank(v_new);
                 }
             }
             // goto right child
             if (i_new!=j_new) {
-                uint16_t node_new = m_nodes[node].child[1];
+                node_type v_new = m_tree.child(v, 1);
                 // if node is not a leaf
-                if (m_nodes[node_new].child[0] != _undef_node) {
+                if (m_tree.child(v_new, 0) != t_tree_strat::_undef_node) {
                     _interval_symbols(i_new, j_new, k, cs, rank_c_i, rank_c_j,
-                                      node_new);
+                                      v_new);
                 } else {
                     rank_c_i[k] = i_new;
                     rank_c_j[k] = j_new;
-                    cs[k++] = m_nodes[node_new].tree_pos_rank;
+                    cs[k++] = m_tree.bv_pos_rank(v_new);
                 }
             }
         }
@@ -252,7 +169,7 @@ class wt_pc
     public:
 
         const size_type&       sigma = m_sigma;
-        const bit_vector_type& tree  = m_tree;
+        const bit_vector_type& bv  = m_bv;
 
         // Default constructor
         wt_pc() {};
@@ -267,20 +184,24 @@ class wt_pc
             if (0 == m_size)
                 return;
             // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
-            std::array<size_type,256> C = {{0}};
+            // TODO: C should also depend on the tree_strategy. C is just a mapping
+            // from a symbol to its frequency. So a map<uint64_t,uint64_t> could be
+            // used for integer alphabets...
+            std::vector<size_type> C;
             // 1. Count occurrences of characters
             calculate_character_occurences(input_buf, m_size, C);
             // 2. Calculate effective alphabet size
             calculate_effective_alphabet_size(C, m_sigma);
             // 3. Generate tree shape
             size_type tree_size = construct_tree_shape(C);
-            // 4. Generate wavelet tree bit sequence m_tree
+            // 4. Generate wavelet tree bit sequence m_bv
 
             bit_vector tmp_tree(tree_size, 0);
             //  Calculate starting position of wavelet tree nodes
-            size_type tree_pos[511];
-            for (size_type i=0; i < 2*sigma-1; ++i) {
-                tree_pos[i] = m_nodes[i].tree_pos;
+            // TODO: depends on tree strategy
+            size_type bv_pos[511];
+            for (size_type v=0; v < 2*sigma-1; ++v) {
+                bv_pos[v] = m_tree.bv_pos(v);
             }
             input_buf.reset();
             if (input_buf.int_vector_size < size) {
@@ -297,27 +218,27 @@ class wt_pc
                 for (; i < r_sum+r; ++i) {
                     uint8_t chr = input_buf[i-r_sum];
                     if (chr    != old_chr) {
-                        insert_char(old_chr, tree_pos, times, tmp_tree);
+                        insert_char(old_chr, bv_pos, times, tmp_tree);
                         times = 1;
                         old_chr = chr;
                     } else { // chr == old_chr
                         ++times;
                         if (times == 64) {
-                            insert_char(old_chr, tree_pos, times, tmp_tree);
+                            insert_char(old_chr, bv_pos, times, tmp_tree);
                             times = 0;
                         }
                     }
                 }
                 if (times > 0) {
-                    insert_char(old_chr, tree_pos, times, tmp_tree);
+                    insert_char(old_chr, bv_pos, times, tmp_tree);
                 }
                 r_sum += r; r = input_buf.load_next_block();
             }
-            m_tree = bit_vector_type(std::move(tmp_tree));
-            // 5. Initialize rank and select data structures for m_tree
+            m_bv = bit_vector_type(std::move(tmp_tree));
+            // 5. Initialize rank and select data structures for m_bv
             construct_init_rank_select();
-            // 6. Finish inner nodes by precalculating the tree_pos_rank values
-            construct_precalc_node_ranks();
+            // 6. Finish inner nodes by precalculating the bv_pos_rank values
+            m_tree.init_node_ranks(m_bv_rank, sigma);
         }
 
 
@@ -337,21 +258,15 @@ class wt_pc
             if (this != &wt) {
                 std::swap(m_size, wt.m_size);
                 std::swap(m_sigma,  wt.m_sigma);
+                m_bv.swap(wt.m_bv);
+                util::swap_support(m_bv_rank, wt.m_bv_rank,
+                                   &m_bv, &(wt.m_bv));
+
+                util::swap_support(m_bv_select1, wt.m_bv_select1,
+                                   &m_bv, &(wt.m_bv));
+                util::swap_support(m_bv_select0, wt.m_bv_select0,
+                                   &m_bv, &(wt.m_bv));
                 m_tree.swap(wt.m_tree);
-                util::swap_support(m_tree_rank, wt.m_tree_rank,
-                                   &m_tree, &(wt.m_tree));
-
-                util::swap_support(m_tree_select1, wt.m_tree_select1,
-                                   &m_tree, &(wt.m_tree));
-                util::swap_support(m_tree_select0, wt.m_tree_select0,
-                                   &m_tree, &(wt.m_tree));
-
-                for (size_type i=0; i < 511; ++i)
-                    std::swap(m_nodes[i], wt.m_nodes[i]);
-                for (size_type i=0; i<256; ++i)
-                    std::swap(m_c_to_leaf[i], wt.m_c_to_leaf[i]);
-                for (size_type i=0; i<256; ++i)
-                    std::swap(m_path[i], wt.m_path[i]);
             }
         }
 
@@ -372,19 +287,20 @@ class wt_pc
             assert(i < size());
             // which stores how many of the next symbols are equal
             // with the current char
-            size_type node = 0; // start at root node
-            while (m_nodes[node].child[0] != _undef_node) { // while  not a leaf
-                if (m_tree[ m_nodes[node].tree_pos + i]) {  // goto right child
-                    i = m_tree_rank(m_nodes[node].tree_pos + i)
-                        - m_nodes[node].tree_pos_rank;
-                    node = m_nodes[node].child[1];
+            node_type v = m_tree.root(); // start at root node
+            while (m_tree.child(v,0) != t_tree_strat::_undef_node) { // while  not a leaf
+                if (m_bv[ m_tree.bv_pos(v) + i]) {  // goto right child
+                    i = m_bv_rank(m_tree.bv_pos(v) + i)
+                        - m_tree.bv_pos_rank(v);
+                    v = m_tree.child(v,1);
                 } else { // goto the left child
-                    i -= (m_tree_rank(m_nodes[node].tree_pos + i)
-                          - m_nodes[node].tree_pos_rank);
-                    node = m_nodes[node].child[0];
+                    i -= (m_bv_rank(m_tree.bv_pos(v) + i)
+                          - m_tree.bv_pos_rank(v));
+                    v = m_tree.child(v,0);
                 }
             }
-            return m_nodes[node].tree_pos_rank;
+            // if v is a leaf bv_pos_rank returns symbol itself
+            return m_tree.bv_pos_rank(v);
         };
 
         //! Calculates how many symbols c are in the prefix [0..i-1].
@@ -398,26 +314,26 @@ class wt_pc
          */
         size_type rank(size_type i, value_type c)const {
             assert(i <= size());
-            uint64_t p = m_path[c];
+            uint64_t p = m_tree.bit_path(c);
             // path_len == 0, if `c` was not in the text or m_sigma=1
-            uint32_t path_len = (m_path[c]>>56);
+            uint32_t path_len = (p>>56);
             if (!path_len and 1 == m_sigma) {
-                if (m_c_to_leaf[c] == _undef_node) { // if `c` was not in the text
+                if (m_tree.c_to_leaf(c) == t_tree_strat::_undef_node) { // if `c` was not in the text
                     return 0;
                 }
                 return std::min(i, m_size); // if m_sigma == 1 answer is trivial
             }
             size_type result = i & ZoO[path_len>0];
-            uint32_t node=0;
+            node_type v = m_tree.root();
             for (uint32_t l=0; l<path_len and result; ++l, p >>= 1) {
                 if (p&1) {
-                    result  = (m_tree_rank(m_nodes[node].tree_pos+result)
-                               -  m_nodes[node].tree_pos_rank);
+                    result  = (m_bv_rank(m_tree.bv_pos(v)+result)
+                               -  m_tree.bv_pos_rank(v));
                 } else {
-                    result -= (m_tree_rank(m_nodes[node].tree_pos+result)
-                               -  m_nodes[node].tree_pos_rank);
+                    result -= (m_bv_rank(m_tree.bv_pos(v)+result)
+                               -  m_tree.bv_pos_rank(v));
                 }
-                node = m_nodes[node].child[p&1]; // goto child
+                v = m_tree.child(v, p&1); // goto child
             }
             return result;
         };
@@ -432,19 +348,20 @@ class wt_pc
          */
         size_type inverse_select(size_type i, value_type& c)const {
             assert(i < size());
-            uint32_t node=0;
-            while (m_nodes[node].child[0] != _undef_node) { // while not a leaf
-                if (m_tree[m_nodes[node].tree_pos + i]) {   //  goto right child
-                    i    = (m_tree_rank(m_nodes[node].tree_pos + i)
-                            - m_nodes[node].tree_pos_rank);
-                    node = m_nodes[node].child[1];
+            node_type v = m_tree.root();
+            while (m_tree.child(v,0) != t_tree_strat::_undef_node) { // while not a leaf
+                if (m_bv[m_tree.bv_pos(v) + i]) {   //  goto right child
+                    i = (m_bv_rank(m_tree.bv_pos(v) + i)
+                         - m_tree.bv_pos_rank(v));
+                    v = m_tree.child(v, 1);
                 } else { // goto left child
-                    i -= (m_tree_rank(m_nodes[node].tree_pos + i)
-                          - m_nodes[node].tree_pos_rank);
-                    node = m_nodes[node].child[0];
+                    i -= (m_bv_rank(m_tree.bv_pos(v) + i)
+                          - m_tree.bv_pos_rank(v));
+                    v = m_tree.child(v,0);
                 }
             }
-            c = m_nodes[node].tree_pos_rank;
+            // if v is a leaf bv_pos_rank returns symbol itself
+            c = m_tree.bv_pos_rank(v);
             return i;
         }
 
@@ -459,29 +376,28 @@ class wt_pc
         size_type select(size_type i, value_type c)const {
             assert(i > 0);
             assert(i <= rank(size(), c));
-            uint16_t node = m_c_to_leaf[c];
-            if (node == _undef_node) { // if c was not in the text
+            node_type v = m_tree.c_to_leaf(c);
+            if (v == t_tree_strat::_undef_node) { // if c was not in the text
                 return m_size;         // -> return a position right to the end
             }
             if (m_sigma == 1) {
                 return std::min(i-1,m_size);
             }
             size_type result = i-1;    // otherwise
-            uint64_t p = m_path[c];
+            uint64_t p = m_tree.bit_path(c);
             uint32_t path_len = (p>>56);
             // path_len > 0, since we have handled m_sigma = 1.
             p <<= (64-path_len);
             for (uint32_t l=0; l<path_len; ++l, p <<= 1) {
                 if ((p & 0x8000000000000000ULL)==0) { // node was a left child
-                    node   = m_nodes[node].parent;
-                    result = m_tree_select0(m_nodes[node].tree_pos
-                                            - m_nodes[node].tree_pos_rank + result + 1)
-                             - m_nodes[node].tree_pos;
+                    v  = m_tree.parent(v);
+                    result = m_bv_select0(m_tree.bv_pos(v)
+                                          - m_tree.bv_pos_rank(v) + result + 1)
+                             - m_tree.bv_pos(v);
                 } else { // node was a right child
-                    node   = m_nodes[node].parent;
-                    result = m_tree_select1(
-                                 m_nodes[node].tree_pos_rank + result + 1)
-                             - m_nodes[node].tree_pos;
+                    v   = m_tree.parent(v);
+                    result = m_bv_select1(m_tree.bv_pos_rank(v) + result + 1)
+                             - m_tree.bv_pos(v);
                 }
             }
             return result;
@@ -519,7 +435,7 @@ class wt_pc
                 k = 0;
             } else if (1==m_sigma) {
                 k = 1;
-                cs[0] = m_nodes[0].tree_pos_rank;
+                cs[0] = m_tree.bv_pos_rank(m_tree.root());
                 rank_c_i[0] = std::min(i,m_size);
                 rank_c_j[0] = std::min(j,m_size);
             } else if ((j-i)==1) {
@@ -573,36 +489,36 @@ class wt_pc
                 if (i==j) {
                     return rank(i,c);
                 }
-                uint64_t p = m_path[c];
-                uint32_t path_len = (m_path[c]>>56);
+                uint64_t p = m_tree.bit_path(c);
+                uint32_t path_len = p>>56;
                 // path_len equals zero if c was not present
                 assert(path_len>0);
                 size_type res1 = i;
                 size_type res2 = j;
-                uint32_t node=0;
+                node_type v = m_tree.root();
                 for (uint32_t l=0; l<path_len; ++l, p >>= 1) {
                     if (p&1) {
-                        size_type r1_1 = (m_tree_rank(m_nodes[node].tree_pos+res1)
-                                          - m_nodes[node].tree_pos_rank);
-                        size_type r1_2 = (m_tree_rank(m_nodes[node].tree_pos+res2)
-                                          - m_nodes[node].tree_pos_rank);
+                        size_type r1_1 = (m_bv_rank(m_tree.bv_pos(v)+res1)
+                                          - m_tree.bv_pos_rank(v));
+                        size_type r1_2 = (m_bv_rank(m_tree.bv_pos(v)+res2)
+                                          - m_tree.bv_pos_rank(v));
 
                         smaller += res2 - r1_2 - res1 + r1_1;
 
                         res1 = r1_1;
                         res2 = r1_2;
                     } else {
-                        size_type r1_1 = (m_tree_rank(m_nodes[node].tree_pos+res1)
-                                          - m_nodes[node].tree_pos_rank);
-                        size_type r1_2 = (m_tree_rank(m_nodes[node].tree_pos+res2)
-                                          - m_nodes[node].tree_pos_rank);
+                        size_type r1_1 = (m_bv_rank(m_tree.bv_pos(v)+res1)
+                                          - m_tree.bv_pos_rank(v));
+                        size_type r1_2 = (m_bv_rank(m_tree.bv_pos(v)+res2)
+                                          - m_tree.bv_pos_rank(v));
 
                         greater += r1_2 - r1_1;
 
                         res1 -= r1_1;
                         res2 -= r1_2;
                     }
-                    node = m_nodes[node].child[p&1];
+                    v = m_tree.child(v, p&1);
                 }
                 return res1;
             } else {
@@ -618,19 +534,11 @@ class wt_pc
             size_type written_bytes = 0;
             written_bytes += write_member(m_size,out,child, "size");
             written_bytes += write_member(m_sigma,out,child, "sigma");
+            written_bytes += m_bv.serialize(out,child,"bv");
+            written_bytes += m_bv_rank.serialize(out,child,"bv_rank");
+            written_bytes += m_bv_select1.serialize(out,child,"bv_select_1");
+            written_bytes += m_bv_select0.serialize(out,child,"bv_select_0");
             written_bytes += m_tree.serialize(out,child,"tree");
-            written_bytes += m_tree_rank.serialize(out,child,"tree_rank");
-            written_bytes += m_tree_select1.serialize(out,child,"tree_select_1");
-            written_bytes += m_tree_select0.serialize(out,child,"tree_select_0");
-// TODO: use serialize vector. It is surely possible to use less space
-            for (size_type i=0; i < 511; ++i) {
-                written_bytes += m_nodes[i].serialize(out);
-            }
-            out.write((char*) m_c_to_leaf, 256*sizeof(m_c_to_leaf[0]));
-            written_bytes += 256*sizeof(m_c_to_leaf[0]);// bytes from previous loop
-            out.write((char*) m_path, 256*sizeof(m_path[0]));
-            written_bytes += 256*sizeof(m_path[0]);// bytes from previous loop
-            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
@@ -638,15 +546,11 @@ class wt_pc
         void load(std::istream& in) {
             read_member(m_size, in);
             read_member(m_sigma, in);
+            m_bv.load(in);
+            m_bv_rank.load(in, &m_bv);
+            m_bv_select1.load(in, &m_bv);
+            m_bv_select0.load(in, &m_bv);
             m_tree.load(in);
-            m_tree_rank.load(in, &m_tree);
-            m_tree_select1.load(in, &m_tree);
-            m_tree_select0.load(in, &m_tree);
-            for (size_type i=0; i < 511; ++i) {
-                m_nodes[i].load(in);
-            }
-            in.read((char*) m_c_to_leaf, 256*sizeof(m_c_to_leaf[0]));
-            in.read((char*) m_path, 256*sizeof(m_path[0]));
         }
 
 };
