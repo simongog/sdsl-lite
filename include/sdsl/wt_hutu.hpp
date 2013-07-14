@@ -69,7 +69,7 @@ struct _hutu_shape {
         struct heap_node {
             t_element* item;   // pointer to the represented item
             heap_node* left, *right, *parent;  // pointer to left/right child, parent
-            int rank; // rank of the heap node
+            int64_t rank; // rank of the heap node
             //! Constructor
             heap_node(t_element* it=nullptr) : item(it), left(nullptr),
                 right(nullptr), parent(nullptr),
@@ -98,7 +98,7 @@ struct _hutu_shape {
                                 if (item->parent) fix_node(item->parent);
                             }
                         } else { // node information has to be adapted
-                            int nn = (item->left->rank > item->right->rank) ? item->right->rank : item->left->rank;
+                            int64_t nn = (item->left->rank > item->right->rank) ? item->right->rank : item->left->rank;
                             if (item->rank != nn && item->parent != 0) {
                                 item->rank = nn;
                                 fix_node(item->parent);
@@ -245,8 +245,8 @@ struct _hutu_shape {
         struct m_node {
             // min sum of the two min elements of the hpq this node points to
             size_type min_sum;
-            int i; // position of the left node in the working sequence
-            int j; // position of the right node in the working sequence
+            int64_t i; // position of the left node in the working sequence
+            int64_t j; // position of the right node in the working sequence
             // pointer to the corresponding heap element (used for deletion)
             heap_node<m_node>* qel;
             l_heap<ht_node>* myhpq;  // pointer to the hpq
@@ -273,11 +273,11 @@ struct _hutu_shape {
 
         // Hu-Tucker node as used in the first phase of the Hu-Tucker algorithm
         struct ht_node {
-            int       pos;   // position of the node
-            uint8_t   c;     // the represented letter
+            int64_t   pos;   // position of the node
+            uint64_t  c;     // the represented letter
             size_type w;     // frequency of the node
             bool      t;     // whether the node is a leaf
-            int       level; // level in the tree
+            int64_t   level; // level in the tree
 
             // pointer to the two master nodes
             // (as a node can belong to up to two hpqs)
@@ -307,13 +307,13 @@ struct _hutu_shape {
 
         template<class t_rac>
         static size_type
-        construct_tree(t_rac& C, vector<_node<size_type> >& tmp_nodes) {
+        construct_tree(t_rac& C, vector<pc_node<size_type> >& tmp_nodes) {
             //create a leaf for every letter
             std::vector<ht_node> node_vector;
-            for (int i = 0; i < 256; i++) {
+            for (size_t i = 0; i < C.size(); i++) {
                 if (C[i]) {
                     ht_node n;
-                    n.c = (uint8_t)i;
+                    n.c = (uint64_t)i;
                     n.w = C[i];
                     n.t = true;
                     n.pos = node_vector.size();
@@ -323,8 +323,8 @@ struct _hutu_shape {
             if (node_vector.size() == 1) {
                 // special case of an alphabet of size 1:
                 // just instantly create the tree and return it
-                tmp_nodes[0] = _node<size_type>(node_vector[0].w,
-                                                (size_type)node_vector[0].c);
+                tmp_nodes[0] = pc_node<size_type>(node_vector[0].w,
+                                                  (size_type)node_vector[0].c);
                 return 1;
             }
             size_type       sigma = node_vector.size();
@@ -365,8 +365,8 @@ struct _hutu_shape {
                 m_node* m = MPQ.find_min()->item;
                 ht_node* l = A[m->i];
                 ht_node* r = A[m->j];
-                int lpos = m->i;
-                int rpos = m->j;
+                int64_t lpos = m->i;
+                int64_t rpos = m->j;
 
                 l_heap<ht_node>* n_hpq = nullptr;
                 ht_node* n_rt = nullptr;
@@ -545,16 +545,16 @@ struct _hutu_shape {
             size_type node_count=0;
             for (size_type i = 0; i < sigma; i++) {
                 stack[i] = nullptr;
-                tmp_nodes[i] = _node<size_type>(T[i].w, (size_type)T[i].c);
+                tmp_nodes[i] = pc_node<size_type>(T[i].w, (size_type)T[i].c);
                 T[i].pos = i;
                 node_count++;
             }
 
-            int spointer = -1;
-            unsigned int qpointer = 0; // use the Array T as a stack
-            int max_nodes = sigma;
-            while (qpointer < sigma or spointer >= 1) {
-                if (spointer >= 1 and
+            int64_t spointer = -1;
+            uint64_t qpointer = 0; // use the Array T as a stack
+            int64_t max_nodes = sigma;
+            while (qpointer < sigma or spointer >= 1LL) {
+                if (spointer >= 1LL and
                     (stack[spointer]->level == stack[spointer-1]->level)) {
                     ht_node* n_node = new ht_node();
                     max_nodes++;
@@ -568,8 +568,8 @@ struct _hutu_shape {
                     n_node->pos = node_count;
                     tmp_nodes[stack[spointer-1]->pos].parent = node_count;
                     tmp_nodes[stack[spointer]->pos].parent = node_count;
-                    tmp_nodes[node_count++] = _node<size_type>(
-                                                  n_node->w, 0, _undef_node,
+                    tmp_nodes[node_count++] = pc_node<size_type>(
+                                                  n_node->w, 0, pc_node<size_type>::_undef_node,
                                                   stack[spointer-1]->pos,
                                                   stack[spointer]->pos);
 
@@ -585,7 +585,7 @@ struct _hutu_shape {
             return node_count;
         }
 
-        static void assign_level(ht_node* n, int lvl) {
+        static void assign_level(ht_node* n, int64_t lvl) {
             if (n) {
                 n->level = lvl;
                 assign_level(n->left, lvl + 1);
