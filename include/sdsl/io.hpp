@@ -218,6 +218,20 @@ void read_member(T& t, std::istream& in)
 template<>
 void read_member<std::string>(std::string& t, std::istream& in);
 
+template<class T>
+size_t write_element(const T& x, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="",
+                     SDSL_UNUSED typename std::enable_if<!std::is_pod<T>::value, bool>::type = false)
+{
+    return x.serialize(out, v, name);
+}
+
+template<class T>
+size_t write_element(const T& x, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="",
+                     SDSL_UNUSED typename std::enable_if<std::is_pod<T>::value, bool>::type = false)
+{
+    return write_member(x, out, v, name);
+}
+
 //! Serialize each element of an std::vector
 /*!
  * \param vec The vector which should be serialized.
@@ -234,7 +248,7 @@ size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::stru
         sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, "std::vector<"+util::class_name(vec[0])+">");
         size_t written_bytes = 0;
         for (typename std::vector<T>::size_type i = 0; i < vec.size(); ++i) {
-            written_bytes += vec[i].serialize(out, child, "[]");
+            written_bytes += write_element(vec[i], out, child, "[]");
         }
         structure_tree::add_size(child, written_bytes);
         sdsl::structure_tree::merge_children(child);
@@ -242,6 +256,20 @@ size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::stru
     } else {
         return 0;
     }
+}
+
+template<class T>
+void load_element(T& x, std::istream& in,
+                  SDSL_UNUSED typename std::enable_if<!std::is_pod<T>::value, bool>::type = false)
+{
+    x.load(in);
+}
+
+template<class T>
+void load_element(T& x, std::istream& in,
+                  SDSL_UNUSED typename std::enable_if<std::is_pod<T>::value, bool>::type = false)
+{
+    read_member(x, in);
 }
 
 //! Load all elements of a vector from a input stream
@@ -254,8 +282,9 @@ size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::stru
 template<class T>
 void load_vector(std::vector<T>& vec, std::istream& in)
 {
+    // TODO: replace by for(auto &x : ..
     for (typename std::vector<T>::size_type i = 0; i < vec.size(); ++i) {
-        vec[i].load(in);
+        load_element(vec[i], in);
     }
 }
 
