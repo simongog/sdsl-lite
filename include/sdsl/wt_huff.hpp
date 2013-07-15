@@ -77,7 +77,6 @@ using wt_huff = wt_pc<huff_shape,
       t_select_zero,
       t_tree_strat>;
 
-
 // Huffman shape for wt_pc
 template<class t_wt>
 struct _huff_shape {
@@ -92,9 +91,9 @@ struct _huff_shape {
     static void
     construct_tree(t_rac& C, vector<pc_node>& temp_nodes) {
         tMPQPII pq;
+        size_type i = 0;
         // add leaves of Huffman tree
         std::for_each(std::begin(C), std::end(C), [&](decltype(*std::begin(C)) &freq) {
-            static size_type i=0;
             if (freq > 0) {
                 pq.push(tPII(freq, temp_nodes.size()));// push (frequency, node pointer)
                 // initial bv_pos with number of occurrences and bv_pos_rank
