@@ -1219,8 +1219,8 @@ void construct_lcp_bwt_based2(cache_config& config)
 //{
 //    typedef int_vector<>::size_type size_type;
 //    int_vector<> lcp1,lcp2;
-//    load_from_file(lcp1, (lcpI+"_"+id).c_str());
-//    load_from_file(lcp2, (lcpII+"_"+id).c_str());
+//    load_from_file(lcp1, (lcpI+"_"+id));
+//    load_from_file(lcp2, (lcpII+"_"+id));
 //    if (lcp1 != lcp2) {
 //        std::cout<<"lcp results of "<<  lcpI << "and " <<lcpII<<" differ"<<std::endl;
 //        for (size_type i=0, cnt=0; i<lcp1.size() and cnt<10; ++i) {

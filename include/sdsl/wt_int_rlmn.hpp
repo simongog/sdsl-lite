@@ -202,7 +202,7 @@ class wt_int_rlmn
                     util::clear(condensed_bwt);
                     int_vector_file_buffer<> temp_bwt_buf(temp_file);
                     m_wt = std::move(wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
-                    std::remove(temp_file.c_str());
+                    sdsl::remove(temp_file);
                 }
                 m_bl = std::move(bit_vector_type(bl));
                 m_bf = std::move(bit_vector_type(bf));

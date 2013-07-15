@@ -1560,7 +1560,7 @@ class int_vector_file_buffer
             m_len = len;
             m_file = f_file;
             m_int_vector_size = util::file_size(m_file);
-            m_in.open(m_file.c_str());
+            m_in.open(m_file);
             if (m_in.is_open()) {
                 m_buf = new uint64_t[(m_len*m_width+63)/64 + 2];
             } else {
