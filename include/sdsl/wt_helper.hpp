@@ -66,7 +66,8 @@ struct byte_tree {
     using alphabet_category = byte_alphabet_tag;
     using value_type = uint8_t;
     using node_type = uint16_t; // node is represented by index in m_nodes
-    static const node_type undef = 0xFFFF; // max uint16_t value
+    static const node_type undef       = 0xFFFF; // max uint16_t value
+    static const uint32_t  fixed_sigma = 256;
 
     struct _node {
         uint64_t bv_pos      = 0;      // pointer into the bit_vector, which represents the wavelet tree
@@ -122,19 +123,19 @@ struct byte_tree {
         }
     };
 
-    std::vector<_node> m_nodes;          // nodes for the prefix code tree structure
-    node_type          m_c_to_leaf[256]; // map symbol c to a leaf in the tree structure
+    std::vector<_node> m_nodes;                  // nodes for the prefix code tree structure
+    node_type          m_c_to_leaf[fixed_sigma]; // map symbol c to a leaf in the tree structure
     // if m_c_to_leaf[c] == undef the char does
     // not exists in the text
-    uint64_t           m_path[256];      // path information for each char; the bits at position
+    uint64_t           m_path[fixed_sigma];      // path information for each char; the bits at position
     // 0..55 hold path information; bits 56..63 the length
     // of the path in binary representation
 
     void copy(const byte_tree& bt) {
         m_nodes = bt.m_nodes;
-        for (int32_t i=0; i<256; ++i)
+        for (int32_t i=0; i<fixed_sigma; ++i)
             m_c_to_leaf[i] = bt.m_c_to_leaf[i];
-        for (int32_t i=0; i<256; ++i)
+        for (int32_t i=0; i<fixed_sigma; ++i)
             m_path[i] = bt.m_path[i];
     }
 
@@ -177,7 +178,7 @@ struct byte_tree {
             }
         }
         // initialize m_c_to_leaf
-        for (uint32_t i=0; i<256; ++i)
+        for (uint32_t i=0; i<fixed_sigma; ++i)
             m_c_to_leaf[i] = undef; // if c is not in the alphabet m_c_to_leaf[c] = undef
         for (node_type v=0; v < m_nodes.size(); ++v) {
             if (m_nodes[v].child[0] == undef)               // if node is a leaf
@@ -188,7 +189,7 @@ struct byte_tree {
         // we can classify nodes as right child and left child with an easy criterion:
         //   node is a left child, if node%2==1
         //   node is a right child, if node%2==0
-        for (uint32_t c=0; c<256; ++c) {
+        for (uint32_t c=0; c<fixed_sigma; ++c) {
             if (m_c_to_leaf[c] != undef) { // if char exists in the alphabet
                 node_type v = m_c_to_leaf[c];
                 uint64_t w = 0; // path
@@ -224,9 +225,9 @@ struct byte_tree {
 
     void swap(byte_tree& bt) {
         std::swap(m_nodes, bt.m_nodes);
-        for (uint32_t i=0; i<256; ++i)
+        for (uint32_t i=0; i<fixed_sigma; ++i)
             std::swap(m_c_to_leaf[i], bt.m_c_to_leaf[i]);
-        for (uint32_t i=0; i<256; ++i)
+        for (uint32_t i=0; i<fixed_sigma; ++i)
             std::swap(m_path[i], bt.m_path[i]);
     }
 
@@ -246,10 +247,10 @@ struct byte_tree {
         uint64_t m_nodes_size = m_nodes.size();
         write_member(m_nodes_size, out, child, "m_nodes.size()");
         serialize_vector(m_nodes, out, child, "m_nodes");
-        out.write((char*) m_c_to_leaf, 256*sizeof(m_c_to_leaf[0]));
-        written_bytes += 256*sizeof(m_c_to_leaf[0]);// bytes from previous loop
-        out.write((char*) m_path, 256*sizeof(m_path[0]));
-        written_bytes += 256*sizeof(m_path[0]);// bytes from previous loop
+        out.write((char*) m_c_to_leaf, fixed_sigma*sizeof(m_c_to_leaf[0]));
+        written_bytes += fixed_sigma*sizeof(m_c_to_leaf[0]);// bytes from previous loop
+        out.write((char*) m_path, fixed_sigma*sizeof(m_path[0]));
+        written_bytes += fixed_sigma*sizeof(m_path[0]);// bytes from previous loop
         structure_tree::add_size(child, written_bytes);
         return written_bytes;
     }
@@ -260,8 +261,8 @@ struct byte_tree {
         read_member(m_nodes_size, in);
         m_nodes = std::vector<_node>(m_nodes_size);
         load_vector(m_nodes, in);
-        in.read((char*) m_c_to_leaf, 256*sizeof(m_c_to_leaf[0]));
-        in.read((char*) m_path, 256*sizeof(m_path[0]));
+        in.read((char*) m_c_to_leaf, fixed_sigma*sizeof(m_c_to_leaf[0]));
+        in.read((char*) m_path, fixed_sigma*sizeof(m_path[0]));
     }
 
     //! Get corresponding leaf for symbol c.
