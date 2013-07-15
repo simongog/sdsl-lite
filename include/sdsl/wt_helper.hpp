@@ -46,30 +46,18 @@ void calculate_effective_alphabet_size(const t_rac& C, sigma_type& sigma)
     });
 }
 
-template<class size_type>
 struct pc_node {
-    size_type bv_pos;      // pointer into the bit_vector, which represents the wavelet tree
-    size_type bv_pos_rank; // pre-calculated rank for the prefix up to but not including bv_pos
-    uint64_t  parent;      // pointer to the parent
-    uint64_t  child[2];    // pointer to the children
+    uint64_t  freq;     // frequency of symbol sym
+    uint64_t  sym;      // symbol
+    uint64_t  parent;   // pointer to the parent
+    uint64_t  child[2]; // pointer to the children
 
     static const uint64_t undef = 0xFFFFFFFFFFFFFFFF; // max uint64_t value
 
-    pc_node(size_type bv_pos=0, size_type bv_pos_rank=0, uint64_t parent=undef,
-            uint64_t child_left=undef, uint64_t child_right=undef):
-        bv_pos(bv_pos), bv_pos_rank(bv_pos_rank), parent(parent) {
-        child[0] = child_left;
-        child[1] = child_right;
-    }
+    pc_node(uint64_t freq=0, uint64_t sym=0, uint64_t parent=undef,
+            uint64_t child_left=undef, uint64_t child_right=undef);
 
-    pc_node& operator=(const pc_node& v) {
-        bv_pos      = v.bv_pos;
-        bv_pos_rank = v.bv_pos_rank;
-        parent        = v.parent;
-        child[0]      = v.child[0];
-        child[1]      = v.child[1];
-        return *this;
-    }
+    pc_node& operator=(const pc_node& v);
 };
 
 // Strategy class for tree representation of a WT
@@ -103,10 +91,9 @@ struct byte_tree {
             return *this;
         }
 
-        template<class size_type>
-        _node& operator=(const pc_node<size_type>& v) {
-            bv_pos      = v.bv_pos;
-            bv_pos_rank = v.bv_pos_rank;
+        _node& operator=(const pc_node& v) {
+            bv_pos      = v.freq;
+            bv_pos_rank = v.sym;
             parent        = v.parent;
             child[0]      = v.child[0];
             child[1]      = v.child[1];
@@ -134,17 +121,16 @@ struct byte_tree {
         }
     };
 
-    _node      m_nodes[511];      // nodes for the prefix code tree structure
-    node_type  m_c_to_leaf[256];  // map symbol c to a leaf in the tree structure
+    std::vector<_node> m_nodes;          // nodes for the prefix code tree structure
+    node_type          m_c_to_leaf[256]; // map symbol c to a leaf in the tree structure
     // if m_c_to_leaf[c] == undef the char does
     // not exists in the text
-    uint64_t   m_path[256];    // path information for each char; the bits at position
+    uint64_t           m_path[256];      // path information for each char; the bits at position
     // 0..55 hold path information; bits 56..63 the length
     // of the path in binary representation
 
     void copy(const byte_tree& bt) {
-        for (int32_t i=0; i<511; ++i)
-            m_nodes[i] = bt.m_nodes[i];
+        m_nodes = bt.m_nodes;
         for (int32_t i=0; i<256; ++i)
             m_c_to_leaf[i] = bt.m_c_to_leaf[i];
         for (int32_t i=0; i<256; ++i)
@@ -154,7 +140,8 @@ struct byte_tree {
     byte_tree() {}
 
     template<class size_type>
-    byte_tree(const std::vector<pc_node<size_type>>& temp_nodes, bool dfs_shape, size_type sigma, size_type& tree_size) {
+    byte_tree(const std::vector<pc_node>& temp_nodes, bool dfs_shape, size_type& tree_size) {
+        m_nodes.resize(temp_nodes.size());
         m_nodes[0] = temp_nodes.back(); // insert root at index 0
         tree_size = 0;
         size_t node_cnt = 1;
@@ -171,8 +158,8 @@ struct byte_tree {
             // frq_sum is store in bv_pos value
             uint64_t frq = m_nodes[idx].bv_pos;
             m_nodes[idx].bv_pos = tree_size;
-            if (m_nodes[idx].child[0] != undef)// if node is not a leaf
-                tree_size += frq;                    // add frequency
+            if (m_nodes[idx].child[0] != undef) // if node is not a leaf
+                tree_size += frq;               // add frequency
             if (idx > 0) { // node is not the root
                 if (last_parent != m_nodes[idx].parent)
                     m_nodes[m_nodes[idx].parent].child[0] = idx;
@@ -192,7 +179,7 @@ struct byte_tree {
         // initialize m_c_to_leaf
         for (size_type i=0; i<256; ++i)
             m_c_to_leaf[i] = undef; // if c is not in the alphabet m_c_to_leaf[c] = undef
-        for (size_type i=0; i < 2*sigma-1; ++i) {
+        for (size_type i=0; i < m_nodes.size(); ++i) {
             if (m_nodes[i].child[0] == undef)               // if node is a leaf
                 m_c_to_leaf[(uint8_t)m_nodes[i].bv_pos_rank] = i; // calculate value
         }
@@ -224,23 +211,19 @@ struct byte_tree {
     }
 
     template<class t_rank_type>
-    void init_node_ranks(const t_rank_type& rank, uint64_t sigma) {
-        for (uint64_t i=0; i<2*sigma-1; ++i) {
+    void init_node_ranks(const t_rank_type& rank) {
+        for (uint64_t i=0; i<m_nodes.size(); ++i) {
             if (m_nodes[i].child[0] != undef)  // if node is not a leaf
                 m_nodes[i].bv_pos_rank = rank.rank(m_nodes[i].bv_pos);
         }
-        std::cout<<"bv_pos_rank initialized"<<std::endl;
     }
 
-    // TODO: copy constructor
     byte_tree(const byte_tree& bt) {
         copy(bt);
     }
 
-    // TODO: swap operator
     void swap(byte_tree& bt) {
-        for (uint32_t i=0; i < 511; ++i)
-            std::swap(m_nodes[i], bt.m_nodes[i]);
+        std::swap(m_nodes, bt.m_nodes);
         for (uint32_t i=0; i<256; ++i)
             std::swap(m_c_to_leaf[i], bt.m_c_to_leaf[i]);
         for (uint32_t i=0; i<256; ++i)
@@ -260,9 +243,9 @@ struct byte_tree {
         structure_tree_node* child = structure_tree::add_child(
                                          v, name, util::class_name(*this));
         uint64_t written_bytes = 0;
-        for (uint32_t i=0; i < 511; ++i) {
-            written_bytes += m_nodes[i].serialize(out);
-        }
+        uint64_t m_nodes_size = m_nodes.size();
+        write_member(m_nodes_size, out, child, "m_nodes.size()");
+        serialize_vector(m_nodes, out, child, "m_nodes");
         out.write((char*) m_c_to_leaf, 256*sizeof(m_c_to_leaf[0]));
         written_bytes += 256*sizeof(m_c_to_leaf[0]);// bytes from previous loop
         out.write((char*) m_path, 256*sizeof(m_path[0]));
@@ -273,9 +256,10 @@ struct byte_tree {
 
     //! Loads the data structure from the given istream.
     void load(std::istream& in) {
-        for (uint32_t i=0; i < 511; ++i) {
-            m_nodes[i].load(in);
-        }
+        uint64_t m_nodes_size = 0;
+        read_member(m_nodes_size, in);
+        m_nodes = std::vector<_node>(m_nodes_size);
+        load_vector(m_nodes, in);
         in.read((char*) m_c_to_leaf, 256*sizeof(m_c_to_leaf[0]));
         in.read((char*) m_path, 256*sizeof(m_path[0]));
     }
