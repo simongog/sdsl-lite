@@ -89,19 +89,18 @@ struct _huff_shape {
     enum { lex_ordered = 0 };
 
     template<class t_rac>
-    static size_type
+    static void
     construct_tree(t_rac& C, vector<pc_node<size_type>>& temp_nodes) {
         tMPQPII pq;
-        size_type node_cnt=0;
         // add leaves of Huffman tree
         std::for_each(std::begin(C), std::end(C), [&](decltype(*std::begin(C)) &freq) {
             static size_type i=0;
             if (freq > 0) {
-                pq.push(tPII(freq, node_cnt));// push (frequency, node pointer)
+                pq.push(tPII(freq, temp_nodes.size()));// push (frequency, node pointer)
                 // initial bv_pos with number of occurrences and bv_pos_rank
                 // value with the code of the corresponding char, parent,
-                // child[0], and child[1] are set to _undef_node
-                temp_nodes[node_cnt++] = pc_node<size_type>(freq, i);
+                // child[0], and child[1] are set to undef
+                temp_nodes.emplace_back(pc_node<size_type>(freq, i));
             }
             ++i;
         });
@@ -109,14 +108,13 @@ struct _huff_shape {
             tPII v1, v2;
             v1 = pq.top(); pq.pop();
             v2 = pq.top(); pq.pop();
-            temp_nodes[v1.second].parent = node_cnt; // parent is new node
-            temp_nodes[v2.second].parent = node_cnt; // parent is new node
+            temp_nodes[v1.second].parent = temp_nodes.size(); // parent is new node
+            temp_nodes[v2.second].parent = temp_nodes.size(); // parent is new node
             size_type frq_sum = v1.first + v2.first;
-            pq.push(tPII(frq_sum, node_cnt));
-            temp_nodes[node_cnt++] = pc_node<size_type>(frq_sum, 0, pc_node<size_type>::_undef_node,
-                                     v1.second, v2.second);
+            pq.push(tPII(frq_sum, temp_nodes.size()));
+            temp_nodes.emplace_back(pc_node<size_type>(frq_sum, 0, pc_node<size_type>::undef,
+                                    v1.second, v2.second));
         }
-        return node_cnt;
     }
 };
 
