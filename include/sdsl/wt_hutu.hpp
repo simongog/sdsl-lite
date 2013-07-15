@@ -307,7 +307,7 @@ struct _hutu_shape {
 
         template<class t_rac>
         static void
-        construct_tree(t_rac& C, vector<pc_node<size_type> >& temp_nodes) {
+        construct_tree(t_rac& C, vector<pc_node>& temp_nodes) {
             //create a leaf for every letter
             std::vector<ht_node> node_vector;
             for (size_t i = 0; i < C.size(); i++) {
@@ -323,8 +323,8 @@ struct _hutu_shape {
             if (node_vector.size() == 1) {
                 // special case of an alphabet of size 1:
                 // just instantly create the tree and return it
-                temp_nodes.emplace_back(pc_node<size_type>(node_vector[0].w,
-                                        (size_type)node_vector[0].c));
+                temp_nodes.emplace_back(pc_node(node_vector[0].w,
+                                                (size_type)node_vector[0].c));
                 return;
             }
             size_type       sigma = node_vector.size();
@@ -544,7 +544,7 @@ struct _hutu_shape {
 
             for (size_type i = 0; i < sigma; i++) {
                 stack[i] = nullptr;
-                temp_nodes.emplace_back(pc_node<size_type>(T[i].w, (size_type)T[i].c));
+                temp_nodes.emplace_back(pc_node(T[i].w, (size_type)T[i].c));
                 T[i].pos = i;
             }
 
@@ -566,10 +566,10 @@ struct _hutu_shape {
                     n_node->pos = temp_nodes.size();
                     temp_nodes[stack[spointer-1]->pos].parent = temp_nodes.size();
                     temp_nodes[stack[spointer]->pos].parent = temp_nodes.size();
-                    temp_nodes.emplace_back(pc_node<size_type>(
-                                                n_node->w, 0, pc_node<size_type>::undef,
-                                                stack[spointer-1]->pos,
-                                                stack[spointer]->pos));
+                    temp_nodes.emplace_back(pc_node(n_node->w, 0,
+                                                    pc_node::undef,
+                                                    stack[spointer-1]->pos,
+                                                    stack[spointer]->pos));
 
                     if (!stack[spointer-1]->t) delete stack[spointer-1];
                     if (!stack[spointer]->t) delete stack[spointer];

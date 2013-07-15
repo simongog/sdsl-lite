@@ -90,7 +90,7 @@ struct _huff_shape {
 
     template<class t_rac>
     static void
-    construct_tree(t_rac& C, vector<pc_node<size_type>>& temp_nodes) {
+    construct_tree(t_rac& C, vector<pc_node>& temp_nodes) {
         tMPQPII pq;
         // add leaves of Huffman tree
         std::for_each(std::begin(C), std::end(C), [&](decltype(*std::begin(C)) &freq) {
@@ -100,7 +100,7 @@ struct _huff_shape {
                 // initial bv_pos with number of occurrences and bv_pos_rank
                 // value with the code of the corresponding char, parent,
                 // child[0], and child[1] are set to undef
-                temp_nodes.emplace_back(pc_node<size_type>(freq, i));
+                temp_nodes.emplace_back(pc_node(freq, i));
             }
             ++i;
         });
@@ -112,8 +112,8 @@ struct _huff_shape {
             temp_nodes[v2.second].parent = temp_nodes.size(); // parent is new node
             size_type frq_sum = v1.first + v2.first;
             pq.push(tPII(frq_sum, temp_nodes.size()));
-            temp_nodes.emplace_back(pc_node<size_type>(frq_sum, 0, pc_node<size_type>::undef,
-                                    v1.second, v2.second));
+            temp_nodes.emplace_back(pc_node(frq_sum, 0, pc_node::undef,
+                                            v1.second, v2.second));
         }
     }
 };

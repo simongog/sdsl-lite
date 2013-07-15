@@ -110,12 +110,12 @@ class wt_pc
         // calculates the tree shape returns the size of the WT bit vector
         size_type construct_tree_shape(const std::vector<size_type>& C) {
             // vector  for node of the tree
-            std::vector<pc_node<size_type>> temp_nodes; //(2*m_sigma-1);
+            std::vector<pc_node> temp_nodes; //(2*m_sigma-1);
             shape::construct_tree(C, temp_nodes);
             // Convert code tree into BFS order in memory and
             // calculate bv_pos values
             size_type tree_size = 0;
-            t_tree_strat tmp_tree(temp_nodes, t_dfs_shape, sigma, tree_size);
+            t_tree_strat tmp_tree(temp_nodes, t_dfs_shape, tree_size);
             m_tree.swap(tmp_tree);
             return tree_size;
         }
@@ -238,7 +238,7 @@ class wt_pc
             // 5. Initialize rank and select data structures for m_bv
             construct_init_rank_select();
             // 6. Finish inner nodes by precalculating the bv_pos_rank values
-            m_tree.init_node_ranks(m_bv_rank, sigma);
+            m_tree.init_node_ranks(m_bv_rank);
         }
 
 
