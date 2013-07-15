@@ -61,6 +61,7 @@ struct pc_node {
 };
 
 // Strategy class for tree representation of a WT
+template<bool t_dfs_shape=false>
 struct byte_tree {
     using alphabet_category = byte_alphabet_tag;
     using value_type = uint8_t;
@@ -139,27 +140,26 @@ struct byte_tree {
 
     byte_tree() {}
 
-    template<class size_type>
-    byte_tree(const std::vector<pc_node>& temp_nodes, bool dfs_shape, size_type& tree_size) {
+    byte_tree(const std::vector<pc_node>& temp_nodes, uint64_t& bv_size) {
         m_nodes.resize(temp_nodes.size());
         m_nodes[0] = temp_nodes.back(); // insert root at index 0
-        tree_size = 0;
+        bv_size = 0;
         size_t node_cnt = 1;
         uint16_t last_parent = undef;
-        std::deque<size_type> q;
+        std::deque<node_type> q;
         q.push_back(0);
         while (!q.empty()) {
-            size_type idx;
-            if (!dfs_shape) {
+            node_type idx;
+            if (!t_dfs_shape) {
                 idx = q.front(); q.pop_front();
             } else {
                 idx = q.back(); q.pop_back();
             }
             // frq_sum is store in bv_pos value
             uint64_t frq = m_nodes[idx].bv_pos;
-            m_nodes[idx].bv_pos = tree_size;
+            m_nodes[idx].bv_pos = bv_size;
             if (m_nodes[idx].child[0] != undef) // if node is not a leaf
-                tree_size += frq;               // add frequency
+                bv_size += frq;               // add frequency
             if (idx > 0) { // node is not the root
                 if (last_parent != m_nodes[idx].parent)
                     m_nodes[m_nodes[idx].parent].child[0] = idx;
@@ -168,7 +168,7 @@ struct byte_tree {
                 last_parent = m_nodes[idx].parent;
             }
             if (m_nodes[idx].child[0] != undef) { // if node is not a leaf
-                for (size_type k=0; k<2; ++k) {       // add children to tree
+                for (uint32_t k=0; k<2; ++k) {       // add children to tree
                     m_nodes[node_cnt] = temp_nodes[ m_nodes[idx].child[k] ];
                     m_nodes[node_cnt].parent = idx;
                     q.push_back(node_cnt);
@@ -177,28 +177,28 @@ struct byte_tree {
             }
         }
         // initialize m_c_to_leaf
-        for (size_type i=0; i<256; ++i)
+        for (uint32_t i=0; i<256; ++i)
             m_c_to_leaf[i] = undef; // if c is not in the alphabet m_c_to_leaf[c] = undef
-        for (size_type i=0; i < m_nodes.size(); ++i) {
-            if (m_nodes[i].child[0] == undef)               // if node is a leaf
-                m_c_to_leaf[(uint8_t)m_nodes[i].bv_pos_rank] = i; // calculate value
+        for (node_type v=0; v < m_nodes.size(); ++v) {
+            if (m_nodes[v].child[0] == undef)               // if node is a leaf
+                m_c_to_leaf[(uint8_t)m_nodes[v].bv_pos_rank] = v; // calculate value
         }
         // initialize path information
         // Note: In the case of a bfs search order,
         // we can classify nodes as right child and left child with an easy criterion:
         //   node is a left child, if node%2==1
         //   node is a right child, if node%2==0
-        for (size_type c=0; c<256; ++c) {
+        for (uint32_t c=0; c<256; ++c) {
             if (m_c_to_leaf[c] != undef) { // if char exists in the alphabet
-                size_type node = m_c_to_leaf[c];
+                node_type v = m_c_to_leaf[c];
                 uint64_t w = 0; // path
                 uint64_t l = 0; // path len
-                while (node != 0) { // while node is not the root
+                while (v != root()) {   // while node is not the root
                     w <<= 1;
-                    if (m_nodes[m_nodes[node].parent].child[1] == node) // if the node is a right child
+                    if (m_nodes[m_nodes[v].parent].child[1] == v) // if the node is a right child
                         w |= 1ULL;
                     ++l;
-                    node = m_nodes[node].parent; // go up the tree
+                    v = m_nodes[v].parent; // go up the tree
                 }
                 if (l > 56) {
                     throw std::logic_error("Code depth greater than 56!!!");
@@ -269,7 +269,7 @@ struct byte_tree {
         return m_c_to_leaf[c];
     }
     //! Return the root node of the tree.
-    inline node_type root()const {
+    inline static node_type root() {
         return 0;
     }
     //! Return the parent node of v.
