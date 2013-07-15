@@ -74,7 +74,7 @@ class wt_pc
         rank_1_type      m_bv_rank;      // rank support for the wavelet tree bit vector
         select_1_type    m_bv_select1;   // select support for the wavelet tree bit vector
         select_0_type    m_bv_select0;
-        t_tree_strat    m_tree;
+        t_tree_strat     m_tree;
 
         void copy(const wt_pc& wt) {
             m_size            = wt.m_size;
@@ -90,16 +90,17 @@ class wt_pc
         }
 
         // insert a character into the wavelet tree, see construct method
-        void insert_char(uint8_t old_chr, size_type* bv_pos, size_type times,
-                         bit_vector& f_bv) {
+        void insert_char(value_type old_chr, std::vector<uint64_t>& bv_node_pos,
+                         size_type times, bit_vector& bv) {
             uint64_t p = m_tree.bit_path(old_chr);
             uint32_t path_len = p>>56;
-            for (uint32_t node=0, l=0; l<path_len; ++l, p >>= 1) {
+            node_type v = m_tree.root();
+            for (uint32_t l=0; l<path_len; ++l, p >>= 1) {
                 if (p&1) {
-                    f_bv.set_int(bv_pos[node], 0xFFFFFFFFFFFFFFFFULL,times);
+                    bv.set_int(bv_node_pos[v], 0xFFFFFFFFFFFFFFFFULL,times);
                 }
-                bv_pos[node] += times;
-                node = m_tree.child(node, p&1);
+                bv_node_pos[v] += times;
+                v = m_tree.child(v, p&1);
             }
         }
 
@@ -113,8 +114,8 @@ class wt_pc
             // Convert code tree into BFS order in memory and
             // calculate bv_pos values
             size_type bv_size = 0;
-            t_tree_strat tmp_tree(temp_nodes, bv_size);
-            m_tree.swap(tmp_tree);
+            t_tree_strat temp_tree(temp_nodes, bv_size);
+            m_tree.swap(temp_tree);
             return bv_size;
         }
 
@@ -178,7 +179,8 @@ class wt_pc
          *    \par Time complexity
          *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        wt_pc(int_vector_file_buffer<8>& input_buf, size_type size):m_size(size) {
+        wt_pc(int_vector_file_buffer<t_tree_strat::int_width>& input_buf,
+              size_type size):m_size(size) {
             if (0 == m_size)
                 return;
             // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
@@ -193,13 +195,12 @@ class wt_pc
             // 3. Generate tree shape
             size_type tree_size = construct_tree_shape(C);
             // 4. Generate wavelet tree bit sequence m_bv
+            bit_vector temp_bv(tree_size, 0);
 
-            bit_vector tmp_tree(tree_size, 0);
-            //  Calculate starting position of wavelet tree nodes
-            // TODO: depends on tree strategy
-            size_type bv_pos[511];
-            for (size_type v=0; v < 2*sigma-1; ++v) {
-                bv_pos[v] = m_tree.bv_pos(v);
+            // Initializing starting position of wavelet tree nodes
+            std::vector<uint64_t> bv_node_pos(m_tree.size(), 0);
+            for (size_type v=0; v < m_tree.size(); ++v) {
+                bv_node_pos[v] = m_tree.bv_pos(v);
             }
             input_buf.reset();
             if (input_buf.int_vector_size < size) {
@@ -212,27 +213,28 @@ class wt_pc
                 if (r_sum + r > size) {
                     r = size-r_sum;
                 }
-                uint8_t old_chr = input_buf[i-r_sum], times = 0;
+                value_type old_chr = input_buf[i-r_sum];
+                uint32_t times = 0;
                 for (; i < r_sum+r; ++i) {
-                    uint8_t chr = input_buf[i-r_sum];
+                    value_type chr = input_buf[i-r_sum];
                     if (chr    != old_chr) {
-                        insert_char(old_chr, bv_pos, times, tmp_tree);
+                        insert_char(old_chr, bv_node_pos, times, temp_bv);
                         times = 1;
                         old_chr = chr;
                     } else { // chr == old_chr
                         ++times;
                         if (times == 64) {
-                            insert_char(old_chr, bv_pos, times, tmp_tree);
+                            insert_char(old_chr, bv_node_pos, times, temp_bv);
                             times = 0;
                         }
                     }
                 }
                 if (times > 0) {
-                    insert_char(old_chr, bv_pos, times, tmp_tree);
+                    insert_char(old_chr, bv_node_pos, times, temp_bv);
                 }
                 r_sum += r; r = input_buf.load_next_block();
             }
-            m_bv = bit_vector_type(std::move(tmp_tree));
+            m_bv = bit_vector_type(std::move(temp_bv));
             // 5. Initialize rank and select data structures for m_bv
             construct_init_rank_select();
             // 6. Finish inner nodes by precalculating the bv_pos_rank values

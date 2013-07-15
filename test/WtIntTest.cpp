@@ -1,7 +1,4 @@
-#include "sdsl/wt_int.hpp"
-#include "sdsl/construct.hpp"
-#include "sdsl/rrr_vector.hpp"
-#include "sdsl/sd_vector.hpp"
+#include "sdsl/wavelet_trees.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <string>
@@ -24,10 +21,14 @@ class WtIntTest : public ::testing::Test { };
 
 using testing::Types;
 
-typedef Types<wt_int<rrr_vector<15> >
-,wt_int<>
-,wt_int<rrr_vector<63> >
-> Implementations;
+typedef Types<
+wt_huff<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+        ,wt_huff<rrr_vector<63>, rrr_vector<63>::rank_1_type, rrr_vector<63>::select_1_type, rrr_vector<63>::select_0_type, int_tree<>>
+        ,wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+        ,wt_int<rrr_vector<15> >
+        ,wt_int<>
+        ,wt_int<rrr_vector<63> >
+        > Implementations;
 
 TYPED_TEST_CASE(WtIntTest, Implementations);
 
