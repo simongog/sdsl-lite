@@ -41,10 +41,8 @@ template<class t_shape,
          class t_rank        = typename t_bitvector::rank_1_type,
          class t_select      = typename t_bitvector::select_1_type,
          class t_select_zero = typename t_bitvector::select_0_type,
-         bool  t_dfs_shape   = false,
-         class t_tree_strat  = byte_tree
+         class t_tree_strat  = byte_tree<>
          >
-// TODO: move t_dfs_shape into t_tree_strat
 class wt_pc
 {
     public:
@@ -114,10 +112,10 @@ class wt_pc
             shape::construct_tree(C, temp_nodes);
             // Convert code tree into BFS order in memory and
             // calculate bv_pos values
-            size_type tree_size = 0;
-            t_tree_strat tmp_tree(temp_nodes, t_dfs_shape, tree_size);
+            size_type bv_size = 0;
+            t_tree_strat tmp_tree(temp_nodes, bv_size);
             m_tree.swap(tmp_tree);
-            return tree_size;
+            return bv_size;
         }
 
         void construct_init_rank_select() {

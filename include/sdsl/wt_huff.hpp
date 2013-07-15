@@ -69,13 +69,13 @@ template<class t_bitvector   = bit_vector,
          class t_rank        = typename t_bitvector::rank_1_type,
          class t_select      = typename t_bitvector::select_1_type,
          class t_select_zero = typename t_bitvector::select_0_type,
-         bool  t_dfs_shape   = 0>
+         class t_tree_strat  = byte_tree<> >
 using wt_huff = wt_pc<huff_shape,
       t_bitvector,
       t_rank,
       t_select,
       t_select_zero,
-      t_dfs_shape>;
+      t_tree_strat>;
 
 
 // Huffman shape for wt_pc

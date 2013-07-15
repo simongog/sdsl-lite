@@ -42,20 +42,20 @@ struct wt_test_trait<wt<t_rac, t_bv, t_rs, t_ss1, t_ss0> > {
     }
 };
 
-template<class t_bv, class t_rs, class t_ss1, class t_ss0, bool t_dfs_shape>
-struct wt_test_trait<wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> > {
-    static void interval_symbols_test(wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape>& wt) {
+template<class t_bv, class t_rs, class t_ss1, class t_ss0, class t_tree_strat>
+struct wt_test_trait<wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_tree_strat> > {
+    static void interval_symbols_test(wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_tree_strat>& wt) {
         test_interval_symbols(wt);
     }
-    static void lex_count_test(SDSL_UNUSED wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape>& wt) {}
+    static void lex_count_test(SDSL_UNUSED wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_tree_strat>& wt) {}
 };
 
-template<class t_bv, class t_rs, class t_ss1, class t_ss0, bool t_dfs_shape>
-struct wt_test_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> > {
-    static void interval_symbols_test(wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape>& wt) {
+template<class t_bv, class t_rs, class t_ss1, class t_ss0, class t_tree_strat>
+struct wt_test_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_tree_strat> > {
+    static void interval_symbols_test(wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_tree_strat>& wt) {
         test_interval_symbols(wt);
     }
-    static void lex_count_test(wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape>& wt) {
+    static void lex_count_test(wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_tree_strat>& wt) {
         test_lex_count(wt);
     }
 };
