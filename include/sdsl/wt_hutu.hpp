@@ -306,8 +306,8 @@ struct _hutu_shape {
 
 
         template<class t_rac>
-        static size_type
-        construct_tree(t_rac& C, vector<pc_node<size_type> >& tmp_nodes) {
+        static void
+        construct_tree(t_rac& C, vector<pc_node<size_type> >& temp_nodes) {
             //create a leaf for every letter
             std::vector<ht_node> node_vector;
             for (size_t i = 0; i < C.size(); i++) {
@@ -323,9 +323,9 @@ struct _hutu_shape {
             if (node_vector.size() == 1) {
                 // special case of an alphabet of size 1:
                 // just instantly create the tree and return it
-                tmp_nodes[0] = pc_node<size_type>(node_vector[0].w,
-                                                  (size_type)node_vector[0].c);
-                return 1;
+                temp_nodes.emplace_back(pc_node<size_type>(node_vector[0].w,
+                                        (size_type)node_vector[0].c));
+                return;
             }
             size_type       sigma = node_vector.size();
             std::vector<ht_node>  T(sigma); // physical leaves
@@ -542,12 +542,10 @@ struct _hutu_shape {
             // reconstruction phase using the stack algorithm
             ht_node* stack[sigma];
 
-            size_type node_count=0;
             for (size_type i = 0; i < sigma; i++) {
                 stack[i] = nullptr;
-                tmp_nodes[i] = pc_node<size_type>(T[i].w, (size_type)T[i].c);
+                temp_nodes.emplace_back(pc_node<size_type>(T[i].w, (size_type)T[i].c));
                 T[i].pos = i;
-                node_count++;
             }
 
             int64_t spointer = -1;
@@ -565,13 +563,13 @@ struct _hutu_shape {
                     n_node->w = stack[spointer]->w + stack[spointer-1]->w;
                     n_node->c = '|';
 
-                    n_node->pos = node_count;
-                    tmp_nodes[stack[spointer-1]->pos].parent = node_count;
-                    tmp_nodes[stack[spointer]->pos].parent = node_count;
-                    tmp_nodes[node_count++] = pc_node<size_type>(
-                                                  n_node->w, 0, pc_node<size_type>::_undef_node,
-                                                  stack[spointer-1]->pos,
-                                                  stack[spointer]->pos);
+                    n_node->pos = temp_nodes.size();
+                    temp_nodes[stack[spointer-1]->pos].parent = temp_nodes.size();
+                    temp_nodes[stack[spointer]->pos].parent = temp_nodes.size();
+                    temp_nodes.emplace_back(pc_node<size_type>(
+                                                n_node->w, 0, pc_node<size_type>::undef,
+                                                stack[spointer-1]->pos,
+                                                stack[spointer]->pos));
 
                     if (!stack[spointer-1]->t) delete stack[spointer-1];
                     if (!stack[spointer]->t) delete stack[spointer];
@@ -582,7 +580,6 @@ struct _hutu_shape {
                 }
             }
             delete stack[0];
-            return node_count;
         }
 
         static void assign_level(ht_node* n, int64_t lvl) {

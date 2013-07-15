@@ -3,6 +3,7 @@
 
 #include "int_vector.hpp"
 #include <algorithm>
+#include <limits>
 #include <deque>
 #include <queue>
 
@@ -52,10 +53,10 @@ struct pc_node {
     uint64_t  parent;      // pointer to the parent
     uint64_t  child[2];    // pointer to the children
 
-    static const uint16_t _undef_node = 65535;
+    static const uint64_t undef = 0xFFFFFFFFFFFFFFFF; // max uint64_t value
 
-    pc_node(size_type bv_pos=0, size_type bv_pos_rank=0, uint64_t parent=_undef_node,
-            uint64_t child_left=_undef_node, uint64_t child_right=_undef_node):
+    pc_node(size_type bv_pos=0, size_type bv_pos_rank=0, uint64_t parent=undef,
+            uint64_t child_left=undef, uint64_t child_right=undef):
         bv_pos(bv_pos), bv_pos_rank(bv_pos_rank), parent(parent) {
         child[0] = child_left;
         child[1] = child_right;
@@ -76,16 +77,16 @@ struct byte_tree {
     using alphabet_category = byte_alphabet_tag;
     using value_type = uint8_t;
     using node_type = uint16_t; // node is represented by index in m_nodes
-    static const node_type _undef_node = 65535;
+    static const node_type undef = 0xFFFF; // max uint16_t value
 
     struct _node {
         uint64_t bv_pos      = 0;      // pointer into the bit_vector, which represents the wavelet tree
         uint64_t bv_pos_rank = 0;      // pre-calculated rank for the prefix up to but not including bv_pos
-        uint16_t parent      = _undef_node;      // pointer to the parent
-        uint16_t child[2]    = {_undef_node,_undef_node};  // pointer to the children
+        uint16_t parent      = undef;      // pointer to the parent
+        uint16_t child[2]    = {undef,undef};  // pointer to the children
 
-        _node(uint64_t bv_pos=0, uint64_t bv_pos_rank=0, uint16_t parent=_undef_node,
-              uint16_t child_left=_undef_node, uint16_t child_right=_undef_node):
+        _node(uint64_t bv_pos=0, uint64_t bv_pos_rank=0, uint16_t parent=undef,
+              uint16_t child_left=undef, uint16_t child_right=undef):
             bv_pos(bv_pos), bv_pos_rank(bv_pos_rank), parent(parent) {
             child[0] = child_left;
             child[1] = child_right;
@@ -135,9 +136,9 @@ struct byte_tree {
 
     _node      m_nodes[511];      // nodes for the prefix code tree structure
     node_type  m_c_to_leaf[256];  // map symbol c to a leaf in the tree structure
-    // if m_c_to_leaf[c] == _undef_node the char does
+    // if m_c_to_leaf[c] == undef the char does
     // not exists in the text
-    uint64_t   m_path[256];     // path information for each char; the bits at position
+    uint64_t   m_path[256];    // path information for each char; the bits at position
     // 0..55 hold path information; bits 56..63 the length
     // of the path in binary representation
 
@@ -153,11 +154,11 @@ struct byte_tree {
     byte_tree() {}
 
     template<class size_type>
-    byte_tree(const std::vector<pc_node<size_type>>& temp_nodes, uint64_t node_cnt, bool dfs_shape, size_type sigma, size_type& tree_size) {
-        m_nodes[0] = temp_nodes[node_cnt-1];  // insert root at index 0
+    byte_tree(const std::vector<pc_node<size_type>>& temp_nodes, bool dfs_shape, size_type sigma, size_type& tree_size) {
+        m_nodes[0] = temp_nodes.back(); // insert root at index 0
         tree_size = 0;
-        node_cnt = 1;
-        uint16_t last_parent = _undef_node;
+        size_t node_cnt = 1;
+        uint16_t last_parent = undef;
         std::deque<size_type> q;
         q.push_back(0);
         while (!q.empty()) {
@@ -170,7 +171,7 @@ struct byte_tree {
             // frq_sum is store in bv_pos value
             uint64_t frq = m_nodes[idx].bv_pos;
             m_nodes[idx].bv_pos = tree_size;
-            if (m_nodes[idx].child[0] != _undef_node)// if node is not a leaf
+            if (m_nodes[idx].child[0] != undef)// if node is not a leaf
                 tree_size += frq;                    // add frequency
             if (idx > 0) { // node is not the root
                 if (last_parent != m_nodes[idx].parent)
@@ -179,7 +180,7 @@ struct byte_tree {
                     m_nodes[m_nodes[idx].parent].child[1] = idx;
                 last_parent = m_nodes[idx].parent;
             }
-            if (m_nodes[idx].child[0] != _undef_node) { // if node is not a leaf
+            if (m_nodes[idx].child[0] != undef) { // if node is not a leaf
                 for (size_type k=0; k<2; ++k) {       // add children to tree
                     m_nodes[node_cnt] = temp_nodes[ m_nodes[idx].child[k] ];
                     m_nodes[node_cnt].parent = idx;
@@ -190,9 +191,9 @@ struct byte_tree {
         }
         // initialize m_c_to_leaf
         for (size_type i=0; i<256; ++i)
-            m_c_to_leaf[i] = _undef_node; // if c is not in the alphabet m_c_to_leaf[c] = _undef_node
+            m_c_to_leaf[i] = undef; // if c is not in the alphabet m_c_to_leaf[c] = undef
         for (size_type i=0; i < 2*sigma-1; ++i) {
-            if (m_nodes[i].child[0] == _undef_node)               // if node is a leaf
+            if (m_nodes[i].child[0] == undef)               // if node is a leaf
                 m_c_to_leaf[(uint8_t)m_nodes[i].bv_pos_rank] = i; // calculate value
         }
         // initialize path information
@@ -201,7 +202,7 @@ struct byte_tree {
         //   node is a left child, if node%2==1
         //   node is a right child, if node%2==0
         for (size_type c=0; c<256; ++c) {
-            if (m_c_to_leaf[c] != _undef_node) { // if char exists in the alphabet
+            if (m_c_to_leaf[c] != undef) { // if char exists in the alphabet
                 size_type node = m_c_to_leaf[c];
                 uint64_t w = 0; // path
                 uint64_t l = 0; // path len
@@ -225,7 +226,7 @@ struct byte_tree {
     template<class t_rank_type>
     void init_node_ranks(const t_rank_type& rank, uint64_t sigma) {
         for (uint64_t i=0; i<2*sigma-1; ++i) {
-            if (m_nodes[i].child[0] != _undef_node)  // if node is not a leaf
+            if (m_nodes[i].child[0] != undef)  // if node is not a leaf
                 m_nodes[i].bv_pos_rank = rank.rank(m_nodes[i].bv_pos);
         }
         std::cout<<"bv_pos_rank initialized"<<std::endl;
