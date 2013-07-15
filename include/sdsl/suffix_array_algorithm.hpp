@@ -127,8 +127,8 @@ struct wt_has_lex_count_trait<wt<t_rac, t_bv, t_rs, t_ss1, t_ss0> > {
     enum {value = true};
 };
 
-template<class t_bv, class t_rs, class t_ss1, class t_ss0, bool t_dfs_shape>
-struct wt_has_lex_count_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_dfs_shape> > {
+template<class t_bv, class t_rs, class t_ss1, class t_ss0, class t_tree_strat>
+struct wt_has_lex_count_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_tree_strat> > {
     enum {value = true};
 };
 
