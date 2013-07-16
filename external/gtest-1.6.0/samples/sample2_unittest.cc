@@ -81,7 +81,7 @@ const char kHelloString[] = "Hello, world!";
 TEST(MyString, ConstructorFromCString)
 {
     const MyString s(kHelloString);
-    EXPECT_TRUE(strcmp(s.c_string(), kHelloString) == 0);
+    EXPECT_EQ(0, strcmp(s.c_string(), kHelloString));
     EXPECT_EQ(sizeof(kHelloString)/sizeof(kHelloString[0]) - 1,
               s.Length());
 }
@@ -91,7 +91,7 @@ TEST(MyString, CopyConstructor)
 {
     const MyString s1(kHelloString);
     const MyString s2 = s1;
-    EXPECT_TRUE(strcmp(s2.c_string(), kHelloString) == 0);
+    EXPECT_EQ(0, strcmp(s2.c_string(), kHelloString));
 }
 
 // Tests the Set method.
@@ -100,12 +100,12 @@ TEST(MyString, Set)
     MyString s;
 
     s.Set(kHelloString);
-    EXPECT_TRUE(strcmp(s.c_string(), kHelloString) == 0);
+    EXPECT_EQ(0, strcmp(s.c_string(), kHelloString));
 
     // Set should work when the input pointer is the same as the one
     // already in the MyString object.
     s.Set(s.c_string());
-    EXPECT_TRUE(strcmp(s.c_string(), kHelloString) == 0);
+    EXPECT_EQ(0, strcmp(s.c_string(), kHelloString));
 
     // Can we set the MyString to NULL?
     s.Set(NULL);

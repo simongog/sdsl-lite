@@ -1,6 +1,5 @@
 include ../Make.helper
-CC = g++ 
-CFLAGS = -std=c++11 -msse4.2 -O9 -funroll-loops -fomit-frame-pointer -ffast-math -DNDEBUG
+CFLAGS = $(MY_CXX_FLAGS) $(MY_CXX_OPT_FLAGS) 
 LIBS = -lsdsl -ldivsufsort -ldivsufsort64
 SRC_DIR = src
 TMP_DIR = ../tmp
@@ -92,7 +91,7 @@ $(PAT_DIR)/%.pattern: $(BIN_DIR)/pattern_random
 
 $(BIN_DIR)/pattern_random: $(SRC_DIR)/pattern_random.cpp
 	@echo "Build pattern generation program"
-	@$(CC) $(CFLAGS) -L$(LIB_DIR) -I$(INC_DIR) \
+	@$(MY_CXX) $(CFLAGS) -L$(LIB_DIR) -I$(INC_DIR) \
 					 $(SRC_DIR)/pattern_random.cpp  -o $@ $(LIBS)
 
 # $(BIN_DIR)/build_idx_[IDX_ID].[SAMPLE_ID]
@@ -105,7 +104,7 @@ $(BIN_DIR)/build_idx_%: $(SRC_DIR)/build_index_sdsl.cpp index.config sample.conf
 	$(eval IDX_TYPE:=$(subst S_SA,$(S_SA),$(IDX_TYPE)))
 	$(eval IDX_TYPE:=$(subst S_ISA,$(S_ISA),$(IDX_TYPE)))
 	@echo "Compiling build_idx_$*"
-	@$(CC) $(CFLAGS) -DSUF=\"$*\" -DCSA_TYPE="$(IDX_TYPE)" \
+	@$(MY_CXX) $(CFLAGS) -DSUF=\"$*\" -DCSA_TYPE="$(IDX_TYPE)" \
 					-DS_SA=$(S_SA) -DS_ISA=$(S_ISA) \
 					-L$(LIB_DIR) $(SRC_DIR)/build_index_sdsl.cpp \
 					-I$(INC_DIR) -o $@ $(LIBS)
@@ -120,7 +119,7 @@ $(BIN_DIR)/query_idx_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config sample.conf
 	$(eval IDX_TYPE:=$(subst S_SA,$(S_SA),$(IDX_TYPE)))
 	$(eval IDX_TYPE:=$(subst S_ISA,$(S_ISA),$(IDX_TYPE)))
 	@echo "Compiling query_idx_$*"
-	@$(CC) $(CFLAGS) -DSUF="$(IDX_ID).$(SAMPLE_ID)" -DCSA_TYPE="$(IDX_TYPE)" \
+	@$(MY_CXX) $(CFLAGS) -DSUF="$(IDX_ID).$(SAMPLE_ID)" -DCSA_TYPE="$(IDX_TYPE)" \
 			         -L$(LIB_DIR) $(SRC_DIR)/run_queries_sdsl.cpp \
 			         -I$(INC_DIR) -o $@ $(LIBS)
 
@@ -134,7 +133,7 @@ $(BIN_DIR)/info_%: $(SRC_DIR)/info.cpp index.config
 	$(eval IDX_TYPE:=$(subst S_SA,$(S_SA),$(IDX_TYPE)))
 	$(eval IDX_TYPE:=$(subst S_ISA,$(S_ISA),$(IDX_TYPE)))
 	@echo "Compiling info_$*"
-	@$(CC) $(CFLAGS) -DSUF=\"$*\" -DCSA_TYPE="$(IDX_TYPE)" \
+	@$(MY_CXX) $(CFLAGS) -DSUF=\"$*\" -DCSA_TYPE="$(IDX_TYPE)" \
 					-L$(LIB_DIR) $(SRC_DIR)/info.cpp \
 					-I$(INC_DIR) -o $@ $(LIBS)
 

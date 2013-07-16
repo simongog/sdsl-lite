@@ -82,10 +82,7 @@ TYPED_TEST(FooTest, DoesBlah)
     ...
 }
 
-TYPED_TEST(FooTest, HasPropertyA)
-{
-    ...
-}
+TYPED_TEST(FooTest, HasPropertyA) { ... }
 
 #endif  // 0
 
@@ -127,10 +124,7 @@ TYPED_TEST_P(FooTest, DoesBlah)
     ...
 }
 
-TYPED_TEST_P(FooTest, HasPropertyA)
-{
-    ...
-}
+TYPED_TEST_P(FooTest, HasPropertyA) { ... }
 
 // Now the tricky part: you need to register all test patterns before
 // you can instantiate them.  The first argument of the macro is the
