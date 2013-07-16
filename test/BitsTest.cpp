@@ -8,7 +8,7 @@
 namespace
 {
 
-uint32_t cnt_naive(uint64_t x)
+SDSL_UNUSED uint32_t cnt_naive(uint64_t x)
 {
     uint32_t res = 0;
     for (int i=0; i<64; ++i) {
@@ -18,7 +18,7 @@ uint32_t cnt_naive(uint64_t x)
     return res;
 }
 
-inline uint32_t cnt10_naive(uint64_t x, uint64_t& c)
+SDSL_UNUSED inline uint32_t cnt10_naive(uint64_t x, uint64_t& c)
 {
     uint32_t sum = 0, lastbit = c;
     for (uint32_t i=0; i<64; ++i) {
@@ -32,7 +32,7 @@ inline uint32_t cnt10_naive(uint64_t x, uint64_t& c)
     return sum;
 }
 
-uint32_t cnt11_naive(uint64_t x)
+SDSL_UNUSED uint32_t cnt11_naive(uint64_t x)
 {
     uint32_t res = 0;
     for (int i=0; i<64; ++i) {
@@ -46,7 +46,7 @@ uint32_t cnt11_naive(uint64_t x)
     return res;
 }
 
-inline uint32_t hi_naive(uint64_t x)
+SDSL_UNUSED inline uint32_t hi_naive(uint64_t x)
 {
     uint32_t res=63;
     while (x) {
@@ -72,7 +72,7 @@ inline uint32_t lo_naive(uint64_t x)
     return 63;
 }
 
-inline uint32_t sel_naive(uint64_t x, uint32_t i)
+SDSL_UNUSED inline uint32_t sel_naive(uint64_t x, uint32_t i)
 {
     uint32_t pos = 0;
     while (x) {
@@ -84,7 +84,7 @@ inline uint32_t sel_naive(uint64_t x, uint32_t i)
     return pos;
 }
 
-uint32_t sel11_naive(uint64_t x, uint32_t i)
+SDSL_UNUSED uint32_t sel11_naive(uint64_t x, uint32_t i)
 {
     for (uint32_t j=0; j<63; ++j) {
         if ((x&3)==3) {

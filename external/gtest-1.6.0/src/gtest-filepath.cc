@@ -29,6 +29,7 @@
 //
 // Authors: keith.ray@gmail.com (Keith Ray)
 
+#include "gtest/gtest-message.h"
 #include "gtest/internal/gtest-filepath.h"
 #include "gtest/internal/gtest-port.h"
 
@@ -39,8 +40,8 @@
 #elif GTEST_OS_WINDOWS
 # include <direct.h>
 # include <io.h>
-#elif GTEST_OS_SYMBIAN || GTEST_OS_NACL
-// Symbian OpenC and NaCl have PATH_MAX in sys/syslimits.h
+#elif GTEST_OS_SYMBIAN
+// Symbian OpenC has PATH_MAX in sys/syslimits.h
 # include <sys/syslimits.h>
 #else
 # include <limits.h>
@@ -121,9 +122,10 @@ FilePath FilePath::GetCurrentDir()
 // found, returns a copy of the original FilePath.
 FilePath FilePath::RemoveExtension(const char* extension) const
 {
-    String dot_extension(String::Format(".%s", extension));
-    if (pathname_.EndsWithCaseInsensitive(dot_extension.c_str())) {
-        return FilePath(String(pathname_.c_str(), pathname_.length() - 4));
+    const std::string dot_extension = std::string(".") + extension;
+    if (String::EndsWithCaseInsensitive(pathname_, dot_extension)) {
+        return FilePath(pathname_.substr(
+                            0, pathname_.length() - dot_extension.length()));
     }
     return *this;
 }
@@ -154,7 +156,7 @@ const char* FilePath::FindLastPathSeparator() const
 FilePath FilePath::RemoveDirectoryName() const
 {
     const char* const last_sep = FindLastPathSeparator();
-    return last_sep ? FilePath(String(last_sep + 1)) : *this;
+    return last_sep ? FilePath(last_sep + 1) : *this;
 }
 
 // RemoveFileName returns the directory path with the filename removed.
@@ -166,9 +168,9 @@ FilePath FilePath::RemoveDirectoryName() const
 FilePath FilePath::RemoveFileName() const
 {
     const char* const last_sep = FindLastPathSeparator();
-    String dir;
+    std::string dir;
     if (last_sep) {
-        dir = String(c_str(), last_sep + 1 - c_str());
+        dir = std::string(c_str(), last_sep + 1 - c_str());
     } else {
         dir = kCurrentDirectoryString;
     }
@@ -186,11 +188,12 @@ FilePath FilePath::MakeFileName(const FilePath& directory,
                                 int number,
                                 const char* extension)
 {
-    String file;
+    std::string file;
     if (number == 0) {
-        file = String::Format("%s.%s", base_name.c_str(), extension);
+        file = base_name.string() + "." + extension;
     } else {
-        file = String::Format("%s_%d.%s", base_name.c_str(), number, extension);
+        file = base_name.string() + "_" + StreamableToString(number)
+               + "." + extension;
     }
     return ConcatPaths(directory, FilePath(file));
 }
@@ -203,8 +206,7 @@ FilePath FilePath::ConcatPaths(const FilePath& directory,
     if (directory.IsEmpty())
         return relative_path;
     const FilePath dir(directory.RemoveTrailingPathSeparator());
-    return FilePath(String::Format("%s%c%s", dir.c_str(), kPathSeparator,
-                                   relative_path.c_str()));
+    return FilePath(dir.string() + kPathSeparator + relative_path.string());
 }
 
 // Returns true if pathname describes something findable in the file-system,
@@ -357,7 +359,7 @@ bool FilePath::CreateFolder() const
 FilePath FilePath::RemoveTrailingPathSeparator() const
 {
     return IsDirectory()
-           ? FilePath(String(pathname_.c_str(), pathname_.length() - 1))
+           ? FilePath(pathname_.substr(0, pathname_.length() - 1))
            : *this;
 }
 

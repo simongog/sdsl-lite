@@ -272,8 +272,8 @@ class int_vector
         friend class  coder::fibonacci;
         friend class  int_vector_file_buffer<t_width>;
         friend class  mm_item<int_vector>;
+        friend class mm;
 
-        friend void mm::realloc<int_vector>(int_vector&, const size_type);
         friend void util::set_random_bits<int_vector>(int_vector& v, int);
         friend void util::_set_zero_bits<int_vector>(int_vector&);
         friend void util::_set_one_bits<int_vector>(int_vector&);
