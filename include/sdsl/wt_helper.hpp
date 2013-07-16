@@ -52,7 +52,7 @@ struct pc_node {
     uint64_t  parent;   // pointer to the parent
     uint64_t  child[2]; // pointer to the children
 
-    static const uint64_t undef = 0xFFFFFFFFFFFFFFFFULL; // max uint64_t value
+    enum :uint64_t {undef = 0xFFFFFFFFFFFFFFFFULL}; // max uint64_t value
 
     pc_node(uint64_t freq=0, uint64_t sym=0, uint64_t parent=undef,
             uint64_t child_left=undef, uint64_t child_right=undef);
@@ -122,9 +122,9 @@ struct byte_tree {
     using value_type = uint8_t;
     using node_type = uint16_t; // node is represented by index in m_nodes
     using data_node = _node<byte_tree>;
-    static const node_type undef       = 0xFFFF; // max uint16_t value
-    static const uint32_t  fixed_sigma = 256;
-    static const uint8_t   int_width   = 8;      // width of the input integers
+    enum :uint16_t {undef       = 0xFFFF}; // max uint16_t value
+    enum :uint32_t {fixed_sigma = 256};
+    enum :uint8_t {int_width   = 8};      // width of the input integers
 
 
 
@@ -230,10 +230,10 @@ struct byte_tree {
 
     void swap(byte_tree& bt) {
         std::swap(m_nodes, bt.m_nodes);
-        for (uint32_t i=0; i<fixed_sigma; ++i)
+        for (uint32_t i=0; i<fixed_sigma; ++i) {
             std::swap(m_c_to_leaf[i], bt.m_c_to_leaf[i]);
-        for (uint32_t i=0; i<fixed_sigma; ++i)
             std::swap(m_path[i], bt.m_path[i]);
+        }
     }
 
     byte_tree& operator=(const byte_tree& bt) {
@@ -317,7 +317,7 @@ struct int_tree {
     using node_type = uint64_t; // node is represented by index in m_nodes
     using data_node = _node<int_tree>;
     enum :uint64_t {undef = 0xFFFFFFFFFFFFFFFFULL}; // max uint64_t value
-    static const uint8_t   int_width   = 0;      // width of the input integers is variable
+    enum :uint8_t {int_width = 0};                 // width of the input integers is variable
 
 
 
@@ -342,7 +342,7 @@ struct int_tree {
         m_nodes[0] = temp_nodes.back(); // insert root at index 0
         bv_size = 0;
         size_t node_cnt = 1;
-        node_type last_parent = int_tree::undef;
+        node_type last_parent = undef;
         std::deque<node_type> q;
         q.push_back(0);
         uint64_t max_c = 0;
@@ -356,7 +356,7 @@ struct int_tree {
             // frq_sum is store in bv_pos value
             uint64_t frq = m_nodes[idx].bv_pos;
             m_nodes[idx].bv_pos = bv_size;
-            if (m_nodes[idx].child[0] != int_tree::undef) { // if node is not a leaf
+            if (m_nodes[idx].child[0] != undef) { // if node is not a leaf
                 bv_size += frq;               // add frequency
             } else if (max_c < m_nodes[idx].bv_pos_rank) { // node is leaf and contains large symbol
                 max_c = m_nodes[idx].bv_pos_rank;
@@ -368,7 +368,7 @@ struct int_tree {
                     m_nodes[m_nodes[idx].parent].child[1] = idx;
                 last_parent = m_nodes[idx].parent;
             }
-            if (m_nodes[idx].child[0] != int_tree::undef) { // if node is not a leaf
+            if (m_nodes[idx].child[0] != undef) { // if node is not a leaf
                 for (uint32_t k=0; k<2; ++k) {       // add children to tree
                     m_nodes[node_cnt] = temp_nodes[ m_nodes[idx].child[k] ];
                     m_nodes[node_cnt].parent = idx;
@@ -379,9 +379,9 @@ struct int_tree {
         }
         // initialize m_c_to_leaf
         // if c is not in the alphabet m_c_to_leaf[c] = undef
-        m_c_to_leaf.resize(max_c+1, int_tree::undef);
+        m_c_to_leaf.resize(max_c+1, undef);
         for (node_type v=0; v < m_nodes.size(); ++v) {
-            if (m_nodes[v].child[0] == int_tree::undef) {              // if node is a leaf
+            if (m_nodes[v].child[0] == undef) {              // if node is a leaf
                 uint64_t c = m_nodes[v].bv_pos_rank;
                 m_c_to_leaf[c] = v; // calculate value
                 if (c > max_c) max_c = c;
@@ -394,7 +394,7 @@ struct int_tree {
         //   node is a left child, if node%2==1
         //   node is a right child, if node%2==0
         for (value_type c=0; c < m_c_to_leaf.size(); ++c) {
-            if (m_c_to_leaf[c] != int_tree::undef) { // if char exists in the alphabet
+            if (m_c_to_leaf[c] != undef) { // if char exists in the alphabet
                 node_type v = m_c_to_leaf[c];
                 uint64_t w = 0; // path
                 uint64_t l = 0; // path len
