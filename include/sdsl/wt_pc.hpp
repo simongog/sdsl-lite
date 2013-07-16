@@ -539,6 +539,7 @@ class wt_pc
             written_bytes += m_bv_select1.serialize(out,child,"bv_select_1");
             written_bytes += m_bv_select0.serialize(out,child,"bv_select_0");
             written_bytes += m_tree.serialize(out,child,"tree");
+            structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
