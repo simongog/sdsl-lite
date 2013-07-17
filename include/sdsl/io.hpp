@@ -218,16 +218,14 @@ void read_member(T& t, std::istream& in)
 template<>
 void read_member<std::string>(std::string& t, std::istream& in);
 
-template<class T>
-size_t write_element(const T& x, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="",
-                     SDSL_UNUSED typename std::enable_if<!std::is_pod<T>::value, bool>::type = false)
+template<class T,typename std::enable_if< (!std::is_pod<T>::value and !std::is_same<T,std::string>::value), bool>::type = false>
+size_t write_element(const T& x, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
 {
     return x.serialize(out, v, name);
 }
 
-template<class T>
-size_t write_element(const T& x, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="",
-                     SDSL_UNUSED typename std::enable_if<std::is_pod<T>::value, bool>::type = false)
+template<class T,typename std::enable_if< (std::is_pod<T>::value or std::is_same<T,std::string>::value), bool>::type = false>
+size_t write_element(const T& x, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
 {
     return write_member(x, out, v, name);
 }
@@ -257,16 +255,14 @@ size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::stru
     }
 }
 
-template<class T>
-void load_element(T& x, std::istream& in,
-                  SDSL_UNUSED typename std::enable_if<!std::is_pod<T>::value, bool>::type = false)
+template<class T,typename std::enable_if< (!std::is_pod<T>::value and !std::is_same<T,std::string>::value), bool>::type = false>
+void load_element(T& x, std::istream& in)
 {
     x.load(in);
 }
 
-template<class T>
-void load_element(T& x, std::istream& in,
-                  SDSL_UNUSED typename std::enable_if<std::is_pod<T>::value, bool>::type = false)
+template<class T,typename std::enable_if< (std::is_pod<T>::value or std::is_same<T,std::string>::value), bool>::type = false>
+void load_element(T& x, std::istream& in)
 {
     read_member(x, in);
 }
