@@ -307,7 +307,7 @@ struct _hutu_shape {
 
         template<class t_rac>
         static void
-        construct_tree(t_rac& C, vector<pc_node>& temp_nodes) {
+        construct_tree(t_rac& C, std::vector<pc_node>& temp_nodes) {
             //create a leaf for every letter
             std::vector<ht_node> node_vector;
             for (size_t i = 0; i < C.size(); i++) {
