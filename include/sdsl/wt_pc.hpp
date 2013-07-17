@@ -141,8 +141,7 @@ class wt_pc
             i -= i_new; j -= j_new;
             if (i != j) {
                 node_type v_new = m_tree.child(v, 0);
-                // if node is not a leaf
-                if (m_tree.child(v_new, 0) != t_tree_strat::undef) {
+                if (!m_tree.is_leaf(v_new)) {
                     _interval_symbols(i, j, k, cs, rank_c_i, rank_c_j, v_new);
                 } else {
                     rank_c_i[k] = i;
@@ -153,8 +152,7 @@ class wt_pc
             // goto right child
             if (i_new!=j_new) {
                 node_type v_new = m_tree.child(v, 1);
-                // if node is not a leaf
-                if (m_tree.child(v_new, 0) != t_tree_strat::undef) {
+                if (!m_tree.is_leaf(v_new)) {
                     _interval_symbols(i_new, j_new, k, cs, rank_c_i, rank_c_j,
                                       v_new);
                 } else {
@@ -288,7 +286,7 @@ class wt_pc
             // which stores how many of the next symbols are equal
             // with the current char
             node_type v = m_tree.root(); // start at root node
-            while (m_tree.child(v,0) != t_tree_strat::undef) { // while  not a leaf
+            while (!m_tree.is_leaf(v)) {   // while  not a leaf
                 if (m_bv[ m_tree.bv_pos(v) + i]) {  // goto right child
                     i = m_bv_rank(m_tree.bv_pos(v) + i)
                         - m_tree.bv_pos_rank(v);
@@ -318,7 +316,7 @@ class wt_pc
             // path_len == 0, if `c` was not in the text or m_sigma=1
             uint32_t path_len = (p>>56);
             if (!path_len and 1 == m_sigma) {
-                if (m_tree.c_to_leaf(c) == t_tree_strat::undef) { // if `c` was not in the text
+                if (!m_tree.is_valid(m_tree.c_to_leaf(c))) {   // if `c` was not in the text
                     return 0;
                 }
                 return std::min(i, m_size); // if m_sigma == 1 answer is trivial
@@ -349,7 +347,7 @@ class wt_pc
         size_type inverse_select(size_type i, value_type& c)const {
             assert(i < size());
             node_type v = m_tree.root();
-            while (m_tree.child(v,0) != t_tree_strat::undef) { // while not a leaf
+            while (!m_tree.is_leaf(v)) {   // while not a leaf
                 if (m_bv[m_tree.bv_pos(v) + i]) {   //  goto right child
                     i = (m_bv_rank(m_tree.bv_pos(v) + i)
                          - m_tree.bv_pos_rank(v));
@@ -377,7 +375,7 @@ class wt_pc
             assert(i > 0);
             assert(i <= rank(size(), c));
             node_type v = m_tree.c_to_leaf(c);
-            if (v == t_tree_strat::undef) { // if c was not in the text
+            if (!m_tree.is_valid(v)) {   // if c was not in the text
                 return m_size;         // -> return a position right to the end
             }
             if (m_sigma == 1) {
