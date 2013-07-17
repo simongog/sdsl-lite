@@ -11,6 +11,7 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
+#include <stdexcept>
 
 using std::map;
 
