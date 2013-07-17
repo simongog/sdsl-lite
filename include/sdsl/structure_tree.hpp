@@ -29,7 +29,7 @@ class structure_tree; // forward declaration
 class structure_tree_node
 {
     public:
-        typedef map<std::string, std::string> tKeyValue;
+        typedef map<std::string, std::string> key_val_t;
         friend class structure_tree;
     private:
         structure_tree_node*	 		m_parent;
@@ -37,7 +37,7 @@ class structure_tree_node
         map<std::string, std::string> 	m_key_values;
         void copy(const structure_tree_node& v);
         void delete_children();
-        bool equal_key_value_pairs(const tKeyValue& kv1, const tKeyValue& kv2)const;
+        bool equal_key_value_pairs(const key_val_t& kv1, const key_val_t& kv2)const;
     public:
 
         structure_tree_node*&			 parent;

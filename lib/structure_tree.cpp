@@ -25,7 +25,7 @@ void structure_tree_node::copy(const structure_tree_node& v)
         m_children   = v.m_children;
         m_key_values = v.m_key_values;
         for (vector<structure_tree_node*>::size_type i=0; i < m_children.size(); ++i) { // make a deep copy
-            m_children[i] = new structure_tree_node(v.m_children[i]);
+            m_children[i] = new structure_tree_node(*(v.m_children[i]));
         }
     }
 }
@@ -71,8 +71,8 @@ void structure_tree_node::add_key_value(const std::string& key, const std::strin
 
 structure_tree_node* structure_tree::add_child(structure_tree_node* v, const std::string& name, const std::string& class_name)
 {
-    if (NULL == v) {
-        return NULL;
+    if (nullptr == v) {
+        return nullptr;
     } else {
         structure_tree_node* v_new = new structure_tree_node(v, name, class_name);
         v->m_children.push_back(v_new);
@@ -82,8 +82,8 @@ structure_tree_node* structure_tree::add_child(structure_tree_node* v, const std
 
 structure_tree_node* structure_tree::parent(const structure_tree_node* v)
 {
-    if (NULL == v) {
-        return NULL;
+    if (nullptr == v) {
+        return nullptr;
     } else {
         return v->parent;
     }
@@ -96,7 +96,7 @@ void structure_tree_node::add_size(uint64_t value)
 
 void structure_tree::add_size(structure_tree_node* v, uint64_t value)
 {
-    if (NULL != v) {
+    if (nullptr != v) {
         v->add_size(value);
     }
 }
@@ -110,16 +110,16 @@ bool structure_tree_node::merge(const structure_tree_node& v)
     return false;
 }
 
-bool structure_tree_node::equal_key_value_pairs(const tKeyValue& kv1, const tKeyValue& kv2)const
+bool structure_tree_node::equal_key_value_pairs(const key_val_t& kv1, const key_val_t& kv2)const
 {
     if (kv1.size() != kv2.size())
         return false;
-    for (tKeyValue::const_iterator it1 = kv1.begin(), it2 = kv2.begin(); it1 != kv1.end(); ++it1, ++it2) {
+    for (auto it1 = kv1.begin(), it2 = kv2.begin(); it1 != kv1.end(); ++it1, ++it2) {
         if (it1->first != it2->first) {
             return false;
         }
         if (it1->first != "size") {
-            if (it1->first != it2->first)
+            if (it1->second != it2->second)
                 return false;
         }
     }
@@ -141,12 +141,12 @@ bool structure_tree_node::equal_structure(const structure_tree_node& v)const
         std::cout<<"structure not the same: key_values_pairs differ"<<std::endl;
         std::cout<<"m_key_values.size()="<<m_key_values.size()<<std::endl;
         std::cout<<"v.m_key_values.size()="<<v.m_key_values.size()<<std::endl;
-        for (tKeyValue::const_iterator it = m_key_values.begin(); it != m_key_values.end(); ++it) {
-            std::cout << "(" << it->first << "," << it->second << ")" << std::endl;
+        for (auto x : v.m_key_values) {
+            std::cout << "(" << x.first << "," << x.second << ")" << std::endl;
         }
         std::cout<<"======="<<std::endl;
-        for (tKeyValue::const_iterator it = v.m_key_values.begin(); it != v.m_key_values.end(); ++it) {
-            std::cout << "(" << it->first << "," << it->second << ")" << std::endl;
+        for (auto x : v.m_key_values) {
+            std::cout << "(" << x.first << "," << x.second << ")" << std::endl;
         }
         std::cout<<"-------"<<std::endl;
     }
@@ -155,6 +155,9 @@ bool structure_tree_node::equal_structure(const structure_tree_node& v)const
 
 void structure_tree_node::rec_merge(const structure_tree_node& v)
 {
+    for (size_t i=0; i < m_children.size(); ++i) {
+        m_children[i]->rec_merge(*(v.m_children[i]));
+    }
     if (m_key_values.find(STRUCTURE_TREE_SIZE_KEY) != m_key_values.end()) {
         uint64_t size, vsize;
         std::stringstream(m_key_values[STRUCTURE_TREE_SIZE_KEY]) >> size;
@@ -165,7 +168,7 @@ void structure_tree_node::rec_merge(const structure_tree_node& v)
 
 bool structure_tree::merge_children(structure_tree_node* v)
 {
-    if (NULL != v and v->m_children.size() > 0) {
+    if (nullptr != v and v->m_children.size() > 0) {
         // copy the first child
         structure_tree_node* merged_child = new structure_tree_node(*(v->m_children[0]));
         bool success = true;
@@ -190,14 +193,13 @@ void write_structure_tree<JSON_FORMAT>(const structure_tree_node* v, std::ostrea
     if (NULL == v or (v->children.size()==0 and v->key_values.size()==0)) {
         return;
     }
-    typedef structure_tree_node::tKeyValue::const_iterator const_iterator;
     size_t written_elements = 0;
     out << "{"; // begin json element
-    for (const_iterator it = v->key_values.begin(); it != v->key_values.end(); ++it) {
+    for (auto x : v->key_values) {
         if (written_elements++ > 0) {
             out << ",";
         }
-        out << "\"" << it->first << "\":\"" << it->second << "\"";
+        out << "\"" << x.first << "\":\"" << x.second << "\"";
     }
     if (v->children.size() > 0) {
         if (written_elements++ > 0) {
@@ -222,10 +224,9 @@ void write_structure_tree<R_FORMAT>(const structure_tree_node* v, std::ostream& 
     if (NULL == v or (v->children.size()==0 and v->key_values.size()==0)) {
         return;
     }
-    typedef structure_tree_node::tKeyValue::const_iterator const_iterator;
     size_t written_elements = 0;
     out << "list("; // begin R list
-    for (const_iterator it = v->key_values.begin(); it != v->key_values.end(); ++it) {
+    for (auto it = v->key_values.begin(); it != v->key_values.end(); ++it) {
         if (written_elements++ > 0) {
             out << ",";
         }
