@@ -1,0 +1,9 @@
+language: cpp
+compiler:
+  - clang
+branches: 
+  only:
+    - master
+# run install script, use sub-shell to cd to test directory
+# and build all programs in directories: test, examples, and tutorial.
+script: ./install.sh && (cd test && make -j build-test)
