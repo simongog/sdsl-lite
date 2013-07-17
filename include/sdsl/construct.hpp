@@ -24,6 +24,7 @@
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "construct_lcp.hpp"
 #include "construct_bwt.hpp"
 #include "construct_sa.hpp"
@@ -101,9 +102,9 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     std::string tmp_file_name = cache_file_name(tmp_key, config);
     store_to_file(text, tmp_file_name);
     util::clear(text);
-    int_vector_file_buffer<t_index::alphabet_category::WIDTH> text_buf(tmp_file_name);
     {
-        t_index tmp(text_buf, text_buf.int_vector_size);
+        int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(tmp_file_name, true);
+        t_index tmp(text_buf, text_buf.size());
         idx.swap(tmp);
     }
     sdsl::remove(tmp_file_name);

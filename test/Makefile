@@ -45,10 +45,10 @@ LCP_CONSTRUCT_TESTS:=$(patsubst %,lcp-construct-test/%,$(LCP_CONSTRUCT_PATHS))
 test: bits-test \
       int-vector-test \
       int-vector-buffer-test \
-	  bit-vector-test \
-	  rank-support-test\
-	  select-support-test\
-	  select-support0-test\
+      bit-vector-test \
+      rank-support-test \
+      select-support-test \
+      select-support0-test \
       wt-byte-test \
       wt-int-test \
       csa-byte-test \

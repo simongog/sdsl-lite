@@ -17,13 +17,10 @@ void construct_isa(cache_config& config)
             throw std::ios_base::failure("cst_construct: Cannot load SA from file system!");
         }
         {
-            int_vector_file_buffer<> sa_buf(config.file_map[constants::KEY_SA]);
+            int_vector_buffer<> sa_buf(config.file_map[constants::KEY_SA], true);
 
-            for (size_type i=0, r_sum=0, r = sa_buf.load_next_block(); r_sum < isa.size();) {
-                for (; i<r_sum+r; ++i) {
-                    isa[ sa_buf[i-r_sum] ] = i;
-                }
-                r_sum += r; r = sa_buf.load_next_block();
+            for (size_type i=0; i < isa.size(); ++i) {
+                isa[ sa_buf[i] ] = i;
             }
         }
         store_to_cache(isa, constants::KEY_ISA, config);

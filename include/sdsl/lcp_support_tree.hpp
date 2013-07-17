@@ -5,13 +5,14 @@
 #include "util.hpp"
 #include "algorithms_for_compressed_suffix_trees.hpp"
 #include "lcp_wt.hpp"
+#include "int_vector_buffer.hpp"
 #include <iostream>
 #include <string>
 
 namespace sdsl
 {
 
-void construct_first_child_lcp(int_vector_file_buffer<>& lcp_buf, int_vector<>& fc_lcp);
+void construct_first_child_lcp(int_vector_buffer<>& lcp_buf, int_vector<>& fc_lcp);
 
 /*! This class composes a virtual LCP array from a LCP arrays which is in suffix array order
  * (e.g. lcp_byte or lcp_bitcompressed) and a CST.
@@ -82,7 +83,7 @@ class _lcp_support_tree
             std::string tmp_file = cache_file_name(fc_lcp_key, config);
             {
                 int_vector<0> temp_lcp;
-                int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
+                int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config), true);
                 construct_first_child_lcp(lcp_buf, temp_lcp);
                 // TODO: store LCP values directly
                 store_to_file(temp_lcp, tmp_file);

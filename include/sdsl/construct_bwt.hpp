@@ -23,6 +23,7 @@
 
 #include "typedefs.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "sfstream.hpp"
 #include "util.hpp"
 #include "config.hpp" // for cache_config
@@ -53,7 +54,7 @@ void construct_bwt(cache_config& config)
 
     typedef int_vector<>::size_type size_type;
     typedef int_vector<t_width> text_type;
-    typedef int_vector<t_width> bwt_type;
+    typedef int_vector_buffer<t_width> bwt_type;
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
     const char* KEY_BWT = key_bwt_trait<t_width>::KEY_BWT;
 
@@ -65,38 +66,17 @@ void construct_bwt(cache_config& config)
 
     //  (2) Prepare to stream SA from disc and BWT to disc
     size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
-    int_vector_file_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config));
-    sa_buf.reset(buffer_size);
-
-    bwt_type bwt_buf(buffer_size, 0, bwt_width);
-
+    int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), true, buffer_size);
     std::string bwt_file = cache_file_name(KEY_BWT, config);
-    osfstream bwt_out_buf(bwt_file, std::ios::binary | std::ios::app | std::ios::out);   // open buffer for bwt
-    size_type bit_size = n*bwt_width;
-    bwt_out_buf.write((char*) &(bit_size), sizeof(bit_size));	// write size of vector
-    if (t_width != 8) {
-        bwt_out_buf.write((char*) &(bwt_width),sizeof(bwt_width));  // write int_width of vector
-    }
+    bwt_type bwt_buf(bwt_file, false, buffer_size, bwt_width);
 
     //  (3) Construct BWT sequentially by streaming SA and random access to text
     size_type wb = 0;  // bytes written into bwt int_vector
     size_type to_add[2] = {(size_type)-1,n-1};
-    for (size_type i=0, r_sum=0, r=0; r_sum < n;) {
-        for (; i < r_sum+r; ++i) {
-            bwt_buf[i-r_sum] = text[ sa_buf[i-r_sum]+to_add[sa_buf[i-r_sum]==0] ];
-        }
-        if (r > 0) {
-            size_type cur_wb = (r*bwt_buf.width()+7)/8;
-            bwt_out_buf.write((const char*)bwt_buf.data(), cur_wb);
-            wb += cur_wb;
-        }
-        r_sum += r;
-        r = sa_buf.load_next_block();
+    for (size_type i=0; i < n; ++i) {
+        bwt_buf[i] = text[ sa_buf[i]+to_add[sa_buf[i]==0] ];
     }
-    if (wb%8) {
-        bwt_out_buf.write("\0\0\0\0\0\0\0\0", 8-wb%8);
-    }
-    bwt_out_buf.close();
+    bwt_buf.close();
     register_cache_file(KEY_BWT, config);
 }
 

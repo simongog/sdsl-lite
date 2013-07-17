@@ -29,6 +29,7 @@
 #include "fast_cache.hpp"
 #include "csa_sampling_strategy.hpp"
 #include "csa_alphabet_strategy.hpp"
+#include "int_vector_buffer.hpp"
 #include <iostream>
 #include <algorithm> // for std::swap
 #include <cassert>
@@ -270,9 +271,9 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
     if (!cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
         return;
     }
-    int_vector_file_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
-    int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config));
-    size_type n = bwt_buf.int_vector_size;
+    int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config), true);
+    int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config), true);
+    size_type n = bwt_buf.size();
     mm::log("csa-alphabet-construct-begin");
     {
         alphabet_type tmp_alphabet(bwt_buf, n);

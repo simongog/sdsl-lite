@@ -24,6 +24,7 @@ TODO: merge with wt_rlmn
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "sd_vector.hpp"  // for standard initialisation of template parameters 
 #include "util.hpp"
 #include "wt_int.hpp"
@@ -137,35 +138,27 @@ class wt_int_rlmn
         }
 
         //! Construct the wavelet tree from a file_buffer
-        /*! \param text_buf	A int_vector_file_buffer to the original text.
-         *	\param size The length of the prefix of the text, for which the wavelet tree should be build.
+        /*! \param text_buf A int_vector_buffer to the original text.
+         *  \param size     The length of the prefix of the text, for which the wavelet tree should be build.
          */
-        wt_int_rlmn(int_vector_file_buffer<>& text_buf, size_type size):m_size(size), sigma(m_wt.sigma) {
-            if (0 == text_buf.int_vector_size or 0 == size)
+        wt_int_rlmn(int_vector_buffer<>& text_buf, size_type size):m_size(size), sigma(m_wt.sigma) {
+            if (0 == text_buf.size() or 0 == size)
                 return;
             int_vector<> condensed_bwt;
             {
                 // scope for bl and bf
                 bit_vector bl = bit_vector(size, 0);
                 std::map<uint64_t, uint64_t> C;
-                text_buf.reset();
                 uint64_t last_c = 0;
                 size_type runs = 0;
-                for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
-                    if (r_sum + r > size) {  // read not more than size chars in the next loop
-                        r = size-r_sum;
+                for (size_type i=0; i < size; ++i) {
+                    uint64_t c = text_buf[i];
+                    if (last_c != c or i==0) {
+                        bl[i] = 1;
+                        ++runs;
                     }
-                    for (; i < r+r_sum; ++i) {
-                        uint64_t c = text_buf[i-r_sum];
-                        if (last_c != c or i==0) {
-                            bl[i] = 1;
-                            ++runs;
-                        }
-                        ++C[c];
-                        last_c = c;
-                    }
-                    r_sum += r;
-                    r = text_buf.load_next_block();
+                    ++C[c];
+                    last_c = c;
                 }
                 uint64_t max_symbol = (--C.end())->first;
                 m_C = int_vector<>(max_symbol+1, 0, bits::hi(size)+1);
@@ -177,31 +170,24 @@ class wt_int_rlmn
                 int_vector<> lf_map = m_C;
                 bit_vector bf = bit_vector(size+1, 0);
                 bf[size] = 1; // initialize last element
-                text_buf.reset();
                 condensed_bwt = int_vector<>(runs, 0, bits::hi(max_symbol)+1);
                 runs = 0;
-                for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
-                    if (r_sum + r > size) {  // read not more than size chars in the next loop
-                        r = size-r_sum;
+                for (size_type i=0; i < size; ++i) {
+                    uint64_t c = text_buf[i];
+                    if (bl[i]) {
+                        bf[lf_map[c]] = 1;
+                        condensed_bwt[runs++] = c;
                     }
-                    for (; i < r+r_sum; ++i) {
-                        uint64_t c = text_buf[i-r_sum];
-                        if (bl[i]) {
-                            bf[lf_map[c]] = 1;
-                            condensed_bwt[runs++] = c;
-                        }
-                        ++lf_map[c];
-                    }
-                    r_sum += r;
-                    r = text_buf.load_next_block();
+                    ++lf_map[c];
                 }
                 {
                     // TODO: remove absolute file name
                     std::string temp_file = "tmp_wt_int_rlmn_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
                     util::store_to_file(condensed_bwt, temp_file);
                     util::clear(condensed_bwt);
-                    int_vector_file_buffer<> temp_bwt_buf(temp_file);
-                    m_wt = std::move(wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size));
+                    int_vector_buffer<> temp_bwt_buf(temp_file, true);
+                    m_wt = std::move(wt_type(temp_bwt_buf, temp_bwt_buf.size()));
+                    temp_bwt_buf.close()
                     std::remove(temp_file.c_str());
                 }
                 m_bl = std::move(bit_vector_type(bl));
