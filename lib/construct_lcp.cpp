@@ -908,9 +908,6 @@ void construct_lcp_bwt_based2(cache_config& config)
         }
         index_done[0] = true;
 
-        // Save first interval
-//         q.push(0); q.push(n);
-//         intervals = 1;
         // calculate first intervals
         wt_bwt.interval_symbols(0, n, quantity, cs, rank_c_i, rank_c_j);
         for (size_type i=0; i<quantity; ++i) {
@@ -934,12 +931,6 @@ void construct_lcp_bwt_based2(cache_config& config)
         }
         ++lcp_value;
         new_lcp_value = true;
-
-
-
-
-
-
 
         // Calculate LCP positions
         while (intervals) {

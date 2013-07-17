@@ -169,7 +169,6 @@ void construct_lcp_PHI(cache_config& config)
 
 //	(4) Transform PLCP into LCP
     std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
-//     osfstream lcp_out_buf(lcp_file, std::ios::binary | std::ios::app | std::ios::out);   // open buffer for lcp //TODO app?
     size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
     int_vector_buffer<> lcp_buf(lcp_file, false, buffer_size, lcp_width);   // open buffer for lcp
     lcp_buf[0] = 0;
