@@ -52,6 +52,7 @@
  */
 
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "csa_alphabet_strategy.hpp" // for key_trait
 #include <set>
 
@@ -78,20 +79,17 @@ class _sa_order_sampling : public int_vector<t_width>
          *      Linear in the size of the suffix array.
          */
         _sa_order_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=nullptr) {
-            int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig));
-            size_type n = sa_buf.int_vector_size;
+            int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig), true);
+            size_type n = sa_buf.size();
             this->width(bits::hi(n)+1);
             this->resize((n+sample_dens-1)/sample_dens);
 
-            for (size_type i=0, r_sum = 0, r = sa_buf.load_next_block(), cnt_mod=sample_dens, cnt_sum=0; r_sum < n;) {
-                for (; i < r_sum+r; ++i, ++cnt_mod) {
-                    size_type sa = sa_buf[i-r_sum];
-                    if (sample_dens == cnt_mod) {
-                        cnt_mod = 0;
-                        (*this)[cnt_sum++] = sa;
-                    }
+            for (size_type i=0, cnt_mod=sample_dens, cnt_sum=0; i < n; ++i, ++cnt_mod) {
+                size_type sa = sa_buf[i];
+                if (sample_dens == cnt_mod) {
+                    cnt_mod = 0;
+                    (*this)[cnt_sum++] = sa;
                 }
-                r_sum += r; r = sa_buf.load_next_block();
             }
         }
 
@@ -146,21 +144,18 @@ class _text_order_sampling : public int_vector<t_width>
          *      Linear in the size of the suffix array.
          */
         _text_order_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=nullptr) {
-            int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig));
-            size_type n = sa_buf.int_vector_size;
+            int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig), true);
+            size_type n = sa_buf.size();
             bit_vector marked(n, 0);                // temporary bitvector for the marked text positions
             this->width(bits::hi(n)+1);
             this->resize((n+sample_dens-1)/sample_dens);
 
-            for (size_type i=0, r_sum = 0, r = sa_buf.load_next_block(), sa_cnt=0; r_sum < n;) {
-                for (; i < r_sum+r; ++i) {
-                    size_type sa = sa_buf[i-r_sum];
-                    if (0 == (sa % sample_dens)) {
-                        marked[i] = 1;
-                        (*this)[sa_cnt++] = sa;
-                    }
+            for (size_type i=0, sa_cnt=0; i < n; ++i) {
+                size_type sa = sa_buf[i];
+                if (0 == (sa % sample_dens)) {
+                    marked[i] = 1;
+                    (*this)[sa_cnt++] = sa;
                 }
-                r_sum += r; r = sa_buf.load_next_block();
             }
             m_marked = std::move(bit_vector_type(marked));
             util::init_support(m_rank_marked, &m_marked);
@@ -286,10 +281,10 @@ class _bwt_sampling : public int_vector<t_width>
          *      Linear in the size of the suffix array.
          */
         _bwt_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=nullptr) {
-            int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig));
-            int_vector_file_buffer<t_csa::alphabet_type::int_width>
-            bwt_buf(cache_file_name(key_trait<t_csa::alphabet_type::int_width>::KEY_BWT,cconfig));
-            size_type n = sa_buf.int_vector_size;
+            int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig), true);
+            int_vector_buffer<t_csa::alphabet_type::int_width>
+            bwt_buf(cache_file_name(key_trait<t_csa::alphabet_type::int_width>::KEY_BWT,cconfig), true);
+            size_type n = sa_buf.size();
             bit_vector marked(n, 0);                // temporary bitvector for the marked text positions
             this->width(bits::hi(n)+1);
             int_vector<> sample_char;
@@ -301,32 +296,24 @@ class _bwt_sampling : public int_vector<t_width>
                 }
             }
             size_type sa_cnt = 0;
-            for (size_type i=0, r_sum = 0, r = 0; r_sum < n;) {
-                for (; i < r_sum+r; ++i) {
-                    size_type sa  = sa_buf[i-r_sum];
-                    char_type bwt = bwt_buf[i-r_sum];
-                    if (0 == (sa % sample_dens)) {
-                        marked[i] = 1;
-                        ++sa_cnt;
-                    } else if (char_map.find(bwt) != char_map.end()) {
-                        marked[i] = 1;
-                        ++sa_cnt;
-                    }
+            for (size_type i=0; i < n; ++i) {
+                size_type sa  = sa_buf[i];
+                char_type bwt = bwt_buf[i];
+                if (0 == (sa % sample_dens)) {
+                    marked[i] = 1;
+                    ++sa_cnt;
+                } else if (char_map.find(bwt) != char_map.end()) {
+                    marked[i] = 1;
+                    ++sa_cnt;
                 }
-                r_sum += r; r = sa_buf.load_next_block();
-                bwt_buf.load_next_block();
             }
-            sa_buf.reset();
             this->resize(sa_cnt);
             sa_cnt = 0;
-            for (size_type i=0, r_sum = 0, r = sa_buf.load_next_block(); r_sum < n;) {
-                for (; i < r_sum+r; ++i) {
-                    size_type sa  = sa_buf[i-r_sum];
-                    if (marked[i]) {
-                        (*this)[sa_cnt++] = sa;
-                    }
+            for (size_type i=0; i < n; ++i) {
+                size_type sa  = sa_buf[i];
+                if (marked[i]) {
+                    (*this)[sa_cnt++] = sa;
                 }
-                r_sum += r; r = sa_buf.load_next_block();
             }
             util::assign(m_marked, marked);
             util::init_support(m_rank_marked, &m_marked);

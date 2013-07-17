@@ -44,13 +44,4 @@ void bit_vector::flip()
     }
 }
 
-template<>
-void int_vector_file_buffer<0>::set_width(uint8_t int_width)
-{
-    if (0 < int_width and int_width <= 64)
-        m_width = int_width;
-    else
-        m_width = 64;
-}
-
 }

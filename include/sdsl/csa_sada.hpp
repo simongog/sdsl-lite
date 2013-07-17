@@ -23,6 +23,7 @@
 
 #include "enc_vector.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
 #include "suffix_array_helper.hpp"
@@ -358,8 +359,8 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     if (!cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
         return;
     }
-    int_vector_file_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
-    size_type n = bwt_buf.int_vector_size;
+    int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config), true);
+    size_type n = bwt_buf.size();
     mm::log("csa-alphabet-construct-begin");
     {
         alphabet_type tmp_alphabet(bwt_buf, n);
@@ -375,13 +376,9 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     // calculate psi
     {
         // TODO: move PSI construct into construct_PSI.hpp
-        bwt_buf.reset();
         int_vector<> psi(n, 0, bits::hi(n)+1);
-        for (size_type i=0, r_sum=0, r=bwt_buf.load_next_block(); r_sum < n;) {
-            for (; i < r_sum+r; ++i) {
-                psi[ cnt_chr[ char2comp[bwt_buf[i-r_sum]] ]++ ] = i;
-            }
-            r_sum += r; r = bwt_buf.load_next_block();
+        for (size_type i=0; i < n; ++i) {
+            psi[ cnt_chr[ char2comp[bwt_buf[i]] ]++ ] = i;
         }
         std::string psi_file = cache_file_name(constants::KEY_PSI, config);
         if (!store_to_cache(psi, constants::KEY_PSI, config)) {
@@ -389,14 +386,14 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
         }
     }
     mm::log("csa-psi-end");
-    int_vector_file_buffer<> psi_buf(cache_file_name(constants::KEY_PSI, config));
+    int_vector_buffer<> psi_buf(cache_file_name(constants::KEY_PSI, config), true);
     mm::log("csa-psi-encode-begin");
     {
         t_enc_vec tmp_psi(psi_buf);
         m_psi.swap(tmp_psi);
     }
     mm::log("csa-psi-encode-end");
-    int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config));
+    int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config), true);
     mm::log("sa-sample-begin");
     {
         sa_sample_type tmp_sa_sample(config);

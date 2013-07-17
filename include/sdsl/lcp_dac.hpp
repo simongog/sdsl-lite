@@ -23,6 +23,7 @@
 
 #include "lcp.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
 #include "util.hpp"
@@ -208,8 +209,8 @@ lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
 //      Running time: \f$ O(n \times \frac{\log n}{b}  \f$
 //      Result is sorted in m_level_pointer_and_rank
     std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
-    int_vector_file_buffer<> lcp_buf(lcp_file);
-    size_type n = lcp_buf.int_vector_size, val=0;
+    int_vector_buffer<> lcp_buf(lcp_file, true);
+    size_type n = lcp_buf.size(), val=0;
     if (n == 0)
         return;
 // initialize counter
@@ -220,19 +221,16 @@ lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
     m_level_pointer_and_rank[0] = n; // level 0 has n entries
 
     uint8_t level_x_2 = 0;
-    for (size_type i=0, r_sum=0, r = 0; r_sum < n;) {
-        for (; i < r_sum+r; ++i) {
-            val=lcp_buf[i-r_sum];
+    for (size_type i=0; i < n; ++i) {
+        val=lcp_buf[i];
+        val >>= t_b; // shift value b bits to the right
+        level_x_2 = 2;
+        while (val) {
+            // increase counter for current level by 1
+            ++m_level_pointer_and_rank[level_x_2];
             val >>= t_b; // shift value b bits to the right
-            level_x_2 = 2;
-            while (val) {
-                // increase counter for current level by 1
-                ++m_level_pointer_and_rank[level_x_2];
-                val >>= t_b; // shift value b bits to the right
-                level_x_2 += 2; // increase level by 1
-            }
+            level_x_2 += 2; // increase level by 1
         }
-        r_sum += r; r = lcp_buf.load_next_block();
     }
 
 //  (2)    Determine maximum level and prefix sums of level counters
@@ -256,24 +254,20 @@ lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
     int_vector<64> cnt = m_level_pointer_and_rank;
     const uint64_t mask = bits::lo_set[t_b];
 
-    lcp_buf.reset();
-    for (size_type i=0,j=0, r_sum=0, r = 0; r_sum < n;) {
-        for (; i < r_sum+r; ++i) {
-            val=lcp_buf[i-r_sum];
-            j = cnt[0]++;
-            m_data[ j ] =  val & mask;
+    for (size_type i=0, j=0; i < n; ++i) {
+        val=lcp_buf[i];
+        j = cnt[0]++;
+        m_data[ j ] =  val & mask;
+        val >>= t_b; // shift value b bits to the right
+        level_x_2 = 2;
+        while (val) {
+            m_overflow[j] = 1;
+            // increase counter for current level by 1
+            j = cnt[level_x_2]++;
+            m_data[ j ] = val & mask;
             val >>= t_b; // shift value b bits to the right
-            level_x_2 = 2;
-            while (val) {
-                m_overflow[j] = 1;
-                // increase counter for current level by 1
-                j = cnt[level_x_2]++;
-                m_data[ j ] = val & mask;
-                val >>= t_b; // shift value b bits to the right
-                level_x_2 += 2; // increase level by 1
-            }
+            level_x_2 += 2; // increase level by 1
         }
-        r_sum += r; r = lcp_buf.load_next_block();
     }
 
 //  (4) Initialize rank data structure for m_overflow and precalc rank for

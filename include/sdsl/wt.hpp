@@ -24,6 +24,7 @@
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "util.hpp"
 #include <set> // for calculating the alphabet size
 #include <map> // for mapping a symbol to its lexicographical index
@@ -155,10 +156,10 @@ struct wt_trait<unsigned char*> {
 };
 
 template<>
-struct wt_trait<int_vector_file_buffer<8> > {
+struct wt_trait<int_vector_buffer<8> > {
     typedef int_vector_size_type        size_type;
     typedef unsigned char               value_type;
-    typedef int_vector_file_buffer<8>&  reference_type;
+    typedef int_vector_buffer<8>&       reference_type;
     typedef unsigned_char_map           map_type;
     typedef unsigned_char_map           inv_map_type;
     enum { char_node_map_size=256 };
@@ -172,9 +173,8 @@ struct wt_trait<int_vector_file_buffer<8> > {
             }
             return 0;
         }
-        rac.reset();
-        if (rac.int_vector_size < n) {
-            throw std::logic_error("wt<int_vector_file_buffer<8> >: n > rac.int_vector_size!");
+        if (rac.size() < n) {
+            throw std::logic_error("wt<int_vector_buffer<8> >: n > rac.size()!");
             return 0;
         }
 
@@ -183,17 +183,10 @@ struct wt_trait<int_vector_file_buffer<8> > {
         }
 
         size_type alphabet_size = 0;
-        size_type r = rac.load_next_block();
         first_symbol = rac[0];
-        for (size_type i=0, r_sum=0; r_sum < n;) {
-            if (r_sum +r > n) {  // make sure that not more than n characters are read
-                r = n-r_sum;
-            }
-            for (; i< r_sum+r; ++i) {
-                value_type c = rac[i-r_sum];
-                map[c] = 1;
-            }
-            r_sum += r; r = rac.load_next_block();
+        for (size_type i=0; i < n; ++i) {
+            value_type c = rac[i];
+            map[c] = 1;
         }
 
         for (size_type i=0; i<256; ++i) {
@@ -309,12 +302,12 @@ class wt
         wt() {};
 
         //! Construct the wavelet tree from a random access container
-        wt(int_vector_file_buffer<8>& rac, size_type size) {
+        wt(int_vector_buffer<8>& rac, size_type size) {
             m_size = size;
             init_char_node_map();
-            typedef int_vector_file_buffer<8> tIVFB;
+            typedef int_vector_buffer<8> tIVB;
             // calculate alphabet size and the mappings for the symbols to the integers and back
-            m_sigma = wt_trait<tIVFB>::alphabet_size_and_map(rac, m_size, m_char_map, m_inv_char_map, m_first_symbol);
+            m_sigma = wt_trait<tIVB>::alphabet_size_and_map(rac, m_size, m_char_map, m_inv_char_map, m_first_symbol);
 
             int_vector<64> node_sizes = int_vector<64>(2*m_sigma+1, 0/*, bits::hi(m_size)+1*/);
             m_node_pointers = int_vector<64>(node_sizes.size()+1, 0);
@@ -327,16 +320,9 @@ class wt
             } else {
                 // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
                 size_type C[256] = {0};
-                rac.reset();
                 //  1. Count occurrences of characters
-                for (size_type i=0, r_sum=0, r = rac.load_next_block(); r_sum < m_size;) {
-                    if (r_sum + r > m_size) {  // read not more than size chars in the next loop
-                        r = m_size-r_sum;
-                    }
-                    for (; i < r_sum+r; ++i) {
-                        ++C[rac[i-r_sum]];
-                    }
-                    r_sum += r; r = rac.load_next_block();
+                for (size_type i=0; i < m_size; ++i) {
+                    ++C[rac[i]];
                 }
                 //  2. Sum up the node sizes for each character
                 for (size_type i=0; i < 256; ++i) {
@@ -390,44 +376,11 @@ class wt
                         }
                     }
                 }
-                rac.reset();
-                for (size_type i=0, r_sum=0, r = rac.load_next_block(); r_sum < m_size;) {
-                    if (r_sum + r > size) {  // read not more than size chars in the next loop
-                        r = size-r_sum;
-                    }
-                    uint8_t old_chr = rac[i-r_sum];
-                    uint8_t times = 0;
-                    for (; i < r_sum+r; ++i) {
-                        uint8_t chr = rac[i-r_sum];
-                        if (chr    != old_chr) {
-                            uint8_t p = path[old_chr];
-                            for (uint32_t l=0, node=0; l<path_len[old_chr]; ++l, p >>= 1) {
-                                if (p&1) {
-                                    tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
-                                    node_sizes[node] += times; node = (node<<1)+2;
-                                } else {
-                                    node_sizes[node] += times; node = (node<<1)+1;
-                                }
-                            }
-                            times = 1;
-                            old_chr = chr;
-                        } else { // chr == old_chr
-                            ++times;
-                            if (times == 64) {
-                                uint8_t p = path[old_chr];
-                                for (uint32_t l=0, node=0; l<path_len[old_chr]; ++l, p >>= 1) {
-                                    if (p&1) {
-                                        tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
-                                        node_sizes[node] += times; node = (node<<1)+2;
-                                    } else {
-                                        node_sizes[node] += times; node = (node<<1)+1;
-                                    }
-                                }
-                                times = 0;
-                            }
-                        }
-                    }
-                    if (times > 0) {
+                uint8_t times = 0;
+                uint8_t old_chr = rac[0];
+                for (size_type i=0; i < m_size; ++i) {
+                    uint8_t chr = rac[i];
+                    if (chr    != old_chr) {
                         uint8_t p = path[old_chr];
                         for (uint32_t l=0, node=0; l<path_len[old_chr]; ++l, p >>= 1) {
                             if (p&1) {
@@ -437,9 +390,36 @@ class wt
                                 node_sizes[node] += times; node = (node<<1)+1;
                             }
                         }
+                        times = 1;
+                        old_chr = chr;
+                    } else { // chr == old_chr
+                        ++times;
+                        if (times == 64) {
+                            uint8_t p = path[old_chr];
+                            for (uint32_t l=0, node=0; l<path_len[old_chr]; ++l, p >>= 1) {
+                                if (p&1) {
+                                    tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
+                                    node_sizes[node] += times; node = (node<<1)+2;
+                                } else {
+                                    node_sizes[node] += times; node = (node<<1)+1;
+                                }
+                            }
+                            times = 0;
+                        }
                     }
-                    r_sum += r; r = rac.load_next_block();
                 }
+                if (times > 0) {
+                    uint8_t p = path[old_chr];
+                    for (uint32_t l=0, node=0; l<path_len[old_chr]; ++l, p >>= 1) {
+                        if (p&1) {
+                            tree.set_int(m_node_pointers[node]+node_sizes[node], 0xFFFFFFFFFFFFFFFFULL,times);
+                            node_sizes[node] += times; node = (node<<1)+2;
+                        } else {
+                            node_sizes[node] += times; node = (node<<1)+1;
+                        }
+                    }
+                }
+
                 m_tree = bv_type(std::move(tree));
                 util::init_support(m_tree_rank,&m_tree);
                 for (size_type i=0; i < m_node_pointers.size(); ++i) {

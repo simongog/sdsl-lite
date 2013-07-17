@@ -24,6 +24,7 @@
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "rank_support_v.hpp"
 #include "rank_support_v5.hpp"
 #include "select_support_mcl.hpp"
@@ -101,14 +102,14 @@ class wt_rlg
         wt_rlg() {};
 
         //! Construct the wavelet tree from a file_buffer
-        /*! \param text_buf    A int_vector_file_buffer to the original text.
-         *  \param size The length of the prefix of the text, for which the wavelet tree should be build.
+        /*! \param text_buf A int_vector_buffer to the original text.
+         *  \param size     The length of the prefix of the text, for which the wavelet tree should be build.
          * \par Time complexity
          *    \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        wt_rlg(int_vector_file_buffer<8>& text_buf, size_type size) : m_size(size) {
+        wt_rlg(int_vector_buffer<8>& text_buf, size_type size) : m_size(size) {
             typedef int_vector_size_type size_type;
-            std::string temp_file = text_buf.file_name + "_wt_rlg_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
+            std::string temp_file = text_buf.filename() + "_wt_rlg_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
             osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
@@ -121,34 +122,26 @@ class wt_rlg
 
             int m=0;
 
-            text_buf.reset();
             bit_vector b_sigma(256, 0);
             uint8_t last_c = '\0', c = '\0';
             size_type b_cnt = 0, pair1cnt=0, pair0cnt=0;
-            for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
-                if (r_sum + r > size) {  // read not more than size chars in the next loop
-                    r = size-r_sum;
-                }
-                for (; i < r+r_sum; ++i) {
-                    c = text_buf[i-r_sum];
-                    b_sigma[c] = 1;
-                    if (i & 1) { // if position is odd
-                        if (c == last_c) { // join pair
-                            m_b[b_cnt] = 1;
-                            next_bwt[pair1cnt] = c;
-                            ++pair1cnt;
-                        } else { // write pair to stream
-                            //m_b[b_cnt] = 0; // since m_b is initialized to zero, this is not necessary
-                            wt_out.write((char*)&last_c, sizeof(last_c));
-                            wt_out.write((char*)&c, sizeof(c));
-                            ++pair0cnt;
-                        }
-                        ++b_cnt;
+            for (size_type i=0; i < size; ++i) {
+                c = text_buf[i];
+                b_sigma[c] = 1;
+                if (i & 1) { // if position is odd
+                    if (c == last_c) { // join pair
+                        m_b[b_cnt] = 1;
+                        next_bwt[pair1cnt] = c;
+                        ++pair1cnt;
+                    } else { // write pair to stream
+                        //m_b[b_cnt] = 0; // since m_b is initialized to zero, this is not necessary
+                        wt_out.write((char*)&last_c, sizeof(last_c));
+                        wt_out.write((char*)&c, sizeof(c));
+                        ++pair0cnt;
                     }
-                    last_c = c;
+                    ++b_cnt;
                 }
-                r_sum += r;
-                r = text_buf.load_next_block();
+                last_c = c;
             }
             if (size%2) { // handle last element if size is odd
                 wt_out.write((char*)&c, sizeof(c));
@@ -197,8 +190,8 @@ class wt_rlg
             wt_out.close();
 
             {
-                int_vector_file_buffer<8> temp_bwt_buf(temp_file);
-                m_wt = wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size);
+                int_vector_buffer<8> temp_bwt_buf(temp_file, true);
+                m_wt = wt_type(temp_bwt_buf, temp_bwt_buf.size());
             }
 
             util::init_support(m_b_rank, &m_b);

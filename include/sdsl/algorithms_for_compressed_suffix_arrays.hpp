@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_ALGORITHMS_FOR_COMPRESSED_SUFFIX_ARRAYS
 
 #include "int_vector.hpp" // for bit_vector
+#include "int_vector_buffer.hpp"
 #include "util.hpp"
 #include <stack> // for calculate_supercartesian_tree_bp
 
@@ -32,10 +33,10 @@ namespace algorithm
 {
 
 template<class Csa, uint8_t int_width>
-void set_isa_samples(int_vector_file_buffer<int_width>& sa_buf, typename Csa::isa_sample_type& isa_sample)
+void set_isa_samples(int_vector_buffer<int_width>& sa_buf, typename Csa::isa_sample_type& isa_sample)
 {
     typedef typename Csa::size_type size_type;
-    size_type  n = sa_buf.int_vector_size;
+    size_type  n = sa_buf.size();
 
     isa_sample.width(bits::hi(n)+1);
     if (n >= 1) { // so n+Csa::isa_sample_dens >= 2
@@ -43,17 +44,13 @@ void set_isa_samples(int_vector_file_buffer<int_width>& sa_buf, typename Csa::is
     }
     util::set_to_value(isa_sample, 0);
 
-    sa_buf.reset();
-    for (size_type i=0, r_sum = 0, r = sa_buf.load_next_block(); r_sum < n;) {
-        for (; i < r_sum+r; ++i) {
-            size_type sa = sa_buf[i-r_sum];
-            if ((sa % Csa::isa_sample_dens) == 0) {
-                isa_sample[sa/Csa::isa_sample_dens] = i;
-            } else if (sa+1 == n) {
-                isa_sample[(sa+Csa::isa_sample_dens-1)/Csa::isa_sample_dens] = i;
-            }
+    for (size_type i=0; i < n; ++i) {
+        size_type sa = sa_buf[i];
+        if ((sa % Csa::isa_sample_dens) == 0) {
+            isa_sample[sa/Csa::isa_sample_dens] = i;
+        } else if (sa+1 == n) {
+            isa_sample[(sa+Csa::isa_sample_dens-1)/Csa::isa_sample_dens] = i;
         }
-        r_sum += r; r = sa_buf.load_next_block();
     }
 }
 

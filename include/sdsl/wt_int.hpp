@@ -25,6 +25,7 @@
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "rank_support_v.hpp"
 #include "select_support_mcl.hpp"
 #include "temp_write_read_buffer.hpp"
@@ -123,35 +124,28 @@ class wt_int
          *        \f$ n\log|\Sigma| + O(1)\f$ bits, where \f$n=size\f$.
          */
         template<uint8_t int_width>
-        wt_int(int_vector_file_buffer<int_width>& buf, size_type size,
+        wt_int(int_vector_buffer<int_width>& buf, size_type size,
                uint32_t max_depth=0) : m_size(size) {
             init_buffers(m_max_depth);
             if (0 == m_size)
                 return;
-            buf.reset();
-            size_type n = buf.int_vector_size;  // set n
+            size_type n = buf.size();  // set n
             if (n < m_size) {
                 throw std::logic_error("n="+util::to_string(n)+" < "+util::to_string(m_size)+"=m_size");
                 return;
             }
             m_sigma = 0; // init sigma
 
-            std::string dir = util::dirname(buf.file_name);
+            std::string dir = util::dirname(buf.filename());
 
-            temp_write_read_buffer<> buf1(5000000, buf.width, dir);   // buffer for elements in the right node
-            int_vector<int_width> rac(m_size, 0, buf.width);          // initialize rac
+            temp_write_read_buffer<> buf1(5000000, buf.width(), dir);   // buffer for elements in the right node
+            int_vector<int_width> rac(m_size, 0, buf.width());          // initialize rac
 
             value_type x = 1;  // variable for the biggest value in rac
-            for (size_type i=0,r=0,r_sum=0; i < m_size;) { // detect the largest value in rac
-                if (r_sum + r > m_size) {  // read not more than size chars in the next loop
-                    r = m_size - r_sum;
-                }
-                for (; i < r+r_sum; ++i) {
-                    if (buf[i-r_sum] > x)
-                        x = buf[i-r_sum];
-                    rac[i] = buf[i-r_sum];
-                }
-                r_sum += r; r = buf.load_next_block();
+            for (size_type i=0; i < m_size; ++i) { // detect the largest value in rac
+                if (buf[i] > x)
+                    x = buf[i];
+                rac[i] = buf[i];
             }
 
             if (max_depth == 0) {

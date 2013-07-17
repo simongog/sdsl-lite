@@ -26,6 +26,7 @@
 #include "rank_support.hpp"
 #include "select_support.hpp"
 #include "wt_helper.hpp"
+#include "int_vector_buffer.hpp"
 #include <vector>
 #include <deque>
 #include <queue>
@@ -263,7 +264,7 @@ class wt_pc
          *    \par Time complexity
          *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        wt_pc(int_vector_file_buffer<8>& input_buf, size_type size):m_size(size) {
+        wt_pc(int_vector_buffer<8>& input_buf, size_type size):m_size(size) {
             if (0 == m_size)
                 return;
             // O(n + |\Sigma|\log|\Sigma|) algorithm for calculating node sizes
@@ -282,36 +283,27 @@ class wt_pc
             for (size_type i=0; i < 2*sigma-1; ++i) {
                 tree_pos[i] = m_nodes[i].tree_pos;
             }
-            input_buf.reset();
-            if (input_buf.int_vector_size < size) {
+            if (input_buf.size() < size) {
                 throw std::logic_error("Stream size is smaller than size!");
                 return;
             }
-            for (size_type i=0, r_sum=0, r = input_buf.load_next_block();
-                 r_sum < m_size;) {
-                // read not more than size chars in the next loop
-                if (r_sum + r > size) {
-                    r = size-r_sum;
-                }
-                uint8_t old_chr = input_buf[i-r_sum], times = 0;
-                for (; i < r_sum+r; ++i) {
-                    uint8_t chr = input_buf[i-r_sum];
-                    if (chr    != old_chr) {
+            uint8_t old_chr = input_buf[0], times = 0;
+            for (size_type i=0; i < m_size; ++i) {
+                uint8_t chr = input_buf[i];
+                if (chr    != old_chr) {
+                    insert_char(old_chr, tree_pos, times, tmp_tree);
+                    times = 1;
+                    old_chr = chr;
+                } else { // chr == old_chr
+                    ++times;
+                    if (times == 64) {
                         insert_char(old_chr, tree_pos, times, tmp_tree);
-                        times = 1;
-                        old_chr = chr;
-                    } else { // chr == old_chr
-                        ++times;
-                        if (times == 64) {
-                            insert_char(old_chr, tree_pos, times, tmp_tree);
-                            times = 0;
-                        }
+                        times = 0;
                     }
                 }
-                if (times > 0) {
-                    insert_char(old_chr, tree_pos, times, tmp_tree);
-                }
-                r_sum += r; r = input_buf.load_next_block();
+            }
+            if (times > 0) {
+                insert_char(old_chr, tree_pos, times, tmp_tree);
             }
             m_tree = bit_vector_type(std::move(tmp_tree));
             // 5. Initialize rank and select data structures for m_tree

@@ -335,8 +335,7 @@ TYPED_TEST(WtByteTest, SwapTest)
 
 TYPED_TEST(WtByteTest, CreatePartiallyTest)
 {
-    int_vector_file_buffer<8> text_buf;
-    text_buf.load_from_plain(test_file);
+    int_vector_buffer<8> text_buf(test_file, true, 1024*1024, 8, true, true);
     int_vector<8> text;
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
     size_type n = min(text.size(), (size_type)50);

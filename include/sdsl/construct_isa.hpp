@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_CONSTRUCT_ISA
 
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "util.hpp"
 
 #include <iostream>
@@ -31,7 +32,7 @@
 namespace sdsl
 {
 
-void construct_isa(cache_config &config);
+void construct_isa(cache_config& config);
 
 }// end namespace
 

@@ -23,6 +23,7 @@
 #define INCLUDED_WT_CODING_STRATEGY
 
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 
 namespace sdsl
 {
@@ -37,7 +38,7 @@ class fat_huff_byte
         fat_huff_byte();
         // Construct from byte stream
         template<class size_type_class>
-        fat_huff_byte(int_vector_file_buffer<8>& text_buf);
+        fat_huff_byte(int_vector_buffer<8>& text_buf);
         // The length of the code for symbol `c`
         uint8_t  code_len(uint8_t c);
         // The code for symbol `c`

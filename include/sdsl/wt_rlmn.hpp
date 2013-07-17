@@ -24,6 +24,7 @@
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "sd_vector.hpp"// for standard initialisation of template parameters
 #include "util.hpp"
 #include "wt_huff.hpp"
@@ -118,13 +119,13 @@ class wt_rlmn
         wt_rlmn() {};
 
         //! Construct the wavelet tree from a file_buffer
-        /*! \param text_buf  A int_vector_file_buffer to the original text.
+        /*! \param text_buf  A int_vector_buffer to the original text.
          *  \param size      The length of the prefix of the text, for which
          *                   the wavelet tree should be build.
          */
         // TODO: new signature: sdsl::file, size_type size
-        wt_rlmn(int_vector_file_buffer<8>& text_buf, size_type size):m_size(size) {
-            std::string temp_file = text_buf.file_name +
+        wt_rlmn(int_vector_buffer<8>& text_buf, size_type size):m_size(size) {
+            std::string temp_file = text_buf.filename() +
                                     + "_wt_rlmn_" + util::to_string(util::pid())
                                     + "_" + util::to_string(util::id());
             osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
@@ -134,25 +135,16 @@ class wt_rlmn
                 // scope for bl and bf
                 bit_vector bl = bit_vector(size, 0);
                 m_C  = int_vector<64>(256, 0);
-                text_buf.reset();
                 uint8_t last_c = '\0';
-                for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
-                    // read not more than size chars in the next loop
-                    if (r_sum + r > size) {
-                        r = size-r_sum;
+                for (size_type i=0; i < size; ++i) {
+                    uint8_t c = text_buf[i];
+                    if (last_c != c or i==0) {
+                        bl[i] = 1;
+                        wt_out.write((char*)&c, sizeof(c));
+                        bit_cnt += 8;
                     }
-                    for (; i < r+r_sum; ++i) {
-                        uint8_t c = text_buf[i-r_sum];
-                        if (last_c != c or i==0) {
-                            bl[i] = 1;
-                            wt_out.write((char*)&c, sizeof(c));
-                            bit_cnt += 8;
-                        }
-                        ++m_C[c];
-                        last_c = c;
-                    }
-                    r_sum += r;
-                    r = text_buf.load_next_block();
+                    ++m_C[c];
+                    last_c = c;
                 }
 
                 wt_out.seekp(0, std::ios::beg);
@@ -168,27 +160,18 @@ class wt_rlmn
                 int_vector<64> lf_map = m_C;
                 bit_vector bf = bit_vector(size+1, 0);
                 bf[size] = 1; // initialize last element
-                text_buf.reset();
-                for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
-                    // read not more than size chars in the next loop
-                    if (r_sum + r > size) {
-                        r = size-r_sum;
+                for (size_type i=0; i < size; ++i) {
+                    uint8_t c = text_buf[i];
+                    if (bl[i]) {
+                        bf[lf_map[c]] = 1;
                     }
-                    for (; i < r+r_sum; ++i) {
-                        uint8_t c = text_buf[i-r_sum];
-                        if (bl[i]) {
-                            bf[lf_map[c]] = 1;
-                        }
-                        ++lf_map[c];
-                    }
-                    r_sum += r;
-                    r = text_buf.load_next_block();
+                    ++lf_map[c];
                 }
                 {
-                    int_vector_file_buffer<8> temp_bwt_buf(temp_file);
-                    m_wt = wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size);
-                    sdsl::remove(temp_file);
+                    int_vector_buffer<8> temp_bwt_buf(temp_file, true);
+                    m_wt = wt_type(temp_bwt_buf, temp_bwt_buf.size());
                 }
+                sdsl::remove(temp_file);
                 m_bl = bit_vector_type(std::move(bl));
                 m_bf = bit_vector_type(std::move(bf));
             }

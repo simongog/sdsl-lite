@@ -24,6 +24,7 @@
 #include "lcp.hpp"
 #include "vlc_vector.hpp"
 #include "int_vector.hpp"
+#include "int_vector_buffer.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
 #include <iostream>
@@ -87,7 +88,7 @@ class lcp_vlc
             if ("" != other_key) {
                 lcp_key = other_key;
             }
-            int_vector_file_buffer<> lcp_buf(cache_file_name(lcp_key, config));
+            int_vector_buffer<> lcp_buf(cache_file_name(lcp_key, config), true);
             vlc_vec_type tmp_vec(lcp_buf);
             m_vec.swap(tmp_vec);
         }

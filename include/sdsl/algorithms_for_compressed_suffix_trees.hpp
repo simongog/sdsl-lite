@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_ALGORITHMS_FOR_COMPRESSED_SUFFIX_TREES
 
 #include "int_vector.hpp" // for bit_vector
+#include "int_vector_buffer.hpp"
 #include "sorted_stack_support.hpp" // for construct_supercartesian_tree_bp
 #include "sorted_multi_stack_support.hpp" // for first_p_index_construction
 #include "util.hpp"
@@ -84,7 +85,7 @@ void construct_supercartesian_tree_bp(const RandomAccessContainer& vec, bit_vect
  *  \par Space complexity
  *       \f$\Order{n}\f$ bits, by the stack_support described in the paper "Optimal Succinctness For Range Minimum Queries" of Johannes Fischer.
  */
-// TODO: sorted_multi_stack_support einbauen, RandomAccessContainer durch int_vector_file_buffer ersetzen
+// TODO: sorted_multi_stack_support einbauen, RandomAccessContainer durch int_vector_buffer ersetzen
 template<class RandomAccessContainer>
 void construct_supercartesian_tree_bp_succinct(const RandomAccessContainer& vec, bit_vector& bp, const bool minimum=true)
 {
@@ -92,7 +93,7 @@ void construct_supercartesian_tree_bp_succinct(const RandomAccessContainer& vec,
     bp.resize(2*vec.size());      // resize bit vector for balanced parentheses to 2 n bits
     if (vec.size() > 0) {
         util::set_to_value(bp, 0);
-        sorted_stack_support vec_stack(vec.size()); // <- das ist ein Problem fuer int_vector_file_buffer
+        sorted_stack_support vec_stack(vec.size()); // <- ist das ein Problem fuer int_vector_buffer
 
         size_type k=0;
         if (minimum) {
@@ -148,7 +149,7 @@ void construct_supercartesian_tree_bp_succinct(const RandomAccessContainer& vec,
 }
 
 //! Calculate the balanced parentheses of the Super-Cartesian tree, described in Ohlebusch and Gog (SPIRE 2009).
-/*! \param lcp_buf int_vector_file_buffer of the LCP Array for which the Super-Cartesian tree representation should be calculated.
+/*! \param lcp_buf int_vector_buffer of the LCP Array for which the Super-Cartesian tree representation should be calculated.
  *             The value_type of vec should be an unsigned integer type.
  *  \param bp Reference to the balanced parentheses sequence which represents the Super-Cartesian tree.
  *  \param minimum Specifies if the higher levels contains minima or maxima. Default is maxima.
@@ -158,11 +159,10 @@ void construct_supercartesian_tree_bp_succinct(const RandomAccessContainer& vec,
  *       \f$\Order{2n}\f$ bits, by the multi_stack_support
  */
 template<uint8_t fixedIntWidth>
-void construct_supercartesian_tree_bp_succinct(int_vector_file_buffer<fixedIntWidth>& lcp_buf, bit_vector& bp, const bool minimum=true)
+void construct_supercartesian_tree_bp_succinct(int_vector_buffer<fixedIntWidth>& lcp_buf, bit_vector& bp, const bool minimum=true)
 {
     typedef int_vector_size_type size_type;
-    lcp_buf.reset();
-    size_type n = lcp_buf.int_vector_size;
+    size_type n = lcp_buf.size();
     bp.resize(2*n);      // resize bit vector for balanced parentheses to 2 n bits
     if (n == 0)	// if n == 0 we are done
         return;
@@ -172,42 +172,35 @@ void construct_supercartesian_tree_bp_succinct(int_vector_file_buffer<fixedIntWi
     size_type k=0;
     if (minimum) {
         bp[k++] = 1;
-        size_type r = lcp_buf.load_next_block();
         size_type last = lcp_buf[0];
-        for (size_type i=1, r_sum = 0, x; r_sum < n;) {
-            for (; i < r_sum +r; ++i) {
-                x = lcp_buf[i-r_sum];
-                if (x < last) {
-                    ++k; // writing a closing parenthesis for last
-                    while (!vec_stack.empty() and x < vec_stack.top()) {
-                        vec_stack.pop(); ++k; // writing a closing parenthesis, bp is already initialized to zeros
-                    }
-                } else {
-                    vec_stack.push(last); // "lazy stack" trick: Beschleunigung: ca 25 %
+        for (size_type i=1, x; i < n; ++i) {
+            x = lcp_buf[i];
+            if (x < last) {
+                ++k; // writing a closing parenthesis for last
+                while (!vec_stack.empty() and x < vec_stack.top()) {
+                    vec_stack.pop(); ++k; // writing a closing parenthesis, bp is already initialized to zeros
                 }
-                bp[k++] = 1; // writing an opening parenthesis
-                last = x;
+            } else {
+                vec_stack.push(last); // "lazy stack" trick: Beschleunigung: ca 25 %
             }
-            r_sum += r; r = lcp_buf.load_next_block();
+            bp[k++] = 1; // writing an opening parenthesis
+            last = x;
         }
     } else {
         // hier noch ohne "lazy stack" trick
-        for (size_type i=0, r_sum = 0, r = lcp_buf.load_next_block(), x; r_sum < n;) {
-            for (; i < r_sum +r; ++i) {
-                x = lcp_buf[i-r_sum];
-                while (!vec_stack.empty() and x > vec_stack.top()) {
-                    vec_stack.pop(); ++k; // writing a closing parenthesis, bp is already initialized to zeros
-                }
-                vec_stack.push(x);
-                bp[k++] = 1; // writing an opening parenthesis
+        for (size_type i=0, x; i < n; ++i) {
+            x = lcp_buf[i];
+            while (!vec_stack.empty() and x > vec_stack.top()) {
+                vec_stack.pop(); ++k; // writing a closing parenthesis, bp is already initialized to zeros
             }
-            r_sum += r; r = lcp_buf.load_next_block();
+            vec_stack.push(x);
+            bp[k++] = 1; // writing an opening parenthesis
         }
     }
 }
 
 //! Calculate the balanced parentheses of the Super-Cartesian tree, described in Ohlebusch and Gog (SPIRE 2009) and the first_child bit_vector
-/*! \param lcp_buf int_vector_file_buffer for the lcp array for which the Super-Cartesian tree representation should be calculated.
+/*! \param lcp_buf int_vector_buffer for the lcp array for which the Super-Cartesian tree representation should be calculated.
  *             The value_type of vec should be an unsigned integer type.
  *  \param bp Reference to the balanced parentheses sequence which represents the Super-Cartesian tree.
  *  \param bp_fc Reference to the first child bit_vector of bp.
@@ -218,11 +211,10 @@ void construct_supercartesian_tree_bp_succinct(int_vector_file_buffer<fixedIntWi
  *       \f$\Order{2n}\f$ bits, by the multi_stack_support
  */
 template<uint8_t fixedIntWidth>
-int_vector_size_type construct_supercartesian_tree_bp_succinct_and_first_child(int_vector_file_buffer<fixedIntWidth>& lcp_buf, bit_vector& bp, bit_vector& bp_fc, const bool minimum=true)
+int_vector_size_type construct_supercartesian_tree_bp_succinct_and_first_child(int_vector_buffer<fixedIntWidth>& lcp_buf, bit_vector& bp, bit_vector& bp_fc, const bool minimum=true)
 {
     typedef int_vector_size_type size_type;
-    lcp_buf.reset();
-    size_type n = lcp_buf.int_vector_size;
+    size_type n = lcp_buf.size();
     bp.resize(2*n);      // resize bit vector for balanaced parantheses to 2 n bits
     bp_fc.resize(n);
     if (n == 0)	// if n == 0 we are done
@@ -236,40 +228,34 @@ int_vector_size_type construct_supercartesian_tree_bp_succinct_and_first_child(i
     size_type k_fc=0; // first child index
     if (minimum) {
         // hier noch ohne "lazy stack" trick
-        for (size_type i=0, r_sum = 0, r = lcp_buf.load_next_block(), x; r_sum < n;) {
-            for (; i < r_sum +r; ++i) {
-                x = lcp_buf[i-r_sum];
-                while (!vec_stack.empty() and x < vec_stack.top()) {
-                    if (vec_stack.pop()) {
-                        bp_fc[k_fc] = 1;
-                        ++fc_cnt;
-                    }
-                    ++k; // writing a closing parenthesis, bp is already initialized to zeros
-                    ++k_fc; // write a bit in first_child
+        for (size_type i=0, x; i < n; ++i) {
+            x = lcp_buf[i];
+            while (!vec_stack.empty() and x < vec_stack.top()) {
+                if (vec_stack.pop()) {
+                    bp_fc[k_fc] = 1;
+                    ++fc_cnt;
                 }
-                vec_stack.push(x);
-                bp[k++] = 1; // writing an opening parenthesis
+                ++k; // writing a closing parenthesis, bp is already initialized to zeros
+                ++k_fc; // write a bit in first_child
             }
-            r_sum += r; r = lcp_buf.load_next_block();
+            vec_stack.push(x);
+            bp[k++] = 1; // writing an opening parenthesis
         }
 
     } else {
         // hier noch ohne "lazy stack" trick
-        for (size_type i=0, r_sum = 0, r = lcp_buf.load_next_block(), x; r_sum < n;) {
-            for (; i < r_sum +r; ++i) {
-                x = lcp_buf[i-r_sum];
-                while (!vec_stack.empty() and x > vec_stack.top()) {
-                    if (vec_stack.pop()) {
-                        bp_fc[k_fc] = 1;
-                        ++fc_cnt;
-                    }
-                    ++k; // writing a closing parenthesis, bp is already initialized to zeros
-                    ++k_fc; // write a bit in first_child
+        for (size_type i=0, x; i < n; ++i) {
+            x = lcp_buf[i];
+            while (!vec_stack.empty() and x > vec_stack.top()) {
+                if (vec_stack.pop()) {
+                    bp_fc[k_fc] = 1;
+                    ++fc_cnt;
                 }
-                vec_stack.push(x);
-                bp[k++] = 1; // writing an opening parenthesis
+                ++k; // writing a closing parenthesis, bp is already initialized to zeros
+                ++k_fc; // write a bit in first_child
             }
-            r_sum += r; r = lcp_buf.load_next_block();
+            vec_stack.push(x);
+            bp[k++] = 1; // writing an opening parenthesis
         }
     }
     while (!vec_stack.empty()) {
@@ -293,7 +279,7 @@ void construct_supercartesian_tree_bp_succinct2(const RandomAccessContainer& vec
     typedef typename RandomAccessContainer::size_type size_type;
     bp.resize(2*vec.size());      // resize bit vector for balanced parentheses to 2 n bits
     util::set_to_value(bp, 0);
-    sorted_stack_support vec_stack(vec.size()); // <- das ist ein Problem fuer int_vector_file_buffer
+    sorted_stack_support vec_stack(vec.size()); // <- ist das ein Problem fuer int_vector_buffer
 
     size_type k=0;
 //	uint64_t wbuf=0;
@@ -366,46 +352,39 @@ typename RandomAccessContainer::size_type construct_first_p_index(const RandomAc
 }
 
 template<uint8_t fixedIntWidth>
-bit_vector::size_type construct_first_p_index(int_vector_file_buffer<fixedIntWidth>& lcp_buf, bit_vector& bp, const bool minimum=true)
+bit_vector::size_type construct_first_p_index(int_vector_buffer<fixedIntWidth>& lcp_buf, bit_vector& bp, const bool minimum=true)
 {
     typedef bit_vector::size_type size_type;
     size_type nr_of_first_indices = 0;
-    lcp_buf.reset();
-    size_type n = lcp_buf.int_vector_size;
+    size_type n = lcp_buf.size();
 
     bp = bit_vector(n, 0);
     sorted_multi_stack_support vec_stack(n);
     size_type k=0;
 
     if (minimum) {
-        for (size_type i = 0, r_sum = 0, r = lcp_buf.load_next_block(),x; r_sum < n;) {
-            for (; i<r_sum+r; ++i) {
-                x = lcp_buf[i-r_sum];
-                while (!vec_stack.empty() and x < vec_stack.top()) {
-                    if (vec_stack.pop()) {
-                        bp[k] = 1;
-                        ++nr_of_first_indices;
-                    }
-                    ++k;
+        for (size_type i = 0, x; i < n; ++i) {
+            x = lcp_buf[i];
+            while (!vec_stack.empty() and x < vec_stack.top()) {
+                if (vec_stack.pop()) {
+                    bp[k] = 1;
+                    ++nr_of_first_indices;
                 }
-                vec_stack.push(x);
+                ++k;
             }
-            r_sum += r; r = lcp_buf.load_next_block();
+            vec_stack.push(x);
         }
     } else {
-        for (size_type i = 0, r_sum = 0, r = lcp_buf.load_next_block(),x; r_sum < n;) {
-            for (; i<r_sum+r; ++i) {
-                x = lcp_buf[i-r_sum];
-                while (!vec_stack.empty() and x > vec_stack.top()) {
-                    if (vec_stack.pop()) {
-                        bp[k] = 1;
-                        ++nr_of_first_indices;
-                    }
-                    ++k;
+        for (size_type i = 0, x; i < n; ++i) {
+            x = lcp_buf[i];
+            while (!vec_stack.empty() and x > vec_stack.top()) {
+                if (vec_stack.pop()) {
+                    bp[k] = 1;
+                    ++nr_of_first_indices;
                 }
-                vec_stack.push(x);
+                ++k;
             }
-            r_sum += r; r = lcp_buf.load_next_block();
+            vec_stack.push(x);
         }
     }
 
