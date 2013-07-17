@@ -218,16 +218,14 @@ void read_member(T& t, std::istream& in)
 template<>
 void read_member<std::string>(std::string& t, std::istream& in);
 
-template<class T>
-size_t write_element(const T& x, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="",
-                     SDSL_UNUSED typename std::enable_if<!std::is_pod<T>::value, bool>::type = false)
+template<class T,typename std::enable_if< (!std::is_pod<T>::value and !std::is_same<T,std::string>::value), bool>::type = false>
+size_t write_element(const T& x, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
 {
     return x.serialize(out, v, name);
 }
 
-template<class T>
-size_t write_element(const T& x, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="",
-                     SDSL_UNUSED typename std::enable_if<std::is_pod<T>::value, bool>::type = false)
+template<class T,typename std::enable_if< (std::is_pod<T>::value or std::is_same<T,std::string>::value), bool>::type = false>
+size_t write_element(const T& x, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
 {
     return write_member(x, out, v, name);
 }
@@ -251,23 +249,20 @@ size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::stru
             written_bytes += write_element(x, out, child, "[]");
         }
         structure_tree::add_size(child, written_bytes);
-        sdsl::structure_tree::merge_children(child);
         return written_bytes;
     } else {
         return 0;
     }
 }
 
-template<class T>
-void load_element(T& x, std::istream& in,
-                  SDSL_UNUSED typename std::enable_if<!std::is_pod<T>::value, bool>::type = false)
+template<class T,typename std::enable_if< (!std::is_pod<T>::value and !std::is_same<T,std::string>::value), bool>::type = false>
+void load_element(T& x, std::istream& in)
 {
     x.load(in);
 }
 
-template<class T>
-void load_element(T& x, std::istream& in,
-                  SDSL_UNUSED typename std::enable_if<std::is_pod<T>::value, bool>::type = false)
+template<class T,typename std::enable_if< (std::is_pod<T>::value or std::is_same<T,std::string>::value), bool>::type = false>
+void load_element(T& x, std::istream& in)
 {
     read_member(x, in);
 }
@@ -291,11 +286,13 @@ void load_vector(std::vector<T>& vec, std::istream& in)
 template<format_type F, class X>
 void write_structure(const X& x, std::ostream& out)
 {
-    structure_tree_node* v = new structure_tree_node();
+    structure_tree_node* v = new structure_tree_node("name","type");
     nullstream ns;
     x.serialize(ns, v, "");
     if (v->children.size() > 0) {
-        sdsl::write_structure_tree<F>(v->children[0], out);
+        for (const auto& child: v->children) {
+            sdsl::write_structure_tree<F>(child.second.get(), out);
+        }
     }
     delete v;
 }
@@ -363,11 +360,11 @@ void csXprintf(std::ostream& out, const std::string& format, const t_idx& idx, c
 {
     typename t_idx::index_category cat;
     const typename t_idx::csa_type& csa = _idx_csa(idx, cat);
-    vector<std::string> res(csa.size());
+    std::vector<std::string> res(csa.size());
     for (std::string::const_iterator c = format.begin(), s=c; c != format.end(); s=c) {
         while (c != format.end() and* c != '%') ++c;   // string before the next `%`
         if (c > s) {  // copy format string part
-            vector<std::string> to_copy(csa.size(), std::string(s, c));
+            std::vector<std::string> to_copy(csa.size(), std::string(s, c));
             transform(res.begin(), res.end(), to_copy.begin(), res.begin(), std::plus<std::string>());
         }
         if (c == format.end()) break;

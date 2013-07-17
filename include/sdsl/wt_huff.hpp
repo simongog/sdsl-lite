@@ -89,7 +89,7 @@ struct _huff_shape {
 
     template<class t_rac>
     static void
-    construct_tree(t_rac& C, vector<pc_node>& temp_nodes) {
+    construct_tree(t_rac& C, std::vector<pc_node>& temp_nodes) {
         tMPQPII pq;
         size_type i = 0;
         // add leaves of Huffman tree
