@@ -247,8 +247,8 @@ size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::stru
     if (vec.size() > 0) {
         sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, "std::vector<"+util::class_name(vec[0])+">");
         size_t written_bytes = 0;
-        for (typename std::vector<T>::size_type i = 0; i < vec.size(); ++i) {
-            written_bytes += write_element(vec[i], out, child, "[]");
+        for (const auto& x : vec) {
+            written_bytes += write_element(x, out, child, "[]");
         }
         structure_tree::add_size(child, written_bytes);
         sdsl::structure_tree::merge_children(child);
