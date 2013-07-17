@@ -293,6 +293,11 @@ struct byte_tree {
         return m_nodes[v].child[i];
     }
 
+    //! Return if v is a leaf node.
+    inline bool is_leaf(node_type v)const {
+        return m_nodes[v].child[0] == undef;
+    }
+
     //! Return the path as left/right bit sequence in a uint64_t
     inline uint64_t bit_path(value_type c)const {
         return m_path[c];
@@ -306,6 +311,11 @@ struct byte_tree {
     //! Returns for node v the rank of 1's up to bv_pos(v)
     inline uint64_t bv_pos_rank(node_type v)const {
         return m_nodes[v].bv_pos_rank;
+    }
+
+    //! Return if the node is a valid node
+    inline bool is_valid(node_type v)const {
+        return v != undef;
     }
 };
 
@@ -501,6 +511,11 @@ struct int_tree {
         return m_nodes[v].child[i];
     }
 
+    //! Return if v is a leaf node.
+    inline bool is_leaf(node_type v)const {
+        return m_nodes[v].child[0] == undef;
+    }
+
     //! Return the path as left/right bit sequence in a uint64_t
     inline uint64_t bit_path(value_type c)const {
         if (c >= m_c_to_leaf.size())
@@ -519,6 +534,10 @@ struct int_tree {
         return m_nodes[v].bv_pos_rank;
     }
 
+    //! Return if the node is a valid node
+    inline bool is_valid(node_type v)const {
+        return v != undef;
+    }
 
 };
 
