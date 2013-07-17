@@ -52,6 +52,7 @@ void test_constructors(size_type template_width, size_type constructor_width, si
     {
         // Default constructor
         t_T ivb;
+        ASSERT_EQ("", ivb.filename());                    // filename should be empty
         ASSERT_EQ((size_type)0, ivb.size());              // size should be 0
         ASSERT_EQ((size_type)0, ivb.buffersize());        // buffersize should be 0
         ASSERT_EQ((uint8_t)template_width, ivb.width());  // default width of each element should be template_width bits
@@ -59,6 +60,7 @@ void test_constructors(size_type template_width, size_type constructor_width, si
     {
         // Constructor with 2 Parameters
         t_T ivb(file_name, false);
+        ASSERT_EQ(file_name, ivb.filename());                               // filename should be file_name
         ASSERT_EQ((size_type)0, ivb.size());                                // size should be 0
         ASSERT_EQ((uint8_t)template_width, ivb.width());                    // default width of each element should be template_width bits
         ASSERT_LT((ivb.buffersize()-(size_type)(1024*1024)), ivb.width());  // actual buffersize() is not more than 8 elements bigger than given buffersize ( buffersize()*8 < buffersize*8+8*width() )
@@ -67,6 +69,7 @@ void test_constructors(size_type template_width, size_type constructor_width, si
         // Constructor with 4 Parameters
         size_type buffersize = 1024*1024;
         t_T ivb(file_name, false, buffersize, constructor_width);
+        ASSERT_EQ(file_name, ivb.filename());                   // filename should be file_name
         ASSERT_EQ((size_type)0, ivb.size());                    // size should be 0
         ASSERT_EQ((uint8_t)exp_width, ivb.width());             // default width of each element should be i bits
         ASSERT_LT((ivb.buffersize()-buffersize), ivb.width());  // actual buffersize is less than 8 elements bigger than given buffersize ( buffersize()*8 < buffersize*8+8*width() )
@@ -78,9 +81,9 @@ TEST_F(IntVectorBufferTest, Constructors)
 {
     for (size_type width=1; width<=64; ++width) {
         test_constructors< sdsl::int_vector_buffer<> >(64, width, width);
-        test_constructors< sdsl::int_vector_buffer<13> >(13, width, 13);
         test_constructors< sdsl::int_vector_buffer<1> >(1, width, 1);
         test_constructors< sdsl::int_vector_buffer<8> >(8, width, 8);
+        test_constructors< sdsl::int_vector_buffer<13> >(13, width, 13);
         test_constructors< sdsl::int_vector_buffer<16> >(16, width, 16);
         test_constructors< sdsl::int_vector_buffer<32> >(32, width, 32);
         test_constructors< sdsl::int_vector_buffer<64> >(64, width, 64);
@@ -95,7 +98,8 @@ void test_buffersize(std::vector<size_type>& vec_sizes)
     // Test constructor with different buffersizes
     for (size_type i=0; i < vec_sizes.size(); ++i) {
         t_T ivb(file_name, false, vec_sizes[i]);
-        ASSERT_EQ((size_type)0, ivb.size());
+        ASSERT_EQ(file_name, ivb.filename());                     // filename should be file_name
+        ASSERT_EQ((size_type)0, ivb.size());                      // size should be 0
         ASSERT_LT((ivb.buffersize()-vec_sizes[i]), ivb.width());  // actual buffersize() is less than 8 elements bigger than given buffersize ( buffersize()*8 < buffersize*8+8*width() )
     }
     {
@@ -103,7 +107,6 @@ void test_buffersize(std::vector<size_type>& vec_sizes)
         t_T ivb(file_name, false);
         for (size_type i=0; i < vec_sizes.size(); ++i) {
             ivb.buffersize(vec_sizes[i]);
-            ASSERT_EQ((size_type)0, ivb.size());
             ASSERT_LT((ivb.buffersize()-vec_sizes[i]), ivb.width());  // actual buffersize() is less than 8 elements bigger than given buffersize ( buffersize()*8 < buffersize*8+8*width() )
         }
     }
@@ -113,9 +116,9 @@ void test_buffersize(std::vector<size_type>& vec_sizes)
 TEST_F(IntVectorBufferTest, Buffersize)
 {
     test_buffersize< sdsl::int_vector_buffer<> >(vec_sizes);
-    test_buffersize< sdsl::int_vector_buffer<13> >(vec_sizes);
     test_buffersize< sdsl::int_vector_buffer<1> >(vec_sizes);
     test_buffersize< sdsl::int_vector_buffer<8> >(vec_sizes);
+    test_buffersize< sdsl::int_vector_buffer<13> >(vec_sizes);
     test_buffersize< sdsl::int_vector_buffer<16> >(vec_sizes);
     test_buffersize< sdsl::int_vector_buffer<32> >(vec_sizes);
     test_buffersize< sdsl::int_vector_buffer<64> >(vec_sizes);
@@ -187,6 +190,7 @@ TEST_F(IntVectorBufferTest, AssignAndModifyElement)
     }
     test_assign_and_modify< sdsl::int_vector_buffer<1> >();
     test_assign_and_modify< sdsl::int_vector_buffer<8> >();
+    test_assign_and_modify< sdsl::int_vector_buffer<13> >();
     test_assign_and_modify< sdsl::int_vector_buffer<16> >();
     test_assign_and_modify< sdsl::int_vector_buffer<32> >();
     test_assign_and_modify< sdsl::int_vector_buffer<64> >();
@@ -224,6 +228,7 @@ TEST_F(IntVectorBufferTest, PushBack)
     }
     test_push_back< sdsl::int_vector_buffer<1> >();
     test_push_back< sdsl::int_vector_buffer<8> >();
+    test_push_back< sdsl::int_vector_buffer<13> >();
     test_push_back< sdsl::int_vector_buffer<16> >();
     test_push_back< sdsl::int_vector_buffer<32> >();
     test_push_back< sdsl::int_vector_buffer<64> >();
@@ -237,22 +242,28 @@ void test_swap(size_type exp_w_1, size_type exp_w_2, std::vector<size_type>& vec
     for (auto size : vec_sizes) {
         if (size < 1000) {
             t_T ivb(file_name, false, 100, exp_w_1, true);
-            ASSERT_EQ((size_type)exp_w_1, ivb.width());
-            ASSERT_LT((ivb.buffersize()-(size_type)100), ivb.width());
-            size_type buffersize_ivb = ivb.buffersize();
-            ASSERT_EQ(true, ivb.persistence());
             for (size_type j=0; j < size; ++j) {
                 ivb[j] = j & sdsl::bits::lo_set[exp_w_1];
-                ASSERT_EQ(j&sdsl::bits::lo_set[exp_w_1], (size_type)ivb[j]);
             }
+            ASSERT_EQ(file_name, ivb.filename());
             ASSERT_EQ(size, ivb.size());
+            ASSERT_EQ((size_type)exp_w_1, ivb.width());
+            ASSERT_LT((ivb.buffersize()-(size_type)100), ivb.width());
+            ASSERT_EQ(true, ivb.persistence());
+            for (size_type j=0; j < size; ++j) {
+                ASSERT_EQ(j & sdsl::bits::lo_set[exp_w_1], (size_type)ivb[j]);
+            }
+            size_type buffersize_ivb = ivb.buffersize();
             t_T tmp(file_name_tmp, false, 80, 2, false);
+            ASSERT_EQ(file_name_tmp, tmp.filename());
+            ASSERT_EQ((size_type)0, tmp.size());
             ASSERT_EQ((size_type)exp_w_2, tmp.width());
             ASSERT_LT((tmp.buffersize()-(size_type)80), tmp.width());
-            size_type buffersize_tmp = tmp.buffersize();
             ASSERT_EQ(false, tmp.persistence());
-            ASSERT_EQ((size_type)0, tmp.size());
+            size_type buffersize_tmp = tmp.buffersize();
             tmp.swap(ivb);
+            ASSERT_EQ(file_name_tmp, ivb.filename());
+            ASSERT_EQ(file_name, tmp.filename());
             ASSERT_EQ((size_type)0, ivb.size());
             ASSERT_EQ(size, tmp.size());
             ASSERT_EQ(buffersize_tmp, ivb.buffersize());
@@ -262,7 +273,7 @@ void test_swap(size_type exp_w_1, size_type exp_w_2, std::vector<size_type>& vec
             ASSERT_EQ(false, ivb.persistence());
             ASSERT_EQ(true, tmp.persistence());
             for (size_type j=0; j < tmp.size(); ++j) {
-                ASSERT_EQ(j&sdsl::bits::lo_set[exp_w_1], (size_type)tmp[j]);
+                ASSERT_EQ(j & sdsl::bits::lo_set[exp_w_1], (size_type)tmp[j]);
             }
             tmp.persistence(false);
         }
@@ -276,6 +287,7 @@ TEST_F(IntVectorBufferTest, Swap)
     }
     test_swap< sdsl::int_vector_buffer<1> >(1, 1, vec_sizes);
     test_swap< sdsl::int_vector_buffer<8> >(8, 8, vec_sizes);
+    test_swap< sdsl::int_vector_buffer<13> >(13, 13, vec_sizes);
     test_swap< sdsl::int_vector_buffer<16> >(16, 16, vec_sizes);
     test_swap< sdsl::int_vector_buffer<32> >(32, 32, vec_sizes);
     test_swap< sdsl::int_vector_buffer<64> >(64, 64, vec_sizes);
@@ -288,7 +300,7 @@ void test_file_handling(size_type exp_w)
     std::string file_name = "tmp/int_vector_buffer";
     size_type buffersize = 1024;
 
-    // write file using int_vector_buffer
+    // write int_vector-file using int_vector_buffer
     t_T ivb(file_name, false, buffersize, exp_w, true);
     for (size_type i=0; i<100000; ++i) {
         ivb[i] = rng();
@@ -297,7 +309,7 @@ void test_file_handling(size_type exp_w)
     ASSERT_EQ((size_type)exp_w, (size_type)ivb.width());
     ivb.close();
 
-    // load int int_vector and int_vector_buffer and compare
+    // load int_vector from file and compare it with int_vector_buffer
     t_V iv;
     sdsl::load_from_file(iv, file_name);
     ASSERT_EQ((size_type)100000, iv.size());
@@ -310,6 +322,37 @@ void test_file_handling(size_type exp_w)
     ivb2.close();
 }
 
+template<class t_T>
+void test_plain_file_handling(uint8_t exp_w)
+{
+    std::mt19937_64 rng(13);
+    std::string file_name = "tmp/int_array";
+    size_type buffersize = 1024;
+
+    // write plain array using int_vector_buffer
+    t_T ivb(file_name, false, buffersize, exp_w, true, true);
+    for (size_type i=0; i<100000; ++i) {
+        ivb[i] = rng();
+    }
+    ivb.close();
+
+    // load plain_array and compare it with int_vector_buffer
+    int_vector<> iv;
+    sdsl::load_vector_from_file(iv, file_name, exp_w/8);
+    ASSERT_EQ((size_type)100000, iv.size());                   // Check size
+    ASSERT_EQ((size_type)exp_w, (size_type)iv.width());        // Check width
+    t_T ivb2(file_name, true, buffersize, exp_w, false, true); // Load plain data with int_vector_buffer
+    ASSERT_EQ((size_type)100000, ivb2.size());                 // Check size
+    ASSERT_EQ((size_type)exp_w, (size_type)ivb2.width());      // Check width
+    rng.seed(13);
+    for (size_type i=0; i<iv.size(); ++i) {                    // Check content
+        size_type exp_val = rng() & sdsl::bits::lo_set[exp_w];
+        ASSERT_EQ(exp_val, (size_type)ivb2[i]);
+        ASSERT_EQ(exp_val, (size_type)iv[i]);
+    }
+    ivb2.close();
+}
+
 //! Test the persistence in constructor, opening of existing file, int_vector-format and close()
 TEST_F(IntVectorBufferTest, FileHandling)
 {
@@ -317,14 +360,21 @@ TEST_F(IntVectorBufferTest, FileHandling)
         test_file_handling< sdsl::int_vector_buffer<>, sdsl::int_vector<> >(width);
     }
     test_file_handling< sdsl::int_vector_buffer<>, sdsl::int_vector<> >(42);
-    test_file_handling< sdsl::int_vector_buffer<13>, sdsl::int_vector<13> >(13);
     test_file_handling< sdsl::int_vector_buffer<1>, sdsl::int_vector<1> >(1);
     test_file_handling< sdsl::int_vector_buffer<8>, sdsl::int_vector<8> >(8);
+    test_file_handling< sdsl::int_vector_buffer<13>, sdsl::int_vector<13> >(13);
     test_file_handling< sdsl::int_vector_buffer<16>, sdsl::int_vector<16> >(16);
     test_file_handling< sdsl::int_vector_buffer<32>, sdsl::int_vector<32> >(32);
     test_file_handling< sdsl::int_vector_buffer<64>, sdsl::int_vector<64> >(64);
+    test_plain_file_handling< sdsl::int_vector_buffer<> >(8);
+    test_plain_file_handling< sdsl::int_vector_buffer<> >(16);
+    test_plain_file_handling< sdsl::int_vector_buffer<> >(32);
+    test_plain_file_handling< sdsl::int_vector_buffer<> >(64);
+    test_plain_file_handling< sdsl::int_vector_buffer<8> >(8);
+    test_plain_file_handling< sdsl::int_vector_buffer<16> >(16);
+    test_plain_file_handling< sdsl::int_vector_buffer<32> >(32);
+    test_plain_file_handling< sdsl::int_vector_buffer<64> >(64);
 }
-
 
 template<class t_T>
 void test_random_access(size_type width=1)
@@ -375,6 +425,7 @@ void test_random_access(size_type width=1)
     }
 }
 
+//! Test RandomAcces, which should not be done in practice because it is expected to be very slow
 TEST_F(IntVectorBufferTest, RandomAccess)
 {
     for (size_type width=1; width <= 64; ++width) {
@@ -407,14 +458,16 @@ void test_move(size_type constructor_width)
         }
         {
             t_T tmp(file_name, false, 1000, 13, false);
-            ASSERT_EQ((size_type)(0), (size_type)tmp.size());
+            ASSERT_EQ(0, tmp.size());
             ASSERT_LT((tmp.buffersize()-(size_type)(1000)), tmp.width());
             size_type buffersize = tmp.buffersize();
             t_T ivb((t_T&&)tmp);
-            ASSERT_EQ(0, (size_type)ivb.size());
-            ASSERT_EQ(buffersize , (size_type)ivb.buffersize());
-            ASSERT_EQ(0, (size_type)tmp.size());
-            ASSERT_EQ(0, (size_type)tmp.buffersize());
+            ASSERT_EQ(file_name, ivb.filename());
+            ASSERT_EQ(0, ivb.size());
+            ASSERT_EQ(buffersize, ivb.buffersize());
+            ASSERT_EQ("", tmp.filename());
+            ASSERT_EQ(0, tmp.size());
+            ASSERT_EQ(0, tmp.buffersize());
             ASSERT_EQ(constructor_width, (size_type)tmp.width());
         }
     }
@@ -430,16 +483,19 @@ void test_move(size_type constructor_width)
         for (uint64_t i=0; i<v.size(); i++) {
             t_T tmp(file_name+util::to_string(i), false, 1000, i+1, false);
             v[i] = (t_T&&)tmp;
-            ASSERT_EQ(0, (size_type)tmp.size());
-            ASSERT_EQ(0, (size_type)tmp.buffersize());
+            ASSERT_EQ("", tmp.filename());
+            ASSERT_EQ(0, tmp.size());
+            ASSERT_EQ(0, tmp.buffersize());
             ASSERT_EQ(constructor_width, (size_type)tmp.width());
             bool persistence = false;
             ASSERT_EQ(persistence, (bool)tmp.persistence());
+            ASSERT_EQ(file_name+util::to_string(i), v[i].filename());
         }
     }
 
 }
 
+//! Test MoveConstructor and MoveAssignment
 TEST_F(IntVectorBufferTest, Move)
 {
     test_move< sdsl::int_vector_buffer<> >(64);
