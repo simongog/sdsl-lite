@@ -170,8 +170,8 @@ test_cases/bit-vec.%: BitVectorGenerator.x
 test_cases/%: 
 	$(eval URL:=$(call config_filter,download.config,$@,2))
 	@$(if $(URL),,\
-		$(error "No downlaod link specified for test case $@") )
-	@echo "Downlaod input from $(URL) using curl"
+		$(error "No download link specified for test case $@") )
+	@echo "Download input from $(URL) using curl"
 	$(eval DEST_DIR:=$(shell dirname $@))
 	cd $(DEST_DIR); curl -O $(URL)
 	$(eval FILE:=$(DEST_DIR)/$(notdir $(URL)))
