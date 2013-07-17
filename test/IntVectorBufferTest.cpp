@@ -163,14 +163,14 @@ void test_assign_and_modify(size_type width=1)
 }
 
 template<>
-void test_assign_and_modify<int_vector_buffer<1>>(size_type width)
+void test_assign_and_modify<sdsl::int_vector_buffer<1>>(size_type width)
 {
     std::mt19937_64 rng(13);
     std::uniform_int_distribution<uint64_t> distribution(0, 9);
 
     std::string file_name = "tmp/int_vector_buffer";
     size_type buffersize = 1024;
-    int_vector_buffer<1> ivb(file_name, false, buffersize, width);
+    sdsl::int_vector_buffer<1> ivb(file_name, false, buffersize, width);
     for (size_type i=0; i < 100000; ++i) {
         value_type exp_v = distribution(rng);
         ivb[i] = exp_v;
@@ -337,7 +337,7 @@ void test_plain_file_handling(uint8_t exp_w)
     ivb.close();
 
     // load plain_array and compare it with int_vector_buffer
-    int_vector<> iv;
+    sdsl::int_vector<> iv;
     sdsl::load_vector_from_file(iv, file_name, exp_w/8);
     ASSERT_EQ((size_type)100000, iv.size());                   // Check size
     ASSERT_EQ((size_type)exp_w, (size_type)iv.width());        // Check width
@@ -448,7 +448,7 @@ void test_move(size_type constructor_width)
         // Test MoveConstructor
         vector<t_T> v;
         for (uint64_t i=0; i<4; i++) {
-            v.push_back(t_T(file_name+util::to_string(i), false, 1000, i+1, false));
+            v.push_back(t_T(file_name+sdsl::util::to_string(i), false, 1000, i+1, false));
             v[i][5] = value;
             ASSERT_EQ(value & sdsl::bits::lo_set[v[i].width()], (size_type)v[i][5]);
         }
@@ -476,12 +476,12 @@ void test_move(size_type constructor_width)
         // Test MoveAssignment
         vector<t_T> v(4);
         for (uint64_t i=0; i<v.size(); i++) {
-            v[i] = t_T(file_name+util::to_string(i), false, 1000, i+1, false);
+            v[i] = t_T(file_name+sdsl::util::to_string(i), false, 1000, i+1, false);
             v[i][5] = value;
             ASSERT_EQ(value & sdsl::bits::lo_set[v[i].width()], (size_type)v[i][5]);
         }
         for (uint64_t i=0; i<v.size(); i++) {
-            t_T tmp(file_name+util::to_string(i), false, 1000, i+1, false);
+            t_T tmp(file_name+sdsl::util::to_string(i), false, 1000, i+1, false);
             v[i] = (t_T&&)tmp;
             ASSERT_EQ("", tmp.filename());
             ASSERT_EQ(0, tmp.size());
@@ -489,7 +489,7 @@ void test_move(size_type constructor_width)
             ASSERT_EQ(constructor_width, (size_type)tmp.width());
             bool persistence = false;
             ASSERT_EQ(persistence, (bool)tmp.persistence());
-            ASSERT_EQ(file_name+util::to_string(i), v[i].filename());
+            ASSERT_EQ(file_name+sdsl::util::to_string(i), v[i].filename());
         }
     }
 
