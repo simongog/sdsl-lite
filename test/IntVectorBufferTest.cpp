@@ -446,7 +446,7 @@ void test_move(size_type constructor_width)
 
     {
         // Test MoveConstructor
-        vector<t_T> v;
+        std::vector<t_T> v;
         for (uint64_t i=0; i<4; i++) {
             v.push_back(t_T(file_name+sdsl::util::to_string(i), false, 1000, i+1, false));
             v[i][5] = value;
@@ -474,7 +474,7 @@ void test_move(size_type constructor_width)
 
     {
         // Test MoveAssignment
-        vector<t_T> v(4);
+        std::vector<t_T> v(4);
         for (uint64_t i=0; i<v.size(); i++) {
             v[i] = t_T(file_name+sdsl::util::to_string(i), false, 1000, i+1, false);
             v[i][5] = value;
