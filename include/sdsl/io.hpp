@@ -188,7 +188,11 @@ struct nullstream : std::ostream {
             return traits_type::not_eof(c);
         }
     } m_sbuf;
-    nullstream(): std::ios(&m_sbuf), std::ostream(&m_sbuf), m_sbuf() {}
+    enum {BUF_SIZE=10000000};
+    char m_buf[BUF_SIZE];
+    nullstream(): std::ios(&m_sbuf), std::ostream(&m_sbuf), m_sbuf() {
+        this->rdbuf()->pubsetbuf(m_buf, BUF_SIZE);
+    }
 };
 
 // Writes primitive-typed variable t to stream out
