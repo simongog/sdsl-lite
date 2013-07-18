@@ -209,7 +209,7 @@ class wt_int
             rac.resize(0);
             bit_vector tree;
             load_from_file(tree, tree_out_buf_file_name);
-            std::remove(tree_out_buf_file_name.c_str());
+            sdsl::remove(tree_out_buf_file_name);
             m_tree = bit_vector_type(std::move(tree));
             util::init_support(m_tree_rank, &m_tree);
             util::init_support(m_tree_select0, &m_tree);

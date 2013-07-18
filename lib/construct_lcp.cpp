@@ -645,16 +645,16 @@ void construct_lcp_bwt_based(cache_config& config)
     size_type intervals_new = 0;                  // number of new intervals
 
     std::queue<size_type> q;                      // Queue for storing the intervals
-    vector<bit_vector> dict(2);                   // bit_vector for storing the intervals
+    std::vector<bit_vector> dict(2);              // bit_vector for storing the intervals
     size_type source = 0, target = 1;             // Defines which bit_vector is source and which is target
     bool queue_used = true;
     size_type use_queue_and_wt = n/2048;          // if intervals < use_queue_and_wt, then use queue and wavelet tree
     // else use dictionary and wavelet tree
 
     size_type quantity;                           // quantity of characters in interval
-    vector<unsigned char> cs(wt_bwt.sigma);       // list of characters in the interval
-    vector<size_type> rank_c_i(wt_bwt.sigma);     // number of occurrence of character in [0 .. i-1]
-    vector<size_type> rank_c_j(wt_bwt.sigma);     // number of occurrence of character in [0 .. j-1]
+    std::vector<unsigned char> cs(wt_bwt.sigma);  // list of characters in the interval
+    std::vector<size_type> rank_c_i(wt_bwt.sigma);// number of occurrence of character in [0 .. i-1]
+    std::vector<size_type> rank_c_j(wt_bwt.sigma);// number of occurrence of character in [0 .. j-1]
 
     // Calculate how many bit are for each lcp value available, to limit the memory usage to 20n bit = 2,5n byte, use at moste 8 bit
     size_type bb = (n*20-size_in_bytes(wt_bwt)*8*1.25-5*n)/n; 	// 20n - size of wavelet tree * 1.25 for rank support - 5n for bit arrays - n for index_done array
@@ -678,7 +678,7 @@ void construct_lcp_bwt_based(cache_config& config)
     rank_support_v<> ds_rank_support;     // Rank support for bit_vector index_done
 
     // create C-array
-    vector<size_type> C;                  // C-Array: C[i] = number of occurrences of characters < i in the input
+    std::vector<size_type> C;             // C-Array: C[i] = number of occurrences of characters < i in the input
     create_C_array(C, wt_bwt);
     mm::log("lcp-bwt-init-begin-end");
     // calculate lcp
@@ -871,30 +871,30 @@ void construct_lcp_bwt_based2(cache_config& config)
 
         // Declare needed variables
         mm::log("lcp-bwt2-init-begin");
-        size_type intervals = 0;                    // Number of intervals which are currently stored
-        size_type intervals_new = 0;                // Number of new intervals
+        size_type intervals = 0;                       // Number of intervals which are currently stored
+        size_type intervals_new = 0;                   // Number of new intervals
 
-        std::queue<size_type> q;                    // Queue for storing the intervals
-        vector<bit_vector> dict(2);                 // bit_vector for storing the intervals
-        size_type source = 0, target = 1;           // Defines which bit_vector is source and which is target
-        bool queue_used = true;                     // Defines whether a queue (true) or the bit_vectors (false) was used to store intervals
-        size_type use_queue_and_wt = n/2048;        // if intervals < use_queue_and_wt, then use queue and wavelet tree
+        std::queue<size_type> q;                       // Queue for storing the intervals
+        std::vector<bit_vector> dict(2);               // bit_vector for storing the intervals
+        size_type source = 0, target = 1;              // Defines which bit_vector is source and which is target
+        bool queue_used = true;                        // Defines whether a queue (true) or the bit_vectors (false) was used to store intervals
+        size_type use_queue_and_wt = n/2048;           // if intervals < use_queue_and_wt, then use queue and wavelet tree
         // else use dictionary and wavelet tree
 
-        size_type quantity;                         // quantity of characters in interval
-        vector<unsigned char> cs(wt_bwt.sigma);     // list of characters in the interval
-        vector<size_type> rank_c_i(wt_bwt.sigma);   // number of occurrence of character in [0 .. i-1]
-        vector<size_type> rank_c_j(wt_bwt.sigma);   // number of occurrence of character in [0 .. j-1]
+        size_type quantity;                            // quantity of characters in interval
+        std::vector<unsigned char> cs(wt_bwt.sigma);   // list of characters in the interval
+        std::vector<size_type> rank_c_i(wt_bwt.sigma); // number of occurrence of character in [0 .. i-1]
+        std::vector<size_type> rank_c_j(wt_bwt.sigma); // number of occurrence of character in [0 .. j-1]
 
         // External storage of LCP-Positions-Array
         bool new_lcp_value = false;
         uint8_t int_width = bits::hi(n)+2;
         int_vector_buffer<> lcp_positions_buf(tmp_lcp_file, false, buffer_size, int_width); // Create buffer for positions of LCP entries
         size_type idx_out_buf = 0;
-        bit_vector index_done(n+1, 0);              // Bitvector which is true, if corresponding LCP value was already calculated
+        bit_vector index_done(n+1, 0);                 // Bitvector which is true, if corresponding LCP value was already calculated
 
         // Create C-array
-        vector<size_type> C;                        // C-Array: C[i] = number of occurrences of characters < i in the input
+        std::vector<size_type> C;                      // C-Array: C[i] = number of occurrences of characters < i in the input
         create_C_array(C, wt_bwt);
         mm::log("lcp-bwt2-init-end");
         // Calculate LCP-Positions-Array
@@ -1085,8 +1085,8 @@ void construct_lcp_bwt_based2(cache_config& config)
 //{
 //    typedef int_vector<>::size_type size_type;
 //    int_vector<> lcp1,lcp2;
-//    load_from_file(lcp1, (lcpI+"_"+id).c_str());
-//    load_from_file(lcp2, (lcpII+"_"+id).c_str());
+//    load_from_file(lcp1, (lcpI+"_"+id));
+//    load_from_file(lcp2, (lcpII+"_"+id));
 //    if (lcp1 != lcp2) {
 //        std::cout<<"lcp results of "<<  lcpI << "and " <<lcpII<<" differ"<<std::endl;
 //        for (size_type i=0, cnt=0; i<lcp1.size() and cnt<10; ++i) {

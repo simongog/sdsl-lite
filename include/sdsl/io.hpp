@@ -187,9 +187,13 @@ struct nullstream : std::ostream {
         int overflow(int c) {
             return traits_type::not_eof(c);
         }
+        int xputc(int) { return 0; }
+        std::streamsize xsputn(char const*, std::streamsize n) { return n; }
+        int sync() { return 0; }
     } m_sbuf;
     nullstream(): std::ios(&m_sbuf), std::ostream(&m_sbuf), m_sbuf() {}
 };
+
 
 // Writes primitive-typed variable t to stream out
 template<class T>
@@ -218,6 +222,30 @@ void read_member(T& t, std::istream& in)
 template<>
 void read_member<std::string>(std::string& t, std::istream& in);
 
+template<class T,typename std::enable_if< (!std::is_pod<T>::value and !std::is_same<T,std::string>::value), bool>::type = false>
+size_t write_element(const T& x, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
+{
+    return x.serialize(out, v, name);
+}
+
+template<class T,typename std::enable_if< (std::is_pod<T>::value or std::is_same<T,std::string>::value), bool>::type = false>
+size_t write_element(const T& x, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
+{
+    return write_member(x, out, v, name);
+}
+
+template<class T,typename std::enable_if< (!std::is_pod<T>::value and !std::is_same<T,std::string>::value), bool>::type = false>
+void load_element(T& x, std::istream& in)
+{
+    x.load(in);
+}
+
+template<class T,typename std::enable_if< (std::is_pod<T>::value or std::is_same<T,std::string>::value), bool>::type = false>
+void load_element(T& x, std::istream& in)
+{
+    read_member(x, in);
+}
+
 //! Serialize each element of an std::vector
 /*!
  * \param vec The vector which should be serialized.
@@ -233,16 +261,16 @@ size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::stru
     if (vec.size() > 0) {
         sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, "std::vector<"+util::class_name(vec[0])+">");
         size_t written_bytes = 0;
-        for (typename std::vector<T>::size_type i = 0; i < vec.size(); ++i) {
-            written_bytes += vec[i].serialize(out, child, "[]");
+        for (const auto& x : vec) {
+            written_bytes += write_element(x, out, child, "[]");
         }
         structure_tree::add_size(child, written_bytes);
-        sdsl::structure_tree::merge_children(child);
         return written_bytes;
     } else {
         return 0;
     }
 }
+
 
 //! Load all elements of a vector from a input stream
 /*! \param vec  Vector whose elements should be loaded.
@@ -254,21 +282,23 @@ size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::stru
 template<class T>
 void load_vector(std::vector<T>& vec, std::istream& in)
 {
+    // TODO: replace by for(auto &x : ..
     for (typename std::vector<T>::size_type i = 0; i < vec.size(); ++i) {
-        vec[i].load(in);
+        load_element(vec[i], in);
     }
 }
 
 template<format_type F, class X>
 void write_structure(const X& x, std::ostream& out)
 {
-    structure_tree_node* v = new structure_tree_node();
+    std::unique_ptr<structure_tree_node> st_node(new structure_tree_node("name","type"));
     nullstream ns;
-    x.serialize(ns, v, "");
-    if (v->children.size() > 0) {
-        sdsl::write_structure_tree<F>(v->children[0], out);
+    x.serialize(ns, st_node.get(), "");
+    if (st_node.get()->children.size() > 0) {
+        for (const auto& child: st_node.get()->children) {
+            sdsl::write_structure_tree<F>(child.second.get(), out);
+        }
     }
-    delete v;
 }
 
 //! Internal function used by csXprintf
@@ -334,11 +364,11 @@ void csXprintf(std::ostream& out, const std::string& format, const t_idx& idx, c
 {
     typename t_idx::index_category cat;
     const typename t_idx::csa_type& csa = _idx_csa(idx, cat);
-    vector<std::string> res(csa.size());
+    std::vector<std::string> res(csa.size());
     for (std::string::const_iterator c = format.begin(), s=c; c != format.end(); s=c) {
         while (c != format.end() and* c != '%') ++c;   // string before the next `%`
         if (c > s) {  // copy format string part
-            vector<std::string> to_copy(csa.size(), std::string(s, c));
+            std::vector<std::string> to_copy(csa.size(), std::string(s, c));
             transform(res.begin(), res.end(), to_copy.begin(), res.begin(), std::plus<std::string>());
         }
         if (c == format.end()) break;

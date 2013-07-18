@@ -69,14 +69,13 @@ template<class t_bitvector   = bit_vector,
          class t_rank        = typename t_bitvector::rank_1_type,
          class t_select      = typename t_bitvector::select_1_type,
          class t_select_zero = typename t_bitvector::select_0_type,
-         bool  t_dfs_shape   = 0>
+         class t_tree_strat  = byte_tree<> >
 using wt_huff = wt_pc<huff_shape,
       t_bitvector,
       t_rank,
       t_select,
       t_select_zero,
-      t_dfs_shape>;
-
+      t_tree_strat>;
 
 // Huffman shape for wt_pc
 template<class t_wt>
@@ -89,19 +88,18 @@ struct _huff_shape {
     enum { lex_ordered = 0 };
 
     template<class t_rac>
-    static size_type
-    construct_tree(t_rac& C, vector<_node<size_type>>& temp_nodes) {
+    static void
+    construct_tree(t_rac& C, std::vector<pc_node>& temp_nodes) {
         tMPQPII pq;
-        size_type node_cnt=0;
+        size_type i = 0;
         // add leaves of Huffman tree
         std::for_each(std::begin(C), std::end(C), [&](decltype(*std::begin(C)) &freq) {
-            static size_type i=0;
             if (freq > 0) {
-                pq.push(tPII(freq, node_cnt));// push (frequency, node pointer)
-                // initial tree_pos with number of occurrences and tree_pos_rank
+                pq.push(tPII(freq, temp_nodes.size()));// push (frequency, node pointer)
+                // initial bv_pos with number of occurrences and bv_pos_rank
                 // value with the code of the corresponding char, parent,
-                // child[0], and child[1] are set to _undef_node
-                temp_nodes[node_cnt++] = _node<size_type>(freq, i);
+                // child[0], and child[1] are set to undef
+                temp_nodes.emplace_back(pc_node(freq, i));
             }
             ++i;
         });
@@ -109,14 +107,13 @@ struct _huff_shape {
             tPII v1, v2;
             v1 = pq.top(); pq.pop();
             v2 = pq.top(); pq.pop();
-            temp_nodes[v1.second].parent = node_cnt; // parent is new node
-            temp_nodes[v2.second].parent = node_cnt; // parent is new node
+            temp_nodes[v1.second].parent = temp_nodes.size(); // parent is new node
+            temp_nodes[v2.second].parent = temp_nodes.size(); // parent is new node
             size_type frq_sum = v1.first + v2.first;
-            pq.push(tPII(frq_sum, node_cnt));
-            temp_nodes[node_cnt++] = _node<size_type>(frq_sum, 0, _undef_node,
-                                     v1.second, v2.second);
+            pq.push(tPII(frq_sum, temp_nodes.size()));
+            temp_nodes.emplace_back(pc_node(frq_sum, 0, pc_node::undef,
+                                            v1.second, v2.second));
         }
-        return node_cnt;
     }
 };
 
