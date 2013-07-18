@@ -29,7 +29,7 @@ class structure_tree_node
     public:
         structure_tree_node(const std::string& n, const std::string& t) : name(n) , type(t) {}
         structure_tree_node* add_child(const std::string& n, const std::string& t) {
-            auto hash = name+type;
+            auto hash = n+t;
             auto child_itr = m_children.find(hash);
             if (child_itr == m_children.end()) {
                 // add new child as we don't have one of this type yet
