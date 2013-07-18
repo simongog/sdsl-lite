@@ -56,7 +56,7 @@ class structure_tree
         };
 };
 
-enum format_type {JSON_FORMAT, R_FORMAT};
+enum format_type {JSON_FORMAT, R_FORMAT, HTML_FORMAT};
 template<format_type F>
 void write_structure_tree(const structure_tree_node* v, std::ostream& out, size_t level = 0);
 
