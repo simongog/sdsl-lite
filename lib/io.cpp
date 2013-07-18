@@ -73,7 +73,7 @@ bool load_from_file(char*& v, const std::string& file_name)
             return false;
         v = new char[n+1];
         in.close();
-        in.open(file_name.c_str());
+        in.open(file_name);
         if (!in) {
             delete [] v;
             v = NULL;
