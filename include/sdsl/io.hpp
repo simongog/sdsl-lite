@@ -187,9 +187,13 @@ struct nullstream : std::ostream {
         int overflow(int c) {
             return traits_type::not_eof(c);
         }
+        int xputc(int) { return 0; }
+        std::streamsize xsputn(char const *, std::streamsize n) { return n; }
+        int sync() { return 0; }
     } m_sbuf;
     nullstream(): std::ios(&m_sbuf), std::ostream(&m_sbuf), m_sbuf() {}
 };
+
 
 // Writes primitive-typed variable t to stream out
 template<class T>
