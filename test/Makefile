@@ -17,9 +17,8 @@ SELECT_SUPPORT0_TESTS:=$(patsubst %,select-support0-test/%,$(BIT_VECTOR_TC_PATH)
 
 WT_BYTE_TC_PATHS:=$(call config_column,WtByteTest.config,2)
 WT_BYTE_TESTS:=$(patsubst %,wt-byte-test/%,$(WT_BYTE_TC_PATHS))
-
-WT_BYTE_TC_PATHS:=$(call config_column,WtByteTest.config,2)
-WT_BYTE_TESTS:=$(patsubst %,wt-byte-test/%,$(WT_BYTE_TC_PATHS))
+# do not delete the generated/downloaded test_cases
+.SECONDARY: $(WT_BYTE_TC_PATHS)
 
 WT_INT_TC_PATHS:=$(call config_column,WtIntTest.config,2)
 WT_INT_TESTS:=$(patsubst %,wt-int-test/%,$(WT_INT_TC_PATHS))
@@ -113,8 +112,10 @@ select-support0-test/test_cases/%: ./SelectSupportTest0.x test_cases/%
 	@$(PREFIX) ./SelectSupport0Test.x test_cases/$*
 
 wt-byte-test/test_cases/%: ./WtByteTest.x test_cases/%
-	@echo "TEST_CASE: test_cases/$*"
+	@echo "TEST_CASE: test_cases/$* semi-external"
 	@$(PREFIX) ./WtByteTest.x test_cases/$* $(TMP_DIR)/wt-byte.tmp
+	@echo "TEST_CASE: test_cases/$* in-memory"
+	@$(PREFIX) ./WtByteTest.x test_cases/$* $(TMP_DIR)/wt-byte.tmp in-memory
 
 wt-int-test/test_cases/%: ./WtIntTest.x test_cases/%
 	@echo "TEST_CASE: test_cases/$*"
