@@ -15,6 +15,7 @@ typedef std::map<int_vector<>::value_type,size_type> tMII;
 
 string test_file;
 string temp_file;
+bool in_memory;
 
 template<class T>
 class WtIntTest : public ::testing::Test { };
@@ -140,13 +141,22 @@ int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
     if (argc < 3) {
-        cout << "Usage: " << argv[0] << " test_file temp_file" << endl;
+        cout << "Usage: " << argv[0] << " test_file temp_file [in-memory]" << endl;
         cout << " (1) Generates a WT out of test_file; stores it in temp_file." << endl;
+        cout << "     If `in-memory` is specified, the in-memory construction is tested." << endl;
         cout << " (2) Performs tests." << endl;
         cout << " (3) Deletes temp_file." << endl;
         return 1;
     }
     test_file = argv[1];
-    temp_file  = argv[2];
+    temp_file = argv[2];
+    in_memory = argc > 3;
+    if (in_memory) {
+        int_vector<> data;
+        load_from_file(data, test_file);
+        test_file = ram_file_name(test_file);
+        store_to_file(data, test_file);
+        temp_file = ram_file_name(temp_file);
+    }
     return RUN_ALL_TESTS();
 }

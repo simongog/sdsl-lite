@@ -16,6 +16,7 @@ tMSS   test_case_file_map;
 string test_file;
 string temp_file;
 string temp_dir;
+bool in_memory;
 
 template<class T>
 class CsaByteTest : public ::testing::Test { };
@@ -23,7 +24,7 @@ class CsaByteTest : public ::testing::Test { };
 
 using testing::Types;
 
-typedef Types<  csa_wt<>,
+typedef Types<csa_wt<>,
         csa_sada<enc_vector<coder::fibonacci> >,
         csa_wt<wt_huff<>, 8, 16, text_order_sa_sampling<> >,
         csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<> >,
@@ -195,9 +196,10 @@ int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
     if (argc < 4) {
-        cout << "Usage: " << argv[0] << " test_file temp_file tmp_dir" << endl;
+        cout << "Usage: " << argv[0] << " test_file temp_file tmp_dir [in-memory]" << endl;
         cout << " (1) Generates a CSA out of test_file; stores it in temp_file." << endl;
         cout << "     Temporary files (SA/BWT/TEXT) are stored in tmp_dir." << endl;
+        cout << "     If `in-memory` is specified, the in-memory construction is tested." << endl;
         cout << " (2) Performs tests." << endl;
         cout << " (3) Deletes temp_file." << endl;
         return 1;
@@ -205,6 +207,14 @@ int main(int argc, char** argv)
     test_file = argv[1];
     temp_file = argv[2];
     temp_dir  = argv[3];
-
+    in_memory    = argc > 4;
+    if (in_memory) {
+        temp_dir = "@";
+        int_vector<8> data;
+        load_vector_from_file(data, test_file, 1);
+        test_file = ram_file_name(test_file);
+        store_to_plain_array<uint8_t>(data, test_file);
+        temp_file = ram_file_name(temp_file);
+    }
     return RUN_ALL_TESTS();
 }

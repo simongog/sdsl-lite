@@ -41,14 +41,6 @@ namespace sdsl
 template<class T>
 bool load_from_file(T& v, const std::string& file);
 
-template<>
-bool load_from_file(void*&, const std::string& file);
-
-//! Specialization of load_from_file for a char array
-/*  \pre v=nullptr
- */
-bool load_from_file(char*& v, const std::string& file);
-
 //! Load an int_vector from a plain array of `num_bytes`-byte integers with X in \{0, 1,2,4,8\} from disk.
 // TODO: Remove ENDIAN dependency.
 template<class t_int_vec>
