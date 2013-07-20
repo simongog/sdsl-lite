@@ -19,6 +19,7 @@ string  test_file;
 uint8_t num_bytes;
 string  temp_file;
 string  temp_dir;
+bool    in_memory;
 
 
 
@@ -263,6 +264,20 @@ int main(int argc, char** argv)
     num_bytes = atoi(argv[2]);
     temp_file = argv[3];
     temp_dir  = argv[4];
-
+    in_memory    = argc > 5;
+    if (in_memory) {
+        temp_dir = "@";
+        int_vector<> data;
+        load_vector_from_file(data, test_file, num_bytes);
+        test_file = ram_file_name(test_file);
+        switch (num_bytes) {
+            case 0: store_to_file(data, test_file); break;
+            case 1: store_to_plain_array<uint8_t>(data, test_file); break;
+            case 2: store_to_plain_array<uint16_t>(data, test_file); break;
+            case 3: store_to_plain_array<uint32_t>(data, test_file); break;
+            case 4: store_to_plain_array<uint64_t>(data, test_file); break;
+        }
+        temp_file = ram_file_name(temp_file);
+    }
     return RUN_ALL_TESTS();
 }
