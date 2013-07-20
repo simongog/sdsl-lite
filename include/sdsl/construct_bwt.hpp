@@ -71,7 +71,6 @@ void construct_bwt(cache_config& config)
     bwt_type bwt_buf(bwt_file, false, buffer_size, bwt_width);
 
     //  (3) Construct BWT sequentially by streaming SA and random access to text
-    size_type wb = 0;  // bytes written into bwt int_vector
     size_type to_add[2] = {(size_type)-1,n-1};
     for (size_type i=0; i < n; ++i) {
         bwt_buf[i] = text[ sa_buf[i]+to_add[sa_buf[i]==0] ];
