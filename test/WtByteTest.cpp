@@ -370,7 +370,7 @@ int main(int argc, char** argv)
         int_vector<8> data;
         load_vector_from_file(data, test_file, 1);
         test_file = ram_file_name(test_file);
-        store_to_file(data, test_file);
+        store_to_plain_array<uint8_t>(data, test_file);
         temp_file = ram_file_name(temp_file);
     }
     return RUN_ALL_TESTS();
