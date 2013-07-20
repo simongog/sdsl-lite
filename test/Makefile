@@ -18,16 +18,13 @@ SELECT_SUPPORT0_TESTS:=$(patsubst %,select-support0-test/%,$(BIT_VECTOR_TC_PATH)
 WT_BYTE_TC_PATHS:=$(call config_column,WtByteTest.config,2)
 WT_BYTE_TESTS:=$(patsubst %,wt-byte-test/%,$(WT_BYTE_TC_PATHS))
 
-WT_BYTE_TC_PATHS:=$(call config_column,WtByteTest.config,2)
-WT_BYTE_TESTS:=$(patsubst %,wt-byte-test/%,$(WT_BYTE_TC_PATHS))
-
 WT_INT_TC_PATHS:=$(call config_column,WtIntTest.config,2)
 WT_INT_TESTS:=$(patsubst %,wt-int-test/%,$(WT_INT_TC_PATHS))
 
 CSA_BYTE_TC_PATHS:=$(call config_column,CsaByteTest.config,2)
 CSA_BYTE_TESTS:=$(patsubst %,csa-byte-test/%,$(CSA_BYTE_TC_PATHS))
 
-CSA_INT_TC_PATHS:=$(call config_column,CsaByteTest.config,2)
+CSA_INT_TC_PATHS:=$(call config_column,CsaIntTest.config,2)
 CSA_INT_TESTS:=$(patsubst %,csa-int-test/%,$(CSA_INT_TC_PATHS))
 
 CST_BYTE_TC_PATHS:=$(call config_column,CstByteTest.config,2)
@@ -41,6 +38,15 @@ RMQ_TESTS:=$(patsubst %,rmq-test/%,$(RMQ_TC_PATHS))
 
 LCP_CONSTRUCT_PATHS:=$(call config_column,LcpConstructTest.config,2)
 LCP_CONSTRUCT_TESTS:=$(patsubst %,lcp-construct-test/%,$(LCP_CONSTRUCT_PATHS))
+
+TC_PATHS:= $(WT_BYTE_TC_PATHS) $(WT_INT_TC_PATHS) \
+		   $(CSA_BYTE_TC_PATHS) $(CSA_INT_TC_PATHS) \
+		   $(CST_BYTE_TC_PATHS) $(CST_INT_TC_PATHS) 
+
+
+
+# do not delete the generated/downloaded test_cases
+.SECONDARY: $(TC_PATHS)
 
 test: bits-test \
       int-vector-test \
@@ -117,30 +123,42 @@ select-support0-test/test_cases/%: ./SelectSupportTest0.x test_cases/%
 	@$(PREFIX) ./SelectSupport0Test.x test_cases/$*
 
 wt-byte-test/test_cases/%: ./WtByteTest.x test_cases/%
-	@echo "TEST_CASE: test_cases/$*"
+	@echo "TEST_CASE: test_cases/$* semi-external"
 	@$(PREFIX) ./WtByteTest.x test_cases/$* $(TMP_DIR)/wt-byte.tmp
+	@echo "TEST_CASE: test_cases/$* in-memory"
+	@$(PREFIX) ./WtByteTest.x test_cases/$* $(TMP_DIR)/wt-byte.tmp in-memory
 
 wt-int-test/test_cases/%: ./WtIntTest.x test_cases/%
-	@echo "TEST_CASE: test_cases/$*"
+	@echo "TEST_CASE: test_cases/$* semi-external"
 	@$(PREFIX) ./WtIntTest.x test_cases/$* $(TMP_DIR)/wt-int.tmp
+	@echo "TEST_CASE: test_cases/$* in-memory"
+	@$(PREFIX) ./WtIntTest.x test_cases/$* $(TMP_DIR)/wt-int.tmp in-memory
 
 csa-byte-test/test_cases/%: ./CsaByteTest.x test_cases/%
-	@echo "TEST_CASE: test_cases/$*"
+	@echo "TEST_CASE: test_cases/$* semi-external"
 	@$(PREFIX) ./CsaByteTest.x test_cases/$* $(TMP_DIR)/csa-byte.tmp $(TMP_DIR)
+	@echo "TEST_CASE: test_cases/$* in-memory"
+	@$(PREFIX) ./CsaByteTest.x test_cases/$* $(TMP_DIR)/csa-byte.tmp $(TMP_DIR) in-memory
 
 csa-int-test/test_cases/%: ./CsaIntTest.x test_cases/%
 	$(eval NUM_BYTES:=$(call config_filter,CsaIntTest.config,test_cases/$*,4))
-	@echo "TEST_CASE: test_cases/$* NUM_BYTES=$(NUM_BYTES)"
+	@echo "TEST_CASE: test_cases/$* NUM_BYTES=$(NUM_BYTES) semi-external"
 	@$(PREFIX) ./CsaIntTest.x test_cases/$* $(NUM_BYTES) $(TMP_DIR)/csa-int.tmp $(TMP_DIR)
+	@echo "TEST_CASE: test_cases/$* NUM_BYTES=$(NUM_BYTES) in-memory"
+	@$(PREFIX) ./CsaIntTest.x test_cases/$* $(NUM_BYTES) $(TMP_DIR)/csa-int.tmp $(TMP_DIR) in-memory
 
 cst-byte-test/test_cases/%: ./CstByteTest.x test_cases/%
-	@echo "TEST_CASE: test_cases/$*"
+	@echo "TEST_CASE: test_cases/$* semi-external"
 	@$(PREFIX) ./CstByteTest.x test_cases/$* $(TMP_DIR)/cst-byte.tmp $(TMP_DIR)
+	@echo "TEST_CASE: test_cases/$* in-memory"
+	@$(PREFIX) ./CstByteTest.x test_cases/$* $(TMP_DIR)/cst-byte.tmp $(TMP_DIR) in-memory
 
 cst-int-test/test_cases/%: ./CstIntTest.x test_cases/%
 	$(eval NUM_BYTES:=$(call config_filter,CstIntTest.config,test_cases/$*,4))
-	@echo "TEST_CASE: test_cases/$* NUM_BYTES=$(NUM_BYTES)"
+	@echo "TEST_CASE: test_cases/$* NUM_BYTES=$(NUM_BYTES) semi-external"
 	@$(PREFIX) ./CstIntTest.x test_cases/$* $(NUM_BYTES) $(TMP_DIR)/cst-int.tmp $(TMP_DIR)
+	@echo "TEST_CASE: test_cases/$* NUM_BYTES=$(NUM_BYTES) in-memory"
+	@$(PREFIX) ./CstIntTest.x test_cases/$* $(NUM_BYTES) $(TMP_DIR)/cst-int.tmp $(TMP_DIR) in-memory
 
 rmq-test/test_cases/%: ./RMQTest.x test_cases/%
 	@echo "TEST_CASE: test_cases/$*"
@@ -183,5 +201,6 @@ test_cases/%:
 clean:
 	rm -f $(EXECS)
 	rm -rf *.dSYM
-#	rm -f $(WT_INT_TC_PATHS)
 
+cleanall: clean
+	rm -f $(TC_PATHS)
