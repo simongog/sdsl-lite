@@ -422,14 +422,6 @@ class int_vector_buffer
                     m_int_vector_buffer->write(m_idx, w-x);
                     return *this;
                 }
-
-                bool operator==(const int_vector_buffer_reference& x)const {
-                    return uint64_t(*this) == uint64_t(x);
-                }
-
-                bool operator<(const int_vector_buffer_reference& x)const {
-                    return uint64_t(*this) < uint64_t(x);
-                }
         };
 };
 
