@@ -29,7 +29,6 @@
 #include "fast_cache.hpp"
 #include "csa_sampling_strategy.hpp"
 #include "csa_alphabet_strategy.hpp"
-#include "int_vector_buffer.hpp"
 #include <iostream>
 #include <algorithm> // for std::swap
 #include <cassert>

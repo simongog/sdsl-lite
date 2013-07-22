@@ -2,7 +2,6 @@
 #define INCLUDED_SDSL_WT_HELPER
 
 #include "int_vector.hpp"
-#include "int_vector_buffer.hpp"
 #include <algorithm>
 #include <limits>
 #include <deque>

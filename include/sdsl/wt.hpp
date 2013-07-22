@@ -24,7 +24,6 @@
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
-#include "int_vector_buffer.hpp"
 #include "util.hpp"
 #include <set> // for calculating the alphabet size
 #include <map> // for mapping a symbol to its lexicographical index

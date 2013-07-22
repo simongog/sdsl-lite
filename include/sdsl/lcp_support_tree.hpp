@@ -5,7 +5,6 @@
 #include "util.hpp"
 #include "algorithms_for_compressed_suffix_trees.hpp"
 #include "lcp_wt.hpp"
-#include "int_vector_buffer.hpp"
 #include <iostream>
 #include <string>
 

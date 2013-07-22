@@ -24,7 +24,6 @@
 #include "lcp.hpp"
 #include "vlc_vector.hpp"
 #include "int_vector.hpp"
-#include "int_vector_buffer.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
 #include <iostream>

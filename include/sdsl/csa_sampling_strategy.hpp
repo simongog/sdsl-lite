@@ -52,7 +52,6 @@
  */
 
 #include "int_vector.hpp"
-#include "int_vector_buffer.hpp"
 #include "csa_alphabet_strategy.hpp" // for key_trait
 #include <set>
 

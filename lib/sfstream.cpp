@@ -2,7 +2,7 @@
 #include "sdsl/ram_fs.hpp"
 #include <iostream>
 
-#define DEBUG_STREAM 0
+#define DEBUG_STREAM 1
 
 namespace sdsl
 {
@@ -121,7 +121,7 @@ isfstream::isfstream(const std::string& file, std::ios_base::openmode mode) : st
 std::streambuf*
 isfstream::open(const std::string& file, std::ios_base::openmode mode)
 {
-    if (DEBUG_STREAM)std::cout<<"ISFSTREAM: try to open "<<file<<std::endl;
+    if (DEBUG_STREAM)std::cerr<<"ISFSTREAM: try to open "<<file<<std::endl;
     if (NULL != m_streambuf) {
         delete m_streambuf;
         m_streambuf = NULL;
@@ -134,12 +134,12 @@ isfstream::open(const std::string& file, std::ios_base::openmode mode)
             if (NULL == m_streambuf) {
                 this->setstate(std::ios_base::failbit);
                 m_closed = true;
-                if (DEBUG_STREAM)std::cout<<"ERROR: opening failed "<<m_file<<std::endl;
+                if (DEBUG_STREAM)std::cerr<<"ERROR: opening failed "<<m_file<<std::endl;
             } else {
                 this->clear();
                 this->rdbuf(m_streambuf);
                 m_closed = false;
-                if (DEBUG_STREAM)std::cout<<"opened "<<m_file<<std::endl;
+                if (DEBUG_STREAM)std::cerr<<"opened "<<m_file<<std::endl;
             }
         } else {
             m_closed = true;

@@ -208,6 +208,7 @@ int main(int argc, char** argv)
     temp_file = argv[2];
     temp_dir  = argv[3];
     in_memory    = argc > 4;
+    util::verbose = true;
     if (in_memory) {
         temp_dir = "@";
         int_vector<8> data;

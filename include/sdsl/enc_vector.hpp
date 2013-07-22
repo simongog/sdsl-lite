@@ -19,7 +19,6 @@
    \author Simon Gog
 */
 #include "int_vector.hpp"
-#include "int_vector_buffer.hpp"
 #include "coder_elias_delta.hpp"
 #include "iterators.hpp"
 
