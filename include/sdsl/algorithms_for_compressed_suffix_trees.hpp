@@ -22,7 +22,6 @@
 #define INCLUDED_SDSL_ALGORITHMS_FOR_COMPRESSED_SUFFIX_TREES
 
 #include "int_vector.hpp" // for bit_vector
-#include "int_vector_buffer.hpp"
 #include "sorted_stack_support.hpp" // for construct_supercartesian_tree_bp
 #include "sorted_multi_stack_support.hpp" // for first_p_index_construction
 #include "util.hpp"

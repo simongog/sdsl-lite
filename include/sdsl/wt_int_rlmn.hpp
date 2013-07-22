@@ -24,7 +24,6 @@ TODO: merge with wt_rlmn
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
-#include "int_vector_buffer.hpp"
 #include "sd_vector.hpp"  // for standard initialisation of template parameters 
 #include "util.hpp"
 #include "wt_int.hpp"

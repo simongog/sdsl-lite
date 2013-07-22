@@ -24,7 +24,6 @@
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
-#include "int_vector_buffer.hpp"
 #include "construct_lcp.hpp"
 #include "construct_bwt.hpp"
 #include "construct_sa.hpp"
@@ -128,6 +127,9 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
                 append_zero_symbol(text);
                 store_to_cache(text, KEY_TEXT, config);
             }
+            std::cerr<<"text.size()="<<text.size()<<std::endl;
+            load_from_cache(text, KEY_TEXT, config);
+            std::cerr<<"[loaded] text.size()="<<text.size()<<std::endl;
             mm::log("text-end");
         }
         register_cache_file(KEY_TEXT, config);
@@ -140,6 +142,10 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
             mm::log("sa-end");
         }
         register_cache_file(constants::KEY_SA, config);
+        int_vector<> sa;
+        load_from_cache(sa, constants::KEY_SA, config);
+        std::cerr<<"[loaded] sa.size()="<<sa.size()<<std::endl;
+
     }
     {
         //  (3) construct BWT
@@ -148,7 +154,10 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
             construct_bwt<t_index::alphabet_category::WIDTH>(config);
             mm::log("bwt-end");
         }
-        register_cache_file(KEY_BWT, config);
+        register_cache_file(constants::KEY_BWT, config);
+        int_vector<t_index::alphabet_category::WIDTH> bwt;
+        load_from_cache(bwt, KEY_BWT, config);
+        std::cerr<<"[loaded] bwt.size()="<<bwt.size()<<std::endl;
     }
     {
         t_index tmp(config);

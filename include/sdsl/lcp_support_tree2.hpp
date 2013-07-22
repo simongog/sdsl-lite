@@ -6,7 +6,6 @@
 #include "algorithms_for_compressed_suffix_trees.hpp"
 #include "rank_support_v.hpp"
 #include "wt_huff.hpp"
-#include "int_vector_buffer.hpp"
 #include <iostream>
 #include <string>
 

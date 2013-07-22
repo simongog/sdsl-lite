@@ -23,7 +23,6 @@
 
 #include "lcp.hpp"
 #include "int_vector.hpp"
-#include "int_vector_buffer.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
 

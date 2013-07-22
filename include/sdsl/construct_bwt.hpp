@@ -23,7 +23,6 @@
 
 #include "typedefs.hpp"
 #include "int_vector.hpp"
-#include "int_vector_buffer.hpp"
 #include "sfstream.hpp"
 #include "util.hpp"
 #include "config.hpp" // for cache_config
@@ -65,7 +64,7 @@ void construct_bwt(cache_config& config)
     uint8_t bwt_width = text.width();
 
     //  (2) Prepare to stream SA from disc and BWT to disc
-    size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
+    size_type buffer_size = 1000000; // buffer_size is a multiple of 8!, TODO: still true?
     int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), true, buffer_size);
     std::string bwt_file = cache_file_name(KEY_BWT, config);
     bwt_type bwt_buf(bwt_file, false, buffer_size, bwt_width);

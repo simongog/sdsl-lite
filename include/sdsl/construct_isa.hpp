@@ -22,7 +22,6 @@
 #define INCLUDED_SDSL_CONSTRUCT_ISA
 
 #include "int_vector.hpp"
-#include "int_vector_buffer.hpp"
 #include "util.hpp"
 
 #include <iostream>

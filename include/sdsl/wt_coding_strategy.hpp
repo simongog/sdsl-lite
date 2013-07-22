@@ -23,7 +23,6 @@
 #define INCLUDED_WT_CODING_STRATEGY
 
 #include "int_vector.hpp"
-#include "int_vector_buffer.hpp"
 
 namespace sdsl
 {

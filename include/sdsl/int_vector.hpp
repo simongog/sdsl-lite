@@ -107,9 +107,6 @@ class fibonacci;
 class elias_delta;
 }
 
-template<uint8_t=0>
-class int_vector_file_buffer;
-
 class char_array_serialize_wrapper;
 
 template<uint8_t t_width>
@@ -262,7 +259,6 @@ class int_vector
         typedef rank_support_v<0,1>                                 rank_0_type;
         typedef select_support_mcl<1,1>                             select_1_type;
         typedef select_support_mcl<0,1>                             select_0_type;
-        typedef int_vector_file_buffer<t_width>                     file_buffer;
 
         friend struct int_vector_trait<t_width>;
         friend class  int_vector_iterator_base<int_vector>;
@@ -270,7 +266,6 @@ class int_vector
         friend class  int_vector_const_iterator<int_vector>;
         friend class  coder::elias_delta;
         friend class  coder::fibonacci;
-        friend class  int_vector_file_buffer<t_width>;
         friend class  mm_item<int_vector>;
         friend class mm;
 
@@ -1433,4 +1428,7 @@ class char_array_serialize_wrapper
 };
 
 }// end namespace sdsl
+
+#include "int_vector_buffer.hpp"
+
 #endif

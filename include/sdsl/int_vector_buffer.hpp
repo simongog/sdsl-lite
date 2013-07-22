@@ -36,7 +36,7 @@ class int_vector_buffer
 {
 // TODO: iterator (Simon)
     private:
-        static_assert(t_width <= 64 , "int_vector_buffer: width must be at most 64bits.");
+        static_assert(t_width <= 64 , "int_vector_buffer: width must be at most 64 bits.");
         sdsl::isfstream     m_ifile;
         sdsl::osfstream     m_ofile;
         std::string         m_filename;
@@ -78,8 +78,10 @@ class int_vector_buffer
                     //last block in file
                     uint64_t wb = ((m_max_elements-m_begin)*width()+7)/8;
                     m_ofile.write((char*) m_buffer.data(), wb);
+                    std::cerr<<"m_ofile.write at "<<m_offset+(m_begin*width())/8<<"  "<<wb<<" bytes"<<std::endl;
                 } else {
                     m_ofile.write((char*) m_buffer.data(), (m_buffersize*width())/8);
+                    std::cerr<<"m_ofile.write at "<<m_offset+(m_begin*width())/8<<"  "<<(m_buffersize*width())/8<<" bytes"<<std::endl;
                 }
                 m_ofile.flush();
                 assert(m_ofile.good());
@@ -94,6 +96,7 @@ class int_vector_buffer
 
         int_vector_buffer(const std::string _filename, const bool _open_existing_file, const uint64_t _buffersize=1024*1024, const uint8_t _width=t_width, const bool _persistent=true, const bool _is_plain=false) {
             m_filename = _filename;
+            std::cerr<<"ivb for "<<m_filename<<" persistent="<<_persistent<<" buffersize="<<_buffersize<<" this="<<std::hex<<this<<std::endl;
             m_buffer.width(_width);
             if (_is_plain) {
                 assert(8==width() or 16==width() or 32==width() or 64==width()); // is_plain is only allowed with width() in {8, 16, 32, 64}
@@ -109,7 +112,8 @@ class int_vector_buffer
                 assert(m_ofile.good());
             }
             // Open file for IO
-            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+//            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+            m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
             assert(m_ofile.good());
             m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
             assert(m_ifile.good());
@@ -152,7 +156,8 @@ class int_vector_buffer
             ivb.m_ifile.close();
             ivb.m_ofile.close();
             m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
-            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+            m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
+//            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
             assert(m_ifile.good());
             assert(m_ofile.good());
             // set ivb to default-constructor state
@@ -183,7 +188,8 @@ class int_vector_buffer
             ivb.m_ofile.close();
             m_filename = ivb.m_filename;
             m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
-            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+            m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
+//            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
             assert(m_ifile.good());
             assert(m_ofile.good());
             // assign the values of ivb to this
@@ -255,8 +261,8 @@ class int_vector_buffer
             m_ofile.close();
             m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
             assert(m_ofile.good());
-            m_ofile.close();
-            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+//            m_ofile.close();
+//            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
             m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
             assert(m_ifile.good());
             assert(m_ofile.good());
@@ -278,6 +284,7 @@ class int_vector_buffer
         }
 
         void write(const uint64_t idx, const uint64_t value) {
+            std::cerr<<"write("<<idx<<","<<value<<") m_max_elements="<<m_max_elements<<std::endl;
             assert(!m_closed);
             // If idx is not in current block, write current block and load needed block
             if (idx < m_begin or m_begin+m_buffersize <= idx) {
@@ -289,12 +296,13 @@ class int_vector_buffer
             }
             m_need_to_write = true;
             m_buffer[idx-m_begin] = value;
+            std::cerr<<"_write("<<idx<<","<<value<<") m_max_elements="<<m_max_elements<<"this="<<std::hex<<this<<std::endl;
         }
 
-        class int_vector_buffer_reference;
+        class reference;
 
-        int_vector_buffer_reference operator[](uint64_t idx) {
-            return int_vector_buffer_reference(this, idx);
+        reference operator[](uint64_t idx) {
+            return reference(this, idx);
         }
 
         void push_back(const uint64_t value) {
@@ -309,9 +317,11 @@ class int_vector_buffer
                 if (0 < m_offset) { // in case of int_vector, write header and trailing zeros
                     uint64_t size = m_max_elements*width();
                     m_ofile.seekp(0, std::ios::beg);
+                    std::cerr<<"ivb::close() size="<<size<<" width()="<<(uint32_t)width()<<" t_width="<<(uint32_t)t_width<<" m_filename="<<m_filename<<" this="<<std::hex<<this<<std::endl;
                     int_vector<t_width>::write_header(size, width(), m_ofile);
                     assert(m_ofile.good());
                     uint64_t wb = (size+7)/8;
+                    std::cerr<<"wb="<<wb<<std::endl;
                     if (wb%8) {
                         m_ofile.seekp(m_offset+wb);
                         assert(m_ofile.good());
@@ -351,17 +361,17 @@ class int_vector_buffer
             }
         }
 
-        class int_vector_buffer_reference
+        class reference
         {
                 friend class int_vector_buffer<t_width>;
             private:
                 int_vector_buffer<t_width>* const m_int_vector_buffer;
                 uint64_t m_idx;
 
-                int_vector_buffer_reference() :
+                reference() :
                     m_int_vector_buffer(NULL), m_idx(0) {}
 
-                int_vector_buffer_reference(int_vector_buffer<t_width>* _int_vector_buffer, uint64_t _idx) :
+                reference(int_vector_buffer<t_width>* _int_vector_buffer, uint64_t _idx) :
                     m_int_vector_buffer(_int_vector_buffer), m_idx(_idx) {}
 
             public:
@@ -372,17 +382,17 @@ class int_vector_buffer
                 }
 
                 // assignment operator for write operations
-                int_vector_buffer_reference& operator = (const uint64_t& val)     {
+                reference& operator = (const uint64_t& val)     {
                     m_int_vector_buffer->write(m_idx, val);
                     return *this;
                 }
 
-                int_vector_buffer_reference& operator=(int_vector_buffer_reference& x) {
+                reference& operator=(reference& x) {
                     return *this = (uint64_t)(x);
                 };
 
                 //! Prefix increment of the proxy object
-                int_vector_buffer_reference& operator++() {
+                reference& operator++() {
                     uint64_t x = m_int_vector_buffer->read(m_idx);
                     m_int_vector_buffer->write(m_idx, x+1);
                     return *this;
@@ -396,7 +406,7 @@ class int_vector_buffer
                 }
 
                 //! Prefix decrement of the proxy object
-                int_vector_buffer_reference& operator--() {
+                reference& operator--() {
                     uint64_t x = m_int_vector_buffer->read(m_idx);
                     m_int_vector_buffer->write(m_idx, x-1);
                     return *this;
@@ -410,40 +420,28 @@ class int_vector_buffer
                 }
 
                 //! Add assign from the proxy object
-                int_vector_buffer_reference& operator+=(const uint64_t x) {
+                reference& operator+=(const uint64_t x) {
                     uint64_t w = m_int_vector_buffer->read(m_idx);
                     m_int_vector_buffer->write(m_idx, w+x);
                     return *this;
                 }
 
                 //! Subtract assign from the proxy object
-                int_vector_buffer_reference& operator-=(const uint64_t x) {
+                reference& operator-=(const uint64_t x) {
                     uint64_t w = m_int_vector_buffer->read(m_idx);
                     m_int_vector_buffer->write(m_idx, w-x);
                     return *this;
                 }
 
-                bool operator==(const int_vector_buffer_reference& x)const {
+                bool operator==(const reference& x)const {
                     return uint64_t(*this) == uint64_t(x);
                 }
 
-                bool operator<(const int_vector_buffer_reference& x)const {
+                bool operator<(const reference& x)const {
                     return uint64_t(*this) < uint64_t(x);
                 }
         };
 };
-
-template<>
-int_vector_buffer<1>::int_vector_buffer_reference& int_vector_buffer<1>::int_vector_buffer_reference::operator++() = delete;
-
-template<>
-uint64_t int_vector_buffer<1>::int_vector_buffer_reference::operator++(int) = delete;
-
-template<>
-int_vector_buffer<1>::int_vector_buffer_reference& int_vector_buffer<1>::int_vector_buffer_reference::operator-=(const uint64_t x) = delete;
-
-template<>
-int_vector_buffer<1>::int_vector_buffer_reference& int_vector_buffer<1>::int_vector_buffer_reference::operator+=(const uint64_t x) = delete;
 
 } // end of namespace
 

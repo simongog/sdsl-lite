@@ -24,7 +24,6 @@
 
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
-#include "int_vector_buffer.hpp"
 #include "rank_support_v.hpp"
 #include "rank_support_v5.hpp"
 #include "select_support_mcl.hpp"
