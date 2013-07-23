@@ -1,12 +1,8 @@
 #include <sdsl/suffix_arrays.hpp>
-#include <sdsl/suffix_array_algorithm.hpp>
-#include "sdsl/bit_vector_il.hpp"
 #include "gtest/gtest.h"
 #include <iostream>
 #include <vector>
 #include <string>
-// #include "sdsl/int_vector.hpp"
-// #include "sdsl/util.hpp"
 
 namespace
 {

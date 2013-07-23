@@ -51,20 +51,20 @@ TC_PATHS:= $(WT_BYTE_TC_PATHS) $(WT_INT_TC_PATHS) \
 # do not delete the generated/downloaded test_cases
 .SECONDARY: $(TC_PATHS)
 
-test: bits-test \
-      int-vector-test \
-	  bit-vector-test \
-	  rank-support-test\
-	  select-support-test\
-	  select-support0-test\
-      wt-byte-test \
-      wt-int-test \
-      csa-byte-test \
-      csa-int-test \
-      cst-byte-test \
-      cst-int-test \
-      rmq-test \
-      search-bidirectional
+test:	bits-test \
+	int-vector-test \
+	bit-vector-test \
+	rank-support-test\
+	select-support-test\
+	select-support0-test\
+	wt-byte-test \
+	wt-int-test \
+	csa-byte-test \
+	csa-int-test \
+	cst-byte-test \
+	cst-int-test \
+	rmq-test \
+	search-bidirectional-test
 
 build-test: $(EXECS) 
 	cd ../tutorial; make build-test
