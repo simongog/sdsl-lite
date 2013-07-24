@@ -247,7 +247,6 @@ class int_vector_buffer
 
         void reset() {
             // delete all content
-            assert(!m_persistent);
             // reset file
             assert(m_ifile.good());
             assert(m_ofile.good());
@@ -255,8 +254,6 @@ class int_vector_buffer
             m_ofile.close();
             m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
             assert(m_ofile.good());
-            m_ofile.close();
-            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
             m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
             assert(m_ifile.good());
             assert(m_ofile.good());
