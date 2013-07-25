@@ -18,29 +18,35 @@ string test_file_rev;
 template<class T>
 class SearchBidirectionalTest : public ::testing::Test { };
 
-// Compare bidirectional search and backward search
-template<class csa_type>
-void test_bidirectional()
+using testing::Types;
+
+typedef Types<
+csa_wt<wt<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, byte_alphabet>,
+       csa_wt<wt<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, succinct_byte_alphabet<> >,
+       csa_wt<wt_hutu<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, byte_alphabet>,
+       csa_wt<wt_hutu<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, succinct_byte_alphabet<> >,
+       csa_wt<wt_hutu<bit_vector_il<> >, 32, 32, sa_order_sa_sampling<>, int_vector<>, byte_alphabet>
+       > Implementations;
+
+TYPED_TEST_CASE(SearchBidirectionalTest, Implementations);
+
+//! Compare bidirectional search and backward search
+TYPED_TEST(SearchBidirectionalTest, BidirectionalSearch)
 {
     bool debug = false;
 
-    csa_type csa1;
-    csa_type csa1_rev;
+    TypeParam csa1;
+    TypeParam csa1_rev;
     construct(csa1, test_file.c_str(), 1);
     construct(csa1_rev, test_file_rev.c_str(), 1);
-
-    bool patterntest = true;
-    bool error = false;
 
     std::mt19937_64 rng(13);
     std::uniform_int_distribution<uint64_t> distribution(0, csa1.size()-1);
 
-
-    for (size_type h = 0; h<1000; ++h) {
-        //search for existing pattern forward and backward using bidirectional_search:
+    for (size_type h = 0; h<1; ++h) {
+        //search for an existing pattern forward and backward using bidirectional_search:
         size_type x = 4; // number of characters that are added to the pattern in each step
         size_type steps = 10; // maximal number of patternparts that are searched for
-        if (debug) cout << "forward and backward search: alternating every " << x << " characters" << endl;
         size_type start = distribution(rng); //inclusive
         size_type end = start;  //exclusive
         bool forward = false;
@@ -49,7 +55,7 @@ void test_bidirectional()
         size_type r_rev = csa1_rev.size()-1;
         size_type l = 0;
         size_type r = csa1.size()-1;
-        size_type intervalsize = csa1.size();
+        size_type occ = csa1.size(); // size of the interval equals the number of occurrences of the pattern in the text (init empty pattern)
         size_type i,pos;
 
         // alternating forward and backward search using bidirectional_search: alternating every x characters
@@ -57,130 +63,58 @@ void test_bidirectional()
             string newpat = "";
             if (forward) {
                 //forward
-                if (debug) cout << "FORWARD" << endl;
                 i = 0;
                 pos = end;
-                if (patterntest) {
-                    if (debug) cout << "new pattern part: ";
-                    for (size_type j=0; j<x; ++j) {
-                        newpat.push_back(csa1.text[pos+j]);
-                        if (debug) cout << newpat[j];
-                    }
-                    if (debug) cout << endl;
-                    intervalsize = bidirectional_search_forward(csa1, csa1_rev, l, r, l_rev, r_rev, newpat.begin(), newpat.end(), l, r, l_rev, r_rev);
-                    i = newpat.size();
-                } else {
-                    while (i < x and intervalsize) {
-                        intervalsize = bidirectional_search(csa1_rev, l_rev, r_rev, l, r, csa1.text[pos+i], l_rev, r_rev, l, r);
-                        ++i;
-                    }
+                for (size_type j=0; j<x; ++j) {
+                    newpat.push_back(csa1.text[pos+j]);
                 }
+                occ = bidirectional_search_forward(csa1, csa1_rev, l, r, l_rev, r_rev, newpat.begin(), newpat.end(), l, r, l_rev, r_rev);
+                i = newpat.size();
                 end += i;
             } else {
                 //backward
-                if (debug) cout << "BACKWARD" << endl;
                 i = 0;
                 pos = start-1;
-                if (patterntest) {
-                    if (debug) cout << "new pattern part: ";
-                    for (size_type j=0; j<x; ++j) {
-                        newpat.push_back(csa1.text[pos-x+1+j]);
-                        if (debug) cout << newpat[j];
-                    }
-                    if (debug) cout << endl;
-                    intervalsize = bidirectional_search_backward(csa1, csa1_rev, l, r, l_rev, r_rev, newpat.begin(), newpat.end(), l, r, l_rev, r_rev);
-                    i = newpat.size();
-                } else {
-                    while (i < x and intervalsize) {
-                        intervalsize = bidirectional_search(csa1, l, r, l_rev, r_rev, csa1.text[pos-i], l, r, l_rev, r_rev);
-                        ++i;
-                    }
+                for (size_type j=0; j<x; ++j) {
+                    newpat.push_back(csa1.text[pos-x+1+j]);
                 }
+                occ = bidirectional_search_backward(csa1, csa1_rev, l, r, l_rev, r_rev, newpat.begin(), newpat.end(), l, r, l_rev, r_rev);
+                i = newpat.size();
                 start -= i;
             }
 
             //output
             if (debug) {
-                cout << "pattern: ";
+                cout << "pattern (at text[" << start << ".." << end-1 << "]):" << endl;
                 for (size_type j=start; j<end; ++j) {
                     cout << csa1.text[j];
                 }
-                cout << " (at text[" << start << ".." << end-1 << "])" << endl;
-                if (intervalsize) {
+                cout << endl;
+                if (occ) {
                     cout << "interval of pattern in csa1 is [" << l   << ".." << r   << "]" << endl;
                     cout << "interval of reverse pattern in csa1_rev is [" << l_rev << ".." << r_rev << "]" << endl;
-                } else {
-                    cout << "Pattern not found in input." << endl;
                 }
+                cout << endl;
             }
-            ASSERT_EQ(true, (bool)intervalsize); // make sure pattern was found in input (it has to be because we took part of the input as pattern)
+            ASSERT_EQ(true, (bool)occ) << "Pattern not found in input."; // make sure pattern was found in input (it has to be because we took part of the input as pattern)
 
             {
                 //check using backward_search
                 string pat = "";
-                if (debug) cout << "pattern: ";
                 for (size_type j=0; j<end-start; ++j) {
                     pat.push_back(csa1.text[start+j]);
-                    if (debug) cout << pat[j];
                 }
-                if (debug) cout << endl;
                 size_type b_l,b_r;
-                size_type res = backward_search(csa1, 0, csa1.size()-1, pat.begin(), pat.end(), b_l, b_r);
-                if (debug) {
-                    if (intervalsize == res and l == b_l and r == b_r) {
-                        cout << "correct: Interval of pattern is correct." << endl;
-                    } else {
-                        error = true;
-                        cout << "error: Intervals of pattern differ." << endl;
-                        if (intervalsize != res) cout << "intervalsize bidirectional = " << intervalsize << ", intervalsize backward = " << res << endl;
-                        if (l != b_l) cout << "l bidirectional = " << l << ", b_l backward = " << b_l << endl;
-                        if (r != b_r) cout << "r bidirectional = " << r << ", b_r backward = " << b_r << endl;
-                    }
-                }
-                ASSERT_EQ(res, intervalsize);
-                ASSERT_EQ(b_l, l);
-                ASSERT_EQ(b_r, r);
+                size_type b_occ = backward_search(csa1, 0, csa1.size()-1, pat.begin(), pat.end(), b_l, b_r);
+                ASSERT_EQ(b_occ, occ) << "Bidirectional_search and backward_search found different number of occurrences of the pattern.";
+                ASSERT_EQ(b_l, l) << "Bidirectional_search and backward_search found different left border";
+                ASSERT_EQ(b_r, r) << "Bidirectional_search and backward_search found different right border";
             }
 
             //change direction
             forward = !forward;
         }
     }
-    if (debug) {
-        if (error) cout << "error" << endl;
-        else cout << "all tests correct" << endl;
-    }
-}
-
-//! Test Bidirectional Search
-TEST(SearchBidirectionalTest, Bidirectional1)
-{
-    typedef sdsl::csa_wt<wt<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, byte_alphabet> csa_type;
-    test_bidirectional< csa_type >();
-}
-//! Test Bidirectional Search
-TEST(SearchBidirectionalTest, Bidirectional2)
-{
-    typedef sdsl::csa_wt<wt<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, succinct_byte_alphabet<> > csa_type;
-    test_bidirectional< csa_type >();
-}
-//! Test Bidirectional Search
-TEST(SearchBidirectionalTest, Bidirectional3)
-{
-    typedef sdsl::csa_wt<wt_hutu<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, byte_alphabet> csa_type;
-    test_bidirectional< csa_type >();
-}
-//! Test Bidirectional Search
-TEST(SearchBidirectionalTest, Bidirectional4)
-{
-    typedef sdsl::csa_wt<wt_hutu<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, succinct_byte_alphabet<> > csa_type;
-    test_bidirectional< csa_type >();
-}
-//! Test Bidirectional Search
-TEST(SearchBidirectionalTest, Bidirectional5)
-{
-    typedef sdsl::csa_wt<wt_hutu<bit_vector_il<> >, 32, 32, sa_order_sa_sampling<>, int_vector<>, byte_alphabet> csa_type;
-    test_bidirectional< csa_type >();
 }
 
 }  // namespace
