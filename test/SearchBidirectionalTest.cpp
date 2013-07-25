@@ -43,7 +43,7 @@ TYPED_TEST(SearchBidirectionalTest, BidirectionalSearch)
     std::mt19937_64 rng(13);
     std::uniform_int_distribution<uint64_t> distribution(0, csa1.size()-1);
 
-    for (size_type h = 0; h<1; ++h) {
+    for (size_type h = 0; h<1000; ++h) {
         //search for an existing pattern forward and backward using bidirectional_search:
         size_type x = 4; // number of characters that are added to the pattern in each step
         size_type steps = 10; // maximal number of patternparts that are searched for
