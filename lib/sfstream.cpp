@@ -198,6 +198,7 @@ isfstream::close()
             fail = !((std::filebuf*)m_streambuf)->close();
         }
     }
+    if (fail) this->setstate(std::ios::failbit);
 }
 
 isfstream&
