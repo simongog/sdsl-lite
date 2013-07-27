@@ -31,7 +31,7 @@ ram_fs::store(const std::string& name, content_type data)
 {
     if (!exists(name)) {
         std::string cname = name;
-        m_map.emplace(std::move(cname), std::move(data));
+        m_map.insert(std::make_pair(std::move(cname), std::move(data)));
     } else {
         m_map[name] = std::move(data);
     }
