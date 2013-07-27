@@ -1,5 +1,5 @@
 include ../Make.helper
-CXX_FLAGS= $(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O3 -I$(INC_DIR) -L$(LIB_DIR) 
+CXX_FLAGS=$(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O0 -I$(INC_DIR) -L$(LIB_DIR)
 CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest 
 TMP_DIR=tmp
 SOURCES=$(wildcard *Test.cpp)
