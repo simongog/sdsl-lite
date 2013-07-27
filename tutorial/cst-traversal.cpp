@@ -5,18 +5,16 @@
 using namespace sdsl;
 using namespace std;
 
-typedef cst_sct3<> cst_t;
-
 int main(int argc, char* argv[])
 {
-    cst_t cst;
+    cst_sct3<> cst;
     construct(cst, argv[1], 1);
     uint64_t max_depth = stoull(argv[2]);
 
     // use the DFS iterator to traverse `cst`
-    for (cst_t::const_iterator it=cst.begin(); it!=cst.end(); ++it) {
+    for (auto it=cst.begin(); it!=cst.end(); ++it) {
         if (it.visit() == 1) {  // node visited the first time
-            cst_t::node_type v = *it;   // get the node by dereferencing the iterator
+            auto v = *it;       // get the node by dereferencing the iterator
             if (cst.depth(v) <= max_depth) {   // if depth node is <= max_depth
                 // process node, e.g. output it in format d-[lb, rb]
                 cout<<cst.depth(v)<<"-["<<cst.lb(v)<< ","<<cst.rb(v)<<"]"<<endl;
