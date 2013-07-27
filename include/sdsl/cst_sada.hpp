@@ -434,6 +434,17 @@ class cst_sada
             }
         }
 
+        //! Return a proxy object which allows iterating over the children of a node
+        /*! \param v A valid node of the suffix tree.
+         *  \return The proxy object of v containing all children
+         *  \par Time complexity
+         *     \f$ \Order{1}\f$
+         */
+        cst_node_child_proxy<cst_sada> children(const node_type& v) const {
+            return cst_node_child_proxy<cst_sada>(*this,v);
+        }
+
+
 //! Returns the next sibling of node v.
         /*!
          * \param v A valid node v of the suffix tree.
