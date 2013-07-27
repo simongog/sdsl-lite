@@ -78,10 +78,10 @@ class int_vector_buffer
                     //last block in file
                     uint64_t wb = ((m_max_elements-m_begin)*width()+7)/8;
                     m_ofile.write((char*) m_buffer.data(), wb);
-                    std::cerr<<"m_ofile.write at "<<m_offset+(m_begin*width())/8<<"  "<<wb<<" bytes"<<std::endl;
+//                    std::cerr<<"m_ofile.write at "<<m_offset+(m_begin*width())/8<<"  "<<wb<<" bytes"<<std::endl;
                 } else {
                     m_ofile.write((char*) m_buffer.data(), (m_buffersize*width())/8);
-                    std::cerr<<"m_ofile.write at "<<m_offset+(m_begin*width())/8<<"  "<<(m_buffersize*width())/8<<" bytes"<<std::endl;
+//                    std::cerr<<"m_ofile.write at "<<m_offset+(m_begin*width())/8<<"  "<<(m_buffersize*width())/8<<" bytes"<<std::endl;
                 }
                 m_ofile.flush();
                 assert(m_ofile.good());
@@ -112,7 +112,7 @@ class int_vector_buffer
                 assert(m_ofile.good());
             }
             // Open file for IO
-//            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
             m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
             assert(m_ofile.good());
             m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
@@ -157,7 +157,7 @@ class int_vector_buffer
             ivb.m_ofile.close();
             m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
             m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
-//            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
             assert(m_ifile.good());
             assert(m_ofile.good());
             // set ivb to default-constructor state
@@ -189,7 +189,7 @@ class int_vector_buffer
             m_filename = ivb.m_filename;
             m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
             m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
-//            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
             assert(m_ifile.good());
             assert(m_ofile.good());
             // assign the values of ivb to this
@@ -261,8 +261,8 @@ class int_vector_buffer
             m_ofile.close();
             m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
             assert(m_ofile.good());
-//            m_ofile.close();
-//            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+            m_ofile.close();
+            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
             m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
             assert(m_ifile.good());
             assert(m_ofile.good());
@@ -284,7 +284,7 @@ class int_vector_buffer
         }
 
         void write(const uint64_t idx, const uint64_t value) {
-            std::cerr<<"write("<<idx<<","<<value<<") m_max_elements="<<m_max_elements<<std::endl;
+//            std::cerr<<"write("<<idx<<","<<value<<") m_max_elements="<<m_max_elements<<std::endl;
             assert(!m_closed);
             // If idx is not in current block, write current block and load needed block
             if (idx < m_begin or m_begin+m_buffersize <= idx) {
@@ -296,7 +296,7 @@ class int_vector_buffer
             }
             m_need_to_write = true;
             m_buffer[idx-m_begin] = value;
-            std::cerr<<"_write("<<idx<<","<<value<<") m_max_elements="<<m_max_elements<<"this="<<std::hex<<this<<std::endl;
+//            std::cerr<<"_write("<<idx<<","<<value<<") m_max_elements="<<m_max_elements<<"this="<<std::hex<<this<<std::endl;
         }
 
         class reference;
