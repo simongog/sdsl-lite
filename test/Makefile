@@ -1,5 +1,5 @@
 include ../Make.helper
-CXX_FLAGS= $(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O3 -I$(INC_DIR) -L$(LIB_DIR) 
+CXX_FLAGS=$(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O0 -I$(INC_DIR) -L$(LIB_DIR)
 CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest 
 TMP_DIR=tmp
 SOURCES=$(wildcard *Test.cpp)
@@ -39,6 +39,9 @@ RMQ_TESTS:=$(patsubst %,rmq-test/%,$(RMQ_TC_PATHS))
 LCP_CONSTRUCT_PATHS:=$(call config_column,LcpConstructTest.config,2)
 LCP_CONSTRUCT_TESTS:=$(patsubst %,lcp-construct-test/%,$(LCP_CONSTRUCT_PATHS))
 
+SEARCH_BIDIRECTIONAL_PATHS:=$(call config_column,SearchBidirectionalTest.config,2)
+SEARCH_BIDIRECTIONAL_TESTS:=$(patsubst %,search-bidirectional-test/%,$(SEARCH_BIDIRECTIONAL_PATHS))
+
 TC_PATHS:= $(WT_BYTE_TC_PATHS) $(WT_INT_TC_PATHS) \
 		   $(CSA_BYTE_TC_PATHS) $(CSA_INT_TC_PATHS) \
 		   $(CST_BYTE_TC_PATHS) $(CST_INT_TC_PATHS) 
@@ -48,20 +51,20 @@ TC_PATHS:= $(WT_BYTE_TC_PATHS) $(WT_INT_TC_PATHS) \
 # do not delete the generated/downloaded test_cases
 .SECONDARY: $(TC_PATHS)
 
-test: bits-test \
-      int-vector-test \
-      int-vector-buffer-test \
-      bit-vector-test \
-      rank-support-test \
-      select-support-test \
-      select-support0-test \
-      wt-byte-test \
-      wt-int-test \
-      csa-byte-test \
-      csa-int-test \
-      cst-byte-test \
-      cst-int-test \
-      rmq-test 
+test:	bits-test \
+	int-vector-test \
+	bit-vector-test \
+	rank-support-test\
+	select-support-test\
+	select-support0-test\
+	wt-byte-test \
+	wt-int-test \
+	csa-byte-test \
+	csa-int-test \
+	cst-byte-test \
+	cst-int-test \
+	rmq-test \
+	search-bidirectional-test
 
 build-test: $(EXECS) 
 	cd ../tutorial; make build-test
@@ -105,6 +108,8 @@ cst-int-test: generators $(CST_INT_TESTS)
 rmq-test: generators $(RMQ_TESTS)
 
 lcp-construct-test: generators $(LCP_CONSTRUCT_TESTS)
+
+search-bidirectional-test: generators $(SEARCH_BIDIRECTIONAL_TESTS)
 
 bit-vector-test/test_cases/%: ./BitVectorTest.x test_cases/%
 	@echo "TEST_CASE: test_cases/$*"
@@ -168,6 +173,10 @@ lcp-construct-test/test_cases/%: ./LcpConstructTest.x test_cases/%
 	$(eval TC_ID:=$(call config_filter,LcpConstructTest.config,test_cases/$*,1))
 	@echo "TEST_CASE: test_cases/$*; TC_ID=$(TC_ID)"
 	@$(PREFIX) ./LcpConstructTest.x test_cases/$* $(TMP_DIR) $(TC_ID)
+
+search-bidirectional-test/test_cases/%: ./SearchBidirectionalTest.x test_cases/%
+	@echo "TEST_CASE: test_cases/$*"
+	@$(PREFIX) ./SearchBidirectionalTest.x test_cases/$*
 
 # Format: test_cases/int-vec.[LEN].[WIDTH].[DEFAULT]
 test_cases/int-vec.%: IntVectorGenerator.x
