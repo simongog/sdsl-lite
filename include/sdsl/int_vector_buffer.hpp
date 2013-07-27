@@ -365,11 +365,10 @@ class int_vector_buffer
         {
                 friend class int_vector_buffer<t_width>;
             private:
-                int_vector_buffer<t_width>* const m_int_vector_buffer;
-                uint64_t m_idx;
+                int_vector_buffer<t_width>* const m_int_vector_buffer = nullptr;
+                uint64_t m_idx = 0;
 
-                reference() :
-                    m_int_vector_buffer(NULL), m_idx(0) {}
+                reference() {}
 
                 reference(int_vector_buffer<t_width>* _int_vector_buffer, uint64_t _idx) :
                     m_int_vector_buffer(_int_vector_buffer), m_idx(_idx) {}
@@ -377,12 +376,12 @@ class int_vector_buffer
             public:
 
                 // conversion to int for read operations
-                operator uint64_t () {
+                operator uint64_t ()const {
                     return m_int_vector_buffer->read(m_idx);
                 }
 
                 // assignment operator for write operations
-                reference& operator = (const uint64_t& val)     {
+                reference& operator=(const uint64_t& val)     {
                     m_int_vector_buffer->write(m_idx, val);
                     return *this;
                 }
@@ -434,11 +433,11 @@ class int_vector_buffer
                 }
 
                 bool operator==(const reference& x)const {
-                    return uint64_t(*this) == uint64_t(x);
+                    return (uint64_t)*this == (uint64_t)x;
                 }
 
                 bool operator<(const reference& x)const {
-                    return uint64_t(*this) < uint64_t(x);
+                    return (uint64_t)*this < (uint64_t)x;
                 }
         };
 };
