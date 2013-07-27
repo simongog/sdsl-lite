@@ -136,11 +136,14 @@ void test_AssignAndModifyElement(uint64_t size, uint8_t width)
 {
     std::mt19937_64 rng;
     t_iv iv(size, 0, width);
-    for (size_type i=0; i<iv.size(); ++i) {
+    for (size_type i=1; i<iv.size(); ++i) {
         value_type exp_v = rng(), tmp = rng();
 
+        // Asign Test
         iv[i] = exp_v;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
+
+        // Modify Test
         iv[i] += tmp;
         exp_v += tmp;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
@@ -159,6 +162,21 @@ void test_AssignAndModifyElement(uint64_t size, uint8_t width)
         --exp_v;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], --iv[i]);
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
+
+        // Compare Test
+        iv[i] = exp_v;
+        iv[i-1] = tmp;
+        exp_v &= sdsl::bits::lo_set[width];
+        tmp &= sdsl::bits::lo_set[width];
+        ASSERT_EQ((exp_v!=tmp), (iv[i]!=iv[i-1]));
+        ASSERT_EQ((exp_v==tmp), (iv[i]==iv[i-1]));
+        ASSERT_EQ((exp_v<=tmp), (iv[i]<=iv[i-1]));
+        ASSERT_EQ((exp_v< tmp), (iv[i]<iv[i-1]));
+        ASSERT_EQ((exp_v>=tmp), (iv[i]>=iv[i-1]));
+        ASSERT_EQ((exp_v> tmp), (iv[i]>iv[i-1]));
+        iv[i-1] = exp_v;
+        ASSERT_EQ(false, (iv[i]!=iv[i-1]));
+        ASSERT_EQ(true, (iv[i]==iv[i-1]));
     }
 }
 
