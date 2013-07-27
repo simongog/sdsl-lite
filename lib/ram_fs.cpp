@@ -1,6 +1,7 @@
 #include "sdsl/ram_fs.hpp"
 #include <cstdio>
 #include <iostream>
+#include <algorithm>
 
 static int nifty_counter = 0;
 
@@ -26,10 +27,14 @@ namespace sdsl
 ram_fs::ram_fs() {};
 
 void
-ram_fs::store(const std::string& name, std::string data)
+ram_fs::store(const std::string& name, content_type data)
 {
-//    std::cout<<"ram_fs: store `"<<name<<"`"<<std::endl;
-    m_map[name] = data;
+    if (!exists(name)) {
+        std::string cname = name;
+        m_map.emplace(std::move(cname), std::move(data));
+    } else {
+        m_map[name] = std::move(data);
+    }
 }
 
 bool
@@ -38,10 +43,9 @@ ram_fs::exists(const std::string& name)
     return m_map.find(name) != m_map.end();
 }
 
-const std::string&
+ram_fs::content_type&
 ram_fs::content(const std::string& name)
 {
-//    std::cout<<"ram_fs: content of `"<<name<<"`"<<std::endl;
     return m_map[name];
 }
 
@@ -58,7 +62,6 @@ ram_fs::file_size(const std::string& name)
 int
 ram_fs::remove(const std::string& name)
 {
-//	std::cout<<"ram_fs: remove `"<<name<<"`"<<std::endl;
     m_map.erase(name);
     return 0;
 }
@@ -66,8 +69,7 @@ ram_fs::remove(const std::string& name)
 int
 ram_fs::rename(const std::string old_filename, const std::string new_filename)
 {
-    // TODO: this is expensive with map
-    m_map[new_filename] = m_map[old_filename];
+    m_map[new_filename] = std::move(m_map[old_filename]);
     remove(old_filename);
     return 0;
 }
