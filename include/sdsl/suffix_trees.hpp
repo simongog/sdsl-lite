@@ -149,12 +149,12 @@ void cst_info(const Cst& cst)
  *    - ..
  */
 
+#include "suffix_tree_helper.hpp"
 #include "cst_sct3.hpp"
 #include "cst_sada.hpp"
 
 #include "csa_bitcompressed.hpp"
 #include "int_vector.hpp"
-#include "suffix_tree_helper.hpp"
 
 #include <iostream>
 #include <string>
