@@ -154,6 +154,7 @@ void cst_info(const Cst& cst)
 
 #include "csa_bitcompressed.hpp"
 #include "int_vector.hpp"
+#include "suffix_tree_helper.hpp"
 
 #include <iostream>
 #include <string>
