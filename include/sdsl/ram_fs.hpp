@@ -8,6 +8,7 @@
 #include "uintx_t.hpp"
 #include <string>
 #include <map>
+#include <vector>
 
 namespace sdsl
 {
@@ -30,25 +31,29 @@ namespace sdsl
 
 //! ram_fs is a simple store for RAM-files.
 /*!
- * A RAM-file is represented as a (name, content)-pair.
+ * Simple key-value store which maps file names
+ * (strings) to file content (content_type).
  */
 class ram_fs
 {
+    public:
+        typedef std::vector<char> content_type;
+
+    private:
         friend class ram_fs_initializer;
-        typedef std::map<std::string, std::string> mss_type;
+        typedef std::map<std::string, content_type> mss_type;
         static mss_type m_map;
 
     public:
         //! Default construct
         ram_fs();
-        //! Store data under key `name`
-        static void store(const std::string& name, std::string data);
+        static void store(const std::string& name, content_type data);
         //! Check if the file exists
         static bool exists(const std::string& name);
         //! Get the file size
         static size_t file_size(const std::string& name);
         //! Get the content
-        static const std::string& content(const std::string& name);
+        static content_type& content(const std::string& name);
         //! Remove the file with key `name`
         static int remove(const std::string& name);
         //! Rename the file. Change key `old_filename` into `new_filename`.
