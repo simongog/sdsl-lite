@@ -1,212 +1,289 @@
 #include "sdsl/sfstream.hpp"
-#include "sdsl/ram_fs.hpp"
+#include "sdsl/util.hpp"
 #include <iostream>
-
-#define DEBUG_STREAM 0
 
 namespace sdsl
 {
 
 //  IMPLEMENTATION OF OSFSTREAM
 
-osfstream::osfstream() : std::ostream(m_streambuf), m_streambuf(NULL), m_file(""), m_use_ram(true), m_closed(true)
+osfstream::osfstream() : std::ostream(m_streambuf)
 {
     this->init(m_streambuf);
 }
 
-osfstream::osfstream(const std::string& file, std::ios_base::openmode mode) : std::ostream(m_streambuf),
-    m_streambuf(NULL), m_file(""), m_use_ram(true), m_closed(true)
+osfstream::osfstream(const std::string& file, std::ios_base::openmode mode) : std::ostream(m_streambuf)
 {
     this->init(m_streambuf);
     open(file, mode);
 }
 
-std::streambuf*
+osfstream::buf_ptr_type
 osfstream::open(const std::string& file, std::ios_base::openmode mode)
 {
-    if (DEBUG_STREAM)std::cerr<<"OSFSTREAM: try to open " << file <<std::endl;
-    if (NULL != m_streambuf) {
-        delete m_streambuf;
-        m_streambuf = NULL;
-    }
+    delete m_streambuf;
+    m_streambuf = nullptr;
     m_file = file;
-    m_use_ram = is_ram_file(file);
-    if (m_use_ram) {
-        m_streambuf = new std::stringbuf(ram_fs::content(m_file), mode | std::ios_base::out);
-        if (DEBUG_STREAM)std::cerr<<"m_stringbuf="<<(size_t)m_streambuf<<std::endl;
+    std::streambuf* success = nullptr;
+    if (is_ram_file(file)) {
+        m_streambuf = new ram_filebuf();
+        success = ((ram_filebuf*)m_streambuf)->open(m_file, mode | std::ios_base::out);
     } else {
-        std::filebuf* f_buf = new std::filebuf();
-        if (!f_buf->open(m_file.c_str(), mode | std::fstream::out)) {
-            this->setstate(std::ios_base::failbit);
-            if (NULL != f_buf) {
-                delete f_buf;
-            }
-            f_buf = NULL;
-            if (DEBUG_STREAM)std::cerr<<"ERROR OSFSTREAM: could not open `"<<m_file<<"`"<<std::endl;
-        } else {
-            this->clear();
-        }
-        m_streambuf = f_buf;
+        m_streambuf = new std::filebuf();
+        success = ((std::filebuf*)m_streambuf)->open(m_file, mode | std::ios_base::out);
+    }
+    if (success) {
+        this->clear();
+    } else {
+        this->setstate(std::ios_base::failbit);
+        delete m_streambuf;
+        m_streambuf = nullptr;
     }
     this->rdbuf(m_streambuf);
-    m_closed = false;
     return m_streambuf;
 }
 
 bool
 osfstream::is_open()
 {
-    if (NULL == m_streambuf or m_closed) {
+    if (nullptr == m_streambuf)
         return false;
+    if (is_ram_file(m_file)) {
+        return ((ram_filebuf*)m_streambuf)->is_open();
     } else {
-        if (m_use_ram) {
-            return true;
-        } else {
-            return ((std::filebuf*)m_streambuf)->is_open();
-        }
+        return ((std::filebuf*)m_streambuf)->is_open();
     }
 }
 
 void
 osfstream::close()
 {
-    if (NULL == m_streambuf) {
-        this->setstate(std::ios::failbit);
-        return;
-    }
-    if (m_use_ram and !m_closed) {
-        ram_fs::store(m_file, ((std::stringbuf*)m_streambuf)->str());
-        m_closed = true;
+    bool fail = false;
+    if (nullptr == m_streambuf) {
+        fail = true;
     } else {
-        if (((std::filebuf*)m_streambuf)->close()) {
-            this->clear();
-            m_closed = true;
+        if (is_ram_file(m_file)) {
+            fail = !((ram_filebuf*)m_streambuf)->close();
         } else {
-            if (DEBUG_STREAM)std::cerr<<"STREAM: set failbit"<<std::endl;
-            this->setstate(std::ios::failbit);
+            fail = !((std::filebuf*)m_streambuf)->close();
         }
     }
+    if (fail) this->setstate(std::ios::failbit);
 }
 
 osfstream::~osfstream()
 {
-    if (is_open()) {
-        close();
-    }
-    if (m_streambuf != NULL)
-        delete m_streambuf;
-
+    delete m_streambuf; // streambuf closes the file on destruction
 }
 
 osfstream::operator voidptr()const
 {
-    // TODO: && is->valid() ...
     return m_streambuf;
 }
 
+osfstream&
+osfstream::seekp(pos_type pos)
+{
+    ios_base::iostate err = std::ios_base::iostate(std::ios_base::goodbit);
+    try {
+        if (!this->fail()) {
+            pos_type p = 0;
+            if (is_ram_file(m_file)) {
+                p = ((ram_filebuf*)m_streambuf)->pubseekpos(pos, std::ios_base::out);
+            } else {
+                p = ((std::filebuf*)m_streambuf)->pubseekpos(pos, std::ios_base::out);
+            }
+            if (p == pos_type(off_type(-1))) {
+                err |= ios_base::failbit;
+                this->setstate(err);
+            }
+        }
+    } catch (...) {
+        if (err) {
+            this->setstate(err);
+        }
+    }
+    return *this;
+}
+
+
+osfstream&
+osfstream::seekp(off_type off, std::ios_base::seekdir way)
+{
+    ios_base::iostate err = std::ios_base::iostate(ios_base::goodbit);
+    try {
+        if (!this->fail()) {
+            pos_type p = 0;
+            if (is_ram_file(m_file)) {
+                p = ((ram_filebuf*)m_streambuf)->pubseekoff(off, way, std::ios_base::out);
+
+            } else {
+                p = ((std::filebuf*)m_streambuf)->pubseekoff(off, way, std::ios_base::out);
+            }
+            if (p == pos_type(off_type(-1))) {
+                err |= ios_base::failbit;
+                this->setstate(err);
+            }
+        }
+    } catch (...) {
+        if (err) {
+            this->setstate(err);
+        }
+    }
+    return *this;
+}
+
+
+
 //  IMPLEMENTATION OF ISFSTREAM
 
-isfstream::isfstream() : std::istream(m_streambuf), m_streambuf(NULL), m_file(""), m_use_ram(true), m_closed(true)
+isfstream::isfstream() : std::istream(m_streambuf)
 {
     this->init(m_streambuf);
 }
 
-isfstream::isfstream(const std::string& file, std::ios_base::openmode mode) : std::istream(m_streambuf),
-    m_streambuf(NULL), m_file(""), m_use_ram(true), m_closed(true)
+isfstream::isfstream(const std::string& file, std::ios_base::openmode mode) : std::istream(m_streambuf)
 {
     this->init(m_streambuf);
     open(file, mode);
 }
 
-std::streambuf*
+isfstream::buf_ptr_type
 isfstream::open(const std::string& file, std::ios_base::openmode mode)
 {
-    if (DEBUG_STREAM)std::cout<<"ISFSTREAM: try to open "<<file<<std::endl;
-    if (NULL != m_streambuf) {
-        delete m_streambuf;
-        m_streambuf = NULL;
-    }
+    delete m_streambuf;
+    m_streambuf = nullptr;
     m_file = file;
-    m_use_ram = is_ram_file(file);
-    if (m_use_ram) {
-        if (ram_fs::exists(m_file)) {
-            m_streambuf = new std::stringbuf(ram_fs::content(m_file), mode | std::ios_base::in);
-            if (NULL == m_streambuf) {
-                this->setstate(std::ios_base::failbit);
-                m_closed = true;
-                if (DEBUG_STREAM)std::cout<<"ERROR: opening failed "<<m_file<<std::endl;
-            } else {
-                this->clear();
-                this->rdbuf(m_streambuf);
-                m_closed = false;
-                if (DEBUG_STREAM)std::cout<<"opened "<<m_file<<std::endl;
-            }
-        } else {
-            m_closed = true;
-            this->setstate(std::ios_base::failbit);
-        }
+    std::streambuf* success = nullptr;
+    if (is_ram_file(file)) {
+        m_streambuf = new ram_filebuf();
+        success = ((ram_filebuf*)m_streambuf)->open(m_file, mode | std::ios_base::in);
     } else {
-        std::filebuf* f_buf = new std::filebuf();
-        if (!f_buf->open(file.c_str(), mode | std::ios_base::in)) {
-            this->setstate(std::ios_base::failbit);
-            if (NULL != f_buf) {
-                delete f_buf;
-            }
-        } else {
-            this->clear();
-            if (NULL != m_streambuf) {
-                delete m_streambuf;
-                m_streambuf = NULL;
-            }
-            m_streambuf = f_buf;
-            this->rdbuf(m_streambuf);
-            m_closed = false;
-        }
+        m_streambuf = new std::filebuf();
+        success = ((std::filebuf*)m_streambuf)->open(m_file, mode | std::ios_base::out);
     }
+    if (success) {
+        this->clear();
+    } else {
+        this->setstate(std::ios_base::failbit);
+        delete m_streambuf;
+        m_streambuf = nullptr;
+    }
+    this->rdbuf(m_streambuf);
     return m_streambuf;
 }
 
 bool
 isfstream::is_open()
 {
-    if (NULL == m_streambuf or m_closed) {
+    if (nullptr == m_streambuf)
         return false;
+    if (is_ram_file(m_file)) {
+        return ((ram_filebuf*)m_streambuf)->is_open();
     } else {
-        if (m_use_ram) {
-            return true;
-        } else {
-            return ((std::filebuf*)m_streambuf)->is_open();
-        }
+        return ((std::filebuf*)m_streambuf)->is_open();
     }
 }
 
 void
 isfstream::close()
 {
-    if (NULL == m_streambuf) {
-        this->setstate(std::ios::failbit);
-        return;
-    }
-    if (!m_use_ram) {
-        if (((std::filebuf*)m_streambuf)->close()) {
-            this->clear();
-            m_closed = true;
+    bool fail = false;
+    if (nullptr == m_streambuf) {
+        fail = true;
+    } else {
+        if (is_ram_file(m_file)) {
+            fail = !((ram_filebuf*)m_streambuf)->close();
         } else {
-            this->setstate(std::ios::failbit);
+            fail = !((std::filebuf*)m_streambuf)->close();
         }
     }
 }
 
+isfstream&
+isfstream::seekg(pos_type pos)
+{
+    ios_base::iostate err = std::ios_base::iostate(std::ios_base::goodbit);
+    try {
+        if (!this->fail()) {
+            pos_type p = 0;
+            if (is_ram_file(m_file)) {
+                p = ((ram_filebuf*)m_streambuf)->pubseekpos(pos, std::ios_base::in);
+
+            } else {
+                p = ((std::filebuf*)m_streambuf)->pubseekpos(pos, std::ios_base::in);
+            }
+            if (p == pos_type(off_type(-1))) {
+                err |= ios_base::failbit;
+            }
+        }
+    } catch (...) {
+        if (err) {
+            this->setstate(err);
+        }
+    }
+    return *this;
+}
+
+
+isfstream&
+isfstream::seekg(off_type off, std::ios_base::seekdir way)
+{
+    ios_base::iostate err = std::ios_base::iostate(ios_base::goodbit);
+    try {
+        if (!this->fail()) {
+            pos_type p = 0;
+            if (is_ram_file(m_file)) {
+                p = ((ram_filebuf*)m_streambuf)->pubseekoff(off, way, std::ios_base::in);
+
+            } else {
+                p = ((std::filebuf*)m_streambuf)->pubseekoff(off, way, std::ios_base::in);
+            }
+            if (p == pos_type(off_type(-1))) {
+                err |= ios_base::failbit;
+            }
+        }
+    } catch (...) {
+        if (err) {
+            this->setstate(err);
+        }
+    }
+    return *this;
+}
+
+std::streampos
+isfstream::tellg()
+{
+    ios_base::iostate err = std::ios_base::iostate(ios_base::goodbit);
+    pos_type p = pos_type(off_type(-1));
+    try {
+        if (!this->fail()) {
+            if (is_ram_file(m_file)) {
+                p = ((ram_filebuf*)m_streambuf)->pubseekoff(0, std::ios_base::cur);
+
+            } else {
+                p = ((std::filebuf*)m_streambuf)->pubseekoff(0, std::ios_base::cur);
+            }
+            if (p == pos_type(off_type(-1))) {
+                err |= ios_base::failbit;
+            }
+        }
+    } catch (...) {
+        if (err) {
+            this->setstate(err);
+        }
+    }
+    return p;
+}
+
 isfstream::~isfstream()
 {
-    if (m_streambuf != NULL)
-        delete m_streambuf;
+    delete m_streambuf;
 }
 
 isfstream::operator voidptr()const
 {
-    // TODO: && is->valid() ...
-    return m_streambuf;
+    return m_streambuf; // streambuf closes the file on destruction
 }
 
 }// end namespace sdsl
