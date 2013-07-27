@@ -8,17 +8,19 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include "sdsl/ram_fs.hpp"
+#include "sdsl/ram_filebuf.hpp"
 
 namespace sdsl
 {
 
 class osfstream : public std::ostream
 {
+    public:
+        typedef std::streambuf* buf_ptr_type;
     private:
-        std::streambuf* m_streambuf;
-        std::string      m_file;
-        bool             m_use_ram;
-        bool             m_closed; // indicates if the buffer is closed
+        buf_ptr_type m_streambuf = nullptr;
+        std::string  m_file      = "";
     public:
         typedef void* voidptr;
         //! Standard constructor.
@@ -26,7 +28,7 @@ class osfstream : public std::ostream
         //! Constructor taking a file name and open mode.
         osfstream(const std::string& file, std::ios_base::openmode mode = std::ios_base::out);
         //! Open the stream.
-        std::streambuf*
+        buf_ptr_type
         open(const std::string& file, std::ios_base::openmode mode = std::ios_base::out);
         //! Is the stream close?
         bool is_open();
@@ -36,16 +38,19 @@ class osfstream : public std::ostream
         ~osfstream();
         //! Cast to void*
         operator  voidptr() const;
+
+        osfstream& seekp(pos_type pos);
+        osfstream& seekp(off_type off, ios_base::seekdir way);
+        std::streampos tellp();
 };
 
 
 class isfstream : public std::istream
 {
+        typedef std::streambuf* buf_ptr_type;
     private:
-        std::streambuf* m_streambuf;
-        std::string      m_file;
-        bool             m_use_ram;
-        bool             m_closed; // indicates if the buffer is closed
+        buf_ptr_type m_streambuf = nullptr;
+        std::string  m_file      = "";
     public:
         typedef void* voidptr;
         //! Standard constructor.
@@ -53,7 +58,7 @@ class isfstream : public std::istream
         //! Constructor taking a file name and open mode.
         isfstream(const std::string& file, std::ios_base::openmode mode = std::ios_base::in);
         //! Open the stream.
-        std::streambuf*
+        buf_ptr_type
         open(const std::string& file, std::ios_base::openmode mode = std::ios_base::in);
         //! Is the stream close?
         bool is_open();
@@ -63,6 +68,10 @@ class isfstream : public std::istream
         ~isfstream();
         //! Cast to void*
         operator  voidptr() const;
+
+        isfstream& seekg(pos_type pos);
+        isfstream& seekg(off_type off, ios_base::seekdir way);
+        std::streampos tellg();
 };
 
 } // end namespace
