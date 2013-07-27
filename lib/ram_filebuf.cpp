@@ -71,7 +71,7 @@ ram_filebuf::close()
 ram_filebuf::pos_type
 ram_filebuf::seekpos(pos_type sp, std::ios_base::openmode mode)
 {
-    if (sp >= 0 and sp < m_ram_file->size()) {
+    if (sp >= 0 and sp < (pos_type)m_ram_file->size()) {
         setg(eback(), eback()+sp, egptr());
         setp(pbase(), epptr());
         pbump(pbase()+sp-pptr()); // pptr should be pbase() anyway after the setp call?
