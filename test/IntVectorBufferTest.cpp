@@ -53,15 +53,15 @@ void test_constructors(size_type template_width, size_type constructor_width, si
         // Default constructor
         t_T ivb;
         ASSERT_EQ("", ivb.filename());                    // filename should be empty
-        ASSERT_EQ(0, ivb.size());                         // size should be 0
-        ASSERT_EQ(0, ivb.buffersize());                   // buffersize should be 0
+        ASSERT_EQ((size_type)0, ivb.size());                         // size should be 0
+        ASSERT_EQ((size_type)0, ivb.buffersize());                   // buffersize should be 0
         ASSERT_EQ((uint8_t)template_width, ivb.width());  // default width of each element should be template_width bits
     }
     {
         // Constructor with 2 Parameters
         t_T ivb(file_name, false);
         ASSERT_EQ(file_name, ivb.filename());                               // filename should be file_name
-        ASSERT_EQ(0, ivb.size());                                           // size should be 0
+        ASSERT_EQ((size_type)0, ivb.size());                                           // size should be 0
         ASSERT_EQ((uint8_t)template_width, ivb.width());                    // default width of each element should be template_width bits
         ASSERT_LT((ivb.buffersize()-(1024*1024)), ivb.width());             // actual buffersize() is not more than 8 elements bigger than given buffersize ( buffersize()*8 < buffersize*8+8*width() )
     }
@@ -70,7 +70,7 @@ void test_constructors(size_type template_width, size_type constructor_width, si
         size_type buffersize = 1024*1024;
         t_T ivb(file_name, false, buffersize, constructor_width);
         ASSERT_EQ(file_name, ivb.filename());                   // filename should be file_name
-        ASSERT_EQ(0, ivb.size());                               // size should be 0
+        ASSERT_EQ((size_type)0, ivb.size());                               // size should be 0
         ASSERT_EQ((uint8_t)exp_width, ivb.width());             // default width of each element should be i bits
         ASSERT_LT((ivb.buffersize()-buffersize), ivb.width());  // actual buffersize is less than 8 elements bigger than given buffersize ( buffersize()*8 < buffersize*8+8*width() )
     }
@@ -99,7 +99,7 @@ void test_buffersize(std::vector<size_type>& vec_sizes)
     for (size_type i=0; i < vec_sizes.size(); ++i) {
         t_T ivb(file_name, false, vec_sizes[i]);
         ASSERT_EQ(file_name, ivb.filename());                     // filename should be file_name
-        ASSERT_EQ(0, ivb.size());                                 // size should be 0
+        ASSERT_EQ((size_type)0, ivb.size());                                 // size should be 0
         ASSERT_LT((ivb.buffersize()-vec_sizes[i]), ivb.width());  // actual buffersize() is less than 8 elements bigger than given buffersize ( buffersize()*8 < buffersize*8+8*width() )
     }
     {
@@ -301,7 +301,7 @@ void test_swap(size_type exp_w_1, size_type exp_w_2, std::vector<size_type>& vec
             size_type buffersize_ivb = ivb.buffersize();
             t_T tmp(file_name_tmp, false, 80, 2, false);
             ASSERT_EQ(file_name_tmp, tmp.filename());
-            ASSERT_EQ(0, tmp.size());
+            ASSERT_EQ((size_type)0, tmp.size());
             ASSERT_EQ(exp_w_2, tmp.width());
             ASSERT_LT((tmp.buffersize()-80), tmp.width());
             ASSERT_EQ(false, tmp.persistence());
@@ -309,7 +309,7 @@ void test_swap(size_type exp_w_1, size_type exp_w_2, std::vector<size_type>& vec
             tmp.swap(ivb);
             ASSERT_EQ(file_name_tmp, ivb.filename());
             ASSERT_EQ(file_name, tmp.filename());
-            ASSERT_EQ(0, ivb.size());
+            ASSERT_EQ((size_type)0, ivb.size());
             ASSERT_EQ(size, tmp.size());
             ASSERT_EQ(buffersize_tmp, ivb.buffersize());
             ASSERT_EQ(buffersize_ivb, tmp.buffersize());
@@ -351,22 +351,22 @@ void test_file_handling(size_type exp_w)
     for (size_type i=0; i<100000; ++i) {
         ivb[i] = rng() & sdsl::bits::lo_set[exp_w];
     }
-    ASSERT_EQ(100000, ivb.size());
+    ASSERT_EQ((size_type)100000, ivb.size());
     ASSERT_EQ(exp_w, ivb.width());
     ivb.close();
 
     // load int_vector from file and compare it with int_vector_buffer
     t_V iv;
     sdsl::load_from_file(iv, file_name);
-    ASSERT_EQ(100000, iv.size());
+    ASSERT_EQ((size_type)100000, iv.size());
     t_T ivb2(file_name, true, buffersize, 5, false);
-    ASSERT_EQ(100000, ivb2.size());
+    ASSERT_EQ((size_type)100000, ivb2.size());
     ASSERT_EQ(exp_w, ivb2.width());
     rng.seed(13);
     for (size_type i=0; i<iv.size(); ++i) {
         size_type exp_val = rng() & sdsl::bits::lo_set[exp_w];
         ASSERT_EQ(exp_val, (size_type)ivb2[i]);
-        ASSERT_EQ(exp_val, iv[i]);
+        ASSERT_EQ(exp_val, (size_type)iv[i]);
     }
     ivb2.close();
 }
@@ -388,10 +388,10 @@ void test_plain_file_handling(uint8_t exp_w)
     // load plain_array and compare it with int_vector_buffer
     sdsl::int_vector<> iv;
     sdsl::load_vector_from_file(iv, file_name, exp_w/8);
-    ASSERT_EQ(100000, iv.size());        // Check size
+    ASSERT_EQ((size_type)100000, iv.size());        // Check size
     ASSERT_EQ(exp_w, iv.width());        // Check width
     t_T ivb2(file_name, true, buffersize, exp_w, false, true); // Load plain data with int_vector_buffer
-    ASSERT_EQ(100000, ivb2.size());      // Check size
+    ASSERT_EQ((size_type)100000, ivb2.size());      // Check size
     ASSERT_EQ(exp_w, ivb2.width());      // Check width
     rng.seed(13);
     for (size_type i=0; i<iv.size(); ++i) {                    // Check content
@@ -434,19 +434,19 @@ void test_random_access(size_type width=1)
     std::string file_name = "tmp/int_vector_buffer";
     size_type buffersize = 100;
     t_T ivb(file_name, false, buffersize, width);
-    ASSERT_EQ(0, ivb.size());
+    ASSERT_EQ((size_type)0, ivb.size());
     ivb[999] = 999 & sdsl::bits::lo_set[ivb.width()];
     ASSERT_EQ(999 & sdsl::bits::lo_set[ivb.width()], (size_type)ivb[999]);
-    ASSERT_EQ(1000, ivb.size());
+    ASSERT_EQ((size_type)1000, ivb.size());
     for (size_type i=0; i < 999; ++i) {
-        ASSERT_EQ(0, (size_type)ivb[i]);
+        ASSERT_EQ((size_type)0, (size_type)ivb[i]);
     }
     // Test random access write
     for (size_type i=0; i < 1000; ++i) {
         value_type x = dice();
         ivb[x] = x & sdsl::bits::lo_set[ivb.width()];
     }
-    ASSERT_EQ(1000, ivb.size());
+    ASSERT_EQ((size_type)1000, ivb.size());
     for (size_type i=0; i < ivb.size(); ++i) {
         if (ivb[i]) {
             ASSERT_EQ(i & sdsl::bits::lo_set[ivb.width()], (size_type)ivb[i]);
@@ -455,7 +455,7 @@ void test_random_access(size_type width=1)
     // Test random access with different buffersize
     buffersize = 50;
     ivb.buffersize(buffersize);
-    ASSERT_EQ(1000, ivb.size());
+    ASSERT_EQ((size_type)1000, ivb.size());
     for (size_type i=0; i < 1000; ++i) {
         value_type x = dice();
         ivb[x] = x & sdsl::bits::lo_set[ivb.width()];
@@ -507,16 +507,16 @@ void test_move(size_type constructor_width)
         }
         {
             t_T tmp(file_name, false, 1000, 13, false);
-            ASSERT_EQ(0, tmp.size());
+            ASSERT_EQ((size_type)0, tmp.size());
             ASSERT_LT((tmp.buffersize()-(1000)), tmp.width());
             size_type buffersize = tmp.buffersize();
             t_T ivb((t_T&&)tmp);
             ASSERT_EQ(file_name, ivb.filename());
-            ASSERT_EQ(0, ivb.size());
+            ASSERT_EQ((size_type)0, ivb.size());
             ASSERT_EQ(buffersize, ivb.buffersize());
             ASSERT_EQ("", tmp.filename());
-            ASSERT_EQ(0, tmp.size());
-            ASSERT_EQ(0, tmp.buffersize());
+            ASSERT_EQ((size_type)0, tmp.size());
+            ASSERT_EQ((size_type)0, tmp.buffersize());
             ASSERT_EQ(constructor_width, tmp.width());
         }
     }
@@ -533,8 +533,8 @@ void test_move(size_type constructor_width)
             t_T tmp(file_name+sdsl::util::to_string(i), false, 1000, i+1, false);
             v[i] = (t_T&&)tmp;
             ASSERT_EQ("", tmp.filename());
-            ASSERT_EQ(0, tmp.size());
-            ASSERT_EQ(0, tmp.buffersize());
+            ASSERT_EQ((size_type)0, tmp.size());
+            ASSERT_EQ((size_type)0, tmp.buffersize());
             ASSERT_EQ(constructor_width, tmp.width());
             bool persistence = false;
             ASSERT_EQ(persistence, (bool)tmp.persistence());
