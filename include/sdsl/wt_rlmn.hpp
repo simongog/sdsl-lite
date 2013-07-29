@@ -127,7 +127,7 @@ class wt_rlmn
             std::string temp_file = text_buf.filename() +
                                     + "_wt_rlmn_" + util::to_string(util::pid())
                                     + "_" + util::to_string(util::id());
-            osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
+            osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc | std::ios::out);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
             {

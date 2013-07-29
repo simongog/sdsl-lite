@@ -109,7 +109,7 @@ class wt_rlg
         wt_rlg(int_vector_buffer<8>& text_buf, size_type size) : m_size(size) {
             typedef int_vector_size_type size_type;
             std::string temp_file = text_buf.filename() + "_wt_rlg_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
-            osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
+            osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc | std::ios::out);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
 
