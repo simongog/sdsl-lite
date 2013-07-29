@@ -112,8 +112,8 @@ class int_vector_buffer
                 assert(m_ofile.good());
             }
             // Open file for IO
-            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
-            m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
+            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary); // Must open with std::ios::in otherwise file-content will get lost
+//             m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
             assert(m_ofile.good());
             m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
             assert(m_ifile.good());
