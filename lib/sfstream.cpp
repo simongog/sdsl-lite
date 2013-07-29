@@ -40,7 +40,6 @@ osfstream::open(const std::string& file, std::ios_base::openmode mode)
         m_streambuf = nullptr;
     }
     this->rdbuf(m_streambuf);
-    std::cerr<<"opened filed \""<<m_file<<"\" ("<<(nullptr!=success)<<") size="<<util::file_size(m_file)<<std::endl;
     return m_streambuf;
 }
 
@@ -70,7 +69,6 @@ osfstream::close()
         }
     }
     if (fail) this->setstate(std::ios::failbit);
-    std::cerr<<"closed file \""<<m_file<<"\" ("<<!fail<<") size="<<util::file_size(m_file)<<std::endl;
 }
 
 osfstream::~osfstream()
