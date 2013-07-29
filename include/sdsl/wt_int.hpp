@@ -735,10 +735,6 @@ class wt_int
                     : ranges(r) , sym(_sym) , offset(off) , node_size(ns) , level(lvl)
                 {}
 
-                intersect_range_t(intersect_range_t& ir)
-                    : ranges(ir.ranges) , sym(ir.sym) , offset(ir.offset) ,
-                      node_size(ir.node_size) , level(ir.level) {}
-
                 intersect_range_t(intersect_range_t&& ir)
                     : ranges(std::move(ir.ranges)) ,
                       sym(ir.sym) , offset(ir.offset) , node_size(ir.node_size) ,
