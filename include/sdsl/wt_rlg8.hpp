@@ -106,7 +106,7 @@ class wt_rlg8
          */
         wt_rlg8(int_vector_buffer<8>& rac, size_type size) : m_size(size) {
             std::string temp_file = rac.filename() + "_wt_rlg8_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
-            osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
+            osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc | std::ios::out);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
 
