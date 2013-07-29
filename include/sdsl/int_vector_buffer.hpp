@@ -78,10 +78,8 @@ class int_vector_buffer
                     //last block in file
                     uint64_t wb = ((m_max_elements-m_begin)*width()+7)/8;
                     m_ofile.write((char*) m_buffer.data(), wb);
-//                    std::cerr<<"m_ofile.write at "<<m_offset+(m_begin*width())/8<<"  "<<wb<<" bytes"<<std::endl;
                 } else {
                     m_ofile.write((char*) m_buffer.data(), (m_buffersize*width())/8);
-//                    std::cerr<<"m_ofile.write at "<<m_offset+(m_begin*width())/8<<"  "<<(m_buffersize*width())/8<<" bytes"<<std::endl;
                 }
                 m_ofile.flush();
                 assert(m_ofile.good());
@@ -96,7 +94,6 @@ class int_vector_buffer
 
         int_vector_buffer(const std::string _filename, const bool _open_existing_file, const uint64_t _buffersize=1024*1024, const uint8_t _width=t_width, const bool _persistent=true, const bool _is_plain=false) {
             m_filename = _filename;
-            std::cerr<<"ivb for "<<m_filename<<" persistent="<<_persistent<<" buffersize="<<_buffersize<<" this="<<std::hex<<this<<std::endl;
             m_buffer.width(_width);
             if (_is_plain) {
                 assert(8==width() or 16==width() or 32==width() or 64==width()); // is_plain is only allowed with width() in {8, 16, 32, 64}
@@ -284,7 +281,6 @@ class int_vector_buffer
         }
 
         void write(const uint64_t idx, const uint64_t value) {
-//            std::cerr<<"write("<<idx<<","<<value<<") m_max_elements="<<m_max_elements<<std::endl;
             assert(!m_closed);
             // If idx is not in current block, write current block and load needed block
             if (idx < m_begin or m_begin+m_buffersize <= idx) {
@@ -296,7 +292,6 @@ class int_vector_buffer
             }
             m_need_to_write = true;
             m_buffer[idx-m_begin] = value;
-//            std::cerr<<"_write("<<idx<<","<<value<<") m_max_elements="<<m_max_elements<<"this="<<std::hex<<this<<std::endl;
         }
 
         class reference;
@@ -317,11 +312,9 @@ class int_vector_buffer
                 if (0 < m_offset) { // in case of int_vector, write header and trailing zeros
                     uint64_t size = m_max_elements*width();
                     m_ofile.seekp(0, std::ios::beg);
-                    std::cerr<<"ivb::close() size="<<size<<" width()="<<(uint32_t)width()<<" t_width="<<(uint32_t)t_width<<" m_filename="<<m_filename<<" this="<<std::hex<<this<<std::endl;
                     int_vector<t_width>::write_header(size, width(), m_ofile);
                     assert(m_ofile.good());
                     uint64_t wb = (size+7)/8;
-                    std::cerr<<"wb="<<wb<<std::endl;
                     if (wb%8) {
                         m_ofile.seekp(m_offset+wb);
                         assert(m_ofile.good());
