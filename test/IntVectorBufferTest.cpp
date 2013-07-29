@@ -4,6 +4,8 @@
 #include "gtest/gtest.h"
 #include <vector>
 #include <string>
+#include <fstream>
+#include <iostream>
 
 namespace
 {
@@ -553,6 +555,50 @@ TEST_F(IntVectorBufferTest, Move)
     test_move< sdsl::int_vector_buffer<16> >(16);
     test_move< sdsl::int_vector_buffer<32> >(32);
     test_move< sdsl::int_vector_buffer<64> >(64);
+}
+
+template<class t_T>
+void test_reset(std::vector<size_type>& vec_sizes, size_type width=1)
+{
+    std::mt19937_64 rng(13);
+    std::string file_name = "tmp/int_vector_buffer";
+    size_type buffersize = 1024;
+    for (auto size : vec_sizes) {
+        if (size < 1000) {
+            t_T ivb(file_name, false, buffersize, width);
+            for (size_type j=0; j < size; ++j) {
+                ivb[j] = rng();
+            }
+            ASSERT_EQ(file_name, ivb.filename());
+            ASSERT_EQ(size, ivb.size());
+            ASSERT_LT((ivb.buffersize()-buffersize), ivb.width());
+            size_type bsize = ivb.buffersize();
+            ivb.reset();                           //reset should delete all content
+            ASSERT_EQ(file_name, ivb.filename());  //same filename as before
+            ASSERT_EQ(0, ivb.size());              //all content removed
+            ASSERT_EQ(bsize, ivb.buffersize());    //same buffersize as before
+            {
+                std::ifstream ifile(file_name.c_str(), std::ios::in|std::ios::binary|std::ios::ate);
+                size_type file_end = ifile.tellg();
+                ifile.close();
+                ASSERT_EQ(0, file_end);  //size of file after reset is 0
+            }
+            ivb.close();
+        }
+    }
+}
+
+//! Test reset
+TEST_F(IntVectorBufferTest, Reset)
+{
+    for (size_type width=1; width <= 64; ++width) {
+        test_reset< sdsl::int_vector_buffer<> >(vec_sizes, width);
+    }
+    test_reset< sdsl::int_vector_buffer<1> >(vec_sizes);
+    test_reset< sdsl::int_vector_buffer<8> >(vec_sizes);
+    test_reset< sdsl::int_vector_buffer<16> >(vec_sizes);
+    test_reset< sdsl::int_vector_buffer<32> >(vec_sizes);
+    test_reset< sdsl::int_vector_buffer<64> >(vec_sizes);
 }
 
 }  // namespace
