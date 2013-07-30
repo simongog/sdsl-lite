@@ -25,7 +25,7 @@
 #include "typedefs.hpp"
 #include "sfstream.hpp"
 #include "ram_fs.hpp"
-#include "config.hpp"  // for constants 
+#include "config.hpp"  // for constants
 #include <iosfwd>      // forward declaration of ostream
 #include <stdint.h>    // for uint64_t uint32_t declaration
 #include <cassert>
@@ -45,6 +45,9 @@
 #include <numeric>
 #include <random>
 #include <chrono>
+#include <atomic>
+#include <mutex>
+#include <thread>
 
 // macros to transform a defined name to a string
 #define SDSL_STR(x) #x
@@ -367,6 +370,60 @@ class stop_watch
 
         uint64_t abs_page_faults();
 };
+
+class spin_lock
+{
+    private:
+        std::atomic_flag m_slock = ATOMIC_FLAG_INIT;
+    public:
+        void lock() {
+            while (m_slock.test_and_set(std::memory_order_acquire)) {
+                /* spin */
+            }
+        };
+        void unlock() {
+            m_slock.clear(std::memory_order_release);
+        };
+};
+
+
+class recursive_spinlock
+{
+    private:
+        spin_lock m_lock;
+        uint64_t m_count = 0;
+        size_t m_owner = 0;
+        std::hash<std::thread::id> hash_fn;
+    public:
+        void lock() {
+            while (try_lock() == false) {
+                /* spin */
+            }
+        };
+        bool try_lock() {
+            std::lock_guard<spin_lock> lock(m_lock);
+
+            if (m_count == 0) {
+                m_owner = hash_fn(std::this_thread::get_id());
+                m_count = 1;
+                return true;
+            } else {
+                if (m_owner == hash_fn(std::this_thread::get_id())) {
+                    // it is us. it is ok.
+                    m_count++;
+                    return true;
+                }
+            }
+
+            return false;
+        };
+        void unlock() {
+            std::lock_guard<spin_lock> lock(m_lock);
+            m_count--;
+        };
+};
+
+
 
 } // end namespace util
 

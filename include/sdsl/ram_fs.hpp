@@ -9,6 +9,11 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <mutex>
+
+#ifndef SDSL_MULTI_THREAD
+#define SDSL_MULTI_THREAD
+#endif
 
 namespace sdsl
 {
@@ -25,9 +30,16 @@ class ram_fs_initializer
 
 static sdsl::ram_fs_initializer init_ram_fs;
 
-
 namespace sdsl
 {
+
+//forward declaration
+#ifdef SDSL_MULTI_THREAD
+namespace util
+{
+class recursive_spinlock;
+}
+#endif
 
 //! ram_fs is a simple store for RAM-files.
 /*!
@@ -43,6 +55,9 @@ class ram_fs
         friend class ram_fs_initializer;
         typedef std::map<std::string, content_type> mss_type;
         static mss_type m_map;
+#ifdef SDSL_MULTI_THREAD
+        static util::recursive_spinlock m_spinlock;
+#endif
 
     public:
         //! Default construct
