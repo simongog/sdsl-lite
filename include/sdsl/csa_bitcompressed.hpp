@@ -123,8 +123,8 @@ class csa_bitcompressed
             sigma(m_alphabet.sigma), psi(m_psi), bwt(this),
             text(this), sa_sample(m_sa), isa_sample(m_isa) {
             std::string text_file = cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config);
-            int_vector_buffer<alphabet_type::int_width> text_buf(text_file, true);
-            int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA,config), true);
+            int_vector_buffer<alphabet_type::int_width> text_buf(text_file, std::ios::in);
+            int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA,config), std::ios::in);
             size_type n = text_buf.size();
             {
                 alphabet_type tmp_alphabet(text_buf, n);

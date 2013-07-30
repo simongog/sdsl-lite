@@ -87,7 +87,7 @@ class lcp_vlc
             if ("" != other_key) {
                 lcp_key = other_key;
             }
-            int_vector_buffer<> lcp_buf(cache_file_name(lcp_key, config), true);
+            int_vector_buffer<> lcp_buf(cache_file_name(lcp_key, config), std::ios::in);
             vlc_vec_type tmp_vec(lcp_buf);
             m_vec.swap(tmp_vec);
         }

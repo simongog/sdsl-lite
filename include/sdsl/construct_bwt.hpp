@@ -65,9 +65,9 @@ void construct_bwt(cache_config& config)
 
     //  (2) Prepare to stream SA from disc and BWT to disc
     size_type buffer_size = 1000000; // buffer_size is a multiple of 8!, TODO: still true?
-    int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), true, buffer_size);
+    int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), std::ios::in, buffer_size);
     std::string bwt_file = cache_file_name(KEY_BWT, config);
-    bwt_type bwt_buf(bwt_file, false, buffer_size, bwt_width);
+    bwt_type bwt_buf(bwt_file, std::ios::out, buffer_size, bwt_width);
 
     //  (3) Construct BWT sequentially by streaming SA and random access to text
     size_type to_add[2] = {(size_type)-1,n-1};

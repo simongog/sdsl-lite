@@ -42,15 +42,14 @@ class int_vector_buffer
         std::string         m_filename;
         int_vector<t_width> m_buffer;
         bool                m_need_to_write = false;
-        // length of int_vector header in bytes
-        uint64_t            m_offset        = 0;    // size of header: 0 for plain, 8 for int_vector<t_width> (0 < t_width), 9 for int_vector<0>
+        // length of int_vector header in bytes: 0 for plain, 8 for int_vector<t_width> (0 < t_width), 9 for int_vector<0>
+        uint64_t            m_offset        = 0;
         uint64_t            m_buffersize    = 0;    // in elements! m_buffersize*width() must be a multiple of 8!
         uint64_t            m_max_elements  = 0;    // size of int_vector_buffer
         uint64_t            m_begin         = 0;    // number in elements
-        bool                m_persistent    = true; // if false, destructor will delete the file
         bool                m_closed        = true; // file is closed
 
-        //! Read block containing element v[idx]
+        //! Read block containing element at index idx.
         void read_block(const uint64_t idx) {
             m_begin = (idx/m_buffersize)*m_buffersize;
             if (m_begin >= m_max_elements) {
@@ -69,7 +68,7 @@ class int_vector_buffer
             }
         }
 
-        //! Write current block to file
+        //! Write current block to file.
         void write_block() {
             if (m_need_to_write) {
                 m_ofile.seekp(m_offset+(m_begin*width())/8);
@@ -87,50 +86,84 @@ class int_vector_buffer
             }
         }
 
+        //! Read value from idx.
+        uint64_t read(const uint64_t idx) {
+            assert(!m_closed);
+            assert(idx < m_max_elements);
+            if (idx < m_begin or m_begin+m_buffersize <= idx) {
+                write_block();
+                read_block(idx);
+            }
+            return m_buffer[idx-m_begin];
+        }
+
+        //! Write value to idx.
+        void write(const uint64_t idx, const uint64_t value) {
+            assert(!m_closed);
+            // If idx is not in current block, write current block and load needed block
+            if (idx < m_begin or m_begin+m_buffersize <= idx) {
+                write_block();
+                read_block(idx);
+            }
+            if (m_max_elements <= idx) {
+                m_max_elements = idx+1;
+            }
+            m_need_to_write = true;
+            m_buffer[idx-m_begin] = value;
+        }
+
     public:
+
+        //! Constructor.
         int_vector_buffer() {
             m_buffer = int_vector<t_width>();
         }
 
-        int_vector_buffer(const std::string _filename, const bool _open_existing_file, const uint64_t _buffersize=1024*1024, const uint8_t _width=t_width, const bool _persistent=true, const bool _is_plain=false) {
-            m_filename = _filename;
-            m_buffer.width(_width);
-            if (_is_plain) {
-                assert(8==width() or 16==width() or 32==width() or 64==width()); // is_plain is only allowed with width() in {8, 16, 32, 64}
+        //! Constructor for int_vector_buffer.
+        /*! \param filename   File that contains the data read from / written to.
+         *  \param mode       Openmode:
+         *                    std::ios::in opens an existing file (that must exist already),
+         *                    std::ios::out creates a new file (that may exist already).
+         *  \param buffersize Buffersize in bytes. This has to be a multiple of 8, if not the next multiple of 8 will be taken
+         *  \param int_width  The width of each integer.
+         *  \param is_plain   If false (default) the file will be interpreted as int_vector.
+         *                    If true the file will be interpreted as plain array with t_width bits per integer.
+         *                    In second case (is_plain==true), t_width must be 8, 16, 32 or 64.
+         */
+        int_vector_buffer(const std::string filename, std::ios::openmode mode, const uint64_t buffersize=1024*1024, const uint8_t int_width=t_width, const bool is_plain=false) {
+            m_filename = filename;
+            assert(!(mode&std::ios::app));
+            mode &= ~std::ios::app;
+            m_buffer.width(int_width);
+            if (is_plain) {
+                // is_plain is only allowed with width() in {8, 16, 32, 64}
+                assert(8==width() or 16==width() or 32==width() or 64==width());
             } else {
                 m_offset = t_width ? 8 : 9;
             }
-            m_persistent = _persistent;
-            if (!_open_existing_file) {
-                // Create file, if it already exist it will be cleared
-                m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
-                assert(m_ofile.good());
-                m_ofile.close();
-                assert(m_ofile.good());
-            }
+
             // Open file for IO
-            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary); // Must open with std::ios::in otherwise file-content will get lost
-//             m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
+            m_ofile.open(m_filename, mode|std::ios::out|std::ios::binary);
             assert(m_ofile.good());
-            m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
+            m_ifile.open(m_filename, std::ios::in|std::ios::binary);
             assert(m_ifile.good());
-            if (_open_existing_file) {
+            if (mode & std::ios::in) {
                 uint64_t size  = 0;
-                if (_is_plain) {
+                if (is_plain) {
                     m_ifile.seekg(0, std::ios_base::end);
                     size = m_ifile.tellg()*8;
                 } else {
-                    uint8_t  width = 0;
+                    uint8_t width = 0;
                     int_vector<t_width>::read_header(size, width, m_ifile);
                     m_buffer.width(width);
                 }
                 assert(m_ifile.good());
                 m_max_elements = size/width();
             }
-            if (0==(_buffersize*8)%width()) {
-                m_buffersize = _buffersize*8/width(); // m_buffersize might not be multiple of 8, but m_buffersize*width is.
+            if (0==(buffersize*8)%width()) {
+                m_buffersize = buffersize*8/width(); // m_buffersize might not be multiple of 8, but m_buffersize*width is.
             } else {
-                uint64_t element_buffersize = (_buffersize*8)/width()+1; // one more element than fits into given buffersize in byte
+                uint64_t element_buffersize = (buffersize*8)/width()+1; // one more element than fits into given buffersize in byte
                 m_buffersize = element_buffersize+7 - (element_buffersize+7)%8; // take next multiple of 8
             }
             m_buffer = int_vector<t_width>(m_buffersize, 0, width());
@@ -148,13 +181,11 @@ class int_vector_buffer
             m_buffersize(ivb.m_buffersize),
             m_max_elements(ivb.m_max_elements),
             m_begin(ivb.m_begin),
-            m_persistent(ivb.m_persistent),
             m_closed(ivb.m_closed) {
             ivb.m_ifile.close();
             ivb.m_ofile.close();
-            m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
-            m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
-            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+            m_ifile.open(m_filename, std::ios::in|std::ios::binary);
+            m_ofile.open(m_filename, std::ios::in|std::ios::out|std::ios::binary);
             assert(m_ifile.good());
             assert(m_ofile.good());
             // set ivb to default-constructor state
@@ -165,16 +196,13 @@ class int_vector_buffer
             ivb.m_buffersize = 0;
             ivb.m_max_elements = 0;
             ivb.m_begin = 0;
-            ivb.m_persistent = false;
             ivb.m_closed = true;
         }
 
+        //! Destructor.
         ~int_vector_buffer() {
             if (!m_closed) {
                 close();
-            }
-            if (!m_persistent) {
-                sdsl::remove(m_filename);
             }
         }
 
@@ -184,9 +212,8 @@ class int_vector_buffer
             ivb.m_ifile.close();
             ivb.m_ofile.close();
             m_filename = ivb.m_filename;
-            m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
-            m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
-            m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+            m_ifile.open(m_filename, std::ios::in|std::ios::binary);
+            m_ofile.open(m_filename, std::ios::in|std::ios::out|std::ios::binary);
             assert(m_ifile.good());
             assert(m_ofile.good());
             // assign the values of ivb to this
@@ -196,7 +223,6 @@ class int_vector_buffer
             m_buffersize = ivb.m_buffersize;
             m_max_elements = ivb.m_max_elements;
             m_begin = ivb.m_begin;
-            m_persistent = ivb.m_persistent;
             m_closed = ivb.m_closed;
             // set ivb to default-constructor state
             ivb.m_filename = "";
@@ -206,37 +232,33 @@ class int_vector_buffer
             ivb.m_buffersize = 0;
             ivb.m_max_elements = 0;
             ivb.m_begin = 0;
-            ivb.m_persistent = false;
             ivb.m_closed = true;
             return *this;
         }
 
+        //! Returns the width of the integers which are accessed via the [] operator.
         uint8_t width() const {
             return m_buffer.width();
         }
 
+        //! Returns the number of elements currently stored.
         uint64_t size() const {
             return m_max_elements;
         }
 
+        //! Returns the filename.
         std::string filename() const {
             return m_filename;
         }
 
-        bool persistence() const {
-            return m_persistent;
-        }
-
-        void persistence(bool persistent) {
-            m_persistent = persistent;
-        }
-
-        uint64_t buffersize() const { // returns buffersize in byte
+        //! Returns the buffersize in bytes
+        uint64_t buffersize() const {
             assert(m_buffersize*width()%8==0);
             return (m_buffersize*width())/8;
         }
 
-        void buffersize(uint64_t buffersize) { // set buffersize in byte  //remove this?
+        //! Set the buffersize in bytes
+        void buffersize(uint64_t buffersize) { // ToDo: remove this?
             write_block();
             if (0==(buffersize*8)%width()) {
                 m_buffersize = buffersize*8/width(); // m_buffersize might not be multiple of 8, but m_buffersize*width() is.
@@ -248,16 +270,16 @@ class int_vector_buffer
             if (0!=m_buffersize) read_block(0);
         }
 
+        //! Delete all content and set size to 0
         void reset() {
-            // delete all content
             // reset file
             assert(m_ifile.good());
             assert(m_ofile.good());
             m_ifile.close();
             m_ofile.close();
-            m_ofile.open(m_filename.c_str(), std::ios::out|std::ios::binary);
+            m_ofile.open(m_filename, std::ios::out|std::ios::binary);
             assert(m_ofile.good());
-            m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
+            m_ifile.open(m_filename, std::ios::in|std::ios::binary);
             assert(m_ifile.good());
             assert(m_ofile.good());
             // reset member variables
@@ -267,40 +289,25 @@ class int_vector_buffer
             read_block(0);
         }
 
-        uint64_t read(const uint64_t idx) {
-            assert(!m_closed);
-            assert(idx < m_max_elements);
-            if (idx < m_begin or m_begin+m_buffersize <= idx) {
-                write_block();
-                read_block(idx);
-            }
-            return m_buffer[idx-m_begin];
-        }
-
-        void write(const uint64_t idx, const uint64_t value) {
-            assert(!m_closed);
-            // If idx is not in current block, write current block and load needed block
-            if (idx < m_begin or m_begin+m_buffersize <= idx) {
-                write_block();
-                read_block(idx);
-            }
-            if (m_max_elements <= idx) {
-                m_max_elements = idx+1;
-            }
-            m_need_to_write = true;
-            m_buffer[idx-m_begin] = value;
-        }
-
+        // Forward declaration
         class reference;
 
+        //! [] operator
+        /*! \param i Index the i-th integer of length width().
+         *  \return A reference to the i-th integer of length width().
+         */
         reference operator[](uint64_t idx) {
             return reference(this, idx);
         }
 
+        //! Appends the given element value to the end of the int_vector_buffer
         void push_back(const uint64_t value) {
             write(m_max_elements, value);
         }
 
+        //! Close the int_vector_buffer.
+        /*! It is not possible to read from / write into the int_vector_buffer after calling this method
+         */
         void close() {
             if (!m_closed) {
                 m_ifile.close();
@@ -325,6 +332,7 @@ class int_vector_buffer
             }
         }
 
+        //! Swap method for int_vector_buffer.
         void swap(int_vector_buffer<t_width>& ivb) {
             if (this != &ivb) {
                 m_ifile.close();
@@ -332,13 +340,13 @@ class int_vector_buffer
                 m_ofile.close();
                 ivb.m_ofile.close();
                 std::swap(m_filename, ivb.m_filename);
-                m_ifile.open(m_filename.c_str(), std::ios::in|std::ios::binary);
+                m_ifile.open(m_filename, std::ios::in|std::ios::binary);
                 assert(m_ifile.good());
-                m_ofile.open(m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+                m_ofile.open(m_filename, std::ios::in|std::ios::out|std::ios::binary);
                 assert(m_ofile.good());
-                ivb.m_ifile.open(ivb.m_filename.c_str(), std::ios::in|std::ios::binary);
+                ivb.m_ifile.open(ivb.m_filename, std::ios::in|std::ios::binary);
                 assert(ivb.m_ifile.good());
-                ivb.m_ofile.open(ivb.m_filename.c_str(), std::ios::in|std::ios::out|std::ios::binary);
+                ivb.m_ofile.open(ivb.m_filename, std::ios::in|std::ios::out|std::ios::binary);
                 assert(ivb.m_ofile.good());
                 std::swap(m_buffer, ivb.m_buffer);
                 std::swap(m_need_to_write, ivb.m_need_to_write);
@@ -346,7 +354,6 @@ class int_vector_buffer
                 std::swap(m_buffersize, ivb.m_buffersize);
                 std::swap(m_max_elements, ivb.m_max_elements);
                 std::swap(m_begin, ivb.m_begin);
-                std::swap(m_persistent, ivb.m_persistent);
                 std::swap(m_closed, ivb.m_closed);
             }
         }
@@ -365,17 +372,18 @@ class int_vector_buffer
 
             public:
 
-                // conversion to int for read operations
+                //! Conversion to int for read operations
                 operator uint64_t ()const {
                     return m_int_vector_buffer->read(m_idx);
                 }
 
-                // assignment operator for write operations
+                //! Assignment operator for write operations
                 reference& operator=(const uint64_t& val)     {
                     m_int_vector_buffer->write(m_idx, val);
                     return *this;
                 }
 
+                //! Assignment operator
                 reference& operator=(reference& x) {
                     return *this = (uint64_t)(x);
                 };

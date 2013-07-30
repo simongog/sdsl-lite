@@ -1067,7 +1067,7 @@ template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
 cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::cst_sct3(cache_config& config, bool build_only_bps)
 {
     mm::log("bps-sct-begin");
-    int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config), true);
+    int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config), std::ios::in);
     m_nodes = algorithm::construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child) + m_bp.size()/2;
     if (m_bp.size() == 2) {  // handle special case, when the tree consists only of the root node
         m_nodes = 1;

@@ -20,12 +20,12 @@ void insert_lcp_values(int_vector<>& partial_lcp, bit_vector& index_done, std::s
     std::string tmp_lcp_file  = lcp_file+"_TMP";
     const uint64_t buffer_size = 1000000; // has to be a multiple of 64
     typedef int_vector<>::size_type size_type;
-    int_vector_buffer<> lcp_buffer(lcp_file, true, buffer_size); // open lcp_file
+    int_vector_buffer<> lcp_buffer(lcp_file, std::ios::in, buffer_size); // open lcp_file
     uint64_t n = lcp_buffer.size();
 
     // open tmp_lcp_file
     uint8_t int_width = bits::hi(max_lcp_value-1)+1;
-    int_vector_buffer<> out_buf(tmp_lcp_file, false, buffer_size, int_width);		// Output buffer
+    int_vector_buffer<> out_buf(tmp_lcp_file, std::ios::out, buffer_size, int_width);		// Output buffer
     // Write values into buffer
     for (size_type i=0, calc_idx=0; i < n; ++i) {
         if (index_done[i]) {   // If value was already calculated
@@ -101,7 +101,7 @@ uint8_t buffered_char_queue::pop_front()
 void lcp_info(cache_config& config)
 {
     typedef int_vector<>::size_type size_type;
-    int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config), true);
+    int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config), std::ios::in);
     size_type n = lcp_buf.size();
 
     size_type max_lcp = 0;
