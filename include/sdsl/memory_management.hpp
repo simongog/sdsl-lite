@@ -10,6 +10,11 @@
 #include <map>
 #include <iostream>
 #include <cstdlib>
+#include <mutex>
+
+#ifndef SDSL_MULTI_THREAD
+#define SDSL_MULTI_THREAD
+#endif
 
 namespace sdsl
 {
@@ -106,11 +111,18 @@ class mm
         static uint64_t m_pre_max_mem;
         static uint64_t m_pre_rtime;
 
+#ifdef SDSL_MULTI_THREAD
+        static util::recursive_spinlock m_spinlock;
+#endif
+
     public:
         mm();
 
         template<class int_vec_t>
         static void add(int_vec_t* v, bool moved=false) {
+#ifdef SDSL_MULTI_THREAD
+            std::lock_guard<util::recursive_spinlock> lock(m_spinlock);
+#endif
             if (mm::m_items.find((uint64_t)v) == mm::m_items.end()) {
                 mm_item_base* item = new mm_item<int_vec_t>(v);
                 if (false and util::verbose) {
@@ -154,6 +166,9 @@ class mm
                 }
             }
             if (old_size != ((v.m_size+63)>>6)<<3) {
+#ifdef SDSL_MULTI_THREAD
+                std::lock_guard<util::recursive_spinlock> lock(m_spinlock);
+#endif
                 log("");
                 m_total_memory -= old_size; // subtract old space
                 m_total_memory += ((v.m_size+63)>>6)<<3; // add new space
@@ -163,6 +178,9 @@ class mm
 
         template<class int_vec_t>
         static void remove(int_vec_t* v) {
+#ifdef SDSL_MULTI_THREAD
+            std::lock_guard<util::recursive_spinlock> lock(m_spinlock);
+#endif
             if (mm::m_items.find((uint64_t)v) != mm::m_items.end()) {
                 if (false and util::verbose) {
                     std::cout << "mm:remove: remove vector " << v << std::endl;
@@ -187,6 +205,9 @@ class mm
         static void log_granularity(uint64_t granularity);
 
         static void log(const std::string& msg) {
+#ifdef SDSL_MULTI_THREAD
+            std::lock_guard<util::recursive_spinlock> lock(m_spinlock);
+#endif
             if (m_out != nullptr) {
                 m_sw.stop();
                 uint64_t log_time = m_sw.abs_real_time();
