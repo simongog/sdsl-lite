@@ -21,12 +21,11 @@ int main(int argc, char* argv[])
     // (1) Writes an int_vector sequentially to disk
     {
         // create an int_vector_buffer
-        int_vector_buffer<> ivb(tmp_file, // filename
-                                false,     // we do not want to open an existing file, but create a new one
-                                1024*1024, // use a buffer of about 1MB
-                                64,        // use 64bit for each integer
-                                true,      // keep file when int_vector_buffer is destroyed
-                                false);    // use int_vector format
+        int_vector_buffer<> ivb(tmp_file,      // filename
+                                std::ios::out, // we do not want to open an existing file, but create a new one
+                                1024*1024,     // use a buffer of about 1MB
+                                64,            // use 64bit for each integer
+                                false);        // use int_vector format
 
         // write sequentially random values to disk
         for (uint64_t i=0; i<size; ++i) {
@@ -37,12 +36,11 @@ int main(int argc, char* argv[])
     // (2) Streams the content of temp_file
     {
         // open file with an int_vector_buffer
-        int_vector_buffer<> ivb(tmp_file, // filename
-                                true,           // we want to open an existing file
-                                1024,           // use a buffer of about 1KB
-                                64,             // use 64bit for each integer
-                                false,          // do not keep file when int_vector_buffer is destroyed
-                                false);         // use int_vector format
+        int_vector_buffer<> ivb(tmp_file,     // filename
+                                std::ios::in, // we want to open an existing file
+                                1024,         // use a buffer of about 1KB
+                                64,           // use 64bit for each integer
+                                false);       // use int_vector format
         if (ivb.size() != size) {
             std::cerr << "ERROR: ivb.size()="<< ivb.size() << " != " << size << std::endl;
             return 1;
@@ -55,7 +53,8 @@ int main(int argc, char* argv[])
                 return 1;
             }
         }
-    } // temporary file will be removed here
+    }
+    sdsl::remove(tmp_file);
 
     return 0;
 }

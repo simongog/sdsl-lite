@@ -102,7 +102,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     store_to_file(text, tmp_file_name);
     util::clear(text);
     {
-        int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(tmp_file_name, true);
+        int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(tmp_file_name, std::ios::in);
         t_index tmp(text_buf, text_buf.size());
         idx.swap(tmp);
     }

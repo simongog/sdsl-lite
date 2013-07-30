@@ -184,7 +184,7 @@ class wt_int_rlmn
                     std::string temp_file = "tmp_wt_int_rlmn_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
                     util::store_to_file(condensed_bwt, temp_file);
                     util::clear(condensed_bwt);
-                    int_vector_buffer<> temp_bwt_buf(temp_file, true);
+                    int_vector_buffer<> temp_bwt_buf(temp_file, std::ios::in);
                     m_wt = std::move(wt_type(temp_bwt_buf, temp_bwt_buf.size()));
                     temp_bwt_buf.close()
                     sdsl::remove(temp_file);

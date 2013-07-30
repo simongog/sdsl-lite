@@ -14,7 +14,7 @@ namespace sdsl
 void construct_lcp_semi_extern_PHI(cache_config& config)
 {
     typedef int_vector<>::size_type size_type;
-    int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), true);
+    int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), std::ios::in);
     size_type n = sa_buf.size();
     if (1==n) {
         int_vector<> lcp(1, 0);
@@ -66,7 +66,7 @@ void construct_lcp_semi_extern_PHI(cache_config& config)
 
     size_type buffer_size = 4000000; // buffer_size is a multiple of 8!
     sa_buf.buffersize(buffer_size);
-    int_vector_buffer<> lcp_out_buf(cache_file_name(constants::KEY_LCP, config), false, buffer_size, sa_buf.width());	// open buffer for plcp
+    int_vector_buffer<> lcp_out_buf(cache_file_name(constants::KEY_LCP, config), std::ios::out, buffer_size, sa_buf.width());	// open buffer for plcp
 
     for (size_type i=0, sai_1=0,l=0, sai=0,iq=0; i < n; ++i) {
         /*size_type*/ sai = sa_buf[i];
@@ -112,7 +112,7 @@ void construct_lcp_go(cache_config& config)
 #endif
     int_vector<8> text;
     load_from_cache(text, constants::KEY_TEXT, config);
-    int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), true);   // initialize buffer for suffix array
+    int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), std::ios::in);   // initialize buffer for suffix array
     const size_type n = sa_buf.size();
     const size_type m = 254; // LCP[i] == m+1 corresp. to LCP[i]>= m+1; LCP[i] <= m corresp. to LCP[i] was calculated
 
@@ -153,7 +153,7 @@ void construct_lcp_go(cache_config& config)
         }
         alphabet[sigma] = '\0';
         {
-            int_vector_buffer<8> bwt_buf(cache_file_name(constants::KEY_BWT, config), true); // initialize buffer of bwt
+            int_vector_buffer<8> bwt_buf(cache_file_name(constants::KEY_BWT, config), std::ios::in); // initialize buffer of bwt
             size_type sai_1 = sa_buf[0];  // store value of sa[i-1]
             uint8_t bwti_1 = bwt_buf[0];       // store value of BWT[i-1]
             lcp_sml[ cnt_cc[bwti_1]++ ] = 0;   // lcp_sml[ LF[0] ] = 0
@@ -269,7 +269,7 @@ void construct_lcp_go(cache_config& config)
             bit_vector todo(n,0);  // bit_vector todo indicates which values are >= m in lcp_sml
             {
                 // initialize bit_vector todo
-                int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config), true); // load lcp_sml
+                int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config), std::ios::in); // load lcp_sml
                 for (size_type i=0; i < n; ++i) {
                     if (lcp_sml_buf[i] >= m) {
                         todo[i] = 1;
@@ -284,7 +284,7 @@ void construct_lcp_go(cache_config& config)
                 cnt_cc2[i] = cnt_cc[i] - omitted_sum;
             }
 
-            int_vector_buffer<8> bwt_buf(cache_file_name(constants::KEY_BWT, config), true); // load BWT
+            int_vector_buffer<8> bwt_buf(cache_file_name(constants::KEY_BWT, config), std::ios::in); // load BWT
             for (size_type i=0, i2=0; i < n; ++i) {
                 uint8_t b = bwt_buf[i];  // store BWT[i]
                 size_type lf_i = cnt_cc[b]; // LF[i]
@@ -309,8 +309,8 @@ void construct_lcp_go(cache_config& config)
         run2[nn] = 0;							// index nn is not a big LCP value
         {
             // initialize bwt2, shift_bwt2, adj2
-            int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config), true); // load lcp_sml
-            int_vector_buffer<8> bwt_buf(cache_file_name(constants::KEY_BWT, config), true); // load BWT
+            int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config), std::ios::in); // load lcp_sml
+            int_vector_buffer<8> bwt_buf(cache_file_name(constants::KEY_BWT, config), std::ios::in); // load BWT
             uint8_t b_1 = '\0'; // BWT[i-1]
             bool is_run = false;
             for (size_type i=0, i2=0; i < n; ++i) {
@@ -396,9 +396,9 @@ void construct_lcp_go(cache_config& config)
     // phase 3: merge lcp_sml and lcp_big and save to disk
     {
         const size_type buffer_size = 1000000; // buffer_size has to be a multiple of 8!
-        int_vector_buffer<> lcp_big_buf(cache_file_name("lcp_big", config), true); 					// file buffer containing the big LCP values
-        int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config), true, buffer_size);		// file buffer containing the small LCP values
-        int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config), false, buffer_size, lcp_big_buf.width()); // buffer for the resulting LCP array
+        int_vector_buffer<> lcp_big_buf(cache_file_name("lcp_big", config), std::ios::in); 					// file buffer containing the big LCP values
+        int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config), std::ios::in, buffer_size);		// file buffer containing the small LCP values
+        int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config), std::ios::out, buffer_size, lcp_big_buf.width()); // buffer for the resulting LCP array
         for (size_type i=0, i2=0; i < n; ++i) {
             size_type l = lcp_sml_buf[i];
             if (l >= m) { // if l >= m it is stored in lcp_big
@@ -424,7 +424,7 @@ void construct_lcp_goPHI(cache_config& config)
     typedef int_vector<>::size_type size_type;
     int_vector<8> text;
     load_from_cache(text, constants::KEY_TEXT, config);  // load text from file system
-    int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), true);   // initialize buffer for suffix array
+    int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), std::ios::in);   // initialize buffer for suffix array
     const size_type n = sa_buf.size();
     const size_type m = 254; // LCP[i] == m+1 corresp. to LCP[i]>= m+1; LCP[i] <= m corresp. to LCP[i] was calculated
 
@@ -460,7 +460,7 @@ void construct_lcp_goPHI(cache_config& config)
         }
         alphabet[sigma] = '\0';
         {
-            int_vector_buffer<8> bwt_buf(cache_file_name(constants::KEY_BWT, config), true); // initialize buffer of bwt
+            int_vector_buffer<8> bwt_buf(cache_file_name(constants::KEY_BWT, config), std::ios::in); // initialize buffer of bwt
             size_type sai_1 = sa_buf[0];  // store value of sa[i-1]
             uint8_t bwti_1 = bwt_buf[0];       // store value of BWT[i-1]
             lcp_sml[ cnt_cc[bwti_1]++ ] = 0;   // lcp_sml[ LF[0] ] = 0
@@ -543,8 +543,8 @@ void construct_lcp_goPHI(cache_config& config)
             bit_vector todo(n,0);  // bit_vector todo indicates which values are > m in lcp_sml
             {
                 // initialize bit_vector todo
-                int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config), true); // load lcp_sml
-                int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), true); // load sa
+                int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config), std::ios::in); // load lcp_sml
+                int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), std::ios::in); // load sa
                 for (size_type i=0; i < n; ++i) {
                     if (lcp_sml_buf[i] > m) {
                         todo[sa_buf[i]] = 1;
@@ -557,9 +557,9 @@ void construct_lcp_goPHI(cache_config& config)
             const size_type bot = sa_n_1;
             int_vector<> phi(nn, bot, bits::hi(n-1)+1); // phi
 
-            int_vector_buffer<8> bwt_buf(cache_file_name(constants::KEY_BWT, config), true); // load BWT
-            int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), true); // load sa
-            int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config), true); // load lcp_sml
+            int_vector_buffer<8> bwt_buf(cache_file_name(constants::KEY_BWT, config), std::ios::in); // load BWT
+            int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), std::ios::in); // load sa
+            int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config), std::ios::in); // load lcp_sml
             uint8_t b_1 = 0;
             for (size_type i=0,sai_1=0; i < n; ++i) { // initialize phi
                 uint8_t b = bwt_buf[i];  // store BWT[i]
@@ -604,9 +604,9 @@ void construct_lcp_goPHI(cache_config& config)
     // phase 3: merge lcp_sml and lcp_big and save to disk
     {
         const size_type buffer_size = 1000000; // buffer_size has to be a multiple of 8!
-        int_vector_buffer<> lcp_big_buf(cache_file_name("lcp_big", config), true); 					// file buffer containing the big LCP values
-        int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config), true, buffer_size);		// file buffer containing the small LCP values
-        int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config), false, buffer_size, lcp_big_buf.width()); // file buffer for the resulting LCP array
+        int_vector_buffer<> lcp_big_buf(cache_file_name("lcp_big", config), std::ios::in); 					// file buffer containing the big LCP values
+        int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config), std::ios::in, buffer_size);		// file buffer containing the small LCP values
+        int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config), std::ios::out, buffer_size, lcp_big_buf.width()); // file buffer for the resulting LCP array
 
         for (size_type i=0, i2=0; i < n; ++i) {
             size_type l = lcp_sml_buf[i];
@@ -889,7 +889,7 @@ void construct_lcp_bwt_based2(cache_config& config)
         // External storage of LCP-Positions-Array
         bool new_lcp_value = false;
         uint8_t int_width = bits::hi(n)+2;
-        int_vector_buffer<> lcp_positions_buf(tmp_lcp_file, false, buffer_size, int_width); // Create buffer for positions of LCP entries
+        int_vector_buffer<> lcp_positions_buf(tmp_lcp_file, std::ios::out, buffer_size, int_width); // Create buffer for positions of LCP entries
         size_type idx_out_buf = 0;
         bit_vector index_done(n+1, 0);                 // Bitvector which is true, if corresponding LCP value was already calculated
 
@@ -1045,7 +1045,7 @@ void construct_lcp_bwt_based2(cache_config& config)
     {
         mm::log("lcp-bwt2-reordering-begin");
 
-        int_vector_buffer<> lcp_positions(tmp_lcp_file, true, buffer_size);
+        int_vector_buffer<> lcp_positions(tmp_lcp_file, std::ios::in, buffer_size);
 
         uint8_t int_width = bits::hi(lcp_value+1)+1;             // How many bits are needed for one lcp_value?
 
@@ -1054,7 +1054,7 @@ void construct_lcp_bwt_based2(cache_config& config)
         // Because k has to be a multiple of 8, we choose number_of_values = (k+16) - ((k+16)%8)
         size_type number_of_values = ((n / ((int_width-1ULL)/8 + 1) + 16) & (~(0x7ULL)));
         std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
-        int_vector_buffer<> lcp_array(lcp_file, false, number_of_values*int_width/8, int_width); // Create Output Buffer
+        int_vector_buffer<> lcp_array(lcp_file, std::ios::out, number_of_values*int_width/8, int_width); // Create Output Buffer
         number_of_values = lcp_array.buffersize()*8/int_width;
 
         for (size_type position_begin=0, position_end = number_of_values; position_begin<n and number_of_values>0; position_begin=position_end, position_end+=number_of_values) {

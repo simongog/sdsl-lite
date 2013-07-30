@@ -73,7 +73,7 @@ void construct_lcp_kasai(cache_config& config)
         if (!load_from_cache(text, key_text_trait<t_width>::KEY_TEXT, config)) {
             return;
         }
-        int_vector_buffer<> isa_buf(config.file_map[constants::KEY_ISA], true, 1000000);   // init isa file_buffer
+        int_vector_buffer<> isa_buf(config.file_map[constants::KEY_ISA], std::ios::in, 1000000);   // init isa file_buffer
         int_vector<> sa;
         if (!load_from_cache(sa, constants::KEY_SA, config)) {
             return;
@@ -128,7 +128,7 @@ void construct_lcp_PHI(cache_config& config)
     typedef int_vector<>::size_type size_type;
     typedef int_vector<t_width> text_type;
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
-    int_vector_buffer<> sa_buf(config.file_map[constants::KEY_SA], true);
+    int_vector_buffer<> sa_buf(config.file_map[constants::KEY_SA], std::ios::in);
     size_type n = sa_buf.size();
 
     assert(n > 0);
@@ -169,7 +169,7 @@ void construct_lcp_PHI(cache_config& config)
 //	(4) Transform PLCP into LCP
     std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
     size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
-    int_vector_buffer<> lcp_buf(lcp_file, false, buffer_size, lcp_width);   // open buffer for lcp
+    int_vector_buffer<> lcp_buf(lcp_file, std::ios::out, buffer_size, lcp_width);   // open buffer for lcp
     lcp_buf[0] = 0;
     sa_buf.buffersize(buffer_size);
     for (size_type i=1; i < n; ++i) {
