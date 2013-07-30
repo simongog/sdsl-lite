@@ -21,12 +21,13 @@
 #ifndef INCLUDED_INT_VECTOR_BUFFER
 #define INCLUDED_INT_VECTOR_BUFFER
 
-#include <assert.h>
+#include "int_vector.hpp"
+#include "iterators.hpp"
+#include <cassert>
 #include <fstream>
 #include <iostream>
 #include <stdio.h>
 #include <string>
-#include <sdsl/int_vector.hpp>
 
 namespace sdsl
 {
@@ -34,7 +35,9 @@ namespace sdsl
 template<uint8_t t_width=0>
 class int_vector_buffer
 {
-// TODO: iterator (Simon)
+    public:
+        class iterator;
+
     private:
         static_assert(t_width <= 64 , "int_vector_buffer: width must be at most 64 bits.");
         sdsl::isfstream     m_ifile;
@@ -328,6 +331,14 @@ class int_vector_buffer
             }
         }
 
+        iterator begin() {
+            return iterator(*this, 0);
+        }
+
+        iterator end() {
+            return iterator(*this, size());
+        }
+
         void swap(int_vector_buffer<t_width>& ivb) {
             if (this != &ivb) {
                 m_ifile.close();
@@ -431,6 +442,33 @@ class int_vector_buffer
 
                 bool operator<(const reference& x)const {
                     return (uint64_t)*this < (uint64_t)x;
+                }
+        };
+
+        class iterator
+        {
+            private:
+                int_vector_buffer<t_width>& m_ivb;
+                uint64_t m_idx = 0;
+            public:
+                iterator() = delete;
+                iterator(int_vector_buffer<t_width>& ivb, uint64_t idx=0) : m_ivb(ivb), m_idx(idx) {}
+
+                iterator& operator++() {
+                    ++m_idx;
+                    return *this;
+                }
+
+                reference operator*()const {
+                    return m_ivb[m_idx];
+                }
+
+                bool operator==(const iterator& it) const {
+                    return &m_ivb == &(it.m_ivb) and m_idx == it.m_idx;
+                }
+
+                bool operator!=(const iterator& it) const {
+                    return !(*this == it);
                 }
         };
 };
