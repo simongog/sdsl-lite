@@ -7,18 +7,18 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2) {
-        cout << "Usage: " << argv[0] << " temp_file" << endl;
-        cout << "(1) Writes an int_vector sequentially to disk" << endl;
-        cout << "(2) Streams the content of temp_file" << endl;
-        cout << "(3) Remove temp_file" << endl;
+    if (argc < 1) {
+        cout << "Usage: " << argv[0] << endl;
+        cout << "(1) Writes an int_vector sequentially to a file" << endl;
+        cout << "(2) Streams the content from file" << endl;
+        cout << "(3) Remove the file" << endl;
         return 1;
     }
-    string tmp_file = argv[1];
+    string tmp_file = "tmp_file.sdsl";
     size_t size = 10000000;
     std::mt19937_64 rng(13);
 
-    // (1) Writes an int_vector sequentially to disk
+    // (1) Writes an int_vector sequentially to the file tmp_file
     {
         // create an int_vector_buffer
         int_vector_buffer<> ivb(tmp_file,      // filename
@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    // (2) Streams the content of temp_file
+    // (2) Streams the content of tmp_file
     {
         // open file with an int_vector_buffer
         int_vector_buffer<> ivb(tmp_file,     // filename
@@ -54,6 +54,8 @@ int main(int argc, char* argv[])
             }
         }
     }
+
+    // (3) Remove the file
     sdsl::remove(tmp_file);
 
     return 0;
