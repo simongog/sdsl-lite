@@ -34,6 +34,7 @@
 #include <algorithm> // for std::swap
 #include <stdexcept>
 #include <vector>
+#include <queue>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -495,6 +496,328 @@ class wt_int
             m_tree_select0.load(in, &m_tree);
             read_member(m_max_depth, in);
             init_buffers(m_max_depth);
+        }
+
+        //! Returns the element in T[lb..rb] with rank quantile.
+        /*!
+         *  \param lb left array bound in T
+         *  \param rb right array bound in T
+         *  \param quantile 'quantile' smallest symbol (starts with 0)
+         */
+        std::pair<value_type,size_type>
+        quantile_freq(size_type lb, size_type rb,size_type quantile) {
+
+            size_type  offset = 0;
+            value_type sym = 0;
+            size_type freq = 0;
+            size_type node_size = m_size;
+
+            for (size_t k=0; k < m_max_depth; ++k) {
+                sym <<= 1;
+
+                /* number of 1s before the level offset and after the node */
+                size_type ones_before_offset   = m_tree_rank(offset);
+                size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_offset;
+
+                /* number of 1s before T[l..r] */
+                size_type rank_before_left = 0;
+                if (offset+lb>0) rank_before_left = m_tree_rank(offset + lb);
+
+                /* number of 1s before T[r] */
+                size_type rank_before_right   = m_tree_rank(offset + rb + 1);
+
+                /* number of 1s in T[l..r] */
+                size_type num_ones = rank_before_right - rank_before_left;
+                /* number of 0s in T[l..r] */
+                size_type num_zeros = (rb-lb+1) - num_ones;
+
+                /* if there are more than q 0s we go right. left otherwise */
+                if (quantile >= num_zeros) { /* go right */
+                    freq = num_ones; /* calc freq */
+                    /* set bit to 1 in sym */
+                    sym |= 1;
+                    /* number of 1s before T[l..r] within the current node */
+                    lb = rank_before_left - ones_before_offset;
+                    /* number of 1s in T[l..r] */
+                    rb = lb + num_ones - 1;
+                    quantile = quantile - num_zeros;
+
+                    /* calc starting pos of right childnode */
+                    offset += (node_size - ones_before_end);
+                    node_size = ones_before_end;
+
+                } else { /* go left q = q // sym == sym */
+                    freq = num_zeros; /* calc freq */
+                    /* number of zeros before T[l..r] within the current node */
+                    lb = lb - (rank_before_left - ones_before_offset);
+                    /* number of zeros in T[l..r] + left bound */
+                    rb = lb + num_zeros - 1;
+
+                    /* calc end pos of left childnode */
+                    node_size = (node_size - ones_before_end);
+                }
+                offset += m_size; /* next level */
+            }
+            return {sym,freq};
+        };
+
+
+        //! Returns the top k most frequent documents in T[lb..rb]
+        /*!
+         *  \param lb left array bound in T
+         *  \param rb right array bound in T
+         *  \param k the number of documents to return
+         *  \returns the top-k items in descending order.
+         *  \par Time complexity
+         *      \f$ \Order{\log |\Sigma|} \f$
+         */
+        class topk_greedy_range_t
+        {
+            public:
+                bool operator<(const topk_greedy_range_t& r) const {
+                    return ((rb-lb+1) < (r.rb-r.lb+1));
+                }
+            public:
+                value_type sym = 0;
+                size_type lb = 0;
+                size_type rb = 0;
+                size_type offset = 0;
+                size_type node_size = 0;
+                size_type level = 0;
+                size_type freq = 0;
+        };
+
+        std::vector< std::pair<value_type,size_type> >
+        topk_greedy(size_type lb, size_type rb,size_type k) {
+
+            std::vector< std::pair<value_type,size_type> > results;
+            std::priority_queue<topk_greedy_range_t> heap;
+
+            /* add the initial range */
+            topk_greedy_range_t ir;
+            ir.node_size = m_size;
+            ir.level = 0;
+            ir.lb = lb;
+            ir.rb = rb;
+            heap.push(ir);
+
+            while (! heap.empty()) {
+                topk_greedy_range_t r = heap.top(); heap.pop();
+                if (r.level == m_max_depth) { /* leaf node */
+                    results.emplace_back(r.sym,r.freq);
+                    if (results.size()==k) {
+                        /* we got the top-k */
+                        break;
+                    }
+                    continue; /* we processed this range */
+                }
+
+                /* number of 1s before the level offset and after the node */
+                size_type ones_before_offset = m_tree_rank(r.offset);
+                size_type ones_before_end = m_tree_rank(r.offset + r.node_size) - ones_before_offset;
+
+                /* number of 1s before T[l..r] */
+                size_type rank_before_left = 0;
+                if (r.offset+r.lb>0) rank_before_left = m_tree_rank(r.offset + r.lb);
+
+                /* number of 1s before T[r] */
+                size_type rank_before_right   = m_tree_rank(r.offset + r.rb + 1);
+
+                /* number of 1s in T[l..r] */
+                size_type num_ones = rank_before_right - rank_before_left;
+                /* number of 0s in T[l..r] */
+                size_type num_zeros = (r.rb-r.lb+1) - num_ones;
+
+                if (num_ones) { /* map to right child */
+                    topk_greedy_range_t nr;
+                    nr.sym = (r.sym<<1)|1;
+                    nr.freq = num_ones;
+                    nr.offset = m_size + r.offset + (r.node_size - ones_before_end);
+                    nr.node_size = ones_before_end;
+                    nr.level = r.level + 1;
+                    /* number of 1s before T[l..r] within the current node */
+                    nr.lb = rank_before_left - ones_before_offset;
+                    /* number of 1s in T[l..r] */
+                    nr.rb = nr.lb + num_ones - 1;
+
+                    heap.push(nr);
+                }
+                if (num_zeros) { /* map to left child */
+                    topk_greedy_range_t nr;
+                    nr.sym = r.sym<<1;
+                    nr.freq = num_zeros;
+                    nr.offset = m_size + r.offset;
+                    nr.node_size = (r.node_size - ones_before_end);
+                    nr.level = r.level + 1;
+                    /* number of 1s before T[l..r] within the current node */
+                    nr.lb = r.lb - (rank_before_left - ones_before_offset);
+                    /* number of 1s in T[l..r] */
+                    nr.rb = nr.lb + num_zeros - 1;
+                    heap.push(nr);
+                }
+            }
+            return results;
+        };
+
+        //! Returns the top k most frequent documents in T[lb..rb]
+        /*!
+         *  \param lb left array bound in T
+         *  \param rb right array bound in T
+         *  \param k the number of documents to return
+         *  \returns the top-k items in ascending order.
+         */
+        std::vector< std::pair<value_type,size_type> >
+        topk_qprobing(size_type lb, size_type rb,size_type k) {
+            using p_t = std::pair<value_type,size_type>;
+            std::vector<p_t> results;
+            auto comp = [](p_t& a,p_t& b) { return a.second > b.second; };
+            std::priority_queue<p_t,std::vector<p_t>,decltype(comp)> heap(comp);
+            bit_vector seen(1 << m_max_depth); // TODO: better idea?
+
+            /* we start probing using the largest power smaller than len */
+            size_type len = rb-lb+1;
+            size_type power2greaterlen = 1 << (bits::hi(len)+1);
+            size_type probe_interval = power2greaterlen >> 1;
+
+            /* we probe the smallest elem (pos 0 in sorted array) only once */
+            auto qf = quantile_freq(lb,rb,0);
+            heap.push(qf);
+            seen[qf.first] = 1;
+
+            qf = quantile_freq(lb,rb,probe_interval);
+            if (!seen[qf.first]) heap.push(qf);
+            seen[qf.first] = 1;
+
+            while (probe_interval > 1) {
+                size_type probe_pos = probe_interval >> 1;
+                while (probe_pos < len) {
+                    qf = quantile_freq(lb,rb,probe_pos);
+                    if (!seen[qf.first]) { /* not in heap */
+                        if (heap.size()<k) {
+                            heap.push(qf);
+                            seen[qf.first] = 1;
+                        } else {
+                            /* throw out the smallest and add the new one */
+                            if (heap.top().second < qf.second) {
+                                heap.pop();
+                                heap.push(qf);
+                                seen[qf.first] = 1;
+                            }
+                        }
+                    }
+                    probe_pos += probe_interval;
+                }
+                probe_interval >>= 1;
+                /* we have enough or can't find anything better */
+                if (heap.size() == k && probe_interval-1 <= heap.top().second) break;
+            }
+            /* populate results */
+            while (!heap.empty())  {
+                results.emplace(results.begin() , heap.top());
+                heap.pop();
+            }
+            return results;
+        };
+
+        //! Returns the intersection of T[lb1..rb1],T[lb2..rb2]...T[lbm..rbm]
+        /*!
+         *  \param ranges the sp,ep ranges to intersect
+         *  \param the threshold t of how many ranges have to be at least
+         *         still be present at the leaf level.
+         *  \param the results are stored in the results parameter.
+         */
+        class intersect_range_t
+        {
+                using p_t = std::pair<uint64_t,size_t>;
+            public:
+                intersect_range_t(size_type off,size_type ns, size_type lvl,
+                                  value_type _sym, const std::vector<p_t>& r)
+                    : ranges(r) , sym(_sym) , offset(off) , node_size(ns) , level(lvl)
+                {}
+                intersect_range_t(size_type off,size_type ns,size_type lvl,value_type _sym)
+                    : sym(_sym) , offset(off) , node_size(ns) , level(lvl) {}
+            public:
+                std::vector<p_t> ranges;
+                value_type sym = 0;
+                size_type offset = 0;
+                size_type node_size = 0;
+                size_type level = 0;
+        };
+
+
+        std::vector< std::pair<value_type,size_type> >
+        intersect(std::vector< std::pair<size_type,size_type> >& ranges, size_type threshold=0) {
+            using p_t = std::pair<value_type,size_type>;
+            std::vector<p_t> results;
+
+            if (threshold==0) { /* default: all ranges must be present */
+                threshold = ranges.size();
+            }
+
+            std::vector<intersect_range_t> intervals;
+            size_t n = m_size;
+            intervals.emplace_back(0,n,0,0,ranges);
+
+            while (!intervals.empty()) {
+                intersect_range_t cr = intervals[intervals.size()-1]; intervals.pop_back();
+
+                if (cr.level == m_max_depth) {
+                    if (threshold <= cr.ranges.size()) {
+                        /* we found a symbol  */
+                        size_type freq = 0;
+                        for (auto& r : cr.ranges) freq += (r.second - r.first + 1);
+                        results.emplace_back(cr.sym,freq);
+                    }
+                } else {
+                    /* map each range to the corresponding range at level + 1 */
+
+                    /* number of 1s before the level offset and after the node */
+                    size_type ones_before_offset = m_tree_rank(cr.offset);
+                    size_type ones_before_end = m_tree_rank(cr.offset + cr.node_size) - ones_before_offset;
+
+                    size_type offset_zero = m_size + cr.offset;
+                    size_type offset_one = m_size + cr.offset + (cr.node_size - ones_before_end);
+                    size_type node_size_zero = m_size + cr.offset;
+                    size_type node_size_one = m_size + cr.offset + (cr.node_size - ones_before_end);
+
+                    intersect_range_t range_zero(offset_zero,node_size_zero,cr.level+1,cr.sym<<1);
+                    intersect_range_t range_one(offset_one,node_size_one,cr.level+1,(cr.sym<<1)|1);
+
+                    for (size_t i=0; i<cr.ranges.size(); i++) {
+                        std::pair<size_t,size_t> r = cr.ranges[i];
+                        size_type lb = r.first, rb = r.second;
+                        /* number of 1s before T[l..r] */
+                        size_type rank_before_left = 0;
+                        if (cr.offset+lb>0) rank_before_left = m_tree_rank(cr.offset + lb);
+                        /* number of 1s before T[r] */
+                        size_type rank_before_right = m_tree_rank(cr.offset + rb + 1);
+                        /* number of 1s in T[l..r] */
+                        size_type num_ones = rank_before_right - rank_before_left;
+                        /* number of 0s in T[l..r] */
+                        size_type num_zeros = (rb-lb+1) - num_ones;
+
+                        if (num_ones) { /* map to right child */
+                            /* number of 1s before T[l..r] within the current node */
+                            size_type lb_one = rank_before_left - ones_before_offset;
+                            /* number of 1s in T[l..r] */
+                            size_type rb_one = lb_one + num_ones - 1;
+
+                            range_one.ranges.emplace_back(lb_one,rb_one);
+                        }
+                        if (num_zeros) { /* map to left child */
+                            /* number of 1s before T[l..r] within the current node */
+                            size_type lb_zero = lb - (rank_before_left - ones_before_offset);
+                            /* number of 1s in T[l..r] */
+                            size_type rb_zero = lb_zero + num_zeros - 1;
+
+                            range_zero.ranges.emplace_back(lb_zero,rb_zero);
+                        }
+                    }
+                    if (range_zero.ranges.size() >= threshold) intervals.emplace_back(range_zero);
+                    if (range_one.ranges.size() >= threshold) intervals.emplace_back(range_one);
+                }
+            }
+            return results;
         }
 };
 
