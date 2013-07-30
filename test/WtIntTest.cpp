@@ -135,6 +135,113 @@ TYPED_TEST(WtIntTest, DeleteTest)
     std::remove(temp_file.c_str());
 }
 
+template<class T>
+class WtIntTopK : public ::testing::Test { };
+typedef Types< wt_int<rrr_vector<15>> , wt_int<> , wt_int<rrr_vector<63>>  > Implementations_ordered;
+
+TYPED_TEST_CASE(WtIntTopK, Implementations_ordered);
+
+TYPED_TEST(WtIntTopK, quantile_freq)
+{
+    int_vector<> a = {7,2,2,4,4,4,15,14,17,3,8,10,11,1,18,5,6,4,16,9,12,13};
+
+    temp_file = ram_file_name("test.file");
+    store_to_file(a, temp_file);
+
+    TypeParam wt;
+    sdsl::construct(wt, temp_file);
+
+    auto res = wt.quantile_freq(0,8,0);
+    EXPECT_EQ(res.first,2); EXPECT_EQ(res.second,2);
+    res = wt.quantile_freq(0,8,1);
+    EXPECT_EQ(res.first,2); EXPECT_EQ(res.second,2);
+    res = wt.quantile_freq(0,8,2);
+    EXPECT_EQ(res.first,4); EXPECT_EQ(res.second,3);
+    res = wt.quantile_freq(0,8,3);
+    EXPECT_EQ(res.first,4); EXPECT_EQ(res.second,3);
+    res = wt.quantile_freq(0,8,4);
+    EXPECT_EQ(res.first,4); EXPECT_EQ(res.second,3);
+    res = wt.quantile_freq(0,8,5);
+    EXPECT_EQ(res.first,7); EXPECT_EQ(res.second,1);
+    res = wt.quantile_freq(0,8,6);
+    EXPECT_EQ(res.first,14); EXPECT_EQ(res.second,1);
+    res = wt.quantile_freq(0,8,7);
+    EXPECT_EQ(res.first,15); EXPECT_EQ(res.second,1);
+    res = wt.quantile_freq(0,8,8);
+    EXPECT_EQ(res.first,17); EXPECT_EQ(res.second,1);
+
+}
+
+
+TYPED_TEST(WtIntTopK, topk_greedy)
+{
+    int_vector<> a = {2,2,2,4,4,4,3,4,17,3,8,10,11,1,18,5,6,4,16,9,12,13,7,14,15,0};
+
+    auto f = ram_file_name("test.file");
+    store_to_file(a, f);
+
+    TypeParam wt;
+    sdsl::construct(wt, f);
+
+    auto results = wt.topk_greedy(0,9,3);
+
+    EXPECT_EQ(3,results.size());
+    EXPECT_EQ(results[0].first,4); EXPECT_EQ(results[0].second,4);
+    EXPECT_EQ(results[1].first,2); EXPECT_EQ(results[1].second,3);
+    EXPECT_EQ(results[2].first,3); EXPECT_EQ(results[2].second,2);
+
+}
+
+TYPED_TEST(WtIntTopK, topk_qprobing)
+{
+    int_vector<> a = {2,2,2,4,4,4,3,4,17,3,8,10,11,1,18,5,6,4,16,9,12,13,7,14,15,0};
+
+    auto f = ram_file_name("test.file");
+    store_to_file(a, f);
+
+    TypeParam wt;
+    sdsl::construct(wt, f);
+
+    auto results = wt.topk_qprobing(0,9,3);
+
+    EXPECT_EQ(3,results.size());
+    EXPECT_EQ(results[0].first,4); EXPECT_EQ(results[0].second,4);
+    EXPECT_EQ(results[1].first,2); EXPECT_EQ(results[1].second,3);
+    EXPECT_EQ(results[2].first,3); EXPECT_EQ(results[2].second,2);
+
+    results = wt.topk_qprobing(0,9,5);
+
+    EXPECT_EQ(4,results.size());
+    EXPECT_EQ(results[0].first,4); EXPECT_EQ(results[0].second,4);
+    EXPECT_EQ(results[1].first,2); EXPECT_EQ(results[1].second,3);
+    EXPECT_EQ(results[2].first,3); EXPECT_EQ(results[2].second,2);
+    EXPECT_EQ(results[3].first,17); EXPECT_EQ(results[3].second,1);
+}
+
+TYPED_TEST(WtIntTopK, intersection)
+{
+    int_vector<> a = {2,2,2,4,5,4,0,0,4,5,7,7,6,6,3,5,1,6};
+
+    auto f = ram_file_name("test.file");
+    store_to_file(a, f);
+
+    TypeParam wt;
+    sdsl::construct(wt, f);
+
+    std::vector< pair<size_t,size_t> > ranges;
+    ranges.push_back(pair<size_t,size_t>(2,4));
+    ranges.push_back(pair<size_t,size_t>(6,9));
+
+    auto results = wt.intersect(ranges);
+
+    EXPECT_EQ(results.size(),2);
+    pair<size_t,size_t> p1 = results[0];
+    EXPECT_EQ(p1.first,5);
+    pair<size_t,size_t> p2 = results[1];
+    EXPECT_EQ(p2.first,4);
+}
+
+
 }  // namespace
 
 int main(int argc, char** argv)
