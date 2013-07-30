@@ -21,9 +21,9 @@
 #ifndef INCLUDED_SDSL_CSA_UNCOMPRESSED
 #define INCLUDED_SDSL_CSA_UNCOMPRESSED
 
+#include "int_vector.hpp"
 #include "sdsl_concepts.hpp"
 #include "suffix_array_helper.hpp"
-#include "int_vector.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
 #include "util.hpp"
@@ -123,9 +123,9 @@ class csa_bitcompressed
             sigma(m_alphabet.sigma), psi(m_psi), bwt(this),
             text(this), sa_sample(m_sa), isa_sample(m_isa) {
             std::string text_file = cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config);
-            int_vector_file_buffer<alphabet_type::int_width> text_buf(text_file);
-            int_vector_file_buffer<>  sa_buf(cache_file_name(constants::KEY_SA,config));
-            size_type n = text_buf.int_vector_size;
+            int_vector_buffer<alphabet_type::int_width> text_buf(text_file, std::ios::in);
+            int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA,config), std::ios::in);
+            size_type n = text_buf.size();
             {
                 alphabet_type tmp_alphabet(text_buf, n);
                 m_alphabet.swap(tmp_alphabet);

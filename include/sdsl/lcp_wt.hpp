@@ -106,40 +106,33 @@ class lcp_wt
             if ("" != other_key) {
                 lcp_key = other_key;
             }
-            int_vector_file_buffer<> lcp_buf(cache_file_name(lcp_key, config));
-            size_type l=0, max_l=0, big_sum=0, n = lcp_buf.int_vector_size;
+            int_vector_buffer<> lcp_buf(cache_file_name(lcp_key, config), std::ios::in);
+            size_type l=0, max_l=0, big_sum=0, n = lcp_buf.size();
             {
                 int_vector<8> small_lcp = int_vector<8>(n);
-                for (size_type i=0, r_sum=0, r = 0; r_sum < n;) {
-                    for (; i < r_sum+r; ++i) {
-                        if ((l=lcp_buf[i-r_sum]) < 255) {
-                            small_lcp[i] = l;
-                        } else {
-                            small_lcp[i] = 255;
-                            if (l > max_l) max_l = l;
-                            ++big_sum;
-                        }
+                for (size_type i=0; i < n; ++i) {
+                    if ((l=lcp_buf[i]) < 255) {
+                        small_lcp[i] = l;
+                    } else {
+                        small_lcp[i] = 255;
+                        if (l > max_l) max_l = l;
+                        ++big_sum;
                     }
-                    r_sum += r; r = lcp_buf.load_next_block();
                 }
                 store_to_file(small_lcp, temp_file);
             }
-            int_vector_file_buffer<8> lcp_sml_buf(temp_file);
             {
-                small_lcp_type tmp(lcp_sml_buf, lcp_sml_buf.int_vector_size);
+                int_vector_buffer<8> lcp_sml_buf(temp_file, std::ios::in);
+                small_lcp_type tmp(lcp_sml_buf, lcp_sml_buf.size());
                 m_small_lcp.swap(tmp);
             }
             sdsl::remove(temp_file);
-            m_big_lcp         = int_vector<>(big_sum, 0, bits::hi(max_l)+1);
+            m_big_lcp = int_vector<>(big_sum, 0, bits::hi(max_l)+1);
             {
-                lcp_buf.reset();
-                for (size_type i=0, ii=0, r_sum=0, r = 0; r_sum < n;) {
-                    for (; i < r_sum+r; ++i) {
-                        if (lcp_buf[i-r_sum] >= 255) {
-                            m_big_lcp[ ii++ ] = lcp_buf[i-r_sum];
-                        }
+                for (size_type i=0, ii=0; i < n; ++i) {
+                    if (lcp_buf[i] >= 255) {
+                        m_big_lcp[ ii++ ] = lcp_buf[i];
                     }
-                    r_sum += r; r = lcp_buf.load_next_block();
                 }
             }
         }

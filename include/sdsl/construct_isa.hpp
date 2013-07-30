@@ -31,7 +31,7 @@
 namespace sdsl
 {
 
-void construct_isa(cache_config &config);
+void construct_isa(cache_config& config);
 
 }// end namespace
 

@@ -14,8 +14,8 @@ namespace sdsl
 
 // Forward declaration of helper method
 template<uint32_t t_dens, uint8_t t_bwt_width>
-void construct_first_child_and_lf_lcp(int_vector_file_buffer<>&,
-                                      int_vector_file_buffer<t_bwt_width>&,
+void construct_first_child_and_lf_lcp(int_vector_buffer<>&,
+                                      int_vector_buffer<t_bwt_width>&,
                                       const std::string&,
                                       const std::string&, int_vector<>&);
 
@@ -87,21 +87,21 @@ class _lcp_support_tree2
         _lcp_support_tree2(cache_config& config, const cst_type* cst = nullptr) {
             m_cst = cst;
 
-            int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
+            int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config), std::ios::in);
             std::string bwt_file = cache_file_name(key_trait<t_cst::csa_type::alphabet_type::int_width>::KEY_BWT, config);
-            int_vector_file_buffer<t_cst::csa_type::alphabet_type::int_width> bwt_buf(bwt_file);
+            int_vector_buffer<t_cst::csa_type::alphabet_type::int_width> bwt_buf(bwt_file, std::ios::in);
 
             std::string sml_lcp_file = tmp_file(config, "_fc_lf_lcp_sml");
             std::string big_lcp_file = tmp_file(config, "_fc_lf_lcp_big");
 
             construct_first_child_and_lf_lcp<t_dens>(lcp_buf, bwt_buf, sml_lcp_file, big_lcp_file, m_big_lcp);
-            int_vector_file_buffer<8> sml_lcp_buf(sml_lcp_file);
+            int_vector_buffer<8> sml_lcp_buf(sml_lcp_file, std::ios::in);
 
             {
-                small_lcp_type tmp_small_lcp(sml_lcp_buf, sml_lcp_buf.int_vector_size);
+                small_lcp_type tmp_small_lcp(sml_lcp_buf, sml_lcp_buf.size());
                 m_small_lcp.swap(tmp_small_lcp);
             }
-
+            sml_lcp_buf.close();
             sdsl::remove(big_lcp_file);
             sdsl::remove(sml_lcp_file);
         }
@@ -199,18 +199,18 @@ struct lcp_support_tree2 {
  * \tparam
  */
 template<uint32_t t_dens, uint8_t t_bwt_width>
-void construct_first_child_and_lf_lcp(int_vector_file_buffer<>& lcp_buf,
-                                      int_vector_file_buffer<t_bwt_width>& bwt_buf,
+void construct_first_child_and_lf_lcp(int_vector_buffer<>& lcp_buf,
+                                      int_vector_buffer<t_bwt_width>& bwt_buf,
                                       const std::string& small_lcp_file,
                                       const std::string& big_lcp_file,
                                       int_vector<>& big_lcp)
 {
     typedef int_vector<>::size_type size_type;
     const size_type M = 255;	// limit for values represented in the small LCP part
-    size_type 		buf_len = 1000000;
-    lcp_buf.reset(buf_len);
-    bwt_buf.reset(buf_len);
-    size_type n = lcp_buf.int_vector_size;
+    size_type buf_len = 1000000;
+    lcp_buf.buffersize(buf_len);
+    bwt_buf.buffersize(buf_len);
+    size_type n = lcp_buf.size();
 
     osfstream sml_lcp_out(small_lcp_file, std::ios::out | std::ios::trunc);
     uint64_t bit_size = 8*n;
@@ -227,43 +227,39 @@ void construct_first_child_and_lf_lcp(int_vector_file_buffer<>& lcp_buf,
 
     size_type y, max_lcp=0;
     uint64_t last_bwti=0, val;
-    for (size_type i=0, r_sum = 0, r = 0, x; r_sum < n;) {
-        for (; i < r_sum + r; ++i) {
-            x = lcp_buf[i-r_sum];
-            is_one_big_and_not_reducable = false;
+    for (size_type i=0, x; i < n; ++i) {
+        x = lcp_buf[i];
+        is_one_big_and_not_reducable = false;
 
-            while (!vec_stack.empty() and x < vec_stack.top()) {
-                y = vec_stack.top();
-                is_one_big_and_not_reducable |= is_big_and_not_reducable[vec_stack.size()-1];
-                if (vec_stack.pop()) { // if y was the last copy of y on the stack
-                    if (y > M-2) {
-                        if (is_one_big_and_not_reducable) {
-                            val = M;
-                            big_lcp_out.write((char*)&y, sizeof(y));
-                            ++fc_cnt_big;
-                            if (y > max_lcp) max_lcp = y;
-                        } else {
-                            val = M-1;
-                            ++fc_cnt_big2;
-                        }
+        while (!vec_stack.empty() and x < vec_stack.top()) {
+            y = vec_stack.top();
+            is_one_big_and_not_reducable |= is_big_and_not_reducable[vec_stack.size()-1];
+            if (vec_stack.pop()) { // if y was the last copy of y on the stack
+                if (y > M-2) {
+                    if (is_one_big_and_not_reducable) {
+                        val = M;
+                        big_lcp_out.write((char*)&y, sizeof(y));
+                        ++fc_cnt_big;
+                        if (y > max_lcp) max_lcp = y;
                     } else {
-                        val = y;
+                        val = M-1;
+                        ++fc_cnt_big2;
                     }
-                    sml_lcp_out.write((const char*)&val, 1);
-                    ++fc_cnt;
-                    is_one_big_and_not_reducable = false;
+                } else {
+                    val = y;
                 }
+                sml_lcp_out.write((const char*)&val, 1);
+                ++fc_cnt;
+                is_one_big_and_not_reducable = false;
             }
-            if (x > M-2 and (0 == i or last_bwti != bwt_buf[i - r_sum] or x % t_dens == 0)) {
-                is_big_and_not_reducable[vec_stack.size()] = 1;
-            } else {
-                is_big_and_not_reducable[vec_stack.size()] = 0;
-            }
-            vec_stack.push(x);
-            last_bwti = bwt_buf[i - r_sum];
         }
-        r_sum += r; r = lcp_buf.load_next_block();
-        bwt_buf.load_next_block();
+        if (x > M-2 and (0 == i or last_bwti != bwt_buf[i] or x % t_dens == 0)) {
+            is_big_and_not_reducable[vec_stack.size()] = 1;
+        } else {
+            is_big_and_not_reducable[vec_stack.size()] = 0;
+        }
+        vec_stack.push(x);
+        last_bwti = bwt_buf[i];
     }
 
     while (!vec_stack.empty()) {

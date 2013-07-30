@@ -99,14 +99,14 @@ class wt_rlg8
         wt_rlg8() {};
 
         //! Construct the wavelet tree from a file_buffer
-        /*! \param text_buf    A int_vector_file_buffer to the original text.
+        /*! \param text_buf    A int_vector_buffer to the original text.
          *  \param size The length of the prefix of the text, for which the wavelet tree should be build.
          * \par Time complexity
          *   \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        wt_rlg8(int_vector_file_buffer<8>& rac, size_type size) : m_size(size) {
-            std::string temp_file = rac.file_name + "_wt_rlg8_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
-            osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc);
+        wt_rlg8(int_vector_buffer<8>& rac, size_type size) : m_size(size) {
+            std::string temp_file = rac.filename() + "_wt_rlg8_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
+            osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc | std::ios::out);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
 
@@ -118,37 +118,29 @@ class wt_rlg8
 
             int m=0;
 
-            rac.reset();
             bit_vector b_sigma(256, 0);
             uint8_t last_c[9] = {0,1,0,1,0,1,0,1};
             uint8_t c = '\0';
             size_type b_cnt = 0, pair1cnt=0, pair0cnt=0;
-            for (size_type i=0, r=0, r_sum=0; r_sum < size;) {
-                if (r_sum + r > size) {  // read not more than size chars in the next loop
-                    r = size-r_sum;
-                }
-                for (; i < r+r_sum; ++i) {
-                    c = rac[i-r_sum];
-                    b_sigma[c] = 1;
-                    last_c[i&7ULL] = c;
-                    if ((i & 7ULL)==7) {
-                        if (last_c[0] == last_c[1] and last_c[2] == last_c[3] and last_c[0] == last_c[2] and
-                            last_c[4] == last_c[5] and last_c[6] == last_c[7] and last_c[4] == last_c[6]  and
-                            last_c[0] == last_c[4]
-                           ) { // join octuple
-                            m_b[b_cnt] = 1;
-                            next_bwt[pair1cnt] = c;
-                            ++pair1cnt;
-                        } else { // write pair to stream
-                            //m_b[b_cnt] = 0; // since m_b is initialized to zero, this is not necessary
-                            wt_out.write((char*)last_c, 8*sizeof(c));
-                            ++pair0cnt;
-                        }
-                        ++b_cnt;
+            for (size_type i=0; i < size; ++i) {
+                c = rac[i];
+                b_sigma[c] = 1;
+                last_c[i&7ULL] = c;
+                if ((i & 7ULL)==7) {
+                    if (last_c[0] == last_c[1] and last_c[2] == last_c[3] and last_c[0] == last_c[2] and
+                        last_c[4] == last_c[5] and last_c[6] == last_c[7] and last_c[4] == last_c[6]  and
+                        last_c[0] == last_c[4]
+                       ) { // join octuple
+                        m_b[b_cnt] = 1;
+                        next_bwt[pair1cnt] = c;
+                        ++pair1cnt;
+                    } else { // write pair to stream
+                        //m_b[b_cnt] = 0; // since m_b is initialized to zero, this is not necessary
+                        wt_out.write((char*)last_c, 8*sizeof(c));
+                        ++pair0cnt;
                     }
+                    ++b_cnt;
                 }
-                r_sum += r;
-                r = rac.load_next_block();
             }
             if (size & 7ULL) {
                 wt_out.write((char*)&last_c, 8*sizeof(c));
@@ -198,8 +190,8 @@ class wt_rlg8
             wt_out.close();
 
             {
-                int_vector_file_buffer<8> temp_bwt_buf(temp_file);
-                m_wt = wt_type(temp_bwt_buf, temp_bwt_buf.int_vector_size);
+                int_vector_buffer<8> temp_bwt_buf(temp_file, std::ios::in);
+                m_wt = wt_type(temp_bwt_buf, temp_bwt_buf.size());
             }
 
             util::init_support(m_b_rank, &m_b);

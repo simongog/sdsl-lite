@@ -75,14 +75,10 @@ class lcp_bitcompressed
         //! Constructor taking a cache_config
         lcp_bitcompressed(cache_config& config) {
             std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
-            int_vector_file_buffer<> lcp_buf(lcp_file);
-            m_lcp = int_vector<t_width>(lcp_buf.int_vector_size, 0, lcp_buf.width);
-            for (size_type i=0, r_sum=0, r = 0; r_sum < m_lcp.size();) {
-                for (; i < r_sum+r; ++i) {
-                    m_lcp[i] = lcp_buf[i-r_sum];
-                }
-                r_sum += r;
-                r      = lcp_buf.load_next_block();
+            int_vector_buffer<> lcp_buf(lcp_file, std::ios::in);
+            m_lcp = int_vector<t_width>(lcp_buf.size(), 0, lcp_buf.width());
+            for (size_type i=0; i < m_lcp.size(); ++i) {
+                m_lcp[i] = lcp_buf[i];
             }
         }
 

@@ -73,30 +73,26 @@ void construct_lcp_kasai(cache_config& config)
         if (!load_from_cache(text, key_text_trait<t_width>::KEY_TEXT, config)) {
             return;
         }
-        int_vector_file_buffer<> isa_buf(config.file_map[constants::KEY_ISA], 1000000);   // init isa file_buffer
+        int_vector_buffer<> isa_buf(config.file_map[constants::KEY_ISA], std::ios::in, 1000000);   // init isa file_buffer
         int_vector<> sa;
         if (!load_from_cache(sa, constants::KEY_SA, config)) {
             return;
         }
         // use Kasai algorithm to compute the lcp values
-        for (size_type i=0,j=0,sa_1=0,l=0, r_sum=0, r=isa_buf.load_next_block(), n=isa_buf.int_vector_size; r_sum < n;) {
-            for (; i < r_sum+r; ++i) {
-                sa_1 =  isa_buf[i-r_sum]; // = isa[i]
-                if (sa_1) {
-                    j = sa[sa_1-1];
-                    if (l) --l;
-                    assert(i!=j);
-                    while (text[i+l]==text[j+l]) { // i+l < n and j+l < n are not necessary, since text[n]=0 and text[i]!=0 (i<n) and i!=j
-                        ++l;
-                    }
-                    sa[ sa_1-1 ] = l; //overwrite sa array with lcp values
-                } else {
-                    l = 0;
-                    sa[ n-1 ] = 0;
+        for (size_type i=0,j=0,sa_1=0,l=0, n=isa_buf.size(); i < n; ++i) {
+            sa_1 =  isa_buf[i]; // = isa[i]
+            if (sa_1) {
+                j = sa[sa_1-1];
+                if (l) --l;
+                assert(i!=j);
+                while (text[i+l]==text[j+l]) { // i+l < n and j+l < n are not necessary, since text[n]=0 and text[i]!=0 (i<n) and i!=j
+                    ++l;
                 }
+                sa[ sa_1-1 ] = l; //overwrite sa array with lcp values
+            } else {
+                l = 0;
+                sa[ n-1 ] = 0;
             }
-            r_sum += r;
-            r = isa_buf.load_next_block();
         }
 
         for (size_type i=sa.size(); i>1; --i) {
@@ -132,8 +128,8 @@ void construct_lcp_PHI(cache_config& config)
     typedef int_vector<>::size_type size_type;
     typedef int_vector<t_width> text_type;
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
-    int_vector_file_buffer<> sa_buf(config.file_map[constants::KEY_SA]);
-    size_type n = sa_buf.int_vector_size;
+    int_vector_buffer<> sa_buf(config.file_map[constants::KEY_SA], std::ios::in);
+    size_type n = sa_buf.size();
 
     assert(n > 0);
     if (1 == n) {  // Handle special case: Input only the sentinel character.
@@ -143,14 +139,11 @@ void construct_lcp_PHI(cache_config& config)
     }
 
 //	(1) Calculate PHI (stored in array plcp)
-    int_vector<> plcp(n, 0, sa_buf.width);
-    for (size_type i=0, r_sum=0, r=sa_buf.load_next_block(), sai_1 = 0; r_sum < n;) {
-        for (; i < r_sum+r; ++i) {
-            size_type sai = sa_buf[i-r_sum];
-            plcp[ sai ] = sai_1;
-            sai_1 = sai;
-        }
-        r_sum += r; r = sa_buf.load_next_block();
+    int_vector<> plcp(n, 0, sa_buf.width());
+    for (size_type i=0, sai_1 = 0; i < n; ++i) {
+        size_type sai = sa_buf[i];
+        plcp[ sai ] = sai_1;
+        sai_1 = sai;
     }
 
 //  (2) Load text from disk
@@ -175,35 +168,15 @@ void construct_lcp_PHI(cache_config& config)
 
 //	(4) Transform PLCP into LCP
     std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
-    osfstream lcp_out_buf(lcp_file, std::ios::binary | std::ios::app | std::ios::out);   // open buffer for lcp
-
-    size_type bit_size = n*lcp_width;
-    lcp_out_buf.write((char*) &(bit_size), sizeof(bit_size));	// write size of vector
-    lcp_out_buf.write((char*) &(lcp_width),sizeof(lcp_width));  // write int_width of vector
-    size_type wb = 0;  // bytes written into lcp int_vector
-
     size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
-
-    int_vector<> lcp_buf(buffer_size, 0, lcp_width);
+    int_vector_buffer<> lcp_buf(lcp_file, std::ios::out, buffer_size, lcp_width);   // open buffer for lcp
     lcp_buf[0] = 0;
-    sa_buf.reset(buffer_size);
-    size_type r = 0;// sa_buf.load_next_block();
-    for (size_type i=1, r_sum=0; r_sum < n;) {
-        for (; i < r_sum+r; ++i) {
-            size_type sai = sa_buf[i-r_sum];
-            lcp_buf[ i-r_sum ] = plcp[sai];
-        }
-        if (r > 0) {
-            size_type cur_wb = (r*lcp_buf.width()+7)/8;
-            lcp_out_buf.write((const char*)lcp_buf.data(), cur_wb);
-            wb += cur_wb;
-        }
-        r_sum += r; r = sa_buf.load_next_block();
+    sa_buf.buffersize(buffer_size);
+    for (size_type i=1; i < n; ++i) {
+        size_type sai = sa_buf[i];
+        lcp_buf[i] = plcp[sai];
     }
-    if (wb%8) {
-        lcp_out_buf.write("\0\0\0\0\0\0\0\0", 8-wb%8);
-    }
-    lcp_out_buf.close();
+    lcp_buf.close();
     register_cache_file(constants::KEY_LCP, config);
 }
 

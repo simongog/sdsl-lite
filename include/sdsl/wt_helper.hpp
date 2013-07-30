@@ -19,21 +19,14 @@ template<class t_file_buffer,class t_rac>
 void calculate_character_occurences(t_file_buffer& text, const int_vector_size_type size, t_rac& C)
 {
     C = t_rac();
-    text.reset();
-    if (text.int_vector_size < size) {
+    if (text.size() < size) {
         throw std::logic_error("calculate_character_occurrences: stream size is smaller than size!");
         return;
     }
-    for (int_vector_size_type i=0, r_sum=0, r = text.load_next_block(); r_sum < size;) {
-        if (r_sum + r > size) {  // read not more than size chars in the next loop
-            r = size-r_sum;
-        }
-        for (; i < r_sum+r; ++i) {
-            uint64_t c = text[i-r_sum];
-            if (c >= C.size()) { C.resize(c+1, 0); }
-            ++C[c];
-        }
-        r_sum += r; r = text.load_next_block();
+    for (int_vector_size_type i=0; i < size; ++i) {
+        uint64_t c = text[i];
+        if (c >= C.size()) { C.resize(c+1, 0); }
+        ++C[c];
     }
 }
 
