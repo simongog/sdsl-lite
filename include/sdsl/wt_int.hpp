@@ -743,6 +743,15 @@ class wt_int
                 intersect_range_t(size_type off,size_type ns,size_type lvl,value_type _sym)
                     : sym(_sym) , offset(off) , node_size(ns) , level(lvl) {}
 
+                intersect_range_t& operator=(const intersect_range_t& ir) {
+                    ranges = ir.ranges;
+                    sym = ir.sym;
+                    offset = ir.offset;
+                    node_size = ir.node_size;
+                    level = ir.level;
+                    return *this;
+                }
+
             public:
                 std::vector<p_t> ranges;
                 value_type sym = 0;
