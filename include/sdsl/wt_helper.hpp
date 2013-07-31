@@ -131,9 +131,9 @@ struct byte_tree {
 
     void copy(const byte_tree& bt) {
         m_nodes = bt.m_nodes;
-        for (int32_t i=0; i<fixed_sigma; ++i)
+        for (uint32_t i=0; i<fixed_sigma; ++i)
             m_c_to_leaf[i] = bt.m_c_to_leaf[i];
-        for (int32_t i=0; i<fixed_sigma; ++i)
+        for (uint32_t i=0; i<fixed_sigma; ++i)
             m_path[i] = bt.m_path[i];
     }
 
