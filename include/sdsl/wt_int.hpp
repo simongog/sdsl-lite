@@ -744,6 +744,7 @@ class wt_int
                 level     = r.level;
                 sym       = r.sym;
                 ranges    = r.ranges;
+                return *this;
             }
 
             size_type offset = 0;
