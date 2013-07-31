@@ -738,6 +738,15 @@ class wt_int
                 : offset(r.offset), node_size(r.node_size), level(r.level),
                   sym(r.sym), ranges(std::move(r.ranges)) {}
 
+            intersect_range_t& operator=(const intersect_range_t& r) {
+                offset    = r.offset;
+                node_size = r.node_size;
+                level     = r.level;
+                sym       = r.sym;
+                ranges    = r.ranges;
+                return *this;
+            }
+
             size_type offset = 0;
             size_type node_size = 0;
             size_type level = 0;
