@@ -720,7 +720,7 @@ class wt_int
          *  \param the results are stored in the results parameter.
          */
         struct intersect_range_t {
-            using p_t = std::pair<uint64_t,size_t>;
+            using p_t = std::pair<size_type,size_type>;
 
             intersect_range_t() {}
             intersect_range_t(size_type off,size_type ns, size_type lvl,
@@ -729,6 +729,14 @@ class wt_int
             {}
             intersect_range_t(size_type off,size_type ns,size_type lvl,value_type _sym)
                 : offset(off) , node_size(ns) , level(lvl), sym(_sym)  {}
+
+            intersect_range_t(const intersect_range_t& r)
+                : offset(r.offset), node_size(r.node_size), level(r.level),
+                  sym(r.sym), ranges(r.ranges) {}
+
+            intersect_range_t(intersect_range_t&& r)
+                : offset(r.offset), node_size(r.node_size), level(r.level),
+                  sym(r.sym), ranges(std::move(r.ranges)) {}
 
             size_type offset = 0;
             size_type node_size = 0;
@@ -748,8 +756,8 @@ class wt_int
             }
 
             std::vector<intersect_range_t> intervals;
-            size_t n = m_size;
-            intervals.emplace_back(0,n,0,0,ranges);
+            size_type n = m_size;
+            intervals.emplace_back(intersect_range_t(0,n,0,0,ranges));
 
             while (!intervals.empty()) {
                 intersect_range_t cr = intervals[intervals.size()-1]; intervals.pop_back();
