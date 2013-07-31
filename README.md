@@ -142,7 +142,7 @@ We take the english.100MB input from
 the [Pizza&amp;Chili][pz]-corpus,
 construct the CST-object, output its structure, and visualise
 it using the [d3js][d3js]-library. Have fun with 
-[the result][DBLPCSTRES]
+[the result][DBLPCSTRES].
 
 
 ## Types of data structures
@@ -188,13 +188,13 @@ configurations
 ## Installation
 
 The installation requires that the [cmake tool][cmake]
-and a C++ compiler (e.g. from the [GNU Compiler Collection][gcc]
+and a C++ compiler (e.g. from the [GNU Compiler Collection][gcc])
 is installed.
 You can than install the library into an directory `SDSL_INSTALL_DIR` by
 calling
 ``
 ./install SDSL_INSTALL_DIR
-``
+``.
 If `SDSL_INSTALL_DIR` is not specified your home directory is used.
 The library header files will be located in the directory
 `SDSL_INSTALL_DIR/include` and the library in the directory

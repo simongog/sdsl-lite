@@ -9,6 +9,7 @@ run a test of a specific component `X` then run
 
   * `bits-test` (tests basic bit operations)
   * `int-vector-test` (tests  [int_vector](../include/sdsl/int_vector.hpp))
+  * `int-vector-buffer-test` (tests  [int_vector_buffer](../include/sdsl/int_vector_buffer.hpp))
   * `bit-vector-test` (tests  [bit_vector](../include/sdsl/bit_vectors.hpp) strucutres)
   * `rank-support-test` (tests  [rank_support](../include/sdsl/rank_support.hpp) structures)
   * `select-support-test` and `select-support-0-test` 

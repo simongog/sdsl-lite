@@ -1,5 +1,5 @@
 include ../Make.helper
-CXX_FLAGS=$(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O0 -I$(INC_DIR) -L$(LIB_DIR)
+CXX_FLAGS=$(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O3 -I$(INC_DIR) -L$(LIB_DIR)
 CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest 
 TMP_DIR=tmp
 SOURCES=$(wildcard *Test.cpp)
@@ -81,6 +81,9 @@ bits-test: ./BitsTest.x
 
 int-vector-test: ./IntVectorTest.x
 	./IntVectorTest.x
+
+int-vector-buffer-test: ./IntVectorBufferTest.x
+	./IntVectorBufferTest.x
 
 bit-vector-test: generators $(BIT_VECTOR_TESTS)
 
@@ -194,8 +197,8 @@ test_cases/bit-vec.%: BitVectorGenerator.x
 test_cases/%: 
 	$(eval URL:=$(call config_filter,download.config,$@,2))
 	@$(if $(URL),,\
-		$(error "No downlaod link specified for test case $@") )
-	@echo "Downlaod input from $(URL) using curl"
+		$(error "No download link specified for test case $@") )
+	@echo "Download input from $(URL) using curl"
 	$(eval DEST_DIR:=$(shell dirname $@))
 	cd $(DEST_DIR); curl -O $(URL)
 	$(eval FILE:=$(DEST_DIR)/$(notdir $(URL)))

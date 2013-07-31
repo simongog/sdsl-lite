@@ -101,9 +101,9 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     std::string tmp_file_name = cache_file_name(tmp_key, config);
     store_to_file(text, tmp_file_name);
     util::clear(text);
-    int_vector_file_buffer<t_index::alphabet_category::WIDTH> text_buf(tmp_file_name);
     {
-        t_index tmp(text_buf, text_buf.int_vector_size);
+        int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(tmp_file_name, std::ios::in);
+        t_index tmp(text_buf, text_buf.size());
         idx.swap(tmp);
     }
     sdsl::remove(tmp_file_name);
@@ -127,6 +127,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
                 append_zero_symbol(text);
                 store_to_cache(text, KEY_TEXT, config);
             }
+            load_from_cache(text, KEY_TEXT, config);
             mm::log("text-end");
         }
         register_cache_file(KEY_TEXT, config);
@@ -139,6 +140,8 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
             mm::log("sa-end");
         }
         register_cache_file(constants::KEY_SA, config);
+        int_vector<> sa;
+        load_from_cache(sa, constants::KEY_SA, config);
     }
     {
         //  (3) construct BWT
@@ -147,7 +150,9 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
             construct_bwt<t_index::alphabet_category::WIDTH>(config);
             mm::log("bwt-end");
         }
-        register_cache_file(KEY_BWT, config);
+        register_cache_file(constants::KEY_BWT, config);
+        int_vector<t_index::alphabet_category::WIDTH> bwt;
+        load_from_cache(bwt, KEY_BWT, config);
     }
     {
         t_index tmp(config);

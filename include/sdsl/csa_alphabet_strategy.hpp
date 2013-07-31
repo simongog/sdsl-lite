@@ -39,8 +39,8 @@
  *       * comp2char_type
  *       * C_type
  *       * sigma_type
- *   * Constructor. Takes a int_vector_file_buffer<8, size_type_class> for byte-alphabets
- *     and int_vector_file_buffer<0, size_type_class> for integer-alphabets.
+ *   * Constructor. Takes a int_vector_buffer<8> for byte-alphabets
+ *     and int_vector_buffer<0> for integer-alphabets.
  *
  *    \par Note
  *   sigma_type has to be large enough to represent the alphabet size 2*sigma,
@@ -136,7 +136,7 @@ class byte_alphabet
          *  \param text_buf Byte stream.
          *  \param len      Length of the byte stream.
          */
-        byte_alphabet(int_vector_file_buffer<8>& text_buf, int_vector_size_type len);
+        byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_type len);
 
         byte_alphabet(const byte_alphabet&);
 
@@ -236,22 +236,18 @@ class succinct_byte_alphabet
          *  \param text_buf Byte stream.
          *  \param len      Length of the byte stream.
          */
-        succinct_byte_alphabet(int_vector_file_buffer<8>& text_buf, int_vector_size_type len):
+        succinct_byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_type len):
             char2comp(this), comp2char(this), C(m_C), sigma(m_sigma) {
             m_sigma = 0;
-            text_buf.reset();
-            if (0 == len or 0 == text_buf.int_vector_size)
+            if (0 == len or 0 == text_buf.size())
                 return;
-            assert(len <= text_buf.int_vector_size);
+            assert(len <= text_buf.size());
             // initialize vectors
             int_vector<64> D(257, 0);
             bit_vector tmp_char(256, 0);
             // count occurrences of each symbol
-            for (size_type i=0, r_sum=0, r = text_buf.load_next_block(); i < len;) {
-                for (; i < r_sum+r; ++i) {
-                    ++D[text_buf[i-r_sum]];
-                }
-                r_sum += r; r = text_buf.load_next_block();
+            for (size_type i=0; i < len; ++i) {
+                ++D[text_buf[i]];
             }
             assert(1 == D[0]); // null-byte should occur exactly once
             m_sigma = 0;
@@ -424,21 +420,17 @@ class int_alphabet
          *  \param text_buf Byte stream.
          *  \param len      Length of the byte stream.
          */
-        int_alphabet(int_vector_file_buffer<0>& text_buf, int_vector_size_type len):
+        int_alphabet(int_vector_buffer<0>& text_buf, int_vector_size_type len):
             char2comp(this), comp2char(this), C(m_C), sigma(m_sigma) {
             m_sigma = 0;
-            text_buf.reset();
-            if (0 == len or 0 == text_buf.int_vector_size)
+            if (0 == len or 0 == text_buf.size())
                 return;
-            assert(len <= text_buf.int_vector_size);
+            assert(len <= text_buf.size());
             // initialize vectors
             std::map<size_type, size_type> D;
             // count occurrences of each symbol
-            for (size_type i=0, r_sum=0, r = text_buf.load_next_block(); i < len;) {
-                for (; i < r_sum+r; ++i) {
-                    D[text_buf[i-r_sum]]++;
-                }
-                r_sum += r; r = text_buf.load_next_block();
+            for (size_type i=0; i < len; ++i) {
+                D[text_buf[i]]++;
             }
             m_sigma = D.size();
             if (is_continuous_alphabet(D)) {
