@@ -152,23 +152,32 @@ TYPED_TEST(WtIntTopK, quantile_freq)
     sdsl::construct(wt, temp_file);
 
     auto res = wt.quantile_freq(0,8,0);
-    EXPECT_EQ(res.first,2); EXPECT_EQ(res.second,2);
+    ASSERT_EQ((size_type)2,res.first);
+    ASSERT_EQ((size_type)2,res.second);
     res = wt.quantile_freq(0,8,1);
-    EXPECT_EQ(res.first,2); EXPECT_EQ(res.second,2);
+    ASSERT_EQ((size_type)2, res.first);
+    ASSERT_EQ((size_type)2, res.second);
     res = wt.quantile_freq(0,8,2);
-    EXPECT_EQ(res.first,4); EXPECT_EQ(res.second,3);
+    ASSERT_EQ((size_type)4, res.first);
+    ASSERT_EQ((size_type)3, res.second);
     res = wt.quantile_freq(0,8,3);
-    EXPECT_EQ(res.first,4); EXPECT_EQ(res.second,3);
+    ASSERT_EQ((size_type)4, res.first);
+    ASSERT_EQ((size_type)3, res.second);
     res = wt.quantile_freq(0,8,4);
-    EXPECT_EQ(res.first,4); EXPECT_EQ(res.second,3);
+    ASSERT_EQ((size_type)4, res.first);
+    ASSERT_EQ((size_type)3, res.second);
     res = wt.quantile_freq(0,8,5);
-    EXPECT_EQ(res.first,7); EXPECT_EQ(res.second,1);
+    ASSERT_EQ((size_type)7,res.first);
+    ASSERT_EQ((size_type)1,res.second);
     res = wt.quantile_freq(0,8,6);
-    EXPECT_EQ(res.first,14); EXPECT_EQ(res.second,1);
+    ASSERT_EQ((size_type)14,res.first);
+    ASSERT_EQ((size_type)1,res.second);
     res = wt.quantile_freq(0,8,7);
-    EXPECT_EQ(res.first,15); EXPECT_EQ(res.second,1);
+    ASSERT_EQ((size_type)15,res.first);
+    ASSERT_EQ((size_type)1,res.second);
     res = wt.quantile_freq(0,8,8);
-    EXPECT_EQ(res.first,17); EXPECT_EQ(res.second,1);
+    ASSERT_EQ((size_type)17,res.first);
+    ASSERT_EQ((size_type)1,res.second);
 
 }
 
@@ -185,10 +194,13 @@ TYPED_TEST(WtIntTopK, topk_greedy)
 
     auto results = wt.topk_greedy(0,9,3);
 
-    EXPECT_EQ(3,results.size());
-    EXPECT_EQ(results[0].first,4); EXPECT_EQ(results[0].second,4);
-    EXPECT_EQ(results[1].first,2); EXPECT_EQ(results[1].second,3);
-    EXPECT_EQ(results[2].first,3); EXPECT_EQ(results[2].second,2);
+    ASSERT_EQ((size_type)3,results.size());
+    ASSERT_EQ((size_type)4,results[0].first);
+    ASSERT_EQ((size_type)4,results[0].second);
+    ASSERT_EQ((size_type)2,results[1].first);
+    ASSERT_EQ((size_type)3,results[1].second);
+    ASSERT_EQ((size_type)3,results[2].first);
+    ASSERT_EQ((size_type)2,results[2].second);
 
 }
 
@@ -204,18 +216,25 @@ TYPED_TEST(WtIntTopK, topk_qprobing)
 
     auto results = wt.topk_qprobing(0,9,3);
 
-    EXPECT_EQ(3,results.size());
-    EXPECT_EQ(results[0].first,4); EXPECT_EQ(results[0].second,4);
-    EXPECT_EQ(results[1].first,2); EXPECT_EQ(results[1].second,3);
-    EXPECT_EQ(results[2].first,3); EXPECT_EQ(results[2].second,2);
+    ASSERT_EQ((size_type)3,results.size());
+    ASSERT_EQ((size_type)4,results[0].first);
+    ASSERT_EQ((size_type)4,results[0].second);
+    ASSERT_EQ((size_type)2,results[1].first);
+    ASSERT_EQ((size_type)3,results[1].second);
+    ASSERT_EQ((size_type)3,results[2].first);
+    ASSERT_EQ((size_type)2,results[2].second);
 
     results = wt.topk_qprobing(0,9,5);
 
-    EXPECT_EQ(4,results.size());
-    EXPECT_EQ(results[0].first,4); EXPECT_EQ(results[0].second,4);
-    EXPECT_EQ(results[1].first,2); EXPECT_EQ(results[1].second,3);
-    EXPECT_EQ(results[2].first,3); EXPECT_EQ(results[2].second,2);
-    EXPECT_EQ(results[3].first,17); EXPECT_EQ(results[3].second,1);
+    ASSERT_EQ((size_type)4,results.size());
+    ASSERT_EQ((size_type)4,results[0].first);
+    ASSERT_EQ((size_type)4,results[0].second);
+    ASSERT_EQ((size_type)2,results[1].first);
+    ASSERT_EQ((size_type)3,results[1].second);
+    ASSERT_EQ((size_type)3,results[2].first);
+    ASSERT_EQ((size_type)2,results[2].second);
+    ASSERT_EQ((size_type)17,results[3].first);
+    ASSERT_EQ((size_type)1,results[3].second);
 }
 
 TYPED_TEST(WtIntTopK, intersection)
@@ -228,17 +247,17 @@ TYPED_TEST(WtIntTopK, intersection)
     TypeParam wt;
     sdsl::construct(wt, f);
 
-    std::vector< pair<size_t,size_t> > ranges;
-    ranges.push_back(pair<size_t,size_t>(2,4));
-    ranges.push_back(pair<size_t,size_t>(6,9));
+    std::vector< std::pair<size_type,size_type> > ranges;
+    ranges.push_back(std::pair<size_type,size_type>(2,4));
+    ranges.push_back(std::pair<size_type,size_type>(6,9));
 
     auto results = wt.intersect(ranges);
 
-    EXPECT_EQ(results.size(),2);
-    pair<size_t,size_t> p1 = results[0];
-    EXPECT_EQ(p1.first,5);
-    pair<size_t,size_t> p2 = results[1];
-    EXPECT_EQ(p2.first,4);
+    ASSERT_EQ((size_type)2, results.size());
+    pair<size_type,size_type> p1 = results[0];
+    ASSERT_EQ((size_type)5, p1.first);
+    pair<size_type,size_type> p2 = results[1];
+    ASSERT_EQ((size_type)4, p2.first);
 }
 
 
