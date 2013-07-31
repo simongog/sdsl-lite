@@ -719,22 +719,22 @@ class wt_int
          *         still be present at the leaf level.
          *  \param the results are stored in the results parameter.
          */
-        class intersect_range_t
-        {
-                using p_t = std::pair<uint64_t,size_t>;
-            public:
-                intersect_range_t(size_type off,size_type ns, size_type lvl,
-                                  value_type _sym, const std::vector<p_t>& r)
-                    : ranges(r) , sym(_sym) , offset(off) , node_size(ns) , level(lvl)
-                {}
-                intersect_range_t(size_type off,size_type ns,size_type lvl,value_type _sym)
-                    : sym(_sym) , offset(off) , node_size(ns) , level(lvl) {}
-            public:
-                std::vector<p_t> ranges;
-                value_type sym = 0;
-                size_type offset = 0;
-                size_type node_size = 0;
-                size_type level = 0;
+        struct intersect_range_t {
+            using p_t = std::pair<uint64_t,size_t>;
+
+            intersect_range_t() {}
+            intersect_range_t(size_type off,size_type ns, size_type lvl,
+                              value_type _sym, std::vector<p_t>& r)
+                :  offset(off) , node_size(ns) , level(lvl), sym(_sym), ranges(r)
+            {}
+            intersect_range_t(size_type off,size_type ns,size_type lvl,value_type _sym)
+                : offset(off) , node_size(ns) , level(lvl), sym(_sym)  {}
+
+            size_type offset = 0;
+            size_type node_size = 0;
+            size_type level = 0;
+            value_type sym = 0;
+            std::vector<p_t> ranges;
         };
 
 
