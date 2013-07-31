@@ -10,10 +10,15 @@
 #include <map>
 #include <iostream>
 #include <cstdlib>
-#include <mutex>
+
 
 #ifndef SDSL_MULTI_THREAD
 #define SDSL_MULTI_THREAD
+#endif
+
+
+#ifdef SDSL_MULTI_THREAD
+#include <mutex>
 #endif
 
 namespace sdsl

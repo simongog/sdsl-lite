@@ -45,9 +45,14 @@
 #include <numeric>
 #include <random>
 #include <chrono>
+
+
+#ifdef SDSL_MULTI_THREAD
 #include <atomic>
 #include <mutex>
 #include <thread>
+#endif
+
 
 // macros to transform a defined name to a string
 #define SDSL_STR(x) #x
@@ -371,6 +376,7 @@ class stop_watch
         uint64_t abs_page_faults();
 };
 
+#ifdef SDSL_MULTI_THREAD
 class spin_lock
 {
     private:
@@ -422,6 +428,7 @@ class recursive_spinlock
             m_count--;
         };
 };
+#endif // end SDSL_MULTI_THREAD
 
 
 
