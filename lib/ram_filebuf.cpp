@@ -71,7 +71,7 @@ ram_filebuf::close()
 ram_filebuf::pos_type
 ram_filebuf::seekpos(pos_type sp, std::ios_base::openmode mode)
 {
-    if (sp >= 0 and sp < (pos_type)m_ram_file->size()) {
+    if (sp >= 0 and sp <= (pos_type)m_ram_file->size()) {
         setg(eback(), eback()+sp, egptr());
         setp(pbase(), epptr());
         pbump(pbase()+sp-pptr()); // pptr should be pbase() anyway after the setp call?
@@ -155,6 +155,7 @@ ram_filebuf::overflow(int_type c)
         m_ram_file->push_back(c);
         setp(m_ram_file->data(), m_ram_file->data()+m_ram_file->size());
         pbump(epptr()-pbase());
+        setg(m_ram_file->data(), gptr(), m_ram_file->data()+m_ram_file->size());
     }
     return traits_type::to_int_type(c);
 }

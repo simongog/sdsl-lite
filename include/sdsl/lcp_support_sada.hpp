@@ -116,19 +116,15 @@ class _lcp_support_sada
                 construct_isa(config);
             }
             std::string isa_file = cache_file_name(constants::KEY_ISA, config);
-            int_vector_file_buffer<> isa_buf(isa_file);
+            int_vector_buffer<> isa_buf(isa_file, std::ios::in);
             size_type n = lcp.size();
             bit_vector data = bit_vector(2*n, 0);
             size_type data_cnt=0;
-            for (size_type i=0, r_sum=0, r = 0, l=0, old_l=1; r_sum < n;) {
-                for (; i < r_sum+r; ++i) {
-                    l = lcp[isa_buf[i-r_sum]];
-                    data_cnt += l + 1 - old_l;
-                    data[data_cnt++] = 1;
-                    old_l = l;
-                }
-                r_sum += r;
-                r      = isa_buf.load_next_block();
+            for (size_type i=0, l=0, old_l=1; i < n; ++i) {
+                l = lcp[isa_buf[i]];
+                data_cnt += l + 1 - old_l;
+                data[data_cnt++] = 1;
+                old_l = l;
             }
             data.resize(data_cnt);
             m_data = bit_vector_type(data);

@@ -22,24 +22,20 @@ namespace sdsl
 const char* key_trait<8>::KEY_BWT = constants::KEY_BWT;
 const char* key_trait<8>::KEY_TEXT = constants::KEY_TEXT;
 
-byte_alphabet::byte_alphabet(int_vector_file_buffer<8>& text_buf, int_vector_size_type len):
+byte_alphabet::byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_type len):
     char2comp(m_char2comp), comp2char(m_comp2char), C(m_C), sigma(m_sigma)
 {
     m_sigma = 0;
-    text_buf.reset();
-    if (0 == len or 0 == text_buf.int_vector_size)
+    if (0 == len or 0 == text_buf.size())
         return;
-    assert(len <= text_buf.int_vector_size);
+    assert(len <= text_buf.size());
     // initialize vectors
     util::assign(m_C	    , int_vector<64>(257, 0));
     util::assign(m_char2comp, int_vector<8>(256,0));
     util::assign(m_comp2char, int_vector<8>(256,0));
     // count occurrences of each symbol
-    for (size_type i=0, r_sum=0, r = text_buf.load_next_block(); i < len;) {
-        for (; i < r_sum+r; ++i) {
-            ++m_C[text_buf[i-r_sum]];
-        }
-        r_sum += r; r = text_buf.load_next_block();
+    for (size_type i=0; i < len; ++i) {
+        ++m_C[text_buf[i]];
     }
     assert(1 == m_C[0]); // null-byte should occur exactly once
     m_sigma = 0;

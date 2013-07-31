@@ -136,33 +136,47 @@ void test_AssignAndModifyElement(uint64_t size, uint8_t width)
 {
     std::mt19937_64 rng;
     t_iv iv(size, 0, width);
-    for (size_type i=0; i<iv.size(); ++i) {
+    for (size_type i=1; i<iv.size(); ++i) {
         value_type exp_v = rng(), tmp = rng();
 
+        // Asign Test
         iv[i] = exp_v;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
-        exp_v += tmp;
+
+        // Modify Test
         iv[i] += tmp;
+        exp_v += tmp;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
-        exp_v -= tmp;
         iv[i] -= tmp;
+        exp_v -= tmp;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
-        tmp = exp_v++;
-        ASSERT_EQ(tmp   & sdsl::bits::lo_set[width], iv[i]);
-        iv[i]++;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]++);
+        exp_v++;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
-        tmp = exp_v--;
-        ASSERT_EQ(tmp   & sdsl::bits::lo_set[width], iv[i]);
-        iv[i]--;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]--);
+        exp_v--;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
-        tmp = ++exp_v;
-        ++iv[i];
-        ASSERT_EQ(tmp   & sdsl::bits::lo_set[width], iv[i]);
+        ++exp_v;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], ++iv[i]);
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
-        tmp = --exp_v;
-        --iv[i];
-        ASSERT_EQ(tmp   & sdsl::bits::lo_set[width], iv[i]);
+        --exp_v;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], --iv[i]);
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
+
+        // Compare Test
+        iv[i] = exp_v;
+        iv[i-1] = tmp;
+        exp_v &= sdsl::bits::lo_set[width];
+        tmp &= sdsl::bits::lo_set[width];
+        ASSERT_EQ((exp_v!=tmp), (iv[i]!=iv[i-1]));
+        ASSERT_EQ((exp_v==tmp), (iv[i]==iv[i-1]));
+        ASSERT_EQ((exp_v<=tmp), (iv[i]<=iv[i-1]));
+        ASSERT_EQ((exp_v< tmp), (iv[i]<iv[i-1]));
+        ASSERT_EQ((exp_v>=tmp), (iv[i]>=iv[i-1]));
+        ASSERT_EQ((exp_v> tmp), (iv[i]>iv[i-1]));
+        iv[i-1] = exp_v;
+        ASSERT_EQ(false, (iv[i]!=iv[i-1]));
+        ASSERT_EQ(true, (iv[i]==iv[i-1]));
     }
 }
 
@@ -219,19 +233,36 @@ TEST_F(IntVectorTest, STL)
     }
 }
 
-TEST_F(IntVectorTest, SerializeAndLoad)
+template<class t_iv>
+void test_SerializeAndLoad(uint8_t width=1)
 {
     std::mt19937_64 rng;
-    sdsl::int_vector<> iv(1000000);
+    t_iv iv(1000000, 0, width);
     for (size_type i=0; i<iv.size(); ++i)
         iv[i] = rng();
-    std::string file_name = "/tmp/int_vector";
+    std::string file_name = "tmp/int_vector";
     sdsl::store_to_file(iv, file_name);
-    sdsl::int_vector<> iv2;
+    t_iv iv2;
     sdsl::load_from_file(iv2, file_name);
     ASSERT_EQ(iv.size(), iv2.size());
+    ASSERT_EQ(iv.width(), iv2.width());
     for (size_type i=0; i<iv.size(); ++i)
         ASSERT_EQ(iv[i], iv2[i]);
+    sdsl::remove(file_name);
+}
+
+TEST_F(IntVectorTest, SerializeAndLoad)
+{
+    // unspecialized vector for each possible width
+    for (uint8_t width=1; width <= 64; ++width) {
+        test_SerializeAndLoad< sdsl::int_vector<> >(width);
+    }
+    // specialized vectors
+    test_SerializeAndLoad<sdsl::bit_vector     >();
+    test_SerializeAndLoad<sdsl::int_vector< 8> >();
+    test_SerializeAndLoad<sdsl::int_vector<16> >();
+    test_SerializeAndLoad<sdsl::int_vector<32> >();
+    test_SerializeAndLoad<sdsl::int_vector<64> >();
 }
 
 }  // namespace

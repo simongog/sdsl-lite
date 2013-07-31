@@ -101,38 +101,29 @@ class lcp_byte
         //! Constructor
         lcp_byte(cache_config& config) {
             std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
-            int_vector_file_buffer<> lcp_buf(lcp_file);
-            m_small_lcp = int_vector<8>(lcp_buf.int_vector_size);
+            int_vector_buffer<> lcp_buf(lcp_file, std::ios::in);
+            m_small_lcp = int_vector<8>(lcp_buf.size());
             size_type l=0, max_l=0, max_big_idx=0, big_sum=0;
 
-            for (size_type i=0, r_sum=0, r = 0; r_sum < m_small_lcp.size();) {
-                for (; i < r_sum+r; ++i) {
-                    if ((l=lcp_buf[i-r_sum]) < 255) {
-                        m_small_lcp[i] = l;
-                    } else {
-                        m_small_lcp[i] = 255;
-                        if (l > max_l) max_l = l;
-                        max_big_idx = i;
-                        ++big_sum;
-                    }
+            for (size_type i=0; i < m_small_lcp.size(); ++i) {
+                if ((l=lcp_buf[i]) < 255) {
+                    m_small_lcp[i] = l;
+                } else {
+                    m_small_lcp[i] = 255;
+                    if (l > max_l) max_l = l;
+                    max_big_idx = i;
+                    ++big_sum;
                 }
-                r_sum += r;
-                r      = lcp_buf.load_next_block();
             }
             m_big_lcp     = int_vector<>(big_sum, 0, bits::hi(max_l)+1);
             m_big_lcp_idx = int_vector<>(big_sum, 0, bits::hi(max_big_idx)+1);
 
-            lcp_buf.reset();
-            for (size_type i=0, r_sum=0, r = 0,ii=0; r_sum<m_small_lcp.size();) {
-                for (; i < r_sum+r; ++i) {
-                    if ((l=lcp_buf[i-r_sum]) >= 255) {
-                        m_big_lcp[ii] = l;
-                        m_big_lcp_idx[ii] = i;
-                        ++ii;
-                    }
+            for (size_type i=0,ii=0; i<m_small_lcp.size(); ++i) {
+                if ((l=lcp_buf[i]) >= 255) {
+                    m_big_lcp[ii] = l;
+                    m_big_lcp_idx[ii] = i;
+                    ++ii;
                 }
-                r_sum += r;
-                r      = lcp_buf.load_next_block();
             }
         }
 

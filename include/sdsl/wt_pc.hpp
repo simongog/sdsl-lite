@@ -177,7 +177,7 @@ class wt_pc
          *    \par Time complexity
          *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        wt_pc(int_vector_file_buffer<t_tree_strat::int_width>& input_buf,
+        wt_pc(int_vector_buffer<t_tree_strat::int_width>& input_buf,
               size_type size):m_size(size) {
             if (0 == m_size)
                 return;
@@ -200,37 +200,28 @@ class wt_pc
             for (size_type v=0; v < m_tree.size(); ++v) {
                 bv_node_pos[v] = m_tree.bv_pos(v);
             }
-            input_buf.reset();
-            if (input_buf.int_vector_size < size) {
+            if (input_buf.size() < size) {
                 throw std::logic_error("Stream size is smaller than size!");
                 return;
             }
-            for (size_type i=0, r_sum=0, r = input_buf.load_next_block();
-                 r_sum < m_size;) {
-                // read not more than size chars in the next loop
-                if (r_sum + r > size) {
-                    r = size-r_sum;
-                }
-                value_type old_chr = input_buf[i-r_sum];
-                uint32_t times = 0;
-                for (; i < r_sum+r; ++i) {
-                    value_type chr = input_buf[i-r_sum];
-                    if (chr    != old_chr) {
+            value_type old_chr = input_buf[0];
+            uint32_t times = 0;
+            for (size_type i=0; i < m_size; ++i) {
+                value_type chr = input_buf[i];
+                if (chr != old_chr) {
+                    insert_char(old_chr, bv_node_pos, times, temp_bv);
+                    times = 1;
+                    old_chr = chr;
+                } else { // chr == old_chr
+                    ++times;
+                    if (times == 64) {
                         insert_char(old_chr, bv_node_pos, times, temp_bv);
-                        times = 1;
-                        old_chr = chr;
-                    } else { // chr == old_chr
-                        ++times;
-                        if (times == 64) {
-                            insert_char(old_chr, bv_node_pos, times, temp_bv);
-                            times = 0;
-                        }
+                        times = 0;
                     }
                 }
-                if (times > 0) {
-                    insert_char(old_chr, bv_node_pos, times, temp_bv);
-                }
-                r_sum += r; r = input_buf.load_next_block();
+            }
+            if (times > 0) {
+                insert_char(old_chr, bv_node_pos, times, temp_bv);
             }
             m_bv = bit_vector_type(std::move(temp_bv));
             // 5. Initialize rank and select data structures for m_bv

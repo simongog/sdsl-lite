@@ -20,50 +20,27 @@ void insert_lcp_values(int_vector<>& partial_lcp, bit_vector& index_done, std::s
     std::string tmp_lcp_file  = lcp_file+"_TMP";
     const uint64_t buffer_size = 1000000; // has to be a multiple of 64
     typedef int_vector<>::size_type size_type;
-    int_vector_file_buffer<> lcp_buffer(lcp_file, buffer_size); // open lcp_file
-    uint64_t n = lcp_buffer.int_vector_size;
+    int_vector_buffer<> lcp_buffer(lcp_file, std::ios::in, buffer_size); // open lcp_file
+    uint64_t n = lcp_buffer.size();
 
     // open tmp_lcp_file
     uint8_t int_width = bits::hi(max_lcp_value-1)+1;
-    uint64_t bit_size = n*int_width;								// Size of output file
-    size_type wb = 0;												// Number of bits that were already written
-    int_vector<> out_buf(buffer_size, 0, int_width); 				// Output buffer
-    osfstream tmp_lcp_out_buf(tmp_lcp_file, std::ios::binary | std::ios::trunc | std::ios::out);
-    tmp_lcp_out_buf.write((char*) &(bit_size), sizeof(bit_size));		// Write length of vector
-    tmp_lcp_out_buf.write((char*) &(int_width), sizeof(int_width));	// Write int-width of vector
-
+    int_vector_buffer<> out_buf(tmp_lcp_file, std::ios::out, buffer_size, int_width);		// Output buffer
     // Write values into buffer
-    for (size_type i=0, r_sum=0, calc_idx=0, r=0; r_sum < n;) {
-        // Copy next r values into buffer
-        util::set_to_value(out_buf, 0); // initialize buffer with zeros
-        for (; i < r_sum+r; ++i) {
-            // If values was already calculated
-            if (index_done[i]) {
-                out_buf[i-r_sum] = lcp_buffer[i-r_sum]; // Copy value
-            } else {
-                if (partial_lcp[calc_idx]) {   // If values was now calculated
-                    // Insert value
-                    out_buf[i-r_sum] = partial_lcp[calc_idx]+lcp_value_offset;
-                    index_done[i] = true;
-                }
-                ++calc_idx;
+    for (size_type i=0, calc_idx=0; i < n; ++i) {
+        if (index_done[i]) {   // If value was already calculated
+            out_buf[i] = lcp_buffer[i]; // Copy value
+        } else {
+            if (partial_lcp[calc_idx]) {   // If value was calculated now
+                // Insert value
+                out_buf[i] = partial_lcp[calc_idx]+lcp_value_offset;
+                index_done[i] = true;
             }
+            ++calc_idx;
         }
-        // Write next r values from buffer to harddisk
-        if (r>0) {
-            size_type cur_wb = (r*out_buf.width()+7)/8;
-            tmp_lcp_out_buf.write((const char*)out_buf.data(), cur_wb);
-            wb += cur_wb;
-        }
-        // Count how many values were written and how many values will be written next
-        r_sum += r;
-        r = lcp_buffer.load_next_block();
     }
     // Close file and replace old file with new one
-    if (wb%8) {
-        tmp_lcp_out_buf.write("\0\0\0\0\0\0\0\0", 8-wb%8);
-    }
-    tmp_lcp_out_buf.close();
+    out_buf.close();
     sdsl::rename(tmp_lcp_file, lcp_file);
 }
 
@@ -124,18 +101,15 @@ uint8_t buffered_char_queue::pop_front()
 void lcp_info(cache_config& config)
 {
     typedef int_vector<>::size_type size_type;
-    int_vector_file_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
-    size_type n = lcp_buf.int_vector_size;
+    int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config), std::ios::in);
+    size_type n = lcp_buf.size();
 
     size_type max_lcp = 0;
     size_type sum_lcp = 0;
-    for (size_type i=0, r_sum=0, r=0; i < n;) {
-        for (; i < r_sum+r; ++i) {
-            if (lcp_buf[i-r_sum] > max_lcp)
-                max_lcp = lcp_buf[i-r_sum];
-            sum_lcp += lcp_buf[i-r_sum];
-        }
-        r_sum += r; r = lcp_buf.load_next_block();
+    for (size_type i=0; i < n; ++i) {
+        if (lcp_buf[i] > max_lcp)
+            max_lcp = lcp_buf[i];
+        sum_lcp += lcp_buf[i];
     }
     std::cout<<"# max lcp = " << max_lcp << std::endl;
     std::cout<<"# sum lcp = " << sum_lcp << std::endl;

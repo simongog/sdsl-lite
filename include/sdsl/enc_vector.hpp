@@ -103,12 +103,12 @@ class enc_vector
         template<class Container>
         enc_vector(const Container& c);
 
-        //! Constructor for an int_vector_file_buffer of positive integers.
+        //! Constructor for an int_vector_buffer of positive integers.
         /*
-            \param v_buf A int_vector_file_buf.
+            \param v_buf A int_vector_buf.
         */
         template<uint8_t int_width>
-        enc_vector(int_vector_file_buffer<int_width>& v_buf);
+        enc_vector(int_vector_buffer<int_width>& v_buf);
 
         //! Default Destructor
         ~enc_vector() { }
@@ -294,31 +294,27 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c)
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
 template<uint8_t int_width>
-enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width>& v_buf)
+enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_buffer<int_width>& v_buf)
 {
     // clear bit_vectors
     clear();
-    size_type n = v_buf.int_vector_size;
+    size_type n = v_buf.size();
     if (n == 0)  // if c is empty there is nothing to do...
         return;
-    v_buf.reset();
     value_type     v1=0, v2=0, max_sample_value=0;
     size_type samples=0, z_size=0;
     const size_type sd = get_sample_dens();
 //  (1) Calculate maximal value of samples and of deltas
-    for (size_type i=0, r_sum=0, r = v_buf.load_next_block(), no_sample = 0; r_sum < n;) {
-        for (; i < r_sum+r; ++i, --no_sample) {
-            v2 = v_buf[i-r_sum];
-            if (!no_sample) { // is sample
-                no_sample = sd;
-                if (max_sample_value < v2) max_sample_value = v2;
-                ++samples;
-            } else {
-                z_size += t_coder::encoding_length(v2-v1);
-            }
-            v1 = v2;
+    for (size_type i=0, no_sample = 0; i < n; ++i, --no_sample) {
+        v2 = v_buf[i];
+        if (!no_sample) { // is sample
+            no_sample = sd;
+            if (max_sample_value < v2) max_sample_value = v2;
+            ++samples;
+        } else {
+            z_size += t_coder::encoding_length(v2-v1);
         }
-        r_sum += r; r = v_buf.load_next_block();
+        v1 = v2;
     }
 
 //    (2) Write sample values and deltas
@@ -336,22 +332,18 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_file_buffer<int_width
     uint8_t offset = 0;
 
 //    (c) Write sample values and deltas
-    v_buf.reset();
     z_size = 0;
-    for (size_type i=0, j=0, r_sum=0, r = v_buf.load_next_block(), no_sample = 0; r_sum < n;) {
-        for (; i < r_sum+r; ++i, --no_sample) {
-            v2 = v_buf[i-r_sum];
-            if (!no_sample) { // is sample
-                no_sample = sd;
-                m_sample_vals_and_pointer[j++] = v2;    // write samples
-                m_sample_vals_and_pointer[j++] = z_size;// write pointers
-            } else {
-                z_size += t_coder::encoding_length(v2-v1);
-                t_coder::encode(v2-v1, z_data, offset);   // write encoded values
-            }
-            v1 = v2;
+    for (size_type i=0, j=0, no_sample = 0; i < n; ++i, --no_sample) {
+        v2 = v_buf[i];
+        if (!no_sample) { // is sample
+            no_sample = sd;
+            m_sample_vals_and_pointer[j++] = v2;    // write samples
+            m_sample_vals_and_pointer[j++] = z_size;// write pointers
+        } else {
+            z_size += t_coder::encoding_length(v2-v1);
+            t_coder::encode(v2-v1, z_data, offset);   // write encoded values
         }
-        r_sum += r; r = v_buf.load_next_block();
+        v1 = v2;
     }
     m_size = n;
 }
