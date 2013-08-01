@@ -56,7 +56,7 @@ void buffered_char_queue::init(const std::string& dir, char c)
 buffered_char_queue::~buffered_char_queue()
 {
     m_stream.close();
-    std::remove(m_file_name.c_str());
+    sdsl::remove(m_file_name);
 }
 
 void buffered_char_queue::push_back(uint8_t x)
@@ -69,7 +69,7 @@ void buffered_char_queue::push_back(uint8_t x)
     if (m_widx == m_buffer_size) {
         if (!m_sync) { // if not sync, write block to disk
             if (!m_stream.is_open()) {
-                m_stream.open(m_file_name.c_str(), std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+                m_stream.open(m_file_name, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
             }
             m_stream.seekp(m_buffer_size * (m_wb++), std::ios::beg);
             m_stream.write((char*) m_write_buf, m_buffer_size);

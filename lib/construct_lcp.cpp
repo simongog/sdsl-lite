@@ -616,9 +616,9 @@ void construct_lcp_goPHI(cache_config& config)
             }
             lcp_buf[i] = l;
         }
+        lcp_big_buf.close(true); // close buffer and remove file
+        lcp_sml_buf.close(true); // close buffer and remove file
     }
-    lcp_big_buf.close(true); // close buffer and remove file
-    lcp_sml_buf.close(true); // close buffer and remove file
     register_cache_file(constants::KEY_LCP, config);
     return;
 }

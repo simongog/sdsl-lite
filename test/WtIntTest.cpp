@@ -132,7 +132,7 @@ TYPED_TEST(WtIntTest, LoadAndInverseSelect)
 
 TYPED_TEST(WtIntTest, DeleteTest)
 {
-    std::remove(temp_file.c_str());
+    sdsl::remove(temp_file);
 }
 
 template<class T>
