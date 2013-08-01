@@ -224,7 +224,7 @@ TYPED_TEST(CstByteTest, BottomUpIterator)
 
 TYPED_TEST(CstByteTest, DeleteTest)
 {
-    std::remove(temp_file.c_str());
+    sdsl::remove(temp_file);
     util::delete_all_files(test_case_file_map);
 }
 

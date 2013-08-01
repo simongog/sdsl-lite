@@ -190,7 +190,7 @@ class wt_rlg8
             wt_out.close();
 
             {
-                int_vector_buffer<8> temp_bwt_buf(temp_file, std::ios::in);
+                int_vector_buffer<8> temp_bwt_buf(temp_file);
                 m_wt = wt_type(temp_bwt_buf, temp_bwt_buf.size());
             }
 

@@ -90,7 +90,7 @@ TYPED_TEST(RMQTest, RmqLoadAndQuery)
 
 TYPED_TEST(RMQTest, DeleteTest)
 {
-    std::remove(temp_file.c_str());
+    sdsl::remove(temp_file);
 }
 
 }  // namespace
