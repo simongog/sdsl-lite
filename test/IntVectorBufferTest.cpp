@@ -685,7 +685,7 @@ void test_reset(std::vector<size_type>& vec_sizes, size_type width=1)
             ASSERT_EQ((size_type)0, ivb.size());   // all content removed
             ASSERT_EQ(bsize, ivb.buffersize());    // same buffersize as before
             {
-                std::ifstream ifile(file_name.c_str(), std::ios::in|std::ios::binary|std::ios::ate);
+                std::ifstream ifile(file_name, std::ios::in|std::ios::binary|std::ios::ate);
                 size_type file_end = ifile.tellg();
                 ifile.close();
                 ASSERT_EQ((size_type)0, file_end);  // size of file after reset is 0

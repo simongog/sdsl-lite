@@ -37,8 +37,8 @@ TYPED_TEST(SearchBidirectionalTest, BidirectionalSearch)
 
     TypeParam csa1;
     TypeParam csa1_rev;
-    construct(csa1, test_file.c_str(), 1);
-    construct(csa1_rev, test_file_rev.c_str(), 1);
+    construct(csa1, test_file, 1);
+    construct(csa1_rev, test_file_rev, 1);
 
     std::mt19937_64 rng(13);
     std::uniform_int_distribution<uint64_t> distribution(0, csa1.size()-1);
@@ -143,8 +143,8 @@ int main(int argc, char** argv)
             text_rev[n-1-i] = text[i];
         }
         char* text2 = (char*)text_rev.data();
-        ofstream of(test_file_rev.c_str(),ofstream::binary);
-        of.write(text2,n);
+        ofstream of(test_file_rev, ofstream::binary);
+        of.write(text2, n);
         of.close();
     }
     int result = RUN_ALL_TESTS();

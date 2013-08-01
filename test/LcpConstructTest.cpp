@@ -61,7 +61,7 @@ class LcpConstructTest : public ::testing::Test
         }
 
         virtual void TearDown() {
-            std::remove(cache_file_name(CHECK_KEY, test_config).c_str());
+            sdsl::remove(cache_file_name(CHECK_KEY, test_config));
         }
 
         cache_config test_config;
@@ -91,7 +91,7 @@ TEST_F(LcpConstructTest, construct_lcp)
                     << lcp_check[j] << "!=" << lcp[j] << "=lcp["<< j << "]";
         }
         // Clean up LCP array
-        std::remove(cache_file_name(constants::KEY_LCP, this->test_config).c_str());
+        sdsl::remove(cache_file_name(constants::KEY_LCP, this->test_config));
     }
 }
 
