@@ -35,12 +35,13 @@ int main(int argc, char* argv[])
 
     // (2) Streams the content of tmp_file
     {
-        // open file with an int_vector_buffer
-        int_vector_buffer<> ivb(tmp_file,     // filename
-                                std::ios::in, // we want to open an existing file
-                                1024,         // use a buffer of about 1KB
-                                64,           // use 64bit for each integer
-                                false);       // use int_vector format
+        // open file with an int_vector_buffer.
+        // Default is: open existing file, use 1MB Buffer, 64bit for each integer and int_vector format
+        int_vector_buffer<> ivb(tmp_file);
+        if (!ivb.is_open()) {
+            std::cerr << "ERROR: ivb could not be opend with file " << tmp_file << size << std::endl;
+            return 1;
+        }
         if (ivb.size() != size) {
             std::cerr << "ERROR: ivb.size()="<< ivb.size() << " != " << size << std::endl;
             return 1;
@@ -53,10 +54,8 @@ int main(int argc, char* argv[])
                 return 1;
             }
         }
+        ivb.close(true); // close buffer and (3) remove the file
     }
-
-    // (3) Remove the file
-    sdsl::remove(tmp_file);
 
     return 0;
 }
