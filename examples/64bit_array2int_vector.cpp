@@ -18,6 +18,7 @@ int main(int argc, char* argv[])
         cout << "Usage: " << argv[0] << " int_file" << endl;
         return 1;
     }
+
     size_t x = util::file_size(argv[1]);
     const int BPI=8;
     cout<<"file size in bytes = "<<x<<endl;
@@ -26,56 +27,34 @@ int main(int argc, char* argv[])
         return 1;
     }
 //	(1) scan file and determine the largest value
-    FILE* f = fopen(argv[1], "rb"); // open input file
-    if (f == NULL) {
+    int_vector_buffer<64> ivb(string(argv[1]), std::ios::in, 6400000, 64, true);
+    if (!ivb.is_open()) {
         cout<<"ERROR: could not open file "<<argv[1]<<endl;
         return 1;
     }
-    const size_t BUF_SIZE = 6400000; // BUF_SIZE has to be a multiple of 64
-    uint64_t* buf = (uint64_t*)malloc(BUF_SIZE*BPI);
     uint64_t max=0;
-    for (size_t i=0, len=BUF_SIZE*BPI; i<x; i+=len) {
-        len = BUF_SIZE*BPI;
-        if (i+len > x) {
-            len = x-i;
-        }
-        size_t read = fread((char*)buf, 1, len, f);
-        for (size_t j=0; j<len/BPI and read; ++j) {
-            if (buf[j] > max)
-                max = buf[j];
-//			cout<<" "<<buf[j]<<endl;
-        }
+    for (size_t i=0; i<ivb.size(); ++i) {
+        if (ivb[i] > max)
+            max = ivb[i];
     }
     cout<<"Max value: "<<max<<endl;
     uint8_t width = bits::hi(max)+1;
     cout<<"width="<<(int)width<<endl;
 
 //  (2) scan file, bit-compress values and write to outfile
-    rewind(f); // reset file pointer
     string ofile = string(argv[1])+".int_vector";
-    FILE* of = fopen(ofile.c_str(),"wb"); // open output file
-    if (of == NULL) {
+    int_vector_buffer<> ivb2(ofile, std::ios::out, 6400000, width);
+    if (!ivb2.is_open()) {
         cout<<"ERROR: could not open output file "<<argv[1]<<endl;
         return 1;
     }
-    uint64_t bitlen=(x/BPI)*width;
-    fwrite((char*)&bitlen, 8, 1, of);
-    fwrite((char*)&width, 1, 1, of);
-    int_vector<> v(BUF_SIZE, 0, width);
-    for (size_t i=0, len=BUF_SIZE*BPI; i<x; i+=len) {
-        len = BUF_SIZE*BPI;
-        if (i+len > x) {
-            len = x-i;
-        }
-        size_t read = fread((char*)buf, 1, len, f);
-        for (size_t j=0; j<len/BPI and read; ++j) {
-            v[j] = buf[j];
-        }
-        fwrite((char*)v.data(), 8, ((len/BPI*width+63)/64), of);
+    for (size_t i=0; i<ivb.size(); ++i) {
+        ivb2[i] = ivb[i];
     }
-    free(buf);
-    fclose(f);
-    fclose(of);
+    ivb.close();
+    ivb2.close();
+
+    int_vector<> v;
     load_from_file(v, ofile);
     cout<<"v.size()="<<v.size()<<endl;
     cout<<"v[0]="<<v[0]<<endl;
