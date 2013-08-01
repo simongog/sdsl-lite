@@ -300,8 +300,8 @@ void test_sequential_access(size_type width=1)
             value_type x = (rng()+1) & sdsl::bits::lo_set[ivb.width()];
             ASSERT_EQ(x, (size_type)ivb[i]) << "???";
         }
+        ivb.close(true);
     }
-    sdsl::remove(file_name);
 }
 
 //! Test SequentialAccess: push_back and iterators

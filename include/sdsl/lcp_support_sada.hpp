@@ -116,7 +116,7 @@ class _lcp_support_sada
                 construct_isa(config);
             }
             std::string isa_file = cache_file_name(constants::KEY_ISA, config);
-            int_vector_buffer<> isa_buf(isa_file, std::ios::in);
+            int_vector_buffer<> isa_buf(isa_file);
             size_type n = lcp.size();
             bit_vector data = bit_vector(2*n, 0);
             size_type data_cnt=0;

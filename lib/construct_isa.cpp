@@ -17,7 +17,7 @@ void construct_isa(cache_config& config)
             throw std::ios_base::failure("cst_construct: Cannot load SA from file system!");
         }
         {
-            int_vector_buffer<> sa_buf(config.file_map[constants::KEY_SA], std::ios::in);
+            int_vector_buffer<> sa_buf(config.file_map[constants::KEY_SA]);
 
             for (size_type i=0; i < isa.size(); ++i) {
                 isa[ sa_buf[i] ] = i;

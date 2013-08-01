@@ -51,12 +51,12 @@ TYPED_TEST(WtIntTest, Constructor)
         ASSERT_TRUE(store_to_file(wt, temp_file));
     }
     {
-        int_vector_buffer<> iv_buf(test_file, std::ios::in);
+        int_vector_buffer<> iv_buf(test_file);
         TypeParam wt(iv_buf, 0);
         ASSERT_EQ((size_type)0,  wt.size());
     }
     {
-        int_vector_buffer<> iv_buf(test_file, std::ios::in);
+        int_vector_buffer<> iv_buf(test_file);
         size_type len = (iv.size() >= 6) ? 6 : iv.size();
         TypeParam wt(iv_buf, len);
         ASSERT_EQ(len, wt.size());

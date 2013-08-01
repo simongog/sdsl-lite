@@ -101,7 +101,7 @@ uint8_t buffered_char_queue::pop_front()
 void lcp_info(cache_config& config)
 {
     typedef int_vector<>::size_type size_type;
-    int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config), std::ios::in);
+    int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
     size_type n = lcp_buf.size();
 
     size_type max_lcp = 0;

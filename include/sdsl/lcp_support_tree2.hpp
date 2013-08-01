@@ -87,23 +87,22 @@ class _lcp_support_tree2
         _lcp_support_tree2(cache_config& config, const cst_type* cst = nullptr) {
             m_cst = cst;
 
-            int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config), std::ios::in);
+            int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
             std::string bwt_file = cache_file_name(key_trait<t_cst::csa_type::alphabet_type::int_width>::KEY_BWT, config);
-            int_vector_buffer<t_cst::csa_type::alphabet_type::int_width> bwt_buf(bwt_file, std::ios::in);
+            int_vector_buffer<t_cst::csa_type::alphabet_type::int_width> bwt_buf(bwt_file);
 
             std::string sml_lcp_file = tmp_file(config, "_fc_lf_lcp_sml");
             std::string big_lcp_file = tmp_file(config, "_fc_lf_lcp_big");
 
             construct_first_child_and_lf_lcp<t_dens>(lcp_buf, bwt_buf, sml_lcp_file, big_lcp_file, m_big_lcp);
-            int_vector_buffer<8> sml_lcp_buf(sml_lcp_file, std::ios::in);
+            int_vector_buffer<8> sml_lcp_buf(sml_lcp_file);
 
             {
                 small_lcp_type tmp_small_lcp(sml_lcp_buf, sml_lcp_buf.size());
                 m_small_lcp.swap(tmp_small_lcp);
             }
-            sml_lcp_buf.close();
+            sml_lcp_buf.close(true);
             sdsl::remove(big_lcp_file);
-            sdsl::remove(sml_lcp_file);
         }
 
         void set_cst(const cst_type* cst) {

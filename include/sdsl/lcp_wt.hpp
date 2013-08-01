@@ -106,7 +106,7 @@ class lcp_wt
             if ("" != other_key) {
                 lcp_key = other_key;
             }
-            int_vector_buffer<> lcp_buf(cache_file_name(lcp_key, config), std::ios::in);
+            int_vector_buffer<> lcp_buf(cache_file_name(lcp_key, config));
             size_type l=0, max_l=0, big_sum=0, n = lcp_buf.size();
             {
                 int_vector<8> small_lcp = int_vector<8>(n);
@@ -122,7 +122,7 @@ class lcp_wt
                 store_to_file(small_lcp, temp_file);
             }
             {
-                int_vector_buffer<8> lcp_sml_buf(temp_file, std::ios::in);
+                int_vector_buffer<8> lcp_sml_buf(temp_file);
                 small_lcp_type tmp(lcp_sml_buf, lcp_sml_buf.size());
                 m_small_lcp.swap(tmp);
             }

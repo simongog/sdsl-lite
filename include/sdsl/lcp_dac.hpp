@@ -208,7 +208,7 @@ lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
 //      Running time: \f$ O(n \times \frac{\log n}{b}  \f$
 //      Result is sorted in m_level_pointer_and_rank
     std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
-    int_vector_buffer<> lcp_buf(lcp_file, std::ios::in);
+    int_vector_buffer<> lcp_buf(lcp_file);
     size_type n = lcp_buf.size(), val=0;
     if (n == 0)
         return;

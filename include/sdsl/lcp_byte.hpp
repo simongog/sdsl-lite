@@ -101,7 +101,7 @@ class lcp_byte
         //! Constructor
         lcp_byte(cache_config& config) {
             std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
-            int_vector_buffer<> lcp_buf(lcp_file, std::ios::in);
+            int_vector_buffer<> lcp_buf(lcp_file);
             m_small_lcp = int_vector<8>(lcp_buf.size());
             size_type l=0, max_l=0, max_big_idx=0, big_sum=0;
 
