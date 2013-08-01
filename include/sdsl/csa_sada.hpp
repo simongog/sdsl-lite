@@ -358,7 +358,7 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     if (!cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
         return;
     }
-    int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config), std::ios::in);
+    int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
     size_type n = bwt_buf.size();
     mm::log("csa-alphabet-construct-begin");
     {
@@ -385,14 +385,14 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
         }
     }
     mm::log("csa-psi-end");
-    int_vector_buffer<> psi_buf(cache_file_name(constants::KEY_PSI, config), std::ios::in);
+    int_vector_buffer<> psi_buf(cache_file_name(constants::KEY_PSI, config));
     mm::log("csa-psi-encode-begin");
     {
         t_enc_vec tmp_psi(psi_buf);
         m_psi.swap(tmp_psi);
     }
     mm::log("csa-psi-encode-end");
-    int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config), std::ios::in);
+    int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config));
     mm::log("sa-sample-begin");
     {
         sa_sample_type tmp_sa_sample(config);

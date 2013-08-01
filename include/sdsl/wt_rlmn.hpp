@@ -167,7 +167,7 @@ class wt_rlmn
                     ++lf_map[c];
                 }
                 {
-                    int_vector_buffer<8> temp_bwt_buf(temp_file, std::ios::in);
+                    int_vector_buffer<8> temp_bwt_buf(temp_file);
                     m_wt = wt_type(temp_bwt_buf, temp_bwt_buf.size());
                 }
                 sdsl::remove(temp_file);

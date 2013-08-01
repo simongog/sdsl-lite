@@ -241,7 +241,7 @@ TYPED_TEST(CstIntTest, BottomUpIterator)
 TYPED_TEST(CstIntTest, DeleteTest)
 {
     TypeParam cst;
-    std::remove(temp_file.c_str());
+    sdsl::remove(temp_file);
     util::delete_all_files(test_case_file_map);
 }
 

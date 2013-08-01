@@ -128,7 +128,7 @@ void construct_lcp_PHI(cache_config& config)
     typedef int_vector<>::size_type size_type;
     typedef int_vector<t_width> text_type;
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
-    int_vector_buffer<> sa_buf(config.file_map[constants::KEY_SA], std::ios::in);
+    int_vector_buffer<> sa_buf(config.file_map[constants::KEY_SA]);
     size_type n = sa_buf.size();
 
     assert(n > 0);
