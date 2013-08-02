@@ -50,7 +50,10 @@ cd build # change into the build directory
 if [ $? != 0 ]; then
 	exit 1
 fi
-rm -f CMakeCache.txt
+./clean.sh # clean-up build directory
+if [ $? != 0 ]; then
+	exit 1
+fi
 
 cmake -DCMAKE_INSTALL_PREFIX="${SDSL_INSTALL_PREFIX}" .. # run cmake 
 if [ $? != 0 ]; then
