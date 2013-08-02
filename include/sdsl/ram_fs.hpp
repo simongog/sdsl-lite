@@ -9,15 +9,7 @@
 #include <string>
 #include <map>
 #include <vector>
-
-#ifndef SDSL_MULTI_THREAD
-#define SDSL_MULTI_THREAD
-#endif
-
-
-#ifdef SDSL_MULTI_THREAD
 #include <mutex>
-#endif
 
 namespace sdsl
 {
@@ -52,9 +44,7 @@ class ram_fs
         friend class ram_fs_initializer;
         typedef std::map<std::string, content_type> mss_type;
         static mss_type m_map;
-#ifdef SDSL_MULTI_THREAD
         static std::recursive_mutex m_rlock;
-#endif
 
     public:
         //! Default construct
