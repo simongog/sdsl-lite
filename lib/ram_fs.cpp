@@ -9,7 +9,7 @@ static int nifty_counter = 0;
 sdsl::ram_fs::mss_type sdsl::ram_fs::m_map;
 
 #ifdef SDSL_MULTI_THREAD
-sdsl::util::recursive_spinlock sdsl::ram_fs::m_spinlock;
+std::recursive_mutex sdsl::ram_fs::m_rlock;
 #endif
 
 sdsl::ram_fs_initializer::ram_fs_initializer()
@@ -35,7 +35,7 @@ void
 ram_fs::store(const std::string& name, content_type data)
 {
 #ifdef SDSL_MULTI_THREAD
-    std::lock_guard<util::recursive_spinlock> lock(m_spinlock);
+    std::lock_guard<std::recursive_mutex> lock(m_rlock);
 #endif
     if (!exists(name)) {
         std::string cname = name;
@@ -49,7 +49,7 @@ bool
 ram_fs::exists(const std::string& name)
 {
 #ifdef SDSL_MULTI_THREAD
-    std::lock_guard<util::recursive_spinlock> lock(m_spinlock);
+    std::lock_guard<std::recursive_mutex> lock(m_rlock);
 #endif
     return m_map.find(name) != m_map.end();
 }
@@ -58,7 +58,7 @@ ram_fs::content_type&
 ram_fs::content(const std::string& name)
 {
 #ifdef SDSL_MULTI_THREAD
-    std::lock_guard<util::recursive_spinlock> lock(m_spinlock);
+    std::lock_guard<std::recursive_mutex> lock(m_rlock);
 #endif
     return m_map[name];
 }
@@ -67,7 +67,7 @@ size_t
 ram_fs::file_size(const std::string& name)
 {
 #ifdef SDSL_MULTI_THREAD
-    std::lock_guard<util::recursive_spinlock> lock(m_spinlock);
+    std::lock_guard<std::recursive_mutex> lock(m_rlock);
 #endif
     if (exists(name)) {
         return m_map[name].size();
@@ -80,7 +80,7 @@ int
 ram_fs::remove(const std::string& name)
 {
 #ifdef SDSL_MULTI_THREAD
-    std::lock_guard<util::recursive_spinlock> lock(m_spinlock);
+    std::lock_guard<std::recursive_mutex> lock(m_rlock);
 #endif
     m_map.erase(name);
     return 0;
@@ -90,7 +90,7 @@ int
 ram_fs::rename(const std::string old_filename, const std::string new_filename)
 {
 #ifdef SDSL_MULTI_THREAD
-    std::lock_guard<util::recursive_spinlock> lock(m_spinlock);
+    std::lock_guard<std::recursive_mutex> lock(m_rlock);
 #endif
     m_map[new_filename] = std::move(m_map[old_filename]);
     remove(old_filename);

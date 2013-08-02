@@ -391,43 +391,6 @@ class spin_lock
             m_slock.clear(std::memory_order_release);
         };
 };
-
-
-class recursive_spinlock
-{
-    private:
-        spin_lock m_lock;
-        uint64_t m_count = 0;
-        size_t m_owner = 0;
-        std::hash<std::thread::id> hash_fn;
-    public:
-        void lock() {
-            while (try_lock() == false) {
-                /* spin */
-            }
-        };
-        bool try_lock() {
-            std::lock_guard<spin_lock> lock(m_lock);
-
-            if (m_count == 0) {
-                m_owner = hash_fn(std::this_thread::get_id());
-                m_count = 1;
-                return true;
-            } else {
-                if (m_owner == hash_fn(std::this_thread::get_id())) {
-                    // it is us. it is ok.
-                    m_count++;
-                    return true;
-                }
-            }
-
-            return false;
-        };
-        void unlock() {
-            std::lock_guard<spin_lock> lock(m_lock);
-            m_count--;
-        };
-};
 #endif // end SDSL_MULTI_THREAD
 
 

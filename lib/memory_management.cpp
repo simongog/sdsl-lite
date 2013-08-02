@@ -21,7 +21,7 @@ uint64_t sdsl::mm::m_pre_rtime;
 uint64_t sdsl::mm::m_pre_max_mem;
 
 #ifdef SDSL_MULTI_THREAD
-sdsl::util::recursive_spinlock sdsl::mm::m_spinlock;
+sdsl::util::spin_lock sdsl::mm::m_spinlock;
 #endif
 
 
@@ -55,7 +55,7 @@ bool mm::map_hp()
 {
 #ifdef MAP_HUGETLB
 #ifdef SDSL_MULTI_THREAD
-    std::lock_guard<util::recursive_spinlock> lock(m_spinlock);
+    std::lock_guard<util::spin_lock> lock(m_spinlock);
 #endif
     size_t hpgs= (m_total_memory+HUGE_LEN-1)/HUGE_LEN; // number of huge pages required to store the int_vectors
     m_data = (uint64_t*)mmap(NULL, hpgs*HUGE_LEN, HUGE_PROTECTION, HUGE_FLAGS, 0, 0);
@@ -79,7 +79,7 @@ bool mm::unmap_hp()
 {
 #ifdef MAP_HUGETLB
 #ifdef SDSL_MULTI_THREAD
-    std::lock_guard<util::recursive_spinlock> lock(m_spinlock);
+    std::lock_guard<util::spin_lock> lock(m_spinlock);
 #endif
     size_t hpgs= (m_total_memory+HUGE_LEN-1)/HUGE_LEN; // number of huge pages
     bool success = true;
@@ -102,7 +102,7 @@ bool mm::unmap_hp()
 void mm::log_stream(std::ostream* out)
 {
 #ifdef SDSL_MULTI_THREAD
-    std::lock_guard<util::recursive_spinlock> lock(m_spinlock);
+    std::lock_guard<util::spin_lock> lock(m_spinlock);
 #endif
     m_out = out;
 }
@@ -110,7 +110,7 @@ void mm::log_stream(std::ostream* out)
 void mm::log_granularity(uint64_t granularity)
 {
 #ifdef SDSL_MULTI_THREAD
-    std::lock_guard<util::recursive_spinlock> lock(m_spinlock);
+    std::lock_guard<util::spin_lock> lock(m_spinlock);
 #endif
     m_granularity = granularity;
 }
