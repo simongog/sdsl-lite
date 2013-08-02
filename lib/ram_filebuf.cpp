@@ -65,6 +65,9 @@ ram_filebuf::close()
 {
     if (!this->is_open())
         return nullptr;
+    m_ram_file = nullptr;
+    setg(nullptr, nullptr, nullptr);
+    setp(nullptr, nullptr);
     return this;
 }
 
