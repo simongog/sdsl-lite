@@ -9,6 +9,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <mutex>
 
 namespace sdsl
 {
@@ -25,9 +26,9 @@ class ram_fs_initializer
 
 static sdsl::ram_fs_initializer init_ram_fs;
 
-
 namespace sdsl
 {
+
 
 //! ram_fs is a simple store for RAM-files.
 /*!
@@ -43,6 +44,7 @@ class ram_fs
         friend class ram_fs_initializer;
         typedef std::map<std::string, content_type> mss_type;
         static mss_type m_map;
+        static std::recursive_mutex m_rlock;
 
     public:
         //! Default construct
