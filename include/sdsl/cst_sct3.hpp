@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_CST_SCT3
 
 #include "int_vector.hpp"
+#include "suffix_tree_helper.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
 #include "lcp.hpp"
@@ -47,9 +48,6 @@ namespace sdsl
 // Declaration of the CST's node type
 template<class t_int = int_vector<>::size_type>
 struct bp_interval;
-
-template<class t_cst>
-class cst_node_child_proxy;
 
 //! A class for the Compressed Suffix Tree (CST) proposed by Ohlebusch and Gog.
 /*!
