@@ -46,13 +46,13 @@ fi
 
 # (2) Install divsufsort, gtest, and sdsl
 
-HEADER=include/sdsl/all_headers.hpp # Make a header-file that contains all other header-files
-echo "#ifndef INCLUDED_SDSL_ALL_HEADERS" > ${HEADER}
-echo "#define INCLUDED_SDSL_ALL_HEADERS" >> ${HEADER}
+HEADER=test/CompileTest.hpp # Make a header-file that contains all other header-files
+echo "#ifndef INCLUDED_SDSL_COMPILE_TEST" > ${HEADER}
+echo "#define INCLUDED_SDSL_COMPILE_TEST" >> ${HEADER}
 for HEADERFILE in include/sdsl/*.hpp
 do
     FILENAME=`basename ${HEADERFILE}`
-    echo "#include \"${FILENAME}\"" >> ${HEADER}
+    echo "#include \"sdsl/${FILENAME}\"" >> ${HEADER}
 done
 echo "#endif" >> ${HEADER}
 

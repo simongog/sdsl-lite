@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "sdsl/all_headers.hpp"
+#include "CompileTest.hpp"
 
 namespace
 {
