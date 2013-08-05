@@ -1,5 +1,6 @@
 include ../Make.helper
 CXX_FLAGS=$(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O3 -I$(INC_DIR) -L$(LIB_DIR)
+LIB_SDSL=$(LIB_DIR)/libsdsl.a
 CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest 
 TMP_DIR=tmp
 SOURCES=$(wildcard *Test.cpp)
@@ -53,6 +54,7 @@ TC_PATHS:= $(WT_BYTE_TC_PATHS) $(WT_INT_TC_PATHS) \
 
 test:	bits-test \
 	int-vector-test \
+	int-vector-buffer-test \
 	bit-vector-test \
 	rank-support-test\
 	select-support-test\
@@ -191,7 +193,7 @@ test_cases/bit-vec.%: BitVectorGenerator.x
 	@echo "Generate input test_cases/bit-vec.$*"
 	@./BitVectorGenerator.x $@ $*
 
-%.x:%.cpp 
+%.x:%.cpp $(LIB_SDSL)
 	$(MY_CXX) $(CXX_FLAGS) -o $@ $< $(CCLIB) 
 
 test_cases/%: 
