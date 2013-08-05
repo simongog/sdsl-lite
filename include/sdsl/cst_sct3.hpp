@@ -48,6 +48,9 @@ namespace sdsl
 template<class t_int = int_vector<>::size_type>
 struct bp_interval;
 
+template<class t_cst>
+class cst_node_child_proxy;
+
 //! A class for the Compressed Suffix Tree (CST) proposed by Ohlebusch and Gog.
 /*!
  * \tparam t_csa       Type of a CSA (member of this type is accessible via
