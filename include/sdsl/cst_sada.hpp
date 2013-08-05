@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_CST_SADA
 
 #include "int_vector.hpp"
+#include "suffix_tree_helper.hpp"
 #include "algorithms.hpp"
 #include "iterators.hpp"
 #include "lcp_support_sada.hpp"
