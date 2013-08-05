@@ -6,7 +6,7 @@
 #define INCLUDED_SDSL_TEMPLATE_CLASS // in this include guard
 
 #include "bit_vectors.hpp" // include your required sdsl header here
-#include <iostream>		  // then include other header, e.g. from the STL
+#include <iostream>        // then include other header, e.g. from the STL
 
 //! Namespace for the succinct data structure library
 namespace sdsl
@@ -30,7 +30,6 @@ class template_class
 {
     public:
         typedef bit_vector::size_type size_type; // put public typedefs here
-        typedef bit_vector_type
     private:
         size_type 		m_size; // member variables are prefixed with ``m_''
         bit_vector_type	m_data; // use descriptive names for the variables
@@ -55,7 +54,6 @@ class template_class
                 m_size = t.m_size;
                 m_data = t.m_data;
             }
-            return *this;
         }
 
         // You should implement the swap operator. It is used to swap two variables

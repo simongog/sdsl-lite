@@ -20,6 +20,8 @@ uint64_t sdsl::mm::m_granularity;
 uint64_t sdsl::mm::m_pre_rtime;
 uint64_t sdsl::mm::m_pre_max_mem;
 
+sdsl::util::spin_lock sdsl::mm::m_spinlock;
+
 sdsl::mm_initializer::mm_initializer()
 {
     if (0 == nifty_counter++) {
@@ -90,11 +92,13 @@ bool mm::unmap_hp()
 
 void mm::log_stream(std::ostream* out)
 {
+    std::lock_guard<util::spin_lock> lock(m_spinlock);
     m_out = out;
 }
 
 void mm::log_granularity(uint64_t granularity)
 {
+    std::lock_guard<util::spin_lock> lock(m_spinlock);
     m_granularity = granularity;
 }
 
