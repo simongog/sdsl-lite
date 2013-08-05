@@ -46,6 +46,16 @@ fi
 
 # (2) Install divsufsort, gtest, and sdsl
 
+HEADER=include/sdsl/all_headers.hpp # Make a header-file that contains all other header-files
+echo "#ifndef INCLUDED_SDSL_ALL_HEADERS" > ${HEADER}
+echo "#define INCLUDED_SDSL_ALL_HEADERS" >> ${HEADER}
+for HEADERFILE in include/sdsl/*.hpp
+do
+    FILENAME=`basename ${HEADERFILE}`
+    echo "#include \"${FILENAME}\"" >> ${HEADER}
+done
+echo "#endif" >> ${HEADER}
+
 cd build # change into the build directory
 if [ $? != 0 ]; then
 	exit 1

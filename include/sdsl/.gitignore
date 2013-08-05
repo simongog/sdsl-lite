@@ -4,3 +4,4 @@
 !.gitignore
 !*.hpp
 !*.cmake
+all_headers.hpp
