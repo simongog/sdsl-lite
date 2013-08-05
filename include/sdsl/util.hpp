@@ -25,7 +25,7 @@
 #include "typedefs.hpp"
 #include "sfstream.hpp"
 #include "ram_fs.hpp"
-#include "config.hpp"  // for constants 
+#include "config.hpp"  // for constants
 #include <iosfwd>      // forward declaration of ostream
 #include <stdint.h>    // for uint64_t uint32_t declaration
 #include <cassert>
@@ -45,6 +45,8 @@
 #include <numeric>
 #include <random>
 #include <chrono>
+#include <atomic>
+#include <mutex>
 
 // macros to transform a defined name to a string
 #define SDSL_STR(x) #x
@@ -367,6 +369,22 @@ class stop_watch
 
         uint64_t abs_page_faults();
 };
+
+class spin_lock
+{
+    private:
+        std::atomic_flag m_slock = ATOMIC_FLAG_INIT;
+    public:
+        void lock() {
+            while (m_slock.test_and_set(std::memory_order_acquire)) {
+                /* spin */
+            }
+        };
+        void unlock() {
+            m_slock.clear(std::memory_order_release);
+        };
+};
+
 
 } // end namespace util
 
