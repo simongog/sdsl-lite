@@ -20,7 +20,7 @@
 	\author Simon Gog
 */
 #ifndef INCLUDED_SDSL_SORTED_MULTI_STACK_SUPPORT
-#define INCLUDED_SDSL_SORTED_MUTLI_STACK_SUPPORT
+#define INCLUDED_SDSL_SORTED_MULTI_STACK_SUPPORT
 
 #include "int_vector.hpp"
 #include <vector>
