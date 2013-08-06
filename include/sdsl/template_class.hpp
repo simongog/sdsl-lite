@@ -65,7 +65,7 @@ class template_class
 
         // The serialize method writes the data structure into a stream ``out'' and returns
         // the number of written bytes.
-        void serialize(std::ostream& out)const {
+        size_type serialize(std::ostream& out)const {
             size_type written_bytes = 0;
             // variables of basic primitive types can be written using write_member
             written_bytes += write_member(m_size, out);

@@ -130,7 +130,7 @@ class wt_int_rlmn
          *	\par Time complexity
          *		\f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        wt_int_rlmn(const unsigned char* rac, size_type size):m_size(size), sigma(m_wt.sigma) {
+        wt_int_rlmn(const unsigned char*, size_type size):m_size(size), sigma(m_wt.sigma) {
             // TODO: Delegate this to the file_buffer constructor using a wrapper for the file_buffer
             std::cerr << "ERROR: Constructor of wt_int_rlmn not implemented yet!!!" << std::endl;
             throw std::logic_error("This constructor of wt_int_rlmn is not yet implemented!");
