@@ -46,11 +46,24 @@ fi
 
 # (2) Install divsufsort, gtest, and sdsl
 
+HEADER=test/CompileTest.hpp # Make a header-file that contains all other header-files
+echo "#ifndef INCLUDED_SDSL_COMPILE_TEST" > ${HEADER}
+echo "#define INCLUDED_SDSL_COMPILE_TEST" >> ${HEADER}
+for HEADERFILE in include/sdsl/*.hpp
+do
+    FILENAME=`basename ${HEADERFILE}`
+    echo "#include \"sdsl/${FILENAME}\"" >> ${HEADER}
+done
+echo "#endif" >> ${HEADER}
+
 cd build # change into the build directory
 if [ $? != 0 ]; then
 	exit 1
 fi
-rm -f CMakeCache.txt
+./clean.sh # clean-up build directory
+if [ $? != 0 ]; then
+	exit 1
+fi
 
 cmake -DCMAKE_INSTALL_PREFIX="${SDSL_INSTALL_PREFIX}" .. # run cmake 
 if [ $? != 0 ]; then
