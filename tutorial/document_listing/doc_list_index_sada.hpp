@@ -15,6 +15,7 @@
 #include <vector>
 #include <fstream>
 #include <list>
+#include <utility>
 
 using std::vector;
 
@@ -42,7 +43,7 @@ class doc_list_index_sada
         typedef t_doc_border_rank       doc_border_rank_type;
         typedef t_doc_border_select     doc_border_select_type;
         typedef int_vector<>::size_type size_type;
-        typedef std::list<size_type>    list_type;
+        typedef std::vector<std::pair<size_type,size_type>> list_type;
 
         class result : public list_type
         {
@@ -53,10 +54,7 @@ class doc_list_index_sada
                 size_type count() {
                     return m_ep-m_sp+1;
                 }
-                // Returns the number of documents that include the pattern
-                size_type doc_cnt() {
-                    return this->size();
-                }
+
                 // Constructors for an empty result and for a result in the interval [sp, ep]:
                 result() : m_sp(1), m_ep(0) {}
                 result(size_type sp, size_type ep) : m_sp(sp), m_ep(ep) {}
@@ -132,16 +130,16 @@ class doc_list_index_sada
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += write_member(m_doc_cnt, out, child, "m_doc_cnt");
-            written_bytes += m_full_csa.serialize(out, child, "m_full_csa");
+            written_bytes += write_member(m_doc_cnt, out, child, "doc_cnt");
+            written_bytes += m_full_csa.serialize(out, child, "full_csa");
 //            written_bytes += util::serialize_vector(m_csa_doc, out, child, "m_csa_doc");
-            written_bytes += serialize_vector(m_doc_isa, out, child, "m_doc_isa");
-            written_bytes += m_rminq.serialize(out, child, "m_rminq");
-            written_bytes += m_rmaxq.serialize(out, child, "m_rmaxq");
-            written_bytes += m_doc_border.serialize(out, child, "m_doc_border");
-            written_bytes += m_doc_border_rank.serialize(out, child, "m_doc_border_rank");
-            written_bytes += m_doc_border_select.serialize(out, child, "doc_border_select_type");
-            written_bytes += write_member(m_doc_max_len, out, child, "m_doc_max_len");
+            written_bytes += serialize_vector(m_doc_isa, out, child, "doc_isa");
+            written_bytes += m_rminq.serialize(out, child, "rminq");
+            written_bytes += m_rmaxq.serialize(out, child, "rmaxq");
+            written_bytes += m_doc_border.serialize(out, child, "doc_border");
+            written_bytes += m_doc_border_rank.serialize(out, child, "doc_border_rank");
+            written_bytes += m_doc_border_select.serialize(out, child, "doc_border_select");
+            written_bytes += write_member(m_doc_max_len, out, child, "doc_max_len");
             // helper bitvector m_doc_rmin_marked and m_doc_rmax_marked are not serialize
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
@@ -206,20 +204,19 @@ class doc_list_index_sada
             sort(suffixes.begin(), suffixes.end());
 
             for (size_type i=0; i < suffixes.size(); i+=2) {
-                size_type lex_smallest_suffix     = suffixes[i];
-                size_type lex_largest_suffix     = suffixes[i+1];
-                size_type doc                     = m_doc_border_rank(lex_smallest_suffix);
-                m_doc_rmin_marked[doc]          = 0;  // reset marking
-                m_doc_rmax_marked[doc]          = 0;
-                res.push_back(doc);  // add document id
+                size_type lex_smallest_suffix = suffixes[i];
+                size_type lex_largest_suffix  = suffixes[i+1];
+                size_type doc                 = m_doc_border_rank(lex_smallest_suffix);
+                m_doc_rmin_marked[doc]        = 0;  // reset marking
+                m_doc_rmax_marked[doc]        = 0;
 
                 if (lex_smallest_suffix == lex_largest_suffix) {  // if pattern occurs exactly once
-                    res.push_back(1);    // add the #occurrence
+                    res.push_back({doc,1});    // add the #occurrence
                 } else {
                     size_type doc_begin = doc ? m_doc_border_select(doc) : 0;
                     size_type doc_sp    = m_doc_isa[doc][ lex_smallest_suffix - doc_begin ];
                     size_type doc_ep    = m_doc_isa[doc][ lex_largest_suffix  - doc_begin ];
-                    res.push_back(doc_ep - doc_sp + 1);
+                    res.push_back({doc, doc_ep - doc_sp + 1});
                 }
             }
         }
