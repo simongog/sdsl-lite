@@ -59,7 +59,11 @@ int main(int argc, char* argv[])
             q_len = query.size();
         }
         ++q_cnt;
-        sum += idx.search(query.begin(), query.end(), res);
+        sum += idx.search(query.begin(), query.end(), res, 10);
     }
-    cout << "sum = " << sum << endl;
+    auto stop = timer::now();
+    auto elapsed = stop-start;
+    std::cout<<q_len<<" "<<std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count()/q_cnt << std::endl;
+
+    cerr << "sum = " << sum << endl;
 }
