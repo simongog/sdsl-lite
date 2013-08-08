@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
     }
     string collection_file = string(argv[1]);
     idx_type idx;
-    string idx_file = collection_file+".greedy-idx";
+    string idx_file = collection_file+".qprobing-idx";
 
 
     using timer = std::chrono::high_resolution_clock;
@@ -42,6 +42,7 @@ int main(int argc, char* argv[])
     size_t q_len = 0;
     size_t q_cnt = 0;
     size_t sum = 0;
+    size_t sum_fdt = 0;
     auto start = timer::now();
     while (cin.getline(buffer, 64)) {
         typename idx_type::result res;
@@ -60,10 +61,11 @@ int main(int argc, char* argv[])
         }
         ++q_cnt;
         sum += idx.search(query.begin(), query.end(), res, 10);
+        for (auto& r : res) sum_fdt += r.second;
     }
     auto stop = timer::now();
     auto elapsed = stop-start;
     std::cout<<q_len<<" "<<std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()/q_cnt << std::endl;
 
-    cerr << "sum = " << sum << endl;
+    cerr << "sum = " << sum << " sum f_dt = " << sum_fdt << endl;
 }
