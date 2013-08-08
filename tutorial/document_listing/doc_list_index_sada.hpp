@@ -198,7 +198,9 @@ class doc_list_index_sada
                 res = result(sp, ep);
                 compute_tf_idf(sp, ep, res);
                 size_t kprime = std::min(res.size(), k);
-                partial_sort(res.begin(), res.begin()+kprime, res.end());
+                auto comp = [](std::pair<size_type,size_type>& a,std::pair<size_type,size_type>& b)
+                { return a.second > b.second; };
+                partial_sort(res.begin(),res.begin()+kprime, res.end(),comp);
                 res.resize(kprime);
                 return ep-sp+1;
             }
@@ -219,12 +221,12 @@ class doc_list_index_sada
                 m_doc_rmax_marked[doc]        = 0;
 
                 if (lex_smallest_suffix == lex_largest_suffix) {  // if pattern occurs exactly once
-                    res.push_back({doc,1});    // add the #occurrence
+                    res.push_back( {doc,1});   // add the #occurrence
                 } else {
                     size_type doc_begin = doc ? m_doc_border_select(doc) : 0;
                     size_type doc_sp    = m_doc_isa[doc][ lex_smallest_suffix - doc_begin ];
                     size_type doc_ep    = m_doc_isa[doc][ lex_largest_suffix  - doc_begin ];
-                    res.push_back({doc, doc_ep - doc_sp + 1});
+                    res.push_back( {doc, doc_ep - doc_sp + 1});
                 }
             }
         }
