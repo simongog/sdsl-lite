@@ -498,7 +498,7 @@ class wt_int
          *  \param quantile 'quantile' smallest symbol (starts with 0)
          */
         std::pair<value_type,size_type>
-        quantile_freq(size_type lb, size_type rb,size_type quantile) {
+        quantile_freq(size_type lb, size_type rb,size_type quantile) const {
 
             size_type  offset = 0;
             value_type sym = 0;
