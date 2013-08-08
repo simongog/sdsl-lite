@@ -45,6 +45,8 @@ class doc_list_index_sada
         typedef int_vector<>::size_type size_type;
         typedef std::vector<std::pair<size_type,size_type>> list_type;
 
+        enum { WIDTH = t_csa_full::alphabet_category::WIDTH };
+
         class result : public list_type
         {
             private:
@@ -93,16 +95,14 @@ class doc_list_index_sada
         doc_list_index_sada(std::string file_name, uint8_t num_bytes) {
             sdsl::cache_config cconfig(false, ".", util::basename(file_name));
             construct(m_full_csa, file_name, cconfig, num_bytes);
-            std::cerr<<"full_csa constructed; size "<<m_full_csa.size()<<std::endl;
 
-            const char* KEY_TEXT = key_text_trait<t_csa_full::alphabet_category::WIDTH>::KEY_TEXT;
+            const char* KEY_TEXT = key_text_trait<WIDTH>::KEY_TEXT;
             std::string text_file = cache_file_name(KEY_TEXT, cconfig);
 
             construct_doc_border(text_file, m_doc_border, m_doc_max_len);
             m_doc_border_rank   = doc_border_rank_type(&m_doc_border);
             m_doc_border_select = doc_border_select_type(&m_doc_border);
             m_doc_cnt = m_doc_border_rank(m_doc_border.size());
-            std::cerr<<"doc_border constructed; doc_cnt "<<m_doc_cnt<<std::endl;
 
             construct_doc_isa(text_file, m_doc_cnt, m_doc_max_len, m_doc_isa);
 
@@ -184,7 +184,12 @@ class doc_list_index_sada
             }
         }
 
-        size_type search(std::string::iterator begin, std::string::iterator end, result& res) const {
+        //! Search for the k documents which contains the search term most frequent
+        size_t
+        search(std::string::iterator begin,
+               std::string::iterator end,
+               result& res,
+               size_t k) const {
             size_type sp=1, ep=0;
             if (0 == backward_search(m_full_csa, 0, m_full_csa.size()-1, begin, end, sp, ep)) {
                 res = result();
@@ -192,6 +197,9 @@ class doc_list_index_sada
             } else {
                 res = result(sp, ep);
                 compute_tf_idf(sp, ep, res);
+                size_t kprime = std::min(res.size(), k);
+                partial_sort(res.begin(), res.begin()+kprime, res.end());
+                res.resize(kprime);
                 return ep-sp+1;
             }
         }
