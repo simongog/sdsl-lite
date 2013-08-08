@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
             } else {
                 auto stop = timer::now();
                 auto elapsed = stop-start;
-                std::cout<<q_len<<" "<<std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count()/q_cnt << std::endl;
+                std::cout<<q_len<<" "<<std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()/q_cnt << std::endl;
                 start = timer::now();
                 q_cnt = 0;
             }
@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
     }
     auto stop = timer::now();
     auto elapsed = stop-start;
-    std::cout<<q_len<<" "<<std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count()/q_cnt << std::endl;
+    std::cout<<q_len<<" "<<std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()/q_cnt << std::endl;
 
     cerr << "sum = " << sum << endl;
 }
