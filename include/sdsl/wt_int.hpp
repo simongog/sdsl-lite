@@ -581,7 +581,7 @@ class wt_int
         };
 
         std::vector< std::pair<value_type,size_type> >
-        topk_greedy(size_type lb, size_type rb,size_type k) const {
+        topk_greedy(size_type lb, size_type rb,size_type k) {
 
             std::vector< std::pair<value_type,size_type> > results;
             std::priority_queue<topk_greedy_range_t> heap;
@@ -660,7 +660,7 @@ class wt_int
          *  \returns the top-k items in ascending order.
          */
         std::vector< std::pair<value_type,size_type> >
-        topk_qprobing(size_type lb, size_type rb,size_type k) const {
+        topk_qprobing(size_type lb, size_type rb,size_type k) {
             using p_t = std::pair<value_type,size_type>;
             std::vector<p_t> results;
             auto comp = [](p_t& a,p_t& b) { return a.second > b.second; };
@@ -756,7 +756,7 @@ class wt_int
 
 
         std::vector< std::pair<value_type,size_type> >
-        intersect(std::vector< std::pair<size_type,size_type> >& ranges, size_type threshold=0) const {
+        intersect(std::vector< std::pair<size_type,size_type> >& ranges, size_type threshold=0) {
             using p_t = std::pair<value_type,size_type>;
             std::vector<p_t> results;
 
