@@ -1,11 +1,12 @@
-#include "doc_list_index_sada.hpp"
+#include "doc_list_index.hpp"
 #include <iostream>
 #include <chrono>
+#include <algorithm>
 
 using namespace std;
 using namespace sdsl;
 
-using idx_type = doc_list_index_sada<>;
+using idx_type = IDX_TYPE;
 
 int main(int argc, char* argv[])
 {
@@ -15,7 +16,8 @@ int main(int argc, char* argv[])
     }
     string collection_file = string(argv[1]);
     idx_type idx;
-    string idx_file = collection_file+".sada-idx";
+    string idx_file = collection_file + SDSL_XSTR(IDX_SUF);
+    cout<<"idx_file="<<idx_file<<endl;
 
 
     using timer = std::chrono::high_resolution_clock;
@@ -53,15 +55,26 @@ int main(int argc, char* argv[])
             } else {
                 auto stop = timer::now();
                 auto elapsed = stop-start;
-                std::cout<<q_len<<" "<<std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()/q_cnt << std::endl;
+                cout<<q_len<<" "
+                    <<std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()/q_cnt << endl;
+
+
                 start = timer::now();
                 q_cnt = 0;
             }
             q_len = query.size();
         }
         ++q_cnt;
-        sum += idx.search(query.begin(), query.end(), res, 10);
-        for (auto& r : res) sum_fdt += r.second;
+        size_t x = idx.search(query.begin(), query.end(), res, 10);
+        sum += x;
+        for (auto& r : res) {
+            sum_fdt += r.second;
+//            cout << " " << r.first << " " << r.second << endl;
+        }
+//        if (res.size()==0){
+//            cout<<" empty"<<endl;
+//        }
+//        cout << " (" << x << ")"<< endl;
     }
     auto stop = timer::now();
     auto elapsed = stop-start;
