@@ -1,10 +1,10 @@
-/*! How to code a parametrizable document listing data structure
- *
- * This file contains a document listing class implemented as
- * suggested in Kunihiko Sadakane's article:
- * ,,Succinct Data Structures for Flexible Text Retrieval Systems''
- * Journal of Discrete Algorithms, 2007.
- *
+/*!
+ * This file contains a document listing class, which implements
+ * strategy GREEDY in the article:
+ * J. S. Culpepperi, G. Navarro, S. J. Puglisi and A. Turpin:
+ * ,,Top-k Ranked Document Search in General Text Databases''
+ * Proceedings Part II of the 18th Annual European Symposium on
+ * Algorithms (ESA 2010)
  */
 #ifndef DOCUMENT_LISING_GREEDY_INCLUDED
 #define DOCUMENT_LISING_GREEDY_INCLUDED
@@ -24,8 +24,8 @@ namespace sdsl
 
 template<
 class t_csa          = csa_wt<wt_huff<rrr_vector<63>>, 1000000, 1000000>,
-      class t_wtd          = wt_int<bit_vector,rank_support_v5<1>,select_support_scan<1>,select_support_scan<0>>,
-      typename t_csa::char_type = 1
+      class t_wtd    = wt_int<bit_vector,rank_support_v5<1>,select_support_scan<1>,select_support_scan<0>>,
+      typename t_csa::char_type t_doc_delim = 1
       >
 class doc_list_index_greedy
 {
@@ -62,10 +62,8 @@ class doc_list_index_greedy
 
         };
 
-
-    private:
+    protected:
         size_type                   m_doc_cnt;              // number of documents in the collection
-        static const unsigned char  m_doc_delimiter = '\1'; // separator symbol between documents in the collection text
         csa_type                    m_csa;                  // CSA built from the collection text
         wtd_type                    m_wtd;                  // wtd build from the collection text
     public:
@@ -76,7 +74,6 @@ class doc_list_index_greedy
         doc_list_index_greedy(std::string file_name, uint8_t num_bytes) {
             sdsl::cache_config cconfig(false, ".", util::basename(file_name));
             construct(m_csa, file_name, cconfig, num_bytes);
-            std::cerr<<"csa constructed; size "<<m_csa.size()<<std::endl;
 
             const char* KEY_TEXT = key_text_trait<WIDTH>::KEY_TEXT;
             std::string text_file = cache_file_name(KEY_TEXT, cconfig);
@@ -136,9 +133,9 @@ class doc_list_index_greedy
         void
         construct_doc_border(const std::string& text_file, bit_vector& doc_border) {
             int_vector_buffer<8> text_buf(text_file);
-            doc_border.resize(text_buf.size());
+            doc_border = bit_vector(text_buf.size(), 0);
             for (size_type i = 0; i < text_buf.size(); ++i) {
-                if (m_doc_delimiter == text_buf[i]) {
+                if (t_doc_delim == text_buf[i]) {
                     doc_border[i] = 1;
                 }
             }
@@ -151,7 +148,7 @@ class doc_list_index_greedy
                           int_vector<>& D) {
             D = int_vector<>(sa_buf.size(), 0, bits::hi(doc_cnt+1)+1);
             for (size_type i = 0; i < sa_buf.size(); ++i) {
-                D[i] = doc_border_rank(sa_buf[i]);
+                D[i] = doc_border_rank(sa_buf[i]+1);
             }
         }
 };

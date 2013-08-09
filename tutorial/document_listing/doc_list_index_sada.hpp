@@ -30,7 +30,7 @@ class t_csa_full          = csa_wt<wt_huff<rrr_vector<63>>, 30, 1000000, text_or
       class t_doc_border        = sd_vector<>,
       class t_doc_border_rank   = typename t_doc_border::rank_1_type,
       class t_doc_border_select = typename t_doc_border::select_1_type,
-      typename t_csa_full::char_type = 1
+      typename t_csa_full::char_type t_doc_delim = 1
       >
 class doc_list_index_sada
 {
@@ -74,7 +74,6 @@ class doc_list_index_sada
 
     private:
         size_type                   m_doc_cnt;              // number of documents in the collection
-        static const unsigned char  m_doc_delimiter = '\1'; // separator symbol between documents in the collection text
         csa_full_type                m_full_csa;            // CSA build from the collection text
 //        vector<csa_doc_type>        m_csa_doc;            // array of CSAs. m_csa_doc[i] contains the CSA of document i
         vector<int_vector<> >       m_doc_isa;              // array of inverse SAs. m_doc_isa[i] contains the ISA of document i
@@ -198,9 +197,12 @@ class doc_list_index_sada
                 res = result(sp, ep);
                 compute_tf_idf(sp, ep, res);
                 size_t kprime = std::min(res.size(), k);
-                auto comp = [](std::pair<size_type,size_type>& a,std::pair<size_type,size_type>& b)
-                { return a.second > b.second; };
-                partial_sort(res.begin(),res.begin()+kprime, res.end(),comp);
+                auto comp = [](std::pair<size_type,size_type>& a,std::pair<size_type,size_type>& b) {
+                    if (a.second != b.second)
+                        return a.second > b.second;
+                    return a.first < b.first;
+                };
+                partial_sort(res.begin(),res.begin()+kprime, res.end(), comp);
                 res.resize(kprime);
                 return ep-sp+1;
             }
@@ -214,19 +216,22 @@ class doc_list_index_sada
             sort(suffixes.begin(), suffixes.end());
 
             for (size_type i=0; i < suffixes.size(); i+=2) {
-                size_type lex_smallest_suffix = suffixes[i];
-                size_type lex_largest_suffix  = suffixes[i+1];
-                size_type doc                 = m_doc_border_rank(lex_smallest_suffix);
-                m_doc_rmin_marked[doc]        = 0;  // reset marking
-                m_doc_rmax_marked[doc]        = 0;
+                size_type suffix_1 = suffixes[i];
+                size_type suffix_2 = suffixes[i+1];
+                size_type doc                 = m_doc_border_rank(suffix_1+1);
+                m_doc_rmin_marked[doc]        = 0;  // reset marking, which was set in get_lex_smallest_suffixes
+                m_doc_rmax_marked[doc]        = 0;  //                                 get_lex_largest_suffixes
 
-                if (lex_smallest_suffix == lex_largest_suffix) {  // if pattern occurs exactly once
-                    res.push_back( {doc,1});   // add the #occurrence
+                if (suffix_1 == suffix_2) {  // if pattern occurs exactly once
+                    res.push_back({doc,1});  // add the #occurrence
                 } else {
-                    size_type doc_begin = doc ? m_doc_border_select(doc) : 0;
-                    size_type doc_sp    = m_doc_isa[doc][ lex_smallest_suffix - doc_begin ];
-                    size_type doc_ep    = m_doc_isa[doc][ lex_largest_suffix  - doc_begin ];
-                    res.push_back( {doc, doc_ep - doc_sp + 1});
+                    size_type doc_begin = doc ? m_doc_border_select(doc) + 1 : 0;
+                    size_type doc_sp    = m_doc_isa[doc][ suffix_1 - doc_begin ];
+                    size_type doc_ep    = m_doc_isa[doc][ suffix_2 - doc_begin ];
+                    if (doc_sp > doc_ep) {
+                        std::swap(doc_sp, doc_ep);
+                    }
+                    res.push_back({doc, doc_ep - doc_sp + 1});
                 }
             }
         }
@@ -236,7 +241,7 @@ class doc_list_index_sada
                 return;
             size_type min_idx = m_rminq(sp, ep);
             size_type suffix  = m_full_csa[min_idx];
-            size_type doc     = m_doc_border_rank(suffix);
+            size_type doc     = m_doc_border_rank(suffix+1);
 
             if (!m_doc_rmin_marked[doc]) {
                 suffixes.push_back(suffix);
@@ -251,7 +256,7 @@ class doc_list_index_sada
                 return;
             size_type max_idx = m_rmaxq(sp, ep);
             size_type suffix  = m_full_csa[max_idx];
-            size_type doc     = m_doc_border_rank(suffix);
+            size_type doc     = m_doc_border_rank(suffix+1);
 
             if (!m_doc_rmax_marked[doc]) {
                 suffixes.push_back(suffix);
@@ -273,7 +278,7 @@ class doc_list_index_sada
             doc_max_len = 0;
             size_type len = 0;
             for (size_type i = 0; i < text_buf.size(); ++i) {
-                if (m_doc_delimiter == text_buf[i]) {
+                if (t_doc_delim == text_buf[i]) {
                     tmp_doc_border[i] = 1;
                     doc_max_len = std::max(doc_max_len, len);
                     len = 0;
@@ -295,7 +300,7 @@ class doc_list_index_sada
             size_type len = 0;
             size_type doc_id = 0;
             for (size_type i = 0; i < text_buf.size(); ++i) {
-                if (m_doc_delimiter == text_buf[i]) {
+                if (t_doc_delim == text_buf[i]) {
                     if (len > 0) {
                         doc_buffer[len] = 0;
                         construct_doc_isa(doc_buffer, len+1, doc_isa[doc_id]);
@@ -327,7 +332,7 @@ class doc_list_index_sada
                           int_vector<>& D) {
             D = int_vector<>(sa_buf.size(), 0, bits::hi(doc_cnt+1)+1);
             for (size_type i = 0; i < sa_buf.size(); ++i) {
-                D[i] = doc_border_rank(sa_buf[i]);
+                D[i] = doc_border_rank(sa_buf[i]+1);
             }
         }
 

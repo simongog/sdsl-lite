@@ -568,7 +568,9 @@ class wt_int
         {
             public:
                 bool operator<(const topk_greedy_range_t& r) const {
-                    return ((rb-lb+1) < (r.rb-r.lb+1));
+                    if ((rb-lb+1) != (r.rb-r.lb+1))
+                        return ((rb-lb+1) < (r.rb-r.lb+1));
+                    return sym > r.sym;
                 }
             public:
                 value_type sym = 0;
@@ -580,6 +582,13 @@ class wt_int
                 size_type freq = 0;
         };
 
+        //! Returns the top k most frequent documents in T[lb..rb]
+        /*!
+         *  \param lb left array bound in T
+         *  \param rb right array bound in T
+         *  \param k the number of documents to return
+         *  \returns the top-k items in ascending order.
+         */
         std::vector< std::pair<value_type,size_type> >
         topk_greedy(size_type lb, size_type rb,size_type k) const {
 
@@ -610,8 +619,7 @@ class wt_int
                 size_type ones_before_end = m_tree_rank(r.offset + r.node_size) - ones_before_offset;
 
                 /* number of 1s before T[l..r] */
-                size_type rank_before_left = 0;
-                if (r.offset+r.lb>0) rank_before_left = m_tree_rank(r.offset + r.lb);
+                size_type rank_before_left = m_tree_rank(r.offset + r.lb);
 
                 /* number of 1s before T[r] */
                 size_type rank_before_right   = m_tree_rank(r.offset + r.rb + 1);
