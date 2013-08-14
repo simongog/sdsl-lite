@@ -382,7 +382,7 @@ inline uint32_t bits::hi(uint64_t x)
         return 0;
     return 63 - __builtin_clzll(x);
 #else
-    register uint64_t t,tt; // temporaries
+    uint64_t t,tt; // temporaries
     if ((tt = x >> 32)) { // hi >= 32
         if ((t = tt >> 16)) { // hi >= 48
             return (tt = t >> 8) ? 56 + lt_hi[tt] : 48 + lt_hi[t];
@@ -516,7 +516,7 @@ inline uint64_t bits::read_int_and_move(const uint64_t*& word, uint8_t& offset, 
 
 inline uint64_t bits::read_unary(const uint64_t* word, uint8_t offset)
 {
-    register uint64_t w = *word >> offset;
+    uint64_t w = *word >> offset;
     if (w) {
         return bits::lo(w);
     } else {
@@ -532,7 +532,7 @@ inline uint64_t bits::read_unary(const uint64_t* word, uint8_t offset)
 
 inline uint64_t bits::read_unary_and_move(const uint64_t*& word, uint8_t& offset)
 {
-    register uint64_t w = (*word) >> offset; // temporary variable is good for the performance
+    uint64_t w = (*word) >> offset; // temporary variable is good for the performance
     if (w) {
         uint8_t r = bits::lo(w);
         offset = (offset + r+1)&0x3F;
