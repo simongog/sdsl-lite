@@ -137,6 +137,23 @@ TYPED_TEST(CsaByteTest, BwtAccess)
     }
 }
 
+TYPED_TEST(CsaByteTest, FAccess)
+{
+    if (test_case_file_map.find(constants::KEY_TEXT) != test_case_file_map.end()) {
+        TypeParam csa;
+        ASSERT_EQ(true, load_from_file(csa, temp_file));
+        int_vector<8> text;
+        load_from_file(text, test_case_file_map[constants::KEY_TEXT]);
+        std::sort(begin(text),end(text));
+        size_type n = text.size();
+        ASSERT_EQ(n, csa.size());
+        for (size_type j=0; j<n; j+=200) {
+            ASSERT_EQ(text[j], csa.F[j])<<" j="<<j;
+        }
+    }
+}
+
+
 //! Test Psi access methods
 TYPED_TEST(CsaByteTest, PsiAccess)
 {
