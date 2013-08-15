@@ -84,6 +84,7 @@ class csa_wt
         typedef ptrdiff_t                                                      difference_type;
         typedef psi_of_csa_wt<csa_wt>                                          psi_type;
         typedef bwt_of_csa_wt<csa_wt>                                          bwt_type;
+        typedef first_row_of_csa<csa_wt>                                       first_row_type;
         typedef text_of_csa<csa_wt>                                            text_type;
         typedef t_wt                                                           wavelet_tree_type;
         typedef typename t_sa_sample_strat::template type<csa_wt>::sample_type sa_sample_type;
@@ -122,6 +123,8 @@ class csa_wt
         const psi_type                                psi          = psi_type(this);
         const bwt_type                                bwt          = bwt_type(this);
         const text_type                               text         = text_type(this);
+        const first_row_type                          F            = first_row_type(this);
+        const bwt_type                                L            = bwt_type(this);
         const sa_sample_type&                         sa_sample    = m_sa_sample;
         const isa_sample_type&                        isa_sample   = m_isa_sample;
         const wavelet_tree_type&                      wavelet_tree = m_wavelet_tree;
