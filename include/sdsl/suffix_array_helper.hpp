@@ -471,6 +471,50 @@ class bwt_of_csa_wt
 };
 
 
+template<class t_csa>
+class first_row_of_csa
+{
+    public:
+        typedef const typename t_csa::char_type value_type;
+        typedef typename t_csa::size_type size_type;
+        typedef typename t_csa::difference_type difference_type;
+        typedef random_access_const_iterator<first_row_of_csa> const_iterator;// STL Container requirement
+    private:
+        const t_csa* m_csa;     //<- pointer to the (compressed) suffix array that is based on a wavelet tree
+        first_row_of_csa() {};    // disable default constructor
+    public:
+        //! Constructor
+        first_row_of_csa(t_csa* csa) {
+            m_csa = csa;
+        }
+        //! Calculate F[i]
+        /*! \param i The index for which the \f$\F\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
+         *  \par Time complexity
+         *      \f$ \Order{\log |\Sigma|} \f$
+         */
+        value_type operator[](size_type i)const {
+            assert(m_csa != nullptr);
+            assert(i < size());
+            return first_row_symbol(i, *m_csa);
+        }
+        //! Returns the size of the F column.
+        size_type size()const {
+            return m_csa->size();
+        }
+        //! Returns if the F column is empty.
+        size_type empty()const {
+            return m_csa->empty();
+        }
+        //! Returns a const_iterator to the first element.
+        const_iterator begin()const {
+            return const_iterator(this, 0);
+        }
+        //! Returns a const_iterator to the element after the last element.
+        const_iterator end()const {
+            return const_iterator(this, size());
+        }
+};
+
 
 template<class t_csa>
 class text_of_csa
