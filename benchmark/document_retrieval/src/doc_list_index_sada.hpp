@@ -16,6 +16,7 @@
 #include <fstream>
 #include <list>
 #include <utility>
+#include "doc_list_index.hpp"
 
 using std::vector;
 
@@ -35,15 +36,15 @@ class t_csa_full          = csa_wt<wt_huff<rrr_vector<63>>, 30, 1000000, text_or
 class doc_list_index_sada
 {
     public:
-        typedef t_csa_full              csa_full_type;
-//        typedef t_csa_doc               csa_doc_type;
-        typedef t_range_min             range_min_type;
-        typedef t_range_max             range_max_type;
-        typedef t_doc_border            doc_border_type;
-        typedef t_doc_border_rank       doc_border_rank_type;
-        typedef t_doc_border_select     doc_border_select_type;
-        typedef int_vector<>::size_type size_type;
+        typedef t_csa_full                                  csa_full_type;
+        typedef t_range_min                                 range_min_type;
+        typedef t_range_max                                 range_max_type;
+        typedef t_doc_border                                doc_border_type;
+        typedef t_doc_border_rank                           doc_border_rank_type;
+        typedef t_doc_border_select                         doc_border_select_type;
+        typedef int_vector<>::size_type                     size_type;
         typedef std::vector<std::pair<size_type,size_type>> list_type;
+        typedef doc_list_tag                                index_category;
 
         enum { WIDTH = t_csa_full::alphabet_category::WIDTH };
 
@@ -75,7 +76,6 @@ class doc_list_index_sada
     private:
         size_type                   m_doc_cnt;              // number of documents in the collection
         csa_full_type                m_full_csa;            // CSA build from the collection text
-//        vector<csa_doc_type>        m_csa_doc;            // array of CSAs. m_csa_doc[i] contains the CSA of document i
         vector<int_vector<> >       m_doc_isa;              // array of inverse SAs. m_doc_isa[i] contains the ISA of document i
         range_min_type              m_rminq;                // range minimum data structure build over an array Cprev
         range_max_type              m_rmaxq;                // range maximum data structure build over an array Cnext
@@ -91,8 +91,7 @@ class doc_list_index_sada
         //! Default constructor
         doc_list_index_sada() { }
 
-        doc_list_index_sada(std::string file_name, uint8_t num_bytes) {
-            sdsl::cache_config cconfig(false, ".", util::basename(file_name));
+        doc_list_index_sada(std::string file_name, sdsl::cache_config& cconfig, uint8_t num_bytes) {
             construct(m_full_csa, file_name, cconfig, num_bytes);
 
             const char* KEY_TEXT = key_text_trait<WIDTH>::KEY_TEXT;
@@ -147,8 +146,6 @@ class doc_list_index_sada
         void load(std::istream& in) {
             read_member(m_doc_cnt, in);
             m_full_csa.load(in);
-//            m_csa_doc.resize( m_doc_cnt );
-//            util::load_vector(m_csa_doc, in);
             m_doc_isa.resize(m_doc_cnt);
             load_vector(m_doc_isa, in);
             m_rminq.load(in);
@@ -168,7 +165,6 @@ class doc_list_index_sada
             if (this != &dr) {
                 std::swap(m_doc_cnt, dr.m_doc_cnt);
                 m_full_csa.swap(dr.m_full_csa);
-//                m_csa_doc.swap(dr.m_csa_doc);
                 m_doc_isa.swap(dr.m_doc_isa);
                 m_rminq.swap(dr.m_rminq);
                 m_rmaxq.swap(dr.m_rmaxq);
@@ -198,9 +194,7 @@ class doc_list_index_sada
                 compute_tf_idf(sp, ep, res);
                 size_t kprime = std::min(res.size(), k);
                 auto comp = [](std::pair<size_type,size_type>& a,std::pair<size_type,size_type>& b) {
-                    if (a.second != b.second)
-                        return a.second > b.second;
-                    return a.first < b.first;
+                    return (a.second != b.second) ? a.second > b.second  : a.first < b.first;
                 };
                 partial_sort(res.begin(),res.begin()+kprime, res.end(), comp);
                 res.resize(kprime);

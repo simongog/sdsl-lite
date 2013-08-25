@@ -1,0 +1,29 @@
+\documentclass[9pt,a4paper]{scrartcl}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{ragged2e}
+\usepackage{tikz}
+
+\begin{document}
+\pagestyle{empty}
+
+\begin{figure}
+\input{fig-runtime.tex}
+\caption{Average query time to find the top-$10$ documents (TFxIDF measure)
+for different pattern length. For each query length, $200$ pattern were
+queried.}
+\end{figure}
+
+\begin{table}
+\centering
+\input{tbl-indexes.tex}
+\caption{Class definition of the indexes used in the experiment.}
+\end{table}
+
+\begin{table}
+\centering
+\input{tbl-sizes.tex}
+\caption{Size of the indexes.}
+\end{table}
+
+\end{document}

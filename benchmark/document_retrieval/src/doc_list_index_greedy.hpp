@@ -16,6 +16,7 @@
 #include <fstream>
 #include <list>
 #include <utility>
+#include "doc_list_index.hpp"
 
 using std::vector;
 
@@ -30,10 +31,11 @@ class t_csa          = csa_wt<wt_huff<rrr_vector<63>>, 1000000, 1000000>,
 class doc_list_index_greedy
 {
     public:
-        typedef t_csa              csa_type;
-        typedef t_wtd              wtd_type;
-        typedef int_vector<>::size_type size_type;
+        typedef t_csa                                       csa_type;
+        typedef t_wtd                                       wtd_type;
+        typedef int_vector<>::size_type                     size_type;
         typedef std::vector<std::pair<size_type,size_type>> list_type;
+        typedef doc_list_tag                                index_category;
 
         enum { WIDTH = t_csa::alphabet_category::WIDTH };
 
@@ -71,8 +73,7 @@ class doc_list_index_greedy
         //! Default constructor
         doc_list_index_greedy() { }
 
-        doc_list_index_greedy(std::string file_name, uint8_t num_bytes) {
-            sdsl::cache_config cconfig(false, ".", util::basename(file_name));
+        doc_list_index_greedy(std::string file_name, sdsl::cache_config& cconfig, uint8_t num_bytes) {
             construct(m_csa, file_name, cconfig, num_bytes);
 
             const char* KEY_TEXT = key_text_trait<WIDTH>::KEY_TEXT;
