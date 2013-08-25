@@ -154,9 +154,14 @@ multi_figure_style <- function(nrows, ncols){
 # Draw the heading of diagrams
 # text  Text which should be displayed in the heading
 draw_figure_heading <- function(text){
-    rect(xleft=par("usr")[1], xright=par("usr")[2], ybottom=par("usr")[4], ytop=par("usr")[4]*1.1 ,xpd=NA,
+    # scale Y
+    SY <- function(val){ if( par("ylog") ){ 10^val } else { val } }
+    SX <- function(val){ if( par("xlog") ){ 10^val } else { val } }
+
+    rect(xleft=SX(par("usr")[1]), xright=SX(par("usr")[2]), 
+         ybottom=SY(par("usr")[4]), ytop=SY(par("usr")[4]*1.1) ,xpd=NA,
          col="grey80", border="grey80" )
-    text(labels=text,y=par("usr")[4]*1.02, adj=c(0.5, 0),x=(par("usr")[1]+par("usr")[2])/2,xpd=NA,cex=1.4)
+    text(labels=text,y=SY(par("usr")[4]*1.02), adj=c(0.5, 0),x=SX((par("usr")[1]+par("usr")[2])/2),xpd=NA,cex=1.4)
 }
 
 print_info <- function(){
