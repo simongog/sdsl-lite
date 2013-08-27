@@ -14,7 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file algorithms_for_balanced_parentheses.hpp
+/*! \file bp_support_algorithm.hpp
     \brief bp_support_algorithm.hpp contains algorithms for balanced parentheses sequences.
 	\author Simon Gog
 */
