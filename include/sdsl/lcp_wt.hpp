@@ -24,7 +24,6 @@
 #include "lcp.hpp"
 #include "wt_huff.hpp"
 #include "int_vector.hpp"
-#include "algorithms.hpp"
 #include "iterators.hpp"
 #include "select_support_bs.hpp"
 #include "util.hpp"
