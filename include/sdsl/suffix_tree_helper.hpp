@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <cstdlib>
 #include <cassert>
+#include <stack>
+#include "sorted_multi_stack_support.hpp"
+#include "sorted_stack_support.hpp"
 #include "iterators.hpp"
 
 namespace sdsl

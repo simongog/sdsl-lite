@@ -24,7 +24,6 @@
 #include <stdint.h>
 #include <cstdlib>
 #include <cassert>
-#include "algorithms_for_compressed_suffix_arrays.hpp"
 #include "iterators.hpp"
 
 namespace sdsl

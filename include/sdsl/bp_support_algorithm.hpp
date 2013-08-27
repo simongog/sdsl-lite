@@ -30,9 +30,6 @@
 namespace sdsl
 {
 
-namespace algorithm
-{
-
 //! Calculate pioneers as defined in the paper of Geary et al. (CPM 2004)
 /*! \param bp The balanced parentheses sequence for that the pioneers should be calculated.
  *  \param block_size Size of the blocks for which the pioneers should be calculated.
@@ -1500,9 +1497,6 @@ inline bit_vector::size_type near_rmq_open_naive(const bit_vector& bp, const bit
         return result;
     return end;
 }
-
-
-}// end namespace algorithm
 
 }// end namespace sdsl
 
