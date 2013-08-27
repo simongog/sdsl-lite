@@ -3,9 +3,9 @@
 
 #include "lcp.hpp"
 #include "util.hpp"
-#include "algorithms_for_compressed_suffix_trees.hpp"
 #include "rank_support_v.hpp"
 #include "wt_huff.hpp"
+#include "sorted_multi_stack_support.hpp"
 #include <iostream>
 #include <string>
 
