@@ -23,7 +23,6 @@
 
 #include "int_vector.hpp"	// for bit_vector and int_vector
 #include "util.hpp"			// for 
-#include "algorithms.hpp"	// for backward_search
 #include <cstdlib>			// for rand 
 #include <algorithm>		// for swap
 #include <vector>			// for std::vector	
@@ -422,7 +421,7 @@ void test_cst_matching_statistics(const t_cst& cst, unsigned char* S2, uint64_t 
     while (p2+1 > 0) {
         uint64_t lb, rb;
         // perform backward search on interval \f$ [i,j] \f$
-        uint64_t size = algorithm::backward_search(cst.csa, i, j, S2[p2], lb, rb);
+        uint64_t size = backward_search(cst.csa, i, j, S2[p2], lb, rb);
         if (size > 0) {
             q = q + 1;
             i = lb; j = rb;

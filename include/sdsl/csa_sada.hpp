@@ -23,7 +23,6 @@
 
 #include "enc_vector.hpp"
 #include "int_vector.hpp"
-#include "algorithms.hpp"
 #include "iterators.hpp"
 #include "suffix_array_helper.hpp"
 #include "util.hpp"
@@ -404,7 +403,7 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     mm::log("sa-sample-end");
 
     mm::log("isa-sample-begin");
-    algorithm::set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
+    set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
     mm::log("isa-sample-end");
 }
 

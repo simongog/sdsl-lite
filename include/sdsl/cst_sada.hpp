@@ -23,7 +23,6 @@
 
 #include "int_vector.hpp"
 #include "suffix_tree_helper.hpp"
-#include "algorithms.hpp"
 #include "iterators.hpp"
 #include "lcp_support_sada.hpp"
 #include "select_support_mcl.hpp"
@@ -367,7 +366,7 @@ class cst_sada
          *  \par Time complexity
          *      \f$ \Order{1} \f$
          *
-         *  This method is used e.g. in the algorithm::count method.
+         *  This method is used e.g. in the count method.
          */
         size_type size(node_type v)const {
             size_type r = m_bp_support.find_close(v);
