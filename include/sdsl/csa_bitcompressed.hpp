@@ -24,7 +24,6 @@
 #include "int_vector.hpp"
 #include "sdsl_concepts.hpp"
 #include "suffix_array_helper.hpp"
-#include "algorithms.hpp"
 #include "iterators.hpp"
 #include "util.hpp"
 #include "csa_sampling_strategy.hpp"
@@ -137,7 +136,7 @@ class csa_bitcompressed
                 sa_sample_type tmp_sample(config);
                 m_sa.swap(tmp_sample);
             }
-            algorithm::set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
+            set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
             m_psi = psi_type(this);
             if (!store_to_file(m_isa, cache_file_name(constants::KEY_ISA,config), true)) {
                 throw std::ios_base::failure("#csa_bitcompressed: Cannot store ISA to file system!");

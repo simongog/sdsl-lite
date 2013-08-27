@@ -15,11 +15,11 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file algorithms_for_balanced_parentheses.hpp
-    \brief algorithms.hpp contains algorithms for balanced parentheses sequences.
+    \brief bp_support_algorithm.hpp contains algorithms for balanced parentheses sequences.
 	\author Simon Gog
 */
-#ifndef INCLUDED_SDSL_ALGORITHMS_FOR_BALANCED_PARENTHESES
-#define INCLUDED_SDSL_ALGORITHMS_FOR_BALANCED_PARENTHESES
+#ifndef INCLUDED_SDSL_BP_SUPPORT_ALGORITHM
+#define INCLUDED_SDSL_BP_SUPPORT_ALGORITHM
 
 #include "int_vector.hpp" // for bit_vector
 #include <stack> // for calculate_pioneers_bitmap method
