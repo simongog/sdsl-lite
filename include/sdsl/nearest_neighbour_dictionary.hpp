@@ -220,7 +220,7 @@ class nearest_neighbour_dictionary
         //! Serializes the nearest_neighbour_dictionary.
         /*! \param out Out-Stream to serialize the data to.
         */
-        size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             size_type written_bytes = 0;
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             written_bytes += m_abs_samples.serialize(out, child, "absolute_samples");
