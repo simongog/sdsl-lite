@@ -23,7 +23,6 @@
 
 #include "wavelet_trees.hpp"
 #include "suffix_array_helper.hpp"
-#include "algorithms.hpp"
 #include "iterators.hpp"
 #include "util.hpp"
 #include "fast_cache.hpp"
@@ -298,7 +297,7 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
     mm::log("sa-sample-end");
 
     mm::log("isa-sample-begin");
-    algorithm::set_isa_samples<csa_wt>(sa_buf, m_isa_sample);
+    set_isa_samples<csa_wt>(sa_buf, m_isa_sample);
     mm::log("isa-sample-end");
 }
 
