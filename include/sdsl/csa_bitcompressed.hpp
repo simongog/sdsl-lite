@@ -72,6 +72,7 @@ class csa_bitcompressed
         typedef psi_of_sa_and_isa<csa_bitcompressed>            psi_type;
         typedef bwt_of_csa_psi<csa_bitcompressed>               bwt_type;
         typedef text_of_csa<csa_bitcompressed>                  text_type;
+        typedef first_row_of_csa<csa_bitcompressed>             first_row_type;
         typedef _sa_order_sampling<csa_bitcompressed,0>         sa_sample_type;
         typedef int_vector<>                                    isa_sample_type;
         typedef t_alphabet_strat                                alphabet_type;
@@ -106,6 +107,8 @@ class csa_bitcompressed
         const typename alphabet_type::sigma_type&     sigma      = m_alphabet.sigma;
         const psi_type&                               psi        = m_psi;
         const bwt_type                                bwt        = bwt_type(this);
+        const bwt_type                                L          = bwt_type(this);
+        const first_row_type                          F          = first_row_type(this);
         const text_type                               text       = text_type(this);
         const sa_sample_type&                         sa_sample  = m_sa;
         const isa_sample_type&                        isa_sample = m_isa;
