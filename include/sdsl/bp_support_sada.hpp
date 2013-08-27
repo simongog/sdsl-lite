@@ -25,7 +25,7 @@
 #include "int_vector.hpp"
 #include "rank_support.hpp"
 #include "select_support.hpp"
-#include "algorithms.hpp"
+#include "bp_support_algorithm.hpp"
 #include "fast_cache.hpp"
 #include <stack>
 #include <map>
@@ -203,7 +203,7 @@ class bp_support_sada
         size_type fwd_excess(size_type i, difference_type rel)const {
             size_type j;
             // (1) search the small block for the answer
-            if ((j = algorithm::near_fwd_excess(*m_bp, i+1, rel, t_sml_blk)) > i) {
+            if ((j = near_fwd_excess(*m_bp, i+1, rel, t_sml_blk)) > i) {
                 return j;
             }
             difference_type desired_excess = excess(i)+rel;
@@ -251,7 +251,7 @@ class bp_support_sada
                 return rel == 0 ? -1 : size();
             }
             // (1) search the small block for the answer
-            if ((j = algorithm::near_bwd_excess(*m_bp, i-1, rel, t_sml_blk)) < i or j == (size_type)-1) {
+            if ((j = near_bwd_excess(*m_bp, i-1, rel, t_sml_blk)) < i or j == (size_type)-1) {
                 return j;
             }
             difference_type desired_excess = excess(i)+rel;
@@ -303,7 +303,7 @@ class bp_support_sada
                 difference_type max_ex    = ex + (m_sml_block_min_max[2*sml_block_idx+1] - 1);
 
                 if (min_ex <= desired_excess and desired_excess <= max_ex) {
-                    size_type j = algorithm::near_bwd_excess(*m_bp, (sml_block_idx+1)*t_sml_blk-1, desired_excess-excess((sml_block_idx+1)*t_sml_blk), t_sml_blk);
+                    size_type j = near_bwd_excess(*m_bp, (sml_block_idx+1)*t_sml_blk-1, desired_excess-excess((sml_block_idx+1)*t_sml_blk), t_sml_blk);
                     return j;
                 }
                 --sml_block_idx;
@@ -326,7 +326,7 @@ class bp_support_sada
                 difference_type min_ex     = ex + (1 - ((difference_type)m_sml_block_min_max[2*sml_block_idx]));
                 difference_type max_ex    = ex + m_sml_block_min_max[2*sml_block_idx+1] - 1;
                 if (min_ex <= desired_excess and desired_excess <= max_ex) {
-                    size_type j = algorithm::near_fwd_excess(*m_bp, sml_block_idx*t_sml_blk, desired_excess-ex, t_sml_blk);
+                    size_type j = near_fwd_excess(*m_bp, sml_block_idx*t_sml_blk, desired_excess-ex, t_sml_blk);
                     return j;
                 }
                 ++sml_block_idx;
@@ -654,13 +654,13 @@ class bp_support_sada
             size_type sbr = sml_block_idx(r);
             difference_type min_rel_ex = 0;
             if (sbl == sbr) { // if l and r are in the same small block
-                return algorithm::near_rmq(*m_bp, l, r, min_rel_ex);
+                return near_rmq(*m_bp, l, r, min_rel_ex);
             } else {
                 difference_type min_ex  = 0;          // current minimal excess value
                 size_type        min_pos = 0;          // current min pos
                 enum min_pos_type {POS, SMALL_BLOCK_POS, MEDIUM_BLOCK_POS};
                 enum min_pos_type pos_type = POS;     // current
-                min_pos = algorithm::near_rmq(*m_bp, l, (sbl+1)*t_sml_blk-1, min_rel_ex); // scan the leftmost small block of l
+                min_pos = near_rmq(*m_bp, l, (sbl+1)*t_sml_blk-1, min_rel_ex); // scan the leftmost small block of l
                 assert(min_pos >= l);
                 min_ex = excess(l) + min_rel_ex;
 
@@ -744,7 +744,7 @@ class bp_support_sada
                     pos_type     = SMALL_BLOCK_POS;
                 }
                 // search in the small block of r
-                temp = algorithm::near_rmq(*m_bp, sbr*t_sml_blk, r, min_rel_ex); // scan the small block of r
+                temp = near_rmq(*m_bp, sbr*t_sml_blk, r, min_rel_ex); // scan the small block of r
                 if ((excess(sbr*t_sml_blk) + min_rel_ex) <= min_ex) {             // if it contains the minimum return its position
                     assert(temp>=l and temp<=r);
                     return temp;
@@ -759,7 +759,7 @@ class bp_support_sada
                     pos_type = SMALL_BLOCK_POS;
                 }
                 if (pos_type == SMALL_BLOCK_POS) {
-                    min_pos = algorithm::near_rmq(*m_bp, min_pos*t_sml_blk, (min_pos+1)*t_sml_blk-1, min_rel_ex);
+                    min_pos = near_rmq(*m_bp, min_pos*t_sml_blk, (min_pos+1)*t_sml_blk-1, min_rel_ex);
                     assert(min_pos >=l and min_pos <= r);
                 }
                 return min_pos;
