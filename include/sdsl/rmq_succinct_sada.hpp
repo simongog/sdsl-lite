@@ -26,6 +26,7 @@
 #include "bp_support_sada.hpp"
 #include "rank_support.hpp"
 #include "select_support.hpp"
+#include "suffix_tree_helper.hpp"
 #include "util.hpp"
 #include <utility> // for pair
 #include <stack>
