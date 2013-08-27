@@ -23,7 +23,6 @@
 
 #include "rmq_support.hpp"
 #include "int_vector.hpp"
-#include "algorithms_for_compressed_suffix_trees.hpp"
 #include "bp_support_sada.hpp"
 #include "util.hpp"
 
