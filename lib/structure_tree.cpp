@@ -266,7 +266,7 @@ void write_structure_tree<HTML_FORMAT>(const structure_tree_node* v, std::ostrea
 template<>
 void write_structure_tree<R_FORMAT>(const structure_tree_node* v, std::ostream& out, size_t level)
 {
-    /*    if (NULL == v or (v->children.size()==0 and v->key_values.size()==0)) {
+    /*    if (nullptr == v or (v->children.size()==0 and v->key_values.size()==0)) {
             return;
         }
         typedef structure_tree_node::tKeyValue::const_iterator const_iterator;
