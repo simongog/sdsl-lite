@@ -32,8 +32,8 @@ sdsl::mm_initializer::mm_initializer()
         // initialize static members object here
         // mm::m_items.clear();
         mm::m_items = mm::tMVecItem();
-        mm::m_data = NULL;
-        mm::m_out = NULL;
+        mm::m_data = nullptr;
+        mm::m_out = nullptr;
     }
 }
 sdsl::mm_initializer::~mm_initializer()
@@ -52,7 +52,7 @@ bool mm::map_hp()
 {
 #ifdef MAP_HUGETLB
     size_t hpgs= (m_total_memory+HUGE_LEN-1)/HUGE_LEN; // number of huge pages required to store the int_vectors
-    m_data = (uint64_t*)mmap(NULL, hpgs*HUGE_LEN, HUGE_PROTECTION, HUGE_FLAGS, 0, 0);
+    m_data = (uint64_t*)mmap(nullptr, hpgs*HUGE_LEN, HUGE_PROTECTION, HUGE_FLAGS, 0, 0);
     if (m_data == MAP_FAILED) {
         std::cout << "mmap was not successful" << std::endl;
         return false;
