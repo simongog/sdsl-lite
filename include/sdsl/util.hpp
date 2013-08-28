@@ -307,69 +307,6 @@ void init_support(S& s, const X* x)
     s.set_vector(x); // set the support object's  pointer to x
 }
 
-//! Get the current data and time as formated string.
-std::string time_string();
-
-//! A helper class to measure the time consumption of program pieces.
-/*! stop_watch is a stopwatch based on the commands getrusage and
- *  gettimeofday. Where getrusage is used to determine the user and system time
- *  and gettimeofday to determine the elapsed real time.
- */
-class stop_watch
-{
-    private:
-        rusage m_ruse1, m_ruse2;
-        timeval m_timeOfDay1, m_timeOfDay2;
-        static timeval m_first_t;
-        static rusage m_first_r;
-    public:
-
-        //! Default constructor
-        stop_watch();
-
-        //! Start the stopwatch.
-        /*! \sa stop
-         */
-        void start();
-
-        //! Stop the stopwatch.
-        /*! \sa start
-         */
-        void stop();
-
-        //! Get the elapsed user time in milliseconds between start and stop.
-        /*! \sa start, stop, real_time, sys_time
-         */
-        double user_time();
-
-        //! Get the elapsed system time in milliseconds between start and stop.
-        /*! \sa start, stop, real_time, user_time
-         */
-        double sys_time();
-
-        //! Get the elapsed real time in milliseconds between start and stop.
-        /*! \sa start, stop, sys_time, user_time
-         */
-        double real_time();
-
-        //! Get the elapsed user time in milliseconds since the first construction of a stop_watch in the current process.
-        /*! \sa user_time
-         */
-        uint64_t abs_user_time();
-
-        //! Get the elapsed system time in milliseconds since the first construction of a stop_watch in the current process.
-        /*! \sa sys_time
-         */
-        uint64_t abs_sys_time();
-
-        //! Get the elapsed real time in milliseconds since the first construction of a stop_watch in the current process.
-        /*! \sa real_time
-         */
-        uint64_t abs_real_time();
-
-        uint64_t abs_page_faults();
-};
-
 class spin_lock
 {
     private:
