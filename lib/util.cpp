@@ -30,10 +30,6 @@ namespace util
 {
 
 uint64_t _id_helper::id = 0;
-timeval stop_watch::m_first_t = {0,0};
-rusage stop_watch::m_first_r = {{0,0},{0,0}};
-
-
 
 std::string basename(std::string file)
 {
@@ -141,95 +137,6 @@ off_t file_size(const std::string& file)
         stat(file.c_str(), &filestatus);
         return filestatus.st_size;
     }
-}
-
-stop_watch::stop_watch() : m_ruse1(), m_ruse2(), m_timeOfDay1(), m_timeOfDay2()
-{
-    timeval t;
-    t.tv_sec = 0; t.tv_usec = 0;
-    m_ruse1.ru_utime = t; m_ruse1.ru_stime = t; // init m_ruse1
-    m_ruse2.ru_utime = t; m_ruse2.ru_stime = t; // init m_ruse2
-    m_timeOfDay1 = t; m_timeOfDay2 = t;
-    if (m_first_t.tv_sec == 0) {
-        gettimeofday(&m_first_t, 0);
-    }
-    if (m_first_r.ru_utime.tv_sec == 0 and m_first_r.ru_utime.tv_usec ==0) {
-        getrusage(RUSAGE_SELF, &m_first_r);
-    }
-}
-
-void stop_watch::start()
-{
-    gettimeofday(&m_timeOfDay1, 0);
-    getrusage(RUSAGE_SELF, &m_ruse1);
-}
-
-void stop_watch::stop()
-{
-    getrusage(RUSAGE_SELF, &m_ruse2);
-    gettimeofday(&m_timeOfDay2, 0);
-}
-
-double stop_watch::user_time()
-{
-    timeval t1, t2;
-    t1 = m_ruse1.ru_utime;
-    t2 = m_ruse2.ru_utime;
-    return ((double)(t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec)))/1000.0;
-}
-
-double stop_watch::sys_time()
-{
-    timeval t1, t2;
-    t1 = m_ruse1.ru_stime;
-    t2 = m_ruse2.ru_stime;
-    return ((double)(t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec)))/1000.0;
-}
-
-double stop_watch::real_time()
-{
-    double result = ((double)((m_timeOfDay2.tv_sec*1000000 + m_timeOfDay2.tv_usec)-(m_timeOfDay1.tv_sec*1000000 + m_timeOfDay1.tv_usec)))/1000.0;
-    return result;
-}
-
-uint64_t stop_watch::abs_real_time()
-{
-    uint64_t result = (((m_timeOfDay2.tv_sec*1000000 + m_timeOfDay2.tv_usec - (m_first_t.tv_sec*1000000 + m_first_t.tv_usec))))/1000;
-    return result;
-}
-
-uint64_t stop_watch::abs_user_time()
-{
-    timeval t1, t2;
-    t1 = m_first_r.ru_utime;
-    t2 = m_ruse2.ru_utime;
-    return (t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec))/1000;
-}
-
-
-uint64_t stop_watch::abs_sys_time()
-{
-    timeval t1, t2;
-    t1 = m_first_r.ru_stime;
-    t2 = m_ruse2.ru_stime;
-    return (t2.tv_sec*1000000 + t2.tv_usec - (t1.tv_sec*1000000 + t1.tv_usec))/1000;
-}
-
-uint64_t stop_watch::abs_page_faults()
-{
-    return m_ruse2.ru_majflt - m_first_r.ru_majflt; // does not work on my platform
-}
-
-std::string time_string()
-{
-    time_t rawtime;
-    struct tm* timeinfo;
-    char buffer[1024];
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-
-    strftime(buffer, 1024, "%Y-%m-%d-%H%M%S", timeinfo);
-    return buffer;
 }
 
 }// end namespace util

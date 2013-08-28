@@ -11,6 +11,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <mutex>
+#include <chrono>
 
 namespace sdsl
 {
@@ -93,6 +94,9 @@ static sdsl::mm_initializer init_mm;
 namespace sdsl
 {
 
+using namespace std::chrono;
+using timer = std::chrono::high_resolution_clock;
+
 // memory management class
 class mm
 {
@@ -102,10 +106,9 @@ class mm
         static uint64_t m_total_memory;
         static uint64_t* m_data;
         static std::ostream* m_out;
-        static util::stop_watch m_sw;
-        static uint64_t m_granularity;
+        static std::chrono::microseconds m_granularity;
         static uint64_t m_pre_max_mem;
-        static uint64_t m_pre_rtime;
+        static timer::time_point m_pre_rtime;
         static util::spin_lock m_spinlock;
 
     public:
@@ -191,26 +194,25 @@ class mm
 
         static void log_stream(std::ostream* out);
 
-        static void log_granularity(uint64_t granularity);
+        static void log_granularity(std::chrono::microseconds granularity);
 
         static void log(const std::string& msg) {
             if (m_out != nullptr) {
-                m_sw.stop();
-                uint64_t log_time = m_sw.abs_real_time();
-                if (log_time >= m_pre_rtime + m_granularity
+                auto cur = timer::now();
+                auto log_time = cur-m_pre_rtime;
+                if (log_time >= m_granularity
                     or msg.size() > 0) {
-                    (*m_out) << m_pre_rtime << ";" << m_sw.abs_user_time()  << ";"
-                             << m_sw.abs_sys_time()  << ";" << m_pre_max_mem << ";"
+                    (*m_out) << duration_cast<std::chrono::microseconds>(log_time).count()
+                             << m_pre_max_mem << ";"
                              << "" << std::endl;
                     if (msg.size() > 0) {  // output if msg is set
-
-                        (*m_out) << log_time << ";" << m_sw.abs_user_time()  << ";"
-                                 << m_sw.abs_sys_time()  << ";" << m_total_memory << ";"
+                        (*m_out) << duration_cast<std::chrono::microseconds>(log_time).count() << ";"
+                                 << m_total_memory << ";"
                                  << msg << std::endl;
                     }
 
                     m_pre_max_mem = m_total_memory; // reset memory
-                    m_pre_rtime = log_time;
+                    m_pre_rtime = cur;
                 } else {
                     m_pre_max_mem = std::max(m_pre_max_mem, m_total_memory);
                 }
