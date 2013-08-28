@@ -27,7 +27,7 @@ TIME_FILES  = $(foreach IDX_ID,$(IDX_IDS),\
 					 $(foreach COMPILE_ID,$(COMPILE_IDS),results/$(TC_ID).$(IDX_ID).$(COMPILE_ID))))
 COMP_FILES  = $(addsuffix .z.info,$(TC_PATHS))
 	
-all: $(BUILD_EXECS) $(QUERY_EXECS) pattern
+all: $(BUILD_EXECS) $(QUERY_EXECS) $(INFO_EXECS)
 
 info: $(INFO_EXECS) $(INFO_FILES) 
 	cd ../../examples; make json2html.x
