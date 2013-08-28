@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
     querytype = *argv[2];
 
     CSA_TYPE csa;
-    fprintf(stderr, "# File = %s\n",(string(argv[1]) + "." + string(SUF)).c_str());
+    fprintf(stderr, "# File = %s\n",(string(filename) + "." + string(SUF)).c_str());
     fprintf(stderr, "# program = %s\n",string(SUF).c_str());
     Load_time = getTime();
     load_from_file(csa, (string(argv[1]) + "." + string(SUF)).c_str());
