@@ -24,6 +24,7 @@
 #include "rmq_support.hpp"
 #include "int_vector.hpp"
 #include "bp_support_sada.hpp"
+#include "suffix_tree_helper.hpp"
 #include "util.hpp"
 
 //! Namespace for the succinct data structure library.
