@@ -139,9 +139,13 @@ $(BIN_DIR)/info_%: $(SRC_DIR)/info.cpp index.config
 
 include ../Make.download
 
+clean-build:
+	@echo "Remove executables"
+	@rm -f $(QUERY_EXECS) $(BUILD_EXECS) $(INFO_EXECS)
+
 clean:
 	@echo "Remove executables"
-	@rm -f $(QUERY_EXECS) $(LOCATE_EXECS) $(BUILD_EXECS) $(INFO_EXECS) \
+	@rm -f $(QUERY_EXECS) $(BUILD_EXECS) $(INFO_EXECS) \
 		   $(BIN_DIR)/genintervals
 
 cleanresults: 

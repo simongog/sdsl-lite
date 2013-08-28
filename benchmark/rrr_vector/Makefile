@@ -67,6 +67,10 @@ results/%:
 
 include ../Make.download
 
+clean-build:
+	@echo "Remove executables"
+	rm -f $(RRR_EXECS)
+
 clean:
 	rm -f $(RRR_EXECS) bin/generate_rnd_bitvector   
 
