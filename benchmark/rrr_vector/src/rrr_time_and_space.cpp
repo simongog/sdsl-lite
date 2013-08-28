@@ -11,6 +11,9 @@ using namespace sdsl;
 #define 31 BLOCK_SIZE
 #endif
 
+using namespace std::chrono;
+using timer = std::chrono::high_resolution_clock;
+
 int main(int argc, char* argv[])
 {
     if (argc < 3) {
@@ -27,14 +30,13 @@ int main(int argc, char* argv[])
     if (load_from_file(bv, argv[1])) {
         cout << "# plain_size = " << size_in_bytes(bv) << endl;
         uint16_t k = atoi(argv[2]);
-        util::stop_watch sw;
-        sw.start();
+        auto start = timer::now();
         rrr_vec_type rrr_vector(bv, k);
         util::clear(bv);
         rrr_select_type rrr_sel(&rrr_vector);
         rrr_rank_type   rrr_rank(&rrr_vector);
-        sw.stop();
-        cout << "# construct_time = " << sw.real_time() << endl;
+        auto stop = timer::now();
+        cout << "# construct_time = " << duration_cast<milliseconds>(stop-start).count() << endl;
         rrr_vec_type::size_type args = rrr_rank(rrr_vector.size());
         cout << "# rrr_vector.size() = " << rrr_vector.size() << endl;
         cout << "# args = " << args << endl;
@@ -47,20 +49,20 @@ int main(int argc, char* argv[])
         const uint64_t reps = 10000000;
         uint64_t mask = 0;
         int_vector<64> rands = get_rnd_positions(20, mask, rrr_vector.size(), 17);
-        sw.start();
+        start = timer::now();
         test_random_access(rrr_vector, rands, mask, reps);
-        sw.stop();
-        cout << "# access_time = " << (sw.real_time()/reps)*1000 << endl;
+        stop = timer::now();
+        cout << "# access_time = " << duration_cast<nanoseconds>(stop-start).count()/(double)reps << endl;
         rands = get_rnd_positions(20, mask, rrr_vector.size()+1, 17);
-        sw.start();
+        start = timer::now();
         test_inv_random_access(rrr_rank, rands, mask, reps);
-        sw.stop();
-        cout << "# rank_time = " << (sw.real_time()/reps)*1000 << endl;
+        stop = timer::now();
+        cout << "# rank_time = " << duration_cast<nanoseconds>(stop-start).count()/(double)reps << endl;
         rands = get_rnd_positions(20, mask, args, 17);
         for (uint64_t i=0; i<rands.size(); ++i) rands[i] = rands[i]+1;
-        sw.start();
+        stop = timer::now();
         test_inv_random_access(rrr_sel, rands, mask, reps);
-        sw.stop();
-        cout << "# select_time = " << (sw.real_time()/reps)*1000 << endl;
+        stop = timer::now();
+        cout << "# select_time = " << duration_cast<nanoseconds>(stop-start).count()/(double)reps << endl;
     }
 }
