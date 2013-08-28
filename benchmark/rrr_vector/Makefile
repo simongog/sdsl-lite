@@ -11,6 +11,8 @@ TC_IDS:=$(call config_ids,test_case.config)
 COMPILE_IDS:=$(call config_ids,compile_options.config)
 KS:=$(call config_ids,block_size.config)
 
+all: execs 
+
 input: bin/generate_rnd_bitvector $(TC_PATHS)
 
 RRR_EXECS = $(foreach K,$(KS),\
@@ -38,7 +40,6 @@ bin/rrr_time_and_space_%: $(SRC_DIR)/rrr_time_and_space.cpp
 
 execs: $(RRR_EXECS) 
 
-all: execs 
 
 timing: input execs $(RES_FILES) 
 	cat $(RES_FILES) > $(RES_FILE)

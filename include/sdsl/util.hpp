@@ -322,6 +322,20 @@ class spin_lock
         };
 };
 
+//! Create 2^{log_s} random integers mod m with seed x
+/*
+ */
+template<class t_int_vec>
+t_int_vec rnd_positions(uint8_t log_s, uint64_t& mask, uint64_t mod=0, uint64_t seed=17)
+{
+    mask = (1<<log_s)-1;
+    t_int_vec rands(1<<log_s ,0);
+    set_random_bits(rands, seed);
+    if (mod > 0) {
+        util::mod(rands, mod);
+    }
+    return rands;
+}
 
 } // end namespace util
 
