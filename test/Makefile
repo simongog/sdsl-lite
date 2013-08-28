@@ -75,10 +75,18 @@ test:	bits-test \
 build-test: $(EXECS) 
 	cd ../tutorial; make build-test
 	cd ../examples; make build-test
+	cd ../benchmark/indexing_count; make
+	cd ../benchmark/indexing_locate; make
+	cd ../benchmark/indexing_extract; make
+	cd ../benchmark/rrr_vector; make
 
 build-test-clean: clean
 	cd ../tutorial; make clean
 	cd ../examples; make clean
+	cd ../benchmark/indexing_count; make clean-build
+	cd ../benchmark/indexing_locate; make clean-build
+	cd ../benchmark/indexing_extract; make clean-build
+	cd ../benchmark/rrr_vector; make clean-build
 
 generators: BitVectorGenerator.x IntVectorGenerator.x
 
