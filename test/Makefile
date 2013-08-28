@@ -1,5 +1,9 @@
 include ../Make.helper
-CXX_FLAGS=$(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O3 -I$(INC_DIR) -L$(LIB_DIR)
+CXX_FLAGS=$(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O3 \
+		  -I$(INC_DIR) \
+		  -I../build/external/gtest-1.6.0/include \
+		  -L$(LIB_DIR) \
+		  -L../build/external/gtest-1.6.0
 LIB_SDSL=$(LIB_DIR)/libsdsl.a
 CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest 
 TMP_DIR=tmp
