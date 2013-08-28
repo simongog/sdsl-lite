@@ -71,7 +71,7 @@ template<uint16_t t_bs=15, class t_rac=int_vector<> >
 class rrr_vector
 {
     private:
-        static_assert(t_bs >= 15 and t_bs <= 256 , "rrr_vector: block size t_bs must be 15 <= t_bs <= 256.");
+        static_assert(t_bs >= 3 and t_bs <= 256 , "rrr_vector: block size t_bs must be 3 <= t_bs <= 256.");
     public:
         typedef bit_vector::size_type  size_type;
         typedef bit_vector::value_type value_type;
