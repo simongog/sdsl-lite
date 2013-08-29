@@ -145,7 +145,7 @@ class cst_sada
 //! Construct CST from file_map
         cst_sada(cache_config& config) {
             {
-                mm::log("bps-dfs-begin");
+                memory_monitor::event("bps-dfs-begin");
                 cst_sct3<> temp_cst(config, true);
                 m_bp.resize(4*(temp_cst.bp.size()/2));
                 util::set_to_value(m_bp, 0);
@@ -158,19 +158,19 @@ class cst_sada
                     ++idx;
                 }
                 m_bp.resize(idx);
-                mm::log("bps-dfs-end");
+                memory_monitor::event("bps-dfs-end");
             }
-            mm::log("bpss-dfs-begin");
+            memory_monitor::event("bpss-dfs-begin");
             util::assign(m_bp_support, bp_support_type(&m_bp));
             util::init_support(m_bp_rank10,   &m_bp);
             util::init_support(m_bp_select10, &m_bp);
-            mm::log("bpss-dfs-end");
+            memory_monitor::event("bpss-dfs-end");
 
-            mm::log("bpss-clcp-begin");
+            memory_monitor::event("bpss-clcp-begin");
             cache_config tmp_config(false, config.dir, config.id, config.file_map);
             construct_lcp(m_lcp, *this, tmp_config);
             config.file_map = tmp_config.file_map;
-            mm::log("bpss-clcp-end");
+            memory_monitor::event("bpss-clcp-end");
 
             load_from_cache(m_csa, util::class_to_hash(m_csa), config);
         }

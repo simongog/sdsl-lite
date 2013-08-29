@@ -12,216 +12,196 @@
 #include <cstdlib>
 #include <mutex>
 #include <chrono>
+#include <cstring>
 
 namespace sdsl
 {
 
-class mm_item_base
+class memory_monitor;
+
+enum memformat_type {JSON, CSV, HTML};
+template<memformat_type F>
+void write_mem_log(std::ostream& out,const memory_monitor& m);
+
+class memory_monitor
 {
     public:
-        mm_item_base() {};
-        virtual bool map_hp(uint64_t*&) {
-            return false;
-        };// const = 0;
-        virtual bool unmap_hp() {
-            return false;
-        };// const = 0;
-        virtual ~mm_item_base() {};
-        virtual uint64_t size() {
-            return 0;
+        using timer = std::chrono::high_resolution_clock;
+        struct mm_event {
+            timer::time_point timestamp;
+            uint64_t usage;
+            mm_event(timer::time_point t,uint64_t u) : timestamp(t) , usage(u) {};
         };
+    private:
+        std::chrono::milliseconds log_granularity = std::chrono::milliseconds(50);
+        uint64_t current_usage = 0;
+        uint64_t peak_usage = 0;
+        bool track_usage = false;
+        std::vector<mm_event> mem_events;
+        std::vector<std::pair<timer::time_point,std::string>> events;
+        util::spin_lock spinlock;
+    private:
+        // disable construction of the object
+        memory_monitor() {};
+        memory_monitor(const memory_monitor&) = delete;
+        memory_monitor& operator=(const memory_monitor&) = delete;
+    private:
+        static memory_monitor& the_monitor() {
+            static memory_monitor m;
+            return m;
+        }
+        static mm_event& last_event() {
+            auto& m = the_monitor();
+            if (!m.mem_events.size()) {
+                m.mem_events.emplace_back(timer::now(),(uint64_t)0);
+            }
+            return m.mem_events.back(); // empty event
+        }
+    public:
+        static void granularity(std::chrono::milliseconds ms) {
+            auto& m = the_monitor();
+            m.log_granularity = ms;
+        }
+        static void start() {
+            auto& m = the_monitor();
+            m.track_usage = true;
+            event("start mem_monitor");
+        }
+        static void stop() {
+            auto& m = the_monitor();
+            event("stop mem_monitor");
+            m.mem_events.emplace_back(timer::now(),m.current_usage); // final event
+            m.track_usage = false;
+        }
+        static void record(int64_t delta) {
+            auto& m = the_monitor();
+            if (m.track_usage) {
+                std::lock_guard<util::spin_lock> lock(m.spinlock);
+                m.current_usage = (uint64_t)((int64_t)m.current_usage + delta);
+                m.peak_usage = std::max(m.current_usage,m.peak_usage);
+                auto cur = timer::now();
+                if (last_event().timestamp + m.log_granularity > cur) {
+                    m.mem_events.emplace_back(cur,m.current_usage);
+                }
+            }
+        }
+        static void event(const std::string& name) {
+            auto& m = the_monitor();
+            if (m.track_usage) {
+                std::lock_guard<util::spin_lock> lock(m.spinlock);
+                m.events.emplace_back(timer::now(),name);
+            }
+        }
+        template<memformat_type F>
+        static void write_memory_log(std::ostream& out) {
+            write_mem_log<F>(out,the_monitor);
+        }
 };
 
-template<class int_vec_t>
-class mm_item : public mm_item_base
+
+#include <sys/mman.h>
+
+class hugepage_allocator
 {
     private:
-        int_vec_t* m_v;
+        uint64_t* m_memory = nullptr;
+        size_t m_mem_size = 0;
+    private:
+        static hugepage_allocator& the_allocator() {
+            static hugepage_allocator a;
+            return a;
+        }
     public:
-        explicit mm_item(int_vec_t* v):m_v(v) {}
-        ~mm_item() { }
-
-        //! Map content of int_vector to a hugepage starting at address addr
-        /*!
-         *  Details: The content of the corresponding int_vector of mm_item
-         *           is copied into a hugepage starting at address addr.
-         *           The string position in the hugepage is then increased
-         *           by the number of bytes used by the int_vector.
-         *           So addr is the new starting address for the next
-         *           mm_item which have to be mapped.
-         */
-        bool map_hp(uint64_t*& addr) {
-            uint64_t len = size();
-            if (m_v->m_data != nullptr) {
-                memcpy((char*)addr, m_v->m_data, len); // copy old data
-                free(m_v->m_data);
-                m_v->m_data = addr;
-                addr += (len/8);
+        static void init(size_t size_in_bytes) {
+            auto& a = the_allocator();
+            a.m_mem_size = size_in_bytes;
+            a.m_memory = (uint64_t*) mmap(nullptr, size_in_bytes,
+                                          (PROT_READ | PROT_WRITE),
+                                          (MAP_HUGETLB | MAP_ANONYMOUS | MAP_PRIVATE), 0, 0);
+            if (a.m_memory == MAP_FAILED) {
+                throw std::bad_alloc();
             }
-            return true;
         }
-
-        //!
-        bool unmap_hp() {
-            uint64_t len = size();
-            if (util::verbose) {
-                std::cerr<<"unmap int_vector of size "<< len <<std::endl;
-                std::cerr<<"m_data="<<m_v->m_data<<std::endl;
-            }
-            uint64_t* tmp_data = (uint64_t*)malloc(len); // allocate memory for m_data
-            memcpy(tmp_data, m_v->m_data, len); // copy data from the mmapped region
-            m_v->m_data = tmp_data;
-            return true;
+        static uint64_t* alloc(size_t size_in_bytes) {
+            return (uint64_t*) malloc(size_in_bytes);
         }
-
-        uint64_t size() {
-            return (((m_v->bit_size()+63)>>6)<<3);
+        static void free(uint64_t* ptr) {
+            free(ptr);
         }
 };
 
-// initialization helper for class mm
-class mm_initializer
+class memory_manager
 {
-    public:
-        mm_initializer();
-        ~mm_initializer();
-};
-
-} // end namespace sdsl
-
-static sdsl::mm_initializer init_mm;
-
-namespace sdsl
-{
-
-using namespace std::chrono;
-using timer = std::chrono::high_resolution_clock;
-
-// memory management class
-class mm
-{
-        friend class mm_initializer;
-        typedef std::map<uint64_t, mm_item_base*> tMVecItem;
-        static tMVecItem m_items;
-        static uint64_t m_total_memory;
-        static uint64_t* m_data;
-        static std::ostream* m_out;
-        static std::chrono::microseconds m_granularity;
-        static uint64_t m_pre_max_mem;
-        static timer::time_point m_pre_rtime;
-        static util::spin_lock m_spinlock;
-
-    public:
-        mm();
-
-        template<class int_vec_t>
-        static void add(int_vec_t* v, bool moved=false) {
-            std::lock_guard<util::spin_lock> lock(m_spinlock);
-            if (mm::m_items.find((uint64_t)v) == mm::m_items.end()) {
-                mm_item_base* item = new mm_item<int_vec_t>(v);
-                if (false and util::verbose) {
-                    std::cout << "mm::add: add vector " << v << std::endl;
-                    std::cout.flush();
-                }
-                mm::m_items[(uint64_t)v] = item;
-                if (!moved and item->size()) {
-                    log("");
-                    m_total_memory += item->size(); // add space
-                    log("");
-                }
+    private:
+        bool hugepages = false;
+    private:
+        static memory_manager& the_manager() {
+            static memory_manager m;
+            return m;
+        }
+        static uint64_t* alloc_mem(size_t size_in_bytes) {
+            auto& m = the_manager();
+            if (m.hugepages) {
+                return hugepage_allocator::alloc(size_in_bytes);
             } else {
-                if (false and util::verbose) std::cout << "mm::add: mm_item is already in the set" << std::endl;
+                return (uint64_t*) calloc(size_in_bytes,1);
             }
         }
-
-        template<class int_vec_t>
-        static void realloc(int_vec_t& v, const typename int_vec_t::size_type size) {
-            bool do_realloc = ((size+63)>>6) != ((v.m_size+63)>>6);
-            uint64_t old_size = ((v.m_size+63)>>6)<<3;
-            v.m_size = size;                         // set new size
-            // special case: bitvector of size 0
-            if (do_realloc or v.m_data==nullptr) { // or (t_width==1 and m_size==0) ) {
-                uint64_t* data = nullptr;
+        static void free_mem(uint64_t* ptr) {
+            auto& m = the_manager();
+            if (m.hugepages) {
+                hugepage_allocator::free(ptr);
+            } else {
+                std::free(ptr);
+            }
+        }
+    public:
+        static void use_hugepages(size_t bytes) {
+            auto& m = the_manager();
+            m.hugepages = true;
+            hugepage_allocator::init(bytes);
+        }
+        template<class t_vec>
+        static void resize(t_vec& v, const typename t_vec::size_type size) {
+            int64_t old_size_in_bytes = ((v.m_size+63)>>6)<<3;
+            int64_t new_size_in_bytes = ((size+63)>>6)<<3;
+            std::cout << "resize(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
+            bool do_realloc = old_size_in_bytes != new_size_in_bytes;
+            if (do_realloc || new_size_in_bytes == 0) {
                 // Note that we allocate 8 additional bytes if m_size % 64 == 0.
                 // We need this padding since rank data structures do a memory
                 // access to this padding to answer rank(size()) if size()%64 ==0.
                 // Note that this padding is not counted in the serialize method!
-                data = (uint64_t*)::realloc(v.m_data, (((v.m_size+64)>>6)<<3)); // if m_data == nullptr realloc
-                // Method realloc is equivalent to malloc if m_data == nullptr.
-                // If size is zero and ptr is not nullptr, a new, minimum sized object is allocated and the original object is freed.
-                // The allocated memory is aligned such that it can be used for any data type, including AltiVec- and SSE-related types.
+                size_t allocated_bytes = (((size+64)>>6)<<3);
+                uint64_t* data = memory_manager::alloc_mem(allocated_bytes);
+                if (allocated_bytes != 0 && data == nullptr) {
+                    throw std::bad_alloc();
+                }
+                // copy and update
+                std::memcpy(data, v.m_data, std::min(old_size_in_bytes,new_size_in_bytes));
+                memory_manager::free_mem(v.m_data);
                 v.m_data = data;
-                // initialize unreachable bits to 0
-                if (v.bit_size() < v.capacity()) {   //m_size>0
-                    bits::write_int(v.m_data+(v.bit_size()>>6), 0, v.bit_size()&0x3F, v.capacity() - v.bit_size());
-                }
-                if (((v.m_size) % 64) == 0) {  // initialize unreachable bits with 0
-                    v.m_data[v.m_size/64] = 0;
-                }
+                v.m_size = size;
+
+                // update stats
+                memory_monitor::record(new_size_in_bytes-old_size_in_bytes);
             }
-            if (old_size != ((v.m_size+63)>>6)<<3) {
-                log("");
-                {
-                    std::lock_guard<util::spin_lock> lock(m_spinlock);
-                    m_total_memory -= old_size; // subtract old space
-                    m_total_memory += ((v.m_size+63)>>6)<<3; // add new space
-                }
-                log("");
-            }
+            std::cout << "done(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
         }
+        template<class t_vec>
+        static void clear(t_vec& v) {
+            int64_t size_in_bytes = ((v.m_size+63)>>6)<<3;
 
-        template<class int_vec_t>
-        static void remove(int_vec_t* v) {
-            std::lock_guard<util::spin_lock> lock(m_spinlock);
-            if (mm::m_items.find((uint64_t)v) != mm::m_items.end()) {
-                if (false and util::verbose) {
-                    std::cout << "mm:remove: remove vector " << v << std::endl;
-                };
-                mm_item_base* item = m_items[(uint64_t)v];
-                if (item->size()) {
-                    log("");
-                    m_total_memory -= item->size(); // delete space
-                    log("");
-                }
-                mm::m_items.erase((uint64_t)v);
-                delete item;
-            } else {
-                if (false and util::verbose) {
-                    std::cout << "mm:remove: mm_item is not in the set" << std::endl;
-                };
-            }
+            // remove mem
+            memory_manager::free_mem(v.m_data);
+            v.m_data = nullptr;
+
+            // update stats
+            memory_monitor::record(size_in_bytes*-1);
         }
-
-        static void log_stream(std::ostream* out);
-
-        static void log_granularity(std::chrono::microseconds granularity);
-
-        static void log(const std::string& msg) {
-            if (m_out != nullptr) {
-                auto cur = timer::now();
-                auto log_time = cur-m_pre_rtime;
-                if (log_time >= m_granularity
-                    or msg.size() > 0) {
-                    (*m_out) << duration_cast<std::chrono::microseconds>(log_time).count()
-                             << m_pre_max_mem << ";"
-                             << "" << std::endl;
-                    if (msg.size() > 0) {  // output if msg is set
-                        (*m_out) << duration_cast<std::chrono::microseconds>(log_time).count() << ";"
-                                 << m_total_memory << ";"
-                                 << msg << std::endl;
-                    }
-
-                    m_pre_max_mem = m_total_memory; // reset memory
-                    m_pre_rtime = cur;
-                } else {
-                    m_pre_max_mem = std::max(m_pre_max_mem, m_total_memory);
-                }
-            }
-        }
-
-        static bool map_hp();
-        static bool unmap_hp();
 };
+
+
 
 } // end namespace
 

@@ -28,7 +28,7 @@ void construct_lcp_semi_extern_PHI(cache_config& config)
     // n-1 is the maximum entry in SA
     int_vector<64> plcp((n-1+q)>>log_q);
 
-    mm::log("lcp-calc-sparse-phi-begin");
+    memory_monitor::event("lcp-calc-sparse-phi-begin");
     for (size_type i=0, sai_1=0; i < n; ++i) {   // we can start at i=0. if SA[i]%q==0
         // we set PHI[(SA[i]=n-1)%q]=0, since T[0]!=T[n-1]
         size_type sai = sa_buf[i];
@@ -41,15 +41,15 @@ void construct_lcp_semi_extern_PHI(cache_config& config)
         }
         sai_1 = sai;
     }
-    mm::log("lcp-calc-sparse-phi-end");
+    memory_monitor::event("lcp-calc-sparse-phi-end");
 
-    mm::log("lcp-load-text-begin");
+    memory_monitor::event("lcp-load-text-begin");
     int_vector<8> text;
     load_from_cache(text, constants::KEY_TEXT, config);
-    mm::log("lcp-load-text-end");
+    memory_monitor::event("lcp-load-text-end");
 
 
-    mm::log("lcp-calc-sparse-plcp-begin");
+    memory_monitor::event("lcp-calc-sparse-plcp-begin");
     for (size_type i=0,j,k,l=0; i < plcp.size(); ++i) {
         j =	i<<log_q;   // j=i*q
         k = plcp[i];
@@ -62,7 +62,7 @@ void construct_lcp_semi_extern_PHI(cache_config& config)
             l = 0;
         }
     }
-    mm::log("lcp-calc-sparse-plcp-end");
+    memory_monitor::event("lcp-calc-sparse-plcp-end");
 
     size_type buffer_size = 4000000; // buffer_size is a multiple of 8!
     sa_buf.buffersize(buffer_size);
@@ -538,7 +538,7 @@ void construct_lcp_goPHI(cache_config& config)
         int_vector<> lcp_big(0, 0, bits::hi(n-1)+1);//nn, 0, bits::hi(n-1)+1);
         {
 
-            mm::log("lcp-init-phi-begin");
+            memory_monitor::event("lcp-init-phi-begin");
             size_type sa_n_1 = 0;  // value for SA[n-1]
             bit_vector todo(n,0);  // bit_vector todo indicates which values are > m in lcp_sml
             {
@@ -570,9 +570,9 @@ void construct_lcp_goPHI(cache_config& config)
                 b_1 = b;
                 sai_1 = sai;
             }
-            mm::log("lcp-init-phi-end");
+            memory_monitor::event("lcp-init-phi-end");
 
-            mm::log("lcp-calc-plcp-begin");
+            memory_monitor::event("lcp-calc-plcp-begin");
             for (size_type i=0, ii=0, l=m+1,p=0; i < n and ii<nn; ++i) { // execute compact Phi algorithm
                 if (todo[i]) {
                     if (i > 0 and todo[i-1])
@@ -585,17 +585,17 @@ void construct_lcp_goPHI(cache_config& config)
                     phi[ii++] = l;
                 }
             }
-            mm::log("lcp-calc-plcp-end");
+            memory_monitor::event("lcp-calc-plcp-end");
             util::clear(text);
 
-            mm::log("lcp-calc-lcp-begin");
+            memory_monitor::event("lcp-calc-lcp-begin");
             lcp_big.resize(nn);
             for (size_type i = 0, ii = 0; i < n and ii<nn; ++i) {
                 if (lcp_sml_buf[i] > m) {
                     lcp_big[ii++] = phi[todo_rank(sa_buf[i])];
                 }
             }
-            mm::log("lcp-calc-lcp-end");
+            memory_monitor::event("lcp-calc-lcp-end");
         }
         store_to_cache(lcp_big, "lcp_big", config);
     } // end phase 2
@@ -629,14 +629,14 @@ void construct_lcp_bwt_based(cache_config& config)
     std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
 
     // create WT
-    mm::log("lcp-bwt-create-wt-huff-begin");
+    memory_monitor::event("lcp-bwt-create-wt-huff-begin");
     wt_huff<bit_vector, rank_support_v<>, select_support_scan<1>, select_support_scan<0>> wt_bwt;
     construct(wt_bwt, cache_file_name(constants::KEY_BWT, config));
     uint64_t n = wt_bwt.size();
-    mm::log("lcp-bwt-create-wt-huff-end");
+    memory_monitor::event("lcp-bwt-create-wt-huff-end");
 
     // init
-    mm::log("lcp-bwt-init-begin");
+    memory_monitor::event("lcp-bwt-init-begin");
     size_type lcp_value = 0;                      // current LCP value
     size_type lcp_value_offset = 0;               // Largest LCP value in LCP array, that was written on disk
     size_type phase = 0;                          // Count how often the LCP array was written on disk
@@ -680,9 +680,9 @@ void construct_lcp_bwt_based(cache_config& config)
     // create C-array
     std::vector<size_type> C;             // C-Array: C[i] = number of occurrences of characters < i in the input
     create_C_array(C, wt_bwt);
-    mm::log("lcp-bwt-init-begin-end");
+    memory_monitor::event("lcp-bwt-init-begin-end");
     // calculate lcp
-    mm::log("lcp-bwt-calc-values-begin");
+    memory_monitor::event("lcp-bwt-calc-values-begin");
 
     // calculate first intervals
     partial_lcp[0] = 0;
@@ -707,7 +707,7 @@ void construct_lcp_bwt_based(cache_config& config)
     // calculate LCP values phase by phase
     while (intervals) {
         if (intervals < use_queue_and_wt && !queue_used) {
-            mm::log("lcp-bwt-bitvec2queue-begin");
+            memory_monitor::event("lcp-bwt-bitvec2queue-begin");
             util::clear(dict[target]);
 
             // copy from bitvector to queue
@@ -720,10 +720,10 @@ void construct_lcp_bwt_based(cache_config& config)
                 b2 = util::next_bit(dict[source], a2+1);
             }
             util::clear(dict[source]);
-            mm::log("lcp-bwt-bitvec2queue-end");
+            memory_monitor::event("lcp-bwt-bitvec2queue-end");
         }
         if (intervals >= use_queue_and_wt && queue_used) {
-            mm::log("lcp-bwt-queue2bitvec-begin");
+            memory_monitor::event("lcp-bwt-queue2bitvec-begin");
             dict[source].resize(2*(n+1));
 
             util::set_to_value(dict[source], 0);
@@ -735,7 +735,7 @@ void construct_lcp_bwt_based(cache_config& config)
             dict[target].resize(2*(n+1));
 
             util::set_to_value(dict[target], 0);
-            mm::log("lcp-bwt-queue2bitvec-end");
+            memory_monitor::event("lcp-bwt-queue2bitvec-end");
         }
 
         if (intervals < use_queue_and_wt) {
@@ -814,14 +814,14 @@ void construct_lcp_bwt_based(cache_config& config)
         }
         ++lcp_value;
         if (lcp_value>=lcp_value_max) {
-            mm::log("lcp-bwt-write-to-file-begin");
+            memory_monitor::event("lcp-bwt-write-to-file-begin");
             if (phase) {
                 insert_lcp_values(partial_lcp, index_done, lcp_file, lcp_value, lcp_value_offset);
             } else {
                 store_to_file(partial_lcp, lcp_file);
             }
-            mm::log("lcp-bwt-write-to-file-end");
-            mm::log("lcp-bwt-resize-variables-begin");
+            memory_monitor::event("lcp-bwt-write-to-file-end");
+            memory_monitor::event("lcp-bwt-resize-variables-begin");
             util::init_support(ds_rank_support, &index_done); // Create rank support
 
             // Recalculate lcp_value_max and resize partial_lcp
@@ -837,20 +837,20 @@ void construct_lcp_bwt_based(cache_config& config)
             partial_lcp.resize(remaining_lcp_values);
             util::set_to_value(partial_lcp, 0);
             ++phase;
-            mm::log("lcp-bwt-resize-variables-end");
+            memory_monitor::event("lcp-bwt-resize-variables-end");
         }
     }
-    mm::log("lcp-bwt-calc-values-end");
+    memory_monitor::event("lcp-bwt-calc-values-end");
 
     // merge to file
-    mm::log("lcp-bwt-merge-to-file-begin");
+    memory_monitor::event("lcp-bwt-merge-to-file-begin");
     if (phase) {
         insert_lcp_values(partial_lcp, index_done, lcp_file, lcp_value, lcp_value_offset);
     } else {
         store_to_file(partial_lcp, lcp_file);
     }
     register_cache_file(constants::KEY_LCP, config);
-    mm::log("lcp-bwt-merge-to-file-end");
+    memory_monitor::event("lcp-bwt-merge-to-file-end");
 }
 
 void construct_lcp_bwt_based2(cache_config& config)
@@ -863,14 +863,14 @@ void construct_lcp_bwt_based2(cache_config& config)
     std::string tmp_lcp_file = cache_file_name(constants::KEY_LCP, config)+"_tmp";
 // (1) Calculate LCP-Positions-Array: For each lcp_value (in ascending order) all its occurrences (in any order) in the lcp array
     {
-        mm::log("lcp-bwt2-create-wt-huff-begin");
+        memory_monitor::event("lcp-bwt2-create-wt-huff-begin");
         wt_huff<bit_vector, rank_support_v<>, select_support_scan<1>, select_support_scan<0>> wt_bwt;
         construct(wt_bwt, cache_file_name(constants::KEY_BWT, config));
         n = wt_bwt.size();
-        mm::log("lcp-bwt2-create-wt-huff-begin");
+        memory_monitor::event("lcp-bwt2-create-wt-huff-begin");
 
         // Declare needed variables
-        mm::log("lcp-bwt2-init-begin");
+        memory_monitor::event("lcp-bwt2-init-begin");
         size_type intervals = 0;                       // Number of intervals which are currently stored
         size_type intervals_new = 0;                   // Number of new intervals
 
@@ -896,9 +896,9 @@ void construct_lcp_bwt_based2(cache_config& config)
         // Create C-array
         std::vector<size_type> C;                      // C-Array: C[i] = number of occurrences of characters < i in the input
         create_C_array(C, wt_bwt);
-        mm::log("lcp-bwt2-init-end");
+        memory_monitor::event("lcp-bwt2-init-end");
         // Calculate LCP-Positions-Array
-        mm::log("lcp-bwt2-calc-values-begin");
+        memory_monitor::event("lcp-bwt2-calc-values-begin");
 
         // Save position of first LCP-value
         lcp_positions_buf[idx_out_buf++] = 0;
@@ -935,7 +935,7 @@ void construct_lcp_bwt_based2(cache_config& config)
         // Calculate LCP positions
         while (intervals) {
             if (intervals < use_queue_and_wt && !queue_used) {
-                mm::log("lcp-bwt2-bitvec2queue-begin");
+                memory_monitor::event("lcp-bwt2-bitvec2queue-begin");
                 util::clear(dict[target]);
 
                 // Copy from bitvector to queue
@@ -949,10 +949,10 @@ void construct_lcp_bwt_based2(cache_config& config)
                     b2 = util::next_bit(dict[source], a2+1);
                 }
                 util::clear(dict[source]);
-                mm::log("lcp-bwt2-bitvec2queue-end");
+                memory_monitor::event("lcp-bwt2-bitvec2queue-end");
             }
             if (intervals >= use_queue_and_wt && queue_used) {
-                mm::log("lcp-bwt2-queue2bitvec-begin");
+                memory_monitor::event("lcp-bwt2-queue2bitvec-begin");
                 dict[source].resize(2*(n+1));
                 util::set_to_value(dict[source], 0);
                 // Copy from queue to bitvector
@@ -962,7 +962,7 @@ void construct_lcp_bwt_based2(cache_config& config)
                 }
                 dict[target].resize(2*(n+1));
                 util::set_to_value(dict[target], 0);
-                mm::log("lcp-bwt2-queue2bitvec-end");
+                memory_monitor::event("lcp-bwt2-queue2bitvec-end");
             }
 
             if (intervals < use_queue_and_wt) {
@@ -1038,12 +1038,12 @@ void construct_lcp_bwt_based2(cache_config& config)
             ++lcp_value;
             new_lcp_value = true;
         }
-        mm::log("lcp-bwt2-calc-values-end");
+        memory_monitor::event("lcp-bwt2-calc-values-end");
         lcp_positions_buf.close();
     }
 // (2) Insert LCP entires into LCP array
     {
-        mm::log("lcp-bwt2-reordering-begin");
+        memory_monitor::event("lcp-bwt2-reordering-begin");
 
         int_vector_buffer<> lcp_positions(tmp_lcp_file, std::ios::in, buffer_size);
 
@@ -1077,7 +1077,7 @@ void construct_lcp_bwt_based2(cache_config& config)
         lcp_array.close();
         register_cache_file(constants::KEY_LCP, config);
         lcp_positions.close(true); // close buffer and remove file
-        mm::log("lcp-bwt2-reordering-end");
+        memory_monitor::event("lcp-bwt2-reordering-end");
     } // End of phase 2
 }
 
