@@ -82,7 +82,7 @@ $(PAT_DIR)/%.pattern: $(BIN_DIR)/genpatterns
 
 $(BIN_DIR)/genpatterns: $(SRC_DIR)/genpatterns.c
 	@echo "Build pattern generation program"
-	@gcc -O3 -o $@ $(SRC_DIR)/genpatterns.c
+	@$(MY_CC) -O3 -o $@ $(SRC_DIR)/genpatterns.c
 
 # $(BIN_DIR)/build_idx_[IDX_ID]
 $(BIN_DIR)/build_idx_%: $(SRC_DIR)/build_index_sdsl.cpp index.config

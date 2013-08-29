@@ -3,6 +3,7 @@ INC_DIR = @CMAKE_INSTALL_PREFIX@/include
 MY_CXX_FLAGS=@CMAKE_CXX_FLAGS@
 MY_OPT_CXX_FLAGS=@CMAKE_CXX_OPT_FLAGS@
 MY_CXX=@CMAKE_CXX_COMPILER@
+MY_CC=@CMAKE_C_COMPILER@
 
 # Returns $1-th .-separated part of string $2.
 dim = $(word $1, $(subst ., ,$2))
