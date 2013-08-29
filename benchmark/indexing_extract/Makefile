@@ -91,7 +91,7 @@ $(IVL_DIR)/%.interval: $(BIN_DIR)/genintervals
 
 $(BIN_DIR)/genintervals: $(SRC_DIR)/genintervals.c
 	@echo "Build interval generation program"
-	@gcc -O3 -o $@ $(SRC_DIR)/genintervals.c 
+	@$(MY_CC) -O3 -o $@ $(SRC_DIR)/genintervals.c 
 
 
 # $(BIN_DIR)/build_idx_[IDX_ID].[SAMPLE_ID]
