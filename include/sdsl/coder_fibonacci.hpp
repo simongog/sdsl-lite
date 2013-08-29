@@ -166,7 +166,7 @@ template<class int_vector1, class int_vector2>
 inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
 {
     uint64_t z_bit_size = 0;
-    register uint64_t w;
+    uint64_t w;
     const uint64_t zero_val = v.width() < 64 ? (1ULL)<<v.width() : 0;
     for (typename int_vector1::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
         if ((w=*it) == 0) {
@@ -182,8 +182,8 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
     }
     uint64_t* z_data 	= z.m_data;
     uint8_t offset 		= 0;
-    register uint64_t fibword_high = 0x0000000000000001ULL, fibword_low;
-    register uint64_t t;
+    uint64_t fibword_high = 0x0000000000000001ULL, fibword_low;
+    uint64_t t;
     for (typename int_vector1::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
         w = *it;
         if (w == 0) {
@@ -248,8 +248,8 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
 
 inline void fibonacci::encode(uint64_t x, uint64_t*& z, uint8_t& offset)
 {
-    register uint64_t fibword_high = 0x0000000000000001ULL, fibword_low;
-    register uint64_t t;
+    uint64_t fibword_high = 0x0000000000000001ULL, fibword_low;
+    uint64_t t;
     int8_t len_1 = encoding_length(x)-1,j;
     fibword_low = 0x0000000000000001ULL;
 

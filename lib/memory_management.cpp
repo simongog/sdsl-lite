@@ -2,6 +2,7 @@
 
 #include <cstdlib> // for malloc and free
 #include <sys/mman.h>
+#include <chrono>
 
 #ifdef MAP_HUGETLB
 #define HUGE_LEN 1073741824
@@ -11,13 +12,14 @@
 
 static int nifty_counter = 0;
 
+using timer = std::chrono::high_resolution_clock;
+
 std::map<uint64_t, sdsl::mm_item_base*> sdsl::mm::m_items;
 uint64_t sdsl::mm::m_total_memory;
 uint64_t* sdsl::mm::m_data;
 std::ostream* sdsl::mm::m_out;
-sdsl::util::stop_watch sdsl::mm::m_sw;
-uint64_t sdsl::mm::m_granularity;
-uint64_t sdsl::mm::m_pre_rtime;
+std::chrono::microseconds sdsl::mm::m_granularity;
+timer::time_point sdsl::mm::m_pre_rtime;
 uint64_t sdsl::mm::m_pre_max_mem;
 
 sdsl::util::spin_lock sdsl::mm::m_spinlock;
@@ -26,14 +28,14 @@ sdsl::mm_initializer::mm_initializer()
 {
     if (0 == nifty_counter++) {
         mm::m_total_memory = 0;
-        mm::m_granularity = 0;
-        mm::m_pre_rtime = 0;
+        mm::m_granularity = std::chrono::microseconds(500);
         mm::m_pre_max_mem = 0;
         // initialize static members object here
         // mm::m_items.clear();
         mm::m_items = mm::tMVecItem();
-        mm::m_data = NULL;
-        mm::m_out = NULL;
+        mm::m_data = nullptr;
+        mm::m_out = nullptr;
+        mm::m_pre_rtime = timer::now();
     }
 }
 sdsl::mm_initializer::~mm_initializer()
@@ -52,7 +54,7 @@ bool mm::map_hp()
 {
 #ifdef MAP_HUGETLB
     size_t hpgs= (m_total_memory+HUGE_LEN-1)/HUGE_LEN; // number of huge pages required to store the int_vectors
-    m_data = (uint64_t*)mmap(NULL, hpgs*HUGE_LEN, HUGE_PROTECTION, HUGE_FLAGS, 0, 0);
+    m_data = (uint64_t*)mmap(nullptr, hpgs*HUGE_LEN, HUGE_PROTECTION, HUGE_FLAGS, 0, 0);
     if (m_data == MAP_FAILED) {
         std::cout << "mmap was not successful" << std::endl;
         return false;
@@ -96,7 +98,7 @@ void mm::log_stream(std::ostream* out)
     m_out = out;
 }
 
-void mm::log_granularity(uint64_t granularity)
+void mm::log_granularity(std::chrono::microseconds granularity)
 {
     std::lock_guard<util::spin_lock> lock(m_spinlock);
     m_granularity = granularity;

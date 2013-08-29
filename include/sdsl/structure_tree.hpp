@@ -49,7 +49,7 @@ class structure_tree
     public:
         static structure_tree_node* add_child(structure_tree_node* v, const std::string& name, const std::string& type) {
             if (v) return v->add_child(name,type);
-            return NULL;
+            return nullptr;
         };
         static void add_size(structure_tree_node* v, uint64_t value) {
             if (v) v->add_size(value);

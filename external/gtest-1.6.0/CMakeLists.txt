@@ -73,8 +73,8 @@ target_link_libraries(gtest_main gtest)
 
 add_subdirectory(include)
 
-install(TARGETS gtest LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
-install(TARGETS gtest_main LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+#install(TARGETS gtest LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+#install(TARGETS gtest_main LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 
 ########################################################################
 #

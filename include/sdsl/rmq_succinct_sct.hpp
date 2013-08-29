@@ -23,8 +23,8 @@
 
 #include "rmq_support.hpp"
 #include "int_vector.hpp"
-#include "algorithms_for_compressed_suffix_trees.hpp"
 #include "bp_support_sada.hpp"
+#include "suffix_tree_helper.hpp"
 #include "util.hpp"
 
 //! Namespace for the succinct data structure library.
@@ -82,10 +82,10 @@ class rmq_succinct_sct
             if (v != nullptr) {
 #ifdef RMQ_SCT_BUILD_BP_NOT_SUCCINCT
                 // this method takes \f$n\log n\f$ bits extra space in the worst case
-                algorithm::construct_supercartesian_tree_bp(*v, m_sct_bp, t_min);
+                construct_supercartesian_tree_bp(*v, m_sct_bp, t_min);
 #else
                 // this method takes only \f$n\f$ bits extra space in all cases
-                algorithm::construct_supercartesian_tree_bp_succinct(*v, m_sct_bp, t_min);
+                construct_supercartesian_tree_bp_succinct(*v, m_sct_bp, t_min);
                 //  TODO: constructor which uses int_vector_buffer
 #endif
                 m_sct_bp_support = bp_support_type(&m_sct_bp);

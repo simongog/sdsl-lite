@@ -1,6 +1,18 @@
 Literature list of implemented data structures in SDSL
 (not complete yet)
 
+// used in includes/sdsl/wt_int.hpp
+@article{GOG:NAV:PUG:2012,
+author    = {Travis Gagie and Gonzalo Navarro and Simon J. Puglisi},
+title     = {New algorithms on wavelet trees and applications to information retrieval},
+journal   = {Theoretical Computer Science},
+volume    = {426},
+year      = {2012},
+pages     = {25-41},
+ee        = {http://dx.doi.org/10.1016/j.tcs.2011.12.002},
+bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
 // used in include/sdsl/algorithms_for_compressed_suffix_trees.hpp
 @inproceedings{FIS:2010,
 author    = {Johannes Fischer},
@@ -36,11 +48,78 @@ ee        = {http://dx.doi.org/10.1007/978-3-642-02441-2_17},
 bibsource = {DBLP, http://dblp.uni-trier.de}
 }
 
+// used in include/sdsl/construct_lcp.hpp
+@inproceedings{KAS:LEE:ARI:ARI:PAR:2001,
+author    = {Toru Kasai and Gunho Lee and Hiroki Arimura and Setsuo Arikawa and Kunsoo Park},
+title     = {Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications},
+booktitle = {Proceedings of the 12th Annual Symposium on Combinatorial Pattern Matching,
+             (CPM 2001)},
+year      = {2001},
+pages     = {181-192},
+ee        = {http://link.springer.de/link/service/series/0558/bibs/2089/20890181.htm},
+bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+// used in include/sdsl/construct_lcp.hpp
+@inproceedings{GOG:OHL:2011,
+author    = {Simon Gog and Enno Ohlebusch},
+title     = {Fast and Lightweight LCP-Array Construction Algorithms},
+booktitle = {Proceedings of the 13th Workshop on Algorithm Engineering and Experiments,
+             (ALENEX 2011)},
+year      = {2011},
+pages     = {25-34},
+ee        = {http://www.siam.org/proceedings/alenex/2011/alx11_03_gogs.pdf},
+bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+// used in include/sdsl/construct_lcp.hpp
+@article{GOG:OHL:2010,
+author    = {Simon Gog and Enno Ohlebusch},
+title     = {Lightweight LCP-Array Construction in Linear Time},
+journal   = {CoRR},
+volume    = {abs/1012.4263},
+year      = {2010},
+ee        = {http://arxiv.org/abs/1012.4263},
+bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+// used in include/sdsl/construct_lcp.hpp
+@inproceedings{BEL:GOG:OHL:SCH:2011,
+author    = {Timo Beller and Simon Gog and Enno Ohlebusch and Thomas Schnattinger},
+title     = {Computing the Longest Common Prefix Array Based on the Burrows-Wheeler Transform},
+booktitle = {Proceedings of String Processing and Information Retrieval, 18th International
+             Symposium, (SPIRE 2011)},
+year      = {2011},
+pages     = {197-208},
+ee        = {http://dx.doi.org/10.1007/978-3-642-24583-1_20},
+bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+// used in include/sdsl/construct_lcp.hpp
+@article{BEL:GOG:OHL:SCH:2013,
+author     = {Timo Beller and Simon Gog and Enno Ohlebusch and Thomas Schnattinger},
+title      = {Computing the Longest Common Prefix Array Based on the Burrows-Wheeler Transform},
+journal    = {Journal of Discrete Algorithms},
+issue_date = {January, 2013},
+volume     = {18},
+number     = {0},
+month      = {January},
+year       = {2013},
+issn       = {1570-8667},
+pages      = {22-31},
+numpages   = {10},
+url        = {http://dx.doi.org/10.1016/j.jda.2012.07.007},
+doi        = {10.1016/j.jda.2012.07.007},
+acmid      = {2428912},
+publisher  = {Elsevier Science Publishers B. V.},
+address    = {Amsterdam, The Netherlands, The Netherlands},
+}
+
 // used in include/sdsl/rrr_vector.hpp
 @inproceedings{RAM:RAM:RAO:2002,
 author    = {Rajeev Raman and Venkatesh Raman and S. Srinivasa Rao},
 title     = {Succinct indexable dictionaries with applications to encoding k-ary trees and multisets},
-booktitle = {Proceedings of the Thirteenth Annual ACM-SIAM Symposium
+booktitle = {Proceedings of the 13th Annual ACM-SIAM Symposium
              on Discrete Algorithms (SODA 2002)},
 year      = {2002},
 pages     = {233-242},
@@ -56,7 +135,6 @@ booktitle = {Proceedings of the 19th Annual European Symposium on Algorithms (ES
 year      = {2011},
 pages     = {760-771},
 ee        = {http://dx.doi.org/10.1007/978-3-642-23719-5_64},
-crossref  = {DBLP:conf/esa/2011},
 bibsource = {DBLP, http://dblp.uni-trier.de}
 }
 
@@ -69,7 +147,6 @@ booktitle = {Proceedings of the 4th Latin American Symposium
 year      = {2000},
 pages     = {88-94},
 ee        = {http://dx.doi.org/10.1007/10719839_9},
-crossref  = {DBLP:conf/latin/2000},
 bibsource = {DBLP, http://dblp.uni-trier.de}
 }
 
@@ -102,7 +179,7 @@ bibsource = {DBLP, http://dblp.uni-trier.de}
 @inproceedings{GRO:VIT:2003,
 author    = {Roberto Grossi and Ankur Gupta and Jeffrey Scott Vitter},
 title     = {High-order entropy-compressed text indexes},
-booktitle = {Proceedings of the Fourteenth Annual ACM-SIAM Symposium
+booktitle = {Proceedings of the 14th Annual ACM-SIAM Symposium
              on Discrete Algorithms (SODA 2003)},
 year      = {2003},
 pages     = {841-850},
@@ -114,7 +191,7 @@ bibsource = {DBLP, http://dblp.uni-trier.de}
 @inproceedings{MAK:NAV:2005,
 author    = {Veli M{\"a}kinen and Gonzalo Navarro},
 title     = {Succinct Suffix Arrays Based on Run-Length Encoding},
-booktitle = {Combinatorial Pattern Matching, 16th Annual Symposium,
+booktitle = {Proceedings of the 16th Annual Symposium on Combinatorial Pattern Matching,
              (CPM 2005)},
 year      = {2005},
 pages     = {45-56},
@@ -138,9 +215,9 @@ bibsource = {DBLP, http://dblp.uni-trier.de}
 @inproceedings{BRI:LAD:NAV:2009,
 author    = {Nieves R. Brisaboa and Susana Ladra and Gonzalo Navarro},
 title     = {Directly Addressable Variable-Length Codes},
-booktitle = {SPIRE},
-year      = {Proceedings of String Processing and Information Retrieval, 16th International
+booktitle = {Proceedings of String Processing and Information Retrieval, 16th International
              Symposium, (SPIRE 2009)},
+year      = {2009},
 pages     = {122-130},
 ee        = {http://dx.doi.org/10.1007/978-3-642-03784-9_12},
 bibsource = {DBLP, http://dblp.uni-trier.de}
@@ -151,7 +228,7 @@ bibsource = {DBLP, http://dblp.uni-trier.de}
 author    = {Kunihiko Sadakane},
 title     = {Succinct representations of {LCP} information and improvements
              in the compressed suffix arrays},
-booktitle = {Proceedings of the Thirteenth Annual ACM-SIAM Symposium
+booktitle = {Proceedings of the 13th Annual ACM-SIAM Symposium
              on Discrete Algorithms (SODA 2002)},
 year      = {2002},
 pages     = {225-232},
@@ -162,9 +239,9 @@ bibsource = {DBLP, http://dblp.uni-trier.de}
 // used in include/sdsl/bp_support_sada.hpp
 @techreport{SAD:2008,
 author      = {Kunihiko Sadakane},
-title       =  {The Ultimate Balanced Parentheses},
+title       = {The Ultimate Balanced Parentheses},
 institution = {Dept. of Computer Science and Communication Engineering,
-          Kyushu University, Japan},
+               Kyushu University, Japan},
 year        = {2008}
 }
 
@@ -184,8 +261,8 @@ bibsource = {DBLP, http://dblp.uni-trier.de}
 @inproceedings{NAV:PRO:2012,
 author    = {Gonzalo Navarro and Eliana Providel},
 title     = {Fast, Small, Simple Rank/Select on Bitmaps},
-booktitle = {Proceedings of the 
-             11th International Symposium on Experimental Algorithms (SEA 2013)},
+booktitle = {Proceedings of the 11th International Symposium on Experimental Algorithms
+             (SEA 2013)},
 year      = {2012},
 pages     = {295-306},
 ee        = {http://dx.doi.org/10.1007/978-3-642-30850-5_26},
@@ -196,7 +273,7 @@ bibsource = {DBLP, http://dblp.uni-trier.de}
 @article{LAR:SAD:2007,
 author    = {N. Jesper Larsson and Kunihiko Sadakane},
 title     = {Faster suffix sorting},
-journal   = {Theor. Comput. Sci.},
+journal   = {Theoretical Computer Science},
 volume    = {387},
 number    = {3},
 year      = {2007},
@@ -209,8 +286,8 @@ bibsource = {DBLP, http://dblp.uni-trier.de}
 @inproceedings{OKA:SAD:2007,
 author    = {Daisuke Okanohara and Kunihiko Sadakane},
 title     = {Practical Entropy-Compressed Rank/Select Dictionary},
-booktitle = {Proceedings of the Nine Workshop on Algorithm Engineering
-             and Experiments (ALENEX 2007)},
+booktitle = {Proceedings of the 9th Workshop on Algorithm Engineering and Experiments
+             (ALENEX 2007)},
 year      = {2007},
 ee        = {http://www.siam.org/proceedings/alenex/2007/alx07_007okanoharad2.pdf},
 bibsource = {DBLP, http://dblp.uni-trier.de}
@@ -233,7 +310,7 @@ bibsource = {DBLP, http://dblp.uni-trier.de}
 @article{SAD:2007,
 author    = {Kunihiko Sadakane},
 title     = {Compressed Suffix Trees with Full Functionality},
-journal   = {Theory Comput. Syst.},
+journal   = {Theory of Computing Systems},
 volume    = {41},
 number    = {4},
 year      = {2007},
@@ -246,7 +323,7 @@ bibsource = {DBLP, http://dblp.uni-trier.de}
 @inproceedings{OHL:FIS:GOG:2010,
 author    = {Enno Ohlebusch and Johannes Fischer and Simon Gog},
 title     = {CST++},
-booktitle = {Proceedings of String Processing and Information Retrieval - 17th International
+booktitle = {Proceedings of String Processing and Information Retrieval, 17th International
              Symposium, (SPIRE 2010)},
 year      = {2010},
 pages     = {322-333},
@@ -256,20 +333,168 @@ bibsource = {DBLP, http://dblp.uni-trier.de}
 
 // used in tutorial/document_listing/document_listing_sada.hpp
 @article{SAD:JDA:2007,
-author = {Sadakane, Kunihiko},
-title = {Succinct data structures for flexible text retrieval systems},
-journal = {Journal of Discrete Algorithms},
+author     = {Kunihiko Sadakane},
+title      = {Succinct data structures for flexible text retrieval systems},
+journal    = {Journal of Discrete Algorithms},
 issue_date = {March, 2007},
-volume = {5},
-number = {1},
-month = {March},
-year = {2007},
-issn = {1570-8667},
-pages = {12--22},
-numpages = {11},
-url = {http://dx.doi.org/10.1016/j.jda.2006.03.011},
-doi = {10.1016/j.jda.2006.03.011},
-acmid = {1224678},
-publisher = {Elsevier Science Publishers B. V.},
-address = {Amsterdam, The Netherlands, The Netherlands},
-} 
+volume     = {5},
+number     = {1},
+month      = {March},
+year       = {2007},
+issn       = {1570-8667},
+pages      = {12-22},
+numpages   = {11},
+url        = {http://dx.doi.org/10.1016/j.jda.2006.03.011},
+doi        = {10.1016/j.jda.2006.03.011},
+acmid      = {1224678},
+publisher  = {Elsevier Science Publishers B. V.},
+address    = {Amsterdam, The Netherlands, The Netherlands},
+}
+
+// used in include/sdsl/lcp_dac.hpp
+@article{TRA:SAN:2010,
+author     = {Frederik Transier and Peter Sanders},
+title      = {Engineering Basic Algorithms of an In-Memory Text Search Engine},
+journal    = {ACM Transactions on Information Systems},
+issue_date = {December 2010},
+volume     = {29},
+number     = {1},
+month      = {December},
+year       = {2010},
+issn       = {1046-8188},
+pages      = {2:1-2:37},
+articleno  = {2},
+numpages   = {37},
+url        = {http://doi.acm.org/10.1145/1877766.1877768},
+doi        = {10.1145/1877766.1877768},
+acmid      = {1877768},
+publisher  = {ACM},
+address    = {New York, NY, USA},
+}
+
+// used in include/sdsl/lcp_dac.hpp
+@article{WIL:ZOB:1999,
+author     = {Hugh E. Williams and Justin Zobel},
+title      = {Compressing Integers for Fast File Access},
+journal    = {The Computer Journal}
+volume     = {42},
+number     = {3},
+year       = {1999},
+pages      = {193-201},
+url        = {http://comjnl.oxfordjournals.org/content/42/3/193.abstract},
+doi        = {10.1093/comjnl/42.3.193},
+}
+
+// used in include/sdsl/sd_vector.hpp
+@article{ELI:1974,
+author     = {Elias, Peter},
+title      = {Efficient Storage and Retrieval by Content and Address of Static Files},
+journal    = {Journal of the ACM},
+issue_date = {April 1974},
+volume     = {21},
+number     = {2},
+month      = {April},
+year       = {1974},
+issn       = {0004-5411},
+pages      = {246-260},
+numpages   = {15},
+url        = {http://doi.acm.org/10.1145/321812.321820},
+doi        = {10.1145/321812.321820},
+acmid      = {321820},
+publisher  = {ACM},
+address    = {New York, NY, USA},
+}
+
+// used in include/sdsl/sd_vector.hpp
+@book{FAN:1971,
+title      = {On the Number of Bits Required to Implement an Associative Memory},
+author     = {Robert Mario Fano},
+series     = {Computation Structures Group Memo},
+year       = {1971},
+publisher  = {Massachusetts Institute of Technology, Project MAC},
+}
+
+// used in include/sdsl/bp_support_g.hpp
+// used in include/sdsl/bp_support_gg.hpp
+@inproceedings{GEA:RAH:RAM:RAM:2004,
+author    = {Richard F. Geary and Naila Rahman and Rajeev Raman and Venkatesh Raman},
+title     = {A Simple Optimal Representation for Balanced Parentheses},
+booktitle = {Proceedings of the 15th Annual Symposium on Combinatorial Pattern Matching,
+             (CPM 2004)},
+year      = {2004},
+pages     = {159-172},
+ee        = {http://dx.doi.org/10.1007/978-3-540-27801-6_12},
+bibsource = {DBLP, http://dblp.uni-trier.de},
+}
+
+// used in include/sdsl/suffix_array_algorithm.hpp
+@inproceedings{FER:MAN:2000,
+author    = {Paolo Ferragina and Giovanni Manzini},
+title     = {Opportunistic Data Structures with Applications},
+booktitle = {Proceedings of the 41st Annual Symposium on Foundations of Computer Science,
+             (FOCS 2000)},
+year      = {2000},
+pages     = {390-398},
+ee        = {http://doi.ieeecomputersociety.org/10.1109/SFCS.2000.892127},
+bibsource = {DBLP, http://dblp.uni-trier.de},
+}
+
+// used in include/sdsl/suffix_array_algorithm.hpp
+@article{SCH:OHL:GOG:2013,
+author    = {Thomas Schnattinger and Enno Ohlebusch and Simon Gog},
+title     = {Bidirectional search in a string with wavelet trees and bidirectional matching statistics},
+journal   = {Information and Computation},
+volume    = {213},
+year      = {2012},
+issn      = {0890-5401},
+pages     = {13-22},
+ee        = {http://dx.doi.org/10.1016/j.ic.2011.03.007},
+bibsource = {DBLP, http://dblp.uni-trier.de},
+}
+
+// used in include/sdsl/lcp_byte.hpp
+@article{ABO:KUR:OHL:2004,
+author    = {Mohamed Ibrahim Abouelhoda and Stefan Kurtz and Enno Ohlebusch},
+title     = {Replacing suffix trees with enhanced suffix arrays},
+journal   = {Journal of Discrete Algorithms},
+volume    = {2},
+number    = {1},
+year      = {2004},
+issn      = {1570-8667},
+pages     = {53-86},
+ee        = {http://dx.doi.org/10.1016/S1570-8667(03)00065-0},
+bibsource = {DBLP, http://dblp.uni-trier.de},
+}
+
+// used in include/sdsl/rrr_vector.hpp
+@inproceedings{PAG:1999,
+author    = {Rasmus Pagh},
+title     = {Low Redundancy in Static Dictionaries with O(1) Worst Case Lookup Time},
+booktitle = {Proceedings of the 26th International Colloquium on Automata, Languages and Programming
+             (ICALP 1999)}
+year      = {1999},
+pages     = {595-604},
+ee        = {http://dx.doi.org/10.1007/3-540-48523-6_56},
+bibsource = {DBLP, http://dblp.uni-trier.de},
+}
+
+// used in include/sdsl/bp_support_gg.hpp
+@inproceedings{OHL:GOG:2009,
+author    = {Enno Ohlebusch and Simon Gog},
+title     = {A Compressed Enhanced Suffix Array Supporting Fast String Matching},
+booktitle = {Proceedings of String Processing and Information Retrieval, 16th International
+             Symposium, (SPIRE 2009)},
+year      = {2009},
+pages     = {51-62},
+ee        = {http://dx.doi.org/10.1007/978-3-642-03784-9_6},
+bibsource = {DBLP, http://dblp.uni-trier.de},
+}
+
+// used in include/sdsl/select_support_mcl.hpp
+@phdthesis{CLA:1996,
+title     = {Compact Pat Trees},
+author    = {David Clark},
+year      = {1996},
+school    = {Department of Computer Science, University of Waterloo},
+ee        = {http://www.nlc-bnc.ca/obj/s4/f2/dsk3/ftp04/nq21335.pdf},
+}

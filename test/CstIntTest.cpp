@@ -1,7 +1,6 @@
 #include "sdsl/suffix_trees.hpp"
 #include "sdsl/lcp.hpp"
 #include "CstHelper.hpp"
-#include "sdsl/test_index_performance.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()
@@ -199,7 +198,7 @@ TYPED_TEST(CstIntTest, LcaMethod)
     uint8_t log_m = 14;
     // create m/2 pairs of positions in [0..cst.csa.size()-1]
     typedef typename TypeParam::node_type node_type;
-    int_vector<64> rnd_pos = get_rnd_positions(log_m, mask, cst.csa.size());
+    int_vector<64> rnd_pos = util::rnd_positions<int_vector<64>>(log_m, mask, cst.csa.size());
     // test for random sampled nodes
     for (size_type i=0; i < rnd_pos.size()/2; ++i) {
         // get two children

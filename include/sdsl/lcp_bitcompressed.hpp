@@ -23,7 +23,6 @@
 
 #include "lcp.hpp"
 #include "int_vector.hpp"
-#include "algorithms.hpp"
 #include "iterators.hpp"
 
 namespace sdsl
