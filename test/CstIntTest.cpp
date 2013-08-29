@@ -1,7 +1,6 @@
 #include "sdsl/suffix_trees.hpp"
 #include "sdsl/lcp.hpp"
 #include "CstHelper.hpp"
-#include "sdsl/test_index_performance.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <cstdlib> // for rand()

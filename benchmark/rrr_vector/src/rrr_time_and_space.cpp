@@ -2,7 +2,6 @@
 #include <fstream>
 #include <string>
 #include <sdsl/rrr_vector.hpp>
-#include <sdsl/test_index_performance.hpp>
 
 using namespace std;
 using namespace sdsl;
