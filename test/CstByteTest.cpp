@@ -1,6 +1,5 @@
 #include "CstHelper.hpp"
 #include "sdsl/suffix_trees.hpp"
-#include "sdsl/test_index_performance.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <string>
