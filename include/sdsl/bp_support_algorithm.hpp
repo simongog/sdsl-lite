@@ -14,12 +14,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file algorithms_for_balanced_parentheses.hpp
-    \brief algorithms.hpp contains algorithms for balanced parentheses sequences.
+/*! \file bp_support_algorithm.hpp
+    \brief bp_support_algorithm.hpp contains algorithms for balanced parentheses sequences.
 	\author Simon Gog
 */
-#ifndef INCLUDED_SDSL_ALGORITHMS_FOR_BALANCED_PARENTHESES
-#define INCLUDED_SDSL_ALGORITHMS_FOR_BALANCED_PARENTHESES
+#ifndef INCLUDED_SDSL_BP_SUPPORT_ALGORITHM
+#define INCLUDED_SDSL_BP_SUPPORT_ALGORITHM
 
 #include "int_vector.hpp" // for bit_vector
 #include <stack> // for calculate_pioneers_bitmap method
@@ -28,9 +28,6 @@
 
 
 namespace sdsl
-{
-
-namespace algorithm
 {
 
 //! Calculate pioneers as defined in the paper of Geary et al. (CPM 2004)
@@ -1500,9 +1497,6 @@ inline bit_vector::size_type near_rmq_open_naive(const bit_vector& bp, const bit
         return result;
     return end;
 }
-
-
-}// end namespace algorithm
 
 }// end namespace sdsl
 

@@ -23,7 +23,6 @@
 
 #include "lcp.hpp"
 #include "int_vector.hpp"
-#include "algorithms.hpp"
 #include "iterators.hpp"
 #include <iostream>
 #include <algorithm> // for lower_bound

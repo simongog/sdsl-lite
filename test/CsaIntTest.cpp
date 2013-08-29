@@ -120,6 +120,22 @@ TYPED_TEST(CsaIntTest, BwtAccess)
     }
 }
 
+TYPED_TEST(CsaIntTest, FAccess)
+{
+    if (test_case_file_map.end() != test_case_file_map.find(constants::KEY_TEXT_INT)) {
+        TypeParam csa;
+        ASSERT_EQ(true, load_from_file(csa, temp_file));
+        int_vector<> text;
+        load_from_file(text, test_case_file_map[constants::KEY_TEXT_INT]);
+        std::sort(begin(text),end(text));
+        size_type n = text.size();
+        ASSERT_EQ(n, csa.size());
+        for (size_type j=0; j<n; j+=200) {
+            ASSERT_EQ(text[j], csa.F[j])<<" j="<<j;
+        }
+    }
+}
+
 //! Test text access methods
 TYPED_TEST(CsaIntTest, TextAccess)
 {

@@ -26,7 +26,7 @@
 #include "rmq_support.hpp"
 #include "rank_support.hpp"
 #include "select_support.hpp"
-#include "algorithms.hpp"
+#include "bp_support_algorithm.hpp"
 #include "util.hpp"
 #include <stack>
 #include <map>
@@ -138,20 +138,20 @@ class bp_support_g
             util::init_support(m_select_bp, bp);
             bit_vector pioneer;
             // calulate pioneers
-            algorithm::calculate_pioneers_bitmap(*m_bp, m_block_size, pioneer);
+            calculate_pioneers_bitmap(*m_bp, m_block_size, pioneer);
             m_nnd = nnd_type(pioneer);
             m_pioneer_bp.resize(m_nnd.ones());
             for (size_type i=1; i<= m_nnd.ones(); ++i) // replace this by an iterator!!! see todo for the nnd data structure
                 m_pioneer_bp[i-1] = (*m_bp)[m_nnd.select(i)];
             util::init_support(m_rank_pioneer_bp, &m_pioneer_bp);
-            algorithm::calculate_pioneers_bitmap(m_pioneer_bp, m_block_size, pioneer);
+            calculate_pioneers_bitmap(m_pioneer_bp, m_block_size, pioneer);
             m_nnd2 = nnd_type(pioneer);
 
             bit_vector pioneer_bp2 = bit_vector(m_nnd2.ones());
             for (size_type i=1; i<= m_nnd2.ones(); ++i) // replace this by an iterator!!! see todo for the nnd data structure
                 pioneer_bp2[i-1] = m_pioneer_bp[m_nnd2.select(i)];
-            algorithm::calculate_matches(pioneer_bp2, m_match);
-            algorithm::calculate_enclose(pioneer_bp2, m_enclose);
+            calculate_matches(pioneer_bp2, m_match);
+            calculate_enclose(pioneer_bp2, m_enclose);
             m_range_max_match = rmq_type(&m_match);
         }
 
@@ -231,11 +231,11 @@ class bp_support_g
                 return i;
             }
             size_type mi = 0; // match for i
-            if ((mi=algorithm::near_find_close(*m_bp, i, m_block_size))==i) {
+            if ((mi=near_find_close(*m_bp, i, m_block_size))==i) {
                 const size_type i2 = m_nnd.rank(i+1)-1; // lemma that this gives us an opening pioneer
                 assert(m_pioneer_bp[i2]==1); // assert that i2 is an opening parenthesis
                 size_type mi2 = 0; // match for i2
-                if ((mi2=algorithm::near_find_close(m_pioneer_bp, i2, m_block_size)) == i2) {
+                if ((mi2=near_find_close(m_pioneer_bp, i2, m_block_size)) == i2) {
                     const size_type i3 = m_nnd2.rank(i2+1)-1;
                     const size_type mi3 = m_match[i3];     assert(mi3>i3); // assert that i3 is an opening parenthesis
                     mi2 = m_nnd2.select(mi3+1); // matching pioneer position in pioneer_bp
@@ -279,7 +279,7 @@ class bp_support_g
                 return i;
             }
             size_type mi = 0; // match for i
-            if ((mi=algorithm::near_find_open(*m_bp, i, m_block_size)) == i) {
+            if ((mi=near_find_open(*m_bp, i, m_block_size)) == i) {
                 const size_type i2 = m_nnd.rank(i); // lemma that this gives us an closing pioneer
                 assert(m_pioneer_bp[i2]==0); // assert that i2 is an opening parenthesis
                 const size_type mi2 = find_open_in_pioneers(i2);         assert(m_pioneer_bp[mi2]==1);
@@ -302,7 +302,7 @@ class bp_support_g
 
         inline size_type find_open_in_pioneers(size_type i)const {
             size_type mi = 0; // match for i
-            if ((mi=algorithm::near_find_open(m_pioneer_bp, i, m_block_size))==i) {
+            if ((mi=near_find_open(m_pioneer_bp, i, m_block_size))==i) {
                 const size_type i3 = m_nnd2.rank(i);
                 const size_type mi3 = m_match[i3];      assert(mi3<i3); // assert that i3 is an closing parenthesis
                 mi = m_nnd2.select(mi3+1); // matching pioneer position in pioneer_bp
@@ -336,11 +336,11 @@ class bp_support_g
             if (exi == 1)  // if i is not enclosed by a parentheses pair..
                 return size();
             size_type ei; // enclose  for i
-            if ((ei=algorithm::near_enclose(*m_bp, i, m_block_size))==i) {
+            if ((ei=near_enclose(*m_bp, i, m_block_size))==i) {
                 const size_type i2 = m_nnd.rank(i); // next parenthesis in the pioneer bitmap
                 size_type ei2; // enclose for i2
                 if (m_pioneer_bp[i2]) { // search enclose in the pioneer bp
-                    if ((ei2=algorithm::near_enclose(m_pioneer_bp, i2, m_block_size))==i2) {
+                    if ((ei2=near_enclose(m_pioneer_bp, i2, m_block_size))==i2) {
                         const size_type i3  = m_nnd2.rank(i2); // next parenthesis in the pioneer2 bitmap
                         const size_type ei3 = m_enclose[i3];                              assert(ei3<i3);    // assert that enclose answer is valid
                         ei2 = m_nnd2.select(ei3+1);                                       assert(m_pioneer_bp[ei2] == 1);
@@ -411,7 +411,7 @@ class bp_support_g
             size_type        min_ex_pos = r;
 
             if (l/m_block_size == r/m_block_size) {
-                min_ex_pos = algorithm::near_rmq_open(*m_bp, l, r);
+                min_ex_pos = near_rmq_open(*m_bp, l, r);
             } else { // parentheses pair does not start in the same block
 //                assert( l>1 ); // mi is at greater or equal than 1
                 // note: mi and r are not in the same block
@@ -428,7 +428,7 @@ class bp_support_g
                 if (r_ > l_) {
                     size_type min_ex_pos_ = r_;
                     if (l_/m_block_size == r_/m_block_size) {
-                        min_ex_pos_ = algorithm::near_rmq_open(m_pioneer_bp, l_, r_);
+                        min_ex_pos_ = near_rmq_open(m_pioneer_bp, l_, r_);
                     } else if (r_ < m_pioneer_bp.size()) {
                         size_type min_ex_      = excess_pioneer(r_)+2*(m_pioneer_bp[r_]==0);
                         const size_type bl_ = (l_/m_block_size+1)*m_block_size;
@@ -450,13 +450,13 @@ class bp_support_g
                         }
                         if (min_ex_pos_ == r_) {
                             // 2.1
-                            k = algorithm::near_rmq_open(m_pioneer_bp, br_, r_);
+                            k = near_rmq_open(m_pioneer_bp, br_, r_);
                             if (k < r_ and (ex=excess_pioneer(k)) < min_ex_) {
                                 min_ex_ = ex; min_ex_pos_ = k;
                             }
                         }
                         // 2.3
-                        k = algorithm::near_rmq_open(m_pioneer_bp, l_, bl_);
+                        k = near_rmq_open(m_pioneer_bp, l_, bl_);
                         if (k < bl_ and (ex=excess_pioneer(k)) < min_ex_) {
                             min_ex_ = ex; min_ex_pos_ = k;
                         }
@@ -471,13 +471,13 @@ class bp_support_g
                 }
                 if (min_ex_pos == r) {
                     // 1.1
-                    k = algorithm::near_rmq_open(*m_bp, br, r);
+                    k = near_rmq_open(*m_bp, br, r);
                     if (k < r and (ex=excess(k)) < min_ex) {
                         min_ex        = ex; min_ex_pos     = k;
                     }
                 }
                 // 1.3
-                k = algorithm::near_rmq_open(*m_bp, l, bl);
+                k = near_rmq_open(*m_bp, l, bl);
                 if (k < bl and (ex=excess(k)) < min_ex) {
                     min_ex = ex; min_ex_pos = k;
                 }

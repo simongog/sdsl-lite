@@ -23,7 +23,6 @@
 
 #include "enc_vector.hpp"
 #include "int_vector.hpp"
-#include "algorithms.hpp"
 #include "iterators.hpp"
 #include "suffix_array_helper.hpp"
 #include "util.hpp"
@@ -79,6 +78,7 @@ class csa_sada
         typedef psi_of_csa_psi<csa_sada>                                         psi_type;
         typedef bwt_of_csa_psi<csa_sada>                                         bwt_type;
         typedef text_of_csa<csa_sada>                                            text_type;
+        typedef first_row_of_csa<csa_sada>                                       first_row_type;
         typedef typename t_sa_sample_strat::template type<csa_sada>::sample_type sa_sample_type;
         typedef t_isa                                                            isa_sample_type;
         typedef t_alphabet_strat                                                 alphabet_type;
@@ -127,6 +127,8 @@ class csa_sada
         const typename alphabet_type::sigma_type&     sigma      = m_alphabet.sigma;
         const psi_type                                psi        = psi_type(this);
         const bwt_type                                bwt        = bwt_type(this);
+        const bwt_type                                L          = bwt_type(this);
+        const first_row_type                          F          = first_row_type(this);
         const text_type                               text       = text_type(this);
         const sa_sample_type&                         sa_sample  = m_sa_sample;
         const isa_sample_type&                        isa_sample = m_isa_sample;
@@ -401,7 +403,7 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     mm::log("sa-sample-end");
 
     mm::log("isa-sample-begin");
-    algorithm::set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
+    set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
     mm::log("isa-sample-end");
 }
 

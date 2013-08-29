@@ -1,5 +1,9 @@
 include ../Make.helper
-CXX_FLAGS=$(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O3 -I$(INC_DIR) -L$(LIB_DIR)
+CXX_FLAGS=$(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O3 \
+		  -I$(INC_DIR) \
+		  -I../build/external/gtest-1.6.0/include \
+		  -L$(LIB_DIR) \
+		  -L../build/external/gtest-1.6.0
 LIB_SDSL=$(LIB_DIR)/libsdsl.a
 CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest 
 TMP_DIR=tmp
@@ -71,10 +75,18 @@ test:	bits-test \
 build-test: $(EXECS) 
 	cd ../tutorial; make build-test
 	cd ../examples; make build-test
+	cd ../benchmark/indexing_count; make
+	cd ../benchmark/indexing_locate; make
+	cd ../benchmark/indexing_extract; make
+	cd ../benchmark/rrr_vector; make
 
 build-test-clean: clean
 	cd ../tutorial; make clean
 	cd ../examples; make clean
+	cd ../benchmark/indexing_count; make clean-build
+	cd ../benchmark/indexing_locate; make clean-build
+	cd ../benchmark/indexing_extract; make clean-build
+	cd ../benchmark/rrr_vector; make clean-build
 
 generators: BitVectorGenerator.x IntVectorGenerator.x
 

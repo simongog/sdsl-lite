@@ -23,7 +23,6 @@
 
 #include "lcp.hpp"
 #include "int_vector.hpp"
-#include "algorithms.hpp"
 #include "iterators.hpp"
 #include "util.hpp"
 #include "rank_support_v5.hpp"
