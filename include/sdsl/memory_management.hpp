@@ -20,6 +20,7 @@ namespace sdsl
 class memory_monitor;
 
 enum memformat_type {JSON, CSV, HTML};
+
 template<memformat_type F>
 void write_mem_log(std::ostream& out,const memory_monitor& m);
 
@@ -32,7 +33,6 @@ class memory_monitor
             uint64_t usage;
             mm_event(timer::time_point t,uint64_t u) : timestamp(t) , usage(u) {};
         };
-    private:
         std::chrono::milliseconds log_granularity = std::chrono::milliseconds(50);
         uint64_t current_usage = 0;
         uint64_t peak_usage = 0;
@@ -94,7 +94,7 @@ class memory_monitor
         }
         template<memformat_type F>
         static void write_memory_log(std::ostream& out) {
-            write_mem_log<F>(out,the_monitor);
+            write_mem_log<F>(out,the_monitor());
         }
 };
 
@@ -165,7 +165,7 @@ class memory_manager
         static void resize(t_vec& v, const typename t_vec::size_type size) {
             int64_t old_size_in_bytes = ((v.m_size+63)>>6)<<3;
             int64_t new_size_in_bytes = ((size+63)>>6)<<3;
-            std::cout << "resize(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
+            //std::cout << "resize(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
             bool do_realloc = old_size_in_bytes != new_size_in_bytes;
             if (do_realloc || new_size_in_bytes == 0) {
                 // Note that we allocate 8 additional bytes if m_size % 64 == 0.
@@ -186,7 +186,7 @@ class memory_manager
                 // update stats
                 memory_monitor::record(new_size_in_bytes-old_size_in_bytes);
             }
-            std::cout << "done(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
+            //std::cout << "done(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
         }
         template<class t_vec>
         static void clear(t_vec& v) {

@@ -11,11 +11,15 @@ int main(int argc, char* argv[])
     memory_monitor::granularity(std::chrono::milliseconds(20));
 
     // generate CST
-    memory_monitor::event("begin");
+    memory_monitor::start();
     {
         cst_sct3<> cst;
         construct(cst, argv[1], 1);
         cerr<<cst.size()<<endl;
     }
-    memory_monitor::event("end");
+    memory_monitor::stop();
+
+    std::ofstream of("test.csv");
+    memory_monitor::write_memory_log<CSV>(of);
+    of.close();
 }
