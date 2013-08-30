@@ -30,12 +30,12 @@ class memory_monitor
         using timer = std::chrono::high_resolution_clock;
         struct mm_event {
             timer::time_point timestamp;
-            uint64_t usage;
-            mm_event(timer::time_point t,uint64_t u) : timestamp(t) , usage(u) {};
+            int64_t usage;
+            mm_event(timer::time_point t,int64_t u) : timestamp(t) , usage(u) {};
         };
         std::chrono::milliseconds log_granularity = std::chrono::milliseconds(50);
-        uint64_t current_usage = 0;
-        uint64_t peak_usage = 0;
+        int64_t current_usage = 0;
+        int64_t peak_usage = 0;
         bool track_usage = false;
         std::vector<mm_event> mem_events;
         std::vector<std::pair<timer::time_point,std::string>> events;
@@ -53,7 +53,7 @@ class memory_monitor
         static mm_event& last_event() {
             auto& m = the_monitor();
             if (!m.mem_events.size()) {
-                m.mem_events.emplace_back(timer::now(),(uint64_t)0);
+                m.mem_events.emplace_back(timer::now(),(int64_t)0);
             }
             return m.mem_events.back(); // empty event
         }
@@ -77,10 +77,11 @@ class memory_monitor
             auto& m = the_monitor();
             if (m.track_usage) {
                 std::lock_guard<util::spin_lock> lock(m.spinlock);
-                m.current_usage = (uint64_t)((int64_t)m.current_usage + delta);
+                m.current_usage = (int64_t)((int64_t)m.current_usage + delta);
                 m.peak_usage = std::max(m.current_usage,m.peak_usage);
                 auto cur = timer::now();
-                if (last_event().timestamp + m.log_granularity > cur) {
+                if (last_event().timestamp + m.log_granularity < cur) {
+
                     m.mem_events.emplace_back(cur,m.current_usage);
                 }
             }
@@ -104,8 +105,10 @@ class memory_monitor
 class hugepage_allocator
 {
     private:
+#ifdef MAP_HUGETLB
         uint64_t* m_memory = nullptr;
         size_t m_mem_size = 0;
+#endif
     private:
         static hugepage_allocator& the_allocator() {
             static hugepage_allocator a;
@@ -113,6 +116,7 @@ class hugepage_allocator
         }
     public:
         static void init(size_t size_in_bytes) {
+#ifdef MAP_HUGETLB
             auto& a = the_allocator();
             a.m_mem_size = size_in_bytes;
             a.m_memory = (uint64_t*) mmap(nullptr, size_in_bytes,
@@ -121,9 +125,12 @@ class hugepage_allocator
             if (a.m_memory == MAP_FAILED) {
                 throw std::bad_alloc();
             }
+#else
+            throw std::bad_alloc();
+#endif
         }
         static uint64_t* alloc(size_t size_in_bytes) {
-            return (uint64_t*) malloc(size_in_bytes);
+            return (uint64_t*) calloc(size_in_bytes,1);
         }
         static void free(uint64_t* ptr) {
             free(ptr);
@@ -165,7 +172,7 @@ class memory_manager
         static void resize(t_vec& v, const typename t_vec::size_type size) {
             int64_t old_size_in_bytes = ((v.m_size+63)>>6)<<3;
             int64_t new_size_in_bytes = ((size+63)>>6)<<3;
-            //std::cout << "resize(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
+            std::cout << "resize(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
             bool do_realloc = old_size_in_bytes != new_size_in_bytes;
             if (do_realloc || new_size_in_bytes == 0) {
                 // Note that we allocate 8 additional bytes if m_size % 64 == 0.
@@ -184,20 +191,23 @@ class memory_manager
                 v.m_size = size;
 
                 // update stats
-                memory_monitor::record(new_size_in_bytes-old_size_in_bytes);
+                if (do_realloc) {
+                    memory_monitor::record(new_size_in_bytes-old_size_in_bytes);
+                }
             }
-            //std::cout << "done(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
+            std::cout << "done(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
         }
         template<class t_vec>
         static void clear(t_vec& v) {
             int64_t size_in_bytes = ((v.m_size+63)>>6)<<3;
-
             // remove mem
             memory_manager::free_mem(v.m_data);
             v.m_data = nullptr;
 
             // update stats
-            memory_monitor::record(size_in_bytes*-1);
+            if (size_in_bytes) {
+                memory_monitor::record(size_in_bytes*-1);
+            }
         }
 };
 

@@ -304,7 +304,7 @@ class int_vector
         int_vector(std::initializer_list<t_T> il) : int_vector() {
             resize(il.size());
             size_type idx = 0;
-            for (auto x : il) {
+for (auto x : il) {
                 (*this)[idx++] = x;
             }
         }
@@ -1120,6 +1120,7 @@ inline int_vector<t_width>::int_vector(int_vector&& v) :
     m_size(v.m_size), m_data(v.m_data), m_width(v.m_width)
 {
     v.m_data = nullptr; // ownership of v.m_data now transfered
+    v.m_size = 0;
 }
 
 template<uint8_t t_width>
