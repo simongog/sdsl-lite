@@ -22,4 +22,5 @@ clean:
 	rm -f doc_re_time.pdf doc_re_time.aux \
 		  fig-runtime.tex tbl-indexes.tex \
 		  fig-runtime_int.tex tbl-indexes_int.tex \
+		  tbl-sizes.tex tbl-sizes_int.tex \
 	      doc_re_time.log R.log LaTeX.log

@@ -285,3 +285,4 @@ cleanall: clean cleanresults
 	@echo "Remove all generated files."
 	rm -f $(TMP_DIR)/* 
 	rm -f $(PAT_DIR)/*
+	cd visualize; make clean
