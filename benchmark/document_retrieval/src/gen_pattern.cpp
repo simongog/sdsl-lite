@@ -37,9 +37,7 @@ int main(int argc, char* argv[])
     cache_config cconfig(false, tmp_dir, id);
     if (!load_from_file(csa, collection_csa)) {
         std::cout<<"\ncollection_file="<<collection_file<<" num_bytes="<<(int)num_bytes<<std::endl;
-        std::cout<<"csa_t::alphabet_category::WIDTH="<<(int)csa_t::alphabet_category::WIDTH<<std::endl;
         if (num_bytes == 0) {
-            mm::log_stream(&cout);
             int_vector<> v;
             load_from_file(v, collection_file);
             std::cout<<"v.size()="<<v.size()<<std::endl;
