@@ -36,7 +36,6 @@ int main(int argc, char* argv[])
     csa_t csa;
     cache_config cconfig(false, tmp_dir, id);
     if (!load_from_file(csa, collection_csa)) {
-        std::cout<<"\ncollection_file="<<collection_file<<" num_bytes="<<(int)num_bytes<<std::endl;
         if (num_bytes == 0) {
             int_vector<> v;
             load_from_file(v, collection_file);
