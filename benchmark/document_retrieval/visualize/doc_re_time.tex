@@ -10,20 +10,40 @@
 \begin{figure}
 \input{fig-runtime.tex}
 \caption{Average query time to find the top-$10$ documents (TFxIDF measure)
-for different pattern length. For each query length, $200$ pattern were
+for different pattern length using character based indexes. For each query length, $200$ pattern were
 queried.}
 \end{figure}
 
 \begin{table}
 \centering
 \input{tbl-indexes.tex}
-\caption{Class definition of the indexes used in the experiment.}
+\caption{Class definition of character indexes used in the experiment.}
 \end{table}
 
 \begin{table}
 \centering
 \input{tbl-sizes.tex}
-\caption{Size of the indexes.}
+\caption{Size of character indexes.}
+\end{table}
+
+\begin{figure}
+\input{fig-runtime_int.tex}
+\caption{Average query time to find the top-$10$ documents (TFxIDF measure)
+for different pattern length using word bases indexes. For each query length, $200$ pattern were
+queried.}
+\end{figure}
+
+
+\begin{table}
+\centering
+\input{tbl-indexes_int.tex}
+\caption{Class definition of word indexes used in the experiment.}
+\end{table}
+
+\begin{table}
+\centering
+\input{tbl-sizes_int.tex}
+\caption{Size of word indexes.}
 \end{table}
 
 \end{document}

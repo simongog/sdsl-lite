@@ -1,13 +1,31 @@
 require(tikzDevice) 
 source("../../basic_functions.R")
 
+
+mypaste <- function(...){
+    paste(...,sep="")
+}
+
+process_data <- function(suf){
+
+# Files
+f_idxfilterconfig = mypaste("index-filter",suf,".config")
+f_idxconfig       = mypaste("../index",suf,".config")
+f_tcconfig        = mypaste("../test_case",suf,".config")
+f_results         = mypaste("../results/all",suf,".txt")
+f_sizes           = mypaste("../info/sizes",suf,".txt")
+f_fig_runtime     = mypaste("fig-runtime",suf,".tex")
+f_tbl_indexes     = mypaste("tbl-indexes",suf,".tex")
+f_tbl_sizes       = mypaste("tbl-sizes",suf,".tex")
+
 # Load filter information
-config <- readConfig("index-filter.config",c("IDX_ID","PCH","LTY","COL"))
-idx_config <- readConfig("../index.config",c("IDX_ID","SDSL_TYPE","LATEX-NAME"))
-tc_config <- readConfig("../test_case.config",c("TC_ID","PATH","LATEX-NAME","URL"))
+config <- readConfig(f_idxfilterconfig,c("IDX_ID","PCH","LTY","COL"))
+# Load index and test case data
+idx_config <- readConfig(f_idxconfig,c("IDX_ID","SDSL_TYPE","LATEX-NAME"))
+tc_config <- readConfig(f_tcconfig,c("TC_ID","PATH","LATEX-NAME","URL"))
 
 # Load data
-raw <- data_frame_from_key_value_pairs( "../results/all.txt" )
+raw <- data_frame_from_key_value_pairs(f_results)
 raw <- raw[c("TC_ID","IDX_ID","time_per_query","query_len")]
 raw["time_per_query"] <- raw["time_per_query"]/1000.0
 
@@ -19,7 +37,7 @@ raw[["IDX_ID"]]   <- factor(raw[["IDX_ID"]])
 # Split by TC_ID
 d <- split(raw,raw["TC_ID"])
 
-tikz("fig-runtime.tex", width = 5.5, height = 6, standAlone = F)
+tikz(f_fig_runtime, width = 5.5, height = 6, standAlone = F)
 
 multi_figure_style( length(d)/2+1, 2 )  
 count <- 0
@@ -69,12 +87,12 @@ for( tc_id in names(d) ){
 
 dev.off()
 
-sink("tbl-indexes.tex")
-cat(typeInfoTable("../index.config", config[["IDX_ID"]], 1, 3, 2))
+sink(f_tbl_indexes)
+cat(typeInfoTable(f_idxconfig, config[["IDX_ID"]], 1, 3, 2))
 sink(NULL)
 
-sink("tbl-sizes.tex")
-raw <- data_frame_from_key_value_pairs( "../info/sizes.txt" )
+sink(f_tbl_sizes)
+raw <- data_frame_from_key_value_pairs(f_sizes)
 # Filter indexes
 raw               <- raw[raw[["IDX_ID"]]%in%config[["IDX_ID"]],] 
 raw[["IDX_ID"]]   <- factor(raw[["IDX_ID"]])
@@ -102,3 +120,8 @@ cat("\\end{tabular}")
 
 sink(NULL)
 
+}
+
+
+process_data("")
+process_data("_int")
