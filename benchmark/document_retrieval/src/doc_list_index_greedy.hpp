@@ -65,9 +65,9 @@ class doc_list_index_greedy
         };
 
     protected:
-        size_type                   m_doc_cnt;              // number of documents in the collection
-        csa_type                    m_csa;                  // CSA built from the collection text
-        wtd_type                    m_wtd;                  // wtd build from the collection text
+        size_type m_doc_cnt; // number of documents in the collection
+        csa_type  m_csa;     // CSA built from the collection text
+        wtd_type  m_wtd;     // wtd build from the collection text
     public:
 
         //! Default constructor
@@ -88,8 +88,16 @@ class doc_list_index_greedy
             {
                 int_vector<> D;
                 construct_D_array(sa_buf, doc_border_rank, m_doc_cnt, D);
-                construct_im(m_wtd,D);
+                construct_im(m_wtd, D);
             }
+        }
+
+        size_type doc_cnt()const {
+            return m_wtd.sigma-1; // subtract one, since zero does not count
+        }
+
+        size_type word_cnt()const {
+            return m_wtd.size()-doc_cnt();
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
@@ -117,7 +125,8 @@ class doc_list_index_greedy
         }
 
         //! Search for the k documents which contains the search term most frequent
-        size_type search(std::string::iterator begin, std::string::iterator end, result& res,size_t k) const {
+        template<class t_pat_iter>
+        size_type search(t_pat_iter begin, t_pat_iter end, result& res, size_t k) const {
             size_type sp=1, ep=0;
             if (0 == backward_search(m_csa, 0, m_csa.size()-1, begin, end, sp, ep)) {
                 res = result();
@@ -133,7 +142,7 @@ class doc_list_index_greedy
         //! Construct the doc_border bitvector by streaming the text file
         void
         construct_doc_border(const std::string& text_file, bit_vector& doc_border) {
-            int_vector_buffer<8> text_buf(text_file);
+            int_vector_buffer<WIDTH> text_buf(text_file);
             doc_border = bit_vector(text_buf.size(), 0);
             for (size_type i = 0; i < text_buf.size(); ++i) {
                 if (t_doc_delim == text_buf[i]) {
@@ -149,7 +158,8 @@ class doc_list_index_greedy
                           int_vector<>& D) {
             D = int_vector<>(sa_buf.size(), 0, bits::hi(doc_cnt+1)+1);
             for (size_type i = 0; i < sa_buf.size(); ++i) {
-                D[i] = doc_border_rank(sa_buf[i]+1);
+                uint64_t d = doc_border_rank(sa_buf[i]+1);
+                D[i] = d;
             }
         }
 };

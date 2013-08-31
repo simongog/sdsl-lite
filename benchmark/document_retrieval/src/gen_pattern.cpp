@@ -7,6 +7,16 @@
 using namespace std;
 using namespace sdsl;
 
+#ifndef INT_ALPHABET
+using csa_t = csa_wt<wt_huff<rrr_vector<63>>>;
+using rac_t = std::string;
+uint8_t num_bytes = 1;
+#else
+using csa_t = csa_wt<wt_int<rrr_vector<63>>>;
+using rac_t = int_vector<>;
+uint8_t num_bytes = 0;
+#endif
+
 int main(int argc, char* argv[])
 {
     if (argc < 7) {
@@ -23,10 +33,19 @@ int main(int argc, char* argv[])
     uint64_t pat_num       = stoull(argv[5]);
     string pattern_file    = argv[6];
 
-    csa_wt<wt_huff<rrr_vector<63>>> csa;
+    csa_t csa;
     cache_config cconfig(false, tmp_dir, id);
     if (!load_from_file(csa, collection_csa)) {
-        construct(csa, collection_csa, cconfig, 1);
+        std::cout<<"\ncollection_file="<<collection_file<<" num_bytes="<<(int)num_bytes<<std::endl;
+        std::cout<<"csa_t::alphabet_category::WIDTH="<<(int)csa_t::alphabet_category::WIDTH<<std::endl;
+        if (num_bytes == 0) {
+            mm::log_stream(&cout);
+            int_vector<> v;
+            load_from_file(v, collection_file);
+            std::cout<<"v.size()="<<v.size()<<std::endl;
+        }
+        construct(csa, collection_file, cconfig, num_bytes);
+        std::cout<<util::demangle2(typeid(csa_t).name())<<std::endl;
         store_to_file(csa, collection_csa);
     }
 
@@ -49,11 +68,20 @@ int main(int argc, char* argv[])
     uint64_t pat_cnt=0;
     while (pat_cnt < pat_num) {
         uint64_t pos = dice();
-        string pat = extract<string>(csa, pos, pos+pat_len-1);
-        if (pat.find_first_of("\n") == string::npos and
-            count(csa, pat.begin(), pat.end()) >= 5) {
-            out << pat << "\n";
-            ++pat_cnt;
+        rac_t pat = extract<rac_t>(csa, pos, pos+pat_len-1);
+        bool valid = true;
+        for (uint64_t i=0; valid and i < pat.size(); ++i) {
+            // if pattern includes separator or newline in byte sequence
+            if (pat[i] == 1 or (num_bytes == 1 and pat[i]=='\n')) {
+                valid = false;
+            }
+        }
+        if (valid) {
+            if (csa_t::alphabet_category::WIDTH == 0 or
+                count(csa, pat.begin(), pat.end()) >= 5) {
+                out << pat << "\n";
+                ++pat_cnt;
+            }
         }
     }
 }

@@ -41,7 +41,8 @@ class doc_list_index_qprobing : public doc_list_index_greedy<t_csa, t_wtd, t_doc
         doc_list_index_qprobing(std::string file_name, sdsl::cache_config& cconfig, uint8_t num_bytes) : base_type(file_name, cconfig, num_bytes) {}
 
         //! Search for the k documents which contains the search term most frequent
-        size_type search(std::string::iterator begin, std::string::iterator end, result& res, size_t k) const {
+        template<class t_pat_iter>
+        size_type search(t_pat_iter begin, t_pat_iter end, result& res, size_t k) const {
             size_type sp=1, ep=0;
             if (0 == backward_search(m_csa, 0, m_csa.size()-1, begin, end, sp, ep)) {
                 res = result();

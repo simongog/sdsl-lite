@@ -2,14 +2,35 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
+#include <sstream>
 
 using namespace std;
 using namespace sdsl;
 
 using idx_type = IDX_TYPE;
 
-const size_t buf_size=1024;
+const size_t buf_size=1024*128;
 char   buffer[buf_size];
+
+template<uint8_t t_width>
+struct myline {
+    static string parse(char* str) {
+        return string(str);
+    }
+};
+
+template<>
+struct myline<0> {
+    static vector<uint64_t> parse(char* str) {
+        vector<uint64_t> res;
+        stringstream ss(str);
+        uint64_t x;
+        while (ss >> x) {
+            res.push_back(x);
+        }
+        return res;
+    }
+};
 
 int main(int argc, char* argv[])
 {
@@ -30,6 +51,8 @@ int main(int argc, char* argv[])
         return 1;
     }
     std::cout<<"# pattern_file = "<<pattern_file<<endl;
+    std::cout<<"# doc_cnt = "<<idx.doc_cnt()<<endl;
+    std::cout<<"# word_cnt = "<<idx.word_cnt()<<endl;
     ifstream in(pattern_file);
     if (!in) {
         std::cerr << "Could not load pattern file" << std::endl;
@@ -44,7 +67,7 @@ int main(int argc, char* argv[])
     auto start = timer::now();
     while (in.getline(buffer, buf_size)) {
         typename idx_type::result res;
-        string query(buffer);
+        auto query = myline<idx_type::WIDTH>::parse(buffer);
         q_len += query.size();
         ++q_cnt;
         size_t x = idx.search(query.begin(), query.end(), res, 10);
@@ -55,9 +78,9 @@ int main(int argc, char* argv[])
     }
     auto stop = timer::now();
     auto elapsed = stop-start;
-    std::cout<<"# query_len = "<<q_len/q_cnt<<std::endl;
-    std::cout<<"# queries = " <<q_cnt << std::endl;
-    std::cout<<"# time_per_query = "<<std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()/q_cnt << std::endl;
-    std::cout<<"# check_sum = "<<sum<<std::endl;
-    std::cout<<"# check_sum_fdt = "<<sum_fdt<<std::endl;
+    std::cout<<"# query_len = "<<q_len/q_cnt<<endl;
+    std::cout<<"# queries = " <<q_cnt <<endl;
+    std::cout<<"# time_per_query = "<<std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()/q_cnt <<endl;
+    std::cout<<"# check_sum = "<<sum<<endl;
+    std::cout<<"# check_sum_fdt = "<<sum_fdt<<endl;
 }
