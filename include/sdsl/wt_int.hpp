@@ -169,10 +169,10 @@ class wt_int
                 const uint64_t    mask_new = 1ULL<<(m_max_depth-k-1);
                 do {
                     buf1.reset();
-                    size_type    i         = start;
-                    size_type    cnt0    =    0;
-                    uint64_t    start_value = (rac[i]&mask_old);
-                    uint64_t    x;
+                    size_type i           = start;
+                    size_type cnt0        =    0;
+                    uint64_t  start_value = (rac[i]&mask_old);
+                    uint64_t  x;
                     while (i < m_size and((x=rac[i])&mask_old)==start_value) {
                         if (x&mask_new) {
                             tree_word |= (1ULL << (tree_pos&0x3FULL));
@@ -196,7 +196,7 @@ class wt_int
                         }
                     } else { // leaf node
                         start += cnt0+cnt1;
-                        ++m_sigma; // increase sigma for each leaf
+                        m_sigma += (cnt0>0) + (cnt1>0); // increase sigma for each leaf
                     }
 
                 } while (start < m_size);
