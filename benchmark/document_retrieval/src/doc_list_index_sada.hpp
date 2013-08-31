@@ -23,9 +23,31 @@ using std::vector;
 namespace sdsl
 {
 
+template<uint8_t t_width>
+struct sa_trait {
+    typedef uint64_t value_type;
+    typedef std::vector<value_type> vec_type;
+    enum { num_bytes = 0 };
+    template <class t_sa>
+    static void calc_sa(t_sa& sa, vec_type& text) {
+        qsufsort::construct_sa(sa, text);
+    }
+};
+
+template<>
+struct sa_trait<8> {
+    typedef uint8_t value_type;
+    typedef std::vector<value_type> vec_type;
+    enum { num_bytes = 1 };
+    template <class t_sa>
+    static void calc_sa(t_sa& sa, vec_type& text) {
+        algorithm::calculate_sa(text.data(), text.size(), sa);
+    }
+};
+
+
 template<
-class t_csa_full          = csa_wt<wt_huff<rrr_vector<63>>, 30, 1000000, text_order_sa_sampling<> >,
-//         class t_csa_doc           = csa_sada<enc_vector<>, 1000000, 30>,
+class t_csa_full                = csa_wt<wt_huff<rrr_vector<63>>, 30, 1000000, text_order_sa_sampling<> >,
       class t_range_min         = rmq_succinct_sct<true>,
       class t_range_max         = rmq_succinct_sct<false>,
       class t_doc_border        = sd_vector<>,
@@ -47,6 +69,8 @@ class doc_list_index_sada
         typedef doc_list_tag                                index_category;
 
         enum { WIDTH = t_csa_full::alphabet_category::WIDTH };
+
+        typedef sa_trait<WIDTH>                             sa_tt;
 
         class result : public list_type
         {
@@ -74,17 +98,17 @@ class doc_list_index_sada
 
 
     private:
-        size_type                   m_doc_cnt;              // number of documents in the collection
-        csa_full_type                m_full_csa;            // CSA build from the collection text
-        vector<int_vector<> >       m_doc_isa;              // array of inverse SAs. m_doc_isa[i] contains the ISA of document i
-        range_min_type              m_rminq;                // range minimum data structure build over an array Cprev
-        range_max_type              m_rmaxq;                // range maximum data structure build over an array Cnext
-        doc_border_type             m_doc_border;           // bitvector indicating the positions of the separators in the collection text
-        doc_border_rank_type        m_doc_border_rank;      // rank data structure on m_doc_border
-        doc_border_select_type      m_doc_border_select;    // select data structure on m_doc_border
-        size_type                   m_doc_max_len;          // maximal length of a document in the collection
-        mutable bit_vector          m_doc_rmin_marked;      // helper bitvector for search process
-        mutable bit_vector          m_doc_rmax_marked;      // helper bitvector for search process
+        size_type              m_doc_cnt;           // number of documents in the collection
+        csa_full_type          m_full_csa;          // CSA build from the collection text
+        vector<int_vector<>>   m_doc_isa;           // array of inverse SAs. m_doc_isa[i] contains the ISA of document i
+        range_min_type         m_rminq;             // range minimum data structure build over an array Cprev
+        range_max_type         m_rmaxq;             // range maximum data structure build over an array Cnext
+        doc_border_type        m_doc_border;        // bitvector indicating the positions of the separators in the collection text
+        doc_border_rank_type   m_doc_border_rank;   // rank data structure on m_doc_border
+        doc_border_select_type m_doc_border_select; // select data structure on m_doc_border
+        size_type              m_doc_max_len;       // maximal length of a document in the collection
+        mutable bit_vector     m_doc_rmin_marked;   // helper bitvector for search process
+        mutable bit_vector     m_doc_rmax_marked;   // helper bitvector for search process
 
     public:
 
@@ -125,12 +149,19 @@ class doc_list_index_sada
             m_doc_rmax_marked = bit_vector(m_doc_cnt, 0);
         }
 
+        size_type doc_cnt()const {
+            return m_doc_cnt;
+        }
+
+        size_type word_cnt()const {
+            return m_full_csa.size()-doc_cnt();
+        }
+
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_doc_cnt, out, child, "doc_cnt");
             written_bytes += m_full_csa.serialize(out, child, "full_csa");
-//            written_bytes += util::serialize_vector(m_csa_doc, out, child, "m_csa_doc");
             written_bytes += serialize_vector(m_doc_isa, out, child, "doc_isa");
             written_bytes += m_rminq.serialize(out, child, "rminq");
             written_bytes += m_rmaxq.serialize(out, child, "rmaxq");
@@ -180,9 +211,10 @@ class doc_list_index_sada
         }
 
         //! Search for the k documents which contains the search term most frequent
+        template<class t_pat_iter>
         size_t
-        search(std::string::iterator begin,
-               std::string::iterator end,
+        search(t_pat_iter begin,
+               t_pat_iter end,
                result& res,
                size_t k) const {
             size_type sp=1, ep=0;
@@ -260,14 +292,12 @@ class doc_list_index_sada
             }
         }
 
-
-
         //! Construct the doc_border bitvector by streaming the text file
         void
         construct_doc_border(const std::string& text_file,
                              doc_border_type& doc_border,
                              size_type& doc_max_len) {
-            int_vector_buffer<8> text_buf(text_file);
+            int_vector_buffer<sa_tt::num_bytes> text_buf(text_file);
             bit_vector tmp_doc_border(text_buf.size(), 0); // create temporary uncompressed vector
             doc_max_len = 0;
             size_type len = 0;
@@ -289,32 +319,31 @@ class doc_list_index_sada
                           const size_type doc_max_len,
                           vector<int_vector<> >& doc_isa) {
             doc_isa.resize(doc_cnt);
-            std::vector<uint8_t> doc_buffer(doc_max_len,0);
-            int_vector_buffer<8> text_buf(text_file);
-            size_type len = 0;
+            typename sa_tt::vec_type doc_buffer;
+            int_vector_buffer<sa_tt::num_bytes> text_buf(text_file);
             size_type doc_id = 0;
             for (size_type i = 0; i < text_buf.size(); ++i) {
                 if (t_doc_delim == text_buf[i]) {
-                    if (len > 0) {
-                        doc_buffer[len] = 0;
-                        construct_doc_isa(doc_buffer, len+1, doc_isa[doc_id]);
+                    if (doc_buffer.size() > 0) {
+                        doc_buffer.push_back(0);
+                        construct_doc_isa(doc_buffer, doc_isa[doc_id]);
                         ++doc_id;
                     }
-                    len = 0;
+                    doc_buffer.clear();
                 } else {
-                    doc_buffer[len++] = text_buf[i];
+                    doc_buffer.push_back(text_buf[i]);
                 }
             }
         }
 
         void
-        construct_doc_isa(std::vector<uint8_t>& doc_buffer,
-                          size_type len,
+        construct_doc_isa(typename sa_tt::vec_type& doc_buffer,
                           int_vector<>& doc_isa) {
-            int_vector<> sa(len, 0, bits::hi(len)+1);
-            algorithm::calculate_sa(doc_buffer.data(), len, sa);
+            int_vector<> sa(doc_buffer.size(), 0, bits::hi(doc_buffer.size())+1);
+            sa_tt::calc_sa(sa, doc_buffer);
+            util::bit_compress(sa);
             doc_isa = sa;
-            for (size_type i = 0; i < len; ++i) {
+            for (size_type i = 0; i < doc_buffer.size(); ++i) {
                 doc_isa[sa[i]] = i;
             }
         }
@@ -336,7 +365,7 @@ class doc_list_index_sada
                               size_type doc_cnt,
                               int_vector<>& Cprev) {
             Cprev = int_vector<>(D.size(), 0, bits::hi(D.size())+1);
-            int_vector<> last_occ(m_doc_cnt+1, 0, bits::hi(D.size())+1);
+            int_vector<> last_occ(doc_cnt+1, 0, bits::hi(D.size())+1);
             for (size_type i = 0; i < D.size(); ++i) {
                 size_type doc = D[i];
                 Cprev[i]      = last_occ[doc];
@@ -349,7 +378,7 @@ class doc_list_index_sada
                               size_type doc_cnt,
                               int_vector<>& Cnext) {
             Cnext = int_vector<>(D.size(), 0, bits::hi(D.size())+1);
-            int_vector<> last_occ(m_doc_cnt+1, D.size(), bits::hi(D.size())+1);
+            int_vector<> last_occ(doc_cnt+1, D.size(), bits::hi(D.size())+1);
             for (size_type i = 0, j = D.size()-1; i < D.size(); ++i, --j) {
                 size_type doc = D[j];
                 Cnext[j]      = last_occ[doc];

@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 
     idx_type idx;
     cache_config cconfig(false, tmp_dir, id);
-    construct(idx, collection_file, cconfig, 1);
+    construct(idx, collection_file, cconfig, idx_type::WIDTH);
     auto stop = timer::now();
     auto elapsed = stop-start;
     std::cout << "construction time = " << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() << std::endl;
