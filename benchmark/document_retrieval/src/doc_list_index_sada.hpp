@@ -297,7 +297,7 @@ class doc_list_index_sada
         construct_doc_border(const std::string& text_file,
                              doc_border_type& doc_border,
                              size_type& doc_max_len) {
-            int_vector_buffer<sa_tt::num_bytes> text_buf(text_file);
+            int_vector_buffer<WIDTH> text_buf(text_file);
             bit_vector tmp_doc_border(text_buf.size(), 0); // create temporary uncompressed vector
             doc_max_len = 0;
             size_type len = 0;
@@ -320,7 +320,7 @@ class doc_list_index_sada
                           vector<int_vector<> >& doc_isa) {
             doc_isa.resize(doc_cnt);
             typename sa_tt::vec_type doc_buffer;
-            int_vector_buffer<sa_tt::num_bytes> text_buf(text_file);
+            int_vector_buffer<WIDTH> text_buf(text_file);
             size_type doc_id = 0;
             for (size_type i = 0; i < text_buf.size(); ++i) {
                 if (t_doc_delim == text_buf[i]) {

@@ -70,7 +70,7 @@ pattern: input $(PATTERNS) $(BIN_DIR)/gen_pattern $(PATTERNS_INT) $(BIN_DIR)/gen
 
 compression: input $(COMP_FILES)
 
-timing: input $(INDEXES) $(TIME_FILES) $(TIME_FILES_INT) pattern compression info
+timing: input indexes pattern $(TIME_FILES) $(TIME_FILES_INT) compression info
 	@cat $(TIME_FILES) > $(RESULT_FILE)
 	@cat $(TIME_FILES_INT) > $(RESULT_FILE_INT)
 	@cd visualize; make
