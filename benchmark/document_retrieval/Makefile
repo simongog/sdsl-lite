@@ -262,23 +262,26 @@ include ../Make.download
 
 clean-build:
 	@echo "Remove executables"
-	@rm -f $(QUERY_EXECS) $(SIZES_EXECS) $(BUILD_EXECS) \
+	rm -f $(QUERY_EXECS) $(SIZES_EXECS) $(BUILD_EXECS) \
 		   $(QUERY_EXECS_INT) $(SIZES_EXECS_INT) $(BUILD_EXECS_INT) \
 		   $(BIN_DIR)/gen_pattern $(BIN_DIR)/gen_pattern_int \
 		   $(BIN_DIR)/size_of_idx $(BIN_DIR)/size_of_int_idx
 
 clean: clean-build
 	@echo "Remove info files and indexes"
-	@rm -f $(INDEXES) $(INDEXES_INT)
+	rm -f $(INDEXES) $(INDEXES_INT)
 
 cleanresults: 
 	@echo "Remove result files and pattern"
-	@rm -f $(TIME_FILES) $(RESULT_FILE) \
-	       $(SIZES) $(SIZES_INT) \
-		   $(HTML) $(HTML_INT)
-	@rm -f $(PATTERNS) $(PATTERNS_INT)
+	rm -f $(TIME_FILES) \
+		  $(RESULT_FILE) \
+		  $(TIME_FILES_INT) \
+		  $(RESULT_FILE_INT) \
+	      $(SIZES) $(SIZES_INT) \
+		  $(HTML) $(HTML_INT)
+	rm -f $(PATTERNS) $(PATTERNS_INT)
 
 cleanall: clean cleanresults
 	@echo "Remove all generated files."
-	@rm -f $(TMP_DIR)/* 
-	@rm -f $(PAT_DIR)/*
+	rm -f $(TMP_DIR)/* 
+	rm -f $(PAT_DIR)/*
