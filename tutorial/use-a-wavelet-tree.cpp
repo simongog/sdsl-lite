@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
         cout << "Usage: " << argv[1] << " file" << endl;
         return 1;
     }
-    wt_huff<> wt;
+    wt_huff<rrr_vector<63>> wt;
     construct(wt, argv[1], 1);
 
     cout << "wt.size()="<< wt.size() << endl;
