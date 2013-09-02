@@ -64,7 +64,7 @@ info/sizes_int.txt: $(SIZES)
 
 indexes: $(INDEXES) $(INDEXES_INT)
 
-input: $(TC_PATHS) $(TC_DICT_PATHS)
+input: $(TC_PATHS) $(TC_PATHS_INT) $(TC_DICT_PATHS)
 
 pattern: input $(PATTERNS) $(BIN_DIR)/gen_pattern $(PATTERNS_INT) $(BIN_DIR)/gen_pattern_int
 
@@ -257,6 +257,19 @@ dic/%:
 	@$(if $(filter-out ".gz",$(FILE)),\
 		echo "Extract file $(FILE) using gunzip";\
 		gunzip $(FILE))
+
+../data/%.int.sdsl: 
+	$(eval URL:=$(call config_filter,test_case_int.config,$@,4))
+	@$(if $(URL),,\
+		$(error "No downlaod link nor generation program specified for test case $@") )
+	@echo "Downlaod input from $(URL) using curl"
+	$(eval DEST_DIR:=$(shell dirname $@))
+	cd $(DEST_DIR); curl -O $(URL)
+	$(eval FILE:=$(DEST_DIR)/$(notdir $(URL)))
+	@$(if $(filter-out ".gz",$(FILE)),\
+		echo "Extract file $(FILE) using gunzip";\
+		gunzip $(FILE))
+
 
 include ../Make.download
 
