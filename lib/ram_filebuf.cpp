@@ -1,5 +1,6 @@
 #include "sdsl/ram_filebuf.hpp"
 #include <iostream>
+#include <limits>
 
 namespace sdsl
 {
@@ -38,7 +39,7 @@ ram_filebuf::open(const std::string name, std::ios_base::openmode mode)
         }
     }
 
-    if (m_ram_file and (mode & std::ios_base::trunc)) {
+    if (m_ram_file and(mode & std::ios_base::trunc)) {
         m_ram_file->clear();
     }
     if (m_ram_file) {
@@ -74,7 +75,7 @@ ram_filebuf::close()
 ram_filebuf::pos_type
 ram_filebuf::seekpos(pos_type sp, std::ios_base::openmode mode)
 {
-    if (sp >= 0 and sp <= (pos_type)m_ram_file->size()) {
+    if (sp >= (pos_type)0 and sp <= (pos_type)m_ram_file->size()) {
         setg(eback(), eback()+sp, egptr());
         setp(pbase(), epptr());
         pbump(pbase()+sp-pptr()); // pptr should be pbase() anyway after the setp call?
@@ -157,7 +158,12 @@ ram_filebuf::overflow(int_type c)
     if (m_ram_file) {
         m_ram_file->push_back(c);
         setp(m_ram_file->data(), m_ram_file->data()+m_ram_file->size());
-        pbump(epptr()-pbase());
+        std::ptrdiff_t add = epptr()-pbase();
+        while (add > std::numeric_limits<int>::max()) {
+            pbump(std::numeric_limits<int>::max());
+            add -= std::numeric_limits<int>::max();
+        }
+        pbump(add);
         setg(m_ram_file->data(), gptr(), m_ram_file->data()+m_ram_file->size());
     }
     return traits_type::to_int_type(c);
