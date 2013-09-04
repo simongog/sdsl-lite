@@ -97,7 +97,7 @@ readConfig <- function(config_file, mycolnames){
 }
 
 # Creates a LaTeX table containing index names and sdsl type
-# config_file   The index.config stroing the type information
+# config_file   The index.config storing the type information
 # index_ids     Filter the index.config entires with this index ids
 # id_col        Column `id_col` contains the IDs
 # name_col      Column `name_col` contains the latex names
