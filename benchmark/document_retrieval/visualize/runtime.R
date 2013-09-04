@@ -6,6 +6,10 @@ mypaste <- function(...){
     paste(...,sep="")
 }
 
+my_format2 <- function(...){
+   format(..., nsmall=2,digits=2, big.mark=",")
+}
+
 process_data <- function(suf){
 
 # Files
@@ -116,7 +120,7 @@ for ( tc_id in names(dd) ){
     ddd <- split(dd[[tc_id]],dd[[tc_id]][["IDX_ID"]])
     for ( idx_id in names(d) ){
         row <- ddd[[idx_id]]
-        cat(paste("&&",sprintf("%.2f",row["size"]/1024**2),"&",sprintf("(%.2f)",row["size"]/row["text_size"])))
+        cat(paste("&&",my_format2(row["size"]/1024**2),"&",sprintf("(%.2f)",row["size"]/row["text_size"])))
     }
     cat("\\\\\n")
 }
@@ -134,7 +138,7 @@ elem = "Characters"
 if ( suf=="_int" ) {
     elem = "Words"
 }
-cat(paste("Collection & ",elem," & Documents & ","Avg. doc. len.& gzip-compr.& xz-compr.\\\\\n",sep=""))
+cat(paste("Collection & ",elem," & Documents & ","Avg. doc. len.& gzip-compr.& xz-compr.\\\\[1ex]\n",sep=""))
 
 d <- split(raw,raw["TC_ID"])
 for ( tc_id in names(d) ){
@@ -143,14 +147,14 @@ for ( tc_id in names(d) ){
     xzcomp   = NA
     if ( file.exists(zfile) ){
         comp_info <- readConfig(zfile,c("NAME","RATIO","COMMAND"))
-        gzipcomp = format(comp_info["gzip","RATIO"], nsmall=2, digits=2, big.mark=",")
-        xzcomp   = format(comp_info["xz","RATIO"], nsmall=2, digits=2, big.mark=",")
+        gzipcomp = my_format2(comp_info["gzip","RATIO"])
+        xzcomp   = my_format2(comp_info["xz","RATIO"])
     }
     doc_cnt_i  <- unique(d[[tc_id]][["doc_cnt"]])
     word_cnt_i <- unique(d[[tc_id]][["word_cnt"]])
     doc_cnt    <- format(doc_cnt_i, big.mark=",")
     word_cnt   <- format(word_cnt_i, big.mark=",")
-    avg_doc_len <- format(word_cnt_i/doc_cnt_i, nsmall=2, digits=2, big.mark=",")
+    avg_doc_len <- my_format2(word_cnt_i/doc_cnt_i)
     cat("{\\sc ",tc_config[tc_id,"LATEX-NAME"],"}")
     cat("&",word_cnt,"&",doc_cnt,"&",avg_doc_len,"&",
         gzipcomp, "&", xzcomp,"\\\\\n")
