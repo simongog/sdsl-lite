@@ -176,7 +176,7 @@ info/%.int.html: $(INDEXES)
 
 
 # $(PAT_DIR)/[TC_ID].[PAT_LEN].pattern.int
-$(PAT_DIR)/%.pattern.int: $(BIN_DIR)/gen_pattern_int
+$(PAT_DIR)/%.pattern.int: $(BIN_DIR)/gen_pattern_int $(BIN_DIR)/word_pat2char_pat
 	@echo $*
 	$(eval TC_ID:=$(call dim,1,$*)) 
 	$(eval PAT_LEN:=$(call dim,2,$*)) 
