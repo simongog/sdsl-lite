@@ -47,9 +47,15 @@ TIME_FILES      = $(foreach IDX_ID,$(IDX_IDS),\
 TIME_FILES_INT  = $(foreach IDX_ID,$(IDX_IDS_INT),\
 		            $(foreach TC_ID,$(TC_IDS_INT),\
 					  $(foreach PAT_LEN,$(PAT_LENS_INT),results/$(TC_ID).$(IDX_ID).$(PAT_LEN).int)))
-COMP_FILES      = $(addsuffix .z.info,$(TC_PATHS))
-	
-all: $(BUILD_EXECS) $(BUILD_EXECS_INT) $(QUERY_EXECS) $(QUERY_EXECS_INT) $(SIZES_EXECS)
+COMP_FILES      = $(addsuffix .z.info,$(TC_PATHS) $(TC_PATHS_INT))
+
+HELPER_BINS     = $(BIN_DIR)/gen_pattern $(BIN_DIR)/gen_pattern_int \
+		          $(BIN_DIR)/word_pat2char_pat
+
+all: $(BUILD_EXECS) $(BUILD_EXECS_INT) \
+	 $(QUERY_EXECS) $(QUERY_EXECS_INT) \
+	 $(SIZES_EXECS) $(SIZES_EXECS_INT) \
+	 $(HELPER_BINS)
 
 info: $(SIZES_EXECS) $(SIZES_EXECS_INT) $(SIZES) \
 	  $(SIZES_INT) $(HTML_INT) $(HTML) \
@@ -176,6 +182,8 @@ $(PAT_DIR)/%.pattern.int: $(BIN_DIR)/gen_pattern_int
 	$(eval PAT_LEN:=$(call dim,2,$*)) 
 	$(eval TC:=$(call config_select,test_case_int.config,$(TC_ID),2))
 	$(BIN_DIR)/gen_pattern_int $(TC) $(TMP_DIR)/$(TC_ID).pat.csa $(TMP_DIR) $(PAT_LEN) 200 $@
+	$(eval DIC_PATH:=$(call config_select,dic.config,$(TC_ID),2))
+	$(BIN_DIR)/word_pat2char_pat $@ $(DIC_PATH) > $@.txt
 
 # $(PAT_DIR)/[TC_ID].[PAT_LEN].pattern	
 $(PAT_DIR)/%.pattern: $(BIN_DIR)/gen_pattern
@@ -190,7 +198,7 @@ $(BIN_DIR)/gen_pattern: $(SRC_DIR)/gen_pattern.cpp
 	$(MY_CXX) $(CXX_FLAGS) $(SRC_DIR)/gen_pattern.cpp \
 				-L$(LIB_DIR) -I$(INC_DIR) -o $@ $(LIBS)
 
-$(BIN_DIR)/gen_pattern_int: $(SRC_DIR)/gen_pattern.cpp
+$(BIN_DIR)/gen_pattern_int: $(SRC_DIR)/gen_pattern.cpp 
 	@echo "Build pattern generation program"
 	$(MY_CXX) $(CXX_FLAGS) $(SRC_DIR)/gen_pattern.cpp \
 	          -DINT_ALPHABET \
@@ -246,6 +254,14 @@ $(BIN_DIR)/query_int_idx_%: $(SRC_DIR)/query_idx.cpp index_int.config
 					-L$(LIB_DIR) $(SRC_DIR)/query_idx.cpp \
 					-I$(INC_DIR) -o $@ $(LIBS)
 
+$(BIN_DIR)/word_pat2char_pat: $(SRC_DIR)/word_pat2char_pat.cpp
+	@echo "Compiling word_pat2char_pat.cpp"
+	$(MY_CXX) $(CXX_FLAGS) \
+			  $(SRC_DIR)/word_pat2char_pat.cpp \
+			  -o $@ 
+
+
+
 dic/%: 
 	$(eval URL:=$(call config_filter,dic.config,$@,4))
 	@$(if $(URL),,\
@@ -276,9 +292,8 @@ include ../Make.download
 clean-build:
 	@echo "Remove executables"
 	rm -f $(QUERY_EXECS) $(SIZES_EXECS) $(BUILD_EXECS) \
-		   $(QUERY_EXECS_INT) $(SIZES_EXECS_INT) $(BUILD_EXECS_INT) \
-		   $(BIN_DIR)/gen_pattern $(BIN_DIR)/gen_pattern_int \
-		   $(BIN_DIR)/size_of_idx $(BIN_DIR)/size_of_int_idx
+		  $(QUERY_EXECS_INT) $(SIZES_EXECS_INT) $(BUILD_EXECS_INT) \
+		  $(HELPER_BINS)
 
 clean: clean-build
 	@echo "Remove info files and indexes"
