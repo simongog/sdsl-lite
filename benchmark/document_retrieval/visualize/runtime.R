@@ -17,6 +17,7 @@ f_sizes           = mypaste("../info/sizes",suf,".txt")
 f_fig_runtime     = mypaste("fig-runtime",suf,".tex")
 f_tbl_indexes     = mypaste("tbl-indexes",suf,".tex")
 f_tbl_sizes       = mypaste("tbl-sizes",suf,".tex")
+f_tbl_collections = mypaste("tbl-collections",suf,".tex")
 
 # Load filter information
 config <- readConfig(f_idxfilterconfig,c("IDX_ID","PCH","LTY","COL"))
@@ -26,13 +27,12 @@ tc_config <- readConfig(f_tcconfig,c("TC_ID","PATH","LATEX-NAME","URL"))
 
 # Load data
 raw <- data_frame_from_key_value_pairs(f_results)
-raw <- raw[c("TC_ID","IDX_ID","time_per_query","query_len")]
+raw <- raw[c("TC_ID","IDX_ID","time_per_query","query_len","TLE","doc_cnt","word_cnt")]
 raw["time_per_query"] <- raw["time_per_query"]/1000.0
 
 # Filter indexes
 raw               <- raw[raw[["IDX_ID"]]%in%config[["IDX_ID"]],] 
 raw[["IDX_ID"]]   <- factor(raw[["IDX_ID"]])
-
 
 # Split by TC_ID
 d <- split(raw,raw["TC_ID"])
@@ -65,6 +65,7 @@ for( tc_id in names(d) ){
     dd <- split(d[[tc_id]],d[[tc_id]]["IDX_ID"])
     for( idx_id in names(dd) ){
         ddd <- dd[[idx_id]]
+        ddd <- subset(ddd, ddd[["TLE"]]==0)
         lines(ddd[["query_len"]], ddd[["time_per_query"]],
               lwd=1, type="b", pch=config[idx_id, "PCH"], 
 			  lty=config[idx_id, "LTY"],
@@ -99,25 +100,63 @@ raw[["IDX_ID"]]   <- factor(raw[["IDX_ID"]])
 
 d <- split(raw,raw[["IDX_ID"]])
 
-cat(paste("\\begin{tabular}{@{}l*{",length(names(d)) ,"}{l@{\ }r}@{}}",sep=""))
+cat(paste("\\begin{tabular}{@{}l*{",length(names(d)) ,"}{rr@{\ }l}@{}}",sep=""))
+cat("\\toprule\n")
+cat(paste("Collection& & \\multicolumn{",length(names(d))*3-1,"}{c}{Index size in MiB (fraction of original collection)}\\\\\n",sep=""))
+cat(paste("\\cmidrule{1-1}\\cmidrule{3-",length(names(d))*3+1,"}\n",sep=""))
 for( idx_id in names(d) ){        
-    cat(paste("&\\multicolumn{2}{c}{",idx_config[idx_id,"LATEX-NAME"],"}",sep=""))
+    cat(paste("&\\ &\\multicolumn{2}{c}{",idx_config[idx_id,"LATEX-NAME"],"}",sep=""))
 }
-cat("\\\\\n")
+cat("\\\\[2ex]\n")
 
 dd <- split(raw,raw[["TC_ID"]])
 
 for ( tc_id in names(dd) ){
-    cat(tc_config[tc_id,"LATEX-NAME"])
+    cat("{\\sc ",tc_config[tc_id,"LATEX-NAME"],"}")
     ddd <- split(dd[[tc_id]],dd[[tc_id]][["IDX_ID"]])
     for ( idx_id in names(d) ){
         row <- ddd[[idx_id]]
-        cat(paste("&",sprintf("%.2f",row["size"]/1024**2),"&",sprintf("(%.2f)",row["size"]/row["text_size"])))
+        cat(paste("&&",sprintf("%.2f",row["size"]/1024**2),"&",sprintf("(%.2f)",row["size"]/row["text_size"])))
     }
     cat("\\\\\n")
 }
+cat("\\bottomrule\n")
 cat("\\end{tabular}")
 
+sink(NULL)
+
+sink(f_tbl_collections)
+raw <- data_frame_from_key_value_pairs(f_results)
+
+cat(paste("\\begin{tabular}{@{}l*{5}{r}@{}}\n",sep=""))
+cat("\\toprule\n")
+elem = "Characters"
+if ( suf=="_int" ) {
+    elem = "Words"
+}
+cat(paste("Collection & ",elem," & Documents & ","Avg. doc. len.& gzip-compr.& xz-compr.\\\\\n",sep=""))
+
+d <- split(raw,raw["TC_ID"])
+for ( tc_id in names(d) ){
+    zfile = paste("../",tc_config[tc_id,"PATH"],".z.info",sep="")
+    gzipcomp = NA
+    xzcomp   = NA
+    if ( file.exists(zfile) ){
+        comp_info <- readConfig(zfile,c("NAME","RATIO","COMMAND"))
+        gzipcomp = format(comp_info["gzip","RATIO"], nsmall=2, digits=2, big.mark=",")
+        xzcomp   = format(comp_info["xz","RATIO"], nsmall=2, digits=2, big.mark=",")
+    }
+    doc_cnt_i  <- unique(d[[tc_id]][["doc_cnt"]])
+    word_cnt_i <- unique(d[[tc_id]][["word_cnt"]])
+    doc_cnt    <- format(doc_cnt_i, big.mark=",")
+    word_cnt   <- format(word_cnt_i, big.mark=",")
+    avg_doc_len <- format(word_cnt_i/doc_cnt_i, nsmall=2, digits=2, big.mark=",")
+    cat("{\\sc ",tc_config[tc_id,"LATEX-NAME"],"}")
+    cat("&",word_cnt,"&",doc_cnt,"&",avg_doc_len,"&",
+        gzipcomp, "&", xzcomp,"\\\\\n")
+}
+cat("\\bottomrule\n")
+cat("\\end{tabular}")
 sink(NULL)
 
 }

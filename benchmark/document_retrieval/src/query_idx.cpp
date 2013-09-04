@@ -64,20 +64,28 @@ int main(int argc, char* argv[])
     size_t q_cnt = 0;
     size_t sum = 0;
     size_t sum_fdt = 0;
+    bool tle = false; // flag: time limit exceeded
     auto start = timer::now();
-    while (in.getline(buffer, buf_size)) {
+    while (!tle and in.getline(buffer, buf_size)) {
+        auto q_start = timer::now();
         typename idx_type::result res;
         auto query = myline<idx_type::WIDTH>::parse(buffer);
         q_len += query.size();
         ++q_cnt;
         size_t x = idx.search(query.begin(), query.end(), res, 10);
         sum += x;
-        for (auto& r : res) {
+for (auto& r : res) {
             sum_fdt += r.second;
+        }
+        auto q_time = timer::now()-q_start;
+        // single query should not take more then 5 seconds
+        if (std::chrono::duration_cast<std::chrono::seconds>(q_time).count() > 5) {
+            tle = true;
         }
     }
     auto stop = timer::now();
     auto elapsed = stop-start;
+    std::cout<<"# TLE = " << tle << endl;
     std::cout<<"# query_len = "<<q_len/q_cnt<<endl;
     std::cout<<"# queries = " <<q_cnt <<endl;
     std::cout<<"# time_per_query = "<<std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()/q_cnt <<endl;

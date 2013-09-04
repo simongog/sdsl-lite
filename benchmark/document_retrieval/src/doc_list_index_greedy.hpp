@@ -24,8 +24,8 @@ namespace sdsl
 {
 
 template<
-class t_csa          = csa_wt<wt_huff<rrr_vector<63>>, 1000000, 1000000>,
-      class t_wtd    = wt_int<bit_vector,rank_support_v5<1>,select_support_scan<1>,select_support_scan<0>>,
+class t_csa       = csa_wt<wt_huff<rrr_vector<63>>, 1000000, 1000000>,
+      class t_wtd = wt_int<bit_vector,rank_support_v5<1>,select_support_scan<1>,select_support_scan<0>>,
       typename t_csa::char_type t_doc_delim = 1
       >
       class doc_list_index_greedy
@@ -88,7 +88,11 @@ doc_list_index_greedy(std::string file_name, sdsl::cache_config& cconfig, uint8_
     {
         int_vector<> D;
         construct_D_array(sa_buf, doc_border_rank, m_doc_cnt, D);
-        construct_im(m_wtd, D);
+        std::string d_file = cache_file_name("DARRAY", cconfig);
+        store_to_file(D, d_file);
+        util::clear(D);
+        construct(m_wtd, d_file);
+        sdsl::remove(d_file);
     }
 }
 
@@ -124,7 +128,7 @@ void swap(doc_list_index_greedy& dr) {
     }
 }
 
-//! Search for the k documents which contains the search term most frequent
+//! Search for the k documents which contain the search term most frequent
 template<class t_pat_iter>
 size_type search(t_pat_iter begin, t_pat_iter end, result& res, size_t k) const {
     size_type sp=1, ep=0;
