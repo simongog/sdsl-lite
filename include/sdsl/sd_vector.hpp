@@ -25,6 +25,7 @@
 #include "int_vector.hpp"
 #include "select_support_mcl.hpp"
 #include "util.hpp"
+#include "iterators.hpp"
 
 //! Namespace for the succinct data structure library
 namespace sdsl
@@ -68,10 +69,13 @@ template<class t_hi_bit_vector = bit_vector,
 class sd_vector
 {
     public:
-        typedef bit_vector::size_type size_type;
-        typedef size_type value_type;
-        typedef t_select_0 select_0_support_type;
-        typedef t_select_1 select_1_support_type;
+        typedef bit_vector::size_type                   size_type;
+        typedef size_type                               value_type;
+        typedef bit_vector::difference_type             difference_type;
+        typedef random_access_const_iterator<sd_vector> iterator;
+        typedef bv_tag                                  index_category;
+        typedef t_select_0                              select_0_support_type;
+        typedef t_select_1                              select_1_support_type;
 
         friend class rank_support_sd<t_hi_bit_vector, select_1_support_type, select_0_support_type>;
         friend class select_support_sd<t_hi_bit_vector, select_1_support_type, select_0_support_type>;
@@ -221,6 +225,14 @@ class sd_vector
             m_high.load(in);
             m_high_1_select.load(in, &m_high);
             m_high_0_select.load(in, &m_high);
+        }
+
+        iterator begin() const {
+            return iterator(this, 0);
+        }
+
+        iterator end() const {
+            return iterator(this, size());
         }
 };
 

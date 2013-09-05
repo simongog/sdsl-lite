@@ -63,6 +63,7 @@ class vlc_vector
         typedef ptrdiff_t                                difference_type;
         typedef int_vector<>::size_type                  size_type;
         typedef t_coder                                  coder;
+        typedef iv_tag                                   index_category;
         typedef typename
         vlc_vector_trait<t_width>::int_vector_type      int_vector_type;
 
