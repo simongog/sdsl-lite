@@ -72,6 +72,7 @@ class enc_vector
         typedef int_vector<>::size_type                  size_type;
         typedef t_coder                                  coder;
         typedef typename enc_vector_trait<t_width>::int_vector_type int_vector_type;
+        typedef iv_tag                                   index_category;
         static  const uint32_t                           sample_dens    = t_dens;
 
         int_vector<0>     m_z;                       // storage for encoded deltas
