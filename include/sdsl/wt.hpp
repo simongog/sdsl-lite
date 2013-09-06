@@ -233,9 +233,9 @@ struct wt_trait<int_vector_buffer<8> > {
  *   @ingroup wt
  */
 template<class t_rac         = unsigned char*,
-         class t_bit_vector     = bit_vector,
-         class RankSupport   = typename t_bit_vector::rank_1_type,
-         class SelectSupport = typename t_bit_vector::select_1_type,
+         class t_bit_vector  = bit_vector,
+         class t_rank        = typename t_bit_vector::rank_1_type,
+         class t_select_one  = typename t_bit_vector::select_1_type,
          class t_select_zero = typename t_bit_vector::select_0_type>
 class wt
 {
@@ -252,15 +252,15 @@ class wt
 
     private:
 
-        size_type       m_size  = 0;
-        size_type       m_sigma = 0;    //<- \f$ |\Sigma| \f$
-        bv_type         m_tree;         // bit vector to store the wavelet tree
-        RankSupport     m_tree_rank;    // rank support for the wavelet tree bit vector
-        SelectSupport   m_tree_select1; // select support for the wavelet tree bit vector
-        t_select_zero   m_tree_select0;
-        int_vector<64>  m_node_pointers;
-        int_vector<64>  m_node_pointers_rank;
-        size_type       m_char_node_map[wt_trait<t_rac>::char_node_map_size];
+        size_type      m_size  = 0;
+        size_type      m_sigma = 0;    //<- \f$ |\Sigma| \f$
+        bv_type        m_tree;         // bit vector to store the wavelet tree
+        t_rank         m_tree_rank;    // rank support for the wavelet tree bit vector
+        t_select_ont   m_tree_select1; // select support for the wavelet tree bit vector
+        t_select_zero  m_tree_select0;
+        int_vector<64> m_node_pointers;
+        int_vector<64> m_node_pointers_rank;
+        size_type      m_char_node_map[wt_trait<t_rac>::char_node_map_size];
 
         value_type      m_first_symbol;
 
