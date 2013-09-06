@@ -26,6 +26,9 @@
 namespace sdsl
 {
 
+struct bv_tag {}; // bitvector tag
+struct iv_tag {}; // int_vector tag
+
 struct csa_tag {}; // compressed suffix array (CSAs) tag
 struct cst_tag {}; // compressed suffix tree (CST) tag
 struct wt_tag {};  // wavelet tree tag
