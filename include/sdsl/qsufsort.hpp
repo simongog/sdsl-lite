@@ -75,6 +75,13 @@ void construct_sa(int_vector_type& sa, const char* file, uint8_t num_bytes)
     s.sort(sa, file, num_bytes);
 };
 
+template<class int_vector_type, class t_vec>
+void construct_sa(int_vector_type& sa, t_vec& text)
+{
+    sorter<int_vector_type> s;
+    s.sort(sa, text);
+};
+
 template<class int_vector_type>
 class sorter
 {
@@ -313,7 +320,7 @@ class sorter
             int s = bits::hi(k-l)+(k>l); /* s is number of bits in old symbol.*/
             uint8_t len = 0;                /* len is for overflow checking.*/
             m_rr = 0;
-            for (bb=dd=0; (int)m_rr<n && (int)len <= m_msb+1-s && (int64_t)(cc=dd<<s|(k-l)) <= q; ++m_rr, len+=s) {
+            for (bb=dd=0; (int)m_rr<n && (int)len < m_msb+1-s && (int64_t)(cc=dd<<s|(k-l)) <= q; ++m_rr, len+=s) {
                 bb=bb<<s|(x[m_rr]-l+1);        /* bb is start of x in chunk alphabet.*/
                 dd=cc;                      /* dd is max symbol in chunk alphabet.*/
             }
@@ -404,9 +411,7 @@ class sorter
                 do {
                     uint64_t s = *pi;
                     if (to_sign(s) < (int64_t)0) {
-                        DBG_OUT<<"pi1="<<pi-m_SA<<std::endl;
                         pi += mark_pos(s);   /* skip over sorted group.*/
-                        DBG_OUT<<"pi2="<< pi-m_SA <<std::endl;
                         sl += mark_pos(s);   /* add length to sl.*/
                     } else {
                         if (sl) {
@@ -414,14 +419,10 @@ class sorter
                             sl=0;
                         }
                         pk=m_SA+m_VV[s]+1;        /* pk-1 is last position of unsorted group.*/
-                        DBG_OUT<<"sort_split("<<(pi-m_SA)<<","<< (pk-pi) <<")"<< std::endl;
                         sort_split(pi, pk-pi);
                         pi=pk;              /* next group.*/
-                        DBG_OUT<<"pi="<<pi-m_SA<<std::endl;
                     }
-                    DBG_OUT<<"pi-m_SA="<<pi-m_SA<<" <= "<< n <<std::endl;
                 } while ((pi-m_SA) <= n);
-                DBG_OUT<<"sl="<<sl<<" pi-m_SA-sl="<<pi-m_SA-sl<<std::endl;
                 if (sl)                   /* if the array ends with a sorted group.*/
                     *(pi-sl)=mark_neg(sl);           /* combine sorted groups at end of m_SA.*/
                 m_hh=2*m_hh;                    /* double sorted-depth.*/
@@ -432,25 +433,12 @@ class sorter
             }
         }
 
-
-        void sort(tIV& sa, const char* file_name, uint8_t num_bytes) {
-            DBG_OUT<<"sorter: sort("<<file_name<<")"<<std::endl;
-            DBG_OUT<<"sizeof(int_vector<>::difference_type)="<<sizeof(int_vector<>::difference_type)<<std::endl;
-            util::clear(sa); // free space for sa
-            tIV x;
-            if (num_bytes == 0 and typeid(typename tIV::reference) == typeid(uint64_t)) {
-                DBG_OUT<<"sorter: use int_vector<64>"<<std::endl;
-                int_vector<> temp;
-                load_vector_from_file(temp, file_name, num_bytes);
-                x.resize(temp.size());
-                for (size_type i=0; i<temp.size(); ++i) x[i] = temp[i];
-            } else {
-                load_vector_from_file(x, file_name, num_bytes);
-                util::bit_compress(x);
-            }
+        void do_sort(tIV& sa, tIV& x) {
             assert(x.size()>0);
             DBG_OUT<<"x.width()="<< (int)x.width() <<std::endl;
             DBG_OUT<<"x.size()="<<x.size()<<std::endl;
+            DBG_OUT<<"sa.width()="<<(int)sa.width()<<std::endl;
+            DBG_OUT<<"sa.size()="<<sa.size()<<std::endl;
             if (x.size() == 1) {
                 sa = tIV(1, 0);
                 return;
@@ -486,40 +474,34 @@ class sorter
             m_msb = sa.width()-1;
             m_msb_mask = 1ULL<<m_msb;
             DBG_OUT<<"sorter: m_msb="<< (int)m_msb <<" m_msb_mask="<<m_msb_mask<<std::endl;
-
             sort(x.begin(), sa.begin(), x.size()-1, max_symbol+1, min_symbol);
-            /*
-            		// TODO: move test code in test suite
-            		load_vector_from_file(x, file_name, num_bytes);
+        }
 
-            		// Naive check:
-            		bool valid = true;
-            		bit_vector visited(sa.size(),0);
-            		for(size_type i=0; valid and i < sa.size(); ++i){
-            			if ( visited[sa[i]] ){
-            				valid = false;
-            			}else{
-            				visited[sa[i]] = 1;
-            			}
-            			if ( i > 0 and x[sa[i-1]] > x[sa[i]] ){
-            				valid = false;
-            			}
-            		}
-            		util::clear(visited);
-            		for(size_type i=1; valid and i < sa.size(); ++i){
-            			typename tIV::value_type sai = sa[i], sai_1=sa[i-1];
-            			size_type h=0;
-            			while( x[sai+h] == x[sai_1+h] ) ++h;
-            			valid = x[sai+h] >= x[sai_1+h];
-            		}
-            		printf("=========================\n");
-            		if ( valid ){
-            			std::cout << "SA is correct." << std::endl;
-            		}else{
-            			std::cout << "SA is NOT correct!" << std::endl;
-            		}
-            */
 
+        void sort(tIV& sa, const char* file_name, uint8_t num_bytes) {
+            DBG_OUT<<"sorter: sort("<<file_name<<")"<<std::endl;
+            DBG_OUT<<"sizeof(int_vector<>::difference_type)="<<sizeof(int_vector<>::difference_type)<<std::endl;
+            util::clear(sa); // free space for sa
+            tIV x;
+            if (num_bytes == 0 and typeid(typename tIV::reference) == typeid(uint64_t)) {
+                DBG_OUT<<"sorter: use int_vector<64>"<<std::endl;
+                int_vector<> temp;
+                load_vector_from_file(temp, file_name, num_bytes);
+                x.resize(temp.size());
+                for (size_type i=0; i<temp.size(); ++i) x[i] = temp[i];
+            } else {
+                load_vector_from_file(x, file_name, num_bytes);
+                util::bit_compress(x);
+            }
+            do_sort(sa, x);
+        }
+
+        template<class t_vec>
+        void sort(tIV& sa, t_vec& text) {
+            tIV x;
+            x.resize(text.size());
+            for (size_type i=0; i<text.size(); ++i) x[i] = text[i];
+            do_sort(sa, x);
         }
 };
 

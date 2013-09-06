@@ -62,7 +62,8 @@ template<class t_wt              = wt_huff<>,              // Wavelet tree type
          uint32_t t_inv_dens     = 64,                     // Sample density for inverse suffix array (ISA) values
          class t_sa_sample_strat = sa_order_sa_sampling<>, // Policy class for the SA sampling. Alternative text_order_sa_sampling.
          class t_isa             = int_vector<>,           // Container for the ISA samples.
-         class t_alphabet_strat  = byte_alphabet           // Policy class for the representation of the alphabet.
+         class t_alphabet_strat  =                         // Policy class for the representation of the alphabet.
+         typename alphabet_trait<typename t_wt::alphabet_category>::type
          >
 class csa_wt
 {
