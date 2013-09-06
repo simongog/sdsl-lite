@@ -26,6 +26,7 @@
 #include "util.hpp"
 #include "rrr_helper.hpp" // for binomial helper class
 #include "rrr_vector.hpp"
+#include "iterators.hpp"
 #include <vector>
 #include <algorithm> // for next_permutation
 #include <iostream>
@@ -123,9 +124,12 @@ template<class t_rac>
 class rrr_vector<15, t_rac>
 {
     public:
-        typedef bit_vector::size_type size_type;
-        typedef bit_vector::value_type value_type;
-        typedef t_rac                  rac_type;
+        typedef bit_vector::size_type                    size_type;
+        typedef bit_vector::value_type                   value_type;
+        typedef bit_vector::difference_type              difference_type;
+        typedef t_rac                                    rac_type;
+        typedef random_access_const_iterator<rrr_vector> iterator;
+        typedef bv_tag                                   index_category;
 
         friend class rank_support_rrr<0, 15, t_rac>;
         friend class rank_support_rrr<1, 15, t_rac>;
@@ -334,6 +338,14 @@ class rrr_vector<15, t_rac>
             m_btnr.load(in);
             m_btnrp.load(in);
             m_rank.load(in);
+        }
+
+        iterator begin() const {
+            return iterator(this, 0);
+        }
+
+        iterator end() const {
+            return iterator(this, size());
         }
 };
 

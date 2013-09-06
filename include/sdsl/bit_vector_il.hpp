@@ -24,6 +24,7 @@
 
 #include "int_vector.hpp"
 #include "util.hpp"
+#include "iterators.hpp"
 
 #include <queue>
 
@@ -60,8 +61,11 @@ class bit_vector_il
         static_assert(t_bs >= 64 , "bit_vector_il: blocksize must be be at least 64 bits.");
         static_assert(power_of_two(t_bs), "bit_vector_il: blocksize must be a power of two.");
     public:
-        typedef bit_vector::size_type   size_type;
-        typedef size_type               value_type;
+        typedef bit_vector::size_type                       size_type;
+        typedef size_type                                   value_type;
+        typedef bit_vector::difference_type                 difference_type;
+        typedef random_access_const_iterator<bit_vector_il> iterator;
+        typedef bv_tag                                      index_category;
 
         friend class rank_support_il<1,t_bs>;
         friend class rank_support_il<0,t_bs>;
@@ -202,6 +206,14 @@ class bit_vector_il
                 m_data.swap(bv.m_data);
                 m_rank_samples.swap(bv.m_rank_samples);
             }
+        }
+
+        iterator begin() const {
+            return iterator(this, 0);
+        }
+
+        iterator end() const {
+            return iterator(this, size());
         }
 };
 

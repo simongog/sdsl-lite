@@ -110,6 +110,16 @@ class elias_delta;
 class char_array_serialize_wrapper;
 
 template<uint8_t t_width>
+struct int_vec_category_trait {
+    typedef iv_tag type;
+};
+
+template<>
+struct int_vec_category_trait<1> {
+    typedef bv_tag type;
+};
+
+template<uint8_t t_width>
 struct int_vector_trait {
     typedef uint64_t                                    value_type;
     typedef int_vector<t_width>                         int_vector_type;
@@ -259,6 +269,7 @@ class int_vector
         typedef rank_support_v<0,1>                                 rank_0_type;
         typedef select_support_mcl<1,1>                             select_1_type;
         typedef select_support_mcl<0,1>                             select_0_type;
+        typedef typename int_vec_category_trait<t_width>::type      index_category;
 
         friend struct int_vector_trait<t_width>;
         friend class  int_vector_iterator_base<int_vector>;
@@ -1078,16 +1089,20 @@ operator+(typename int_vector_const_iterator<t_int_vector>::difference_type n,
     return it + n;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const int_vector<1>& v)
+template<class t_bv>
+inline typename std::enable_if<std::is_same<typename t_bv::index_category ,bv_tag>::value, std::ostream&>::type
+operator<<(std::ostream& os, const t_bv& bv)
 {
-    for (auto it=v.begin(), end = v.end(); it != end; ++it) {
-        os << *it;
+    for (auto b : bv) {
+        os << b;
     }
     return os;
 }
 
-template<uint8_t t_width>
-inline std::ostream& operator<<(std::ostream& os, const int_vector<t_width>& v)
+
+template<class t_iv>
+inline typename std::enable_if<std::is_same<typename t_iv::index_category ,iv_tag>::value, std::ostream&>::type
+operator<<(std::ostream& os, const t_iv& v)
 {
     for (auto it=v.begin(), end = v.end(); it != end; ++it) {
         os << *it;

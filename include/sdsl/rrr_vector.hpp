@@ -25,6 +25,7 @@
 #include "int_vector.hpp"
 #include "util.hpp"
 #include "rrr_helper.hpp" // for binomial helper class
+#include "iterators.hpp"
 #include <vector>
 #include <algorithm> // for next_permutation
 #include <iostream>
@@ -73,9 +74,12 @@ class rrr_vector
     private:
         static_assert(t_bs >= 3 and t_bs <= 256 , "rrr_vector: block size t_bs must be 3 <= t_bs <= 256.");
     public:
-        typedef bit_vector::size_type  size_type;
-        typedef bit_vector::value_type value_type;
-        typedef t_rac                  rac_type;
+        typedef bit_vector::size_type                    size_type;
+        typedef bit_vector::value_type                   value_type;
+        typedef bit_vector::difference_type              difference_type;
+        typedef t_rac                                    rac_type;
+        typedef random_access_const_iterator<rrr_vector> iterator;
+        typedef bv_tag                                   index_category;
 
         typedef rank_support_rrr<1, t_bs, t_rac>   rank_1_type;
         typedef rank_support_rrr<0, t_bs, t_rac>   rank_0_type;
@@ -134,7 +138,7 @@ class rrr_vector
         //! Constructor
         /*!
         *  \param bv  Uncompressed bitvector.
-        *  \param k Store rank samples and pointers each k-th blocks.
+        *  \param k   Store rank samples and pointers each k-th blocks.
         */
         rrr_vector(const bit_vector& bv, uint16_t k=32): m_k(k) {
             m_size = bv.size();
@@ -311,6 +315,14 @@ class rrr_vector
             m_btnrp.load(in);
             m_rank.load(in);
             m_invert.load(in);
+        }
+
+        iterator begin() const {
+            return iterator(this, 0);
+        }
+
+        iterator end() const {
+            return iterator(this, size());
         }
 };
 
