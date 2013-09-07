@@ -256,7 +256,7 @@ class wt
         size_type      m_sigma = 0;    //<- \f$ |\Sigma| \f$
         bv_type        m_tree;         // bit vector to store the wavelet tree
         t_rank         m_tree_rank;    // rank support for the wavelet tree bit vector
-        t_select_ont   m_tree_select1; // select support for the wavelet tree bit vector
+        t_select_one   m_tree_select1; // select support for the wavelet tree bit vector
         t_select_zero  m_tree_select0;
         int_vector<64> m_node_pointers;
         int_vector<64> m_node_pointers_rank;

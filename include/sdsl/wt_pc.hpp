@@ -46,19 +46,22 @@ template<class t_shape,
 class wt_pc
 {
     public:
-
-        typedef int_vector<>::size_type          size_type;
-        typedef typename t_tree_strat::value_type    value_type;
-        typedef t_bitvector                      bit_vector_type;
-        typedef t_rank                           rank_1_type;
-        typedef t_select                         select_1_type;
-        typedef t_select_zero                    select_0_type;
-        typedef wt_tag                           index_category;
-        typedef typename t_tree_strat::alphabet_category  alphabet_category;
         typedef typename
-        t_shape::template type<wt_pc>::t shape;
-        enum { lex_ordered=shape::lex_ordered };
-        using node_type = typename t_tree_strat::node_type;
+        t_tree_strat::template type<wt_pc> tree_strat_type;
+        typedef int_vector<>::size_type    size_type;
+        typedef typename
+        tree_strat_type::value_type        value_type;
+        typedef t_bitvector                bit_vector_type;
+        typedef t_rank                     rank_1_type;
+        typedef t_select                   select_1_type;
+        typedef t_select_zero              select_0_type;
+        typedef wt_tag                     index_category;
+        typedef typename
+        tree_strat_type::alphabet_category alphabet_category;
+        typedef typename
+        t_shape::template type<wt_pc>      shape_type;
+        enum { lex_ordered=shape_type::lex_ordered };
+        using node_type = typename tree_strat_type::node_type;
 
     private:
 
@@ -74,7 +77,7 @@ class wt_pc
         rank_1_type      m_bv_rank;      // rank support for the wavelet tree bit vector
         select_1_type    m_bv_select1;   // select support for the wavelet tree bit vector
         select_0_type    m_bv_select0;
-        t_tree_strat     m_tree;
+        tree_strat_type  m_tree;
 
         void copy(const wt_pc& wt) {
             m_size            = wt.m_size;
@@ -110,11 +113,11 @@ class wt_pc
         size_type construct_tree_shape(const std::vector<size_type>& C) {
             // vector  for node of the tree
             std::vector<pc_node> temp_nodes; //(2*m_sigma-1);
-            shape::construct_tree(C, temp_nodes);
+            shape_type::construct_tree(C, temp_nodes);
             // Convert code tree into BFS order in memory and
             // calculate bv_pos values
             size_type bv_size = 0;
-            t_tree_strat temp_tree(temp_nodes, bv_size);
+            tree_strat_type temp_tree(temp_nodes, bv_size, this);
             m_tree.swap(temp_tree);
             return bv_size;
         }
@@ -177,7 +180,7 @@ class wt_pc
          *    \par Time complexity
          *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          */
-        wt_pc(int_vector_buffer<t_tree_strat::int_width>& input_buf,
+        wt_pc(int_vector_buffer<tree_strat_type::int_width>& input_buf,
               size_type size):m_size(size) {
             if (0 == m_size)
                 return;

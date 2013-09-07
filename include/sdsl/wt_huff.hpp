@@ -119,9 +119,7 @@ struct _huff_shape {
 
 struct huff_shape {
     template<class t_wt>
-    struct type {
-        typedef _huff_shape<t_wt> t;
-    };
+    using type = _huff_shape<t_wt>;
 };
 
 

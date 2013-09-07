@@ -597,9 +597,7 @@ struct _hutu_shape {
 
 struct hutu_shape {
     template<class t_wt>
-    struct type {
-        typedef _hutu_shape<t_wt> t;
-    };
+    using type = _hutu_shape<t_wt>;
 };
 
 
