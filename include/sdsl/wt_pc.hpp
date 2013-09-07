@@ -65,7 +65,7 @@ class wt_pc
 
     private:
 
-#ifdef WT_HUFF_CACHE
+#ifdef WT_PC_CACHE
         mutable value_type m_last_access_answer;
         mutable size_type  m_last_access_i;
         mutable size_type  m_last_access_rl;

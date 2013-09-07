@@ -68,22 +68,23 @@ class WtByteTest : public ::testing::Test { };
 using testing::Types;
 
 typedef Types<
-wt<unsigned char*, rrr_vector<63>>,
-wt<unsigned char*, bit_vector_il<>>,
-wt<unsigned char*, bit_vector>,
-wt_huff<bit_vector_il<>>,
-wt_huff<bit_vector, rank_support_v<>>,
-wt_huff<bit_vector, rank_support_v5<>>,
-wt_huff<rrr_vector<63>>,
-wt_rlmn<>,
-wt_rlmn<bit_vector>,
-wt_rlg<>,
-wt_rlg8<>,
-wt_hutu<bit_vector_il<>>,
-wt_hutu<bit_vector, rank_support_v<>>,
-wt_hutu<bit_vector, rank_support_v5<>>,
-wt_hutu<rrr_vector<63>>
-> Implementations;
+wt_pc<balanced_shape>,
+      wt<rrr_vector<63>>,
+      wt<bit_vector_il<>>,
+      wt<bit_vector>,
+      wt_huff<bit_vector_il<>>,
+      wt_huff<bit_vector, rank_support_v<>>,
+      wt_huff<bit_vector, rank_support_v5<>>,
+      wt_huff<rrr_vector<63>>,
+      wt_rlmn<>,
+      wt_rlmn<bit_vector>,
+      wt_rlg<>,
+      wt_rlg8<>,
+      wt_hutu<bit_vector_il<>>,
+      wt_hutu<bit_vector, rank_support_v<>>,
+      wt_hutu<bit_vector, rank_support_v5<>>,
+      wt_hutu<rrr_vector<63>>
+      > Implementations;
 
 TYPED_TEST_CASE(WtByteTest, Implementations);
 

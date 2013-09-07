@@ -25,6 +25,7 @@
 #include "sdsl_concepts.hpp"
 #include "int_vector.hpp"
 #include "util.hpp"
+#include "wt_helper.hpp"
 #include <set> // for calculating the alphabet size
 #include <map> // for mapping a symbol to its lexicographical index
 #include <algorithm> // for std::swap
@@ -35,6 +36,72 @@
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
+
+template<class t_wt>
+struct _balanced_shape {
+    typedef typename t_wt::size_type       size_type;
+    typedef std::pair<uint64_t, uint64_t>  tPII;    // (freq, nodenr)-pair
+    enum { lex_ordered = 1 };
+
+    template<class t_rac>
+    static void
+    construct_tree(t_rac& C, std::vector<pc_node>& temp_nodes) {
+        size_type c = 0;
+        std::vector<uint64_t> symbols;
+        std::for_each(std::begin(C), std::end(C), [&](decltype(*std::begin(C)) &freq) {
+            if (freq > 0) {
+                symbols.push_back(c);
+            }
+            ++c;
+        });
+        uint64_t sigma = symbols.size();
+        if (sigma > 0) {
+            _construct_tree(pc_node::undef, symbols, 0, sigma, C, temp_nodes);
+            pc_node root = temp_nodes[0];
+            for (uint64_t i=1; i < temp_nodes.size(); ++i) {
+                temp_nodes[i-1] = temp_nodes[i];
+                temp_nodes[i-1].parent = (temp_nodes[i-1].parent+temp_nodes.size()-1)%temp_nodes.size();
+                temp_nodes[i-1].child[0] -= (temp_nodes[i-1].child[0] != pc_node::undef);
+                temp_nodes[i-1].child[1] -= (temp_nodes[i-1].child[1] != pc_node::undef);
+            }
+            root.child[0] -= (root.child[0] != pc_node::undef);
+            root.child[1] -= (root.child[1] != pc_node::undef);
+            temp_nodes[temp_nodes.size()-1] = root;
+        }
+    }
+
+    // recursive construct_tree method returns node frequency and node pointer
+    template<class t_rac>
+    static tPII
+    _construct_tree(uint64_t parent,
+                    const std::vector<uint64_t>& symbols,
+                    uint64_t lb,
+                    uint64_t sigma,
+                    const t_rac& C, std::vector<pc_node>& temp_nodes) {
+        if (sigma == 1) {
+            uint64_t freq = C[symbols[lb]];
+            temp_nodes.emplace_back(pc_node(freq, symbols[lb], parent, pc_node::undef, pc_node::undef));
+            return tPII(freq, temp_nodes.size()-1);
+        } else {
+            temp_nodes.emplace_back(pc_node(0, 0, parent, pc_node::undef, pc_node::undef));
+            uint64_t node_id = temp_nodes.size()-1;
+            uint64_t l_sigma = (sigma+1)/2;
+            tPII freq_nptr_0 = _construct_tree(node_id, symbols, lb, l_sigma, C, temp_nodes);
+            tPII freq_nptr_1 = _construct_tree(node_id, symbols, lb+l_sigma, sigma-l_sigma, C, temp_nodes);
+            uint64_t freq = freq_nptr_0.first + freq_nptr_1.first;
+            temp_nodes[node_id].freq = freq;
+            temp_nodes[node_id].child[0] = freq_nptr_0.second;
+            temp_nodes[node_id].child[1] = freq_nptr_1.second;
+            return tPII(freq, node_id);
+        }
+    }
+
+};
+
+struct balanced_shape {
+    template<class t_wt>
+    using type = _balanced_shape<t_wt>;
+};
 
 struct unsigned_char_map {
     unsigned char m_map[256];
@@ -89,68 +156,6 @@ struct wt_trait {
     static size_type load_maps(std::istream&, map_type&, inv_map_type&) {
         throw std::logic_error(util::demangle(typeid(wt_trait<t_rac>).name())+": load not implemented");
         return 0;
-    }
-};
-
-template<>
-struct wt_trait<unsigned char*> {
-    typedef bit_vector::size_type   size_type;
-    typedef unsigned char           value_type;
-    typedef unsigned char*          reference_type;
-    typedef unsigned_char_map       map_type;
-    typedef unsigned_char_map       inv_map_type;
-    enum { char_node_map_size=256 };
-
-    static size_type alphabet_size_and_map(const reference_type rac, size_type n, map_type& map, inv_map_type& inv_map, value_type& first_symbol) {
-        map.clear();
-        inv_map.clear();
-        if (n==0) {
-            for (size_type i=0; i<256; ++i) {
-                map[i] = 255;    // mark each symbol as absent
-            }
-            return 0;
-        }
-        first_symbol    = *rac;
-        map[*rac] = 0;
-        inv_map[0] = *rac;
-        size_type alphabet_size = 0;
-
-        for (size_type i=0; i<256; ++i) {
-            map[i] = 0;
-        }
-
-        for (size_type i=0; i<n; ++i) {
-            value_type c = *(rac+i);
-            map[c] = 1;
-        }
-
-        for (size_type i=0; i<256; ++i) {
-            if (map[i]) {
-                map[i] = alphabet_size;
-                ++alphabet_size;
-            } else {
-                map[i] = 255;
-            }
-            inv_map[map[i]] = i;
-        }
-        return alphabet_size;
-    }
-
-    static bool symbol_available(const map_type& map, const value_type c, SDSL_UNUSED const value_type first_symbol, const size_type sigma) {
-        return sigma==256 or map[c] < 255;
-    }
-
-    static size_type serialize_maps(std::ostream& out, const map_type& map, const inv_map_type& inv_map, structure_tree_node* v=nullptr,
-                                    SDSL_UNUSED std::string name="") {
-        size_type written_bytes = 0;
-        written_bytes += map.serialize(out, v, "alphabet_map");
-        written_bytes += inv_map.serialize(out, v, "inverse_alphabet_map");
-        return written_bytes;
-    }
-
-    static void load_maps(std::istream& in, map_type& map, inv_map_type& inv_map) {
-        map.load(in);
-        inv_map.load(in);
     }
 };
 
@@ -232,11 +237,12 @@ struct wt_trait<int_vector_buffer<8> > {
  *   The wavelet tree was proposed first by Grossi et al. 2003 and applied to the BWT in Foschini et al. 2004.
  *   @ingroup wt
  */
-template<class t_rac         = unsigned char*,
-         class t_bit_vector  = bit_vector,
+template<class t_bit_vector  = bit_vector,
          class t_rank        = typename t_bit_vector::rank_1_type,
          class t_select_one  = typename t_bit_vector::select_1_type,
-         class t_select_zero = typename t_bit_vector::select_0_type>
+         class t_select_zero = typename t_bit_vector::select_0_type,
+         class t_rac         = int_vector_buffer<8>
+         >
 class wt
 {
     public:
@@ -531,14 +537,14 @@ class wt
             return result;
         };
 
-        //! Calculates for symbol c, how many symbols smaller and greater c occure in wt[i..j-1].
+        //! Calculates for symbol c, how many symbols smaller and greater c occur in wt[i..j-1].
         /*!
          *  \param i       The start index (inclusive) of the interval.
          *  \param j       The end index (exclusive) of the interval.
-         *  \param c       The symbol to count the occurences in the interval.
+         *  \param c       The symbol to count the occurrences in the interval.
          *  \param smaller Reference that will contain the number of symbols smaller than c in wt[i..j-1].
          *  \param greater Reference that will contain the number of symbols greater than c in wt[i..j-1].
-         *  \return The number of occurences of symbol c in wt[0..i-1].
+         *  \return The number of occurrences of symbol c in wt[0..i-1].
          *
          *  \par Precondition
          *       \f$ i \leq j \leq n \f$
@@ -676,7 +682,7 @@ class wt
             }
         }
 
-        //! Calculates for each symbol c in wt[i..j-1], how many times c occurres in wt[0..i-1] and wt[0..j-1].
+        //! Calculates for each symbol c in wt[i..j-1], how many times c occurs in wt[0..i-1] and wt[0..j-1].
         /*!
          *  \param i        The start index (inclusive) of the interval.
          *  \param j        The end index (exclusive) of the interval.
