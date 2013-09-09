@@ -353,8 +353,8 @@ class cst_sct3
             return t_csa::max_size();
         }
 
-        //! Returns if the data strucutre is empty.
-        /*! Required for the Container Concept of the STL.A
+        //! Returns if the data structure is empty.
+        /*! Required for the Container Concept of the STL.
          * \sa size
          */
         bool empty()const {
