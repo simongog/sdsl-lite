@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2009 Simon Gog
+    Copyright (C) 2009-2013 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -87,7 +87,7 @@ inline void calculate_pioneers_bitmap(const bit_vector& bp, bit_vector::size_typ
 template<class size_type>
 void calculate_pioneers_bitmap_succinct(const bit_vector& bp, size_type block_size, bit_vector& pioneer_bitmap)
 {
-    util::assign(pioneer_bitmap, bit_vector(bp.size(), 0)); // resize pioneers bitmap to the resulting size and initialize with zeros
+    pioneer_bitmap = bit_vector(bp.size(), 0);
 
     sorted_stack_support opening_parenthesis(bp.size());
     bit_vector::size_type cur_pioneer_block = 0, last_start = 0, last_j = 0, cur_block=0, first_index_in_block=0;
@@ -101,7 +101,7 @@ void calculate_pioneers_bitmap_succinct(const bit_vector& bp, size_type block_si
         }
 
         if (bp[j]) { // opening parenthesis
-            if (/*j < bp.size() is not neccecssary as the last parenthesis is always a closing one*/
+            if (/*j < bp.size() is not necessary as the last parenthesis is always a closing one*/
                 new_block>1 and !bp[j+1]) {
                 ++j; --new_block;
                 continue;
@@ -125,20 +125,6 @@ void calculate_pioneers_bitmap_succinct(const bit_vector& bp, size_type block_si
     // assert that the sequence is balanced
     assert(opening_parenthesis.empty());
 }
-
-
-template<class size_type>
-void calculate_pioneers_bitmap_succinct2(const bit_vector& bp, SDSL_UNUSED size_type block_size, bit_vector& pioneer_bitmap)
-{
-    pioneer_bitmap.resize(bp.size());    // resize pioneers bitmap to the resulting size
-    util::set_to_value(pioneer_bitmap, 0); // initialize bitmap with zeros
-    const uint64_t* data = bp.data();
-    bit_vector::size_type cnt=0;
-    for (bit_vector::size_type i=0; i < bp.size() ; i+=64, ++data) {
-        cnt += bits::cnt(*data);
-    }
-}
-
 
 //! Calculates matches (i.e. find_open for a closing parenthesis and find_close for an opening parenthesis)
 /*! \param bp A bit_vector representing a balanced parentheses sequence.
@@ -171,33 +157,6 @@ void calculate_matches(const bit_vector& bp, int_vector& matches)
     // assert that the sequence is balanced
     assert(opening_parenthesis.empty());
 }
-
-template<class int_vector>
-void calculate_matches_for_pioneers(const bit_vector& bp, const bit_vector& pioneer_bitmap, int_vector& matches)
-{
-    assert(pioneer_bitmap.size()==bp.size());
-    typedef bit_vector::size_type size_type;
-    matches = int_vector(pioneer_bitmap.size(), 0, bits::hi(bp.size())+1);
-    std::stack<size_type> opening_parenthesis;
-    for (size_type i=0; i < bp.size(); ++i) {
-        if (pioneer_bitmap[i]) {
-            if (bp[i]) {// opening parenthesis
-                opening_parenthesis.push(i);
-            } else { // closing parenthesis
-                assert(!opening_parenthesis.empty());
-                size_type position = opening_parenthesis.top();
-                opening_parenthesis.pop();
-                matches[i] = position;
-                assert(matches[i]==position);
-                matches[position] = i;
-                assert(matches[position]==i);
-            }
-        }
-    }
-    // assert that the sequence is balanced
-    assert(opening_parenthesis.empty());
-}
-
 
 //! Calculates enclose answers for a balanced parentheses sequence.
 /*! \param bp A bit_vector representing a balanced parentheses sequence.
@@ -233,82 +192,7 @@ void calculate_enclose(const bit_vector& bp, int_vector& enclose)
     assert(opening_parenthesis.empty());
 }
 
-template<class bp_support>
-bool check_bp_support(const bit_vector& bp, bp_support bp_s)
-{
-    typedef bit_vector::size_type size_type;
-    // check access and select
-    for (size_type i = 0, excess=0, ones=0; i < bp.size(); ++i) {
-        if (bp[i]) {
-            ++excess;
-            ++ones;
-            size_type sel = bp_s.select(ones);
-            if (sel != i) {
-                std::cerr<<"select operation: i="<<ones<<" value="<<sel<<" expected="<<i<<std::endl;
-                return false;
-            }
-        } else
-            --excess;
-
-        if (bp_s.excess(i) != excess) {
-            std::cerr<<"excess operation: i="<<i<<" value="<<bp_s.excess(i)<<" expected="<< excess<<std::endl;
-            return false;
-        }
-    }
-    // check find_open and find_close
-    std::stack<size_type> opening_parenthesis;
-    for (size_type i=0; i < bp.size(); ++i) {
-//		std::cerr<<bp[i]<<" i="<<i<<std::endl;
-        if (bp[i]) {// opening parenthesis
-            opening_parenthesis.push(i);
-        } else { // closing parenthesis
-            assert(!opening_parenthesis.empty());
-            size_type position = opening_parenthesis.top();
-            size_type fc = bp_s.find_close(position);
-            if (fc != i) {
-                std::cerr<<"find_close operation: i="<<position<<" value="<<fc<<" expected="<< i << std::endl;
-                return false;
-            }
-            size_type fo = bp_s.find_open(i);
-            if (fo != position) {
-                std::cerr<<"find_open operation: i="<<i<<" value="<<fo<<" expected="<< position << std::endl;
-                return false;
-            }
-            opening_parenthesis.pop();
-        }
-    }
-    if (!opening_parenthesis.empty()) {
-        std::cerr<<"balanced parenthese sequence is NOT balanced!" <<std::endl;
-        return false;
-    }
-    // check enclose
-    for (size_type i=0; i < bp.size(); ++i) {
-        if (bp[i]) {// opening parenthesis
-            size_type ec = bp_s.enclose(i);
-            size_type position = bp.size();
-            if (!opening_parenthesis.empty()) {
-                position = opening_parenthesis.top();
-            }
-            opening_parenthesis.push(i);
-            if (ec != position) {
-                std::cerr<<"encolse operation i="<<i<<" value="<<ec<<" expected=" << position << std::endl;
-            }
-        } else { // closing parenthesis
-            opening_parenthesis.pop();
-        }
-    }
-    return true;
-}
-
-//! Find the near closing parenthesis if it exists.
-/*!
- * \param bp bit_vector containing the representation of the balanced parentheses sequence.
- * \param i  Position of the opening parenthesis we for which search the corresponding closing parenthesis.
- * \param block_size Number of entries to search for the corresponding closing parenthesis.
- * \return i if there is no near find_close answer, otherwise the position of the near closing parenthesis.
- * \pre We assert that \f$ bp[i]=1 \f$ holds, i.e. there is an opening parenthesis at position i.
- */
-// TODO: implement a fast version using lookup-tables of size 8
+// TODO: delete? or is it needed to construct the lookup table?
 inline bit_vector::size_type near_find_close_naive(const bit_vector& bp, bit_vector::size_type i, const bit_vector::size_type block_size)
 {
     typedef bit_vector::size_type size_type;
@@ -459,7 +343,6 @@ inline bit_vector::size_type near_find_close(const bit_vector& bp, const bit_vec
     return i;
 }
 
-// TODO: umbenennen der method in near_find_first_closing_with_excess_diff
 inline bit_vector::size_type near_find_closing(const bit_vector& bp, bit_vector::size_type i, bit_vector::size_type closings, const bit_vector::size_type block_size)
 {
     typedef bit_vector::size_type size_type;
