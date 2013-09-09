@@ -45,9 +45,12 @@ TYPED_TEST(WtIntTest, Constructor)
         sdsl::construct(wt, test_file);
         std::cout << "compression = " << size_in_mega_bytes(wt)/iv_size << std::endl;
         ASSERT_EQ(iv.size(), wt.size());
+        std::set<uint64_t> sigma_set;
         for (size_type j=0; j < iv.size(); ++j) {
             ASSERT_EQ(iv[j], wt[j])<<j;
+            sigma_set.insert(iv[j]);
         }
+        ASSERT_EQ(sigma_set.size(), wt.sigma);
         ASSERT_TRUE(store_to_file(wt, temp_file));
     }
     {

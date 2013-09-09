@@ -169,10 +169,10 @@ class wt_int
                 const uint64_t    mask_new = 1ULL<<(m_max_depth-k-1);
                 do {
                     buf1.reset();
-                    size_type    i         = start;
-                    size_type    cnt0    =    0;
-                    uint64_t    start_value = (rac[i]&mask_old);
-                    uint64_t    x;
+                    size_type i           = start;
+                    size_type cnt0        =    0;
+                    uint64_t  start_value = (rac[i]&mask_old);
+                    uint64_t  x;
                     while (i < m_size and((x=rac[i])&mask_old)==start_value) {
                         if (x&mask_new) {
                             tree_word |= (1ULL << (tree_pos&0x3FULL));
@@ -196,7 +196,7 @@ class wt_int
                         }
                     } else { // leaf node
                         start += cnt0+cnt1;
-                        ++m_sigma; // increase sigma for each leaf
+                        m_sigma += (cnt0>0) + (cnt1>0); // increase sigma for each leaf
                     }
 
                 } while (start < m_size);
@@ -498,7 +498,7 @@ class wt_int
          *  \param quantile 'quantile' smallest symbol (starts with 0)
          */
         std::pair<value_type,size_type>
-        quantile_freq(size_type lb, size_type rb,size_type quantile) {
+        quantile_freq(size_type lb, size_type rb,size_type quantile) const {
 
             size_type  offset = 0;
             value_type sym = 0;
@@ -568,7 +568,9 @@ class wt_int
         {
             public:
                 bool operator<(const topk_greedy_range_t& r) const {
-                    return ((rb-lb+1) < (r.rb-r.lb+1));
+                    if ((rb-lb+1) != (r.rb-r.lb+1))
+                        return ((rb-lb+1) < (r.rb-r.lb+1));
+                    return sym > r.sym;
                 }
             public:
                 value_type sym = 0;
@@ -580,8 +582,15 @@ class wt_int
                 size_type freq = 0;
         };
 
+        //! Returns the top k most frequent documents in T[lb..rb]
+        /*!
+         *  \param lb left array bound in T
+         *  \param rb right array bound in T
+         *  \param k the number of documents to return
+         *  \returns the top-k items in ascending order.
+         */
         std::vector< std::pair<value_type,size_type> >
-        topk_greedy(size_type lb, size_type rb,size_type k) {
+        topk_greedy(size_type lb, size_type rb,size_type k) const {
 
             std::vector< std::pair<value_type,size_type> > results;
             std::priority_queue<topk_greedy_range_t> heap;
@@ -610,8 +619,7 @@ class wt_int
                 size_type ones_before_end = m_tree_rank(r.offset + r.node_size) - ones_before_offset;
 
                 /* number of 1s before T[l..r] */
-                size_type rank_before_left = 0;
-                if (r.offset+r.lb>0) rank_before_left = m_tree_rank(r.offset + r.lb);
+                size_type rank_before_left = m_tree_rank(r.offset + r.lb);
 
                 /* number of 1s before T[r] */
                 size_type rank_before_right   = m_tree_rank(r.offset + r.rb + 1);
@@ -660,7 +668,7 @@ class wt_int
          *  \returns the top-k items in ascending order.
          */
         std::vector< std::pair<value_type,size_type> >
-        topk_qprobing(size_type lb, size_type rb,size_type k) {
+        topk_qprobing(size_type lb, size_type rb,size_type k) const {
             using p_t = std::pair<value_type,size_type>;
             std::vector<p_t> results;
             auto comp = [](p_t& a,p_t& b) { return a.second > b.second; };
@@ -756,7 +764,7 @@ class wt_int
 
 
         std::vector< std::pair<value_type,size_type> >
-        intersect(std::vector< std::pair<size_type,size_type> >& ranges, size_type threshold=0) {
+        intersect(std::vector< std::pair<size_type,size_type> >& ranges, size_type threshold=0) const {
             using p_t = std::pair<value_type,size_type>;
             std::vector<p_t> results;
 
