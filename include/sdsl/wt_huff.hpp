@@ -31,7 +31,7 @@ namespace sdsl
 // forward declaration
 struct huff_shape;
 
-//! A Wavelet Tree class for byte sequences.
+//! A Huffman-shaped wavelet tree.
 /*!
  * A wavelet tree is build for a vector of characters over the byte alphabet
  * \f$\Sigma\f$. If you need a wavelet tree for a integer alphabet you should
@@ -46,24 +46,24 @@ struct huff_shape;
  *   - The select method: \f$wt.select(j,c)\f$ returns the index
  *     \f$i\in [0..size()-1]\f$ of the j-th occurrence of symbol \f$c\f$.
  *
- *  The idea of using a Huffman shaped wavelet was first mentioned on page 17
- *  of the following technical report:
- *  Veli Mäkinen and Gonzalo Navarro:
- *  ,,Succinct Suffix Arrays based on Run-Length Encoding.''
- *  Available under: http://swp.dcc.uchile.cl/TR/2005/TR_DCC-2005-004.pdf
+ * The idea of using a Huffman shaped wavelet was first mentioned on page 17
+ * of the following technical report:
+ * Veli Mäkinen and Gonzalo Navarro:
+ * ,,Succinct Suffix Arrays based on Run-Length Encoding.''
+ * Available under: http://swp.dcc.uchile.cl/TR/2005/TR_DCC-2005-004.pdf
  *
- *  \tparam t_bitvector   Underlying bitvector structure.
- *  \tparam t_rank        Rank support for pattern `1` on the bitvector.
- *  \tparam t_select      Select support for pattern `1` on the bitvector.
- *  \tparam t_select_zero Select support for pattern `0` on the bitvector.
- *  \tparam t_dfs_shape   Layout of the tree structure in memory. Set 0
- *                        for BFS layout and 1 fro DFS layout.
+ * \tparam t_bitvector   Underlying bitvector structure.
+ * \tparam t_rank        Rank support for pattern `1` on the bitvector.
+ * \tparam t_select      Select support for pattern `1` on the bitvector.
+ * \tparam t_select_zero Select support for pattern `0` on the bitvector.
+ * \tparam t_dfs_shape   Layout of the tree structure in memory. Set 0
+ *                       for BFS layout and 1 fro DFS layout.
  *
- *  \par Space complexity
- *       \f$n H_0 + 2|\Sigma|\log n\f$ bits, where \f$n\f$ is the size
- *        of the vector the wavelet tree was build for.
+ * \par Space complexity
+ *      \f$n H_0 + 2|\Sigma|\log n\f$ bits, where \f$n\f$ is the size
+ *       of the vector the wavelet tree was build for.
  *
- *   @ingroup wt
+ *  @ingroup wt
  */
 template<class t_bitvector   = bit_vector,
          class t_rank        = typename t_bitvector::rank_1_type,

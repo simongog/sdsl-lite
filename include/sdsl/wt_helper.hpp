@@ -108,6 +108,10 @@ struct _node {
     }
 };
 
+// TODO: version of _byte_tree for lex_ordered tree shapes
+//       m_c_to_leaf can be compressed and
+//       m_path is only needed for sigma chars
+
 // Strategy class for tree representation of a WT
 template<bool t_dfs_shape, class t_wt>
 struct _byte_tree {
@@ -121,7 +125,7 @@ struct _byte_tree {
 
 
 
-    std::vector<data_node> m_nodes;                  // nodes for the prefix code tree structure
+    std::vector<data_node> m_nodes;              // nodes for the prefix code tree structure
     node_type          m_c_to_leaf[fixed_sigma]; // map symbol c to a leaf in the tree structure
     // if m_c_to_leaf[c] == undef the char does
     // not exists in the text

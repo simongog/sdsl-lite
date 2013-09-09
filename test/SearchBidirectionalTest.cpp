@@ -21,8 +21,8 @@ class SearchBidirectionalTest : public ::testing::Test { };
 using testing::Types;
 
 typedef Types<
-csa_wt<wt<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, byte_alphabet>,
-       csa_wt<wt<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, succinct_byte_alphabet<> >,
+csa_wt<wt_blcd<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, byte_alphabet>,
+       csa_wt<wt_blcd<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, succinct_byte_alphabet<> >,
        csa_wt<wt_hutu<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, byte_alphabet>,
        csa_wt<wt_hutu<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, succinct_byte_alphabet<> >,
        csa_wt<wt_hutu<bit_vector_il<> >, 32, 32, sa_order_sa_sampling<>, int_vector<>, byte_alphabet>

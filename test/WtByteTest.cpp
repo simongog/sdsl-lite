@@ -20,47 +20,28 @@ string temp_file;
 bool in_memory;
 
 // forward declaration
-template<class t_T>
-void test_interval_symbols(t_T& wt);
+template<class t_wt>
+void test_interval_symbols(t_wt& wt);
 // forward declaration
-template<class t_T>
-void test_lex_count(t_T& wt);
+template<class t_wt>
+void test_lex_count(t_wt& wt);
 
 
-template<class t_T>
+template<class t_wt, bool lex_ordered = t_wt::lex_ordered>
 struct wt_test_trait {
-    static void interval_symbols_test(SDSL_UNUSED t_T& wt) {}
-    static void lex_count_test(SDSL_UNUSED t_T& wt) {}
+    static void interval_symbols_test(t_wt&) {}
+    static void lex_count_test(t_wt&) {}
 };
 
-template<class t_rac, class t_bv, class t_rs, class t_ss1, class t_ss0>
-struct wt_test_trait<wt<t_rac, t_bv, t_rs, t_ss1, t_ss0> > {
-    static void interval_symbols_test(wt<t_rac, t_bv, t_rs, t_ss1, t_ss0>& wt) {
+template<class t_wt>
+struct wt_test_trait<t_wt, true> {
+    static void interval_symbols_test(t_wt& wt) {
         test_interval_symbols(wt);
     }
-    static void lex_count_test(wt<t_rac, t_bv, t_rs, t_ss1, t_ss0>& wt) {
+    static void lex_count_test(t_wt& wt) {
         test_lex_count(wt);
     }
 };
-
-template<class t_bv, class t_rs, class t_ss1, class t_ss0, class t_tree_strat>
-struct wt_test_trait<wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_tree_strat> > {
-    static void interval_symbols_test(wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_tree_strat>& wt) {
-        test_interval_symbols(wt);
-    }
-    static void lex_count_test(SDSL_UNUSED wt_huff<t_bv, t_rs, t_ss1, t_ss0, t_tree_strat>& wt) {}
-};
-
-template<class t_bv, class t_rs, class t_ss1, class t_ss0, class t_tree_strat>
-struct wt_test_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_tree_strat> > {
-    static void interval_symbols_test(wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_tree_strat>& wt) {
-        test_interval_symbols(wt);
-    }
-    static void lex_count_test(wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_tree_strat>& wt) {
-        test_lex_count(wt);
-    }
-};
-
 
 template<class T>
 class WtByteTest : public ::testing::Test { };
@@ -69,9 +50,9 @@ using testing::Types;
 
 typedef Types<
 wt_pc<balanced_shape>,
-      wt<rrr_vector<63>>,
-      wt<bit_vector_il<>>,
-      wt<bit_vector>,
+      wt_blcd<rrr_vector<63>>,
+      wt_blcd<bit_vector_il<>>,
+      wt_blcd<bit_vector>,
       wt_huff<bit_vector_il<>>,
       wt_huff<bit_vector, rank_support_v<>>,
       wt_huff<bit_vector, rank_support_v5<>>,

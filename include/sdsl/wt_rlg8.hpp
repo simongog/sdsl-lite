@@ -60,6 +60,7 @@ class wt_rlg8
         typedef t_wt                    wt_type;
         typedef wt_tag                  index_category;
         typedef byte_alphabet_tag       alphabet_category;
+        enum { lex_ordered=false };
     private:
         size_type         m_size = 0;     // size of the original input sequence
         wt_type           m_wt;           // wavelet tree for all levels
