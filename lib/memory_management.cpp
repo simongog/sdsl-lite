@@ -14,7 +14,7 @@ void write_mem_log<CSV>(std::ostream& out,const memory_monitor& m)
 
     auto first_ts = m.mem_events[0].timestamp;
     auto cur_event = m.events[0];
-    for (const auto& event : m.mem_events) {
+for (const auto& event : m.mem_events) {
         out << duration_cast<milliseconds>(event.timestamp-first_ts).count() << ";" << event.usage << ";";
     }
 }
@@ -22,17 +22,27 @@ void write_mem_log<CSV>(std::ostream& out,const memory_monitor& m)
 template<>
 void write_mem_log<JSON>(std::ostream& out,const memory_monitor& m)
 {
-    // write header
     out << "[";
 
     auto first_ts = m.mem_events[0].timestamp;
-    auto cur_event = m.events[0];
     for (size_t i=0; i<m.mem_events.size()-1; i++) {
         const auto& event = m.mem_events[i];
         out << "[" << duration_cast<milliseconds>(event.timestamp-first_ts).count() << "," << event.usage << "], ";
     }
     const auto& event = m.mem_events[m.mem_events.size()-1];
     out << "[" << duration_cast<milliseconds>(event.timestamp-first_ts).count() << "," << event.usage << "] ";
+    out << "]" << std::endl;
+
+    out << "[";
+
+    for (size_t i=0; i<m.events.size()-1; i++) {
+        const auto& ev = m.events[i];
+        out << "[" << duration_cast<milliseconds>(std::get<0>(ev)-first_ts).count() << ","<< std::get<1>(ev) <<
+            ",\"" << std::get<2>(ev) << "\"], ";
+    }
+    const auto& ev = m.events[m.events.size()-1];
+    out << "[" << duration_cast<milliseconds>(std::get<0>(ev)-first_ts).count() << ","<< std::get<1>(ev) <<
+        ",\"" << std::get<2>(ev) << "\"]";
     out << "]";
 }
 
@@ -226,6 +236,37 @@ hugepage_allocator::new_block(size_t size)
     return ptr;
 }
 
+mm_block_t*
+hugepage_allocator::last_block()
+{
+    mm_block_t* last = nullptr;
+    if (m_top != m_base) {
+        mm_block_foot_t* fptr = (mm_block_foot_t*)(m_top - sizeof(size_t));
+        last = (mm_block_t*)(((uint8_t*)fptr) - UNMASK_SIZE(fptr->size) + sizeof(size_t));
+    }
+    return last;
+}
+
+void
+block_print(int id,mm_block_t* bptr)
+{
+    fprintf(stdout, "%d addr=%p size=%lu (%lu) free=%d\n",id,((void*)bptr),
+            UNMASK_SIZE(bptr->size),bptr->size,block_isfree(bptr));
+    fflush(stdout);
+}
+
+void
+hugepage_allocator::print_heap()
+{
+    mm_block_t* bptr = m_first_block;
+    size_t id = 0;
+    while (bptr) {
+        block_print(id,bptr);
+        id++;
+        bptr = block_next(bptr,m_top);
+    }
+}
+
 void
 hugepage_allocator::remove_from_free_set(mm_block_t* block)
 {
@@ -273,7 +314,19 @@ hugepage_allocator::mm_alloc(size_t size_in_bytes)
         /* split if we have a block too large for us? */
         split_block(bptr,size_in_bytes);
     } else {
-        bptr = new_block(size_in_bytes);
+        // check if last block is free
+        bptr = last_block();
+        if (bptr && block_isfree(bptr)) {
+            // extent last block as it is free
+            size_t blockdatasize = block_getdatasize(bptr);
+            size_t needed = ALIGN(size_in_bytes - blockdatasize);
+            hsbrk(needed);
+            remove_from_free_set(bptr);
+            block_update(bptr,UNMASK_SIZE(bptr->size)+needed);
+            insert_into_free_set(bptr);
+        } else {
+            bptr = new_block(size_in_bytes);
+        }
     }
     return block_data(bptr);
 }
@@ -292,7 +345,6 @@ hugepage_allocator::mm_free(void* ptr)
 void*
 hugepage_allocator::mm_realloc(void* ptr, size_t size)
 {
-
     /* handle special cases first */
     if (ptr==NULL) return mm_alloc(size);
     if (size==0) {
@@ -302,7 +354,7 @@ hugepage_allocator::mm_realloc(void* ptr, size_t size)
     mm_block_t* bptr = block_cur(ptr);
 
     bool need_malloc = 0;
-    uint32_t blockdatasize = block_getdatasize(bptr);
+    size_t blockdatasize = block_getdatasize(bptr);
     /* we do nothing if the size is equal to the block */
     if (size == blockdatasize)
         return ptr; /* do nothing if size fits already */
@@ -314,42 +366,45 @@ hugepage_allocator::mm_realloc(void* ptr, size_t size)
         /* we expand */
         /* if the next block is free we could use it! */
         mm_block_t* next = block_next(bptr,m_top);
-        if (next && block_isfree(next)) {
-            /* do we have enough space if we use the next block */
-            if (blockdatasize + UNMASK_SIZE(next->size) >= size) {
-                /* the next block is enough! */
-                /* remove the "next" block from the free list */
-                remove_from_free_set(next);
-                /* add the size of our block */
-                block_update(bptr,UNMASK_SIZE(bptr->size)+UNMASK_SIZE(next->size));
-            } else {
-                /* the next block is not enough. still used and get the leftover space
-                   needed using sbrk */
-                remove_from_free_set(next);
-                block_update(bptr,UNMASK_SIZE(bptr->size)+UNMASK_SIZE(next->size));
-                /* request just enough so we fit */
-                blockdatasize = block_getdatasize(bptr);
-                size_t needed = ALIGN(size - blockdatasize);
-                hsbrk(needed);
-                block_update(bptr,UNMASK_SIZE(bptr->size)+needed);
-            }
+        if (!next) {
+            // we are the last block so we just expand
+            blockdatasize = block_getdatasize(bptr);
+            size_t needed = ALIGN(size - blockdatasize);
+            hsbrk(needed);
+            block_update(bptr,UNMASK_SIZE(bptr->size)+needed);
+            return block_data(bptr);
         } else {
-            /* try combing the previous block if free */
-            mm_block_t* prev = block_prev(bptr,m_first_block);
-            if (prev && block_isfree(prev)) {
-                if (blockdatasize + UNMASK_SIZE(prev->size) >= size) {
-                    remove_from_free_set(prev);
-                    size_t newsize = UNMASK_SIZE(prev->size)+UNMASK_SIZE(bptr->size);
-                    block_update(prev,newsize);
-                    /* move the data into the previous block */
-                    ptr = memmove(block_data(prev),ptr,blockdatasize);
+            // we are not the last block
+            if (next && block_isfree(next)) {
+                /* do we have enough space if we use the next block */
+                if (blockdatasize + UNMASK_SIZE(next->size) >= size) {
+                    /* the next block is enough! */
+                    /* remove the "next" block from the free list */
+                    remove_from_free_set(next);
+                    /* add the size of our block */
+                    block_update(bptr,UNMASK_SIZE(bptr->size)+UNMASK_SIZE(next->size));
                 } else {
-                    /* not enough in the prev block */
+                    /* the next block is not enough. we allocate a new one instead */
                     need_malloc = true;
                 }
             } else {
-                /* prev block not free. get more memory */
-                need_malloc = true;
+                /* try combing the previous block if free */
+                mm_block_t* prev = block_prev(bptr,m_first_block);
+                if (prev && block_isfree(prev)) {
+                    if (blockdatasize + UNMASK_SIZE(prev->size) >= size) {
+                        remove_from_free_set(prev);
+                        size_t newsize = UNMASK_SIZE(prev->size)+UNMASK_SIZE(bptr->size);
+                        block_update(prev,newsize);
+                        /* move the data into the previous block */
+                        ptr = memmove(block_data(prev),ptr,blockdatasize);
+                    } else {
+                        /* not enough in the prev block */
+                        need_malloc = true;
+                    }
+                } else {
+                    /* prev block not free. get more memory */
+                    need_malloc = true;
+                }
             }
         }
     }

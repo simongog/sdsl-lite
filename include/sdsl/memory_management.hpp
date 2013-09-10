@@ -41,7 +41,7 @@ class memory_monitor
         int64_t peak_usage = 0;
         bool track_usage = false;
         std::vector<mm_event> mem_events;
-        std::vector<std::pair<timer::time_point,std::string>> events;
+        std::vector<std::tuple<timer::time_point,int64_t,std::string>> events;
         util::spin_lock spinlock;
     private:
         // disable construction of the object
@@ -93,7 +93,7 @@ class memory_monitor
             auto& m = the_monitor();
             if (m.track_usage) {
                 std::lock_guard<util::spin_lock> lock(m.spinlock);
-                m.events.emplace_back(timer::now(),name);
+                m.events.emplace_back(timer::now(),m.current_usage,name);
             }
         }
         template<memformat_type F>
@@ -133,6 +133,8 @@ class hugepage_allocator
         void remove_from_free_set(mm_block_t* block);
         void insert_into_free_set(mm_block_t* block);
         mm_block_t* find_free_block(size_t size_in_bytes);
+        mm_block_t* last_block();
+        void print_heap();
     public:
         void init(size_t size_in_bytes) {
 #ifdef MAP_HUGETLB
@@ -188,6 +190,14 @@ class memory_manager
                 std::free(ptr);
             }
         }
+        static uint64_t* realloc_mem(uint64_t* ptr,size_t size) {
+            auto& m = the_manager();
+            if (m.hugepages) {
+                return (uint64_t*) hugepage_allocator::the_allocator().mm_realloc(ptr,size);
+            } else {
+                return (uint64_t*) realloc(ptr,size);
+            }
+        }
     public:
         static void use_hugepages(size_t bytes) {
             auto& m = the_manager();
@@ -206,15 +216,18 @@ class memory_manager
                 // access to this padding to answer rank(size()) if size()%64 ==0.
                 // Note that this padding is not counted in the serialize method!
                 size_t allocated_bytes = (((size+64)>>6)<<3);
-                uint64_t* data = memory_manager::alloc_mem(allocated_bytes);
-                if (allocated_bytes != 0 && data == nullptr) {
+                v.m_data = memory_manager::realloc_mem(v.m_data,allocated_bytes);
+                if (allocated_bytes != 0 && v.m_data == nullptr) {
                     throw std::bad_alloc();
                 }
-                // copy and update
-                std::memcpy(data, v.m_data, std::min(old_size_in_bytes,new_size_in_bytes));
-                memory_manager::free_mem(v.m_data);
-                v.m_data = data;
+                // update and fill with 0s
                 v.m_size = size;
+                if (v.bit_size() < v.capacity()) {
+                    bits::write_int(v.m_data+(v.bit_size()>>6), 0, v.bit_size()&0x3F, v.capacity() - v.bit_size());
+                }
+                if (((v.m_size) % 64) == 0) {  // initialize unreachable bits with 0
+                    v.m_data[v.m_size/64] = 0;
+                }
 
                 // update stats
                 if (do_realloc) {
