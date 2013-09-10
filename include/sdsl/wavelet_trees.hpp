@@ -29,13 +29,14 @@
  *    - inverse_select(i)
  */
 
-#include "wt.hpp"
-#include "wt_int.hpp"
+#include "wt_pc.hpp"
+#include "wt_blcd.hpp"
 #include "wt_huff.hpp"
+#include "wt_hutu.hpp"
+#include "wt_int.hpp"
 #include "wt_rlmn.hpp"
 #include "wt_rlg.hpp"
 #include "wt_rlg8.hpp"
-#include "wt_hutu.hpp"
 #include "construct.hpp"
 
 #endif

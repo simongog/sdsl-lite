@@ -74,6 +74,10 @@ class wt_rlmn
         typedef t_wt                    wt_type;
         typedef wt_tag                  index_category;
         typedef byte_alphabet_tag       alphabet_category;
+        enum { lex_ordered=false };     // TODO: is should be possible
+        // to support all lex_ordered
+        // operations if t_wt::lex_ordered is
+        // true
 
     private:
 
