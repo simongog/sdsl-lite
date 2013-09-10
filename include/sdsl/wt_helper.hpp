@@ -108,20 +108,24 @@ struct _node {
     }
 };
 
+// TODO: version of _byte_tree for lex_ordered tree shapes
+//       m_c_to_leaf can be compressed and
+//       m_path is only needed for sigma chars
+
 // Strategy class for tree representation of a WT
-template<bool t_dfs_shape=false>
-struct byte_tree {
+template<bool t_dfs_shape, class t_wt>
+struct _byte_tree {
     using alphabet_category = byte_alphabet_tag;
     using value_type = uint8_t;
     using node_type = uint16_t; // node is represented by index in m_nodes
-    using data_node = _node<byte_tree>;
+    using data_node = _node<_byte_tree>;
     enum :uint16_t {undef       = 0xFFFF}; // max uint16_t value
     enum :uint32_t {fixed_sigma = 256};
     enum :uint8_t {int_width   = 8};      // width of the input integers
 
 
 
-    std::vector<data_node> m_nodes;                  // nodes for the prefix code tree structure
+    std::vector<data_node> m_nodes;              // nodes for the prefix code tree structure
     node_type          m_c_to_leaf[fixed_sigma]; // map symbol c to a leaf in the tree structure
     // if m_c_to_leaf[c] == undef the char does
     // not exists in the text
@@ -129,7 +133,7 @@ struct byte_tree {
     // 0..55 hold path information; bits 56..63 the length
     // of the path in binary representation
 
-    void copy(const byte_tree& bt) {
+    void copy(const _byte_tree& bt) {
         m_nodes = bt.m_nodes;
         for (uint32_t i=0; i<fixed_sigma; ++i)
             m_c_to_leaf[i] = bt.m_c_to_leaf[i];
@@ -137,9 +141,9 @@ struct byte_tree {
             m_path[i] = bt.m_path[i];
     }
 
-    byte_tree() {}
+    _byte_tree() {}
 
-    byte_tree(const std::vector<pc_node>& temp_nodes, uint64_t& bv_size) {
+    _byte_tree(const std::vector<pc_node>& temp_nodes, uint64_t& bv_size, const t_wt*) {
         m_nodes.resize(temp_nodes.size());
         m_nodes[0] = temp_nodes.back(); // insert root at index 0
         bv_size = 0;
@@ -217,11 +221,11 @@ struct byte_tree {
         }
     }
 
-    byte_tree(const byte_tree& bt) {
+    _byte_tree(const _byte_tree& bt) {
         copy(bt);
     }
 
-    void swap(byte_tree& bt) {
+    void swap(_byte_tree& bt) {
         std::swap(m_nodes, bt.m_nodes);
         for (uint32_t i=0; i<fixed_sigma; ++i) {
             std::swap(m_c_to_leaf[i], bt.m_c_to_leaf[i]);
@@ -229,7 +233,7 @@ struct byte_tree {
         }
     }
 
-    byte_tree& operator=(const byte_tree& bt) {
+    _byte_tree& operator=(const _byte_tree& bt) {
         if (this != &bt) {
             copy(bt);
         }
@@ -314,11 +318,18 @@ struct byte_tree {
 
 // Strategy class for tree representation of a WT
 template<bool t_dfs_shape=false>
-struct int_tree {
+struct byte_tree {
+    template<class t_wt>
+    using type = _byte_tree<t_dfs_shape, t_wt>;
+};
+
+// Strategy class for tree representation of a WT
+template<bool t_dfs_shape, class t_wt>
+struct _int_tree {
     using alphabet_category = int_alphabet_tag;
     using value_type = uint64_t;
     using node_type = uint64_t; // node is represented by index in m_nodes
-    using data_node = _node<int_tree>;
+    using data_node = _node<_int_tree>;
     enum :uint64_t {undef = 0xFFFFFFFFFFFFFFFFULL}; // max uint64_t value
     enum :uint8_t {int_width = 0};                 // width of the input integers is variable
 
@@ -332,15 +343,15 @@ struct int_tree {
     // 0..55 hold path information; bits 56..63 the length
     // of the path in binary representation
 
-    void copy(const int_tree& bt) {
+    void copy(const _int_tree& bt) {
         m_nodes     = bt.m_nodes;
         m_c_to_leaf = bt.m_c_to_leaf;
         m_path      = bt.m_path;
     }
 
-    int_tree() {}
+    _int_tree() {}
 
-    int_tree(const std::vector<pc_node>& temp_nodes, uint64_t& bv_size) {
+    _int_tree(const std::vector<pc_node>& temp_nodes, uint64_t& bv_size, const t_wt*) {
         m_nodes.resize(temp_nodes.size());
         m_nodes[0] = temp_nodes.back(); // insert root at index 0
         bv_size = 0;
@@ -426,17 +437,17 @@ struct int_tree {
         }
     }
 
-    int_tree(const int_tree& bt) {
+    _int_tree(const _int_tree& bt) {
         copy(bt);
     }
 
-    void swap(int_tree& bt) {
+    void swap(_int_tree& bt) {
         std::swap(m_nodes, bt.m_nodes);
         std::swap(m_c_to_leaf, bt.m_c_to_leaf);
         std::swap(m_path, bt.m_path);
     }
 
-    int_tree& operator=(const int_tree& bt) {
+    _int_tree& operator=(const _int_tree& bt) {
         if (this != &bt) {
             copy(bt);
         }
@@ -534,7 +545,12 @@ struct int_tree {
 
 };
 
-
+// Strategy class for tree representation of a WT
+template<bool t_dfs_shape=false>
+struct int_tree {
+    template<class t_wt>
+    using type = _int_tree<t_dfs_shape, t_wt>;
+};
 
 } // end namespace sdsl
 #endif

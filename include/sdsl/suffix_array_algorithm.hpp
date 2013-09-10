@@ -116,22 +116,6 @@ backward_search(
     return r+1-l;
 }
 
-// Maybe one should replace these traits with a member variable in each wavelet tree
-template<class t_T>
-struct wt_has_lex_count_trait {
-    enum {value = false};
-};
-
-template<class t_rac, class t_bv, class t_rs, class t_ss1, class t_ss0>
-struct wt_has_lex_count_trait<wt<t_rac, t_bv, t_rs, t_ss1, t_ss0> > {
-    enum {value = true};
-};
-
-template<class t_bv, class t_rs, class t_ss1, class t_ss0, class t_tree_strat>
-struct wt_has_lex_count_trait<wt_hutu<t_bv, t_rs, t_ss1, t_ss0, t_tree_strat> > {
-    enum {value = true};
-};
-
 //! Bidirectional search for a character c on an interval \f$[l_fwd..r_fwd]\f$ of the suffix array.
 /*!
  * \param csa_fwd   The CSA object of the forward text in which the backward_search should be done.
@@ -163,7 +147,7 @@ typename csa_wt<t_wt>::size_type bidirectional_search(
     typename csa_wt<>::size_type& r_fwd_res,
     typename csa_wt<>::size_type& l_bwd_res,
     typename csa_wt<>::size_type& r_bwd_res,
-    SDSL_UNUSED typename std::enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if< t_wt::lex_ordered, csa_tag>::type x = csa_tag()
 )
 {
     assert(l_fwd <= r_fwd); assert(r_fwd < csa_fwd.size());
@@ -225,7 +209,7 @@ typename csa_wt<>::size_type bidirectional_search_backward(
     typename csa_wt<>::size_type& r_fwd_res,
     typename csa_wt<>::size_type& l_bwd_res,
     typename csa_wt<>::size_type& r_bwd_res,
-    SDSL_UNUSED typename std::enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if< t_wt::lex_ordered, csa_tag>::type x = csa_tag()
 )
 {
     t_pat_iter it = end;
@@ -291,7 +275,7 @@ bidirectional_search_forward(
     typename csa_wt<>::size_type& r_fwd_res,
     typename csa_wt<>::size_type& l_bwd_res,
     typename csa_wt<>::size_type& r_bwd_res,
-    SDSL_UNUSED typename std::enable_if< wt_has_lex_count_trait<t_wt>::value, csa_tag>::type x = csa_tag()
+    SDSL_UNUSED typename std::enable_if< t_wt::lex_ordered, csa_tag>::type x = csa_tag()
 )
 {
     t_pat_iter it = begin;

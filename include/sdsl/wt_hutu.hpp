@@ -32,7 +32,7 @@ namespace sdsl
 // forward declaration
 struct hutu_shape;
 
-//! A Hu-Tucker Wavelet Tree for byte sequences.
+//! A Hu-Tucker-shaped wavelet tree.
 /*!
  *  \tparam t_bitvector   Underlying bitvector structure.
  *  \tparam t_rank        Rank support for pattern `1` on the bitvector.
@@ -597,9 +597,7 @@ struct _hutu_shape {
 
 struct hutu_shape {
     template<class t_wt>
-    struct type {
-        typedef _hutu_shape<t_wt> t;
-    };
+    using type = _hutu_shape<t_wt>;
 };
 
 
