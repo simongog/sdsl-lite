@@ -13,6 +13,9 @@
 #include <mutex>
 #include <chrono>
 #include <cstring>
+#include <set>
+#include <cstddef>
+
 
 namespace sdsl
 {
@@ -99,41 +102,63 @@ class memory_monitor
         }
 };
 
+#pragma pack(push, 1)
+typedef struct mm_block {
+    size_t size;
+    struct mm_block* next;
+    struct mm_block* prev;
+} mm_block_t;
+
+typedef struct bfoot {
+    size_t size;
+} mm_block_foot_t;
+#pragma pack(pop)
 
 #include <sys/mman.h>
 
 class hugepage_allocator
 {
     private:
-#ifdef MAP_HUGETLB
-        uint64_t* m_memory = nullptr;
-        size_t m_mem_size = 0;
-#endif
+        uint8_t* m_base = nullptr;
+        mm_block_t* m_first_block = nullptr;
+        uint8_t* m_top = nullptr;
+        size_t m_small_threshold = 4096;
+        size_t m_total_size = 0;
+        std::multimap<size_t,mm_block_t*> m_free_large;
     private:
+        void coalesce_block(mm_block_t* block);
+        void split_block(mm_block_t* bptr,size_t size);
+        uint8_t* hsbrk(size_t size);
+        mm_block_t* new_block(size_t size);
+        void remove_from_free_set(mm_block_t* block);
+        void insert_into_free_set(mm_block_t* block);
+        mm_block_t* find_free_block(size_t size_in_bytes);
+    public:
+        void init(size_t size_in_bytes) {
+#ifdef MAP_HUGETLB
+            m_total_size = size_in_bytes;
+            m_base = (uint8_t*) mmap(nullptr, m_total_size,
+                                     (PROT_READ | PROT_WRITE),
+                                     (MAP_HUGETLB | MAP_ANONYMOUS | MAP_PRIVATE), 0, 0);
+            if (m_base == MAP_FAILED) {
+                throw std::system_error(ENOMEM,std::system_category(),
+                                        "hugepage_allocator could not allocate hugepages");
+            } else {
+                // init the allocator
+                m_top = m_base;
+                m_first_block = (mm_block_t*) m_base;
+            }
+#else
+            throw std::system_error(ENOMEM,std::system_category(),
+                                    "hugepage_allocator: MAP_HUGETLB / hugepage support not available");
+#endif
+        }
+        void* mm_realloc(void* ptr, size_t size);
+        void* mm_alloc(size_t size_in_bytes);
+        void mm_free(void* ptr);
         static hugepage_allocator& the_allocator() {
             static hugepage_allocator a;
             return a;
-        }
-    public:
-        static void init(size_t size_in_bytes) {
-#ifdef MAP_HUGETLB
-            auto& a = the_allocator();
-            a.m_mem_size = size_in_bytes;
-            a.m_memory = (uint64_t*) mmap(nullptr, size_in_bytes,
-                                          (PROT_READ | PROT_WRITE),
-                                          (MAP_HUGETLB | MAP_ANONYMOUS | MAP_PRIVATE), 0, 0);
-            if (a.m_memory == MAP_FAILED) {
-                throw std::bad_alloc();
-            }
-#else
-            throw std::bad_alloc();
-#endif
-        }
-        static uint64_t* alloc(size_t size_in_bytes) {
-            return (uint64_t*) calloc(size_in_bytes,1);
-        }
-        static void free(uint64_t* ptr) {
-            free(ptr);
         }
 };
 
@@ -146,10 +171,11 @@ class memory_manager
             static memory_manager m;
             return m;
         }
+    public:
         static uint64_t* alloc_mem(size_t size_in_bytes) {
             auto& m = the_manager();
             if (m.hugepages) {
-                return hugepage_allocator::alloc(size_in_bytes);
+                return (uint64_t*) hugepage_allocator::the_allocator().mm_alloc(size_in_bytes);
             } else {
                 return (uint64_t*) calloc(size_in_bytes,1);
             }
@@ -157,7 +183,7 @@ class memory_manager
         static void free_mem(uint64_t* ptr) {
             auto& m = the_manager();
             if (m.hugepages) {
-                hugepage_allocator::free(ptr);
+                hugepage_allocator::the_allocator().mm_free(ptr);
             } else {
                 std::free(ptr);
             }
@@ -166,13 +192,13 @@ class memory_manager
         static void use_hugepages(size_t bytes) {
             auto& m = the_manager();
             m.hugepages = true;
-            hugepage_allocator::init(bytes);
+            hugepage_allocator::the_allocator().init(bytes);
         }
         template<class t_vec>
         static void resize(t_vec& v, const typename t_vec::size_type size) {
             int64_t old_size_in_bytes = ((v.m_size+63)>>6)<<3;
             int64_t new_size_in_bytes = ((size+63)>>6)<<3;
-            std::cout << "resize(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
+            //std::cout << "resize(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
             bool do_realloc = old_size_in_bytes != new_size_in_bytes;
             if (do_realloc || new_size_in_bytes == 0) {
                 // Note that we allocate 8 additional bytes if m_size % 64 == 0.
@@ -195,7 +221,7 @@ class memory_manager
                     memory_monitor::record(new_size_in_bytes-old_size_in_bytes);
                 }
             }
-            std::cout << "done(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
+            //std::cout << "done(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
         }
         template<class t_vec>
         static void clear(t_vec& v) {
