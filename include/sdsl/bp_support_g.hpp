@@ -136,19 +136,17 @@ class bp_support_g
                 return;
             util::init_support(m_rank_bp, bp);
             util::init_support(m_select_bp, bp);
-            bit_vector pioneer;
-            // calulate pioneers
-            calculate_pioneers_bitmap(*m_bp, m_block_size, pioneer);
+            bit_vector pioneer = calculate_pioneers_bitmap(*m_bp, m_block_size);
             m_nnd = nnd_type(pioneer);
             m_pioneer_bp.resize(m_nnd.ones());
-            for (size_type i=1; i<= m_nnd.ones(); ++i) // replace this by an iterator!!! see todo for the nnd data structure
+            for (size_type i=1; i<= m_nnd.ones(); ++i)
                 m_pioneer_bp[i-1] = (*m_bp)[m_nnd.select(i)];
             util::init_support(m_rank_pioneer_bp, &m_pioneer_bp);
-            calculate_pioneers_bitmap(m_pioneer_bp, m_block_size, pioneer);
+            pioneer = calculate_pioneers_bitmap(m_pioneer_bp, m_block_size);
             m_nnd2 = nnd_type(pioneer);
 
             bit_vector pioneer_bp2 = bit_vector(m_nnd2.ones());
-            for (size_type i=1; i<= m_nnd2.ones(); ++i) // replace this by an iterator!!! see todo for the nnd data structure
+            for (size_type i=1; i<= m_nnd2.ones(); ++i)
                 pioneer_bp2[i-1] = m_pioneer_bp[m_nnd2.select(i)];
             calculate_matches(pioneer_bp2, m_match);
             calculate_enclose(pioneer_bp2, m_enclose);

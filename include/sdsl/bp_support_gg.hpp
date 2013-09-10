@@ -140,7 +140,7 @@ class bp_support_gg
             util::init_support(m_select_bp, bp);
             {
                 bit_vector pioneer;
-                calculate_pioneers_bitmap_succinct(*m_bp, m_block_size, pioneer);
+                pioneer = calculate_pioneers_bitmap_succinct(*m_bp, m_block_size);
                 util::assign(m_nnd, nnd_type(pioneer));
             }
 
