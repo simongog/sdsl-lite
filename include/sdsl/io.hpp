@@ -485,6 +485,13 @@ double size_in_mega_bytes(const T& t)
 }
 
 template<class T>
+void add_hash(const T& t, std::ostream& out)
+{
+    uint64_t hash_value = util::hashvalue_of_classname(t);
+    write_member(hash_value, out);
+}
+
+template<class T>
 bool store_to_file(const T& t, const std::string& file)
 {
     osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
@@ -500,6 +507,22 @@ bool store_to_file(const T& t, const std::string& file)
         std::cerr<<"INFO: store_to_file: `"<<file<<"`"<<std::endl;
     }
     return true;
+}
+
+template<class T>
+bool store_to_checked_file(const T& t, const std::string& file)
+{
+    std::string checkfile = file+"_check";
+    osfstream out(checkfile, std::ios::binary | std::ios::trunc | std::ios::out);
+    if (!out) {
+        if (util::verbose) {
+            std::cerr<<"ERROR: store_to_checked_file not successful for: `"<<checkfile<<"`"<<std::endl;
+        }
+        return false;
+    }
+    add_hash(t, out);
+    out.close();
+    return store_to_file(t, file);
 }
 
 bool store_to_file(const char* v, const std::string& file);
@@ -521,6 +544,24 @@ bool store_to_file(const int_vector<t_width>& v, const std::string& file, bool w
     return true;
 }
 
+template<uint8_t t_width>
+bool store_to_checked_file(const int_vector<t_width>& v, const std::string& file, bool write_fixed_as_variable)
+{
+    std::string checkfile = file+"_check";
+    osfstream out(checkfile, std::ios::binary | std::ios::trunc | std::ios::out);
+    if (!out) {
+        std::cerr<<"ERROR: util::store_to_checked_file: Could not open check file `"<<checkfile<<"`"<<std::endl;
+        return false;
+    } else {
+        if (util::verbose) {
+            std::cerr<<"INFO: store_to_checked_file: `"<<checkfile<<"`"<<std::endl;
+        }
+    }
+    add_hash(v, out);
+    out.close();
+    return store_to_file(v, file, write_fixed_as_variable);
+}
+
 template<class T>
 bool load_from_file(T& v, const std::string& file)
 {
@@ -537,6 +578,27 @@ bool load_from_file(T& v, const std::string& file)
         std::cerr << "Load file `" << file << "`" << std::endl;
     }
     return true;
+}
+
+template<class T>
+bool load_from_checked_file(T& v, const std::string& file)
+{
+    isfstream in(file+"_check", std::ios::binary | std::ios::in);
+    if (!in) {
+        if (util::verbose) {
+            std::cerr << "Could not load check file `" << file << "_check`" << std::endl;
+        }
+        return false;
+    }
+    uint64_t hash_value;
+    read_member(hash_value, in);
+    if (hash_value != util::hashvalue_of_classname(v)) {
+        if (util::verbose) {
+            std::cerr << "File `" << file << "` is not an instance of the class `" << sdsl::util::demangle2(typeid(T).name()) << "`" << std::endl;
+        }
+        return false;
+    }
+    return load_from_file(v, file);
 }
 
 }
