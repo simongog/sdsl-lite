@@ -49,9 +49,10 @@ plot_rrr_space <- function(data, max_y, title="", yaxis=T, xaxis=T, color){
 plot_rrr_query_times <- function( data, max_y=NA, title="", yaxis=T, xaxis=T){
   cat(title,"\n")
   data <- aggregate(data[c('access_time','rank_time','select_time')], by=c(data['K']), FUN=min)
+  data[c('access_time','rank_time','select_time')] <- data[c('access_time','rank_time','select_time')]/1000.0
   data <- data[order(data[['K']]), ]
 
-  max_runtime <- max( data[['access_time']], data[['rank_time']], data[['select_time']])*1000
+  max_runtime <- max( data[['access_time']], data[['rank_time']], data[['select_time']])
   if ( !is.na(max_y) ){
     max_runtime = max_y
   }
@@ -62,7 +63,7 @@ plot_rrr_query_times <- function( data, max_y=NA, title="", yaxis=T, xaxis=T){
        )
   box("plot", col="grey")    
   axis( 1, at = axTicks(1), labels=xaxis, mgp=c(2,0.5,0), tcl=-0.2, cex.axis=1, las=1 )
-  if ( nr >= xlabnr ){
+  if ( xaxis ){
     xlable <- "Block size K"
     mtext(xlable, side=1, line=2, las=0)
   }
@@ -90,7 +91,7 @@ for ( compile_id in compile_config[["COMPILE_ID"]] ){
   par(mfrow=c(n/2+1,2))
   multi_figure_style( n/2+1, 2 )  
   nr <- 0
-  xlabnr <- 2*(n/2)-2
+  xlabnr <- 2*(n/2)-2+1
   for ( tc_id in tc_config[["TC_ID"]] ){
     dd <- subset(d, d[["TC_ID"]]==tc_id)
     plot_rrr_query_times(dd, 2.1, 
@@ -124,7 +125,7 @@ max_size <- 100*max(d[["rrr_size"]]/d[["plain_size"]])
 multi_figure_style( n/2+1, 2 )  
 
 nr <- 0
-xlabnr <- 2*(n/2)-2
+xlabnr <- 2*(n/2)-2+1
 colors = c('gray80','gray50','gray30')
 for ( tc_id in tc_config[["TC_ID"]] ){
   dd <- subset(d, d[["TC_ID"]]==tc_id)
