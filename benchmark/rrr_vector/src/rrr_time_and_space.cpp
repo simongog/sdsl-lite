@@ -7,7 +7,11 @@ using namespace std;
 using namespace sdsl;
 
 #ifndef BLOCK_SIZE
-#define 31 BLOCK_SIZE
+#define BLOCK_SIZE 31
+#endif
+
+#ifndef RANK_SAMPLE_DENS
+#define RANK_SAMPLE_DENS 32
 #endif
 
 using namespace std::chrono;
@@ -44,13 +48,13 @@ uint64_t test_inv_random_access(const t_vec& v, const int_vector<64>& rands, uin
 int main(int argc, char* argv[])
 {
     if (argc < 3) {
-        cout << "Usage: " << argv[0] << " bit_vector_file k" << endl;
-        cout << " generates a rrr_vector<" << BLOCK_SIZE << "> with sample rate k" << endl;
+        cout << "Usage: " << argv[0] << " bit_vector_file" << endl;
+        cout << " generates a rrr_vector<" << BLOCK_SIZE << "> with sample rate " << RANK_SAMPLE_DENS << endl;
         cout << " for the bitvector stored in bit_vector_file and run a benchmark" << endl;
         return 1;
     }
 
-    typedef rrr_vector<BLOCK_SIZE> rrr_vec_type;
+    typedef rrr_vector<BLOCK_SIZE, int_vector<>, RANK_SAMPLE_DENS> rrr_vec_type;
     typedef rrr_vec_type::select_1_type rrr_select_type;
     typedef rrr_vec_type::rank_1_type rrr_rank_type;
     bit_vector bv;
@@ -58,7 +62,7 @@ int main(int argc, char* argv[])
         cout << "# plain_size = " << size_in_bytes(bv) << endl;
         uint16_t k = atoi(argv[2]);
         auto start = timer::now();
-        rrr_vec_type rrr_vector(bv, k);
+        rrr_vec_type rrr_vector(bv);
         util::clear(bv);
         rrr_select_type rrr_sel(&rrr_vector);
         rrr_rank_type   rrr_rank(&rrr_vector);
