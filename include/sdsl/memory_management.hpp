@@ -136,7 +136,7 @@ class hugepage_allocator
         mm_block_t* last_block();
         void print_heap();
     public:
-        void init(size_t size_in_bytes) {
+        void init(SDSL_UNUSED size_t size_in_bytes) {
 #ifdef MAP_HUGETLB
             m_total_size = size_in_bytes;
             m_base = (uint8_t*) mmap(nullptr, m_total_size,
