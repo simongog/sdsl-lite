@@ -303,16 +303,16 @@ template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_str
 inline auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator[](size_type i)const -> value_type
 {
     size_type off = 0;
-    while (!m_sa_sample.is_sampled(i)) {
-        i = psi[i];
-        ++off;
-    }
-    value_type result = m_sa_sample.sa_value(i);
-    if (result + off < size()) {
-        return result + off;
-    } else {
-        return result + off - size();
-    }
+while (!m_sa_sample.is_sampled(i)) {
+i = lf[i];
+    ++off;
+}
+value_type result = m_sa_sample.sa_value(i);
+if (result + off < size()) {
+return result + off;
+} else {
+return result + off - size();
+}
 }
 
 

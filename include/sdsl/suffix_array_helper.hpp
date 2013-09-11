@@ -382,7 +382,7 @@ template<class t_csa>
 class isa_of_csa_wt
 {
     public:
-        typedef typename t_csa::char_type value_type;
+        typedef typename t_csa::value_type value_type;
         typedef typename t_csa::size_type size_type;
         typedef typename t_csa::difference_type difference_type;
         typedef random_access_const_iterator<isa_of_csa_wt> const_iterator;
@@ -435,7 +435,7 @@ template<class t_csa>
 class isa_of_csa_psi
 {
     public:
-        typedef typename t_csa::char_type value_type;
+        typedef typename t_csa::value_type value_type;
         typedef typename t_csa::size_type size_type;
         typedef typename t_csa::difference_type difference_type;
         typedef random_access_const_iterator<isa_of_csa_psi> const_iterator;
