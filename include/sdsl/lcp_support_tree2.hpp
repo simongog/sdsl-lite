@@ -150,7 +150,7 @@ start:
             if (val < 254) {
                 return val;// - offset;
             } else if (val == 254) { // if lcp value is >= 254 and position i is reducible
-                i = m_cst->csa.psi(i); // i = LF[i]    // (*m_psi)(i);
+                i = m_cst->csa.lf[i]; // i = LF[i]    // (*m_psi)(i);
                 ++offset; // goto lcp value, which is one bigger
                 goto start;
             } else { // if lcp value is >= 254 and (not reducable or sampled)

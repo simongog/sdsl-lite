@@ -101,7 +101,7 @@ TYPED_TEST(CsaByteTest, IsaAccess)
         }
     }
     for (size_type j=0; j<n; ++j) {
-        ASSERT_EQ(isa[j], csa(j))<<" j="<<j;
+        ASSERT_EQ(isa[j], csa.isa[j])<<" j="<<j;
     }
 }
 
@@ -176,7 +176,7 @@ TYPED_TEST(CsaByteTest, PsiLFAccess)
     TypeParam csa;
     ASSERT_EQ(true, load_from_file(csa, temp_file));
     for (size_type j=0; j<csa.size(); ++j) {
-        size_type lf = csa.psi(j);
+        size_type lf = csa.lf[j];
         ASSERT_TRUE(lf >= 0);
         ASSERT_TRUE(lf < csa.size());
         ASSERT_EQ(j, csa.psi[lf])<<" j="<<j;

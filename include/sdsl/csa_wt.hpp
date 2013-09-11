@@ -82,8 +82,10 @@ class csa_wt
         typedef int_vector<>::size_type                                        size_type;
         typedef size_type                                                      csa_size_type;
         typedef ptrdiff_t                                                      difference_type;
-        typedef psi_of_csa_wt<csa_wt>                                          psi_type;
+        typedef traverse_csa_wt<csa_wt,true>                                   psi_type;
+        typedef traverse_csa_wt<csa_wt,false>                                  lf_type;
         typedef bwt_of_csa_wt<csa_wt>                                          bwt_type;
+        typedef isa_of_csa_wt<csa_wt>                                          isa_type;
         typedef first_row_of_csa<csa_wt>                                       first_row_type;
         typedef text_of_csa<csa_wt>                                            text_type;
         typedef t_wt                                                           wavelet_tree_type;
@@ -120,11 +122,13 @@ class csa_wt
         const typename alphabet_type::comp2char_type& comp2char    = m_alphabet.comp2char;
         const typename alphabet_type::C_type&         C            = m_alphabet.C;
         const typename alphabet_type::sigma_type&     sigma        = m_alphabet.sigma;
-        const psi_type                                psi          = psi_type(this);
-        const bwt_type                                bwt          = bwt_type(this);
-        const text_type                               text         = text_type(this);
-        const first_row_type                          F            = first_row_type(this);
-        const bwt_type                                L            = bwt_type(this);
+        const psi_type                                psi          = psi_type(*this);
+        const lf_type                                 lf           = lf_type(*this);
+        const bwt_type                                bwt          = bwt_type(*this);
+        const text_type                               text         = text_type(*this);
+        const first_row_type                          F            = first_row_type(*this);
+        const bwt_type                                L            = bwt_type(*this);
+        const isa_type                                isa          = isa_type(*this);
         const sa_sample_type&                         sa_sample    = m_sa_sample;
         const isa_sample_type&                        isa_sample   = m_isa_sample;
         const wavelet_tree_type&                      wavelet_tree = m_wavelet_tree;
@@ -201,14 +205,6 @@ class csa_wt
          *           is the access time for an element in the \f$\Psi\f$-function.
          */
         inline value_type operator[](size_type i)const;
-
-        //! ()-operator return inverse suffix array values
-        /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
-         *   \par Time complexity
-         *      \f$ \Order{s_{SA^{-1}}\cdot t_{\Psi}} \f$, where every \f$s_{SA^{-1}}\f$th suffix array entry is sampled and \f$t_{\Psi}\f$
-         *           is the access time for an element in the \f$\Psi\f$-function.
-         */
-        inline value_type operator()(size_type i)const;
 
         //! Assignment Operator.
         /*!
@@ -308,7 +304,7 @@ inline auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabe
 {
     size_type off = 0;
     while (!m_sa_sample.is_sampled(i)) {
-        i = psi(i);
+        i = lf[i];
         ++off;
     }
     value_type result = m_sa_sample.sa_value(i);
@@ -317,53 +313,8 @@ inline auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabe
     } else {
         return result + off - size();
     }
-    /*
-    #ifdef USE_CSA_CACHE
-        size_type r = 0;
-        if( csa_cache.exists(i, r) ){
-            return r;
-        }
-    #endif
-        size_type off = 0;
-        while( i % t_dens ){// while i mod t_dens != 0 (SA[i] is not sampled)
-            i = psi[i];       // go to the position where SA[i]+1 is located
-            ++off;              // add 1 to the offset
-        }
-        value_type result = m_sa_sample[i/t_dens];
-        // TODO: try LF-function for iteration
-        if( result < off ){
-    #ifdef USE_CSA_CACHE
-            r = psi.size()-(off-result);
-            return r;
-    #endif
-            return psi.size()-(off-result);
-        }
-        else{
-    #ifdef USE_CSA_CACHE
-            r = result-off;
-            return r;
-    #endif
-            return result-off;
-        }
-    */
 }
 
-template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator()(size_type i)const -> value_type
-{
-    size_type ii;
-    value_type result = m_isa_sample[ ii = ((i+t_inv_dens-1)/t_inv_dens) ]; // get the leftmost sampled isa value to the right of i
-    ii *= t_inv_dens;
-    if (ii >= size()) {
-        i = size() - 1 - i;
-    } else {
-        i = ii - i;
-    }
-    while (i--) {
-        result = psi(result);
-    }
-    return result;
-}
 
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
 auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator=(const csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa) -> csa_wt& {

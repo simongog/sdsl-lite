@@ -75,8 +75,10 @@ class csa_sada
         typedef size_type                                                        csa_size_type;
         typedef ptrdiff_t                                                        difference_type;
         typedef t_enc_vec                                                        enc_vector_type;
-        typedef psi_of_csa_psi<csa_sada>                                         psi_type;
+        typedef enc_vector_type                                                  psi_type;
+        typedef traverse_csa_psi<csa_sada,false>                                 lf_type;
         typedef bwt_of_csa_psi<csa_sada>                                         bwt_type;
+        typedef isa_of_csa_psi<csa_sada>                                         isa_type;
         typedef text_of_csa<csa_sada>                                            text_type;
         typedef first_row_of_csa<csa_sada>                                       first_row_type;
         typedef typename t_sa_sample_strat::template type<csa_sada>::sample_type sa_sample_type;
@@ -90,7 +92,8 @@ class csa_sada
         typedef csa_tag                                                          index_category;
         typedef psi_tag                                                          extract_category;
 
-        friend class psi_of_csa_psi<csa_sada>; // for access of m_psi
+        friend class traverse_csa_psi<csa_sada,true>;
+        friend class traverse_csa_psi<csa_sada,false>;
 
         static const uint32_t linear_decode_limit = 100000;
     private:
@@ -125,11 +128,13 @@ class csa_sada
         const typename alphabet_type::comp2char_type& comp2char  = m_alphabet.comp2char;
         const typename alphabet_type::C_type&         C          = m_alphabet.C;
         const typename alphabet_type::sigma_type&     sigma      = m_alphabet.sigma;
-        const psi_type                                psi        = psi_type(this);
-        const bwt_type                                bwt        = bwt_type(this);
-        const bwt_type                                L          = bwt_type(this);
-        const first_row_type                          F          = first_row_type(this);
-        const text_type                               text       = text_type(this);
+        const psi_type&                               psi        = m_psi;
+        const lf_type                                 lf         = lf_type(*this);
+        const bwt_type                                bwt        = bwt_type(*this);
+        const isa_type                                isa        = isa_type(*this);
+        const bwt_type                                L          = bwt_type(*this);
+        const first_row_type                          F          = first_row_type(*this);
+        const text_type                               text       = text_type(*this);
         const sa_sample_type&                         sa_sample  = m_sa_sample;
         const isa_sample_type&                        isa_sample = m_isa_sample;
 
@@ -212,14 +217,6 @@ class csa_sada
          *           is the access time for an element in the \f$\Psi\f$-function.
          */
         inline value_type operator[](size_type i)const;
-
-        //! ()-operator return inverse suffix array values
-        /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
-         *   \par Time complexity
-         *      \f$ \Order{s_{SA^{-1}}\cdot t_{\Psi}} \f$, where every \f$s_{SA^{-1}}\f$th suffix array entry is sampled and \f$t_{\Psi}\f$
-         *           is the access time for an element in the \f$\Psi\f$-function.
-         */
-        inline value_type operator()(size_type i)const;
 
         //! Assignment Operator.
         /*!
@@ -412,7 +409,7 @@ inline auto csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_
 {
     size_type off = 0;
     while (!m_sa_sample.is_sampled(i)) {  // while i mod t_dens != 0 (SA[i] is not sampled)   SG: auf keinen Fall get_sample_dens nehmen, ist total langsam
-        i = m_psi[i];       // go to the position where SA[i]+1 is located
+        i = psi[i];       // go to the position where SA[i]+1 is located
         ++off;              // add 1 to the offset
     }
     value_type result = m_sa_sample.sa_value(i);
@@ -422,16 +419,6 @@ inline auto csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_
         return result-off;
 }
 
-template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
-inline auto csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator()(size_type i)const -> value_type
-{
-    value_type result = m_isa_sample[i/t_inv_dens]; // get the rightmost sampled isa value
-    i = i % t_inv_dens;
-    while (i--) {
-        result = m_psi[result];
-    }
-    return result;
-}
 
 template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
 auto csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const -> size_type
