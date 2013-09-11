@@ -405,9 +405,9 @@ typename t_csa::size_type extract(
     assert(end < csa.size());
     assert(begin <= end);
     typename t_csa::size_type steps = end-begin+1;
-    for (typename t_csa::size_type order = csa(end);  steps != 0; --steps) {
+    for (typename t_csa::size_type order = csa.isa[end];  steps != 0; --steps) {
         text[steps-1] = first_row_symbol(order, csa);
-        if (steps != 0) order = csa.psi(order);
+        if (steps != 0) order = csa.lf[order];
     }
     return end-begin+1;
 }
@@ -425,7 +425,7 @@ typename t_csa::size_type extract(
     assert(end < csa.size());
     assert(begin <= end);
     typename t_csa::size_type steps = end-begin+1;
-    for (typename t_csa::size_type i=0, order = csa(begin); steps != 0; --steps, ++i) {
+    for (typename t_csa::size_type i=0, order = csa.isa[begin]; steps != 0; --steps, ++i) {
         text[i] = first_row_symbol(order, csa);
         if (steps != 0) order = csa.psi[order];
     }

@@ -253,7 +253,7 @@ size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::stru
     if (vec.size() > 0) {
         sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, "std::vector<"+util::class_name(vec[0])+">");
         size_t written_bytes = 0;
-        for (const auto& x : vec) {
+for (const auto& x : vec) {
             written_bytes += write_element(x, out, child, "[]");
         }
         structure_tree::add_size(child, written_bytes);
@@ -287,7 +287,7 @@ void write_structure(const X& x, std::ostream& out)
     nullstream ns;
     x.serialize(ns, st_node.get(), "");
     if (st_node.get()->children.size() > 0) {
-        for (const auto& child: st_node.get()->children) {
+for (const auto& child: st_node.get()->children) {
             sdsl::write_structure_tree<F>(child.second.get(), out);
         }
     }
@@ -377,9 +377,9 @@ void csXprintf(std::ostream& out, const std::string& format, const t_idx& idx, c
             switch (*c) {
                 case 'I': res[i] += util::to_string(i,w); break;
                 case 'S': res[i] += util::to_string(csa[i],w); break;
-                case 's': res[i] += util::to_string(csa(i),w); break;
+                case 's': res[i] += util::to_string(csa.isa[i],w); break;
                 case 'P': res[i] += util::to_string(csa.psi[i],w); break;
-                case 'p': res[i] += util::to_string(csa.psi(i),w); break;
+                case 'p': res[i] += util::to_string(csa.lf[i],w); break;
                 case 'L': res[i] += _idx_lcp_val(idx,i,w, cat); break;
                 case 'B': if (0 == csa.bwt[i]) {
                         res[i] += util::to_string(sentinel,w);
