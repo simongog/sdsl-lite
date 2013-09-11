@@ -355,7 +355,7 @@ class rank_support_rrr
     private:
         static_assert(t_b == 1u or t_b == 0u , "rank_support_rrr: bit pattern must be `0` or `1`");
     public:
-        typedef rrr_vector<t_bs, t_rac> bit_vector_type;
+        typedef rrr_vector<t_bs, t_rac, t_k> bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
         typedef typename bit_vector_type::rrr_helper_type rrr_helper_type;
         typedef typename rrr_helper_type::number_type number_type;
@@ -469,7 +469,7 @@ class select_support_rrr
     private:
         static_assert(t_b == 1u or t_b == 0u , "select_support_rrr: bit pattern must be `0` or `1`");
     public:
-        typedef rrr_vector<t_bs, t_rac> bit_vector_type;
+        typedef rrr_vector<t_bs, t_rac, t_k> bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
         typedef typename bit_vector_type::rrr_helper_type rrr_helper_type;
         typedef typename rrr_helper_type::number_type number_type;
