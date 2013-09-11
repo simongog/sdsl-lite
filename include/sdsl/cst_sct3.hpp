@@ -1076,24 +1076,24 @@ class cst_sct3
 template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
 cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::cst_sct3(cache_config& config, bool build_only_bps)
 {
-    mm::log("bps-sct-begin");
+    memory_monitor::event("bps-sct-begin");
     int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
     m_nodes = construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child) + m_bp.size()/2;
     if (m_bp.size() == 2) {  // handle special case, when the tree consists only of the root node
         m_nodes = 1;
     }
-    mm::log("bps-sct-end");
-    mm::log("bpss-sct-begin");
+    memory_monitor::event("bps-sct-end");
+    memory_monitor::event("bpss-sct-begin");
     util::init_support(m_bp_support, &m_bp);
     util::init_support(m_first_child_rank, &m_first_child);
-    mm::log("bpss-sct-end");
+    memory_monitor::event("bpss-sct-end");
 
     if (!build_only_bps) {
-        mm::log("clcp-begin");
+        memory_monitor::event("clcp-begin");
         cache_config tmp_config(false, config.dir, config.id, config.file_map);
         construct_lcp(m_lcp, *this, tmp_config);
         config.file_map = tmp_config.file_map;
-        mm::log("clcp-end");
+        memory_monitor::event("clcp-end");
     }
     if (!build_only_bps) {
         load_from_cache(m_csa, util::class_to_hash(m_csa), config);

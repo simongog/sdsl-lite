@@ -16,7 +16,7 @@ void do_something(const tCsa& csa)
         sum+=csa.psi(i);
     }
     auto stop = timer::now();
-    cout << duration_cast<microseconds>(stop-start).count() << endl;
+    cout << "runtime in s: " << duration_cast<seconds>(stop-start).count() << endl;
     cout <<"sum="<<sum<<endl;
 }
 
@@ -28,15 +28,23 @@ int main(int argc, char** argv)
         cout << " (2) Runs a benchmark with enabled/disabled 1GB=hugepages." << endl;
         return 1;
     }
-    csa_wt<> csa;
-    construct(csa, argv[1], 1);
-    do_something(csa); // before it is mapped
-    if (mm::map_hp()) {
-        cout << "Now the memory is mapped to hugepages " << endl;
-        do_something(csa); // while it is mapped
-        mm::unmap_hp();
-    } else {
-        cout << "Not able to map the memory to hugepages" << endl;
+
+    if (argc==3) {
+        memory_manager::use_hugepages(500*1024*1024);
     }
-    do_something(csa); // after it is unmapped
+
+    memory_monitor::start();
+
+    csa_wt<> csa;
+    auto start = timer::now();
+    construct(csa, argv[1], 1);
+    auto stop = timer::now();
+    cout << "construction in s: " << duration_cast<seconds>(stop-start).count() << endl;
+    do_something(csa); // before it is mapped
+
+    memory_monitor::stop();
+
+    std::ofstream ofs("cst-construction.json");
+    memory_monitor::write_memory_log<JSON>(ofs);
+    ofs.close();
 }

@@ -94,7 +94,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
 template<class t_index>
 void construct(t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes, wt_tag)
 {
-    mm::log("wt-begin");
+    memory_monitor::event("wt-begin");
     int_vector<t_index::alphabet_category::WIDTH> text;
     load_vector_from_file(text, file, num_bytes);
     std::string tmp_key = util::to_string(util::pid())+"_"+util::to_string(util::id());
@@ -107,7 +107,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         idx.swap(tmp);
     }
     sdsl::remove(tmp_file_name);
-    mm::log("wt-end");
+    memory_monitor::event("wt-end");
 }
 
 // Specialization for CSAs
@@ -121,23 +121,23 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         // (1) check, if the text is cached
         if (!cache_file_exists(KEY_TEXT, config)) {
             text_type text;
-            mm::log("text-begin");
+            memory_monitor::event("text-begin");
             load_vector_from_file(text, file, num_bytes);
             if (contains_no_zero_symbol(text, file)) {
                 append_zero_symbol(text);
                 store_to_cache(text, KEY_TEXT, config);
             }
             load_from_cache(text, KEY_TEXT, config);
-            mm::log("text-end");
+            memory_monitor::event("text-end");
         }
         register_cache_file(KEY_TEXT, config);
     }
     {
         // (2) check, if the suffix array is cached
         if (!cache_file_exists(constants::KEY_SA, config)) {
-            mm::log("sa-begin");
+            memory_monitor::event("sa-begin");
             construct_sa<t_index::alphabet_category::WIDTH>(config);
-            mm::log("sa-end");
+            memory_monitor::event("sa-end");
         }
         register_cache_file(constants::KEY_SA, config);
         int_vector<> sa;
@@ -146,9 +146,9 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     {
         //  (3) construct BWT
         if (!cache_file_exists(KEY_BWT, config)) {
-            mm::log("bwt-begin");
+            memory_monitor::event("bwt-begin");
             construct_bwt<t_index::alphabet_category::WIDTH>(config);
-            mm::log("bwt-end");
+            memory_monitor::event("bwt-end");
         }
         register_cache_file(constants::KEY_BWT, config);
         int_vector<t_index::alphabet_category::WIDTH> bwt;
@@ -187,13 +187,13 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         register_cache_file(KEY_BWT, config);
         register_cache_file(constants::KEY_SA, config);
         if (!cache_file_exists(constants::KEY_LCP, config)) {
-            mm::log("lcp-begin");
+            memory_monitor::event("lcp-begin");
             if (t_index::alphabet_category::WIDTH==8) {
                 construct_lcp_semi_extern_PHI(config);
             } else {
                 construct_lcp_PHI<t_index::alphabet_category::WIDTH>(config);
             }
-            mm::log("lcp-end");
+            memory_monitor::event("lcp-end");
         }
         register_cache_file(constants::KEY_LCP, config);
     }

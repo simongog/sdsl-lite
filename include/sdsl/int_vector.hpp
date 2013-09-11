@@ -21,12 +21,6 @@
 #ifndef INCLUDED_SDSL_INT_VECTOR
 #define INCLUDED_SDSL_INT_VECTOR
 
-#include <sys/mman.h>
-
-#define HUGE_LEN 1073741824
-#define HUGE_PROTECTION (PROT_READ | PROT_WRITE)
-#define HUGE_FLAGS (MAP_HUGETLB | MAP_ANONYMOUS | MAP_PRIVATE)
-
 #include "compatibility.hpp"
 #include "bits.hpp"
 #include "structure_tree.hpp"
@@ -53,7 +47,6 @@
 #include <istream>
 #include <string>
 #include <initializer_list>
-
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -277,8 +270,7 @@ class int_vector
         friend class  int_vector_const_iterator<int_vector>;
         friend class  coder::elias_delta;
         friend class  coder::fibonacci;
-        friend class  mm_item<int_vector>;
-        friend class mm;
+        friend class  memory_manager;
 
         friend void util::set_random_bits<int_vector>(int_vector& v, int);
         friend void util::_set_zero_bits<int_vector>(int_vector&);
@@ -312,7 +304,7 @@ class int_vector
         int_vector(std::initializer_list<t_T> il) : int_vector() {
             resize(il.size());
             size_type idx = 0;
-            for (auto x : il) {
+for (auto x : il) {
                 (*this)[idx++] = x;
             }
         }
@@ -1118,7 +1110,6 @@ template<uint8_t t_width>
 inline int_vector<t_width>::int_vector(size_type size, value_type default_value, uint8_t intWidth):
     m_size(0), m_data(nullptr), m_width(t_width)
 {
-    mm::add(this);
     width(intWidth);
     resize(size);
     util::set_to_value(*this, default_value); // new initialization
@@ -1128,16 +1119,14 @@ template<uint8_t t_width>
 inline int_vector<t_width>::int_vector(int_vector&& v) :
     m_size(v.m_size), m_data(v.m_data), m_width(v.m_width)
 {
-    v.m_size = 0;       // has to be set for mm::remove
     v.m_data = nullptr; // ownership of v.m_data now transfered
-    mm::add(this, true);
+    v.m_size = 0;
 }
 
 template<uint8_t t_width>
 inline int_vector<t_width>::int_vector(const int_vector& v):
     m_size(0), m_data(nullptr), m_width(v.m_width)
 {
-    mm::add(this);
     bit_resize(v.bit_size());
     if (v.capacity() > 0) {
         if (memcpy(m_data, v.data() ,v.capacity()/8)==nullptr) {
@@ -1173,8 +1162,7 @@ int_vector<t_width>& int_vector<t_width>::operator=(int_vector&& v)
 template<uint8_t t_width>
 int_vector<t_width>::~int_vector()
 {
-    mm::remove(this);
-    free(m_data);
+    memory_manager::clear(*this);
 }
 
 template<uint8_t t_width>
@@ -1196,7 +1184,7 @@ void int_vector<t_width>::swap(int_vector& v)
 template<uint8_t t_width>
 void int_vector<t_width>::bit_resize(const size_type size)
 {
-    mm::realloc(*this, size);
+    memory_manager::resize(*this, size);
 }
 
 template<uint8_t t_width>

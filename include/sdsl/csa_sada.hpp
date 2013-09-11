@@ -362,18 +362,18 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     }
     int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
     size_type n = bwt_buf.size();
-    mm::log("csa-alphabet-construct-begin");
+    memory_monitor::event("csa-alphabet-construct-begin");
     {
         alphabet_type tmp_alphabet(bwt_buf, n);
         m_alphabet.swap(tmp_alphabet);
     }
-    mm::log("csa-alphabet-construct-end");
+    memory_monitor::event("csa-alphabet-construct-end");
 
     int_vector<> cnt_chr(sigma, 0, bits::hi(n)+1);
     for (typename alphabet_type::sigma_type i=0; i < sigma; ++i) {
         cnt_chr[i] = C[i];
     }
-    mm::log("csa-psi-begin");
+    memory_monitor::event("csa-psi-begin");
     // calculate psi
     {
         // TODO: move PSI construct into construct_PSI.hpp
@@ -386,25 +386,25 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
             return;
         }
     }
-    mm::log("csa-psi-end");
+    memory_monitor::event("csa-psi-end");
     int_vector_buffer<> psi_buf(cache_file_name(constants::KEY_PSI, config));
-    mm::log("csa-psi-encode-begin");
+    memory_monitor::event("csa-psi-encode-begin");
     {
         t_enc_vec tmp_psi(psi_buf);
         m_psi.swap(tmp_psi);
     }
-    mm::log("csa-psi-encode-end");
+    memory_monitor::event("csa-psi-encode-end");
     int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config));
-    mm::log("sa-sample-begin");
+    memory_monitor::event("sa-sample-begin");
     {
         sa_sample_type tmp_sa_sample(config);
         m_sa_sample.swap(tmp_sa_sample);
     }
-    mm::log("sa-sample-end");
+    memory_monitor::event("sa-sample-end");
 
-    mm::log("isa-sample-begin");
+    memory_monitor::event("isa-sample-begin");
     set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
-    mm::log("isa-sample-end");
+    memory_monitor::event("isa-sample-end");
 }
 
 template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
