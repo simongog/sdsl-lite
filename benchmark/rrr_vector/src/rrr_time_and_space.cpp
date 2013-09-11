@@ -79,21 +79,25 @@ int main(int argc, char* argv[])
         cout << "# btnr_size = "  << size_in_bytes(rrr_vector.btnr) << endl;
         const uint64_t reps = 10000000;
         uint64_t mask = 0;
+        uint64_t check = 0;
         int_vector<64> rands = util::rnd_positions<int_vector<64>>(20, mask, rrr_vector.size(), 17);
         start = timer::now();
-        test_random_access(rrr_vector, rands, mask, reps);
+        check = test_random_access(rrr_vector, rands, mask, reps);
         stop = timer::now();
         cout << "# access_time = " << duration_cast<nanoseconds>(stop-start).count()/(double)reps << endl;
+        cout << "# access_check = " << check << endl;
         rands = util::rnd_positions<int_vector<64>>(20, mask, rrr_vector.size()+1, 17);
         start = timer::now();
-        test_inv_random_access(rrr_rank, rands, mask, reps);
+        check = test_inv_random_access(rrr_rank, rands, mask, reps);
         stop = timer::now();
         cout << "# rank_time = " << duration_cast<nanoseconds>(stop-start).count()/(double)reps << endl;
+        cout << "# rank_check = " << check << endl;
         rands = util::rnd_positions<int_vector<64>>(20, mask, args, 17);
         for (uint64_t i=0; i<rands.size(); ++i) rands[i] = rands[i]+1;
         stop = timer::now();
-        test_inv_random_access(rrr_sel, rands, mask, reps);
+        check = test_inv_random_access(rrr_sel, rands, mask, reps);
         stop = timer::now();
         cout << "# select_time = " << duration_cast<nanoseconds>(stop-start).count()/(double)reps << endl;
+        cout << "# select_check = " << check << endl;
     }
 }
