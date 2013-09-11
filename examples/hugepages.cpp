@@ -13,7 +13,7 @@ void do_something(const tCsa& csa)
     uint64_t sum=0;
     auto start = timer::now();
     for (size_t i=0; i<csa.size() and i<10000000; ++i) {
-        sum+=csa.psi(i);
+        sum+=csa.lf[i];
     }
     auto stop = timer::now();
     cout << "runtime in s: " << duration_cast<seconds>(stop-start).count() << endl;

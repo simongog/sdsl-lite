@@ -377,9 +377,9 @@ void csXprintf(std::ostream& out, const std::string& format, const t_idx& idx, c
             switch (*c) {
                 case 'I': res[i] += util::to_string(i,w); break;
                 case 'S': res[i] += util::to_string(csa[i],w); break;
-                case 's': res[i] += util::to_string(csa(i),w); break;
+                case 's': res[i] += util::to_string(csa.isa[i],w); break;
                 case 'P': res[i] += util::to_string(csa.psi[i],w); break;
-                case 'p': res[i] += util::to_string(csa.psi(i),w); break;
+                case 'p': res[i] += util::to_string(csa.lf[i],w); break;
                 case 'L': res[i] += _idx_lcp_val(idx,i,w, cat); break;
                 case 'B': if (0 == csa.bwt[i]) {
                         res[i] += util::to_string(sentinel,w);

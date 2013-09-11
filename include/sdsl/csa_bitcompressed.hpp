@@ -68,12 +68,14 @@ class csa_bitcompressed
         typedef int_vector<>::size_type                         size_type;        // STL Container requirement
         typedef size_type                                       csa_size_type;
         typedef ptrdiff_t                                       difference_type; // STL Container requirement
-        typedef psi_of_sa_and_isa<csa_bitcompressed>            psi_type;
+        typedef traverse_csa_saisa<csa_bitcompressed,true>      psi_type;
+        typedef traverse_csa_saisa<csa_bitcompressed,false>     lf_type;
         typedef bwt_of_csa_psi<csa_bitcompressed>               bwt_type;
         typedef text_of_csa<csa_bitcompressed>                  text_type;
         typedef first_row_of_csa<csa_bitcompressed>             first_row_type;
         typedef _sa_order_sampling<csa_bitcompressed,0>         sa_sample_type;
         typedef int_vector<>                                    isa_sample_type;
+        typedef isa_sample_type                                 isa_type;
         typedef t_alphabet_strat                                alphabet_type;
         typedef typename alphabet_type::char_type               char_type; // Note: This is the char type of the CSA not the WT!
         typedef typename alphabet_type::comp_char_type          comp_char_type;
@@ -90,25 +92,25 @@ class csa_bitcompressed
     private:
         sa_sample_type  m_sa;  // vector for suffix array values
         isa_sample_type m_isa; // vector for inverse suffix array values
-        psi_type        m_psi; // wrapper class for psi function values
         alphabet_type   m_alphabet;
 
         void copy(const csa_bitcompressed& csa) {
             m_sa       = csa.m_sa;
             m_isa      = csa.m_isa;
             m_alphabet = csa.m_alphabet;
-            m_psi      = psi_type(this);
         }
     public:
         const typename alphabet_type::char2comp_type& char2comp  = m_alphabet.char2comp;
         const typename alphabet_type::comp2char_type& comp2char  = m_alphabet.comp2char;
         const typename alphabet_type::C_type&         C          = m_alphabet.C;
         const typename alphabet_type::sigma_type&     sigma      = m_alphabet.sigma;
-        const psi_type&                               psi        = m_psi;
-        const bwt_type                                bwt        = bwt_type(this);
-        const bwt_type                                L          = bwt_type(this);
-        const first_row_type                          F          = first_row_type(this);
-        const text_type                               text       = text_type(this);
+        const psi_type                                psi        = psi_type(*this);
+        const lf_type                                 lf         = lf_type(*this);
+        const bwt_type                                bwt        = bwt_type(*this);
+        const bwt_type                                L          = bwt_type(*this);
+        const isa_type&                               isa        = m_isa;
+        const first_row_type                          F          = first_row_type(*this);
+        const text_type                               text       = text_type(*this);
         const sa_sample_type&                         sa_sample  = m_sa;
         const isa_sample_type&                        isa_sample = m_isa;
 
@@ -120,10 +122,7 @@ class csa_bitcompressed
         }
 
         //! Constructor
-        csa_bitcompressed(cache_config& config): char2comp(m_alphabet.char2comp),
-            comp2char(m_alphabet.comp2char), C(m_alphabet.C),
-            sigma(m_alphabet.sigma), psi(m_psi), bwt(this),
-            text(this), sa_sample(m_sa), isa_sample(m_isa) {
+        csa_bitcompressed(cache_config& config) {
             std::string text_file = cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config);
             int_vector_buffer<alphabet_type::int_width> text_buf(text_file);
             int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA,config));
@@ -137,7 +136,7 @@ class csa_bitcompressed
                 m_sa.swap(tmp_sample);
             }
             set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
-            m_psi = psi_type(this);
+
             if (!store_to_file(m_isa, cache_file_name(constants::KEY_ISA,config), true)) {
                 throw std::ios_base::failure("#csa_bitcompressed: Cannot store ISA to file system!");
             } else {
@@ -176,8 +175,6 @@ class csa_bitcompressed
                 m_sa.swap(csa.m_sa);
                 m_isa.swap(csa.m_isa);
                 m_alphabet.swap(csa.m_alphabet);
-                m_psi = psi_type(this);
-                csa.m_psi = psi_type(&csa);
             }
         }
 
@@ -204,13 +201,6 @@ class csa_bitcompressed
          */
         inline value_type operator[](size_type i)const {
             return m_sa[i];
-        }
-
-        //! ()-operator return inverse suffix array values
-        /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
-         */
-        inline value_type operator()(size_type i)const {
-            return m_isa[i];
         }
 
         //! Assignment Operator.
@@ -242,7 +232,6 @@ class csa_bitcompressed
             m_sa.load(in);
             m_isa.load(in);
             m_alphabet.load(in);
-            m_psi = psi_type(this);
         }
 
         size_type get_sample_dens()const {
@@ -266,7 +255,7 @@ class csa_bitcompressed
             size_type lower_b = C[cc], upper_b = C[((size_type)1)+cc]; // lower_b inclusive, upper_b exclusive
             while (lower_b+1 < upper_b) {
                 size_type mid = (lower_b+upper_b)/2;
-                if (m_psi[mid] >= i)
+                if (psi[mid] >= i)
                     upper_b = mid;
                 else
                     lower_b = mid;
@@ -274,7 +263,7 @@ class csa_bitcompressed
             if (lower_b > C[cc])
                 return lower_b - C[cc] + 1;
             else { // lower_b == m_C[cc]
-                return m_psi[lower_b] < i;// 1 if m_psi[lower_b]<i, 0 otherwise
+                return psi[lower_b] < i;// 1 if psi[lower_b]<i, 0 otherwise
             }
         }
 
@@ -292,7 +281,7 @@ class csa_bitcompressed
             if (cc==0 and c!=0)  // character is not in the text => return size()
                 return size();
             if (C[cc]+i-1 <  C[((size_type)1)+cc]) {
-                return m_psi[C[cc]+i-1];
+                return psi[C[cc]+i-1];
             }
             return size();
         }

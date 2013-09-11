@@ -1,5 +1,6 @@
 #include "sdsl/construct.hpp"
 
-namespace sdsl{
+namespace sdsl
+{
 
 }
