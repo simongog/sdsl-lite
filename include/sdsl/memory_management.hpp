@@ -208,8 +208,8 @@ class memory_manager
         static void resize(t_vec& v, const typename t_vec::size_type size) {
             int64_t old_size_in_bytes = ((v.m_size+63)>>6)<<3;
             int64_t new_size_in_bytes = ((size+63)>>6)<<3;
-            //std::cout << "resize(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
             bool do_realloc = old_size_in_bytes != new_size_in_bytes;
+            v.m_size = size;
             if (do_realloc || new_size_in_bytes == 0) {
                 // Note that we allocate 8 additional bytes if m_size % 64 == 0.
                 // We need this padding since rank data structures do a memory
@@ -221,7 +221,6 @@ class memory_manager
                     throw std::bad_alloc();
                 }
                 // update and fill with 0s
-                v.m_size = size;
                 if (v.bit_size() < v.capacity()) {
                     bits::write_int(v.m_data+(v.bit_size()>>6), 0, v.bit_size()&0x3F, v.capacity() - v.bit_size());
                 }
@@ -234,7 +233,6 @@ class memory_manager
                     memory_monitor::record(new_size_in_bytes-old_size_in_bytes);
                 }
             }
-            //std::cout << "done(" << old_size_in_bytes << " , " << new_size_in_bytes << ")\n";
         }
         template<class t_vec>
         static void clear(t_vec& v) {
@@ -249,7 +247,6 @@ class memory_manager
             }
         }
 };
-
 
 
 } // end namespace
