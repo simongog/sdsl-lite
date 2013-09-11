@@ -626,7 +626,7 @@ class select_support_rrr<t_b, 15, t_rac, t_k>
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream&, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             structure_tree::add_size(child, 0);
             return 0;
