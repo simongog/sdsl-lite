@@ -26,10 +26,7 @@ using namespace std;
 /* local headers */
 void do_count(const CSA_TYPE&);
 void do_locate(const CSA_TYPE&);
-//void do_extract (void);
-//void do_display(ulong length);
 void pfile_info(ulong* length, ulong* numpatt);
-//void output_char(uchar c, FILE * where);
 double getTime(void);
 void usage(char* progname);
 
@@ -52,12 +49,26 @@ int main(int argc, char* argv[])
 
     filename = argv[1];
     querytype = *argv[2];
+    string index_file = string(argv[1]) + "." + string(SUF);
+    bool mapped = false;
+#ifdef USE_HP
+    uint64_t index_size = util::file_size(index_file);
+    // allocate hugepages, add 10 MiB + 3% overhead
+    uint64_t alloc_size = (uint64_t)(index_size*0.03+(1ULL<<20)*10);
+    try {
+        memory_manager::use_hugepages(alloc_size);
+        mapped = true;
+    } catch (...) {
+        std::cout<<"Unable to allocate "<<alloc_size<<" bytes";
+        std::cout<<"of hugepage space on your system"<<std::endl;
+    }
+#endif
 
     CSA_TYPE csa;
     fprintf(stderr, "# File = %s\n",(string(filename) + "." + string(SUF)).c_str());
     fprintf(stderr, "# program = %s\n",string(SUF).c_str());
     Load_time = getTime();
-    load_from_file(csa, (string(argv[1]) + "." + string(SUF)).c_str());
+    load_from_file(csa, index_file);
     Load_time = getTime() - Load_time;
     fprintf(stderr, "# Load_index_time_in_sec = %.2f\n", Load_time);
     std::cerr<<"# text_size = " << csa.size()-1 << std::endl;
@@ -66,10 +77,7 @@ int main(int argc, char* argv[])
     Text_length = csa.size()-1; // -1 since we added a sentinel character
     /*	Index_size /=1024; */
     fprintf(stderr, "# Index_size_in_bytes = %lu\n", Index_size);
-    bool mapped = false;
-#ifdef USE_HP
-    mapped = mm::map_hp();
-#endif
+
     fprintf(stderr, "# hugepages = %i\n", (int)mapped);
     bool use_sse = false;
 #ifdef __SSE4_2__
@@ -99,37 +107,10 @@ int main(int argc, char* argv[])
                 }
             do_locate(csa);
             break;
-            /*		case EXTRACT:
-            			if (argc > 3)
-            				if (*argv[3] == VERBOSE) {
-            						Verbose = 1;
-            						fprintf(stdout,"%c", EXTRACT);
-            				}
-
-            			do_extract();
-            			break;
-            		case DISPLAY:
-            			if (argc < 4) {
-            				usage(argv[0]);
-            				exit (1);
-            			}
-            			if (argc > 4)
-            				if (*argv[4] == VERBOSE){
-            						Verbose = 1;
-            						fprintf(stdout,"%c", DISPLAY);
-
-            				}
-            			do_display((ulong) atol(argv[3]));
-            			break;
-        */		default:
+        default:
             fprintf(stderr, "Unknow option: main ru\n");
             exit(1);
     }
-#ifdef USE_HP
-    if (mapped) {
-        mm::unmap_hp();
-    }
-#endif
     return 0;
 }
 
@@ -235,80 +216,6 @@ do_locate(const CSA_TYPE& csa)
     free(pattern);
 }
 
-
-/*
-void do_display(ulong numc) {
-
-	int error = 0;
-	ulong numocc, length, i, *snippet_len, tot_numcharext = 0, numpatt;
-	double time, tot_time = 0;
-	uchar *pattern, *snippet_text;
-
-	pfile_info (&length, &numpatt);
-
-	pattern = (uchar *) malloc (sizeof (uchar) * (length));
-	if (pattern == NULL)
-	{
-		fprintf (stderr, "Error: cannot allocate\n");
-		exit (1);
-	}
-
-	fprintf(stderr, "Snippet length %lu\n", numc);
-
-	while (numpatt)
-	{
-
-		if (fread (pattern, sizeof (*pattern), length, stdin) != length)
-		{
-			fprintf (stderr, "Error: cannot read patterns file\n");
-			perror ("run_queries");
-			exit (1);
-		}
-
-		// Display
-		time = getTime ();
-		error =	display (Index, pattern, length, numc, &numocc,
-				    	 &snippet_text, &snippet_len);
-		IFERROR (error);
-		tot_time += (getTime () - time);
-
-		if (Verbose) {
-			ulong j, len = length + 2*numc;
-		    char blank = '\0';
-			fwrite(&length, sizeof(length), 1, stdout);
-			fwrite(pattern, sizeof(*pattern), length, stdout);
-			fwrite(&numocc, sizeof(numocc), 1, stdout);
-			fwrite(&len, sizeof(len), 1, stdout);
-
-			for (i = 0; i < numocc; i++){
-				fwrite(snippet_text+len*i,sizeof(uchar),snippet_len[i],stdout);
-				for(j=snippet_len[i];j<len;j++)
-				   fwrite(&blank,sizeof(uchar),1,stdout);
-			}
-
-		}
-		numpatt--;
-
-		for(i=0; i<numocc; i++) {
-			tot_numcharext += snippet_len[i];
-		}
-
-		if (numocc) {
-			free (snippet_len);
-			free (snippet_text);
-		}
-	}
-
-	fprintf (stderr, "#Total_num_chars_extracted = %lu\n", tot_numcharext);
-	fprintf (stderr, "#Display_time_in_sec = %.2f secs\n", tot_time);
-	fprintf (stderr, "#Time_display/Tot_num_chars = %.4f\n\n", (tot_time*1000) / tot_numcharext);
-	fprintf (stderr, "#(Load_time+Time_display)/Tot_num_chars = %.4f\n\n", ((Load_time+tot_time)*1000) / tot_numcharext);
-
-	free (pattern);
-}
-*/
-
-
 /* Open patterns file and read header */
 void
 pfile_info(ulong* length, ulong* numpatt)
@@ -337,57 +244,6 @@ pfile_info(ulong* length, ulong* numpatt)
     fprintf(stderr, "\n");
 
 }
-
-/*
-void
-do_extract()
-{
-	int error = 0;
-	uchar *text, orig_file[257];
-	ulong num_pos, from, to, numchars, readen, tot_ext = 0;
-	double time, tot_time = 0;
-
-	error = fscanf(stdin, "# number=%lu length=%lu file=%s\n", &num_pos, &numchars, orig_file);
-	if (error != 3)
-	{
-		fprintf (stderr, "Error: Intervals file header is not correct\n");
-		perror ("run_queries");
-		exit (1);
-	}
-	fprintf(stderr, "# number=%lu length=%lu file=%s\n", num_pos, numchars, orig_file);
-
-	while(num_pos) {
-
-		if(fscanf(stdin,"%lu,%lu\n", &from, &to) != 2) {
-			fprintf(stderr, "Cannot read correctly intervals file\n");
-			exit(1);
-		}
-
-		time = getTime();
-		error = extract(Index, from, to, &text, &readen);
-		IFERROR(error);
-		tot_time += (getTime() - time);
-
-		tot_ext += readen;
-
-		if (Verbose) {
-			fwrite(&from,sizeof(ulong),1,stdout);
-			fwrite(&readen,sizeof(ulong),1,stdout);
-			fwrite(text,sizeof(uchar),readen, stdout);
-		}
-
-		num_pos--;
-		free(text);
-	}
-
-	fprintf (stderr, "# Total_num_chars_extracted = %lu\n", tot_ext);
-	fprintf (stderr, "# Extract_time_in_sec = %.2f\n", tot_time);
-	fprintf (stderr, "# Extract_time/Num_chars_extracted = %.4f\n\n",
-		 (tot_time * 1000) / tot_ext);
-	fprintf (stderr, "(Load_time+Extract_time)/Num_chars_extracted = %.4f\n\n",
-		 ((Load_time+tot_time) * 1000) / tot_ext);
-}
-*/
 
 double
 getTime(void)
