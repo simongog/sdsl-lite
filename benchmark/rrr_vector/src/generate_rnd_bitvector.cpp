@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
     bit_vector v(length);
     srand(17);
     for (uint64_t i=0; i<v.size(); ++i) {
-        if (rand()%100 < density) {
+        if ((uint64_t)(rand()%100) < density) {
             v[i] = 1;
         }
     }
