@@ -72,7 +72,6 @@ class select_support_rrr;                // in rrr_vector
 template<uint16_t t_bs=15, class t_rac=int_vector<>, uint16_t t_k=32>
 class rrr_vector
 {
-    private:
         static_assert(t_bs >= 3 and t_bs <= 256 , "rrr_vector: block size t_bs must be 3 <= t_bs <= 256.");
         static_assert(t_k > 1, "rrr_vector: t_k must be > 0.");
     public:
@@ -352,7 +351,6 @@ struct rank_support_rrr_trait<0> {
 template<uint8_t t_b, uint16_t t_bs, class t_rac, uint16_t t_k>
 class rank_support_rrr
 {
-    private:
         static_assert(t_b == 1u or t_b == 0u , "rank_support_rrr: bit pattern must be `0` or `1`");
     public:
         typedef rrr_vector<t_bs, t_rac, t_k> bit_vector_type;
@@ -466,7 +464,6 @@ class rank_support_rrr
 template<uint8_t t_b, uint16_t t_bs, class t_rac, uint16_t t_k>
 class select_support_rrr
 {
-    private:
         static_assert(t_b == 1u or t_b == 0u , "select_support_rrr: bit pattern must be `0` or `1`");
     public:
         typedef rrr_vector<t_bs, t_rac, t_k> bit_vector_type;
