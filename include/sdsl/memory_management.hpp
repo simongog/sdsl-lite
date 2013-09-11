@@ -36,7 +36,7 @@ class memory_monitor
             int64_t usage;
             mm_event(timer::time_point t,int64_t u) : timestamp(t) , usage(u) {};
         };
-        std::chrono::milliseconds log_granularity = std::chrono::milliseconds(50);
+        std::chrono::milliseconds log_granularity = std::chrono::milliseconds(20);
         int64_t current_usage = 0;
         int64_t peak_usage = 0;
         bool track_usage = false;

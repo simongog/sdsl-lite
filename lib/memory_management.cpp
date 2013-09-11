@@ -290,7 +290,7 @@ hugepage_allocator::remove_from_free_set(mm_block_t* block)
 void
 hugepage_allocator::insert_into_free_set(mm_block_t* block)
 {
-    m_free_large.emplace(block->size,block);
+    m_free_large.insert( {block->size,block});
 }
 
 mm_block_t*

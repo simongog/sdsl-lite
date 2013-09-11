@@ -16,7 +16,7 @@ void do_something(const tCsa& csa)
         sum+=csa.psi(i);
     }
     auto stop = timer::now();
-    cout << "runtime in ms: " << duration_cast<microseconds>(stop-start).count() << endl;
+    cout << "runtime in s: " << duration_cast<seconds>(stop-start).count() << endl;
     cout <<"sum="<<sum<<endl;
 }
 
@@ -33,10 +33,18 @@ int main(int argc, char** argv)
         memory_manager::use_hugepages(500*1024*1024);
     }
 
+    memory_monitor::start();
+
     csa_wt<> csa;
     auto start = timer::now();
     construct(csa, argv[1], 1);
     auto stop = timer::now();
-    cout << "construction in ms: " << duration_cast<microseconds>(stop-start).count() << endl;
+    cout << "construction in s: " << duration_cast<seconds>(stop-start).count() << endl;
     do_something(csa); // before it is mapped
+
+    memory_monitor::stop();
+
+    std::ofstream ofs("cst-construction.json");
+    memory_monitor::write_memory_log<JSON>(ofs);
+    ofs.close();
 }
