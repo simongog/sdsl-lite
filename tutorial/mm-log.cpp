@@ -8,15 +8,18 @@ using namespace std;
 int main(int argc, char* argv[])
 {
     // set granularity of logging to 20 milliseconds
-    mm::log_granularity(std::chrono::milliseconds(20));
-    // connect cout to the logging stream
-    mm::log_stream(&cout);
+    memory_monitor::granularity(std::chrono::milliseconds(5));
+
     // generate CST
-    mm::log("begin");
+    memory_monitor::start();
     {
         cst_sct3<> cst;
         construct(cst, argv[1], 1);
         cerr<<cst.size()<<endl;
     }
-    mm::log("end");
+    memory_monitor::stop();
+
+    std::ofstream of("test.json");
+    memory_monitor::write_memory_log<JSON>(of);
+    of.close();
 }
