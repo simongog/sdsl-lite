@@ -622,7 +622,7 @@ class select_support_rrr<t_b, 15, t_rac, t_k>
 
         void swap(select_support_rrr&) { }
 
-        void load(std::istream& in, const bit_vector_type* v=nullptr) {
+        void load(std::istream&, const bit_vector_type* v=nullptr) {
             set_vector(v);
         }
 
