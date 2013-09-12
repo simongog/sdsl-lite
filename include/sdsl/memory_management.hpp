@@ -160,9 +160,10 @@ class hugepage_allocator
         void mm_free(void* ptr);
         bool in_address_space(void* ptr) {
             // check if ptr is in the hugepage address space
-            std::ptrdiff_t before_start = (uint8_t*)ptr - m_base;
-            std::ptrdiff_t after_top = (uint8_t*)m_top - (uint8_t*)ptr;
-            if (before_start>=0 and after_top>=0) {
+            if (ptr == nullptr) {
+                return true;
+            }
+            if (ptr >= m_base && ptr < m_top) {
                 return true;
             }
             return false;
@@ -201,7 +202,7 @@ class memory_manager
         }
         static uint64_t* realloc_mem(uint64_t* ptr,size_t size) {
             auto& m = the_manager();
-            if (m.hugepages) {
+            if (m.hugepages and hugepage_allocator::the_allocator().in_address_space(ptr)) {
                 return (uint64_t*) hugepage_allocator::the_allocator().mm_realloc(ptr,size);
             } else {
                 return (uint64_t*) realloc(ptr,size);
@@ -215,7 +216,6 @@ class memory_manager
         }
         template<class t_vec>
         static void resize(t_vec& v, const typename t_vec::size_type size) {
-            std::cout << "size = " << size << std::endl;
             uint64_t old_size_in_bytes = ((v.m_size+63)>>6)<<3;
             uint64_t new_size_in_bytes = ((size+63)>>6)<<3;
             bool do_realloc = old_size_in_bytes != new_size_in_bytes;
@@ -226,11 +226,10 @@ class memory_manager
                 // access to this padding to answer rank(size()) if size()%64 ==0.
                 // Note that this padding is not counted in the serialize method!
                 size_t allocated_bytes = (((size+64)>>6)<<3);
-                std::cout << "allocated_bytes = " << allocated_bytes << " ptr = " << (void*)v.m_data << std::endl;
                 v.m_data = memory_manager::realloc_mem(v.m_data,allocated_bytes);
-                //if (allocated_bytes != 0 && v.m_data == nullptr) {
-                //    throw std::bad_alloc();
-                //}
+                if (allocated_bytes != 0 && v.m_data == nullptr) {
+                    throw std::bad_alloc();
+                }
                 // update and fill with 0s
                 if (v.bit_size() < v.capacity()) {
                     bits::write_int(v.m_data+(v.bit_size()>>6), 0, v.bit_size()&0x3F, v.capacity() - v.bit_size());
@@ -258,7 +257,6 @@ class memory_manager
             }
         }
 };
-
 
 } // end namespace
 
