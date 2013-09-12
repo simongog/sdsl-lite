@@ -24,7 +24,7 @@ set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}")
 set(LIBRARY_VERSION_FULL "${LIBRARY_VERSION}.${LIBRARY_VERSION_PATCH}")
 
 append_cxx_compiler_flags("-std=c++11 -Wall -DNDEBUG" "GCC" CMAKE_CXX_FLAGS)
-append_cxx_compiler_flags("-O9 -ffast-math -funroll-loops" "GCC" CMAKE_CXX_OPT_FLAGS)
+append_cxx_compiler_flags("-O0 -g -ffast-math -funroll-loops" "GCC" CMAKE_CXX_OPT_FLAGS)
 append_cxx_compiler_flags("-std=c++11 -funroll-loops -DNDEBUG -stdlib=libc++" "CLANG" CMAKE_CXX_FLAGS)
 append_cxx_compiler_flags("-O3 -ffast-math -funroll-loops" "CLANG" CMAKE_CXX_OPT_FLAGS)
 

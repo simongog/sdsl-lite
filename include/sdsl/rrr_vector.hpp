@@ -305,6 +305,7 @@ class rrr_vector
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
             read_member(m_size, in);
+            std::cout << "m_size = " << m_size << std::endl;
             m_bt.load(in);
             m_btnr.load(in);
             m_btnrp.load(in);

@@ -158,6 +158,15 @@ class hugepage_allocator
         void* mm_realloc(void* ptr, size_t size);
         void* mm_alloc(size_t size_in_bytes);
         void mm_free(void* ptr);
+        bool in_address_space(void* ptr) {
+            // check if ptr is in the hugepage address space
+            std::ptrdiff_t before_start = (uint8_t*)ptr - m_base;
+            std::ptrdiff_t after_top = (uint8_t*)m_top - (uint8_t*)ptr;
+            if (before_start>=0 and after_top>=0) {
+                return true;
+            }
+            return false;
+        }
         static hugepage_allocator& the_allocator() {
             static hugepage_allocator a;
             return a;
@@ -184,7 +193,7 @@ class memory_manager
         }
         static void free_mem(uint64_t* ptr) {
             auto& m = the_manager();
-            if (m.hugepages) {
+            if (m.hugepages and hugepage_allocator::the_allocator().in_address_space(ptr)) {
                 hugepage_allocator::the_allocator().mm_free(ptr);
             } else {
                 std::free(ptr);
@@ -206,20 +215,22 @@ class memory_manager
         }
         template<class t_vec>
         static void resize(t_vec& v, const typename t_vec::size_type size) {
-            int64_t old_size_in_bytes = ((v.m_size+63)>>6)<<3;
-            int64_t new_size_in_bytes = ((size+63)>>6)<<3;
+            std::cout << "size = " << size << std::endl;
+            uint64_t old_size_in_bytes = ((v.m_size+63)>>6)<<3;
+            uint64_t new_size_in_bytes = ((size+63)>>6)<<3;
             bool do_realloc = old_size_in_bytes != new_size_in_bytes;
             v.m_size = size;
-            if (do_realloc || new_size_in_bytes == 0) {
+            if (do_realloc || v.m_data == nullptr) {
                 // Note that we allocate 8 additional bytes if m_size % 64 == 0.
                 // We need this padding since rank data structures do a memory
                 // access to this padding to answer rank(size()) if size()%64 ==0.
                 // Note that this padding is not counted in the serialize method!
                 size_t allocated_bytes = (((size+64)>>6)<<3);
+                std::cout << "allocated_bytes = " << allocated_bytes << " ptr = " << (void*)v.m_data << std::endl;
                 v.m_data = memory_manager::realloc_mem(v.m_data,allocated_bytes);
-                if (allocated_bytes != 0 && v.m_data == nullptr) {
-                    throw std::bad_alloc();
-                }
+                //if (allocated_bytes != 0 && v.m_data == nullptr) {
+                //    throw std::bad_alloc();
+                //}
                 // update and fill with 0s
                 if (v.bit_size() < v.capacity()) {
                     bits::write_int(v.m_data+(v.bit_size()>>6), 0, v.bit_size()&0x3F, v.capacity() - v.bit_size());
@@ -230,7 +241,7 @@ class memory_manager
 
                 // update stats
                 if (do_realloc) {
-                    memory_monitor::record(new_size_in_bytes-old_size_in_bytes);
+                    memory_monitor::record((int64_t)new_size_in_bytes-(int64_t)old_size_in_bytes);
                 }
             }
         }

@@ -317,6 +317,7 @@ class rrr_vector<15, t_rac, t_k>
             size_type written_bytes = 0;
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             written_bytes += write_member(m_size, out, child, "size");
+            std::cout << "rrr<15> size = " << m_size << std::endl;
             written_bytes += m_bt.serialize(out, child, "bt");
             written_bytes += m_btnr.serialize(out, child, "btnr");
             written_bytes += m_btnrp.serialize(out, child, "btnrp");
@@ -328,6 +329,7 @@ class rrr_vector<15, t_rac, t_k>
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
             read_member(m_size, in);
+            std::cout << "rrr<15> size = " << m_size << std::endl;
             m_bt.load(in);
             m_btnr.load(in);
             m_btnrp.load(in);
