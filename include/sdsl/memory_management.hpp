@@ -201,8 +201,8 @@ class memory_manager
     public:
         static void use_hugepages(size_t bytes) {
             auto& m = the_manager();
-            m.hugepages = true;
             hugepage_allocator::the_allocator().init(bytes);
+            m.hugepages = true;
         }
         template<class t_vec>
         static void resize(t_vec& v, const typename t_vec::size_type size) {
