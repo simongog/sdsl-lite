@@ -55,7 +55,7 @@ results/%: $(BUILD_EXECS) $(QUERY_EXECS) $(PATTERNS) $(INDEXES)
 	@echo "# COMPILE_ID = $(COMPILE_ID)" >> $@
 	@echo "# test_case = $(TC_NAME)" >>  $@
 	@echo "Run timing for $(IDX_ID).$(COMPILE_ID) on $(TC_ID)"
-	@$(BIN_DIR)/query_idx_$(IDX_ID).$(COMPILE_ID) \
+	$(BIN_DIR)/query_idx_$(IDX_ID).$(COMPILE_ID) \
 		indexes/$(TC_ID) C < $(PAT_DIR)/$(TC_ID).pattern 2>> $@ 
  
 
@@ -65,7 +65,7 @@ indexes/%: $(BUILD_EXECS)
 	$(eval IDX_ID:=$(call dim,2,$*)) 
 	$(eval TC:=$(call config_select,test_case.config,$(TC_ID),2))
 	@echo "Building index $(IDX_ID) on $(TC)"
-	@$(BIN_DIR)/build_idx_$(IDX_ID) $(TC) $(TMP_DIR) $@
+	$(BIN_DIR)/build_idx_$(IDX_ID) $(TC) $(TMP_DIR) $@
 
 # info/[TC_ID].[IDX_ID]
 info/%.json: $(INDEXES)
