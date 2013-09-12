@@ -130,6 +130,7 @@ class rrr_vector
 
         //! Move constructor
         rrr_vector(rrr_vector&& rrr) : m_size(std::move(rrr.m_size)),
+            m_bt(std::move(rrr.m_bt)),
             m_btnr(std::move(rrr.m_btnr)), m_btnrp(std::move(rrr.m_btnrp)),
             m_rank(std::move(rrr.m_rank)), m_invert(std::move(rrr.m_invert)) {}
 
