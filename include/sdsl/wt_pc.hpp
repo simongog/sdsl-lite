@@ -489,6 +489,21 @@ class wt_pc
             assert(i <= j and j <= size());
             smaller = 0;
             greater = 0;
+            if (1==m_sigma) {
+                value_type _c = m_tree.bv_pos_rank(m_tree.root());
+                if (c == _c) { // c is the only symbol in the wt
+                    return i;
+                } else if (c < _c) {
+                    greater = j-i;
+                    return 0;
+                } else {
+                    smaller = j-i;
+                    return 0;
+                }
+            }
+            if (i==j) {
+                return rank(i,c);
+            }
             uint64_t p = m_tree.bit_path(c);
             uint32_t path_len = p>>56;
             if (path_len == 0) {  // path_len=0: => c is not present
@@ -500,13 +515,6 @@ class wt_pc
                 lex_count(i, j, _c, smaller, greater);
                 smaller = j-i-greater;
                 return 0;
-            }
-            // c is present
-            if (1==m_sigma) {
-                return i;
-            }
-            if (i==j) {
-                return rank(i,c);
             }
 
             size_type res1 = i;
