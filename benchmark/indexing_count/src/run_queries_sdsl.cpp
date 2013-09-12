@@ -54,12 +54,12 @@ int main(int argc, char* argv[])
 #ifdef USE_HP
     uint64_t index_size = util::file_size(index_file);
     // allocate hugepages, add 10 MiB + 3% overhead
-    uint64_t alloc_size = (uint64_t)(index_size*0.03+(1ULL<<20)*10);
+    uint64_t alloc_size = (uint64_t)(index_size*1.03+(1ULL<<20)*10);
     try {
         memory_manager::use_hugepages(alloc_size);
         mapped = true;
     } catch (...) {
-        std::cout<<"Unable to allocate "<<alloc_size<<" bytes";
+        std::cout<<"Unable to allocate "<<alloc_size<<" bytes ";
         std::cout<<"of hugepage space on your system"<<std::endl;
     }
 #endif
