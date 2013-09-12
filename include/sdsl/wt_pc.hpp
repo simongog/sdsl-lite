@@ -481,7 +481,6 @@ class wt_pc
          *
          * \par Precondition
          *       \f$ i \leq j \leq n \f$
-         *       \f$ c must exist in wt \f$
          */
         template<class t_size_type = size_type>
         typename std::enable_if<shape_type::lex_ordered, t_size_type>::type
@@ -491,15 +490,25 @@ class wt_pc
             smaller = 0;
             greater = 0;
             if (1==m_sigma) {
-                return i;
+                return i; // ToDo: this is not correct if c is not the char in wt!!!
             }
             if (i==j) {
                 return rank(i,c);
             }
             uint64_t p = m_tree.bit_path(c);
             uint32_t path_len = p>>56;
-            // path_len equals zero if c was not present
-            assert(path_len>0);
+
+            if (path_len == 0) {           // path_len equals zero if c was not present
+                value_type _c = (p<<8)>>8; // remove heighest byte
+                if (c == _c) {             // c is smaller than any symbol in wt
+                    greater = j-i;
+                    return 0;
+                }
+                lex_count(i, j, _c, smaller, greater);
+                smaller = j-i-greater;
+                return 0;
+            }
+
             size_type res1 = i;
             size_type res2 = j;
             node_type v = m_tree.root();
