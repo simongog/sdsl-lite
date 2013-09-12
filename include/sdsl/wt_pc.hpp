@@ -489,24 +489,24 @@ class wt_pc
             assert(i <= j and j <= size());
             smaller = 0;
             greater = 0;
-            if (1==m_sigma) {
-                return i; // ToDo: this is not correct if c is not the char in wt!!!
-            }
-            if (i==j) {
-                return rank(i,c);
-            }
             uint64_t p = m_tree.bit_path(c);
             uint32_t path_len = p>>56;
-
-            if (path_len == 0) {           // path_len equals zero if c was not present
-                value_type _c = (p<<8)>>8; // remove heighest byte
-                if (c == _c) {             // c is smaller than any symbol in wt
+            if (path_len == 0) {  // path_len=0: => c is not present
+                value_type _c = (value_type)(p&0x00FFFFFFFFFFFFFFULL);
+                if (c == _c) {    // c is smaller than any symbol in wt
                     greater = j-i;
                     return 0;
                 }
                 lex_count(i, j, _c, smaller, greater);
                 smaller = j-i-greater;
                 return 0;
+            }
+            // c is present
+            if (1==m_sigma) {
+                return i;
+            }
+            if (i==j) {
+                return rank(i,c);
             }
 
             size_type res1 = i;
