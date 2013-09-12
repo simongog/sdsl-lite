@@ -174,6 +174,7 @@ class rrr_vector<15, t_rac, t_k>
 
         //! Move constructor
         rrr_vector(rrr_vector&& rrr) : m_size(std::move(rrr.m_size)),
+            m_bt(std::move(rrr.m_bt)),
             m_btnr(std::move(rrr.m_btnr)), m_btnrp(std::move(rrr.m_btnrp)),
             m_rank(std::move(rrr.m_rank)) {}
 
