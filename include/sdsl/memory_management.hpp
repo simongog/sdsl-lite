@@ -136,7 +136,7 @@ class hugepage_allocator
         mm_block_t* last_block();
         void print_heap();
     public:
-        void init(size_t size_in_bytes) {
+        void init(SDSL_UNUSED size_t size_in_bytes) {
 #ifdef MAP_HUGETLB
             m_total_size = size_in_bytes;
             m_base = (uint8_t*) mmap(nullptr, m_total_size,
@@ -158,6 +158,16 @@ class hugepage_allocator
         void* mm_realloc(void* ptr, size_t size);
         void* mm_alloc(size_t size_in_bytes);
         void mm_free(void* ptr);
+        bool in_address_space(void* ptr) {
+            // check if ptr is in the hugepage address space
+            if (ptr == nullptr) {
+                return true;
+            }
+            if (ptr >= m_base && ptr < m_top) {
+                return true;
+            }
+            return false;
+        }
         static hugepage_allocator& the_allocator() {
             static hugepage_allocator a;
             return a;
@@ -184,7 +194,7 @@ class memory_manager
         }
         static void free_mem(uint64_t* ptr) {
             auto& m = the_manager();
-            if (m.hugepages) {
+            if (m.hugepages and hugepage_allocator::the_allocator().in_address_space(ptr)) {
                 hugepage_allocator::the_allocator().mm_free(ptr);
             } else {
                 std::free(ptr);
@@ -192,7 +202,7 @@ class memory_manager
         }
         static uint64_t* realloc_mem(uint64_t* ptr,size_t size) {
             auto& m = the_manager();
-            if (m.hugepages) {
+            if (m.hugepages and hugepage_allocator::the_allocator().in_address_space(ptr)) {
                 return (uint64_t*) hugepage_allocator::the_allocator().mm_realloc(ptr,size);
             } else {
                 return (uint64_t*) realloc(ptr,size);
@@ -201,16 +211,16 @@ class memory_manager
     public:
         static void use_hugepages(size_t bytes) {
             auto& m = the_manager();
-            m.hugepages = true;
             hugepage_allocator::the_allocator().init(bytes);
+            m.hugepages = true;
         }
         template<class t_vec>
         static void resize(t_vec& v, const typename t_vec::size_type size) {
-            int64_t old_size_in_bytes = ((v.m_size+63)>>6)<<3;
-            int64_t new_size_in_bytes = ((size+63)>>6)<<3;
+            uint64_t old_size_in_bytes = ((v.m_size+63)>>6)<<3;
+            uint64_t new_size_in_bytes = ((size+63)>>6)<<3;
             bool do_realloc = old_size_in_bytes != new_size_in_bytes;
             v.m_size = size;
-            if (do_realloc || new_size_in_bytes == 0) {
+            if (do_realloc || v.m_data == nullptr) {
                 // Note that we allocate 8 additional bytes if m_size % 64 == 0.
                 // We need this padding since rank data structures do a memory
                 // access to this padding to answer rank(size()) if size()%64 ==0.
@@ -230,7 +240,7 @@ class memory_manager
 
                 // update stats
                 if (do_realloc) {
-                    memory_monitor::record(new_size_in_bytes-old_size_in_bytes);
+                    memory_monitor::record((int64_t)new_size_in_bytes-(int64_t)old_size_in_bytes);
                 }
             }
         }
@@ -247,7 +257,6 @@ class memory_manager
             }
         }
 };
-
 
 } // end namespace
 
