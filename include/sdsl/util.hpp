@@ -22,7 +22,6 @@
 #define INCLUDED_SDSL_UTIL
 
 #include "bits.hpp"
-#include "typedefs.hpp"
 #include "sfstream.hpp"
 #include "ram_fs.hpp"
 #include "config.hpp"  // for constants

@@ -21,7 +21,6 @@
 #ifndef INCLUDED_SDSL_INT_VECTOR
 #define INCLUDED_SDSL_INT_VECTOR
 
-#include "compatibility.hpp"
 #include "bits.hpp"
 #include "structure_tree.hpp"
 #include "util.hpp"
@@ -99,8 +98,6 @@ namespace coder
 class fibonacci;
 class elias_delta;
 }
-
-class char_array_serialize_wrapper;
 
 template<uint8_t t_width>
 struct int_vec_category_trait {
@@ -304,7 +301,7 @@ class int_vector
         int_vector(std::initializer_list<t_T> il) : int_vector() {
             resize(il.size());
             size_type idx = 0;
-            for (auto x : il) {
+for (auto x : il) {
                 (*this)[idx++] = x;
             }
         }
@@ -1085,7 +1082,7 @@ template<class t_bv>
 inline typename std::enable_if<std::is_same<typename t_bv::index_category ,bv_tag>::value, std::ostream&>::type
 operator<<(std::ostream& os, const t_bv& bv)
 {
-    for (auto b : bv) {
+for (auto b : bv) {
         os << b;
     }
     return os;
@@ -1416,19 +1413,6 @@ void int_vector<t_width>::load(std::istream& in)
     }
     in.read((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
 }
-
-//! A wrapper class which allows us to serialize an char array as an int_vector.
-class char_array_serialize_wrapper
-{
-    public:
-        typedef int_vector_size_type    size_type;
-    private:
-        size_type m_n;  // number of char
-        const unsigned char* m_cp;
-    public:
-        inline char_array_serialize_wrapper(const unsigned char* c=nullptr, size_type n=0):m_n(n), m_cp(c) {}
-        size_type serialize(std::ostream& out)const;
-};
 
 }// end namespace sdsl
 

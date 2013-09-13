@@ -21,7 +21,6 @@
 #ifndef INCLUDED_SDSL_CONSTRUCT_BWT
 #define INCLUDED_SDSL_CONSTRUCT_BWT
 
-#include "typedefs.hpp"
 #include "int_vector.hpp"
 #include "sfstream.hpp"
 #include "util.hpp"

@@ -36,68 +36,6 @@ using std::endl;
 namespace sdsl
 {
 
-//! Calculate the zeroth order entropy of the text that follows a certain substring	s
-/*!
- * \param v 	A suffix tree node v. The label of the path from the root to v is s.
- * \param cst	The suffix tree of v.
- * \param The zeroth order entropy of the concatenation of all characters that follow
-          s in the original text.
- */
-template<class tCst>
-double H0(const typename tCst::node_type& v, const tCst& cst)
-{
-    if (cst.is_leaf(v)) {
-        return 0;
-    } else {
-        double h0=0;
-        typename tCst::size_type n = cst.size(v);
-        typename tCst::node_type w = cst.select_child(v, 1);
-        do {
-            double p = ((double)cst.size(w))/n;
-            h0 -= p*log2(p);
-            w = cst.sibling(w);
-        } while (w != cst.root());
-        return h0;
-    }
-}
-
-//! Calculate the k-th order entropy of a text
-/*!
- * \param cst		The suffix tree of v.
- * \param k			Parameter k for which H_k should be calculated.
- * \param context	A output reference which will hold the number of different contexts.
- */
-template<class tCst>
-double Hk(const tCst& cst, typename tCst::size_type k, typename tCst::size_type& context)
-{
-    double hk = 0;
-    context = 0;
-    std::set<typename tCst::size_type> leafs_with_d_smaller_k;
-    for (typename tCst::size_type d = 1; d < k; ++d) {
-        leafs_with_d_smaller_k.insert(cst.csa(cst.csa.size()-d));
-    }
-    for (typename tCst::const_iterator it = cst.begin(), end=cst.end(); it != end; ++it) {
-        if (it.visit() == 1) {
-            if (!cst.is_leaf(*it)) {
-                typename tCst::size_type d = cst.depth(*it);
-                if (d >= k) {
-                    if (d == k)
-                        hk += cst.size(*it) * H0(*it, cst);
-                    ++context;
-                    it.skip_subtree();
-                }
-            } else {
-                // if d of leaf is >= k, add context
-                if (leafs_with_d_smaller_k.find(cst.lb(*it)) == leafs_with_d_smaller_k.end()) {
-                    ++context;
-                }
-            }
-        }
-    }
-    hk /= cst.size();
-    return hk;
-}
-
 
 // Gets ISA[SA[idx]+d]
 // d = depth of the character 0 = first position
@@ -115,23 +53,6 @@ typename Csa::size_type get_char_pos(typename Csa::size_type idx, typename Csa::
         return idx;
     }
     return csa(csa[idx] + d);
-}
-
-// output some informations about the constructed compressed suffix tree
-template<class Cst>
-void cst_info(const Cst& cst)
-{
-    double csa_size, lcp_size, cst_size, nav_size, text_size;
-    cout << "# alphabet size: " << (int)cst.csa.sigma << endl;
-    cout << "# text size: " << (text_size = cst.csa.size()) << endl;
-    cout << "# nodes: " << cst.nodes() << endl;
-    cout << "# cst in MB: " << (cst_size=(((double)size_in_bytes(cst))/(1024.0*1024.0))) << endl;
-    cout << "# csa in MB: " << (csa_size=(((double)size_in_bytes(cst.csa))/(1024.0*1024.0))) << endl;
-    cout << "# csa samples in MB: " << ((double)size_in_bytes(cst.csa.sa_sample)+size_in_bytes(cst.csa.isa_sample))/(1024.0*1024.0) << endl;
-    cout << "# lcp in MB: " << (lcp_size=(((double)size_in_bytes(cst.lcp))/(1024.0*1024.0))) << endl;
-    cout << "# nav in MB: " << (nav_size=(cst_size-lcp_size-csa_size)) << endl;
-    text_size /= 1024*1024;
-    cout << "# "<< 8*csa_size/text_size <<" " << 8*lcp_size/text_size << " " << 8*nav_size/text_size << endl;
 }
 
 }
