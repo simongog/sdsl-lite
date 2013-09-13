@@ -191,24 +191,26 @@ struct _byte_tree {
         // we can classify nodes as right child and left child with an easy criterion:
         //   node is a left child, if node%2==1
         //   node is a right child, if node%2==0
-        for (uint32_t c=0; c<fixed_sigma; ++c) {
+        for (uint32_t c=0, prev_c=0; c<fixed_sigma; ++c) {
             if (m_c_to_leaf[c] != undef) { // if char exists in the alphabet
                 node_type v = m_c_to_leaf[c];
-                uint64_t w = 0; // path
-                uint64_t l = 0; // path len
+                uint64_t pw = 0; // path
+                uint64_t pl = 0; // path len
                 while (v != root()) {   // while node is not the root
-                    w <<= 1;
+                    pw <<= 1;
                     if (m_nodes[m_nodes[v].parent].child[1] == v) // if the node is a right child
-                        w |= 1ULL;
-                    ++l;
+                        pw |= 1ULL;
+                    ++pl;
                     v = m_nodes[v].parent; // go up the tree
                 }
-                if (l > 56) {
+                if (pl > 56) {
                     throw std::logic_error("Code depth greater than 56!!!");
                 }
-                m_path[c] = w | (l << 56);
+                m_path[c] = pw | (pl << 56);
+                prev_c = c;
             } else {
-                m_path[c] = 0;// i.e. len is  0, good for special case in rank
+                uint64_t pl = 0; // len is  0, good for special case in rank
+                m_path[c] = prev_c | (pl << 56);
             }
         }
     }
@@ -407,7 +409,7 @@ struct _int_tree {
         // we can classify nodes as right child and left child with an easy criterion:
         //   node is a left child, if node%2==1
         //   node is a right child, if node%2==0
-        for (value_type c=0; c < m_c_to_leaf.size(); ++c) {
+        for (value_type c=0, prev_c=0; c < m_c_to_leaf.size(); ++c) {
             if (m_c_to_leaf[c] != undef) { // if char exists in the alphabet
                 node_type v = m_c_to_leaf[c];
                 uint64_t w = 0; // path
@@ -423,8 +425,10 @@ struct _int_tree {
                     throw std::logic_error("Code depth greater than 56!!!");
                 }
                 m_path[c] = w | (l << 56);
+                prev_c = c;
             } else {
-                m_path[c] = 0;// i.e. len is  0, good for special case in rank
+                uint64_t pl = 0; // len is  0, good for special case in rank
+                m_path[c] = prev_c | (pl << 56);
             }
         }
     }

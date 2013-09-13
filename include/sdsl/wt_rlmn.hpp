@@ -279,26 +279,27 @@ class wt_rlmn
         //! Calculates how many times symbol wt[i] occurs in the prefix [0..i-1].
         /*!
          *  \param i The index of the symbol.
-         *  \param c Reference that will contain the symbol at position i.
-         *  \return  Number of occurrences of symbol wt[i] in the prefix [0..i-1].
+         *  \return  Pair (rank(wt[i],i),wt[i])
          *    \par Time complexity
          *        \f$ \Order{H_0} \f$
          */
-        size_type inverse_select(size_type i, value_type& c)const {
+        std::pair<size_type, value_type>
+        inverse_select(size_type i)const {
             assert(i < size());
             if (i == 0) {
-                c = m_wt[0];
-                return 0;
+                return std::make_pair(0, m_wt[0]);
             }
             size_type wt_ex_pos = m_bl_rank(i+1);
-            size_type c_runs = m_wt.inverse_select(wt_ex_pos-1, c)+1;
+            auto rc = m_wt.inverse_select(wt_ex_pos-1);
+            size_type c_runs = rc.first + 1;
+            value_type c     = rc.second;
             if (c_runs == 0)
-                return 0;
+                return std::make_pair(0, c);
             if (m_wt[wt_ex_pos-1] == c) {
                 size_type c_run_begin = m_bl_select(wt_ex_pos);
-                return m_bf_select(m_C_bf_rank[c]+c_runs)-m_C[c]+i-c_run_begin;
+                return std::make_pair(m_bf_select(m_C_bf_rank[c]+c_runs)-m_C[c]+i-c_run_begin, c);
             } else {
-                return m_bf_select(m_C_bf_rank[c]+c_runs+1)-m_C[c];
+                return std::make_pair(m_bf_select(m_C_bf_rank[c]+c_runs+1)-m_C[c], c);
             }
         }
 

@@ -39,4 +39,42 @@
 #include "wt_rlg8.hpp"
 #include "construct.hpp"
 
+namespace sdsl
+{
+
+template<class t_bitvector   = bit_vector,
+         class t_rank        = typename t_bitvector::rank_1_type,
+         class t_select      = typename t_bitvector::select_1_type,
+         class t_select_zero = typename t_bitvector::select_0_type
+         >
+using wt_hutu_int = wt_pc<hutu_shape,
+      t_bitvector,
+      t_rank,
+      t_select,
+      t_select_zero,
+      int_tree<>>;
+
+template<class t_bitvector   = bit_vector,
+         class t_rank        = typename t_bitvector::rank_1_type,
+         class t_select      = typename t_bitvector::select_1_type,
+         class t_select_zero = typename t_bitvector::select_0_type>
+using wt_huff_int = wt_pc<huff_shape,
+      t_bitvector,
+      t_rank,
+      t_select,
+      t_select_zero,
+      int_tree<>>;
+
+template<class t_bitvector   = bit_vector,
+         class t_rank        = typename t_bitvector::rank_1_type,
+         class t_select_one  = typename t_bitvector::select_1_type,
+         class t_select_zero = typename t_bitvector::select_0_type>
+using wt_blcd_int = wt_pc<balanced_shape,
+      t_bitvector,
+      t_rank,
+      t_select_one,
+      t_select_zero,
+      int_tree<>>;
+}
+
 #endif

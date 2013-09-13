@@ -130,9 +130,9 @@ TYPED_TEST(WtIntTest, LoadAndInverseSelect)
     ASSERT_EQ(iv.size(), wt.size());
     tMII check_rank;
     for (size_type j=0; j < iv.size(); ++j) {
-        typename TypeParam::value_type x;
-        ASSERT_EQ(check_rank[iv[j]], wt.inverse_select(j, x));
-        ASSERT_EQ(iv[j], x);
+        auto rc = wt.inverse_select(j);
+        ASSERT_EQ(check_rank[iv[j]], rc.first);
+        ASSERT_EQ(iv[j], rc.second);
         check_rank[iv[j]]++;
     }
 }

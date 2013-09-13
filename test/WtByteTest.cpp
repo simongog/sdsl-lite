@@ -171,9 +171,9 @@ TYPED_TEST(WtByteTest, InverseSelect)
     std::vector<size_type> cnt(256, 0);
     ASSERT_EQ(text.size(), wt.size());
     for (size_type j=0; j<text.size(); ++j) {
-        typename TypeParam::value_type c;
-        ASSERT_EQ(cnt[text[j]], wt.inverse_select(j, c));
-        ASSERT_EQ(text[j], c);
+        auto rc = wt.inverse_select(j);
+        ASSERT_EQ(cnt[text[j]], rc.first);
+        ASSERT_EQ(text[j], rc.second);
         cnt[text[j]]++;
     }
 }
@@ -263,32 +263,25 @@ void test_lex_count(t_T& wt)
             if (r<l) {
                 std::swap(l,r);
             }
-            size_type k_n = 0;
             std::vector<size_type> rank_c_i_n(256,0);
             std::vector<size_type> rank_c_j_n(256,0);
-            for (size_type j=0; j<256; ++j) {
-                size_type tmp_j = wt.rank(r,(value_type)j);
-                size_type tmp_i = wt.rank(l,(value_type)j);
-                rank_c_j_n[j] = tmp_j;
-                rank_c_i_n[j] = tmp_i;
-                if (tmp_j-tmp_i>0) {
-                    ++k_n;
-                }
+            for (size_type c=0; c<256; ++c) {
+                size_type tmp_j = wt.rank(r,(value_type)c);
+                size_type tmp_i = wt.rank(l,(value_type)c);
+                rank_c_j_n[c] = tmp_j;
+                rank_c_i_n[c] = tmp_i;
             }
             size_type num_c = 0;
             size_type num_s = 0;
             size_type num_g = r-l;
-            for (size_type j=0; j<256; ++j) {
-                if (wt.rank(wt.size(),(value_type)j)) {
-                    num_s += num_c;
-                    num_c = rank_c_j_n[j]-rank_c_i_n[j];
-                    num_g -= num_c;
-                    size_type s, g;
-                    ASSERT_EQ(rank_c_i_n[j], wt.lex_count(l, r, (value_type)j, s, g));
-                    ASSERT_EQ(num_s, s);
-                    ASSERT_EQ(num_g, g);
-
-                }
+            for (size_type c=0; c<256; ++c) {
+                num_s += num_c;
+                num_c = rank_c_j_n[c]-rank_c_i_n[c];
+                num_g -= num_c;
+                auto res = wt.lex_count(l, r, (value_type)c);
+                ASSERT_EQ(rank_c_i_n[c], std::get<0>(res));
+                ASSERT_EQ(num_s, std::get<1>(res));
+                ASSERT_EQ(num_g, std::get<2>(res));
             }
         }
     }
