@@ -401,7 +401,7 @@ class bwt_of_csa_wt
          *  \par Time complexity
          *        \f$ \Order{\log |\Sigma|} \f$
          */
-        size_type rank_bwt(size_type i, const char_type c)const {
+        size_type rank(size_type i, const char_type c)const {
             return m_csa.rank_bwt(i, c);
         }
 
@@ -413,7 +413,7 @@ class bwt_of_csa_wt
          *  \par Time complexity
          *        \f$ \Order{t_{\Psi}} \f$
          */
-        size_type select_bwt(size_type i, const char_type c)const {
+        size_type select(size_type i, const char_type c)const {
             return m_csa.select(i, c);
         }
 
