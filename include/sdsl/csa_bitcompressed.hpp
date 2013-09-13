@@ -57,6 +57,7 @@ namespace sdsl
 template<class t_alphabet_strat=byte_alphabet>
 class csa_bitcompressed
 {
+        friend class bwt_of_csa_psi<csa_bitcompressed>;
     public:
         typedef uint64_t                                        value_type;    // STL Container requirement
         typedef random_access_const_iterator<csa_bitcompressed> const_iterator;// STL Container requirement
@@ -238,8 +239,10 @@ class csa_bitcompressed
             return 1;
         }
 
-        //! Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
-        /*!
+    private:
+
+        // Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
+        /*
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
          *  \param c The symbol to count the occurrences in the prefix.
          *    \returns The number of occurrences of symbol c in the prefix [0..i-1] of the BWT.
@@ -267,8 +270,8 @@ class csa_bitcompressed
             }
         }
 
-        //! Calculates the i-th occurrence of symbol c in the BWT of the original text.
-        /*!
+        // Calculates the i-th occurrence of symbol c in the BWT of the original text.
+        /*
          *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
          *  \param c Character c.
          *    \returns The i-th occurrence of c in the BWT or size() if c does

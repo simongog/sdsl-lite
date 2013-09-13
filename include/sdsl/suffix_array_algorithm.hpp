@@ -62,8 +62,8 @@ typename t_csa::size_type backward_search(
 {
     assert(l <= r); assert(r < csa.size());
     typename t_csa::size_type c_begin = csa.C[csa.char2comp[c]];
-    l_res = c_begin + csa.rank_bwt(l, c); // count c in bwt[0..l-1]
-    r_res = c_begin + csa.rank_bwt(r+1, c) - 1; // count c in bwt[0..r]
+    l_res = c_begin + csa.bwt.rank(l, c); // count c in bwt[0..l-1]
+    r_res = c_begin + csa.bwt.rank(r+1, c) - 1; // count c in bwt[0..r]
     assert(r_res+1-l_res >= 0);
     return r_res+1-l_res;
 }
