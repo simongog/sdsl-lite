@@ -51,7 +51,7 @@ typename t_csa::size_type get_char_pos(typename t_csa::size_type idx, typename t
             idx = csa.psi[idx];
         return idx;
     }
-    return csa.csa[csa[idx] + d];
+    return csa.isa[csa[idx] + d];
 }
 
 }
