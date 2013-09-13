@@ -301,7 +301,7 @@ class int_vector
         int_vector(std::initializer_list<t_T> il) : int_vector() {
             resize(il.size());
             size_type idx = 0;
-for (auto x : il) {
+            for (auto x : il) {
                 (*this)[idx++] = x;
             }
         }
@@ -1082,7 +1082,7 @@ template<class t_bv>
 inline typename std::enable_if<std::is_same<typename t_bv::index_category ,bv_tag>::value, std::ostream&>::type
 operator<<(std::ostream& os, const t_bv& bv)
 {
-for (auto b : bv) {
+    for (auto b : bv) {
         os << b;
     }
     return os;
