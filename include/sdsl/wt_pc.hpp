@@ -475,9 +475,10 @@ class wt_pc
          * \param i       Start index (inclusive) of the interval.
          * \param j       End index (exclusive) of the interval.
          * \param c       Symbol c.
-         * \param smaller Reference for symbols smaller than c in [i..j-1].
-         * \param greater Reference for symbols greater than c in [i..j-1].
-         * \return The number of occurrences of symbol c in [0..i-1].
+         * \return A triple containing:
+         *         * rank(c,i)
+         *         * #symbols smaller than c in [i..j-1]
+         *         * #symbols greater than c in [i..j-1]
          *
          * \par Precondition
          *       \f$ i \leq j \leq n \f$
