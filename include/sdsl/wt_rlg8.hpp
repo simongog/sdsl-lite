@@ -338,13 +338,15 @@ class wt_rlg8
         /*!
          * \param i The index of the symbol.
          * \param c Reference that will contain the symbol at position i after the execution of the method.
-         * \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
+         * \return  Pair (rank(wt[i],i),wt[i])
          * \par Time complexity
-         *   \f$ \Order{H_0 \log L} \f$
+         *    \f$ \Order{H_0 \log L} \f$
          */
-        size_type inverse_select(size_type i, value_type& c)const {
+        std::pair<size_type, value_type>
+        inverse_select(size_type i)const {
             assert(i < size());
-            return rank(i, c=(*this)[i]);
+            value_type c = (*this)[i];
+            return std::make_pair(rank(i,c), c);
         }
 
         //! Calculates the ith occurrence of the symbol c in the supported vector.

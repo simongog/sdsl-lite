@@ -287,7 +287,9 @@ struct traverse_csa_wt_traits<t_csa,false> {
     typedef typename t_csa::size_type size_type;
     static value_type access(const t_csa& csa,size_type i) {
         typename t_csa::char_type c;
-        size_type j = csa.wavelet_tree.inverse_select(i,c);
+        auto rc = csa.wavelet_tree.inverse_select(i);
+        size_type j = rc.first;
+        c = rc.second;
         return csa.C[ csa.char2comp[c] ] + j;
     }
 };

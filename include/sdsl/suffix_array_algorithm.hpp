@@ -153,8 +153,9 @@ typename csa_wt<t_wt>::size_type bidirectional_search(
     assert(l_fwd <= r_fwd); assert(r_fwd < csa_fwd.size());
     typedef typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::size_type size_type;
     size_type c_begin = csa_fwd.C[csa_fwd.char2comp[c]];
-    size_type s, b;
-    size_type rank_l = csa_fwd.wavelet_tree.lex_count(l_fwd, r_fwd+1, c, s, b);
+    auto r_s_b =  csa_fwd.wavelet_tree.lex_count(l_fwd, r_fwd+1, c);
+    size_type rank_l = std::get<0>(r_s_b);
+    size_type s = std::get<1>(r_s_b), b = std::get<2>(r_s_b);
     size_type rank_r = r_fwd - l_fwd - s - b + rank_l;
     l_fwd_res = c_begin + rank_l;
     r_fwd_res = c_begin + rank_r;
