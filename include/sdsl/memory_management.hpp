@@ -122,7 +122,6 @@ class hugepage_allocator
         uint8_t* m_base = nullptr;
         mm_block_t* m_first_block = nullptr;
         uint8_t* m_top = nullptr;
-        size_t m_small_threshold = 4096;
         size_t m_total_size = 0;
         std::multimap<size_t,mm_block_t*> m_free_large;
     private:

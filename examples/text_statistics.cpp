@@ -31,7 +31,11 @@ int main(int argc, char* argv[])
             avg_lcp += cst.lcp[i];
         }
         avg_lcp /= cst.csa.size();
+        for (size_t k=0; k<=5; k++) {
+            cout << "H_" << k << ": " << Hk(cst,k).first << endl;
+        }
         cout << "avg LCP: " << avg_lcp << endl;
         cout << "runs in BWT: " << runs << endl;
+
     }
 }
