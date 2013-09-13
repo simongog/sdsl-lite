@@ -28,7 +28,7 @@
 #include "wt_helper.hpp"
 #include <vector>
 #include <utility>
-#include <array>
+#include <tuple>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -482,41 +482,35 @@ class wt_pc
          * \par Precondition
          *       \f$ i \leq j \leq n \f$
          */
-        template<class t_size_type = size_type>
-        typename std::enable_if<shape_type::lex_ordered, t_size_type>::type
-        lex_count(size_type i, size_type j, value_type c,
-                  size_type& smaller, size_type& greater) const {
+        template<class t_ret_type = std::tuple<size_type, size_type, size_type>>
+        typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type
+        lex_count(size_type i, size_type j, value_type c) const {
             assert(i <= j and j <= size());
-            smaller = 0;
-            greater = 0;
             if (1==m_sigma) {
                 value_type _c = m_tree.bv_pos_rank(m_tree.root());
                 if (c == _c) { // c is the only symbol in the wt
-                    return i;
+                    return t_ret_type {i,0,0};
                 } else if (c < _c) {
-                    greater = j-i;
-                    return 0;
+                    return t_ret_type {0,0,j-i};
                 } else {
-                    smaller = j-i;
-                    return 0;
+                    return t_ret_type {0,j-i,0};
                 }
             }
             if (i==j) {
-                return rank(i,c);
+                return t_ret_type {rank(i,c),0,0};
             }
             uint64_t p = m_tree.bit_path(c);
             uint32_t path_len = p>>56;
             if (path_len == 0) {  // path_len=0: => c is not present
                 value_type _c = (value_type)(p&0x00FFFFFFFFFFFFFFULL);
                 if (c == _c) {    // c is smaller than any symbol in wt
-                    greater = j-i;
-                    return 0;
+                    return t_ret_type {0, 0, j-i};
                 }
-                lex_count(i, j, _c, smaller, greater);
-                smaller = j-i-greater;
-                return 0;
+                auto res = lex_count(i, j, _c);
+                return t_ret_type {0, j-i-std::get<2>(res),std::get<2>(res)};
             }
-
+            size_type smaller = 0;
+            size_type greater = 0;
             size_type res1 = i;
             size_type res2 = j;
             node_type v = m_tree.root();
@@ -544,7 +538,7 @@ class wt_pc
                 }
                 v = m_tree.child(v, p&1);
             }
-            return res1;
+            return t_ret_type {res1,smaller, greater};
         };
 
         //! How many symbols are lexicographic smaller than c in [0..i-1].

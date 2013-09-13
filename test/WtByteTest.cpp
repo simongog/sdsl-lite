@@ -278,10 +278,10 @@ void test_lex_count(t_T& wt)
                 num_s += num_c;
                 num_c = rank_c_j_n[c]-rank_c_i_n[c];
                 num_g -= num_c;
-                size_type s, g;
-                ASSERT_EQ(rank_c_i_n[c], wt.lex_count(l, r, (value_type)c, s, g));
-                ASSERT_EQ(num_s, s);
-                ASSERT_EQ(num_g, g);
+                auto res = wt.lex_count(l, r, (value_type)c);
+                ASSERT_EQ(rank_c_i_n[c], std::get<0>(res));
+                ASSERT_EQ(num_s, std::get<1>(res));
+                ASSERT_EQ(num_g, std::get<2>(res));
             }
         }
     }
