@@ -52,7 +52,7 @@ typename Csa::size_type get_char_pos(typename Csa::size_type idx, typename Csa::
             idx = csa.psi[idx];
         return idx;
     }
-    return csa(csa[idx] + d);
+    return csa.isa[csa[idx] + d];
 }
 
 }
