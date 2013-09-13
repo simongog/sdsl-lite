@@ -171,9 +171,9 @@ TYPED_TEST(WtByteTest, InverseSelect)
     std::vector<size_type> cnt(256, 0);
     ASSERT_EQ(text.size(), wt.size());
     for (size_type j=0; j<text.size(); ++j) {
-        typename TypeParam::value_type c;
-        ASSERT_EQ(cnt[text[j]], wt.inverse_select(j, c));
-        ASSERT_EQ(text[j], c);
+        auto rc = wt.inverse_select(j);
+        ASSERT_EQ(cnt[text[j]], rc.first);
+        ASSERT_EQ(text[j], rc.second);
         cnt[text[j]]++;
     }
 }

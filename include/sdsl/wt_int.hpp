@@ -35,6 +35,7 @@
 #include <stdexcept>
 #include <vector>
 #include <queue>
+#include <utility>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -68,6 +69,10 @@ class wt_int
         typedef t_select_zero            select_0_type;
         typedef wt_tag                   index_category;
         typedef int_alphabet_tag         alphabet_category;
+
+        typedef std::pair<value_type, size_type>     point_type;
+        typedef std::vector<point_type>              point_vec_type;
+        typedef std::pair<size_type, point_vec_type> r2d_res_type;
 
     protected:
 
@@ -318,13 +323,13 @@ class wt_int
         //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the original sequence.
         /*!
          *  \param i The index of the symbol.
-         *  \param c Reference that will contain symbol wt[i].
-         *  \return The number of occurrences of symbol wt[i] in the prefix [0..i-1]
+         *  \return  Pair (rank(wt[i],i),wt[i])
          */
-        size_type inverse_select(size_type i, value_type& c)const {
+        std::pair<size_type, value_type>
+        inverse_select(size_type i)const {
             assert(i < size());
-            c = (*this)[i];
-            return rank(i, c);
+            value_type c = (*this)[i];
+            return std::make_pair(rank(i, c),c);
         }
 
         //! Calculates the i-th occurrence of the symbol c in the supported vector.
@@ -376,40 +381,44 @@ class wt_int
         };
 
         //! range_search_2d searches points in the index interval [lb..rb] and value interval [vlb..vrb].
-        /*! \param lb         Left bound of index interval (inclusive)
-         *  \param rb         Right bound of index interval (inclusive)
-         *  \param vlb        Left bound of value interval (inclusive)
-         *  \param vrb        Right bound of value interval (inclusive)
-         *  \param idx_result Reference to a vector to which the resulting indices should be added
-         *  \param val_result Reference to a vector to which the resulting values should be added
+        /*! \param lb     Left bound of index interval (inclusive)
+         *  \param rb     Right bound of index interval (inclusive)
+         *  \param vlb    Left bound of value interval (inclusive)
+         *  \param vrb    Right bound of value interval (inclusive)
+         *  \param report Should the matching points be returned?
+         *  \return Pair (#of found points, vector of points), the vector is empty when
+         *          report = false.
          */
-        size_type range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb,
-                                  std::vector<size_type>* idx_result=nullptr,
-                                  std::vector<value_type>* val_result=nullptr
-                                 ) const {
+
+        std::pair<size_type, std::vector<std::pair<value_type, size_type>>>
+        range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb,
+                        bool report=true) const {
             size_type offsets[m_max_depth+1];
             size_type ones_before_os[m_max_depth+1];
             offsets[0] = 0;
             if (vrb > (1ULL << m_max_depth))
                 vrb = (1ULL << m_max_depth);
             if (vlb > vrb)
-                return 0;
+                return make_pair(0, point_vec_type());
             size_type cnt_answers = 0;
-            _range_search_2d(lb, rb, vlb, vrb, 0, 0, m_size, offsets, ones_before_os, 0, idx_result, val_result, cnt_answers);
-            return cnt_answers;
+            point_vec_type point_vec;
+            _range_search_2d(lb, rb, vlb, vrb, 0, 0, m_size, offsets, ones_before_os, 0, point_vec, report, cnt_answers);
+            return make_pair(cnt_answers, point_vec);
         }
 
         // add parameter path
         // ilb interval left bound
         // irb interval right bound
-        void _range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb, size_type depth,
-                              size_type ilb, size_type node_size, size_type offsets[], size_type ones_before_os[], size_type path,
-                              std::vector<size_type>* idx_result, std::vector<size_type>* val_result, size_type& cnt_answers)
+        void
+        _range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb, size_type depth,
+                         size_type ilb, size_type node_size, size_type offsets[],
+                         size_type ones_before_os[], size_type path,
+                         point_vec_type& point_vec, bool report, size_type& cnt_answers)
         const {
             if (lb > rb)
                 return;
             if (depth == m_max_depth) {
-                if (idx_result != nullptr) {
+                if (report) {
                     for (size_type j=1; j <= node_size; ++j) {
                         size_type i = j;
                         size_type c = path;
@@ -423,12 +432,7 @@ class wt_int
                             }
                             c >>= 1;
                         }
-                        idx_result->push_back(i-1); // add resulting index; -1 cause of 0 based indexing
-                    }
-                }
-                if (val_result != nullptr) {
-                    for (size_type j=1; j <= node_size; ++j) {
-                        val_result->push_back(path);
+                        point_vec.emplace_back(i-1, path); // add resulting index; -1 cause of 0 based indexing
                     }
                 }
                 cnt_answers += node_size;
@@ -453,14 +457,14 @@ class wt_int
                 size_type nrb    = zeros_before_rb - zeros_before_o;
                 offsets[depth+1] = offset + m_size;
                 if (nrb)
-                    _range_search_2d(nlb, nrb-1, vlb, std::min(vrb,mid-1), depth+1, ilb, zeros_before_end - zeros_before_o, offsets, ones_before_os, path<<1, idx_result, val_result, cnt_answers);
+                    _range_search_2d(nlb, nrb-1, vlb, std::min(vrb,mid-1), depth+1, ilb, zeros_before_end - zeros_before_o, offsets, ones_before_os, path<<1, point_vec, report, cnt_answers);
             }
             if (vrb >= mid) {
                 size_type nlb     = ones_before_lb - ones_before_o;
                 size_type nrb     = ones_before_rb - ones_before_o;
                 offsets[depth+1]  = offset + m_size + (zeros_before_end - zeros_before_o);
                 if (nrb)
-                    _range_search_2d(nlb, nrb-1, std::max(mid, vlb), vrb, depth+1, mid, ones_before_end - ones_before_o, offsets, ones_before_os, (path<<1)+1 ,idx_result, val_result, cnt_answers);
+                    _range_search_2d(nlb, nrb-1, std::max(mid, vlb), vrb, depth+1, mid, ones_before_end - ones_before_o, offsets, ones_before_os, (path<<1)+1 , point_vec, report, cnt_answers);
             }
         }
 

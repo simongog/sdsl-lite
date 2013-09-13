@@ -347,12 +347,12 @@ class wt_pc
         //! Calculates how many times symbol wt[i] occurs in the prefix [0..i-1].
         /*!
          * \param i The index of the symbol.
-         * \param c Reference that will contain the symbol at position i.
-         * \return  Number of occurrences of symbol wt[i] in the prefix [0..i-1].
+         * \return  Pair (rank(wt[i],i),wt[i])
          *   \par Time complexity
          *       \f$ \Order{H_0} \f$
          */
-        size_type inverse_select(size_type i, value_type& c)const {
+        std::pair<size_type, value_type>
+        inverse_select(size_type i)const {
             assert(i < size());
             node_type v = m_tree.root();
             while (!m_tree.is_leaf(v)) {   // while not a leaf
@@ -367,8 +367,7 @@ class wt_pc
                 }
             }
             // if v is a leaf bv_pos_rank returns symbol itself
-            c = m_tree.bv_pos_rank(v);
-            return i;
+            return std::make_pair(i, (value_type)m_tree.bv_pos_rank(v));
         }
 
         //! Calculates the ith occurrence of the symbol c in the supported vector.
@@ -446,11 +445,15 @@ class wt_pc
                 rank_c_j[0] = std::min(j,m_size);
             } else if ((j-i)==1) {
                 k = 1;
-                rank_c_i[0] = inverse_select(i, cs[0]);
+                auto rc = inverse_select(i);
+                rank_c_i[0] = rc.first; cs[0] = rc.second;
                 rank_c_j[0] = rank_c_i[0]+1;
             } else if ((j-i)==2) {
-                rank_c_i[0] = inverse_select(i, cs[0]);
-                rank_c_i[1] = inverse_select(i+1, cs[1]);
+                auto rc = inverse_select(i);
+                rank_c_i[0] = rc.first; cs[0] = rc.second;
+                rc = inverse_select(i+1);
+                rank_c_i[1] = rc.first; cs[1] = rc.second;
+
                 if (cs[0]==cs[1]) {
                     k = 1;
                     rank_c_j[0] = rank_c_i[0]+2;
