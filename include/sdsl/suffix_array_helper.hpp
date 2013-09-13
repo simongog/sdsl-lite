@@ -289,7 +289,7 @@ struct traverse_csa_wt_traits<t_csa,false> {
         typename t_csa::char_type c;
         auto rc = csa.wavelet_tree.inverse_select(i);
         size_type j = rc.first;
-        value_type c = rc.second;
+        c = rc.second;
         return csa.C[ csa.char2comp[c] ] + j;
     }
 };
