@@ -54,6 +54,8 @@ typename t_csa::size_type get_char_pos(typename t_csa::size_type idx, typename t
     return csa.csa[csa[idx] + d];
 }
 
+}
+
 /** \defgroup cst Compressed Suffix Trees (CST)
  *   This group contains data structures for compressed suffix trees. The following methods are supported:
  *    - root()
