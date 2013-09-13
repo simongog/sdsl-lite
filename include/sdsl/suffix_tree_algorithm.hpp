@@ -211,5 +211,68 @@ t_rac extract(
     return extract<t_rac>(cst.csa, begin, begin + cst.depth(v) - 1);
 }
 
+
+
+//! Calculate the zeroth order entropy of the text that follows a certain substring s
+/*!
+ * \param v     A suffix tree node v. The label of the path from the root to v is s.
+ * \param cst   The suffix tree of v.
+ * \param The zeroth order entropy of the concatenation of all characters that follow
+          s in the original text.
+ */
+template<class t_cst>
+double H0(const typename t_cst::node_type& v, const t_cst& cst)
+{
+    if (cst.is_leaf(v)) {
+        return 0;
+    } else {
+        double h0=0;
+        auto n = cst.size(v);
+for (const auto& child : cst.children(v)) {
+            double p = ((double)cst.size(child))/n;
+            h0 -= p*log2(p);
+        }
+        return h0;
+    }
+}
+
+//! Calculate the k-th order entropy of a text
+/*!
+ * \param cst       The suffix tree of v.
+ * \param k         Parameter k for which H_k should be calculated.
+ */
+template<class t_cst>
+std::pair<double,size_t> Hk(const t_cst& cst, typename t_cst::size_type k)
+{
+    double hk = 0;
+    size_t context = 0;
+    std::set<typename t_cst::size_type> leafs_with_d_smaller_k;
+    for (typename t_cst::size_type d = 1; d < k; ++d) {
+        leafs_with_d_smaller_k.insert(cst.csa.isa[cst.csa.size()-d]);
+    }
+    for (typename t_cst::const_iterator it = cst.begin(), end=cst.end(); it != end; ++it) {
+        if (it.visit() == 1) {
+            if (!cst.is_leaf(*it)) {
+                typename t_cst::size_type d = cst.depth(*it);
+                if (d >= k) {
+                    if (d == k) {
+                        hk += cst.size(*it) * H0(*it, cst);
+                    }
+                    ++context;
+                    it.skip_subtree();
+                }
+            } else {
+                // if d of leaf is >= k, add context
+                if (leafs_with_d_smaller_k.find(cst.lb(*it)) == leafs_with_d_smaller_k.end()) {
+                    ++context;
+                }
+            }
+        }
+    }
+    hk /= cst.size();
+    return {hk,context};
+}
+
+
 } // end namespace
 #endif
