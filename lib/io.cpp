@@ -22,6 +22,21 @@ bool store_to_file(const char* v, const std::string& file)
     return true;
 }
 
+bool store_to_checked_file(const char* v, const std::string& file)
+{
+    std::string checkfile = file+"_check";
+    osfstream out(checkfile, std::ios::binary | std::ios::trunc | std::ios::out);
+    if (!out) {
+        if (util::verbose) {
+            std::cerr<<"ERROR: store_to_checked_file(const char *v, const std::string&)"<<std::endl;
+            return false;
+        }
+    }
+    add_hash(v, out);
+    out.close();
+    return store_to_file(v, file);
+}
+
 
 template<>
 size_t write_member<std::string>(const std::string& t, std::ostream& out, structure_tree_node* v, std::string name)

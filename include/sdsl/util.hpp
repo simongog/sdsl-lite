@@ -31,7 +31,7 @@
 #include <cassert>
 #include <ctime>       // for rand initialization
 #include <string>
-#include <locale>       // for class_to_hash
+#include <functional>  // for class_to_hash
 #include <string.h>    // for strlen and strdup
 #include <libgen.h>    // for basename
 #include <cstdlib>
@@ -39,7 +39,7 @@
 #include <sstream>     // for to_string method
 #include <stdexcept>   // for std::logic_error
 #include <typeinfo>    // for typeid
-#include <sys/time.h> // for struct timeval
+#include <sys/time.h>  // for struct timeval
 #include <sys/resource.h> // for struct rusage
 #include <iomanip>
 #include <numeric>
@@ -196,16 +196,19 @@ template<typename T>
 std::string to_string(const T& t, int w=1);
 
 
+//! Transforms the demangled class name of an object to a hash value.
+template<class T>
+uint64_t hashvalue_of_classname(const T&)
+{
+    std::hash<std::string> str_hash;
+    return str_hash(sdsl::util::demangle2(typeid(T).name()));
+}
 
 //! Transforms the demangled class name of an object to a hash value.
 template<class T>
-std::string class_to_hash(const T&)
+std::string class_to_hash(const T& t)
 {
-    std::locale loc;
-    const std::collate<char>& coll = std::use_facet<std::collate<char> >(loc);
-    std::string name = sdsl::util::demangle2(typeid(T).name());
-    uint64_t my_hash = coll.hash(name.data(),name.data()+name.length());
-    return to_string(my_hash);
+    return to_string(hashvalue_of_classname(t));
 }
 
 template<class T>
