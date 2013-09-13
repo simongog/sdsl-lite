@@ -15,5 +15,10 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 #	get_filename_component(_cpu_id "[HKEY_LOCAL_MACHINE\\Hardware\\Description\\System\\CentralProcessor\\0;Identifier]" NAME CACHE)	
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 #  handle MacOs
+execute_process(COMMAND sysctl -n machdep.cpu.features
+                OUTPUT_VARIABLE _cpuinfo OUTPUT_STRIP_TRAILING_WHITESPACE)
+	if(_cpuinfo MATCHES "SSE4.2")
+		set(BUILTIN_POPCNT 1)
+	endif()
 endif()	
 	
