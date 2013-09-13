@@ -21,7 +21,6 @@
 #ifndef INCLUDED_SDSL_INT_VECTOR
 #define INCLUDED_SDSL_INT_VECTOR
 
-#include "compatibility.hpp"
 #include "bits.hpp"
 #include "structure_tree.hpp"
 #include "util.hpp"
@@ -99,8 +98,6 @@ namespace coder
 class fibonacci;
 class elias_delta;
 }
-
-class char_array_serialize_wrapper;
 
 template<uint8_t t_width>
 struct int_vec_category_trait {
@@ -1416,19 +1413,6 @@ void int_vector<t_width>::load(std::istream& in)
     }
     in.read((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
 }
-
-//! A wrapper class which allows us to serialize an char array as an int_vector.
-class char_array_serialize_wrapper
-{
-    public:
-        typedef int_vector_size_type    size_type;
-    private:
-        size_type m_n;  // number of char
-        const unsigned char* m_cp;
-    public:
-        inline char_array_serialize_wrapper(const unsigned char* c=nullptr, size_type n=0):m_n(n), m_cp(c) {}
-        size_type serialize(std::ostream& out)const;
-};
 
 }// end namespace sdsl
 
