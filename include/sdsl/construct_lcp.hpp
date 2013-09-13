@@ -22,7 +22,6 @@
 #ifndef INCLUDED_SDSL_CONSTRUCT_LCP
 #define INCLUDED_SDSL_CONSTRUCT_LCP
 
-#include "typedefs.hpp"  // includes definition of tMSS
 #include "config.hpp"
 #include "int_vector.hpp"
 #include "sfstream.hpp"

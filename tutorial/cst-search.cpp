@@ -71,7 +71,8 @@ void execute(const char* input, uint8_t num_bytes, t_pat& pat, const char* forma
     }
     cout << "---- extract text  ----" << endl;
     {
-        cout << "extract(cst,cst.select_leaf(cst.csa(0)+1))=\"" << extract<t_pat>(cst, cst.select_leaf(cst.csa(0)+1)) << "\"" << endl;
+        cout << "extract(cst,cst.select_leaf(cst.csa.isa[0]+1))=\""
+             << extract<t_pat>(cst, cst.select_leaf(cst.csa.isa[0]+1)) << "\"" << endl;
     }
 
 }
