@@ -220,8 +220,9 @@ class bwt_of_csa_psi
     public:
         typedef typename t_csa::char_type value_type;
         typedef typename t_csa::size_type size_type;
+        typedef typename t_csa::char_type char_type;
         typedef typename t_csa::difference_type difference_type;
-        typedef random_access_const_iterator<bwt_of_csa_psi> const_iterator;// STL Container requirement
+        typedef random_access_const_iterator<bwt_of_csa_psi> const_iterator;
     private:
         const t_csa& m_csa; //<- pointer to the (compressed) suffix array that is based on the \f$\Psi\f$ function.
     public:
@@ -238,6 +239,30 @@ class bwt_of_csa_psi
             assert(i < size());
             size_type pos = m_csa.lf[i];
             return first_row_symbol(pos,m_csa);
+        }
+
+        //! Calculates how many symbols c are in the prefix [0..i-1]
+        /*!
+         *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
+         *  \param c The symbol to count the occurrences in the prefix.
+         *    \returns The number of occurrences of symbol c in the prefix [0..i-1].
+         *  \par Time complexity
+         *        \f$ \Order{\log n t_{\Psi}} \f$
+         */
+        size_type rank(size_type i, const char_type c)const {
+            return m_csa.rank_bwt(i,c);
+        }
+
+        //! Calculates the position of the i-th c.
+        /*!
+         *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
+         *  \param c Symbol c.
+         *    \returns The position of the i-th c or size() if c does occur less then i times.
+         *  \par Time complexity
+         *        \f$ \Order{t_{\Psi}} \f$
+         */
+        size_type select(size_type i, const char_type c)const {
+            return m_csa.select_bwt(i, c);
         }
 
         //! Returns the size of the \f$\Psi\f$ function.
@@ -304,7 +329,7 @@ class traverse_csa_wt
         typedef typename t_csa::size_type size_type;
         typedef typename t_csa::char_type char_type;
         typedef typename t_csa::difference_type difference_type;
-        typedef random_access_const_iterator<traverse_csa_wt> const_iterator;// STL Container requirement
+        typedef random_access_const_iterator<traverse_csa_wt> const_iterator;
     private:
         const t_csa& m_csa; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
         traverse_csa_wt() {};    // disable default constructor
@@ -345,8 +370,9 @@ class bwt_of_csa_wt
     public:
         typedef const typename t_csa::char_type value_type;
         typedef typename t_csa::size_type size_type;
+        typedef typename t_csa::char_type char_type;
         typedef typename t_csa::difference_type difference_type;
-        typedef random_access_const_iterator<bwt_of_csa_wt> const_iterator;// STL Container requirement
+        typedef random_access_const_iterator<bwt_of_csa_wt> const_iterator;
     private:
         const t_csa& m_csa; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
         bwt_of_csa_wt() {};    // disable default constructor
@@ -366,6 +392,32 @@ class bwt_of_csa_wt
         size_type size()const {
             return m_csa.size();
         }
+
+        //! Calculates how many symbols c are in the prefix [0..i-1].
+        /*!
+         *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
+         *  \param c The symbol to count the occurrences in the prefix.
+         *    \returns The number of occurrences of symbol c in the prefix [0..i-1].
+         *  \par Time complexity
+         *        \f$ \Order{\log |\Sigma|} \f$
+         */
+        size_type rank(size_type i, const char_type c)const {
+            return m_csa.rank_bwt(i, c);
+        }
+
+        //! Calculates the position of the i-th c.
+        /*!
+         *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
+         *  \param c Symbol c.
+         *    \returns The position of the i-th c or size() if c does occur less then i times.
+         *  \par Time complexity
+         *        \f$ \Order{t_{\Psi}} \f$
+         */
+        size_type select(size_type i, const char_type c)const {
+            return m_csa.select(i, c);
+        }
+
+
         //! Returns if the BWT function is empty.
         size_type empty()const {
             return m_csa.empty();
@@ -487,7 +539,7 @@ class first_row_of_csa
         typedef const typename t_csa::char_type value_type;
         typedef typename t_csa::size_type size_type;
         typedef typename t_csa::difference_type difference_type;
-        typedef random_access_const_iterator<first_row_of_csa> const_iterator;// STL Container requirement
+        typedef random_access_const_iterator<first_row_of_csa> const_iterator;
     private:
         const t_csa& m_csa;
     public:
@@ -528,7 +580,7 @@ class text_of_csa
         typedef typename t_csa::char_type value_type;
         typedef typename t_csa::size_type size_type;
         typedef typename t_csa::difference_type difference_type;
-        typedef random_access_const_iterator<text_of_csa> const_iterator;// STL Container requirement
+        typedef random_access_const_iterator<text_of_csa> const_iterator;
     private:
         const t_csa& m_csa;
         text_of_csa() {}

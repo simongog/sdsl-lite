@@ -59,6 +59,7 @@ template<class t_enc_vec         = enc_vector<>,          // Vector type used to
          >
 class csa_sada
 {
+        friend class bwt_of_csa_psi<csa_sada>;
     public:
         enum { sa_sample_dens = t_dens,
                isa_sample_dens = t_inv_dens
@@ -236,7 +237,7 @@ class csa_sada
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
 
         //! Load from a stream.
-        /*! \param in Inputstream to load the data structure from.
+        /*! \param in Input stream to load the data structure from.
          */
         void load(std::istream& in);
 
@@ -244,20 +245,18 @@ class csa_sada
             return t_dens;
         }
 
-        uint32_t get_psi_sample_dens() const {
-            return m_psi.get_sample_dens();
-        }
+    private:
 
-        //! Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
-        /*!
+        // Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
+        /*
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
-         *  \param c The symbol to count the occurences in the prefix.
-         *    \returns The number of occurences of symbol c in the prefix [0..i-1] of the BWT.
+         *  \param c The symbol to count the occurrences in the prefix.
+         *    \returns The number of occurrences of symbol c in the prefix [0..i-1] of the BWT.
          *  \par Time complexity
          *        \f$ \Order{\log n t_{\Psi}} \f$
          */
-        size_type rank_bwt(size_type i, const unsigned char c)const {
-            unsigned char cc = char2comp[c];
+        size_type rank_bwt(size_type i, const char_type c)const {
+            comp_char_type cc = char2comp[c];
             if (cc==0 and c!=0)  // character is not in the text => return 0
                 return 0;
             if (i == 0)
@@ -327,17 +326,17 @@ finish:
             }
         }
 
-        //! Calculates the position of the i-th c in the BWT of the original text.
-        /*!
-         *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
+        // Calculates the position of the i-th c in the BWT of the original text.
+        /*
+         *  \param i The i-th occurrence. \f$i\in [1..rank_bwt(size(),c)]\f$.
          *  \param c Symbol c.
          *    \returns The position of the i-th c in the BWT or size() if c does occur less then i times.
          *  \par Time complexity
          *        \f$ \Order{t_{\Psi}} \f$
          */
-        size_type select_bwt(size_type i, const unsigned char c)const {
+        size_type select_bwt(size_type i, const char_type c)const {
             assert(i > 0);
-            unsigned char cc = char2comp[c];
+            comp_char_type cc = char2comp[c];
             if (cc==0 and c!=0)  // character is not in the text => return 0
                 return size();
             assert(cc != 255);
