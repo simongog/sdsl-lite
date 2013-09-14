@@ -526,10 +526,7 @@ struct _int_tree {
 
     //! Return the path as left/right bit sequence in a uint64_t
     inline uint64_t bit_path(value_type c)const {
-        if (c >= m_c_to_leaf.size())
-            return 0;
-        else
-            return m_path[c];
+        return m_path[c];
     }
 
     //! Return the start of the node in the WT's bit vector

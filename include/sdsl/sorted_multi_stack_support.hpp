@@ -16,20 +16,18 @@
 */
 /*! \file sorted_multi_stack_support.hpp
     \brief sorted_multi_stack_support.hpp contains a data structure for a stack which contains
-	       elements from [0..n] in sorted order. Duplicates are possible
+	       elements from [0..n] in sorted order. Duplicates are possible.
 	\author Simon Gog
 */
 #ifndef INCLUDED_SDSL_SORTED_MULTI_STACK_SUPPORT
 #define INCLUDED_SDSL_SORTED_MULTI_STACK_SUPPORT
 
 #include "int_vector.hpp"
-#include <vector>
 
-//! Namespace for the succinct data structure library.
 namespace sdsl
 {
 
-//! A stack class which contains ...
+//! Stack which contains elements from [0..n] in sorted order. Duplicates are possible.
 /*! \par Space complexity
  *  \f$2n\f$ bits
  */
@@ -52,7 +50,7 @@ class sorted_multi_stack_support
         }; // maybe we can speed this up with bit hacks
     public:
         //! Constructor
-        /*! \param n Miximum that can be pushed onto the stack
+        /*! \param n Maximum that can be pushed onto the stack
          */
         sorted_multi_stack_support(size_type n);
 

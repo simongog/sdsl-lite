@@ -626,24 +626,23 @@ class text_of_csa
         }
 };
 
-template<class Csa, uint8_t int_width>
-void set_isa_samples(int_vector_buffer<int_width>& sa_buf, typename Csa::isa_sample_type& isa_sample)
+template<class t_csa, uint8_t int_width>
+void set_isa_samples(int_vector_buffer<int_width>& sa_buf, typename t_csa::isa_sample_type& isa_sample)
 {
-    typedef typename Csa::size_type size_type;
-    size_type  n = sa_buf.size();
-
+    typedef typename t_csa::size_type size_type;
+    auto n = sa_buf.size();
     isa_sample.width(bits::hi(n)+1);
-    if (n >= 1) { // so n+Csa::isa_sample_dens >= 2
-        isa_sample.resize((n-1+Csa::isa_sample_dens-1)/Csa::isa_sample_dens + 1);
+    if (n >= 1) { // so n+t_csa::isa_sample_dens >= 2
+        isa_sample.resize((n-1+t_csa::isa_sample_dens-1)/t_csa::isa_sample_dens + 1);
     }
     util::set_to_value(isa_sample, 0);
 
     for (size_type i=0; i < n; ++i) {
         size_type sa = sa_buf[i];
-        if ((sa % Csa::isa_sample_dens) == 0) {
-            isa_sample[sa/Csa::isa_sample_dens] = i;
+        if ((sa % t_csa::isa_sample_dens) == 0) {
+            isa_sample[sa/t_csa::isa_sample_dens] = i;
         } else if (sa+1 == n) {
-            isa_sample[(sa+Csa::isa_sample_dens-1)/Csa::isa_sample_dens] = i;
+            isa_sample[(sa+t_csa::isa_sample_dens-1)/t_csa::isa_sample_dens] = i;
         }
     }
 }
