@@ -10,7 +10,6 @@ TMP_DIR=tmp
 SOURCES=$(wildcard *Test.cpp)
 EXECS=$(SOURCES:.cpp=.x)
 EXEC_LIST=$(patsubst %,./%;,$(EXECS))                # list of executables
-EXEC_LIST_VAL=$(patsubst %,valgrind ./%;,$(EXECS))   # list of executables preceded by valgrind command
 
 BIT_VECTOR_TC_PATH:=$(call config_column,BitVectorTest.config,2)
 BIT_VECTOR_TESTS:=$(patsubst %,bit-vector-test/%,$(BIT_VECTOR_TC_PATH))
@@ -91,13 +90,13 @@ build-test-clean: clean
 generators: BitVectorGenerator.x IntVectorGenerator.x
 
 bits-test: ./BitsTest.x
-	./BitsTest.x
+	@$(PREFIX) ./BitsTest.x
 
 int-vector-test: ./IntVectorTest.x
-	./IntVectorTest.x
+	@$(PREFIX) ./IntVectorTest.x
 
 int-vector-buffer-test: ./IntVectorBufferTest.x
-	./IntVectorBufferTest.x
+	@$(PREFIX) ./IntVectorBufferTest.x
 
 bit-vector-test: generators $(BIT_VECTOR_TESTS)
 
