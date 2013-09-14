@@ -85,7 +85,7 @@ class rmq_succinct_sct
                 construct_supercartesian_tree_bp(*v, m_sct_bp, t_min);
 #else
                 // this method takes only \f$n\f$ bits extra space in all cases
-                construct_supercartesian_tree_bp_succinct(*v, m_sct_bp, t_min);
+                m_sct_bp = construct_supercartesian_tree_bp_succinct(*v, t_min);
                 //  TODO: constructor which uses int_vector_buffer
 #endif
                 m_sct_bp_support = bp_support_type(&m_sct_bp);
