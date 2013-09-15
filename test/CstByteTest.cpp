@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 #include <vector>
 #include <string>
+#include <set>
 #include <sstream>
 
 using namespace sdsl;
@@ -148,6 +149,9 @@ TYPED_TEST(CstByteTest, LcpAccess)
 TYPED_TEST(CstByteTest, IdMethod)
 {
     TypeParam cst;
+    // test empty iterator
+    ASSERT_EQ(cst.begin(), cst.end());
+
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     // doing a depth first traversal through the tree to count the nodes
     typedef typename TypeParam::const_iterator const_iterator;
@@ -174,6 +178,53 @@ TYPED_TEST(CstByteTest, IdMethod)
     }
 }
 
+TYPED_TEST(CstByteTest, SelectChild)
+{
+    TypeParam cst;
+    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    if (cst.size() > 1) {
+        ASSERT_EQ(cst.csa.sigma, cst.degree(cst.root()));
+        size_type lb = 0;
+        for (size_type i=1; i <= cst.csa.sigma; ++i) {
+            auto v = cst.select_child(cst.root(), i);
+            ASSERT_EQ(lb, cst.lb(v));
+            lb = cst.rb(v)+1;
+        }
+        ASSERT_EQ(cst.rb(cst.root()), lb-1);
+    } else if (cst.size() == 1) {
+        ASSERT_EQ(1U, cst.csa.sigma);
+        ASSERT_EQ(0U, cst.degree(cst.root()));
+    }
+}
+
+
+TYPED_TEST(CstByteTest, Child)
+{
+    TypeParam cst;
+    typedef typename TypeParam::char_type char_type;
+    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    if (cst.size() > 1) {
+        std::set<char_type> char_set;
+        ASSERT_EQ(cst.csa.sigma, cst.degree(cst.root()));
+        for (size_type i=0; i < cst.csa.sigma; ++i) {
+            auto c = cst.csa.comp2char[i];
+            char_set.insert(c);
+            auto v = cst.select_child(cst.root(), i+1);
+            auto w = cst.child(cst.root(), c);
+            ASSERT_EQ(v, w);
+            if (cst.is_leaf(v)) {
+                ASSERT_EQ(cst.root(), cst.select_child(v, c));
+            }
+        }
+        for (size_type i=0; i < 256; ++i) {
+            char_type c = (char_type)i;
+            if (char_set.find(c) == char_set.end()) {
+                ASSERT_EQ(cst.root(), cst.child(cst.root(), c));
+            }
+        }
+    }
+}
+
 TYPED_TEST(CstByteTest, LcaMethod)
 {
     TypeParam cst;
@@ -193,22 +244,16 @@ TYPED_TEST(CstByteTest, LcaMethod)
         ASSERT_EQ(z, cst.lca(v, w));
     }
     // test for regular sampled nodes
-    for (size_type i=cst.csa.size()/2, g=100; i+g < std::min(cst.csa.size(), cst.csa.size()/2+100*g); ++i) {
+    size_type g = std::max(cst.csa.size()/1000, (size_type)5);
+    for (size_type i=cst.csa.size()/2; i+g < cst.csa.size(); ++i) {
         // get two children
         node_type v = cst.select_leaf(i+1);
         node_type w = cst.select_leaf(i+g+1);
         // calculate lca
         node_type z = naive_lca(cst, v, w);
         node_type u = cst.lca(v, w);
-        if (u != z) {
-            cout << "v="<<v<<" w="<<w<< endl;
-            cout << "u="<<u<<" z="<<z<<endl;
-            cout << "--------------"<<endl;
-            cout << "v="<<format_node(cst, v)<<" w="<<format_node(cst, w)<< endl;
-            cout << "u="<<format_node(cst, u)<<" z="<<format_node(cst, z)<<endl;
-            naive_lca(cst, v, w, true);
-        }
-        ASSERT_EQ(z, u);
+        ASSERT_EQ(z, u) << " naive_lca is "
+                        << naive_lca(cst, v, w, true) << endl;
     }
 }
 
