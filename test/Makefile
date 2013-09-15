@@ -11,6 +11,9 @@ SOURCES=$(wildcard *Test.cpp)
 EXECS=$(SOURCES:.cpp=.x)
 EXEC_LIST=$(patsubst %,./%;,$(EXECS))                # list of executables
 
+GCDAs=$(SOURCES:.cpp=.gcda)
+GCNOs=$(SOURCES:.cpp=.gcno)
+
 BIT_VECTOR_TC_PATH:=$(call config_column,BitVectorTest.config,2)
 BIT_VECTOR_TESTS:=$(patsubst %,bit-vector-test/%,$(BIT_VECTOR_TC_PATH))
 
@@ -221,7 +224,7 @@ test_cases/%:
 
 
 clean:
-	rm -f $(EXECS)
+	rm -f $(EXECS) $(GCDAs) $(GCNOs)
 	rm -rf *.dSYM
 
 cleanall: clean
