@@ -762,7 +762,7 @@ class cst_sct3
         //! Returns the d-th character (1-based indexing) of the edge-label pointing to v.
         /*!\param v The node at which the edge path ends.
          * \param d The position (1-based indexing) on the edge path from the
-         *           root to v. \f$ d > 0 \wedge d < depth(v) \f$
+         *           root to v. \f$ d > 0 \wedge d <= depth(v) \f$
          * \return  The character at position d on the edge path from the root to v.
          * \par Time complexity
          *       \f$ \Order{ \log\sigma + (\saaccess+\isaaccess) } \f$
