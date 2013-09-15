@@ -199,7 +199,7 @@ TYPED_TEST(CstIntTest, SelectChild)
     }
 }
 
-TYPED_TEST(CstByteTest, SelectLeafAndSn)
+TYPED_TEST(CstIntTest, SelectLeafAndSn)
 {
     TypeParam cst;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
@@ -253,7 +253,7 @@ TYPED_TEST(CstIntTest, Edge)
     }
 }
 
-TYPED_TEST(CstByteTest, LeftmostRightmostLeaf)
+TYPED_TEST(CstIntTest, LeftmostRightmostLeaf)
 {
     TypeParam cst;
     typedef typename TypeParam::char_type char_type;
