@@ -539,10 +539,8 @@ class cst_sada
          * \pre \f$ 1 \leq d \leq depth(v)  \f$
          */
         char_type edge(node_type v, size_type d)const {
-            if (d < 1 or d > depth(v)) {
-                throw std::out_of_range("OUT_OF_RANGE_ERROR: "+util::demangle(typeid(this).name())+" cst_sada<>::edge(node_type v, size_type d). d == 0 or d > depth(v)!");
-            }
-
+            assert(1 <= d);
+            assert(d <= depth(v));
             size_type i = 0;// index of the first suffix in the subtree of v
             if (is_leaf(v)) { // if v is a leave
                 i = m_bp_rank10(v); // get the index in the suffix array
@@ -619,8 +617,8 @@ class cst_sada
             // get the rightmost leaf in the tree rooted at v
             size_type right = is_leaf(v) ? left : m_bp_rank10(m_bp_support.find_close(v))-1;
 
-            size_type c_left    = m_csa.rank_bwt(left, c);
-            size_type c_right    = m_csa.rank_bwt(right+1, c);
+            size_type c_left    = m_csa.bwt.rank(left, c);
+            size_type c_right    = m_csa.bwt.rank(right+1, c);
 
             if (c_left == c_right)  // there exists no Weiner link
                 return root();

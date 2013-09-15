@@ -905,8 +905,8 @@ class cst_sct3
          *        \f$ \Order{ t_{rank\_bwt} } \f$
          */
         node_type wl(const node_type& v, const char_type c) const {
-            size_type c_left    = m_csa.rank_bwt(v.i, c);
-            size_type c_right    = m_csa.rank_bwt(v.j+1, c);
+            size_type c_left    = m_csa.bwt.rank(v.i, c);
+            size_type c_right    = m_csa.bwt.rank(v.j+1, c);
             if (c_left == c_right)  // there exists no Weiner link
                 return root();
             if (c_left+1 == c_right)

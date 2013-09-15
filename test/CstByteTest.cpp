@@ -5,6 +5,7 @@
 #include <string>
 #include <set>
 #include <sstream>
+#include <random>
 
 using namespace sdsl;
 using namespace std;
@@ -27,27 +28,20 @@ class CstByteTest : public ::testing::Test { };
 using testing::Types;
 
 typedef Types<
-cst_sct3<cst_sada<>::csa_type, lcp_bitcompressed<> >,
-         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree2<> >,
-         cst_sada<cst_sada<>::csa_type, lcp_dac<> >,
-         cst_sada<cst_sada<>::csa_type, lcp_vlc<> >,
-         cst_sada<cst_sada<>::csa_type, lcp_byte<> >,
-         cst_sada<cst_sada<>::csa_type, lcp_support_tree2<>, bp_support_gg<> >,
-         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_gg<> >,
-         cst_sct3<>,
+cst_sct3<>,
          cst_sada<>,
+         cst_sct3<cst_sct3<>::csa_type, lcp_bitcompressed<>>,
+         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree2<>>,
+         cst_sada<cst_sada<>::csa_type, lcp_dac<>>,
+         cst_sada<cst_sada<>::csa_type, lcp_vlc<>>,
+         cst_sada<cst_sada<>::csa_type, lcp_byte<>>,
+         cst_sada<cst_sada<>::csa_type, lcp_support_tree2<>, bp_support_gg<>>,
+         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_gg<>>,
          cst_sada<cst_sada<>::csa_type, lcp_support_tree<> >,
-         cst_sada<cst_sada<>::csa_type, lcp_dac<> >,
          cst_sct3<cst_sct3<>::csa_type, lcp_support_sada<> >,
-         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<> >,
          cst_sct3<cst_sct3<>::csa_type, lcp_wt<> >,
-         cst_sada<cst_sada<>::csa_type, lcp_support_sada<> >,
-         cst_sada<cst_sada<>::csa_type, lcp_support_tree<> >,
-         cst_sada<cst_sada<>::csa_type, lcp_support_tree2<> >,
-         cst_sada<cst_sada<>::csa_type, lcp_wt<> >,
          cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_g<> >,
-         cst_sct3<csa_bitcompressed<>, lcp_bitcompressed<> >,
-         cst_sada<cst_sada<>::csa_type, lcp_dac<>, bp_support_g<> >
+         cst_sct3<csa_bitcompressed<>, lcp_bitcompressed<> >
          > Implementations;
 
 TYPED_TEST_CASE(CstByteTest, Implementations);
@@ -56,11 +50,16 @@ TYPED_TEST_CASE(CstByteTest, Implementations);
 TYPED_TEST(CstByteTest, CreateAndStoreTest)
 {
     TypeParam cst;
+    ASSERT_EQ(true, cst.empty());
     cache_config config(false, temp_dir, util::basename(test_file));
     construct(cst, test_file, config, 1);
     test_case_file_map = config.file_map;
     bool success = store_to_file(cst, temp_file);
     ASSERT_EQ(true, success);
+    TypeParam cst2;
+    cst2 = cst;
+    ASSERT_EQ(cst.size(), cst2.size());
+    ASSERT_TRUE(cst.size() <= TypeParam::max_size());
 }
 
 //! Test the swap method
@@ -191,9 +190,28 @@ TYPED_TEST(CstByteTest, SelectChild)
             lb = cst.rb(v)+1;
         }
         ASSERT_EQ(cst.rb(cst.root()), lb-1);
+
+        size_type i=1;
+//        for ( auto v  : cst.children(cst.root()) ){
+        for (auto it = cst.children(cst.root()).begin(); it!=cst.children(cst.root()).end(); ++it) {
+            auto v = *it;
+            ASSERT_TRUE(i <= cst.degree(cst.root()));
+            ASSERT_EQ(cst.select_child(cst.root(),i), v) << i << "!";
+            ++i;
+        }
     } else if (cst.size() == 1) {
         ASSERT_EQ(1U, cst.csa.sigma);
         ASSERT_EQ(0U, cst.degree(cst.root()));
+    }
+}
+
+
+TYPED_TEST(CstByteTest, SelectLeafAndSn)
+{
+    TypeParam cst;
+    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    for (size_type i=0; i < std::min(cst.csa.size(), (size_type)100); ++i) {
+        ASSERT_EQ(cst.csa[i], cst.sn(cst.select_leaf(i+1)));
     }
 }
 
@@ -225,12 +243,84 @@ TYPED_TEST(CstByteTest, Child)
     }
 }
 
+TYPED_TEST(CstByteTest, Edge)
+{
+    TypeParam cst;
+    typedef typename TypeParam::char_type char_type;
+    ASSERT_EQ(true, load_from_file(cst, temp_file));
+
+    int_vector<8> data;
+    ASSERT_EQ(true, load_vector_from_file(data, test_file, 1));
+
+    if (cst.csa.size() > 0) {
+        auto v = cst.select_leaf(cst.csa.isa[0]+1);
+        size_type max_depth = std::min(cst.depth(v), (size_type)20);
+        for (size_type i=0; i<max_depth; ++i) {
+            ASSERT_EQ(data[i], cst.edge(v, i+1))<<" i="<<i<<" v="<<v;
+        }
+        v = cst.parent(v);
+        max_depth = std::min(max_depth, cst.depth(v));
+        for (size_type i=0; i<max_depth; ++i) {
+            ASSERT_EQ(data[i], cst.edge(v, i+1))<<" i="<<i<<" v="<<v;
+        }
+    }
+}
+
+TYPED_TEST(CstByteTest, LeftmostRightmostLeaf)
+{
+    TypeParam cst;
+    typedef typename TypeParam::char_type char_type;
+    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    if (cst.size() > 0) {
+        auto v = cst.select_leaf(cst.size()/2+1);
+        while (true) {
+            auto v_l = cst.leftmost_leaf(v);
+            auto v_r = cst.rightmost_leaf(v);
+            ASSERT_EQ(true, cst.is_leaf(v_l));
+            ASSERT_EQ(true, cst.is_leaf(v_r));
+            ASSERT_EQ(cst.lb(v), cst.lb(v_l));
+            ASSERT_EQ(cst.rb(v), cst.rb(v_r));
+            if (v == cst.root())
+                break;
+            v = cst.parent(v);
+        }
+    }
+}
+
+TYPED_TEST(CstByteTest, SuffixAndWeinerLink)
+{
+    TypeParam cst;
+    typedef typename TypeParam::node_type node_type;
+    typedef typename TypeParam::char_type char_type;
+    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_EQ(cst.root(),cst.sl(cst.root()));
+
+    if (cst.size() > 0) {
+        std::mt19937_64 rng;
+        std::uniform_int_distribution<uint64_t> distribution(0, cst.size()-1);
+        auto dice = bind(distribution, rng);
+
+        for (size_type i=0; i<100; ++i) {
+            auto v = cst.select_leaf(dice()+1);
+            auto c = cst.edge(v, 1);
+            ASSERT_EQ(v, cst.wl(cst.sl(v), c));
+            for (size_type j=0; j<5; ++j) {
+                v = cst.parent(v);
+                if (cst.root() == v)
+                    break;
+                c = cst.edge(v, 1);
+                ASSERT_EQ(v, cst.wl(cst.sl(v), c));
+            }
+        }
+    }
+}
+
 TYPED_TEST(CstByteTest, LcaMethod)
 {
     TypeParam cst;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     uint64_t mask;
-    uint8_t log_m = 14;
+    uint8_t log_m = 6;
     // create m/2 pairs of positions in [0..cst.csa.size()-1]
     typedef typename TypeParam::node_type node_type;
     int_vector<64> rnd_pos = util::rnd_positions<int_vector<64>>(log_m, mask, cst.csa.size());
@@ -244,7 +334,7 @@ TYPED_TEST(CstByteTest, LcaMethod)
         ASSERT_EQ(z, cst.lca(v, w));
     }
     // test for regular sampled nodes
-    size_type g = std::max(cst.csa.size()/1000, (size_type)5);
+    size_type g = std::max(cst.csa.size()/30, (size_type)5);
     for (size_type i=cst.csa.size()/2; i+g < cst.csa.size(); ++i) {
         // get two children
         node_type v = cst.select_leaf(i+1);
