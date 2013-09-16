@@ -59,21 +59,22 @@ class wt_pc
 {
     public:
         typedef typename
-        t_tree_strat::template type<wt_pc>           tree_strat_type;
-        typedef int_vector<>::size_type              size_type;
+        t_tree_strat::template type<wt_pc>            tree_strat_type;
+        typedef int_vector<>::size_type               size_type;
         typedef typename
-        tree_strat_type::value_type                  value_type;
-        typedef random_access_const_iterator<wt_pc>  const_iterator;
-        typedef const_iterator                       iterator;
-        typedef t_bitvector                          bit_vector_type;
-        typedef t_rank                               rank_1_type;
-        typedef t_select                             select_1_type;
-        typedef t_select_zero                        select_0_type;
-        typedef wt_tag                               index_category;
+        tree_strat_type::value_type                   value_type;
+        typedef typename t_bitvector::difference_type difference_type;
+        typedef random_access_const_iterator<wt_pc>   const_iterator;
+        typedef const_iterator                        iterator;
+        typedef t_bitvector                           bit_vector_type;
+        typedef t_rank                                rank_1_type;
+        typedef t_select                              select_1_type;
+        typedef t_select_zero                         select_0_type;
+        typedef wt_tag                                index_category;
         typedef typename
-        tree_strat_type::alphabet_category           alphabet_category;
+        tree_strat_type::alphabet_category            alphabet_category;
         typedef typename
-        t_shape::template type<wt_pc>                shape_type;
+        t_shape::template type<wt_pc>                 shape_type;
         enum { lex_ordered=shape_type::lex_ordered };
         using node_type = typename tree_strat_type::node_type;
 

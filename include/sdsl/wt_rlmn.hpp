@@ -68,6 +68,7 @@ class wt_rlmn
 
         typedef int_vector<>::size_type               size_type;
         typedef unsigned char                         value_type; // TODO dependent on alphabet
+        typedef typename t_bitvector::difference_type difference_type;
         typedef random_access_const_iterator<wt_rlmn> const_iterator;
         typedef const_iterator                        iterator;
         typedef t_bitvector                           bit_vector_type;

@@ -63,6 +63,7 @@ class wt_int
 
         typedef int_vector<>::size_type              size_type;
         typedef int_vector<>::value_type             value_type;
+        typedef typename t_bitvector::difference_type difference_type;
         typedef random_access_const_iterator<wt_int> const_iterator;
         typedef const_iterator                       iterator;
         typedef t_bitvector                          bit_vector_type;
