@@ -3,6 +3,8 @@
 \usepackage[T1]{fontenc} 
 \newcommand{\changefont}[3]{\fontfamily{#1}\fontseries{#2}\fontshape{#3}\selectfont} 
 
+\usepackage{amsfonts}
+
 \usepackage{color}
 \usepackage{multicol}
 \usepackage{calc}
@@ -178,7 +180,8 @@ urlcolor=githublink           % color of external links
 \newcommand{\sdslselectsupportsd}{\code{select\_support\_sd}}
 %%%% WTs
 \newcommand{\sdslwthuff}{\code{wt\_huff}}
-\newcommand{\sdslwt}{\code{wt}}
+\newcommand{\sdslwthutu}{\code{wt\_hutu}}
+\newcommand{\sdslwtblcd}{\code{wt\_blcd}}
 \newcommand{\sdslwtint}{\code{wt\_int}}
 \newcommand{\sdslwtrlmn}{\code{wt\_rlmn}}
 %%%% CSAs
@@ -213,6 +216,9 @@ urlcolor=githublink           % color of external links
 \newcommand{\sdslrmqsupportsparsetable}{\code{rmq\_support\_sparse\_table}}
 \newcommand{\sdslrmqsuccinctsada}{\code{rmq\_succint\_sada}}
 \newcommand{\sdslrmqsuccinctsct}{\code{rmq\_succint\_sct}}
+
+\newcommand{\myYES}{$\checkmark$}
+\newcommand{\myNO}{$\times$}
 
 \begin{center}
      \Large{\textbf{\sdsl\ Cheat Sheet}} \\
@@ -353,23 +359,32 @@ $\code{select(}i\code{)}=\min\{j\mid \code{rank(}j\!+\!1\code{)}=i\}$.
 Wavelet trees represent sequences over byte or integer alphabets of size $\sigma$ 
 and consist of a tree of BVs. Rank and select on the sequences is reduced to rank and select on BVs,
 and the runtime is multiplied by a factor in $[H_0,\log\sigma]$.
-\begin{tabular}{@{}ll@{}}
-\textit{Class}    &\textit{Description} \\
-\href{\sdslgitinc/wt_huff.hpp}{\sdslwthuff} &
-Huffman WT for byte alphabets.\\
-\href{\sdslgitinc/wt_int.hpp}{\sdslwtint} &
-Balanced WT for integer alphabets.\\
-\href{\sdslgitinc/wt.hpp}{\sdslwt} &
-Balanced WT for byte alphabets.\\
-\href{\sdslgitinc/wt_rlmn.hpp}{\sdslwtrlmn} &
-Run-length compressed WT. 
-%The run heads are stored in another WT and a bitvector
-%is used to map between the domains.
-				 \\ 
+\begin{tabular}{@{}llcc@{}}
+\textit{Class}    &\textit{Shape} & \code{lex\_ordered} & \textit{Default alphabet}\\
+\href{\sdslgitinc/wt_blcd.hpp}{\sdslwtblcd} & Balanced & \myYES & byte \\
+\href{\sdslgitinc/wt_huff.hpp}{\sdslwthuff} & Huffman & \myNO & byte\\
+\href{\sdslgitinc/wt_hutu.hpp}{\sdslwthutu} & Hu-Tucker & \myYES & integer \\
+\href{\sdslgitinc/wt_int.hpp}{\sdslwtint} & Balanced & \myYES & byte \\
+\href{\sdslgitinc/wt_rlmn.hpp}{\sdslwtrlmn} & \multicolumn{3}{c}{underlying WT dependent} \\
 % TODO: \verb!wt_rlg!
 \end{tabular}
-\textit{Public~methods:} \code{operator[$i$]}, \code{rank($i$,c)},
-\code{select($i$,c)}, \code{inverse\_select($i$,c)}	\\
+\textit{Public~methods:} 
+\code{operator[$i$]},
+\code{rank($i$,c)},
+\code{select($i$,c)},
+\code{inverse\_select($i$,c)},
+\code{size()},
+\\
+Order preserving WTs (\code{lex\_ordered}) provide more methods. 
+\sdslwtint: 
+\code{range\_search\_2d}, 
+\code{quantil\_freq},
+\code{topk\_greedy},
+\code{topk\_qprobing},
+\code{intersect}. And
+\sdslwthutu: 
+\code{lex\_count},
+\code{lex\_smaller\_count}.
 
 \subsection{Suffix Arrays (\href{\sdslgitinc/suffix_arrays.hpp}{CSA}=IV+WT)}
 Compressed suffix arrays use CIVs or WTs to represent
@@ -384,10 +399,18 @@ Based on $\Psi$ stored in a CIV.\\
 \href{\sdslgitinc/csa_wt.hpp}{\sdslcsawt} &
 Based on the BWT stored in a WT.\\
 \end{tabular}	
-\textit{Public~methods:} \code{operator[$i$]}, \code{operator($i$)}, 
-\code{rank\_bwt($i$,c)}, \code{select\_bwt($i$,c)}\\
-\textit{Public~members:} \code{bwt}, \code{text}, 
-\code{psi}\footnote{LF[$i$] is accessible by \code{operator($i$)} of \code{psi}},
+\textit{Public~methods:}
+\code{operator[$i$]}, 
+\code{size()},
+\code{begin()},
+\code{end()}.
+\\
+\textit{Public~members:} 
+\code{isa},
+\code{bwt}, 
+\code{lf}, 
+\code{psi}, 
+\code{text}, 
 \code{C}, \code{char2comp}, \code{comp2char}, \code{sigma}.\\
 \textit{Policy classes: } alphabet strategy 
 (e.g.
@@ -421,7 +444,11 @@ Only depths of CST inner nodes stored.\\
 \href{\sdslgitinc/lcp_support_tree2.hpp}{\sdsllcpsupporttreeII} &
 ~+ large values are sampled using LF.\\
 \end{tabular}	
-\textit{Public~methods:} \code{operator[$i$]} \\
+\textit{Public~methods:} 
+\code{operator[$i$]},
+\code{size()},
+\code{begin()},
+\code{end()} \\
 
 \subsection{Balanced Parentheses Supports (\href{\sdslgitinc/bp_support.hpp}{BPS})}
 We represent a sequence of parentheses as a \code{bit\_vector}. 
