@@ -57,7 +57,6 @@ constexpr bool power_of_two(T x)
 template<uint32_t t_bs=512>
 class bit_vector_il
 {
-    private:
         static_assert(t_bs >= 64 , "bit_vector_il: blocksize must be be at least 64 bits.");
         static_assert(power_of_two(t_bs), "bit_vector_il: blocksize must be a power of two.");
     public:
@@ -220,7 +219,6 @@ class bit_vector_il
 template<uint8_t t_b, uint32_t t_bs>
 class rank_support_il
 {
-    private:
         static_assert(t_b == 1 or t_b == 0 , "rank_support_il only supports bitpatterns 0 or 1.");
     public:
         typedef bit_vector::size_type size_type;
@@ -311,7 +309,6 @@ class rank_support_il
 template<uint8_t t_b, uint32_t t_bs>
 class select_support_il
 {
-    private:
         static_assert(t_b == 1 or t_b == 0 , "select_support_il only supports bitpatterns 0 or 1.");
     public:
         typedef bit_vector::size_type size_type;
