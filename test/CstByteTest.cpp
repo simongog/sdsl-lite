@@ -192,9 +192,7 @@ TYPED_TEST(CstByteTest, SelectChild)
         ASSERT_EQ(cst.rb(cst.root()), lb-1);
 
         size_type i=1;
-//        for ( auto v  : cst.children(cst.root()) ){
-        for (auto it = cst.children(cst.root()).begin(); it!=cst.children(cst.root()).end(); ++it) {
-            auto v = *it;
+        for (auto v  : cst.children(cst.root())) {
             ASSERT_TRUE(i <= cst.degree(cst.root()));
             ASSERT_EQ(cst.select_child(cst.root(),i), v) << i << "!";
             ++i;
@@ -212,6 +210,19 @@ TYPED_TEST(CstByteTest, SelectLeafAndSn)
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     for (size_type i=0; i < std::min(cst.csa.size(), (size_type)100); ++i) {
         ASSERT_EQ(cst.csa[i], cst.sn(cst.select_leaf(i+1)));
+    }
+}
+
+
+TYPED_TEST(CstByteTest, NodeDepth)
+{
+    TypeParam cst;
+    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    auto v = cst.root();
+    ASSERT_EQ((size_type)0, cst.node_depth(v));
+    for (size_type i=1; i<=10 and !cst.is_leaf(v); ++i) {
+        v = cst.select_child(v, 2);
+        ASSERT_EQ(i, cst.node_depth(v));
     }
 }
 

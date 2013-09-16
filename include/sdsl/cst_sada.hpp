@@ -379,7 +379,7 @@ class cst_sada
          *  \par Time complexity
          *    \f$ \Order{1} \f$
          */
-        node_type leftmost_leaf(const node_type& v)const {
+        node_type leftmost_leaf(const node_type v)const {
             return m_bp_select10(m_bp_rank10(v)+1)-1;
         }
 
@@ -389,7 +389,7 @@ class cst_sada
          * \par Time complexity
          *   \f$ \Order{1} \f$
          */
-        node_type rightmost_leaf(const node_type& v)const {
+        node_type rightmost_leaf(const node_type v)const {
             size_type r = m_bp_support.find_close(v);
             return m_bp_select10(m_bp_rank10(r+1))-1;
         }
@@ -402,7 +402,7 @@ class cst_sada
          * \par Note
          * lb is an abbreviation for ,,left bound''
          */
-        size_type lb(const node_type& v)const {
+        size_type lb(const node_type v)const {
             return m_bp_rank10(v);
         }
 
@@ -414,7 +414,7 @@ class cst_sada
          *  \par Note
          *   rb is an abbreviation for ,,right bound''
          */
-        size_type rb(const node_type& v)const {
+        size_type rb(const node_type v)const {
             size_type r = m_bp_support.find_close(v);
             return m_bp_rank10(r+1)-1;
         }
@@ -440,8 +440,8 @@ class cst_sada
          *  \par Time complexity
          *     \f$ \Order{1}\f$
          */
-        cst_node_child_proxy<cst_sada> children(const node_type& v) const {
-            return cst_node_child_proxy<cst_sada>(*this,v);
+        cst_node_child_proxy<cst_sada> children(node_type v) const {
+            return cst_node_child_proxy<cst_sada>(this,v);
         }
 
 

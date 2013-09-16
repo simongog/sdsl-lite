@@ -559,8 +559,8 @@ class cst_sct3
          *  \par Time complexity
          *     \f$ \Order{1}\f$
          */
-        cst_node_child_proxy<cst_sct3> children(const node_type& v) const {
-            return cst_node_child_proxy<cst_sct3>(*this,v);
+        cst_node_child_proxy<cst_sct3> children(const node_type v) const {
+            return cst_node_child_proxy<cst_sct3>(this,v);
         }
 
         //! Returns the next sibling of node v.
@@ -668,20 +668,6 @@ class cst_sct3
                 }
                 return res + (w==0);
             }
-        }
-
-        // Returns the next sibling of node v.
-        // Only for tests.
-        node_type sibling_naive(const node_type& v)const {
-            if (v==root())
-                return root();
-            node_type parent = this->parent(v);
-            assert(parent != v);
-            size_type nr = degree(parent);
-            for (size_type i=1; i <= nr; ++i)
-                if (select_child(parent, i) == v and i!=nr)
-                    return select_child(parent, i+1);
-            return root();
         }
 
         //! Get the child w of node v which edge label (v,w) starts with character c.
