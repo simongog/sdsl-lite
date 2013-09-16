@@ -19,7 +19,7 @@ typedef map<string, void (*)(cache_config&)> tMSFP;// map <name, lcp method>
 class LcpConstructTest : public ::testing::Test
 {
     protected:
-        LcpConstructTest():CHECK_KEY("CHECK_"+string(constants::KEY_LCP)) { }
+        LcpConstructTest():CHECK_KEY("CHECK_"+string(conf::KEY_LCP)) { }
 
         virtual ~LcpConstructTest() { }
 
@@ -41,11 +41,11 @@ class LcpConstructTest : public ::testing::Test
                 ASSERT_TRUE(load_vector_from_file(text, test_file, num_bytes));
                 ASSERT_TRUE(contains_no_zero_symbol(text, test_file));
                 append_zero_symbol(text);
-                ASSERT_TRUE(store_to_cache(text, constants::KEY_TEXT, test_config));
+                ASSERT_TRUE(store_to_cache(text, conf::KEY_TEXT, test_config));
                 // Construct SA
                 int_vector<> sa(text.size(), 0, bits::hi(text.size())+1);
                 algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
-                ASSERT_TRUE(store_to_cache(sa, constants::KEY_SA, test_config));
+                ASSERT_TRUE(store_to_cache(sa, conf::KEY_SA, test_config));
             }
             {
                 // Construct BWT
@@ -54,9 +54,9 @@ class LcpConstructTest : public ::testing::Test
             {
                 // Construct LCP
                 construct_lcp_kasai<8>(test_config);
-                std::rename(cache_file_name(constants::KEY_LCP, test_config).c_str(),
+                std::rename(cache_file_name(conf::KEY_LCP, test_config).c_str(),
                             cache_file_name(CHECK_KEY, test_config).c_str());
-                test_config.file_map.erase(constants::KEY_LCP);
+                test_config.file_map.erase(conf::KEY_LCP);
             }
         }
 
@@ -78,7 +78,7 @@ TEST_F(LcpConstructTest, construct_lcp)
         // Check LCP array
         int_vector<> lcp_check, lcp;
         string lcp_check_file = cache_file_name(CHECK_KEY, this->test_config);
-        string lcp_file = cache_file_name(constants::KEY_LCP, this->test_config);
+        string lcp_file = cache_file_name(conf::KEY_LCP, this->test_config);
         ASSERT_TRUE(load_from_file(lcp_check, lcp_check_file))
                 << info << " could not load reference lcp array";
         ASSERT_TRUE(load_from_file(lcp, lcp_file))
@@ -91,7 +91,7 @@ TEST_F(LcpConstructTest, construct_lcp)
                     << lcp_check[j] << "!=" << lcp[j] << "=lcp["<< j << "]";
         }
         // Clean up LCP array
-        sdsl::remove(cache_file_name(constants::KEY_LCP, this->test_config));
+        sdsl::remove(cache_file_name(conf::KEY_LCP, this->test_config));
     }
 }
 

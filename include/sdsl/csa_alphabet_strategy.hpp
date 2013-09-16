@@ -88,10 +88,10 @@ struct key_trait<8> {
 };
 
 template<uint8_t int_width>
-const char* key_trait<int_width>::KEY_BWT = constants::KEY_BWT_INT;
+const char* key_trait<int_width>::KEY_BWT = conf::KEY_BWT_INT;
 
 template<uint8_t int_width>
-const char* key_trait<int_width>::KEY_TEXT = constants::KEY_TEXT_INT;
+const char* key_trait<int_width>::KEY_TEXT = conf::KEY_TEXT_INT;
 
 template<class t_alphabet_strategy>
 struct alphabet_trait {

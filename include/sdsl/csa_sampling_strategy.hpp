@@ -78,7 +78,7 @@ class _sa_order_sampling : public int_vector<t_width>
          *      Linear in the size of the suffix array.
          */
         _sa_order_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=nullptr) {
-            int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig));
+            int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA, cconfig));
             size_type n = sa_buf.size();
             this->width(bits::hi(n)+1);
             this->resize((n+sample_dens-1)/sample_dens);
@@ -143,7 +143,7 @@ class _text_order_sampling : public int_vector<t_width>
          *      Linear in the size of the suffix array.
          */
         _text_order_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=nullptr) {
-            int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig));
+            int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA, cconfig));
             size_type n = sa_buf.size();
             bit_vector marked(n, 0);                // temporary bitvector for the marked text positions
             this->width(bits::hi(n)+1);
@@ -280,7 +280,7 @@ class _bwt_sampling : public int_vector<t_width>
          *      Linear in the size of the suffix array.
          */
         _bwt_sampling(const cache_config& cconfig, SDSL_UNUSED const t_csa* csa=nullptr) {
-            int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, cconfig));
+            int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA, cconfig));
             int_vector_buffer<t_csa::alphabet_type::int_width>
             bwt_buf(cache_file_name(key_trait<t_csa::alphabet_type::int_width>::KEY_BWT,cconfig));
             size_type n = sa_buf.size();
@@ -289,7 +289,7 @@ class _bwt_sampling : public int_vector<t_width>
             int_vector<> sample_char;
             typedef typename t_csa::char_type char_type;
             std::set<char_type> char_map;
-            if (load_from_cache(sample_char, constants::KEY_SAMPLE_CHAR,cconfig)) {
+            if (load_from_cache(sample_char, conf::KEY_SAMPLE_CHAR,cconfig)) {
                 for (uint64_t i=0; i<sample_char.size(); ++i) {
                     char_map.insert((char_type)sample_char[i]);
                 }

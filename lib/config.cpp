@@ -11,13 +11,13 @@ cache_config::cache_config(bool f_delete_files, std::string f_dir, std::string f
 }
 
 template<>
-const char* key_text_trait<0>::KEY_TEXT = constants::KEY_TEXT_INT;
+const char* key_text_trait<0>::KEY_TEXT = conf::KEY_TEXT_INT;
 template<>
-const char* key_text_trait<8>::KEY_TEXT = constants::KEY_TEXT;
+const char* key_text_trait<8>::KEY_TEXT = conf::KEY_TEXT;
 
 template<>
-const char* key_bwt_trait<0>::KEY_BWT = constants::KEY_BWT_INT;
+const char* key_bwt_trait<0>::KEY_BWT = conf::KEY_BWT_INT;
 template<>
-const char* key_bwt_trait<8>::KEY_BWT = constants::KEY_BWT;
+const char* key_bwt_trait<8>::KEY_BWT = conf::KEY_BWT;
 
 }// end namespace sdsl

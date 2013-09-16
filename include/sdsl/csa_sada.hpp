@@ -377,20 +377,20 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
         for (size_type i=0; i < n; ++i) {
             psi[ cnt_chr[ char2comp[bwt_buf[i]] ]++ ] = i;
         }
-        std::string psi_file = cache_file_name(constants::KEY_PSI, config);
-        if (!store_to_cache(psi, constants::KEY_PSI, config)) {
+        std::string psi_file = cache_file_name(conf::KEY_PSI, config);
+        if (!store_to_cache(psi, conf::KEY_PSI, config)) {
             return;
         }
     }
     memory_monitor::event("csa-psi-end");
-    int_vector_buffer<> psi_buf(cache_file_name(constants::KEY_PSI, config));
+    int_vector_buffer<> psi_buf(cache_file_name(conf::KEY_PSI, config));
     memory_monitor::event("csa-psi-encode-begin");
     {
         t_enc_vec tmp_psi(psi_buf);
         m_psi.swap(tmp_psi);
     }
     memory_monitor::event("csa-psi-encode-end");
-    int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config));
+    int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA, config));
     memory_monitor::event("sa-sample-begin");
     {
         sa_sample_type tmp_sa_sample(config);

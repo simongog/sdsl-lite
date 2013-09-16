@@ -84,7 +84,7 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
                 in.read((char*)v.m_data, file_size);
             } else {
                 size_t idx=0;
-                const size_t block_size = constants::SDSL_BLOCK_SIZE*num_bytes;
+                const size_t block_size = conf::SDSL_BLOCK_SIZE*num_bytes;
                 uint8_t* buf = new uint8_t[block_size];
                 // TODO: check for larger alphabets with num_bytes*8 = v::fixed_int_width
 
