@@ -66,14 +66,16 @@ class wt_rlmn
 {
     public:
 
-        typedef int_vector<>::size_type size_type;
-        typedef unsigned char           value_type;
-        typedef t_bitvector             bit_vector_type;
-        typedef t_rank                  rank_support_type;
-        typedef t_select                select_support_type;
-        typedef t_wt                    wt_type;
-        typedef wt_tag                  index_category;
-        typedef byte_alphabet_tag       alphabet_category;
+        typedef int_vector<>::size_type               size_type;
+        typedef unsigned char                         value_type; // TODO dependent on alphabet
+        typedef random_access_const_iterator<wt_rlmn> const_iterator;
+        typedef const_iterator                        iterator;
+        typedef t_bitvector                           bit_vector_type;
+        typedef t_rank                                rank_support_type;
+        typedef t_select                              select_support_type;
+        typedef t_wt                                  wt_type;
+        typedef wt_tag                                index_category;
+        typedef byte_alphabet_tag                     alphabet_category;
         enum { lex_ordered=false };     // TODO: is should be possible
         // to support all lex_ordered
         // operations if t_wt::lex_ordered is
@@ -126,11 +128,11 @@ class wt_rlmn
          *  \param size      The length of the prefix of the text, for which
          *                   the wavelet tree should be build.
          */
-        // TODO: new signature: sdsl::file, size_type size
         wt_rlmn(int_vector_buffer<8>& text_buf, size_type size):m_size(size) {
             std::string temp_file = text_buf.filename() +
                                     + "_wt_rlmn_" + util::to_string(util::pid())
                                     + "_" + util::to_string(util::id());
+            // TODO: use int_vector_buffer for this
             osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc | std::ios::out);
             size_type bit_cnt=0;
             wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
@@ -318,6 +320,16 @@ class wt_rlmn
             size_type offset = m_C[c]+i-1-m_bf_select(c_runs + m_C_bf_rank[c]);
             return m_bl_select(m_wt.select(c_runs, c)+1) + offset;
         };
+
+        //! Returns a const_iterator to the first element.
+        const_iterator begin()const {
+            return const_iterator(this, 0);
+        }
+
+        //! Returns a const_iterator to the element after the last element.
+        const_iterator end()const {
+            return const_iterator(this, size());
+        }
 
         //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,

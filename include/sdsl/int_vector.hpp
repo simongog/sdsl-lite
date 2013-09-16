@@ -1091,30 +1091,6 @@ operator<<(std::ostream& os, const t_bv& bv)
     return os;
 }
 
-
-template<class t_iv>
-inline typename std::enable_if<std::is_same<typename t_iv::index_category ,iv_tag>::value, std::ostream&>::type
-operator<<(std::ostream& os, const t_iv& v)
-{
-    for (auto it=v.begin(), end = v.end(); it != end; ++it) {
-        os << *it;
-        if (it+1 != end) os << " ";
-    }
-    return os;
-}
-
-template<class t_int>
-inline typename std::enable_if<std::is_integral<t_int>::value, std::ostream&>::type
-operator<<(std::ostream& os, const std::vector<t_int>& v)
-{
-    for (auto it=v.begin(), end = v.end(); it != end; ++it) {
-        os << *it;
-        if (it+1 != end) os << " ";
-    }
-    return os;
-}
-
-
 // ==== int_vector implementation  ====
 
 template<uint8_t t_width>
