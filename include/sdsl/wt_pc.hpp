@@ -556,7 +556,7 @@ class wt_pc
          */
         template<class t_size_type = size_type>
         typename std::enable_if<shape_type::lex_ordered, t_size_type>::type
-        count_lex_smaller(size_type i, value_type c)const {
+        lex_smaller_count(size_type i, value_type c)const {
             assert(i <= size());
             // if c does not occur in the sequence
             if (!m_tree.is_valid(m_tree.c_to_leaf(c)))
@@ -591,7 +591,7 @@ class wt_pc
          */
         template<class t_size_type = size_type>
         typename std::enable_if<shape_type::lex_ordered, t_size_type>::type
-        count_lex_smaller(size_type i, size_type j, value_type c)const {
+        lex_smaller_count(size_type i, size_type j, value_type c)const {
             if (i==j)
                 return 0;
             if (i+1 == j) {
