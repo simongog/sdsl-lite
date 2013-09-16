@@ -61,7 +61,9 @@ void calculate_sa(const unsigned char* c, typename int_vector<fixedIntWidth>::si
         if (32 == fixedIntWidth or (0==fixedIntWidth and 32 >= oldIntWidth)) {
             sa.width(32);
             sa.resize(len);
+            memory_monitor::snapshot();
             divsufsort(c, (int32_t*)sa.m_data, len);
+            memory_monitor::snapshot();
             // copy integers back to the right positions
             if (oldIntWidth!=32) {
                 for (size_type i=0; i<len; ++i) {
@@ -85,7 +87,9 @@ void calculate_sa(const unsigned char* c, typename int_vector<fixedIntWidth>::si
         uint8_t oldIntWidth = sa.width();
         sa.width(64);
         sa.resize(len);
+        memory_monitor::snapshot();
         divsufsort64(c, (int64_t*)sa.m_data, len);
+        memory_monitor::snapshot();
         // copy integers back to the right positions
         if (oldIntWidth!=64) {
             for (size_type i=0; i<len; ++i) {
@@ -94,6 +98,7 @@ void calculate_sa(const unsigned char* c, typename int_vector<fixedIntWidth>::si
             sa.width(oldIntWidth);
             sa.resize(len);
         }
+        memory_monitor::snapshot();
     }
 }
 

@@ -1,4 +1,5 @@
 #include <chrono>
+#include <algorithm>
 #include "sdsl/memory_management.hpp"
 
 using namespace std::chrono;
@@ -9,41 +10,43 @@ namespace sdsl
 template<>
 void write_mem_log<CSV>(std::ostream& out,const memory_monitor& m)
 {
-    // write header
-    out << "timestamp;memory_usage;event" << std::endl;
 
-    auto first_ts = m.mem_events[0].timestamp;
-    auto cur_event = m.events[0];
-for (const auto& event : m.mem_events) {
-        out << duration_cast<milliseconds>(event.timestamp-first_ts).count() << ";" << event.usage << ";";
+}
+
+void output_event(std::ostream& out,const memory_monitor::mm_event& ev,const memory_monitor& m)
+{
+    out << "\t\t" << "\"name\" : " << "\"" << ev.name << "\",\n";
+    out << "\t\t" << "\"usage\" : [" << "\n";
+    for (size_t j=0; j<ev.allocations.size(); j++)  {
+        out << "\t\t\t[" << duration_cast<milliseconds>(ev.allocations[j].timestamp-m.start_log).count()
+            << "," << ev.allocations[j].usage << "]";
+        if (j+1<ev.allocations.size()) {
+            out << ",\n";
+        } else {
+            out << "\n";
+        }
     }
+    out << "\t\t" << "]\n";
 }
 
 template<>
 void write_mem_log<JSON>(std::ostream& out,const memory_monitor& m)
 {
-    out << "[";
+    auto events = m.completed_events;
+    std::sort(events.begin(),events.end());
 
-    auto first_ts = m.mem_events[0].timestamp;
-    for (size_t i=0; i<m.mem_events.size()-1; i++) {
-        const auto& event = m.mem_events[i];
-        out << "[" << duration_cast<milliseconds>(event.timestamp-first_ts).count() << "," << event.usage << "], ";
+    // output
+    out << "[\n";
+    for (size_t i=0; i<events.size(); i++) {
+        out << "\t{\n";
+        output_event(out,events[i],m);
+        if (i<events.size()-1) {
+            out << "\t},\n";
+        } else {
+            out << "\t}\n";
+        }
     }
-    const auto& event = m.mem_events[m.mem_events.size()-1];
-    out << "[" << duration_cast<milliseconds>(event.timestamp-first_ts).count() << "," << event.usage << "] ";
-    out << "]" << std::endl;
-
-    out << "[";
-
-    for (size_t i=0; i<m.events.size()-1; i++) {
-        const auto& ev = m.events[i];
-        out << "[" << duration_cast<milliseconds>(std::get<0>(ev)-first_ts).count() << ","<< std::get<1>(ev) <<
-            ",\"" << std::get<2>(ev) << "\"], ";
-    }
-    const auto& ev = m.events[m.events.size()-1];
-    out << "[" << duration_cast<milliseconds>(std::get<0>(ev)-first_ts).count() << ","<< std::get<1>(ev) <<
-        ",\"" << std::get<2>(ev) << "\"]";
-    out << "]";
+    out << "]\n";
 }
 
 #define ALIGNMENT             sizeof(uint64_t)
