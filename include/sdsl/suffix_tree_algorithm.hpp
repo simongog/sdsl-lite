@@ -195,20 +195,22 @@ typename t_cst::size_type extract(
  * \return A t_rac object holding the extracted edge label.
  * \return The string of the concatenated edge labels from the root to the node v.
  */
-template<class t_rac, class t_cst>
-t_rac extract(
+template<class t_cst>
+typename t_cst::csa_type::string_type
+extract(
     const t_cst& cst,
     const typename t_cst::node_type& v,
     SDSL_UNUSED typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag()
 )
 {
+    typedef typename t_cst::csa_type::string_type t_rac;
     if (v==cst.root()) {
         return t_rac(0);
     }
     // first get the suffix array entry of the leftmost leaf in the subtree rooted at v
     typename t_cst::size_type begin = cst.csa[cst.lb(v)];
     // then call the extract method on the compressed suffix array
-    return extract<t_rac>(cst.csa, begin, begin + cst.depth(v) - 1);
+    return extract(cst.csa, begin, begin + cst.depth(v) - 1);
 }
 
 

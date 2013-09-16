@@ -446,8 +446,8 @@ typename t_csa::size_type extract(
  * \par Time complexity
  *        \f$ \Order{ (end-begin+1) \cdot t_{\Psi} + t_{SA^{-1}} } \f$
  */
-template<class t_rac, class t_csa>
-t_rac extract(
+template<class t_csa>
+typename t_csa::string_type extract(
     const t_csa& csa,
     typename t_csa::size_type begin,
     typename t_csa::size_type end,
@@ -456,7 +456,8 @@ t_rac extract(
 {
     assert(end <= csa.size());
     assert(begin <= end);
-    t_rac result(end-begin+1, (typename t_csa::char_type)0);
+    typedef typename t_csa::string_type string_type;
+    string_type result(end-begin+1, (typename string_type::value_type)0);
     extract(csa, begin, end, result.begin());
     return result;
 }
