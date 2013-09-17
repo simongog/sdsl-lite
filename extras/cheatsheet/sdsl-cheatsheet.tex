@@ -302,7 +302,7 @@ $H_0$-compressed bitvector & $\approx \lceil \log {m\choose n} \rceil$ \\
 \end{tabular}
 \sdslbitvector\ equals \sdslintvector\code{\textless1\textgreater} and
 is therefore dynamic.\\
-\textit{Public Methods:} \code{operator[$i$]}, \code{size()}\\
+\textit{Public Methods:} \code{operator[$i$]}, \code{size()}, \code{begin()}, \code{end()}\\
 \textit{Public Types:} \code{rank\_1\_type}, \code{select\_1\_type},
                        \code{select\_0\_type}\footnote{\code{select\_0\_type} not defined for \sdslsdvector.}.
 Each bitvector can be constructed out of a \sdslbitvector\ object.
@@ -373,18 +373,16 @@ and the runtime is multiplied by a factor in $[H_0,\log\sigma]$.
 \code{rank($i$,c)},
 \code{select($i$,c)},
 \code{inverse\_select($i$,c)},
-\code{size()},
+\code{size()}, \code{begin()}, \code{end()}
 \\
-Order preserving WTs (\code{lex\_ordered}) provide more methods. 
-\sdslwtint: 
+Order preserving WTs (\code{lex\_ordered}) provide more methods:
+\code{lex\_count} and \code{lex\_smaller\_count}. In addition
+\sdslwtint\ provides: 
 \code{range\_search\_2d}, 
 \code{quantil\_freq},
 \code{topk\_greedy},
 \code{topk\_qprobing},
-\code{intersect}. And
-\sdslwthutu: 
-\code{lex\_count},
-\code{lex\_smaller\_count}.
+\code{intersect}.
 
 \subsection{Suffix Arrays (\href{\sdslgitinc/suffix_arrays.hpp}{CSA}=IV+WT)}
 Compressed suffix arrays use CIVs or WTs to represent
@@ -564,8 +562,8 @@ if the intermediate files should be deleted after construction,
 the intermediate files should be stored,
 \code{id} is used as part of the file names,
 and \code{map} contains a mapping of keys
-(e.g. \href{\sdslgitinc/config.hpp.cmake}{\code{constant::KEY\_BWT}}, 
-      \href{\sdslgitinc/config.hpp.cmake}{\code{constant::KEY\_SA}},\ldots)
+(e.g. \href{\sdslgitinc/config.hpp}{\code{conf::KEY\_BWT}}, 
+      \href{\sdslgitinc/config.hpp}{\code{conf::KEY\_SA}},\ldots)
 to file paths.\\
 The \code{cache\_config} parameter extends the construction method to:
 \code{construct(o,file,config,num\_bytes)}.\\
@@ -658,22 +656,13 @@ More useful methods in the \code{sdsl::util} namespace:
 %\code{swap\_support(s1, s2, t1, t2)}\\
 \end{tabular}
 
-\section{Measuring Time \& Space}
-Create an instance \code{sw} of class \code{util::stop\_watch}
-to measure time. Call \code{sw.start()} to start
-the timing and \code{sw.stop()} to stop it. Methods
-\code{user\_time()}, \code{sys\_time()}, and
-\code{real\_time()} return user, system and
-elapse time in milliseconds. Use  \code{sw.stop()} and
-\code{abs\_user\_time()}, \code{abs\_sys\_time()}, and \code{abs\_real\_time()}
-to get the times since the creation of the process.
-
-
+\section{Measuring and Visualizing Space}
 \code{size\_in\_bytes(o)} returns the space used by an
 \sdsl\ object \code{o}. Call
 \code{write\_structure<JSON\_FORMAT>(o,out)} to get
 a detailed space breakdown written in 
 \href{http://www.json.org/}{JSON} format to stream \code{out}.
+TODO: \code{<HTML\_FORMAT>} 
 
 
 \section{Methods on words}

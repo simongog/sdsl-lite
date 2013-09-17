@@ -198,7 +198,7 @@ class wt_rlmn
                 condensed_wt.close();
                 m_C = wt_rlmn_trait<alphabet_category>::init_C(C, size);
 
-                for (size_type i=0, prefix_sum=0, t=0; i<m_C.size(); ++i) {
+                for (size_type i=0, prefix_sum=0; i<m_C.size(); ++i) {
                     m_C[i] = prefix_sum;
                     prefix_sum += C[i];
                 }
