@@ -257,7 +257,6 @@ TYPED_TEST(CstByteTest, Child)
 TYPED_TEST(CstByteTest, Edge)
 {
     TypeParam cst;
-    typedef typename TypeParam::char_type char_type;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
 
     int_vector<8> data;
@@ -280,7 +279,6 @@ TYPED_TEST(CstByteTest, Edge)
 TYPED_TEST(CstByteTest, LeftmostRightmostLeaf)
 {
     TypeParam cst;
-    typedef typename TypeParam::char_type char_type;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     if (cst.size() > 0) {
         auto v = cst.select_leaf(cst.size()/2+1);
@@ -302,7 +300,6 @@ TYPED_TEST(CstByteTest, SuffixAndWeinerLink)
 {
     TypeParam cst;
     typedef typename TypeParam::node_type node_type;
-    typedef typename TypeParam::char_type char_type;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     ASSERT_EQ(cst.root(),cst.sl(cst.root()));
 
@@ -379,6 +376,7 @@ int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
     if (argc < 4) {
+        // LCOV_EXCL_START
         cout << "Usage: " << argv[0] << " test_file temp_file tmp_dir [in-memory]" << endl;
         cout << " (1) Generates a CST out of test_file; stores it in temp_file." << endl;
         cout << "     Temporary files (SA/BWT/LCP/TEXT) are stored in tmp_dir." << endl;
@@ -386,6 +384,7 @@ int main(int argc, char** argv)
         cout << " (2) Performs tests." << endl;
         cout << " (3) Deletes temp_file." << endl;
         return 1;
+        // LCOV_EXCL_STOP
     }
     test_file = argv[1];
     temp_file = argv[2];

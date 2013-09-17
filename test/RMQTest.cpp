@@ -99,12 +99,14 @@ int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
     if (argc < 3) {
+        // LCOV_EXCL_START
         cout << "Usage: " << argv[0] << " test_file temp_file" << endl;
         cout << " (1) Generates a RMQ out of the serialized int_vector in test_file." << endl;
         cout << "     in test_file. Stores RMQ in temp_file." << endl;
         cout << " (2) Performs tests." << endl;
         cout << " (3) Deletes temp_file." << endl;
         return 1;
+        // LCOV_EXCL_STOP
     }
     test_file = argv[1];
     temp_file = argv[2];

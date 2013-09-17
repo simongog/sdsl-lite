@@ -101,12 +101,14 @@ int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
     if (argc < 4) {
+        // LCOV_EXCL_START
         cout << "Usage: " << argv[0] << " test_file tmp_dir ID" << endl;
         cout << " (1) Generates the SA, BWT and LCP; arrays are stored in tmp_dir." << endl;
         cout << "     File contain ID as substring." << endl;
         cout << " (2) Generates LCP with other algorithm and checks the result." << endl;
         cout << " (3) Deletes all generated files." << endl;
         return 1;
+        // LCOV_EXCL_STOP
     }
     test_file = argv[1];
     temp_dir  = argv[2];
