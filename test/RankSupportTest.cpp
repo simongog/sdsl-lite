@@ -59,9 +59,11 @@ int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
     if (argc < 2) {
+        // LCOV_EXCL_START
         cout << "Usage: " << argv[0] << " FILE " << endl;
         cout << "  Reads a bitvector from FILE and executes tests." << endl;
         return 1;
+        // LCOV_EXCL_STOP
     }
     test_file = argv[1];
     return RUN_ALL_TESTS();

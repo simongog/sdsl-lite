@@ -213,6 +213,7 @@ int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
     if (argc < 4) {
+        // LCOV_EXCL_START
         cout << "Usage: " << argv[0] << " test_file temp_file tmp_dir [in-memory]" << endl;
         cout << " (1) Generates a CSA out of test_file; stores it in temp_file." << endl;
         cout << "     Temporary files (SA/BWT/TEXT) are stored in tmp_dir." << endl;
@@ -220,6 +221,7 @@ int main(int argc, char** argv)
         cout << " (2) Performs tests." << endl;
         cout << " (3) Deletes temp_file." << endl;
         return 1;
+        // LCOV_EXCL_STOP
     }
     test_file = argv[1];
     temp_file = argv[2];
