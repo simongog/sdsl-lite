@@ -21,16 +21,15 @@ PATTERNS    = $(foreach TC_ID,$(TC_IDS),$(PAT_DIR)/$(TC_ID).pattern)
 INDEXES     = $(foreach IDX_ID,$(IDX_IDS),\
 		         $(foreach TC_ID,$(TC_IDS),indexes/$(TC_ID).$(IDX_ID)))
 INFO_FILES  = $(foreach IDX_ID,$(IDX_IDS),\
-		         $(foreach TC_ID,$(TC_IDS),info/$(TC_ID).$(IDX_ID).json))
+		         $(foreach TC_ID,$(TC_IDS),info/$(TC_ID).$(IDX_ID).html))
 TIME_FILES  = $(foreach IDX_ID,$(IDX_IDS),\
 		         $(foreach TC_ID,$(TC_IDS),\
 					 $(foreach COMPILE_ID,$(COMPILE_IDS),results/$(TC_ID).$(IDX_ID).$(COMPILE_ID))))
 COMP_FILES  = $(addsuffix .z.info,$(TC_PATHS))
-	
+
 all: $(BUILD_EXECS) $(QUERY_EXECS) $(INFO_EXECS)
 
-info: $(INFO_EXECS) $(INFO_FILES) 
-	cd ../../examples; make json2html.x
+info: $(INFO_EXECS) $(INFO_FILES)
 
 indexes: $(INDEXES)
 
@@ -46,9 +45,9 @@ timing: input $(INDEXES) pattern $(TIME_FILES) compression info
 
 # results/[TC_ID].[IDX_ID].[COMPILE_ID]
 results/%: $(BUILD_EXECS) $(QUERY_EXECS) $(PATTERNS) $(INDEXES)
-	$(eval TC_ID:=$(call dim,1,$*)) 
-	$(eval IDX_ID:=$(call dim,2,$*)) 
-	$(eval COMPILE_ID:=$(call dim,3,$*)) 
+	$(eval TC_ID:=$(call dim,1,$*))
+	$(eval IDX_ID:=$(call dim,2,$*))
+	$(eval COMPILE_ID:=$(call dim,3,$*))
 	$(eval TC_NAME:=$(call config_select,test_case.config,$(TC_ID),3))
 	@echo "# TC_ID = $(TC_ID)" >> $@
 	@echo "# IDX_ID = $(IDX_ID)" >> $@
@@ -56,24 +55,23 @@ results/%: $(BUILD_EXECS) $(QUERY_EXECS) $(PATTERNS) $(INDEXES)
 	@echo "# test_case = $(TC_NAME)" >>  $@
 	@echo "Run timing for $(IDX_ID).$(COMPILE_ID) on $(TC_ID)"
 	$(BIN_DIR)/query_idx_$(IDX_ID).$(COMPILE_ID) \
-		indexes/$(TC_ID) C < $(PAT_DIR)/$(TC_ID).pattern 2>> $@ 
- 
+		indexes/$(TC_ID) C < $(PAT_DIR)/$(TC_ID).pattern 2>> $@
+
 
 # indexes/[TC_ID].[IDX_ID]
 indexes/%: $(BUILD_EXECS)
-	$(eval TC_ID:=$(call dim,1,$*)) 
-	$(eval IDX_ID:=$(call dim,2,$*)) 
+	$(eval TC_ID:=$(call dim,1,$*))
+	$(eval IDX_ID:=$(call dim,2,$*))
 	$(eval TC:=$(call config_select,test_case.config,$(TC_ID),2))
 	@echo "Building index $(IDX_ID) on $(TC)"
 	$(BIN_DIR)/build_idx_$(IDX_ID) $(TC) $(TMP_DIR) $@
 
 # info/[TC_ID].[IDX_ID]
-info/%.json: $(INDEXES)
-	$(eval TC_ID:=$(call dim,1,$*)) 
-	$(eval IDX_ID:=$(call dim,2,$*)) 
+info/%.html: $(INDEXES)
+	$(eval TC_ID:=$(call dim,1,$*))
+	$(eval IDX_ID:=$(call dim,2,$*))
 	@echo "Generating info for $(IDX_ID) on $(TC_ID)"
-	@$(BIN_DIR)/info_$(IDX_ID) indexes/$(TC_ID).$(IDX_ID) > $@ 
-	@../../examples/json2html.x $@ > $@.html
+	@$(BIN_DIR)/info_$(IDX_ID) indexes/$(TC_ID).$(IDX_ID) > $@
 
 $(PAT_DIR)/%.pattern: $(BIN_DIR)/genpatterns
 	@echo $*
@@ -94,9 +92,9 @@ $(BIN_DIR)/build_idx_%: $(SRC_DIR)/build_index_sdsl.cpp index.config
 					-I$(INC_DIR) -o $@ $(LIBS)
 
 # Targets for the count experiment. $(BIN_DIR)/count_queries_[IDX_ID].[COMPILE_ID]
-$(BIN_DIR)/query_idx_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config 
-	$(eval IDX_ID:=$(call dim,1,$*)) 
-	$(eval COMPILE_ID:=$(call dim,2,$*)) 
+$(BIN_DIR)/query_idx_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config
+	$(eval IDX_ID:=$(call dim,1,$*))
+	$(eval COMPILE_ID:=$(call dim,2,$*))
 	$(eval IDX_TYPE:=$(call config_select,index.config,$(IDX_ID),2))
 	$(eval COMPILE_OPTIONS:=$(call config_select,compile_options.config,$(COMPILE_ID),2))
 	@echo "Compiling query_idx_$*"
@@ -106,7 +104,7 @@ $(BIN_DIR)/query_idx_%: $(SRC_DIR)/run_queries_sdsl.cpp index.config
 					-I$(INC_DIR) -o $@ $(LIBS)
 
 # Targets for the executables which output the indexes structure.
-$(BIN_DIR)/info_%: $(SRC_DIR)/info.cpp index.config 
+$(BIN_DIR)/info_%: $(SRC_DIR)/info.cpp index.config
 	$(eval IDX_TYPE:=$(call config_select,index.config,$*,2))
 	@echo "Compiling info_$*"
 	@$(MY_CXX) $(CFLAGS) -O3 -DNDEBUG \
@@ -125,12 +123,12 @@ clean:
 	@rm -f $(QUERY_EXECS) $(BUILD_EXECS) $(INFO_EXECS) \
 		   $(INFO_FILES) $(INDEXES) $(BIN_DIR)/genpatterns
 
-cleanresults: 
+cleanresults:
 	@echo "Remove result files"
 	@rm -f $(TIME_FILES) $(RESULT_FILE) $(INFO_FILES)
 	@rm -f $(PATTERNS)
 
 cleanall: clean cleanresults
 	@echo "Remove all generated files."
-	@rm -f $(TMP_DIR)/* 
+	@rm -f $(TMP_DIR)/*
 	@rm -f $(PAT_DIR)/*
