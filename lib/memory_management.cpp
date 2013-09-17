@@ -7,12 +7,6 @@ using namespace std::chrono;
 namespace sdsl
 {
 
-template<>
-void write_mem_log<CSV>(std::ostream& out,const memory_monitor& m)
-{
-
-}
-
 void output_event_json(std::ostream& out,const memory_monitor::mm_event& ev,const memory_monitor& m)
 {
     out << "\t\t" << "\"name\" : " << "\"" << ev.name << "\",\n";
@@ -30,7 +24,7 @@ void output_event_json(std::ostream& out,const memory_monitor::mm_event& ev,cons
 }
 
 template<>
-void write_mem_log<JSON>(std::ostream& out,const memory_monitor& m)
+void write_mem_log<JSON_FORMAT>(std::ostream& out,const memory_monitor& m)
 {
     auto events = m.completed_events;
     std::sort(events.begin(),events.end());
@@ -164,10 +158,10 @@ std::string create_mem_js_body(const std::string& jsonObject)
 
 
 template<>
-void write_mem_log<HTML>(std::ostream& out,const memory_monitor& m)
+void write_mem_log<HTML_FORMAT>(std::ostream& out,const memory_monitor& m)
 {
     std::stringstream json_data;
-    write_mem_log<JSON>(json_data,m);
+    write_mem_log<JSON_FORMAT>(json_data,m);
 
     out << create_mem_html_header("sdsl memory visualization");
     out << create_mem_js_body(json_data.str());

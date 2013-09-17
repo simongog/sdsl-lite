@@ -16,15 +16,14 @@
 #include <set>
 #include <cstddef>
 #include <stack>
+#include "config.hpp"
 
 namespace sdsl
 {
 
 class memory_monitor;
 
-enum memformat_type {JSON, CSV, HTML};
-
-template<memformat_type F>
+template<format_type F>
 void write_mem_log(std::ostream& out,const memory_monitor& m);
 
 class memory_monitor
@@ -151,7 +150,7 @@ class memory_monitor
             }
             return mm_event_proxy(name,m.current_usage,false);
         }
-        template<memformat_type F>
+        template<format_type F>
         static void write_memory_log(std::ostream& out) {
             write_mem_log<F>(out,the_monitor());
         }

@@ -26,6 +26,8 @@ typedef uint64_t int_vector_size_type;
 
 typedef std::map<std::string, std::string> tMSS;
 
+enum format_type {JSON_FORMAT, R_FORMAT, HTML_FORMAT};
+
 //! Helper class for construction process
 struct cache_config {
     bool 		delete_files;   // Flag which indicates if all files which were created

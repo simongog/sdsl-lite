@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 
     std::ofstream cstofs("cst-construction.html");
     cout << "writing memory usage visualization to cst-construction.html\n";
-    memory_monitor::write_memory_log<HTML>(cstofs);
+    memory_monitor::write_memory_log<HTML_FORMAT>(cstofs);
     cstofs.close();
     util::clear(cst);
 
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
     memory_monitor::stop();
     std::ofstream csaofs("csa-construction.html");
     cout << "writing memory usage visualization to csa-construction.html\n";
-    memory_monitor::write_memory_log<HTML>(csaofs);
+    memory_monitor::write_memory_log<HTML_FORMAT>(csaofs);
     csaofs.close();
 
 }
