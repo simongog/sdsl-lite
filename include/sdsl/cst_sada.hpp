@@ -145,7 +145,7 @@ class cst_sada
 //! Construct CST from file_map
         cst_sada(cache_config& config) {
             {
-                memory_monitor::event("bps-dfs-begin");
+                auto event = memory_monitor::event("bps-dfs");
                 cst_sct3<> temp_cst(config, true);
                 m_bp.resize(4*(temp_cst.bp.size()/2));
                 util::set_to_value(m_bp, 0);
@@ -158,21 +158,23 @@ class cst_sada
                     ++idx;
                 }
                 m_bp.resize(idx);
-                memory_monitor::event("bps-dfs-end");
             }
-            memory_monitor::event("bpss-dfs-begin");
-            util::assign(m_bp_support, bp_support_type(&m_bp));
-            util::init_support(m_bp_rank10,   &m_bp);
-            util::init_support(m_bp_select10, &m_bp);
-            memory_monitor::event("bpss-dfs-end");
-
-            memory_monitor::event("bpss-clcp-begin");
-            cache_config tmp_config(false, config.dir, config.id, config.file_map);
-            construct_lcp(m_lcp, *this, tmp_config);
-            config.file_map = tmp_config.file_map;
-            memory_monitor::event("bpss-clcp-end");
-
-            load_from_cache(m_csa, util::class_to_hash(m_csa), config);
+            {
+                auto event = memory_monitor::event("bpss-dfs");
+                util::assign(m_bp_support, bp_support_type(&m_bp));
+                util::init_support(m_bp_rank10,   &m_bp);
+                util::init_support(m_bp_select10, &m_bp);
+            }
+            {
+                auto event = memory_monitor::event("bpss-clcp");
+                cache_config tmp_config(false, config.dir, config.id, config.file_map);
+                construct_lcp(m_lcp, *this, tmp_config);
+                config.file_map = tmp_config.file_map;
+            }
+            {
+                auto event = memory_monitor::event("load csa");
+                load_from_cache(m_csa,std::string(conf::KEY_CSA)+"_"+util::class_to_hash(m_csa), config);
+            }
         }
 
 //! Number of leaves in the suffix tree.

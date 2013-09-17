@@ -94,7 +94,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
 template<class t_index>
 void construct(t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes, wt_tag)
 {
-    memory_monitor::event("wt-begin");
+    auto event = memory_monitor::event("construct wavelet tree");
     int_vector<t_index::alphabet_category::WIDTH> text;
     load_vector_from_file(text, file, num_bytes);
     std::string tmp_key = util::to_string(util::pid())+"_"+util::to_string(util::id());
@@ -107,7 +107,6 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         idx.swap(tmp);
     }
     sdsl::remove(tmp_file_name);
-    memory_monitor::event("wt-end");
 }
 
 // Specialization for CSAs
@@ -118,41 +117,34 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     const char* KEY_BWT  = key_bwt_trait<t_index::alphabet_category::WIDTH>::KEY_BWT;
     typedef int_vector<t_index::alphabet_category::WIDTH> text_type;
     {
+        auto event = memory_monitor::event("parse input text");
         // (1) check, if the text is cached
         if (!cache_file_exists(KEY_TEXT, config)) {
             text_type text;
-            memory_monitor::event("text-begin");
             load_vector_from_file(text, file, num_bytes);
             if (contains_no_zero_symbol(text, file)) {
                 append_zero_symbol(text);
-                store_to_cache(text, KEY_TEXT, config);
+                store_to_cache(text,KEY_TEXT, config);
             }
-            load_from_cache(text, KEY_TEXT, config);
-            memory_monitor::event("text-end");
+            load_from_cache(text,KEY_TEXT, config);
         }
         register_cache_file(KEY_TEXT, config);
     }
     {
         // (2) check, if the suffix array is cached
+        auto event = memory_monitor::event("SA");
         if (!cache_file_exists(conf::KEY_SA, config)) {
-            memory_monitor::event("sa-begin");
             construct_sa<t_index::alphabet_category::WIDTH>(config);
-            memory_monitor::event("sa-end");
         }
         register_cache_file(conf::KEY_SA, config);
-        int_vector<> sa;
-        load_from_cache(sa, conf::KEY_SA, config);
     }
     {
         //  (3) construct BWT
+        auto event = memory_monitor::event("BWT");
         if (!cache_file_exists(KEY_BWT, config)) {
-            memory_monitor::event("bwt-begin");
             construct_bwt<t_index::alphabet_category::WIDTH>(config);
-            memory_monitor::event("bwt-end");
         }
-        register_cache_file(conf::KEY_BWT, config);
-        int_vector<t_index::alphabet_category::WIDTH> bwt;
-        load_from_cache(bwt, KEY_BWT, config);
+        register_cache_file(KEY_BWT, config);
     }
     {
         t_index tmp(config);
@@ -172,32 +164,33 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     csa_tag csa_t;
     {
         // (1) check, if the compressed suffix array is cached
+        auto event = memory_monitor::event("CSA");
         typename t_index::csa_type csa;
-        if (!cache_file_exists(util::class_to_hash(csa), config)) {
+        if (!cache_file_exists(std::string(conf::KEY_CSA)+"_"+util::class_to_hash(csa), config)) {
             cache_config csa_config(false, config.dir, config.id, config.file_map);
             construct(csa, file, csa_config, num_bytes, csa_t);
             config.file_map = csa_config.file_map;
-            store_to_cache(csa, util::class_to_hash(csa), config);
+            store_to_cache(csa,std::string(conf::KEY_CSA)+"_"+util::class_to_hash(csa), config);
         }
-        register_cache_file(util::class_to_hash(csa), config);
+        register_cache_file(std::string(conf::KEY_CSA)+"_"+util::class_to_hash(csa), config);
     }
     {
         // (2) check, if the longest common prefix array is cached
+        auto event = memory_monitor::event("LCP");
         register_cache_file(KEY_TEXT, config);
         register_cache_file(KEY_BWT, config);
         register_cache_file(conf::KEY_SA, config);
         if (!cache_file_exists(conf::KEY_LCP, config)) {
-            memory_monitor::event("lcp-begin");
             if (t_index::alphabet_category::WIDTH==8) {
                 construct_lcp_semi_extern_PHI(config);
             } else {
                 construct_lcp_PHI<t_index::alphabet_category::WIDTH>(config);
             }
-            memory_monitor::event("lcp-end");
         }
         register_cache_file(conf::KEY_LCP, config);
     }
     {
+        auto event = memory_monitor::event("CST");
         t_index tmp(config);
         tmp.swap(idx);
     }

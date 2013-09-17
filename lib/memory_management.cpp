@@ -1,4 +1,5 @@
 #include <chrono>
+#include <algorithm>
 #include "sdsl/memory_management.hpp"
 
 using namespace std::chrono;
@@ -6,44 +7,164 @@ using namespace std::chrono;
 namespace sdsl
 {
 
-template<>
-void write_mem_log<CSV>(std::ostream& out,const memory_monitor& m)
+void output_event_json(std::ostream& out,const memory_monitor::mm_event& ev,const memory_monitor& m)
 {
-    // write header
-    out << "timestamp;memory_usage;event" << std::endl;
-
-    auto first_ts = m.mem_events[0].timestamp;
-    auto cur_event = m.events[0];
-for (const auto& event : m.mem_events) {
-        out << duration_cast<milliseconds>(event.timestamp-first_ts).count() << ";" << event.usage << ";";
+    out << "\t\t" << "\"name\" : " << "\"" << ev.name << "\",\n";
+    out << "\t\t" << "\"usage\" : [" << "\n";
+    for (size_t j=0; j<ev.allocations.size(); j++)  {
+        out << "\t\t\t[" << duration_cast<milliseconds>(ev.allocations[j].timestamp-m.start_log).count()
+            << "," << ev.allocations[j].usage << "]";
+        if (j+1<ev.allocations.size()) {
+            out << ",\n";
+        } else {
+            out << "\n";
+        }
     }
+    out << "\t\t" << "]\n";
 }
 
 template<>
-void write_mem_log<JSON>(std::ostream& out,const memory_monitor& m)
+void write_mem_log<JSON_FORMAT>(std::ostream& out,const memory_monitor& m)
 {
-    out << "[";
+    auto events = m.completed_events;
+    std::sort(events.begin(),events.end());
 
-    auto first_ts = m.mem_events[0].timestamp;
-    for (size_t i=0; i<m.mem_events.size()-1; i++) {
-        const auto& event = m.mem_events[i];
-        out << "[" << duration_cast<milliseconds>(event.timestamp-first_ts).count() << "," << event.usage << "], ";
+    // output
+    out << "[\n";
+    for (size_t i=0; i<events.size(); i++) {
+        out << "\t{\n";
+        output_event_json(out,events[i],m);
+        if (i<events.size()-1) {
+            out << "\t},\n";
+        } else {
+            out << "\t}\n";
+        }
     }
-    const auto& event = m.mem_events[m.mem_events.size()-1];
-    out << "[" << duration_cast<milliseconds>(event.timestamp-first_ts).count() << "," << event.usage << "] ";
-    out << "]" << std::endl;
+    out << "]\n";
+}
 
-    out << "[";
 
-    for (size_t i=0; i<m.events.size()-1; i++) {
-        const auto& ev = m.events[i];
-        out << "[" << duration_cast<milliseconds>(std::get<0>(ev)-first_ts).count() << ","<< std::get<1>(ev) <<
-            ",\"" << std::get<2>(ev) << "\"], ";
-    }
-    const auto& ev = m.events[m.events.size()-1];
-    out << "[" << duration_cast<milliseconds>(std::get<0>(ev)-first_ts).count() << ","<< std::get<1>(ev) <<
-        ",\"" << std::get<2>(ev) << "\"]";
-    out << "]";
+std::string create_mem_html_header(const char* file_name)
+{
+    std::stringstream jsonheader;
+    jsonheader
+            << "<!DOCTYPE html>\n"
+            << "<meta charset=\"utf-8\">\n"
+            << "<style>\n"
+            << "    body { font: 11px sans-serif; }\n"
+            << "    .rule { height: 90%; position: absolute; border-right: 1px dotted #000; text-align: right; }\n"
+            << "</style>\n"
+            << "<body marginwidth=\"0\" marginheight=\"0\">\n"
+            << "<button><a id=\"download\">Save as SVG</a></button>\n"
+            << "<div class=\"chart\"><div id=\"visualization\"></div></body>\n"
+            << "<script src=\"http://d3js.org/d3.v3.js\"></script> <script>\n";
+    return jsonheader.str();
+}
+
+std::string create_mem_js_body(const std::string& jsonObject)
+{
+    std::stringstream jsonbody;
+    jsonbody
+            << "var events = " << jsonObject << ";\n"
+            << "var w = window,d = document,e = d.documentElement,g = d.getElementsByTagName('body')[0],\n"
+            << "  xw = w.innerWidth || e.clientWidth || g.clientWidth,\n"
+            << "  yh = w.innerHeight || e.clientHeight || g.clientHeight;\n\n"
+            << "var margin = {top: 20,right: 80,bottom: 120,left: 120},\n"
+            << "  width = xw - margin.left - margin.right,height = yh - margin.top - margin.bottom;\n"
+            << "var x = d3.scale.linear().range([0, width]);\n"
+            << "var y = d3.scale.linear().range([height, 0]);\n"
+            << "var xAxis = d3.svg.axis().scale(x).orient(\"bottom\");\n"
+            << "var yAxis = d3.svg.axis().scale(y).orient(\"left\").ticks(5);\n"
+            << "var color = d3.scale.category10();\n"
+            << "var x_max = d3.max(events, function (d) { return d3.max(d.usage, function (u) { return u[0] / 1000;})})\n"
+            << "var y_max = d3.max(events, function (d) { return d3.max(d.usage, function (u) { return 1.1 * u[1] / (1024 * 1024);})})\n"
+            << "var peak = d3.max(events, function (d) { return d3.max(d.usage, function (u) { return u[1]; })})\n"
+            << "var data = []\nevents.forEach(function (d) { data = data.concat(d.usage); });\n"
+            << "var peakelem = data.filter(function (a) { return a[1] == peak; });\n"
+            << "x.domain([0, x_max]);\n y.domain([0, y_max]);\n"
+            << "var svg = d3.select(\"#visualization\").append(\"svg\")\n"
+            << "  .attr(\"width\", width + margin.left + margin.right)\n"
+            << "  .attr(\"height\", height + margin.top + margin.bottom)\n"
+            << "  .attr(\"xmlns\", \"http://www.w3.org/2000/svg\")\n"
+            << "  .append(\"g\").attr(\"transform\",\"translate(\" + margin.left + \",\" + margin.top + \")\");\n\n"
+            << "  svg.append(\"g\").attr(\"class\", \"xaxis\").attr(\"transform\", \"translate(0,\" + height + \")\")\n"
+            << "  .call(xAxis).append(\"text\").attr(\"text-anchor\", \"end\")\n"
+            << "  .attr(\"shape-rendering\", \"crispEdges\").attr(\"x\", width / 2 + 50).attr(\"y\", 70).attr(\"shape-rendering\", \"crispEdges\")\n"
+            << "  .attr(\"font-family\", \"sans-serif\").attr(\"font-size\", \"20px\").text(\"Time (seconds)\");\n\n"
+            << "svg.append(\"g\").attr(\"class\", \"yaxis\").call(yAxis).append(\"text\").attr(\"transform\", \"rotate(-90)\").attr(\"x\", -height / 2 + 50)\n"
+            << "  .attr(\"y\", -80).attr(\"shape-rendering\", \"crispEdges\").attr(\"font-family\", \"sans-serif\").attr(\"font-size\", \"20px\").style(\"text-anchor\", \"end\")\n"
+            << "  .text(\"Memory Usage (MiB)\");\n\n"
+            << "svg.selectAll(\".tick text\").style(\"font-size\", \"20px\");\n"
+            << "svg.selectAll(\".xaxis .tick text\").attr(\"dy\", 23);\nsvg.selectAll(\".yaxis .tick text\").attr(\"dx\", -10);\n"
+            << "svg.selectAll(\"line\").attr(\"fill\", \"none\").attr(\"stroke\", \"black\")\nsvg.selectAll(\"path\").attr(\"fill\", \"none\").attr(\"stroke\", \"black\")\n\n"
+            << "svg.selectAll(\"line.horizontalGrid\").data(y.ticks(5)).enter().append(\"line\")\n"
+            << "  .attr({\"class\": \"horizontalGrid\",\"x1\": 0,\"x2\": width,\"y1\": function (d) { return y(d);},\n"
+            << "     \"y2\": function (d) { return y(d); }, \"fill\": \"none\", \"shape-rendering\": \"crispEdges\",\n"
+            << "     \"stroke\": \"lightgrey\",\"stroke-dasharray\": \"10,10\",\"stroke-width\": \"1.5px\"});\n\n"
+            << "var area = d3.svg.area().x(function (d) { return x(d[0] / 1000);}).y0(height).y1(function (d) { return y(d[1] / (1024 * 1024))});\n\n"
+            << "var ev = svg.selectAll(\".event\").data(events).enter().append(\"svg:path\").attr(\"class\", \"area\")\n"
+            << "  .attr(\"fill\", function (d) { return d3.rgb(color(d.name)); })\n"
+            << "  .attr(\"d\", function (d) { return area(d.usage) })\n"
+            << "  .style(\"stroke\", function (d) { return d3.rgb(color(d.name)).darker(2);}).style(\"stroke-width\", \"2px\")\n\n"
+            << "svg.selectAll(\".dot\").data(peakelem).enter().append(\"circle\").attr(\"r\", 3).attr(\"fill\", \"red\")\n"
+            << "  .attr(\"cx\", function (d) {return x(d[0] / 1000)})\n"
+            << "  .attr(\"cy\", function (d) {return y(d[1] / (1024 * 1024))})\n"
+            << "  .attr(\"fill\", \"red\").attr(\"stroke-width\", 2).attr(\"stroke\", \"#cc0000\")\n\n"
+            << "svg.selectAll(\".dot\").data(peakelem).enter().append(\"svg:text\")\n"
+            << "  .attr(\"x\", function (d) {return x(d[0] / 1000)}).attr(\"y\", function (d) {return y(d[1] / (1024 * 1024) * 1.025)})\n"
+            << "  .text(function (d) {return \"Peak Usage: \" + Math.round(d[1] / (1024 * 1024)) + \" MB\"})\n"
+            << "  .attr(\"font-size\", 12).attr(\"fill\", \"red\");\n\n"
+            << "svg.selectAll(\".dot\").data(peakelem).enter().append(\"circle\")\n"
+            << "  .attr(\"r\", 5).attr(\"fill\", \"red\")\n"
+            << "  .attr(\"cx\", function (d) {return x(d[0] / 1000)})\n"
+            << "  .attr(\"cy\", function (d) {return y(d[1] / (1024 * 1024))})\n"
+            << "  .attr(\"fill\", \"none\").attr(\"stroke-width\", 2).attr(\"stroke\", \"#cc0000\").each(pulsepeak());\n\n"
+            << "function pulsepeak() { return function (d, i, j) {\n"
+            << "  d3.select(this).attr(\"r\", 5).style(\"stroke-opacity\", 1.0).transition()\n"
+            << "    .ease(\"linear\").duration(1000).attr(\"r\", 10).style(\"stroke-opacity\", 0.0).each(\"end\", pulsepeak());};}\n\n"
+            << "var vertical = d3.select(\".chart\").append(\"div\").attr(\"class\", \"remove\")\n"
+            << "  .style(\"position\", \"absolute\").style(\"z-index\", \"19\").style(\"width\", \"1px\")\n"
+            << "  .style(\"height\", height - margin).style(\"top\", \"30px\").style(\"bottom\", \"50px\")\n"
+            << "  .style(\"left\", \"0px\").style(\"opacity\", \"0.4\").style(\"background\", \"black\");\n\n"
+            << "var tooltip = d3.select(\".chart\").append(\"div\").attr(\"class\", \"remove\")\n"
+            << "  .style(\"position\", \"absolute\").style(\"z-index\", \"20\").style(\"visibility\", \"hidden\").style(\"top\", \"10px\");\n\n"
+            << "var circle = svg.append(\"circle\").attr(\"cx\", 100).attr(\"cy\", 350).attr(\"r\", 3).attr(\"fill\", \"black\").style(\"opacity\", \"0\")\n\n"
+            << "d3.select(\"svg\").on(\"mousemove\", function () {\n"
+            << "  mousex = d3.mouse(this);\n"
+            << "  if (mousex[0] < margin.left + 3 || mousex[0] >= xw - margin.right) {\n"
+            << "    vertical.style(\"opacity\", \"0\"); tooltip.style(\"opacity\", \"0\"); circle.style(\"opacity\", \"0\")\n"
+            << "  } else {\n"
+            << "    var xvalue = x.invert(mousex[0] - margin.left); var pos = findPosition(xvalue)\n"
+            << "    vertical.style(\"opacity\", \"0.4\"); tooltip.style(\"opacity\", \"1\"); circle.style(\"opacity\", \"1\")\n"
+            << "    circle.attr(\"cx\", pos.x).attr(\"cy\", pos.y); vertical.style(\"left\", mousex[0] + \"px\");tooltip.style(\"left\", mousex[0] + 15 + \"px\")\n"
+            << "    tooltip.html(\"<p>\" + xvalue.toFixed(2) + \" Seconds <br>\" + Math.round(pos.mem) + \" MiB <br> \" + pos.name + \"</p>\").style(\"visibility\", \"visible\");\n"
+            << "  }\n})"
+            << ".on(\"mouseover\", function () {\n"
+            << "  mousex = d3.mouse(this);\n  if (mousex[0] < margin.left + 3 || mousex[0] > xw - margin.right) {\n"
+            << "    vertical.style(\"opacity\", \"0\")\n  } else {\n    vertical.style(\"opacity\", \"0.4\");vertical.style(\"left\", mousex[0] + 7 + \"px\")\n}})\n"
+            << "d3.select(\"#download\").on(\"click\", function () {\n"
+            << "d3.select(this).attr(\"href\", 'data:application/octet-stream;base64,' + btoa(d3.select(\"#visualization\").html())).attr(\"download\", \"viz.svg\")})\n\n"
+            << "function findPosition(e){correctArea=d3.selectAll(\".area\").filter(function(t){if(t.usage[0][0]<=e*1e3&&t.usage[t.usage.length-1][0]>=e*1e3){return true}"
+            << "return false});if(correctArea.empty()){return 0}var t=new Array;correctArea[0].forEach(function(n){t.push(findYValueinArea(n,e))});"
+            << "max_elem=d3.max(t,function(e){return e.mem});var n=t.filter(function(e){return e.mem==max_elem});"
+            << "return n[0]}function findYValueinArea(e,t){len=e.getTotalLength();var n=0;var r=len;"
+            << "for(var i=0;i<=len;i+=50){var s=e.getPointAtLength(i);var o=x.invert(s.x);var u=y.invert(s.y);"
+            << "if(u>0&&o>t){n=Math.max(0,i-50);r=i;break}}var a=e.getPointAtLength(0);var f=1;"
+            << "while(n<r){var l=(r+n)/2;a=e.getPointAtLength(l);target_x=x.invert(a.x);"
+            << "if((l==n||l==r)&&Math.abs(target_x-t)>.01){break}if(target_x>t)r=l;else if(target_x<t)n=l;else{break}if(f>50){break}f++}"
+            << "var c=new function(){this.mem=y.invert(a.y);this.name=e.__data__.name;this.x=a.x;this.y=a.y};return c}\n</script>";
+    return jsonbody.str();
+}
+
+
+template<>
+void write_mem_log<HTML_FORMAT>(std::ostream& out,const memory_monitor& m)
+{
+    std::stringstream json_data;
+    write_mem_log<JSON_FORMAT>(json_data,m);
+
+    out << create_mem_html_header("sdsl memory visualization");
+    out << create_mem_js_body(json_data.str());
 }
 
 #define ALIGNMENT             sizeof(uint64_t)
@@ -415,6 +536,67 @@ hugepage_allocator::mm_realloc(void* ptr, size_t size)
         ptr = newptr;
     }
     return ptr;
+}
+
+uint64_t extract_number(std::string& line)
+{
+    std::string num_str;
+    for (size_t i=line.size()-1; i>=0; i--) {
+        if (isdigit(line[i])) {
+            num_str.insert(num_str.begin(),line[i]);
+        } else {
+            if (num_str.size() > 0) {
+                break;
+            }
+        }
+    }
+    return std::strtoull(num_str.c_str(),NULL,10);
+}
+
+uint64_t extract_multiplier(std::string& line)
+{
+    uint64_t num = 1;
+    if (line[line.size()-2] == 'k' || line[line.size()-2] == 'K') {
+        num = 1024;
+    }
+    if (line[line.size()-2] == 'm' || line[line.size()-2] == 'M') {
+        num = 1024*1024;
+    }
+    if (line[line.size()-2] == 'g' || line[line.size()-2] == 'G') {
+        num = 1024*1024*1024;
+    }
+    return num;
+}
+
+size_t
+hugepage_allocator::determine_available_hugepage_memory()
+{
+    size_t size_in_bytes = 0;
+    size_t page_size_in_bytes = 0;
+    size_t num_free_pages = 0;
+    const std::string meminfo_file = "/proc/meminfo";
+    const std::string ps_str = "Hugepagesize:";
+    const std::string pf_str = "HugePages_Free:";
+    std::ifstream mifs(meminfo_file);
+    if (mifs.is_open()) {
+        // find size of one page
+        std::string line;
+        while (std::getline(mifs, line)) {
+            auto ps = std::mismatch(ps_str.begin(),ps_str.end(), line.begin());
+            if (ps.first == ps_str.end()) {
+                page_size_in_bytes = extract_number(line) * extract_multiplier(line);
+            }
+            auto pf = std::mismatch(pf_str.begin(),pf_str.end(), line.begin());
+            if (pf.first == pf_str.end()) {
+                num_free_pages = extract_number(line);
+            }
+        }
+        size_in_bytes = page_size_in_bytes*num_free_pages;
+    } else {
+        throw std::system_error(ENOMEM,std::system_category(),
+                                "hugepage_allocator could not automatically determine available hugepages");
+    }
+    return size_in_bytes;
 }
 
 

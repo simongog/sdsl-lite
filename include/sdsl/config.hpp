@@ -15,6 +15,8 @@ const uint64_t SDSL_BLOCK_SIZE = (uint64_t)1<<22;
 const char KEY_BWT[] 		= "bwt";
 const char KEY_BWT_INT[]	= "bwt_int";
 const char KEY_SA[] 		= "sa";
+const char KEY_CSA[] 		= "csa";
+const char KEY_CST[] 		= "cst";
 const char KEY_ISA[] 		= "isa";
 const char KEY_TEXT[] 		= "text";
 const char KEY_TEXT_INT[] 	= "text_int";
@@ -25,6 +27,8 @@ const char KEY_SAMPLE_CHAR[]= "sample_char";
 typedef uint64_t int_vector_size_type;
 
 typedef std::map<std::string, std::string> tMSS;
+
+enum format_type {JSON_FORMAT, R_FORMAT, HTML_FORMAT};
 
 //! Helper class for construction process
 struct cache_config {
