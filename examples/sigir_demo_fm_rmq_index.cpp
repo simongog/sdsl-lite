@@ -122,7 +122,7 @@ int main(int argc, char** argv)
                 if (location+m+ post_extract > fm_index.size()) {
                     post_extract = fm_index.size()-location-m;
                 }
-                string s   = extract<string>(fm_index, location-pre_extract, location+m+ post_extract-1);
+                auto s   = extract(fm_index, location-pre_extract, location+m+ post_extract-1);
                 string pre = s.substr(0, pre_extract);
                 s = s.substr(pre_extract);
                 if (pre.find_last_of('\n') != string::npos) {

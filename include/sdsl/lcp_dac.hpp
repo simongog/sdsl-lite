@@ -206,7 +206,7 @@ lcp_dac<t_b, t_rank>::lcp_dac(cache_config& config)
 //  (1) Count for each level, how many blocks are needed for the representation
 //      Running time: \f$ O(n \times \frac{\log n}{b}  \f$
 //      Result is sorted in m_level_pointer_and_rank
-    std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
+    std::string lcp_file = cache_file_name(conf::KEY_LCP, config);
     int_vector_buffer<> lcp_buf(lcp_file);
     size_type n = lcp_buf.size(), val=0;
     if (n == 0)

@@ -101,7 +101,7 @@ class lcp_wt
         //! Constructor
         lcp_wt(cache_config& config, std::string other_key="") {
             std::string temp_file = tmp_file(config, "_lcp_sml");
-            std::string lcp_key  = constants::KEY_LCP;
+            std::string lcp_key  = conf::KEY_LCP;
             if ("" != other_key) {
                 lcp_key = other_key;
             }

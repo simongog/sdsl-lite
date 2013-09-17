@@ -49,7 +49,7 @@ void execute(const char* input, uint8_t num_bytes, t_pat& pat, const char* forma
     }
     cout << "---- extract text  ----" << endl;
     {
-        cout << "extract(csa,0,csa.size())=\"" << extract<t_pat>(cst.csa, 0, cst.csa.size()-1) << "\"" << endl;
+        cout << "extract(csa,0,csa.size())=\"" << extract(cst.csa, 0, cst.csa.size()-1) << "\"" << endl;
     }
 
     cout << "---- forward search step by step  ----" << endl;
@@ -72,7 +72,7 @@ void execute(const char* input, uint8_t num_bytes, t_pat& pat, const char* forma
     cout << "---- extract text  ----" << endl;
     {
         cout << "extract(cst,cst.select_leaf(cst.csa.isa[0]+1))=\""
-             << extract<t_pat>(cst, cst.select_leaf(cst.csa.isa[0]+1)) << "\"" << endl;
+             << extract(cst, cst.select_leaf(cst.csa.isa[0]+1)) << "\"" << endl;
     }
 
 }

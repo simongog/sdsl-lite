@@ -84,7 +84,7 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
                 in.read((char*)v.m_data, file_size);
             } else {
                 size_t idx=0;
-                const size_t block_size = constants::SDSL_BLOCK_SIZE*num_bytes;
+                const size_t block_size = conf::SDSL_BLOCK_SIZE*num_bytes;
                 uint8_t* buf = new uint8_t[block_size];
                 // TODO: check for larger alphabets with num_bytes*8 = v::fixed_int_width
 
@@ -600,6 +600,44 @@ bool load_from_checked_file(T& v, const std::string& file)
     }
     return load_from_file(v, file);
 }
+
+
+template<class t_iv>
+inline typename std::enable_if<std::is_same<typename t_iv::index_category ,iv_tag>::value, std::ostream&>::type
+operator<<(std::ostream& os, const t_iv& v)
+{
+    for (auto it=v.begin(), end = v.end(); it != end; ++it) {
+        os << *it;
+        if (it+1 != end) os << " ";
+    }
+    return os;
+}
+
+
+template<class t_iv>
+inline typename std::enable_if<std::is_same<typename t_iv::index_category ,wt_tag>::value, std::ostream&>::type
+operator<<(std::ostream& os, const t_iv& v)
+{
+    for (auto it=v.begin(), end = v.end(); it != end; ++it) {
+        os << *it;
+        if (it+1 != end and std::is_same<typename t_iv::alphabet_category,int_alphabet_tag>::value) os << " ";
+    }
+    return os;
+}
+
+template<class t_int>
+inline typename std::enable_if<std::is_integral<t_int>::value, std::ostream&>::type
+operator<<(std::ostream& os, const std::vector<t_int>& v)
+{
+    for (auto it=v.begin(), end = v.end(); it != end; ++it) {
+        os << *it;
+        if (it+1 != end) os << " ";
+    }
+    return os;
+}
+
+
+
 
 }
 #endif

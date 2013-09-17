@@ -42,17 +42,14 @@ class random_access_const_iterator: public std::iterator<std::random_access_iter
         const t_rac* m_rac;// pointer to the random access container
         typename t_rac::size_type m_idx;
 
-        template<class RAC>
-        friend typename random_access_const_iterator<RAC>::difference_type operator-(const random_access_const_iterator<RAC>& x,
-                const random_access_const_iterator<RAC>& y);
+        template<class t_RAC>
+        friend typename random_access_const_iterator<t_RAC>::difference_type operator-(const random_access_const_iterator<t_RAC>& x,
+                const random_access_const_iterator<t_RAC>& y);
 
 
     public:
         //! Constructor
-        random_access_const_iterator(const t_rac* rac, size_type idx = 0) {
-            m_rac = rac;
-            m_idx = idx;
-        }
+        random_access_const_iterator(const t_rac* rac, size_type idx = 0) : m_rac(rac), m_idx(idx) { }
 
         //! Dereference operator for the Iterator.
         const_reference operator*()const {

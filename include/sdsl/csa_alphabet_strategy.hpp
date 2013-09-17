@@ -53,6 +53,7 @@
 #include "select_support.hpp"
 #include "sdsl_concepts.hpp"
 #include "config.hpp"
+#include <string>
 
 namespace sdsl
 {
@@ -88,10 +89,10 @@ struct key_trait<8> {
 };
 
 template<uint8_t int_width>
-const char* key_trait<int_width>::KEY_BWT = constants::KEY_BWT_INT;
+const char* key_trait<int_width>::KEY_BWT = conf::KEY_BWT_INT;
 
 template<uint8_t int_width>
-const char* key_trait<int_width>::KEY_TEXT = constants::KEY_TEXT_INT;
+const char* key_trait<int_width>::KEY_TEXT = conf::KEY_TEXT_INT;
 
 template<class t_alphabet_strategy>
 struct alphabet_trait {
@@ -121,6 +122,7 @@ class byte_alphabet
         typedef uint16_t                sigma_type;
         typedef uint8_t                 char_type;
         typedef uint8_t                 comp_char_type;
+        typedef std::string             string_type;
         enum { int_width = 8 };
 
         typedef byte_alphabet_tag       alphabet_category;
@@ -186,6 +188,7 @@ class succinct_byte_alphabet
         typedef uint16_t                sigma_type;
         typedef uint8_t                 char_type;
         typedef uint8_t                 comp_char_type;
+        typedef std::string             string_type;
         typedef byte_alphabet_tag       alphabet_category;
         enum { int_width = 8 };
 
@@ -352,6 +355,7 @@ class int_alphabet
         typedef uint64_t                sigma_type;
         typedef uint64_t                char_type;
         typedef uint64_t                comp_char_type;
+        typedef std::vector<char_type>  string_type;
         typedef int_alphabet_tag        alphabet_category;
         enum { int_width = 0 };
 
