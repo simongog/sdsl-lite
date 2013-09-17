@@ -80,6 +80,7 @@ class csa_bitcompressed
         typedef t_alphabet_strat                                alphabet_type;
         typedef typename alphabet_type::char_type               char_type; // Note: This is the char type of the CSA not the WT!
         typedef typename alphabet_type::comp_char_type          comp_char_type;
+        typedef typename alphabet_type::string_type             string_type;
         typedef typename alphabet_type::alphabet_category       alphabet_category;
         typedef csa_bitcompressed                               csa_type;
 
@@ -126,7 +127,7 @@ class csa_bitcompressed
         csa_bitcompressed(cache_config& config) {
             std::string text_file = cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config);
             int_vector_buffer<alphabet_type::int_width> text_buf(text_file);
-            int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA,config));
+            int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA,config));
             size_type n = text_buf.size();
             {
                 alphabet_type tmp_alphabet(text_buf, n);
@@ -138,10 +139,10 @@ class csa_bitcompressed
             }
             set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
 
-            if (!store_to_file(m_isa, cache_file_name(constants::KEY_ISA,config), true)) {
+            if (!store_to_file(m_isa, cache_file_name(conf::KEY_ISA,config), true)) {
                 throw std::ios_base::failure("#csa_bitcompressed: Cannot store ISA to file system!");
             } else {
-                register_cache_file(constants::KEY_ISA, config);
+                register_cache_file(conf::KEY_ISA, config);
             }
         }
 

@@ -61,14 +61,17 @@ class wt_int
 {
     public:
 
-        typedef int_vector<>::size_type  size_type;
-        typedef int_vector<>::value_type value_type;
-        typedef t_bitvector              bit_vector_type;
-        typedef t_rank                   rank_1_type;
-        typedef t_select                 select_1_type;
-        typedef t_select_zero            select_0_type;
-        typedef wt_tag                   index_category;
-        typedef int_alphabet_tag         alphabet_category;
+        typedef int_vector<>::size_type              size_type;
+        typedef int_vector<>::value_type             value_type;
+        typedef typename t_bitvector::difference_type difference_type;
+        typedef random_access_const_iterator<wt_int> const_iterator;
+        typedef const_iterator                       iterator;
+        typedef t_bitvector                          bit_vector_type;
+        typedef t_rank                               rank_1_type;
+        typedef t_select                             select_1_type;
+        typedef t_select_zero                        select_0_type;
+        typedef wt_tag                               index_category;
+        typedef int_alphabet_tag                     alphabet_category;
 
         typedef std::pair<value_type, size_type>     point_type;
         typedef std::vector<point_type>              point_vec_type;
@@ -467,6 +470,17 @@ class wt_int
                     _range_search_2d(nlb, nrb-1, std::max(mid, vlb), vrb, depth+1, mid, ones_before_end - ones_before_o, offsets, ones_before_os, (path<<1)+1 , point_vec, report, cnt_answers);
             }
         }
+
+        //! Returns a const_iterator to the first element.
+        const_iterator begin()const {
+            return const_iterator(this, 0);
+        }
+
+        //! Returns a const_iterator to the element after the last element.
+        const_iterator end()const {
+            return const_iterator(this, size());
+        }
+
 
         //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {

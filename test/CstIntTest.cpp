@@ -36,33 +36,16 @@ cst_sct3<tCSA1, lcp_bitcompressed<> >,
          cst_sct3<tCSA2, lcp_bitcompressed<> >,
          cst_sct3<tCSA3, lcp_bitcompressed<> >,
          cst_sada<tCSA1, lcp_dac<> >,
-         cst_sada<tCSA2, lcp_dac<> >,
-         cst_sada<tCSA3, lcp_dac<> >,
          cst_sada<tCSA1, lcp_vlc<> >,
-         cst_sada<tCSA2, lcp_vlc<> >,
-         cst_sada<tCSA3, lcp_vlc<> >,
          cst_sada<tCSA1, lcp_byte<> >,
          cst_sada<tCSA1, lcp_support_tree2<>, bp_support_gg<> >,
-         cst_sada<tCSA2, lcp_support_tree2<>, bp_support_gg<> >,
-         cst_sada<tCSA3, lcp_support_tree2<>, bp_support_gg<> >,
-         cst_sct3<tCSA1, lcp_support_tree<>, bp_support_gg<> >,
-         cst_sct3<tCSA2, lcp_support_tree<>, bp_support_gg<> >,
-         cst_sct3<tCSA3, lcp_support_tree<>, bp_support_gg<> >,
-         cst_sct3<tCSA1>,
-         cst_sada<tCSA1>,
-         cst_sada<tCSA3, lcp_support_tree<> >,
          cst_sct3<tCSA3, lcp_support_tree2<> >,
+         cst_sada<tCSA1, lcp_support_tree<> >,
+         cst_sct3<tCSA1, lcp_support_tree<>, bp_support_gg<> >,
+         cst_sct3<tCSA1, lcp_support_tree<>, bp_support_g<> >,
          cst_sada<tCSA3, lcp_dac<> >,
-         cst_sct3<tCSA2, lcp_support_sada<> >,
-         cst_sct3<tCSA1, lcp_support_tree<> >,
-         cst_sct3<tCSA2, lcp_wt<> >,
-         cst_sada<tCSA3, lcp_support_sada<> >,
-         cst_sada<tCSA2, lcp_support_tree<> >,
-         cst_sada<tCSA3, lcp_support_tree2<> >,
-         cst_sada<tCSA3, lcp_wt<> >,
-         cst_sct3<tCSA3, lcp_support_tree<>, bp_support_g<> >,
-         cst_sct3<tCSA3, lcp_bitcompressed<> >,
-         cst_sada<tCSA2, lcp_dac<>, bp_support_g<> >
+         cst_sct3<tCSA1, lcp_support_sada<> >,
+         cst_sct3<tCSA1, lcp_wt<> >
          > Implementations;
 
 TYPED_TEST_CASE(CstIntTest, Implementations);
@@ -76,6 +59,10 @@ TYPED_TEST(CstIntTest, CreateAndStoreTest)
     test_case_file_map = config.file_map;
     bool success = store_to_file(cst, temp_file);
     ASSERT_EQ(true, success);
+    TypeParam cst2;
+    cst2 = cst;
+    ASSERT_EQ(cst.size(), cst2.size());
+    ASSERT_TRUE(cst.size() <= TypeParam::max_size());
 }
 
 //! Test the swap method
@@ -124,7 +111,7 @@ TYPED_TEST(CstIntTest, SaAccess)
     TypeParam cst;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     sdsl::int_vector<> sa;
-    sdsl::load_from_file(sa, test_case_file_map[sdsl::constants::KEY_SA]);
+    sdsl::load_from_file(sa, test_case_file_map[sdsl::conf::KEY_SA]);
     size_type n = sa.size();
     ASSERT_EQ(n, cst.csa.size());
     for (size_type j=0; j<n; ++j) {
@@ -138,7 +125,7 @@ TYPED_TEST(CstIntTest, BwtAccess)
     TypeParam cst;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     sdsl::int_vector<> bwt;
-    sdsl::load_from_file(bwt, test_case_file_map[sdsl::constants::KEY_BWT_INT]);
+    sdsl::load_from_file(bwt, test_case_file_map[sdsl::conf::KEY_BWT_INT]);
     size_type n = bwt.size();
     ASSERT_EQ(n, cst.csa.bwt.size());
     for (size_type j=0; j<n; ++j) {
@@ -152,7 +139,7 @@ TYPED_TEST(CstIntTest, LcpAccess)
     TypeParam cst;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     sdsl::int_vector<> lcp;
-    sdsl::load_from_file(lcp, test_case_file_map[sdsl::constants::KEY_LCP]);
+    sdsl::load_from_file(lcp, test_case_file_map[sdsl::conf::KEY_LCP]);
     size_type n = lcp.size();
     ASSERT_EQ(n, cst.lcp.size());
     for (size_type j=0; j<n; ++j) {
@@ -164,6 +151,9 @@ TYPED_TEST(CstIntTest, LcpAccess)
 TYPED_TEST(CstIntTest, IdMethod)
 {
     TypeParam cst;
+    // test empty iterator
+    ASSERT_EQ(cst.begin(), cst.end());
+
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     // doing a depth first traversal through the tree to count the nodes
     typedef typename TypeParam::const_iterator const_iterator;
@@ -190,12 +180,155 @@ TYPED_TEST(CstIntTest, IdMethod)
     }
 }
 
+TYPED_TEST(CstIntTest, SelectChild)
+{
+    TypeParam cst;
+    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    if (cst.size() > 1) {
+        ASSERT_EQ(cst.csa.sigma, cst.degree(cst.root()));
+        size_type lb = 0;
+        for (size_type i=1; i <= cst.csa.sigma; ++i) {
+            auto v = cst.select_child(cst.root(), i);
+            ASSERT_EQ(lb, cst.lb(v));
+            lb = cst.rb(v)+1;
+        }
+        ASSERT_EQ(cst.rb(cst.root()), lb-1);
+
+        size_type i=1;
+        for (auto v  : cst.children(cst.root())) {
+            ASSERT_TRUE(i <= cst.degree(cst.root()));
+            ASSERT_EQ(cst.select_child(cst.root(),i), v) << i << "!";
+            ++i;
+        }
+    } else if (cst.size() == 1) {
+        ASSERT_EQ(1U, cst.csa.sigma);
+        ASSERT_EQ(0U, cst.degree(cst.root()));
+    }
+}
+
+TYPED_TEST(CstIntTest, SelectLeafAndSn)
+{
+    TypeParam cst;
+    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    for (size_type i=0; i < std::min(cst.csa.size(), (size_type)100); ++i) {
+        ASSERT_EQ(cst.csa[i], cst.sn(cst.select_leaf(i+1)));
+    }
+}
+
+TYPED_TEST(CstIntTest, NodeDepth)
+{
+    TypeParam cst;
+    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    auto v = cst.root();
+    ASSERT_EQ((size_type)0, cst.node_depth(v));
+    for (size_type i=1; i<=10 and !cst.is_leaf(v); ++i) {
+        v = cst.select_child(v, 2);
+        ASSERT_EQ(i, cst.node_depth(v));
+    }
+}
+
+TYPED_TEST(CstIntTest, Child)
+{
+    TypeParam cst;
+    typedef typename TypeParam::char_type char_type;
+    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    if (cst.size() > 1) {
+        std::set<char_type> char_set;
+        ASSERT_EQ(cst.csa.sigma, cst.degree(cst.root()));
+        bool leaf_tested = false;
+        for (size_type i=0; i < cst.csa.sigma and i < 1024U; ++i) {
+            auto c = cst.csa.comp2char[i];
+            char_set.insert(c);
+            auto v = cst.select_child(cst.root(), i+1);
+            auto w = cst.child(cst.root(), c);
+            ASSERT_EQ(v, w);
+            if (!leaf_tested and cst.is_leaf(v)) {
+                ASSERT_EQ(cst.root(), cst.select_child(v, c));
+            }
+        }
+    }
+}
+
+TYPED_TEST(CstIntTest, Edge)
+{
+    TypeParam cst;
+    typedef typename TypeParam::char_type char_type;
+    ASSERT_EQ(true, load_from_file(cst, temp_file));
+
+    int_vector<> data;
+    ASSERT_EQ(true, load_vector_from_file(data, test_file, num_bytes));
+
+    if (cst.csa.size() > 0) {
+        auto v = cst.select_leaf(cst.csa.isa[0]+1);
+        size_type max_depth = std::min(cst.depth(v), (size_type)20);
+        for (size_type i=0; i<max_depth; ++i) {
+            ASSERT_EQ(data[i], cst.edge(v, i+1))<<" i="<<i<<" v="<<v;
+        }
+        v = cst.parent(v);
+        max_depth = std::min(max_depth, cst.depth(v));
+        for (size_type i=0; i<max_depth; ++i) {
+            ASSERT_EQ(data[i], cst.edge(v, i+1))<<" i="<<i<<" v="<<v;
+        }
+    }
+}
+
+TYPED_TEST(CstIntTest, LeftmostRightmostLeaf)
+{
+    TypeParam cst;
+    typedef typename TypeParam::char_type char_type;
+    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    if (cst.size() > 0) {
+        auto v = cst.select_leaf(cst.size()/2+1);
+        while (true) {
+            auto v_l = cst.leftmost_leaf(v);
+            auto v_r = cst.rightmost_leaf(v);
+            ASSERT_EQ(true, cst.is_leaf(v_l));
+            ASSERT_EQ(true, cst.is_leaf(v_r));
+            ASSERT_EQ(cst.lb(v), cst.lb(v_l));
+            ASSERT_EQ(cst.rb(v), cst.rb(v_r));
+            if (v == cst.root())
+                break;
+            v = cst.parent(v);
+        }
+    }
+}
+
+TYPED_TEST(CstIntTest, SuffixAndWeinerLink)
+{
+    TypeParam cst;
+    typedef typename TypeParam::node_type node_type;
+    typedef typename TypeParam::char_type char_type;
+    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_EQ(cst.root(),cst.sl(cst.root()));
+
+    if (cst.size() > 0) {
+        std::mt19937_64 rng;
+        std::uniform_int_distribution<uint64_t> distribution(0, cst.size()-1);
+        auto dice = bind(distribution, rng);
+
+        for (size_type i=0; i<100; ++i) {
+            auto v = cst.select_leaf(dice()+1);
+            auto c = cst.edge(v, 1);
+            ASSERT_EQ(v, cst.wl(cst.sl(v), c));
+            for (size_type j=0; j<5; ++j) {
+                v = cst.parent(v);
+                if (cst.root() == v)
+                    break;
+                c = cst.edge(v, 1);
+                ASSERT_EQ(v, cst.wl(cst.sl(v), c));
+            }
+        }
+    }
+}
+
+
+
 TYPED_TEST(CstIntTest, LcaMethod)
 {
     TypeParam cst;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     uint64_t mask;
-    uint8_t log_m = 14;
+    uint8_t log_m = 6;
     // create m/2 pairs of positions in [0..cst.csa.size()-1]
     typedef typename TypeParam::node_type node_type;
     int_vector<64> rnd_pos = util::rnd_positions<int_vector<64>>(log_m, mask, cst.csa.size());
@@ -209,22 +342,16 @@ TYPED_TEST(CstIntTest, LcaMethod)
         ASSERT_EQ(z, cst.lca(v, w));
     }
     // test for regular sampled nodes
-    for (size_type i=cst.csa.size()/2, g=100; i+g < std::min(cst.csa.size(), cst.csa.size()/2+100*g); ++i) {
+    size_type g = std::max(cst.csa.size()/30, (size_type)5);
+    for (size_type i=cst.csa.size()/2; i+g < cst.csa.size(); ++i) {
         // get two children
         node_type v = cst.select_leaf(i+1);
         node_type w = cst.select_leaf(i+g+1);
         // calculate lca
         node_type z = naive_lca(cst, v, w);
         node_type u = cst.lca(v, w);
-        if (u != z) {
-            std::cout << "v="<<v<<" w="<<w<< std::endl;
-            std::cout << "u="<<u<<" z="<<z<<std::endl;
-            std::cout << "--------------"<<std::endl;
-            std::cout << "v="<<format_node(cst, v)<<" w="<<format_node(cst, w)<< std::endl;
-            std::cout << "u="<<format_node(cst, u)<<" z="<<format_node(cst, z)<<std::endl;
-            naive_lca(cst, v, w, true);
-        }
-        ASSERT_EQ(z, u);
+        ASSERT_EQ(z, u) << " naive_lca is "
+                        << naive_lca(cst, v, w, true) << endl;
     }
 }
 

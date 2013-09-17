@@ -82,7 +82,7 @@ class lcp_vlc
 
         //! Construct
         lcp_vlc(cache_config& config, std::string other_key="") {
-            std::string lcp_key  = constants::KEY_LCP;
+            std::string lcp_key  = conf::KEY_LCP;
             if ("" != other_key) {
                 lcp_key = other_key;
             }

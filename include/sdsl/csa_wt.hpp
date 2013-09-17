@@ -95,6 +95,7 @@ class csa_wt
         typedef t_alphabet_strat                                               alphabet_type;
         typedef typename alphabet_type::char_type                              char_type; // Note: This is the char type of the CSA not the WT!
         typedef typename alphabet_type::comp_char_type                         comp_char_type;
+        typedef typename alphabet_type::string_type                            string_type;
         typedef csa_wt                                                         csa_type;
 
         typedef csa_tag                                                        index_category;
@@ -268,7 +269,7 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
         return;
     }
     int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
-    int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config));
+    int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA, config));
     size_type n = bwt_buf.size();
     memory_monitor::event("csa-alphabet-construct-begin");
     {

@@ -38,6 +38,45 @@
 namespace sdsl
 {
 
+template<class t_alphabet_cat>
+struct wt_rlmn_trait {
+    enum { width = 0 };
+    typedef int_vector<> C_type;
+    typedef int_vector<> C_bf_rank_type;
+
+    static std::map<uint64_t,uint64_t> temp_C() {
+        return std::map<uint64_t, uint64_t>();
+    }
+
+    static C_type init_C(std::map<uint64_t,uint64_t>& C, uint64_t size) {
+        uint64_t max_symbol = (--C.end())->first;
+        return C_type(max_symbol+1, 0, bits::hi(size)+1);
+    }
+
+    static C_bf_rank_type init_C_bf_rank(const C_type& C, uint64_t size) {
+        return C_bf_rank_type(C.size(), 0, bits::hi(size)+1);
+    }
+};
+
+template<>
+struct wt_rlmn_trait<byte_alphabet_tag> {
+    enum {width = 8};
+    typedef int_vector<64> C_type;
+    typedef int_vector<64> C_bf_rank_type;
+
+    static int_vector<64> temp_C() {
+        return int_vector<64>(256, 0);
+    }
+
+    static C_type init_C(C_type& C, uint64_t) {
+        return C;
+    }
+
+    static C_bf_rank_type init_C_bf_rank(const C_type&, uint64_t) {
+        return int_vector<64>(256,0);
+    }
+};
+
 //! A Wavelet Tree class for byte sequences.
 /*!
  *    \par Space complexity
@@ -66,15 +105,23 @@ class wt_rlmn
 {
     public:
 
-        typedef int_vector<>::size_type size_type;
-        typedef unsigned char           value_type;
-        typedef t_bitvector             bit_vector_type;
-        typedef t_rank                  rank_support_type;
-        typedef t_select                select_support_type;
-        typedef t_wt                    wt_type;
-        typedef wt_tag                  index_category;
-        typedef byte_alphabet_tag       alphabet_category;
+        typedef t_wt                                  wt_type;
+        typedef int_vector<>::size_type               size_type;
+        typedef typename t_wt::value_type             value_type;
+        typedef typename t_bitvector::difference_type difference_type;
+        typedef random_access_const_iterator<wt_rlmn> const_iterator;
+        typedef const_iterator                        iterator;
+        typedef t_bitvector                           bit_vector_type;
+        typedef t_rank                                rank_support_type;
+        typedef t_select                              select_support_type;
+        typedef wt_tag                                index_category;
+        typedef typename t_wt::alphabet_category      alphabet_category;
         enum { lex_ordered=false };     // TODO: is should be possible
+        enum { width = wt_rlmn_trait<alphabet_category>::width };
+        typedef typename wt_rlmn_trait<alphabet_category>::C_type
+        C_type;
+        typedef typename wt_rlmn_trait<alphabet_category>::C_bf_rank_type
+        C_bf_rank_type;
         // to support all lex_ordered
         // operations if t_wt::lex_ordered is
         // true
@@ -92,8 +139,8 @@ class wt_rlmn
         rank_support_type    m_bf_rank;   // rank support for bit vector bf
         select_support_type  m_bl_select; // select support for bit vector bl
         select_support_type  m_bf_select; // select support for bit vector bf
-        int_vector<64>       m_C;         //
-        int_vector<64>       m_C_bf_rank; // stores the number of 1s in m_bf for
+        C_type               m_C;         //
+        C_bf_rank_type       m_C_bf_rank; // stores the number of 1s in m_bf for
         // the prefixes m_bf[0..m_C[0]],m_bf[0..m_C[1]],....,m_bf[0..m_C[255]];
         // named C_s in the original paper
 
@@ -126,52 +173,48 @@ class wt_rlmn
          *  \param size      The length of the prefix of the text, for which
          *                   the wavelet tree should be build.
          */
-        // TODO: new signature: sdsl::file, size_type size
-        wt_rlmn(int_vector_buffer<8>& text_buf, size_type size):m_size(size) {
+        wt_rlmn(int_vector_buffer<width>& text_buf, size_type size):m_size(size) {
             std::string temp_file = text_buf.filename() +
                                     + "_wt_rlmn_" + util::to_string(util::pid())
                                     + "_" + util::to_string(util::id());
-            osfstream wt_out(temp_file, std::ios::binary | std::ios::trunc | std::ios::out);
-            size_type bit_cnt=0;
-            wt_out.write((char*)&bit_cnt, sizeof(bit_cnt)); // initial dummy write
             {
+                if (0 == text_buf.size() or 0 == size)
+                    return;
+                int_vector_buffer<width> condensed_wt(temp_file, std::ios::out);
                 // scope for bl and bf
                 bit_vector bl = bit_vector(size, 0);
-                m_C  = int_vector<64>(256, 0);
-                uint8_t last_c = '\0';
+
+                auto C = wt_rlmn_trait<alphabet_category>::temp_C();
+                value_type last_c = (value_type)0;
                 for (size_type i=0; i < size; ++i) {
-                    uint8_t c = text_buf[i];
+                    value_type c = text_buf[i];
                     if (last_c != c or i==0) {
                         bl[i] = 1;
-                        wt_out.write((char*)&c, sizeof(c));
-                        bit_cnt += 8;
+                        condensed_wt.push_back(c);
                     }
-                    ++m_C[c];
+                    ++C[c];
                     last_c = c;
                 }
+                condensed_wt.close();
+                m_C = wt_rlmn_trait<alphabet_category>::init_C(C, size);
 
-                wt_out.seekp(0, std::ios::beg);
-                wt_out.write((char*)&bit_cnt, sizeof(bit_cnt));
-                wt_out.close();
-
-                for (size_type i=0, prefix_sum=0, t=0; i<256; ++i) {
-                    t = m_C[i];
+                for (size_type i=0, prefix_sum=0, t=0; i<m_C.size(); ++i) {
                     m_C[i] = prefix_sum;
-                    prefix_sum += t;
+                    prefix_sum += C[i];
                 }
 
-                int_vector<64> lf_map = m_C;
+                C_type lf_map = m_C;
                 bit_vector bf = bit_vector(size+1, 0);
                 bf[size] = 1; // initialize last element
                 for (size_type i=0; i < size; ++i) {
-                    uint8_t c = text_buf[i];
+                    value_type c = text_buf[i];
                     if (bl[i]) {
                         bf[lf_map[c]] = 1;
                     }
                     ++lf_map[c];
                 }
                 {
-                    int_vector_buffer<8> temp_bwt_buf(temp_file);
+                    int_vector_buffer<width> temp_bwt_buf(temp_file);
                     m_wt = wt_type(temp_bwt_buf, temp_bwt_buf.size());
                 }
                 sdsl::remove(temp_file);
@@ -183,8 +226,9 @@ class wt_rlmn
             util::init_support(m_bf_rank, &m_bf);
             util::init_support(m_bf_select, &m_bf);
             util::init_support(m_bl_select, &m_bl);
-            m_C_bf_rank = int_vector<64>(256,0);
-            for (size_type i=0; i<256; ++i) {
+
+            m_C_bf_rank = wt_rlmn_trait<alphabet_category>::init_C_bf_rank(m_C, size);
+            for (size_type i=0; i<m_C.size(); ++i) {
                 m_C_bf_rank[i] = m_bf_rank(m_C[i]);
             }
         }
@@ -318,6 +362,16 @@ class wt_rlmn
             size_type offset = m_C[c]+i-1-m_bf_select(c_runs + m_C_bf_rank[c]);
             return m_bl_select(m_wt.select(c_runs, c)+1) + offset;
         };
+
+        //! Returns a const_iterator to the first element.
+        const_iterator begin()const {
+            return const_iterator(this, 0);
+        }
+
+        //! Returns a const_iterator to the element after the last element.
+        const_iterator end()const {
+            return const_iterator(this, size());
+        }
 
         //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,

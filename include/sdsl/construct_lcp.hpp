@@ -47,10 +47,10 @@ namespace sdsl
  *  \tparam t_width Width of the text. 0==integer alphabet, 8=byte alphabet.
  *  \param config	Reference to cache configuration
  *  \pre Text and Suffix array exist in the cache. Keys:
- *         * constants::KEY_TEXT for t_width=8  or constants::KEY_TEXT_INT for t_width=0
- *         * constants::KEY_SA
+ *         * conf::KEY_TEXT for t_width=8  or conf::KEY_TEXT_INT for t_width=0
+ *         * conf::KEY_SA
  *  \post LCP array exist in the cache. Key
- *         * constants::KEY_LCP
+ *         * conf::KEY_LCP
  *  \par Time complexity
  *         \f$ \Order{n} \f$
  *  \par Space complexity
@@ -72,9 +72,9 @@ void construct_lcp_kasai(cache_config& config)
         if (!load_from_cache(text, key_text_trait<t_width>::KEY_TEXT, config)) {
             return;
         }
-        int_vector_buffer<> isa_buf(config.file_map[constants::KEY_ISA], std::ios::in, 1000000);   // init isa file_buffer
+        int_vector_buffer<> isa_buf(config.file_map[conf::KEY_ISA], std::ios::in, 1000000);   // init isa file_buffer
         int_vector<> sa;
-        if (!load_from_cache(sa, constants::KEY_SA, config)) {
+        if (!load_from_cache(sa, conf::KEY_SA, config)) {
             return;
         }
         // use Kasai algorithm to compute the lcp values
@@ -100,17 +100,17 @@ void construct_lcp_kasai(cache_config& config)
         sa[0] = 0;
         lcp.swap(sa);
     }
-    store_to_cache(lcp, constants::KEY_LCP, config);
+    store_to_cache(lcp, conf::KEY_LCP, config);
 }
 
 
 //! Construct the LCP array for text over byte- or integer-alphabet.
 /*!	The algorithm computes the lcp array and stores it to disk.
  *  \pre Text and Suffix array exist in the cache. Keys:
- *         * constants::KEY_TEXT for t_width=8  or constants::KEY_TEXT_INT for t_width=0
- *         * constants::KEY_SA
+ *         * conf::KEY_TEXT for t_width=8  or conf::KEY_TEXT_INT for t_width=0
+ *         * conf::KEY_SA
  *  \post LCP array exist in the cache. Key
- *         * constants::KEY_LCP
+ *         * conf::KEY_LCP
  *  \par Time complexity
  *         \f$ \Order{n} \f$
  *  \par Space complexity
@@ -127,13 +127,13 @@ void construct_lcp_PHI(cache_config& config)
     typedef int_vector<>::size_type size_type;
     typedef int_vector<t_width> text_type;
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
-    int_vector_buffer<> sa_buf(config.file_map[constants::KEY_SA]);
+    int_vector_buffer<> sa_buf(config.file_map[conf::KEY_SA]);
     size_type n = sa_buf.size();
 
     assert(n > 0);
     if (1 == n) {  // Handle special case: Input only the sentinel character.
         int_vector<> lcp(1, 0);
-        store_to_cache(lcp, constants::KEY_LCP, config);
+        store_to_cache(lcp, conf::KEY_LCP, config);
         return;
     }
 
@@ -166,7 +166,7 @@ void construct_lcp_PHI(cache_config& config)
     uint8_t lcp_width = bits::hi(max_l)+1;
 
 //	(4) Transform PLCP into LCP
-    std::string lcp_file = cache_file_name(constants::KEY_LCP, config);
+    std::string lcp_file = cache_file_name(conf::KEY_LCP, config);
     size_type buffer_size = 1000000; // buffer_size is a multiple of 8!
     int_vector_buffer<> lcp_buf(lcp_file, std::ios::out, buffer_size, lcp_width);   // open buffer for lcp
     lcp_buf[0] = 0;
@@ -176,7 +176,7 @@ void construct_lcp_PHI(cache_config& config)
         lcp_buf[i] = plcp[sai];
     }
     lcp_buf.close();
-    register_cache_file(constants::KEY_LCP, config);
+    register_cache_file(conf::KEY_LCP, config);
 }
 
 
@@ -184,11 +184,11 @@ void construct_lcp_PHI(cache_config& config)
 /*!	The algorithm computes the lcp array and stores it to disk.
  *  \param config	Reference to cache configuration
  *  \pre Text, Suffix array and BWT exist in the cache. Keys:
- *         * constants::KEY_TEXT
- *         * constants::KEY_SA
- *         * constants::KEY_BWT
+ *         * conf::KEY_TEXT
+ *         * conf::KEY_SA
+ *         * conf::KEY_BWT
  *  \post LCP array exist in the cache. Key
- *         * constants::KEY_LCP
+ *         * conf::KEY_LCP
  *  \par Time complexity
  *         \f$ \Order{n*q} \f$ implmented with \f$ q=64 \f$
  *  \par Space complexity
@@ -206,11 +206,11 @@ void construct_lcp_semi_extern_PHI(cache_config& config);
  *  Our new 2 phases lcp algorithm
  *  \param config	Reference to cache configuration
  *  \pre Text, Suffix array and BWT exist in the cache. Keys:
- *         * constants::KEY_TEXT
- *         * constants::KEY_SA
- *         * constants::KEY_BWT
+ *         * conf::KEY_TEXT
+ *         * conf::KEY_SA
+ *         * conf::KEY_BWT
  *  \post LCP array exist in the cache. Key
- *         * constants::KEY_LCP
+ *         * conf::KEY_LCP
  *  \par Time complexity
  *         \f$ \Order{n^2} \f$, but usually faster than goPHI
  *  \par Space complexity
@@ -228,11 +228,11 @@ void construct_lcp_go(cache_config& config);
  *  Our new 2 phases lcp algorithm
  *  \param config	Reference to cache configuration
  *  \pre Text, Suffix array and BWT exist in the cache. Keys:
- *         * constants::KEY_TEXT
- *         * constants::KEY_SA
- *         * constants::KEY_BWT
+ *         * conf::KEY_TEXT
+ *         * conf::KEY_SA
+ *         * conf::KEY_BWT
  *  \post LCP array exist in the cache. Key
- *         * constants::KEY_LCP
+ *         * conf::KEY_LCP
  *  \par Time complexity
  *         \f$ \Order{n} \f$
  *  \par Space complexity
@@ -249,9 +249,9 @@ void construct_lcp_goPHI(cache_config& config);
 /*!	The algorithm computes the lcp array and stores it to disk. It needs only the Burrows and Wheeler transform.
  *  \param config	Reference to cache configuration
  *  \pre BWT exist in the cache. Keys:
- *         * constants::KEY_BWT
+ *         * conf::KEY_BWT
  *  \post LCP array exist in the cache. Key
- *         * constants::KEY_LCP
+ *         * conf::KEY_LCP
  *  \par Time complexity
  *         \f$ \Order{n \log{\sigma}} \f$
  *  \par Space complexity
@@ -268,9 +268,9 @@ void construct_lcp_bwt_based(cache_config& config);
 /*!	The algorithm computes the lcp array and stores it to disk. It needs only the Burrows and Wheeler transform.
  *  \param config	Reference to cache configuration
  *  \pre BWT exist in the cache. Keys:
- *         * constants::KEY_BWT
+ *         * conf::KEY_BWT
  *  \post LCP array exist in the cache. Key
- *         * constants::KEY_LCP
+ *         * conf::KEY_LCP
  *  \par Time complexity
  *         \f$ \Order{n \log{\sigma}} \f$
  *  \par Space complexity

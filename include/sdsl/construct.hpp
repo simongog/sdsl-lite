@@ -134,14 +134,14 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     }
     {
         // (2) check, if the suffix array is cached
-        if (!cache_file_exists(constants::KEY_SA, config)) {
+        if (!cache_file_exists(conf::KEY_SA, config)) {
             memory_monitor::event("sa-begin");
             construct_sa<t_index::alphabet_category::WIDTH>(config);
             memory_monitor::event("sa-end");
         }
-        register_cache_file(constants::KEY_SA, config);
+        register_cache_file(conf::KEY_SA, config);
         int_vector<> sa;
-        load_from_cache(sa, constants::KEY_SA, config);
+        load_from_cache(sa, conf::KEY_SA, config);
     }
     {
         //  (3) construct BWT
@@ -150,7 +150,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
             construct_bwt<t_index::alphabet_category::WIDTH>(config);
             memory_monitor::event("bwt-end");
         }
-        register_cache_file(constants::KEY_BWT, config);
+        register_cache_file(conf::KEY_BWT, config);
         int_vector<t_index::alphabet_category::WIDTH> bwt;
         load_from_cache(bwt, KEY_BWT, config);
     }
@@ -185,8 +185,8 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         // (2) check, if the longest common prefix array is cached
         register_cache_file(KEY_TEXT, config);
         register_cache_file(KEY_BWT, config);
-        register_cache_file(constants::KEY_SA, config);
-        if (!cache_file_exists(constants::KEY_LCP, config)) {
+        register_cache_file(conf::KEY_SA, config);
+        if (!cache_file_exists(conf::KEY_LCP, config)) {
             memory_monitor::event("lcp-begin");
             if (t_index::alphabet_category::WIDTH==8) {
                 construct_lcp_semi_extern_PHI(config);
@@ -195,7 +195,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
             }
             memory_monitor::event("lcp-end");
         }
-        register_cache_file(constants::KEY_LCP, config);
+        register_cache_file(conf::KEY_LCP, config);
     }
     {
         t_index tmp(config);

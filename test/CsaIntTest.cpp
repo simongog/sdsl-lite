@@ -73,7 +73,7 @@ TYPED_TEST(CsaIntTest, SaAccess)
     TypeParam csa;
     ASSERT_EQ(true, load_from_file(csa, temp_file));
     int_vector<> sa;
-    load_from_file(sa, test_case_file_map[constants::KEY_SA]);
+    load_from_file(sa, test_case_file_map[conf::KEY_SA]);
     size_type n = sa.size();
     ASSERT_EQ(n, csa.size());
     for (size_type j=0; j<n; ++j) {
@@ -91,7 +91,7 @@ TYPED_TEST(CsaIntTest, IsaAccess)
     size_type n = 0;
     {
         int_vector<> sa;
-        load_from_file(sa, test_case_file_map[constants::KEY_SA]);
+        load_from_file(sa, test_case_file_map[conf::KEY_SA]);
         n = sa.size();
         ASSERT_EQ(n, csa.size());
         isa = sa;
@@ -107,11 +107,11 @@ TYPED_TEST(CsaIntTest, IsaAccess)
 //! Test Burrows-Wheeler access methods
 TYPED_TEST(CsaIntTest, BwtAccess)
 {
-    if (test_case_file_map.end() != test_case_file_map.find(constants::KEY_BWT_INT)) {
+    if (test_case_file_map.end() != test_case_file_map.find(conf::KEY_BWT_INT)) {
         TypeParam csa;
         ASSERT_EQ(true, load_from_file(csa, temp_file));
         int_vector<> bwt;
-        load_from_file(bwt, test_case_file_map[constants::KEY_BWT_INT]);
+        load_from_file(bwt, test_case_file_map[conf::KEY_BWT_INT]);
         size_type n = bwt.size();
         ASSERT_EQ(n, csa.size());
         for (size_type j=0; j<n; ++j) {
@@ -122,11 +122,11 @@ TYPED_TEST(CsaIntTest, BwtAccess)
 
 TYPED_TEST(CsaIntTest, FAccess)
 {
-    if (test_case_file_map.end() != test_case_file_map.find(constants::KEY_TEXT_INT)) {
+    if (test_case_file_map.end() != test_case_file_map.find(conf::KEY_TEXT_INT)) {
         TypeParam csa;
         ASSERT_EQ(true, load_from_file(csa, temp_file));
         int_vector<> text;
-        load_from_file(text, test_case_file_map[constants::KEY_TEXT_INT]);
+        load_from_file(text, test_case_file_map[conf::KEY_TEXT_INT]);
         std::sort(begin(text),end(text));
         size_type n = text.size();
         ASSERT_EQ(n, csa.size());
@@ -139,11 +139,11 @@ TYPED_TEST(CsaIntTest, FAccess)
 //! Test text access methods
 TYPED_TEST(CsaIntTest, TextAccess)
 {
-    if (test_case_file_map.end() != test_case_file_map.find(constants::KEY_TEXT_INT)) {
+    if (test_case_file_map.end() != test_case_file_map.find(conf::KEY_TEXT_INT)) {
         TypeParam csa;
         ASSERT_EQ(true, load_from_file(csa, temp_file));
         int_vector<> text;
-        load_from_file(text, test_case_file_map[constants::KEY_TEXT_INT]);
+        load_from_file(text, test_case_file_map[conf::KEY_TEXT_INT]);
         size_type n = text.size();
         ASSERT_EQ(n, csa.size());
         for (size_type j=0; j<n; ++j) {
@@ -155,11 +155,11 @@ TYPED_TEST(CsaIntTest, TextAccess)
 //! Test Psi access methods
 TYPED_TEST(CsaIntTest, PsiAccess)
 {
-    if (test_case_file_map.end() != test_case_file_map.find(constants::KEY_PSI)) {
+    if (test_case_file_map.end() != test_case_file_map.find(conf::KEY_PSI)) {
         TypeParam csa;
         ASSERT_EQ(true, load_from_file(csa, temp_file));
         int_vector<> psi;
-        load_from_file(psi, test_case_file_map[constants::KEY_PSI]);
+        load_from_file(psi, test_case_file_map[conf::KEY_PSI]);
         size_type n = psi.size();
         ASSERT_EQ(n, csa.size());
         for (size_type j=0; j<n; ++j) {
@@ -190,7 +190,7 @@ TYPED_TEST(CsaIntTest, SwapTest)
     TypeParam csa2;
     csa1.swap(csa2);
     int_vector<> sa;
-    load_from_file(sa, test_case_file_map[constants::KEY_SA]);
+    load_from_file(sa, test_case_file_map[conf::KEY_SA]);
     size_type n = sa.size();
     ASSERT_EQ(n, csa2.size());
     for (size_type j=0; j<n; ++j) {
