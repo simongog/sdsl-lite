@@ -268,33 +268,34 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
     if (!cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
         return;
     }
-    int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
-    int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA, config));
-    size_type n = bwt_buf.size();
-    memory_monitor::event("csa-alphabet-construct-begin");
+
     {
+        auto event = memory_monitor::event("construct csa-alpbabet");
+        int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
+        size_type n = bwt_buf.size();
         alphabet_type tmp_alphabet(bwt_buf, n);
         m_alphabet.swap(tmp_alphabet);
     }
-    memory_monitor::event("csa-alphabet-construct-end");
 
-    memory_monitor::event("wt-begin");
     {
+        int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
+        size_type n = bwt_buf.size();
+        auto event = memory_monitor::event("construct wavelet tree");
         wavelet_tree_type tmp_wt(bwt_buf, n);
         m_wavelet_tree.swap(tmp_wt);
     }
-    memory_monitor::event("wt-end");
 
-    memory_monitor::event("sa-sample-begin");
     {
+        auto event = memory_monitor::event("sample SA");
         sa_sample_type tmp_sa_sample(config);
         m_sa_sample.swap(tmp_sa_sample);
     }
-    memory_monitor::event("sa-sample-end");
 
-    memory_monitor::event("isa-sample-begin");
-    set_isa_samples<csa_wt>(sa_buf, m_isa_sample);
-    memory_monitor::event("isa-sample-end");
+    {
+        auto event = memory_monitor::event("sample ISA");
+        int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA, config));
+        set_isa_samples<csa_wt>(sa_buf, m_isa_sample);
+    }
 }
 
 

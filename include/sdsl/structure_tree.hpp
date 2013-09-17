@@ -11,6 +11,7 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
+#include "config.hpp"
 
 //! Namespace for the succinct data structure library
 namespace sdsl
@@ -56,7 +57,7 @@ class structure_tree
         };
 };
 
-enum format_type {JSON_FORMAT, R_FORMAT, HTML_FORMAT};
+
 template<format_type F>
 void write_structure_tree(const structure_tree_node* v, std::ostream& out, size_t level = 0);
 

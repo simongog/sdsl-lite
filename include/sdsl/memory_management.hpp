@@ -15,50 +15,86 @@
 #include <cstring>
 #include <set>
 #include <cstddef>
-
+#include <stack>
+#include "config.hpp"
 
 namespace sdsl
 {
 
 class memory_monitor;
 
-enum memformat_type {JSON, CSV, HTML};
-
-template<memformat_type F>
+template<format_type F>
 void write_mem_log(std::ostream& out,const memory_monitor& m);
 
 class memory_monitor
 {
     public:
         using timer = std::chrono::high_resolution_clock;
-        struct mm_event {
+        struct mm_alloc {
             timer::time_point timestamp;
             int64_t usage;
-            mm_event(timer::time_point t,int64_t u) : timestamp(t) , usage(u) {};
+            mm_alloc(timer::time_point t,int64_t u) : timestamp(t) , usage(u) {};
         };
-        std::chrono::milliseconds log_granularity = std::chrono::milliseconds(20);
+        struct mm_event {
+            std::string name;
+            std::vector<mm_alloc> allocations;
+            mm_event(std::string n,int64_t usage) : name(n) {
+                allocations.emplace_back(timer::now(),usage);
+            };
+            bool operator< (const mm_event& a) const {
+                if (a.allocations.size() && this->allocations.size()) {
+                    if (this->allocations[0].timestamp == a.allocations[0].timestamp) {
+                        return this->allocations.back().timestamp < a.allocations.back().timestamp;
+                    } else {
+                        return this->allocations[0].timestamp < a.allocations[0].timestamp;
+                    }
+                }
+                return true;
+            }
+        };
+        struct mm_event_proxy {
+            bool add;
+            timer::time_point created;
+            mm_event_proxy(const std::string& name,int64_t usage,bool a) : add(a) {
+                if (add) {
+                    auto& m = the_monitor();
+                    std::lock_guard<util::spin_lock> lock(m.spinlock);
+                    m.event_stack.emplace(name,usage);
+                }
+            }
+            ~mm_event_proxy() {
+                if (add) {
+                    auto& m = the_monitor();
+                    std::lock_guard<util::spin_lock> lock(m.spinlock);
+                    auto& cur = m.event_stack.top();
+                    cur.allocations.emplace_back(timer::now(),m.current_usage);
+                    m.completed_events.emplace_back(std::move(cur));
+                    m.event_stack.pop();
+                }
+            }
+        };
+        std::chrono::milliseconds log_granularity = std::chrono::milliseconds(1);
         int64_t current_usage = 0;
-        int64_t peak_usage = 0;
         bool track_usage = false;
-        std::vector<mm_event> mem_events;
-        std::vector<std::tuple<timer::time_point,int64_t,std::string>> events;
+        std::vector<mm_event> completed_events;
+        std::stack<mm_event> event_stack;
+        timer::time_point start_log;
+        timer::time_point last_event;
         util::spin_lock spinlock;
     private:
         // disable construction of the object
         memory_monitor() {};
+        ~memory_monitor() {
+            if (track_usage) {
+                stop();
+            }
+        }
         memory_monitor(const memory_monitor&) = delete;
         memory_monitor& operator=(const memory_monitor&) = delete;
     private:
         static memory_monitor& the_monitor() {
             static memory_monitor m;
             return m;
-        }
-        static mm_event& last_event() {
-            auto& m = the_monitor();
-            if (!m.mem_events.size()) {
-                m.mem_events.emplace_back(timer::now(),(int64_t)0);
-            }
-            return m.mem_events.back(); // empty event
         }
     public:
         static void granularity(std::chrono::milliseconds ms) {
@@ -68,35 +104,53 @@ class memory_monitor
         static void start() {
             auto& m = the_monitor();
             m.track_usage = true;
-            event("start mem_monitor");
+            // clear if there is something there
+            if (m.completed_events.size()) {
+                m.completed_events.clear();
+            }
+            while (m.event_stack.size()) {
+                m.event_stack.pop();
+            }
+            m.start_log = timer::now();
+            m.current_usage = 0;
+            m.last_event = m.start_log;
+            m.event_stack.emplace("unknown",0);
         }
         static void stop() {
             auto& m = the_monitor();
-            event("stop mem_monitor");
-            m.mem_events.emplace_back(timer::now(),m.current_usage); // final event
+            while (! m.event_stack.empty()) {
+                m.completed_events.emplace_back(std::move(m.event_stack.top()));
+                m.event_stack.pop();
+            }
             m.track_usage = false;
         }
         static void record(int64_t delta) {
             auto& m = the_monitor();
             if (m.track_usage) {
                 std::lock_guard<util::spin_lock> lock(m.spinlock);
-                m.current_usage = (int64_t)((int64_t)m.current_usage + delta);
-                m.peak_usage = std::max(m.current_usage,m.peak_usage);
                 auto cur = timer::now();
-                if (last_event().timestamp + m.log_granularity < cur) {
-
-                    m.mem_events.emplace_back(cur,m.current_usage);
+                if (m.last_event + m.log_granularity < cur) {
+                    m.event_stack.top().allocations.emplace_back(cur,m.current_usage);
+                    m.current_usage = m.current_usage + delta;
+                    m.event_stack.top().allocations.emplace_back(cur,m.current_usage);
+                    m.last_event = cur;
+                } else {
+                    if (m.event_stack.top().allocations.size()) {
+                        m.current_usage = m.current_usage + delta;
+                        m.event_stack.top().allocations.back().usage = m.current_usage;
+                        m.event_stack.top().allocations.back().timestamp = cur;
+                    }
                 }
             }
         }
-        static void event(const std::string& name) {
+        static mm_event_proxy event(const std::string& name) {
             auto& m = the_monitor();
             if (m.track_usage) {
-                std::lock_guard<util::spin_lock> lock(m.spinlock);
-                m.events.emplace_back(timer::now(),m.current_usage,name);
+                return mm_event_proxy(name,m.current_usage,true);
             }
+            return mm_event_proxy(name,m.current_usage,false);
         }
-        template<memformat_type F>
+        template<format_type F>
         static void write_memory_log(std::ostream& out) {
             write_mem_log<F>(out,the_monitor());
         }
@@ -125,6 +179,7 @@ class hugepage_allocator
         size_t m_total_size = 0;
         std::multimap<size_t,mm_block_t*> m_free_large;
     private:
+        size_t determine_available_hugepage_memory();
         void coalesce_block(mm_block_t* block);
         void split_block(mm_block_t* bptr,size_t size);
         uint8_t* hsbrk(size_t size);
@@ -135,8 +190,12 @@ class hugepage_allocator
         mm_block_t* last_block();
         void print_heap();
     public:
-        void init(SDSL_UNUSED size_t size_in_bytes) {
+        void init(SDSL_UNUSED size_t size_in_bytes = 0) {
 #ifdef MAP_HUGETLB
+            if (size_in_bytes == 0) {
+                size_in_bytes = determine_available_hugepage_memory();
+            }
+
             m_total_size = size_in_bytes;
             m_base = (uint8_t*) mmap(nullptr, m_total_size,
                                      (PROT_READ | PROT_WRITE),
@@ -208,7 +267,7 @@ class memory_manager
             }
         }
     public:
-        static void use_hugepages(size_t bytes) {
+        static void use_hugepages(size_t bytes = 0) {
             auto& m = the_manager();
             hugepage_allocator::the_allocator().init(bytes);
             m.hugepages = true;

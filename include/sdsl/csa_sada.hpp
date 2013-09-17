@@ -359,20 +359,19 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     }
     int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
     size_type n = bwt_buf.size();
-    memory_monitor::event("csa-alphabet-construct-begin");
     {
+        auto event = memory_monitor::event("construct csa-alpbabet");
         alphabet_type tmp_alphabet(bwt_buf, n);
         m_alphabet.swap(tmp_alphabet);
     }
-    memory_monitor::event("csa-alphabet-construct-end");
 
     int_vector<> cnt_chr(sigma, 0, bits::hi(n)+1);
     for (typename alphabet_type::sigma_type i=0; i < sigma; ++i) {
         cnt_chr[i] = C[i];
     }
-    memory_monitor::event("csa-psi-begin");
     // calculate psi
     {
+        auto event = memory_monitor::event("construct PSI");
         // TODO: move PSI construct into construct_PSI.hpp
         int_vector<> psi(n, 0, bits::hi(n)+1);
         for (size_type i=0; i < n; ++i) {
@@ -383,25 +382,22 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
             return;
         }
     }
-    memory_monitor::event("csa-psi-end");
-    int_vector_buffer<> psi_buf(cache_file_name(conf::KEY_PSI, config));
-    memory_monitor::event("csa-psi-encode-begin");
     {
+        auto event = memory_monitor::event("encode PSI");
+        int_vector_buffer<> psi_buf(cache_file_name(conf::KEY_PSI, config));
         t_enc_vec tmp_psi(psi_buf);
         m_psi.swap(tmp_psi);
     }
-    memory_monitor::event("csa-psi-encode-end");
-    int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA, config));
-    memory_monitor::event("sa-sample-begin");
     {
+        auto event = memory_monitor::event("sample SA");
         sa_sample_type tmp_sa_sample(config);
         m_sa_sample.swap(tmp_sa_sample);
     }
-    memory_monitor::event("sa-sample-end");
-
-    memory_monitor::event("isa-sample-begin");
-    set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
-    memory_monitor::event("isa-sample-end");
+    {
+        auto event = memory_monitor::event("sample ISA");
+        int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA, config));
+        set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
+    }
 }
 
 template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
