@@ -121,21 +121,20 @@ class memory_monitor
             auto& m = the_monitor();
             if (m.track_usage) {
                 std::lock_guard<util::spin_lock> lock(m.spinlock);
-                m.current_usage = (int64_t)((int64_t)m.current_usage + delta);
                 auto cur = timer::now();
                 if (m.last_event + m.log_granularity < cur) {
+                    m.event_stack.top().allocations.emplace_back(cur,m.current_usage);
+                    m.current_usage = m.current_usage + delta;
                     m.event_stack.top().allocations.emplace_back(cur,m.current_usage);
                     m.last_event = cur;
                 } else {
                     if (m.event_stack.top().allocations.size()) {
+                        m.current_usage = m.current_usage + delta;
                         m.event_stack.top().allocations.back().usage = m.current_usage;
                         m.event_stack.top().allocations.back().timestamp = cur;
                     }
                 }
             }
-        }
-        static void snapshot() {
-            record(0);
         }
         static mm_event_proxy event(const std::string& name) {
             auto& m = the_monitor();

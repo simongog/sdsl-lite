@@ -117,10 +117,10 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     const char* KEY_BWT  = key_bwt_trait<t_index::alphabet_category::WIDTH>::KEY_BWT;
     typedef int_vector<t_index::alphabet_category::WIDTH> text_type;
     {
+        auto event = memory_monitor::event("parse input text");
         // (1) check, if the text is cached
         if (!cache_file_exists(KEY_TEXT, config)) {
             text_type text;
-            auto event = memory_monitor::event("parse input text");
             load_vector_from_file(text, file, num_bytes);
             if (contains_no_zero_symbol(text, file)) {
                 append_zero_symbol(text);
@@ -147,7 +147,6 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         register_cache_file(constants::KEY_BWT, config);
     }
     {
-        auto event = memory_monitor::event("CSA");
         t_index tmp(config);
         idx.swap(tmp);
     }
@@ -165,6 +164,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     csa_tag csa_t;
     {
         // (1) check, if the compressed suffix array is cached
+        auto event = memory_monitor::event("CSA");
         typename t_index::csa_type csa;
         if (!cache_file_exists(util::class_to_hash(csa), config)) {
             cache_config csa_config(false, config.dir, config.id, config.file_map);
@@ -176,11 +176,11 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     }
     {
         // (2) check, if the longest common prefix array is cached
+        auto event = memory_monitor::event("LCP");
         register_cache_file(KEY_TEXT, config);
         register_cache_file(KEY_BWT, config);
         register_cache_file(constants::KEY_SA, config);
         if (!cache_file_exists(constants::KEY_LCP, config)) {
-            auto event = memory_monitor::event("construct LCP");
             if (t_index::alphabet_category::WIDTH==8) {
                 construct_lcp_semi_extern_PHI(config);
             } else {
@@ -190,7 +190,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         register_cache_file(constants::KEY_LCP, config);
     }
     {
-        auto event = memory_monitor::event("construct CST");
+        auto event = memory_monitor::event("CST");
         t_index tmp(config);
         tmp.swap(idx);
     }

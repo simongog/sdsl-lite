@@ -28,7 +28,6 @@ void construct_lcp_semi_extern_PHI(cache_config& config)
     // n-1 is the maximum entry in SA
     int_vector<64> plcp((n-1+q)>>log_q);
 
-    memory_monitor::event("lcp-calc-sparse-phi-begin");
     for (size_type i=0, sai_1=0; i < n; ++i) {   // we can start at i=0. if SA[i]%q==0
         // we set PHI[(SA[i]=n-1)%q]=0, since T[0]!=T[n-1]
         size_type sai = sa_buf[i];
@@ -41,15 +40,11 @@ void construct_lcp_semi_extern_PHI(cache_config& config)
         }
         sai_1 = sai;
     }
-    memory_monitor::event("lcp-calc-sparse-phi-end");
 
-    memory_monitor::event("lcp-load-text-begin");
+
     int_vector<8> text;
     load_from_cache(text, constants::KEY_TEXT, config);
-    memory_monitor::event("lcp-load-text-end");
 
-
-    memory_monitor::event("lcp-calc-sparse-plcp-begin");
     for (size_type i=0,j,k,l=0; i < plcp.size(); ++i) {
         j =	i<<log_q;   // j=i*q
         k = plcp[i];
@@ -62,7 +57,6 @@ void construct_lcp_semi_extern_PHI(cache_config& config)
             l = 0;
         }
     }
-    memory_monitor::event("lcp-calc-sparse-plcp-end");
 
     size_type buffer_size = 4000000; // buffer_size is a multiple of 8!
     sa_buf.buffersize(buffer_size);
