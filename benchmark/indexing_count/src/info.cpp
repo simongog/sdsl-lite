@@ -17,5 +17,5 @@ int main(int argc, char* argv[])
     }
     CSA_TYPE csa;
     load_from_file(csa, argv[1]);
-    write_structure<JSON_FORMAT>(csa, cout);
+    write_structure<HTML_FORMAT>(csa, cout);
 }
