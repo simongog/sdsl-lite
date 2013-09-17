@@ -7,19 +7,6 @@ using namespace std;
 using namespace std::chrono;
 using timer = std::chrono::high_resolution_clock;
 
-template<class tCsa>
-void do_something(const tCsa& csa)
-{
-    uint64_t sum=0;
-    auto start = timer::now();
-    for (size_t i=0; i<csa.size() and i<10000000; ++i) {
-        sum+=csa.lf[i];
-    }
-    auto stop = timer::now();
-    cout << "runtime in s: " << duration_cast<seconds>(stop-start).count() << endl;
-    cout <<"sum="<<sum<<endl;
-}
-
 int main(int argc, char** argv)
 {
     if (argc < 2) {
