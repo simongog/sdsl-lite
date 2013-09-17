@@ -189,7 +189,8 @@ do_locate(const CSA_TYPE& csa)
         }
         // Locate
         time = getTime();
-        numocc = locate(csa, pattern, pattern+length, occ);
+        auto occs =  locate(csa, pattern, pattern+length);
+        numocc = occs.size();
         tot_time += (getTime() - time);
         ++processed_pat;
 
