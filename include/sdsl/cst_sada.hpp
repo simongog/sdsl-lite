@@ -173,7 +173,7 @@ class cst_sada
             }
             {
                 auto event = memory_monitor::event("load csa");
-                load_from_cache(m_csa, util::class_to_hash(m_csa), config);
+                load_from_cache(m_csa,std::string(conf::KEY_CSA)+"_"+util::class_to_hash(m_csa), config);
             }
         }
 
@@ -381,7 +381,7 @@ class cst_sada
          *  \par Time complexity
          *    \f$ \Order{1} \f$
          */
-        node_type leftmost_leaf(const node_type& v)const {
+        node_type leftmost_leaf(const node_type v)const {
             return m_bp_select10(m_bp_rank10(v)+1)-1;
         }
 
@@ -391,7 +391,7 @@ class cst_sada
          * \par Time complexity
          *   \f$ \Order{1} \f$
          */
-        node_type rightmost_leaf(const node_type& v)const {
+        node_type rightmost_leaf(const node_type v)const {
             size_type r = m_bp_support.find_close(v);
             return m_bp_select10(m_bp_rank10(r+1))-1;
         }
@@ -404,7 +404,7 @@ class cst_sada
          * \par Note
          * lb is an abbreviation for ,,left bound''
          */
-        size_type lb(const node_type& v)const {
+        size_type lb(const node_type v)const {
             return m_bp_rank10(v);
         }
 
@@ -416,7 +416,7 @@ class cst_sada
          *  \par Note
          *   rb is an abbreviation for ,,right bound''
          */
-        size_type rb(const node_type& v)const {
+        size_type rb(const node_type v)const {
             size_type r = m_bp_support.find_close(v);
             return m_bp_rank10(r+1)-1;
         }
@@ -442,8 +442,8 @@ class cst_sada
          *  \par Time complexity
          *     \f$ \Order{1}\f$
          */
-        cst_node_child_proxy<cst_sada> children(const node_type& v) const {
-            return cst_node_child_proxy<cst_sada>(*this,v);
+        cst_node_child_proxy<cst_sada> children(node_type v) const {
+            return cst_node_child_proxy<cst_sada>(this,v);
         }
 
 
@@ -534,17 +534,15 @@ class cst_sada
 
 //! Returns the d-th character (1-based indexing) of the edge-label pointing to v.
         /*!\param v The node at which the edge path ends.
-         * \param d The position (1-based indexing) of the requested character on the edge path from the root to v. \f$ d > 0 \wedge d < depth(v) \f$
+         * \param d The position (1-based indexing) of the requested character on the edge path from the root to v. \f$ d > 0 \wedge d <= depth(v) \f$
          * \return The character at position d on the edge path from the root to v.
          * \par Time complexity
          *       \f$ \Order{ \log\sigma + (\saaccess+\isaaccess) } \f$
          * \pre \f$ 1 \leq d \leq depth(v)  \f$
          */
         char_type edge(node_type v, size_type d)const {
-            if (d < 1 or d > depth(v)) {
-                throw std::out_of_range("OUT_OF_RANGE_ERROR: "+util::demangle(typeid(this).name())+" cst_sada<>::edge(node_type v, size_type d). d == 0 or d > depth(v)!");
-            }
-
+            assert(1 <= d);
+            assert(d <= depth(v));
             size_type i = 0;// index of the first suffix in the subtree of v
             if (is_leaf(v)) { // if v is a leave
                 i = m_bp_rank10(v); // get the index in the suffix array
@@ -621,8 +619,8 @@ class cst_sada
             // get the rightmost leaf in the tree rooted at v
             size_type right = is_leaf(v) ? left : m_bp_rank10(m_bp_support.find_close(v))-1;
 
-            size_type c_left    = m_csa.rank_bwt(left, c);
-            size_type c_right    = m_csa.rank_bwt(right+1, c);
+            size_type c_left    = m_csa.bwt.rank(left, c);
+            size_type c_right    = m_csa.bwt.rank(right+1, c);
 
             if (c_left == c_right)  // there exists no Weiner link
                 return root();

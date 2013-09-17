@@ -35,8 +35,6 @@
 #include "wt_hutu.hpp"
 #include "wt_int.hpp"
 #include "wt_rlmn.hpp"
-#include "wt_rlg.hpp"
-#include "wt_rlg8.hpp"
 #include "construct.hpp"
 
 namespace sdsl

@@ -110,11 +110,11 @@ class _lcp_support_sada
             typedef typename t_csa::size_type size_type;
             set_csa(f_csa);
             int_vector<> lcp;
-            load_from_file(lcp, cache_file_name(constants::KEY_LCP, config));
-            if (!cache_file_exists(constants::KEY_ISA, config)) {
+            load_from_file(lcp, cache_file_name(conf::KEY_LCP, config));
+            if (!cache_file_exists(conf::KEY_ISA, config)) {
                 construct_isa(config);
             }
-            std::string isa_file = cache_file_name(constants::KEY_ISA, config);
+            std::string isa_file = cache_file_name(conf::KEY_ISA, config);
             int_vector_buffer<> isa_buf(isa_file);
             size_type n = lcp.size();
             bit_vector data = bit_vector(2*n, 0);

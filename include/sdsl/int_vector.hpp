@@ -46,6 +46,9 @@
 #include <istream>
 #include <string>
 #include <initializer_list>
+#include <type_traits>
+#include <vector>
+
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -1088,19 +1091,6 @@ operator<<(std::ostream& os, const t_bv& bv)
     return os;
 }
 
-
-template<class t_iv>
-inline typename std::enable_if<std::is_same<typename t_iv::index_category ,iv_tag>::value, std::ostream&>::type
-operator<<(std::ostream& os, const t_iv& v)
-{
-    for (auto it=v.begin(), end = v.end(); it != end; ++it) {
-        os << *it;
-        if (it+1 != end) os << " ";
-    }
-    return os;
-}
-
-
 // ==== int_vector implementation  ====
 
 template<uint8_t t_width>
@@ -1385,11 +1375,11 @@ typename int_vector<t_width>::size_type int_vector<t_width>::serialize(std::ostr
 
     uint64_t* p = m_data;
     size_type idx = 0;
-    while (idx+constants::SDSL_BLOCK_SIZE < (capacity()>>6)) {
-        out.write((char*) p, constants::SDSL_BLOCK_SIZE*sizeof(uint64_t));
-        written_bytes += constants::SDSL_BLOCK_SIZE*sizeof(uint64_t);
-        p     += constants::SDSL_BLOCK_SIZE;
-        idx    += constants::SDSL_BLOCK_SIZE;
+    while (idx+conf::SDSL_BLOCK_SIZE < (capacity()>>6)) {
+        out.write((char*) p, conf::SDSL_BLOCK_SIZE*sizeof(uint64_t));
+        written_bytes += conf::SDSL_BLOCK_SIZE*sizeof(uint64_t);
+        p     += conf::SDSL_BLOCK_SIZE;
+        idx    += conf::SDSL_BLOCK_SIZE;
     }
     out.write((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
     written_bytes += ((capacity()>>6)-idx)*sizeof(uint64_t);
@@ -1406,10 +1396,10 @@ void int_vector<t_width>::load(std::istream& in)
     bit_resize(size);
     uint64_t* p = m_data;
     size_type idx = 0;
-    while (idx+constants::SDSL_BLOCK_SIZE < (capacity()>>6)) {
-        in.read((char*) p, constants::SDSL_BLOCK_SIZE*sizeof(uint64_t));
-        p     += constants::SDSL_BLOCK_SIZE;
-        idx += constants::SDSL_BLOCK_SIZE;
+    while (idx+conf::SDSL_BLOCK_SIZE < (capacity()>>6)) {
+        in.read((char*) p, conf::SDSL_BLOCK_SIZE*sizeof(uint64_t));
+        p     += conf::SDSL_BLOCK_SIZE;
+        idx += conf::SDSL_BLOCK_SIZE;
     }
     in.read((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
 }

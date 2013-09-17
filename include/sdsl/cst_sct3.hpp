@@ -113,7 +113,6 @@ class cst_sct3
         bp_support_type      m_bp_support;
         bit_vector           m_first_child; // Note: no rank structure is needed for the first_child bit_vector, except for id()
         fc_rank_support_type m_first_child_rank;
-        sigma_type           m_sigma;
         size_type            m_nodes;
 
         void copy(const cst_sct3& cst) {
@@ -125,7 +124,6 @@ class cst_sct3
             m_first_child      = cst.m_first_child;
             m_first_child_rank = cst.m_first_child_rank;
             m_first_child_rank.set_vector(&m_first_child);
-            m_sigma            = cst.m_sigma;
             m_nodes            = cst.m_nodes;
         }
 
@@ -245,7 +243,7 @@ class cst_sct3
                              size_type cipos, size_type& psvpos,
                              size_type& psvcpos)const {
             // if lcp[i]==0 => psv is the 0-th index by definition
-            if ((cipos + (size_type)m_sigma) >= m_bp.size()) {
+            if ((cipos + (size_type)m_csa.sigma) >= m_bp.size()) {
                 psvpos = 0;
                 psvcpos = m_bp.size()-1;
                 return 0;
@@ -377,7 +375,6 @@ class cst_sct3
                 util::swap_support(m_bp_support, cst.m_bp_support, &m_bp, &(cst.m_bp));
                 m_first_child.swap(cst.m_first_child);
                 util::swap_support(m_first_child_rank, cst.m_first_child_rank, &m_first_child, &(cst.m_first_child));
-                std::swap(m_sigma, cst.m_sigma);
                 std::swap(m_nodes, cst.m_nodes);
                 // anything else has to be swapped before swapping lcp
                 swap_lcp(m_lcp, cst.m_lcp, *this, cst);
@@ -562,8 +559,8 @@ class cst_sct3
          *  \par Time complexity
          *     \f$ \Order{1}\f$
          */
-        cst_node_child_proxy<cst_sct3> children(const node_type& v) const {
-            return cst_node_child_proxy<cst_sct3>(*this,v);
+        cst_node_child_proxy<cst_sct3> children(const node_type v) const {
+            return cst_node_child_proxy<cst_sct3>(this,v);
         }
 
         //! Returns the next sibling of node v.
@@ -673,20 +670,6 @@ class cst_sct3
             }
         }
 
-        // Returns the next sibling of node v.
-        // Only for tests.
-        node_type sibling_naive(const node_type& v)const {
-            if (v==root())
-                return root();
-            node_type parent = this->parent(v);
-            assert(parent != v);
-            size_type nr = degree(parent);
-            for (size_type i=1; i <= nr; ++i)
-                if (select_child(parent, i) == v and i!=nr)
-                    return select_child(parent, i+1);
-            return root();
-        }
-
         //! Get the child w of node v which edge label (v,w) starts with character c.
         /*!
          * \param v        A valid tree node of the cst.
@@ -765,7 +748,7 @@ class cst_sct3
         //! Returns the d-th character (1-based indexing) of the edge-label pointing to v.
         /*!\param v The node at which the edge path ends.
          * \param d The position (1-based indexing) on the edge path from the
-         *           root to v. \f$ d > 0 \wedge d < depth(v) \f$
+         *           root to v. \f$ d > 0 \wedge d <= depth(v) \f$
          * \return  The character at position d on the edge path from the root to v.
          * \par Time complexity
          *       \f$ \Order{ \log\sigma + (\saaccess+\isaaccess) } \f$
@@ -775,7 +758,7 @@ class cst_sct3
             assert(1 <= d);
             assert(d <= depth(v));
             size_type     order     = get_char_pos(v.i, d-1, m_csa);
-            size_type     c_begin    = 1, c_end = ((size_type)m_sigma)+1, mid;
+            size_type     c_begin    = 1, c_end = ((size_type)m_csa.sigma)+1, mid;
             while (c_begin < c_end) {
                 mid = (c_begin+c_end)>>1;
                 if (m_csa.C[mid] <= order) {
@@ -807,7 +790,7 @@ class cst_sct3
                 size_type min_index_pos     = m_bp_support.select(min_index+1);
                 size_type min_index_cpos     = m_bp_support.find_close(min_index_pos);
 
-                if (min_index_cpos >= (m_bp.size() - m_sigma)) {   // if lcp[min_index]==0 => return root
+                if (min_index_cpos >= (m_bp.size() - m_csa.sigma)) {   // if lcp[min_index]==0 => return root
                     return root();
                 }
                 size_type new_j = nsv(min_index, min_index_pos)-1;
@@ -884,7 +867,7 @@ class cst_sct3
             size_type min_index = rmq(i+1, j); // rmq
             size_type min_index_pos     = m_bp_support.select(min_index+1);
             size_type min_index_cpos     = m_bp_support.find_close(min_index_pos);
-            if (min_index_cpos >= (m_bp.size() - m_sigma)) {  // if lcp[min_index]==0 => return root
+            if (min_index_cpos >= (m_bp.size() - m_csa.sigma)) {  // if lcp[min_index]==0 => return root
                 return root();
             }
             size_type new_j = nsv(min_index, min_index_pos)-1;
@@ -908,8 +891,8 @@ class cst_sct3
          *        \f$ \Order{ t_{rank\_bwt} } \f$
          */
         node_type wl(const node_type& v, const char_type c) const {
-            size_type c_left    = m_csa.rank_bwt(v.i, c);
-            size_type c_right    = m_csa.rank_bwt(v.j+1, c);
+            size_type c_left    = m_csa.bwt.rank(v.i, c);
+            size_type c_right    = m_csa.bwt.rank(v.j+1, c);
             if (c_left == c_right)  // there exists no Weiner link
                 return root();
             if (c_left+1 == c_right)
@@ -1078,7 +1061,7 @@ cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::cst_sct3(cache_config& config, boo
 {
     {
         auto event = memory_monitor::event("bps-sct");
-        int_vector_buffer<> lcp_buf(cache_file_name(constants::KEY_LCP, config));
+        int_vector_buffer<> lcp_buf(cache_file_name(conf::KEY_LCP, config));
         m_nodes = construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child) + m_bp.size()/2;
         if (m_bp.size() == 2) {  // handle special case, when the tree consists only of the root node
             m_nodes = 1;
@@ -1089,7 +1072,6 @@ cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::cst_sct3(cache_config& config, boo
         util::init_support(m_bp_support, &m_bp);
         util::init_support(m_first_child_rank, &m_first_child);
     }
-
     if (!build_only_bps) {
         auto event = memory_monitor::event("clcp");
         cache_config tmp_config(false, config.dir, config.id, config.file_map);
@@ -1098,10 +1080,8 @@ cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::cst_sct3(cache_config& config, boo
     }
     if (!build_only_bps) {
         auto event = memory_monitor::event("load csa");
-        load_from_cache(m_csa, util::class_to_hash(m_csa), config);
+        load_from_cache(m_csa,std::string(conf::KEY_CSA)+"_"+util::class_to_hash(m_csa), config);
     }
-    m_sigma = std::max(degree(root()), (size_type)1);
-    //handle special case 'CST for empty text'  --^
 }
 
 template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
@@ -1115,7 +1095,6 @@ auto cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::serialize(std::ostream& out, 
     written_bytes += m_bp_support.serialize(out, child, "bp_support");
     written_bytes += m_first_child.serialize(out, child, "mark_child");
     written_bytes += m_first_child_rank.serialize(out, child, "mark_child_rank");
-    written_bytes += write_member(m_sigma, out, child, "sigma");
     written_bytes += write_member(m_nodes, out, child, "node_cnt");
     structure_tree::add_size(child, written_bytes);
     return written_bytes;
@@ -1130,7 +1109,6 @@ void cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::load(std::istream& in)
     m_bp_support.load(in, &m_bp);
     m_first_child.load(in);
     m_first_child_rank.load(in, &m_first_child);
-    read_member(m_sigma, in);
     read_member(m_nodes, in);
 }
 

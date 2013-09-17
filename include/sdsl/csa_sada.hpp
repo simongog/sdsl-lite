@@ -88,6 +88,7 @@ class csa_sada
         typedef typename alphabet_type::alphabet_category                        alphabet_category;
         typedef typename alphabet_type::comp_char_type                           comp_char_type;
         typedef typename alphabet_type::char_type                                char_type; // Note: This is the char type of the CSA not the WT!
+        typedef typename alphabet_type::string_type                              string_type;
         typedef csa_sada                                                         csa_type;
 
         typedef csa_tag                                                          index_category;
@@ -376,26 +377,25 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
         for (size_type i=0; i < n; ++i) {
             psi[ cnt_chr[ char2comp[bwt_buf[i]] ]++ ] = i;
         }
-        std::string psi_file = cache_file_name(constants::KEY_PSI, config);
-        if (!store_to_cache(psi, constants::KEY_PSI, config)) {
+        std::string psi_file = cache_file_name(conf::KEY_PSI, config);
+        if (!store_to_cache(psi, conf::KEY_PSI, config)) {
             return;
         }
     }
-    int_vector_buffer<> psi_buf(cache_file_name(constants::KEY_PSI, config));
     {
         auto event = memory_monitor::event("encode PSI");
+        int_vector_buffer<> psi_buf(cache_file_name(conf::KEY_PSI, config));
         t_enc_vec tmp_psi(psi_buf);
         m_psi.swap(tmp_psi);
     }
-    int_vector_buffer<>  sa_buf(cache_file_name(constants::KEY_SA, config));
     {
         auto event = memory_monitor::event("sample SA");
         sa_sample_type tmp_sa_sample(config);
         m_sa_sample.swap(tmp_sa_sample);
     }
-
     {
         auto event = memory_monitor::event("sample ISA");
+        int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA, config));
         set_isa_samples<csa_sada>(sa_buf, m_isa_sample);
     }
 }

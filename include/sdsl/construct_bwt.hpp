@@ -40,10 +40,10 @@ namespace sdsl
  *  \par Space complexity
  *		\f$ n \log \sigma \f$ bits
  *  \pre Text and Suffix array exist in the cache. Keys:
- *         * constants::KEY_TEXT for t_width=8 or constants::KEY_TEXT_INT for t_width=0
- *         * constants::KEY_SA
+ *         * conf::KEY_TEXT for t_width=8 or conf::KEY_TEXT_INT for t_width=0
+ *         * conf::KEY_SA
  *  \post BWT exist in the cache. Key
- *         * constants::KEY_BWT for t_width=8 or constants::KEY_BWT_INT for t_width=0
+ *         * conf::KEY_BWT for t_width=8 or conf::KEY_BWT_INT for t_width=0
  */
 template<uint8_t t_width>
 void construct_bwt(cache_config& config)
@@ -64,7 +64,7 @@ void construct_bwt(cache_config& config)
 
     //  (2) Prepare to stream SA from disc and BWT to disc
     size_type buffer_size = 1000000; // buffer_size is a multiple of 8!, TODO: still true?
-    int_vector_buffer<> sa_buf(cache_file_name(constants::KEY_SA, config), std::ios::in, buffer_size);
+    int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, config), std::ios::in, buffer_size);
     std::string bwt_file = cache_file_name(KEY_BWT, config);
     bwt_type bwt_buf(bwt_file, std::ios::out, buffer_size, bwt_width);
 

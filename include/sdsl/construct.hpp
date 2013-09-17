@@ -124,19 +124,19 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
             load_vector_from_file(text, file, num_bytes);
             if (contains_no_zero_symbol(text, file)) {
                 append_zero_symbol(text);
-                store_to_cache(text, KEY_TEXT, config);
+                store_to_cache(text,KEY_TEXT, config);
             }
-            load_from_cache(text, KEY_TEXT, config);
+            load_from_cache(text,KEY_TEXT, config);
         }
         register_cache_file(KEY_TEXT, config);
     }
     {
         // (2) check, if the suffix array is cached
         auto event = memory_monitor::event("SA");
-        if (!cache_file_exists(constants::KEY_SA, config)) {
+        if (!cache_file_exists(conf::KEY_SA, config)) {
             construct_sa<t_index::alphabet_category::WIDTH>(config);
         }
-        register_cache_file(constants::KEY_SA, config);
+        register_cache_file(conf::KEY_SA, config);
     }
     {
         //  (3) construct BWT
@@ -144,7 +144,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         if (!cache_file_exists(KEY_BWT, config)) {
             construct_bwt<t_index::alphabet_category::WIDTH>(config);
         }
-        register_cache_file(constants::KEY_BWT, config);
+        register_cache_file(KEY_BWT, config);
     }
     {
         t_index tmp(config);
@@ -166,28 +166,28 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         // (1) check, if the compressed suffix array is cached
         auto event = memory_monitor::event("CSA");
         typename t_index::csa_type csa;
-        if (!cache_file_exists(util::class_to_hash(csa), config)) {
+        if (!cache_file_exists(std::string(conf::KEY_CSA)+"_"+util::class_to_hash(csa), config)) {
             cache_config csa_config(false, config.dir, config.id, config.file_map);
             construct(csa, file, csa_config, num_bytes, csa_t);
             config.file_map = csa_config.file_map;
-            store_to_cache(csa, util::class_to_hash(csa), config);
+            store_to_cache(csa,std::string(conf::KEY_CSA)+"_"+util::class_to_hash(csa), config);
         }
-        register_cache_file(util::class_to_hash(csa), config);
+        register_cache_file(std::string(conf::KEY_CSA)+"_"+util::class_to_hash(csa), config);
     }
     {
         // (2) check, if the longest common prefix array is cached
         auto event = memory_monitor::event("LCP");
         register_cache_file(KEY_TEXT, config);
         register_cache_file(KEY_BWT, config);
-        register_cache_file(constants::KEY_SA, config);
-        if (!cache_file_exists(constants::KEY_LCP, config)) {
+        register_cache_file(conf::KEY_SA, config);
+        if (!cache_file_exists(conf::KEY_LCP, config)) {
             if (t_index::alphabet_category::WIDTH==8) {
                 construct_lcp_semi_extern_PHI(config);
             } else {
                 construct_lcp_PHI<t_index::alphabet_category::WIDTH>(config);
             }
         }
-        register_cache_file(constants::KEY_LCP, config);
+        register_cache_file(conf::KEY_LCP, config);
     }
     {
         auto event = memory_monitor::event("CST");

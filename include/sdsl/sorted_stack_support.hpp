@@ -15,22 +15,25 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file sorted_stack_support.hpp
-    \brief sorted_stack_support.hpp contains a data structure for a stack which contains indices of a random access container and the elements of the indices are sorted in the stack order. This data structure was proposed by Johannes Fischer in the paper Wee LCP.
 	\author Simon Gog
 */
 #ifndef INCLUDED_SDSL_SORTED_STACK_SUPPORT
 #define INCLUDED_SDSL_SORTED_STACK_SUPPORT
 
 #include "int_vector.hpp"
-#include <vector>
 
-//! Namespace for the succinct data structure library.
 namespace sdsl
 {
 
-//! A stack class which contains indices of elements from an random access container and the elements are in sorted order on the stack.
-/*! \par Space complexity
- *  \f$n\f$ bits
+//! A stack which contains strictly increasing pointer to strictly increasing elements in an array.
+/*!
+ *  \par Reference
+ *  Johannes Fischer:
+ *  Optimal Succinctness for Range Minimum Queries
+ *  LATIN 2010
+ *
+ *  \par Space complexity
+ *    \f$n\f$ bits
  */
 class sorted_stack_support
 {
@@ -50,7 +53,7 @@ class sorted_stack_support
         }; // TODO: maybe we can speed this up with bit hacks
     public:
         //! Constructor
-        /*! \param n Miximum that can be pushed onto the stack
+        /*! \param n Maximum that can be pushed onto the stack
          */
         sorted_stack_support(size_type n);
 

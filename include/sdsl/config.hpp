@@ -7,7 +7,7 @@
 
 namespace sdsl
 {
-namespace constants  // namespace for library constant
+namespace conf  // namespace for library constant
 {
 // size of the buffer for reading and writing data in elements (not in bytes)
 const uint64_t SDSL_BLOCK_SIZE = (uint64_t)1<<22;
@@ -15,6 +15,8 @@ const uint64_t SDSL_BLOCK_SIZE = (uint64_t)1<<22;
 const char KEY_BWT[] 		= "bwt";
 const char KEY_BWT_INT[]	= "bwt_int";
 const char KEY_SA[] 		= "sa";
+const char KEY_CSA[] 		= "csa";
+const char KEY_CST[] 		= "cst";
 const char KEY_ISA[] 		= "isa";
 const char KEY_TEXT[] 		= "text";
 const char KEY_TEXT_INT[] 	= "text_int";
