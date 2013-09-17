@@ -50,7 +50,7 @@ int main(int argc, char** argv)
     do {
 // (3)
         uint64_t start_idx = my_rand64()%(csa.size()-pat_len);
-        string pat = extract<string>(csa, start_idx, start_idx+pat_len-1);
+        auto pat = extract(csa, start_idx, start_idx+pat_len-1);
         pattern.push_back(pat);
 // (4)
         uint64_t x = count(csa, pat.begin(), pat.end());
