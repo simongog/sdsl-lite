@@ -544,5 +544,66 @@ hugepage_allocator::mm_realloc(void* ptr, size_t size)
     return ptr;
 }
 
+uint64_t extract_number(std::string& line)
+{
+    std::string num_str;
+    for (size_t i=line.size()-1; i>=0; i--) {
+        if (isdigit(line[i])) {
+            num_str.insert(num_str.begin(),line[i]);
+        } else {
+            if (num_str.size() > 0) {
+                break;
+            }
+        }
+    }
+    return std::strtoull(num_str.c_str(),NULL,10);
+}
+
+uint64_t extract_multiplier(std::string& line)
+{
+    uint64_t num = 1;
+    if (line[line.size()-2] == 'k' || line[line.size()-2] == 'K') {
+        num = 1024;
+    }
+    if (line[line.size()-2] == 'm' || line[line.size()-2] == 'M') {
+        num = 1024*1024;
+    }
+    if (line[line.size()-2] == 'g' || line[line.size()-2] == 'G') {
+        num = 1024*1024*1024;
+    }
+    return num;
+}
+
+size_t
+hugepage_allocator::determine_available_hugepage_memory()
+{
+    size_t size_in_bytes = 0;
+    size_t page_size_in_bytes = 0;
+    size_t num_free_pages = 0;
+    const std::string meminfo_file = "/proc/meminfo";
+    const std::string ps_str = "Hugepagesize:";
+    const std::string pf_str = "HugePages_Free:";
+    std::ifstream mifs(meminfo_file);
+    if (mifs.is_open()) {
+        // find size of one page
+        std::string line;
+        while (std::getline(mifs, line)) {
+            auto ps = std::mismatch(ps_str.begin(),ps_str.end(), line.begin());
+            if (ps.first == ps_str.end()) {
+                page_size_in_bytes = extract_number(line) * extract_multiplier(line);
+            }
+            auto pf = std::mismatch(pf_str.begin(),pf_str.end(), line.begin());
+            if (pf.first == pf_str.end()) {
+                num_free_pages = extract_number(line);
+            }
+        }
+        size_in_bytes = page_size_in_bytes*num_free_pages;
+    } else {
+        throw std::system_error(ENOMEM,std::system_category(),
+                                "hugepage_allocator could not automatically determine available hugepages");
+    }
+    return size_in_bytes;
+}
+
 
 }

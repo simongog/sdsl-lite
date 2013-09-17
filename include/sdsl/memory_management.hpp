@@ -105,7 +105,15 @@ class memory_monitor
         static void start() {
             auto& m = the_monitor();
             m.track_usage = true;
+            // clear if there is something there
+            if (m.completed_events.size()) {
+                m.completed_events.clear();
+            }
+            while (m.event_stack.size()) {
+                m.event_stack.pop();
+            }
             m.start_log = timer::now();
+            m.current_usage = 0;
             m.last_event = m.start_log;
             m.event_stack.emplace("unknown",0);
         }
@@ -172,6 +180,7 @@ class hugepage_allocator
         size_t m_total_size = 0;
         std::multimap<size_t,mm_block_t*> m_free_large;
     private:
+        size_t determine_available_hugepage_memory();
         void coalesce_block(mm_block_t* block);
         void split_block(mm_block_t* bptr,size_t size);
         uint8_t* hsbrk(size_t size);
@@ -182,8 +191,12 @@ class hugepage_allocator
         mm_block_t* last_block();
         void print_heap();
     public:
-        void init(SDSL_UNUSED size_t size_in_bytes) {
+        void init(SDSL_UNUSED size_t size_in_bytes = 0) {
 #ifdef MAP_HUGETLB
+            if (size_in_bytes == 0) {
+                size_in_bytes = determine_available_hugepage_memory();
+            }
+
             m_total_size = size_in_bytes;
             m_base = (uint8_t*) mmap(nullptr, m_total_size,
                                      (PROT_READ | PROT_WRITE),
@@ -255,7 +268,7 @@ class memory_manager
             }
         }
     public:
-        static void use_hugepages(size_t bytes) {
+        static void use_hugepages(size_t bytes = 0) {
             auto& m = the_manager();
             hugepage_allocator::the_allocator().init(bytes);
             m.hugepages = true;
