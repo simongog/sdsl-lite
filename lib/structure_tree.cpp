@@ -258,7 +258,7 @@ void write_structure_tree<HTML_FORMAT>(const structure_tree_node* v, std::ostrea
     std::stringstream json_data;
     write_structure_tree<JSON_FORMAT>(v, json_data);
 
-    out << create_html_header("sdsl data structure visualiztation");
+    out << create_html_header("sdsl data structure visualization");
     out << create_js_body(json_data.str());
 }
 
