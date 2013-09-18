@@ -43,7 +43,6 @@ void write_mem_log<JSON_FORMAT>(std::ostream& out,const memory_monitor& m)
     out << "]\n";
 }
 
-
 std::string create_mem_html_header(const char* file_name)
 {
     std::stringstream jsonheader;
@@ -54,10 +53,11 @@ std::string create_mem_html_header(const char* file_name)
             << "    body { font: 11px sans-serif; }\n"
             << "    .rule { height: 90%; position: absolute; border-right: 1px dotted #000; text-align: right; }\n"
             << "</style>\n"
+            << "<title>sdsl memory usage visualization</title>\n"
+            << "<script src=\"http://d3js.org/d3.v3.js\"></script>\n"
             << "<body marginwidth=\"0\" marginheight=\"0\">\n"
             << "<button><a id=\"download\">Save as SVG</a></button>\n"
-            << "<div class=\"chart\"><div id=\"visualization\"></div></body>\n"
-            << "<script src=\"http://d3js.org/d3.v3.js\"></script> <script>\n";
+            << "<div class=\"chart\"><div id=\"visualization\"></div></div><script>\n";
     return jsonheader.str();
 }
 
@@ -152,7 +152,7 @@ std::string create_mem_js_body(const std::string& jsonObject)
             << "if(u>0&&o>t){n=Math.max(0,i-50);r=i;break}}var a=e.getPointAtLength(0);var f=1;"
             << "while(n<r){var l=(r+n)/2;a=e.getPointAtLength(l);target_x=x.invert(a.x);"
             << "if((l==n||l==r)&&Math.abs(target_x-t)>.01){break}if(target_x>t)r=l;else if(target_x<t)n=l;else{break}if(f>50){break}f++}"
-            << "var c=new function(){this.mem=y.invert(a.y);this.name=e.__data__.name;this.x=a.x;this.y=a.y};return c}\n</script>";
+            << "var c=new function(){this.mem=y.invert(a.y);this.name=e.__data__.name;this.x=a.x;this.y=a.y};return c}\n</script></body></html>";
     return jsonbody.str();
 }
 
