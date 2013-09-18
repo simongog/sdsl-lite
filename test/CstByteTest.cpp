@@ -299,7 +299,6 @@ TYPED_TEST(CstByteTest, LeftmostRightmostLeaf)
 TYPED_TEST(CstByteTest, SuffixAndWeinerLink)
 {
     TypeParam cst;
-    typedef typename TypeParam::node_type node_type;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     ASSERT_EQ(cst.root(),cst.sl(cst.root()));
 

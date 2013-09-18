@@ -252,7 +252,6 @@ TYPED_TEST(CstIntTest, Child)
 TYPED_TEST(CstIntTest, Edge)
 {
     TypeParam cst;
-    typedef typename TypeParam::char_type char_type;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
 
     int_vector<> data;
@@ -275,7 +274,6 @@ TYPED_TEST(CstIntTest, Edge)
 TYPED_TEST(CstIntTest, LeftmostRightmostLeaf)
 {
     TypeParam cst;
-    typedef typename TypeParam::char_type char_type;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     if (cst.size() > 0) {
         auto v = cst.select_leaf(cst.size()/2+1);
@@ -296,8 +294,6 @@ TYPED_TEST(CstIntTest, LeftmostRightmostLeaf)
 TYPED_TEST(CstIntTest, SuffixAndWeinerLink)
 {
     TypeParam cst;
-    typedef typename TypeParam::node_type node_type;
-    typedef typename TypeParam::char_type char_type;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     ASSERT_EQ(cst.root(),cst.sl(cst.root()));
 
