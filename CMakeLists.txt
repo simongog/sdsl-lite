@@ -4,7 +4,7 @@ include(AppendCompilerFlags)
 
 ## Project information ##
 project(sdsl CXX C)
-set(PROJECT_VEDOR "Simon Gog")
+set(PROJECT_VENDOR "Simon Gog")
 set(PROJECT_CONTACT "simon.gog@gmail.com")
 set(PROJECT_URL "https://github.com/simongog/sdsl-lite")
 set(PROJECT_DESCRIPTION "SDSL: Succinct Data Structure Library")
