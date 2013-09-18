@@ -166,8 +166,7 @@ do_count(const CSA_TYPE& csa)
 void
 do_locate(const CSA_TYPE& csa)
 {
-    ulong numocc, length; //, *occ,
-    int_vector<32> occ;
+    ulong numocc, length;
     ulong tot_numocc = 0, numpatt = 0, processed_pat = 0;
     double time, tot_time = 0;
     uchar* pattern;
@@ -189,7 +188,7 @@ do_locate(const CSA_TYPE& csa)
         }
         // Locate
         time = getTime();
-        auto occs =  locate(csa, pattern, pattern+length);
+        auto occs =  locate(csa, pattern);
         numocc = occs.size();
         tot_time += (getTime() - time);
         ++processed_pat;
