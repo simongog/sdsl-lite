@@ -34,8 +34,6 @@
 namespace sdsl
 {
 
-const int_vector<>::size_type ZoO[2] = {0, (int_vector<>::size_type)-1};
-
 //! A prefix code-shaped wavelet.
 /*!
  * \tparam t_shape       Shape of the tree ().
@@ -326,13 +324,13 @@ class wt_pc
             uint64_t p = m_tree.bit_path(c);
             // path_len == 0, if `c` was not in the text or m_sigma=1
             uint32_t path_len = (p>>56);
-            if (!path_len and 1 == m_sigma) {
-                if (!m_tree.is_valid(m_tree.c_to_leaf(c))) {   // if `c` was not in the text
+            if (!path_len) {
+                if (m_sigma > 1 or !m_tree.is_valid(m_tree.c_to_leaf(c))) {   // if `c` was not in the text
                     return 0;
                 }
-                return std::min(i, m_size); // if m_sigma == 1 answer is trivial
+                return i; // if m_sigma == 1 answer is trivial
             }
-            size_type result = i & ZoO[path_len>0];
+            size_type result = i;
             node_type v = m_tree.root();
             for (uint32_t l=0; l<path_len and result; ++l, p >>= 1) {
                 if (p&1) {
@@ -524,24 +522,17 @@ class wt_pc
             size_type res2 = j;
             node_type v = m_tree.root();
             for (uint32_t l=0; l<path_len; ++l, p >>= 1) {
+                size_type r1_1 = (m_bv_rank(m_tree.bv_pos(v)+res1)
+                                  - m_tree.bv_pos_rank(v));
+                size_type r1_2 = (m_bv_rank(m_tree.bv_pos(v)+res2)
+                                  - m_tree.bv_pos_rank(v));
+
                 if (p&1) {
-                    size_type r1_1 = (m_bv_rank(m_tree.bv_pos(v)+res1)
-                                      - m_tree.bv_pos_rank(v));
-                    size_type r1_2 = (m_bv_rank(m_tree.bv_pos(v)+res2)
-                                      - m_tree.bv_pos_rank(v));
-
                     smaller += res2 - r1_2 - res1 + r1_1;
-
                     res1 = r1_1;
                     res2 = r1_2;
                 } else {
-                    size_type r1_1 = (m_bv_rank(m_tree.bv_pos(v)+res1)
-                                      - m_tree.bv_pos_rank(v));
-                    size_type r1_2 = (m_bv_rank(m_tree.bv_pos(v)+res2)
-                                      - m_tree.bv_pos_rank(v));
-
                     greater += r1_2 - r1_1;
-
                     res1 -= r1_1;
                     res2 -= r1_2;
                 }
@@ -589,7 +580,7 @@ class wt_pc
             size_type result = 0;
             size_type all    = i; // possible occurrences of c
             node_type v = m_tree.root();
-            for (uint32_t l=0; l<path_len; ++l, p >>= 1) {
+            for (uint32_t l=0; l<path_len and all; ++l, p >>= 1) {
                 size_type ones = (m_bv_rank(m_tree.bv_pos(v)+all)
                                   - m_tree.bv_pos_rank(v));
                 if (p&1) {
