@@ -121,10 +121,10 @@ void construct_sa(cache_config& config)
 {
     static_assert(t_width == 0 or t_width == 8 , "construct_sa: width must be `0` for integer alphabet and `8` for byte alphabet");
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
-    typedef int_vector<t_width> text_type;
-    text_type text;
-    load_from_cache(text, KEY_TEXT, config);
     if (t_width == 8) {
+        typedef int_vector<t_width> text_type;
+        text_type text;
+        load_from_cache(text, KEY_TEXT, config);
         // call divsufsort
         int_vector<> sa(text.size(), 0, bits::hi(text.size())+1);
         algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
