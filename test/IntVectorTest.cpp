@@ -112,6 +112,21 @@ TEST_F(IntVectorTest, Constructors)
     }
 }
 
+TEST_F(IntVectorTest, Width)
+{
+    size_type len = 1000;
+    sdsl::int_vector<> v(len, 0xF0, 8);
+    ASSERT_EQ(len, v.size());
+    ASSERT_EQ((uint8_t)8, v.width());
+    v.width(4);
+    ASSERT_EQ((uint8_t)4, v.width());
+    ASSERT_EQ(2*len, v.size());
+    for (size_type i=0; i<v.size()/2; i+=2) {
+        ASSERT_EQ(0x0U, v[i*2]);
+        ASSERT_EQ(0xFU, v[i*2+1]);
+    }
+}
+
 TEST_F(IntVectorTest, Swap)
 {
     std::mt19937_64 rng;

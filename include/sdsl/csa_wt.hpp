@@ -278,9 +278,9 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
     }
 
     {
+        auto event = memory_monitor::event("construct wavelet tree");
         int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
         size_type n = bwt_buf.size();
-        auto event = memory_monitor::event("construct wavelet tree");
         wavelet_tree_type tmp_wt(bwt_buf, n);
         m_wavelet_tree.swap(tmp_wt);
     }
