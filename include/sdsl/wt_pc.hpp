@@ -488,6 +488,8 @@ class wt_pc
          *
          * \par Precondition
          *       \f$ i \leq j \leq n \f$
+         * \note
+         * This method is only available if lex_ordered = true
          */
         template<class t_ret_type = std::tuple<size_type, size_type, size_type>>
         typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type
@@ -509,7 +511,7 @@ class wt_pc
             uint64_t p = m_tree.bit_path(c);
             uint32_t path_len = p>>56;
             if (path_len == 0) {  // path_len=0: => c is not present
-                value_type _c = (value_type)(p&0x00FFFFFFFFFFFFFFULL);
+                value_type _c = (value_type)p;
                 if (c == _c) {    // c is smaller than any symbol in wt
                     return t_ret_type {0, 0, j-i};
                 }
@@ -552,22 +554,40 @@ class wt_pc
         /*!
          * \param i Exclusive right bound of the range (\f$i\in[0..size()]\f$).
          * \param c Symbol c.
-         * \return Number of characters in [0..i-1], which are smaller than
-         *         c. If c does not occur in the sequence 0 is returned.
+         * \return A tuple containing:
+         *         * #symbols smaller than c in [0..i-1]
+         *         * rank(c,i)
+         * \par Precondition
+         *       \f$ i \leq n \f$
          * \note
          * This method is only available if lex_ordered = true
          */
-        template<class t_size_type = size_type>
-        typename std::enable_if<shape_type::lex_ordered, t_size_type>::type
+        template<class t_ret_type = std::tuple<size_type, size_type>>
+        typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type
         lex_smaller_count(size_type i, value_type c)const {
             assert(i <= size());
-            // if c does not occur in the sequence
-            if (!m_tree.is_valid(m_tree.c_to_leaf(c)))
-                return 0;
+            if (1==m_sigma) {
+                value_type _c = m_tree.bv_pos_rank(m_tree.root());
+                if (c == _c) { // c is the only symbol in the wt
+                    return t_ret_type {0,i};
+                } else if (c < _c) {
+                    return t_ret_type {0,0};
+                } else {
+                    return t_ret_type {i,0};
+                }
+            }
+            uint64_t p = m_tree.bit_path(c);
+            uint32_t path_len = p>>56;
+            if (path_len == 0) {  // path_len=0: => c is not present
+                value_type _c = (value_type)p;
+                if (c == _c) {    // c is smaller than any symbol in wt
+                    return t_ret_type {0, 0};
+                }
+                auto res = lex_smaller_count(i, _c);
+                return t_ret_type {std::get<0>(res)+std::get<1>(res),0};
+            }
             size_type result = 0;
             size_type all    = i; // possible occurrences of c
-            uint64_t p = m_tree.bit_path(c);
-            uint32_t path_len = (p>>56);
             node_type v = m_tree.root();
             for (uint32_t l=0; l<path_len; ++l, p >>= 1) {
                 size_type ones = (m_bv_rank(m_tree.bv_pos(v)+all)
@@ -578,9 +598,9 @@ class wt_pc
                 } else {
                     all    -= ones;
                 }
-                v = m_tree.child(v, p&2);
+                v = m_tree.child(v, p&1);
             }
-            return result;
+            return t_ret_type {result,all};
         }
 
         //! How many symbols are lexicographic smaller than c in [i..j-1].
