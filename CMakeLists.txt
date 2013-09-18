@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 2.6.0)	
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")	
+cmake_minimum_required(VERSION 2.6.0)
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 include(AppendCompilerFlags)
-	
+
 ## Project information ##
 project(sdsl CXX C)
 set(PROJECT_VEDOR "Simon Gog")
@@ -22,7 +22,14 @@ set(LIBRARY_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
 set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}")
 set(LIBRARY_VERSION_FULL "${LIBRARY_VERSION}.${LIBRARY_VERSION_PATCH}")
 
+
 option(CODE_COVERAGE "Set ON to add code coverage compile options" OFF)
+
+# C++11 compiler Check
+if( (CMAKE_COMPILER_IS_GNUCXX AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 4.7) OR
+    (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.2))
+  message(FATAL_ERROR "Your C++ compiler does not support C++11. Please install g++ 4.7 (or greater) or clang 3.2 (or greater)")
+endif()
 
 if( CMAKE_COMPILER_IS_GNUCXX )
     append_cxx_compiler_flags("-std=c++11 -Wall -DNDEBUG" "GCC" CMAKE_CXX_FLAGS)
@@ -36,7 +43,8 @@ else()
     append_cxx_compiler_flags("-O3 -ffast-math -funroll-loops" "CLANG" CMAKE_CXX_OPT_FLAGS)
 endif()
 
-include(CheckSSE4_2)    
+
+include(CheckSSE4_2)
 if( BUILTIN_POPCNT )
     if( CMAKE_COMPILER_IS_GNUCXX )
         append_cxx_compiler_flags("-msse4.2" "GCC" CMAKE_CXX_OPT_FLAGS)
@@ -49,8 +57,8 @@ add_subdirectory(external)
 add_subdirectory(include)
 add_subdirectory(lib)
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake" 
-		       "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)	
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake"
+		       "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)
 
 ## Add 'uninstall' target ##
 CONFIGURE_FILE(
