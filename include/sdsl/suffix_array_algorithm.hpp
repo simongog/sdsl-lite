@@ -331,6 +331,28 @@ typename t_csx::size_type count(
     return count(csx, begin, end, tag);
 }
 
+//! Counts the number of occurrences of a pattern in a CSA.
+/*!
+ * \tparam t_csa      CSA type.
+ *
+ * \param csa The CSA object.
+ * \param pat The pattern.
+ * \return The number of occurrences of the pattern in the CSA.
+ *
+ * \par Time complexity
+ *        \f$ \Order{ t_{backward\_search} } \f$
+ */
+
+template<class t_csx>
+typename t_csx::size_type count(
+    const t_csx& csx,
+    const typename t_csx::string_type& pat
+)
+{
+    typename t_csx::index_category tag;
+    return count(csx, pat.begin(), pat.end(), tag);
+}
+
 //! Calculates all occurrences of a pattern pat in a CSA.
 /*!
  * \tparam t_csa      CSA type.
@@ -340,29 +362,50 @@ typename t_csx::size_type count(
  * \param csa   The CSA object.
  * \param begin Iterator to the begin of the pattern (inclusive).
  * \param end   Iterator to the end of the pattern (exclusive).
- * \param occ   Container object in which the occurrences are stored.
- * \return The number of occurrences of the pattern  in the CSA.
+ * \return A vector containing the occurrences of the pattern  in the CSA.
  *
  * \par Time complexity
  *        \f$ \Order{ t_{backward\_search} + z \cdot t_{SA} } \f$, where \f$z\f$ is the number of
  *         occurrences of pattern in the CSA.
  */
-template<class t_csa, class t_pat_iter, class t_rac>
-typename t_csa::size_type locate(
+template<class t_csa, class t_pat_iter, class t_rac=int_vector<64>>
+t_rac locate(
     const t_csa&  csa,
     t_pat_iter begin,
     t_pat_iter end,
-    t_rac& occ,
     SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
 )
 {
     typename t_csa::size_type occ_begin, occ_end, occs;
     occs = backward_search(csa, 0, csa.size()-1, begin, end, occ_begin, occ_end);
-    occ.resize(occs);
+    t_rac occ(occs);
     for (typename t_csa::size_type i=0; i < occs; ++i) {
         occ[i] = csa[occ_begin+i];
     }
-    return occs;
+    return occ;
+}
+
+//! Calculates all occurrences of a pattern pat in a CSA/CST.
+/*!
+ * \tparam t_csa      CSA/CST type.
+ * \tparam t_rac      Resizeable random access container.
+ *
+ * \param csa  The CSA/CST object.
+ * \param pat  The pattern.
+ * \return A vector containing the occurrences of the pattern  in the CSA.
+ *
+ * \par Time complexity
+ *        \f$ \Order{ t_{backward\_search} + z \cdot t_{SA} } \f$, where \f$z\f$ is the number of
+ *         occurrences of pattern in the CSA.
+ */
+template<class t_csx, class t_rac=int_vector<64>>
+t_rac locate(
+    const t_csx&  csx,
+    const typename t_csx::string_type& pat
+)
+{
+    typename t_csx::index_category tag;
+    return locate<t_csx, decltype(pat.begin()), t_rac>(csx, pat.begin(), pat.end(), tag);
 }
 
 

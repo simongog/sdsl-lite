@@ -324,13 +324,28 @@ std::string _idx_lcp_val(const t_cst& t, uint64_t i, uint64_t w, cst_tag)
     return util::to_string(t.lcp[i], w);
 }
 
+template<class t_csx, class t_alph=typename t_csx::alphabet_category>
+struct default_sentinel {
+    static const char value = '$';
+};
+
+template<class t_csx>
+struct default_sentinel<t_csx, byte_alphabet_tag> {
+    static const char value = '$';
+};
+
+template<class t_csx>
+struct default_sentinel<t_csx, int_alphabet_tag> {
+    static const char value = '0';
+};
+
 //! Prints members of CSAs and CSTs
 /*! This is a printf like method to write members of CSAs and CSTs into an outstream.
  * \tparam t_idx   Type of the index. Class should be of concept csa_tag or cst_tag.
  * \param out      Output stream.
  * \param format   Format string. See explanation below.
  * \param idx      CSA or CST object.
- * \param sentinel Character which should replace the \0-symbol in BWT/ TEXT.
+ * \param sentinel Character which should replace the 0-symbol in BWT/ TEXT.
  *
  * \par Format string
  *   Each line of the output will be formatted according to the format string.
@@ -352,7 +367,9 @@ std::string _idx_lcp_val(const t_cst& t, uint64_t i, uint64_t w, cst_tag)
  *       %%        | %                                      |
  */
 template<class t_idx>
-void csXprintf(std::ostream& out, const std::string& format, const t_idx& idx, char sentinel='$')
+void
+csXprintf(std::ostream& out, const std::string& format,
+          const t_idx& idx, char sentinel=default_sentinel<t_idx>::value)
 {
     typename t_idx::index_category cat;
     const typename t_idx::csa_type& csa = _idx_csa(idx, cat);
@@ -603,7 +620,10 @@ bool load_from_checked_file(T& v, const std::string& file)
 
 
 template<class t_iv>
-inline typename std::enable_if<std::is_same<typename t_iv::index_category ,iv_tag>::value, std::ostream&>::type
+inline typename std::enable_if<
+std::is_same<typename t_iv::index_category ,iv_tag>::value or
+std::is_same<typename t_iv::index_category ,csa_tag>::value
+, std::ostream&>::type
 operator<<(std::ostream& os, const t_iv& v)
 {
     for (auto it=v.begin(), end = v.end(); it != end; ++it) {
@@ -624,6 +644,7 @@ operator<<(std::ostream& os, const t_iv& v)
     }
     return os;
 }
+
 
 template<class t_int>
 inline typename std::enable_if<std::is_integral<t_int>::value, std::ostream&>::type

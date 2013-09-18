@@ -126,7 +126,6 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
                 append_zero_symbol(text);
                 store_to_cache(text,KEY_TEXT, config);
             }
-            load_from_cache(text,KEY_TEXT, config);
         }
         register_cache_file(KEY_TEXT, config);
     }
