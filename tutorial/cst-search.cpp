@@ -6,13 +6,13 @@ using namespace sdsl;
 using namespace std;
 
 
-template<class t_cst, class t_pat>
-void execute(const char* input, uint8_t num_bytes, t_pat& pat, const char* format, char sentinel)
+template<class t_cst, class t_pat=typename t_cst::string_type>
+void execute(const char* input, uint8_t num_bytes, t_pat pat, const char* format)
 {
     typedef typename t_cst::node_type node_t;
     t_cst cst;
     construct_im(cst, input, num_bytes);
-    csXprintf(cout, format, cst, sentinel);
+    csXprintf(cout, format, cst);
 
     cout << "pattern \"" << pat << "\"" << endl;
     cout << "---- backward search step by step ----" << endl;
@@ -35,16 +35,13 @@ void execute(const char* input, uint8_t num_bytes, t_pat& pat, const char* forma
     }
     cout << "---- count pattern occurrences  ----" << endl;
     {
-        cout << "count(cst.csa, \"" << pat << "\")=" << count(cst.csa, pat.begin(), pat.end()) << endl;
+        cout << "count(cst.csa, \"" << pat << "\")=" << count(cst.csa, pat) << endl;
     }
     cout << "---- locate the pattern  ----" << endl;
     {
-        typedef int_vector<> vec_t;
-        vec_t occ;
-        cout << "locate(cst.csa, \"" << pat << "\")=" << locate(cst.csa, pat.begin(), pat.end(), occ) << endl;
-        for (auto it=occ.begin(); it != occ.end(); ++it) {
-            cout << *it << " ";
-        }
+        auto occs = locate(cst.csa, pat);
+        cout << "locate(cst.csa, \"" << pat << "\")=" << occs.size() << endl;
+        cout << occs << endl;
         cout << endl;
     }
     cout << "---- extract text  ----" << endl;
@@ -67,7 +64,7 @@ void execute(const char* input, uint8_t num_bytes, t_pat& pat, const char* forma
     }
     cout << "---- count pattern occurrences ----" << endl;
     {
-        cout << "count(cst, \"" << pat << "\")=" << count(cst, pat.begin(), pat.end()) << endl;
+        cout << "count(cst, \"" << pat << "\")=" << count(cst, pat) << endl;
     }
     cout << "---- extract text  ----" << endl;
     {
@@ -82,15 +79,12 @@ int main()
 {
     {
         cout << "# Byte alphabet example\n" << endl;
-        string pat("brac");
-        execute<cst_sct3<> >("abracadabra#bracda", 1, pat, "%2I %3S %T", '$');
+        execute<cst_sct3<> >("abracadabra#bracda", 1, string("brac"), "%2I %3S %T");
         cout << "\n\n" << endl;
     }
 
     {
         cout << "# Integer alphabet example\n" << endl;
-        int_vector<> pat(2);
-        pat[0] = 801; pat[1] = 444;
-        execute<cst_sct3<csa_bitcompressed<int_alphabet<> > > >("2 801 543 293 597 801 444 444 293", 'd', pat, "%2I %3S %:4T", '0');
+        execute<cst_sct3<csa_bitcompressed<int_alphabet<> > > >("2 801 543 293 597 801 444 444 293", 'd', {801, 444}, "%2I %3S %:4T");
     }
 }

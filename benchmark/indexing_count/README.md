@@ -34,8 +34,8 @@ and test cases from the [Pizza&Chili][pz] website.
 
 ## Prerequisites
   * For the visualization you need the following software:
-    - [R][RPJ] with package `xtable`. You can install the
-      package by calling `install.packages("xtable")` in R.
+    - [R][RPJ] with packages `xtable`,`plyr`. You can install the
+      package by calling `install.packages("xtable", "plyr")` in R.
     - [pdflatex][LT] to generate the pdf reports.
   * The construction of the 200MB indexes requires about 1GB
     of RAM.

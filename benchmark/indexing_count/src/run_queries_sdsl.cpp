@@ -170,8 +170,7 @@ do_count(const CSA_TYPE& csa)
 void
 do_locate(const CSA_TYPE& csa)
 {
-    ulong numocc, length; //, *occ,
-    int_vector<32> occ;
+    ulong numocc, length;
     ulong tot_numocc = 0, numpatt;
     double time, tot_time = 0;
     uchar* pattern;
@@ -193,7 +192,8 @@ do_locate(const CSA_TYPE& csa)
         }
         // Locate
         time = getTime();
-        numocc = sdsl::locate(csa, pattern, pattern+length, occ);
+        auto occ = sdsl::locate(csa, (char*)pattern, (char*)pattern+length);
+        numocc = occ.size();
         tot_time += (getTime() - time);
 
         tot_numocc += numocc;
@@ -204,8 +204,6 @@ do_locate(const CSA_TYPE& csa)
             fwrite(pattern, sizeof(*pattern), length, stdout);
             fwrite(&numocc, sizeof(numocc), 1, stdout);
         }
-
-//		if (numocc) free (occ);
     }
 
     fprintf(stderr, "# Total_Num_occs_found = %lu\n", tot_numocc);

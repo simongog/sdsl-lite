@@ -56,8 +56,7 @@ int main(int argc, char** argv)
         cout << "# of occurrences: " << occs << endl;
         if (occs > 0) {
             cout << "Location and context of first occurrences: " << endl;
-            int_vector<> locations;
-            locate(fm_index, query.begin(), query.begin()+m, locations);
+            auto locations = locate(fm_index, query.begin(), query.begin()+m);
             sort(locations.begin(), locations.end());
             for (size_t i = 0, pre_extract = pre_context, post_extract = post_context; i < min(occs, max_locations); ++i) {
                 cout << setw(8) << locations[i] << ": ";

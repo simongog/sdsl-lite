@@ -138,23 +138,21 @@ typename t_cst::size_type count(
  * \param cst   The CST object.
  * \param begin Iterator to the begin of the pattern (inclusive).
  * \param end   Iterator to the end of the pattern (exclusive).
- * \param occ   Container object in which the occurrences are stored.
- * \return The number of occurrences of the pattern  in the CST.
+ * \return A vector containing the occurrences of the pattern  in the CST.
  *
  * \par Time complexity
  *        \f$ \Order{ t_{backward\_search} + z \cdot t_{SA} } \f$, where \f$z\f$ is the number of
  *         occurrences of pattern in the CST.
  */
-template<class t_cst, class t_pat_iter, class t_rac>
-typename t_cst::size_type locate(
+template<class t_cst, class t_pat_iter, class t_rac=int_vector<64>>
+t_rac locate(
     const t_cst& cst,
     t_pat_iter begin,
     t_pat_iter end,
-    t_rac& occ,
     SDSL_UNUSED typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag()
 )
 {
-    locate(cst.csa, begin, end, occ);
+    return locate(cst.csa, begin, end);
 }
 
 //! Calculate the concatenation of edge labels from the root to the node v of a CST.
