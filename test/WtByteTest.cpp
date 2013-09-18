@@ -255,31 +255,41 @@ void test_lex_count(t_T& wt)
         std::mt19937_64 rng;
         std::uniform_int_distribution<uint64_t> distribution(0, wt.size());
         auto dice = bind(distribution, rng);
-        for (size_type t=0; t<10000; ++t) {
-            size_type l = dice();
-            size_type r = dice();
-            if (r<l) {
-                std::swap(l,r);
+        for (size_type t=0; t<1000; ++t) {
+            size_type i = dice();
+            size_type j = dice();
+            if (j<i) {
+                std::swap(j,i);
             }
             std::vector<size_type> rank_c_i_n(256,0);
             std::vector<size_type> rank_c_j_n(256,0);
             for (size_type c=0; c<256; ++c) {
-                size_type tmp_j = wt.rank(r,(value_type)c);
-                size_type tmp_i = wt.rank(l,(value_type)c);
-                rank_c_j_n[c] = tmp_j;
-                rank_c_i_n[c] = tmp_i;
+                rank_c_i_n[c] = wt.rank(i,(value_type)c);
+                rank_c_j_n[c] = wt.rank(j,(value_type)c);
             }
+            size_type num_i_s = 0;
+            size_type num_j_s = 0;
             size_type num_c = 0;
             size_type num_s = 0;
-            size_type num_g = r-l;
+            size_type num_g = j-i;
             for (size_type c=0; c<256; ++c) {
+                // Test lex_count
                 num_s += num_c;
                 num_c = rank_c_j_n[c]-rank_c_i_n[c];
                 num_g -= num_c;
-                auto res = wt.lex_count(l, r, (value_type)c);
+                auto res = wt.lex_count(i, j, (value_type)c);
                 ASSERT_EQ(rank_c_i_n[c], std::get<0>(res));
                 ASSERT_EQ(num_s, std::get<1>(res));
                 ASSERT_EQ(num_g, std::get<2>(res));
+                // Test lex_smaller_count
+                auto res2 = wt.lex_smaller_count(i, (value_type)c);
+                ASSERT_EQ(num_i_s, std::get<0>(res2)) << "lex_smaller_count(" << i << "," << c << ")";
+                ASSERT_EQ(rank_c_i_n[c], std::get<1>(res2)) << "lex_smaller_count(" << i << "," << c << ")";
+                num_i_s += rank_c_i_n[c];
+                auto res3 = wt.lex_smaller_count(j, (value_type)c);
+                ASSERT_EQ(num_j_s, std::get<0>(res3)) << "lex_smaller_count(" << i << "," << c << ")";
+                ASSERT_EQ(rank_c_j_n[c], std::get<1>(res3)) << "lex_smaller_count(" << i << "," << c << ")";
+                num_j_s += rank_c_j_n[c];
             }
         }
     }
