@@ -192,7 +192,7 @@ do_locate(const CSA_TYPE& csa)
         }
         // Locate
         time = getTime();
-        auto occ = sdsl::locate(csa, pattern, pattern+length);
+        auto occ = sdsl::locate(csa, (char*)pattern, (char*)pattern+length);
         numocc = occ.size();
         tot_time += (getTime() - time);
 
