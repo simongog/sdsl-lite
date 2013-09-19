@@ -371,7 +371,7 @@ and the runtime is multiplied by a factor in $[H_0,\log\sigma]$.
 \code{operator[$i$]},
 \code{rank($i$,c)},
 \code{select($i$,c)},
-\code{inverse\_select($i$,c)},
+\code{inverse\_select($i$)},
 \code{size()}, \code{begin()}, \code{end()}
 \\
 Order preserving WTs (\code{lex\_ordered}) provide also the 
@@ -408,6 +408,8 @@ Based on the BWT stored in a WT.\\
 \code{lf}, 
 \code{psi}, 
 \code{text}, 
+\code{L}, 
+\code{F},
 \code{C}, \code{char2comp}, \code{comp2char}, \code{sigma}.\\
 \textit{Policy classes: } alphabet strategy 
 (e.g.
@@ -492,6 +494,7 @@ In the following let $v$ and $w$ be nodes
 and $i$, $d$, $lb$, $rb$ integers.\\ 
 \textit{Public~methods:} 
 % CST global information
+\code{size()},
 \code{nodes()},
 \code{root()},
 \code{begin()},
@@ -519,13 +522,14 @@ and $i$, $d$, $lb$, $rb$ integers.\\
 \code{lca($v$, $w$)},
 \code{select\_child($v$, $i$)},
 \code{child($v$, $c$)},
+\code{children($v$)},
 \code{sl($v$)},
 \code{wl($v$, $c$)},
 \code{leftmost\_leaf($v$)},
 \code{rightmost\_leaf($v$)}
 \\
 \textit{Public~members:} \code{csa}, \code{lcp}.\\
-The \href{https://gist.github.com/simongog/5315738}{traversal example}
+The \href{\sdslgit/tutorial/cst-traversal.cpp}{traversal example}
 shows how to use the DFS-iterator.
 %\textit{Iterators methods:} \code{operator++},
 %\code{visit()}, \code{skip\_subtree()}   	
@@ -615,7 +619,7 @@ For a detailed description of the phases click on the figure.
 }%
 }
 This diagram was generated using the sample program
-\href{\sdslgit/tutorial/memory-visualization.cpp}{memory-visualization.x},
+\href{\sdslgit/examples/memory-visualization.cpp}{memory-visualization.cpp}.
 
 \section{Reading and writing data}
 \subsection{Importing data into \sdsl\ structures}
