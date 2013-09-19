@@ -374,8 +374,8 @@ and the runtime is multiplied by a factor in $[H_0,\log\sigma]$.
 \code{inverse\_select($i$,c)},
 \code{size()}, \code{begin()}, \code{end()}
 \\
-Order preserving WTs (\code{lex\_ordered}) provide more methods:
-\code{lex\_count} and \code{lex\_smaller\_count}. In addition
+Order preserving WTs (\code{lex\_ordered}) provide also the 
+\code{lex\_count} method. In addition
 \sdslwtint\ provides: 
 \code{range\_search\_2d}, 
 \code{quantil\_freq},
@@ -601,39 +601,21 @@ in customized construction processes:\\
 \subsection{Resource requirements}
 \textit{Memory}: The memory peak of CSA and CST construction occurs during the SA
 construction, which is $5$ times the texts size for byte-alphabets
-and inputs $<2$ GiB (see Phase \#2 in the Figure below 
-for a $200$ MB text) 
+and inputs $<2$ GiB (see the Figure below for a $200$ MB text) 
 and $9$ times for larger inputs. For integer
 alphabets the construction takes about twice the space of
 the resulting output.\\
 \textit{Time}: A CST construction processes at about $2\mbox{ MB}/s$.
 The Figure below shows the resource consumption during the construction
 of a \code{cst\_sct3<>} CST for \href{\pizzachili}{$200$ MB English text}.
-\emph{Phases description}: \#1=copy TEXT, \#2=SA, \#3=BWT, \#4=\code{wt\_huff<>},
-\#7=LCP, \#8=BP, \#9=\code{bp\_support\_sada<>}, \#10=\code{lcp\_dac<>}.
-
+For a detailed description of the phases click on the figure.
 \href{http://simongog.github.io/assets/data/cst-construction.html}{%
 \scalebox{0.18}{%
 \includegraphics{viz.pdf}%
 }%
 }
-%\input{viz.tex}%
-%}
-
-
-This diagram was generated from the output of this
-\href{\sdslgit/tutorial/memory-visualization.cpp}{example program},
-which print the memory log to \code{stdout}.
-%\section{Performance}
-%Describe here how many resources are required 
-%for standard tasks. E.g. construct CSA:
-%$5n$ bytes peak memory for inputs $<2$ GiB,
-%$9n$ bytes peak memory for inputs $\geq 2$ GiB.
-%TODO: insert time space graph for different
-%construction processes.
-
-
-
+This diagram was generated using the sample program
+\href{\sdslgit/tutorial/memory-visualization.cpp}{memory-visualization.x},
 
 \section{Reading and writing data}
 \subsection{Importing data into \sdsl\ structures}
@@ -691,9 +673,9 @@ More useful methods in the \code{sdsl::util} namespace:
 \code{write\_structure<JSON\_FORMAT>(o,out)} to get
 a detailed space breakdown written in 
 \href{http://www.json.org/}{JSON} format to stream \code{out}.
-\code{<HTML\_FORMAT>} will write a html page
+\code{<HTML\_FORMAT>} will write a HTML page
 (\href{http://simongog.github.io/assets/data/space-vis.html}{like this}),
-which includes an interactive svg-figure.
+which includes an interactive SVG-figure.
 
 
 \section{Methods on words}
