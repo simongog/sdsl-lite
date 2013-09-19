@@ -67,9 +67,18 @@ class memory_monitor
                     auto& m = the_monitor();
                     std::lock_guard<util::spin_lock> lock(m.spinlock);
                     auto& cur = m.event_stack.top();
-                    cur.allocations.emplace_back(timer::now(),m.current_usage);
+                    auto cur_time = timer::now();
+                    cur.allocations.emplace_back(cur_time,m.current_usage);
                     m.completed_events.emplace_back(std::move(cur));
                     m.event_stack.pop();
+                    // add a point to the new "top" with the same memory
+                    // as before but just ahead in time
+                    if (! m.event_stack.empty()) {
+                        if (m.event_stack.top().allocations.size()) {
+                            auto last_usage = m.event_stack.top().allocations.back().usage;
+                            m.event_stack.top().allocations.emplace_back(cur_time,last_usage);
+                        }
+                    }
                 }
             }
         };
