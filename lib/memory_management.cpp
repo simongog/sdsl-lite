@@ -81,6 +81,7 @@ std::string create_mem_js_body(const std::string& jsonObject)
             << "var peak = d3.max(events, function (d) { return d3.max(d.usage, function (u) { return u[1]; })})\n"
             << "var data = []\nevents.forEach(function (d) { data = data.concat(d.usage); });\n"
             << "var peakelem = data.filter(function (a) { return a[1] == peak; });\n"
+            << "var peakelem = peakelem.splice(0,1);\n"
             << "x.domain([0, x_max]);\n y.domain([0, y_max]);\n"
             << "var svg = d3.select(\"#visualization\").append(\"svg\")\n"
             << "  .attr(\"width\", width + margin.left + margin.right)\n"
