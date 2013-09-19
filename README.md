@@ -6,7 +6,7 @@ What is it?
 
 The Succinct Data Structure Library (SDSL) is a powerful and flexible C++11
 library implementing succinct data structures. In total, the library contains
-work of 40 [research publications](https://github.com/simongog/sdsl-lite/wiki/Literature).
+the highlights of 40 [research publications](https://github.com/simongog/sdsl-lite/wiki/Literature).
 Succinct data structures
 can represent an object (such as a bitvector or a tree) in space close the
 information-theoretic lower bound of the object while supporting operations
@@ -44,12 +44,11 @@ data structure to their full potential.
   SDSL based data structure (see right)
   * We support features such as hugepages and tracking the memory usage of each
   SDSL data structure.
-  * All implemented data structures are composable. For example, a compressed
-  suffix tree can be composed of a variety different, smaller succinct data structures.
-  We provide an intuitive template interface to declare the succinct data structure
-  you want to use.
+  * Complex structures can be configured by template parameters and therefore
+    easily be composed. There exists one simple method which constructs
+    all complex structures.
   * We maintain an extensive collection of examples which help you use the different
-  features provided by the library.
+    features provided by the library.
   * All data structures are tested for correctness using a unit-testing framework.
   * We provide a large collection of supporting documentation consisting of examples,
     cheat sheets, tutorial slides and walk-through.
@@ -66,7 +65,7 @@ The library contains many succinct data structures from the following categories
  * Range Minimum/Maximum Query (RMQ) Structures
 
 For a complete overview including theoretical bounds see the
-[cheat sheet](extras/cheatsheet/sdsl-cheatsheet.pdf?raw=true) or the
+[cheat sheet][SDSLCS] or the
 [wiki](https://github.com/simongog/sdsl-lite/wiki/List-of-Implemented-Data-Structures).
 
 Documentation
@@ -75,7 +74,7 @@ Documentation
 We provide an extensive set of documentation describing all data structures
 and features provided by the library. Specifically we provide
 
-* A [cheat sheet](extras/cheatsheet/sdsl-cheatsheet.pdf?raw=true) which succinctly
+* A [cheat sheet][SDSLCS] which succinctly
 describes the usage of the library.
 * A set of [example](examples/) programs demonstrating how different features
 of the library are used.
@@ -252,3 +251,4 @@ Feel free to contact any of the authors or create an issue on the
 [DIVSUF]: http://code.google.com/p/libdivsufsort/ "libdivsufsort"
 [LS]: http://www.sciencedirect.com/science/article/pii/S0304397507005257 "Larson &amp; Sadakane Algorithm"
 [GTEST]: https://code.google.com/p/googletest/ "Google C++ Testing Framework"
+[SDSLCS]: http://simongog.github.io/assets/data/sdsl-cheatsheet.pdf "SDSL Cheat Sheet"
