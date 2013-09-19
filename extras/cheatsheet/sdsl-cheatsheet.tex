@@ -2,7 +2,6 @@
 % next two lines required for sdsl command
 \usepackage[T1]{fontenc} 
 \newcommand{\changefont}[3]{\fontfamily{#1}\fontseries{#2}\fontshape{#3}\selectfont} 
-
 \usepackage{amsfonts}
 
 \usepackage{color}
@@ -363,8 +362,8 @@ and the runtime is multiplied by a factor in $[H_0,\log\sigma]$.
 \textit{Class}    &\textit{Shape} & \code{lex\_ordered} & \textit{Default alphabet}\\
 \href{\sdslgitinc/wt_blcd.hpp}{\sdslwtblcd} & Balanced & \myYES & byte \\
 \href{\sdslgitinc/wt_huff.hpp}{\sdslwthuff} & Huffman & \myNO & byte\\
-\href{\sdslgitinc/wt_hutu.hpp}{\sdslwthutu} & Hu-Tucker & \myYES & integer \\
-\href{\sdslgitinc/wt_int.hpp}{\sdslwtint} & Balanced & \myYES & byte \\
+\href{\sdslgitinc/wt_hutu.hpp}{\sdslwthutu} & Hu-Tucker & \myYES & byte \\
+\href{\sdslgitinc/wt_int.hpp}{\sdslwtint} & Balanced & \myYES & integer \\
 \href{\sdslgitinc/wt_rlmn.hpp}{\sdslwtrlmn} & \multicolumn{3}{c}{underlying WT dependent} \\
 % TODO: \verb!wt_rlg!
 \end{tabular}
@@ -375,8 +374,8 @@ and the runtime is multiplied by a factor in $[H_0,\log\sigma]$.
 \code{inverse\_select($i$,c)},
 \code{size()}, \code{begin()}, \code{end()}
 \\
-Order preserving WTs (\code{lex\_ordered}) provide more methods:
-\code{lex\_count} and \code{lex\_smaller\_count}. In addition
+Order preserving WTs (\code{lex\_ordered}) provide also the 
+\code{lex\_count} method. In addition
 \sdslwtint\ provides: 
 \code{range\_search\_2d}, 
 \code{quantil\_freq},
@@ -492,16 +491,39 @@ slower navigational operations. Space: $3n\!+\!o(n)\!+\!|CSA|\!+\!|LCP|$ \\
 In the following let $v$ and $w$ be nodes 
 and $i$, $d$, $lb$, $rb$ integers.\\ 
 \textit{Public~methods:} 
- \code{root()}, \code{is\_leaf($v$)}, \code{select\_leaf($i$)},
- \code{size($v$)}, \code{leftmost\_leaf($v$)}, \code{rightmost\_leaf($v$)},
- \code{lb($v$)}, \code{rb($v$)}, \code{parent($v$)}, \code{sibling($v$)},
- \code{select\_child($v$,$i$)}, \code{degree($v$)}, 
- \code{child($v$,$c$)}, \code{edge($v$,$d$)}, \code{lca($v$,$w$)},
- \code{depth($v$)}, \code{node\_depth}, \code{sl($v$)},
- \code{wl($v$,$c$)}, \code{sn($v$)}, \code{id($v$)}, \code{inv\_id($i$)},
- \code{node($lb$,$rb$)}, \code{nodes()}, \code{size()},
- \code{begin()}, \code{end()}, \code{begin\_bottom\_up()},
- \code{end\_bottom\_up}.\\
+% CST global information
+\code{nodes()},
+\code{root()},
+\code{begin()},
+\code{end()},
+\code{begin\_bottom\_up()},
+\code{end\_bottom\_up},
+% CST node info
+\code{size($v$)},
+\code{is\_leaf($v$)},
+\code{degree($v$)},
+\code{depth($v$)},
+\code{node\_depth(v)},
+\code{edge($v$, $d$)},
+\code{lb($v$)},
+\code{rb($v$)},
+\code{id($v$)},
+\code{inv\_id($i$)},
+\code{sn($v$)},
+% CST global navigation 
+\code{select\_leaf($i$)},
+\code{node($lb$, $rb$)},
+% CST node navigation 
+\code{parent($v$)},
+\code{sibling($v$)},
+\code{lca($v$, $w$)},
+\code{select\_child($v$, $i$)},
+\code{child($v$, $c$)},
+\code{sl($v$)},
+\code{wl($v$, $c$)},
+\code{leftmost\_leaf($v$)},
+\code{rightmost\_leaf($v$)}
+\\
 \textit{Public~members:} \code{csa}, \code{lcp}.\\
 The \href{https://gist.github.com/simongog/5315738}{traversal example}
 shows how to use the DFS-iterator.
@@ -579,32 +601,21 @@ in customized construction processes:\\
 \subsection{Resource requirements}
 \textit{Memory}: The memory peak of CSA and CST construction occurs during the SA
 construction, which is $5$ times the texts size for byte-alphabets
-and inputs $<2$ GiB (see Phase \#2 in the Figure below 
-for a $200$ MB text) 
+and inputs $<2$ GiB (see the Figure below for a $200$ MB text) 
 and $9$ times for larger inputs. For integer
 alphabets the construction takes about twice the space of
 the resulting output.\\
 \textit{Time}: A CST construction processes at about $2\mbox{ MB}/s$.
 The Figure below shows the resource consumption during the construction
 of a \code{cst\_sct3<>} CST for \href{\pizzachili}{$200$ MB English text}.
-\emph{Phases description}: \#1=copy TEXT, \#2=SA, \#3=BWT, \#4=\code{wt\_huff<>},
-\#7=LCP, \#8=BP, \#9=\code{bp\_support\_sada<>}, \#10=\code{lcp\_dac<>}.
-
-\input{mm-log-200MB.tex}
-
-This diagram was generated from the output of this
-\href{\sdslgit/tutorial/mm-log.cpp}{example program},
-which print the memory log to \code{stdout}.
-%\section{Performance}
-%Describe here how many resources are required 
-%for standard tasks. E.g. construct CSA:
-%$5n$ bytes peak memory for inputs $<2$ GiB,
-%$9n$ bytes peak memory for inputs $\geq 2$ GiB.
-%TODO: insert time space graph for different
-%construction processes.
-
-
-
+For a detailed description of the phases click on the figure.
+\href{http://simongog.github.io/assets/data/cst-construction.html}{%
+\scalebox{0.18}{%
+\includegraphics{viz.pdf}%
+}%
+}
+This diagram was generated using the sample program
+\href{\sdslgit/tutorial/memory-visualization.cpp}{memory-visualization.x},
 
 \section{Reading and writing data}
 \subsection{Importing data into \sdsl\ structures}
@@ -662,7 +673,9 @@ More useful methods in the \code{sdsl::util} namespace:
 \code{write\_structure<JSON\_FORMAT>(o,out)} to get
 a detailed space breakdown written in 
 \href{http://www.json.org/}{JSON} format to stream \code{out}.
-TODO: \code{<HTML\_FORMAT>} 
+\code{<HTML\_FORMAT>} will write a HTML page
+(\href{http://simongog.github.io/assets/data/space-vis.html}{like this}),
+which includes an interactive SVG-figure.
 
 
 \section{Methods on words}

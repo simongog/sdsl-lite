@@ -217,8 +217,8 @@ extract(
 /*!
  * \param v     A suffix tree node v. The label of the path from the root to v is s.
  * \param cst   The suffix tree of v.
- * \param The zeroth order entropy of the concatenation of all characters that follow
-          s in the original text.
+ * \return      The zeroth order entropy of the concatenation of all characters that follow
+                s in the original text.
  */
 template<class t_cst>
 double H0(const typename t_cst::node_type& v, const t_cst& cst)
@@ -238,8 +238,9 @@ double H0(const typename t_cst::node_type& v, const t_cst& cst)
 
 //! Calculate the k-th order entropy of a text
 /*!
- * \param cst       The suffix tree of v.
- * \param k         Parameter k for which H_k should be calculated.
+ * \param cst The suffix tree.
+ * \param k   Parameter k for which H_k should be calculated.
+ * \return    H_k and the number of contexts.
  */
 template<class t_cst>
 std::pair<double,size_t> Hk(const t_cst& cst, typename t_cst::size_type k)
