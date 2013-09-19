@@ -32,7 +32,9 @@ data structure which are
   * Provide efficient construction of all implemented succinct data structures,
   while at the same time enable good run-time performance.
 
+<a href="http://simongog.github.io/assets/data/space-vis.html" >
 <img align="right" src="extras/resources/space-vis.png?raw=true" />
+</a>
 
 In addition we provide additional functionality which can help you use succinct
 data structure to their full potential.

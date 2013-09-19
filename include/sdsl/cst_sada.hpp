@@ -167,7 +167,7 @@ class cst_sada
                 util::init_support(m_bp_select10, &m_bp);
             }
             {
-                auto event = memory_monitor::event("bpss-clcp");
+                auto event = memory_monitor::event("clcp");
                 cache_config tmp_config(false, config.dir, config.id, config.file_map);
                 construct_lcp(m_lcp, *this, tmp_config);
                 config.file_map = tmp_config.file_map;
