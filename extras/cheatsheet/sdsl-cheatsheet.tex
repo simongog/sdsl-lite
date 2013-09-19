@@ -492,16 +492,40 @@ slower navigational operations. Space: $3n\!+\!o(n)\!+\!|CSA|\!+\!|LCP|$ \\
 In the following let $v$ and $w$ be nodes 
 and $i$, $d$, $lb$, $rb$ integers.\\ 
 \textit{Public~methods:} 
- \code{root()}, \code{is\_leaf($v$)}, \code{select\_leaf($i$)},
- \code{size($v$)}, \code{leftmost\_leaf($v$)}, \code{rightmost\_leaf($v$)},
- \code{lb($v$)}, \code{rb($v$)}, \code{parent($v$)}, \code{sibling($v$)},
- \code{select\_child($v$,$i$)}, \code{degree($v$)}, 
- \code{child($v$,$c$)}, \code{edge($v$,$d$)}, \code{lca($v$,$w$)},
- \code{depth($v$)}, \code{node\_depth}, \code{sl($v$)},
- \code{wl($v$,$c$)}, \code{sn($v$)}, \code{id($v$)}, \code{inv\_id($i$)},
- \code{node($lb$,$rb$)}, \code{nodes()}, \code{size()},
- \code{begin()}, \code{end()}, \code{begin\_bottom\_up()},
- \code{end\_bottom\_up}.\\
+% CST global information
+\code{size()},
+\code{nodes()},
+\code{root()},
+\code{begin()},
+\code{end()},
+\code{begin\_bottom\_up()},
+\code{end\_bottom\_up},
+% CST node info
+\code{size($v$)},
+\code{is\_leaf($v$)},
+\code{degree($v$)},
+\code{depth($v$)},
+\code{node\_depth(v)},
+\code{edge($v$, $d$)},
+\code{lb($v$)},
+\code{rb($v$)},
+\code{id($v$)},
+\code{inv\_id($i$)},
+\code{sn($v$)},
+% CST global navigation 
+\code{select\_leaf($i$)},
+\code{node($lb$, $rb$)},
+% CST node navigation 
+\code{parent($v$)},
+\code{sibling($v$)},
+\code{lca($v$, $w$)},
+\code{select\_child($v$, $i$)},
+\code{child($v$, $c$)},
+\code{sl($v$)},
+\code{wl($v$, $c$)},
+\code{leftmost\_leaf($v$)},
+\code{rightmost\_leaf($v$)}
+\\
 \textit{Public~members:} \code{csa}, \code{lcp}.\\
 The \href{https://gist.github.com/simongog/5315738}{traversal example}
 shows how to use the DFS-iterator.
