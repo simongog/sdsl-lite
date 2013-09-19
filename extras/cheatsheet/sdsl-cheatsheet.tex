@@ -2,7 +2,6 @@
 % next two lines required for sdsl command
 \usepackage[T1]{fontenc} 
 \newcommand{\changefont}[3]{\fontfamily{#1}\fontseries{#2}\fontshape{#3}\selectfont} 
-
 \usepackage{amsfonts}
 
 \usepackage{color}
@@ -493,7 +492,6 @@ In the following let $v$ and $w$ be nodes
 and $i$, $d$, $lb$, $rb$ integers.\\ 
 \textit{Public~methods:} 
 % CST global information
-\code{size()},
 \code{nodes()},
 \code{root()},
 \code{begin()},
@@ -614,10 +612,17 @@ of a \code{cst\_sct3<>} CST for \href{\pizzachili}{$200$ MB English text}.
 \emph{Phases description}: \#1=copy TEXT, \#2=SA, \#3=BWT, \#4=\code{wt\_huff<>},
 \#7=LCP, \#8=BP, \#9=\code{bp\_support\_sada<>}, \#10=\code{lcp\_dac<>}.
 
-\input{mm-log-200MB.tex}
+\href{http://simongog.github.io/assets/data/cst-construction.html}{%
+\scalebox{0.18}{%
+\includegraphics{viz.pdf}%
+}%
+}
+%\input{viz.tex}%
+%}
+
 
 This diagram was generated from the output of this
-\href{\sdslgit/tutorial/mm-log.cpp}{example program},
+\href{\sdslgit/tutorial/memory-visualization.cpp}{example program},
 which print the memory log to \code{stdout}.
 %\section{Performance}
 %Describe here how many resources are required 
@@ -686,7 +691,9 @@ More useful methods in the \code{sdsl::util} namespace:
 \code{write\_structure<JSON\_FORMAT>(o,out)} to get
 a detailed space breakdown written in 
 \href{http://www.json.org/}{JSON} format to stream \code{out}.
-TODO: \code{<HTML\_FORMAT>} 
+\code{<HTML\_FORMAT>} will write a html page
+(\href{http://simongog.github.io/assets/data/space-vis.html}{like this}),
+which includes an interactive svg-figure.
 
 
 \section{Methods on words}
