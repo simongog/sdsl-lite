@@ -51,7 +51,7 @@ data structure to their full potential.
     features provided by the library.
   * All data structures are tested for correctness using a unit-testing framework.
   * We provide a large collection of supporting documentation consisting of examples,
-    cheat sheets, tutorial slides and walk-through.
+    [cheat sheet][SDSLCS], tutorial slides and walk-through.
 
 The library contains many succinct data structures from the following categories:
 
