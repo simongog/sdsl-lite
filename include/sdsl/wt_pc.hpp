@@ -310,26 +310,27 @@ class wt_pc
             return m_tree.bv_pos_rank(v);
         };
 
-        //! Calculates how many symbols c are in the prefix [0..i-1].
+        //! Calculates how many symbols c are in the prefix [0..min(i,size())-1].
         /*!
-         * \param i Exclusive right bound of the range (\f$i\in[0..size()]\f$).
+         * \param i Exclusive right bound of the range.
          * \param c Symbol c.
-         * \return Number of occurrences of symbol c in the prefix [0..i-1].
+         * \return Number of occurrences of symbol c in the prefix [0..min(i,size())-1].
          * \par Time complexity
          *       \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the
          *       zero order entropy of the sequence
          */
         size_type rank(size_type i, value_type c)const {
-            assert(i <= size());
-            uint64_t p = m_tree.bit_path(c);
-            // path_len == 0, if `c` was not in the text or m_sigma=1
-            uint32_t path_len = (p>>56);
-            if (!path_len) {
-                if (m_sigma > 1 or !m_tree.is_valid(m_tree.c_to_leaf(c))) {   // if `c` was not in the text
-                    return 0;
-                }
+            if (i>size()) {
+                i = size();
+            }
+            if (!m_tree.is_valid(m_tree.c_to_leaf(c))) {
+                return 0;  // if `c` was not in the text
+            }
+            if (m_sigma == 1) {
                 return i; // if m_sigma == 1 answer is trivial
             }
+            uint64_t p = m_tree.bit_path(c);
+            uint32_t path_len = (p>>56);
             size_type result = i;
             node_type v = m_tree.root();
             for (uint32_t l=0; l<path_len and result; ++l, p >>= 1) {
@@ -516,29 +517,26 @@ class wt_pc
                 auto res = lex_count(i, j, _c);
                 return t_ret_type {0, j-i-std::get<2>(res),std::get<2>(res)};
             }
-            size_type smaller = 0;
-            size_type greater = 0;
-            size_type res1 = i;
-            size_type res2 = j;
+            size_type smaller = 0, greater = 0;
             node_type v = m_tree.root();
             for (uint32_t l=0; l<path_len; ++l, p >>= 1) {
-                size_type r1_1 = (m_bv_rank(m_tree.bv_pos(v)+res1)
+                size_type r1_1 = (m_bv_rank(m_tree.bv_pos(v)+i)
                                   - m_tree.bv_pos_rank(v));
-                size_type r1_2 = (m_bv_rank(m_tree.bv_pos(v)+res2)
+                size_type r1_2 = (m_bv_rank(m_tree.bv_pos(v)+j)
                                   - m_tree.bv_pos_rank(v));
 
                 if (p&1) {
-                    smaller += res2 - r1_2 - res1 + r1_1;
-                    res1 = r1_1;
-                    res2 = r1_2;
+                    smaller += j - r1_2 - i + r1_1;
+                    i = r1_1;
+                    j = r1_2;
                 } else {
                     greater += r1_2 - r1_1;
-                    res1 -= r1_1;
-                    res2 -= r1_2;
+                    i -= r1_1;
+                    j -= r1_2;
                 }
                 v = m_tree.child(v, p&1);
             }
-            return t_ret_type {res1,smaller, greater};
+            return t_ret_type {i, smaller, greater};
         };
 
         //! How many symbols are lexicographic smaller than c in [0..i-1].
@@ -546,8 +544,8 @@ class wt_pc
          * \param i Exclusive right bound of the range (\f$i\in[0..size()]\f$).
          * \param c Symbol c.
          * \return A tuple containing:
-         *         * #symbols smaller than c in [0..i-1]
          *         * rank(c,i)
+         *         * #symbols smaller than c in [0..i-1]
          * \par Precondition
          *       \f$ i \leq n \f$
          * \note
@@ -560,13 +558,14 @@ class wt_pc
             if (1==m_sigma) {
                 value_type _c = m_tree.bv_pos_rank(m_tree.root());
                 if (c == _c) { // c is the only symbol in the wt
-                    return t_ret_type {0,i};
+                    return t_ret_type {i,0};
                 } else if (c < _c) {
                     return t_ret_type {0,0};
                 } else {
-                    return t_ret_type {i,0};
+                    return t_ret_type {0,i};
                 }
             }
+
             uint64_t p = m_tree.bit_path(c);
             uint32_t path_len = p>>56;
             if (path_len == 0) {  // path_len=0: => c is not present
@@ -575,7 +574,7 @@ class wt_pc
                     return t_ret_type {0, 0};
                 }
                 auto res = lex_smaller_count(i, _c);
-                return t_ret_type {std::get<0>(res)+std::get<1>(res),0};
+                return t_ret_type {0, std::get<0>(res)+std::get<1>(res)};
             }
             size_type result = 0;
             size_type all    = i; // possible occurrences of c
@@ -591,28 +590,7 @@ class wt_pc
                 }
                 v = m_tree.child(v, p&1);
             }
-            return t_ret_type {result,all};
-        }
-
-        //! How many symbols are lexicographic smaller than c in [i..j-1].
-        /*!
-         * \param i  Start index (inclusive) of the interval.
-         * \param j  End index (exclusive) of the interval.
-         * \return Number of characters in [i..j-1], which are smaller than
-         *         c. If c does not occur in the sequence 0 is returned.
-         * \note
-         * This method is only available if lex_ordered = true
-         */
-        template<class t_size_type = size_type>
-        typename std::enable_if<shape_type::lex_ordered, t_size_type>::type
-        lex_smaller_count(size_type i, size_type j, value_type c)const {
-            if (i==j)
-                return 0;
-            if (i+1 == j) {
-                return (*this)[i] < c;
-            } else {
-                return count_lex_smaller(j, c) - count_lex_smaller(i, c);
-            }
+            return t_ret_type {all, result};
         }
 
         //! Returns a const_iterator to the first element.
