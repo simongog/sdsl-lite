@@ -383,6 +383,51 @@ class wt_int
             return i-1;
         };
 
+
+        //! How many symbols are lexicographic smaller/greater than c in [i..j-1].
+        /*!
+         * \param i       Start index (inclusive) of the interval.
+         * \param j       End index (exclusive) of the interval.
+         * \param c       Symbol c.
+         * \return A triple containing:
+         *         * rank(c,i)
+         *         * #symbols smaller than c in [i..j-1]
+         *         * #symbols greater than c in [i..j-1]
+         *
+         * \par Precondition
+         *       \f$ i \leq j \leq n \f$
+         */
+        template<class t_ret_type = std::tuple<size_type, size_type, size_type>>
+        t_ret_type lex_count(size_type i, size_type j, value_type c)const {
+            assert(i <= j and j <= size());
+            size_type offset = 0;
+            size_type smaller = 0;
+            size_type greater = 0;
+            uint64_t mask     = (1ULL) << (m_max_depth-1);
+            size_type node_size = m_size;
+            for (uint32_t k=0; k < m_max_depth; ++k) {
+                size_type ones_before_o   = m_tree_rank(offset);
+                size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
+                size_type ones_before_j   = m_tree_rank(offset + j) - ones_before_o;
+                size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
+                if (c & mask) { // search for a one at this level
+                    offset += (node_size - ones_before_end);
+                    node_size = ones_before_end;
+                    smaller += j-i-ones_before_j+ones_before_i;
+                    i = ones_before_i;
+                    j = ones_before_j;
+                } else { // search for a zero at this level
+                    node_size -= ones_before_end;
+                    greater += ones_before_j-ones_before_i;
+                    i -= ones_before_i;
+                    j -= ones_before_j;
+                }
+                offset += m_size;
+                mask >>= 1;
+            }
+            return std::tuple<size_type, size_type, size_type> {i, smaller, greater};
+        };
+
         //! range_search_2d searches points in the index interval [lb..rb] and value interval [vlb..vrb].
         /*! \param lb     Left bound of index interval (inclusive)
          *  \param rb     Right bound of index interval (inclusive)

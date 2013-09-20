@@ -23,7 +23,7 @@ class WtIntTest : public ::testing::Test { };
 using testing::Types;
 
 // TODO: * add test cases for range_search_2d
-//       * add test for lex_count,...
+//       * add test for lex_smaller_count,...
 
 typedef Types<
 wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
@@ -138,10 +138,85 @@ TYPED_TEST(WtIntTest, LoadAndInverseSelect)
     }
 }
 
+
 TYPED_TEST(WtIntTest, DeleteTest)
 {
     sdsl::remove(temp_file);
 }
+
+template<class T>
+class WtIntLexOrdered : public ::testing::Test { };
+typedef Types<
+wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+        ,wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+        ,wt_int<>
+        ,wt_int<rrr_vector<15>>
+        ,wt_int<rrr_vector<63>>
+        > Implementations_lex_ordered;
+
+TYPED_TEST_CASE(WtIntLexOrdered, Implementations_lex_ordered);
+
+//! Test the parametrized constructor
+TYPED_TEST(WtIntLexOrdered, Constructor)
+{
+    TypeParam wt;
+    sdsl::construct(wt, test_file);
+    ASSERT_TRUE(store_to_file(wt, temp_file));
+}
+
+//! Test the load method and lex_count method
+TYPED_TEST(WtIntLexOrdered, LoadAndLexCount)
+{
+    int_vector<> iv;
+    load_from_file(iv, test_file);
+    TypeParam wt;
+    ASSERT_TRUE(load_from_file(wt, temp_file));
+    ASSERT_EQ(iv.size(), wt.size());
+    std::mt19937_64 rng;
+    uint64_t min = UINT64_MAX, max = 0;
+    for (size_type j=0; j < iv.size(); ++j) {
+        if (min>iv[j]) min = iv[j];
+        if (max<iv[j]) max = iv[j];
+    }
+    std::uniform_int_distribution<uint64_t> symbol_distribution(min, max);
+    auto dice_symbol = bind(symbol_distribution, rng);
+    for (size_type k=1; k<4; ++k) {
+        std::uniform_int_distribution<uint64_t> distribution(0, k*k*k*10);
+        auto dice = bind(distribution, rng);
+        for (size_type idx=0; idx < iv.size();) {
+            size_type i = idx, j = std::min(wt.size(),i+dice());
+            size_type smaller_c1=0,greater_c1=0,smaller_c2=0,greater_c2=0;
+            int_vector<>::value_type c1=iv[i],c2=dice_symbol();
+            for (; idx<j; ++idx) {
+                if (iv[idx]<c1) ++smaller_c1;
+                if (iv[idx]>c1) ++greater_c1;
+                if (iv[idx]<c2) ++smaller_c2;
+                if (iv[idx]>c2) ++greater_c2;
+
+            }
+            auto res1 = wt.lex_count(i,j,c1);
+            ASSERT_EQ(wt.rank(i,c1),std::get<0>(res1));
+            ASSERT_EQ(smaller_c1,std::get<1>(res1));
+            ASSERT_EQ(greater_c1,std::get<2>(res1));
+
+            auto res2 = wt.lex_count(i,j,c2);
+            ASSERT_EQ(wt.rank(i,c2),std::get<0>(res2));
+            ASSERT_EQ(smaller_c2,std::get<1>(res2));
+            ASSERT_EQ(greater_c2,std::get<2>(res2));
+
+            auto res3 = wt.lex_count(i,j,max+1);
+            ASSERT_EQ(0,std::get<0>(res3));
+            ASSERT_EQ(j-i,std::get<1>(res3));
+            ASSERT_EQ(0,std::get<2>(res3));
+        }
+    }
+}
+
+TYPED_TEST(WtIntLexOrdered, DeleteTest)
+{
+    sdsl::remove(temp_file);
+}
+
 
 template<class T>
 class WtIntTopK : public ::testing::Test { };
