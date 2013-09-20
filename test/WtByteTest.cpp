@@ -283,12 +283,12 @@ void test_lex_count(t_T& wt)
                 ASSERT_EQ(num_g, std::get<2>(res));
                 // Test lex_smaller_count
                 auto res2 = wt.lex_smaller_count(i, (value_type)c);
-                ASSERT_EQ(num_i_s, std::get<0>(res2)) << "lex_smaller_count(" << i << "," << c << ")";
-                ASSERT_EQ(rank_c_i_n[c], std::get<1>(res2)) << "lex_smaller_count(" << i << "," << c << ")";
+                ASSERT_EQ(rank_c_i_n[c], std::get<0>(res2)) << "lex_smaller_count(" << i << "," << c << ")";
+                ASSERT_EQ(num_i_s, std::get<1>(res2)) << "lex_smaller_count(" << i << "," << c << ")";
                 num_i_s += rank_c_i_n[c];
                 auto res3 = wt.lex_smaller_count(j, (value_type)c);
-                ASSERT_EQ(num_j_s, std::get<0>(res3)) << "lex_smaller_count(" << i << "," << c << ")";
-                ASSERT_EQ(rank_c_j_n[c], std::get<1>(res3)) << "lex_smaller_count(" << i << "," << c << ")";
+                ASSERT_EQ(rank_c_j_n[c], std::get<0>(res3)) << "lex_smaller_count(" << i << "," << c << ")";
+                ASSERT_EQ(num_j_s, std::get<1>(res3)) << "lex_smaller_count(" << i << "," << c << ")";
                 num_j_s += rank_c_j_n[c];
             }
         }
