@@ -6,7 +6,7 @@ using namespace sdsl;
 
 int main()
 {
-    int_vector<> v(10000000, 3);
+    int_vector<> v(10*(1<<20), 3);
     v[0] = 1ULL<<63;
     util::bit_compress(v);
     cout << size_in_mega_bytes(v) << endl;
