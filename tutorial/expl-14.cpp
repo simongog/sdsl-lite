@@ -7,7 +7,7 @@ using namespace sdsl;
 int main()
 {
     wt_hutu<rrr_vector<63>> wt;
-    construct_im(wt, "ハローワールド！", 1);
+    construct_im(wt, "こんにちは世界", 1);
     for (size_t i=0; i < wt.size(); ++i)
         cout << wt[i];
     cout << endl;
