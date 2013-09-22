@@ -56,7 +56,7 @@ struct enc_vector_trait<64> {
  * @ingroup int_vector
  */
 template<class t_coder=coder::elias_delta,
-         uint32_t t_dens = 8, uint8_t t_width=0>
+         uint32_t t_dens = 128, uint8_t t_width=0>
 class enc_vector
 {
     private:

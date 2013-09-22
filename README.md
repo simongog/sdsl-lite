@@ -6,8 +6,7 @@ What is it?
 
 The Succinct Data Structure Library (SDSL) is a powerful and flexible C++11
 library implementing succinct data structures. In total, the library contains
-the highlights of 40 [research publications](https://github.com/simongog/sdsl-lite/wiki/Literature).
-Succinct data structures
+the highlights of 40 [research publications][SDSLLIT] Succinct data structures
 can represent an object (such as a bitvector or a tree) in space close the
 information-theoretic lower bound of the object while supporting operations
 of the original object efficiently. The theoretical time complexity of an
@@ -145,7 +144,7 @@ To compile the program using `g++` run:
 g++ -std=c++11 -O3 -I ~/include -L ~/lib program.cpp -o lsdsl
 ```
 
-Next we suggest you look at the comprehensive [tutorial][TUT] of Simon Gog which describes
+Next we suggest you look at the comprehensive [tutorial][TUT] which describes
 all major features of the library or look at some of the provided [examples](examples).
 
 Test
@@ -203,7 +202,9 @@ more information see the COPYING file in the library directory.
 Lots of time was spent implementing the many features of the library. If you
 use the library in an academic setting please cite the following paper:
 
-_Simon Gog, Matthias Petri: Optimized Succinct Data Structures for Massive Data, Accepted for publication in Software, Practice and Experience_.
+_Simon Gog, Matthias Petri: 
+Optimized Succinct Data Structures for Massive Data, 
+Accepted for publication in Software, Practice and Experience [Preprint][SPE].
 
 ## External Resources used in SDSL
 
@@ -252,3 +253,5 @@ Feel free to contact any of the authors or create an issue on the
 [LS]: http://www.sciencedirect.com/science/article/pii/S0304397507005257 "Larson &amp; Sadakane Algorithm"
 [GTEST]: https://code.google.com/p/googletest/ "Google C++ Testing Framework"
 [SDSLCS]: http://simongog.github.io/assets/data/sdsl-cheatsheet.pdf "SDSL Cheat Sheet"
+[SDSLLIT]: https://github.com/simongog/sdsl-lite/wiki/Literature "Succinct Data Structure Literature"
+[TUT]: http://simongog.github.io/assets/data/sdsl-slides/tutorial "Tutorial"

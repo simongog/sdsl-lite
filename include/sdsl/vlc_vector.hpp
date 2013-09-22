@@ -43,11 +43,11 @@ struct vlc_vector_trait<32> {
 /*! The values of a vlc_vector are immutable after the constructor call. The class
  *   could be parametrized with a self-delimiting code t_coder and the sample density.
  *  \tparam t_coder Type of self-delimiting coder.
- *  \tparam t_dens  Sampling density of stored absolute values.
- *  \tparam t_width Width of the underlying int_vector for the absolute samples.
+ *  \tparam t_dens  Sampling density of pointers into the stream of self-delimiting coded numbers.
+ *  \tparam t_width Width of the underlying int_vector for the pointers.
  */
 template<class    t_coder = coder::elias_delta,
-         uint32_t t_dens  = 16,
+         uint32_t t_dens  = 128,
          uint8_t  t_width = 0>
 class vlc_vector
 {
