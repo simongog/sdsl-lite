@@ -50,7 +50,7 @@ data structure to their full potential.
     features provided by the library.
   * All data structures are tested for correctness using a unit-testing framework.
   * We provide a large collection of supporting documentation consisting of examples,
-    [cheat sheet][SDSLCS], tutorial slides and walk-through.
+    [cheat sheet][SDSLCS], [tutorial slides and walk-through][TUT].
 
 The library contains many succinct data structures from the following categories:
 
@@ -202,9 +202,9 @@ more information see the COPYING file in the library directory.
 Lots of time was spent implementing the many features of the library. If you
 use the library in an academic setting please cite the following paper:
 
-_Simon Gog, Matthias Petri: 
-Optimized Succinct Data Structures for Massive Data, 
-Accepted for publication in Software, Practice and Experience [Preprint][SPE].
+Simon Gog, Matthias Petri: 
+[Optimized Succinct Data Structures for Massive Data][SPE], 
+Accepted for publication in Software, Practice and Experience.
 
 ## External Resources used in SDSL
 
@@ -213,7 +213,7 @@ construction algorithms.
 
 * Yuta Mori's incredible fast suffix [libdivsufsort][DIVSUF]
   algorithm (version 2.0.1) for byte-alphabets.
-* An adapted version of Jesper Larsson's implementation of the
+* An adapted version of Jesper Larsson's [implementation][QSUFIMPL] of the
   algorithm of [Larson and Sadakane][LS] for integer-alphabets.
 
 Additionally, we use the [googletest][GTEST] framework to provide unit tests.
@@ -255,3 +255,4 @@ Feel free to contact any of the authors or create an issue on the
 [SDSLCS]: http://simongog.github.io/assets/data/sdsl-cheatsheet.pdf "SDSL Cheat Sheet"
 [SDSLLIT]: https://github.com/simongog/sdsl-lite/wiki/Literature "Succinct Data Structure Literature"
 [TUT]: http://simongog.github.io/assets/data/sdsl-slides/tutorial "Tutorial"
+[QSUFIMPL]: http://www.larsson.dogma.net/qsufsort.c "Original Qsufsort Implementation"
