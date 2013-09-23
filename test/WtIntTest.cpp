@@ -204,13 +204,45 @@ TYPED_TEST(WtIntLexOrdered, LoadAndLexCount)
             ASSERT_EQ(smaller_c2,std::get<1>(res2));
             ASSERT_EQ(greater_c2,std::get<2>(res2));
 
-            auto res3 = wt.lex_count(i,j,max+1);
+            auto res3 = wt.lex_count(i,j,max+1+dice_symbol());
             ASSERT_EQ(0,std::get<0>(res3));
             ASSERT_EQ(j-i,std::get<1>(res3));
             ASSERT_EQ(0,std::get<2>(res3));
         }
     }
 }
+
+//! Test the load method and lex_smaller_count method
+TYPED_TEST(WtIntLexOrdered, LoadAndLexSmallerCount)
+{
+    int_vector<> iv;
+    load_from_file(iv, test_file);
+    TypeParam wt;
+    ASSERT_TRUE(load_from_file(wt, temp_file));
+    ASSERT_EQ(iv.size(), wt.size());
+    std::mt19937_64 rng;
+    uint64_t min = UINT64_MAX, max = 0;
+    for (size_type j=0; j < iv.size(); ++j) {
+        if (min>iv[j]) min = iv[j];
+        if (max<iv[j]) max = iv[j];
+    }
+    std::uniform_int_distribution<uint64_t> symbol_distribution(min, max);
+    auto dice_symbol = bind(symbol_distribution, rng);
+    int_vector<> chars(3);
+    for (size_type idx=0; idx < iv.size(); ++idx) {
+        chars[0] = iv[idx];
+        chars[1] = dice_symbol();
+        chars[2] = max+1+dice_symbol();
+
+        for (uint64_t i = 0; i<chars.size(); ++i) {
+            auto exp = wt.lex_count(0,idx,chars[i]);
+            auto res = wt.lex_smaller_count(idx,chars[i]);
+            ASSERT_EQ(idx-std::get<2>(exp)-std::get<1>(exp),std::get<0>(res));
+            ASSERT_EQ(std::get<1>(exp),std::get<1>(res));
+        }
+    }
+}
+
 
 TYPED_TEST(WtIntLexOrdered, DeleteTest)
 {

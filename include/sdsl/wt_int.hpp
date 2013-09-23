@@ -295,11 +295,16 @@ class wt_int
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
          *  \param c The symbol to count the occurrences in the prefix.
          *    \returns The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
+         *  \par Precondition
+         *       \f$ i \leq n \f$
          *  \par Time complexity
          *        \f$ \Order{\log |\Sigma|} \f$
          */
         size_type rank(size_type i, value_type c)const {
             assert(i <= size());
+            if (((1ULL)<<(m_max_depth))<=c) { // c is greater than any symbol in wt
+                return 0;
+            }
             size_type offset = 0;
             uint64_t mask     = (1ULL) << (m_max_depth-1);
             size_type node_size = m_size;
@@ -400,6 +405,9 @@ class wt_int
         template<class t_ret_type = std::tuple<size_type, size_type, size_type>>
         t_ret_type lex_count(size_type i, size_type j, value_type c)const {
             assert(i <= j and j <= size());
+            if (((1ULL)<<(m_max_depth))<=c) { // c is greater than any symbol in wt
+                return std::tuple<size_type, size_type, size_type> {0,j-i,0};
+            }
             size_type offset = 0;
             size_type smaller = 0;
             size_type greater = 0;
@@ -427,6 +435,45 @@ class wt_int
             }
             return std::tuple<size_type, size_type, size_type> {i, smaller, greater};
         };
+
+        //! How many symbols are lexicographic smaller than c in [0..i-1].
+        /*!
+         * \param i Exclusive right bound of the range (\f$i\in[0..size()]\f$).
+         * \param c Symbol c.
+         * \return A tuple containing:
+         *         * rank(c,i)
+         *         * #symbols smaller than c in [0..i-1]
+         * \par Precondition
+         *       \f$ i \leq n \f$
+         */
+        template<class t_ret_type = std::tuple<size_type, size_type>>
+        t_ret_type lex_smaller_count(size_type i, value_type c) const {
+            assert(i <= size());
+            if (((1ULL)<<(m_max_depth))<=c) { // c is greater than any symbol in wt
+                return std::tuple<size_type, size_type> {0,i};
+            }
+            size_type offset = 0;
+            size_type result = 0;
+            uint64_t mask     = (1ULL) << (m_max_depth-1);
+            size_type node_size = m_size;
+            for (uint32_t k=0; k < m_max_depth and i; ++k) {
+                size_type ones_before_o   = m_tree_rank(offset);
+                size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
+                size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
+                if (c & mask) { // search for a one at this level
+                    offset += (node_size - ones_before_end);
+                    node_size = ones_before_end;
+                    result += i - ones_before_i;
+                    i = ones_before_i;
+                } else { // search for a zero at this level
+                    node_size = (node_size - ones_before_end);
+                    i -= ones_before_i;
+                }
+                offset += m_size;
+                mask >>= 1;
+            }
+            return std::tuple<size_type, size_type> {i, result};
+        }
 
         //! range_search_2d searches points in the index interval [lb..rb] and value interval [vlb..vrb].
         /*! \param lb     Left bound of index interval (inclusive)
