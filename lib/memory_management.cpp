@@ -329,8 +329,7 @@ hugepage_allocator::split_block(mm_block_t* bptr,size_t size)
         block_update(bptr,blocksize-newblocksize);
         mm_block_t* newblock = (mm_block_t*)((char*)bptr+(blocksize-newblocksize));
         block_update(newblock,newblocksize);
-        block_markfree(newblock);
-        insert_into_free_set(newblock);
+        coalesce_block(newblock);
     }
 }
 
@@ -444,8 +443,9 @@ hugepage_allocator::mm_alloc(size_t size_in_bytes)
             size_t needed = ALIGN(size_in_bytes - blockdatasize);
             hsbrk(needed);
             remove_from_free_set(bptr);
-            block_update(bptr,UNMASK_SIZE(bptr->size)+needed);
+            block_update(bptr,blockdatasize+needed+sizeof(size_t)+sizeof(mm_block_foot_t));
             insert_into_free_set(bptr);
+            block_markused(bptr);
         } else {
             bptr = new_block(size_in_bytes);
         }
@@ -517,6 +517,7 @@ hugepage_allocator::mm_realloc(void* ptr, size_t size)
                         remove_from_free_set(prev);
                         size_t newsize = UNMASK_SIZE(prev->size)+UNMASK_SIZE(bptr->size);
                         block_update(prev,newsize);
+                        block_markused(prev);
                         /* move the data into the previous block */
                         ptr = memmove(block_data(prev),ptr,blockdatasize);
                     } else {
