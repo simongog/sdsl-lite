@@ -138,7 +138,8 @@ std::string create_mem_js_body(const std::string& jsonObject)
             << "    var xvalue = x.invert(mousex[0] - margin.left); var pos = findPosition(xvalue)\n"
             << "    vertical.style(\"opacity\", \"0.4\"); tooltip.style(\"opacity\", \"1\"); circle.style(\"opacity\", \"1\")\n"
             << "    circle.attr(\"cx\", pos.x).attr(\"cy\", pos.y); vertical.style(\"left\", mousex[0] + \"px\");tooltip.style(\"left\", mousex[0] + 15 + \"px\")\n"
-            << "    tooltip.html(\"<p>\" + xvalue.toFixed(2) + \" Seconds <br>\" + Math.round(pos.mem) + \" MiB <br> \" + pos.name + \"</p>\").style(\"visibility\", \"visible\");\n"
+            << "    tooltip.html(\"<p>\" + xvalue.toFixed(2) + \" Seconds <br>\" + Math.round(pos.mem) + \" MiB <br> \" + pos.name + "
+            << "  \"<br> Phase Time: \" + pos.ptime + \" Seconds </p>\").style(\"visibility\", \"visible\");\n"
             << "  }\n})"
             << ".on(\"mouseover\", function () {\n"
             << "  mousex = d3.mouse(this);\n  if (mousex[0] < margin.left + 3 || mousex[0] > xw - margin.right) {\n"
@@ -147,13 +148,13 @@ std::string create_mem_js_body(const std::string& jsonObject)
             << "d3.select(this).attr(\"href\", 'data:application/octet-stream;base64,' + btoa(d3.select(\"#visualization\").html())).attr(\"download\", \"viz.svg\")})\n\n"
             << "function findPosition(e){correctArea=d3.selectAll(\".area\").filter(function(t){if(t.usage[0][0]<=e*1e3&&t.usage[t.usage.length-1][0]>=e*1e3){return true}"
             << "return false});if(correctArea.empty()){return 0}var t=new Array;correctArea[0].forEach(function(n){t.push(findYValueinArea(n,e))});"
-            << "max_elem=d3.max(t,function(e){return e.mem});var n=t.filter(function(e){return e.mem==max_elem});"
-            << "return n[0]}function findYValueinArea(e,t){len=e.getTotalLength();var n=0;var r=len;"
-            << "for(var i=0;i<=len;i+=50){var s=e.getPointAtLength(i);var o=x.invert(s.x);var u=y.invert(s.y);"
-            << "if(u>0&&o>t){n=Math.max(0,i-50);r=i;break}}var a=e.getPointAtLength(0);var f=1;"
-            << "while(n<r){var l=(r+n)/2;a=e.getPointAtLength(l);target_x=x.invert(a.x);"
-            << "if((l==n||l==r)&&Math.abs(target_x-t)>.01){break}if(target_x>t)r=l;else if(target_x<t)n=l;else{break}if(f>50){break}f++}"
-            << "var c=new function(){this.mem=y.invert(a.y);this.name=e.__data__.name;this.x=a.x;this.y=a.y};return c}\n</script></body></html>";
+            << "max_elem=d3.max(t,function(e){return e.mem});var n=t.filter(function(e){return e.mem==max_elem});return n[0]}"
+            << "function findYValueinArea(e,t){len=e.getTotalLength();var n=0;var r=len;for(var i=0;i<=len;i+=50){var s=e.getPointAtLength(i);"
+            << "var o=x.invert(s.x);var u=y.invert(s.y);if(u>0&&o>t){n=Math.max(0,i-50);r=i;break}}var a=e.getPointAtLength(0);"
+            << "var f=1;while(n<r){var l=(r+n)/2;a=e.getPointAtLength(l);target_x=x.invert(a.x);if((l==n||l==r)&&Math.abs(target_x-t)>.01){break}if(target_x>t)r=l;"
+            << "else if(target_x<t)n=l;else{break}if(f>50){break}f++}var c=new function(){this.mem=y.invert(a.y);this.name=e.__data__.name;"
+            << "this.min=d3.min(e.__data__.usage,function(e){return e[0]/1e3});this.max=d3.max(e.__data__.usage,function(e){return e[0]/1e3});"
+            << "this.ptime=Math.round(this.max-this.min);this.x=a.x;this.y=a.y};return c}\n</script></body></html>";
     return jsonbody.str();
 }
 
