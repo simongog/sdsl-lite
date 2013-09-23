@@ -69,7 +69,7 @@ class select_support_rrr;                // in rrr_vector
  *    In this version the block size can be adjust by the template parameter t_bs!
  *    \sa sdsl::rrr_vector for a specialized version for block_size=15
  */
-template<uint16_t t_bs=15, class t_rac=int_vector<>, uint16_t t_k=32>
+template<uint16_t t_bs=63, class t_rac=int_vector<>, uint16_t t_k=32>
 class rrr_vector
 {
         static_assert(t_bs >= 3 and t_bs <= 256 , "rrr_vector: block size t_bs must be 3 <= t_bs <= 256.");
