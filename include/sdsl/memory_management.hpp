@@ -82,7 +82,7 @@ class memory_monitor
                 }
             }
         };
-        std::chrono::milliseconds log_granularity = std::chrono::milliseconds(1);
+        std::chrono::milliseconds log_granularity = std::chrono::milliseconds(20);
         int64_t current_usage = 0;
         bool track_usage = false;
         std::vector<mm_event> completed_events;
