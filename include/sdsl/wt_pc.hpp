@@ -283,11 +283,14 @@ class wt_pc
 
         //! Recovers the i-th symbol of the original vector.
         /*!
-         * \param i Index in the original vector. \f$i \in [0..size()-1]\f$.
+         * \param i Index in the original vector.
          * \return The i-th symbol of the original vector.
          * \par Time complexity
          *      \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the
          *      zero order entropy of the sequence
+         *
+         * \par Precondition
+         *      \f$ i < size() \f$
          */
         value_type operator[](size_type i)const {
             assert(i < size());
@@ -309,19 +312,20 @@ class wt_pc
             return m_tree.bv_pos_rank(v);
         };
 
-        //! Calculates how many symbols c are in the prefix [0..min(i,size())-1].
+        //! Calculates how many symbols c are in the prefix [0..i-1].
         /*!
          * \param i Exclusive right bound of the range.
          * \param c Symbol c.
-         * \return Number of occurrences of symbol c in the prefix [0..min(i,size())-1].
+         * \return Number of occurrences of symbol c in the prefix [0..i-1].
          * \par Time complexity
-         *       \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the
-         *       zero order entropy of the sequence
+         *      \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the
+         *      zero order entropy of the sequence
+         *
+         * \par Precondition
+         *      \f$ i \leq size() \f$
          */
         size_type rank(size_type i, value_type c)const {
-            if (i>size()) {
-                i = size();
-            }
+            assert(i <= size());
             if (!m_tree.is_valid(m_tree.c_to_leaf(c))) {
                 return 0;  // if `c` was not in the text
             }
@@ -349,8 +353,11 @@ class wt_pc
         /*!
          * \param i The index of the symbol.
          * \return  Pair (rank(wt[i],i),wt[i])
-         *   \par Time complexity
-         *       \f$ \Order{H_0} \f$
+         * \par Time complexity
+         *      \f$ \Order{H_0} \f$
+         *
+         * \par Precondition
+         *      \f$ i < size() \f$
          */
         std::pair<size_type, value_type>
         inverse_select(size_type i)const {
@@ -373,15 +380,17 @@ class wt_pc
 
         //! Calculates the ith occurrence of the symbol c in the supported vector.
         /*!
-         * \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
+         * \param i The ith occurrence.
          * \param c The symbol c.
          * \par Time complexity
          *      \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order
          *       entropy of the sequence
+         *
+         * \par Precondition
+         *      \f$ 1 \leq i \leq rank(size(), c) \f$
          */
         size_type select(size_type i, value_type c)const {
-            assert(i > 0);
-            assert(i <= rank(size(), c));
+            assert(1 <= i and i <= rank(size(), c));
             node_type v = m_tree.c_to_leaf(c);
             if (!m_tree.is_valid(v)) {   // if c was not in the text
                 return m_size;         // -> return a position right to the end
@@ -423,11 +432,11 @@ class wt_pc
          *                 rank_c_i[p] = rank(i,cs[p]), for \f$ 0 \leq p < k \f$.
          * \param rank_c_j Reference to a vector which equals
          *                 rank_c_j[p] = rank(j,cs[p]), for \f$ 0 \leq p < k \f$.
-         *   \par Time complexity
-         *       \f$ \Order{\min{\sigma, k \log \sigma}} \f$
+         * \par Time complexity
+         *      \f$ \Order{\min{\sigma, k \log \sigma}} \f$
          *
          * \par Precondition
-         *      \f$ i \leq j \leq n \f$
+         *      \f$ i \leq j \leq size() \f$
          *      \f$ cs.size() \geq \sigma \f$
          *      \f$ rank_{c_i}.size() \geq \sigma \f$
          *      \f$ rank_{c_j}.size() \geq \sigma \f$
@@ -485,7 +494,7 @@ class wt_pc
          *         * #symbols greater than c in [i..j-1]
          *
          * \par Precondition
-         *       \f$ i \leq j \leq n \f$
+         *       \f$ i \leq j \leq size() \f$
          * \note
          * This method is only available if lex_ordered = true
          */
@@ -540,13 +549,13 @@ class wt_pc
 
         //! How many symbols are lexicographic smaller than c in [0..i-1].
         /*!
-         * \param i Exclusive right bound of the range (\f$i\in[0..size()]\f$).
+         * \param i Exclusive right bound of the range.
          * \param c Symbol c.
          * \return A tuple containing:
          *         * rank(c,i)
          *         * #symbols smaller than c in [0..i-1]
          * \par Precondition
-         *       \f$ i \leq n \f$
+         *       \f$ i \leq size() \f$
          * \note
          * This method is only available if lex_ordered = true
          */

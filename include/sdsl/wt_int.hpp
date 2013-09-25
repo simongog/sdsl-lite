@@ -131,26 +131,26 @@ class wt_int
             }
 
             size_type ones_before_o = m_tree_rank(offset);
-            size_type ones_before_i = m_tree_rank(offset+i) -ones_before_o;
-            size_type ones_before_j = m_tree_rank(offset+j) -ones_before_o;
-            size_type ones_before_end = m_tree_rank(offset+ node_size)-ones_before_o;
+            size_type ones_before_i = m_tree_rank(offset+i) - ones_before_o;
+            size_type ones_before_j = m_tree_rank(offset+j) - ones_before_o;
+            size_type ones_before_end = m_tree_rank(offset+ node_size) - ones_before_o;
 
             // goto left child
             if ((j-i)-(ones_before_j-ones_before_i)>0) {
                 size_type new_offset = offset + m_size;
-                size_type new_node_size = node_size- ones_before_end;
+                size_type new_node_size = node_size - ones_before_end;
                 size_type new_i = i - ones_before_i;
                 size_type new_j = j - ones_before_j;
-                _interval_symbols(new_i, new_j, k, cs,rank_c_i, rank_c_j, depth+1, path<<1,  new_node_size,new_offset);
+                _interval_symbols(new_i, new_j, k, cs, rank_c_i, rank_c_j, depth+1, path<<1, new_node_size, new_offset);
             }
 
             // goto right child
-            if ((ones_before_j-ones_before_i)> 0) {
-                size_type new_offset = offset+(node_size - ones_before_end)+m_size;
+            if ((ones_before_j-ones_before_i)>0) {
+                size_type new_offset = offset+(node_size - ones_before_end) + m_size;
                 size_type new_node_size = ones_before_end;
                 size_type new_i = ones_before_i;
                 size_type new_j = ones_before_j;
-                _interval_symbols(new_i, new_j, k, cs,rank_c_i, rank_c_j, depth+1,(path<<1)|1, new_node_size, new_offset);
+                _interval_symbols(new_i, new_j, k, cs, rank_c_i, rank_c_j, depth+1, (path<<1)|1, new_node_size, new_offset);
             }
         }
 
@@ -306,8 +306,10 @@ class wt_int
         }
 
         //! Recovers the i-th symbol of the original vector.
-        /*! \param i The index of the symbol in the original vector. \f$i \in [0..size()-1]\f$
+        /*! \param i The index of the symbol in the original vector.
          *  \returns The i-th symbol of the original vector.
+         *  \par Precondition
+         *       \f$ i < size() \f$
          */
         value_type operator[](size_type i)const {
             assert(i < size());
@@ -338,10 +340,10 @@ class wt_int
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
          *  \param c The symbol to count the occurrences in the prefix.
          *    \returns The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
-         *  \par Precondition
-         *       \f$ i \leq n \f$
          *  \par Time complexity
-         *        \f$ \Order{\log |\Sigma|} \f$
+         *       \f$ \Order{\log |\Sigma|} \f$
+         *  \par Precondition
+         *       \f$ i \leq size() \f$
          */
         size_type rank(size_type i, value_type c)const {
             assert(i <= size());
@@ -349,7 +351,7 @@ class wt_int
                 return 0;
             }
             size_type offset = 0;
-            uint64_t mask     = (1ULL) << (m_max_depth-1);
+            uint64_t mask = (1ULL) << (m_max_depth-1);
             size_type node_size = m_size;
             for (uint32_t k=0; k < m_max_depth and i; ++k) {
                 size_type ones_before_o   = m_tree_rank(offset);
@@ -375,6 +377,8 @@ class wt_int
         /*!
          *  \param i The index of the symbol.
          *  \return  Pair (rank(wt[i],i),wt[i])
+         *  \par Precondition
+         *       \f$ i < size() \f$
          */
         std::pair<size_type, value_type>
         inverse_select(size_type i)const {
@@ -385,17 +389,18 @@ class wt_int
 
         //! Calculates the i-th occurrence of the symbol c in the supported vector.
         /*!
-         *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.
+         *  \param i The i-th occurrence.
          *  \param c The symbol c.
          *  \par Time complexity
-         *        \f$ \Order{\log |\Sigma|} \f$
+         *       \f$ \Order{\log |\Sigma|} \f$
+         *  \par Precondition
+         *       \f$ 1 \leq i \leq rank(size(), c) \f$
          */
         size_type select(size_type i, value_type c)const {
-            assert(i > 0);
-            assert(i <= rank(size(), c));
+            assert(1 <= i and i <= rank(size(), c));
             // possible optimization: if the array is a permutation we can start at the bottom of the tree
             size_type offset = 0;
-            uint64_t mask     = (1ULL) << (m_max_depth-1);
+            uint64_t mask    = (1ULL) << (m_max_depth-1);
             size_type node_size = m_size;
             m_path_off[0] = m_path_rank_off[0] = 0;
 
@@ -444,11 +449,11 @@ class wt_int
          *                 rank_c_i[p] = rank(i,cs[p]), for \f$ 0 \leq p < k \f$.
          * \param rank_c_j Reference to a vector which equals
          *                 rank_c_j[p] = rank(j,cs[p]), for \f$ 0 \leq p < k \f$.
-         *   \par Time complexity
-         *       \f$ \Order{\min{\sigma, k \log \sigma}} \f$
+         * \par Time complexity
+         *      \f$ \Order{\min{\sigma, k \log \sigma}} \f$
          *
          * \par Precondition
-         *      \f$ i \leq j \leq n \f$
+         *      \f$ i \leq j \leq size() \f$
          *      \f$ cs.size() \geq \sigma \f$
          *      \f$ rank_{c_i}.size() \geq \sigma \f$
          *      \f$ rank_{c_j}.size() \geq \sigma \f$
@@ -478,15 +483,15 @@ class wt_int
          *         * #symbols greater than c in [i..j-1]
          *
          * \par Precondition
-         *       \f$ i \leq j \leq n \f$
+         *      \f$ i \leq j \leq size() \f$
          */
         template<class t_ret_type = std::tuple<size_type, size_type, size_type>>
         t_ret_type lex_count(size_type i, size_type j, value_type c)const {
             assert(i <= j and j <= size());
             if (((1ULL)<<(m_max_depth))<=c) { // c is greater than any symbol in wt
-                return std::tuple<size_type, size_type, size_type> {0,j-i,0};
+                return t_ret_type {0, j-i, 0};
             }
-            size_type offset = 0;
+            size_type offset  = 0;
             size_type smaller = 0;
             size_type greater = 0;
             uint64_t mask     = (1ULL) << (m_max_depth-1);
@@ -511,46 +516,46 @@ class wt_int
                 offset += m_size;
                 mask >>= 1;
             }
-            return std::tuple<size_type, size_type, size_type> {i, smaller, greater};
+            return t_ret_type {i, smaller, greater};
         };
 
         //! How many symbols are lexicographic smaller than c in [0..i-1].
         /*!
-         * \param i Exclusive right bound of the range (\f$i\in[0..size()]\f$).
+         * \param i Exclusive right bound of the range.
          * \param c Symbol c.
          * \return A tuple containing:
          *         * rank(c,i)
          *         * #symbols smaller than c in [0..i-1]
          * \par Precondition
-         *       \f$ i \leq n \f$
+         *      \f$ i \leq size() \f$
          */
         template<class t_ret_type = std::tuple<size_type, size_type>>
         t_ret_type lex_smaller_count(size_type i, value_type c) const {
             assert(i <= size());
             if (((1ULL)<<(m_max_depth))<=c) { // c is greater than any symbol in wt
-                return std::tuple<size_type, size_type> {0,i};
+                return t_ret_type {0, i};
             }
             size_type offset = 0;
             size_type result = 0;
-            uint64_t mask     = (1ULL) << (m_max_depth-1);
+            uint64_t mask    = (1ULL) << (m_max_depth-1);
             size_type node_size = m_size;
             for (uint32_t k=0; k < m_max_depth and i; ++k) {
                 size_type ones_before_o   = m_tree_rank(offset);
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
                 if (c & mask) { // search for a one at this level
-                    offset += (node_size - ones_before_end);
+                    offset   += (node_size - ones_before_end);
                     node_size = ones_before_end;
-                    result += i - ones_before_i;
-                    i = ones_before_i;
+                    result   += i - ones_before_i;
+                    i         = ones_before_i;
                 } else { // search for a zero at this level
                     node_size = (node_size - ones_before_end);
-                    i -= ones_before_i;
+                    i        -= ones_before_i;
                 }
                 offset += m_size;
                 mask >>= 1;
             }
-            return std::tuple<size_type, size_type> {i, result};
+            return t_ret_type {i, result};
         }
 
         //! range_search_2d searches points in the index interval [lb..rb] and value interval [vlb..vrb].
