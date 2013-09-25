@@ -23,7 +23,6 @@ class WtIntTest : public ::testing::Test { };
 using testing::Types;
 
 // TODO: * add test cases for range_search_2d
-//       * add test for lex_smaller_count,...
 
 typedef Types<
 wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
@@ -139,7 +138,82 @@ TYPED_TEST(WtIntTest, LoadAndInverseSelect)
 }
 
 
+
 TYPED_TEST(WtIntTest, DeleteTest)
+{
+    sdsl::remove(temp_file);
+}
+
+template<class T>
+class WtIntervalTest : public ::testing::Test { };
+
+typedef Types<
+wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+        ,wt_huff<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+        ,wt_huff<rrr_vector<63>, rrr_vector<63>::rank_1_type, rrr_vector<63>::select_1_type, rrr_vector<63>::select_0_type, int_tree<>>
+        ,wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+        ,wt_int<rrr_vector<15>>
+        ,wt_int<>
+        ,wt_int<rrr_vector<63>>
+        > Implementations_interval;
+
+TYPED_TEST_CASE(WtIntervalTest, Implementations_interval);
+
+//! Test the parametrized constructor
+TYPED_TEST(WtIntervalTest, Constructor)
+{
+    TypeParam wt;
+    sdsl::construct(wt, test_file);
+    ASSERT_TRUE(store_to_file(wt, temp_file));
+}
+
+//! Test the load method and interval_symbols method
+TYPED_TEST(WtIntervalTest, LoadAndIntervalSymbols)
+{
+    int_vector<> iv;
+    load_from_file(iv, test_file);
+    TypeParam wt;
+    ASSERT_TRUE(load_from_file(wt, temp_file));
+    ASSERT_EQ(iv.size(), wt.size());
+
+    size_type k = 0;
+    std::vector<size_type> rank_c_i(wt.sigma);
+    std::vector<size_type> rank_c_j(wt.sigma);
+    std::vector<int_vector<>::value_type> cs(wt.sigma);
+
+    std::mt19937_64 rng;
+    for (size_type n=1; n<4; ++n) {
+        std::uniform_int_distribution<uint64_t> distribution(0, n*n*n*10);
+        auto dice = bind(distribution, rng);
+        for (size_type i=0,j=0; i < iv.size(); i=j) {
+            j = std::min(wt.size(),i+dice());
+
+            wt.interval_symbols(i, j, k, cs, rank_c_i, rank_c_j);
+
+            size_type symbols = (j-i);
+            for (size_type m = 0; m<k; ++m) {
+                ASSERT_EQ(wt.rank(i, cs[m]),rank_c_i[m]);
+                ASSERT_EQ(wt.rank(j, cs[m]),rank_c_j[m]);
+                ASSERT_LT(0,rank_c_j[m]-rank_c_i[m]);
+                symbols -= (rank_c_j[m]-rank_c_i[m]);
+                if (m>0 and TypeParam::lex_ordered) {
+                    ASSERT_LT(cs[m-1],cs[m]);
+                }
+            }
+
+            ASSERT_EQ(0,symbols);
+            if (!TypeParam::lex_ordered) {
+                sort(cs.begin(),cs.begin()+k);
+                for (size_type m=1; m<k; m++) {
+                    ASSERT_LT(cs[m-1],cs[m]);
+                }
+            }
+        }
+    }
+}
+
+
+TYPED_TEST(WtIntervalTest, DeleteTest)
 {
     sdsl::remove(temp_file);
 }
@@ -252,7 +326,7 @@ TYPED_TEST(WtIntLexOrdered, DeleteTest)
 
 template<class T>
 class WtIntTopK : public ::testing::Test { };
-typedef Types< wt_int<rrr_vector<15>> , wt_int<> , wt_int<rrr_vector<63>>  > Implementations_ordered;
+typedef Types<wt_int<rrr_vector<15>> , wt_int<> , wt_int<rrr_vector<63>> > Implementations_ordered;
 
 TYPED_TEST_CASE(WtIntTopK, Implementations_ordered);
 

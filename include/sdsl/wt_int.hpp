@@ -72,6 +72,7 @@ class wt_int
         typedef t_select_zero                        select_0_type;
         typedef wt_tag                               index_category;
         typedef int_alphabet_tag                     alphabet_category;
+        enum 	{lex_ordered=1};
 
         typedef std::pair<value_type, size_type>     point_type;
         typedef std::vector<point_type>              point_vec_type;
@@ -109,6 +110,48 @@ class wt_int
         void init_buffers(uint32_t max_depth) {
             m_path_off = int_vector<64>(max_depth+1);
             m_path_rank_off = int_vector<64>(max_depth+1);
+        }
+
+        // recursive internal version of the method interval_symbols
+        void _interval_symbols(size_type i, size_type j, size_type& k,
+                               std::vector<value_type>& cs,
+                               std::vector<size_type>& rank_c_i,
+                               std::vector<size_type>& rank_c_j,
+                               size_type depth,
+                               size_type path,
+                               size_type node_size,
+                               size_type offset) const {
+            // invariant: j>i
+
+            if (depth >= m_max_depth) {
+                rank_c_i[k]= i;
+                rank_c_j[k]= j;
+                cs[k++]= path;
+                return;
+            }
+
+            size_type ones_before_o = m_tree_rank(offset);
+            size_type ones_before_i = m_tree_rank(offset+i) -ones_before_o;
+            size_type ones_before_j = m_tree_rank(offset+j) -ones_before_o;
+            size_type ones_before_end = m_tree_rank(offset+ node_size)-ones_before_o;
+
+            // goto left child
+            if ((j-i)-(ones_before_j-ones_before_i)>0) {
+                size_type new_offset = offset + m_size;
+                size_type new_node_size = node_size- ones_before_end;
+                size_type new_i = i - ones_before_i;
+                size_type new_j = j - ones_before_j;
+                _interval_symbols(new_i, new_j, k, cs,rank_c_i, rank_c_j, depth+1, path<<1,  new_node_size,new_offset);
+            }
+
+            // goto right child
+            if ((ones_before_j-ones_before_i)> 0) {
+                size_type new_offset = offset+(node_size - ones_before_end)+m_size;
+                size_type new_node_size = ones_before_end;
+                size_type new_i = ones_before_i;
+                size_type new_j = ones_before_j;
+                _interval_symbols(new_i, new_j, k, cs,rank_c_i, rank_c_j, depth+1,(path<<1)|1, new_node_size, new_offset);
+            }
         }
 
     public:
@@ -388,6 +431,41 @@ class wt_int
             return i-1;
         };
 
+
+        //! For each symbol c in wt[i..j-1] get rank(i,c) and rank(j,c).
+        /*!
+         * \param i        The start index (inclusive) of the interval.
+         * \param j        The end index (exclusive) of the interval.
+         * \param k        Reference for number of different symbols in [i..j-1].
+         * \param cs       Reference to a vector that will contain in
+         *                 cs[0..k-1] all symbols that occur in [i..j-1] in
+         *                 ascending order.
+         * \param rank_c_i Reference to a vector which equals
+         *                 rank_c_i[p] = rank(i,cs[p]), for \f$ 0 \leq p < k \f$.
+         * \param rank_c_j Reference to a vector which equals
+         *                 rank_c_j[p] = rank(j,cs[p]), for \f$ 0 \leq p < k \f$.
+         *   \par Time complexity
+         *       \f$ \Order{\min{\sigma, k \log \sigma}} \f$
+         *
+         * \par Precondition
+         *      \f$ i \leq j \leq n \f$
+         *      \f$ cs.size() \geq \sigma \f$
+         *      \f$ rank_{c_i}.size() \geq \sigma \f$
+         *      \f$ rank_{c_j}.size() \geq \sigma \f$
+         */
+        void interval_symbols(size_type i, size_type j, size_type& k,
+                              std::vector<value_type>& cs,
+                              std::vector<size_type>& rank_c_i,
+                              std::vector<size_type>& rank_c_j) const {
+            assert(i <= j and j <= size());
+            k=0;
+            if (i==j) {
+                return;
+            }
+
+            _interval_symbols(i, j, k, cs, rank_c_i, rank_c_j, 0, 0, m_size, 0);
+
+        }
 
         //! How many symbols are lexicographic smaller/greater than c in [i..j-1].
         /*!

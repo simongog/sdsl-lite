@@ -148,7 +148,6 @@ class wt_pc
                           std::vector<size_type>& rank_c_i,
                           std::vector<size_type>& rank_c_j, node_type v) const {
             // invariant: j>i
-            // goto right child
             size_type i_new = (m_bv_rank(m_tree.bv_pos(v) + i)
                                - m_tree.bv_pos_rank(v));
             size_type j_new = (m_bv_rank(m_tree.bv_pos(v) + j)
@@ -418,8 +417,8 @@ class wt_pc
          * \param k        Reference for number of different symbols in [i..j-1].
          * \param cs       Reference to a vector that will contain in
          *                 cs[0..k-1] all symbols that occur in [i..j-1] in
-         *                 arbitrary order (for Huffman shape) and ascending
-         *                 order (for Hu-Tucker shape).
+         *                 arbitrary order (if lex_ordered = false) and ascending
+         *                 order (if lex_ordered = true).
          * \param rank_c_i Reference to a vector which equals
          *                 rank_c_i[p] = rank(i,cs[p]), for \f$ 0 \leq p < k \f$.
          * \param rank_c_j Reference to a vector which equals
