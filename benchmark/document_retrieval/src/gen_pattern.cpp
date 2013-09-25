@@ -9,11 +9,9 @@ using namespace sdsl;
 
 #ifndef INT_ALPHABET
 using csa_t = csa_wt<wt_huff<rrr_vector<63>>>;
-using rac_t = std::string;
 uint8_t num_bytes = 1;
 #else
 using csa_t = csa_wt<wt_int<rrr_vector<63>>>;
-using rac_t = int_vector<>;
 uint8_t num_bytes = 0;
 #endif
 
@@ -47,7 +45,7 @@ int main(int argc, char* argv[])
     }
 
     // if pat_len < size of CSA - separators - sentinel
-    if (pat_len+1 > csa.size() - csa.rank_bwt(csa.size(), 1)) {
+    if (pat_len+1 > csa.size() - csa.bwt.rank(csa.size(), 1)) {
         std::cerr<<"pat_len > " << " length of the documents" << std::endl;
         return 1;
     }
@@ -65,7 +63,7 @@ int main(int argc, char* argv[])
     uint64_t pat_cnt=0;
     while (pat_cnt < pat_num) {
         uint64_t pos = dice();
-        rac_t pat = extract<rac_t>(csa, pos, pos+pat_len-1);
+        auto pat = extract(csa, pos, pos+pat_len-1);
         bool valid = true;
         for (uint64_t i=0; valid and i < pat.size(); ++i) {
             // if pattern includes separator or newline in byte sequence

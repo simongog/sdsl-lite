@@ -81,6 +81,7 @@ build-test: $(EXECS)
 	cd ../benchmark/indexing_locate; make
 	cd ../benchmark/indexing_extract; make
 	cd ../benchmark/rrr_vector; make
+	cd ../benchmark/document_retrieval; make
 
 build-test-clean: clean
 	cd ../tutorial; make clean
@@ -89,6 +90,7 @@ build-test-clean: clean
 	cd ../benchmark/indexing_locate; make clean-build
 	cd ../benchmark/indexing_extract; make clean-build
 	cd ../benchmark/rrr_vector; make clean-build
+	cd ../benchmark/document_retrieval; make clean-build
 
 generators: BitVectorGenerator.x IntVectorGenerator.x
 

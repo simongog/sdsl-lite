@@ -128,7 +128,7 @@ class doc_list_index_sada
 
             construct_doc_isa(text_file, m_doc_cnt, m_doc_max_len, m_doc_isa);
 
-            int_vector_buffer<0> sa_buf(cache_file_name(constants::KEY_SA, cconfig));
+            int_vector_buffer<0> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
             {
                 int_vector<> D;
                 construct_D_array(sa_buf, m_doc_border_rank, m_doc_cnt, D);
