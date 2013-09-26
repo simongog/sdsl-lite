@@ -185,27 +185,27 @@ TYPED_TEST(WtIntervalTest, LoadAndIntervalSymbols)
     for (size_type n=1; n<4; ++n) {
         std::uniform_int_distribution<uint64_t> distribution(0, n*n*n*10);
         auto dice = bind(distribution, rng);
-        for (size_type i=0,j=0; i < iv.size(); i=j) {
+        for (size_type i=0, j=0; i < iv.size(); i=j) {
             j = std::min(wt.size(),i+dice());
 
             wt.interval_symbols(i, j, k, cs, rank_c_i, rank_c_j);
 
             size_type symbols = (j-i);
             for (size_type m = 0; m<k; ++m) {
-                ASSERT_EQ(wt.rank(i, cs[m]),rank_c_i[m]);
-                ASSERT_EQ(wt.rank(j, cs[m]),rank_c_j[m]);
-                ASSERT_LT(0,rank_c_j[m]-rank_c_i[m]);
+                ASSERT_EQ(wt.rank(i, cs[m]), rank_c_i[m]);
+                ASSERT_EQ(wt.rank(j, cs[m]), rank_c_j[m]);
+                ASSERT_LT(0ULL, rank_c_j[m]-rank_c_i[m]);
                 symbols -= (rank_c_j[m]-rank_c_i[m]);
                 if (m>0 and TypeParam::lex_ordered) {
                     ASSERT_LT(cs[m-1],cs[m]);
                 }
             }
 
-            ASSERT_EQ(0,symbols);
+            ASSERT_EQ(0ULL, symbols);
             if (!TypeParam::lex_ordered) {
-                sort(cs.begin(),cs.begin()+k);
+                sort(cs.begin(), cs.begin()+k);
                 for (size_type m=1; m<k; m++) {
-                    ASSERT_LT(cs[m-1],cs[m]);
+                    ASSERT_LT(cs[m-1], cs[m]);
                 }
             }
         }
@@ -247,7 +247,7 @@ TYPED_TEST(WtIntLexOrdered, LoadAndLexCount)
     ASSERT_TRUE(load_from_file(wt, temp_file));
     ASSERT_EQ(iv.size(), wt.size());
     std::mt19937_64 rng;
-    uint64_t min = UINT64_MAX, max = 0;
+    uint64_t min = std::numeric_limits<uint64_t>::max(), max = 0;
     for (size_type j=0; j < iv.size(); ++j) {
         if (min>iv[j]) min = iv[j];
         if (max<iv[j]) max = iv[j];
@@ -295,7 +295,7 @@ TYPED_TEST(WtIntLexOrdered, LoadAndLexSmallerCount)
     ASSERT_TRUE(load_from_file(wt, temp_file));
     ASSERT_EQ(iv.size(), wt.size());
     std::mt19937_64 rng;
-    uint64_t min = UINT64_MAX, max = 0;
+    uint64_t min = std::numeric_limits<uint64_t>::max(), max = 0;
     for (size_type j=0; j < iv.size(); ++j) {
         if (min>iv[j]) min = iv[j];
         if (max<iv[j]) max = iv[j];
