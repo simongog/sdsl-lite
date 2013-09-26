@@ -383,8 +383,26 @@ class wt_int
         std::pair<size_type, value_type>
         inverse_select(size_type i)const {
             assert(i < size());
-            value_type c = (*this)[i];
-            return std::make_pair(rank(i, c),c);
+
+            value_type c = 0;
+            size_type node_size = m_size, offset = 0;
+            for (uint32_t k=0; k < m_max_depth; ++k) {
+                size_type ones_before_o   = m_tree_rank(offset);
+                size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
+                size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
+                c<<=1;
+                if (m_tree[offset+i]) { // go to the right child
+                    offset += (node_size - ones_before_end);
+                    node_size = ones_before_end;
+                    i = ones_before_i;
+                    c|=1;
+                } else { // go to the left child
+                    node_size = (node_size - ones_before_end);
+                    i = (i-ones_before_i);
+                }
+                offset += m_size;
+            }
+            return std::make_pair(i,c);
         }
 
         //! Calculates the i-th occurrence of the symbol c in the supported vector.
@@ -465,6 +483,14 @@ class wt_int
             assert(i <= j and j <= size());
             k=0;
             if (i==j) {
+                return;
+            }
+            if ((i+1)==j) {
+                auto res = inverse_select(i);
+                cs[0]=res.second;
+                rank_c_i[0]=res.first;
+                rank_c_j[0]=res.first+1;
+                k=1;
                 return;
             }
 
