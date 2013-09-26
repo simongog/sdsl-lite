@@ -256,8 +256,8 @@ TYPED_TEST(WtIntLexOrdered, LoadAndLexCount)
         auto dice = bind(distribution, rng);
         for (size_type idx=0; idx < iv.size();) {
             size_type i = idx, j = std::min(wt.size(),i+dice());
-            size_type smaller_c1=0,greater_c1=0,smaller_c2=0,greater_c2=0;
-            int_vector<>::value_type c1=iv[i],c2=dice_symbol();
+            size_type smaller_c1=0, greater_c1=0, smaller_c2=0, greater_c2=0;
+            int_vector<>::value_type c1=iv[i], c2=dice_symbol();
             for (; idx<j; ++idx) {
                 if (iv[idx]<c1) ++smaller_c1;
                 if (iv[idx]>c1) ++greater_c1;
@@ -265,20 +265,20 @@ TYPED_TEST(WtIntLexOrdered, LoadAndLexCount)
                 if (iv[idx]>c2) ++greater_c2;
 
             }
-            auto res1 = wt.lex_count(i,j,c1);
-            ASSERT_EQ(wt.rank(i,c1),std::get<0>(res1));
-            ASSERT_EQ(smaller_c1,std::get<1>(res1));
-            ASSERT_EQ(greater_c1,std::get<2>(res1));
+            auto res1 = wt.lex_count(i, j, c1);
+            ASSERT_EQ(wt.rank(i, c1), std::get<0>(res1));
+            ASSERT_EQ(smaller_c1, std::get<1>(res1));
+            ASSERT_EQ(greater_c1, std::get<2>(res1));
 
-            auto res2 = wt.lex_count(i,j,c2);
-            ASSERT_EQ(wt.rank(i,c2),std::get<0>(res2));
-            ASSERT_EQ(smaller_c2,std::get<1>(res2));
-            ASSERT_EQ(greater_c2,std::get<2>(res2));
+            auto res2 = wt.lex_count(i, j, c2);
+            ASSERT_EQ(wt.rank(i, c2), std::get<0>(res2));
+            ASSERT_EQ(smaller_c2, std::get<1>(res2));
+            ASSERT_EQ(greater_c2, std::get<2>(res2));
 
-            auto res3 = wt.lex_count(i,j,max+1+dice_symbol());
-            ASSERT_EQ(0,std::get<0>(res3));
-            ASSERT_EQ(j-i,std::get<1>(res3));
-            ASSERT_EQ(0,std::get<2>(res3));
+            auto res3 = wt.lex_count(i, j, max+1+dice_symbol());
+            ASSERT_EQ(0ULL, std::get<0>(res3));
+            ASSERT_EQ(j-i, std::get<1>(res3));
+            ASSERT_EQ(0ULL, std::get<2>(res3));
         }
     }
 }
@@ -306,10 +306,10 @@ TYPED_TEST(WtIntLexOrdered, LoadAndLexSmallerCount)
         chars[2] = max+1+dice_symbol();
 
         for (uint64_t i = 0; i<chars.size(); ++i) {
-            auto exp = wt.lex_count(0,idx,chars[i]);
-            auto res = wt.lex_smaller_count(idx,chars[i]);
-            ASSERT_EQ(idx-std::get<2>(exp)-std::get<1>(exp),std::get<0>(res));
-            ASSERT_EQ(std::get<1>(exp),std::get<1>(res));
+            auto exp = wt.lex_count(0, idx, chars[i]);
+            auto res = wt.lex_smaller_count(idx, chars[i]);
+            ASSERT_EQ(idx-std::get<2>(exp)-std::get<1>(exp), std::get<0>(res));
+            ASSERT_EQ(std::get<1>(exp), std::get<1>(res));
         }
     }
 }
