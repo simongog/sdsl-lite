@@ -191,14 +191,14 @@ TYPED_TEST(WtIntervalTest, LoadAndIntervalSymbols)
             for (size_type m = 0; m<k; ++m) {
                 ASSERT_EQ(wt.rank(i, cs[m]), rank_c_i[m]);
                 ASSERT_EQ(wt.rank(j, cs[m]), rank_c_j[m]);
-                ASSERT_LT(0ULL, rank_c_j[m]-rank_c_i[m]);
+                ASSERT_LT((size_type)0, rank_c_j[m]-rank_c_i[m]);
                 symbols -= (rank_c_j[m]-rank_c_i[m]);
                 if (m>0 and TypeParam::lex_ordered) {
                     ASSERT_LT(cs[m-1],cs[m]);
                 }
             }
 
-            ASSERT_EQ(0ULL, symbols);
+            ASSERT_EQ((size_type)0, symbols);
             if (!TypeParam::lex_ordered) {
                 sort(cs.begin(), cs.begin()+k);
                 for (size_type m=1; m<k; m++) {
@@ -276,9 +276,9 @@ TYPED_TEST(WtIntLexOrdered, LoadAndLexCount)
             ASSERT_EQ(greater_c2, std::get<2>(res2));
 
             auto res3 = wt.lex_count(i, j, max+1+dice_symbol());
-            ASSERT_EQ(0ULL, std::get<0>(res3));
+            ASSERT_EQ((size_type)0, std::get<0>(res3));
             ASSERT_EQ(j-i, std::get<1>(res3));
-            ASSERT_EQ(0ULL, std::get<2>(res3));
+            ASSERT_EQ((size_type)0, std::get<2>(res3));
         }
     }
 }
