@@ -170,11 +170,8 @@ TYPED_TEST(WtIntervalTest, Constructor)
 //! Test the load method and interval_symbols method
 TYPED_TEST(WtIntervalTest, LoadAndIntervalSymbols)
 {
-    int_vector<> iv;
-    load_from_file(iv, test_file);
     TypeParam wt;
     ASSERT_TRUE(load_from_file(wt, temp_file));
-    ASSERT_EQ(iv.size(), wt.size());
 
     size_type k = 0;
     std::vector<size_type> rank_c_i(wt.sigma);
@@ -185,7 +182,7 @@ TYPED_TEST(WtIntervalTest, LoadAndIntervalSymbols)
     for (size_type n=1; n<4; ++n) {
         std::uniform_int_distribution<uint64_t> distribution(0, n*n*n*10);
         auto dice = bind(distribution, rng);
-        for (size_type i=0, j=0; i < iv.size(); i=j) {
+        for (size_type i=0, j=0; i < wt.size(); i=j) {
             j = std::min(wt.size(),i+dice());
 
             wt.interval_symbols(i, j, k, cs, rank_c_i, rank_c_j);

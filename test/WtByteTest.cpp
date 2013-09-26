@@ -183,58 +183,39 @@ void test_interval_symbols(t_T& wt)
     ASSERT_EQ(true, load_from_file(wt, temp_file));
     int_vector<8> text;
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
-    if (wt.size()) {
-        std::mt19937_64 rng;
-        std::uniform_int_distribution<uint64_t> distribution(0, wt.size());
-        auto dice = bind(distribution, rng);
-        for (size_type t=0; t<10000; ++t) {
-            size_type l = dice();
-            size_type r = dice();
-            if (r<l) {
-                std::swap(l,r);
-            }
-            size_type k;
-            std::vector<value_type> cs(wt.sigma);
-            std::vector<size_type> rank_c_i(wt.sigma);
-            std::vector<size_type> rank_c_j(wt.sigma);
-            wt.interval_symbols(l, r, k, cs, rank_c_i, rank_c_j);
+    std::mt19937_64 rng;
+    std::uniform_int_distribution<uint64_t> distribution(0, wt.size());
+    auto dice = bind(distribution, rng);
+    size_type k;
+    std::vector<value_type> cs(wt.sigma);
+    std::vector<size_type> rank_c_i(wt.sigma);
+    std::vector<size_type> rank_c_j(wt.sigma);
+    for (size_type t=0; t<(wt.size()/100+100); ++t) {
+        size_type i = dice(), j = dice();
+        if (i<j) {
+            std::swap(j,i);
+        }
+        wt.interval_symbols(i, j, k, cs, rank_c_i, rank_c_j);
 
-            size_type k_n = 0;
-            std::vector<size_type> rank_c_i_n(256,0);
-            std::vector<size_type> rank_c_j_n(256,0);
-
-            std::vector<value_type> cs_n(wt.sigma);
-            size_type cnt = 0;
-
-            for (size_type j=0; j<256; ++j) {
-                size_type tmp_j = wt.rank(r,(value_type)j);
-                size_type tmp_i = wt.rank(l,(value_type)j);
-                if (tmp_j-tmp_i>0) {
-                    rank_c_j_n[j] = tmp_j;
-                    rank_c_i_n[j] = tmp_i;
-                    ++k_n;
-                    if (t_T::lex_ordered) {
-                        cs_n[cnt++] = j;
-                    }
-                }
+        size_type symbols = (j-i);
+        for (size_type m = 0; m<k; ++m) {
+            ASSERT_EQ(wt.rank(i, cs[m]), rank_c_i[m]);
+            ASSERT_EQ(wt.rank(j, cs[m]), rank_c_j[m]);
+            ASSERT_LT(0ULL, rank_c_j[m]-rank_c_i[m]);
+            symbols -= (rank_c_j[m]-rank_c_i[m]);
+            if (m>0 and t_T::lex_ordered) {
+                ASSERT_LT(cs[m-1],cs[m]);
             }
-            ASSERT_EQ(k_n, k);
-            std::vector<size_type> rank_c_i_wt(256,0);
-            std::vector<size_type> rank_c_j_wt(256,0);
-            for (size_type j=0; j<k; ++j) {
-                rank_c_i_wt[cs[j]] = rank_c_i[j];
-                rank_c_j_wt[cs[j]] = rank_c_j[j];
-            }
-            ASSERT_EQ(rank_c_i_n, rank_c_i_wt);
-            ASSERT_EQ(rank_c_j_n, rank_c_j_wt);
-            if (t_T::lex_ordered) {
-                cs.resize(k);
-                cs_n.resize(k_n);
-                ASSERT_EQ(cs_n, cs);
+        }
+
+        ASSERT_EQ(0ULL, symbols);
+        if (!t_T::lex_ordered) {
+            sort(cs.begin(), cs.begin()+k);
+            for (size_type m=1; m<k; m++) {
+                ASSERT_LT(cs[m-1], cs[m]);
             }
         }
     }
-
 }
 
 //! Test interval symbols method
