@@ -526,6 +526,9 @@ struct _int_tree {
 
     //! Return the path as left/right bit sequence in a uint64_t
     inline uint64_t bit_path(value_type c)const {
+        if (c >= m_path.size()) {
+            return m_path.size()-1;
+        }
         return m_path[c];
     }
 

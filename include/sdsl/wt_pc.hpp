@@ -34,8 +34,6 @@
 namespace sdsl
 {
 
-const int_vector<>::size_type ZoO[2] = {0, (int_vector<>::size_type)-1};
-
 //! A prefix code-shaped wavelet.
 /*!
  * \tparam t_shape       Shape of the tree ().
@@ -150,7 +148,6 @@ class wt_pc
                           std::vector<size_type>& rank_c_i,
                           std::vector<size_type>& rank_c_j, node_type v) const {
             // invariant: j>i
-            // goto right child
             size_type i_new = (m_bv_rank(m_tree.bv_pos(v) + i)
                                - m_tree.bv_pos_rank(v));
             size_type j_new = (m_bv_rank(m_tree.bv_pos(v) + j)
@@ -286,11 +283,14 @@ class wt_pc
 
         //! Recovers the i-th symbol of the original vector.
         /*!
-         * \param i Index in the original vector. \f$i \in [0..size()-1]\f$.
+         * \param i Index in the original vector.
          * \return The i-th symbol of the original vector.
          * \par Time complexity
          *      \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the
          *      zero order entropy of the sequence
+         *
+         * \par Precondition
+         *      \f$ i < size() \f$
          */
         value_type operator[](size_type i)const {
             assert(i < size());
@@ -314,25 +314,27 @@ class wt_pc
 
         //! Calculates how many symbols c are in the prefix [0..i-1].
         /*!
-         * \param i Exclusive right bound of the range (\f$i\in[0..size()]\f$).
+         * \param i Exclusive right bound of the range.
          * \param c Symbol c.
          * \return Number of occurrences of symbol c in the prefix [0..i-1].
          * \par Time complexity
-         *       \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the
-         *       zero order entropy of the sequence
+         *      \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the
+         *      zero order entropy of the sequence
+         *
+         * \par Precondition
+         *      \f$ i \leq size() \f$
          */
         size_type rank(size_type i, value_type c)const {
             assert(i <= size());
-            uint64_t p = m_tree.bit_path(c);
-            // path_len == 0, if `c` was not in the text or m_sigma=1
-            uint32_t path_len = (p>>56);
-            if (!path_len and 1 == m_sigma) {
-                if (!m_tree.is_valid(m_tree.c_to_leaf(c))) {   // if `c` was not in the text
-                    return 0;
-                }
-                return std::min(i, m_size); // if m_sigma == 1 answer is trivial
+            if (!m_tree.is_valid(m_tree.c_to_leaf(c))) {
+                return 0;  // if `c` was not in the text
             }
-            size_type result = i & ZoO[path_len>0];
+            if (m_sigma == 1) {
+                return i; // if m_sigma == 1 answer is trivial
+            }
+            uint64_t p = m_tree.bit_path(c);
+            uint32_t path_len = (p>>56);
+            size_type result = i;
             node_type v = m_tree.root();
             for (uint32_t l=0; l<path_len and result; ++l, p >>= 1) {
                 if (p&1) {
@@ -351,8 +353,11 @@ class wt_pc
         /*!
          * \param i The index of the symbol.
          * \return  Pair (rank(wt[i],i),wt[i])
-         *   \par Time complexity
-         *       \f$ \Order{H_0} \f$
+         * \par Time complexity
+         *      \f$ \Order{H_0} \f$
+         *
+         * \par Precondition
+         *      \f$ i < size() \f$
          */
         std::pair<size_type, value_type>
         inverse_select(size_type i)const {
@@ -375,15 +380,17 @@ class wt_pc
 
         //! Calculates the ith occurrence of the symbol c in the supported vector.
         /*!
-         * \param i The ith occurrence. \f$i\in [1..rank(size(),c)]\f$.
+         * \param i The ith occurrence.
          * \param c The symbol c.
          * \par Time complexity
          *      \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order
          *       entropy of the sequence
+         *
+         * \par Precondition
+         *      \f$ 1 \leq i \leq rank(size(), c) \f$
          */
         size_type select(size_type i, value_type c)const {
-            assert(i > 0);
-            assert(i <= rank(size(), c));
+            assert(1 <= i and i <= rank(size(), c));
             node_type v = m_tree.c_to_leaf(c);
             if (!m_tree.is_valid(v)) {   // if c was not in the text
                 return m_size;         // -> return a position right to the end
@@ -419,17 +426,17 @@ class wt_pc
          * \param k        Reference for number of different symbols in [i..j-1].
          * \param cs       Reference to a vector that will contain in
          *                 cs[0..k-1] all symbols that occur in [i..j-1] in
-         *                 arbitrary order (for Huffman shape) and ascending
-         *                 order (for Hu-Tucker shape).
+         *                 arbitrary order (if lex_ordered = false) and ascending
+         *                 order (if lex_ordered = true).
          * \param rank_c_i Reference to a vector which equals
          *                 rank_c_i[p] = rank(i,cs[p]), for \f$ 0 \leq p < k \f$.
          * \param rank_c_j Reference to a vector which equals
          *                 rank_c_j[p] = rank(j,cs[p]), for \f$ 0 \leq p < k \f$.
-         *   \par Time complexity
-         *       \f$ \Order{\min{\sigma, k \log \sigma}} \f$
+         * \par Time complexity
+         *      \f$ \Order{\min{\sigma, k \log \sigma}} \f$
          *
          * \par Precondition
-         *      \f$ i \leq j \leq n \f$
+         *      \f$ i \leq j \leq size() \f$
          *      \f$ cs.size() \geq \sigma \f$
          *      \f$ rank_{c_i}.size() \geq \sigma \f$
          *      \f$ rank_{c_j}.size() \geq \sigma \f$
@@ -487,7 +494,9 @@ class wt_pc
          *         * #symbols greater than c in [i..j-1]
          *
          * \par Precondition
-         *       \f$ i \leq j \leq n \f$
+         *       \f$ i \leq j \leq size() \f$
+         * \note
+         * This method is only available if lex_ordered = true
          */
         template<class t_ret_type = std::tuple<size_type, size_type, size_type>>
         typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type
@@ -509,67 +518,76 @@ class wt_pc
             uint64_t p = m_tree.bit_path(c);
             uint32_t path_len = p>>56;
             if (path_len == 0) {  // path_len=0: => c is not present
-                value_type _c = (value_type)(p&0x00FFFFFFFFFFFFFFULL);
+                value_type _c = (value_type)p;
                 if (c == _c) {    // c is smaller than any symbol in wt
                     return t_ret_type {0, 0, j-i};
                 }
                 auto res = lex_count(i, j, _c);
                 return t_ret_type {0, j-i-std::get<2>(res),std::get<2>(res)};
             }
-            size_type smaller = 0;
-            size_type greater = 0;
-            size_type res1 = i;
-            size_type res2 = j;
+            size_type smaller = 0, greater = 0;
             node_type v = m_tree.root();
             for (uint32_t l=0; l<path_len; ++l, p >>= 1) {
+                size_type r1_1 = (m_bv_rank(m_tree.bv_pos(v)+i)
+                                  - m_tree.bv_pos_rank(v));
+                size_type r1_2 = (m_bv_rank(m_tree.bv_pos(v)+j)
+                                  - m_tree.bv_pos_rank(v));
+
                 if (p&1) {
-                    size_type r1_1 = (m_bv_rank(m_tree.bv_pos(v)+res1)
-                                      - m_tree.bv_pos_rank(v));
-                    size_type r1_2 = (m_bv_rank(m_tree.bv_pos(v)+res2)
-                                      - m_tree.bv_pos_rank(v));
-
-                    smaller += res2 - r1_2 - res1 + r1_1;
-
-                    res1 = r1_1;
-                    res2 = r1_2;
+                    smaller += j - r1_2 - i + r1_1;
+                    i = r1_1;
+                    j = r1_2;
                 } else {
-                    size_type r1_1 = (m_bv_rank(m_tree.bv_pos(v)+res1)
-                                      - m_tree.bv_pos_rank(v));
-                    size_type r1_2 = (m_bv_rank(m_tree.bv_pos(v)+res2)
-                                      - m_tree.bv_pos_rank(v));
-
                     greater += r1_2 - r1_1;
-
-                    res1 -= r1_1;
-                    res2 -= r1_2;
+                    i -= r1_1;
+                    j -= r1_2;
                 }
                 v = m_tree.child(v, p&1);
             }
-            return t_ret_type {res1,smaller, greater};
+            return t_ret_type {i, smaller, greater};
         };
 
         //! How many symbols are lexicographic smaller than c in [0..i-1].
         /*!
-         * \param i Exclusive right bound of the range (\f$i\in[0..size()]\f$).
+         * \param i Exclusive right bound of the range.
          * \param c Symbol c.
-         * \return Number of characters in [0..i-1], which are smaller than
-         *         c. If c does not occur in the sequence 0 is returned.
+         * \return A tuple containing:
+         *         * rank(c,i)
+         *         * #symbols smaller than c in [0..i-1]
+         * \par Precondition
+         *       \f$ i \leq size() \f$
          * \note
          * This method is only available if lex_ordered = true
          */
-        template<class t_size_type = size_type>
-        typename std::enable_if<shape_type::lex_ordered, t_size_type>::type
+        template<class t_ret_type = std::tuple<size_type, size_type>>
+        typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type
         lex_smaller_count(size_type i, value_type c)const {
             assert(i <= size());
-            // if c does not occur in the sequence
-            if (!m_tree.is_valid(m_tree.c_to_leaf(c)))
-                return 0;
+            if (1==m_sigma) {
+                value_type _c = m_tree.bv_pos_rank(m_tree.root());
+                if (c == _c) { // c is the only symbol in the wt
+                    return t_ret_type {i,0};
+                } else if (c < _c) {
+                    return t_ret_type {0,0};
+                } else {
+                    return t_ret_type {0,i};
+                }
+            }
+
+            uint64_t p = m_tree.bit_path(c);
+            uint32_t path_len = p>>56;
+            if (path_len == 0) {  // path_len=0: => c is not present
+                value_type _c = (value_type)p;
+                if (c == _c) {    // c is smaller than any symbol in wt
+                    return t_ret_type {0, 0};
+                }
+                auto res = lex_smaller_count(i, _c);
+                return t_ret_type {0, std::get<0>(res)+std::get<1>(res)};
+            }
             size_type result = 0;
             size_type all    = i; // possible occurrences of c
-            uint64_t p = m_tree.bit_path(c);
-            uint32_t path_len = (p>>56);
             node_type v = m_tree.root();
-            for (uint32_t l=0; l<path_len; ++l, p >>= 1) {
+            for (uint32_t l=0; l<path_len and all; ++l, p >>= 1) {
                 size_type ones = (m_bv_rank(m_tree.bv_pos(v)+all)
                                   - m_tree.bv_pos_rank(v));
                 if (p&1) {
@@ -578,30 +596,9 @@ class wt_pc
                 } else {
                     all    -= ones;
                 }
-                v = m_tree.child(v, p&2);
+                v = m_tree.child(v, p&1);
             }
-            return result;
-        }
-
-        //! How many symbols are lexicographic smaller than c in [i..j-1].
-        /*!
-         * \param i  Start index (inclusive) of the interval.
-         * \param j  End index (exclusive) of the interval.
-         * \return Number of characters in [i..j-1], which are smaller than
-         *         c. If c does not occur in the sequence 0 is returned.
-         * \note
-         * This method is only available if lex_ordered = true
-         */
-        template<class t_size_type = size_type>
-        typename std::enable_if<shape_type::lex_ordered, t_size_type>::type
-        lex_smaller_count(size_type i, size_type j, value_type c)const {
-            if (i==j)
-                return 0;
-            if (i+1 == j) {
-                return (*this)[i] < c;
-            } else {
-                return count_lex_smaller(j, c) - count_lex_smaller(i, c);
-            }
+            return t_ret_type {all, result};
         }
 
         //! Returns a const_iterator to the first element.
