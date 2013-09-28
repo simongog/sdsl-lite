@@ -213,8 +213,8 @@ construction algorithms.
 
 * Yuta Mori's incredible fast suffix [libdivsufsort][DIVSUF]
   algorithm (version 2.0.1) for byte-alphabets.
-* An adapted version of Jesper Larsson's [implementation][QSUFIMPL] of the
-  algorithm of [Larson and Sadakane][LS] for integer-alphabets.
+* An adapted version of [Jesper Larsson's][JESL] [implementation][QSUFIMPL] of 
+  suffix array sorting on integer-alphabets (description of [Larsson and Sadakane][LS]).
 
 Additionally, we use the [googletest][GTEST] framework to provide unit tests.
 Our visualizations are implemented using the [d3js][d3js]-library.
@@ -256,3 +256,4 @@ Feel free to contact any of the authors or create an issue on the
 [SDSLLIT]: https://github.com/simongog/sdsl-lite/wiki/Literature "Succinct Data Structure Literature"
 [TUT]: http://simongog.github.io/assets/data/sdsl-slides/tutorial "Tutorial"
 [QSUFIMPL]: http://www.larsson.dogma.net/qsufsort.c "Original Qsufsort Implementation"
+[JESL]: http://www.itu.dk/people/jesl/ "Homepage of Jesper Larsson"
