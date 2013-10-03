@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6.0)
+cmake_minimum_required(VERSION 2.8.7)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 include(AppendCompilerFlags)
 
@@ -26,9 +26,17 @@ set(LIBRARY_VERSION_FULL "${LIBRARY_VERSION}.${LIBRARY_VERSION_PATCH}")
 option(CODE_COVERAGE "Set ON to add code coverage compile options" OFF)
 
 # C++11 compiler Check
+if(NOT CMAKE_CXX_COMPILER_VERSION) # work around for cmake versions smaller than 2.8.10
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE CMAKE_CXX_COMPILER_VERSION)
+endif()
+if(CMAKE_CXX_COMPILER MATCHES ".*clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+      set(CMAKE_COMPILER_IS_CLANGXX 1)
+endif()
 if( (CMAKE_COMPILER_IS_GNUCXX AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 4.7) OR
-    (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.2))
+    (CMAKE_COMPILER_IS_CLANGXX AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.2))
   message(FATAL_ERROR "Your C++ compiler does not support C++11. Please install g++ 4.7 (or greater) or clang 3.2 (or greater)")
+else()
+  message(STATUS "Compiler is recent enough to support C++11.")
 endif()
 
 if( CMAKE_COMPILER_IS_GNUCXX )
