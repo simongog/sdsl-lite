@@ -1,0 +1,178 @@
+require(tikzDevice)
+source("../../basic_functions.R")
+
+tex_file = "wt.tex"
+
+tc_config <- readConfig("../test_case.config",c("TC_ID","PATH","LATEX_NAME","URL"))
+
+open_tikz <- function( file_name ){
+    tikz(file_name, width = 5.5, height = 6 , standAlone = F) 
+}
+
+x_for_bar<-function(value){
+	c(0,0,value,value)
+}
+
+y_for_bar<-function(offset){
+	c(offset,offset+0.4,offset+0.4,offset)	
+}
+
+#Method which plots a time figure
+plot_space_figure <-function(data){
+
+	#set margin
+	par(mar=c(3,10,2,0))
+
+	plot(c(),c(),ylim=c(0,(length(data)*0.5)+0.2),xlim=c(0,(max(data)+1)),xlab="",ylab="",xaxt="n",yaxt="n")
+
+	#label y-axis
+	axis( 2, at =seq(0.3,(length(data)*0.5)+0.2,0.5), label=colnames(data),las=1)			
+	#label x-axis
+	axis(1,at=seq(0,max(data)+1,25))
+	mtext("size relative to testcase size", side=1, line=2)
+
+	#draw bars
+	offset=0.1
+	for(time in data){
+		polygon( x_for_bar(time),y_for_bar(offset), border=NA, col="grey")
+		offset=offset+0.5
+	}
+
+	abline(v=100, col="red")
+	draw_figure_heading("space")
+}
+
+#Method which plots a space figure
+plot_time_figure <-function(data,heading,ylab=T,xlab=T){
+	#set margin
+	par(mar=c(3,2,2,0))
+	if(ylab){
+		par(mar=c(3,10,2,0))
+	}
+
+	plot(c(),c(),ylim=c(0,(length(data)*0.5)+0.2),xlim=c(0,(max(data)+1)),xlab="",ylab="",xaxt="n",yaxt="n")
+
+	#label y-axis
+	if(ylab){
+		axis( 2, at =seq(0.3,(length(data)*0.5)+0.2,0.5), label=colnames(data),las=1)		
+	}	
+	#label x-axis
+	axis(1,at=seq(0,max(data),max(data)/10))
+	if(xlab){
+		mtext("time in microseconds", side=1, line=2)
+	}
+
+	#draw bars
+	offset=0.1
+	for(time in data){
+		polygon( x_for_bar(time),y_for_bar(offset), border=NA, col="grey")
+		offset=offset+0.5
+	}
+
+	draw_figure_heading(heading)
+}
+
+
+#read header
+tex_doc <- paste(readLines("wt-header.tex"),collapse="\n")
+
+tex_doc<-paste(tex_doc,"\\section{Benchmark for different wavelet trees:}")
+
+
+maindata <- data_frame_from_key_value_pairs( "../results/all.txt" )
+
+#create two pages for each test case
+for(tc in tc_config[['TC_ID']]){
+
+	data<-maindata[maindata$TC_ID==tc,]
+	id <-data[['WT_TEX_NAME']]
+
+	#first page start 
+	fig_name <- paste("fig-page1-",tc_config[tc_config$TC_ID==tc,'LATEX_NAME'],".tex",sep="")
+	tex_doc<-paste(tex_doc,"\\subsection{Test case: ",tc_config[tc_config$TC_ID==tc,'LATEX_NAME'],"}")
+
+	open_tikz( fig_name )
+
+	layout(matrix(c(1,2,3,4,5,6), 3, 2, byrow = TRUE),
+	   widths=c(1.3,1), heights=c(1,1,1))
+
+	#constructor-plot
+	con <-data['constructs_time']
+	rownames(con)<-id
+	plot_time_figure(t(con),"construction",xlab=F)
+
+	#rank-plot
+	rank <-data['rank_time']
+	rownames(rank)<-id
+	plot_time_figure(t(rank),"rank()",ylab=F,xlab=F)
+
+	#access-plot
+	a <-data['access_time']
+	rownames(a)<-id
+	plot_time_figure(t(a),"access()",xlab=F)
+
+	#select-plot
+	s <-data['select_time']
+	rownames(s)<-id
+	plot_time_figure(t(s),"select()",ylab=F,xlab=F)
+
+	#inverse-select-plot
+	is <-data['inverse_select_time']
+	rownames(is)<-id
+	plot_time_figure(t(is),"inverse-select()")
+
+	#intervali-symbols-plot
+	ivs <-data['interval_symbols_time']
+	rownames(ivs)<-id
+	plot_time_figure(t(ivs),"interval-symbols()",ylab=F)
+	
+	old<-par()
+	dev.off()
+	tex_doc <- paste(tex_doc,"\\begin{figure}[H]
+					 \\input{",fig_name,"}
+					 \\end{figure}")
+	#first page end
+
+	#second page start
+	fig_name <- paste("fig-page2-",tc_config[tc_config$TC_ID==tc,'LATEX_NAME'],".tex",sep="")
+	open_tikz( fig_name )
+
+	layout(matrix(c(1,2,3,3,4,5), 3, 2, byrow = TRUE),
+	   widths=c(1.3,1), heights=c(1,1,1))
+
+	#lex-count-plot
+	lc <-data['lex_count_time']
+	rownames(lc)<-id
+	plot_time_figure(t(lc),"lex-count()")
+
+	#lex-smaller-count-plot
+	lsc <-data['lex_smaller_count_time']
+	rownames(lsc)<-id
+	plot_time_figure(t(lsc),"lex-smaller-count()",ylab=F)
+	
+	#space-plot
+	tspace<-data[[1,'TC_SIZE']]
+	space <-(data['wt_size']/tspace)*100
+	rownames(space)<-id
+
+	plot_space_figure(t(space))
+
+	dev.off()
+	tex_doc <- paste(tex_doc,"\\begin{figure}[H]	
+					 \\input{",fig_name,"}
+					 \\end{figure}")
+	#second page end
+}
+
+#type identification table
+tex_doc<-paste(tex_doc,"\\begin{table}[t]
+						\\centering",
+						typeInfoTable("../wt.config",data[['WT_ID']], 1, 3, 2),
+						"\\caption{Index identifier and corresponding sdsl-type.}
+						\\end{table}")
+
+#read footer+end
+tex_doc <- paste(tex_doc, readLines("wt-footer.tex"),collapse="\n")
+sink(tex_file)
+cat(tex_doc)
+sink(NULL)
