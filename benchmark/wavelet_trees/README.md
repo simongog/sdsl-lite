@@ -17,6 +17,7 @@ Explored dimensions:
 							  a report in LaTeX format.
 
 ## Prerequisites
+
   * For the visualization you need the following software:
     - [R][RPJ] with package `tikzDevice`. You can install the
       package by calling 
@@ -37,13 +38,13 @@ Explored dimensions:
    by calling `make cleanall`.
 
 ## Customization of the benchmark
+
   The project contains several configuration files:
  
   * [wt.config][WTCONFIG]: Specify different wavelet tree implementations.
-  * [test_case.config][TCCONF]: Specify test instances by
-       ID, path, LaTeX-name for the report, and download URL.
-  * [compile_options.config][CCONF]: Specify compile
-    options by option string.
+  * [test_case.config][TCCONF]: Specify test instances by ID, path, LaTeX-name 
+    for the report, and download URL.
+  * [compile_options.config][CCONF]: Specify compile options by option string.
 
   Note that the benchmark will execute every combination of wavelet trees and test cases.
 
