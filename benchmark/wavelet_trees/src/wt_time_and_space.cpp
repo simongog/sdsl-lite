@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
     //size
     cout << "# wt_size = " << size_in_bytes(wt) << endl;
 
-    const uint64_t reps = 10000000;
+    const uint64_t reps = 100000;
     uint64_t log_s = 20;
     uint64_t mask = (1<<log_s)-1;
     uint64_t check = 0;
