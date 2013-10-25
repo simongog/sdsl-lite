@@ -15,8 +15,9 @@ so far we have:
 * [rrr_vector](./rrr_vector): Evaluates the performance of
   the ![H_0](http://latex.codecogs.com/gif.latex?H_0)-compressed
   bitvector [rrr_vector](../include/sdsl/rrr_vector.hpp).
-  Operations `access`, `rank`, and `select` are benchmarked one
+  Operations `access`, `rank`, and `select` are benchmarked on
   different inputs.
+* [wavelet_trees](./wavelet_trees): Evaluates the performance of wavelet trees. 
 
 You can executed the benchmarks by calling `make timing`
 in the specific subdirectory. 

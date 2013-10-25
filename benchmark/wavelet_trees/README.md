@@ -4,10 +4,9 @@
 
 Explored dimensions:
   
-  * block size K (K in [5..255])
   * wavelet tree implementations
   * test cases
-  * methods (`access`, `rank`, `select`) 
+  * methods (`construction`, `access`, `rank`, `select`, `inverse_select`, `interval_symbols`, `lex_count`, `lex_smaller_count`) 
 
 ## Directory structure
 
@@ -29,11 +28,13 @@ Explored dimensions:
 		
 ## Usage
 
- * `make all` compiles the programs, downloads or generates
+ * `make timing` compiles the programs, downloads or generates
     the test instances, builds the wavelet trees, 
     runs the performance tests and generated a report located at
    `visualize/wt.pdf`. The raw numbers of the timings 
    can be found in the `results/all.txt`.
+ * All created binaries and test results can be deleted
+   by calling `make cleanall`.
 
 ## Customization of the benchmark
   The project contains several configuration files:
@@ -44,8 +45,7 @@ Explored dimensions:
   * [compile_options.config][CCONF]: Specify compile
     options by option string.
 
-  Note that the benchmark will execute every combination of your
-  choices. 
+  Note that the benchmark will execute every combination of wavelet trees and test cases.
 
 [RPJ]: http://www.r-project.org/ "R"
 [LT]: http://www.tug.org/applications/pdftex/ "pdflatex"

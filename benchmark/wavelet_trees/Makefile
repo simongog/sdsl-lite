@@ -18,12 +18,16 @@ RES_FILES = $(foreach WT_ID,$(WT_IDS),\
 
 RESULT_FILE=results/all.txt
 
-all: $(RES_FILES) 
-	cat $(RES_FILES) > $(RESULT_FILE)
-	cd visualize;make
+all: execs 
+
+execs: $(WT_EXECS)
+
+timing: execs $(RES_FILES) 
+	@cat $(RES_FILES) > $(RESULT_FILE)
+	@cd visualize;make
 
 # Execute $(BIN_DIR)/build_[WT_ID] and write result
-results/%: test_case.config $(DL) $(WT_EXECS) 
+results/%: test_case.config $(DL) execs 
 	$(eval WT_ID:=$(call dim,1,$*))
 	$(eval TC_ID:=$(call dim,2,$*))
 	$(eval WT_TEX_NAME:=$(call config_select,wt.config,$(WT_ID),3))

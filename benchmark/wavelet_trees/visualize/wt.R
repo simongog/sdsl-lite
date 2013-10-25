@@ -6,7 +6,7 @@ tex_file = "wt.tex"
 tc_config <- readConfig("../test_case.config",c("TC_ID","PATH","LATEX_NAME","URL"))
 
 open_tikz <- function( file_name ){
-    tikz(file_name, width = 5.5, height = 6 , standAlone = F) 
+    tikz(file_name, width = 5.5, height = 7.5 , standAlone = F) 
 }
 
 x_for_bar<-function(value){
@@ -17,8 +17,8 @@ y_for_bar<-function(offset){
 	c(offset,offset+0.4,offset+0.4,offset)	
 }
 
-#Method which plots a time figure
-plot_space_figure <-function(data){
+#Method which plots the size figure
+plot_size_figure <-function(data){
 
 	#set margin
 	par(mar=c(3,10,2,0))
@@ -39,10 +39,10 @@ plot_space_figure <-function(data){
 	}
 
 	abline(v=100, col="red")
-	draw_figure_heading("space")
+	draw_figure_heading("size")
 }
 
-#Method which plots a space figure
+#Method which plots the a time figure
 plot_time_figure <-function(data,heading,ylab=T,xlab=T){
 	#set margin
 	par(mar=c(3,2,2,0))
@@ -50,7 +50,7 @@ plot_time_figure <-function(data,heading,ylab=T,xlab=T){
 		par(mar=c(3,10,2,0))
 	}
 
-	plot(c(),c(),ylim=c(0,(length(data)*0.5)+0.2),xlim=c(0,(max(data)+1)),xlab="",ylab="",xaxt="n",yaxt="n")
+	plot(c(),c(),ylim=c(0,(length(data)*0.5)+0.2),xlim=c(0,(max(data)*1.02)),xlab="",ylab="",xaxt="n",yaxt="n")
 
 	#label y-axis
 	if(ylab){
@@ -150,12 +150,12 @@ for(tc in tc_config[['TC_ID']]){
 	rownames(lsc)<-id
 	plot_time_figure(t(lsc),"lex-smaller-count()",ylab=F)
 	
-	#space-plot
-	tspace<-data[[1,'TC_SIZE']]
-	space <-(data['wt_size']/tspace)*100
-	rownames(space)<-id
+	#size-plot
+	tsize<-data[[1,'TC_SIZE']]
+	size <-(data['wt_size']/tsize)*100
+	rownames(size)<-id
 
-	plot_space_figure(t(space))
+	plot_size_figure(t(size))
 
 	dev.off()
 	tex_doc <- paste(tex_doc,"\\begin{figure}[H]	
@@ -165,7 +165,7 @@ for(tc in tc_config[['TC_ID']]){
 }
 
 #type identification table
-tex_doc<-paste(tex_doc,"\\begin{table}[t]
+tex_doc<-paste(tex_doc,"\\begin{table}[b]
 						\\centering",
 						typeInfoTable("../wt.config",data[['WT_ID']], 1, 3, 2),
 						"\\caption{Index identifier and corresponding sdsl-type.}
