@@ -50,7 +50,7 @@ template<class t_enc_vec         = enc_vector<>,          // Vector type used to
          class t_sa_sample_strat = sa_order_sa_sampling<>,// Policy class for the SA sampling. Alternative text_order_sa_sampling.
          class t_isa             = int_vector<>           // Container for the ISA samples.
          >
-using csa_sada_int = csa_wt<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, int_alphabet<>>;
+using csa_sada_int = csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, int_alphabet<>>;
 
 }
 
