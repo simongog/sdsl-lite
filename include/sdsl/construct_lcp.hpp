@@ -186,7 +186,6 @@ void construct_lcp_PHI(cache_config& config)
  *  \pre Text, Suffix array and BWT exist in the cache. Keys:
  *         * conf::KEY_TEXT
  *         * conf::KEY_SA
- *         * conf::KEY_BWT
  *  \post LCP array exist in the cache. Key
  *         * conf::KEY_LCP
  *  \par Time complexity
