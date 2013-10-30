@@ -183,7 +183,7 @@ void construct_lcp_PHI(cache_config& config)
 //! Construct the LCP array (only for byte strings)
 /*!	The algorithm computes the lcp array and stores it to disk.
  *  \param config	Reference to cache configuration
- *  \pre Text, Suffix array and BWT exist in the cache. Keys:
+ *  \pre Text and Suffix array exist in the cache. Keys:
  *         * conf::KEY_TEXT
  *         * conf::KEY_SA
  *  \post LCP array exist in the cache. Key
