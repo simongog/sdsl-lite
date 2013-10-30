@@ -41,22 +41,22 @@ std::string create_html_header(const char* file_name)
 {
     std::stringstream jsonheader;
     jsonheader
-            << "<html>" << std::endl
-            << "   <head>" << std::endl
-            << "    <meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\">" << std::endl
-            << "    <title>" << file_name << "</title>" << std::endl
-            << "    <script src=\"http://d3js.org/d3.v2.js\"></script>" << std::endl
-            << "    <style type=\"text/css\">" << std::endl
-            << "      path { stroke: #000; stroke-width: 0.8; cursor: pointer; }" << std::endl
-            << "      text { font: 11px sans-serif; cursor: pointer; }" << std::endl
-            << "      body { width: 900; margin: 0 auto; }" << std::endl
-            << "      h1 { text-align: center; margin: .5em 0; }" << std::endl
-            << "      #breadcrumbs { display: none; }" << std::endl
-            << "      svg { font: 10px sans-serif; }" << std::endl
-            << "     </style>" << std::endl
-            << "  </head>" << std::endl
-            << "</head>" << std::endl
-            << "<body>" << std::endl
+            << "<html>\n"
+            << "   <head>\n"
+            << "    <meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\">\n"
+            << "    <title>" << file_name << "</title>\n"
+            << "    <script src=\"http://d3js.org/d3.v2.js\"></script>\n"
+            << "    <style type=\"text/css\">\n"
+            << "      path { stroke: #000; stroke-width: 0.8; cursor: pointer; }\n"
+            << "      text { font: 11px sans-serif; cursor: pointer; }\n"
+            << "      body { width: 900; margin: 0 auto; }\n"
+            << "      h1 { text-align: center; margin: .5em 0; }\n"
+            << "      #breadcrumbs { display: none; }\n"
+            << "      svg { font: 10px sans-serif; }\n"
+            << "     </style>\n"
+            << "  </head>\n"
+            << "<body marginwidth=\"0\" marginheight=\"0\">\n"
+            << "<button><a id=\"download\">Save as SVG</a></button>\n"
             << "  <div id=\"chart\"></div>" << std::endl;
     return jsonheader.str();
 }
@@ -243,7 +243,8 @@ std::string create_js_body(const std::string& jsonsize)
             "function brightness(rgb) {\n"
             "  return rgb.r * .299 + rgb.g * .587 + rgb.b * .114;\n"
             "}\n"
-            "\n"
+            "d3.select(\"#download\").on(\"click\", function () {\n"
+            "d3.select(this).attr(\"href\", 'data:application/octet-stream;base64,' + btoa(d3.select(\"#chart\").html())).attr(\"download\", \"memorysun.svg\")})\n\n"
             "click(nodes[0]);\n"
             "    "   << std::endl
             << "</script>" << std::endl
