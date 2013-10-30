@@ -43,23 +43,26 @@ plot_size_figure <-function(data){
 }
 
 #Method which plots the a time figure
-plot_time_figure <-function(data,heading,ylab=T,xlab=T){
+plot_time_figure <-function(data,heading,ylab=T,xlab=T,constructor=F,xmax=max(data)){
 	#set margin
 	par(mar=c(3,2,2,0))
 	if(ylab){
 		par(mar=c(3,10,2,0))
 	}
 
-	plot(c(),c(),ylim=c(0,(length(data)*0.5)+0.2),xlim=c(0,(max(data)*1.02)),xlab="",ylab="",xaxt="n",yaxt="n")
+	plot(c(),c(),ylim=c(0,(length(data)*0.5)+0.2),xlim=c(0,(xmax*1.02)),xlab="",ylab="",xaxt="n",yaxt="n")
 
 	#label y-axis
 	if(ylab){
 		axis( 2, at =seq(0.3,(length(data)*0.5)+0.2,0.5), label=colnames(data),las=1)		
 	}	
 	#label x-axis
-	axis(1,at=seq(0,max(data),max(data)/10))
+	axis(1,at=seq(0,xmax,xmax/10))
 	if(xlab){
 		mtext("time in microseconds", side=1, line=2)
+	}
+	if(constructor){
+		mtext("time in seconds", side=1, line=2)
 	}
 
 	#draw bars
@@ -86,6 +89,7 @@ for(tc in tc_config[['TC_ID']]){
 
 	data<-maindata[maindata$TC_ID==tc,]
 	id <-data[['WT_TEX_NAME']]
+	xmax<-max(data[c('access_time','rank_time','select_time','inverse_select_time','lex_count_time','lex_smaller_count_time')])
 
 	#first page start 
 	fig_name <- paste("fig-page1-",tc_config[tc_config$TC_ID==tc,'LATEX_NAME'],".tex",sep="")
@@ -94,37 +98,37 @@ for(tc in tc_config[['TC_ID']]){
 	open_tikz( fig_name )
 
 	layout(matrix(c(1,2,3,4,5,6), 3, 2, byrow = TRUE),
-	   widths=c(1.3,1), heights=c(1,1,1))
-
-	#constructor-plot
-	con <-data['constructs_time']
-	rownames(con)<-id
-	plot_time_figure(t(con),"construction",xlab=F)
-
-	#rank-plot
-	rank <-data['rank_time']
-	rownames(rank)<-id
-	plot_time_figure(t(rank),"rank()",ylab=F,xlab=F)
+	   widths=c(1.35,1), heights=c(1,1,1))
 
 	#access-plot
 	a <-data['access_time']
 	rownames(a)<-id
-	plot_time_figure(t(a),"access()",xlab=F)
+	plot_time_figure(t(a),"access()",xlab=F,xmax=xmax)
+
+	#rank-plot
+	rank <-data['rank_time']
+	rownames(rank)<-id
+	plot_time_figure(t(rank),"rank()",ylab=F,xlab=F,xmax=xmax)
 
 	#select-plot
 	s <-data['select_time']
 	rownames(s)<-id
-	plot_time_figure(t(s),"select()",ylab=F,xlab=F)
+	plot_time_figure(t(s),"select()",xlab=F,xmax=xmax)
 
 	#inverse-select-plot
 	is <-data['inverse_select_time']
 	rownames(is)<-id
-	plot_time_figure(t(is),"inverse-select()")
+	plot_time_figure(t(is),"inverse-select()",xlab=F,ylab=F,xmax=xmax)
 
-	#intervali-symbols-plot
-	ivs <-data['interval_symbols_time']
-	rownames(ivs)<-id
-	plot_time_figure(t(ivs),"interval-symbols()",ylab=F)
+	#lex-count-plot
+	lc <-data['lex_count_time']
+	rownames(lc)<-id
+	plot_time_figure(t(lc),"lex-count()",xmax=xmax)
+
+	#lex-smaller-count-plot
+	lsc <-data['lex_smaller_count_time']
+	rownames(lsc)<-id
+	plot_time_figure(t(lsc),"lex-smaller-count()",ylab=F,xmax=xmax)
 	
 	old<-par()
 	dev.off()
@@ -138,17 +142,17 @@ for(tc in tc_config[['TC_ID']]){
 	open_tikz( fig_name )
 
 	layout(matrix(c(1,2,3,3,4,5), 3, 2, byrow = TRUE),
-	   widths=c(1.3,1), heights=c(1,1,1))
+	   widths=c(1.35,1), heights=c(1,1,1))
 
-	#lex-count-plot
-	lc <-data['lex_count_time']
-	rownames(lc)<-id
-	plot_time_figure(t(lc),"lex-count()")
+	#intervali-symbols-plot
+	ivs <-data['interval_symbols_time']
+	rownames(ivs)<-id
+	plot_time_figure(t(ivs),"interval-symbols()")
 
-	#lex-smaller-count-plot
-	lsc <-data['lex_smaller_count_time']
-	rownames(lsc)<-id
-	plot_time_figure(t(lsc),"lex-smaller-count()",ylab=F)
+	#constructor-plot
+	con <-data['constructs_time']
+	rownames(con)<-id
+	plot_time_figure(t(con),"construction",ylab=F,xlab=F,constructor=T)
 	
 	#size-plot
 	tsize<-data[[1,'TC_SIZE']]
