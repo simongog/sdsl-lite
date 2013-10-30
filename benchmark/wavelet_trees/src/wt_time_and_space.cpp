@@ -172,14 +172,15 @@ struct wt_trait<wt_rlmn<t_bitvector, t_rank, t_select, t_wt>, false> {
     }
 };
 
-// argv[1] is the test case path
+// argv[1] = test case path  argv[2] = test case type
 int main(int argc, char* argv[])
 {
+    uint8_t type = argv[2][0]=='d' ? 'd' : argv[2][0]-'0';
 
     WT_TYPE wt;
     //construct
     auto start = timer::now();
-    construct(wt,argv[1],1);
+    construct(wt,argv[1],type);
     auto stop = timer::now();
     cout << "# constructs_time = " << duration_cast<seconds>(stop-start).count() << endl;
 

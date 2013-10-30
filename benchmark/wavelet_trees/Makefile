@@ -33,14 +33,16 @@ results/%: test_case.config $(DL) execs
 	$(eval WT_TEX_NAME:=$(call config_select,wt.config,$(WT_ID),3))
 	$(eval TC_TEX_NAME:=$(call config_select,test_case.config,$(TC_ID),3))
 	$(eval TC_PATH:=$(call config_select,test_case.config,$(TC_ID),2))
+	$(eval TC_TYPE:=$(call config_select,test_case.config,$(TC_ID),5))
 	$(eval TC_SIZE:=$(shell wc -c <$(TC_PATH)))
+	$(eval ARGS:=$(TC_PATH) $(TC_TYPE))
 	@echo "Running bin/build_$(WT_ID) on $(TC_ID)"
 	@echo "# WT_ID = $(WT_ID)" > $@
 	@echo "# TC_ID = $(TC_ID)" >> $@
 	@echo "# WT_TEX_NAME = $(WT_TEX_NAME)">>$@
 	@echo "# TC_TEX_NAME = $(TC_TEX_NAME)">>$@
 	@echo "# TC_SIZE = $(TC_SIZE)">>$@
-	@$(BIN_DIR)/build_$(WT_ID) $(TC_PATH)>> $@	
+	@$(BIN_DIR)/build_$(WT_ID) $(ARGS) >> $@	
 
 # $(BIN_DIR)/build_[WT_ID]
 $(BIN_DIR)/build_%: $(SRC_DIR)/wt_time_and_space.cpp wt.config 

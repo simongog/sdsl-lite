@@ -3,7 +3,7 @@ source("../../basic_functions.R")
 
 tex_file = "wt.tex"
 
-tc_config <- readConfig("../test_case.config",c("TC_ID","PATH","LATEX_NAME","URL"))
+tc_config <- readConfig("../test_case.config",c("TC_ID","PATH","LATEX_NAME","URL","TC_TYPE"))
 
 open_tikz <- function( file_name ){
     tikz(file_name, width = 5.5, height = 7.5 , standAlone = F) 
@@ -23,12 +23,12 @@ plot_size_figure <-function(data){
 	#set margin
 	par(mar=c(3,10,2,0))
 
-	plot(c(),c(),ylim=c(0,(length(data)*0.5)+0.2),xlim=c(0,(max(data)+1)),xlab="",ylab="",xaxt="n",yaxt="n")
+	plot(c(),c(),ylim=c(0,(length(data)*0.5)+0.2),xlim=c(0,max(101,(max(data)+1))),xlab="",ylab="",xaxt="n",yaxt="n")
 
 	#label y-axis
 	axis( 2, at =seq(0.3,(length(data)*0.5)+0.2,0.5), label=colnames(data),las=1)			
 	#label x-axis
-	axis(1,at=seq(0,max(data)+1,25))
+	axis(1,at=seq(0,max(101,max(data)+1,25)))
 	mtext("size relative to testcase size", side=1, line=2)
 
 	#draw bars
