@@ -172,7 +172,7 @@ for(tc in tc_config[['TC_ID']]){
 tex_doc<-paste(tex_doc,"\\begin{table}[b]
 						\\centering",
 						typeInfoTable("../wt.config",data[['WT_ID']], 1, 3, 2),
-						"\\caption{Index identifier and corresponding sdsl-type.}
+						"\\caption{Wavelet tree identifier and corresponding sdsl-type.}
 						\\end{table}")
 
 #read footer+end
