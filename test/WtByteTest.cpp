@@ -28,8 +28,13 @@ void test_lex_count(t_wt& wt);
 
 
 template<class t_wt, bool lex_ordered = t_wt::lex_ordered>
-struct wt_test_trait {
-    static void interval_symbols_test(t_wt&) {}
+struct wt_test_trait;
+
+template<class t_wt>
+struct wt_test_trait<t_wt, false> {
+    static void interval_symbols_test(t_wt& wt) {
+        test_interval_symbols(wt);
+    }
     static void lex_count_test(t_wt&) {}
 };
 
@@ -41,6 +46,12 @@ struct wt_test_trait<t_wt, true> {
     static void lex_count_test(t_wt& wt) {
         test_lex_count(wt);
     }
+};
+
+template<class t_bitvector,class t_rank, class t_select, class t_wt>
+struct wt_test_trait<wt_rlmn<t_bitvector,t_rank,t_select,t_wt>,false> {
+    static void interval_symbols_test(wt_rlmn<t_bitvector,t_rank,t_select,t_wt>&) {}
+    static void lex_count_test(wt_rlmn<t_bitvector,t_rank,t_select,t_wt>&) {}
 };
 
 template<class T>
