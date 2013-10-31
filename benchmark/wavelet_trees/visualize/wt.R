@@ -28,7 +28,6 @@ plot_size_figure <-function(data){
 	#label y-axis
 	axis( 2, at =seq(0.3,(length(data)*0.5)+0.2,0.5), label=colnames(data),las=1)			
 	#label x-axis
-	#pfusch timo axis(1,at=seq(0,max(101,max(data)+1,25)))
 	axis(1)
 	mtext("size relative to testcase size", side=1, line=2)
 
