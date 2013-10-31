@@ -28,7 +28,8 @@ plot_size_figure <-function(data){
 	#label y-axis
 	axis( 2, at =seq(0.3,(length(data)*0.5)+0.2,0.5), label=colnames(data),las=1)			
 	#label x-axis
-	axis(1,at=seq(0,max(101,max(data)+1,25)))
+	#pfusch timo axis(1,at=seq(0,max(101,max(data)+1,25)))
+	axis(1)
 	mtext("size relative to testcase size", side=1, line=2)
 
 	#draw bars
@@ -39,7 +40,7 @@ plot_size_figure <-function(data){
 	}
 
 	abline(v=100, col="red")
-	draw_figure_heading("size")
+	draw_figure_heading("\\tt{size}")
 }
 
 #Method which plots the a time figure
@@ -57,7 +58,7 @@ plot_time_figure <-function(data,heading,ylab=T,xlab=T,constructor=F,xmax=max(da
 		axis( 2, at =seq(0.3,(length(data)*0.5)+0.2,0.5), label=colnames(data),las=1)		
 	}	
 	#label x-axis
-	axis(1,at=seq(0,xmax,xmax/10))
+	axis(1)
 	if(xlab){
 		mtext("time in microseconds", side=1, line=2)
 	}
@@ -103,32 +104,32 @@ for(tc in tc_config[['TC_ID']]){
 	#access-plot
 	a <-data['access_time']
 	rownames(a)<-id
-	plot_time_figure(t(a),"access()",xlab=F,xmax=xmax)
+	plot_time_figure(t(a),"\\tt{access}",xlab=F,xmax=xmax)
 
 	#rank-plot
 	rank <-data['rank_time']
 	rownames(rank)<-id
-	plot_time_figure(t(rank),"rank()",ylab=F,xlab=F,xmax=xmax)
+	plot_time_figure(t(rank),"\\tt{rank}",ylab=F,xlab=F,xmax=xmax)
 
 	#select-plot
 	s <-data['select_time']
 	rownames(s)<-id
-	plot_time_figure(t(s),"select()",xlab=F,xmax=xmax)
+	plot_time_figure(t(s),"\\tt{select}",xlab=F,xmax=xmax)
 
 	#inverse-select-plot
 	is <-data['inverse_select_time']
 	rownames(is)<-id
-	plot_time_figure(t(is),"inverse-select()",xlab=F,ylab=F,xmax=xmax)
+	plot_time_figure(t(is),"\\tt{inverse-select}",xlab=F,ylab=F,xmax=xmax)
 
 	#lex-count-plot
 	lc <-data['lex_count_time']
 	rownames(lc)<-id
-	plot_time_figure(t(lc),"lex-count()",xmax=xmax)
+	plot_time_figure(t(lc),"\\tt{lex-count}",xmax=xmax)
 
 	#lex-smaller-count-plot
 	lsc <-data['lex_smaller_count_time']
 	rownames(lsc)<-id
-	plot_time_figure(t(lsc),"lex-smaller-count()",ylab=F,xmax=xmax)
+	plot_time_figure(t(lsc),"\\tt{lex-smaller-count}",ylab=F,xmax=xmax)
 	
 	old<-par()
 	dev.off()
@@ -147,12 +148,12 @@ for(tc in tc_config[['TC_ID']]){
 	#intervali-symbols-plot
 	ivs <-data['interval_symbols_time']
 	rownames(ivs)<-id
-	plot_time_figure(t(ivs),"interval-symbols()")
+	plot_time_figure(t(ivs),"\\tt{interval-symbols}")
 
 	#constructor-plot
 	con <-data['constructs_time']
 	rownames(con)<-id
-	plot_time_figure(t(con),"construction",ylab=F,xlab=F,constructor=T)
+	plot_time_figure(t(con),"\\tt{construction}",ylab=F,xlab=F,constructor=T)
 	
 	#size-plot
 	tsize<-data[[1,'TC_SIZE']]
