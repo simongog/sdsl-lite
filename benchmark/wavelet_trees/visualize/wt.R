@@ -21,7 +21,7 @@ y_for_bar<-function(offset){
 plot_size_figure <-function(data){
 
 	#set margin
-	par(mar=c(3,10,2,0))
+	par(mar=c(3,10,5,0))
 
 	plot(c(),c(),ylim=c(0,(length(data)*0.5)+0.2),xlim=c(0,max(101,(max(data)+1))),xlab="",ylab="",xaxt="n",yaxt="n")
 
@@ -29,7 +29,7 @@ plot_size_figure <-function(data){
 	axis( 2, at =seq(0.3,(length(data)*0.5)+0.2,0.5), label=colnames(data),las=1)			
 	#label x-axis
 	axis(1)
-	mtext("size relative to testcase size", side=1, line=2)
+	mtext("Size relative to original file size", side=1, line=2)
 
 	#draw bars
 	offset=0.1
@@ -39,7 +39,8 @@ plot_size_figure <-function(data){
 	}
 
 	abline(v=100, col="red")
-	draw_figure_heading("\\tt{size}")
+    abline(v=c(axis(1)/2,max(axis(1)/2)+axis(1)/2), col="gray")
+	draw_figure_heading("Space")
 }
 
 #Method which plots the a time figure
@@ -58,11 +59,12 @@ plot_time_figure <-function(data,heading,ylab=T,xlab=T,constructor=F,xmax=max(da
 	}	
 	#label x-axis
 	axis(1)
+    abline(v=c(axis(1)/2,max(axis(1)/2)+axis(1)/2),col="gray")
 	if(xlab){
-		mtext("time in microseconds", side=1, line=2)
+		mtext("Time in microseconds", side=1, line=2)
 	}
 	if(constructor){
-		mtext("time in seconds", side=1, line=2)
+		mtext("Time in seconds", side=1, line=2)
 	}
 
 	#draw bars
@@ -79,7 +81,7 @@ plot_time_figure <-function(data,heading,ylab=T,xlab=T,constructor=F,xmax=max(da
 #read header
 tex_doc <- paste(readLines("wt-header.tex"),collapse="\n")
 
-tex_doc<-paste(tex_doc,"\\section{Benchmark for different wavelet trees:}")
+tex_doc<-paste(tex_doc,"\\section{Result of the Wavelet Tree benchmark}")
 
 
 maindata <- data_frame_from_key_value_pairs( "../results/all.txt" )
@@ -93,7 +95,7 @@ for(tc in tc_config[['TC_ID']]){
 
 	#first page start 
 	fig_name <- paste("fig-page1-",tc_config[tc_config$TC_ID==tc,'LATEX_NAME'],".tex",sep="")
-	tex_doc<-paste(tex_doc,"\\subsection{Test case: ",tc_config[tc_config$TC_ID==tc,'LATEX_NAME'],"}")
+	tex_doc<-paste(tex_doc,"\\subsection{Test case: {\\sc ",tc_config[tc_config$TC_ID==tc,'LATEX_NAME'],"}}")
 
 	open_tikz( fig_name )
 
@@ -118,17 +120,17 @@ for(tc in tc_config[['TC_ID']]){
 	#inverse-select-plot
 	is <-data['inverse_select_time']
 	rownames(is)<-id
-	plot_time_figure(t(is),"\\tt{inverse-select}",xlab=F,ylab=F,xmax=xmax)
+	plot_time_figure(t(is),"\\tt{inverse\\_select}",xlab=F,ylab=F,xmax=xmax)
 
 	#lex-count-plot
 	lc <-data['lex_count_time']
 	rownames(lc)<-id
-	plot_time_figure(t(lc),"\\tt{lex-count}",xmax=xmax)
+	plot_time_figure(t(lc),"\\tt{lex\\_count}",xmax=xmax)
 
 	#lex-smaller-count-plot
 	lsc <-data['lex_smaller_count_time']
 	rownames(lsc)<-id
-	plot_time_figure(t(lsc),"\\tt{lex-smaller-count}",ylab=F,xmax=xmax)
+	plot_time_figure(t(lsc),"\\tt{lex\\_smaller\\_count}",ylab=F,xmax=xmax)
 	
 	old<-par()
 	dev.off()
@@ -142,17 +144,17 @@ for(tc in tc_config[['TC_ID']]){
 	open_tikz( fig_name )
 
 	layout(matrix(c(1,2,3,3,4,5), 3, 2, byrow = TRUE),
-	   widths=c(1.35,1), heights=c(1,1,1))
+	   widths=c(1.35,1), heights=c(1,1.5,0))
 
 	#intervali-symbols-plot
 	ivs <-data['interval_symbols_time']
 	rownames(ivs)<-id
-	plot_time_figure(t(ivs),"\\tt{interval-symbols}")
+	plot_time_figure(t(ivs),"\\tt{interval\\_symbols}")
 
 	#constructor-plot
 	con <-data['constructs_time']
 	rownames(con)<-id
-	plot_time_figure(t(con),"\\tt{construction}",ylab=F,xlab=F,constructor=T)
+	plot_time_figure(t(con),"\\tt{construct}",ylab=F,xlab=F,constructor=T)
 	
 	#size-plot
 	tsize<-data[[1,'TC_SIZE']]
