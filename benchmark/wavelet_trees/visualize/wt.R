@@ -87,15 +87,16 @@ tex_doc<-paste(tex_doc,"\\section{Result of the Wavelet Tree benchmark}")
 maindata <- data_frame_from_key_value_pairs( "../results/all.txt" )
 
 #create two pages for each test case
-for(tc in tc_config[['TC_ID']]){
+#for(tc in tc_config[['TC_ID']]){
+for(tc in unique(maindata$TC_ID)){
 
 	data<-maindata[maindata$TC_ID==tc,]
 	id <-data[['WT_TEX_NAME']]
 	xmax<-max(data[c('access_time','rank_time','select_time','inverse_select_time','lex_count_time','lex_smaller_count_time')])
 
 	#first page start 
-	fig_name <- paste("fig-page1-",tc_config[tc_config$TC_ID==tc,'LATEX_NAME'],".tex",sep="")
-	tex_doc<-paste(tex_doc,"\\subsection{Test case: {\\sc ",tc_config[tc_config$TC_ID==tc,'LATEX_NAME'],"}}")
+	fig_name <- paste("fig-page1-",tc,".tex",sep="")
+	tex_doc<-paste(tex_doc,"\\subsection{Test case: {\\sc ",data[['TC_TEX_NAME']],"}}")
 
 	open_tikz( fig_name )
 
@@ -140,7 +141,7 @@ for(tc in tc_config[['TC_ID']]){
 	#first page end
 
 	#second page start
-	fig_name <- paste("fig-page2-",tc_config[tc_config$TC_ID==tc,'LATEX_NAME'],".tex",sep="")
+	fig_name <- paste("fig-page2-",tc,".tex",sep="")
 	open_tikz( fig_name )
 
 	layout(matrix(c(1,2,3,3,4,5), 3, 2, byrow = TRUE),
