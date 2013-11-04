@@ -16,9 +16,13 @@ Explored dimensions:
  
 ## Directory structure
   * [bin](./bin): Contains the executables of the project.
-    - `doc_list_index_*` generates and queries and indexes
+    - `build_*` index build executables 
+    - `gen_pattern*` executable to generate pattern sets
+    - `query_*` index query executables
+    - `size_of_*` generate size and space breakdowns
   * [dic](./dic): Contains dictionaries for integer inputs.
   * [indexes](./indexes): Contains the generated indexes.
+  * [info](./info): Contains space breakdowns.
   * [results](./results): Contains the results of the experiments.
   * [src](./src): Contains the source code of the benchmark.
   * [visualize](./visualize): Contains a `R`-script which generates
@@ -59,7 +63,10 @@ Explored dimensions:
     - [pdflatex][LT] to generate the pdf reports.
 
 ## Usage
-    TODO
+    `make timing` will download the small test cases, compile executables,
+    build the indexes, run the queries, and generate a report. The
+    benchmark run 5 minutes and 40 seconds (without download the files)
+    and generated [this report on my machine].
 	
 ## Customization of the benchmark
   The project contains several configuration files:
@@ -83,3 +90,4 @@ Explored dimensions:
 [XZ]: http://tukaani.org/xz/ "XZ Compressor"
 [GZIP]: http://www.gnu.org/software/gzip/ "Gzip Compressor"
 [SP]: http://nlp.stanford.edu/software/tokenizer.shtml
+[RES]: https://github.com/simongog/simongog.github.com/raw/master/assets/images/doc_re_time.pdf "doc_re_time.pdf"
