@@ -64,10 +64,11 @@ Explored dimensions:
     - [pdflatex][LT] to generate the pdf reports.
 
 ## Usage
-    Command `make timing` will download the small test cases, compile executables,
-    build the indexes, run the queries, and generate a report. The
-    benchmark run 5 minutes and 40 seconds (without download the files)
-    and generated [this report on my machine].
+
+  Command `make timing` will download the small test cases, compile executables,
+  build the indexes, run the queries, and generate a report. The
+  benchmark run 5 minutes and 40 seconds (without download the files)
+  and generated [this report on my machine][RES].
 	
 ## Customization of the benchmark
   The project contains several configuration files:
