@@ -23,6 +23,7 @@ Explored dimensions:
   * [dic](./dic): Contains dictionaries for integer inputs.
   * [indexes](./indexes): Contains the generated indexes.
   * [info](./info): Contains space breakdowns.
+  * [pattern](./pattern): Contains generated pattern.
   * [results](./results): Contains the results of the experiments.
   * [src](./src): Contains the source code of the benchmark.
   * [visualize](./visualize): Contains a `R`-script which generates
@@ -63,7 +64,7 @@ Explored dimensions:
     - [pdflatex][LT] to generate the pdf reports.
 
 ## Usage
-    `make timing` will download the small test cases, compile executables,
+    Command `make timing` will download the small test cases, compile executables,
     build the indexes, run the queries, and generate a report. The
     benchmark run 5 minutes and 40 seconds (without download the files)
     and generated [this report on my machine].
