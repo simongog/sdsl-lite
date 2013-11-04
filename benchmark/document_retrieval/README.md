@@ -49,6 +49,11 @@ Explored dimensions:
       `int_vector`.
     - The generated dictionaries containing on each line
       a `(word, ID, occurrences)`-tuple.
+  * PROTEINS is the concatenation of 143,244 Human and Mouse
+    proteins sequences from the swissport database. 
+  * Availability: ENWIKIBIG (character and integer version)
+    are available on request. The other files are downloaded
+    automatically during the execution of the benchmark.
 
 ## Prerequisites
   * For the visualization you need the following software:
