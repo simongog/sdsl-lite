@@ -67,7 +67,7 @@ Explored dimensions:
 
   Command `make timing` will download the small test cases, compile executables,
   build the indexes, run the queries, and generate a report. The
-  benchmark run 5 minutes and 40 seconds (without download the files)
+  benchmark run 5 minutes and 40 seconds (without downloading the files)
   and generated [this report on my machine][RES].
 	
 ## Customization of the benchmark
