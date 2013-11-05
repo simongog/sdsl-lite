@@ -17,5 +17,6 @@ construct(t_index& idx, const std::string& file, sdsl::cache_config& config, uin
 #include "doc_list_index_sada.hpp"
 #include "doc_list_index_greedy.hpp"
 #include "doc_list_index_qprobing.hpp"
+#include "doc_list_index_sort.hpp"
 
 #endif

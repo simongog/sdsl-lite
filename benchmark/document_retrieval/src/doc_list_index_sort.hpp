@@ -1,13 +1,8 @@
 /*!
- * This file contains a document listing class, which implements
- * strategy GREEDY in the article:
- * J. S. Culpepper, G. Navarro, S. J. Puglisi and A. Turpin:
- * ,,Top-k Ranked Document Search in General Text Databases''
- * Proceedings Part II of the 18th Annual European Symposium on
- * Algorithms (ESA 2010)
+ * this file contains a simple SORT baseline
  */
-#ifndef DOCUMENT_LISING_GREEDY_INCLUDED
-#define DOCUMENT_LISING_GREEDY_INCLUDED
+#ifndef DOCUMENT_LISING_SORT
+#define DOCUMENT_LISING_SORT
 
 #include <sdsl/suffix_arrays.hpp>
 #include <sdsl/rmq_support.hpp>
@@ -25,14 +20,13 @@ namespace sdsl
 
 template<
 class t_csa       = csa_wt<wt_huff<rrr_vector<63>>, 1000000, 1000000>,
-      class t_wtd = wt_int<bit_vector,rank_support_v5<1>,select_support_scan<1>,select_support_scan<0>>,
       typename t_csa::char_type t_doc_delim = 1
       >
-class doc_list_index_greedy
+class doc_list_index_sort
 {
     public:
         typedef t_csa                                       csa_type;
-        typedef t_wtd                                       wtd_type;
+        typedef int_vector<>                                d_type;
         typedef int_vector<>::size_type                     size_type;
         typedef std::vector<std::pair<size_type,size_type>> list_type;
         typedef doc_list_tag                                index_category;
@@ -49,7 +43,6 @@ class doc_list_index_greedy
                     return m_ep-m_sp+1;
                 }
 
-                // Constructors for an empty result and for a result in the interval [sp, ep]:
                 result(size_type sp, size_type ep,list_type&& l) : list_type(l), m_sp(1), m_ep(0) {}
                 result() : m_sp(1), m_ep(0) {}
                 result(size_type sp, size_type ep) : m_sp(sp), m_ep(ep) {}
@@ -61,19 +54,18 @@ class doc_list_index_greedy
                     }
                     return *this;
                 }
-
         };
 
     protected:
         size_type m_doc_cnt; // number of documents in the collection
         csa_type  m_csa_full;     // CSA built from the collection text
-        wtd_type  m_wtd;     // wtd build from the collection text
+        d_type    m_d;     // wtd build from the collection text
     public:
 
         //! Default constructor
-        doc_list_index_greedy() { }
+        doc_list_index_sort() { }
 
-        doc_list_index_greedy(std::string file_name, sdsl::cache_config& cconfig, uint8_t num_bytes) {
+        doc_list_index_sort(std::string file_name, sdsl::cache_config& cconfig, uint8_t num_bytes) {
             construct(m_csa_full, file_name, cconfig, num_bytes);
 
             const char* KEY_TEXT = key_text_trait<WIDTH>::KEY_TEXT;
@@ -85,31 +77,28 @@ class doc_list_index_greedy
             m_doc_cnt = doc_border_rank(doc_border.size());
 
             int_vector_buffer<0> sa_buf(cache_file_name(conf::KEY_SA, cconfig));
-            {
-                int_vector<> D;
-                construct_D_array(sa_buf, doc_border_rank, m_doc_cnt, D);
-                std::string d_file = cache_file_name("DARRAY", cconfig);
-                store_to_file(D, d_file);
-                util::clear(D);
-                construct(m_wtd, d_file);
-                sdsl::remove(d_file);
-            }
+            construct_D_array(sa_buf, doc_border_rank, m_doc_cnt, m_d);
         }
 
         size_type doc_cnt()const {
-            return m_wtd.sigma-1; // subtract one, since zero does not count
+            return m_doc_cnt; // subtract one, since zero does not count
         }
 
         size_type word_cnt()const {
-            return m_wtd.size()-doc_cnt();
+            return m_d.size()-doc_cnt();
         }
+
+        size_type sigma()const {
+            return m_csa_full.sigma;
+        }
+
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_doc_cnt, out, child, "doc_cnt");
             written_bytes += m_csa_full.serialize(out, child, "csa_full");
-            written_bytes += m_wtd.serialize(out, child, "wtd");
+            written_bytes += m_d.serialize(out, child, "D");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -117,14 +106,14 @@ class doc_list_index_greedy
         void load(std::istream& in) {
             read_member(m_doc_cnt, in);
             m_csa_full.load(in);
-            m_wtd.load(in);
+            m_d.load(in);
         }
 
-        void swap(doc_list_index_greedy& dr) {
+        void swap(doc_list_index_sort& dr) {
             if (this != &dr) {
                 std::swap(m_doc_cnt, dr.m_doc_cnt);
                 m_csa_full.swap(dr.m_csa_full);
-                m_wtd.swap(dr.m_wtd);
+                m_d.swap(dr.m_d);
             }
         }
 
@@ -136,8 +125,31 @@ class doc_list_index_greedy
                 res = result();
                 return 0;
             } else {
-                auto tmp_res = m_wtd.topk_greedy(sp,ep,k);
-                res = result(sp, ep, std::move(tmp_res));
+                res = result(sp, ep);
+                size_t n = ep-sp+1;
+                std::vector<uint64_t> tmp(n);
+                std::copy(m_d.begin()+sp,m_d.begin()+ep+1,tmp.begin());
+                std::sort(tmp.begin(),tmp.end());
+                size_t last = tmp[0];
+                size_t f_dt = 1;
+                for (size_t i=1; i<n; i++) {
+                    if (tmp[i] != last) {
+                        res.emplace_back(last,f_dt);
+                        last = tmp[i];
+                        f_dt = 1;
+                    } else {
+                        f_dt++;
+                    }
+                }
+                res.emplace_back(last,f_dt);
+                if (res.size() < k) k = res.size();
+                static auto freq_cmp = [](const std::pair<size_type,size_type>& a,
+                const std::pair<size_type,size_type>& b) {
+                    return a.second > b.second;
+                };
+                std::partial_sort(res.begin(),res.begin()+k,res.end(),freq_cmp);
+                res.resize(k);
+
                 return ep-sp+1;
             }
         }
