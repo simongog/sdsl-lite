@@ -190,7 +190,7 @@ The Latest Version
 The latest version can be found on the SDSL github project page https://github.com/simongog/sdsl-lite .
 
 If you are running experiments in an academic settings we suggest you use the
-most recent [released](https://github.com/sgog/sdsl-lite/releases) version
+most recent [released](https://github.com/simongog/sdsl-lite/releases) version
 of the library. This allows others to reproduce your experiments exactly.
 
 Licensing
