@@ -6,7 +6,7 @@ What is it?
 
 The Succinct Data Structure Library (SDSL) is a powerful and flexible C++11
 library implementing succinct data structures. In total, the library contains
-the highlights of 40 [research publications][SDSLLIT] Succinct data structures
+the highlights of 40 [research publications][SDSLLIT]. Succinct data structures
 can represent an object (such as a bitvector or a tree) in space close the
 information-theoretic lower bound of the object while supporting operations
 of the original object efficiently. The theoretical time complexity of an
@@ -190,7 +190,7 @@ The Latest Version
 The latest version can be found on the SDSL github project page https://github.com/simongog/sdsl-lite .
 
 If you are running experiments in an academic settings we suggest you use the
-most recent [released](https://github.com/mpetri/sdsl-lite/releases) version
+most recent [released](https://github.com/sgog/sdsl-lite/releases) version
 of the library. This allows others to reproduce your experiments exactly.
 
 Licensing
