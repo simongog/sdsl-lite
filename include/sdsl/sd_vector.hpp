@@ -164,7 +164,7 @@ class sd_vector
         */
         value_type operator[](size_type i)const {
             size_type high_val = (i >> (m_wl));
-            size_type sel_high = m_high_0_select.select(high_val + 1);
+            size_type sel_high = m_high_0_select(high_val + 1);
             size_type rank_low = sel_high - high_val;
             if (0 == rank_low)
                 return 0;
@@ -263,7 +263,7 @@ class rank_support_sd
             // split problem in two parts:
             // (1) find  >=
             size_type high_val = (i >> (m_v->m_wl));
-            size_type sel_high = m_v->m_high_0_select.select(high_val + 1);
+            size_type sel_high = m_v->m_high_0_select(high_val + 1);
             size_type rank_low = sel_high - high_val; //
             if (0 == rank_low)
                 return 0;
