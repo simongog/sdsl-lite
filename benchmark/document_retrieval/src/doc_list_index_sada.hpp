@@ -82,7 +82,7 @@ class doc_list_index_sada
                     return m_ep-m_sp+1;
                 }
 
-// Constructors for an empty result and for a result in the interval [sp, ep]:
+                // Constructors for an empty result and for a result in the interval [sp, ep]:
                 result() : m_sp(1), m_ep(0) {}
                 result(size_type sp, size_type ep) : m_sp(sp), m_ep(ep) {}
                 result& operator=(const result& res) {
@@ -112,7 +112,7 @@ class doc_list_index_sada
 
     public:
 
-//! Default constructor
+        //! Default constructor
         doc_list_index_sada() { }
 
         doc_list_index_sada(std::string file_name, sdsl::cache_config& cconfig, uint8_t num_bytes) {
@@ -210,7 +210,7 @@ class doc_list_index_sada
             }
         }
 
-//! Search for the k documents which contains the search term most frequent
+        //! Search for the k documents which contains the search term most frequent
         template<class t_pat_iter>
         size_t
         search(t_pat_iter begin,
@@ -310,7 +310,7 @@ class doc_list_index_sada
             }
         }
 
-//! Construct the doc_border bitvector by streaming the text file
+        //! Construct the doc_border bitvector by streaming the text file
         void
         construct_doc_border(const std::string& text_file,
                              doc_border_type& doc_border,

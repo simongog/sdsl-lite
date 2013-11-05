@@ -49,7 +49,7 @@ class doc_list_index_greedy
                     return m_ep-m_sp+1;
                 }
 
-// Constructors for an empty result and for a result in the interval [sp, ep]:
+                // Constructors for an empty result and for a result in the interval [sp, ep]:
                 result(size_type sp, size_type ep,list_type&& l) : list_type(l), m_sp(1), m_ep(0) {}
                 result() : m_sp(1), m_ep(0) {}
                 result(size_type sp, size_type ep) : m_sp(sp), m_ep(ep) {}
@@ -70,7 +70,7 @@ class doc_list_index_greedy
         wtd_type  m_wtd;     // wtd build from the collection text
     public:
 
-//! Default constructor
+        //! Default constructor
         doc_list_index_greedy() { }
 
         doc_list_index_greedy(std::string file_name, sdsl::cache_config& cconfig, uint8_t num_bytes) {
@@ -128,7 +128,7 @@ class doc_list_index_greedy
             }
         }
 
-//! Search for the k documents which contain the search term most frequent
+        //! Search for the k documents which contain the search term most frequent
         template<class t_pat_iter>
         size_type search(t_pat_iter begin, t_pat_iter end, result& res, size_t k) const {
             size_type sp=1, ep=0;
@@ -143,7 +143,7 @@ class doc_list_index_greedy
         }
 
     private:
-//! Construct the doc_border bitvector by streaming the text file
+        //! Construct the doc_border bitvector by streaming the text file
         void
         construct_doc_border(const std::string& text_file, bit_vector& doc_border) {
             int_vector_buffer<WIDTH> text_buf(text_file);

@@ -1,10 +1,5 @@
 /*!
- * This file contains a document listing class, which implements
- * strategy GREEDY in the article:
- * J. S. Culpepper, G. Navarro, S. J. Puglisi and A. Turpin:
- * ,,Top-k Ranked Document Search in General Text Databases''
- * Proceedings Part II of the 18th Annual European Symposium on
- * Algorithms (ESA 2010)
+ * this file contains a simple SORT baseline
  */
 #ifndef DOCUMENT_LISING_SORT
 #define DOCUMENT_LISING_SORT
@@ -67,7 +62,7 @@ class doc_list_index_sort
         d_type    m_d;     // wtd build from the collection text
     public:
 
-//! Default constructor
+        //! Default constructor
         doc_list_index_sort() { }
 
         doc_list_index_sort(std::string file_name, sdsl::cache_config& cconfig, uint8_t num_bytes) {
@@ -122,7 +117,7 @@ class doc_list_index_sort
             }
         }
 
-//! Search for the k documents which contain the search term most frequent
+        //! Search for the k documents which contain the search term most frequent
         template<class t_pat_iter>
         size_type search(t_pat_iter begin, t_pat_iter end, result& res, size_t k) const {
             size_type sp=1, ep=0;
@@ -160,7 +155,7 @@ class doc_list_index_sort
         }
 
     private:
-//! Construct the doc_border bitvector by streaming the text file
+        //! Construct the doc_border bitvector by streaming the text file
         void
         construct_doc_border(const std::string& text_file, bit_vector& doc_border) {
             int_vector_buffer<WIDTH> text_buf(text_file);
