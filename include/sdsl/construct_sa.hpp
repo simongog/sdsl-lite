@@ -74,7 +74,7 @@ void calculate_sa(const unsigned char* c, typename int_vector<fixedIntWidth>::si
             if (sa.width() < bits::hi(len)+1) {
                 throw std::logic_error("width of int_vector is to small for the text!!!");
             }
-            int_vector<32> sufarray(len);
+            int_vector<> sufarray(len,0,32);
             divsufsort(c, (int32_t*)sufarray.m_data, len);
             for (size_type i=0; i<len; ++i) {
                 sa[i] = sufarray[i];
