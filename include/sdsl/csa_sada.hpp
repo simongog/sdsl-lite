@@ -104,7 +104,7 @@ class csa_sada
         isa_sample_type m_isa_sample; // inverse suffix array samples
         alphabet_type   m_alphabet;   // alphabet component
 
-        uint64_t* m_psi_buf = nullptr; //[t_dens+1]; // buffer for decoded psi values
+        mutable std::vector<uint64_t> m_psi_buf; // buffer for decoded psi values
 
         void copy(const csa_sada& csa) {
             m_psi        = csa.m_psi;
@@ -115,13 +115,7 @@ class csa_sada
 
         void create_buffer() {
             if (enc_vector_type::sample_dens < linear_decode_limit) {
-                m_psi_buf = new uint64_t[enc_vector_type::sample_dens+1];
-            }
-        }
-
-        void delete_buffer() {
-            if (m_psi_buf != nullptr) {
-                delete [] m_psi_buf;
+                m_psi_buf = std::vector<uint64_t>(enc_vector_type::sample_dens+1);
             }
         }
 
@@ -146,9 +140,7 @@ class csa_sada
             create_buffer();
         }
         //! Default Destructor
-        ~csa_sada() {
-            delete_buffer();
-        }
+        ~csa_sada() { }
 
         //! Copy constructor
         csa_sada(const csa_sada& csa) {
@@ -283,14 +275,14 @@ class csa_sada
 // TODO: don't use get_inter_sampled_values if t_dens is really
 //       large
                 lower_b = lower_sb*sd;
-                if (m_psi_buf == nullptr) {
+                if (0 == m_psi_buf.size()) {
                     upper_b = std::min(upper_sb*sd, C[cc+1]);
                     goto finish;
                 }
-                uint64_t* p=m_psi_buf;
+                uint64_t* p = m_psi_buf.data();
                 // extract the psi values between two samples
                 m_psi.get_inter_sampled_values(lower_sb, p);
-                p = m_psi_buf;
+                p = m_psi_buf.data();
                 uint64_t smpl = m_psi.sample(lower_sb);
                 // handle border cases
                 if (lower_b + m_psi.get_sample_dens() >= C[cc+1])
@@ -300,7 +292,7 @@ class csa_sada
                 // search the result linear
                 while ((*p++)+smpl < i);
 
-                return p-1-m_psi_buf + lower_b - C[cc];
+                return p-1-m_psi_buf.data() + lower_b - C[cc];
             } else { // lower_b == (m_C[cc]+sd-1)/sd and lower_sb < upper_sb
                 if (m_psi.sample(lower_sb) >= i) {
                     lower_b = C[cc];
