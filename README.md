@@ -229,8 +229,8 @@ The main contributors to the library are:
 * [Matthias Petri](https://github.com/mpetri)
 
 This project further profited from excellent input of many coders. Stefan
-Arnold helped us with tricky template questions. We are also grateful to Kalle Karhu,
-Dominik Kempa, and Shanika Kuruppu for bug reports.
+Arnold helped us with tricky template questions. We are also grateful to 
+Travis Gagie, Kalle Karhu, Dominik Kempa, and Shanika Kuruppu for bug reports.
 
 Contribute
 ----------
