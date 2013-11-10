@@ -13,6 +13,8 @@ namespace
 template<class T>
 class BitVectorTest : public ::testing::Test { };
 
+class SDVectorTest : public ::testing::Test { };
+
 using testing::Types;
 
 typedef Types<
@@ -35,7 +37,30 @@ sd_vector<>,
 sd_vector<rrr_vector<63> >
 > Implementations;
 
+
+
 TYPED_TEST_CASE(BitVectorTest, Implementations);
+
+TEST_F(SDVectorTest, getint)
+{
+    ASSERT_EQ(1+1,2);
+    bit_vector bv(1000, 0);
+    std::mt19937_64 rng;
+    std::uniform_int_distribution<uint64_t> distribution(0, 9);
+    auto dice = bind(distribution, rng);
+    for (size_t i=0; i <= bv.size(); ++i) {
+        if (0 == dice())
+            bv[i] = 1;
+    }
+
+    sd_vector<> sdb(bv);
+    for (size_t len=1; len<=64; ++len) {
+        for (size_t i=0; i+len <= bv.size(); ++i) {
+            ASSERT_EQ(bv.get_int(i,len), sdb.get_int(i,len))
+                    << "i="<<i<<" len="<<len<<endl;
+        }
+    }
+}
 
 //! Test operator[]
 TYPED_TEST(BitVectorTest, Access)
