@@ -1,0 +1,96 @@
+library(xtable)
+source("../../basic_functions.R")
+
+tex_file = "lcp.tex"
+
+tc_config <- readConfig("../test_case.config",c("TC_ID","PATH","LATEX_NAME","URL"))
+lcp_config <- readConfig("../lcp.config",c("LCP_ID","LCP_TYPE","LATEX_NAME","BWT"))
+
+
+make_latex_header <- function(names){
+    x <- paste("&&\\multicolumn{2}{c}{", names,"}")
+    x <- paste(x, collapse=" ")
+    clines=""
+    for(i in 1:length(names)){
+        clines <- paste(clines,"\\cmidrule{",3*i,"-",3*i+1,"}",sep="")
+    }
+    y <- paste("\\toprule",x, "\\\\",clines,"\n")    
+    gsub("_","\\\\_",y)
+}
+
+#read header
+sink(tex_file)
+cat(paste(readLines("lcp-header.tex"),collapse="\n"))
+
+maindata <- data_frame_from_key_value_pairs( "../results/all.txt" )
+
+names<-c("SA","BWT","LCP","OVERALL")
+unitrow <- paste(c("", rep(c("&&(s)","&(\\%)"),length(names)), "\\\\[1ex]"),collapse="",sep='')
+#subhead <- paste(c("", rep(c("&&Time","&Space"),length(names)), "\\\\[1ex]"),collapse="",sep='')
+
+# create a table for each test case
+for(i in 1:nrow(maindata)){
+
+	data<-maindata[i,]
+	row<-nrow(lcp_config)+1
+	size<-data[["TC_SIZE"]]
+	table<-data.frame(EMPTY=character(row),SATIME=character(row),SASPACE=character(row),EMPTY2=character(row),BWTTIME=character(row),BWTSPACE=character(row),EMPTY3=character(row),LCPTIME=character(row),LCPSPACE=character(row),EMPTY4=character(row),OVERALLTIME=character(row),OVERALLSPACE=character(row),stringsAsFactors=FALSE)
+	
+	#create subheader
+	
+	table[1,]["SATIME"]<-"Time"
+	table[1,]["SASPACE"]<-"Space"
+	table[1,]["BWTTIME"]<-"Time"
+	table[1,]["BWTSPACE"]<-"Space"
+	table[1,]["OVERALLTIME"]<-"Time"
+	table[1,]["OVERALLSPACE"]<-"Space"
+	table[1,]["LCPTIME"]<-"Time"
+	table[1,]["LCPSPACE"]<-"Space"
+
+	# gather data
+	for(l in 2:row){
+		
+		table[l,]["SATIME"]<-data[["SA_TIME"]]
+		table[l,]["SASPACE"]<-trunc(data[["SA_VMPEAK"]]*1024/size)
+
+
+		if(lcp_config[["BWT"]][l-1]){
+			table[l,]["BWTTIME"]<-data[["BWT_TIME"]]
+			table[l,]["BWTSPACE"]<-trunc(data[["BWT_VMPEAK"]]*1024/size)
+			table[l,]["OVERALLTIME"]<-data[["SA_TIME"]]+data[["BWT_TIME"]]+data[[paste(lcp_config[["LCP_ID"]][l-1],"_TIME",sep="")]]
+			table[l,]["OVERALLSPACE"]<-trunc(max(data[["SA_VMPEAK"]]*1024/size,data[["BWT_VMPEAK"]]*1024/size,data[[paste(lcp_config[["LCP_ID"]][l-1],"_VMPEAK",sep="")]]*1024/size))
+		}
+		else{
+			table[l,]["BWTTIME"]<-"-"
+			table[l,]["BWTSPACE"]<-"-"
+			table[l,]["OVERALLTIME"]<-data[["SA_TIME"]]+data[[paste(lcp_config[["LCP_ID"]][l-1],"_TIME",sep="")]]
+			table[l,]["OVERALLSPACE"]<-trunc(max(data[["SA_VMPEAK"]]*1024/size,data[[paste(lcp_config[["LCP_ID"]][l-1],"_VMPEAK",sep="")]]*1000/size))
+		}
+
+		table[l,]["LCPTIME"]<-data[[paste(lcp_config[["LCP_ID"]][l-1],"_TIME",sep="")]]
+		table[l,]["LCPSPACE"]<-trunc(data[[paste(lcp_config[["LCP_ID"]][l-1],"_VMPEAK",sep="")]]*1024/size)
+	}
+	
+
+	row.names(table)<-c("",lcp_config[["LATEX_NAME"]])
+
+	# convert and print table
+	ali <- c("l", rep(c("@{\\hspace{1ex}}l","c","c"), (ncol(table))/3) )
+	dig <- c(0,  rep(c(0,3,0),(ncol(table))/3 ))
+
+	
+	print(	xtable(table,
+			align=ali,
+			digits=dig,
+			caption = paste("",as.character(data[["TC_TEX_NAME"]])," (size: ",round(size/(1024^2),digits=3),"MB)")
+			),
+           	add.to.row=list(pos=list(-1,0,nrow(table)), 
+                           command=c(make_latex_header(names),unitrow,"\\bottomrule")),
+			hline.after=c(),			 
+           	sanitize.rownames.function = identity,
+			include.colnames = FALSE
+	)
+}
+
+cat(paste(readLines("lcp-footer.tex"),collapse="\n"))
+sink(NULL)
