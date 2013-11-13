@@ -202,7 +202,7 @@ class sd_vector
             uint64_t res = 0;
             while (true) {
                 while (!m_high[sel_high]) {
-                    if (sel_high > 0) {
+                    if (sel_high > 0 and (high_val << m_wl) >=idx) {
                         --sel_high; --high_val;
                     } else {
                         return res;
