@@ -48,7 +48,7 @@ TEST_F(SDVectorTest, getint)
     std::mt19937_64 rng;
     std::uniform_int_distribution<uint64_t> distribution(0, 9);
     auto dice = bind(distribution, rng);
-    for (size_t i=0; i <= bv.size(); ++i) {
+    for (size_t i=0; i < bv.size(); ++i) {
         if (0 == dice())
             bv[i] = 1;
     }
