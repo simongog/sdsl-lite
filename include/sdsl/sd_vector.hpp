@@ -205,7 +205,7 @@ class sd_vector
                     if (sel_high > 0) {
                         --sel_high; --high_val;
                     } else {
-                        return 0;
+                        return res;
                     }
                 }
                 while (m_high[sel_high]) {
