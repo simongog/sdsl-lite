@@ -44,7 +44,7 @@ TYPED_TEST_CASE(BitVectorTest, Implementations);
 TEST_F(SDVectorTest, getint)
 {
     ASSERT_EQ(1+1,2);
-    bit_vector bv(1000, 0);
+    bit_vector bv(10000, 0);
     std::mt19937_64 rng;
     std::uniform_int_distribution<uint64_t> distribution(0, 9);
     auto dice = bind(distribution, rng);
@@ -52,6 +52,8 @@ TEST_F(SDVectorTest, getint)
         if (0 == dice())
             bv[i] = 1;
     }
+    for (size_t i=0; i<= 1000; ++i)
+        bv[i] = 0;
 
     sd_vector<> sdb(bv);
     for (size_t len=1; len<=64; ++len) {
