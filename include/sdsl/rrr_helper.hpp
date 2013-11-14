@@ -370,6 +370,43 @@ struct rrr_helper {
         return (n-nr-1) == off;
     }
 
+    //! Decode the len-bit integer starting at position \f$ off \f$ of the block encoded by the pair (k, nr).
+    static inline uint64_t decode_int(uint16_t k, number_type nr, uint16_t off, uint16_t len) {
+#ifndef RRR_NO_OPT
+        if (k == n) {  // if n==k, then the encoded block consists only of ones
+            return bits::lo_set[len];
+        } else if (k == 0) { // if k==0 then the encoded block consists only of zeros
+            return 0;
+        } else if (k == 1) { // if k==1 then the encoded block contains exactly on set bit at
+            if (n-nr-1 >= (number_type)off and n-nr-1 <= (number_type)(off+len-1)) {
+                return 1ULL << ((n-nr-1)-off);
+            } else
+                return 0;
+        }
+#endif
+        uint64_t res = 0;
+        uint16_t nn = n;
+        int i = 0;
+        while (k > 1) {
+            if (i > off+len-1) {
+                return res;
+            }
+            if (nr >= binomial::data.table[nn-1][k]) {
+                nr -= binomial::data.table[nn-1][k];
+                --k;
+                if (i >= off)
+                    res |= 1ULL << (i-off);
+            }
+            --nn;
+            ++i;
+        }
+        if (n-nr-1 >= (number_type)off and n-nr-1 <= (number_type)(off+len-1)) {
+            res |= 1ULL << ((n-nr-1)-off);
+        }
+        return res;
+    }
+
+
     //! Decode the first off bits bits of the block encoded by the pair (k, nr) and return the set bits.
     static inline uint16_t decode_popcount(uint16_t k, number_type nr, uint16_t off) {
 #ifndef RRR_NO_OPT

@@ -13,12 +13,12 @@ namespace
 template<class T>
 class BitVectorTest : public ::testing::Test { };
 
-class SDVectorTest : public ::testing::Test { };
-
 using testing::Types;
 
 typedef Types<
 bit_vector,
+bit_vector_il<64>,
+bit_vector_il<128>,
 bit_vector_il<256>,
 bit_vector_il<512>,
 bit_vector_il<1024>,
@@ -41,25 +41,6 @@ sd_vector<rrr_vector<63> >
 
 TYPED_TEST_CASE(BitVectorTest, Implementations);
 
-TEST_F(SDVectorTest, getint)
-{
-    bit_vector bv(10000, 0);
-    std::mt19937_64 rng;
-    std::uniform_int_distribution<uint64_t> distribution(0, 9);
-    auto dice = bind(distribution, rng);
-    for (size_t i=1001; i < bv.size(); ++i) {
-        if (0 == dice())
-            bv[i] = 1;
-    }
-
-    sd_vector<> sdb(bv);
-    for (size_t len=1; len<=64; ++len) {
-        for (size_t i=0; i+len <= bv.size(); ++i) {
-            ASSERT_EQ(bv.get_int(i,len), sdb.get_int(i,len))
-                    << "i="<<i<<" len="<<len<<endl;
-        }
-    }
-}
 
 //! Test operator[]
 TYPED_TEST(BitVectorTest, Access)
@@ -75,6 +56,38 @@ TYPED_TEST(BitVectorTest, Access)
     ASSERT_EQ(bv.size(), mo_bv.size());
     for (uint64_t j=0; j < bv.size(); ++j) {
         ASSERT_EQ((bool)(bv[j]), (bool)(c_bv[j]));
+    }
+}
+
+TYPED_TEST(BitVectorTest, GetInt)
+{
+    bit_vector bv;
+    ASSERT_TRUE(load_from_file(bv, test_file));
+    TypeParam c_bv(bv);
+    ASSERT_EQ(bv.size(), c_bv.size());
+    const uint32_t len = 63;
+    for (uint64_t j=0; j+len < bv.size(); j+=len) {
+        ASSERT_EQ(bv.get_int(j, len), c_bv.get_int(j, len));
+    }
+}
+
+TYPED_TEST(BitVectorTest, GetIntAllBlockSizes)
+{
+    bit_vector bv(10000, 0);
+    std::mt19937_64 rng;
+    std::uniform_int_distribution<uint64_t> distribution(0, 9);
+    auto dice = bind(distribution, rng);
+    for (size_t i=1001; i < bv.size(); ++i) {
+        if (0 == dice())
+            bv[i] = 1;
+    }
+
+    TypeParam c_bv(bv);
+    for (size_t len=1; len<=64; ++len) {
+        for (size_t i=0; i+len <= bv.size(); ++i) {
+            ASSERT_EQ(bv.get_int(i,len), c_bv.get_int(i,len))
+                    << "i="<<i<<" len="<<len<<endl;
+        }
     }
 }
 

@@ -179,11 +179,14 @@ class sd_vector
             return m_high[sel_high] and m_low[rank_low] == val_low;
         }
 
-        //! Get the integer value of the binary string of length len starting at position idx in the bit_vector.
+        //! Get the integer value of the binary string of length len starting at position idx.
         /*! \param idx Starting index of the binary representation of the integer.
-            \param len Length of the binary representation of the integer. Default value is 64.
-            \returns The integer value of the binary string of length len starting at position idx.
-        */
+         *  \param len Length of the binary representation of the integer. Default value is 64.
+         *  \returns The integer value of the binary string of length len starting at position idx.
+         *
+         *  \pre idx+len-1 in [0..size()-1]
+         *  \pre len in [1..64]
+         */
         uint64_t get_int(size_type idx, const uint8_t len=64) const {
             uint64_t i = idx+len-1;
             uint64_t high_val = (i >> (m_wl));
