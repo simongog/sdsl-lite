@@ -134,7 +134,6 @@ struct wt_trait;
 
 template<class t_wt>
 struct wt_trait<t_wt, false> {
-    static void test_interval_symbols(t_wt& b) {cout<<"verhalten 1: "; b.id();}
     static uint64_t test_interval_symbols(const t_wt& wt, const vector<size_type>& is, const vector<size_type>& js, size_type& k,vector<value_type>& tmp, vector<size_type>& tmp2, uint64_t mask, uint64_t times=100000000) {
         return ::test_interval_symbols(wt,is,js,k,tmp,tmp2,mask,times);
     }
