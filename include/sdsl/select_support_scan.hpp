@@ -62,7 +62,10 @@ class select_support_scan : public select_support
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             return serialize_empty_object(out, v, name, this);
         }
-        void load(std::istream&, SDSL_UNUSED const bit_vector* v=nullptr) {}
+        void load(std::istream&, SDSL_UNUSED const bit_vector* v=nullptr) {
+            set_vector(v);
+        }
+
         void set_vector(const bit_vector* v=nullptr) {
             m_v = v;
         }

@@ -183,11 +183,7 @@ near_fwd_excess(const bit_vector& bp, uint64_t i, bit_vector::difference_type re
     const uint64_t l = (((i)+7)/8)*8;
     const uint64_t r = (end/8)*8;
     for (uint64_t j=i; j < std::min(end,l); ++j) {
-        if (bp[j])
-            --excess;
-        else {
-            ++excess;
-        }
+        excess += 1-2*bp[j];
         if (!excess) {
             return j;
         }
@@ -205,11 +201,7 @@ near_fwd_excess(const bit_vector& bp, uint64_t i, bit_vector::difference_type re
     }
     excess -= 8;
     for (uint64_t j=std::max(l,r); j < end; ++j) {
-        if (bp[j])
-            --excess;
-        else {
-            ++excess;
-        }
+        excess += 1-2*bp[j];
         if (!excess) {
             return j;
         }

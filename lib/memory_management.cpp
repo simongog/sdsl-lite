@@ -47,7 +47,8 @@ std::string create_mem_html_header(const char* file_name)
 {
     std::stringstream jsonheader;
     jsonheader
-            << "<!DOCTYPE html>\n"
+            << "<html>\n"
+            << "<head>\n"
             << "<meta charset=\"utf-8\">\n"
             << "<style>\n"
             << "    body { font: 11px sans-serif; }\n"
@@ -55,6 +56,7 @@ std::string create_mem_html_header(const char* file_name)
             << "</style>\n"
             << "<title>sdsl memory usage visualization</title>\n"
             << "<script src=\"http://d3js.org/d3.v3.js\"></script>\n"
+            << "</head>\n"
             << "<body marginwidth=\"0\" marginheight=\"0\">\n"
             << "<button><a id=\"download\">Save as SVG</a></button>\n"
             << "<div class=\"chart\"><div id=\"visualization\"></div></div><script>\n";
@@ -412,7 +414,7 @@ hugepage_allocator::remove_from_free_set(mm_block_t* block)
 void
 hugepage_allocator::insert_into_free_set(mm_block_t* block)
 {
-    m_free_large.insert( {block->size,block});
+    m_free_large.insert({block->size,block});
 }
 
 mm_block_t*

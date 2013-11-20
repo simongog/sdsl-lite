@@ -164,7 +164,7 @@ class sd_vector
         */
         value_type operator[](size_type i)const {
             size_type high_val = (i >> (m_wl));
-            size_type sel_high = m_high_0_select.select(high_val + 1);
+            size_type sel_high = m_high_0_select(high_val + 1);
             size_type rank_low = sel_high - high_val;
             if (0 == rank_low)
                 return 0;
@@ -177,6 +177,54 @@ class sd_vector
                     return 0;
             }
             return m_high[sel_high] and m_low[rank_low] == val_low;
+        }
+
+        //! Get the integer value of the binary string of length len starting at position idx.
+        /*! \param idx Starting index of the binary representation of the integer.
+         *  \param len Length of the binary representation of the integer. Default value is 64.
+         *  \returns The integer value of the binary string of length len starting at position idx.
+         *
+         *  \pre idx+len-1 in [0..size()-1]
+         *  \pre len in [1..64]
+         */
+        uint64_t get_int(size_type idx, const uint8_t len=64) const {
+            uint64_t i = idx+len-1;
+            uint64_t high_val = (i >> (m_wl));
+            uint64_t sel_high = m_high_0_select(high_val + 1);
+            uint64_t rank_low = sel_high - high_val;
+            if (0 == rank_low)
+                return 0;
+            size_type val_low = i & bits::lo_set[ m_wl ]; // extract the low m_wl = log n -log m bits
+            --sel_high; --rank_low;
+            while (m_high[sel_high] and m_low[rank_low] > val_low) {
+                if (sel_high > 0) {
+                    --sel_high; --rank_low;
+                } else
+                    return 0;
+            }
+            uint64_t res = 0;
+            while (true) {
+                while (!m_high[sel_high]) {
+                    if (sel_high > 0 and (high_val << m_wl) >=idx) {
+                        --sel_high; --high_val;
+                    } else {
+                        return res;
+                    }
+                }
+                while (m_high[sel_high]) {
+                    uint64_t val = (high_val << m_wl) + m_low[rank_low];
+                    if (val >= idx) {
+                        res |= 1ULL<<(val-idx);
+                    } else {
+                        return res;
+                    }
+                    if (sel_high > 0) {
+                        --sel_high; --rank_low;
+                    } else {
+                        return res;
+                    }
+                }
+            }
         }
 
         //! Swap method
@@ -263,7 +311,7 @@ class rank_support_sd
             // split problem in two parts:
             // (1) find  >=
             size_type high_val = (i >> (m_v->m_wl));
-            size_type sel_high = m_v->m_high_0_select.select(high_val + 1);
+            size_type sel_high = m_v->m_high_0_select(high_val + 1);
             size_type rank_low = sel_high - high_val; //
             if (0 == rank_low)
                 return 0;

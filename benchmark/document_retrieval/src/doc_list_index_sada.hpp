@@ -99,7 +99,7 @@ class doc_list_index_sada
 
     private:
         size_type              m_doc_cnt;           // number of documents in the collection
-        csa_full_type          m_full_csa;          // CSA build from the collection text
+        csa_full_type          m_csa_full;          // CSA build from the collection text
         vector<int_vector<>>   m_doc_isa;           // array of inverse SAs. m_doc_isa[i] contains the ISA of document i
         range_min_type         m_rminq;             // range minimum data structure build over an array Cprev
         range_max_type         m_rmaxq;             // range maximum data structure build over an array Cnext
@@ -116,7 +116,7 @@ class doc_list_index_sada
         doc_list_index_sada() { }
 
         doc_list_index_sada(std::string file_name, sdsl::cache_config& cconfig, uint8_t num_bytes) {
-            construct(m_full_csa, file_name, cconfig, num_bytes);
+            construct(m_csa_full, file_name, cconfig, num_bytes);
 
             const char* KEY_TEXT = key_text_trait<WIDTH>::KEY_TEXT;
             std::string text_file = cache_file_name(KEY_TEXT, cconfig);
@@ -154,14 +154,14 @@ class doc_list_index_sada
         }
 
         size_type word_cnt()const {
-            return m_full_csa.size()-doc_cnt();
+            return m_csa_full.size()-doc_cnt();
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=NULL, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_doc_cnt, out, child, "doc_cnt");
-            written_bytes += m_full_csa.serialize(out, child, "full_csa");
+            written_bytes += m_csa_full.serialize(out, child, "csa_full");
             written_bytes += serialize_vector(m_doc_isa, out, child, "doc_isa");
             written_bytes += m_rminq.serialize(out, child, "rminq");
             written_bytes += m_rmaxq.serialize(out, child, "rmaxq");
@@ -176,7 +176,7 @@ class doc_list_index_sada
 
         void load(std::istream& in) {
             read_member(m_doc_cnt, in);
-            m_full_csa.load(in);
+            m_csa_full.load(in);
             m_doc_isa.resize(m_doc_cnt);
             load_vector(m_doc_isa, in);
             m_rminq.load(in);
@@ -195,7 +195,7 @@ class doc_list_index_sada
         void swap(doc_list_index_sada& dr) {
             if (this != &dr) {
                 std::swap(m_doc_cnt, dr.m_doc_cnt);
-                m_full_csa.swap(dr.m_full_csa);
+                m_csa_full.swap(dr.m_csa_full);
                 m_doc_isa.swap(dr.m_doc_isa);
                 m_rminq.swap(dr.m_rminq);
                 m_rmaxq.swap(dr.m_rmaxq);
@@ -218,7 +218,7 @@ class doc_list_index_sada
                result& res,
                size_t k) const {
             size_type sp=1, ep=0;
-            if (0 == backward_search(m_full_csa, 0, m_full_csa.size()-1, begin, end, sp, ep)) {
+            if (0 == backward_search(m_csa_full, 0, m_csa_full.size()-1, begin, end, sp, ep)) {
                 res = result();
                 return 0;
             } else {
@@ -262,33 +262,51 @@ class doc_list_index_sada
             }
         }
 
-        void get_lex_smallest_suffixes(size_type sp, size_type ep, vector<size_type>& suffixes)const {
-            if (sp > ep)
-                return;
-            size_type min_idx = m_rminq(sp, ep);
-            size_type suffix  = m_full_csa[min_idx];
-            size_type doc     = m_doc_border_rank(suffix+1);
+        void get_lex_smallest_suffixes(size_type sp, size_type ep, vector<size_type>& suffixes) const {
+            using lex_range_t = std::pair<size_type,size_type>;
+            std::stack<lex_range_t> stack;
+            stack.emplace(sp,ep);
+            while (!stack.empty()) {
+                auto range = stack.top();
+                stack.pop();
+                size_type rsp = std::get<0>(range);
+                size_type rep = std::get<1>(range);
+                if (rsp <= rep) {
+                    size_type min_idx = m_rminq(rsp,rep);
+                    size_type suffix  = m_csa_full[min_idx];
+                    size_type doc     = m_doc_border_rank(suffix+1);
 
-            if (!m_doc_rmin_marked[doc]) {
-                suffixes.push_back(suffix);
-                m_doc_rmin_marked[doc] = 1;
-                get_lex_smallest_suffixes(sp, min_idx - 1, suffixes); // min_idx != 0, since `\0` is appended to string
-                get_lex_smallest_suffixes(min_idx+1, ep, suffixes);
+                    if (!m_doc_rmin_marked[doc]) {
+                        suffixes.push_back(suffix);
+                        m_doc_rmin_marked[doc] = 1;
+                        stack.emplace(min_idx+1,rep);
+                        stack.emplace(rsp,min_idx-1); // min_idx != 0, since `\0` is appended to string
+                    }
+                }
             }
         }
 
-        void get_lex_largest_suffixes(size_type sp, size_type ep, vector<size_type>& suffixes)const {
-            if (sp > ep)
-                return;
-            size_type max_idx = m_rmaxq(sp, ep);
-            size_type suffix  = m_full_csa[max_idx];
-            size_type doc     = m_doc_border_rank(suffix+1);
+        void get_lex_largest_suffixes(size_type sp, size_type ep, vector<size_type>& suffixes) const {
+            using lex_range_t = std::pair<size_type,size_type>;
+            std::stack<lex_range_t> stack;
+            stack.emplace(sp,ep);
+            while (!stack.empty()) {
+                auto range = stack.top();
+                stack.pop();
+                size_type rsp = std::get<0>(range);
+                size_type rep = std::get<1>(range);
+                if (rsp <= rep) {
+                    size_type max_idx = m_rmaxq(rsp,rep);
+                    size_type suffix  = m_csa_full[max_idx];
+                    size_type doc     = m_doc_border_rank(suffix+1);
 
-            if (!m_doc_rmax_marked[doc]) {
-                suffixes.push_back(suffix);
-                m_doc_rmax_marked[doc] = 1;
-                get_lex_largest_suffixes(max_idx+1, ep, suffixes);
-                get_lex_largest_suffixes(sp, max_idx - 1, suffixes); // max_idx != 0, since `\0` is appended to string
+                    if (!m_doc_rmax_marked[doc]) {
+                        suffixes.push_back(suffix);
+                        m_doc_rmax_marked[doc] = 1;
+                        stack.emplace(rsp,max_idx - 1); // max_idx != 0, since `\0` is appended to string
+                        stack.emplace(max_idx+1,rep);
+                    }
+                }
             }
         }
 

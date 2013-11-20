@@ -167,6 +167,29 @@ class bit_vector_il
             return ((m_data[block] >> (i&63)) & 1ULL);
         }
 
+        //! Get the integer value of the binary string of length len starting at position idx.
+        /*! \param idx Starting index of the binary representation of the integer.
+         *  \param len Length of the binary representation of the integer. Default value is 64.
+         *   \returns The integer value of the binary string of length len starting at position idx.
+         *
+         *  \pre idx+len-1 in [0..size()-1]
+         *  \pre len in [1..64]
+         */
+        uint64_t get_int(size_type idx, uint8_t len=64)const {
+            assert(idx+len-1 < m_size);
+            size_type bs = idx >> m_block_shift;
+            size_type b_block = bs + (idx>>6) + 1;
+            bs = (idx+len-1) >> m_block_shift;
+            size_type e_block = bs + ((idx+len-1)>>6) + 1;
+            if (b_block == e_block) {  // spans on block
+                return (m_data[b_block] >> (idx&63)) & bits::lo_set[len];
+            } else { // spans two blocks
+                uint8_t b_len = 64-(idx&63);
+                return (m_data[b_block] >> (idx&63))
+                       | (m_data[e_block] & bits::lo_set[len-b_len]) << b_len;
+            }
+        }
+
         //! Returns the size of the original bit vector.
         size_type size()const {
             return m_size;

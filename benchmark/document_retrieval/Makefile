@@ -138,7 +138,7 @@ info/%.size: $(INDEXES)
 	@$(BIN_DIR)/size_of_idx_$(IDX_ID) indexes/$(TC_ID).$(IDX_ID).byte >> $@
 
 # info/[TC_ID].[IDX_ID]
-info/%.size.int: $(INDEXES)
+info/%.size.int: $(INDEXES_INT)
 	$(eval TC_ID:=$(call dim,1,$*)) 
 	$(eval IDX_ID:=$(call dim,2,$*)) 
 	$(eval TC:=$(call config_select,test_case_int.config,$(TC_ID),2))

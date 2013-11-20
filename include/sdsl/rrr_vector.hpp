@@ -250,7 +250,7 @@ class rrr_vector
         */
         value_type operator[](size_type i)const {
             size_type bt_idx = i/t_bs;
-            uint16_t bt = m_bt[ bt_idx ];
+            uint16_t bt = m_bt[bt_idx];
             size_type sample_pos = bt_idx/t_k;
             if (m_invert[sample_pos])
                 bt = t_bs - bt;
@@ -267,6 +267,52 @@ class rrr_vector
             uint16_t btnrlen = rrr_helper_type::space_for_bt(bt);
             number_type btnr = rrr_helper_type::decode_btnr(m_btnr, btnrp, btnrlen);
             return rrr_helper_type::decode_bit(bt, btnr, off);
+        }
+
+        //! Get the integer value of the binary string of length len starting at position idx.
+        /*! \param idx Starting index of the binary representation of the integer.
+         *  \param len Length of the binary representation of the integer. Default value is 64.
+         *   \returns The integer value of the binary string of length len starting at position idx.
+         *
+         *  \pre idx+len-1 in [0..size()-1]
+         *  \pre len in [1..64]
+         */
+        uint64_t get_int(size_type idx, uint8_t len=64)const {
+            uint64_t res = 0;
+            size_type bb_idx = idx/t_bs; // begin block index
+            size_type bb_off = idx%t_bs; // begin block offset
+            uint16_t bt = m_bt[bb_idx];
+            size_type sample_pos = bb_idx/t_k;
+            size_type eb_idx = (idx+len-1)/t_bs; // end block index
+            size_type eb_off = (idx+len-1)%t_bs; // end block index
+            if (bb_idx == eb_idx) {  // extract only in one block
+                if (m_invert[sample_pos])
+                    bt = t_bs - bt;
+                if (bt == 0) {   // all bits are zero
+                    res = 0;
+                } else if (bt == t_bs and t_bs <= 64) { // all bits are zero
+                    res = bits::lo_set[len];
+                } else {
+                    size_type btnrp = m_btnrp[ sample_pos ];
+                    for (size_type j = sample_pos*t_k; j < bb_idx; ++j) {
+                        btnrp += rrr_helper_type::space_for_bt(m_bt[j]);
+                    }
+                    uint16_t btnrlen = rrr_helper_type::space_for_bt(bt);
+                    number_type btnr = rrr_helper_type::decode_btnr(m_btnr, btnrp, btnrlen);
+                    res =  rrr_helper_type::decode_int(bt, btnr, bb_off, len);
+                }
+            } else { // solve multiple block case by recursion
+                uint8_t b_len = t_bs-bb_off;
+                uint8_t b_len_sum = 0;
+                do {
+                    res |= get_int(idx, b_len) << b_len_sum;
+                    idx += b_len;
+                    b_len_sum += b_len;
+                    len -= b_len;
+                    b_len = (len > t_bs) ? t_bs : len;
+                } while (len > 0);
+            }
+            return res;
         }
 
         //! Assignment operator

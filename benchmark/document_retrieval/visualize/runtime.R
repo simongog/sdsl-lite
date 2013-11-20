@@ -54,6 +54,7 @@ for( tc_id in names(d) ){
                     ylim=c(0.01,1000),
                     ylab="", xlab="", xaxt="n", log="y" )
     box(col="gray")
+    abline(h=c(seq(1,10)*0.1,seq(2,10)*1,seq(2,10)*10, seq(2,10)*100), col="lightgray")
     grid(lty="solid")
     if ( nr %% 2 == 0 ){
       ylable <- "Time per query (milliseconds)" 

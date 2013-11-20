@@ -18,12 +18,15 @@ RES_FILES = $(foreach WT_ID,$(WT_IDS),\
 				$(foreach TC_ID,$(TC_IDS),\
 					results/$(WT_ID).$(TC_ID)))
 
+BWT_RES_FILES = $(foreach WT_ID,$(WT_IDS),\
+					$(foreach TC_ID,$(TC_IDS),\
+						results-bwt/$(WT_ID).$(TC_ID)))
+
 RESULT_FILE=results/all.txt
 
 all: execs 
 
 execs: $(WT_EXECS)
-
 
 timing: execs $(RES_FILES) 
 	@cat $(RES_FILES) > $(RESULT_FILE)

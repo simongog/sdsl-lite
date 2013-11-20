@@ -85,15 +85,15 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
             } else {
                 size_t idx=0;
                 const size_t block_size = conf::SDSL_BLOCK_SIZE*num_bytes;
-                uint8_t* buf = new uint8_t[block_size];
+                std::vector<uint8_t> buf(block_size);
                 // TODO: check for larger alphabets with num_bytes*8 = v::fixed_int_width
 
                 uint64_t x = 0; // value
                 uint8_t  cur_byte = 0;
                 do {
-                    in.read((char*)buf, block_size);
+                    in.read((char*)buf.data(), block_size);
                     size_t read = in.gcount();
-                    uint8_t* begin = buf;
+                    uint8_t* begin = buf.data();
                     uint8_t* end   = begin+read;
                     while (begin < end) {
                         x |= ((uint64_t)(*begin)) << (cur_byte*8);
@@ -106,7 +106,6 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
                         ++begin;
                     }
                 } while (idx < v.size());
-                delete [] buf;
                 in.close();
             }
             return true;
