@@ -11,7 +11,6 @@ int main(int argc, char* argv[])
         if (strcmp(argv[4], "BWT")==0) {
             std::cout<<"Calculate BWT of " << argv[1] << " and store it to " << argv[2] << std::endl;
             cache_config cc(false, argv[3], "gen_bwt_");
-            std::cout << cache_file_name(conf::KEY_BWT, cc) << std::endl;
             if (1 == num_byte) {
                 {
                     csa_wt<> wt;

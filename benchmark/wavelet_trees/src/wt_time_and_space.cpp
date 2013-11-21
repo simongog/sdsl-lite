@@ -187,6 +187,7 @@ int main(int argc, char* argv[])
     cout << "# wt_size = " << size_in_bytes(wt) << endl;
 
     const uint64_t reps = 100000;
+    const uint64_t reps_interval_symbols = wt.sigma < 10000 ? reps : reps/100;
     uint64_t log_s = 20;
     uint64_t mask = (1<<log_s)-1;
     uint64_t check = 0;
@@ -225,9 +226,9 @@ int main(int argc, char* argv[])
 
     //interval_symbols
     start = timer::now();
-    check = wt_trait<WT_TYPE>::test_interval_symbols(wt,is,js,k,tmp,tmp2,mask,reps);
+    check = wt_trait<WT_TYPE>::test_interval_symbols(wt,is,js,k,tmp,tmp2,mask,reps_interval_symbols);
     stop = timer::now();
-    cout << "# interval_symbols_time = " << duration_cast<microseconds>(stop-start).count()/(double)reps << endl;
+    cout << "# interval_symbols_time = " << duration_cast<microseconds>(stop-start).count()/(double)reps_interval_symbols << endl;
     cout << "# interval_symbols_check = " << check << endl;
 
     //lex_count
