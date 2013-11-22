@@ -112,11 +112,11 @@ class fibonacci
            \param n Number of values to decode from the bitstring.
            \param it Iterator
          */
-        template<bool sumup, bool increment, class Iterator>
-        static uint64_t decode(const uint64_t* data, const size_type start_idx, size_type n, Iterator it=(Iterator)nullptr);
+        template<bool t_sumup, bool t_inc, class t_iter>
+        static uint64_t decode(const uint64_t* data, const size_type start_idx, size_type n, t_iter it=(t_iter)nullptr);
 
-        template<bool sumup, bool increment, class Iterator>
-        static uint64_t decode1(const uint64_t* data, const size_type start_idx, size_type n, Iterator it=(Iterator)nullptr);
+        template<bool t_sumup, bool t_inc, class t_iter>
+        static uint64_t decode1(const uint64_t* data, const size_type start_idx, size_type n, t_iter it=(t_iter)nullptr);
 
 
 
@@ -322,13 +322,12 @@ bool fibonacci::decode(const int_vector1& z, int_vector2& v)
     } else {
         n += bits::cnt11(*data, carry);
     }
-    std::cout<<"n="<<n<<std::endl;
     v.width(z.width()); v.resize(n);
     return decode<false, true>(z.data(), 0, n, v.begin());
 }
 
-template<bool sumup, bool increment, class Iterator>
-inline uint64_t fibonacci::decode(const uint64_t* data, const size_type start_idx, size_type n, Iterator it)
+template<bool t_sumup, bool t_inc, class t_iter>
+inline uint64_t fibonacci::decode(const uint64_t* data, const size_type start_idx, size_type n, t_iter it)
 {
     data += (start_idx >> 6);
     uint64_t w = 0, value = 0;
@@ -353,8 +352,8 @@ inline uint64_t fibonacci::decode(const uint64_t* data, const size_type start_id
         if (shift > 0) {// if end of decoding
             w >>= shift;
             buffered -= shift;
-            if (increment) *(it++) = value;
-            if (!sumup and n!=1) value = 0;
+            if (t_inc) *(it++) = value;
+            if (!t_sumup and n!=1) value = 0;
             fibtable = 0;
             --n;
         } else { // not end of decoding
@@ -366,8 +365,8 @@ inline uint64_t fibonacci::decode(const uint64_t* data, const size_type start_id
     return value;
 }
 
-template<bool sumup, bool increment, class Iterator>
-inline uint64_t fibonacci::decode1(const uint64_t* data, const size_type start_idx, size_type n, Iterator it)
+template<bool t_sumup, bool t_inc, class t_iter>
+inline uint64_t fibonacci::decode1(const uint64_t* data, const size_type start_idx, size_type n, t_iter it)
 {
     data += (start_idx >> 6);
     uint64_t w = 0, value = 0;
@@ -398,8 +397,8 @@ inline uint64_t fibonacci::decode1(const uint64_t* data, const size_type start_i
         if (shift > 0) {// if end of decoding
             w >>= shift;
             buffered -= shift;
-            if (increment) *(it++) = value;
-            if (!sumup)
+            if (t_inc) *(it++) = value;
+            if (!t_sumup)
                 value = 0;
             fibtable = 0;
             --n;
