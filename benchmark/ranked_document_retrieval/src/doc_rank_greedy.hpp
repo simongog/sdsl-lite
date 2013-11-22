@@ -29,25 +29,28 @@ template
 class t_csa = csa_wt<wt_huff<rrr_vector<63>>, 1000000, 1000000>,
       class t_wtd = wt_int<bit_vector_il<1024>>,
       class t_sadadfbv = rrr_vector<63>,
-      typename t_csa::char_type t_doc_delim = 1
-      >
+      class t_sadadf_select = t_sadadfbv::select_1_type;
+typename t_csa::char_type t_doc_delim = 1
+>
 class doc_rank_greedy
 {
     public:
         typedef t_csa                                                   csa_type;
         typedef t_wtd                                                   wtd_type;
         typedef t_sadadfbv                                              dfbv_type;
+        typedef t_sadadf_select                                         dfbv_select_type;
         typedef int_vector<>::size_type                                 size_type;
         typedef doc_list_tag                                            index_category;
 
         enum { WIDTH = t_csa::alphabet_category::WIDTH };
 
     protected:
-        size_type       m_doc_cnt;            // number of documents in the collection
-        csa_type        m_csa_full;           // CSA built from the collection text
-        wtd_type        m_wtd;                // wtd build from the collection text
-        int_vector<>    m_doc_perm;           // perumtation of the doc_ids
-        dfbv_type       m_sada_df;
+        size_type        m_doc_cnt;            // number of documents in the collection
+        csa_type         m_csa_full;           // CSA built from the collection text
+        wtd_type         m_wtd;                // wtd build from the collection text
+        int_vector<>     m_doc_perm;           // perumtation of the doc_ids
+        dfbv_type        m_sada_df;
+        dfbv_select_type m_sada_df_select;
     public:
 
         //! Default constructor
@@ -148,16 +151,16 @@ class doc_rank_greedy
         template<class t_pat>
         result search(const t_pat& query, size_t k) const {
             result res;
-            /*
-            size_type sp=1, ep=0;
-            if (0 == backward_search(m_csa_full, 0, m_csa_full.size()-1, begin, end, sp, ep)) {
-                res = result();
-                return 0;
-            } else {
-                auto tmp_res = m_wtd.topk_greedy(sp,ep,k);
-                res = result(sp, ep, std::move(tmp_res));
-                return ep-sp+1;
-            }*/
+            std::vector<typename t_wtd::greedy_tfidf_range_t> ranges;
+            for (const auto& p : query) {
+                size_type sp=1, ep=0;
+                if (0 != backward_search(m_csa_full, 0, m_csa_full.size()-1, p.begin(), p.end(), sp, ep)) {
+                    size_t f_t = calculate_df(sp,ep);
+                }
+            }
+            if (ranges.size()) {
+
+            }
             return res;
         }
 
@@ -310,8 +313,21 @@ class doc_rank_greedy
             h.resize(h_idx);
             util::clear(temp_cst);
             m_sada_df = dfbv_type(h);
+            m_sada_df_select = dfbv_select_type(&m_sada_df);
         }
 
+        size_type
+        calculate_df(size_t sp,size_t ep) {
+            size_t dup = 0;
+            size_t y = m_sada_df_select(ep);
+            if (0 == sp) {
+                dup = (y+1)-ep;// (#all elements)-#1=#0
+            } else {
+                size_t x = m_sada_df_select(sp);
+                dup = (y+1)-ep - ((x+1)-sp);
+            }
+            return ep-sp+1-dup;
+        }
 };
 
 } // end namespace
