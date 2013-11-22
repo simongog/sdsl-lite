@@ -78,6 +78,9 @@ class wt_int
         typedef std::vector<point_type>              point_vec_type;
         typedef std::pair<size_type, point_vec_type> r2d_res_type;
 
+        mutable std::set<size_type> m_access_nodes;
+        mutable std::set<size_type> m_greedy_nodes;
+        mutable std::set<size_type> m_greedy_sim_nodes;
     protected:
 
         size_type              m_size  = 0;
@@ -316,6 +319,8 @@ class wt_int
             size_type offset = 0;
             value_type res = 0;
             size_type node_size = m_size;
+            size_type id = 1;
+            //m_access_nodes.insert(id);
             for (uint32_t k=0; k < m_max_depth; ++k) {
                 res <<= 1;
                 size_type ones_before_o   = m_tree_rank(offset);
@@ -324,11 +329,15 @@ class wt_int
                 if (m_tree[offset+i]) { // one at position i => follow right child
                     offset += (node_size - ones_before_end);
                     node_size = ones_before_end;
+                    id = id*2+1;
                     i = ones_before_i;
                     res |= 1;
+                    //m_access_nodes.insert(id);
                 } else { // zero at position i => follow left child
                     node_size = (node_size - ones_before_end);
+                    id = id*2;
                     i = (i-ones_before_i);
+                    //m_access_nodes.insert(id);
                 }
                 offset += m_size;
             }
@@ -793,6 +802,7 @@ class wt_int
                 }
             public:
                 value_type sym = 0;
+                size_type id = 0;
                 size_type lb = 0;
                 size_type rb = 0;
                 size_type offset = 0;
@@ -816,6 +826,7 @@ class wt_int
 
             /* add the initial range */
             topk_greedy_range_t ir;
+            ir.id = 1;
             ir.node_size = m_size;
             ir.level = 0;
             ir.lb = lb;
@@ -824,6 +835,7 @@ class wt_int
 
             while (! heap.empty()) {
                 topk_greedy_range_t r = heap.top(); heap.pop();
+                //m_greedy_nodes.insert(r.id);
                 if (r.level == m_max_depth) { /* leaf node */
                     results.emplace_back(r.sym,r.freq);
                     if (results.size()==k) {
@@ -851,6 +863,7 @@ class wt_int
                 if (num_ones) { /* map to right child */
                     topk_greedy_range_t nr;
                     nr.sym = (r.sym<<1)|1;
+                    nr.id = r.id*2+1;
                     nr.freq = num_ones;
                     nr.offset = m_size + r.offset + (r.node_size - ones_before_end);
                     nr.node_size = ones_before_end;
@@ -864,6 +877,7 @@ class wt_int
                 }
                 if (num_zeros) { /* map to left child */
                     topk_greedy_range_t nr;
+                    nr.id = r.id*2;
                     nr.sym = r.sym<<1;
                     nr.freq = num_zeros;
                     nr.offset = m_size + r.offset;
@@ -1056,6 +1070,153 @@ class wt_int
             }
             return results;
         }
+
+
+
+        //! Returns the top k most relevant documents from ranges T[x_0,y_0]
+        //!  ... T[x_1,y_1] ... T[x_m,y_m]
+        /*!
+         *  \param k the number of documents to return
+         *  \returns the top-k items in descending order.
+         */
+        struct greedy_tfidf_range_t {
+            size_type sp;
+            size_type ep;
+            size_type f_t;
+            double w_qt;
+            greedy_tfidf_range_t(const greedy_tfidf_range_t& r) : sp(r.sp) , ep(r.ep) , f_t(r.f_t) , w_qt(r.w_qt) {}
+            greedy_tfidf_range_t(size_type s,size_type e,size_type nd,size_type N) : sp(s) , ep(e) , f_t(nd) {
+                w_qt = log(1+(N/(double)f_t));
+            }
+            double w_dt() { // estimate w_dt
+                return 1 + log((double)(ep-sp+1));
+            }
+        };
+
+        std::vector< std::pair<value_type,double> >
+        topk_greedy_similarity(std::vector<greedy_tfidf_range_t>& input_ranges,size_type k) const {
+            std::vector< std::pair<value_type,double> > results;
+
+            struct topk_greedy_tfidf {
+                std::vector<greedy_tfidf_range_t> ranges;
+                size_type id = 1;
+                size_type offset = 0;
+                size_type node_size = 0;
+                size_type level = 0;
+                value_type sym = 0;
+                double score = 0.0f;
+                topk_greedy_tfidf() {};
+                topk_greedy_tfidf(size_type off,size_type ns,size_type lvl,value_type _sym)
+                    : offset(off) , node_size(ns) , level(lvl), sym(_sym)  {}
+                bool operator < (const topk_greedy_tfidf& r) const { return score < r.score; }
+            };
+
+            auto cosine_score = [](double score,greedy_tfidf_range_t& r) -> double {
+                return score += (r.w_qt * r.w_dt());
+            };
+
+            auto print_range = [](const topk_greedy_tfidf& r) {
+                std::cout << "=================================================" << std::endl;
+                std::cout << "ranges = ";
+                for (const auto& rr : r.ranges) {
+                    std::cout << "<" << rr.sp << "," << rr.ep << ">";
+                }
+                std::cout << std::endl;
+                std::cout << "offset = " << r.offset << std::endl;
+                std::cout << "node_size = " << r.node_size << std::endl;
+                std::cout << "level = " << r.level << std::endl;
+                std::cout << "sym = " << r.sym << std::endl;
+                std::cout << "score = " << r.score << std::endl;
+                std::cout << "=================================================" << std::endl;
+            };
+
+            std::priority_queue<topk_greedy_tfidf> heap;
+
+            /* add the initial ranges */
+            topk_greedy_tfidf ir;
+            ir.node_size = m_size;
+            ir.level = 0;
+            ir.sym = 0;
+            ir.offset = 0;
+            ir.id = 1;
+            for (const auto& r : input_ranges) {
+                ir.ranges.emplace_back(r);
+            }
+            ir.score = std::accumulate(ir.ranges.begin(),ir.ranges.end(),0.0f, cosine_score);
+            heap.push(ir);
+
+
+            while (! heap.empty()) {
+                auto current = heap.top(); heap.pop();
+                //m_greedy_sim_nodes.insert(current.id);
+                //print_range(current);
+
+                if (current.level == m_max_depth) { /* leaf node */
+                    results.emplace_back(current.sym,current.score);
+                    if (results.size()==k) {
+                        /* we got the top-k */
+                        break;
+                    }
+                    continue; /* we processed this range */
+                }
+                /* map each range to the corresponding range at level + 1 */
+
+                /* number of 1s before the level offset and after the node */
+                size_type ones_before_offset = m_tree_rank(current.offset);
+                size_type ones_before_end = m_tree_rank(current.offset + current.node_size) - ones_before_offset;
+
+                size_type offset_zero = m_size + current.offset;
+                size_type offset_one = m_size + current.offset + (current.node_size - ones_before_end);
+                size_type node_size_zero = current.node_size - ones_before_end;
+                size_type node_size_one = ones_before_end;
+
+                topk_greedy_tfidf ranges_zero(offset_zero,node_size_zero,current.level+1,current.sym<<1);
+                topk_greedy_tfidf ranges_one(offset_one,node_size_one,current.level+1,(current.sym<<1)|1);
+
+                for (size_t i=0; i<current.ranges.size(); i++) {
+                    auto& r = current.ranges[i];
+                    size_type lb = r.sp, rb = r.ep;
+                    /* number of 1s before T[l..r] */
+                    size_type rank_before_left = 0;
+                    if (current.offset+lb>0) rank_before_left = m_tree_rank(current.offset + lb);
+                    /* number of 1s before T[r] */
+                    size_type rank_before_right = m_tree_rank(current.offset + rb + 1);
+                    /* number of 1s in T[l..r] */
+                    size_type num_ones = rank_before_right - rank_before_left;
+                    /* number of 0s in T[l..r] */
+                    size_type num_zeros = (rb-lb+1) - num_ones;
+
+                    if (num_ones) { /* map to right child */
+                        /* number of 1s before T[l..r] within the current node */
+                        greedy_tfidf_range_t r_one = r;
+                        r_one.sp = rank_before_left - ones_before_offset;
+                        /* number of 1s in T[l..r] */
+                        r_one.ep = r_one.sp + num_ones - 1;
+                        ranges_one.ranges.push_back(r_one);
+                    }
+                    if (num_zeros) { /* map to left child */
+                        /* number of 1s before T[l..r] within the current node */
+                        greedy_tfidf_range_t r_zero = r;
+                        r_zero.sp = lb - (rank_before_left - ones_before_offset);
+                        /* number of 1s in T[l..r] */
+                        r_zero.ep = r_zero.sp + num_zeros - 1;
+
+                        ranges_zero.ranges.push_back(r_zero);
+                    }
+                }
+                if (!ranges_zero.ranges.empty()) {
+                    ranges_zero.score = std::accumulate(ranges_zero.ranges.begin(),ranges_zero.ranges.end(),0.0f, cosine_score);
+                    ranges_zero.id = current.id*2;
+                    heap.push(ranges_zero);
+                }
+                if (!ranges_one.ranges.empty()) {
+                    ranges_one.score = std::accumulate(ranges_one.ranges.begin(),ranges_one.ranges.end(),0.0f, cosine_score);
+                    ranges_one.id = current.id*2+1;
+                    heap.push(ranges_one);
+                }
+            }
+            return results;
+        };
 };
 
 }// end namespace sdsl
