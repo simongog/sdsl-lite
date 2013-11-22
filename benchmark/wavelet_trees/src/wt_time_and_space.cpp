@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
     auto start = timer::now();
     construct(wt,argv[1],type);
     auto stop = timer::now();
-    cout << "# constructs_time = " << duration_cast<seconds>(stop-start).count() << endl;
+    cout << "# constructs_time = " << duration_cast<milliseconds>(stop-start).count()/(double)1000 << endl;
 
     //size
     cout << "# wt_size = " << size_in_bytes(wt) << endl;
