@@ -1,0 +1,5 @@
+NAME=TREC8
+FILE=../data/trec8.txt
+FILEINT=../data/trec8.txt.int.sdsl
+DICT=../data/trec8.txt.dict
+DOCWEIGHTS=../data/trec8.txt.docweights

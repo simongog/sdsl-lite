@@ -10,8 +10,8 @@ using idx_type = IDX_TYPE;
 
 int main(int argc, char* argv[])
 {
-    if (argc < 4) {
-        cout << "Usage: " << argv[0] << " collection_file tmp_dir index_file" << endl;
+    if (argc < 5) {
+        cout << "Usage: " << argv[0] << " collection_file tmp_dir index_file docweight_file" << endl;
         cout << " Generates an index and stores result in index_file" << endl;
         cout << " Temporary files are stored in tmp_dir." << endl;
         return 1;
@@ -20,12 +20,14 @@ int main(int argc, char* argv[])
     string id              = util::basename(collection_file);
     string tmp_dir         = argv[2];
     string idx_file        = argv[3];
+    string docweight_file  = argv[4];
 
     using timer = std::chrono::high_resolution_clock;
     auto start = timer::now();
 
     idx_type idx;
     cache_config cconfig(false, tmp_dir, id);
+    cconfig.file_map[KEY_DOCWEIGHT] = docweight_file;
     construct(idx, collection_file, cconfig, idx_type::WIDTH==8 ? 1 : 0);
     auto stop = timer::now();
     auto elapsed = stop-start;
