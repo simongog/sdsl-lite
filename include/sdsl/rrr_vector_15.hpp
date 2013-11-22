@@ -309,7 +309,6 @@ class rrr_vector<15, t_rac, t_k>
             uint16_t bt = m_bt[bb_idx];
             size_type sample_pos = bb_idx/t_k;
             size_type eb_idx = (idx+len-1)/block_size; // end block index
-            size_type eb_off = (idx+len-1)%block_size; // end block index
             if (bb_idx == eb_idx) {  // extract only in one block
                 if (bt == 0) {   // all bits are zero
                     res = 0;

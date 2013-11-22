@@ -284,7 +284,6 @@ class rrr_vector
             uint16_t bt = m_bt[bb_idx];
             size_type sample_pos = bb_idx/t_k;
             size_type eb_idx = (idx+len-1)/t_bs; // end block index
-            size_type eb_off = (idx+len-1)%t_bs; // end block index
             if (bb_idx == eb_idx) {  // extract only in one block
                 if (m_invert[sample_pos])
                     bt = t_bs - bt;
@@ -309,7 +308,7 @@ class rrr_vector
                     idx += b_len;
                     b_len_sum += b_len;
                     len -= b_len;
-                    b_len = (len > t_bs) ? t_bs : len;
+                    b_len = ((int)len > (int)t_bs) ? t_bs : len;
                 } while (len > 0);
             }
             return res;
