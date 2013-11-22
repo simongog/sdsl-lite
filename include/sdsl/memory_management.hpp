@@ -110,6 +110,19 @@ class memory_monitor
             auto& m = the_monitor();
             m.log_granularity = ms;
         }
+        static int64_t peak() {
+            auto& m = the_monitor();
+            int64_t max = 0;
+            for (auto events : m.completed_events) {
+                for (auto alloc : events.allocations) {
+                    if (max < alloc.usage) {
+                        max = alloc.usage;
+                    }
+                }
+            }
+            return max;
+        }
+
         static void start() {
             auto& m = the_monitor();
             m.track_usage = true;
