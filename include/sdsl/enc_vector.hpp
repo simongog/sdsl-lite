@@ -19,7 +19,7 @@
    \author Simon Gog
 */
 #include "int_vector.hpp"
-#include "coder_elias_delta.hpp"
+#include "coder.hpp"
 #include "iterators.hpp"
 
 #ifndef SDSL_ENC_VECTOR
