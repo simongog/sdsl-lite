@@ -1,5 +1,5 @@
 ../data/%: 
-	$(eval URL:=$(call config_filter,test_case.config,$@,4))
+	$(eval URL:=$(firstword $(call config_filter,test_case.config,$@,4)))
 	@$(if $(URL),,\
 		$(error "No downlaod link nor generation program specified for test case $@") )
 	@echo "Downlaod input from $(URL) using curl"

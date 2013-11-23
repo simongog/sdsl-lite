@@ -28,45 +28,25 @@ all: execs
 
 execs: $(WT_EXECS)
 
-timing: execs $(BWT_RES_FILES) $(RES_FILES) 
-	@cat $(RES_FILES) $(BWT_RES_FILES) > $(RESULT_FILE)
+timing: execs $(RES_FILES) 
+	@cat $(RES_FILES) > $(RESULT_FILE)
 	@cd visualize;make
 
-#bwttiming: execs $(BWT_RES_FILES) 
-#	cat $(BWT_RES_FILES) > $(RESULT_FILE)
-
-# 
-../tmp/BWT.%: $(DL) $(BIN_DIR)/gen_bwt
+../tmp/BWT.%: $(DL) $(BIN_DIR)/gen_bwt 
 	$(eval TC_ID:=$*)
 	$(eval TC_PATH:=$(call config_select,test_case.config,$(TC_ID),2))
-	@echo "Calculate BWT of $(TC_PATH) and store it to ../tmp/BWT.$(TC_ID)"
-	$(BIN_DIR)/gen_bwt $(TC_PATH) ../tmp/BWT.$(TC_ID) ../tmp
+	$(eval BWT:=$(strip $(call config_select,test_case.config,$(TC_ID),6)))
+	$(eval NUM_BYTE:=$(call config_select,test_case.config,$(TC_ID),5))
+	@$(BIN_DIR)/gen_bwt $(TC_PATH) ../tmp/BWT.$(TC_ID) ../tmp $(BWT) $(NUM_BYTE)
 
 # Execute $(BIN_DIR)/build_[WT_ID] and write result
-results-bwt/%: test_case.config $(DL_BWT) execs 
+results/%: test_case.config $(DL) $(DL_BWT) execs 
 	$(eval WT_ID:=$(call dim,1,$*))
 	$(eval TC_ID:=$(call dim,2,$*))
 	$(eval WT_TEX_NAME:=$(call config_select,wt.config,$(WT_ID),3))
 	$(eval TC_TEX_NAME:=$(call config_select,test_case.config,$(TC_ID),3))
-	$(eval TC_PATH:="../tmp/BWT.$(TC_ID)")
-	$(eval TC_TYPE:=$(call config_select,test_case.config,$(TC_ID),5))
-	$(eval TC_SIZE:=$(shell wc -c <$(TC_PATH)))
-	$(eval ARGS:=$(TC_PATH) $(TC_TYPE))
-	@echo "Running bin/build_$(WT_ID) on $(TC_ID)-BWT"
-	@echo "# WT_ID = $(WT_ID)" > $@
-	@echo "# TC_ID = $(TC_ID)-BWT" >> $@
-	@echo "# WT_TEX_NAME = $(WT_TEX_NAME)">>$@
-	@echo "# TC_TEX_NAME = $(TC_TEX_NAME)-BWT">>$@
-	@echo "# TC_SIZE = $(TC_SIZE)">>$@
-	@$(BIN_DIR)/build_$(WT_ID) $(ARGS) >> $@	
-
-# Execute $(BIN_DIR)/build_[WT_ID] and write result
-results/%: test_case.config $(DL) execs 
-	$(eval WT_ID:=$(call dim,1,$*))
-	$(eval TC_ID:=$(call dim,2,$*))
-	$(eval WT_TEX_NAME:=$(call config_select,wt.config,$(WT_ID),3))
-	$(eval TC_TEX_NAME:=$(call config_select,test_case.config,$(TC_ID),3))
-	$(eval TC_PATH:=$(call config_select,test_case.config,$(TC_ID),2))
+	$(eval BWT:=$(strip $(call config_select,test_case.config,$(TC_ID),6)))
+	$(eval TC_PATH:=$(if $(findstring BWT,$(BWT)),"../tmp/BWT.$(TC_ID)",$(call config_select,test_case.config,$(TC_ID),2)))
 	$(eval TC_TYPE:=$(call config_select,test_case.config,$(TC_ID),5))
 	$(eval TC_SIZE:=$(shell wc -c <$(TC_PATH)))
 	$(eval ARGS:=$(TC_PATH) $(TC_TYPE))

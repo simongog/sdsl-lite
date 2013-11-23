@@ -17,6 +17,50 @@ string test_file;
 string temp_file;
 bool in_memory;
 
+// forward declaration
+template<class t_wt>
+void test_interval_symbols(t_wt& wt);
+// forward declaration
+template<class t_wt>
+void test_lex_count(t_wt& wt);
+// forward declaration
+template<class t_wt>
+void test_lex_smaller_count(t_wt& wt);
+
+
+template<class t_wt, bool lex_ordered = t_wt::lex_ordered>
+struct wt_test_trait;
+
+template<class t_wt>
+struct wt_test_trait<t_wt, false> {
+    static void interval_symbols_test(t_wt& wt) {
+        test_interval_symbols(wt);
+    }
+    static void lex_count_test(t_wt&) {}
+    static void lex_smaller_count_test(t_wt&) {}
+};
+
+template<class t_wt>
+struct wt_test_trait<t_wt, true> {
+    static void interval_symbols_test(t_wt& wt) {
+        test_interval_symbols(wt);
+    }
+    static void lex_count_test(t_wt& wt) {
+        test_lex_count(wt);
+    }
+    static void lex_smaller_count_test(t_wt& wt) {
+        test_lex_smaller_count(wt);
+    }
+};
+
+template<class t_bitvector,class t_rank, class t_select, class t_wt>
+struct wt_test_trait<wt_rlmn<t_bitvector,t_rank,t_select,t_wt>,false> {
+    static void interval_symbols_test(wt_rlmn<t_bitvector,t_rank,t_select,t_wt>&) {}
+    static void lex_count_test(wt_rlmn<t_bitvector,t_rank,t_select,t_wt>&) {}
+    static void lex_smaller_count_test(wt_rlmn<t_bitvector,t_rank,t_select,t_wt>&) {}
+};
+
+
 template<class T>
 class WtIntTest : public ::testing::Test { };
 
@@ -137,40 +181,9 @@ TYPED_TEST(WtIntTest, LoadAndInverseSelect)
     }
 }
 
-
-
-TYPED_TEST(WtIntTest, DeleteTest)
+template<class t_T>
+void test_interval_symbols(t_T& wt)
 {
-    sdsl::remove(temp_file);
-}
-
-template<class T>
-class WtIntervalTest : public ::testing::Test { };
-
-typedef Types<
-wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
-        ,wt_huff<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
-        ,wt_huff<rrr_vector<63>, rrr_vector<63>::rank_1_type, rrr_vector<63>::select_1_type, rrr_vector<63>::select_0_type, int_tree<>>
-        ,wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
-        ,wt_int<rrr_vector<15>>
-        ,wt_int<>
-        ,wt_int<rrr_vector<63>>
-        > Implementations_interval;
-
-TYPED_TEST_CASE(WtIntervalTest, Implementations_interval);
-
-//! Test the parametrized constructor
-TYPED_TEST(WtIntervalTest, Constructor)
-{
-    TypeParam wt;
-    sdsl::construct(wt, test_file);
-    ASSERT_TRUE(store_to_file(wt, temp_file));
-}
-
-//! Test the load method and interval_symbols method
-TYPED_TEST(WtIntervalTest, LoadAndIntervalSymbols)
-{
-    TypeParam wt;
     ASSERT_TRUE(load_from_file(wt, temp_file));
 
     size_type k = 0;
@@ -193,13 +206,13 @@ TYPED_TEST(WtIntervalTest, LoadAndIntervalSymbols)
                 ASSERT_EQ(wt.rank(j, cs[m]), rank_c_j[m]);
                 ASSERT_LT((size_type)0, rank_c_j[m]-rank_c_i[m]);
                 symbols -= (rank_c_j[m]-rank_c_i[m]);
-                if (m>0 and TypeParam::lex_ordered) {
+                if (m>0 and t_T::lex_ordered) {
                     ASSERT_LT(cs[m-1],cs[m]);
                 }
             }
 
             ASSERT_EQ((size_type)0, symbols);
-            if (!TypeParam::lex_ordered) {
+            if (!t_T::lex_ordered) {
                 sort(cs.begin(), cs.begin()+k);
                 for (size_type m=1; m<k; m++) {
                     ASSERT_LT(cs[m-1], cs[m]);
@@ -209,38 +222,18 @@ TYPED_TEST(WtIntervalTest, LoadAndIntervalSymbols)
     }
 }
 
-
-TYPED_TEST(WtIntervalTest, DeleteTest)
-{
-    sdsl::remove(temp_file);
-}
-
-template<class T>
-class WtIntLexOrdered : public ::testing::Test { };
-typedef Types<
-wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
-        ,wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
-        ,wt_int<>
-        ,wt_int<rrr_vector<15>>
-        ,wt_int<rrr_vector<63>>
-        > Implementations_lex_ordered;
-
-TYPED_TEST_CASE(WtIntLexOrdered, Implementations_lex_ordered);
-
-//! Test the parametrized constructor
-TYPED_TEST(WtIntLexOrdered, Constructor)
+//! Test the load method and interval_symbols method
+TYPED_TEST(WtIntTest, LoadAndIntervalSymbols)
 {
     TypeParam wt;
-    sdsl::construct(wt, test_file);
-    ASSERT_TRUE(store_to_file(wt, temp_file));
+    ::wt_test_trait<TypeParam>::interval_symbols_test(wt);
 }
 
-//! Test the load method and lex_count method
-TYPED_TEST(WtIntLexOrdered, LoadAndLexCount)
+template<class t_T>
+void test_lex_count(t_T& wt)
 {
     int_vector<> iv;
     load_from_file(iv, test_file);
-    TypeParam wt;
     ASSERT_TRUE(load_from_file(wt, temp_file));
     ASSERT_EQ(iv.size(), wt.size());
     std::mt19937_64 rng;
@@ -283,12 +276,18 @@ TYPED_TEST(WtIntLexOrdered, LoadAndLexCount)
     }
 }
 
-//! Test the load method and lex_smaller_count method
-TYPED_TEST(WtIntLexOrdered, LoadAndLexSmallerCount)
+//! Test the load method and lex_count method
+TYPED_TEST(WtIntTest, LoadAndLexCount)
+{
+    TypeParam wt;
+    ::wt_test_trait<TypeParam>::lex_count_test(wt);
+}
+
+template<class t_T>
+void test_lex_smaller_count(t_T& wt)
 {
     int_vector<> iv;
     load_from_file(iv, test_file);
-    TypeParam wt;
     ASSERT_TRUE(load_from_file(wt, temp_file));
     ASSERT_EQ(iv.size(), wt.size());
     std::mt19937_64 rng;
@@ -314,8 +313,14 @@ TYPED_TEST(WtIntLexOrdered, LoadAndLexSmallerCount)
     }
 }
 
+//! Test the load method and lex_smaller_count method
+TYPED_TEST(WtIntTest, LoadAndLexSmallerCount)
+{
+    TypeParam wt;
+    ::wt_test_trait<TypeParam>::lex_smaller_count_test(wt);
+}
 
-TYPED_TEST(WtIntLexOrdered, DeleteTest)
+TYPED_TEST(WtIntTest, DeleteTest)
 {
     sdsl::remove(temp_file);
 }

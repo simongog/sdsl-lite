@@ -38,8 +38,8 @@ plot_size_figure <-function(data){
 		offset=offset+0.5
 	}
 
-	abline(v=100, col="red")
     abline(v=c(axis(1)/2,max(axis(1)/2)+axis(1)/2), col="gray")
+	abline(v=100, col="red")
 	draw_figure_heading("Space")
 }
 
