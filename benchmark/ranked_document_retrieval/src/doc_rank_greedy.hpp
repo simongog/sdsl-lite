@@ -29,8 +29,8 @@ template
 class t_csa = csa_wt<wt_huff<rrr_vector<63>>, 1000000, 1000000>,
       class t_wtd = wt_int<bit_vector_il<1024>>,
       class t_sadadfbv = rrr_vector<63>,
-      class t_sadadf_select = t_sadadfbv::select_1_type;
-typename t_csa::char_type t_doc_delim = 1
+      class t_sadadf_select = typename t_sadadfbv::select_1_type,
+      typename t_csa::char_type t_doc_delim = 1
 >
 class doc_rank_greedy
 {
@@ -317,7 +317,7 @@ class doc_rank_greedy
         }
 
         size_type
-        calculate_df(size_t sp,size_t ep) {
+        calculate_df(size_t sp,size_t ep) const {
             size_t dup = 0;
             size_t y = m_sada_df_select(ep);
             if (0 == sp) {
