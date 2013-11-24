@@ -100,6 +100,7 @@ namespace coder
 {
 class fibonacci;
 class elias_delta;
+class elias_gamma;
 }
 
 template<uint8_t t_width>
@@ -269,6 +270,7 @@ class int_vector
         friend class  int_vector_iterator<int_vector>;
         friend class  int_vector_const_iterator<int_vector>;
         friend class  coder::elias_delta;
+        friend class  coder::elias_gamma;
         friend class  coder::fibonacci;
         friend class  memory_manager;
 
