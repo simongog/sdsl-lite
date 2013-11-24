@@ -301,7 +301,7 @@ interleaved  bitvector & $\approx n(1+K/64)$  \\
 \href{\sdslgitinc/rrr_vector.hpp}{\sdslrrrvector} & 
 $H_0$-compressed bitvector & $\approx \lceil \log {m\choose n} \rceil$ \\
 \href{\sdslgitinc/sd_vector.hpp}{\sdslsdvector}  & sparse bitvector
-& $\approx\ 2 m\cdot \log\frac{n}{m}$ \\	
+& $\approx\ m\cdot(2\!+\!\log\frac{n}{m})$ \\	
 \end{tabular}
 \sdslbitvector\ equals \sdslintvector\code{\textless1\textgreater} and
 is therefore dynamic.\\
@@ -710,7 +710,7 @@ and executes them.
 \section{Benchmarks}
 Directory \href{\sdslgit/benachmark}{benchmark}
 contains configurable benchmarks for various
-data structure, like CSAs/FM-indexes (measuring
+data structure, like WTs, CSAs/FM-indexes (measuring
 time and space for operations 
 \href{\sdslgit/benchmark/indexing_count}{count},
 \href{\sdslgit/benchmark/indexing_locate}{locate}, and
