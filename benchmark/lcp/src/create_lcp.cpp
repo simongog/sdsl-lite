@@ -4,7 +4,6 @@
 #include <sdsl/construct_lcp.hpp>
 #include <string>
 #include <chrono>
-#include <iomanip>
 
 using namespace sdsl;
 using namespace std;
@@ -28,8 +27,7 @@ int main(int argc, char** argv)
     LCP_TYPE(config);
     auto stop = high_resolution_clock::now();
     memory_monitor::stop();
-    cout << std::fixed;
-    cout << "# " SX(LCPID) "_TIME = " << std::setprecision(2) << duration_cast<milliseconds>(stop-start).count()/(double)1000 << endl;
+    cout << "# " SX(LCPID) "_TIME = " << duration_cast<milliseconds>(stop-start).count()/(double)1000 << endl;
     cout << "# " SX(LCPID) "_MMPEAK = "<< memory_monitor::peak() << endl;
 
     return 0;

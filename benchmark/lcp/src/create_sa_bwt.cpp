@@ -2,10 +2,10 @@
 #include <sdsl/int_vector.hpp>
 #include <sdsl/construct.hpp>
 #include <sdsl/construct_sa.hpp>
+#include <sdsl/construct_bwt.hpp>
 #include <string>
 #include <chrono>
 #include <iostream>
-#include <iomanip>
 
 using namespace sdsl;
 using namespace std;
@@ -36,8 +36,7 @@ int main(int argc, char** argv)
     }
     auto stop = high_resolution_clock::now();
     memory_monitor::stop();
-    cout << std::fixed;
-    cout << "# TXT_TIME = " << std::setprecision(2) << duration_cast<milliseconds>(stop-start).count()/(double)1000 << endl;
+    cout << "# TXT_TIME = " << duration_cast<milliseconds>(stop-start).count()/(double)1000 << endl;
     cout << "# TXT_MMPEAK = " << memory_monitor::peak() << endl;
 
     //construct sa
@@ -49,8 +48,17 @@ int main(int argc, char** argv)
     }
     stop = high_resolution_clock::now();
     memory_monitor::stop();
-    cout << "# SA_TIME = " << std::setprecision(2) << duration_cast<milliseconds>(stop-start).count()/(double)1000 << endl;
+    cout << "# SA_TIME = " << duration_cast<milliseconds>(stop-start).count()/(double)1000 << endl;
     cout << "# SA_MMPEAK = " << memory_monitor::peak() << endl;
+
+    //construct bwt
+    start = high_resolution_clock::now();
+    construct_bwt<8>(config);
+    register_cache_file(conf::KEY_BWT, config);
+    stop = high_resolution_clock::now();
+    memory_monitor::stop();
+    cout << "# BWT_TIME = " << duration_cast<milliseconds>(stop-start).count()/(double)1000 <<endl;
+    cout << "# BWT_MMPEAK = "<< memory_monitor::peak() << endl;
 
     return 0;
 }

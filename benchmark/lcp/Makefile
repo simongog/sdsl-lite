@@ -11,8 +11,6 @@ LCP_IDS:=$(call config_ids,lcp.config)
 
 DL = ${foreach TC_ID,$(TC_IDS),$(call config_select,test_case.config,$(TC_ID),2)}
 
-PRE_EXECS =$(BIN_DIR)/prep_bwt 
-
 LCP_EXECS = $(foreach LCP_ID,$(LCP_IDS),$(BIN_DIR)/build_$(LCP_ID))
 
 RES_FILES = $(foreach TC_ID,$(TC_IDS),\
@@ -20,19 +18,16 @@ RES_FILES = $(foreach TC_ID,$(TC_IDS),\
 
 RESULT_FILE=results/all.txt
 
-execs: $(PRE_EXECS) $(LCP_EXECS)
+execs: $(BIN_DIR)/prep_sa_bwt $(LCP_EXECS)
 
 timing: execs $(RES_FILES)
 	@cat $(RES_FILES) > $(RESULT_FILE)
 	@cd visualize;make
 
-$(BIN_DIR)/prep_bwt: $(SRC_DIR)/create_sa.cpp $(SRC_DIR)/create_bwt.cpp
-	@echo "Compiling prep_sa"
+$(BIN_DIR)/prep_sa_bwt: $(SRC_DIR)/create_sa_bwt.cpp 
+	@echo "Compiling prep_sa_bwt"
 	@$(MY_CXX) $(CFLAGS) $(C_OPTIONS) -L${SDSLLITE}/lib\
-		$(SRC_DIR)/create_sa.cpp -I${SDSLLITE}/include -o bin/prep_sa $(LIBS)
-	@echo "Compiling prep_bwt"
-	@$(MY_CXX) $(CFLAGS) $(C_OPTIONS) -L${SDSLLITE}/lib\
-		$(SRC_DIR)/create_bwt.cpp -I${SDSLLITE}/include -o bin/prep_bwt $(LIBS)
+		$(SRC_DIR)/create_sa_bwt.cpp -I${SDSLLITE}/include -o bin/prep_sa_bwt $(LIBS)
 	
 precalc%: test_case.config $(DL) lcp.config
 	$(eval TC_ID:=$(call dim,1,$*))
@@ -44,8 +39,7 @@ precalc%: test_case.config $(DL) lcp.config
 	@echo "# TC_ID = $(TC_ID)" > results/$(TC_ID)
 	@echo "# TC_TEX_NAME = $(TC_TEX_NAME)">> results/$(TC_ID)
 	@echo "# TC_SIZE = $(TC_SIZE)">> results/$(TC_ID)
-	@$(BIN_DIR)/prep_sa $(TC_PATH) >> results/$(TC_ID) 
-	@$(BIN_DIR)/prep_bwt >> results/$(TC_ID) 
+	@$(BIN_DIR)/prep_sa_bwt $(TC_PATH) >> results/$(TC_ID) 
 
 results/%: precalc%
 	@$(foreach LCP_EXEC,$(LCP_EXECS),$(shell $(LCP_EXEC) >>$@;rm -f lcp_tmp.sdsl isa_tmp.sdsl)) 
