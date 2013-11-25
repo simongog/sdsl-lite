@@ -51,24 +51,24 @@ for(i in 1:nrow(maindata)){
 	for(l in 2:row){
 		
 		table[l,]["SATIME"]<-data[["SA_TIME"]]
-		table[l,]["SASPACE"]<-trunc(data[["SA_VMPEAK"]]*1024/size)
+		table[l,]["SASPACE"]<-round(data[["SA_MMPEAK"]]*100/size, digits=0)
 
 
 		if(lcp_config[["BWT"]][l-1]){
 			table[l,]["BWTTIME"]<-data[["BWT_TIME"]]
-			table[l,]["BWTSPACE"]<-trunc(data[["BWT_VMPEAK"]]*1024/size)
+			table[l,]["BWTSPACE"]<-round(data[["BWT_MMPEAK"]]*100/size, digits=0)
 			table[l,]["OVERALLTIME"]<-data[["SA_TIME"]]+data[["BWT_TIME"]]+data[[paste(lcp_config[["LCP_ID"]][l-1],"_TIME",sep="")]]
-			table[l,]["OVERALLSPACE"]<-trunc(max(data[["SA_VMPEAK"]]*1024/size,data[["BWT_VMPEAK"]]*1024/size,data[[paste(lcp_config[["LCP_ID"]][l-1],"_VMPEAK",sep="")]]*1024/size))
+			table[l,]["OVERALLSPACE"]<-round(max(data[["SA_MMPEAK"]],data[["BWT_MMPEAK"]],data[[paste(lcp_config[["LCP_ID"]][l-1],"_MMPEAK",sep="")]])*100/size, digits=0)
 		}
 		else{
 			table[l,]["BWTTIME"]<-"-"
 			table[l,]["BWTSPACE"]<-"-"
 			table[l,]["OVERALLTIME"]<-data[["SA_TIME"]]+data[[paste(lcp_config[["LCP_ID"]][l-1],"_TIME",sep="")]]
-			table[l,]["OVERALLSPACE"]<-trunc(max(data[["SA_VMPEAK"]]*1024/size,data[[paste(lcp_config[["LCP_ID"]][l-1],"_VMPEAK",sep="")]]*1000/size))
+			table[l,]["OVERALLSPACE"]<-round(max(data[["SA_MMPEAK"]],data[[paste(lcp_config[["LCP_ID"]][l-1],"_MMPEAK",sep="")]])*100/size, digits=0)
 		}
 
 		table[l,]["LCPTIME"]<-data[[paste(lcp_config[["LCP_ID"]][l-1],"_TIME",sep="")]]
-		table[l,]["LCPSPACE"]<-trunc(data[[paste(lcp_config[["LCP_ID"]][l-1],"_VMPEAK",sep="")]]*1024/size)
+		table[l,]["LCPSPACE"]<-round(data[[paste(lcp_config[["LCP_ID"]][l-1],"_MMPEAK",sep="")]]*100/size, digits=0)
 	}
 	
 
