@@ -249,7 +249,7 @@ class doc_list_index_sada
                 m_doc_rmax_marked[doc]        = 0;  //                                 get_lex_largest_suffixes
 
                 if (suffix_1 == suffix_2) {  // if pattern occurs exactly once
-                    res.push_back( {doc,1}); // add the #occurrence
+                    res.push_back({doc,1});  // add the #occurrence
                 } else {
                     size_type doc_begin = doc ? m_doc_border_select(doc) + 1 : 0;
                     size_type doc_sp    = m_doc_isa[doc][ suffix_1 - doc_begin ];
@@ -257,7 +257,7 @@ class doc_list_index_sada
                     if (doc_sp > doc_ep) {
                         std::swap(doc_sp, doc_ep);
                     }
-                    res.push_back( {doc, doc_ep - doc_sp + 1});
+                    res.push_back({doc, doc_ep - doc_sp + 1});
                 }
             }
         }

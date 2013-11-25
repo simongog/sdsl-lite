@@ -24,17 +24,20 @@ class CsaByteTest : public ::testing::Test { };
 
 using testing::Types;
 
-typedef Types<csa_wt<>,
-        csa_sada<enc_vector<coder::fibonacci> >,
-        csa_wt<wt_huff<>, 8, 16, text_order_sa_sampling<> >,
-        csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<> >,
-        csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, int_vector<>,
-        succinct_byte_alphabet<bit_vector, rank_support_v<>, select_support_mcl<> > >,
-        csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, int_vector<>,
-        succinct_byte_alphabet<> >,
-        csa_sada<>,
-        csa_bitcompressed<>
-        > Implementations;
+typedef Types<//csa_wt<>,
+csa_sada<>,
+//        csa_sada<enc_vector<coder::fibonacci>>,
+         csa_sada<enc_vector<coder::elias_gamma>>,
+         /*
+                 csa_wt<wt_huff<>, 8, 16, text_order_sa_sampling<>>,
+                 csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>>,
+                 csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, int_vector<>,
+                 succinct_byte_alphabet<bit_vector, rank_support_v<>, select_support_mcl<>>>,
+                 csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, int_vector<>,
+                 succinct_byte_alphabet<>>,
+         */
+         csa_bitcompressed<>
+         > Implementations;
 
 TYPED_TEST_CASE(CsaByteTest, Implementations);
 

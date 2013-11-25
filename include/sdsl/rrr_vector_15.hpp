@@ -111,7 +111,7 @@ class binomial15
 //! A specialization of the rrr_vector class for a block_size of 15.
 /*!
  *   \tparam t_rac  Random access integer vector. Use to store the block types.
- *                  It is possible to use WTs for t_rac.
+ *
  *  Several tricks were used to speed-up the operations:
  *  * Whenever possible 2 4-bit blocks are decoded at once.
  *  * When the rank position lies in a block which consists only of zeros or
@@ -293,6 +293,49 @@ class rrr_vector<15, t_rac, t_k>
             uint8_t off = i % block_size; //i - bt_idx*block_size;
             return (bi_type::nr_to_bin(i_bt, btnr) >> off) & (uint32_t)1;
         }
+
+        //! Get the integer value of the binary string of length len starting at position idx.
+        /*! \param idx Starting index of the binary representation of the integer.
+         *  \param len Length of the binary representation of the integer. Default value is 64.
+         *   \returns The integer value of the binary string of length len starting at position idx.
+         *
+         *  \pre idx+len-1 in [0..size()-1]
+         *  \pre len in [1..64]
+         */
+        uint64_t get_int(size_type idx, uint8_t len=64)const {
+            uint64_t res = 0;
+            size_type bb_idx = idx/block_size; // begin block index
+            size_type bb_off = idx%block_size; // begin block offset
+            uint16_t bt = m_bt[bb_idx];
+            size_type sample_pos = bb_idx/t_k;
+            size_type eb_idx = (idx+len-1)/block_size; // end block index
+            if (bb_idx == eb_idx) {  // extract only in one block
+                if (bt == 0) {   // all bits are zero
+                    res = 0;
+                } else if (bt == block_size) {  // all bits are zero
+                    res = bits::lo_set[len];
+                } else {
+                    size_type btnrp = m_btnrp[ sample_pos ];
+                    for (size_type j = sample_pos*t_k; j < bb_idx; ++j) {
+                        btnrp += bi_type::space_for_bt(m_bt[j]);
+                    }
+                    uint32_t btnr = m_btnr.get_int(btnrp, bi_type::space_for_bt(bt));
+                    res = (bi_type::nr_to_bin(bt, btnr) >> bb_off) & bits::lo_set[len];
+                }
+            } else { // solve multiple block case by recursion
+                uint8_t b_len = block_size-bb_off;
+                uint8_t b_len_sum = 0;
+                do {
+                    res |= get_int(idx, b_len) << b_len_sum;
+                    idx += b_len;
+                    b_len_sum += b_len;
+                    len -= b_len;
+                    b_len = (len > block_size) ? block_size : len;
+                } while (len > 0);
+            }
+            return res;
+        }
+
 
         //! Assignment operator
         rrr_vector& operator=(const rrr_vector& rrr) {

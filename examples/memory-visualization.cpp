@@ -25,6 +25,8 @@ int main(int argc, char** argv)
 
     memory_monitor::stop();
 
+    std::cout << "peak usage = " << memory_monitor::peak() / (1024*1024) << " MB" << std::endl;
+
     std::ofstream cstofs("cst-construction.html");
     cout << "writing memory usage visualization to cst-construction.html\n";
     memory_monitor::write_memory_log<HTML_FORMAT>(cstofs);

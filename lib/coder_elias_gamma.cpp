@@ -1,4 +1,4 @@
-#include "sdsl/coder_elias_delta.hpp"
+#include "sdsl/coder_elias_gamma.hpp"
 
 namespace sdsl
 {
@@ -6,9 +6,9 @@ namespace sdsl
 namespace coder
 {
 
-elias_delta::impl elias_delta::data;
+elias_gamma::impl elias_gamma::data;
 
-uint64_t elias_delta::decode_prefix_sum(const uint64_t* data, const size_type start_idx, const size_type end_idx, size_type n)
+uint64_t elias_gamma::decode_prefix_sum(const uint64_t* data, const size_type start_idx, const size_type end_idx, size_type n)
 {
     if (n==0)
         return 0;
@@ -54,18 +54,6 @@ fill_buffer:
                 buffered = 64;
             }
         }
-        /*		if(w==0xFFFFFFFFFFFFFFFFULL){
-        			i += 64;
-        			value += 64;
-        			if(i >= n)
-        				return value - (i-n);
-        			buffered = 0;
-        			w = 0;
-        		//	continue;
-        			goto fill_buffer;
-        		}
-        */
-//		uint32_t rbp = (w == 0xFFFFFFFFFFFFFFFFULL)?64:bits::lo(~w);
         uint32_t rbp = bits::lo(~w);
         if (rbp > 0) {
             i += rbp;
@@ -77,15 +65,12 @@ fill_buffer:
             buffered -= rbp;
             w >>= rbp;
             if (buffered<16)
-//				continue;
                 goto fill_buffer;
         }
-//		assert(w!=0xFFFFFFFFFFFFFFFFULL);
-//		else
         {
             // i < n
 begin_decode:
-            uint32_t psum = elias_delta::data.prefixsum[w&0x0000FFFF];
+            uint32_t psum = elias_gamma::data.prefixsum[w&0x0000FFFF];
             if (!psum or i+((psum>>16)&0x00FF) > n) {
                 if (w==0) {// buffer is not full
                     w |= (((*data)>>read)<<buffered);
@@ -110,35 +95,9 @@ begin_decode:
                     }
                 }
 //				assert(w>0);
-                uint16_t len_1_len = bits::lo(w); // read length of length
-                buffered -= (len_1_len+1);
-                w >>= (len_1_len+1);
-                if (len_1_len > buffered) {// buffer is not full
-                    w |= (((*data)>>read)<<buffered);
-                    if (read >= buffered) {
-                        ++data;
-                        buffered += 64-read;
-                        read = 0;
-                    } else {
-                        read += 64-buffered;
-                        buffered = 64;
-                    };
-                    if (len_1_len > buffered) {
-                        w |= (((*data)>>read)<<buffered);
-                        if (read >= buffered) {
-                            ++data;
-                            buffered += 64-read;
-                            read = 0;
-                        } else {
-                            read += 64-buffered;
-                            buffered = 64;
-                        };
-                    }
-                }
-//				assert(len_1_len <= buffered);
-                uint16_t len_1 = (w&bits::lo_set[len_1_len]) + (1ULL << len_1_len) - 1;
-                buffered -= len_1_len;
-                w >>= len_1_len;
+                uint16_t len_1 = bits::lo(w); // read length of length
+                buffered -= (len_1+1);
+                w >>= (len_1+1);
                 if (len_1 > buffered) {// buffer is not full
                     w |= (((*data)>>read)<<buffered);
                     if (read >= buffered) {
@@ -161,11 +120,7 @@ begin_decode:
                         };
                     }
                 }
-//				if( len_1 > buffered ){
-//					std::cerr<<"len_1="<<len_1<<" buffered = "<<buffered<<std::endl;
-//				}
-//				assert(len_1 <= buffered);
-                value	+= (w&bits::lo_set[len_1]) + (len_1<64) * (1ULL << (len_1));
+                value	+= (w&bits::lo_set[len_1]) + (len_1<64) * (1ULL << len_1);
                 buffered -= len_1;
                 if (len_1 < 64) {
                     w >>= len_1;
@@ -188,14 +143,12 @@ begin_decode:
                     goto begin_decode;
             }
         }
-//		std::cerr<<i<<" / "<<n<<std::endl;
     };
-//	std::cerr<<value<<std::endl;
     return value;
 }
 
 
-uint64_t elias_delta::decode_prefix_sum(const uint64_t* data, const size_type start_idx, size_type n)
+uint64_t elias_gamma::decode_prefix_sum(const uint64_t* data, const size_type start_idx, size_type n)
 {
     if (n==0)
         return 0;
@@ -235,9 +188,9 @@ uint64_t elias_delta::decode_prefix_sum(const uint64_t* data, const size_type st
     }
 
 start_decoding:
-
     while (i < n) {// while not all values are decoded
         // n-i values to decode
+
         if (((*data>>offset)&0xF)==0xF) {
             uint8_t maxdecode = n-i > 63 ? 63 : n-i;
             uint8_t rbp = bits::lo(~bits::read_int(data, offset,maxdecode));
@@ -252,18 +205,18 @@ start_decoding:
             if (rbp == maxdecode)
                 continue;
         }
+
         while (i < n) {
-            uint32_t psum = elias_delta::data.prefixsum[bits::read_int(data, offset, 16)];
-//			if( psum == 0 or i+((psum>>16)&0x00FF) > n ){ // value does not fit in 16 bits
+            uint32_t psum = elias_gamma::data.prefixsum[bits::read_int(data, offset, 16)];
             if (psum == 0) { // value does not fit in 16 bits
                 goto decode_single;
             } else if (i+((psum>>16)&0x00FF) > n) { // decoded too much
                 if (n-i <= 8) {
-                    psum = elias_delta::data.prefixsum_8bit[bits::read_int(data, offset, 8) | ((n-i-1)<<8)];
+                    psum = elias_gamma::data.prefixsum_8bit[bits::read_int(data, offset, 8) | ((n-i-1)<<8)];
                     if (psum > 0) {
-                        value += (psum&0xF);
-                        i += ((psum>>4)&0xF);
-                        offset += (psum>>8);
+                        value += (psum&0xFF);
+                        i += ((psum>>8)&0xF);
+                        offset += (psum>>12);
                         if (offset>=64) {
                             offset&=0x3F;
                             ++data;
@@ -284,14 +237,13 @@ start_decoding:
         if (i<n) {
 decode_single:
             i++;
-            uint16_t len_1_len = bits::read_unary_and_move(data, offset); // read length of length of x
-            uint16_t len_1 	=  bits::read_int_and_move(data, offset, len_1_len) + (1ULL << len_1_len) - 1;
-            value	+= bits::read_int_and_move(data, offset, len_1) + (len_1<64) * (1ULL << (len_1));
-//			std::cout<<"decode single ("<<len_1_len<<","<<len_1<<","<<value<<")"<<std::endl;
+            uint16_t len_1 = bits::read_unary_and_move(data, offset); // read length of length of x
+            value	+= bits::read_int_and_move(data, offset, len_1) + (len_1<64) * (1ULL << len_1);
         }
     }
     return value;
 }
+
 
 } // end namespace sdsl
 } // end namespace coder
