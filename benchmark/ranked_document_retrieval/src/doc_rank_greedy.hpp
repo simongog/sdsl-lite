@@ -165,14 +165,6 @@ for (const auto& p : query) {
         if (0 != backward_search(m_csa_full, 0, m_csa_full.size()-1, p.begin(), p.end(), sp, ep)) {
             size_t f_t = calculate_df(sp,ep);
 
-            // check if f_t is correct
-            std::set<uint64_t> doc_ids;
-            for (size_t i=sp; i<=ep; i++) {
-                uint64_t did = m_wtd[i];
-                doc_ids.insert(did);
-            }
-
-            std::cout << "P='" << p << "' -> f_t-SADA = " << f_t << " f_t-REAL = " << doc_ids.size() << std::endl;
         }
     }
     if (ranges.size()) {
@@ -331,7 +323,6 @@ construct_sada_df(sdsl::cache_config& cconfig) {
 
 size_type
 calculate_df(size_t sp,size_t ep) const {
-    std::cout << "sp = " << sp << " ep = " << ep << " -> " << ep-sp+1 << "  ";
     size_t dup = 0;
     size_t y = m_sada_df_select(ep);
     if (0 == sp) {
