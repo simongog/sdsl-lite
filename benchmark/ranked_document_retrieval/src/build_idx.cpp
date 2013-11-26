@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
     auto stop = timer::now();
     auto elapsed = stop - start;
     std::cout << "construction time = "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed)
+              << std::chrono::duration_cast<std::chrono::seconds>(elapsed)
               .count() << " seconds." << std::endl;
     store_to_file(idx, idx_file);
     std::ofstream sfs(idx_file+".html");
