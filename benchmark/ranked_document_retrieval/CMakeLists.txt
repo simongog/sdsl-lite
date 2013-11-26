@@ -6,10 +6,6 @@ include_directories($ENV{HOME}/include ${CMAKE_HOME_DIRECTORY}/src)
 link_directories($ENV{HOME}/lib)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2 -O3 -std=c++11 -Wall -DNDEBUG")
 
-# add misc binaries
-add_executable(create_docweights_len.x src/create_docweights_len.cpp)
-target_link_libraries(create_docweights_len.x sdsl divsufsort divsufsort64 pthread)
-
 
 # read the index configs
 add_custom_target(create_indexes)
