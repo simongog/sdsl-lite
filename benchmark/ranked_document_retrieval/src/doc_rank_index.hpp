@@ -10,6 +10,7 @@ const std::string KEY_DOCWEIGHT = "docweights";
 const std::string KEY_DARRAY = "darray";
 const std::string KEY_DOCPERM = "docperm";
 const std::string KEY_SADADF = "sadadf";
+const std::string KEY_SADADFSEL = "sadadfsel";
 const std::string KEY_WTD = "wtd";
 const std::string KEY_C = "C";
 

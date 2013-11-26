@@ -35,16 +35,16 @@ template<>
 struct myline<0> {
     static vector<vector<uint64_t>> parse(char* str) {
         vector<vector<uint64_t>> query_terms;
-            vector<uint64_t> res;
-            stringstream ss(str);
-            uint64_t x;
-            while (ss >> x) {
-                if(x == 1) {
-                    query_terms.push_back(res);
-                    res.clear();
-                }
-                res.push_back(x);
+        vector<uint64_t> res;
+        stringstream ss(str);
+        uint64_t x;
+        while (ss >> x) {
+            if (x == 1) {
+                query_terms.push_back(res);
+                res.clear();
             }
+            res.push_back(x);
+        }
         return query_terms;
     }
 };
@@ -61,8 +61,8 @@ int main(int argc, char* argv[])
     string index_file = string(argv[1]);
     string pattern_file = string(argv[2]);
     uint64_t k = std::strtoul(argv[3],NULL,10);
-    idx_type idx;
 
+    idx_type idx;
     if (!load_from_file(idx, index_file)) {
         std::cerr << "Could not load index file" << std::endl;
         return 1;

@@ -36,7 +36,7 @@ foreach(f ${index_config_files})
 
   add_executable(query-idx-${NAME}.x src/query_idx.cpp)
   target_link_libraries(query-idx-${NAME}.x sdsl divsufsort divsufsort64 pthread)
-  set_property(TARGET query-idx-${NAME}.x PROPERTY COMPILE_DEFINITIONS NAME="${NAME}INT" IDX_TYPE=${TYPEINT})
+  set_property(TARGET query-idx-${NAME}.x PROPERTY COMPILE_DEFINITIONS NAME="${NAME}" IDX_TYPE=${TYPE})
 
   add_executable(query-idx-${NAME}-int.x src/query_idx.cpp)
   target_link_libraries(query-idx-${NAME}-int.x sdsl divsufsort divsufsort64 pthread)
@@ -54,7 +54,7 @@ foreach(f ${collection_config_files})
     set(${key} "${value}")
   endforeach(keyvalue)
 
-  add_custom_target(collection_${NAME} ALL DEPENDS create_indexes COMMAND ${CMAKE_HOME_DIRECTORY}/build_indexes.sh ${NAME} ${FILE} ${DOCWEIGHTS})
-  add_custom_target(collection_${NAME}_int ALL DEPENDS create_indexes_int COMMAND ${CMAKE_HOME_DIRECTORY}/build_indexes_int.sh ${NAME} ${FILEINT} ${DOCWEIGHTS})
+  #add_custom_target(collection_${NAME} ALL DEPENDS create_indexes COMMAND ${CMAKE_HOME_DIRECTORY}/build_indexes.sh ${NAME} ${FILE} ${DOCWEIGHTS})
+  #add_custom_target(collection_${NAME}_int ALL DEPENDS create_indexes_int COMMAND ${CMAKE_HOME_DIRECTORY}/build_indexes_int.sh ${NAME} ${FILEINT} ${DOCWEIGHTS})
 
 endforeach(f)
