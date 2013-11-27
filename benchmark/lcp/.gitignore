@@ -1,0 +1,11 @@
+*
+!.gitignore
+!lcp.config
+!README.md
+!bin/
+!src/
+!visualize/
+!compile_options.config
+!Makefile
+!results/
+!test_case.config

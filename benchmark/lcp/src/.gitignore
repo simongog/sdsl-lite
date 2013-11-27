@@ -1,0 +1,4 @@
+*
+!.gitignore
+!create_lcp.cpp
+!create_sa_bwt.cpp
