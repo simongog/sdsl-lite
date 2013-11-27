@@ -297,6 +297,7 @@ block_markused(mm_block_t* ptr)
 void
 hugepage_allocator::coalesce_block(mm_block_t* block)
 {
+    //std::cout << "coalesce_block()" << std::endl;
     mm_block_t* newblock = block;
     if (block_nextfree(block,m_top)) {
         mm_block_t* next = block_next(block,m_top);
@@ -323,14 +324,19 @@ hugepage_allocator::coalesce_block(mm_block_t* block)
 void
 hugepage_allocator::split_block(mm_block_t* bptr,size_t size)
 {
+    //std::cout << "split_block("<< (void*)bptr << ")" << std::endl;
     size_t blocksize = UNMASK_SIZE(bptr->size);
+    //std::cout << "cur_block_size = " << blocksize << std::endl;
     /* only split if we get at least a small block
        out of it */
     int64_t newblocksize = ALIGNSPLIT(blocksize - ALIGN(size+MM_BLOCK_OVERHEAD));
+    //std::cout << "new_block_size = " << newblocksize << std::endl;
     if (newblocksize >= (int64_t)SPLIT_THRESHOLD) {
         /* update blocksize of old block */
+        //std::cout << "block_update = " << blocksize-newblocksize << std::endl;
         block_update(bptr,blocksize-newblocksize);
         mm_block_t* newblock = (mm_block_t*)((char*)bptr+(blocksize-newblocksize));
+        //std::cout << "new block ptr = " << (void*)newblock << std::endl;
         block_update(newblock,newblocksize);
         coalesce_block(newblock);
     }
@@ -353,6 +359,7 @@ hugepage_allocator::hsbrk(size_t size)
 mm_block_t*
 hugepage_allocator::new_block(size_t size)
 {
+    //std::cout << "new_block(" << size << ")" << std::endl;
     size = ALIGN(size+MM_BLOCK_OVERHEAD);
     if (size < MIN_BLOCKSIZE) size = MIN_BLOCKSIZE;
     mm_block_t* ptr = (mm_block_t*) hsbrk(size);
@@ -364,9 +371,14 @@ mm_block_t*
 hugepage_allocator::last_block()
 {
     mm_block_t* last = nullptr;
+    //std::cout << "m_top = " << (void*)m_top << std::endl;
+    //std::cout << "m_base = " << (void*)m_base << std::endl;
     if (m_top != m_base) {
         mm_block_foot_t* fptr = (mm_block_foot_t*)(m_top - sizeof(size_t));
+        //std::cout << "foot of last = " << (void*)fptr << std::endl;
+        //std::cout << "size of last = " << UNMASK_SIZE(fptr->size) << std::endl;
         last = (mm_block_t*)(((uint8_t*)fptr) - UNMASK_SIZE(fptr->size) + sizeof(size_t));
+        //std::cout << "last = " << (void*)last << std::endl;
     }
     return last;
 }
@@ -394,6 +406,7 @@ hugepage_allocator::print_heap()
 void
 hugepage_allocator::remove_from_free_set(mm_block_t* block)
 {
+    //std::cout << "remove_from_free_set()" << std::endl;
     auto eq_range = m_free_large.equal_range(block->size);
     // find the block amoung the blocks with equal size
     auto itr = eq_range.first;
@@ -414,12 +427,16 @@ hugepage_allocator::remove_from_free_set(mm_block_t* block)
 void
 hugepage_allocator::insert_into_free_set(mm_block_t* block)
 {
-    m_free_large.insert({block->size,block});
+    //std::cout << "insert_into_free_set("<< (void*)block << "," << UNMASK_SIZE(block->size) << ")" << std::endl;
+    //std::cout << "insert_into_free_set("<< (void*)block << "," << block->size << ")" << std::endl;
+    m_free_large.insert( {block->size,block});
 }
 
 mm_block_t*
 hugepage_allocator::find_free_block(size_t size_in_bytes)
 {
+    //std::cout << "find_free_block(" << size_in_bytes << ")" << std::endl;
+
     mm_block_t* bptr = nullptr;
     auto free_block = m_free_large.lower_bound(size_in_bytes);
     if (free_block != m_free_large.end()) {
@@ -432,44 +449,57 @@ hugepage_allocator::find_free_block(size_t size_in_bytes)
 void*
 hugepage_allocator::mm_alloc(size_t size_in_bytes)
 {
+    //std::cout << "ALLOC(" << size_in_bytes << ")" << std::endl;
     mm_block_t* bptr = nullptr;
     if ((bptr=find_free_block(size_in_bytes + MM_BLOCK_OVERHEAD)) != nullptr) {
+        //std::cout << "found free block = " << (void*)bptr << std::endl;
         block_markused(bptr);
         /* split if we have a block too large for us? */
         split_block(bptr,size_in_bytes);
     } else {
+        //std::cout << "no free block found that is big enough!" << std::endl;
         // check if last block is free
+        //std::cout << "check last block" << std::endl;
         bptr = last_block();
         if (bptr && block_isfree(bptr)) {
+            //std::cout << "last block is free. -> extend!" << std::endl;
             // extent last block as it is free
             size_t blockdatasize = block_getdatasize(bptr);
             size_t needed = ALIGN(size_in_bytes - blockdatasize);
             hsbrk(needed);
             remove_from_free_set(bptr);
             block_update(bptr,blockdatasize+needed+sizeof(size_t)+sizeof(mm_block_foot_t));
-            insert_into_free_set(bptr);
+            //insert_into_free_set(bptr);
             block_markused(bptr);
         } else {
             bptr = new_block(size_in_bytes);
         }
     }
+    //print_heap();
+    //void* ptr = block_data(bptr);
+    //std::cout << "return ptr = " << ptr << std::endl;
     return block_data(bptr);
 }
 
 void
 hugepage_allocator::mm_free(void* ptr)
 {
+    //print_heap();
+    //std::cout << "FREE(" << ptr << ")" << std::endl;
     if (ptr) {
         mm_block_t* bptr = block_cur(ptr);
         block_markfree(bptr);
         /* coalesce if needed. otherwise just add */
         coalesce_block(bptr);
     }
+    //print_heap();
 }
 
 void*
 hugepage_allocator::mm_realloc(void* ptr, size_t size)
 {
+    //print_heap();
+    //std::cout << "REALLOC(" << ptr << "," << size << ")" << std::endl;
     /* handle special cases first */
     if (ptr==NULL) return mm_alloc(size);
     if (size==0) {
@@ -481,17 +511,22 @@ hugepage_allocator::mm_realloc(void* ptr, size_t size)
     bool need_malloc = 0;
     size_t blockdatasize = block_getdatasize(bptr);
     /* we do nothing if the size is equal to the block */
-    if (size == blockdatasize)
+    if (size == blockdatasize) {
+        //std::cout << "return ptr = " << ptr << std::endl;
         return ptr; /* do nothing if size fits already */
+    }
     if (size < blockdatasize) {
         /* we shrink */
         /* do we shrink enough to perform a split? */
+        //std::cout << "shrink!" << std::endl;
         split_block(bptr,size);
     } else {
+        //std::cout << "expand!" << std::endl;
         /* we expand */
         /* if the next block is free we could use it! */
         mm_block_t* next = block_next(bptr,m_top);
         if (!next) {
+            //std::cout << "no next! -> expand!" << std::endl;
             // we are the last block so we just expand
             blockdatasize = block_getdatasize(bptr);
             size_t needed = ALIGN(size - blockdatasize);
@@ -500,6 +535,7 @@ hugepage_allocator::mm_realloc(void* ptr, size_t size)
             return block_data(bptr);
         } else {
             // we are not the last block
+            //std::cout << "try combine next" << std::endl;
             if (next && block_isfree(next)) {
                 /* do we have enough space if we use the next block */
                 if (blockdatasize + UNMASK_SIZE(next->size) >= size) {
@@ -514,6 +550,7 @@ hugepage_allocator::mm_realloc(void* ptr, size_t size)
                 }
             } else {
                 /* try combing the previous block if free */
+                //std::cout << "try combine prev" << std::endl;
                 mm_block_t* prev = block_prev(bptr,m_first_block);
                 if (prev && block_isfree(prev)) {
                     if (blockdatasize + UNMASK_SIZE(prev->size) >= size) {
@@ -535,11 +572,14 @@ hugepage_allocator::mm_realloc(void* ptr, size_t size)
         }
     }
     if (need_malloc) {
+        //std::cout << "need_alloc in REALLOC!" << std::endl;
         void* newptr = mm_alloc(size);
         memcpy(newptr,ptr,size);
         mm_free(ptr);
         ptr = newptr;
     }
+    //print_heap();
+    //std::cout << "return ptr = " << ptr << std::endl;
     return ptr;
 }
 
