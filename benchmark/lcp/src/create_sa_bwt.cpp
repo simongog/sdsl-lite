@@ -52,9 +52,12 @@ int main(int argc, char** argv)
     cout << "# SA_MMPEAK = " << memory_monitor::peak() << endl;
 
     //construct bwt
+    memory_monitor::start();
     start = high_resolution_clock::now();
-    construct_bwt<8>(config);
-    register_cache_file(conf::KEY_BWT, config);
+    {
+        construct_bwt<8>(config);
+        register_cache_file(conf::KEY_BWT, config);
+    }
     stop = high_resolution_clock::now();
     memory_monitor::stop();
     cout << "# BWT_TIME = " << duration_cast<milliseconds>(stop-start).count()/(double)1000 <<endl;
