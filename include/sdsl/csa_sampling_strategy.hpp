@@ -146,14 +146,14 @@ class _text_order_sampling : public int_vector<t_width>
             int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA, cconfig));
             size_type n = sa_buf.size();
             bit_vector marked(n, 0);                // temporary bitvector for the marked text positions
-            this->width(bits::hi(n)+1);
+            this->width(bits::hi(n/sample_dens)+1);
             this->resize((n+sample_dens-1)/sample_dens);
 
             for (size_type i=0, sa_cnt=0; i < n; ++i) {
                 size_type sa = sa_buf[i];
                 if (0 == (sa % sample_dens)) {
                     marked[i] = 1;
-                    (*this)[sa_cnt++] = sa;
+                    (*this)[sa_cnt++] = sa / sample_dens;
                 }
             }
             m_marked = std::move(bit_vector_type(marked));
@@ -174,7 +174,7 @@ class _text_order_sampling : public int_vector<t_width>
 
         //! Return the suffix array value for the sampled index i
         inline value_type sa_value(size_type i) const {
-            return (*this)[m_rank_marked(i)];
+            return (*this)[m_rank_marked(i)] * sample_dens;
         }
 
         //! Assignment operation
