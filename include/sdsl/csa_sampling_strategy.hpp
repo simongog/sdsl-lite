@@ -533,10 +533,13 @@ class _text_order_isa_sampling_support : public int_vector<>
         }
 };
 
-template<class t_sel>
+template<class t_sel=void>
 struct text_order_isa_sampling_support {
     template<class t_csa>
-    using type = _text_order_isa_sampling_support<t_csa, t_sel>;
+    using type = _text_order_isa_sampling_support<t_csa,
+          typename std::conditional<std::is_void<t_sel>::value,
+          typename t_csa::sa_sample_type::bv_type::select_1_type,
+          t_sel>::type>;
     using sampling_category = isa_sampling_tag;
 };
 
