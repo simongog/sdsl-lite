@@ -66,6 +66,8 @@ class _sa_order_sampling : public int_vector<t_width>
         typedef typename base_type::size_type  size_type;	// make typedefs of base_type visible
         typedef typename base_type::value_type value_type;	//
         enum { sample_dens = t_csa::sa_sample_dens };
+        enum { text_order = false };
+        typedef sa_sampling_tag                sampling_category;
 
         //! Default constructor
         _sa_order_sampling() {}
@@ -87,7 +89,7 @@ class _sa_order_sampling : public int_vector<t_width>
                 size_type sa = sa_buf[i];
                 if (sample_dens == cnt_mod) {
                     cnt_mod = 0;
-                    (*this)[cnt_sum++] = sa;
+                    base_type::operator[](cnt_sum++) = sa;
                 }
             }
         }
@@ -98,21 +100,16 @@ class _sa_order_sampling : public int_vector<t_width>
         }
 
         //! Return the suffix array value for the sampled index i
-        inline value_type sa_value(size_type i) const {
-            return (*this)[i/sample_dens];
+        inline value_type operator[](size_type i) const {
+            return base_type::operator[](i/sample_dens);
         }
 };
 
 template<uint8_t t_width=0>
-class sa_order_sa_sampling
-{
-    public:
-        template<class t_csa> // template inner class which is used in CSAs to parametrize the
-        class type            // sampling strategy class with the Sampling density of the CSA
-        {
-            public:
-                typedef _sa_order_sampling<t_csa, t_width> sample_type;
-        };
+struct sa_order_sa_sampling {
+    template<class t_csa>
+    using type = _sa_order_sampling<t_csa, t_width>;
+    using sampling_category = sa_sampling_tag;
 };
 
 
@@ -130,7 +127,12 @@ class _text_order_sampling : public int_vector<t_width>
         typedef int_vector<t_width> base_type;
         typedef typename base_type::size_type  size_type;	// make typedefs of base_type visible
         typedef typename base_type::value_type value_type;	//
+        typedef bit_vector_type                bv_type;
         enum { sample_dens = t_csa::sa_sample_dens };
+        enum { text_order = true };
+        typedef sa_sampling_tag                sampling_category;
+
+        const bit_vector_type& marked = m_marked;
 
         //! Default constructor
         _text_order_sampling() {}
@@ -153,7 +155,7 @@ class _text_order_sampling : public int_vector<t_width>
                 size_type sa = sa_buf[i];
                 if (0 == (sa % sample_dens)) {
                     marked[i] = 1;
-                    (*this)[sa_cnt++] = sa / sample_dens;
+                    base_type::operator[](sa_cnt++) = sa / sample_dens;
                 }
             }
             m_marked = std::move(bit_vector_type(marked));
@@ -173,8 +175,12 @@ class _text_order_sampling : public int_vector<t_width>
         }
 
         //! Return the suffix array value for the sampled index i
-        inline value_type sa_value(size_type i) const {
-            return (*this)[m_rank_marked(i)] * sample_dens;
+        inline value_type operator[](size_type i) const {
+            return base_type::operator[](m_rank_marked(i)) * sample_dens;
+        }
+
+        value_type condensed_sa(size_type i) const {
+            return base_type::operator[](i);
         }
 
         //! Assignment operation
@@ -213,20 +219,14 @@ class _text_order_sampling : public int_vector<t_width>
         }
 };
 
-template<class t_bit_vec=bit_vector, class t_rank_sup=typename t_bit_vec::rank_1_type, uint8_t t_width=0>
-class text_order_sa_sampling
+template<class t_bit_vec=bit_vector,
+         class t_rank_sup=typename t_bit_vec::rank_1_type,
+         uint8_t t_width=0>
+struct text_order_sa_sampling
 {
-    public:
-        template<class t_csa> // template inner class which is used in CSAs to parametrize the
-        class type            // sampling strategy class with the Sampling density of the CSA
-        {
-            public:
-                typedef _text_order_sampling<t_csa,
-                        t_bit_vec,
-                        t_rank_sup,
-                        t_width
-                        > sample_type;
-        };
+    template<class t_csa>
+    using type = _text_order_sampling<t_csa, t_bit_vec, t_rank_sup, t_width>;
+    using sampling_category = sa_sampling_tag;
 };
 
 /*
@@ -268,6 +268,8 @@ class _bwt_sampling : public int_vector<t_width>
         typedef typename base_type::size_type  size_type;	// make typedefs of base_type visible
         typedef typename base_type::value_type value_type;	//
         enum { sample_dens = t_csa::sa_sample_dens };
+        enum { text_order = false };
+        typedef sa_sampling_tag                sampling_category;
 
         //! Default constructor
         _bwt_sampling() {}
@@ -311,7 +313,7 @@ class _bwt_sampling : public int_vector<t_width>
             for (size_type i=0; i < n; ++i) {
                 size_type sa  = sa_buf[i];
                 if (marked[i]) {
-                    (*this)[sa_cnt++] = sa;
+                    base_type::operator[](sa_cnt++) = sa;
                 }
             }
             util::assign(m_marked, marked);
@@ -331,8 +333,8 @@ class _bwt_sampling : public int_vector<t_width>
         }
 
         //! Return the suffix array value for the sampled index i
-        inline value_type sa_value(size_type i) const {
-            return (*this)[m_rank_marked(i)];
+        inline value_type operator[](size_type i) const {
+            return base_type::operator[](m_rank_marked(i)) * sample_dens;
         }
 
         //! Assignment operation
@@ -371,21 +373,176 @@ class _bwt_sampling : public int_vector<t_width>
         }
 };
 
-template<class t_bit_vec=bit_vector, class t_rank_sup=typename t_bit_vec::rank_1_type, uint8_t t_width=0>
-class sa_bwt_sampling
+template<class t_bit_vec=bit_vector,
+         class t_rank_sup=typename t_bit_vec::rank_1_type,
+         uint8_t t_width=0>
+struct sa_bwt_sampling
+{
+    template<class t_csa>
+    using type = _bwt_sampling<t_csa, t_bit_vec, t_rank_sup, t_width>;
+    using sampling_category = sa_sampling_tag;
+};
+
+template<class t_csa, uint8_t t_width=0>
+class _isa_sampling : public int_vector<t_width>
 {
     public:
-        template<class t_csa> // template inner class which is used in CSAs to parametrize the
-        class type            // sampling strategy class with the Sampling density of the CSA
-        {
-            public:
-                typedef _bwt_sampling<t_csa,
-                        t_bit_vec,
-                        t_rank_sup,
-                        t_width
-                        > sample_type;
-        };
+        typedef int_vector<t_width> base_type;
+        typedef typename base_type::size_type  size_type;	// make typedefs of base_type visible
+        typedef typename base_type::value_type value_type;	//
+        typedef typename t_csa::sa_sample_type sa_type;     // sa sample type
+        enum { sample_dens = t_csa::isa_sample_dens };
+        typedef isa_sampling_tag               sampling_category;
+
+        //! Default constructor
+        _isa_sampling() {}
+
+        //! Constructor
+        /*
+         * \param cconfig   Cache configuration (SA is expected to be cached.).
+         * \param sa_sample Pointer to the corresponding SA sampling. Not used in this class.
+         * \par Time complexity
+         *      Linear in the size of the suffix array.
+         */
+        _isa_sampling(const cache_config& cconfig, SDSL_UNUSED const sa_type* sa_sample=nullptr) {
+            int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA, cconfig));
+            size_type n = sa_buf.size();
+            if (n >= 1) { // so n+t_csa::isa_sample_dens >= 2
+                this->width(bits::hi(n)+1);
+                this->resize((n-1)/sample_dens+1);
+            }
+            for (size_type i=0; i < this->size(); ++i) base_type::operator[](i) = 0;
+
+            for (size_type i=0; i < n; ++i) {
+                size_type sa = sa_buf[i];
+                if ((sa % sample_dens) == 0) {
+                    base_type::operator[](sa/sample_dens) = i;
+                }
+            }
+        }
+
+        //! Return the inverse suffix array value for the sampled index i
+        inline value_type operator[](size_type i) const {
+            return base_type::operator[](i/sample_dens);
+        }
+
+        //! Load sampling from disk
+        void load(std::istream& in, SDSL_UNUSED const sa_type* sa_sample=nullptr) {
+            base_type::load(in);
+        }
+
+        void set_vector(SDSL_UNUSED const sa_type*) {}
 };
+
+template<uint8_t t_width=0>
+struct isa_sampling {
+    template<class t_csa>
+    using type = _isa_sampling<t_csa, t_width>;
+    using sampling_category = isa_sampling_tag;
+};
+
+template<class t_csa, class t_sel>
+class _text_order_isa_sampling_support : public int_vector<>
+{
+        static_assert(t_csa::sa_sample_dens == t_csa::isa_sample_dens,
+                      "ISA sampling requires: sa_sample_dens == isa_sample_dens");
+    public:
+        typedef int_vector<> base_type;
+        typedef typename base_type::size_type  size_type;	// make typedefs of base_type visible
+        typedef typename base_type::value_type value_type;	//
+        typedef typename t_csa::sa_sample_type sa_type;     // sa sample type
+        typedef typename sa_type::bv_type      bv_type;     // bitvector type used to mark SA samples
+        enum { sample_dens = t_csa::isa_sample_dens };
+        typedef isa_sampling_tag               sampling_category;
+
+        t_sel m_select_marked;
+
+        //! Default constructor
+        _text_order_isa_sampling_support() {}
+
+        //! Constructor
+        /*
+         * \param cconfig   Cache configuration. (Not used in this class)
+         * \param sa_sample Pointer to the corresponding SA sampling..
+         * \par Time complexity
+         *      Linear in the size of the suffix array.
+         */
+        _text_order_isa_sampling_support(SDSL_UNUSED const cache_config& cconfig,
+                                         const typename std::enable_if<sa_type::text_order, sa_type*>::type sa_sample) {
+            size_type n = sa_sample->size();
+            // generate inverse permutation
+            this->width(bits::hi(n)+1);
+            this->resize(sa_sample->size());
+            for (size_type i=0; i < n; ++i) {
+                base_type::operator[](sa_sample->condensed_sa(i)) = i;
+            }
+            // and initialize the select support on bitvector marked
+            m_select_marked = t_sel(&(sa_sample->marked));
+        }
+
+        //! Copy constructor
+        _text_order_isa_sampling_support(const _text_order_isa_sampling_support& st) : base_type(st) {
+            m_select_marked = st.m_select_marked;
+        }
+
+        //! Return the inverse suffix array value for the sampled index i
+        inline value_type operator[](size_type i) const {
+            return m_select_marked(base_type::operator[](i/sample_dens)+1);
+        }
+
+
+        //! Assignment operation
+        _text_order_isa_sampling_support& operator=(const _text_order_isa_sampling_support& st) {
+            if (this != &st) {
+                base_type::operator=(st);
+                m_select_marked = st.m_select_marked;
+            }
+            return *this;
+        }
+
+        //! Swap operation
+        void swap(_text_order_isa_sampling_support& st) {
+            if (this != &st) {
+                base_type::swap(st);
+                m_select_marked.swap(st.m_select_marked);
+            }
+        }
+
+        size_type serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+            size_type written_bytes = 0;
+            written_bytes += base_type::serialize(out, child, "samples");
+            written_bytes += m_select_marked.serialize(out, child, "select_marked");
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
+
+        //! Load sampling from disk
+        void load(std::istream& in, const sa_type* sa_sample=nullptr) {
+            base_type::load(in);
+            m_select_marked.load(in);
+            set_vector(sa_sample);
+        }
+
+        void set_vector(const sa_type* sa_sample=nullptr) {
+            if (sa_sample == nullptr) {
+                m_select_marked.set_vector(nullptr);
+            } else {
+                m_select_marked.set_vector(&(sa_sample->marked));
+            }
+        }
+};
+
+template<class t_sel>
+struct text_order_isa_sampling_support {
+    template<class t_csa>
+    using type = _text_order_isa_sampling_support<t_csa, t_sel>;
+    using sampling_category = isa_sampling_tag;
+};
+
+
+
+
 
 } // end namespace
 

@@ -446,20 +446,21 @@ class isa_of_csa_wt
     public:
         //! Constructor
         isa_of_csa_wt(const t_csa& csa_wt) : m_csa(csa_wt) {}
-        //! Calculate the Burrows Wheeler Transform (BWT) at position i.
-        /*! \param i The index for which the \f$\Psi\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
-         *  \par Time complexity
-         *      \f$ \Order{\log |\Sigma|} \f$
+
+        //! Access operator to ISA.
+        /*! \param i Index \f$i\in [0..size()-1]\f$.
          */
         value_type operator[](size_type i)const {
             assert(i < size());
-            size_type ii;
+            value_type result = 0;
             // get the leftmost sampled isa value to the right of i
-            value_type result = m_csa.isa_sample[ ii = ((i+m_csa.isa_sample_dens-1)/m_csa.isa_sample_dens) ];
-            ii *= m_csa.isa_sample_dens;
+            size_type ii = i+m_csa.isa_sample_dens-1;
             if (ii >= m_csa.size()) {
-                i = m_csa.size() - 1 - i;
+                result = m_csa.isa_sample[0];
+                i = m_csa.size() - i;
             } else {
+                result = m_csa.isa_sample[ ii ];
+                ii = (ii/m_csa.isa_sample_dens)*m_csa.isa_sample_dens;
                 i = ii - i;
             }
             while (i--) {
@@ -467,11 +468,12 @@ class isa_of_csa_wt
             }
             return result;
         }
-        //! Returns the size of the BWT function.
+
+        //! Returns the size of the CSA.
         size_type size()const {
             return m_csa.size();
         }
-        //! Returns if the BWT function is empty.
+        //! Returns if the CSA is empty.
         size_type empty()const {
             return m_csa.empty();
         }
@@ -499,26 +501,25 @@ class isa_of_csa_psi
     public:
         //! Constructor
         isa_of_csa_psi(const t_csa& csa_wt) : m_csa(csa_wt) {}
-        //! Calculate the Burrows Wheeler Transform (BWT) at position i.
-        /*! \param i The index for which the \f$\Psi\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
-         *  \par Time complexity
-         *      \f$ \Order{\log |\Sigma|} \f$
+
+        //! Access operator to ISA.
+        /*! \param i Index \f$i\in [0..size()-1]\f$.
          */
         value_type operator[](size_type i)const {
             assert(i < size());
-            // get the rightmost sampled isa value
-            value_type result = m_csa.isa_sample[i/m_csa.isa_sample_dens];
+            // get the rightmost sampled isa value to the left of i
+            value_type result = m_csa.isa_sample[i];
             i = i % m_csa.isa_sample_dens;
             while (i--) {
                 result = m_csa.psi[result];
             }
             return result;
         }
-        //! Returns the size of the BWT function.
+        //! Returns the size of the CSA.
         size_type size()const {
             return m_csa.size();
         }
-        //! Returns if the BWT function is empty.
+        //! Returns if the CSA is empty.
         size_type empty()const {
             return m_csa.empty();
         }
@@ -625,28 +626,6 @@ class text_of_csa
             return const_iterator(this, size());
         }
 };
-
-template<class t_csa, uint8_t int_width>
-void set_isa_samples(int_vector_buffer<int_width>& sa_buf, typename t_csa::isa_sample_type& isa_sample)
-{
-    typedef typename t_csa::size_type size_type;
-    auto n = sa_buf.size();
-    isa_sample.width(bits::hi(n)+1);
-    if (n >= 1) { // so n+t_csa::isa_sample_dens >= 2
-        isa_sample.resize((n-1+t_csa::isa_sample_dens-1)/t_csa::isa_sample_dens + 1);
-    }
-    util::set_to_value(isa_sample, 0);
-
-    for (size_type i=0; i < n; ++i) {
-        size_type sa = sa_buf[i];
-        if ((sa % t_csa::isa_sample_dens) == 0) {
-            isa_sample[sa/t_csa::isa_sample_dens] = i;
-        } else if (sa+1 == n) {
-            isa_sample[(sa+t_csa::isa_sample_dens-1)/t_csa::isa_sample_dens] = i;
-        }
-    }
-}
-
 
 }
 

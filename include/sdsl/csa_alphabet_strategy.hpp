@@ -104,6 +104,20 @@ struct alphabet_trait<int_alphabet_tag> {
     typedef int_alphabet<> type;
 };
 
+// see http://stackoverflow.com/questions/13514587/c-check-for-nested-typedef-of-a-template-parameter-to-get-its-scalar-base-type
+// for the next three functions
+
+
+template<class t_wt, class t_enable = void>
+struct wt_alphabet_trait {
+    typedef t_enable type;
+};
+
+template<class t_wt>
+struct wt_alphabet_trait<t_wt, typename enable_if_type<typename t_wt::alphabet_category>::type> {
+    using type = typename alphabet_trait<typename t_wt::alphabet_category>::type;
+};
+
 //! A simple space greedy representation for byte alphabets.
 /*!
  *  \par Space consumption:

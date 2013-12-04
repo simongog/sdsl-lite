@@ -75,7 +75,7 @@ class csa_bitcompressed
         typedef text_of_csa<csa_bitcompressed>                  text_type;
         typedef first_row_of_csa<csa_bitcompressed>             first_row_type;
         typedef _sa_order_sampling<csa_bitcompressed,0>         sa_sample_type;
-        typedef int_vector<>                                    isa_sample_type;
+        typedef _isa_sampling<csa_bitcompressed,0>              isa_sample_type;
         typedef isa_sample_type                                 isa_type;
         typedef t_alphabet_strat                                alphabet_type;
         typedef typename alphabet_type::char_type               char_type; // Note: This is the char type of the CSA not the WT!
@@ -137,12 +137,9 @@ class csa_bitcompressed
                 sa_sample_type tmp_sample(config);
                 m_sa.swap(tmp_sample);
             }
-            set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
-
-            if (!store_to_file(m_isa, cache_file_name(conf::KEY_ISA,config), true)) {
-                throw std::ios_base::failure("#csa_bitcompressed: Cannot store ISA to file system!");
-            } else {
-                register_cache_file(conf::KEY_ISA, config);
+            {
+                isa_sample_type tmp_sample(config);
+                m_isa.swap(tmp_sample);
             }
         }
 
