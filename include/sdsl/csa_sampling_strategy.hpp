@@ -441,21 +441,162 @@ struct isa_sampling {
     using sampling_category = isa_sampling_tag;
 };
 
-template<class t_csa, class t_sel>
-class _text_order_isa_sampling_support : public int_vector<>
+template<uint64_t t_s, class t_bv=bit_vector, class t_rank=typename bit_vector::rank_1_type>
+class inv_perm_support
+{
+    public:
+        typedef int_vector<>        iv_type;
+        typedef iv_type::size_type  size_type;
+        typedef iv_type::value_type value_type;
+        typedef t_bv                bit_vector_type;
+        typedef t_rank              rank_type;
+    private:
+        const iv_type*  m_v = nullptr;   // pointer to supported permutation
+        iv_type         m_back_pointer;  // back pointers
+        bit_vector_type m_marked;        // back pointer marking
+        rank_type       m_rank_marked;   // rank support for back pointer marking
+    public:
+
+        inv_perm_support() {};
+
+        //! Constructor
+        inv_perm_support(const iv_type* v) : m_v(v) {
+            bit_vector marked = bit_vector(m_v->size(), 0);
+            bit_vector done   = bit_vector(m_v->size(), 0);
+
+            size_type max_back_pointer = 0;
+            for (size_type i = 0; i < m_v->size(); ++i) {
+                if (!done[i]) {
+                    done[i] = 1;
+                    size_type back_pointer=i, j = i, j_new=0;
+                    uint64_t  steps = 0, all_steps = 0;
+                    while ((j_new=(*m_v)[j]) != i) {
+                        j = j_new;
+                        done[j] = 1;
+                        ++steps; ++all_steps;
+                        if (t_s == steps) {
+                            max_back_pointer = std::max(max_back_pointer, back_pointer);
+                            marked[j] = 1;
+                            steps = 0;
+                            back_pointer = j;
+                        }
+                    }
+                    if (all_steps > t_s) {
+                        marked[i] = 1;
+                        max_back_pointer = std::max(max_back_pointer, back_pointer);
+                    }
+                }
+            }
+
+            m_marked = t_bv(marked);
+            util::clear(marked);
+            util::init_support(m_rank_marked, &m_marked);
+
+            done   = bit_vector(m_v->size(), 0);
+            size_type n_bp = m_rank_marked(m_v->size());
+            m_back_pointer = int_vector<>(n_bp, 0, bits::hi(max_back_pointer)+1);
+
+            for (size_type i = 0; i < m_v->size(); ++i) {
+                if (!done[i]) {
+                    done[i] = 1;
+                    size_type back_pointer = i, j = i, j_new=0;
+                    uint64_t  steps = 0, all_steps = 0;
+                    while ((j_new=(*m_v)[j]) != i) {
+                        j = j_new;
+                        done[j] = 1;
+                        ++steps; ++all_steps;
+                        if (t_s == steps) {
+                            m_back_pointer[m_rank_marked(j)] = back_pointer;
+                            steps = 0;
+                            back_pointer = j;
+                        }
+                    }
+                    if (all_steps > t_s) {
+                        m_back_pointer[m_rank_marked(i)] = back_pointer;
+                    }
+                }
+            }
+        }
+
+        //! Access operator
+        value_type operator[](size_type i) const {
+            size_type j = i, j_new=0;
+            while ((j_new=(*m_v)[j]) != i) {
+                if (m_marked[j]) {
+                    j = m_back_pointer[m_rank_marked(j)];
+                    while ((j_new=(*m_v)[j]) != i) j = j_new;
+                } else {
+                    j = j_new;
+                }
+            }
+            return j;
+        }
+
+        size_type size() const {
+            return m_v->size();
+        }
+
+        void set_vector(const iv_type* v) { m_v = v; }
+
+        //! Assignment operation
+        inv_perm_support& operator=(const inv_perm_support& p) {
+            if (this != &p) {
+                m_back_pointer = p.m_back_pointer;
+                m_marked         = p.m_marked;
+                m_rank_marked    = p.m_rank_marked;
+                m_rank_marked.set_vector(&m_marked);
+            }
+            return *this;
+        }
+
+        //! Swap operation
+        void swap(inv_perm_support& p) {
+            if (this != &p) {
+                m_back_pointer.swap(p.m_back_pointer);
+                m_marked.swap(p.m_marked);
+                util::swap_support(m_rank_marked, p.m_rank_marked, &m_marked, &(p.m_marked));
+            }
+        }
+
+        size_type serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+            size_type written_bytes = 0;
+            written_bytes += m_back_pointer.serialize(out, child, "back_pointer");
+            written_bytes += m_marked.serialize(out, child, "marked");
+            written_bytes += m_rank_marked.serialize(out, child, "rank_marked");
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
+
+        //! Load sampling from disk
+        void load(std::istream& in) {
+            m_back_pointer.load(in);
+            m_marked.load(in);
+            m_rank_marked.load(in, &m_marked);
+        }
+};
+
+
+
+
+template<class t_csa, class t_inv_perm, class t_sel>
+class _text_order_isa_sampling_support
 {
         static_assert(t_csa::sa_sample_dens == t_csa::isa_sample_dens,
                       "ISA sampling requires: sa_sample_dens == isa_sample_dens");
     public:
-        typedef int_vector<> base_type;
-        typedef typename base_type::size_type  size_type;	// make typedefs of base_type visible
-        typedef typename base_type::value_type value_type;	//
+        typedef typename bit_vector::size_type  size_type;
+        typedef typename bit_vector::value_type value_type;
         typedef typename t_csa::sa_sample_type sa_type;     // sa sample type
         typedef typename sa_type::bv_type      bv_type;     // bitvector type used to mark SA samples
         enum { sample_dens = t_csa::isa_sample_dens };
         typedef isa_sampling_tag               sampling_category;
-
+    private:
+//        int_vector<> m_inv_perm;
         t_sel m_select_marked;
+        t_inv_perm m_inv_perm;
+
+    public:
 
         //! Default constructor
         _text_order_isa_sampling_support() {}
@@ -469,32 +610,36 @@ class _text_order_isa_sampling_support : public int_vector<>
          */
         _text_order_isa_sampling_support(SDSL_UNUSED const cache_config& cconfig,
                                          const typename std::enable_if<sa_type::text_order, sa_type*>::type sa_sample) {
-            size_type n = sa_sample->size();
+//            size_type n = sa_sample->size();
             // generate inverse permutation
-            this->width(bits::hi(n)+1);
-            this->resize(sa_sample->size());
-            for (size_type i=0; i < n; ++i) {
-                base_type::operator[](sa_sample->condensed_sa(i)) = i;
-            }
+//            m_inv_perm.width(bits::hi(n)+1);
+//            m_inv_perm.resize(sa_sample->size());
+//            for (size_type i=0; i < n; ++i) {
+//                m_inv_perm[sa_sample->condensed_sa(i)] = i;
+//            }
             // and initialize the select support on bitvector marked
             m_select_marked = t_sel(&(sa_sample->marked));
+            const int_vector<>* perm = (const int_vector<>*)sa_sample;
+            m_inv_perm = t_inv_perm(perm);
+            m_inv_perm.set_vector(perm);
         }
 
         //! Copy constructor
-        _text_order_isa_sampling_support(const _text_order_isa_sampling_support& st) : base_type(st) {
+        _text_order_isa_sampling_support(const _text_order_isa_sampling_support& st) {
+            m_inv_perm = st.m_inv_perm;
             m_select_marked = st.m_select_marked;
         }
 
         //! Return the inverse suffix array value for the sampled index i
         inline value_type operator[](size_type i) const {
-            return m_select_marked(base_type::operator[](i/sample_dens)+1);
+            return m_select_marked(m_inv_perm[i/sample_dens]+1);
         }
 
 
         //! Assignment operation
         _text_order_isa_sampling_support& operator=(const _text_order_isa_sampling_support& st) {
             if (this != &st) {
-                base_type::operator=(st);
+                m_inv_perm = st.m_inv_perm;
                 m_select_marked = st.m_select_marked;
             }
             return *this;
@@ -503,7 +648,7 @@ class _text_order_isa_sampling_support : public int_vector<>
         //! Swap operation
         void swap(_text_order_isa_sampling_support& st) {
             if (this != &st) {
-                base_type::swap(st);
+                m_inv_perm.swap(st.m_inv_perm);
                 m_select_marked.swap(st.m_select_marked);
             }
         }
@@ -511,7 +656,7 @@ class _text_order_isa_sampling_support : public int_vector<>
         size_type serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += base_type::serialize(out, child, "samples");
+            written_bytes += m_inv_perm.serialize(out, child, "samples");
             written_bytes += m_select_marked.serialize(out, child, "select_marked");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
@@ -519,7 +664,7 @@ class _text_order_isa_sampling_support : public int_vector<>
 
         //! Load sampling from disk
         void load(std::istream& in, const sa_type* sa_sample=nullptr) {
-            base_type::load(in);
+            m_inv_perm.load(in);
             m_select_marked.load(in);
             set_vector(sa_sample);
         }
@@ -527,25 +672,25 @@ class _text_order_isa_sampling_support : public int_vector<>
         void set_vector(const sa_type* sa_sample=nullptr) {
             if (sa_sample == nullptr) {
                 m_select_marked.set_vector(nullptr);
+                m_inv_perm.set_vector(nullptr);
             } else {
                 m_select_marked.set_vector(&(sa_sample->marked));
+                m_inv_perm.set_vector((const int_vector<>*)sa_sample);
             }
         }
 };
 
-template<class t_sel=void>
+template<class t_inv_perm=inv_perm_support<8>, class t_sel=void>
 struct text_order_isa_sampling_support {
     template<class t_csa>
-    using type = _text_order_isa_sampling_support<t_csa,
-          typename std::conditional<std::is_void<t_sel>::value,
-          typename t_csa::sa_sample_type::bv_type::select_1_type,
-          t_sel>::type>;
+    using type = _text_order_isa_sampling_support<
+                 t_csa,
+                 t_inv_perm,
+                 typename std::conditional<std::is_void<t_sel>::value,
+                 typename t_csa::sa_sample_type::bv_type::select_1_type,
+                 t_sel>::type>;
     using sampling_category = isa_sampling_tag;
 };
-
-
-
-
 
 } // end namespace
 
