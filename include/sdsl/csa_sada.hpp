@@ -59,6 +59,15 @@ template<class t_enc_vec         = enc_vector<>,          // Vector type used to
          >
 class csa_sada
 {
+        static_assert(is_enc_vec<t_enc_vec>::value,
+                      "First template argument has to be of type env_vector.");
+        static_assert(std::is_same<typename sampling_tag<t_sa_sample_strat>::type, sa_sampling_tag>::value,
+                      "Forth template argument has to be a suffix array sampling strategy.");
+        static_assert(std::is_same<typename sampling_tag<t_isa_sample_strat>::type, isa_sampling_tag>::value,
+                      "Fifth template argument has to be a inverse suffix array sampling strategy.");
+        static_assert(is_alphabet<t_alphabet_strat>::value,
+                      "Sixth template argument has to be a alphabet strategy.");
+
         friend class bwt_of_csa_psi<csa_sada>;
     public:
         enum { sa_sample_dens = t_dens,

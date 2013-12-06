@@ -452,16 +452,12 @@ class isa_of_csa_wt
          */
         value_type operator[](size_type i)const {
             assert(i < size());
-            value_type result = 0;
-            // get the leftmost sampled isa value to the right of i
-            size_type ii = i+m_csa.isa_sample_dens-1;
-            if (ii >= m_csa.size()) {
-                result = m_csa.isa_sample[0];
-                i = m_csa.size() - i;
+            auto sample = m_csa.isa_sample.sample_qeq(i);
+            value_type result = std::get<0>(sample);
+            if (std::get<1>(sample) < i) {
+                i = std::get<1>(sample) + m_csa.size() - i;
             } else {
-                result = m_csa.isa_sample[ ii ];
-                ii = (ii/m_csa.isa_sample_dens)*m_csa.isa_sample_dens;
-                i = ii - i;
+                i = std::get<1>(sample) - i;
             }
             while (i--) {
                 result = m_csa.lf[result];
@@ -508,8 +504,9 @@ class isa_of_csa_psi
         value_type operator[](size_type i)const {
             assert(i < size());
             // get the rightmost sampled isa value to the left of i
-            value_type result = m_csa.isa_sample[i];
-            i = i % m_csa.isa_sample_dens;
+            auto sample = m_csa.isa_sample.sample_leq(i);
+            value_type result = std::get<0>(sample);
+            i = i - std::get<1>(sample);
             while (i--) {
                 result = m_csa.psi[result];
             }

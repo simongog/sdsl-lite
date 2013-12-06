@@ -74,6 +74,7 @@ class enc_vector
         typedef typename enc_vector_trait<t_width>::int_vector_type int_vector_type;
         typedef iv_tag                                   index_category;
         static  const uint32_t                           sample_dens    = t_dens;
+        typedef enc_vector                               enc_vec_type;
 
         int_vector<0>     m_z;                       // storage for encoded deltas
     private:

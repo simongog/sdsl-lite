@@ -73,6 +73,8 @@ class csa_wt
                       "Forth template argument has to be a suffix array sampling strategy.");
         static_assert(std::is_same<typename sampling_tag<t_isa_sample_strat>::type, isa_sampling_tag>::value,
                       "Fifth template argument has to be a inverse suffix array sampling strategy.");
+        static_assert(is_alphabet<t_alphabet_strat>::value,
+                      "Sixth template argument has to be a alphabet strategy.");
 
         friend class bwt_of_csa_wt<csa_wt>;
     public:

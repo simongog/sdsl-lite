@@ -54,6 +54,7 @@
 #include "int_vector.hpp"
 #include "csa_alphabet_strategy.hpp" // for key_trait
 #include <set>
+#include <tuple>
 
 namespace sdsl
 {
@@ -219,7 +220,7 @@ class _text_order_sampling : public int_vector<t_width>
         }
 };
 
-template<class t_bit_vec=bit_vector,
+template<class t_bit_vec=sd_vector<>,
          class t_rank_sup=typename t_bit_vec::rank_1_type,
          uint8_t t_width=0>
 struct text_order_sa_sampling
@@ -421,9 +422,23 @@ class _isa_sampling : public int_vector<t_width>
             }
         }
 
-        //! Return the inverse suffix array value for the sampled index i
+        //! Returns the ISA value at position j, where
         inline value_type operator[](size_type i) const {
             return base_type::operator[](i/sample_dens);
+        }
+
+        //! Returns the rightmost ISA sample <= i and its position
+        inline std::tuple<value_type, size_type>
+        sample_leq(size_type i) const {
+            size_type ci = i/sample_dens;
+            return std::make_tuple(base_type::operator[](ci), ci*sample_dens);
+        }
+
+        //! Returns the leftmost ISA sample >= i and its position
+        inline std::tuple<value_type, size_type>
+        sample_qeq(size_type i) const {
+            size_type ci = (i/sample_dens + 1) % this->size();
+            return std::make_tuple(base_type::operator[](ci), ci*sample_dens);
         }
 
         //! Load sampling from disk
@@ -610,13 +625,6 @@ class _text_order_isa_sampling_support
          */
         _text_order_isa_sampling_support(SDSL_UNUSED const cache_config& cconfig,
                                          const typename std::enable_if<sa_type::text_order, sa_type*>::type sa_sample) {
-//            size_type n = sa_sample->size();
-            // generate inverse permutation
-//            m_inv_perm.width(bits::hi(n)+1);
-//            m_inv_perm.resize(sa_sample->size());
-//            for (size_type i=0; i < n; ++i) {
-//                m_inv_perm[sa_sample->condensed_sa(i)] = i;
-//            }
             // and initialize the select support on bitvector marked
             m_select_marked = t_sel(&(sa_sample->marked));
             const int_vector<>* perm = (const int_vector<>*)sa_sample;
@@ -635,6 +643,19 @@ class _text_order_isa_sampling_support
             return m_select_marked(m_inv_perm[i/sample_dens]+1);
         }
 
+        //! Returns the rightmost ISA sample <= i and its position
+        inline std::tuple<value_type, size_type>
+        sample_leq(size_type i) const {
+            size_type ci = i/sample_dens;
+            return std::make_tuple(m_select_marked(m_inv_perm[ci]+1), ci*sample_dens);
+        }
+
+        //! Returns the leftmost ISA sample >= i and its position
+        inline std::tuple<value_type, size_type>
+        sample_qeq(size_type i) const {
+            size_type ci = (i/sample_dens + 1) % m_inv_perm.size();
+            return std::make_tuple(m_select_marked(m_inv_perm[ci]+1), ci*sample_dens);
+        }
 
         //! Assignment operation
         _text_order_isa_sampling_support& operator=(const _text_order_isa_sampling_support& st) {
@@ -656,7 +677,7 @@ class _text_order_isa_sampling_support
         size_type serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += m_inv_perm.serialize(out, child, "samples");
+            written_bytes += m_inv_perm.serialize(out, child, "inv_perm");
             written_bytes += m_select_marked.serialize(out, child, "select_marked");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
