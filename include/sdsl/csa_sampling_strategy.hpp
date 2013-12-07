@@ -203,7 +203,7 @@ class _text_order_sampling : public int_vector<t_width>
             util::swap_support(m_rank_marked, st.m_rank_marked, &m_marked, &(st.m_marked));
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += base_type::serialize(out, child, "samples");
@@ -310,10 +310,10 @@ class _fuzzy_sa_sampling
                     inv_perm[cnt++] = min_prev_val;
                     marked_sa[min_prev_val] = 1;
                 }
-                std::cout<<"size_in_bytes(inv_perm)="<<size_in_bytes(inv_perm)<<std::endl;
                 std::cout<<"inv_perm.size()="<<inv_perm.size()<<std::endl;
-                std::cout<<"           runs="<<runs<<std::endl;
-                std::cout<<"    sample_dens="<<sample_dens<<std::endl;
+                std::cout<<"runs           ="<<runs<<std::endl;
+                std::cout<<"sample_dens    ="<<sample_dens<<std::endl;
+                std::cout<<"avg_run_length ="<<((double)inv_perm.size())/runs<<std::endl;
                 m_marked_isa = std::move(t_bv_isa(marked_isa));
                 util::init_support(m_select_marked_isa, &m_marked_isa);
                 {
@@ -323,6 +323,7 @@ class _fuzzy_sa_sampling
                     }
                 }
                 util::bit_compress(inv_perm);
+                std::cout<<"orig_inv_perm_in_MB="<<size_in_mega_bytes(inv_perm)<<std::endl;
 
                 m_marked_sa = std::move(t_bv_sa(marked_sa));
                 util::init_support(m_rank_marked_sa, &m_marked_sa);
@@ -332,7 +333,7 @@ class _fuzzy_sa_sampling
                 store_to_file(inv_perm, tmp_file_name);
                 construct(m_inv_perm, tmp_file_name, 0);
                 sdsl::remove(tmp_file_name);
-                std::cout<<"size_in_bytes(m_inv_perm)="<<size_in_bytes(m_inv_perm)<<std::endl;
+                std::cout<<"inv_perm_in_MB="<<size_in_mega_bytes(m_inv_perm)<<std::endl;
             }
         }
 
@@ -389,7 +390,7 @@ class _fuzzy_sa_sampling
             m_inv_perm.swap(st.m_inv_perm);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_marked_sa.serialize(out, child, "marked_sa");
@@ -550,7 +551,7 @@ class _bwt_sampling : public int_vector<t_width>
             util::swap_support(m_rank_marked, st.m_rank_marked, &m_marked, &(st.m_marked));
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += base_type::serialize(out, child, "samples");
@@ -767,7 +768,7 @@ class inv_perm_support
             }
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_back_pointer.serialize(out, child, "back_pointer");
@@ -867,7 +868,7 @@ class _text_order_isa_sampling_support
             }
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_inv_perm.serialize(out, child, "inv_perm");
@@ -1001,7 +1002,7 @@ class _fuzzy_isa_sampling_support
         }
 
         size_type
-        serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
+        serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_select_marked_sa.serialize(out, v, "select_marked_sa");
