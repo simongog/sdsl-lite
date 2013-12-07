@@ -69,6 +69,10 @@ class csa_wt
 {
         static_assert(std::is_same<typename index_tag<t_wt>::type, wt_tag>::value,
                       "First template argument has to be a wavelet tree type.");
+        static_assert(t_dens > 0,
+                      "Second template argument has to be greater then 0.");
+        static_assert(t_inv_dens > 0,
+                      "Third template argument has to be greater then 0.");
         static_assert(std::is_same<typename sampling_tag<t_sa_sample_strat>::type, sa_sampling_tag>::value,
                       "Forth template argument has to be a suffix array sampling strategy.");
         static_assert(std::is_same<typename sampling_tag<t_isa_sample_strat>::type, isa_sampling_tag>::value,

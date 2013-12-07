@@ -80,6 +80,8 @@ template<class t_csa = csa_sada<>,
          >
 class cst_sada
 {
+        static_assert(std::is_same<typename index_tag<t_csa>::type, csa_tag>::value,
+                      "First template argument has to be a compressed suffix array.");
     public:
         typedef cst_dfs_const_forward_iterator<cst_sada>          const_iterator;
         typedef cst_bottom_up_const_forward_iterator<cst_sada>    const_bottom_up_iterator;
