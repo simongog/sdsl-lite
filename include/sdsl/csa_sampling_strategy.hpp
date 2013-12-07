@@ -236,7 +236,6 @@ template<class t_csa,
          class t_bv_sa=sd_vector<>,
          class t_bv_isa=sd_vector<>,
          class t_rank_sa=typename t_bv_sa::rank_1_type,
-         class t_select_sa=typename t_bv_sa::select_1_type,
          class t_select_isa=typename t_bv_isa::select_1_type
          >
 class _fuzzy_sa_sampling
@@ -244,20 +243,19 @@ class _fuzzy_sa_sampling
     private:
         t_bv_sa     m_marked_sa;
         t_rank_sa   m_rank_marked_sa;
-        t_select_sa m_select_marked_sa;
         t_bv_isa    m_marked_isa;
         t_select_isa  m_select_marked_isa;
         wt_int<rrr_vector<63>> m_inv_perm;
     public:
         typedef typename bit_vector::size_type  size_type;	// make typedefs of base_type visible
         typedef typename bit_vector::value_type value_type;	//
+        typedef t_bv_sa                         bv_sa_type;
         enum { sample_dens = t_csa::sa_sample_dens };
         enum { text_order = true };
         typedef sa_sampling_tag                sampling_category;
 
         const t_bv_sa&      marked_sa         = m_marked_sa;
         const t_rank_sa&    rank_marked_sa    = m_rank_marked_sa;
-        const t_select_sa&  select_marked_sa  = m_select_marked_sa;
         const t_bv_isa&     marked_isa        = m_marked_isa;
         const t_select_isa& select_marked_isa = m_select_marked_isa;
 
@@ -315,6 +313,7 @@ class _fuzzy_sa_sampling
                 std::cout<<"size_in_bytes(inv_perm)="<<size_in_bytes(inv_perm)<<std::endl;
                 std::cout<<"inv_perm.size()="<<inv_perm.size()<<std::endl;
                 std::cout<<"           runs="<<runs<<std::endl;
+                std::cout<<"    sample_dens="<<sample_dens<<std::endl;
                 m_marked_isa = std::move(t_bv_isa(marked_isa));
                 util::init_support(m_select_marked_isa, &m_marked_isa);
                 {
@@ -327,14 +326,13 @@ class _fuzzy_sa_sampling
 
                 m_marked_sa = std::move(t_bv_sa(marked_sa));
                 util::init_support(m_rank_marked_sa, &m_marked_sa);
-                util::init_support(m_select_marked_sa, &m_marked_sa);
 
                 std::string tmp_key = "fuzzy_isa_samples_"+util::to_string(util::pid())+"_"+util::to_string(util::id());
                 std::string tmp_file_name = cache_file_name(tmp_key, cconfig);
                 store_to_file(inv_perm, tmp_file_name);
                 construct(m_inv_perm, tmp_file_name, 0);
                 sdsl::remove(tmp_file_name);
-                std::cout<<"size_in_bytes(m_inv_perm)"<<size_in_bytes(m_inv_perm)<<std::endl;
+                std::cout<<"size_in_bytes(m_inv_perm)="<<size_in_bytes(m_inv_perm)<<std::endl;
             }
         }
 
@@ -343,8 +341,6 @@ class _fuzzy_sa_sampling
             m_marked_sa = st.m_marked_sa;
             m_rank_marked_sa = st.m_rank_marked_sa;
             m_rank_marked_sa.set_vector(&m_marked_sa);
-            m_select_marked_sa = st.m_select_marked_sa;
-            m_select_marked_sa.set_vector(&m_marked_sa);
             m_marked_isa = st.m_marked_isa;
             m_select_marked_isa = st.m_select_marked_isa;
             m_select_marked_isa.set_vector(&m_marked_isa);
@@ -376,8 +372,6 @@ class _fuzzy_sa_sampling
                 m_marked_sa = st.m_marked_sa;
                 m_rank_marked_sa = st.m_rank_marked_sa;
                 m_rank_marked_sa.set_vector(&m_marked_sa);
-                m_select_marked_sa = st.m_select_marked_sa;
-                m_select_marked_sa.set_vector(&m_marked_sa);
                 m_marked_isa = st.m_marked_isa;
                 m_select_marked_isa = st.m_select_marked_isa;
                 m_select_marked_isa.set_vector(&m_marked_isa);
@@ -390,7 +384,6 @@ class _fuzzy_sa_sampling
         void swap(_fuzzy_sa_sampling& st) {
             m_marked_sa.swap(st.m_marked_sa);
             util::swap_support(m_rank_marked_sa, st.m_rank_marked_sa, &m_marked_sa, &(st.m_marked_sa));
-            util::swap_support(m_select_marked_sa, st.m_select_marked_sa, &m_marked_sa, &(st.m_marked_sa));
             m_marked_isa.swap(st.m_marked_isa);
             util::swap_support(m_select_marked_isa, st.m_select_marked_isa, &m_marked_isa, &(st.m_marked_isa));
             m_inv_perm.swap(st.m_inv_perm);
@@ -401,7 +394,6 @@ class _fuzzy_sa_sampling
             size_type written_bytes = 0;
             written_bytes += m_marked_sa.serialize(out, child, "marked_sa");
             written_bytes += m_rank_marked_sa.serialize(out, child, "rank_marked_sa");
-            written_bytes += m_select_marked_sa.serialize(out, child, "select_marked_sa");
             written_bytes += m_marked_isa.serialize(out, child, "marked_isa");
             written_bytes += m_select_marked_isa.serialize(out, child, "select_marked_isa");
             written_bytes += m_inv_perm.serialize(out, child, "inv_perm");
@@ -413,8 +405,6 @@ class _fuzzy_sa_sampling
             m_marked_sa.load(in);
             m_rank_marked_sa.load(in);
             m_rank_marked_sa.set_vector(&m_marked_sa);
-            m_select_marked_sa.load(in);
-            m_select_marked_sa.set_vector(&m_marked_sa);
             m_marked_isa.load(in);
             m_select_marked_isa.load(in);
             m_select_marked_isa.set_vector(&m_marked_isa);
@@ -424,14 +414,13 @@ class _fuzzy_sa_sampling
 template<class t_bv_sa=sd_vector<>,
          class t_bv_isa=sd_vector<>,
          class t_rank_sa=typename t_bv_sa::rank_1_type,
-         class t_select_sa=typename t_bv_sa::select_1_type,
-         class t_rank_isa=typename t_bv_isa::select_1_type
+         class t_select_isa=typename t_bv_isa::select_1_type
          >
 struct fuzzy_sa_sampling
 {
     template<class t_csa>
     using type = _fuzzy_sa_sampling<t_csa, t_bv_sa, t_bv_isa,
-          t_rank_sa, t_select_sa, t_rank_isa>;
+          t_rank_sa, t_select_isa>;
     using sampling_category = sa_sampling_tag;
 };
 
@@ -918,7 +907,7 @@ struct text_order_isa_sampling_support {
 };
 
 
-template<class t_csa>
+template<class t_csa, class t_select_sa>
 class _fuzzy_isa_sampling_support
 {
         static_assert(t_csa::sa_sample_dens == t_csa::isa_sample_dens,
@@ -931,6 +920,7 @@ class _fuzzy_isa_sampling_support
         typedef isa_sampling_tag               sampling_category;
     private:
         const sa_type* m_sa_p = nullptr; // pointer to sa_sample_strategy
+        t_select_sa m_select_marked_sa;
 
     public:
 
@@ -946,11 +936,15 @@ class _fuzzy_isa_sampling_support
          */
         _fuzzy_isa_sampling_support(SDSL_UNUSED const cache_config& cconfig,
                                     const sa_type* sa_sample) :
-            m_sa_p(sa_sample) { }
+            m_sa_p(sa_sample) {
+            util::init_support(m_select_marked_sa,  &(sa_sample->marked_sa));
+        }
 
         //! Copy constructor
         _fuzzy_isa_sampling_support(const _fuzzy_isa_sampling_support& st) :
-            m_sa_p(st.m_sa_p) { }
+            m_select_marked_sa(st.m_select_marked_sa) {
+            set_vector(st.m_sa_p);
+        }
 
         //! Return the inverse suffix array value for the sampled index i
         inline value_type operator[](size_type i) const {
@@ -970,7 +964,7 @@ class _fuzzy_isa_sampling_support
                 }
                 j  = m_sa_p->select_marked_isa(ci+1);
             }
-            return std::make_tuple(m_sa_p->select_marked_sa(m_sa_p->inv(ci)+1),
+            return std::make_tuple(m_select_marked_sa(m_sa_p->inv(ci)+1),
                                    j);
         }
 
@@ -987,7 +981,7 @@ class _fuzzy_isa_sampling_support
                 }
                 j  = m_sa_p->select_marked_isa(ci+1);
             }
-            return std::make_tuple(m_sa_p->select_marked_sa(m_sa_p->inv(ci)+1),
+            return std::make_tuple(m_select_marked_sa(m_sa_p->inv(ci)+1),
                                    j);
         }
 
@@ -995,36 +989,48 @@ class _fuzzy_isa_sampling_support
         _fuzzy_isa_sampling_support&
         operator=(const _fuzzy_isa_sampling_support& st) {
             if (this != &st) {
-                m_sa_p = st.m_sa_p;
+                m_select_marked_sa = st.m_select_marked_sa;
+                set_vector(st.m_sa_p);
             }
             return *this;
         }
 
         //! Swap operation
-        void swap(_fuzzy_isa_sampling_support&) { }
+        void swap(_fuzzy_isa_sampling_support& st) {
+            m_select_marked_sa.swap(st.m_select_marked_sa);
+        }
 
         size_type
-        serialize(std::ostream&, structure_tree_node* v, std::string name)const {
+        serialize(std::ostream& out, structure_tree_node* v, std::string name)const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
+            written_bytes += m_select_marked_sa.serialize(out, v, "select_marked_sa");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
 
         //! Load sampling from disk
-        void load(std::istream&, const sa_type* sa_sample=nullptr) {
+        void load(std::istream& in, const sa_type* sa_sample=nullptr) {
+            m_select_marked_sa.load(in);
             set_vector(sa_sample);
         }
 
         void set_vector(const sa_type* sa_sample=nullptr) {
             m_sa_p = sa_sample;
+            if (nullptr != m_sa_p) {
+                m_select_marked_sa.set_vector(&(sa_sample->marked_sa));
+            }
         }
 };
 
 
+template<class t_select_sa=void>
 struct fuzzy_isa_sampling_support {
     template<class t_csa>
-    using type = _fuzzy_isa_sampling_support<t_csa>;
+    using type = _fuzzy_isa_sampling_support<t_csa,
+          typename std::conditional<std::is_void<t_select_sa>::value,
+          typename t_csa::sa_sample_type::bv_sa_type::select_1_type,
+          t_select_sa>::type>;
     using sampling_category = isa_sampling_tag;
 };
 
