@@ -56,6 +56,7 @@
 #include "wavelet_trees.hpp"
 #include <set>
 #include <tuple>
+#include <cmath>
 
 namespace sdsl
 {
@@ -287,8 +288,13 @@ class _fuzzy_sa_sampling
                 size_type cnt = 0;
                 size_type runs = 1;
 
+                double s1 = inv_perm.size()*log(((double)inv_perm.size())/sample_dens);
+                double s2 = 0;
+
                 uint64_t min_prev_val = 0;
+                uint64_t cnt_len=0;
                 for (size_type i=0; i < n; i += sample_dens) {
+                    ++cnt_len;
                     size_type pos_min = i;
                     size_type pos_cnd = isa_buf[i] >= min_prev_val ? i : n;
                     for (size_type j=i+1; j < i+sample_dens and j < n; ++j) {
@@ -302,6 +308,8 @@ class _fuzzy_sa_sampling
                         }
                     }
                     if (pos_cnd == n) {   // increasing sequence can not be extended
+                        s2 += (cnt_len)*log(((double)inv_perm.size())/(cnt_len));
+                        cnt_len=0;
                         pos_cnd = pos_min;
                         ++runs;
                     }
@@ -310,6 +318,8 @@ class _fuzzy_sa_sampling
                     inv_perm[cnt++] = min_prev_val;
                     marked_sa[min_prev_val] = 1;
                 }
+                std::cout<<"s1="<<s1<<std::endl;
+                std::cout<<"s2="<<s2<<std::endl;
                 std::cout<<"inv_perm.size()="<<inv_perm.size()<<std::endl;
                 std::cout<<"runs           ="<<runs<<std::endl;
                 std::cout<<"sample_dens    ="<<sample_dens<<std::endl;
