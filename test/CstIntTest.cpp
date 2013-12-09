@@ -27,8 +27,8 @@ class CstIntTest : public ::testing::Test { };
 
 using testing::Types;
 
-typedef csa_wt<wt_int<>, 32, 32, text_order_sa_sampling<>, int_vector<>, int_alphabet<> > tCSA1;
-typedef csa_sada<enc_vector<>, 32, 32, text_order_sa_sampling<>, int_vector<>, int_alphabet<> > tCSA2;
+typedef csa_wt<wt_int<>, 32, 32, text_order_sa_sampling<>, isa_sampling<>, int_alphabet<> > tCSA1;
+typedef csa_sada<enc_vector<>, 32, 32, text_order_sa_sampling<>, isa_sampling<>, int_alphabet<> > tCSA2;
 typedef csa_bitcompressed<int_alphabet<> > tCSA3;
 
 typedef Types<
