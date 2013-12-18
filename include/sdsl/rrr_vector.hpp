@@ -29,6 +29,7 @@
 #include <vector>
 #include <algorithm> // for next_permutation
 #include <iostream>
+#include <limits>
 
 //! Namespace for the succinct data structure library
 namespace sdsl
@@ -80,12 +81,13 @@ class rrr_vector
         typedef bit_vector::difference_type              difference_type;
         typedef t_rac                                    rac_type;
         typedef random_access_const_iterator<rrr_vector> iterator;
+        typedef uint64_bv_const_iterator<rrr_vector>     uint64_iterator;
         typedef bv_tag                                   index_category;
 
-        typedef rank_support_rrr<1, t_bs, t_rac, t_k>   rank_1_type;
-        typedef rank_support_rrr<0, t_bs, t_rac, t_k>   rank_0_type;
-        typedef select_support_rrr<1, t_bs, t_rac, t_k> select_1_type;
-        typedef select_support_rrr<0, t_bs, t_rac, t_k> select_0_type;
+        typedef rank_support_rrr<1, t_bs, t_rac, t_k>    rank_1_type;
+        typedef rank_support_rrr<0, t_bs, t_rac, t_k>    rank_0_type;
+        typedef select_support_rrr<1, t_bs, t_rac, t_k>  select_1_type;
+        typedef select_support_rrr<0, t_bs, t_rac, t_k>  select_0_type;
 
         friend class rank_support_rrr<0, t_bs, t_rac, t_k>;
         friend class rank_support_rrr<1, t_bs, t_rac, t_k>;
@@ -106,6 +108,9 @@ class rrr_vector
         bit_vector   m_invert; // Specifies if a superblock (i.e. t_k blocks)
         // have to be considered as inverted i.e. 1 and
         // 0 are swapped
+        mutable size_type m_get_int_cache_idx = std::numeric_limits<size_type>::max();
+        mutable uint8_t   m_get_int_cache_len = 0;
+        mutable uint64_t  m_get_int_cache_val = 0;
 
         void copy(const rrr_vector& rrr) {
             m_size = rrr.m_size;
@@ -114,6 +119,53 @@ class rrr_vector
             m_btnrp = rrr.m_btnrp;
             m_rank = rrr.m_rank;
             m_invert = rrr.m_invert;
+            m_get_int_cache_idx = rrr.m_get_int_cache_idx;
+            m_get_int_cache_val = rrr.m_get_int_cache_val;
+            m_get_int_cache_len = rrr.m_get_int_cache_len;
+        }
+
+        uint64_t _get_int(size_type idx, uint8_t len=64, bool do_cache=true)const {
+            if (do_cache) {
+                m_get_int_cache_idx = idx;
+                m_get_int_cache_len = len;
+            }
+            uint64_t res = 0;
+            size_type bb_idx = idx/t_bs; // begin block index
+            size_type bb_off = idx%t_bs; // begin block offset
+            uint16_t bt = m_bt[bb_idx];
+            size_type sample_pos = bb_idx/t_k;
+            size_type eb_idx = (idx+len-1)/t_bs; // end block index
+            if (bb_idx == eb_idx) {  // extract only in one block
+                if (m_invert[sample_pos])
+                    bt = t_bs - bt;
+                if (bt == 0) {   // all bits are zero
+                    res = 0;
+                } else if (bt == t_bs and t_bs <= 64) { // all bits are zero
+                    res = bits::lo_set[len];
+                } else {
+                    size_type btnrp = m_btnrp[ sample_pos ];
+                    for (size_type j = sample_pos*t_k; j < bb_idx; ++j) {
+                        btnrp += rrr_helper_type::space_for_bt(m_bt[j]);
+                    }
+                    uint16_t btnrlen = rrr_helper_type::space_for_bt(bt);
+                    number_type btnr = rrr_helper_type::decode_btnr(m_btnr, btnrp, btnrlen);
+                    res =  rrr_helper_type::decode_int(bt, btnr, bb_off, len);
+                }
+            } else { // solve multiple block case by recursion
+                uint16_t b_len = t_bs-bb_off;
+                uint16_t b_len_sum = 0;
+                do {
+                    res |= _get_int(idx, b_len, false) << b_len_sum;
+                    idx += b_len;
+                    b_len_sum += b_len;
+                    len -= b_len;
+                    b_len = ((uint16_t)len > (uint16_t)t_bs) ? t_bs : len;
+                } while (len > 0);
+            }
+            if (do_cache) {
+                m_get_int_cache_val = res;
+            }
+            return res;
         }
 
     public:
@@ -132,7 +184,11 @@ class rrr_vector
         rrr_vector(rrr_vector&& rrr) : m_size(std::move(rrr.m_size)),
             m_bt(std::move(rrr.m_bt)),
             m_btnr(std::move(rrr.m_btnr)), m_btnrp(std::move(rrr.m_btnrp)),
-            m_rank(std::move(rrr.m_rank)), m_invert(std::move(rrr.m_invert)) {}
+            m_rank(std::move(rrr.m_rank)), m_invert(std::move(rrr.m_invert)) {
+            m_get_int_cache_idx = rrr.m_get_int_cache_idx;
+            m_get_int_cache_len = rrr.m_get_int_cache_len;
+            m_get_int_cache_val = rrr.m_get_int_cache_val;
+        }
 
         //! Constructor
         /*!
@@ -241,6 +297,9 @@ class rrr_vector
                 m_btnrp.swap(rrr.m_btnrp);
                 m_rank.swap(rrr.m_rank);
                 m_invert.swap(rrr.m_invert);
+                std::swap(m_get_int_cache_idx, rrr.m_get_int_cache_idx);
+                std::swap(m_get_int_cache_len, rrr.m_get_int_cache_len);
+                std::swap(m_get_int_cache_val, rrr.m_get_int_cache_val);
             }
         }
 
@@ -278,40 +337,11 @@ class rrr_vector
          *  \pre len in [1..64]
          */
         uint64_t get_int(size_type idx, uint8_t len=64)const {
-            uint64_t res = 0;
-            size_type bb_idx = idx/t_bs; // begin block index
-            size_type bb_off = idx%t_bs; // begin block offset
-            uint16_t bt = m_bt[bb_idx];
-            size_type sample_pos = bb_idx/t_k;
-            size_type eb_idx = (idx+len-1)/t_bs; // end block index
-            if (bb_idx == eb_idx) {  // extract only in one block
-                if (m_invert[sample_pos])
-                    bt = t_bs - bt;
-                if (bt == 0) {   // all bits are zero
-                    res = 0;
-                } else if (bt == t_bs and t_bs <= 64) { // all bits are zero
-                    res = bits::lo_set[len];
-                } else {
-                    size_type btnrp = m_btnrp[ sample_pos ];
-                    for (size_type j = sample_pos*t_k; j < bb_idx; ++j) {
-                        btnrp += rrr_helper_type::space_for_bt(m_bt[j]);
-                    }
-                    uint16_t btnrlen = rrr_helper_type::space_for_bt(bt);
-                    number_type btnr = rrr_helper_type::decode_btnr(m_btnr, btnrp, btnrlen);
-                    res =  rrr_helper_type::decode_int(bt, btnr, bb_off, len);
-                }
-            } else { // solve multiple block case by recursion
-                uint16_t b_len = t_bs-bb_off;
-                uint16_t b_len_sum = 0;
-                do {
-                    res |= get_int(idx, b_len) << b_len_sum;
-                    idx += b_len;
-                    b_len_sum += b_len;
-                    len -= b_len;
-                    b_len = ((uint16_t)len > (uint16_t)t_bs) ? t_bs : len;
-                } while (len > 0);
+            if (m_get_int_cache_idx == idx and m_get_int_cache_len == len) {
+                return m_get_int_cache_val;
+            } else {
+                return _get_int(idx, len, true);
             }
-            return res;
         }
 
         //! Assignment operator
@@ -356,6 +386,9 @@ class rrr_vector
             m_btnrp.load(in);
             m_rank.load(in);
             m_invert.load(in);
+            m_get_int_cache_idx = std::numeric_limits<size_type>::max();
+            m_get_int_cache_len = 0;
+            m_get_int_cache_val = 0;
         }
 
         iterator begin() const {
@@ -364,6 +397,14 @@ class rrr_vector
 
         iterator end() const {
             return iterator(this, size());
+        }
+
+        uint64_iterator uint64_begin() const {
+            return uint64_iterator(this, 0);
+        }
+
+        uint64_iterator uint64_end() const {
+            return uint64_iterator(this, (size()+63)/64);
         }
 };
 
