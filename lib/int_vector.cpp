@@ -23,4 +23,16 @@ void bit_vector::flip()
     }
 }
 
+template<>
+const uint64_t* bit_vector::uint64_begin() const
+{
+    return this->m_data;
+}
+
+template<>
+const uint64_t* bit_vector::uint64_end() const
+{
+    return this->m_data + (m_size+63)/64;
+}
+
 }

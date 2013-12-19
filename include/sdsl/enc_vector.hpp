@@ -51,12 +51,15 @@ struct enc_vector_trait<64> {
  *
  *  \tparam t_coder  Self-delimiting coder.
  *  \tparam t_dens   Every t_dens-th element of v is sampled.
+ *  \tparam t_bv     Bitvector for deltas.
  *  \tparam t_width  Width of the int_vector used to store the samples and pointers.
  *  This class is a parameter of csa_sada.
  * @ingroup int_vector
  */
 template<class t_coder=coder::elias_delta,
-         uint32_t t_dens = 128, uint8_t t_width=0>
+         uint32_t t_dens = 128,
+         class t_bv = bit_vector,
+         uint8_t t_width=0>
 class enc_vector
 {
     private:
@@ -71,11 +74,12 @@ class enc_vector
         typedef ptrdiff_t                                difference_type;
         typedef int_vector<>::size_type                  size_type;
         typedef t_coder                                  coder;
+        typedef t_bv                                     bit_vector_type;
         typedef typename enc_vector_trait<t_width>::int_vector_type int_vector_type;
         typedef iv_tag                                   index_category;
         static  const uint32_t                           sample_dens    = t_dens;
 
-        int_vector<0>     m_z;                       // storage for encoded deltas
+        bit_vector_type   m_z;                       // storage for encoded deltas
     private:
         int_vector_type   m_sample_vals_and_pointer; // samples and pointers
         size_type         m_size = 0;                // number of vector elements
@@ -83,7 +87,7 @@ class enc_vector
         void copy(const enc_vector& v);
 
         void clear() {
-            m_z.resize(0);
+            m_z = bit_vector_type();
             m_size = 0;
             m_sample_vals_and_pointer.resize(0);
         }
@@ -101,8 +105,8 @@ class enc_vector
         //! Constructor for a Container of positive integers.
         /*! \param c A container of positive integers.
           */
-        template<class Container>
-        enc_vector(const Container& c);
+//        template<class Container>
+//        enc_vector(const Container& c);
 
         //! Constructor for an int_vector_buffer of positive integers.
         /*
@@ -182,41 +186,41 @@ class enc_vector
         void get_inter_sampled_values(const size_type i, uint64_t* it)const {
             *(it++) = 0;
             if (i*t_dens + t_dens - 1 < size()) {
-                t_coder::template decode<true, true>(m_z.data(), m_sample_vals_and_pointer[(i<<1)+1], t_dens - 1, it);
+                t_coder::template decode<true, true>(m_z.uint64_begin(), m_sample_vals_and_pointer[(i<<1)+1], t_dens - 1, it);
             } else {
                 assert(i*t_dens < size());
-                t_coder::template decode<true, true>(m_z.data(), m_sample_vals_and_pointer[(i<<1)+1], size()-i*t_dens - 1, it);
+                t_coder::template decode<true, true>(m_z.uint64_begin(), m_sample_vals_and_pointer[(i<<1)+1], size()-i*t_dens - 1, it);
             }
         };
 };
 
-template<class t_coder, uint32_t t_dens, uint8_t t_width>
-inline typename enc_vector<t_coder, t_dens,t_width>::value_type enc_vector<t_coder, t_dens,t_width>::operator[](const size_type i)const
+template<class t_coder, uint32_t t_dens, class t_bv, uint8_t t_width>
+inline typename enc_vector<t_coder, t_dens, t_bv, t_width>::value_type enc_vector<t_coder, t_dens, t_bv, t_width>::operator[](const size_type i)const
 {
     assert(i+1 != 0);
     assert(i < m_size);
     size_type idx = i/get_sample_dens();
-    return m_sample_vals_and_pointer[idx<<1] + t_coder::decode_prefix_sum(m_z.data(), m_sample_vals_and_pointer[(idx<<1)+1], i-t_dens*idx);
+    return m_sample_vals_and_pointer[idx<<1] + t_coder::decode_prefix_sum(m_z.uint64_begin(), m_sample_vals_and_pointer[(idx<<1)+1], i-t_dens*idx);
 }
 
-template<class t_coder, uint32_t t_dens, uint8_t t_width>
-inline typename enc_vector<t_coder, t_dens,t_width>::value_type enc_vector<t_coder, t_dens,t_width>::sample(const size_type i)const
+template<class t_coder, uint32_t t_dens, class t_bv, uint8_t t_width>
+inline typename enc_vector<t_coder, t_dens, t_bv, t_width>::value_type enc_vector<t_coder, t_dens, t_bv, t_width>::sample(const size_type i)const
 {
     assert(i*get_sample_dens()+1 != 0);
     assert(i*get_sample_dens() < m_size);
     return m_sample_vals_and_pointer[i<<1];
 }
 
-template<class t_coder, uint32_t t_dens, uint8_t t_width>
-void enc_vector<t_coder, t_dens,t_width>::copy(const enc_vector<t_coder, t_dens,t_width>& v)
+template<class t_coder, uint32_t t_dens, class t_bv, uint8_t t_width>
+void enc_vector<t_coder, t_dens, t_bv, t_width>::copy(const enc_vector<t_coder, t_dens, t_bv, t_width>& v)
 {
     m_z                        = v.m_z;                       // copy encoded deltas
     m_sample_vals_and_pointer  = v.m_sample_vals_and_pointer; // copy samples and pointers
     m_size                     = v.m_size;                    // copy number of stored elements
 }
 
-template<class t_coder, uint32_t t_dens, uint8_t t_width>
-void enc_vector<t_coder, t_dens,t_width>::swap(enc_vector<t_coder, t_dens,t_width>& v)
+template<class t_coder, uint32_t t_dens, class t_bv, uint8_t t_width>
+void enc_vector<t_coder, t_dens, t_bv, t_width>::swap(enc_vector<t_coder, t_dens, t_bv, t_width>& v)
 {
     if (this != &v) { // if v and _this_ are not the same object
         m_z.swap(v.m_z);
@@ -225,9 +229,10 @@ void enc_vector<t_coder, t_dens,t_width>::swap(enc_vector<t_coder, t_dens,t_widt
     }
 }
 
-template<class t_coder, uint32_t t_dens, uint8_t t_width>
+/*
+template<class t_coder, uint32_t t_dens, class t_bv, uint8_t t_width>
 template<class Container>
-enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c)
+enc_vector<t_coder, t_dens, t_bv, t_width>::enc_vector(const Container& c)
 {
     // clear bit_vectors
     clear();
@@ -276,8 +281,8 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c)
         *sv_it = 0; ++sv_it;        // initialize
         *sv_it = z_size+1; ++sv_it; // last entry
 
-        m_z = int_vector<>(z_size, 0, 1);
-        uint64_t* z_data = t_coder::raw_data(m_z);
+        bit_vector z(z_size, 0);
+        uint64_t* z_data = t_coder::raw_data(z);
         uint8_t offset = 0;
         no_sample = 0;
         for (it = c.begin(); it != end; ++it, --no_sample) {
@@ -289,13 +294,15 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c)
             }
             v1=v2;
         }
+        m_z = bit_vector_type(z);
     }
     m_size = c.size();
 }
+*/
 
-template<class t_coder, uint32_t t_dens, uint8_t t_width>
+template<class t_coder, uint32_t t_dens, class t_bv, uint8_t t_width>
 template<uint8_t int_width>
-enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_buffer<int_width>& v_buf)
+enc_vector<t_coder, t_dens, t_bv, t_width>::enc_vector(int_vector_buffer<int_width>& v_buf)
 {
     // clear bit_vectors
     clear();
@@ -328,8 +335,8 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_buffer<int_width>& v_
     util::set_to_value(m_sample_vals_and_pointer, 0);
 
 //    (b) Initilize bit_vector for encoded data
-    m_z = int_vector<>(z_size, 0, 1);
-    uint64_t* z_data = t_coder::raw_data(m_z);
+    bit_vector z(z_size, 0);
+    uint64_t* z_data = t_coder::raw_data(z);
     uint8_t offset = 0;
 
 //    (c) Write sample values and deltas
@@ -346,11 +353,12 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_buffer<int_width>& v_
         }
         v1 = v2;
     }
+    m_z = std::move(bit_vector_type(z));
     m_size = n;
 }
 
-template<class t_coder, uint32_t t_dens, uint8_t t_width>
-enc_vector<>::size_type enc_vector<t_coder, t_dens,t_width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
+template<class t_coder, uint32_t t_dens, class t_bv, uint8_t t_width>
+enc_vector<>::size_type enc_vector<t_coder, t_dens, t_bv, t_width>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
@@ -361,8 +369,8 @@ enc_vector<>::size_type enc_vector<t_coder, t_dens,t_width>::serialize(std::ostr
     return written_bytes;
 }
 
-template<class t_coder, uint32_t t_dens, uint8_t t_width>
-void enc_vector<t_coder, t_dens,t_width>::load(std::istream& in)
+template<class t_coder, uint32_t t_dens, class t_bv, uint8_t t_width>
+void enc_vector<t_coder, t_dens, t_bv, t_width>::load(std::istream& in)
 {
     read_member(m_size, in);
     m_z.load(in);

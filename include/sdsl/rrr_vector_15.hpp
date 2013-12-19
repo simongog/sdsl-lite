@@ -129,6 +129,7 @@ class rrr_vector<15, t_rac, t_k>
         typedef bit_vector::difference_type              difference_type;
         typedef t_rac                                    rac_type;
         typedef random_access_const_iterator<rrr_vector> iterator;
+        typedef uint64_bv_const_iterator<rrr_vector>     uint64_iterator;
         typedef bv_tag                                   index_category;
 
         friend class rank_support_rrr<0, 15, t_rac, t_k>;
@@ -384,6 +385,14 @@ class rrr_vector<15, t_rac, t_k>
 
         iterator end() const {
             return iterator(this, size());
+        }
+
+        uint64_iterator uint64_begin() const {
+            return uint64_iterator(this, 0);
+        }
+
+        uint64_iterator uint64_end() const {
+            return uint64_iterator(this, (size()+63)/64);
         }
 };
 

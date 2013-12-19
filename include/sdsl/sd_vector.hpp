@@ -73,6 +73,7 @@ class sd_vector
         typedef size_type                               value_type;
         typedef bit_vector::difference_type             difference_type;
         typedef random_access_const_iterator<sd_vector> iterator;
+        typedef uint64_bv_const_iterator<sd_vector>    uint64_iterator;
         typedef bv_tag                                  index_category;
         typedef t_select_0                              select_0_support_type;
         typedef t_select_1                              select_1_support_type;
@@ -281,6 +282,14 @@ class sd_vector
 
         iterator end() const {
             return iterator(this, size());
+        }
+
+        uint64_iterator uint64_begin() const {
+            return uint64_iterator(this, 0);
+        }
+
+        uint64_iterator uint64_end() const {
+            return uint64_iterator(this, (size()+63)/64);
         }
 };
 

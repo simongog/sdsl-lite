@@ -197,16 +197,20 @@ struct bits {
     static void write_int_and_move(uint64_t*& word, uint64_t x, uint8_t& offset, const uint8_t len);
 
     //! Reads a value from a bit position in an array.
-    static uint64_t read_int(const uint64_t* word, uint8_t offset=0, const uint8_t len=64);
+    template<class t_const_uint64_iter>
+    static uint64_t read_int(t_const_uint64_iter word, uint8_t offset=0, const uint8_t len=64);
 
     //! Reads a value from a bit position in an array and moved the bit-pointer.
-    static uint64_t read_int_and_move(const uint64_t*& word, uint8_t& offset, const uint8_t len=64);
+    template<class t_const_uint64_iter>
+    static uint64_t read_int_and_move(t_const_uint64_iter& word, uint8_t& offset, const uint8_t len=64);
 
     //! Reads an unary decoded value from a bit position in an array.
-    static uint64_t read_unary(const uint64_t* word, uint8_t offset=0);
+    template<class t_const_uint64_iter>
+    static uint64_t read_unary(t_const_uint64_iter word, uint8_t offset=0);
 
     //! Reads an unary decoded value from a bit position in an array and moves the bit-pointer.
-    static uint64_t read_unary_and_move(const uint64_t*& word, uint8_t& offset);
+    template<class t_const_uint64_iter>
+    static uint64_t read_unary_and_move(t_const_uint64_iter& word, uint8_t& offset);
 
     //! Move the bit-pointer (=uint64_t word and offset) `len` to the right.
     /*!\param word   64-bit word part of the bit pointer
@@ -214,7 +218,8 @@ struct bits {
      * \param len    Move distance. \f$ len \in [0..64] \f$
      * \sa move_left
      */
-    static void move_right(const uint64_t*& word, uint8_t& offset, const uint8_t len);
+    template<class t_const_uint64_iter>
+    static void move_right(t_const_uint64_iter& word, uint8_t& offset, const uint8_t len);
 
     //! Move the bit-pointer (=uint64_t word and offset) `len` to the left.
     /*!\param word   64-bit word part of the bit pointer
@@ -222,7 +227,8 @@ struct bits {
      * \param len    Move distance. \f$ len \in [0..64] \f$
      * \sa move_right
      */
-    static void move_left(const uint64_t*& word, uint8_t& offset, const uint8_t len);
+    template<class t_const_uint64_iter>
+    static void move_left(t_const_uint64_iter& word, uint8_t& offset, const uint8_t len);
 
     //! Get the first one bit in the interval \f$[idx..\infty )\f$
     static uint64_t next(const uint64_t* word, uint64_t idx);
@@ -484,7 +490,8 @@ inline void bits::write_int_and_move(uint64_t*& word, uint64_t x, uint8_t& offse
     }
 }
 
-inline uint64_t bits::read_int(const uint64_t* word, uint8_t offset, const uint8_t len)
+template<class t_const_uint64_iter>
+inline uint64_t bits::read_int(t_const_uint64_iter word, uint8_t offset, const uint8_t len)
 {
     uint64_t w1 = (*word)>>offset;
     if ((offset+len) > 64) { // if offset+len > 64
@@ -496,7 +503,8 @@ inline uint64_t bits::read_int(const uint64_t* word, uint8_t offset, const uint8
     }
 }
 
-inline uint64_t bits::read_int_and_move(const uint64_t*& word, uint8_t& offset, const uint8_t len)
+template<class t_const_uint64_iter>
+uint64_t bits::read_int_and_move(t_const_uint64_iter& word, uint8_t& offset, const uint8_t len)
 {
     uint64_t w1 = (*word)>>offset;
     if ((offset = (offset+len))>=64) {  // if offset+len > 64
@@ -514,7 +522,8 @@ inline uint64_t bits::read_int_and_move(const uint64_t*& word, uint8_t& offset, 
     }
 }
 
-inline uint64_t bits::read_unary(const uint64_t* word, uint8_t offset)
+template<class t_const_uint64_iter>
+inline uint64_t bits::read_unary(t_const_uint64_iter word, uint8_t offset)
 {
     uint64_t w = *word >> offset;
     if (w) {
@@ -530,7 +539,8 @@ inline uint64_t bits::read_unary(const uint64_t* word, uint8_t offset)
     return 0;
 }
 
-inline uint64_t bits::read_unary_and_move(const uint64_t*& word, uint8_t& offset)
+template<class t_const_uint64_iter>
+uint64_t bits::read_unary_and_move(t_const_uint64_iter& word, uint8_t& offset)
 {
     uint64_t w = (*word) >> offset; // temporary variable is good for the performance
     if (w) {
@@ -559,7 +569,8 @@ inline uint64_t bits::read_unary_and_move(const uint64_t*& word, uint8_t& offset
     return 0;
 }
 
-inline void bits::move_right(const uint64_t*& word, uint8_t& offset, const uint8_t len)
+template<class t_const_uint64_iter>
+inline void bits::move_right(t_const_uint64_iter& word, uint8_t& offset, const uint8_t len)
 {
     if ((offset+=len)&0xC0) { // if offset >= 65
         offset&=0x3F;
@@ -567,7 +578,8 @@ inline void bits::move_right(const uint64_t*& word, uint8_t& offset, const uint8
     }
 }
 
-inline void bits::move_left(const uint64_t*& word, uint8_t& offset, const uint8_t len)
+template<class t_const_uint64_iter>
+inline void bits::move_left(t_const_uint64_iter& word, uint8_t& offset, const uint8_t len)
 {
     if ((offset-=len)&0xC0) {  // if offset-len<0
         offset&=0x3F;
