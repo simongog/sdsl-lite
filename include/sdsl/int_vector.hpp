@@ -501,6 +501,17 @@ class int_vector
             return int_vector_trait<t_width>::end(this, m_data, (m_size/m_width));
         }
 
+
+        const uint64_t* uint64_begin() const {
+            static_assert(1 == t_width, "int_vector: uint64_begin() is available only for bit_vector.");
+            return nullptr;
+        }
+
+        const uint64_t* uint64_end() const {
+            static_assert(1 == t_width, "int_vector: uint64_end() is available only for bit_vector.");
+            return nullptr;
+        }
+
         //! Flip all bits of bit_vector
         void flip() {
             static_assert(1 == t_width, "int_vector: flip() is available only for bit_vector.");
@@ -526,6 +537,12 @@ class int_vector
 
 template<>
 void int_vector<0>::width(const uint8_t);
+
+template<>
+const uint64_t* bit_vector::uint64_begin() const;
+
+template<>
+const uint64_t* bit_vector::uint64_end() const;
 
 template<>
 void bit_vector::flip();

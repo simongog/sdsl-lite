@@ -112,25 +112,23 @@ class fibonacci
            \param n Number of values to decode from the bitstring.
            \param it Iterator
          */
-        template<bool t_sumup, bool t_inc, class t_iter>
-        static uint64_t decode(const uint64_t* data, const size_type start_idx, size_type n, t_iter it=(t_iter)nullptr);
-
-        template<bool t_sumup, bool t_inc, class t_iter>
-        static uint64_t decode1(const uint64_t* data, const size_type start_idx, size_type n, t_iter it=(t_iter)nullptr);
-
-
+        template<bool t_sumup, bool t_inc, class t_iter, class t_const_uint64_iter>
+        static uint64_t decode(t_const_uint64_iter data, const size_type start_idx, size_type n, t_iter it=(t_iter)nullptr);
 
         //! Decode n Fibonacci encoded integers beginning at start_idx in the bitstring "data"  and return the sum of these values.
         /*! \param data Pointer to the beginning of the Fibonacci encoded bitstring.
             \param start_idx Index of the first bit to encode the values from.
         	\param n Number of values to decode from the bitstring. Attention: There have to be at least n encoded values in the bitstring.
          */
-        static uint64_t decode_prefix_sum(const uint64_t* data, const size_type start_idx, size_type n);
+        template<class t_const_uint64_iter>
+        static uint64_t decode_prefix_sum(t_const_uint64_iter data, const size_type start_idx, size_type n);
+
 
         //! Decode n Fibonacci encoded integers beginning at start_idx and ending at end_idx (exclusive) in the bitstring "data" and return the sum of these values.
         /*! \sa decode_prefix_sum
           */
-        static uint64_t decode_prefix_sum(const uint64_t* data, const size_type start_idx, const size_type end_idx, size_type n);
+        template<class t_const_uint64_iter>
+        static uint64_t decode_prefix_sum(t_const_uint64_iter data, const size_type start_idx, const size_type end_idx, size_type n);
 
         template<class int_vector1, class int_vector2>
         static bool encode(const int_vector1& v, int_vector2& z);
@@ -326,8 +324,8 @@ bool fibonacci::decode(const int_vector1& z, int_vector2& v)
     return decode<false, true>(z.data(), 0, n, v.begin());
 }
 
-template<bool t_sumup, bool t_inc, class t_iter>
-inline uint64_t fibonacci::decode(const uint64_t* data, const size_type start_idx, size_type n, t_iter it)
+template<bool t_sumup, bool t_inc, class t_iter, class t_const_uint64_iter>
+inline uint64_t fibonacci::decode(t_const_uint64_iter data, const size_type start_idx, size_type n, t_iter it)
 {
     data += (start_idx >> 6);
     uint64_t w = 0, value = 0;
@@ -365,51 +363,105 @@ inline uint64_t fibonacci::decode(const uint64_t* data, const size_type start_id
     return value;
 }
 
-template<bool t_sumup, bool t_inc, class t_iter>
-inline uint64_t fibonacci::decode1(const uint64_t* data, const size_type start_idx, size_type n, t_iter it)
+template<class t_const_uint64_iter>
+uint64_t fibonacci::decode_prefix_sum(t_const_uint64_iter data, const size_type start_idx, size_type n)
 {
+    if (n==0)
+        return 0;
+//	return decode<true,false,int*>(data, start_idx, n);
     data += (start_idx >> 6);
+    size_type i = 0;
+    int32_t	bits_to_decode = 0;
     uint64_t w = 0, value = 0;
-    int8_t buffered = 0; // bits buffered in w, in 0..64
-    int8_t read = start_idx & 0x3F; // read bits in current *data 0..63
-    int8_t shift = 0;
-    uint32_t fibtable = 0;
-    uint8_t blocknr = (start_idx>>6)%9;
-    while (n) {// while not all values are decoded
-        while (buffered < 13 and bits::cnt11(w) < n) {
+    int16_t buffered = 0, read = start_idx & 0x3F, shift = 0;
+    uint16_t temp=0;
+    uint64_t carry=0;
+    i = bits::cnt11(*data & ~bits::lo_set[read], carry);
+    if (i<n) {
+        uint64_t oldcarry;
+        w = 0;
+        do {
+            oldcarry = carry;
+            i += (temp = bits::cnt11(*(data+(++w)), carry));
+        } while (i<n);
+        bits_to_decode += ((w-1)<<6) + bits::sel11(*(data+w), n-(i-temp), oldcarry) + 65 - read;
+        w = 0;
+    } else { // i>=n
+        bits_to_decode = bits::sel11(*data >> read, n)+1;
+    }
+    if (((size_type)bits_to_decode) == n<<1)
+        return n;
+    if (((size_type)bits_to_decode) == (n<<1)+1)
+        return n+1;
+    i = 0;
+//	while( bits_to_decode > 0 or buffered > 0){// while not all values are decoded
+    do {
+        while (buffered < 64 and bits_to_decode > 0) {
             w |= (((*data)>>read)<<buffered);
             if (read >= buffered) {
-                ++blocknr;
                 ++data;
-                if (blocknr==8) {
-                    ++data;
-                    blocknr=0;
-                }
                 buffered += 64-read;
+                bits_to_decode -= (64-read);
                 read = 0;
-            } else { // read < buffered
+            } else { // read buffered
                 read += 64-buffered;
+                bits_to_decode -= (64-buffered);
                 buffered = 64;
             }
+            if (bits_to_decode < 0) {
+                buffered += bits_to_decode;
+                w &= bits::lo_set[buffered];
+                bits_to_decode = 0;
+            }
         }
-        value += fibonacci::data.fib2bin_0_95[(fibtable<<12) | (w&0xFFF)];
-        shift  = fibonacci::data.fib2bin_shift[w&0x1FFF];
-        if (shift > 0) {// if end of decoding
-            w >>= shift;
-            buffered -= shift;
-            if (t_inc) *(it++) = value;
-            if (!t_sumup)
-                value = 0;
-            fibtable = 0;
-            --n;
-        } else { // not end of decoding
-            w >>= 12;
-            buffered -= 12;
-            ++fibtable;
+        if (!i) { // try do decode multiple values
+            if ((w&0xFFFFFF)==0xFFFFFF) {
+                value += 12;
+                w >>= 24;
+                buffered -= 24;
+                if ((w&0xFFFFFF)==0xFFFFFF) {
+                    value += 12;
+                    w >>= 24;
+                    buffered -= 24;
+                }
+            }
+            do {
+                temp = fibonacci::data.fib2bin_16_greedy[w&0xFFFF];
+                if ((shift=(temp>>11)) > 0) {
+                    value += (temp & 0x7FFULL);
+                    w >>= shift;
+                    buffered -= shift;
+                } else {
+                    value += fibonacci::data.fib2bin_0_95[w&0xFFF];
+                    w >>= 12;
+                    buffered -= 12;
+                    i = 1;
+                    break;
+                }
+            } while (buffered>15);
+        } else { // i > 0
+            value += fibonacci::data.fib2bin_0_95[(i<<12) | (w&0xFFF)];
+            shift  = fibonacci::data.fib2bin_shift[w&0x1FFF];
+            if (shift > 0) { // if end of decoding
+                w >>= shift;
+                buffered -= shift;
+                i = 0;
+            } else { // not end of decoding
+                w >>= 12;
+                buffered -= 12;
+                ++i;
+            }
         }
-    }
+    } while (bits_to_decode > 0 or buffered > 0);
     return value;
 }
+
+template<class t_const_uint64_iter>
+uint64_t fibonacci::decode_prefix_sum(t_const_uint64_iter data, const size_type start_idx, const size_type end_idx, size_type n)
+{
+    return decode_prefix_sum(data, start_idx, n);
+}
+
 
 } // end namespace coder
 } // end namespace sdsl
