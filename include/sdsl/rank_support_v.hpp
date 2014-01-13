@@ -110,7 +110,7 @@ class rank_support_v : public rank_support
 
         rank_support_v(rank_support_v&&) = default;
 
-        const size_type rank(size_type idx) const {
+        size_type rank(size_type idx) const {
             assert(m_v != nullptr);
             assert(idx <= m_v->size());
             const uint64_t* p = m_basic_block.data()
@@ -122,11 +122,11 @@ class rank_support_v : public rank_support
                 return  *p + ((*(p+1)>>(63 - 9*((idx&0x1FF)>>6)))&0x1FF);
         }
 
-        inline const size_type operator()(size_type idx)const {
+        inline size_type operator()(size_type idx)const {
             return rank(idx);
         }
 
-        const size_type size()const {
+        size_type size()const {
             return m_v->size();
         }
 

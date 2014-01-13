@@ -65,7 +65,7 @@ TYPED_TEST(BitVectorTest, GetInt)
     ASSERT_TRUE(load_from_file(bv, test_file));
     TypeParam c_bv(bv);
     ASSERT_EQ(bv.size(), c_bv.size());
-    const uint32_t len = 63;
+    uint8_t len = 63;
     for (uint64_t j=0; j+len < bv.size(); j+=len) {
         ASSERT_EQ(bv.get_int(j, len), c_bv.get_int(j, len));
     }
@@ -83,10 +83,10 @@ TYPED_TEST(BitVectorTest, GetIntAllBlockSizes)
     }
 
     TypeParam c_bv(bv);
-    for (size_t len=1; len<=64; ++len) {
+    for (uint8_t len=1; len<=64; ++len) {
         for (size_t i=0; i+len <= bv.size(); ++i) {
             ASSERT_EQ(bv.get_int(i,len), c_bv.get_int(i,len))
-                    << "i="<<i<<" len="<<len<<endl;
+                    << "i="<<i<<" len="<<(int)len<<endl;
         }
     }
 }

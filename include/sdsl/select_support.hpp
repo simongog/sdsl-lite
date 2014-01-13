@@ -62,10 +62,10 @@ class select_support
         	Call init or load to initialize the data structure before the first call of this method.
          	\sa init, load.
          */
-        virtual const size_type select(size_type i) const = 0;
+        virtual size_type select(size_type i) const = 0;
 
         //! Alias for select
-        virtual const size_type operator()(size_type i) const = 0;
+        virtual size_type operator()(size_type i) const = 0;
         //! Serialize the select_support to an out file stream.
         virtual size_type serialize(std::ostream& out, structure_tree_node* v, std::string name)const = 0;
         //! Load the select_support from an in file stream.

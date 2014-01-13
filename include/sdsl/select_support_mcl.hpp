@@ -91,9 +91,9 @@ class select_support_mcl : public select_support
         ~select_support_mcl();
         void init_slow(const bit_vector* v=nullptr);
         //! Select function
-        inline const size_type select(size_type i) const;
+        inline size_type select(size_type i) const;
         //! Alias for select(i).
-        inline const size_type operator()(size_type i)const;
+        inline size_type operator()(size_type i)const;
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
         void load(std::istream& in, const bit_vector* v=nullptr);
         void set_vector(const bit_vector* v=nullptr);
@@ -318,7 +318,7 @@ void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
 
 
 template<uint8_t t_b, uint8_t t_pat_len>
-inline auto select_support_mcl<t_b,t_pat_len>::select(size_type i)const -> const size_type
+inline auto select_support_mcl<t_b,t_pat_len>::select(size_type i)const -> size_type
 {
     assert(i > 0 and i <= m_arg_cnt);
 
@@ -367,7 +367,7 @@ inline auto select_support_mcl<t_b,t_pat_len>::select(size_type i)const -> const
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
-inline auto select_support_mcl<t_b,t_pat_len>::operator()(size_type i)const -> const size_type
+inline auto select_support_mcl<t_b,t_pat_len>::operator()(size_type i)const -> size_type
 {
     return select(i);
 }

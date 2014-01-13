@@ -59,7 +59,7 @@ TYPED_TEST(RMQTest, RmqLoadAndQuery)
     if (rmq.size() > 0) {
         stack<state> s;
         uint64_t idx = rmq(0, rmq.size()-1);
-        ASSERT_TRUE(idx >= (uint64_t)0); ASSERT_TRUE(idx < rmq.size());
+        ASSERT_TRUE(idx < rmq.size());
         s.push(state(0, rmq.size()-1, idx,  v[idx]));
         while (!s.empty()) {
             state st = s.top(); s.pop();
