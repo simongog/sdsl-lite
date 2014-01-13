@@ -55,8 +55,8 @@ class select_support_scan : public select_support
         select_support_scan(const select_support_scan<t_b,t_pat_len>& ss) {
             set_vector(ss.m_v);
         }
-        inline const size_type select(size_type i) const;
-        inline const size_type operator()(size_type i)const {
+        inline size_type select(size_type i) const;
+        inline size_type operator()(size_type i)const {
             return select(i);
         }
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
@@ -77,7 +77,7 @@ class select_support_scan : public select_support
 };
 
 template<uint8_t t_b, uint8_t t_pat_len>
-inline const typename select_support_scan<t_b,t_pat_len>::size_type select_support_scan<t_b,t_pat_len>::select(size_type i)const
+inline typename select_support_scan<t_b,t_pat_len>::size_type select_support_scan<t_b,t_pat_len>::select(size_type i)const
 {
     const uint64_t* data = m_v->data();
     size_type word_pos = 0;

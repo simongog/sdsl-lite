@@ -52,11 +52,11 @@ class rank_support_scan : public rank_support
         rank_support_scan(const rank_support_scan& rs) {
             set_vector(rs.m_v);
         }
-        const size_type rank(size_type idx) const;
-        const size_type operator()(size_type idx)const {
+        size_type rank(size_type idx) const;
+        size_type operator()(size_type idx)const {
             return rank(idx);
         };
-        const size_type size()const {
+        size_type size()const {
             return m_v->size();
         };
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
@@ -80,7 +80,7 @@ class rank_support_scan : public rank_support
 };
 
 template<uint8_t t_b, uint8_t t_pat_len>
-inline const typename rank_support_scan<t_b, t_pat_len>::size_type rank_support_scan<t_b, t_pat_len>::rank(size_type idx)const
+inline typename rank_support_scan<t_b, t_pat_len>::size_type rank_support_scan<t_b, t_pat_len>::rank(size_type idx)const
 {
     assert(m_v != nullptr);
     assert(idx <= m_v->size());

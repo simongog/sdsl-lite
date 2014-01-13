@@ -25,7 +25,7 @@ INDEXES     = $(foreach IDX_ID,$(IDX_IDS),\
 				  $(foreach SAMPLE_ID,$(SAMPLE_IDS),indexes/$(TC_ID).$(IDX_ID).$(SAMPLE_ID))))
 INFO_FILES  = $(foreach IDX_ID,$(IDX_IDS),\
 		      	$(foreach TC_ID,$(TC_IDS),\
-				  $(foreach SAMPLE_ID,$(SAMPLE_IDS),info/$(TC_ID).$(IDX_ID).$(SAMPLE_ID).json)))
+				  $(foreach SAMPLE_ID,$(SAMPLE_IDS),info/$(TC_ID).$(IDX_ID).$(SAMPLE_ID).html)))
 TIME_FILES  = $(foreach IDX_ID,$(IDX_IDS),\
 		        $(foreach TC_ID,$(TC_IDS),\
 				  $(foreach SAMPLE_ID,$(SAMPLE_IDS),results/$(TC_ID).$(IDX_ID).$(SAMPLE_ID))))
@@ -76,7 +76,7 @@ indexes/%: $(BUILD_EXECS)
 	@$(BIN_DIR)/build_idx_$(IDX_ID).$(SAMPLE_ID) $(TC) $(TMP_DIR) $@
 
 # info/[TC_ID].[IDX_ID].[SAMPLE_ID]
-info/%.json: $(INDEXES)
+info/%.html: $(INDEXES)
 	$(eval TC_ID:=$(call dim,1,$*)) 
 	$(eval IDX_ID:=$(call dim,2,$*)) 
 	$(eval SAMPLE_ID:=$(call dim,3,$*)) 

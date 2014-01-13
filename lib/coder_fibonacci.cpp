@@ -100,7 +100,7 @@ uint64_t fibonacci::decode_prefix_sum(const uint64_t* data, const size_type star
     return value;
 }
 
-uint64_t fibonacci::decode_prefix_sum(const uint64_t* data, const size_type start_idx, const size_type end_idx, size_type n)
+uint64_t fibonacci::decode_prefix_sum(const uint64_t* data, const size_type start_idx, SDSL_UNUSED const size_type end_idx, size_type n)
 {
     return decode_prefix_sum(data, start_idx, n);
 }

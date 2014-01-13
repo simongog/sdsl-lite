@@ -137,10 +137,10 @@ struct wt_trait<t_wt, false> {
     static uint64_t test_interval_symbols(const t_wt& wt, const vector<size_type>& is, const vector<size_type>& js, size_type& k,vector<value_type>& tmp, vector<size_type>& tmp2, uint64_t mask, uint64_t times=100000000) {
         return ::test_interval_symbols(wt,is,js,k,tmp,tmp2,mask,times);
     }
-    static uint64_t test_lex_count(const t_wt& wt, const vector<size_type>& is, const vector<size_type>& js, const vector<value_type>& cs, uint64_t mask, uint64_t times=100000000) {
+    static uint64_t test_lex_count(const t_wt&, const vector<size_type>&, const vector<size_type>&, const vector<value_type>&, uint64_t, uint64_t) {
         return 0;
     }
-    static uint64_t test_lex_smaller_count(const t_wt& wt, const vector<size_type>& is, const vector<value_type>& cs, uint64_t mask, uint64_t times=100000000) {
+    static uint64_t test_lex_smaller_count(const t_wt&, const vector<size_type>&, const vector<value_type>&, uint64_t, uint64_t) {
         return 0;
     }
 };
@@ -160,20 +160,23 @@ struct wt_trait<t_wt, true> {
 
 template<class t_bitvector, class t_rank, class t_select, class t_wt>
 struct wt_trait<wt_rlmn<t_bitvector, t_rank, t_select, t_wt>, false> {
-    static uint64_t test_interval_symbols(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>& wt, const vector<size_type>& is, const vector<size_type>& js, size_type& k,vector<value_type>& tmp, vector<size_type>& tmp2, uint64_t mask, uint64_t times=100000000) {
+    static uint64_t test_interval_symbols(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>&, const vector<size_type>&, const vector<size_type>&, size_type&,vector<value_type>&, vector<size_type>&, uint64_t, uint64_t) {
         return 0;
     }
-    static uint64_t test_lex_count(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>& wt, const vector<size_type>& is, const vector<size_type>& js, const vector<value_type>& cs, uint64_t mask, uint64_t times=100000000) {
+    static uint64_t test_lex_count(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>&, const vector<size_type>&, const vector<size_type>&, const vector<value_type>&, uint64_t, uint64_t) {
         return 0;
     }
-    static uint64_t test_lex_smaller_count(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>& wt, const vector<size_type>& is, const vector<value_type>& cs, uint64_t mask, uint64_t times=100000000) {
+    static uint64_t test_lex_smaller_count(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>&, const vector<size_type>&, const vector<value_type>&, uint64_t, uint64_t) {
         return 0;
     }
 };
 
-// argv[1] = test case path  argv[2] = test case type
 int main(int argc, char* argv[])
 {
+    if (argc < 3) {
+        cout << "Usage: file num_bytes" << endl;
+        return 1;
+    }
     uint8_t type = argv[2][0]=='d' ? 'd' : argv[2][0]-'0';
 
     WT_TYPE wt;

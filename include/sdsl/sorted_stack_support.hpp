@@ -69,7 +69,7 @@ class sorted_stack_support
         /*! Returns the topmost index on the stack.
          * \pre empty()==false
          */
-        const size_type top() const;
+        size_type top() const;
 
         /*! Pop the topmost index of the stack.
          */
@@ -118,7 +118,7 @@ inline sorted_stack_support& sorted_stack_support::operator=(const sorted_stack_
     return *this;
 }
 
-inline const sorted_stack_support::size_type sorted_stack_support::top()const
+inline sorted_stack_support::size_type sorted_stack_support::top()const
 {
     return m_top-1;
 }

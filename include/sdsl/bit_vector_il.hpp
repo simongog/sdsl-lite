@@ -298,11 +298,11 @@ class rank_support_il
             return rank0(i);
         }
 
-        const size_type operator()(size_type i)const {
+        size_type operator()(size_type i)const {
             return rank(i);
         }
 
-        const size_type size()const {
+        size_type size()const {
             return m_v->size();
         }
 
@@ -456,11 +456,11 @@ class select_support_il
             return select0(i);
         }
 
-        const size_type operator()(size_type i)const {
+        size_type operator()(size_type i)const {
             return select(i);
         }
 
-        const size_type size()const {
+        size_type size()const {
             return m_v->size();
         }
 

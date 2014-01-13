@@ -254,46 +254,13 @@ std::string create_js_body(const std::string& jsonsize)
 }
 
 template<>
-void write_structure_tree<HTML_FORMAT>(const structure_tree_node* v, std::ostream& out, size_t level)
+void write_structure_tree<HTML_FORMAT>(const structure_tree_node* v, std::ostream& out, SDSL_UNUSED size_t level)
 {
     std::stringstream json_data;
     write_structure_tree<JSON_FORMAT>(v, json_data);
 
     out << create_html_header("sdsl data structure visualization");
     out << create_js_body(json_data.str());
-}
-
-
-template<>
-void write_structure_tree<R_FORMAT>(const structure_tree_node* v, std::ostream& out, size_t level)
-{
-    /*    if (nullptr == v or (v->children.size()==0 and v->key_values.size()==0)) {
-            return;
-        }
-        typedef structure_tree_node::tKeyValue::const_iterator const_iterator;
-        size_t written_elements = 0;
-        out << "list("; // begin R list
-        for (const_iterator it = v->key_values.begin(); it != v->key_values.end(); ++it) {
-            if (written_elements++ > 0) {
-                out << ",";
-            }
-            out << it->first << " = " << it->second;
-        }
-        if (v->children.size() > 0) {
-            if (written_elements++ > 0) {
-                out << ",";
-            }
-            out << "list("; // open children
-            size_t written_child_elements = 0;
-            for (size_t i = 0; i < v->children.size(); ++i) {
-                if (written_child_elements++ > 0) {
-                    out << ",";
-                }
-                write_structure_tree<JSON_FORMAT>(v->children[i], out);
-            }
-            out << ")";// close children
-        }
-        out << ")"; // end R list*/
 }
 
 } // namespace end

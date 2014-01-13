@@ -301,14 +301,15 @@ class rrr_vector
                     res =  rrr_helper_type::decode_int(bt, btnr, bb_off, len);
                 }
             } else { // solve multiple block case by recursion
-                uint16_t b_len = t_bs-bb_off;
+                uint16_t b_len = t_bs-bb_off; // remaining bits in first block
                 uint16_t b_len_sum = 0;
                 do {
                     res |= get_int(idx, b_len) << b_len_sum;
                     idx += b_len;
                     b_len_sum += b_len;
                     len -= b_len;
-                    b_len = ((uint16_t)len > (uint16_t)t_bs) ? t_bs : len;
+                    b_len = t_bs;
+                    b_len = std::min((uint16_t)len, b_len);
                 } while (len > 0);
             }
             return res;

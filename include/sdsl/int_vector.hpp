@@ -383,7 +383,7 @@ class int_vector
             \returns The integer value of the binary string of length len starting at position idx.
             \sa setInt, getBit, setBit
         */
-        const value_type get_int(size_type idx, const uint8_t len=64) const;
+        value_type get_int(size_type idx, const uint8_t len=64) const;
 
         //! Set the bits from position idx to idx+len-1 to the binary representation of integer x.
         /*! The bit at position idx represents the least significant bit(lsb), and the bit at
@@ -399,7 +399,7 @@ class int_vector
         /*! \returns The width of the integers which are accessed via the [] operator.
             \sa width
         */
-        const uint8_t width() const {
+        uint8_t width() const {
             return m_width;
         }
 
@@ -782,7 +782,7 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
 
 
         int_vector_iterator(const int_vector_iterator<t_int_vector>& it) :
-            m_word(it.m_word) {
+            int_vector_iterator_base<t_int_vector>(it), m_word(it.m_word) {
             m_offset = it.m_offset;
             m_len = it.m_len;
         }
@@ -946,7 +946,7 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
             m_word((v != nullptr) ? v->m_data + (idx>>6) : nullptr) {}
 
         int_vector_const_iterator(const int_vector_const_iterator& it):
-            m_word(it.m_word) {
+            int_vector_iterator_base<t_int_vector>(it), m_word(it.m_word) {
             m_offset = it.m_offset;
             m_len = it.m_len;
         }
@@ -1177,7 +1177,7 @@ void int_vector<t_width>::bit_resize(const size_type size)
 }
 
 template<uint8_t t_width>
-auto int_vector<t_width>::get_int(size_type idx, const uint8_t len)const -> const value_type
+auto int_vector<t_width>::get_int(size_type idx, const uint8_t len)const -> value_type
 {
 #ifdef SDSL_DEBUG
     if (idx+len > m_size) {

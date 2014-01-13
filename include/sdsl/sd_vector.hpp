@@ -325,11 +325,11 @@ class rank_support_sd
             return rank_low+1;
         }
 
-        const size_type operator()(size_type i)const {
+        size_type operator()(size_type i)const {
             return rank(i);
         }
 
-        const size_type size()const {
+        size_type size()const {
             return m_v->size();
         }
 
@@ -383,11 +383,11 @@ class select_support_sd
             //^-number of 0 before the i-th 1-^      ^-shift by m_wl
         }
 
-        const size_type operator()(size_type i)const {
+        size_type operator()(size_type i)const {
             return select(i);
         }
 
-        const size_type size()const {
+        size_type size()const {
             return m_v->size();
         }
 

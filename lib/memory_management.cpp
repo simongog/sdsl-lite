@@ -43,7 +43,7 @@ void write_mem_log<JSON_FORMAT>(std::ostream& out,const memory_monitor& m)
     out << "]\n";
 }
 
-std::string create_mem_html_header(const char* file_name)
+std::string create_mem_html_header()
 {
     std::stringstream jsonheader;
     jsonheader
@@ -167,7 +167,7 @@ void write_mem_log<HTML_FORMAT>(std::ostream& out,const memory_monitor& m)
     std::stringstream json_data;
     write_mem_log<JSON_FORMAT>(json_data,m);
 
-    out << create_mem_html_header("sdsl memory visualization");
+    out << create_mem_html_header();
     out << create_mem_js_body(json_data.str());
 }
 
@@ -586,7 +586,7 @@ hugepage_allocator::mm_realloc(void* ptr, size_t size)
 uint64_t extract_number(std::string& line)
 {
     std::string num_str;
-    for (size_t i=line.size()-1; i>=0; i--) {
+    for (size_t i=line.size()-1; i+1>=1; i--) {
         if (isdigit(line[i])) {
             num_str.insert(num_str.begin(),line[i]);
         } else {

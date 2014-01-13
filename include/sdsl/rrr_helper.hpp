@@ -332,7 +332,7 @@ struct rrr_helper {
 #endif
         uint16_t nn = n;
         // if k < n \log n, it is better to do a binary search for each of the on bits
-        if (k < binomial::data.BINARY_SEARCH_THRESHOLD) {
+        if (k+1 < binomial::data.BINARY_SEARCH_THRESHOLD+1) {
             while (k > 1) {
                 uint16_t nn_lb = k, nn_rb = nn+1; // invariant nr >= binomial::data.table[nn_lb-1][k]
                 while (nn_lb < nn_rb) {
@@ -421,7 +421,7 @@ struct rrr_helper {
         uint16_t result = 0;
         uint16_t nn = n;
         // if k < n \log n, it is better to do a binary search for each of the on bits
-        if (k < binomial::data.BINARY_SEARCH_THRESHOLD) {
+        if (k+1 < binomial::data.BINARY_SEARCH_THRESHOLD+1) {
             while (k > 1) {
                 uint16_t nn_lb = k, nn_rb = nn+1; // invariant nr >= binomial::data.table[nn_lb-1][k]
                 while (nn_lb < nn_rb) {
@@ -471,7 +471,7 @@ struct rrr_helper {
 #endif
         uint16_t nn = n;
         // if k < n \log n, it is better to do a binary search for each of the on bits
-        if (sel < binomial::data.BINARY_SEARCH_THRESHOLD) {
+        if (sel+1 < binomial::data.BINARY_SEARCH_THRESHOLD+1) {
             while (sel > 0) {
                 uint16_t nn_lb = k, nn_rb = nn+1; // invariant nr >= iii.m_coefficients[nn_lb-1]
                 while (nn_lb < nn_rb) {
