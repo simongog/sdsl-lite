@@ -178,10 +178,13 @@ int main(int argc, char* argv[])
 
     WT_TYPE wt;
     //construct
+    memory_monitor::start();
     auto start = timer::now();
     construct(wt,argv[1],type);
     auto stop = timer::now();
+    memory_monitor::stop();
     cout << "# constructs_time = " << duration_cast<milliseconds>(stop-start).count()/(double)1000 << endl;
+    cout << "# constructs_space = " << memory_monitor::peak() << endl;
 
     //size
     cout << "# wt_size = " << size_in_bytes(wt) << endl;
