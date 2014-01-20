@@ -3,6 +3,7 @@
 #include<string>
 #include<sdsl/wavelet_trees.hpp>
 #include<sdsl/wt_helper.hpp>
+#include<sdsl/fast_select.hpp>
 
 using namespace std;
 using namespace sdsl;
@@ -125,7 +126,7 @@ void prepare_for_select(const t_wt& wt,vector<value_type>& cs,vector<size_type>&
     auto dice = bind(distribution, rng);
     for (uint64_t l = 0; l<cs.size(); ++l) {
         is[l]=dice();
-        is[l] = is[l]%(wt.rank(wt.size(),cs[l]))+1;
+        is[l]=is[l]%(wt.rank(wt.size(),cs[l]))+1;
     }
 }
 
@@ -137,10 +138,10 @@ struct wt_trait<t_wt, false> {
     static uint64_t test_interval_symbols(const t_wt& wt, const vector<size_type>& is, const vector<size_type>& js, size_type& k,vector<value_type>& tmp, vector<size_type>& tmp2, uint64_t mask, uint64_t times=100000000) {
         return ::test_interval_symbols(wt,is,js,k,tmp,tmp2,mask,times);
     }
-    static uint64_t test_lex_count(const t_wt&, const vector<size_type>&, const vector<size_type>&, const vector<value_type>&, uint64_t, uint64_t) {
+    static uint64_t test_lex_count(const t_wt& wt, const vector<size_type>& is, const vector<size_type>& js, const vector<value_type>& cs, uint64_t mask, uint64_t times=100000000) {
         return 0;
     }
-    static uint64_t test_lex_smaller_count(const t_wt&, const vector<size_type>&, const vector<value_type>&, uint64_t, uint64_t) {
+    static uint64_t test_lex_smaller_count(const t_wt& wt, const vector<size_type>& is, const vector<value_type>& cs, uint64_t mask, uint64_t times=100000000) {
         return 0;
     }
 };
@@ -160,30 +161,58 @@ struct wt_trait<t_wt, true> {
 
 template<class t_bitvector, class t_rank, class t_select, class t_wt>
 struct wt_trait<wt_rlmn<t_bitvector, t_rank, t_select, t_wt>, false> {
-    static uint64_t test_interval_symbols(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>&, const vector<size_type>&, const vector<size_type>&, size_type&,vector<value_type>&, vector<size_type>&, uint64_t, uint64_t) {
+    static uint64_t test_interval_symbols(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>& wt, const vector<size_type>& is, const vector<size_type>& js, size_type& k,vector<value_type>& tmp, vector<size_type>& tmp2, uint64_t mask, uint64_t times=100000000) {
         return 0;
     }
-    static uint64_t test_lex_count(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>&, const vector<size_type>&, const vector<size_type>&, const vector<value_type>&, uint64_t, uint64_t) {
+    static uint64_t test_lex_count(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>& wt, const vector<size_type>& is, const vector<size_type>& js, const vector<value_type>& cs, uint64_t mask, uint64_t times=100000000) {
         return 0;
     }
-    static uint64_t test_lex_smaller_count(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>&, const vector<size_type>&, const vector<value_type>&, uint64_t, uint64_t) {
+    static uint64_t test_lex_smaller_count(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>& wt, const vector<size_type>& is, const vector<value_type>& cs, uint64_t mask, uint64_t times=100000000) {
         return 0;
     }
 };
 
+// argv[1] = test case path  argv[2] = test case type
 int main(int argc, char* argv[])
 {
-    if (argc < 3) {
-        cout << "Usage: file num_bytes" << endl;
-        return 1;
-    }
     uint8_t type = argv[2][0]=='d' ? 'd' : argv[2][0]-'0';
+    // int_vector<> iv;
+    // load_from_file(iv, argv[1]);
+    // prepare_for_select arbeite mit int_vector
+    // random_cs mit int_vector
+    // random_is_js with int_vector
 
-    WT_TYPE wt;
+//    WT_TYPE wt;
+    wt_int<> wti;
+    construct(wti,argv[1],type);
+
+    // ToDo:  construct(fast_select, argv[1], type);
+
     //construct
     memory_monitor::start();
     auto start = timer::now();
-    construct(wt,argv[1],type);
+    WT_TYPE wt;
+    //construct(wt,argv[1],type);
+    if (type == 'd') {
+        cerr << "Not supported" << endl;
+        return 1;
+    } else if (type == 0) {
+        /*
+        int_vector_buffer<> text(argv[1]);
+        WT_TYPE tmp(text, text.size());
+        wt.swap(tmp);
+        */
+    } else if (type == 1) {
+        int_vector_buffer<8> text(argv[1], std::ios::in, 1000000, 8, true);
+        WT_TYPE tmp(text, text.size());
+        wt.swap(tmp);
+    } else {
+        /*
+        int_vector_buffer<> text(argv[1], std::ios::in, 1000000, 8*type, true);
+        WT_TYPE tmp(text, text.size());
+        wt.swap(tmp);
+         */
+    }
     auto stop = timer::now();
     memory_monitor::stop();
     cout << "# constructs_time = " << duration_cast<milliseconds>(stop-start).count()/(double)1000 << endl;
@@ -193,21 +222,21 @@ int main(int argc, char* argv[])
     cout << "# wt_size = " << size_in_bytes(wt) << endl;
 
     const uint64_t reps = 100000;
-    const uint64_t reps_interval_symbols = wt.sigma < 10000 ? reps : reps/100;
+    const uint64_t reps_interval_symbols = wti.sigma < 10000 ? reps : reps/100;
     uint64_t log_s = 20;
     uint64_t mask = (1<<log_s)-1;
     uint64_t check = 0;
     uint64_t size = 1<<log_s;
 
     //create values
-    size_type k =0;
+    //size_type k =0;
     vector<value_type> cs(size);
     vector<size_type> is(size);
     vector<size_type> js(size);
-    vector<value_type> tmp(wt.sigma);
-    vector<size_type> tmp2(wt.sigma);
-    random_cs(wt,cs);
-    random_is_js(wt,is,js);
+    vector<value_type> tmp(wti.sigma);
+    vector<size_type> tmp2(wti.sigma);
+    random_cs(wti,cs);
+    random_is_js(wti,is,js);
 
     //access
     start = timer::now();
@@ -225,33 +254,33 @@ int main(int argc, char* argv[])
 
     //inverse_select
     start = timer::now();
-    check = test_inverse_select(wt,is,mask,reps);
+    //check = test_inverse_select(wt,is,mask,reps);
     stop = timer::now();
     cout << "# inverse_select_time = " << duration_cast<microseconds>(stop-start).count()/(double)reps << endl;
     cout << "# inverse_select_check = " << check << endl;
 
     //interval_symbols
     start = timer::now();
-    check = wt_trait<WT_TYPE>::test_interval_symbols(wt,is,js,k,tmp,tmp2,mask,reps_interval_symbols);
+//   check = wt_trait<WT_TYPE>::test_interval_symbols(wt,is,js,k,tmp,tmp2,mask,reps_interval_symbols);
     stop = timer::now();
     cout << "# interval_symbols_time = " << duration_cast<microseconds>(stop-start).count()/(double)reps_interval_symbols << endl;
     cout << "# interval_symbols_check = " << check << endl;
 
     //lex_count
     start = timer::now();
-    check = wt_trait<WT_TYPE>::test_lex_count(wt,is,js,cs,mask,reps);
+//   check = wt_trait<WT_TYPE>::test_lex_count(wt,is,js,cs,mask,reps);
     stop = timer::now();
     cout << "# lex_count_time = " << duration_cast<microseconds>(stop-start).count()/(double)reps << endl;
     cout << "# lex_count_check = " << check << endl;
 
     //lex_smaller_count
     start = timer::now();
-    check = wt_trait<WT_TYPE>::test_lex_smaller_count(wt,is,cs,mask,reps);
+//   check = wt_trait<WT_TYPE>::test_lex_smaller_count(wt,is,cs,mask,reps);
     stop = timer::now();
     cout << "# lex_smaller_count_time = " << duration_cast<microseconds>(stop-start).count()/(double)reps << endl;
     cout << "# lex_smaller_count_check = " << check << endl;
 
-    prepare_for_select(wt,cs,is);
+    prepare_for_select(wti,cs,is);
 
     //select
     start = timer::now();
