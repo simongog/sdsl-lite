@@ -98,7 +98,7 @@ for(tc in unique(maindata$TC_ID)){
 
 	data<-maindata[maindata$TC_ID==tc,]
 	id <-data[['WT_TEX_NAME']]
-	xmax<-max(data[c('access_time','rank_time','select_time','inverse_select_time','lex_count_time','lex_smaller_count_time','interval_symbols_time')])
+	xmax<-max(data[c('access_time','rank_time','select_time','inverse_select_time','lex_count_time','lex_smaller_count_time')])
 
 	#first page start 
 	fig_name <- paste("fig-page1-",tc,".tex",sep="")
@@ -156,7 +156,7 @@ for(tc in unique(maindata$TC_ID)){
 	#interval-symbols-plot
 	ivs <-data['interval_symbols_time']
 	rownames(ivs)<-id
-	plot_time_figure(t(ivs),"\\tt{interval\\_symbols}",xmax=xmax)
+	plot_time_figure(t(ivs),"\\tt{interval\\_symbols}",xmax=max(xmax,max(ivs)))
 
 	#constructor-plot
 	con <-data['constructs_time']
