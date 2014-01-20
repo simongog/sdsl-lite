@@ -63,7 +63,7 @@ class sorted_int_stack
         /*! Returns the topmost element of the stack.
          * \pre empty()==false
          */
-        const size_type top() const;
+        size_type top() const;
 
         /*! Pop the topmost element of the stack.
          */
@@ -113,7 +113,7 @@ inline sorted_int_stack& sorted_int_stack::operator=(const sorted_int_stack& sis
     return *this;
 }
 
-inline const sorted_int_stack::size_type sorted_int_stack::top()const
+inline sorted_int_stack::size_type sorted_int_stack::top()const
 {
     return m_top-63;
 }

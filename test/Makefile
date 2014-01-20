@@ -99,6 +99,9 @@ generators: BitVectorGenerator.x IntVectorGenerator.x
 bits-test: ./BitsTest.x
 	@$(PREFIX) ./BitsTest.x
 
+coder-test: ./CoderTest.x
+	@$(PREFIX) ./CoderTest.x
+
 int-vector-test: ./IntVectorTest.x
 	@$(PREFIX) ./IntVectorTest.x
 

@@ -1133,6 +1133,9 @@ struct bp_interval {
     //! Constructor
     bp_interval(t_int i=0, t_int j=0, t_int ipos=0, t_int cipos=0, t_int jp1pos=0):i(i),j(j),ipos(ipos),cipos(cipos),jp1pos(jp1pos) {};
 
+    //! Copy constructor
+    bp_interval(const bp_interval& iv):i(iv.i),j(iv.j),ipos(iv.ipos),cipos(iv.cipos),jp1pos(iv.jp1pos) {};
+
     bool operator<(const bp_interval& interval)const {
         if (i!=interval.i)
             return i<interval.i;

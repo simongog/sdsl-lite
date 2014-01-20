@@ -46,9 +46,9 @@ class select_support_bs : public select_support
         select_support_bs(const select_support_bs& ss);
         ~select_support_bs() {}
 
-        inline const size_type select(size_type) const;
+        inline size_type select(size_type) const;
         //! Alias for select(i).
-        inline const size_type operator()(size_type)const;
+        inline size_type operator()(size_type)const;
 
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
         void load(std::istream& in, const bit_vector* v=nullptr);
@@ -90,7 +90,7 @@ void select_support_bs<RankSupport>::copy(const select_support_bs& ss)
 }
 
 template<class RankSupport>
-inline const typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::select(size_type i)const
+inline typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::select(size_type i)const
 {
     size_type min = i, max = m_v->bit_size()+1; // min included, max excluded
     assert(i <= m_rs->rank(m_v->bit_size()-1) && i>0);
@@ -135,7 +135,7 @@ void select_support_bs<RankSupport>::set_vector(const bit_vector* v)
 }
 
 template<class RankSupport>
-inline const typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::operator()(size_type i)const
+inline typename select_support_bs<RankSupport>::size_type select_support_bs<RankSupport>::operator()(size_type i)const
 {
     return select(i);
 }

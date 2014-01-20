@@ -46,7 +46,7 @@ and test cases from the [Pizza&Chili][pz] website.
    200MB [Pizza&Chili][pz] test cases, builds the indexes,
    runs the performance tests, and generated a report located at
    `visualize/count.pdf`. The raw numbers of the timings
-   can be found in the `results/all.txt`. 
+   can be found in `results/all.txt`. 
    Indexes and temporary files are stored in the
    directory `indexes` and `tmp`. For the 5 x 200 MB of
    [Pizza&Chili][pz] data the project will produce about

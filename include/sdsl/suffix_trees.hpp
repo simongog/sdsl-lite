@@ -46,7 +46,7 @@ typename t_csa::size_type get_char_pos(typename t_csa::size_type idx, typename t
     // if we have to apply \f$\LF\f$ or \f$\Phi\f$ more
     // than 2*d times to calc csa(csa[idx]+d), we opt to
     // apply \f$ \Phi \f$ d times
-    if ((csa.sa_sample_dens - 1) + (csa.isa_sample_dens - 1) > 2*d) {
+    if (csa.sa_sample_dens + csa.isa_sample_dens > 2*d+2) {
         for (typename t_csa::size_type i=0; i < d; ++i)
             idx = csa.psi[idx];
         return idx;

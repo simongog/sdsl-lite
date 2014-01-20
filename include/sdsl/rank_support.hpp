@@ -56,9 +56,9 @@ class rank_support
         	\note Method init has to be called before the first call of rank.
         	\sa init
          */
-        virtual const size_type rank(size_type i) const = 0;
+        virtual size_type rank(size_type i) const = 0;
         //! Alias for rank(i)
-        virtual const size_type operator()(size_type idx) const = 0;
+        virtual size_type operator()(size_type idx) const = 0;
         //! Serializes rank_support.
         /*! \param out Out-Stream to serialize the data to.
         */

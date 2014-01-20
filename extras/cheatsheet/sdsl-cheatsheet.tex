@@ -158,6 +158,7 @@ urlcolor=githublink           % color of external links
 \newcommand{\sdslvlcvector}{\code{vlc\_vector}}
 %%% coder 
 \newcommand{\sdslcodereliasdelta}{\code{coder::elias\_delta}}
+\newcommand{\sdslcodereliasgamma}{\code{coder::elias\_gamma}}
 \newcommand{\sdslcoderfibonacci}{\code{coder::fibonacci}}
 %%% bit vector representations
 \newcommand{\sdslbitvector}{\code{bit\_vector}}
@@ -279,7 +280,10 @@ of integer (has no effect for $w>0$).
 For a vector \code{v}, \href{\sdslgitinc/enc_vector.hpp}{\sdslencvector} stores the
 self-delimiting coded deltas (\code{v[$i\!+\!1$]$-$v[$i$]}). Fast random access is
 achieved by sampling values of \code{v} at rate \code{t\_dens}. Available coder
-are \href{\sdslgitinc/coder_elias_delta.hpp}{\sdslcodereliasdelta} and
+are 
+\href{\sdslgitinc/coder_elias_delta.hpp}{\sdslcodereliasdelta},
+\href{\sdslgitinc/coder_elias_gamma.hpp}{\sdslcodereliasgamma},
+and
 \href{\sdslgitinc/coder_fibonacci.hpp}{\sdslcoderfibonacci}. 
 
 Class \href{\sdslgitinc/vlc_vector.hpp}{\sdslvlcvector} stores each
@@ -297,7 +301,7 @@ interleaved  bitvector & $\approx n(1+K/64)$  \\
 \href{\sdslgitinc/rrr_vector.hpp}{\sdslrrrvector} & 
 $H_0$-compressed bitvector & $\approx \lceil \log {m\choose n} \rceil$ \\
 \href{\sdslgitinc/sd_vector.hpp}{\sdslsdvector}  & sparse bitvector
-& $\approx\ 2 m\cdot \log\frac{n}{m}$ \\	
+& $\approx\ m\cdot(2\!+\!\log\frac{n}{m})$ \\	
 \end{tabular}
 \sdslbitvector\ equals \sdslintvector\code{\textless1\textgreater} and
 is therefore dynamic.\\
@@ -706,7 +710,7 @@ and executes them.
 \section{Benchmarks}
 Directory \href{\sdslgit/benachmark}{benchmark}
 contains configurable benchmarks for various
-data structure, like CSAs/FM-indexes (measuring
+data structure, like WTs, CSAs/FM-indexes (measuring
 time and space for operations 
 \href{\sdslgit/benchmark/indexing_count}{count},
 \href{\sdslgit/benchmark/indexing_locate}{locate}, and

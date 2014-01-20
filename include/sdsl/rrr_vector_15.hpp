@@ -263,7 +263,7 @@ class rrr_vector<15, t_rac, t_k>
         value_type operator[](size_type i)const {
             size_type bt_idx = i/block_size ;
             uint8_t* bt = (uint8_t*)(m_bt.data());
-            uint8_t i_bt = *(bt + (bt_idx/2));
+            uint32_t i_bt = *(bt + (bt_idx/2));
             if (bt_idx%2 == 1) {
                 i_bt >>= 4;
             } else {
@@ -290,7 +290,7 @@ class rrr_vector<15, t_rac, t_k>
 
             uint32_t btnr = m_btnr.get_int(btnrp, bi_type::space_for_bt(i_bt));
 
-            uint8_t off = i % block_size; //i - bt_idx*block_size;
+            uint8_t off = (uint8_t)(i % block_size); //i - bt_idx*block_size;
             return (bi_type::nr_to_bin(i_bt, btnr) >> off) & (uint32_t)1;
         }
 
@@ -309,7 +309,6 @@ class rrr_vector<15, t_rac, t_k>
             uint16_t bt = m_bt[bb_idx];
             size_type sample_pos = bb_idx/t_k;
             size_type eb_idx = (idx+len-1)/block_size; // end block index
-            size_type eb_off = (idx+len-1)%block_size; // end block index
             if (bb_idx == eb_idx) {  // extract only in one block
                 if (bt == 0) {   // all bits are zero
                     res = 0;
@@ -331,7 +330,8 @@ class rrr_vector<15, t_rac, t_k>
                     idx += b_len;
                     b_len_sum += b_len;
                     len -= b_len;
-                    b_len = (len > block_size) ? block_size : len;
+                    b_len = block_size;
+                    b_len = std::min(len, b_len);
                 } while (len > 0);
             }
             return res;

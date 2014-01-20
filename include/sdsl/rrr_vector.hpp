@@ -284,7 +284,6 @@ class rrr_vector
             uint16_t bt = m_bt[bb_idx];
             size_type sample_pos = bb_idx/t_k;
             size_type eb_idx = (idx+len-1)/t_bs; // end block index
-            size_type eb_off = (idx+len-1)%t_bs; // end block index
             if (bb_idx == eb_idx) {  // extract only in one block
                 if (m_invert[sample_pos])
                     bt = t_bs - bt;
@@ -302,14 +301,15 @@ class rrr_vector
                     res =  rrr_helper_type::decode_int(bt, btnr, bb_off, len);
                 }
             } else { // solve multiple block case by recursion
-                uint8_t b_len = t_bs-bb_off;
-                uint8_t b_len_sum = 0;
+                uint16_t b_len = t_bs-bb_off; // remaining bits in first block
+                uint16_t b_len_sum = 0;
                 do {
                     res |= get_int(idx, b_len) << b_len_sum;
                     idx += b_len;
                     b_len_sum += b_len;
                     len -= b_len;
-                    b_len = (len > t_bs) ? t_bs : len;
+                    b_len = t_bs;
+                    b_len = std::min((uint16_t)len, b_len);
                 } while (len > 0);
             }
             return res;
