@@ -28,6 +28,7 @@
 #include "rank_support_v.hpp"
 #include "select_support_mcl.hpp"
 #include "temp_write_read_buffer.hpp"
+#include "wt_helper.hpp"
 #include "util.hpp"
 #include <set> // for calculating the alphabet size
 #include <map> // for mapping a symbol to its lexicographical index
@@ -77,8 +78,7 @@ class wt_int
         typedef std::pair<value_type, size_type>     point_type;
         typedef std::vector<point_type>              point_vec_type;
         typedef std::pair<size_type, point_vec_type> r2d_res_type;
-        typedef std::pair<size_type, size_type>      range_type;
-        typedef std::vector<range_type>              range_vec_type;
+
 
     protected:
 
