@@ -11,7 +11,7 @@ using namespace std::chrono;
 template<class t_bitvector = bit_vector,
          class t_select = typename t_bitvector::select_1_type,
          class t_select_zero = typename t_bitvector::select_0_type>
-class fast_select_1
+class wt_gmr_1
 {
     private:
 
@@ -26,12 +26,16 @@ class fast_select_1
     public:
         typedef int_vector<>::size_type size_type;
         typedef int_vector<>::value_type value_type;
+        typedef wt_tag index_category;
+        typedef int_alphabet_tag alphabet_category;
+        enum {lex_ordered=0};
+
         const size_type&       sigma = m_sigma; // Todo
 
-        fast_select_1() {}
+        wt_gmr_1() {}
 
         template<uint8_t int_width>
-        fast_select_1(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
+        wt_gmr_1(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
             // Determin max. symbol
             for (uint64_t i=0; i<m_size; ++i) {
                 if (m_sigma < input[i]) m_sigma = input[i];
@@ -92,7 +96,7 @@ class fast_select_1
         }
 
         //! Swap operator
-        void swap(fast_select_1& fs) {
+        void swap(wt_gmr_1& fs) {
             if (this != &fs) {
                 m_bv.swap(fs.m_bv);
                 e.swap(fs.e);
@@ -105,11 +109,11 @@ class fast_select_1
         }
 
         value_type operator[](size_type i)const {
-            return 0;
+            return i;
         }
 
         pair<size_type, value_type>	inverse_select(size_type i)const {
-            return make_pair(0,0);
+            return make_pair(i,0);
         }
 
         size_type select(size_type i, value_type c)const {
@@ -166,7 +170,7 @@ template<class t_bitvector = bit_vector,
          class t_select = typename t_bitvector::select_1_type,
          class t_select_zero = typename t_bitvector::select_0_type,
          class t_rank = typename t_bitvector::rank_1_type>
-class fast_select_2
+class wt_gmr_2
 {
     private:
 
@@ -189,12 +193,16 @@ class fast_select_2
     public:
         typedef int_vector<>::size_type size_type;
         typedef int_vector<>::value_type value_type;
+        typedef wt_tag index_category;
+        typedef int_alphabet_tag alphabet_category;
+        enum {lex_ordered=0};
+
         const size_type&       sigma = m_sigma; // Todo
 
-        fast_select_2() {}
+        wt_gmr_2() {}
 
         template<uint8_t int_width>
-        fast_select_2(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
+        wt_gmr_2(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
             // Determin max. symbol
             for (uint64_t i=0; i<m_size; ++i) {
                 if (m_sigma < input[i]) m_sigma = input[i];
@@ -325,7 +333,7 @@ class fast_select_2
 
         //add members
         //! Swap operator
-        void swap(fast_select_2& fs) {
+        void swap(wt_gmr_2& fs) {
             if (this != &fs) {
                 m_bv.swap(fs.m_bv);
                 m_xv.swap(fs.m_xv);
@@ -475,7 +483,7 @@ template<class t_bitvector = bit_vector,
          class t_select = typename t_bitvector::select_1_type,
          class t_select_zero = typename t_bitvector::select_0_type,
          class t_rank = typename t_bitvector::rank_1_type>
-class fast_select_3
+class wt_gmr_3
 {
     private:
 
@@ -499,12 +507,16 @@ class fast_select_3
     public:
         typedef int_vector<>::size_type size_type;
         typedef int_vector<>::value_type value_type;
+        typedef wt_tag index_category;
+        typedef int_alphabet_tag alphabet_category;
+        enum {lex_ordered=0};
+
         const size_type&       sigma = m_sigma; // Todo
 
-        fast_select_3() {}
+        wt_gmr_3() {}
 
         template<uint8_t int_width>
-        fast_select_3(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
+        wt_gmr_3(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
             // Determin max. symbol
             for (uint64_t i=0; i<m_size; ++i) {
                 if (m_sigma < input[i]) m_sigma = input[i];
@@ -634,7 +646,7 @@ class fast_select_3
 
         //add members
         //! Swap operator
-        void swap(fast_select_3& fs) {
+        void swap(wt_gmr_3& fs) {
             if (this != &fs) {
                 m_bv.swap(fs.m_bv);
                 m_xv.swap(fs.m_xv);
