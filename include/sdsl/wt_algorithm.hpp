@@ -41,7 +41,6 @@ intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::
     t = (t==0) ? ranges.size() : t;
 
     std::stack<pnvr_type> stack;
-    size_type n = wt.size();
     stack.emplace(pnvr_type(wt.root(), ranges));
 
     while (!stack.empty()) {
