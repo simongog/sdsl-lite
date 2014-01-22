@@ -77,6 +77,7 @@ class wt_int
         typedef std::pair<value_type, size_type>     point_type;
         typedef std::vector<point_type>              point_vec_type;
         typedef std::pair<size_type, point_vec_type> r2d_res_type;
+        typedef std::pair<size_type, size_type>      range_type;
 
     protected:
 
@@ -710,6 +711,120 @@ class wt_int
             init_buffers(m_max_depth);
         }
 
+        //! Represents a node in the wavelet tree
+        struct node_type {
+            size_type  offset   = 0;
+            size_type  size     = 0;
+            size_type  level    = 0;
+            value_type sym      = 0;
+
+            // Default constructor
+            node_type(size_type o=0, size_type sz=0, size_type l=0,
+                      value_type sy=0) :
+                offset(o), size(sz), level(l), sym(sy) {}
+
+            // Copy constructor
+            node_type(const node_type& v) : offset(v.offset), size(v.size),
+                level(v.level), sym(v.sym) {}
+        };
+
+        //! Checks if the node is a leaf node
+        bool is_leaf(const node_type& v) const {
+            return v.level == m_max_depth;
+        };
+
+        //! Return the root node
+        node_type root() const {
+            return node_type(0, m_size, 0, 0);
+        };
+
+        bool empty(const range_type& r) const {
+            return r.first == r.second + 1;
+        }
+
+        //! Returns the two child nodes of an inner node
+        /*! \param v An inner node of a wavelet tree.
+         *  \return Return a pair of nodes (left child, right child).
+         *  \pre !is_leaf(v)
+         */
+        std::pair<node_type, node_type>
+        expand(const node_type& v) const {
+            node_type v_left, v_right;
+            size_type offset_rank = m_tree_rank(v.offset);
+            size_type ones        = m_tree_rank(v.offset + v.size) - offset_rank;
+
+            v_left.offset = v.offset + m_size;
+            v_left.size   = v.size - ones;
+            v_left.level  = v.level + 1;
+            v_left.sym    = v.sym<<1;
+
+            v_right.offset = v.offset + m_size + v_left.size;
+            v_right.size   = ones;
+            v_right.level  = v.level + 1;
+            v_right.sym    = (v.sym<<1)|1;
+
+            return std::make_pair(v_left, v_right);
+        }
+
+        //! Returns for each range its left and right child ranges
+        /*! \param v      An inner node of an wavelet tree.
+         *  \param ranges A vector of ranges. Each range [s,e]
+         *                has to be contained in v=[v_s,v_e].
+         *  \return A vector a range pairs. The first element of each
+         *          range pair correspond to the original range
+         *          mapped to the left child of v; the second element to the
+         *          range mapped to the right child of v.
+         *  \pre !is_leaf(v) and s>=v_s and e<=v_e
+         */
+        std::vector<std::pair<range_type, range_type>>
+                expand(const node_type& v,
+        const std::vector<range_type>& ranges) const {
+            auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
+            std::vector<std::pair<range_type, range_type>> res;
+
+            for (const auto& r : ranges) {
+                auto sp_rank    = m_tree_rank(v.offset + r.first);
+                auto right_size = m_tree_rank(v.offset + r.second + 1)
+                                  - sp_rank;
+                auto left_size  = (r.second-r.first+1)-right_size;
+
+                auto right_sp = sp_rank - v_sp_rank;
+                auto left_sp  = r.first - right_sp;
+
+                res.emplace_back(make_pair(
+                                     range_type(left_sp, left_sp + left_size - 1),
+                                     range_type(right_sp, right_sp + right_size - 1)
+                                 ));
+            }
+            return res;
+        }
+
+        //! Returns for a range its left and right child ranges
+        /*! \param v An inner node of an wavelet tree.
+         *  \param r A ranges [s,e], such that [s,e] is
+         *           contained in v=[v_s,v_e].
+         *  \return A range pair. The first element of the
+         *          range pair correspond to the original range
+         *          mapped to the left child of v; the second element to the
+         *          range mapped to the right child of v.
+         *  \pre !is_leaf(v) and s>=v_s and e<=v_e
+         */
+        std::pair<range_type, range_type>
+        expand(const node_type& v, const range_type& r) const {
+            auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
+            auto sp_rank    = m_tree_rank(v.offset + r.first);
+            auto right_size = m_tree_rank(v.offset + r.second + 1)
+                              - sp_rank;
+            auto left_size  = (r.second-r.first+1)-right_size;
+
+            auto right_sp = sp_rank - v_sp_rank;
+            auto left_sp  = r.first - right_sp;
+
+            return make_pair(range_type(left_sp, left_sp + left_size - 1),
+                             range_type(right_sp, right_sp + right_size - 1));
+        }
+
+
         //! Returns the element in T[lb..rb] with rank quantile.
         /*!
          *  \param lb left array bound in T
@@ -771,112 +886,6 @@ class wt_int
                 offset += m_size; /* next level */
             }
             return {sym,freq};
-        };
-
-
-        //! Returns the top k most frequent documents in T[lb..rb]
-        /*!
-         *  \param lb left array bound in T
-         *  \param rb right array bound in T
-         *  \param k the number of documents to return
-         *  \returns the top-k items in descending order.
-         *  \par Time complexity
-         *      \f$ \Order{\log |\Sigma|} \f$
-         */
-        class topk_greedy_range_t
-        {
-            public:
-                bool operator<(const topk_greedy_range_t& r) const {
-                    if ((rb-lb+1) != (r.rb-r.lb+1))
-                        return ((rb-lb+1) < (r.rb-r.lb+1));
-                    return sym > r.sym;
-                }
-            public:
-                value_type sym = 0;
-                size_type lb = 0;
-                size_type rb = 0;
-                size_type offset = 0;
-                size_type node_size = 0;
-                size_type level = 0;
-                size_type freq = 0;
-        };
-
-        //! Returns the top k most frequent documents in T[lb..rb]
-        /*!
-         *  \param lb left array bound in T
-         *  \param rb right array bound in T
-         *  \param k the number of documents to return
-         *  \returns the top-k items in ascending order.
-         */
-        std::vector< std::pair<value_type,size_type> >
-        topk_greedy(size_type lb, size_type rb,size_type k) const {
-
-            std::vector< std::pair<value_type,size_type> > results;
-            std::priority_queue<topk_greedy_range_t> heap;
-
-            /* add the initial range */
-            topk_greedy_range_t ir;
-            ir.node_size = m_size;
-            ir.level = 0;
-            ir.lb = lb;
-            ir.rb = rb;
-            heap.push(ir);
-
-            while (! heap.empty()) {
-                topk_greedy_range_t r = heap.top(); heap.pop();
-                if (r.level == m_max_depth) { /* leaf node */
-                    results.emplace_back(r.sym,r.freq);
-                    if (results.size()==k) {
-                        /* we got the top-k */
-                        break;
-                    }
-                    continue; /* we processed this range */
-                }
-
-                /* number of 1s before the level offset and after the node */
-                size_type ones_before_offset = m_tree_rank(r.offset);
-                size_type ones_before_end = m_tree_rank(r.offset + r.node_size) - ones_before_offset;
-
-                /* number of 1s before T[l..r] */
-                size_type rank_before_left = m_tree_rank(r.offset + r.lb);
-
-                /* number of 1s before T[r] */
-                size_type rank_before_right   = m_tree_rank(r.offset + r.rb + 1);
-
-                /* number of 1s in T[l..r] */
-                size_type num_ones = rank_before_right - rank_before_left;
-                /* number of 0s in T[l..r] */
-                size_type num_zeros = (r.rb-r.lb+1) - num_ones;
-
-                if (num_ones) { /* map to right child */
-                    topk_greedy_range_t nr;
-                    nr.sym = (r.sym<<1)|1;
-                    nr.freq = num_ones;
-                    nr.offset = m_size + r.offset + (r.node_size - ones_before_end);
-                    nr.node_size = ones_before_end;
-                    nr.level = r.level + 1;
-                    /* number of 1s before T[l..r] within the current node */
-                    nr.lb = rank_before_left - ones_before_offset;
-                    /* number of 1s in T[l..r] */
-                    nr.rb = nr.lb + num_ones - 1;
-
-                    heap.push(nr);
-                }
-                if (num_zeros) { /* map to left child */
-                    topk_greedy_range_t nr;
-                    nr.sym = r.sym<<1;
-                    nr.freq = num_zeros;
-                    nr.offset = m_size + r.offset;
-                    nr.node_size = (r.node_size - ones_before_end);
-                    nr.level = r.level + 1;
-                    /* number of 1s before T[l..r] within the current node */
-                    nr.lb = r.lb - (rank_before_left - ones_before_offset);
-                    /* number of 1s in T[l..r] */
-                    nr.rb = nr.lb + num_zeros - 1;
-                    heap.push(nr);
-                }
-            }
-            return results;
         };
 
         //! Returns the top k most frequent documents in T[lb..rb]

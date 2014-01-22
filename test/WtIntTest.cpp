@@ -372,29 +372,6 @@ TYPED_TEST(WtIntTopK, quantile_freq)
 
 }
 
-
-TYPED_TEST(WtIntTopK, topk_greedy)
-{
-    int_vector<> a = {2,2,2,4,4,4,3,4,17,3,8,10,11,1,18,5,6,4,16,9,12,13,7,14,15,0};
-
-    auto f = ram_file_name("test.file");
-    store_to_file(a, f);
-
-    TypeParam wt;
-    sdsl::construct(wt, f);
-
-    auto results = wt.topk_greedy(0,9,3);
-
-    ASSERT_EQ((size_type)3,results.size());
-    ASSERT_EQ((size_type)4,results[0].first);
-    ASSERT_EQ((size_type)4,results[0].second);
-    ASSERT_EQ((size_type)2,results[1].first);
-    ASSERT_EQ((size_type)3,results[1].second);
-    ASSERT_EQ((size_type)3,results[2].first);
-    ASSERT_EQ((size_type)2,results[2].second);
-
-}
-
 TYPED_TEST(WtIntTopK, topk_qprobing)
 {
     int_vector<> a = {2,2,2,4,4,4,3,4,17,3,8,10,11,1,18,5,6,4,16,9,12,13,7,14,15,0};

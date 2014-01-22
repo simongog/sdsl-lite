@@ -334,7 +334,7 @@ class doc_list_index_sada
         void
         construct_doc_isa(const std::string& text_file,
                           const size_type doc_cnt,
-                          const size_type doc_max_len,
+                          SDSL_UNUSED const size_type doc_max_len,
                           vector<int_vector<> >& doc_isa) {
             doc_isa.resize(doc_cnt);
             typename sa_tt::vec_type doc_buffer;
