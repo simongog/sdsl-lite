@@ -31,9 +31,11 @@ class t_csa       = csa_wt<wt_huff<rrr_vector<63>>, 1000000, 1000000>,
 class doc_list_index_greedy
 {
     public:
+        using size_type = typename t_wtd::size_type;
+        using value_type = typename t_wtd::value_type;
+
         typedef t_csa                                       csa_type;
         typedef t_wtd                                       wtd_type;
-        typedef int_vector<>::size_type                     size_type;
         typedef std::vector<std::pair<size_type,size_type>> list_type;
         typedef doc_list_tag                                index_category;
 
@@ -50,7 +52,7 @@ class doc_list_index_greedy
                 }
 
                 // Constructors for an empty result and for a result in the interval [sp, ep]:
-                result(size_type sp, size_type ep,list_type&& l) : list_type(l), m_sp(1), m_ep(0) {}
+                result(size_type sp, size_type ep,list_type&& l) : list_type(l), m_sp(sp), m_ep(ep) {}
                 result() : m_sp(1), m_ep(0) {}
                 result(size_type sp, size_type ep) : m_sp(sp), m_ep(ep) {}
                 result& operator=(const result& res) {
@@ -63,6 +65,29 @@ class doc_list_index_greedy
                 }
 
         };
+
+
+        struct wt_range_t {
+            using node_type = typename wtd_type::node_type;
+
+            node_type v;
+            range_type r;
+
+            size_t size() const {
+                return r.second - r.first + 1;
+            }
+
+            bool operator<(const wt_range_t& x) const {
+                if (x.size() != size())
+                    return size() < x.size();
+                return v.sym > x.v.sym;
+            }
+
+            wt_range_t() {}
+            wt_range_t(const node_type& _v, const range_type& _r):
+                v(_v), r(_r) {}
+        };
+
 
     protected:
         size_type m_doc_cnt; // number of documents in the collection
@@ -136,7 +161,7 @@ class doc_list_index_greedy
                 res = result();
                 return 0;
             } else {
-                auto tmp_res = m_wtd.topk_greedy(sp,ep,k);
+                auto tmp_res = topk_greedy(sp, ep, k);
                 res = result(sp, ep, std::move(tmp_res));
                 return ep-sp+1;
             }
@@ -166,6 +191,46 @@ class doc_list_index_greedy
                 D[i] = d;
             }
         }
+
+        //! Returns the top k most frequent documents in D[lb..rb]
+        /*!
+         *  \param lb  Left array border in D.
+         *  \param rb  Right array border in D.
+         *  \param k   The number of documents to return.
+         *  \returns the top-k items in ascending order.
+         */
+        std::vector< std::pair<value_type,size_type> >
+        topk_greedy(size_type lb, size_type rb, size_type k) const {
+            std::vector< std::pair<value_type,size_type> > results;
+            std::priority_queue<wt_range_t> heap;
+
+            heap.emplace(wt_range_t(m_wtd.root(), {lb, rb}));
+
+            while (! heap.empty()) {
+                wt_range_t e = heap.top(); heap.pop();
+                if (m_wtd.is_leaf(e.v)) {
+                    results.emplace_back(e.v.sym, e.size());
+                    if (results.size()==k) {
+                        break;
+                    }
+                    continue;
+                }
+
+                auto child = m_wtd.expand(e.v);
+                auto child_ranges = m_wtd.expand(e.v, e.r);
+                auto left_range = std::get<0>(child_ranges);
+                auto right_range = std::get<1>(child_ranges);
+
+                if (!m_wtd.empty(left_range)) {
+                    heap.emplace(wt_range_t(std::get<0>(child), left_range));
+                }
+                if (!m_wtd.empty(right_range)) {
+                    heap.emplace(wt_range_t(std::get<1>(child), right_range));
+                }
+            }
+            return results;
+        };
+
 };
 
 } // end namespace

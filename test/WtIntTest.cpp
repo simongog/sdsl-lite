@@ -372,29 +372,6 @@ TYPED_TEST(WtIntTopK, quantile_freq)
 
 }
 
-
-TYPED_TEST(WtIntTopK, topk_greedy)
-{
-    int_vector<> a = {2,2,2,4,4,4,3,4,17,3,8,10,11,1,18,5,6,4,16,9,12,13,7,14,15,0};
-
-    auto f = ram_file_name("test.file");
-    store_to_file(a, f);
-
-    TypeParam wt;
-    sdsl::construct(wt, f);
-
-    auto results = wt.topk_greedy(0,9,3);
-
-    ASSERT_EQ((size_type)3,results.size());
-    ASSERT_EQ((size_type)4,results[0].first);
-    ASSERT_EQ((size_type)4,results[0].second);
-    ASSERT_EQ((size_type)2,results[1].first);
-    ASSERT_EQ((size_type)3,results[1].second);
-    ASSERT_EQ((size_type)3,results[2].first);
-    ASSERT_EQ((size_type)2,results[2].second);
-
-}
-
 TYPED_TEST(WtIntTopK, topk_qprobing)
 {
     int_vector<> a = {2,2,2,4,4,4,3,4,17,3,8,10,11,1,18,5,6,4,16,9,12,13,7,14,15,0};
@@ -430,19 +407,12 @@ TYPED_TEST(WtIntTopK, topk_qprobing)
 
 TYPED_TEST(WtIntTopK, intersection)
 {
-    int_vector<> a = {2,2,2,4,5,4,0,0,4,5,7,7,6,6,3,5,1,6};
 
-    auto f = ram_file_name("test.file");
-    store_to_file(a, f);
 
     TypeParam wt;
-    sdsl::construct(wt, f);
+    sdsl::construct_im(wt,int_vector<> {2,2,2,4,5,4,0,0,4,5,7,7,6,6,3,5,1,6});
 
-    std::vector< std::pair<size_type,size_type> > ranges;
-    ranges.push_back(std::pair<size_type,size_type>(2,4));
-    ranges.push_back(std::pair<size_type,size_type>(6,9));
-
-    auto results = wt.intersect(ranges);
+    auto results = intersect(wt, {{2,4},{6,9}});
 
     ASSERT_EQ((size_type)2, results.size());
     pair<size_type,size_type> p1 = results[0];

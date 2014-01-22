@@ -6,9 +6,14 @@
 #include <limits>
 #include <deque>
 #include <queue>
+#include <vector>
+#include <utility>
 
 namespace sdsl
 {
+
+typedef std::pair<int_vector<>::size_type, int_vector<>::size_type> range_type;
+typedef std::vector<range_type>         range_vec_type;
 
 
 //! Count for each character the number of occurrences in rac[0..size-1]
