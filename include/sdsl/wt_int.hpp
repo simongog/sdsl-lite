@@ -78,6 +78,7 @@ class wt_int
         typedef std::vector<point_type>              point_vec_type;
         typedef std::pair<size_type, point_vec_type> r2d_res_type;
         typedef std::pair<size_type, size_type>      range_type;
+        typedef std::vector<range_type>              range_vec_type;
 
     protected:
 
@@ -736,7 +737,7 @@ class wt_int
         //! Return the root node
         node_type root() const {
             return node_type(0, m_size, 0, 0);
-        };
+        }
 
         bool empty(const range_type& r) const {
             return r.first == r.second + 1;
@@ -776,11 +777,11 @@ class wt_int
          *          range mapped to the right child of v.
          *  \pre !is_leaf(v) and s>=v_s and e<=v_e
          */
-        std::vector<std::pair<range_type, range_type>>
-                expand(const node_type& v,
-        const std::vector<range_type>& ranges) const {
+        std::pair<range_vec_type, range_vec_type>
+        expand(const node_type& v,
+               const range_vec_type& ranges) const {
             auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
-            std::vector<std::pair<range_type, range_type>> res;
+            std::pair<range_vec_type, range_vec_type> res;
 
             for (const auto& r : ranges) {
                 auto sp_rank    = m_tree_rank(v.offset + r.first);
@@ -791,10 +792,8 @@ class wt_int
                 auto right_sp = sp_rank - v_sp_rank;
                 auto left_sp  = r.first - right_sp;
 
-                res.emplace_back(make_pair(
-                                     range_type(left_sp, left_sp + left_size - 1),
-                                     range_type(right_sp, right_sp + right_size - 1)
-                                 ));
+                res.first.emplace_back(range_type(left_sp, left_sp + left_size - 1));
+                res.second.emplace_back(range_type(right_sp, right_sp + right_size - 1));
             }
             return res;
         }
@@ -948,123 +947,6 @@ class wt_int
             return results;
         };
 
-        //! Returns the intersection of T[lb1..rb1],T[lb2..rb2]...T[lbm..rbm]
-        /*!
-         *  \param ranges the sp,ep ranges to intersect
-         *  \param the threshold t of how many ranges have to be at least
-         *         still be present at the leaf level.
-         *  \param the results are stored in the results parameter.
-         */
-        struct intersect_range_t {
-            using p_t = std::pair<size_type,size_type>;
-
-            intersect_range_t() {}
-            intersect_range_t(size_type off,size_type ns, size_type lvl,
-                              value_type _sym, std::vector<p_t>& r)
-                :  offset(off) , node_size(ns) , level(lvl), sym(_sym), ranges(r)
-            {}
-            intersect_range_t(size_type off,size_type ns,size_type lvl,value_type _sym)
-                : offset(off) , node_size(ns) , level(lvl), sym(_sym)  {}
-
-            intersect_range_t(const intersect_range_t& r)
-                : offset(r.offset), node_size(r.node_size), level(r.level),
-                  sym(r.sym), ranges(r.ranges) {}
-
-            intersect_range_t(intersect_range_t&& r)
-                : offset(r.offset), node_size(r.node_size), level(r.level),
-                  sym(r.sym), ranges(std::move(r.ranges)) {}
-
-            intersect_range_t& operator=(const intersect_range_t& r) {
-                offset    = r.offset;
-                node_size = r.node_size;
-                level     = r.level;
-                sym       = r.sym;
-                ranges    = r.ranges;
-                return *this;
-            }
-
-            size_type offset = 0;
-            size_type node_size = 0;
-            size_type level = 0;
-            value_type sym = 0;
-            std::vector<p_t> ranges;
-        };
-
-
-        std::vector< std::pair<value_type,size_type> >
-        intersect(std::vector< std::pair<size_type,size_type> >& ranges, size_type threshold=0) const {
-            using p_t = std::pair<value_type,size_type>;
-            std::vector<p_t> results;
-
-            if (threshold==0) { /* default: all ranges must be present */
-                threshold = ranges.size();
-            }
-
-            std::vector<intersect_range_t> intervals;
-            size_type n = m_size;
-            intervals.emplace_back(intersect_range_t(0,n,0,0,ranges));
-
-            while (!intervals.empty()) {
-                intersect_range_t cr = intervals[intervals.size()-1]; intervals.pop_back();
-
-                if (cr.level == m_max_depth) {
-                    if (threshold <= cr.ranges.size()) {
-                        /* we found a symbol  */
-                        size_type freq = 0;
-                        for (auto& r : cr.ranges) freq += (r.second - r.first + 1);
-                        results.emplace_back(cr.sym,freq);
-                    }
-                } else {
-                    /* map each range to the corresponding range at level + 1 */
-
-                    /* number of 1s before the level offset and after the node */
-                    size_type ones_before_offset = m_tree_rank(cr.offset);
-                    size_type ones_before_end = m_tree_rank(cr.offset + cr.node_size) - ones_before_offset;
-
-                    size_type offset_zero = m_size + cr.offset;
-                    size_type offset_one = m_size + cr.offset + (cr.node_size - ones_before_end);
-                    size_type node_size_zero = m_size + cr.offset;
-                    size_type node_size_one = m_size + cr.offset + (cr.node_size - ones_before_end);
-
-                    intersect_range_t range_zero(offset_zero,node_size_zero,cr.level+1,cr.sym<<1);
-                    intersect_range_t range_one(offset_one,node_size_one,cr.level+1,(cr.sym<<1)|1);
-
-                    for (size_t i=0; i<cr.ranges.size(); i++) {
-                        std::pair<size_t,size_t> r = cr.ranges[i];
-                        size_type lb = r.first, rb = r.second;
-                        /* number of 1s before T[l..r] */
-                        size_type rank_before_left = 0;
-                        if (cr.offset+lb>0) rank_before_left = m_tree_rank(cr.offset + lb);
-                        /* number of 1s before T[r] */
-                        size_type rank_before_right = m_tree_rank(cr.offset + rb + 1);
-                        /* number of 1s in T[l..r] */
-                        size_type num_ones = rank_before_right - rank_before_left;
-                        /* number of 0s in T[l..r] */
-                        size_type num_zeros = (rb-lb+1) - num_ones;
-
-                        if (num_ones) { /* map to right child */
-                            /* number of 1s before T[l..r] within the current node */
-                            size_type lb_one = rank_before_left - ones_before_offset;
-                            /* number of 1s in T[l..r] */
-                            size_type rb_one = lb_one + num_ones - 1;
-
-                            range_one.ranges.emplace_back(lb_one,rb_one);
-                        }
-                        if (num_zeros) { /* map to left child */
-                            /* number of 1s before T[l..r] within the current node */
-                            size_type lb_zero = lb - (rank_before_left - ones_before_offset);
-                            /* number of 1s in T[l..r] */
-                            size_type rb_zero = lb_zero + num_zeros - 1;
-
-                            range_zero.ranges.emplace_back(lb_zero,rb_zero);
-                        }
-                    }
-                    if (range_zero.ranges.size() >= threshold) intervals.emplace_back(range_zero);
-                    if (range_one.ranges.size() >= threshold) intervals.emplace_back(range_one);
-                }
-            }
-            return results;
-        }
 };
 
 }// end namespace sdsl

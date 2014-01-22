@@ -407,19 +407,12 @@ TYPED_TEST(WtIntTopK, topk_qprobing)
 
 TYPED_TEST(WtIntTopK, intersection)
 {
-    int_vector<> a = {2,2,2,4,5,4,0,0,4,5,7,7,6,6,3,5,1,6};
 
-    auto f = ram_file_name("test.file");
-    store_to_file(a, f);
 
     TypeParam wt;
-    sdsl::construct(wt, f);
+    sdsl::construct_im(wt,int_vector<> {2,2,2,4,5,4,0,0,4,5,7,7,6,6,3,5,1,6});
 
-    std::vector< std::pair<size_type,size_type> > ranges;
-    ranges.push_back(std::pair<size_type,size_type>(2,4));
-    ranges.push_back(std::pair<size_type,size_type>(6,9));
-
-    auto results = wt.intersect(ranges);
+    auto results = intersect(wt, {{2,4},{6,9}});
 
     ASSERT_EQ((size_type)2, results.size());
     pair<size_type,size_type> p1 = results[0];
