@@ -322,12 +322,12 @@ inline uint32_t bits::sel(uint64_t x, uint32_t i)
     s = (s & 0x3333333333333333ULL) + ((s >> 2) & 0x3333333333333333ULL);
     s = (s + (s >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
     s = 0x0101010101010101ULL*s;
-// now s contains 8 bytes s[7],...,s[0], s[i] contains the cumulative sum
-// of (i+1)*8 least significant bits of s
+// now s contains 8 bytes s[7],...,s[0]; s[j] contains the cumulative sum
+// of (j+1)*8 least significant bits of s
     b = (s+ps_overflow[i]) & 0x8080808080808080ULL;
 // ps_overflow contains a bit mask x consisting of 8 bytes
-// x[7],...,x[0] and x[i] is set to 128-i
-// => a byte b[i] in b is >= 128 if cum sum >= i
+// x[7],...,x[0] and x[j] is set to 128-j
+// => a byte b[j] in b is >= 128 if cum sum >= j
 
 // __builtin_ctzll returns the number of trailing zeros, if b!=0
     int  byte_nr = __builtin_ctzll(b) >> 3;   // byte nr in [0..7]
