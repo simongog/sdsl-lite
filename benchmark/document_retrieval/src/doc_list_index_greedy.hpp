@@ -205,7 +205,7 @@ class doc_list_index_greedy
             std::vector< std::pair<value_type,size_type> > results;
             std::priority_queue<wt_range_t> heap;
 
-            heap.push({m_wtd.root(), {lb, rb}});
+            heap.emplace(wt_range_t {m_wtd.root(), {lb, rb}});
 
             while (! heap.empty()) {
                 wt_range_t e = heap.top(); heap.pop();
@@ -223,10 +223,10 @@ class doc_list_index_greedy
                 auto right_range = std::get<1>(child_ranges);
 
                 if (!m_wtd.empty(left_range)) {
-                    heap.push({std::get<0>(child), left_range});
+                    heap.emplace(wt_range_t {std::get<0>(child), left_range});
                 }
                 if (!m_wtd.empty(right_range)) {
-                    heap.push({std::get<1>(child), right_range});
+                    heap.emplace(wt_range_t {std::get<1>(child), right_range});
                 }
             }
             return results;
