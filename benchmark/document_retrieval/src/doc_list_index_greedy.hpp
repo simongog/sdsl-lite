@@ -69,7 +69,6 @@ class doc_list_index_greedy
 
         struct wt_range_t {
             using node_type = typename wtd_type::node_type;
-            using range_type = typename wtd_type::range_type;
 
             node_type v;
             range_type r;
@@ -205,7 +204,7 @@ class doc_list_index_greedy
             std::vector< std::pair<value_type,size_type> > results;
             std::priority_queue<wt_range_t> heap;
 
-            heap.emplace(wt_range_t {m_wtd.root(), {lb, rb}});
+            heap.emplace(wt_range_t(m_wtd.root(), {lb, rb}));
 
             while (! heap.empty()) {
                 wt_range_t e = heap.top(); heap.pop();
@@ -223,10 +222,10 @@ class doc_list_index_greedy
                 auto right_range = std::get<1>(child_ranges);
 
                 if (!m_wtd.empty(left_range)) {
-                    heap.emplace(wt_range_t {std::get<0>(child), left_range});
+                    heap.emplace(wt_range_t(std::get<0>(child), left_range));
                 }
                 if (!m_wtd.empty(right_range)) {
-                    heap.emplace(wt_range_t {std::get<1>(child), right_range});
+                    heap.emplace(wt_range_t(std::get<1>(child), right_range));
                 }
             }
             return results;
