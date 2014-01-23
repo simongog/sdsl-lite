@@ -625,7 +625,7 @@ class wt_int
                 return;
             if (depth == m_max_depth) {
                 if (report) {
-                    for (size_type j=1; j <= node_size; ++j) {
+                    for (size_type j=lb+1; j <= rb+1; ++j) {
                         size_type i = j;
                         size_type c = path;
                         for (uint32_t k=m_max_depth; k>0; --k) {
