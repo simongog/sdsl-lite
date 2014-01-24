@@ -320,6 +320,74 @@ TYPED_TEST(WtIntTest, LoadAndLexSmallerCount)
     ::wt_test_trait<TypeParam>::lex_smaller_count_test(wt);
 }
 
+
+template<class t_wt>
+void test_range_search_2d(t_wt&) {}
+
+template<class t_bv, class t_rank, class t_sel1, class t_sel0>
+void test_range_search_2d(sdsl::wt_int<t_bv, t_rank, t_sel1, t_sel0>& wt)
+{
+    int_vector<> iv;
+    load_from_file(iv, test_file);
+
+    ASSERT_TRUE(load_from_file(wt, temp_file));
+
+    if (wt.size() == 0)
+        return;
+
+    std::vector<uint64_t> buf(100);
+    std::vector<uint64_t> unique_buf(buf.size());
+
+    std::mt19937_64 rng;
+    std::uniform_int_distribution<uint64_t> range_distr(0, wt.size()-1);
+    auto dice_range = bind(range_distr, rng);
+
+    std::uniform_int_distribution<uint64_t> rank_distr(0, buf.size());
+    auto dice_rank = bind(rank_distr, rng);
+
+    for (size_type n=0; n<1000; ++n) {
+        size_type lb = dice_range();
+        size_type rb = lb+buf.size()-1;
+        rb = (rb >= wt.size()) ? wt.size()-1 : rb;
+        auto buf_end = buf.begin()+(rb-lb+1);
+
+        std::copy(iv.begin()+lb, iv.begin()+rb+1, buf.begin());
+        std::sort(buf.begin(), buf_end);
+        auto unique_end = std::unique_copy(buf.begin(), buf_end,
+                                           unique_buf.begin());
+        size_type r1 = dice_rank() % (unique_end - unique_buf.begin());
+        size_type r2 = dice_rank() % (unique_end - unique_buf.begin());
+        if (r1 > r2)
+            std::swap(r1, r2);
+        auto vlb = unique_buf[r1];
+        auto vrb = unique_buf[r2];
+
+        size_t cnt = std::upper_bound(buf.begin(), buf_end, vrb) -
+                     std::lower_bound(buf.begin(), buf_end, vlb);
+
+        auto res = wt.range_search_2d(lb, rb, vlb, vrb);
+        ASSERT_EQ(cnt, res.first);
+
+        for (auto point : res.second) {
+            // check that position is in range
+            ASSERT_TRUE(point.first >= lb);
+            ASSERT_TRUE(point.first <= rb);
+            // check that value is in range
+            ASSERT_TRUE(point.second >= vlb);
+            ASSERT_TRUE(point.second <= vrb);
+            // check that in the original data
+            ASSERT_EQ(iv[point.first], point.second);
+        }
+    }
+}
+
+//! Test the load method and range_search_2d
+TYPED_TEST(WtIntTest, RangeSearch2d)
+{
+    TypeParam wt;
+    test_range_search_2d(wt);
+}
+
 TYPED_TEST(WtIntTest, DeleteTest)
 {
     sdsl::remove(temp_file);
