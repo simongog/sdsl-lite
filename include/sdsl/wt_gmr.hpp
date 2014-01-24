@@ -62,17 +62,7 @@ class wt_gmr_1
                         symbols[i] += tmp[j];
                     }
                 }
-                /*
-                for(uint64_t i=0, l=0; i<tmp.size(); ++i, ++l){
-                	while(tmp[i] > 64) {
-                		b.set_int(l, 0xFFFFFFFFFFFFFFFFULL, 64);
-                		l += 64;
-                		tmp[i] -= 64;
-                	}
-                	b.set_int(l, 0xFFFFFFFFFFFFFFFFULL, tmp[i]);
-                	l += tmp[i];
-                }
-                */
+
                 for (uint64_t i=0,l=0; i<tmp.size(); ++i,++l) {
                     for (uint64_t j=0; j<tmp[i]; ++j) b[l++]=1;
                 }
@@ -109,11 +99,79 @@ class wt_gmr_1
         }
 
         value_type operator[](size_type i)const {
-            return i;
+            uint64_t block = i/m_sigma; // +m_blocks every step
+            size_type search_begin;
+            size_type search_end;
+            bool found = false;
+            uint64_t j = block;
+            size_type val = i%m_sigma;
+            for (; j<m_sigma*m_blocks;) {
+                if (m_bv[(j!=0?sls0(j)+1:0)]) {
+                    if (j==0) {
+                        search_begin = 0;
+                    } else {
+                        search_begin = sls0(j)-j+1;
+                    }
+                    search_end = sls0(j+1)-(j+1)+1;
+                    while (search_begin < search_end and e[search_begin] <= val) {
+                        if (e[search_begin]==val) {
+                            found = true;
+                        }
+                        ++search_begin;
+                    }
+                }
+                if (found) break;
+                j+=m_blocks;
+            }
+            return j/m_blocks;
         }
 
         pair<size_type, value_type>	inverse_select(size_type i)const {
-            return make_pair(i,0);
+            uint64_t block = i/m_sigma; // +m_blocks every step
+            size_type search_begin;
+            size_type search_end;
+            size_type offset = 0;
+            bool found = false;
+            uint64_t j = block;
+            size_type val = i%m_sigma;
+            for (; j<m_sigma*m_blocks;) {
+                if (m_bv[(j!=0?sls0(j)+1:0)]) {
+                    if (j==0) {
+                        search_begin = 0;
+                    } else {
+                        search_begin = sls0(j)-j+1;
+                    }
+                    search_end = sls0(j+1)-(j+1)+1;
+                    offset = 0;
+                    while (search_begin < search_end and e[search_begin] <= val) {
+                        if (e[search_begin]==val) {
+                            found = true;
+                        }
+                        ++offset;
+                        ++search_begin;
+                    }
+                }
+                if (found) break;
+                j+=m_blocks;
+            }
+            value_type c = j/m_blocks;
+
+            size_type ones_before_c;
+            size_type ones_before_block;
+            if (c==0) {
+                ones_before_c = 0;
+                if (j==0) {
+                    ones_before_block = 0;
+                } else {
+                    ones_before_block = sls0(j)-j+1;
+                }
+            } else {
+                ones_before_c = sls0(c*m_blocks)-(c*m_blocks)+1;
+                ones_before_block = sls0(j)-j+1;
+            }
+
+            size_type r = offset+(ones_before_block-ones_before_c)-1;
+            return make_pair(r,c);
         }
 
         size_type select(size_type i, value_type c)const {
