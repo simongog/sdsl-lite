@@ -88,7 +88,7 @@ class wt_int
         rank_1_type            m_tree_rank;    // rank support for the wavelet tree bit vector
         select_1_type          m_tree_select1; // select support for the wavelet tree bit vector
         select_0_type          m_tree_select0;
-        uint32_t               m_max_depth = 0;
+        uint32_t               m_max_level = 0;
         mutable int_vector<64> m_path_off;     // array keeps track of path offset in select-like methods
         mutable int_vector<64> m_path_rank_off;// array keeps track of rank values for the offsets
 
@@ -102,16 +102,16 @@ class wt_int
             m_tree_select1.set_vector(&m_tree);
             m_tree_select0  = wt.m_tree_select0;
             m_tree_select0.set_vector(&m_tree);
-            m_max_depth     = wt.m_max_depth;
+            m_max_level     = wt.m_max_level;
             m_path_off      = wt.m_path_off;
             m_path_rank_off = wt.m_path_rank_off;
         }
 
     private:
 
-        void init_buffers(uint32_t max_depth) {
-            m_path_off = int_vector<64>(max_depth+1);
-            m_path_rank_off = int_vector<64>(max_depth+1);
+        void init_buffers(uint32_t max_level) {
+            m_path_off = int_vector<64>(max_level+1);
+            m_path_rank_off = int_vector<64>(max_level+1);
         }
 
         // recursive internal version of the method interval_symbols
@@ -119,13 +119,13 @@ class wt_int
                                std::vector<value_type>& cs,
                                std::vector<size_type>& rank_c_i,
                                std::vector<size_type>& rank_c_j,
-                               size_type depth,
+                               size_type level,
                                size_type path,
                                size_type node_size,
                                size_type offset) const {
             // invariant: j>i
 
-            if (depth >= m_max_depth) {
+            if (level >= m_max_level) {
                 rank_c_i[k]= i;
                 rank_c_j[k]= j;
                 cs[k++]= path;
@@ -143,7 +143,7 @@ class wt_int
                 size_type new_node_size = node_size - ones_before_end;
                 size_type new_i = i - ones_before_i;
                 size_type new_j = j - ones_before_j;
-                _interval_symbols(new_i, new_j, k, cs, rank_c_i, rank_c_j, depth+1, path<<1, new_node_size, new_offset);
+                _interval_symbols(new_i, new_j, k, cs, rank_c_i, rank_c_j, level+1, path<<1, new_node_size, new_offset);
             }
 
             // goto right child
@@ -152,7 +152,7 @@ class wt_int
                 size_type new_node_size = ones_before_end;
                 size_type new_i = ones_before_i;
                 size_type new_j = ones_before_j;
-                _interval_symbols(new_i, new_j, k, cs, rank_c_i, rank_c_j, depth+1, (path<<1)|1, new_node_size, new_offset);
+                _interval_symbols(new_i, new_j, k, cs, rank_c_i, rank_c_j, level+1, (path<<1)|1, new_node_size, new_offset);
             }
         }
 
@@ -163,13 +163,13 @@ class wt_int
 
         //! Default constructor
         wt_int() {
-            init_buffers(m_max_depth);
+            init_buffers(m_max_level);
         };
 
         //! Semi-external constructor
         /*! \param buf         File buffer of the int_vector for which the wt_int should be build.
          *  \param size        Size of the prefix of v, which should be indexed.
-         *  \param max_depth   Maximal depth of the wavelet tree. If set to 0, determined automatically.
+         *  \param max_level   Maximal level of the wavelet tree. If set to 0, determined automatically.
          *    \par Time complexity
          *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
          *        I.e. we need \Order{n\log n} if rac is a permutation of 0..n-1.
@@ -178,8 +178,8 @@ class wt_int
          */
         template<uint8_t int_width>
         wt_int(int_vector_buffer<int_width>& buf, size_type size,
-               uint32_t max_depth=0) : m_size(size) {
-            init_buffers(m_max_depth);
+               uint32_t max_level=0) : m_size(size) {
+            init_buffers(m_max_level);
             if (0 == m_size)
                 return;
             size_type n = buf.size();  // set n
@@ -201,25 +201,25 @@ class wt_int
                 rac[i] = buf[i];
             }
 
-            if (max_depth == 0) {
-                m_max_depth = bits::hi(x)+1; // we need max_depth bits to represent all values in the range [0..x]
+            if (max_level == 0) {
+                m_max_level = bits::hi(x)+1; // we need max_level bits to represent all values in the range [0..x]
             } else {
-                m_max_depth = max_depth;
+                m_max_level = max_level;
             }
-            init_buffers(m_max_depth);
+            init_buffers(m_max_level);
 
             std::string tree_out_buf_file_name = (dir+"/m_tree"+util::to_string(util::pid())+"_"+util::to_string(util::id()));
             osfstream tree_out_buf(tree_out_buf_file_name, std::ios::binary | std::ios::trunc | std::ios::out);   // open buffer for tree
-            size_type bit_size = m_size*m_max_depth;
+            size_type bit_size = m_size*m_max_level;
             tree_out_buf.write((char*) &bit_size, sizeof(bit_size));    // write size of bit_vector
 
             size_type tree_pos = 0;
             uint64_t tree_word = 0;
 
-            uint64_t        mask_old = 1ULL<<(m_max_depth);
-            for (uint32_t k=0; k<m_max_depth; ++k) {
+            uint64_t        mask_old = 1ULL<<(m_max_level);
+            for (uint32_t k=0; k<m_max_level; ++k) {
                 size_type          start     = 0;
-                const uint64_t    mask_new = 1ULL<<(m_max_depth-k-1);
+                const uint64_t    mask_new = 1ULL<<(m_max_level-k-1);
                 do {
                     buf1.reset();
                     size_type i           = start;
@@ -242,7 +242,7 @@ class wt_int
                     }
                     buf1.write_close();
                     size_type cnt1 = i-start-cnt0;
-                    if (k+1 < m_max_depth) { // inner node
+                    if (k+1 < m_max_level) { // inner node
                         for (i=start + cnt0, start = start+cnt0+cnt1; i < start; ++i) {
                             buf1 >> x;
                             rac[ i ] = x;
@@ -291,7 +291,7 @@ class wt_int
                 util::swap_support(m_tree_rank, wt.m_tree_rank, &m_tree, &(wt.m_tree));
                 util::swap_support(m_tree_select1, wt.m_tree_select1, &m_tree, &(wt.m_tree));
                 util::swap_support(m_tree_select0, wt.m_tree_select0, &m_tree, &(wt.m_tree));
-                std::swap(m_max_depth,  wt.m_max_depth);
+                std::swap(m_max_level,  wt.m_max_level);
                 m_path_off.swap(wt.m_path_off);
                 m_path_rank_off.swap(wt.m_path_rank_off);
             }
@@ -318,7 +318,7 @@ class wt_int
             size_type offset = 0;
             value_type res = 0;
             size_type node_size = m_size;
-            for (uint32_t k=0; k < m_max_depth; ++k) {
+            for (uint32_t k=0; k < m_max_level; ++k) {
                 res <<= 1;
                 size_type ones_before_o   = m_tree_rank(offset);
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
@@ -349,13 +349,13 @@ class wt_int
          */
         size_type rank(size_type i, value_type c)const {
             assert(i <= size());
-            if (((1ULL)<<(m_max_depth))<=c) { // c is greater than any symbol in wt
+            if (((1ULL)<<(m_max_level))<=c) { // c is greater than any symbol in wt
                 return 0;
             }
             size_type offset = 0;
-            uint64_t mask = (1ULL) << (m_max_depth-1);
+            uint64_t mask = (1ULL) << (m_max_level-1);
             size_type node_size = m_size;
-            for (uint32_t k=0; k < m_max_depth and i; ++k) {
+            for (uint32_t k=0; k < m_max_level and i; ++k) {
                 size_type ones_before_o   = m_tree_rank(offset);
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
@@ -388,7 +388,7 @@ class wt_int
 
             value_type c = 0;
             size_type node_size = m_size, offset = 0;
-            for (uint32_t k=0; k < m_max_depth; ++k) {
+            for (uint32_t k=0; k < m_max_level; ++k) {
                 size_type ones_before_o   = m_tree_rank(offset);
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
@@ -420,11 +420,11 @@ class wt_int
             assert(1 <= i and i <= rank(size(), c));
             // possible optimization: if the array is a permutation we can start at the bottom of the tree
             size_type offset = 0;
-            uint64_t mask    = (1ULL) << (m_max_depth-1);
+            uint64_t mask    = (1ULL) << (m_max_level-1);
             size_type node_size = m_size;
             m_path_off[0] = m_path_rank_off[0] = 0;
 
-            for (uint32_t k=0; k < m_max_depth and node_size; ++k) {
+            for (uint32_t k=0; k < m_max_level and node_size; ++k) {
                 size_type ones_before_o   = m_tree_rank(offset);
                 m_path_rank_off[k] = ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
@@ -443,7 +443,7 @@ class wt_int
                 return m_size;
             }
             mask = 1ULL;
-            for (uint32_t k=m_max_depth; k>0; --k) {
+            for (uint32_t k=m_max_level; k>0; --k) {
                 offset = m_path_off[k-1];
                 size_type ones_before_o = m_path_rank_off[k-1];
                 if (c & mask) { // right child => search i'th
@@ -516,15 +516,15 @@ class wt_int
         template<class t_ret_type = std::tuple<size_type, size_type, size_type>>
         t_ret_type lex_count(size_type i, size_type j, value_type c)const {
             assert(i <= j and j <= size());
-            if (((1ULL)<<(m_max_depth))<=c) { // c is greater than any symbol in wt
+            if (((1ULL)<<(m_max_level))<=c) { // c is greater than any symbol in wt
                 return t_ret_type {0, j-i, 0};
             }
             size_type offset  = 0;
             size_type smaller = 0;
             size_type greater = 0;
-            uint64_t mask     = (1ULL) << (m_max_depth-1);
+            uint64_t mask     = (1ULL) << (m_max_level-1);
             size_type node_size = m_size;
-            for (uint32_t k=0; k < m_max_depth; ++k) {
+            for (uint32_t k=0; k < m_max_level; ++k) {
                 size_type ones_before_o   = m_tree_rank(offset);
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_j   = m_tree_rank(offset + j) - ones_before_o;
@@ -560,14 +560,14 @@ class wt_int
         template<class t_ret_type = std::tuple<size_type, size_type>>
         t_ret_type lex_smaller_count(size_type i, value_type c) const {
             assert(i <= size());
-            if (((1ULL)<<(m_max_depth))<=c) { // c is greater than any symbol in wt
+            if (((1ULL)<<(m_max_level))<=c) { // c is greater than any symbol in wt
                 return t_ret_type {0, i};
             }
             size_type offset = 0;
             size_type result = 0;
-            uint64_t mask    = (1ULL) << (m_max_depth-1);
+            uint64_t mask    = (1ULL) << (m_max_level-1);
             size_type node_size = m_size;
-            for (uint32_t k=0; k < m_max_depth and i; ++k) {
+            for (uint32_t k=0; k < m_max_level and i; ++k) {
                 size_type ones_before_o   = m_tree_rank(offset);
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
@@ -599,11 +599,11 @@ class wt_int
         std::pair<size_type, std::vector<std::pair<value_type, size_type>>>
         range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb,
                         bool report=true) const {
-            size_type offsets[m_max_depth+1];
-            size_type ones_before_os[m_max_depth+1];
+            size_type offsets[m_max_level+1];
+            size_type ones_before_os[m_max_level+1];
             offsets[0] = 0;
-            if (vrb > (1ULL << m_max_depth))
-                vrb = (1ULL << m_max_depth);
+            if (vrb > (1ULL << m_max_level))
+                vrb = (1ULL << m_max_level);
             if (vlb > vrb)
                 return make_pair(0, point_vec_type());
             size_type cnt_answers = 0;
@@ -616,19 +616,19 @@ class wt_int
         // ilb interval left bound
         // irb interval right bound
         void
-        _range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb, size_type depth,
+        _range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb, size_type level,
                          size_type ilb, size_type node_size, size_type offsets[],
                          size_type ones_before_os[], size_type path,
                          point_vec_type& point_vec, bool report, size_type& cnt_answers)
         const {
             if (lb > rb)
                 return;
-            if (depth == m_max_depth) {
+            if (level == m_max_level) {
                 if (report) {
                     for (size_type j=lb+1; j <= rb+1; ++j) {
                         size_type i = j;
                         size_type c = path;
-                        for (uint32_t k=m_max_depth; k>0; --k) {
+                        for (uint32_t k=m_max_level; k>0; --k) {
                             size_type offset = offsets[k-1];
                             size_type ones_before_o = ones_before_os[k-1];
                             if (c&1) {
@@ -641,16 +641,16 @@ class wt_int
                         point_vec.emplace_back(i-1, path); // add resulting index; -1 cause of 0 based indexing
                     }
                 }
-                cnt_answers += node_size;
+                cnt_answers += rb-lb+1;
                 return;
             }
-            size_type irb = ilb + (1ULL << (m_max_depth-depth));
+            size_type irb = ilb + (1ULL << (m_max_level-level));
             size_type mid = (irb + ilb)>>1;
 
-            size_type offset = offsets[depth];
+            size_type offset = offsets[level];
 
             size_type ones_before_o    = m_tree_rank(offset);
-            ones_before_os[depth]      = ones_before_o;
+            ones_before_os[level]      = ones_before_o;
             size_type ones_before_lb   = m_tree_rank(offset + lb);
             size_type ones_before_rb   = m_tree_rank(offset + rb + 1);
             size_type ones_before_end  = m_tree_rank(offset + node_size);
@@ -661,16 +661,16 @@ class wt_int
             if (vlb < mid and mid) {
                 size_type nlb    = zeros_before_lb - zeros_before_o;
                 size_type nrb    = zeros_before_rb - zeros_before_o;
-                offsets[depth+1] = offset + m_size;
+                offsets[level+1] = offset + m_size;
                 if (nrb)
-                    _range_search_2d(nlb, nrb-1, vlb, std::min(vrb,mid-1), depth+1, ilb, zeros_before_end - zeros_before_o, offsets, ones_before_os, path<<1, point_vec, report, cnt_answers);
+                    _range_search_2d(nlb, nrb-1, vlb, std::min(vrb,mid-1), level+1, ilb, zeros_before_end - zeros_before_o, offsets, ones_before_os, path<<1, point_vec, report, cnt_answers);
             }
             if (vrb >= mid) {
                 size_type nlb     = ones_before_lb - ones_before_o;
                 size_type nrb     = ones_before_rb - ones_before_o;
-                offsets[depth+1]  = offset + m_size + (zeros_before_end - zeros_before_o);
+                offsets[level+1]  = offset + m_size + (zeros_before_end - zeros_before_o);
                 if (nrb)
-                    _range_search_2d(nlb, nrb-1, std::max(mid, vlb), vrb, depth+1, mid, ones_before_end - ones_before_o, offsets, ones_before_os, (path<<1)+1 , point_vec, report, cnt_answers);
+                    _range_search_2d(nlb, nrb-1, std::max(mid, vlb), vrb, level+1, mid, ones_before_end - ones_before_o, offsets, ones_before_os, (path<<1)+1 , point_vec, report, cnt_answers);
             }
         }
 
@@ -695,7 +695,7 @@ class wt_int
             written_bytes += m_tree_rank.serialize(out, child, "tree_rank");
             written_bytes += m_tree_select1.serialize(out, child, "tree_select_1");
             written_bytes += m_tree_select0.serialize(out, child, "tree_select_0");
-            written_bytes += write_member(m_max_depth, out, child, "max_depth");
+            written_bytes += write_member(m_max_level, out, child, "max_level");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -708,8 +708,8 @@ class wt_int
             m_tree_rank.load(in, &m_tree);
             m_tree_select1.load(in, &m_tree);
             m_tree_select0.load(in, &m_tree);
-            read_member(m_max_depth, in);
-            init_buffers(m_max_depth);
+            read_member(m_max_level, in);
+            init_buffers(m_max_level);
         }
 
         //! Represents a node in the wavelet tree
@@ -731,7 +731,7 @@ class wt_int
 
         //! Checks if the node is a leaf node
         bool is_leaf(const node_type& v) const {
-            return v.level == m_max_depth;
+            return v.level == m_max_level;
         };
 
         //! Return the root node
@@ -838,7 +838,7 @@ class wt_int
             size_type freq = 0;
             size_type node_size = m_size;
 
-            for (size_t k=0; k < m_max_depth; ++k) {
+            for (size_t k=0; k < m_max_level; ++k) {
                 sym <<= 1;
 
                 /* number of 1s before the level offset and after the node */
@@ -900,7 +900,7 @@ class wt_int
             std::vector<p_t> results;
             auto comp = [](p_t& a,p_t& b) { return a.second > b.second; };
             std::priority_queue<p_t,std::vector<p_t>,decltype(comp)> heap(comp);
-            bit_vector seen(1 << m_max_depth); // TODO: better idea?
+            bit_vector seen(1 << m_max_level); // TODO: better idea?
 
             /* we start probing using the largest power smaller than len */
             size_type len = rb-lb+1;
