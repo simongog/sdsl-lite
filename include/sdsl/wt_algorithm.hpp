@@ -2,6 +2,7 @@
 #define INCLUDED_SDSL_WT_ALGORITHM
 
 #include <algorithm>
+#include <utility>
 
 namespace sdsl
 {
@@ -16,6 +17,7 @@ template<class t_wt>
 std::vector< std::pair<typename t_wt::value_type, typename t_wt::size_type> >
 intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::size_type t=0)
 {
+    using std::get;
     using size_type      = typename t_wt::size_type;
     using value_type     = typename t_wt::value_type;
     using node_type      = typename t_wt::node_type;
@@ -59,12 +61,52 @@ intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::
             auto child        = wt.expand(x.first);
             auto child_ranges = wt.expand(x.first, x.second);
 
-            push_node(stack, std::get<0>(child), std::get<0>(child_ranges));
-            push_node(stack, std::get<1>(child), std::get<1>(child_ranges));
+            push_node(stack, get<0>(child), get<0>(child_ranges));
+            push_node(stack, get<1>(child), get<1>(child_ranges));
         }
     }
     return res;
 }
+
+
+//! Returns the q-th largest element and its frequency in wt[lb..rb].
+/*! \param wt The wavelet tree.
+ *  \param lb Left array bound in T
+ *  \param rb Right array bound in T
+ *  \param q q-th largest element ('quantile'), 0-based indexed.
+ */
+template<class t_wt>
+std::vector< std::pair<typename t_wt::value_type, typename t_wt::size_type> >
+quantile_freq(const t_wt& wt, typename t_wt::size_type lb,
+              typename t_wt::size_type rb, typename t_wt::size_type q)
+{
+    static_assert(t_wt::lex_ordered,
+                  "quantile_freq requires a lex_ordered WT");
+    using std::get;
+    using size_type      = typename t_wt::size_type;
+    using value_type     = typename t_wt::value_type;
+    using node_type      = typename t_wt::node_type;
+
+    node_type v = wt.root();
+    range_type r(lb,rb);
+
+    while (!wt.is_leaf(v)) {
+        auto child        = wt.expand(v);
+        auto child_ranges = wt.expand(v, r);
+        auto num_zeros    = size(get<0>(child_ranges));
+
+        if (q >= num_zeros) {
+            q -= num_zeros;
+            v = get<1>(child);
+            r = get<1>(child_ranges);
+        } else {
+            v = get<0>(child);
+            v = get<0>(child_ranges);
+        }
+    }
+    return {v.sym, size(r)};
+};
+
 }
 
 #endif

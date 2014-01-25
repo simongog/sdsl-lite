@@ -221,10 +221,10 @@ class doc_list_index_greedy
                 auto left_range = std::get<0>(child_ranges);
                 auto right_range = std::get<1>(child_ranges);
 
-                if (!m_wtd.empty(left_range)) {
+                if (!empty(left_range)) {
                     heap.emplace(wt_range_t(std::get<0>(child), left_range));
                 }
-                if (!m_wtd.empty(right_range)) {
+                if (!empty(right_range)) {
                     heap.emplace(wt_range_t(std::get<1>(child), right_range));
                 }
             }
