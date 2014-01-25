@@ -76,7 +76,7 @@ intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::
  *  \param q q-th largest element ('quantile'), 0-based indexed.
  */
 template<class t_wt>
-std::vector< std::pair<typename t_wt::value_type, typename t_wt::size_type> >
+std::pair<typename t_wt::value_type, typename t_wt::size_type>
 quantile_freq(const t_wt& wt, typename t_wt::size_type lb,
               typename t_wt::size_type rb, typename t_wt::size_type q)
 {
@@ -99,7 +99,7 @@ quantile_freq(const t_wt& wt, typename t_wt::size_type lb,
             r = get<1>(child_ranges);
         } else {
             v = get<0>(child);
-            v = get<0>(child_ranges);
+            r = get<0>(child_ranges);
         }
     }
     return {v.sym, size(r)};
