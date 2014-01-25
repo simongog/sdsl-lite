@@ -83,8 +83,6 @@ quantile_freq(const t_wt& wt, typename t_wt::size_type lb,
     static_assert(t_wt::lex_ordered,
                   "quantile_freq requires a lex_ordered WT");
     using std::get;
-    using size_type      = typename t_wt::size_type;
-    using value_type     = typename t_wt::value_type;
     using node_type      = typename t_wt::node_type;
 
     node_type v = wt.root();
