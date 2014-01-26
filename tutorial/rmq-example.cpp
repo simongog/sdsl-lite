@@ -5,7 +5,7 @@ using namespace sdsl;
 using namespace std;
 
 
-int main(int argc, char const* argv[])
+int main()
 {
     rmq_succinct_sct<> rmq;
     {

@@ -2,6 +2,7 @@
 #define INCLUDED_SDSL_WT_ALGORITHM
 
 #include <algorithm>
+#include <utility>
 
 namespace sdsl
 {
@@ -11,11 +12,16 @@ namespace sdsl
  *  \param ranges The ranges.
  *  \param t      Threshold in how many distinct ranges the value has to be
  *                present. Default: t=ranges.size()
+ *  \return       A vector containing (value, frequency) - of value which are
+ *                contained in t different ranges. Frequency = accumulated
+ *                frequencies in all ranges. The tuples are ordered according
+ *                to value, if t_wt::lex_ordered=1.
  */
 template<class t_wt>
 std::vector< std::pair<typename t_wt::value_type, typename t_wt::size_type> >
 intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::size_type t=0)
 {
+    using std::get;
     using size_type      = typename t_wt::size_type;
     using value_type     = typename t_wt::value_type;
     using node_type      = typename t_wt::node_type;
@@ -28,7 +34,7 @@ intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::
     auto push_node = [&wt,&t](stack_type& s, node_type& child,
     range_vec_type& child_range) {
         auto end = std::remove_if(child_range.begin(), child_range.end(),
-        [&](const range_type& x) { return wt.empty(x);});
+        [&](const range_type& x) { return empty(x);});
         if (end > child_range.begin() + t - 1) {
             s.emplace(pnvr_type(child, range_vec_type(child_range.begin(),
                                 end)));
@@ -59,12 +65,50 @@ intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::
             auto child        = wt.expand(x.first);
             auto child_ranges = wt.expand(x.first, x.second);
 
-            push_node(stack, std::get<0>(child), std::get<0>(child_ranges));
-            push_node(stack, std::get<1>(child), std::get<1>(child_ranges));
+            push_node(stack, get<1>(child), get<1>(child_ranges));
+            push_node(stack, get<0>(child), get<0>(child_ranges));
         }
     }
     return res;
 }
+
+
+//! Returns the q-th smallest element and its frequency in wt[lb..rb].
+/*! \param wt The wavelet tree.
+ *  \param lb Left array bound in T
+ *  \param rb Right array bound in T
+ *  \param q q-th largest element ('quantile'), 0-based indexed.
+ */
+template<class t_wt>
+std::pair<typename t_wt::value_type, typename t_wt::size_type>
+quantile_freq(const t_wt& wt, typename t_wt::size_type lb,
+              typename t_wt::size_type rb, typename t_wt::size_type q)
+{
+    static_assert(t_wt::lex_ordered,
+                  "quantile_freq requires a lex_ordered WT");
+    using std::get;
+    using node_type      = typename t_wt::node_type;
+
+    node_type v = wt.root();
+    range_type r(lb,rb);
+
+    while (!wt.is_leaf(v)) {
+        auto child        = wt.expand(v);
+        auto child_ranges = wt.expand(v, r);
+        auto num_zeros    = size(get<0>(child_ranges));
+
+        if (q >= num_zeros) {
+            q -= num_zeros;
+            v = get<1>(child);
+            r = get<1>(child_ranges);
+        } else {
+            v = get<0>(child);
+            r = get<0>(child_ranges);
+        }
+    }
+    return {v.sym, size(r)};
+};
+
 }
 
 #endif

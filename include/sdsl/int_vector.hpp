@@ -410,6 +410,9 @@ class int_vector
         */
         void width(uint8_t) { }
 
+        // Write data (without header) to a stream.
+        size_type write_data(std::ostream& out) const;
+
         //! Serializes the int_vector to a stream.
         /*! \return The number of bytes written to out.
          *  \sa load
@@ -522,6 +525,23 @@ class int_vector
             }
             return written_bytes;
         }
+
+
+        struct raw_wrapper {
+            const int_vector& vec;
+            raw_wrapper() = delete;
+            raw_wrapper(const int_vector& _vec) : vec(_vec) {}
+
+            size_type
+            serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+                structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+                auto written_bytes = vec.write_data(out);
+                structure_tree::add_size(child, written_bytes);
+                return written_bytes;
+            }
+        };
+
+        const raw_wrapper raw = raw_wrapper(*this);
 };
 
 template<>
@@ -1362,6 +1382,23 @@ bool int_vector<t_width>::operator!=(const int_vector& v)const
 }
 
 template<uint8_t t_width>
+typename int_vector<t_width>::size_type int_vector<t_width>::write_data(std::ostream& out) const
+{
+    size_type written_bytes = 0;
+    uint64_t* p = m_data;
+    size_type idx = 0;
+    while (idx+conf::SDSL_BLOCK_SIZE < (capacity()>>6)) {
+        out.write((char*) p, conf::SDSL_BLOCK_SIZE*sizeof(uint64_t));
+        written_bytes += conf::SDSL_BLOCK_SIZE*sizeof(uint64_t);
+        p     += conf::SDSL_BLOCK_SIZE;
+        idx    += conf::SDSL_BLOCK_SIZE;
+    }
+    out.write((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
+    written_bytes += ((capacity()>>6)-idx)*sizeof(uint64_t);
+    return written_bytes;
+}
+
+template<uint8_t t_width>
 typename int_vector<t_width>::size_type int_vector<t_width>::serialize(std::ostream& out,
         structure_tree_node* v,
         std::string name,
@@ -1374,17 +1411,7 @@ typename int_vector<t_width>::size_type int_vector<t_width>::serialize(std::ostr
     } else {
         written_bytes += int_vector<t_width>::write_header(m_size, m_width, out);
     }
-
-    uint64_t* p = m_data;
-    size_type idx = 0;
-    while (idx+conf::SDSL_BLOCK_SIZE < (capacity()>>6)) {
-        out.write((char*) p, conf::SDSL_BLOCK_SIZE*sizeof(uint64_t));
-        written_bytes += conf::SDSL_BLOCK_SIZE*sizeof(uint64_t);
-        p     += conf::SDSL_BLOCK_SIZE;
-        idx    += conf::SDSL_BLOCK_SIZE;
-    }
-    out.write((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
-    written_bytes += ((capacity()>>6)-idx)*sizeof(uint64_t);
+    written_bytes += write_data(out);
     structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }

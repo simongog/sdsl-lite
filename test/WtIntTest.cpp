@@ -349,9 +349,8 @@ void test_range_search_2d(sdsl::wt_int<t_bv, t_rank, t_sel1, t_sel0>& wt)
         size_type lb = dice_range();
         size_type rb = lb+buf.size()-1;
         rb = (rb >= wt.size()) ? wt.size()-1 : rb;
-        auto buf_end = buf.begin()+(rb-lb+1);
 
-        std::copy(iv.begin()+lb, iv.begin()+rb+1, buf.begin());
+        auto buf_end = std::copy(iv.begin()+lb, iv.begin()+rb+1, buf.begin());
         std::sort(buf.begin(), buf_end);
         auto unique_end = std::unique_copy(buf.begin(), buf_end,
                                            unique_buf.begin());
@@ -388,107 +387,128 @@ TYPED_TEST(WtIntTest, RangeSearch2d)
     test_range_search_2d(wt);
 }
 
+template<class t_wt>
+void test_quantile_freq(t_wt&) {}
+
+template<class t_bv, class t_rank, class t_sel1, class t_sel0>
+void test_quantile_freq(sdsl::wt_int<t_bv, t_rank, t_sel1, t_sel0>& wt)
+{
+    int_vector<> iv;
+    load_from_file(iv, test_file);
+
+    ASSERT_TRUE(load_from_file(wt, temp_file));
+
+    if (wt.size() == 0)
+        return;
+
+    std::vector<uint64_t> buf(100);
+
+    std::mt19937_64 rng;
+    std::uniform_int_distribution<uint64_t> range_distr(0, wt.size()-1);
+    auto dice_lb = bind(range_distr, rng);
+
+    std::uniform_int_distribution<uint64_t> rank_distr(1, buf.size());
+    auto dice_range = bind(rank_distr, rng);
+
+    for (size_type n=0; n<1000; ++n) {
+        size_type lb = dice_lb();
+        size_type rb = lb+dice_range()-1;
+        rb = (rb >= wt.size()) ? wt.size()-1 : rb;
+
+        auto buf_end = std::copy(iv.begin()+lb, iv.begin()+rb+1, buf.begin());
+        std::sort(buf.begin(), buf_end);
+
+        for (auto it = buf.begin(); it!=buf_end; ++it) {
+            auto val = *it;
+            size_type freq = std::upper_bound(buf.begin(), buf_end, val) -
+                             std::lower_bound(buf.begin(), buf_end, val);
+            size_type q    = it - buf.begin();
+            auto res = quantile_freq(wt, lb, rb, q);
+            ASSERT_EQ(val, res.first);
+            ASSERT_EQ(freq, res.second);
+        }
+    }
+}
+
+//! Test the load method and quantile_freq
+TYPED_TEST(WtIntTest, QuantileFreq)
+{
+    TypeParam wt;
+    test_quantile_freq(wt);
+}
+
+template<class t_wt>
+void test_intersect(t_wt&) {}
+
+template<class t_bv, class t_rank, class t_sel1, class t_sel0>
+void test_intersect(sdsl::wt_int<t_bv, t_rank, t_sel1, t_sel0>& wt)
+{
+    typedef sdsl::wt_int<t_bv, t_rank, t_sel1, t_sel0> t_wt;
+    using t_pvs = std::pair<typename t_wt::value_type,
+          typename t_wt::size_type>;
+    int_vector<> iv;
+    load_from_file(iv, test_file);
+
+    ASSERT_TRUE(load_from_file(wt, temp_file));
+
+    if (wt.size() == 0)
+        return;
+
+    std::vector<std::vector<uint64_t>> buf(2, std::vector<uint64_t>(300));
+    std::vector<uint64_t> res_buf(buf[0].size()*2);
+    std::vector<std::vector<uint64_t>::iterator> buf_end(2);
+
+    std::mt19937_64 rng;
+    std::uniform_int_distribution<uint64_t> range_distr(0, wt.size()-1);
+    auto dice_lb = bind(range_distr, rng);
+
+    std::uniform_int_distribution<uint64_t> rank_distr(1, buf[0].size()-1);
+    auto dice_range = bind(rank_distr, rng);
+
+    for (size_type n=0; n<1000; ++n) {
+        range_vec_type ranges;
+
+        for (size_t i=0; i<2; ++i) {
+            size_type lb = dice_lb();
+            size_type rb = lb+dice_range()-1;
+            rb = (rb >= wt.size()) ? wt.size()-1 : rb;
+            ranges.emplace_back(lb,rb);
+            buf_end[i] = std::copy(iv.begin()+lb,
+                                   iv.begin()+rb+1, buf[i].begin());
+            sort(buf[i].begin(), buf_end[i]);
+        }
+
+        auto res_end =
+            std::set_intersection(buf[0].begin(), buf_end[0],
+                                  buf[1].begin(), buf_end[1],
+                                  res_buf.begin());
+        res_end = std::unique(res_buf.begin(), res_end);
+
+        auto itsct = intersect(wt, ranges);
+        size_type res_size = res_end-res_buf.begin();
+        ASSERT_EQ(res_size, itsct.size());
+        if (!t_wt::lex_ordered) {
+            sort(itsct.begin(), itsct.end(), [](const t_pvs& x, const t_pvs& y) {
+                return x.first < y.first;
+            });
+        }
+        for (size_t i=0; i< itsct.size(); ++i) {
+            ASSERT_EQ(res_buf[i], itsct[i].first);
+        }
+    }
+}
+
+//! Test the load method and intersect
+TYPED_TEST(WtIntTest, Intersect)
+{
+    TypeParam wt;
+    test_intersect(wt);
+}
+
 TYPED_TEST(WtIntTest, DeleteTest)
 {
     sdsl::remove(temp_file);
 }
-
-
-template<class T>
-class WtIntTopK : public ::testing::Test { };
-typedef Types<wt_int<rrr_vector<15>> , wt_int<> , wt_int<rrr_vector<63>> > Implementations_ordered;
-
-TYPED_TEST_CASE(WtIntTopK, Implementations_ordered);
-
-TYPED_TEST(WtIntTopK, quantile_freq)
-{
-    int_vector<> a = {7,2,2,4,4,4,15,14,17,3,8,10,11,1,18,5,6,4,16,9,12,13};
-
-    temp_file = ram_file_name("test.file");
-    store_to_file(a, temp_file);
-
-    TypeParam wt;
-    sdsl::construct(wt, temp_file);
-
-    auto res = wt.quantile_freq(0,8,0);
-    ASSERT_EQ((size_type)2,res.first);
-    ASSERT_EQ((size_type)2,res.second);
-    res = wt.quantile_freq(0,8,1);
-    ASSERT_EQ((size_type)2, res.first);
-    ASSERT_EQ((size_type)2, res.second);
-    res = wt.quantile_freq(0,8,2);
-    ASSERT_EQ((size_type)4, res.first);
-    ASSERT_EQ((size_type)3, res.second);
-    res = wt.quantile_freq(0,8,3);
-    ASSERT_EQ((size_type)4, res.first);
-    ASSERT_EQ((size_type)3, res.second);
-    res = wt.quantile_freq(0,8,4);
-    ASSERT_EQ((size_type)4, res.first);
-    ASSERT_EQ((size_type)3, res.second);
-    res = wt.quantile_freq(0,8,5);
-    ASSERT_EQ((size_type)7,res.first);
-    ASSERT_EQ((size_type)1,res.second);
-    res = wt.quantile_freq(0,8,6);
-    ASSERT_EQ((size_type)14,res.first);
-    ASSERT_EQ((size_type)1,res.second);
-    res = wt.quantile_freq(0,8,7);
-    ASSERT_EQ((size_type)15,res.first);
-    ASSERT_EQ((size_type)1,res.second);
-    res = wt.quantile_freq(0,8,8);
-    ASSERT_EQ((size_type)17,res.first);
-    ASSERT_EQ((size_type)1,res.second);
-
-}
-
-TYPED_TEST(WtIntTopK, topk_qprobing)
-{
-    int_vector<> a = {2,2,2,4,4,4,3,4,17,3,8,10,11,1,18,5,6,4,16,9,12,13,7,14,15,0};
-
-    auto f = ram_file_name("test.file");
-    store_to_file(a, f);
-
-    TypeParam wt;
-    sdsl::construct(wt, f);
-
-    auto results = wt.topk_qprobing(0,9,3);
-
-    ASSERT_EQ((size_type)3,results.size());
-    ASSERT_EQ((size_type)4,results[0].first);
-    ASSERT_EQ((size_type)4,results[0].second);
-    ASSERT_EQ((size_type)2,results[1].first);
-    ASSERT_EQ((size_type)3,results[1].second);
-    ASSERT_EQ((size_type)3,results[2].first);
-    ASSERT_EQ((size_type)2,results[2].second);
-
-    results = wt.topk_qprobing(0,9,5);
-
-    ASSERT_EQ((size_type)4,results.size());
-    ASSERT_EQ((size_type)4,results[0].first);
-    ASSERT_EQ((size_type)4,results[0].second);
-    ASSERT_EQ((size_type)2,results[1].first);
-    ASSERT_EQ((size_type)3,results[1].second);
-    ASSERT_EQ((size_type)3,results[2].first);
-    ASSERT_EQ((size_type)2,results[2].second);
-    ASSERT_EQ((size_type)17,results[3].first);
-    ASSERT_EQ((size_type)1,results[3].second);
-}
-
-TYPED_TEST(WtIntTopK, intersection)
-{
-
-
-    TypeParam wt;
-    sdsl::construct_im(wt,int_vector<> {2,2,2,4,5,4,0,0,4,5,7,7,6,6,3,5,1,6});
-
-    auto results = intersect(wt, {{2,4},{6,9}});
-
-    ASSERT_EQ((size_type)2, results.size());
-    pair<size_type,size_type> p1 = results[0];
-    ASSERT_EQ((size_type)5, p1.first);
-    pair<size_type,size_type> p2 = results[1];
-    ASSERT_EQ((size_type)4, p2.first);
-}
-
 
 }  // namespace
 

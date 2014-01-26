@@ -15,6 +15,17 @@ namespace sdsl
 typedef std::pair<int_vector<>::size_type, int_vector<>::size_type> range_type;
 typedef std::vector<range_type>         range_vec_type;
 
+//! Empty range check
+/*! \param r Range to check
+ *  \returns True if the range is empty, false otherwise.
+ */
+bool empty(const range_type& r);
+
+//! Size of a range
+/*! \param r Range to check
+ *  \returns True if the range is empty, false otherwise.
+ */
+int_vector<>::size_type size(const range_type& r);
 
 //! Count for each character the number of occurrences in rac[0..size-1]
 /*!

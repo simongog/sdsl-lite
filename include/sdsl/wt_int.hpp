@@ -158,8 +158,9 @@ class wt_int
 
     public:
 
-        const size_type&       sigma = m_sigma; //!< Effective alphabet size of the wavelet tree.
-        const bit_vector_type& tree  = m_tree;  //!< A concatenation of all bit vectors of the wavelet tree.
+        const size_type&       sigma = m_sigma;         //!< Effective alphabet size of the wavelet tree.
+        const bit_vector_type& tree  = m_tree;          //!< A concatenation of all bit vectors of the wavelet tree.
+        const uint32_t&        max_level = m_max_level; //!< Maximal level of the wavelet tree.
 
         //! Default constructor
         wt_int() {
@@ -598,7 +599,7 @@ class wt_int
 
         std::pair<size_type, std::vector<std::pair<value_type, size_type>>>
         range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb,
-                        bool report=true) const {
+        bool report=true) const {
             size_type offsets[m_max_level+1];
             size_type ones_before_os[m_max_level+1];
             offsets[0] = 0;
@@ -722,11 +723,11 @@ class wt_int
             // Default constructor
             node_type(size_type o=0, size_type sz=0, size_type l=0,
                       value_type sy=0) :
-                offset(o), size(sz), level(l), sym(sy) {}
+            offset(o), size(sz), level(l), sym(sy) {}
 
-            // Copy constructor
-            node_type(const node_type& v) : offset(v.offset), size(v.size),
-                level(v.level), sym(v.sym) {}
+        // Copy constructor
+        node_type(const node_type& v) : offset(v.offset), size(v.size),
+            level(v.level), sym(v.sym) {}
         };
 
         //! Checks if the node is a leaf node
@@ -737,10 +738,6 @@ class wt_int
         //! Return the root node
         node_type root() const {
             return node_type(0, m_size, 0, 0);
-        }
-
-        bool empty(const range_type& r) const {
-            return r.first == r.second + 1;
         }
 
         //! Returns the two child nodes of an inner node
@@ -783,10 +780,10 @@ class wt_int
             auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
             std::pair<range_vec_type, range_vec_type> res;
 
-            for (const auto& r : ranges) {
+for (const auto& r : ranges) {
                 auto sp_rank    = m_tree_rank(v.offset + r.first);
                 auto right_size = m_tree_rank(v.offset + r.second + 1)
-                                  - sp_rank;
+                - sp_rank;
                 auto left_size  = (r.second-r.first+1)-right_size;
 
                 auto right_sp = sp_rank - v_sp_rank;
@@ -813,7 +810,7 @@ class wt_int
             auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
             auto sp_rank    = m_tree_rank(v.offset + r.first);
             auto right_size = m_tree_rank(v.offset + r.second + 1)
-                              - sp_rank;
+            - sp_rank;
             auto left_size  = (r.second-r.first+1)-right_size;
 
             auto right_sp = sp_rank - v_sp_rank;
@@ -822,130 +819,6 @@ class wt_int
             return make_pair(range_type(left_sp, left_sp + left_size - 1),
                              range_type(right_sp, right_sp + right_size - 1));
         }
-
-
-        //! Returns the element in T[lb..rb] with rank quantile.
-        /*!
-         *  \param lb left array bound in T
-         *  \param rb right array bound in T
-         *  \param quantile 'quantile' smallest symbol (starts with 0)
-         */
-        std::pair<value_type,size_type>
-        quantile_freq(size_type lb, size_type rb,size_type quantile) const {
-
-            size_type  offset = 0;
-            value_type sym = 0;
-            size_type freq = 0;
-            size_type node_size = m_size;
-
-            for (size_t k=0; k < m_max_level; ++k) {
-                sym <<= 1;
-
-                /* number of 1s before the level offset and after the node */
-                size_type ones_before_offset   = m_tree_rank(offset);
-                size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_offset;
-
-                /* number of 1s before T[l..r] */
-                size_type rank_before_left = 0;
-                if (offset+lb>0) rank_before_left = m_tree_rank(offset + lb);
-
-                /* number of 1s before T[r] */
-                size_type rank_before_right   = m_tree_rank(offset + rb + 1);
-
-                /* number of 1s in T[l..r] */
-                size_type num_ones = rank_before_right - rank_before_left;
-                /* number of 0s in T[l..r] */
-                size_type num_zeros = (rb-lb+1) - num_ones;
-
-                /* if there are more than q 0s we go right. left otherwise */
-                if (quantile >= num_zeros) { /* go right */
-                    freq = num_ones; /* calc freq */
-                    /* set bit to 1 in sym */
-                    sym |= 1;
-                    /* number of 1s before T[l..r] within the current node */
-                    lb = rank_before_left - ones_before_offset;
-                    /* number of 1s in T[l..r] */
-                    rb = lb + num_ones - 1;
-                    quantile = quantile - num_zeros;
-
-                    /* calc starting pos of right childnode */
-                    offset += (node_size - ones_before_end);
-                    node_size = ones_before_end;
-
-                } else { /* go left q = q // sym == sym */
-                    freq = num_zeros; /* calc freq */
-                    /* number of zeros before T[l..r] within the current node */
-                    lb = lb - (rank_before_left - ones_before_offset);
-                    /* number of zeros in T[l..r] + left bound */
-                    rb = lb + num_zeros - 1;
-
-                    /* calc end pos of left childnode */
-                    node_size = (node_size - ones_before_end);
-                }
-                offset += m_size; /* next level */
-            }
-            return {sym,freq};
-        };
-
-        //! Returns the top k most frequent documents in T[lb..rb]
-        /*!
-         *  \param lb left array bound in T
-         *  \param rb right array bound in T
-         *  \param k the number of documents to return
-         *  \returns the top-k items in ascending order.
-         */
-        std::vector< std::pair<value_type,size_type> >
-        topk_qprobing(size_type lb, size_type rb,size_type k) const {
-            using p_t = std::pair<value_type,size_type>;
-            std::vector<p_t> results;
-            auto comp = [](p_t& a,p_t& b) { return a.second > b.second; };
-            std::priority_queue<p_t,std::vector<p_t>,decltype(comp)> heap(comp);
-            bit_vector seen(1 << m_max_level); // TODO: better idea?
-
-            /* we start probing using the largest power smaller than len */
-            size_type len = rb-lb+1;
-            size_type power2greaterlen = 1 << (bits::hi(len)+1);
-            size_type probe_interval = power2greaterlen >> 1;
-
-            /* we probe the smallest elem (pos 0 in sorted array) only once */
-            auto qf = quantile_freq(lb,rb,0);
-            heap.push(qf);
-            seen[qf.first] = 1;
-
-            qf = quantile_freq(lb,rb,probe_interval);
-            if (!seen[qf.first]) heap.push(qf);
-            seen[qf.first] = 1;
-
-            while (probe_interval > 1) {
-                size_type probe_pos = probe_interval >> 1;
-                while (probe_pos < len) {
-                    qf = quantile_freq(lb,rb,probe_pos);
-                    if (!seen[qf.first]) { /* not in heap */
-                        if (heap.size()<k) {
-                            heap.push(qf);
-                            seen[qf.first] = 1;
-                        } else {
-                            /* throw out the smallest and add the new one */
-                            if (heap.top().second < qf.second) {
-                                heap.pop();
-                                heap.push(qf);
-                                seen[qf.first] = 1;
-                            }
-                        }
-                    }
-                    probe_pos += probe_interval;
-                }
-                probe_interval >>= 1;
-                /* we have enough or can't find anything better */
-                if (heap.size() == k && probe_interval-1 <= heap.top().second) break;
-            }
-            /* populate results */
-            while (!heap.empty())  {
-                results.emplace(results.begin() , heap.top());
-                heap.pop();
-            }
-            return results;
-        };
 
 };
 
