@@ -12,6 +12,10 @@ namespace sdsl
  *  \param ranges The ranges.
  *  \param t      Threshold in how many distinct ranges the value has to be
  *                present. Default: t=ranges.size()
+ *  \return       A vector containing (value, frequency) - of value which are
+ *                contained in t different ranges. Frequency = accumulated
+ *                frequencies in all ranges. The tuples are ordered according
+ *                to value, if t_wt::lex_ordered=1.
  */
 template<class t_wt>
 std::vector< std::pair<typename t_wt::value_type, typename t_wt::size_type> >
@@ -30,7 +34,7 @@ intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::
     auto push_node = [&wt,&t](stack_type& s, node_type& child,
     range_vec_type& child_range) {
         auto end = std::remove_if(child_range.begin(), child_range.end(),
-        [&](const range_type& x) { return wt.empty(x);});
+        [&](const range_type& x) { return empty(x);});
         if (end > child_range.begin() + t - 1) {
             s.emplace(pnvr_type(child, range_vec_type(child_range.begin(),
                                 end)));
@@ -61,15 +65,15 @@ intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::
             auto child        = wt.expand(x.first);
             auto child_ranges = wt.expand(x.first, x.second);
 
-            push_node(stack, get<0>(child), get<0>(child_ranges));
             push_node(stack, get<1>(child), get<1>(child_ranges));
+            push_node(stack, get<0>(child), get<0>(child_ranges));
         }
     }
     return res;
 }
 
 
-//! Returns the q-th largest element and its frequency in wt[lb..rb].
+//! Returns the q-th smallest element and its frequency in wt[lb..rb].
 /*! \param wt The wavelet tree.
  *  \param lb Left array bound in T
  *  \param rb Right array bound in T
