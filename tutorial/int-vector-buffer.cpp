@@ -4,7 +4,7 @@
 using namespace sdsl;
 using namespace std;
 
-int main(int argc, char* argv[])
+int main()
 {
     std::string  tmp_file = "tmp_file.sdsl";
     {

@@ -5,7 +5,7 @@
 using namespace sdsl;
 using namespace std;
 
-int main(int argc, char* argv[])
+int main(int, char* argv[])
 {
     cst_sct3<> cst;
     construct(cst, argv[1], 1);
