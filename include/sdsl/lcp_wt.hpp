@@ -87,7 +87,7 @@ class lcp_wt
     public:
 
         //! Default Constructor
-        lcp_wt() {}
+        lcp_wt() = default;
         //! Copy / Move constructor
         lcp_wt(const lcp_wt&) = default;
         lcp_wt(lcp_wt&&) = default;
