@@ -53,7 +53,7 @@ class sorted_int_stack
         sorted_int_stack(size_type n);
         sorted_int_stack(const sorted_int_stack&) = default;
         sorted_int_stack(sorted_int_stack&&) = default;
-        sorted_int_stack& operator=(const sorted_multisorted_int_stack_stack_support&) = default;
+        sorted_int_stack& operator=(const sorted_int_stack&) = default;
         sorted_int_stack& operator=(sorted_int_stack&&) = default;
 
         /*! Returns if the stack is empty.
