@@ -78,6 +78,20 @@ TYPED_TEST(CstByteTest, SwapMethod)
     check_node_method(cst2);
 }
 
+//! Test the move method
+TYPED_TEST(CstByteTest, MoveMethod)
+{
+    TypeParam cst1;
+    ASSERT_EQ(true, load_from_file(cst1, temp_file));
+    size_type n = cst1.size();
+    TypeParam cst2 = std::move(cst1);
+    ASSERT_EQ(n, cst2.size());
+    ASSERT_EQ(n, cst2.csa.size());
+    bit_vector mark((size_type)0, cst2.size());
+    check_node_method(cst2);
+}
+
+
 //! Test the node method
 TYPED_TEST(CstByteTest, NodeMethod)
 {
@@ -116,6 +130,21 @@ TYPED_TEST(CstByteTest, SaAccess)
     }
 }
 
+//! Test suffix array access after move
+TYPED_TEST(CstByteTest, MoveSaAccess)
+{
+    TypeParam cst_load;
+    ASSERT_EQ(true, load_from_file(cst_load, temp_file));
+    TypeParam cst = std::move(cst_load);
+    sdsl::int_vector<> sa;
+    sdsl::load_from_file(sa, test_case_file_map[sdsl::conf::KEY_SA]);
+    size_type n = sa.size();
+    ASSERT_EQ(n, cst.csa.size());
+    for (size_type j=0; j<n; ++j) {
+        ASSERT_EQ(sa[j], cst.csa[j])<<" j="<<j;
+    }
+}
+
 //! Test BWT access
 TYPED_TEST(CstByteTest, BwtAccess)
 {
@@ -135,6 +164,21 @@ TYPED_TEST(CstByteTest, LcpAccess)
 {
     TypeParam cst;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
+    sdsl::int_vector<> lcp;
+    sdsl::load_from_file(lcp, test_case_file_map[sdsl::conf::KEY_LCP]);
+    size_type n = lcp.size();
+    ASSERT_EQ(n, cst.lcp.size());
+    for (size_type j=0; j<n; ++j) {
+        ASSERT_EQ(lcp[j], cst.lcp[j])<<" j="<<j;
+    }
+}
+
+//! Test LCP access after move
+TYPED_TEST(CstByteTest, MoveLcpAccess)
+{
+    TypeParam cst_load;
+    ASSERT_EQ(true, load_from_file(cst_load, temp_file));
+    TypeParam cst = std::move(cst_load);
     sdsl::int_vector<> lcp;
     sdsl::load_from_file(lcp, test_case_file_map[sdsl::conf::KEY_LCP]);
     size_type n = lcp.size();
@@ -202,6 +246,34 @@ TYPED_TEST(CstByteTest, SelectChild)
         ASSERT_EQ(0U, cst.degree(cst.root()));
     }
 }
+
+TYPED_TEST(CstByteTest, MoveSelectChild)
+{
+    TypeParam cst_load;
+    ASSERT_EQ(true, load_from_file(cst_load, temp_file));
+    TypeParam cst = std::move(cst_load);
+    if (cst.size() > 1) {
+        ASSERT_EQ(cst.csa.sigma, cst.degree(cst.root()));
+        size_type lb = 0;
+        for (size_type i=1; i <= cst.csa.sigma; ++i) {
+            auto v = cst.select_child(cst.root(), i);
+            ASSERT_EQ(lb, cst.lb(v));
+            lb = cst.rb(v)+1;
+        }
+        ASSERT_EQ(cst.rb(cst.root()), lb-1);
+
+        size_type i=1;
+        for (auto v  : cst.children(cst.root())) {
+            ASSERT_TRUE(i <= cst.degree(cst.root()));
+            ASSERT_EQ(cst.select_child(cst.root(),i), v) << i << "!";
+            ++i;
+        }
+    } else if (cst.size() == 1) {
+        ASSERT_EQ(1U, cst.csa.sigma);
+        ASSERT_EQ(0U, cst.degree(cst.root()));
+    }
+}
+
 
 
 TYPED_TEST(CstByteTest, SelectLeafAndSn)

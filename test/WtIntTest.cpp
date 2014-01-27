@@ -148,6 +148,25 @@ TYPED_TEST(WtIntTest, LoadAndRank)
     }
 }
 
+//! Test the load method and rank method
+TYPED_TEST(WtIntTest, LoadAndMoveAndRank)
+{
+    int_vector<> iv;
+    load_from_file(iv, test_file);
+    TypeParam wt_load;
+    ASSERT_TRUE(load_from_file(wt_load, temp_file));
+    TypeParam wt = std::move(wt_load);
+    ASSERT_EQ(iv.size(), wt.size());
+    tMII check_rank;
+    for (size_type j=0; j < iv.size(); ++j) {
+        ASSERT_EQ(wt.rank(j, iv[j]), check_rank[iv[j]]);
+        check_rank[iv[j]]++;
+    }
+    for (tMII::const_iterator it=check_rank.begin(); it!=check_rank.end(); ++it) {
+        ASSERT_EQ(wt.rank(wt.size(), it->first), it->second);
+    }
+}
+
 //! Test the load method and select method
 TYPED_TEST(WtIntTest, LoadAndSelect)
 {
@@ -155,6 +174,23 @@ TYPED_TEST(WtIntTest, LoadAndSelect)
     load_from_file(iv, test_file);
     TypeParam wt;
     ASSERT_TRUE(load_from_file(wt, temp_file));
+    ASSERT_EQ(iv.size(), wt.size());
+    tMII count;
+    for (size_type j=0; j < iv.size(); ++j) {
+        count[iv[j]]++;
+        ASSERT_EQ(j, wt.select(count[iv[j]], iv[j]))
+                << "iv[j]=" << iv[j] << " j="<<j;
+    }
+}
+
+//! Test the load method and select method
+TYPED_TEST(WtIntTest, LoadAndMoveAndSelect)
+{
+    int_vector<> iv;
+    load_from_file(iv, test_file);
+    TypeParam wt_load;
+    ASSERT_TRUE(load_from_file(wt_load, temp_file));
+    TypeParam wt = std::move(wt_load);
     ASSERT_EQ(iv.size(), wt.size());
     tMII count;
     for (size_type j=0; j < iv.size(); ++j) {
