@@ -429,6 +429,12 @@ class cst_sct3
          */
         cst_sct3& operator=(const cst_sct3& cst);
 
+        //! Assignment Move Operator.
+        /*!
+         *    Required for the Assignable Concept of the STL.
+         */
+        cst_sct3& operator=(const cst_sct3&& cst);
+
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
          *  \return The number of written bytes.
