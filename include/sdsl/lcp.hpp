@@ -106,34 +106,34 @@ void copy_lcp(t_lcp& lcp, const t_lcp& lcp_c, const t_cst& cst, lcp_tree_and_lf_
 
 // move lcp arrays
 template<class t_lcp, class t_cst>
-void move_lcp(t_lcp& lcp, const t_lcp& lcp_c, const t_cst& cst)
+void move_lcp(t_lcp& lcp, t_lcp& lcp_c, const t_cst& cst)
 {
     typename t_lcp::lcp_category tag;
     move_lcp_lcp(lcp, lcp_c, cst, tag);
 }
 
 template<class t_lcp, class t_cst>
-void move_lcp(t_lcp& lcp, const t_lcp& lcp_c, const t_cst&, lcp_plain_tag)
+void move_lcp(t_lcp& lcp, t_lcp& lcp_c, const t_cst&, lcp_plain_tag)
 {
     lcp = std::move(lcp_c);
 }
 
 template<class t_lcp, class t_cst>
-void move_lcp(t_lcp& lcp, const t_lcp& lcp_c, const t_cst& cst, lcp_permuted_tag)
+void move_lcp(t_lcp& lcp, t_lcp& lcp_c, const t_cst& cst, lcp_permuted_tag)
 {
     lcp = std::move(lcp_c);
     lcp.set_csa(&(cst.csa));
 }
 
 template<class t_lcp, class t_cst>
-void move_lcp(t_lcp& lcp, const t_lcp& lcp_c, const t_cst& cst, lcp_tree_compressed_tag)
+void move_lcp(t_lcp& lcp, t_lcp& lcp_c, const t_cst& cst, lcp_tree_compressed_tag)
 {
     lcp = std::move(lcp_c);
     lcp.set_cst(&cst);
 }
 
 template<class t_lcp, class t_cst>
-void move_lcp(t_lcp& lcp, const t_lcp& lcp_c, const t_cst& cst, lcp_tree_and_lf_compressed_tag)
+void move_lcp(t_lcp& lcp, t_lcp& lcp_c, const t_cst& cst, lcp_tree_and_lf_compressed_tag)
 {
     lcp = std::move(lcp_c);
     lcp.set_cst(&cst);
