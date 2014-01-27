@@ -57,19 +57,14 @@ class lcp_bitcompressed
 
         int_vector<t_width>  m_lcp;
 
-        void copy(const lcp_bitcompressed& lcp_c) {
-            m_lcp    = lcp_c.m_lcp;
-        }
-
     public:
 
         //! Default Constructor
         lcp_bitcompressed() {}
-
-        //! Copy constructor
-        lcp_bitcompressed(const lcp_bitcompressed& lcp_c) {
-            copy(lcp_c);
-        }
+        lcp_bitcompressed(const lcp_bitcompressed& lcp_c) = default;
+        lcp_bitcompressed(lcp_bitcompressed&& lcp_c) = default;
+        lcp_bitcompressed& operator=(const lcp_bitcompressed& lcp_c) = default;
+        lcp_bitcompressed& operator=(lcp_bitcompressed&& lcp_c) = default;
 
         //! Constructor taking a cache_config
         lcp_bitcompressed(cache_config& config) {
@@ -116,14 +111,6 @@ class lcp_bitcompressed
          */
         value_type operator[](size_type i)const {
             return m_lcp[i];
-        }
-
-        //! Assignment Operator.
-        lcp_bitcompressed& operator=(const lcp_bitcompressed& lcp_c) {
-            if (this != &lcp_c) {
-                copy(lcp_c);
-            }
-            return *this;
         }
 
         //! Serialize to a stream.

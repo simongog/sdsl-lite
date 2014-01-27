@@ -95,8 +95,8 @@ class wt_pc
         void copy(const wt_pc& wt) {
             m_size            = wt.m_size;
             m_sigma           = wt.m_sigma;
-            m_bv            = wt.m_bv;
-            m_bv_rank       = wt.m_bv_rank;
+            m_bv              = wt.m_bv;
+            m_bv_rank         = wt.m_bv_rank;
             m_bv_rank.set_vector(&m_bv);
             m_bv_select1    = wt.m_bv_select1;
             m_bv_select1.set_vector(&m_bv);
@@ -250,6 +250,10 @@ class wt_pc
         //! Copy constructor
         wt_pc(const wt_pc& wt) { copy(wt); }
 
+        wt_pc(wt_pc&& wt) {
+            *this = std::move(wt);
+        }
+
         //! Assignment operator
         wt_pc& operator=(const wt_pc& wt) {
             if (this != &wt) {
@@ -257,6 +261,24 @@ class wt_pc
             }
             return *this;
         }
+
+        //! Assignment operator
+        wt_pc& operator=(wt_pc&& wt) {
+            if (this != &wt) {
+                m_size            = wt.m_size;
+                m_sigma           = wt.m_sigma;
+                m_bv              = std::move(wt.m_bv);
+                m_bv_rank         = std::move(wt.m_bv_rank);
+                m_bv_rank.set_vector(&m_bv);
+                m_bv_select1    = std::move(wt.m_bv_select1);
+                m_bv_select1.set_vector(&m_bv);
+                m_bv_select0    = std::move(wt.m_bv_select0);
+                m_bv_select0.set_vector(&m_bv);
+                m_tree          = std::move(wt.m_tree);
+            }
+            return *this;
+        }
+
 
         //! Swap operator
         void swap(wt_pc& wt) {

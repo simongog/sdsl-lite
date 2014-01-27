@@ -104,14 +104,10 @@ class bit_vector_il
 
     public:
         bit_vector_il() {}
-        bit_vector_il(const bit_vector_il& bv) {
-            m_size = bv.m_size;
-            m_block_num = bv.m_block_num;
-            m_superblocks = bv.m_superblocks;
-            m_block_shift = bv.m_block_shift;
-            m_data = bv.m_data;
-            m_rank_samples = bv.m_rank_samples;
-        }
+        bit_vector_il(const  bit_vector_il& bv) = default;
+        bit_vector_il(bit_vector_il&& bv) = default;
+        bit_vector_il& operator=(const bit_vector_il& bv) = default;
+        bit_vector_il& operator=(bit_vector_il&& bv) = default;
 
         bit_vector_il(const bit_vector& bv) {
             m_size = bv.size();

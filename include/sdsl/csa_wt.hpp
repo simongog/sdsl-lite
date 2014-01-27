@@ -143,6 +143,11 @@ class csa_wt
             copy(csa);
         }
 
+        //! Move constructor
+        csa_wt(csa_wt&& csa) {
+            *this = std::move(csa);
+        }
+
         //! Constructor taking a cache_config
         csa_wt(cache_config& config);
 
@@ -213,6 +218,12 @@ class csa_wt
          *    Required for the Assignable Concept of the STL.
          */
         csa_wt& operator=(const csa_wt& csa);
+
+        //! Assignment Move Operator.
+        /*!
+         *    Required for the Assignable Concept of the STL.
+         */
+        csa_wt& operator=(csa_wt&& csa);
 
         //! Serialize to a stream.
         /*! \param out Output stream to write the data structure.
@@ -320,6 +331,17 @@ template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_str
 auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator=(const csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa) -> csa_wt& {
     if (this != &csa) {
         copy(csa);
+    }
+    return *this;
+}
+
+template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
+auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator=(csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>&& csa) -> csa_wt& {
+    if (this != &csa) {
+        m_wavelet_tree = std::move(csa.m_wavelet_tree);
+        m_sa_sample    = std::move(csa.m_sa_sample);
+        m_isa_sample   = std::move(csa.m_isa_sample);
+        m_alphabet     = std::move(csa.m_alphabet);
     }
     return *this;
 }

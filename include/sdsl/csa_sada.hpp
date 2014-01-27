@@ -148,6 +148,11 @@ class csa_sada
             copy(csa);
         }
 
+        //! Move constructor
+        csa_sada(csa_sada&& csa) {
+            *this = std::move(csa);
+        }
+
         csa_sada(cache_config& config);
 
         //! Number of elements in the \f$\CSA\f$.
@@ -212,13 +217,28 @@ class csa_sada
          */
         inline value_type operator[](size_type i)const;
 
-        //! Assignment Operator.
+        //! Assignment Copy Operator.
         /*!
          *    Required for the Assignable Concept of the STL.
          */
         csa_sada& operator=(const csa_sada& csa) {
             if (this != &csa) {
                 copy(csa);
+            }
+            return *this;
+        }
+
+        //! Assignment Move Operator.
+        /*!
+         *    Required for the Assignable Concept of the STL.
+         */
+        csa_sada& operator=(csa_sada&& csa) {
+            if (this != &csa) {
+                m_psi        = std::move(csa.m_psi);
+                m_sa_sample  = std::move(csa.m_sa_sample);
+                m_isa_sample = std::move(csa.m_isa_sample);
+                m_alphabet   = std::move(csa.m_alphabet);
+                m_psi_buf    = std::move(csa.m_psi_buf);
             }
             return *this;
         }

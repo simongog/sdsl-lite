@@ -334,6 +334,14 @@ class cst_sct3
             copy(cst);
         }
 
+        //! Move constructor
+        /*!
+         *  \param cst The cst_sct3 which should be moved.
+         */
+        cst_sct3(cst_sct3&& cst) {
+            *this = std::move(cst);
+        }
+
         /* @} */
 
         //! Number of leaves of the suffix tree.
@@ -1118,6 +1126,23 @@ cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>& cst_sct3<t_csa, t_lcp, t_bp_suppor
 {
     if (this != &cst) {
         copy(cst);
+    }
+    return *this;
+}
+
+template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
+cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>& cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::operator=(cst_sct3&& cst)
+{
+    if (this != &cst) {
+        m_csa              = std::move(cst.m_csa);
+        move_lcp(m_lcp, cst.m_lcp, *this);
+        m_bp               = std::move(cst.m_bp);
+        m_bp_support       = std::move(cst.m_bp_support);
+        m_bp_support.set_vector(&m_bp);
+        m_first_child      = std::move(cst.m_first_child);
+        m_first_child_rank = std::move(cst.m_first_child_rank);
+        m_first_child_rank.set_vector(&m_first_child);
+        m_nodes            = std::move(cst.m_nodes);
     }
     return *this;
 }

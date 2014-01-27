@@ -80,8 +80,6 @@ class enc_vector
         int_vector_type   m_sample_vals_and_pointer; // samples and pointers
         size_type         m_size = 0;                // number of vector elements
 
-        void copy(const enc_vector& v);
-
         void clear() {
             m_z.resize(0);
             m_size = 0;
@@ -91,12 +89,10 @@ class enc_vector
     public:
         //! Default Constructor
         enc_vector() { }
-        //! Copy constructor
-        /*! \param v The enc_vector to copy.
-         */
-        enc_vector(const enc_vector& v) {
-            copy(v);
-        }
+        enc_vector(const enc_vector& v) = default;
+        enc_vector(enc_vector&& v) = default;
+        enc_vector& operator=(const enc_vector& v) = default;
+        enc_vector& operator=(enc_vector&& v) = default;
 
         //! Constructor for a Container of positive integers.
         /*! \param c A container of positive integers.
@@ -147,15 +143,6 @@ class enc_vector
          */
         value_type operator[](size_type i)const;
 
-        //! Assignment Operator
-        enc_vector& operator=(const enc_vector& v) {
-            if (this != &v) {// if v and _this_ are not the same object
-                copy(v);
-            }
-            return *this;
-        }
-
-
         //! Serialize the enc_vector to a stream.
         /*! \param out Out stream to write the data structure.
             \return The number of written bytes.
@@ -205,14 +192,6 @@ inline typename enc_vector<t_coder, t_dens,t_width>::value_type enc_vector<t_cod
     assert(i*get_sample_dens()+1 != 0);
     assert(i*get_sample_dens() < m_size);
     return m_sample_vals_and_pointer[i<<1];
-}
-
-template<class t_coder, uint32_t t_dens, uint8_t t_width>
-void enc_vector<t_coder, t_dens,t_width>::copy(const enc_vector<t_coder, t_dens,t_width>& v)
-{
-    m_z                        = v.m_z;                       // copy encoded deltas
-    m_sample_vals_and_pointer  = v.m_sample_vals_and_pointer; // copy samples and pointers
-    m_size                     = v.m_size;                    // copy number of stored elements
 }
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>

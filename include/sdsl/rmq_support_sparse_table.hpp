@@ -114,6 +114,10 @@ class rmq_support_sparse_table
             }
         }
 
+        //! Move constructor
+        rmq_support_sparse_table(rmq_support_sparse_table&& rm) {
+            *this = std::move(rm);
+        }
 
         ~rmq_support_sparse_table() {
             if (m_table != nullptr)
@@ -123,6 +127,20 @@ class rmq_support_sparse_table
         rmq_support_sparse_table& operator=(const rmq_support_sparse_table& rm) {
             if (this != &rm) {
                 copy(rm);
+            }
+            return *this;
+        }
+
+        rmq_support_sparse_table& operator=(rmq_support_sparse_table&& rm) {
+            if (this != &rm) {
+                m_v = rm.m_v;
+                m_k = rm.m_k;
+                if (m_table != nullptr) {
+                    delete [] m_table;
+                    m_table = nullptr;
+                }
+                m_table = rm.m_table;
+                rm.m_table = nullptr;
             }
             return *this;
         }

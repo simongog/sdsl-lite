@@ -143,6 +143,11 @@ class cst_sada
             copy(cst);
         }
 
+//! Move constructor
+        cst_sada(cst_sada&& cst) {
+            *this = std::move(cst);
+        }
+
 //! Construct CST from file_map
         cst_sada(cache_config& config) {
             {
@@ -260,6 +265,25 @@ class cst_sada
         cst_sada& operator=(const cst_sada& cst) {
             if (this != &cst) {
                 copy(cst);
+            }
+            return *this;
+        }
+
+//! Assignment Move Operator.
+        /*!
+         *    Required for the Assignable Concept of the STL.
+         */
+        cst_sada& operator=(cst_sada&& cst) {
+            if (this != &cst) {
+                m_csa           = std::move(cst.m_csa);
+                move_lcp(m_lcp, cst.m_lcp, *this);
+                m_bp            = std::move(cst.m_bp);
+                m_bp_support    = std::move(cst.m_bp_support);
+                m_bp_support.set_vector(&m_bp);
+                m_bp_rank10     = std::move(cst.m_bp_rank10);
+                m_bp_rank10.set_vector(&m_bp);
+                m_bp_select10   = std::move(cst.m_bp_select10);
+                m_bp_select10.set_vector(&m_bp);
             }
             return *this;
         }

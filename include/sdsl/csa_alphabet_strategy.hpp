@@ -151,8 +151,12 @@ class byte_alphabet
         byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_type len);
 
         byte_alphabet(const byte_alphabet&);
+        byte_alphabet(byte_alphabet&& b) : byte_alphabet() {
+            *this = std::move(b);
+        }
 
         byte_alphabet& operator=(const byte_alphabet&);
+        byte_alphabet& operator=(byte_alphabet&&);
 
         void swap(byte_alphabet&);
 
@@ -287,9 +291,27 @@ class succinct_byte_alphabet
             copy(strat);
         }
 
+        //! Move constructor
+        succinct_byte_alphabet(succinct_byte_alphabet&& strat) {
+            *this = std::move(strat);
+        }
+
         succinct_byte_alphabet& operator=(const succinct_byte_alphabet& strat) {
             if (this != &strat) {
                 copy(strat);
+            }
+            return *this;
+        }
+
+        succinct_byte_alphabet& operator=(succinct_byte_alphabet&& strat) {
+            if (this != &strat) {
+                m_char        = std::move(strat.m_char);
+                m_char_rank   = std::move(strat.m_char_rank);
+                m_char_rank.set_vector(&m_char);
+                m_char_select = std::move(strat.m_char_select);
+                m_char_select.set_vector(&m_char);
+                m_C           = std::move(strat.m_C);
+                m_sigma       = std::move(strat.m_sigma);
             }
             return *this;
         }
@@ -477,9 +499,27 @@ class int_alphabet
             copy(strat);
         }
 
+        //! Copy constructor
+        int_alphabet(int_alphabet&& strat) {
+            *this = std::move(strat);
+        }
+
         int_alphabet& operator=(const int_alphabet& strat) {
             if (this != &strat) {
                 copy(strat);
+            }
+            return *this;
+        }
+
+        int_alphabet& operator=(int_alphabet&& strat) {
+            if (this != &strat) {
+                m_char        = std::move(strat.m_char);
+                m_char_rank   = std::move(strat.m_char_rank);
+                m_char_rank.set_vector(&m_char);
+                m_char_select = std::move(strat.m_char_select);
+                m_char_select.set_vector(&m_char);
+                m_C           = std::move(strat.m_C);
+                m_sigma       = std::move(strat.m_sigma);
             }
             return *this;
         }

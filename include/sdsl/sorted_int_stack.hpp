@@ -50,9 +50,11 @@ class sorted_int_stack
             return x%63;
         }; // maybe we can speed this up with bit hacks
     public:
-        sorted_int_stack(size_type  n);
-        sorted_int_stack(const sorted_int_stack& sis);
-        ~sorted_int_stack() {};
+        sorted_int_stack(size_type n);
+        sorted_int_stack(const sorted_int_stack& sis) = default;
+        sorted_int_stack(sorted_int_stack&& sis) = default;
+        sorted_int_stack& operator=(const sorted_multisorted_int_stack_stack_support& sis) = default;
+        sorted_int_stack& operator=(sorted_int_stack&& sis) = default;
 
         /*! Returns if the stack is empty.
          */
@@ -84,33 +86,12 @@ class sorted_int_stack
         size_type serialize(std::ostream& out)const;
         void load(std::istream& in);
 
-        //! Assign Operator
-        /*! Required for the Assignable Concept of the STL.
-         */
-        sorted_int_stack& operator=(const sorted_int_stack& sis);
 };
 
 inline sorted_int_stack::sorted_int_stack(size_type n):m_n(n), m_cnt(0), m_top(0)
 {
     m_stack = int_vector<64>(block_nr(n)+2, 0);
     m_stack[0] = 1;
-}
-inline sorted_int_stack::sorted_int_stack(const sorted_int_stack& sis):m_n(sis.m_n), m_cnt(sis.m_cnt), m_top(sis.m_top)
-{
-    m_stack = sis.m_stack;
-    m_overflow = sis.m_overflow;
-}
-
-inline sorted_int_stack& sorted_int_stack::operator=(const sorted_int_stack& sis)
-{
-    if (this != &sis) {
-        m_n	 		= sis.m_n;
-        m_cnt 		= sis.m_cnt;
-        m_top		= sis.m_top;
-        m_stack 	= sis.m_stack;
-        m_overflow 	= sis.m_overflow;
-    }
-    return *this;
 }
 
 inline sorted_int_stack::size_type sorted_int_stack::top()const
@@ -198,4 +179,4 @@ inline void sorted_int_stack::load(std::istream& in)
 
 }// end namespace sdsl
 
-#endif // end file 
+#endif // end file

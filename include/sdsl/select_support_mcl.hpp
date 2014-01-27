@@ -87,7 +87,7 @@ class select_support_mcl : public select_support
     public:
         explicit select_support_mcl(const bit_vector* v=nullptr);
         select_support_mcl(const select_support_mcl<t_b,t_pat_len>& ss);
-        select_support_mcl(select_support_mcl<t_b,t_pat_len>&&) = default;
+        select_support_mcl(select_support_mcl<t_b,t_pat_len>&& ss);
         ~select_support_mcl();
         void init_slow(const bit_vector* v=nullptr);
         //! Select function
@@ -98,7 +98,7 @@ class select_support_mcl : public select_support
         void load(std::istream& in, const bit_vector* v=nullptr);
         void set_vector(const bit_vector* v=nullptr);
         select_support_mcl<t_b, t_pat_len>& operator=(const select_support_mcl& ss);
-        select_support_mcl<t_b, t_pat_len>& operator=(select_support_mcl&&) = default;
+        select_support_mcl<t_b, t_pat_len>& operator=(select_support_mcl&&);
         void swap(select_support_mcl<t_b, t_pat_len>& ss);
 };
 
@@ -120,10 +120,40 @@ select_support_mcl<t_b,t_pat_len>::select_support_mcl(const select_support_mcl& 
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
+select_support_mcl<t_b,t_pat_len>::select_support_mcl(select_support_mcl&& ss) : select_support(ss.m_v)
+{
+    *this = std::move(ss);
+}
+
+template<uint8_t t_b, uint8_t t_pat_len>
 select_support_mcl<t_b, t_pat_len>& select_support_mcl<t_b,t_pat_len>::operator=(const select_support_mcl& ss)
 {
     if (this != &ss) {
         copy(ss);
+    }
+    return *this;
+}
+
+template<uint8_t t_b, uint8_t t_pat_len>
+select_support_mcl<t_b, t_pat_len>& select_support_mcl<t_b,t_pat_len>::operator=(select_support_mcl&& ss)
+{
+    if (this != &ss) {
+        m_logn       = ss.m_logn;      // copy log n
+        m_logn2      = ss.m_logn2;      // copy (logn)^2
+        m_logn4      = ss.m_logn4;      // copy (logn)^4
+        m_superblock = std::move(ss.m_superblock); // move long superblock
+        m_arg_cnt    = ss.m_arg_cnt;    // copy count of 1-bits
+        m_v          = ss.m_v;          // copy pointer to the supported bit vector
+
+        if (m_longsuperblock!=nullptr)
+            delete [] m_longsuperblock;
+        m_longsuperblock = ss.m_longsuperblock;
+        ss.m_longsuperblock = nullptr;
+
+        if (m_miniblock!=nullptr)
+            delete [] m_miniblock;
+        m_miniblock = ss.m_miniblock;
+        ss.m_miniblock = nullptr;
     }
     return *this;
 }
