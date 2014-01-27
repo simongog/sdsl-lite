@@ -109,7 +109,7 @@ template<class t_lcp, class t_cst>
 void move_lcp(t_lcp& lcp, t_lcp& lcp_c, const t_cst& cst)
 {
     typename t_lcp::lcp_category tag;
-    move_lcp_lcp(lcp, lcp_c, cst, tag);
+    move_lcp(lcp, lcp_c, cst, tag);
 }
 
 template<class t_lcp, class t_cst>

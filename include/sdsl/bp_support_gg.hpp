@@ -204,6 +204,7 @@ class bp_support_gg
         bp_support_gg& operator=(bp_support_gg&& bp_support) {
             if (this != &bp_support) {
                 m_bp = std::move(bp_support.m_bp);
+                bp_support.m_bp = nullptr;
                 m_rank_bp = std::move(bp_support.m_rank_bp);
                 m_rank_bp.set_vector(m_bp);
                 m_select_bp = std::move(bp_support.m_select_bp);
@@ -214,13 +215,13 @@ class bp_support_gg
                 m_size = std::move(bp_support.m_size);
                 m_blocks = std::move(bp_support.m_blocks);
 
-
                 m_pioneer_bp = bp_support.m_pioneer_bp;
                 if (m_pioneer_bp_support != nullptr) {
                     delete m_pioneer_bp_support;
                 }
                 m_pioneer_bp_support = bp_support.m_pioneer_bp_support;
-                m_pioneer_bp_support->set_vector(&m_pioneer_bp);
+                if (m_pioneer_bp_support) m_pioneer_bp_support->set_vector(&m_pioneer_bp);
+                bp_support.m_pioneer_bp_support = nullptr;
             }
             return *this;
         }
