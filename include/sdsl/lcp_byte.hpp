@@ -85,10 +85,10 @@ class lcp_byte
 
         //! Default Constructor
         lcp_byte() = default;
-        lcp_byte(const lcp_byte& lcp_c) = default;
-        lcp_byte(lcp_byte&& lcp_c) = default;
-        lcp_byte& operator=(const lcp_byte& lcp_c) = default;
-        lcp_byte& operator=(lcp_byte&& lcp_c) = default;
+        lcp_byte(const lcp_byte&) = default;
+        lcp_byte(lcp_byte&&) = default;
+        lcp_byte& operator=(const lcp_byte&) = default;
+        lcp_byte& operator=(lcp_byte&&) = default;
 
         //! Constructor
         lcp_byte(cache_config& config) {

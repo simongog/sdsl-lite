@@ -53,10 +53,10 @@ class sorted_multi_stack_support
         /*! \param n Maximum that can be pushed onto the stack
          */
         sorted_multi_stack_support(size_type n);
-        sorted_multi_stack_support(const sorted_multi_stack_support& sis) = default;
-        sorted_multi_stack_support(sorted_multi_stack_support&& sis) = default;
-        sorted_multi_stack_support& operator=(const sorted_multi_stack_support& sis) = default;
-        sorted_multi_stack_support& operator=(sorted_multi_stack_support&& sis) = default;
+        sorted_multi_stack_support(const sorted_multi_stack_support&) = default;
+        sorted_multi_stack_support(sorted_multi_stack_support&&) = default;
+        sorted_multi_stack_support& operator=(const sorted_multi_stack_support&) = default;
+        sorted_multi_stack_support& operator=(sorted_multi_stack_support&&) = default;
 
         /*! Returns if the stack is empty.
          */

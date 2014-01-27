@@ -51,10 +51,10 @@ class sorted_int_stack
         }; // maybe we can speed this up with bit hacks
     public:
         sorted_int_stack(size_type n);
-        sorted_int_stack(const sorted_int_stack& sis) = default;
-        sorted_int_stack(sorted_int_stack&& sis) = default;
-        sorted_int_stack& operator=(const sorted_multisorted_int_stack_stack_support& sis) = default;
-        sorted_int_stack& operator=(sorted_int_stack&& sis) = default;
+        sorted_int_stack(const sorted_int_stack&) = default;
+        sorted_int_stack(sorted_int_stack&&) = default;
+        sorted_int_stack& operator=(const sorted_multisorted_int_stack_stack_support&) = default;
+        sorted_int_stack& operator=(sorted_int_stack&&) = default;
 
         /*! Returns if the stack is empty.
          */

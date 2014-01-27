@@ -57,10 +57,10 @@ class sorted_stack_support
          */
         sorted_stack_support(size_type n);
 
-        sorted_stack_support(const sorted_stack_support& sis) = default;
-        sorted_stack_support(sorted_stack_support&& sis) = default;
-        sorted_stack_support& operator=(const sorted_stack_support& sis) = default;
-        sorted_stack_support& operator=(sorted_stack_support&& sis) = default;
+        sorted_stack_support(const sorted_stack_support&) = default;
+        sorted_stack_support(sorted_stack_support&&) = default;
+        sorted_stack_support& operator=(const sorted_stack_support&) = default;
+        sorted_stack_support& operator=(sorted_stack_support&&) = default;
 
         /*! Returns if the stack is empty.
          */

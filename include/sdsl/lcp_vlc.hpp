@@ -72,10 +72,10 @@ class lcp_vlc
         lcp_vlc() {}
 
         //! Copy / Move constructor
-        lcp_vlc(const lcp_vlc& lcp_c) = default;
-        lcp_vlc(lcp_vlc&& lcp_c) = default;
-        lcp_vlc& operator=(const lcp_vlc& lcp_c) = default;
-        lcp_vlc& operator=(lcp_vlc&& lcp_c) = default;
+        lcp_vlc(const lcp_vlc&) = default;
+        lcp_vlc(lcp_vlc&&) = default;
+        lcp_vlc& operator=(const lcp_vlc&) = default;
+        lcp_vlc& operator=(lcp_vlc&&) = default;
 
         //! Construct
         lcp_vlc(cache_config& config, std::string other_key="") {

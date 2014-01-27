@@ -89,10 +89,10 @@ class lcp_wt
         //! Default Constructor
         lcp_wt() {}
         //! Copy / Move constructor
-        lcp_wt(const lcp_wt& lcp_c) = default;
-        lcp_wt(lcp_wt&& lcp_c) = default;
-        lcp_wt& operator=(const lcp_wt& lcp_c) = default;
-        lcp_wt& operator=(lcp_wt&& lcp_c) = default;
+        lcp_wt(const lcp_wt&) = default;
+        lcp_wt(lcp_wt&&) = default;
+        lcp_wt& operator=(const lcp_wt&) = default;
+        lcp_wt& operator=(lcp_wt&&) = default;
 
         //! Constructor
         lcp_wt(cache_config& config, std::string other_key="") {

@@ -103,9 +103,9 @@ class rank_support_v : public rank_support
             }
         }
 
-        rank_support_v(const rank_support_v& rs)  = default;
+        rank_support_v(const rank_support_v&)  = default;
         rank_support_v(rank_support_v&&) = default;
-        rank_support_v& operator=(const rank_support_v& rs) = default;
+        rank_support_v& operator=(const rank_support_v&) = default;
         rank_support_v& operator=(rank_support_v&&) = default;
 
 

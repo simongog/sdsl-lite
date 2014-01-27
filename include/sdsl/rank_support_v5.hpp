@@ -106,7 +106,7 @@ class rank_support_v5 : public rank_support
             }
         }
 
-        rank_support_v5(const rank_support_v5& rs) = default;
+        rank_support_v5(const rank_support_v5&) = default;
         rank_support_v5(rank_support_v5&&) = default;
 
         size_type rank(size_type idx) const {

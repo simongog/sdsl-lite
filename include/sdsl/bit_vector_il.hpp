@@ -104,10 +104,10 @@ class bit_vector_il
 
     public:
         bit_vector_il() {}
-        bit_vector_il(const  bit_vector_il& bv) = default;
-        bit_vector_il(bit_vector_il&& bv) = default;
-        bit_vector_il& operator=(const bit_vector_il& bv) = default;
-        bit_vector_il& operator=(bit_vector_il&& bv) = default;
+        bit_vector_il(const  bit_vector_il&) = default;
+        bit_vector_il(bit_vector_il&&) = default;
+        bit_vector_il& operator=(const bit_vector_il&) = default;
+        bit_vector_il& operator=(bit_vector_il&&) = default;
 
         bit_vector_il(const bit_vector& bv) {
             m_size = bv.size();

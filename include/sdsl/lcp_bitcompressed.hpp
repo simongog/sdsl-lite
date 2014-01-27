@@ -61,10 +61,10 @@ class lcp_bitcompressed
 
         //! Default Constructor
         lcp_bitcompressed() {}
-        lcp_bitcompressed(const lcp_bitcompressed& lcp_c) = default;
-        lcp_bitcompressed(lcp_bitcompressed&& lcp_c) = default;
-        lcp_bitcompressed& operator=(const lcp_bitcompressed& lcp_c) = default;
-        lcp_bitcompressed& operator=(lcp_bitcompressed&& lcp_c) = default;
+        lcp_bitcompressed(const lcp_bitcompressed&) = default;
+        lcp_bitcompressed(lcp_bitcompressed&&) = default;
+        lcp_bitcompressed& operator=(const lcp_bitcompressed&) = default;
+        lcp_bitcompressed& operator=(lcp_bitcompressed&&) = default;
 
         //! Constructor taking a cache_config
         lcp_bitcompressed(cache_config& config) {

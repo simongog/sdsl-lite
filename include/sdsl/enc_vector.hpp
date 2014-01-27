@@ -89,10 +89,10 @@ class enc_vector
     public:
         //! Default Constructor
         enc_vector() { }
-        enc_vector(const enc_vector& v) = default;
-        enc_vector(enc_vector&& v) = default;
-        enc_vector& operator=(const enc_vector& v) = default;
-        enc_vector& operator=(enc_vector&& v) = default;
+        enc_vector(const enc_vector&) = default;
+        enc_vector(enc_vector&&) = default;
+        enc_vector& operator=(const enc_vector&) = default;
+        enc_vector& operator=(enc_vector&&) = default;
 
         //! Constructor for a Container of positive integers.
         /*! \param c A container of positive integers.

@@ -70,10 +70,10 @@ class _lcp_support_tree2
         _lcp_support_tree2() {}
 
         //! Copy / Move constructor
-        _lcp_support_tree2(const _lcp_support_tree2& lcp)  = default;
-        _lcp_support_tree2(_lcp_support_tree2&& lcp)  = default;
-        _lcp_support_tree2& operator=(const _lcp_support_tree2& lcp_c)  = default;
-        _lcp_support_tree2& operator=(_lcp_support_tree2&& lcp_c) = default;
+        _lcp_support_tree2(const _lcp_support_tree2&)  = default;
+        _lcp_support_tree2(_lcp_support_tree2&&)  = default;
+        _lcp_support_tree2& operator=(const _lcp_support_tree2&)  = default;
+        _lcp_support_tree2& operator=(_lcp_support_tree2&&) = default;
 
 
         //! Constructor

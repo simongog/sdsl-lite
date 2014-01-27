@@ -86,10 +86,10 @@ class vlc_vector
         //! Default Constructor
         vlc_vector() {}
         //! Copy constructor
-        vlc_vector(const vlc_vector& v) = default;
-        vlc_vector(vlc_vector&& v) = default;
-        vlc_vector& operator=(const vlc_vector& v) = default;
-        vlc_vector& operator=(vlc_vector&& v) = default;
+        vlc_vector(const vlc_vector&) = default;
+        vlc_vector(vlc_vector&&) = default;
+        vlc_vector& operator=(const vlc_vector&) = default;
+        vlc_vector& operator=(vlc_vector&&) = default;
 
         //! Constructor for a Container of positive integers.
         /*! \param c A container of positive integers.
