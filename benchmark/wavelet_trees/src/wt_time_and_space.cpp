@@ -3,7 +3,6 @@
 #include<string>
 #include<sdsl/wavelet_trees.hpp>
 #include<sdsl/wt_helper.hpp>
-#include<sdsl/wt_gmr.hpp>
 
 using namespace std;
 using namespace sdsl;

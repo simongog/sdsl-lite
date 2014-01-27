@@ -1,12 +1,9 @@
 #include <sdsl/bit_vectors.hpp>
 #include <sdsl/int_vector.hpp>
-#include <sdsl/wavelet_trees.hpp>
-#include <iostream>
 
-using namespace sdsl;
-using namespace std;
-using namespace std::chrono;
-
+//! Namespace for the succinct data structure library.
+namespace sdsl
+{
 
 template<class t_bitvector = bit_vector,
          class t_select = typename t_bitvector::select_1_type,
@@ -99,79 +96,87 @@ class wt_gmr_1
         }
 
         value_type operator[](size_type i)const {
-            uint64_t block = i/m_sigma; // +m_blocks every step
-            size_type search_begin;
-            size_type search_end;
-            bool found = false;
-            uint64_t j = block;
-            size_type val = i%m_sigma;
-            for (; j<m_sigma*m_blocks;) {
-                if (m_bv[(j!=0?sls0(j)+1:0)]) {
-                    if (j==0) {
-                        search_begin = 0;
-                    } else {
-                        search_begin = sls0(j)-j+1;
-                    }
-                    search_end = sls0(j+1)-(j+1)+1;
-                    while (search_begin < search_end and e[search_begin] <= val) {
-                        if (e[search_begin]==val) {
-                            found = true;
+            assert(i<m_size);
+            size_type block = i/m_sigma, val = i%m_sigma, search_begin, search_end, j;
+            while (true) {
+                if (block==0) {
+                    j = 0;
+                    search_begin = 0;
+                } else {
+                    j = sls0(block)+1;
+                    search_begin = j-block;
+                }
+                if (m_bv[j]) {
+                    search_end = sls0(block+1)-(block+1)+1;
+                    if (search_end-search_begin<50) { // After a short test, this seemd to be a good threshold
+                        while (search_begin < search_end and e[search_begin] <= val) {
+                            if (e[search_begin]==val) {
+                                return block/m_blocks;
+                            }
+                            ++search_begin;
                         }
-                        ++search_begin;
+                    } else {
+                        if (binary_search(e.begin()+search_begin, e.begin()+search_end, val)) {
+                            return block/m_blocks;
+                        }
                     }
                 }
-                if (found) break;
-                j+=m_blocks;
+                block+=m_blocks;
             }
-            return j/m_blocks;
         }
 
-        pair<size_type, value_type>	inverse_select(size_type i)const {
-            uint64_t block = i/m_sigma; // +m_blocks every step
-            size_type search_begin;
-            size_type search_end;
-            size_type offset = 0;
-            bool found = false;
-            uint64_t j = block;
-            size_type val = i%m_sigma;
-            for (; j<m_sigma*m_blocks;) {
-                if (m_bv[(j!=0?sls0(j)+1:0)]) {
-                    if (j==0) {
-                        search_begin = 0;
-                    } else {
-                        search_begin = sls0(j)-j+1;
-                    }
-                    search_end = sls0(j+1)-(j+1)+1;
-                    offset = 0;
-                    while (search_begin < search_end and e[search_begin] <= val) {
-                        if (e[search_begin]==val) {
-                            found = true;
-                        }
-                        ++offset;
-                        ++search_begin;
-                    }
-                }
-                if (found) break;
-                j+=m_blocks;
-            }
-            value_type c = j/m_blocks;
-
-            size_type ones_before_c;
-            size_type ones_before_block;
-            if (c==0) {
-                ones_before_c = 0;
-                if (j==0) {
-                    ones_before_block = 0;
+        std::pair<size_type, value_type> inverse_select(size_type i)const {
+            assert(i<m_size);
+            size_type block = i/m_sigma, val = i%m_sigma, offset = 0, search_begin, search_end, j;
+            while (true) {
+                if (block==0) {
+                    j = 0;
+                    search_begin = 0;
                 } else {
-                    ones_before_block = sls0(j)-j+1;
+                    j = sls0(block)+1;
+                    search_begin = j-block;
                 }
-            } else {
-                ones_before_c = sls0(c*m_blocks)-(c*m_blocks)+1;
-                ones_before_block = sls0(j)-j+1;
-            }
+                if (m_bv[j]) {
+                    search_end = sls0(block+1)-(block+1)+1;
+                    offset = 0;
+                    if (search_end-search_begin<50) { // After a short test, this seemd to be a good threshold
+                        while (search_begin < search_end and e[search_begin] <= val) {
+                            if (e[search_begin]==val) {
+                                value_type c = block/m_blocks;
+                                size_type ones_before_cblock;
 
-            size_type r = offset+(ones_before_block-ones_before_c)-1;
-            return make_pair(r,c);
+                                if (c==0) {
+                                    ones_before_cblock = 0;
+                                } else {
+                                    ones_before_cblock = sls0(c*m_blocks)-(c*m_blocks)+1;
+                                }
+
+                                size_type r = search_begin-ones_before_cblock;
+                                return std::make_pair(r,c);
+                            }
+                            ++search_begin;
+                        }
+                    } else {
+                        offset = lower_bound(e.begin()+search_begin, e.begin()+search_end, val)-e.begin();
+                        if (offset<search_end) {
+                            if (e[offset]==val) {
+                                value_type c = block/m_blocks;
+                                size_type ones_before_cblock;
+
+                                if (c==0) {
+                                    ones_before_cblock = 0;
+                                } else {
+                                    ones_before_cblock = sls0(c*m_blocks)-(c*m_blocks)+1;
+                                }
+
+                                size_type r = offset-ones_before_cblock;
+                                return std::make_pair(r,c);
+                            }
+                        }
+                    }
+                }
+                block+=m_blocks;
+            }
         }
 
         size_type select(size_type i, value_type c)const {
@@ -244,7 +249,7 @@ class wt_gmr_2
         t_select_zero b_sls0, x_sls0;
 
         uint64_t m_size; // input length
-        uint64_t m_t = 32; // shortcut value
+        uint64_t m_t = 32; // shortcut value todo: set via template or construct
         uint64_t m_sigma = 0; // maximum character + 1
         uint64_t m_chunks; // number of chunks
 
@@ -426,7 +431,7 @@ class wt_gmr_2
             return x_sls1(x+1)-x-(chunk*m_sigma)-1;
         }
 
-        pair<size_type, value_type>	inverse_select(size_type i)const {
+        std::pair<size_type, value_type>	inverse_select(size_type i)const {
             uint64_t chunk = i/m_sigma;
             bool jump=true;
 
@@ -453,7 +458,7 @@ class wt_gmr_2
                 c_before_chunk = b_sls0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
             }
             uint64_t c_in_chunk = tmp-x_sls0(c+1+chunk*m_sigma);
-            return make_pair(c_before_chunk+c_in_chunk,c);
+            return std::make_pair(c_before_chunk+c_in_chunk,c);
         }
 
         size_type select(size_type i, value_type c)const {
@@ -740,7 +745,7 @@ class wt_gmr_3
             return x_sls1(x+1)-x-(chunk*m_sigma)-1;
         }
 
-        pair<size_type, value_type>	inverse_select(size_type i)const {
+        std::pair<size_type, value_type>	inverse_select(size_type i)const {
             uint64_t chunk = i/m_chunksize;
             bool jump=true;
 
@@ -767,7 +772,7 @@ class wt_gmr_3
                 c_before_chunk = b_sls0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
             }
             uint64_t c_in_chunk = tmp-x_sls0(c+1+chunk*m_sigma);
-            return make_pair(c_before_chunk+c_in_chunk,c);
+            return std::make_pair(c_before_chunk+c_in_chunk,c);
         }
 
         size_type select(size_type i, value_type c)const {
@@ -850,3 +855,5 @@ class wt_gmr_3
             return written_bytes;
         }
 };
+
+}
