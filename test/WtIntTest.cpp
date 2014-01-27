@@ -388,10 +388,10 @@ TYPED_TEST(WtIntTest, RangeSearch2d)
 }
 
 template<class t_wt>
-void test_quantile_freq(t_wt&) {}
+void test_quantile_freq(typename std::enable_if<!t_wt::lex_ordered, t_wt>::type&) {}
 
-template<class t_bv, class t_rank, class t_sel1, class t_sel0>
-void test_quantile_freq(sdsl::wt_int<t_bv, t_rank, t_sel1, t_sel0>& wt)
+template<class t_wt>
+void test_quantile_freq(typename std::enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 {
     int_vector<> iv;
     load_from_file(iv, test_file);
@@ -434,7 +434,7 @@ void test_quantile_freq(sdsl::wt_int<t_bv, t_rank, t_sel1, t_sel0>& wt)
 TYPED_TEST(WtIntTest, QuantileFreq)
 {
     TypeParam wt;
-    test_quantile_freq(wt);
+    test_quantile_freq<TypeParam>(wt);
 }
 
 template<class t_wt>

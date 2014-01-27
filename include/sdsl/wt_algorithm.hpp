@@ -59,7 +59,7 @@ intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::
                 [](size_type acc, const range_type& r) {
                     return acc+(r.second-r.first+1);
                 });
-                res.emplace_back(x.first.sym,freq);
+                res.emplace_back(wt.sym(x.first),freq);
             }
         } else {
             auto child        = wt.expand(x.first);
@@ -106,7 +106,7 @@ quantile_freq(const t_wt& wt, typename t_wt::size_type lb,
             r = get<0>(child_ranges);
         }
     }
-    return {v.sym, size(r)};
+    return {wt.sym(v), size(r)};
 };
 
 }
