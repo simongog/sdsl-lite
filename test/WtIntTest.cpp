@@ -437,13 +437,14 @@ TYPED_TEST(WtIntTest, QuantileFreq)
     test_quantile_freq<TypeParam>(wt);
 }
 
-template<class t_wt>
-void test_intersect(t_wt&) {}
-
-template<class t_bv, class t_rank, class t_sel1, class t_sel0>
-void test_intersect(sdsl::wt_int<t_bv, t_rank, t_sel1, t_sel0>& wt)
+template<class t_bv, class t_rank, class t_sel, class t_wt>
+void test_intersect(wt_rlmn<t_bv, t_rank, t_sel, t_wt>&)
 {
-    typedef sdsl::wt_int<t_bv, t_rank, t_sel1, t_sel0> t_wt;
+}
+
+template<class t_wt>
+void test_intersect(t_wt& wt)
+{
     using t_pvs = std::pair<typename t_wt::value_type,
           typename t_wt::size_type>;
     int_vector<> iv;
