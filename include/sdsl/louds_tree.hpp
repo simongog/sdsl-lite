@@ -88,6 +88,36 @@ class louds_tree
             util::init_support(m_bv_select0, &m_bv);
         }
 
+        louds_tree(const louds_tree& lt) : bv(m_bv) {
+            *this = lt;
+        }
+
+        louds_tree(louds_tree&& lt) : bv(m_bv) {
+            *this = std::move(lt);
+        }
+
+        louds_tree& operator=(const louds_tree& lt) {
+            if (this != &lt) {
+                m_bv = lt.m_bv;
+                m_bv_select1 = lt.m_bv_select1;
+                m_bv_select1.set_vector(&m_bv);
+                m_bv_select0 = lt.m_bv_select0;
+                m_bv_select0.set_vector(&m_bv);
+            }
+            return *this;
+        }
+
+        louds_tree& operator=(louds_tree&& lt) {
+            if (this != &lt) {
+                m_bv = std::move(lt.m_bv);
+                m_bv_select1 = std::move(lt.m_bv_select1);
+                m_bv_select1.set_vector(&m_bv);
+                m_bv_select0 = std::move(lt.m_bv_select0);
+                m_bv_select0.set_vector(&m_bv);
+            }
+            return *this;
+        }
+
         //! Returns the root node
         node_type root() const {
             return louds_node(0, 0);

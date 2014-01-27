@@ -215,9 +215,7 @@ class csa_bitcompressed
          */
         csa_bitcompressed& operator=(const csa_bitcompressed& csa) {
             if (this != &csa) {
-                m_sa       = std::move(csa.m_sa);
-                m_isa      = std::move(csa.m_isa);
-                m_alphabet = std::move(csa.m_alphabet);
+                copy(csa);
             }
             return *this;
         }
@@ -228,7 +226,9 @@ class csa_bitcompressed
          */
         csa_bitcompressed& operator=(csa_bitcompressed&& csa) {
             if (this != &csa) {
-                copy(csa);
+                m_sa       = std::move(csa.m_sa);
+                m_isa      = std::move(csa.m_isa);
+                m_alphabet = std::move(csa.m_alphabet);
             }
             return *this;
         }

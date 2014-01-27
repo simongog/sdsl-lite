@@ -127,12 +127,30 @@ class nearest_neighbour_dictionary
             copy(nnd);
         }
 
+        //! Move constructor
+        nearest_neighbour_dictionary(nearest_neighbour_dictionary&& nnd) {
+            *this = std::move(nnd);
+        }
+
         //! Destructor
         ~nearest_neighbour_dictionary() {}
 
         nearest_neighbour_dictionary& operator=(const nearest_neighbour_dictionary& nnd) {
             if (this != &nnd) {
                 copy(nnd);
+            }
+            return *this;
+        }
+
+        nearest_neighbour_dictionary& operator=(nearest_neighbour_dictionary&& nnd) {
+            if (this != &nnd) {
+                m_abs_samples   =       std::move(nnd.m_abs_samples);
+                m_differences   =       std::move(nnd.m_differences);
+                m_ones          =       std::move(nnd.m_ones);
+                m_size          =       std::move(nnd.m_size);
+                m_contains_abs_sample = std::move(nnd.m_contains_abs_sample);
+                m_rank_contains_abs_sample = std::move(nnd.m_rank_contains_abs_sample);
+                m_rank_contains_abs_sample.set_vector(&m_contains_abs_sample);
             }
             return *this;
         }
@@ -250,4 +268,4 @@ class nearest_neighbour_dictionary
 }// end namespace sdsl
 
 
-#endif // end file 
+#endif // end file
