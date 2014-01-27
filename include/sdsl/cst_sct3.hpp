@@ -433,7 +433,7 @@ class cst_sct3
         /*!
          *    Required for the Assignable Concept of the STL.
          */
-        cst_sct3& operator=(const cst_sct3&& cst);
+        cst_sct3& operator=(cst_sct3&& cst);
 
         //! Serialize to a stream.
         /*! \param out Outstream to write the data structure.
