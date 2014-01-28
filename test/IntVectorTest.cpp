@@ -91,6 +91,8 @@ void test_Constructors(uint8_t template_width, size_type constructor_size, uint8
     }
 }
 
+
+
 //! Test Constructors
 TEST_F(IntVectorTest, Constructors)
 {
@@ -154,7 +156,7 @@ void test_AssignAndModifyElement(uint64_t size, uint8_t width)
     for (size_type i=1; i<iv.size(); ++i) {
         value_type exp_v = rng(), tmp = rng();
 
-        // Asign Test
+        // Assign Test
         iv[i] = exp_v;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
 
@@ -162,8 +164,14 @@ void test_AssignAndModifyElement(uint64_t size, uint8_t width)
         iv[i] += tmp;
         exp_v += tmp;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
+        iv[i] += -1;
+        exp_v += -1;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
         iv[i] -= tmp;
         exp_v -= tmp;
+        ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
+        iv[i] -= -1;
+        exp_v -= -1;
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]);
         ASSERT_EQ(exp_v & sdsl::bits::lo_set[width], iv[i]++);
         exp_v++;
@@ -252,7 +260,7 @@ template<class t_iv>
 void test_SerializeAndLoad(uint8_t width=1)
 {
     std::mt19937_64 rng;
-    t_iv iv(1000000, 0, width);
+    t_iv iv(sdsl::conf::SDSL_BLOCK_SIZE+1000000, 0, width);
     for (size_type i=0; i<iv.size(); ++i)
         iv[i] = rng();
     std::string file_name = "tmp/int_vector";
@@ -279,6 +287,58 @@ TEST_F(IntVectorTest, SerializeAndLoad)
     test_SerializeAndLoad<sdsl::int_vector<32> >();
     test_SerializeAndLoad<sdsl::int_vector<64> >();
 }
+
+TEST_F(IntVectorTest, SerializeFixedToVariable)
+{
+    sdsl::int_vector<32> iv(123456,0x733D);
+    std::string file_name = "tmp/int_vector_fixed_to_var";
+    std::ofstream out(file_name);
+    iv.serialize(out, nullptr, "", true);
+    sdsl::int_vector<> iv2;
+    sdsl::load_from_file(iv2, file_name);
+    ASSERT_EQ(iv.size(), iv2.size());
+    for (size_type i=0; i < iv.size(); ++i) {
+        ASSERT_EQ(iv[i], iv2[i]);
+    }
+    sdsl::remove(file_name);
+}
+
+TEST_F(IntVectorTest, IteratorTest)
+{
+    {
+        sdsl::int_vector<> iv(123456);
+        sdsl::util::set_to_id(iv);
+        sdsl::int_vector<>::iterator it = iv.begin();
+        ASSERT_EQ(iv[0], *it++);
+        ASSERT_EQ(iv[1] ,*it);
+        it += 1;
+        ASSERT_EQ(iv[2] ,*it);
+        it -= 1;
+        ASSERT_EQ(iv[1] ,*it);
+        it -= -1;
+        ASSERT_EQ(iv[2] ,*it);
+        it += -1;
+        ASSERT_EQ(iv[1] ,*it);
+    }
+    {
+        sdsl::int_vector<> iv(123456);
+        sdsl::util::set_to_id(iv);
+        sdsl::int_vector<>::const_iterator it(iv.begin());
+        ASSERT_EQ(iv[0], *it++);
+        ASSERT_EQ(iv[1] ,*it);
+        it += 1;
+        ASSERT_EQ(iv[2] ,*it);
+        it -= 1;
+        ASSERT_EQ(iv[1] ,*it);
+        it -= -1;
+        ASSERT_EQ(iv[2] ,*it);
+        it += -1;
+        ASSERT_EQ(iv[1] ,*it);
+    }
+}
+
+
+
 
 }  // namespace
 
