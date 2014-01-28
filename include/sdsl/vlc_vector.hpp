@@ -86,7 +86,10 @@ class vlc_vector
         //! Default Constructor
         vlc_vector() {}
         //! Copy constructor
-        vlc_vector(const vlc_vector& v);
+        vlc_vector(const vlc_vector&) = default;
+        vlc_vector(vlc_vector&&) = default;
+        vlc_vector& operator=(const vlc_vector&) = default;
+        vlc_vector& operator=(vlc_vector&&) = default;
 
         //! Constructor for a Container of positive integers.
         /*! \param c A container of positive integers.
@@ -130,9 +133,6 @@ class vlc_vector
         //! []-operator
         value_type operator[](size_type i)const;
 
-        //! Assignment Operator
-        vlc_vector& operator=(const vlc_vector& v);
-
         //! Serializes the vlc_vector to a stream.
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
 
@@ -168,30 +168,6 @@ inline typename vlc_vector<t_coder, t_dens,t_width>::value_type vlc_vector<t_cod
     assert(i < m_size);
     size_type idx = i/get_sample_dens();
     return (t_coder::template decode<false, false, int*>(m_z.data(), m_sample_pointer[idx], i-t_dens*idx+1)) - 1;
-}
-
-template<class t_coder, uint32_t t_dens, uint8_t t_width>
-void vlc_vector<t_coder, t_dens,t_width>::copy(const vlc_vector<t_coder, t_dens,t_width>& v)
-{
-    m_z              = v.m_z;              // copy compressed bit stream
-    m_sample_pointer = v.m_sample_pointer; // copy sample values
-    m_size           = v.m_size;           // copy number of stored elements
-    m_sample_dens    = v.m_sample_dens;
-}
-
-template<class t_coder, uint32_t t_dens, uint8_t t_width>
-vlc_vector<t_coder, t_dens,t_width>::vlc_vector(const vlc_vector& v)
-{
-    copy(v);
-}
-
-template<class t_coder, uint32_t t_dens, uint8_t t_width>
-vlc_vector<t_coder, t_dens,t_width>& vlc_vector<t_coder, t_dens,t_width>::operator=(const vlc_vector<t_coder, t_dens,t_width>& v)
-{
-    if (this != &v) {// if v and _this_ are not the same object
-        copy(v);
-    }
-    return *this;
 }
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>

@@ -57,8 +57,10 @@ class sorted_stack_support
          */
         sorted_stack_support(size_type n);
 
-        sorted_stack_support(const sorted_stack_support& sis);
-        ~sorted_stack_support() {};
+        sorted_stack_support(const sorted_stack_support&) = default;
+        sorted_stack_support(sorted_stack_support&&) = default;
+        sorted_stack_support& operator=(const sorted_stack_support&) = default;
+        sorted_stack_support& operator=(sorted_stack_support&&) = default;
 
         /*! Returns if the stack is empty.
          */
@@ -90,32 +92,12 @@ class sorted_stack_support
         size_type serialize(std::ostream& out)const;
         void load(std::istream& in);
 
-        //! Assign Operator
-        /*! Required for the Assignable Concept of the STL.
-         */
-        sorted_stack_support& operator=(const sorted_stack_support& sis);
 };
 
 inline sorted_stack_support::sorted_stack_support(size_type n):m_n(n), m_cnt(0), m_top(0), m_stack()
 {
     m_stack = int_vector<64>(block_nr(m_n+1)+1, 0);
     m_stack[0] = 1;
-}
-
-inline sorted_stack_support::sorted_stack_support(const sorted_stack_support& sis):m_n(sis.m_n), m_cnt(sis.m_cnt), m_top(sis.m_top), m_stack()
-{
-    m_stack = sis.m_stack;
-}
-
-inline sorted_stack_support& sorted_stack_support::operator=(const sorted_stack_support& sis)
-{
-    if (this != &sis) {
-        m_n	 		= sis.m_n;
-        m_cnt 		= sis.m_cnt;
-        m_top		= sis.m_top;
-        m_stack 	= sis.m_stack;
-    }
-    return *this;
 }
 
 inline sorted_stack_support::size_type sorted_stack_support::top()const
@@ -180,4 +162,4 @@ inline void sorted_stack_support::load(std::istream& in)
 
 }// end namespace sdsl
 
-#endif // end file 
+#endif // end file

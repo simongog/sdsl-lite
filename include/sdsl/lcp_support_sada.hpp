@@ -105,6 +105,11 @@ class _lcp_support_sada
             copy(lcp_c);
         }
 
+        //! Move constructor
+        _lcp_support_sada(_lcp_support_sada&& lcp_c) {
+            *this = std::move(lcp_c);
+        }
+
         //! Constructor
         _lcp_support_sada(cache_config& config, const t_csa* f_csa) {
             typedef typename t_csa::size_type size_type;
@@ -181,6 +186,17 @@ class _lcp_support_sada
         _lcp_support_sada& operator=(const _lcp_support_sada& lcp_c) {
             if (this != &lcp_c) {
                 copy(lcp_c);
+            }
+            return *this;
+        }
+
+        //! Assignment Move Operator.
+        _lcp_support_sada& operator=(_lcp_support_sada&& lcp_c) {
+            if (this != &lcp_c) {
+                m_csa            = std::move(lcp_c.m_csa);
+                m_data           = std::move(lcp_c.m_data);
+                m_select_support = std::move(lcp_c.m_select_support);
+                m_select_support.set_vector(&m_data);
             }
             return *this;
         }

@@ -87,6 +87,47 @@ TYPED_TEST(RMQTest, RmqLoadAndQuery)
     }
 }
 
+//! Test range minimum queries
+TYPED_TEST(RMQTest, RmqLoadAndMoveAndQuery)
+{
+    int_vector<> v;
+    ASSERT_TRUE(load_from_file(v, test_file));
+    TypeParam rmq_load;
+    ASSERT_TRUE(load_from_file(rmq_load, temp_file));
+    TypeParam rmq = std::move(rmq_load);
+    ASSERT_EQ(v.size(), rmq.size());
+    if (rmq.size() > 0) {
+        stack<state> s;
+        uint64_t idx = rmq(0, rmq.size()-1);
+        ASSERT_TRUE(idx < rmq.size());
+        s.push(state(0, rmq.size()-1, idx,  v[idx]));
+        while (!s.empty()) {
+            state st = s.top(); s.pop();
+            if (st.l < st.idx) {
+                idx = rmq(st.l, st.idx-1);
+                ASSERT_TRUE(idx >= st.l); ASSERT_TRUE(idx <= st.idx-1);
+                ASSERT_TRUE(v[idx] >= v[st.idx])
+                        << "v["<<idx<<"]="<< v[idx]
+                        << " < " << "v["<<st.idx<<"]="
+                        << v[st.idx] << endl
+                        << "[" << st.l << "," << st.r << "]" << endl;
+                s.push(state(st.l, st.idx-1, idx, v[idx]));
+            }
+            if (st.idx < st.r) {
+                idx = rmq(st.idx+1, st.r);
+                ASSERT_TRUE(idx >= st.idx+1); ASSERT_TRUE(idx <= st.r);
+                ASSERT_TRUE(v[idx] >= v[st.idx])
+                        << "v["<<idx<<"]="<< v[idx]
+                        << " < " << "v["<<st.idx<<"]="
+                        << v[st.idx] << endl
+                        << "[" << st.l << "," << st.r << "]" << endl;
+                s.push(state(st.idx+1, st.r, idx, v[idx]));
+            }
+        }
+    }
+}
+
+
 
 TYPED_TEST(RMQTest, DeleteTest)
 {

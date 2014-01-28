@@ -275,10 +275,34 @@ class wt_int
             copy(wt);
         }
 
+        //! Copy constructor
+        wt_int(wt_int&& wt) {
+            *this = std::move(wt);
+        }
+
         //! Assignment operator
         wt_int& operator=(const wt_int& wt) {
             if (this != &wt) {
                 copy(wt);
+            }
+            return *this;
+        }
+
+        //! Assignment move operator
+        wt_int& operator=(wt_int&& wt) {
+            if (this != &wt) {
+                m_size          = wt.m_size;
+                m_sigma         = wt.m_sigma;
+                m_tree          = std::move(wt.m_tree);
+                m_tree_rank     = std::move(wt.m_tree_rank);
+                m_tree_rank.set_vector(&m_tree);
+                m_tree_select1  = std::move(wt.m_tree_select1);
+                m_tree_select1.set_vector(&m_tree);
+                m_tree_select0  = std::move(wt.m_tree_select0);
+                m_tree_select0.set_vector(&m_tree);
+                m_max_level     = std::move(wt.m_max_level);
+                m_path_off      = std::move(wt.m_path_off);
+                m_path_rank_off = std::move(wt.m_path_rank_off);
             }
             return *this;
         }

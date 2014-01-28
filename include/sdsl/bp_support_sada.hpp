@@ -410,17 +410,32 @@ class bp_support_sada
         bp_support_sada(const bp_support_sada& bp_support) {
             copy(bp_support);
         }
-        /*
-                bp_support_sada(bp_support_sada&& bps): m_size(bps.m_size),
-                    m_sml_blocks(bps.m_sml_blocks), m_med_blocks(bps.m_med_blocks),
-                    m_med_inner_blocks(bps.m_med_inner_blocks)
-                {
-                    m_bp_rank           = std::move(bps.m_bp_rank);
-                    m_bp_select         = std::move(bps.m_bp_select);
-                    m_sml_block_min_max = std::move(bps.m_sml_block_min_max);
-                    m_med_block_min_max = std::move(bps.m_med_block_min_max);
-                }
-        */
+
+        //! Move constructor
+        bp_support_sada(bp_support_sada&& bp_support) {
+            *this = std::move(bp_support);
+        }
+
+        //! Assignment operator
+        bp_support_sada& operator=(bp_support_sada&& bp_support) {
+            if (this != &bp_support) {
+                m_bp        = std::move(bp_support.m_bp);
+                m_bp_rank   = std::move(bp_support.m_bp_rank);
+                m_bp_rank.set_vector(m_bp);
+                m_bp_select = std::move(bp_support.m_bp_select);
+                m_bp_select.set_vector(m_bp);
+
+                m_sml_block_min_max = std::move(bp_support.m_sml_block_min_max);
+                m_med_block_min_max = std::move(bp_support.m_med_block_min_max);
+
+                m_size             = std::move(bp_support.m_size);
+                m_sml_blocks       = std::move(bp_support.m_sml_blocks);
+                m_med_blocks       = std::move(bp_support.m_med_blocks);
+                m_med_inner_blocks = std::move(bp_support.m_med_inner_blocks);
+            }
+            return *this;
+        }
+
         //! Swap method
         /*! Swaps the content of the two data structure.
          *  You have to use set_vector to adjust the supported bit_vector.

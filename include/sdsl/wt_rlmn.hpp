@@ -238,10 +238,36 @@ class wt_rlmn
             copy(wt);
         }
 
+        //! Move constructor
+        wt_rlmn(wt_rlmn&& wt) {
+            *this = std::move(wt);
+        }
+
         //! Assignment operator
         wt_rlmn& operator=(const wt_rlmn& wt) {
             if (this != &wt) {
                 copy(wt);
+            }
+            return *this;
+        }
+
+        //! Assignment move operator
+        wt_rlmn& operator=(wt_rlmn&& wt) {
+            if (this != &wt) {
+                m_size          = std::move(wt.m_size);
+                m_bl            = std::move(wt.m_bl);
+                m_bf            = std::move(wt.m_bf);
+                m_wt            = std::move(wt.m_wt);
+                m_bl_rank       = std::move(wt.m_bl_rank);
+                m_bl_rank.set_vector(&m_bl);
+                m_bf_rank       = std::move(wt.m_bf_rank);
+                m_bf_rank.set_vector(&m_bf);
+                m_bl_select     = std::move(wt.m_bl_select);
+                m_bl_select.set_vector(&m_bl);
+                m_bf_select     = std::move(wt.m_bf_select);
+                m_bf_select.set_vector(&m_bf);
+                m_C             = std::move(wt.m_C);
+                m_C_bf_rank     = std::move(wt.m_C_bf_rank);
             }
             return *this;
         }

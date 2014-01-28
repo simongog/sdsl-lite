@@ -81,21 +81,14 @@ class lcp_byte
         typedef std::pair<size_type, size_type> tPII;
         typedef std::vector<tPII> tVPII;
 
-        void copy(const lcp_byte& lcp_c) {
-            m_small_lcp   = lcp_c.m_small_lcp;
-            m_big_lcp     = lcp_c.m_big_lcp;
-            m_big_lcp_idx = lcp_c.m_big_lcp_idx;
-        }
-
     public:
 
         //! Default Constructor
-        lcp_byte() {}
-
-        //! Copy constructor
-        lcp_byte(const lcp_byte& lcp_c) {
-            copy(lcp_c);
-        }
+        lcp_byte() = default;
+        lcp_byte(const lcp_byte&) = default;
+        lcp_byte(lcp_byte&&) = default;
+        lcp_byte& operator=(const lcp_byte&) = default;
+        lcp_byte& operator=(lcp_byte&&) = default;
 
         //! Constructor
         lcp_byte(cache_config& config) {
@@ -172,14 +165,6 @@ class lcp_byte
                                 - m_big_lcp_idx.begin();
                 return m_big_lcp[idx];
             }
-        }
-
-        //! Assignment Operator.
-        lcp_byte& operator=(const lcp_byte& lcp_c) {
-            if (this != &lcp_c) {
-                copy(lcp_c);
-            }
-            return *this;
         }
 
         //! Serialize to a stream.

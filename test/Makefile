@@ -5,7 +5,7 @@ CXX_FLAGS=$(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O3 \
 		  -L$(LIB_DIR) \
 		  -L../build/external/gtest-1.6.0
 LIB_SDSL=$(LIB_DIR)/libsdsl.a
-CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest 
+CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest
 TMP_DIR=tmp
 SOURCES=$(wildcard *Test.cpp)
 EXECS=$(SOURCES:.cpp=.x)
@@ -51,7 +51,7 @@ SEARCH_BIDIRECTIONAL_TESTS:=$(patsubst %,search-bidirectional-test/%,$(SEARCH_BI
 
 TC_PATHS:= $(WT_BYTE_TC_PATHS) $(WT_INT_TC_PATHS) \
 		   $(CSA_BYTE_TC_PATHS) $(CSA_INT_TC_PATHS) \
-		   $(CST_BYTE_TC_PATHS) $(CST_INT_TC_PATHS) 
+		   $(CST_BYTE_TC_PATHS) $(CST_INT_TC_PATHS)
 
 
 
@@ -74,7 +74,7 @@ test:	bits-test \
 	rmq-test \
 	search-bidirectional-test
 
-build-test: $(EXECS) 
+build-test: $(EXECS)
 	cd ../tutorial; make build-test
 	cd ../examples; make build-test
 	cd ../benchmark/indexing_count; make
@@ -82,7 +82,7 @@ build-test: $(EXECS)
 	cd ../benchmark/indexing_extract; make
 	cd ../benchmark/rrr_vector; make
 	cd ../benchmark/document_retrieval; make
-	cd ../benchmark/wavelet_trees; make 
+	cd ../benchmark/wavelet_trees; make
 
 build-test-clean: clean
 	cd ../tutorial; make clean
@@ -177,9 +177,9 @@ csa-int-test/test_cases/%: ./CsaIntTest.x test_cases/%
 
 cst-byte-test/test_cases/%: ./CstByteTest.x test_cases/%
 	@echo "TEST_CASE: test_cases/$* semi-external"
-	@$(PREFIX) ./CstByteTest.x test_cases/$* $(TMP_DIR)/cst-byte.tmp $(TMP_DIR)
+	$(PREFIX) ./CstByteTest.x test_cases/$* $(TMP_DIR)/cst-byte.tmp $(TMP_DIR)
 	@echo "TEST_CASE: test_cases/$* in-memory"
-	@$(PREFIX) ./CstByteTest.x test_cases/$* $(TMP_DIR)/cst-byte.tmp $(TMP_DIR) in-memory
+	$(PREFIX) ./CstByteTest.x test_cases/$* $(TMP_DIR)/cst-byte.tmp $(TMP_DIR) in-memory
 
 cst-int-test/test_cases/%: ./CstIntTest.x test_cases/%
 	$(eval NUM_BYTES:=$(call config_filter,CstIntTest.config,test_cases/$*,4))
@@ -204,10 +204,10 @@ search-bidirectional-test/test_cases/%: ./SearchBidirectionalTest.x test_cases/%
 # Format: test_cases/int-vec.[LEN].[WIDTH].[DEFAULT]
 test_cases/int-vec.%: IntVectorGenerator.x
 	@echo "Generate input test_cases/int-vec.$*"
-	$(eval LEN:=$(call dim,1,$*)) 
-	$(eval WIDTH:=$(call dim,2,$*)) 
-	$(eval DEFAULT:=$(call dim,3,$*)) 
-	$(eval SEED:=$(call dim,4,$*)) 
+	$(eval LEN:=$(call dim,1,$*))
+	$(eval WIDTH:=$(call dim,2,$*))
+	$(eval DEFAULT:=$(call dim,3,$*))
+	$(eval SEED:=$(call dim,4,$*))
 	@./IntVectorGenerator.x $@ $(LEN) $(WIDTH) $(DEFAULT) $(SEED)
 
 test_cases/bit-vec.%: BitVectorGenerator.x
@@ -215,9 +215,9 @@ test_cases/bit-vec.%: BitVectorGenerator.x
 	@./BitVectorGenerator.x $@ $*
 
 %.x:%.cpp $(LIB_SDSL)
-	$(MY_CXX) $(CXX_FLAGS) -o $@ $< $(CCLIB) 
+	$(MY_CXX) $(CXX_FLAGS) -o $@ $< $(CCLIB)
 
-test_cases/%: 
+test_cases/%:
 	$(eval URL:=$(call config_filter,download.config,$@,2))
 	@$(if $(URL),,\
 		$(error "No download link specified for test case $@") )
@@ -232,6 +232,7 @@ test_cases/%:
 
 clean:
 	rm -f $(EXECS) $(GCDAs) $(GCNOs)
+	rm -f tmp/*
 	rm -rf *.dSYM
 
 cleanall: clean

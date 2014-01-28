@@ -166,12 +166,30 @@ class rmq_succinct_sada
             }
         }
 
+        //! Move constructor
+        rmq_succinct_sada(rmq_succinct_sada&& rm) {
+            *this = rm;
+        }
+
         //! Destructor
         ~rmq_succinct_sada() { }
 
         rmq_succinct_sada& operator=(const rmq_succinct_sada& rm) {
             if (this != &rm) {
                 copy(rm);
+            }
+            return *this;
+        }
+
+        rmq_succinct_sada& operator=(rmq_succinct_sada&& rm) {
+            if (this != &rm) {
+                m_ect_bp = std::move(rm.m_ect_bp);
+                m_ect_bp_support = std::move(rm.m_ect_bp_support);
+                m_ect_bp_support.set_vector(&m_ect_bp);
+                m_ect_bp_rank10 = std::move(rm.m_ect_bp_rank10);
+                m_ect_bp_rank10.set_vector(&m_ect_bp);
+                m_ect_bp_select10 = std::move(rm.m_ect_bp_select10);
+                m_ect_bp_select10.set_vector(&m_ect_bp);
             }
             return *this;
         }

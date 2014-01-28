@@ -175,8 +175,8 @@ class int_vector_buffer
 
         //! Move constructor.
         int_vector_buffer(int_vector_buffer&& ivb) :
-            m_filename((std::string&&)ivb.m_filename),
-            m_buffer((int_vector<t_width>&&)ivb.m_buffer),
+            m_filename(std::move(ivb.m_filename)),
+            m_buffer(std::move(ivb.m_buffer)),
             m_need_to_write(ivb.m_need_to_write),
             m_offset(ivb.m_offset),
             m_buffersize(ivb.m_buffersize),

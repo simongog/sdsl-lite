@@ -115,6 +115,11 @@ class lcp_dac
             copy(lcp_c);
         }
 
+        //! Move constructor
+        lcp_dac(lcp_dac&& lcp_c) {
+            *this = std::move(lcp_c);
+        }
+
         //! Constructor
         lcp_dac(cache_config& config);
 
@@ -178,6 +183,19 @@ class lcp_dac
         lcp_dac& operator=(const lcp_dac& lcp_c) {
             if (this != &lcp_c) {
                 copy(lcp_c);
+            }
+            return *this;
+        }
+
+        //! Assignment Move Operator.
+        lcp_dac& operator=(lcp_dac&& lcp_c) {
+            if (this != &lcp_c) {
+                m_data                   = std::move(lcp_c.m_data);
+                m_overflow               = std::move(lcp_c.m_overflow);
+                m_overflow_rank          = std::move(lcp_c.m_overflow_rank);
+                m_overflow_rank.set_vector(&m_overflow);
+                m_level_pointer_and_rank = std::move(lcp_c.m_level_pointer_and_rank);
+                m_max_level              = std::move(lcp_c.m_max_level);
             }
             return *this;
         }

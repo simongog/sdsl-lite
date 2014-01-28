@@ -52,23 +52,19 @@ class _lcp_support_tree
         const t_cst* m_cst;
         t_lcp        m_lcp;
 
-        void copy(const _lcp_support_tree& lcp_c) {
-            m_cst = lcp_c.m_cst;
-            m_lcp = lcp_c.m_lcp; // works for lcp_bitcompressed and lcp_kurtz
-        }
-
     public:
 
         //! Default constructor
-        _lcp_support_tree() {}
+        _lcp_support_tree() = default;
 
         // Destructor
-        ~_lcp_support_tree() {}
+        ~_lcp_support_tree() = default;
 
-        //! Copy constructor
-        _lcp_support_tree(const _lcp_support_tree& lcp) {
-            copy(lcp);
-        }
+        //! Copy/Move constructor
+        _lcp_support_tree(const _lcp_support_tree&)  = default;
+        _lcp_support_tree(_lcp_support_tree&&)  = default;
+        _lcp_support_tree& operator=(const _lcp_support_tree&) = default;
+        _lcp_support_tree& operator=(_lcp_support_tree&&) = default;
 
         //! Constructor
         /*!
@@ -132,14 +128,6 @@ class _lcp_support_tree
          */
         inline value_type operator[](size_type i)const {
             return m_lcp[ m_cst->tlcp_idx(i) ];
-        }
-
-        //! Assignment Operator.
-        _lcp_support_tree& operator=(const _lcp_support_tree& lcp_c) {
-            if (this != &lcp_c) {
-                copy(lcp_c);
-            }
-            return *this;
         }
 
         //! Serialize to a stream.

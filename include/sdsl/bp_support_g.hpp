@@ -155,10 +155,41 @@ class bp_support_g
             copy(bp_support);
         }
 
+        //! Move constructor
+        bp_support_g(bp_support_g&& bp_support) {
+            *this = std::move(bp_support);
+        }
+
         //! Assignment operator
         bp_support_g& operator=(const bp_support_g& bp_support) {
             if (this != &bp_support) {
                 copy(bp_support);
+            }
+            return *this;
+        }
+
+        //! Assignment operator
+        bp_support_g& operator=(bp_support_g&& bp_support) {
+            if (this != &bp_support) {
+                m_bp = std::move(bp_support.m_bp);
+                m_rank_bp = std::move(bp_support.m_rank_bp);
+                m_rank_bp.set_vector(m_bp);
+                m_select_bp = std::move(bp_support.m_select_bp);
+                m_select_bp.set_vector(m_bp);
+
+                m_nnd = std::move(bp_support.m_nnd);
+
+                m_pioneer_bp = std::move(bp_support.m_pioneer_bp);
+                m_rank_pioneer_bp = std::move(bp_support.m_rank_pioneer_bp);
+                m_rank_pioneer_bp.set_vector(&m_pioneer_bp);
+                m_nnd2 = std::move(bp_support.m_nnd2);
+                m_match = std::move(bp_support.m_match);
+                m_enclose = std::move(bp_support.m_enclose);
+                m_range_max_match = std::move(bp_support.m_range_max_match);
+                m_range_max_match.set_vector(&m_match);
+
+                m_size = std::move(bp_support.m_size);
+                m_blocks = std::move(bp_support.m_blocks);
             }
             return *this;
         }
