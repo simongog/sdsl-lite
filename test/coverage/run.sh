@@ -19,5 +19,8 @@ if [ ${MAKERET} != 0 ]; then
 	exit 1
 fi
 
-lcov --directory .. --capture --output-file sdsl-lite.info
+INC_STR=`grep 'INC_DIR = ' ../../Make.helper`
+INC_DIR=${INC_STR#INC_DIR = }
+
+lcov -d .. -d ${INC_DIR}/sdsl --no-recursion --no-external --capture --output-file sdsl-lite.info
 genhtml -o output --legend sdsl-lite.info

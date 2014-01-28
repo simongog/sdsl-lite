@@ -787,6 +787,7 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
         typedef typename t_int_vector::size_type       size_type;
         typedef typename t_int_vector::difference_type difference_type;
 
+        friend class int_vector_const_iterator<t_int_vector>;
     private:
 
         using int_vector_iterator_base<t_int_vector>::m_offset; // make m_offset easy usable
@@ -1139,7 +1140,7 @@ inline int_vector<t_width>::int_vector(const int_vector& v):
     bit_resize(v.bit_size());
     if (v.capacity() > 0) {
         if (memcpy(m_data, v.data() ,v.capacity()/8)==nullptr) {
-            throw std::bad_alloc();
+            throw std::bad_alloc(); // LCOV_EXCL_LINE
         }
     }
     width(v.m_width);
@@ -1152,7 +1153,7 @@ int_vector<t_width>& int_vector<t_width>::operator=(const int_vector& v)
         bit_resize(v.bit_size());
         if (v.bit_size()>0) {
             if (memcpy(m_data, v.data() ,v.capacity()/8)==nullptr) {
-                throw std::bad_alloc();
+                throw std::bad_alloc(); // LCOV_EXCL_LINE
             }
         }
         width(v.width());
