@@ -64,7 +64,7 @@ namespace sdsl
 template<class t_nnd = nearest_neighbour_dictionary<30>,
          class t_rank = rank_support_v5<>,
          class t_select = select_support_mcl<>,
-         class t_rmq = range_maximum_support_sparse_table<int_vector<> >::type,
+         class t_rmq = range_maximum_support_sparse_table<>,
          uint32_t t_bs=840>
 class bp_support_g
 {

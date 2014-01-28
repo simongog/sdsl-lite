@@ -33,12 +33,9 @@ namespace sdsl
 template<class t_rac = int_vector<>, bool t_min=true>
 class rmq_support_sparse_table;
 
-
-// see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2002/n1406.pdf for a proposal for a better solution
 template<class t_rac = int_vector<> >
-struct range_maximum_support_sparse_table {
-    typedef rmq_support_sparse_table<t_rac, false> type;
-};
+using range_maximum_support_sparse_table = rmq_support_sparse_table<t_rac,false>;
+
 
 //! A class to support range minimum or range maximum queries on a random access container.
 /*!
@@ -53,28 +50,23 @@ struct range_maximum_support_sparse_table {
  * \par Time complexity
  *        \f$ \Order{1} \f$ for the range minimum/maximum queries.
  * \par Space complexity:
- *      \f$ \Order{n\log^2 n} \f$ bits for the data structure ( \f$ n=size() \f$ ). We used bit compression to get a good result in practice.
+ *      \f$ \Order{n\log^2 n} \f$ bits for the data structure ( \f$ n=size() \f$ ).
+ *       We used bit compression to get a good result in practice.
  */
 template<class t_rac, bool t_min>
 class rmq_support_sparse_table
 {
-        const t_rac*            m_v;    // pointer to the supported random access container
-        bit_vector::size_type   m_k;    // size of m_table
-        int_vector<>*           m_table = nullptr;
+        const t_rac*              m_v;    // pointer to the supported random access container
+        bit_vector::size_type     m_k;    // size of m_table
+        std::vector<int_vector<>> m_table;
         typedef min_max_trait<t_rac, t_min> mm_trait;
 
         void copy(const rmq_support_sparse_table& rm) {
             m_v = rm.m_v;
             m_k = rm.m_k;
-            if (m_table != nullptr) {
-                delete [] m_table;
-                m_table = nullptr;
-            }
-            if (m_k > 0) {
-                m_table = new int_vector<>[m_k];
-                for (size_type i=0; i<m_k; ++i)
-                    m_table[i] = rm.m_table[i];
-            }
+            m_table.resize(m_k);
+            std::copy(rm.m_table.begin(), rm.m_table.end(),
+                      m_table.begin());
         }
 
     public:
@@ -89,9 +81,7 @@ class rmq_support_sparse_table
                 return;
             size_type k=0;
             while (2*(1ULL<<k) < n) ++k;  // calculate maximal
-            if (!(m_table == nullptr))
-                delete [] m_table;
-            m_table = new int_vector<>[k];
+            m_table.resize(k);
             m_k = k;
             for (size_type i=0; i<k; ++i) {
                 m_table[i] = int_vector<>(n-(1<<(i+1))+1, 0, i+1);
@@ -119,11 +109,6 @@ class rmq_support_sparse_table
             *this = std::move(rm);
         }
 
-        ~rmq_support_sparse_table() {
-            if (m_table != nullptr)
-                delete [] m_table;
-        }
-
         rmq_support_sparse_table& operator=(const rmq_support_sparse_table& rm) {
             if (this != &rm) {
                 copy(rm);
@@ -135,19 +120,14 @@ class rmq_support_sparse_table
             if (this != &rm) {
                 m_v = rm.m_v;
                 m_k = rm.m_k;
-                if (m_table != nullptr) {
-                    delete [] m_table;
-                    m_table = nullptr;
-                }
                 m_table = rm.m_table;
-                rm.m_table = nullptr;
             }
             return *this;
         }
 
         void swap(rmq_support_sparse_table& rm) {
             std::swap(m_k, rm.m_k);
-            std::swap(m_table, rm.m_table);
+            m_table.swap(rm.m_table);
         }
 
         void set_vector(const t_rac* v) {
@@ -188,7 +168,6 @@ class rmq_support_sparse_table
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             written_bytes += write_member(m_k, out);
             if (m_k > 0) {
-                assert(m_table != nullptr);
                 for (size_type i=0; i < m_k; ++i)
                     written_bytes += m_table[i].serialize(out);
             }
@@ -200,9 +179,7 @@ class rmq_support_sparse_table
             set_vector(v);
             read_member(m_k, in);
             if (m_k >0) {
-                if (m_table != nullptr)
-                    delete [] m_table;
-                m_table = new int_vector<>[m_k];
+                m_table.resize(m_k);
                 for (size_type i=0; i < m_k; ++i)
                     m_table[i].load(in);
             }
