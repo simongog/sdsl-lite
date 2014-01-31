@@ -33,7 +33,7 @@ namespace sdsl
 
 //! Nearest neighbour dictionary for sparse uniform sets (described in Geary et al., A Simple Optimal Representation for Balanced Parentheses, CPM 2004).
 /*!
- * Template parameter sample_dens corresponds to parameter t in the paper.
+ * Template parameter t_sample_dens corresponds to parameter t in the paper.
  * The data structure the following methods:
  *  - rank
  *  - select
@@ -44,9 +44,11 @@ namespace sdsl
  *
 */
 // TODO: implement an iterator for the ones in the nearest neighbour dictionary!!! used in the construction of the balanced parentheses support
-template<uint8_t sample_dens>
+template<uint8_t t_sample_dens>
 class nearest_neighbour_dictionary
 {
+    private:
+        static_assert(t_sample_dens != 0 , "nearest_neighbour_dictionary: t_sample_dens should not be equal 0!");
     public:
         typedef bit_vector::size_type size_type;
     private:
@@ -54,7 +56,7 @@ class nearest_neighbour_dictionary
         int_vector<> m_differences; // vector for the differences in between the samples; corresponds to array \f$ A_2 \f$ in the paper
         size_type    m_ones; // corresponds to N in the paper
         size_type    m_size; // corresponds to M in the paper
-        bit_vector   m_contains_abs_sample; // vector which stores for every block of length sample_dens of the original bit_vector if an absolute sample lies in this block.
+        bit_vector   m_contains_abs_sample; // vector which stores for every block of length t_sample_dens of the original bit_vector if an absolute sample lies in this block.
         // Corresponds to array \f$ A_3 \f$ in the paper.
         rank_support_v<>  m_rank_contains_abs_sample; // rank support for m_contains_abs_sample. Corresponds to array \f$ A_4 \f$ in the paper.
         // NOTE: A faster version should store the absolute samples and the differences interleaved
@@ -79,9 +81,6 @@ class nearest_neighbour_dictionary
         /*! \param v The supported bit_vector.
          */
         nearest_neighbour_dictionary(const bit_vector& v):m_ones(0), m_size(0) {
-            if (sample_dens==0) { // first logical error check
-                throw std::logic_error(util::demangle(typeid(this).name())+": sample_dens should not be equal 0!");
-            }
             size_type max_distance_between_two_ones = 0;
             size_type ones = 0; // counter for the ones in v
 
@@ -100,20 +99,20 @@ class nearest_neighbour_dictionary
             m_size = v.size();
 //			std::cerr<<ones<<std::endl;
             // initialize absolute samples m_abs_samples[0]=0
-            m_abs_samples = int_vector<>(m_ones/sample_dens + 1, 0,  bits::hi(v.size())+1);
+            m_abs_samples = int_vector<>(m_ones/t_sample_dens + 1, 0,  bits::hi(v.size())+1);
             // initialize different values
-            m_differences = int_vector<>(m_ones - m_ones/sample_dens, 0, bits::hi(max_distance_between_two_ones)+1);
+            m_differences = int_vector<>(m_ones - m_ones/t_sample_dens, 0, bits::hi(max_distance_between_two_ones)+1);
             // initialize m_contains_abs_sample
-            m_contains_abs_sample = bit_vector((v.size()+sample_dens-1)/sample_dens, 0);
+            m_contains_abs_sample = bit_vector((v.size()+t_sample_dens-1)/t_sample_dens, 0);
             ones = 0;
             for (size_type i=0, last_one_pos=0; i < v.size(); ++i) {
                 if (v[i]) {
                     ++ones;
-                    if ((ones % sample_dens) == 0) {  // insert absolute samples
-                        m_abs_samples[ones/sample_dens] = i;
-                        m_contains_abs_sample[i/sample_dens] = 1;
+                    if ((ones % t_sample_dens) == 0) {  // insert absolute samples
+                        m_abs_samples[ones/t_sample_dens] = i;
+                        m_contains_abs_sample[i/t_sample_dens] = 1;
                     } else {
-                        m_differences[ones - ones/sample_dens - 1] = i - last_one_pos;
+                        m_differences[ones - ones/t_sample_dens - 1] = i - last_one_pos;
                     }
                     last_one_pos = i;
                 }
@@ -173,14 +172,14 @@ class nearest_neighbour_dictionary
          */
         size_type rank(size_type idx)const {
             assert(idx <= m_size);
-            size_type r = m_rank_contains_abs_sample.rank(idx/sample_dens); //
-            size_type result = r*sample_dens;
+            size_type r = m_rank_contains_abs_sample.rank(idx/t_sample_dens); //
+            size_type result = r*t_sample_dens;
             size_type i = m_abs_samples[r];
             while (++result <= m_ones) {
-                if ((result % sample_dens) == 0) {
-                    i = m_abs_samples[result/sample_dens];
+                if ((result % t_sample_dens) == 0) {
+                    i = m_abs_samples[result/t_sample_dens];
                 } else {
-                    i = i+m_differences[result - result/sample_dens-1];
+                    i = i+m_differences[result - result/t_sample_dens-1];
                 }
                 if (i >= idx)
                     return result-1;
@@ -195,10 +194,10 @@ class nearest_neighbour_dictionary
          */
         size_type select(size_type i)const {
             assert(i > 0 and i <= m_ones);
-            size_type j = i/sample_dens;
+            size_type j = i/t_sample_dens;
             size_type result = m_abs_samples[j];
-            j = j*sample_dens - j;
-            for (size_type end = j + (i%sample_dens); j < end; ++j) {
+            j = j*t_sample_dens - j;
+            for (size_type end = j + (i%t_sample_dens); j < end; ++j) {
                 result += m_differences[j];
             }
             return result;
