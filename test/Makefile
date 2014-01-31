@@ -59,6 +59,7 @@ TC_PATHS:= $(WT_BYTE_TC_PATHS) $(WT_INT_TC_PATHS) \
 .SECONDARY: $(TC_PATHS)
 
 test:	bits-test \
+	coder-test \
 	int-vector-test \
 	int-vector-buffer-test \
 	bit-vector-test \
@@ -72,7 +73,9 @@ test:	bits-test \
 	cst-byte-test \
 	cst-int-test \
 	rmq-test \
-	search-bidirectional-test
+	search-bidirectional-test \
+	sorted-int-stack-test \
+	nn-dict-dynamic-test
 
 build-test: $(EXECS)
 	cd ../tutorial; make build-test
@@ -107,6 +110,12 @@ int-vector-test: ./IntVectorTest.x
 
 int-vector-buffer-test: ./IntVectorBufferTest.x
 	@$(PREFIX) ./IntVectorBufferTest.x
+
+sorted-int-stack-test: ./SortedIntStackTest.x
+	@$(PREFIX) ./SortedIntStackTest.x
+
+nn-dict-dynamic-test: ./NNDictDynamicTest.x
+	@$(PREFIX) ./NNDictDynamicTest.x
 
 bit-vector-test: generators $(BIT_VECTOR_TESTS)
 
