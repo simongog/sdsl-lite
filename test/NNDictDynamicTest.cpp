@@ -70,7 +70,7 @@ TEST_F(NNDictDynamicTest, Constructors)
     // Move-constructor
     sdsl::nn_dict_dynamic nndd3(std::move(nndd2));
     compare_bv_and_nndd(bv, nndd3);
-    ASSERT_EQ(0, nndd2.size());
+    ASSERT_EQ((uint64_t)0, nndd2.size());
 
     // Copy-Assign
     sdsl::nn_dict_dynamic nndd4;
@@ -81,7 +81,7 @@ TEST_F(NNDictDynamicTest, Constructors)
     sdsl::nn_dict_dynamic nndd5;
     nndd5 = std::move(nndd4);
     compare_bv_and_nndd(bv, nndd5);
-    ASSERT_EQ(0, nndd4.size());
+    ASSERT_EQ((uint64_t)0, nndd4.size());
 }
 
 //! Test Operations next and prev

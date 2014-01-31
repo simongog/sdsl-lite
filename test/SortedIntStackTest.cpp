@@ -65,7 +65,7 @@ TEST_F(SortedStackTest, Constructors)
     // Move-constructor
     sdsl::sorted_int_stack sis3(std::move(sis2));
     compare_stacks(exp, sis3);
-    // ASSERT_EQ(0, sis2.size());
+    // ASSERT_EQ((uint64_t)0, sis2.size());
 
     // Copy-Assign
     sdsl::sorted_int_stack sis4(0);
@@ -76,7 +76,7 @@ TEST_F(SortedStackTest, Constructors)
     sdsl::sorted_int_stack sis5(0);
     sis5 = std::move(sis4);
     compare_stacks(exp, sis5);
-    // ASSERT_EQ(0, sis4.size());
+    // ASSERT_EQ((uint64_t)0, sis4.size());
 }
 
 //! Test Operations push, top and pop
