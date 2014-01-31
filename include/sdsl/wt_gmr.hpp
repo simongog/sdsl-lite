@@ -19,6 +19,7 @@ class wt_gmr_1
         uint64_t m_size; // input length
         uint64_t m_sigma = 0; // maximum character + 1
         uint64_t m_blocks; // blocks per character
+        uint64_t m_test_sigma =0;
 
     public:
         typedef int_vector<>::size_type size_type;
@@ -27,7 +28,7 @@ class wt_gmr_1
         typedef int_alphabet_tag alphabet_category;
         enum {lex_ordered=0};
 
-        const size_type&       sigma = m_sigma; // Todo
+        const size_type&       sigma = m_test_sigma; // Todo
 
         wt_gmr_1() {}
 
@@ -41,7 +42,7 @@ class wt_gmr_1
 
             // Create and fill b
             m_blocks = (m_size+m_sigma-1)/m_sigma;
-            bit_vector b(m_size+m_sigma*m_blocks);
+            bit_vector b(m_size+m_sigma*m_blocks,0);
             int_vector<> symbols(m_sigma,0,bits::hi(m_size)+1);
             {
                 int_vector<> tmp(m_sigma*m_blocks,0,bits::hi(m_sigma)+1);
@@ -63,6 +64,22 @@ class wt_gmr_1
                 for (uint64_t i=0,l=0; i<tmp.size(); ++i,++l) {
                     for (uint64_t j=0; j<tmp[i]; ++j) b[l++]=1;
                 }
+                //calc m_test_sigma
+                bool write = true;
+                uint64_t blocks=0;
+                for (uint64_t i=0; i<b.size(); ++i) {
+                    if (blocks==m_blocks) {
+                        blocks = 0;
+                        write = true;
+                    }
+                    if (b[i]) {
+                        if (write) {
+                            ++m_test_sigma;
+                            write = false;
+                        }
+                    } else ++blocks;
+                }
+
                 m_bv = t_bitvector(std::move(b));
             }
             util::init_support(sls0, &m_bv);
@@ -92,7 +109,13 @@ class wt_gmr_1
                 std::swap(m_size, fs.m_size);
                 std::swap(m_sigma,  fs.m_sigma);
                 std::swap(m_blocks,  fs.m_blocks);
+                std::swap(m_test_sigma,  fs.m_test_sigma);
             }
+        }
+
+        //! Returns the size of the original vector.
+        size_type size()const {
+            return m_size;
         }
 
         value_type operator[](size_type i)const {
@@ -220,12 +243,25 @@ class wt_gmr_1
             written_bytes += write_member(m_size, out, child, "size");
             written_bytes += write_member(m_sigma, out, child, "sigma");
             written_bytes += write_member(m_blocks, out, child, "blocks");
+            written_bytes += write_member(m_test_sigma, out, child, "test_sigma");
             written_bytes += m_bv.serialize(out, child, "b");
             written_bytes += e.serialize(out, child, "e");
             written_bytes += sls0.serialize(out, child, "sls0");
             written_bytes += sls1.serialize(out, child, "sls1");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
+        }
+
+        //! Loads the data structure from the given istream.
+        void load(std::istream& in) {
+            read_member(m_size, in);
+            read_member(m_sigma, in);
+            read_member(m_blocks, in);
+            read_member(m_test_sigma, in);
+            m_bv.load(in);
+            e.load(in);
+            sls0.load(in, &m_bv);
+            sls1.load(in, &m_bv);
         }
 };
 
@@ -253,6 +289,8 @@ class wt_gmr_2
         uint64_t m_sigma = 0; // maximum character + 1
         uint64_t m_chunks; // number of chunks
 
+        uint64_t m_test_sigma = 0;
+
     public:
         typedef int_vector<>::size_type size_type;
         typedef int_vector<>::value_type value_type;
@@ -260,7 +298,7 @@ class wt_gmr_2
         typedef int_alphabet_tag alphabet_category;
         enum {lex_ordered=0};
 
-        const size_type&       sigma = m_sigma; // Todo
+        const size_type&       sigma = m_test_sigma; // Todo
 
         wt_gmr_2() {}
 
@@ -325,6 +363,23 @@ class wt_gmr_2
                 for (uint64_t i=0,l=0; i<tmp.size(); ++i,++l) {
                     for (uint64_t j=0; j<tmp[i]; ++j) b[l++]=1;
                 }
+
+                //calc m_test_sigma
+                bool write = true;
+                uint64_t blocks=0;
+                for (uint64_t i=0; i<b.size(); ++i) {
+                    if (blocks==m_chunks) {
+                        blocks = 0;
+                        write = true;
+                    }
+                    if (b[i]) {
+                        if (write) {
+                            ++m_test_sigma;
+                            write = false;
+                        }
+                    } else ++blocks;
+                }
+
                 m_bv = t_bitvector(std::move(b));
                 util::init_support(b_sls1, &m_bv);
                 util::init_support(b_sls0, &m_bv);
@@ -412,7 +467,13 @@ class wt_gmr_2
                 std::swap(m_t, fs.m_t);
                 std::swap(m_sigma,  fs.m_sigma);
                 std::swap(m_chunks,  fs.m_chunks);
+                std::swap(m_test_sigma,  fs.m_test_sigma);
             }
+        }
+
+        //! Returns the size of the original vector.
+        size_type size()const {
+            return m_size;
         }
 
         value_type operator[](size_type i)const {
@@ -526,6 +587,7 @@ class wt_gmr_2
             written_bytes += write_member(m_sigma, out, child, "sigma");
             written_bytes += write_member(m_chunks, out, child, "chunks");
             written_bytes += write_member(m_t, out, child, "t");
+            written_bytes += write_member(m_test_sigma, out, child, "test_sigma");
             written_bytes += m_bv.serialize(out, child, "b");
             written_bytes += m_xv.serialize(out, child, "x");
             written_bytes += m_piv.serialize(out, child, "piv");
@@ -538,6 +600,24 @@ class wt_gmr_2
             written_bytes += piv_r1.serialize(out, child, "piv_r1");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
+        }
+        //! Loads the data structure from the given istream.
+        void load(std::istream& in) {
+            read_member(m_size, in);
+            read_member(m_sigma, in);
+            read_member(m_chunks, in);
+            read_member(m_t, in);
+            read_member(m_test_sigma, in);
+            m_bv.load(in);
+            m_xv.load(in);
+            m_piv.load(in);
+            pi.load(in);
+            s.load(in);
+            b_sls0.load(in, &m_bv);
+            b_sls1.load(in, &m_bv);
+            x_sls0.load(in, &m_xv);
+            x_sls1.load(in, &m_xv);
+            piv_r1.load(in, &m_piv);
         }
 };
 
@@ -566,6 +646,7 @@ class wt_gmr_3
         uint64_t m_sigma = 0; // maximum character + 1
         uint64_t m_chunks; // number of chunks
         uint64_t m_chunksize;
+        uint64_t m_test_sigma = 0 ;
 
     public:
         typedef int_vector<>::size_type size_type;
@@ -574,7 +655,7 @@ class wt_gmr_3
         typedef int_alphabet_tag alphabet_category;
         enum {lex_ordered=0};
 
-        const size_type&       sigma = m_sigma; // Todo
+        const size_type&       sigma = m_test_sigma; // Todo
 
         wt_gmr_3() {}
 
@@ -638,6 +719,22 @@ class wt_gmr_3
 
                 for (uint64_t i=0,l=0; i<tmp.size(); ++i,++l) {
                     for (uint64_t j=0; j<tmp[i]; ++j) b[l++]=1;
+                }
+
+                //calc m_test_sigma
+                bool write = true;
+                uint64_t blocks=0;
+                for (uint64_t i=0; i<b.size(); ++i) {
+                    if (blocks==m_chunks) {
+                        blocks = 0;
+                        write = true;
+                    }
+                    if (b[i]) {
+                        if (write) {
+                            ++m_test_sigma;
+                            write = false;
+                        }
+                    } else ++blocks;
                 }
                 m_bv = t_bitvector(std::move(b));
                 util::init_support(b_sls1, &m_bv);
@@ -726,7 +823,13 @@ class wt_gmr_3
                 std::swap(m_sigma,  fs.m_sigma);
                 std::swap(m_chunks,  fs.m_chunks);
                 std::swap(m_chunksize,  fs.m_chunksize);
+                std::swap(m_test_sigma,  fs.m_test_sigma);
             }
+        }
+
+        //! Returns the size of the original vector.
+        size_type size()const {
+            return m_size;
         }
 
         value_type operator[](size_type i)const {
@@ -841,6 +944,7 @@ class wt_gmr_3
             written_bytes += write_member(m_chunks, out, child, "chunks");
             written_bytes += write_member(m_chunksize, out, child, "chunksize");
             written_bytes += write_member(m_t, out, child, "t");
+            written_bytes += write_member(m_test_sigma, out, child, "test_sigma");
             written_bytes += m_bv.serialize(out, child, "b");
             written_bytes += m_xv.serialize(out, child, "x");
             written_bytes += m_piv.serialize(out, child, "piv");
@@ -853,6 +957,26 @@ class wt_gmr_3
             written_bytes += piv_r1.serialize(out, child, "piv_r1");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
+        }
+
+        //! Loads the data structure from the given istream.
+        void load(std::istream& in) {
+            read_member(m_size, in);
+            read_member(m_sigma, in);
+            read_member(m_chunks, in);
+            read_member(m_chunksize, in);
+            read_member(m_t, in);
+            read_member(m_test_sigma, in);
+            m_bv.load(in);
+            m_xv.load(in);
+            m_piv.load(in);
+            pi.load(in);
+            s.load(in);
+            b_sls0.load(in, &m_bv);
+            b_sls1.load(in, &m_bv);
+            x_sls0.load(in, &m_xv);
+            x_sls1.load(in, &m_xv);
+            piv_r1.load(in, &m_piv);
         }
 };
 

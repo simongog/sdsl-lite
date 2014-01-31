@@ -54,27 +54,48 @@ struct wt_test_trait<wt_rlmn<t_bitvector,t_rank,t_select,t_wt>,false> {
     static void lex_count_test(wt_rlmn<t_bitvector,t_rank,t_select,t_wt>&) {}
 };
 
+template<class t_bitvector,class t_select, class t_select_zero>
+struct wt_test_trait<wt_gmr_1<t_bitvector,t_select,t_select_zero>,false> {
+    static void interval_symbols_test(wt_gmr_1<t_bitvector,t_select,t_select_zero>&) {}
+    static void lex_count_test(wt_gmr_1<t_bitvector,t_select,t_select_zero>&) {}
+};
+
+template<class t_bitvector,class t_select, class t_select_zero, class t_rank>
+struct wt_test_trait<wt_gmr_2<t_bitvector,t_select,t_select_zero, t_rank>,false> {
+    static void interval_symbols_test(wt_gmr_2<t_bitvector,t_select,t_select_zero, t_rank>&) {}
+    static void lex_count_test(wt_gmr_2<t_bitvector,t_select,t_select_zero, t_rank>&) {}
+};
+
+template<class t_bitvector,class t_select, class t_select_zero, class t_rank>
+struct wt_test_trait<wt_gmr_3<t_bitvector,t_select,t_select_zero, t_rank>,false> {
+    static void interval_symbols_test(wt_gmr_3<t_bitvector,t_select,t_select_zero, t_rank>&) {}
+    static void lex_count_test(wt_gmr_3<t_bitvector,t_select,t_select_zero, t_rank>&) {}
+};
+
 template<class T>
 class WtByteTest : public ::testing::Test { };
 
 using testing::Types;
 
 typedef Types<
-wt_pc<balanced_shape>,
-      wt_blcd<rrr_vector<63>>,
-      wt_blcd<bit_vector_il<>>,
-      wt_blcd<bit_vector>,
-      wt_huff<bit_vector_il<>>,
-      wt_huff<bit_vector, rank_support_v<>>,
-      wt_huff<bit_vector, rank_support_v5<>>,
-      wt_huff<rrr_vector<63>>,
-      wt_rlmn<>,
-      wt_rlmn<bit_vector>,
-      wt_hutu<bit_vector_il<>>,
-      wt_hutu<bit_vector, rank_support_v<>>,
-      wt_hutu<bit_vector, rank_support_v5<>>,
-      wt_hutu<rrr_vector<63>>
-      > Implementations;
+//wt_pc<balanced_shape>,
+//      wt_blcd<rrr_vector<63>>,
+//      wt_blcd<bit_vector_il<>>,
+//      wt_blcd<bit_vector>,
+//	  wt_gmr_1<>,
+//	  wt_gmr_2<>,
+wt_gmr_3<>//,
+//      wt_huff<bit_vector_il<>>,
+//      wt_huff<bit_vector, rank_support_v<>>,
+//      wt_huff<bit_vector, rank_support_v5<>>,
+//      wt_huff<rrr_vector<63>>,
+//      wt_rlmn<>,
+//      wt_rlmn<bit_vector>,
+//      wt_hutu<bit_vector_il<>>,
+//      wt_hutu<bit_vector, rank_support_v<>>,
+//      wt_hutu<bit_vector, rank_support_v5<>>,
+//      wt_hutu<rrr_vector<63>>
+> Implementations;
 
 TYPED_TEST_CASE(WtByteTest, Implementations);
 
@@ -166,7 +187,7 @@ TYPED_TEST(WtByteTest, Select)
     ASSERT_EQ(text.size(), wt.size());
     for (size_type j=0; j<text.size(); ++j) {
         cnt[text[j]]++;
-        ASSERT_EQ(j, wt.select(cnt[text[j]], text[j]))<< " j = "<<j<<" text[j]"<<text[j];
+        ASSERT_EQ(j, wt.select(cnt[text[j]], text[j]))<< " j = "<<j<<" text[j] = "<<text[j];
     }
 }
 

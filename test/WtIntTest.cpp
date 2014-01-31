@@ -60,6 +60,26 @@ struct wt_test_trait<wt_rlmn<t_bitvector,t_rank,t_select,t_wt>,false> {
     static void lex_smaller_count_test(wt_rlmn<t_bitvector,t_rank,t_select,t_wt>&) {}
 };
 
+template<class t_bitvector,class t_select, class t_select_zero>
+struct wt_test_trait<wt_gmr_1<t_bitvector,t_select,t_select_zero>,false> {
+    static void interval_symbols_test(wt_gmr_1<t_bitvector,t_select,t_select_zero>&) {}
+    static void lex_count_test(wt_gmr_1<t_bitvector,t_select,t_select_zero>&) {}
+    static void lex_smaller_count_test(wt_gmr_1<t_bitvector,t_select,t_select_zero>&) {}
+};
+
+template<class t_bitvector,class t_select, class t_select_zero, class t_rank>
+struct wt_test_trait<wt_gmr_2<t_bitvector,t_select,t_select_zero, t_rank>,false> {
+    static void interval_symbols_test(wt_gmr_2<t_bitvector,t_select,t_select_zero, t_rank>&) {}
+    static void lex_count_test(wt_gmr_2<t_bitvector,t_select,t_select_zero, t_rank>&) {}
+    static void lex_smaller_count_test(wt_gmr_2<t_bitvector,t_select,t_select_zero, t_rank>&) {}
+};
+
+template<class t_bitvector,class t_select, class t_select_zero, class t_rank>
+struct wt_test_trait<wt_gmr_3<t_bitvector,t_select,t_select_zero, t_rank>,false> {
+    static void interval_symbols_test(wt_gmr_3<t_bitvector,t_select,t_select_zero, t_rank>&) {}
+    static void lex_count_test(wt_gmr_3<t_bitvector,t_select,t_select_zero, t_rank>&) {}
+    static void lex_smaller_count_test(wt_gmr_3<t_bitvector,t_select,t_select_zero, t_rank>&) {}
+};
 
 template<class T>
 class WtIntTest : public ::testing::Test { };
@@ -69,15 +89,18 @@ using testing::Types;
 // TODO: * add test cases for range_search_2d
 
 typedef Types<
-wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
-        ,wt_huff<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
-        ,wt_huff<rrr_vector<63>, rrr_vector<63>::rank_1_type, rrr_vector<63>::select_1_type, rrr_vector<63>::select_0_type, int_tree<>>
-        ,wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
-        ,wt_int<rrr_vector<15>>
-        ,wt_int<>
-        ,wt_int<rrr_vector<63>>
-        ,wt_rlmn<bit_vector, rank_support_v5<>, select_support_mcl<1>, wt_int<>>
-        > Implementations;
+//wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+wt_gmr_1<>
+//		,wt_gmr_2<>
+//		,wt_gmr_3<>
+//      ,wt_huff<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+//      ,wt_huff<rrr_vector<63>, rrr_vector<63>::rank_1_type, rrr_vector<63>::select_1_type, rrr_vector<63>::select_0_type, int_tree<>>
+//     ,wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+//     ,wt_int<rrr_vector<15>>
+//     ,wt_int<>
+//     ,wt_int<rrr_vector<63>>
+//     ,wt_rlmn<bit_vector, rank_support_v5<>, select_support_mcl<1>, wt_int<>>
+> Implementations;
 
 TYPED_TEST_CASE(WtIntTest, Implementations);
 
