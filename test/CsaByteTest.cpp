@@ -24,20 +24,19 @@ class CsaByteTest : public ::testing::Test { };
 
 using testing::Types;
 
-typedef Types<//csa_wt<>,
-csa_sada<>,
-//        csa_sada<enc_vector<coder::fibonacci>>,
-         csa_sada<enc_vector<coder::elias_gamma>>,
-         /*
-                 csa_wt<wt_huff<>, 8, 16, text_order_sa_sampling<>>,
-                 csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>>,
-                 csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, int_vector<>,
-                 succinct_byte_alphabet<bit_vector, rank_support_v<>, select_support_mcl<>>>,
-                 csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, int_vector<>,
-                 succinct_byte_alphabet<>>,
-         */
-         csa_bitcompressed<>
-         > Implementations;
+typedef Types<
+csa_wt<>,
+       csa_sada<>,
+       csa_sada<enc_vector<coder::fibonacci>>,
+       csa_sada<enc_vector<coder::elias_gamma>>,
+       csa_wt<wt_huff<>, 8, 16, text_order_sa_sampling<>>,
+       csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>>,
+       csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, int_vector<>,
+       succinct_byte_alphabet<bit_vector, rank_support_v<>, select_support_mcl<>>>,
+       csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, int_vector<>,
+       succinct_byte_alphabet<>>,
+       csa_bitcompressed<>
+       > Implementations;
 
 TYPED_TEST_CASE(CsaByteTest, Implementations);
 
@@ -120,6 +119,11 @@ TYPED_TEST(CsaByteTest, TextAccess)
         ASSERT_EQ(n, csa.size());
         for (size_type j=0; j<n; ++j) {
             ASSERT_EQ(text[j], csa.text[j])<<" j="<<j;
+        }
+        auto len = std::min(csa.size(), std::max(csa.size()/10, 20ULL));
+        auto ex_text = extract(csa, 0, len-1);
+        for (size_type j=0; j<len; ++j) {
+            ASSERT_EQ(text[j], (decltype(text[j]))ex_text[j])<<" j="<<j;
         }
     }
 }
