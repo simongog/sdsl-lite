@@ -436,7 +436,7 @@ typename t_csa::size_type extract(
     return extract(csa, begin, end, text, extract_tag);
 }
 
-//! Specialization of extract for \f$\Psi\f$-function based CSAs
+//! Specialization of extract for LF-function based CSAs
 template<class t_csa, class t_text_iter>
 typename t_csa::size_type extract(
     const t_csa& csa,
@@ -448,10 +448,17 @@ typename t_csa::size_type extract(
 {
     assert(end < csa.size());
     assert(begin <= end);
-    typename t_csa::size_type steps = end-begin+1;
-    for (typename t_csa::size_type order = csa.isa[end];  steps != 0; --steps) {
-        text[steps-1] = first_row_symbol(order, csa);
-        if (steps != 0) order = csa.lf[order];
+    auto steps = end-begin+1;
+    if (steps > 0) {
+        auto order = csa.isa[end];
+        text[--steps] = first_row_symbol(order, csa);
+        while (steps != 0) {
+            auto rc = csa.wavelet_tree.inverse_select(order);
+            auto j = rc.first;
+            auto c = rc.second;
+            order = csa.C[ csa.char2comp[c] ] + j;
+            text[--steps] = c;
+        }
     }
     return end-begin+1;
 }
