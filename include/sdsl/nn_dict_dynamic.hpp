@@ -70,8 +70,6 @@ class nn_dict_dynamic
             return m_size;
         }
 
-
-
         //! Constructor
         /*! \param n Number of supported bits
          */
@@ -134,6 +132,10 @@ class nn_dict_dynamic
                 m_size = std::move(nn.m_size);
                 m_offset = std::move(nn.m_offset);
                 m_tree = std::move(nn.m_tree);
+                // set nn to default-constructor state
+                nn.m_size = 0;
+                nn.m_depth = 0;
+                nn.m_v_begin_leaves = 0;
             }
             return *this;
         }
