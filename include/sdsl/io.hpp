@@ -279,7 +279,7 @@ void load_vector(std::vector<T>& vec, std::istream& in)
     }
 }
 
-template<format_type F, class X>
+template<format_type F, typename X>
 void write_structure(const X& x, std::ostream& out)
 {
     std::unique_ptr<structure_tree_node> st_node(new structure_tree_node("name","type"));
@@ -291,6 +291,26 @@ void write_structure(const X& x, std::ostream& out)
         }
     }
 }
+
+template<format_type F, typename... Xs>
+void write_structure(std::ostream& out, Xs... xs)
+{
+    typedef std::unique_ptr<structure_tree_node> up_stn_type;
+    up_stn_type st_node(new structure_tree_node("name","type"));
+    _write_structure(st_node, xs...);
+    sdsl::write_structure_tree<F>(st_node.get(), out);
+}
+
+template<typename X, typename... Xs>
+void _write_structure(std::unique_ptr<structure_tree_node>& st_node, X x, Xs... xs)
+{
+    nullstream ns;
+    x.serialize(ns, st_node.get(), "");
+    _write_structure(st_node, xs...);
+}
+
+inline
+void _write_structure(std::unique_ptr<structure_tree_node>&) {}
 
 //! Internal function used by csXprintf
 uint64_t _parse_number(std::string::const_iterator& c, const std::string::const_iterator& end);
