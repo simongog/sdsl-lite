@@ -89,18 +89,18 @@ using testing::Types;
 // TODO: * add test cases for range_search_2d
 
 typedef Types<
-//wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
-wt_gmr_1<>
-//		,wt_gmr_2<>
-//		,wt_gmr_3<>
-//      ,wt_huff<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
-//      ,wt_huff<rrr_vector<63>, rrr_vector<63>::rank_1_type, rrr_vector<63>::select_1_type, rrr_vector<63>::select_0_type, int_tree<>>
-//     ,wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
-//     ,wt_int<rrr_vector<15>>
-//     ,wt_int<>
-//     ,wt_int<rrr_vector<63>>
-//     ,wt_rlmn<bit_vector, rank_support_v5<>, select_support_mcl<1>, wt_int<>>
-> Implementations;
+wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+//		,wt_gmr_1<> //access is too slow for large alphabets
+        ,wt_gmr_2<>
+        ,wt_gmr_3<>
+        ,wt_huff<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+        ,wt_huff<rrr_vector<63>, rrr_vector<63>::rank_1_type, rrr_vector<63>::select_1_type, rrr_vector<63>::select_0_type, int_tree<>>
+        ,wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
+        ,wt_int<rrr_vector<15>>
+        ,wt_int<>
+        ,wt_int<rrr_vector<63>>
+        ,wt_rlmn<bit_vector, rank_support_v5<>, select_support_mcl<1>, wt_int<>>
+        > Implementations;
 
 TYPED_TEST_CASE(WtIntTest, Implementations);
 

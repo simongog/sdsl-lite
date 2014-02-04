@@ -1,3 +1,27 @@
+/* sdsl - succinct data structures library
+    Copyright (C) 2014 Simon Gog
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see http://www.gnu.org/licenses/ .
+*/
+/*! \file wt_gmr.hpp
+    \brief wt_gmr.hpp contains a specialized class to support select, rank
+			and access on inputs over a large alphabet.
+    \author Alexander Diehm, Timo Beller, Simon Gog
+*/
+#ifndef INCLUDED_SDSL_WT_GMR
+#define INCLUDED_SDSL_WT_GMR
+
 #include <sdsl/bit_vectors.hpp>
 #include <sdsl/int_vector.hpp>
 
@@ -17,9 +41,9 @@ class wt_gmr_1
         t_select sls1;
         t_select_zero sls0;
         uint64_t m_size; // input length
-        uint64_t m_sigma = 0; // maximum character + 1
+        uint64_t m_max_symbol = 0; // maximum character + 1
         uint64_t m_blocks; // blocks per character
-        uint64_t m_test_sigma =0;
+        uint64_t m_sigma =0;
 
     public:
         typedef int_vector<>::size_type size_type;
@@ -28,7 +52,7 @@ class wt_gmr_1
         typedef int_alphabet_tag alphabet_category;
         enum {lex_ordered=0};
 
-        const size_type&       sigma = m_test_sigma; // Todo
+        const size_type&       sigma = m_sigma; // Todo
 
         wt_gmr_1() {}
 
@@ -36,19 +60,19 @@ class wt_gmr_1
         wt_gmr_1(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
             // Determin max. symbol
             for (uint64_t i=0; i<m_size; ++i) {
-                if (m_sigma < input[i]) m_sigma = input[i];
+                if (m_max_symbol < input[i]) m_max_symbol = input[i];
             }
-            ++m_sigma;
+            ++m_max_symbol;
 
             // Create and fill b
-            m_blocks = (m_size+m_sigma-1)/m_sigma;
-            bit_vector b(m_size+m_sigma*m_blocks,0);
-            int_vector<> symbols(m_sigma,0,bits::hi(m_size)+1);
+            m_blocks = (m_size+m_max_symbol-1)/m_max_symbol;
+            bit_vector b(m_size+m_max_symbol*m_blocks,0);
+            int_vector<> symbols(m_max_symbol,0,bits::hi(m_size)+1);
             {
-                int_vector<> tmp(m_sigma*m_blocks,0,bits::hi(m_sigma)+1);
+                int_vector<> tmp(m_max_symbol*m_blocks,0,bits::hi(m_max_symbol)+1);
 
                 for (uint64_t i=0, offset=0, j=0; i<m_size; ++i, ++j) {
-                    if (j==m_sigma) {
+                    if (j==m_max_symbol) {
                         ++offset;
                         j = 0;
                     }
@@ -64,7 +88,7 @@ class wt_gmr_1
                 for (uint64_t i=0,l=0; i<tmp.size(); ++i,++l) {
                     for (uint64_t j=0; j<tmp[i]; ++j) b[l++]=1;
                 }
-                //calc m_test_sigma
+                //calc m_sigma
                 bool write = true;
                 uint64_t blocks=0;
                 for (uint64_t i=0; i<b.size(); ++i) {
@@ -74,7 +98,7 @@ class wt_gmr_1
                     }
                     if (b[i]) {
                         if (write) {
-                            ++m_test_sigma;
+                            ++m_sigma;
                             write = false;
                         }
                     } else ++blocks;
@@ -86,14 +110,14 @@ class wt_gmr_1
             util::init_support(sls1, &m_bv);
 
             // Create and fill e
-            e = int_vector<>(m_size,0,bits::hi(m_sigma)+1);
-            for (uint64_t i=0, tmp=0, sum=0; i<m_sigma; ++i) {
+            e = int_vector<>(m_size,0,bits::hi(m_max_symbol)+1);
+            for (uint64_t i=0, tmp=0, sum=0; i<m_max_symbol; ++i) {
                 tmp = symbols[i];
                 symbols[i] = sum;
                 sum += tmp;
             }
             for (uint64_t i=0; i<m_size;) {
-                for (uint64_t j=0; j<m_sigma and i<m_size; ++i, ++j) {
+                for (uint64_t j=0; j<m_max_symbol and i<m_size; ++i, ++j) {
                     e[symbols[input[i]]++] = j;
                 }
             }
@@ -107,9 +131,9 @@ class wt_gmr_1
                 util::swap_support(sls0, fs.sls0, &m_bv, &(fs.m_bv));
                 util::swap_support(sls1, fs.sls1, &m_bv, &(fs.m_bv));
                 std::swap(m_size, fs.m_size);
-                std::swap(m_sigma,  fs.m_sigma);
+                std::swap(m_max_symbol,  fs.m_max_symbol);
                 std::swap(m_blocks,  fs.m_blocks);
-                std::swap(m_test_sigma,  fs.m_test_sigma);
+                std::swap(m_sigma,  fs.m_sigma);
             }
         }
 
@@ -120,7 +144,7 @@ class wt_gmr_1
 
         value_type operator[](size_type i)const {
             assert(i<m_size);
-            size_type block = i/m_sigma, val = i%m_sigma, search_begin, search_end, j;
+            size_type block = i/m_max_symbol, val = i%m_max_symbol, search_begin, search_end, j;
             while (true) {
                 if (block==0) {
                     j = 0;
@@ -150,7 +174,7 @@ class wt_gmr_1
 
         std::pair<size_type, value_type> inverse_select(size_type i)const {
             assert(i<m_size);
-            size_type block = i/m_sigma, val = i%m_sigma, offset = 0, search_begin, search_end, j;
+            size_type block = i/m_max_symbol, val = i%m_max_symbol, offset = 0, search_begin, search_end, j;
             while (true) {
                 if (block==0) {
                     j = 0;
@@ -204,11 +228,11 @@ class wt_gmr_1
 
         size_type select(size_type i, value_type c)const {
             size_type k = (c==0?0:sls0(c*m_blocks)-c*m_blocks+1)+i;
-            return (sls1(k)-k+1)*m_sigma+e[k-1]-c*m_blocks*m_sigma;
+            return (sls1(k)-k+1)*m_max_symbol+e[k-1]-c*m_blocks*m_max_symbol;
         }
 
         size_type rank(size_type i, value_type c)const {
-            if (c>m_sigma-1) return 0;
+            if (c>m_max_symbol-1) return 0;
             if (i<=0) return 0;
 
             size_type ones_before_cblock;
@@ -217,16 +241,16 @@ class wt_gmr_1
             size_type offset=0;
             if (c!=0) {
                 ones_before_cblock = sls0(c*m_blocks)-c*m_blocks+1;
-                search_begin = sls0(c*m_blocks+(i-1)/m_sigma)-(c*m_blocks+(i-1)/m_sigma)+1;
-                search_end = sls0(c*m_blocks+(i-1)/m_sigma+1)-(c*m_blocks+(i-1)/m_sigma+1)+1;
+                search_begin = sls0(c*m_blocks+(i-1)/m_max_symbol)-(c*m_blocks+(i-1)/m_max_symbol)+1;
+                search_end = sls0(c*m_blocks+(i-1)/m_max_symbol+1)-(c*m_blocks+(i-1)/m_max_symbol+1)+1;
             } else {
                 ones_before_cblock = 0;
-                search_begin = ((i-1)<m_sigma?0:sls0((i-1)/m_sigma)-(i-1)/m_sigma+1);
-                search_end = sls0((i-1)/m_sigma+1)-((i-1)/m_sigma+1)+1;
+                search_begin = ((i-1)<m_max_symbol?0:sls0((i-1)/m_max_symbol)-(i-1)/m_max_symbol+1);
+                search_end = sls0((i-1)/m_max_symbol+1)-((i-1)/m_max_symbol+1)+1;
                 if (search_end-search_begin==0) return 0;
             }
 
-            size_type val = (i-1)%m_sigma;
+            size_type val = (i-1)%m_max_symbol;
             if (search_end-search_begin<50) { // After a short test, this seemd to be a good threshold
                 while (search_begin < search_end and e[search_begin] <= val) {
                     ++search_begin;
@@ -241,9 +265,9 @@ class wt_gmr_1
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
-            written_bytes += write_member(m_sigma, out, child, "sigma");
+            written_bytes += write_member(m_max_symbol, out, child, "sigma");
             written_bytes += write_member(m_blocks, out, child, "blocks");
-            written_bytes += write_member(m_test_sigma, out, child, "test_sigma");
+            written_bytes += write_member(m_sigma, out, child, "test_sigma");
             written_bytes += m_bv.serialize(out, child, "b");
             written_bytes += e.serialize(out, child, "e");
             written_bytes += sls0.serialize(out, child, "sls0");
@@ -255,9 +279,9 @@ class wt_gmr_1
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
             read_member(m_size, in);
-            read_member(m_sigma, in);
+            read_member(m_max_symbol, in);
             read_member(m_blocks, in);
-            read_member(m_test_sigma, in);
+            read_member(m_sigma, in);
             m_bv.load(in);
             e.load(in);
             sls0.load(in, &m_bv);
@@ -286,10 +310,10 @@ class wt_gmr_2
 
         uint64_t m_size; // input length
         uint64_t m_t = 32; // shortcut value todo: set via template or construct
-        uint64_t m_sigma = 0; // maximum character + 1
+        uint64_t m_max_symbol = 0; // maximum character + 1
         uint64_t m_chunks; // number of chunks
 
-        uint64_t m_test_sigma = 0;
+        uint64_t m_sigma = 0;
 
     public:
         typedef int_vector<>::size_type size_type;
@@ -298,7 +322,7 @@ class wt_gmr_2
         typedef int_alphabet_tag alphabet_category;
         enum {lex_ordered=0};
 
-        const size_type&       sigma = m_test_sigma; // Todo
+        const size_type&       sigma = m_sigma; // Todo
 
         wt_gmr_2() {}
 
@@ -306,40 +330,40 @@ class wt_gmr_2
         wt_gmr_2(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
             // Determin max. symbol
             for (uint64_t i=0; i<m_size; ++i) {
-                if (m_sigma < input[i]) m_sigma = input[i];
+                if (m_max_symbol < input[i]) m_max_symbol = input[i];
             }
-            ++m_sigma;
+            ++m_max_symbol;
 
-            m_chunks = (m_size+m_sigma-1)/m_sigma;
+            m_chunks = (m_size+m_max_symbol-1)/m_max_symbol;
 
 
-            pi = int_vector<>(m_size,0,bits::hi(m_sigma-1)+1);
+            pi = int_vector<>(m_size,0,bits::hi(m_max_symbol-1)+1);
             {
                 uint64_t x_pos = 0;
-                bit_vector x(m_sigma*m_chunks+m_size);
+                bit_vector x(m_max_symbol*m_chunks+m_size+1,0);
 
                 //fill pi and x for every chunk
                 for (uint64_t i=0; i<m_chunks; ++i) {
-                    int_vector<> symbols(m_sigma,0,bits::hi(m_sigma-1)+1);
+                    int_vector<> symbols(m_max_symbol,0,bits::hi(m_max_symbol-1)+1);
 
                     //calc symbols
-                    for (uint64_t j=i*m_sigma; j<(i+1)*m_sigma and j<m_size; ++j) {
+                    for (uint64_t j=i*m_max_symbol; j<(i+1)*m_max_symbol and j<m_size; ++j) {
                         ++symbols[input[j]];
                     }
                     //calc x
-                    for (uint64_t j=0; j<m_sigma; ++j,++x_pos) {
+                    for (uint64_t j=0; j<m_max_symbol; ++j,++x_pos) {
                         for (uint64_t k=0; k<symbols[j]; ++k) x[++x_pos]=1;
                     }
 
                     //calc symbols prefix sum
-                    for (uint64_t j=0, tmp=0, sum=0; j<m_sigma; ++j) {
+                    for (uint64_t j=0, tmp=0, sum=0; j<m_max_symbol; ++j) {
                         tmp = symbols[j];
                         symbols[j] = sum;
                         sum += tmp;
                     }
                     //calc pi
-                    for (uint64_t j=i*m_sigma, k=0; j<(i+1)*m_sigma and j<m_size; ++j,++k) {
-                        pi[i*m_sigma+(symbols[input[j]]++)] = k;
+                    for (uint64_t j=i*m_max_symbol, k=0; j<(i+1)*m_max_symbol and j<m_size; ++j,++k) {
+                        pi[i*m_max_symbol+(symbols[input[j]]++)] = k;
                     }
                 }
                 m_xv = t_bitvector(std::move(x));
@@ -349,11 +373,11 @@ class wt_gmr_2
             }
             //calc b
             {
-                bit_vector b(m_size+m_sigma*m_chunks,0);
-                int_vector<> tmp(m_sigma*m_chunks,0,bits::hi(m_sigma-1)+1);
+                bit_vector b(m_size+m_max_symbol*m_chunks,0);
+                int_vector<> tmp(m_max_symbol*m_chunks,0,bits::hi(m_max_symbol-1)+1);
 
                 for (uint64_t i=0, offset=0, j=0; i<m_size; ++i, ++j) {
-                    if (j==m_sigma) {
+                    if (j==m_max_symbol) {
                         ++offset;
                         j = 0;
                     }
@@ -364,7 +388,7 @@ class wt_gmr_2
                     for (uint64_t j=0; j<tmp[i]; ++j) b[l++]=1;
                 }
 
-                //calc m_test_sigma
+                //calc m_sigma
                 bool write = true;
                 uint64_t blocks=0;
                 for (uint64_t i=0; i<b.size(); ++i) {
@@ -374,7 +398,7 @@ class wt_gmr_2
                     }
                     if (b[i]) {
                         if (write) {
-                            ++m_test_sigma;
+                            ++m_sigma;
                             write = false;
                         }
                     } else ++blocks;
@@ -387,13 +411,13 @@ class wt_gmr_2
             //calc inverse pi
             {
                 bit_vector ipi(m_size);
-                bit_vector pitmp(m_sigma,0);
+                bit_vector pitmp(m_max_symbol,0);
                 //calc pointer pos
                 for (uint64_t i=0; i<m_chunks; ++i) {
-                    bit_vector pitmp(m_sigma,0);
-                    for (uint64_t j = i*m_sigma,k=0; j<(i+1)*m_sigma and j<m_size; ++j,++k) {
+                    bit_vector pitmp(m_max_symbol,0);
+                    for (uint64_t j = i*m_max_symbol,k=0; j<(i+1)*m_max_symbol and j<m_size; ++j,++k) {
                         if (!pitmp[k]) {
-                            uint64_t steps =0,pos_pi=j,pos_pitmp=k,offset =i*m_sigma,cycle_length=0;
+                            uint64_t steps =0,pos_pi=j,pos_pitmp=k,offset =i*m_max_symbol,cycle_length=0;
                             do {
                                 pitmp[pos_pitmp]=1;
                                 if (steps==m_t) {
@@ -417,13 +441,13 @@ class wt_gmr_2
                 util::init_support(piv_r1, &m_piv);
 
                 //calc s
-                s= int_vector<>(piv_r1(m_size),0,bits::hi(m_sigma-1)+1);
+                s= int_vector<>(piv_r1(m_size),0,bits::hi(m_max_symbol-1)+1);
 
                 for (uint64_t i=0; i<m_chunks; ++i) {
-                    //bit_vector pitmp(m_sigma,0);
-                    for (uint64_t j = i*m_sigma,k=0; j<(i+1)*m_sigma and j<m_size; ++j,++k) {
+                    //bit_vector pitmp(m_max_symbol,0);
+                    for (uint64_t j = i*m_max_symbol,k=0; j<(i+1)*m_max_symbol and j<m_size; ++j,++k) {
                         if (!pitmp[k]) {
-                            uint64_t steps =0,pos_pi=j,pos_pitmp=k,offset =i*m_sigma,cycle_length=0,back_pointer=k;
+                            uint64_t steps =0,pos_pi=j,pos_pitmp=k,offset =i*m_max_symbol,cycle_length=0,back_pointer=k;
                             do {
                                 pitmp[pos_pitmp]=1;
                                 if (steps==m_t) {
@@ -465,9 +489,9 @@ class wt_gmr_2
                 util::swap_support(piv_r1, fs.piv_r1, &m_piv, &(fs.m_piv));
                 std::swap(m_size, fs.m_size);
                 std::swap(m_t, fs.m_t);
-                std::swap(m_sigma,  fs.m_sigma);
+                std::swap(m_max_symbol,  fs.m_max_symbol);
                 std::swap(m_chunks,  fs.m_chunks);
-                std::swap(m_test_sigma,  fs.m_test_sigma);
+                std::swap(m_sigma,  fs.m_sigma);
             }
         }
 
@@ -477,36 +501,36 @@ class wt_gmr_2
         }
 
         value_type operator[](size_type i)const {
-            uint64_t chunk = i/m_sigma;
+            uint64_t chunk = i/m_max_symbol;
             bool jump=true;
 
-            uint64_t x=i, value=i-(chunk*m_sigma);
+            uint64_t x=i, value=i-(chunk*m_max_symbol);
             while (pi[x]!=value) {
                 if (jump and m_piv[x]==1) {
-                    x  = s[piv_r1(x)]+(chunk*m_sigma);
+                    x  = s[piv_r1(x)]+(chunk*m_max_symbol);
                     jump = false;
                 } else {
-                    x = pi[x]+(chunk*m_sigma);
+                    x = pi[x]+(chunk*m_max_symbol);
                 }
             }
-            return x_sls1(x+1)-x-(chunk*m_sigma)-1;
+            return x_sls1(x+1)-x-(chunk*m_max_symbol)-1;
         }
 
         std::pair<size_type, value_type>	inverse_select(size_type i)const {
-            uint64_t chunk = i/m_sigma;
+            uint64_t chunk = i/m_max_symbol;
             bool jump=true;
 
-            uint64_t x=i, value=i-(chunk*m_sigma);
+            uint64_t x=i, value=i-(chunk*m_max_symbol);
             while (pi[x]!=value) {
                 if (jump and m_piv[x]==1) {
-                    x  = s[piv_r1(x)]+(chunk*m_sigma);
+                    x  = s[piv_r1(x)]+(chunk*m_max_symbol);
                     jump = false;
                 } else {
-                    x = pi[x]+(chunk*m_sigma);
+                    x = pi[x]+(chunk*m_max_symbol);
                 }
             }
             uint64_t tmp = x_sls1(x+1);
-            uint64_t c = tmp-x-(chunk*m_sigma)-1;
+            uint64_t c = tmp-x-(chunk*m_max_symbol)-1;
             uint64_t c_before_chunk;
             if (c==0) {
                 if (chunk==0) {
@@ -518,7 +542,7 @@ class wt_gmr_2
                 uint64_t ones_before_c = b_sls0(c*m_chunks)-(c*m_chunks)+1;
                 c_before_chunk = b_sls0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
             }
-            uint64_t c_in_chunk = tmp-x_sls0(c+1+chunk*m_sigma);
+            uint64_t c_in_chunk = tmp-x_sls0(c+1+chunk*m_max_symbol)-1;
             return std::make_pair(c_before_chunk+c_in_chunk,c);
         }
 
@@ -533,23 +557,23 @@ class wt_gmr_2
                 } else {
                     c_ones_before_chunk = b_sls0(chunk)-chunk+1;
                 }
-                pi_pos = i-c_ones_before_chunk-1+chunk*m_sigma;
+                pi_pos = i-c_ones_before_chunk-1+chunk*m_max_symbol;
             } else {
                 uint64_t ones_before_c = b_sls0(c*m_chunks)-(c*m_chunks)+1;
                 chunk = b_sls1(ones_before_c+i)-ones_before_c-(c*m_chunks)-i+1;
                 c_ones_before_chunk = b_sls0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
-                pi_pos = x_sls0(chunk*m_sigma+c+1)+(i-c_ones_before_chunk)-chunk*m_sigma-c-1;
+                pi_pos = x_sls0(chunk*m_max_symbol+c+1)+(i-c_ones_before_chunk)-chunk*m_max_symbol-c-1;
             }
 
-            return pi[pi_pos]+chunk*m_sigma;
+            return pi[pi_pos]+chunk*m_max_symbol;
         }
 
         size_type rank(size_type i, value_type c)const {
 
-            if (c>m_sigma-1) return 0;
+            if (c>m_max_symbol-1) return 0;
             if (i<=0) return 0;
 
-            uint64_t chunk = (i-1)/m_sigma;
+            uint64_t chunk = (i-1)/m_max_symbol;
             uint64_t c_ones_before_chunk;
 
             if (c==0) {
@@ -564,10 +588,10 @@ class wt_gmr_2
             }
             uint64_t c_ones_in_chunk = 0;
 
-            size_type search_begin = x_sls0(chunk*m_sigma+1+c)-(chunk*m_sigma+1+c)+1;
-            size_type search_end = x_sls0(chunk*m_sigma+2+c)-(chunk*m_sigma+2+c)+1;
+            size_type search_begin = x_sls0(chunk*m_max_symbol+1+c)-(chunk*m_max_symbol+1+c)+1;
+            size_type search_end = x_sls0(chunk*m_max_symbol+2+c)-(chunk*m_max_symbol+2+c)+1;
 
-            size_type val = (i-1)%m_sigma;
+            size_type val = (i-1)%m_max_symbol;
             if (search_end-search_begin<50) { // After a short test, this seemd to be a good threshold
                 while (search_begin < search_end and pi[search_begin] <= val) {
                     ++search_begin;
@@ -584,10 +608,10 @@ class wt_gmr_2
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
-            written_bytes += write_member(m_sigma, out, child, "sigma");
+            written_bytes += write_member(m_max_symbol, out, child, "sigma");
             written_bytes += write_member(m_chunks, out, child, "chunks");
             written_bytes += write_member(m_t, out, child, "t");
-            written_bytes += write_member(m_test_sigma, out, child, "test_sigma");
+            written_bytes += write_member(m_sigma, out, child, "test_sigma");
             written_bytes += m_bv.serialize(out, child, "b");
             written_bytes += m_xv.serialize(out, child, "x");
             written_bytes += m_piv.serialize(out, child, "piv");
@@ -595,8 +619,8 @@ class wt_gmr_2
             written_bytes += s.serialize(out, child, "s");
             written_bytes += b_sls0.serialize(out, child, "b_sls0");
             written_bytes += b_sls1.serialize(out, child, "b_sls1");
-            written_bytes += x_sls1.serialize(out, child, "x_sls0");
-            written_bytes += x_sls0.serialize(out, child, "x_sls1");
+            written_bytes += x_sls0.serialize(out, child, "x_sls0");
+            written_bytes += x_sls1.serialize(out, child, "x_sls1");
             written_bytes += piv_r1.serialize(out, child, "piv_r1");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
@@ -604,10 +628,10 @@ class wt_gmr_2
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
             read_member(m_size, in);
-            read_member(m_sigma, in);
+            read_member(m_max_symbol, in);
             read_member(m_chunks, in);
             read_member(m_t, in);
-            read_member(m_test_sigma, in);
+            read_member(m_sigma, in);
             m_bv.load(in);
             m_xv.load(in);
             m_piv.load(in);
@@ -621,7 +645,6 @@ class wt_gmr_2
         }
 };
 
-//tmp
 template<class t_bitvector = bit_vector,
          class t_select = typename t_bitvector::select_1_type,
          class t_select_zero = typename t_bitvector::select_0_type,
@@ -643,10 +666,10 @@ class wt_gmr_3
 
         uint64_t m_size; // input length
         uint64_t m_t = 32; // shortcut value
-        uint64_t m_sigma = 0; // maximum character + 1
+        uint64_t m_max_symbol = 0; // maximum character + 1
         uint64_t m_chunks; // number of chunks
         uint64_t m_chunksize;
-        uint64_t m_test_sigma = 0 ;
+        uint64_t m_sigma = 0 ;
 
     public:
         typedef int_vector<>::size_type size_type;
@@ -655,7 +678,7 @@ class wt_gmr_3
         typedef int_alphabet_tag alphabet_category;
         enum {lex_ordered=0};
 
-        const size_type&       sigma = m_test_sigma; // Todo
+        const size_type&       sigma = m_sigma; // Todo
 
         wt_gmr_3() {}
 
@@ -663,33 +686,33 @@ class wt_gmr_3
         wt_gmr_3(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
             // Determin max. symbol
             for (uint64_t i=0; i<m_size; ++i) {
-                if (m_sigma < input[i]) m_sigma = input[i];
+                if (m_max_symbol < input[i]) m_max_symbol = input[i];
             }
-            ++m_sigma;
+            ++m_max_symbol;
 
-            m_chunksize = (1 << (bits::hi(m_sigma-1)+1));
+            m_chunksize = (1 << (bits::hi(m_max_symbol-1)+1));
             m_chunks = (m_size+m_chunksize-1)/m_chunksize;
 
-            pi = int_vector<>(m_size,0,bits::hi(m_sigma-1)+1);
+            pi = int_vector<>(m_size,0,bits::hi(m_max_symbol-1)+1);
             {
                 uint64_t x_pos = 0;
-                bit_vector x(m_size+m_chunks*m_sigma,0);
+                bit_vector x(m_size+m_chunks*m_max_symbol+1,0);
 
                 //fill pi and x for every chunk
                 for (uint64_t i=0; i<m_chunks; ++i) {
-                    int_vector<> symbols(m_sigma,0,bits::hi(m_sigma-1)+2);
+                    int_vector<> symbols(m_max_symbol,0,bits::hi(m_max_symbol-1)+2);
 
                     //calc symbols
                     for (uint64_t j=i*m_chunksize; j<(i+1)*m_chunksize and j<m_size; ++j) {
                         ++symbols[input[j]];
                     }
                     //calc x
-                    for (uint64_t j=0; j<m_sigma; ++j,++x_pos) {
+                    for (uint64_t j=0; j<m_max_symbol; ++j,++x_pos) {
                         for (uint64_t k=0; k<symbols[j]; ++k) x[++x_pos]=1;
                     }
 
                     //calc symbols prefix sum
-                    for (uint64_t j=0, tmp=0, sum=0; j<m_sigma; ++j) {
+                    for (uint64_t j=0, tmp=0, sum=0; j<m_max_symbol; ++j) {
                         tmp = symbols[j];
                         symbols[j] = sum;
                         sum += tmp;
@@ -706,8 +729,8 @@ class wt_gmr_3
             }
             //calc b
             {
-                bit_vector b(m_size+m_sigma*m_chunks,0);
-                int_vector<> tmp(m_sigma*m_chunks,0,bits::hi(m_sigma-1)+2);
+                bit_vector b(m_size+m_max_symbol*m_chunks,0);
+                int_vector<> tmp(m_max_symbol*m_chunks,0,bits::hi(m_max_symbol-1)+2);
 
                 for (uint64_t i=0, offset=0, j=0; i<m_size; ++i, ++j) {
                     if (j==m_chunksize) {
@@ -721,7 +744,7 @@ class wt_gmr_3
                     for (uint64_t j=0; j<tmp[i]; ++j) b[l++]=1;
                 }
 
-                //calc m_test_sigma
+                //calc m_sigma
                 bool write = true;
                 uint64_t blocks=0;
                 for (uint64_t i=0; i<b.size(); ++i) {
@@ -731,7 +754,7 @@ class wt_gmr_3
                     }
                     if (b[i]) {
                         if (write) {
-                            ++m_test_sigma;
+                            ++m_sigma;
                             write = false;
                         }
                     } else ++blocks;
@@ -773,7 +796,7 @@ class wt_gmr_3
                 util::init_support(piv_r1, &m_piv);
 
                 //calc s
-                s= int_vector<>(piv_r1(m_size),0,bits::hi(m_sigma-1)+1);
+                s= int_vector<>(piv_r1(m_size),0,bits::hi(m_max_symbol-1)+1);
 
                 for (uint64_t i=0; i<m_chunks; ++i) {
                     for (uint64_t j = i*m_chunksize,k=0; j<(i+1)*m_chunksize and j<m_size; ++j,++k) {
@@ -820,10 +843,10 @@ class wt_gmr_3
                 util::swap_support(piv_r1, fs.piv_r1, &m_piv, &(fs.m_piv));
                 std::swap(m_size, fs.m_size);
                 std::swap(m_t, fs.m_t);
-                std::swap(m_sigma,  fs.m_sigma);
+                std::swap(m_max_symbol,  fs.m_max_symbol);
                 std::swap(m_chunks,  fs.m_chunks);
                 std::swap(m_chunksize,  fs.m_chunksize);
-                std::swap(m_test_sigma,  fs.m_test_sigma);
+                std::swap(m_sigma,  fs.m_sigma);
             }
         }
 
@@ -845,7 +868,7 @@ class wt_gmr_3
                     x = pi[x]+(chunk*m_chunksize);
                 }
             }
-            return x_sls1(x+1)-x-(chunk*m_sigma)-1;
+            return x_sls1(x+1)-x-(chunk*m_max_symbol)-1;
         }
 
         std::pair<size_type, value_type>	inverse_select(size_type i)const {
@@ -862,7 +885,7 @@ class wt_gmr_3
                 }
             }
             uint64_t tmp = x_sls1(x+1);
-            uint64_t c = tmp-x-(chunk*m_sigma)-1;
+            uint64_t c = tmp-x-(chunk*m_max_symbol)-1;
             uint64_t c_before_chunk;
             if (c==0) {
                 if (chunk==0) {
@@ -874,7 +897,7 @@ class wt_gmr_3
                 uint64_t ones_before_c = b_sls0(c*m_chunks)-(c*m_chunks)+1;
                 c_before_chunk = b_sls0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
             }
-            uint64_t c_in_chunk = tmp-x_sls0(c+1+chunk*m_sigma);
+            uint64_t c_in_chunk = tmp-x_sls0(c+1+chunk*m_max_symbol)-1;
             return std::make_pair(c_before_chunk+c_in_chunk,c);
         }
 
@@ -894,15 +917,14 @@ class wt_gmr_3
                 uint64_t ones_before_c = b_sls0(c*m_chunks)-(c*m_chunks)+1;
                 chunk = b_sls1(ones_before_c+i)-ones_before_c-(c*m_chunks)-i+1;
                 c_ones_before_chunk = b_sls0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
-                pi_pos = x_sls0(chunk*m_sigma+c+1)+(i-c_ones_before_chunk)-chunk*m_sigma-c-1;
+                pi_pos = x_sls0(chunk*m_max_symbol+c+1)+(i-c_ones_before_chunk)-chunk*m_max_symbol-c-1;
             }
 
             return pi[pi_pos]+chunk*m_chunksize;
         }
 
         size_type rank(size_type i, value_type c)const {
-
-            if (c>m_sigma-1) return 0;
+            if (c>m_max_symbol-1) return 0;
             if (i<=0) return 0;
 
             uint64_t chunk = (i-1)/m_chunksize;
@@ -920,8 +942,8 @@ class wt_gmr_3
             }
             uint64_t c_ones_in_chunk = 0;
 
-            size_type search_begin = x_sls0(chunk*m_sigma+1+c)-(chunk*m_sigma+1+c)+1;
-            size_type search_end = x_sls0(chunk*m_sigma+2+c)-(chunk*m_sigma+2+c)+1;
+            size_type search_begin = x_sls0(chunk*m_max_symbol+1+c)-(chunk*m_max_symbol+1+c)+1;
+            size_type search_end = x_sls0(chunk*m_max_symbol+2+c)-(chunk*m_max_symbol+2+c)+1;
 
             size_type val = (i-1)%m_chunksize;
             if (search_end-search_begin<50) { // After a short test, this seemd to be a good threshold
@@ -940,11 +962,11 @@ class wt_gmr_3
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
-            written_bytes += write_member(m_sigma, out, child, "sigma");
+            written_bytes += write_member(m_max_symbol, out, child, "sigma");
             written_bytes += write_member(m_chunks, out, child, "chunks");
             written_bytes += write_member(m_chunksize, out, child, "chunksize");
             written_bytes += write_member(m_t, out, child, "t");
-            written_bytes += write_member(m_test_sigma, out, child, "test_sigma");
+            written_bytes += write_member(m_sigma, out, child, "test_sigma");
             written_bytes += m_bv.serialize(out, child, "b");
             written_bytes += m_xv.serialize(out, child, "x");
             written_bytes += m_piv.serialize(out, child, "piv");
@@ -952,8 +974,8 @@ class wt_gmr_3
             written_bytes += s.serialize(out, child, "s");
             written_bytes += b_sls0.serialize(out, child, "b_sls0");
             written_bytes += b_sls1.serialize(out, child, "b_sls1");
-            written_bytes += x_sls1.serialize(out, child, "x_sls0");
-            written_bytes += x_sls0.serialize(out, child, "x_sls1");
+            written_bytes += x_sls0.serialize(out, child, "x_sls0");
+            written_bytes += x_sls1.serialize(out, child, "x_sls1");
             written_bytes += piv_r1.serialize(out, child, "piv_r1");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
@@ -962,11 +984,11 @@ class wt_gmr_3
         //! Loads the data structure from the given istream.
         void load(std::istream& in) {
             read_member(m_size, in);
-            read_member(m_sigma, in);
+            read_member(m_max_symbol, in);
             read_member(m_chunks, in);
             read_member(m_chunksize, in);
             read_member(m_t, in);
-            read_member(m_test_sigma, in);
+            read_member(m_sigma, in);
             m_bv.load(in);
             m_xv.load(in);
             m_piv.load(in);
@@ -981,3 +1003,5 @@ class wt_gmr_3
 };
 
 }
+
+#endif
