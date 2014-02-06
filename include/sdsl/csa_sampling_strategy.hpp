@@ -135,6 +135,7 @@ class _text_order_sampling : public int_vector<t_width>
         typedef sa_sampling_tag                sampling_category;
 
         const bv_type& marked = m_marked;
+        const t_rank&  rank_marked = m_rank_marked;
 
         //! Default constructor
         _text_order_sampling() {}
@@ -800,6 +801,8 @@ class _text_order_isa_sampling_support
         t_inv_perm m_inv_perm;
 
     public:
+
+        const t_sel& select_marked = m_select_marked;
 
         //! Default constructor
         _text_order_isa_sampling_support() {}
