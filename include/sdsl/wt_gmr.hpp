@@ -36,7 +36,7 @@ class wt_gmr_1
 {
     private:
 
-        t_bitvector m_bv;
+        t_bitvector m_bv_blocks;
         int_vector<> e;
         t_select sls1;
         t_select_zero sls0;
@@ -104,10 +104,10 @@ class wt_gmr_1
                     } else ++blocks;
                 }
 
-                m_bv = t_bitvector(std::move(b));
+                m_bv_blocks = t_bitvector(std::move(b));
             }
-            util::init_support(sls0, &m_bv);
-            util::init_support(sls1, &m_bv);
+            util::init_support(sls0, &m_bv_blocks);
+            util::init_support(sls1, &m_bv_blocks);
 
             // Create and fill e
             e = int_vector<>(m_size,0,bits::hi(m_max_symbol)+1);
@@ -126,10 +126,10 @@ class wt_gmr_1
         //! Swap operator
         void swap(wt_gmr_1& fs) {
             if (this != &fs) {
-                m_bv.swap(fs.m_bv);
+                m_bv_blocks.swap(fs.m_bv_blocks);
                 e.swap(fs.e);
-                util::swap_support(sls0, fs.sls0, &m_bv, &(fs.m_bv));
-                util::swap_support(sls1, fs.sls1, &m_bv, &(fs.m_bv));
+                util::swap_support(sls0, fs.sls0, &m_bv_blocks, &(fs.m_bv_blocks));
+                util::swap_support(sls1, fs.sls1, &m_bv_blocks, &(fs.m_bv_blocks));
                 std::swap(m_size, fs.m_size);
                 std::swap(m_max_symbol,  fs.m_max_symbol);
                 std::swap(m_blocks,  fs.m_blocks);
@@ -153,7 +153,7 @@ class wt_gmr_1
                     j = sls0(block)+1;
                     search_begin = j-block;
                 }
-                if (m_bv[j]) {
+                if (m_bv_blocks[j]) {
                     search_end = sls0(block+1)-(block+1)+1;
                     if (search_end-search_begin<50) { // After a short test, this seemd to be a good threshold
                         while (search_begin < search_end and e[search_begin] <= val) {
@@ -183,7 +183,7 @@ class wt_gmr_1
                     j = sls0(block)+1;
                     search_begin = j-block;
                 }
-                if (m_bv[j]) {
+                if (m_bv_blocks[j]) {
                     search_end = sls0(block+1)-(block+1)+1;
                     offset = 0;
                     if (search_end-search_begin<50) { // After a short test, this seemd to be a good threshold
@@ -268,7 +268,7 @@ class wt_gmr_1
             written_bytes += write_member(m_max_symbol, out, child, "sigma");
             written_bytes += write_member(m_blocks, out, child, "blocks");
             written_bytes += write_member(m_sigma, out, child, "test_sigma");
-            written_bytes += m_bv.serialize(out, child, "b");
+            written_bytes += m_bv_blocks.serialize(out, child, "b");
             written_bytes += e.serialize(out, child, "e");
             written_bytes += sls0.serialize(out, child, "sls0");
             written_bytes += sls1.serialize(out, child, "sls1");
@@ -282,10 +282,10 @@ class wt_gmr_1
             read_member(m_max_symbol, in);
             read_member(m_blocks, in);
             read_member(m_sigma, in);
-            m_bv.load(in);
+            m_bv_blocks.load(in);
             e.load(in);
-            sls0.load(in, &m_bv);
-            sls1.load(in, &m_bv);
+            sls0.load(in, &m_bv_blocks);
+            sls1.load(in, &m_bv_blocks);
         }
 };
 
@@ -297,16 +297,16 @@ class wt_gmr_2
 {
     private:
 
-        t_bitvector m_bv;
-        t_bitvector m_xv;
-        t_bitvector m_piv;
+        t_bitvector m_bv_blocks; // 0 indicates end of block. Corresponds to B in the paper.
+        t_bitvector m_bv_chunks; // 0 indicates end of symbol in chunk. Corresponds to X in the paper.
+        t_bitvector m_bv_shortcut; // 1 indicates a shortcut
 
-        int_vector<> s;
-        int_vector<> pi;
+        int_vector<> m_shortcut; // Contains the shortcuts. Corresponds to S in the paper.
+        int_vector<> m_perm; // Contains permutation of each chunk. Corresponds to \f$ \pi \f$ in the paper.
 
-        t_rank piv_r1;
-        t_select b_sls1, x_sls1;
-        t_select_zero b_sls0, x_sls0;
+        t_rank m_bv_shortcut_rank;
+        t_select m_bv_blocks_select1, m_bv_shortcut_select1;
+        t_select_zero m_bv_blocks_select0, m_bv_shortcut_select0;
 
         uint64_t m_size; // input length
         uint64_t m_t = 32; // shortcut value todo: set via template or construct
@@ -337,12 +337,12 @@ class wt_gmr_2
             m_chunks = (m_size+m_max_symbol-1)/m_max_symbol;
 
 
-            pi = int_vector<>(m_size,0,bits::hi(m_max_symbol-1)+1);
+            m_perm = int_vector<>(m_size,0,bits::hi(m_max_symbol-1)+1);
             {
                 uint64_t x_pos = 0;
                 bit_vector x(m_max_symbol*m_chunks+m_size+1,0);
 
-                //fill pi and x for every chunk
+                //fill m_perm and x for every chunk
                 for (uint64_t i=0; i<m_chunks; ++i) {
                     int_vector<> symbols(m_max_symbol,0,bits::hi(m_max_symbol-1)+1);
 
@@ -361,14 +361,14 @@ class wt_gmr_2
                         symbols[j] = sum;
                         sum += tmp;
                     }
-                    //calc pi
+                    //calc m_perm
                     for (uint64_t j=i*m_max_symbol, k=0; j<(i+1)*m_max_symbol and j<m_size; ++j,++k) {
-                        pi[i*m_max_symbol+(symbols[input[j]]++)] = k;
+                        m_perm[i*m_max_symbol+(symbols[input[j]]++)] = k;
                     }
                 }
-                m_xv = t_bitvector(std::move(x));
-                util::init_support(x_sls1, &m_xv);
-                util::init_support(x_sls0, &m_xv);
+                m_bv_chunks = t_bitvector(std::move(x));
+                util::init_support(m_bv_shortcut_select1, &m_bv_chunks);
+                util::init_support(m_bv_shortcut_select0, &m_bv_chunks);
 
             }
             //calc b
@@ -404,11 +404,11 @@ class wt_gmr_2
                     } else ++blocks;
                 }
 
-                m_bv = t_bitvector(std::move(b));
-                util::init_support(b_sls1, &m_bv);
-                util::init_support(b_sls0, &m_bv);
+                m_bv_blocks = t_bitvector(std::move(b));
+                util::init_support(m_bv_blocks_select1, &m_bv_blocks);
+                util::init_support(m_bv_blocks_select0, &m_bv_blocks);
             }
-            //calc inverse pi
+            //calc inverse m_perm
             {
                 bit_vector ipi(m_size);
                 bit_vector pitmp(m_max_symbol,0);
@@ -424,8 +424,8 @@ class wt_gmr_2
                                     ipi[pos_pi]=1;
                                     steps = 0;
                                 }
-                                pos_pitmp = pi[pos_pi];
-                                pos_pi = offset + pi[pos_pi];
+                                pos_pitmp = m_perm[pos_pi];
+                                pos_pi = offset + m_perm[pos_pi];
                                 ++steps;
                                 ++cycle_length;
                             } while (!pitmp[pos_pitmp]);
@@ -437,11 +437,11 @@ class wt_gmr_2
                     }
                     util::_set_zero_bits(pitmp);
                 }
-                m_piv = t_bitvector(std::move(ipi));
-                util::init_support(piv_r1, &m_piv);
+                m_bv_shortcut = t_bitvector(std::move(ipi));
+                util::init_support(m_bv_shortcut_rank, &m_bv_shortcut);
 
                 //calc s
-                s= int_vector<>(piv_r1(m_size),0,bits::hi(m_max_symbol-1)+1);
+                m_shortcut = int_vector<>(m_bv_shortcut_rank(m_size),0,bits::hi(m_max_symbol-1)+1);
 
                 for (uint64_t i=0; i<m_chunks; ++i) {
                     //bit_vector pitmp(m_max_symbol,0);
@@ -451,18 +451,18 @@ class wt_gmr_2
                             do {
                                 pitmp[pos_pitmp]=1;
                                 if (steps==m_t) {
-                                    s[piv_r1(pos_pi)]=back_pointer;
+                                    m_shortcut[m_bv_shortcut_rank(pos_pi)]=back_pointer;
                                     back_pointer=pos_pitmp;
                                     steps = 0;
                                 }
-                                pos_pitmp = pi[pos_pi];
-                                pos_pi = offset + pi[pos_pi];
+                                pos_pitmp = m_perm[pos_pi];
+                                pos_pi = offset + m_perm[pos_pi];
                                 ++steps;
                                 ++cycle_length;
                             } while (!pitmp[pos_pitmp]);
 
                             if (steps==m_t and cycle_length>m_t) {
-                                s[piv_r1(pos_pi)]=back_pointer;
+                                m_shortcut[m_bv_shortcut_rank(pos_pi)]=back_pointer;
                             }
                         }
                     }
@@ -477,16 +477,16 @@ class wt_gmr_2
         //! Swap operator
         void swap(wt_gmr_2& fs) {
             if (this != &fs) {
-                m_bv.swap(fs.m_bv);
-                m_xv.swap(fs.m_xv);
-                m_piv.swap(fs.m_piv);
-                pi.swap(fs.pi);
-                s.swap(fs.s);
-                util::swap_support(b_sls0, fs.b_sls0, &m_bv, &(fs.m_bv));
-                util::swap_support(b_sls1, fs.b_sls1, &m_bv, &(fs.m_bv));
-                util::swap_support(x_sls1, fs.x_sls1, &m_xv, &(fs.m_xv));
-                util::swap_support(x_sls0, fs.x_sls0, &m_xv, &(fs.m_xv));
-                util::swap_support(piv_r1, fs.piv_r1, &m_piv, &(fs.m_piv));
+                m_bv_blocks.swap(fs.m_bv_blocks);
+                m_bv_chunks.swap(fs.m_bv_chunks);
+                m_bv_shortcut.swap(fs.m_bv_shortcut);
+                m_perm.swap(fs.m_perm);
+                m_shortcut.swap(fs.m_shortcut);
+                util::swap_support(m_bv_blocks_select0, fs.m_bv_blocks_select0, &m_bv_blocks, &(fs.m_bv_blocks));
+                util::swap_support(m_bv_blocks_select1, fs.m_bv_blocks_select1, &m_bv_blocks, &(fs.m_bv_blocks));
+                util::swap_support(m_bv_shortcut_select1, fs.m_bv_shortcut_select1, &m_bv_chunks, &(fs.m_bv_chunks));
+                util::swap_support(m_bv_shortcut_select0, fs.m_bv_shortcut_select0, &m_bv_chunks, &(fs.m_bv_chunks));
+                util::swap_support(m_bv_shortcut_rank, fs.m_bv_shortcut_rank, &m_bv_shortcut, &(fs.m_bv_shortcut));
                 std::swap(m_size, fs.m_size);
                 std::swap(m_t, fs.m_t);
                 std::swap(m_max_symbol,  fs.m_max_symbol);
@@ -505,15 +505,15 @@ class wt_gmr_2
             bool jump=true;
 
             uint64_t x=i, value=i-(chunk*m_max_symbol);
-            while (pi[x]!=value) {
-                if (jump and m_piv[x]==1) {
-                    x  = s[piv_r1(x)]+(chunk*m_max_symbol);
+            while (m_perm[x]!=value) {
+                if (jump and m_bv_shortcut[x]==1) {
+                    x  = m_shortcut[m_bv_shortcut_rank(x)]+(chunk*m_max_symbol);
                     jump = false;
                 } else {
-                    x = pi[x]+(chunk*m_max_symbol);
+                    x = m_perm[x]+(chunk*m_max_symbol);
                 }
             }
-            return x_sls1(x+1)-x-(chunk*m_max_symbol)-1;
+            return m_bv_shortcut_select1(x+1)-x-(chunk*m_max_symbol)-1;
         }
 
         std::pair<size_type, value_type>	inverse_select(size_type i)const {
@@ -521,28 +521,28 @@ class wt_gmr_2
             bool jump=true;
 
             uint64_t x=i, value=i-(chunk*m_max_symbol);
-            while (pi[x]!=value) {
-                if (jump and m_piv[x]==1) {
-                    x  = s[piv_r1(x)]+(chunk*m_max_symbol);
+            while (m_perm[x]!=value) {
+                if (jump and m_bv_shortcut[x]==1) {
+                    x  = m_shortcut[m_bv_shortcut_rank(x)]+(chunk*m_max_symbol);
                     jump = false;
                 } else {
-                    x = pi[x]+(chunk*m_max_symbol);
+                    x = m_perm[x]+(chunk*m_max_symbol);
                 }
             }
-            uint64_t tmp = x_sls1(x+1);
+            uint64_t tmp = m_bv_shortcut_select1(x+1);
             uint64_t c = tmp-x-(chunk*m_max_symbol)-1;
             uint64_t c_before_chunk;
             if (c==0) {
                 if (chunk==0) {
                     c_before_chunk =0;
                 } else {
-                    c_before_chunk = b_sls0(chunk)-chunk+1;
+                    c_before_chunk = m_bv_blocks_select0(chunk)-chunk+1;
                 }
             } else {
-                uint64_t ones_before_c = b_sls0(c*m_chunks)-(c*m_chunks)+1;
-                c_before_chunk = b_sls0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
+                uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks)-(c*m_chunks)+1;
+                c_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
             }
-            uint64_t c_in_chunk = tmp-x_sls0(c+1+chunk*m_max_symbol)-1;
+            uint64_t c_in_chunk = tmp-m_bv_shortcut_select0(c+1+chunk*m_max_symbol)-1;
             return std::make_pair(c_before_chunk+c_in_chunk,c);
         }
 
@@ -551,21 +551,21 @@ class wt_gmr_2
             uint64_t chunk, c_ones_before_chunk, pi_pos;
 
             if (c==0) {
-                chunk = b_sls1(i)-i+1;
+                chunk = m_bv_blocks_select1(i)-i+1;
                 if (chunk==0) {
                     c_ones_before_chunk = 0;
                 } else {
-                    c_ones_before_chunk = b_sls0(chunk)-chunk+1;
+                    c_ones_before_chunk = m_bv_blocks_select0(chunk)-chunk+1;
                 }
                 pi_pos = i-c_ones_before_chunk-1+chunk*m_max_symbol;
             } else {
-                uint64_t ones_before_c = b_sls0(c*m_chunks)-(c*m_chunks)+1;
-                chunk = b_sls1(ones_before_c+i)-ones_before_c-(c*m_chunks)-i+1;
-                c_ones_before_chunk = b_sls0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
-                pi_pos = x_sls0(chunk*m_max_symbol+c+1)+(i-c_ones_before_chunk)-chunk*m_max_symbol-c-1;
+                uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks)-(c*m_chunks)+1;
+                chunk = m_bv_blocks_select1(ones_before_c+i)-ones_before_c-(c*m_chunks)-i+1;
+                c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
+                pi_pos = m_bv_shortcut_select0(chunk*m_max_symbol+c+1)+(i-c_ones_before_chunk)-chunk*m_max_symbol-c-1;
             }
 
-            return pi[pi_pos]+chunk*m_max_symbol;
+            return m_perm[pi_pos]+chunk*m_max_symbol;
         }
 
         size_type rank(size_type i, value_type c)const {
@@ -580,25 +580,25 @@ class wt_gmr_2
                 if (chunk==0) {
                     c_ones_before_chunk=0;
                 } else {
-                    c_ones_before_chunk=b_sls0(chunk)-chunk+1;
+                    c_ones_before_chunk=m_bv_blocks_select0(chunk)-chunk+1;
                 }
             } else {
-                uint64_t ones_before_c = b_sls0(c*m_chunks)-(c*m_chunks)+1;
-                c_ones_before_chunk = b_sls0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
+                uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks)-(c*m_chunks)+1;
+                c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
             }
             uint64_t c_ones_in_chunk = 0;
 
-            size_type search_begin = x_sls0(chunk*m_max_symbol+1+c)-(chunk*m_max_symbol+1+c)+1;
-            size_type search_end = x_sls0(chunk*m_max_symbol+2+c)-(chunk*m_max_symbol+2+c)+1;
+            size_type search_begin = m_bv_shortcut_select0(chunk*m_max_symbol+1+c)-(chunk*m_max_symbol+1+c)+1;
+            size_type search_end = m_bv_shortcut_select0(chunk*m_max_symbol+2+c)-(chunk*m_max_symbol+2+c)+1;
 
             size_type val = (i-1)%m_max_symbol;
             if (search_end-search_begin<50) { // After a short test, this seemd to be a good threshold
-                while (search_begin < search_end and pi[search_begin] <= val) {
+                while (search_begin < search_end and m_perm[search_begin] <= val) {
                     ++search_begin;
                     ++c_ones_in_chunk;
                 }
             } else {
-                c_ones_in_chunk = lower_bound(pi.begin()+search_begin, pi.begin()+search_end, val+1)-pi.begin()-search_begin;
+                c_ones_in_chunk = lower_bound(m_perm.begin()+search_begin, m_perm.begin()+search_end, val+1)-m_perm.begin()-search_begin;
             }
             return c_ones_before_chunk+c_ones_in_chunk;
         }
@@ -612,16 +612,16 @@ class wt_gmr_2
             written_bytes += write_member(m_chunks, out, child, "chunks");
             written_bytes += write_member(m_t, out, child, "t");
             written_bytes += write_member(m_sigma, out, child, "test_sigma");
-            written_bytes += m_bv.serialize(out, child, "b");
-            written_bytes += m_xv.serialize(out, child, "x");
-            written_bytes += m_piv.serialize(out, child, "piv");
-            written_bytes += pi.serialize(out, child, "pi");
-            written_bytes += s.serialize(out, child, "s");
-            written_bytes += b_sls0.serialize(out, child, "b_sls0");
-            written_bytes += b_sls1.serialize(out, child, "b_sls1");
-            written_bytes += x_sls0.serialize(out, child, "x_sls0");
-            written_bytes += x_sls1.serialize(out, child, "x_sls1");
-            written_bytes += piv_r1.serialize(out, child, "piv_r1");
+            written_bytes += m_bv_blocks.serialize(out, child, "m_bv_blocks");
+            written_bytes += m_bv_chunks.serialize(out, child, "bv_chunks");
+            written_bytes += m_bv_shortcut.serialize(out, child, "bv_shortcut");
+            written_bytes += m_perm.serialize(out, child, "m_perm");
+            written_bytes += m_shortcut.serialize(out, child, "m_shortcut");
+            written_bytes += m_bv_blocks_select0.serialize(out, child, "m_bv_blocks_select0");
+            written_bytes += m_bv_blocks_select1.serialize(out, child, "m_bv_blocks_select1");
+            written_bytes += m_bv_shortcut_select0.serialize(out, child, "m_bv_shortcut_select0");
+            written_bytes += m_bv_shortcut_select1.serialize(out, child, "m_bv_shortcut_select1");
+            written_bytes += m_bv_shortcut_rank.serialize(out, child, "m_bv_shortcut_rank");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -632,16 +632,16 @@ class wt_gmr_2
             read_member(m_chunks, in);
             read_member(m_t, in);
             read_member(m_sigma, in);
-            m_bv.load(in);
-            m_xv.load(in);
-            m_piv.load(in);
-            pi.load(in);
-            s.load(in);
-            b_sls0.load(in, &m_bv);
-            b_sls1.load(in, &m_bv);
-            x_sls0.load(in, &m_xv);
-            x_sls1.load(in, &m_xv);
-            piv_r1.load(in, &m_piv);
+            m_bv_blocks.load(in);
+            m_bv_chunks.load(in);
+            m_bv_shortcut.load(in);
+            m_perm.load(in);
+            m_shortcut.load(in);
+            m_bv_blocks_select0.load(in, &m_bv_blocks);
+            m_bv_blocks_select1.load(in, &m_bv_blocks);
+            m_bv_shortcut_select0.load(in, &m_bv_chunks);
+            m_bv_shortcut_select1.load(in, &m_bv_chunks);
+            m_bv_shortcut_rank.load(in, &m_bv_shortcut);
         }
 };
 
@@ -653,16 +653,16 @@ class wt_gmr_3
 {
     private:
 
-        t_bitvector m_bv;
-        t_bitvector m_xv;
-        t_bitvector m_piv;
+        t_bitvector m_bv_blocks; // 0 indicates end of block. Corresponds to B in the paper.
+        t_bitvector m_bv_chunks; // 0 indicates end of symbol in chunk. Corresponds to X in the paper.
+        t_bitvector m_bv_shortcut; // 1 indicates a shortcut
 
-        int_vector<> s;
-        int_vector<> pi;
+        int_vector<> m_shortcut; // Contains the shortcuts. Corresponds to S in the paper.
+        int_vector<> m_perm; // Contains permutation of each chunk. Corresponds to \f$ \pi \f$ in the paper.
 
-        t_rank piv_r1;
-        t_select b_sls1, x_sls1;
-        t_select_zero b_sls0, x_sls0;
+        t_rank m_bv_shortcut_rank;
+        t_select m_bv_blocks_select1, m_bv_shortcut_select1;
+        t_select_zero m_bv_blocks_select0, m_bv_shortcut_select0;
 
         uint64_t m_size; // input length
         uint64_t m_t = 32; // shortcut value
@@ -693,12 +693,12 @@ class wt_gmr_3
             m_chunksize = (1 << (bits::hi(m_max_symbol-1)+1));
             m_chunks = (m_size+m_chunksize-1)/m_chunksize;
 
-            pi = int_vector<>(m_size,0,bits::hi(m_max_symbol-1)+1);
+            m_perm = int_vector<>(m_size,0,bits::hi(m_max_symbol-1)+1);
             {
                 uint64_t x_pos = 0;
                 bit_vector x(m_size+m_chunks*m_max_symbol+1,0);
 
-                //fill pi and x for every chunk
+                //fill m_perm and x for every chunk
                 for (uint64_t i=0; i<m_chunks; ++i) {
                     int_vector<> symbols(m_max_symbol,0,bits::hi(m_max_symbol-1)+2);
 
@@ -717,14 +717,14 @@ class wt_gmr_3
                         symbols[j] = sum;
                         sum += tmp;
                     }
-                    //calc pi
+                    //calc m_perm
                     for (uint64_t j=i*m_chunksize, k=0; j<(i+1)*m_chunksize and j<m_size; ++j,++k) {
-                        pi[i*m_chunksize+(symbols[input[j]]++)] = k;
+                        m_perm[i*m_chunksize+(symbols[input[j]]++)] = k;
                     }
                 }
-                m_xv = t_bitvector(std::move(x));
-                util::init_support(x_sls1, &m_xv);
-                util::init_support(x_sls0, &m_xv);
+                m_bv_chunks = t_bitvector(std::move(x));
+                util::init_support(m_bv_shortcut_select1, &m_bv_chunks);
+                util::init_support(m_bv_shortcut_select0, &m_bv_chunks);
 
             }
             //calc b
@@ -759,12 +759,12 @@ class wt_gmr_3
                         }
                     } else ++blocks;
                 }
-                m_bv = t_bitvector(std::move(b));
-                util::init_support(b_sls1, &m_bv);
-                util::init_support(b_sls0, &m_bv);
+                m_bv_blocks = t_bitvector(std::move(b));
+                util::init_support(m_bv_blocks_select1, &m_bv_blocks);
+                util::init_support(m_bv_blocks_select0, &m_bv_blocks);
             }
 
-            //calc inverse pi
+            //calc inverse m_perm
             {
                 bit_vector ipi(m_size,0);
                 bit_vector pitmp(m_chunksize,0);
@@ -779,8 +779,8 @@ class wt_gmr_3
                                     ipi[pos_pi]=1;
                                     steps = 0;
                                 }
-                                pos_pitmp = pi[pos_pi];
-                                pos_pi = offset + pi[pos_pi];
+                                pos_pitmp = m_perm[pos_pi];
+                                pos_pi = offset + m_perm[pos_pi];
                                 ++steps;
                                 ++cycle_length;
                             } while (!pitmp[pos_pitmp]);
@@ -792,11 +792,11 @@ class wt_gmr_3
                     }
                     util::_set_zero_bits(pitmp);
                 }
-                m_piv = t_bitvector(std::move(ipi));
-                util::init_support(piv_r1, &m_piv);
+                m_bv_shortcut = t_bitvector(std::move(ipi));
+                util::init_support(m_bv_shortcut_rank, &m_bv_shortcut);
 
                 //calc s
-                s= int_vector<>(piv_r1(m_size),0,bits::hi(m_max_symbol-1)+1);
+                m_shortcut= int_vector<>(m_bv_shortcut_rank(m_size),0,bits::hi(m_max_symbol-1)+1);
 
                 for (uint64_t i=0; i<m_chunks; ++i) {
                     for (uint64_t j = i*m_chunksize,k=0; j<(i+1)*m_chunksize and j<m_size; ++j,++k) {
@@ -805,18 +805,18 @@ class wt_gmr_3
                             do {
                                 pitmp[pos_pitmp]=1;
                                 if (steps==m_t) {
-                                    s[piv_r1(pos_pi)]=back_pointer;
+                                    m_shortcut[m_bv_shortcut_rank(pos_pi)]=back_pointer;
                                     back_pointer=pos_pitmp;
                                     steps = 0;
                                 }
-                                pos_pitmp = pi[pos_pi];
-                                pos_pi = offset + pi[pos_pi];
+                                pos_pitmp = m_perm[pos_pi];
+                                pos_pi = offset + m_perm[pos_pi];
                                 ++steps;
                                 ++cycle_length;
                             } while (!pitmp[pos_pitmp]);
 
                             if (steps==m_t and cycle_length>m_t) {
-                                s[piv_r1(pos_pi)]=back_pointer;
+                                m_shortcut[m_bv_shortcut_rank(pos_pi)]=back_pointer;
                             }
                         }
                     }
@@ -831,16 +831,16 @@ class wt_gmr_3
         //! Swap operator
         void swap(wt_gmr_3& fs) {
             if (this != &fs) {
-                m_bv.swap(fs.m_bv);
-                m_xv.swap(fs.m_xv);
-                m_piv.swap(fs.m_piv);
-                pi.swap(fs.pi);
-                s.swap(fs.s);
-                util::swap_support(b_sls0, fs.b_sls0, &m_bv, &(fs.m_bv));
-                util::swap_support(b_sls1, fs.b_sls1, &m_bv, &(fs.m_bv));
-                util::swap_support(x_sls1, fs.x_sls1, &m_xv, &(fs.m_xv));
-                util::swap_support(x_sls0, fs.x_sls0, &m_xv, &(fs.m_xv));
-                util::swap_support(piv_r1, fs.piv_r1, &m_piv, &(fs.m_piv));
+                m_bv_blocks.swap(fs.m_bv_blocks);
+                m_bv_chunks.swap(fs.m_bv_chunks);
+                m_bv_shortcut.swap(fs.m_bv_shortcut);
+                m_perm.swap(fs.m_perm);
+                m_shortcut.swap(fs.m_shortcut);
+                util::swap_support(m_bv_blocks_select0, fs.m_bv_blocks_select0, &m_bv_blocks, &(fs.m_bv_blocks));
+                util::swap_support(m_bv_blocks_select1, fs.m_bv_blocks_select1, &m_bv_blocks, &(fs.m_bv_blocks));
+                util::swap_support(m_bv_shortcut_select1, fs.m_bv_shortcut_select1, &m_bv_chunks, &(fs.m_bv_chunks));
+                util::swap_support(m_bv_shortcut_select0, fs.m_bv_shortcut_select0, &m_bv_chunks, &(fs.m_bv_chunks));
+                util::swap_support(m_bv_shortcut_rank, fs.m_bv_shortcut_rank, &m_bv_shortcut, &(fs.m_bv_shortcut));
                 std::swap(m_size, fs.m_size);
                 std::swap(m_t, fs.m_t);
                 std::swap(m_max_symbol,  fs.m_max_symbol);
@@ -860,15 +860,15 @@ class wt_gmr_3
             bool jump=true;
 
             uint64_t x=i, value=i-(chunk*m_chunksize);
-            while (pi[x]!=value) {
-                if (jump and m_piv[x]==1) {
-                    x  = s[piv_r1(x)]+(chunk*m_chunksize);
+            while (m_perm[x]!=value) {
+                if (jump and m_bv_shortcut[x]==1) {
+                    x  = m_shortcut[m_bv_shortcut_rank(x)]+(chunk*m_chunksize);
                     jump = false;
                 } else {
-                    x = pi[x]+(chunk*m_chunksize);
+                    x = m_perm[x]+(chunk*m_chunksize);
                 }
             }
-            return x_sls1(x+1)-x-(chunk*m_max_symbol)-1;
+            return m_bv_shortcut_select1(x+1)-x-(chunk*m_max_symbol)-1;
         }
 
         std::pair<size_type, value_type>	inverse_select(size_type i)const {
@@ -876,28 +876,28 @@ class wt_gmr_3
             bool jump=true;
 
             uint64_t x=i, value=i-(chunk*m_chunksize);
-            while (pi[x]!=value) {
-                if (jump and m_piv[x]==1) {
-                    x  = s[piv_r1(x)]+(chunk*m_chunksize);
+            while (m_perm[x]!=value) {
+                if (jump and m_bv_shortcut[x]==1) {
+                    x  = m_shortcut[m_bv_shortcut_rank(x)]+(chunk*m_chunksize);
                     jump = false;
                 } else {
-                    x = pi[x]+(chunk*m_chunksize);
+                    x = m_perm[x]+(chunk*m_chunksize);
                 }
             }
-            uint64_t tmp = x_sls1(x+1);
+            uint64_t tmp = m_bv_shortcut_select1(x+1);
             uint64_t c = tmp-x-(chunk*m_max_symbol)-1;
             uint64_t c_before_chunk;
             if (c==0) {
                 if (chunk==0) {
                     c_before_chunk =0;
                 } else {
-                    c_before_chunk = b_sls0(chunk)-chunk+1;
+                    c_before_chunk = m_bv_blocks_select0(chunk)-chunk+1;
                 }
             } else {
-                uint64_t ones_before_c = b_sls0(c*m_chunks)-(c*m_chunks)+1;
-                c_before_chunk = b_sls0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
+                uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks)-(c*m_chunks)+1;
+                c_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
             }
-            uint64_t c_in_chunk = tmp-x_sls0(c+1+chunk*m_max_symbol)-1;
+            uint64_t c_in_chunk = tmp-m_bv_shortcut_select0(c+1+chunk*m_max_symbol)-1;
             return std::make_pair(c_before_chunk+c_in_chunk,c);
         }
 
@@ -906,21 +906,21 @@ class wt_gmr_3
             uint64_t chunk, c_ones_before_chunk, pi_pos;
 
             if (c==0) {
-                chunk = b_sls1(i)-i+1;
+                chunk = m_bv_blocks_select1(i)-i+1;
                 if (chunk==0) {
                     c_ones_before_chunk = 0;
                 } else {
-                    c_ones_before_chunk = b_sls0(chunk)-chunk+1;
+                    c_ones_before_chunk = m_bv_blocks_select0(chunk)-chunk+1;
                 }
                 pi_pos = i-c_ones_before_chunk-1+chunk*m_chunksize;
             } else {
-                uint64_t ones_before_c = b_sls0(c*m_chunks)-(c*m_chunks)+1;
-                chunk = b_sls1(ones_before_c+i)-ones_before_c-(c*m_chunks)-i+1;
-                c_ones_before_chunk = b_sls0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
-                pi_pos = x_sls0(chunk*m_max_symbol+c+1)+(i-c_ones_before_chunk)-chunk*m_max_symbol-c-1;
+                uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks)-(c*m_chunks)+1;
+                chunk = m_bv_blocks_select1(ones_before_c+i)-ones_before_c-(c*m_chunks)-i+1;
+                c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
+                pi_pos = m_bv_shortcut_select0(chunk*m_max_symbol+c+1)+(i-c_ones_before_chunk)-chunk*m_max_symbol-c-1;
             }
 
-            return pi[pi_pos]+chunk*m_chunksize;
+            return m_perm[pi_pos]+chunk*m_chunksize;
         }
 
         size_type rank(size_type i, value_type c)const {
@@ -934,25 +934,25 @@ class wt_gmr_3
                 if (chunk==0) {
                     c_ones_before_chunk=0;
                 } else {
-                    c_ones_before_chunk=b_sls0(chunk)-chunk+1;
+                    c_ones_before_chunk=m_bv_blocks_select0(chunk)-chunk+1;
                 }
             } else {
-                uint64_t ones_before_c = b_sls0(c*m_chunks)-(c*m_chunks)+1;
-                c_ones_before_chunk = b_sls0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
+                uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks)-(c*m_chunks)+1;
+                c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
             }
             uint64_t c_ones_in_chunk = 0;
 
-            size_type search_begin = x_sls0(chunk*m_max_symbol+1+c)-(chunk*m_max_symbol+1+c)+1;
-            size_type search_end = x_sls0(chunk*m_max_symbol+2+c)-(chunk*m_max_symbol+2+c)+1;
+            size_type search_begin = m_bv_shortcut_select0(chunk*m_max_symbol+1+c)-(chunk*m_max_symbol+1+c)+1;
+            size_type search_end = m_bv_shortcut_select0(chunk*m_max_symbol+2+c)-(chunk*m_max_symbol+2+c)+1;
 
             size_type val = (i-1)%m_chunksize;
             if (search_end-search_begin<50) { // After a short test, this seemd to be a good threshold
-                while (search_begin < search_end and pi[search_begin] <= val) {
+                while (search_begin < search_end and m_perm[search_begin] <= val) {
                     ++search_begin;
                     ++c_ones_in_chunk;
                 }
             } else {
-                c_ones_in_chunk = lower_bound(pi.begin()+search_begin, pi.begin()+search_end, val+1)-pi.begin()-search_begin;
+                c_ones_in_chunk = lower_bound(m_perm.begin()+search_begin, m_perm.begin()+search_end, val+1)-m_perm.begin()-search_begin;
             }
             return c_ones_before_chunk+c_ones_in_chunk;
         }
@@ -967,16 +967,16 @@ class wt_gmr_3
             written_bytes += write_member(m_chunksize, out, child, "chunksize");
             written_bytes += write_member(m_t, out, child, "t");
             written_bytes += write_member(m_sigma, out, child, "test_sigma");
-            written_bytes += m_bv.serialize(out, child, "b");
-            written_bytes += m_xv.serialize(out, child, "x");
-            written_bytes += m_piv.serialize(out, child, "piv");
-            written_bytes += pi.serialize(out, child, "pi");
-            written_bytes += s.serialize(out, child, "s");
-            written_bytes += b_sls0.serialize(out, child, "b_sls0");
-            written_bytes += b_sls1.serialize(out, child, "b_sls1");
-            written_bytes += x_sls0.serialize(out, child, "x_sls0");
-            written_bytes += x_sls1.serialize(out, child, "x_sls1");
-            written_bytes += piv_r1.serialize(out, child, "piv_r1");
+            written_bytes += m_bv_blocks.serialize(out, child, "m_bv_blocks");
+            written_bytes += m_bv_chunks.serialize(out, child, "bv_chunks");
+            written_bytes += m_bv_shortcut.serialize(out, child, "bv_shortcut");
+            written_bytes += m_perm.serialize(out, child, "m_perm");
+            written_bytes += m_shortcut.serialize(out, child, "m_shortcut");
+            written_bytes += m_bv_blocks_select0.serialize(out, child, "m_bv_blocks_select0");
+            written_bytes += m_bv_blocks_select1.serialize(out, child, "m_bv_blocks_select1");
+            written_bytes += m_bv_shortcut_select0.serialize(out, child, "m_bv_shortcut_select0");
+            written_bytes += m_bv_shortcut_select1.serialize(out, child, "m_bv_shortcut_select1");
+            written_bytes += m_bv_shortcut_rank.serialize(out, child, "m_bv_shortcut_rank");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -989,16 +989,16 @@ class wt_gmr_3
             read_member(m_chunksize, in);
             read_member(m_t, in);
             read_member(m_sigma, in);
-            m_bv.load(in);
-            m_xv.load(in);
-            m_piv.load(in);
-            pi.load(in);
-            s.load(in);
-            b_sls0.load(in, &m_bv);
-            b_sls1.load(in, &m_bv);
-            x_sls0.load(in, &m_xv);
-            x_sls1.load(in, &m_xv);
-            piv_r1.load(in, &m_piv);
+            m_bv_blocks.load(in);
+            m_bv_chunks.load(in);
+            m_bv_shortcut.load(in);
+            m_perm.load(in);
+            m_shortcut.load(in);
+            m_bv_blocks_select0.load(in, &m_bv_blocks);
+            m_bv_blocks_select1.load(in, &m_bv_blocks);
+            m_bv_shortcut_select0.load(in, &m_bv_chunks);
+            m_bv_shortcut_select1.load(in, &m_bv_chunks);
+            m_bv_shortcut_rank.load(in, &m_bv_shortcut);
         }
 };
 
