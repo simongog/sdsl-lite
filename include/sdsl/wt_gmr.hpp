@@ -147,8 +147,8 @@ class wt_gmr_1
             assert(i<m_size);
             size_type block = i/m_max_symbol+1, val = i%m_max_symbol, search_begin, search_end, j;
             while (true) {
-		j = m_bv_blocks_select0(block)+1;
-		search_begin = j-block;
+                j = m_bv_blocks_select0(block)+1;
+                search_begin = j-block;
                 if (m_bv_blocks[j]) {
                     search_end = m_bv_blocks_select0(block+1)-(block);
                     if (search_end-search_begin<50) { // After a short test, this seemd to be a good threshold
@@ -506,7 +506,7 @@ class wt_gmr_2
 
         size_type select(size_type i, value_type c)const {
 
-	    uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks+1)-(c*m_chunks);
+            uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks+1)-(c*m_chunks);
             uint64_t chunk = m_bv_blocks_select1(ones_before_c+i)-ones_before_c-(c*m_chunks+1)-i+1;
             uint64_t c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk+1)-(c*m_chunks+chunk)-ones_before_c;
             uint64_t pi_pos = m_bv_chunks_select0(chunk*m_max_symbol+c+1)+(i-c_ones_before_chunk)-chunk*m_max_symbol-c-1;
@@ -544,20 +544,20 @@ class wt_gmr_2
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
-            written_bytes += write_member(m_max_symbol, out, child, "sigma");
+            written_bytes += write_member(m_max_symbol, out, child, "max_symbol");
             written_bytes += write_member(m_chunks, out, child, "chunks");
             written_bytes += write_member(m_t, out, child, "t");
-            written_bytes += write_member(m_sigma, out, child, "test_sigma");
-            written_bytes += m_bv_blocks.serialize(out, child, "m_bv_blocks");
+            written_bytes += write_member(m_sigma, out, child, "sigma");
+            written_bytes += m_bv_blocks.serialize(out, child, "bv_blocks");
             written_bytes += m_bv_chunks.serialize(out, child, "bv_chunks");
             written_bytes += m_bv_shortcut.serialize(out, child, "bv_shortcut");
-            written_bytes += m_perm.serialize(out, child, "m_perm");
-            written_bytes += m_shortcut.serialize(out, child, "m_shortcut");
-            written_bytes += m_bv_blocks_select0.serialize(out, child, "m_bv_blocks_select0");
-            written_bytes += m_bv_blocks_select1.serialize(out, child, "m_bv_blocks_select1");
-            written_bytes += m_bv_chunks_select0.serialize(out, child, "m_bv_chunks_select0");
-            written_bytes += m_bv_chunks_select1.serialize(out, child, "m_bv_chunks_select1");
-            written_bytes += m_bv_shortcut_rank.serialize(out, child, "m_bv_shortcut_rank");
+            written_bytes += m_perm.serialize(out, child, "perm");
+            written_bytes += m_shortcut.serialize(out, child, "shortcut");
+            written_bytes += m_bv_blocks_select0.serialize(out, child, "bv_blocks_select0");
+            written_bytes += m_bv_blocks_select1.serialize(out, child, "bv_blocks_select1");
+            written_bytes += m_bv_chunks_select0.serialize(out, child, "bv_chunks_select0");
+            written_bytes += m_bv_chunks_select1.serialize(out, child, "bv_chunks_select1");
+            written_bytes += m_bv_shortcut_rank.serialize(out, child, "bv_shortcut_rank");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -820,18 +820,18 @@ class wt_gmr_3
             uint64_t tmp = m_bv_chunks_select1(x+1);
             uint64_t c = tmp-x-(chunk*m_max_symbol)-1;
 
-	    uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks+1)-(c*m_chunks+1)+1;
-	    uint64_t c_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk+1)-(c*m_chunks+chunk+1)+1-ones_before_c;
+            uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks+1)-(c*m_chunks+1)+1;
+            uint64_t c_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk+1)-(c*m_chunks+chunk+1)+1-ones_before_c;
             uint64_t c_in_chunk = tmp-m_bv_chunks_select0(c+1+chunk*m_max_symbol)-1;
             return std::make_pair(c_before_chunk+c_in_chunk,c);
         }
 
         size_type select(size_type i, value_type c)const {
 
-	    uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks+1)-(c*m_chunks);
-	    uint64_t chunk = m_bv_blocks_select1(ones_before_c+i)-ones_before_c-(c*m_chunks+1)-i+1;
-	    uint64_t c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk+1)-(c*m_chunks+chunk)-ones_before_c;
-	    uint64_t pi_pos = m_bv_chunks_select0(chunk*m_max_symbol+c+1)+(i-c_ones_before_chunk)-chunk*m_max_symbol-c-1;
+            uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks+1)-(c*m_chunks);
+            uint64_t chunk = m_bv_blocks_select1(ones_before_c+i)-ones_before_c-(c*m_chunks+1)-i+1;
+            uint64_t c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk+1)-(c*m_chunks+chunk)-ones_before_c;
+            uint64_t pi_pos = m_bv_chunks_select0(chunk*m_max_symbol+c+1)+(i-c_ones_before_chunk)-chunk*m_max_symbol-c-1;
 
             return m_perm[pi_pos]+chunk*m_chunksize;
         }
@@ -866,21 +866,21 @@ class wt_gmr_3
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
-            written_bytes += write_member(m_max_symbol, out, child, "sigma");
+            written_bytes += write_member(m_max_symbol, out, child, "max_symbol");
             written_bytes += write_member(m_chunks, out, child, "chunks");
             written_bytes += write_member(m_chunksize, out, child, "chunksize");
             written_bytes += write_member(m_t, out, child, "t");
-            written_bytes += write_member(m_sigma, out, child, "test_sigma");
-            written_bytes += m_bv_blocks.serialize(out, child, "m_bv_blocks");
+            written_bytes += write_member(m_sigma, out, child, "sigma");
+            written_bytes += m_bv_blocks.serialize(out, child, "bv_blocks");
             written_bytes += m_bv_chunks.serialize(out, child, "bv_chunks");
             written_bytes += m_bv_shortcut.serialize(out, child, "bv_shortcut");
-            written_bytes += m_perm.serialize(out, child, "m_perm");
-            written_bytes += m_shortcut.serialize(out, child, "m_shortcut");
-            written_bytes += m_bv_blocks_select0.serialize(out, child, "m_bv_blocks_select0");
-            written_bytes += m_bv_blocks_select1.serialize(out, child, "m_bv_blocks_select1");
-            written_bytes += m_bv_chunks_select0.serialize(out, child, "m_bv_chunks_select0");
-            written_bytes += m_bv_chunks_select1.serialize(out, child, "m_bv_chunks_select1");
-            written_bytes += m_bv_shortcut_rank.serialize(out, child, "m_bv_shortcut_rank");
+            written_bytes += m_perm.serialize(out, child, "perm");
+            written_bytes += m_shortcut.serialize(out, child, "shortcut");
+            written_bytes += m_bv_blocks_select0.serialize(out, child, "bv_blocks_select0");
+            written_bytes += m_bv_blocks_select1.serialize(out, child, "bv_blocks_select1");
+            written_bytes += m_bv_chunks_select0.serialize(out, child, "bv_chunks_select0");
+            written_bytes += m_bv_chunks_select1.serialize(out, child, "bv_chunks_select1");
+            written_bytes += m_bv_shortcut_rank.serialize(out, child, "bv_shortcut_rank");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
