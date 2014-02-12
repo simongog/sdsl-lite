@@ -37,9 +37,9 @@ class wt_gmr_1
     private:
 
         t_bitvector m_bv_blocks;
-        int_vector<> e;
-        t_select sls1;
-        t_select_zero sls0;
+        int_vector<> e;					//rename?
+        t_select m_bv_blocks_select1;
+        t_select_zero m_bv_blocks_select0;
         uint64_t m_size; // input length
         uint64_t m_max_symbol = 0; // maximum character + 1
         uint64_t m_blocks; // blocks per character
@@ -66,7 +66,7 @@ class wt_gmr_1
 
             // Create and fill b
             m_blocks = (m_size+m_max_symbol-1)/m_max_symbol;
-            bit_vector b(m_size+m_max_symbol*m_blocks,0);
+            bit_vector b(m_size+m_max_symbol*m_blocks+1,0);
             int_vector<> symbols(m_max_symbol,0,bits::hi(m_size)+1);
             {
                 int_vector<> tmp(m_max_symbol*m_blocks,0,bits::hi(m_max_symbol)+1);
@@ -85,13 +85,13 @@ class wt_gmr_1
                     }
                 }
 
-                for (uint64_t i=0,l=0; i<tmp.size(); ++i,++l) {
+                for (uint64_t i=0,l=1; i<tmp.size(); ++i,++l) {
                     for (uint64_t j=0; j<tmp[i]; ++j) b[l++]=1;
                 }
                 //calc m_sigma
                 bool write = true;
                 uint64_t blocks=0;
-                for (uint64_t i=0; i<b.size(); ++i) {
+                for (uint64_t i=1; i<b.size(); ++i) {
                     if (blocks==m_blocks) {
                         blocks = 0;
                         write = true;
@@ -106,8 +106,8 @@ class wt_gmr_1
 
                 m_bv_blocks = t_bitvector(std::move(b));
             }
-            util::init_support(sls0, &m_bv_blocks);
-            util::init_support(sls1, &m_bv_blocks);
+            util::init_support(m_bv_blocks_select0, &m_bv_blocks);
+            util::init_support(m_bv_blocks_select1, &m_bv_blocks);
 
             // Create and fill e
             e = int_vector<>(m_size,0,bits::hi(m_max_symbol)+1);
@@ -128,8 +128,8 @@ class wt_gmr_1
             if (this != &fs) {
                 m_bv_blocks.swap(fs.m_bv_blocks);
                 e.swap(fs.e);
-                util::swap_support(sls0, fs.sls0, &m_bv_blocks, &(fs.m_bv_blocks));
-                util::swap_support(sls1, fs.sls1, &m_bv_blocks, &(fs.m_bv_blocks));
+                util::swap_support(m_bv_blocks_select0, fs.m_bv_blocks_select0, &m_bv_blocks, &(fs.m_bv_blocks));
+                util::swap_support(m_bv_blocks_select1, fs.m_bv_blocks_select1, &m_bv_blocks, &(fs.m_bv_blocks));
                 std::swap(m_size, fs.m_size);
                 std::swap(m_max_symbol,  fs.m_max_symbol);
                 std::swap(m_blocks,  fs.m_blocks);
@@ -144,27 +144,22 @@ class wt_gmr_1
 
         value_type operator[](size_type i)const {
             assert(i<m_size);
-            size_type block = i/m_max_symbol, val = i%m_max_symbol, search_begin, search_end, j;
+            size_type block = i/m_max_symbol+1, val = i%m_max_symbol, search_begin, search_end, j;
             while (true) {
-                if (block==0) {
-                    j = 0;
-                    search_begin = 0;
-                } else {
-                    j = sls0(block)+1;
-                    search_begin = j-block;
-                }
+		j = m_bv_blocks_select0(block)+1;
+		search_begin = j-block;
                 if (m_bv_blocks[j]) {
-                    search_end = sls0(block+1)-(block+1)+1;
+                    search_end = m_bv_blocks_select0(block+1)-(block);
                     if (search_end-search_begin<50) { // After a short test, this seemd to be a good threshold
                         while (search_begin < search_end and e[search_begin] <= val) {
                             if (e[search_begin]==val) {
-                                return block/m_blocks;
+                                return (block-1)/m_blocks;
                             }
                             ++search_begin;
                         }
                     } else {
                         if (binary_search(e.begin()+search_begin, e.begin()+search_end, val)) {
-                            return block/m_blocks;
+                            return (block-1)/m_blocks;
                         }
                     }
                 }
@@ -174,29 +169,19 @@ class wt_gmr_1
 
         std::pair<size_type, value_type> inverse_select(size_type i)const {
             assert(i<m_size);
-            size_type block = i/m_max_symbol, val = i%m_max_symbol, offset = 0, search_begin, search_end, j;
+            size_type block = i/m_max_symbol+1, val = i%m_max_symbol, offset = 0, search_begin, search_end, j;
             while (true) {
-                if (block==0) {
-                    j = 0;
-                    search_begin = 0;
-                } else {
-                    j = sls0(block)+1;
-                    search_begin = j-block;
-                }
+                j = m_bv_blocks_select0(block)+1;
+                search_begin = j-block;
                 if (m_bv_blocks[j]) {
-                    search_end = sls0(block+1)-(block+1)+1;
+                    search_end = m_bv_blocks_select0(block+1)-(block);
                     offset = 0;
                     if (search_end-search_begin<50) { // After a short test, this seemd to be a good threshold
                         while (search_begin < search_end and e[search_begin] <= val) {
                             if (e[search_begin]==val) {
-                                value_type c = block/m_blocks;
-                                size_type ones_before_cblock;
+                                value_type c = (block-1)/m_blocks;
 
-                                if (c==0) {
-                                    ones_before_cblock = 0;
-                                } else {
-                                    ones_before_cblock = sls0(c*m_blocks)-(c*m_blocks)+1;
-                                }
+                                size_type ones_before_cblock = m_bv_blocks_select0(c*m_blocks+1)-(c*m_blocks);
 
                                 size_type r = search_begin-ones_before_cblock;
                                 return std::make_pair(r,c);
@@ -207,14 +192,9 @@ class wt_gmr_1
                         offset = lower_bound(e.begin()+search_begin, e.begin()+search_end, val)-e.begin();
                         if (offset<search_end) {
                             if (e[offset]==val) {
-                                value_type c = block/m_blocks;
-                                size_type ones_before_cblock;
+                                value_type c = (block-1)/m_blocks;
 
-                                if (c==0) {
-                                    ones_before_cblock = 0;
-                                } else {
-                                    ones_before_cblock = sls0(c*m_blocks)-(c*m_blocks)+1;
-                                }
+                                size_type ones_before_cblock = m_bv_blocks_select0(c*m_blocks+1)-(c*m_blocks);
 
                                 size_type r = offset-ones_before_cblock;
                                 return std::make_pair(r,c);
@@ -227,28 +207,18 @@ class wt_gmr_1
         }
 
         size_type select(size_type i, value_type c)const {
-            size_type k = (c==0?0:sls0(c*m_blocks)-c*m_blocks+1)+i;
-            return (sls1(k)-k+1)*m_max_symbol+e[k-1]-c*m_blocks*m_max_symbol;
+            size_type k = m_bv_blocks_select0(c*m_blocks+1)-(c*m_blocks)+i;
+            return (m_bv_blocks_select1(k)-k)*m_max_symbol+e[k-1]-c*m_blocks*m_max_symbol;
         }
 
         size_type rank(size_type i, value_type c)const {
             if (c>m_max_symbol-1) return 0;
             if (i<=0) return 0;
 
-            size_type ones_before_cblock;
-            size_type search_begin;
-            size_type search_end;
             size_type offset=0;
-            if (c!=0) {
-                ones_before_cblock = sls0(c*m_blocks)-c*m_blocks+1;
-                search_begin = sls0(c*m_blocks+(i-1)/m_max_symbol)-(c*m_blocks+(i-1)/m_max_symbol)+1;
-                search_end = sls0(c*m_blocks+(i-1)/m_max_symbol+1)-(c*m_blocks+(i-1)/m_max_symbol+1)+1;
-            } else {
-                ones_before_cblock = 0;
-                search_begin = ((i-1)<m_max_symbol?0:sls0((i-1)/m_max_symbol)-(i-1)/m_max_symbol+1);
-                search_end = sls0((i-1)/m_max_symbol+1)-((i-1)/m_max_symbol+1)+1;
-                if (search_end-search_begin==0) return 0;
-            }
+            size_type ones_before_cblock = m_bv_blocks_select0(c*m_blocks+1)-c*m_blocks;
+            size_type search_begin = m_bv_blocks_select0(c*m_blocks+(i-1)/m_max_symbol+1)-(c*m_blocks+(i-1)/m_max_symbol+1)+1;
+            size_type search_end = m_bv_blocks_select0(c*m_blocks+(i-1)/m_max_symbol+2)-(c*m_blocks+(i-1)/m_max_symbol+1);
 
             size_type val = (i-1)%m_max_symbol;
             if (search_end-search_begin<50) { // After a short test, this seemd to be a good threshold
@@ -264,14 +234,14 @@ class wt_gmr_1
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += write_member(m_size, out, child, "size");
-            written_bytes += write_member(m_max_symbol, out, child, "sigma");
-            written_bytes += write_member(m_blocks, out, child, "blocks");
-            written_bytes += write_member(m_sigma, out, child, "test_sigma");
-            written_bytes += m_bv_blocks.serialize(out, child, "b");
+            written_bytes += write_member(m_size, out, child, "m_size");
+            written_bytes += write_member(m_max_symbol, out, child, "m_max_symbol");
+            written_bytes += write_member(m_blocks, out, child, "m_blocks");
+            written_bytes += write_member(m_sigma, out, child, "m_sigma");
+            written_bytes += m_bv_blocks.serialize(out, child, "m_bv_blocks");
             written_bytes += e.serialize(out, child, "e");
-            written_bytes += sls0.serialize(out, child, "sls0");
-            written_bytes += sls1.serialize(out, child, "sls1");
+            written_bytes += m_bv_blocks_select0.serialize(out, child, "m_bv_blocks_select0");
+            written_bytes += m_bv_blocks_select1.serialize(out, child, "m_bv_blocks_select1");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -284,8 +254,8 @@ class wt_gmr_1
             read_member(m_sigma, in);
             m_bv_blocks.load(in);
             e.load(in);
-            sls0.load(in, &m_bv_blocks);
-            sls1.load(in, &m_bv_blocks);
+            m_bv_blocks_select0.load(in, &m_bv_blocks);
+            m_bv_blocks_select1.load(in, &m_bv_blocks);
         }
 };
 
@@ -373,7 +343,7 @@ class wt_gmr_2
             }
             //calc b
             {
-                bit_vector b(m_size+m_max_symbol*m_chunks,0);
+                bit_vector b(m_size+m_max_symbol*m_chunks+1,0);
                 int_vector<> tmp(m_max_symbol*m_chunks,0,bits::hi(m_max_symbol-1)+1);
 
                 for (uint64_t i=0, offset=0, j=0; i<m_size; ++i, ++j) {
@@ -384,14 +354,14 @@ class wt_gmr_2
                     ++tmp[offset+input[i]*m_chunks];
                 }
 
-                for (uint64_t i=0,l=0; i<tmp.size(); ++i,++l) {
+                for (uint64_t i=0,l=1; i<tmp.size(); ++i,++l) {
                     for (uint64_t j=0; j<tmp[i]; ++j) b[l++]=1;
                 }
 
                 //calc m_sigma
                 bool write = true;
                 uint64_t blocks=0;
-                for (uint64_t i=0; i<b.size(); ++i) {
+                for (uint64_t i=1; i<b.size(); ++i) {
                     if (blocks==m_chunks) {
                         blocks = 0;
                         write = true;
@@ -531,39 +501,19 @@ class wt_gmr_2
             }
             uint64_t tmp = m_bv_shortcut_select1(x+1);
             uint64_t c = tmp-x-(chunk*m_max_symbol)-1;
-            uint64_t c_before_chunk;
-            if (c==0) {
-                if (chunk==0) {
-                    c_before_chunk =0;
-                } else {
-                    c_before_chunk = m_bv_blocks_select0(chunk)-chunk+1;
-                }
-            } else {
-                uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks)-(c*m_chunks)+1;
-                c_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
-            }
+
+            uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks+1)-(c*m_chunks+1)+1;
+            uint64_t c_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk+1)-(c*m_chunks+chunk+1)+1-ones_before_c;
             uint64_t c_in_chunk = tmp-m_bv_shortcut_select0(c+1+chunk*m_max_symbol)-1;
             return std::make_pair(c_before_chunk+c_in_chunk,c);
         }
 
         size_type select(size_type i, value_type c)const {
 
-            uint64_t chunk, c_ones_before_chunk, pi_pos;
-
-            if (c==0) {
-                chunk = m_bv_blocks_select1(i)-i+1;
-                if (chunk==0) {
-                    c_ones_before_chunk = 0;
-                } else {
-                    c_ones_before_chunk = m_bv_blocks_select0(chunk)-chunk+1;
-                }
-                pi_pos = i-c_ones_before_chunk-1+chunk*m_max_symbol;
-            } else {
-                uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks)-(c*m_chunks)+1;
-                chunk = m_bv_blocks_select1(ones_before_c+i)-ones_before_c-(c*m_chunks)-i+1;
-                c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
-                pi_pos = m_bv_shortcut_select0(chunk*m_max_symbol+c+1)+(i-c_ones_before_chunk)-chunk*m_max_symbol-c-1;
-            }
+	    uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks+1)-(c*m_chunks);
+            uint64_t chunk = m_bv_blocks_select1(ones_before_c+i)-ones_before_c-(c*m_chunks+1)-i+1;
+            uint64_t c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk+1)-(c*m_chunks+chunk)-ones_before_c;
+            uint64_t pi_pos = m_bv_shortcut_select0(chunk*m_max_symbol+c+1)+(i-c_ones_before_chunk)-chunk*m_max_symbol-c-1;
 
             return m_perm[pi_pos]+chunk*m_max_symbol;
         }
@@ -574,18 +524,9 @@ class wt_gmr_2
             if (i<=0) return 0;
 
             uint64_t chunk = (i-1)/m_max_symbol;
-            uint64_t c_ones_before_chunk;
+            uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks+1)-(c*m_chunks+1)+1;
+            uint64_t c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk+1)-(c*m_chunks+chunk+1)+1-ones_before_c;
 
-            if (c==0) {
-                if (chunk==0) {
-                    c_ones_before_chunk=0;
-                } else {
-                    c_ones_before_chunk=m_bv_blocks_select0(chunk)-chunk+1;
-                }
-            } else {
-                uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks)-(c*m_chunks)+1;
-                c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
-            }
             uint64_t c_ones_in_chunk = 0;
 
             size_type search_begin = m_bv_shortcut_select0(chunk*m_max_symbol+1+c)-(chunk*m_max_symbol+1+c)+1;
@@ -729,7 +670,7 @@ class wt_gmr_3
             }
             //calc b
             {
-                bit_vector b(m_size+m_max_symbol*m_chunks,0);
+                bit_vector b(m_size+m_max_symbol*m_chunks+1,0);
                 int_vector<> tmp(m_max_symbol*m_chunks,0,bits::hi(m_max_symbol-1)+2);
 
                 for (uint64_t i=0, offset=0, j=0; i<m_size; ++i, ++j) {
@@ -740,14 +681,14 @@ class wt_gmr_3
                     ++tmp[offset+input[i]*m_chunks];
                 }
 
-                for (uint64_t i=0,l=0; i<tmp.size(); ++i,++l) {
+                for (uint64_t i=0,l=1; i<tmp.size(); ++i,++l) {
                     for (uint64_t j=0; j<tmp[i]; ++j) b[l++]=1;
                 }
 
                 //calc m_sigma
                 bool write = true;
                 uint64_t blocks=0;
-                for (uint64_t i=0; i<b.size(); ++i) {
+                for (uint64_t i=1; i<b.size(); ++i) {
                     if (blocks==m_chunks) {
                         blocks = 0;
                         write = true;
@@ -886,60 +827,32 @@ class wt_gmr_3
             }
             uint64_t tmp = m_bv_shortcut_select1(x+1);
             uint64_t c = tmp-x-(chunk*m_max_symbol)-1;
-            uint64_t c_before_chunk;
-            if (c==0) {
-                if (chunk==0) {
-                    c_before_chunk =0;
-                } else {
-                    c_before_chunk = m_bv_blocks_select0(chunk)-chunk+1;
-                }
-            } else {
-                uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks)-(c*m_chunks)+1;
-                c_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
-            }
+
+	    uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks+1)-(c*m_chunks+1)+1;
+	    uint64_t c_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk+1)-(c*m_chunks+chunk+1)+1-ones_before_c;
             uint64_t c_in_chunk = tmp-m_bv_shortcut_select0(c+1+chunk*m_max_symbol)-1;
             return std::make_pair(c_before_chunk+c_in_chunk,c);
         }
 
         size_type select(size_type i, value_type c)const {
 
-            uint64_t chunk, c_ones_before_chunk, pi_pos;
-
-            if (c==0) {
-                chunk = m_bv_blocks_select1(i)-i+1;
-                if (chunk==0) {
-                    c_ones_before_chunk = 0;
-                } else {
-                    c_ones_before_chunk = m_bv_blocks_select0(chunk)-chunk+1;
-                }
-                pi_pos = i-c_ones_before_chunk-1+chunk*m_chunksize;
-            } else {
-                uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks)-(c*m_chunks)+1;
-                chunk = m_bv_blocks_select1(ones_before_c+i)-ones_before_c-(c*m_chunks)-i+1;
-                c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
-                pi_pos = m_bv_shortcut_select0(chunk*m_max_symbol+c+1)+(i-c_ones_before_chunk)-chunk*m_max_symbol-c-1;
-            }
+	    uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks+1)-(c*m_chunks);
+	    uint64_t chunk = m_bv_blocks_select1(ones_before_c+i)-ones_before_c-(c*m_chunks+1)-i+1;
+	    uint64_t c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk+1)-(c*m_chunks+chunk)-ones_before_c;
+	    uint64_t pi_pos = m_bv_shortcut_select0(chunk*m_max_symbol+c+1)+(i-c_ones_before_chunk)-chunk*m_max_symbol-c-1;
 
             return m_perm[pi_pos]+chunk*m_chunksize;
         }
 
         size_type rank(size_type i, value_type c)const {
+
             if (c>m_max_symbol-1) return 0;
             if (i<=0) return 0;
 
             uint64_t chunk = (i-1)/m_chunksize;
-            uint64_t c_ones_before_chunk;
+            uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks+1)-(c*m_chunks+1)+1;
+            uint64_t c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk+1)-(c*m_chunks+chunk+1)+1-ones_before_c;
 
-            if (c==0) {
-                if (chunk==0) {
-                    c_ones_before_chunk=0;
-                } else {
-                    c_ones_before_chunk=m_bv_blocks_select0(chunk)-chunk+1;
-                }
-            } else {
-                uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks)-(c*m_chunks)+1;
-                c_ones_before_chunk = m_bv_blocks_select0(c*m_chunks+chunk)-(c*m_chunks+chunk)+1-ones_before_c;
-            }
             uint64_t c_ones_in_chunk = 0;
 
             size_type search_begin = m_bv_shortcut_select0(chunk*m_max_symbol+1+c)-(chunk*m_max_symbol+1+c)+1;
