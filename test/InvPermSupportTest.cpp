@@ -22,7 +22,7 @@ class InvPermSupportTest : public ::testing::Test
         virtual ~InvPermSupportTest() {}
 
         virtual void SetUp() {
-            for (size_t z=0; z < (1ULL<<21); z=(z+1)*2) {
+            for (size_t z=0; z < (1ULL<<20); z=(z+1)*2) {
                 sdsl::int_vector<> iv(z);
                 sdsl::util::set_to_id(iv);
                 random_shuffle(iv.begin(), iv.end());
