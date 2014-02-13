@@ -61,6 +61,16 @@ class inv_perm_support
 
         inv_perm_support() {};
 
+        inv_perm_support(const inv_perm_support& p) : m_v(p.v),
+            m_back_pointer(p.m_back_pointer), m_marked(p.m_marked),
+            m_rank_marked(p.m_rank_marked) {
+            m_rank_marked.set_vector(m_marked);
+        }
+
+        inv_perm_support(inv_perm_support&& p) {
+            *this = std::move(p);
+        }
+
         //! Constructor
         inv_perm_support(const iv_type* v) : m_v(v) {
             bit_vector marked = bit_vector(m_v->size(), 0);
@@ -146,6 +156,17 @@ class inv_perm_support
                 m_back_pointer = p.m_back_pointer;
                 m_marked         = p.m_marked;
                 m_rank_marked    = p.m_rank_marked;
+                m_rank_marked.set_vector(&m_marked);
+            }
+            return *this;
+        }
+
+        //! Assignment move operation
+        inv_perm_support& operator=(inv_perm_support&& p) {
+            if (this != &p) {
+                m_back_pointer   = std::move(p.m_back_pointer);
+                m_marked         = std::move(p.m_marked);
+                m_rank_marked    = std::move(p.m_rank_marked);
                 m_rank_marked.set_vector(&m_marked);
             }
             return *this;
