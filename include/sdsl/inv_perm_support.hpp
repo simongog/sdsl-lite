@@ -23,6 +23,7 @@
 #define INCLUDED_SDSL_INV_PERM_SUPPORT
 
 #include "int_vector.hpp"
+#include "iterators.hpp"
 #include "bit_vectors.hpp"
 #include "rank_support.hpp"
 
@@ -43,15 +44,17 @@ namespace sdsl
  *      [1] J. Munro, R. Raman, V. Raman, S. Rao: ,,Succinct representation
  *          of permutations'', Proceedings of ICALP 2003
  */
-template<uint64_t t_s, class t_bv=bit_vector, class t_rank=typename bit_vector::rank_1_type>
+template<uint64_t t_s=32, class t_bv=bit_vector, class t_rank=typename bit_vector::rank_1_type>
 class inv_perm_support
 {
     public:
-        typedef int_vector<>        iv_type;
-        typedef iv_type::size_type  size_type;
-        typedef iv_type::value_type value_type;
-        typedef t_bv                bit_vector_type;
-        typedef t_rank              rank_type;
+        typedef int_vector<>                                   iv_type;
+        typedef iv_type::size_type                             size_type;
+        typedef iv_type::value_type                            value_type;
+        typedef iv_type::difference_type                       difference_type;
+        typedef random_access_const_iterator<inv_perm_support> const_iterator;
+        typedef t_bv                                           bit_vector_type;
+        typedef t_rank                                         rank_type;
     private:
         const iv_type*  m_v = nullptr;   // pointer to supported permutation
         iv_type         m_back_pointer;  // back pointers
@@ -145,7 +148,17 @@ class inv_perm_support
         }
 
         size_type size() const {
-            return m_v->size();
+            return nullptr == m_v ? 0 : m_v->size();
+        }
+
+        //! Returns a const_iterator to the first element.
+        const_iterator begin()const {
+            return const_iterator(this, 0);
+        }
+
+        //! Returns a const_iterator to the element after the last element.
+        const_iterator end()const {
+            return const_iterator(this, size());
         }
 
         void set_vector(const iv_type* v) { m_v = v; }
