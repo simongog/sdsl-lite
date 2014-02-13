@@ -61,6 +61,7 @@ TC_PATHS:= $(WT_BYTE_TC_PATHS) $(WT_INT_TC_PATHS) \
 test:	bits-test \
 	coder-test \
 	int-vector-test \
+	inv-perm-support-test \
 	int-vector-buffer-test \
 	bit-vector-test \
 	rank-support-test\
@@ -107,6 +108,9 @@ coder-test: ./CoderTest.x
 
 int-vector-test: ./IntVectorTest.x
 	@$(PREFIX) ./IntVectorTest.x
+
+inv-perm-support-test: ./InvPermSupportTest.x
+	@$(PREFIX) ./InvPermSupportTest.x
 
 int-vector-buffer-test: ./IntVectorBufferTest.x
 	@$(PREFIX) ./IntVectorBufferTest.x
