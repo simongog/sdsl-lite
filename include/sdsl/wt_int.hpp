@@ -16,8 +16,8 @@
 */
 /*! \file wt_int.hpp
     \brief wt_int.hpp contains a specialized class for a wavelet tree of a
-           permutation of the numbers from 0..n. This wavelet tree class takes
-           less memory than the generic class for wavelet trees.
+           sequence of the numbers. This wavelet tree class takes
+           less memory than the wt_pc class for large alphabets.
     \author Simon Gog, Shanika Kuruppu
 */
 #ifndef INCLUDED_SDSL_INT_WAVELET_TREE
@@ -463,7 +463,7 @@ class wt_int
                 m_path_off[k+1] = offset;
                 mask >>= 1;
             }
-            if (node_size < i) {
+            if (0ULL == node_size or node_size < i) {
                 throw std::logic_error("select("+util::to_string(i)+","+util::to_string(c)+"): c does not occur i times in the WT");
                 return m_size;
             }
