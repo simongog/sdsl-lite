@@ -64,10 +64,10 @@ class inv_perm_support
 
         inv_perm_support() {};
 
-        inv_perm_support(const inv_perm_support& p) : m_v(p.v),
+        inv_perm_support(const inv_perm_support& p) : m_v(p.m_v),
             m_back_pointer(p.m_back_pointer), m_marked(p.m_marked),
             m_rank_marked(p.m_rank_marked) {
-            m_rank_marked.set_vector(m_marked);
+            m_rank_marked.set_vector(&m_marked);
         }
 
         inv_perm_support(inv_perm_support&& p) {
@@ -103,8 +103,7 @@ class inv_perm_support
                 }
             }
 
-            m_marked = t_bv(marked);
-            util::clear(marked);
+            m_marked = t_bv(std::move(marked));
             util::init_support(m_rank_marked, &m_marked);
 
             done   = bit_vector(m_v->size(), 0);
@@ -166,9 +165,10 @@ class inv_perm_support
         //! Assignment operation
         inv_perm_support& operator=(const inv_perm_support& p) {
             if (this != &p) {
+                m_v            = p.m_v;
                 m_back_pointer = p.m_back_pointer;
-                m_marked         = p.m_marked;
-                m_rank_marked    = p.m_rank_marked;
+                m_marked       = p.m_marked;
+                m_rank_marked  = p.m_rank_marked;
                 m_rank_marked.set_vector(&m_marked);
             }
             return *this;
@@ -177,9 +177,10 @@ class inv_perm_support
         //! Assignment move operation
         inv_perm_support& operator=(inv_perm_support&& p) {
             if (this != &p) {
-                m_back_pointer   = std::move(p.m_back_pointer);
-                m_marked         = std::move(p.m_marked);
-                m_rank_marked    = std::move(p.m_rank_marked);
+                m_v            = std::move(p.m_v);
+                m_back_pointer = std::move(p.m_back_pointer);
+                m_marked       = std::move(p.m_marked);
+                m_rank_marked  = std::move(p.m_rank_marked);
                 m_rank_marked.set_vector(&m_marked);
             }
             return *this;

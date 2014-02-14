@@ -43,15 +43,39 @@ class InvPermSupportTest : public ::testing::Test
         std::vector<sdsl::int_vector<>> inv_perms;
 };
 
+void compare(const sdsl::int_vector<>& inv_perm, const sdsl::inv_perm_support<>& ips)
+{
+    ASSERT_EQ(inv_perm.size(), ips.size());
+    for (size_t j=0; j<ips.size(); ++j) {
+        ASSERT_EQ(inv_perm[j], ips[j]);
+    }
+}
+
 //! Test Constructors
 TEST_F(InvPermSupportTest, Constructors)
 {
     for (size_t i=0; i<perms.size(); ++i) {
+        // Constructor
         sdsl::inv_perm_support<> ips(&perms[i]);
-        ASSERT_EQ(inv_perms[i].size(), ips.size());
-        for (size_t j=0; j<ips.size(); ++j) {
-            ASSERT_EQ(inv_perms[i][j], ips[j]);
-        }
+        compare(inv_perms[i], ips);
+
+        // Copy-constructor
+        sdsl::inv_perm_support<> ips2(ips);
+        compare(inv_perms[i], ips2);
+
+        // Move-constructor
+        sdsl::inv_perm_support<> ips3(std::move(ips2));
+        compare(inv_perms[i], ips3);
+
+        // Copy-assign
+        sdsl::inv_perm_support<> ips4;
+        ips4 = ips;
+        compare(inv_perms[i], ips4);
+
+        // Move-assign
+        sdsl::inv_perm_support<> ips5;
+        ips5 = std::move(ips);
+        compare(inv_perms[i], ips5);
     }
 }
 
@@ -65,10 +89,7 @@ TEST_F(InvPermSupportTest, Swap)
             sdsl::util::swap_support(tmp, ips,
                                      &perms[i], (const sdsl::int_vector<>*)nullptr);
             ASSERT_EQ((size_type)0, ips.size());
-            ASSERT_EQ(inv_perms[i].size(), tmp.size());
-            for (size_type j=0; j < tmp.size(); ++j) {
-                ASSERT_EQ(inv_perms[i][j], tmp[j]);
-            }
+            compare(inv_perms[i], tmp);
         }
     }
 }
@@ -84,10 +105,7 @@ TEST_F(InvPermSupportTest, SerializeAndLoad)
         sdsl::inv_perm_support<> ips2;
         sdsl::load_from_file(ips2, file_name);
         ips2.set_vector(&perms[i]);
-        ASSERT_EQ(inv_perms[i].size(), ips2.size());
-        for (size_t j=0; j<ips2.size(); ++j) {
-            ASSERT_EQ(inv_perms[i][j], ips2[j]);
-        }
+        compare(inv_perms[i], ips2);
         sdsl::remove(file_name);
     }
 }
