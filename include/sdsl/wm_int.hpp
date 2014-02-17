@@ -75,7 +75,7 @@ class wm_int
         typedef t_select_zero                        select_0_type;
         typedef wt_tag                               index_category;
         typedef int_alphabet_tag                     alphabet_category;
-        enum 	{lex_ordered=1};
+        enum 	{lex_ordered=0};
 
         typedef std::pair<value_type, size_type>     point_type;
         typedef std::vector<point_type>              point_vec_type;

@@ -74,6 +74,7 @@ wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<
         ,wt_huff<rrr_vector<63>, rrr_vector<63>::rank_1_type, rrr_vector<63>::select_1_type, rrr_vector<63>::select_0_type, int_tree<>>
         ,wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
         ,wt_int<rrr_vector<15>>
+        ,wm_int<>
         ,wt_int<>
         ,wt_int<rrr_vector<63>>
         ,wt_rlmn<bit_vector, rank_support_v5<>, select_support_mcl<1>, wt_int<>>
@@ -234,7 +235,7 @@ void test_interval_symbols(t_T& wt)
         for (size_type i=0, j=0; i < wt.size(); i=j) {
             j = std::min(wt.size(),i+dice());
 
-            wt.interval_symbols(i, j, k, cs, rank_c_i, rank_c_j);
+            interval_symbols(wt, i, j, k, cs, rank_c_i, rank_c_j);
 
             size_type symbols = (j-i);
             for (size_type m = 0; m<k; ++m) {
