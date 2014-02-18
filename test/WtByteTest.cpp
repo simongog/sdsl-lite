@@ -1,6 +1,4 @@
 #include "sdsl/wavelet_trees.hpp"
-#include "sdsl/rrr_vector.hpp"
-#include "sdsl/bit_vector_il.hpp"
 #include "gtest/gtest.h"
 #include <vector>
 #include <string>
@@ -19,62 +17,27 @@ string test_file;
 string temp_file;
 bool in_memory;
 
-// forward declaration
-template<class t_wt>
-void test_interval_symbols(t_wt& wt);
-// forward declaration
-template<class t_wt>
-void test_lex_count(t_wt& wt);
-
-
-template<class t_wt, bool lex_ordered = t_wt::lex_ordered>
-struct wt_test_trait;
-
-template<class t_wt>
-struct wt_test_trait<t_wt, false> {
-    static void interval_symbols_test(t_wt& wt) {
-        test_interval_symbols(wt);
-    }
-    static void lex_count_test(t_wt&) {}
-};
-
-template<class t_wt>
-struct wt_test_trait<t_wt, true> {
-    static void interval_symbols_test(t_wt& wt) {
-        test_interval_symbols(wt);
-    }
-    static void lex_count_test(t_wt& wt) {
-        test_lex_count(wt);
-    }
-};
-
-template<class t_bitvector,class t_rank, class t_select, class t_wt>
-struct wt_test_trait<wt_rlmn<t_bitvector,t_rank,t_select,t_wt>,false> {
-    static void interval_symbols_test(wt_rlmn<t_bitvector,t_rank,t_select,t_wt>&) {}
-    static void lex_count_test(wt_rlmn<t_bitvector,t_rank,t_select,t_wt>&) {}
-};
-
 template<class T>
 class WtByteTest : public ::testing::Test { };
 
 using testing::Types;
 
 typedef Types<
-wt_pc<balanced_shape>,
-      wt_blcd<rrr_vector<63>>,
-      wt_blcd<bit_vector_il<>>,
-      wt_blcd<bit_vector>,
-      wt_huff<bit_vector_il<>>,
-      wt_huff<bit_vector, rank_support_v<>>,
-      wt_huff<bit_vector, rank_support_v5<>>,
-      wt_huff<rrr_vector<63>>,
-      wt_rlmn<>,
-      wt_rlmn<bit_vector>,
-      wt_hutu<bit_vector_il<>>,
-      wt_hutu<bit_vector, rank_support_v<>>,
-      wt_hutu<bit_vector, rank_support_v5<>>,
-      wt_hutu<rrr_vector<63>>
-      > Implementations;
+wt_pc<balanced_shape>
+,wt_blcd<rrr_vector<63>>
+                      ,wt_blcd<bit_vector_il<>>
+                      ,wt_blcd<bit_vector>
+                      ,wt_huff<bit_vector_il<>>
+                      ,wt_huff<bit_vector, rank_support_v<>>
+                      ,wt_huff<bit_vector, rank_support_v5<>>
+                      ,wt_huff<rrr_vector<63>>
+                      ,wt_rlmn<>
+                      ,wt_rlmn<bit_vector>
+                      ,wt_hutu<bit_vector_il<>>
+                      ,wt_hutu<bit_vector, rank_support_v<>>
+                      ,wt_hutu<bit_vector, rank_support_v5<>>
+                      ,wt_hutu<rrr_vector<63>>
+                      > Implementations;
 
 TYPED_TEST_CASE(WtByteTest, Implementations);
 
@@ -86,7 +49,7 @@ TYPED_TEST(WtByteTest, CreateAndStoreTest)
     ASSERT_EQ(true, success);
 }
 
-//! Test access methods
+//! Test sigma
 TYPED_TEST(WtByteTest, Sigma)
 {
     TypeParam wt;
@@ -105,24 +68,58 @@ TYPED_TEST(WtByteTest, Sigma)
     ASSERT_EQ(sigma, wt.sigma);
 }
 
-//! Test access methods
-TYPED_TEST(WtByteTest, Access)
+template<class t_wt>
+void compare_wt(const int_vector<8>& text, const t_wt& wt)
+{
+    ASSERT_EQ(text.size(), wt.size());
+    for (size_type j=0; j<text.size(); ++j) {
+        ASSERT_EQ((typename t_wt::value_type)text[j], wt[j])<<" j="<<j;
+    }
+}
+
+//! Test Access method, Copy-construtor, Move-constructor, Copy-assign and Move-assign
+TYPED_TEST(WtByteTest, AccessCopyMoveAndSwap)
 {
     TypeParam wt;
     ASSERT_EQ(true, load_from_file(wt, temp_file));
     int_vector<8> text;
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
-    ASSERT_EQ(text.size(), wt.size());
-    for (size_type j=0; j<text.size(); ++j) {
-        ASSERT_EQ((typename TypeParam::value_type)text[j], wt[j])<<" j="<<j;
-    }
+    compare_wt(text, wt);
+
+    // Copy-constructor
+    TypeParam wt2(wt);
+    compare_wt(text, wt2);
+
+    // Move-constructor
+    TypeParam wt3(std::move(wt2));
+    compare_wt(text, wt3);
+
+    // Copy-Assign
+    TypeParam wt4;
+    wt4 = wt3;
+    compare_wt(text, wt4);
+
+    // Move-Assign
+    TypeParam wt5;
+    wt5 = std::move(wt4);
+    compare_wt(text, wt5);
+
+    // Swap
+    TypeParam wt6;
+    wt6.swap(wt5);
+    compare_wt(text, wt6);
 }
 
-template<class tWt>
-void test_rank(const tWt& wt, const int_vector<8>& text, size_type n)
+//! Test rank methods
+TYPED_TEST(WtByteTest, Rank)
 {
+    TypeParam wt;
+    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    int_vector<8> text;
+    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+
     vector<size_type> cnt(256, 0);
-    ASSERT_EQ(n, wt.size());
+    ASSERT_EQ(text.size(), wt.size());
     for (size_type j=0; j < wt.size(); ++j) {
         cnt[text[j]]++;
         ASSERT_EQ(cnt[text[j]], wt.rank(j+1, text[j]))<< " j = "<<j<<" text[j]"<<text[j];
@@ -145,47 +142,11 @@ void test_rank(const tWt& wt, const int_vector<8>& text, size_type n)
     }
 }
 
-//! Test rank methods
-TYPED_TEST(WtByteTest, Rank)
-{
-    TypeParam wt;
-    ASSERT_EQ(true, load_from_file(wt, temp_file));
-    int_vector<8> text;
-    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
-    ::test_rank(wt, text, text.size());
-}
-
-TYPED_TEST(WtByteTest, MoveRank)
-{
-    TypeParam wt_load;
-    ASSERT_EQ(true, load_from_file(wt_load, temp_file));
-    TypeParam wt = std::move(wt_load);
-    int_vector<8> text;
-    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
-    ::test_rank(wt, text, text.size());
-}
-
 //! Test select methods
 TYPED_TEST(WtByteTest, Select)
 {
     TypeParam wt;
     ASSERT_EQ(true, load_from_file(wt, temp_file));
-    int_vector<8> text;
-    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
-    vector<size_type> cnt(256, 0);
-    ASSERT_EQ(text.size(), wt.size());
-    for (size_type j=0; j<text.size(); ++j) {
-        cnt[text[j]]++;
-        ASSERT_EQ(j, wt.select(cnt[text[j]], text[j]))<< " j = "<<j<<" text[j]"<<text[j];
-    }
-}
-
-//! Test select methods
-TYPED_TEST(WtByteTest, MoveSelect)
-{
-    TypeParam wt_load;
-    ASSERT_EQ(true, load_from_file(wt_load, temp_file));
-    TypeParam wt = std::move(wt_load);
     int_vector<8> text;
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
     vector<size_type> cnt(256, 0);
@@ -213,10 +174,21 @@ TYPED_TEST(WtByteTest, InverseSelect)
     }
 }
 
-template<class t_T>
-void test_interval_symbols(t_T& wt)
+template<class t_wt>
+void
+test_interval_symbols(typename std::enable_if<!(has_node_type<t_wt>::value),
+                      t_wt>::type&)
 {
-    typedef typename t_T::value_type value_type;
+    // interval_symbols not implemented
+}
+
+template<class t_wt>
+void
+test_interval_symbols(typename std::enable_if<has_node_type<t_wt>::value,
+                      t_wt>::type& wt)
+{
+
+    typedef typename t_wt::value_type value_type;
     ASSERT_EQ(true, load_from_file(wt, temp_file));
     int_vector<8> text;
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
@@ -240,13 +212,13 @@ void test_interval_symbols(t_T& wt)
             ASSERT_EQ(wt.rank(j, cs[m]), rank_c_j[m]);
             ASSERT_LT((size_type)0, rank_c_j[m]-rank_c_i[m]);
             symbols -= (rank_c_j[m]-rank_c_i[m]);
-            if (m>0 and t_T::lex_ordered) {
+            if (m>0 and t_wt::lex_ordered) {
                 ASSERT_LT(cs[m-1],cs[m]);
             }
         }
 
         ASSERT_EQ((size_type)0, symbols);
-        if (!t_T::lex_ordered) {
+        if (!t_wt::lex_ordered) {
             sort(cs.begin(), cs.begin()+k);
             for (size_type m=1; m<k; m++) {
                 ASSERT_LT(cs[m-1], cs[m]);
@@ -259,13 +231,21 @@ void test_interval_symbols(t_T& wt)
 TYPED_TEST(WtByteTest, IntervalSymbols)
 {
     TypeParam wt;
-    ::wt_test_trait<TypeParam>::interval_symbols_test(wt);
+    test_interval_symbols<TypeParam>(wt);
 }
 
-template<class t_T>
-void test_lex_count(t_T& wt)
+template<class t_wt>
+void
+test_lex_count(typename std::enable_if<!(t_wt::lex_ordered), t_wt>::type&)
 {
-    typedef typename t_T::value_type value_type;
+    // lex_count not implemented
+}
+
+template<class t_wt>
+void
+test_lex_count(typename std::enable_if<t_wt::lex_ordered, t_wt>::type& wt)
+{
+    typedef typename t_wt::value_type value_type;
     ASSERT_EQ(true, load_from_file(wt, temp_file));
     int_vector<8> text;
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
@@ -317,22 +297,7 @@ void test_lex_count(t_T& wt)
 TYPED_TEST(WtByteTest, LexCount)
 {
     TypeParam wt;
-    ::wt_test_trait<TypeParam>::lex_count_test(wt);
-}
-
-//! Test access after swap
-TYPED_TEST(WtByteTest, SwapTest)
-{
-    TypeParam wt1;
-    ASSERT_EQ(true, load_from_file(wt1, temp_file));
-    TypeParam wt2;
-    wt1.swap(wt2);
-    int_vector<8> text;
-    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
-    ASSERT_EQ(text.size(), wt2.size());
-    for (size_type j=0; j<text.size(); ++j) {
-        ASSERT_EQ(wt2[j], (typename TypeParam::value_type)text[j]);
-    }
+    test_lex_count<TypeParam>(wt);
 }
 
 TYPED_TEST(WtByteTest, CreatePartiallyTest)
@@ -341,8 +306,9 @@ TYPED_TEST(WtByteTest, CreatePartiallyTest)
     int_vector<8> text;
     ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
     size_type n = min(text.size(), (size_type)50);
+    text.resize(n);
     TypeParam wt(text_buf, n);
-    ::test_rank(wt, text, n);
+    compare_wt(text, wt);
 }
 
 TYPED_TEST(WtByteTest, DeleteTest)
