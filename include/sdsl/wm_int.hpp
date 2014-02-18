@@ -188,7 +188,6 @@ class wm_int
             m_zero_cnt = int_vector<64>(m_max_level, 0); // zeros at level i
 
             for (uint32_t k=0; k<m_max_level; ++k) {
-                size_type      start = 0;
                 uint8_t        width = m_max_level-k-1;
                 const uint64_t mask  = 1ULL<<width;
                 uint64_t       x     = 0;
@@ -397,8 +396,7 @@ class wm_int
          */
         size_type select(size_type i, value_type c)const {
             assert(1 <= i and i <= rank(size(), c));
-            uint64_t mask    = 1ULL << (m_max_level-1);
-            size_type node_size = m_size;
+            uint64_t mask = 1ULL << (m_max_level-1);
             m_path_off[0] = m_path_rank_off[0] = 0;
             size_type b = 0; // start position of the interval
             size_type r = i;
@@ -452,8 +450,9 @@ class wm_int
             point_vec_type point_vec;
             if (lb <= rb) {
                 size_type is[m_max_level+1];
+                size_type rank_off[m_max_level+1];
                 _range_search_2d(root(), range_type(lb, rb), vlb, vrb, 0, is,
-                                 point_vec, report, cnt_answers);
+                                 rank_off, point_vec, report, cnt_answers);
             }
             return make_pair(cnt_answers, point_vec);
         }
@@ -461,8 +460,8 @@ class wm_int
         void
         _range_search_2d(node_type v, range_type r, value_type vlb,
                          value_type vrb, size_type ilb, size_type is[],
-                         point_vec_type& point_vec, bool report,
-                         size_type& cnt_answers)
+                         size_type rank_off[], point_vec_type& point_vec,
+                         bool report, size_type& cnt_answers)
         const {
             using std::get;
             if (get<0>(r) > get<1>(r))
@@ -475,7 +474,7 @@ class wm_int
                     size_type c = v.sym;
                     for (uint32_t k=m_max_level; k>0; --k) {
                         size_type offset = is[k-1];
-                        size_type rank_offset = m_tree_rank(offset);
+                        size_type rank_offset = rank_off[k-1];
                         if (c&1) {
                             i = m_tree_select1(rank_offset+i)-offset+1;
                         } else {
@@ -487,6 +486,8 @@ class wm_int
                 }
                 cnt_answers += sdsl::size(r);
                 return;
+            } else {
+                rank_off[v.level] = m_tree_rank(is[v.level]);
             }
             size_type irb = ilb + (1ULL << (m_max_level-v.level));
             size_type mid = (irb + ilb)>>1;
@@ -496,12 +497,13 @@ class wm_int
 
             if (!sdsl::empty(get<0>(c_r)) and  vlb < mid and mid) {
                 _range_search_2d(get<0>(c_v),get<0>(c_r), vlb,
-                                 std::min(vrb,mid-1), ilb, is, point_vec, report,
-                                 cnt_answers);
+                                 std::min(vrb,mid-1), ilb, is, rank_off,
+                                 point_vec, report, cnt_answers);
             }
             if (!sdsl::empty(get<1>(c_r)) and vrb >= mid) {
                 _range_search_2d(get<1>(c_v), get<1>(c_r), std::max(mid, vlb),
-                                 vrb, mid, is, point_vec, report, cnt_answers);
+                                 vrb, mid, is, rank_off, point_vec, report,
+                                 cnt_answers);
             }
         }
 
