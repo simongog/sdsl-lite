@@ -148,6 +148,12 @@ struct wt_trait;
 
 template<class t_wt>
 struct wt_trait<t_wt, false> {
+    static uint64_t test_access(const t_wt& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000) {
+        return ::test_access(wt,is,mask,times);
+    }
+    static uint64_t test_inverse_select(const t_wt& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000) {
+        return ::test_inverse_select(wt,is,mask,times);
+    }
     static uint64_t test_interval_symbols(const t_wt& wt, const vector<size_type>& is, const vector<size_type>& js, size_type& k, uint64_t mask, uint64_t times=100000000) {
         return ::test_interval_symbols(wt,is,js,k,mask,times);
     }
@@ -161,6 +167,12 @@ struct wt_trait<t_wt, false> {
 
 template<class t_wt>
 struct wt_trait<t_wt, true> {
+    static uint64_t test_access(const t_wt& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000) {
+        return ::test_access(wt,is,mask,times);
+    }
+    static uint64_t test_inverse_select(const t_wt& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000) {
+        return ::test_inverse_select(wt,is,mask,times);
+    }
     static uint64_t test_interval_symbols(const t_wt& wt, const vector<size_type>& is, const vector<size_type>& js, size_type& k, uint64_t mask, uint64_t times=100000000) {
         return ::test_interval_symbols(wt,is,js,k,mask,times);
     }
@@ -174,6 +186,12 @@ struct wt_trait<t_wt, true> {
 
 template<class t_bitvector, class t_rank, class t_select, class t_wt>
 struct wt_trait<wt_rlmn<t_bitvector, t_rank, t_select, t_wt>, false> {
+    static uint64_t test_access(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000) {
+        return ::test_access(wt,is,mask,times);
+    }
+    static uint64_t test_inverse_select(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000) {
+        return ::test_inverse_select(wt,is,mask,times);
+    }
     static uint64_t test_interval_symbols(const wt_rlmn<t_bitvector, t_rank, t_select, t_wt>&, const vector<size_type>&, const vector<size_type>&, size_type&, uint64_t, uint64_t) {
         return 0;
     }
@@ -187,6 +205,12 @@ struct wt_trait<wt_rlmn<t_bitvector, t_rank, t_select, t_wt>, false> {
 
 template<class t_bitvector, class t_select, class t_select_zero>
 struct wt_trait<wt_gmr_1<t_bitvector, t_select, t_select_zero>, false> {
+    static uint64_t test_access(const wt_gmr_1<t_bitvector, t_select, t_select_zero>&, const vector<size_type>&, uint64_t, uint64_t) {
+        return 0;
+    }
+    static uint64_t test_inverse_select(const wt_gmr_1<t_bitvector, t_select, t_select_zero>&, const vector<size_type>&, uint64_t, uint64_t) {
+        return 0;
+    }
     static uint64_t test_interval_symbols(const wt_gmr_1<t_bitvector, t_select, t_select_zero>&, const vector<size_type>&, const vector<size_type>&, size_type&, uint64_t, uint64_t) {
         return 0;
     }
@@ -200,6 +224,12 @@ struct wt_trait<wt_gmr_1<t_bitvector, t_select, t_select_zero>, false> {
 
 template<class t_bitvector, class t_select, class t_select_zero, class t_rank>
 struct wt_trait<wt_gmr_2<t_bitvector, t_select, t_select_zero, t_rank>, false> {
+    static uint64_t test_access(const wt_gmr_2<t_bitvector, t_select, t_select_zero, t_rank>& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000) {
+        return ::test_access(wt,is,mask,times);
+    }
+    static uint64_t test_inverse_select(const wt_gmr_2<t_bitvector, t_select, t_select_zero, t_rank>& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000) {
+        return ::test_inverse_select(wt,is,mask,times);
+    }
     static uint64_t test_interval_symbols(const wt_gmr_2<t_bitvector, t_select, t_select_zero, t_rank>&, const vector<size_type>&, const vector<size_type>&, size_type&, uint64_t, uint64_t) {
         return 0;
     }
@@ -213,6 +243,12 @@ struct wt_trait<wt_gmr_2<t_bitvector, t_select, t_select_zero, t_rank>, false> {
 
 template<class t_bitvector, class t_select, class t_select_zero, class t_rank>
 struct wt_trait<wt_gmr_3<t_bitvector, t_select, t_select_zero, t_rank>, false> {
+    static uint64_t test_access(const wt_gmr_3<t_bitvector, t_select, t_select_zero, t_rank>& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000) {
+        return ::test_access(wt,is,mask,times);
+    }
+    static uint64_t test_inverse_select(const wt_gmr_3<t_bitvector, t_select, t_select_zero, t_rank>& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000) {
+        return ::test_inverse_select(wt,is,mask,times);
+    }
     static uint64_t test_interval_symbols(const wt_gmr_3<t_bitvector, t_select, t_select_zero, t_rank>&, const vector<size_type>&, const vector<size_type>&, size_type&, uint64_t, uint64_t) {
         return 0;
     }
@@ -224,11 +260,30 @@ struct wt_trait<wt_gmr_3<t_bitvector, t_select, t_select_zero, t_rank>, false> {
     }
 };
 
-// argv[1] = test case path  argv[2] = test case type
+template<class t_rac, class inverse_permutation_support, class t_bitvector, class t_select, class t_select_zero, class t_rank>
+struct wt_trait<wt_gmr_4<t_rac, inverse_permutation_support, t_bitvector, t_select, t_select_zero, t_rank>, false> {
+    static uint64_t test_access(const wt_gmr_4<t_rac, inverse_permutation_support, t_bitvector, t_select, t_select_zero, t_rank>& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000) {
+        return ::test_access(wt,is,mask,times);
+    }
+    static uint64_t test_inverse_select(const wt_gmr_4<t_rac, inverse_permutation_support, t_bitvector, t_select, t_select_zero, t_rank>& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000) {
+        return ::test_inverse_select(wt,is,mask,times);
+    }
+    static uint64_t test_interval_symbols(const wt_gmr_4<t_rac, inverse_permutation_support, t_bitvector, t_select, t_select_zero, t_rank>&, const vector<size_type>&, const vector<size_type>&, size_type&, uint64_t, uint64_t) {
+        return 0;
+    }
+    static uint64_t test_lex_count(const wt_gmr_4<t_rac, inverse_permutation_support, t_bitvector, t_select, t_select_zero, t_rank>&, const vector<size_type>&, const vector<size_type>&, const vector<value_type>&, uint64_t, uint64_t) {
+        return 0;
+    }
+    static uint64_t test_lex_smaller_count(const wt_gmr_4<t_rac, inverse_permutation_support, t_bitvector, t_select, t_select_zero, t_rank>&, const vector<size_type>&, const vector<value_type>&, uint64_t, uint64_t) {
+        return 0;
+    }
+};
+
+// argv[1] = test case path  argv[2] = test case type  argv[3] test case name argv[4] wavelet tree id
 int main(int argc, char* argv[])
 {
-    if (argc < 3) {
-        cout << "Usage: file num_bytes" << endl;
+    if (argc < 4) {
+        cout << "Usage: file num_bytes testcase_name wt_id" << endl;
         return 1;
     }
     uint8_t type = argv[2][0]=='d' ? 'd' : argv[2][0]-'0';
@@ -266,9 +321,13 @@ int main(int argc, char* argv[])
     //size
     cout << "# wt_size = " << size_in_bytes(wt) << endl;
 
+    // print structure
+    ofstream out("wt_"+string(argv[4])+"_"+string(argv[3])+".html");
+    write_structure<HTML_FORMAT>(wt, out);
+
     //access
     start = timer::now();
-    check = test_access(wt,is,mask,reps);
+    check = wt_trait<WT_TYPE>::test_access(wt,is,mask,reps);
     stop = timer::now();
     cout << "# access_time = " << duration_cast<microseconds>(stop-start).count()/(double)reps << endl;
     cout << "# access_check = " << check << endl;
@@ -282,7 +341,7 @@ int main(int argc, char* argv[])
 
     //inverse_select
     start = timer::now();
-    check = test_inverse_select(wt,is,mask,reps);
+    check = wt_trait<WT_TYPE>::test_inverse_select(wt,is,mask,reps);
     stop = timer::now();
     cout << "# inverse_select_time = " << duration_cast<microseconds>(stop-start).count()/(double)reps << endl;
     cout << "# inverse_select_check = " << check << endl;
