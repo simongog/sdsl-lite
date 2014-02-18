@@ -620,7 +620,6 @@ class wt_int
          *  \return Pair (#of found points, vector of points), the vector is empty when
          *          report = false.
          */
-
         std::pair<size_type, std::vector<std::pair<value_type, size_type>>>
         range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb,
                         bool report=true) const {
@@ -637,9 +636,6 @@ class wt_int
             return make_pair(cnt_answers, point_vec);
         }
 
-        // add parameter path
-        // ilb interval left bound
-        // irb interval right bound
         void
         _range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb, size_type level,
                          size_type ilb, size_type node_size, size_type offsets[],
@@ -663,7 +659,7 @@ class wt_int
                             }
                             c >>= 1;
                         }
-                        point_vec.emplace_back(i-1, path); // add resulting index; -1 cause of 0 based indexing
+                        point_vec.emplace_back(i-1, path);
                     }
                 }
                 cnt_answers += rb-lb+1;

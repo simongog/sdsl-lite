@@ -229,7 +229,7 @@ struct has_interval_symbols {
     static constexpr auto check(T*)
     -> typename
     std::is_same<
-    decltype(std::declval<T>().interval_symbols(//
+    decltype(std::declval<T>().interval_symbols(
                  std::declval<typename T::size_type>(),
                  std::declval<typename T::size_type>(),
                  std::declval<typename T::size_type&>(),
@@ -237,9 +237,9 @@ struct has_interval_symbols {
                  std::declval<std::vector<typename T::size_type>&>(),
                  std::declval<std::vector<typename T::size_type>&>()
              )),
-             void>::type;
-    template<typename>
-    static constexpr std::false_type check(...);
+             void>::type {return std::true_type();}
+             template<typename>
+    static constexpr std::false_type check(...) {return std::false_type();}
     typedef decltype(check<t_wt>(nullptr)) type;
     static constexpr bool value = type::value;
 };
@@ -287,6 +287,47 @@ struct has_expand<t_wt, t_ret(t_args...)> {
     typedef decltype(check<t_wt>(nullptr)) type;
     static constexpr bool value = type::value;
 };
+
+template<typename t_wt>
+struct has_range_search_2d {
+    template<typename T>
+    static constexpr auto check(T*)
+    -> typename
+    std::is_same<
+    decltype(std::declval<T>().range_search_2d(//
+                 std::declval<typename T::size_type>(),
+                 std::declval<typename T::size_type>(),
+                 std::declval<typename T::value_type>(),
+                 std::declval<typename T::value_type>(),
+                 false
+             )),
+             std::pair<typename T::size_type,
+             std::vector<std::pair<typename T::value_type,
+             typename T::size_type>>>>::type {return std::true_type();}
+
+             template<typename>
+    static constexpr std::false_type check(...) {return std::false_type();}
+    typedef decltype(check<t_wt>(nullptr)) type;
+    static constexpr bool value = type::value;
+};
+
+// Check for node_type of wavelet_tree
+// http://stackoverflow.com/questions/7834226/detecting-typedef-at-compile-time-template-metaprogramming
+
+template<typename T>
+struct void_ { typedef void type; };
+
+template<typename t_wt, typename = void>
+struct has_node_type {
+    static constexpr std::false_type value = std::false_type();
+};
+
+template<typename t_wt>
+struct has_node_type<t_wt, typename void_<typename t_wt::node_type>::type> {
+    static constexpr std::true_type value = std::true_type();
+};
+
+
 
 } // end namespace
 

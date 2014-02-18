@@ -11,62 +11,16 @@ using namespace sdsl;
 using namespace std;
 
 typedef int_vector<>::size_type size_type;
-typedef std::map<int_vector<>::value_type,size_type> tMII;
+typedef map<int_vector<>::value_type,size_type> tMII;
 
 string test_file;
 string temp_file;
 bool in_memory;
 
-// forward declaration
-template<class t_wt>
-void test_interval_symbols(t_wt& wt);
-// forward declaration
-template<class t_wt>
-void test_lex_count(t_wt& wt);
-// forward declaration
-template<class t_wt>
-void test_lex_smaller_count(t_wt& wt);
-
-
-template<class t_wt, bool lex_ordered = t_wt::lex_ordered>
-struct wt_test_trait;
-
-template<class t_wt>
-struct wt_test_trait<t_wt, false> {
-    static void interval_symbols_test(t_wt& wt) {
-        test_interval_symbols(wt);
-    }
-    static void lex_count_test(t_wt&) {}
-    static void lex_smaller_count_test(t_wt&) {}
-};
-
-template<class t_wt>
-struct wt_test_trait<t_wt, true> {
-    static void interval_symbols_test(t_wt& wt) {
-        test_interval_symbols(wt);
-    }
-    static void lex_count_test(t_wt& wt) {
-        test_lex_count(wt);
-    }
-    static void lex_smaller_count_test(t_wt& wt) {
-        test_lex_smaller_count(wt);
-    }
-};
-
-template<class t_bitvector,class t_rank, class t_select, class t_wt>
-struct wt_test_trait<wt_rlmn<t_bitvector,t_rank,t_select,t_wt>,false> {
-    static void interval_symbols_test(wt_rlmn<t_bitvector,t_rank,t_select,t_wt>&) {}
-    static void lex_count_test(wt_rlmn<t_bitvector,t_rank,t_select,t_wt>&) {}
-    static void lex_smaller_count_test(wt_rlmn<t_bitvector,t_rank,t_select,t_wt>&) {}
-};
-
-
 template<class T>
 class WtIntTest : public ::testing::Test { };
 
 using testing::Types;
-
-// TODO: * add test cases for range_search_2d
 
 typedef Types<
 wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
@@ -88,13 +42,13 @@ TYPED_TEST(WtIntTest, Constructor)
     int_vector<> iv;
     load_from_file(iv, test_file);
     double iv_size = size_in_mega_bytes(iv);
-    std::cout << "tc = " << test_file << std::endl;
+    cout << "tc = " << test_file << endl;
     {
         TypeParam wt;
         sdsl::construct(wt, test_file);
-        std::cout << "compression = " << size_in_mega_bytes(wt)/iv_size << std::endl;
+        cout << "compression = " << size_in_mega_bytes(wt)/iv_size << endl;
         ASSERT_EQ(iv.size(), wt.size());
-        std::set<uint64_t> sigma_set;
+        set<uint64_t> sigma_set;
         for (size_type j=0; j < iv.size(); ++j) {
             ASSERT_EQ(iv[j], wt[j])<<j;
             sigma_set.insert(iv[j]);
@@ -144,7 +98,7 @@ TYPED_TEST(WtIntTest, LoadAndRank)
         ASSERT_EQ(wt.rank(j, iv[j]), check_rank[iv[j]]);
         check_rank[iv[j]]++;
     }
-    for (tMII::const_iterator it=check_rank.begin(); it!=check_rank.end(); ++it) {
+    for (auto it=check_rank.begin(); it!=check_rank.end(); ++it) {
         ASSERT_EQ(wt.rank(wt.size(), it->first), it->second);
     }
 }
@@ -156,14 +110,14 @@ TYPED_TEST(WtIntTest, LoadAndMoveAndRank)
     load_from_file(iv, test_file);
     TypeParam wt_load;
     ASSERT_TRUE(load_from_file(wt_load, temp_file));
-    TypeParam wt = std::move(wt_load);
+    TypeParam wt = move(wt_load);
     ASSERT_EQ(iv.size(), wt.size());
     tMII check_rank;
     for (size_type j=0; j < iv.size(); ++j) {
         ASSERT_EQ(wt.rank(j, iv[j]), check_rank[iv[j]]);
         check_rank[iv[j]]++;
     }
-    for (tMII::const_iterator it=check_rank.begin(); it!=check_rank.end(); ++it) {
+    for (auto it=check_rank.begin(); it!=check_rank.end(); ++it) {
         ASSERT_EQ(wt.rank(wt.size(), it->first), it->second);
     }
 }
@@ -191,7 +145,7 @@ TYPED_TEST(WtIntTest, LoadAndMoveAndSelect)
     load_from_file(iv, test_file);
     TypeParam wt_load;
     ASSERT_TRUE(load_from_file(wt_load, temp_file));
-    TypeParam wt = std::move(wt_load);
+    TypeParam wt = move(wt_load);
     ASSERT_EQ(iv.size(), wt.size());
     tMII count;
     for (size_type j=0; j < iv.size(); ++j) {
@@ -218,22 +172,32 @@ TYPED_TEST(WtIntTest, LoadAndInverseSelect)
     }
 }
 
-template<class t_T>
-void test_interval_symbols(t_T& wt)
+template<class t_wt>
+void
+test_interval_symbols(typename enable_if<!(has_node_type<t_wt>::value),
+                      t_wt>::type&)
+{
+    // interval_symbols not implemented
+}
+
+template<class t_wt>
+void
+test_interval_symbols(typename enable_if<has_node_type<t_wt>::value,
+                      t_wt>::type& wt)
 {
     ASSERT_TRUE(load_from_file(wt, temp_file));
 
     size_type k = 0;
-    std::vector<size_type> rank_c_i(wt.sigma);
-    std::vector<size_type> rank_c_j(wt.sigma);
-    std::vector<int_vector<>::value_type> cs(wt.sigma);
+    vector<size_type> rank_c_i(wt.sigma);
+    vector<size_type> rank_c_j(wt.sigma);
+    vector<int_vector<>::value_type> cs(wt.sigma);
 
-    std::mt19937_64 rng;
+    mt19937_64 rng;
     for (size_type n=1; n<4; ++n) {
-        std::uniform_int_distribution<uint64_t> distribution(0, n*n*n*10);
+        uniform_int_distribution<uint64_t> distribution(0, n*n*n*10);
         auto dice = bind(distribution, rng);
         for (size_type i=0, j=0; i < wt.size(); i=j) {
-            j = std::min(wt.size(),i+dice());
+            j = min(wt.size(),i+dice());
 
             interval_symbols(wt, i, j, k, cs, rank_c_i, rank_c_j);
 
@@ -243,13 +207,13 @@ void test_interval_symbols(t_T& wt)
                 ASSERT_EQ(wt.rank(j, cs[m]), rank_c_j[m]);
                 ASSERT_LT((size_type)0, rank_c_j[m]-rank_c_i[m]);
                 symbols -= (rank_c_j[m]-rank_c_i[m]);
-                if (m>0 and t_T::lex_ordered) {
+                if (m>0 and t_wt::lex_ordered) {
                     ASSERT_LT(cs[m-1],cs[m]);
                 }
             }
 
             ASSERT_EQ((size_type)0, symbols);
-            if (!t_T::lex_ordered) {
+            if (!t_wt::lex_ordered) {
                 sort(cs.begin(), cs.begin()+k);
                 for (size_type m=1; m<k; m++) {
                     ASSERT_LT(cs[m-1], cs[m]);
@@ -263,26 +227,34 @@ void test_interval_symbols(t_T& wt)
 TYPED_TEST(WtIntTest, LoadAndIntervalSymbols)
 {
     TypeParam wt;
-    ::wt_test_trait<TypeParam>::interval_symbols_test(wt);
+    test_interval_symbols<TypeParam>(wt);
 }
 
-template<class t_T>
-void test_lex_count(t_T& wt)
+template<class t_wt>
+void
+test_lex_count(typename enable_if<!(t_wt::lex_ordered), t_wt>::type&)
+{
+    // lex_count not implemented
+}
+
+template<class t_wt>
+void
+test_lex_count(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 {
     int_vector<> iv;
     load_from_file(iv, test_file);
     ASSERT_TRUE(load_from_file(wt, temp_file));
     ASSERT_EQ(iv.size(), wt.size());
-    std::mt19937_64 rng;
-    uint64_t min = std::numeric_limits<uint64_t>::max(), max = 0;
+    mt19937_64 rng;
+    uint64_t min = numeric_limits<uint64_t>::max(), max = 0;
     for (size_type j=0; j < iv.size(); ++j) {
         if (min>iv[j]) min = iv[j];
         if (max<iv[j]) max = iv[j];
     }
-    std::uniform_int_distribution<uint64_t> symbol_distribution(min, max);
+    uniform_int_distribution<uint64_t> symbol_distribution(min, max);
     auto dice_symbol = bind(symbol_distribution, rng);
     for (size_type k=1; k<4; ++k) {
-        std::uniform_int_distribution<uint64_t> distribution(0, k*k*k*10);
+        uniform_int_distribution<uint64_t> distribution(0, k*k*k*10);
         auto dice = bind(distribution, rng);
         for (size_type idx=0; idx < iv.size();) {
             size_type i = idx, j = std::min(wt.size(),i+dice());
@@ -296,19 +268,19 @@ void test_lex_count(t_T& wt)
 
             }
             auto res1 = wt.lex_count(i, j, c1);
-            ASSERT_EQ(wt.rank(i, c1), std::get<0>(res1));
-            ASSERT_EQ(smaller_c1, std::get<1>(res1));
-            ASSERT_EQ(greater_c1, std::get<2>(res1));
+            ASSERT_EQ(wt.rank(i, c1), get<0>(res1));
+            ASSERT_EQ(smaller_c1, get<1>(res1));
+            ASSERT_EQ(greater_c1, get<2>(res1));
 
             auto res2 = wt.lex_count(i, j, c2);
-            ASSERT_EQ(wt.rank(i, c2), std::get<0>(res2));
-            ASSERT_EQ(smaller_c2, std::get<1>(res2));
-            ASSERT_EQ(greater_c2, std::get<2>(res2));
+            ASSERT_EQ(wt.rank(i, c2), get<0>(res2));
+            ASSERT_EQ(smaller_c2, get<1>(res2));
+            ASSERT_EQ(greater_c2, get<2>(res2));
 
             auto res3 = wt.lex_count(i, j, max+1+dice_symbol());
-            ASSERT_EQ((size_type)0, std::get<0>(res3));
-            ASSERT_EQ(j-i, std::get<1>(res3));
-            ASSERT_EQ((size_type)0, std::get<2>(res3));
+            ASSERT_EQ((size_type)0, get<0>(res3));
+            ASSERT_EQ(j-i, get<1>(res3));
+            ASSERT_EQ((size_type)0, get<2>(res3));
         }
     }
 }
@@ -317,23 +289,31 @@ void test_lex_count(t_T& wt)
 TYPED_TEST(WtIntTest, LoadAndLexCount)
 {
     TypeParam wt;
-    ::wt_test_trait<TypeParam>::lex_count_test(wt);
+    test_lex_count<TypeParam>(wt);
 }
 
-template<class t_T>
-void test_lex_smaller_count(t_T& wt)
+template<class t_wt>
+void
+test_lex_smaller_count(typename enable_if<!(t_wt::lex_ordered), t_wt>::type&)
+{
+    // lex_smaller_count not implemented
+}
+
+template<class t_wt>
+void
+test_lex_smaller_count(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 {
     int_vector<> iv;
     load_from_file(iv, test_file);
     ASSERT_TRUE(load_from_file(wt, temp_file));
     ASSERT_EQ(iv.size(), wt.size());
-    std::mt19937_64 rng;
-    uint64_t min = std::numeric_limits<uint64_t>::max(), max = 0;
+    mt19937_64 rng;
+    uint64_t min = numeric_limits<uint64_t>::max(), max = 0;
     for (size_type j=0; j < iv.size(); ++j) {
         if (min>iv[j]) min = iv[j];
         if (max<iv[j]) max = iv[j];
     }
-    std::uniform_int_distribution<uint64_t> symbol_distribution(min, max);
+    uniform_int_distribution<uint64_t> symbol_distribution(min, max);
     auto dice_symbol = bind(symbol_distribution, rng);
     int_vector<> chars(3);
     for (size_type idx=0; idx < iv.size(); ++idx) {
@@ -344,8 +324,8 @@ void test_lex_smaller_count(t_T& wt)
         for (uint64_t i = 0; i<chars.size(); ++i) {
             auto exp = wt.lex_count(0, idx, chars[i]);
             auto res = wt.lex_smaller_count(idx, chars[i]);
-            ASSERT_EQ(idx-std::get<2>(exp)-std::get<1>(exp), std::get<0>(res));
-            ASSERT_EQ(std::get<1>(exp), std::get<1>(res));
+            ASSERT_EQ(idx-get<2>(exp)-get<1>(exp), get<0>(res));
+            ASSERT_EQ(get<1>(exp), get<1>(res));
         }
     }
 }
@@ -354,15 +334,19 @@ void test_lex_smaller_count(t_T& wt)
 TYPED_TEST(WtIntTest, LoadAndLexSmallerCount)
 {
     TypeParam wt;
-    ::wt_test_trait<TypeParam>::lex_smaller_count_test(wt);
+    test_lex_smaller_count<TypeParam>(wt);
 }
 
 
 template<class t_wt>
-void test_range_search_2d(t_wt&) {}
+void
+test_range_search_2d(typename enable_if<!(has_range_search_2d<t_wt>::value),
+                     t_wt>::type&) {}
 
-template<class t_bv, class t_rank, class t_sel1, class t_sel0>
-void test_range_search_2d(sdsl::wt_int<t_bv, t_rank, t_sel1, t_sel0>& wt)
+template<class t_wt>
+void
+test_range_search_2d(typename enable_if<has_range_search_2d<t_wt>::value,
+                     t_wt>::type& wt)
 {
     int_vector<> iv;
     load_from_file(iv, test_file);
@@ -372,14 +356,14 @@ void test_range_search_2d(sdsl::wt_int<t_bv, t_rank, t_sel1, t_sel0>& wt)
     if (wt.size() == 0)
         return;
 
-    std::vector<uint64_t> buf(100);
-    std::vector<uint64_t> unique_buf(buf.size());
+    vector<uint64_t> buf(100);
+    vector<uint64_t> unique_buf(buf.size());
 
-    std::mt19937_64 rng;
-    std::uniform_int_distribution<uint64_t> range_distr(0, wt.size()-1);
+    mt19937_64 rng;
+    uniform_int_distribution<uint64_t> range_distr(0, wt.size()-1);
     auto dice_range = bind(range_distr, rng);
 
-    std::uniform_int_distribution<uint64_t> rank_distr(0, buf.size());
+    uniform_int_distribution<uint64_t> rank_distr(0, buf.size());
     auto dice_rank = bind(rank_distr, rng);
 
     for (size_type n=0; n<1000; ++n) {
@@ -387,19 +371,19 @@ void test_range_search_2d(sdsl::wt_int<t_bv, t_rank, t_sel1, t_sel0>& wt)
         size_type rb = lb+buf.size()-1;
         rb = (rb >= wt.size()) ? wt.size()-1 : rb;
 
-        auto buf_end = std::copy(iv.begin()+lb, iv.begin()+rb+1, buf.begin());
-        std::sort(buf.begin(), buf_end);
-        auto unique_end = std::unique_copy(buf.begin(), buf_end,
-                                           unique_buf.begin());
+        auto buf_end = copy(iv.begin()+lb, iv.begin()+rb+1, buf.begin());
+        sort(buf.begin(), buf_end);
+        auto unique_end = unique_copy(buf.begin(), buf_end,
+                                      unique_buf.begin());
         size_type r1 = dice_rank() % (unique_end - unique_buf.begin());
         size_type r2 = dice_rank() % (unique_end - unique_buf.begin());
         if (r1 > r2)
-            std::swap(r1, r2);
+            swap(r1, r2);
         auto vlb = unique_buf[r1];
         auto vrb = unique_buf[r2];
 
-        size_t cnt = std::upper_bound(buf.begin(), buf_end, vrb) -
-                     std::lower_bound(buf.begin(), buf_end, vlb);
+        size_t cnt = upper_bound(buf.begin(), buf_end, vrb) -
+                     lower_bound(buf.begin(), buf_end, vlb);
 
         auto res = wt.range_search_2d(lb, rb, vlb, vrb);
         ASSERT_EQ(cnt, res.first);
@@ -421,14 +405,16 @@ void test_range_search_2d(sdsl::wt_int<t_bv, t_rank, t_sel1, t_sel0>& wt)
 TYPED_TEST(WtIntTest, RangeSearch2d)
 {
     TypeParam wt;
-    test_range_search_2d(wt);
+    test_range_search_2d<TypeParam>(wt);
 }
 
 template<class t_wt>
-void test_quantile_freq(typename std::enable_if<!t_wt::lex_ordered, t_wt>::type&) {}
+void
+test_quantile_freq(typename enable_if<!t_wt::lex_ordered, t_wt>::type&) {}
 
 template<class t_wt>
-void test_quantile_freq(typename std::enable_if<t_wt::lex_ordered, t_wt>::type& wt)
+void
+test_quantile_freq(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 {
     int_vector<> iv;
     load_from_file(iv, test_file);
@@ -438,13 +424,13 @@ void test_quantile_freq(typename std::enable_if<t_wt::lex_ordered, t_wt>::type& 
     if (wt.size() == 0)
         return;
 
-    std::vector<uint64_t> buf(100);
+    vector<uint64_t> buf(100);
 
-    std::mt19937_64 rng;
-    std::uniform_int_distribution<uint64_t> range_distr(0, wt.size()-1);
+    mt19937_64 rng;
+    uniform_int_distribution<uint64_t> range_distr(0, wt.size()-1);
     auto dice_lb = bind(range_distr, rng);
 
-    std::uniform_int_distribution<uint64_t> rank_distr(1, buf.size());
+    uniform_int_distribution<uint64_t> rank_distr(1, buf.size());
     auto dice_range = bind(rank_distr, rng);
 
     for (size_type n=0; n<1000; ++n) {
@@ -452,13 +438,13 @@ void test_quantile_freq(typename std::enable_if<t_wt::lex_ordered, t_wt>::type& 
         size_type rb = lb+dice_range()-1;
         rb = (rb >= wt.size()) ? wt.size()-1 : rb;
 
-        auto buf_end = std::copy(iv.begin()+lb, iv.begin()+rb+1, buf.begin());
-        std::sort(buf.begin(), buf_end);
+        auto buf_end = copy(iv.begin()+lb, iv.begin()+rb+1, buf.begin());
+        sort(buf.begin(), buf_end);
 
         for (auto it = buf.begin(); it!=buf_end; ++it) {
             auto val = *it;
-            size_type freq = std::upper_bound(buf.begin(), buf_end, val) -
-                             std::lower_bound(buf.begin(), buf_end, val);
+            size_type freq = upper_bound(buf.begin(), buf_end, val) -
+                             lower_bound(buf.begin(), buf_end, val);
             size_type q    = it - buf.begin();
             auto res = quantile_freq(wt, lb, rb, q);
             ASSERT_EQ(val, res.first);
@@ -474,15 +460,19 @@ TYPED_TEST(WtIntTest, QuantileFreq)
     test_quantile_freq<TypeParam>(wt);
 }
 
-template<class t_bv, class t_rank, class t_sel, class t_wt>
-void test_intersect(wt_rlmn<t_bv, t_rank, t_sel, t_wt>&)
+
+template<class t_wt>
+void
+test_intersect(typename enable_if<!(has_node_type<t_wt>::value),t_wt>::type&)
 {
+    // intersect not implemented
 }
 
 template<class t_wt>
-void test_intersect(t_wt& wt)
+void
+test_intersect(typename enable_if<has_node_type<t_wt>::value,t_wt>::type& wt)
 {
-    using t_pvs = std::pair<typename t_wt::value_type,
+    using t_pvs = pair<typename t_wt::value_type,
           typename t_wt::size_type>;
     int_vector<> iv;
     load_from_file(iv, test_file);
@@ -492,15 +482,15 @@ void test_intersect(t_wt& wt)
     if (wt.size() == 0)
         return;
 
-    std::vector<std::vector<uint64_t>> buf(2, std::vector<uint64_t>(300));
-    std::vector<uint64_t> res_buf(buf[0].size()*2);
-    std::vector<std::vector<uint64_t>::iterator> buf_end(2);
+    vector<vector<uint64_t>> buf(2, vector<uint64_t>(300));
+    vector<uint64_t> res_buf(buf[0].size()*2);
+    vector<vector<uint64_t>::iterator> buf_end(2);
 
-    std::mt19937_64 rng;
-    std::uniform_int_distribution<uint64_t> range_distr(0, wt.size()-1);
+    mt19937_64 rng;
+    uniform_int_distribution<uint64_t> range_distr(0, wt.size()-1);
     auto dice_lb = bind(range_distr, rng);
 
-    std::uniform_int_distribution<uint64_t> rank_distr(1, buf[0].size()-1);
+    uniform_int_distribution<uint64_t> rank_distr(1, buf[0].size()-1);
     auto dice_range = bind(rank_distr, rng);
 
     for (size_type n=0; n<1000; ++n) {
@@ -511,16 +501,16 @@ void test_intersect(t_wt& wt)
             size_type rb = lb+dice_range()-1;
             rb = (rb >= wt.size()) ? wt.size()-1 : rb;
             ranges.emplace_back(lb,rb);
-            buf_end[i] = std::copy(iv.begin()+lb,
-                                   iv.begin()+rb+1, buf[i].begin());
+            buf_end[i] = copy(iv.begin()+lb,
+                              iv.begin()+rb+1, buf[i].begin());
             sort(buf[i].begin(), buf_end[i]);
         }
 
         auto res_end =
-            std::set_intersection(buf[0].begin(), buf_end[0],
-                                  buf[1].begin(), buf_end[1],
-                                  res_buf.begin());
-        res_end = std::unique(res_buf.begin(), res_end);
+            set_intersection(buf[0].begin(), buf_end[0],
+                             buf[1].begin(), buf_end[1],
+                             res_buf.begin());
+        res_end = unique(res_buf.begin(), res_end);
 
         auto itsct = intersect(wt, ranges);
         size_type res_size = res_end-res_buf.begin();
@@ -540,7 +530,7 @@ void test_intersect(t_wt& wt)
 TYPED_TEST(WtIntTest, Intersect)
 {
     TypeParam wt;
-    test_intersect(wt);
+    test_intersect<TypeParam>(wt);
 }
 
 TYPED_TEST(WtIntTest, DeleteTest)

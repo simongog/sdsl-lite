@@ -81,6 +81,8 @@ class wm_int
         typedef std::vector<point_type>              point_vec_type;
         typedef std::pair<size_type, point_vec_type> r2d_res_type;
 
+        struct node_type;
+
 
     protected:
 
@@ -429,6 +431,79 @@ class wm_int
             return i-1;
         };
 
+        //! range_search_2d searches points in the index interval [lb..rb] and value interval [vlb..vrb].
+        /*! \param lb     Left bound of index interval (inclusive)
+         *  \param rb     Right bound of index interval (inclusive)
+         *  \param vlb    Left bound of value interval (inclusive)
+         *  \param vrb    Right bound of value interval (inclusive)
+         *  \param report Should the matching points be returned?
+         *  \return Pair (#of found points, vector of points), the vector is empty when
+         *          report = false.
+         */
+        std::pair<size_type, std::vector<std::pair<value_type, size_type>>>
+        range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb,
+                        bool report=true) const {
+
+            if (vrb > (1ULL << m_max_level))
+                vrb = (1ULL << m_max_level);
+            if (vlb > vrb)
+                return make_pair(0, point_vec_type());
+            size_type cnt_answers = 0;
+            point_vec_type point_vec;
+            if (lb <= rb) {
+                size_type is[m_max_level+1];
+                _range_search_2d(root(), range_type(lb, rb), vlb, vrb, 0, is,
+                                 point_vec, report, cnt_answers);
+            }
+            return make_pair(cnt_answers, point_vec);
+        }
+
+        void
+        _range_search_2d(node_type v, range_type r, value_type vlb,
+                         value_type vrb, size_type ilb, size_type is[],
+                         point_vec_type& point_vec, bool report,
+                         size_type& cnt_answers)
+        const {
+            using std::get;
+            if (get<0>(r) > get<1>(r))
+                return;
+            is[v.level] = v.offset + get<0>(r);
+
+            if (v.level == m_max_level) {
+                for (size_type j=1; j <= sdsl::size(r) and report; ++j) {
+                    size_type i = j;
+                    size_type c = v.sym;
+                    for (uint32_t k=m_max_level; k>0; --k) {
+                        size_type offset = is[k-1];
+                        size_type rank_offset = m_tree_rank(offset);
+                        if (c&1) {
+                            i = m_tree_select1(rank_offset+i)-offset+1;
+                        } else {
+                            i = m_tree_select0(offset-rank_offset+i)-offset+1;
+                        }
+                        c >>= 1;
+                    }
+                    point_vec.emplace_back(is[0]+i-1, v.sym);
+                }
+                cnt_answers += sdsl::size(r);
+                return;
+            }
+            size_type irb = ilb + (1ULL << (m_max_level-v.level));
+            size_type mid = (irb + ilb)>>1;
+
+            auto c_v = expand(v);
+            auto c_r = expand(v, r);
+
+            if (!sdsl::empty(get<0>(c_r)) and  vlb < mid and mid) {
+                _range_search_2d(get<0>(c_v),get<0>(c_r), vlb,
+                                 std::min(vrb,mid-1), ilb, is, point_vec, report,
+                                 cnt_answers);
+            }
+            if (!sdsl::empty(get<1>(c_r)) and vrb >= mid) {
+                _range_search_2d(get<1>(c_v), get<1>(c_r), std::max(mid, vlb),
+                                 vrb, mid, is, point_vec, report, cnt_answers);
+            }
+        }
 
         //! Returns a const_iterator to the first element.
         const_iterator begin()const {
