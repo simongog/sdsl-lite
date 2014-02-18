@@ -281,11 +281,11 @@ struct has_expand<t_wt, t_ret(t_args...)> {
     -> typename
     std::is_same<
     decltype(std::declval<T>().expand(std::declval<t_args>()...)),
-    t_ret>::type;
+    t_ret>::type { return std::true_type();}
     template<typename>
-    static constexpr std::false_type check(...);
-    typedef decltype(check<t_wt>(nullptr)) type;
-    static constexpr bool value = type::value;
+static constexpr std::false_type check(...) { return std::false_type();}
+typedef decltype(check<t_wt>(nullptr)) type;
+static constexpr bool value = type::value;
 };
 
 template<typename t_wt>
