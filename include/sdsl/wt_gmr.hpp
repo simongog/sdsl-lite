@@ -371,21 +371,25 @@ class wt_gmr_1
         }
 
         //! Copy constructor
-        /* ToDo?
-            wt_gmr_2(const wt_gmr& wt) {
-                copy(wt);
-            }
-        */
+        wt_gmr_1(const wt_gmr_1& wt) {
+            m_bv_blocks = wt.m_bv_blocks;
+            m_e = wt.m_e;
+            m_bv_blocks_select1 = wt.m_bv_blocks_select1;
+            m_bv_blocks_select1.set_vector(&m_bv_blocks);
+            m_bv_blocks_select0 = wt.m_bv_blocks_select0;
+            m_bv_blocks_select0.set_vector(&m_bv_blocks);
+            m_size = wt.m_size;
+            m_block_size = wt.m_block_size;
+            m_blocks = wt.m_blocks;
+            m_sigma = wt.m_sigma;
+        }
 
         //! Assignment operator
-        /* ToDo?
-            wt_gmr_2& operator=(const wt_gmr_2& wt) {
-                if (this != &wt) {
-                    copy(wt);
-                }
-                return *this;
-            }
-        */
+        wt_gmr_1& operator=(const wt_gmr_1& wt) {
+            wt_gmr_1 tmp(wt);
+            tmp.swap(*this);
+            return *this;
+        }
 
         //! Swap operator
         void swap(wt_gmr_1& fs) {
@@ -455,8 +459,7 @@ class wt_gmr_1
          *       \f$ i \leq size() \f$
          */
         size_type rank(size_type i, value_type c)const {
-            assert(i <= size());
-            if (c>m_block_size-1) {
+            if (0==i or c>m_block_size-1) {
                 return 0;
             }
 
@@ -584,7 +587,7 @@ template<class t_rac = int_vector<>,
          class t_inverse_support = inv_permutation_support<32, t_rac>,
          class t_bitvector = bit_vector,
          class t_select = typename t_bitvector::select_1_type,
-         class t_select_zero = typename t_bitvector::select_0_type,
+         class t_select_zero = typename t_bitvector::select_0_type
          >
 class wt_gmr_2
 {
@@ -710,21 +713,32 @@ class wt_gmr_2
         }
 
         //! Copy constructor
-        /* ToDo?
-            wt_gmr_2(const wt_gmr& wt) {
-                copy(wt);
-            }
-        */
+        wt_gmr_2(const wt_gmr_2& wt) {
+            m_bv_blocks         = wt.m_bv_blocks;
+            m_bv_chunks         = wt.m_bv_chunks;
+            m_perm              = wt.m_perm;
+            m_ips               = wt.m_ips;
+            m_bv_blocks_select1 = wt.m_bv_blocks_select1;
+            m_bv_blocks_select1.set_vector(&m_bv_blocks);
+            m_bv_chunks_select1 = wt.m_bv_chunks_select1;
+            m_bv_chunks_select1.set_vector(&m_bv_chunks);
+            m_bv_blocks_select0 = wt.m_bv_blocks_select0;
+            m_bv_blocks_select0.set_vector(&m_bv_blocks);
+            m_bv_chunks_select0 = wt.m_bv_chunks_select0;
+            m_bv_chunks_select0.set_vector(&m_bv_chunks);
+            m_size              = wt.m_size;
+            m_max_symbol        = wt.m_max_symbol;
+            m_chunks            = wt.m_chunks;
+            m_chunksize         = wt.m_chunksize;
+            m_sigma             = wt.m_sigma;
+        }
 
         //! Assignment operator
-        /* ToDo?
-            wt_gmr_2& operator=(const wt_gmr_2& wt) {
-                if (this != &wt) {
-                    copy(wt);
-                }
-                return *this;
-            }
-        */
+        wt_gmr_2& operator=(const wt_gmr_2& wt) {
+            wt_gmr_2 tmp(wt);
+            tmp.swap(*this);
+            return *this;
+        }
 
         //! Swap operator
         void swap(wt_gmr_2& fs) {
@@ -783,7 +797,7 @@ class wt_gmr_2
         size_type rank(size_type i, value_type c)const {
             assert(i <= size());
 
-            if (c>m_max_symbol-1)  {
+            if (0==i or c>m_max_symbol-1)  {
                 return 0;
             }
 
