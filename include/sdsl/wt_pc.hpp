@@ -95,8 +95,8 @@ class wt_pc
         void copy(const wt_pc& wt) {
             m_size            = wt.m_size;
             m_sigma           = wt.m_sigma;
-            m_bv            = wt.m_bv;
-            m_bv_rank       = wt.m_bv_rank;
+            m_bv              = wt.m_bv;
+            m_bv_rank         = wt.m_bv_rank;
             m_bv_rank.set_vector(&m_bv);
             m_bv_select1    = wt.m_bv_select1;
             m_bv_select1.set_vector(&m_bv);
@@ -250,6 +250,10 @@ class wt_pc
         //! Copy constructor
         wt_pc(const wt_pc& wt) { copy(wt); }
 
+        wt_pc(wt_pc&& wt) {
+            *this = std::move(wt);
+        }
+
         //! Assignment operator
         wt_pc& operator=(const wt_pc& wt) {
             if (this != &wt) {
@@ -257,6 +261,24 @@ class wt_pc
             }
             return *this;
         }
+
+        //! Assignment operator
+        wt_pc& operator=(wt_pc&& wt) {
+            if (this != &wt) {
+                m_size            = wt.m_size;
+                m_sigma           = wt.m_sigma;
+                m_bv              = std::move(wt.m_bv);
+                m_bv_rank         = std::move(wt.m_bv_rank);
+                m_bv_rank.set_vector(&m_bv);
+                m_bv_select1    = std::move(wt.m_bv_select1);
+                m_bv_select1.set_vector(&m_bv);
+                m_bv_select0    = std::move(wt.m_bv_select0);
+                m_bv_select0.set_vector(&m_bv);
+                m_tree          = std::move(wt.m_tree);
+            }
+            return *this;
+        }
+
 
         //! Swap operator
         void swap(wt_pc& wt) {
@@ -499,7 +521,7 @@ class wt_pc
          * This method is only available if lex_ordered = true
          */
         template<class t_ret_type = std::tuple<size_type, size_type, size_type>>
-        typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type
+                typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type
         lex_count(size_type i, size_type j, value_type c) const {
             assert(i <= j and j <= size());
             if (1==m_sigma) {
@@ -560,7 +582,7 @@ class wt_pc
          * This method is only available if lex_ordered = true
          */
         template<class t_ret_type = std::tuple<size_type, size_type>>
-        typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type
+                typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type
         lex_smaller_count(size_type i, value_type c)const {
             assert(i <= size());
             if (1==m_sigma) {
@@ -613,9 +635,9 @@ class wt_pc
 
         //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
-                            std::string name="") const {
+        std::string name="") const {
             structure_tree_node* child = structure_tree::add_child(
-                                             v, name, util::class_name(*this));
+                v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size,out,child, "size");
             written_bytes += write_member(m_sigma,out,child, "sigma");
@@ -637,6 +659,87 @@ class wt_pc
             m_bv_select1.load(in, &m_bv);
             m_bv_select0.load(in, &m_bv);
             m_tree.load(in);
+        }
+
+        //! Checks if the node is a leaf node
+        bool is_leaf(const node_type& v) const {
+            return m_tree.is_leaf(v);
+        }
+
+        //! Symbol for a leaf
+        value_type sym(const node_type& v) const {
+            return m_tree.bv_pos_rank(v);
+        }
+
+        //! Returns the root node
+        node_type root() const {
+            return m_tree.root();
+        }
+
+        //! Returns the two child nodes of an inner node
+        /*! \param v An inner node of a wavelet tree.
+         *  \return Return a pair of nodes (left child, right child).
+         *  \pre !is_leaf(v)
+         */
+        std::pair<node_type, node_type>
+        expand(const node_type& v) const {
+            return std::make_pair(m_tree.child(v,0), m_tree.child(v,1));
+        }
+
+        //! Returns for each range its left and right child ranges
+        /*! \param v      An inner node of an wavelet tree.
+         *  \param ranges A vector of ranges. Each range [s,e]
+         *                has to be contained in v=[v_s,v_e].
+         *  \return A vector a range pairs. The first element of each
+         *          range pair correspond to the original range
+         *          mapped to the left child of v; the second element to the
+         *          range mapped to the right child of v.
+         *  \pre !is_leaf(v) and s>=v_s and e<=v_e
+         */
+        std::pair<range_vec_type, range_vec_type>
+        expand(const node_type& v,
+        const range_vec_type& ranges) const {
+            auto v_sp_rank = m_tree.bv_pos_rank(v);
+            std::pair<range_vec_type, range_vec_type> res;
+
+for (const auto& r : ranges) {
+                auto sp_rank    = m_bv_rank(m_tree.bv_pos(v) + r.first);
+                auto right_size = m_bv_rank(m_tree.bv_pos(v) + r.second + 1)
+                - sp_rank;
+                auto left_size  = (r.second-r.first+1)-right_size;
+
+                auto right_sp = sp_rank - v_sp_rank;
+                auto left_sp  = r.first - right_sp;
+
+                res.first.emplace_back(range_type(left_sp, left_sp + left_size - 1));
+                res.second.emplace_back(range_type(right_sp, right_sp + right_size - 1));
+            }
+            return res;
+        }
+
+        //! Returns for a range its left and right child ranges
+        /*! \param v An inner node of an wavelet tree.
+         *  \param r A ranges [s,e], such that [s,e] is
+         *           contained in v=[v_s,v_e].
+         *  \return A range pair. The first element of the
+         *          range pair correspond to the original range
+         *          mapped to the left child of v; the second element to the
+         *          range mapped to the right child of v.
+         *  \pre !is_leaf(v) and s>=v_s and e<=v_e
+         */
+        std::pair<range_type, range_type>
+        expand(const node_type& v, const range_type& r) const {
+            auto v_sp_rank = m_tree.bv_pos_rank(v);
+            auto sp_rank    = m_bv_rank(m_tree.bv_pos(v) + r.first);
+            auto right_size = m_bv_rank(m_tree.bv_pos(v) + r.second + 1)
+            - sp_rank;
+            auto left_size  = (r.second-r.first+1)-right_size;
+
+            auto right_sp = sp_rank - v_sp_rank;
+            auto left_sp  = r.first - right_sp;
+
+            return make_pair(range_type(left_sp, left_sp + left_size - 1),
+                             range_type(right_sp, right_sp + right_size - 1));
         }
 
 };

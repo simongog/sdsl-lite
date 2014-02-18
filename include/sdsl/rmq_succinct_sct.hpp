@@ -94,14 +94,28 @@ class rmq_succinct_sct
 
         //! Copy constructor
         rmq_succinct_sct(const rmq_succinct_sct& rm) {
-            if (this != &rm) { // if v is not the same object
-                copy(rm);
-            }
+            *this = rm;
+        }
+
+        //! Move constructor
+        rmq_succinct_sct(rmq_succinct_sct&& rm) {
+            *this = std::move(rm);
         }
 
         rmq_succinct_sct& operator=(const rmq_succinct_sct& rm) {
             if (this != &rm) {
-                copy(rm);
+                m_sct_bp = rm.m_sct_bp;
+                m_sct_bp_support = rm.m_sct_bp_support;
+                m_sct_bp_support.set_vector(&m_sct_bp);
+            }
+            return *this;
+        }
+
+        rmq_succinct_sct& operator=(rmq_succinct_sct&& rm) {
+            if (this != &rm) {
+                m_sct_bp = std::move(rm.m_sct_bp);
+                m_sct_bp_support = std::move(rm.m_sct_bp_support);
+                m_sct_bp_support.set_vector(&m_sct_bp);
             }
             return *this;
         }

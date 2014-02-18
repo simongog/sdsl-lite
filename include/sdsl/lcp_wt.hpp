@@ -84,19 +84,15 @@ class lcp_wt
         typedef std::pair<size_type, size_type> tPII;
         typedef std::vector<tPII> tVPII;
 
-        void copy(const lcp_wt& lcp_c) {
-            m_small_lcp = lcp_c.m_small_lcp;
-            m_big_lcp   = lcp_c.m_big_lcp;
-        }
-
     public:
 
         //! Default Constructor
-        lcp_wt() {}
-        //! Copy constructor
-        lcp_wt(const lcp_wt& lcp_c) {
-            copy(lcp_c);
-        }
+        lcp_wt() = default;
+        //! Copy / Move constructor
+        lcp_wt(const lcp_wt&) = default;
+        lcp_wt(lcp_wt&&) = default;
+        lcp_wt& operator=(const lcp_wt&) = default;
+        lcp_wt& operator=(lcp_wt&&) = default;
 
         //! Constructor
         lcp_wt(cache_config& config, std::string other_key="") {
@@ -177,14 +173,6 @@ class lcp_wt
             } else {
                 return m_big_lcp[ m_small_lcp.rank(i, 255) ];
             }
-        }
-
-        //! Assignment Operator.
-        lcp_wt& operator=(const lcp_wt& lcp_c) {
-            if (this != &lcp_c) {
-                copy(lcp_c);
-            }
-            return *this;
         }
 
         //! Serialize to a stream.

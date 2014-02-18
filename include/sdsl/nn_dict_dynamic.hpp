@@ -70,8 +70,6 @@ class nn_dict_dynamic
             return m_size;
         }
 
-
-
         //! Constructor
         /*! \param n Number of supported bits
          */
@@ -113,10 +111,31 @@ class nn_dict_dynamic
             copy(nn);
         }
 
+        //! move constructor
+        nn_dict_dynamic(nn_dict_dynamic&& nn):depth(m_depth) {
+            *this = std::move(nn);
+        }
+
         //! Assignment operator
         nn_dict_dynamic& operator=(const nn_dict_dynamic& nn) {
             if (this != &nn) {
                 copy(nn);
+            }
+            return *this;
+        }
+
+        //! Assignment move operator
+        nn_dict_dynamic& operator=(nn_dict_dynamic&& nn) {
+            if (this != &nn) {
+                m_depth = std::move(nn.m_depth);
+                m_v_begin_leaves = std::move(nn.m_v_begin_leaves);
+                m_size = std::move(nn.m_size);
+                m_offset = std::move(nn.m_offset);
+                m_tree = std::move(nn.m_tree);
+                // set nn to default-constructor state
+                nn.m_size = 0;
+                nn.m_depth = 0;
+                nn.m_v_begin_leaves = 0;
             }
             return *this;
         }
@@ -341,4 +360,4 @@ class nn_dict_dynamic
 
 } // end of namespace
 
-#endif // end file 
+#endif // end file

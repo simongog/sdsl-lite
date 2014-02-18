@@ -149,6 +149,12 @@ TYPED_TEST(CsaIntTest, TextAccess)
         for (size_type j=0; j<n; ++j) {
             ASSERT_EQ(text[j], csa.text[j])<<" j="<<j;
         }
+        auto len = std::min(csa.size(),
+                            std::max(csa.size()/10, (decltype(csa.size()))20));
+        auto ex_text = extract(csa, 0, len-1);
+        for (size_type j=0; j<len; ++j) {
+            ASSERT_EQ(text[j], ex_text[j])<<" j="<<j;
+        }
     }
 }
 

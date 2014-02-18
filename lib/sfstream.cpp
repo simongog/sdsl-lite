@@ -7,12 +7,12 @@ namespace sdsl
 
 //  IMPLEMENTATION OF OSFSTREAM
 
-osfstream::osfstream() : std::ostream(m_streambuf)
+osfstream::osfstream() : std::ostream(nullptr)
 {
     this->init(m_streambuf);
 }
 
-osfstream::osfstream(const std::string& file, std::ios_base::openmode mode) : std::ostream(m_streambuf)
+osfstream::osfstream(const std::string& file, std::ios_base::openmode mode) : std::ostream(nullptr)
 {
     this->init(m_streambuf);
     open(file, mode);
@@ -137,12 +137,12 @@ osfstream::seekp(off_type off, std::ios_base::seekdir way)
 
 //  IMPLEMENTATION OF ISFSTREAM
 
-isfstream::isfstream() : std::istream(m_streambuf)
+isfstream::isfstream() : std::istream(nullptr)
 {
     this->init(m_streambuf);
 }
 
-isfstream::isfstream(const std::string& file, std::ios_base::openmode mode) : std::istream(m_streambuf)
+isfstream::isfstream(const std::string& file, std::ios_base::openmode mode) : std::istream(nullptr)
 {
     this->init(m_streambuf);
     open(file, mode);

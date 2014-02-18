@@ -176,6 +176,16 @@ TYPED_TEST(WtByteTest, Rank)
     ::test_rank(wt, text, text.size());
 }
 
+TYPED_TEST(WtByteTest, MoveRank)
+{
+    TypeParam wt_load;
+    ASSERT_EQ(true, load_from_file(wt_load, temp_file));
+    TypeParam wt = std::move(wt_load);
+    int_vector<8> text;
+    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    ::test_rank(wt, text, text.size());
+}
+
 //! Test select methods
 TYPED_TEST(WtByteTest, Select)
 {
@@ -188,6 +198,22 @@ TYPED_TEST(WtByteTest, Select)
     for (size_type j=0; j<text.size(); ++j) {
         cnt[text[j]]++;
         ASSERT_EQ(j, wt.select(cnt[text[j]], text[j]))<< " j = "<<j<<" text[j] = "<<text[j];
+    }
+}
+
+//! Test select methods
+TYPED_TEST(WtByteTest, MoveSelect)
+{
+    TypeParam wt_load;
+    ASSERT_EQ(true, load_from_file(wt_load, temp_file));
+    TypeParam wt = std::move(wt_load);
+    int_vector<8> text;
+    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    vector<size_type> cnt(256, 0);
+    ASSERT_EQ(text.size(), wt.size());
+    for (size_type j=0; j<text.size(); ++j) {
+        cnt[text[j]]++;
+        ASSERT_EQ(j, wt.select(cnt[text[j]], text[j]))<< " j = "<<j<<" text[j]"<<text[j];
     }
 }
 

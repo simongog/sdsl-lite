@@ -306,7 +306,7 @@ class int_vector
         int_vector(std::initializer_list<t_T> il) : int_vector() {
             resize(il.size());
             size_type idx = 0;
-            for (auto x : il) {
+for (auto x : il) {
                 (*this)[idx++] = x;
             }
         }
@@ -409,6 +409,9 @@ class int_vector
               \sa width
         */
         void width(uint8_t) { }
+
+        // Write data (without header) to a stream.
+        size_type write_data(std::ostream& out) const;
 
         //! Serializes the int_vector to a stream.
         /*! \return The number of bytes written to out.
@@ -522,6 +525,23 @@ class int_vector
             }
             return written_bytes;
         }
+
+
+        struct raw_wrapper {
+            const int_vector& vec;
+            raw_wrapper() = delete;
+            raw_wrapper(const int_vector& _vec) : vec(_vec) {}
+
+            size_type
+            serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+                structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+                auto written_bytes = vec.write_data(out);
+                structure_tree::add_size(child, written_bytes);
+                return written_bytes;
+            }
+        };
+
+        const raw_wrapper raw = raw_wrapper(*this);
 };
 
 template<>
@@ -767,6 +787,7 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
         typedef typename t_int_vector::size_type       size_type;
         typedef typename t_int_vector::difference_type difference_type;
 
+        friend class int_vector_const_iterator<t_int_vector>;
     private:
 
         using int_vector_iterator_base<t_int_vector>::m_offset; // make m_offset easy usable
@@ -1087,7 +1108,7 @@ template<class t_bv>
 inline typename std::enable_if<std::is_same<typename t_bv::index_category ,bv_tag>::value, std::ostream&>::type
 operator<<(std::ostream& os, const t_bv& bv)
 {
-    for (auto b : bv) {
+for (auto b : bv) {
         os << b;
     }
     return os;
@@ -1119,7 +1140,7 @@ inline int_vector<t_width>::int_vector(const int_vector& v):
     bit_resize(v.bit_size());
     if (v.capacity() > 0) {
         if (memcpy(m_data, v.data() ,v.capacity()/8)==nullptr) {
-            throw std::bad_alloc();
+            throw std::bad_alloc(); // LCOV_EXCL_LINE
         }
     }
     width(v.m_width);
@@ -1132,7 +1153,7 @@ int_vector<t_width>& int_vector<t_width>::operator=(const int_vector& v)
         bit_resize(v.bit_size());
         if (v.bit_size()>0) {
             if (memcpy(m_data, v.data() ,v.capacity()/8)==nullptr) {
-                throw std::bad_alloc();
+                throw std::bad_alloc(); // LCOV_EXCL_LINE
             }
         }
         width(v.width());
@@ -1180,14 +1201,14 @@ template<uint8_t t_width>
 auto int_vector<t_width>::get_int(size_type idx, const uint8_t len)const -> value_type
 {
 #ifdef SDSL_DEBUG
-    if (idx+len > m_size) {
-        throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); idx+len > size()!");
-    }
-    if (len > 64) {
-        throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); len>64!");
-    }
+if (idx+len > m_size) {
+throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); idx+len > size()!");
+}
+if (len > 64) {
+throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); len>64!");
+}
 #endif
-    return bits::read_int(m_data+(idx>>6), idx&0x3F, len);
+return bits::read_int(m_data+(idx>>6), idx&0x3F, len);
 }
 
 template<uint8_t t_width>
@@ -1362,6 +1383,23 @@ bool int_vector<t_width>::operator!=(const int_vector& v)const
 }
 
 template<uint8_t t_width>
+typename int_vector<t_width>::size_type int_vector<t_width>::write_data(std::ostream& out) const
+{
+    size_type written_bytes = 0;
+    uint64_t* p = m_data;
+    size_type idx = 0;
+    while (idx+conf::SDSL_BLOCK_SIZE < (capacity()>>6)) {
+        out.write((char*) p, conf::SDSL_BLOCK_SIZE*sizeof(uint64_t));
+        written_bytes += conf::SDSL_BLOCK_SIZE*sizeof(uint64_t);
+        p     += conf::SDSL_BLOCK_SIZE;
+        idx    += conf::SDSL_BLOCK_SIZE;
+    }
+    out.write((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
+    written_bytes += ((capacity()>>6)-idx)*sizeof(uint64_t);
+    return written_bytes;
+}
+
+template<uint8_t t_width>
 typename int_vector<t_width>::size_type int_vector<t_width>::serialize(std::ostream& out,
         structure_tree_node* v,
         std::string name,
@@ -1374,17 +1412,7 @@ typename int_vector<t_width>::size_type int_vector<t_width>::serialize(std::ostr
     } else {
         written_bytes += int_vector<t_width>::write_header(m_size, m_width, out);
     }
-
-    uint64_t* p = m_data;
-    size_type idx = 0;
-    while (idx+conf::SDSL_BLOCK_SIZE < (capacity()>>6)) {
-        out.write((char*) p, conf::SDSL_BLOCK_SIZE*sizeof(uint64_t));
-        written_bytes += conf::SDSL_BLOCK_SIZE*sizeof(uint64_t);
-        p     += conf::SDSL_BLOCK_SIZE;
-        idx    += conf::SDSL_BLOCK_SIZE;
-    }
-    out.write((char*) p, ((capacity()>>6)-idx)*sizeof(uint64_t));
-    written_bytes += ((capacity()>>6)-idx)*sizeof(uint64_t);
+    written_bytes += write_data(out);
     structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }

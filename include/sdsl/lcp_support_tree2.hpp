@@ -64,21 +64,17 @@ class _lcp_support_tree2
         small_lcp_type  m_small_lcp; // vector for lcp values < 254
         int_vector<> m_big_lcp;      // vector for lcp values >= 254
 
-        void copy(const _lcp_support_tree2& lcp_c) {
-            m_small_lcp = lcp_c.m_small_lcp;
-            m_big_lcp = lcp_c.m_big_lcp;
-            m_cst = lcp_c.m_cst;
-        }
-
     public:
 
         //! Default constructor
         _lcp_support_tree2() {}
 
-        //! Copy constructor
-        _lcp_support_tree2(const _lcp_support_tree2& lcp) {
-            copy(lcp);
-        }
+        //! Copy / Move constructor
+        _lcp_support_tree2(const _lcp_support_tree2&)  = default;
+        _lcp_support_tree2(_lcp_support_tree2&&)  = default;
+        _lcp_support_tree2& operator=(const _lcp_support_tree2&)  = default;
+        _lcp_support_tree2& operator=(_lcp_support_tree2&&) = default;
+
 
         //! Constructor
         /*! \param config Cache configuration.
@@ -156,14 +152,6 @@ start:
             } else { // if lcp value is >= 254 and (not reducable or sampled)
                 return m_big_lcp[m_small_lcp.rank(idx ,255)] - offset;
             }
-        }
-
-        //! Assignment Operator.
-        _lcp_support_tree2& operator=(const _lcp_support_tree2& lcp_c) {
-            if (this != &lcp_c) {
-                copy(lcp_c);
-            }
-            return *this;
         }
 
         //! Serialize to a stream.
@@ -252,7 +240,7 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<>& lcp_buf,
                 is_one_big_and_not_reducable = false;
             }
         }
-        if (x > M-2 and (0 == i or last_bwti != bwt_buf[i] or x % t_dens == 0)) {
+        if (x > M-2 and(0 == i or last_bwti != bwt_buf[i] or x % t_dens == 0)) {
             is_big_and_not_reducable[vec_stack.size()] = 1;
         } else {
             is_big_and_not_reducable[vec_stack.size()] = 0;

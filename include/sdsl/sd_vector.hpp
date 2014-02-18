@@ -115,6 +115,14 @@ class sd_vector
 
         sd_vector() { }
 
+        sd_vector(const sd_vector& sd) {
+            copy(sd);
+        }
+
+        sd_vector(sd_vector&& sd) {
+            *this = std::move(sd);
+        }
+
         sd_vector(const bit_vector& bv) {
             m_size = bv.size();
             size_type m = util::cnt_one_bits(bv);
@@ -205,7 +213,7 @@ class sd_vector
             uint64_t res = 0;
             while (true) {
                 while (!m_high[sel_high]) {
-                    if (sel_high > 0 and (high_val << m_wl) >=idx) {
+                    if (sel_high > 0 and(high_val << m_wl) >=idx) {
                         --sel_high; --high_val;
                     } else {
                         return res;
@@ -247,6 +255,20 @@ class sd_vector
         sd_vector& operator=(const sd_vector& v) {
             if (this != &v) {
                 copy(v);
+            }
+            return *this;
+        }
+
+        sd_vector& operator=(sd_vector&& v) {
+            if (this != &v) {
+                m_size = v.m_size;
+                m_wl   = v.m_wl;
+                m_low  = std::move(v.m_low);
+                m_high = std::move(v.m_high);
+                m_high_1_select = std::move(v.m_high_1_select);
+                m_high_1_select.set_vector(&m_high);
+                m_high_0_select = std::move(v.m_high_0_select);
+                m_high_0_select.set_vector(&m_high);
             }
             return *this;
         }

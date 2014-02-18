@@ -66,19 +66,16 @@ class lcp_vlc
 
         vlc_vec_type        m_vec;
 
-        void copy(const lcp_vlc& lcp_c) {
-            m_vec = lcp_c.m_vec;
-        }
-
     public:
 
         //! Default Constructor
         lcp_vlc() {}
 
-        //! Copy constructor
-        lcp_vlc(const lcp_vlc& lcp_c) {
-            copy(lcp_c);
-        }
+        //! Copy / Move constructor
+        lcp_vlc(const lcp_vlc&) = default;
+        lcp_vlc(lcp_vlc&&) = default;
+        lcp_vlc& operator=(const lcp_vlc&) = default;
+        lcp_vlc& operator=(lcp_vlc&&) = default;
 
         //! Construct
         lcp_vlc(cache_config& config, std::string other_key="") {
@@ -125,14 +122,6 @@ class lcp_vlc
         //! []-operator
         inline value_type operator[](size_type i)const {
             return m_vec[i];
-        }
-
-        //! Assignment Operator.
-        lcp_vlc& operator=(const lcp_vlc& lcp_c) {
-            if (this != &lcp_c) {
-                copy(lcp_c);
-            }
-            return *this;
         }
 
         //! Serialize to a stream.

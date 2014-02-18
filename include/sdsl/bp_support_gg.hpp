@@ -157,9 +157,13 @@ class bp_support_gg
         }
 
         //! Copy constructor
-        bp_support_gg(const bp_support_gg& bp_support):m_pioneer_bp_support(nullptr),
-            bp_rank(m_rank_bp),bp_select(m_select_bp) {
+        bp_support_gg(const bp_support_gg& bp_support) : bp_support_gg() {
             copy(bp_support);
+        }
+
+        //! Move constructor
+        bp_support_gg(bp_support_gg&& bp_support) : bp_support_gg() {
+            *this = std::move(bp_support);
         }
 
         //! Destructor
@@ -192,6 +196,32 @@ class bp_support_gg
         bp_support_gg& operator=(const bp_support_gg& bp_support) {
             if (this != &bp_support) {
                 copy(bp_support);
+            }
+            return *this;
+        }
+
+        //! Assignment Move operator
+        bp_support_gg& operator=(bp_support_gg&& bp_support) {
+            if (this != &bp_support) {
+                m_bp = std::move(bp_support.m_bp);
+                bp_support.m_bp = nullptr;
+                m_rank_bp = std::move(bp_support.m_rank_bp);
+                m_rank_bp.set_vector(m_bp);
+                m_select_bp = std::move(bp_support.m_select_bp);
+                m_select_bp.set_vector(m_bp);
+
+                m_nnd = std::move(bp_support.m_nnd);
+
+                m_size = std::move(bp_support.m_size);
+                m_blocks = std::move(bp_support.m_blocks);
+
+                m_pioneer_bp = bp_support.m_pioneer_bp;
+                if (m_pioneer_bp_support != nullptr) {
+                    delete m_pioneer_bp_support;
+                }
+                m_pioneer_bp_support = bp_support.m_pioneer_bp_support;
+                if (m_pioneer_bp_support) m_pioneer_bp_support->set_vector(&m_pioneer_bp);
+                bp_support.m_pioneer_bp_support = nullptr;
             }
             return *this;
         }
@@ -321,7 +351,7 @@ class bp_support_gg
          */
         size_type rr_enclose(const size_type i, const size_type j)const {
             assert(j < m_size);
-            assert((*m_bp)[i]==1 and (*m_bp)[j]==1);
+            assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             const size_type mip1 = find_close(i)+1;
             if (mip1 >= j)
                 return size();
@@ -367,7 +397,7 @@ class bp_support_gg
                 }
                 // 1.3
                 k = near_rmq_open(*m_bp, l, (l/t_bs+1)*t_bs);
-                if (k < (l/t_bs+1)*t_bs and (ex=excess(k)) < min_ex) {
+                if (k < (l/t_bs+1)*t_bs and(ex=excess(k)) < min_ex) {
                     min_ex = ex; min_ex_pos = k;
                 }
             }
@@ -388,7 +418,7 @@ class bp_support_gg
         */
         size_type rr_enclose_naive(size_type i, size_type j)const {
             assert(j > i and j < m_size);
-            assert((*m_bp)[i]==1 and (*m_bp)[j]==1);
+            assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             size_type mi = find_close(i); // matching parenthesis to i
             assert(mi > i and mi < j);
             assert(find_close(j) > j);
@@ -429,7 +459,7 @@ class bp_support_gg
          */
         size_type double_enclose(size_type i, size_type j)const {
             assert(j > i);
-            assert((*m_bp)[i]==1 and (*m_bp)[j]==1);
+            assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             size_type k = rr_enclose(i, j);
             if (k == size())
                 return enclose(j);

@@ -64,7 +64,7 @@ namespace sdsl
 template<class t_nnd = nearest_neighbour_dictionary<30>,
          class t_rank = rank_support_v5<>,
          class t_select = select_support_mcl<>,
-         class t_rmq = range_maximum_support_sparse_table<int_vector<> >::type,
+         class t_rmq = range_maximum_support_sparse_table<>,
          uint32_t t_bs=840>
 class bp_support_g
 {
@@ -155,10 +155,41 @@ class bp_support_g
             copy(bp_support);
         }
 
+        //! Move constructor
+        bp_support_g(bp_support_g&& bp_support) {
+            *this = std::move(bp_support);
+        }
+
         //! Assignment operator
         bp_support_g& operator=(const bp_support_g& bp_support) {
             if (this != &bp_support) {
                 copy(bp_support);
+            }
+            return *this;
+        }
+
+        //! Assignment operator
+        bp_support_g& operator=(bp_support_g&& bp_support) {
+            if (this != &bp_support) {
+                m_bp = std::move(bp_support.m_bp);
+                m_rank_bp = std::move(bp_support.m_rank_bp);
+                m_rank_bp.set_vector(m_bp);
+                m_select_bp = std::move(bp_support.m_select_bp);
+                m_select_bp.set_vector(m_bp);
+
+                m_nnd = std::move(bp_support.m_nnd);
+
+                m_pioneer_bp = std::move(bp_support.m_pioneer_bp);
+                m_rank_pioneer_bp = std::move(bp_support.m_rank_pioneer_bp);
+                m_rank_pioneer_bp.set_vector(&m_pioneer_bp);
+                m_nnd2 = std::move(bp_support.m_nnd2);
+                m_match = std::move(bp_support.m_match);
+                m_enclose = std::move(bp_support.m_enclose);
+                m_range_max_match = std::move(bp_support.m_range_max_match);
+                m_range_max_match.set_vector(&m_match);
+
+                m_size = std::move(bp_support.m_size);
+                m_blocks = std::move(bp_support.m_blocks);
             }
             return *this;
         }
@@ -437,7 +468,7 @@ class bp_support_g
                             max_match = m_match[k];
                             if (max_match >= r__) {
                                 k = m_nnd2.select(k+1);
-                                if (k < r_ and (ex=excess_pioneer(k)) < min_ex_) {
+                                if (k < r_ and(ex=excess_pioneer(k)) < min_ex_) {
                                     min_ex_ = ex; min_ex_pos_ = k;
                                 }
                             }
@@ -445,13 +476,13 @@ class bp_support_g
                         if (min_ex_pos_ == r_) {
                             // 2.1
                             k = near_rmq_open(m_pioneer_bp, br_, r_);
-                            if (k < r_ and (ex=excess_pioneer(k)) < min_ex_) {
+                            if (k < r_ and(ex=excess_pioneer(k)) < min_ex_) {
                                 min_ex_ = ex; min_ex_pos_ = k;
                             }
                         }
                         // 2.3
                         k = near_rmq_open(m_pioneer_bp, l_, bl_);
-                        if (k < bl_ and (ex=excess_pioneer(k)) < min_ex_) {
+                        if (k < bl_ and(ex=excess_pioneer(k)) < min_ex_) {
                             min_ex_ = ex; min_ex_pos_ = k;
                         }
                     }
@@ -466,13 +497,13 @@ class bp_support_g
                 if (min_ex_pos == r) {
                     // 1.1
                     k = near_rmq_open(*m_bp, br, r);
-                    if (k < r and (ex=excess(k)) < min_ex) {
+                    if (k < r and(ex=excess(k)) < min_ex) {
                         min_ex        = ex; min_ex_pos     = k;
                     }
                 }
                 // 1.3
                 k = near_rmq_open(*m_bp, l, bl);
-                if (k < bl and (ex=excess(k)) < min_ex) {
+                if (k < bl and(ex=excess(k)) < min_ex) {
                     min_ex = ex; min_ex_pos = k;
                 }
             }
@@ -533,7 +564,7 @@ class bp_support_g
          */
         size_type double_enclose(size_type i, size_type j)const {
             assert(j > i);
-            assert((*m_bp)[i]==1 and (*m_bp)[j]==1);
+            assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             size_type k = rr_enclose(i, j);
             if (k == size())
                 return enclose(j);

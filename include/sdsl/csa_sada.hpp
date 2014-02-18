@@ -148,6 +148,11 @@ class csa_sada
             copy(csa);
         }
 
+        //! Move constructor
+        csa_sada(csa_sada&& csa) {
+            *this = std::move(csa);
+        }
+
         csa_sada(cache_config& config);
 
         //! Number of elements in the \f$\CSA\f$.
@@ -212,13 +217,28 @@ class csa_sada
          */
         inline value_type operator[](size_type i)const;
 
-        //! Assignment Operator.
+        //! Assignment Copy Operator.
         /*!
          *    Required for the Assignable Concept of the STL.
          */
         csa_sada& operator=(const csa_sada& csa) {
             if (this != &csa) {
                 copy(csa);
+            }
+            return *this;
+        }
+
+        //! Assignment Move Operator.
+        /*!
+         *    Required for the Assignable Concept of the STL.
+         */
+        csa_sada& operator=(csa_sada&& csa) {
+            if (this != &csa) {
+                m_psi        = std::move(csa.m_psi);
+                m_sa_sample  = std::move(csa.m_sa_sample);
+                m_isa_sample = std::move(csa.m_isa_sample);
+                m_alphabet   = std::move(csa.m_alphabet);
+                m_psi_buf    = std::move(csa.m_psi_buf);
             }
             return *this;
         }
@@ -396,19 +416,19 @@ template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sampl
 inline auto csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator[](size_type i)const -> value_type
 {
     size_type off = 0;
-    while (!m_sa_sample.is_sampled(i)) {  // while i mod t_dens != 0 (SA[i] is not sampled)   SG: auf keinen Fall get_sample_dens nehmen, ist total langsam
-        i = psi[i];       // go to the position where SA[i]+1 is located
-        ++off;              // add 1 to the offset
-    }
-    value_type result = m_sa_sample.sa_value(i);
-    if (result < off) {
-        return m_psi.size()-(off-result);
-    } else
-        return result-off;
+while (!m_sa_sample.is_sampled(i)) {  // while i mod t_dens != 0 (SA[i] is not sampled)   SG: auf keinen Fall get_sample_dens nehmen, ist total langsam
+i = psi[i];       // go to the position where SA[i]+1 is located
+    ++off;              // add 1 to the offset
 }
+value_type result = m_sa_sample.sa_value(i);
+if (result < off) {
+return m_psi.size()-(off-result);
+} else
+    return result-off;
+    }
 
 
-template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
+    template<class t_enc_vec, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
 auto csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const -> size_type
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));

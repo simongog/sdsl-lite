@@ -81,6 +81,17 @@ byte_alphabet& byte_alphabet::operator=(const byte_alphabet& bas)
     return *this;
 }
 
+byte_alphabet& byte_alphabet::operator=(byte_alphabet&& bas)
+{
+    if (this != &bas) {
+        m_char2comp = std::move(bas.m_char2comp);
+        m_comp2char = std::move(bas.m_comp2char);
+        m_C         = std::move(bas.m_C);
+        m_sigma     = std::move(bas.m_sigma);
+    }
+    return *this;
+}
+
 void byte_alphabet::swap(byte_alphabet& bas)
 {
     m_char2comp.swap(bas.m_char2comp);

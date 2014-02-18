@@ -49,12 +49,9 @@ class select_support_scan : public select_support
     public:
         typedef bit_vector bit_vector_type;
     public:
-        explicit select_support_scan(const bit_vector* v=nullptr) {
-            set_vector(v);
-        }
-        select_support_scan(const select_support_scan<t_b,t_pat_len>& ss) {
-            set_vector(ss.m_v);
-        }
+        explicit select_support_scan(const bit_vector* v=nullptr) : select_support(v) {}
+        select_support_scan(const select_support_scan<t_b,t_pat_len>& ss) : select_support(ss.m_v) {}
+
         inline size_type select(size_type i) const;
         inline size_type operator()(size_type i)const {
             return select(i);

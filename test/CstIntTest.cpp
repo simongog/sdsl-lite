@@ -81,6 +81,21 @@ TYPED_TEST(CstIntTest, SwapMethod)
     check_node_method(cst2);
 }
 
+//! Test the move method
+TYPED_TEST(CstIntTest, MoveMethod)
+{
+    TypeParam cst1;
+    ASSERT_EQ(true, load_from_file(cst1, temp_file));
+    size_type n = cst1.size();
+    TypeParam cst2;
+    ASSERT_EQ((size_type)0, cst2.size());
+    cst2 = std::move(cst1);
+    ASSERT_EQ(n, cst2.size());
+    ASSERT_EQ(n, cst2.csa.size());
+    bit_vector mark((size_type)0, cst2.size());
+    check_node_method(cst2);
+}
+
 //! Test the node method
 TYPED_TEST(CstIntTest, NodeMethod)
 {
@@ -124,6 +139,21 @@ TYPED_TEST(CstIntTest, BwtAccess)
 {
     TypeParam cst;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
+    sdsl::int_vector<> bwt;
+    sdsl::load_from_file(bwt, test_case_file_map[sdsl::conf::KEY_BWT_INT]);
+    size_type n = bwt.size();
+    ASSERT_EQ(n, cst.csa.bwt.size());
+    for (size_type j=0; j<n; ++j) {
+        ASSERT_EQ(bwt[j], cst.csa.bwt[j])<<" j="<<j;
+    }
+}
+
+//! Test BWT access
+TYPED_TEST(CstIntTest, MoveAndBwtAccess)
+{
+    TypeParam cst_load;
+    ASSERT_EQ(true, load_from_file(cst_load, temp_file));
+    TypeParam cst = std::move(cst_load);
     sdsl::int_vector<> bwt;
     sdsl::load_from_file(bwt, test_case_file_map[sdsl::conf::KEY_BWT_INT]);
     size_type n = bwt.size();
@@ -195,7 +225,7 @@ TYPED_TEST(CstIntTest, SelectChild)
         ASSERT_EQ(cst.rb(cst.root()), lb-1);
 
         size_type i=1;
-        for (auto v  : cst.children(cst.root())) {
+for (auto v  : cst.children(cst.root())) {
             ASSERT_TRUE(i <= cst.degree(cst.root()));
             ASSERT_EQ(cst.select_child(cst.root(),i), v) << i << "!";
             ++i;

@@ -53,9 +53,10 @@ class sorted_multi_stack_support
         /*! \param n Maximum that can be pushed onto the stack
          */
         sorted_multi_stack_support(size_type n);
-
-        sorted_multi_stack_support(const sorted_multi_stack_support& sis);
-        ~sorted_multi_stack_support() {};
+        sorted_multi_stack_support(const sorted_multi_stack_support&) = default;
+        sorted_multi_stack_support(sorted_multi_stack_support&&) = default;
+        sorted_multi_stack_support& operator=(const sorted_multi_stack_support&) = default;
+        sorted_multi_stack_support& operator=(sorted_multi_stack_support&&) = default;
 
         /*! Returns if the stack is empty.
          */
@@ -90,10 +91,6 @@ class sorted_multi_stack_support
         size_type serialize(std::ostream& out)const;
         void load(std::istream& in);
 
-        //! Assign Operator
-        /*! Required for the Assignable Concept of the STL.
-         */
-        sorted_multi_stack_support& operator=(const sorted_multi_stack_support& sis);
 };
 
 inline sorted_multi_stack_support::sorted_multi_stack_support(size_type n):m_n(n), m_cnt(0), m_top(0), m_stack(), m_duplication_stack()
@@ -103,23 +100,6 @@ inline sorted_multi_stack_support::sorted_multi_stack_support(size_type n):m_n(n
     m_duplication_stack = int_vector<64>((m_n>>6)+1, 0);
 }
 
-inline sorted_multi_stack_support::sorted_multi_stack_support(const sorted_multi_stack_support& sis):m_n(sis.m_n), m_cnt(sis.m_cnt), m_top(sis.m_top), m_stack(), m_duplication_stack()
-{
-    m_stack = sis.m_stack;
-    m_duplication_stack = sis.m_duplication_stack;
-}
-
-inline sorted_multi_stack_support& sorted_multi_stack_support::operator=(const sorted_multi_stack_support& sis)
-{
-    if (this != &sis) {
-        m_n	 		= sis.m_n;
-        m_cnt 		= sis.m_cnt;
-        m_top		= sis.m_top;
-        m_stack 	= sis.m_stack;
-        m_duplication_stack = sis.m_duplication_stack;
-    }
-    return *this;
-}
 
 inline sorted_multi_stack_support::size_type sorted_multi_stack_support::top()const
 {
@@ -202,4 +182,4 @@ inline void sorted_multi_stack_support::load(std::istream& in)
 
 }// end namespace sdsl
 
-#endif // end file 
+#endif // end file

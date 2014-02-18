@@ -35,8 +35,10 @@
 #include "wt_huff.hpp"
 #include "wt_hutu.hpp"
 #include "wt_int.hpp"
+#include "wm_int.hpp"
 #include "wt_rlmn.hpp"
 #include "construct.hpp"
+#include "wt_algorithm.hpp"
 
 namespace sdsl
 {

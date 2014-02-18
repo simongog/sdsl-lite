@@ -122,6 +122,10 @@ class csa_bitcompressed
         csa_bitcompressed(const csa_bitcompressed& csa) {
             copy(csa);
         }
+        //! Move constructor
+        csa_bitcompressed(csa_bitcompressed&& csa) {
+            *this = std::move(csa);
+        }
 
         //! Constructor
         csa_bitcompressed(cache_config& config) {
@@ -212,6 +216,19 @@ class csa_bitcompressed
         csa_bitcompressed& operator=(const csa_bitcompressed& csa) {
             if (this != &csa) {
                 copy(csa);
+            }
+            return *this;
+        }
+
+        //! Assignment Move Operator.
+        /*!
+         *    Required for the Assignable Concept of the STL.
+         */
+        csa_bitcompressed& operator=(csa_bitcompressed&& csa) {
+            if (this != &csa) {
+                m_sa       = std::move(csa.m_sa);
+                m_isa      = std::move(csa.m_isa);
+                m_alphabet = std::move(csa.m_alphabet);
             }
             return *this;
         }
