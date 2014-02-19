@@ -76,9 +76,9 @@ ram_filebuf::pos_type
 ram_filebuf::seekpos(pos_type sp, std::ios_base::openmode mode)
 {
     if (sp >= (pos_type)0 and sp <= (pos_type)m_ram_file->size()) {
-        setg(eback(), eback()+sp, egptr());
-        setp(pbase(), epptr());
-        pbump(pbase()+sp-pptr()); // pptr should be pbase() anyway after the setp call?
+        setg(m_ram_file->data(), m_ram_file->data()+sp, m_ram_file->data()+m_ram_file->size());
+        setp(m_ram_file->data(), m_ram_file->data()+m_ram_file->size());
+        pbump(sp);
     } else {
         if (mode & std::ios_base::out) {
             // extend buffer
@@ -90,7 +90,7 @@ ram_filebuf::seekpos(pos_type sp, std::ios_base::openmode mode)
             return pos_type(off_type(-1));
         }
     }
-    return 0;
+    return sp;
 }
 
 ram_filebuf::pos_type
@@ -124,28 +124,6 @@ ram_filebuf::pubseekpos(pos_type sp, std::ios_base::openmode which)
     }
 }
 
-/*
-std::streamsize
-ram_filebuf::xsputn(const char_type* s, std::streamsize n){
-    std::cerr<<"call xsputn("<<s<<","<<n<<")"<<std::endl;
-    if ( m_ram_file ){
-        if (  n < epptr()-pptr() ){
-            memcpy(pptr(), s, n);
-            pbump(n);
-            return n;
-        } else {
-            m_ram_file->resize( (pptr()+n)-epptr() );
-            memcpy(pptr(), s, n);
-            setp(m_ram_file->data(), m_ram_file->data()+m_ram_file->size());
-            pbump(epptr()-pbase());
-            return n;
-        }
-    } else {
-        return 0;
-    }
-}
-*/
-
 int
 ram_filebuf::sync()
 {
@@ -169,6 +147,4 @@ ram_filebuf::overflow(int_type c)
     return traits_type::to_int_type(c);
 }
 
-
 }
-
