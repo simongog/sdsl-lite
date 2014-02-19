@@ -27,7 +27,6 @@
 #include "int_vector.hpp"
 #include "rank_support_v.hpp"
 #include "select_support_mcl.hpp"
-#include "temp_write_read_buffer.hpp"
 #include "wt_helper.hpp"
 #include "util.hpp"
 #include <set> // for calculating the alphabet size
@@ -188,49 +187,53 @@ class wt_int
                 throw std::logic_error("n="+util::to_string(n)+" < "+util::to_string(m_size)+"=m_size");
                 return;
             }
-            m_sigma = 0; // init sigma
-
-            std::string dir = util::dirname(buf.filename());
-
-            temp_write_read_buffer<> buf1(5000000, buf.width(), dir);   // buffer for elements in the right node
-            int_vector<int_width> rac(m_size, 0, buf.width());          // initialize rac
+            m_sigma = 0;
+            int_vector<int_width> rac(m_size, 0, buf.width());
 
             value_type x = 1;  // variable for the biggest value in rac
-            for (size_type i=0; i < m_size; ++i) { // detect the largest value in rac
+            for (size_type i=0; i < m_size; ++i) {
                 if (buf[i] > x)
                     x = buf[i];
                 rac[i] = buf[i];
             }
 
             if (max_level == 0) {
-                m_max_level = bits::hi(x)+1; // we need max_level bits to represent all values in the range [0..x]
+                m_max_level = bits::hi(x)+1; // max_level bits to represent all values range [0..x]
             } else {
                 m_max_level = max_level;
             }
             init_buffers(m_max_level);
 
-            std::string tree_out_buf_file_name = (dir+"/m_tree"+util::to_string(util::pid())+"_"+util::to_string(util::id()));
-            osfstream tree_out_buf(tree_out_buf_file_name, std::ios::binary | std::ios::trunc | std::ios::out);   // open buffer for tree
+            std::string dir = util::dirname(buf.filename());
+            std::string id  = util::to_string(util::pid()) + "_"
+                              + util::to_string(util::id());
+            // buffer for elements in the right node
+            int_vector_buffer<> buf1(dir+"/tmp_wt_constr_buf"+id, std::ios::out,
+                                     10*(1<<20), buf.width());
+            std::string tree_out_buf_file_name = (dir+"/m_tree"+id);
+            osfstream tree_out_buf(tree_out_buf_file_name, std::ios::binary|
+                                   std::ios::trunc|std::ios::out);
+
             size_type bit_size = m_size*m_max_level;
-            tree_out_buf.write((char*) &bit_size, sizeof(bit_size));    // write size of bit_vector
+            tree_out_buf.write((char*) &bit_size, sizeof(bit_size));// write size of bit_vector
 
             size_type tree_pos = 0;
             uint64_t tree_word = 0;
 
-            uint64_t        mask_old = 1ULL<<(m_max_level);
+            uint64_t mask_old = 1ULL<<(m_max_level);
             for (uint32_t k=0; k<m_max_level; ++k) {
                 size_type          start     = 0;
                 const uint64_t    mask_new = 1ULL<<(m_max_level-k-1);
                 do {
-                    buf1.reset();
                     size_type i           = start;
-                    size_type cnt0        =    0;
+                    size_type cnt0        = 0;
+                    size_type cnt1        = 0;
                     uint64_t  start_value = (rac[i]&mask_old);
                     uint64_t  x;
                     while (i < m_size and((x=rac[i])&mask_old)==start_value) {
                         if (x&mask_new) {
                             tree_word |= (1ULL << (tree_pos&0x3FULL));
-                            buf1 << x;
+                            buf1[cnt1++] = x;
                         } else {
                             rac[start + cnt0++ ] = x;
                         }
@@ -241,24 +244,21 @@ class wt_int
                         }
                         ++i;
                     }
-                    buf1.write_close();
-                    size_type cnt1 = i-start-cnt0;
                     if (k+1 < m_max_level) { // inner node
-                        for (i=start + cnt0, start = start+cnt0+cnt1; i < start; ++i) {
-                            buf1 >> x;
-                            rac[ i ] = x;
+                        for (size_type j=0; j<cnt1; ++j) {
+                            rac[start+cnt0+j] = buf1[j];
                         }
                     } else { // leaf node
-                        start += cnt0+cnt1;
                         m_sigma += (cnt0>0) + (cnt1>0); // increase sigma for each leaf
                     }
-
+                    start += cnt0+cnt1;
                 } while (start < m_size);
                 mask_old += mask_new;
             }
             if ((tree_pos & 0x3FULL) != 0) { // if tree_pos % 64 > 0 => there are remaining entries we have to write
                 tree_out_buf.write((char*) &tree_word, sizeof(tree_word));
             }
+            buf1.close(true); // remove temporary file
             tree_out_buf.close();
             rac.resize(0);
             bit_vector tree;
