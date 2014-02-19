@@ -680,7 +680,7 @@ void construct_lcp_bwt_based(cache_config& config)
     // calculate first intervals
     partial_lcp[0] = 0;
     index_done[0] = true;
-    wt_bwt.interval_symbols(0, n, quantity, cs, rank_c_i, rank_c_j);
+    interval_symbols(wt_bwt, 0, n, quantity, cs, rank_c_i, rank_c_j);
     for (size_type i=0; i<quantity; ++i) {
         unsigned char c = cs[i];
         size_type a_new = C[c] + rank_c_i[i];
@@ -740,7 +740,7 @@ void construct_lcp_bwt_based(cache_config& config)
                 size_type b = q.front(); q.pop();
                 --intervals;
 
-                wt_bwt.interval_symbols(a, b, quantity, cs, rank_c_i, rank_c_j);
+                interval_symbols(wt_bwt, a, b, quantity, cs, rank_c_i, rank_c_j);
                 for (size_type i=0; i<quantity; ++i) {
                     unsigned char c = cs[i];
                     size_type a_new = C[c] + rank_c_i[i];
@@ -774,7 +774,7 @@ void construct_lcp_bwt_based(cache_config& config)
             size_type b2 = util::next_bit(dict[source], a2+1);
 
             while (b2 < dict[source].size()) {
-                wt_bwt.interval_symbols(((a2-1)>>1), (b2>>1), quantity, cs, rank_c_i, rank_c_j);
+                interval_symbols(wt_bwt, ((a2-1)>>1), (b2>>1), quantity, cs, rank_c_i, rank_c_j);
                 for (size_type i=0; i<quantity; ++i) {
                     unsigned char c = cs[i];
                     size_type a_new = C[c] + rank_c_i[i];
@@ -902,7 +902,7 @@ void construct_lcp_bwt_based2(cache_config& config)
         index_done[0] = true;
 
         // calculate first intervals
-        wt_bwt.interval_symbols(0, n, quantity, cs, rank_c_i, rank_c_j);
+        interval_symbols(wt_bwt, 0, n, quantity, cs, rank_c_i, rank_c_j);
         for (size_type i=0; i<quantity; ++i) {
             unsigned char c = cs[i];
             size_type a_new = C[c] + rank_c_i[i];
@@ -967,7 +967,7 @@ void construct_lcp_bwt_based2(cache_config& config)
                     size_type b = q.front(); q.pop();
                     --intervals;
 
-                    wt_bwt.interval_symbols(a, b, quantity, cs, rank_c_i, rank_c_j);
+                    interval_symbols(wt_bwt, a, b, quantity, cs, rank_c_i, rank_c_j);
                     for (size_type i=0; i<quantity; ++i) {
                         unsigned char c = cs[i];
                         size_type a_new = C[c] + rank_c_i[i];
@@ -1000,7 +1000,7 @@ void construct_lcp_bwt_based2(cache_config& config)
                 size_type b2 = util::next_bit(dict[source], a2+1);
 
                 while (b2 < dict[source].size()) {
-                    wt_bwt.interval_symbols(((a2-1)>>1), (b2>>1), quantity, cs, rank_c_i, rank_c_j);
+                    interval_symbols(wt_bwt, ((a2-1)>>1), (b2>>1), quantity, cs, rank_c_i, rank_c_j);
                     for (size_type i=0; i<quantity; ++i) {
                         unsigned char c = cs[i];
                         size_type a_new = C[c] + rank_c_i[i];

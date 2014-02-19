@@ -45,7 +45,7 @@ uint64_t test_inverse_select(const t_wt& wt, const vector<size_type>& is, uint64
     }
     return cnt;
 }
-/*
+
 // test interval_symbols
 template<class t_wt>
 uint64_t
@@ -64,12 +64,11 @@ test_interval_symbols(typename enable_if<has_node_type<t_wt>::value,
     vector<size_type> tmp2(wt.sigma);
     uint64_t cnt=0;
     for (uint64_t i=0; i<times; ++i) {
-        wt.interval_symbols(is[i&mask], js[i&mask], k, tmp, tmp2, tmp2);
+        interval_symbols(wt, is[i&mask], js[i&mask], k, tmp, tmp2, tmp2);
         cnt += k;
     }
     return cnt;
 }
-*/
 
 // test lex_count
 template<class t_wt>
@@ -259,7 +258,7 @@ int main(int argc, char* argv[])
     // interval_symbols
     const uint64_t reps_interval_symbols = wt.sigma < 10000 ? reps : reps/100;
     start = timer::now();
-    check = 0; //test_interval_symbols<WT_TYPE>(wt, is, js, k, mask, reps_interval_symbols);
+    check = test_interval_symbols<WT_TYPE>(wt, is, js, k, mask, reps_interval_symbols);
     stop = timer::now();
     cout << "# interval_symbols_time = " << duration_cast<microseconds>(stop-start).count()/(double)reps_interval_symbols << endl;
     cout << "# interval_symbols_check = " << check << endl;

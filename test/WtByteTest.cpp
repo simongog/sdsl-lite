@@ -206,7 +206,7 @@ test_interval_symbols(typename std::enable_if<has_node_type<t_wt>::value,
         if (i<j) {
             std::swap(j,i);
         }
-        wt.interval_symbols(i, j, k, cs, rank_c_i, rank_c_j);
+        interval_symbols(wt, i, j, k, cs, rank_c_i, rank_c_j);
 
         size_type symbols = (j-i);
         for (size_type m = 0; m<k; ++m) {
