@@ -181,10 +181,10 @@ struct wt_trait {
 
 template<class t_rac, class t_bitvector, class t_select, class t_select_zero>
 struct wt_trait<wt_gmr_1<t_rac, t_bitvector, t_select, t_select_zero>> {
-    static uint64_t test_access(const wt_gmr_1<t_rac, t_bitvector, t_select, t_select_zero>&, const vector<size_type>&, uint64_t, uint64_t times) {
+    static uint64_t test_access(const wt_gmr_1<t_rac, t_bitvector, t_select, t_select_zero>&, const vector<size_type>&, uint64_t, uint64_t) {
         return 0;
     }
-    static uint64_t test_inverse_select(const wt_gmr_1<t_rac, t_bitvector, t_select, t_select_zero>&, const vector<size_type>&, uint64_t, uint64_t times) {
+    static uint64_t test_inverse_select(const wt_gmr_1<t_rac, t_bitvector, t_select, t_select_zero>&, const vector<size_type>&, uint64_t, uint64_t) {
         return 0;
     }
 };
