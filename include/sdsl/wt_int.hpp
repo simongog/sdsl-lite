@@ -209,7 +209,7 @@ class wt_int
                               + util::to_string(util::id());
             // buffer for elements in the right node
             int_vector_buffer<> buf1(dir+"/tmp_wt_constr_buf"+id, std::ios::out,
-                                     (1<<20), buf.width());
+                                     10*(1<<20), buf.width());
             std::string tree_out_buf_file_name = (dir+"/m_tree"+id);
             osfstream tree_out_buf(tree_out_buf_file_name, std::ios::binary|
                                    std::ios::trunc|std::ios::out);
