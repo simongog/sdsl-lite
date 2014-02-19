@@ -637,40 +637,6 @@ class wt_gmr_2
             m_chunksize = (1 << (bits::hi(m_max_symbol-1)+1)); // In some cases this is better than m_max_smbol
             m_chunks = (m_size+m_chunksize-1)/m_chunksize;
 
-            int_vector<> perm(m_size, 0, bits::hi(m_max_symbol-1)+1);
-            {
-                uint64_t x_pos = 0;
-                bit_vector x(m_size+m_chunks*m_max_symbol+1, 0);
-
-                // fill perm and m_bv_chunks for every chunk
-                for (uint64_t i=0; i<m_chunks; ++i) {
-                    int_vector<> symbols(m_max_symbol, 0, bits::hi(m_max_symbol-1)+2);
-
-                    // calc symbols
-                    for (uint64_t j=i*m_chunksize; j<(i+1)*m_chunksize and j<m_size; ++j) {
-                        ++symbols[input[j]];
-                    }
-                    // calc m_bv_chunks
-                    for (uint64_t j=0; j<m_max_symbol; ++j,++x_pos)
-                        for (uint64_t k=0; k<symbols[j]; ++k)
-                            x[++x_pos]=1;
-
-                    // calc symbols prefix sum
-                    for (uint64_t j=0, tmp=0, sum=0; j<m_max_symbol; ++j) {
-                        tmp = symbols[j];
-                        symbols[j] = sum;
-                        sum += tmp;
-                    }
-                    // calc perm
-                    for (uint64_t j=i* m_chunksize, k=0; j<(i+1)*m_chunksize and j<m_size; ++j,++k) {
-                        perm[i*m_chunksize+(symbols[input[j]]++)] = k;
-                    }
-                }
-                m_bv_chunks = t_bitvector(std::move(x));
-                util::init_support(m_bv_chunks_select1, &m_bv_chunks);
-                util::init_support(m_bv_chunks_select0, &m_bv_chunks);
-
-            }
             // calc m_bv_blocks
             {
                 bit_vector b(m_size+m_max_symbol*m_chunks+1, 0);
@@ -681,10 +647,10 @@ class wt_gmr_2
                         ++offset;
                         j = 0;
                     }
-                    ++tmp[offset+input[i]*m_chunks];
+                    ++tmp[input[i]*m_chunks+offset];
                 }
 
-                for (uint64_t i=0,l=1; i<tmp.size(); ++i,++l)
+                for (uint64_t i=0, l=1; i<tmp.size(); ++i, ++l)
                     for (uint64_t j=0; j<tmp[i]; ++j)
                         b[l++]=1;
 
@@ -705,11 +671,46 @@ class wt_gmr_2
                 }
 
                 m_bv_blocks = t_bitvector(std::move(b));
-                util::init_support(m_bv_blocks_select1, &m_bv_blocks);
-                util::init_support(m_bv_blocks_select0, &m_bv_blocks);
             }
-            m_perm = t_rac(std::move(perm));
+
+            // Calc perm and bv_chunks
+            {
+                uint64_t x_pos = 0;
+                bit_vector x(m_size+m_chunks*m_max_symbol+1, 0);
+
+                // fill perm and m_bv_chunks for every chunk
+                int_vector<> perm(m_size, 0, bits::hi(m_max_symbol-1)+1);
+                for (uint64_t i=0; i<m_chunks; ++i) {
+                    int_vector<> symbols(m_max_symbol, 0, bits::hi(m_max_symbol-1)+2);
+
+                    // calc symbols
+                    for (uint64_t j=i*m_chunksize; j<(i+1)*m_chunksize and j<m_size; ++j) {
+                        ++symbols[input[j]];
+                    }
+                    // calc m_bv_chunks
+                    for (uint64_t j=0; j<m_max_symbol; ++j, ++x_pos)
+                        for (uint64_t k=0; k<symbols[j]; ++k)
+                            x[++x_pos]=1;
+
+                    // calc symbols prefix sum
+                    for (uint64_t j=0, tmp=0, sum=0; j<m_max_symbol; ++j) {
+                        tmp = symbols[j];
+                        symbols[j] = sum;
+                        sum += tmp;
+                    }
+                    // calc perm
+                    for (uint64_t j=i* m_chunksize, k=0; j<(i+1)*m_chunksize and j<m_size; ++j, ++k) {
+                        perm[i*m_chunksize+(symbols[input[j]]++)] = k;
+                    }
+                }
+                m_bv_chunks = t_bitvector(std::move(x));
+                m_perm = t_rac(std::move(perm));
+            }
             m_ips = t_inverse_support(&m_perm, m_chunksize);
+            util::init_support(m_bv_chunks_select1, &m_bv_chunks);
+            util::init_support(m_bv_chunks_select0, &m_bv_chunks);
+            util::init_support(m_bv_blocks_select1, &m_bv_blocks);
+            util::init_support(m_bv_blocks_select0, &m_bv_blocks);
         }
 
         //! Copy constructor
