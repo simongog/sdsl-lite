@@ -33,6 +33,7 @@ wt_pc<balanced_shape>
                       ,wt_huff<rrr_vector<63>>
                       ,wt_rlmn<>
                       ,wt_rlmn<bit_vector>
+                      ,wt_gmr_rs<>
                       ,wt_hutu<bit_vector_il<>>
                       ,wt_hutu<bit_vector, rank_support_v<>>
                       ,wt_hutu<bit_vector, rank_support_v5<>>
@@ -153,7 +154,7 @@ TYPED_TEST(WtByteTest, Select)
     ASSERT_EQ(text.size(), wt.size());
     for (size_type j=0; j<text.size(); ++j) {
         cnt[text[j]]++;
-        ASSERT_EQ(j, wt.select(cnt[text[j]], text[j]))<< " j = "<<j<<" text[j]"<<text[j];
+        ASSERT_EQ(j, wt.select(cnt[text[j]], text[j]))<< " j = "<<j<<" text[j] = "<<text[j];
     }
 }
 
@@ -204,7 +205,7 @@ test_interval_symbols(typename std::enable_if<has_node_type<t_wt>::value,
         if (i<j) {
             std::swap(j,i);
         }
-        wt.interval_symbols(i, j, k, cs, rank_c_i, rank_c_j);
+        interval_symbols(wt, i, j, k, cs, rank_c_i, rank_c_j);
 
         size_type symbols = (j-i);
         for (size_type m = 0; m<k; ++m) {

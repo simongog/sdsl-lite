@@ -252,7 +252,7 @@ size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::stru
     if (vec.size() > 0) {
         sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, "std::vector<"+util::class_name(vec[0])+">");
         size_t written_bytes = 0;
-        for (const auto& x : vec) {
+for (const auto& x : vec) {
             written_bytes += write_element(x, out, child, "[]");
         }
         structure_tree::add_size(child, written_bytes);
@@ -286,7 +286,7 @@ void write_structure(const X& x, std::ostream& out)
     nullstream ns;
     x.serialize(ns, st_node.get(), "");
     if (st_node.get()->children.size() > 0) {
-        for (const auto& child: st_node.get()->children) {
+for (const auto& child: st_node.get()->children) {
             sdsl::write_structure_tree<F>(child.second.get(), out);
         }
     }
@@ -469,6 +469,9 @@ bool cache_file_exists(const std::string& key, const cache_config& config);
 
 //! Returns a name for a temporary file. I.e. the name was not used before.
 std::string tmp_file(const cache_config& config, std::string name_part="");
+
+//! Returns a name for a temporary file. I.e. the name was not used before.
+std::string tmp_file(const std::string& filename, std::string name_part="");
 
 template<class T>
 bool load_from_cache(T& v, const std::string& key, const cache_config& config)

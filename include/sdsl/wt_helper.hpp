@@ -61,7 +61,7 @@ struct pc_node {
     uint64_t  parent;   // pointer to the parent
     uint64_t  child[2]; // pointer to the children
 
-    enum :uint64_t {undef = 0xFFFFFFFFFFFFFFFFULL}; // max uint64_t value
+enum :uint64_t {undef = 0xFFFFFFFFFFFFFFFFULL}; // max uint64_t value
 
     pc_node(uint64_t freq=0, uint64_t sym=0, uint64_t parent=undef,
             uint64_t child_left=undef, uint64_t child_right=undef);
@@ -135,9 +135,9 @@ struct _byte_tree {
     using value_type = uint8_t;
     using node_type = uint16_t; // node is represented by index in m_nodes
     using data_node = _node<_byte_tree>;
-    enum :uint16_t {undef       = 0xFFFF}; // max uint16_t value
-    enum :uint32_t {fixed_sigma = 256};
-    enum :uint8_t {int_width   = 8};      // width of the input integers
+enum :uint16_t {undef       = 0xFFFF}; // max uint16_t value
+enum :uint32_t {fixed_sigma = 256};
+enum :uint8_t {int_width   = 8};      // width of the input integers
 
 
 
@@ -348,8 +348,8 @@ struct _int_tree {
     using value_type = uint64_t;
     using node_type = uint64_t; // node is represented by index in m_nodes
     using data_node = _node<_int_tree>;
-    enum :uint64_t {undef = 0xFFFFFFFFFFFFFFFFULL}; // max uint64_t value
-    enum :uint8_t {int_width = 0};                 // width of the input integers is variable
+enum :uint64_t {undef = 0xFFFFFFFFFFFFFFFFULL}; // max uint64_t value
+enum :uint8_t {int_width = 0};                 // width of the input integers is variable
 
 
 

@@ -240,7 +240,7 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<>& lcp_buf,
                 is_one_big_and_not_reducable = false;
             }
         }
-        if (x > M-2 and (0 == i or last_bwti != bwt_buf[i] or x % t_dens == 0)) {
+        if (x > M-2 and(0 == i or last_bwti != bwt_buf[i] or x % t_dens == 0)) {
             is_big_and_not_reducable[vec_stack.size()] = 1;
         } else {
             is_big_and_not_reducable[vec_stack.size()] = 0;

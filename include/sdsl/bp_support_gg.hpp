@@ -351,7 +351,7 @@ class bp_support_gg
          */
         size_type rr_enclose(const size_type i, const size_type j)const {
             assert(j < m_size);
-            assert((*m_bp)[i]==1 and (*m_bp)[j]==1);
+            assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             const size_type mip1 = find_close(i)+1;
             if (mip1 >= j)
                 return size();
@@ -397,7 +397,7 @@ class bp_support_gg
                 }
                 // 1.3
                 k = near_rmq_open(*m_bp, l, (l/t_bs+1)*t_bs);
-                if (k < (l/t_bs+1)*t_bs and (ex=excess(k)) < min_ex) {
+                if (k < (l/t_bs+1)*t_bs and(ex=excess(k)) < min_ex) {
                     min_ex = ex; min_ex_pos = k;
                 }
             }
@@ -418,7 +418,7 @@ class bp_support_gg
         */
         size_type rr_enclose_naive(size_type i, size_type j)const {
             assert(j > i and j < m_size);
-            assert((*m_bp)[i]==1 and (*m_bp)[j]==1);
+            assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             size_type mi = find_close(i); // matching parenthesis to i
             assert(mi > i and mi < j);
             assert(find_close(j) > j);
@@ -459,7 +459,7 @@ class bp_support_gg
          */
         size_type double_enclose(size_type i, size_type j)const {
             assert(j > i);
-            assert((*m_bp)[i]==1 and (*m_bp)[j]==1);
+            assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             size_type k = rr_enclose(i, j);
             if (k == size())
                 return enclose(j);

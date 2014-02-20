@@ -346,7 +346,7 @@ class bp_support_sada
         explicit bp_support_sada(const bit_vector* bp): m_bp(bp),
             m_size(bp==nullptr?0:bp->size()),
             m_sml_blocks((m_size+t_sml_blk-1)/t_sml_blk),
-            m_med_blocks((m_size+t_sml_blk*t_med_deg-1)/(t_sml_blk* t_med_deg)),
+            m_med_blocks((m_size+t_sml_blk* t_med_deg-1)/(t_sml_blk* t_med_deg)),
             m_med_inner_blocks(0) {
             if (t_sml_blk==0) {
                 throw std::logic_error(util::demangle(typeid(this).name())+": t_sml_blk should be greater than 0!");
@@ -363,7 +363,7 @@ class bp_support_sada
                 m_med_inner_blocks <<= 1; assert(m_med_inner_blocks!=0);
             }
             --m_med_inner_blocks;
-            assert((m_med_inner_blocks == 0) or (m_med_inner_blocks%2==1));
+            assert((m_med_inner_blocks == 0) or(m_med_inner_blocks%2==1));
 
             m_sml_block_min_max = int_vector<>(2*m_sml_blocks, 0, bits::hi(t_sml_blk+2)+1);
             m_med_block_min_max = int_vector<>(2*(m_med_blocks+m_med_inner_blocks), 0, bits::hi(2*m_size+2)+1);
@@ -591,7 +591,7 @@ class bp_support_sada
          */
         size_type rr_enclose(const size_type i, const size_type j)const {
             assert(j < m_size);
-            assert((*m_bp)[i]==1 and (*m_bp)[j]==1);
+            assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             const size_type mip1 = find_close(i)+1;
             if (mip1 >= j)
                 return size();
@@ -684,7 +684,7 @@ class bp_support_sada
 
                 size_type temp = median_block_rmq(sbl+1, std::min((mbl+1)*t_med_deg-1, sbr-1), min_ex); // scan the medium block of l
                 if (temp != (size_type)-1) {
-                    assert(temp*t_sml_blk >= l and temp*t_sml_blk <= r);
+                    assert(temp* t_sml_blk >= l and temp* t_sml_blk <= r);
                     min_pos     = temp;
                     assert(min_pos >= 0  and min_pos < m_sml_blocks);
                     pos_type     = SMALL_BLOCK_POS;
@@ -754,7 +754,7 @@ class bp_support_sada
                 // search in the medium block of r
                 temp = median_block_rmq(std::max(mbr*t_med_deg, sbl+1), sbr-1, min_ex);  // scan the medium block of r
                 if (temp != (size_type)-1) {
-                    assert(temp*t_sml_blk >= l and temp*t_sml_blk <= r);
+                    assert(temp* t_sml_blk >= l and temp* t_sml_blk <= r);
                     min_pos     = temp;
                     pos_type     = SMALL_BLOCK_POS;
                 }
@@ -769,7 +769,7 @@ class bp_support_sada
                     min_pos = min_pos - m_med_inner_blocks;
                     temp = median_block_rmq(min_pos*t_med_deg, (min_pos+1)*t_med_deg-1, min_ex);
                     assert(temp != (size_type)-1);   // assert that we find a solution
-                    assert(temp*t_sml_blk >= l and temp*t_sml_blk <= r);
+                    assert(temp* t_sml_blk >= l and temp* t_sml_blk <= r);
                     min_pos = temp;
                     pos_type = SMALL_BLOCK_POS;
                 }
@@ -791,7 +791,7 @@ class bp_support_sada
         */
         size_type rr_enclose_naive(size_type i, size_type j)const {
             assert(j > i and j < m_size);
-            assert((*m_bp)[i]==1 and (*m_bp)[j]==1);
+            assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             size_type mi = find_close(i); // matching parenthesis to i
             assert(mi > i and mi < j);
             assert(find_close(j) > j);
@@ -814,7 +814,7 @@ class bp_support_sada
          */
         size_type double_enclose(size_type i, size_type j)const {
             assert(j > i);
-            assert((*m_bp)[i]==1 and (*m_bp)[j]==1);
+            assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             size_type k = rr_enclose(i, j);
             if (k == size())
                 return enclose(j);

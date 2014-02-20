@@ -31,6 +31,7 @@
 
 #include "wt_pc.hpp"
 #include "wt_blcd.hpp"
+#include "wt_gmr.hpp"
 #include "wt_huff.hpp"
 #include "wt_hutu.hpp"
 #include "wt_int.hpp"

@@ -228,9 +228,15 @@ The main contributors to the library are:
 * [Simon Gog](https://github.com/simongog) (Creator)
 * [Matthias Petri](https://github.com/mpetri)
 
-This project further profited from excellent input of many coders. Stefan
-Arnold helped us with tricky template questions. We are also grateful to 
-Travis Gagie, Kalle Karhu, Dominik Kempa, and Shanika Kuruppu for bug reports.
+This project further profited from excellent input of our students
+Markus Brenner, Alexander Diehm, and Maike Zwerger. Stefan
+Arnold helped us with tricky template questions. We are also grateful to
+[Travis Gagie](https://github.com/TravisGagie),
+Kalle Karhu,
+[Dominik Kempa](https://github.com/dkempa),
+[Bruce Kuo](https://github.com/bruce3557),
+and [Shanika Kuruppu](https://github.com/skuruppu)
+for bug reports.
 
 Contribute
 ----------

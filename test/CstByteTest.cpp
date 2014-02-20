@@ -236,7 +236,7 @@ TYPED_TEST(CstByteTest, SelectChild)
         ASSERT_EQ(cst.rb(cst.root()), lb-1);
 
         size_type i=1;
-        for (auto v  : cst.children(cst.root())) {
+for (auto v  : cst.children(cst.root())) {
             ASSERT_TRUE(i <= cst.degree(cst.root()));
             ASSERT_EQ(cst.select_child(cst.root(),i), v) << i << "!";
             ++i;
@@ -263,7 +263,7 @@ TYPED_TEST(CstByteTest, MoveSelectChild)
         ASSERT_EQ(cst.rb(cst.root()), lb-1);
 
         size_type i=1;
-        for (auto v  : cst.children(cst.root())) {
+for (auto v  : cst.children(cst.root())) {
             ASSERT_TRUE(i <= cst.degree(cst.root()));
             ASSERT_EQ(cst.select_child(cst.root(),i), v) << i << "!";
             ++i;

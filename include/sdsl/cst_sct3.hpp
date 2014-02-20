@@ -795,7 +795,7 @@ class cst_sct3
          */
 
         node_type lca(node_type v, node_type w)const {
-            if (v.i > w.i or (v.i == w.i and v.j < w.j)) {
+            if (v.i > w.i or(v.i == w.i and v.j < w.j)) {
                 std::swap(v, w);
             }
             if (v.j >= w.j) { // v encloses w or v==w

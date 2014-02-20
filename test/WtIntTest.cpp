@@ -27,9 +27,10 @@ wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<
         ,wt_huff<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
         ,wt_huff<rrr_vector<63>, rrr_vector<63>::rank_1_type, rrr_vector<63>::select_1_type, rrr_vector<63>::select_0_type, int_tree<>>
         ,wt_hutu<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<0>, int_tree<>>
-        ,wt_int<rrr_vector<15>>
+        ,wt_gmr<>
         ,wm_int<>
         ,wt_int<>
+        ,wt_int<rrr_vector<15>>
         ,wt_int<rrr_vector<63>>
         ,wt_rlmn<bit_vector, rank_support_v5<>, select_support_mcl<1>, wt_int<>>
         > Implementations;
@@ -388,7 +389,7 @@ test_range_search_2d(typename enable_if<has_range_search_2d<t_wt>::value,
         auto res = wt.range_search_2d(lb, rb, vlb, vrb);
         ASSERT_EQ(cnt, res.first);
 
-        for (auto point : res.second) {
+for (auto point : res.second) {
             // check that position is in range
             ASSERT_TRUE(point.first >= lb);
             ASSERT_TRUE(point.first <= rb);

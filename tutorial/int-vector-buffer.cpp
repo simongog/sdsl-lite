@@ -16,7 +16,7 @@ int main()
         // use int_vector_buffer to open the file
         int_vector_buffer<> ivb(tmp_file);
         // output elements and assign 42 to each of them
-        for (auto x : ivb) {
+for (auto x : ivb) {
             cout << x << endl;
             x = 42;
         }

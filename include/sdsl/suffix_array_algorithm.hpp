@@ -369,12 +369,12 @@ typename t_csx::size_type count(
  *         occurrences of pattern in the CSA.
  */
 template<class t_csa, class t_pat_iter, class t_rac=int_vector<64>>
-t_rac locate(
-    const t_csa&  csa,
-    t_pat_iter begin,
-    t_pat_iter end,
-    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
-)
+        t_rac locate(
+            const t_csa&  csa,
+            t_pat_iter begin,
+            t_pat_iter end,
+            SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+        )
 {
     typename t_csa::size_type occ_begin, occ_end, occs;
     occs = backward_search(csa, 0, csa.size()-1, begin, end, occ_begin, occ_end);

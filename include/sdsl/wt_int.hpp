@@ -204,13 +204,10 @@ class wt_int
             }
             init_buffers(m_max_level);
 
-            std::string dir = util::dirname(buf.filename());
-            std::string id  = util::to_string(util::pid()) + "_"
-                              + util::to_string(util::id());
             // buffer for elements in the right node
-            int_vector_buffer<> buf1(dir+"/tmp_wt_constr_buf"+id, std::ios::out,
-                                     10*(1<<20), buf.width());
-            std::string tree_out_buf_file_name = (dir+"/m_tree"+id);
+            int_vector_buffer<> buf1(tmp_file(buf.filename(), "_wt_constr_buf"),
+                                     std::ios::out, 10*(1<<20), buf.width());
+            std::string tree_out_buf_file_name = tmp_file(buf.filename(), "_m_tree");
             osfstream tree_out_buf(tree_out_buf_file_name, std::ios::binary|
                                    std::ios::trunc|std::ios::out);
 
@@ -622,7 +619,7 @@ class wt_int
          */
         std::pair<size_type, std::vector<std::pair<value_type, size_type>>>
         range_search_2d(size_type lb, size_type rb, value_type vlb, value_type vrb,
-                        bool report=true) const {
+        bool report=true) const {
             size_type offsets[m_max_level+1];
             size_type ones_before_os[m_max_level+1];
             offsets[0] = 0;
@@ -743,11 +740,11 @@ class wt_int
             // Default constructor
             node_type(size_type o=0, size_type sz=0, size_type l=0,
                       value_type sy=0) :
-                offset(o), size(sz), level(l), sym(sy) {}
+            offset(o), size(sz), level(l), sym(sy) {}
 
-            // Copy constructor
-            node_type(const node_type& v) : offset(v.offset), size(v.size),
-                level(v.level), sym(v.sym) {}
+        // Copy constructor
+        node_type(const node_type& v) : offset(v.offset), size(v.size),
+            level(v.level), sym(v.sym) {}
         };
 
         //! Checks if the node is a leaf node
@@ -804,10 +801,10 @@ class wt_int
             auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
             std::pair<range_vec_type, range_vec_type> res;
 
-            for (const auto& r : ranges) {
+for (const auto& r : ranges) {
                 auto sp_rank    = m_tree_rank(v.offset + r.first);
                 auto right_size = m_tree_rank(v.offset + r.second + 1)
-                                  - sp_rank;
+                - sp_rank;
                 auto left_size  = (r.second-r.first+1)-right_size;
 
                 auto right_sp = sp_rank - v_sp_rank;
@@ -834,7 +831,7 @@ class wt_int
             auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
             auto sp_rank    = m_tree_rank(v.offset + r.first);
             auto right_size = m_tree_rank(v.offset + r.second + 1)
-                              - sp_rank;
+            - sp_rank;
             auto left_size  = (r.second-r.first+1)-right_size;
 
             auto right_sp = sp_rank - v_sp_rank;

@@ -156,8 +156,6 @@ class wm_int
             }
             m_sigma = 0; // init sigma
 
-            std::string dir = util::dirname(buf.filename());
-
             int_vector<int_width> rac(m_size, 0, buf.width());  // initialize rac
 
             value_type x = 1;  // variable for the biggest value in rac
@@ -175,12 +173,12 @@ class wm_int
             init_buffers(m_max_level);
 
 
-            std::string tree_out_buf_file_name = (dir+"/m_tree"+util::to_string(util::pid())+"_"+util::to_string(util::id()));
+            std::string tree_out_buf_file_name = tmp_file(buf.filename(), "_m_tree");
             osfstream tree_out_buf(tree_out_buf_file_name, std::ios::binary | std::ios::trunc | std::ios::out);   // open buffer for tree
             size_type bit_size = m_size*m_max_level;
             tree_out_buf.write((char*) &bit_size, sizeof(bit_size));    // write size of bit_vector
 
-            std::string zero_buf_file_name = (dir+"/zero_buf"+util::to_string(util::pid())+"_"+util::to_string(util::id()));
+            std::string zero_buf_file_name = tmp_file(buf.filename(), "_zero_buf");
 
             size_type tree_pos = 0;
             uint64_t tree_word = 0;
@@ -621,7 +619,7 @@ class wm_int
             auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
             std::pair<range_vec_type, range_vec_type> res;
 
-            for (const auto& r : ranges) {
+for (const auto& r : ranges) {
                 auto sp_rank    = m_tree_rank(v.offset + r.first);
                 auto right_size = m_tree_rank(v.offset + r.second + 1)
                                   - sp_rank;

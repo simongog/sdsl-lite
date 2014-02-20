@@ -14,7 +14,7 @@ int main()
     cout << "wt[0,3] intersect with wt[7,10]" << endl;
     auto res = intersect(wt, {{0,3},{7,10}});
     cout << "element : sum of occurrences in ranges" << endl;
-    for (auto x : res) {
+for (auto x : res) {
         cout << x.first << " : " << x.second <<endl;
     }
 

@@ -306,7 +306,7 @@ class int_vector
         int_vector(std::initializer_list<t_T> il) : int_vector() {
             resize(il.size());
             size_type idx = 0;
-            for (auto x : il) {
+for (auto x : il) {
                 (*this)[idx++] = x;
             }
         }
@@ -1108,7 +1108,7 @@ template<class t_bv>
 inline typename std::enable_if<std::is_same<typename t_bv::index_category ,bv_tag>::value, std::ostream&>::type
 operator<<(std::ostream& os, const t_bv& bv)
 {
-    for (auto b : bv) {
+for (auto b : bv) {
         os << b;
     }
     return os;
@@ -1201,14 +1201,14 @@ template<uint8_t t_width>
 auto int_vector<t_width>::get_int(size_type idx, const uint8_t len)const -> value_type
 {
 #ifdef SDSL_DEBUG
-    if (idx+len > m_size) {
-        throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); idx+len > size()!");
-    }
-    if (len > 64) {
-        throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); len>64!");
-    }
+if (idx+len > m_size) {
+throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); idx+len > size()!");
+}
+if (len > 64) {
+throw std::out_of_range("OUT_OF_RANGE_ERROR: int_vector::get_int(size_type, uint8_t); len>64!");
+}
 #endif
-    return bits::read_int(m_data+(idx>>6), idx&0x3F, len);
+return bits::read_int(m_data+(idx>>6), idx&0x3F, len);
 }
 
 template<uint8_t t_width>

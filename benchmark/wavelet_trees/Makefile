@@ -49,7 +49,7 @@ results/%: test_case.config $(DL) $(DL_BWT) execs
 	$(eval TC_PATH:=$(if $(findstring BWT,$(BWT)),"../tmp/BWT.$(TC_ID)",$(call config_select,test_case.config,$(TC_ID),2)))
 	$(eval TC_TYPE:=$(call config_select,test_case.config,$(TC_ID),5))
 	$(eval TC_SIZE:=$(shell wc -c <$(TC_PATH)))
-	$(eval ARGS:=$(TC_PATH) $(TC_TYPE))
+	$(eval ARGS:=$(TC_PATH) $(TC_TYPE) $(TC_ID) $(WT_ID))
 	@echo "Running bin/build_$(WT_ID) on $(TC_ID)"
 	@echo "# WT_ID = $(WT_ID)" > $@
 	@echo "# TC_ID = $(TC_ID)" >> $@

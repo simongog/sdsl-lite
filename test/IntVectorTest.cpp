@@ -96,7 +96,7 @@ void test_Constructors(uint8_t template_width, size_type constructor_size, uint8
 //! Test Constructors
 TEST_F(IntVectorTest, Constructors)
 {
-    for (auto size : vec_sizes) {
+for (auto size : vec_sizes) {
         if (size<1000) {                                // Test only for short sizes,
             for (uint8_t width=1; width<=64; ++width) { // but for all possible widths
                 // unspecialized
@@ -244,12 +244,12 @@ TEST_F(IntVectorTest, STL)
         sdsl::int_vector<> iv(vec_sizes[i]);
         ASSERT_EQ(vec_sizes[i], iv.size());
         auto cnt = iv.size();
-        for (auto x : iv) {
+for (auto x : iv) {
             x = --cnt;
         }
         std::sort(iv.begin(), iv.end());
         sdsl::int_vector<>::value_type last = 0;
-        for (const auto& x : iv) {
+for (const auto& x : iv) {
             ASSERT_TRUE(x >= last);
             last = x;
         }

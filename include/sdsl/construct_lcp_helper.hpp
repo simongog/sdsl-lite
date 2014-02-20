@@ -21,7 +21,7 @@ void create_C_array(std::vector<uint64_t>& C, const tWT& wt)
     std::vector<uint64_t> rank_c_j(wt.sigma);    // number of occurrence of character in [0 .. j-1]
 
     C = std::vector<uint64_t>(257, 0);
-    wt.interval_symbols(0, wt.size(), quantity, cs, rank_c_i, rank_c_j);
+    interval_symbols(wt, 0, wt.size(), quantity, cs, rank_c_i, rank_c_j);
     for (uint64_t i=0; i<quantity; ++i) {
         unsigned char c = cs[i];
         C[c+1] = rank_c_j[i];
