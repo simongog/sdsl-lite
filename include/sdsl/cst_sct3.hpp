@@ -397,11 +397,15 @@ class cst_sct3
         const_iterator begin()const {
             if (0 == m_bp.size())  // special case: tree is uninitialized
                 return end();
-//            else if (2 == m_bp.size()) { // special case: the root is a leaf
-//                return const_iterator(this, root(), true, true);
-//            }
             return const_iterator(this, root(), false, true);
         };
+
+        //! Returns a const_iterator to the first element of a depth first traversal of the subtree rooted at node v.
+        const_iterator begin(const node_type& v)const {
+            if (0 == m_bp.size() and root()==v)
+                return end();
+            return const_iterator(this, v, false, true);
+        }
 
         //! Returns a const_iterator to the element after the last element of a depth first traversal of the tree.
         /*! Required for the STL Container Concept.
@@ -409,6 +413,13 @@ class cst_sct3
          */
         const_iterator end()const {
             return const_iterator(this, root(), true, false);
+        }
+
+        //! Returns a const_iterator to the element past the end of a depth first traversal of the subtree rooted at node v.
+        const_iterator end(const node_type& v)const {
+            if (root() == v)
+                return end();
+            return ++const_iterator(this, v, true, true);
         }
 
         //! Returns an iterator to the first element of a bottom-up traversal of the tree.

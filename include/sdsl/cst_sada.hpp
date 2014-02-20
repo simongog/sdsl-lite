@@ -238,12 +238,26 @@ class cst_sada
             return const_iterator(this, root(), false, true);
         }
 
+        //! Returns a const_iterator to the first element of a depth first traversal of the subtree rooted at node v.
+        const_iterator begin(const node_type& v)const {
+            if (0 == m_bp.size() and root()==v)
+                return end();
+            return const_iterator(this, v, false, true);
+        }
+
 //! Returns a const_iterator to the element after the last element.
         /*! Required for the STL Container Concept.
          *  \sa begin.
          */
         const_iterator end()const {
             return const_iterator(this, root(), true, false);
+        }
+
+        //! Returns a const_iterator to the element past the end of a depth first traversal of the subtree rooted at node v.
+        const_iterator end(const node_type& v)const {
+            if (root() == v)
+                return end();
+            return ++const_iterator(this, v, true, true);
         }
 
 //! Returns an iterator to the first element of a bottom-up traversal of the tree.
