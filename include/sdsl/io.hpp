@@ -470,6 +470,9 @@ bool cache_file_exists(const std::string& key, const cache_config& config);
 //! Returns a name for a temporary file. I.e. the name was not used before.
 std::string tmp_file(const cache_config& config, std::string name_part="");
 
+//! Returns a name for a temporary file. I.e. the name was not used before.
+std::string tmp_file(const std::string& filename, std::string name_part="");
+
 template<class T>
 bool load_from_cache(T& v, const std::string& key, const cache_config& config)
 {

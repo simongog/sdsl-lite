@@ -204,13 +204,10 @@ class wt_int
             }
             init_buffers(m_max_level);
 
-            std::string dir = util::dirname(buf.filename());
-            std::string id  = util::to_string(util::pid()) + "_"
-                              + util::to_string(util::id());
             // buffer for elements in the right node
-            int_vector_buffer<> buf1(dir+"/tmp_wt_constr_buf"+id, std::ios::out,
-                                     10*(1<<20), buf.width());
-            std::string tree_out_buf_file_name = (dir+"/m_tree"+id);
+            int_vector_buffer<> buf1(tmp_file(buf.filename(), "_wt_constr_buf"),
+                                     std::ios::out, 10*(1<<20), buf.width());
+            std::string tree_out_buf_file_name = tmp_file(buf.filename(), "_m_tree");
             osfstream tree_out_buf(tree_out_buf_file_name, std::ios::binary|
                                    std::ios::trunc|std::ios::out);
 
