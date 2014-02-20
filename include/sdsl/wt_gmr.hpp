@@ -72,12 +72,12 @@ class inv_permutation_support
         inv_permutation_support() {};
 
         //! Constructor
-        inv_permutation_support(const iv_type* perm, uint64_t chunksize) : m_perm(perm), m_chunksize(chunksize) {
-            bit_vector marked(m_perm->size(), 0);
+        inv_permutation_support(const iv_type* perm, int_vector<>& iv, uint64_t chunksize) : m_perm(perm), m_chunksize(chunksize) {
+            bit_vector marked(iv.size(), 0);
             bit_vector done(m_chunksize, 0);
 
             size_type max_back_pointer = 0;
-            for (size_type i=0, off=0; i < m_perm->size(); ++i) {
+            for (size_type i=0, off=0; i < iv.size(); ++i) {
                 if (i == off+chunksize) {
                     off = i;
                     util::set_to_value(done, 0);
@@ -86,7 +86,8 @@ class inv_permutation_support
                     done[i-off] = 1;
                     size_type back_pointer=i, j = i, j_new=0;
                     uint64_t  steps = 0, all_steps = 0;
-                    while ((j_new=((*m_perm)[j])+off) != i) {
+                    //while ((j_new=((*m_perm)[j])+off) != i) {
+                    while ((j_new=(iv[j]+off)) != i) {
                         j = j_new;
                         done[j-off] = 1;
                         ++steps; ++all_steps;
@@ -108,10 +109,10 @@ class inv_permutation_support
             util::init_support(m_marked_rank, &m_marked);
 
             util::set_to_value(done, 0);
-            size_type n_bp = m_marked_rank(m_perm->size());
+            size_type n_bp = m_marked_rank(iv.size());
             m_back_pointer = int_vector<>(n_bp, 0, bits::hi(max_back_pointer)+1);
 
-            for (size_type i=0, off=0; i < m_perm->size(); ++i) {
+            for (size_type i=0, off=0; i < iv.size(); ++i) {
                 if (i == off+chunksize) {
                     off = i;
                     util::set_to_value(done, 0);
@@ -120,7 +121,8 @@ class inv_permutation_support
                     done[i-off] = 1;
                     size_type back_pointer = i, j = i, j_new=0;
                     uint64_t  steps = 0, all_steps = 0;
-                    while ((j_new=((*m_perm)[j])+off) != i) {
+                    //while ((j_new=((*m_perm)[j])+off) != i) {
+                    while ((j_new=(iv[j]+off)) != i) {
                         j = j_new;
                         done[j-off] = 1;
                         ++steps; ++all_steps;
@@ -248,6 +250,27 @@ class inv_permutation_support
         }
 };
 
+template<class t_rac>
+void
+transform_to_compressed(int_vector<>& iv, typename std::enable_if<!(std::is_same<t_rac, int_vector<>>::value),
+                        t_rac>::type& rac, const std::string filename)
+{
+    std::string tmp_file_name = tmp_file(filename, "_compress_int_vector");
+    store_to_file(iv, tmp_file_name);
+    util::clear(iv);
+    int_vector_buffer<> buf(tmp_file_name, std::ios::in, 1024*1024, iv.width());
+    rac = t_rac(buf);
+    buf.close(true); // delete tmp_file
+}
+
+template<class t_rac>
+void
+transform_to_compressed(int_vector<>& iv, typename std::enable_if<std::is_same<t_rac, int_vector<>>::value,
+                        t_rac>::type& rac, const std::string)
+{
+    rac = std::move(iv);
+}
+
 //! A wavelet tree class for integer sequences.
 /*!
  *  \tparam t_rac         Type of the random access container used for E.
@@ -352,8 +375,6 @@ class wt_gmr_1
 
                 m_bv_blocks = t_bitvector(std::move(b));
             }
-            util::init_support(m_bv_blocks_select0, &m_bv_blocks);
-            util::init_support(m_bv_blocks_select1, &m_bv_blocks);
 
             // Create and fill e
             int_vector<> positions(m_size, 0, bits::hi(m_block_size)+1);
@@ -367,7 +388,10 @@ class wt_gmr_1
                     positions[symbols[input[i]]++] = j;
                 }
             }
-            m_e = t_rac(std::move(positions));
+            sdsl::transform_to_compressed<t_rac>(positions, m_e, input.filename());
+
+            util::init_support(m_bv_blocks_select0, &m_bv_blocks);
+            util::init_support(m_bv_blocks_select1, &m_bv_blocks);
         }
 
         //! Copy constructor
@@ -704,9 +728,10 @@ class wt_gmr_2
                     }
                 }
                 m_bv_chunks = t_bitvector(std::move(x));
-                m_perm = t_rac(std::move(perm));
+                m_ips = t_inverse_support(&m_perm, perm, m_chunksize);
+                sdsl::transform_to_compressed<t_rac>(perm, m_perm, input.filename());
+                m_ips.set_vector(&m_perm);
             }
-            m_ips = t_inverse_support(&m_perm, m_chunksize);
             util::init_support(m_bv_chunks_select1, &m_bv_chunks);
             util::init_support(m_bv_chunks_select0, &m_bv_chunks);
             util::init_support(m_bv_blocks_select1, &m_bv_blocks);
@@ -774,7 +799,7 @@ class wt_gmr_2
         /*! \param i The index of the symbol in the original vector.
          *  \returns The i-th symbol of the original vector.
          *  \par Time complexity
-         *       \f$ \Order{ ToDo: Access to Inverse Permutation} \f$
+         *       \f$ \Order{1} + 1 Access to the inverse permutation \f$
          *  \par Precondition
          *       \f$ i < size() \f$
          */
@@ -824,7 +849,7 @@ class wt_gmr_2
          *  \param i The index of the symbol.
          *  \return  Pair (rank(input[i],i), input[i])
          *  \par Time complexity
-         *       \f$ \Order{ ToDo: Access to Inverse Permutation} \f$
+         *       \f$ \Order{1} + One access to the inverse permutation \f$
          *  \par Precondition
          *       \f$ i < size() \f$
          */
