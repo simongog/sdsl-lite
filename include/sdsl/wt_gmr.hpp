@@ -30,7 +30,7 @@
 namespace sdsl
 {
 
-//! Class inv_perms_support adds access to the inverse of permutations.
+//! Class inv_multi_perm_support adds access to the inverse of permutations.
 /*!
  * \tparam t_s    Sampling parameter of the inverse permutation.
  * \tparam t_rac  Type of the random access container used for storing the permutation.
@@ -38,15 +38,17 @@ namespace sdsl
  * \tparam t_rank Type of rank_support to rank the indicator bitvector.
  *
  * This support class adds access to the inverse of permutations in at
- * most \(t_s\) steps. It takes about \(1/t_s \log n\) space, where \(n\)
- * is the size of the supported permutation.
+ * most \(t_s\) steps.
  *
  * \par References
  *      [1] J. Munro, R. Raman, V. Raman, S. Rao: ,,Succinct representation
  *          of permutations'', Proceedings of ICALP 2003
  */
-template<uint64_t t_s=32, class t_rac=int_vector<>, class t_bv=bit_vector, class t_rank=typename bit_vector::rank_1_type>
-class inv_permutation_support
+template<uint64_t t_s=32,
+         class t_rac=int_vector<>,
+         class t_bv=bit_vector,
+         class t_rank=typename bit_vector::rank_1_type>
+class inv_multi_perm_support
 {
     public:
 
@@ -56,7 +58,7 @@ class inv_permutation_support
         typedef typename iv_type::difference_type difference_type;
         typedef t_bv                              bit_vector_type;
         typedef t_rank                            rank_type;
-        typedef random_access_const_iterator<inv_permutation_support> const_iterator;
+        typedef random_access_const_iterator<inv_multi_perm_support> const_iterator;
 
     private:
 
@@ -69,10 +71,10 @@ class inv_permutation_support
     public:
 
         //! Default constructor
-        inv_permutation_support() {};
+        inv_multi_perm_support() {};
 
         //! Constructor
-        inv_permutation_support(const iv_type* perm, int_vector<>& iv, uint64_t chunksize) : m_perm(perm), m_chunksize(chunksize) {
+        inv_multi_perm_support(const iv_type* perm, int_vector<>& iv, uint64_t chunksize) : m_perm(perm), m_chunksize(chunksize) {
             bit_vector marked(iv.size(), 0);
             bit_vector done(m_chunksize, 0);
 
@@ -86,7 +88,6 @@ class inv_permutation_support
                     done[i-off] = 1;
                     size_type back_pointer=i, j = i, j_new=0;
                     uint64_t  steps = 0, all_steps = 0;
-                    //while ((j_new=((*m_perm)[j])+off) != i) {
                     while ((j_new=(iv[j]+off)) != i) {
                         j = j_new;
                         done[j-off] = 1;
@@ -121,7 +122,6 @@ class inv_permutation_support
                     done[i-off] = 1;
                     size_type back_pointer = i, j = i, j_new=0;
                     uint64_t  steps = 0, all_steps = 0;
-                    //while ((j_new=((*m_perm)[j])+off) != i) {
                     while ((j_new=(iv[j]+off)) != i) {
                         j = j_new;
                         done[j-off] = 1;
@@ -140,19 +140,19 @@ class inv_permutation_support
         }
 
         //! Copy constructor
-        inv_permutation_support(const inv_permutation_support& p) : m_perm(p.m_perm),
+        inv_multi_perm_support(const inv_multi_perm_support& p) : m_perm(p.m_perm),
             m_chunksize(p.m_chunksize), m_back_pointer(p.m_back_pointer), m_marked(p.m_marked),
             m_marked_rank(p.m_marked_rank) {
             m_marked_rank.set_vector(&m_marked);
         }
 
         //! Move constructor
-        inv_permutation_support(inv_permutation_support&& p) {
+        inv_multi_perm_support(inv_multi_perm_support&& p) {
             *this = std::move(p);
         }
 
         //! Assignment operation
-        inv_permutation_support& operator=(const inv_permutation_support& p) {
+        inv_multi_perm_support& operator=(const inv_multi_perm_support& p) {
             if (this != &p) {
                 m_perm         = p.m_perm;
                 m_chunksize    = p.m_chunksize;
@@ -165,7 +165,7 @@ class inv_permutation_support
         }
 
         //! Assignment move operation
-        inv_permutation_support& operator=(inv_permutation_support&& p) {
+        inv_multi_perm_support& operator=(inv_multi_perm_support&& p) {
             if (this != &p) {
                 m_perm         = std::move(p.m_perm);
                 m_chunksize    = std::move(p.m_chunksize);
@@ -178,7 +178,7 @@ class inv_permutation_support
         }
 
         //! Swap operation
-        void swap(inv_permutation_support& p) {
+        void swap(inv_multi_perm_support& p) {
             if (this != &p) {
                 std::swap(m_chunksize, p.m_chunksize);
                 m_back_pointer.swap(p.m_back_pointer);
@@ -252,8 +252,8 @@ class inv_permutation_support
 
 template<class t_rac>
 void
-transform_to_compressed(int_vector<>& iv, typename std::enable_if<!(std::is_same<t_rac, int_vector<>>::value),
-                        t_rac>::type& rac, const std::string filename)
+_transform_to_compressed(int_vector<>& iv, typename std::enable_if<!(std::is_same<t_rac, int_vector<>>::value),
+                         t_rac>::type& rac, const std::string filename)
 {
     std::string tmp_file_name = tmp_file(filename, "_compress_int_vector");
     store_to_file(iv, tmp_file_name);
@@ -265,8 +265,8 @@ transform_to_compressed(int_vector<>& iv, typename std::enable_if<!(std::is_same
 
 template<class t_rac>
 void
-transform_to_compressed(int_vector<>& iv, typename std::enable_if<std::is_same<t_rac, int_vector<>>::value,
-                        t_rac>::type& rac, const std::string)
+_transform_to_compressed(int_vector<>& iv, typename std::enable_if<std::is_same<t_rac, int_vector<>>::value,
+                         t_rac>::type& rac, const std::string)
 {
     rac = std::move(iv);
 }
@@ -279,6 +279,7 @@ transform_to_compressed(int_vector<>& iv, typename std::enable_if<std::is_same<t
  *  \tparam t_select_zero Type of the support structure for select on pattern `0`.
  *
  * This is an implementation of the first proposal in the SODA paper of Golynski et. al.
+ * which support fast rank and select, but not fast access.
  *
  * \par References
  * [1] A. Golynski, J. Munro and S. Rao:
@@ -291,7 +292,7 @@ template<class t_rac = int_vector<>,
          class t_bitvector = bit_vector,
          class t_select = typename t_bitvector::select_1_type,
          class t_select_zero = typename t_bitvector::select_0_type>
-class wt_gmr_1
+class wt_gmr_rs
 {
     public:
 
@@ -317,14 +318,14 @@ class wt_gmr_1
         const size_type&       sigma = m_sigma;
 
         //! Default constructor
-        wt_gmr_1() {}
+        wt_gmr_rs() {}
 
         //! Semi-external constructor
         /*! \param buf         File buffer of the int_vector for which the wt_gmr should be build.
          *  \param size        Size of the prefix of v, which should be indexed.
          */
         template<uint8_t int_width>
-        wt_gmr_1(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
+        wt_gmr_rs(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
             // Determine max. symbol
             for (uint64_t i=0; i<m_size; ++i) {
                 if (m_block_size < input[i]) m_block_size = input[i];
@@ -388,14 +389,14 @@ class wt_gmr_1
                     positions[symbols[input[i]]++] = j;
                 }
             }
-            sdsl::transform_to_compressed<t_rac>(positions, m_e, input.filename());
+            _transform_to_compressed<t_rac>(positions, m_e, input.filename());
 
             util::init_support(m_bv_blocks_select0, &m_bv_blocks);
             util::init_support(m_bv_blocks_select1, &m_bv_blocks);
         }
 
         //! Copy constructor
-        wt_gmr_1(const wt_gmr_1& wt) {
+        wt_gmr_rs(const wt_gmr_rs& wt) {
             m_bv_blocks = wt.m_bv_blocks;
             m_e = wt.m_e;
             m_bv_blocks_select1 = wt.m_bv_blocks_select1;
@@ -409,14 +410,14 @@ class wt_gmr_1
         }
 
         //! Assignment operator
-        wt_gmr_1& operator=(const wt_gmr_1& wt) {
-            wt_gmr_1 tmp(wt);
+        wt_gmr_rs& operator=(const wt_gmr_rs& wt) {
+            wt_gmr_rs tmp(wt);
             tmp.swap(*this);
             return *this;
         }
 
         //! Swap operator
-        void swap(wt_gmr_1& fs) {
+        void swap(wt_gmr_rs& fs) {
             if (this != &fs) {
                 m_bv_blocks.swap(fs.m_bv_blocks);
                 m_e.swap(fs.m_e);
@@ -599,6 +600,7 @@ class wt_gmr_1
  *  \tparam t_select_zero Type of the support structure for select on pattern `0`.
  *
  * This is an implementation of the second proposal in the SODA paper of Golynski et. al.
+ * which supports fast access, inverse select, rank, and select.
  *
  * \par References
  * [1] A. Golynski, J. Munro and S. Rao:
@@ -608,12 +610,12 @@ class wt_gmr_1
  *   @ingroup wt
  */
 template<class t_rac = int_vector<>,
-         class t_inverse_support = inv_permutation_support<32, t_rac>,
+         class t_inverse_support = inv_multi_perm_support<32, t_rac>,
          class t_bitvector = bit_vector,
          class t_select = typename t_bitvector::select_1_type,
          class t_select_zero = typename t_bitvector::select_0_type
          >
-class wt_gmr_2
+class wt_gmr
 {
     public:
 
@@ -645,14 +647,14 @@ class wt_gmr_2
         const size_type&       sigma = m_sigma;
 
         //! Default constructor
-        wt_gmr_2() {}
+        wt_gmr() {}
 
         //! Semi-external constructor
         /*! \param buf         File buffer of the int_vector for which the wt_gmr should be build.
          *  \param size        Size of the prefix of v, which should be indexed.
          */
         template<uint8_t int_width>
-        wt_gmr_2(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
+        wt_gmr(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
             // Determine max. symbol
             for (uint64_t i=0; i<m_size; ++i) {
                 if (m_max_symbol < input[i]) m_max_symbol = input[i];
@@ -729,7 +731,7 @@ class wt_gmr_2
                 }
                 m_bv_chunks = t_bitvector(std::move(x));
                 m_ips = t_inverse_support(&m_perm, perm, m_chunksize);
-                sdsl::transform_to_compressed<t_rac>(perm, m_perm, input.filename());
+                _transform_to_compressed<t_rac>(perm, m_perm, input.filename());
                 m_ips.set_vector(&m_perm);
             }
             util::init_support(m_bv_chunks_select1, &m_bv_chunks);
@@ -739,7 +741,7 @@ class wt_gmr_2
         }
 
         //! Copy constructor
-        wt_gmr_2(const wt_gmr_2& wt) {
+        wt_gmr(const wt_gmr& wt) {
             m_bv_blocks         = wt.m_bv_blocks;
             m_bv_chunks         = wt.m_bv_chunks;
             m_perm              = wt.m_perm;
@@ -760,14 +762,14 @@ class wt_gmr_2
         }
 
         //! Assignment operator
-        wt_gmr_2& operator=(const wt_gmr_2& wt) {
-            wt_gmr_2 tmp(wt);
+        wt_gmr& operator=(const wt_gmr& wt) {
+            wt_gmr tmp(wt);
             tmp.swap(*this);
             return *this;
         }
 
         //! Swap operator
-        void swap(wt_gmr_2& fs) {
+        void swap(wt_gmr& fs) {
             if (this != &fs) {
                 m_bv_blocks.swap(fs.m_bv_blocks);
                 m_bv_chunks.swap(fs.m_bv_chunks);

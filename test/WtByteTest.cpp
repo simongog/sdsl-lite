@@ -31,10 +31,9 @@ wt_pc<balanced_shape>
                       ,wt_huff<bit_vector, rank_support_v<>>
                       ,wt_huff<bit_vector, rank_support_v5<>>
                       ,wt_huff<rrr_vector<63>>
-                      ,wt_gmr_1<>
-                      ,wt_gmr_2<>
                       ,wt_rlmn<>
                       ,wt_rlmn<bit_vector>
+                      ,wt_gmr_rs<>
                       ,wt_hutu<bit_vector_il<>>
                       ,wt_hutu<bit_vector, rank_support_v<>>
                       ,wt_hutu<bit_vector, rank_support_v5<>>
