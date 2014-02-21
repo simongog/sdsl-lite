@@ -334,7 +334,7 @@ void write_structure(const X& x, std::ostream& out)
 {
     std::unique_ptr<structure_tree_node> st_node(new structure_tree_node("name","type"));
     nullstream ns;
-    x.serialize(ns, st_node.get(), "");
+    serialize(x, ns, st_node.get(), "");
     if (st_node.get()->children.size() > 0) {
         for (const auto& child: st_node.get()->children) {
             sdsl::write_structure_tree<F>(child.second.get(), out);
@@ -355,7 +355,7 @@ template<typename X, typename... Xs>
 void _write_structure(std::unique_ptr<structure_tree_node>& st_node, X x, Xs... xs)
 {
     nullstream ns;
-    x.serialize(ns, st_node.get(), "");
+    serialize(x, ns, st_node.get(), "");
     _write_structure(st_node, xs...);
 }
 
@@ -564,7 +564,7 @@ typename T::size_type size_in_bytes(const T& t)
     if ((&t) == nullptr)
         return 0;
     nullstream ns;
-    return t.serialize(ns);
+    return serialize(t, ns);
 }
 
 template<class T>
@@ -590,7 +590,7 @@ bool store_to_file(const T& t, const std::string& file)
         }
         return false;
     }
-    t.serialize(out);
+    serialize(t,out);
     out.close();
     if (util::verbose) {
         std::cerr<<"INFO: store_to_file: `"<<file<<"`"<<std::endl;
@@ -661,7 +661,7 @@ bool load_from_file(T& v, const std::string& file)
         }
         return false;
     }
-    v.load(in);
+    load(v, in);
     in.close();
     if (util::verbose) {
         std::cerr << "Load file `" << file << "`" << std::endl;

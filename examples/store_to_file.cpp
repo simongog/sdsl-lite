@@ -22,14 +22,12 @@ int main()
         cout << b << endl;
     }
     {
-        ofstream out("data.sdsl");
         uint64_t x = 42;
-        serialize(x, out);
+        store_to_file(x, "data.sdsl");
     }
     {
-        ifstream in("data.sdsl");
         uint64_t x = 0;
-        load(x, in);
+        load_from_file(x, "data.sdsl");
         cout << x << endl;
     }
 }
