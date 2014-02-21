@@ -33,6 +33,108 @@
 namespace sdsl
 {
 
+// has_serialize<X>::value is true if class X has
+// implement method serialize
+// Adapted solution from jrok's proposal:
+// http://stackoverflow.com/questions/87372/check-if-a-class-has-a-member-function-of-a-given-signature
+template<typename X>
+struct has_serialize {
+    template<typename T>
+    static constexpr auto check(T*)
+    -> typename
+    std::is_same<
+    decltype(std::declval<T>().serialize(
+                 std::declval<std::ostream&>(),
+                 std::declval<structure_tree_node*>(),
+                 std::declval<std::string>()
+             )),
+             typename T::size_type>::type {return std::true_type();}
+             template<typename>
+    static constexpr std::false_type check(...) {return std::false_type();}
+    typedef decltype(check<X>(nullptr)) type;
+    static constexpr bool value = type::value;
+};
+
+// has_load<X>::value is true if class X has
+// implement method load
+template<typename X>
+struct has_load {
+    template<typename T>
+    static constexpr auto check(T*)
+    -> typename
+    std::is_same<
+    decltype(std::declval<T>().load(
+                 std::declval<std::istream&>()
+             )),
+             void>::type {return std::true_type();}
+             template<typename>
+    static constexpr std::false_type check(...) {return std::false_type();}
+    typedef decltype(check<X>(nullptr)) type;
+    static constexpr bool value = type::value;
+};
+
+// Writes primitive-typed variable t to stream out
+template<class T>
+size_t write_member(const T& t, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
+{
+    sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, util::class_name(t));
+    out.write((char*)&t, sizeof(t));
+    size_t written_bytes = sizeof(t);
+    sdsl::structure_tree::add_size(child, written_bytes);
+    return written_bytes;
+}
+
+// Specialization for std::string
+template<>
+size_t write_member<std::string>(const std::string& t, std::ostream& out, sdsl::structure_tree_node* v, std::string name);
+
+// Writes primitive-typed variable t to stream out
+template<class T>
+void read_member(T& t, std::istream& in)
+{
+    in.read((char*)&t, sizeof(t));
+}
+
+// Specialization for std::string
+template<>
+void read_member<std::string>(std::string& t, std::istream& in);
+
+
+
+
+template<typename X>
+typename std::enable_if<has_serialize<X>::value,typename X::size_type>::type
+serialize(const X& x,
+          std::ostream& out, structure_tree_node* v=nullptr,
+          std::string name="")
+{
+    return x.serialize(out, v, name);
+}
+
+template<typename X>
+typename std::enable_if<std::is_pod<X>::value,uint64_t>::type
+serialize(const X& x,
+          std::ostream& out, structure_tree_node* v=nullptr,
+          std::string name="")
+{
+    return write_member(x, out, v, name);
+}
+
+
+template<typename X>
+typename std::enable_if<has_load<X>::value,void>::type
+load(X& x, std::istream& in)
+{
+    x.load(in);
+}
+
+template<typename X>
+typename std::enable_if<std::is_pod<X>::value,void>::type
+load(X& x, std::istream& in)
+{
+    read_member(x, in);
+}
+
 //! Load sdsl-object v from a file.
 /*!
  * \param v sdsl-
@@ -185,58 +287,6 @@ struct nullstream : std::ostream {
     nullstream(): std::ios(&m_sbuf), std::ostream(&m_sbuf), m_sbuf() {}
 };
 
-
-// Writes primitive-typed variable t to stream out
-template<class T>
-size_t write_member(const T& t, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
-{
-    sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, util::class_name(t));
-    out.write((char*)&t, sizeof(t));
-    size_t written_bytes = sizeof(t);
-    sdsl::structure_tree::add_size(child, written_bytes);
-    return written_bytes;
-}
-
-// Specialization for std::string
-template<>
-size_t write_member<std::string>(const std::string& t, std::ostream& out, sdsl::structure_tree_node* v, std::string name);
-
-
-// Writes primitive-typed variable t to stream out
-template<class T>
-void read_member(T& t, std::istream& in)
-{
-    in.read((char*)&t, sizeof(t));
-}
-
-// Specialization for std::string
-template<>
-void read_member<std::string>(std::string& t, std::istream& in);
-
-template<class T,typename std::enable_if< (!std::is_pod<T>::value and !std::is_same<T,std::string>::value), bool>::type = false>
-size_t write_element(const T& x, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
-{
-    return x.serialize(out, v, name);
-}
-
-template<class T,typename std::enable_if< (std::is_pod<T>::value or std::is_same<T,std::string>::value), bool>::type = false>
-size_t write_element(const T& x, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
-{
-    return write_member(x, out, v, name);
-}
-
-template<class T,typename std::enable_if< (!std::is_pod<T>::value and !std::is_same<T,std::string>::value), bool>::type = false>
-void load_element(T& x, std::istream& in)
-{
-    x.load(in);
-}
-
-template<class T,typename std::enable_if< (std::is_pod<T>::value or std::is_same<T,std::string>::value), bool>::type = false>
-void load_element(T& x, std::istream& in)
-{
-    read_member(x, in);
-}
-
 //! Serialize each element of an std::vector
 /*!
  * \param vec The vector which should be serialized.
@@ -247,13 +297,14 @@ void load_element(T& x, std::istream& in)
  *           sizes of the children)
  */
 template<class T>
-size_t serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
+typename std::vector<T>::size_type
+serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
 {
     if (vec.size() > 0) {
         sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, "std::vector<"+util::class_name(vec[0])+">");
         size_t written_bytes = 0;
-for (const auto& x : vec) {
-            written_bytes += write_element(x, out, child, "[]");
+        for (const auto& x : vec) {
+            written_bytes += serialize(x, out, child, "[]");
         }
         structure_tree::add_size(child, written_bytes);
         return written_bytes;
@@ -273,9 +324,8 @@ for (const auto& x : vec) {
 template<class T>
 void load_vector(std::vector<T>& vec, std::istream& in)
 {
-    // TODO: replace by for(auto &x : ..
     for (typename std::vector<T>::size_type i = 0; i < vec.size(); ++i) {
-        load_element(vec[i], in);
+        load(vec[i], in);
     }
 }
 
@@ -286,7 +336,7 @@ void write_structure(const X& x, std::ostream& out)
     nullstream ns;
     x.serialize(ns, st_node.get(), "");
     if (st_node.get()->children.size() > 0) {
-for (const auto& child: st_node.get()->children) {
+        for (const auto& child: st_node.get()->children) {
             sdsl::write_structure_tree<F>(child.second.get(), out);
         }
     }
