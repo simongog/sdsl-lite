@@ -61,7 +61,7 @@ struct pc_node {
     uint64_t  parent;   // pointer to the parent
     uint64_t  child[2]; // pointer to the children
 
-enum :uint64_t {undef = 0xFFFFFFFFFFFFFFFFULL}; // max uint64_t value
+    enum :uint64_t {undef = 0xFFFFFFFFFFFFFFFFULL}; // max uint64_t value
 
     pc_node(uint64_t freq=0, uint64_t sym=0, uint64_t parent=undef,
             uint64_t child_left=undef, uint64_t child_right=undef);
@@ -72,6 +72,7 @@ enum :uint64_t {undef = 0xFFFFFFFFFFFFFFFFULL}; // max uint64_t value
 template<class t_tree_strat_fat>
 struct _node {
     using node_type = typename t_tree_strat_fat::node_type;
+    typedef uint64_t size_type;
     uint64_t bv_pos      = 0;             // pointer into the bit_vector, which represents the wavelet tree
     uint64_t bv_pos_rank = 0;             // pre-calculated rank for the prefix up to but not including bv_pos
     node_type parent      = t_tree_strat_fat::undef; // pointer to the parent
@@ -104,7 +105,7 @@ struct _node {
         return *this;
     }
 
-    uint64_t serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+    size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
         structure_tree_node* st_child = structure_tree::add_child(v, name, util::class_name(*this));
         uint64_t written_bytes = 0;
         written_bytes += write_member(bv_pos, out);
@@ -135,9 +136,9 @@ struct _byte_tree {
     using value_type = uint8_t;
     using node_type = uint16_t; // node is represented by index in m_nodes
     using data_node = _node<_byte_tree>;
-enum :uint16_t {undef       = 0xFFFF}; // max uint16_t value
-enum :uint32_t {fixed_sigma = 256};
-enum :uint8_t {int_width   = 8};      // width of the input integers
+    enum :uint16_t {undef       = 0xFFFF}; // max uint16_t value
+    enum :uint32_t {fixed_sigma = 256};
+    enum :uint8_t {int_width   = 8};      // width of the input integers
 
 
 
@@ -348,8 +349,8 @@ struct _int_tree {
     using value_type = uint64_t;
     using node_type = uint64_t; // node is represented by index in m_nodes
     using data_node = _node<_int_tree>;
-enum :uint64_t {undef = 0xFFFFFFFFFFFFFFFFULL}; // max uint64_t value
-enum :uint8_t {int_width = 0};                 // width of the input integers is variable
+    enum :uint64_t {undef = 0xFFFFFFFFFFFFFFFFULL}; // max uint64_t value
+    enum :uint8_t {int_width = 0};                 // width of the input integers is variable
 
 
 

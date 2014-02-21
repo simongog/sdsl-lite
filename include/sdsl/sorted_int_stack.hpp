@@ -83,7 +83,9 @@ class sorted_int_stack
             return m_cnt;
         };
 
-        size_type serialize(std::ostream& out)const;
+        size_type
+        serialize(std::ostream& out, structure_tree_node* v=nullptr,
+                  std::string name="")const;
         void load(std::istream& in);
 
 };
@@ -152,16 +154,18 @@ inline void sorted_int_stack::pop()
     }
 }
 
-inline sorted_int_stack::size_type sorted_int_stack::serialize(std::ostream& out)const
+inline sorted_int_stack::size_type
+sorted_int_stack::serialize(std::ostream& out, structure_tree_node* v,
+                            std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
     written_bytes += write_member(m_n, out);
     written_bytes += write_member(m_top, out);
     written_bytes += write_member(m_cnt, out);
     written_bytes += m_stack.serialize(out);
-    int_vector<sizeof(written_bytes)*8> v(m_overflow.size());
-    for (size_type i=0; i<v.size(); ++i) v[i] = m_overflow[i];
-    written_bytes += v.serialize(out);
+    written_bytes += sdsl::serialize(m_overflow, out, child, "overflow");
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 
@@ -171,10 +175,7 @@ inline void sorted_int_stack::load(std::istream& in)
     read_member(m_top, in);
     read_member(m_cnt, in);
     m_stack.load(in);
-    size_type t;
-    int_vector<sizeof(t)*8> v(m_overflow.size());
-    v.load(in);
-    for (size_type i=0; i<v.size(); ++i) m_overflow[i] = v[i];
+    sdsl::load(m_overflow, in);
 }
 
 }// end namespace sdsl
