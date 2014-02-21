@@ -30,4 +30,15 @@ int main()
         load_from_file(x, "data.sdsl");
         cout << x << endl;
     }
+    {
+        std::vector<uint32_t> x(10, 5);
+        store_to_file(x, "data.sdsl");
+    }
+    {
+        std::vector<uint32_t> x;
+        load_from_file(x, "data.sdsl");
+        cout << x.size() << endl;
+        for (size_t i=0; i<x.size(); ++i)
+            cout << x[i] << endl;
+    }
 }

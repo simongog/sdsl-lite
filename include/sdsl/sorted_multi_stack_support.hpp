@@ -88,7 +88,8 @@ class sorted_multi_stack_support
             return m_cnt;
         };
 
-        size_type serialize(std::ostream& out)const;
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
+                            std::string name="")const;
         void load(std::istream& in);
 
 };
@@ -160,14 +161,18 @@ inline bool sorted_multi_stack_support::pop()
     return false;
 }
 
-inline sorted_multi_stack_support::size_type sorted_multi_stack_support::serialize(std::ostream& out)const
+inline sorted_multi_stack_support::size_type
+sorted_multi_stack_support::serialize(std::ostream& out,
+                                      structure_tree_node* v, std::string name)const
 {
+    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
     written_bytes += write_member(m_n, out);
     written_bytes += write_member(m_top, out);
     written_bytes += write_member(m_cnt, out);
     written_bytes += m_stack.serialize(out);
     written_bytes += m_duplication_stack.serialize(out);
+    structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 

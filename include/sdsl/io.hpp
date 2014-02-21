@@ -33,6 +33,14 @@
 namespace sdsl
 {
 
+template<typename T>
+void load_vector(std::vector<T>&, std::istream&);
+
+template<class T>
+uint64_t
+serialize_vector(const std::vector<T>&, std::ostream&,
+                 sdsl::structure_tree_node*, std::string);
+
 // has_serialize<X>::value is true if class X has
 // implement method serialize
 // Adapted solution from jrok's proposal:
@@ -120,6 +128,17 @@ serialize(const X& x,
     return write_member(x, out, v, name);
 }
 
+template<typename X>
+uint64_t
+serialize(const std::vector<X>& x,
+          std::ostream& out, structure_tree_node* v=nullptr,
+          std::string name="")
+{
+
+    return serialize(x.size(), out, v, name)
+           + serialize_vector(x, out, v, name);
+}
+
 
 template<typename X>
 typename std::enable_if<has_load<X>::value,void>::type
@@ -133,6 +152,15 @@ typename std::enable_if<std::is_pod<X>::value,void>::type
 load(X& x, std::istream& in)
 {
     read_member(x, in);
+}
+
+template<typename X>
+void load(std::vector<X>& x, std::istream& in)
+{
+    typename std::vector<X>::size_type size;
+    load(size, in);
+    x.resize(size);
+    load_vector(x, in);
 }
 
 //! Load sdsl-object v from a file.
@@ -297,7 +325,7 @@ struct nullstream : std::ostream {
  *           sizes of the children)
  */
 template<class T>
-typename std::vector<T>::size_type
+uint64_t
 serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
 {
     if (vec.size() > 0) {
