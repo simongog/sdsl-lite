@@ -37,6 +37,8 @@ class int_vector_buffer
 {
     public:
         class iterator;
+        typedef typename int_vector<t_width>::difference_type difference_type;
+        typedef typename int_vector<t_width>::value_type      value_type;
 
     private:
         static_assert(t_width <= 64 , "int_vector_buffer: width must be at most 64 bits.");
@@ -456,12 +458,13 @@ class int_vector_buffer
                 }
         };
 
-        class iterator
+        class iterator: public std::iterator<std::random_access_iterator_tag, value_type, difference_type>
         {
             private:
                 int_vector_buffer<t_width>& m_ivb;
                 uint64_t m_idx = 0;
             public:
+
                 iterator() = delete;
                 iterator(int_vector_buffer<t_width>& ivb, uint64_t idx=0) : m_ivb(ivb), m_idx(idx) {}
 
@@ -470,8 +473,49 @@ class int_vector_buffer
                     return *this;
                 }
 
+                iterator operator++(int) {
+                    iterator it = *this;
+                    ++(*this);
+                    return it;
+                }
+
+                iterator& operator--() {
+                    --m_idx;
+                    return *this;
+                }
+
+                iterator operator--(int) {
+                    iterator it = *this;
+                    --(*this);
+                    return it;
+                }
+
                 reference operator*()const {
                     return m_ivb[m_idx];
+                }
+
+                iterator& operator+=(difference_type i) {
+                    if (i<0)
+                        return *this -= (-i);
+                    m_idx += i;
+                    return *this;
+                }
+
+                iterator& operator-=(difference_type i) {
+                    if (i<0)
+                        return *this += (-i);
+                    m_idx -= i;
+                    return *this;
+                }
+
+                iterator& operator-(difference_type i) const {
+                    iterator it =*this;
+                    return it -= i;
+                }
+
+                iterator operator+(difference_type i) const {
+                    iterator it = *this;
+                    return it += i;
                 }
 
                 bool operator==(const iterator& it) const {
