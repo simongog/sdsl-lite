@@ -12,6 +12,7 @@ class ram_filebuf : public std::streambuf
 {
     private:
         ram_fs::content_type* m_ram_file = nullptr;  // file handle
+        void pbump64(std::ptrdiff_t);
 
     public:
         virtual ~ram_filebuf();
