@@ -508,14 +508,14 @@ class int_vector_buffer
                     return *this;
                 }
 
-                iterator& operator-(difference_type i) const {
-                    iterator it =*this;
-                    return it -= i;
-                }
-
                 iterator operator+(difference_type i) const {
                     iterator it = *this;
                     return it += i;
+                }
+
+                iterator& operator-(difference_type i) const {
+                    iterator it = *this;
+                    return it -= i;
                 }
 
                 bool operator==(const iterator& it) const {
@@ -524,6 +524,9 @@ class int_vector_buffer
 
                 bool operator!=(const iterator& it) const {
                     return !(*this == it);
+                }
+                inline difference_type operator-(const iterator& it) {
+                    return (m_idx - it.m_idx);
                 }
         };
 };

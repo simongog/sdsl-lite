@@ -291,6 +291,28 @@ void test_sequential_access(size_type width=1)
             *it = (x+1) & sdsl::bits::lo_set[ivb.width()];
         }
     }
+    // iterator test
+    {
+        t_T ivb(file_name, std::ios::in, buffersize, width);
+        typename t_T::iterator it = ivb.begin();
+        ASSERT_EQ(ivb[0], *it++);
+        ASSERT_EQ(ivb[1], *it);
+        it += 1;
+        ASSERT_EQ(ivb[2], *it);
+        it -= 1;
+        ASSERT_EQ(ivb[1], *it);
+        it -= -1;
+        ASSERT_EQ(ivb[2], *it);
+        it += -1;
+        ASSERT_EQ(ivb[1], *it);
+        ASSERT_EQ(ivb[2], *(++it));
+        typename t_T::iterator it2 = ivb.end();
+        --it2;
+        ASSERT_EQ(ivb[ivb.size()-1], *it2--);
+        ASSERT_EQ(ivb[ivb.size()-2], *it2);
+        ASSERT_EQ(ivb[ivb.size()-3], *(--it2));
+    }
+
     // verify changed values
     {
         rng.seed(13); // To get the same values
@@ -473,7 +495,7 @@ void test_swap(size_type exp_w_ivb1, size_type exp_w_ivb2, std::vector<size_type
 {
     std::string file_name_1 = "tmp/int_vector_buffer_1";
     std::string file_name_2 = "tmp/int_vector_buffer_2";
-    for (auto size : vec_sizes) {
+for (auto size : vec_sizes) {
         if (size < 1000) {
             // Create, fill and verify ivb1
             t_T ivb1(file_name_1, std::ios::out, 100, exp_w_ivb1);
@@ -670,7 +692,7 @@ void test_reset(std::vector<size_type>& vec_sizes, size_type width=1)
     std::mt19937_64 rng(13);
     std::string file_name = "tmp/int_vector_buffer";
     size_type buffersize = 1024;
-    for (auto size : vec_sizes) {
+for (auto size : vec_sizes) {
         if (size < 1000) {
             t_T ivb(file_name, std::ios::out, buffersize, width);
             for (size_type j=0; j < size; ++j) {

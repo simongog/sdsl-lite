@@ -305,35 +305,45 @@ TEST_F(IntVectorTest, SerializeFixedToVariable)
 
 TEST_F(IntVectorTest, IteratorTest)
 {
-    {
-        sdsl::int_vector<> iv(123456);
+for (auto i : vec_sizes) {
+        sdsl::int_vector<> iv(i+3);
         sdsl::util::set_to_id(iv);
         sdsl::int_vector<>::iterator it = iv.begin();
         ASSERT_EQ(iv[0], *it++);
-        ASSERT_EQ(iv[1] ,*it);
+        ASSERT_EQ(iv[1], *it);
         it += 1;
-        ASSERT_EQ(iv[2] ,*it);
+        ASSERT_EQ(iv[2], *it);
         it -= 1;
-        ASSERT_EQ(iv[1] ,*it);
+        ASSERT_EQ(iv[1], *it);
         it -= -1;
-        ASSERT_EQ(iv[2] ,*it);
+        ASSERT_EQ(iv[2], *it);
         it += -1;
-        ASSERT_EQ(iv[1] ,*it);
+        ASSERT_EQ(iv[1], *it);
+        ASSERT_EQ(iv[2], *(++it));
+        it = iv.end()-1;
+        ASSERT_EQ(iv[iv.size()-1], *it--);
+        ASSERT_EQ(iv[iv.size()-2], *it);
+        ASSERT_EQ(iv[iv.size()-3], *(--it));
     }
-    {
-        sdsl::int_vector<> iv(123456);
+for (auto i : vec_sizes) {
+        sdsl::int_vector<> iv(i+3);
         sdsl::util::set_to_id(iv);
         sdsl::int_vector<>::const_iterator it(iv.begin());
         ASSERT_EQ(iv[0], *it++);
-        ASSERT_EQ(iv[1] ,*it);
+        ASSERT_EQ(iv[1], *it);
         it += 1;
-        ASSERT_EQ(iv[2] ,*it);
+        ASSERT_EQ(iv[2], *it);
         it -= 1;
-        ASSERT_EQ(iv[1] ,*it);
+        ASSERT_EQ(iv[1], *it);
         it -= -1;
-        ASSERT_EQ(iv[2] ,*it);
+        ASSERT_EQ(iv[2], *it);
         it += -1;
-        ASSERT_EQ(iv[1] ,*it);
+        ASSERT_EQ(iv[1], *it);
+        ASSERT_EQ(iv[2], *(++it));
+        it = iv.end()-1;
+        ASSERT_EQ(iv[iv.size()-1], *it--);
+        ASSERT_EQ(iv[iv.size()-2], *it);
+        ASSERT_EQ(iv[iv.size()-3], *(--it));
     }
 }
 
