@@ -78,14 +78,14 @@ ram_filebuf::seekpos(pos_type sp, std::ios_base::openmode mode)
     if (sp >= (pos_type)0 and sp <= (pos_type)m_ram_file->size()) {
         setg(m_ram_file->data(), m_ram_file->data()+sp, m_ram_file->data()+m_ram_file->size());
         setp(m_ram_file->data(), m_ram_file->data()+m_ram_file->size());
-        pbump(sp);
+        pbump64(sp);
     } else {
         if (mode & std::ios_base::out) {
             // extend buffer
             m_ram_file->resize(sp, 0);
             setg(m_ram_file->data(), m_ram_file->data()+sp, m_ram_file->data()+m_ram_file->size());
             setp(m_ram_file->data(), m_ram_file->data()+m_ram_file->size());
-            pbump(sp);
+            pbump64(sp);
         } else {
             return pos_type(off_type(-1));
         }
@@ -137,14 +137,19 @@ ram_filebuf::overflow(int_type c)
         m_ram_file->push_back(c);
         setp(m_ram_file->data(), m_ram_file->data()+m_ram_file->size());
         std::ptrdiff_t add = epptr()-pbase();
-        while (add > std::numeric_limits<int>::max()) {
-            pbump(std::numeric_limits<int>::max());
-            add -= std::numeric_limits<int>::max();
-        }
-        pbump(add);
+        pbump64(add);
         setg(m_ram_file->data(), gptr(), m_ram_file->data()+m_ram_file->size());
     }
     return traits_type::to_int_type(c);
+}
+
+void ram_filebuf::pbump64(std::ptrdiff_t x)
+{
+    while (x > std::numeric_limits<int>::max()) {
+        pbump(std::numeric_limits<int>::max());
+        x -= std::numeric_limits<int>::max();
+    }
+    pbump(x);
 }
 
 }
