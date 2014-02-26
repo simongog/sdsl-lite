@@ -73,7 +73,7 @@ void construct_lcp_kasai(cache_config& config)
         if (!load_from_cache(text, key_text_trait<t_width>::KEY_TEXT, config)) {
             return;
         }
-        int_vector_buffer<> isa_buf(config.file_map[conf::KEY_ISA], std::ios::in, 1000000);   // init isa file_buffer
+        int_vector_buffer<> isa_buf(cache_file_name(conf::KEY_ISA, config), std::ios::in, 1000000); // init isa file_buffer
         int_vector<> sa;
         if (!load_from_cache(sa, conf::KEY_SA, config)) {
             return;
@@ -128,7 +128,7 @@ void construct_lcp_PHI(cache_config& config)
     typedef int_vector<>::size_type size_type;
     typedef int_vector<t_width> text_type;
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
-    int_vector_buffer<> sa_buf(config.file_map[conf::KEY_SA]);
+    int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, config));
     size_type n = sa_buf.size();
 
     assert(n > 0);
