@@ -26,8 +26,8 @@ timing: execs $(RES_FILES)
 
 $(BIN_DIR)/prep_sa_bwt: $(SRC_DIR)/create_sa_bwt.cpp 
 	@echo "Compiling prep_sa_bwt"
-	@$(MY_CXX) $(CFLAGS) $(C_OPTIONS) -L${SDSLLITE}/lib\
-		$(SRC_DIR)/create_sa_bwt.cpp -I${SDSLLITE}/include -o bin/prep_sa_bwt $(LIBS)
+	@$(MY_CXX) $(CFLAGS) $(C_OPTIONS) -L${LIB_DIR}\
+		$(SRC_DIR)/create_sa_bwt.cpp -I${INC_DIR} -o bin/prep_sa_bwt $(LIBS)
 	
 precalc%: test_case.config $(DL) lcp.config
 	$(eval TC_ID:=$(call dim,1,$*))
@@ -49,8 +49,8 @@ $(BIN_DIR)/build_%: $(SRC_DIR)/create_lcp.cpp lcp.config
 	$(eval LCP_ID:=$(call dim,1,$*))
 	$(eval LCP_TYPE:=$(call config_select,lcp.config,$(LCP_ID),2))
 	@echo "Compiling build_$*"
-	@$(MY_CXX) $(CFLAGS) $(C_OPTIONS) -DLCP_TYPE="$(LCP_TYPE)" -DLCPID="$(LCP_ID)" -L${SDSLLITE}/lib\
-		$(SRC_DIR)/create_lcp.cpp -I${SDSLLITE}/include -o $@ $(LIBS)
+	@$(MY_CXX) $(CFLAGS) $(C_OPTIONS) -DLCP_TYPE="$(LCP_TYPE)" -DLCPID="$(LCP_ID)" -L${LIB_DIR}\
+		$(SRC_DIR)/create_lcp.cpp -I${INC_DIR} -o $@ $(LIBS)
 
 
 include ../Make.download

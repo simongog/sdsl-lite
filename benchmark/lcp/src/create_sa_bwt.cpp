@@ -16,6 +16,9 @@ typedef bit_vector::size_type size_type;
 //argv[1] = test file
 int main(int argc, char** argv)
 {
+    if (argc != 2) {
+        std::cout<<"Usage: input_file" << std::endl;
+    }
     memory_monitor::start();
     string file = argv[1];
     uint8_t num_bytes = 1; // Byte Alphabet

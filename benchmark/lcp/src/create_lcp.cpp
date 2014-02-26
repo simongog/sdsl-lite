@@ -12,7 +12,7 @@ using namespace std::chrono;
 #define S(x) #x
 #define SX(x) S(x)
 
-int main(int argc, char** argv)
+int main()
 {
     memory_monitor::start();
     string dir = ".";
