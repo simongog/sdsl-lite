@@ -235,7 +235,8 @@ Arnold helped us with tricky template questions. We are also grateful to
 Kalle Karhu,
 [Dominik Kempa](https://github.com/dkempa),
 [Bruce Kuo](https://github.com/bruce3557),
-and [Shanika Kuruppu](https://github.com/skuruppu)
+[Shanika Kuruppu](https://github.com/skuruppu),
+and Julio Vizcaino(https://github.com/garviz) 
 for bug reports.
 
 Contribute
