@@ -236,7 +236,7 @@ Kalle Karhu,
 [Dominik Kempa](https://github.com/dkempa),
 [Bruce Kuo](https://github.com/bruce3557),
 [Shanika Kuruppu](https://github.com/skuruppu),
-and Julio Vizcaino(https://github.com/garviz) 
+and [Julio Vizcaino](https://github.com/garviz) 
 for bug reports.
 
 Contribute
