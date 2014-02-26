@@ -58,7 +58,7 @@ void calculate_sa(const unsigned char* c, typename int_vector<fixedIntWidth>::si
     bool small_file = (sizeof(len) <= 4 or len < 0x7FFFFFFFULL);
     if (small_file) {
         uint8_t oldIntWidth = sa.width();
-        if (32 == fixedIntWidth or (0==fixedIntWidth and 32 >= oldIntWidth)) {
+        if (32 == fixedIntWidth or(0==fixedIntWidth and 32 >= oldIntWidth)) {
             sa.width(32);
             sa.resize(len);
             divsufsort(c, (int32_t*)sa.m_data, len);
@@ -131,7 +131,7 @@ void construct_sa(cache_config& config)
     } else if (t_width == 0) {
         // call qsufsort
         int_vector<> sa;
-        sdsl::qsufsort::construct_sa(sa, config.file_map[KEY_TEXT].c_str(), 0);
+        sdsl::qsufsort::construct_sa(sa, cache_file_name(KEY_TEXT, config).c_str(), 0);
         store_to_cache(sa, conf::KEY_SA, config);
     } else {
         std::cerr << "Unknown alphabet type" << std::endl;
