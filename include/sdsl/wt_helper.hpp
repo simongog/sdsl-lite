@@ -333,6 +333,30 @@ struct _byte_tree {
     inline bool is_valid(node_type v)const {
         return v != undef;
     }
+
+    //! Return symbol c or the next larger symbol in the wt
+    inline std::pair<bool,value_type> symbol_gte(value_type c) const
+    {
+        for(uint32_t i=c;i<fixed_sigma;i++) {
+            if(m_c_to_leaf[i]!=undef) {
+                return {true,i};
+            }
+        }
+        return {false,0};
+    }
+
+    //! Return symbol c or the next smaller symbol in the wt
+    inline std::pair<bool,value_type> symbol_lte(value_type c) const
+    {
+        for(uint32_t i=c;i>0;i--) {
+            if(m_c_to_leaf[i]!=undef) {
+                return {true,i};
+            }
+        }
+        if(m_c_to_leaf[0]!=undef)
+            return {true,0};
+        return {false,0};
+    }
 };
 
 // Strategy class for tree representation of a WT
@@ -562,6 +586,37 @@ struct _int_tree {
     //! Return if the node is a valid node
     inline bool is_valid(node_type v)const {
         return v != undef;
+    }
+
+    //! Return symbol c or the next larger symbol in the wt
+    inline std::pair<bool,value_type> symbol_gte(value_type c) const
+    {
+        if(c >= m_c_to_leaf.size()) {
+            return {false,0};
+        }
+        for(value_type i=c;i<m_c_to_leaf.size();i++) {
+            if(m_c_to_leaf[i]!=undef) {
+                return {true,i};
+            }
+        }
+        return {false,0};
+    }
+
+    //! Return symbol c or the next smaller symbol in the wt
+    inline std::pair<bool,value_type> symbol_lte(value_type c) const
+    {
+        if(c >= m_c_to_leaf.size()) {
+            // return the largest symbol
+            c = m_c_to_leaf.size()-1;
+        }
+        for(value_type i=c;i>0;i--) {
+            if(m_c_to_leaf[i]!=undef) {
+                return {true,i};
+            }
+        }
+        if(m_c_to_leaf[0]!=undef)
+            return {true,0};
+        return {false,0};
     }
 
 };
