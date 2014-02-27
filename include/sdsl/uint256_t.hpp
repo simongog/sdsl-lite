@@ -47,6 +47,20 @@ class uint256_t
         inline uint256_t(uint256_t&& x):m_lo(std::move(x.m_lo)),
             m_mid(std::move(x.m_mid)), m_high(std::move(x.m_high)) {}
 
+        uint256_t& operator=(const uint256_t& x) {
+            m_lo = x.m_lo;
+            m_mid = x.m_mid;
+            m_high = x.m_high;
+            return *this;
+        }
+
+        uint256_t& operator=(uint256_t&& x) {
+            m_lo = std::move(x.m_lo);
+            m_mid = std::move(x.m_mid);
+            m_high = std::move(x.m_high);
+            return *this;
+        }
+
         inline uint16_t popcount() {
             return ((uint16_t)bits::cnt(m_lo)) + bits::cnt(m_mid)
                    + bits::cnt(m_high>>64) + bits::cnt(m_high);
