@@ -742,6 +742,16 @@ for (const auto& r : ranges) {
                              range_type(right_sp, right_sp + right_size - 1));
         }
 
+        //! return the path to the leaf for a given symbol
+        std::pair<uint64_t,uint64_t> path(value_type c) const {
+            uint64_t path = m_tree.bit_path(c);
+            uint64_t path_len = path >> 56;
+            // reverse the path till we fix the ordering
+            path = bits::reverse(path);
+            path = path >> (64-path_len); // remove the length
+            return {path_len,path};
+        }
+
 };
 
 }

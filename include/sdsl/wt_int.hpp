@@ -841,6 +841,11 @@ for (const auto& r : ranges) {
                              range_type(right_sp, right_sp + right_size - 1));
         }
 
+        //! return the path to the leaf for a given symbol
+        std::pair<uint64_t,uint64_t> path(value_type c) const {
+            return {m_max_level,c};
+        }
+
 };
 
 }// end namespace sdsl
