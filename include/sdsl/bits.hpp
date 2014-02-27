@@ -231,7 +231,7 @@ struct bits {
     static uint64_t prev(const uint64_t* word, uint64_t idx);
 
     //! reverses a given 64 bit word
-    static uint64_t reverse(uint64_t x);
+    static uint64_t rev(uint64_t x);
 };
 
 
@@ -608,7 +608,7 @@ inline uint64_t bits::prev(const uint64_t* word, uint64_t idx)
     return idx + hi(*word);
 }
 
-inline uint64_t bits::reverse(uint64_t x)
+inline uint64_t bits::rev(uint64_t x)
 {
     x = ((x & 0x5555555555555555ULL) << 1) | ((x & 0xAAAAAAAAAAAAAAAAULL) >> 1);
     x = ((x & 0x3333333333333333ULL) << 2) | ((x & 0xCCCCCCCCCCCCCCCCULL) >> 2);

@@ -747,7 +747,7 @@ for (const auto& r : ranges) {
             uint64_t path = m_tree.bit_path(c);
             uint64_t path_len = path >> 56;
             // reverse the path till we fix the ordering
-            path = bits::reverse(path);
+            path = bits::rev(path);
             path = path >> (64-path_len); // remove the length
             return {path_len,path};
         }

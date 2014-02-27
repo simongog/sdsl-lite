@@ -98,6 +98,17 @@ SDSL_UNUSED uint32_t sel11_naive(uint64_t x, uint32_t i)
     return 63;
 }
 
+SDSL_UNUSED inline uint64_t rev_naive(uint64_t x)
+{
+    uint64_t y = 0;
+    for(size_t i=0;i<64;i++) {
+        if(x&(1ULL << i)) {
+            y |= (1ULL << (63-i));
+        }
+    }
+    return y;
+}
+
 
 // The fixture for testing class int_vector.
 class BitsTest : public ::testing::Test
@@ -156,6 +167,16 @@ TEST_F(BitsTest, lo)
     for (uint64_t i=0; i<64; ++i) {
         uint64_t x = 1ULL<<i;
         ASSERT_EQ(lo_naive(x), sdsl::bits::lo(x));
+    }
+}
+
+TEST_F(BitsTest, rev)
+{
+    for (uint64_t i=0; i < this->m_data.size(); ++i) {
+        uint64_t x = this->m_data[i];
+        uint64_t rx = sdsl::bits::rev(x);
+        ASSERT_EQ(rev_naive(x),rx); 
+        ASSERT_EQ(x,sdsl::bits::rev(rx));
     }
 }
 
