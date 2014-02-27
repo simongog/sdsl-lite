@@ -238,14 +238,14 @@ TYPED_TEST(WtByteTest, IntervalSymbols)
 
 template<class t_wt>
 void
-test_symbol_eg(typename enable_if<!(t_wt::lex_ordered), t_wt>::type&)
+test_symbol_gte(typename enable_if<!(t_wt::lex_ordered), t_wt>::type&)
 {
-    // symbol_eg not implemented
+    // symbol_gte not implemented
 }
 
 template<class t_wt>
 void
-test_symbol_eg(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
+test_symbol_gte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 {
     using value_type = typename t_wt::value_type;
     ASSERT_EQ(true, load_from_file(wt, temp_file));
@@ -270,7 +270,7 @@ test_symbol_eg(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
     auto end = syms.end();
     while(itr != end) {
         auto value = *itr;
-        auto ret = symbol_eg(wt,value);
+        auto ret = symbol_gte(wt,value);
         ASSERT_EQ(ret.first,true);
         ASSERT_EQ(value,ret.second);
         ++itr;
@@ -278,7 +278,7 @@ test_symbol_eg(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 
     // check symbols symbols that are smaller than than min
     for(size_t i=0;i<min;i++) {
-        auto ret = symbol_eg(wt,i);
+        auto ret = symbol_gte(wt,i);
         ASSERT_EQ(ret.first,true);
         ASSERT_EQ(ret.second,min);
     }
@@ -286,7 +286,7 @@ test_symbol_eg(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
     // check symbols that are larget than max
     value_type test_max = numeric_limits<value_type>::max();
     for(value_type i=test_max;i>max;i--) {
-        auto ret = symbol_eg(wt,i);
+        auto ret = symbol_gte(wt,i);
         ASSERT_EQ(ret.first,false);
     }
 
@@ -302,7 +302,7 @@ test_symbol_eg(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
             }
             if(next != syms.end()) {
                 auto next_val = *next;
-                auto ret = symbol_eg(wt,i); 
+                auto ret = symbol_gte(wt,i); 
                 ASSERT_EQ(ret.first,true);
                 ASSERT_EQ(ret.second,next_val);
             }
@@ -311,24 +311,24 @@ test_symbol_eg(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 }
 
 //! Test the load method and intersect
-TYPED_TEST(WtByteTest, symbol_eg)
+TYPED_TEST(WtByteTest, symbol_gte)
 {
     TypeParam wt;
-    test_symbol_eg<TypeParam>(wt);
+    test_symbol_gte<TypeParam>(wt);
 }
 
 template<class t_wt>
 void
-test_symbol_es(typename enable_if<!(t_wt::lex_ordered), t_wt>::type&)
+test_symbol_lte(typename enable_if<!(t_wt::lex_ordered), t_wt>::type&)
 {
-    // symbol_eg not implemented
+    // symbol_lte not implemented
 }
 
 
 
 template<class t_wt>
 void
-test_symbol_es(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
+test_symbol_lte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 {
     using value_type = typename t_wt::value_type;
     ASSERT_EQ(true, load_from_file(wt, temp_file));
@@ -353,7 +353,7 @@ test_symbol_es(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
     auto end = syms.end();
     while(itr != end) {
         auto value = *itr;
-        auto ret = symbol_es(wt,value);
+        auto ret = symbol_lte(wt,value);
         ASSERT_EQ(ret.first,true);
         ASSERT_EQ(value,ret.second);
         ++itr;
@@ -361,7 +361,7 @@ test_symbol_es(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 
     // check symbols symbols that are smaller than than min
     for(size_t i=0;i<min;i++) {
-        auto ret = symbol_es(wt,i);
+        auto ret = symbol_lte(wt,i);
         ASSERT_EQ(ret.first,false);
         //ASSERT_EQ(ret.second,min);
     }
@@ -369,7 +369,7 @@ test_symbol_es(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
     // check symbols that are larget than max
     value_type test_max = numeric_limits<value_type>::max();
     for(size_t i=test_max;i>max;i--) {
-        auto ret = symbol_es(wt,i);
+        auto ret = symbol_lte(wt,i);
         ASSERT_EQ(ret.first,true);
         ASSERT_EQ(ret.second,max);
     }
@@ -386,7 +386,7 @@ test_symbol_es(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
             }
             if(prev != syms.end()) {
                 auto prev_val = *prev;
-                auto ret = symbol_es(wt,i); 
+                auto ret = symbol_lte(wt,i); 
                 ASSERT_EQ(ret.first,true);
                 ASSERT_EQ(ret.second,prev_val);
             }
@@ -396,10 +396,10 @@ test_symbol_es(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 
 
 //! Test the load method and intersect
-TYPED_TEST(WtByteTest, symbol_es)
+TYPED_TEST(WtByteTest, symbol_lte)
 {
     TypeParam wt;
-    test_symbol_es<TypeParam>(wt);
+    test_symbol_lte<TypeParam>(wt);
 }
 
 

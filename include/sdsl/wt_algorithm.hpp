@@ -320,7 +320,7 @@ struct has_range_search_2d {
  */
 template<class t_wt>
 std::pair<bool,typename t_wt::value_type> 
-_symbol_es(const t_wt& wt,typename t_wt::value_type c) 
+_symbol_lte(const t_wt& wt,typename t_wt::value_type c) 
 {
     if (((1ULL) << (wt.max_level)) <= c) {
         // c is greater than any symbol in wt. return the largest symbol!
@@ -370,7 +370,7 @@ _symbol_es(const t_wt& wt,typename t_wt::value_type c)
  */
 template<class t_wt>
 std::pair<bool,typename t_wt::value_type> 
-_symbol_eg(const t_wt& wt,typename t_wt::value_type c) 
+_symbol_gte(const t_wt& wt,typename t_wt::value_type c) 
 {
     if (((1ULL) << (wt.max_level)) <= c) {
         // c is greater than any symbol in wt
@@ -416,13 +416,13 @@ struct _symbols_calls_wt {
     typedef typename t_wt::value_type value_type;
 
     static std::pair<bool, value_type>
-    call_symbol_eg(const t_wt& wt,value_type c) {
-        return wt.symbol_eg(c);
+    call_symbol_gte(const t_wt& wt,value_type c) {
+        return wt.symbol_gte(c);
     }
 
     static std::pair<bool,value_type>
-    call_symbol_es(const t_wt& wt,value_type c) {
-        return wt.symbol_es(c);
+    call_symbol_lte(const t_wt& wt,value_type c) {
+        return wt.symbol_lte(c);
     }
 };
 
@@ -432,13 +432,13 @@ struct _symbols_calls_wt<t_wt, false> {
     typedef typename t_wt::value_type value_type;
 
     static std::pair<bool,value_type>
-    call_symbol_eg(const t_wt& wt,value_type c) {
-        return _symbol_eg(wt,c);
+    call_symbol_gte(const t_wt& wt,value_type c) {
+        return _symbol_gte(wt,c);
     }
 
     static std::pair<bool,value_type>
-    call_symbol_es(const t_wt& wt,value_type c) {
-        return _symbol_es(wt,c);
+    call_symbol_lte(const t_wt& wt,value_type c) {
+        return _symbol_lte(wt,c);
     }
 };
 
@@ -448,7 +448,7 @@ struct has_symbols_wt {
     static constexpr auto check(T*)
     -> typename
     std::is_same<
-    decltype(std::declval<T>().symbol_eg(std::declval<typename T::value_type>())),
+    decltype(std::declval<T>().symbol_gte(std::declval<typename T::value_type>())),
              std::pair<bool,typename T::value_type>
              >::type {return std::true_type();}
 
@@ -466,12 +466,12 @@ struct has_symbols_wt {
  */
 template<class t_wt>
 std::pair<bool,typename t_wt::value_type>
-symbol_es(const t_wt& wt, typename t_wt::value_type c)
+symbol_lte(const t_wt& wt, typename t_wt::value_type c)
 {
-    static_assert(t_wt::lex_ordered, "symbols_es requires a lex_ordered WT");
+    static_assert(t_wt::lex_ordered, "symbols_lte requires a lex_ordered WT");
     // check if wt has a built-in interval_symbols method
     constexpr bool has_own = has_symbols_wt<t_wt>::value;
-    return _symbols_calls_wt<t_wt, has_own>::call_symbol_es(wt,c);
+    return _symbols_calls_wt<t_wt, has_own>::call_symbol_lte(wt,c);
 }
 
 //! Returns for a symbol c the next larger or equal symbol in the WT.
@@ -482,12 +482,12 @@ symbol_es(const t_wt& wt, typename t_wt::value_type c)
  */
 template<class t_wt>
 std::pair<bool,typename t_wt::value_type>
-symbol_eg(const t_wt& wt, typename t_wt::value_type c)
+symbol_gte(const t_wt& wt, typename t_wt::value_type c)
 {
-    static_assert(t_wt::lex_ordered, "symbols_eg requires a lex_ordered WT");
+    static_assert(t_wt::lex_ordered, "symbols_gte requires a lex_ordered WT");
     // check if wt has a built-in interval_symbols method
     constexpr bool has_own = has_symbols_wt<t_wt>::value;
-    return _symbols_calls_wt<t_wt, has_own>::call_symbol_eg(wt,c);
+    return _symbols_calls_wt<t_wt, has_own>::call_symbol_gte(wt,c);
 }
 
 //! Returns for a x range [x_i,x_j] and a value range [y_i,y_j] all unique y
@@ -510,8 +510,8 @@ restricted_unique_range_values(const t_wt& wt,
 
     std::vector<typename t_wt::value_type> unique_values;
 
-    auto lower_y_bound = symbol_eg(wt,y_i);
-    auto upper_y_bound = symbol_es(wt,y_j);
+    auto lower_y_bound = symbol_gte(wt,y_i);
+    auto upper_y_bound = symbol_lte(wt,y_j);
     auto lower_y_bound_path = wt.path(lower_y_bound.second);
     auto upper_y_bound_path = wt.path(upper_y_bound.second);
 

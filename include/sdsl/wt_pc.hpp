@@ -758,9 +758,9 @@ for (const auto& r : ranges) {
          *          a valid answer was found (true) or no valid answer (false)
          *          could be found. The second element contains the found symbol.
          */
-        std::pair<bool, value_type> symbol_eg(value_type c) const
+        std::pair<bool, value_type> symbol_gte(value_type c) const
         {
-            return m_tree.symbol_eg(c);
+            return m_tree.symbol_gte(c);
         }
 
         //! Returns for a symbol c the previous smaller or equal symbol in the WT.
@@ -769,9 +769,9 @@ for (const auto& r : ranges) {
          *          a valid answer was found (true) or no valid answer (false)
          *          could be found. The second element contains the found symbol.
          */
-        std::pair<bool, value_type> symbol_es(value_type c) const
+        std::pair<bool, value_type> symbol_lte(value_type c) const
         {
-            return m_tree.symbol_es(c);
+            return m_tree.symbol_lte(c);
         }
 };
 
