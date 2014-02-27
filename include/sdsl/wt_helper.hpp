@@ -340,7 +340,7 @@ struct _byte_tree {
         if(c >= fixed_sigma) {
             return {false,0};
         }
-        for(value_type i=c;i<fixed_sigma;i++) {
+        for(uint32_t i=c;i<fixed_sigma;i++) {
             if(m_c_to_leaf[i]!=undef) {
                 return {true,i};
             }
@@ -355,7 +355,7 @@ struct _byte_tree {
             // return the largest symbol
             c = fixed_sigma-1;
         }
-        for(value_type i=c;i>0;i--) {
+        for(uint32_t i=c;i>0;i--) {
             if(m_c_to_leaf[i]!=undef) {
                 return {true,i};
             }

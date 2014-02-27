@@ -490,6 +490,82 @@ symbol_eg(const t_wt& wt, typename t_wt::value_type c)
     return _symbols_calls_wt<t_wt, has_own>::call_symbol_eg(wt,c);
 }
 
+//! Returns for a x range [x_i,x_j] and a value range [y_i,y_j] all unique y
+//! values occuring in [x_i,x_j] in ascending order.
+/*! \param x_i lower bound of the x range
+ *  \param x_j upper bound of the x range
+ *  \param y_i lower bound of the y range
+ *  \param y_j upper bound of the y range
+ *  \return a vector of increasing y values occuring in the range [x_i,x_j]
+ */
+template <class t_wt>
+std::vector<typename t_wt::value_type>
+restricted_unique_range_values(const t_wt& wt,
+                    typename t_wt::size_type x_i, 
+                    typename t_wt::size_type x_j, 
+                    typename t_wt::value_type y_i,
+                    typename t_wt::value_type y_j)
+{
+    static_assert(t_wt::lex_ordered, "restricted_unique_range_values requires a lex_ordered WT");
+
+    std::vector<typename t_wt::value_type> unique_values;
+
+    auto lower_y_bound = symbol_eg(wt,y_i);
+    auto upper_y_bound = symbol_es(wt,y_j);
+    auto lower_y_bound_path = wt.path(lower_y_bound.second);
+    auto upper_y_bound_path = wt.path(upper_y_bound.second);
+
+    auto compare_path = [](uint64_t node_path,uint64_t node_path_len,
+                           std::pair<uint64_t,uint64_t> bound_path) {
+        auto bound_path_len = bound_path.first;
+        auto bound_path_val = bound_path.second;
+        /* align to same length */
+        if( bound_path_len > node_path_len ) 
+            bound_path_val = bound_path_val >> (bound_path_len-node_path_len);
+        if( bound_path_len < node_path_len ) 
+            bound_path_val = bound_path_val << (node_path_len-bound_path_len);
+        /* cmp */
+        if( node_path < bound_path_val ) return -1;
+        if( node_path > bound_path_val ) return 1;
+        return 0;
+    };
+
+    std::stack<std::tuple<typename t_wt::node_type,sdsl::range_type,uint64_t,uint64_t>> stack;
+    sdsl::range_type initial_range = {x_i,x_j};
+    stack.emplace(wt.root(),initial_range,0,0);
+    while(!stack.empty()) {
+        auto node_data = stack.top(); stack.pop();
+        auto node = std::get<0>(node_data);
+        auto range = std::get<1>(node_data);
+        auto node_path = std::get<2>(node_data);
+        auto node_level = std::get<3>(node_data);
+        if(wt.is_leaf(node)) {
+            unique_values.emplace_back(wt.sym(node));
+        } else {
+            auto children = wt.expand(node);
+            auto left_path = node_path<<1ULL;
+            auto right_path = (node_path<<1ULL)|1ULL;
+            auto child_ranges = wt.expand(node,range);
+            if( compare_path(right_path,node_level+1,upper_y_bound_path) < 1) {
+                auto right_child = std::get<1>(children);
+                auto right_range = std::get<1>(child_ranges);
+                if(!sdsl::empty(right_range)) 
+                    stack.emplace(right_child,right_range,right_path,node_level+1);
+            }
+            if( compare_path(left_path,node_level+1,lower_y_bound_path) > -1) {
+                auto left_child = std::get<0>(children);
+                auto left_range = std::get<0>(child_ranges);
+                if(!sdsl::empty(left_range)) 
+                    stack.emplace(left_child,left_range,left_path,node_level+1);
+            }
+        }
+    }
+
+    return unique_values;
+}
+
+
+
 // Check for node_type of wavelet_tree
 // http://stackoverflow.com/questions/7834226/detecting-typedef-at-compile-time-template-metaprogramming
 

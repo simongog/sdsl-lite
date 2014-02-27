@@ -235,6 +235,242 @@ TYPED_TEST(WtByteTest, IntervalSymbols)
     test_interval_symbols<TypeParam>(wt);
 }
 
+
+template<class t_wt>
+void
+test_symbol_eg(typename enable_if<!(t_wt::lex_ordered), t_wt>::type&)
+{
+    // symbol_eg not implemented
+}
+
+template<class t_wt>
+void
+test_symbol_eg(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
+{
+    using value_type = typename t_wt::value_type;
+    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    int_vector<8> iv;
+    ASSERT_EQ(true, load_vector_from_file(iv, test_file, 1));
+    ASSERT_EQ(iv.size(), wt.size());
+    mt19937_64 rng;
+    value_type min = numeric_limits<value_type>::max(), max = 0;
+    std::set<value_type> syms;
+    for (size_type j=0; j < iv.size(); ++j) {
+        if (min>iv[j]) min = iv[j];
+        if (max<iv[j]) max = iv[j];
+        syms.insert(iv[j]);
+    }
+
+    if(iv.size() == 0) {
+        return;
+    }
+
+    // check symbols that are in there also are reported as "equal"
+    auto itr = syms.begin();
+    auto end = syms.end();
+    while(itr != end) {
+        auto value = *itr;
+        auto ret = symbol_eg(wt,value);
+        ASSERT_EQ(ret.first,true);
+        ASSERT_EQ(value,ret.second);
+        ++itr;
+    }
+
+    // check symbols symbols that are smaller than than min
+    for(size_t i=0;i<min;i++) {
+        auto ret = symbol_eg(wt,i);
+        ASSERT_EQ(ret.first,true);
+        ASSERT_EQ(ret.second,min);
+    }
+
+    // check symbols that are larget than max
+    value_type test_max = numeric_limits<value_type>::max();
+    for(value_type i=test_max;i>max;i--) {
+        auto ret = symbol_eg(wt,i);
+        ASSERT_EQ(ret.first,false);
+    }
+
+    // check values in between that do not exist
+    for(size_t i=min;i<max;i++) {
+        auto itr = syms.find(i);
+        if(itr == syms.end()) {
+            size_t j=i+1;
+            auto next = syms.find(j);
+            while(next == syms.end()) {
+                next = syms.find(j+1);
+                j++;
+            }
+            if(next != syms.end()) {
+                auto next_val = *next;
+                auto ret = symbol_eg(wt,i); 
+                ASSERT_EQ(ret.first,true);
+                ASSERT_EQ(ret.second,next_val);
+            }
+        }
+    }
+}
+
+//! Test the load method and intersect
+TYPED_TEST(WtByteTest, symbol_eg)
+{
+    TypeParam wt;
+    test_symbol_eg<TypeParam>(wt);
+}
+
+template<class t_wt>
+void
+test_symbol_es(typename enable_if<!(t_wt::lex_ordered), t_wt>::type&)
+{
+    // symbol_eg not implemented
+}
+
+
+
+template<class t_wt>
+void
+test_symbol_es(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
+{
+    using value_type = typename t_wt::value_type;
+    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    int_vector<8> iv;
+    ASSERT_EQ(true, load_vector_from_file(iv, test_file, 1));
+    ASSERT_EQ(iv.size(), wt.size());
+    mt19937_64 rng;
+    value_type min = numeric_limits<value_type>::max(), max = 0;
+    std::set<value_type> syms;
+    for (size_type j=0; j < iv.size(); ++j) {
+        if (min>iv[j]) min = iv[j];
+        if (max<iv[j]) max = iv[j];
+        syms.insert(iv[j]);
+    }
+
+    if(iv.size() == 0) {
+        return;
+    }
+
+    // check symbols that are in there also are reported as "equal"
+    auto itr = syms.begin();
+    auto end = syms.end();
+    while(itr != end) {
+        auto value = *itr;
+        auto ret = symbol_es(wt,value);
+        ASSERT_EQ(ret.first,true);
+        ASSERT_EQ(value,ret.second);
+        ++itr;
+    }
+
+    // check symbols symbols that are smaller than than min
+    for(size_t i=0;i<min;i++) {
+        auto ret = symbol_es(wt,i);
+        ASSERT_EQ(ret.first,false);
+        //ASSERT_EQ(ret.second,min);
+    }
+
+    // check symbols that are larget than max
+    value_type test_max = numeric_limits<value_type>::max();
+    for(size_t i=test_max;i>max;i--) {
+        auto ret = symbol_es(wt,i);
+        ASSERT_EQ(ret.first,true);
+        ASSERT_EQ(ret.second,max);
+    }
+
+    // check values in between that do not exist
+    for(size_t i=min+1;i<max;i++) {
+        auto itr = syms.find(i);
+        if(itr == syms.end()) {
+            size_t j=i-1;
+            auto prev = syms.find(j);
+            while(prev == syms.end()) {
+                prev = syms.find(j-1);
+                j--;
+            }
+            if(prev != syms.end()) {
+                auto prev_val = *prev;
+                auto ret = symbol_es(wt,i); 
+                ASSERT_EQ(ret.first,true);
+                ASSERT_EQ(ret.second,prev_val);
+            }
+        }
+    }
+}
+
+
+//! Test the load method and intersect
+TYPED_TEST(WtByteTest, symbol_es)
+{
+    TypeParam wt;
+    test_symbol_es<TypeParam>(wt);
+}
+
+
+template<class t_wt>
+void
+test_range_unique_values(typename enable_if<!(t_wt::lex_ordered), t_wt>::type&)
+{
+    // test_range_unique_values not implemented
+}
+
+template<class t_wt>
+void
+test_range_unique_values(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
+{
+    using value_type = typename t_wt::value_type;
+    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    int_vector<8> iv;
+    ASSERT_EQ(true, load_vector_from_file(iv, test_file, 1));
+    ASSERT_EQ(iv.size(), wt.size());
+    value_type min = numeric_limits<value_type>::max(), max = 0;
+    std::set<value_type> syms;
+    for (size_type j=0; j < iv.size(); ++j) {
+        if (min>iv[j]) min = iv[j];
+        if (max<iv[j]) max = iv[j];
+        syms.insert(iv[j]);
+    }
+
+    if(iv.size() == 0) {
+        return;
+    }
+
+    // try 128 random queries
+    std::mt19937_64 rng;
+    std::uniform_int_distribution<uint64_t> x_dist(0, wt.size()-1);
+    std::uniform_int_distribution<uint64_t> y_dist(0, max);
+    auto xdice = bind(x_dist, rng);
+    auto ydice = bind(y_dist, rng);
+    for(size_t i=0;i<128;i++) {
+        size_t x_i = xdice();
+        size_t x_j = xdice();
+        if (x_i>x_j) std::swap(x_i,x_j);
+        size_t y_i = ydice();
+        size_t y_j = ydice();
+        if(y_i>y_j) std::swap(y_i,y_j);
+        auto uniq_values = restricted_unique_range_values(wt,x_i,x_j,y_i,y_j);
+
+        /* verify */
+        std::set<value_type> syms;
+        for(size_t j=x_i;j<=x_j;j++) {
+            if(iv[j] >= y_i && iv[j] <= y_j) syms.insert(iv[j]);
+        }
+        auto itr = syms.begin();
+        auto end = syms.end();
+        size_t r = 0;
+        while(itr != end) {
+            auto value = *itr;
+            ASSERT_EQ(value,uniq_values[r]);
+            r++;
+            itr++;
+        }
+    }
+}
+
+//! Test the load method and intersect
+TYPED_TEST(WtByteTest, restricted_unique_range_values)
+{
+    TypeParam wt;
+    test_range_unique_values<TypeParam>(wt);
+}
+
+
 template<class t_wt>
 void
 test_lex_count(typename std::enable_if<!(t_wt::lex_ordered), t_wt>::type&)

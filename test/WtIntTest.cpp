@@ -691,6 +691,75 @@ TYPED_TEST(WtIntTest, symbol_es)
 }
 
 
+template<class t_wt>
+void
+test_range_unique_values(typename enable_if<!(t_wt::lex_ordered), t_wt>::type&)
+{
+    // test_range_unique_values not implemented
+}
+
+template<class t_wt>
+void
+test_range_unique_values(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
+{
+    using value_type = typename t_wt::value_type;
+    int_vector<> iv;
+    load_from_file(iv, test_file);
+    ASSERT_TRUE(load_from_file(wt, temp_file));
+    ASSERT_EQ(iv.size(), wt.size());
+    value_type min = numeric_limits<value_type>::max(), max = 0;
+    std::set<value_type> syms;
+    for (size_type j=0; j < iv.size(); ++j) {
+        if (min>iv[j]) min = iv[j];
+        if (max<iv[j]) max = iv[j];
+        syms.insert(iv[j]);
+    }
+
+    if(iv.size() == 0) {
+        return;
+    }
+
+    // try 128 random queries
+    std::mt19937_64 rng;
+    std::uniform_int_distribution<uint64_t> x_dist(0, wt.size()-1);
+    std::uniform_int_distribution<uint64_t> y_dist(0, max);
+    auto xdice = bind(x_dist, rng);
+    auto ydice = bind(y_dist, rng);
+    for(size_t i=0;i<128;i++) {
+        size_t x_i = xdice();
+        size_t x_j = xdice();
+        if (x_i>x_j) std::swap(x_i,x_j);
+        size_t y_i = ydice();
+        size_t y_j = ydice();
+        if(y_i>y_j) std::swap(y_i,y_j);
+        auto uniq_values = restricted_unique_range_values(wt,x_i,x_j,y_i,y_j);
+
+        /* verify */
+        std::set<value_type> syms;
+        for(size_t j=x_i;j<=x_j;j++) {
+            if(iv[j] >= y_i && iv[j] <= y_j) syms.insert(iv[j]);
+        }
+        auto itr = syms.begin();
+        auto end = syms.end();
+        size_t r = 0;
+        while(itr != end) {
+            auto value = *itr;
+            ASSERT_EQ(value,uniq_values[r]);
+            r++;
+            itr++;
+        }
+    }
+}
+
+//! Test the load method and intersect
+TYPED_TEST(WtIntTest, restricted_unique_range_values)
+{
+    TypeParam wt;
+    test_range_unique_values<TypeParam>(wt);
+}
+
+
+
 TYPED_TEST(WtIntTest, DeleteTest)
 {
     sdsl::remove(temp_file);
