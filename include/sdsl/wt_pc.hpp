@@ -742,6 +742,37 @@ for (const auto& r : ranges) {
                              range_type(right_sp, right_sp + right_size - 1));
         }
 
+        //! return the path to the leaf for a given symbol
+        std::pair<uint64_t,uint64_t> path(value_type c) const {
+            uint64_t path = m_tree.bit_path(c);
+            uint64_t path_len = path >> 56;
+            // reverse the path till we fix the ordering
+            path = bits::rev(path);
+            path = path >> (64-path_len); // remove the length
+            return {path_len,path};
+        }
+
+        //! Returns for a symbol c the next larger or equal symbol in the WT.
+        /*! \param c the symbol
+         *  \return A pair. The first element of the pair consititues if
+         *          a valid answer was found (true) or no valid answer (false)
+         *          could be found. The second element contains the found symbol.
+         */
+        std::pair<bool, value_type> symbol_eg(value_type c) const
+        {
+            return m_tree.symbol_eg(c);
+        }
+
+        //! Returns for a symbol c the previous smaller or equal symbol in the WT.
+        /*! \param c the symbol
+         *  \return A pair. The first element of the pair consititues if
+         *          a valid answer was found (true) or no valid answer (false)
+         *          could be found. The second element contains the found symbol.
+         */
+        std::pair<bool, value_type> symbol_es(value_type c) const
+        {
+            return m_tree.symbol_es(c);
+        }
 };
 
 }

@@ -229,6 +229,9 @@ struct bits {
 
     //! Get the one bit with the greatest position in the interval \f$[0..idx]\f$
     static uint64_t prev(const uint64_t* word, uint64_t idx);
+
+    //! reverses a given 64 bit word
+    static uint64_t rev(uint64_t x);
 };
 
 
@@ -603,6 +606,17 @@ inline uint64_t bits::prev(const uint64_t* word, uint64_t idx)
         --word;
     }
     return idx + hi(*word);
+}
+
+inline uint64_t bits::rev(uint64_t x)
+{
+    x = ((x & 0x5555555555555555ULL) << 1) | ((x & 0xAAAAAAAAAAAAAAAAULL) >> 1);
+    x = ((x & 0x3333333333333333ULL) << 2) | ((x & 0xCCCCCCCCCCCCCCCCULL) >> 2);
+    x = ((x & 0x0F0F0F0F0F0F0F0FULL) << 4) | ((x & 0xF0F0F0F0F0F0F0F0ULL) >> 4);
+    x = ((x & 0x00FF00FF00FF00FFULL) << 8) | ((x & 0xFF00FF00FF00FF00ULL) >> 8);
+    x = ((x & 0x0000FFFF0000FFFFULL) <<16) | ((x & 0xFFFF0000FFFF0000ULL) >>16);
+    x = ((x & 0x00000000FFFFFFFFULL) <<32) | ((x & 0xFFFFFFFF00000000ULL) >>32);
+    return x;
 }
 
 } // end namespace sdsl
