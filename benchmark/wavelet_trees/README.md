@@ -33,7 +33,10 @@ Explored dimensions:
     the test instances, builds the wavelet trees, 
     runs the performance tests and generated a report located at
    `visualize/wt.pdf`. The raw numbers of the timings 
-   can be found in the `results/all.txt`.
+   can be found in the `results/all.txt`. The default benchmark
+   took 28 minutes on my machine (MacBookPro Retina 2.6Ghz Intel
+   Code i7 16GB 1600 Mhz DDR3, SSD). Have a look at the
+   [generated report][RES].
  * All created binaries and test results can be deleted
    by calling `make cleanall`.
 
@@ -53,3 +56,4 @@ Note that the benchmark will execute every combination of wavelet trees and test
 [WTCONFIG]: ./wt.config "wt.config"
 [TCCONF]: ./test_case.config "test_case.config"
 [CCONF]: ./compile_options.config "compile_options.config"
+[RES]: https://github.com/simongog/simongog.github.com/raw/master/assets/images/wt.pdf "wt.pdf"

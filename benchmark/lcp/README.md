@@ -27,7 +27,10 @@ Explored dimensions:
  * `make timing` compiles the programs, downloads
     the test instances, builds the LCP arrays and generates a report located at
    `visualize/lcp.pdf`. The raw numbers of the timings 
-   can be found in the `results/all.txt`.
+   can be found in the `results/all.txt`. The execution of the
+   default benchmark took 66 minutes on my machine (MacBookPro Retina
+   2.6GHz Intel Core i7, 16GB 1600 Mhz DDR3, SSD). 
+   Have a look at the [generated report][RES].
  * All created binaries and test results can be deleted
    by calling `make cleanall`.
 
@@ -47,3 +50,4 @@ Explored dimensions:
 [LCPCONFIG]: ./lcp.config "lcp.config"
 [TCCONF]: ./test_case.config "test_case.config"
 [CCONF]: ./compile_options.config "compile_options.config"
+[RES]: https://github.com/simongog/simongog.github.com/raw/master/assets/images/lcp.pdf "lcp.pdf"
