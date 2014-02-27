@@ -18,12 +18,13 @@
    \brief enc_vector.hpp contains the sdsl::enc_vector class.
    \author Simon Gog
 */
+#ifndef SDSL_ENC_VECTOR
+#define SDSL_ENC_VECTOR
+
 #include "int_vector.hpp"
 #include "coder.hpp"
 #include "iterators.hpp"
 
-#ifndef SDSL_ENC_VECTOR
-#define SDSL_ENC_VECTOR
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
