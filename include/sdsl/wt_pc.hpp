@@ -752,6 +752,27 @@ for (const auto& r : ranges) {
             return {path_len,path};
         }
 
+        //! Returns for a symbol c the next larger or equal symbol in the WT.
+        /*! \param c the symbol
+         *  \return A pair. The first element of the pair consititues if
+         *          a valid answer was found (true) or no valid answer (false)
+         *          could be found. The second element contains the found symbol.
+         */
+        std::pair<bool, value_type> symbol_eg(value_type c) const
+        {
+            return m_tree.symbol_eg(c);
+        }
+
+        //! Returns for a symbol c the previous smaller or equal symbol in the WT.
+        /*! \param c the symbol
+         *  \return A pair. The first element of the pair consititues if
+         *          a valid answer was found (true) or no valid answer (false)
+         *          could be found. The second element contains the found symbol.
+         */
+        std::pair<bool, value_type> symbol_es(value_type c) const
+        {
+            return m_tree.symbol_es(c);
+        }
 };
 
 }

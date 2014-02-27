@@ -311,6 +311,185 @@ struct has_range_search_2d {
     static constexpr bool value = type::value;
 };
 
+
+//! Returns for a symbol c the previous smaller or equal symbol in the WT.
+/*! \param c the symbol
+ *  \return A pair. The first element of the pair consititues if
+ *          a valid answer was found (true) or no valid answer (false)
+ *          could be found. The second element contains the found symbol.
+ */
+template<class t_wt>
+std::pair<bool,typename t_wt::value_type> 
+_symbol_es(const t_wt& wt,typename t_wt::value_type c) 
+{
+    if (((1ULL) << (wt.max_level)) <= c) {
+        // c is greater than any symbol in wt. return the largest symbol!
+        c = sdsl::bits::lo_set[wt.max_level];
+    }
+    auto node = wt.root();
+    auto predecessor_subtree = node;
+    uint64_t mask = (1ULL) << (wt.max_level - 1);
+    while (!wt.is_leaf(node)) {
+        auto children = wt.expand(node);
+        auto left_child = std::get<0>(children);
+        auto right_child = std::get<1>(children);
+        if (c & (mask >> node.level)) { // go right
+            if (right_child.size) {
+                node = right_child;
+                if (left_child.size) { // potential predecessor subtree?
+                    predecessor_subtree = left_child;
+                }
+            } else { // dead end
+                // left child can't be empty if left child is
+                node = left_child; 
+                c = sdsl::bits::all_set;
+            }
+        } else { // go left
+            if (left_child.size) {
+                node = left_child;
+            } else { // dead end
+                if (predecessor_subtree == wt.root()) {
+                    // there is no valid predecessor. symbol must be
+                    // smaller than the smallest symbol in the wt.
+                    return {false, 0}; 
+                }
+                node = predecessor_subtree;
+                c = sdsl::bits::all_set;
+            }
+        }
+    }
+    return {true, node.sym};
+}
+
+
+//! Returns for a symbol c the next larger or equal symbol in the WT.
+/*! \param c the symbol
+ *  \return A pair. The first element of the pair consititues if
+ *          a valid answer was found (true) or no valid answer (false)
+ *          could be found. The second element contains the found symbol.
+ */
+template<class t_wt>
+std::pair<bool,typename t_wt::value_type> 
+_symbol_eg(const t_wt& wt,typename t_wt::value_type c) 
+{
+    if (((1ULL) << (wt.max_level)) <= c) {
+        // c is greater than any symbol in wt
+        return {false, 0};
+    }
+    auto node = wt.root();
+    auto successor_subtree = node;
+    uint64_t mask = (1ULL) << (wt.max_level - 1);
+    while (!wt.is_leaf(node)) {
+        auto children = wt.expand(node);
+        auto left_child = std::get<0>(children);
+        auto right_child = std::get<1>(children);
+        if (c & (mask >> node.level)) { // go right
+            if (right_child.size) {
+                node = right_child;
+            } else { // dead end
+                if (successor_subtree == wt.root()) {
+                    // there is no valid successor. symbol must be
+                    // bigger than the largest symbol in the wt.
+                    return {false, 0};
+                }
+                node = successor_subtree;
+                c = 0;
+            }
+        } else { // go left
+            if (left_child.size) {
+                node = left_child;
+                if (right_child.size) { // potential successor subtree?
+                    successor_subtree = right_child;
+                }
+            } else { // dead end
+                 // right child can't be empty if left child is
+                node = right_child;
+                c = 0;
+            }
+        }
+    }
+    return {true, node.sym};
+}
+
+template<class t_wt, bool t_has_interval_symbols>
+struct _symbols_calls_wt {
+    typedef typename t_wt::value_type value_type;
+
+    static std::pair<bool, value_type>
+    call_symbol_eg(const t_wt& wt,value_type c) {
+        return wt.symbol_eg(c);
+    }
+
+    static std::pair<bool,value_type>
+    call_symbol_es(const t_wt& wt,value_type c) {
+        return wt.symbol_es(c);
+    }
+};
+
+
+template<class t_wt>
+struct _symbols_calls_wt<t_wt, false> {
+    typedef typename t_wt::value_type value_type;
+
+    static std::pair<bool,value_type>
+    call_symbol_eg(const t_wt& wt,value_type c) {
+        return _symbol_eg(wt,c);
+    }
+
+    static std::pair<bool,value_type>
+    call_symbol_es(const t_wt& wt,value_type c) {
+        return _symbol_es(wt,c);
+    }
+};
+
+template<typename t_wt>
+struct has_symbols_wt {
+    template<typename T>
+    static constexpr auto check(T*)
+    -> typename
+    std::is_same<
+    decltype(std::declval<T>().symbol_eg(std::declval<typename T::value_type>())),
+             std::pair<bool,typename T::value_type>
+             >::type {return std::true_type();}
+
+    template<typename>
+    static constexpr std::false_type check(...) {return std::false_type();}
+    typedef decltype(check<t_wt>(nullptr)) type;
+    static constexpr bool value = type::value;
+};
+
+//! Returns for a symbol c the previous smaller or equal symbol in the WT.
+/*! \param c the symbol
+ *  \return A pair. The first element of the pair consititues if
+ *          a valid answer was found (true) or no valid answer (false)
+ *          could be found. The second element contains the found symbol.
+ */
+template<class t_wt>
+std::pair<bool,typename t_wt::value_type>
+symbol_es(const t_wt& wt, typename t_wt::value_type c)
+{
+    static_assert(t_wt::lex_ordered, "symbols_es requires a lex_ordered WT");
+    // check if wt has a built-in interval_symbols method
+    constexpr bool has_own = has_symbols_wt<t_wt>::value;
+    return _symbols_calls_wt<t_wt, has_own>::call_symbol_es(wt,c);
+}
+
+//! Returns for a symbol c the next larger or equal symbol in the WT.
+/*! \param c the symbol
+ *  \return A pair. The first element of the pair consititues if
+ *          a valid answer was found (true) or no valid answer (false)
+ *          could be found. The second element contains the found symbol.
+ */
+template<class t_wt>
+std::pair<bool,typename t_wt::value_type>
+symbol_eg(const t_wt& wt, typename t_wt::value_type c)
+{
+    static_assert(t_wt::lex_ordered, "symbols_eg requires a lex_ordered WT");
+    // check if wt has a built-in interval_symbols method
+    constexpr bool has_own = has_symbols_wt<t_wt>::value;
+    return _symbols_calls_wt<t_wt, has_own>::call_symbol_eg(wt,c);
+}
+
 // Check for node_type of wavelet_tree
 // http://stackoverflow.com/questions/7834226/detecting-typedef-at-compile-time-template-metaprogramming
 

@@ -745,6 +745,11 @@ class wt_int
         // Copy constructor
         node_type(const node_type& v) : offset(v.offset), size(v.size),
             level(v.level), sym(v.sym) {}
+
+            // Cmp operator
+            bool operator==(const node_type& v) const {
+                return offset == v.offset;
+            }
         };
 
         //! Checks if the node is a leaf node
@@ -845,7 +850,6 @@ for (const auto& r : ranges) {
         std::pair<uint64_t,uint64_t> path(value_type c) const {
             return {m_max_level,c};
         }
-
 };
 
 }// end namespace sdsl
