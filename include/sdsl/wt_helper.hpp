@@ -337,9 +337,6 @@ struct _byte_tree {
     //! Return symbol c or the next larger symbol in the wt
     inline std::pair<bool,value_type> symbol_eg(value_type c) const
     {
-        if(c >= fixed_sigma) {
-            return {false,0};
-        }
         for(uint32_t i=c;i<fixed_sigma;i++) {
             if(m_c_to_leaf[i]!=undef) {
                 return {true,i};
@@ -351,10 +348,6 @@ struct _byte_tree {
     //! Return symbol c or the next smaller symbol in the wt
     inline std::pair<bool,value_type> symbol_es(value_type c) const
     {
-        if(c >= fixed_sigma) {
-            // return the largest symbol
-            c = fixed_sigma-1;
-        }
         for(uint32_t i=c;i>0;i--) {
             if(m_c_to_leaf[i]!=undef) {
                 return {true,i};
