@@ -44,7 +44,7 @@ class uint256_t
         inline uint256_t(const uint256_t& x):m_lo(x.m_lo), m_mid(x.m_mid),
             m_high(x.m_high) {}
 
-        inline uint256_t(uint256_t& x):m_lo(std::move(x.m_lo)),
+        inline uint256_t(uint256_t&& x):m_lo(std::move(x.m_lo)),
             m_mid(std::move(x.m_mid)), m_high(std::move(x.m_high)) {}
 
         inline uint16_t popcount() {

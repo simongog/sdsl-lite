@@ -429,7 +429,7 @@ hugepage_allocator::insert_into_free_set(mm_block_t* block)
 {
     //std::cout << "insert_into_free_set("<< (void*)block << "," << UNMASK_SIZE(block->size) << ")" << std::endl;
     //std::cout << "insert_into_free_set("<< (void*)block << "," << block->size << ")" << std::endl;
-    m_free_large.insert( {block->size,block});
+    m_free_large.insert({block->size,block});
 }
 
 mm_block_t*
@@ -501,10 +501,10 @@ hugepage_allocator::mm_realloc(void* ptr, size_t size)
     //print_heap();
     //std::cout << "REALLOC(" << ptr << "," << size << ")" << std::endl;
     /* handle special cases first */
-    if (ptr==NULL) return mm_alloc(size);
+    if (nullptr==ptr) return mm_alloc(size);
     if (size==0) {
         mm_free(ptr);
-        return NULL;
+        return nullptr;
     }
     mm_block_t* bptr = block_cur(ptr);
 
@@ -595,7 +595,7 @@ uint64_t extract_number(std::string& line)
             }
         }
     }
-    return std::strtoull(num_str.c_str(),NULL,10);
+    return std::strtoull(num_str.c_str(),nullptr,10);
 }
 
 uint64_t extract_multiplier(std::string& line)

@@ -18,12 +18,12 @@
    \brief vlc_vector.hpp contains a vector which stores the values with variable length codes.
    \author Simon Gog
 */
+#ifndef SDSL_VLC_VECTOR
+#define SDSL_VLC_VECTOR
+
 #include "int_vector.hpp"
 #include "coder_elias_delta.hpp"
 #include "iterators.hpp"
-
-#ifndef SDSL_VLC_VECTOR
-#define SDSL_VLC_VECTOR
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
