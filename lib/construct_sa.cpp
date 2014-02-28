@@ -16,7 +16,7 @@ void construct_sa_se(cache_config& config)
         }
         sa.push_back(0);
     } else {
-        construct_sa_se<int_vector<8>>(text, cache_file_name(conf::KEY_SA, config), sigma, 256);
+        _construct_sa_se<int_vector<8>>(text, cache_file_name(conf::KEY_SA, config), 256, 0);
     }
     register_cache_file(conf::KEY_SA, config);
 }
