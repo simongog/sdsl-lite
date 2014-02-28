@@ -49,7 +49,7 @@ class int_vector_buffer
         bool                m_need_to_write = false;
         // length of int_vector header in bytes: 0 for plain, 8 for int_vector<t_width> (0 < t_width), 9 for int_vector<0>
         uint64_t            m_offset     = 0;
-        uint64_t            m_buffersize = 0;    // in elements! m_buffersize*width() must be a multiple of 8!
+        uint64_t            m_buffersize = 8;    // in elements! m_buffersize*width() must be a multiple of 8!
         uint64_t            m_size       = 0;    // size of int_vector_buffer
         uint64_t            m_begin      = 0;    // number in elements
 
@@ -134,7 +134,7 @@ class int_vector_buffer
          *                    If true the file will be interpreted as plain array with t_width bits per integer.
          *                    In second case (is_plain==true), t_width must be 8, 16, 32 or 64.
          */
-        int_vector_buffer(const std::string filename, std::ios::openmode mode=std::ios::in, const uint64_t buffersize=1024*1024, const uint8_t int_width=t_width, const bool is_plain=false) {
+        int_vector_buffer(const std::string filename, std::ios::openmode mode=std::ios::in, const uint64_t buffer_size=1024*1024, const uint8_t int_width=t_width, const bool is_plain=false) {
             m_filename = filename;
             assert(!(mode&std::ios::app));
             mode &= ~std::ios::app;
@@ -164,15 +164,7 @@ class int_vector_buffer
                 assert(m_ifile.good());
                 m_size = size/width();
             }
-            if (0==(buffersize*8)%width()) {
-                m_buffersize = buffersize*8/width(); // m_buffersize might not be multiple of 8, but m_buffersize*width is.
-            } else {
-                uint64_t element_buffersize = (buffersize*8)/width()+1; // one more element than fits into given buffersize in byte
-                m_buffersize = element_buffersize+7 - (element_buffersize+7)%8; // take next multiple of 8
-            }
-            m_buffer = int_vector<t_width>(m_buffersize, 0, width());
-            if (0!=m_buffersize) read_block(0);
-            m_need_to_write = false;
+            buffersize(buffer_size);
         }
 
         //! Move constructor.
@@ -195,7 +187,7 @@ class int_vector_buffer
             ivb.m_buffer = int_vector<t_width>();
             ivb.m_need_to_write = false;
             ivb.m_offset = 0;
-            ivb.m_buffersize = 0;
+            ivb.m_buffersize = 8;
             ivb.m_size = 0;
             ivb.m_begin = 0;
         }
@@ -227,7 +219,7 @@ class int_vector_buffer
             ivb.m_buffer = int_vector<t_width>();
             ivb.m_need_to_write = false;
             ivb.m_offset = 0;
-            ivb.m_buffersize = 0;
+            ivb.m_buffersize = 8;
             ivb.m_size = 0;
             ivb.m_begin = 0;
             return *this;
@@ -256,6 +248,8 @@ class int_vector_buffer
 
         //! Set the buffersize in bytes
         void buffersize(uint64_t buffersize) {
+            if (0ULL == buffersize)
+                buffersize = 8;
             write_block();
             if (0==(buffersize*8)%width()) {
                 m_buffersize = buffersize*8/width(); // m_buffersize might not be multiple of 8, but m_buffersize*width() is.
@@ -263,7 +257,7 @@ class int_vector_buffer
                 uint64_t element_buffersize = (buffersize*8)/width()+1; // one more element than fits into given buffersize in byte
                 m_buffersize = element_buffersize+7 - (element_buffersize+7)%8; // take next multiple of 8
             }
-            m_buffer.resize(m_buffersize);
+            m_buffer = int_vector<t_width>(m_buffersize, 0, width());
             if (0!=m_buffersize) read_block(0);
         }
 
