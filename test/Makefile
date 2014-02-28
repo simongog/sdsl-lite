@@ -46,6 +46,9 @@ RMQ_TESTS:=$(patsubst %,rmq-test/%,$(RMQ_TC_PATHS))
 LCP_CONSTRUCT_PATHS:=$(call config_column,LcpConstructTest.config,2)
 LCP_CONSTRUCT_TESTS:=$(patsubst %,lcp-construct-test/%,$(LCP_CONSTRUCT_PATHS))
 
+SA_CONSTRUCT_PATHS:=$(call config_column,SaConstructTest.config,2)
+SA_CONSTRUCT_TESTS:=$(patsubst %,sa-construct-test/%,$(SA_CONSTRUCT_PATHS))
+
 SEARCH_BIDIRECTIONAL_PATHS:=$(call config_column,SearchBidirectionalTest.config,2)
 SEARCH_BIDIRECTIONAL_TESTS:=$(patsubst %,search-bidirectional-test/%,$(SEARCH_BIDIRECTIONAL_PATHS))
 
@@ -74,6 +77,7 @@ test:	bits-test \
 	cst-byte-test \
 	cst-int-test \
 	rmq-test \
+	sa-construct-test \
 	search-bidirectional-test \
 	sorted-int-stack-test \
 	nn-dict-dynamic-test
@@ -145,6 +149,8 @@ rmq-test: generators $(RMQ_TESTS)
 
 lcp-construct-test: generators $(LCP_CONSTRUCT_TESTS)
 
+sa-construct-test: generators $(SA_CONSTRUCT_TESTS)
+
 search-bidirectional-test: generators $(SEARCH_BIDIRECTIONAL_TESTS)
 
 bit-vector-test/test_cases/%: ./BitVectorTest.x test_cases/%
@@ -209,6 +215,11 @@ lcp-construct-test/test_cases/%: ./LcpConstructTest.x test_cases/%
 	$(eval TC_ID:=$(call config_filter,LcpConstructTest.config,test_cases/$*,1))
 	@echo "TEST_CASE: test_cases/$*; TC_ID=$(TC_ID)"
 	@$(PREFIX) ./LcpConstructTest.x test_cases/$* $(TMP_DIR) $(TC_ID)
+
+sa-construct-test/test_cases/%: ./SaConstructTest.x test_cases/%
+	$(eval TC_ID:=$(call config_filter,SaConstructTest.config,test_cases/$*,1))
+	@echo "TEST_CASE: test_cases/$*; TC_ID=$(TC_ID)"
+	@$(PREFIX) ./SaConstructTest.x test_cases/$* $(TMP_DIR) $(TC_ID)
 
 search-bidirectional-test/test_cases/%: ./SearchBidirectionalTest.x test_cases/%
 	@echo "TEST_CASE: test_cases/$*"

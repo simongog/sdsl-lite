@@ -16,7 +16,7 @@
 */
 /*! \file construct_sa.hpp
     \brief construct_sa.hpp contains an interface to access suffix array construction algorithms
-	\author Simon Gog
+    \author Simon Gog
 */
 
 #ifndef INCLUDED_SDSL_CONSTRUCT_SA
@@ -30,8 +30,35 @@
 
 #include "qsufsort.hpp"
 
+#include "construct_sa_se.hpp"
+#include "construct_config.hpp"
+
 namespace sdsl
 {
+
+//! Constructs the Suffix Array (SA) from text over byte-alphabet.
+/*! The algorithm constructs the SA and stores it to disk.
+ *  \param config Reference to cache configuration
+ *  \par Space complexity
+ *       Usually less than \f$1.5n \f$ bytes of main memory and
+ *       \f$10n \f$ bytes of secondary memory
+ *  \pre Text exist in the cache. Keys:
+ *         * conf::KEY_TEXT
+ *  \post SA exist in the cache. Key
+ *         * conf::KEY_SA
+ *
+ *  This construction method uses less main memory, since data-structures
+ *  are only kept in main memory, when random access to them is needed.
+ *  Otherwise they are stored on disk. The disk-usage peak of this algorithm
+ *  is about 10 times the input.
+ *
+ *  \par References
+ *      [1] T. Beller, M. Zwerger, S. Gog and E. Ohlebusch:
+ *          ,,Space-Efficient Construction of the Burrows-Wheeler Transform'',
+ *          Proceedings of SPIRE 2013.
+ *
+ */
+void construct_sa_se(cache_config& config);
 
 namespace algorithm
 {
@@ -100,9 +127,9 @@ void calculate_sa(const unsigned char* c, typename int_vector<fixedIntWidth>::si
 } // end namespace algorithm
 
 //! Constructs the Suffix Array (SA) from text over byte- or integer-alphabet.
-/*!	The algorithm constructs the SA and stores it to disk.
+/*!    The algorithm constructs the SA and stores it to disk.
  *  \tparam t_width Width of the text. 0==integer alphabet, 8=byte alphabet.
- *  \param config	Reference to cache configuration
+ *  \param config    Reference to cache configuration
  *  \par Space complexity
  *      \f$ 5n \f$ byte for t_width=8 and input < 2GB
  *      \f$ 9n \f$ byte for t_width=8 and input > 2GB
@@ -121,13 +148,17 @@ void construct_sa(cache_config& config)
     static_assert(t_width == 0 or t_width == 8 , "construct_sa: width must be `0` for integer alphabet and `8` for byte alphabet");
     const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
     if (t_width == 8) {
-        typedef int_vector<t_width> text_type;
-        text_type text;
-        load_from_cache(text, KEY_TEXT, config);
-        // call divsufsort
-        int_vector<> sa(text.size(), 0, bits::hi(text.size())+1);
-        algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
-        store_to_cache(sa, conf::KEY_SA, config);
+        if (construct_config::byte_algo_sa == LIBDIVSUFSORT) {
+            typedef int_vector<t_width> text_type;
+            text_type text;
+            load_from_cache(text, KEY_TEXT, config);
+            // call divsufsort
+            int_vector<> sa(text.size(), 0, bits::hi(text.size())+1);
+            algorithm::calculate_sa((const unsigned char*)text.data(), text.size(), sa);
+            store_to_cache(sa, conf::KEY_SA, config);
+        } else if (construct_config::byte_algo_sa == SE_SAIS) {
+            construct_sa_se(config);
+        }
     } else if (t_width == 0) {
         // call qsufsort
         int_vector<> sa;

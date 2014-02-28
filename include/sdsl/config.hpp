@@ -30,6 +30,8 @@ typedef std::map<std::string, std::string> tMSS;
 
 enum format_type {JSON_FORMAT, R_FORMAT, HTML_FORMAT};
 
+enum byte_sa_algo_type {LIBDIVSUFSORT, SE_SAIS};
+
 //! Helper class for construction process
 struct cache_config {
     bool 		delete_files;   // Flag which indicates if all files which were created
