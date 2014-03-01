@@ -39,7 +39,7 @@ void load_vector(std::vector<T>&, std::istream&);
 template<class T>
 uint64_t
 serialize_vector(const std::vector<T>&, std::ostream&,
-                 sdsl::structure_tree_node*, std::string);
+                 sdsl::structure_tree_node* v=nullptr, std::string="");
 
 // has_serialize<X>::value is true if class X has
 // implement method serialize
@@ -326,7 +326,7 @@ struct nullstream : std::ostream {
  */
 template<class T>
 uint64_t
-serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
+serialize_vector(const std::vector<T>& vec, std::ostream& out, sdsl::structure_tree_node* v, std::string name)
 {
     if (vec.size() > 0) {
         sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, "std::vector<"+util::class_name(vec[0])+">");

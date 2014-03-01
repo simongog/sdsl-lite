@@ -108,6 +108,8 @@ class rank_support_v5 : public rank_support
 
         rank_support_v5(const rank_support_v5&) = default;
         rank_support_v5(rank_support_v5&&) = default;
+        rank_support_v5& operator=(const rank_support_v5&) = default;
+        rank_support_v5& operator=(rank_support_v5&&) = default;
 
         size_type rank(size_type idx) const {
             assert(m_v != nullptr);
@@ -153,18 +155,6 @@ class rank_support_v5 : public rank_support
         void set_vector(const bit_vector* v=nullptr) {
             m_v = v;
         }
-
-        //! Assign Operator
-        rank_support_v5& operator=(const rank_support_v5& rs) {
-            if (this != &rs) {
-                set_vector(rs.m_v);
-                m_basic_block = rs.m_basic_block;
-            }
-            return *this;
-        }
-
-        rank_support_v5& operator=(rank_support_v5&&) = default;
-
         //! swap Operator
         void swap(rank_support_v5& rs) {
             if (this != &rs) { // if rs and _this_ are not the same object

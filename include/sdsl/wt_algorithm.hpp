@@ -319,8 +319,8 @@ struct has_range_search_2d {
  *          could be found. The second element contains the found symbol.
  */
 template<class t_wt>
-std::pair<bool,typename t_wt::value_type> 
-_symbol_lte(const t_wt& wt,typename t_wt::value_type c) 
+std::pair<bool,typename t_wt::value_type>
+_symbol_lte(const t_wt& wt,typename t_wt::value_type c)
 {
     if (((1ULL) << (wt.max_level)) <= c) {
         // c is greater than any symbol in wt. return the largest symbol!
@@ -341,7 +341,7 @@ _symbol_lte(const t_wt& wt,typename t_wt::value_type c)
                 }
             } else { // dead end
                 // left child can't be empty if left child is
-                node = left_child; 
+                node = left_child;
                 c = sdsl::bits::all_set;
             }
         } else { // go left
@@ -351,7 +351,7 @@ _symbol_lte(const t_wt& wt,typename t_wt::value_type c)
                 if (predecessor_subtree == wt.root()) {
                     // there is no valid predecessor. symbol must be
                     // smaller than the smallest symbol in the wt.
-                    return {false, 0}; 
+                    return {false, 0};
                 }
                 node = predecessor_subtree;
                 c = sdsl::bits::all_set;
@@ -369,8 +369,8 @@ _symbol_lte(const t_wt& wt,typename t_wt::value_type c)
  *          could be found. The second element contains the found symbol.
  */
 template<class t_wt>
-std::pair<bool,typename t_wt::value_type> 
-_symbol_gte(const t_wt& wt,typename t_wt::value_type c) 
+std::pair<bool,typename t_wt::value_type>
+_symbol_gte(const t_wt& wt,typename t_wt::value_type c)
 {
     if (((1ULL) << (wt.max_level)) <= c) {
         // c is greater than any symbol in wt
@@ -402,7 +402,7 @@ _symbol_gte(const t_wt& wt,typename t_wt::value_type c)
                     successor_subtree = right_child;
                 }
             } else { // dead end
-                 // right child can't be empty if left child is
+                // right child can't be empty if left child is
                 node = right_child;
                 c = 0;
             }
@@ -452,7 +452,7 @@ struct has_symbols_wt {
              std::pair<bool,typename T::value_type>
              >::type {return std::true_type();}
 
-    template<typename>
+             template<typename>
     static constexpr std::false_type check(...) {return std::false_type();}
     typedef decltype(check<t_wt>(nullptr)) type;
     static constexpr bool value = type::value;
@@ -501,10 +501,10 @@ symbol_gte(const t_wt& wt, typename t_wt::value_type c)
 template <class t_wt>
 std::vector<typename t_wt::value_type>
 restricted_unique_range_values(const t_wt& wt,
-                    typename t_wt::size_type x_i, 
-                    typename t_wt::size_type x_j, 
-                    typename t_wt::value_type y_i,
-                    typename t_wt::value_type y_j)
+                               typename t_wt::size_type x_i,
+                               typename t_wt::size_type x_j,
+                               typename t_wt::value_type y_i,
+                               typename t_wt::value_type y_j)
 {
     static_assert(t_wt::lex_ordered, "restricted_unique_range_values requires a lex_ordered WT");
 
@@ -516,46 +516,46 @@ restricted_unique_range_values(const t_wt& wt,
     auto upper_y_bound_path = wt.path(upper_y_bound.second);
 
     auto compare_path = [](uint64_t node_path,uint64_t node_path_len,
-                           std::pair<uint64_t,uint64_t> bound_path) {
+    std::pair<uint64_t,uint64_t> bound_path) -> int {
         auto bound_path_len = bound_path.first;
         auto bound_path_val = bound_path.second;
         /* align to same length */
-        if( bound_path_len > node_path_len ) 
+        if (bound_path_len > node_path_len)
             bound_path_val = bound_path_val >> (bound_path_len-node_path_len);
-        if( bound_path_len < node_path_len ) 
+        if (bound_path_len < node_path_len)
             bound_path_val = bound_path_val << (node_path_len-bound_path_len);
         /* cmp */
-        if( node_path < bound_path_val ) return -1;
-        if( node_path > bound_path_val ) return 1;
+        if (node_path < bound_path_val) return -1;
+        if (node_path > bound_path_val) return 1;
         return 0;
     };
 
     std::stack<std::tuple<typename t_wt::node_type,sdsl::range_type,uint64_t,uint64_t>> stack;
     sdsl::range_type initial_range = {x_i,x_j};
     stack.emplace(wt.root(),initial_range,0,0);
-    while(!stack.empty()) {
+    while (!stack.empty()) {
         auto node_data = stack.top(); stack.pop();
         auto node = std::get<0>(node_data);
         auto range = std::get<1>(node_data);
         auto node_path = std::get<2>(node_data);
         auto node_level = std::get<3>(node_data);
-        if(wt.is_leaf(node)) {
+        if (wt.is_leaf(node)) {
             unique_values.emplace_back(wt.sym(node));
         } else {
             auto children = wt.expand(node);
             auto left_path = node_path<<1ULL;
             auto right_path = (node_path<<1ULL)|1ULL;
             auto child_ranges = wt.expand(node,range);
-            if( compare_path(right_path,node_level+1,upper_y_bound_path) < 1) {
+            if (compare_path(right_path,node_level+1,upper_y_bound_path) < 1) {
                 auto right_child = std::get<1>(children);
                 auto right_range = std::get<1>(child_ranges);
-                if(!sdsl::empty(right_range)) 
+                if (!sdsl::empty(right_range))
                     stack.emplace(right_child,right_range,right_path,node_level+1);
             }
-            if( compare_path(left_path,node_level+1,lower_y_bound_path) > -1) {
+            if (compare_path(left_path,node_level+1,lower_y_bound_path) > -1) {
                 auto left_child = std::get<0>(children);
                 auto left_range = std::get<0>(child_ranges);
-                if(!sdsl::empty(left_range)) 
+                if (!sdsl::empty(left_range))
                     stack.emplace(left_child,left_range,left_path,node_level+1);
             }
         }
@@ -572,7 +572,7 @@ restricted_unique_range_values(const t_wt& wt,
 template<typename T>
 struct void_ { typedef void type; };
 
-template<typename t_wt, typename = void>
+template<typename t_wt, typename T = void>
 struct has_node_type {
     static constexpr std::false_type value = std::false_type();
 };

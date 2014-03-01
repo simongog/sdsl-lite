@@ -46,7 +46,10 @@ class rank_support
          */
         rank_support(const bit_vector* v = nullptr);
         //! Copy constructor
-        rank_support(const rank_support& rs);
+        rank_support(const rank_support&) = default;
+        rank_support(rank_support&&) = default;
+        rank_support& operator=(const rank_support&) = default;
+        rank_support& operator=(rank_support&&) = default;
         //! Destructor
         virtual ~rank_support() {}
 
@@ -79,11 +82,6 @@ class rank_support
 inline rank_support::rank_support(const bit_vector* v)
 {
     m_v = v;
-}
-
-inline rank_support::rank_support(const rank_support& rs)
-{
-    m_v = rs.m_v;
 }
 
 //----------------------------------------------------------------------
