@@ -525,7 +525,21 @@ csXprintf(std::ostream& out, const std::string& format,
  * \param  config    Cache configuration.
  * \return The file name of the resource.
  */
-std::string cache_file_name(const std::string& key, const cache_config& config);
+std::string cache_file_name(const std::string& key,const cache_config& config);
+
+//! Returns the file name of the resource.
+/*!
+ * \param  key        Resource key.
+ * \param  config    Cache configuration.
+ * \return The file name of the resource.
+ */
+template<typename T>
+std::string cache_file_name(const std::string& key,const cache_config& config)
+{
+    return cache_file_name(key+"_"+util::class_to_hash(T()), config);
+}
+
+
 
 //! Register the existing resource specified by the key to the cache
 /*!
@@ -552,9 +566,14 @@ std::string tmp_file(const cache_config& config, std::string name_part="");
 std::string tmp_file(const std::string& filename, std::string name_part="");
 
 template<class T>
-bool load_from_cache(T& v, const std::string& key, const cache_config& config)
+bool load_from_cache(T& v, const std::string& key, const cache_config& config, bool add_type_hash=false)
 {
-    std::string file = cache_file_name(key, config);
+    std::string file;
+    if (add_type_hash) {
+        file = cache_file_name<T>(key, config);
+    } else {
+        file = cache_file_name(key, config);
+    }
     if (load_from_file(v, file)) {
         if (util::verbose) {
             std::cerr << "Load `" << file << std::endl;
@@ -572,9 +591,14 @@ bool load_from_cache(T& v, const std::string& key, const cache_config& config)
  *  \param
  */
 template<class T>
-bool store_to_cache(const T& v, const std::string& key, cache_config& config)
+bool store_to_cache(const T& v, const std::string& key, cache_config& config, bool add_type_hash=false)
 {
-    std::string file = cache_file_name(key, config);
+    std::string file;
+    if (add_type_hash) {
+        file = cache_file_name<T>(key, config);
+    } else {
+        file = cache_file_name(key, config);
+    }
     if (store_to_file(v, file)) {
         config.file_map[std::string(key)] = file;
         return true;
