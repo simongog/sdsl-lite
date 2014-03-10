@@ -559,6 +559,19 @@ void register_cache_file(const std::string& key, cache_config& config);
 */
 bool cache_file_exists(const std::string& key, const cache_config& config);
 
+//! Checks if the resource specified by the key and type exists in the cache.
+/*!
+  \tparam T     Type.
+  \param key    Resource key.
+  \param config Cache configuration.
+  \return True, if the file exists, false otherwise.
+*/
+template<typename T>
+bool cache_file_exists(const std::string& key, const cache_config& config)
+{
+    return cache_file_exists(key+"_"+util::class_to_hash(T()), config);
+}
+
 //! Returns a name for a temporary file. I.e. the name was not used before.
 std::string tmp_file(const cache_config& config, std::string name_part="");
 
