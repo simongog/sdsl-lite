@@ -510,8 +510,19 @@ restricted_unique_range_values(const t_wt& wt,
 
     std::vector<typename t_wt::value_type> unique_values;
 
+    // make sure things are within bounds
+    if( x_j > wt.size()-1 ) x_j = wt.size()-1;
+    if( (x_i > x_j) || (y_i > y_j) ) { 
+        return unique_values;
+    }
     auto lower_y_bound = symbol_gte(wt,y_i);
     auto upper_y_bound = symbol_lte(wt,y_j);
+    // is the y range valid?
+    if( !lower_y_bound.first || !upper_y_bound.first 
+        || (lower_y_bound.second > upper_y_bound.second) )  {
+        return unique_values;
+    }
+
     auto lower_y_bound_path = wt.path(lower_y_bound.second);
     auto upper_y_bound_path = wt.path(upper_y_bound.second);
 
