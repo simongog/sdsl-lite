@@ -749,6 +749,20 @@ test_range_unique_values(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
             itr++;
         }
     }
+
+    // check invalid queries don't do the wrong thing
+    //                0 1 2 3 4 5  6  7  8  9  10
+    int_vector<> S = {5,6,7,8,9,5,6,7,13,14,15};
+    t_wt wt_test;
+    construct_im(wt_test,S);
+    auto empty_uniq_values = restricted_unique_range_values(wt,8,3,7,9);
+    ASSERT_TRUE(empty_uniq_values.size() == 0);
+    empty_uniq_values = restricted_unique_range_values(wt,3,8,9,7);
+    ASSERT_TRUE(empty_uniq_values.size() == 0);
+    empty_uniq_values = restricted_unique_range_values(wt,3,8,3,4);
+    ASSERT_TRUE(empty_uniq_values.size() == 0);
+    empty_uniq_values = restricted_unique_range_values(wt,3,8,10,11);
+    ASSERT_TRUE(empty_uniq_values.size() == 0);
 }
 
 //! Test the load method and intersect
