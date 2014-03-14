@@ -560,12 +560,30 @@ class wm_int
                 offset(o), size(sz), level(l), sym(sy) {}
 
             // Copy constructor
-            node_type(const node_type& v) : offset(v.offset), size(v.size),
-                level(v.level), sym(v.sym) {}
+            node_type(const node_type&) = default;
 
-            // Cmp operator
+            // Move copy constructor
+            node_type(node_type&&) = default;
+
+            // Assignment operator
+            node_type& operator=(const node_type&) = default;
+
+            // Move assignment operator
+            node_type& operator=(node_type&&) = default;
+
+            // Comparator operator
             bool operator==(const node_type& v) const {
                 return offset == v.offset;
+            }
+
+            // Smaller operator
+            bool operator<(const node_type& v) const {
+                return offset < v.offset;
+            }
+
+            // Greater operator
+            bool operator>(const node_type& v) const {
+                return offset > v.offset;
             }
         };
 
@@ -576,6 +594,10 @@ class wm_int
 
         value_type sym(const node_type& v) const {
             return v.sym;
+        }
+
+        bool empty(const node_type& v) const {
+            return v.size == (size_type)0;
         }
 
         //! Return the root node
@@ -624,7 +646,7 @@ class wm_int
             auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
             std::pair<range_vec_type, range_vec_type> res;
 
-for (const auto& r : ranges) {
+            for (const auto& r : ranges) {
                 auto sp_rank    = m_tree_rank(v.offset + r.first);
                 auto right_size = m_tree_rank(v.offset + r.second + 1)
                                   - sp_rank;
