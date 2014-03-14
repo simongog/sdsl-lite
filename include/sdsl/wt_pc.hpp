@@ -521,7 +521,7 @@ class wt_pc
          * This method is only available if lex_ordered = true
          */
         template<class t_ret_type = std::tuple<size_type, size_type, size_type>>
-                typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type
+        typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type
         lex_count(size_type i, size_type j, value_type c) const {
             assert(i <= j and j <= size());
             if (1==m_sigma) {
@@ -582,7 +582,7 @@ class wt_pc
          * This method is only available if lex_ordered = true
          */
         template<class t_ret_type = std::tuple<size_type, size_type>>
-                typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type
+        typename std::enable_if<shape_type::lex_ordered, t_ret_type>::type
         lex_smaller_count(size_type i, value_type c)const {
             assert(i <= size());
             if (1==m_sigma) {
@@ -635,9 +635,9 @@ class wt_pc
 
         //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
-        std::string name="") const {
+                            std::string name="") const {
             structure_tree_node* child = structure_tree::add_child(
-                v, name, util::class_name(*this));
+                                             v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size,out,child, "size");
             written_bytes += write_member(m_sigma,out,child, "sigma");
@@ -671,6 +671,10 @@ class wt_pc
             return m_tree.bv_pos_rank(v);
         }
 
+        bool empty(const node_type&) const {
+            return true;
+        }
+
         //! Returns the root node
         node_type root() const {
             return m_tree.root();
@@ -698,14 +702,14 @@ class wt_pc
          */
         std::pair<range_vec_type, range_vec_type>
         expand(const node_type& v,
-        const range_vec_type& ranges) const {
+               const range_vec_type& ranges) const {
             auto v_sp_rank = m_tree.bv_pos_rank(v);
             std::pair<range_vec_type, range_vec_type> res;
 
-for (const auto& r : ranges) {
+            for (const auto& r : ranges) {
                 auto sp_rank    = m_bv_rank(m_tree.bv_pos(v) + r.first);
                 auto right_size = m_bv_rank(m_tree.bv_pos(v) + r.second + 1)
-                - sp_rank;
+                                  - sp_rank;
                 auto left_size  = (r.second-r.first+1)-right_size;
 
                 auto right_sp = sp_rank - v_sp_rank;
@@ -732,7 +736,7 @@ for (const auto& r : ranges) {
             auto v_sp_rank = m_tree.bv_pos_rank(v);
             auto sp_rank    = m_bv_rank(m_tree.bv_pos(v) + r.first);
             auto right_size = m_bv_rank(m_tree.bv_pos(v) + r.second + 1)
-            - sp_rank;
+                              - sp_rank;
             auto left_size  = (r.second-r.first+1)-right_size;
 
             auto right_sp = sp_rank - v_sp_rank;
@@ -758,8 +762,7 @@ for (const auto& r : ranges) {
          *          a valid answer was found (true) or no valid answer (false)
          *          could be found. The second element contains the found symbol.
          */
-        std::pair<bool, value_type> symbol_gte(value_type c) const
-        {
+        std::pair<bool, value_type> symbol_gte(value_type c) const {
             return m_tree.symbol_gte(c);
         }
 
@@ -769,8 +772,7 @@ for (const auto& r : ranges) {
          *          a valid answer was found (true) or no valid answer (false)
          *          could be found. The second element contains the found symbol.
          */
-        std::pair<bool, value_type> symbol_lte(value_type c) const
-        {
+        std::pair<bool, value_type> symbol_lte(value_type c) const {
             return m_tree.symbol_lte(c);
         }
 };
