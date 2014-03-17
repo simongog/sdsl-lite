@@ -148,8 +148,6 @@ class cst_sct3
         // Get the i-th l-index of a node
         // if there exists no ith l-index return node.j+1
         size_type get_ith_l_index(const node_type& node, size_type i, size_type& kpos, size_type& ckpos)const {
-            uint64_t children = 0;
-
             assert(i > 0);
             if (node.cipos > node.jp1pos) { // corresponds to m_lcp[i] <= m_lcp[j+1]
                 ckpos    = node.jp1pos-1;
@@ -165,35 +163,14 @@ class cst_sct3
                 size_type r = ckpos - m_bp_support.rank(ckpos);
                 if (r+1 >= i) { // if there exist more than i l-indices
                     // check if m_first_child[r-i+1..r-1] consists of zeros
-                    const uint64_t* p = m_first_child.data() + (r>>6);
-                    uint8_t offset = r&0x3F;
-
-                    uint64_t w = (*p) & bits::lo_set[offset];
-                    if (w) {
-                        children = offset - bits::hi(w) + 1;
-                    } else if (m_first_child.data() == p) { // w==0 and we are in the first word
-                        children = offset + 2; // since bits::hi(w)=-1 holds
-                    } else {
-                        children = offset + 2;
-                        while (p > m_first_child.data()) {
-                            w = *(--p);
-                            if (0==w)
-                                children += 64;
-                            else {
-                                children += (63-bits::hi(w));
-                                break;
-                            }
-                        }
-                        children += (w==0);
-                    }
-                    if (i < children) {  // there exists an i-th l-index
+                    if (i < degree(node)) {  // there exists an i-th l-index
                         ckpos -= (i-1);
                         assert(m_bp[ckpos] == 0);
                         kpos   = m_bp_support.find_open(ckpos);
                         return m_bp_support.rank(kpos)-1;
                     }
                 }
-                // if i >= children
+                // if i >= degree(node)
                 kpos = node.jp1pos;
                 if (kpos < m_bp.size())
                     ckpos = m_bp_support.find_close(kpos);
@@ -656,6 +633,27 @@ class cst_sct3
             }
         }
 
+        const uint64_t* b_search_rank(const uint64_t* begin, const uint64_t* end, uint64_t goal_rank) const {
+            const uint64_t* it;
+            int64_t count, step;
+            count = end-begin;
+            while (count > 0) {
+                step = count/2;
+                it = begin + step;
+//                std::cout<<"step = "<<step<<std::endl;
+//                std::cout<<"index = "<< (it-m_first_child.data()) << std::endl;
+//                std::cout<<"rank(index*64+64)="<<m_first_child_rank((it-m_first_child.data()+1)<<6)<<" goal_rank="<<goal_rank<<std::endl;
+                // +1, since `it` is in [begin, end)
+                if (m_first_child_rank((it-m_first_child.data()+1)<<6) < goal_rank) {
+                    begin = ++it;
+                    count -= step + 1;
+                } else {
+                    count = step;
+                }
+            }
+            return begin;
+        }
+
         //! Get the number of children of a node v.
         /*!
          * \param v A valid node v.
@@ -669,30 +667,57 @@ class cst_sct3
                 return 0;
             // v is not a leave: v has at least two children
             size_type r = closing_pos_of_first_l_index(v);
-            /*            if( m_bp[r-1] ){// if there exists no next l-index
-                            return 2;
-                        }
-            */
             size_type r0 = r - m_bp_support.rank(r);
             const uint64_t* p = m_first_child.data() + (r0>>6);
             uint8_t offset = r0&0x3F;
 
             uint64_t w = (*p) & bits::lo_set[offset];
-            if (w) {
+            if (w) { // if there is a bit set in the current word
                 return offset-bits::hi(w)+1;
-            } else if (m_first_child.data() == p) { // w==0 and we are in the first word
-                return offset+2; // da bits::hi(w)=-1 sein muesste
+            } else if (m_first_child.data() == p) { // no bit set and we are in the first word
+                return offset+2; // since would have to be bits::hi(w)=-1, child marked in previous word
             } else {
-                size_type res = offset+2;
-                while (p > m_first_child.data()) {
-                    w = *(--p);
-                    if (0==w)
-                        res += 64;
-                    else {
-                        return res + (63-bits::hi(w));
+//                const uint64_t p2=p;
+                size_type res = 0;
+                // we know that the result sigma+63/64
+                uint64_t goal_rank = m_first_child_rank((p-m_first_child.data())<<6);
+                if (0ULL == goal_rank) {
+                    res = (p-m_first_child.data())*64 + offset + 2;
+                } else {
+                    // now: goal_rank > 0
+                    const uint64_t* begin = m_first_child.data();
+                    const uint64_t* end   = p;
+                    // result is in [begin, p)
+                    if ((p - begin)*64 > m_csa.sigma) {
+                        begin = p - ((m_csa.sigma+63)/64);
                     }
+                    // pointer to element which contains the bit
+                    p = b_search_rank(begin, end, goal_rank);
+                    w = *p;
+                    if (w == 0) {
+                        std::cout<<"ERROR: w==0!"<<std::endl;
+                    } else if (m_first_child_rank((p-m_first_child.data()+1)<<6) != goal_rank) {
+                        std::cout<<"ERROR: goal rank="<<goal_rank<<" !=" << m_first_child_rank((p-m_first_child.data()+1)<<6)<<endl;
+                    }
+                    res = ((end-1-p)<<6) + (63-bits::hi(w)) + offset+2;
                 }
-                return res + (w==0);
+                /*
+                                size_type check_res = offset+2;
+                                while (p2 > m_first_child.data()) { // TODO: binary search for large alphabets
+                                    w = *(--p2);
+                                    if (0==w)
+                                        check_res += 64;
+                                    else {
+                                        check_res = check_res + (63-bits::hi(w));
+                                        break;
+                                    }
+                                }
+                                check_res += check_res + (0==w);
+                                if ( check_res != res ){
+                                    std::cout<<"check_res="<<check_res<<"!="<<res<<"=res"<<std::endl;
+                                }
+                */
+                return res;
             }
         }
 
