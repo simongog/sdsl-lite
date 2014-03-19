@@ -40,6 +40,7 @@
 #include <iterator>
 #include <stack> // for the calculation of the balanced parentheses sequence
 #include <ostream>
+#include <type_traits>
 
 namespace sdsl
 {
@@ -85,36 +86,48 @@ struct bp_interval;
 template<class t_csa = csa_wt<>,
          class t_lcp = lcp_dac<>,
          class t_bp_support = bp_support_sada<>,
-         class t_rank = rank_support_v5<>
+         class t_bv = bit_vector,
+         class t_rank = typename std::conditional<
+         std::is_same<t_bv, bit_vector>::value,
+         rank_support_v5<>, typename t_bv::rank_1_type
+         >::type,
+         class t_sel =  typename std::conditional<
+         std::is_same<t_bv, bit_vector>::value and
+         std::is_same<typename t_csa::alphabet_category, byte_alphabet_tag>::value,
+         select_support_scan<>, typename t_bv::select_1_type
+         >::type
          >
 class cst_sct3
 {
     public:
-        typedef cst_dfs_const_forward_iterator<cst_sct3>          const_iterator;
-        typedef cst_bottom_up_const_forward_iterator<cst_sct3>    const_bottom_up_iterator;
-        typedef typename t_csa::size_type                         size_type;
-        typedef ptrdiff_t                                         difference_type;
-        typedef t_csa                                             csa_type;
-        typedef typename t_lcp::template type<cst_sct3>           lcp_type;
-        typedef t_bp_support                                      bp_support_type;
-        typedef typename t_csa::char_type                         char_type;
-        typedef typename t_csa::string_type                       string_type;
-        typedef bp_interval<size_type>                            node_type; //!< Type for the nodes in the tree
-        typedef t_rank                                            fc_rank_support_type;
+        typedef cst_dfs_const_forward_iterator<cst_sct3>       const_iterator;
+        typedef cst_bottom_up_const_forward_iterator<cst_sct3> const_bottom_up_iterator;
+        typedef typename t_csa::size_type                      size_type;
+        typedef ptrdiff_t                                      difference_type;
+        typedef t_csa                                          csa_type;
+        typedef typename t_lcp::template type<cst_sct3>        lcp_type;
+        typedef t_bp_support                                   bp_support_type;
+        typedef typename t_csa::char_type                      char_type;
+        typedef typename t_csa::string_type                    string_type;
+        typedef bp_interval<size_type>                         node_type; //!< Type for the nodes in the tree
+        typedef t_bv                                           bv_type;
+        typedef t_rank                                         rank_type;
+        typedef t_sel                                          sel_type;
 
-        typedef typename t_csa::alphabet_type::comp_char_type     comp_char_type;
-        typedef typename t_csa::alphabet_type::sigma_type         sigma_type;
+        typedef typename t_csa::alphabet_type::comp_char_type  comp_char_type;
+        typedef typename t_csa::alphabet_type::sigma_type      sigma_type;
 
-        typedef typename t_csa::alphabet_category                 alphabet_category;
-        typedef cst_tag                                           index_category;
+        typedef typename t_csa::alphabet_category              alphabet_category;
+        typedef cst_tag                                        index_category;
     private:
-        csa_type             m_csa;
-        lcp_type             m_lcp;
-        bit_vector           m_bp;
-        bp_support_type      m_bp_support;
-        bit_vector           m_first_child; // Note: no rank structure is needed for the first_child bit_vector, except for id()
-        fc_rank_support_type m_first_child_rank;
-        size_type            m_nodes;
+        csa_type        m_csa;
+        lcp_type        m_lcp;
+        bit_vector      m_bp;
+        bp_support_type m_bp_support;
+        bv_type         m_first_child;
+        rank_type       m_first_child_rank;
+        sel_type        m_first_child_select;
+        size_type       m_nodes;
 
         void copy(const cst_sct3& cst) {
             m_csa              = cst.m_csa;
@@ -125,6 +138,8 @@ class cst_sct3
             m_first_child      = cst.m_first_child;
             m_first_child_rank = cst.m_first_child_rank;
             m_first_child_rank.set_vector(&m_first_child);
+            m_first_child_select = cst.m_first_child_select;
+            m_first_child_select.set_vector(&m_first_child);
             m_nodes            = cst.m_nodes;
         }
 
@@ -134,7 +149,7 @@ class cst_sct3
          * \par Time complexity
          *      \f$ \Order{1} \f$
          */
-        inline size_type get_first_l_index(const node_type& node, size_type& kpos, size_type& ckpos)const {
+        inline size_type first_l_index(const node_type& node, size_type& kpos, size_type& ckpos)const {
             if (node.cipos > node.jp1pos) { // corresponds to m_lcp[i] <= m_lcp[j+1]
                 ckpos     = node.jp1pos-1;
             } else { // corresponds to m_lcp[i] > m_lcp[j+1]
@@ -147,23 +162,27 @@ class cst_sct3
 
         // Get the i-th l-index of a node
         // if there exists no ith l-index return node.j+1
-        size_type get_ith_l_index(const node_type& node, size_type i, size_type& kpos, size_type& ckpos)const {
+        /* \param v Node
+         * \param i l-index in [1..degree()]
+         * \paran
+         */
+        size_type select_l_index(const node_type& v, size_type i, size_type& kpos, size_type& ckpos)const {
             assert(i > 0);
-            if (node.cipos > node.jp1pos) { // corresponds to m_lcp[i] <= m_lcp[j+1]
-                ckpos    = node.jp1pos-1;
+            if (v.cipos > v.jp1pos) { // corresponds to m_lcp[i] <= m_lcp[j+1]
+                ckpos    = v.jp1pos-1;
             } else { // corresponds to m_lcp[i] > m_lcp[j+1]
-                ckpos    = node.cipos-1;
+                ckpos    = v.cipos-1;
             }
             assert(m_bp[ckpos] == 0);   // at least the first l-index should be present, i.e. node is not leaf
             if (1 == i) {
                 kpos    = m_bp_support.find_open(ckpos);
                 return m_bp_support.rank(kpos)-1;
-            } else { // i > 1   // TODO for integer-alphabets: replace this linear search
+            } else { // i > 1
                 // numbers of closing parentheses - 1 = index of first child in m_first_child
                 size_type r = ckpos - m_bp_support.rank(ckpos);
                 if (r+1 >= i) { // if there exist more than i l-indices
                     // check if m_first_child[r-i+1..r-1] consists of zeros
-                    if (i < degree(node)) {  // there exists an i-th l-index
+                    if (i < degree(v)) {  // there exists an i-th l-index
                         ckpos -= (i-1);
                         assert(m_bp[ckpos] == 0);
                         kpos   = m_bp_support.find_open(ckpos);
@@ -171,12 +190,12 @@ class cst_sct3
                     }
                 }
                 // if i >= degree(node)
-                kpos = node.jp1pos;
+                kpos = v.jp1pos;
                 if (kpos < m_bp.size())
                     ckpos = m_bp_support.find_close(kpos);
                 else
                     ckpos = m_bp.size();
-                return node.j+1;
+                return v.j+1;
             }
         }
 
@@ -212,7 +231,8 @@ class cst_sct3
         // Get the previous smaller value.
         /*
          * \param i      Position in the original vector.
-         * \param ipos   Corr
+         * \param ipos   Corresponding opening parenthesis in m_bp
+         * \param cipos  Corresponding closing parenthesis to ipos
          * \par Time complexity
          *    \f$ \Order{\frac{\sigma}{w}} \f$, where w=64 is the word size,
          *    can be implemented in \f$\Order{1}\f$ with rank and select.
@@ -243,14 +263,21 @@ class cst_sct3
                     psvcpos = m_bp_support.find_close(psvpos);
                     return m_bp_support.rank(psvpos)-1;
                 }
-            } else {// TODO for integer-alphabets: replace this linear process by a binary search
-                cipos += 64-(r0&0x3F);
+            } else {
+                size_type delta = 63-(r0&0x3F);
                 ++p;
-                while (!(w=*p)) { // while w==0
+                int steps = 4;
+                while (!(w=*p) and steps-- > 0) { // while w==0
                     ++p;
-                    cipos += 64;
+                    delta += 64;
                 }
-                next_first_child = cipos + bits::lo(w);
+                if (w != 0) {
+                    delta += bits::lo(w) + 1;
+                } else {
+                    auto pos = m_first_child_select(m_first_child_rank(r0+1)+1);
+                    delta    = pos - r0;
+                }
+                next_first_child = cipos + delta;
             }
             if (!m_bp[next_first_child+1]) { // if next parenthesis is a closing one
                 psvcpos = next_first_child+1;
@@ -289,8 +316,9 @@ class cst_sct3
         const bit_vector&           bp               = m_bp;
         const bp_support_type&      bp_support       = m_bp_support;
 
-        const bit_vector&           first_child_bv   = m_first_child;
-        const fc_rank_support_type& first_child_rank = m_first_child_rank;
+        const bv_type&   first_child_bv     = m_first_child;
+        const rank_type& first_child_rank   = m_first_child_rank;
+        const sel_type&  first_child_select = m_first_child_select;
 
         /*! \defgroup cst_sct3_constructors Constructors of cst_sct3 */
         /* @{ */
@@ -361,6 +389,7 @@ class cst_sct3
                 util::swap_support(m_bp_support, cst.m_bp_support, &m_bp, &(cst.m_bp));
                 m_first_child.swap(cst.m_first_child);
                 util::swap_support(m_first_child_rank, cst.m_first_child_rank, &m_first_child, &(cst.m_first_child));
+                util::swap_support(m_first_child_select, cst.m_first_child_select, &m_first_child, &(cst.m_first_child));
                 std::swap(m_nodes, cst.m_nodes);
                 // anything else has to be swapped before swapping lcp
                 swap_lcp(m_lcp, cst.m_lcp, *this, cst);
@@ -620,38 +649,17 @@ class cst_sct3
             if (1 == i) {
                 size_type k = 0, kpos = 0, k_find_close = 0;
                 // v is not a leave: v has at least two children
-                k = get_first_l_index(v, kpos, k_find_close);// get first l-index k and the position of k
+                k = select_l_index(v, 1, kpos, k_find_close);// get first l-index k and the position of k
                 return node_type(v.i, k-1, v.ipos, v.cipos, kpos);
             } else { // i > 1
                 size_type k1, kpos1, k_find_close1;
-                k1 = get_ith_l_index(v, i-1, kpos1, k_find_close1);
+                k1 = select_l_index(v, i-1, kpos1, k_find_close1);
                 if (k1 == v.j+1)
                     return root();
                 size_type k2, kpos2, k_find_close2;
-                k2 = get_ith_l_index(v, i, kpos2, k_find_close2);
+                k2 = select_l_index(v, i, kpos2, k_find_close2);
                 return node_type(k1, k2-1, kpos1, k_find_close1, kpos2);
             }
-        }
-
-        const uint64_t* b_search_rank(const uint64_t* begin, const uint64_t* end, uint64_t goal_rank) const {
-            const uint64_t* it;
-            int64_t count, step;
-            count = end-begin;
-            while (count > 0) {
-                step = count/2;
-                it = begin + step;
-//                std::cout<<"step = "<<step<<std::endl;
-//                std::cout<<"index = "<< (it-m_first_child.data()) << std::endl;
-//                std::cout<<"rank(index*64+64)="<<m_first_child_rank((it-m_first_child.data()+1)<<6)<<" goal_rank="<<goal_rank<<std::endl;
-                // +1, since `it` is in [begin, end)
-                if (m_first_child_rank((it-m_first_child.data()+1)<<6) < goal_rank) {
-                    begin = ++it;
-                    count -= step + 1;
-                } else {
-                    count = step;
-                }
-            }
-            return begin;
         }
 
         //! Get the number of children of a node v.
@@ -677,47 +685,24 @@ class cst_sct3
             } else if (m_first_child.data() == p) { // no bit set and we are in the first word
                 return offset+2; // since would have to be bits::hi(w)=-1, child marked in previous word
             } else {
-//                const uint64_t p2=p;
-                size_type res = 0;
-                // we know that the result sigma+63/64
-                uint64_t goal_rank = m_first_child_rank((p-m_first_child.data())<<6);
-                if (0ULL == goal_rank) {
-                    res = (p-m_first_child.data())*64 + offset + 2;
-                } else {
-                    // now: goal_rank > 0
-                    const uint64_t* begin = m_first_child.data();
-                    const uint64_t* end   = p;
-                    // result is in [begin, p)
-                    if ((p - begin)*64 > m_csa.sigma) {
-                        begin = p - ((m_csa.sigma+63)/64);
+                size_type res = offset+2;
+                int steps = 4;
+                // search in previous four words for result
+                while (p > m_first_child.data() and steps-- > 0) {
+                    w = *(--p);
+                    if (0 == w)
+                        res += 64;
+                    else {
+                        return res + (63-bits::hi(w));
                     }
-                    // pointer to element which contains the bit
-                    p = b_search_rank(begin, end, goal_rank);
-                    w = *p;
-                    if (w == 0) {
-                        std::cout<<"ERROR: w==0!"<<std::endl;
-                    } else if (m_first_child_rank((p-m_first_child.data()+1)<<6) != goal_rank) {
-                        std::cout<<"ERROR: goal rank="<<goal_rank<<" !=" << m_first_child_rank((p-m_first_child.data()+1)<<6)<<endl;
-                    }
-                    res = ((end-1-p)<<6) + (63-bits::hi(w)) + offset+2;
                 }
-                /*
-                                size_type check_res = offset+2;
-                                while (p2 > m_first_child.data()) { // TODO: binary search for large alphabets
-                                    w = *(--p2);
-                                    if (0==w)
-                                        check_res += 64;
-                                    else {
-                                        check_res = check_res + (63-bits::hi(w));
-                                        break;
-                                    }
-                                }
-                                check_res += check_res + (0==w);
-                                if ( check_res != res ){
-                                    std::cout<<"check_res="<<check_res<<"!="<<res<<"=res"<<std::endl;
-                                }
-                */
-                return res;
+                // if not found: use rank + select to answer query
+                auto goal_rank = m_first_child_rank(r0);
+                if (goal_rank == 0) {
+                    return r0+2;
+                } else {
+                    return r0-m_first_child_select(goal_rank)+1;
+                }
             }
         }
 
@@ -768,7 +753,7 @@ class cst_sct3
             while (l_bound < r_bound) {
                 mid = (l_bound + r_bound) >> 1;
 
-                l_index = get_ith_l_index(v, mid-1, kpos, ckpos);
+                l_index = select_l_index(v, mid-1, kpos, ckpos);
                 char_pos = get_char_pos(l_index, d, m_csa);
 
                 if (char_inc_min_pos > char_pos) {
@@ -869,7 +854,7 @@ class cst_sct3
                 return 0;
             } else {
                 size_type kpos, ckpos;
-                size_type l = get_first_l_index(v, kpos, ckpos);
+                size_type l = select_l_index(v, 1, kpos, ckpos);
                 return m_lcp[l];
             }
         }
@@ -1107,8 +1092,8 @@ class cst_sct3
 // == template functions ==
 
 
-template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
-cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::cst_sct3(cache_config& config, bool build_only_bps)
+template<class t_csa, class t_lcp, class t_bp_support, class t_bv, class t_rank, class t_sel>
+cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::cst_sct3(cache_config& config, bool build_only_bps)
 {
     {
         auto event = memory_monitor::event("bps-sct");
@@ -1122,6 +1107,7 @@ cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::cst_sct3(cache_config& config, boo
         auto event = memory_monitor::event("bpss-sct");
         util::init_support(m_bp_support, &m_bp);
         util::init_support(m_first_child_rank, &m_first_child);
+        util::init_support(m_first_child_select, &m_first_child);
     }
     if (!build_only_bps) {
         auto event = memory_monitor::event("clcp");
@@ -1135,8 +1121,8 @@ cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::cst_sct3(cache_config& config, boo
     }
 }
 
-template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
-auto cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::serialize(std::ostream& out, structure_tree_node* v, std::string name) const -> size_type
+template<class t_csa, class t_lcp, class t_bp_support, class t_bv, class t_rank, class t_sel>
+auto cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::serialize(std::ostream& out, structure_tree_node* v, std::string name) const -> size_type
 {
     structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
     size_type written_bytes = 0;
@@ -1146,25 +1132,29 @@ auto cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::serialize(std::ostream& out, 
     written_bytes += m_bp_support.serialize(out, child, "bp_support");
     written_bytes += m_first_child.serialize(out, child, "mark_child");
     written_bytes += m_first_child_rank.serialize(out, child, "mark_child_rank");
+    written_bytes += m_first_child_select.serialize(out, child, "mark_child_select");
     written_bytes += write_member(m_nodes, out, child, "node_cnt");
     structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
 
-template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
-void cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::load(std::istream& in)
+template<class t_csa, class t_lcp, class t_bp_support, class t_bv, class t_rank, class t_sel>
+void cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::load(std::istream& in)
 {
     m_csa.load(in);
     load_lcp(m_lcp, in, *this);
     m_bp.load(in);
     m_bp_support.load(in, &m_bp);
     m_first_child.load(in);
-    m_first_child_rank.load(in, &m_first_child);
+    m_first_child_rank.load(in);
+    m_first_child_rank.set_vector(&m_first_child);
+    m_first_child_select.load(in);
+    m_first_child_select.set_vector(&m_first_child);
     read_member(m_nodes, in);
 }
 
-template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
-cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>& cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::operator=(const cst_sct3& cst)
+template<class t_csa, class t_lcp, class t_bp_support, class t_bv, class t_rank, class t_sel>
+cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>& cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::operator=(const cst_sct3& cst)
 {
     if (this != &cst) {
         copy(cst);
@@ -1172,8 +1162,8 @@ cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>& cst_sct3<t_csa, t_lcp, t_bp_suppor
     return *this;
 }
 
-template<class t_csa, class t_lcp, class t_bp_support, class t_rank>
-cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>& cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>::operator=(cst_sct3&& cst)
+template<class t_csa, class t_lcp, class t_bp_support, class t_bv, class t_rank, class t_sel>
+cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>& cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::operator=(cst_sct3&& cst)
 {
     if (this != &cst) {
         m_csa              = std::move(cst.m_csa);
@@ -1184,6 +1174,8 @@ cst_sct3<t_csa, t_lcp, t_bp_support, t_rank>& cst_sct3<t_csa, t_lcp, t_bp_suppor
         m_first_child      = std::move(cst.m_first_child);
         m_first_child_rank = std::move(cst.m_first_child_rank);
         m_first_child_rank.set_vector(&m_first_child);
+        m_first_child_select = std::move(cst.m_first_child_select);
+        m_first_child_select.set_vector(&m_first_child);
         m_nodes            = std::move(cst.m_nodes);
     }
     return *this;

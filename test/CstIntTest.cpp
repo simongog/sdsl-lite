@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstdlib> // for rand()
 #include <string>
+#include <random>
 
 using namespace sdsl;
 using namespace std;
@@ -210,11 +211,29 @@ TYPED_TEST(CstIntTest, IdMethod)
     }
 }
 
-TYPED_TEST(CstIntTest, SelectChild)
+template<class t_cst>
+size_type naive_degree(const t_cst& cst, const typename t_cst::node_type& v)
+{
+    if (cst.is_leaf(v)) {
+        return 0;
+    } else {
+        size_type res = 0;
+        auto w = cst.select_child(v, 1);
+        while (cst.root() != w) {
+            ++res;
+            w = cst.sibling(w);
+        }
+        return res;
+    }
+}
+
+TYPED_TEST(CstIntTest, DegreeAndSelectChild)
 {
     TypeParam cst;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     if (cst.size() > 1) {
+        size_type degree = naive_degree(cst, cst.root());
+        ASSERT_EQ(degree, cst.degree(cst.root()));
         ASSERT_EQ(cst.csa.sigma, cst.degree(cst.root()));
         size_type lb = 0;
         for (size_type i=1; i <= cst.csa.sigma; ++i) {
@@ -225,10 +244,21 @@ TYPED_TEST(CstIntTest, SelectChild)
         ASSERT_EQ(cst.rb(cst.root()), lb-1);
 
         size_type i=1;
-for (auto v  : cst.children(cst.root())) {
+        for (auto v  : cst.children(cst.root())) {
             ASSERT_TRUE(i <= cst.degree(cst.root()));
             ASSERT_EQ(cst.select_child(cst.root(),i), v) << i << "!";
             ++i;
+        }
+        std::mt19937_64 rng;
+        std::uniform_int_distribution<uint64_t> dist(0, cst.csa.sigma);
+        auto dice = bind(dist, rng);
+        for (size_type i=1; i < 10; ++i) {
+            auto w = cst.root();
+            while (!cst.is_leaf(w)) {
+                degree = naive_degree(cst, w);
+                ASSERT_EQ(degree, cst.degree(w));
+                w = cst.select_child(w, (dice()%degree)+1);
+            }
         }
     } else if (cst.size() == 1) {
         ASSERT_EQ(1U, cst.csa.sigma);
