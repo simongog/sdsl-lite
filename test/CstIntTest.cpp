@@ -5,9 +5,13 @@
 #include <vector>
 #include <cstdlib> // for rand()
 #include <string>
+#include <random>
 
 using namespace sdsl;
 using namespace std;
+
+using namespace std::chrono;
+using timer = std::chrono::high_resolution_clock;
 
 namespace
 {
@@ -210,25 +214,68 @@ TYPED_TEST(CstIntTest, IdMethod)
     }
 }
 
-TYPED_TEST(CstIntTest, SelectChild)
+template<class t_cst>
+size_type naive_degree(const t_cst& cst, const typename t_cst::node_type& v)
+{
+    if (cst.is_leaf(v)) {
+        return 0;
+    } else {
+        size_type res = 0;
+        auto w = cst.select_child(v, 1);
+        while (cst.root() != w) {
+            ++res;
+            w = cst.sibling(w);
+        }
+        return res;
+    }
+}
+
+template<class T>
+bool my_timeout(const timer::time_point& tp, T limit)
+{
+    return duration_cast<seconds>(timer::now()- tp).count() > limit;
+}
+
+TYPED_TEST(CstIntTest, DegreeAndSelectChild)
 {
     TypeParam cst;
     ASSERT_EQ(true, load_from_file(cst, temp_file));
     if (cst.size() > 1) {
+        size_type degree = naive_degree(cst, cst.root());
+        ASSERT_EQ(degree, cst.degree(cst.root()));
         ASSERT_EQ(cst.csa.sigma, cst.degree(cst.root()));
         size_type lb = 0;
+        auto start = timer::now();
         for (size_type i=1; i <= cst.csa.sigma; ++i) {
             auto v = cst.select_child(cst.root(), i);
             ASSERT_EQ(lb, cst.lb(v));
             lb = cst.rb(v)+1;
+            if (my_timeout(start, 5)) { break; }
         }
-        ASSERT_EQ(cst.rb(cst.root()), lb-1);
+        if (!my_timeout(start, 5)) {
+            ASSERT_EQ(cst.rb(cst.root()), lb-1);
+        }
 
+        start = timer::now();
         size_type i=1;
-for (auto v  : cst.children(cst.root())) {
+        for (auto v  : cst.children(cst.root())) {
             ASSERT_TRUE(i <= cst.degree(cst.root()));
             ASSERT_EQ(cst.select_child(cst.root(),i), v) << i << "!";
             ++i;
+            if (my_timeout(start, 5)) { break; }
+        }
+        std::mt19937_64 rng;
+        std::uniform_int_distribution<uint64_t> dist(0, cst.csa.sigma);
+        auto dice = bind(dist, rng);
+        start = timer::now();
+        for (size_type i=1; i < 10; ++i) {
+            auto w = cst.root();
+            while (!cst.is_leaf(w)) {
+                degree = naive_degree(cst, w);
+                ASSERT_EQ(degree, cst.degree(w));
+                w = cst.select_child(w, (dice()%degree)+1);
+                if (my_timeout(start, 5)) { break; }
+            }
         }
     } else if (cst.size() == 1) {
         ASSERT_EQ(1U, cst.csa.sigma);

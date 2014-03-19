@@ -191,7 +191,7 @@ construct_supercartesian_tree_bp_succinct(int_vector_buffer<t_width>& lcp_buf, c
                         vec_stack.pop(); ++k; // writing a closing parenthesis, bp is already initialized to zeros
                     }
                 } else {
-                    vec_stack.push(last); // "lazy stack" trick: Beschleunigung: ca 25 %
+                    vec_stack.push(last); // "lazy stack" trick: speed-up about 25 %
                 }
                 bp[k++] = 1; // writing an opening parenthesis
                 last = x;
@@ -228,7 +228,7 @@ construct_supercartesian_tree_bp_succinct_and_first_child(int_vector_buffer<t_wi
 {
     typedef bit_vector::size_type size_type;
     size_type n = lcp_buf.size();
-    bp.resize(2*n);      // resize bit vector for balanaced parantheses to 2 n bits
+    bp.resize(2*n);      // resize bit vector for balanced parentheses to 2 n bits
     bp_fc.resize(n);
     if (n == 0)	// if n == 0 we are done
         return 0;
@@ -276,7 +276,7 @@ construct_supercartesian_tree_bp_succinct_and_first_child(int_vector_buffer<t_wi
             bp_fc[k_fc] = 1;
             ++fc_cnt;
         }
-        // writing a closing parenthesis in bp, not necessary as bp is initalized with zeros
+        // writing a closing parenthesis in bp, not necessary as bp is initialized with zeros
         ++k;
         ++k_fc;
     }
