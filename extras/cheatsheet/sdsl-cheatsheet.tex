@@ -183,6 +183,7 @@ urlcolor=githublink           % color of external links
 \newcommand{\sdslwthutu}{\code{wt\_hutu}}
 \newcommand{\sdslwtblcd}{\code{wt\_blcd}}
 \newcommand{\sdslwtint}{\code{wt\_int}}
+\newcommand{\sdslwmint}{\code{wm\_int}}
 \newcommand{\sdslwtrlmn}{\code{wt\_rlmn}}
 %%%% CSAs
 \newcommand{\sdslcsabitcompressed}{\code{csa\_bitcompressed}}
@@ -362,30 +363,49 @@ $\code{select(}i\code{)}=\min\{j\mid \code{rank(}j\!+\!1\code{)}=i\}$.
 Wavelet trees represent sequences over byte or integer alphabets of size $\sigma$ 
 and consist of a tree of BVs. Rank and select on the sequences is reduced to rank and select on BVs,
 and the runtime is multiplied by a factor in $[H_0,\log\sigma]$.
-\begin{tabular}{@{}llcc@{}}
-\textit{Class}    &\textit{Shape} & \code{lex\_ordered} & \textit{Default alphabet}\\
-\href{\sdslgitinc/wt_blcd.hpp}{\sdslwtblcd} & Balanced & \myYES & byte \\
-\href{\sdslgitinc/wt_huff.hpp}{\sdslwthuff} & Huffman & \myNO & byte\\
-\href{\sdslgitinc/wt_hutu.hpp}{\sdslwthutu} & Hu-Tucker & \myYES & byte \\
-\href{\sdslgitinc/wt_int.hpp}{\sdslwtint} & Balanced & \myYES & integer \\
-\href{\sdslgitinc/wt_rlmn.hpp}{\sdslwtrlmn} & \multicolumn{3}{c}{underlying WT dependent} \\
+\begin{tabular}{@{}llccc@{}}
+\textit{Class}    &\textit{Shape} & \code{lex\_ordered} & \textit{Default}   &   Travers- \\
+                  &               &                     &  \textit{alphabet} &    able    \\
+\href{\sdslgitinc/wt_rlmn.hpp}{\sdslwtrlmn} & \multicolumn{3}{c}{underlying WT dependent}& \myNO \\
+\href{\sdslgitinc/wt_huff.hpp}{\sdslwthuff} & Huffman & \myNO & byte    & \myYES \\
+\href{\sdslgitinc/wm_int.hpp}{\sdslwmint} & Balanced & \myNO  & integer & \myYES \\
+\href{\sdslgitinc/wt_blcd.hpp}{\sdslwtblcd} & Balanced & \myYES & byte  & \myYES \\
+\href{\sdslgitinc/wt_hutu.hpp}{\sdslwthutu} & Hu-Tucker & \myYES & byte & \myYES \\
+\href{\sdslgitinc/wt_int.hpp}{\sdslwtint} & Balanced & \myYES & integer & \myYES \\
 % TODO: \verb!wt_rlg!
 \end{tabular}
+\textit{Public~types:} \code{value\_type}, \code{size\_type}, and \code{node\_type}
+(if WT is traversable). 
+In the following let $c$ be a symbol, $i$,$j$,$k$, and $q$ integers, 
+$v$ a node, and $r$ a range.\\
 \textit{Public~methods:} 
+\code{size()}, 
 \code{operator[$i$]},
 \code{rank($i$,c)},
 \code{select($i$,c)},
 \code{inverse\_select($i$)},
-\code{size()}, \code{begin()}, \code{end()}
+\code{begin()}, \code{end()}.
 \\
-Order preserving WTs (\code{lex\_ordered}) provide also the 
-\code{lex\_count} method. In addition
+Traversable WTs provide also: 
+\code{root()}, \code{is\_leaf($v$)},
+\code{empty($v$)}, \code{sym($v$)},
+\code{expand($v$)},
+\code{expand($v$,$r$)},
+\code{expand($v$,std::vector<$r$>)}.\\
+\code{lex\_ordered} WTs provide also:
+\code{lex\_count($i$,$j$,$c$)} and 
+\code{lex\_smaller\_count($i$,$c$)}.    
 \sdslwtint\ provides: 
-\code{range\_search\_2d}, 
-\code{quantil\_freq},
-\code{topk\_greedy},
-\code{topk\_qprobing},
-\code{intersect}.
+\code{range\_search\_2d}.\\
+\href{\sdslgitinc/wt_algorithm.hpp}{wt\_algorithm.hpp}
+contains the following generic WT method (let $wt$ be 
+a WT object):
+\code{intersect($wt$, vector<$r$>)}, 
+\code{quantile\_freq($wt$,$i$,$j$,$q$)},
+\code{interval\_symbols($wt$,$i$,$j$,$k$,...)},
+\code{symbol\_lte($wt$,$c$)},
+\code{symbol\_gte($wt$,$c$)},
+\code{restricted\_unique\_range\_values($wt$,$x_i$,$x_j$,$y_i$,$y_j$)}.
 
 \subsection{Suffix Arrays (\href{\sdslgitinc/suffix_arrays.hpp}{CSA}=IV+WT)}
 Compressed suffix arrays use CIVs or WTs to represent
