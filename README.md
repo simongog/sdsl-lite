@@ -212,6 +212,8 @@ following paper:
       note = {To appear.}
     }
 
+A preliminary version if available [here on arxiv][SEAPAPER].
+
 ## External Resources used in SDSL
 
 We have included the code of two excellent suffix array
@@ -261,7 +263,6 @@ Feel free to contact any of the authors or create an issue on the
 [cmake]: http://www.cmake.org/ "CMake tool"
 [MAKE]: http://www.gnu.org/software/make/ "GNU Make"
 [gcc]: http://gcc.gnu.org/ "GNU Compiler Collection"
-[SPE]: http://people.eng.unimelb.edu.au/sgog/optimized.pdf "Preprint SP&amp;E article"
 [DIVSUF]: http://code.google.com/p/libdivsufsort/ "libdivsufsort"
 [LS]: http://www.sciencedirect.com/science/article/pii/S0304397507005257 "Larson &amp; Sadakane Algorithm"
 [GTEST]: https://code.google.com/p/googletest/ "Google C++ Testing Framework"
@@ -271,3 +272,4 @@ Feel free to contact any of the authors or create an issue on the
 [QSUFIMPL]: http://www.larsson.dogma.net/qsufsort.c "Original Qsufsort Implementation"
 [JESL]: http://www.itu.dk/people/jesl/ "Homepage of Jesper Larsson"
 [CF]: https://github.com/simongog/sdsl-lite/blob/master/COPYING "Licence"
+[SEAPAPER] http://arxiv.org/pdf/1311.1249v1.pdf "SDSL paper"
