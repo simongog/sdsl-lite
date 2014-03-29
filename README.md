@@ -196,15 +196,21 @@ of the library. This allows others to reproduce your experiments exactly.
 Licensing
 ---------
 
-The SDSL library is provided under the GNU General Public License (GPLv3). For
-more information see the COPYING file in the library directory.
+The SDSL library is free software provided under the GNU General Public License
+(GPLv3). For more information see the [COPYING file][CF] in the library
+directory.
 
-Lots of time was spent implementing the many features of the library. If you
-use the library in an academic setting please cite the following paper:
+We distribute this library freely to foster the use and development of advanced
+data structure. If you use the library in an academic setting please cite the
+following paper:
 
-Simon Gog, Matthias Petri: 
-[Optimized Succinct Data Structures for Massive Data][SPE], 
-Accepted for publication in Software, Practice and Experience.
+    @inproceedings{gbmp2014sea,
+      title={From Theory to Practice: Plug and Play with Succinct Data Structures},
+      author={Gog, Simon and Beller, Timo and Moffat, Alistair and Petri, Matthias},
+      booktitle = {13th International Symposium on Experimental Algorithms, (SEA 2014)},
+      year={2014},
+      note = {To appear.}
+    }
 
 ## External Resources used in SDSL
 
@@ -264,3 +270,4 @@ Feel free to contact any of the authors or create an issue on the
 [TUT]: http://simongog.github.io/assets/data/sdsl-slides/tutorial "Tutorial"
 [QSUFIMPL]: http://www.larsson.dogma.net/qsufsort.c "Original Qsufsort Implementation"
 [JESL]: http://www.itu.dk/people/jesl/ "Homepage of Jesper Larsson"
+[CF]: https://github.com/simongog/sdsl-lite/blob/master/COPYING "Licence"
