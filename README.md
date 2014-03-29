@@ -272,4 +272,4 @@ Feel free to contact any of the authors or create an issue on the
 [QSUFIMPL]: http://www.larsson.dogma.net/qsufsort.c "Original Qsufsort Implementation"
 [JESL]: http://www.itu.dk/people/jesl/ "Homepage of Jesper Larsson"
 [CF]: https://github.com/simongog/sdsl-lite/blob/master/COPYING "Licence"
-[SEAPAPER] http://arxiv.org/pdf/1311.1249v1.pdf "SDSL paper"
+[SEAPAPER]: http://arxiv.org/pdf/1311.1249v1.pdf "SDSL paper"
