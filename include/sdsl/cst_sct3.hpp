@@ -1193,7 +1193,9 @@ struct bp_interval {
     bp_interval(t_int i=0, t_int j=0, t_int ipos=0, t_int cipos=0, t_int jp1pos=0):i(i),j(j),ipos(ipos),cipos(cipos),jp1pos(jp1pos) {};
 
     //! Copy constructor
-    bp_interval(const bp_interval& iv):i(iv.i),j(iv.j),ipos(iv.ipos),cipos(iv.cipos),jp1pos(iv.jp1pos) {};
+    bp_interval(const bp_interval& iv) = default;
+    //! Move copy constructor
+    bp_interval(bp_interval&& iv) = default;
 
     bool operator<(const bp_interval& interval)const {
         if (i!=interval.i)
@@ -1216,16 +1218,9 @@ struct bp_interval {
     }
 
     //! Assignment operator.
-    /*! \param interval The interval which should be assigned to the current object.
-    */
-    bp_interval& operator=(const bp_interval& interval) {
-        i = interval.i;
-        j = interval.j;
-        ipos = interval.ipos;
-        cipos = interval.cipos;
-        jp1pos = interval.jp1pos;
-        return *this;
-    }
+    bp_interval& operator=(const bp_interval& interval) = default;
+    //! Move assignment
+    bp_interval& operator=(bp_interval&& interval) = default;
 };
 
 

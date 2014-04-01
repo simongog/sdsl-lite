@@ -795,7 +795,18 @@ class wt_int
          */
         std::pair<node_type, node_type>
         expand(const node_type& v) const {
-            node_type v_left, v_right;
+            node_type v_right = v;
+            return expand(std::move(v_right));
+        }
+
+        //! Returns the two child nodes of an inner node
+        /*! \param v An inner node of a wavelet tree.
+         *  \return Return a pair of nodes (left child, right child).
+         *  \pre !is_leaf(v)
+         */
+        std::pair<node_type, node_type>
+        expand(node_type&& v) const {
+            node_type v_left;
             size_type offset_rank = m_tree_rank(v.offset);
             size_type ones        = m_tree_rank(v.offset + v.size) - offset_rank;
 
@@ -804,12 +815,12 @@ class wt_int
             v_left.level  = v.level + 1;
             v_left.sym    = v.sym<<1;
 
-            v_right.offset = v.offset + m_size + v_left.size;
-            v_right.size   = ones;
-            v_right.level  = v.level + 1;
-            v_right.sym    = (v.sym<<1)|1;
+            v.offset = v.offset + m_size + v_left.size;
+            v.size   = ones;
+            v.level  = v.level + 1;
+            v.sym    = (v.sym<<1)|1;
 
-            return std::make_pair(v_left, v_right);
+            return std::make_pair(std::move(v_left), v);
         }
 
         //! Returns for each range its left and right child ranges
@@ -825,10 +836,27 @@ class wt_int
         std::pair<range_vec_type, range_vec_type>
         expand(const node_type& v,
                const range_vec_type& ranges) const {
-            auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
-            std::pair<range_vec_type, range_vec_type> res;
+            auto ranges_copy = ranges;
+            return expand(v, std::move(ranges_copy));
+        }
 
-            for (const auto& r : ranges) {
+        //! Returns for each range its left and right child ranges
+        /*! \param v      An inner node of an wavelet tree.
+         *  \param ranges A vector of ranges. Each range [s,e]
+         *                has to be contained in v=[v_s,v_e].
+         *  \return A vector a range pairs. The first element of each
+         *          range pair correspond to the original range
+         *          mapped to the left child of v; the second element to the
+         *          range mapped to the right child of v.
+         *  \pre !is_leaf(v) and s>=v_s and e<=v_e
+         */
+        std::pair<range_vec_type, range_vec_type>
+        expand(const node_type& v,
+               range_vec_type&& ranges) const {
+            auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
+            range_vec_type res(ranges.size());
+            size_t i = 0;
+            for (auto& r : ranges) {
                 auto sp_rank    = m_tree_rank(v.offset + r.first);
                 auto right_size = m_tree_rank(v.offset + r.second + 1)
                                   - sp_rank;
@@ -837,10 +865,10 @@ class wt_int
                 auto right_sp = sp_rank - v_sp_rank;
                 auto left_sp  = r.first - right_sp;
 
-                res.first.emplace_back(range_type(left_sp, left_sp + left_size - 1));
-                res.second.emplace_back(range_type(right_sp, right_sp + right_size - 1));
+                r = range_type(left_sp, left_sp + left_size - 1);
+                res[i++] = range_type(right_sp, right_sp + right_size - 1);
             }
-            return res;
+            return make_pair(ranges, std::move(res));
         }
 
         //! Returns for a range its left and right child ranges

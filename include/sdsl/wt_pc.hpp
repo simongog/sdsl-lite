@@ -703,10 +703,27 @@ class wt_pc
         std::pair<range_vec_type, range_vec_type>
         expand(const node_type& v,
                const range_vec_type& ranges) const {
-            auto v_sp_rank = m_tree.bv_pos_rank(v);
-            std::pair<range_vec_type, range_vec_type> res;
+            auto ranges_copy = ranges;
+            return expand(v, std::move(ranges_copy));
+        }
 
-            for (const auto& r : ranges) {
+        //! Returns for each range its left and right child ranges
+        /*! \param v      An inner node of an wavelet tree.
+         *  \param ranges A vector of ranges. Each range [s,e]
+         *                has to be contained in v=[v_s,v_e].
+         *  \return A vector a range pairs. The first element of each
+         *          range pair correspond to the original range
+         *          mapped to the left child of v; the second element to the
+         *          range mapped to the right child of v.
+         *  \pre !is_leaf(v) and s>=v_s and e<=v_e
+         */
+        std::pair<range_vec_type, range_vec_type>
+        expand(const node_type& v,
+               range_vec_type&& ranges) const {
+            auto v_sp_rank = m_tree.bv_pos_rank(v);
+            range_vec_type res(ranges.size());
+            size_t i = 0;
+            for (auto& r : ranges) {
                 auto sp_rank    = m_bv_rank(m_tree.bv_pos(v) + r.first);
                 auto right_size = m_bv_rank(m_tree.bv_pos(v) + r.second + 1)
                                   - sp_rank;
@@ -715,10 +732,10 @@ class wt_pc
                 auto right_sp = sp_rank - v_sp_rank;
                 auto left_sp  = r.first - right_sp;
 
-                res.first.emplace_back(range_type(left_sp, left_sp + left_size - 1));
-                res.second.emplace_back(range_type(right_sp, right_sp + right_size - 1));
+                r = range_type(left_sp, left_sp + left_size - 1);
+                res[i++] = range_type(right_sp, right_sp + right_size - 1);
             }
-            return res;
+            return make_pair(ranges, std::move(res));
         }
 
         //! Returns for a range its left and right child ranges
