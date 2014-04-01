@@ -102,7 +102,7 @@ build-test-clean: clean
 	cd ../benchmark/document_retrieval; make clean-build
 	cd ../benchmark/wavelet_trees; make clean-build
 
-generators: BitVectorGenerator.x IntVectorGenerator.x
+generators: BitVectorGenerator.x IntVectorGenerator.x ReplaceIntVectorValue.x
 
 bits-test: ./BitsTest.x
 	@$(PREFIX) ./BitsTest.x
@@ -233,6 +233,18 @@ test_cases/int-vec.%: IntVectorGenerator.x
 	$(eval DEFAULT:=$(call dim,3,$*))
 	$(eval SEED:=$(call dim,4,$*))
 	@./IntVectorGenerator.x $@ $(LEN) $(WIDTH) $(DEFAULT) $(SEED)
+
+# Format: test_cases/int-vec-sa.[LEN].[WIDTH].[DEFAULT]
+test_cases/int-vec-sa.%: IntVectorGenerator.x
+	@echo "Generate input test_cases/int-vec-sa.$*"
+	$(eval LEN:=$(call dim,1,$*))
+	$(eval WIDTH:=$(call dim,2,$*))
+	$(eval DEFAULT:=$(call dim,3,$*))
+	$(eval SEED:=$(call dim,4,$*))
+	@./IntVectorGenerator.x $@ $(LEN) $(WIDTH) $(DEFAULT) $(SEED)
+	@./ReplaceIntVectorValue.x $@ 0 1
+
+
 
 test_cases/bit-vec.%: BitVectorGenerator.x
 	@echo "Generate input test_cases/bit-vec.$*"
