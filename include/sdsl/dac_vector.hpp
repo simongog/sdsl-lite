@@ -22,6 +22,7 @@
 #define SDSL_DAC_VECTOR
 
 #include "int_vector.hpp"
+#include "rank_support_v5.hpp"
 #include "iterators.hpp"
 
 //! Namespace for the succinct data structure library.
