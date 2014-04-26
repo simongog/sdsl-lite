@@ -156,6 +156,7 @@ urlcolor=githublink           % color of external links
 \newcommand{\sdslintvectorZ}{\code{int\_vector\textless\textgreater}}
 \newcommand{\sdslencvector}{\code{enc\_vector}}
 \newcommand{\sdslvlcvector}{\code{vlc\_vector}}
+\newcommand{\sdsldacvector}{\code{dac\_vector}}
 %%% coder 
 \newcommand{\sdslcodereliasdelta}{\code{coder::elias\_delta}}
 \newcommand{\sdslcodereliasgamma}{\code{coder::elias\_gamma}}
@@ -291,6 +292,12 @@ and
 Class \href{\sdslgitinc/vlc_vector.hpp}{\sdslvlcvector} stores each
 \code{v[i]} as self-delimiting codeword. Samples at rate
 \code{t\_dens} are inserted for fast random access.
+
+Class \href{\sdslgitinc/dac_vector.hpp}{\sdsldacvector} stores
+for each value $x$ the least $(\code{t\_b}-1)$
+significant bits 
+plus a bit which is set if $x\geq 2^{b-1}$. In the latter case,
+the process is repeated with $x'=x/2^{b-1}$.
 
 \subsection{Bitvectors (\href{\sdslgitinc/bit_vectors.hpp}{BV})}
 Representations for a bitvector of length $n$ with $m$ set bits.

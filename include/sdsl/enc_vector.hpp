@@ -88,20 +88,19 @@ class enc_vector
         }
 
     public:
-        //! Default Constructor
-        enc_vector() { }
+        enc_vector() = default;
         enc_vector(const enc_vector&) = default;
         enc_vector(enc_vector&&) = default;
         enc_vector& operator=(const enc_vector&) = default;
         enc_vector& operator=(enc_vector&&) = default;
 
-        //! Constructor for a Container of positive integers.
-        /*! \param c A container of positive integers.
+        //! Constructor for a Container of unsigned integers.
+        /*! \param c A container of unsigned integers.
           */
         template<class Container>
         enc_vector(const Container& c);
 
-        //! Constructor for an int_vector_buffer of positive integers.
+        //! Constructor for an int_vector_buffer of unsigned integers.
         /*
             \param v_buf A int_vector_buf.
         */
