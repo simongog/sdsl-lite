@@ -39,7 +39,7 @@ struct vlc_vector_trait<32> {
     typedef int_vector<32> int_vector_type;
 };
 
-//! A generic immutable space-saving vector class for unsigned positive integers.
+//! A generic immutable space-saving vector class for unsigned integers.
 /*! The values of a vlc_vector are immutable after the constructor call. The class
  *   could be parametrized with a self-delimiting code t_coder and the sample density.
  *  \tparam t_coder Type of self-delimiting coder.
@@ -83,22 +83,20 @@ class vlc_vector
         }
 
     public:
-        //! Default Constructor
-        vlc_vector() {}
-        //! Copy constructor
+        vlc_vector() = default;
         vlc_vector(const vlc_vector&) = default;
         vlc_vector(vlc_vector&&) = default;
         vlc_vector& operator=(const vlc_vector&) = default;
         vlc_vector& operator=(vlc_vector&&) = default;
 
-        //! Constructor for a Container of positive integers.
-        /*! \param c A container of positive integers.
+        //! Constructor for a Container of unsigned integers.
+        /*! \param c A container of unsigned integers.
             \pre No two adjacent values should be equal.
           */
         template<class Container>
         vlc_vector(const Container& c);
 
-        //! Constructor for an int_vector_buffer of positive integers.
+        //! Constructor for an int_vector_buffer of unsigned integers.
         template<uint8_t int_width>
         vlc_vector(int_vector_buffer<int_width>& v_buf);
 

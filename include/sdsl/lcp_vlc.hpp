@@ -69,7 +69,7 @@ class lcp_vlc
     public:
 
         //! Default Constructor
-        lcp_vlc() {}
+        lcp_vlc() = default;
 
         //! Copy / Move constructor
         lcp_vlc(const lcp_vlc&) = default;
