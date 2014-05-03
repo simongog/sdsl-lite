@@ -32,13 +32,15 @@ namespace sdsl
 {
 
 // forward declaration needed for friend declaration
-template<class t_hi_bit_vector= bit_vector,
+template<uint8_t t_b          = 1,
+         class t_hi_bit_vector= bit_vector,
          class t_select_1     = typename t_hi_bit_vector::select_1_type,
          class t_select_0     = typename t_hi_bit_vector::select_0_type>
 class rank_support_sd;  // in sd_vector
 
 // forward declaration needed for friend declaration
-template<class t_hi_bit_vector= bit_vector,
+template<uint8_t t_b          = 1,
+         class t_hi_bit_vector= bit_vector,
          class t_select_1     = typename t_hi_bit_vector::select_1_type,
          class t_select_0     = typename t_hi_bit_vector::select_0_type>
 class select_support_sd;  // in sd_vector
@@ -77,11 +79,10 @@ class sd_vector
         typedef t_select_0                              select_0_support_type;
         typedef t_select_1                              select_1_support_type;
 
-        friend class rank_support_sd<t_hi_bit_vector, select_1_support_type, select_0_support_type>;
-        friend class select_support_sd<t_hi_bit_vector, select_1_support_type, select_0_support_type>;
-
-        typedef rank_support_sd<t_hi_bit_vector, select_1_support_type, select_0_support_type> rank_1_type;
-        typedef select_support_sd<t_hi_bit_vector, select_1_support_type, select_0_support_type> select_1_type;
+        typedef rank_support_sd<0, t_hi_bit_vector, select_1_support_type, select_0_support_type> rank_0_type;
+        typedef rank_support_sd<1, t_hi_bit_vector, select_1_support_type, select_0_support_type> rank_1_type;
+        typedef select_support_sd<0, t_hi_bit_vector, select_1_support_type, select_0_support_type> select_0_type;
+        typedef select_support_sd<1, t_hi_bit_vector, select_1_support_type, select_0_support_type> select_1_type;
 
         typedef t_hi_bit_vector hi_bit_vector_type;
     private:
@@ -108,6 +109,7 @@ class sd_vector
         }
 
     public:
+        const uint8_t&               wl            = m_wl;
         const hi_bit_vector_type&    high          = m_high;
         const int_vector<>&          low           = m_low;
         const select_1_support_type& high_1_select = m_high_1_select;
@@ -306,18 +308,37 @@ class sd_vector
         }
 };
 
+template<uint8_t t_b>
+struct rank_support_sd_trait {
+    typedef bit_vector::size_type size_type;
+    static size_type adjust_rank(size_type r,size_type) {
+        return r;
+    }
+};
+
+template<>
+struct rank_support_sd_trait<0> {
+    typedef bit_vector::size_type size_type;
+    static size_type adjust_rank(size_type r, size_type n) {
+        return n - r;
+    }
+};
+
 //! Rank data structure for sd_vector
-/*! \tparam t_hi_bit_vector Type of the bitvector used for the unary decoded differences of
+/*! \tparam t_b             Bit pattern.
+ *  \tparam t_hi_bit_vector Type of the bitvector used for the unary decoded differences of
  *                          the high part of the positions of the 1s.
  *  \tparam t_select_1      Type of the select structure which is used to select ones in HI.
  *  \tparam t_select_0      Type of the select structure which is used to select zeros in HI.
  */
-template<class t_hi_bit_vector, class t_select_1, class t_select_0>
+template<uint8_t t_b, class t_hi_bit_vector, class t_select_1, class t_select_0>
 class rank_support_sd
 {
+        static_assert(t_b == 1u or t_b == 0u , "rank_support_sd: bit pattern must be `0` or `1`");
     public:
         typedef bit_vector::size_type size_type;
         typedef sd_vector<t_hi_bit_vector, t_select_1, t_select_0> bit_vector_type;
+        enum { b = t_b };
     private:
         const bit_vector_type* m_v;
 
@@ -332,19 +353,19 @@ class rank_support_sd
             assert(i <= m_v->size());
             // split problem in two parts:
             // (1) find  >=
-            size_type high_val = (i >> (m_v->m_wl));
-            size_type sel_high = m_v->m_high_0_select(high_val + 1);
+            size_type high_val = (i >> (m_v->wl));
+            size_type sel_high = m_v->high_0_select(high_val + 1);
             size_type rank_low = sel_high - high_val; //
             if (0 == rank_low)
                 return 0;
-            size_type val_low = i & bits::lo_set[ m_v->m_wl ];
+            size_type val_low = i & bits::lo_set[ m_v->wl ];
             // now since rank_low > 0 => sel_high > 0
             do {
                 if (!sel_high)
                     return 0;
                 --sel_high; --rank_low;
-            } while (m_v->m_high[sel_high] and m_v->m_low[rank_low] >= val_low);
-            return rank_low+1;
+            } while (m_v->high[sel_high] and m_v->low[rank_low] >= val_low);
+            return rank_support_sd_trait<t_b>::adjust_rank(rank_low+1, i);
         }
 
         size_type operator()(size_type i)const {
@@ -377,21 +398,60 @@ class rank_support_sd
         }
 };
 
+template<uint8_t t_b, class t_sd_vec>
+struct select_support_sd_trait {
+    typedef bit_vector::size_type size_type;
+    static size_type select(size_type i, const t_sd_vec* v) {
+        return v->low[i-1] +  // lower part of the number
+               ((v->high_1_select(i) + 1 - i)  << (v->wl));  // upper part
+        //^-number of 0 before the i-th 1-^    ^-shift by wl
+    }
+};
+
+template<class t_sd_vec>
+struct select_support_sd_trait<0, t_sd_vec> {
+    typedef bit_vector::size_type size_type;
+    static size_type select(size_type i, const t_sd_vec* v) {
+        auto ones  = v->low.size();
+        assert(i > 0 and <= v->size() - ones);
+        size_type lb = 1, rb = ones+1;
+        size_type r0 = 0;
+        size_type pos = (size_type)-1;
+        // rb exclusive
+        // invariant: rank0(select_1(rb)) >= i
+        while (lb < rb) {
+            auto mid = lb + (rb-lb)/2;
+            auto x = select_support_sd_trait<1, t_sd_vec>::select(mid, v);
+            auto rank0 = x + 1 - mid;
+            if (rank0 >= i) {
+                rb = mid;
+            } else {
+                r0 = rank0;
+                pos = x;
+                lb = mid + 1;
+            }
+        }
+        return pos + i - r0;
+    }
+};
+
 //! Select data structure for sd_vector
-/*! \tparam t_hi_bit_vector Type of the bitvector used for the unary decoded differences of
+/*! \tparam t_b             Bit pattern.
+ *  \tparam t_hi_bit_vector Type of the bitvector used for the unary decoded differences of
  *                          the high part of the positions of the 1s.
  *  \tparam t_select_1      Type of the select structure which is used to select ones in HI.
  *  \tparam t_select_0      Type of the select structure which is used to select zeros in HI.
  */
-template<class t_hi_bit_vector, class t_select_1, class t_select_0>
+template<uint8_t t_b, class t_hi_bit_vector, class t_select_1, class t_select_0>
 class select_support_sd
 {
     public:
         typedef bit_vector::size_type size_type;
         typedef sd_vector<t_hi_bit_vector, t_select_1, t_select_0> bit_vector_type;
+        enum { b = t_b };
+
     private:
         const bit_vector_type* m_v;
-
     public:
 
         explicit select_support_sd(const bit_vector_type* v=nullptr) {
@@ -400,9 +460,7 @@ class select_support_sd
 
         //! Returns the position of the i-th occurrence in the bit vector.
         size_type select(size_type i)const {
-            return m_v->m_low[i-1] +  // lower part of the number
-                   ((m_v->m_high_1_select(i) + 1 - i)  << (m_v->m_wl));  // upper part
-            //^-number of 0 before the i-th 1-^      ^-shift by m_wl
+            return select_support_sd_trait<t_b, bit_vector_type>::select(i, m_v);
         }
 
         size_type operator()(size_type i)const {

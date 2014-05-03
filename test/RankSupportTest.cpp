@@ -33,7 +33,25 @@ typedef Types<rank_support_il<1, 256>,
         rank_support_rrr<1, 127>,
         rank_support_rrr<1, 128>,
         rank_support_rrr<1, 129>,
-        rank_support_sd<>
+        rank_support_sd<>,
+        rank_support_il<0, 256>,
+        rank_support_il<0, 512>,
+        rank_support_il<0, 1024>,
+        rank_support_rrr<0>,
+        rank_support_v<0>,
+        rank_support_v5<0>,
+        rank_support_rrr<0, 64>,
+        rank_support_rrr<0, 192>,
+        rank_support_rrr<0, 256>,
+        rank_support_rrr<0, 255>,
+        rank_support_rrr<0, 15>,
+        rank_support_rrr<0, 30>,
+        rank_support_rrr<0, 63>,
+        rank_support_rrr<0, 83>,
+        rank_support_rrr<0, 127>,
+        rank_support_rrr<0, 128>,
+        rank_support_rrr<0, 129>,
+        rank_support_sd<1>
         > Implementations;
 
 TYPED_TEST_CASE(RankSupportTest, Implementations);
@@ -48,7 +66,7 @@ TYPED_TEST(RankSupportTest, RankMethod)
     uint64_t rank=0;
     for (uint64_t j=0; j < bvec.size(); ++j) {
         ASSERT_EQ(rank, rs.rank(j));
-        rank += bvec[j];
+        rank += (bvec[j] == TypeParam::b);
     }
     EXPECT_EQ(rank, rs.rank(bvec.size()));
 }

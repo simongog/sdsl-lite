@@ -20,7 +20,6 @@ BIT_VECTOR_TESTS:=$(patsubst %,bit-vector-test/%,$(BIT_VECTOR_TC_PATH))
 RANK_SUPPORT_TESTS:=$(patsubst %,rank-support-test/%,$(BIT_VECTOR_TC_PATH))
 
 SELECT_SUPPORT_TESTS:=$(patsubst %,select-support-test/%,$(BIT_VECTOR_TC_PATH))
-SELECT_SUPPORT0_TESTS:=$(patsubst %,select-support0-test/%,$(BIT_VECTOR_TC_PATH))
 
 WT_BYTE_TC_PATHS:=$(call config_column,WtByteTest.config,2)
 WT_BYTE_TESTS:=$(patsubst %,wt-byte-test/%,$(WT_BYTE_TC_PATHS))
@@ -69,7 +68,6 @@ test:	bits-test \
 	bit-vector-test \
 	rank-support-test\
 	select-support-test\
-	select-support0-test\
 	wt-byte-test \
 	wt-int-test \
 	csa-byte-test \
@@ -131,8 +129,6 @@ rank-support-test: generators $(RANK_SUPPORT_TESTS)
 
 select-support-test: generators $(SELECT_SUPPORT_TESTS)
 
-select-support0-test: generators $(SELECT_SUPPORT_TESTS)
-
 wt-byte-test: generators $(WT_BYTE_TESTS)
 
 wt-int-test: generators $(WT_INT_TESTS)
@@ -164,10 +160,6 @@ rank-support-test/test_cases/%: ./RankSupportTest.x test_cases/%
 select-support-test/test_cases/%: ./SelectSupportTest.x test_cases/%
 	@echo "TEST_CASE: test_cases/$*"
 	@$(PREFIX) ./SelectSupportTest.x test_cases/$*
-
-select-support0-test/test_cases/%: ./SelectSupportTest0.x test_cases/%
-	@echo "TEST_CASE: test_cases/$*"
-	@$(PREFIX) ./SelectSupport0Test.x test_cases/$*
 
 wt-byte-test/test_cases/%: ./WtByteTest.x test_cases/%
 	@echo "TEST_CASE: test_cases/$* semi-external"

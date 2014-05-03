@@ -48,6 +48,7 @@ class select_support_scan : public select_support
         static_assert(t_pat_len == 1u or t_pat_len == 2u , "select_support_scan: bit pattern length must be 1 or 2");
     public:
         typedef bit_vector bit_vector_type;
+        enum { b = t_b };
     public:
         explicit select_support_scan(const bit_vector* v=nullptr) : select_support(v) {}
         select_support_scan(const select_support_scan<t_b,t_pat_len>& ss) : select_support(ss.m_v) {}
