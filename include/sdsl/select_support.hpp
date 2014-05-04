@@ -245,7 +245,6 @@ struct select_support_trait<01,2> {
 
 } // end namespace sdsl
 
-#include "select_support_bs.hpp"
 #include "select_support_mcl.hpp"
 #include "select_support_scan.hpp"
 

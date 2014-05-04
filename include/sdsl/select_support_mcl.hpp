@@ -72,6 +72,7 @@ class select_support_mcl : public select_support
         static_assert(t_pat_len == 1u or t_pat_len == 2u , "select_support_mcl: bit pattern length must be 1 or 2");
     public:
         typedef bit_vector bit_vector_type;
+        enum { b = t_b };
     private:
         uint32_t m_logn                 = 0,     // \f$ log(size) \f$
                  m_logn2                = 0,     // \f$ log^2(size) \f$
@@ -355,45 +356,45 @@ inline auto select_support_mcl<t_b,t_pat_len>::select(size_type i)const -> size_
     i = i-1;
     size_type sb_idx = i>>12;   // i/4096
     size_type offset = i&0xFFF; // i%4096
-if (m_longsuperblock!=nullptr and !m_longsuperblock[sb_idx].empty()) {
-return m_longsuperblock[sb_idx][offset];
-} else {
-    if ((offset&0x3F)==0) {
-        assert(sb_idx < m_superblock.size());
-        assert((offset>>6) < m_miniblock[sb_idx].size());
-        return m_superblock[sb_idx] + m_miniblock[sb_idx][offset>>6/*/64*/];
+    if (m_longsuperblock!=nullptr and !m_longsuperblock[sb_idx].empty()) {
+        return m_longsuperblock[sb_idx][offset];
     } else {
-        i = i-(sb_idx<<12)-((offset>>6)<<6);
-        // now i > 0 and i <= 64
-        assert(i > 0);
-        size_type pos = m_superblock[sb_idx] + m_miniblock[sb_idx][offset>>6] + 1;
+        if ((offset&0x3F)==0) {
+            assert(sb_idx < m_superblock.size());
+            assert((offset>>6) < m_miniblock[sb_idx].size());
+            return m_superblock[sb_idx] + m_miniblock[sb_idx][offset>>6/*/64*/];
+        } else {
+            i = i-(sb_idx<<12)-((offset>>6)<<6);
+            // now i > 0 and i <= 64
+            assert(i > 0);
+            size_type pos = m_superblock[sb_idx] + m_miniblock[sb_idx][offset>>6] + 1;
 
-        // now pos is the position from where we search for the ith argument
-        size_type word_pos = pos>>6;
-        size_type word_off = pos&0x3F;
-        const uint64_t* data = m_v->data() + word_pos;
-        uint64_t carry = select_support_trait<t_b,t_pat_len>::init_carry(data, word_pos);
-        size_type args = select_support_trait<t_b,t_pat_len>::args_in_the_first_word(*data, word_off, carry);
+            // now pos is the position from where we search for the ith argument
+            size_type word_pos = pos>>6;
+            size_type word_off = pos&0x3F;
+            const uint64_t* data = m_v->data() + word_pos;
+            uint64_t carry = select_support_trait<t_b,t_pat_len>::init_carry(data, word_pos);
+            size_type args = select_support_trait<t_b,t_pat_len>::args_in_the_first_word(*data, word_off, carry);
 
-        if (args >= i) {
-            return (word_pos<<6)+select_support_trait<t_b,t_pat_len>::ith_arg_pos_in_the_first_word(*data, i, word_off, carry);
-        }
-        word_pos+=1;
-        size_type sum_args = args;
-        carry = select_support_trait<t_b,t_pat_len>::get_carry(*data);
-        uint64_t old_carry = carry;
-        args = select_support_trait<t_b,t_pat_len>::args_in_the_word(*(++data), carry);
-        while (sum_args + args < i) {
-            sum_args += args;
-            assert(data+1 < m_v->data() + (m_v->capacity()>>6));
-            old_carry = carry;
-            args = select_support_trait<t_b,t_pat_len>::args_in_the_word(*(++data), carry);
+            if (args >= i) {
+                return (word_pos<<6)+select_support_trait<t_b,t_pat_len>::ith_arg_pos_in_the_first_word(*data, i, word_off, carry);
+            }
             word_pos+=1;
+            size_type sum_args = args;
+            carry = select_support_trait<t_b,t_pat_len>::get_carry(*data);
+            uint64_t old_carry = carry;
+            args = select_support_trait<t_b,t_pat_len>::args_in_the_word(*(++data), carry);
+            while (sum_args + args < i) {
+                sum_args += args;
+                assert(data+1 < m_v->data() + (m_v->capacity()>>6));
+                old_carry = carry;
+                args = select_support_trait<t_b,t_pat_len>::args_in_the_word(*(++data), carry);
+                word_pos+=1;
+            }
+            return (word_pos<<6) +
+                   select_support_trait<t_b,t_pat_len>::ith_arg_pos_in_the_word(*data, i-sum_args, old_carry);
         }
-        return (word_pos<<6) +
-               select_support_trait<t_b,t_pat_len>::ith_arg_pos_in_the_word(*data, i-sum_args, old_carry);
     }
-}
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
@@ -438,32 +439,32 @@ auto select_support_mcl<t_b,t_pat_len>::serialize(std::ostream& out, structure_t
     // number of superblocks in the data structure
     size_type sb = (m_arg_cnt+4095)>>12;
 
-if (m_arg_cnt) { // if there exists 1-bits to be supported
-written_bytes += m_superblock.serialize(out, child, "superblock"); // serialize superblocks
-    bit_vector mini_or_long;// Helper vector: mini or long block?
-    if (m_longsuperblock!=nullptr) {
-        mini_or_long.resize(sb); // resize indicator bit_vector to the number of superblocks
-        for (size_type i=0; i< sb; ++i)
-            mini_or_long[i] = !m_miniblock[i].empty();
-    }
-    written_bytes += mini_or_long.serialize(out, child, "mini_or_long");
-    size_type written_bytes_long = 0;
-    size_type written_bytes_mini = 0;
-    for (size_type i=0; i < sb; ++i)
-        if (!mini_or_long.empty() and !mini_or_long[i]) {
-            written_bytes_long += m_longsuperblock[i].serialize(out);
-        } else {
-            written_bytes_mini += m_miniblock[i].serialize(out);
+    if (m_arg_cnt) { // if there exists 1-bits to be supported
+        written_bytes += m_superblock.serialize(out, child, "superblock"); // serialize superblocks
+        bit_vector mini_or_long;// Helper vector: mini or long block?
+        if (m_longsuperblock!=nullptr) {
+            mini_or_long.resize(sb); // resize indicator bit_vector to the number of superblocks
+            for (size_type i=0; i< sb; ++i)
+                mini_or_long[i] = !m_miniblock[i].empty();
         }
-    written_bytes += written_bytes_long;
-    written_bytes += written_bytes_mini;
-    structure_tree_node* child_long = structure_tree::add_child(child, "longsuperblock", util::class_name(m_longsuperblock));
-    structure_tree::add_size(child_long, written_bytes_long);
-    structure_tree_node* child_mini = structure_tree::add_child(child, "minisuperblock", util::class_name(m_miniblock));
-    structure_tree::add_size(child_mini, written_bytes_mini);
-}
-structure_tree::add_size(child, written_bytes);
-return written_bytes;
+        written_bytes += mini_or_long.serialize(out, child, "mini_or_long");
+        size_type written_bytes_long = 0;
+        size_type written_bytes_mini = 0;
+        for (size_type i=0; i < sb; ++i)
+            if (!mini_or_long.empty() and !mini_or_long[i]) {
+                written_bytes_long += m_longsuperblock[i].serialize(out);
+            } else {
+                written_bytes_mini += m_miniblock[i].serialize(out);
+            }
+        written_bytes += written_bytes_long;
+        written_bytes += written_bytes_mini;
+        structure_tree_node* child_long = structure_tree::add_child(child, "longsuperblock", util::class_name(m_longsuperblock));
+        structure_tree::add_size(child_long, written_bytes_long);
+        structure_tree_node* child_mini = structure_tree::add_child(child, "minisuperblock", util::class_name(m_miniblock));
+        structure_tree::add_size(child_mini, written_bytes_mini);
+    }
+    structure_tree::add_size(child, written_bytes);
+    return written_bytes;
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>

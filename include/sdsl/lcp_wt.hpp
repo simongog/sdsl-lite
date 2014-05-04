@@ -25,7 +25,6 @@
 #include "wt_huff.hpp"
 #include "int_vector.hpp"
 #include "iterators.hpp"
-#include "select_support_bs.hpp"
 #include "util.hpp"
 #include <iostream>
 #include <algorithm> // for lower_bound
@@ -62,9 +61,9 @@ class lcp_wt
         typedef const pointer                            const_pointer;
         typedef int_vector<>::size_type                  size_type;
         typedef ptrdiff_t                                difference_type;
-        typedef select_support_bs< rank_support_v<> >    tDummySS;
         typedef wt_huff<bit_vector, rank_support_v<>,
-                tDummySS, tDummySS>                      small_lcp_type;
+                select_support_scan<1>,
+                select_support_scan<0>>          small_lcp_type;
 
         typedef lcp_plain_tag                            lcp_category;
 

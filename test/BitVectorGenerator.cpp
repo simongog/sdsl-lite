@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
             uint64_t x = dice1();
             uint64_t len = dice2();
             for (uint64_t j=x; j<x+len and j<bv.size(); ++j) {
-                bv[j] = 0;
+                bv[j] = 1-default_value;
             }
         }
     } else if ("CRAFTED-MAT-SELECT") {
