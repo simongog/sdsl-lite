@@ -53,7 +53,7 @@ TYPED_TEST(SelectSupportTest, SelectMethod)
     typename TypeParam::bit_vector_type bv(bvec);
     TypeParam ss(&bv);
     for (uint64_t j=0, select=0; j < bvec.size(); ++j) {
-        if (bvec[j] == TypeParam::b) {
+        if (bvec[j] == TypeParam::bit_pat) {
             ++select;
             ASSERT_EQ(j, ss.select(select));
         }

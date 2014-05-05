@@ -66,7 +66,7 @@ TYPED_TEST(RankSupportTest, RankMethod)
     uint64_t rank=0;
     for (uint64_t j=0; j < bvec.size(); ++j) {
         ASSERT_EQ(rank, rs.rank(j));
-        rank += (bvec[j] == TypeParam::b);
+        rank += (bvec[j] == TypeParam::bit_pat);
     }
     EXPECT_EQ(rank, rs.rank(bvec.size()));
 }

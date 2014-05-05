@@ -96,7 +96,7 @@ void test_Constructors(uint8_t template_width, size_type constructor_size, uint8
 //! Test Constructors
 TEST_F(IntVectorTest, Constructors)
 {
-for (auto size : vec_sizes) {
+    for (auto size : vec_sizes) {
         if (size<1000) {                                // Test only for short sizes,
             for (uint8_t width=1; width<=64; ++width) { // but for all possible widths
                 // unspecialized
@@ -244,12 +244,12 @@ TEST_F(IntVectorTest, STL)
         sdsl::int_vector<> iv(vec_sizes[i]);
         ASSERT_EQ(vec_sizes[i], iv.size());
         auto cnt = iv.size();
-for (auto x : iv) {
+        for (auto x : iv) {
             x = --cnt;
         }
         std::sort(iv.begin(), iv.end());
         sdsl::int_vector<>::value_type last = 0;
-for (const auto& x : iv) {
+        for (const auto& x : iv) {
             ASSERT_TRUE(x >= last);
             last = x;
         }
@@ -292,8 +292,10 @@ TEST_F(IntVectorTest, SerializeFixedToVariable)
 {
     sdsl::int_vector<32> iv(123456,0x733D);
     std::string file_name = "tmp/int_vector_fixed_to_var";
-    std::ofstream out(file_name);
-    iv.serialize(out, nullptr, "", true);
+    {
+        std::ofstream out(file_name);
+        iv.serialize(out, nullptr, "", true);
+    }
     sdsl::int_vector<> iv2;
     sdsl::load_from_file(iv2, file_name);
     ASSERT_EQ(iv.size(), iv2.size());
@@ -305,7 +307,7 @@ TEST_F(IntVectorTest, SerializeFixedToVariable)
 
 TEST_F(IntVectorTest, IteratorTest)
 {
-for (auto i : vec_sizes) {
+    for (auto i : vec_sizes) {
         sdsl::int_vector<> iv(i+3);
         sdsl::util::set_to_id(iv);
         sdsl::int_vector<>::iterator it = iv.begin();
@@ -325,7 +327,7 @@ for (auto i : vec_sizes) {
         ASSERT_EQ(iv[iv.size()-2], *it);
         ASSERT_EQ(iv[iv.size()-3], *(--it));
     }
-for (auto i : vec_sizes) {
+    for (auto i : vec_sizes) {
         sdsl::int_vector<> iv(i+3);
         sdsl::util::set_to_id(iv);
         sdsl::int_vector<>::const_iterator it(iv.begin());

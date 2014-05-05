@@ -56,7 +56,7 @@ class rank_support_v5 : public rank_support
     public:
         typedef bit_vector bit_vector_type;
         typedef rank_support_trait<t_b, t_pat_len>  trait_type;
-        enum { b = t_b };
+        enum { bit_pat = t_b };
     private:
 //      basic block for interleaved storage of superblockrank and blockrank
         int_vector<64> m_basic_block;

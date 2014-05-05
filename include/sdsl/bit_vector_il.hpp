@@ -242,7 +242,7 @@ class rank_support_il
     public:
         typedef bit_vector::size_type size_type;
         typedef bit_vector_il<t_bs>   bit_vector_type;
-        enum { b = t_b };
+        enum { bit_pat = t_b };
     private:
         const bit_vector_type* m_v;
         size_type m_block_shift;
@@ -333,7 +333,7 @@ class select_support_il
     public:
         typedef bit_vector::size_type size_type;
         typedef bit_vector_il<t_bs>   bit_vector_type;
-        enum { b = t_b };
+        enum { bit_pat = t_b };
     private:
         const bit_vector_type* m_v;
         size_type m_superblocks;

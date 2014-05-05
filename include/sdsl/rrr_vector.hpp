@@ -404,7 +404,7 @@ class rank_support_rrr
         typedef typename bit_vector_type::size_type size_type;
         typedef typename bit_vector_type::rrr_helper_type rrr_helper_type;
         typedef typename rrr_helper_type::number_type number_type;
-        enum { b = t_b };
+        enum { bit_pat = t_b };
 
     private:
         const bit_vector_type* m_v; //!< Pointer to the rank supported rrr_vector
@@ -518,7 +518,7 @@ class select_support_rrr
         typedef typename bit_vector_type::size_type size_type;
         typedef typename bit_vector_type::rrr_helper_type rrr_helper_type;
         typedef typename rrr_helper_type::number_type number_type;
-        enum { b = t_b };
+        enum { bit_pat = t_b };
     private:
         const bit_vector_type* m_v; //!< Pointer to the rank supported rrr_vector
 

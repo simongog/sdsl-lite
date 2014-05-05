@@ -338,7 +338,7 @@ class rank_support_sd
     public:
         typedef bit_vector::size_type size_type;
         typedef sd_vector<t_hi_bit_vector, t_select_1, t_select_0> bit_vector_type;
-        enum { b = t_b };
+        enum { bit_pat = t_b };
     private:
         const bit_vector_type* m_v;
 
@@ -448,7 +448,7 @@ class select_support_sd
     public:
         typedef bit_vector::size_type size_type;
         typedef sd_vector<t_hi_bit_vector, t_select_1, t_select_0> bit_vector_type;
-        enum { b = t_b };
+        enum { bit_pat = t_b };
 
     private:
         const bit_vector_type* m_v;

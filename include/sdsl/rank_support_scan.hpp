@@ -45,7 +45,7 @@ class rank_support_scan : public rank_support
         static_assert(t_pat_len == 1u or t_pat_len == 2u , "rank_support_scan: bit pattern length must be 1 or 2");
     public:
         typedef bit_vector bit_vector_type;
-        enum { b = t_b };
+        enum { bit_pat = t_b };
     public:
         explicit rank_support_scan(const bit_vector* v = nullptr) {
             set_vector(v);

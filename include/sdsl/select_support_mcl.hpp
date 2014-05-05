@@ -72,7 +72,7 @@ class select_support_mcl : public select_support
         static_assert(t_pat_len == 1u or t_pat_len == 2u , "select_support_mcl: bit pattern length must be 1 or 2");
     public:
         typedef bit_vector bit_vector_type;
-        enum { b = t_b };
+        enum { bit_pat = t_b };
     private:
         uint32_t m_logn                 = 0,     // \f$ log(size) \f$
                  m_logn2                = 0,     // \f$ log^2(size) \f$
