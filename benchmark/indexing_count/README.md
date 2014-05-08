@@ -53,7 +53,7 @@ and test cases from the [Pizza&Chili][pz] website.
    7.2 GB of additional data. On my machine (MacBookPro Retina
    2.6GHz Intel Core i7, 16GB 1600 Mhz DDR3, SSD) the
    benchmark, invoced by `make timing`, took about 11 minutes
-   (excluding the time to downlaod the test instances).
+   (excluding the time to download the test instances).
    Have a look at the [generated report][RES].
  * All created indexes and test results can be deleted
    by calling `make cleanall`.
