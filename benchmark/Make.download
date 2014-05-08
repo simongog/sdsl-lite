@@ -1,8 +1,8 @@
 ../data/%: 
 	$(eval URL:=$(firstword $(call config_filter,test_case.config,$@,4)))
 	@$(if $(URL),,\
-		$(error "No downlaod link nor generation program specified for test case $@") )
-	@echo "Downlaod input from $(URL) using curl"
+		$(error "No download link nor generation program specified for test case $@") )
+	@echo "Download input from $(URL) using curl"
 	$(eval DEST_DIR:=$(shell dirname $@))
 	cd $(DEST_DIR); curl -O $(URL)
 	$(eval FILE:=$(DEST_DIR)/$(notdir $(URL)))

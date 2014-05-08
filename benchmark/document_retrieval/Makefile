@@ -265,8 +265,8 @@ $(BIN_DIR)/word_pat2char_pat: $(SRC_DIR)/word_pat2char_pat.cpp
 dic/%: 
 	$(eval URL:=$(call config_filter,dic.config,$@,4))
 	@$(if $(URL),,\
-		$(error "No downlaod link for dictionary $@") )
-	@echo "Downlaod dictionary from $(URL) using curl"
+		$(error "No download link for dictionary $@") )
+	@echo "Download dictionary from $(URL) using curl"
 	$(eval DEST_DIR:=$(shell dirname $@))
 	cd $(DEST_DIR); curl -O $(URL)
 	$(eval FILE:=$(DEST_DIR)/$(notdir $(URL)))
@@ -277,8 +277,8 @@ dic/%:
 ../data/%.int.sdsl: 
 	$(eval URL:=$(call config_filter,test_case_int.config,$@,4))
 	@$(if $(URL),,\
-		$(error "No downlaod link nor generation program specified for test case $@") )
-	@echo "Downlaod input from $(URL) using curl"
+		$(error "No download link nor generation program specified for test case $@") )
+	@echo "Download input from $(URL) using curl"
 	$(eval DEST_DIR:=$(shell dirname $@))
 	cd $(DEST_DIR); curl -O $(URL)
 	$(eval FILE:=$(DEST_DIR)/$(notdir $(URL)))
