@@ -39,9 +39,9 @@ int main(int argc, char* argv[])
             if (it.visit() == 1) {  // first visit of the node
                 cst_t::node_type v = *it;
                 if ((cst.is_leaf(v) and !short_leaf[cst.lb(v)]) or cst.depth(v) >= m) {    // if not >= m
-                    nocc += cst.size(v)*cst.size(v);     // add occurrences
-                    npat += cst.size(v);
-                    occ_map[cst.size(v)]+=cst.size(v); // add to map for medium calculation
+                    nocc += cst.size(v);     // add occurrences
+                    npat += 1;
+                    occ_map[cst.size(v)]+=1; // add to map for medium calculation
                     it.skip_subtree();      // skip subtree
                 }
             }
