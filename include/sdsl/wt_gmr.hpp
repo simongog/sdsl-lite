@@ -47,7 +47,7 @@ namespace sdsl
 template<uint64_t t_s=32,
          class t_rac=int_vector<>,
          class t_bv=bit_vector,
-         class t_rank=typename bit_vector::rank_1_type>
+         class t_rank=typename t_bv::rank_1_type>
 class inv_multi_perm_support
 {
     public:

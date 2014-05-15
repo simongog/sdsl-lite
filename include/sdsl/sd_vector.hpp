@@ -413,7 +413,7 @@ struct select_support_sd_trait<0, t_sd_vec> {
     typedef bit_vector::size_type size_type;
     static size_type select(size_type i, const t_sd_vec* v) {
         auto ones  = v->low.size();
-        assert(i > 0 and <= v->size() - ones);
+        assert(0 < i and i <= v->size() - ones);
         size_type lb = 1, rb = ones+1;
         size_type r0 = 0;
         size_type pos = (size_type)-1;
