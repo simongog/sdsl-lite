@@ -1,0 +1,63 @@
+% This file declares a macro for showing the results of one test case.
+% macro expects testcase name as parameter.
+\newcommand{\showTestcaseResult}[1]{
+\section{#1 Result}
+
+%draw first picture containing coding rates
+\begin{figure}[htb]
+\begin{tikzpicture}[use background]
+\begin{axis}[
+	width=.75\textwidth,
+	xbar, 
+	xmin=0,
+	xlabel= {Rate (MB/s)},
+	xmajorgrids=true,
+	enlarge x limits={value=0.2, upper},
+	y=1cm,
+	enlarge y limits={true, abs value=0.75},
+	ytick=data,
+	yticklabels from table={\vectortable}{vector},
+	y tick label style={major tick length=0pt},
+	y dir=reverse,
+	legend style={cells={anchor=east},legend pos=outer north east},
+	legend reversed=true,
+	nodes near coords,
+	nodes near coords align={horizontal}]
+\addplot[draw=black,fill=red,discard if not={testcase}{#1}] table
+	[x=decodingrate,y expr=\coordindex,col sep=semicolon,trim cells] 
+	{../results/result.csv};
+\addplot[draw=black,fill=blue,discard if not={testcase}{#1}] table
+	[x=encodingrate,y expr=\coordindex,col sep=semicolon,trim cells] 
+	{../results/result.csv};
+\legend{Decoding,Encoding};
+\end{axis}
+\end{tikzpicture}
+\caption{Coding Rates on Testcase #1}
+\end{figure}
+
+%and second picture containing compression rate
+\begin{figure}[htb]
+\begin{tikzpicture}[use background]
+\begin{axis}[
+	width=.75\textwidth,
+	xbar, 
+	xmin=0,
+	xlabel= {Compression (in percentage)},
+	xmajorgrids=true,
+	enlarge x limits={value=0.2, upper},
+	y=0.6cm,
+	enlarge y limits={true, abs value=0.75},
+	ytick=data,
+	yticklabels from table={\vectortable}{vector},
+	y tick label style={major tick length=0pt},
+	y dir=reverse,
+	nodes near coords,
+	nodes near coords align={horizontal}]
+\addplot[draw=black,fill=green,discard if not={testcase}{#1}] table
+	[x=compressionrate,y expr=\coordindex,col sep=semicolon,trim cells] 
+	{../results/result.csv};
+\end{axis}
+\end{tikzpicture}
+\caption{Compression Rate on Testcase #1}
+\end{figure}
+}

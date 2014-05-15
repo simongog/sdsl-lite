@@ -101,6 +101,7 @@ namespace coder
 class fibonacci;
 class elias_delta;
 class elias_gamma;
+template<uint8_t t_width> class comma;
 }
 
 template<uint8_t t_width>
@@ -272,6 +273,7 @@ class int_vector
         friend class  coder::elias_delta;
         friend class  coder::elias_gamma;
         friend class  coder::fibonacci;
+	template<uint8_t> friend class coder::comma;
         friend class  memory_manager;
 
         friend void util::set_random_bits<int_vector>(int_vector& v, int);
