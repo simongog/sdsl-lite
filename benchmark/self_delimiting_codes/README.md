@@ -32,7 +32,8 @@ Explored dimensions:
    rates and compression can be found in the file `results/result.csv`.
    The used test cases can be found in file `results/tc.csv`.
    The tested vectors can be found in file `results/vat.csv`.
-   The default benchmark TODO: beschreiben wie lang der Test gedauert hat (nicht auf meiner Maschine!)
+   The default benchmark took 14 minutes on my machine (Asus P50IJ
+   Pentium(R) Dual-Core CPU T4500 @ 2.30GHz 2GB).
  * All created binaries and test results can be deleted
    by calling `make cleanall`.
 
