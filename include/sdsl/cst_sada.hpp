@@ -264,7 +264,7 @@ class cst_sada
         const_bottom_up_iterator begin_bottom_up()const {
             if (0 == m_bp.size())  // special case: tree is uninitialized
                 return end_bottom_up();
-            return const_bottom_up_iterator(this, leftmost_leaf_in_the_subtree(root()));
+            return const_bottom_up_iterator(this, leftmost_leaf(root()));
         }
 
 //! Returns an iterator to the element after the last element of a bottom-up traversal of the tree.
