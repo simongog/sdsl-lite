@@ -218,7 +218,7 @@ class cst_bottom_up_const_forward_iterator: public std::iterator<std::forward_it
             if (w == m_cst->root()) {   // if no next right sibling exist
                 m_v = m_cst->parent(m_v);    // go to parent
             } else { // if next right sibling exist
-                m_v = m_cst->leftmost_leaf_in_the_subtree(w);   // go to leaftmost leaf in the subtree of w
+                m_v = m_cst->leftmost_leaf(w);   // go to leaftmost leaf in the subtree of w
             }
             return *this;
         }
