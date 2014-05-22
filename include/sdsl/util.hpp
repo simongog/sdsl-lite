@@ -46,6 +46,7 @@
 #include <chrono>
 #include <atomic>
 #include <mutex>
+#include <algorithm>
 
 // macros to transform a defined name to a string
 #define SDSL_STR(x) #x
@@ -352,7 +353,7 @@ void util::set_random_bits(t_int_vec& v, int seed)
     } else
         rng.seed(seed);
 
-    uint64_t* data = v.m_data;
+    uint64_t* data = v.data();
     if (v.empty())
         return;
     *data = rng();
@@ -373,17 +374,16 @@ void util::mod(t_int_vec& v, typename t_int_vec::size_type m)
 template<class t_int_vec>
 void util::bit_compress(t_int_vec& v)
 {
-    typename t_int_vec::value_type max=0;
-    for (typename t_int_vec::size_type i=0; i < v.size(); ++i) {
-        if (v[i] > max) {
-            max = v[i];
-        }
+    auto max_elem = std::max_element(v.begin(),v.end());
+    uint64_t max = 0;
+    if(max_elem != v.end()) {
+        max = *max_elem;
     }
     uint8_t min_width = bits::hi(max)+1;
     uint8_t old_width = v.width();
     if (old_width > min_width) {
-        const uint64_t* read_data = v.m_data;
-        uint64_t* write_data = v.m_data;
+        const uint64_t* read_data = v.data();
+        uint64_t* write_data = v.data();
         uint8_t read_offset = 0;
         uint8_t write_offset = 0;
         for (typename t_int_vec::size_type i=0; i < v.size(); ++i) {
@@ -415,7 +415,7 @@ void util::expand_width(t_int_vec& v, uint8_t new_width)
 template<class t_int_vec>
 void util::_set_zero_bits(t_int_vec& v)
 {
-    uint64_t* data = v.m_data;
+    uint64_t* data = v.data();
     if (v.empty())
         return;
     // TODO: replace by memset() but take care of size_t in the argument!
@@ -428,7 +428,7 @@ void util::_set_zero_bits(t_int_vec& v)
 template<class t_int_vec>
 void util::_set_one_bits(t_int_vec& v)
 {
-    uint64_t* data = v.m_data;
+    uint64_t* data = v.data();
     if (v.empty())
         return;
     *data = 0xFFFFFFFFFFFFFFFFULL;
@@ -440,10 +440,10 @@ void util::_set_one_bits(t_int_vec& v)
 template<class t_int_vec>
 void util::set_to_value(t_int_vec& v, uint64_t k)
 {
-    uint64_t* data = v.m_data;
+    uint64_t* data = v.data();
     if (v.empty())
         return;
-    uint8_t int_width = v.m_width;
+    uint8_t int_width = v.width();
     if (int_width == 0) {
         throw std::logic_error("util::set_to_value can not be performed with int_width=0!");
     }

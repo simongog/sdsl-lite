@@ -88,7 +88,7 @@ void calculate_sa(const unsigned char* c, typename int_vector<fixedIntWidth>::si
         if (32 == fixedIntWidth or(0==fixedIntWidth and 32 >= oldIntWidth)) {
             sa.width(32);
             sa.resize(len);
-            divsufsort(c, (int32_t*)sa.m_data, len);
+            divsufsort(c, (int32_t*)sa.data(), len);
             // copy integers back to the right positions
             if (oldIntWidth!=32) {
                 for (size_type i=0; i<len; ++i) {
@@ -102,7 +102,7 @@ void calculate_sa(const unsigned char* c, typename int_vector<fixedIntWidth>::si
                 throw std::logic_error("width of int_vector is to small for the text!!!");
             }
             int_vector<> sufarray(len,0,32);
-            divsufsort(c, (int32_t*)sufarray.m_data, len);
+            divsufsort(c, (int32_t*)sufarray.data(), len);
             for (size_type i=0; i<len; ++i) {
                 sa[i] = sufarray[i];
             }
@@ -111,7 +111,7 @@ void calculate_sa(const unsigned char* c, typename int_vector<fixedIntWidth>::si
         uint8_t oldIntWidth = sa.width();
         sa.width(64);
         sa.resize(len);
-        divsufsort64(c, (int64_t*)sa.m_data, len);
+        divsufsort64(c, (int64_t*)sa.data(), len);
         // copy integers back to the right positions
         if (oldIntWidth!=64) {
             for (size_type i=0; i<len; ++i) {

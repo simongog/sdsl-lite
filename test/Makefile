@@ -64,6 +64,7 @@ test:	bits-test \
 	coder-test \
 	int-vector-test \
 	inv-perm-support-test \
+	int-vector-mapper-test \
 	int-vector-buffer-test \
 	bit-vector-test \
 	rank-support-test\
@@ -116,6 +117,9 @@ inv-perm-support-test: ./InvPermSupportTest.x
 
 int-vector-buffer-test: ./IntVectorBufferTest.x
 	@$(PREFIX) ./IntVectorBufferTest.x
+
+int-vector-mapper-test: ./IntVectorMapperTest.x
+	@$(PREFIX) ./IntVectorMapperTest.x
 
 sorted-int-stack-test: ./SortedIntStackTest.x
 	@$(PREFIX) ./SortedIntStackTest.x

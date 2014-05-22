@@ -211,7 +211,7 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
             v.width(std::min((int)8*num_bytes, (int)max_int_width));
             v.resize(file_size / num_bytes);
             if (8 == t_int_vec::fixed_int_width and 1 == num_bytes) {  // if int_vector<8> is created from byte alphabet file
-                in.read((char*)v.m_data, file_size);
+                in.read((char*)v.data(), file_size);
             } else {
                 size_t idx=0;
                 const size_t block_size = conf::SDSL_BLOCK_SIZE*num_bytes;
