@@ -86,6 +86,9 @@ class int_vector_iterator;
 template<class t_int_vector>
 class int_vector_const_iterator;
 
+template<uint8_t t_width>
+class int_vector_mapper;
+
 template<uint8_t b, uint8_t t_patter_len>  // forward declaration
 class rank_support_v;
 
@@ -269,18 +272,11 @@ class int_vector
         friend class  int_vector_iterator_base<int_vector>;
         friend class  int_vector_iterator<int_vector>;
         friend class  int_vector_const_iterator<int_vector>;
+        friend class  int_vector_mapper<t_width>;
         friend class  coder::elias_delta;
         friend class  coder::elias_gamma;
         friend class  coder::fibonacci;
         friend class  memory_manager;
-
-        friend void util::set_random_bits<int_vector>(int_vector& v, int);
-        friend void util::_set_zero_bits<int_vector>(int_vector&);
-        friend void util::_set_one_bits<int_vector>(int_vector&);
-        friend void util::bit_compress<int_vector>(int_vector&);
-        friend void util::set_to_value<int_vector>(int_vector&, uint64_t);
-        friend bool load_vector_from_file<int_vector>(int_vector&, const std::string&,uint8_t,uint8_t);
-        friend void algorithm::calculate_sa<t_width>(const unsigned char* c, typename int_vector<t_width>::size_type len, int_vector<t_width>& sa);
 
         enum { fixed_int_width = t_width }; // make template parameter accessible
 
@@ -374,6 +370,13 @@ for (auto x : il) {
         /*! \returns Const pointer to the raw data of the int_vector
          */
         const uint64_t* data() const {
+            return m_data;
+        }
+
+        //! Pointer to the raw data of the int_vector
+        /*! \returns pointer to the raw data of the int_vector
+         */
+        uint64_t* data() {
             return m_data;
         }
 
