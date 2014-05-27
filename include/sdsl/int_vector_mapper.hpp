@@ -142,11 +142,11 @@ public:
         bit_resize(size_in_bits);
     }
     std::string file_name() const { return m_file_name; }
-    uint8_t width() const { return m_wrapper.width(); }
+    width_type width() const { return m_wrapper.width(); }
     void width(const uint8_t new_int_width) {
         m_wrapper.width(new_int_width);
     }
-    uint64_t size() const { return m_wrapper.size(); }
+    size_type size() const { return m_wrapper.size(); }
     void bit_resize(const size_type bit_size) {
         size_type new_size_in_bytes = ((bit_size + 63) >> 6) << 3;
         if (m_file_size_bytes != new_size_in_bytes + m_data_offset) {

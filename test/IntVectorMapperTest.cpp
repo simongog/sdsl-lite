@@ -261,8 +261,8 @@ TEST_F(IntVectorMapperTest, temp_buffer_test )
 		{
 			auto tmp_buf = sdsl::temp_file_buffer<31>::create();
 			tmp_file_name = tmp_buf.file_name();
-			ASSERT_EQ(tmp_buf.width(),31);
-			ASSERT_EQ(tmp_buf.size(),0);
+			ASSERT_EQ(tmp_buf.width(),(uint8_t)31);
+			ASSERT_EQ(tmp_buf.size(),(size_t)0);
 			ASSERT_TRUE(tmp_buf.empty());
 			for(const auto& val : vec) {
 				tmp_buf.push_back(val);
