@@ -51,7 +51,7 @@ TEST_F(IntVectorMapperTest, iterator)
 			sdsl::int_vector_mapper<64> ivm("tmp/int_vector_mapper_itrtest",true);
 			ASSERT_EQ(size,ivm.size());
 			ASSERT_TRUE(std::equal(ivm.begin(),ivm.end(),vec.begin()));
-			ASSERT_EQ(size,std::distance(ivm.begin(),ivm.end()));
+			ASSERT_EQ(size,(size_t)std::distance(ivm.begin(),ivm.end()));
 		}
 		{
 			sdsl::int_vector_mapper<64> ivm("tmp/int_vector_mapper_itrtest",true);
@@ -73,7 +73,7 @@ TEST_F(IntVectorMapperTest, iterator)
 			sdsl::int_vector_mapper<25> ivm("tmp/int_vector_mapper_itrtest");
 			ASSERT_EQ(size,ivm.size());
 			ASSERT_TRUE(std::equal(ivm.begin(),ivm.end(),vec.begin()));
-			ASSERT_EQ(size,std::distance(ivm.begin(),ivm.end()));
+			ASSERT_EQ(size,(size_t)std::distance(ivm.begin(),ivm.end()));
 		}
 		{
 			sdsl::int_vector_mapper<25> ivm("tmp/int_vector_mapper_itrtest");
@@ -97,7 +97,7 @@ TEST_F(IntVectorMapperTest, iterator)
 			ASSERT_EQ(size,ivm.size());
 			ASSERT_EQ(vec.width(),ivm.width());
 			ASSERT_TRUE(std::equal(ivm.begin(),ivm.end(),vec.begin()));
-			ASSERT_EQ(size,std::distance(ivm.begin(),ivm.end()));
+			ASSERT_EQ(size,(size_t)std::distance(ivm.begin(),ivm.end()));
 		}
 		{
 			sdsl::int_vector_mapper<> ivm("tmp/int_vector_mapper_itrtest");
@@ -133,7 +133,7 @@ TEST_F(IntVectorMapperTest, push_back )
 			sdsl::int_vector_mapper<64> ivm("tmp/int_vector_mapper_push_backtest",true);
 			ASSERT_EQ(vec.size(),ivm.size());
 			ASSERT_TRUE(std::equal(ivm.begin(),ivm.end(),vec.begin()));
-			ASSERT_EQ(vec.size(),std::distance(ivm.begin(),ivm.end()));
+			ASSERT_EQ(vec.size(),(size_t)std::distance(ivm.begin(),ivm.end()));
 		}
 		sdsl::remove("tmp/int_vector_mapper_itrtest");
 	}
@@ -157,7 +157,7 @@ TEST_F(IntVectorMapperTest, push_back )
 			sdsl::int_vector_mapper<31> ivm("tmp/int_vector_mapper_push_backtest");
 			ASSERT_EQ(stdvec.size(),ivm.size());
 			ASSERT_TRUE(std::equal(ivm.begin(),ivm.end(),stdvec.begin()));
-			ASSERT_EQ(stdvec.size(),std::distance(ivm.begin(),ivm.end()));
+			ASSERT_EQ(stdvec.size(),(size_t)std::distance(ivm.begin(),ivm.end()));
 		}
 		sdsl::remove("tmp/int_vector_mapper_push_backtest");
 	}
@@ -182,7 +182,7 @@ TEST_F(IntVectorMapperTest, push_back )
 			sdsl::int_vector_mapper<> ivm("tmp/int_vector_mapper_push_backtest");
 			ASSERT_EQ(stdvec.size(),ivm.size());
 			ASSERT_TRUE(std::equal(ivm.begin(),ivm.end(),stdvec.begin()));
-			ASSERT_EQ(stdvec.size(),std::distance(ivm.begin(),ivm.end()));
+			ASSERT_EQ(stdvec.size(),(size_t)std::distance(ivm.begin(),ivm.end()));
 		}
 		sdsl::remove("tmp/int_vector_mapper_push_backtest");
 	}
