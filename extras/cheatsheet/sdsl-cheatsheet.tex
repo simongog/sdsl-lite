@@ -338,7 +338,7 @@ supported BV for $i \in [0,n]$.
 \href{\sdslgitinc/rrr_vector.hpp}{\sdslranksupportrrr} &
 \sdslrrrvector & 80 & \Order{k} \\
 \href{\sdslgitinc/sd_vector.hpp}{\sdslranksupportsd} &
-\sdslsdvector & 64 & \Order{1} \\
+\sdslsdvector & 64 & \Order{\log{\frac{n}{m}}} \\
 \end{tabular}
 Call~\code{util::init\_support(rs,bv)}~to initialize rank
 structure \code{rs} to bitvector \code{bv}. Call \code{rs($i$)} to get $\code{rank(}i\code{)}=\sum_{k=0}^{k<i}\code{bv[}k\code{]}$
