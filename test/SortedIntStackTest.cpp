@@ -45,7 +45,7 @@ TEST_F(SortedStackTest, Constructors)
 {
     static_assert(std::is_copy_constructible<sdsl::sorted_int_stack>::value, "Type is not copy constructible");
     static_assert(std::is_move_constructible<sdsl::sorted_int_stack>::value, "Type is not move constructible");
-    static_assert(std::is_copy_assignable<sdsl::sorted_int_stack>::value, "Type is not copy constructible");
+    static_assert(std::is_copy_assignable<sdsl::sorted_int_stack>::value, "Type is not copy assignable");
     static_assert(std::is_move_assignable<sdsl::sorted_int_stack>::value, "Type is not move assignable");
     std::stack<uint64_t> exp;
     sdsl::sorted_int_stack sis1(100000+10);
