@@ -82,6 +82,7 @@ class bp_support_sada
         typedef t_rank                      rank_type;
         typedef t_select                    select_type;
     private:
+        static_assert(0 < t_sml_blk, "bp_support_sada: t_sml_blk should be greater than 0!");
         const bit_vector* m_bp        = nullptr;   // the supported balanced parentheses sequence as bit_vector
         rank_type         m_bp_rank;   // RS for the BP sequence => see excess() and rank()
         select_type       m_bp_select; // SS for the BP sequence => see select()
@@ -348,9 +349,6 @@ class bp_support_sada
             m_sml_blocks((m_size+t_sml_blk-1)/t_sml_blk),
             m_med_blocks((m_size+t_sml_blk* t_med_deg-1)/(t_sml_blk* t_med_deg)),
             m_med_inner_blocks(0) {
-            if (t_sml_blk==0) {
-                throw std::logic_error(util::demangle(typeid(this).name())+": t_sml_blk should be greater than 0!");
-            }
             if (bp == nullptr or bp->size()==0)
                 return;
             // initialize rank and select
