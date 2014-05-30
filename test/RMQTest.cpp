@@ -30,11 +30,11 @@ TYPED_TEST_CASE(RMQTest, Implementations);
 
 TYPED_TEST(RMQTest, ConstructAndStore)
 {
+    static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     int_vector<> v;
     load_from_file(v, test_file);
     TypeParam rmq(&v);
-    bool success = sdsl::store_to_file(rmq, temp_file);
-    ASSERT_EQ(success, true);
+    ASSERT_TRUE(sdsl::store_to_file(rmq, temp_file));
 }
 
 // helper class for next test

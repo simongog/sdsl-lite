@@ -59,6 +59,7 @@ TYPED_TEST_CASE(RankSupportTest, Implementations);
 //! Test the rank method
 TYPED_TEST(RankSupportTest, RankMethod)
 {
+    static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     bit_vector bvec;
     ASSERT_TRUE(load_from_file(bvec, test_file));
     typename TypeParam::bit_vector_type bv(bvec);

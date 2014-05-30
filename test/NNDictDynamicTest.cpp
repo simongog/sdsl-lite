@@ -44,6 +44,7 @@ void compare_bv_and_nndd(const sdsl::bit_vector& bv, const sdsl::nn_dict_dynamic
 //! Test Constructors
 TEST_F(NNDictDynamicTest, Constructors)
 {
+    static_assert(sdsl::util::is_regular<sdsl::nn_dict_dynamic>::value, "Type is not regular");
     uint64_t testsize = 100000;
     sdsl::bit_vector bv(testsize, 0);
     sdsl::nn_dict_dynamic nndd(testsize);

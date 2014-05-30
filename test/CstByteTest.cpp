@@ -49,13 +49,13 @@ TYPED_TEST_CASE(CstByteTest, Implementations);
 
 TYPED_TEST(CstByteTest, CreateAndStoreTest)
 {
+    static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     TypeParam cst;
-    ASSERT_EQ(true, cst.empty());
+    ASSERT_TRUE(cst.empty());
     cache_config config(false, temp_dir, util::basename(test_file));
     construct(cst, test_file, config, 1);
     test_case_file_map = config.file_map;
-    bool success = store_to_file(cst, temp_file);
-    ASSERT_EQ(true, success);
+    ASSERT_TRUE(store_to_file(cst, temp_file));
     TypeParam cst2;
     cst2 = cst;
     ASSERT_EQ(cst.size(), cst2.size());
@@ -66,7 +66,7 @@ TYPED_TEST(CstByteTest, CreateAndStoreTest)
 TYPED_TEST(CstByteTest, SwapMethod)
 {
     TypeParam cst1;
-    ASSERT_EQ(true, load_from_file(cst1, temp_file));
+    ASSERT_TRUE(load_from_file(cst1, temp_file));
     size_type n = cst1.size();
     TypeParam cst2;
     ASSERT_EQ((size_type)0, cst2.size());
@@ -82,7 +82,7 @@ TYPED_TEST(CstByteTest, SwapMethod)
 TYPED_TEST(CstByteTest, MoveMethod)
 {
     TypeParam cst1;
-    ASSERT_EQ(true, load_from_file(cst1, temp_file));
+    ASSERT_TRUE(load_from_file(cst1, temp_file));
     size_type n = cst1.size();
     TypeParam cst2 = std::move(cst1);
     ASSERT_EQ(n, cst2.size());
@@ -96,7 +96,7 @@ TYPED_TEST(CstByteTest, MoveMethod)
 TYPED_TEST(CstByteTest, NodeMethod)
 {
     TypeParam cst;
-    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_TRUE(load_from_file(cst, temp_file));
     // doing a depth first traversal through the tree to count the nodes
     check_node_method(cst);
 }
@@ -105,14 +105,14 @@ TYPED_TEST(CstByteTest, NodeMethod)
 TYPED_TEST(CstByteTest, BasicMethods)
 {
     TypeParam cst;
-    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_TRUE(load_from_file(cst, temp_file));
     typedef typename TypeParam::node_type node_type;
     node_type r = cst.root(); // get root node
     // Size of the subtree rooted at r should the size of the suffix array
     ASSERT_EQ(cst.csa.size(), cst.size(r));
     // Check leaf methods
     for (size_type i=0; i < cst.csa.size(); ++i) {
-        ASSERT_EQ(true, cst.is_leaf(cst.select_leaf(i+1)));
+        ASSERT_TRUE(cst.is_leaf(cst.select_leaf(i+1)));
     }
 }
 
@@ -120,7 +120,7 @@ TYPED_TEST(CstByteTest, BasicMethods)
 TYPED_TEST(CstByteTest, SaAccess)
 {
     TypeParam cst;
-    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_TRUE(load_from_file(cst, temp_file));
     sdsl::int_vector<> sa;
     sdsl::load_from_file(sa, test_case_file_map[sdsl::conf::KEY_SA]);
     size_type n = sa.size();
@@ -134,7 +134,7 @@ TYPED_TEST(CstByteTest, SaAccess)
 TYPED_TEST(CstByteTest, MoveSaAccess)
 {
     TypeParam cst_load;
-    ASSERT_EQ(true, load_from_file(cst_load, temp_file));
+    ASSERT_TRUE(load_from_file(cst_load, temp_file));
     TypeParam cst = std::move(cst_load);
     sdsl::int_vector<> sa;
     sdsl::load_from_file(sa, test_case_file_map[sdsl::conf::KEY_SA]);
@@ -149,7 +149,7 @@ TYPED_TEST(CstByteTest, MoveSaAccess)
 TYPED_TEST(CstByteTest, BwtAccess)
 {
     TypeParam cst;
-    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_TRUE(load_from_file(cst, temp_file));
     sdsl::int_vector<8> bwt;
     sdsl::load_from_file(bwt, test_case_file_map[sdsl::conf::KEY_BWT]);
     size_type n = bwt.size();
@@ -163,7 +163,7 @@ TYPED_TEST(CstByteTest, BwtAccess)
 TYPED_TEST(CstByteTest, LcpAccess)
 {
     TypeParam cst;
-    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_TRUE(load_from_file(cst, temp_file));
     sdsl::int_vector<> lcp;
     sdsl::load_from_file(lcp, test_case_file_map[sdsl::conf::KEY_LCP]);
     size_type n = lcp.size();
@@ -177,7 +177,7 @@ TYPED_TEST(CstByteTest, LcpAccess)
 TYPED_TEST(CstByteTest, MoveLcpAccess)
 {
     TypeParam cst_load;
-    ASSERT_EQ(true, load_from_file(cst_load, temp_file));
+    ASSERT_TRUE(load_from_file(cst_load, temp_file));
     TypeParam cst = std::move(cst_load);
     sdsl::int_vector<> lcp;
     sdsl::load_from_file(lcp, test_case_file_map[sdsl::conf::KEY_LCP]);
@@ -195,7 +195,7 @@ TYPED_TEST(CstByteTest, IdMethod)
     // test empty iterator
     ASSERT_EQ(cst.begin(), cst.end());
 
-    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_TRUE(load_from_file(cst, temp_file));
     // doing a depth first traversal through the tree to count the nodes
     typedef typename TypeParam::const_iterator const_iterator;
     typedef typename TypeParam::node_type node_type;
@@ -224,7 +224,7 @@ TYPED_TEST(CstByteTest, IdMethod)
 TYPED_TEST(CstByteTest, SelectChild)
 {
     TypeParam cst;
-    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_TRUE(load_from_file(cst, temp_file));
     if (cst.size() > 1) {
         ASSERT_EQ(cst.csa.sigma, cst.degree(cst.root()));
         size_type lb = 0;
@@ -236,7 +236,7 @@ TYPED_TEST(CstByteTest, SelectChild)
         ASSERT_EQ(cst.rb(cst.root()), lb-1);
 
         size_type i=1;
-for (auto v  : cst.children(cst.root())) {
+        for (auto v  : cst.children(cst.root())) {
             ASSERT_TRUE(i <= cst.degree(cst.root()));
             ASSERT_EQ(cst.select_child(cst.root(),i), v) << i << "!";
             ++i;
@@ -250,7 +250,7 @@ for (auto v  : cst.children(cst.root())) {
 TYPED_TEST(CstByteTest, MoveSelectChild)
 {
     TypeParam cst_load;
-    ASSERT_EQ(true, load_from_file(cst_load, temp_file));
+    ASSERT_TRUE(load_from_file(cst_load, temp_file));
     TypeParam cst = std::move(cst_load);
     if (cst.size() > 1) {
         ASSERT_EQ(cst.csa.sigma, cst.degree(cst.root()));
@@ -263,7 +263,7 @@ TYPED_TEST(CstByteTest, MoveSelectChild)
         ASSERT_EQ(cst.rb(cst.root()), lb-1);
 
         size_type i=1;
-for (auto v  : cst.children(cst.root())) {
+        for (auto v  : cst.children(cst.root())) {
             ASSERT_TRUE(i <= cst.degree(cst.root()));
             ASSERT_EQ(cst.select_child(cst.root(),i), v) << i << "!";
             ++i;
@@ -279,7 +279,7 @@ for (auto v  : cst.children(cst.root())) {
 TYPED_TEST(CstByteTest, SelectLeafAndSn)
 {
     TypeParam cst;
-    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_TRUE(load_from_file(cst, temp_file));
     for (size_type i=0; i < std::min(cst.csa.size(), (size_type)100); ++i) {
         ASSERT_EQ(cst.csa[i], cst.sn(cst.select_leaf(i+1)));
     }
@@ -289,7 +289,7 @@ TYPED_TEST(CstByteTest, SelectLeafAndSn)
 TYPED_TEST(CstByteTest, NodeDepth)
 {
     TypeParam cst;
-    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_TRUE(load_from_file(cst, temp_file));
     auto v = cst.root();
     ASSERT_EQ((size_type)0, cst.node_depth(v));
     for (size_type i=1; i<=10 and !cst.is_leaf(v); ++i) {
@@ -303,7 +303,7 @@ TYPED_TEST(CstByteTest, Child)
 {
     TypeParam cst;
     typedef typename TypeParam::char_type char_type;
-    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_TRUE(load_from_file(cst, temp_file));
     if (cst.size() > 1) {
         std::set<char_type> char_set;
         ASSERT_EQ(cst.csa.sigma, cst.degree(cst.root()));
@@ -329,10 +329,10 @@ TYPED_TEST(CstByteTest, Child)
 TYPED_TEST(CstByteTest, Edge)
 {
     TypeParam cst;
-    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_TRUE(load_from_file(cst, temp_file));
 
     int_vector<8> data;
-    ASSERT_EQ(true, load_vector_from_file(data, test_file, 1));
+    ASSERT_TRUE(load_vector_from_file(data, test_file, 1));
 
     if (cst.csa.size() > 0) {
         auto v = cst.select_leaf(cst.csa.isa[0]+1);
@@ -351,14 +351,14 @@ TYPED_TEST(CstByteTest, Edge)
 TYPED_TEST(CstByteTest, LeftmostRightmostLeaf)
 {
     TypeParam cst;
-    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_TRUE(load_from_file(cst, temp_file));
     if (cst.size() > 0) {
         auto v = cst.select_leaf(cst.size()/2+1);
         while (true) {
             auto v_l = cst.leftmost_leaf(v);
             auto v_r = cst.rightmost_leaf(v);
-            ASSERT_EQ(true, cst.is_leaf(v_l));
-            ASSERT_EQ(true, cst.is_leaf(v_r));
+            ASSERT_TRUE(cst.is_leaf(v_l));
+            ASSERT_TRUE(cst.is_leaf(v_r));
             ASSERT_EQ(cst.lb(v), cst.lb(v_l));
             ASSERT_EQ(cst.rb(v), cst.rb(v_r));
             if (v == cst.root())
@@ -371,7 +371,7 @@ TYPED_TEST(CstByteTest, LeftmostRightmostLeaf)
 TYPED_TEST(CstByteTest, SuffixAndWeinerLink)
 {
     TypeParam cst;
-    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_TRUE(load_from_file(cst, temp_file));
     ASSERT_EQ(cst.root(),cst.sl(cst.root()));
 
     if (cst.size() > 0) {
@@ -397,7 +397,7 @@ TYPED_TEST(CstByteTest, SuffixAndWeinerLink)
 TYPED_TEST(CstByteTest, LcaMethod)
 {
     TypeParam cst;
-    ASSERT_EQ(true, load_from_file(cst, temp_file));
+    ASSERT_TRUE(load_from_file(cst, temp_file));
     uint64_t mask;
     uint8_t log_m = 6;
     // create m/2 pairs of positions in [0..cst.csa.size()-1]
@@ -430,7 +430,7 @@ TYPED_TEST(CstByteTest, LcaMethod)
 TYPED_TEST(CstByteTest, BottomUpIterator)
 {
 //    TypeParam cst;
-//    ASSERT_EQ(true, load_from_file(cst, temp_file));
+//    ASSERT_TRUE(load_from_file(cst, temp_file));
 //    doing a bottom-up traversal of the tree
 //    TODO: implement
 }

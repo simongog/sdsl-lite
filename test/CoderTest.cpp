@@ -48,6 +48,7 @@ TYPED_TEST_CASE(CoderTest, Implementations);
 
 TYPED_TEST(CoderTest, SinlgeEncodeDecode)
 {
+    static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     uint8_t offset = 0;
     uint64_t buf[8] = {0};
     uint64_t* pb = buf;

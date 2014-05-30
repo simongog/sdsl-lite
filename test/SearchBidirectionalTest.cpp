@@ -96,7 +96,7 @@ TYPED_TEST(SearchBidirectionalTest, BidirectionalSearch)
                 }
                 cout << endl;
             }
-            ASSERT_EQ(true, (bool)occ) << "Pattern not found in input."; // make sure pattern was found in input (it has to be because we took part of the input as pattern)
+            ASSERT_LT((size_type)0, occ) << "Pattern not found in input."; // make sure pattern was found in input (it has to be because we took part of the input as pattern)
 
             {
                 //check using backward_search

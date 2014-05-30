@@ -42,21 +42,21 @@ TYPED_TEST_CASE(CsaByteTest, Implementations);
 
 TYPED_TEST(CsaByteTest, CreateAndStoreTest)
 {
+    static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     TypeParam csa;
     cache_config config(false, temp_dir, util::basename(test_file));
     construct(csa, test_file, config, 1);
     test_case_file_map = config.file_map;
-    bool success = store_to_file(csa, temp_file);
-    ASSERT_EQ(true, success);
+    ASSERT_TRUE(store_to_file(csa, temp_file));
 }
 
 //! Test sigma member
 TYPED_TEST(CsaByteTest, Sigma)
 {
     TypeParam csa;
-    ASSERT_EQ(true, load_from_file(csa, temp_file));
+    ASSERT_TRUE(load_from_file(csa, temp_file));
     int_vector<8> text;
-    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    ASSERT_TRUE(load_vector_from_file(text, test_file, 1));
     text.resize(text.size()+1);
     text[text.size()-1] = 0; // add 0-character to the end
     ASSERT_EQ(text.size(), csa.size());
@@ -75,7 +75,7 @@ TYPED_TEST(CsaByteTest, Sigma)
 TYPED_TEST(CsaByteTest, SaAccess)
 {
     TypeParam csa;
-    ASSERT_EQ(true, load_from_file(csa, temp_file));
+    ASSERT_TRUE(load_from_file(csa, temp_file));
     int_vector<> sa;
     load_from_file(sa, test_case_file_map[conf::KEY_SA]);
     size_type n = sa.size();
@@ -89,7 +89,7 @@ TYPED_TEST(CsaByteTest, SaAccess)
 TYPED_TEST(CsaByteTest, IsaAccess)
 {
     TypeParam csa;
-    ASSERT_EQ(true, load_from_file(csa, temp_file));
+    ASSERT_TRUE(load_from_file(csa, temp_file));
     int_vector<> isa;
     size_type n = 0;
     {
@@ -112,7 +112,7 @@ TYPED_TEST(CsaByteTest, TextAccess)
 {
     if (test_case_file_map.find(conf::KEY_TEXT) != test_case_file_map.end()) {
         TypeParam csa;
-        ASSERT_EQ(true, load_from_file(csa, temp_file));
+        ASSERT_TRUE(load_from_file(csa, temp_file));
         int_vector<8> text;
         load_from_file(text, test_case_file_map[conf::KEY_TEXT]);
         size_type n = text.size();
@@ -134,7 +134,7 @@ TYPED_TEST(CsaByteTest, BwtAccess)
 {
     if (test_case_file_map.find(conf::KEY_BWT) != test_case_file_map.end()) {
         TypeParam csa;
-        ASSERT_EQ(true, load_from_file(csa, temp_file));
+        ASSERT_TRUE(load_from_file(csa, temp_file));
         int_vector<8> bwt;
         load_from_file(bwt, test_case_file_map[conf::KEY_BWT]);
         size_type n = bwt.size();
@@ -149,7 +149,7 @@ TYPED_TEST(CsaByteTest, FAccess)
 {
     if (test_case_file_map.find(conf::KEY_TEXT) != test_case_file_map.end()) {
         TypeParam csa;
-        ASSERT_EQ(true, load_from_file(csa, temp_file));
+        ASSERT_TRUE(load_from_file(csa, temp_file));
         int_vector<8> text;
         load_from_file(text, test_case_file_map[conf::KEY_TEXT]);
         std::sort(begin(text),end(text));
@@ -167,7 +167,7 @@ TYPED_TEST(CsaByteTest, PsiAccess)
 {
     if (test_case_file_map.find(conf::KEY_PSI) != test_case_file_map.end()) {
         TypeParam csa;
-        ASSERT_EQ(true, load_from_file(csa, temp_file));
+        ASSERT_TRUE(load_from_file(csa, temp_file));
         int_vector<> psi;
         load_from_file(psi, test_case_file_map[conf::KEY_PSI]);
         size_type n = psi.size();
@@ -182,7 +182,7 @@ TYPED_TEST(CsaByteTest, PsiAccess)
 TYPED_TEST(CsaByteTest, PsiLFAccess)
 {
     TypeParam csa;
-    ASSERT_EQ(true, load_from_file(csa, temp_file));
+    ASSERT_TRUE(load_from_file(csa, temp_file));
     for (size_type j=0; j<csa.size(); ++j) {
         size_type lf = csa.lf[j];
         ASSERT_TRUE(lf < csa.size());
@@ -195,7 +195,7 @@ TYPED_TEST(CsaByteTest, PsiLFAccess)
 TYPED_TEST(CsaByteTest, SwapTest)
 {
     TypeParam csa1;
-    ASSERT_EQ(true, load_from_file(csa1, temp_file));
+    ASSERT_TRUE(load_from_file(csa1, temp_file));
     TypeParam csa2;
     csa1.swap(csa2);
     int_vector<> sa;

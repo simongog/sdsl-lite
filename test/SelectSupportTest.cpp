@@ -48,6 +48,7 @@ TYPED_TEST_CASE(SelectSupportTest, Implementations);
 //! Test the select method
 TYPED_TEST(SelectSupportTest, SelectMethod)
 {
+    static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     bit_vector bvec;
     ASSERT_TRUE(load_from_file(bvec, test_file));
     typename TypeParam::bit_vector_type bv(bvec);
