@@ -45,6 +45,7 @@ TYPED_TEST_CASE(BitVectorTest, Implementations);
 //! Test operator[]
 TYPED_TEST(BitVectorTest, Access)
 {
+    static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     bit_vector bv;
     ASSERT_TRUE(load_from_file(bv, test_file));
     TypeParam c_bv(bv);

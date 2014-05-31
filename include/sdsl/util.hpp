@@ -340,6 +340,18 @@ t_int_vec rnd_positions(uint8_t log_s, uint64_t& mask, uint64_t mod=0, uint64_t 
     return rands;
 }
 
+//! Checks at compile time whether type is regular or not
+/*  static_assert(is_regular<YOUR_TYPE>::value);
+ *  Code is from a talk of Aerix Consulting
+ */
+template<typename T>
+struct is_regular : std::integral_constant< bool,
+        std::is_default_constructible<T>::value&&
+        std::is_copy_constructible<T>::value&&
+        std::is_move_constructible<T>::value&&
+        std::is_copy_assignable<T>::value&&
+        std::is_move_assignable<T>::value > {};
+
 } // end namespace util
 
 //==================== Template functions ====================
@@ -376,7 +388,7 @@ void util::bit_compress(t_int_vec& v)
 {
     auto max_elem = std::max_element(v.begin(),v.end());
     uint64_t max = 0;
-    if(max_elem != v.end()) {
+    if (max_elem != v.end()) {
         max = *max_elem;
     }
     uint8_t min_width = bits::hi(max)+1;

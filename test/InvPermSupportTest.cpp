@@ -54,6 +54,7 @@ void compare(const sdsl::int_vector<>& inv_perm, const sdsl::inv_perm_support<>&
 //! Test Constructors
 TEST_F(InvPermSupportTest, Constructors)
 {
+    static_assert(sdsl::util::is_regular<sdsl::inv_perm_support<>>::value, "Type is not regular");
     for (size_t i=0; i<perms.size(); ++i) {
         // Constructor
         sdsl::inv_perm_support<> ips(&perms[i]);

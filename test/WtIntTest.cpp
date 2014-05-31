@@ -42,6 +42,7 @@ TYPED_TEST_CASE(WtIntTest, Implementations);
 //! Test the parametrized constructor
 TYPED_TEST(WtIntTest, Constructor)
 {
+    static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     int_vector<> iv;
     load_from_file(iv, test_file);
     double iv_size = size_in_mega_bytes(iv);
@@ -618,7 +619,7 @@ test_symbol_gte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
     while (itr != end) {
         auto value = *itr;
         auto ret = symbol_gte(wt,value);
-        ASSERT_EQ(ret.first,true);
+        ASSERT_TRUE(ret.first);
         ASSERT_EQ(value,ret.second);
         ++itr;
     }
@@ -626,14 +627,14 @@ test_symbol_gte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
     // check symbols symbols that are smaller than than min
     for (size_t i=0; i<min; i++) {
         auto ret = symbol_gte(wt,i);
-        ASSERT_EQ(ret.first,true);
+        ASSERT_TRUE(ret.first);
         ASSERT_EQ(ret.second,min);
     }
 
     // check symbols that are largest than max
     for (size_t i=max+100; i>max; i--) {
         auto ret = symbol_gte(wt,i);
-        ASSERT_EQ(ret.first,false);
+        ASSERT_FALSE(ret.first);
     }
 
     // check values in between that do not exist
@@ -649,7 +650,7 @@ test_symbol_gte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
             if (next != syms.end()) {
                 auto next_val = *next;
                 auto ret = symbol_gte(wt,i);
-                ASSERT_EQ(ret.first,true);
+                ASSERT_TRUE(ret.first);
                 ASSERT_EQ(ret.second,next_val);
             }
         }
@@ -699,7 +700,7 @@ test_symbol_lte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
     while (itr != end) {
         auto value = *itr;
         auto ret = symbol_lte(wt,value);
-        ASSERT_EQ(ret.first,true);
+        ASSERT_TRUE(ret.first);
         ASSERT_EQ(value,ret.second);
         ++itr;
     }
@@ -707,14 +708,14 @@ test_symbol_lte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
     // check symbols symbols that are smaller than than min
     for (size_t i=0; i<min; i++) {
         auto ret = symbol_lte(wt,i);
-        ASSERT_EQ(ret.first,false);
+        ASSERT_FALSE(ret.first);
         //ASSERT_EQ(ret.second,min);
     }
 
     // check symbols that are larget than max
     for (size_t i=max+100; i>max; i--) {
         auto ret = symbol_lte(wt,i);
-        ASSERT_EQ(ret.first,true);
+        ASSERT_TRUE(ret.first);
         ASSERT_EQ(ret.second,max);
     }
 
@@ -731,7 +732,7 @@ test_symbol_lte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
             if (prev != syms.end()) {
                 auto prev_val = *prev;
                 auto ret = symbol_lte(wt,i);
-                ASSERT_EQ(ret.first,true);
+                ASSERT_TRUE(ret.first);
                 ASSERT_EQ(ret.second,prev_val);
             }
         }

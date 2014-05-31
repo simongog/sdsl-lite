@@ -47,6 +47,7 @@ class IntVectorTest : public ::testing::Test
 template<class t_iv>
 void test_Constructors(uint8_t template_width, size_type constructor_size, uint8_t constructor_width)
 {
+    static_assert(sdsl::util::is_regular<t_iv>::value, "Type is not regular");
     std::mt19937_64 rng;
     {
         // Constructor without argument
@@ -198,8 +199,8 @@ void test_AssignAndModifyElement(uint64_t size, uint8_t width)
         ASSERT_EQ((exp_v>=tmp), (iv[i]>=iv[i-1]));
         ASSERT_EQ((exp_v> tmp), (iv[i]>iv[i-1]));
         iv[i-1] = exp_v;
-        ASSERT_EQ(false, (iv[i]!=iv[i-1]));
-        ASSERT_EQ(true, (iv[i]==iv[i-1]));
+        ASSERT_FALSE(iv[i]!=iv[i-1]);
+        ASSERT_TRUE(iv[i]==iv[i-1]);
     }
 }
 

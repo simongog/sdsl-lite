@@ -43,6 +43,10 @@ void compare_stacks(std::stack<uint64_t>& exp, sdsl::sorted_int_stack& sis)
 //! Test Constructors
 TEST_F(SortedStackTest, Constructors)
 {
+    static_assert(std::is_copy_constructible<sdsl::sorted_int_stack>::value, "Type is not copy constructible");
+    static_assert(std::is_move_constructible<sdsl::sorted_int_stack>::value, "Type is not move constructible");
+    static_assert(std::is_copy_assignable<sdsl::sorted_int_stack>::value, "Type is not copy assignable");
+    static_assert(std::is_move_assignable<sdsl::sorted_int_stack>::value, "Type is not move assignable");
     std::stack<uint64_t> exp;
     sdsl::sorted_int_stack sis1(100000+10);
     {
@@ -88,7 +92,7 @@ TEST_F(SortedStackTest, PushTopAndPop)
         auto dice = bind(distribution, rng);
         std::stack<uint64_t> exp;
         sdsl::sorted_int_stack sis(1000000+i*i);
-        ASSERT_EQ(true, sis.empty());
+        ASSERT_TRUE(sis.empty());
         for (uint64_t k=0; k<1000000; ++k) {
             ASSERT_EQ(exp.size(), sis.size());
             uint64_t value = k+dice();

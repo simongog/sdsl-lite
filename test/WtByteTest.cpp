@@ -44,19 +44,19 @@ TYPED_TEST_CASE(WtByteTest, Implementations);
 
 TYPED_TEST(WtByteTest, CreateAndStoreTest)
 {
+    static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     TypeParam wt;
     construct(wt, test_file, 1);
-    bool success = store_to_file(wt, temp_file);
-    ASSERT_EQ(true, success);
+    ASSERT_TRUE(store_to_file(wt, temp_file));
 }
 
 //! Test sigma
 TYPED_TEST(WtByteTest, Sigma)
 {
     TypeParam wt;
-    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    ASSERT_TRUE(load_from_file(wt, temp_file));
     int_vector<8> text;
-    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    ASSERT_TRUE(load_vector_from_file(text, test_file, 1));
     ASSERT_EQ(text.size(), wt.size());
     bit_vector occur(256, 0);
     uint16_t sigma = 0;
@@ -82,9 +82,9 @@ void compare_wt(const int_vector<8>& text, const t_wt& wt)
 TYPED_TEST(WtByteTest, AccessCopyMoveAndSwap)
 {
     TypeParam wt;
-    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    ASSERT_TRUE(load_from_file(wt, temp_file));
     int_vector<8> text;
-    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    ASSERT_TRUE(load_vector_from_file(text, test_file, 1));
     compare_wt(text, wt);
 
     // Copy-constructor
@@ -115,9 +115,9 @@ TYPED_TEST(WtByteTest, AccessCopyMoveAndSwap)
 TYPED_TEST(WtByteTest, Rank)
 {
     TypeParam wt;
-    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    ASSERT_TRUE(load_from_file(wt, temp_file));
     int_vector<8> text;
-    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    ASSERT_TRUE(load_vector_from_file(text, test_file, 1));
 
     vector<size_type> cnt(256, 0);
     ASSERT_EQ(text.size(), wt.size());
@@ -147,9 +147,9 @@ TYPED_TEST(WtByteTest, Rank)
 TYPED_TEST(WtByteTest, Select)
 {
     TypeParam wt;
-    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    ASSERT_TRUE(load_from_file(wt, temp_file));
     int_vector<8> text;
-    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    ASSERT_TRUE(load_vector_from_file(text, test_file, 1));
     vector<size_type> cnt(256, 0);
     ASSERT_EQ(text.size(), wt.size());
     for (size_type j=0; j<text.size(); ++j) {
@@ -162,9 +162,9 @@ TYPED_TEST(WtByteTest, Select)
 TYPED_TEST(WtByteTest, InverseSelect)
 {
     TypeParam wt;
-    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    ASSERT_TRUE(load_from_file(wt, temp_file));
     int_vector<8> text;
-    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    ASSERT_TRUE(load_vector_from_file(text, test_file, 1));
     std::vector<size_type> cnt(256, 0);
     ASSERT_EQ(text.size(), wt.size());
     for (size_type j=0; j<text.size(); ++j) {
@@ -190,9 +190,9 @@ test_interval_symbols(typename std::enable_if<has_node_type<t_wt>::value,
 {
 
     typedef typename t_wt::value_type value_type;
-    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    ASSERT_TRUE(load_from_file(wt, temp_file));
     int_vector<8> text;
-    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    ASSERT_TRUE(load_vector_from_file(text, test_file, 1));
     std::mt19937_64 rng;
     std::uniform_int_distribution<uint64_t> distribution(0, wt.size());
     auto dice = bind(distribution, rng);
@@ -248,9 +248,9 @@ void
 test_symbol_gte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 {
     using value_type = typename t_wt::value_type;
-    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    ASSERT_TRUE(load_from_file(wt, temp_file));
     int_vector<8> iv;
-    ASSERT_EQ(true, load_vector_from_file(iv, test_file, 1));
+    ASSERT_TRUE(load_vector_from_file(iv, test_file, 1));
     ASSERT_EQ(iv.size(), wt.size());
     mt19937_64 rng;
     value_type min = numeric_limits<value_type>::max(), max = 0;
@@ -271,7 +271,7 @@ test_symbol_gte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
     while (itr != end) {
         auto value = *itr;
         auto ret = symbol_gte(wt,value);
-        ASSERT_EQ(ret.first,true);
+        ASSERT_TRUE(ret.first);
         ASSERT_EQ(value,ret.second);
         ++itr;
     }
@@ -279,7 +279,7 @@ test_symbol_gte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
     // check symbols symbols that are smaller than than min
     for (size_t i=0; i<min; i++) {
         auto ret = symbol_gte(wt,i);
-        ASSERT_EQ(ret.first,true);
+        ASSERT_TRUE(ret.first);
         ASSERT_EQ(ret.second,min);
     }
 
@@ -287,7 +287,7 @@ test_symbol_gte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
     value_type test_max = numeric_limits<value_type>::max();
     for (value_type i=test_max; i>max; i--) {
         auto ret = symbol_gte(wt,i);
-        ASSERT_EQ(ret.first,false);
+        ASSERT_FALSE(ret.first);
     }
 
     // check values in between that do not exist
@@ -303,7 +303,7 @@ test_symbol_gte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
             if (next != syms.end()) {
                 auto next_val = *next;
                 auto ret = symbol_gte(wt,i);
-                ASSERT_EQ(ret.first,true);
+                ASSERT_TRUE(ret.first);
                 ASSERT_EQ(ret.second,next_val);
             }
         }
@@ -331,9 +331,9 @@ void
 test_symbol_lte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 {
     using value_type = typename t_wt::value_type;
-    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    ASSERT_TRUE(load_from_file(wt, temp_file));
     int_vector<8> iv;
-    ASSERT_EQ(true, load_vector_from_file(iv, test_file, 1));
+    ASSERT_TRUE(load_vector_from_file(iv, test_file, 1));
     ASSERT_EQ(iv.size(), wt.size());
     mt19937_64 rng;
     value_type min = numeric_limits<value_type>::max(), max = 0;
@@ -354,7 +354,7 @@ test_symbol_lte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
     while (itr != end) {
         auto value = *itr;
         auto ret = symbol_lte(wt,value);
-        ASSERT_EQ(ret.first,true);
+        ASSERT_TRUE(ret.first);
         ASSERT_EQ(value,ret.second);
         ++itr;
     }
@@ -362,7 +362,7 @@ test_symbol_lte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
     // check symbols symbols that are smaller than than min
     for (size_t i=0; i<min; i++) {
         auto ret = symbol_lte(wt,i);
-        ASSERT_EQ(ret.first,false);
+        ASSERT_FALSE(ret.first);
         //ASSERT_EQ(ret.second,min);
     }
 
@@ -370,7 +370,7 @@ test_symbol_lte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
     value_type test_max = numeric_limits<value_type>::max();
     for (size_t i=test_max; i>max; i--) {
         auto ret = symbol_lte(wt,i);
-        ASSERT_EQ(ret.first,true);
+        ASSERT_TRUE(ret.first);
         ASSERT_EQ(ret.second,max);
     }
 
@@ -387,7 +387,7 @@ test_symbol_lte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
             if (prev != syms.end()) {
                 auto prev_val = *prev;
                 auto ret = symbol_lte(wt,i);
-                ASSERT_EQ(ret.first,true);
+                ASSERT_TRUE(ret.first);
                 ASSERT_EQ(ret.second,prev_val);
             }
         }
@@ -415,9 +415,9 @@ void
 test_range_unique_values(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 {
     using value_type = typename t_wt::value_type;
-    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    ASSERT_TRUE(load_from_file(wt, temp_file));
     int_vector<8> iv;
-    ASSERT_EQ(true, load_vector_from_file(iv, test_file, 1));
+    ASSERT_TRUE(load_vector_from_file(iv, test_file, 1));
     ASSERT_EQ(iv.size(), wt.size());
     value_type min = numeric_limits<value_type>::max(), max = 0;
     std::set<value_type> syms;
@@ -483,9 +483,9 @@ void
 test_lex_count(typename std::enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 {
     typedef typename t_wt::value_type value_type;
-    ASSERT_EQ(true, load_from_file(wt, temp_file));
+    ASSERT_TRUE(load_from_file(wt, temp_file));
     int_vector<8> text;
-    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    ASSERT_TRUE(load_vector_from_file(text, test_file, 1));
     if (wt.size()) {
         std::mt19937_64 rng;
         std::uniform_int_distribution<uint64_t> distribution(0, wt.size());
@@ -541,7 +541,7 @@ TYPED_TEST(WtByteTest, CreatePartiallyTest)
 {
     int_vector_buffer<8> text_buf(test_file, std::ios::in, 1024*1024, 8, true);
     int_vector<8> text;
-    ASSERT_EQ(true, load_vector_from_file(text, test_file, 1));
+    ASSERT_TRUE(load_vector_from_file(text, test_file, 1));
     size_type n = min(text.size(), (size_type)50);
     text.resize(n);
     TypeParam wt(text_buf, n);
