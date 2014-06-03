@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2012-2013 Simon Gog
+    Copyright (C) 2012-2014 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -357,12 +357,12 @@ class rank_support_sd
             size_type sel_high = m_v->high_0_select(high_val + 1);
             size_type rank_low = sel_high - high_val; //
             if (0 == rank_low)
-                return 0;
+                return rank_support_sd_trait<t_b>::adjust_rank(0, i);
             size_type val_low = i & bits::lo_set[ m_v->wl ];
             // now since rank_low > 0 => sel_high > 0
             do {
                 if (!sel_high)
-                    return 0;
+                    return rank_support_sd_trait<t_b>::adjust_rank(0, i);
                 --sel_high; --rank_low;
             } while (m_v->high[sel_high] and m_v->low[rank_low] >= val_low);
             return rank_support_sd_trait<t_b>::adjust_rank(rank_low+1, i);
@@ -475,9 +475,9 @@ class select_support_sd
             m_v = v;
         }
 
-        select_support_sd& operator=(const select_support_sd& rs) {
-            if (this != &rs) {
-                set_vector(rs.m_v);
+        select_support_sd& operator=(const select_support_sd& ss) {
+            if (this != &ss) {
+                set_vector(ss.m_v);
             }
             return *this;
         }

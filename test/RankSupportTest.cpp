@@ -33,7 +33,7 @@ typedef Types<rank_support_il<1, 256>,
         rank_support_rrr<1, 127>,
         rank_support_rrr<1, 128>,
         rank_support_rrr<1, 129>,
-        rank_support_sd<>,
+        rank_support_sd<1>,
         rank_support_il<0, 256>,
         rank_support_il<0, 512>,
         rank_support_il<0, 1024>,
@@ -51,7 +51,7 @@ typedef Types<rank_support_il<1, 256>,
         rank_support_rrr<0, 127>,
         rank_support_rrr<0, 128>,
         rank_support_rrr<0, 129>,
-        rank_support_sd<1>
+        rank_support_sd<0>
         > Implementations;
 
 TYPED_TEST_CASE(RankSupportTest, Implementations);
