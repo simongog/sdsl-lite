@@ -141,7 +141,7 @@ int main() {
 To compile the program using `g++` run:
 
 ```sh
-g++ -std=c++11 -O3 -I ~/include -L ~/lib program.cpp -o lsdsl
+g++ -std=c++11 -O3 -DNDEBUG -I ~/include -L ~/lib program.cpp -o program -lsdsl -ldivsufsort -ldivsufsort64
 ```
 
 Next we suggest you look at the comprehensive [tutorial][TUT] which describes
