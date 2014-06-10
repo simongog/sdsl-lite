@@ -493,5 +493,185 @@ class select_support_sd
         }
 };
 
+
+//! Select_0 data structure for sd_vector
+/*! \tparam t_sd_vector sd_vector type
+ *  \tparam t_rank_1    Rank support for high part of sd_vector
+ */
+template<typename t_sd_vector=sd_vector<>>
+class select_0_support_sd
+{
+    public:
+        typedef bit_vector::size_type size_type;
+        typedef t_sd_vector           bit_vector_type;
+        using rank_1 = typename t_sd_vector::rank_1_type;
+        using sel0_type = typename t_sd_vector::select_0_type;
+        typedef bit_vector           y_high_type;
+        enum { bit_pat = 0 };
+
+    private:
+        const bit_vector_type* m_v;
+        int_vector<>           m_pointer;
+        int_vector<>           m_rank1;
+    public:
+
+        explicit select_0_support_sd(const bit_vector_type* v=nullptr) {
+            set_vector(v);
+            if (nullptr != m_v) {
+                size_type rank_0 = 0; // rank0 in H
+                const size_type bs = 1ULL << (m_v->wl);
+                size_type z = 0;
+                size_type rank1 = 0;// rank1 in H
+                size_type zeros = m_v->size() - rank_1(m_v)(m_v->size()); // zeros in B
+                m_pointer = int_vector<>(zeros/(64*bs)+1, 0, bits::hi(m_v->high.size()/64)+1);
+                m_rank1   = int_vector<>(m_pointer.size(), 0, bits::hi(m_v->high.size())+1);
+                uint64_t w=0;
+                for (size_type i=0, sel0=1; i < m_v->high.size(); i+=64) {
+                    size_type old_rank1 = rank1;
+                    w = m_v->high.get_int(i, 64);
+                    rank1 += bits::cnt(w);
+                    rank_0 = (i+64)-rank1;
+                    if (rank1 > 0 and (w>>63)&1) {
+                        uint64_t pos = rank_0*bs + m_v->low[rank1-1]; // pos of last one (of previous block in B
+                        z = pos + 1 - rank1;
+                    } else {
+                        z = rank_0*bs  - rank1;
+                    }
+                    while (sel0 <= z and sel0 <= zeros) {
+                        m_pointer[(sel0-1)/(64*bs)] = i/64;
+                        m_rank1[(sel0-1)/(64*bs)]   = old_rank1;
+                        sel0 += 64*bs;
+                    }
+                }
+            }
+        }
+
+        //! Returns the position of the i-th occurrence in the bit vector.
+        size_type select(size_type i)const {
+            const size_type bs = 1ULL << (m_v->wl);
+            size_type j = m_pointer[(i-1)/(64*bs)]*64;// index into m_high
+            size_type rank1 = m_rank1[(i-1)/(64*bs)]; // rank_1(j*bs*64) in B
+            size_type pos = 0;
+            size_type rank0 = 0;
+
+            if (rank1 > 0 and (m_v->high[j-1])&1) {
+                pos  = (j-rank1)*bs + m_v->low[rank1-1]; // starting position of current block
+                rank0 = pos+1-rank1;
+            } else {
+                pos  = (j-rank1)*bs;// starting position of current block
+                rank0 = pos-rank1;
+            }
+            uint64_t w = m_v->high.get_int(j, 64);
+            do {
+                uint64_t _rank1 = rank1 + bits::cnt(w);
+                uint64_t _rank0 = 0;
+                if (_rank1 > 0 and (w>>63)&1) {
+                    pos = (j+64-_rank1)*bs + m_v->low[_rank1-1];
+                    _rank0 = pos+1-_rank1;
+                } else {
+                    pos = (j+64-_rank1)*bs;
+                    _rank0 = pos-_rank1;
+                }
+                if (_rank0 < i) {
+                    j+=64;
+                    w = m_v->high.get_int(j, 64);
+                    rank1 = _rank1;
+                } else {
+                    break;
+                }
+            } while (true);
+            // invariant i >zeros
+            do {
+                uint64_t _rank1 = rank1 + bits::lt_cnt[w&0xFFULL];
+                uint64_t _rank0 = 0;
+                if (_rank1 > 0 and (w>>7)&1) {
+                    pos = (j+8-_rank1)*bs + m_v->low[_rank1-1];
+                    _rank0 = pos+1-_rank1;
+                } else {
+                    pos = (j+8-_rank1)*bs;
+                    _rank0 = pos-_rank1;
+                }
+                if (_rank0 < i) {
+                    j+=8;
+                    w >>= 8;
+                    rank1 = _rank1;
+                } else {
+                    break;
+                }
+            } while (true);
+
+            do {
+                bool b = w&1ULL;
+                w >>= 1; // zeros are shifted in
+                ++j;
+                if (0 == b) {
+                    pos = (j-rank1)*bs;
+                    size_type zeros = pos-rank1;
+                    if (zeros >= i) {
+                        pos = pos - (zeros-i) - 1;
+                        break;
+                    }
+                } else {
+                    pos = (j-1-rank1)*bs;
+                    size_type one_pos = pos + m_v->low[rank1];
+                    ++rank1;
+                    size_type zeros = one_pos + 1 - rank1;
+                    if (zeros >= i) {
+                        pos = one_pos - (zeros-i) - 1;
+                        break;
+                    }
+                }
+                if (j%64==0) {
+                    w = m_v->high.get_int(j,64);
+                }
+            } while (true);
+            return pos;
+        }
+
+        size_type operator()(size_type i)const {
+            return select(i);
+        }
+
+        size_type size()const {
+            return m_v->size();
+        }
+
+        void set_vector(const bit_vector_type* v=nullptr) {
+            m_v = v;
+        }
+
+        select_0_support_sd& operator=(const select_0_support_sd& ss) {
+            if (this != &ss) {
+                m_pointer = ss.m_pointer;
+                m_rank1   = ss.m_rank1;
+                set_vector(ss.m_v);
+            }
+            return *this;
+        }
+
+        void swap(select_0_support_sd& ss) {
+            m_pointer.swap(ss.m_pointer);
+            m_rank1.swap(ss.m_rank1);
+        }
+
+        void load(std::istream& in, const bit_vector_type* v=nullptr) {
+            m_pointer.load(in);
+            m_rank1.load(in);
+            set_vector(v);
+        }
+
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+            structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+            size_type written_bytes = 0;
+            written_bytes += m_pointer.serialize(out, child, "pointer");
+            written_bytes += m_rank1.serialize(out, child, "rank1");
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
+
+};
+
+
+
 } // end namespace
 #endif
