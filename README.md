@@ -128,13 +128,17 @@ files `fm_index-file.sdsl` and `fm_index-file.sdsl.html`:
 
 ```cpp
 #include <sdsl/suffix_arrays.hpp>
+#include <fstream>
+
+using namespace sdsl;
 
 int main() {
-  sdsl::csa_wt<> fm_index;
-  sdsl::construct_im(fm_index, "mississippi!", 1);
-  std::cout << "'si' occurs " << sdsl::count(fm_index,"si") << " times.\n";
-  sdsl::store_to_file(fm_index,"fm_index-file.sdsl");
-  sdsl::write_structure<HTML_FORMAT>(fm_index,"fm_index-file.sdsl.html");
+    csa_wt<> fm_index;
+    construct_im(fm_index, "mississippi!", 1);
+    std::cout << "'si' occurs " << count(fm_index,"si") << " times.\n";
+    store_to_file(fm_index,"fm_index-file.sdsl");
+    std::ofstream out("fm_index-file.sdsl.html");
+    write_structure<HTML_FORMAT>(fm_index,out);
 }
 ```
 
