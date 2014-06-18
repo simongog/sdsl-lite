@@ -38,9 +38,13 @@ class CoderTest : public ::testing::Test
 
 using testing::Types;
 typedef Types<
-coder::elias_delta,
+      coder::elias_delta,
       coder::elias_gamma,
-      coder::fibonacci
+      coder::fibonacci,
+      coder::comma<>,
+      coder::comma<4>,
+      coder::comma<8>,
+      coder::comma<16>
       >
       Implementations;
 

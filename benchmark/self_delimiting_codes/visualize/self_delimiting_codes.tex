@@ -1,0 +1,91 @@
+\documentclass{article}
+
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{booktabs}
+\usepackage[section]{placeins}
+\pgfplotsset{compat=1.10}
+
+%load necessary data from result and configuration files
+\pgfplotstableread[col sep=semicolon,trim cells]{../results/tc.csv}\testcasetable
+\pgfplotstableread[col sep=semicolon,trim cells]{../results/vat.csv}\vectortable
+
+%some pgf macros and setups
+\pgfplotsset{
+    discard if not/.style 2 args={
+        x filter/.code={
+            \edef\tempa{\thisrow{#1}}
+            \edef\tempb{#2}
+            \ifx\tempa\tempb
+            \else
+                \def\pgfmathresult{inf}
+            \fi
+        }
+    },
+    small
+}
+\pgfkeys{/pgf/number format/.cd,fixed,precision=2}
+
+%background
+\usetikzlibrary{backgrounds}
+\definecolor{graphicbackground}{rgb}{0.96,0.96,0.8}
+\pgfkeys{/tikz/.cd,
+  background color/.initial=graphicbackground,
+  background color/.get=\backcol,
+  background color/.store in=\backcol,
+}
+\tikzset{background rectangle/.style={
+    fill=\backcol,
+  },
+  use background/.style={    
+    show background rectangle
+  }
+}
+
+\begin{document}
+\title{Self -- Delimiting Codes Benchmark}
+
+\maketitle
+
+This file contains the results of a benchmark on self delimiting codes 
+using \texttt{SDSL} Library. Benchmark tested a list of integer vectors 
+for encoding and decoding rates (both measured in Megabytes per second),
+and the achieved compression rate (measured in percentage, compared to 
+the uncompressed integer vector) on different self -- delimiting codes 
+and compression vectors.
+
+\input{testcase.tex}
+% iterate over each test case and output its result
+\pgfplotstabletypeset[
+	begin table=,
+	end table=,
+	typeset cell/.style={/pgfplots/table/@cell content={\showTestcaseResult{#1}}},
+	before row=,
+	after row=,
+	skip coltypes,
+	TeX comment=,
+	every head row/.style={output empty row},
+	string type,
+	]{\testcasetable}
+
+%write some appendix with additional information
+\appendix
+
+\section{Vector Assignment Table}
+\pgfplotstabletypeset[columns={vector,sdsltype},
+		columns/vector/.style={column name=Vector,string type},
+		columns/sdsltype/.style={column name=SDSL Type,
+			string replace*={_}{\_},
+			assign cell content/.code={
+			\pgfkeyssetvalue{/pgfplots/table/@cell content}{\texttt{##1}}
+			}},
+		column type={ll},
+		every head row/.style={before row=\toprule,after row=\midrule},
+		every last row/.style={after row=\bottomrule},
+		row sep=\\,col sep=&
+		]{\vectortable}
+
+\section{System Information}
+\input{sysinfo.tex}
+
+\end{document}
