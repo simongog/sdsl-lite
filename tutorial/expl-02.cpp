@@ -13,6 +13,6 @@ int main()
     cout << size_in_mega_bytes(v) << endl;
     util::bit_compress(v);
     cout << size_in_mega_bytes(v) << endl;
-    enc_vector<> ev(v);
+    enc_vector<coder::comma<>> ev(v);
     cout << size_in_mega_bytes(ev) << endl;
 }
