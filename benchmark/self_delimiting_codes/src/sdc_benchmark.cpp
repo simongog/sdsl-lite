@@ -127,7 +127,7 @@ bool runSingleTest( const int_vector<> &testcase, iv_testresult &result ) {
 	Vector test( testcase );
 	auto stop = timer::now();
 	result.enc_MBperSec = size_in_mega_bytes( testcase )
-		 / duration_cast<seconds>(stop-start).count();
+		 / duration_cast<milliseconds>(stop-start).count() * 1000.0;
 
 	//care for compression rate
 	result.comp_percent = size_in_mega_bytes(test) 
@@ -139,20 +139,16 @@ bool runSingleTest( const int_vector<> &testcase, iv_testresult &result ) {
 	//entry, so everything between 2 samples has to be decoded.
 	size_t sample_dens = test.get_sample_dens();
 	start = timer::now();
-	//repeat test 5 times to avoid infinite decoding rates
-	for (size_t j = 0; j < 5; j++) {
-		size_t i = sample_dens - 1;
-		for (; i < test.size(); i += sample_dens) {
-			test[i]; //acess element right before next sample entry
-		}
-		//and finally access last element if not done yet
-		if (i != test.size() + sample_dens - 1)
-			test[test.size() - 1];
+	size_t i = sample_dens - 1;
+	for (; i < test.size(); i += sample_dens) {
+		test[i]; //acess element right before next sample entry
 	}
+	//and finally access last element if not done yet
+	if (i != test.size() + sample_dens - 1)
+		test[test.size() - 1];
 	stop = timer::now();
 	result.dec_MBperSec = size_in_mega_bytes( testcase )
-		 / duration_cast<seconds>(stop-start).count() 
-		* 5.0; //multiply with 5 since vector was decoded 5 times
+		 / duration_cast<milliseconds>(stop-start).count() * 1000.0;
 
 	return true; //may use this return type for error detection in future
 }

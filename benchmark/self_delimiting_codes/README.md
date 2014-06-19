@@ -21,7 +21,7 @@ Explored dimensions:
     of free memory (some vectors have very poor compression).
   * For the visualization you need the following software:
     - [pdflatex][LT] to generate the pdf reports.
-    - [pgfplots][PGFP] installed in [LT] to generate plots in pdf reports.
+    - [pgfplots][PGFP] version 1.10 installed in [LT] to generate plots in pdf reports.
 		
 ## Usage
 
@@ -32,7 +32,7 @@ Explored dimensions:
    rates and compression can be found in the file `results/result.csv`.
    The used test cases can be found in file `results/tc.csv`.
    The tested vectors can be found in file `results/vat.csv`.
-   The default benchmark took 14 minutes on my machine (Asus P50IJ
+   The default benchmark took 81 minutes on my machine (Asus P50IJ
    Pentium(R) Dual-Core CPU T4500 @ 2.30GHz 2GB).
  * All created binaries and test results can be deleted
    by calling `make cleanall`.
