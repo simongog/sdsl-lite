@@ -528,7 +528,7 @@ class wt_int
          * \param j       End index (exclusive) of the interval.
          * \param c       Symbol c.
          * \return A triple containing:
-         *         * rank(c,i)
+         *         * rank(i,c)
          *         * #symbols smaller than c in [i..j-1]
          *         * #symbols greater than c in [i..j-1]
          *
@@ -574,7 +574,7 @@ class wt_int
          * \param i Exclusive right bound of the range.
          * \param c Symbol c.
          * \return A tuple containing:
-         *         * rank(c,i)
+         *         * rank(i,c)
          *         * #symbols smaller than c in [0..i-1]
          * \par Precondition
          *      \f$ i \leq size() \f$

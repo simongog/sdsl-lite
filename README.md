@@ -209,11 +209,12 @@ data structure. If you use the library in an academic setting please cite the
 following paper:
 
     @inproceedings{gbmp2014sea,
-      title={From Theory to Practice: Plug and Play with Succinct Data Structures},
-      author={Gog, Simon and Beller, Timo and Moffat, Alistair and Petri, Matthias},
+      title     = {From Theory to Practice: Plug and Play with Succinct Data Structures},
+      author    = {Gog, Simon and Beller, Timo and Moffat, Alistair and Petri, Matthias},
       booktitle = {13th International Symposium on Experimental Algorithms, (SEA 2014)},
-      year={2014},
-      note = {To appear.}
+      year      = {2014},
+      pages     = {326-337},
+      ee        = {http://dx.doi.org/10.1007/978-3-319-07959-2_28}
     }
 
 A preliminary version if available [here on arxiv][SEAPAPER].
