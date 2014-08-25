@@ -25,6 +25,7 @@
 #include "coder_fibonacci.hpp"
 #include "coder_elias_delta.hpp"
 #include "coder_elias_gamma.hpp"
+#include "coder_comma.hpp"
 
 namespace sdsl
 {
