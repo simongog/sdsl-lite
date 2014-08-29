@@ -243,7 +243,8 @@ struct bits {
 #ifdef __AVX2__
 inline uint64_t bits::cnt256(__m256i x){
 
-  // 4-bit universal table
+  // 4-bit universal table, 4-bit mask
+  static const __m256i MASK4_256 = _mm256_set1_epi8(0x0F);
   static const __m256i POPCNT_LOOKUP_4BF_MASK256 = _mm256_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3,
                                                                     1, 2, 2, 3, 2, 3, 3, 4, 
                                                                     0, 1, 1, 2, 1, 2, 2, 3, 
@@ -252,8 +253,8 @@ inline uint64_t bits::cnt256(__m256i x){
   __m256i low, high, bwcount;
  
   // byte halves stored in separate YMM registers
-  low = _mm256_and_si256(MASK4_256, buffer.avx);
-  high = _mm256_and_si256(MASK4_256, _mm256_srli_epi16(buffer.avx, 4));
+  low = _mm256_and_si256(MASK4_256, x);
+  high = _mm256_and_si256(MASK4_256, _mm256_srli_epi16(x, 4));
  
   // bytewise population count
   bwcount = _mm256_add_epi8(_mm256_shuffle_epi8(POPCNT_LOOKUP_4BF_MASK256, low),
@@ -272,13 +273,14 @@ inline uint64_t bits::cnt256(__m256i x){
 #ifdef __SSE4_2__
 inline uint64_t bits::cnt128(__m128i x){
 
-  // 4-bit universal table
+  // 4-bit universal table, 4-bit mask
   static const __m128i POPCNT_LOOKUP_4BF_MASK = _mm_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4);
+  static const __m128i MASK4 = _mm_set1_epi8(0x0F);
  
   __m128i low, high, count;
 
-  low = _mm_and_si128(MASK4, buffer);
-  high = _mm_and_si128(MASK4, _mm_srli_epi16(buffer, 4));
+  low = _mm_and_si128(MASK4, x);
+  high = _mm_and_si128(MASK4, _mm_srli_epi16(x, 4));
   count = _mm_add_epi8(_mm_shuffle_epi8(POPCNT_LOOKUP_4BF_MASK, low),
                        _mm_shuffle_epi8(POPCNT_LOOKUP_4BF_MASK, high));
   
