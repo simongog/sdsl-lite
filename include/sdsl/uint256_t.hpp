@@ -62,8 +62,17 @@ class uint256_t
         }
 
         inline uint16_t popcount() {
+#ifdef __AVX2__
+          sdsl::YMM_Union<uint64_t> ymm_union;
+          ymm_union[0] = m_lo;
+          ymm_union[1] = m_mid;
+          ymm_union[2] = m_high >> 64;
+          ymm_union[3] = m_high;
+          return bits::cnt256(ymm_union.ymm);
+#else
             return ((uint16_t)bits::cnt(m_lo)) + bits::cnt(m_mid)
                    + bits::cnt(m_high>>64) + bits::cnt(m_high);
+#endif
         }
 
         inline uint16_t hi() {

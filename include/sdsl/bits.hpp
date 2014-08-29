@@ -24,6 +24,8 @@
 #include <stdint.h> // for uint64_t uint32_t declaration
 #include <iostream>// for cerr
 #include <cassert>
+#include <x86intrin.h> // SSE/AVX
+#include <ymm_union.hpp> // convenient YMM register wrapper
 #ifdef __SSE4_2__
 #include <xmmintrin.h>
 #endif
@@ -236,6 +238,34 @@ struct bits {
 
 
 // ============= inline - implementations ================
+
+#ifdef __AVX2__
+inline uint64_t bits::cnt256(__m256i x){
+  // 4-bit universal table
+  static const __m256i POPCNT_LOOKUP_4BF_MASK256 = _mm256_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3,
+                                                                    1, 2, 2, 3, 2, 3, 3, 4, 
+                                                                    0, 1, 1, 2, 1, 2, 2, 3, 
+                                                                    1, 2, 2, 3, 2, 3, 3, 4);
+ 
+  __m256i low, high, bwcount;
+ 
+  // byte halves stored in separate YMM registers
+  low = _mm256_and_si256(MASK4_256, buffer.avx);
+  high = _mm256_and_si256(MASK4_256, _mm256_srli_epi16(buffer.avx, 4));
+ 
+  // bytewise population count
+  bwcount = _mm256_add_epi8(_mm256_shuffle_epi8(POPCNT_LOOKUP_4BF_MASK256, low),
+                          _mm256_shuffle_epi8(POPCNT_LOOKUP_4BF_MASK256, high));
+ 
+  // Computes sum of absolute differences and stores intermediate results at positions 0,4,8 and 12
+  __m256i fourSums = _mm256_sad_epu8(bwcount, _mm256_setzero_si256());
+ 
+  // Use union to access individual bytes (unsigned integers)
+  sdsl::YMM_Union<uint8_t> ymm_union;
+  ymm_union.ymm = fourSums;
+  return ymm_union.ymm[0] + ymm_union.ymm[4] + ymm_union.ymm[8] + ymm_union.ymm[12];
+}
+#endif
 
 // see page 11, Knuth TAOCP Vol 4 F1A
 inline uint64_t bits::cnt(uint64_t x)
