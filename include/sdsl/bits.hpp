@@ -242,6 +242,7 @@ struct bits {
 
 #ifdef __AVX2__
 inline uint64_t bits::cnt256(__m256i x){
+
   // 4-bit universal table
   static const __m256i POPCNT_LOOKUP_4BF_MASK256 = _mm256_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3,
                                                                     1, 2, 2, 3, 2, 3, 3, 4, 
@@ -270,6 +271,7 @@ inline uint64_t bits::cnt256(__m256i x){
 
 #ifdef __SSE4_2__
 inline uint64_t bits::cnt128(__m128i x){
+
   // 4-bit universal table
   static const __m128i POPCNT_LOOKUP_4BF_MASK = _mm_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4);
  
