@@ -14,21 +14,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file ymm_union.hpp
-   \brief ymm_union.hpp contains a convenientunion for YMM registers (256-bits).
+/*! \file xmm_union.hpp
+   \brief xmm_union.hpp contains a convenientunion for XMM registers (128-bits).
    \author Diego Havenstein
 */
-#ifndef INCLUDED_SDSL_YMMUNION
-#define INCLUDED_SDSL_YMMUNION
+#ifndef INCLUDED_SDSL_XMMUNION
+#define INCLUDED_SDSL_XMMUNION
 
 namespace sdsl
-{
+{                     X
 
 #ifdef __AVX2__
 template<typename T>
-union YMM_union {
-  __m256i ymm;
-  T values[32/sizeof(T)];
+union XMM_union {
+  __m128i xmm;
+  T values[16/sizeof(T)];
 };
 #endif
 

@@ -267,6 +267,25 @@ inline uint64_t bits::cnt256(__m256i x){
 }
 #endif
 
+#ifdef __SSE4_2__
+inline uint64_t bits::cnt128(__m128i x){
+  // 4-bit universal table
+  static const __m128i POPCNT_LOOKUP_4BF_MASK = _mm_setr_epi8(0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4);
+ 
+  __m128i low, high, count;
+
+  low = _mm_and_si128(MASK4, buffer);
+  high = _mm_and_si128(MASK4, _mm_srli_epi16(buffer, 4));
+  count = _mm_add_epi8(_mm_shuffle_epi8(POPCNT_LOOKUP_4BF_MASK, low),
+                       _mm_shuffle_epi8(POPCNT_LOOKUP_4BF_MASK, high));
+  
+  // Use union to access individual bytes (unsigned integers)
+  sdsl::XMM_Union<uint8_t> xmm_union;
+  xmm_union.sse = _mm_sad_epu8(x, _mm_setzero_si128());
+  return xmm_union.values[0] + xmm_union.values[4];
+}
+#endif
+
 // see page 11, Knuth TAOCP Vol 4 F1A
 inline uint64_t bits::cnt(uint64_t x)
 {
