@@ -22,9 +22,9 @@
 #define INCLUDED_SDSL_XMMUNION
 
 namespace sdsl
-{                     X
+{
 
-#ifdef __AVX2__
+#ifdef __SSE4_2__
 template<typename T>
 union XMM_union {
   __m128i xmm;

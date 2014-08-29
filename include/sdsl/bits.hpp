@@ -25,7 +25,8 @@
 #include <iostream>// for cerr
 #include <cassert>
 #include <x86intrin.h> // SSE/AVX
-#include <ymm_union.hpp> // convenient YMM register wrapper
+#include "ymm_union.hpp" // convenient YMM register wrapper
+#include "xmm_union.hpp" // convenient XMM register wrapper
 #ifdef __SSE4_2__
 #include <xmmintrin.h>
 #endif
