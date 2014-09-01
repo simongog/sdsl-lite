@@ -105,6 +105,22 @@ struct bits {
      */
     static uint64_t cnt(uint64_t x);
 
+    //! Counts the number of set bits in YMM register x.
+    /*! \param  YMM register
+        \return Number of set bits.
+     */
+#ifdef __AVX2__
+    static uint64_t cnt256(__m256i x);
+#endif
+
+    //! Counts the number of set bits in XMM register x.
+    /*! \param  XMM register
+        \return Number of set bits.
+     */ 
+#ifdef __AVX2__
+    static uint64_t cnt128(__m128i x);
+#endif
+
     //! Position of the most significant set bit the 64-bit word x
     /*! \param x 64-bit word
         \return The position (in 0..63) of the least significant set bit
@@ -264,7 +280,7 @@ inline uint64_t bits::cnt256(__m256i x){
   __m256i fourSums = _mm256_sad_epu8(bwcount, _mm256_setzero_si256());
  
   // Use union to access individual bytes (unsigned integers)
-  sdsl::YMM_Union<uint8_t> ymm_union;
+  sdsl::YMM_union<uint8_t> ymm_union;
   ymm_union.ymm = fourSums;
   return ymm_union.ymm[0] + ymm_union.ymm[4] + ymm_union.ymm[8] + ymm_union.ymm[12];
 }
@@ -285,8 +301,8 @@ inline uint64_t bits::cnt128(__m128i x){
                        _mm_shuffle_epi8(POPCNT_LOOKUP_4BF_MASK, high));
   
   // Use union to access individual bytes (unsigned integers)
-  sdsl::XMM_Union<uint8_t> xmm_union;
-  xmm_union.sse = _mm_sad_epu8(x, _mm_setzero_si128());
+  sdsl::XMM_union<uint8_t> xmm_union;
+  xmm_union.xmm = _mm_sad_epu8(x, _mm_setzero_si128());
   return xmm_union.values[0] + xmm_union.values[4];
 }
 #endif

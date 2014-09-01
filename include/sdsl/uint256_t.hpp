@@ -63,7 +63,7 @@ class uint256_t
 
         inline uint16_t popcount() {
 #ifdef __AVX2__ // Fastest method: 32 table lookups per clock cycle
-          sdsl::YMM_Union<uint64_t> ymm_union;
+          sdsl::YMM_union<uint64_t> ymm_union;
           ymm_union[0] = m_lo;
           ymm_union[1] = m_mid;
           ymm_union[2] = m_high >> 64;
@@ -72,8 +72,8 @@ class uint256_t
 #endif
           
 #ifdef __SSE4_2__ // 16 table lookups per clock cycle
-          sdsl::XMM_Union<uint64_t> xmm_union1;
-          sdsl::XMM_Union<uint64_t> xmm_union2;
+          sdsl::XMM_union<uint64_t> xmm_union1;
+          sdsl::XMM_union<uint64_t> xmm_union2;
           xmm_union1[0] = m_lo;
           xmm_union1[1] = m_mid;
           xmm_union2[0] = m_high >> 64;
