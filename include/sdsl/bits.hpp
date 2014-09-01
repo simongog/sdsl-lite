@@ -117,7 +117,7 @@ struct bits {
     /*! \param  XMM register
         \return Number of set bits.
      */ 
-#ifdef __AVX2__
+#ifdef __SSE4_2__
     static uint64_t cnt128(__m128i x);
 #endif
 
