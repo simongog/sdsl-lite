@@ -86,15 +86,15 @@ class top_k_iterator
         typedef k2_treap_ns::node_type node_type;
         typedef std::pair<node_type, bool> t_nt_b;
 
-        const t_k2_treap* m_treap;
+        const t_k2_treap* m_treap = nullptr;
         std::priority_queue<t_nt_b> m_pq;
         t_point_val m_point_val;
         point_type m_p1;
         point_type m_p2;
-        bool m_valid;
+        bool m_valid = false;
 
     public:
-        top_k_iterator() = delete;
+        top_k_iterator() = default;
         top_k_iterator(const top_k_iterator&) = default;
         top_k_iterator(top_k_iterator&&) = default;
         top_k_iterator& operator=(const top_k_iterator&) = default;
@@ -176,13 +176,13 @@ class range_iterator
         typedef k2_treap_ns::node_type node_type;
         typedef std::pair<node_type, bool> t_nt_b;
 
-        const t_k2_treap* m_treap;
+        const t_k2_treap* m_treap = nullptr;
         std::priority_queue<t_nt_b> m_pq;
         t_point_val m_point_val;
         point_type m_p1;
         point_type m_p2;
         range_type m_r;
-        bool m_valid;
+        bool m_valid = false;
 
         void pq_emplace(node_type v, bool b)
         {
@@ -192,7 +192,7 @@ class range_iterator
         }
 
     public:
-        range_iterator() = delete;
+        range_iterator() = default;
         range_iterator(const range_iterator&) = default;
         range_iterator(range_iterator&&) = default;
         range_iterator& operator=(const range_iterator&) = default;
