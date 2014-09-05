@@ -276,13 +276,10 @@ inline uint64_t bits::cnt256(__m256i x){
   bwcount = _mm256_add_epi8(_mm256_shuffle_epi8(POPCNT_LOOKUP_4BF_MASK256, low),
                           _mm256_shuffle_epi8(POPCNT_LOOKUP_4BF_MASK256, high));
  
-  // Computes sum of absolute differences and stores intermediate results at positions 0,4,8 and 12
-  __m256i fourSums = _mm256_sad_epu8(bwcount, _mm256_setzero_si256());
- 
   // Use union to access individual bytes (unsigned integers)
   sdsl::YMM_union<uint8_t> ymm_union;
-  ymm_union.ymm = fourSums;
-  return ymm_union.ymm[0] + ymm_union.ymm[4] + ymm_union.ymm[8] + ymm_union.ymm[12];
+  ymm_union.ymm = _mm256_sad_epu8(bwcount, _mm256_setzero_si256());
+  return ymm_union.values[0] + ymm_union.values[4] + ymm_union.values[8] + ymm_union.values[12];
 }
 #endif
 
