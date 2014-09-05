@@ -299,7 +299,7 @@ inline uint64_t bits::cnt128(__m128i x){
   
   // Use union to access individual bytes (unsigned integers)
   sdsl::XMM_union<uint8_t> xmm_union;
-  xmm_union.xmm = _mm_sad_epu8(x, _mm_setzero_si128());
+  xmm_union.xmm = _mm_sad_epu8(count, _mm_setzero_si128());
   return xmm_union.values[0] + xmm_union.values[4];
 }
 #endif
