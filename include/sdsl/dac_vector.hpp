@@ -234,7 +234,7 @@ dac_vector<t_b, t_rank>::dac_vector(const Container& c)
         t = sum_blocks;
         sum_blocks += m_level_pointer_and_rank[i];
         m_level_pointer_and_rank[i] = t;
-        if (sum_blocks > t) {
+        if (sum_blocks > t) { // TODO possible without conditional
             ++m_max_level;
             last_block_size = sum_blocks - t;
         }
@@ -311,7 +311,7 @@ dac_vector<t_b, t_rank>::dac_vector(int_vector_buffer<int_width>& v_buf)
         t = sum_blocks;
         sum_blocks += m_level_pointer_and_rank[i];
         m_level_pointer_and_rank[i] = t;
-        if (sum_blocks > t) {
+        if (sum_blocks > t) { // TODO possible without conditional
             ++m_max_level;
             last_block_size = sum_blocks - t;
         }

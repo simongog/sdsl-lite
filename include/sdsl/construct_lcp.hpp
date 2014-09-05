@@ -83,7 +83,7 @@ void construct_lcp_kasai(cache_config& config)
             sa_1 =  isa_buf[i]; // = isa[i]
             if (sa_1) {
                 j = sa[sa_1-1];
-                if (l) --l;
+                if (l) --l; // TODO l changes in the else, could be unpredictable
                 assert(i!=j);
                 while (text[i+l]==text[j+l]) { // i+l < n and j+l < n are not necessary, since text[n]=0 and text[i]!=0 (i<n) and i!=j
                     ++l;
@@ -158,7 +158,7 @@ void construct_lcp_PHI(cache_config& config)
             ++l;
         }
         plcp[i] = l;
-        if (l) {
+        if (l) { // TODO possible without the branch
             max_l = std::max(max_l, l);
             --l;
         }

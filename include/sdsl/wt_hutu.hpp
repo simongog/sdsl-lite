@@ -311,7 +311,7 @@ struct _hutu_shape {
             //create a leaf for every letter
             std::vector<ht_node> node_vector;
             for (size_t i = 0; i < C.size(); i++) {
-                if (C[i]) {
+                if (C[i]) { // TODO branch can be avoided
                     ht_node n;
                     n.c = (uint64_t)i;
                     n.w = C[i];

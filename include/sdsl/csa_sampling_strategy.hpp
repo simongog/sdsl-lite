@@ -85,7 +85,7 @@ class _sa_order_sampling : public int_vector<t_width>
 
             for (size_type i=0, cnt_mod=sample_dens, cnt_sum=0; i < n; ++i, ++cnt_mod) {
                 size_type sa = sa_buf[i];
-                if (sample_dens == cnt_mod) {
+                if (sample_dens == cnt_mod) { // TODO possible without conditional
                     cnt_mod = 0;
                     (*this)[cnt_sum++] = sa;
                 }
@@ -151,7 +151,7 @@ class _text_order_sampling : public int_vector<t_width>
 
             for (size_type i=0, sa_cnt=0; i < n; ++i) {
                 size_type sa = sa_buf[i];
-                if (0 == (sa % sample_dens)) {
+                if (0 == (sa % sample_dens)) { // TODO possible without conditional
                     marked[i] = 1;
                     (*this)[sa_cnt++] = sa;
                 }
@@ -299,18 +299,18 @@ class _bwt_sampling : public int_vector<t_width>
                 size_type sa  = sa_buf[i];
                 char_type bwt = bwt_buf[i];
                 if (0 == (sa % sample_dens)) {
-                    marked[i] = 1;
-                    ++sa_cnt;
+                    marked[i] = 1; // TODO same as below
+                    ++sa_cnt;      // TODO same as below
                 } else if (char_map.find(bwt) != char_map.end()) {
-                    marked[i] = 1;
-                    ++sa_cnt;
+                    marked[i] = 1; // TODO same as above
+                    ++sa_cnt;      // TODO same as above
                 }
             }
             this->resize(sa_cnt);
             sa_cnt = 0;
             for (size_type i=0; i < n; ++i) {
                 size_type sa  = sa_buf[i];
-                if (marked[i]) {
+                if (marked[i]) { // TODO possible without conditional
                     (*this)[sa_cnt++] = sa;
                 }
             }

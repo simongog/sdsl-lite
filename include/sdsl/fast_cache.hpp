@@ -21,10 +21,10 @@ struct fast_cache {
     // Returns true if the request i is cached and
     // x is set to the answer of request i
     bool exists(size_type i, size_type& x) {
-        if (m_table[(i&CACHE_SIZE)<<1 ] == i) {
+        if (m_table[(i&CACHE_SIZE)<<1 ] == i) { // TODO possible without conditional
             x = m_table[((i&CACHE_SIZE)<<1) + 1 ];
             return true;
-        } else
+        } else // TODO possible without conditional
             return false;
     }
     // Writes the answer for request i to the cache

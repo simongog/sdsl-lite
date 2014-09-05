@@ -478,7 +478,7 @@ typename t_csa::size_type extract(
     typename t_csa::size_type steps = end-begin+1;
     for (typename t_csa::size_type i=0, order = csa.isa[begin]; steps != 0; --steps, ++i) {
         text[i] = first_row_symbol(order, csa);
-        if (steps != 0) order = csa.psi[order];
+        if (steps != 0) order = csa.psi[order]; // TODO possible without conditional
     }
     return end-begin+1;
 }

@@ -75,9 +75,9 @@ class binomial15
                             ++cnt;
                             ++class_cnt;
                         } while (next_permutation(b.begin(), b.end()));
-                        if (class_cnt == 1)
+                        if (class_cnt == 1) // TODO possible without conditional
                             m_space_for_bt[i] = 0;
-                        else
+                        else // TODO possible without conditional
                             m_space_for_bt[i] = bits::hi(class_cnt)+1;
                     }
                     if (n == 15) {

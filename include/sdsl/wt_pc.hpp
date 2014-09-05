@@ -216,7 +216,7 @@ class wt_pc
             for (size_type v=0; v < m_tree.size(); ++v) {
                 bv_node_pos[v] = m_tree.bv_pos(v);
             }
-            if (input_buf.size() < size) {
+            if (input_buf.size() < size) { // TODO ensure this happens in DEBUG mode only
                 throw std::logic_error("Stream size is smaller than size!");
                 return;
             }
@@ -359,10 +359,10 @@ class wt_pc
             size_type result = i;
             node_type v = m_tree.root();
             for (uint32_t l=0; l<path_len and result; ++l, p >>= 1) {
-                if (p&1) {
+                if (p&1) { // TODO branch can be avoided
                     result  = (m_bv_rank(m_tree.bv_pos(v)+result)
                                -  m_tree.bv_pos_rank(v));
-                } else {
+                } else { // TODO branch can be avoided
                     result -= (m_bv_rank(m_tree.bv_pos(v)+result)
                                -  m_tree.bv_pos_rank(v));
                 }
@@ -426,12 +426,12 @@ class wt_pc
             // path_len > 0, since we have handled m_sigma = 1.
             p <<= (64-path_len);
             for (uint32_t l=0; l<path_len; ++l, p <<= 1) {
-                if ((p & 0x8000000000000000ULL)==0) { // node was a left child
+                if ((p & 0x8000000000000000ULL)==0) { // node was a left child // TODO branch can be avoided
                     v  = m_tree.parent(v);
                     result = m_bv_select0(m_tree.bv_pos(v)
                                           - m_tree.bv_pos_rank(v) + result + 1)
                              - m_tree.bv_pos(v);
-                } else { // node was a right child
+                } else { // node was a right child // TODO branch can be avoided
                     v   = m_tree.parent(v);
                     result = m_bv_select1(m_tree.bv_pos_rank(v) + result + 1)
                              - m_tree.bv_pos(v);
@@ -555,11 +555,11 @@ class wt_pc
                 size_type r1_2 = (m_bv_rank(m_tree.bv_pos(v)+j)
                                   - m_tree.bv_pos_rank(v));
 
-                if (p&1) {
+                if (p&1) { // TODO branch can be avoided
                     smaller += j - r1_2 - i + r1_1;
                     i = r1_1;
                     j = r1_2;
-                } else {
+                } else { // TODO branch can be avoided
                     greater += r1_2 - r1_1;
                     i -= r1_1;
                     j -= r1_2;
@@ -612,10 +612,10 @@ class wt_pc
             for (uint32_t l=0; l<path_len and all; ++l, p >>= 1) {
                 size_type ones = (m_bv_rank(m_tree.bv_pos(v)+all)
                                   - m_tree.bv_pos_rank(v));
-                if (p&1) {
+                if (p&1) { // TODO branch can be avoided
                     result += all - ones;
                     all    = ones;
-                } else {
+                } else { // TODO branch can be avoided
                     all    -= ones;
                 }
                 v = m_tree.child(v, p&1);

@@ -55,9 +55,9 @@ class fibonacci
 
             impl() {
                 for (uint32_t x=0; x <= 0x1FFF; ++x) {
-                    if (bits::cnt11(x)) {
+                    if (bits::cnt11(x)) { // TODO get rid of this branch
                         fib2bin_shift[x] = bits::sel11(x, 1)+1;
-                    } else {
+                    } else { // TODO get rid of this branch
                         fib2bin_shift[x] = 0;
                     }
                 }
@@ -169,8 +169,8 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
     uint64_t w;
     const uint64_t zero_val = v.width() < 64 ? (1ULL)<<v.width() : 0;
     for (typename int_vector1::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
-        if ((w=*it) == 0) {
-            if (v.width() < 64) {
+        if ((w=*it) == 0) { // TODO unnecessary branch
+            if (v.width() < 64) { // TODO unnecessary branch
                 w = zero_val;
             }
         }
@@ -186,7 +186,7 @@ inline bool fibonacci::encode(const int_vector1& v, int_vector2& z)
     uint64_t t;
     for (typename int_vector1::const_iterator it=v.begin(), end = v.end(); it != end; ++it) {
         w = *it;
-        if (w == 0) {
+        if (w == 0) { // TODO unnecessary branch
             w = zero_val;
         }
         int8_t len_1 = encoding_length(w)-1,j;

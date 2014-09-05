@@ -190,7 +190,7 @@ vlc_vector<t_coder, t_dens, t_width>::vlc_vector(const Container& c)
     size_type samples = 0, z_size = 0;
 //  (1) Calculate size of z
     for (size_type i=0; i < c.size(); ++i) {
-        if (c[i]+1<1) {
+        if (c[i]+1<1) { // TODO make sure this happens only in DEBUG mode
             throw std::logic_error("vlc_vector cannot decode values smaller than 1!");
         }
         z_size += t_coder::encoding_length(c[i]+1);
@@ -205,7 +205,7 @@ vlc_vector<t_coder, t_dens, t_width>::vlc_vector(const Container& c)
     uint8_t offset = 0;
     size_type no_sample = 0;
     for (size_type i=0, sample_cnt=0; i < c.size(); ++i, --no_sample) {
-        if (!no_sample) { // add a sample pointer
+        if (!no_sample) { // add a sample pointer // TODO This branch can be avoided
             no_sample = get_sample_dens();
             m_sample_pointer[sample_cnt++] = z_size;
         }
@@ -227,7 +227,7 @@ vlc_vector<t_coder, t_dens, t_width>::vlc_vector(int_vector_buffer<int_width>& v
 //  (1) Calculate size of z
     for (size_type i=0; i < n; ++i) {
         size_type x = v_buf[i]+1;
-        if (x < 1) {
+        if (x < 1) { // TODO make sure this happens only in DEBUG mode
             throw std::logic_error("vlc_vector cannot decode values smaller than 1!");
         }
         z_size += t_coder::encoding_length(x);
@@ -246,7 +246,7 @@ vlc_vector<t_coder, t_dens, t_width>::vlc_vector(int_vector_buffer<int_width>& v
 //     (c) Write sample values and deltas
     size_type no_sample = 0;
     for (size_type i=0, sample_cnt = 0; i < n; ++i, --no_sample) {
-        if (!no_sample) { // add a sample pointer
+        if (!no_sample) { // add a sample pointer // TODO this branch can be avoided
             no_sample = get_sample_dens();
             m_sample_pointer[sample_cnt++] = z_size;
         }

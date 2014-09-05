@@ -98,9 +98,9 @@ class lcp_byte
             size_type l=0, max_l=0, max_big_idx=0, big_sum=0;
 
             for (size_type i=0; i < m_small_lcp.size(); ++i) {
-                if ((l=lcp_buf[i]) < 255) {
+                if ((l=lcp_buf[i]) < 255) { // TODO possible without conditional
                     m_small_lcp[i] = l;
-                } else {
+                } else { // TODO possible without conditional
                     m_small_lcp[i] = 255;
                     if (l > max_l) max_l = l;
                     max_big_idx = i;
@@ -111,7 +111,7 @@ class lcp_byte
             m_big_lcp_idx = int_vector<>(big_sum, 0, bits::hi(max_big_idx)+1);
 
             for (size_type i=0,ii=0; i<m_small_lcp.size(); ++i) {
-                if ((l=lcp_buf[i]) >= 255) {
+                if ((l=lcp_buf[i]) >= 255) { // TODO possible without conditional
                     m_big_lcp[ii] = l;
                     m_big_lcp_idx[ii] = i;
                     ++ii;

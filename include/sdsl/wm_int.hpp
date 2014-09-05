@@ -160,7 +160,7 @@ class wm_int
 
             value_type x = 1;  // variable for the biggest value in rac
             for (size_type i=0; i < m_size; ++i) { // detect the largest value in rac
-                if (buf[i] > x)
+                if (buf[i] > x) // TODO why not to use std::max here?
                     x = buf[i];
                 rac[i] = buf[i];
             }
@@ -308,10 +308,10 @@ class wm_int
             for (uint32_t k=0; k < m_max_level; ++k) {
                 res <<= 1;
                 size_type rank_ones = m_tree_rank(i) - m_rank_level[k];
-                if (m_tree[i]) { // one at position i => follow right child
+                if (m_tree[i]) { // one at position i => follow right child // TODO can be done without branch
                     i = (k+1)*m_size + m_zero_cnt[k] + rank_ones;
                     res |= 1;
-                } else { // zero at position i => follow left child
+                } else { // zero at position i => follow left child // TODO can be done without branch
                     auto rank_zeros = (i - k*m_size) - rank_ones;
                     i = (k+1)*m_size + rank_zeros;
                 }
@@ -340,10 +340,10 @@ class wm_int
                 size_type rank_b = m_tree_rank(b);
                 size_type ones   = m_tree_rank(b + i) - rank_b; // ones in [b..i)
                 size_type ones_p = rank_b - m_rank_level[k];    // ones in [level_b..b)
-                if (c & mask) { // search for a one at this level
+                if (c & mask) { // search for a one at this level // TODO can be done without branch
                     i = ones;
                     b = (k+1)*m_size + m_zero_cnt[k] + ones_p;
-                } else { // search for a zero at this level
+                } else { // search for a zero at this level // TODO can be done without branch
                     i = i-ones;
                     b = (k+1)*m_size + (b - k*m_size - ones_p);
                 }
@@ -370,11 +370,11 @@ class wm_int
                 size_type ones   = m_tree_rank(b + i) - rank_b; // ones in [b..i)
                 size_type ones_p = rank_b - m_rank_level[k];    // ones in [level_b..b)
                 c<<=1;
-                if (m_tree[b+i]) { // go to the right child
+                if (m_tree[b+i]) { // go to the right child // TODO can be done without branch
                     i = ones;
                     b = (k+1)*m_size + m_zero_cnt[k] + ones_p;
                     c|=1;
-                } else { // go to the left child
+                } else { // go to the left child // TODO can be done without branch
                     i = i-ones;
                     b = (k+1)*m_size + (b - k*m_size - ones_p);
                 }
@@ -402,10 +402,10 @@ class wm_int
                 size_type rank_b = m_tree_rank(b);
                 size_type ones   = m_tree_rank(b + r) - rank_b; // ones in [b..i)
                 size_type ones_p = rank_b - m_rank_level[k];    // ones in [0..b)
-                if (c & mask) { // search for a one at this level
+                if (c & mask) { // search for a one at this level // TODO can be done without branch
                     r = ones;
                     b = (k+1)*m_size + m_zero_cnt[k] + ones_p;
-                } else { // search for a zero at this level
+                } else { // search for a zero at this level // TODO can be done without branch
                     r = r-ones;
                     b = (k+1)*m_size + (b - k*m_size - ones_p);
                 }
@@ -417,9 +417,9 @@ class wm_int
             for (uint32_t k=m_max_level; k>0; --k) {
                 b = m_path_off[k-1];
                 size_type rank_b = m_path_rank_off[k-1];
-                if (c & mask) { // right child => search i'th one
+                if (c & mask) { // right child => search i'th one // TODO can be done without branch
                     i = m_tree_select1(rank_b + i) - b + 1;
-                } else { // left child => search i'th zero
+                } else { // left child => search i'th zero // TODO can be done without branch
                     i = m_tree_select0(b - rank_b + i) - b + 1;
                 }
                 mask <<= 1;
@@ -473,9 +473,9 @@ class wm_int
                     for (uint32_t k=m_max_level; k>0; --k) {
                         size_type offset = is[k-1];
                         size_type rank_offset = rank_off[k-1];
-                        if (c&1) {
+                        if (c&1) { // TODO can be done without branch
                             i = m_tree_select1(rank_offset+i)-offset+1;
-                        } else {
+                        } else { // TODO can be done without branch
                             i = m_tree_select0(offset-rank_offset+i)-offset+1;
                         }
                         c >>= 1;

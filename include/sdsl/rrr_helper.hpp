@@ -198,7 +198,7 @@ struct binomial_table {
             O1Mask[0] = 1;
             for (int i=1; i<=n; ++i) {
                 L1Mask[i] = mask;
-                if (i < n)
+                if (i < n) // TODO possible without conditional
                     O1Mask[i] = O1Mask[i-1]<<1;
                 mask = (mask << 1);
                 mask |= (number_type)1;

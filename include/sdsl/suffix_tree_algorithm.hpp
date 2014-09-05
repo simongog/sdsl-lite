@@ -255,8 +255,8 @@ std::pair<double,size_t> Hk(const t_cst& cst, typename t_cst::size_type k)
         if (it.visit() == 1) {
             if (!cst.is_leaf(*it)) {
                 typename t_cst::size_type d = cst.depth(*it);
-                if (d >= k) {
-                    if (d == k) {
+                if (d >= k) { // TODO possible without conditional
+                    if (d == k) { // TODO possible without conditional
                         hk += cst.size(*it) * H0(*it, cst);
                     }
                     ++context;

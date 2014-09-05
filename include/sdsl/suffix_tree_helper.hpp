@@ -91,12 +91,12 @@ void construct_supercartesian_tree_bp(const t_rac& vec, bit_vector& bp, const bo
     size_type k=0;
     for (size_type i=0; i < vec.size(); ++i) {
         typename t_rac::value_type l = vec[i];
-        if (minimum) {
+        if (minimum) { // TODO possible without conditional (use lambdas)
             while (vec_stack.size() > 0 and l < vec_stack.top()) {
                 vec_stack.pop(); ++k; /*bp[k++] = 0; bp is already initialized to zero*/ // writing a closing parenthesis
             }
 
-        } else {
+        } else { // TODO possible without conditional (use lambdas)
             while (vec_stack.size() > 0 and l > vec_stack.top()) {
                 vec_stack.pop(); ++k; /*bp[k++] = 0; bp is already initialized to zero*/ // writing a closing parenthesis
             }

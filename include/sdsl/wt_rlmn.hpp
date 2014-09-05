@@ -208,7 +208,7 @@ class wt_rlmn
                 bf[size] = 1; // initialize last element
                 for (size_type i=0; i < size; ++i) {
                     value_type c = text_buf[i];
-                    if (bl[i]) {
+                    if (bl[i]) { // TODO branch can be avoided
                         bf[lf_map[c]] = 1;
                     }
                     ++lf_map[c];

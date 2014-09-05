@@ -269,7 +269,7 @@ class succinct_byte_alphabet
             assert(1 == D[0]); // null-byte should occur exactly once
             m_sigma = 0;
             for (int i=0; i<256; ++i)
-                if (D[i]) {
+                if (D[i]) { // TODO possible without conditional
                     tmp_char[i] = 1;    // mark occurring character
                     D[m_sigma] = D[i];  // compactify m_C
                     ++m_sigma;

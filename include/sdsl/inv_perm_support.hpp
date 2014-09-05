@@ -96,7 +96,7 @@ class inv_perm_support
                             back_pointer = j;
                         }
                     }
-                    if (all_steps > t_s) {
+                    if (all_steps > t_s) { // TODO possible without conditional
                         marked[i] = 1;
                         max_back_pointer = std::max(max_back_pointer, back_pointer);
                     }
@@ -125,7 +125,7 @@ class inv_perm_support
                             back_pointer = j;
                         }
                     }
-                    if (all_steps > t_s) {
+                    if (all_steps > t_s) { // TODO possible without conditional
                         m_back_pointer[m_rank_marked(i)] = back_pointer;
                     }
                 }

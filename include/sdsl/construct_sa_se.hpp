@@ -239,10 +239,10 @@ void _construct_sa_se(int_vector_type& text, std::string filename_sa, uint64_t s
         bkt_s_last=0, bkt_s_sum=0;
         for (size_t i=0; i<sigma; ++i) {
             bkt_s_sum += bkt_s[i];
-            if (bkt_s[i]) {
+            if (bkt_s[i]) { // TODO possible without the branch
                 bkt_s[i] = bkt_s_sum;
                 bkt_s_last = bkt_s_sum;
-            } else {
+            } else { // TODO possible without the branch
                 bkt_s[i] = bkt_s_sum;
             }
             bkt_lms[i] = bkt_s[i];
@@ -348,7 +348,7 @@ void _construct_sa_se(int_vector_type& text, std::string filename_sa, uint64_t s
                 ++a;
                 ++b;
             }
-            if (text[a] == text[b]) {
+            if (text[a] == text[b]) { // TODO possible without conditional
                 same_lms[i] = true;
                 --order;
             }
@@ -373,17 +373,17 @@ void _construct_sa_se(int_vector_type& text, std::string filename_sa, uint64_t s
             util::_set_zero_bits(text_rec);
             order = 0;
             for (size_t i=number_of_lms_strings-1; i<number_of_lms_strings; --i) {
-                if (!same_lms[i]) {
+                if (!same_lms[i]) { // TODO possible without conditional
                     ++order;
                 }
-                if (left[i]/2 >= size_of_part) {
+                if (left[i]/2 >= size_of_part) { // TODO possible without conditional
                     text_rec[(left[i]/2)-size_of_part] = order;
                 }
             }
             std::string filename_text_rec_part2 = tmp_file(filename_sa, "_text_rec_part2"+util::to_string(recursion));
             size_t pos = 0;
             for (size_t i=0; i<size_of_part; ++i) {
-                if (text_rec[i]>0) {
+                if (text_rec[i]>0) { // TODO possible without conditional
                     text_rec[pos++] = text_rec[i];
                 }
             }
@@ -392,23 +392,24 @@ void _construct_sa_se(int_vector_type& text, std::string filename_sa, uint64_t s
             text_rec.resize(size_of_part);
             util::_set_zero_bits(text_rec);
             order = 0;
+            // TODO code duplication !!
             for (size_t i=number_of_lms_strings-1; i<number_of_lms_strings; --i) {
-                if (!same_lms[i]) {
+                if (!same_lms[i]) { // TODO possible without conditional
                     ++order;
                 }
-                if (left[i]/2 < size_of_part) {
+                if (left[i]/2 < size_of_part) { // TODO possible without conditional
                     text_rec[left[i]/2] = order;
                 }
             }
             pos = 0;
             for (size_t i=0; i<size_of_part; ++i) {
-                if (text_rec[i]>0) {
+                if (text_rec[i]>0) { // TODO possible without conditional
                     text_rec[pos++] = text_rec[i];
                 }
             }
             text_rec.resize(number_of_lms_strings);
             int_vector_buffer<> buf(filename_text_rec_part2, std::ios::in, 1024*1024);
-            for (size_t i=0; i<buf.size(); ++i) {
+            for (size_t i=0; i<buf.size(); ++i) { // TODO possible without conditional
                 text_rec[pos++] = buf[i];
             }
             buf.close(true);
@@ -418,13 +419,13 @@ void _construct_sa_se(int_vector_type& text, std::string filename_sa, uint64_t s
             util::_set_zero_bits(text_rec);
             order = 0;
             for (size_t i=number_of_lms_strings-1; i<number_of_lms_strings; --i) {
-                if (!same_lms[i]) {
+                if (!same_lms[i]) { // TODO possible without conditional
                     ++order;
                 }
                 text_rec[left[left_pointer--]/2] = order;
             }
             for (size_t i=0, pos=0; i<text_rec.size(); ++i) {
-                if (text_rec[i]>0) {
+                if (text_rec[i]>0) { // TODO possible without conditional
                     text_rec[pos++] = text_rec[i];
                 }
             }

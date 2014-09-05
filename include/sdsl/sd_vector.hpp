@@ -531,10 +531,10 @@ class select_0_support_sd
                     w = m_v->high.get_int(i, 64);
                     rank1 += bits::cnt(w);
                     rank_0 = (i+64)-rank1;
-                    if (rank1 > 0 and (w>>63)&1) {
+                    if (rank1 > 0 and (w>>63)&1) { // TODO possible without conditional
                         uint64_t pos = rank_0*bs + m_v->low[rank1-1]; // pos of last one (of previous block in B
                         z = pos + 1 - rank1;
-                    } else {
+                    } else { // TODO possible without conditional
                         z = rank_0*bs  - rank1;
                     }
                     while (sel0 <= z and sel0 <= zeros) {
