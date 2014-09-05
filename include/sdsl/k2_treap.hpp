@@ -35,11 +35,20 @@ namespace sdsl
 {
 
 //! A k^2-treap.
-/*! A k^2-treap is an indexing structure for a weighted point set. The set
+/*! A k^2-treap is an indexing structure for a set of weighted points. The set
  *  consists of triples (x,y,w), where the first two components x and y are
  *  the coordinates of the point and w is the point's weight.
  *
- *  The k^2 treap efficiently supports
+ *  The k^2 treap supports 4-sided range count queries and 4-sided prioritized
+ *  range queries in 2d. Using the latter functionality it is also possible to
+ *  support 6-sided range queries in 3d. An example can be found in
+ *  examples/k2_treap_in_mem.cpp .
+ *
+ *  The k^2-treap constructed in-place. The construct method expects either
+ *  a vector of std::array<X,3> elements (each array represent a tuple x,y,w)
+ *  or a file prefix FILE. In the latter case three serialized int_vector<>
+ *  have to be present at FILE.x, FILE.y, and FILE.w. One int_vector<> per
+ *  component.
  *
  *  \par References
  *       [1] N. Brisaboa, G. de Bernardo, R. Konow, and G. Navarro:
@@ -53,7 +62,7 @@ template<uint8_t  t_k,
 class k2_treap
 {
         static_assert(t_k>1, "t_k has to be larger than 1.");
-        static_assert(t_k<=16, "t_k has to be smaller than 16.");
+        static_assert(t_k<=16, "t_k has to be smaller than 17.");
 
     public:
         typedef int_vector<>::size_type size_type;

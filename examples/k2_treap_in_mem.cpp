@@ -32,7 +32,6 @@ int main()
 
     cout << "Report all points in rectangle from (2,2) to (10,10)" << endl;
     cout << "with weight in [2..6]:" << endl;
-//    auto range_it = range_3d(k2treap, {2,2},{10,10},{2,6});
     auto range_it = range_3d(k2treap, {2,2}, {10,10}, {2,100});
     while (range_it) {
         auto point_weight = *range_it;
