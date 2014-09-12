@@ -339,7 +339,7 @@ class sorter
                     cc=(cc&mm)<<s;            /* shift in next old symbol in chunk.*/
                 }
                 for (pi=p, jj=1; pi<=p+dd; ++pi)
-                    if (*pi)
+                    if (*pi) // TODO possible without conditional
                         *pi=jj++;            /* j is new alphabet size.*/
                 for (pi=x, pj=x+m_rr, cc=bb; pj<=x+n; ++pi, ++pj) {
                     *pi=p[cc];              /* transform to new alphabet.*/

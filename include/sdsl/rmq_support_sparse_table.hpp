@@ -87,7 +87,7 @@ class rmq_support_sparse_table
                 m_table[i] = int_vector<>(n-(1<<(i+1))+1, 0, i+1);
             }
             for (size_type i=0; i<n-1; ++i) {
-                if (!mm_trait::compare((*m_v)[i], (*m_v)[i+1]))
+                if (!mm_trait::compare((*m_v)[i], (*m_v)[i+1])) // TODO possible without conditional
                     m_table[0][i] = 1;
             }
             for (size_type i=1; i<k; ++i) {

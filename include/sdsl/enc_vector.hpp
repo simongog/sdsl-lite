@@ -222,7 +222,7 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c)
         v2 = *it;
         if (!no_sample) { // add a sample
             no_sample = get_sample_dens();
-            if (max_sample_value < v2) max_sample_value = v2;
+            if (max_sample_value < v2) max_sample_value = v2; // TODO possible without conditional
             ++samples;
         } else {
             z_size += t_coder::encoding_length(v2-v1);
@@ -242,11 +242,11 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c)
         size_type no_sample=0;
         for (it = c.begin(); it != end; ++it, --no_sample) {
             v2 = *it;
-            if (!no_sample) { // add a sample
+            if (!no_sample) { // add a sample // TODO possible without conditional
                 no_sample = get_sample_dens();
                 *sv_it = v2; ++sv_it;
                 *sv_it = z_size; ++sv_it;
-            } else {
+            } else { // TODO possible without conditional
                 x = v2-v1;
                 z_size += t_coder::encoding_length(x);
             }
@@ -289,7 +289,7 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_buffer<int_width>& v_
         v2 = v_buf[i];
         if (!no_sample) { // is sample
             no_sample = sd;
-            if (max_sample_value < v2) max_sample_value = v2;
+            if (max_sample_value < v2) max_sample_value = v2; // TODO possible without conditional
             ++samples;
         } else {
             z_size += t_coder::encoding_length(v2-v1);

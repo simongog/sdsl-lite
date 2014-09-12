@@ -130,7 +130,7 @@ class bit_vector_il
             size_type cum_sum = 0;
             size_type sample_rate = t_bs/64;
             for (size_type i=0, sample_cnt=sample_rate; i < blocks; ++i, ++sample_cnt) {
-                if (sample_cnt == sample_rate) {
+                if (sample_cnt == sample_rate) { // TODO get rid of this branch
                     m_data[j] = cum_sum;
                     sample_cnt = 0;
                     j++;

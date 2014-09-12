@@ -92,14 +92,14 @@ class inv_multi_perm_support
                         j = j_new;
                         done[j-off] = 1;
                         ++steps; ++all_steps;
-                        if (t_s == steps) {
+                        if (t_s == steps) { // TODO can be done without branch
                             max_back_pointer = std::max(max_back_pointer, back_pointer-off);
                             marked[j] = 1;
                             steps = 0;
                             back_pointer = j;
                         }
                     }
-                    if (all_steps > t_s) {
+                    if (all_steps > t_s) { // TODO can be done without branch
                         marked[i] = 1;
                         max_back_pointer = std::max(max_back_pointer, back_pointer-off);
                     }
@@ -126,13 +126,13 @@ class inv_multi_perm_support
                         j = j_new;
                         done[j-off] = 1;
                         ++steps; ++all_steps;
-                        if (t_s == steps) {
+                        if (t_s == steps) { // TODO can be done without branch
                             m_back_pointer[m_marked_rank(j)] = back_pointer-off;
                             steps = 0;
                             back_pointer = j;
                         }
                     }
-                    if (all_steps > t_s) {
+                    if (all_steps > t_s) { // TODO can be done without branch
                         m_back_pointer[m_marked_rank(i)] = back_pointer-off;
                     }
                 }
@@ -328,7 +328,7 @@ class wt_gmr_rs
         wt_gmr_rs(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
             // Determine max. symbol
             for (uint64_t i=0; i<m_size; ++i) {
-                if (m_block_size < input[i]) m_block_size = input[i];
+                if (m_block_size < input[i]) m_block_size = input[i]; // TODO can be done without branch
             }
             ++m_block_size;
 
@@ -340,7 +340,7 @@ class wt_gmr_rs
                 int_vector<> tmp(m_block_size*m_blocks, 0, bits::hi(m_block_size)+1);
 
                 for (uint64_t i=0, offset=0, j=0; i<m_size; ++i, ++j) {
-                    if (j==m_block_size) {
+                    if (j==m_block_size) { // TODO can be done without branch
                         ++offset;
                         j = 0;
                     }
@@ -362,12 +362,12 @@ class wt_gmr_rs
                 bool write = true;
                 uint64_t blocks = 0;
                 for (uint64_t i=1; i<b.size(); ++i) {
-                    if (blocks==m_blocks) {
+                    if (blocks==m_blocks) { // TODO can be done without branch
                         blocks = 0;
                         write = true;
                     }
-                    if (b[i]) {
-                        if (write) {
+                    if (b[i]) { // TODO can be done without branch
+                        if (write) { // TODO can be done without branch
                             ++m_sigma;
                             write = false;
                         }
@@ -657,7 +657,7 @@ class wt_gmr
         wt_gmr(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
             // Determine max. symbol
             for (uint64_t i=0; i<m_size; ++i) {
-                if (m_max_symbol < input[i]) m_max_symbol = input[i];
+                if (m_max_symbol < input[i]) m_max_symbol = input[i]; // TODO can be done without branch
             }
             ++m_max_symbol;
             m_chunksize = (1 << (bits::hi(m_max_symbol-1)+1)); // In some cases this is better than m_max_smbol
@@ -669,7 +669,7 @@ class wt_gmr
                 int_vector<> tmp(m_max_symbol*m_chunks, 0, bits::hi(m_max_symbol-1)+2);
 
                 for (uint64_t i=0, offset=0, j=0; i<m_size; ++i, ++j) {
-                    if (j==m_chunksize) {
+                    if (j==m_chunksize) { // TODO can be done without branch
                         ++offset;
                         j = 0;
                     }
@@ -684,12 +684,12 @@ class wt_gmr
                 bool write = true;
                 uint64_t blocks = 0;
                 for (uint64_t i=1; i<b.size(); ++i) {
-                    if (blocks==m_chunks) {
+                    if (blocks==m_chunks) { // TODO can be done without branch
                         blocks = 0;
                         write = true;
                     }
-                    if (b[i]) {
-                        if (write) {
+                    if (b[i]) { // TODO can be done without branch
+                        if (write) { // TODO can be done without branch
                             ++m_sigma;
                             write = false;
                         }

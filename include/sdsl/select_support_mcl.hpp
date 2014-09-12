@@ -300,7 +300,7 @@ void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
                 size_type pos_of_last_arg_in_the_block = arg_position[last_k64-65];
 
                 for (size_type i=arg_position[last_k64-65]+1, j=last_k64-65; i < v->size() and j < SUPER_BLOCK_SIZE; ++i)
-                    if (select_support_trait<t_b,t_pat_len>::found_arg(i, *v)) {
+                    if (select_support_trait<t_b,t_pat_len>::found_arg(i, *v)) { // TODO possible without conditional
                         pos_of_last_arg_in_the_block = i;
                         ++j;
                     }
@@ -339,7 +339,7 @@ void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
         if (m_longsuperblock == nullptr) m_longsuperblock = new int_vector<0>[sb+1]; // create longsuperblock
         m_longsuperblock[sb_cnt] = int_vector<0>(SUPER_BLOCK_SIZE, 0, bits::hi(v->size()-1) + 1);
         for (size_type i=arg_position[0],k=0; i < v->size(); ++i) {
-            if (select_support_trait<t_b, t_pat_len>::found_arg(i, *v)) {
+            if (select_support_trait<t_b, t_pat_len>::found_arg(i, *v)) { // TODO possible without conditional
                 m_longsuperblock[sb_cnt][k++] = i;
             }
         }
@@ -451,9 +451,9 @@ auto select_support_mcl<t_b,t_pat_len>::serialize(std::ostream& out, structure_t
         size_type written_bytes_long = 0;
         size_type written_bytes_mini = 0;
         for (size_type i=0; i < sb; ++i)
-            if (!mini_or_long.empty() and !mini_or_long[i]) {
+            if (!mini_or_long.empty() and !mini_or_long[i]) { // TODO possible without conditional
                 written_bytes_long += m_longsuperblock[i].serialize(out);
-            } else {
+            } else { // TODO possible without conditional
                 written_bytes_mini += m_miniblock[i].serialize(out);
             }
         written_bytes += written_bytes_long;
@@ -495,7 +495,7 @@ void select_support_mcl<t_b,t_pat_len>::load(std::istream& in, const bit_vector*
             m_longsuperblock = new int_vector<0>[sb]; // Create longsuperblock int_vector<0>
 
         for (size_type i=0; i < sb; ++i)
-            if (!mini_or_long.empty() and not mini_or_long[i]) {
+            if (!mini_or_long.empty() and not mini_or_long[i]) { // TODO possible without conditional
                 m_longsuperblock[i].load(in);
             } else {
                 m_miniblock[i].load(in);

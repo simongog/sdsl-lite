@@ -105,9 +105,9 @@ class lcp_wt
             {
                 int_vector<8> small_lcp = int_vector<8>(n);
                 for (size_type i=0; i < n; ++i) {
-                    if ((l=lcp_buf[i]) < 255) {
+                    if ((l=lcp_buf[i]) < 255) { // TODO possible without conditional
                         small_lcp[i] = l;
-                    } else {
+                    } else { // TODO possible without conditional
                         small_lcp[i] = 255;
                         if (l > max_l) max_l = l;
                         ++big_sum;
@@ -124,7 +124,7 @@ class lcp_wt
             m_big_lcp = int_vector<>(big_sum, 0, bits::hi(max_l)+1);
             {
                 for (size_type i=0, ii=0; i < n; ++i) {
-                    if (lcp_buf[i] >= 255) {
+                    if (lcp_buf[i] >= 255) { // TODO possible without conditional
                         m_big_lcp[ ii++ ] = lcp_buf[i];
                     }
                 }

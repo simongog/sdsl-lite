@@ -116,7 +116,7 @@ class memory_monitor
             for (auto events : m.completed_events) {
                 for (auto alloc : events.allocations) {
                     if (max < alloc.usage) {
-                        max = alloc.usage;
+                        max = alloc.usage; // TODO why not std::max?
                     }
                 }
             }

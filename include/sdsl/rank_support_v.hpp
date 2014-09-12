@@ -83,20 +83,20 @@ class rank_support_v : public rank_support
             uint64_t sum   = trait_type::args_in_the_word(*data, carry);
             uint64_t second_level_cnt = 0;
             for (i = 1; i < (m_v->capacity()>>6) ; ++i) {
-                if (!(i&0x7)) {// if i%8==0
+                if (!(i&0x7)) {// if i%8==0 // TODO possible without conditional
                     j += 2;
                     m_basic_block[j-1] = second_level_cnt;
                     m_basic_block[j] 	= m_basic_block[j-2] + sum;
                     second_level_cnt = sum = 0;
-                } else {
+                } else { // TODO possible without conditional
                     second_level_cnt |= sum<<(63-9*(i&0x7));//  54, 45, 36, 27, 18, 9, 0
                 }
                 sum += trait_type::args_in_the_word(*(++data), carry);
             }
-            if (i&0x7) { // if i%8 != 0
+            if (i&0x7) { // if i%8 != 0 // TODO possible without conditional
                 second_level_cnt |= sum << (63-9*(i&0x7));
                 m_basic_block[j+1] = second_level_cnt;
-            } else { // if i%8 == 0
+            } else { // if i%8 == 0 // TODO possible without conditional
                 j += 2;
                 m_basic_block[j-1] = second_level_cnt;
                 m_basic_block[j]   = m_basic_block[j-2] + sum;

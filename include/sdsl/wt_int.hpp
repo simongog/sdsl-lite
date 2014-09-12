@@ -192,7 +192,7 @@ class wt_int
 
             value_type x = 1;  // variable for the biggest value in rac
             for (size_type i=0; i < m_size; ++i) {
-                if (buf[i] > x)
+                if (buf[i] > x) // TODO branch can be avoided
                     x = buf[i];
                 rac[i] = buf[i];
             }
@@ -228,24 +228,24 @@ class wt_int
                     uint64_t  start_value = (rac[i]&mask_old);
                     uint64_t  x;
                     while (i < m_size and((x=rac[i])&mask_old)==start_value) {
-                        if (x&mask_new) {
+                        if (x&mask_new) { // TODO branch can be avoided
                             tree_word |= (1ULL << (tree_pos&0x3FULL));
                             buf1[cnt1++] = x;
-                        } else {
+                        } else { // TODO branch can be avoided
                             rac[start + cnt0++ ] = x;
                         }
                         ++tree_pos;
-                        if ((tree_pos & 0x3FULL) == 0) { // if tree_pos % 64 == 0 write old word
+                        if ((tree_pos & 0x3FULL) == 0) { // if tree_pos % 64 == 0 write old word // TODO branch can be avoided
                             tree_out_buf.write((char*) &tree_word, sizeof(tree_word));
                             tree_word = 0;
                         }
                         ++i;
                     }
-                    if (k+1 < m_max_level) { // inner node
-                        for (size_type j=0; j<cnt1; ++j) {
+                    if (k+1 < m_max_level) { // inner node // TODO branch can be avoided
+                        for (size_type j=0; j<cnt1; ++j) { // TODO branch can be avoided
                             rac[start+cnt0+j] = buf1[j];
                         }
-                    } else { // leaf node
+                    } else { // leaf node // TODO branch can be avoided
                         m_sigma += (cnt0>0) + (cnt1>0); // increase sigma for each leaf
                     }
                     start += cnt0+cnt1;
@@ -345,12 +345,12 @@ class wt_int
                 size_type ones_before_o   = m_tree_rank(offset);
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
-                if (m_tree[offset+i]) { // one at position i => follow right child
+                if (m_tree[offset+i]) { // one at position i => follow right child // TODO branch can be avoided
                     offset += (node_size - ones_before_end);
                     node_size = ones_before_end;
                     i = ones_before_i;
                     res |= 1;
-                } else { // zero at position i => follow left child
+                } else { // zero at position i => follow left child // TODO branch can be avoided
                     node_size = (node_size - ones_before_end);
                     i = (i-ones_before_i);
                 }
@@ -381,11 +381,11 @@ class wt_int
                 size_type ones_before_o   = m_tree_rank(offset);
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
-                if (c & mask) { // search for a one at this level
+                if (c & mask) { // search for a one at this level // TODO branch can be avoided
                     offset += (node_size - ones_before_end);
                     node_size = ones_before_end;
                     i = ones_before_i;
-                } else { // search for a zero at this level
+                } else { // search for a zero at this level // TODO branch can be avoided
                     node_size = (node_size - ones_before_end);
                     i = (i-ones_before_i);
                 }
@@ -415,12 +415,12 @@ class wt_int
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
                 c<<=1;
-                if (m_tree[offset+i]) { // go to the right child
+                if (m_tree[offset+i]) { // go to the right child // TODO branch can be avoided
                     offset += (node_size - ones_before_end);
                     node_size = ones_before_end;
                     i = ones_before_i;
                     c|=1;
-                } else { // go to the left child
+                } else { // go to the left child // TODO branch can be avoided
                     node_size = (node_size - ones_before_end);
                     i = (i-ones_before_i);
                 }
@@ -450,10 +450,10 @@ class wt_int
                 size_type ones_before_o   = m_tree_rank(offset);
                 m_path_rank_off[k] = ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
-                if (c & mask) { // search for a one at this level
+                if (c & mask) { // search for a one at this level // TODO branch can be avoided
                     offset += (node_size - ones_before_end);
                     node_size = ones_before_end;
-                } else { // search for a zero at this level
+                } else { // search for a zero at this level // TODO branch can be avoided
                     node_size = (node_size - ones_before_end);
                 }
                 offset += m_size;
@@ -468,9 +468,9 @@ class wt_int
             for (uint32_t k=m_max_level; k>0; --k) {
                 offset = m_path_off[k-1];
                 size_type ones_before_o = m_path_rank_off[k-1];
-                if (c & mask) { // right child => search i'th
+                if (c & mask) { // right child => search i'th // TODO branch can be avoided
                     i = m_tree_select1(ones_before_o + i) - offset + 1;
-                } else { // left child => search i'th zero
+                } else { // left child => search i'th zero // TODO branch can be avoided
                     i = m_tree_select0(offset - ones_before_o + i) - offset + 1;
                 }
                 mask <<= 1;
@@ -551,13 +551,13 @@ class wt_int
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_j   = m_tree_rank(offset + j) - ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
-                if (c & mask) { // search for a one at this level
+                if (c & mask) { // search for a one at this level // TODO branch can be avoided
                     offset += (node_size - ones_before_end);
                     node_size = ones_before_end;
                     smaller += j-i-ones_before_j+ones_before_i;
                     i = ones_before_i;
                     j = ones_before_j;
-                } else { // search for a zero at this level
+                } else { // search for a zero at this level // TODO branch can be avoided
                     node_size -= ones_before_end;
                     greater += ones_before_j-ones_before_i;
                     i -= ones_before_i;
@@ -593,12 +593,12 @@ class wt_int
                 size_type ones_before_o   = m_tree_rank(offset);
                 size_type ones_before_i   = m_tree_rank(offset + i) - ones_before_o;
                 size_type ones_before_end = m_tree_rank(offset + node_size) - ones_before_o;
-                if (c & mask) { // search for a one at this level
+                if (c & mask) { // search for a one at this level // TODO branch can be avoided
                     offset   += (node_size - ones_before_end);
                     node_size = ones_before_end;
                     result   += i - ones_before_i;
                     i         = ones_before_i;
-                } else { // search for a zero at this level
+                } else { // search for a zero at this level // TODO branch can be avoided
                     node_size = (node_size - ones_before_end);
                     i        -= ones_before_i;
                 }

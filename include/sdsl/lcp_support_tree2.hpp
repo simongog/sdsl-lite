@@ -227,7 +227,7 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<>& lcp_buf,
                         val = M;
                         big_lcp_out.write((char*)&y, sizeof(y));
                         ++fc_cnt_big;
-                        if (y > max_lcp) max_lcp = y;
+                        if (y > max_lcp) max_lcp = y; // TODO why not std::max??
                     } else {
                         val = M-1;
                         ++fc_cnt_big2;

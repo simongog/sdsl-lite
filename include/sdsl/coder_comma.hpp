@@ -258,7 +258,7 @@ inline uint64_t comma<t_width>::decode(const uint64_t* data,
  		     digit = (uint32_t)bits::read_int_and_move(data, offset, t_width)); //and read next digit
 		//now decide how to handle value
 		value = (t_sumup) ? value + v : v;
-		if (t_inc)	*(it++) = value;
+		if (t_inc)	*(it++) = value; // TODO can be done without the branch
 	}
 	return value;
 }

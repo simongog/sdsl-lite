@@ -200,7 +200,7 @@ struct _byte_tree {
         for (uint32_t i=0; i<fixed_sigma; ++i)
             m_c_to_leaf[i] = undef; // if c is not in the alphabet m_c_to_leaf[c] = undef
         for (node_type v=0; v < m_nodes.size(); ++v) {
-            if (m_nodes[v].child[0] == undef)               // if node is a leaf
+            if (m_nodes[v].child[0] == undef)               // if node is a leaf // TODO can be done without branch
                 m_c_to_leaf[(uint8_t)m_nodes[v].bv_pos_rank] = v; // calculate value
         }
         // initialize path information
@@ -215,12 +215,12 @@ struct _byte_tree {
                 uint64_t pl = 0; // path len
                 while (v != root()) {   // while node is not the root
                     pw <<= 1;
-                    if (m_nodes[m_nodes[v].parent].child[1] == v) // if the node is a right child
+                    if (m_nodes[m_nodes[v].parent].child[1] == v) // if the node is a right child // TODO branch can be avoided
                         pw |= 1ULL;
                     ++pl;
                     v = m_nodes[v].parent; // go up the tree
                 }
-                if (pl > 56) {
+                if (pl > 56) { // TODO ensure this happens only in DEBUG mode
                     throw std::logic_error("Code depth greater than 56!!!");
                 }
                 m_path[c] = pw | (pl << 56);
@@ -235,7 +235,7 @@ struct _byte_tree {
     template<class t_rank_type>
     void init_node_ranks(const t_rank_type& rank) {
         for (uint64_t i=0; i<m_nodes.size(); ++i) {
-            if (m_nodes[i].child[0] != undef)  // if node is not a leaf
+            if (m_nodes[i].child[0] != undef)  // if node is not a leaf // TODO branch can be avoided
                 m_nodes[i].bv_pos_rank = rank.rank(m_nodes[i].bv_pos);
         }
     }
@@ -438,10 +438,10 @@ struct _int_tree {
         // if c is not in the alphabet m_c_to_leaf[c] = undef
         m_c_to_leaf.resize(max_c+1, undef);
         for (node_type v=0; v < m_nodes.size(); ++v) {
-            if (m_nodes[v].child[0] == undef) {              // if node is a leaf
+            if (m_nodes[v].child[0] == undef) {              // if node is a leaf // TODO branch can be avoided
                 uint64_t c = m_nodes[v].bv_pos_rank;
                 m_c_to_leaf[c] = v; // calculate value
-                if (c > max_c) max_c = c;
+                if (c > max_c) max_c = c; // TODO branch can be avoided
             }
         }
         m_path = std::vector<uint64_t>(m_c_to_leaf.size(), 0);
@@ -457,12 +457,12 @@ struct _int_tree {
                 uint64_t l = 0; // path len
                 while (v != root()) {   // while node is not the root
                     w <<= 1;
-                    if (m_nodes[m_nodes[v].parent].child[1] == v) // if the node is a right child
+                    if (m_nodes[m_nodes[v].parent].child[1] == v) // if the node is a right child // TODO branch can be avoided
                         w |= 1ULL;
                     ++l;
                     v = m_nodes[v].parent; // go up the tree
                 }
-                if (l > 56) {
+                if (l > 56) { // TODO ensure this happens only in DEBUG mode
                     throw std::logic_error("Code depth greater than 56!!!");
                 }
                 m_path[c] = w | (l << 56);
@@ -477,7 +477,7 @@ struct _int_tree {
     template<class t_rank_type>
     void init_node_ranks(const t_rank_type& rank) {
         for (uint64_t i=0; i<m_nodes.size(); ++i) {
-            if (m_nodes[i].child[0] != undef)  // if node is not a leaf
+            if (m_nodes[i].child[0] != undef)  // if node is not a leaf // TODO branch can be avoided
                 m_nodes[i].bv_pos_rank = rank.rank(m_nodes[i].bv_pos);
         }
     }

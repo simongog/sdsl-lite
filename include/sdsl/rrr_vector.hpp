@@ -180,7 +180,7 @@ class rrr_vector
                     if (i+t_k <= bt_array.size()) {
                         size_type gt_half_t_bs = 0; // counter for blocks greater than half of the blocksize
                         for (size_type j=i; j < i+t_k; ++j) {
-                            if (bt_array[j] > t_bs/2)
+                            if (bt_array[j] > t_bs/2) // TODO possible without conditional
                                 ++gt_half_t_bs;
                         }
                         if (gt_half_t_bs > (t_k/2)) {

@@ -87,8 +87,8 @@ class nearest_neighbour_dictionary
             // get maximal distance between to ones in the bit vector
             // speed this up by broadword computing
             for (size_type i=0, last_one_pos_plus_1=0; i < v.size(); ++i) {
-                if (v[i]) {
-                    if (i+1-last_one_pos_plus_1 > max_distance_between_two_ones)
+                if (v[i]) { // TODO possible without conditional
+                    if (i+1-last_one_pos_plus_1 > max_distance_between_two_ones) // TODO possible without conditional
                         max_distance_between_two_ones = i+1-last_one_pos_plus_1;
                     last_one_pos_plus_1 = i+1;
                     ++ones;
@@ -108,10 +108,10 @@ class nearest_neighbour_dictionary
             for (size_type i=0, last_one_pos=0; i < v.size(); ++i) {
                 if (v[i]) {
                     ++ones;
-                    if ((ones % t_sample_dens) == 0) {  // insert absolute samples
+                    if ((ones % t_sample_dens) == 0) {  // insert absolute samples // TODO possible without conditional
                         m_abs_samples[ones/t_sample_dens] = i;
                         m_contains_abs_sample[i/t_sample_dens] = 1;
-                    } else {
+                    } else { // TODO possible without conditional
                         m_differences[ones - ones/t_sample_dens - 1] = i - last_one_pos;
                     }
                     last_one_pos = i;

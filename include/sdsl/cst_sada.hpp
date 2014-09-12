@@ -157,9 +157,9 @@ class cst_sada
                 util::set_to_value(m_bp, 0);
                 size_type idx=0;
                 for (cst_sct3<>::const_iterator it=temp_cst.begin(), end=temp_cst.end(); it!=end; ++it) {
-                    if (1 == it.visit())
+                    if (1 == it.visit()) // TODO possible without conditional
                         m_bp[idx] = 1;
-                    if (temp_cst.is_leaf(*it) and temp_cst.root()!= *it)
+                    if (temp_cst.is_leaf(*it) and temp_cst.root()!= *it) // TODO possible without conditional
                         ++idx;
                     ++idx;
                 }
