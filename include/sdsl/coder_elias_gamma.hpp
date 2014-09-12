@@ -157,7 +157,7 @@ bool elias_gamma::encode(const int_vector& v, int_vector& z)
     uint64_t w;
     const uint64_t zero_val = v.width() < 64 ? (1ULL)<<v.width() : 0;
     for (typename int_vector::const_iterator it = v.begin(), end = v.end(); it != end; ++it) {
-        if ((w=*it) == 0) { // TODO get rid of this branch
+        if ((w=*it) == 0) { // TODO not necessary
             w = zero_val;
         }
         z_bit_size += encoding_length(w);
@@ -172,7 +172,7 @@ bool elias_gamma::encode(const int_vector& v, int_vector& z)
     size_type len_1; // TODO: change to uint8_t and test it
     for (typename int_vector::const_iterator it = v.begin(), end=v.end(); it != end; ++it) {
         w = *it;
-        if (w == 0) { // TODO get rid of this branch
+        if (w == 0) { // TODO not necessary
             w = zero_val;
         }
         // (number of bits to represent w)-1

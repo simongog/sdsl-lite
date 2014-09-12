@@ -397,9 +397,9 @@ class bp_support_sada
 
             for (size_type v = m_med_block_min_max.size()/2 - 1; !is_root(v); --v) {
                 size_type p = parent(v);
-                if (min_value(v) < min_value(p))  // update minimum TODO get rid of branch
+                if (min_value(v) < min_value(p))  // update minimum TODO branch can be avoided
                     m_med_block_min_max[2*p] = m_med_block_min_max[2*v];
-                if (max_value(v) > max_value(p))  // update maximum TODO get rid of branch
+                if (max_value(v) > max_value(p))  // update maximum TODO branch can be avoided
                     m_med_block_min_max[2*p+1] = m_med_block_min_max[2*v+1];
             }
         }
@@ -648,7 +648,7 @@ class bp_support_sada
                 l_sblock = 1;
             }
             for (size_type i=l_sblock; i <= r_sblock; ++i) {
-                if ((e = (excess(i*t_sml_blk-1)  + sml_min_value(i))) <= min_ex) { //TODO get rid of branch
+                if ((e = (excess(i*t_sml_blk-1)  + sml_min_value(i))) <= min_ex) { //TODO branch can be avoided
                     pos_min_block = i;
                     min_ex = e;
                 }
