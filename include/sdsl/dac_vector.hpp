@@ -224,7 +224,7 @@ dac_vector<t_b, t_rank>::dac_vector(const Container& c)
     m_level_pointer_and_rank[0] = n; // level 0 has n entries
 
     uint8_t level_x_2 = 0;
-    uint8_t max_level_x_2 = 0;
+    uint8_t max_level_x_2 = 4;
     for (size_type i=0; i < n; ++i) {
         val=c[i];
         val >>= t_b; // shift value b bits to the right
@@ -301,7 +301,7 @@ dac_vector<t_b, t_rank>::dac_vector(int_vector_buffer<int_width>& v_buf)
     m_level_pointer_and_rank[0] = n; // level 0 has n entries
 
     uint8_t level_x_2 = 0;
-    uint8_t max_level_x_2 = 0;
+    uint8_t max_level_x_2 = 4;
     for (size_type i=0; i < n; ++i) {
         val=v_buf[i];
         val >>= t_b; // shift value b bits to the right
