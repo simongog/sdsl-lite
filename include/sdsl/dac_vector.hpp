@@ -78,10 +78,11 @@ class dac_vector
         int_vector<t_b>   m_data;           // block data for every level
         bit_vector        m_overflow;       // mark non-end bytes
         rank_support_type m_overflow_rank;  // rank for m_overflow
-        int_vector<64>    m_level_pointer_and_rank;
+        int_vector<64>    m_level_pointer_and_rank = int_vector<64>(4,0);
         uint8_t           m_max_level;      // maximum level < (log n)/b+1
 
-        void copy(const dac_vector& v) {
+        void copy(const dac_vector& v)
+        {
             m_data                   = v.m_data;
             m_overflow               = v.m_overflow;
             m_overflow_rank          = v.m_overflow_rank;
@@ -91,25 +92,27 @@ class dac_vector
         }
 
     public:
-        dac_vector() {
-            m_level_pointer_and_rank = int_vector<64>(4,0);
-        }
+        dac_vector() = default;
 
-        dac_vector(const dac_vector& v) {
+        dac_vector(const dac_vector& v)
+        {
             copy(v);
         }
 
-        dac_vector(dac_vector&& v) {
+        dac_vector(dac_vector&& v)
+        {
             *this = std::move(v);
         }
-        dac_vector& operator=(const dac_vector& v) {
+        dac_vector& operator=(const dac_vector& v)
+        {
             if (this != &v) {
                 copy(v);
             }
             return *this;
         }
 
-        dac_vector& operator=(dac_vector&& v) {
+        dac_vector& operator=(dac_vector&& v)
+        {
             if (this != &v) {
                 m_data                   = std::move(v.m_data);
                 m_overflow               = std::move(v.m_overflow);
@@ -133,21 +136,25 @@ class dac_vector
         dac_vector(int_vector_buffer<int_width>& v_buf);
 
         //! The number of elements in the dac_vector.
-        size_type size()const {
+        size_type size()const
+        {
             return m_level_pointer_and_rank[2];
         }
         //! Return the largest size that this container can ever have.
-        static size_type max_size() {
+        static size_type max_size()
+        {
             return int_vector<>::max_size()/2;
         }
 
         //!    Returns if the dac_vector is empty.
-        bool empty() const {
+        bool empty() const
+        {
             return 0 == m_level_pointer_and_rank[2];
         }
 
         //! Swap method for dac_vector
-        void swap(dac_vector& v) {
+        void swap(dac_vector& v)
+        {
             m_data.swap(v.m_data);
             m_overflow.swap(v.m_overflow);
             util::swap_support(m_overflow_rank, v.m_overflow_rank,
@@ -158,18 +165,21 @@ class dac_vector
         }
 
         //! Iterator that points to the first element of the dac_vector.
-        const const_iterator begin()const {
+        const const_iterator begin()const
+        {
             return const_iterator(this, 0);
         }
 
 
         //! Iterator that points to the position after the last element of the dac_vector.
-        const const_iterator end()const {
+        const const_iterator end()const
+        {
             return const_iterator(this, size());
         }
 
         //! []-operator
-        value_type operator[](size_type i)const {
+        value_type operator[](size_type i)const
+        {
             uint8_t level = 1;
             uint8_t offset = t_b;
             size_type result = m_data[i];
@@ -189,7 +199,8 @@ class dac_vector
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
 
         //! Load from a stream.
-        void load(std::istream& in) {
+        void load(std::istream& in)
+        {
             m_data.load(in);
             m_overflow.load(in);
             m_overflow_rank.load(in, &m_overflow);
@@ -209,13 +220,11 @@ dac_vector<t_b, t_rank>::dac_vector(const Container& c)
     if (n == 0)
         return;
 // initialize counter
-    auto _size =  std::max(4*bits::hi(2), 2*(((bits::hi(n)+1)+t_b-1) / t_b));
-    m_level_pointer_and_rank.resize(_size);
-    for (size_type i=0; i < m_level_pointer_and_rank.size(); ++i)
-        m_level_pointer_and_rank[i] = 0;
+    m_level_pointer_and_rank = int_vector<64>(128, 0);
     m_level_pointer_and_rank[0] = n; // level 0 has n entries
 
     uint8_t level_x_2 = 0;
+    uint8_t max_level_x_2 = 4;
     for (size_type i=0; i < n; ++i) {
         val=c[i];
         val >>= t_b; // shift value b bits to the right
@@ -225,8 +234,10 @@ dac_vector<t_b, t_rank>::dac_vector(const Container& c)
             ++m_level_pointer_and_rank[level_x_2];
             val >>= t_b; // shift value b bits to the right
             level_x_2 += 2; // increase level by 1
+            max_level_x_2 = std::max(max_level_x_2, level_x_2);
         }
     }
+    m_level_pointer_and_rank.resize(max_level_x_2);
 //  (2)    Determine maximum level and prefix sums of level counters
     m_max_level = 0;
     size_type sum_blocks = 0, last_block_size=0;
@@ -286,13 +297,11 @@ dac_vector<t_b, t_rank>::dac_vector(int_vector_buffer<int_width>& v_buf)
     if (n == 0)
         return;
 // initialize counter
-    auto _size =  std::max(4*bits::hi(2), 2*(((bits::hi(n)+1)+t_b-1) / t_b));
-    m_level_pointer_and_rank.resize(_size);
-    for (size_type i=0; i < m_level_pointer_and_rank.size(); ++i)
-        m_level_pointer_and_rank[i] = 0;
+    m_level_pointer_and_rank = int_vector<64>(128, 0);
     m_level_pointer_and_rank[0] = n; // level 0 has n entries
 
     uint8_t level_x_2 = 0;
+    uint8_t max_level_x_2 = 4;
     for (size_type i=0; i < n; ++i) {
         val=v_buf[i];
         val >>= t_b; // shift value b bits to the right
@@ -302,8 +311,10 @@ dac_vector<t_b, t_rank>::dac_vector(int_vector_buffer<int_width>& v_buf)
             ++m_level_pointer_and_rank[level_x_2];
             val >>= t_b; // shift value b bits to the right
             level_x_2 += 2; // increase level by 1
+            max_level_x_2 = std::max(max_level_x_2, level_x_2);
         }
     }
+    m_level_pointer_and_rank.resize(max_level_x_2);
 //  (2)    Determine maximum level and prefix sums of level counters
     m_max_level = 0;
     size_type sum_blocks = 0, last_block_size=0;

@@ -51,6 +51,9 @@ SA_CONSTRUCT_TESTS:=$(patsubst %,sa-construct-test/%,$(SA_CONSTRUCT_PATHS))
 SEARCH_BIDIRECTIONAL_PATHS:=$(call config_column,SearchBidirectionalTest.config,2)
 SEARCH_BIDIRECTIONAL_TESTS:=$(patsubst %,search-bidirectional-test/%,$(SEARCH_BIDIRECTIONAL_PATHS))
 
+K2TREAP_TC_PATH:=$(call config_column,K2TreapTest.config,1)
+K2TREAP_TESTS:=$(patsubst %,k2treap-test/%,$(K2TREAP_TC_PATH))
+
 TC_PATHS:= $(WT_BYTE_TC_PATHS) $(WT_INT_TC_PATHS) \
 		   $(CSA_BYTE_TC_PATHS) $(CSA_INT_TC_PATHS) \
 		   $(CST_BYTE_TC_PATHS) $(CST_INT_TC_PATHS)
@@ -79,7 +82,8 @@ test:	bits-test \
 	sa-construct-test \
 	search-bidirectional-test \
 	sorted-int-stack-test \
-	nn-dict-dynamic-test
+	nn-dict-dynamic-test \
+	k2treap-test
 
 build-test: $(EXECS)
 	cd ../tutorial; make build-test
@@ -127,6 +131,7 @@ sorted-int-stack-test: ./SortedIntStackTest.x
 nn-dict-dynamic-test: ./NNDictDynamicTest.x
 	@$(PREFIX) ./NNDictDynamicTest.x
 
+
 bit-vector-test: generators $(BIT_VECTOR_TESTS)
 
 rank-support-test: generators $(RANK_SUPPORT_TESTS)
@@ -152,6 +157,8 @@ lcp-construct-test: generators $(LCP_CONSTRUCT_TESTS)
 sa-construct-test: generators $(SA_CONSTRUCT_TESTS)
 
 search-bidirectional-test: generators $(SEARCH_BIDIRECTIONAL_TESTS)
+
+k2treap-test: ./K2TreapTest.x generators $(K2TREAP_TESTS)
 
 bit-vector-test/test_cases/%: ./BitVectorTest.x test_cases/%
 	@echo "TEST_CASE: test_cases/$*"
@@ -221,7 +228,21 @@ search-bidirectional-test/test_cases/%: ./SearchBidirectionalTest.x test_cases/%
 	@echo "TEST_CASE: test_cases/$*"
 	@$(PREFIX) ./SearchBidirectionalTest.x test_cases/$*
 
-# Format: test_cases/int-vec.[LEN].[WIDTH].[DEFAULT]
+k2treap-test/%: ./K2TreapTest.x  
+	$(eval X:=$(call config_select,K2TreapTest.config,$*,2))
+	$(eval Y:=$(call config_select,K2TreapTest.config,$*,3))
+	$(eval W:=$(call config_select,K2TreapTest.config,$*,4))
+	make $(X) $(Y) $(W)
+	@echo "X=$X, Y=$Y, W=$W"
+	mv $(X) test_cases/K2T.$*.x	
+	mv $(Y) test_cases/K2T.$*.y
+	mv $(W) test_cases/K2T.$*.w
+	@echo "TEST_CASE: $* semi-external"
+	$(PREFIX) ./K2TreapTest.x test_cases/K2T.$* $(TMP_DIR)/K2T.$*
+	@echo "TEST_CASE: test_cases/$* in-memory"
+	$(PREFIX) ./K2TreapTest.x test_cases/K2T.$* $(TMP_DIR)/K2T.$* in-memory
+
+# Format: test_cases/int-vec.[LEN].[WIDTH].[DEFAULT].[SEED]
 test_cases/int-vec.%: IntVectorGenerator.x
 	@echo "Generate input test_cases/int-vec.$*"
 	$(eval LEN:=$(call dim,1,$*))
@@ -230,7 +251,7 @@ test_cases/int-vec.%: IntVectorGenerator.x
 	$(eval SEED:=$(call dim,4,$*))
 	@./IntVectorGenerator.x $@ $(LEN) $(WIDTH) $(DEFAULT) $(SEED)
 
-# Format: test_cases/int-vec-sa.[LEN].[WIDTH].[DEFAULT]
+# Format: test_cases/int-vec-sa.[LEN].[WIDTH].[DEFAULT].[SEED]
 test_cases/int-vec-sa.%: IntVectorGenerator.x
 	@echo "Generate input test_cases/int-vec-sa.$*"
 	$(eval LEN:=$(call dim,1,$*))
@@ -240,7 +261,14 @@ test_cases/int-vec-sa.%: IntVectorGenerator.x
 	@./IntVectorGenerator.x $@ $(LEN) $(WIDTH) $(DEFAULT) $(SEED)
 	@./ReplaceIntVectorValue.x $@ 0 1
 
-
+# Format: test_cases/int-vec-k2t.[LEN].[WIDTH].[DEFAULT].[SEED].[x|y|w]
+test_cases/int-vec-k2t.%: IntVectorGenerator.x
+	@echo "Generate input test_cases/int-vec-k2t.$*"
+	$(eval LEN:=$(call dim,1,$*))
+	$(eval WIDTH:=$(call dim,2,$*))
+	$(eval DEFAULT:=$(call dim,3,$*))
+	$(eval SEED:=$(call dim,4,$*))
+	@./IntVectorGenerator.x $@ $(LEN) $(WIDTH) $(DEFAULT) $(SEED)
 
 test_cases/bit-vec.%: BitVectorGenerator.x
 	@echo "Generate input test_cases/bit-vec.$*"
