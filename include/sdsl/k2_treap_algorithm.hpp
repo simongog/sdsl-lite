@@ -100,7 +100,7 @@ class top_k_iterator
         top_k_iterator& operator=(const top_k_iterator&) = default;
         top_k_iterator& operator=(top_k_iterator&&) = default;
         top_k_iterator(const t_k2_treap& treap, point_type p1, point_type p2) :
-            m_treap(&treap), m_p1(p1), m_p2(p2), m_valid(true)
+            m_treap(&treap), m_p1(p1), m_p2(p2), m_valid(treap.size()>0)
         {
             if (m_treap->size() > 0) {
                 m_pq.emplace(m_treap->root(),false);
@@ -198,7 +198,7 @@ class range_iterator
         range_iterator& operator=(const range_iterator&) = default;
         range_iterator& operator=(range_iterator&&) = default;
         range_iterator(const t_k2_treap& treap, point_type p1, point_type p2, range_type range) :
-            m_treap(&treap), m_p1(p1), m_p2(p2), m_r(range), m_valid(true)
+            m_treap(&treap), m_p1(p1), m_p2(p2), m_r(range), m_valid(treap.size()>0)
         {
             if (m_treap->size() >0) {
                 pq_emplace(m_treap->root(), false);

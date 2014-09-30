@@ -38,4 +38,16 @@ int main()
         cout << point_weight.first <<" weight: "<<point_weight.second << endl;
         ++range_it;
     }
+
+    cout<<"---"<<endl;
+    {
+        k2_rrr k2t;
+        construct_im(k2t, {{1,2,3},{2,3,3},{3,1,3}});
+        auto topk_it = top_k(k2t, {0,0}, {10,10});
+        while (topk_it) {
+            auto point_weight = *topk_it;
+            cout << point_weight.first <<" weight: "<<point_weight.second << endl;
+            ++topk_it;
+        }
+    }
 }

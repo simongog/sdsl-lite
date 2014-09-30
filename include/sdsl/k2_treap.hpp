@@ -228,7 +228,9 @@ class k2_treap
         template<typename t_x, typename t_y, typename t_w>
         k2_treap(std::vector<std::tuple<t_x, t_y, t_w>>& v, std::string temp_file_prefix="")
         {
-            construct(v, temp_file_prefix);
+            if (v.size() > 0) {
+                construct(v, temp_file_prefix);
+            }
         }
 
         template<typename t_x, typename t_y, typename t_w>
