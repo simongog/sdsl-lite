@@ -38,10 +38,10 @@ int main(int argc, char* argv[])
     if (argc > 2) {
         json = true;
     }
-    csa_sada<enc_vector<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, byte_alphabet> csa1;
-    csa_sada<enc_vector<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, succinct_byte_alphabet<> > csa2;
-    csa_wt<wt_huff<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, byte_alphabet> csa3;
-    csa_wt<wt_huff<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, succinct_byte_alphabet<> > csa4;
+    csa_sada<enc_vector<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, byte_alphabet> csa1;
+    csa_sada<enc_vector<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, succinct_byte_alphabet<> > csa2;
+    csa_wt<wt_huff<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, byte_alphabet> csa3;
+    csa_wt<wt_huff<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, succinct_byte_alphabet<> > csa4;
     csa_info(csa1, argv[1], json);
     csa_info(csa2, argv[1], json);
     csa_info(csa3, argv[1], json);
