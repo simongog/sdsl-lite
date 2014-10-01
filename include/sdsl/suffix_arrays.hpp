@@ -36,21 +36,21 @@ namespace sdsl
 {
 
 //! Typedef for convenient usage of std integer alphabet strategy
-template<class t_wt              = wt_int<>,
-         uint32_t t_dens         = 32,
-         uint32_t t_inv_dens     = 64,
-         class t_sa_sample_strat = sa_order_sa_sampling<>,
-         class t_isa             = int_vector<>
+template<class t_wt               = wt_int<>,
+         uint32_t t_dens          = 32,
+         uint32_t t_inv_dens      = 64,
+         class t_sa_sample_strat  = sa_order_sa_sampling<>,
+         class t_isa_sample_strat = isa_sampling<>
          >
-using csa_wt_int = csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, int_alphabet<>>;
+using csa_wt_int = csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa_sample_strat, int_alphabet<>>;
 
-template<class t_enc_vec         = enc_vector<>,          // Vector type used to store the Psi-function
-         uint32_t t_dens         = 32,                    // Sample density for suffix array (SA) values
-         uint32_t t_inv_dens     = 64,                    // Sample density for inverse suffix array (ISA) values
-         class t_sa_sample_strat = sa_order_sa_sampling<>,// Policy class for the SA sampling. Alternative text_order_sa_sampling.
-         class t_isa             = int_vector<>           // Container for the ISA samples.
+template<class t_enc_vec          = enc_vector<>,          // Vector type used to store the Psi-function
+         uint32_t t_dens          = 32,                    // Sample density for suffix array (SA) values
+         uint32_t t_inv_dens      = 64,                    // Sample density for inverse suffix array (ISA) values
+         class t_sa_sample_strat  = sa_order_sa_sampling<>,// Policy class for the SA sampling. Alternative text_order_sa_sampling.
+         class t_isa_sample_strat = isa_sampling<>         // Policy class for the ISA sampling.
          >
-using csa_sada_int = csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, int_alphabet<>>;
+using csa_sada_int = csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa_sample_strat, int_alphabet<>>;
 
 }
 

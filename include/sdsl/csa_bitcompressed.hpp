@@ -75,7 +75,7 @@ class csa_bitcompressed
         typedef text_of_csa<csa_bitcompressed>                  text_type;
         typedef first_row_of_csa<csa_bitcompressed>             first_row_type;
         typedef _sa_order_sampling<csa_bitcompressed,0>         sa_sample_type;
-        typedef int_vector<>                                    isa_sample_type;
+        typedef _isa_sampling<csa_bitcompressed,0>              isa_sample_type;
         typedef isa_sample_type                                 isa_type;
         typedef t_alphabet_strat                                alphabet_type;
         typedef typename alphabet_type::char_type               char_type; // Note: This is the char type of the CSA not the WT!
@@ -96,7 +96,8 @@ class csa_bitcompressed
         isa_sample_type m_isa; // vector for inverse suffix array values
         alphabet_type   m_alphabet;
 
-        void copy(const csa_bitcompressed& csa) {
+        void copy(const csa_bitcompressed& csa)
+        {
             m_sa       = csa.m_sa;
             m_isa      = csa.m_isa;
             m_alphabet = csa.m_alphabet;
@@ -119,16 +120,19 @@ class csa_bitcompressed
         //! Default constructor
         csa_bitcompressed() {}
         //! Copy constructor
-        csa_bitcompressed(const csa_bitcompressed& csa) {
+        csa_bitcompressed(const csa_bitcompressed& csa)
+        {
             copy(csa);
         }
         //! Move constructor
-        csa_bitcompressed(csa_bitcompressed&& csa) {
+        csa_bitcompressed(csa_bitcompressed&& csa)
+        {
             *this = std::move(csa);
         }
 
         //! Constructor
-        csa_bitcompressed(cache_config& config) {
+        csa_bitcompressed(cache_config& config)
+        {
             std::string text_file = cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config);
             int_vector_buffer<alphabet_type::int_width> text_buf(text_file);
             int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA,config));
@@ -141,12 +145,9 @@ class csa_bitcompressed
                 sa_sample_type tmp_sample(config);
                 m_sa.swap(tmp_sample);
             }
-            set_isa_samples<csa_bitcompressed>(sa_buf, m_isa);
-
-            if (!store_to_file(m_isa, cache_file_name(conf::KEY_ISA,config), true)) {
-                throw std::ios_base::failure("#csa_bitcompressed: Cannot store ISA to file system!");
-            } else {
-                register_cache_file(conf::KEY_ISA, config);
+            {
+                isa_sample_type tmp_sample(config);
+                m_isa.swap(tmp_sample);
             }
         }
 
@@ -155,7 +156,8 @@ class csa_bitcompressed
         /*! Required for the Container Concept of the STL.
          *  \sa max_size, empty
          */
-        size_type size()const {
+        size_type size()const
+        {
             return m_sa.size();
         }
 
@@ -163,7 +165,8 @@ class csa_bitcompressed
         /*! Required for the Container Concept of the STL.
          *  \sa size
          */
-        static size_type max_size() {
+        static size_type max_size()
+        {
             return int_vector<>::max_size();
         }
 
@@ -171,12 +174,14 @@ class csa_bitcompressed
         /*! Required for the Container Concept of the STL.
          * \sa size
          */
-        bool empty()const {
+        bool empty()const
+        {
             return m_sa.empty();
         }
 
         //! Swap method for csa_bitcompressed
-        void swap(csa_bitcompressed& csa) {
+        void swap(csa_bitcompressed& csa)
+        {
             if (this != &csa) {
                 m_sa.swap(csa.m_sa);
                 m_isa.swap(csa.m_isa);
@@ -188,7 +193,8 @@ class csa_bitcompressed
         /*! Required for the STL Container Concept.
          *  \sa end
          */
-        const_iterator begin()const {
+        const_iterator begin()const
+        {
             return const_iterator(this, 0);
         }
 
@@ -196,7 +202,8 @@ class csa_bitcompressed
         /*! Required for the STL Container Concept.
          *  \sa begin.
          */
-        const_iterator end()const {
+        const_iterator end()const
+        {
             return const_iterator(this, size());
         }
 
@@ -205,7 +212,8 @@ class csa_bitcompressed
          *
          * Required for the STL Random Access Container Concept.
          */
-        inline value_type operator[](size_type i)const {
+        inline value_type operator[](size_type i)const
+        {
             return m_sa[i];
         }
 
@@ -213,7 +221,8 @@ class csa_bitcompressed
         /*!
          *    Required for the Assignable Concept of the STL.
          */
-        csa_bitcompressed& operator=(const csa_bitcompressed& csa) {
+        csa_bitcompressed& operator=(const csa_bitcompressed& csa)
+        {
             if (this != &csa) {
                 copy(csa);
             }
@@ -224,7 +233,8 @@ class csa_bitcompressed
         /*!
          *    Required for the Assignable Concept of the STL.
          */
-        csa_bitcompressed& operator=(csa_bitcompressed&& csa) {
+        csa_bitcompressed& operator=(csa_bitcompressed&& csa)
+        {
             if (this != &csa) {
                 m_sa       = std::move(csa.m_sa);
                 m_isa      = std::move(csa.m_isa);
@@ -237,7 +247,8 @@ class csa_bitcompressed
         /*! \param out Output stream to write the data structure.
          *  \return The number of written bytes.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_sa.serialize(out, child, "m_sa");
@@ -247,13 +258,15 @@ class csa_bitcompressed
             return written_bytes;
         }
 
-        void load(std::istream& in) {
+        void load(std::istream& in)
+        {
             m_sa.load(in);
             m_isa.load(in);
             m_alphabet.load(in);
         }
 
-        size_type get_sample_dens()const {
+        size_type get_sample_dens()const
+        {
             return 1;
         }
 
@@ -267,7 +280,8 @@ class csa_bitcompressed
          *  \par Time complexity
          *        \f$ \Order{\log n} \f$
          */
-        size_type rank_bwt(size_type i, const char_type c) const {
+        size_type rank_bwt(size_type i, const char_type c) const
+        {
             // TODO: special case if c == BWT[i-1] we can use LF to get a constant time answer
             comp_char_type cc = char2comp[c];
             if (cc==0 and c!=0)  // character is not in the text => return 0
@@ -297,7 +311,8 @@ class csa_bitcompressed
          *  \par Time complexity
          *        \f$ \Order{t_{\Psi}} \f$
          */
-        size_type select_bwt(size_type i, const char_type c) const {
+        size_type select_bwt(size_type i, const char_type c) const
+        {
             comp_char_type cc = char2comp[c];
             if (cc==0 and c!=0)  // character is not in the text => return size()
                 return size();

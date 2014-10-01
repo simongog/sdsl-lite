@@ -60,47 +60,61 @@ class bwt_of_csa_wt;   // forward declaration of BWT-array class
 template<class t_wt              = wt_huff<>,              // Wavelet tree type
          uint32_t t_dens         = 32,                     // Sample density for suffix array (SA) values
          uint32_t t_inv_dens     = 64,                     // Sample density for inverse suffix array (ISA) values
-         class t_sa_sample_strat = sa_order_sa_sampling<>, // Policy class for the SA sampling. Alternative text_order_sa_sampling.
-         class t_isa             = int_vector<>,           // Container for the ISA samples.
+         class t_sa_sample_strat = sa_order_sa_sampling<>, // Policy class for the SA sampling.
+         class t_isa_sample_strat= isa_sampling<>,         // Policy class for ISA sampling.
          class t_alphabet_strat  =                         // Policy class for the representation of the alphabet.
-         typename alphabet_trait<typename t_wt::alphabet_category>::type
+         typename wt_alphabet_trait<t_wt>::type
          >
 class csa_wt
 {
+        static_assert(std::is_same<typename index_tag<t_wt>::type, wt_tag>::value,
+                      "First template argument has to be a wavelet tree type.");
+        static_assert(t_dens > 0,
+                      "Second template argument has to be greater then 0.");
+        static_assert(t_inv_dens > 0,
+                      "Third template argument has to be greater then 0.");
+        static_assert(std::is_same<typename sampling_tag<t_sa_sample_strat>::type, sa_sampling_tag>::value,
+                      "Forth template argument has to be a suffix array sampling strategy.");
+        static_assert(std::is_same<typename sampling_tag<t_isa_sample_strat>::type, isa_sampling_tag>::value,
+                      "Fifth template argument has to be a inverse suffix array sampling strategy.");
+        static_assert(is_alphabet<t_alphabet_strat>::value,
+                      "Sixth template argument has to be a alphabet strategy.");
+
         friend class bwt_of_csa_wt<csa_wt>;
     public:
         enum { sa_sample_dens = t_dens,
                isa_sample_dens = t_inv_dens
              };
 
-        typedef uint64_t                                                       value_type;
-        typedef random_access_const_iterator<csa_wt>                           const_iterator;
-        typedef const_iterator                                                 iterator;
-        typedef const value_type                                               const_reference;
-        typedef const_reference                                                reference;
-        typedef const_reference*                                               pointer;
-        typedef const pointer                                                  const_pointer;
-        typedef int_vector<>::size_type                                        size_type;
-        typedef size_type                                                      csa_size_type;
-        typedef ptrdiff_t                                                      difference_type;
-        typedef traverse_csa_wt<csa_wt,true>                                   psi_type;
-        typedef traverse_csa_wt<csa_wt,false>                                  lf_type;
-        typedef bwt_of_csa_wt<csa_wt>                                          bwt_type;
-        typedef isa_of_csa_wt<csa_wt>                                          isa_type;
-        typedef first_row_of_csa<csa_wt>                                       first_row_type;
-        typedef text_of_csa<csa_wt>                                            text_type;
-        typedef t_wt                                                           wavelet_tree_type;
-        typedef typename t_sa_sample_strat::template type<csa_wt>::sample_type sa_sample_type;
-        typedef t_isa                                                          isa_sample_type;
-        typedef t_alphabet_strat                                               alphabet_type;
-        typedef typename alphabet_type::char_type                              char_type; // Note: This is the char type of the CSA not the WT!
-        typedef typename alphabet_type::comp_char_type                         comp_char_type;
-        typedef typename alphabet_type::string_type                            string_type;
-        typedef csa_wt                                                         csa_type;
+        typedef uint64_t                                           value_type;
+        typedef random_access_const_iterator<csa_wt>               const_iterator;
+        typedef const_iterator                                     iterator;
+        typedef const value_type                                   const_reference;
+        typedef const_reference                                    reference;
+        typedef const_reference*                                   pointer;
+        typedef const pointer                                      const_pointer;
+        typedef int_vector<>::size_type                            size_type;
+        typedef size_type                                          csa_size_type;
+        typedef ptrdiff_t                                          difference_type;
+        typedef traverse_csa_wt<csa_wt,true>                       psi_type;
+        typedef traverse_csa_wt<csa_wt,false>                      lf_type;
+        typedef bwt_of_csa_wt<csa_wt>                              bwt_type;
+        typedef isa_of_csa_wt<csa_wt>                              isa_type;
+        typedef first_row_of_csa<csa_wt>                           first_row_type;
+        typedef text_of_csa<csa_wt>                                text_type;
+        typedef t_wt                                               wavelet_tree_type;
+        typedef typename t_sa_sample_strat::template type<csa_wt>  sa_sample_type;
+        typedef typename t_isa_sample_strat::template type<csa_wt> isa_sample_type;
+        typedef t_alphabet_strat                                   alphabet_type;
+        typedef typename alphabet_type::char_type                  char_type; // Note: This is the char type of the CSA not the WT!
+        typedef typename alphabet_type::comp_char_type             comp_char_type;
+        typedef typename alphabet_type::string_type                string_type;
+        typedef csa_wt                                             csa_type;
 
-        typedef csa_tag                                                        index_category;
-        typedef lf_tag                                                         extract_category;
-        typedef typename alphabet_type::alphabet_category                      alphabet_category;
+        typedef csa_tag                                            index_category;
+        typedef lf_tag                                             extract_category;
+        typedef typename alphabet_type::alphabet_category          alphabet_category;
+
 
     private:
         t_wt            m_wavelet_tree; // the wavelet tree
@@ -112,10 +126,12 @@ class csa_wt
         mutable fast_cache csa_cache;
 #endif
 
-        void copy(const csa_wt& csa) {
+        void copy(const csa_wt& csa)
+        {
             m_wavelet_tree = csa.m_wavelet_tree;
             m_sa_sample    = csa.m_sa_sample;
             m_isa_sample   = csa.m_isa_sample;
+            m_isa_sample.set_vector(&m_sa_sample);
             m_alphabet     = csa.m_alphabet;
         }
 
@@ -139,12 +155,14 @@ class csa_wt
         csa_wt() {}
 
         //! Copy constructor
-        csa_wt(const csa_wt& csa) {
+        csa_wt(const csa_wt& csa)
+        {
             copy(csa);
         }
 
         //! Move constructor
-        csa_wt(csa_wt&& csa) {
+        csa_wt(csa_wt&& csa)
+        {
             *this = std::move(csa);
         }
 
@@ -157,7 +175,8 @@ class csa_wt
          *  \par Time complexity
          *      \f$ \Order{1} \f$
          */
-        size_type size()const {
+        size_type size()const
+        {
             return m_wavelet_tree.size();
         }
 
@@ -165,7 +184,8 @@ class csa_wt
         /*! Required for the Container Concept of the STL.
          *  \sa size
          */
-        static size_type max_size() {
+        static size_type max_size()
+        {
             return bit_vector::max_size();
         }
 
@@ -173,7 +193,8 @@ class csa_wt
         /*! Required for the Container Concept of the STL.
          * \sa size
          */
-        bool empty()const {
+        bool empty()const
+        {
             return m_wavelet_tree.empty();
         }
 
@@ -192,7 +213,8 @@ class csa_wt
         /*! Required for the STL Container Concept.
          *  \sa end
          */
-        const_iterator begin()const {
+        const_iterator begin()const
+        {
             return const_iterator(this, 0);
         }
 
@@ -200,7 +222,8 @@ class csa_wt
         /*! Required for the STL Container Concept.
          *  \sa begin.
          */
-        const_iterator end()const {
+        const_iterator end()const
+        {
             return const_iterator(this, size());
         }
 
@@ -246,7 +269,8 @@ class csa_wt
          *  \par Time complexity
          *        \f$ \Order{\log |\Sigma|} \f$
          */
-        size_type rank_bwt(size_type i, const char_type c)const {
+        size_type rank_bwt(size_type i, const char_type c)const
+        {
             return m_wavelet_tree.rank(i, c);
         }
 
@@ -258,7 +282,8 @@ class csa_wt
          *  \par Time complexity
          *        \f$ \Order{t_{\Psi}} \f$
          */
-        size_type select_bwt(size_type i, const char_type c)const {
+        size_type select_bwt(size_type i, const char_type c)const
+        {
             assert(i > 0);
             char_type cc = char2comp[c];
             if (cc==0 and c!=0)  // character is not in the text => return size()
@@ -279,7 +304,6 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
     if (!cache_file_exists(key_trait<alphabet_type::int_width>::KEY_BWT, config)) {
         return;
     }
-
     {
         auto event = memory_monitor::event("construct csa-alpbabet");
         int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
@@ -287,7 +311,6 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
         alphabet_type tmp_alphabet(bwt_buf, n);
         m_alphabet.swap(tmp_alphabet);
     }
-
     {
         auto event = memory_monitor::event("construct wavelet tree");
         int_vector_buffer<alphabet_type::int_width> bwt_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config));
@@ -295,17 +318,15 @@ csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::cs
         wavelet_tree_type tmp_wt(bwt_buf, n);
         m_wavelet_tree.swap(tmp_wt);
     }
-
     {
         auto event = memory_monitor::event("sample SA");
         sa_sample_type tmp_sa_sample(config);
         m_sa_sample.swap(tmp_sa_sample);
     }
-
     {
         auto event = memory_monitor::event("sample ISA");
-        int_vector_buffer<>  sa_buf(cache_file_name(conf::KEY_SA, config));
-        set_isa_samples<csa_wt>(sa_buf, m_isa_sample);
+        isa_sample_type isa_s(config, &m_sa_sample);
+        util::swap_support(m_isa_sample, isa_s, &m_sa_sample, &m_sa_sample);
     }
 }
 
@@ -314,22 +335,23 @@ template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_str
 inline auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator[](size_type i)const -> value_type
 {
     size_type off = 0;
-while (!m_sa_sample.is_sampled(i)) {
-i = lf[i];
-    ++off;
-}
-value_type result = m_sa_sample.sa_value(i);
-if (result + off < size()) {
-return result + off;
-} else {
-return result + off - size();
-}
+    while (!m_sa_sample.is_sampled(i)) {
+        i = lf[i];
+        ++off;
+    }
+    value_type result = m_sa_sample[i];
+    if (result + off < size()) {
+        return result + off;
+    } else {
+        return result + off - size();
+    }
 }
 
 
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
 auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator=(const csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>& csa) -> csa_wt& {
-    if (this != &csa) {
+    if (this != &csa)
+    {
         copy(csa);
     }
     return *this;
@@ -337,7 +359,8 @@ auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat
 
 template<class t_wt, uint32_t t_dens, uint32_t t_inv_dens, class t_sa_sample_strat, class t_isa, class t_alphabet_strat>
 auto csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::operator=(csa_wt<t_wt,t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>&& csa) -> csa_wt& {
-    if (this != &csa) {
+    if (this != &csa)
+    {
         m_wavelet_tree = std::move(csa.m_wavelet_tree);
         m_sa_sample    = std::move(csa.m_sa_sample);
         m_isa_sample   = std::move(csa.m_isa_sample);
@@ -365,7 +388,7 @@ void csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat
 {
     m_wavelet_tree.load(in);
     m_sa_sample.load(in);
-    m_isa_sample.load(in);
+    m_isa_sample.load(in, &m_sa_sample);
     m_alphabet.load(in);
 }
 
@@ -375,7 +398,7 @@ void csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat
     if (this != &csa) {
         m_wavelet_tree.swap(csa.m_wavelet_tree);
         m_sa_sample.swap(csa.m_sa_sample);
-        m_isa_sample.swap(csa.m_isa_sample);
+        util::swap_support(m_isa_sample, csa.m_isa_sample, &m_sa_sample, &(csa.m_sa_sample));
         m_alphabet.swap(csa.m_alphabet);
     }
 }

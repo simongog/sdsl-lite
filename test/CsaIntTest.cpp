@@ -25,12 +25,12 @@ class CsaIntTest : public ::testing::Test { };
 
 using testing::Types;
 
-typedef Types<  csa_wt<wt_int<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, int_alphabet<> >,
-        csa_sada<enc_vector<>, 32, 32, sa_order_sa_sampling<>, int_vector<>, int_alphabet<> >,
+typedef Types<  csa_wt<wt_int<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<> >,
+        csa_sada<enc_vector<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<> >,
         csa_bitcompressed<int_alphabet<> >,
-        csa_wt<wt_int<rrr_vector<63> >, 8, 8, sa_order_sa_sampling<>, int_vector<>, int_alphabet<> >,
-        csa_wt<wt_int<>, 32, 32, text_order_sa_sampling<>, int_vector<>, int_alphabet<> >,
-        csa_sada<enc_vector<>, 32, 32, text_order_sa_sampling<>, int_vector<>, int_alphabet<> >
+        csa_wt<wt_int<rrr_vector<63> >, 8, 8, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<> >,
+        csa_wt<wt_int<>, 16, 16, text_order_sa_sampling<>, text_order_isa_sampling_support<>, int_alphabet<> >,
+        csa_sada<enc_vector<>, 32, 32, text_order_sa_sampling<>, isa_sampling<>, int_alphabet<> >
         > Implementations;
 
 TYPED_TEST_CASE(CsaIntTest, Implementations);

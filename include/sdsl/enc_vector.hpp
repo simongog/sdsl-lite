@@ -75,13 +75,15 @@ class enc_vector
         typedef typename enc_vector_trait<t_width>::int_vector_type int_vector_type;
         typedef iv_tag                                   index_category;
         static  const uint32_t                           sample_dens    = t_dens;
+        typedef enc_vector                               enc_vec_type;
 
         int_vector<0>     m_z;                       // storage for encoded deltas
     private:
         int_vector_type   m_sample_vals_and_pointer; // samples and pointers
         size_type         m_size = 0;                // number of vector elements
 
-        void clear() {
+        void clear()
+        {
             m_z.resize(0);
             m_size = 0;
             m_sample_vals_and_pointer.resize(0);
@@ -111,17 +113,20 @@ class enc_vector
         ~enc_vector() { }
 
         //! The number of elements in the enc_vector.
-        size_type size()const {
+        size_type size()const
+        {
             return m_size;
         }
 
         //! Return the largest size that this container can ever have.
-        static size_type max_size() {
+        static size_type max_size()
+        {
             return int_vector<>::max_size()/2;
         }
 
         //!    Returns if the enc_vector is empty.
-        bool empty() const {
+        bool empty() const
+        {
             return 0==m_size;
         }
 
@@ -129,12 +134,14 @@ class enc_vector
         void swap(enc_vector& v);
 
         //! Iterator that points to the first element of the enc_vector.
-        const const_iterator begin()const {
+        const const_iterator begin()const
+        {
             return const_iterator(this, 0);
         }
 
         //! Iterator that points to the position after the last element of the enc_vector.
-        const const_iterator end()const {
+        const const_iterator end()const
+        {
             return const_iterator(this, this->m_size);
         }
 
@@ -158,7 +165,8 @@ class enc_vector
          */
         value_type sample(const size_type i) const;
 
-        uint32_t get_sample_dens() const {
+        uint32_t get_sample_dens() const
+        {
             return t_dens;
         }
 
@@ -166,7 +174,8 @@ class enc_vector
          * \param i The index of the sample for which all values till the next sample should be decoded. 0 <= i < size()/get_sample_dens()
          * \param it A pointer to a uint64_t vector, whereto the values should be written
          */
-        void get_inter_sampled_values(const size_type i, uint64_t* it)const {
+        void get_inter_sampled_values(const size_type i, uint64_t* it)const
+        {
             *(it++) = 0;
             if (i*t_dens + t_dens - 1 < size()) {
                 t_coder::template decode<true, true>(m_z.data(), m_sample_vals_and_pointer[(i<<1)+1], t_dens - 1, it);

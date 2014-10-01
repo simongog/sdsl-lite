@@ -104,6 +104,20 @@ struct alphabet_trait<int_alphabet_tag> {
     typedef int_alphabet<> type;
 };
 
+// see http://stackoverflow.com/questions/13514587/c-check-for-nested-typedef-of-a-template-parameter-to-get-its-scalar-base-type
+// for the next three functions
+
+
+template<class t_wt, class t_enable = void>
+struct wt_alphabet_trait {
+    typedef t_enable type;
+};
+
+template<class t_wt>
+struct wt_alphabet_trait<t_wt, typename enable_if_type<typename t_wt::alphabet_category>::type> {
+    using type = typename alphabet_trait<typename t_wt::alphabet_category>::type;
+};
+
 //! A simple space greedy representation for byte alphabets.
 /*!
  *  \par Space consumption:
@@ -151,7 +165,8 @@ class byte_alphabet
         byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_type len);
 
         byte_alphabet(const byte_alphabet&);
-        byte_alphabet(byte_alphabet&& b) : byte_alphabet() {
+        byte_alphabet(byte_alphabet&& b) : byte_alphabet()
+        {
             *this = std::move(b);
         }
 
@@ -203,7 +218,8 @@ class succinct_byte_alphabet
                 const succinct_byte_alphabet* m_strat;
             public:
                 char2comp_wrapper(const succinct_byte_alphabet* strat) : m_strat(strat) {}
-                comp_char_type operator[](char_type c) const {
+                comp_char_type operator[](char_type c) const
+                {
                     return (comp_char_type) m_strat->m_char_rank((size_type)c);
                 }
         };
@@ -215,7 +231,8 @@ class succinct_byte_alphabet
                 const succinct_byte_alphabet* m_strat;
             public:
                 comp2char_wrapper(const succinct_byte_alphabet* strat) : m_strat(strat) {}
-                char_type operator[](comp_char_type c) const {
+                char_type operator[](comp_char_type c) const
+                {
                     return (char_type) m_strat->m_char_select(((size_type)c)+1);
                 }
         };
@@ -227,7 +244,8 @@ class succinct_byte_alphabet
         C_type              m_C;            // cumulative counts for the compact alphabet [0..sigma]
         sigma_type          m_sigma;       // effective size of the alphabet
 
-        void copy(const succinct_byte_alphabet& strat) {
+        void copy(const succinct_byte_alphabet& strat)
+        {
             m_char        = strat.m_char;
             m_char_rank   = strat.m_char_rank;
             m_char_rank.set_vector(&m_char);
@@ -244,7 +262,8 @@ class succinct_byte_alphabet
         const sigma_type&    sigma;
 
         //! Default constructor
-        succinct_byte_alphabet() : char2comp(this), comp2char(this), C(m_C), sigma(m_sigma) {
+        succinct_byte_alphabet() : char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
+        {
             m_sigma = 0;
         }
 
@@ -254,7 +273,8 @@ class succinct_byte_alphabet
          *  \param len      Length of the byte stream.
          */
         succinct_byte_alphabet(int_vector_buffer<8>& text_buf, int_vector_size_type len):
-            char2comp(this), comp2char(this), C(m_C), sigma(m_sigma) {
+            char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
+        {
             m_sigma = 0;
             if (0 == len or 0 == text_buf.size())
                 return;
@@ -287,23 +307,27 @@ class succinct_byte_alphabet
         }
 
         //! Copy constructor
-        succinct_byte_alphabet(const succinct_byte_alphabet& strat): char2comp(this), comp2char(this), C(m_C), sigma(m_sigma) {
+        succinct_byte_alphabet(const succinct_byte_alphabet& strat): char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
+        {
             copy(strat);
         }
 
         //! Move constructor
-        succinct_byte_alphabet(succinct_byte_alphabet&& strat) {
+        succinct_byte_alphabet(succinct_byte_alphabet&& strat)
+        {
             *this = std::move(strat);
         }
 
-        succinct_byte_alphabet& operator=(const succinct_byte_alphabet& strat) {
+        succinct_byte_alphabet& operator=(const succinct_byte_alphabet& strat)
+        {
             if (this != &strat) {
                 copy(strat);
             }
             return *this;
         }
 
-        succinct_byte_alphabet& operator=(succinct_byte_alphabet&& strat) {
+        succinct_byte_alphabet& operator=(succinct_byte_alphabet&& strat)
+        {
             if (this != &strat) {
                 m_char        = std::move(strat.m_char);
                 m_char_rank   = std::move(strat.m_char_rank);
@@ -317,7 +341,8 @@ class succinct_byte_alphabet
         }
 
         //! Swap operator
-        void swap(succinct_byte_alphabet& strat) {
+        void swap(succinct_byte_alphabet& strat)
+        {
             m_char.swap(strat.m_char);
             util::swap_support(m_char_rank, strat.m_char_rank, &m_char, &(strat.m_char));
             util::swap_support(m_char_select, strat.m_char_select, &m_char, &(strat.m_char));
@@ -326,7 +351,8 @@ class succinct_byte_alphabet
         }
 
         //! Serialize method
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_char.serialize(out, child, "m_char");
@@ -339,7 +365,8 @@ class succinct_byte_alphabet
         }
 
         //! Load method
-        void load(std::istream& in) {
+        void load(std::istream& in)
+        {
             m_char.load(in);
             m_char_rank.load(in);
             m_char_rank.set_vector(&m_char);
@@ -388,7 +415,8 @@ class int_alphabet
                 const int_alphabet* m_strat;
             public:
                 char2comp_wrapper(const int_alphabet* strat) : m_strat(strat) {}
-                comp_char_type operator[](char_type c) const {
+                comp_char_type operator[](char_type c) const
+                {
                     if (m_strat->m_char.size() > 0) {  // if alphabet is not continuous
                         return (comp_char_type) m_strat->m_char_rank((size_type)c);
                     } else { // direct map if it is continuous
@@ -404,7 +432,8 @@ class int_alphabet
                 const int_alphabet* m_strat;
             public:
                 comp2char_wrapper(const int_alphabet* strat) : m_strat(strat) {}
-                char_type operator[](comp_char_type c) const {
+                char_type operator[](comp_char_type c) const
+                {
                     if (m_strat->m_char.size() > 0) {  // if alphabet is not continuous
                         return (char_type) m_strat->m_char_select(((size_type)c)+1);
                     } else { // direct map if it is continuous
@@ -420,7 +449,8 @@ class int_alphabet
         C_type              m_C;           // cumulative counts for the compact alphabet [0..sigma]
         sigma_type          m_sigma;       // effective size of the alphabet
 
-        void copy(const int_alphabet& strat) {
+        void copy(const int_alphabet& strat)
+        {
             m_char        = strat.m_char;
             m_char_rank   = strat.m_char_rank;
             m_char_rank.set_vector(&m_char);
@@ -431,7 +461,8 @@ class int_alphabet
         }
 
         //! Check if the alphabet is continuous.
-        bool is_continuous_alphabet(std::map<size_type, size_type>& D) {
+        bool is_continuous_alphabet(std::map<size_type, size_type>& D)
+        {
             if (D.size() == 0) {  // an empty alphabet is continuous
                 return true;
             } else {
@@ -447,7 +478,8 @@ class int_alphabet
         const sigma_type&    sigma;
 
         //! Default constructor
-        int_alphabet() : char2comp(this), comp2char(this), C(m_C), sigma(m_sigma) {
+        int_alphabet() : char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
+        {
             m_sigma = 0;
         }
 
@@ -457,7 +489,8 @@ class int_alphabet
          *  \param len      Length of the byte stream.
          */
         int_alphabet(int_vector_buffer<0>& text_buf, int_vector_size_type len):
-            char2comp(this), comp2char(this), C(m_C), sigma(m_sigma) {
+            char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
+        {
             m_sigma = 0;
             if (0 == len or 0 == text_buf.size())
                 return;
@@ -495,23 +528,27 @@ class int_alphabet
         }
 
         //! Copy constructor
-        int_alphabet(const int_alphabet& strat): char2comp(this), comp2char(this), C(m_C), sigma(m_sigma) {
+        int_alphabet(const int_alphabet& strat): char2comp(this), comp2char(this), C(m_C), sigma(m_sigma)
+        {
             copy(strat);
         }
 
         //! Copy constructor
-        int_alphabet(int_alphabet&& strat) {
+        int_alphabet(int_alphabet&& strat)
+        {
             *this = std::move(strat);
         }
 
-        int_alphabet& operator=(const int_alphabet& strat) {
+        int_alphabet& operator=(const int_alphabet& strat)
+        {
             if (this != &strat) {
                 copy(strat);
             }
             return *this;
         }
 
-        int_alphabet& operator=(int_alphabet&& strat) {
+        int_alphabet& operator=(int_alphabet&& strat)
+        {
             if (this != &strat) {
                 m_char        = std::move(strat.m_char);
                 m_char_rank   = std::move(strat.m_char_rank);
@@ -525,7 +562,8 @@ class int_alphabet
         }
 
         //! Swap operator
-        void swap(int_alphabet& strat) {
+        void swap(int_alphabet& strat)
+        {
             m_char.swap(strat.m_char);
             util::swap_support(m_char_rank, strat.m_char_rank, &m_char, &(strat.m_char));
             util::swap_support(m_char_select, strat.m_char_select, &m_char, &(strat.m_char));
@@ -534,7 +572,8 @@ class int_alphabet
         }
 
         //! Serialize method
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_char.serialize(out, child, "m_char");
@@ -547,7 +586,8 @@ class int_alphabet
         }
 
         //! Load method
-        void load(std::istream& in) {
+        void load(std::istream& in)
+        {
             m_char.load(in);
             m_char_rank.load(in);
             m_char_rank.set_vector(&m_char);
