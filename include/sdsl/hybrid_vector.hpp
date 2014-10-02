@@ -97,7 +97,7 @@ class hybrid_vector
             size_type trunk_size = 0;
 
             // runs_lookup[i] = number of runs - 1 in the binary encoding of i.
-            uint8_t* runs_lookup = new uint8_t[65536];
+            int_vector<8> runs_lookup(65536,0);
             runs_lookup[0] = 0;
             for (uint32_t i = 1; i < 65536; ++i) {
                 runs_lookup[i] = runs_lookup[i >> 1];
@@ -341,8 +341,6 @@ class hybrid_vector
                 sblock_ones += ones;
                 bv_ptr += k_block_size / 64;
             }
-
-            delete[] runs_lookup;
         }
 
     private:
@@ -515,7 +513,7 @@ class hybrid_vector
         }
 
         //! Assignment operator
-        hybrid_vector& operator = (const hybrid_vector& hybrid)
+        hybrid_vector& operator=(const hybrid_vector& hybrid)
         {
             if (this != &hybrid)
                 copy(hybrid);
@@ -523,7 +521,7 @@ class hybrid_vector
         }
 
         //! Move assignment operator
-        hybrid_vector& operator = (hybrid_vector&& hybrid)
+        hybrid_vector& operator=(hybrid_vector&& hybrid)
         {
             swap(hybrid);
             return *this;
@@ -727,9 +725,9 @@ template<uint8_t t_b, uint32_t k_sblock_rate> class rank_support_hybrid
                 uint64_t* trunk_ptr64 = (uint64_t*)(m_v->m_trunk.data() + trunk_ptr);
                 uint32_t bit;
                 for (bit = 0; bit + 64 <= local_i; bit += 64)
-                    block_rank += __builtin_popcountll(*trunk_ptr64++);
+                    block_rank += bits::cnt(*trunk_ptr64++);
                 if (bit != local_i)
-                    block_rank += __builtin_popcountll((*trunk_ptr64) & (((uint64_t)1 << (local_i - bit)) - 1));
+                    block_rank += bits::cnt((*trunk_ptr64) & (((uint64_t)1 << (local_i - bit)) - 1));
 
                 return hblock_rank + sblock_rank + block_rank;
             }
@@ -828,7 +826,7 @@ template<uint8_t t_b, uint32_t k_sblock_rate> class select_support_hybrid
         }
 
         //! Assignment operator
-        select_support_hybrid& operator = (const select_support_hybrid& rs)
+        select_support_hybrid& operator=(const select_support_hybrid& rs)
         {
             if (this != &rs) {
                 set_vector(rs.m_v);
