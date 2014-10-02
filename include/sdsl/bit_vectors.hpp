@@ -9,6 +9,6 @@
 #include "bit_vector_il.hpp"
 #include "rrr_vector.hpp"
 #include "sd_vector.hpp"
-#include "hybrid_bitvector.hpp"
+#include "hybrid_vector.hpp"
 
 #endif

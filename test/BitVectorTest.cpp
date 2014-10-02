@@ -34,7 +34,8 @@ rrr_vector<83>,
 rrr_vector<127>,
 rrr_vector<128>,
 sd_vector<>,
-sd_vector<rrr_vector<63> >
+sd_vector<rrr_vector<63> >,
+hybrid_vector<>
 > Implementations;
 
 

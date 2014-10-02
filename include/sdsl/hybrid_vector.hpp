@@ -26,7 +26,8 @@ template<uint8_t t_b = 1, uint32_t k_sb_rate = 16> class select_support_hybrid;
  *    Hybrid Compression of Bitvectors for the FM-Index.
  *    DCC 2014.
  */
-template<uint32_t k_sblock_rate = 16> class hybrid_vector
+template<uint32_t k_sblock_rate = 16>
+class hybrid_vector
 {
     public:
         typedef bit_vector::size_type size_type;
@@ -50,7 +51,7 @@ template<uint32_t k_sblock_rate = 16> class hybrid_vector
         static const uint32_t k_sblock_size;
         static const uint32_t k_hblock_rate;
 
-        size_type m_size;                      // original bitvector size
+        size_type m_size = 0;                  // original bitvector size
         std::vector<uint8_t> m_trunk;          // body of encoded blocks
         std::vector<uint8_t> m_sblock_header;  // sblock headers
         std::vector<uint64_t> m_hblock_header; // hblock headers
@@ -65,7 +66,7 @@ template<uint32_t k_sblock_rate = 16> class hybrid_vector
 
     public:
         //! Default constructor
-        hybrid_vector() {}
+        hybrid_vector() = default;
 
         //! Copy constructor
         hybrid_vector(const hybrid_vector& hybrid)
@@ -79,6 +80,9 @@ template<uint32_t k_sblock_rate = 16> class hybrid_vector
               m_trunk(std::move(hybrid.m_trunk)),
               m_sblock_header(std::move(hybrid.m_sblock_header)),
               m_hblock_header(std::move(hybrid.m_hblock_header)) {}
+
+        //! Move assignment
+//        hybrid_vector(
 
         //! Constructor
         hybrid_vector(const bit_vector& bv)
@@ -486,6 +490,24 @@ template<uint32_t k_sblock_rate = 16> class hybrid_vector
             }
         }
 
+        //! Get the integer value of the binary string of length len starting at position idx.
+        /*! \param idx Starting index of the binary representation of the integer.
+         *  \param len Length of the binary representation of the integer. Default value is 64.
+         *  \returns The integer value of the binary string of length len starting at position idx.
+         *
+         *  \pre idx+len-1 in [0..size()-1]
+         *  \pre len in [1..64]
+         */
+        uint64_t get_int(size_type idx, const uint8_t len=64) const
+        {
+            uint64_t res = 0;
+            for (size_t i=0; i<len; ++i) {
+                res <<= 1;
+                res |= (*this)[idx+len-1-i];
+            }
+            return res;
+        }
+
         //! Accessing the i-th element of the original bitvector
         value_type operator[](size_type i) const
         {
@@ -737,7 +759,6 @@ template<uint8_t t_b, uint32_t k_sblock_rate> class rank_support_hybrid
             if (this != &rs) {
                 set_vector(rs.m_v);
             }
-
             return *this;
         }
 
