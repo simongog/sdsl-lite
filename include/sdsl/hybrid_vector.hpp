@@ -587,19 +587,42 @@ template<uint32_t k_sblock_rate> const uint32_t hybrid_vector<k_sblock_rate>::k_
 template<uint32_t k_sblock_rate> const uint32_t hybrid_vector<k_sblock_rate>::k_sblock_size = 256 * k_sblock_rate;
 template<uint32_t k_sblock_rate> const uint32_t hybrid_vector<k_sblock_rate>::k_hblock_rate = (1U << 31) / 256;
 
+
+template<uint8_t t_bp>
+struct rank_result {
+    typedef bit_vector::size_type size_type;
+    static size_type adapt(size_type res, size_type)
+    {
+        return res;
+    }
+};
+
+template<>
+struct rank_result<0> {
+    typedef bit_vector::size_type size_type;
+    static size_type adapt(size_type res, size_type i)
+    {
+        return i-res;
+    }
+};
+
+
 //! Rank_support for the hybrid_vector class
 /*!
  * \tparam t_b      The bit pattern of size one. (so `0` or `1`)
  * \tparam k_sblock_rate  Superblock rate (number of blocks inside superblock)
  */
-template<uint8_t t_b, uint32_t k_sblock_rate> class rank_support_hybrid
+// TODO:
+template<uint8_t t_b, uint32_t k_sblock_rate>
+class rank_support_hybrid
 {
     public:
         typedef hybrid_vector<k_sblock_rate> bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
-
+        enum { bit_pat = t_b };
     private:
         const bit_vector_type* m_v;
+
 
     public:
         //! Standard constructor
@@ -637,8 +660,10 @@ template<uint8_t t_b, uint32_t k_sblock_rate> class rank_support_hybrid
 
             // Uniform superblock optimization.
             if ((*header_ptr32) & 0x80000000) {
-                return hblock_rank + sblock_rank +
-                       ((*(header_ptr8 + 1)) & 0x01) * (i - sblock_id * bit_vector_type::k_sblock_size);
+                return rank_result<t_b>::adapt(
+                           hblock_rank + sblock_rank +
+                           ((*(header_ptr8 + 1)) & 0x01) * (i - sblock_id * bit_vector_type::k_sblock_size),
+                           i);
             }
 
             // Fast forward through preceding blocks in the superblock.
@@ -661,8 +686,10 @@ template<uint8_t t_b, uint32_t k_sblock_rate> class rank_support_hybrid
                 uint32_t first_run_length = special_bit * ones + (1 - special_bit) * zeros;
                 uint32_t local_rank = std::min(local_i, first_run_length);
 
-                return hblock_rank + sblock_rank + block_rank +
-                       (special_bit * local_rank + (1 - special_bit) * (local_i - local_rank));
+                return rank_result<t_b>::adapt(
+                           hblock_rank + sblock_rank + block_rank +
+                           (special_bit * local_rank + (1 - special_bit) * (local_i - local_rank)),
+                           i);
             }
 
             // Number of runs > 2.
@@ -672,8 +699,10 @@ template<uint8_t t_b, uint32_t k_sblock_rate> class rank_support_hybrid
                     uint32_t tot = 0;
                     while (tot < encoding_size && (*trunk_p++) < local_i) ++tot;
 
-                    return hblock_rank + sblock_rank + block_rank +
-                           special_bit * tot + (1 - special_bit) * (local_i - tot);
+                    return rank_result<t_b>::adapt(
+                               hblock_rank + sblock_rank + block_rank +
+                               special_bit * tot + (1 - special_bit) * (local_i - tot),
+                               i);
                 }
 
                 // Runs encoding.
@@ -697,7 +726,7 @@ template<uint8_t t_b, uint32_t k_sblock_rate> class rank_support_hybrid
                         } else acc += std::min(ones - acc, local_i - last - 1);
                     } else acc += std::min((int32_t)(*trunk_p), (int32_t)local_i - 1) - last;
 
-                    return hblock_rank + sblock_rank + block_rank + acc;
+                    return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank + acc,i);
                 } else {
                     uint32_t j = 0;
                     uint32_t acc = 0;
@@ -718,7 +747,7 @@ template<uint8_t t_b, uint32_t k_sblock_rate> class rank_support_hybrid
                         } else acc += std::min(zeros - acc, local_i - last - 1);
                     } else acc += std::min((int32_t)(*trunk_p), (int32_t)local_i - 1) - last;
 
-                    return hblock_rank + sblock_rank + block_rank + (local_i - acc);
+                    return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank + (local_i - acc),i);
                 }
             } else {
                 // plain encoding.
@@ -729,7 +758,7 @@ template<uint8_t t_b, uint32_t k_sblock_rate> class rank_support_hybrid
                 if (bit != local_i)
                     block_rank += bits::cnt((*trunk_ptr64) & (((uint64_t)1 << (local_i - bit)) - 1));
 
-                return hblock_rank + sblock_rank + block_rank;
+                return rank_result<t_b>::adapt(hblock_rank + sblock_rank + block_rank, i);
             }
         }
 
@@ -784,12 +813,13 @@ template<uint8_t t_b, uint32_t k_sblock_rate> class rank_support_hybrid
  * \tparam k_sblock_rate  Superblock rate (number of blocks inside superblock)
  * TODO: implement select queries, currently this is dummy class.
  */
-template<uint8_t t_b, uint32_t k_sblock_rate> class select_support_hybrid
+template<uint8_t t_b, uint32_t k_sblock_rate>
+class select_support_hybrid
 {
     public:
         typedef hybrid_vector<k_sblock_rate> bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
-
+        enum { bit_pat = t_b };
     private:
         const bit_vector_type* m_v;
 
