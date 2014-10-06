@@ -52,6 +52,7 @@ class hybrid_vector
         static const uint32_t k_hblock_rate;
 
         size_type m_size = 0;                  // original bitvector size
+        // TODO: replace by int_vector<8> and int_vector<64>
         std::vector<uint8_t> m_trunk;          // body of encoded blocks
         std::vector<uint8_t> m_sblock_header;  // sblock headers
         std::vector<uint64_t> m_hblock_header; // hblock headers
@@ -80,9 +81,6 @@ class hybrid_vector
               m_trunk(std::move(hybrid.m_trunk)),
               m_sblock_header(std::move(hybrid.m_sblock_header)),
               m_hblock_header(std::move(hybrid.m_hblock_header)) {}
-
-        //! Move assignment
-//        hybrid_vector(
 
         //! Constructor
         hybrid_vector(const bit_vector& bv)
@@ -117,7 +115,7 @@ class hybrid_vector
                 if (block_end <= m_size) {
                     // Count the number of ones, fast.
                     const uint64_t* ptr64 = bv_ptr;
-                    for (uint8_t i = 0; i < 4; ++i) ones += __builtin_popcountll(*ptr64++);
+                    for (uint8_t i = 0; i < 4; ++i) ones += bits::cnt(*ptr64++);
 
                     // Count the number of runs, fast.
                     ptr64 = bv_ptr;
@@ -206,7 +204,7 @@ class hybrid_vector
                 if (block_end <= m_size) {
                     // Count the number of ones, fast.
                     const uint64_t* ptr64 = bv_ptr;
-                    for (uint8_t i = 0; i < 4; ++i) ones += __builtin_popcountll(*ptr64++);
+                    for (uint8_t i = 0; i < 4; ++i) ones += bits::cnt(*ptr64++);
 
                     // Count the number of runs, fast.
                     ptr64 = bv_ptr;
