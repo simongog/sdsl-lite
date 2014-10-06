@@ -125,6 +125,40 @@ class sd_vector
             *this = std::move(sd);
         }
 
+        template<class t_itr>
+        sd_vector(const t_itr begin,const t_itr end) {
+            if(! is_sorted(begin,end) ) {
+                throw std::runtime_error("sd_vector: source list is not sorted.");
+            }
+            size_type m = std::distance(begin,end);
+            m_size = *(end-1)+1;
+            uint8_t logm = bits::hi(m)+1;
+            uint8_t logn = bits::hi(m_size)+1;
+            if (logm == logn) {
+                --logm;    // to ensure logn-logm > 0
+            }
+            m_wl    = logn - logm;
+            m_low = int_vector<>(m, 0, m_wl);
+            bit_vector high = bit_vector(m + (1ULL<<logm), 0);
+            auto itr = begin;
+            size_type mm=0,last_high=0,highpos=0;
+            while( itr != end ) {
+                auto position = *itr;
+                // (1) handle high part
+                size_type cur_high = position >> m_wl;
+                highpos += (cur_high - last_high);   // write cur_high-last_high 0s
+                last_high = cur_high;
+                // (2) handle low part
+                m_low[mm++] = position; // int_vector truncates the most significant logm bits
+                high[highpos++] = 1;     // write 1 for the entry
+                ++itr;
+            }
+
+            util::assign(m_high, high);
+            util::init_support(m_high_1_select, &m_high);
+            util::init_support(m_high_0_select, &m_high);
+        }
+
         sd_vector(const bit_vector& bv) {
             m_size = bv.size();
             size_type m = util::cnt_one_bits(bv);
