@@ -1,3 +1,33 @@
+/*
+ *   Copyright (c) 2014 Juha Karkkainen, Dominik Kempa and Simon J. Puglisi
+ *
+ *   Permission is hereby granted, free of charge, to any person
+ *   obtaining a copy of this software and associated documentation
+ *   files (the "Software"), to deal in the Software without
+ *   restriction, including without limitation the rights to use,
+ *   copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *   copies of the Software, and to permit persons to whom the
+ *   Software is furnished to do so, subject to the following
+ *   conditions:
+ *
+ *   The above copyright notice and this permission notice shall be
+ *   included in all copies or substantial portions of the Software.
+ *
+ *   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ *   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ *   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ *   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ *   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ *   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ *   OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *   Simon Gog made the following changes:
+ *     - replace std::vectors by int_vectors
+ *     - add support for rank0
+ *     - added naive implementation of method get_int
+ *     - TODO: added a naive implementation of select
+*/
 #ifndef INCLUDED_SDSL_HYBRID_VECTOR
 #define INCLUDED_SDSL_HYBRID_VECTOR
 
@@ -51,11 +81,10 @@ class hybrid_vector
         static const uint32_t k_sblock_size;
         static const uint32_t k_hblock_rate;
 
-        size_type m_size = 0;                  // original bitvector size
-        // TODO: replace by int_vector<8> and int_vector<64>
-        std::vector<uint8_t> m_trunk;          // body of encoded blocks
-        std::vector<uint8_t> m_sblock_header;  // sblock headers
-        std::vector<uint64_t> m_hblock_header; // hblock headers
+        size_type m_size = 0;           // original bitvector size
+        int_vector<8> m_trunk;          // body of encoded blocks
+        int_vector<8> m_sblock_header;  // sblock headers
+        int_vector<64> m_hblock_header; // hblock headers
 
         void copy(const hybrid_vector& hybrid)
         {
@@ -158,9 +187,9 @@ class hybrid_vector
             }
 
             // Allocate the memory.
-            m_sblock_header.resize(n_sblocks * k_sblock_header_size, 0);
-            m_hblock_header.resize(n_hblocks * 2, 0);
-            m_trunk.resize(trunk_size);
+            m_sblock_header = int_vector<8>(n_sblocks * k_sblock_header_size, 0);
+            m_hblock_header = int_vector<64>(n_hblocks * 2, 0);
+            m_trunk         = int_vector<8>(trunk_size, 0);
 
             // The actual encoding follows.
             size_type tot_rank = 0;    // stores current rank value
@@ -183,13 +212,13 @@ class hybrid_vector
 
                 // Update sblock header.
                 if (!(block_id % k_sblock_rate)) {
-                    uint32_t* ptr = (uint32_t*)(m_sblock_header.data() + k_sblock_header_size * sblock_id);
+                    uint32_t* ptr = (uint32_t*)(((uint8_t*)m_sblock_header.data()) + k_sblock_header_size * sblock_id);
                     *ptr++ = trunk_ptr - m_hblock_header[2 * hblock_id];
                     *ptr = tot_rank - m_hblock_header[2 * hblock_id + 1];
 
                     // If the sblock is uniform, flip the bit.
                     if (sblock_id && (!sblock_ones || sblock_ones == k_sblock_size)) {
-                        ptr = (uint32_t*)(m_sblock_header.data() + k_sblock_header_size * (sblock_id - 1));
+                        ptr = (uint32_t*)(((uint8_t*)m_sblock_header.data()) + k_sblock_header_size * (sblock_id - 1));
                         *ptr |= 0x80000000;
                     }
 
@@ -232,7 +261,7 @@ class hybrid_vector
                 uint32_t zeros = k_block_size - ones;
 
                 // Store block popcount.
-                uint16_t* header_ptr16 = (uint16_t*)(m_sblock_header.data() +
+                uint16_t* header_ptr16 = (uint16_t*)(((uint8_t*)m_sblock_header.data()) +
                                                      sblock_id * k_sblock_header_size + 8 + (block_id % k_sblock_rate) * 2);
 
                 (*header_ptr16) = ones;
@@ -251,7 +280,7 @@ class hybrid_vector
                         // Copy original 256 bits from bv into trunk.
                         if (block_end <= m_size) {
                             for (uint8_t i = 0; i < 4; ++i) {
-                                *((uint64_t*)(m_trunk.data() + trunk_ptr)) = *(bv_ptr + i);
+                                *((uint64_t*)(((uint8_t*)m_trunk.data()) + trunk_ptr)) = *(bv_ptr + i);
                                 trunk_ptr += 8;
                             }
                         } else {
@@ -261,7 +290,7 @@ class hybrid_vector
                                     uint8_t bit = (j < m_size ? bv[j] : 0);
                                     if (bit) w |= ((uint64_t)1 << (j - i));
                                 }
-                                *((uint64_t*)(m_trunk.data() + trunk_ptr)) = w;
+                                *((uint64_t*)(((uint8_t*)m_trunk.data()) + trunk_ptr)) = w;
                                 trunk_ptr += 8;
                             }
                         }
@@ -357,7 +386,7 @@ class hybrid_vector
             uint32_t local_i = i - block_id * k_block_size;
 
             // Read superblock header.
-            const uint8_t* header_ptr8 = m_sblock_header.data() + (sblock_id * k_sblock_header_size);
+            const uint8_t* header_ptr8 = ((const uint8_t*)m_sblock_header.data()) + (sblock_id * k_sblock_header_size);
             uint32_t* header_ptr32 = (uint32_t*)header_ptr8;
             size_type trunk_ptr = trunk_base + ((*header_ptr32) & 0x3fffffff);
             header_ptr8 += 8;
@@ -374,7 +403,7 @@ class hybrid_vector
                 ++header_ptr16;
             }
 
-            const uint8_t* trunk_p = m_trunk.data() + trunk_ptr;
+            const uint8_t* trunk_p = ((const uint8_t*)m_trunk.data()) + trunk_ptr;
 
             uint32_t encoding_size = ((*header_ptr16) >> 10);
             uint32_t ones = ((*header_ptr16) & 0x1ff);
@@ -463,7 +492,7 @@ class hybrid_vector
                 }
             } else {
                 // plain encoding.
-                uint64_t* trunk_ptr64 = (uint64_t*)(m_trunk.data() + trunk_ptr);
+                uint64_t* trunk_ptr64 = (uint64_t*)(((uint8_t*)m_trunk.data()) + trunk_ptr);
                 uint32_t bit;
                 for (bit = 0; bit + 64 <= local_i; bit += 64) trunk_ptr64++;
 
@@ -537,15 +566,9 @@ class hybrid_vector
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
-            size_t m_trunk_size = m_trunk.size();
-            written_bytes += write_member(m_trunk_size, out, child, "trunk_size");
-            written_bytes += serialize_vector(m_trunk, out, child, "trunk");
-            size_t m_sblock_header_size = m_sblock_header.size();
-            written_bytes += write_member(m_sblock_header_size, out, child, "sblock_header_size");
-            written_bytes += serialize_vector(m_sblock_header, out, child, "sblock_header");
-            size_t m_hblock_header_size = m_hblock_header.size();
-            written_bytes += write_member(m_hblock_header_size, out, child, "hblock_header_size");
-            written_bytes += serialize_vector(m_hblock_header, out, child, "hblock_header");
+            written_bytes += m_trunk.serialize(out, child, "trunk");
+            written_bytes += m_sblock_header.serialize(out, child, "sblock_header");
+            written_bytes += m_hblock_header.serialize(out, child, "hblock_header");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -554,18 +577,9 @@ class hybrid_vector
         void load(std::istream& in)
         {
             read_member(m_size, in);
-            size_t m_trunk_size = 0;
-            read_member(m_trunk_size, in);
-            m_trunk = std::vector<uint8_t>(m_trunk_size);
-            load_vector(m_trunk, in);
-            size_t m_sblock_header_size = 0;
-            read_member(m_sblock_header_size, in);
-            m_sblock_header = std::vector<uint8_t>(m_sblock_header_size);
-            load_vector(m_sblock_header, in);
-            size_t m_hblock_header_size = 0;
-            read_member(m_hblock_header_size, in);
-            m_hblock_header = std::vector<uint64_t>(m_hblock_header_size);
-            load_vector(m_hblock_header, in);
+            m_trunk.load(in);
+            m_sblock_header.load(in);
+            m_hblock_header.load(in);
         }
 
         iterator begin() const
@@ -648,7 +662,7 @@ class rank_support_hybrid
             uint32_t local_i = i - block_id * bit_vector_type::k_block_size;
 
             // Read superblock header.
-            const uint8_t* header_ptr8 = m_v->m_sblock_header.data() + (sblock_id * bit_vector_type::k_sblock_header_size);
+            const uint8_t* header_ptr8 = ((const uint8_t*)(m_v->m_sblock_header.data())) + (sblock_id * bit_vector_type::k_sblock_header_size);
             uint32_t* header_ptr32 = (uint32_t*)header_ptr8;
             size_type trunk_ptr = trunk_base + ((*header_ptr32) & 0x3fffffff);
             size_type sblock_rank = *(header_ptr32 + 1);
@@ -672,7 +686,7 @@ class rank_support_hybrid
                 ++header_ptr16;
             }
 
-            const uint8_t* trunk_p = m_v->m_trunk.data() + trunk_ptr;
+            const uint8_t* trunk_p = ((uint8_t*)m_v->m_trunk.data()) + trunk_ptr;
 
             uint32_t encoding_size = ((*header_ptr16) >> 10);
             uint32_t ones = ((*header_ptr16) & 0x1ff);
@@ -749,7 +763,7 @@ class rank_support_hybrid
                 }
             } else {
                 // plain encoding.
-                uint64_t* trunk_ptr64 = (uint64_t*)(m_v->m_trunk.data() + trunk_ptr);
+                uint64_t* trunk_ptr64 = (uint64_t*)(((uint8_t*)m_v->m_trunk.data()) + trunk_ptr);
                 uint32_t bit;
                 for (bit = 0; bit + 64 <= local_i; bit += 64)
                     block_rank += bits::cnt(*trunk_ptr64++);
