@@ -104,7 +104,7 @@ struct bits {
 
     //! Position of the most significant set bit the 64-bit word x
     /*! \param x 64-bit word
-        \return The position (in 0..63) of the least significant set bit
+        \return The position (in 0..63) of the most significant set bit
                 in `x` or 0 if x equals 0.
     	\sa sel, lo
     */
