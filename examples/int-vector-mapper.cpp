@@ -36,9 +36,9 @@ int main(int argc, char* argv[])
         store_to_file(iv,tmp_file);
     }
 
-    // (2) memory map the content of tmp_file
+    // (2) open readonly! memory map the content of tmp_file
     {
-        int_vector_mapper<> ivm(tmp_file);
+        const int_vector_mapper<0,std::ios_base::in> ivm(tmp_file);
         if (ivm.size() != size) {
             std::cerr << "ERROR: ivm.size()="<< ivm.size() << " != " << size << std::endl;
             return 1;
@@ -56,29 +56,60 @@ int main(int argc, char* argv[])
             }
         }
 
-        if(ivm != stdv) {
-        	std::cerr << "ERROR: std::vector CMP failed.";
+        if (ivm != stdv) {
+            std::cerr << "ERROR: std::vector CMP failed.";
         }
-        if(ivm != iv) {
-        	std::cerr << "ERROR: iv CMP failed.";
+        if (ivm != iv) {
+            std::cerr << "ERROR: iv CMP failed.";
         }
-        if(ivm != ivf) {
-        	std::cerr << "ERROR: ivf CMP failed.";
+        if (ivm != ivf) {
+            std::cerr << "ERROR: ivf CMP failed.";
         }
     }
 
-    // (3) remove the file as the mapper does not do that 
+    // (2) open read+write! memory map the content of tmp_file
     {
-    	sdsl::remove(tmp_file);
+        int_vector_mapper<0> ivm(tmp_file);
+        if (ivm.size() != size) {
+            std::cerr << "ERROR: ivm.size()="<< ivm.size() << " != " << size << std::endl;
+            return 1;
+        }
+        if (ivm.width() != width) {
+            std::cerr << "ERROR: ivm.width()="<< ivm.width() << " != " << width << std::endl;
+            return 1;
+        }
+        rng.seed(13); // To get the same values than before use the same seed
+        for (uint64_t i=0; i<ivm.size(); ++i) {
+            uint64_t expected_value = rng();
+            if (ivm[i] != expected_value) {
+                std::cerr << "ERROR: ivm["<< i << "]=" << ivm[i] << " != " << expected_value << "= expected_value" << std::endl;
+                return 1;
+            }
+        }
+
+        if (ivm != stdv) {
+            std::cerr << "ERROR: std::vector CMP failed.";
+        }
+        if (ivm != iv) {
+            std::cerr << "ERROR: iv CMP failed.";
+        }
+        if (ivm != ivf) {
+            std::cerr << "ERROR: ivf CMP failed.";
+        }
+    }
+
+    // (3) remove the file as the mapper does not do that if we don't specify it
+    {
+        sdsl::remove(tmp_file);
     }
 
     {
-    	auto tmp_buf = temp_file_buffer<64>::create();
-    	for(const auto& val : stdv) {
-    		tmp_buf.push_back(val);
-    	}
-        if(tmp_buf != stdv) {
-        	std::cerr << "ERROR: tmp_buf CMP failed." << std::endl;
+        auto tmp_buf = temp_file_buffer<64>::create();
+        for (const auto& val : stdv) {
+            tmp_buf.push_back(val);
+        }
+        if (tmp_buf != stdv) {
+            std::cerr << "ERROR: tmp_buf CMP failed." << std::endl;
         }
 
         // tmp buf file is deleted automatically
