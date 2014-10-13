@@ -28,8 +28,8 @@
  *     - added naive implementation of method get_int
  *     - TODO: added a naive implementation of select
 */
-#ifndef INCLUDED_SDSL_HYBRID_VECTOR
-#define INCLUDED_SDSL_HYBRID_VECTOR
+#ifndef INCLUDED_SDSL_HYB_VECTOR
+#define INCLUDED_SDSL_HYB_VECTOR
 
 #include "int_vector.hpp"
 #include "util.hpp"
@@ -44,8 +44,8 @@ namespace sdsl
 {
 
 // Needed for friend declarations.
-template<uint8_t t_b = 1, uint32_t k_sb_rate = 16> class rank_support_hybrid;
-template<uint8_t t_b = 1, uint32_t k_sb_rate = 16> class select_support_hybrid;
+template<uint8_t t_b = 1, uint32_t k_sb_rate = 16> class rank_support_hyb;
+template<uint8_t t_b = 1, uint32_t k_sb_rate = 16> class select_support_hyb;
 
 //! A hybrid-encoded compressed bitvector representation
 /*!
@@ -57,22 +57,22 @@ template<uint8_t t_b = 1, uint32_t k_sb_rate = 16> class select_support_hybrid;
  *    DCC 2014.
  */
 template<uint32_t k_sblock_rate = 16>
-class hybrid_vector
+class hyb_vector
 {
     public:
         typedef bit_vector::size_type size_type;
         typedef bit_vector::value_type value_type;
         typedef bit_vector::difference_type difference_type;
-        typedef random_access_const_iterator<hybrid_vector> iterator;
-        typedef rank_support_hybrid<1, k_sblock_rate> rank_1_type;
-        typedef rank_support_hybrid<0, k_sblock_rate> rank_0_type;
-        typedef select_support_hybrid<1, k_sblock_rate> select_1_type;
-        typedef select_support_hybrid<0, k_sblock_rate> select_0_type;
+        typedef random_access_const_iterator<hyb_vector> iterator;
+        typedef rank_support_hyb<1, k_sblock_rate> rank_1_type;
+        typedef rank_support_hyb<0, k_sblock_rate> rank_0_type;
+        typedef select_support_hyb<1, k_sblock_rate> select_1_type;
+        typedef select_support_hyb<0, k_sblock_rate> select_0_type;
 
-        friend class rank_support_hybrid<1, k_sblock_rate>;
-        friend class rank_support_hybrid<0, k_sblock_rate>;
-        friend class select_support_hybrid<1, k_sblock_rate>;
-        friend class select_support_hybrid<0, k_sblock_rate>;
+        friend class rank_support_hyb<1, k_sblock_rate>;
+        friend class rank_support_hyb<0, k_sblock_rate>;
+        friend class select_support_hyb<1, k_sblock_rate>;
+        friend class select_support_hyb<0, k_sblock_rate>;
 
     private:
         static const uint32_t k_block_size;
@@ -86,7 +86,7 @@ class hybrid_vector
         int_vector<8> m_sblock_header;  // sblock headers
         int_vector<64> m_hblock_header; // hblock headers
 
-        void copy(const hybrid_vector& hybrid)
+        void copy(const hyb_vector& hybrid)
         {
             m_size = hybrid.m_size;
             m_trunk = hybrid.m_trunk;
@@ -96,23 +96,23 @@ class hybrid_vector
 
     public:
         //! Default constructor
-        hybrid_vector() = default;
+        hyb_vector() = default;
 
         //! Copy constructor
-        hybrid_vector(const hybrid_vector& hybrid)
+        hyb_vector(const hyb_vector& hybrid)
         {
             copy(hybrid);
         }
 
         //! Move constructor
-        hybrid_vector(hybrid_vector&& hybrid)
+        hyb_vector(hyb_vector&& hybrid)
             : m_size(std::move(hybrid.m_size)),
               m_trunk(std::move(hybrid.m_trunk)),
               m_sblock_header(std::move(hybrid.m_sblock_header)),
               m_hblock_header(std::move(hybrid.m_hblock_header)) {}
 
         //! Constructor
-        hybrid_vector(const bit_vector& bv)
+        hyb_vector(const bit_vector& bv)
         {
             m_size = bv.size();
 
@@ -505,7 +505,7 @@ class hybrid_vector
 
     public:
         //! Swap method
-        void swap(hybrid_vector& hybrid)
+        void swap(hyb_vector& hybrid)
         {
             if (this != &hybrid) {
                 std::swap(m_size, hybrid.m_size);
@@ -540,7 +540,7 @@ class hybrid_vector
         }
 
         //! Assignment operator
-        hybrid_vector& operator=(const hybrid_vector& hybrid)
+        hyb_vector& operator=(const hyb_vector& hybrid)
         {
             if (this != &hybrid)
                 copy(hybrid);
@@ -548,7 +548,7 @@ class hybrid_vector
         }
 
         //! Move assignment operator
-        hybrid_vector& operator=(hybrid_vector&& hybrid)
+        hyb_vector& operator=(hyb_vector&& hybrid)
         {
             swap(hybrid);
             return *this;
@@ -593,11 +593,11 @@ class hybrid_vector
         }
 };
 
-template<uint32_t k_sblock_rate> const uint32_t hybrid_vector<k_sblock_rate>::k_block_size = 256;
-template<uint32_t k_sblock_rate> const uint32_t hybrid_vector<k_sblock_rate>::k_block_bytes = 32;
-template<uint32_t k_sblock_rate> const uint32_t hybrid_vector<k_sblock_rate>::k_sblock_header_size = 8 + 2 * k_sblock_rate;
-template<uint32_t k_sblock_rate> const uint32_t hybrid_vector<k_sblock_rate>::k_sblock_size = 256 * k_sblock_rate;
-template<uint32_t k_sblock_rate> const uint32_t hybrid_vector<k_sblock_rate>::k_hblock_rate = (1U << 31) / 256;
+template<uint32_t k_sblock_rate> const uint32_t hyb_vector<k_sblock_rate>::k_block_size = 256;
+template<uint32_t k_sblock_rate> const uint32_t hyb_vector<k_sblock_rate>::k_block_bytes = 32;
+template<uint32_t k_sblock_rate> const uint32_t hyb_vector<k_sblock_rate>::k_sblock_header_size = 8 + 2 * k_sblock_rate;
+template<uint32_t k_sblock_rate> const uint32_t hyb_vector<k_sblock_rate>::k_sblock_size = 256 * k_sblock_rate;
+template<uint32_t k_sblock_rate> const uint32_t hyb_vector<k_sblock_rate>::k_hblock_rate = (1U << 31) / 256;
 
 
 template<uint8_t t_bp>
@@ -619,17 +619,17 @@ struct rank_result<0> {
 };
 
 
-//! Rank_support for the hybrid_vector class
+//! Rank_support for the hyb_vector class
 /*!
  * \tparam t_b      The bit pattern of size one. (so `0` or `1`)
  * \tparam k_sblock_rate  Superblock rate (number of blocks inside superblock)
  */
 // TODO:
 template<uint8_t t_b, uint32_t k_sblock_rate>
-class rank_support_hybrid
+class rank_support_hyb
 {
     public:
-        typedef hybrid_vector<k_sblock_rate> bit_vector_type;
+        typedef hyb_vector<k_sblock_rate> bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
         enum { bit_pat = t_b };
     private:
@@ -638,7 +638,7 @@ class rank_support_hybrid
 
     public:
         //! Standard constructor
-        explicit rank_support_hybrid(const bit_vector_type* v = nullptr)
+        explicit rank_support_hyb(const bit_vector_type* v = nullptr)
         {
             set_vector(v);
         }
@@ -793,7 +793,7 @@ class rank_support_hybrid
         }
 
         //! Assignment operator
-        rank_support_hybrid& operator=(const rank_support_hybrid& rs)
+        rank_support_hyb& operator=(const rank_support_hyb& rs)
         {
             if (this != &rs) {
                 set_vector(rs.m_v);
@@ -802,7 +802,7 @@ class rank_support_hybrid
         }
 
         //! Swap method
-        void swap(rank_support_hybrid&) {}
+        void swap(rank_support_hyb&) {}
 
         //! Load the data structure from a stream and set the supported vector
         void load(std::istream&, const bit_vector_type* v = nullptr)
@@ -819,17 +819,17 @@ class rank_support_hybrid
         }
 };
 
-//! Select support for the hybrid_vector class
+//! Select support for the hyb_vector class
 /*!
  * \tparam t_b            The bit pattern of size one. (so `0` or `1`)
  * \tparam k_sblock_rate  Superblock rate (number of blocks inside superblock)
  * TODO: implement select queries, currently this is dummy class.
  */
 template<uint8_t t_b, uint32_t k_sblock_rate>
-class select_support_hybrid
+class select_support_hyb
 {
     public:
-        typedef hybrid_vector<k_sblock_rate> bit_vector_type;
+        typedef hyb_vector<k_sblock_rate> bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
         enum { bit_pat = t_b };
     private:
@@ -837,7 +837,7 @@ class select_support_hybrid
 
     public:
         //! Standard constructor
-        explicit select_support_hybrid(const bit_vector_type* v = nullptr)
+        explicit select_support_hyb(const bit_vector_type* v = nullptr)
         {
             set_vector(v);
         }
@@ -845,7 +845,7 @@ class select_support_hybrid
         //! Answers select queries
         size_type select(size_type i) const
         {
-            fprintf(stderr, "\nhybrid_vector: select queries are not currently supported\n");
+            fprintf(stderr, "\nhyb_vector: select queries are not currently supported\n");
             std::exit(EXIT_FAILURE);
         }
 
@@ -868,7 +868,7 @@ class select_support_hybrid
         }
 
         //! Assignment operator
-        select_support_hybrid& operator=(const select_support_hybrid& rs)
+        select_support_hyb& operator=(const select_support_hyb& rs)
         {
             if (this != &rs) {
                 set_vector(rs.m_v);
@@ -877,7 +877,7 @@ class select_support_hybrid
         }
 
         //! Swap method
-        void swap(select_support_hybrid&) {}
+        void swap(select_support_hyb&) {}
 
         //! Load the data structure from a stream and set the supported vector
         void load(std::istream&, const bit_vector_type* v = nullptr)
@@ -896,4 +896,4 @@ class select_support_hybrid
 
 }  // end namespace sdsl
 
-#endif  // INCLUDED_SDSL_HYBRID_VECTOR
+#endif  // INCLUDED_SDSL_HYB_VECTOR
