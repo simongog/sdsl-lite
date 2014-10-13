@@ -241,12 +241,16 @@ The main contributors to the library are:
 * [Simon Gog](https://github.com/simongog) (Creator)
 * [Matthias Petri](https://github.com/mpetri)
 
+This project is also supported by code contributions
+from other researchers. E.g. Juha Kärkkäinen,
+[Dominik Kempa](https://github.com/dkempa),
+and Simon Puglisi contributed a compressed bitvector
+implementation ([hyb_vector][HB]).
 This project further profited from excellent input of our students
 Markus Brenner, Alexander Diehm, and Maike Zwerger. Stefan
 Arnold helped us with tricky template questions. We are also grateful to
 [Travis Gagie](https://github.com/TravisGagie),
 Kalle Karhu,
-[Dominik Kempa](https://github.com/dkempa),
 [Bruce Kuo](https://github.com/bruce3557),
 [Shanika Kuruppu](https://github.com/skuruppu),
 and [Julio Vizcaino](https://github.com/garviz) 
@@ -278,3 +282,4 @@ Feel free to contact any of the authors or create an issue on the
 [JESL]: http://www.itu.dk/people/jesl/ "Homepage of Jesper Larsson"
 [CF]: https://github.com/simongog/sdsl-lite/blob/master/COPYING "Licence"
 [SEAPAPER]: http://arxiv.org/pdf/1311.1249v1.pdf "SDSL paper"
+[HB]: https://github.com/simongog/sdsl-lite/blob/hybrid_bitvector/include/sdsl/hybrid_vector.hpp "Hybrid bitevctor"

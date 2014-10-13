@@ -166,6 +166,7 @@ urlcolor=githublink           % color of external links
 \newcommand{\sdslbitvectoril}{\code{bit\_vector\_il}}
 \newcommand{\sdslrrrvector}{\code{rrr\_vector}}
 \newcommand{\sdslsdvector}{\code{sd\_vector}}
+\newcommand{\sdslhybvector}{\code{hyb\_vector}}
 %%%% rank support structures
 \newcommand{\sdslranksupportv}{\code{rank\_support\_v}}
 \newcommand{\sdslranksupportvV}{\code{rank\_support\_v5}}
@@ -173,6 +174,7 @@ urlcolor=githublink           % color of external links
 \newcommand{\sdslranksupportrrr}{\code{rank\_support\_rrr}}
 \newcommand{\sdslranksupportsd}{\code{rank\_support\_sd}}
 \newcommand{\sdslranksupportscan}{\code{rank\_support\_scan}}
+\newcommand{\sdslranksupporthyb}{\code{rank\_support\_hyb}}
 %%%% select support structures
 \newcommand{\sdslselectsupportmcl}{\code{select\_support\_mcl}}
 \newcommand{\sdslselectsupportscan}{\code{select\_support\_scan}}
@@ -311,6 +313,7 @@ interleaved  bitvector & $\approx n(1+K/64)$  \\
 $H_0$-compressed bitvector & $\approx \lceil \log {n\choose m} \rceil$ \\
 \href{\sdslgitinc/sd_vector.hpp}{\sdslsdvector}  & sparse bitvector
 & $\approx\ m\cdot(2\!+\!\log\frac{n}{m})$ \\	
+\href{\sdslgitinc/hyb_vector.hpp}{\sdslhybvector} & hybrid bitvector &  \\
 \end{tabular}
 \sdslbitvector\ equals \sdslintvector\code{\textless1\textgreater} and
 is therefore dynamic.\\
@@ -339,6 +342,8 @@ supported BV for $i \in [0,n]$.
 \sdslrrrvector & 80 & \Order{k} \\
 \href{\sdslgitinc/sd_vector.hpp}{\sdslranksupportsd} &
 \sdslsdvector & 64 & \Order{\log{\frac{n}{m}}} \\
+\href{\sdslgitinc/hyb_vector.hpp}{\sdslranksupporthyb} &
+\sdslhybvector & 64 & - \\
 \end{tabular}
 Call~\code{util::init\_support(rs,bv)}~to initialize rank
 structure \code{rs} to bitvector \code{bv}. Call \code{rs($i$)} to get $\code{rank(}i\code{)}=\sum_{k=0}^{k<i}\code{bv[}k\code{]}$
