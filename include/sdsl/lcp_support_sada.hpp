@@ -89,7 +89,8 @@ class _lcp_support_sada
         bit_vector_type m_data;
         select_type     m_select_support;
 
-        void copy(const _lcp_support_sada& lcp_c) {
+        void copy(const _lcp_support_sada& lcp_c)
+        {
             m_csa            = lcp_c.m_csa;
             m_data           = lcp_c.m_data;
             m_select_support = lcp_c.m_select_support;
@@ -101,17 +102,20 @@ class _lcp_support_sada
         _lcp_support_sada() {}
 
         //! Copy constructor
-        _lcp_support_sada(const _lcp_support_sada& lcp_c) {
+        _lcp_support_sada(const _lcp_support_sada& lcp_c)
+        {
             copy(lcp_c);
         }
 
         //! Move constructor
-        _lcp_support_sada(_lcp_support_sada&& lcp_c) {
+        _lcp_support_sada(_lcp_support_sada&& lcp_c)
+        {
             *this = std::move(lcp_c);
         }
 
         //! Constructor
-        _lcp_support_sada(cache_config& config, const t_csa* f_csa) {
+        _lcp_support_sada(cache_config& config, const t_csa* f_csa)
+        {
             typedef typename t_csa::size_type size_type;
             set_csa(f_csa);
             if (!cache_file_exists(conf::KEY_ISA, config)) {
@@ -135,40 +139,47 @@ class _lcp_support_sada
             util::init_support(m_select_support, &m_data);
         }
 
-        void set_csa(const t_csa* f_csa) {
+        void set_csa(const t_csa* f_csa)
+        {
             m_csa = f_csa;
         }
 
         //! Number of elements in the instance.
-        size_type size()const {
+        size_type size()const
+        {
             return m_csa->size();
         }
 
         //! Returns the largest size that _lcp_support_sada can ever have.
-        static size_type max_size() {
+        static size_type max_size()
+        {
             return t_csa::max_size();
         }
 
         //! Returns if the data structure is empty.
-        bool empty()const {
+        bool empty()const
+        {
             return m_csa->empty();
         }
 
         //! Swap method for _lcp_support_sada
-        void swap(_lcp_support_sada& lcp_c) {
+        void swap(_lcp_support_sada& lcp_c)
+        {
             m_data.swap(lcp_c.m_data);
             util::swap_support(m_select_support, lcp_c.m_select_support,
                                &m_data, &(lcp_c.m_data));
         }
 
         //! Returns a const_iterator to the first element.
-        const_iterator begin()const {
+        const_iterator begin()const
+        {
             return const_iterator(this, 0);
         }
 
 
         //! Returns a const_iterator to the element after the last element.
-        const_iterator end()const {
+        const_iterator end()const
+        {
             return const_iterator(this, size());
         }
 
@@ -176,14 +187,16 @@ class _lcp_support_sada
         /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
          * Time complexity: O(suffix array access)
          */
-        inline value_type operator[](size_type i)const {
+        inline value_type operator[](size_type i)const
+        {
             size_type j = (*m_csa)[i];
             size_type s = m_select_support.select(j+1);
             return s-(j<<1);
         }
 
         //! Assignment Operator.
-        _lcp_support_sada& operator=(const _lcp_support_sada& lcp_c) {
+        _lcp_support_sada& operator=(const _lcp_support_sada& lcp_c)
+        {
             if (this != &lcp_c) {
                 copy(lcp_c);
             }
@@ -191,7 +204,8 @@ class _lcp_support_sada
         }
 
         //! Assignment Move Operator.
-        _lcp_support_sada& operator=(_lcp_support_sada&& lcp_c) {
+        _lcp_support_sada& operator=(_lcp_support_sada&& lcp_c)
+        {
             if (this != &lcp_c) {
                 m_csa            = std::move(lcp_c.m_csa);
                 m_data           = std::move(lcp_c.m_data);
@@ -204,7 +218,8 @@ class _lcp_support_sada
         //! Serialize to a stream.
         size_type
         serialize(std::ostream& out, structure_tree_node* v=nullptr,
-                  std::string name="")const {
+                  std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name,
                                          util::class_name(*this));
             size_type written_bytes = 0;
@@ -216,7 +231,8 @@ class _lcp_support_sada
         }
 
         //! Load from a stream.
-        void load(std::istream& in, const t_csa* csa) {
+        void load(std::istream& in, const t_csa* csa=nullptr)
+        {
             m_csa = csa;
             m_data.load(in);
             m_select_support.load(in, &m_data);
@@ -226,8 +242,7 @@ class _lcp_support_sada
 //! Helper class which provides _lcp_support_sada the context of a CSA.
 template<class t_bitvec = bit_vector,
          class t_select = typename t_bitvec::select_1_type>
-struct lcp_support_sada
-{
+struct lcp_support_sada {
     template<class t_cst>
     using type = _lcp_support_sada<typename t_cst::csa_type,
           t_bitvec,
