@@ -1,0 +1,6 @@
+[submodule "lecture/external/zeromq4-1"]
+	path = lecture/external/zeromq4-1
+	url = https://github.com/zeromq/zeromq4-1.git
+[submodule "lecture/external/cppzmq"]
+	path = lecture/external/cppzmq
+	url = https://github.com/zeromq/cppzmq.git
