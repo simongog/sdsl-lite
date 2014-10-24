@@ -621,7 +621,7 @@ class cst_sct3
          *  \par Time complexity
          *     \f$ \Order{1}\f$
          */
-        cst_node_child_proxy<cst_sct3> children(const node_type v) const
+        cst_node_child_proxy<cst_sct3> children(const node_type& v) const
         {
             return cst_node_child_proxy<cst_sct3>(this,v);
         }
