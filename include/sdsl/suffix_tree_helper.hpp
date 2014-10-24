@@ -36,7 +36,7 @@ class cst_node_child_proxy_iterator : public std::iterator<std::forward_iterator
             m_cur_node = m_cst->sibling(m_cur_node);
             return *this;
         }
-        iterator_type& operator++(int) {
+        iterator_type operator++(int) {
             iterator_type it = *this;
             ++(*this);
             return it;
