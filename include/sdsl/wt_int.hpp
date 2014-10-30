@@ -166,6 +166,7 @@ class wt_int
             init_buffers(m_max_level);
         };
 
+       
         //! Semi-external constructor
         /*! \param buf         File buffer of the int_vector for which the wt_int should be build.
          *  \param size        Size of the prefix of v, which should be indexed.
@@ -787,6 +788,35 @@ class wt_int
         node_type root() const {
             return node_type(0, m_size, 0, 0);
         }
+ 
+        size_type
+        node_rank1(const node_type & v, size_type i) const {
+          // Get starting position rank
+          size_type v_sp_pos  = v.offset;
+          size_type v_sp_rank = m_tree_rank(v_sp_pos);
+          // TODO: BOUND CHECK: get node size by getting parents left and right children start positions (if any)
+          return m_tree_rank(v_sp_pos + i) - v_sp_rank;
+        }
+
+        size_type node_rank0(const node_type & v, size_type i) const {
+          return i - node_rank1(v, i);
+        }
+
+        size_type node_select1(const node_type &v, size_type i) const {
+          size_type v_sp_pos  = v.offset;
+          size_type v_sp_rank1 = m_tree_rank(v_sp_pos);
+          // TODO: BOUND CHECK: get node size by getting parents left and right children start positions (if any)
+          return m_tree_select1(i + v_sp_rank1) - v_sp_pos;
+        }
+
+        size_type node_select0(const node_type &v, size_type i) const {
+          size_type v_sp_pos  = v.offset;
+          size_type v_sp_rank0 = v_sp_pos - m_tree_rank(v_sp_pos);
+          // TODO: BOUND CHECK: get node size by getting parents left and right children start positions (if any)
+          return m_tree_select0(i + v_sp_rank0) - v_sp_pos;
+        }
+
+
 
         //! Returns the two child nodes of an inner node
         /*! \param v An inner node of a wavelet tree.
