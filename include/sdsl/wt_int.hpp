@@ -788,7 +788,12 @@ class wt_int
         node_type root() const {
             return node_type(0, m_size, 0, 0);
         }
- 
+
+        bool node_access(const node_type & v, size_type i) const {
+          size_type v_sp_pos  = v.offset;
+          return m_tree[v_sp_pos + i];
+        }
+
         size_type
         node_rank1(const node_type & v, size_type i) const {
           // Get starting position rank
