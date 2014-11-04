@@ -178,60 +178,57 @@ TYPED_TEST(WtIntTest, LoadAndInverseSelect)
 
 template<class t_wt>
 void
-test_interval_symbols(typename enable_if<!(has_node_type<t_wt>::value),
-                      t_wt>::type&)
+test_ys_in_x_range(typename enable_if<!(t_wt::traversable), t_wt>::type&)
 {
-    // interval_symbols not implemented
+    // ys_in_x_range not implemented
 }
 
 template<class t_wt>
 void
-test_interval_symbols(typename enable_if<has_node_type<t_wt>::value,
-                      t_wt>::type& wt)
+test_ys_in_x_range(typename enable_if<t_wt::traversable, t_wt>::type& wt)
 {
     ASSERT_TRUE(load_from_file(wt, temp_file));
-
-    size_type k = 0;
-    vector<size_type> rank_c_i(wt.sigma);
-    vector<size_type> rank_c_j(wt.sigma);
-    vector<int_vector<>::value_type> cs(wt.sigma);
 
     mt19937_64 rng;
     for (size_type n=1; n<4; ++n) {
         uniform_int_distribution<uint64_t> distribution(0, n*n*n*10);
         auto dice = bind(distribution, rng);
         for (size_type i=0, j=0; i < wt.size(); i=j) {
+            vector<typename t_wt::value_type> cs;
             j = min(wt.size(),i+dice());
 
-            interval_symbols(wt, i, j, k, cs, rank_c_i, rank_c_j);
+            auto y_it = ys_in_x_range(wt, i, j);
 
             size_type symbols = (j-i);
-            for (size_type m = 0; m<k; ++m) {
-                ASSERT_EQ(wt.rank(i, cs[m]), rank_c_i[m]);
-                ASSERT_EQ(wt.rank(j, cs[m]), rank_c_j[m]);
-                ASSERT_LT((size_type)0, rank_c_j[m]-rank_c_i[m]);
-                symbols -= (rank_c_j[m]-rank_c_i[m]);
+            for (size_type m = 0; symbols and y_it; ++m, ++y_it) {
+                auto c = std::get<0>(*y_it);
+                cs.emplace_back(c);
+                ASSERT_EQ(wt.rank(i, c), std::get<1>(*y_it));
+                ASSERT_EQ(wt.rank(j, c), std::get<2>(*y_it));
+                ASSERT_LT((size_type)0, std::get<2>(*y_it)-std::get<1>(*y_it));
+                symbols -= std::get<2>(*y_it)-std::get<1>(*y_it);
+
                 if (m>0 and t_wt::lex_ordered) {
-                    ASSERT_LT(cs[m-1],cs[m]);
+                    ASSERT_LT(cs[m-1],cs[m])<<"m="<<m<<endl;
                 }
             }
 
             ASSERT_EQ((size_type)0, symbols);
             if (!t_wt::lex_ordered) {
-                sort(cs.begin(), cs.begin()+k);
-                for (size_type m=1; m<k; m++) {
-                    ASSERT_LT(cs[m-1], cs[m]);
+                sort(cs.begin(), cs.end());
+                for (size_type m=1; m<cs.size(); m++) {
+                    ASSERT_LT(cs[m-1], cs[m])<<"m="<<m<<" cs.size()="<<cs.size()<<" i="<<i<<", j="<<j<<" wt="<<wt<<endl;
                 }
             }
         }
     }
 }
 
-//! Test the load method and interval_symbols method
-TYPED_TEST(WtIntTest, LoadAndIntervalSymbols)
+//! Test the load method and ys_in_x_range method
+TYPED_TEST(WtIntTest, LoadAndYsInXRange)
 {
     TypeParam wt;
-    test_interval_symbols<TypeParam>(wt);
+    test_ys_in_x_range<TypeParam>(wt);
 }
 
 template<class t_wt>

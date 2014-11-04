@@ -644,11 +644,6 @@ void construct_lcp_bwt_based(cache_config& config)
     size_type use_queue_and_wt = n/2048;          // if intervals < use_queue_and_wt, then use queue and wavelet tree
     // else use dictionary and wavelet tree
 
-    size_type quantity;                           // quantity of characters in interval
-    std::vector<unsigned char> cs(wt_bwt.sigma);  // list of characters in the interval
-    std::vector<size_type> rank_c_i(wt_bwt.sigma);// number of occurrence of character in [0 .. i-1]
-    std::vector<size_type> rank_c_j(wt_bwt.sigma);// number of occurrence of character in [0 .. j-1]
-
     // Calculate how many bit are for each lcp value available, to limit the memory usage to 20n bit = 2,5n byte, use at moste 8 bit
     size_type bb = (n*20-size_in_bytes(wt_bwt)*8*1.25-5*n)/n; 	// 20n - size of wavelet tree * 1.25 for rank support - 5n for bit arrays - n for index_done array
     if (n*20 < size_in_bytes(wt_bwt)*8*1.25+5*n) {
@@ -680,11 +675,11 @@ void construct_lcp_bwt_based(cache_config& config)
     // calculate first intervals
     partial_lcp[0] = 0;
     index_done[0] = true;
-    interval_symbols(wt_bwt, 0, n, quantity, cs, rank_c_i, rank_c_j);
-    for (size_type i=0; i<quantity; ++i) {
-        unsigned char c = cs[i];
-        size_type a_new = C[c] + rank_c_i[i];
-        size_type b_new = C[c] + rank_c_j[i];
+    auto y_it = ys_in_x_range(wt_bwt, 0, n);
+    for (size_type i=0; y_it; ++i, ++y_it) {
+        unsigned char c = std::get<0>(*y_it);
+        size_type a_new = C[c] + std::get<1>(*y_it);
+        size_type b_new = C[c] + std::get<2>(*y_it);
 
         // Save LCP value if not seen before
         if (!index_done[b_new]) {
@@ -740,11 +735,11 @@ void construct_lcp_bwt_based(cache_config& config)
                 size_type b = q.front(); q.pop();
                 --intervals;
 
-                interval_symbols(wt_bwt, a, b, quantity, cs, rank_c_i, rank_c_j);
-                for (size_type i=0; i<quantity; ++i) {
-                    unsigned char c = cs[i];
-                    size_type a_new = C[c] + rank_c_i[i];
-                    size_type b_new = C[c] + rank_c_j[i];
+                auto y_it = ys_in_x_range(wt_bwt, a, b);
+                for (size_type i=0; y_it; ++i, ++y_it) {
+                    unsigned char c = std::get<0>(*y_it);
+                    size_type a_new = C[c] + std::get<1>(*y_it);
+                    size_type b_new = C[c] + std::get<2>(*y_it);
 
                     // Save LCP value if not seen before
                     if (!index_done[b_new] and phase == 0) {
@@ -774,11 +769,11 @@ void construct_lcp_bwt_based(cache_config& config)
             size_type b2 = util::next_bit(dict[source], a2+1);
 
             while (b2 < dict[source].size()) {
-                interval_symbols(wt_bwt, ((a2-1)>>1), (b2>>1), quantity, cs, rank_c_i, rank_c_j);
-                for (size_type i=0; i<quantity; ++i) {
-                    unsigned char c = cs[i];
-                    size_type a_new = C[c] + rank_c_i[i];
-                    size_type b_new = C[c] + rank_c_j[i];
+                auto y_it = ys_in_x_range(wt_bwt, ((a2-1)>>1), (b2>>1));
+                for (size_type i=0; y_it; ++i, ++y_it) {
+                    unsigned char c = std::get<0>(*y_it);
+                    size_type a_new = C[c] + std::get<1>(*y_it);
+                    size_type b_new = C[c] + std::get<2>(*y_it);
                     // Save LCP value if not seen before
                     if (!index_done[b_new] and phase == 0) {
                         partial_lcp[b_new] = lcp_value;
@@ -874,11 +869,6 @@ void construct_lcp_bwt_based2(cache_config& config)
         size_type use_queue_and_wt = n/2048;           // if intervals < use_queue_and_wt, then use queue and wavelet tree
         // else use dictionary and wavelet tree
 
-        size_type quantity;                            // quantity of characters in interval
-        std::vector<unsigned char> cs(wt_bwt.sigma);   // list of characters in the interval
-        std::vector<size_type> rank_c_i(wt_bwt.sigma); // number of occurrence of character in [0 .. i-1]
-        std::vector<size_type> rank_c_j(wt_bwt.sigma); // number of occurrence of character in [0 .. j-1]
-
         // External storage of LCP-Positions-Array
         bool new_lcp_value = false;
         uint8_t int_width = bits::hi(n)+2;
@@ -902,11 +892,11 @@ void construct_lcp_bwt_based2(cache_config& config)
         index_done[0] = true;
 
         // calculate first intervals
-        interval_symbols(wt_bwt, 0, n, quantity, cs, rank_c_i, rank_c_j);
-        for (size_type i=0; i<quantity; ++i) {
-            unsigned char c = cs[i];
-            size_type a_new = C[c] + rank_c_i[i];
-            size_type b_new = C[c] + rank_c_j[i];
+        auto y_it = ys_in_x_range(wt_bwt, 0, n);
+        for (size_type i=0; y_it; ++i, ++y_it) {
+            unsigned char c = std::get<0>(*y_it);
+            size_type a_new = C[c] + std::get<1>(*y_it);
+            size_type b_new = C[c] + std::get<2>(*y_it);
 
             // Save LCP value and corresponding interval if not seen before
             if (!index_done[b_new]) {
@@ -967,11 +957,11 @@ void construct_lcp_bwt_based2(cache_config& config)
                     size_type b = q.front(); q.pop();
                     --intervals;
 
-                    interval_symbols(wt_bwt, a, b, quantity, cs, rank_c_i, rank_c_j);
-                    for (size_type i=0; i<quantity; ++i) {
-                        unsigned char c = cs[i];
-                        size_type a_new = C[c] + rank_c_i[i];
-                        size_type b_new = C[c] + rank_c_j[i];
+                    auto y_it = ys_in_x_range(wt_bwt, a, b);
+                    for (size_type i=0; y_it; ++i, ++y_it) {
+                        unsigned char c = std::get<0>(*y_it);
+                        size_type a_new = C[c] + std::get<1>(*y_it);
+                        size_type b_new = C[c] + std::get<2>(*y_it);
 
                         // Save LCP value and corresponding interval if not seen before
                         if (!index_done[b_new]) {
@@ -1000,11 +990,11 @@ void construct_lcp_bwt_based2(cache_config& config)
                 size_type b2 = util::next_bit(dict[source], a2+1);
 
                 while (b2 < dict[source].size()) {
-                    interval_symbols(wt_bwt, ((a2-1)>>1), (b2>>1), quantity, cs, rank_c_i, rank_c_j);
-                    for (size_type i=0; i<quantity; ++i) {
-                        unsigned char c = cs[i];
-                        size_type a_new = C[c] + rank_c_i[i];
-                        size_type b_new = C[c] + rank_c_j[i];
+                    auto y_it = ys_in_x_range(wt_bwt, ((a2-1)>>1), (b2>>1));
+                    for (size_type i=0; y_it; ++i, ++y_it) {
+                        unsigned char c = std::get<0>(*y_it);
+                        size_type a_new = C[c] + std::get<1>(*y_it);
+                        size_type b_new = C[c] + std::get<2>(*y_it);
                         // Save LCP value if not seen before
                         if (!index_done[b_new]) {
                             // Save position of LCP-value

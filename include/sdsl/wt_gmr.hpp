@@ -74,7 +74,8 @@ class inv_multi_perm_support
         inv_multi_perm_support() {};
 
         //! Constructor
-        inv_multi_perm_support(const iv_type* perm, int_vector<>& iv, uint64_t chunksize) : m_perm(perm), m_chunksize(chunksize) {
+        inv_multi_perm_support(const iv_type* perm, int_vector<>& iv, uint64_t chunksize) : m_perm(perm), m_chunksize(chunksize)
+        {
             bit_vector marked(iv.size(), 0);
             bit_vector done(m_chunksize, 0);
 
@@ -142,17 +143,20 @@ class inv_multi_perm_support
         //! Copy constructor
         inv_multi_perm_support(const inv_multi_perm_support& p) : m_perm(p.m_perm),
             m_chunksize(p.m_chunksize), m_back_pointer(p.m_back_pointer), m_marked(p.m_marked),
-            m_marked_rank(p.m_marked_rank) {
+            m_marked_rank(p.m_marked_rank)
+        {
             m_marked_rank.set_vector(&m_marked);
         }
 
         //! Move constructor
-        inv_multi_perm_support(inv_multi_perm_support&& p) {
+        inv_multi_perm_support(inv_multi_perm_support&& p)
+        {
             *this = std::move(p);
         }
 
         //! Assignment operation
-        inv_multi_perm_support& operator=(const inv_multi_perm_support& p) {
+        inv_multi_perm_support& operator=(const inv_multi_perm_support& p)
+        {
             if (this != &p) {
                 m_perm         = p.m_perm;
                 m_chunksize    = p.m_chunksize;
@@ -165,7 +169,8 @@ class inv_multi_perm_support
         }
 
         //! Assignment move operation
-        inv_multi_perm_support& operator=(inv_multi_perm_support&& p) {
+        inv_multi_perm_support& operator=(inv_multi_perm_support&& p)
+        {
             if (this != &p) {
                 m_perm         = std::move(p.m_perm);
                 m_chunksize    = std::move(p.m_chunksize);
@@ -178,7 +183,8 @@ class inv_multi_perm_support
         }
 
         //! Swap operation
-        void swap(inv_multi_perm_support& p) {
+        void swap(inv_multi_perm_support& p)
+        {
             if (this != &p) {
                 std::swap(m_chunksize, p.m_chunksize);
                 m_back_pointer.swap(p.m_back_pointer);
@@ -188,12 +194,14 @@ class inv_multi_perm_support
         }
 
         //! Returns the size of the original vector.
-        size_type size() const {
+        size_type size() const
+        {
             return nullptr == m_perm ? 0 : m_perm->size();
         }
 
         //! Returns whether the original vector contains no data.
-        bool empty()const {
+        bool empty()const
+        {
             return size() == 0;
         }
 
@@ -202,7 +210,8 @@ class inv_multi_perm_support
          *  \par Time complexity
          *       \f$ \Order{t_s} \f$
          */
-        value_type operator[](size_type i) const {
+        value_type operator[](size_type i) const
+        {
             size_type off = (i/m_chunksize)*m_chunksize;
             size_type j = i, j_new=0;
             while ((j_new=((*m_perm)[j])+off) != i) {
@@ -217,19 +226,22 @@ class inv_multi_perm_support
         }
 
         //! Returns a const_iterator to the first element.
-        const_iterator begin()const {
+        const_iterator begin()const
+        {
             return const_iterator(this, 0);
         }
 
         //! Returns a const_iterator to the element after the last element.
-        const_iterator end()const {
+        const_iterator end()const
+        {
             return const_iterator(this, size());
         }
 
         void set_vector(const iv_type* v) { m_perm = v; }
 
         //! Serialize into stream
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_chunksize, out, child, "chunksize");
@@ -241,7 +253,8 @@ class inv_multi_perm_support
         }
 
         //! Load sampling from disk
-        void load(std::istream& in, const iv_type* v=nullptr) {
+        void load(std::istream& in, const iv_type* v=nullptr)
+        {
             set_vector(v);
             read_member(m_chunksize, in);
             m_back_pointer.load(in);
@@ -301,6 +314,7 @@ class wt_gmr_rs
         typedef wt_tag index_category;
         typedef int_alphabet_tag alphabet_category;
         enum {lex_ordered=0};
+        enum {traversable=false};
 
     private:
 
@@ -325,7 +339,8 @@ class wt_gmr_rs
          *  \param size        Size of the prefix of v, which should be indexed.
          */
         template<uint8_t int_width>
-        wt_gmr_rs(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
+        wt_gmr_rs(int_vector_buffer<int_width>& input, size_type size) : m_size(size)
+        {
             // Determine max. symbol
             for (uint64_t i=0; i<m_size; ++i) {
                 if (m_block_size < input[i]) m_block_size = input[i];
@@ -396,7 +411,8 @@ class wt_gmr_rs
         }
 
         //! Copy constructor
-        wt_gmr_rs(const wt_gmr_rs& wt) {
+        wt_gmr_rs(const wt_gmr_rs& wt)
+        {
             m_bv_blocks = wt.m_bv_blocks;
             m_e = wt.m_e;
             m_bv_blocks_select1 = wt.m_bv_blocks_select1;
@@ -410,14 +426,16 @@ class wt_gmr_rs
         }
 
         //! Assignment operator
-        wt_gmr_rs& operator=(const wt_gmr_rs& wt) {
+        wt_gmr_rs& operator=(const wt_gmr_rs& wt)
+        {
             wt_gmr_rs tmp(wt);
             tmp.swap(*this);
             return *this;
         }
 
         //! Swap operator
-        void swap(wt_gmr_rs& fs) {
+        void swap(wt_gmr_rs& fs)
+        {
             if (this != &fs) {
                 m_bv_blocks.swap(fs.m_bv_blocks);
                 m_e.swap(fs.m_e);
@@ -431,12 +449,14 @@ class wt_gmr_rs
         }
 
         //! Returns the size of the original vector.
-        size_type size()const {
+        size_type size()const
+        {
             return m_size;
         }
 
         //! Returns whether the wavelet tree contains no data.
-        bool empty()const {
+        bool empty()const
+        {
             return m_size == 0;
         }
 
@@ -448,7 +468,8 @@ class wt_gmr_rs
          *  \par Precondition
          *       \f$ i < size() \f$
          */
-        value_type operator[](size_type i)const {
+        value_type operator[](size_type i)const
+        {
             assert(i<m_size);
             size_type block=i/m_block_size+1, val=i%m_block_size, search_begin, search_end, j;
             while (true) {
@@ -483,7 +504,8 @@ class wt_gmr_rs
          *  \par Precondition
          *       \f$ i \leq size() \f$
          */
-        size_type rank(size_type i, value_type c)const {
+        size_type rank(size_type i, value_type c)const
+        {
             if (0==i or c>m_block_size-1) {
                 return 0;
             }
@@ -513,7 +535,8 @@ class wt_gmr_rs
          *  \par Precondition
          *       \f$ i \leq size() \f$
          */
-        std::pair<size_type, value_type> inverse_select(size_type i)const {
+        std::pair<size_type, value_type> inverse_select(size_type i)const
+        {
             assert(i<m_size);
             size_type block = i/m_block_size+1, val = i%m_block_size, offset = 0, search_begin, search_end, j;
             while (true) {
@@ -557,13 +580,15 @@ class wt_gmr_rs
          *  \par Precondition
          *       \f$ 1 \leq i \leq rank(size(), c) \f$
          */
-        size_type select(size_type i, value_type c)const {
+        size_type select(size_type i, value_type c)const
+        {
             size_type k = m_bv_blocks_select0(c*m_blocks+1)-(c*m_blocks)+i;
             return (m_bv_blocks_select1(k)-k)*m_block_size+m_e[k-1]-c*m_blocks*m_block_size;
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
@@ -579,7 +604,8 @@ class wt_gmr_rs
         }
 
         //! Loads the data structure from the given istream.
-        void load(std::istream& in) {
+        void load(std::istream& in)
+        {
             read_member(m_size, in);
             read_member(m_block_size, in);
             read_member(m_blocks, in);
@@ -624,6 +650,7 @@ class wt_gmr
         typedef wt_tag index_category;
         typedef int_alphabet_tag alphabet_category;
         enum {lex_ordered=0};
+        enum {traversable=false};
 
     private:
 
@@ -654,7 +681,8 @@ class wt_gmr
          *  \param size        Size of the prefix of v, which should be indexed.
          */
         template<uint8_t int_width>
-        wt_gmr(int_vector_buffer<int_width>& input, size_type size) : m_size(size) {
+        wt_gmr(int_vector_buffer<int_width>& input, size_type size) : m_size(size)
+        {
             // Determine max. symbol
             for (uint64_t i=0; i<m_size; ++i) {
                 if (m_max_symbol < input[i]) m_max_symbol = input[i];
@@ -741,7 +769,8 @@ class wt_gmr
         }
 
         //! Copy constructor
-        wt_gmr(const wt_gmr& wt) {
+        wt_gmr(const wt_gmr& wt)
+        {
             m_bv_blocks         = wt.m_bv_blocks;
             m_bv_chunks         = wt.m_bv_chunks;
             m_perm              = wt.m_perm;
@@ -762,14 +791,16 @@ class wt_gmr
         }
 
         //! Assignment operator
-        wt_gmr& operator=(const wt_gmr& wt) {
+        wt_gmr& operator=(const wt_gmr& wt)
+        {
             wt_gmr tmp(wt);
             tmp.swap(*this);
             return *this;
         }
 
         //! Swap operator
-        void swap(wt_gmr& fs) {
+        void swap(wt_gmr& fs)
+        {
             if (this != &fs) {
                 m_bv_blocks.swap(fs.m_bv_blocks);
                 m_bv_chunks.swap(fs.m_bv_chunks);
@@ -788,12 +819,14 @@ class wt_gmr
         }
 
         //! Returns the size of the original vector.
-        size_type size()const {
+        size_type size()const
+        {
             return m_size;
         }
 
         //! Returns whether the wavelet tree contains no data.
-        bool empty()const {
+        bool empty()const
+        {
             return m_size == 0;
         }
 
@@ -805,7 +838,8 @@ class wt_gmr
          *  \par Precondition
          *       \f$ i < size() \f$
          */
-        value_type operator[](size_type i)const {
+        value_type operator[](size_type i)const
+        {
             assert(i < size());
             uint64_t chunk = i/m_chunksize;
             uint64_t x = m_ips[i];
@@ -822,7 +856,8 @@ class wt_gmr
          *  \par Precondition
          *       \f$ i \leq size() \f$
          */
-        size_type rank(size_type i, value_type c)const {
+        size_type rank(size_type i, value_type c)const
+        {
             assert(i <= size());
 
             if (0==i or c>m_max_symbol-1)  {
@@ -855,7 +890,8 @@ class wt_gmr
          *  \par Precondition
          *       \f$ i < size() \f$
          */
-        std::pair<size_type, value_type> inverse_select(size_type i)const {
+        std::pair<size_type, value_type> inverse_select(size_type i)const
+        {
             assert(i < size());
             uint64_t chunk = i/m_chunksize;
             uint64_t x = m_ips[i];
@@ -877,7 +913,8 @@ class wt_gmr
          *  \par Precondition
          *       \f$ 1 \leq i \leq rank(size(), c) \f$
          */
-        size_type select(size_type i, value_type c)const {
+        size_type select(size_type i, value_type c)const
+        {
             assert(1 <= i and i <= rank(size(), c));
 
             uint64_t ones_before_c = m_bv_blocks_select0(c*m_chunks+1)-(c*m_chunks);
@@ -889,7 +926,8 @@ class wt_gmr
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
@@ -910,7 +948,8 @@ class wt_gmr
         }
 
         //! Loads the data structure from the given istream.
-        void load(std::istream& in) {
+        void load(std::istream& in)
+        {
             read_member(m_size, in);
             read_member(m_max_symbol, in);
             read_member(m_chunks, in);
