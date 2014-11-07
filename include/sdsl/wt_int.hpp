@@ -728,10 +728,24 @@ class wt_int
             return v.size == (size_type)0;
         }
 
+        size_type size(const node_type& v) const
+        {
+            return v.size;
+        }
+
         //! Return the root node
         node_type root() const
         {
             return node_type(0, m_size, 0, 0, 0);
+        }
+
+        template<uint8_t t_b>
+        size_type rank(size_type i, const node_type& v) const
+        {
+            if (t_b)
+                return m_tree_rank(v.offset+i)-m_tree_rank(v.offset);
+            else
+                return v.size-rank<1>(i,v);
         }
 
         //! Returns the two child nodes of an inner node

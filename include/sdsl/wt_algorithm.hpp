@@ -2,6 +2,7 @@
 #define INCLUDED_SDSL_WT_ALGORITHM
 
 #include <algorithm>
+#include <stack>
 #include <utility>
 
 namespace sdsl
@@ -9,6 +10,190 @@ namespace sdsl
 
 template<typename, typename T>
 struct has_expand;
+
+//! Returns if range1 overlaps with range2
+/*!
+ * \param range1 First range [r1, l1]
+ * \param range2 Second range [r2, l2].
+ * \return If the two ranges overlap.
+ */
+template<typename r_t1, typename r_t2>
+bool
+overlaps(const r_t1& range1, const r_t2& range2)
+{
+    return std::get<1>(range1) >= std::get<0>(range2)
+           and std::get<0>(range1) <= std::get<1>(range2);
+}
+
+//! Returns if range1 is contained in range2
+/*!
+ * \param range1 First range [r1, l1]
+ * \param range2 Second range [r2, l2].
+ * \return If range1 is contained in range2.
+ */
+template<typename r_t1, typename r_t2>
+bool
+is_contained(const r_t1& range1, const r_t2& range2)
+{
+    return std::get<0>(range1) >= std::get<0>(range2)
+           and std::get<1>(range1) <= std::get<1>(range2);
+}
+
+
+
+//! Count how many points are in [x_0,x_1] x [y_0, y_1]
+/*!
+ * \param wt      Wavelet tree representing a sequence.
+ * \param x_range x-range [x_0,x_1] in wt.
+ * \param y_range y-range [y_0,y_1] in wt.
+ *
+ * \return
+ */
+template<class t_wt>
+typename t_wt::size_type
+count(const t_wt& wt, const range_type& x_range, const range_type& y_range)
+{
+    typedef typename t_wt::size_type size_type;
+    typedef typename t_wt::node_type node_type;
+
+    if (x_range.first >= wt.size())
+        return 0;
+    size_type res = 0;
+    std::stack<std::pair<node_type,range_type>> s;
+
+    auto push_node = [&wt, &s, &y_range, &res](const node_type& v, const range_type& x_range) {
+        if (size(x_range) > 0) {
+            auto value_range = wt.value_range(v);
+            if (is_contained(value_range, y_range)) {
+                res += size(x_range);
+            } else if (overlaps(y_range, value_range)) {
+                s.emplace(v, x_range);
+            }
+        }
+    };
+
+    push_node(wt.root(), x_range);
+    while (!s.empty()) {
+        auto v       = std::get<0>(s.top());
+        auto x_range = std::get<1>(s.top());
+        s.pop();
+        if (!wt.is_leaf(v)) {
+            auto child_v = wt.expand(v);
+            auto child_r = wt.expand(v, x_range);
+            for (size_t i=0, j=child_v.size()-1; i < child_v.size(); ++i,--j) {
+                push_node(child_v[j], child_r[j]);
+            }
+        }
+    }
+    return res;
+}
+
+
+template<typename t_wt>
+class map_to_sorted_iterator
+{
+        static_assert(t_wt::traversable, "map_to_sorted_sequence requires t_wt to be traversable.");
+        static_assert(t_wt::lex_ordered, "map_to_sorted_sequence requires t_wt to be lex_ordered.");
+    public:
+        typedef void(*t_mfptr)();
+        typedef typename t_wt::value_type value_type;
+        typedef typename t_wt::size_type  size_type;
+        typedef std::tuple<value_type, range_type> ret_type;
+    private:
+        typedef typename t_wt::node_type node_type;
+        typedef std::tuple<node_type,range_type,size_type> state_type;
+
+        const t_wt*             m_wt = nullptr;
+        range_type              m_y_range;
+        std::stack<state_type>  m_stack;
+        ret_type                m_ret;
+        bool                    m_valid = false;
+
+        void cond_push(const node_type& v, const range_type& x_range, size_type lex_sml)
+        {
+            if (size(x_range) > 0) {
+                auto value_range = m_wt->value_range(v);
+                if (overlaps(m_y_range, value_range)) {
+                    m_stack.emplace(v, x_range, lex_sml);
+                }
+            }
+        }
+
+    public:
+        map_to_sorted_iterator() = default;
+        map_to_sorted_iterator(const map_to_sorted_iterator&) = default;
+        map_to_sorted_iterator(map_to_sorted_iterator&&) = default;
+        map_to_sorted_iterator& operator=(const map_to_sorted_iterator&) = default;
+        map_to_sorted_iterator& operator=(map_to_sorted_iterator&&) = default;
+
+        map_to_sorted_iterator(const t_wt* wt, const range_type& x_range,
+                               const range_type& y_range) : m_wt(wt),
+            m_y_range(y_range)
+        {
+            if (wt!=nullptr and size(x_range) > 0 and std::get<0>(x_range) < wt->size()) {
+                if (overlaps(y_range, m_wt->value_range(wt->root()))) {
+                    m_stack.emplace(m_wt->root(), x_range, 0);
+                    ++(*this);
+                }
+            }
+        }
+
+        map_to_sorted_iterator& operator++()
+        {
+            m_valid = false;
+            while (!m_stack.empty()) {
+                auto v       = std::get<0>(m_stack.top());
+                auto x_range = std::get<1>(m_stack.top());
+                auto lex_sml = std::get<2>(m_stack.top());
+                m_stack.pop();
+                if (!m_wt->is_leaf(v)) {
+                    auto child_v = m_wt->expand(v);
+                    auto child_r = m_wt->expand(v, x_range);
+                    for (int i=1; i >= 0; --i) {
+                        if (size(child_r[i]) > 0) {
+                            if (i==1)
+                                cond_push(child_v[i], child_r[i], lex_sml+m_wt->size(child_v[0]));
+                            else
+                                cond_push(child_v[i], child_r[i], lex_sml);
+                        }
+                    }
+                } else {
+                    m_ret = ret_type(m_wt->sym(v), range_type(std::get<0>(x_range)+lex_sml,std::get<1>(x_range)+lex_sml));
+                    m_valid = true;
+                    break;
+                }
+            }
+            return *this;
+        }
+
+        //! Postfix increment of the iterator
+        map_to_sorted_iterator operator++(int)
+        {
+            map_to_sorted_iterator it = *this;
+            ++(*this);
+            return it;
+        }
+
+        ret_type operator*() const
+        {
+            return m_ret;
+        }
+
+        operator t_mfptr() const
+        {
+            return (t_mfptr)(m_valid);
+        }
+};
+
+template<typename t_wt>
+map_to_sorted_iterator<t_wt>
+map_to_sorted_sequence(const t_wt& wt, const range_type& x_range, const range_type& y_range)
+{
+    static_assert(t_wt::traversable, "map_to_sorted_sequence requires t_wt to be traversable.");
+    static_assert(t_wt::lex_ordered, "map_to_sorted_sequence requires t_wt to be lex_ordered.");
+    return map_to_sorted_iterator<t_wt>(&wt, x_range, y_range);
+}
+
 
 
 template<typename t_wt>
@@ -100,9 +285,13 @@ class y_iterator
 
 //! Returns an iterator over all values in wt[i..j-1]
 /*!
- * \param wt       The wavelet tree.
- * \param i        The start index (inclusive) of the interval.
- * \param j        The end index (exclusive) of the interval.
+ * \param wt The wavelet tree.
+ * \param i  The start index (inclusive) of the interval.
+ * \param j  The end index (exclusive) of the interval.
+ * \return   Iterator to the result. The iterator points to
+ *           triples (y-value, sp, ep), where [sp,ep) is the
+ *           range in the leaf. I.e. ep-sp is the number of
+ *           ys in the x-range [i..j).
  *
  * \par Time complexity
  *      Iterating over all k values in wt[i..j] takes \f$\Order{k\log\sigma} time.
@@ -117,6 +306,119 @@ ys_in_x_range(const t_wt& wt, typename t_wt::size_type i,
 {
     static_assert(t_wt::traversable, "ys_in_x_range requires t_wt to be traversable.");
     return y_iterator<t_wt>(wt, i, j);
+}
+
+
+template<typename t_wt>
+class yoff_iterator
+{
+        static_assert(t_wt::traversable, "yoff_iterator requires t_wt to be traversable.");
+        static_assert(t_wt::lex_ordered, "yoff_iterator requires t_wt to be lex_ordered.");
+    public:
+        typedef void(*t_mfptr)();
+        typedef typename t_wt::value_type value_type;
+        typedef typename t_wt::size_type  size_type;
+        typedef std::tuple<value_type, size_type, size_type, size_type> t_ret;
+
+    private:
+        typedef typename t_wt::node_type node_type;
+        typedef std::tuple<node_type, range_type, size_type> t_state;
+
+        const t_wt*         m_wt = nullptr;
+        std::stack<t_state> m_stack;
+        t_ret               m_ret;
+        bool                m_valid = false;
+
+    public:
+        yoff_iterator() = default;
+        yoff_iterator(const yoff_iterator&) = default;
+        yoff_iterator(yoff_iterator&&) = default;
+        yoff_iterator& operator=(const yoff_iterator&) = default;
+        yoff_iterator& operator=(yoff_iterator&&) = default;
+        // wt wavelet tree
+        // lb inclusive
+        // rb exclusive
+        yoff_iterator(const t_wt& wt, size_type lb, size_type rb) :
+            m_wt(&wt), m_valid(wt.size()>0)
+        {
+            if (m_wt->size() > 0) {
+                if (rb > lb) {
+                    m_stack.emplace(wt.root(), range_type(lb, rb-1), 0);
+                    ++(*this);
+                }
+            }
+        }
+
+        //! Prefix increment of the iterator
+        yoff_iterator& operator++()
+        {
+            m_valid = false;
+            while (!m_stack.empty()) {
+                auto v = std::get<0>(m_stack.top());
+                auto r = std::get<1>(m_stack.top());
+                auto lex_smaller = std::get<2>(m_stack.top());
+                m_stack.pop();
+                if (m_wt->is_leaf(v)) {
+                    m_ret = t_ret(m_wt->sym(v), r.first, r.second+1, lex_smaller);
+                    m_valid = true;
+                    break;
+                } else {
+                    auto child_v = m_wt->expand(v);
+                    auto child_r = m_wt->expand(v, r);
+                    if (!sdsl::empty(std::get<1>(child_r))) {
+                        m_stack.emplace(std::get<1>(child_v), std::get<1>(child_r),
+                                        lex_smaller + m_wt->size(std::get<0>(child_v)));
+                    }
+                    if (!sdsl::empty(std::get<0>(child_r))) {
+                        m_stack.emplace(std::get<0>(child_v), std::get<0>(child_r), lex_smaller);
+                    }
+                }
+            }
+            return *this;
+        }
+
+        //! Postfix increment of the iterator
+        yoff_iterator operator++(int)
+        {
+            yoff_iterator it = *this;
+            ++(*this);
+            return it;
+        }
+
+        t_ret operator*() const
+        {
+            return m_ret;
+        }
+
+        operator t_mfptr() const
+        {
+            return (t_mfptr)(m_valid);
+        }
+};
+
+//! Returns an iterator over all values in wt[i..j-1]
+/*!
+ * \param wt The wavelet tree.
+ * \param i  The start index (inclusive) of the interval.
+ * \param j  The end index (exclusive) of the interval.
+ * \return   Iterator to the result. The iterator points to
+ *           triples (y-value, sp, ep), where [sp,ep) is the
+ *           range in the leaf. I.e. ep-sp is the number of
+ *           ys in the x-range [i..j).
+ *
+ * \par Time complexity
+ *      Iterating over all k values in wt[i..j] takes \f$\Order{k\log\sigma} time.
+ *
+ * \par Precondition
+ *      \f$ i \leq j \leq size() \f$
+ */
+template<typename t_wt>
+yoff_iterator<t_wt>
+ys_and_off_in_x_range(const t_wt& wt, typename t_wt::size_type i,
+                      typename t_wt::size_type j)
+{
+    static_assert(t_wt::traversable, "ys_in_x_range requires t_wt to be traversable.");
+    return yoff_iterator<t_wt>(wt, i, j);
 }
 
 //! Intersection of elements in WT[s_0,e_0], WT[s_1,e_1],...,WT[s_k,e_k]
