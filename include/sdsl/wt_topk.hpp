@@ -38,7 +38,9 @@ using namespace sdsl;
 
 namespace sdsl {
 
-template<typename t_wt=wt_int,
+
+
+template<typename t_wt=wt_int<>,
         typename t_rmq=rmq_succinct_sct<>,
         typename t_weight_vec=dac_vector<>
 >
@@ -46,18 +48,19 @@ class wt_topk
 {
     public:
         typedef int_vector<>::size_type size_type;
-        typedef pair<size_t, size_t> range_type;
-        typedef priority_queue<range_type, vector<range_type>, std::greater<range_type>> result_type;
+        typedef tuple<size_type, size_type, size_type> range_type;
+        typedef pair<size_type,size_type> result_pair;
+        typedef priority_queue<result_pair, vector<result_pair>, std::greater<result_pair>> result_type;
 
     private:
 //        typedef wt_int<> t_wt;
 //        typedef rmq_succinct_sct<> t_rmq;
 //        typedef dac_vector<> t_weight_vec;
+
         t_weight_vec        m_weights;
         t_wt                m_wt;
-        result_type         m_result; // to be deleted
+        result_type         m_result; // to be deleted and replaced by iterators
         t_rmq               m_rmq;
-
 
     public:
         wt_topk() = default;
@@ -92,7 +95,6 @@ class wt_topk
             }
             return *this;
         }
-
 
         //! Number of points in the grid
         size_type size() const
@@ -179,8 +181,9 @@ class wt_topk
             std::string val_file = temp_file_prefix + "_wt_topk_"
                     + id_part + ".sdsl";
             {
-                int_vector_buffer<> val_buf(val_file, std::ios::out);
-                // TODO: efficient construction here (not sure how to do this)
+                // TODO: efficient construction here using buffers (not sure how to do this)
+                // int_vector_buffer<> val_buf(val_file, std::ios::out);
+
                 int_vector<> depths(v.size());
                 int_vector<> weights(v.size());
                 size_type i = 0;
@@ -191,8 +194,8 @@ class wt_topk
                 }
                 construct_im(m_wt, depths);
                 sort(depths, weights, depths.size());
-                m_weights = dac_vector<>(weights);
-                m_rmq = rmq_succinct_sct<>(&weights);
+                m_weights = t_weight_vec(weights);
+                m_rmq = t_rmq(&weights);
             }
         }
 
@@ -213,16 +216,19 @@ class wt_topk
         //! Loads the data structure from the given istream.
         void load(std::istream& in)
         {
-            read_member(m_size, in);
             m_wt.load(in);
             m_rmq.load(in);
             m_weights.load(in);
         }
 
-        // main topk function, stores the result into the m_result class variable.
+        // RK: not sure if we could change this to iterator and lazy evaluation.
+            // I think we need to calculate everything, and then just create an iterator
+            // to the result... what do you think?
 
+        // main topk function, stores the result into the m_result class variable.
         void topk(const unsigned int k, const range_type &x_range, const range_type &y_range) {
             m_result = result_type(); // clear the m_result;
+             // range_type = <left, right, symbol>
             queue<range_type> ranges;
             auto mts_it = map_to_sorted_sequence(m_wt, x_range, y_range);
             size_t l, r = 0;
@@ -230,27 +236,26 @@ class wt_topk
             while (mts_it) { // maybe this can be improved by not storing the initial ranges into the queue?
                 l = get<0>(get<1>(*mts_it));
                 r = get<1>(get<1>(*mts_it));
-                ranges.emplace(l, r);
+                ranges.emplace(l, r, get<0>(*mts_it));
                 ++mts_it;
             }
 
-            size_t pos, w_value, d_value = 0;
+            size_t pos, w_value, x_value = 0;
             size_t left_l, left_r, right_l, right_r = 0;
             while (!ranges.empty()) {
-
                 range_type r = ranges.front();
                 ranges.pop();
 
                 pos = m_rmq(get<0>(r), get<1>(r));
                 w_value = m_weights[pos];
-                d_value = m_documents[pos];
+                x_value = m_wt.select(pos-get<0>(r), get<2>(r));
 
                 if (m_result.size() < k) {
-                    m_result.emplace(w_value, d_value);
+                    m_result.emplace(w_value, x_value);
                 } else {
                     if (get<0>(m_result.top()) < w_value) {
                         m_result.pop();
-                        m_result.emplace(w_value, d_value);
+                        m_result.emplace(w_value, x_value);
                     }
 
                 }
@@ -262,12 +267,12 @@ class wt_topk
 
                 if (left_l <= left_r and
                         left_r != (size_t) -1) {
-                    ranges.emplace(left_l, left_r);
+                    ranges.emplace(left_l, left_r, get<2>(r));
                 }
 
                 if (right_l <= right_r and
-                        right_r < m_size) {
-                    ranges.emplace(right_l, right_r);
+                        right_r < m_wt.size()) {
+                    ranges.emplace(right_l, right_r, get<2>(r));
                 }
             }
         }

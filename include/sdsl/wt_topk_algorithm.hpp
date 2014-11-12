@@ -15,7 +15,7 @@
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file wt_topk_algorithm.hpp
-    \brief wt_topk.hpp contains a class for the wavelet tree plus rmq data structure.
+    \brief wt_topk_algorithm.hpp contains a class for the wavelet tree plus rmq data structure.
             This data structure is based on the solution for solving top-k queries on grids by
             G.Navarro, Y. Nekrich and L. Russo, Space-Efficient Data-Analysis Queries on Grids.
             Theoretical Computer Science 482:60-72, 2013
