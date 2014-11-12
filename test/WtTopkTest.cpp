@@ -1,4 +1,5 @@
 #include "sdsl/k2_treap.hpp"
+#include "sdsl/wt_topk.hpp"
 #include "sdsl/bit_vectors.hpp"
 #include "gtest/gtest.h"
 #include <vector>
