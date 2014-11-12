@@ -83,7 +83,8 @@ test:	bits-test \
 	search-bidirectional-test \
 	sorted-int-stack-test \
 	nn-dict-dynamic-test \
-	k2treap-test
+	k2treap-test \
+	wttopk-test
 
 build-test: $(EXECS)
 	cd ../tutorial; make build-test
@@ -159,6 +160,9 @@ sa-construct-test: generators $(SA_CONSTRUCT_TESTS)
 search-bidirectional-test: generators $(SEARCH_BIDIRECTIONAL_TESTS)
 
 k2treap-test: ./K2TreapTest.x generators $(K2TREAP_TESTS)
+
+wttopk-test: ./WtTopkTest.x generators $(WTTOPK_TESTS)
+
 
 bit-vector-test/test_cases/%: ./BitVectorTest.x test_cases/%
 	@echo "TEST_CASE: test_cases/$*"
@@ -241,6 +245,20 @@ k2treap-test/%: ./K2TreapTest.x
 	$(PREFIX) ./K2TreapTest.x test_cases/K2T.$* $(TMP_DIR)/K2T.$*
 	@echo "TEST_CASE: test_cases/$* in-memory"
 	$(PREFIX) ./K2TreapTest.x test_cases/K2T.$* $(TMP_DIR)/K2T.$* in-memory
+
+wttopk-test/%: ./WtTopkTest.x
+	$(eval X:=$(call config_select,WtTopkTest.config,$*,2))
+	$(eval Y:=$(call config_select,WtTopkTest.config,$*,3))
+	$(eval W:=$(call config_select,WtTopkTest.config,$*,4))
+	make $(X) $(Y) $(W)
+	@echo "X=$X, Y=$Y, W=$W"
+	mv $(X) test_cases/WTK.$*.x
+	mv $(Y) test_cases/WTK.$*.y
+	mv $(W) test_cases/WTK.$*.w
+	@echo "TEST_CASE: $* semi-external"
+	$(PREFIX) ./WtTopkTest.x test_cases/WTK.$* $(TMP_DIR)/WTK.$*
+	@echo "TEST_CASE: test_cases/$* in-memory"
+	$(PREFIX) ./WtTopkTest.x test_cases/WTK.$* $(TMP_DIR)/WTK.$* in-memory
 
 # Format: test_cases/int-vec.[LEN].[WIDTH].[DEFAULT].[SEED]
 test_cases/int-vec.%: IntVectorGenerator.x
