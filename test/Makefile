@@ -1,5 +1,5 @@
 include ../Make.helper
-CXX_FLAGS=$(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O3 \
+CXX_FLAGS=$(MY_CXX_FLAGS) -Wall -g -O3 \
 		  -I$(INC_DIR) \
 		  -I../build/external/gtest-1.6.0/include \
 		  -L$(LIB_DIR) \
