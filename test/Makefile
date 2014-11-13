@@ -1,3 +1,4 @@
+SHELL=bash
 include ../Make.helper
 CXX_FLAGS=$(MY_CXX_FLAGS)  -g -O3 \
 		  -I$(INC_DIR) \
@@ -53,6 +54,9 @@ SEARCH_BIDIRECTIONAL_TESTS:=$(patsubst %,search-bidirectional-test/%,$(SEARCH_BI
 
 K2TREAP_TC_PATH:=$(call config_column,K2TreapTest.config,1)
 K2TREAP_TESTS:=$(patsubst %,k2treap-test/%,$(K2TREAP_TC_PATH))
+
+WTTOPK_TC_PATH:=$(call config_column,WtTopkTest.config,1)
+WTTOPK_TESTS:=$(patsubst %,wttopk-test/%,$(WTTOPK_TC_PATH))
 
 TC_PATHS:= $(WT_BYTE_TC_PATHS) $(WT_INT_TC_PATHS) \
 		   $(CSA_BYTE_TC_PATHS) $(CSA_INT_TC_PATHS) \
