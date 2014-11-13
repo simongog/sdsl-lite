@@ -127,16 +127,20 @@ struct int_vector_trait {
     typedef int_vector_iterator<int_vector_type>        iterator;
     typedef int_vector_const_iterator<int_vector_type>  const_iterator;
 
-    static iterator begin(int_vector_type* v, uint64_t*) {
+    static iterator begin(int_vector_type* v, uint64_t*)
+    {
         return iterator(v, 0);
     }
-    static iterator end(int_vector_type* v, uint64_t*, int_vector_size_type) {
+    static iterator end(int_vector_type* v, uint64_t*, int_vector_size_type)
+    {
         return iterator(v, v->size()*v->width()) ;
     }
-    static const_iterator begin(const int_vector_type* v, const uint64_t*) {
+    static const_iterator begin(const int_vector_type* v, const uint64_t*)
+    {
         return const_iterator(v, 0);
     }
-    static const_iterator end(const int_vector_type* v, const uint64_t*, int_vector_size_type) {
+    static const_iterator end(const int_vector_type* v, const uint64_t*, int_vector_size_type)
+    {
         return const_iterator(v, v->size()*v->width());
     }
 };
@@ -151,16 +155,20 @@ struct int_vector_trait<64> {
     typedef uint64_t*       iterator;
     typedef const uint64_t* const_iterator;
 
-    static iterator begin(int_vector_type*, uint64_t* begin) {
+    static iterator begin(int_vector_type*, uint64_t* begin)
+    {
         return begin;
     }
-    static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size) {
+    static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size)
+    {
         return begin+size;
     }
-    static const_iterator begin(const int_vector_type*, const uint64_t* begin) {
+    static const_iterator begin(const int_vector_type*, const uint64_t* begin)
+    {
         return begin;
     }
-    static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size) {
+    static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size)
+    {
         return begin+size;
     }
 };
@@ -175,16 +183,20 @@ struct int_vector_trait<32> {
     typedef uint32_t*       iterator;
     typedef const uint32_t* const_iterator;
 
-    static iterator begin(int_vector_type*, uint64_t* begin) {
+    static iterator begin(int_vector_type*, uint64_t* begin)
+    {
         return (uint32_t*)begin;
     }
-    static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size) {
+    static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size)
+    {
         return ((uint32_t*)begin)+size;
     }
-    static const_iterator begin(const int_vector_type*, const uint64_t* begin) {
+    static const_iterator begin(const int_vector_type*, const uint64_t* begin)
+    {
         return (uint32_t*)begin;
     }
-    static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size) {
+    static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size)
+    {
         return ((uint32_t*)begin)+size;
     }
 };
@@ -199,16 +211,20 @@ struct int_vector_trait<16> {
     typedef uint16_t*       iterator;
     typedef const uint16_t* const_iterator;
 
-    static iterator begin(int_vector_type*, uint64_t* begin) {
+    static iterator begin(int_vector_type*, uint64_t* begin)
+    {
         return (uint16_t*)begin;
     }
-    static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size) {
+    static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size)
+    {
         return ((uint16_t*)begin)+size;
     }
-    static const_iterator begin(const int_vector_type*, const uint64_t* begin) {
+    static const_iterator begin(const int_vector_type*, const uint64_t* begin)
+    {
         return (uint16_t*)begin;
     }
-    static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size) {
+    static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size)
+    {
         return ((uint16_t*)begin)+size;
     }
 };
@@ -223,16 +239,20 @@ struct int_vector_trait<8> {
     typedef uint8_t*        iterator;
     typedef const uint8_t*  const_iterator;
 
-    static iterator begin(int_vector_type*, uint64_t* begin) {
+    static iterator begin(int_vector_type*, uint64_t* begin)
+    {
         return (uint8_t*)begin;
     }
-    static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size) {
+    static iterator end(int_vector_type*, uint64_t* begin, int_vector_size_type size)
+    {
         return ((uint8_t*)begin)+size;
     }
-    static const_iterator begin(const int_vector_type*, const uint64_t* begin) {
+    static const_iterator begin(const int_vector_type*, const uint64_t* begin)
+    {
         return (uint8_t*)begin;
     }
-    static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size) {
+    static const_iterator end(const int_vector_type*, const uint64_t* begin, int_vector_size_type size)
+    {
         return ((uint8_t*)begin)+size;
     }
 };
@@ -301,7 +321,8 @@ class int_vector
 
         //! Constructor for initializer_list.
         template<class t_T>
-        int_vector(std::initializer_list<t_T> il) : int_vector() {
+        int_vector(std::initializer_list<t_T> il) : int_vector()
+        {
             resize(il.size());
             size_type idx = 0;
             for (auto x : il) {
@@ -319,7 +340,8 @@ class int_vector
         ~int_vector();
 
         //! Equivalent to size() == 0.
-        bool empty() const {
+        bool empty() const
+        {
             return 0==m_size;
         }
 
@@ -329,7 +351,8 @@ class int_vector
         //! Resize the int_vector in terms of elements.
         /*! \param size The size to resize the int_vector in terms of elements.
          */
-        void resize(const size_type size) {
+        void resize(const size_type size)
+        {
             bit_resize(size * width());
         }
 
@@ -341,21 +364,24 @@ class int_vector
         //! The number of elements in the int_vector.
         /*! \sa max_size, bit_size, capacity
          */
-        size_type size() const {
+        size_type size() const
+        {
             return m_size/m_width;
         }
 
         //! Maximum size of the int_vector.
         /*! \sa size, bit_size, capacity
         */
-        static size_type max_size() {
+        static size_type max_size()
+        {
             return ((size_type)1)<<(sizeof(size_type)*8-6);
         }
 
         //! The number of bits in the int_vector.
         /*!  \sa size, max_size, bit_size, capacity
          */
-        size_type bit_size() const {
+        size_type bit_size() const
+        {
             return m_size;
         }
 
@@ -364,21 +390,24 @@ class int_vector
             bit_size of the vector: capacity() >= bit_size().
             \sa size, bit_size, max_size, capacity
          */
-        size_type capacity() const {
+        size_type capacity() const
+        {
             return ((m_size+63)>>6)<<6;
         }
 
         //! Pointer to the raw data of the int_vector
         /*! \returns Const pointer to the raw data of the int_vector
          */
-        const uint64_t* data() const {
+        const uint64_t* data() const
+        {
             return m_data;
         }
 
         //! Pointer to the raw data of the int_vector
         /*! \returns pointer to the raw data of the int_vector
          */
-        uint64_t* data() {
+        uint64_t* data()
+        {
             return m_data;
         }
 
@@ -404,7 +433,8 @@ class int_vector
         /*! \returns The width of the integers which are accessed via the [] operator.
             \sa width
         */
-        uint8_t width() const {
+        uint8_t width() const
+        {
             return m_width;
         }
 
@@ -488,34 +518,40 @@ class int_vector
         //! Iterator that points to the first element of the int_vector.
         /*!  Time complexity guaranty is O(1).
          */
-        const iterator begin() {
+        const iterator begin()
+        {
             return int_vector_trait<t_width>::begin(this, m_data);
         }
 
         //! Iterator that points to the element after the last element of int_vector.
         /*! Time complexity guaranty is O(1).
          */
-        const iterator end() {
+        const iterator end()
+        {
             return int_vector_trait<t_width>::end(this, m_data, (m_size/m_width));
         }
 
         //! Const iterator that points to the first element of the int_vector.
-        const const_iterator begin() const {
+        const const_iterator begin() const
+        {
             return int_vector_trait<t_width>::begin(this, m_data);
         }
 
         //! Const iterator that points to the element after the last element of int_vector.
-        const const_iterator end() const {
+        const const_iterator end() const
+        {
             return int_vector_trait<t_width>::end(this, m_data, (m_size/m_width));
         }
 
         //! Flip all bits of bit_vector
-        void flip() {
+        void flip()
+        {
             static_assert(1 == t_width, "int_vector: flip() is available only for bit_vector.");
         }
 
         //! Read the size and int_width of a int_vector
-        static void read_header(int_vector_size_type& size, int_width_type& int_width, std::istream& in) {
+        static void read_header(int_vector_size_type& size, int_width_type& int_width, std::istream& in)
+        {
             read_member(size, in);
             if (0 == t_width) {
                 read_member(int_width, in);
@@ -523,7 +559,8 @@ class int_vector
         }
 
         //! Write the size and int_width of a int_vector
-        static uint64_t write_header(uint64_t size, uint8_t int_width, std::ostream& out) {
+        static uint64_t write_header(uint64_t size, uint8_t int_width, std::ostream& out)
+        {
             uint64_t written_bytes = write_member(size, out);
             if (0 == t_width) {
                 written_bytes += write_member(int_width, out);
@@ -538,7 +575,8 @@ class int_vector
             raw_wrapper(const int_vector& _vec) : vec(_vec) {}
 
             size_type
-            serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+            serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+            {
                 structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
                 auto written_bytes = vec.write_data(out);
                 structure_tree::add_size(child, written_bytes);
@@ -584,67 +622,78 @@ class int_vector_reference
             \param x 64bit integer to assign
             \return A const_reference to the assigned reference
          */
-        int_vector_reference& operator=(value_type x) {
+        int_vector_reference& operator=(value_type x)
+        {
             bits::write_int(m_word, x, m_offset, m_len);
             return *this;
         };
 
-        int_vector_reference& operator=(const int_vector_reference& x) {
+        int_vector_reference& operator=(const int_vector_reference& x)
+        {
             return *this = value_type(x);
         };
 
         //! Cast the reference to a int_vector<>::value_type
-        operator value_type()const {
+        operator value_type()const
+        {
             return bits::read_int(m_word, m_offset, m_len);
         }
 
         //! Prefix increment of the proxy object
-        int_vector_reference& operator++() {
+        int_vector_reference& operator++()
+        {
             value_type x = bits::read_int(m_word, m_offset, m_len);
             bits::write_int(m_word, x+1, m_offset, m_len);
             return *this;
         }
 
         //! Postfix increment of the proxy object
-        value_type operator++(int) {
+        value_type operator++(int)
+        {
             value_type val = (typename t_int_vector::value_type)*this;
             ++(*this);
             return val;
         }
 
         //! Prefix decrement of the proxy object
-        int_vector_reference& operator--() {
+        int_vector_reference& operator--()
+        {
             value_type x = bits::read_int(m_word, m_offset, m_len);
             bits::write_int(m_word, x-1, m_offset, m_len);
             return *this;
         }
 
         //! Postfix decrement of the proxy object
-        value_type operator--(int) {
+        value_type operator--(int)
+        {
             value_type val = (value_type)*this;
             --(*this);
             return val;
         }
 
         //! Add assign from the proxy object
-        int_vector_reference& operator+=(const value_type x) {
+        int_vector_reference& operator+=(const value_type x)
+        {
             value_type w = bits::read_int(m_word, m_offset, m_len);
             bits::write_int(m_word, w+x, m_offset, m_len);
             return *this;
         }
 
         //! Subtract assign from the proxy object
-        int_vector_reference& operator-=(const value_type x) {
+        int_vector_reference& operator-=(const value_type x)
+        {
             value_type w = bits::read_int(m_word, m_offset, m_len);
             bits::write_int(m_word, w-x, m_offset, m_len);
             return *this;
         }
 
-        bool operator==(const int_vector_reference& x)const {
+        bool operator==(const int_vector_reference& x)const
+        {
             return value_type(*this) == value_type(x);
         }
 
-        bool operator<(const int_vector_reference& x)const {
+        bool operator<(const int_vector_reference& x)const
+        {
             return value_type(*this) < value_type(x);
         }
 };
@@ -702,7 +751,8 @@ class int_vector_reference<bit_vector>
             m_word(word),m_mask(1ULL<<offset) {};
 
         //! Assignment operator for the proxy class
-        int_vector_reference& operator=(bool x) {
+        int_vector_reference& operator=(bool x)
+        {
             if (x)
                 *m_word |= m_mask;
             else
@@ -710,20 +760,24 @@ class int_vector_reference<bit_vector>
             return *this;
         };
 
-        int_vector_reference& operator=(const int_vector_reference& x) {
+        int_vector_reference& operator=(const int_vector_reference& x)
+        {
             return *this = bool(x);
         };
 
         //! Cast the reference to a bool
-        operator bool()const {
+        operator bool()const
+        {
             return !!(*m_word & m_mask);
         }
 
-        bool operator==(const int_vector_reference& x)const {
+        bool operator==(const int_vector_reference& x)const
+        {
             return bool(*this) == bool(x);
         }
 
-        bool operator<(const int_vector_reference& x)const {
+        bool operator<(const int_vector_reference& x)const
+        {
             return !bool(*this) && bool(x);
         }
 };
@@ -808,17 +862,20 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
 
 
         int_vector_iterator(const int_vector_iterator<t_int_vector>& it) :
-            int_vector_iterator_base<t_int_vector>(it), m_word(it.m_word) {
+            int_vector_iterator_base<t_int_vector>(it), m_word(it.m_word)
+        {
             m_offset = it.m_offset;
             m_len = it.m_len;
         }
 
-        reference operator*() const {
+        reference operator*() const
+        {
             return reference(m_word, m_offset, m_len);
         }
 
         //! Prefix increment of the Iterator
-        iterator& operator++() {
+        iterator& operator++()
+        {
             m_offset+=m_len;
             if (m_offset >= 64) {
                 m_offset &= 0x3F;
@@ -828,14 +885,16 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
         }
 
         //! Postfix increment of the Iterator
-        iterator operator++(int) {
+        iterator operator++(int)
+        {
             int_vector_iterator it = *this;
             ++(*this);
             return it;
         }
 
         //! Prefix decrement of the Iterator
-        iterator& operator--() {
+        iterator& operator--()
+        {
             m_offset-=m_len;
             if (m_offset >= 64) {
                 m_offset &= 0x3F;
@@ -845,13 +904,15 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
         }
 
         //! Postfix decrement of the Iterator
-        iterator operator--(int) {
+        iterator operator--(int)
+        {
             int_vector_iterator it = *this;
             --(*this);
             return it;
         }
 
-        iterator& operator+=(difference_type i) {
+        iterator& operator+=(difference_type i)
+        {
             if (i<0)
                 return *this -= (-i);
             difference_type t = i*m_len;
@@ -863,7 +924,8 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
             return *this;
         }
 
-        iterator& operator-=(difference_type i) {
+        iterator& operator-=(difference_type i)
+        {
             if (i<0)
                 return *this += (-i);
             difference_type t = i*m_len;
@@ -875,7 +937,8 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
             return *this;
         }
 
-        iterator& operator=(const int_vector_iterator<t_int_vector>& it) {
+        iterator& operator=(const int_vector_iterator<t_int_vector>& it)
+        {
             if (this != &it) {
                 m_word   = it.m_word;
                 m_offset = it.m_offset;
@@ -884,48 +947,58 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
             return *this;
         }
 
-        iterator operator+(difference_type i) const {
+        iterator operator+(difference_type i) const
+        {
             iterator it = *this;
             return it += i;
         }
 
-        iterator operator-(difference_type i) const {
+        iterator operator-(difference_type i) const
+        {
             iterator it = *this;
             return it -= i;
         }
 
-        reference operator[](difference_type i) const {
+        reference operator[](difference_type i) const
+        {
             return *(*this + i);
         }
 
-        bool operator==(const int_vector_iterator& it)const {
+        bool operator==(const int_vector_iterator& it)const
+        {
             return it.m_word == m_word && it.m_offset == m_offset;
         }
 
-        bool operator!=(const int_vector_iterator& it)const {
+        bool operator!=(const int_vector_iterator& it)const
+        {
             return !(*this==it);
         }
 
-        bool operator<(const int_vector_iterator& it)const {
+        bool operator<(const int_vector_iterator& it)const
+        {
             if (m_word == it.m_word)
                 return m_offset < it.m_offset;
             return m_word < it.m_word;
         }
 
-        bool operator>(const int_vector_iterator& it)const {
+        bool operator>(const int_vector_iterator& it)const
+        {
             if (m_word == it.m_word)
                 return m_offset > it.m_offset;
             return m_word > it.m_word;
         }
 
-        bool operator>=(const int_vector_iterator& it)const {
+        bool operator>=(const int_vector_iterator& it)const
+        {
             return !(*this < it);
         }
 
-        bool operator<=(const int_vector_iterator& it)const {
+        bool operator<=(const int_vector_iterator& it)const
+        {
             return !(*this > it);
         }
-        inline difference_type operator-(const int_vector_iterator& it) {
+        inline difference_type operator-(const int_vector_iterator& it) const
+        {
             return (((m_word - it.m_word)<<6) + m_offset - it.m_offset) / m_len;
         }
 };
@@ -972,18 +1045,21 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
             m_word((v != nullptr) ? v->m_data + (idx>>6) : nullptr) {}
 
         int_vector_const_iterator(const int_vector_const_iterator& it):
-            int_vector_iterator_base<t_int_vector>(it), m_word(it.m_word) {
+            int_vector_iterator_base<t_int_vector>(it), m_word(it.m_word)
+        {
             m_offset = it.m_offset;
             m_len = it.m_len;
         }
 
         int_vector_const_iterator(const int_vector_iterator<t_int_vector>& it):
-            m_word(it.m_word) {
+            m_word(it.m_word)
+        {
             m_offset = it.m_offset;
             m_len = it.m_len;
         }
 
-        const_reference operator*() const {
+        const_reference operator*() const
+        {
             if (m_offset+m_len <= 64) {
                 return ((*m_word)>>m_offset)&bits::lo_set[m_len];
             }
@@ -992,7 +1068,8 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
         }
 
         //! Prefix increment of the Iterator
-        const_iterator& operator++() {
+        const_iterator& operator++()
+        {
             m_offset+=m_len;
             if (m_offset >= 64) {
                 m_offset &= 0x3F;
@@ -1002,14 +1079,16 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
         }
 
         //! Postfix increment of the Iterator
-        const_iterator operator++(int) {
+        const_iterator operator++(int)
+        {
             int_vector_const_iterator it = *this;
             ++(*this);
             return it;
         }
 
         //! Prefix decrement of the Iterator
-        const_iterator& operator--() {
+        const_iterator& operator--()
+        {
             m_offset-=m_len;
             if (m_offset >= 64) {
                 m_offset &= 0x3F;
@@ -1019,13 +1098,15 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
         }
 
         //! Postfix decrement of the Iterator
-        const_iterator operator--(int) {
+        const_iterator operator--(int)
+        {
             int_vector_const_iterator it = *this;
             --(*this);
             return it;
         }
 
-        const_iterator& operator+=(difference_type i) {
+        const_iterator& operator+=(difference_type i)
+        {
             if (i<0)
                 return *this -= (-i);
             difference_type t = i*m_len;
@@ -1037,7 +1118,8 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
             return *this;
         }
 
-        const_iterator& operator-=(difference_type i) {
+        const_iterator& operator-=(difference_type i)
+        {
             if (i<0)
                 return *this += (-i);
             difference_type t = i*m_len;
@@ -1049,45 +1131,54 @@ class int_vector_const_iterator : public int_vector_iterator_base<t_int_vector>
             return *this;
         }
 
-        const_iterator operator+(difference_type i) const {
+        const_iterator operator+(difference_type i) const
+        {
             const_iterator it = *this;
             return it += i;
         }
 
-        const_iterator operator-(difference_type i) const {
+        const_iterator operator-(difference_type i) const
+        {
             const_iterator it = *this;
             return it -= i;
         }
 
-        const_reference operator[](difference_type i) const {
+        const_reference operator[](difference_type i) const
+        {
             return *(*this + i);
         }
 
-        bool operator==(const int_vector_const_iterator& it)const {
+        bool operator==(const int_vector_const_iterator& it)const
+        {
             return it.m_word == m_word && it.m_offset == m_offset;
         }
 
-        bool operator!=(const int_vector_const_iterator& it)const {
+        bool operator!=(const int_vector_const_iterator& it)const
+        {
             return !(*this==it);
         }
 
-        bool operator<(const int_vector_const_iterator& it)const {
+        bool operator<(const int_vector_const_iterator& it)const
+        {
             if (m_word == it.m_word)
                 return m_offset < it.m_offset;
             return m_word < it.m_word;
         }
 
-        bool operator>(const int_vector_const_iterator& it)const {
+        bool operator>(const int_vector_const_iterator& it)const
+        {
             if (m_word == it.m_word)
                 return m_offset > it.m_offset;
             return m_word > it.m_word;
         }
 
-        bool operator>=(const int_vector_const_iterator& it)const {
+        bool operator>=(const int_vector_const_iterator& it)const
+        {
             return !(*this < it);
         }
 
-        bool operator<=(const int_vector_const_iterator& it)const {
+        bool operator<=(const int_vector_const_iterator& it)const
+        {
             return !(*this > it);
         }
 
