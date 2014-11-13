@@ -98,7 +98,7 @@ class map_to_sorted_iterator
         typedef void(*t_mfptr)();
         typedef typename t_wt::value_type value_type;
         typedef typename t_wt::size_type  size_type;
-        typedef std::tuple<value_type, range_type> ret_type;
+        typedef std::tuple<value_type, range_type, size_type> ret_type;
     private:
         typedef typename t_wt::node_type node_type;
         typedef std::tuple<node_type,range_type,size_type> state_type;
@@ -158,7 +158,8 @@ class map_to_sorted_iterator
                         }
                     }
                 } else {
-                    m_ret = ret_type(m_wt->sym(v), range_type(std::get<0>(x_range)+lex_sml,std::get<1>(x_range)+lex_sml));
+                    m_ret = ret_type(m_wt->sym(v), range_type(std::get<0>(x_range)+lex_sml,std::get<1>(x_range)+lex_sml),
+                                     lex_sml);
                     m_valid = true;
                     break;
                 }

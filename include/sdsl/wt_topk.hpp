@@ -52,23 +52,21 @@ class wt_topk
     public:
         typedef std::complex<uint64_t> point_type;
         typedef int_vector<>::size_type size_type;
-        typedef tuple<size_type, size_type, size_type> range_type;
-        typedef pair<size_type,size_type> result_pair;
-        typedef priority_queue<result_pair, vector<result_pair>, std::greater<result_pair>> result_type;
+        typedef std::complex<uint64_t> range_type;
 
         class top_k_iterator
         {
             public:
                 typedef void(*t_mfptr)();
                 typedef std::pair<point_type, uint64_t> t_point_val;
-                // state consists of weight, range, index of minimum in range
-                typedef std::tuple<uint64_t, range_type, uint64_t> t_state;
+                // state consists of weight, range, index of minimum in range, y-value, begin y-interval in sorted sequence
+                typedef std::array<uint64_t, 6> t_state;
 
             private:
-                const wt_topk*                m_topk;
-                const priority_queue<t_state> m_pq;
-                t_point_val                   m_point_val;
-                bool                          m_valid = false;
+                const wt_topk*               m_topk;
+                std::priority_queue<t_state> m_pq;
+                t_point_val                  m_point_val;
+                bool                         m_valid = false;
             public:
                 top_k_iterator() = default;
                 top_k_iterator(const top_k_iterator&) = default;
@@ -78,14 +76,18 @@ class wt_topk
                 top_k_iterator(const wt_topk& topk, point_type p1, point_type p2) :
                     m_topk(&topk), m_valid(topk.size()>0)
                 {
-                    // get all range from topk->wt
-                    // for each range compute the position of the maximum weight;
-                    // get the weight weight and push the tuple
-                    // (maximum weight, range, pos of maximum weight) to the
-                    // priority queue
-
-                    // call ++iterator
-                    if (topk.size() > 0) {
+                    if (m_topk->size() > 0) {
+                        auto iv_it = map_to_sorted_sequence(m_topk->m_wt,
+                        {real(p1), real(p2)}, {imag(p1), imag(p2)});
+                        while (iv_it) {
+                            auto r           = std::get<1>(*iv_it);
+                            uint64_t max_idx = m_topk->m_rmq(std::get<0>(r), std::get<1>(r));
+                            uint64_t max_w   = m_topk->m_weights[max_idx];
+                            m_pq.push({max_w, std::get<0>(r), std::get<1>(r), max_idx,
+                                       std::get<0>(*iv_it), std::get<2>(*iv_it)
+                                      });
+                            ++iv_it;
+                        }
                         ++(*this);
                     }
                 }
@@ -93,13 +95,21 @@ class wt_topk
                 //! Prefix increment of the iterator
                 top_k_iterator& operator++()
                 {
+                    auto push_node = [this](uint64_t begin, uint64_t end, uint64_t y, uint64_t offset) {
+                        if (end > begin) {
+                            uint64_t max_idx = m_topk->m_rmq(begin, end-1);
+                            uint64_t max_w   = m_topk->m_weights[max_idx];
+                            m_pq.push({max_w, begin, end-1, max_idx, y, offset});
+                        }
+                    };
                     m_valid = false;
                     if (!m_pq.empty()) {
-                        // pop top element
-                        // calc x pos and store result in m_point_val
-                        // calculate the two subranges
-                        // if not empty: get position of maximum weight
-                        // and the weight and push new tuple to the queue
+                        auto s = m_pq.top();
+                        m_point_val = {{m_topk->m_wt.select(s[3]-s[5]+1, s[4]), s[4]}, s[0]};
+                        m_pq.pop();
+                        push_node(s[1], s[3], s[4],s[5]);
+                        push_node(s[3]+1, s[2]+1, s[4],s[5]);
+                        m_valid = true;
                     }
                     return *this;
                 }
@@ -213,72 +223,6 @@ class wt_topk
             m_weights.load(in);
         }
 
-        // main topk function, stores the result into the m_result class variable.
-        void topk(const unsigned int k, const range_type& x_range, const range_type& y_range)
-        {
-            /*
-                        m_result = result_type(); // clear the m_result;
-                         // range_type = <left, right, symbol>
-                        queue<range_type> ranges;
-                        auto mts_it = map_to_sorted_sequence(m_wt, x_range, y_range);
-                        size_t l, r = 0;
-
-                        while (mts_it) { // maybe this can be improved by not storing the initial ranges into the queue?
-                            l = get<0>(get<1>(*mts_it));
-                            r = get<1>(get<1>(*mts_it));
-                            ranges.emplace(l, r, get<0>(*mts_it));
-                            ++mts_it;
-                        }
-
-                        size_t pos, w_value, x_value = 0;
-                        size_t left_l, left_r, right_l, right_r = 0;
-                        while (!ranges.empty()) {
-                            range_type r = ranges.front();
-                            ranges.pop();
-
-                            pos = m_rmq(get<0>(r), get<1>(r));
-                            w_value = m_weights[pos];
-                            x_value = m_wt.select(pos-get<0>(r), get<2>(r));
-
-                            if (m_result.size() < k) {
-                                m_result.emplace(w_value, x_value);
-                            } else {
-                                if (get<0>(m_result.top()) < w_value) {
-                                    m_result.pop();
-                                    m_result.emplace(w_value, x_value);
-                                }
-
-                            }
-
-                            left_l = get<0>(r);
-                            left_r = pos - 1;
-                            right_l = pos + 1;
-                            right_r = get<1>(r);
-
-                            if (left_l <= left_r and
-                                    left_r != (size_t) -1) {
-                                ranges.emplace(left_l, left_r, get<2>(r));
-                            }
-
-                            if (right_l <= right_r and
-                                    right_r < m_wt.size()) {
-                                ranges.emplace(right_l, right_r, get<2>(r));
-                            }
-                        }
-            */
-        }
-        /*
-            void print_results() {
-                while (!m_result.empty()) {
-                    cout << "( " << m_result.top().first << " , " << m_result.top().second << " ) " << endl;
-                    m_result.pop();
-                }
-            }
-
-            void get_result_reference(result_type &result) const {
-                result = m_result;
-            }
-        */
         void print_info() const
         {
             std::cout<<"m_wt     ="<<m_wt<<std::endl;
