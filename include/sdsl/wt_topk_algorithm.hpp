@@ -28,81 +28,30 @@
 
 namespace sdsl
 {
-namespace wt_topk_ns
-{
-template<typename t_wt_topk>
-class top_k_iterator
-{
-public:
-    typedef void(*t_mfptr)();
-    typedef std::pair<point_type, uint64_t> t_point_val;
 
-private:
-    typedef std::pair<node_type, bool> t_nt_b;
-    typedef std::complex<uint64_t> point_type;
-    typedef std::complex<uint64_t> range_type;
-    point_type m_p1;
-    point_type m_p2;
-    range_type m_r;
-    std::priority_queue<t_nt_b> m_pq;
-    t_point_val m_point_val;
-    bool m_valid = false;
-
-public:
-    top_k_iterator() = default;
-    top_k_iterator(const top_k_iterator&) = default;
-    top_k_iterator(top_k_iterator&&) = default;
-    top_k_iterator& operator=(const top_k_iterator&) = default;
-    top_k_iterator& operator=(top_k_iterator&&) = default;
-    top_k_iterator(const t_wt_topk& wt, point_type p1, point_type p2) :
-            m_wt_topk(&wt), m_p1(p1), m_p2(p2), m_valid(wt.size()>0)
-    {
-        // execute everything?
-    }
-
-    //! Prefix increment of the iterator
-    top_k_iterator& operator++()
-    {
-        // just next result?
-        return *this;
-    }
-
-    //! Postfix increment of the iterator
-    top_k_iterator operator++(int)
-    {
-        top_k_iterator it = *this;
-        ++(*this);
-        return it;
-    }
-
-    t_point_val operator*() const
-    {
-        return m_point_val;
-    }
-
-    //! Cast to a member function pointer
-    // Test if there are more elements
-    // Can be casted to bool but not implicit in an arithmetic experession
-    // See Alexander C.'s comment on
-    // http://stackoverflow.com/questions/835590/how-would-stdostringstream-convert-to-bool
-    operator t_mfptr() const
-    {
-        return (t_mfptr)(m_valid);
-    }
-};
-}
 // forward declaration
 template<typename t_wt,
-        typename t_rmq,
-        typename t_weight_vec
->
+         typename t_rmq,
+         typename t_weight_vec
+         >
 class wt_topk;
+
+template<typename t_wt,
+         typename t_rmq,
+         typename t_weight_vec>
+typename wt_topk<t_wt, t_rmq, t_weight_vec>::top_k_iterator
+top_k(const wt_topk<t_wt, t_rmq, t_weight_vec>& wt,
+      typename wt_topk<t_wt, t_rmq, t_weight_vec>::point_type p1,
+      typename wt_topk<t_wt, t_rmq, t_weight_vec>::point_type p2)
+{
+    return wt.topk(p1, p2);
+}
 
 //! Specialized version of method ,,construct'' for wt_topk.
 template<typename t_wt,
-        typename t_rmq,
-        typename t_weight_vec
->
+         typename t_rmq,
+         typename t_weight_vec
+         >
 void
 construct(wt_topk<t_wt, t_rmq, t_weight_vec>& idx, std::string file)
 {
@@ -113,20 +62,34 @@ construct(wt_topk<t_wt, t_rmq, t_weight_vec>& idx, std::string file)
     tmp.swap(idx);
 }
 
-//! Specialized version of method ,,construct_im'' for k2_treaps.
+//! Specialized version of method ,,construct_im'' for wt_topk
 template<typename t_wt,
-        typename t_rmq,
-        typename t_weight_vec
->
+         typename t_rmq,
+         typename t_weight_vec
+         >
 void
 construct_im(wt_topk<t_wt, t_rmq, t_weight_vec>& idx, std::vector<std::array<uint64_t, 3>> data)
 {
-    std::string tmp_prefix = ram_file_name("wt_topk_");
-    std::vector<std::tuple<uint64_t,uint64_t,uint64_t>> d;
-    for (auto x : data) {
-        d.push_back(std::make_tuple(x[0],x[1],x[2]));
+    std::string y_file = ram_file_name(to_string(util::pid())+"_"+to_string(util::id()));
+    std::string w_file = ram_file_name(to_string(util::pid())+"_"+to_string(util::id()));
+    {
+        int_vector<> y(data.size());
+        int_vector<> w(data.size());
+        for (size_t i=0; i<data.size(); ++i) {
+            if (data[i][0] != i) {
+                throw std::logic_error("Construct wt_topk: the first elements\
+                      of the tuples should form the identity permutation\
+                      [0..data.size()-1]");
+            }
+            y[i] = data[i][1];
+            w[i] = data[i][2];
+        }
+        util::bit_compress(y); store_to_file(y, y_file);
+        util::bit_compress(w); store_to_file(w, w_file);
     }
-    wt_topk<t_wt, t_rmq, t_weight_vec> tmp(d, tmp_prefix);
+    int_vector_buffer<> y_buf(y_file);
+    int_vector_buffer<> w_buf(w_file);
+    wt_topk<t_wt, t_rmq, t_weight_vec> tmp(y_buf, y_buf, w_buf);
     tmp.swap(idx);
 }
 }
