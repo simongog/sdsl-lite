@@ -109,6 +109,8 @@ class wt_topk
                         m_pq.pop();
                         push_node(s[1], s[3], s[4],s[5]);
                         push_node(s[3]+1, s[2]+1, s[4],s[5]);
+                    }
+                    if (!m_pq.empty()) {
                         m_valid = true;
                     }
                     return *this;

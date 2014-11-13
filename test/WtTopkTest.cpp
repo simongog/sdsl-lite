@@ -66,8 +66,6 @@ void topk_test(
             ASSERT_TRUE(cnt < vec.size());
             auto p = *res_it;
             ASSERT_EQ(get<2>(vec[cnt]), p.second);
-    //        ASSERT_EQ(get<0>(vec[cnt]), real(p.first)); // Not needed for wt_topk
-//            ASSERT_EQ(get<1>(vec[cnt]), imag(p.first)); // Not needed for wt_topk
             ++res_it;
             ++cnt;
         }
