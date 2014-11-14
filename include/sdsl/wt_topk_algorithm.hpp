@@ -70,8 +70,8 @@ template<typename t_wt,
 void
 construct_im(wt_topk<t_wt, t_rmq, t_weight_vec>& idx, std::vector<std::array<uint64_t, 3>> data)
 {
-    std::string y_file = ram_file_name(to_string(util::pid())+"_"+to_string(util::id()));
-    std::string w_file = ram_file_name(to_string(util::pid())+"_"+to_string(util::id()));
+    std::string y_file = ram_file_name(std::to_string(util::pid())+"_"+std::to_string(util::id()));
+    std::string w_file = ram_file_name(std::to_string(util::pid())+"_"+std::to_string(util::id()));
     {
         int_vector<> y(data.size());
         int_vector<> w(data.size());

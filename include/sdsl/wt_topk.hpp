@@ -29,14 +29,12 @@
 #include "sdsl/vectors.hpp"
 #include "sdsl/wavelet_trees.hpp"
 #include "sdsl/rmq_support.hpp"
+#include "sdsl/wt_topk_algorithm.hpp"
 #include <iostream>
 #include <algorithm>
 #include <vector>
 #include <queue>
 #include <complex>
-
-using namespace std;
-using namespace sdsl;
 
 namespace sdsl
 {
@@ -108,7 +106,7 @@ class wt_topk
                         m_point_val = {{m_topk->m_wt.select(s[3]-s[5]+1, s[4]), s[4]}, s[0]};
                         m_pq.pop();
                         push_node(s[1], s[3], s[4],s[5]);
-                        push_node(s[3]+1, s[2]+1, s[4],s[5]);
+                        push_node(s[3]+1, s[2]+1, s[4], s[5]);
                         m_valid = true;
                     }
                     return *this;
@@ -166,8 +164,8 @@ class wt_topk
                 int_vector_buffer<>& buf_w)
         {
             std::string temp_file = buf_w.filename() +
-                                    + "_wt_topk_" + to_string(util::pid())
-                                    + "_" + to_string(util::id());
+                                    + "_wt_topk_" + std::to_string(util::pid())
+                                    + "_" + std::to_string(util::id());
             // (1) Calculate permuted weight vector
             {
                 int_vector<> perm = sorted_perm(buf_y);

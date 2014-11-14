@@ -54,6 +54,11 @@ SEARCH_BIDIRECTIONAL_TESTS:=$(patsubst %,search-bidirectional-test/%,$(SEARCH_BI
 K2TREAP_TC_PATH:=$(call config_column,K2TreapTest.config,1)
 K2TREAP_TESTS:=$(patsubst %,k2treap-test/%,$(K2TREAP_TC_PATH))
 
+WTTOPK_TC_PATH:=$(call config_column,WtTopkTest.config,1)
+WTTOPK_TESTS:=$(patsubst %,wttopk-test/%,$(WTTOPK_TC_PATH))
+
+
+
 TC_PATHS:= $(WT_BYTE_TC_PATHS) $(WT_INT_TC_PATHS) \
 		   $(CSA_BYTE_TC_PATHS) $(CSA_INT_TC_PATHS) \
 		   $(CST_BYTE_TC_PATHS) $(CST_INT_TC_PATHS)
@@ -287,6 +292,17 @@ test_cases/int-vec-k2t.%: IntVectorGenerator.x
 	$(eval DEFAULT:=$(call dim,3,$*))
 	$(eval SEED:=$(call dim,4,$*))
 	@./IntVectorGenerator.x $@ $(LEN) $(WIDTH) $(DEFAULT) $(SEED)
+
+# Format: test_cases/int-vec-wtk.[LEN].[WIDTH].[DEFAULT].[SEED].[x|y|w]
+test_cases/int-vec-wtk.%: IntVectorGenerator.x
+	@echo "Generate input test_cases/int-vec-wtk.$*"
+	$(eval LEN:=$(call dim,1,$*))
+	$(eval WIDTH:=$(call dim,2,$*))
+	$(eval DEFAULT:=$(call dim,3,$*))
+	$(eval SEED:=$(call dim,4,$*))
+	@./IntVectorGenerator.x $@ $(LEN) $(WIDTH) $(DEFAULT) 
+
+
 
 test_cases/bit-vec.%: BitVectorGenerator.x
 	@echo "Generate input test_cases/bit-vec.$*"
