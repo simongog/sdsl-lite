@@ -37,6 +37,15 @@
 namespace sdsl
 {
 
+// forward declaration
+template<uint8_t  t_k,
+         typename t_bv,
+         typename t_rank,
+         typename t_max_vec>
+class k2_treap;
+
+
+
 namespace k2_treap_ns
 {
 
@@ -271,13 +280,18 @@ class range_iterator
  *  \return Iterator to result in decreasing order.
  *  \pre real(p1) <= real(p2) and imag(p1)<=imag(p2)
  */
-template<typename t_k2_treap>
-k2_treap_ns::top_k_iterator<t_k2_treap>
-top_k(const t_k2_treap& t,
+
+template<uint8_t  t_k,
+         typename t_bv,
+         typename t_rank,
+         typename t_max_vec>
+
+k2_treap_ns::top_k_iterator<k2_treap<t_k, t_bv, t_rank, t_max_vec>>
+top_k(const k2_treap<t_k, t_bv, t_rank, t_max_vec>& t,
       k2_treap_ns::point_type p1,
       k2_treap_ns::point_type p2)
 {
-    return k2_treap_ns::top_k_iterator<t_k2_treap>(t, p1, p2);
+    return k2_treap_ns::top_k_iterator<k2_treap<t_k, t_bv, t_rank, t_max_vec>>(t, p1, p2);
 }
 
 
@@ -363,15 +377,6 @@ __count(const t_k2_treap& treap,
         res += __count(treap, node);
     return res;
 }
-
-
-// forward declaration
-template<uint8_t  t_k,
-         typename t_bv,
-         typename t_rank,
-         typename t_max_vec>
-class k2_treap;
-
 
 //! Specialized version of method ,,construct'' for k2_treaps.
 template<uint8_t  t_k,
