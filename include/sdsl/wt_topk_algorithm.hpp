@@ -92,6 +92,22 @@ construct_im(wt_topk<t_wt, t_rmq, t_weight_vec>& idx, std::vector<std::array<uin
     wt_topk<t_wt, t_rmq, t_weight_vec> tmp(y_buf, y_buf, w_buf);
     tmp.swap(idx);
 }
+
+//! Count how many points are in the rectangle (p1,p2)
+template<typename t_wt,
+         typename t_rmq,
+         typename t_weight_vec
+         >
+uint64_t
+count(const wt_topk<t_wt, t_rmq, t_weight_vec>& wt,
+      typename wt_topk<t_wt, t_rmq, t_weight_vec>::point_type p1,
+      typename wt_topk<t_wt, t_rmq, t_weight_vec>::point_type p2)
+{
+    return wt.count(p1, p2);
+}
+
+
+
 }
 
 #endif

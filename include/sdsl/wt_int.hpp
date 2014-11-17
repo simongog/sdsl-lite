@@ -762,7 +762,7 @@ class wt_int
 
         //! Returns the two child nodes of an inner node
         /*! \param v An inner node of a wavelet tree.
-         *  \return Return a pair of nodes (left child, right child).
+         *  \return Return an array of nodes (left child, right child).
          *  \pre !is_leaf(v)
          */
         std::array<node_type, 2>

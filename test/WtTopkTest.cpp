@@ -205,6 +205,8 @@ TYPED_TEST(WtTopkTest, Range3d)
     }
 }
 
+*/
+
 template<class t_topk_wt>
 void count_test(
     const t_topk_wt& topk_wt,
@@ -222,8 +224,7 @@ void count_test(
     }
     ASSERT_EQ(cnt, count(topk_wt, {real(min_xy),imag(min_xy)}, {real(max_xy),imag(max_xy)}));
 }
-*/
-/*
+
 TYPED_TEST(WtTopkTest, Count)
 {
     TypeParam topk_wt;
@@ -248,7 +249,6 @@ TYPED_TEST(WtTopkTest, Count)
         }
     }
 }
-*/
 
 }  // namespace
 

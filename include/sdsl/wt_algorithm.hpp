@@ -51,7 +51,9 @@ is_contained(const r_t1& range1, const r_t2& range2)
  */
 template<class t_wt>
 typename t_wt::size_type
-count(const t_wt& wt, const range_type& x_range, const range_type& y_range)
+count(const t_wt& wt, const range_type& x_range, const range_type& y_range,
+      SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+     )
 {
     typedef typename t_wt::size_type size_type;
     typedef typename t_wt::node_type node_type;
@@ -188,7 +190,9 @@ class map_to_sorted_iterator
 
 template<typename t_wt>
 map_to_sorted_iterator<t_wt>
-map_to_sorted_sequence(const t_wt& wt, const range_type& x_range, const range_type& y_range)
+map_to_sorted_sequence(const t_wt& wt, const range_type& x_range, const range_type& y_range,
+                       SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+                      )
 {
     static_assert(t_wt::traversable, "map_to_sorted_sequence requires t_wt to be traversable.");
     static_assert(t_wt::lex_ordered, "map_to_sorted_sequence requires t_wt to be lex_ordered.");
@@ -303,7 +307,9 @@ class y_iterator
 template<typename t_wt>
 y_iterator<t_wt>
 ys_in_x_range(const t_wt& wt, typename t_wt::size_type i,
-              typename t_wt::size_type j)
+              typename t_wt::size_type j,
+              SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+             )
 {
     static_assert(t_wt::traversable, "ys_in_x_range requires t_wt to be traversable.");
     return y_iterator<t_wt>(wt, i, j);
@@ -416,7 +422,9 @@ class yoff_iterator
 template<typename t_wt>
 yoff_iterator<t_wt>
 ys_and_off_in_x_range(const t_wt& wt, typename t_wt::size_type i,
-                      typename t_wt::size_type j)
+                      typename t_wt::size_type j,
+                      SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+                     )
 {
     static_assert(t_wt::traversable, "ys_in_x_range requires t_wt to be traversable.");
     return yoff_iterator<t_wt>(wt, i, j);
@@ -431,10 +439,13 @@ ys_and_off_in_x_range(const t_wt& wt, typename t_wt::size_type i,
  *                contained in t different ranges. Frequency = accumulated
  *                frequencies in all ranges. The tuples are ordered according
  *                to value, if t_wt::lex_ordered=1.
+ * TODO: should return an iterator to the result
  */
 template<class t_wt>
 std::vector< std::pair<typename t_wt::value_type, typename t_wt::size_type> >
-intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::size_type t=0)
+intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::size_type t=0,
+          SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+         )
 {
     using std::get;
     using size_type      = typename t_wt::size_type;
@@ -500,7 +511,9 @@ intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::
 template<class t_wt>
 std::pair<typename t_wt::value_type, typename t_wt::size_type>
 quantile_freq(const t_wt& wt, typename t_wt::size_type lb,
-              typename t_wt::size_type rb, typename t_wt::size_type q)
+              typename t_wt::size_type rb, typename t_wt::size_type q,
+              SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+             )
 {
     static_assert(t_wt::lex_ordered,
                   "quantile_freq requires a lex_ordered WT");
@@ -731,7 +744,9 @@ struct has_symbols_wt {
  */
 template<class t_wt>
 std::pair<bool,typename t_wt::value_type>
-symbol_lte(const t_wt& wt, typename t_wt::value_type c)
+symbol_lte(const t_wt& wt, typename t_wt::value_type c,
+           SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+          )
 {
     static_assert(t_wt::lex_ordered, "symbols_lte requires a lex_ordered WT");
     // check if wt has a built-in symbols_gte method
@@ -747,7 +762,9 @@ symbol_lte(const t_wt& wt, typename t_wt::value_type c)
  */
 template<class t_wt>
 std::pair<bool,typename t_wt::value_type>
-symbol_gte(const t_wt& wt, typename t_wt::value_type c)
+symbol_gte(const t_wt& wt, typename t_wt::value_type c,
+           SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+          )
 {
     static_assert(t_wt::lex_ordered, "symbols_gte requires a lex_ordered WT");
     // check if wt has a built-in symbol_gte_method
@@ -761,7 +778,8 @@ symbol_gte(const t_wt& wt, typename t_wt::value_type c)
  *  \param x_j upper bound of the x range
  *  \param y_i lower bound of the y range
  *  \param y_j upper bound of the y range
- *  \return a vector of increasing y values occuring in the range [x_i,x_j]
+ *  \return a vector of increasing y values occurring in the range [x_i,x_j]
+ * TODO: should return an iterator to the result
  */
 template <class t_wt>
 std::vector<typename t_wt::value_type>

@@ -25,8 +25,8 @@ int main()
     cout << "count[0,"<<wt.size()-1<<"][2,3] = " << count(wt, {0, wt.size()-1}, {2,3}) << endl;
 
 
-    cout << "map_to_sorted( {"<<wt<<"}, [5,13), [1,5) )" << endl;
-    auto mts_it = map_to_sorted_sequence(wt, {5, 13}, {0,3});
+    cout << "map_to_sorted( {"<<wt<<"}, [5,13], [0,5] )" << endl;
+    auto mts_it = map_to_sorted_sequence(wt, {5, 13}, {0,5});
     while (mts_it) {
         cout << get<0>(*mts_it);
         cout << " ["<<get<0>(get<1>(*mts_it)) <<","<<get<1>(get<1>(*mts_it))<<"]"<<endl;

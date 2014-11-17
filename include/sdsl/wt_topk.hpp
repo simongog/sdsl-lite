@@ -28,6 +28,7 @@
 
 #include "sdsl/vectors.hpp"
 #include "sdsl/wavelet_trees.hpp"
+#include "sdsl/wt_algorithm.hpp"
 #include "sdsl/rmq_support.hpp"
 #include "sdsl/wt_topk_algorithm.hpp"
 #include <iostream>
@@ -50,7 +51,7 @@ class wt_topk
     public:
         typedef std::complex<uint64_t> point_type;
         typedef int_vector<>::size_type size_type;
-        typedef std::complex<uint64_t> range_type;
+        typedef sdsl::range_type        range_type;
 
         class top_k_iterator
         {
@@ -219,6 +220,19 @@ class wt_topk
             m_wt.load(in);
             m_rmq.load(in);
             m_weights.load(in);
+        }
+
+        // Count how many points are in the rectangle (p1,p2)
+        /*! \param p1    Lower left corner of the rectangle.
+         *  \param p2    Upper right corner of the rectangle.
+         *  \return The number of points in rectangle (p1,p2).
+         *  \pre real(p1) <= real(p2) and imag(p1)<=imag(p2)
+         */
+        uint64_t count(point_type p1, point_type p2) const
+        {
+            const range_type x_r(real(p1), real(p2));
+            const range_type y_r(imag(p1), imag(p2));
+            return sdsl::count(m_wt, x_r, y_r);
         }
 
         void print_info() const

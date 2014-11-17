@@ -604,13 +604,13 @@ class wt_pc
 
         //! Returns the two child nodes of an inner node
         /*! \param v An inner node of a wavelet tree.
-         *  \return Return a pair of nodes (left child, right child).
+         *  \return Return an array of nodes (left child, right child).
          *  \pre !is_leaf(v)
          */
-        std::pair<node_type, node_type>
+        std::array<node_type, 2>
         expand(const node_type& v) const
         {
-            return std::make_pair(m_tree.child(v,0), m_tree.child(v,1));
+            return {m_tree.child(v,0), m_tree.child(v,1)};
         }
 
         //! Returns for each range its left and right child ranges
@@ -623,7 +623,7 @@ class wt_pc
          *          range mapped to the right child of v.
          *  \pre !is_leaf(v) and s>=v_s and e<=v_e
          */
-        std::pair<range_vec_type, range_vec_type>
+        std::array<range_vec_type, 2>
         expand(const node_type& v,
                const range_vec_type& ranges) const
         {
@@ -641,7 +641,7 @@ class wt_pc
          *          range mapped to the right child of v.
          *  \pre !is_leaf(v) and s>=v_s and e<=v_e
          */
-        std::pair<range_vec_type, range_vec_type>
+        std::array<range_vec_type, 2>
         expand(const node_type& v,
                range_vec_type&& ranges) const
         {
@@ -660,7 +660,7 @@ class wt_pc
                 r = range_type(left_sp, left_sp + left_size - 1);
                 res[i++] = range_type(right_sp, right_sp + right_size - 1);
             }
-            return make_pair(ranges, std::move(res));
+            return {ranges, std::move(res)};
         }
 
         //! Returns for a range its left and right child ranges
@@ -673,7 +673,7 @@ class wt_pc
          *          range mapped to the right child of v.
          *  \pre !is_leaf(v) and s>=v_s and e<=v_e
          */
-        std::pair<range_type, range_type>
+        std::array<range_type, 2>
         expand(const node_type& v, const range_type& r) const
         {
             auto v_sp_rank = m_tree.bv_pos_rank(v);
@@ -685,8 +685,9 @@ class wt_pc
             auto right_sp = sp_rank - v_sp_rank;
             auto left_sp  = r.first - right_sp;
 
-            return make_pair(range_type(left_sp, left_sp + left_size - 1),
-                             range_type(right_sp, right_sp + right_size - 1));
+            return {range_type(left_sp, left_sp + left_size - 1),
+                    range_type(right_sp, right_sp + right_size - 1)
+                   };
         }
 
         //! return the path to the leaf for a given symbol

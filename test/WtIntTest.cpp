@@ -201,13 +201,12 @@ test_ys_in_x_range(typename enable_if<t_wt::traversable, t_wt>::type& wt)
 
             size_type symbols = (j-i);
             for (size_type m = 0; symbols and y_it; ++m, ++y_it) {
-                auto c = std::get<0>(*y_it);
+                auto c = get<0>(*y_it);
                 cs.emplace_back(c);
-                ASSERT_EQ(wt.rank(i, c), std::get<1>(*y_it));
-                ASSERT_EQ(wt.rank(j, c), std::get<2>(*y_it));
-                ASSERT_LT((size_type)0, std::get<2>(*y_it)-std::get<1>(*y_it));
-                symbols -= std::get<2>(*y_it)-std::get<1>(*y_it);
-
+                ASSERT_EQ(wt.rank(i, c), get<1>(*y_it));
+                ASSERT_EQ(wt.rank(j, c), get<2>(*y_it));
+                ASSERT_LT((size_type)0, get<2>(*y_it)-get<1>(*y_it));
+                symbols -= (get<2>(*y_it)-get<1>(*y_it));
                 if (m>0 and t_wt::lex_ordered) {
                     ASSERT_LT(cs[m-1],cs[m])<<"m="<<m<<endl;
                 }
@@ -216,7 +215,7 @@ test_ys_in_x_range(typename enable_if<t_wt::traversable, t_wt>::type& wt)
             ASSERT_EQ((size_type)0, symbols);
             if (!t_wt::lex_ordered) {
                 sort(cs.begin(), cs.end());
-                for (size_type m=1; m<cs.size(); m++) {
+                for (size_type m=1; m<cs.size(); ++m) {
                     ASSERT_LT(cs[m-1], cs[m])<<"m="<<m<<" cs.size()="<<cs.size()<<" i="<<i<<", j="<<j<<" wt="<<wt<<endl;
                 }
             }
@@ -561,10 +560,10 @@ test_nodes(typename enable_if<has_node_type<t_wt>::value,t_wt>::type& wt)
             q.pop();
             if (!wt.is_leaf(x)) {
                 auto children = wt.expand(x);
-                if (!wt.empty(std::get<0>(children)))
-                    q.emplace(std::get<0>(children));
-                if (!wt.empty(std::get<1>(children)))
-                    q.emplace(std::get<1>(children));
+                if (!wt.empty(get<0>(children)))
+                    q.emplace(get<0>(children));
+                if (!wt.empty(get<1>(children)))
+                    q.emplace(get<1>(children));
             }
             v.push_back(x);
         }
