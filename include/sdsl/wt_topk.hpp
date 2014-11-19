@@ -44,8 +44,9 @@ namespace sdsl
 
 template<typename t_wt=wt_int<>,
         typename t_rmq=rmq_succinct_sct<false>,
-        typename t_weight_vec=dac_vector<>
->
+        typename t_weight_vec=dac_vector<>,
+        bool perm_x>
+
 class wt_topk
 {
 public:
@@ -104,7 +105,12 @@ public:
             m_valid = false;
             if (!m_pq.empty()) {
                 auto s = m_pq.top();
-                m_point_val = {{m_topk->m_wt.select(s[3]-s[5]+1, s[4]), s[4]}, s[0]};
+
+                if (!perm_x)
+                    m_point_val = {{m_topk->m_wt.select(s[3]-s[5]+1, s[4]), s[4]}, s[0]};
+                else
+                    m_point_val = {s[3], s[0]};
+
                 m_pq.pop();
                 push_node(s[1], s[3], s[4],s[5]);
                 push_node(s[3]+1, s[2]+1, s[4], s[5]);
@@ -138,6 +144,8 @@ private:
     t_rmq               m_rmq;      // range maximum query structure on top of the weights
 
 public:
+    enum { permuted_x = perm_x };
+
     wt_topk() = default;
 
     wt_topk(const wt_topk& tr) = default;
@@ -240,8 +248,6 @@ public:
         std::cout<<"m_wt     ="<<m_wt<<std::endl;
         std::cout<<"m_weights="<<m_weights<<std::endl;
     }
-
-private:
 
     //! Returns a permutation P which is stable sorted according to data_buf
     /*!

@@ -65,6 +65,8 @@ class k2_treap
         static_assert(t_k<=16, "t_k has to be smaller than 17.");
 
     public:
+        enum { permuted_x = false };
+
         typedef int_vector<>::size_type size_type;
         using node_type = k2_treap_ns::node_type;
         using point_type = k2_treap_ns::point_type;
