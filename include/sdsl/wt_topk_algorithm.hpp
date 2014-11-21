@@ -33,18 +33,18 @@ namespace sdsl
 template<typename t_wt,
          typename t_rmq,
          typename t_weight_vec,
-         bool perm_x=true
+         bool t_perm_x
          >
 class wt_topk;
 
 template<typename t_wt,
          typename t_rmq,
          typename t_weight_vec,
-         bool perm_x>
-typename wt_topk<t_wt, t_rmq, t_weight_vec, perm_x>::top_k_iterator
-top_k(const wt_topk<t_wt, t_rmq, t_weight_vec,perm_x>& wt,
-      typename wt_topk<t_wt, t_rmq, t_weight_vec, perm_x>::point_type p1,
-      typename wt_topk<t_wt, t_rmq, t_weight_vec, perm_x>::point_type p2)
+         bool t_perm_x>
+typename wt_topk<t_wt, t_rmq, t_weight_vec, t_perm_x>::top_k_iterator
+top_k(const wt_topk<t_wt, t_rmq, t_weight_vec,t_perm_x>& wt,
+      typename wt_topk<t_wt, t_rmq, t_weight_vec, t_perm_x>::point_type p1,
+      typename wt_topk<t_wt, t_rmq, t_weight_vec, t_perm_x>::point_type p2)
 {
     return wt.topk(p1, p2);
 }
@@ -53,15 +53,15 @@ top_k(const wt_topk<t_wt, t_rmq, t_weight_vec,perm_x>& wt,
 template<typename t_wt,
          typename t_rmq,
          typename t_weight_vec,
-         bool perm_x
+         bool t_perm_x
          >
 void
-construct(wt_topk<t_wt, t_rmq, t_weight_vec, perm_x>& idx, std::string file)
+construct(wt_topk<t_wt, t_rmq, t_weight_vec, t_perm_x>& idx, std::string file)
 {
     int_vector_buffer<> buf_x(file+".x", std::ios::in);
     int_vector_buffer<> buf_y(file+".y", std::ios::in);
     int_vector_buffer<> buf_w(file+".w", std::ios::in);
-    wt_topk<t_wt, t_rmq, t_weight_vec> tmp(buf_x, buf_y, buf_w);
+    wt_topk<t_wt, t_rmq, t_weight_vec, t_perm_x> tmp(buf_x, buf_y, buf_w);
     tmp.swap(idx);
 }
 
@@ -69,10 +69,10 @@ construct(wt_topk<t_wt, t_rmq, t_weight_vec, perm_x>& idx, std::string file)
 template<typename t_wt,
          typename t_rmq,
          typename t_weight_vec,
-         bool perm_x
+         bool t_perm_x
          >
 void
-construct_im(wt_topk<t_wt, t_rmq, t_weight_vec, perm_x>& idx, std::vector<std::array<uint64_t, 3>> data)
+construct_im(wt_topk<t_wt, t_rmq, t_weight_vec, t_perm_x>& idx, std::vector<std::array<uint64_t, 3>> data)
 {
     std::string y_file = ram_file_name(std::to_string(util::pid())+"_"+std::to_string(util::id()));
     std::string w_file = ram_file_name(std::to_string(util::pid())+"_"+std::to_string(util::id()));
@@ -93,7 +93,7 @@ construct_im(wt_topk<t_wt, t_rmq, t_weight_vec, perm_x>& idx, std::vector<std::a
     }
     int_vector_buffer<> y_buf(y_file);
     int_vector_buffer<> w_buf(w_file);
-    wt_topk<t_wt, t_rmq, t_weight_vec, perm_x> tmp(y_buf, y_buf, w_buf);
+    wt_topk<t_wt, t_rmq, t_weight_vec, t_perm_x> tmp(y_buf, y_buf, w_buf);
     tmp.swap(idx);
 }
 
@@ -101,12 +101,12 @@ construct_im(wt_topk<t_wt, t_rmq, t_weight_vec, perm_x>& idx, std::vector<std::a
 template<typename t_wt,
          typename t_rmq,
          typename t_weight_vec,
-         bool perm_x
+         bool t_perm_x
          >
 uint64_t
-count(const wt_topk<t_wt, t_rmq, t_weight_vec,perm_x>& wt,
-      typename wt_topk<t_wt, t_rmq, t_weight_vec, perm_x>::point_type p1,
-      typename wt_topk<t_wt, t_rmq, t_weight_vec, perm_x>::point_type p2)
+count(const wt_topk<t_wt, t_rmq, t_weight_vec,t_perm_x>& wt,
+      typename wt_topk<t_wt, t_rmq, t_weight_vec, t_perm_x>::point_type p1,
+      typename wt_topk<t_wt, t_rmq, t_weight_vec, t_perm_x>::point_type p2)
 {
     return wt.count(p1, p2);
 }
