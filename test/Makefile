@@ -1,11 +1,11 @@
 include ../Make.helper
 CXX_FLAGS=$(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O3 \
 		  -I$(INC_DIR) \
-		  -I../build/external/googletest/include \
+		  -I../external/googletest/include \
 		  -L$(LIB_DIR) \
-		  -L../build/external/googletest/
+		  -L../build/googletest/
 LIB_SDSL=$(LIB_DIR)/libsdsl.a
-CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest
+CCLIB=-lsdsl -ldivsufsort -ldivsufsort64 -lgtest -lpthread
 TMP_DIR=tmp
 SOURCES=$(wildcard *Test.cpp)
 EXECS=$(SOURCES:.cpp=.x)
@@ -85,6 +85,13 @@ test:	bits-test \
 	nn-dict-dynamic-test \
 	k2treap-test
 
+../build/googletest/libgtest.a : ../external/googletest/CMakeLists.txt
+	mkdir -p ../build/googletest/
+	cd ../build/googletest; cmake ../../external/googletest/; make
+
+../external/googletest/CMakeLists.txt:
+	cd ../; git submodule update --init
+
 build-test: $(EXECS)
 	cd ../tutorial; make build-test
 	cd ../examples; make build-test
@@ -107,10 +114,10 @@ build-test-clean: clean
 
 generators: BitVectorGenerator.x IntVectorGenerator.x ReplaceIntVectorValue.x
 
-bits-test: ./BitsTest.x
+bits-test: ./BitsTest.x 
 	@$(PREFIX) ./BitsTest.x
 
-coder-test: ./CoderTest.x
+coder-test: ./CoderTest.x 
 	@$(PREFIX) ./CoderTest.x
 
 int-vector-test: ./IntVectorTest.x
@@ -274,7 +281,7 @@ test_cases/bit-vec.%: BitVectorGenerator.x
 	@echo "Generate input test_cases/bit-vec.$*"
 	@./BitVectorGenerator.x $@ $*
 
-%.x:%.cpp $(LIB_SDSL)
+%.x:%.cpp $(LIB_SDSL) ../build/googletest/libgtest.a
 	$(MY_CXX) $(CXX_FLAGS) -o $@ $< $(CCLIB)
 
 test_cases/%:

@@ -1,8 +1,4 @@
 #!/bin/bash
-
-# make sure googletest is available and up2date
-git submodule update --init
-
 # This script builds all dependencies of sdsl
 # and installs the library on a LINUX or Mac OS X system
 
