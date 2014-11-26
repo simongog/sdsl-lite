@@ -220,6 +220,8 @@ class succinct_byte_alphabet
                 char2comp_wrapper(const succinct_byte_alphabet* strat) : m_strat(strat) {}
                 comp_char_type operator[](char_type c) const
                 {
+                   if ( c >= m_strat->m_char.size() or !m_strat->m_char[c] )
+                        return (comp_char_type)0;
                     return (comp_char_type) m_strat->m_char_rank((size_type)c);
                 }
         };
@@ -418,10 +420,15 @@ class int_alphabet
                 comp_char_type operator[](char_type c) const
                 {
                     if (m_strat->m_char.size() > 0) {  // if alphabet is not continuous
+                        if ( c >= m_strat->m_char.size() or !m_strat->m_char[c] )
+                            return (comp_char_type)0;
                         return (comp_char_type) m_strat->m_char_rank((size_type)c);
                     } else { // direct map if it is continuous
+                        if ( c >= m_strat->m_sigma )
+                            return 0;
                         return (comp_char_type) c;
                     }
+                    return 0;
                 }
         };
 

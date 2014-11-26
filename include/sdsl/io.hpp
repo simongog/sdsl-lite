@@ -794,6 +794,17 @@ operator<<(std::ostream& os, const std::vector<t_int>& v)
     return os;
 }
 
+template<class t_iv>
+inline typename std::enable_if<std::is_same<typename t_iv::category ,csa_member_tag>::value, std::ostream&>::type
+operator<<(std::ostream& os, const t_iv& v)
+{
+    for (auto it=v.begin(), end = v.end(); it != end; ++it) {
+        os << *it;
+        if (it+1 != end and std::is_same<typename t_iv::alphabet_category,int_alphabet_tag>::value) os << " ";
+    }
+    return os;
+}
+
 
 
 

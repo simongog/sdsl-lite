@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 namespace
 {
@@ -154,6 +155,11 @@ TYPED_TEST(CsaIntTest, TextAccess)
         auto ex_text = extract(csa, 0, len-1);
         for (size_type j=0; j<len; ++j) {
             ASSERT_EQ(text[j], ex_text[j])<<" j="<<j;
+        }
+        if ( n > 0 ){
+            auto c_out_of_range = (*std::max_element(text.begin(), text.end()))+1;
+            auto cnt = count(csa, {c_out_of_range});
+            ASSERT_EQ(0ULL, cnt) << " c_out_of_range="<<c_out_of_range<<" text="<<csa.text; 
         }
     }
 }
