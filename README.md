@@ -249,6 +249,7 @@ implementation ([hyb_vector][HB]).
 This project further profited from excellent input of our students
 Markus Brenner, Alexander Diehm, and Maike Zwerger. Stefan
 Arnold helped us with tricky template questions. We are also grateful to
+[Diego Caro](https://github.com/diegocaro),
 [Travis Gagie](https://github.com/TravisGagie),
 Kalle Karhu,
 [Bruce Kuo](https://github.com/bruce3557),

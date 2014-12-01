@@ -308,7 +308,7 @@ Representations for a bitvector of length $n$ with $m$ set bits.
 \href{\sdslgitinc/int_vector.hpp}{\sdslbitvector} & 
 plain bitvector            & 64$\lceil n/64\!+\!1\rceil$ \\
 \href{\sdslgitinc/bit_vector_il.hpp}{\sdslbitvectoril} &
-interleaved  bitvector & $\approx n(1+K/64)$  \\
+interleaved  bitvector & $\approx n(1+64/K)$  \\
 \href{\sdslgitinc/rrr_vector.hpp}{\sdslrrrvector} & 
 $H_0$-compressed bitvector & $\approx \lceil \log {n\choose m} \rceil$ \\
 \href{\sdslgitinc/sd_vector.hpp}{\sdslsdvector}  & sparse bitvector
