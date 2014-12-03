@@ -124,7 +124,7 @@ TEST(SD_VECTOR, IteratorConstructor)
     }
     sd_vector<> sdv(pos.begin(),pos.end());
     for (size_t i=0; i < bv.size(); ++i) {
-        ASSERT_EQ(sdv[i],bv[i]);
+        ASSERT_EQ((bool)sdv[i],(bool)bv[i]);
     }
 }
 
