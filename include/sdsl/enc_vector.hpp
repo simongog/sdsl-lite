@@ -74,8 +74,9 @@ class enc_vector
         typedef t_coder                                  coder;
         typedef typename enc_vector_trait<t_width>::int_vector_type int_vector_type;
         typedef iv_tag                                   index_category;
-        static  const uint32_t                           sample_dens    = t_dens;
         typedef enc_vector                               enc_vec_type;
+        static  const uint32_t                           sample_dens    = t_dens;
+        static  const uint64_t                           BLOCK_FULL = 0;
 
         int_vector<0>     m_z;                       // storage for encoded deltas
     private:
@@ -177,11 +178,19 @@ class enc_vector
         void get_inter_sampled_values(const size_type i, uint64_t* it)const
         {
             *(it++) = 0;
-            if (i*t_dens + t_dens - 1 < size()) {
-                t_coder::template decode<true, true>(m_z.data(), m_sample_vals_and_pointer[(i<<1)+1], t_dens - 1, it);
+            uint64_t pointer = m_sample_vals_and_pointer[(i<<1)+1];
+            if (BLOCK_FULL == pointer) {
+                for (size_t i=1; i<t_dens; ++i)
+                    *(it++) = i;
             } else {
-                assert(i*t_dens < size());
-                t_coder::template decode<true, true>(m_z.data(), m_sample_vals_and_pointer[(i<<1)+1], size()-i*t_dens - 1, it);
+                --pointer;
+                uint64_t pointer = m_sample_vals_and_pointer[(i<<1)+1]-1;
+                if (i*t_dens + t_dens - 1 < size()) {
+                    t_coder::template decode<true, true>(m_z.data(), pointer, t_dens - 1, it);
+                } else {
+                    assert(i*t_dens < size());
+                    t_coder::template decode<true, true>(m_z.data(), pointer, size()-i*t_dens - 1, it);
+                }
             }
         };
 };
@@ -191,8 +200,14 @@ inline typename enc_vector<t_coder, t_dens,t_width>::value_type enc_vector<t_cod
 {
     assert(i+1 != 0);
     assert(i < m_size);
-    size_type idx = i/get_sample_dens();
-    return m_sample_vals_and_pointer[idx<<1] + t_coder::decode_prefix_sum(m_z.data(), m_sample_vals_and_pointer[(idx<<1)+1], i-t_dens*idx);
+    size_type idx = i/t_dens;
+    uint64_t sample  = m_sample_vals_and_pointer[idx<<1];
+    uint64_t pointer = m_sample_vals_and_pointer[(idx<<1)+1];
+    if (BLOCK_FULL == pointer) {
+        return sample + i - t_dens*idx;
+    } else {
+        return sample + t_coder::decode_prefix_sum(m_z.data(), pointer-1, i-t_dens*idx);
+    }
 }
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
@@ -224,20 +239,32 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c)
         return;
     typename Container::const_iterator    it             = c.begin(), end = c.end();
     typename Container::value_type         v1            = *it, v2, max_sample_value=0, x;
-    size_type samples=0;
-    size_type z_size = 0;
+    size_type samples = 0;
+    size_type z_size = BLOCK_FULL + 1;
+    bool is_uni = false;
+    auto old_z_size = z_size;
+    std::vector<bool> is_uniform;
 //  (1) Calculate maximal value of samples and of deltas
     for (size_type i=0, no_sample=0; it != end; ++it,++i, --no_sample) {
         v2 = *it;
         if (!no_sample) { // add a sample
+            is_uniform.push_back(is_uni);
             no_sample = get_sample_dens();
             if (max_sample_value < v2) max_sample_value = v2;
             ++samples;
+            if (is_uni) {
+                z_size = old_z_size;
+            }
+            old_z_size = z_size;
+            is_uni = true;
         } else {
-            z_size += t_coder::encoding_length(v2-v1);
+            auto x = v2-v1;
+            is_uni &= (x==1);
+            z_size += t_coder::encoding_length(x);
         }
         v1=v2;
     }
+    is_uniform.push_back(is_uni);
 //    (2) Write sample values and deltas
     {
         if (max_sample_value > z_size+1)
@@ -247,32 +274,38 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(const Container& c)
         m_sample_vals_and_pointer.resize(2*samples+2); // add 2 for last entry
         util::set_to_value(m_sample_vals_and_pointer, 0);
         typename int_vector_type::iterator sv_it = m_sample_vals_and_pointer.begin();
-        z_size = 0;
+        z_size = BLOCK_FULL + 1;
         size_type no_sample=0;
+        old_z_size = z_size;
+        uint64_t block_nr = 0;
         for (it = c.begin(); it != end; ++it, --no_sample) {
             v2 = *it;
             if (!no_sample) { // add a sample
+                ++block_nr;
                 no_sample = get_sample_dens();
                 *sv_it = v2; ++sv_it;
-                *sv_it = z_size; ++sv_it;
-            } else {
-                x = v2-v1;
+                *sv_it = is_uniform[block_nr] ? BLOCK_FULL : z_size;
+                ++sv_it;
+            } else if (!is_uniform[block_nr]) {
+                auto x = v2-v1;
                 z_size += t_coder::encoding_length(x);
             }
             v1=v2;
         }
-        *sv_it = 0; ++sv_it;        // initialize
-        *sv_it = z_size+1; ++sv_it; // last entry
+        *sv_it = 0; ++sv_it;        // initialize last entry
+        *sv_it = z_size+1; ++sv_it;
 
         m_z = int_vector<>(z_size, 0, 1);
         uint64_t* z_data = t_coder::raw_data(m_z);
         uint8_t offset = 0;
         no_sample = 0;
+        block_nr = 0;
         for (it = c.begin(); it != end; ++it, --no_sample) {
             v2 = *it;
             if (!no_sample) { // add a sample
                 no_sample = get_sample_dens();
-            } else {
+                ++block_nr;
+            } else if (!is_uniform[block_nr]) {
                 t_coder::encode(v2-v1, z_data, offset);
             }
             v1=v2;
@@ -291,20 +324,32 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_buffer<int_width>& v_
     if (n == 0)  // if c is empty there is nothing to do...
         return;
     value_type     v1=0, v2=0, max_sample_value=0;
-    size_type samples=0, z_size=0;
+    size_type samples=0, z_size = BLOCK_FULL + 1;
+    bool is_uni = false;
+    auto old_z_size = z_size;
     const size_type sd = get_sample_dens();
+    std::vector<bool> is_uniform;
 //  (1) Calculate maximal value of samples and of deltas
     for (size_type i=0, no_sample = 0; i < n; ++i, --no_sample) {
         v2 = v_buf[i];
         if (!no_sample) { // is sample
+            is_uniform.push_back(is_uni);
             no_sample = sd;
             if (max_sample_value < v2) max_sample_value = v2;
             ++samples;
+            if (is_uni) {
+                z_size = old_z_size;
+            }
+            old_z_size = z_size;
+            is_uni = true;
         } else {
-            z_size += t_coder::encoding_length(v2-v1);
+            auto x = v2-v1;
+            is_uni &= (x==1);
+            z_size += t_coder::encoding_length(x);
         }
         v1 = v2;
     }
+    is_uniform.push_back(is_uni);
 
 //    (2) Write sample values and deltas
 //    (a) Initialize array for sample values and pointers
@@ -321,14 +366,17 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_buffer<int_width>& v_
     uint8_t offset = 0;
 
 //    (c) Write sample values and deltas
-    z_size = 0;
+    z_size = BLOCK_FULL + 1;
+    uint64_t block_nr = 0;
     for (size_type i=0, j=0, no_sample = 0; i < n; ++i, --no_sample) {
         v2 = v_buf[i];
         if (!no_sample) { // is sample
+            ++block_nr;
             no_sample = sd;
             m_sample_vals_and_pointer[j++] = v2;    // write samples
-            m_sample_vals_and_pointer[j++] = z_size;// write pointers
-        } else {
+            uint64_t ptr = is_uniform[block_nr] ? BLOCK_FULL : z_size;
+            m_sample_vals_and_pointer[j++] = ptr;// write pointers
+        } else if (!is_uniform[block_nr]) {
             z_size += t_coder::encoding_length(v2-v1);
             t_coder::encode(v2-v1, z_data, offset);   // write encoded values
         }
