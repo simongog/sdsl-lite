@@ -75,6 +75,9 @@ uint64_t _parse_number(std::string::const_iterator& c, const std::string::const_
 
 std::string cache_file_name(const std::string& key, const cache_config& config)
 {
+    if (config.file_map.count(key) != 0) {
+        return config.file_map.at(key);
+    }
     return config.dir+"/"+key+"_"+config.id+".sdsl";
 }
 
