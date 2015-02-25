@@ -41,7 +41,11 @@ typedef Types<select_support_mcl<>,
         select_support_rrr<0, 127>,
         select_support_il<0, 256>,
         select_support_il<0, 512>,
-        select_support_il<0, 1024>
+        select_support_il<0, 1024>,
+        select_support_mcl<01,2>,
+        select_support_mcl<10,2>,
+        select_support_mcl<00,2>,
+        select_support_mcl<11,2>
         > Implementations;
 
 TYPED_TEST_CASE(SelectSupportTest, Implementations);
@@ -55,10 +59,18 @@ TYPED_TEST(SelectSupportTest, SelectMethod)
     typename TypeParam::bit_vector_type bv(bvec);
     TypeParam ss(&bv);
     for (uint64_t j=0, select=0; j < bvec.size(); ++j) {
-        if (bvec[j] == TypeParam::bit_pat) {
+        bool found = (j >= TypeParam::bit_pat_len-1);
+        for (uint8_t k=0; found and k < TypeParam::bit_pat_len; ++k) {
+            found &= bvec[j-k] == ((TypeParam::bit_pat>>k)&1);
+        }
+        if (found) {
             ++select;
             ASSERT_EQ(j, ss.select(select));
         }
+//        if (bvec[j] == TypeParam::bit_pat) {
+//            ++select;
+//            ASSERT_EQ(j, ss.select(select));
+//        }
     }
 }
 

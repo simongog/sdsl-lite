@@ -157,7 +157,7 @@ struct bits {
     //! Map all 10 bit pairs to 01 or 1 if c=1 and the lsb=0. All other pairs are mapped to 00.
     static uint64_t map10(uint64_t x, uint64_t c=0);
 
-    //! Map all 01 bit pairs to 01 of 1 if c=1 and the lsb=0. All other pairs are mapped to 00.
+    //! Map all 01 bit pairs to 01 or 1 if c=1 and the lsb=0. All other pairs are mapped to 00.
     static uint64_t map01(uint64_t x, uint64_t c=1);
 
     //! Calculate the position of the i-th rightmost 1 bit in the 64bit integer x
