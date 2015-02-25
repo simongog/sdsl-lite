@@ -51,17 +51,19 @@ template<uint8_t t_b=1, uint8_t t_pat_len=1>
 class rank_support_v5 : public rank_support
 {
     private:
-        static_assert(t_b == 1u or t_b == 0u or t_b == 10u , "rank_support_v5: bit pattern must be `0`,`1`,`10` or `01`");
+        static_assert(t_b == 1u or t_b == 0u or t_b == 10u or t_b == 11u, "rank_support_v5: bit pattern must be `0`,`1`,`10` or `01` or `11`");
         static_assert(t_pat_len == 1u or t_pat_len == 2u , "rank_support_v5: bit pattern length must be 1 or 2");
     public:
         typedef bit_vector bit_vector_type;
         typedef rank_support_trait<t_b, t_pat_len>  trait_type;
         enum { bit_pat = t_b };
+        enum { bit_pat_len = t_pat_len };
     private:
 //      basic block for interleaved storage of superblockrank and blockrank
         int_vector<64> m_basic_block;
     public:
-        explicit rank_support_v5(const bit_vector* v = nullptr) {
+        explicit rank_support_v5(const bit_vector* v = nullptr)
+        {
             set_vector(v);
             if (v == nullptr) {
                 return;
@@ -112,7 +114,8 @@ class rank_support_v5 : public rank_support
         rank_support_v5& operator=(const rank_support_v5&) = default;
         rank_support_v5& operator=(rank_support_v5&&) = default;
 
-        size_type rank(size_type idx) const {
+        size_type rank(size_type idx) const
+        {
             assert(m_v != nullptr);
             assert(idx <= m_v->size());
             const uint64_t* p = m_basic_block.data()
@@ -132,14 +135,17 @@ class rank_support_v5 : public rank_support
             return result;
         }
 
-        inline size_type operator()(size_type idx)const {
+        inline size_type operator()(size_type idx)const
+        {
             return rank(idx);
         }
-        size_type size()const {
+        size_type size()const
+        {
             return m_v->size();
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             size_type written_bytes = 0;
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             written_bytes += m_basic_block.serialize(out, child, "cumulative_counts");
@@ -147,17 +153,20 @@ class rank_support_v5 : public rank_support
             return written_bytes;
         }
 
-        void load(std::istream& in, const bit_vector* v=nullptr) {
+        void load(std::istream& in, const bit_vector* v=nullptr)
+        {
             set_vector(v);
             assert(m_v != nullptr); // supported bit vector should be known
             m_basic_block.load(in);
         }
 
-        void set_vector(const bit_vector* v=nullptr) {
+        void set_vector(const bit_vector* v=nullptr)
+        {
             m_v = v;
         }
         //! swap Operator
-        void swap(rank_support_v5& rs) {
+        void swap(rank_support_v5& rs)
+        {
             if (this != &rs) { // if rs and _this_ are not the same object
                 m_basic_block.swap(rs.m_basic_block);
             }

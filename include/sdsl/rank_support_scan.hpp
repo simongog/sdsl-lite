@@ -41,37 +41,46 @@ template<uint8_t t_b=1, uint8_t t_pat_len=1>
 class rank_support_scan : public rank_support
 {
     private:
-        static_assert(t_b == 1u or t_b == 0u or t_b == 10u , "rank_support_scan: bit pattern must be `0`,`1`,`10` or `01`");
+        static_assert(t_b == 1u or t_b == 0u or t_b == 10u or t_b == 11u, "rank_support_scan: bit pattern must be `0`,`1`,`10` or `01`");
         static_assert(t_pat_len == 1u or t_pat_len == 2u , "rank_support_scan: bit pattern length must be 1 or 2");
     public:
         typedef bit_vector bit_vector_type;
         enum { bit_pat = t_b };
+        enum { bit_pat_len = t_pat_len };
     public:
-        explicit rank_support_scan(const bit_vector* v = nullptr) {
+        explicit rank_support_scan(const bit_vector* v = nullptr)
+        {
             set_vector(v);
         }
-        rank_support_scan(const rank_support_scan& rs) {
+        rank_support_scan(const rank_support_scan& rs)
+        {
             set_vector(rs.m_v);
         }
         size_type rank(size_type idx) const;
-        size_type operator()(size_type idx)const {
+        size_type operator()(size_type idx)const
+        {
             return rank(idx);
         };
-        size_type size()const {
+        size_type size()const
+        {
             return m_v->size();
         };
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             return serialize_empty_object(out, v, name, this);
         }
-        void load(std::istream&, const int_vector<1>* v=nullptr) {
+        void load(std::istream&, const int_vector<1>* v=nullptr)
+        {
             set_vector(v);
         }
-        void set_vector(const bit_vector* v=nullptr) {
+        void set_vector(const bit_vector* v=nullptr)
+        {
             m_v=v;
         }
 
         //! Assign Operator
-        rank_support_scan& operator=(const rank_support_scan& rs) {
+        rank_support_scan& operator=(const rank_support_scan& rs)
+        {
             set_vector(rs.m_v);
             return *this;
         }

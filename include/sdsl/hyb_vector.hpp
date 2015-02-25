@@ -632,6 +632,7 @@ class rank_support_hyb
         typedef hyb_vector<k_sblock_rate> bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
         enum { bit_pat = t_b };
+        enum { bit_pat_len = (uint8_t)1 };
     private:
         const bit_vector_type* m_v;
 
@@ -832,6 +833,7 @@ class select_support_hyb
         typedef hyb_vector<k_sblock_rate> bit_vector_type;
         typedef typename bit_vector_type::size_type size_type;
         enum { bit_pat = t_b };
+        enum { bit_pat_len = (uint8_t)1 };
     private:
         const bit_vector_type* m_v;
 

@@ -390,6 +390,7 @@ class rank_support_sd
         typedef bit_vector::size_type size_type;
         typedef sd_vector<t_hi_bit_vector, t_select_1, t_select_0> bit_vector_type;
         enum { bit_pat = t_b };
+        enum { bit_pat_len = (uint8_t)1 };
     private:
         const bit_vector_type* m_v;
 
@@ -510,7 +511,7 @@ class select_support_sd
         typedef bit_vector::size_type size_type;
         typedef sd_vector<t_hi_bit_vector, t_select_1, t_select_0> bit_vector_type;
         enum { bit_pat = t_b };
-
+        enum { bit_pat_len = (uint8_t)1 };
     private:
         const bit_vector_type* m_v;
     public:
@@ -577,7 +578,7 @@ class select_0_support_sd
         using sel0_type = typename t_sd_vector::select_0_type;
         typedef bit_vector           y_high_type;
         enum { bit_pat = 0 };
-
+        enum { bit_pat_len = (uint8_t)1 };
     private:
         const bit_vector_type* m_v;
         int_vector<>           m_pointer;
