@@ -62,7 +62,7 @@ class comma
         static_assert(t_width > 1 && t_width <= 32,
                       "comma coder: Width must be in interval [2,32]");
 
-        static constexpr size_t base_fits_in_64(uint32_t base, uint64_t product=0xFFFFFFFFFFFFFFFFULL, size_t res=0)
+        static constexpr size_t base_fits_in_64(uint32_t base, uint64_t product, size_t res)
         {
             return product==0 ? res : base_fits_in_64(base, product/base, res+1);
         }
@@ -73,7 +73,7 @@ class comma
         //table needed for computation of encoding lengths.
         //table contains entries of the kind (index, base^index)
         //to know how much digits a number needs to be encoded.
-        static const size_t codelentbllen = base_fits_in_64(base);
+        static const size_t codelentbllen = base_fits_in_64(base,0xFFFFFFFFFFFFFFFFULL,0);
         static std::array<uint64_t, codelentbllen> codelentbl;
 
         //utility function to set up codelen table
