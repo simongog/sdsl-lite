@@ -585,12 +585,12 @@ struct void_ { typedef void type; };
 
 template<typename t_wt, typename T = void>
 struct has_node_type {
-    static constexpr std::false_type value = std::false_type();
+    static const std::false_type value;
 };
 
 template<typename t_wt>
 struct has_node_type<t_wt, typename void_<typename t_wt::node_type>::type> {
-    static constexpr std::true_type value = std::true_type();
+    static const std::true_type value;
 };
 
 
