@@ -2,6 +2,11 @@
 #include <iostream>
 #include <limits>
 
+#ifdef WIN32
+#include "iso646.h"
+#endif
+
+
 namespace sdsl
 {
 
