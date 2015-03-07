@@ -16,7 +16,13 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.svn")
 endif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.svn")
 
 ## Project information ##
-project(libdivsufsort C)
+if(POLICY CMP0048)
+  cmake_policy(SET CMP0048 NEW)
+  project(libdivsufsort C VERSION 2.0.1 LANGUAGES C CXX)
+else()
+  project(libdivsufsort C)
+endif()
+
 set(PROJECT_VENDOR "Yuta Mori")
 set(PROJECT_CONTACT "yuta.256@gmail.com")
 set(PROJECT_URL "http://libdivsufsort.googlecode.com/")
