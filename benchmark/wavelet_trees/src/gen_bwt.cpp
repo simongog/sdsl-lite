@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
                 util::delete_all_files(cc.file_map);
             } else {
                 {
-                    csa_wt<wt_int<>, 64, 64, sa_order_sa_sampling<>, int_vector<>, int_alphabet<>> wt;
+                    csa_wt<wt_int<>, 64, 64, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<>> wt;
                     construct(wt, argv[1], cc, num_byte);
                 }
                 int_vector<> bwt;
