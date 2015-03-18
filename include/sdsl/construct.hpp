@@ -103,7 +103,7 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     util::clear(text);
     {
         int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(tmp_file_name);
-        t_index tmp(text_buf, text_buf.size());
+        t_index tmp(text_buf);
         idx.swap(tmp);
     }
     sdsl::remove(tmp_file_name);
