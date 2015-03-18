@@ -811,7 +811,7 @@ class cst_sct3
 
         //! Get the child w of node v which edge label (v,w) starts with character c.
         // \sa child(node_type v, const char_type c, size_type &char_pos)
-        node_type child(const node_type& v, const char_type c)
+        node_type child(const node_type& v, const char_type c) const
         {
             size_type char_pos;
             return child(v, c, char_pos);
