@@ -76,7 +76,8 @@ class vlc_vector
 
         void copy(const vlc_vector& v);
 
-        void clear() {
+        void clear()
+        {
             m_z.resize(0);
             m_size = 0;
             m_sample_pointer.resize(0);
@@ -101,16 +102,19 @@ class vlc_vector
         vlc_vector(int_vector_buffer<int_width>& v_buf);
 
         //! The number of elements in the vlc_vector.
-        size_type size()const {
+        size_type size()const
+        {
             return m_size;
         }
         //! Return the largest size that this container can ever have.
-        static size_type max_size() {
+        static size_type max_size()
+        {
             return int_vector<>::max_size()/2;
         }
 
         //!    Returns if the vlc_vector is empty.
-        bool empty() const {
+        bool empty() const
+        {
             return 0 == m_size;
         }
 
@@ -118,13 +122,15 @@ class vlc_vector
         void swap(vlc_vector& v);
 
         //! Iterator that points to the first element of the vlc_vector.
-        const const_iterator begin()const {
+        const const_iterator begin()const
+        {
             return const_iterator(this, 0);
         }
 
 
         //! Iterator that points to the position after the last element of the vlc_vector.
-        const const_iterator end()const {
+        const const_iterator end()const
+        {
             return const_iterator(this, this->m_size);
         }
 
@@ -141,7 +147,7 @@ class vlc_vector
         value_type sample(const size_type i) const;
 
         uint32_t get_sample_dens() const;
-        void set_sample_dens(const uint32_t sample_dens);
+        void set_sample_dens(const uint32_t sdens);
 };
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
@@ -154,9 +160,9 @@ inline uint32_t vlc_vector<t_coder, t_dens, t_width>::get_sample_dens() const
 }
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>
-inline void vlc_vector<t_coder, t_dens, t_width>::set_sample_dens(const uint32_t sample_dens)
+inline void vlc_vector<t_coder, t_dens, t_width>::set_sample_dens(const uint32_t sdens)
 {
-    m_sample_dens = sample_dens;
+    m_sample_dens = sdens;
 }
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>

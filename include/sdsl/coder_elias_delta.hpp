@@ -45,7 +45,8 @@ class elias_delta
 
             uint16_t prefixsum_8bit[(1<<8)*8];
 
-            impl() {
+            impl()
+            {
                 // initialize prefixsum
                 for (uint64_t x=0; x < (1<<16); ++x) {
                     const uint64_t* w = &x; // copy of x
@@ -111,21 +112,21 @@ class elias_delta
         static const uint8_t min_codeword_length = 1; // 1 represents 1 and is the code word with minimum length
         static uint8_t encoding_length(uint64_t);
         //! Decode n Elias-delta encoded bits beginning at start_idx in the bitstring "data"
-        /* \param data Bitstring
+        /* \param d Bitstring
            \param start_idx Starting index of the decoding.
            \param n Number of values to decode from the bitstring.
            \param it Iterator to decode the values.
          */
         template<bool t_sumup, bool t_inc,class t_iter>
-        static uint64_t decode(const uint64_t* data, const size_type start_idx, size_type n, t_iter it=(t_iter)nullptr);
+        static uint64_t decode(const uint64_t* d, const size_type start_idx, size_type n, t_iter it=(t_iter)nullptr);
 
         //! Decode n Elias delta encoded integers beginning at start_idx in the bitstring "data"  and return the sum of these values.
-        /*! \param data Pointer to the beginning of the Elias delta encoded bitstring.
+        /*! \param d Pointer to the beginning of the Elias delta encoded bitstring.
             \param start_idx Index of the first bit to endcode the values from.
         	\param n Number of values to decode from the bitstring. Attention: There have to be at least n encoded values in the bitstring.
          */
-        static uint64_t decode_prefix_sum(const uint64_t* data, const size_type start_idx, size_type n);
-        static uint64_t decode_prefix_sum(const uint64_t* data, const size_type start_idx, const size_type end_idx, size_type n);
+        static uint64_t decode_prefix_sum(const uint64_t* d, const size_type start_idx, size_type n);
+        static uint64_t decode_prefix_sum(const uint64_t* d, const size_type start_idx, const size_type end_idx, size_type n);
 
         template<class int_vector>
         static bool encode(const int_vector& v, int_vector& z);
@@ -140,7 +141,8 @@ class elias_delta
         static void encode(uint64_t x, uint64_t*& z, uint8_t& offset);
 
         template<class int_vector>
-        static uint64_t* raw_data(int_vector& v) {
+        static uint64_t* raw_data(int_vector& v)
+        {
             return v.m_data;
         }
 };
@@ -229,21 +231,21 @@ bool elias_delta::decode(const int_vector& z, int_vector& v)
 }
 
 template<bool t_sumup, bool t_inc, class t_iter>
-inline uint64_t elias_delta::decode(const uint64_t* data, const size_type start_idx, size_type n, t_iter it)
+inline uint64_t elias_delta::decode(const uint64_t* d, const size_type start_idx, size_type n, t_iter it)
 {
-    data += (start_idx >> 6);
+    d += (start_idx >> 6);
     uint64_t value = 0;
     size_type i = 0;
     size_type len_1_len, len;
     uint8_t offset = start_idx & 0x3F;
     while (i++ < n) {// while not all values are decoded
         if (!t_sumup) value = 0;
-        len_1_len = bits::read_unary_and_move(data, offset); // read length of length of x
+        len_1_len = bits::read_unary_and_move(d, offset); // read length of length of x
         if (!len_1_len) {
             value += 1;
         } else {
-            len 	=  bits::read_int_and_move(data, offset, len_1_len) + (1ULL << len_1_len);
-            value	+= bits::read_int_and_move(data, offset, len-1) + (len-1<64) * (1ULL << (len-1));
+            len 	=  bits::read_int_and_move(d, offset, len_1_len) + (1ULL << len_1_len);
+            value	+= bits::read_int_and_move(d, offset, len-1) + (len-1<64) * (1ULL << (len-1));
         }
         if (t_inc) *(it++) = value;
     }
