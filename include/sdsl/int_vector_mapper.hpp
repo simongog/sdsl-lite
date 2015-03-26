@@ -340,12 +340,30 @@ class temp_file_buffer
         }
 };
 
+// creates emtpy int_vector<> that will not be deleted
+template <uint8_t t_width = 0>
+class write_out_buffer
+{
+    public:
+        static int_vector_mapper<t_width> create(const std::string& key,const cache_config& config) {
+            auto file_name = cache_file_name(key,config);
+            auto tmp = create(file_name);
+            register_cache_file(key,config);
+            return std::move(tmp);
+        }
+        static int_vector_mapper<t_width> create(const std::string& file_name) {
+            //write empty int_vector to init the file
+            int_vector<t_width> tmp_vector;
+            store_to_file(tmp_vector,file_name);
+            return int_vector_mapper<t_width,std::ios_base::out|std::ios_base::in>(file_name,false,false);
+        }
+};
+
 template<std::ios_base::openmode t_mode = std::ios_base::out|std::ios_base::in>
 using bit_vector_mapper = int_vector_mapper<1,t_mode>;
 
 template<uint8_t t_width = 0>
 using read_only_mapper = int_vector_mapper<t_width,std::ios_base::in>;
-
 
 } // end of namespace
 
