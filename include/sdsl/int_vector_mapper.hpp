@@ -368,7 +368,7 @@ template<std::ios_base::openmode t_mode = std::ios_base::out|std::ios_base::in>
 using bit_vector_mapper = int_vector_mapper<1,t_mode>;
 
 template<uint8_t t_width = 0>
-using read_only_mapper = int_vector_mapper<t_width,std::ios_base::in>;
+using read_only_mapper = const int_vector_mapper<t_width,std::ios_base::in>;
 
 } // end of namespace
 
