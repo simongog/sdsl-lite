@@ -53,7 +53,8 @@ class fibonacci
             //! Array contains precomputed values for the decoding of a number in the Fibonacci system.
             uint64_t fib2bin_0_95[(1<<12)*8];
 
-            impl() {
+            impl()
+            {
                 for (uint32_t x=0; x <= 0x1FFF; ++x) {
                     if (bits::cnt11(x)) {
                         fib2bin_shift[x] = bits::sel11(x, 1)+1;
@@ -107,21 +108,21 @@ class fibonacci
          */
         static uint8_t encoding_length(uint64_t w);
         //! Decode n Fibonacci encoded bits beginning at start_idx in the bitstring "data"
-        /* \param data Bitstring
+        /* \param d Bitstring
            \param start_idx Starting index of the decoding.
            \param n Number of values to decode from the bitstring.
            \param it Iterator
          */
         template<bool t_sumup, bool t_inc, class t_iter>
-        static uint64_t decode(const uint64_t* data, const size_type start_idx, size_type n, t_iter it=(t_iter)nullptr);
+        static uint64_t decode(const uint64_t* d, const size_type start_idx, size_type n, t_iter it=(t_iter)nullptr);
 
         template<bool t_sumup, bool t_inc, class t_iter>
-        static uint64_t decode1(const uint64_t* data, const size_type start_idx, size_type n, t_iter it=(t_iter)nullptr);
+        static uint64_t decode1(const uint64_t* d, const size_type start_idx, size_type n, t_iter it=(t_iter)nullptr);
 
 
 
         //! Decode n Fibonacci encoded integers beginning at start_idx in the bitstring "data"  and return the sum of these values.
-        /*! \param data Pointer to the beginning of the Fibonacci encoded bitstring.
+        /*! \param d Pointer to the beginning of the Fibonacci encoded bitstring.
             \param start_idx Index of the first bit to encode the values from.
         	\param n Number of values to decode from the bitstring. Attention: There have to be at least n encoded values in the bitstring.
          */
@@ -136,7 +137,8 @@ class fibonacci
         static bool encode(const int_vector1& v, int_vector2& z);
 
         template<class int_vector>
-        static uint64_t* raw_data(int_vector& v) {
+        static uint64_t* raw_data(int_vector& v)
+        {
             return v.m_data;
         };
 
@@ -327,9 +329,9 @@ bool fibonacci::decode(const int_vector1& z, int_vector2& v)
 }
 
 template<bool t_sumup, bool t_inc, class t_iter>
-inline uint64_t fibonacci::decode(const uint64_t* data, const size_type start_idx, size_type n, t_iter it)
+inline uint64_t fibonacci::decode(const uint64_t* d, const size_type start_idx, size_type n, t_iter it)
 {
-    data += (start_idx >> 6);
+    d += (start_idx >> 6);
     uint64_t w = 0, value = 0;
     int8_t buffered = 0; // bits buffered in w, in 0..64
     int8_t read = start_idx & 0x3F; // read bits in current *data 0..63
@@ -337,9 +339,9 @@ inline uint64_t fibonacci::decode(const uint64_t* data, const size_type start_id
     uint32_t fibtable = 0;
     while (n) {// while not all values are decoded
         while (buffered < 13 and bits::cnt11(w) < n) {
-            w |= (((*data)>>read)<<buffered);
+            w |= (((*d)>>read)<<buffered);
             if (read >= buffered) {
-                ++data;
+                ++d;
                 buffered += 64-read;
                 read = 0;
             } else { // read < buffered
@@ -366,9 +368,9 @@ inline uint64_t fibonacci::decode(const uint64_t* data, const size_type start_id
 }
 
 template<bool t_sumup, bool t_inc, class t_iter>
-inline uint64_t fibonacci::decode1(const uint64_t* data, const size_type start_idx, size_type n, t_iter it)
+inline uint64_t fibonacci::decode1(const uint64_t* d, const size_type start_idx, size_type n, t_iter it)
 {
-    data += (start_idx >> 6);
+    d += (start_idx >> 6);
     uint64_t w = 0, value = 0;
     int8_t buffered = 0; // bits buffered in w, in 0..64
     int8_t read = start_idx & 0x3F; // read bits in current *data 0..63
@@ -377,12 +379,12 @@ inline uint64_t fibonacci::decode1(const uint64_t* data, const size_type start_i
     uint8_t blocknr = (start_idx>>6)%9;
     while (n) {// while not all values are decoded
         while (buffered < 13 and bits::cnt11(w) < n) {
-            w |= (((*data)>>read)<<buffered);
+            w |= (((*d)>>read)<<buffered);
             if (read >= buffered) {
                 ++blocknr;
-                ++data;
+                ++d;
                 if (blocknr==8) {
-                    ++data;
+                    ++d;
                     blocknr=0;
                 }
                 buffered += 64-read;

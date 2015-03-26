@@ -51,7 +51,7 @@ class select_support_scan : public select_support
         enum { bit_pat = t_b };
         enum { bit_pat_len = t_pat_len };
     public:
-        explicit select_support_scan(const bit_vector* v=nullptr) : select_support(v) {}
+        explicit select_support_scan(const bit_vector* vv=nullptr) : select_support(vv) {}
         select_support_scan(const select_support_scan<t_b,t_pat_len>& ss) : select_support(ss.m_v) {}
 
         inline size_type select(size_type i) const;
@@ -59,18 +59,18 @@ class select_support_scan : public select_support
         {
             return select(i);
         }
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        size_type serialize(std::ostream& out, structure_tree_node* vv=nullptr, std::string name="")const
         {
-            return serialize_empty_object(out, v, name, this);
+            return serialize_empty_object(out, vv, name, this);
         }
-        void load(std::istream&, SDSL_UNUSED const bit_vector* v=nullptr)
+        void load(std::istream&, SDSL_UNUSED const bit_vector* vv=nullptr)
         {
-            set_vector(v);
+            set_vector(vv);
         }
 
-        void set_vector(const bit_vector* v=nullptr)
+        void set_vector(const bit_vector* vv=nullptr)
         {
-            m_v = v;
+            m_v = vv;
         }
         select_support_scan<t_b, t_pat_len>& operator=(const select_support_scan& ss)
         {

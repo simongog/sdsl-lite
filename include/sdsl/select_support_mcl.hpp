@@ -85,20 +85,20 @@ class select_support_mcl : public select_support
         size_type m_arg_cnt             = 0;
         void copy(const select_support_mcl<t_b, t_pat_len>& ss);
         void initData();
-        void init_fast(const bit_vector* v=nullptr);
+        void init_fast(const bit_vector* vv=nullptr);
     public:
         explicit select_support_mcl(const bit_vector* v=nullptr);
         select_support_mcl(const select_support_mcl<t_b,t_pat_len>& ss);
         select_support_mcl(select_support_mcl<t_b,t_pat_len>&& ss);
         ~select_support_mcl();
-        void init_slow(const bit_vector* v=nullptr);
+        void init_slow(const bit_vector* vv=nullptr);
         //! Select function
         inline size_type select(size_type i) const;
         //! Alias for select(i).
         inline size_type operator()(size_type i)const;
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const;
-        void load(std::istream& in, const bit_vector* v=nullptr);
-        void set_vector(const bit_vector* v=nullptr);
+        size_type serialize(std::ostream& out, structure_tree_node* vv=nullptr, std::string name="")const;
+        void load(std::istream& in, const bit_vector* vv=nullptr);
+        void set_vector(const bit_vector* vv=nullptr);
         select_support_mcl<t_b, t_pat_len>& operator=(const select_support_mcl& ss);
         select_support_mcl<t_b, t_pat_len>& operator=(select_support_mcl&&);
         void swap(select_support_mcl<t_b, t_pat_len>& ss);
@@ -212,9 +212,9 @@ select_support_mcl<t_b,t_pat_len>::~select_support_mcl()
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
-void select_support_mcl<t_b,t_pat_len>::init_slow(const bit_vector* v)
+void select_support_mcl<t_b,t_pat_len>::init_slow(const bit_vector* vv)
 {
-    set_vector(v);
+    set_vector(vv);
     initData();
     if (m_v==nullptr)
         return;
@@ -264,9 +264,9 @@ void select_support_mcl<t_b,t_pat_len>::init_slow(const bit_vector* v)
 
 // TODO: find bug, detected by valgrind
 template<uint8_t t_b, uint8_t t_pat_len>
-void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
+void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* vv)
 {
-    set_vector(v);
+    set_vector(vv);
     initData();
     if (m_v==nullptr)
         return;
@@ -424,15 +424,15 @@ void select_support_mcl<t_b,t_pat_len>::initData()
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
-void select_support_mcl<t_b,t_pat_len>::set_vector(const bit_vector* v)
+void select_support_mcl<t_b,t_pat_len>::set_vector(const bit_vector* vv)
 {
-    m_v = v;
+    m_v = vv;
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
-auto select_support_mcl<t_b,t_pat_len>::serialize(std::ostream& out, structure_tree_node* v, std::string name)const -> size_type
+auto select_support_mcl<t_b,t_pat_len>::serialize(std::ostream& out, structure_tree_node* vv, std::string name)const -> size_type
 {
-    structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
+    structure_tree_node* child = structure_tree::add_child(vv, name, util::class_name(*this));
     size_type written_bytes = 0;
     // write the number of 1-bits in the supported bit_vector
     out.write((char*) &m_arg_cnt, sizeof(size_type)/sizeof(char));
@@ -469,9 +469,9 @@ auto select_support_mcl<t_b,t_pat_len>::serialize(std::ostream& out, structure_t
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
-void select_support_mcl<t_b,t_pat_len>::load(std::istream& in, const bit_vector* v)
+void select_support_mcl<t_b,t_pat_len>::load(std::istream& in, const bit_vector* vv)
 {
-    set_vector(v);
+    set_vector(vv);
     initData();
     // read the number of 1-bits in the supported bit_vector
     in.read((char*) &m_arg_cnt, sizeof(size_type)/sizeof(char));
