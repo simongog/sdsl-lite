@@ -21,7 +21,8 @@ class IntVectorMapperTest : public ::testing::Test
 
         virtual ~IntVectorMapperTest() {}
 
-        virtual void SetUp() {
+        virtual void SetUp()
+        {
             std::mt19937_64 rng;
             {
                 std::uniform_int_distribution<uint64_t> distribution(1, 100000);
@@ -276,6 +277,50 @@ TEST_F(IntVectorMapperTest, temp_buffer_test)
         // check that the file is gone
         std::ifstream cfs(tmp_file_name);
         ASSERT_FALSE(cfs.is_open());
+    }
+}
+
+TEST_F(IntVectorMapperTest, read_only_mapper)
+{
+    for (const auto& size : vec_sizes) {
+        sdsl::int_vector<> vec(size);
+        sdsl::util::set_to_id(vec);
+        sdsl::store_to_file(vec,"tmp/bit_vector_mapper_test");
+        {
+            sdsl::read_only_mapper<> rvec("tmp/bit_vector_mapper_test");
+            ASSERT_EQ(rvec.width(),(uint8_t)64);
+            ASSERT_EQ(rvec.size(),(size_t)vec.size());
+            ASSERT_TRUE(std::equal(rvec.begin(),rvec.end(),vec.begin()));
+        }
+        // check that the file is still there
+        std::ifstream cfs("tmp/bit_vector_mapper_test");
+        ASSERT_TRUE(cfs.is_open());
+        sdsl::remove("tmp/bit_vector_mapper_test");
+    }
+}
+
+TEST_F(IntVectorMapperTest, write_out_buffer)
+{
+    for (const auto& size : vec_sizes) {
+        sdsl::int_vector<> vec(size);
+        sdsl::util::set_to_id(vec);
+        std::string tmp_file_name = "tmp/write_out_buffer.sdsl";
+        {
+            auto buf = sdsl::write_out_buffer<31>::create(tmp_file_name);
+            ASSERT_EQ(buf.file_name(),tmp_file_name);
+            ASSERT_EQ(buf.width(),(uint8_t)31);
+            ASSERT_EQ(buf.size(),(size_t)0);
+            ASSERT_TRUE(buf.empty());
+            for (const auto& val : vec) {
+                buf.push_back(val);
+            }
+            ASSERT_EQ(buf.size(),vec.size());
+            ASSERT_TRUE(std::equal(buf.begin(),buf.end(),vec.begin()));
+        }
+        // check that the file is NOT gone
+        std::ifstream cfs(tmp_file_name);
+        ASSERT_TRUE(cfs.is_open());
+        sdsl::remove(tmp_file_name);
     }
 }
 
