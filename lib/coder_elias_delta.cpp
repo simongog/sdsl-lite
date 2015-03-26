@@ -18,7 +18,7 @@ uint64_t elias_delta::decode_prefix_sum(const uint64_t* d, const size_type start
     int16_t buffered = 0, read = start_idx & 0x3F;
     size_type i = 0;
     if (n + read <= 64) {
-        if (((*data >> read)&bits::lo_set[n]) == bits::lo_set[n])
+        if (((*d >> read)&bits::lo_set[n]) == bits::lo_set[n])
             return n;
     } else { // n+read > 64
         if ((*d >> read) == bits::lo_set[64-read]) {// all bits are set to 1
@@ -27,7 +27,7 @@ uint64_t elias_delta::decode_prefix_sum(const uint64_t* d, const size_type start
             n -= (64-read);
             read = 0;
             while (n >= 64) {
-                if (*data == 0xFFFFFFFFFFFFFFFFULL) {
+                if (*d == 0xFFFFFFFFFFFFFFFFULL) {
                     value += 64;
                     ++d;
                     n -= 64;

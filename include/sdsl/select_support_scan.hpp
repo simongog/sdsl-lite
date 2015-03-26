@@ -68,7 +68,7 @@ class select_support_scan : public select_support
             set_vector(vv);
         }
 
-        void set_vector(const bit_vector* v=nullptr)
+        void set_vector(const bit_vector* vv=nullptr)
         {
             m_v = vv;
         }
