@@ -20,6 +20,10 @@ class int_vector_mapper
         typedef typename int_vector<t_width>::value_type value_type;
         typedef typename int_vector<t_width>::size_type size_type;
         typedef typename int_vector<t_width>::int_width_type width_type;
+        typedef typename int_vector<t_width>::const_iterator const_iterator;
+        typedef typename int_vector<t_width>::iterator iterator;
+        typedef typename int_vector<t_width>::const_reference const_reference;
+        typedef typename int_vector<t_width>::reference reference;
     public:
         const size_type append_block_size = 1000000;
     private:
@@ -219,39 +223,36 @@ class int_vector_mapper
             m_wrapper.m_size = bit_size;
         }
 
-
         void resize(const size_type size) {
             static_assert(t_mode & std::ios_base::out,"int_vector_mapper: must be opened in in+out mode for 'resize'");
             size_type size_in_bits = size * width();
             bit_resize(size_in_bits);
         }
 
-        auto begin() -> typename int_vector<t_width>::iterator {
+        iterator begin() {
             static_assert(t_mode & std::ios_base::out,"int_vector_mapper: must be opened in in+out mode for 'begin'");
             return m_wrapper.begin();
         }
-        auto end() -> typename int_vector<t_width>::iterator {
+        iterator end() {
             static_assert(t_mode & std::ios_base::out,"int_vector_mapper: must be opened in in+out mode for 'end'");
             return m_wrapper.end();
         }
-        auto begin() const -> typename int_vector<t_width>::const_iterator {
+        const_iterator begin() const {
             return m_wrapper.begin();
         }
-        auto end() const -> typename int_vector<t_width>::const_iterator {
+        const_iterator end() const {
             return m_wrapper.end();
         }
-        auto cbegin() const -> typename int_vector<t_width>::const_iterator {
+        const_iterator cbegin() const {
             return m_wrapper.begin();
         }
-        auto cend() const -> typename int_vector<t_width>::const_iterator {
+        const_iterator cend() const {
             return m_wrapper.end();
         }
-        auto operator[](const size_type& idx) const
-        -> typename int_vector<t_width>::const_reference {
+        const_reference operator[](const size_type& idx) const {
             return m_wrapper[idx];
         }
-        auto operator[](const size_type& idx)
-        -> typename int_vector<t_width>::reference {
+        reference operator[](const size_type& idx) {
             static_assert(t_mode & std::ios_base::out,"int_vector_mapper: must be opened in in+out mode for 'operator[]'");
             return m_wrapper[idx];
         }
@@ -306,6 +307,10 @@ class int_vector_mapper
         }
         bool empty() const {
             return m_wrapper.empty();
+        }
+        size_type max_size() const
+        {
+            return m_wrapper.max_size();
         }
 };
 
