@@ -231,9 +231,9 @@ class _lcp_support_sada
         }
 
         //! Load from a stream.
-        void load(std::istream& in, const t_csa* csa=nullptr)
+        void load(std::istream& in, const t_csa* ccsa=nullptr)
         {
-            m_csa = csa;
+            m_csa = ccsa;
             m_data.load(in);
             m_select_support.load(in, &m_data);
         }

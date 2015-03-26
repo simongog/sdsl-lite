@@ -174,22 +174,22 @@ class nn_dict_dynamic
         size_type next(const size_type idx)const {
             uint64_t v_node_position; 	// virtual node position
             uint64_t node; 				// current node
-            uint64_t depth = m_depth;	// current depth of node
+            uint64_t dep = m_depth;	// current depth of node
             uint64_t position; 			// position of the 1-bit
 
             v_node_position = m_v_begin_leaves + (idx>>6);
             uint8_t off = idx & 0x3F; // mod 64
 
             // Go up until a 1-bit is found
-            node = m_tree[ v_node_position-m_offset[depth] ]>>off;
+            node = m_tree[ v_node_position-m_offset[dep] ]>>off;
             while (!node or off==64) {
                 // Not in the root
                 if (v_node_position) {
-                    --depth;
+                    --dep;
                     --v_node_position;
                     off = (v_node_position&0x3F)+1;
                     v_node_position >>= 6;
-                    node = m_tree[ v_node_position-m_offset[depth] ]>>off;
+                    node = m_tree[ v_node_position-m_offset[dep] ]>>off;
                 } else {
                     return size();
                 }
@@ -199,9 +199,9 @@ class nn_dict_dynamic
 
             // Go down to the leaf
             while (v_node_position < m_v_begin_leaves) {
-                ++depth;
+                ++dep;
                 v_node_position = (v_node_position<<6) + 1 + position;
-                node = m_tree[ v_node_position-m_offset[depth] ];
+                node = m_tree[ v_node_position-m_offset[dep] ];
 
                 // Calculate the position of the 1-bit
                 position = bits::lo(node);
@@ -218,25 +218,25 @@ class nn_dict_dynamic
         size_type prev(const size_type idx)const {
             uint64_t v_node_position; 	// virtual node position
             uint64_t node; 				// current node
-            uint64_t depth = m_depth;	// current depth of node
+            uint64_t dep = m_depth;	// current depth of node
             uint64_t position; 			// position of the 1-bit
 
             v_node_position = m_v_begin_leaves + (idx>>6);
             uint8_t off = idx & 0x3F; // mod 64
 
             // Go up until a 1-bit is found
-            node = m_tree[ v_node_position-m_offset[depth] ]<<(63-off);
+            node = m_tree[ v_node_position-m_offset[dep] ]<<(63-off);
             while (!node or off == (uint8_t)-1) {
 
                 // Not in the root
                 if (v_node_position) {
-                    --depth;
+                    --dep;
                     --v_node_position;
 
                     off = ((uint8_t)(v_node_position&0x3F))-1;
                     v_node_position >>= 6;
 
-                    node = m_tree[ v_node_position-m_offset[depth] ]<<(63-off);
+                    node = m_tree[ v_node_position-m_offset[dep] ]<<(63-off);
                 } else {
                     return size();
                 }
@@ -246,9 +246,9 @@ class nn_dict_dynamic
 
             // Go down to the leaf
             while (v_node_position < m_v_begin_leaves) {
-                ++depth;
+                ++dep;
                 v_node_position = (v_node_position<<6) + 1 + position;
-                node = m_tree[ v_node_position-m_offset[depth] ];
+                node = m_tree[ v_node_position-m_offset[dep] ];
 
                 // Calculate the position of the 1-bit
                 position = bits::hi(node); //-(63-off)
@@ -293,20 +293,20 @@ class nn_dict_dynamic
                 reference& operator=(bool x) {
                     uint64_t v_node_position; 	// virtual node position
                     uint64_t r_node_position; 	// real    node position
-                    uint64_t depth = m_pbv->m_depth;	// current depth of node
+                    uint64_t dep = m_pbv->m_depth;	// current depth of node
 
                     v_node_position = m_pbv->m_v_begin_leaves + (m_idx>>6);
                     uint8_t offset = m_idx & 0x3F; // pos mod 64
                     if (x) {
                         while (true) {
-                            r_node_position = v_node_position - m_pbv->m_offset[depth];
+                            r_node_position = v_node_position - m_pbv->m_offset[dep];
                             uint64_t w = m_pbv->m_tree[r_node_position];
                             if ((w>>offset) & 1) { // if the bit was already set
                                 return *this;
                             } else {
                                 m_pbv->m_tree[r_node_position] |= (1ULL<<offset); // set bit
-                                if (!w and depth) { // go up in the tree
-                                    --depth; --v_node_position;
+                                if (!w and dep) { // go up in the tree
+                                    --dep; --v_node_position;
                                     offset = v_node_position&0x3F;
                                     v_node_position >>= 6;
                                 } else {
@@ -316,14 +316,14 @@ class nn_dict_dynamic
                         }
                     } else {
                         while (true) {
-                            r_node_position = v_node_position - m_pbv->m_offset[depth];
+                            r_node_position = v_node_position - m_pbv->m_offset[dep];
                             uint64_t w = m_pbv->m_tree[r_node_position];
                             if (!((w>>offset) & 1)) { // if the bit is already 0
                                 return *this;
                             } else {
                                 m_pbv->m_tree[r_node_position] &= (~(1ULL<<offset)); // unset bit
-                                if (!m_pbv->m_tree[r_node_position] and depth) { // go up in the tree
-                                    --depth; --v_node_position;
+                                if (!m_pbv->m_tree[r_node_position] and dep) { // go up in the tree
+                                    --dep; --v_node_position;
                                     offset = v_node_position&0x3F;
                                     v_node_position >>= 6;
                                 } else {

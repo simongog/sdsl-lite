@@ -5,8 +5,11 @@ include_directories(#"${CMAKE_CURRENT_SOURCE_DIR}/../include"
 
 
 file(GLOB libFiles RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}  "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp") # select all .cpp-files
+if(MSVC)
+file(GLOB headerFiles RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}  "${CMAKE_CURRENT_SOURCE_DIR}/../include/sdsl/*.hpp") # select all .hpp-files
+endif()
 
-set( sdsl_SRCS ${libFiles} )
+set( sdsl_SRCS ${libFiles} ${headerFiles})
 
 add_library( sdsl ${sdsl_SRCS} )
 
