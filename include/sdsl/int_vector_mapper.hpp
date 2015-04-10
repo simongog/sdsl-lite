@@ -88,6 +88,7 @@ class int_vector_mapper
                     }
                 }
 
+                /* unmap data */
                 munmap(m_mapped_data, m_file_size_bytes);
 
                 if (t_mode&std::ios_base::out) {
