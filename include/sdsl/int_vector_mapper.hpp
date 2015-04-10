@@ -343,7 +343,7 @@ class int_vector_mapper
         }
 };
 
-
+/* temporary buffer that gets deleted later */
 template <uint8_t t_width = 0>
 class temp_file_buffer
 {
