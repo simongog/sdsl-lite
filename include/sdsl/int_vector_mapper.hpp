@@ -343,6 +343,7 @@ class int_vector_mapper
         }
 };
 
+
 template <uint8_t t_width = 0>
 class temp_file_buffer
 {
