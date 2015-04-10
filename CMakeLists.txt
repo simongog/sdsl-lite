@@ -61,6 +61,8 @@ if( BUILTIN_POPCNT )
     endif()
 endif()
 
+#COMMENT REPLACED BY BIICODE
+
 add_subdirectory(external)
 add_subdirectory(include)
 add_subdirectory(lib)

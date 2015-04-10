@@ -1,6 +1,8 @@
 SDSL - Succinct Data Structure Library
 =========
 
+[![Build Status](https://webapi.biicode.com/v1/badges/fenix/fenix/sdsl-lite/master)](https://www.biicode.com/fenix/sdsl-lite)
+
 What is it?
 -----------
 
