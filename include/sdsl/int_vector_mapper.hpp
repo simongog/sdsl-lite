@@ -62,6 +62,7 @@ class int_vector_mapper
             }
         }
     public:
+        /* maps a resource. thus should not be copied or default constructed */
         int_vector_mapper() = delete;
         int_vector_mapper(const int_vector_mapper&) = delete;
         int_vector_mapper& operator=(const int_vector_mapper&) = delete;
