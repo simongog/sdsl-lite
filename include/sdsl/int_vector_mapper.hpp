@@ -393,7 +393,7 @@ class write_out_buffer
         }
         static int_vector_mapper<t_width> create(const std::string& file_name)
         {
-            //write empty int_vector to init the file
+            // write empty int_vector to init the file
             int_vector<t_width> tmp_vector;
             store_to_file(tmp_vector,file_name);
             return int_vector_mapper<t_width,std::ios_base::out|std::ios_base::in>(file_name,false,false);
