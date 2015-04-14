@@ -398,14 +398,14 @@ template<class t_csa>
 const t_csa& _idx_csa(const t_csa& t, csa_tag)
 {
     return t;
-};
+}
 
 //! Internal function used by csXprintf
 template<class t_cst>
 const typename t_cst::csa_type& _idx_csa(const t_cst& t, cst_tag)
 {
     return t.csa;
-};
+}
 
 //! Internal function used by csXprintf
 template<class t_csa>
