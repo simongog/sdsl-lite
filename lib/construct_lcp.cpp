@@ -821,7 +821,7 @@ void construct_lcp_bwt_based(cache_config& config)
             lcp_value_offset = lcp_value_max-1;
             size_type remaining_lcp_values = index_done.size()-ds_rank_support.rank(index_done.size());
 
-            uint8_t int_width_new = std::max(space_in_bit_for_lcp / remaining_lcp_values , (size_type)bits::hi(n-1)+1);
+            uint8_t int_width_new = std::min(space_in_bit_for_lcp / remaining_lcp_values , (size_type)bits::hi(n-1)+1);
             lcp_value_max = lcp_value_offset + (1ULL<<int_width_new);
 #ifdef STUDY_INFORMATIONS
             std::cout << "# l=" << remaining_lcp_values << " b=" << (int)int_width_new << " lcp_value_max=" << lcp_value_max << std::endl;

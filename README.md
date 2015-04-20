@@ -257,6 +257,7 @@ Kalle Karhu,
 [Bruce Kuo](https://github.com/bruce3557),
 Jan Kurrus,
 [Shanika Kuruppu](https://github.com/skuruppu),
+Jouni Siren,
 and [Julio Vizcaino](https://github.com/garviz) 
 for bug reports.
 
