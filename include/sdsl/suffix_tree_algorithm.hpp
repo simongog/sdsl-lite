@@ -51,7 +51,7 @@ forward_search(
     SDSL_UNUSED typename std::enable_if<std::is_same<cst_tag, typename t_cst::index_category>::value, cst_tag>::type x = cst_tag()
 )
 {
-    unsigned char cc = cst.csa.char2comp[c]; // check if c occurs in the text of the csa
+    auto cc = cst.csa.char2comp[c]; // check if c occurs in the text of the csa
     if (cc==0 and cc!=c)                     //   "    " "    "     "  "    "   "  "   "
         return 0;
     typename t_cst::size_type depth_node = cst.depth(v);
