@@ -40,7 +40,8 @@ csa_wt<>,
        csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>>,
        csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, isa_sampling<>, succinct_byte_alphabet<bit_vector, rank_support_v<>, select_support_mcl<>>>,
        csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, isa_sampling<>, succinct_byte_alphabet<>>,
-       csa_bitcompressed<>
+       csa_bitcompressed<>,
+       csa_wt<wt_huff<>, 8, 16, sa_order_sa_sampling<>, isa_sampling<>, byte_alphabet, true>
        > Implementations;
 
 TYPED_TEST_CASE(CsaByteTest, Implementations);

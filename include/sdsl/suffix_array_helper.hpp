@@ -97,7 +97,7 @@ class traverse_csa_psi
         typedef typename t_csa::difference_type                 difference_type;
         typedef random_access_const_iterator<traverse_csa_psi>   const_iterator;
         typedef csa_member_tag                                         category;
-        typedef int_alphabet_tag                              alphabet_category;                    
+        typedef int_alphabet_tag                              alphabet_category;
 
     private:
         const t_csa& m_csa;
@@ -328,6 +328,12 @@ struct traverse_csa_wt_traits {
     static value_type access(const t_csa& csa,size_type i)
     {
         char_type c = csa.F[i];
+        if (t_csa::implicit_sentinel) {
+            return csa.select_bwt(i - csa.C[csa.char2comp[c]] + 1, c);
+        }
+        // TODO: check if it is not better to call csa_select_bwt
+        //       => csa.select_bwt is less efficient in this case
+        //       but we have to adjust this to the zero_symbol case
         return csa.wavelet_tree.select(i - csa.C[csa.char2comp[c]] + 1 , c);
     }
 };
@@ -340,11 +346,22 @@ struct traverse_csa_wt_traits<t_csa,false> {
     typedef typename t_csa::size_type size_type;
     static value_type access(const t_csa& csa,size_type i)
     {
-        typename t_csa::char_type c;
+        // TODO: adjust to zero_symbol case
+        if (t_csa::implicit_sentinel) {
+            if (i == csa.sentinel_pos) {
+                return 0;
+            }
+            i = i - (i > csa.sentinel_pos);
+        }
+        // TODO: encapsulate inverse_select
         auto rc = csa.wavelet_tree.inverse_select(i);
-        size_type j = rc.first;
-        c = rc.second;
-        return csa.C[ csa.char2comp[c] ] + j;
+        auto j = rc.first;
+        auto c = rc.second;
+        if (t_csa::implicit_sentinel) {
+            return csa.C[ c+1 ] + j;
+        } else {
+            return csa.C[ csa.char2comp[c] ] + j;
+        }
     }
 };
 
@@ -425,6 +442,12 @@ class bwt_of_csa_wt
         value_type operator[](size_type i)const
         {
             assert(i < size());
+            if (t_csa::implicit_sentinel) {
+                if (i == m_csa.sentinel_pos) {
+                    return 0;
+                }
+                return m_csa.comp2char[m_csa.wavelet_tree[i - (i>m_csa.sentinel_pos)]+1];
+            }
             return m_csa.wavelet_tree[i];
         }
         //! Returns the size of the BWT function.
@@ -456,6 +479,7 @@ class bwt_of_csa_wt
          */
         size_type select(size_type i, const char_type c)const
         {
+            // TODO: shouldn't the next line call select_bwt???
             return m_csa.select(i, c);
         }
 

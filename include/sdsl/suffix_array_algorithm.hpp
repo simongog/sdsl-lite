@@ -153,6 +153,7 @@ typename csa_wt<t_wt>::size_type bidirectional_search(
     assert(l_fwd <= r_fwd); assert(r_fwd < csa_fwd.size());
     typedef typename csa_wt<t_wt, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_strat>::size_type size_type;
     size_type c_begin = csa_fwd.C[csa_fwd.char2comp[c]];
+    // TODO: encapsulate lex_count call
     auto r_s_b =  csa_fwd.wavelet_tree.lex_count(l_fwd, r_fwd+1, c);
     size_type rank_l = std::get<0>(r_s_b);
     size_type s = std::get<1>(r_s_b), b = std::get<2>(r_s_b);
@@ -369,12 +370,12 @@ typename t_csx::size_type count(
  *         occurrences of pattern in the CSA.
  */
 template<class t_csa, class t_pat_iter, class t_rac=int_vector<64>>
-        t_rac locate(
-            const t_csa&  csa,
-            t_pat_iter begin,
-            t_pat_iter end,
-            SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
-        )
+t_rac locate(
+    const t_csa&  csa,
+    t_pat_iter begin,
+    t_pat_iter end,
+    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+)
 {
     typename t_csa::size_type occ_begin, occ_end, occs;
     occs = backward_search(csa, 0, csa.size()-1, begin, end, occ_begin, occ_end);
@@ -453,11 +454,25 @@ typename t_csa::size_type extract(
         auto order = csa.isa[end];
         text[--steps] = first_row_symbol(order, csa);
         while (steps != 0) {
+            if (t_csa::implicit_sentinel) {
+                if (order == csa.sentinel_pos) {
+                    order = 0;
+                    text[--steps] = 0;
+                    continue;
+                }
+                order = order - (order > csa.sentinel_pos);
+            }
+            // TODO: encapsulate inverse_select call
             auto rc = csa.wavelet_tree.inverse_select(order);
             auto j = rc.first;
             auto c = rc.second;
-            order = csa.C[ csa.char2comp[c] ] + j;
-            text[--steps] = c;
+            if (t_csa::implicit_sentinel) {
+                order = csa.C[ c+1 ] + j;
+                text[--steps] = csa.comp2char[c+1];
+            } else {
+                order = csa.C[ csa.char2comp[c] ] + j;
+                text[--steps] = c;
+            }
         }
     }
     return end-begin+1;
