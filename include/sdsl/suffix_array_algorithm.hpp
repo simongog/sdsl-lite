@@ -462,7 +462,6 @@ typename t_csa::size_type extract(
                 }
                 order = order - (order > csa.sentinel_pos);
             }
-            // TODO: encapsulate inverse_select call
             auto rc = csa.wavelet_tree.inverse_select(order);
             auto j = rc.first;
             auto c = rc.second;

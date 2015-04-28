@@ -82,8 +82,6 @@ class csa_wt
                       "Sixth template argument has to be a alphabet strategy.");
 
         friend class bwt_of_csa_wt<csa_wt>;
-        friend class traverse_csa_wt_traits<csa_wt, true>;
-        friend class traverse_csa_wt_traits<csa_wt, false>;
     public:
         enum { sa_sample_dens = t_dens,
                isa_sample_dens = t_inv_dens
@@ -124,7 +122,7 @@ class csa_wt
         sa_sample_type  m_sa_sample;    // suffix array samples
         isa_sample_type m_isa_sample;   // inverse suffix array samples
         alphabet_type   m_alphabet;
-        size_type       m_0_pos;
+        size_type       m_sentinel_pos;
 
 
 //#define USE_CSA_CACHE
@@ -139,7 +137,7 @@ class csa_wt
             m_isa_sample   = csa.m_isa_sample;
             m_isa_sample.set_vector(&m_sa_sample);
             m_alphabet     = csa.m_alphabet;
-            m_0_pos        = csa.m_0_pos;
+            m_sentinel_pos = csa.m_sentinel_pos;
         }
 
     public:
@@ -147,7 +145,7 @@ class csa_wt
         const typename alphabet_type::comp2char_type& comp2char    = m_alphabet.comp2char;
         const typename alphabet_type::C_type&         C            = m_alphabet.C;
         const typename alphabet_type::sigma_type&     sigma        = m_alphabet.sigma;
-        const size_type&                              sentinel_pos = m_0_pos;
+        const size_type&                              sentinel_pos = m_sentinel_pos;
         const psi_type                                psi          = psi_type(*this);
         const lf_type                                 lf           = lf_type(*this);
         const bwt_type                                bwt          = bwt_type(*this);
@@ -192,10 +190,6 @@ class csa_wt
                 std::string bwt_file = cache_file_name(key_trait<alphabet_type::int_width>::KEY_BWT,config);
                 int_vector_buffer<alphabet_type::int_width> bwt_buf(bwt_file);
                 size_type n = bwt_buf.size();
-                // TODO: replace 0x00-byte by another defined character, if alphabet strategy handles the 0x00-byte (by storing it's position and
-                // adjusting rank/select/access operations ...
-                // Problem: replacement by another character x makes select(x) complicated!!!1
-                // So maybe just remove 0x00-byte and store position where is should be inserted
                 if (t_implicit_sentinel) {
                     std::string id = "_" + util::to_string(util::pid()) + "_" + util::to_string(util::id());
                     std::string tmp_bwt_file = bwt_file+id;
@@ -206,7 +200,7 @@ class csa_wt
                             if (c > 0) {
                                 tmp_bwt_buf[j++] = char2comp[c]-1;
                             } else {
-                                m_0_pos = i;
+                                m_sentinel_pos = i;
                             }
 
                         }
@@ -215,11 +209,8 @@ class csa_wt
                         }
                     }
                     int_vector_buffer<alphabet_type::int_width> tmp_bwt_buf(tmp_bwt_file);
-                    if (tmp_bwt_buf.size() > 0) {
-                        // TODO: check why a WT of size 0 is a problem
-                        wavelet_tree_type tmp_wt(tmp_bwt_buf, tmp_bwt_buf.size());
-                        m_wavelet_tree.swap(tmp_wt);
-                    }
+                    wavelet_tree_type tmp_wt(tmp_bwt_buf, tmp_bwt_buf.size());
+                    m_wavelet_tree.swap(tmp_wt);
                     tmp_bwt_buf.close();
                     sdsl::remove(tmp_bwt_file);
                 } else {
@@ -284,7 +275,7 @@ class csa_wt
                 m_sa_sample.swap(csa.m_sa_sample);
                 util::swap_support(m_isa_sample, csa.m_isa_sample, &m_sa_sample, &(csa.m_sa_sample));
                 m_alphabet.swap(csa.m_alphabet);
-                std::swap(m_0_pos,csa.m_0_pos);
+                std::swap(m_sentinel_pos, csa.m_sentinel_pos);
             }
         }
 
@@ -353,7 +344,7 @@ class csa_wt
                 m_sa_sample    = std::move(csa.m_sa_sample);
                 m_isa_sample   = std::move(csa.m_isa_sample);
                 m_alphabet     = std::move(csa.m_alphabet);
-                m_0_pos        = std::move(csa.m_0_pos);
+                m_sentinel_pos = std::move(csa.m_sentinel_pos);
             }
             return *this;
         }
@@ -372,7 +363,7 @@ class csa_wt
             written_bytes += m_isa_sample.serialize(out, child, "isa_samples");
             written_bytes += m_alphabet.serialize(out, child, "alphabet");
             if (implicit_sentinel) {
-                written_bytes +=  write_member(m_0_pos, out, child, "0_pos");
+                written_bytes +=  write_member(m_sentinel_pos, out, child, "sentinel_pos");
             }
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
@@ -388,7 +379,7 @@ class csa_wt
             m_isa_sample.load(in, &m_sa_sample);
             m_alphabet.load(in);
             if (implicit_sentinel) {
-                read_member(m_0_pos, in);
+                read_member(m_sentinel_pos, in);
             }
         }
 
@@ -406,10 +397,10 @@ class csa_wt
         {
             if (implicit_sentinel) {
                 if (c == 0) {
-                    return i > m_0_pos;
+                    return i > m_sentinel_pos;
                 }
                 char_type cc = char2comp[c];
-                i = i - (i > m_0_pos);
+                i = i - (i > m_sentinel_pos);
                 return m_wavelet_tree.rank(i, cc-1);
             }
             return m_wavelet_tree.rank(i, c);
@@ -433,9 +424,9 @@ class csa_wt
             if (C[cc]+i-1 <  C[cc+1]) {
                 if (implicit_sentinel) {
                     if (c == 0)
-                        return m_0_pos;
+                        return m_sentinel_pos;
                     size_type res = m_wavelet_tree.select(i, cc-1);
-                    return res + (res >= m_0_pos);
+                    return res + (res >= m_sentinel_pos);
                 }
                 return m_wavelet_tree.select(i, c);
             } else

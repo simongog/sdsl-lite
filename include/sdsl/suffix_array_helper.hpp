@@ -329,11 +329,13 @@ struct traverse_csa_wt_traits {
     {
         char_type c = csa.F[i];
         if (t_csa::implicit_sentinel) {
-            return csa.select_bwt(i - csa.C[csa.char2comp[c]] + 1, c);
+            if (c == 0) {
+                return csa.sentinel_pos;
+            }
+            auto cc = csa.char2comp[c];
+            auto pos = csa.wavelet_tree.select(i - csa.C[cc] + 1, cc-1);
+            return pos + (pos >= csa.sentinel_pos);
         }
-        // TODO: check if it is not better to call csa_select_bwt
-        //       => csa.select_bwt is less efficient in this case
-        //       but we have to adjust this to the zero_symbol case
         return csa.wavelet_tree.select(i - csa.C[csa.char2comp[c]] + 1 , c);
     }
 };
@@ -346,14 +348,13 @@ struct traverse_csa_wt_traits<t_csa,false> {
     typedef typename t_csa::size_type size_type;
     static value_type access(const t_csa& csa,size_type i)
     {
-        // TODO: adjust to zero_symbol case
         if (t_csa::implicit_sentinel) {
             if (i == csa.sentinel_pos) {
                 return 0;
             }
             i = i - (i > csa.sentinel_pos);
         }
-        // TODO: encapsulate inverse_select
+        // TODO: encapsulate inverse_select???
         auto rc = csa.wavelet_tree.inverse_select(i);
         auto j = rc.first;
         auto c = rc.second;
@@ -479,8 +480,7 @@ class bwt_of_csa_wt
          */
         size_type select(size_type i, const char_type c)const
         {
-            // TODO: shouldn't the next line call select_bwt???
-            return m_csa.select(i, c);
+            return m_csa.select_bwt(i, c);
         }
 
 
