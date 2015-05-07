@@ -61,7 +61,7 @@ forward_search(
     auto size = csa.size();
 
     l_res = l;
-    r_res = l-1;
+    r_res = l - 1;
     auto l_res_upper = r + 1;
     auto r_res_upper = r + 1;
 
