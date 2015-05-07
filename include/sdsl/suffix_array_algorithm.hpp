@@ -60,13 +60,13 @@ forward_search(
 
     auto size = csa.size();
 
-    l_res = 0;
-    r_res = -1;
-    auto l_res_upper = size;
-    auto r_res_upper = size;
+    l_res = l;
+    r_res = l-1;
+    auto l_res_upper = r + 1;
+    auto r_res_upper = r + 1;
 
     // shortcut for too long patterns
-    if ((typename t_csa::size_type)(end - begin) > size)
+    if ((typename t_csa::size_type)(end - begin) >= size)
         return 0;
     
     // compares the pattern with CSA-prefix i (truncated to length $|pattern|$).
