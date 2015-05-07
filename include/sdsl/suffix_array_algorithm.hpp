@@ -69,19 +69,19 @@ forward_search(
     if ((typename t_csa::size_type)(end - begin) > size)
         return 0;
     
-	// compares the pattern with CSA-prefix i (truncated to length $|pattern|$).
-	auto compare = [&] (typename t_csa::size_type i) -> int
-		{
-			for (auto current = begin; current != end; current++)
-			{
-				auto index = csa.char2comp[*current];
-				if (index == 0) return -1;
-				if (csa.C[index + 1] - 1 < i) return -1;
-				if (csa.C[index] > i) return 1;
-				i = csa.psi[i];
-			}
-			return 0;
-		};
+    // compares the pattern with CSA-prefix i (truncated to length $|pattern|$).
+    auto compare = [&] (typename t_csa::size_type i) -> int
+        {
+            for (auto current = begin; current != end; current++)
+            {
+                auto index = csa.char2comp[*current];
+                if (index == 0) return -1;
+                if (csa.C[index + 1] - 1 < i) return -1;
+                if (csa.C[index] > i) return 1;
+                i = csa.psi[i];
+            }
+            return 0;
+        };
 
     // binary search (on min)
     while (l_res < l_res_upper)
@@ -137,7 +137,7 @@ typename t_csa::size_type forward_search(
     SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
 )
 {
-	auto c_ptr = &c;
+    auto c_ptr = &c;
     return forward_search(csa, l, r, c_ptr, c_ptr + 1, l_res, r_res);
 }
 
