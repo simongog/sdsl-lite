@@ -27,6 +27,120 @@
 namespace sdsl
 {
 
+//! Forward search for a pattern in an \f$\omega\f$-interval \f$[\ell..r]\f$ in the CSA.
+/*!
+ * \tparam t_csa      A CSA type.
+ * \tparam t_pat_iter Pattern iterator type.
+ *
+ * \param csa   The CSA object.
+ * \param l     Left border of the lcp-interval \f$ [\ell..r]\f$.
+ * \param r     Right border of the lcp-interval \f$ [\ell..r]\f$.
+ * \param begin Iterator to the begin of the pattern (inclusive).
+ * \param end   Iterator to the end of the pattern (exclusive).
+ * \param l_res New left border.
+ * \param r_res New right border.
+ * \return The size of the new interval [\ell_{new}..r_{new}].
+ *         Equals zero, if no match is found.
+ *
+ */
+template<class t_csa, class t_pat_iter>
+typename t_csa::size_type
+forward_search(
+    const t_csa& csa,
+    typename t_csa::size_type l,
+    typename t_csa::size_type r,
+    t_pat_iter begin,
+    t_pat_iter end,
+    typename t_csa::size_type& l_res,
+    typename t_csa::size_type& r_res,
+    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+)
+{
+    assert(l <= r); assert(r < csa.size());
+
+    auto size = csa.size();
+
+    l_res = l;
+    r_res = l - 1;
+    auto l_res_upper = r + 1;
+    auto r_res_upper = r + 1;
+
+    // shortcut for too long patterns
+    if ((typename t_csa::size_type)(end - begin) >= size)
+        return 0;
+    
+    // compares the pattern with CSA-prefix i (truncated to length $|pattern|$).
+    auto compare = [&] (typename t_csa::size_type i) -> int
+        {
+            for (auto current = begin; current != end; current++)
+            {
+                auto index = csa.char2comp[*current];
+                if (index == 0) return -1;
+                if (csa.C[index + 1] - 1 < i) return -1;
+                if (csa.C[index] > i) return 1;
+                i = csa.psi[i];
+            }
+            return 0;
+        };
+
+    // binary search (on min)
+    while (l_res < l_res_upper)
+    {
+        typename t_csa::size_type sample = l_res + (l_res_upper - l_res) / 2;
+        int result = compare(sample);
+        if (result == 1)
+            l_res = sample + 1;
+        else if (result == -1)
+            l_res_upper = sample;
+        else
+            l_res_upper = sample;
+    }
+
+    // binary search (on max)
+    while (r_res + 1 < r_res_upper)
+    {
+        typename t_csa::size_type sample = r_res + (r_res_upper - r_res) / 2;
+        int result = compare(sample);
+        if (result == 1)
+            r_res = sample;
+        else if (result == -1)
+            r_res_upper = sample;
+        else
+            r_res = sample;
+    }
+
+    return r_res - l_res + 1;
+}
+
+//! Forward search for a character c in an \f$\omega\f$-interval \f$[\ell..r]\f$ in the CSA.
+/*!
+ * \tparam t_csa CSA type.
+ *
+ * \param csa    The CSA object.
+ * \param l      Left border of the interval \f$ [\ell..r]\f$.
+ * \param r      Right border of the interval \f$ [\ell..r]\f$.
+ * \param c      Character to be prepended to \f$\omega\f$.
+ * \param l_res  New left border.
+ * \param r_res  Right border.
+ * \return The size of the new interval [\ell_{new}..r_{new}].
+ *         Equals zero, if no match is found.
+ *
+ */
+template<class t_csa>
+typename t_csa::size_type forward_search(
+    const t_csa& csa,
+    typename t_csa::size_type l,
+    typename t_csa::size_type r,
+    typename t_csa::char_type c,
+    typename t_csa::size_type& l_res,
+    typename t_csa::size_type& r_res,
+    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+)
+{
+    auto c_ptr = &c;
+    return forward_search(csa, l, r, c_ptr, c_ptr + 1, l_res, r_res);
+}
+
 //! Backward search for a character c in an \f$\omega\f$-interval \f$[\ell..r]\f$ in the CSA.
 /*!
  * \tparam t_csa CSA type.
