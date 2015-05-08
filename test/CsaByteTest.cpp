@@ -66,21 +66,21 @@ TYPED_TEST(CsaByteTest, BackwardSearch)
     size_type count, l_res, r_res;
     // search for full text
     count = backward_search(csa, 0, csa.size() - 1, text.begin(), text.end(), l_res, r_res);
-    ASSERT_EQ(1, count);
+    ASSERT_EQ((size_type)1, count);
     ASSERT_EQ(l_res, expected_interval_member);
     ASSERT_EQ(r_res, expected_interval_member);
     // search for short phrase
     text.resize(min((int_vector<8>::size_type)4, text.size()));
     count = backward_search(csa, 0, csa.size() - 1, text.begin(), text.end(), l_res, r_res);
-    ASSERT_LE(1, count);
+    ASSERT_LE((size_type)1, count);
     ASSERT_LE(l_res, expected_interval_member);
     ASSERT_GE(r_res, expected_interval_member);
     // search for empty phrase
     text.resize(0);
     count = backward_search(csa, 0, csa.size() - 1, text.begin(), text.end(), l_res, r_res);
     ASSERT_EQ(csa.size(), count);
-    ASSERT_EQ(l_res, 0);
-    ASSERT_EQ(r_res, csa.size() - 1);
+    ASSERT_EQ(l_res, (size_type)0);
+    ASSERT_EQ(r_res, (size_type)(csa.size() - 1));
 }
 
 //! Test forward_search
@@ -94,21 +94,21 @@ TYPED_TEST(CsaByteTest, ForwardSearch)
     size_type count, l_res, r_res;
     // search for full text
     count = forward_search(csa, 0, csa.size() - 1, text.begin(), text.end(), l_res, r_res);
-    ASSERT_EQ(1, count);
+    ASSERT_EQ((size_type)1, count);
     ASSERT_EQ(l_res, expected_interval_member);
     ASSERT_EQ(r_res, expected_interval_member);
     // search for short phrase
     text.resize(min((int_vector<8>::size_type)4, text.size()));
     count = forward_search(csa, 0, csa.size() - 1, text.begin(), text.end(), l_res, r_res);
-    ASSERT_LE(1, count);
+    ASSERT_LE((size_type)1, count);
     ASSERT_LE(l_res, expected_interval_member);
     ASSERT_GE(r_res, expected_interval_member);
     // search for empty phrase
     text.resize(0);
     count = forward_search(csa, 0, csa.size() - 1, text.begin(), text.end(), l_res, r_res);
     ASSERT_EQ(csa.size(), count);
-    ASSERT_EQ(l_res, 0);
-    ASSERT_EQ(r_res, csa.size() - 1);
+    ASSERT_EQ(l_res, (size_type)0);
+    ASSERT_EQ(r_res, (size_type)(csa.size() - 1));
 }
 
 //! Test sigma member
