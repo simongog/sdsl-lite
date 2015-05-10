@@ -161,10 +161,9 @@ class wt_ap
             construct_im(m_char2class, m_char2class_buffer);
 
             // calculate text-order classes and offsets
-            int_vector<> m_class_buffer(m_size, 0, bits::hi(m_classes)+1);
             for (size_type i=0; i < m_size; ++i) {
                 value_type ch = rac[i];
-                value_type cl = m_class_buffer[i] = m_char2class_buffer[ch];
+                value_type cl = rac[i] = m_char2class_buffer[ch];
                 if (cl >= m_singleton_classes) {
                     value_type offset = m_char2class.rank(ch, cl);
                     cl -= m_singleton_classes;
@@ -172,7 +171,7 @@ class wt_ap
                 }
             }
             
-            construct_im(m_class, m_class_buffer);
+            construct_im(m_class, rac);
             m_offset.resize(m_classes-m_singleton_classes);
             for (value_type i=0; i < m_classes-m_singleton_classes; ++i) {
                 construct_im(m_offset[i], m_offset_buffer[i].second);
