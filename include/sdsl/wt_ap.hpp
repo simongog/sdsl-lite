@@ -61,20 +61,20 @@ class wt_ap
 
         size_type              m_size  = 0;
         value_type             m_sigma = 0;     //<- \f$ |\Sigma| \f$
-        value_type             m_singleton_classes = 0;
-        value_type             m_classes = 0;
+        value_type             m_singleton_class_cnt = 0;
+        value_type             m_class_cnt = 0;
         wt_type                m_char2class;
         wt_type                m_class;
         std::vector<wt_type>   m_offset;
 
         void copy(const wt_ap& wt) {
-            m_size              = wt.m_size;
-            m_sigma             = wt.m_sigma;
-            m_singleton_classes = wt.m_singleton_classes;
-            m_classes           = wt.m_classes;
-            m_char2class        = wt.m_char2class;
-            m_class             = wt.m_class;
-            m_offset            = wt.m_offset;
+            m_size                = wt.m_size;
+            m_sigma               = wt.m_sigma;
+            m_singleton_class_cnt = wt.m_singleton_class_cnt;
+            m_class_cnt           = wt.m_class_cnt;
+            m_char2class          = wt.m_char2class;
+            m_class               = wt.m_class;
+            m_offset              = wt.m_offset;
         }
 
     private:
@@ -87,7 +87,7 @@ class wt_ap
             }
             auto offset_class = m_char2class.inverse_select(c);
             cl = offset_class.second;
-            if (cl == m_classes) { // c never occurs in text
+            if (cl == m_class_cnt) { // c never occurs in text
                 return false;
             }
             offset = offset_class.first;
@@ -96,7 +96,7 @@ class wt_ap
 
     public:
 
-        const size_type&       sigma = m_sigma;
+        const size_type& sigma = m_sigma;
 
         //! Default constructor
         wt_ap() {}
@@ -134,20 +134,20 @@ class wt_ap
             std::sort(char_freq.rbegin(), char_freq.rend());
             m_sigma = max_symbol - pseudo_entries;
 
-            m_singleton_classes = std::min(max_symbol, (value_type)bits::hi(m_sigma)); 
+            m_singleton_class_cnt = std::min(max_symbol, (value_type)bits::hi(m_sigma)); 
             //                                                           OR max_symbol?
-            m_classes = bits::hi(m_sigma - m_singleton_classes + 1) + m_singleton_classes;            
+            m_class_cnt = bits::hi(m_sigma - m_singleton_class_cnt + 1) + m_singleton_class_cnt;            
 
             std::vector<std::pair<size_type, int_vector<>>> m_offset_buffer;
 
             // assign character classes
-            int_vector<> m_char2class_buffer(max_symbol, m_classes, bits::hi(m_classes+1)+1);
-            for (value_type i=0; i < m_singleton_classes; ++i) {
+            int_vector<> m_char2class_buffer(max_symbol, m_class_cnt, bits::hi(m_class_cnt+1)+1);
+            for (value_type i=0; i < m_singleton_class_cnt; ++i) {
                 m_char2class_buffer[char_freq[i].second] = i;
             }
-            value_type current_symbol = m_singleton_classes;
+            value_type current_symbol = m_singleton_class_cnt;
             value_type class_size = 1;
-            for (value_type i=m_singleton_classes; i < m_classes; ++i) {
+            for (value_type i=m_singleton_class_cnt; i < m_class_cnt; ++i) {
                 class_size <<= 1;
                 size_type class_frequency = 0;
                 value_type offset=0;
@@ -164,16 +164,16 @@ class wt_ap
             for (size_type i=0; i < m_size; ++i) {
                 value_type ch = rac[i];
                 value_type cl = rac[i] = m_char2class_buffer[ch];
-                if (cl >= m_singleton_classes) {
+                if (cl >= m_singleton_class_cnt) {
                     value_type offset = m_char2class.rank(ch, cl);
-                    cl -= m_singleton_classes;
+                    cl -= m_singleton_class_cnt;
                     m_offset_buffer[cl].second[m_offset_buffer[cl].first++] = offset;
                 }
             }
             
             construct_im(m_class, rac);
-            m_offset.resize(m_classes-m_singleton_classes);
-            for (value_type i=0; i < m_classes-m_singleton_classes; ++i) {
+            m_offset.resize(m_class_cnt-m_singleton_class_cnt);
+            for (value_type i=0; i < m_class_cnt-m_singleton_class_cnt; ++i) {
                 construct_im(m_offset[i], m_offset_buffer[i].second);
             }
         }
@@ -201,8 +201,8 @@ class wt_ap
             if (this != &wt) {
                 m_size              = wt.m_size;
                 m_sigma             = wt.m_sigma;
-                m_singleton_classes = wt.m_singleton_classes;
-                m_classes           = wt.m_classes;
+                m_singleton_class_cnt = wt.m_singleton_class_cnt;
+                m_class_cnt           = wt.m_class_cnt;
                 m_char2class        = std::move(wt.m_char2class);
                 m_class             = std::move(wt.m_class);
                 m_offset            = std::move(wt.m_offset);
@@ -215,8 +215,8 @@ class wt_ap
             if (this != &wt) {
                 std::swap(m_size, wt.m_size);
                 std::swap(m_sigma, wt.m_sigma);
-                std::swap(m_singleton_classes, wt.m_singleton_classes);
-                std::swap(m_classes, wt.m_classes);
+                std::swap(m_singleton_class_cnt, wt.m_singleton_class_cnt);
+                std::swap(m_class_cnt, wt.m_class_cnt);
                 m_char2class.swap(wt.m_char2class);
                 m_class.swap(wt.m_class);
                 std::swap(m_offset,  wt.m_offset);
@@ -247,9 +247,9 @@ class wt_ap
             assert(i < size());
             auto textoffset_class = m_class.inverse_select(i);
             auto cl = textoffset_class.second;
-            value_type offset = cl < m_singleton_classes 
+            value_type offset = cl < m_singleton_class_cnt 
                 ? 0 
-                : m_offset[cl-m_singleton_classes][textoffset_class.first];
+                : m_offset[cl-m_singleton_class_cnt][textoffset_class.first];
             return m_char2class.select(offset+1, cl);
         };
 
@@ -273,9 +273,9 @@ class wt_ap
                 return 0;
             }
             size_type count = m_class.rank(i, cl);
-            return cl < m_singleton_classes
+            return cl < m_singleton_class_cnt
                 ? count
-                : m_offset[cl-m_singleton_classes].rank(count, offset);
+                : m_offset[cl-m_singleton_class_cnt].rank(count, offset);
         };
 
         //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the original sequence.
@@ -292,10 +292,10 @@ class wt_ap
             auto textoffset_class = m_class.inverse_select(i);
             auto textoffset = textoffset_class.first;
             auto cl = textoffset_class.second;
-            if (cl < m_singleton_classes) {
+            if (cl < m_singleton_class_cnt) {
                 return std::make_pair(textoffset, m_char2class.select(1, cl));
             }
-            auto class_result = m_offset[cl-m_singleton_classes].inverse_select(textoffset);
+            auto class_result = m_offset[cl-m_singleton_class_cnt].inverse_select(textoffset);
             return std::make_pair(class_result.first, m_char2class.select(class_result.second+1, cl));
         }
 
@@ -317,9 +317,9 @@ class wt_ap
             if (!try_get_char_class_offset(c, cl, offset)) {
                 return m_size;
             }
-            size_type text_offset = cl < m_singleton_classes
+            size_type text_offset = cl < m_singleton_class_cnt
                 ? i
-                : 1 + m_offset[cl-m_singleton_classes].select(i, offset);
+                : 1 + m_offset[cl-m_singleton_class_cnt].select(i, offset);
             return m_class.select(text_offset, cl);
         };
 
@@ -329,8 +329,8 @@ class wt_ap
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
             written_bytes += write_member(m_sigma, out, child, "sigma");
-            written_bytes += write_member(m_singleton_classes, out, child, "singleton_classes");
-            written_bytes += write_member(m_classes, out, child, "classes");
+            written_bytes += write_member(m_singleton_class_cnt, out, child, "singleton_classes");
+            written_bytes += write_member(m_class_cnt, out, child, "classes");
             written_bytes += m_char2class.serialize(out, child, "char2class");
             written_bytes += m_class.serialize(out, child, "class");
             for (int i=0; i<m_offset.size(); ++i) {
@@ -344,11 +344,11 @@ class wt_ap
         void load(std::istream& in) {
             read_member(m_size, in);
             read_member(m_sigma, in);
-            read_member(m_singleton_classes, in);
-            read_member(m_classes, in);
+            read_member(m_singleton_class_cnt, in);
+            read_member(m_class_cnt, in);
             m_char2class.load(in);
             m_class.load(in);
-            value_type offset_size = m_classes - m_singleton_classes;
+            value_type offset_size = m_class_cnt - m_singleton_class_cnt;
             m_offset.resize(offset_size);
             for (int i=0; i<offset_size; ++i) {
                 m_offset[i].load(in);
