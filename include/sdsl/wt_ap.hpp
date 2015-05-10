@@ -124,8 +124,8 @@ class wt_ap
             std::sort(char_freq.rbegin(), char_freq.rend());
             value_type m_compact_sigma = m_sigma - pseudo_entries;
 
-            m_singleton_classes = 1; // + bits::hi(m_sigma); // OR m_compact_sigma?
-            m_classes = bits::hi(m_compact_sigma - m_singleton_classes + 1) + m_singleton_classes;
+            m_singleton_classes = std::min(m_sigma, (value_type)1); // + bits::hi(m_sigma); // OR m_compact_sigma?
+            m_classes = bits::hi(m_compact_sigma - m_singleton_classes + 1) + m_singleton_classes;            
             
             std::vector<std::pair<size_type, int_vector<>>> m_offset_buffer;
             
@@ -278,9 +278,14 @@ class wt_ap
         inverse_select(size_type i)const {
             assert(i < size());
 
-            value_type val = operator [](i);
-            size_type cnt = rank(i, val);
-            return std::make_pair(val,cnt);
+            auto textoffset_class = m_class.inverse_select(i);
+            auto textoffset = textoffset_class.first;
+            auto cl = textoffset_class.second;
+            if (cl < m_singleton_classes) {
+                return std::make_pair(textoffset, m_char2class.select(1, cl));
+            }
+            auto class_result = m_offset[cl-m_singleton_classes].inverse_select(textoffset);
+            return std::make_pair(class_result.first, m_char2class.select(class_result.second+1, cl));
         }
 
         //! Calculates the i-th occurrence of the symbol c in the supported vector.
@@ -318,7 +323,6 @@ class wt_ap
             written_bytes += write_member(m_classes, out, child, "classes");
             written_bytes += m_char2class.serialize(out, child, "char2class");
             written_bytes += m_class.serialize(out, child, "class");
-            written_bytes += write_member(m_size, out, child, "offset_size");
             for (int i=0; i<m_offset.size(); ++i) {
                 written_bytes += m_offset[i].serialize(out, child, "offset");
             }
@@ -334,8 +338,7 @@ class wt_ap
             read_member(m_classes, in);
             m_char2class.load(in);
             m_class.load(in);
-            typename std::vector<wt_type>::size_type offset_size;
-            read_member(offset_size, in);
+            value_type offset_size = m_classes - m_singleton_classes;
             m_offset.resize(offset_size);
             for (int i=0; i<offset_size; ++i) {
                 m_offset[i].load(in);
