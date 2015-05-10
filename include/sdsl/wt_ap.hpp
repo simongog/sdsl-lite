@@ -33,12 +33,13 @@ namespace sdsl
 //! A wavelet tree class for integer sequences.
 /*!
  *    \par Space complexity
- *        \f$\Order{n\log|\Sigma|}\f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.
+ *        \f$\order{n} (H_0 + 1)\f$ bits, where \f$n\f$ is the size of the vector the wavelet tree was build for.1
  *
- *  \tparam t_bitvector   Type of the bitvector used for representing the wavelet tree.
- *  \tparam t_rank        Type of the support structure for rank on pattern `1`.
- *  \tparam t_select      Type of the support structure for select on pattern `1`.
- *  \tparam t_select_zero Type of the support structure for select on pattern `0`.
+ *  \tparam t_wt     Type of the wavelet trees used for internal representation.
+ *
+ *    \par References
+ *    [1] J. Barbay, F. Claude, T. Gagie, G. Navarro and Y. Nekrich:
+ *        ,,Efficient Fully-Compressed Sequence Representations''
  *
  *   @ingroup wt
  */
@@ -78,7 +79,7 @@ class wt_ap
 
     private:
 
-        // retrieves a characters class and offset - if the character exists in the text
+        // retrieves a character's class and offset - if the character exists in the text
         bool try_get_char_class_offset(value_type c, value_type& cl, value_type& offset)const {
             assert(i <= size());
             if (c >= m_char2class.size()) { // c is greater than any symbol in text
@@ -103,12 +104,6 @@ class wt_ap
         //! Semi-external constructor
         /*! \param buf         File buffer of the int_vector for which the wt_ap should be build.
          *  \param size        Size of the prefix of v, which should be indexed.
-         *  \param max_level   Maximal level of the wavelet tree. If set to 0, determined automatically.
-         *    \par Time complexity
-         *        \f$ \Order{n\log|\Sigma|}\f$, where \f$n=size\f$
-         *        I.e. we need \Order{n\log n} if rac is a permutation of 0..n-1.
-         *    \par Space complexity
-         *        \f$ n\log|\Sigma| + O(1)\f$ bits, where \f$n=size\f$.
          */
         template<uint8_t int_width>
         wt_ap(int_vector_buffer<int_width>& buf, size_type size) : m_size(size) {
@@ -241,6 +236,10 @@ class wt_ap
         //! Recovers the i-th symbol of the original vector.
         /*! \param i The index of the symbol in the original vector.
          *  \returns The i-th symbol of the original vector.
+         *  \par Worst case time complexity
+         *       \f$ \Order{\log \log |\Sigma|} \f$
+         *  \par Average case time complexity
+         *       \f$ \Order{\log H_0} \f$
          *  \par Precondition
          *       \f$ i < size() \f$
          */
@@ -259,8 +258,10 @@ class wt_ap
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in[0..size()]\f$.
          *  \param c The symbol to count the occurrences in the prefix.
          *    \returns The number of occurrences of symbol c in the prefix [0..i-1] of the supported vector.
-         *  \par Time complexity
-         *       \f$ \Order{\log |\Sigma|} \f$
+         *  \par Worst case time complexity
+         *       \f$ \Order{\log \log |\Sigma|} \f$
+         *  \par Average case time complexity
+         *       \f$ \Order{\log H_0} \f$
          *  \par Precondition
          *       \f$ i \leq size() \f$
          */
@@ -302,8 +303,10 @@ class wt_ap
         /*!
          *  \param i The i-th occurrence.
          *  \param c The symbol c.
-         *  \par Time complexity
-         *       \f$ \Order{\log |\Sigma|} \f$
+         *  \par Worst case time complexity
+         *       \f$ \Order{\log \log |\Sigma|} \f$
+         *  \par Average case time complexity
+         *       \f$ \Order{\log H_0} \f$
          *  \par Precondition
          *       \f$ 1 \leq i \leq rank(size(), c) \f$
          */
