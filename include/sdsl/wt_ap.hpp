@@ -78,9 +78,24 @@ class wt_ap
 
     private:
 
+        // retrieves a characters class and offset - if the character exists in the text
+        bool try_get_char_class_offset(value_type c, value_type& cl, value_type& offset)const {
+            assert(i <= size());
+            if (c >= m_char2class.size()) { // c is greater than any symbol in text
+                return false;
+            }
+            auto offset_class = m_char2class.inverse_select(c);
+            cl = offset_class.second;
+            if (cl == m_classes) { // c never occurs in text
+                return false;
+            }
+            offset = offset_class.first;
+            return true;
+        }
+
     public:
 
-        const size_type&       sigma = m_sigma;         //!< Effective alphabet size of the wavelet tree.
+        const size_type&       sigma = m_sigma;
 
         //! Default constructor
         wt_ap() {}
@@ -104,16 +119,16 @@ class wt_ap
             }
 
             // calculate effective sigma and character frequencies
-            m_sigma = 0;
+            value_type max_symbol = 0;
             int_vector<int_width> rac(m_size, 0, buf.width());
             std::vector<std::pair<size_type, value_type>> char_freq;
             value_type pseudo_entries = 0;
             for (size_type i=0; i < m_size; ++i) {
                 auto element = rac[i] = buf[i];
-                while (element >= m_sigma)
+                while (element >= max_symbol)
                 {
-                    char_freq.push_back(std::make_pair(0, m_sigma));
-                    m_sigma++;
+                    char_freq.push_back(std::make_pair(0, max_symbol));
+                    max_symbol++;
                     pseudo_entries++;
                 }
                 if (char_freq[element].first == 0) {
@@ -122,15 +137,15 @@ class wt_ap
                 char_freq[element].first++;
             }
             std::sort(char_freq.rbegin(), char_freq.rend());
-            value_type m_compact_sigma = m_sigma - pseudo_entries;
+            m_sigma = max_symbol - pseudo_entries;
 
-            m_singleton_classes = std::min(m_sigma, (value_type)1); // + bits::hi(m_sigma); // OR m_compact_sigma?
-            m_classes = bits::hi(m_compact_sigma - m_singleton_classes + 1) + m_singleton_classes;            
+            m_singleton_classes = std::min(max_symbol, (value_type)1); // + bits::hi(m_sigma); // OR max_symbol?
+            m_classes = bits::hi(m_sigma - m_singleton_classes + 1) + m_singleton_classes;            
             
             std::vector<std::pair<size_type, int_vector<>>> m_offset_buffer;
             
             // assign character classes
-            int_vector<> m_char2class_buffer(m_sigma, m_classes, bits::hi(m_classes+1)+1);
+            int_vector<> m_char2class_buffer(max_symbol, m_classes, bits::hi(m_classes+1)+1);
             for (value_type i=0; i < m_singleton_classes; ++i) {
                 m_char2class_buffer[char_freq[i].second] = i;
             }
@@ -140,7 +155,7 @@ class wt_ap
                 class_size <<= 1;
                 size_type class_frequency = 0;
                 value_type offset=0;
-                for (; offset < class_size && current_symbol < m_compact_sigma; ++offset, ++current_symbol) {
+                for (; offset < class_size && current_symbol < m_sigma; ++offset, ++current_symbol) {
                     m_char2class_buffer[char_freq[current_symbol].second] = i;
                     class_frequency += char_freq[current_symbol].first;
                 }
@@ -251,21 +266,16 @@ class wt_ap
          */
         size_type rank(size_type i, value_type c)const {
             assert(i <= size());
-            if (c >= m_sigma) { // c is greater than any symbol in text
-                return 0;
-            }
-            auto offset_class = m_char2class.inverse_select(c);
-            auto cl = offset_class.second;
-            if (cl == m_classes) { // c never occurs in text
+            value_type offset;
+            value_type cl;
+            if (!try_get_char_class_offset(c, cl, offset)) {
                 return 0;
             }
             size_type count = m_class.rank(i, cl);
             return cl < m_singleton_classes
                 ? count
-                : m_offset[cl-m_singleton_classes].rank(count, offset_class.first);
+                : m_offset[cl-m_singleton_classes].rank(count, offset);
         };
-
-
 
         //! Calculates how many occurrences of symbol wt[i] are in the prefix [0..i-1] of the original sequence.
         /*!
@@ -299,18 +309,15 @@ class wt_ap
          */
         size_type select(size_type i, value_type c)const {
             assert(1 <= i and i <= rank(size(), c));
-            if (c >= m_sigma) { // c is greater than any symbol in text
+            value_type offset;
+            value_type cl;
+            if (!try_get_char_class_offset(c, cl, offset)) {
                 return m_size;
             }
-            auto offset_class = m_char2class.inverse_select(c);
-            auto cl = offset_class.second;
-            if (cl == m_classes) { // c never occurs in text
-                return m_size;
-            }
-            size_type offset = cl < m_singleton_classes
+            size_type text_offset = cl < m_singleton_classes
                 ? i
-                : 1 + m_offset[cl-m_singleton_classes].select(i, offset_class.first);
-            return m_class.select(offset, cl);
+                : 1 + m_offset[cl-m_singleton_classes].select(i, offset);
+            return m_class.select(text_offset, cl);
         };
 
         //! Serializes the data structure into the given ostream
