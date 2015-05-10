@@ -134,11 +134,12 @@ class wt_ap
             std::sort(char_freq.rbegin(), char_freq.rend());
             m_sigma = max_symbol - pseudo_entries;
 
-            m_singleton_classes = std::min(max_symbol, (value_type)1); // + bits::hi(m_sigma); // OR max_symbol?
+            m_singleton_classes = std::min(max_symbol, (value_type)bits::hi(m_sigma)); 
+            //                                                           OR max_symbol?
             m_classes = bits::hi(m_sigma - m_singleton_classes + 1) + m_singleton_classes;            
-            
+
             std::vector<std::pair<size_type, int_vector<>>> m_offset_buffer;
-            
+
             // assign character classes
             int_vector<> m_char2class_buffer(max_symbol, m_classes, bits::hi(m_classes+1)+1);
             for (value_type i=0; i < m_singleton_classes; ++i) {
@@ -156,9 +157,9 @@ class wt_ap
                 }
                 m_offset_buffer.push_back(std::make_pair(0, int_vector<>(class_frequency, 0, bits::hi(offset)+1)));
             }
-            
+
             construct_im(m_char2class, m_char2class_buffer);
-            
+
             // calculate text-order classes and offsets
             int_vector<> m_class_buffer(m_size, 0, bits::hi(m_classes)+1);
             for (size_type i=0; i < m_size; ++i) {
