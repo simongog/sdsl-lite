@@ -43,7 +43,7 @@ namespace sdsl
  *
  *   @ingroup wt
  */
-template<class t_wt = wt_int<>>
+template<class t_wt = wm_int<rrr_vector<>>>
 class wt_ap
 {
     public:
@@ -80,18 +80,16 @@ class wt_ap
     private:
 
         // retrieves a character's class and offset - if the character exists in the text
-        bool try_get_char_class_offset(value_type c, value_type& cl, value_type& offset)const {
+        std::tuple<bool, value_type, value_type> try_get_char_class_offset(value_type c)const {
             assert(i <= size());
             if (c >= m_char2class.size()) { // c is greater than any symbol in text
-                return false;
+                return std::make_tuple(false, 0, 0);
             }
             auto offset_class = m_char2class.inverse_select(c);
-            cl = offset_class.second;
-            if (cl == m_class_cnt) { // c never occurs in text
-                return false;
+            if (offset_class.second == m_class_cnt) { // c never occurs in text
+                return std::make_tuple(false, 0, 0);
             }
-            offset = offset_class.first;
-            return true;
+            return std::make_tuple(true, offset_class.second, offset_class.first);
         }
 
     public:
@@ -107,6 +105,11 @@ class wt_ap
          */
         template<uint8_t int_width>
         wt_ap(int_vector_buffer<int_width>& buf, size_type size) : m_size(size) {
+            std::string temp_file_class = buf.filename()
+                                        + "_wt_ap_class_" 
+                                        + util::to_string(util::pid())
+                                        + "_" + util::to_string(util::id());
+
             size_type n = buf.size();  // set n
             if (n < m_size) {
                 throw std::logic_error("n="+util::to_string(n)+" < "+util::to_string(m_size)+"=m_size");
@@ -115,14 +118,13 @@ class wt_ap
 
             // calculate effective sigma and character frequencies
             value_type max_symbol = 0;
-            int_vector<int_width> rac(m_size, 0, buf.width());
             std::vector<std::pair<size_type, value_type>> char_freq;
             value_type pseudo_entries = 0;
             for (size_type i=0; i < m_size; ++i) {
-                auto element = rac[i] = buf[i];
+                auto element = buf[i];
                 while (element >= max_symbol)
                 {
-                    char_freq.push_back(std::make_pair(0, max_symbol));
+                    char_freq.emplace_back(0, max_symbol);
                     max_symbol++;
                     pseudo_entries++;
                 }
@@ -134,14 +136,14 @@ class wt_ap
             std::sort(char_freq.rbegin(), char_freq.rend());
             m_sigma = max_symbol - pseudo_entries;
 
-            m_singleton_class_cnt = std::min(max_symbol, (value_type)bits::hi(m_sigma)); 
-            //                                                           OR max_symbol?
-            m_class_cnt = bits::hi(m_sigma - m_singleton_class_cnt + 1) + m_singleton_class_cnt;            
+            m_singleton_class_cnt = std::min(max_symbol, (value_type)bits::hi(m_sigma));
+            m_class_cnt = bits::hi(m_sigma - m_singleton_class_cnt + 1) + m_singleton_class_cnt;
 
-            std::vector<std::pair<size_type, int_vector<>>> m_offset_buffer;
+            std::vector<std::pair<std::string, int_vector_buffer<int_width>>> temp_file_offset_buffers;
 
             // assign character classes
-            int_vector<> m_char2class_buffer(max_symbol, m_class_cnt, bits::hi(m_class_cnt+1)+1);
+            uint8_t class_index_width = bits::hi(m_class_cnt+1);
+            int_vector<> m_char2class_buffer(max_symbol, m_class_cnt, class_index_width + 1);
             for (value_type i=0; i < m_singleton_class_cnt; ++i) {
                 m_char2class_buffer[char_freq[i].second] = i;
             }
@@ -149,32 +151,46 @@ class wt_ap
             value_type class_size = 1;
             for (value_type i=m_singleton_class_cnt; i < m_class_cnt; ++i) {
                 class_size <<= 1;
-                size_type class_frequency = 0;
                 value_type offset=0;
                 for (; offset < class_size && current_symbol < m_sigma; ++offset, ++current_symbol) {
                     m_char2class_buffer[char_freq[current_symbol].second] = i;
-                    class_frequency += char_freq[current_symbol].first;
                 }
-                m_offset_buffer.push_back(std::make_pair(0, int_vector<>(class_frequency, 0, bits::hi(offset)+1)));
-            }
 
+                std::string temp_file_offset = buf.filename()
+                                             + "_wt_ap_offset_"
+                                             + util::to_string(i-m_singleton_class_cnt)
+                                             + "_" + util::to_string(util::pid())
+                                             + "_" + util::to_string(util::id());
+                temp_file_offset_buffers.emplace_back(
+                    temp_file_offset,
+                    int_vector_buffer<int_width>(temp_file_offset, std::ios::out, 1024*1024, bits::hi(offset)+1));
+            }
+            char_freq.clear();
             construct_im(m_char2class, m_char2class_buffer);
 
             // calculate text-order classes and offsets
+            int_vector_buffer<int_width> class_buffer(temp_file_class, std::ios::out, 1024*1024, class_index_width);
             for (size_type i=0; i < m_size; ++i) {
-                value_type ch = rac[i];
-                value_type cl = rac[i] = m_char2class_buffer[ch];
+                value_type ch = buf[i];
+                value_type cl = m_char2class_buffer[ch];
+                class_buffer.push_back(cl);
                 if (cl >= m_singleton_class_cnt) {
                     value_type offset = m_char2class.rank(ch, cl);
                     cl -= m_singleton_class_cnt;
-                    m_offset_buffer[cl].second[m_offset_buffer[cl].first++] = offset;
+                    temp_file_offset_buffers[cl].second.push_back(offset);
                 }
             }
+            class_buffer.close();
+
+            construct(m_class, temp_file_class);
+            sdsl::remove(temp_file_class);
             
-            construct_im(m_class, rac);
             m_offset.resize(m_class_cnt-m_singleton_class_cnt);
             for (value_type i=0; i < m_class_cnt-m_singleton_class_cnt; ++i) {
-                construct_im(m_offset[i], m_offset_buffer[i].second);
+                auto& temp_file_offset_buffer = temp_file_offset_buffers[i];
+                temp_file_offset_buffer.second.close();
+                construct(m_offset[i], temp_file_offset_buffer.first);
+                sdsl::remove(temp_file_offset_buffer.first);
             }
         }
 
@@ -267,11 +283,12 @@ class wt_ap
          */
         size_type rank(size_type i, value_type c)const {
             assert(i <= size());
-            value_type offset;
-            value_type cl;
-            if (!try_get_char_class_offset(c, cl, offset)) {
+            auto success_class_offset = try_get_char_class_offset(c);
+            if (!std::get<0>(success_class_offset)) {
                 return 0;
             }
+            auto cl = std::get<1>(success_class_offset);
+            auto offset = std::get<2>(success_class_offset);
             size_type count = m_class.rank(i, cl);
             return cl < m_singleton_class_cnt
                 ? count
@@ -312,11 +329,12 @@ class wt_ap
          */
         size_type select(size_type i, value_type c)const {
             assert(1 <= i and i <= rank(size(), c));
-            value_type offset;
-            value_type cl;
-            if (!try_get_char_class_offset(c, cl, offset)) {
+            auto success_class_offset = try_get_char_class_offset(c);
+            if (!std::get<0>(success_class_offset)) {
                 return m_size;
             }
+            auto cl = std::get<1>(success_class_offset);
+            auto offset = std::get<2>(success_class_offset);
             size_type text_offset = cl < m_singleton_class_cnt
                 ? i
                 : 1 + m_offset[cl-m_singleton_class_cnt].select(i, offset);
