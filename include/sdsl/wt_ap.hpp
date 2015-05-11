@@ -105,11 +105,6 @@ class wt_ap
          */
         template<uint8_t int_width>
         wt_ap(int_vector_buffer<int_width>& buf, size_type size) : m_size(size) {
-            std::string temp_file_class = buf.filename()
-                                        + "_wt_ap_class_" 
-                                        + util::to_string(util::pid())
-                                        + "_" + util::to_string(util::id());
-
             size_type n = buf.size();  // set n
             if (n < m_size) {
                 throw std::logic_error("n="+util::to_string(n)+" < "+util::to_string(m_size)+"=m_size");
@@ -142,8 +137,7 @@ class wt_ap
             std::vector<std::pair<std::string, int_vector_buffer<int_width>>> temp_file_offset_buffers;
 
             // assign character classes
-            uint8_t class_index_width = bits::hi(m_class_cnt+1);
-            int_vector<> m_char2class_buffer(max_symbol, m_class_cnt, class_index_width + 1);
+            int_vector<> m_char2class_buffer(max_symbol, m_class_cnt, bits::hi(m_class_cnt+1)+1);
             for (value_type i=0; i < m_singleton_class_cnt; ++i) {
                 m_char2class_buffer[char_freq[i].second] = i;
             }
@@ -169,7 +163,11 @@ class wt_ap
             construct_im(m_char2class, m_char2class_buffer);
 
             // calculate text-order classes and offsets
-            int_vector_buffer<int_width> class_buffer(temp_file_class, std::ios::out, 1024*1024, class_index_width);
+            std::string temp_file_class = buf.filename()
+                                        + "_wt_ap_class_" 
+                                        + util::to_string(util::pid())
+                                        + "_" + util::to_string(util::id());
+            int_vector_buffer<int_width> class_buffer(temp_file_class, std::ios::out, 1024*1024, bits::hi(m_class_cnt)+1);
             for (size_type i=0; i < m_size; ++i) {
                 value_type ch = buf[i];
                 value_type cl = m_char2class_buffer[ch];
@@ -182,14 +180,20 @@ class wt_ap
             }
             class_buffer.close();
 
-            construct(m_class, temp_file_class);
+            {
+                int_vector_buffer<int_width> class_buffer(temp_file_class, std::ios::in, 1024*1024, class_buffer.width());
+                m_class = wt_type(class_buffer, class_buffer.size());
+            }
             sdsl::remove(temp_file_class);
             
             m_offset.resize(m_class_cnt-m_singleton_class_cnt);
             for (value_type i=0; i < m_class_cnt-m_singleton_class_cnt; ++i) {
                 auto& temp_file_offset_buffer = temp_file_offset_buffers[i];
                 temp_file_offset_buffer.second.close();
-                construct(m_offset[i], temp_file_offset_buffer.first);
+                {
+                    int_vector_buffer<int_width> offset_buffer(temp_file_offset_buffer.first, std::ios::in, 1024*1024, temp_file_offset_buffer.second.width());
+                    m_offset[i] = wt_type(offset_buffer, offset_buffer.size());
+                }
                 sdsl::remove(temp_file_offset_buffer.first);
             }
         }
