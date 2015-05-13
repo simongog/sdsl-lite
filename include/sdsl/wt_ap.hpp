@@ -380,7 +380,7 @@ class wt_ap
         written_bytes += write_member(m_class_cnt, out, child, "classes");
         written_bytes += m_char2class.serialize(out, child, "char2class");
         written_bytes += m_class.serialize(out, child, "class");
-        for (int i=0; i<m_offset.size(); ++i) {
+        for (value_type i=0; i<m_offset.size(); ++i) {
             written_bytes += m_offset[i].serialize(out, child, "offset");
         }
         structure_tree::add_size(child, written_bytes);
@@ -398,7 +398,7 @@ class wt_ap
         m_class.load(in);
         value_type offset_size = m_class_cnt - m_singleton_class_cnt;
         m_offset.resize(offset_size);
-        for (int i=0; i<offset_size; ++i) {
+        for (value_type i=0; i<offset_size; ++i) {
             m_offset[i].load(in);
         }
     }
