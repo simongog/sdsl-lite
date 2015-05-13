@@ -181,7 +181,7 @@ class wt_ap
             class_buffer.close();
 
             {
-                int_vector_buffer<int_width> class_buffer(temp_file_class, std::ios::in, 1024*1024, class_buffer.width());
+                int_vector_buffer<int_width> class_buffer(temp_file_class/*, std::ios::in, 1024*1024, class_buffer.width()*/);
                 m_class = wt_type(class_buffer, class_buffer.size());
             }
             sdsl::remove(temp_file_class);
@@ -191,7 +191,7 @@ class wt_ap
                 auto& temp_file_offset_buffer = temp_file_offset_buffers[i];
                 temp_file_offset_buffer.second.close();
                 {
-                    int_vector_buffer<int_width> offset_buffer(temp_file_offset_buffer.first, std::ios::in, 1024*1024, temp_file_offset_buffer.second.width());
+                    int_vector_buffer<int_width> offset_buffer(temp_file_offset_buffer.first/*, std::ios::in, 1024*1024, temp_file_offset_buffer.second.width()*/);
                     m_offset[i] = wt_type(offset_buffer, offset_buffer.size());
                 }
                 sdsl::remove(temp_file_offset_buffer.first);
