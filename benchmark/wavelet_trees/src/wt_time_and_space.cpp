@@ -226,6 +226,10 @@ int main(int argc, char* argv[])
     memory_monitor::stop();
     cout << "# constructs_time = " << duration_cast<milliseconds>(stop-start).count()/(double)1000 << endl;
     cout << "# constructs_space = " << memory_monitor::peak() << endl;
+    {
+        std::ofstream csaofs("wt-construction.html");
+        memory_monitor::write_memory_log<HTML_FORMAT>(csaofs);
+    }
 
     // size
     cout << "# wt_size = " << size_in_bytes(wt) << endl;
