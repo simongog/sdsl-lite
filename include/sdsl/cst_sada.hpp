@@ -22,7 +22,7 @@
 #define INCLUDED_SDSL_CST_SADA
 
 #include "int_vector.hpp"
-#include "suffix_tree_helper.hpp"
+#include "suffix_trees.hpp"
 #include "iterators.hpp"
 #include "lcp_support_sada.hpp"
 #include "select_support_mcl.hpp"
@@ -30,7 +30,6 @@
 #include "bp_support_sada.hpp"
 #include "csa_sada.hpp" // for std initialization of cst_sada
 #include "cst_iterators.hpp"
-#include "cst_sct3.hpp" // this CST is used in the construction
 #include "util.hpp"
 #include <iostream>
 #include <algorithm>
