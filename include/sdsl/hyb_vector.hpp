@@ -845,7 +845,7 @@ class select_support_hyb
         }
 
         //! Answers select queries
-        size_type select(size_type i) const
+        size_type select(size_type) const
         {
             fprintf(stderr, "\nhyb_vector: select queries are not currently supported\n");
             std::exit(EXIT_FAILURE);
