@@ -171,20 +171,24 @@ void prepare_for_select(const t_iv& iv, vector<value_type>& cs, vector<size_type
 
 template<class t_wt>
 struct wt_trait {
-    static uint64_t test_access(const t_wt& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000) {
+    static uint64_t test_access(const t_wt& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000)
+    {
         return ::test_access(wt, is, mask, times);
     }
-    static uint64_t test_inverse_select(const t_wt& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000) {
+    static uint64_t test_inverse_select(const t_wt& wt, const vector<size_type>& is, uint64_t mask, uint64_t times=100000000)
+    {
         return ::test_inverse_select(wt, is, mask, times);
     }
 };
 
 template<class t_rac, class t_bitvector, class t_select, class t_select_zero>
 struct wt_trait<wt_gmr_rs<t_rac, t_bitvector, t_select, t_select_zero>> {
-    static uint64_t test_access(const wt_gmr_rs<t_rac, t_bitvector, t_select, t_select_zero>&, const vector<size_type>&, uint64_t, uint64_t) {
+    static uint64_t test_access(const wt_gmr_rs<t_rac, t_bitvector, t_select, t_select_zero>&, const vector<size_type>&, uint64_t, uint64_t)
+    {
         return 0;
     }
-    static uint64_t test_inverse_select(const wt_gmr_rs<t_rac, t_bitvector, t_select, t_select_zero>&, const vector<size_type>&, uint64_t, uint64_t) {
+    static uint64_t test_inverse_select(const wt_gmr_rs<t_rac, t_bitvector, t_select, t_select_zero>&, const vector<size_type>&, uint64_t, uint64_t)
+    {
         return 0;
     }
 };
@@ -226,11 +230,6 @@ int main(int argc, char* argv[])
     memory_monitor::stop();
     cout << "# constructs_time = " << duration_cast<milliseconds>(stop-start).count()/(double)1000 << endl;
     cout << "# constructs_space = " << memory_monitor::peak() << endl;
-    {
-        std::ofstream csaofs("wt-construction.html");
-        memory_monitor::write_memory_log<HTML_FORMAT>(csaofs);
-    }
-
     // size
     cout << "# wt_size = " << size_in_bytes(wt) << endl;
 
