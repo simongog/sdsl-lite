@@ -250,7 +250,7 @@ from other researchers. E.g. Juha Kärkkäinen,
 and Simon Puglisi contributed a compressed bitvector
 implementation ([hyb_vector][HB]).
 This project further profited from excellent input of our students
-Markus Brenner, Alexander Diehm, and Maike Zwerger. Stefan
+Markus Brenner, Alexander Diehm, Christian Ocker, and Maike Zwerger. Stefan
 Arnold helped us with tricky template questions. We are also grateful to
 [Diego Caro](https://github.com/diegocaro),
 [Travis Gagie](https://github.com/TravisGagie),

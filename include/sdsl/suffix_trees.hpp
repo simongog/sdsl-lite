@@ -71,6 +71,7 @@ typename t_csa::size_type get_char_pos(typename t_csa::size_type idx, typename t
 #include "suffix_tree_helper.hpp"
 #include "cst_sct3.hpp"
 #include "cst_sada.hpp"
+#include "cst_fully.hpp
 
 #include "csa_bitcompressed.hpp"
 #include "int_vector.hpp"
