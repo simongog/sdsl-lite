@@ -54,6 +54,29 @@ typename t_csa::size_type get_char_pos(typename t_csa::size_type idx, typename t
     return csa.isa[csa[idx] + d];
 }
 
+
+// has_id<X>::value is true if class X has
+// implement method id
+// Adapted solution from jrok's proposal:
+// http://stackoverflow.com/questions/87372/check-if-a-class-has-a-member-function-of-a-given-signature
+template<typename t_wt>
+struct has_id {
+    template<typename T>
+    static constexpr auto check(T*)
+    -> typename
+    std::is_same<
+    decltype(std::declval<T>().id(
+                 std::declval<typename T::node_type&>()
+             )),
+             typename T::size_type>::type {return std::true_type();}
+             template<typename>
+    static constexpr std::false_type check(...) {return std::false_type();}
+    typedef decltype(check<t_wt>(nullptr)) type;
+    static constexpr bool value = type::value;
+};
+
+
+
 }
 
 /** \defgroup cst Compressed Suffix Trees (CST)
