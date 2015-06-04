@@ -89,7 +89,6 @@ class wt_ap
         // retrieves a character's class and offset - if the character exists in the text
         inline std::tuple<bool, value_type, value_type> try_get_char_class_offset(value_type c)const
         {
-            assert(i <= size());
             if (c >= m_char2class.size()) { // c is greater than any symbol in text
                 return std::make_tuple(false, 0, 0);
             }
