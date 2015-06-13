@@ -50,7 +50,7 @@ namespace sdsl
 struct bits {
     bits() = delete;
     //! 64bit mask with all bits set to 1.
-    constexpr static int64_t  all_set {-1LL};
+    constexpr static uint64_t  all_set {-1ULL};
 
     //! This constant represents a de Bruijn sequence B(k,n) for k=2 and n=6.
     /*! Details for de Bruijn sequences see
