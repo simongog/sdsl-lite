@@ -6,7 +6,7 @@ Explored dimensions:
   
   * suffix tree implementations
   * test cases
-  * methods (`LCA`, `Letter`, `SLink`, `Child`, `SDepth`, `Parent`,)
+  * methods (`LCA`, `Letter`, `SLink`, `Child`, `SDepth`, `Parent`)
 
 ## Directory structure
 
@@ -47,7 +47,7 @@ Note that the benchmark will execute every combination of suffix trees and test 
 
 [RPJ]: http://www.r-project.org/ "R"
 [LT]: http://www.tug.org/applications/pdftex/ "pdflatex"
-[WTCONFIG]: ./wt.config "wt.config"
+[STCONFIG]: ./index.config "index.config"
 [TCCONF]: ./test_case.config "test_case.config"
 [CCONF]: ./compile_options.config "compile_options.config"
 
