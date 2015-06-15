@@ -683,9 +683,34 @@ class cst_sada
             return lca(left_leaf, right_leaf);
         }
 
+
+        //! Compute the suffix link of node v applied a number of times consecutively.
+        /*!
+         * \param v A valid node of a cst_sada
+         * \return The suffix link ^ i of node v.
+         * \par Time complexity
+         *   \f$ \Order{ i } \f$
+         */
+        node_type sl(node_type v, size_type i)const
+        {
+            if (v == root())
+                return root();
+            // get leftmost leaf in the tree rooted at v
+            size_type left        = m_bp_rank10(v);
+            if (is_leaf(v)) {
+                return select_leaf(get_char_pos(left, i, m_csa)+1);
+            }
+            // get the rightmost leaf in the tree rooted at v
+            size_type right         = m_bp_rank10(m_bp_support.find_close(v))-1;
+            assert(left < right);
+            node_type left_leaf = select_leaf(get_char_pos(left, i, m_csa)+1);
+            node_type right_leaf= select_leaf(get_char_pos(right, i, m_csa)+1);
+            return lca(left_leaf, right_leaf);
+        }
+
 //! Compute the Weiner link of node v and character c.
         /*
-         * \param v A valid not of a cst_sada.
+         * \param v A valid node of a cst_sada.
          * \param c The character which should be prepended to the string of the current node.
          *   \return root() if the Weiner link of (v, c) does not exist, otherwise the Weiner link is returned.
          * \par Time complexity

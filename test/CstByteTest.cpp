@@ -30,6 +30,7 @@ using testing::Types;
 typedef Types<
 cst_sct3<>,
          cst_sada<>,
+         cst_fully<>,
          cst_sct3<cst_sct3<>::csa_type, lcp_bitcompressed<>>,
          cst_sct3<cst_sct3<>::csa_type, lcp_support_tree2<>>,
          cst_sada<cst_sada<>::csa_type, lcp_dac<>>,
@@ -106,8 +107,7 @@ TYPED_TEST(CstByteTest, BasicMethods)
 {
     TypeParam cst;
     ASSERT_TRUE(load_from_file(cst, temp_file));
-    typedef typename TypeParam::node_type node_type;
-    node_type r = cst.root(); // get root node
+    auto r = cst.root(); // get root node
     // Size of the subtree rooted at r should the size of the suffix array
     ASSERT_EQ(cst.csa.size(), cst.size(r));
     // Check leaf methods
@@ -188,19 +188,23 @@ TYPED_TEST(CstByteTest, MoveLcpAccess)
     }
 }
 
-//! Test the id and inverse id method
-TYPED_TEST(CstByteTest, IdMethod)
+template<typename t_cst>
+void test_id(typename std::enable_if<!(has_id<t_cst>::value), t_cst>::type&)
 {
-    TypeParam cst;
+    // id operation not implemented
+}
+
+
+template<typename t_cst>
+void test_id(typename std::enable_if<has_id<t_cst>::value, t_cst>::type& cst)
+{
     // test empty iterator
     ASSERT_EQ(cst.begin(), cst.end());
 
     ASSERT_TRUE(load_from_file(cst, temp_file));
     // doing a depth first traversal through the tree to count the nodes
-    typedef typename TypeParam::const_iterator const_iterator;
-    typedef typename TypeParam::node_type node_type;
     size_type node_count=0;
-    for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it) {
+    for (auto it = cst.begin(), end = cst.end(); it != end; ++it) {
         if (it.visit() == 1) {
             ++node_count;
         }
@@ -209,16 +213,23 @@ TYPED_TEST(CstByteTest, IdMethod)
     ASSERT_EQ(node_count, cst.nodes());
     // check if the id method is working
     bit_vector marked(cst.nodes(), 0);
-    for (const_iterator it = cst.begin(), end = cst.end(); it != end; ++it) {
+    for (auto it = cst.begin(), end = cst.end(); it != end; ++it) {
         if (it.visit() == 1) {
             ++node_count;
-            node_type v = *it;
+            auto v = *it;
             size_type id = cst.id(v);
             ASSERT_EQ(0, marked[id]);
             marked[id] = 1;
             ASSERT_EQ(v, cst.inv_id(cst.id(v)));
         }
     }
+}
+
+//! Test the id and inverse id method
+TYPED_TEST(CstByteTest, IdMethod)
+{
+    TypeParam cst;
+    test_id<TypeParam>(cst);
 }
 
 TYPED_TEST(CstByteTest, SelectChild)
@@ -401,26 +412,25 @@ TYPED_TEST(CstByteTest, LcaMethod)
     uint64_t mask;
     uint8_t log_m = 6;
     // create m/2 pairs of positions in [0..cst.csa.size()-1]
-    typedef typename TypeParam::node_type node_type;
     int_vector<64> rnd_pos = util::rnd_positions<int_vector<64>>(log_m, mask, cst.csa.size());
     // test for random sampled nodes
     for (size_type i=0; i < rnd_pos.size()/2; ++i) {
         // get two children
-        node_type v = cst.select_leaf(rnd_pos[2*i]+1);
-        node_type w = cst.select_leaf(rnd_pos[2*i+1]+1);
+        auto v = cst.select_leaf(rnd_pos[2*i]+1);
+        auto w = cst.select_leaf(rnd_pos[2*i+1]+1);
         // calculate lca
-        node_type z = naive_lca(cst, v, w);
+        auto z = naive_lca(cst, v, w);
         ASSERT_EQ(z, cst.lca(v, w));
     }
     // test for regular sampled nodes
     size_type g = std::max(cst.csa.size()/30, (size_type)5);
     for (size_type i=cst.csa.size()/2; i+g < cst.csa.size(); ++i) {
         // get two children
-        node_type v = cst.select_leaf(i+1);
-        node_type w = cst.select_leaf(i+g+1);
+        auto v = cst.select_leaf(i+1);
+        auto w = cst.select_leaf(i+g+1);
         // calculate lca
-        node_type z = naive_lca(cst, v, w);
-        node_type u = cst.lca(v, w);
+        auto z = naive_lca(cst, v, w);
+        auto u = cst.lca(v, w);
         ASSERT_EQ(z, u) << " naive_lca is "
                         << naive_lca(cst, v, w, true) << endl;
     }

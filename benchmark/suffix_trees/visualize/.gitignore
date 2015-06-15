@@ -2,4 +2,4 @@
 *.aux
 *.tex
 *.pdf
-!cst_fully.tex
+!suffix_trees.tex
