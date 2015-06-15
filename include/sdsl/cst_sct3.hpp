@@ -960,7 +960,7 @@ class cst_sct3
 
         //! Compute the Weiner link of node v and character c.
         /*!
-         * \param v A valid not of a cst_sct3.
+         * \param v A valid node of a cst_sct3.
          * \param c The character which should be prepended to the string of the current node.
          * \return  root() if the Weiner link of (v, c) does not exist,
          *          otherwise the Weiner link is returned.
