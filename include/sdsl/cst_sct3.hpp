@@ -1194,10 +1194,8 @@ void cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::load(std::istrea
     m_bp.load(in);
     m_bp_support.load(in, &m_bp);
     m_first_child.load(in);
-    m_first_child_rank.load(in);
-    m_first_child_rank.set_vector(&m_first_child);
-    m_first_child_select.load(in);
-    m_first_child_select.set_vector(&m_first_child);
+    m_first_child_rank.load(in,&m_first_child);
+    m_first_child_select.load(in,&m_first_child);
     read_member(m_nodes, in);
 }
 
