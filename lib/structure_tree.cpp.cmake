@@ -45,7 +45,7 @@ std::string create_html_header(const char* file_name)
             << "   <head>\n"
             << "    <meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\">\n"
             << "    <title>" << file_name << "</title>\n"
-            << "    <script src=\"file:///Users/sgog/github/sdsl-lite/external/d3/d3.min.js\"></script>"
+            << "    <script src=\"file://@PROJECT_SOURCE_DIR@/external/d3/d3.min.js\"></script>"
             << "    <script src=\"http://d3js.org/d3.v2.js\"></script>\n"
             << "    <style type=\"text/css\">\n"
             << "      path { stroke: #000; stroke-width: 0.8; cursor: pointer; }\n"
