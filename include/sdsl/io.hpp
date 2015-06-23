@@ -305,7 +305,8 @@ double size_in_mega_bytes(const T& t);
 
 struct nullstream : std::ostream {
     struct nullbuf: std::streambuf {
-        int overflow(int c) {
+        int overflow(int c)
+        {
             return traits_type::not_eof(c);
         }
         int xputc(int) { return 0; }
@@ -357,6 +358,7 @@ void load_vector(std::vector<T>& vec, std::istream& in)
     }
 }
 
+
 template<format_type F, typename X>
 void write_structure(const X& x, std::ostream& out)
 {
@@ -368,6 +370,13 @@ void write_structure(const X& x, std::ostream& out)
             sdsl::write_structure_tree<F>(child.second.get(), out);
         }
     }
+}
+
+template<format_type F, typename X>
+void write_structure(const X& x, std::string file)
+{
+    std::ofstream out(file);
+    write_structure<F>(x, out);
 }
 
 template<format_type F, typename... Xs>

@@ -14,6 +14,10 @@ int main()
     wt_int<> wt;
     construct_im(wt, int_vector<>(1000,3));
     // write multiple objects into one file
-    ofstream out("write_structure.html");
-    write_structure<HTML_FORMAT>(out, csa, wt);
+    {
+        ofstream out("write_structure.html");
+        write_structure<HTML_FORMAT>(out, csa, wt);
+    }
+    // write one object into a file
+    write_structure<HTML_FORMAT>(csa, "csa_structure.html");
 }
