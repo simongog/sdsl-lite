@@ -767,8 +767,9 @@ bool load_from_checked_file(T& v, const std::string& file)
 
 template<class t_iv>
 inline typename std::enable_if<
-std::is_same<typename t_iv::index_category ,iv_tag>::value or
-std::is_same<typename t_iv::index_category ,csa_tag>::value
+std::is_same<typename t_iv::index_category, iv_tag>::value or
+std::is_same<typename t_iv::index_category, csa_tag>::value or
+std::is_same<typename t_iv::index_category, lcp_tag>::value
 , std::ostream&>::type
 operator<<(std::ostream& os, const t_iv& v)
 {

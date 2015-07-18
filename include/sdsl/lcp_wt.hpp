@@ -63,9 +63,10 @@ class lcp_wt
         typedef ptrdiff_t                                difference_type;
         typedef wt_huff<bit_vector, rank_support_v<>,
                 select_support_scan<1>,
-                select_support_scan<0>>          small_lcp_type;
+                select_support_scan<0>>                  small_lcp_type;
 
         typedef lcp_plain_tag                            lcp_category;
+        typedef lcp_tag                                  index_category;
 
         enum { fast_access = 0,
                text_order  = 0,
@@ -94,7 +95,8 @@ class lcp_wt
         lcp_wt& operator=(lcp_wt&&) = default;
 
         //! Constructor
-        lcp_wt(cache_config& config, std::string other_key="") {
+        lcp_wt(cache_config& config, std::string other_key="")
+        {
             std::string temp_file = tmp_file(config, "_lcp_sml");
             std::string lcp_key  = conf::KEY_LCP;
             if ("" != other_key) {
@@ -132,41 +134,48 @@ class lcp_wt
         }
 
         //! Number of elements in the instance.
-        size_type size()const {
+        size_type size()const
+        {
             return m_small_lcp.size();
         }
 
         //! Returns the largest size that lcp_wt can ever have.
-        static size_type max_size() {
+        static size_type max_size()
+        {
             return int_vector<8>::max_size();
         }
 
         //! Returns if the data structure is empty.
-        bool empty()const {
+        bool empty()const
+        {
             return 0==m_small_lcp.size();
         }
 
         //! Swap method for lcp_wt
-        void swap(lcp_wt& lcp_c) {
+        void swap(lcp_wt& lcp_c)
+        {
             m_small_lcp.swap(lcp_c.m_small_lcp);
             m_big_lcp.swap(lcp_c.m_big_lcp);
         }
 
         //! Returns a const_iterator to the first element.
-        const_iterator begin()const {
+        const_iterator begin()const
+        {
             return const_iterator(this, 0);
         }
 
 
         //! Returns a const_iterator to the element after the last element.
-        const_iterator end()const {
+        const_iterator end()const
+        {
             return const_iterator(this, size());
         }
 
         //! []-operator
         /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
          */
-        inline value_type operator[](size_type i)const {
+        inline value_type operator[](size_type i)const
+        {
             if (m_small_lcp[i]!=255) {
                 return m_small_lcp[i];
             } else {
@@ -176,7 +185,8 @@ class lcp_wt
 
         //! Serialize to a stream.
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
-                            std::string name="")const {
+                            std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(
                                              v, name, util::class_name(*this));
             size_type written_bytes = 0;
@@ -187,7 +197,8 @@ class lcp_wt
         }
 
         //! Load from a stream.
-        void load(std::istream& in) {
+        void load(std::istream& in)
+        {
             m_small_lcp.load(in);
             m_big_lcp.load(in);
         }

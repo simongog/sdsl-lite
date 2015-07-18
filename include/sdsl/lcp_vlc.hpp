@@ -53,6 +53,7 @@ class lcp_vlc
         typedef t_vlc_vec                             vlc_vec_type;
 
         typedef lcp_plain_tag                         lcp_category;
+        typedef lcp_tag                               index_category;
 
         enum { fast_access = 0,
                text_order  = 0,
@@ -78,7 +79,8 @@ class lcp_vlc
         lcp_vlc& operator=(lcp_vlc&&) = default;
 
         //! Construct
-        lcp_vlc(cache_config& config, std::string other_key="") {
+        lcp_vlc(cache_config& config, std::string other_key="")
+        {
             std::string lcp_key  = conf::KEY_LCP;
             if ("" != other_key) {
                 lcp_key = other_key;
@@ -89,43 +91,51 @@ class lcp_vlc
         }
 
         //! Number of elements in the instance.
-        size_type size()const {
+        size_type size()const
+        {
             return m_vec.size();
         }
 
         //! Returns the largest size that lcp_vlc can ever have.
-        static size_type max_size() {
+        static size_type max_size()
+        {
             return vlc_vec_type::max_size();
         }
 
         //! Returns if the data strucutre is empty.
-        bool empty()const {
+        bool empty()const
+        {
             return m_vec.empty();
         }
 
         //! Swap method for lcp_vlc
-        void swap(lcp_vlc& lcp_c) {
+        void swap(lcp_vlc& lcp_c)
+        {
             m_vec.swap(lcp_c.m_vec);
         }
 
         //! Returns a const_iterator to the first element.
-        const_iterator begin()const {
+        const_iterator begin()const
+        {
             return const_iterator(this, 0);
         }
 
 
         //! Returns a const_iterator to the element after the last element.
-        const_iterator end()const {
+        const_iterator end()const
+        {
             return const_iterator(this, size());
         }
 
         //! []-operator
-        inline value_type operator[](size_type i)const {
+        inline value_type operator[](size_type i)const
+        {
             return m_vec[i];
         }
 
         //! Serialize to a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_vec.serialize(out, child, "vec");
@@ -134,7 +144,8 @@ class lcp_vlc
         }
 
         //! Load from a stream.
-        void load(std::istream& in) {
+        void load(std::istream& in)
+        {
             m_vec.load(in);
         }
 };
