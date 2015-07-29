@@ -63,14 +63,14 @@ endif()
 
 #COMMENT REPLACED BY BIICODE
 
-add_subdirectory(external)
-add_subdirectory(include)
-add_subdirectory(lib)
-
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake"
 		       "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/lib/structure_tree.cpp.cmake"
                "${CMAKE_CURRENT_SOURCE_DIR}/lib/structure_tree.cpp" @ONLY)
+
+add_subdirectory(external)
+add_subdirectory(include)
+add_subdirectory(lib)
 
 ## Add 'uninstall' target ##
 CONFIGURE_FILE(
