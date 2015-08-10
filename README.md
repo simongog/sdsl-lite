@@ -12,7 +12,7 @@ the highlights of 40 [research publications][SDSLLIT]. Succinct data structures
 can represent an object (such as a bitvector or a tree) in space close the
 information-theoretic lower bound of the object while supporting operations
 of the original object efficiently. The theoretical time complexity of an
-operations performed on the classical data structure and the equivalent
+operation performed on the classical data structure and the equivalent
 succinct data structure are (most of the time) identical.
 
 Why SDSL?
