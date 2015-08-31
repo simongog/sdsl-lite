@@ -95,8 +95,6 @@ class wm_int
         uint32_t               m_max_level = 0;
         int_vector<64>         m_zero_cnt;     // m_zero_cnt[i] contains the number of zeros in level i
         int_vector<64>         m_rank_level;   // m_rank_level[i] contains m_tree_rank(i*size())
-        mutable int_vector<64> m_path_off;     // array keeps track of path offset in select-like methods
-        mutable int_vector<64> m_path_rank_off;// array keeps track of rank values for the offsets
 
         void copy(const wm_int& wt) {
             m_size          = wt.m_size;
@@ -111,15 +109,6 @@ class wm_int
             m_max_level     = wt.m_max_level;
             m_zero_cnt      = wt.m_zero_cnt;
             m_rank_level    = wt.m_rank_level;
-            m_path_off      = wt.m_path_off;
-            m_path_rank_off = wt.m_path_rank_off;
-        }
-
-    private:
-
-        void init_buffers(uint32_t max_level) {
-            m_path_off = int_vector<64>(max_level+1);
-            m_path_rank_off = int_vector<64>(max_level+1);
         }
 
     public:
@@ -129,9 +118,7 @@ class wm_int
         const uint32_t&        max_level = m_max_level; //!< Maximal level of the wavelet tree.
 
         //! Default constructor
-        wm_int() {
-            init_buffers(m_max_level);
-        };
+        wm_int() { };
 
         //! Semi-external constructor
         /*! \param buf         File buffer of the int_vector for which the wm_int should be build.
@@ -146,7 +133,6 @@ class wm_int
         template<uint8_t int_width>
         wm_int(int_vector_buffer<int_width>& buf, size_type size,
                uint32_t max_level=0) : m_size(size) {
-            init_buffers(m_max_level);
             if (0 == m_size)
                 return;
             size_type n = buf.size();  // set n
@@ -170,7 +156,6 @@ class wm_int
             } else {
                 m_max_level = max_level;
             }
-            init_buffers(m_max_level);
 
 
             std::string tree_out_buf_file_name = tmp_file(buf.filename(), "_m_tree");
@@ -263,8 +248,6 @@ class wm_int
                 m_max_level     = std::move(wt.m_max_level);
                 m_zero_cnt      = std::move(wt.m_zero_cnt);
                 m_rank_level    = std::move(wt.m_rank_level);
-                m_path_off      = std::move(wt.m_path_off);
-                m_path_rank_off = std::move(wt.m_path_rank_off);
             }
             return *this;
         }
@@ -281,8 +264,6 @@ class wm_int
                 std::swap(m_max_level,  wt.m_max_level);
                 m_zero_cnt.swap(wt.m_zero_cnt);
                 m_rank_level.swap(wt.m_rank_level);
-                m_path_off.swap(wt.m_path_off);
-                m_path_rank_off.swap(wt.m_path_rank_off);
             }
         }
 
@@ -395,6 +376,8 @@ class wm_int
         size_type select(size_type i, value_type c)const {
             assert(1 <= i and i <= rank(size(), c));
             uint64_t mask = 1ULL << (m_max_level-1);
+            int_vector<64> m_path_off(max_level+1);
+            int_vector<64> m_path_rank_off(max_level+1);
             m_path_off[0] = m_path_rank_off[0] = 0;
             size_type b = 0; // start position of the interval
             size_type r = i;
@@ -544,7 +527,6 @@ class wm_int
             read_member(m_max_level, in);
             m_zero_cnt.load(in);
             m_rank_level.load(in);
-            init_buffers(m_max_level);
         }
 
         //! Represents a node in the wavelet tree
