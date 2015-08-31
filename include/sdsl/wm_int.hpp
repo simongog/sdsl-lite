@@ -376,8 +376,8 @@ class wm_int
         size_type select(size_type i, value_type c)const {
             assert(1 <= i and i <= rank(size(), c));
             uint64_t mask = 1ULL << (m_max_level-1);
-            std::array<uint64_t, 65> m_path_off(max_level+1);
-            std::array<uint64_t, 65> m_path_rank_off(max_level+1);
+            int_vector<64> m_path_off(max_level+1);
+            int_vector<64> m_path_rank_off(max_level+1);
             m_path_off[0] = m_path_rank_off[0] = 0;
             size_type b = 0; // start position of the interval
             size_type r = i;
