@@ -428,8 +428,8 @@ class wt_int
             size_type offset = 0;
             uint64_t mask    = (1ULL) << (m_max_level-1);
             size_type node_size = m_size;
-            int_vector<64> m_path_off(max_level+1);
-            int_vector<64> m_path_rank_off(max_level+1);
+            std::array<uint64_t, 65> m_path_off(max_level+1);
+            std::array<uint64_t, 65> m_path_rank_off(max_level+1);
             m_path_off[0] = m_path_rank_off[0] = 0;
 
             for (uint32_t k=0; k < m_max_level and node_size; ++k) {
