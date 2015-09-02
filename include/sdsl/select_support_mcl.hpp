@@ -147,13 +147,11 @@ select_support_mcl<t_b, t_pat_len>& select_support_mcl<t_b,t_pat_len>::operator=
         m_arg_cnt    = ss.m_arg_cnt;    // copy count of 1-bits
         m_v          = ss.m_v;          // copy pointer to the supported bit vector
 
-        if (m_longsuperblock!=nullptr)
-            delete [] m_longsuperblock;
+        delete [] m_longsuperblock;
         m_longsuperblock = ss.m_longsuperblock;
         ss.m_longsuperblock = nullptr;
 
-        if (m_miniblock!=nullptr)
-            delete [] m_miniblock;
+        delete [] m_miniblock;
         m_miniblock = ss.m_miniblock;
         ss.m_miniblock = nullptr;
     }
@@ -182,8 +180,7 @@ void select_support_mcl<t_b,t_pat_len>::copy(const select_support_mcl<t_b, t_pat
     m_arg_cnt    = ss.m_arg_cnt;    // copy count of 1-bits
     m_v          = ss.m_v;          // copy pointer to the supported bit vector
     size_type sb = (m_arg_cnt+4095)>>12;
-    if (m_longsuperblock!=nullptr)
-        delete [] m_longsuperblock;
+    delete [] m_longsuperblock;
     m_longsuperblock = nullptr;
     if (ss.m_longsuperblock!=nullptr) {
         m_longsuperblock = new int_vector<0>[sb]; //copy longsuperblocks
@@ -191,8 +188,7 @@ void select_support_mcl<t_b,t_pat_len>::copy(const select_support_mcl<t_b, t_pat
             m_longsuperblock[i] = ss.m_longsuperblock[i];
         }
     }
-    if (m_miniblock!=nullptr)
-        delete [] m_miniblock;
+    delete [] m_miniblock;
     m_miniblock = nullptr;
     if (ss.m_miniblock!=nullptr) {
         m_miniblock = new int_vector<0>[sb]; // copy miniblocks
@@ -205,10 +201,8 @@ void select_support_mcl<t_b,t_pat_len>::copy(const select_support_mcl<t_b, t_pat
 template<uint8_t t_b, uint8_t t_pat_len>
 select_support_mcl<t_b,t_pat_len>::~select_support_mcl()
 {
-    if (m_longsuperblock!=nullptr)
-        delete[] m_longsuperblock;
-    if (m_miniblock!=nullptr)
-        delete[] m_miniblock;
+    delete[] m_longsuperblock;
+    delete[] m_miniblock;
 }
 
 template<uint8_t t_b, uint8_t t_pat_len>
@@ -227,7 +221,7 @@ void select_support_mcl<t_b,t_pat_len>::init_slow(const bit_vector* v)
         return;
 
     size_type sb = (m_arg_cnt+SUPER_BLOCK_SIZE-1)/SUPER_BLOCK_SIZE; // number of superblocks
-    if (m_miniblock != nullptr) delete [] m_miniblock;
+    delete [] m_miniblock;
     m_miniblock = new int_vector<0>[sb];
 
     m_superblock = int_vector<0>(sb, 0, m_logn);
@@ -280,7 +274,7 @@ void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
 
 //    size_type sb = (m_arg_cnt+63+SUPER_BLOCK_SIZE-1)/SUPER_BLOCK_SIZE; // number of superblocks, add 63 as the last block could contain 63 uninitialized bits
     size_type sb = (m_arg_cnt+SUPER_BLOCK_SIZE-1)/SUPER_BLOCK_SIZE; // number of superblocks
-    if (m_miniblock != nullptr) delete [] m_miniblock;
+    delete [] m_miniblock;
     m_miniblock = new int_vector<0>[sb];
 
     m_superblock = int_vector<0>(sb, 0, m_logn);// TODO: hier koennte man logn noch optimieren...s
@@ -480,14 +474,10 @@ void select_support_mcl<t_b,t_pat_len>::load(std::istream& in, const bit_vector*
     if (m_arg_cnt) { // if there exists 1-bits to be supported
         m_superblock.load(in); // load superblocks
 
-        if (m_miniblock!=nullptr) {
-            delete[] m_miniblock;
-            m_miniblock = nullptr;
-        }
-        if (m_longsuperblock!=nullptr) {
-            delete[] m_longsuperblock;
-            m_longsuperblock = nullptr;
-        }
+        delete[] m_miniblock;
+        m_miniblock = nullptr;
+        delete[] m_longsuperblock;
+        m_longsuperblock = nullptr;
 
         bit_vector mini_or_long;// Helper vector: mini or long block?
         mini_or_long.load(in); // Load the helper vector
