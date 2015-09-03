@@ -89,7 +89,8 @@ class bp_support_gg
         size_type m_size;
         size_type m_blocks; // number of blocks
 
-        void copy(const bp_support_gg& bp_support) {
+        void copy(const bp_support_gg& bp_support)
+        {
             m_bp = bp_support.m_bp;
             m_rank_bp = bp_support.m_rank_bp;
             m_rank_bp.set_vector(m_bp);
@@ -104,12 +105,10 @@ class bp_support_gg
 
             m_pioneer_bp = bp_support.m_pioneer_bp;
             if (bp_support.m_pioneer_bp_support == nullptr) {
-                if (m_pioneer_bp_support != nullptr)
-                    delete m_pioneer_bp_support;
+                delete m_pioneer_bp_support;
                 m_pioneer_bp_support = nullptr;
             } else {
-                if (m_pioneer_bp_support != nullptr)
-                    delete m_pioneer_bp_support;
+                delete m_pioneer_bp_support;
                 m_pioneer_bp_support = new bp_support_type(*(bp_support.m_pioneer_bp_support));
                 assert(m_pioneer_bp_support != nullptr);
                 m_pioneer_bp_support->set_vector(&m_pioneer_bp);
@@ -130,7 +129,8 @@ class bp_support_gg
             m_pioneer_bp_support(nullptr),
             m_size(bp==nullptr?0:bp->size()),
             m_blocks((m_size+t_bs-1)/t_bs),
-            bp_rank(m_rank_bp),bp_select(m_select_bp) {
+            bp_rank(m_rank_bp),bp_select(m_select_bp)
+        {
             if (bp == nullptr) { // -> m_bp == nullptr
                 return;
             }
@@ -157,23 +157,26 @@ class bp_support_gg
         }
 
         //! Copy constructor
-        bp_support_gg(const bp_support_gg& bp_support) : bp_support_gg() {
+        bp_support_gg(const bp_support_gg& bp_support) : bp_support_gg()
+        {
             copy(bp_support);
         }
 
         //! Move constructor
-        bp_support_gg(bp_support_gg&& bp_support) : bp_support_gg() {
+        bp_support_gg(bp_support_gg&& bp_support) : bp_support_gg()
+        {
             *this = std::move(bp_support);
         }
 
         //! Destructor
-        ~bp_support_gg() {
-            if (m_pioneer_bp_support != nullptr)
-                delete m_pioneer_bp_support;
+        ~bp_support_gg()
+        {
+            delete m_pioneer_bp_support;
         }
 
         //! Swap operator
-        void swap(bp_support_gg& bp_support) {
+        void swap(bp_support_gg& bp_support)
+        {
             m_rank_bp.swap(bp_support.m_rank_bp);
             m_select_bp.swap(bp_support.m_select_bp);
             m_nnd.swap(bp_support.m_nnd);
@@ -193,7 +196,8 @@ class bp_support_gg
         }
 
         //! Assignment operator
-        bp_support_gg& operator=(const bp_support_gg& bp_support) {
+        bp_support_gg& operator=(const bp_support_gg& bp_support)
+        {
             if (this != &bp_support) {
                 copy(bp_support);
             }
@@ -201,7 +205,8 @@ class bp_support_gg
         }
 
         //! Assignment Move operator
-        bp_support_gg& operator=(bp_support_gg&& bp_support) {
+        bp_support_gg& operator=(bp_support_gg&& bp_support)
+        {
             if (this != &bp_support) {
                 m_bp = std::move(bp_support.m_bp);
                 bp_support.m_bp = nullptr;
@@ -216,9 +221,7 @@ class bp_support_gg
                 m_blocks = std::move(bp_support.m_blocks);
 
                 m_pioneer_bp = bp_support.m_pioneer_bp;
-                if (m_pioneer_bp_support != nullptr) {
-                    delete m_pioneer_bp_support;
-                }
+                delete m_pioneer_bp_support;
                 m_pioneer_bp_support = bp_support.m_pioneer_bp_support;
                 if (m_pioneer_bp_support) m_pioneer_bp_support->set_vector(&m_pioneer_bp);
                 bp_support.m_pioneer_bp_support = nullptr;
@@ -226,7 +229,8 @@ class bp_support_gg
             return *this;
         }
 
-        void set_vector(const bit_vector* bp) {
+        void set_vector(const bit_vector* bp)
+        {
             m_bp = bp;
             m_rank_bp.set_vector(bp);
             m_select_bp.set_vector(bp);
@@ -235,14 +239,16 @@ class bp_support_gg
         /*! Calculates the excess value at index i.
          * \param i The index of which the excess value should be calculated.
          */
-        inline size_type excess(size_type i)const {
+        inline size_type excess(size_type i)const
+        {
             return (m_rank_bp(i+1)<<1)-i-1;
         }
 
         /*! Returns the number of opening parentheses up to and including index i.
          * \pre{ \f$ 0\leq i < size() \f$ }
          */
-        size_type rank(size_type i)const {
+        size_type rank(size_type i)const
+        {
             return m_rank_bp(i+1);
         }
 
@@ -251,7 +257,8 @@ class bp_support_gg
          * \pre{ \f$1\leq i < rank(size())\f$ }
          * \post{ \f$ 0\leq select(i) < size() \f$ }
          */
-        size_type select(size_type i)const {
+        size_type select(size_type i)const
+        {
             return m_select_bp(i);
         }
 
@@ -261,7 +268,8 @@ class bp_support_gg
          *         * the position j of the matching closing parenthesis, if a matching parenthesis exists,
          *         * size() if no matching closing parenthesis exists.
          */
-        size_type find_close(size_type i)const {
+        size_type find_close(size_type i)const
+        {
             assert(i < m_size);
             if (!(*m_bp)[i]) {// if there is a closing parenthesis at index i return i
                 return i;
@@ -289,7 +297,8 @@ class bp_support_gg
          *            if a matching parenthesis exists,
          *          * size() if no matching closing parenthesis exists.
          */
-        size_type find_open(size_type i)const {
+        size_type find_open(size_type i)const
+        {
             assert(i < m_size);
             if ((*m_bp)[i]) { // if there is a opening parenthesis
                 return i;     // return i
@@ -315,7 +324,8 @@ class bp_support_gg
          *          the closest matching parenthesis pair enclosing i,
          *          or size() if no such pair exists.
          */
-        size_type enclose(size_type i)const {
+        size_type enclose(size_type i)const
+        {
             assert(i < m_size);
             if (!(*m_bp)[i]) { // if there is closing parenthesis at position i
                 return find_open(i);
@@ -349,7 +359,8 @@ class bp_support_gg
          *  \par Time complexity
          *      \f$ \Order{block\_size} \f$
          */
-        size_type rr_enclose(const size_type i, const size_type j)const {
+        size_type rr_enclose(const size_type i, const size_type j)const
+        {
             assert(j < m_size);
             assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             const size_type mip1 = find_close(i)+1;
@@ -366,7 +377,8 @@ class bp_support_gg
          * \par Time complexity
          *     \f$ \Order{block\_size} \f$
          */
-        size_type rmq_open(const size_type l, const size_type r)const {
+        size_type rmq_open(const size_type l, const size_type r)const
+        {
             if (l >= r)
                 return size();
             size_type        min_ex_pos = r;
@@ -416,7 +428,8 @@ class bp_support_gg
          *  \par Time complexity
          *        \f$ \Order{size()}\f$ in the worst case.
         */
-        size_type rr_enclose_naive(size_type i, size_type j)const {
+        size_type rr_enclose_naive(size_type i, size_type j)const
+        {
             assert(j > i and j < m_size);
             assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             size_type mi = find_close(i); // matching parenthesis to i
@@ -438,7 +451,8 @@ class bp_support_gg
          *  \param r The right border of the interval \f$[l..r]\f$ (\f$l \leq r\f$).
          // TODO: Method does not return the rightmost rmq.
          */
-        size_type rmq(size_type l, size_type r)const {
+        size_type rmq(size_type l, size_type r)const
+        {
             assert(l<=r);
             size_type m = rmq_open(l, r+1);
             if (m==size())
@@ -457,7 +471,8 @@ class bp_support_gg
          *  \return The maximal opening parenthesis, say k, such that \f$ k<j \wedge k>findclose(j) \f$.
          *          If such a k does not exists, double_enclose(i,j) returns size().
          */
-        size_type double_enclose(size_type i, size_type j)const {
+        size_type double_enclose(size_type i, size_type j)const
+        {
             assert(j > i);
             assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             size_type k = rr_enclose(i, j);
@@ -470,7 +485,8 @@ class bp_support_gg
         //! Return the number of zeros which procede position i in the balanced parentheses sequence.
         /*! \param i Index of an parenthesis.
          */
-        size_type preceding_closing_parentheses(size_type i)const {
+        size_type preceding_closing_parentheses(size_type i)const
+        {
             assert(i < m_size);
             if (!i) return 0;
             size_type ones = m_rank_bp(i);
@@ -485,7 +501,8 @@ class bp_support_gg
         /*! The size of the supported balanced parentheses sequence.
          * \return the size of the supported balanced parentheses sequence.
          */
-        size_type size() const {
+        size_type size() const
+        {
             return m_size;
         }
 
@@ -494,7 +511,8 @@ class bp_support_gg
          * \param out The outstream to which the data structure is written.
          * \return The number of bytes written to out.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
@@ -516,7 +534,8 @@ class bp_support_gg
          * \param in The instream from which the data structure is read.
          * \param bp Bit vector representing the supported BP sequence.
          */
-        void load(std::istream& in, const bit_vector* bp) {
+        void load(std::istream& in, const bit_vector* bp)
+        {
             m_bp = bp;
             read_member(m_size, in);
             read_member(m_blocks, in);
@@ -526,10 +545,8 @@ class bp_support_gg
             m_nnd.load(in);
 
             m_pioneer_bp.load(in);
-            if (m_pioneer_bp_support != nullptr) {
-                delete m_pioneer_bp_support;
-                m_pioneer_bp_support = nullptr;
-            }
+            delete m_pioneer_bp_support;
+            m_pioneer_bp_support = nullptr;
             if (m_bp != nullptr and m_bp->size() > 0) {
                 m_pioneer_bp_support = new bp_support_type();
                 m_pioneer_bp_support->load(in, &m_pioneer_bp);
