@@ -26,25 +26,30 @@ class cst_node_child_proxy_iterator : public std::iterator<std::forward_iterator
         node_type m_cur_node;
     public:
         cst_node_child_proxy_iterator() : m_cst(nullptr) {};
-        cst_node_child_proxy_iterator(const t_cst* cst,const node_type& v) : m_cst(cst) , m_cur_node(v) {}
+        cst_node_child_proxy_iterator(const t_cst* cst,node_type v) : m_cst(cst) , m_cur_node(v) {}
         cst_node_child_proxy_iterator(const iterator_type& it): m_cst(it.m_cst), m_cur_node(it.m_cur_node) {}
     public:
-        const_reference operator*() const {
+        const_reference operator*() const
+        {
             return m_cur_node;
         }
-        iterator_type& operator++() {
+        iterator_type& operator++()
+        {
             m_cur_node = m_cst->sibling(m_cur_node);
             return *this;
         }
-        iterator_type operator++(int) {
+        iterator_type operator++(int)
+        {
             iterator_type it = *this;
             ++(*this);
             return it;
         }
-        bool operator==(const iterator_type& it)const {
+        bool operator==(const iterator_type& it)const
+        {
             return it.m_cur_node == m_cur_node;
         }
-        bool operator!=(const iterator_type& it)const {
+        bool operator!=(const iterator_type& it)const
+        {
             return !(*this==it);
         }
 };
@@ -57,11 +62,11 @@ class cst_node_child_proxy
         using node_type = typename t_cst::node_type;
         using size_type = typename t_cst::size_type;
     private: // data
-        const node_type& m_parent;
+        node_type m_parent;
         const t_cst* m_cst;
     public: // constructors
         cst_node_child_proxy() = delete;
-        explicit cst_node_child_proxy(const t_cst* cst,const node_type& v) : m_parent(v) , m_cst(cst) {};
+        explicit cst_node_child_proxy(const t_cst* cst,node_type v) : m_parent(v) , m_cst(cst) {};
         cst_node_child_proxy(const cst_node_child_proxy& p) : m_parent(p.m_parent) , m_cst(p.m_cst) {};
     public: // methods
         node_type operator[](size_type i) const { return m_cst->select_child(m_parent,i+1); } // enumeration starts with 1 not 0
