@@ -1,7 +1,7 @@
 ## Add libdivsufsort
 set(divsufsort_cmake_file ${CMAKE_HOME_DIRECTORY}/external/libdivsufsort/CMakeLists.txt)
 if(NOT EXISTS ${divsufsort_cmake_file})
-    EXECUTE_PROCESS(COMMAND git submodule update --init
+    EXECUTE_PROCESS(COMMAND git submodule update --init external/libdivsufsort
                     WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}
                     OUTPUT_QUIET
             )

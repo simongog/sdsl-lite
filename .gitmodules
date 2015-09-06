@@ -3,4 +3,4 @@
 	url = https://git.chromium.org/git/external/googletest.git
 [submodule "external/libdivsufsort"]
 	path = external/libdivsufsort
-	url = https://github.com/y-256/libdivsufsort.git
+	url = https://github.com/simongog/libdivsufsort.git
