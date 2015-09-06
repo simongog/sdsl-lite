@@ -227,7 +227,7 @@ We have included the code of two excellent suffix array
 construction algorithms.
 
 * Yuta Mori's incredible fast suffix [libdivsufsort][DIVSUF]
-  algorithm (version 2.0.1) for byte-alphabets.
+  algorithm for byte-alphabets.
 * An adapted version of [Jesper Larsson's][JESL] [implementation][QSUFIMPL] of 
   suffix array sorting on integer-alphabets (description of [Larsson and Sadakane][LS]).
 
