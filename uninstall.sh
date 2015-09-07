@@ -23,7 +23,7 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 
-make uninstall
+make uninstall-sdsl
 
 if [ $? != 0 ]; then
     exit 1

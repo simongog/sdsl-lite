@@ -227,7 +227,7 @@ We have included the code of two excellent suffix array
 construction algorithms.
 
 * Yuta Mori's incredible fast suffix [libdivsufsort][DIVSUF]
-  algorithm (version 2.0.1) for byte-alphabets.
+  algorithm for byte-alphabets.
 * An adapted version of [Jesper Larsson's][JESL] [implementation][QSUFIMPL] of 
   suffix array sorting on integer-alphabets (description of [Larsson and Sadakane][LS]).
 
@@ -278,7 +278,7 @@ Feel free to contact any of the authors or create an issue on the
 [cmake]: http://www.cmake.org/ "CMake tool"
 [MAKE]: http://www.gnu.org/software/make/ "GNU Make"
 [gcc]: http://gcc.gnu.org/ "GNU Compiler Collection"
-[DIVSUF]: http://code.google.com/p/libdivsufsort/ "libdivsufsort"
+[DIVSUF]: https://github.com/y-256/libdivsufsort/ "libdivsufsort"
 [LS]: http://www.sciencedirect.com/science/article/pii/S0304397507005257 "Larson &amp; Sadakane Algorithm"
 [GTEST]: https://code.google.com/p/googletest/ "Google C++ Testing Framework"
 [SDSLCS]: http://simongog.github.io/assets/data/sdsl-cheatsheet.pdf "SDSL Cheat Sheet"
