@@ -68,7 +68,7 @@ forward_search(
     // shortcut for too long patterns
     if ((typename t_csa::size_type)(end - begin) >= size)
         return 0;
-    
+
     // compares the pattern with CSA-prefix i (truncated to length $|pattern|$).
     auto compare = [&] (typename t_csa::size_type i) -> int
         {
@@ -344,7 +344,7 @@ typename csa_wt<>::size_type bidirectional_search_backward(
  * The function requires a pattern \f$p\f$, an \f$\omega\f$-interval \f$[l_fwd..r_fwd]\f$ in the CSA object
  * of the forward text and an \f$\omega^{rev}\f$-interval \f$[l_bwd..r_bwd]\f$ in the CSA object of the backward text.
  * The function returns the \f$\omega p\f$-interval in the CSA object of the forward text and
- * the \f$\p^{rev}omega^{rev}\f$-interval in the CSA object of the backward text.
+ * the \f$p^{rev}omega^{rev}\f$-interval in the CSA object of the backward text.
  *
  * \tparam t_pat_iter Pattern iterator type.
  *

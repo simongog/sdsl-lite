@@ -97,7 +97,7 @@ class traverse_csa_psi
         typedef typename t_csa::difference_type                 difference_type;
         typedef random_access_const_iterator<traverse_csa_psi>   const_iterator;
         typedef csa_member_tag                                         category;
-        typedef int_alphabet_tag                              alphabet_category;                    
+        typedef int_alphabet_tag                              alphabet_category;
 
     private:
         const t_csa& m_csa;
@@ -107,8 +107,8 @@ class traverse_csa_psi
         //! Copy constructor
         traverse_csa_psi(const traverse_csa_psi& tcsa) : m_csa(tcsa.m_csa) { }
 
-        //! Calculate the \f$\Psi\f$ or \f$\LF\f$ value at position i.
-        /*! \param i The index for which the \f$\Psi\f$ or \f$\LF\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
+        //! Calculate the \f$\Psi\f$ or \f$LF\f$ value at position i.
+        /*! \param i The index for which the \f$\Psi\f$ or \f$LF\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
          */
         value_type operator[](size_type i)const
         {
@@ -605,7 +605,7 @@ class first_row_of_csa
         //! Constructor
         first_row_of_csa(const t_csa& csa) : m_csa(csa) {}
         //! Calculate F[i]
-        /*! \param i The index for which the \f$\F\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
+        /*! \param i The index for which the \f$F\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
          *  \par Time complexity
          *      \f$ \Order{\log |\Sigma|} \f$
          */
