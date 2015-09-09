@@ -71,6 +71,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/lib/structure_tree.cpp.cmake"
 add_subdirectory(external)
 add_subdirectory(include)
 add_subdirectory(lib)
+add_subdirectory(test)
 
 ## Add 'uninstall' target ##
 CONFIGURE_FILE(
