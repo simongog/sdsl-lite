@@ -56,7 +56,7 @@ TYPED_TEST(csa_byte_test, create_and_store_test)
 }
 
 //! Test backward_search
-TYPED_TEST(csa_byte_test, fackward_search)
+TYPED_TEST(csa_byte_test, backward_search)
 {
     TypeParam csa;
     ASSERT_TRUE(load_from_file(csa, temp_file));
