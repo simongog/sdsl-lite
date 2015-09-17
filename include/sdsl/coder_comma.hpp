@@ -60,29 +60,23 @@ class comma
         static_assert(t_width > 1 && t_width <= 32,
                       "comma coder: Width must be in interval [2,32]");
 
+        static constexpr size_t base_fits_in_64(uint32_t base, uint64_t product, size_t res)
+        {
+            return product==0 ? res : base_fits_in_64(base, product/base, res+1);
+        }
+
         //base in which numbers are coded
         static const uint32_t base = (1 << t_width) - 1;
 
         //table needed for computation of encoding lengths.
         //table contains entries of the kind (index, base^index)
         //to know how much digits a number needs to be encoded.
-        static const size_t codelentbllen = ceil(64 / log2(base));
+        static const size_t codelentbllen = base_fits_in_64(base,0xFFFFFFFFFFFFFFFFULL,0);
         static std::array<uint64_t, codelentbllen> codelentbl;
 
         //utility function to set up codelen table
         static std::array<uint64_t, codelentbllen> createCodeLenTbl();
 
-        template<uint8_t t_w>
-        std::array<uint64_t, comma<t_w>::codelentbllen> createCodeLenTbl()
-        {
-            std::array<uint64_t, codelentbllen> tbl;
-            uint64_t n = 1;
-            for (size_t i = 0; i < codelentbllen; i++) {
-                tbl[i] = n;
-                n = (n << t_width) - n; //n = n * base
-            }
-            return tbl;
-        }
         //helper function to encode a single number without
         //termination digit
         static void encode_in_base(uint64_t x, uint64_t*& z,
@@ -186,6 +180,18 @@ std::array<uint64_t, comma<t_width>::codelentbllen> comma<t_width>::codelentbl =
     createCodeLenTbl();
 
 //// Encoding /////////////////////////////////////////////
+
+template<uint8_t t_width>
+std::array<uint64_t, comma<t_width>::codelentbllen> comma<t_width>::createCodeLenTbl()
+{
+    std::array<uint64_t, codelentbllen> tbl;
+    uint64_t n = 1;
+    for (size_t i = 0; i < codelentbllen; i++) {
+        tbl[i] = n;
+        n = (n << t_width) - n; //n = n * base
+    }
+    return tbl;
+}
 
 template<uint8_t t_width>
 inline uint8_t comma<t_width>::encoding_length(uint64_t w)
