@@ -3,8 +3,8 @@
 This directory contains test code for various data structures.
 We used the [googletest][GTEST] framework for testing. 
 
-A call of `make test` will execute all tests. If you only want to
-run a test of a specific component `X` then run 
+A call of `make test` in your cmake build directory will execute all tests. 
+If you only want to run a test of a specific component `X` then run 
 `make X`,  where X should be in the following list:
 
   * `bits-test` (tests basic bit operations)
@@ -24,15 +24,8 @@ run a test of a specific component `X` then run
 
 Test inputs are downloaded as needed before the first execution of the test.
 See the [download.config](./download.config) files for details on the sources.
-Two tools have to be installed for the downloading and extracting process:
 
- * [cURL][CURL] is required by the test input download script.
- * [gzip][GZIP] is required to extract compressed files.
-
-Executing `make test` should take about 30 minutes on a recent machine. 
-
-You can run also run the test with the [valgrind][VG] tool by
-calling `make PREFIX=valgrind test`.
+Executing `make test` should take about 60 minutes on a recent machine. 
 
 Please report, if a test fails. Thanks. 
 
@@ -52,6 +45,4 @@ Please report, if a test fails. Thanks.
 
 [VG]: http://valgrind.org/ "Valgrind"
 [PG]: http://www.gutenberg.org/ "Project Gutenberg"
-[CURL]: http://curl.haxx.se/ "cURL"
-[GZIP]: http://www.gnu.org/software/gzip/ "Gzip Compressor"
-[GTEST]: https://code.google.com/p/googletest/ "Google C++ Testing Framework"
+[GTEST]: https://github.com/google/googletest "Google C++ Testing Framework"
