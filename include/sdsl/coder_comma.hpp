@@ -71,11 +71,20 @@ class comma
         //table needed for computation of encoding lengths.
         //table contains entries of the kind (index, base^index)
         //to know how much digits a number needs to be encoded.
-        static const size_t codelentbllen = base_fits_in_64(base,0xFFFFFFFFFFFFFFFFULL,0);
-        static std::array<uint64_t, codelentbllen> codelentbl;
+        static constexpr size_t codelentbllen = base_fits_in_64(base,0xFFFFFFFFFFFFFFFFULL,0);
 
-        //utility function to set up codelen table
-        static std::array<uint64_t, codelentbllen> createCodeLenTbl();
+        static struct impl {
+            std::array<uint64_t, codelentbllen> codelentbl;
+            impl()
+            {
+                // intialize codelentbl
+                uint64_t n = 1;
+                for (size_t i = 0; i < codelentbllen; i++) {
+                    codelentbl[i] = n;
+                    n = (n << t_width) - n; //n = n * base
+                }
+            }
+        } data;
 
         //helper function to encode a single number without
         //termination digit
@@ -175,23 +184,11 @@ class comma
 
 //// CODELENGTH TABLE SETUP ///////////////////////////////
 
-template<uint8_t t_width>
-std::array<uint64_t, comma<t_width>::codelentbllen> comma<t_width>::codelentbl =
-    createCodeLenTbl();
-
 //// Encoding /////////////////////////////////////////////
 
 template<uint8_t t_width>
-std::array<uint64_t, comma<t_width>::codelentbllen> comma<t_width>::createCodeLenTbl()
-{
-    std::array<uint64_t, codelentbllen> tbl;
-    uint64_t n = 1;
-    for (size_t i = 0; i < codelentbllen; i++) {
-        tbl[i] = n;
-        n = (n << t_width) - n; //n = n * base
-    }
-    return tbl;
-}
+typename comma<t_width>::impl comma<t_width>::data;
+
 
 template<uint8_t t_width>
 inline uint8_t comma<t_width>::encoding_length(uint64_t w)
@@ -199,8 +196,8 @@ inline uint8_t comma<t_width>::encoding_length(uint64_t w)
     //use function table and binary search to determine the number of digits
     //needed to encode w in given base.
     uint8_t numdigits =
-        std::upper_bound(codelentbl.begin(), codelentbl.end(), w)
-        - codelentbl.begin();
+        std::upper_bound(data.codelentbl.begin(), data.codelentbl.end(), w)
+        - data.codelentbl.begin();
     //finally calculate length.
     //Don't forget termination character on calculations ;)
     return (numdigits + 1) * t_width;
