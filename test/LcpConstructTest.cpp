@@ -12,7 +12,7 @@ using namespace std;
 namespace
 {
 
-string test_file, temp_dir, test_id;
+string test_file, temp_dir, test_id,output_file;
 typedef map<string, void (*)(cache_config&)> tMSFP;// map <name, lcp method>
 
 // The fixture for testing class int_vector.
@@ -25,7 +25,8 @@ class LcpConstructTest : public ::testing::Test
 
         // If the constructor and destructor are not enough for setting up
         // and cleaning up each test, you can define the following methods:
-        virtual void SetUp() {
+        virtual void SetUp()
+        {
             test_config = cache_config(false, temp_dir, test_id);
             lcp_function["bwt_based"] = &construct_lcp_bwt_based;
             lcp_function["bwt_based2"] = &construct_lcp_bwt_based2;
@@ -60,7 +61,8 @@ class LcpConstructTest : public ::testing::Test
             }
         }
 
-        virtual void TearDown() {
+        virtual void TearDown()
+        {
             sdsl::remove(cache_file_name(CHECK_KEY, test_config));
         }
 
@@ -102,16 +104,16 @@ int main(int argc, char** argv)
     ::testing::InitGoogleTest(&argc, argv);
     if (argc < 4) {
         // LCOV_EXCL_START
-        cout << "Usage: " << argv[0] << " test_file tmp_dir ID" << endl;
+        cout << "Usage: " << argv[0] << " test_file output_file tmp_dir" << endl;
         cout << " (1) Generates the SA, BWT and LCP; arrays are stored in tmp_dir." << endl;
-        cout << "     File contain ID as substring." << endl;
         cout << " (2) Generates LCP with other algorithm and checks the result." << endl;
         cout << " (3) Deletes all generated files." << endl;
         return 1;
         // LCOV_EXCL_STOP
     }
-    test_file = argv[1];
-    temp_dir  = argv[2];
-    test_id   = argv[3];
+    test_file   = argv[1];
+    output_file = argv[2];
+    temp_dir    = argv[3];
+    test_id     = to_string(util::pid());
     return RUN_ALL_TESTS();
 }

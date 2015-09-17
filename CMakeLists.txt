@@ -71,7 +71,6 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/lib/structure_tree.cpp.cmake"
 add_subdirectory(external)
 add_subdirectory(include)
 add_subdirectory(lib)
-add_subdirectory(test)
 
 ## Add 'uninstall' target ##
 CONFIGURE_FILE(
@@ -82,3 +81,5 @@ ADD_CUSTOM_TARGET(uninstall-sdsl
   "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/CMakeModules/cmake_uninstall.cmake")
 
 target_include_directories(sdsl PUBLIC include)
+
+add_subdirectory(test)

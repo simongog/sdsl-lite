@@ -12,6 +12,8 @@ namespace
 typedef sdsl::int_vector<>::size_type size_type;
 typedef sdsl::int_vector<>::value_type value_type;
 
+std::string temp_dir;
+
 // The fixture for testing class int_vector.
 class IntVectorBufferTest : public ::testing::Test
 {
@@ -21,7 +23,8 @@ class IntVectorBufferTest : public ::testing::Test
 
         virtual ~IntVectorBufferTest() {}
 
-        virtual void SetUp() {
+        virtual void SetUp()
+        {
             std::mt19937_64 rng;
             {
                 std::uniform_int_distribution<uint64_t> distribution(0, 100000);
@@ -51,7 +54,7 @@ void test_constructors(size_type template_width, size_type constructor_width, si
     static_assert(std::is_default_constructible<t_T>::value, "Type is not default constructible");
     static_assert(std::is_move_constructible<t_T>::value, "Type is not move constructible");
     static_assert(std::is_move_assignable<t_T>::value, "Type is not move assignable");
-    std::string file_name = "tmp/int_vector_buffer";
+    std::string file_name = temp_dir+"/int_vector_buffer";
     {
         // Default constructor
         t_T ivb;
@@ -100,7 +103,7 @@ template<class t_T>
 void test_assign_and_modify(size_type width=1)
 {
     std::mt19937_64 rng(13), rng2;
-    std::string file_name = "tmp/int_vector_buffer";
+    std::string file_name = temp_dir+"/int_vector_buffer";
     size_type buffersize = 1024;
     t_T ivb(file_name, std::ios::out, buffersize, width);
     for (size_type i=0; i < 100000; ++i) {
@@ -140,7 +143,7 @@ void test_assign_and_modify<sdsl::int_vector_buffer<1>>(size_type width)
     std::mt19937_64 rng(13);
     std::uniform_int_distribution<uint64_t> distribution(0, 9);
 
-    std::string file_name = "tmp/int_vector_buffer";
+    std::string file_name = temp_dir+"/int_vector_buffer";
     size_type buffersize = 1024;
     sdsl::int_vector_buffer<1> ivb(file_name, std::ios::out, buffersize, width);
     for (size_type i=0; i < 100000; ++i) {
@@ -174,8 +177,8 @@ template<class t_T>
 void compare(size_type width=1)
 {
     std::mt19937_64 rng(13);
-    std::string file_name_1 = "tmp/int_vector_buffer_1";
-    std::string file_name_2 = "tmp/int_vector_buffer_2";
+    std::string file_name_1 = temp_dir+"/int_vector_buffer_1";
+    std::string file_name_2 = temp_dir+"/int_vector_buffer_2";
     size_type buffersize = 1024;
     t_T ivb1(file_name_1, std::ios::out, buffersize, width);
     t_T ivb2(file_name_2, std::ios::out, buffersize, width);
@@ -221,7 +224,7 @@ template<class t_T>
 void test_sequential_access(size_type width=1)
 {
     std::mt19937_64 rng;
-    std::string file_name = "tmp/int_vector_buffer";
+    std::string file_name = temp_dir+"/int_vector_buffer";
     size_type buffersize = 1024;
     size_type size = 100000;
     // fill ivb with push_back()
@@ -310,7 +313,7 @@ void test_random_access(size_type width=1)
     std::mt19937_64 rng;
     std::uniform_int_distribution<uint64_t> distribution(0, 999);
     auto dice = bind(distribution, rng);
-    std::string file_name = "tmp/int_vector_buffer";
+    std::string file_name = temp_dir+"/int_vector_buffer";
     size_type buffersize = 100;
     t_T ivb(file_name, std::ios::out, buffersize, width);
     ASSERT_EQ((size_type)0, ivb.size());
@@ -372,7 +375,7 @@ template<class t_T, class t_V>
 void test_file_handling(size_type exp_w)
 {
     std::mt19937_64 rng(13);
-    std::string file_name = "tmp/int_vector_buffer";
+    std::string file_name = temp_dir+"/int_vector_buffer";
     size_type buffersize = 1024;
 
     // write an int_vector-file using int_vector_buffer
@@ -402,7 +405,7 @@ template<class t_T>
 void test_plain_file_handling(uint8_t exp_w)
 {
     std::mt19937_64 rng(13);
-    std::string file_name = "tmp/int_array";
+    std::string file_name = temp_dir+"/int_array";
     size_type buffersize = 1024;
 
     // write plain array using int_vector_buffer
@@ -456,8 +459,8 @@ TEST_F(IntVectorBufferTest, FileHandling)
 template<class t_T>
 void test_swap(size_type exp_w_ivb1, size_type exp_w_ivb2, std::vector<size_type>& vec_sizes)
 {
-    std::string file_name_1 = "tmp/int_vector_buffer_1";
-    std::string file_name_2 = "tmp/int_vector_buffer_2";
+    std::string file_name_1 = temp_dir+"/int_vector_buffer_1";
+    std::string file_name_2 = temp_dir+"/int_vector_buffer_2";
     for (auto size : vec_sizes) {
         if (size < 1000) {
             // Create, fill and verify ivb1
@@ -525,7 +528,7 @@ TEST_F(IntVectorBufferTest, Swap)
 template<class t_T>
 void test_move(size_type constructor_width)
 {
-    std::string file_name = "tmp/int_vector_buffer";
+    std::string file_name = temp_dir+"/int_vector_buffer";
     std::mt19937_64 rng;
     size_type numbers = 10000;
     // Test MoveConstructor in vector
@@ -646,7 +649,7 @@ template<class t_T>
 void test_reset(std::vector<size_type>& vec_sizes, size_type width=1)
 {
     std::mt19937_64 rng(13);
-    std::string file_name = "tmp/int_vector_buffer";
+    std::string file_name = temp_dir+"/int_vector_buffer";
     size_type buffersize = 1024;
     for (auto size : vec_sizes) {
         if (size < 1000) {
@@ -690,5 +693,12 @@ TEST_F(IntVectorBufferTest, Reset)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
+    if (argc < 2) {
+        // LCOV_EXCL_START
+        std::cout << "Usage: " << argv[0] << " tmp_dir" << std::endl;
+        return 1;
+        // LCOV_EXCL_STOP
+    }
+    temp_dir = argv[1];
     return RUN_ALL_TESTS();
 }

@@ -7,6 +7,8 @@
 namespace
 {
 
+std::string temp_dir;
+
 // The fixture for testing class sorted_int_stack.
 class SortedStackTest : public ::testing::Test
 {
@@ -116,7 +118,7 @@ TEST_F(SortedStackTest, PushTopAndPop)
 //! Test Serialize and Load
 TEST_F(SortedStackTest, SerializeAndLoad)
 {
-    std::string file_name = "tmp/sorted_int_stack";
+    std::string file_name = temp_dir+"/sorted_int_stack";
     std::stack<uint64_t> exp;
     {
         std::mt19937_64 rng;
@@ -147,5 +149,12 @@ TEST_F(SortedStackTest, SerializeAndLoad)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
+    if (argc < 2) {
+        // LCOV_EXCL_START
+        std::cout << "Usage: " << argv[0] << " tmp_dir" << std::endl;
+        return 1;
+        // LCOV_EXCL_STOP
+    }
+    temp_dir = argv[1];
     return RUN_ALL_TESTS();
 }

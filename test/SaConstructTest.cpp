@@ -75,7 +75,7 @@ int main(int argc, char** argv)
     ::testing::InitGoogleTest(&argc, argv);
     if (argc < 4) {
         // LCOV_EXCL_START
-        cout << "Usage: " << argv[0] << " test_file tmp_dir ID" << endl;
+        cout << "Usage: " << argv[0] << " test_file output_file tmp_dir" << endl;
         cout << " (1) Generates the SA and stores it in tmp_dir." << endl;
         cout << "     All generated files contains ID as substring." << endl;
         cout << " (2) Checks the suffix array." << endl;
@@ -83,9 +83,10 @@ int main(int argc, char** argv)
         return 1;
         // LCOV_EXCL_STOP
     }
-    string test_file = argv[1];
-    string temp_dir  = argv[2];
-    string test_id   = argv[3];
+    string test_file   = argv[1];
+    string output_file = argv[2];
+    string temp_dir    = argv[3];
+    string test_id     = to_string(util::pid());
     config = cache_config(false, temp_dir, test_id);
     if (!cache_file_exists(conf::KEY_TEXT, config)) {
         int_vector<8> text;

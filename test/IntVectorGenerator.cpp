@@ -24,6 +24,10 @@ int main(int argc, char* argv[])
         cout << " (2) If PERM_SEED is specified, a random_shuffle seeded with" << endl;
         cout << "     PERM_SEED will be performed." << endl;
         cout << " (3) Stores the vector to FILE." << endl;
+        cout << "Only "<<argc<<" elements provided at current program call." << endl;
+        for (size_t i=0; i<argc; ++i) {
+            cout << ":" << argv[i] << endl;
+        }
         return 1;
     }
     uint64_t size  = stoull(argv[2]);

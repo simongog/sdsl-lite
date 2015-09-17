@@ -12,6 +12,8 @@ namespace
 typedef sdsl::int_vector<>::size_type size_type;
 typedef sdsl::int_vector<>::value_type value_type;
 
+std::string temp_dir;
+
 // The fixture for testing class int_vector.
 class IntVectorTest : public ::testing::Test
 {
@@ -21,7 +23,8 @@ class IntVectorTest : public ::testing::Test
 
         virtual ~IntVectorTest() {}
 
-        virtual void SetUp() {
+        virtual void SetUp()
+        {
             std::mt19937_64 rng;
             {
                 std::uniform_int_distribution<uint64_t> distribution(0, 100000);
@@ -264,7 +267,7 @@ void test_SerializeAndLoad(uint8_t width=1)
     t_iv iv(sdsl::conf::SDSL_BLOCK_SIZE+1000000, 0, width);
     for (size_type i=0; i<iv.size(); ++i)
         iv[i] = rng();
-    std::string file_name = "tmp/int_vector";
+    std::string file_name = temp_dir+"/int_vector";
     sdsl::store_to_file(iv, file_name);
     t_iv iv2;
     sdsl::load_from_file(iv2, file_name);
@@ -292,7 +295,7 @@ TEST_F(IntVectorTest, SerializeAndLoad)
 TEST_F(IntVectorTest, SerializeFixedToVariable)
 {
     sdsl::int_vector<32> iv(123456,0x733D);
-    std::string file_name = "tmp/int_vector_fixed_to_var";
+    std::string file_name = temp_dir+"/int_vector_fixed_to_var";
     {
         std::ofstream out(file_name);
         iv.serialize(out, nullptr, "", true);
@@ -358,5 +361,12 @@ TEST_F(IntVectorTest, IteratorTest)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
+    if (argc < 2) {
+        // LCOV_EXCL_START
+        std::cout << "Usage: " << argv[0] << " tmp_dir" << std::endl;
+        return 1;
+        // LCOV_EXCL_STOP
+    }
+    temp_dir = argv[1];
     return RUN_ALL_TESTS();
 }

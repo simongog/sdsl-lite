@@ -12,6 +12,8 @@ namespace
 typedef sdsl::int_vector<>::size_type size_type;
 typedef sdsl::int_vector<>::value_type value_type;
 
+std::string temp_dir;
+
 // The fixture for testing class int_vector.
 class InvPermSupportTest : public ::testing::Test
 {
@@ -21,7 +23,8 @@ class InvPermSupportTest : public ::testing::Test
 
         virtual ~InvPermSupportTest() {}
 
-        virtual void SetUp() {
+        virtual void SetUp()
+        {
             for (size_t z=0; z < (1ULL<<20); z=(z+1)*2) {
                 sdsl::int_vector<> iv(z);
                 sdsl::util::set_to_id(iv);
@@ -98,7 +101,7 @@ TEST_F(InvPermSupportTest, Swap)
 TEST_F(InvPermSupportTest, SerializeAndLoad)
 {
     for (size_type i=0; i < perms.size(); ++i) {
-        std::string file_name = "tmp/inv_perm_support";
+        std::string file_name = temp_dir+"/inv_perm_support";
         {
             sdsl::inv_perm_support<> ips(&perms[i]);
             sdsl::store_to_file(ips, file_name);
@@ -131,5 +134,12 @@ TEST_F(InvPermSupportTest, IteratorTest)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
+    if (argc < 2) {
+        // LCOV_EXCL_START
+        std::cout << "Usage: " << argv[0] << " tmp_dir" << std::endl;
+        return 1;
+        // LCOV_EXCL_STOP
+    }
+    temp_dir = argv[1];
     return RUN_ALL_TESTS();
 }

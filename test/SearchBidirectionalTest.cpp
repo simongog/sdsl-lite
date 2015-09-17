@@ -123,7 +123,7 @@ int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
 
-    if (argc!=2) {
+    if (argc < 2) {
         cout << "Usage: " << argv[0] << " test_file" << endl;
         cout << " (1) Reverses test_file; stores it in test_file_rev." << endl;
         cout << " (2) Performs tests." << endl;

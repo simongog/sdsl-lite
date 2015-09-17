@@ -17,6 +17,7 @@ typedef map<int_vector<>::value_type,size_type> tMII;
 
 string test_file;
 string temp_file;
+string temp_dir;
 bool in_memory;
 
 template<class T>
@@ -844,7 +845,7 @@ int main(int argc, char** argv)
     ::testing::InitGoogleTest(&argc, argv);
     if (argc < 3) {
         // LCOV_EXCL_START
-        cout << "Usage: " << argv[0] << " test_file temp_file [in-memory]" << endl;
+        cout << "Usage: " << argv[0] << " test_file temp_file tmp_dir [in-memory]" << endl;
         cout << " (1) Generates a WT out of test_file; stores it in temp_file." << endl;
         cout << "     If `in-memory` is specified, the in-memory construction is tested." << endl;
         cout << " (2) Performs tests." << endl;
@@ -854,7 +855,8 @@ int main(int argc, char** argv)
     }
     test_file = argv[1];
     temp_file = argv[2];
-    in_memory = argc > 3;
+    temp_dir  = argv[3];
+    in_memory = argc > 4;
     if (in_memory) {
         int_vector<> data;
         load_from_file(data, test_file);

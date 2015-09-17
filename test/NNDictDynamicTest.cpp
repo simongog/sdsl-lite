@@ -8,6 +8,8 @@
 namespace
 {
 
+std::string temp_dir;
+
 // The fixture for testing class nn_dict_dynamic.
 class NNDictDynamicTest : public ::testing::Test
 {
@@ -116,7 +118,7 @@ TEST_F(NNDictDynamicTest, NextAndPrev)
 //! Test Serialize and Load
 TEST_F(NNDictDynamicTest, SerializeAndLoad)
 {
-    std::string file_name = "tmp/nn_dict_dynamic";
+    std::string file_name = temp_dir+"/nn_dict_dynamic";
     uint64_t testsize = 100000;
     sdsl::bit_vector bv(testsize, 0);
     {
@@ -151,5 +153,12 @@ TEST_F(NNDictDynamicTest, SerializeAndLoad)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
+    if (argc < 2) {
+        // LCOV_EXCL_START
+        std::cout << "Usage: " << argv[0] << " tmp_dir" << std::endl;
+        return 1;
+        // LCOV_EXCL_STOP
+    }
+    temp_dir = argv[1];
     return RUN_ALL_TESTS();
 }
