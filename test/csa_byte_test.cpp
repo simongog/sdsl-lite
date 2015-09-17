@@ -45,7 +45,7 @@ csa_wt<>,
 
 TYPED_TEST_CASE(csa_byte_test, Implementations);
 
-TYPED_TEST(csa_byte_test, CreateAndStoreTest)
+TYPED_TEST(csa_byte_test, create_and_store_test)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     TypeParam csa;
