@@ -11,7 +11,7 @@ namespace
 {
 
 template<class T>
-class BitVectorTest : public ::testing::Test { };
+class bit_vector_test : public ::testing::Test { };
 
 using testing::Types;
 
@@ -40,11 +40,11 @@ hyb_vector<>
 
 
 
-TYPED_TEST_CASE(BitVectorTest, Implementations);
+TYPED_TEST_CASE(bit_vector_test, Implementations);
 
 
 //! Test operator[]
-TYPED_TEST(BitVectorTest, Access)
+TYPED_TEST(bit_vector_test, access)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     bit_vector bv;
@@ -61,7 +61,7 @@ TYPED_TEST(BitVectorTest, Access)
     }
 }
 
-TYPED_TEST(BitVectorTest, GetInt)
+TYPED_TEST(bit_vector_test, get_int)
 {
     bit_vector bv;
     ASSERT_TRUE(load_from_file(bv, test_file));
@@ -73,7 +73,7 @@ TYPED_TEST(BitVectorTest, GetInt)
     }
 }
 
-TYPED_TEST(BitVectorTest, GetIntAllBlockSizes)
+TYPED_TEST(bit_vector_test, get_int_all_block_sizes)
 {
     bit_vector bv(10000, 0);
     std::mt19937_64 rng;
@@ -93,7 +93,7 @@ TYPED_TEST(BitVectorTest, GetIntAllBlockSizes)
     }
 }
 
-TYPED_TEST(BitVectorTest, Swap)
+TYPED_TEST(bit_vector_test, swap)
 {
     bit_vector bv;
     ASSERT_TRUE(load_from_file(bv, test_file));
@@ -109,6 +109,7 @@ TYPED_TEST(BitVectorTest, Swap)
     }
 }
 
+/*
 TEST(SD_VECTOR, IteratorConstructor)
 {
     std::vector<uint64_t> pos;
@@ -127,6 +128,7 @@ TEST(SD_VECTOR, IteratorConstructor)
         ASSERT_EQ((bool)sdv[i],(bool)bv[i]);
     }
 }
+*/
 
 }// end namespace
 

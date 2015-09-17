@@ -21,7 +21,7 @@ string temp_dir;
 bool in_memory;
 
 template<class T>
-class WtIntTest : public ::testing::Test { };
+class wt_int_test : public ::testing::Test { };
 
 using testing::Types;
 
@@ -39,10 +39,10 @@ wt_blcd<bit_vector, rank_support_v<>, select_support_mcl<1>, select_support_mcl<
         ,wt_rlmn<bit_vector, rank_support_v5<>, select_support_mcl<1>, wt_int<>>
         > Implementations;
 
-TYPED_TEST_CASE(WtIntTest, Implementations);
+TYPED_TEST_CASE(wt_int_test, Implementations);
 
 //! Test the parametrized constructor
-TYPED_TEST(WtIntTest, Constructor)
+TYPED_TEST(wt_int_test, constructor)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     int_vector<> iv;
@@ -79,7 +79,7 @@ TYPED_TEST(WtIntTest, Constructor)
 }
 
 //! Test loading and accessing the wavelet tree
-TYPED_TEST(WtIntTest, LoadAndAccess)
+TYPED_TEST(wt_int_test, load_and_access)
 {
     int_vector<> iv;
     load_from_file(iv, test_file);
@@ -92,7 +92,7 @@ TYPED_TEST(WtIntTest, LoadAndAccess)
 }
 
 //! Test the load method and rank method
-TYPED_TEST(WtIntTest, LoadAndRank)
+TYPED_TEST(wt_int_test, load_and_rank)
 {
     int_vector<> iv;
     load_from_file(iv, test_file);
@@ -110,7 +110,7 @@ TYPED_TEST(WtIntTest, LoadAndRank)
 }
 
 //! Test the load method and rank method
-TYPED_TEST(WtIntTest, LoadAndMoveAndRank)
+TYPED_TEST(wt_int_test, load_and_move_and_rank)
 {
     int_vector<> iv;
     load_from_file(iv, test_file);
@@ -129,7 +129,7 @@ TYPED_TEST(WtIntTest, LoadAndMoveAndRank)
 }
 
 //! Test the load method and select method
-TYPED_TEST(WtIntTest, LoadAndSelect)
+TYPED_TEST(wt_int_test, load_and_select)
 {
     int_vector<> iv;
     load_from_file(iv, test_file);
@@ -145,7 +145,7 @@ TYPED_TEST(WtIntTest, LoadAndSelect)
 }
 
 //! Test the load method and select method
-TYPED_TEST(WtIntTest, LoadAndMoveAndSelect)
+TYPED_TEST(wt_int_test, load_and_move_and_select)
 {
     int_vector<> iv;
     load_from_file(iv, test_file);
@@ -162,7 +162,7 @@ TYPED_TEST(WtIntTest, LoadAndMoveAndSelect)
 }
 
 //! Test the load method and inverse_select method
-TYPED_TEST(WtIntTest, LoadAndInverseSelect)
+TYPED_TEST(wt_int_test, load_and_inverse_select)
 {
     int_vector<> iv;
     load_from_file(iv, test_file);
@@ -230,7 +230,7 @@ test_interval_symbols(typename enable_if<has_node_type<t_wt>::value,
 }
 
 //! Test the load method and interval_symbols method
-TYPED_TEST(WtIntTest, LoadAndIntervalSymbols)
+TYPED_TEST(wt_int_test, load_and_interval_symbols)
 {
     TypeParam wt;
     test_interval_symbols<TypeParam>(wt);
@@ -292,7 +292,7 @@ test_lex_count(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 }
 
 //! Test the load method and lex_count method
-TYPED_TEST(WtIntTest, LoadAndLexCount)
+TYPED_TEST(wt_int_test, load_and_lex_count)
 {
     TypeParam wt;
     test_lex_count<TypeParam>(wt);
@@ -337,7 +337,7 @@ test_lex_smaller_count(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 }
 
 //! Test the load method and lex_smaller_count method
-TYPED_TEST(WtIntTest, LoadAndLexSmallerCount)
+TYPED_TEST(wt_int_test, load_and_lex_smaller_count)
 {
     TypeParam wt;
     test_lex_smaller_count<TypeParam>(wt);
@@ -408,7 +408,7 @@ test_range_search_2d(typename enable_if<has_range_search_2d<t_wt>::value,
 }
 
 //! Test the load method and range_search_2d
-TYPED_TEST(WtIntTest, RangeSearch2d)
+TYPED_TEST(wt_int_test, range_search_2d)
 {
     TypeParam wt;
     test_range_search_2d<TypeParam>(wt);
@@ -460,7 +460,7 @@ test_quantile_freq(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 }
 
 //! Test the load method and quantile_freq
-TYPED_TEST(WtIntTest, QuantileFreq)
+TYPED_TEST(wt_int_test, quantile_freq)
 {
     TypeParam wt;
     test_quantile_freq<TypeParam>(wt);
@@ -533,7 +533,7 @@ test_intersect(typename enable_if<has_node_type<t_wt>::value,t_wt>::type& wt)
 }
 
 //! Test the load method and intersect
-TYPED_TEST(WtIntTest, intersect)
+TYPED_TEST(wt_int_test, intersect)
 {
     TypeParam wt;
     test_intersect<TypeParam>(wt);
@@ -581,7 +581,7 @@ test_nodes(typename enable_if<has_node_type<t_wt>::value,t_wt>::type& wt)
 }
 
 //! Test the load method and nodes
-TYPED_TEST(WtIntTest, nodes)
+TYPED_TEST(wt_int_test, nodes)
 {
     TypeParam wt;
     test_nodes<TypeParam>(wt);
@@ -660,7 +660,7 @@ test_symbol_gte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 }
 
 //! Test the load method and symbol_gte
-TYPED_TEST(WtIntTest, symbol_gte)
+TYPED_TEST(wt_int_test, symbol_gte)
 {
     TypeParam wt;
     test_symbol_gte<TypeParam>(wt);
@@ -743,7 +743,7 @@ test_symbol_lte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 
 
 //! Test the load method and symbol_lte
-TYPED_TEST(WtIntTest, symbol_lte)
+TYPED_TEST(wt_int_test, symbol_lte)
 {
     TypeParam wt;
     test_symbol_lte<TypeParam>(wt);
@@ -825,7 +825,7 @@ test_range_unique_values(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 }
 
 //! Test the load method and restricted_unique_range_values
-TYPED_TEST(WtIntTest, restricted_unique_range_values)
+TYPED_TEST(wt_int_test, restricted_unique_range_values)
 {
     TypeParam wt;
     test_range_unique_values<TypeParam>(wt);
@@ -833,7 +833,7 @@ TYPED_TEST(WtIntTest, restricted_unique_range_values)
 
 
 
-TYPED_TEST(WtIntTest, DeleteTest)
+TYPED_TEST(wt_int_test, delete_)
 {
     sdsl::remove(temp_file);
 }

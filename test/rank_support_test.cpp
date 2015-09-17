@@ -12,7 +12,7 @@ namespace
 {
 
 template<class T>
-class RankSupportTest : public ::testing::Test { };
+class rank_support_test : public ::testing::Test { };
 
 using testing::Types;
 
@@ -64,10 +64,10 @@ typedef Types<rank_support_il<1, 256>,
         rank_support_v5<11,2>
         > Implementations;
 
-TYPED_TEST_CASE(RankSupportTest, Implementations);
+TYPED_TEST_CASE(rank_support_test, Implementations);
 
 //! Test the rank method
-TYPED_TEST(RankSupportTest, RankMethod)
+TYPED_TEST(rank_support_test, rank_method)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     bit_vector bvec;

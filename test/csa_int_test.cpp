@@ -21,7 +21,7 @@ bool in_memory;
 
 
 template<class T>
-class CsaIntTest : public ::testing::Test { };
+class csa_int_test : public ::testing::Test { };
 
 
 using testing::Types;
@@ -34,9 +34,9 @@ typedef Types<  csa_wt<wt_int<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>,
         csa_sada<enc_vector<>, 32, 32, text_order_sa_sampling<>, isa_sampling<>, int_alphabet<> >
         > Implementations;
 
-TYPED_TEST_CASE(CsaIntTest, Implementations);
+TYPED_TEST_CASE(csa_int_test, Implementations);
 
-TYPED_TEST(CsaIntTest, CreateAndStoreTest)
+TYPED_TEST(csa_int_test, create_and_store)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     TypeParam csa;
@@ -47,7 +47,7 @@ TYPED_TEST(CsaIntTest, CreateAndStoreTest)
 }
 
 //! Test access methods
-TYPED_TEST(CsaIntTest, Sigma)
+TYPED_TEST(csa_int_test, sigma)
 {
     TypeParam csa;
     ASSERT_TRUE(load_from_file(csa, temp_file));
@@ -69,7 +69,7 @@ TYPED_TEST(CsaIntTest, Sigma)
 }
 
 //! Test suffix array access methods
-TYPED_TEST(CsaIntTest, SaAccess)
+TYPED_TEST(csa_int_test, sa_access)
 {
     TypeParam csa;
     ASSERT_TRUE(load_from_file(csa, temp_file));
@@ -84,7 +84,7 @@ TYPED_TEST(CsaIntTest, SaAccess)
 
 
 //! Test inverse suffix access methods
-TYPED_TEST(CsaIntTest, IsaAccess)
+TYPED_TEST(csa_int_test, isa_access)
 {
     TypeParam csa;
     ASSERT_TRUE(load_from_file(csa, temp_file));
@@ -106,7 +106,7 @@ TYPED_TEST(CsaIntTest, IsaAccess)
 }
 
 //! Test Burrows-Wheeler access methods
-TYPED_TEST(CsaIntTest, BwtAccess)
+TYPED_TEST(csa_int_test, bwt_access)
 {
     if (test_case_file_map.end() != test_case_file_map.find(conf::KEY_BWT_INT)) {
         TypeParam csa;
@@ -121,7 +121,7 @@ TYPED_TEST(CsaIntTest, BwtAccess)
     }
 }
 
-TYPED_TEST(CsaIntTest, FAccess)
+TYPED_TEST(csa_int_test, f_access)
 {
     if (test_case_file_map.end() != test_case_file_map.find(conf::KEY_TEXT_INT)) {
         TypeParam csa;
@@ -138,7 +138,7 @@ TYPED_TEST(CsaIntTest, FAccess)
 }
 
 //! Test text access methods
-TYPED_TEST(CsaIntTest, TextAccess)
+TYPED_TEST(csa_int_test, text_access)
 {
     if (test_case_file_map.end() != test_case_file_map.find(conf::KEY_TEXT_INT)) {
         TypeParam csa;
@@ -156,16 +156,16 @@ TYPED_TEST(CsaIntTest, TextAccess)
         for (size_type j=0; j<len; ++j) {
             ASSERT_EQ(text[j], ex_text[j])<<" j="<<j;
         }
-        if ( n > 0 ){
+        if (n > 0) {
             auto c_out_of_range = (*std::max_element(text.begin(), text.end()))+1;
             auto cnt = count(csa, {c_out_of_range});
-            ASSERT_EQ(0ULL, cnt) << " c_out_of_range="<<c_out_of_range<<" text="<<csa.text; 
+            ASSERT_EQ(0ULL, cnt) << " c_out_of_range="<<c_out_of_range<<" text="<<csa.text;
         }
     }
 }
 
 //! Test Psi access methods
-TYPED_TEST(CsaIntTest, PsiAccess)
+TYPED_TEST(csa_int_test, psi_access)
 {
     if (test_case_file_map.end() != test_case_file_map.find(conf::KEY_PSI)) {
         TypeParam csa;
@@ -181,7 +181,7 @@ TYPED_TEST(CsaIntTest, PsiAccess)
 }
 
 //! Test if Psi[LF[i]]=i
-TYPED_TEST(CsaIntTest, PsiLFAccess)
+TYPED_TEST(csa_int_test, psi_lf_access)
 {
     TypeParam csa;
     ASSERT_TRUE(load_from_file(csa, temp_file));
@@ -194,7 +194,7 @@ TYPED_TEST(CsaIntTest, PsiLFAccess)
 
 
 //! Test access after swap
-TYPED_TEST(CsaIntTest, SwapTest)
+TYPED_TEST(csa_int_test, swap_test)
 {
     TypeParam csa1;
     ASSERT_TRUE(load_from_file(csa1, temp_file));
@@ -209,7 +209,7 @@ TYPED_TEST(CsaIntTest, SwapTest)
     }
 }
 
-TYPED_TEST(CsaIntTest, DeleteTest)
+TYPED_TEST(csa_int_test, DeleteTest)
 {
     sdsl::remove(temp_file);
     util::delete_all_files(test_case_file_map);

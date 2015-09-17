@@ -11,13 +11,13 @@ namespace
 std::string temp_dir;
 
 // The fixture for testing class nn_dict_dynamic.
-class NNDictDynamicTest : public ::testing::Test
+class nn_dict_dynamic_test : public ::testing::Test
 {
     protected:
 
-        NNDictDynamicTest() {}
+        nn_dict_dynamic_test() {}
 
-        virtual ~NNDictDynamicTest() {}
+        virtual ~nn_dict_dynamic_test() {}
 
         virtual void SetUp() {}
 
@@ -44,7 +44,7 @@ void compare_bv_and_nndd(const sdsl::bit_vector& bv, const sdsl::nn_dict_dynamic
 }
 
 //! Test Constructors
-TEST_F(NNDictDynamicTest, Constructors)
+TEST_F(nn_dict_dynamic_test, constructors)
 {
     static_assert(sdsl::util::is_regular<sdsl::nn_dict_dynamic>::value, "Type is not regular");
     uint64_t testsize = 100000;
@@ -88,7 +88,7 @@ TEST_F(NNDictDynamicTest, Constructors)
 }
 
 //! Test Operations next and prev
-TEST_F(NNDictDynamicTest, NextAndPrev)
+TEST_F(nn_dict_dynamic_test, next_and_prev)
 {
     uint64_t testsize = 100000;
     sdsl::bit_vector bv(testsize, 0);
@@ -116,7 +116,7 @@ TEST_F(NNDictDynamicTest, NextAndPrev)
 }
 
 //! Test Serialize and Load
-TEST_F(NNDictDynamicTest, SerializeAndLoad)
+TEST_F(nn_dict_dynamic_test, serialize_and_load)
 {
     std::string file_name = temp_dir+"/nn_dict_dynamic";
     uint64_t testsize = 100000;

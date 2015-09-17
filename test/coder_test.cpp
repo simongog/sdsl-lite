@@ -11,11 +11,12 @@ using namespace sdsl;
 
 // The fixture for testing class int_vector.
 template<class T>
-class CoderTest : public ::testing::Test
+class coder_test : public ::testing::Test
 {
     protected:
 
-        CoderTest() {
+        coder_test()
+        {
             m_data = sdsl::int_vector<>(10000000);
             util::set_random_bits(m_data);
             for (size_t i=0; i<m_data.size()/3; ++i)
@@ -28,7 +29,7 @@ class CoderTest : public ::testing::Test
                 m_data[i] = dice();
         }
 
-        virtual ~CoderTest() { }
+        virtual ~coder_test() { }
 
         virtual void SetUp() { }
 
@@ -38,7 +39,7 @@ class CoderTest : public ::testing::Test
 
 using testing::Types;
 typedef Types<
-      coder::elias_delta,
+coder::elias_delta,
       coder::elias_gamma,
       coder::fibonacci,
       coder::comma<>,
@@ -48,9 +49,9 @@ typedef Types<
       >
       Implementations;
 
-TYPED_TEST_CASE(CoderTest, Implementations);
+TYPED_TEST_CASE(coder_test, Implementations);
 
-TYPED_TEST(CoderTest, SinlgeEncodeDecode)
+TYPED_TEST(coder_test, sinlge_encode_decode)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     uint8_t offset = 0;
@@ -65,7 +66,7 @@ TYPED_TEST(CoderTest, SinlgeEncodeDecode)
     }
 }
 
-TYPED_TEST(CoderTest, AllEncodeDecode)
+TYPED_TEST(coder_test, all_encode_decode)
 {
     int_vector<> tmp,data;
     TypeParam::encode(this->m_data, tmp);
@@ -76,7 +77,7 @@ TYPED_TEST(CoderTest, AllEncodeDecode)
     }
 }
 
-TYPED_TEST(CoderTest, DecodePrefixSum)
+TYPED_TEST(coder_test, decode_prefix_sum)
 {
     int_vector<> tmp;
     TypeParam::encode(this->m_data, tmp);

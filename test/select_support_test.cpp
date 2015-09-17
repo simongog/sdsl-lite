@@ -12,7 +12,7 @@ namespace
 {
 
 template<class T>
-class SelectSupportTest : public ::testing::Test { };
+class select_support_test : public ::testing::Test { };
 
 using testing::Types;
 
@@ -48,10 +48,10 @@ typedef Types<select_support_mcl<>,
         select_support_mcl<11,2>
         > Implementations;
 
-TYPED_TEST_CASE(SelectSupportTest, Implementations);
+TYPED_TEST_CASE(select_support_test, Implementations);
 
 //! Test the select method
-TYPED_TEST(SelectSupportTest, SelectMethod)
+TYPED_TEST(select_support_test, select_method)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     bit_vector bvec;

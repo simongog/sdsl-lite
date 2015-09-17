@@ -16,12 +16,12 @@ string test_file, temp_dir, test_id,output_file;
 typedef map<string, void (*)(cache_config&)> tMSFP;// map <name, lcp method>
 
 // The fixture for testing class int_vector.
-class LcpConstructTest : public ::testing::Test
+class lcp_construct_test : public ::testing::Test
 {
     protected:
-        LcpConstructTest():CHECK_KEY("CHECK_"+string(conf::KEY_LCP)) { }
+        lcp_construct_test():CHECK_KEY("CHECK_"+string(conf::KEY_LCP)) { }
 
-        virtual ~LcpConstructTest() { }
+        virtual ~lcp_construct_test() { }
 
         // If the constructor and destructor are not enough for setting up
         // and cleaning up each test, you can define the following methods:
@@ -71,7 +71,7 @@ class LcpConstructTest : public ::testing::Test
         string CHECK_KEY;
 };
 
-TEST_F(LcpConstructTest, construct_lcp)
+TEST_F(lcp_construct_test, construct_lcp)
 {
     for (tMSFP::const_iterator it = this->lcp_function.begin(), end = this->lcp_function.end(); it != end; ++it) {
         string info = "construct_lcp_" + (it->first) + " on test file " + test_file;

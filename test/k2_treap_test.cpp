@@ -20,7 +20,7 @@ string temp_file;
 bool in_memory;
 
 template<class T>
-class K2TreapTest : public ::testing::Test { };
+class k2_treap_test : public ::testing::Test { };
 
 using testing::Types;
 
@@ -34,9 +34,9 @@ k2_treap<2, bit_vector>,
          k2_treap<16, rrr_vector<63>>
          > Implementations;
 
-TYPED_TEST_CASE(K2TreapTest, Implementations);
+TYPED_TEST_CASE(k2_treap_test, Implementations);
 
-TYPED_TEST(K2TreapTest, CreateAndStoreTest)
+TYPED_TEST(k2_treap_test, CreateAndStoreTest)
 {
     TypeParam k2treap;
     construct(k2treap, test_file);
@@ -81,7 +81,7 @@ void topk_test(
     ASSERT_FALSE(res_it);
 }
 
-TYPED_TEST(K2TreapTest, SizeAndTopk)
+TYPED_TEST(k2_treap_test, size_and_top_k)
 {
     TypeParam k2treap;
     ASSERT_TRUE(load_from_file(k2treap, temp_file));
@@ -160,7 +160,7 @@ void range3d_test(
     ASSERT_FALSE(res_it);
 }
 
-TYPED_TEST(K2TreapTest, Range3d)
+TYPED_TEST(k2_treap_test, range_3d)
 {
     TypeParam k2treap;
     ASSERT_TRUE(load_from_file(k2treap, temp_file));
@@ -212,7 +212,7 @@ void count_test(
     ASSERT_EQ(cnt, count(k2treap, {real(min_xy),imag(min_xy)}, {real(max_xy),imag(max_xy)}));
 }
 
-TYPED_TEST(K2TreapTest, Count)
+TYPED_TEST(k2_treap_test, count)
 {
     TypeParam k2treap;
     ASSERT_TRUE(load_from_file(k2treap, temp_file));

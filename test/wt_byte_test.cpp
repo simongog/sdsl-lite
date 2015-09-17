@@ -19,7 +19,7 @@ string temp_dir;
 bool in_memory;
 
 template<class T>
-class WtByteTest : public ::testing::Test { };
+class wt_byte_test : public ::testing::Test { };
 
 using testing::Types;
 
@@ -41,9 +41,9 @@ wt_pc<balanced_shape>
                       ,wt_hutu<rrr_vector<63>>
                       > Implementations;
 
-TYPED_TEST_CASE(WtByteTest, Implementations);
+TYPED_TEST_CASE(wt_byte_test, Implementations);
 
-TYPED_TEST(WtByteTest, CreateAndStoreTest)
+TYPED_TEST(wt_byte_test, create_and_store)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     TypeParam wt;
@@ -52,7 +52,7 @@ TYPED_TEST(WtByteTest, CreateAndStoreTest)
 }
 
 //! Test sigma
-TYPED_TEST(WtByteTest, Sigma)
+TYPED_TEST(wt_byte_test, sigma)
 {
     TypeParam wt;
     ASSERT_TRUE(load_from_file(wt, temp_file));
@@ -80,7 +80,7 @@ void compare_wt(const int_vector<8>& text, const t_wt& wt)
 }
 
 //! Test Access method, Copy-construtor, Move-constructor, Copy-assign and Move-assign
-TYPED_TEST(WtByteTest, AccessCopyMoveAndSwap)
+TYPED_TEST(wt_byte_test, access_copy_move_and_swap)
 {
     TypeParam wt;
     ASSERT_TRUE(load_from_file(wt, temp_file));
@@ -113,7 +113,7 @@ TYPED_TEST(WtByteTest, AccessCopyMoveAndSwap)
 }
 
 //! Test rank methods
-TYPED_TEST(WtByteTest, Rank)
+TYPED_TEST(wt_byte_test, rank)
 {
     TypeParam wt;
     ASSERT_TRUE(load_from_file(wt, temp_file));
@@ -145,7 +145,7 @@ TYPED_TEST(WtByteTest, Rank)
 }
 
 //! Test select methods
-TYPED_TEST(WtByteTest, Select)
+TYPED_TEST(wt_byte_test, select)
 {
     TypeParam wt;
     ASSERT_TRUE(load_from_file(wt, temp_file));
@@ -160,7 +160,7 @@ TYPED_TEST(WtByteTest, Select)
 }
 
 //! Test inverse select method
-TYPED_TEST(WtByteTest, InverseSelect)
+TYPED_TEST(wt_byte_test, inverse_select)
 {
     TypeParam wt;
     ASSERT_TRUE(load_from_file(wt, temp_file));
@@ -230,7 +230,7 @@ test_interval_symbols(typename std::enable_if<has_node_type<t_wt>::value,
 }
 
 //! Test interval symbols method
-TYPED_TEST(WtByteTest, IntervalSymbols)
+TYPED_TEST(wt_byte_test, interval_symbols)
 {
     TypeParam wt;
     test_interval_symbols<TypeParam>(wt);
@@ -312,7 +312,7 @@ test_symbol_gte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 }
 
 //! Test the load method and intersect
-TYPED_TEST(WtByteTest, symbol_gte)
+TYPED_TEST(wt_byte_test, symbol_gte)
 {
     TypeParam wt;
     test_symbol_gte<TypeParam>(wt);
@@ -397,7 +397,7 @@ test_symbol_lte(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 
 
 //! Test the load method and intersect
-TYPED_TEST(WtByteTest, symbol_lte)
+TYPED_TEST(wt_byte_test, symbol_lte)
 {
     TypeParam wt;
     test_symbol_lte<TypeParam>(wt);
@@ -465,7 +465,7 @@ test_range_unique_values(typename enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 }
 
 //! Test the load method and intersect
-TYPED_TEST(WtByteTest, restricted_unique_range_values)
+TYPED_TEST(wt_byte_test, restricted_unique_range_values)
 {
     TypeParam wt;
     test_range_unique_values<TypeParam>(wt);
@@ -532,13 +532,13 @@ test_lex_count(typename std::enable_if<t_wt::lex_ordered, t_wt>::type& wt)
 }
 
 //! Test lex_count method
-TYPED_TEST(WtByteTest, LexCount)
+TYPED_TEST(wt_byte_test, lex_count)
 {
     TypeParam wt;
     test_lex_count<TypeParam>(wt);
 }
 
-TYPED_TEST(WtByteTest, CreatePartiallyTest)
+TYPED_TEST(wt_byte_test, create_partially_test)
 {
     int_vector_buffer<8> text_buf(test_file, std::ios::in, 1024*1024, 8, true);
     int_vector<8> text;
@@ -549,7 +549,7 @@ TYPED_TEST(WtByteTest, CreatePartiallyTest)
     compare_wt(text, wt);
 }
 
-TYPED_TEST(WtByteTest, DeleteTest)
+TYPED_TEST(wt_byte_test, delete_)
 {
     sdsl::remove(temp_file);
 }

@@ -14,12 +14,12 @@ namespace
 cache_config config;
 uint64_t n;
 
-class SaConstructTest : public ::testing::Test
+class sa_construct_test : public ::testing::Test
 {
     protected:
-        SaConstructTest() { }
+        sa_construct_test() { }
 
-        virtual ~SaConstructTest() { }
+        virtual ~sa_construct_test() { }
 
         // If the constructor and destructor are not enough for setting up
         // and cleaning up each test, you can define the following methods:
@@ -28,7 +28,7 @@ class SaConstructTest : public ::testing::Test
         virtual void TearDown() {}
 };
 
-TEST_F(SaConstructTest, divsufsort)
+TEST_F(sa_construct_test, divsufsort)
 {
     // Construct SA with divsufsort
     memory_monitor::start();
@@ -42,7 +42,7 @@ TEST_F(SaConstructTest, divsufsort)
     cout << "# constructs_space = " << (1.0*memory_monitor::peak())/n << " byte per byte, =>" << memory_monitor::peak() << " bytes in total" << endl;
 }
 
-TEST_F(SaConstructTest, sesais)
+TEST_F(sa_construct_test, sesais)
 {
     // Construct SA with seSAIS
     memory_monitor::start();
@@ -52,7 +52,7 @@ TEST_F(SaConstructTest, sesais)
     cout << "# constructs_space = " << (1.0*memory_monitor::peak())/n << " byte per byte, =>" << memory_monitor::peak() << " bytes in total" << endl;
 }
 
-TEST_F(SaConstructTest, compare)
+TEST_F(sa_construct_test, compare)
 {
     // Load both SAs
     int_vector_buffer<> sa_check(cache_file_name("check_sa", config));

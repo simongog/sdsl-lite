@@ -15,13 +15,13 @@ typedef sdsl::int_vector<>::value_type value_type;
 std::string temp_dir;
 
 // The fixture for testing class int_vector.
-class IntVectorMapperTest : public ::testing::Test
+class int_vector_mapper_test : public ::testing::Test
 {
     protected:
 
-        IntVectorMapperTest() {}
+        int_vector_mapper_test() {}
 
-        virtual ~IntVectorMapperTest() {}
+        virtual ~int_vector_mapper_test() {}
 
         virtual void SetUp()
         {
@@ -40,7 +40,7 @@ class IntVectorMapperTest : public ::testing::Test
         std::vector<size_type> vec_sizes = {1,64,65,127,128}; // different sizes for the vectors
 };
 
-TEST_F(IntVectorMapperTest, iterator)
+TEST_F(int_vector_mapper_test, iterator)
 {
     static_assert(std::is_move_constructible<sdsl::int_vector_mapper<>>::value, "Type is not move constructible");
     static_assert(std::is_move_assignable<sdsl::int_vector_mapper<>>::value, "Type is not move assignable");
@@ -117,7 +117,7 @@ TEST_F(IntVectorMapperTest, iterator)
     }
 }
 
-TEST_F(IntVectorMapperTest, push_back)
+TEST_F(int_vector_mapper_test, push_back)
 {
     // test plain
     for (const auto& size : vec_sizes) {
@@ -194,7 +194,7 @@ TEST_F(IntVectorMapperTest, push_back)
     }
 }
 
-TEST_F(IntVectorMapperTest, bit_compress)
+TEST_F(int_vector_mapper_test, bit_compress)
 {
     for (const auto& size : vec_sizes) {
         sdsl::int_vector<> vec(size);
@@ -226,7 +226,7 @@ TEST_F(IntVectorMapperTest, bit_compress)
     }
 }
 
-TEST_F(IntVectorMapperTest, bitvector_mapping)
+TEST_F(int_vector_mapper_test, bitvector_mapping)
 {
     for (const auto& size : vec_sizes) {
         sdsl::bit_vector bv(size);
@@ -258,7 +258,7 @@ TEST_F(IntVectorMapperTest, bitvector_mapping)
     }
 }
 
-TEST_F(IntVectorMapperTest, temp_buffer_test)
+TEST_F(int_vector_mapper_test, temp_buffer_test)
 {
     for (const auto& size : vec_sizes) {
         sdsl::int_vector<> vec(size);

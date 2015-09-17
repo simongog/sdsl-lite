@@ -10,13 +10,13 @@ namespace
 std::string temp_dir;
 
 // The fixture for testing class sorted_int_stack.
-class SortedStackTest : public ::testing::Test
+class sorted_stack_test : public ::testing::Test
 {
     protected:
 
-        SortedStackTest() {}
+        sorted_stack_test() {}
 
-        virtual ~SortedStackTest() {}
+        virtual ~sorted_stack_test() {}
 
         virtual void SetUp() {}
 
@@ -43,7 +43,7 @@ void compare_stacks(std::stack<uint64_t>& exp, sdsl::sorted_int_stack& sis)
 }
 
 //! Test Constructors
-TEST_F(SortedStackTest, Constructors)
+TEST_F(sorted_stack_test, constructors)
 {
     static_assert(std::is_copy_constructible<sdsl::sorted_int_stack>::value, "Type is not copy constructible");
     static_assert(std::is_move_constructible<sdsl::sorted_int_stack>::value, "Type is not move constructible");
@@ -86,7 +86,7 @@ TEST_F(SortedStackTest, Constructors)
 }
 
 //! Test Operations push, top and pop
-TEST_F(SortedStackTest, PushTopAndPop)
+TEST_F(sorted_stack_test, push_top_and_pop)
 {
     for (uint64_t i=0; i<20; ++i) {
         std::mt19937_64 rng(i);
@@ -116,7 +116,7 @@ TEST_F(SortedStackTest, PushTopAndPop)
 }
 
 //! Test Serialize and Load
-TEST_F(SortedStackTest, SerializeAndLoad)
+TEST_F(sorted_stack_test, serialize_and_load)
 {
     std::string file_name = temp_dir+"/sorted_int_stack";
     std::stack<uint64_t> exp;

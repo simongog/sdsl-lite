@@ -15,13 +15,13 @@ typedef sdsl::int_vector<>::value_type value_type;
 std::string temp_dir;
 
 // The fixture for testing class int_vector.
-class IntVectorBufferTest : public ::testing::Test
+class int_vector_buffer_test : public ::testing::Test
 {
     protected:
 
-        IntVectorBufferTest() {}
+        int_vector_buffer_test() {}
 
-        virtual ~IntVectorBufferTest() {}
+        virtual ~int_vector_buffer_test() {}
 
         virtual void SetUp()
         {
@@ -85,7 +85,7 @@ void test_constructors(size_type template_width, size_type constructor_width, si
 }
 
 //! Test constructors
-TEST_F(IntVectorBufferTest, Constructors)
+TEST_F(int_vector_buffer_test, constructors)
 {
     for (size_type width=1; width<=64; ++width) {
         test_constructors< sdsl::int_vector_buffer<> >(64, width, width);
@@ -159,7 +159,7 @@ void test_assign_and_modify<sdsl::int_vector_buffer<1>>(size_type width)
     ivb.close(true);
 }
 
-TEST_F(IntVectorBufferTest, AssignAndModifyElement)
+TEST_F(int_vector_buffer_test, assign_and_modify_element)
 {
     for (size_type width=1; width<=64; ++width) { // for each possible width
         test_assign_and_modify< sdsl::int_vector_buffer<> >(width);
@@ -206,7 +206,7 @@ void compare(size_type width=1)
 }
 
 //! Test assign from int_vector_buffer to int_vector_buffer and compare operators
-TEST_F(IntVectorBufferTest, Compare)
+TEST_F(int_vector_buffer_test, compare)
 {
     for (size_type width=1; width<=64; ++width) { // for each possible width
         compare< sdsl::int_vector_buffer<> >(width);
@@ -293,7 +293,7 @@ void test_sequential_access(size_type width=1)
 }
 
 //! Test SequentialAccess: push_back and iterators
-TEST_F(IntVectorBufferTest, SequentialAccess)
+TEST_F(int_vector_buffer_test, sequential_access)
 {
     for (size_type width=1; width <= 64; ++width) { // for each possible width
         test_sequential_access< sdsl::int_vector_buffer<> >(width);
@@ -358,7 +358,7 @@ void test_random_access(size_type width=1)
 }
 
 //! Test RandomAcces, which should not be done in practice because it is expected to be very slow
-TEST_F(IntVectorBufferTest, RandomAccess)
+TEST_F(int_vector_buffer_test, random_access)
 {
     for (size_type width=1; width <= 64; ++width) {
         test_random_access< sdsl::int_vector_buffer<> >(width);
@@ -433,7 +433,7 @@ void test_plain_file_handling(uint8_t exp_w)
 }
 
 //! Test opening of existing file, int_vector-format and close()
-TEST_F(IntVectorBufferTest, FileHandling)
+TEST_F(int_vector_buffer_test, file_handling)
 {
     for (size_type width=1; width <= 64; ++width) { // for each possible width
         test_file_handling< sdsl::int_vector_buffer<>, sdsl::int_vector<> >(width);
@@ -511,7 +511,7 @@ void test_swap(size_type exp_w_ivb1, size_type exp_w_ivb2, std::vector<size_type
 }
 
 //! Test swap
-TEST_F(IntVectorBufferTest, Swap)
+TEST_F(int_vector_buffer_test, swap)
 {
     for (size_type width=1; width <= 64; ++width) { // for each possible width
         test_swap< sdsl::int_vector_buffer<> >(width, 2, vec_sizes);
@@ -634,7 +634,7 @@ void test_move(size_type constructor_width)
 }
 
 //! Test MoveConstructor and MoveAssignment
-TEST_F(IntVectorBufferTest, Move)
+TEST_F(int_vector_buffer_test, move)
 {
     test_move< sdsl::int_vector_buffer<> >(64);
     test_move< sdsl::int_vector_buffer<1> >(1);
@@ -676,7 +676,7 @@ void test_reset(std::vector<size_type>& vec_sizes, size_type width=1)
 }
 
 //! Test reset
-TEST_F(IntVectorBufferTest, Reset)
+TEST_F(int_vector_buffer_test, Reset)
 {
     for (size_type width=1; width <= 64; ++width) {
         test_reset< sdsl::int_vector_buffer<> >(vec_sizes, width);

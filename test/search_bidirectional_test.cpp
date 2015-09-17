@@ -16,7 +16,7 @@ string test_file;
 string test_file_rev;
 
 template<class T>
-class SearchBidirectionalTest : public ::testing::Test { };
+class search_bidirectional_test : public ::testing::Test { };
 
 using testing::Types;
 
@@ -28,10 +28,10 @@ csa_wt<wt_blcd<>, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, byte_alphabet>
        csa_wt<wt_hutu<bit_vector_il<> >, 32, 32, sa_order_sa_sampling<>, isa_sampling<>, byte_alphabet>
        > Implementations;
 
-TYPED_TEST_CASE(SearchBidirectionalTest, Implementations);
+TYPED_TEST_CASE(search_bidirectional_test, Implementations);
 
 //! Compare bidirectional search and backward search
-TYPED_TEST(SearchBidirectionalTest, BidirectionalSearch)
+TYPED_TEST(search_bidirectional_test, bidirectional_search)
 {
     bool debug = false;
 

@@ -19,7 +19,7 @@ string temp_dir;
 bool in_memory;
 
 template<class T>
-class CsaByteTest : public ::testing::Test { };
+class csa_byte_test : public ::testing::Test { };
 
 
 using testing::Types;
@@ -43,9 +43,9 @@ csa_wt<>,
        csa_bitcompressed<>
        > Implementations;
 
-TYPED_TEST_CASE(CsaByteTest, Implementations);
+TYPED_TEST_CASE(csa_byte_test, Implementations);
 
-TYPED_TEST(CsaByteTest, CreateAndStoreTest)
+TYPED_TEST(csa_byte_test, CreateAndStoreTest)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     TypeParam csa;
@@ -56,7 +56,7 @@ TYPED_TEST(CsaByteTest, CreateAndStoreTest)
 }
 
 //! Test backward_search
-TYPED_TEST(CsaByteTest, BackwardSearch)
+TYPED_TEST(csa_byte_test, fackward_search)
 {
     TypeParam csa;
     ASSERT_TRUE(load_from_file(csa, temp_file));
@@ -84,7 +84,7 @@ TYPED_TEST(CsaByteTest, BackwardSearch)
 }
 
 //! Test forward_search
-TYPED_TEST(CsaByteTest, ForwardSearch)
+TYPED_TEST(csa_byte_test, forward_search)
 {
     TypeParam csa;
     ASSERT_TRUE(load_from_file(csa, temp_file));
@@ -112,7 +112,7 @@ TYPED_TEST(CsaByteTest, ForwardSearch)
 }
 
 //! Test sigma member
-TYPED_TEST(CsaByteTest, Sigma)
+TYPED_TEST(csa_byte_test, sigma)
 {
     TypeParam csa;
     ASSERT_TRUE(load_from_file(csa, temp_file));
@@ -133,7 +133,7 @@ TYPED_TEST(CsaByteTest, Sigma)
 }
 
 //! Test suffix array access methods
-TYPED_TEST(CsaByteTest, SaAccess)
+TYPED_TEST(csa_byte_test, sa_access)
 {
     TypeParam csa;
     ASSERT_TRUE(load_from_file(csa, temp_file));
@@ -147,7 +147,7 @@ TYPED_TEST(CsaByteTest, SaAccess)
 }
 
 //! Test inverse suffix access methods
-TYPED_TEST(CsaByteTest, IsaAccess)
+TYPED_TEST(csa_byte_test, isa_access)
 {
     TypeParam csa;
     ASSERT_TRUE(load_from_file(csa, temp_file));
@@ -169,7 +169,7 @@ TYPED_TEST(CsaByteTest, IsaAccess)
 }
 
 //! Test text access methods
-TYPED_TEST(CsaByteTest, TextAccess)
+TYPED_TEST(csa_byte_test, text_access)
 {
     if (test_case_file_map.find(conf::KEY_TEXT) != test_case_file_map.end()) {
         TypeParam csa;
@@ -191,7 +191,7 @@ TYPED_TEST(CsaByteTest, TextAccess)
 }
 
 //! Test Burrows-Wheeler access methods
-TYPED_TEST(CsaByteTest, BwtAccess)
+TYPED_TEST(csa_byte_test, bwt_access)
 {
     if (test_case_file_map.find(conf::KEY_BWT) != test_case_file_map.end()) {
         TypeParam csa;
@@ -206,7 +206,7 @@ TYPED_TEST(CsaByteTest, BwtAccess)
     }
 }
 
-TYPED_TEST(CsaByteTest, FAccess)
+TYPED_TEST(csa_byte_test, f_access)
 {
     if (test_case_file_map.find(conf::KEY_TEXT) != test_case_file_map.end()) {
         TypeParam csa;
@@ -224,7 +224,7 @@ TYPED_TEST(CsaByteTest, FAccess)
 
 
 //! Test Psi access methods
-TYPED_TEST(CsaByteTest, PsiAccess)
+TYPED_TEST(csa_byte_test, psi_access)
 {
     if (test_case_file_map.find(conf::KEY_PSI) != test_case_file_map.end()) {
         TypeParam csa;
@@ -240,7 +240,7 @@ TYPED_TEST(CsaByteTest, PsiAccess)
 }
 
 //! Test if Psi[LF[i]]=i
-TYPED_TEST(CsaByteTest, PsiLFAccess)
+TYPED_TEST(csa_byte_test, psi_lf_access)
 {
     TypeParam csa;
     ASSERT_TRUE(load_from_file(csa, temp_file));
@@ -253,7 +253,7 @@ TYPED_TEST(CsaByteTest, PsiLFAccess)
 
 
 //! Test access after swap
-TYPED_TEST(CsaByteTest, SwapTest)
+TYPED_TEST(csa_byte_test, swap)
 {
     TypeParam csa1;
     ASSERT_TRUE(load_from_file(csa1, temp_file));
@@ -269,7 +269,7 @@ TYPED_TEST(CsaByteTest, SwapTest)
 }
 
 
-TYPED_TEST(CsaByteTest, DeleteTest)
+TYPED_TEST(csa_byte_test, delete_)
 {
     sdsl::remove(temp_file);
     util::delete_all_files(test_case_file_map);

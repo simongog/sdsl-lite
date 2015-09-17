@@ -111,16 +111,17 @@ SDSL_UNUSED inline uint64_t rev_naive(uint64_t x)
 
 
 // The fixture for testing class int_vector.
-class BitsTest : public ::testing::Test
+class bits_test : public ::testing::Test
 {
     protected:
 
-        BitsTest() {
+        bits_test()
+        {
             m_data = sdsl::int_vector<64>(1000000);
             sdsl::util::set_random_bits(m_data);
         }
 
-        virtual ~BitsTest() { }
+        virtual ~bits_test() { }
 
         virtual void SetUp() { }
 
@@ -129,7 +130,7 @@ class BitsTest : public ::testing::Test
 };
 
 //! Test the default constructor
-TEST_F(BitsTest, cnt)
+TEST_F(bits_test, cnt)
 {
     for (uint64_t i=0; i<64; ++i) {
         ASSERT_EQ((uint64_t)1, sdsl::bits::cnt(1ULL<<i));
@@ -137,7 +138,7 @@ TEST_F(BitsTest, cnt)
 }
 
 //! Test the parametrized constructor
-TEST_F(BitsTest, sel)
+TEST_F(bits_test, sel)
 {
     for (uint64_t i=0; i<64; ++i) {
         ASSERT_EQ(i, sdsl::bits::sel(1ULL<<i, 1));
@@ -153,7 +154,7 @@ TEST_F(BitsTest, sel)
     }
 }
 
-TEST_F(BitsTest, hi)
+TEST_F(bits_test, hi)
 {
     for (uint64_t i=0; i<64; ++i) {
         uint64_t x = 1ULL<<i;
@@ -162,7 +163,7 @@ TEST_F(BitsTest, hi)
 }
 
 
-TEST_F(BitsTest, lo)
+TEST_F(bits_test, lo)
 {
     for (uint64_t i=0; i<64; ++i) {
         uint64_t x = 1ULL<<i;
@@ -170,7 +171,7 @@ TEST_F(BitsTest, lo)
     }
 }
 
-TEST_F(BitsTest, rev)
+TEST_F(bits_test, rev)
 {
     for (uint64_t i=0; i < this->m_data.size(); ++i) {
         uint64_t x = this->m_data[i];

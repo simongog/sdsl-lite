@@ -23,8 +23,8 @@ ENDFOREACH(download_config_line)
 FILE(GLOB SDSL_HEADER_ALL ${CMAKE_CURRENT_BINARY_DIR}/../include/sdsl/*.hpp)
 STRING(REGEX REPLACE "([^;]+)[;]" "#include \"\\1\"\\n" SDSL_INCLUDE_ALL "${SDSL_HEADER_ALL};")                                                                       
 
-CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/CompileTest.cpp.cmake"
-               "${CMAKE_CURRENT_SOURCE_DIR}/CompileTest.cpp" @ONLY)
+CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/compile_test.cpp.cmake"
+               "${CMAKE_CURRENT_SOURCE_DIR}/compile_test.cpp" @ONLY)
 
 FILE(GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/*Test.cpp)
 
@@ -35,17 +35,15 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/../include
 
 LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64)
 
-ADD_EXECUTABLE(IntVectorGenerator IntVectorGenerator.cpp)
-ADD_EXECUTABLE(BitVectorGenerator BitVectorGenerator.cpp)
-ADD_EXECUTABLE(ReplaceIntVectorValue ReplaceIntVectorValue.cpp)
+ADD_EXECUTABLE(int_vector_generator int_vector_generator.cpp)
+ADD_EXECUTABLE(bit_vector_generator bit_vector_generator.cpp)
+ADD_EXECUTABLE(replace_int_vector_value replace_int_vector_value.cpp)
 
 SET(tmp_dir ${CMAKE_HOME_DIRECTORY}/test/tmp)
 FOREACH(test_source ${test_sources})
     GET_FILENAME_COMPONENT(test_name_we ${test_source} NAME_WE)
 
-    STRING(REGEX REPLACE "(.)(Test)" "\\1-\\2" test_name_hy_1 ${test_name_we})
-    STRING(REGEX REPLACE "([^A-Z|-])([A-Z])" "\\1-\\2" test_name_hy ${test_name_hy_1})
-    STRING(TOLOWER ${test_name_hy} test_name_hy)
+    STRING(REGEX REPLACE "_" "-" test_name_hy ${test_name_we})
 
     ADD_EXECUTABLE(${test_name_we} ${test_name_we}.cpp)
 
@@ -79,8 +77,8 @@ FOREACH(test_source ${test_sources})
                     STRING(REPLACE "." ";" test_case_param ${test_case_suf}) 
 
                     ADD_CUSTOM_COMMAND(OUTPUT ${abs_test_case_name}
-                                       COMMAND test/IntVectorGenerator ${abs_test_case_name}  ${test_case_param} 
-                                       DEPENDS IntVectorGenerator
+                                       COMMAND test/int_vector_generator ${abs_test_case_name}  ${test_case_param} 
+                                       DEPENDS int_vector_generator
                                        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                                        COMMENT "Generating test case ${test_case_name}."
                                        VERBATIM
@@ -89,8 +87,8 @@ FOREACH(test_source ${test_sources})
                 ELSEIF("${test_case_name}" MATCHES "${bit_vec_regex}")   
                     STRING(REPLACE "bit-vec." "" test_case_param ${test_case_name})
                     ADD_CUSTOM_COMMAND(OUTPUT ${abs_test_case_name}
-                                       COMMAND test/BitVectorGenerator ${abs_test_case_name} ${test_case_param} 
-                                       DEPENDS BitVectorGenerator
+                                       COMMAND test/bit_vector_generator ${abs_test_case_name} ${test_case_param} 
+                                       DEPENDS bit_vector_generator
                                        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                                        COMMENT "Generating test case ${test_case_name}."
                                        VERBATIM
@@ -119,9 +117,9 @@ FOREACH(test_source ${test_sources})
                         STRING(REPLACE "." ";" test_case_param ${test_case_suf}) 
 
                         ADD_CUSTOM_COMMAND(OUTPUT ${abs_test_case_name}
-                                           COMMAND test/IntVectorGenerator ${abs_test_case_name}  ${test_case_param} 
-                                           COMMAND test/ReplaceIntVectorValue ${abs_test_case_name} 0 1
-                                           DEPENDS IntVectorGenerator ReplaceIntVectorValue 
+                                           COMMAND test/int_vector_generator ${abs_test_case_name}  ${test_case_param} 
+                                           COMMAND test/replace_int_vector_value ${abs_test_case_name} 0 1
+                                           DEPENDS int_vector_generator replace_int_vector_value 
                                            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                                            COMMENT "Generating test case ${test_case_name}."
                                            VERBATIM
@@ -156,8 +154,8 @@ FOREACH(test_source ${test_sources})
                         STRING(REPLACE "." ";" test_case_param ${test_case_suf})
                         MESSAGE("iteration ${i} ${dim} ${test_case_name} ${abs_test_case_name}")
                         ADD_CUSTOM_COMMAND(OUTPUT ${local_abs_test_case_name}
-                                COMMAND test/IntVectorGenerator ${local_abs_test_case_name} ${test_case_param}
-                                DEPENDS IntVectorGenerator
+                                COMMAND test/int_vector_generator ${local_abs_test_case_name} ${test_case_param}
+                                DEPENDS int_vector_generator
                                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                                 COMMENT "Generating test case ${test_case_name}."
                                 VERBATIM        

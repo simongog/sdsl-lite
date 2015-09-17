@@ -16,7 +16,7 @@ string  test_file;
 string  temp_file;
 
 template<class T>
-class RMQTest : public ::testing::Test { };
+class rmq_test : public ::testing::Test { };
 
 
 using testing::Types;
@@ -25,10 +25,10 @@ typedef Types<sdsl::rmq_succinct_sct<>,
         sdsl::rmq_succinct_sada<>
         > Implementations;
 
-TYPED_TEST_CASE(RMQTest, Implementations);
+TYPED_TEST_CASE(rmq_test, Implementations);
 
 
-TYPED_TEST(RMQTest, ConstructAndStore)
+TYPED_TEST(rmq_test, construct_and_store)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     int_vector<> v;
@@ -49,7 +49,7 @@ class state
 };
 
 //! Test range minimum queries
-TYPED_TEST(RMQTest, RmqLoadAndQuery)
+TYPED_TEST(rmq_test, rmq_load_and_query)
 {
     int_vector<> v;
     ASSERT_TRUE(load_from_file(v, test_file));
@@ -88,7 +88,7 @@ TYPED_TEST(RMQTest, RmqLoadAndQuery)
 }
 
 //! Test range minimum queries
-TYPED_TEST(RMQTest, RmqLoadAndMoveAndQuery)
+TYPED_TEST(rmq_test, rmq_load_and_move_and_query)
 {
     int_vector<> v;
     ASSERT_TRUE(load_from_file(v, test_file));
@@ -129,7 +129,7 @@ TYPED_TEST(RMQTest, RmqLoadAndMoveAndQuery)
 
 
 
-TYPED_TEST(RMQTest, DeleteTest)
+TYPED_TEST(rmq_test, delete_)
 {
     sdsl::remove(temp_file);
 }

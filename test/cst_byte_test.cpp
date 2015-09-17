@@ -1,67 +1,60 @@
+#include "cst_helper.hpp"
 #include "sdsl/suffix_trees.hpp"
-#include "sdsl/lcp.hpp"
-#include "CstHelper.hpp"
 #include "gtest/gtest.h"
 #include <vector>
-#include <cstdlib> // for rand()
 #include <string>
+#include <set>
+#include <sstream>
 #include <random>
 
 using namespace sdsl;
 using namespace std;
 
-using namespace std::chrono;
-using timer = std::chrono::high_resolution_clock;
-
 namespace
 {
 
 typedef int_vector<>::size_type size_type;
-tMSS    test_case_file_map;
-string  test_file;
-uint8_t num_bytes;
-string  temp_file;
-string  temp_dir;
-bool    in_memory;
+typedef bit_vector bit_vector;
 
-
+tMSS  test_case_file_map;
+string test_file;
+string temp_file;
+string temp_dir;
+bool in_memory;
 
 template<class T>
-class CstIntTest : public ::testing::Test { };
+class cst_byte_test : public ::testing::Test { };
 
 using testing::Types;
 
-typedef csa_wt<wt_int<>, 32, 32, text_order_sa_sampling<>, isa_sampling<>, int_alphabet<> > tCSA1;
-typedef csa_sada<enc_vector<>, 32, 32, text_order_sa_sampling<>, isa_sampling<>, int_alphabet<> > tCSA2;
-typedef csa_bitcompressed<int_alphabet<> > tCSA3;
-
 typedef Types<
-cst_sct3<tCSA1, lcp_bitcompressed<> >,
-         cst_sada<tCSA1, lcp_dac<> >,
-         cst_fully<tCSA1>,
-         cst_sct3<tCSA2, lcp_bitcompressed<> >,
-         cst_sct3<tCSA3, lcp_bitcompressed<> >,
-         cst_sada<tCSA1, lcp_vlc<> >,
-         cst_sada<tCSA1, lcp_byte<> >,
-         cst_sada<tCSA1, lcp_support_tree2<>, bp_support_gg<> >,
-         cst_sct3<tCSA3, lcp_support_tree2<> >,
-         cst_sada<tCSA1, lcp_support_tree<> >,
-         cst_sct3<tCSA1, lcp_support_tree<>, bp_support_gg<> >,
-         cst_sct3<tCSA1, lcp_support_tree<>, bp_support_g<> >,
-         cst_sada<tCSA3, lcp_dac<> >,
-         cst_sct3<tCSA1, lcp_support_sada<> >,
-         cst_sct3<tCSA1, lcp_wt<> >
+cst_sct3<>,
+         cst_sada<>,
+         cst_fully<>,
+         cst_sct3<cst_sct3<>::csa_type, lcp_bitcompressed<>>,
+         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree2<>>,
+         cst_sada<cst_sada<>::csa_type, lcp_dac<>>,
+         cst_sada<cst_sada<>::csa_type, lcp_vlc<>>,
+         cst_sada<cst_sada<>::csa_type, lcp_byte<>>,
+         cst_sada<cst_sada<>::csa_type, lcp_support_tree2<>, bp_support_gg<>>,
+         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_gg<>>,
+         cst_sada<cst_sada<>::csa_type, lcp_support_tree<> >,
+         cst_sct3<cst_sct3<>::csa_type, lcp_support_sada<> >,
+         cst_sct3<cst_sct3<>::csa_type, lcp_wt<> >,
+         cst_sct3<cst_sct3<>::csa_type, lcp_support_tree<>, bp_support_g<> >,
+         cst_sct3<csa_bitcompressed<>, lcp_bitcompressed<> >
          > Implementations;
 
-TYPED_TEST_CASE(CstIntTest, Implementations);
+TYPED_TEST_CASE(cst_byte_test, Implementations);
 
 
-TYPED_TEST(CstIntTest, CreateAndStoreTest)
+TYPED_TEST(cst_byte_test, create_and_store)
 {
     static_assert(sdsl::util::is_regular<TypeParam>::value, "Type is not regular");
     TypeParam cst;
+    ASSERT_TRUE(cst.empty());
     cache_config config(false, temp_dir, util::basename(test_file));
-    construct(cst, test_file, config, num_bytes);
+    construct(cst, test_file, config, 1);
     test_case_file_map = config.file_map;
     ASSERT_TRUE(store_to_file(cst, temp_file));
     TypeParam cst2;
@@ -71,7 +64,7 @@ TYPED_TEST(CstIntTest, CreateAndStoreTest)
 }
 
 //! Test the swap method
-TYPED_TEST(CstIntTest, SwapMethod)
+TYPED_TEST(cst_byte_test, swap_method)
 {
     TypeParam cst1;
     ASSERT_TRUE(load_from_file(cst1, temp_file));
@@ -87,22 +80,21 @@ TYPED_TEST(CstIntTest, SwapMethod)
 }
 
 //! Test the move method
-TYPED_TEST(CstIntTest, MoveMethod)
+TYPED_TEST(cst_byte_test, move_method)
 {
     TypeParam cst1;
     ASSERT_TRUE(load_from_file(cst1, temp_file));
     size_type n = cst1.size();
-    TypeParam cst2;
-    ASSERT_EQ((size_type)0, cst2.size());
-    cst2 = std::move(cst1);
+    TypeParam cst2 = std::move(cst1);
     ASSERT_EQ(n, cst2.size());
     ASSERT_EQ(n, cst2.csa.size());
     bit_vector mark((size_type)0, cst2.size());
     check_node_method(cst2);
 }
 
+
 //! Test the node method
-TYPED_TEST(CstIntTest, NodeMethod)
+TYPED_TEST(cst_byte_test, node_method)
 {
     TypeParam cst;
     ASSERT_TRUE(load_from_file(cst, temp_file));
@@ -111,7 +103,7 @@ TYPED_TEST(CstIntTest, NodeMethod)
 }
 
 //! Test basic methods
-TYPED_TEST(CstIntTest, BasicMethods)
+TYPED_TEST(cst_byte_test, basic_methods)
 {
     TypeParam cst;
     ASSERT_TRUE(load_from_file(cst, temp_file));
@@ -125,7 +117,7 @@ TYPED_TEST(CstIntTest, BasicMethods)
 }
 
 //! Test suffix array access
-TYPED_TEST(CstIntTest, SaAccess)
+TYPED_TEST(cst_byte_test, sa_access)
 {
     TypeParam cst;
     ASSERT_TRUE(load_from_file(cst, temp_file));
@@ -138,28 +130,28 @@ TYPED_TEST(CstIntTest, SaAccess)
     }
 }
 
-//! Test BWT access
-TYPED_TEST(CstIntTest, BwtAccess)
-{
-    TypeParam cst;
-    ASSERT_TRUE(load_from_file(cst, temp_file));
-    sdsl::int_vector<> bwt;
-    sdsl::load_from_file(bwt, test_case_file_map[sdsl::conf::KEY_BWT_INT]);
-    size_type n = bwt.size();
-    ASSERT_EQ(n, cst.csa.bwt.size());
-    for (size_type j=0; j<n; ++j) {
-        ASSERT_EQ(bwt[j], cst.csa.bwt[j])<<" j="<<j;
-    }
-}
-
-//! Test BWT access
-TYPED_TEST(CstIntTest, MoveAndBwtAccess)
+//! Test suffix array access after move
+TYPED_TEST(cst_byte_test, move_sa_access)
 {
     TypeParam cst_load;
     ASSERT_TRUE(load_from_file(cst_load, temp_file));
     TypeParam cst = std::move(cst_load);
-    sdsl::int_vector<> bwt;
-    sdsl::load_from_file(bwt, test_case_file_map[sdsl::conf::KEY_BWT_INT]);
+    sdsl::int_vector<> sa;
+    sdsl::load_from_file(sa, test_case_file_map[sdsl::conf::KEY_SA]);
+    size_type n = sa.size();
+    ASSERT_EQ(n, cst.csa.size());
+    for (size_type j=0; j<n; ++j) {
+        ASSERT_EQ(sa[j], cst.csa[j])<<" j="<<j;
+    }
+}
+
+//! Test BWT access
+TYPED_TEST(cst_byte_test, bwt_access)
+{
+    TypeParam cst;
+    ASSERT_TRUE(load_from_file(cst, temp_file));
+    sdsl::int_vector<8> bwt;
+    sdsl::load_from_file(bwt, test_case_file_map[sdsl::conf::KEY_BWT]);
     size_type n = bwt.size();
     ASSERT_EQ(n, cst.csa.bwt.size());
     for (size_type j=0; j<n; ++j) {
@@ -168,7 +160,7 @@ TYPED_TEST(CstIntTest, MoveAndBwtAccess)
 }
 
 //! Test LCP access
-TYPED_TEST(CstIntTest, LcpAccess)
+TYPED_TEST(cst_byte_test, lcp_access)
 {
     TypeParam cst;
     ASSERT_TRUE(load_from_file(cst, temp_file));
@@ -181,6 +173,20 @@ TYPED_TEST(CstIntTest, LcpAccess)
     }
 }
 
+//! Test LCP access after move
+TYPED_TEST(cst_byte_test, move_lcp_access)
+{
+    TypeParam cst_load;
+    ASSERT_TRUE(load_from_file(cst_load, temp_file));
+    TypeParam cst = std::move(cst_load);
+    sdsl::int_vector<> lcp;
+    sdsl::load_from_file(lcp, test_case_file_map[sdsl::conf::KEY_LCP]);
+    size_type n = lcp.size();
+    ASSERT_EQ(n, cst.lcp.size());
+    for (size_type j=0; j<n; ++j) {
+        ASSERT_EQ(lcp[j], cst.lcp[j])<<" j="<<j;
+    }
+}
 
 template<typename t_cst>
 void test_id(typename std::enable_if<!(has_id<t_cst>::value), t_cst>::type&)
@@ -219,77 +225,32 @@ void test_id(typename std::enable_if<has_id<t_cst>::value, t_cst>::type& cst)
     }
 }
 
-
-
 //! Test the id and inverse id method
-TYPED_TEST(CstIntTest, IdMethod)
+TYPED_TEST(cst_byte_test, id_method)
 {
     TypeParam cst;
     test_id<TypeParam>(cst);
 }
 
-template<class t_cst>
-size_type naive_degree(const t_cst& cst, const typename t_cst::node_type& v)
-{
-    if (cst.is_leaf(v)) {
-        return 0;
-    } else {
-        size_type res = 0;
-        auto w = cst.select_child(v, 1);
-        while (cst.root() != w) {
-            ++res;
-            w = cst.sibling(w);
-        }
-        return res;
-    }
-}
-
-template<class T>
-bool my_timeout(const timer::time_point& tp, T limit)
-{
-    return duration_cast<seconds>(timer::now()- tp).count() > limit;
-}
-
-TYPED_TEST(CstIntTest, DegreeAndSelectChild)
+TYPED_TEST(cst_byte_test, select_child)
 {
     TypeParam cst;
     ASSERT_TRUE(load_from_file(cst, temp_file));
     if (cst.size() > 1) {
-        size_type degree = naive_degree(cst, cst.root());
-        ASSERT_EQ(degree, cst.degree(cst.root()));
         ASSERT_EQ(cst.csa.sigma, cst.degree(cst.root()));
         size_type lb = 0;
-        auto start = timer::now();
         for (size_type i=1; i <= cst.csa.sigma; ++i) {
             auto v = cst.select_child(cst.root(), i);
             ASSERT_EQ(lb, cst.lb(v));
             lb = cst.rb(v)+1;
-            if (my_timeout(start, 5)) { break; }
         }
-        if (!my_timeout(start, 5)) {
-            ASSERT_EQ(cst.rb(cst.root()), lb-1);
-        }
+        ASSERT_EQ(cst.rb(cst.root()), lb-1);
 
-        start = timer::now();
         size_type i=1;
         for (auto v  : cst.children(cst.root())) {
             ASSERT_TRUE(i <= cst.degree(cst.root()));
             ASSERT_EQ(cst.select_child(cst.root(),i), v) << i << "!";
             ++i;
-            if (my_timeout(start, 5)) { break; }
-        }
-        std::mt19937_64 rng;
-        std::uniform_int_distribution<uint64_t> dist(0, cst.csa.sigma);
-        auto dice = bind(dist, rng);
-        start = timer::now();
-        for (size_type i=1; i < 10; ++i) {
-            auto w = cst.root();
-            while (!cst.is_leaf(w)) {
-                degree = naive_degree(cst, w);
-                ASSERT_EQ(degree, cst.degree(w));
-                w = cst.select_child(w, (dice()%degree)+1);
-                if (my_timeout(start, 5)) { break; }
-            }
         }
     } else if (cst.size() == 1) {
         ASSERT_EQ(1U, cst.csa.sigma);
@@ -297,7 +258,36 @@ TYPED_TEST(CstIntTest, DegreeAndSelectChild)
     }
 }
 
-TYPED_TEST(CstIntTest, SelectLeafAndSn)
+TYPED_TEST(cst_byte_test, move_select_child)
+{
+    TypeParam cst_load;
+    ASSERT_TRUE(load_from_file(cst_load, temp_file));
+    TypeParam cst = std::move(cst_load);
+    if (cst.size() > 1) {
+        ASSERT_EQ(cst.csa.sigma, cst.degree(cst.root()));
+        size_type lb = 0;
+        for (size_type i=1; i <= cst.csa.sigma; ++i) {
+            auto v = cst.select_child(cst.root(), i);
+            ASSERT_EQ(lb, cst.lb(v));
+            lb = cst.rb(v)+1;
+        }
+        ASSERT_EQ(cst.rb(cst.root()), lb-1);
+
+        size_type i=1;
+        for (auto v  : cst.children(cst.root())) {
+            ASSERT_TRUE(i <= cst.degree(cst.root()));
+            ASSERT_EQ(cst.select_child(cst.root(),i), v) << i << "!";
+            ++i;
+        }
+    } else if (cst.size() == 1) {
+        ASSERT_EQ(1U, cst.csa.sigma);
+        ASSERT_EQ(0U, cst.degree(cst.root()));
+    }
+}
+
+
+
+TYPED_TEST(cst_byte_test, select_leaf_and_sn)
 {
     TypeParam cst;
     ASSERT_TRUE(load_from_file(cst, temp_file));
@@ -306,7 +296,8 @@ TYPED_TEST(CstIntTest, SelectLeafAndSn)
     }
 }
 
-TYPED_TEST(CstIntTest, NodeDepth)
+
+TYPED_TEST(cst_byte_test, node_depth)
 {
     TypeParam cst;
     ASSERT_TRUE(load_from_file(cst, temp_file));
@@ -318,7 +309,8 @@ TYPED_TEST(CstIntTest, NodeDepth)
     }
 }
 
-TYPED_TEST(CstIntTest, Child)
+
+TYPED_TEST(cst_byte_test, child)
 {
     TypeParam cst;
     typedef typename TypeParam::char_type char_type;
@@ -326,27 +318,32 @@ TYPED_TEST(CstIntTest, Child)
     if (cst.size() > 1) {
         std::set<char_type> char_set;
         ASSERT_EQ(cst.csa.sigma, cst.degree(cst.root()));
-        bool leaf_tested = false;
-        for (size_type i=0; i < cst.csa.sigma and i < 1024U; ++i) {
+        for (size_type i=0; i < cst.csa.sigma; ++i) {
             auto c = cst.csa.comp2char[i];
             char_set.insert(c);
             auto v = cst.select_child(cst.root(), i+1);
             auto w = cst.child(cst.root(), c);
             ASSERT_EQ(v, w);
-            if (!leaf_tested and cst.is_leaf(v)) {
+            if (cst.is_leaf(v)) {
                 ASSERT_EQ(cst.root(), cst.select_child(v, c));
+            }
+        }
+        for (size_type i=0; i < 256; ++i) {
+            char_type c = (char_type)i;
+            if (char_set.find(c) == char_set.end()) {
+                ASSERT_EQ(cst.root(), cst.child(cst.root(), c));
             }
         }
     }
 }
 
-TYPED_TEST(CstIntTest, Edge)
+TYPED_TEST(cst_byte_test, edge)
 {
     TypeParam cst;
     ASSERT_TRUE(load_from_file(cst, temp_file));
 
-    int_vector<> data;
-    ASSERT_TRUE(load_vector_from_file(data, test_file, num_bytes));
+    int_vector<8> data;
+    ASSERT_TRUE(load_vector_from_file(data, test_file, 1));
 
     if (cst.csa.size() > 0) {
         auto v = cst.select_leaf(cst.csa.isa[0]+1);
@@ -362,7 +359,7 @@ TYPED_TEST(CstIntTest, Edge)
     }
 }
 
-TYPED_TEST(CstIntTest, LeftmostRightmostLeaf)
+TYPED_TEST(cst_byte_test, leftmost_rightmost_leaf)
 {
     TypeParam cst;
     ASSERT_TRUE(load_from_file(cst, temp_file));
@@ -382,7 +379,7 @@ TYPED_TEST(CstIntTest, LeftmostRightmostLeaf)
     }
 }
 
-TYPED_TEST(CstIntTest, SuffixAndWeinerLink)
+TYPED_TEST(cst_byte_test, suffix_and_weiner_link)
 {
     TypeParam cst;
     ASSERT_TRUE(load_from_file(cst, temp_file));
@@ -408,9 +405,7 @@ TYPED_TEST(CstIntTest, SuffixAndWeinerLink)
     }
 }
 
-
-
-TYPED_TEST(CstIntTest, LcaMethod)
+TYPED_TEST(cst_byte_test, lca_method)
 {
     TypeParam cst;
     ASSERT_TRUE(load_from_file(cst, temp_file));
@@ -442,17 +437,16 @@ TYPED_TEST(CstIntTest, LcaMethod)
 }
 
 //! Test the bottom-up iterator
-TYPED_TEST(CstIntTest, BottomUpIterator)
+TYPED_TEST(cst_byte_test, bottom_up_iterator)
 {
-//        TypeParam cst;
-//        ASSERT_TRUE(load_from_file(cst, temp_file));
-// doing a bottom-up traversal of the tree
-// TODO: implement
+//    TypeParam cst;
+//    ASSERT_TRUE(load_from_file(cst, temp_file));
+//    doing a bottom-up traversal of the tree
+//    TODO: implement
 }
 
-TYPED_TEST(CstIntTest, DeleteTest)
+TYPED_TEST(cst_byte_test, delete_)
 {
-    TypeParam cst;
     sdsl::remove(temp_file);
     util::delete_all_files(test_case_file_map);
 }
@@ -464,34 +458,27 @@ int main(int argc, char** argv)
     ::testing::InitGoogleTest(&argc, argv);
     if (argc < 4) {
         // LCOV_EXCL_START
-        cout << "Usage: " << argv[0] << " test_file num_bytes temp_file tmp_dir" << endl;
+        cout << "Usage: " << argv[0] << " test_file temp_file tmp_dir [in-memory]" << endl;
         cout << " (1) Generates a CST out of test_file; stores it in temp_file." << endl;
-        cout << "     Temporary files (SA/BWT/TEXT/LCP) are stored in tmp_dir." << endl;
-        cout << "     num_bytes specifies who many bytes make a symbol in the"<< endl;
-        cout << "     input sequence" << endl;
+        cout << "     Temporary files (SA/BWT/LCP/TEXT) are stored in tmp_dir." << endl;
+        cout << "     If `in-memory` is specified, the in-memory construction is tested." << endl;
         cout << " (2) Performs tests." << endl;
         cout << " (3) Deletes temp_file." << endl;
         return 1;
         // LCOV_EXCL_STOP
     }
     test_file = argv[1];
-    num_bytes = atoi(argv[2]);
-    temp_file = argv[3];
-    temp_dir  = argv[4];
-    in_memory    = argc > 5;
+    temp_file = argv[2];
+    temp_dir  = argv[3];
+    in_memory    = argc > 4;
     if (in_memory) {
         temp_dir = "@";
-        int_vector<> data;
-        load_vector_from_file(data, test_file, num_bytes);
+        int_vector<8> data;
+        load_vector_from_file(data, test_file, 1);
         test_file = ram_file_name(test_file);
-        switch (num_bytes) {
-            case 0: store_to_file(data, test_file); break;
-            case 1: store_to_plain_array<uint8_t>(data, test_file); break;
-            case 2: store_to_plain_array<uint16_t>(data, test_file); break;
-            case 3: store_to_plain_array<uint32_t>(data, test_file); break;
-            case 4: store_to_plain_array<uint64_t>(data, test_file); break;
-        }
+        store_to_plain_array<uint8_t>(data, test_file);
         temp_file = ram_file_name(temp_file);
     }
     return RUN_ALL_TESTS();
 }
+

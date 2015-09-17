@@ -15,13 +15,13 @@ typedef sdsl::int_vector<>::value_type value_type;
 std::string temp_dir;
 
 // The fixture for testing class int_vector.
-class InvPermSupportTest : public ::testing::Test
+class inv_perm_support_test : public ::testing::Test
 {
     protected:
 
-        InvPermSupportTest() {}
+        inv_perm_support_test() {}
 
-        virtual ~InvPermSupportTest() {}
+        virtual ~inv_perm_support_test() {}
 
         virtual void SetUp()
         {
@@ -55,7 +55,7 @@ void compare(const sdsl::int_vector<>& inv_perm, const sdsl::inv_perm_support<>&
 }
 
 //! Test Constructors
-TEST_F(InvPermSupportTest, Constructors)
+TEST_F(inv_perm_support_test, constructors)
 {
     static_assert(sdsl::util::is_regular<sdsl::inv_perm_support<>>::value, "Type is not regular");
     for (size_t i=0; i<perms.size(); ++i) {
@@ -83,7 +83,7 @@ TEST_F(InvPermSupportTest, Constructors)
     }
 }
 
-TEST_F(InvPermSupportTest, Swap)
+TEST_F(inv_perm_support_test, swap)
 {
     for (size_type i=0; i < perms.size(); ++i) {
         sdsl::inv_perm_support<> ips(&perms[i]);
@@ -98,7 +98,7 @@ TEST_F(InvPermSupportTest, Swap)
     }
 }
 
-TEST_F(InvPermSupportTest, SerializeAndLoad)
+TEST_F(inv_perm_support_test, serialize_and_load)
 {
     for (size_type i=0; i < perms.size(); ++i) {
         std::string file_name = temp_dir+"/inv_perm_support";
@@ -114,7 +114,7 @@ TEST_F(InvPermSupportTest, SerializeAndLoad)
     }
 }
 
-TEST_F(InvPermSupportTest, IteratorTest)
+TEST_F(inv_perm_support_test, iterator_test)
 {
     for (size_type i=0; i < perms.size(); ++i) {
         sdsl::inv_perm_support<> ips(&perms[i]);
