@@ -1,0 +1,190 @@
+SET(sdsl_tests "")
+SET(generated_files "")
+
+FILE(STRINGS ${CMAKE_HOME_DIRECTORY}/test/download.config download_config_lines REGEX "^[^#].*")
+FOREACH(download_config_line ${download_config_lines})
+    LIST(GET download_config_line 0 download_file)
+    LIST(GET download_config_line 1 download_url)
+    STRING(REPLACE ".tar.gz" "" download_file_we ${download_file})
+    SET(abs_test_case_name ${CMAKE_HOME_DIRECTORY}/test/test_cases/${download_file_we})
+    
+    ADD_CUSTOM_COMMAND(OUTPUT ${abs_test_case_name}
+                      COMMAND ${CMAKE_COMMAND} -Ddownload_url=${download_url} -Dtest_case_dir=${CMAKE_HOME_DIRECTORY}/test/test_cases -P ${CMAKE_HOME_DIRECTORY}/test/download.cmake
+                      WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}
+                      COMMENT "Checking or downloading test case ${download_file}."
+                      VERBATIM
+    )
+    ADD_CUSTOM_TARGET(${download_file_we}
+                      DEPENDS ${abs_test_case_name})
+    LIST(APPEND generated_files ${abs_test_case_name})
+ENDFOREACH(download_config_line)
+
+
+FILE(GLOB SDSL_HEADER_ALL ${CMAKE_CURRENT_BINARY_DIR}/../include/sdsl/*.hpp)
+STRING(REGEX REPLACE "([^;]+)[;]" "#include \"\\1\"\\n" SDSL_INCLUDE_ALL "${SDSL_HEADER_ALL};")                                                                       
+
+CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/CompileTest.cpp.cmake"
+               "${CMAKE_CURRENT_SOURCE_DIR}/CompileTest.cpp" @ONLY)
+
+FILE(GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/*Test.cpp)
+
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/../include
+                    ${CMAKE_CURRENT_BINARY_DIR}/../external/libdivsufsort/include
+                    ${gtest_SOURCE_DIR}/include
+)
+
+LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64)
+
+ADD_EXECUTABLE(IntVectorGenerator IntVectorGenerator.cpp)
+ADD_EXECUTABLE(BitVectorGenerator BitVectorGenerator.cpp)
+ADD_EXECUTABLE(ReplaceIntVectorValue ReplaceIntVectorValue.cpp)
+
+SET(tmp_dir ${CMAKE_HOME_DIRECTORY}/test/tmp)
+FOREACH(test_source ${test_sources})
+    GET_FILENAME_COMPONENT(test_name_we ${test_source} NAME_WE)
+
+    STRING(REGEX REPLACE "(.)(Test)" "\\1-\\2" test_name_hy_1 ${test_name_we})
+    STRING(REGEX REPLACE "([^A-Z|-])([A-Z])" "\\1-\\2" test_name_hy ${test_name_hy_1})
+    STRING(TOLOWER ${test_name_hy} test_name_hy)
+
+    ADD_EXECUTABLE(${test_name_we} ${test_name_we}.cpp)
+
+    SET(config_file ${CMAKE_CURRENT_SOURCE_DIR}/${test_name_we}.config)
+# (1) Handle tests without .config file
+    IF(NOT EXISTS ${config_file})
+        ADD_CUSTOM_TARGET(${test_name_hy}
+            COMMAND test/${test_name_we} ${tmp_dir}
+            DEPENDS test/${test_name_we} ${test_name_we}
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Execute ${test_name_hy}."
+        )
+        LIST(APPEND sdsl_tests ${test_name_hy})
+# (2) Handle tests with .config file        
+    ELSE(NOT EXISTS ${config_file})
+        SET(test_targets "")
+        FILE(STRINGS ${config_file} config_lines REGEX "^[^#].+")
+        SET(config_line_cnt 0)
+        FOREACH(config_line ${config_lines})
+            MATH(EXPR config_line_cnt ${config_line_cnt}+1)
+# (2.1) Handle tests with simple .config file (only one input file)
+            IF("${config_line}" MATCHES "^[^;]+$")
+                GET_FILENAME_COMPONENT(test_case_name ${config_line} NAME)
+                SET(abs_test_case_name ${CMAKE_HOME_DIRECTORY}/test/test_cases/${test_case_name})
+               
+                SET(int_vec_regex "int-vec\\.[0-9]+\\.[0-9]+\\..+")
+                SET(bit_vec_regex "bit-vec\\.*")
+                IF("${test_case_name}" MATCHES "${int_vec_regex}")
+                    STRING(REPLACE "int-vec." "" test_case_suf ${test_case_name})
+                    #  insert semicolons to get a list :)
+                    STRING(REPLACE "." ";" test_case_param ${test_case_suf}) 
+
+                    ADD_CUSTOM_COMMAND(OUTPUT ${abs_test_case_name}
+                                       COMMAND test/IntVectorGenerator ${abs_test_case_name}  ${test_case_param} 
+                                       DEPENDS IntVectorGenerator
+                                       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                                       COMMENT "Generating test case ${test_case_name}."
+                                       VERBATIM
+                    )
+                    LIST(APPEND generated_files ${abs_test_case_name})
+                ELSEIF("${test_case_name}" MATCHES "${bit_vec_regex}")   
+                    STRING(REPLACE "bit-vec." "" test_case_param ${test_case_name})
+                    ADD_CUSTOM_COMMAND(OUTPUT ${abs_test_case_name}
+                                       COMMAND test/BitVectorGenerator ${abs_test_case_name} ${test_case_param} 
+                                       DEPENDS BitVectorGenerator
+                                       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                                       COMMENT "Generating test case ${test_case_name}."
+                                       VERBATIM
+                    )
+                    LIST(APPEND generated_files ${abs_test_case_name})
+                ENDIF("${test_case_name}" MATCHES "${int_vec_regex}")
+
+                SET(test_target ${test_name_hy}_${test_case_name})
+                ADD_CUSTOM_TARGET(${test_target}
+                    COMMAND test/${test_name_we} ${abs_test_case_name} ${tmp_dir}/${test_name_we}_${test_case_name} ${tmp_dir}
+                    DEPENDS ${abs_test_case_name} ${tmp_dir} ${test_name_we}
+                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR} 
+                    COMMENT "Execute ${test_name_hy} on ${test_case_name}."
+                )
+                LIST(APPEND test_targets ${test_target})
+            ELSE("${config_line}" MATCHES "^[^;]+$")
+#               Handle Cs[a|t]IntTest
+                IF ("${test_name_we}" MATCHES "Cs[a|t]IntTest") 
+                    LIST(GET config_line 0 test_case_name)
+                    SET(abs_test_case_name ${CMAKE_HOME_DIRECTORY}/test/test_cases/${test_case_name})
+
+                    SET(int_vec_sa_regex "int-vec-sa\\.[0-9]+\\.[0-9]+\\..+")
+                    IF("${test_case_name}" MATCHES "${int_vec_sa_regex}")
+                        STRING(REPLACE "int-vec-sa." "" test_case_suf ${test_case_name})
+                        #  insert semicolons to get a list :)
+                        STRING(REPLACE "." ";" test_case_param ${test_case_suf}) 
+
+                        ADD_CUSTOM_COMMAND(OUTPUT ${abs_test_case_name}
+                                           COMMAND test/IntVectorGenerator ${abs_test_case_name}  ${test_case_param} 
+                                           COMMAND test/ReplaceIntVectorValue ${abs_test_case_name} 0 1
+                                           DEPENDS IntVectorGenerator ReplaceIntVectorValue 
+                                           WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                                           COMMENT "Generating test case ${test_case_name}."
+                                           VERBATIM
+                        )
+                        LIST(APPEND generated_files ${abs_test_case_name})
+                    ENDIF("${test_case_name}" MATCHES "${int_vec_sa_regex}")
+
+
+                    LIST(GET config_line 1 num_byte)
+                    SET(test_target ${test_name_hy}_${test_case_name}_${num_byte})
+                    ADD_CUSTOM_TARGET(${test_target}
+                        COMMAND test/${test_name_we} ${abs_test_case_name} ${num_byte} ${tmp_dir}/${test_name_we}_${tase_case_name}_${num_byte} ${tmp_dir}
+                        DEPENDS ${abs_test_case_name} ${tmp_dir} ${test_name_we}
+                        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                        COMMENT "Execute ${test_name_hy} on ${test_case_name}."        
+                    )
+                    LIST(APPEND test_targets ${test_target})
+#               Handle K2TreapTest    
+                ELSEIF("${test_name_we}" MATCHES "K2TreapTest")
+                    MESSAGE("Handling K2TreapTest ${config_line_cnt}")
+                    STRING(CONCAT concat_config ${config_line})
+                    SET(k2dim x y w)
+                    LIST(GET config_line 0 test_case_name)
+                    SET(test_case_name "K2-${concat_config}")
+                    SET(abs_test_case_name ${CMAKE_HOME_DIRECTORY}/test/test_cases/${test_case_name})
+                    SET(abs_test_case_name_list "")
+                    FOREACH(i 0 1 2)
+                        LIST(GET k2dim ${i} dim)
+                        SET(local_abs_test_case_name ${abs_test_case_name}.${dim})
+                        LIST(APPEND abs_test_case_name_list ${local_abs_test_case_name})
+                        LIST(GET config_line ${i} test_case_suf)
+                        STRING(REPLACE "." ";" test_case_param ${test_case_suf})
+                        MESSAGE("iteration ${i} ${dim} ${test_case_name} ${abs_test_case_name}")
+                        ADD_CUSTOM_COMMAND(OUTPUT ${local_abs_test_case_name}
+                                COMMAND test/IntVectorGenerator ${local_abs_test_case_name} ${test_case_param}
+                                DEPENDS IntVectorGenerator
+                                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                                COMMENT "Generating test case ${test_case_name}."
+                                VERBATIM        
+                        )
+                    ENDFOREACH(i)
+                    ADD_CUSTOM_TARGET(${test_case_name} 
+                            DEPENDS ${abs_test_case_name_list})
+                    SET(test_target ${test_name_hy}_${test_case_name})
+                    ADD_CUSTOM_TARGET(${test_target}
+                                COMMAND test/${test_name_we} ${abs_test_case_name} ${tmp_dir}/${test_name_we}_${test_case_name}
+                                DEPENDS ${test_case_name} ${tmp_dir} ${test_name_we}
+                                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                                COMMENT "Execute ${test_name_hy} on ${test_case_name}."
+                            )
+                    LIST(APPEND test_targets ${test_target})
+                ENDIF("${test_name_we}" MATCHES "Cs[a|t]IntTest")
+            ENDIF("${config_line}" MATCHES "^[^;]+$")
+        ENDFOREACH(config_line)
+        ADD_CUSTOM_TARGET(${test_name_hy} DEPENDS ${test_targets}) 
+        LIST(APPEND sdsl_tests ${test_name_hy})
+    ENDIF(NOT EXISTS ${config_file})
+ENDFOREACH(test_source)
+
+ADD_CUSTOM_TARGET(test-sdsl DEPENDS ${sdsl_tests})
+
+#ADD_CUSTOM_TARGET(clean-test
+#                 COMMAND ${CMAKE_COMMAND} -E remove ${generated_files})
+
+
+# TODO: special handling for in-memory test
