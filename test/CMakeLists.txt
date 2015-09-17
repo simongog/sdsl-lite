@@ -26,7 +26,7 @@ STRING(REGEX REPLACE "([^;]+)[;]" "#include \"\\1\"\\n" SDSL_INCLUDE_ALL "${SDSL
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/compile_test.cpp.cmake"
                "${CMAKE_CURRENT_SOURCE_DIR}/compile_test.cpp" @ONLY)
 
-FILE(GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/*Test.cpp)
+FILE(GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/../include
                     ${CMAKE_CURRENT_BINARY_DIR}/../external/libdivsufsort/include
@@ -106,7 +106,7 @@ FOREACH(test_source ${test_sources})
                 LIST(APPEND test_targets ${test_target})
             ELSE("${config_line}" MATCHES "^[^;]+$")
 #               Handle Cs[a|t]IntTest
-                IF ("${test_name_we}" MATCHES "Cs[a|t]IntTest") 
+                IF ("${test_name_we}" MATCHES "cs[a|t]_int_test") 
                     LIST(GET config_line 0 test_case_name)
                     SET(abs_test_case_name ${CMAKE_HOME_DIRECTORY}/test/test_cases/${test_case_name})
 
@@ -138,12 +138,11 @@ FOREACH(test_source ${test_sources})
                     )
                     LIST(APPEND test_targets ${test_target})
 #               Handle K2TreapTest    
-                ELSEIF("${test_name_we}" MATCHES "K2TreapTest")
-                    MESSAGE("Handling K2TreapTest ${config_line_cnt}")
+                ELSEIF("${test_name_we}" MATCHES "k2_treap_test")
                     STRING(CONCAT concat_config ${config_line})
                     SET(k2dim x y w)
                     LIST(GET config_line 0 test_case_name)
-                    SET(test_case_name "K2-${concat_config}")
+                    SET(test_case_name "k2-${concat_config}")
                     SET(abs_test_case_name ${CMAKE_HOME_DIRECTORY}/test/test_cases/${test_case_name})
                     SET(abs_test_case_name_list "")
                     FOREACH(i 0 1 2)
@@ -152,7 +151,6 @@ FOREACH(test_source ${test_sources})
                         LIST(APPEND abs_test_case_name_list ${local_abs_test_case_name})
                         LIST(GET config_line ${i} test_case_suf)
                         STRING(REPLACE "." ";" test_case_param ${test_case_suf})
-                        MESSAGE("iteration ${i} ${dim} ${test_case_name} ${abs_test_case_name}")
                         ADD_CUSTOM_COMMAND(OUTPUT ${local_abs_test_case_name}
                                 COMMAND test/int_vector_generator ${local_abs_test_case_name} ${test_case_param}
                                 DEPENDS int_vector_generator
@@ -171,7 +169,7 @@ FOREACH(test_source ${test_sources})
                                 COMMENT "Execute ${test_name_hy} on ${test_case_name}."
                             )
                     LIST(APPEND test_targets ${test_target})
-                ENDIF("${test_name_we}" MATCHES "Cs[a|t]IntTest")
+                ENDIF("${test_name_we}" MATCHES "cs[a|t]_int_test")
             ENDIF("${config_line}" MATCHES "^[^;]+$")
         ENDFOREACH(config_line)
         ADD_CUSTOM_TARGET(${test_name_hy} DEPENDS ${test_targets}) 
@@ -181,8 +179,9 @@ ENDFOREACH(test_source)
 
 ADD_CUSTOM_TARGET(test-sdsl DEPENDS ${sdsl_tests})
 
-#ADD_CUSTOM_TARGET(clean-test
-#                 COMMAND ${CMAKE_COMMAND} -E remove ${generated_files})
+ADD_CUSTOM_TARGET(clean-test
+                 COMMAND ${CMAKE_COMMAND} -E remove -f ${generated_files}
+                 COMMENT "Remove generated and downloaded test inputs.")
 
 
 # TODO: special handling for in-memory test
