@@ -32,14 +32,10 @@
 #include <string>
 #include <functional>  // for class_to_hash
 #include <string.h>    // for strlen and strdup
-#include <libgen.h>    // for basename
 #include <cstdlib>
-#include <unistd.h>    // for getpid, file_size, clock_gettime
 #include <sstream>     // for to_string method
 #include <stdexcept>   // for std::logic_error
 #include <typeinfo>    // for typeid
-#include <sys/time.h>  // for struct timeval
-#include <sys/resource.h> // for struct rusage
 #include <iomanip>
 #include <numeric>
 #include <random>
@@ -52,7 +48,17 @@
 #define SDSL_STR(x) #x
 #define SDSL_XSTR(s) SDSL_STR(s)
 
+#ifndef MSVC_COMPILER
 #define SDSL_UNUSED __attribute__ ((unused))
+#include <sys/time.h>  // for struct timeval
+#include <sys/resource.h> // for struct rusage
+#include <libgen.h>    // for basename
+#include <unistd.h>    // for getpid, file_size, clock_gettime
+#else
+#include <process.h>
+#include <iso646.h>
+#define SDSL_UNUSED
+#endif
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -230,7 +236,8 @@ class _id_helper
     private:
         static uint64_t id;
     public:
-        static uint64_t getId() {
+        static uint64_t getId()
+        {
             return id++;
         }
 };
@@ -313,14 +320,20 @@ void init_support(S& s, const X* x)
 class spin_lock
 {
     private:
-        std::atomic_flag m_slock = ATOMIC_FLAG_INIT;
+        std::atomic_flag m_slock;
     public:
-        void lock() {
+        spin_lock()
+        {
+            m_slock.clear();
+        }
+        void lock()
+        {
             while (m_slock.test_and_set(std::memory_order_acquire)) {
                 /* spin */
             }
         };
-        void unlock() {
+        void unlock()
+        {
             m_slock.clear(std::memory_order_release);
         };
 };

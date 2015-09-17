@@ -251,7 +251,8 @@ struct _interval_symbols_wt {
 
     static void call(const t_wt& wt, size_type i, size_type j, size_type& k,
                      std::vector<value_type>& cs, std::vector<size_type>& rank_c_i,
-                     std::vector<size_type>& rank_c_j) {
+                     std::vector<size_type>& rank_c_j)
+    {
         wt.interval_symbols(i,j,k,cs,rank_c_i,rank_c_j);
     }
 };
@@ -264,7 +265,8 @@ struct _interval_symbols_wt<t_wt, false> {
 
     static void call(const t_wt&, size_type, size_type, size_type&,
                      std::vector<value_type>&, std::vector<size_type>&,
-                     std::vector<size_type>&) {
+                     std::vector<size_type>&)
+    {
     }
 };
 
@@ -286,7 +288,7 @@ struct has_expand<t_wt, t_ret(t_args...)> {
 static constexpr std::false_type check(...) { return std::false_type();}
 typedef decltype(check<t_wt>(nullptr)) type;
 static constexpr bool value = type::value;
-};
+            };
 
 template<typename t_wt>
 struct has_range_search_2d {
@@ -416,12 +418,14 @@ struct _symbols_calls_wt {
     typedef typename t_wt::value_type value_type;
 
     static std::pair<bool, value_type>
-    call_symbol_gte(const t_wt& wt,value_type c) {
+    call_symbol_gte(const t_wt& wt,value_type c)
+    {
         return wt.symbol_gte(c);
     }
 
     static std::pair<bool,value_type>
-    call_symbol_lte(const t_wt& wt,value_type c) {
+    call_symbol_lte(const t_wt& wt,value_type c)
+    {
         return wt.symbol_lte(c);
     }
 };
@@ -432,12 +436,14 @@ struct _symbols_calls_wt<t_wt, false> {
     typedef typename t_wt::value_type value_type;
 
     static std::pair<bool,value_type>
-    call_symbol_gte(const t_wt& wt,value_type c) {
+    call_symbol_gte(const t_wt& wt,value_type c)
+    {
         return _symbol_gte(wt,c);
     }
 
     static std::pair<bool,value_type>
-    call_symbol_lte(const t_wt& wt,value_type c) {
+    call_symbol_lte(const t_wt& wt,value_type c)
+    {
         return _symbol_lte(wt,c);
     }
 };
@@ -511,15 +517,15 @@ restricted_unique_range_values(const t_wt& wt,
     std::vector<typename t_wt::value_type> unique_values;
 
     // make sure things are within bounds
-    if( x_j > wt.size()-1 ) x_j = wt.size()-1;
-    if( (x_i > x_j) || (y_i > y_j) ) { 
+    if (x_j > wt.size()-1) x_j = wt.size()-1;
+    if ((x_i > x_j) || (y_i > y_j)) {
         return unique_values;
     }
     auto lower_y_bound = symbol_gte(wt,y_i);
     auto upper_y_bound = symbol_lte(wt,y_j);
     // is the y range valid?
-    if( !lower_y_bound.first || !upper_y_bound.first 
-        || (lower_y_bound.second > upper_y_bound.second) )  {
+    if (!lower_y_bound.first || !upper_y_bound.first
+        || (lower_y_bound.second > upper_y_bound.second))  {
         return unique_values;
     }
 
@@ -585,12 +591,12 @@ struct void_ { typedef void type; };
 
 template<typename t_wt, typename T = void>
 struct has_node_type {
-    static constexpr std::false_type value = std::false_type();
+    static const std::false_type value;
 };
 
 template<typename t_wt>
 struct has_node_type<t_wt, typename void_<typename t_wt::node_type>::type> {
-    static constexpr std::true_type value = std::true_type();
+    static const std::true_type value;
 };
 
 

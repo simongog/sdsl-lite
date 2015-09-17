@@ -16,12 +16,18 @@
 */
 
 #include "sdsl/util.hpp"
-#include "cxxabi.h"
+
 #include <sys/types.h> // for file_size
 #include <sys/stat.h>  // for file_size
 #include <iomanip>
 #include <vector>
 #include <string>
+
+#include <type_traits>
+#include <typeinfo>
+#ifndef MSVC_COMPILER
+#include <cxxabi.h>
+#endif
 
 namespace sdsl
 {
@@ -34,8 +40,15 @@ uint64_t _id_helper::id = 0;
 std::string basename(std::string file)
 {
     file = disk_file_name(file); // remove RAM-prefix
+#ifdef MSVC_COMPILER
+    char* c = _strdup((const char*)file.c_str());
+    char file_name[_MAX_FNAME] = { 0 };
+    ::_splitpath_s(c, NULL, 0, NULL, NULL, file_name, _MAX_FNAME, NULL, 0);
+    std::string res(file_name);
+#else
     char* c = strdup((const char*)file.c_str());
     std::string res = std::string(::basename(c));
+#endif
     free(c);
     return res;
 }
@@ -44,8 +57,15 @@ std::string dirname(std::string file)
 {
     bool ram_file = is_ram_file(file);
     file = disk_file_name(file); // remove RAM-prefix
+#ifdef MSVC_COMPILER
+    char* c = _strdup((const char*)file.c_str());
+    char dir_name[_MAX_DIR] = { 0 };
+    ::_splitpath_s(c, NULL,0, dir_name, _MAX_DIR, NULL,0, NULL,0);
+    std::string res(dir_name);
+#else
     char* c = strdup((const char*)file.c_str());
     std::string res = std::string(::dirname(c));
+#endif
     free(c);
     if (ram_file) {
         if ("." == res) {
@@ -59,7 +79,11 @@ std::string dirname(std::string file)
 
 uint64_t pid()
 {
+#ifdef MSVC_COMPILER
+    return _getpid();
+#else
     return getpid();
+#endif
 }
 
 uint64_t id()
@@ -69,7 +93,7 @@ uint64_t id()
 
 std::string demangle(const std::string& name)
 {
-#ifndef HAVE_CXA_DEMANGLE
+#ifdef HAVE_CXA_DEMANGLE
     char buf[4096];
     size_t size = 4096;
     int status = 0;

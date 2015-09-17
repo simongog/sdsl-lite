@@ -44,12 +44,11 @@ template<uint8_t t_b=1, uint8_t t_pat_len=1>
 class select_support_scan : public select_support
 {
     private:
-        static_assert(t_b == 1u or t_b == 0u or t_b == 10u or t_b == 11u, "select_support_scan: bit pattern must be `0`,`1`,`10` or `01`");
+        static_assert(t_b == 1u or t_b == 0u or t_b == 10u , "select_support_scan: bit pattern must be `0`,`1`,`10` or `01`");
         static_assert(t_pat_len == 1u or t_pat_len == 2u , "select_support_scan: bit pattern length must be 1 or 2");
     public:
         typedef bit_vector bit_vector_type;
         enum { bit_pat = t_b };
-        enum { bit_pat_len = t_pat_len };
     public:
         explicit select_support_scan(const bit_vector* v=nullptr) : select_support(v) {}
         select_support_scan(const select_support_scan<t_b,t_pat_len>& ss) : select_support(ss.m_v) {}

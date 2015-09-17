@@ -28,6 +28,10 @@
 #include <xmmintrin.h>
 #endif
 
+#ifdef WIN32
+#include "iso646.h"
+#endif
+
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {

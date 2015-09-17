@@ -54,7 +54,8 @@ class nn_dict_dynamic
         int_vector<64> m_offset;	 	// Number of nodes to skip on each level
         int_vector<64> m_tree; 			// Tree
 
-        void copy(const nn_dict_dynamic& nn) {
+        void copy(const nn_dict_dynamic& nn)
+        {
             m_depth = nn.m_depth;
             m_v_begin_leaves = nn.m_v_begin_leaves;
             m_size = nn.m_size;
@@ -66,14 +67,16 @@ class nn_dict_dynamic
 
         const uint64_t& depth;
 
-        size_type size()const {
+        size_type size()const
+        {
             return m_size;
         }
 
         //! Constructor
         /*! \param n Number of supported bits
          */
-        nn_dict_dynamic(const uint64_t n = 0):depth(m_depth) {
+        nn_dict_dynamic(const uint64_t n = 0):depth(m_depth)
+        {
             m_size = n;
             if (n == 0)
                 return;
@@ -107,17 +110,20 @@ class nn_dict_dynamic
         }
 
         //! Copy constructor
-        nn_dict_dynamic(const nn_dict_dynamic& nn):depth(m_depth) {
+        nn_dict_dynamic(const nn_dict_dynamic& nn):depth(m_depth)
+        {
             copy(nn);
         }
 
         //! move constructor
-        nn_dict_dynamic(nn_dict_dynamic&& nn):depth(m_depth) {
+        nn_dict_dynamic(nn_dict_dynamic&& nn):depth(m_depth)
+        {
             *this = std::move(nn);
         }
 
         //! Assignment operator
-        nn_dict_dynamic& operator=(const nn_dict_dynamic& nn) {
+        nn_dict_dynamic& operator=(const nn_dict_dynamic& nn)
+        {
             if (this != &nn) {
                 copy(nn);
             }
@@ -125,7 +131,8 @@ class nn_dict_dynamic
         }
 
         //! Assignment move operator
-        nn_dict_dynamic& operator=(nn_dict_dynamic&& nn) {
+        nn_dict_dynamic& operator=(nn_dict_dynamic&& nn)
+        {
             if (this != &nn) {
                 m_depth = std::move(nn.m_depth);
                 m_v_begin_leaves = std::move(nn.m_v_begin_leaves);
@@ -140,7 +147,8 @@ class nn_dict_dynamic
             return *this;
         }
 
-        void swap(nn_dict_dynamic& nn) {
+        void swap(nn_dict_dynamic& nn)
+        {
             if (this != &nn) {
                 std::swap(m_depth, nn.m_depth);
                 std::swap(m_v_begin_leaves, nn.m_v_begin_leaves);
@@ -155,12 +163,14 @@ class nn_dict_dynamic
          *  \par Precondition
          *    \f$ 0 \leq  idx < size() \f$
          */
-        bool operator[](const size_type& idx)const {
+        bool operator[](const size_type& idx)const
+        {
             uint64_t node = m_tree[(m_v_begin_leaves + (idx>>6)) - m_offset[m_depth] ];
             return (node >> (idx&0x3F)) & 1;
         }
 
-        inline reference operator[](const size_type& idx) {
+        inline reference operator[](const size_type& idx)
+        {
             return reference(this, idx);
         }
 
@@ -171,25 +181,26 @@ class nn_dict_dynamic
          *  \return If there exists a leftmost index \f$i\geq idx\f$ where a bit is set,
          *          then \f$i\f$ is returned, otherwise size().
          */
-        size_type next(const size_type idx)const {
+        size_type next(const size_type idx)const
+        {
             uint64_t v_node_position; 	// virtual node position
             uint64_t node; 				// current node
-            uint64_t depth = m_depth;	// current depth of node
+            uint64_t dep = m_depth;	// current depth of node
             uint64_t position; 			// position of the 1-bit
 
             v_node_position = m_v_begin_leaves + (idx>>6);
             uint8_t off = idx & 0x3F; // mod 64
 
             // Go up until a 1-bit is found
-            node = m_tree[ v_node_position-m_offset[depth] ]>>off;
+            node = m_tree[ v_node_position-m_offset[dep] ]>>off;
             while (!node or off==64) {
                 // Not in the root
                 if (v_node_position) {
-                    --depth;
+                    --dep;
                     --v_node_position;
                     off = (v_node_position&0x3F)+1;
                     v_node_position >>= 6;
-                    node = m_tree[ v_node_position-m_offset[depth] ]>>off;
+                    node = m_tree[ v_node_position-m_offset[dep] ]>>off;
                 } else {
                     return size();
                 }
@@ -199,9 +210,9 @@ class nn_dict_dynamic
 
             // Go down to the leaf
             while (v_node_position < m_v_begin_leaves) {
-                ++depth;
+                ++dep;
                 v_node_position = (v_node_position<<6) + 1 + position;
-                node = m_tree[ v_node_position-m_offset[depth] ];
+                node = m_tree[ v_node_position-m_offset[dep] ];
 
                 // Calculate the position of the 1-bit
                 position = bits::lo(node);
@@ -215,28 +226,29 @@ class nn_dict_dynamic
          *  \return If there exists a rightmost index \f$i \leq idx\f$ where a bit is set,
          *          then \f$i\f$ is returned, otherwise size().
          */
-        size_type prev(const size_type idx)const {
+        size_type prev(const size_type idx)const
+        {
             uint64_t v_node_position; 	// virtual node position
             uint64_t node; 				// current node
-            uint64_t depth = m_depth;	// current depth of node
+            uint64_t dep = m_depth;	// current depth of node
             uint64_t position; 			// position of the 1-bit
 
             v_node_position = m_v_begin_leaves + (idx>>6);
             uint8_t off = idx & 0x3F; // mod 64
 
             // Go up until a 1-bit is found
-            node = m_tree[ v_node_position-m_offset[depth] ]<<(63-off);
+            node = m_tree[ v_node_position-m_offset[dep] ]<<(63-off);
             while (!node or off == (uint8_t)-1) {
 
                 // Not in the root
                 if (v_node_position) {
-                    --depth;
+                    --dep;
                     --v_node_position;
 
                     off = ((uint8_t)(v_node_position&0x3F))-1;
                     v_node_position >>= 6;
 
-                    node = m_tree[ v_node_position-m_offset[depth] ]<<(63-off);
+                    node = m_tree[ v_node_position-m_offset[dep] ]<<(63-off);
                 } else {
                     return size();
                 }
@@ -246,9 +258,9 @@ class nn_dict_dynamic
 
             // Go down to the leaf
             while (v_node_position < m_v_begin_leaves) {
-                ++depth;
+                ++dep;
                 v_node_position = (v_node_position<<6) + 1 + position;
-                node = m_tree[ v_node_position-m_offset[depth] ];
+                node = m_tree[ v_node_position-m_offset[dep] ];
 
                 // Calculate the position of the 1-bit
                 position = bits::hi(node); //-(63-off)
@@ -258,7 +270,8 @@ class nn_dict_dynamic
 
 
         //! Load the data structure
-        void load(std::istream& in) {
+        void load(std::istream& in)
+        {
             read_member(m_depth, in);
             read_member(m_v_begin_leaves, in);
             read_member(m_size, in);
@@ -267,7 +280,8 @@ class nn_dict_dynamic
         }
 
         //! Serialize the data structure
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_depth, out, child, "depth");
@@ -290,23 +304,24 @@ class nn_dict_dynamic
                           nn_dict_dynamic::size_type idx):m_pbv(pbv),m_idx(idx) {};
 
                 //! Assignment operator for the proxy class
-                reference& operator=(bool x) {
+                reference& operator=(bool x)
+                {
                     uint64_t v_node_position; 	// virtual node position
                     uint64_t r_node_position; 	// real    node position
-                    uint64_t depth = m_pbv->m_depth;	// current depth of node
+                    uint64_t dep = m_pbv->m_depth;	// current depth of node
 
                     v_node_position = m_pbv->m_v_begin_leaves + (m_idx>>6);
                     uint8_t offset = m_idx & 0x3F; // pos mod 64
                     if (x) {
                         while (true) {
-                            r_node_position = v_node_position - m_pbv->m_offset[depth];
+                            r_node_position = v_node_position - m_pbv->m_offset[dep];
                             uint64_t w = m_pbv->m_tree[r_node_position];
                             if ((w>>offset) & 1) { // if the bit was already set
                                 return *this;
                             } else {
                                 m_pbv->m_tree[r_node_position] |= (1ULL<<offset); // set bit
-                                if (!w and depth) { // go up in the tree
-                                    --depth; --v_node_position;
+                                if (!w and dep) { // go up in the tree
+                                    --dep; --v_node_position;
                                     offset = v_node_position&0x3F;
                                     v_node_position >>= 6;
                                 } else {
@@ -316,14 +331,14 @@ class nn_dict_dynamic
                         }
                     } else {
                         while (true) {
-                            r_node_position = v_node_position - m_pbv->m_offset[depth];
+                            r_node_position = v_node_position - m_pbv->m_offset[dep];
                             uint64_t w = m_pbv->m_tree[r_node_position];
                             if (!((w>>offset) & 1)) { // if the bit is already 0
                                 return *this;
                             } else {
                                 m_pbv->m_tree[r_node_position] &= (~(1ULL<<offset)); // unset bit
-                                if (!m_pbv->m_tree[r_node_position] and depth) { // go up in the tree
-                                    --depth; --v_node_position;
+                                if (!m_pbv->m_tree[r_node_position] and dep) { // go up in the tree
+                                    --dep; --v_node_position;
                                     offset = v_node_position&0x3F;
                                     v_node_position >>= 6;
                                 } else {
@@ -335,21 +350,25 @@ class nn_dict_dynamic
                     return *this;
                 }
 
-                reference& operator=(const reference& x) {
+                reference& operator=(const reference& x)
+                {
                     return *this = bool(x);
                 }
 
                 //! Cast the reference to a bool
-                operator bool()const {
+                operator bool()const
+                {
                     uint64_t node = m_pbv->m_tree[(m_pbv->m_v_begin_leaves + (m_idx>>6)) - m_pbv->m_offset[m_pbv->m_depth] ];
                     return (node >> (m_idx&0x3F)) & 1;
                 }
 
-                bool operator==(const reference& x)const {
+                bool operator==(const reference& x)const
+                {
                     return bool(*this) == bool(x);
                 }
 
-                bool operator<(const reference& x)const {
+                bool operator<(const reference& x)const
+                {
                     return !bool(*this) and bool(x);
                 }
         };
