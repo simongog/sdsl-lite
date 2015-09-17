@@ -35,9 +35,9 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/../include
 
 LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64)
 
-ADD_EXECUTABLE(int_vector_generator int_vector_generator.cpp)
-ADD_EXECUTABLE(bit_vector_generator bit_vector_generator.cpp)
-ADD_EXECUTABLE(replace_int_vector_value replace_int_vector_value.cpp)
+ADD_EXECUTABLE(int_vector_generator EXCLUDE_FROM_ALL int_vector_generator.cpp)
+ADD_EXECUTABLE(bit_vector_generator EXCLUDE_FROM_ALL bit_vector_generator.cpp)
+ADD_EXECUTABLE(replace_int_vector_value EXCLUDE_FROM_ALL replace_int_vector_value.cpp)
 
 SET(tmp_dir ${CMAKE_HOME_DIRECTORY}/test/tmp)
 FOREACH(test_source ${test_sources})
@@ -45,7 +45,7 @@ FOREACH(test_source ${test_sources})
 
     STRING(REGEX REPLACE "_" "-" test_name_hy ${test_name_we})
 
-    ADD_EXECUTABLE(${test_name_we} ${test_name_we}.cpp)
+    ADD_EXECUTABLE(${test_name_we} EXCLUDE_FROM_ALL ${test_name_we}.cpp)
 
     SET(config_file ${CMAKE_CURRENT_SOURCE_DIR}/${test_name_we}.config)
 # (1) Handle tests without .config file
