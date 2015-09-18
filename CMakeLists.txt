@@ -52,7 +52,7 @@ else()
 		append_cxx_compiler_flags("/Ox" "MSVC" CMAKE_CXX_FLAGS_RELEASE)
         set(vars CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
         foreach(var ${vars})
-            string(REPLACE "/MT" "-MT" ${var} "${${var}}")
+            string(REPLACE "/MD" "-MT" ${var} "${${var}}")
         endforeach(var)
         
 		add_definitions("/DMSVC_COMPILER")

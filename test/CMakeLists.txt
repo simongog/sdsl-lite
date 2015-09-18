@@ -51,7 +51,7 @@ FOREACH(test_source ${test_sources})
 # (1) Handle tests without .config file
     IF(NOT EXISTS ${config_file})
         ADD_CUSTOM_TARGET(${test_name_hy}
-            COMMAND test/${test_name_we} ${tmp_dir}
+            COMMAND $<TARGET_FILE:${test_name_we}> ${tmp_dir}
             DEPENDS test/${test_name_we} ${test_name_we}
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             COMMENT "Execute ${test_name_hy}."
@@ -77,7 +77,7 @@ FOREACH(test_source ${test_sources})
                     STRING(REPLACE "." ";" test_case_param ${test_case_suf}) 
 
                     ADD_CUSTOM_COMMAND(OUTPUT ${abs_test_case_name}
-                                       COMMAND test/int_vector_generator ${abs_test_case_name}  ${test_case_param} 
+                                       COMMAND $<TARGET_FILE:int_vector_generator> ${abs_test_case_name}  ${test_case_param} 
                                        DEPENDS int_vector_generator
                                        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                                        COMMENT "Generating test case ${test_case_name}."
@@ -87,7 +87,7 @@ FOREACH(test_source ${test_sources})
                 ELSEIF("${test_case_name}" MATCHES "${bit_vec_regex}")   
                     STRING(REPLACE "bit-vec." "" test_case_param ${test_case_name})
                     ADD_CUSTOM_COMMAND(OUTPUT ${abs_test_case_name}
-                                       COMMAND test/bit_vector_generator ${abs_test_case_name} ${test_case_param} 
+                                       COMMAND $<TARGET_FILE:bit_vector_generator> ${abs_test_case_name} ${test_case_param} 
                                        DEPENDS bit_vector_generator
                                        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                                        COMMENT "Generating test case ${test_case_name}."
@@ -98,7 +98,7 @@ FOREACH(test_source ${test_sources})
 
                 SET(test_target ${test_name_hy}_${test_case_name})
                 ADD_CUSTOM_TARGET(${test_target}
-                    COMMAND test/${test_name_we} ${abs_test_case_name} ${tmp_dir}/${test_name_we}_${test_case_name} ${tmp_dir}
+                    COMMAND $<TARGET_FILE:${test_name_we}> ${abs_test_case_name} ${tmp_dir}/${test_name_we}_${test_case_name} ${tmp_dir}
                     DEPENDS ${abs_test_case_name} ${tmp_dir} ${test_name_we}
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR} 
                     COMMENT "Execute ${test_name_hy} on ${test_case_name}."
@@ -131,7 +131,7 @@ FOREACH(test_source ${test_sources})
                     LIST(GET config_line 1 num_byte)
                     SET(test_target ${test_name_hy}_${test_case_name}_${num_byte})
                     ADD_CUSTOM_TARGET(${test_target}
-                        COMMAND test/${test_name_we} ${abs_test_case_name} ${num_byte} ${tmp_dir}/${test_name_we}_${tase_case_name}_${num_byte} ${tmp_dir}
+                        COMMAND $<TARGET_FILE:${test_name_we}> ${abs_test_case_name} ${num_byte} ${tmp_dir}/${test_name_we}_${tase_case_name}_${num_byte} ${tmp_dir}
                         DEPENDS ${abs_test_case_name} ${tmp_dir} ${test_name_we}
                         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                         COMMENT "Execute ${test_name_hy} on ${test_case_name}."        
@@ -163,7 +163,7 @@ FOREACH(test_source ${test_sources})
                             DEPENDS ${abs_test_case_name_list})
                     SET(test_target ${test_name_hy}_${test_case_name})
                     ADD_CUSTOM_TARGET(${test_target}
-                                COMMAND test/${test_name_we} ${abs_test_case_name} ${tmp_dir}/${test_name_we}_${test_case_name}
+                                COMMAND $<TARGET_FILE:${test_name_we}> ${abs_test_case_name} ${tmp_dir}/${test_name_we}_${test_case_name}
                                 DEPENDS ${test_case_name} ${tmp_dir} ${test_name_we}
                                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                                 COMMENT "Execute ${test_name_hy} on ${test_case_name}."
