@@ -13,7 +13,9 @@ std::recursive_mutex sdsl::ram_fs::m_rlock;
 sdsl::ram_fs_initializer::ram_fs_initializer()
 {
     if (0 == nifty_counter++) {
-        ram_fs::m_map = ram_fs::mss_type();
+        if (!ram_fs::m_map.empty()) {
+            throw std::logic_error("Static preinitialized object is not empty.");
+        }
     }
 }
 
