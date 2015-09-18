@@ -68,11 +68,12 @@ template<uint8_t t_b=1, uint8_t t_pat_len=1>
 class select_support_mcl : public select_support
 {
     private:
-        static_assert(t_b == 1u or t_b == 0u or t_b == 10u , "select_support_mcl: bit pattern must be `0`,`1`,`10` or `01`");
+        static_assert(t_b == 1u or t_b == 0u or t_b == 10u or t_b == 11u, "select_support_mcl: bit pattern must be `0`,`1`,`10`, `01`, or `11`");
         static_assert(t_pat_len == 1u or t_pat_len == 2u , "select_support_mcl: bit pattern length must be 1 or 2");
     public:
         typedef bit_vector bit_vector_type;
         enum { bit_pat = t_b };
+        enum { bit_pat_len = t_pat_len };
     private:
         uint32_t m_logn                 = 0,     // \f$ log(size) \f$
                  m_logn2                = 0,     // \f$ log^2(size) \f$
