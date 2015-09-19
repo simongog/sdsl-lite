@@ -28,6 +28,7 @@ namespace sdsl
 {
 
 #ifndef MSVC_COMPILER
+
 typedef unsigned int uint128_t __attribute__((mode(TI)));
 
 #else
@@ -68,7 +69,7 @@ class uint128_t
 
         inline uint16_t hi() const
         {
-            if (m_high == 0) {
+            if (m_high == 0ULL) {
                 return bits::hi(m_lo);
             } else {
                 return bits::hi(m_high) + 64;
@@ -164,10 +165,10 @@ class uint128_t
         inline uint128_t operator>>(int x) const
         {
             if (x < 64) {
-                auto lo = (m_lo >> x) | (m_high << (64-x));
+                auto lo = (m_lo >> x) | (m_high << (64 - x));
                 return uint128_t(lo, m_high >> x);
             } else {
-                auto lo = m_high >> (64 - x);
+                auto lo = m_high >> (x - 64);
                 return uint128_t(lo, 0);
             }
         }
