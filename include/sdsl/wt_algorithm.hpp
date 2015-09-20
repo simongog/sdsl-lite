@@ -585,21 +585,22 @@ restricted_unique_range_values(const t_wt& wt,
 
 // Check for node_type of wavelet_tree
 // http://stackoverflow.com/questions/7834226/detecting-typedef-at-compile-time-template-metaprogramming
-
+// + trick to make it work for VC++
+// https://connect.microsoft.com/VisualStudio/feedback/details/790269/compile-error-with-explicitly-specified-template-arguments
 template<typename T>
 struct void_ { typedef void type; };
 
 template<typename t_wt, typename T = void>
 struct has_node_type {
-    static const std::false_type value;
+    typedef std::false_type t_expr;
+    enum { value = t_expr::value };
 };
 
 template<typename t_wt>
 struct has_node_type<t_wt, typename void_<typename t_wt::node_type>::type> {
-    static const std::true_type value;
+    typedef std::true_type t_expr;
+    enum { value = t_expr::value };
 };
-
-
 
 } // end namespace
 
