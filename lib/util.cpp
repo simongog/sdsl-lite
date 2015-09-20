@@ -60,8 +60,9 @@ std::string dirname(std::string file)
 #ifdef MSVC_COMPILER
     char* c = _strdup((const char*)file.c_str());
     char dir_name[_MAX_DIR] = { 0 };
-    ::_splitpath_s(c, NULL,0, dir_name, _MAX_DIR, NULL,0, NULL,0);
-    std::string res(dir_name);
+    char drive[_MAX_DRIVE] = {0};
+    ::_splitpath_s(c, drive, _MAX_DRIVE, dir_name, _MAX_DIR, NULL,0, NULL,0);
+    std::string res = std::string(drive) + std::string(dir_name);
 #else
     char* c = strdup((const char*)file.c_str());
     std::string res = std::string(::dirname(c));
