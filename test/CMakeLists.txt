@@ -117,8 +117,8 @@ FOREACH(test_source ${test_sources})
                         STRING(REPLACE "." ";" test_case_param ${test_case_suf}) 
 
                         ADD_CUSTOM_COMMAND(OUTPUT ${abs_test_case_name}
-                                           COMMAND test/int_vector_generator ${abs_test_case_name}  ${test_case_param} 
-                                           COMMAND test/replace_int_vector_value ${abs_test_case_name} 0 1
+                                           COMMAND $<TARGET_FILE:int_vector_generator> ${abs_test_case_name}  ${test_case_param} 
+                                           COMMAND $<TARGET_FILE:replace_int_vector_value> ${abs_test_case_name} 0 1
                                            DEPENDS int_vector_generator replace_int_vector_value 
                                            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                                            COMMENT "Generating test case ${test_case_name}."
@@ -152,7 +152,7 @@ FOREACH(test_source ${test_sources})
                         LIST(GET config_line ${i} test_case_suf)
                         STRING(REPLACE "." ";" test_case_param ${test_case_suf})
                         ADD_CUSTOM_COMMAND(OUTPUT ${local_abs_test_case_name}
-                                COMMAND test/int_vector_generator ${local_abs_test_case_name} ${test_case_param}
+                                COMMAND $<TARGET_FILE:int_vector_generator> ${local_abs_test_case_name} ${test_case_param}
                                 DEPENDS int_vector_generator
                                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                                 COMMENT "Generating test case ${test_case_name}."
