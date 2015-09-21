@@ -146,10 +146,12 @@ struct int_vector_trait {
 
     static void set_width(uint8_t new_width, int_width_type& width)
     {
-        if (0 < new_width and new_width <= 64)
-            width = new_width;
-        else
-            width = 64;
+        if (t_width == 0) {
+            if (0 < new_width and new_width <= 64)
+                width = new_width;
+            else
+                width = 64;
+        }
     }
 };
 
