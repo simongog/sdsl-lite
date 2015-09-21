@@ -4,6 +4,9 @@
 #include <sstream>
 #include <iostream>
 #include "gtest/gtest.h"
+#ifdef WIN32
+#include "iso646.h"
+#endif
 
 template<class Cst>
 std::string format_node(const Cst& cst, const typename Cst::node_type& v)
