@@ -61,7 +61,8 @@ class rmq_support_sparse_table
         std::vector<int_vector<>> m_table;
         typedef min_max_trait<t_rac, t_min> mm_trait;
 
-        void copy(const rmq_support_sparse_table& rm) {
+        void copy(const rmq_support_sparse_table& rm)
+        {
             m_v = rm.m_v;
             m_k = rm.m_k;
             m_table.resize(m_k);
@@ -73,7 +74,8 @@ class rmq_support_sparse_table
         typedef typename t_rac::size_type size_type;
         typedef typename t_rac::size_type value_type;
 
-        rmq_support_sparse_table(const t_rac* v=nullptr):m_v(v), m_k(0) {
+        rmq_support_sparse_table(const t_rac* v=nullptr):m_v(v), m_k(0)
+        {
             if (m_v == nullptr)
                 return;
             const size_type n = m_v->size();
@@ -84,7 +86,7 @@ class rmq_support_sparse_table
             m_table.resize(k);
             m_k = k;
             for (size_type i=0; i<k; ++i) {
-                m_table[i] = int_vector<>(n-(1<<(i+1))+1, 0, i+1);
+                m_table[i] = int_vector<>(n-(1ULL<<(i+1))+1, 0, i+1);
             }
             for (size_type i=0; i<n-1; ++i) {
                 if (!mm_trait::compare((*m_v)[i], (*m_v)[i+1]))
@@ -92,31 +94,35 @@ class rmq_support_sparse_table
             }
             for (size_type i=1; i<k; ++i) {
                 for (size_type j=0; j<m_table[i].size(); ++j) {
-                    m_table[i][j] = mm_trait::compare((*m_v)[j+m_table[i-1][j]], (*m_v)[j+(1<<i)+m_table[i-1][j+(1<<i)]]) ? m_table[i-1][j] : (1<<i)+m_table[i-1][j+(1<<i)];
+                    m_table[i][j] = mm_trait::compare((*m_v)[j+m_table[i-1][j]], (*m_v)[j+(1ULL<<i)+m_table[i-1][j+(1ULL<<i)]]) ? m_table[i-1][j] : (1ULL<<i)+m_table[i-1][j+(1ULL<<i)];
                 }
             }
         }
 
         //! Copy constructor
-        rmq_support_sparse_table(const rmq_support_sparse_table& rm) {
+        rmq_support_sparse_table(const rmq_support_sparse_table& rm)
+        {
             if (this != &rm) { // if v is not the same object
                 copy(rm);
             }
         }
 
         //! Move constructor
-        rmq_support_sparse_table(rmq_support_sparse_table&& rm) {
+        rmq_support_sparse_table(rmq_support_sparse_table&& rm)
+        {
             *this = std::move(rm);
         }
 
-        rmq_support_sparse_table& operator=(const rmq_support_sparse_table& rm) {
+        rmq_support_sparse_table& operator=(const rmq_support_sparse_table& rm)
+        {
             if (this != &rm) {
                 copy(rm);
             }
             return *this;
         }
 
-        rmq_support_sparse_table& operator=(rmq_support_sparse_table&& rm) {
+        rmq_support_sparse_table& operator=(rmq_support_sparse_table&& rm)
+        {
             if (this != &rm) {
                 m_v = rm.m_v;
                 m_k = rm.m_k;
@@ -125,12 +131,14 @@ class rmq_support_sparse_table
             return *this;
         }
 
-        void swap(rmq_support_sparse_table& rm) {
+        void swap(rmq_support_sparse_table& rm)
+        {
             std::swap(m_k, rm.m_k);
             m_table.swap(rm.m_table);
         }
 
-        void set_vector(const t_rac* v) {
+        void set_vector(const t_rac* v)
+        {
             m_v = v;
         }
 
@@ -145,25 +153,28 @@ class rmq_support_sparse_table
          * \par Time complexity
          *      \f$ \Order{1} \f$
          */
-        size_type operator()(const size_type l, const size_type r)const {
+        size_type operator()(const size_type l, const size_type r)const
+        {
             assert(l <= r); assert(r < size());
             if (l==r)
                 return l;
             if (l+1 == r)
                 return mm_trait::compare((*m_v)[l],(*m_v)[r]) ? l : r;
             size_type k = bits::hi(r-l);
-            const size_type rr = r-(1<<k)+1;
+            const size_type rr = r-(1ULL<<k)+1;
             return mm_trait::compare((*m_v)[l+m_table[k-1][l]], (*m_v)[rr+m_table[k-1][rr]]) ? l+m_table[k-1][l] : rr+m_table[k-1][rr];
         }
 
-        size_type size()const {
+        size_type size()const
+        {
             if (m_v == nullptr)
                 return 0;
             else
                 return m_v->size();
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             size_type written_bytes = 0;
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             written_bytes += write_member(m_k, out);
@@ -175,7 +186,8 @@ class rmq_support_sparse_table
             return written_bytes;
         }
 
-        void load(std::istream& in, const t_rac* v) {
+        void load(std::istream& in, const t_rac* v)
+        {
             set_vector(v);
             read_member(m_k, in);
             if (m_k >0) {

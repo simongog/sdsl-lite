@@ -220,7 +220,7 @@ bool elias_delta::decode(const int_vector& z, int_vector& v)
     while ((z_data < z_end) or (z_data==z_end and offset < (z.bit_size()&0x3F))) {
         len_1_len = bits::read_unary_and_move(z_data, offset);
         if (len_1_len) {
-            len 	= bits::read_int_and_move(z_data, offset, len_1_len) + (1 << len_1_len);
+            len 	= bits::read_int_and_move(z_data, offset, len_1_len) + (1ULL << len_1_len);
             bits::move_right(z_data, offset, len-1);
         }
         ++n;
