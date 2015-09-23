@@ -37,6 +37,15 @@
 namespace sdsl
 {
 
+// forward declaration
+template<uint8_t  t_k,
+         typename t_bv,
+         typename t_rank,
+         typename t_max_vec>
+class k2_treap;
+
+
+
 namespace k2_treap_ns
 {
 
@@ -271,13 +280,17 @@ class range_iterator
  *  \return Iterator to result in decreasing order.
  *  \pre real(p1) <= real(p2) and imag(p1)<=imag(p2)
  */
-template<typename t_k2_treap>
-k2_treap_ns::top_k_iterator<t_k2_treap>
-top_k(const t_k2_treap& t,
-      k2_treap_ns::point_type p1,
-      k2_treap_ns::point_type p2)
+
+template<uint8_t  t_k,
+         typename t_bv,
+         typename t_rank,
+         typename t_max_vec>
+k2_treap_ns::top_k_iterator<k2_treap<t_k, t_bv, t_rank, t_max_vec>>
+        top_k(const k2_treap<t_k, t_bv, t_rank, t_max_vec>& t,
+              k2_treap_ns::point_type p1,
+              k2_treap_ns::point_type p2)
 {
-    return k2_treap_ns::top_k_iterator<t_k2_treap>(t, p1, p2);
+    return k2_treap_ns::top_k_iterator<k2_treap<t_k, t_bv, t_rank, t_max_vec>>(t, p1, p2);
 }
 
 
@@ -290,16 +303,21 @@ top_k(const t_k2_treap& t,
  *  \pre real(p1) <= real(p2) and imag(p1)<=imag(p2)
  *       real(range) <= imag(range)
  */
-template<typename t_k2_treap>
-k2_treap_ns::range_iterator<t_k2_treap>
-range_3d(const t_k2_treap& t,
-         k2_treap_ns::point_type p1,
-         k2_treap_ns::point_type p2,
-         k2_treap_ns::range_type range)
+template<uint8_t  t_k,
+         typename t_bv,
+         typename t_rank,
+         typename t_max_vec>
+k2_treap_ns::range_iterator<k2_treap<t_k, t_bv, t_rank, t_max_vec>>
+        range_3d(const k2_treap<t_k, t_bv, t_rank, t_max_vec>& t,
+                 k2_treap_ns::point_type p1,
+                 k2_treap_ns::point_type p2,
+                 k2_treap_ns::range_type range)
 {
-    return k2_treap_ns::range_iterator<t_k2_treap>(t, p1, p2, range);
+    return k2_treap_ns::range_iterator<k2_treap<t_k, t_bv, t_rank, t_max_vec>>(t, p1, p2, range);
 }
 
+namespace k2_treap_ns
+{
 
 // forward declaration
 template<typename t_k2_treap>
@@ -307,8 +325,10 @@ uint64_t __count(const t_k2_treap&, typename t_k2_treap::node_type);
 
 // forward declaration
 template<typename t_k2_treap>
-uint64_t _count(const t_k2_treap&, k2_treap_ns::point_type,
-                k2_treap_ns::point_type, typename t_k2_treap::node_type);
+uint64_t _count(const t_k2_treap&, point_type,
+                point_type, typename t_k2_treap::node_type);
+
+}
 
 //! Count how many points are in the rectangle (p1,p2)
 /*! \param treap k2-treap
@@ -317,34 +337,38 @@ uint64_t _count(const t_k2_treap&, k2_treap_ns::point_type,
  *  \return The number of points in rectangle (p1,p2).
  *  \pre real(p1) <= real(p2) and imag(p1)<=imag(p2)
  */
-template<typename t_k2_treap>
+template<uint8_t  t_k,
+         typename t_bv,
+         typename t_rank,
+         typename t_max_vec>
 uint64_t
-count(const t_k2_treap& treap,
+count(const k2_treap<t_k, t_bv, t_rank, t_max_vec>& t,
       k2_treap_ns::point_type p1,
       k2_treap_ns::point_type p2)
 {
-    if (treap.size() > 0) {
-        return _count(treap, p1, p2, treap.root());
+    if (t.size() > 0) {
+        return k2_treap_ns::_count(t, p1, p2, t.root());
     }
     return 0;
 }
 
+namespace k2_treap_ns
+{
 
 template<typename t_k2_treap>
 uint64_t
-_count(const t_k2_treap& treap,
-       k2_treap_ns::point_type p1,
-       k2_treap_ns::point_type p2,
+_count(const t_k2_treap& t,
+       point_type p1,
+       point_type p2,
        typename t_k2_treap::node_type v)
 {
-    using namespace k2_treap_ns;
     if (contained<t_k2_treap::k>(p1, p2, v)) {
-        return __count(treap, v);
+        return __count(t, v);
     } else if (overlap<t_k2_treap::k>(p1, p2, v)) {
         uint64_t res = contained(v.max_p, p1, p2);
-        auto nodes = treap.children(v);
+        auto nodes = t.children(v);
         for (auto node : nodes) {
-            res += _count(treap, p1, p2, node);
+            res += _count(t, p1, p2, node);
         }
         return res;
     }
@@ -354,24 +378,17 @@ _count(const t_k2_treap& treap,
 
 template<typename t_k2_treap>
 uint64_t
-__count(const t_k2_treap& treap,
+__count(const t_k2_treap& t,
         typename t_k2_treap::node_type v)
 {
     uint64_t res = 1; // count the point at the node
-    auto nodes = treap.children(v);
+    auto nodes = t.children(v);
     for (auto node : nodes)
-        res += __count(treap, node);
+        res += __count(t, node);
     return res;
 }
 
-
-// forward declaration
-template<uint8_t  t_k,
-         typename t_bv,
-         typename t_rank,
-         typename t_max_vec>
-class k2_treap;
-
+}
 
 //! Specialized version of method ,,construct'' for k2_treaps.
 template<uint8_t  t_k,

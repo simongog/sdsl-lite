@@ -177,52 +177,47 @@ TYPED_TEST(WtByteTest, InverseSelect)
 
 template<class t_wt>
 void
-test_interval_symbols(typename std::enable_if<!(has_node_type<t_wt>::value),
-                      t_wt>::type&)
+test_ys_in_x_range(typename std::enable_if<!(has_node_type<t_wt>::value),
+                   t_wt>::type&)
 {
-    // interval_symbols not implemented
+    // ys_in_x_range not implemented
 }
 
 template<class t_wt>
 void
-test_interval_symbols(typename std::enable_if<has_node_type<t_wt>::value,
-                      t_wt>::type& wt)
+test_ys_in_x_range(typename std::enable_if<has_node_type<t_wt>::value,
+                   t_wt>::type& wt)
 {
-
-    typedef typename t_wt::value_type value_type;
     ASSERT_TRUE(load_from_file(wt, temp_file));
-    int_vector<8> text;
-    ASSERT_TRUE(load_vector_from_file(text, test_file, 1));
     std::mt19937_64 rng;
     std::uniform_int_distribution<uint64_t> distribution(0, wt.size());
     auto dice = bind(distribution, rng);
-    size_type k;
-    std::vector<value_type> cs(wt.sigma);
-    std::vector<size_type> rank_c_i(wt.sigma);
-    std::vector<size_type> rank_c_j(wt.sigma);
     for (size_type t=0; t<(wt.size()/100+100); ++t) {
+        vector<typename t_wt::value_type> cs;
         size_type i = dice(), j = dice();
         if (i>j) {
             std::swap(j,i);
         }
-        interval_symbols(wt, i, j, k, cs, rank_c_i, rank_c_j);
+        auto y_it = ys_in_x_range(wt, i, j);
 
         size_type symbols = (j-i);
-        for (size_type m = 0; m<k; ++m) {
-            ASSERT_EQ(wt.rank(i, cs[m]), rank_c_i[m]);
-            ASSERT_EQ(wt.rank(j, cs[m]), rank_c_j[m]);
-            ASSERT_LT((size_type)0, rank_c_j[m]-rank_c_i[m]);
-            symbols -= (rank_c_j[m]-rank_c_i[m]);
+        for (size_type m = 0; symbols and y_it; ++m, ++y_it) {
+            auto c = get<0>(*y_it);
+            cs.push_back(c);
+            ASSERT_EQ(wt.rank(i, c), get<1>(*y_it));
+            ASSERT_EQ(wt.rank(j, c), get<2>(*y_it));
+            ASSERT_LT((size_type)0, get<2>(*y_it) - get<1>(*y_it));
+            symbols -= (get<2>(*y_it) - get<1>(*y_it));
             if (m>0 and t_wt::lex_ordered) {
-                ASSERT_LT(cs[m-1],cs[m]);
+                ASSERT_LT(cs[m-1],cs[m])<<"m="<<m<<endl;
             }
         }
 
         ASSERT_EQ((size_type)0, symbols);
         if (!t_wt::lex_ordered) {
-            sort(cs.begin(), cs.begin()+k);
-            for (size_type m=1; m<k; m++) {
-                ASSERT_LT(cs[m-1], cs[m]);
+            sort(cs.begin(), cs.end());
+            for (size_type m=1; m<cs.size(); ++m) {
+                ASSERT_LT(cs[m-1], cs[m])<<"m="<<m<<" cs.size()="<<cs.size()<<" i="<<i<<", j="<<j<<" wt="<<wt<<endl;
             }
         }
     }
@@ -232,7 +227,7 @@ test_interval_symbols(typename std::enable_if<has_node_type<t_wt>::value,
 TYPED_TEST(WtByteTest, IntervalSymbols)
 {
     TypeParam wt;
-    test_interval_symbols<TypeParam>(wt);
+    test_ys_in_x_range<TypeParam>(wt);
 }
 
 
@@ -513,17 +508,17 @@ test_lex_count(typename std::enable_if<t_wt::lex_ordered, t_wt>::type& wt)
                 num_c = rank_c_j_n[c]-rank_c_i_n[c];
                 num_g -= num_c;
                 auto res = wt.lex_count(i, j, (value_type)c);
-                ASSERT_EQ(rank_c_i_n[c], std::get<0>(res));
-                ASSERT_EQ(num_s, std::get<1>(res));
-                ASSERT_EQ(num_g, std::get<2>(res));
+                ASSERT_EQ(rank_c_i_n[c], get<0>(res));
+                ASSERT_EQ(num_s, get<1>(res));
+                ASSERT_EQ(num_g, get<2>(res));
                 // Test lex_smaller_count
                 auto res2 = wt.lex_smaller_count(i, (value_type)c);
-                ASSERT_EQ(rank_c_i_n[c], std::get<0>(res2)) << "lex_smaller_count(" << i << "," << c << ")";
-                ASSERT_EQ(num_i_s, std::get<1>(res2)) << "lex_smaller_count(" << i << "," << c << ")";
+                ASSERT_EQ(rank_c_i_n[c], get<0>(res2)) << "lex_smaller_count(" << i << "," << c << ")";
+                ASSERT_EQ(num_i_s, get<1>(res2)) << "lex_smaller_count(" << i << "," << c << ")";
                 num_i_s += rank_c_i_n[c];
                 auto res3 = wt.lex_smaller_count(j, (value_type)c);
-                ASSERT_EQ(rank_c_j_n[c], std::get<0>(res3)) << "lex_smaller_count(" << i << "," << c << ")";
-                ASSERT_EQ(num_j_s, std::get<1>(res3)) << "lex_smaller_count(" << i << "," << c << ")";
+                ASSERT_EQ(rank_c_j_n[c], get<0>(res3)) << "lex_smaller_count(" << i << "," << c << ")";
+                ASSERT_EQ(num_j_s, get<1>(res3)) << "lex_smaller_count(" << i << "," << c << ")";
                 num_j_s += rank_c_j_n[c];
             }
         }

@@ -46,26 +46,27 @@ uint64_t test_inverse_select(const t_wt& wt, const vector<size_type>& is, uint64
     return cnt;
 }
 
-// test interval_symbols
+// test ys_in_x_range
 template<class t_wt>
 uint64_t
-test_interval_symbols(typename enable_if<!(has_node_type<t_wt>::value),
-                      t_wt>::type&, const vector<size_type>&, const vector<size_type>&, size_type&, uint64_t, uint64_t)
+test_ys_in_x_range(typename enable_if<!(has_node_type<t_wt>::value),
+                   t_wt>::type&, const vector<size_type>&, const vector<size_type>&, uint64_t, uint64_t)
 {
-    return 0; // interval_symbols not implemented
+    return 0; // ys_in_x_range not implemented
 }
 
 template<class t_wt>
 uint64_t
-test_interval_symbols(typename enable_if<has_node_type<t_wt>::value,
-                      t_wt>::type& wt, const vector<size_type>& is, const vector<size_type>& js, size_type& k, uint64_t mask, uint64_t times=100000000)
+test_ys_in_x_range(typename enable_if<has_node_type<t_wt>::value,
+                   t_wt>::type& wt, const vector<size_type>& is, const vector<size_type>& js, uint64_t mask, uint64_t times=100000000)
 {
-    vector<value_type> tmp(wt.sigma);
-    vector<size_type> tmp2(wt.sigma);
     uint64_t cnt=0;
     for (uint64_t i=0; i<times; ++i) {
-        interval_symbols(wt, is[i&mask], js[i&mask], k, tmp, tmp2, tmp2);
-        cnt += k;
+        auto y_it = ys_in_x_range(wt, is[i&mask], js[i&mask]);
+        while (y_it) {
+            cnt += (std::get<2>(*y_it)-std::get<1>(*y_it));
+            ++y_it;
+        }
     }
     return cnt;
 }
@@ -207,8 +208,6 @@ int main(int argc, char* argv[])
     uint64_t check = 0;
     uint64_t size = 1<<log_s;
 
-    // create values
-    size_type k = 0;
     vector<value_type> cs(size);
     vector<size_type> is(size);
     vector<size_type> is2(size);
@@ -258,13 +257,13 @@ int main(int argc, char* argv[])
     cout << "# inverse_select_time = " << duration_cast<microseconds>(stop-start).count()/(double)reps << endl;
     cout << "# inverse_select_check = " << check << endl;
 
-    // interval_symbols
-    const uint64_t reps_interval_symbols = wt.sigma < 10000 ? reps : reps/100;
+    // ys_in_x_range
+    const uint64_t reps_ys_in_x_range = wt.sigma < 10000 ? reps : reps/100;
     start = timer::now();
-    check = test_interval_symbols<WT_TYPE>(wt, is, js, k, mask, reps_interval_symbols);
+    check = test_ys_in_x_range<WT_TYPE>(wt, is, js, mask, reps_ys_in_x_range);
     stop = timer::now();
-    cout << "# interval_symbols_time = " << duration_cast<microseconds>(stop-start).count()/(double)reps_interval_symbols << endl;
-    cout << "# interval_symbols_check = " << check << endl;
+    cout << "# ys_in_x_range_time = " << duration_cast<microseconds>(stop-start).count()/(double)reps_ys_in_x_range << endl;
+    cout << "# ys_in_x_range_check = " << check << endl;
 
     // lex_count
     start = timer::now();

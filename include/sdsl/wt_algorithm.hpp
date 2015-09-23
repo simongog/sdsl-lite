@@ -2,19 +2,433 @@
 #define INCLUDED_SDSL_WT_ALGORITHM
 
 #include <algorithm>
+#include <stack>
 #include <utility>
 
 namespace sdsl
 {
 
-template<typename t_wt>
-struct has_interval_symbols;
-
-template<typename t_wt, bool t_has_interval_symbols>
-struct _interval_symbols_wt;
-
 template<typename, typename T>
 struct has_expand;
+
+//! Returns if range1 overlaps with range2
+/*!
+ * \param range1 First range [r1, l1]
+ * \param range2 Second range [r2, l2].
+ * \return If the two ranges overlap.
+ */
+template<typename r_t1, typename r_t2>
+bool
+overlaps(const r_t1& range1, const r_t2& range2)
+{
+    return std::get<1>(range1) >= std::get<0>(range2)
+           and std::get<0>(range1) <= std::get<1>(range2);
+}
+
+//! Returns if range1 is contained in range2
+/*!
+ * \param range1 First range [r1, l1]
+ * \param range2 Second range [r2, l2].
+ * \return If range1 is contained in range2.
+ */
+template<typename r_t1, typename r_t2>
+bool
+is_contained(const r_t1& range1, const r_t2& range2)
+{
+    return std::get<0>(range1) >= std::get<0>(range2)
+           and std::get<1>(range1) <= std::get<1>(range2);
+}
+
+
+
+//! Count how many points are in [x_0,x_1] x [y_0, y_1]
+/*!
+ * \param wt      Wavelet tree representing a sequence.
+ * \param x_range x-range [x_0,x_1] in wt.
+ * \param y_range y-range [y_0,y_1] in wt.
+ *
+ * \return
+ */
+template<class t_wt>
+typename t_wt::size_type
+count(const t_wt& wt, const range_type& x_range, const range_type& y_range,
+      SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+     )
+{
+    typedef typename t_wt::size_type size_type;
+    typedef typename t_wt::node_type node_type;
+
+    if (x_range.first >= wt.size())
+        return 0;
+    size_type res = 0;
+    std::stack<std::pair<node_type,range_type>> s;
+
+    auto push_node = [&wt, &s, &y_range, &res](const node_type& v, const range_type& x_range) {
+        if (size(x_range) > 0) {
+            auto value_range = wt.value_range(v);
+            if (is_contained(value_range, y_range)) {
+                res += size(x_range);
+            } else if (overlaps(y_range, value_range)) {
+                s.emplace(v, x_range);
+            }
+        }
+    };
+
+    push_node(wt.root(), x_range);
+    while (!s.empty()) {
+        auto v       = std::get<0>(s.top());
+        auto x_range = std::get<1>(s.top());
+        s.pop();
+        if (!wt.is_leaf(v)) {
+            auto child_v = wt.expand(v);
+            auto child_r = wt.expand(v, x_range);
+            for (size_t i=0, j=child_v.size()-1; i < child_v.size(); ++i,--j) {
+                push_node(child_v[j], child_r[j]);
+            }
+        }
+    }
+    return res;
+}
+
+
+template<typename t_wt>
+class map_to_sorted_iterator
+{
+        static_assert(t_wt::traversable, "map_to_sorted_sequence requires t_wt to be traversable.");
+        static_assert(t_wt::lex_ordered, "map_to_sorted_sequence requires t_wt to be lex_ordered.");
+    public:
+        typedef void(*t_mfptr)();
+        typedef typename t_wt::value_type value_type;
+        typedef typename t_wt::size_type  size_type;
+        typedef std::tuple<value_type, range_type, size_type> ret_type;
+    private:
+        typedef typename t_wt::node_type node_type;
+        typedef std::tuple<node_type,range_type,size_type> state_type;
+
+        const t_wt*             m_wt = nullptr;
+        range_type              m_y_range;
+        std::stack<state_type>  m_stack;
+        ret_type                m_ret;
+        bool                    m_valid = false;
+
+        void cond_push(const node_type& v, const range_type& x_range, size_type lex_sml)
+        {
+            if (size(x_range) > 0) {
+                auto value_range = m_wt->value_range(v);
+                if (overlaps(m_y_range, value_range)) {
+                    m_stack.emplace(v, x_range, lex_sml);
+                }
+            }
+        }
+
+    public:
+        map_to_sorted_iterator() = default;
+        map_to_sorted_iterator(const map_to_sorted_iterator&) = default;
+        map_to_sorted_iterator(map_to_sorted_iterator&&) = default;
+        map_to_sorted_iterator& operator=(const map_to_sorted_iterator&) = default;
+        map_to_sorted_iterator& operator=(map_to_sorted_iterator&&) = default;
+
+        map_to_sorted_iterator(const t_wt* wt, const range_type& x_range,
+                               const range_type& y_range) : m_wt(wt),
+            m_y_range(y_range)
+        {
+            if (wt!=nullptr and size(x_range) > 0 and std::get<0>(x_range) < wt->size()) {
+                if (overlaps(y_range, m_wt->value_range(wt->root()))) {
+                    m_stack.emplace(m_wt->root(), x_range, 0);
+                    ++(*this);
+                }
+            }
+        }
+
+        map_to_sorted_iterator& operator++()
+        {
+            m_valid = false;
+            while (!m_stack.empty()) {
+                auto v       = std::get<0>(m_stack.top());
+                auto x_range = std::get<1>(m_stack.top());
+                auto lex_sml = std::get<2>(m_stack.top());
+                m_stack.pop();
+                if (!m_wt->is_leaf(v)) {
+                    auto child_v = m_wt->expand(v);
+                    auto child_r = m_wt->expand(v, x_range);
+                    for (int i=1; i >= 0; --i) {
+                        if (size(child_r[i]) > 0) {
+                            if (i==1)
+                                cond_push(child_v[i], child_r[i], lex_sml+m_wt->size(child_v[0]));
+                            else
+                                cond_push(child_v[i], child_r[i], lex_sml);
+                        }
+                    }
+                } else {
+                    m_ret = ret_type(m_wt->sym(v), range_type(std::get<0>(x_range)+lex_sml,std::get<1>(x_range)+lex_sml),
+                                     lex_sml);
+                    m_valid = true;
+                    break;
+                }
+            }
+            return *this;
+        }
+
+        //! Postfix increment of the iterator
+        map_to_sorted_iterator operator++(int)
+        {
+            map_to_sorted_iterator it = *this;
+            ++(*this);
+            return it;
+        }
+
+        ret_type operator*() const
+        {
+            return m_ret;
+        }
+
+        operator t_mfptr() const
+        {
+            return (t_mfptr)(m_valid);
+        }
+};
+
+template<typename t_wt>
+map_to_sorted_iterator<t_wt>
+map_to_sorted_sequence(const t_wt& wt, const range_type& x_range, const range_type& y_range,
+                       SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+                      )
+{
+    static_assert(t_wt::traversable, "map_to_sorted_sequence requires t_wt to be traversable.");
+    static_assert(t_wt::lex_ordered, "map_to_sorted_sequence requires t_wt to be lex_ordered.");
+    return map_to_sorted_iterator<t_wt>(&wt, x_range, y_range);
+}
+
+
+
+template<typename t_wt>
+class y_iterator
+{
+        static_assert(t_wt::traversable, "y_iterator requires t_wt to be traversable.");
+    public:
+        typedef void(*t_mfptr)();
+        typedef typename t_wt::value_type value_type;
+        typedef typename t_wt::size_type  size_type;
+        typedef std::tuple<value_type, size_type, size_type> t_ret;
+
+    private:
+        typedef typename t_wt::node_type node_type;
+        typedef std::pair<node_type, range_type> t_state;
+
+        const t_wt*         m_wt = nullptr;
+        std::stack<t_state> m_stack;
+        t_ret               m_ret;
+        bool                m_valid = false;
+
+    public:
+        y_iterator() = default;
+        y_iterator(const y_iterator&) = default;
+        y_iterator(y_iterator&&) = default;
+        y_iterator& operator=(const y_iterator&) = default;
+        y_iterator& operator=(y_iterator&&) = default;
+        // wt wavelet tree
+        // lb inclusive
+        // rb exclusive
+        y_iterator(const t_wt& wt, size_type lb, size_type rb) :
+            m_wt(&wt), m_valid(wt.size()>0)
+        {
+            if (m_wt->size() > 0) {
+                if ((lb+1) == rb) {
+                    auto res = m_wt->inverse_select(lb);
+                    m_ret = t_ret(res.second, res.first, res.first+1);
+                } else if (rb > lb) {
+                    m_stack.emplace(wt.root(), range_type(lb, rb-1));
+                    ++(*this);
+                }
+            }
+        }
+
+        //! Prefix increment of the iterator
+        y_iterator& operator++()
+        {
+            m_valid = false;
+            while (!m_stack.empty()) {
+                auto v = std::get<0>(m_stack.top());
+                auto r = std::get<1>(m_stack.top());
+                m_stack.pop();
+                if (m_wt->is_leaf(v)) {
+                    m_ret = t_ret(m_wt->sym(v), r.first, r.second+1);
+                    m_valid = true;
+                    break;
+                } else {
+                    auto child_v = m_wt->expand(v);
+                    auto child_r = m_wt->expand(v, r);
+                    if (!sdsl::empty(std::get<1>(child_r))) {
+                        m_stack.emplace(std::get<1>(child_v), std::get<1>(child_r));
+                    }
+                    if (!sdsl::empty(std::get<0>(child_r))) {
+                        m_stack.emplace(std::get<0>(child_v), std::get<0>(child_r));
+                    }
+                }
+            }
+            return *this;
+        }
+
+        //! Postfix increment of the iterator
+        y_iterator operator++(int)
+        {
+            y_iterator it = *this;
+            ++(*this);
+            return it;
+        }
+
+        t_ret operator*() const
+        {
+            return m_ret;
+        }
+
+        operator t_mfptr() const
+        {
+            return (t_mfptr)(m_valid);
+        }
+};
+
+//! Returns an iterator over all values in wt[i..j-1]
+/*!
+ * \param wt The wavelet tree.
+ * \param i  The start index (inclusive) of the interval.
+ * \param j  The end index (exclusive) of the interval.
+ * \return   Iterator to the result. The iterator points to
+ *           triples (y-value, sp, ep), where [sp,ep) is the
+ *           range in the leaf. I.e. ep-sp is the number of
+ *           ys in the x-range [i..j).
+ *
+ * \par Time complexity
+ *      Iterating over all k values in wt[i..j] takes \f$\Order{k\log\sigma} time.
+ *
+ * \par Precondition
+ *      \f$ i \leq j \leq size() \f$
+ */
+template<typename t_wt>
+y_iterator<t_wt>
+ys_in_x_range(const t_wt& wt, typename t_wt::size_type i,
+              typename t_wt::size_type j,
+              SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+             )
+{
+    static_assert(t_wt::traversable, "ys_in_x_range requires t_wt to be traversable.");
+    return y_iterator<t_wt>(wt, i, j);
+}
+
+
+template<typename t_wt>
+class yoff_iterator
+{
+        static_assert(t_wt::traversable, "yoff_iterator requires t_wt to be traversable.");
+        static_assert(t_wt::lex_ordered, "yoff_iterator requires t_wt to be lex_ordered.");
+    public:
+        typedef void(*t_mfptr)();
+        typedef typename t_wt::value_type value_type;
+        typedef typename t_wt::size_type  size_type;
+        typedef std::tuple<value_type, size_type, size_type, size_type> t_ret;
+
+    private:
+        typedef typename t_wt::node_type node_type;
+        typedef std::tuple<node_type, range_type, size_type> t_state;
+
+        const t_wt*         m_wt = nullptr;
+        std::stack<t_state> m_stack;
+        t_ret               m_ret;
+        bool                m_valid = false;
+
+    public:
+        yoff_iterator() = default;
+        yoff_iterator(const yoff_iterator&) = default;
+        yoff_iterator(yoff_iterator&&) = default;
+        yoff_iterator& operator=(const yoff_iterator&) = default;
+        yoff_iterator& operator=(yoff_iterator&&) = default;
+        // wt wavelet tree
+        // lb inclusive
+        // rb exclusive
+        yoff_iterator(const t_wt& wt, size_type lb, size_type rb) :
+            m_wt(&wt), m_valid(wt.size()>0)
+        {
+            if (m_wt->size() > 0) {
+                if (rb > lb) {
+                    m_stack.emplace(wt.root(), range_type(lb, rb-1), 0);
+                    ++(*this);
+                }
+            }
+        }
+
+        //! Prefix increment of the iterator
+        yoff_iterator& operator++()
+        {
+            m_valid = false;
+            while (!m_stack.empty()) {
+                auto v = std::get<0>(m_stack.top());
+                auto r = std::get<1>(m_stack.top());
+                auto lex_smaller = std::get<2>(m_stack.top());
+                m_stack.pop();
+                if (m_wt->is_leaf(v)) {
+                    m_ret = t_ret(m_wt->sym(v), r.first, r.second+1, lex_smaller);
+                    m_valid = true;
+                    break;
+                } else {
+                    auto child_v = m_wt->expand(v);
+                    auto child_r = m_wt->expand(v, r);
+                    if (!sdsl::empty(std::get<1>(child_r))) {
+                        m_stack.emplace(std::get<1>(child_v), std::get<1>(child_r),
+                                        lex_smaller + m_wt->size(std::get<0>(child_v)));
+                    }
+                    if (!sdsl::empty(std::get<0>(child_r))) {
+                        m_stack.emplace(std::get<0>(child_v), std::get<0>(child_r), lex_smaller);
+                    }
+                }
+            }
+            return *this;
+        }
+
+        //! Postfix increment of the iterator
+        yoff_iterator operator++(int)
+        {
+            yoff_iterator it = *this;
+            ++(*this);
+            return it;
+        }
+
+        t_ret operator*() const
+        {
+            return m_ret;
+        }
+
+        operator t_mfptr() const
+        {
+            return (t_mfptr)(m_valid);
+        }
+};
+
+//! Returns an iterator over all values in wt[i..j-1]
+/*!
+ * \param wt The wavelet tree.
+ * \param i  The start index (inclusive) of the interval.
+ * \param j  The end index (exclusive) of the interval.
+ * \return   Iterator to the result. The iterator points to
+ *           triples (y-value, sp, ep), where [sp,ep) is the
+ *           range in the leaf. I.e. ep-sp is the number of
+ *           ys in the x-range [i..j).
+ *
+ * \par Time complexity
+ *      Iterating over all k values in wt[i..j] takes \f$\Order{k\log\sigma} time.
+ *
+ * \par Precondition
+ *      \f$ i \leq j \leq size() \f$
+ */
+template<typename t_wt>
+yoff_iterator<t_wt>
+ys_and_off_in_x_range(const t_wt& wt, typename t_wt::size_type i,
+                      typename t_wt::size_type j,
+                      SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+                     )
+{
+    static_assert(t_wt::traversable, "ys_in_x_range requires t_wt to be traversable.");
+    return yoff_iterator<t_wt>(wt, i, j);
+}
 
 //! Intersection of elements in WT[s_0,e_0], WT[s_1,e_1],...,WT[s_k,e_k]
 /*! \param wt     The wavelet tree object.
@@ -25,10 +439,13 @@ struct has_expand;
  *                contained in t different ranges. Frequency = accumulated
  *                frequencies in all ranges. The tuples are ordered according
  *                to value, if t_wt::lex_ordered=1.
+ * TODO: should return an iterator to the result
  */
 template<class t_wt>
 std::vector< std::pair<typename t_wt::value_type, typename t_wt::size_type> >
-intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::size_type t=0)
+intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::size_type t=0,
+          SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+         )
 {
     using std::get;
     using size_type      = typename t_wt::size_type;
@@ -37,7 +454,7 @@ intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::
     using pnvr_type      = std::pair<node_type, range_vec_type>;
     typedef std::stack<pnvr_type> stack_type;
 
-    static_assert(has_expand<t_wt, std::pair<node_type,node_type>(const node_type&)>::value,
+    static_assert(has_expand<t_wt, std::array<node_type, 2>(const node_type&)>::value,
                   "intersect requires t_wt to have expand(const node_type&)");
 
     using p_t = std::pair<value_type,size_type>;
@@ -94,13 +511,15 @@ intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::
 template<class t_wt>
 std::pair<typename t_wt::value_type, typename t_wt::size_type>
 quantile_freq(const t_wt& wt, typename t_wt::size_type lb,
-              typename t_wt::size_type rb, typename t_wt::size_type q)
+              typename t_wt::size_type rb, typename t_wt::size_type q,
+              SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+             )
 {
     static_assert(t_wt::lex_ordered,
                   "quantile_freq requires a lex_ordered WT");
     using std::get;
     using node_type      = typename t_wt::node_type;
-    static_assert(has_expand<t_wt, std::pair<node_type,node_type>(const node_type&)>::value,
+    static_assert(has_expand<t_wt, std::array<node_type,2>(const node_type&)>::value,
                   "quantile_freq requires t_wt to have expand(const node_type&)");
 
     node_type v = wt.root();
@@ -123,151 +542,6 @@ quantile_freq(const t_wt& wt, typename t_wt::size_type lb,
     return {wt.sym(v), size(r)};
 };
 
-
-template<class t_wt>
-void
-_interval_symbols_rec(const t_wt& wt, range_type r,
-                      typename t_wt::size_type& k,
-                      std::vector<typename t_wt::value_type>& cs,
-                      std::vector<typename t_wt::size_type>& rank_c_i,
-                      std::vector<typename t_wt::size_type>& rank_c_j,
-                      const typename t_wt::node_type& v)
-{
-    using std::get;
-    if (wt.is_leaf(v)) {
-        rank_c_i[k] = r.first;
-        rank_c_j[k] = r.second+1;
-        cs[k++] = wt.sym(v);
-    } else {
-        auto child        = wt.expand(v);
-        auto child_ranges = wt.expand(v, r);
-        if (!empty(get<0>(child_ranges))) {
-            _interval_symbols_rec(wt, get<0>(child_ranges), k, cs, rank_c_i,
-                                  rank_c_j, get<0>(child));
-        }
-        if (!empty(get<1>(child_ranges))) {
-            _interval_symbols_rec(wt, get<1>(child_ranges), k, cs, rank_c_i,
-                                  rank_c_j, get<1>(child));
-        }
-    }
-}
-
-template<class t_wt>
-void
-_interval_symbols(const t_wt& wt, typename t_wt::size_type i,
-                  typename t_wt::size_type j,
-                  typename t_wt::size_type& k,
-                  std::vector<typename t_wt::value_type>& cs,
-                  std::vector<typename t_wt::size_type>& rank_c_i,
-                  std::vector<typename t_wt::size_type>& rank_c_j)
-{
-
-    assert(i <= j and j <= wt.size());
-    k=0;
-    if ((i+1)==j) {
-        auto res = wt.inverse_select(i);
-        cs[0]=res.second;
-        rank_c_i[0]=res.first;
-        rank_c_j[0]=res.first+1;
-        k=1;
-        return;
-    } else if (j>i) {
-        _interval_symbols_rec(wt, range_type(i,j-1), k, cs,
-                              rank_c_i, rank_c_j, wt.root());
-    }
-}
-
-//! For each symbol c in wt[i..j-1] get rank(i,c) and rank(j,c).
-/*!
- * \param i        The start index (inclusive) of the interval.
- * \param j        The end index (exclusive) of the interval.
- * \param k        Reference for number of different symbols in [i..j-1].
- * \param cs       Reference to a vector that will contain in
- *                 cs[0..k-1] all symbols that occur in [i..j-1] in
- *                 ascending order.
- * \param rank_c_i Reference to a vector which equals
- *                 rank_c_i[p] = rank(i,cs[p]), for \f$ 0 \leq p < k \f$.
- * \param rank_c_j Reference to a vector which equals
- *                 rank_c_j[p] = rank(j,cs[p]), for \f$ 0 \leq p < k \f$.
- * \par Time complexity
- *      \f$ \Order{\min{\sigma, k \log \sigma}} \f$
- *
- * \par Precondition
- *      \f$ i \leq j \leq size() \f$
- *      \f$ cs.size() \geq \sigma \f$
- *      \f$ rank_{c_i}.size() \geq \sigma \f$
- *      \f$ rank_{c_j}.size() \geq \sigma \f$
- */
-template<class t_wt>
-void
-interval_symbols(const t_wt& wt, typename t_wt::size_type i,
-                 typename t_wt::size_type j,
-                 typename t_wt::size_type& k,
-                 std::vector<typename t_wt::value_type>& cs,
-                 std::vector<typename t_wt::size_type>& rank_c_i,
-                 std::vector<typename t_wt::size_type>& rank_c_j)
-{
-    // check if wt has a built-in interval_symbols method
-    constexpr bool has_own = has_interval_symbols<t_wt>::value;
-    if (has_own) {  // if yes, call it
-        _interval_symbols_wt<t_wt, has_own>::call(wt, i, j, k,
-                cs, rank_c_i, rank_c_j);
-    } else { // otherwise use generic implementation based on expand
-        _interval_symbols(wt, i,j, k, cs, rank_c_i, rank_c_j);
-    }
-}
-
-
-
-// has_interval_symbols<X>::value is true if class X has
-// implement method interval_symbols
-// Adapted solution from jrok's proposal:
-// http://stackoverflow.com/questions/87372/check-if-a-class-has-a-member-function-of-a-given-signature
-template<typename t_wt>
-struct has_interval_symbols {
-    template<typename T>
-    static constexpr auto check(T*)
-    -> typename
-    std::is_same<
-    decltype(std::declval<T>().interval_symbols(
-                 std::declval<typename T::size_type>(),
-                 std::declval<typename T::size_type>(),
-                 std::declval<typename T::size_type&>(),
-                 std::declval<std::vector<typename T::value_type>&>(),
-                 std::declval<std::vector<typename T::size_type>&>(),
-                 std::declval<std::vector<typename T::size_type>&>()
-             )),
-             void>::type {return std::true_type();}
-             template<typename>
-    static constexpr std::false_type check(...) {return std::false_type();}
-    typedef decltype(check<t_wt>(nullptr)) type;
-    static constexpr bool value = type::value;
-};
-
-template<typename t_wt, bool t_has_interval_symbols>
-struct _interval_symbols_wt {
-    typedef typename t_wt::size_type  size_type;
-    typedef typename t_wt::value_type value_type;
-
-    static void call(const t_wt& wt, size_type i, size_type j, size_type& k,
-                     std::vector<value_type>& cs, std::vector<size_type>& rank_c_i,
-                     std::vector<size_type>& rank_c_j) {
-        wt.interval_symbols(i,j,k,cs,rank_c_i,rank_c_j);
-    }
-};
-
-
-template<typename t_wt>
-struct _interval_symbols_wt<t_wt, false> {
-    typedef typename t_wt::size_type  size_type;
-    typedef typename t_wt::value_type value_type;
-
-    static void call(const t_wt&, size_type, size_type, size_type&,
-                     std::vector<value_type>&, std::vector<size_type>&,
-                     std::vector<size_type>&) {
-    }
-};
-
 template<typename, typename T>
 struct has_expand {
     static_assert(std::integral_constant<T, false>::value,
@@ -286,7 +560,7 @@ struct has_expand<t_wt, t_ret(t_args...)> {
 static constexpr std::false_type check(...) { return std::false_type();}
 typedef decltype(check<t_wt>(nullptr)) type;
 static constexpr bool value = type::value;
-};
+            };
 
 template<typename t_wt>
 struct has_range_search_2d {
@@ -416,12 +690,14 @@ struct _symbols_calls_wt {
     typedef typename t_wt::value_type value_type;
 
     static std::pair<bool, value_type>
-    call_symbol_gte(const t_wt& wt,value_type c) {
+    call_symbol_gte(const t_wt& wt,value_type c)
+    {
         return wt.symbol_gte(c);
     }
 
     static std::pair<bool,value_type>
-    call_symbol_lte(const t_wt& wt,value_type c) {
+    call_symbol_lte(const t_wt& wt,value_type c)
+    {
         return wt.symbol_lte(c);
     }
 };
@@ -432,12 +708,14 @@ struct _symbols_calls_wt<t_wt, false> {
     typedef typename t_wt::value_type value_type;
 
     static std::pair<bool,value_type>
-    call_symbol_gte(const t_wt& wt,value_type c) {
+    call_symbol_gte(const t_wt& wt,value_type c)
+    {
         return _symbol_gte(wt,c);
     }
 
     static std::pair<bool,value_type>
-    call_symbol_lte(const t_wt& wt,value_type c) {
+    call_symbol_lte(const t_wt& wt,value_type c)
+    {
         return _symbol_lte(wt,c);
     }
 };
@@ -460,32 +738,36 @@ struct has_symbols_wt {
 
 //! Returns for a symbol c the previous smaller or equal symbol in the WT.
 /*! \param c the symbol
- *  \return A pair. The first element of the pair consititues if
+ *  \return A pair. The first element of the pair indicates if
  *          a valid answer was found (true) or no valid answer (false)
  *          could be found. The second element contains the found symbol.
  */
 template<class t_wt>
 std::pair<bool,typename t_wt::value_type>
-symbol_lte(const t_wt& wt, typename t_wt::value_type c)
+symbol_lte(const t_wt& wt, typename t_wt::value_type c,
+           SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+          )
 {
     static_assert(t_wt::lex_ordered, "symbols_lte requires a lex_ordered WT");
-    // check if wt has a built-in interval_symbols method
+    // check if wt has a built-in symbols_gte method
     constexpr bool has_own = has_symbols_wt<t_wt>::value;
     return _symbols_calls_wt<t_wt, has_own>::call_symbol_lte(wt,c);
 }
 
 //! Returns for a symbol c the next larger or equal symbol in the WT.
 /*! \param c the symbol
- *  \return A pair. The first element of the pair consititues if
+ *  \return A pair. The first element of the pair indicates if
  *          a valid answer was found (true) or no valid answer (false)
  *          could be found. The second element contains the found symbol.
  */
 template<class t_wt>
 std::pair<bool,typename t_wt::value_type>
-symbol_gte(const t_wt& wt, typename t_wt::value_type c)
+symbol_gte(const t_wt& wt, typename t_wt::value_type c,
+           SDSL_UNUSED typename std::enable_if<std::is_same<wt_tag, typename t_wt::index_category>::value, wt_tag>::type x = wt_tag()
+          )
 {
     static_assert(t_wt::lex_ordered, "symbols_gte requires a lex_ordered WT");
-    // check if wt has a built-in interval_symbols method
+    // check if wt has a built-in symbol_gte_method
     constexpr bool has_own = has_symbols_wt<t_wt>::value;
     return _symbols_calls_wt<t_wt, has_own>::call_symbol_gte(wt,c);
 }
@@ -496,7 +778,8 @@ symbol_gte(const t_wt& wt, typename t_wt::value_type c)
  *  \param x_j upper bound of the x range
  *  \param y_i lower bound of the y range
  *  \param y_j upper bound of the y range
- *  \return a vector of increasing y values occuring in the range [x_i,x_j]
+ *  \return a vector of increasing y values occurring in the range [x_i,x_j]
+ * TODO: should return an iterator to the result
  */
 template <class t_wt>
 std::vector<typename t_wt::value_type>
@@ -511,15 +794,15 @@ restricted_unique_range_values(const t_wt& wt,
     std::vector<typename t_wt::value_type> unique_values;
 
     // make sure things are within bounds
-    if( x_j > wt.size()-1 ) x_j = wt.size()-1;
-    if( (x_i > x_j) || (y_i > y_j) ) { 
+    if (x_j > wt.size()-1) x_j = wt.size()-1;
+    if ((x_i > x_j) || (y_i > y_j)) {
         return unique_values;
     }
     auto lower_y_bound = symbol_gte(wt,y_i);
     auto upper_y_bound = symbol_lte(wt,y_j);
     // is the y range valid?
-    if( !lower_y_bound.first || !upper_y_bound.first 
-        || (lower_y_bound.second > upper_y_bound.second) )  {
+    if (!lower_y_bound.first || !upper_y_bound.first
+        || (lower_y_bound.second > upper_y_bound.second))  {
         return unique_values;
     }
 

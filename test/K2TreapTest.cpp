@@ -98,7 +98,7 @@ TYPED_TEST(K2TreapTest, SizeAndTopk)
         maxy =  *max_element(y.begin(), y.end());
     }
     uint64_t minx=0, miny=0;
-    topk_test(k2treap, {minx,maxx}, {miny,maxy}, x, y, w);
+    topk_test(k2treap, {minx,miny}, {maxx,maxy}, x, y, w);
 
     if (x.size() > 0) {
         std::mt19937_64 rng;

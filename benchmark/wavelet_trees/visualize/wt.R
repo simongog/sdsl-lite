@@ -154,9 +154,9 @@ for(tc in unique(maindata$TC_ID)){
 	   widths=c(1.35,1), heights=c(1,1,1))
 
 	#interval-symbols-plot
-	ivs <-data['interval_symbols_time']
+	ivs <-data['ys_in_x_range_time']
 	rownames(ivs)<-id
-	plot_time_figure(t(ivs),"\\tt{interval\\_symbols}",xmax=max(xmax,max(ivs)))
+	plot_time_figure(t(ivs),"\\tt{ys\\_in\\_x\\_range}",xmax=max(xmax,max(ivs)))
 
 	#constructor-plot
 	con <-data['constructs_time']

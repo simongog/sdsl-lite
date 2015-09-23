@@ -1,5 +1,6 @@
+SHELL=bash
 include ../Make.helper
-CXX_FLAGS=$(MY_CXX_FLAGS) -Wall -Werror -Wunused-parameter -g -O3 \
+CXX_FLAGS=$(MY_CXX_FLAGS)  -g -O3 \
 		  -I$(INC_DIR) \
 		  -I../external/googletest/include \
 		  -L$(LIB_DIR) \
@@ -54,6 +55,9 @@ SEARCH_BIDIRECTIONAL_TESTS:=$(patsubst %,search-bidirectional-test/%,$(SEARCH_BI
 K2TREAP_TC_PATH:=$(call config_column,K2TreapTest.config,1)
 K2TREAP_TESTS:=$(patsubst %,k2treap-test/%,$(K2TREAP_TC_PATH))
 
+WTTOPK_TC_PATH:=$(call config_column,WtTopkTest.config,1)
+WTTOPK_TESTS:=$(patsubst %,wttopk-test/%,$(WTTOPK_TC_PATH))
+
 TC_PATHS:= $(WT_BYTE_TC_PATHS) $(WT_INT_TC_PATHS) \
 		   $(CSA_BYTE_TC_PATHS) $(CSA_INT_TC_PATHS) \
 		   $(CST_BYTE_TC_PATHS) $(CST_INT_TC_PATHS)
@@ -83,7 +87,8 @@ test:	bits-test \
 	search-bidirectional-test \
 	sorted-int-stack-test \
 	nn-dict-dynamic-test \
-	k2treap-test
+	k2treap-test \
+	wttopk-test
 
 ../build/googletest/libgtest.a : ../external/googletest/CMakeLists.txt
 	mkdir -p ../build/googletest/
@@ -167,6 +172,9 @@ search-bidirectional-test: generators $(SEARCH_BIDIRECTIONAL_TESTS)
 
 k2treap-test: ./K2TreapTest.x generators $(K2TREAP_TESTS)
 
+wttopk-test: ./WtTopkTest.x generators $(WTTOPK_TESTS)
+
+
 bit-vector-test/test_cases/%: ./BitVectorTest.x test_cases/%
 	@echo "TEST_CASE: test_cases/$*"
 	@$(PREFIX) ./BitVectorTest.x test_cases/$*
@@ -249,6 +257,20 @@ k2treap-test/%: ./K2TreapTest.x
 	@echo "TEST_CASE: test_cases/$* in-memory"
 	$(PREFIX) ./K2TreapTest.x test_cases/K2T.$* $(TMP_DIR)/K2T.$* in-memory
 
+wttopk-test/%: ./WtTopkTest.x
+	$(eval X:=$(call config_select,WtTopkTest.config,$*,2))
+	$(eval Y:=$(call config_select,WtTopkTest.config,$*,3))
+	$(eval W:=$(call config_select,WtTopkTest.config,$*,4))
+	make $(X) $(Y) $(W)
+	@echo "X=$X, Y=$Y, W=$W"
+	mv $(X) test_cases/WTK.$*.x
+	mv $(Y) test_cases/WTK.$*.y
+	mv $(W) test_cases/WTK.$*.w
+	@echo "TEST_CASE: $* semi-external"
+	$(PREFIX) ./WtTopkTest.x test_cases/WTK.$* $(TMP_DIR)/WTK.$*
+	@echo "TEST_CASE: test_cases/$* in-memory"
+	$(PREFIX) ./WtTopkTest.x test_cases/WTK.$* $(TMP_DIR)/WTK.$* in-memory
+
 # Format: test_cases/int-vec.[LEN].[WIDTH].[DEFAULT].[SEED]
 test_cases/int-vec.%: IntVectorGenerator.x
 	@echo "Generate input test_cases/int-vec.$*"
@@ -276,6 +298,17 @@ test_cases/int-vec-k2t.%: IntVectorGenerator.x
 	$(eval DEFAULT:=$(call dim,3,$*))
 	$(eval SEED:=$(call dim,4,$*))
 	@./IntVectorGenerator.x $@ $(LEN) $(WIDTH) $(DEFAULT) $(SEED)
+
+# Format: test_cases/int-vec-wtk.[LEN].[WIDTH].[DEFAULT].[SEED].[x|y|w]
+test_cases/int-vec-wtk.%: IntVectorGenerator.x
+	@echo "Generate input test_cases/int-vec-wtk.$*"
+	$(eval LEN:=$(call dim,1,$*))
+	$(eval WIDTH:=$(call dim,2,$*))
+	$(eval DEFAULT:=$(call dim,3,$*))
+	$(eval SEED:=$(call dim,4,$*))
+	@./IntVectorGenerator.x $@ $(LEN) $(WIDTH) $(DEFAULT) 
+
+
 
 test_cases/bit-vec.%: BitVectorGenerator.x
 	@echo "Generate input test_cases/bit-vec.$*"

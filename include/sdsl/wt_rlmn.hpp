@@ -44,16 +44,19 @@ struct wt_rlmn_trait {
     typedef int_vector<> C_type;
     typedef int_vector<> C_bf_rank_type;
 
-    static std::map<uint64_t,uint64_t> temp_C() {
+    static std::map<uint64_t,uint64_t> temp_C()
+    {
         return std::map<uint64_t, uint64_t>();
     }
 
-    static C_type init_C(std::map<uint64_t,uint64_t>& C, uint64_t size) {
+    static C_type init_C(std::map<uint64_t,uint64_t>& C, uint64_t size)
+    {
         uint64_t max_symbol = (--C.end())->first;
         return C_type(max_symbol+1, 0, bits::hi(size)+1);
     }
 
-    static C_bf_rank_type init_C_bf_rank(const C_type& C, uint64_t size) {
+    static C_bf_rank_type init_C_bf_rank(const C_type& C, uint64_t size)
+    {
         return C_bf_rank_type(C.size(), 0, bits::hi(size)+1);
     }
 };
@@ -64,15 +67,18 @@ struct wt_rlmn_trait<byte_alphabet_tag> {
     typedef int_vector<64> C_type;
     typedef int_vector<64> C_bf_rank_type;
 
-    static int_vector<64> temp_C() {
+    static int_vector<64> temp_C()
+    {
         return int_vector<64>(256, 0);
     }
 
-    static C_type init_C(C_type& C, uint64_t) {
+    static C_type init_C(C_type& C, uint64_t)
+    {
         return C;
     }
 
-    static C_bf_rank_type init_C_bf_rank(const C_type&, uint64_t) {
+    static C_bf_rank_type init_C_bf_rank(const C_type&, uint64_t)
+    {
         return int_vector<64>(256,0);
     }
 };
@@ -117,6 +123,7 @@ class wt_rlmn
         typedef wt_tag                                index_category;
         typedef typename t_wt::alphabet_category      alphabet_category;
         enum { lex_ordered=false };     // TODO: is should be possible
+        enum { traversable=false };
         enum { width = wt_rlmn_trait<alphabet_category>::width };
         typedef typename wt_rlmn_trait<alphabet_category>::C_type
         C_type;
@@ -144,7 +151,8 @@ class wt_rlmn
         // the prefixes m_bf[0..m_C[0]],m_bf[0..m_C[1]],....,m_bf[0..m_C[255]];
         // named C_s in the original paper
 
-        void copy(const wt_rlmn& wt) {
+        void copy(const wt_rlmn& wt)
+        {
             m_size          = wt.m_size;
             m_bl            = wt.m_bl;
             m_bf            = wt.m_bf;
@@ -173,7 +181,8 @@ class wt_rlmn
          *  \param size      The length of the prefix of the text, for which
          *                   the wavelet tree should be build.
          */
-        wt_rlmn(int_vector_buffer<width>& text_buf, size_type size):m_size(size) {
+        wt_rlmn(int_vector_buffer<width>& text_buf, size_type size):m_size(size)
+        {
             std::string temp_file = text_buf.filename() +
                                     + "_wt_rlmn_" + util::to_string(util::pid())
                                     + "_" + util::to_string(util::id());
@@ -234,17 +243,20 @@ class wt_rlmn
         }
 
         //! Copy constructor
-        wt_rlmn(const wt_rlmn& wt) {
+        wt_rlmn(const wt_rlmn& wt)
+        {
             copy(wt);
         }
 
         //! Move constructor
-        wt_rlmn(wt_rlmn&& wt) {
+        wt_rlmn(wt_rlmn&& wt)
+        {
             *this = std::move(wt);
         }
 
         //! Assignment operator
-        wt_rlmn& operator=(const wt_rlmn& wt) {
+        wt_rlmn& operator=(const wt_rlmn& wt)
+        {
             if (this != &wt) {
                 copy(wt);
             }
@@ -252,7 +264,8 @@ class wt_rlmn
         }
 
         //! Assignment move operator
-        wt_rlmn& operator=(wt_rlmn&& wt) {
+        wt_rlmn& operator=(wt_rlmn&& wt)
+        {
             if (this != &wt) {
                 m_size          = std::move(wt.m_size);
                 m_bl            = std::move(wt.m_bl);
@@ -273,7 +286,8 @@ class wt_rlmn
         }
 
         //! Swap operator
-        void swap(wt_rlmn& wt) {
+        void swap(wt_rlmn& wt)
+        {
             if (this != &wt) {
                 std::swap(m_size, wt.m_size);
                 m_bl.swap(wt.m_bl);
@@ -300,12 +314,14 @@ class wt_rlmn
         }
 
         //! Returns the size of the original vector.
-        size_type size()const {
+        size_type size()const
+        {
             return m_size;
         }
 
         //! Returns whether the wavelet tree contains no data.
-        bool empty()const {
+        bool empty()const
+        {
             return 0 == m_size;
         }
 
@@ -316,7 +332,8 @@ class wt_rlmn
          *        \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the
          *        zero order entropy of the sequence
          */
-        value_type operator[](size_type i)const {
+        value_type operator[](size_type i)const
+        {
             assert(i < size());
             return m_wt[m_bl_rank(i+1)-1];
         };
@@ -330,7 +347,8 @@ class wt_rlmn
          *        \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the
          *        zero order entropy of the sequence
          */
-        size_type rank(size_type i, value_type c)const {
+        size_type rank(size_type i, value_type c)const
+        {
             assert(i <= size());
             if (i == 0)
                 return 0;
@@ -354,7 +372,8 @@ class wt_rlmn
          *        \f$ \Order{H_0} \f$
          */
         std::pair<size_type, value_type>
-        inverse_select(size_type i)const {
+        inverse_select(size_type i)const
+        {
             assert(i < size());
             if (i == 0) {
                 return std::make_pair(0, m_wt[0]);
@@ -381,7 +400,8 @@ class wt_rlmn
          *       \f$ \Order{H_0} \f$ on average, where \f$ H_0 \f$ is the zero order
          *        entropy of the sequence
          */
-        size_type select(size_type i, value_type c)const {
+        size_type select(size_type i, value_type c)const
+        {
             assert(i > 0);
             assert(i <= rank(size(), c));
             size_type c_runs = m_bf_rank(m_C[c]+i) - m_C_bf_rank[c];
@@ -390,18 +410,21 @@ class wt_rlmn
         };
 
         //! Returns a const_iterator to the first element.
-        const_iterator begin()const {
+        const_iterator begin()const
+        {
             return const_iterator(this, 0);
         }
 
         //! Returns a const_iterator to the element after the last element.
-        const_iterator end()const {
+        const_iterator end()const
+        {
             return const_iterator(this, size());
         }
 
         //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
-                            std::string name="")const {
+                            std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(
                                              v, name, util::class_name(*this));
             size_type written_bytes = 0;
@@ -420,7 +443,8 @@ class wt_rlmn
         }
 
         //! Loads the data structure from the given istream.
-        void load(std::istream& in) {
+        void load(std::istream& in)
+        {
             read_member(m_size, in);
             m_bl.load(in);
             m_bf.load(in);
