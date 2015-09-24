@@ -87,6 +87,18 @@ uint64_t pid()
 #endif
 }
 
+char* str_from_errno()
+{
+#ifdef MSVC_COMPILER
+#pragma warning(disable:4996)
+    return strerror(errno);
+#pragma warning(default:4996)
+#else
+    return strerror(errno);
+#endif
+};
+
+
 uint64_t id()
 {
     return _id_helper::getId();
@@ -153,14 +165,14 @@ void set_verbose()
     verbose = true;
 }
 
-off_t file_size(const std::string& file)
+size_t file_size(const std::string& file)
 {
     if (is_ram_file(file)) {
         return ram_fs::file_size(file);
     } else {
-        struct stat filestatus;
-        stat(file.c_str(), &filestatus);
-        return filestatus.st_size;
+        struct stat fs;
+        stat(file.c_str(), &fs );
+        return fs.st_size;
     }
 }
 
