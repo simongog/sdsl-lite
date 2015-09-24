@@ -50,7 +50,7 @@ TEST_F(int_vector_mapper_test, iterator)
         std::vector<uint64_t> vec(size);
         sdsl::util::set_to_id(vec);
         {
-            std::ofstream ofs(temp_dir+"/int_vector_mapper_itrtest");
+            std::ofstream ofs(temp_dir+"/int_vector_mapper_itrtest",std::ios::binary | std::ios::trunc | std::ios::out);
             sdsl::serialize_vector(vec,ofs);
         }
         {
@@ -124,7 +124,7 @@ TEST_F(int_vector_mapper_test, push_back)
         std::vector<uint64_t> vec(size);
         sdsl::util::set_to_id(vec);
         {
-            std::ofstream ofs(temp_dir+"/int_vector_mapper_push_backtest");
+            std::ofstream ofs(temp_dir+"/int_vector_mapper_push_backtest",std::ios::binary | std::ios::trunc | std::ios::out);
             sdsl::serialize_vector(vec,ofs);
         }
         {

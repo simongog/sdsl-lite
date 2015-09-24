@@ -174,7 +174,7 @@ typename t_int_vec::size_type prev_bit(const t_int_vec& v, uint64_t idx);
 /*! \param file  Path to a file.
  *  \returns     Size of the specified file in bytes.
  */
-off_t file_size(const std::string& file);
+size_t file_size(const std::string& file);
 
 //! Returns the basename of a file
 /*! \param file  Path to a file.
@@ -230,6 +230,9 @@ std::string class_name(const T& t)
 
 //! Get the process id of the current process
 uint64_t pid();
+
+// convert an errno number to a readable msg
+char* str_from_errno();
 
 class _id_helper
 {
