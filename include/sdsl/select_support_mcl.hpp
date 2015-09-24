@@ -108,10 +108,10 @@ class select_support_mcl : public select_support
 template<uint8_t t_b, uint8_t t_pat_len>
 select_support_mcl<t_b,t_pat_len>::select_support_mcl(const bit_vector* f_v):select_support(f_v)
 {
-    if (t_pat_len>1 or(v!=nullptr and  v->size() < 100000))
-        init_slow(v);
+    if (t_pat_len>1 or(vv!=nullptr and  vv->size() < 100000))
+        init_slow(vv);
     else
-        init_fast(v);
+        init_fast(vv);
     return;
 }
 
@@ -294,9 +294,9 @@ void select_support_mcl<t_b,t_pat_len>::init_fast(const bit_vector* v)
                 m_superblock[sb_cnt] = arg_position[0];
                 size_type pos_of_last_arg_in_the_block = arg_position[last_k64-65];
 
-                for (size_type i=arg_position[last_k64-65]+1, j=last_k64-65; i < v->size() and j < SUPER_BLOCK_SIZE; ++i)
-                    if (select_support_trait<t_b,t_pat_len>::found_arg(i, *v)) {
-                        pos_of_last_arg_in_the_block = i;
+                for (size_type ii=arg_position[last_k64-65]+1, j=last_k64-65; ii < v->size() and j < SUPER_BLOCK_SIZE; ++ii)
+                    if (select_support_trait<t_b,t_pat_len>::found_arg(ii, *v)) {
+                        pos_of_last_arg_in_the_block = ii;
                         ++j;
                     }
                 size_type pos_diff = pos_of_last_arg_in_the_block - arg_position[0];

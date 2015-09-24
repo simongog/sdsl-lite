@@ -101,7 +101,8 @@ class bp_support_sada
         mutable fast_cache select_cache;
 #endif
 
-        void copy(const bp_support_sada& bp_support) {
+        void copy(const bp_support_sada& bp_support)
+        {
             m_bp        = bp_support.m_bp;
             m_bp_rank   = bp_support.m_bp_rank;
             m_bp_rank.set_vector(m_bp);
@@ -117,74 +118,91 @@ class bp_support_sada
             m_med_inner_blocks = bp_support.m_med_inner_blocks;
         }
 
-        inline static size_type sml_block_idx(size_type i) {
+        inline static size_type sml_block_idx(size_type i)
+        {
             return i/t_sml_blk;
         }
 
-        inline static size_type med_block_idx(size_type i) {
+        inline static size_type med_block_idx(size_type i)
+        {
             return i/(t_sml_blk*t_med_deg);
         }
 
-        inline static bool is_root(size_type v) {
+        inline static bool is_root(size_type v)
+        {
             return v==0;
         }
 
-        inline static bool is_left_child(size_type v) {
+        inline static bool is_left_child(size_type v)
+        {
             assert(!is_root(v));
             return v%2;
         }
 
-        inline static bool is_right_child(size_type v) {
+        inline static bool is_right_child(size_type v)
+        {
             assert(!is_root(v));
             return !(v%2);
         }
 
-        inline static size_type parent(size_type v) {
+        inline static size_type parent(size_type v)
+        {
             assert(!is_root(v));
             return (v-1)/2;
         }
 
-        inline static size_type left_child(size_type v) {
+        inline static size_type left_child(size_type v)
+        {
             return 2*v+1;
         }
 
-        inline static size_type right_child(size_type v) {
+        inline static size_type right_child(size_type v)
+        {
             return 2*v+2;
         }
 
-        inline bool node_exists(size_type v)const {
+        inline bool node_exists(size_type v)const
+        {
             return v < (m_med_inner_blocks + m_med_blocks);
         }
 
-        inline static size_type right_sibling(size_type v) {
+        inline static size_type right_sibling(size_type v)
+        {
             return ++v;
         }
 
-        inline static size_type left_sibling(size_type v) {
+        inline static size_type left_sibling(size_type v)
+        {
             return --v;
         }
 
-        inline bool is_leaf(size_type v)const {
+        inline bool is_leaf(size_type v)const
+        {
             return v >= m_med_inner_blocks;
         }
 
-        inline difference_type min_value(size_type v)const {
+        inline difference_type min_value(size_type v)const
+        {
             return m_size-((difference_type)m_med_block_min_max[2*v]);
         }
 
-        inline difference_type max_value(size_type v)const {
+        inline difference_type max_value(size_type v)const
+        {
             return m_med_block_min_max[2*v+1]-m_size;
         }
 
-        inline difference_type sml_min_value(size_type sml_block)const {
+        inline difference_type sml_min_value(size_type sml_block)const
+        {
             return (1 - ((difference_type)m_sml_block_min_max[sml_block<<1]));
         }
 
-        inline difference_type sml_max_value(size_type sml_block)const {
+        inline difference_type sml_max_value(size_type sml_block)const
+        {
             return (difference_type)m_sml_block_min_max[(sml_block<<1)+1] - 1;
         }
 
-        void print_node(size_type v)const {
+        void print_node(size_type v)const
+        {
             std::cout<< "v = "<< v <<"  (" << min_value(v)
                      << ", " << max_value(v) << ")" ;
             if (is_leaf(v)) {
@@ -201,7 +219,8 @@ class bp_support_sada
          *            \f$ excess(j) = excess(i)+rel \f$, \f$j\f$ is returned
          *                otherwise size().
          */
-        size_type fwd_excess(size_type i, difference_type rel)const {
+        size_type fwd_excess(size_type i, difference_type rel)const
+        {
             size_type j;
             // (1) search the small block for the answer
             if ((j = near_fwd_excess(*m_bp, i+1, rel, t_sml_blk)) > i) {
@@ -246,7 +265,8 @@ class bp_support_sada
          *  \return     If there exists a parenthesis \f$i<j\f$ with \f$ excess(j) = excess(i)+rel\f$, \f$j\f$ is returned
          *                otherwise size().
          */
-        size_type bwd_excess(size_type i, difference_type rel)const {
+        size_type bwd_excess(size_type i, difference_type rel)const
+        {
             size_type j;
             if (i == 0) {
                 return rel == 0 ? -1 : size();
@@ -294,7 +314,8 @@ class bp_support_sada
         }
 
         //! Calculate the maximal parentheses \f$ j \leq sml_block_idx\cdot t_sml_blk+(t_sml_blk-1) \f$ with \f$ excess(j)=desired\_excess \f$
-        size_type bwd_excess_in_med_block(size_type sml_block_idx, difference_type desired_excess)const {
+        size_type bwd_excess_in_med_block(size_type sml_block_idx, difference_type desired_excess)const
+        {
             // get the first small block in the medium block right to the current med block
             size_type first_sml_block_in_med_block = (med_block_idx(sml_block_idx*t_sml_blk))*t_med_deg;
 
@@ -315,7 +336,8 @@ class bp_support_sada
         }
 
         //! Calculate the minimal parentheses \f$ j \geq sml_block_idx\cdot t_sml_blk \f$ with \f$ excess(j)=desired\_excess \f$
-        size_type fwd_excess_in_med_block(size_type sml_block_idx, difference_type desired_excess)const {
+        size_type fwd_excess_in_med_block(size_type sml_block_idx, difference_type desired_excess)const
+        {
             // get the first small block in the medium block right to the current med block
             size_type first_sml_block_nr_in_next_med_block = (med_block_idx(sml_block_idx*t_sml_blk)+1)*t_med_deg;
             if (first_sml_block_nr_in_next_med_block > m_sml_blocks)
@@ -348,7 +370,8 @@ class bp_support_sada
             m_size(bp==nullptr?0:bp->size()),
             m_sml_blocks((m_size+t_sml_blk-1)/t_sml_blk),
             m_med_blocks((m_size+t_sml_blk* t_med_deg-1)/(t_sml_blk* t_med_deg)),
-            m_med_inner_blocks(0) {
+            m_med_inner_blocks(0)
+        {
             if (bp == nullptr or bp->size()==0)
                 return;
             // initialize rank and select
@@ -405,17 +428,20 @@ class bp_support_sada
         }
 
         //! Copy constructor
-        bp_support_sada(const bp_support_sada& bp_support) {
+        bp_support_sada(const bp_support_sada& bp_support)
+        {
             copy(bp_support);
         }
 
         //! Move constructor
-        bp_support_sada(bp_support_sada&& bp_support) {
+        bp_support_sada(bp_support_sada&& bp_support)
+        {
             *this = std::move(bp_support);
         }
 
         //! Assignment operator
-        bp_support_sada& operator=(bp_support_sada&& bp_support) {
+        bp_support_sada& operator=(bp_support_sada&& bp_support)
+        {
             if (this != &bp_support) {
                 m_bp        = std::move(bp_support.m_bp);
                 m_bp_rank   = std::move(bp_support.m_bp_rank);
@@ -439,7 +465,8 @@ class bp_support_sada
          *  You have to use set_vector to adjust the supported bit_vector.
          *  \param bp_support Object which is swapped.
          */
-        void swap(bp_support_sada& bp_support) {
+        void swap(bp_support_sada& bp_support)
+        {
             // m_bp.swap(bp_support.m_bp); use set_vector to set the supported bit_vector
             m_bp_rank.swap(bp_support.m_bp_rank);
             m_bp_select.swap(bp_support.m_bp_select);
@@ -454,7 +481,8 @@ class bp_support_sada
         }
 
         //! Assignment operator
-        bp_support_sada& operator=(const bp_support_sada& bp_support) {
+        bp_support_sada& operator=(const bp_support_sada& bp_support)
+        {
             if (this != &bp_support) {
                 copy(bp_support);
             }
@@ -467,7 +495,8 @@ class bp_support_sada
                     return *this;
                 }
         */
-        void set_vector(const bit_vector* bp) {
+        void set_vector(const bit_vector* bp)
+        {
             m_bp = bp;
             m_bp_rank.set_vector(bp);
             m_bp_select.set_vector(bp);
@@ -476,14 +505,16 @@ class bp_support_sada
         /*! Calculates the excess value at index i.
          * \param i The index of which the excess value should be calculated.
          */
-        inline difference_type excess(size_type i)const {
+        inline difference_type excess(size_type i)const
+        {
             return (m_bp_rank(i+1)<<1)-i-1;
         }
 
         /*! Returns the number of opening parentheses up to and including index i.
          * \pre{ \f$ 0\leq i < size() \f$ }
          */
-        size_type rank(size_type i)const {
+        size_type rank(size_type i)const
+        {
             return m_bp_rank(i+1);
         }
 
@@ -492,7 +523,8 @@ class bp_support_sada
          * \pre{ \f$1\leq i < rank(size())\f$ }
          * \post{ \f$ 0\leq select(i) < size() \f$ }
          */
-        size_type select(size_type i)const {
+        size_type select(size_type i)const
+        {
 #ifdef USE_CACHE
             size_type a = 0;
             if (select_cache.exists(i, a)) {
@@ -512,7 +544,8 @@ class bp_support_sada
          *         * the position j of the matching closing parenthesis, if a matching parenthesis exists,
          *         * size() if no matching closing parenthesis exists.
          */
-        size_type find_close(size_type i)const {
+        size_type find_close(size_type i)const
+        {
             assert(i < m_size);
             if (!(*m_bp)[i]) {// if there is a closing parenthesis at index i return i
                 return i;
@@ -536,7 +569,8 @@ class bp_support_sada
           *         * the position j of the matching opening parenthesis, if a matching parenthesis exists,
           *         * size() if no matching closing parenthesis exists.
           */
-        size_type find_open(size_type i)const {
+        size_type find_open(size_type i)const
+        {
             assert(i < m_size);
             if ((*m_bp)[i]) {// if there is a opening parenthesis at index i return i
                 return i;
@@ -567,7 +601,8 @@ class bp_support_sada
          *  \return The index of the opening parenthesis corresponding to the closest matching parenthesis pair enclosing i,
          *          or size() if no such pair exists.
          */
-        size_type enclose(size_type i)const {
+        size_type enclose(size_type i)const
+        {
             assert(i < m_size);
             if (!(*m_bp)[i]) { // if there is closing parenthesis at position i
                 return find_open(i);
@@ -587,7 +622,8 @@ class bp_support_sada
          * \par Time complexity
          *     \f$ \Order{block\_size} \f$
          */
-        size_type rr_enclose(const size_type i, const size_type j)const {
+        size_type rr_enclose(const size_type i, const size_type j)const
+        {
             assert(j < m_size);
             assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             const size_type mip1 = find_close(i)+1;
@@ -604,7 +640,8 @@ class bp_support_sada
          * \par Time complexity
          *     \f$ \Order{block\_size} \f$
          */
-        size_type rmq_open(const size_type l, const size_type r)const {
+        size_type rmq_open(const size_type l, const size_type r)const
+        {
             assert(r < m_bp->size());
             if (l >= r)
                 return size();
@@ -636,7 +673,8 @@ class bp_support_sada
             return size();
         }
 
-        size_type median_block_rmq(size_type l_sblock, size_type r_sblock, bit_vector::difference_type& min_ex)const {
+        size_type median_block_rmq(size_type l_sblock, size_type r_sblock, bit_vector::difference_type& min_ex)const
+        {
             assert(l_sblock <= r_sblock+1);
             size_type pos_min_block = (size_type)-1;
             difference_type e = 0;
@@ -661,7 +699,8 @@ class bp_support_sada
         /*! \param l The left border of the interval \f$[l..r]\f$ (\f$l\leq r\f$).
          *  \param r The right border of the interval \f$[l..r]\f$ (\f$l \leq r\f$).
          */
-        size_type rmq(size_type l, size_type r)const {
+        size_type rmq(size_type l, size_type r)const
+        {
             assert(l<=r);
             size_type sbl = sml_block_idx(l);
             size_type sbr = sml_block_idx(r);
@@ -710,10 +749,10 @@ class bp_support_sada
                         }
                         if (is_right_child(v)) { // v is a right child
                             h += 1;
-                            rcb += (1<<h);
+                            rcb += (1ULL<<h);
                             v = right_sibling(parent(v));
                         } else { //  it is a left child
-                            rcb += (1<<h);
+                            rcb += (1ULL<<h);
                             h += 1;
                             v = parent(v);
                         }
@@ -728,11 +767,11 @@ class bp_support_sada
                         assert(h != (size_type)-1);
                         if (rcb > mbr-1) {
                             h     = h-1;
-                            rcb = rcb - (1<<h);
+                            rcb = rcb - (1ULL<<h);
                             v = left_child(v);
                         } else { // rcb < mbr-1
                             h = h-1;
-                            rcb = rcb + (1<<h);
+                            rcb = rcb + (1ULL<<h);
                             v = right_sibling(right_child(v));
                         }
                         if (rcb <= mbr-1 and min_value(v) <= min_ex) {
@@ -787,7 +826,8 @@ class bp_support_sada
          *  \par Time complexity
          *        \f$ \Order{size()}\f$ in the worst case.
         */
-        size_type rr_enclose_naive(size_type i, size_type j)const {
+        size_type rr_enclose_naive(size_type i, size_type j)const
+        {
             assert(j > i and j < m_size);
             assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             size_type mi = find_close(i); // matching parenthesis to i
@@ -810,7 +850,8 @@ class bp_support_sada
          *  \return The maximal opening parenthesis, say k, such that \f$ k<j \wedge k>findclose(j) \f$.
          *          If such a k does not exists, double_enclose(i,j) returns size().
          */
-        size_type double_enclose(size_type i, size_type j)const {
+        size_type double_enclose(size_type i, size_type j)const
+        {
             assert(j > i);
             assert((*m_bp)[i]==1 and(*m_bp)[j]==1);
             size_type k = rr_enclose(i, j);
@@ -823,7 +864,8 @@ class bp_support_sada
         //! Return the number of zeros which proceed position i in the balanced parentheses sequence.
         /*! \param i Index of an parenthesis.
          */
-        size_type preceding_closing_parentheses(size_type i)const {
+        size_type preceding_closing_parentheses(size_type i)const
+        {
             assert(i < m_size);
             if (!i) return 0;
             size_type ones = m_bp_rank(i);
@@ -838,7 +880,8 @@ class bp_support_sada
         /*! The size of the supported balanced parentheses sequence.
          * \return the size of the supported balanced parentheses sequence.
          */
-        size_type size() const {
+        size_type size() const
+        {
             return m_size;
         }
 
@@ -847,7 +890,8 @@ class bp_support_sada
          * \param out The outstream to which the data structure is written.
          * \return The number of bytes written to out.
          */
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
@@ -870,7 +914,8 @@ class bp_support_sada
          * \param in The instream from which the data strucutre is read.
          * \param bp Bit vector representing a balanced parentheses sequence that is supported by this data structure.
          */
-        void load(std::istream& in, const bit_vector* bp) {
+        void load(std::istream& in, const bit_vector* bp)
+        {
             m_bp = bp;
             read_member(m_size, in);
             assert(m_size == bp->size());

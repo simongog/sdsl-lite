@@ -560,10 +560,9 @@ struct _hutu_shape {
             assign_level(A[0], 0);
 
             // reconstruction phase using the stack algorithm
-            ht_node* stack[sigma];
+            std::vector<ht_node*> stack(sigma, nullptr);
 
             for (size_type i = 0; i < sigma; i++) {
-                stack[i] = nullptr;
                 temp_nodes.emplace_back(pc_node(T[i].w, (size_type)T[i].c));
                 T[i].pos = i;
             }

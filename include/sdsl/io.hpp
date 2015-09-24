@@ -180,7 +180,7 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
         return load_from_file(v, file);
     } else if (num_bytes == 'd') {
         uint64_t x = 0, max_x = 0;
-        isfstream in(file);
+        isfstream in(file, std::ios::in | std::ios::binary);
         if (!in) {
             return false;
         } else {
@@ -206,7 +206,7 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
                                    +"\" is not a multiple of "+util::to_string(num_bytes));
             return false;
         }
-        isfstream in(file);
+        isfstream in(file, std::ios::in | std::ios::binary);
         if (in) {
             v.width(std::min((int)8*num_bytes, (int)max_int_width));
             v.resize(file_size / num_bytes);
@@ -266,7 +266,7 @@ bool store_to_file(const int_vector<t_width>& v, const std::string& file, bool w
 template<class int_type, class t_int_vec>
 bool store_to_plain_array(t_int_vec& v, const std::string& file)
 {
-    osfstream out(file);
+    osfstream out(file, std::ios::out | std::ios::binary);
     if (out) {
         for (typename t_int_vec::size_type i=0; i<v.size(); ++i) {
             int_type x = v[i];

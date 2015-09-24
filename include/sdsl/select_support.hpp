@@ -40,12 +40,12 @@ class select_support
         const int_vector<1>* m_v; //!< Pointer to the select supported sdsl::bit_vector.
     public:
         typedef int_vector<1>::size_type size_type;
-        const bit_vector* v;
+        const bit_vector* vv;
 
         //! Constructor of select_support.
         /*! \param v The bit_vector to support rank queries.
          */
-        select_support(const int_vector<1>* f_v=nullptr):v(f_v)
+        select_support(const int_vector<1>* f_v=nullptr):vv(f_v)
         {
             m_v = f_v;
         }
@@ -142,7 +142,7 @@ struct select_support_trait<0,1> {
     }
     static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t)
     {
-        return bits::sel(~w & bits::lo_unset[offset], i);
+        return bits::sel(~w & bits::lo_unset[offset], (uint32_t) i);
     }
     static size_type args_in_the_word(uint64_t w, uint64_t&)
     {
@@ -150,7 +150,7 @@ struct select_support_trait<0,1> {
     }
     static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t)
     {
-        return bits::sel(~w, i);
+        return bits::sel(~w, (uint32_t) i);
     }
     static bool found_arg(size_type i, const bit_vector& v)
     {
@@ -180,7 +180,7 @@ struct select_support_trait<1,1> {
     }
     static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t)
     {
-        return bits::sel(w & bits::lo_unset[offset], i);
+        return bits::sel(w & bits::lo_unset[offset], (uint32_t) i);
     }
     static size_type args_in_the_word(uint64_t w, uint64_t&)
     {
@@ -188,11 +188,11 @@ struct select_support_trait<1,1> {
     }
     static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t)
     {
-        return bits::sel(w, i);
+        return bits::sel(w, (uint32_t) i);
     }
     static bool found_arg(size_type i, const bit_vector& v)
     {
-        return v[i];
+        return v[i] == 1;
     }
     static uint64_t init_carry(const uint64_t*, size_type)
     {
@@ -218,7 +218,7 @@ struct select_support_trait<10,2> {
     }
     static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry)
     {
-        return bits::sel(bits::map10(w, carry) & bits::lo_unset[offset], i);
+        return bits::sel(bits::map10(w, carry) & bits::lo_unset[offset], (uint32_t) i);
     }
     static size_type args_in_the_word(uint64_t w, uint64_t& carry)
     {
@@ -226,7 +226,7 @@ struct select_support_trait<10,2> {
     }
     static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry)
     {
-        return bits::sel(bits::map10(w, carry), i);
+        return bits::sel(bits::map10(w, carry), (uint32_t) i);
     }
     static bool found_arg(size_type i, const bit_vector& v)
     {
@@ -258,7 +258,7 @@ struct select_support_trait<01,2> {
     }
     static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t carry)
     {
-        return bits::sel(bits::map01(w, carry) & bits::lo_unset[offset], i);
+        return bits::sel(bits::map01(w, carry) & bits::lo_unset[offset], (uint32_t) i);
     }
     static size_type args_in_the_word(uint64_t w, uint64_t& carry)
     {
@@ -266,11 +266,13 @@ struct select_support_trait<01,2> {
     }
     static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t carry)
     {
-        return bits::sel(bits::map01(w, carry), i);
+        return bits::sel(bits::map01(w, carry), (uint32_t) i);
     }
     static bool found_arg(size_type i, const bit_vector& v)
     {
-        return i > 0 and !v[i-1] and v[i];
+        if (i > 0 and !v[i-1] and v[i])
+            return true;
+        return false;
     }
     static uint64_t init_carry(const uint64_t* data, size_type word_pos)
     {
@@ -397,6 +399,8 @@ struct select_support_trait<11,2> {
         return w>>63;
     }
 };
+
+
 
 } // end namespace sdsl
 

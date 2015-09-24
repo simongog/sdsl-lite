@@ -44,18 +44,6 @@ else
 	echo "         The pre-commit hook is not installed."
 fi
 
-# (2) Install divsufsort, gtest, and sdsl
-
-HEADER=test/CompileTest.hpp # Make a header-file that contains all other header-files
-echo "#ifndef INCLUDED_SDSL_COMPILE_TEST" > ${HEADER}
-echo "#define INCLUDED_SDSL_COMPILE_TEST" >> ${HEADER}
-for HEADERFILE in include/sdsl/*.hpp
-do
-    FILENAME=`basename ${HEADERFILE}`
-    echo "#include \"sdsl/${FILENAME}\"" >> ${HEADER}
-done
-echo "#endif" >> ${HEADER}
-
 cd build # change into the build directory
 if [ $? != 0 ]; then
 	exit 1
@@ -70,7 +58,7 @@ if [ $? != 0 ]; then
 	echo "ERROR: CMake build failed."
 	exit 1
 fi
-make # run make
+make sdsl # run make
 if [ $? != 0 ]; then
 	echo "ERROR: Build failed."
 	exit 1

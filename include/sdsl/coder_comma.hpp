@@ -1,23 +1,23 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2009 Simon Gog
+Copyright (C) 2009 Simon Gog
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see http://www.gnu.org/licenses/ .
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
 /*! \file coder_comma.hpp
-    \brief coder_comma.hpp contains the class sdsl::coder::comma
-    \author Uwe Baier
- */
+\brief coder_comma.hpp contains the class sdsl::coder::comma
+\author Uwe Baier
+*/
 #ifndef SDSL_CODER_COMMA_INCLUDED
 #define SDSL_CODER_COMMA_INCLUDED
 
@@ -28,33 +28,31 @@
 namespace sdsl
 {
 
-
-
 namespace coder
 {
 
 //! A class to encode and decode between comma code and binary code.
 /*! \author Uwe Baier
- *
- *    Comma coding works as the following:
- *    First of all, comma coding needs a parameter t_width which indicates
- *    how big a encoded digit will be (in bits), let's say t_width = 2.
- *    By use of t_width one can calculate a base for encoding, in detail
- *    this means
- *    base = 2^t_width - 1
- *    now, given any number it is encoded as the follows: The number gets displayed
- *    in the calculated base, and each digit of the number is saved with t_width bits.
- *    To indicate the end of the number, a termination digit is used (namely this is
- *    the value base).
- *    Example:
- *    t_width = 2 => base = 2^2 - 1 = 3
- *    Value to be encoded: 15
- *    15 (base 10) = 120 (base 3)
- *    Encoded value: 120 (plus termination digit) = 01 10 00 11 in binary
- *    (last digit is termination digit)
- *
- *  \tparam t_width Width of one digit used in comma code
- */
+*
+*    Comma coding works as the following:
+*    First of all, comma coding needs a parameter t_width which indicates
+*    how big a encoded digit will be (in bits), let's say t_width = 2.
+*    By use of t_width one can calculate a base for encoding, in detail
+*    this means
+*    base = 2^t_width - 1
+*    now, given any number it is encoded as the follows: The number gets displayed
+*    in the calculated base, and each digit of the number is saved with t_width bits.
+*    To indicate the end of the number, a termination digit is used (namely this is
+*    the value base).
+*    Example:
+*    t_width = 2 => base = 2^2 - 1 = 3
+*    Value to be encoded: 15
+*    15 (base 10) = 120 (base 3)
+*    Encoded value: 120 (plus termination digit) = 01 10 00 11 in binary
+*    (last digit is termination digit)
+*
+*  \tparam t_width Width of one digit used in comma code
+*/
 template<uint8_t t_width = 2>
 class comma
 {
@@ -73,11 +71,20 @@ class comma
         //table needed for computation of encoding lengths.
         //table contains entries of the kind (index, base^index)
         //to know how much digits a number needs to be encoded.
-        static const size_t codelentbllen = base_fits_in_64(base,0xFFFFFFFFFFFFFFFFULL,0);
-        static std::array<uint64_t, codelentbllen> codelentbl;
+        static constexpr size_t codelentbllen = base_fits_in_64(base,0xFFFFFFFFFFFFFFFFULL,0);
 
-        //utility function to set up codelen table
-        static std::array<uint64_t, codelentbllen> createCodeLenTbl();
+        static struct impl {
+            std::array<uint64_t, codelentbllen> codelentbl;
+            impl()
+            {
+                // intialize codelentbl
+                uint64_t n = 1;
+                for (size_t i = 0; i < codelentbllen; i++) {
+                    codelentbl[i] = n;
+                    n = (n << t_width) - n; //n = n * base
+                }
+            }
+        } data;
 
         //helper function to encode a single number without
         //termination digit
@@ -99,14 +106,14 @@ class comma
         //! Encode one positive integer x to an int_vector
         //  at bit position start_idx.
         /* \param x Positive integer to encode.
-           \param z Raw data of vector to write the encoded form of x.
-           \param start_idx Beginning bit index to write the encoded form ox x in z.
+        \param z Raw data of vector to write the encoded form of x.
+        \param start_idx Beginning bit index to write the encoded form ox x in z.
         */
         static void encode(uint64_t x, uint64_t*& z, uint8_t& offset);
 
         //! Encode integers contained in vector v into vector z
         /* \param v vector containing positive integer values
-           \param z vector to put the encoded values
+        \param z vector to put the encoded values
         */
         template<class int_vector>
         static bool encode(const int_vector& v, int_vector& z);
@@ -116,25 +123,25 @@ class comma
         //! Decode n comma encoded values beginning at start_idx
         //  in the bitstring "data"
         /* \param data Bitstring
-           \param start_idx Starting index of the decoding.
-           \param n Number of values to decode from the bitstring.
-           \param it Iterator to store the values.
+        \param start_idx Starting index of the decoding.
+        \param n Number of values to decode from the bitstring.
+        \param it Iterator to store the values.
         */
-        template<bool t_sumup, bool t_inc,class t_iter>
+        template<bool t_sumup, bool t_inc, class t_iter>
         static uint64_t decode(const uint64_t* data,
                                const size_type start_idx, size_type n,
-                               t_iter it=(t_iter)nullptr);
+                               t_iter it = (t_iter)nullptr);
 
         //! Decode n comma gamma encoded integers
         //  beginning at start_idx in the bitstring "data"
         //  and return the sum of these values.
         /*! \param data Pointer to the beginning
-        	of the comma encoded bitstring.
-            \param start_idx Index of the first bit
-        	to encode the values from.
-            \param n Number of values to decode from the bitstring.
-        	Attention: There have to be at least n encoded
-        	values in the bitstring.
+        of the comma encoded bitstring.
+        \param start_idx Index of the first bit
+        to encode the values from.
+        \param n Number of values to decode from the bitstring.
+        Attention: There have to be at least n encoded
+        values in the bitstring.
         */
         static uint64_t decode_prefix_sum(const uint64_t* data,
                                           const size_type start_idx, size_type n);
@@ -144,14 +151,14 @@ class comma
         //  in the bitstring "data"
         //  and return the sum of these values.
         /*! \param data Pointer to the beginning
-        	of the comma encoded bitstring.
-            \param start_idx Index of the first bit
-        	to encode the values from.
-            \param end_idx Index of the last bit
-        	to encode the values from.
-            \param n Number of values to decode from the bitstring.
-        	Attention: There have to be at least n encoded
-        	values in the bitstring.
+        of the comma encoded bitstring.
+        \param start_idx Index of the first bit
+        to encode the values from.
+        \param end_idx Index of the last bit
+        to encode the values from.
+        \param n Number of values to decode from the bitstring.
+        Attention: There have to be at least n encoded
+        values in the bitstring.
         */
         static uint64_t decode_prefix_sum(const uint64_t* data,
                                           const size_type start_idx, const size_type end_idx,
@@ -160,7 +167,7 @@ class comma
         //! Decode vector z containing comma encoded integers
         //  and store them in vector v.
         /*! \param z vector that contains encoded integers.
-            \param v vector to store the decoded integers
+        \param v vector to store the decoded integers
         */
         template<class int_vector>
         static bool decode(const int_vector& z, int_vector& v);
@@ -177,23 +184,11 @@ class comma
 
 //// CODELENGTH TABLE SETUP ///////////////////////////////
 
-template<uint8_t t_width>
-std::array<uint64_t, comma<t_width>::codelentbllen> comma<t_width>::codelentbl =
-    createCodeLenTbl();
-
-template<uint8_t t_width>
-std::array<uint64_t, comma<t_width>::codelentbllen> comma<t_width>::createCodeLenTbl()
-{
-    std::array<uint64_t, codelentbllen> tbl;
-    uint64_t n = 1;
-    for (size_t i = 0; i < codelentbllen; i++) {
-        tbl[i] = n;
-        n = (n << t_width) - n; //n = n * base
-    }
-    return tbl;
-}
-
 //// Encoding /////////////////////////////////////////////
+
+template<uint8_t t_width>
+typename comma<t_width>::impl comma<t_width>::data;
+
 
 template<uint8_t t_width>
 inline uint8_t comma<t_width>::encoding_length(uint64_t w)
@@ -201,8 +196,8 @@ inline uint8_t comma<t_width>::encoding_length(uint64_t w)
     //use function table and binary search to determine the number of digits
     //needed to encode w in given base.
     uint8_t numdigits =
-        std::upper_bound(codelentbl.begin(), codelentbl.end(), w)
-        - codelentbl.begin();
+        std::upper_bound(data.codelentbl.begin(), data.codelentbl.end(), w)
+        - data.codelentbl.begin();
     //finally calculate length.
     //Don't forget termination character on calculations ;)
     return (numdigits + 1) * t_width;
@@ -285,7 +280,7 @@ uint64_t comma<t_width>::decode_prefix_sum(const uint64_t* data,
         const size_type start_idx, size_type n)
 {
     //easiest seems to be to use already build function decode...
-    return decode<true,false,int*>(data, start_idx, n);
+    return decode<true, false, int*>(data, start_idx, n);
     //Note for above: 3rd template parameter ca be any pntr except void *
 }
 
