@@ -22,6 +22,7 @@ ENDFOREACH(download_config_line)
 
 FILE(GLOB SDSL_HEADER_ALL ${CMAKE_CURRENT_BINARY_DIR}/../include/sdsl/*.hpp)
 STRING(REGEX REPLACE "([^;]+)[;]" "#include \"\\1\"\\n" SDSL_INCLUDE_ALL "${SDSL_HEADER_ALL};")                                                                       
+STRING(REGEX REPLACE "${CMAKE_CURRENT_BINARY_DIR}/\\.\\./include/" "" SDSL_INCLUDE_ALL "${SDSL_INCLUDE_ALL}")                                                                       
 
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/compile_test.cpp.cmake"
                "${CMAKE_CURRENT_SOURCE_DIR}/compile_test.cpp" @ONLY)
