@@ -10,10 +10,6 @@
 namespace sdsl
 {
 
-#ifdef MSVC_COMPILER
-#pragma warning(disable:4724)
-#endif
-
 template <uint8_t t_width = 0,std::ios_base::openmode t_mode = std::ios_base::out|std::ios_base::in>
 class int_vector_mapper
 {
@@ -150,20 +146,19 @@ class int_vector_mapper
             if (!is_plain) {
                 m_data_offset = t_width ? 8 : 9;
             } else {
-                if (8 != t_width and 16 != t_width and 32 != t_width and 64
-                    != t_width) {
+                if (8 != t_width and 16 != t_width and 32 != t_width and 64 != t_width) {
                     throw std::runtime_error("int_vector_mapper: plain vector can "
                                              "only be of width 8, 16, 32, 64.");
+                } else {
+                    uint8_t byte_width = t_width/8;
+                    // if( m_file_size_bytes % (t_width/8) != 0)
+                    if ( (m_file_size_bytes & bits::lo_set[bits::cnt(byte_width-1)]) != 0 ) { 
+                        throw std::runtime_error("int_vector_mapper: plain vector not a multiple of byte: "
+                            +std::to_string(m_file_size_bytes)+" mod "+std::to_string(byte_width)+" != 0");
+                    }                    
                 }
                 size_in_bits = m_file_size_bytes * 8;
                 m_data_offset = 0;
-
-                
-                if( m_file_size_bytes % (t_width/8) != 0) {
-                    throw std::runtime_error("int_vector_mapper: plain vector not a multiple of byte: "
-                        +std::to_string(m_file_size_bytes)+" mod "+std::to_string(t_width/8)+" != 0");
-                }
-                
             }
 
             // open backend file depending on mode
@@ -418,9 +413,5 @@ template<uint8_t t_width = 0>
 using read_only_mapper = const int_vector_mapper<t_width,std::ios_base::in>;
 
 } // end of namespace
-
-#ifdef MSVC_COMPILER
-#pragma warning(default:4724)
-#endif
 
 #endif
