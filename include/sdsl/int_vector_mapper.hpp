@@ -60,7 +60,7 @@ class int_vector_mapper
                 auto ret = memory_manager::mem_unmap(m_mapped_data,m_file_size_bytes);
                 if (ret != 0) {
                     std::cerr << "int_vector_mapper: error unmapping file mapping'"
-                        << m_file_name << "': " << ret << std::endl;
+                              << m_file_name << "': " << ret << std::endl;
                 }
 
                 if (t_mode&std::ios_base::out) {
@@ -82,7 +82,7 @@ class int_vector_mapper
                 auto ret = memory_manager::close_file_for_mmap(m_fd);
                 if (ret != 0) {
                     std::cerr << "int_vector_mapper: error closing file mapping'"
-                        << m_file_name << "': " << ret << std::endl;
+                              << m_file_name << "': " << ret << std::endl;
                 }
                 if (m_delete_on_close) {
                     int ret_code = sdsl::remove(m_file_name);
@@ -123,7 +123,7 @@ class int_vector_mapper
         int_vector_mapper(const std::string& key,const cache_config& config)
             : int_vector_mapper(cache_file_name(key, config)) {}
 
-        
+
         int_vector_mapper(const std::string filename,
                           bool is_plain = false,
                           bool delete_on_close = false) :
@@ -152,10 +152,10 @@ class int_vector_mapper
                 } else {
                     uint8_t byte_width = t_width/8;
                     // if( m_file_size_bytes % (t_width/8) != 0)
-                    if ( (m_file_size_bytes & bits::lo_set[bits::cnt(byte_width-1)]) != 0 ) { 
+                    if ((m_file_size_bytes & bits::lo_set[bits::cnt(byte_width-1)]) != 0) {
                         throw std::runtime_error("int_vector_mapper: plain vector not a multiple of byte: "
-                            +std::to_string(m_file_size_bytes)+" mod "+std::to_string(byte_width)+" != 0");
-                    }                    
+                                                 +std::to_string(m_file_size_bytes)+" mod "+std::to_string(byte_width)+" != 0");
+                    }
                 }
                 size_in_bits = m_file_size_bytes * 8;
                 m_data_offset = 0;
@@ -177,15 +177,15 @@ class int_vector_mapper
             if (m_mapped_data == nullptr) {
                 std::string mmap_error
                     = std::string("int_vector_mapper: mmap error. ")
-                    + std::string(util::str_from_errno());
+                      + std::string(util::str_from_errno());
                 throw std::runtime_error(mmap_error);
             }
 
             m_wrapper.m_size = size_in_bits;
             m_wrapper.m_data = (uint64_t*)(m_mapped_data + m_data_offset);
-            
+
         }
-        
+
         std::string file_name() const { return m_file_name; }
         width_type width() const { return m_wrapper.width(); }
         void width(const uint8_t new_int_width)
@@ -206,7 +206,7 @@ class int_vector_mapper
                     auto ret = memory_manager::mem_unmap(m_mapped_data,m_file_size_bytes);
                     if (ret != 0) {
                         std::cerr << "int_vector_mapper: error unmapping file mapping'"
-                            << m_file_name << "': " << ret << std::endl;
+                                  << m_file_name << "': " << ret << std::endl;
                     }
                 }
                 int tret = memory_manager::truncate_file_mmap(m_fd, new_size_in_bytes + m_data_offset);
@@ -217,13 +217,13 @@ class int_vector_mapper
                     throw std::runtime_error(truncate_error);
                 }
                 m_file_size_bytes = new_size_in_bytes + m_data_offset;
-            
+
                 // perform the actual mapping
                 m_mapped_data = (uint8_t*)memory_manager::mmap_file(m_fd,m_file_size_bytes, t_mode);
                 if (m_mapped_data == nullptr) {
                     std::string mmap_error
                         = std::string("int_vector_mapper: mmap error. ")
-                        + std::string(util::str_from_errno());
+                          + std::string(util::str_from_errno());
                     throw std::runtime_error(mmap_error);
                 }
 
@@ -345,12 +345,11 @@ class temp_file_buffer
             char tmp_file_name[1024] = {0};
 #ifdef MSVC_COMPILER
             auto ret = GetTempFileName(dir.c_str(),"tmp_mapper_file_", 0 ,tmp_file_name);
-            if(ret == 0) {
+            if (ret == 0) {
                 throw std::runtime_error("could not create temporary file.");
             }
 #else
             sprintf(tmp_file_name, "%s/tmp_mapper_file_%d_XXXXXX.sdsl",dir.c_str(),util::pid());
-            int fd = -1;
             int fd = mkstemps(tmp_file_name,5);
             if (fd == -1) {
                 throw std::runtime_error("could not create temporary file.");
