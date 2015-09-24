@@ -115,7 +115,7 @@ void construct_lcp_kasai(cache_config& config)
  *  \par Time complexity
  *         \f$ \Order{n} \f$
  *  \par Space complexity
- *         \f$ n( \log \sigma + \log \n ) \f$ bits
+ *         \f$ n( \log \sigma + \log n ) \f$ bits
  *  \par Reference
  *         Juha Kärkkäinen, Giovanni Manzini, Simon J. Puglisi:
  *         Permuted Longest-Common-Prefix Array.

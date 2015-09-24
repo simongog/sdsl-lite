@@ -690,6 +690,8 @@ bool store_to_checked_file(const T& t, const std::string& file)
 
 bool store_to_file(const char* v, const std::string& file);
 
+bool store_to_file(const std::string& v, const std::string& file);
+
 template<uint8_t t_width>
 bool store_to_file(const int_vector<t_width>& v, const std::string& file, bool write_fixed_as_variable)
 {

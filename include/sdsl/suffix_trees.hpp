@@ -37,6 +37,4 @@
 #include "cst_sada.hpp"
 #include "cst_fully.hpp"
 
-
-
 #endif

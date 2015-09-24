@@ -68,24 +68,22 @@ forward_search(
     // shortcut for too long patterns
     if ((typename t_csa::size_type)(end - begin) >= size)
         return 0;
-    
+
     // compares the pattern with CSA-prefix i (truncated to length $|pattern|$).
-    auto compare = [&] (typename t_csa::size_type i) -> int
+    auto compare = [&](typename t_csa::size_type i) -> int {
+        for (auto current = begin; current != end; current++)
         {
-            for (auto current = begin; current != end; current++)
-            {
-                auto index = csa.char2comp[*current];
-                if (index == 0) return -1;
-                if (csa.C[index + 1] - 1 < i) return -1;
-                if (csa.C[index] > i) return 1;
-                i = csa.psi[i];
-            }
-            return 0;
-        };
+            auto index = csa.char2comp[*current];
+            if (index == 0) return -1;
+            if (csa.C[index + 1] - 1 < i) return -1;
+            if (csa.C[index] > i) return 1;
+            i = csa.psi[i];
+        }
+        return 0;
+    };
 
     // binary search (on min)
-    while (l_res < l_res_upper)
-    {
+    while (l_res < l_res_upper) {
         typename t_csa::size_type sample = l_res + (l_res_upper - l_res) / 2;
         int result = compare(sample);
         if (result == 1)
@@ -97,8 +95,7 @@ forward_search(
     }
 
     // binary search (on max)
-    while (r_res + 1 < r_res_upper)
-    {
+    while (r_res + 1 < r_res_upper) {
         typename t_csa::size_type sample = r_res + (r_res_upper - r_res) / 2;
         int result = compare(sample);
         if (result == 1)
@@ -175,9 +172,20 @@ typename t_csa::size_type backward_search(
 )
 {
     assert(l <= r); assert(r < csa.size());
-    typename t_csa::size_type c_begin = csa.C[csa.char2comp[c]];
-    l_res = c_begin + csa.bwt.rank(l, c); // count c in bwt[0..l-1]
-    r_res = c_begin + csa.bwt.rank(r+1, c) - 1; // count c in bwt[0..r]
+    typename t_csa::size_type cc = csa.char2comp[c];
+    if (cc == 0 and c > 0) {
+        l_res = 1;
+        r_res = 0;
+    } else {
+        typename t_csa::size_type c_begin = csa.C[cc];
+        if (l == 0 and r+1 == csa.size()) {
+            l_res = c_begin;
+            r_res = csa.C[cc+1] - 1;
+        } else {
+            l_res = c_begin + csa.bwt.rank(l, c); // count c in bwt[0..l-1]
+            r_res = c_begin + csa.bwt.rank(r+1, c) - 1; // count c in bwt[0..r]
+        }
+    }
     assert(r_res+1-l_res >= 0);
     return r_res+1-l_res;
 }
@@ -344,7 +352,7 @@ typename csa_wt<>::size_type bidirectional_search_backward(
  * The function requires a pattern \f$p\f$, an \f$\omega\f$-interval \f$[l_fwd..r_fwd]\f$ in the CSA object
  * of the forward text and an \f$\omega^{rev}\f$-interval \f$[l_bwd..r_bwd]\f$ in the CSA object of the backward text.
  * The function returns the \f$\omega p\f$-interval in the CSA object of the forward text and
- * the \f$\p^{rev}omega^{rev}\f$-interval in the CSA object of the backward text.
+ * the \f$p^{rev}omega^{rev}\f$-interval in the CSA object of the backward text.
  *
  * \tparam t_pat_iter Pattern iterator type.
  *
@@ -483,12 +491,12 @@ typename t_csx::size_type count(
  *         occurrences of pattern in the CSA.
  */
 template<class t_csa, class t_pat_iter, class t_rac=int_vector<64>>
-        t_rac locate(
-            const t_csa&  csa,
-            t_pat_iter begin,
-            t_pat_iter end,
-            SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
-        )
+t_rac locate(
+    const t_csa&  csa,
+    t_pat_iter begin,
+    t_pat_iter end,
+    SDSL_UNUSED typename std::enable_if<std::is_same<csa_tag, typename t_csa::index_category>::value, csa_tag>::type x = csa_tag()
+)
 {
     typename t_csa::size_type occ_begin, occ_end, occs;
     occs = backward_search(csa, 0, csa.size()-1, begin, end, occ_begin, occ_end);

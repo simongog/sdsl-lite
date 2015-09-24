@@ -77,6 +77,8 @@ and features provided by the library. Specifically we provide
 
 * A [cheat sheet][SDSLCS] which succinctly
 describes the usage of the library.
+* An doxygen generated [API reference][DOXYGENDOCS] which lists all types and functions
+of the library.
 * A set of [example](examples/) programs demonstrating how different features
 of the library are used.
 * A tutorial [presentation][TUT] with the [example code](tutorial/) using in the
@@ -228,7 +230,7 @@ construction algorithms.
 
 * Yuta Mori's incredible fast suffix [libdivsufsort][DIVSUF]
   algorithm for byte-alphabets.
-* An adapted version of [Jesper Larsson's][JESL] [implementation][QSUFIMPL] of 
+* An adapted version of [Jesper Larsson's][JESL] [implementation][QSUFIMPL] of
   suffix array sorting on integer-alphabets (description of [Larsson and Sadakane][LS]).
 
 Additionally, we use the [googletest][GTEST] framework to provide unit tests.
@@ -259,7 +261,7 @@ Kalle Karhu,
 Jan Kurrus,
 [Shanika Kuruppu](https://github.com/skuruppu),
 Jouni Siren,
-and [Julio Vizcaino](https://github.com/garviz) 
+and [Julio Vizcaino](https://github.com/garviz)
 for bug reports.
 
 Contribute
@@ -289,3 +291,4 @@ Feel free to contact any of the authors or create an issue on the
 [CF]: https://github.com/simongog/sdsl-lite/blob/master/COPYING "Licence"
 [SEAPAPER]: http://arxiv.org/pdf/1311.1249v1.pdf "SDSL paper"
 [HB]: https://github.com/simongog/sdsl-lite/blob/hybrid_bitvector/include/sdsl/hybrid_vector.hpp "Hybrid bitevctor"
+[DOXYGENDOCS]: http://algo2.iti.kit.edu/gog/docs/html/index.html "API Reference"

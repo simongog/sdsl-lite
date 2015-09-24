@@ -16,7 +16,7 @@ string(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]+$" "\\1" PROJECT_VERSION_MAJOR 
 string(REGEX REPLACE "^[0-9]+\\.([0-9]+)\\.[0-9]+$" "\\1" PROJECT_VERSION_MINOR "${PROJECT_VERSION_FULL}")
 string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+)$" "\\1" PROJECT_VERSION_PATCH "${PROJECT_VERSION_FULL}")
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
-math(EXPR LIBRARY_VERSION_MAJOR "1 + ${PROJECT_VERSION_MAJOR}")
+math(EXPR LIBRARY_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
 set(LIBRARY_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
 set(LIBRARY_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
 set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}")
@@ -24,6 +24,7 @@ set(LIBRARY_VERSION_FULL "${LIBRARY_VERSION}.${LIBRARY_VERSION_PATCH}")
 
 
 option(CODE_COVERAGE "Set ON to add code coverage compile options" OFF)
+option(GENERATE_DOC "Set ON to genrate doxygen API reference in build/doc directory" OFF)
 
 # C++11 compiler Check
 if(NOT CMAKE_CXX_COMPILER_VERSION) # work around for cmake versions smaller than 2.8.10
@@ -82,6 +83,17 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/lib/structure_tree.cpp.cmake"
 add_subdirectory(external)
 add_subdirectory(include)
 add_subdirectory(lib)
+
+## Add doxygen documentation generation target ##
+find_package(Doxygen)
+if(GENERATE_DOC AND DOXYGEN_FOUND)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/extras/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+add_custom_target(docs ALL
+${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+COMMENT "Generating API documentation with Doxygen" VERBATIM
+)
+endif(GENERATE_DOC AND DOXYGEN_FOUND)
 
 ## Add 'uninstall' target ##
 CONFIGURE_FILE(

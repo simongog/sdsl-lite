@@ -428,13 +428,15 @@ void util::expand_width(t_int_vec& v, uint8_t new_width)
 {
     uint8_t old_width = v.width();
     typename t_int_vec::size_type n = v.size();
-    if (new_width > old_width and n > 0) {
-        typename t_int_vec::size_type i, old_pos, new_pos;
-        new_pos = (n-1)*new_width;
-        old_pos = (n-1)*old_width;
-        v.bit_resize(v.size()*new_width);
-        for (i=0; i < n; ++i, new_pos-=new_width, old_pos-=old_width) {
-            v.set_int(new_pos, v.get_int(old_pos, old_width), new_width);
+    if (new_width > old_width) {
+        if (n > 0) {
+            typename t_int_vec::size_type i, old_pos, new_pos;
+            new_pos = (n-1)*new_width;
+            old_pos = (n-1)*old_width;
+            v.bit_resize(v.size()*new_width);
+            for (i=0; i < n; ++i, new_pos-=new_width, old_pos-=old_width) {
+                v.set_int(new_pos, v.get_int(old_pos, old_width), new_width);
+            }
         }
         v.width(new_width);
     }

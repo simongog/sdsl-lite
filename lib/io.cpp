@@ -22,6 +22,21 @@ bool store_to_file(const char* v, const std::string& file)
     return true;
 }
 
+bool store_to_file(const std::string& v, const std::string& file)
+{
+    osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
+    if (!out) {
+        if (util::verbose) {
+            std::cerr<<"ERROR: store_to_file(const std::string& v, const std::string&)"<<std::endl;
+            return false;
+        }
+    }
+    out.write(v.data(),v.size());
+    out.close();
+    return true;
+}
+
+
 bool store_to_checked_file(const char* v, const std::string& file)
 {
     std::string checkfile = file+"_check";
