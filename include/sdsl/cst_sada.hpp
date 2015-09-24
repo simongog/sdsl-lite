@@ -158,11 +158,11 @@ class cst_sada
         {
             {
                 auto event = memory_monitor::event("bps-dfs");
-                cst_sct3<> temp_cst(config, true);
+                sdsl::cst_sct3<> temp_cst(config, true);
                 m_bp.resize(4*(temp_cst.bp.size()/2));
                 util::set_to_value(m_bp, 0);
                 size_type idx=0;
-                for (cst_sct3<>::const_iterator it=temp_cst.begin(), end=temp_cst.end(); it!=end; ++it) {
+                for (auto it=temp_cst.begin(), end=temp_cst.end(); it!=end; ++it) {
                     if (1 == it.visit())
                         m_bp[idx] = 1;
                     if (temp_cst.is_leaf(*it) and temp_cst.root()!= *it)
