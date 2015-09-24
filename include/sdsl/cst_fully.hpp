@@ -7,11 +7,15 @@
 
 #include "bit_vectors.hpp"
 #include "bp_support.hpp"
-#include "cst_iterators.hpp"
 #include "suffix_arrays.hpp"
-#include "suffix_trees.hpp"
 #include "util.hpp"
 #include "vectors.hpp"
+#include "cst_sada.hpp"
+#include "cst_iterators.hpp"
+#include "sdsl_concepts.hpp"
+#include "construct.hpp"
+#include "suffix_tree_helper.hpp"
+#include "suffix_tree_algorithm.hpp"
 
 namespace sdsl
 {

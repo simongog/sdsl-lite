@@ -22,7 +22,6 @@
 #define INCLUDED_SDSL_CST_SCT3
 
 #include "int_vector.hpp"
-#include "suffix_trees.hpp"
 #include "iterators.hpp"
 #include "lcp.hpp"
 #include "bp_support.hpp"
@@ -32,6 +31,9 @@
 #include "select_support.hpp"
 #include "util.hpp"
 #include "sdsl_concepts.hpp"
+#include "construct.hpp"
+#include "suffix_tree_helper.hpp"
+#include "suffix_tree_algorithm.hpp"
 #include <iostream>
 #include <algorithm>
 #include <cassert>
