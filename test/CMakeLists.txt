@@ -1,16 +1,16 @@
 SET(sdsl_tests "")
 SET(generated_files "")
 
-FILE(STRINGS ${CMAKE_HOME_DIRECTORY}/test/download.config download_config_lines REGEX "^[^#].*")
+FILE(STRINGS ${CMAKE_CURRENT_LIST_DIR}/download.config download_config_lines REGEX "^[^#].*")
 FOREACH(download_config_line ${download_config_lines})
     LIST(GET download_config_line 0 download_file)
     LIST(GET download_config_line 1 download_url)
     STRING(REPLACE ".tar.gz" "" download_file_we ${download_file})
-    SET(abs_test_case_name ${CMAKE_HOME_DIRECTORY}/test/test_cases/${download_file_we})
+    SET(abs_test_case_name ${CMAKE_CURRENT_LIST_DIR}/test_cases/${download_file_we})
     
     ADD_CUSTOM_COMMAND(OUTPUT ${abs_test_case_name}
-                      COMMAND ${CMAKE_COMMAND} -Ddownload_url=${download_url} -Dtest_case_dir=${CMAKE_HOME_DIRECTORY}/test/test_cases -P ${CMAKE_HOME_DIRECTORY}/test/download.cmake
-                      WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}
+                      COMMAND ${CMAKE_COMMAND} -Ddownload_url=${download_url} -Dtest_case_dir=${CMAKE_CURRENT_LIST_DIR}/test_cases -P ${CMAKE_CURRENT_LIST_DIR}/download.cmake
+                      WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
                       COMMENT "Checking or downloading test case ${download_file}."
                       VERBATIM
     )
@@ -40,7 +40,7 @@ ADD_EXECUTABLE(int_vector_generator EXCLUDE_FROM_ALL int_vector_generator.cpp)
 ADD_EXECUTABLE(bit_vector_generator EXCLUDE_FROM_ALL bit_vector_generator.cpp)
 ADD_EXECUTABLE(replace_int_vector_value EXCLUDE_FROM_ALL replace_int_vector_value.cpp)
 
-SET(tmp_dir ${CMAKE_HOME_DIRECTORY}/test/tmp)
+SET(tmp_dir ${CMAKE_CURRENT_LIST_DIR}/tmp)
 FOREACH(test_source ${test_sources})
     GET_FILENAME_COMPONENT(test_name_we ${test_source} NAME_WE)
 
@@ -68,7 +68,7 @@ FOREACH(test_source ${test_sources})
 # (2.1) Handle tests with simple .config file (only one input file)
             IF("${config_line}" MATCHES "^[^;]+$")
                 GET_FILENAME_COMPONENT(test_case_name ${config_line} NAME)
-                SET(abs_test_case_name ${CMAKE_HOME_DIRECTORY}/test/test_cases/${test_case_name})
+                SET(abs_test_case_name ${CMAKE_CURRENT_LIST_DIR}/test_cases/${test_case_name})
                
                 SET(int_vec_regex "int-vec\\.[0-9]+\\.[0-9]+\\..+")
                 SET(bit_vec_regex "bit-vec\\.*")
@@ -109,7 +109,7 @@ FOREACH(test_source ${test_sources})
 #               Handle Cs[a|t]IntTest
                 IF ("${test_name_we}" MATCHES "cs[a|t]_int_test") 
                     LIST(GET config_line 0 test_case_name)
-                    SET(abs_test_case_name ${CMAKE_HOME_DIRECTORY}/test/test_cases/${test_case_name})
+                    SET(abs_test_case_name ${CMAKE_CURRENT_LIST_DIR}/test_cases/${test_case_name})
 
                     SET(int_vec_sa_regex "int-vec-sa\\.[0-9]+\\.[0-9]+\\..+")
                     IF("${test_case_name}" MATCHES "${int_vec_sa_regex}")
@@ -148,7 +148,7 @@ FOREACH(test_source ${test_sources})
                     SET(k2dim x y w)
                     LIST(GET config_line 0 test_case_name)
                     SET(test_case_name "k2-${concat_config}")
-                    SET(abs_test_case_name ${CMAKE_HOME_DIRECTORY}/test/test_cases/${test_case_name})
+                    SET(abs_test_case_name ${CMAKE_CURRENT_LIST_DIR}/test_cases/${test_case_name})
                     SET(abs_test_case_name_list "")
                     FOREACH(i 0 1 2)
                         LIST(GET k2dim ${i} dim)
