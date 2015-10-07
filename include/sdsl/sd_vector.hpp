@@ -1,5 +1,6 @@
 /* sdsl - succinct data structures library
     Copyright (C) 2012-2014 Simon Gog
+    Copyright (C) 2015 Genome Research Ltd.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,7 +18,7 @@
 /*!\file sd_vector.hpp
    \brief sd_vector.hpp contains the sdsl::sd_vector class, and
           classes which support rank and select for sd_vector.
-   \author Simon Gog
+   \author Simon Gog, Jouni Siren
 */
 #ifndef INCLUDED_SDSL_SD_VECTOR
 #define INCLUDED_SDSL_SD_VECTOR
@@ -44,6 +45,65 @@ template<uint8_t t_b          = 1,
          class t_select_1     = typename t_hi_bit_vector::select_1_type,
          class t_select_0     = typename t_hi_bit_vector::select_0_type>
 class select_support_sd;  // in sd_vector
+
+// forward declaration needed for friend declaration
+template<typename, typename, typename>
+class sd_vector;  // in sd_vector
+
+//! Class for in-place construction of sd_vector from a strictly increasing sequence
+/*! \par Building an sd_vector will clear the builder.
+ */
+class sd_vector_builder
+{
+    template<typename, typename, typename>
+    friend class sd_vector;
+
+    public:
+        typedef bit_vector::size_type size_type;
+
+    private:
+        size_type m_size, m_capacity;
+        size_type m_wl;
+        size_type m_tail, m_items;
+        size_type m_last_high, m_highpos;
+
+        int_vector<> m_low;
+        bit_vector   m_high;
+
+    public:
+        sd_vector_builder();
+
+        //! Constructor
+        /*! \param n Vector size.
+         *  \param m The number of 1-bits.
+         */
+        sd_vector_builder(size_type n, size_type m);
+
+        inline size_type size() const { return m_size; }
+        inline size_type capacity() const { return m_capacity; }
+        inline size_type tail() const { return m_tail; }
+        inline size_type items() const { return m_items; }
+
+        //! Set a bit to 1.
+        /*! \param i The position of the bit.
+         *  \par The position must be strictly greater than for the previous call.
+         */
+        inline void set(size_type i)
+        {
+            assert(i >= m_tail && i < m_size);
+            assert(m_items < m_capacity);
+
+            size_type cur_high = i >> m_wl;
+            m_highpos += (cur_high - m_last_high);
+            m_last_high = cur_high;
+            m_low[m_items++] = i; // int_vector truncates the most significant logm bits
+            m_high[m_highpos++] = 1;  // write 1 for the entry
+            m_tail = i + 1;
+        }
+
+        //! Swap method
+        void swap(sd_vector_builder& sdb);
+};
 
 //! A bit vector which compresses very sparse populated bit vectors by
 // representing the positions of 1 by the Elias-Fano representation for non-decreasing sequences
@@ -169,6 +229,9 @@ class sd_vector
         template<class t_itr>
         sd_vector(const t_itr begin,const t_itr end)
         {
+            if (begin == end) {
+                return;
+            }
             if (! is_sorted(begin,end)) {
                 throw std::runtime_error("sd_vector: source list is not sorted.");
             }
@@ -199,6 +262,23 @@ class sd_vector
             util::assign(m_high, high);
             util::init_support(m_high_1_select, &m_high);
             util::init_support(m_high_0_select, &m_high);
+        }
+
+        sd_vector(sd_vector_builder& builder)
+        {
+            if(builder.items() != builder.capacity())
+            {
+              throw std::runtime_error("sd_vector: builder is not at full capacity.");
+            }
+
+            m_size = builder.m_size;
+            m_wl = builder.m_wl;
+            m_low.swap(builder.m_low);
+            util::assign(m_high, builder.m_high);
+            util::init_support(m_high_1_select, this->m_high);
+            util::init_support(m_high_0_select, this->m_high);
+
+            builder = sd_vector_builder();
         }
 
         //! Accessing the i-th element of the original bit_vector
@@ -356,6 +436,9 @@ class sd_vector
             return iterator(this, size());
         }
 };
+
+//! Specialized constructor that is a bit more space-efficient than the default.
+template<> sd_vector<>::sd_vector(sd_vector_builder& builder);
 
 template<uint8_t t_b>
 struct rank_support_sd_trait {
@@ -749,7 +832,6 @@ class select_0_support_sd
         }
 
 };
-
 
 
 } // end namespace
