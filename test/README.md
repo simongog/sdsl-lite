@@ -1,18 +1,19 @@
 # Library test suite
 
 This directory contains test code for various data structures.
-We used the [googletest][GTEST] framework for testing. 
+We used the [googletest][GTEST] framework for testing.
 
-A call of `make test` in your cmake build directory will execute all tests. 
-If you only want to run a test of a specific component `X` then run 
+A call of `make test` in your cmake build directory will execute all tests.
+If you only want to run a test of a specific component `X` then run
 `make X`,  where X should be in the following list:
 
   * `bits-test` (tests basic bit operations)
   * `int-vector-test` (tests  [int_vector](../include/sdsl/int_vector.hpp))
   * `int-vector-buffer-test` (tests  [int_vector_buffer](../include/sdsl/int_vector_buffer.hpp))
-  * `bit-vector-test` (tests  [bit_vector](../include/sdsl/bit_vectors.hpp) strucutres)
+  * `bit-vector-test` (tests  [bit_vector](../include/sdsl/bit_vectors.hpp) structures)
+  * `sd-vector-test` (tests [sd_vector](../include/sdsl/sd_vector.hpp) constructors)
   * `rank-support-test` (tests  [rank_support](../include/sdsl/rank_support.hpp) structures)
-  * `select-support-test` and `select-support-0-test` 
+  * `select-support-test` and `select-support-0-test`
      (tests  [select_support](../include/sdsl/select_support.hpp) structures)
   * `wt-byte-test` (tests [wavelet trees](../include/sdsl/wavelet_trees.hpp) on byte alphabets)
   * `wt-int-test` (tests [wavelet trees](../include/sdsl/wavelet_trees.hpp) on integer alphabets)
@@ -25,9 +26,9 @@ If you only want to run a test of a specific component `X` then run
 Test inputs are downloaded as needed before the first execution of the test.
 See the [download.config](./download.config) files for details on the sources.
 
-Executing `make test` should take about 60 minutes on a recent machine. 
+Executing `make test` should take about 60 minutes on a recent machine.
 
-Please report, if a test fails. Thanks. 
+Please report, if a test fails. Thanks.
 
 ## Customization
 
@@ -36,10 +37,10 @@ Please report, if a test fails. Thanks.
 
 
 ## Acknowledgements
-  We thank 
+  We thank
   * Project Gutenberg for providing text files `faust.txt` and
     `zarathustra.txt`.
-  * Shane Culpepper for providing the test inputs 
+  * Shane Culpepper for providing the test inputs
     `keeper.int` and `moby.int` for the integer-alphabet CSAs and CSTs.
 
 
