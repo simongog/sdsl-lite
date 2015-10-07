@@ -112,7 +112,7 @@ TYPED_TEST(k2_treap_test, size_and_top_k)
             uint64_t minx=0, miny=0, maxx=xx+dd, maxy=yy+dd;
             if (xx >= dd)
                 minx = xx - dd;
-            if (y >= dd)
+            if (yy >= dd)
                 miny = yy - dd;
             topk_test(k2treap, {minx, miny}, {maxx,maxy}, x, y, w);
         }
