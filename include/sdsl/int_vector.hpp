@@ -334,9 +334,14 @@ class int_vector
             \param int_width     The width of each integer.
             \sa resize, width
          */
-        int_vector(size_type size = 0, value_type default_value = 0,
+
+        int_vector(size_type size, value_type default_value,
                    uint8_t int_width = t_width);
 
+        //! Constructor to fix possible comparison with integeres issue.
+        explicit int_vector(size_type size = 0) : int_vector(size, static_cast<value_type>(0), t_width) {
+
+        }
         //! Constructor for initializer_list.
         template<class t_T>
         int_vector(std::initializer_list<t_T> il) : int_vector()
