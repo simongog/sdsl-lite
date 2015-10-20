@@ -344,7 +344,7 @@ class int_vector
         }
         //! Constructor for initializer_list.
         template<class t_T>
-        int_vector(std::initializer_list<t_T> il) : int_vector()
+        int_vector(std::initializer_list<t_T> il) : int_vector(0,0)
         {
             resize(il.size());
             size_type idx = 0;
