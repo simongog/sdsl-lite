@@ -27,7 +27,7 @@
 namespace sdsl
 {
 
-#ifndef MSVC_COMPILER
+#ifdef MODE_TI
 
 typedef unsigned int uint128_t __attribute__((mode(TI)));
 
