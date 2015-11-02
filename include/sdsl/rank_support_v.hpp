@@ -35,7 +35,7 @@ namespace sdsl
  * The superblock size is 512. Each superblock is subdivided into 512/64 = 8
  * blocks. So absolute counts for the superblock add 64/512 bits on top of each
  * supported bit. Since the first of the 8 relative count values is 0, we can
- * fit the remaining 7 (each of width log(512)=9) in a 64bit word.  The relative
+ * fit the remaining 7 (each of width log(512)=9) in a 64bit word. The relative
  * counts add another 64/512 bits on top of each supported bit.
  * In total this results in 128/512=25% overhead.
  *
@@ -64,8 +64,7 @@ class rank_support_v : public rank_support
         // basic block for interleaved storage of superblockrank and blockrank
         int_vector<64> m_basic_block;
     public:
-        explicit rank_support_v(const bit_vector* v = nullptr)
-        {
+        explicit rank_support_v(const bit_vector* v = nullptr) {
             set_vector(v);
             if (v == nullptr) {
                 return;
@@ -112,8 +111,7 @@ class rank_support_v : public rank_support
         rank_support_v& operator=(rank_support_v&&) = default;
 
 
-        size_type rank(size_type idx) const
-        {
+        size_type rank(size_type idx) const {
             assert(m_v != nullptr);
             assert(idx <= m_v->size());
             const uint64_t* p = m_basic_block.data()
@@ -125,19 +123,16 @@ class rank_support_v : public rank_support
                 return  *p + ((*(p+1)>>(63 - 9*((idx&0x1FF)>>6)))&0x1FF);
         }
 
-        inline size_type operator()(size_type idx)const
-        {
+        inline size_type operator()(size_type idx)const {
             return rank(idx);
         }
 
-        size_type size()const
-        {
+        size_type size()const {
             return m_v->size();
         }
 
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
-                            std::string name="")const
-        {
+                            std::string name="")const {
             size_type written_bytes = 0;
             structure_tree_node* child = structure_tree::add_child(v, name,
                                          util::class_name(*this));
@@ -147,19 +142,16 @@ class rank_support_v : public rank_support
             return written_bytes;
         }
 
-        void load(std::istream& in, const int_vector<1>* v=nullptr)
-        {
+        void load(std::istream& in, const int_vector<1>* v=nullptr) {
             set_vector(v);
             m_basic_block.load(in);
         }
 
-        void set_vector(const bit_vector* v=nullptr)
-        {
+        void set_vector(const bit_vector* v=nullptr) {
             m_v = v;
         }
 
-        void swap(rank_support_v& rs)
-        {
+        void swap(rank_support_v& rs) {
             if (this != &rs) { // if rs and _this_ are not the same object
                 m_basic_block.swap(rs.m_basic_block);
             }
