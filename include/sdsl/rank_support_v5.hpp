@@ -37,10 +37,10 @@ struct rank_support_trait;
  * The superblock size is 2048. Each superblock is subdivided into
  * 2048/(6*64) = 5 blocks (with some bit remaining). So absolute counts for
  * the superblock add 64/2048 bits on top of each supported bit. Since the
- * first of the 6 relative count values is 0, we can fit the remaining 5 in
+ * first of the 6 relative count values is 0, we can fit the remaining 5
  * (each of width log(2048)=11) in a 64 bit word. The relative counts add
  * another 64/2048 bits bits on top of each supported bit. In total this
- * results is 128/2048= 6.25% overhead.
+ * results in 128/2048= 6.25% overhead.
  *
  * \tparam t_b       Bit pattern `0`,`1`,`10`,`01` which should be ranked.
  * \tparam t_pat_len Length of the bit pattern.
@@ -62,8 +62,7 @@ class rank_support_v5 : public rank_support
 //      basic block for interleaved storage of superblockrank and blockrank
         int_vector<64> m_basic_block;
     public:
-        explicit rank_support_v5(const bit_vector* v = nullptr)
-        {
+        explicit rank_support_v5(const bit_vector* v = nullptr) {
             set_vector(v);
             if (v == nullptr) {
                 return;
@@ -114,8 +113,7 @@ class rank_support_v5 : public rank_support
         rank_support_v5& operator=(const rank_support_v5&) = default;
         rank_support_v5& operator=(rank_support_v5&&) = default;
 
-        size_type rank(size_type idx) const
-        {
+        size_type rank(size_type idx) const {
             assert(m_v != nullptr);
             assert(idx <= m_v->size());
             const uint64_t* p = m_basic_block.data()
@@ -135,17 +133,14 @@ class rank_support_v5 : public rank_support
             return result;
         }
 
-        inline size_type operator()(size_type idx)const
-        {
+        inline size_type operator()(size_type idx)const {
             return rank(idx);
         }
-        size_type size()const
-        {
+        size_type size()const {
             return m_v->size();
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
-        {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
             size_type written_bytes = 0;
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             written_bytes += m_basic_block.serialize(out, child, "cumulative_counts");
@@ -153,20 +148,17 @@ class rank_support_v5 : public rank_support
             return written_bytes;
         }
 
-        void load(std::istream& in, const bit_vector* v=nullptr)
-        {
+        void load(std::istream& in, const bit_vector* v=nullptr) {
             set_vector(v);
             assert(m_v != nullptr); // supported bit vector should be known
             m_basic_block.load(in);
         }
 
-        void set_vector(const bit_vector* v=nullptr)
-        {
+        void set_vector(const bit_vector* v=nullptr) {
             m_v = v;
         }
         //! swap Operator
-        void swap(rank_support_v5& rs)
-        {
+        void swap(rank_support_v5& rs) {
             if (this != &rs) { // if rs and _this_ are not the same object
                 m_basic_block.swap(rs.m_basic_block);
             }

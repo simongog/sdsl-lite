@@ -35,14 +35,14 @@ namespace sdsl
  *      The space usage of the data structure depends on the number of \f$ m \f$ of ones in the
  *      original bitvector $b$. We store the position of every $4096$th set bit
  *      (called L1-sampled bits) of $b$.
- *      This takes in the worst case \f$\frac{m}{4096} \log{n} \leq \frac{64}{n}\f$ bits.
+ *      This takes in the worst case \f$\frac{m}{4096} \log{n} \leq \frac{n}{64}\f$ bits.
  *      Next,
  *      (1) if the distance of two adjacent L1-sampled bits $b[i]$ and $b[j]$
  *      is greater or equal than $\log^4 n$, then
  *      we store each of the 4096 positions of the set $b$ in [i..j-1] with
  *      $\log{n}$ bits. This results in at most
  *      \$ \frac{4096\cdot \log n}{\log^4 n}=\frac{4096}{\log^3 n}\$ bits per bit.
- *      For a bitvector of 1GB, i.e. \f$ \log n = 35 \f$ we get about 0.01 bits per bit.
+ *      For a bitvector of 4GB, i.e. \f$ \log n = 35 \f$ we get about 0.01 bits per bit.
  *      If the $j-i+1 < \log^4 n$ then
  *      (2) we store the relative position of every $64$th set bit (called L2-sampled bits)
  *      in b[i..j-1] in at most $4\log\log n$ bits per L2-sampled bits.
