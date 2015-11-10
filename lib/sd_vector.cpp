@@ -22,7 +22,6 @@ sd_vector_builder::sd_vector_builder(size_type n, size_type m) :
     {
         throw std::runtime_error("sd_vector_builder: requested capacity is larger than vector size.");
     }
-    if(m_capacity == 0) { return; }
 
     size_type logm = bits::hi(m_capacity) + 1, logn = bits::hi(m_size) + 1;
     if(logm == logn)
