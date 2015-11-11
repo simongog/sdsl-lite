@@ -53,6 +53,15 @@ TEST(sd_vector_test, builder_constructor)
     }
 }
 
+TEST(sd_vector_test, builder_empty_constructor)
+{
+    sd_vector_builder builder(BV_SIZE, 0UL);
+    sd_vector<> sdv(builder);
+    for (size_t i=0; i < BV_SIZE; ++i) {
+        ASSERT_EQ(0, sdv[i]);
+    }
+}
+
 } // end namespace
 
 int main(int argc, char* argv[])
