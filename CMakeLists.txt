@@ -65,7 +65,7 @@ else()
 	endif()
 endif()
 
-try_compile(MODE_TI "${PROJECT_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/CMakeModules/check_mode_ti.cpp")
+try_compile(MODE_TI "${PROJECT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/check_mode_ti.cpp")
 if( MODE_TI )
   if(MSVC)
     add_definitions("/DMODE_TI")
