@@ -23,7 +23,9 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 
-make uninstall-sdsl
+if [ -f Makefile ]; then
+    make uninstall-sdsl
+fi
 
 if [ $? != 0 ]; then
     exit 1
