@@ -611,6 +611,20 @@ class wm_int
             }
         };
 
+        //! Iterator to the begin of the bitvector of inner node v
+        auto begin(const node_type& v) const -> decltype(m_tree.begin() + v.offset)
+        {
+            return m_tree.begin() + v.offset;
+        }
+
+        //! Iterator to the begin of the bitvector of inner node v
+        auto end(const node_type& v) const -> decltype(m_tree.begin() + v.offset + v.size)
+        {
+            return m_tree.begin() + v.offset + v.size;
+        }
+
+
+
         //! Checks if the node is a leaf node
         bool is_leaf(const node_type& v) const
         {
@@ -625,6 +639,11 @@ class wm_int
         bool empty(const node_type& v) const
         {
             return v.size == (size_type)0;
+        }
+
+        auto size(const node_type& v) const -> decltype(v.size)
+        {
+            return v.size;
         }
 
         //! Return the root node
