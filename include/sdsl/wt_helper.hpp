@@ -12,7 +12,7 @@
 namespace sdsl
 {
 
-typedef std::pair<int_vector<>::size_type, int_vector<>::size_type> range_type;
+typedef std::array<int_vector<>::size_type, 2> range_type;
 typedef std::vector<range_type>         range_vec_type;
 
 //! Empty range check
@@ -682,6 +682,55 @@ struct int_tree {
     template<class t_wt>
     using type = _int_tree<t_dfs_shape, t_wt>;
 };
+
+template<typename t_bv>
+class node_bv_container
+{
+    public:
+        typedef typename t_bv::value_type value_type;
+        typedef typename t_bv::size_type size_type;
+        typedef typename t_bv::difference_type difference_type;
+        typedef typename t_bv::const_iterator iterator;
+    private:
+        iterator m_begin, m_end;
+    public:
+        node_bv_container(iterator b, iterator e) : m_begin(b), m_end(e) {}
+        value_type operator[](size_type i) const { return *(m_begin+i); }
+        size_type size() const { return m_end - m_begin; }
+        iterator begin() const
+        {
+            return m_begin;
+        }
+        iterator end() const
+        {
+            return m_end;
+        }
+};
+
+template<typename t_bv>
+class node_seq_container
+{
+    public:
+        typedef typename t_bv::value_type value_type;
+        typedef typename t_bv::size_type size_type;
+        typedef typename t_bv::difference_type difference_type;
+        typedef typename t_bv::const_iterator iterator;
+    private:
+        iterator m_begin, m_end;
+    public:
+        node_seq_container(iterator b, iterator e) : m_begin(b), m_end(e) {}
+        value_type operator[](size_type i) const { return *(m_begin+i); }
+        size_type size() const { return m_end - m_begin; }
+        iterator begin() const
+        {
+            return m_begin;
+        }
+        iterator end() const
+        {
+            return m_end;
+        }
+};
+
 
 } // end namespace sdsl
 #endif

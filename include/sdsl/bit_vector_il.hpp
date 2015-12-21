@@ -64,6 +64,7 @@ class bit_vector_il
         typedef size_type                                   value_type;
         typedef bit_vector::difference_type                 difference_type;
         typedef random_access_const_iterator<bit_vector_il> iterator;
+        typedef iterator                                    const_iterator;
         typedef bv_tag                                      index_category;
 
         friend class rank_support_il<1,t_bs>;

@@ -52,85 +52,101 @@ class random_access_const_iterator: public std::iterator<std::random_access_iter
         random_access_const_iterator(const t_rac* rac, size_type idx = 0) : m_rac(rac), m_idx(idx) { }
 
         //! Dereference operator for the Iterator.
-        const_reference operator*()const {
+        const_reference operator*()const
+        {
             return (*m_rac)[m_idx];
         }
 
         //! Prefix increment of the Iterator.
-        iterator& operator++() {
+        iterator& operator++()
+        {
             ++m_idx;
             return *this;
         }
 
         //! Postfix increment of the Iterator.
-        iterator operator++(int) {
+        iterator operator++(int)
+        {
             random_access_const_iterator it = *this;
             ++(*this);
             return it;
         }
 
         //! Prefix decrement of the Iterator.
-        iterator& operator--() {
+        iterator& operator--()
+        {
             --m_idx;
             return *this;
         }
 
         //! Postfix decrement of the Iterator.
-        iterator operator--(int) {
+        iterator operator--(int)
+        {
             random_access_const_iterator it = *this;
             --(*this);
             return it;
         }
 
-        iterator& operator+=(difference_type i) {
+        iterator& operator+=(difference_type i)
+        {
             if (i<0)
                 return *this -= (-i);
             m_idx += i;
             return *this;
         }
 
-        iterator& operator-=(difference_type i) {
+        iterator& operator-=(difference_type i)
+        {
             if (i<0)
                 return *this += (-i);
             m_idx -= i;
             return *this;
         }
 
-        iterator operator+(difference_type i) const {
+        iterator operator+(difference_type i) const
+        {
             iterator it = *this;
             return it += i;
         }
 
-        iterator operator-(difference_type i) const {
+        iterator operator-(difference_type i) const
+        {
             iterator it = *this;
             return it -= i;
         }
 
-        const_reference operator[](difference_type i) const {
+        const_reference operator[](difference_type i) const
+        {
             return *(*this + i);
         }
 
-        bool operator==(const iterator& it)const {
+        bool operator==(const iterator& it)const
+        {
             return it.m_rac == m_rac && it.m_idx == m_idx;
         }
 
-        bool operator!=(const iterator& it)const {
+        bool operator!=(const iterator& it)const
+        {
             return !(*this==it);
         }
 
-        bool operator<(const iterator& it)const {
+        bool operator<(const iterator& it)const
+        {
             return m_idx < it.m_idx;
         }
 
-        bool operator>(const iterator& it)const {
+        bool operator>(const iterator& it)const
+        {
             return m_idx > it.m_idx;
         }
 
-        bool operator>=(const iterator& it)const {
+        bool operator>=(const iterator& it)const
+        {
             return !(*this < it);
         }
 
-        bool operator<=(const iterator& it)const {
+        bool operator<=(const iterator& it)const
+        {
             return !(*this > it);
         }
 
@@ -148,6 +164,35 @@ inline random_access_const_iterator<t_rac> operator+(typename random_access_cons
 {
     return it+n;
 }
+
+
+template<typename t_F>
+struct random_access_container {
+    typedef int_vector<>::size_type                               size_type;
+    typedef int_vector<>::difference_type                         difference_type;
+    typedef typename std::result_of<t_F(size_type)>::type         value_type;
+    typedef random_access_const_iterator<random_access_container> iterator_type;
+
+    t_F f;
+    size_type m_size;
+
+    random_access_container() {};
+    random_access_container(t_F ff, size_type size) : f(ff), m_size(size) { }
+
+    value_type operator[](size_type i) const { return f(i); }
+
+    size_type size() const { return m_size; }
+
+    iterator_type begin() const
+    {
+        return iterator_type(this, 0);
+    }
+
+    iterator_type end() const
+    {
+        return iterator_type(this, size());
+    }
+};
 
 } // end namespace sdsl
 #endif

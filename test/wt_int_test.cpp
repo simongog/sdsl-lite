@@ -506,7 +506,7 @@ test_intersect(typename enable_if<has_node_type<t_wt>::value,t_wt>::type& wt)
             size_type lb = dice_lb();
             size_type rb = lb+dice_range()-1;
             rb = (rb >= wt.size()) ? wt.size()-1 : rb;
-            ranges.emplace_back(lb,rb);
+            ranges.push_back({lb,rb});
             buf_end[i] = copy(iv.begin()+lb,
                               iv.begin()+rb+1, buf[i].begin());
             sort(buf[i].begin(), buf_end[i]);

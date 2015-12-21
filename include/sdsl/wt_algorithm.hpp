@@ -37,7 +37,7 @@ intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::
     using pnvr_type      = std::pair<node_type, range_vec_type>;
     typedef std::stack<pnvr_type> stack_type;
 
-    static_assert(has_expand<t_wt, std::pair<node_type,node_type>(const node_type&)>::value,
+    static_assert(has_expand<t_wt, std::array<node_type,2>(const node_type&)>::value,
                   "intersect requires t_wt to have expand(const node_type&)");
 
     using p_t = std::pair<value_type,size_type>;
@@ -69,7 +69,7 @@ intersect(const t_wt& wt, const std::vector<range_type>& ranges, typename t_wt::
             if (t <= iv.size()) {
                 auto freq = std::accumulate(iv.begin(), iv.end(), 0ULL,
                 [](size_type acc, const range_type& r) {
-                    return acc+(r.second-r.first+1);
+                    return acc+(r[1]-r[0]+1);
                 });
                 res.emplace_back(wt.sym(x.first),freq);
             }
@@ -100,11 +100,11 @@ quantile_freq(const t_wt& wt, typename t_wt::size_type lb,
                   "quantile_freq requires a lex_ordered WT");
     using std::get;
     using node_type      = typename t_wt::node_type;
-    static_assert(has_expand<t_wt, std::pair<node_type,node_type>(const node_type&)>::value,
+    static_assert(has_expand<t_wt, std::array<node_type,2>(const node_type&)>::value,
                   "quantile_freq requires t_wt to have expand(const node_type&)");
 
     node_type v = wt.root();
-    range_type r(lb,rb);
+    range_type r {{lb,rb}};
 
     while (!wt.is_leaf(v)) {
         auto child        = wt.expand(v);
@@ -135,8 +135,8 @@ _interval_symbols_rec(const t_wt& wt, range_type r,
 {
     using std::get;
     if (wt.is_leaf(v)) {
-        rank_c_i[k] = r.first;
-        rank_c_j[k] = r.second+1;
+        rank_c_i[k] = r[0];
+        rank_c_j[k] = r[1]+1;
         cs[k++] = wt.sym(v);
     } else {
         auto child        = wt.expand(v);
@@ -172,7 +172,7 @@ _interval_symbols(const t_wt& wt, typename t_wt::size_type i,
         k=1;
         return;
     } else if (j>i) {
-        _interval_symbols_rec(wt, range_type(i,j-1), k, cs,
+        _interval_symbols_rec(wt, {i,j-1}, k, cs,
                               rank_c_i, rank_c_j, wt.root());
     }
 }
