@@ -80,6 +80,7 @@ class rrr_vector
         typedef bit_vector::difference_type              difference_type;
         typedef t_rac                                    rac_type;
         typedef random_access_const_iterator<rrr_vector> iterator;
+        typedef iterator                                 const_iterator;
         typedef bv_tag                                   index_category;
 
         typedef rank_support_rrr<1, t_bs, t_rac, t_k>   rank_1_type;

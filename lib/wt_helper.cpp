@@ -5,12 +5,12 @@ namespace sdsl
 
 bool empty(const range_type& r)
 {
-    return r.first == r.second + 1;
+    return std::get<0>(r) == (std::get<1>(r) + 1);
 }
 
 int_vector<>::size_type size(const range_type& r)
 {
-    return r.second - r.first + 1;
+    return std::get<1>(r) - std::get<0>(r) + 1;
 }
 
 

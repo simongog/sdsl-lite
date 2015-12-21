@@ -55,8 +55,8 @@ class sd_vector;  // in sd_vector
  */
 class sd_vector_builder
 {
-    template<typename, typename, typename>
-    friend class sd_vector;
+        template<typename, typename, typename>
+        friend class sd_vector;
 
     public:
         typedef bit_vector::size_type size_type;
@@ -135,6 +135,7 @@ class sd_vector
         typedef size_type                               value_type;
         typedef bit_vector::difference_type             difference_type;
         typedef random_access_const_iterator<sd_vector> iterator;
+        typedef iterator                                const_iterator;
         typedef bv_tag                                  index_category;
         typedef t_select_0                              select_0_support_type;
         typedef t_select_1                              select_1_support_type;
@@ -266,9 +267,8 @@ class sd_vector
 
         sd_vector(sd_vector_builder& builder)
         {
-            if(builder.items() != builder.capacity())
-            {
-              throw std::runtime_error("sd_vector: builder is not at full capacity.");
+            if (builder.items() != builder.capacity()) {
+                throw std::runtime_error("sd_vector: builder is not at full capacity.");
             }
 
             m_size = builder.m_size;

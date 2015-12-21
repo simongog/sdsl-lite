@@ -804,14 +804,43 @@ class wt_int
             return v.level == m_max_level;
         }
 
+        //! Returns the symbol of leaf node v
         value_type sym(const node_type& v) const
         {
             return v.sym;
         }
 
+        //! Random access container to bitvector of node v
+        auto bit_vec(const node_type& v) const -> node_bv_container<t_bitvector> {
+            return node_bv_container<t_bitvector>(begin(v), end(v));
+        }
+
+        //! Random access container to sequence of node v
+        auto seq(const node_type& v) const -> random_access_container<std::function<value_type(size_type)>> {
+            return random_access_container<std::function<value_type(size_type)>>([&v, this](size_type i)
+            {
+                node_type vv = v;
+                while (!is_leaf(vv)) {
+                    auto vs = expand(vv);
+                    auto rs = expand(vv, {0, i});
+                    bool bit = *(begin(vv)+i);
+                    i = std::get<1>(rs[bit]);
+                    vv = vs[bit];
+                }
+                return sym(vv);
+            }, size(v));
+        }
+
+        //! Indicates if node v is empty
         bool empty(const node_type& v) const
         {
             return v.size == (size_type)0;
+        }
+
+        //! Return the size of node v
+        auto size(const node_type& v) const -> decltype(v.size)
+        {
+            return v.size;
         }
 
         //! Return the root node
@@ -822,10 +851,10 @@ class wt_int
 
         //! Returns the two child nodes of an inner node
         /*! \param v An inner node of a wavelet tree.
-         *  \return Return a pair of nodes (left child, right child).
+         *  \return Return an array of nodes (left child, right child).
          *  \pre !is_leaf(v)
          */
-        std::pair<node_type, node_type>
+        std::array<node_type, 2>
         expand(const node_type& v) const
         {
             node_type v_right = v;
@@ -834,10 +863,10 @@ class wt_int
 
         //! Returns the two child nodes of an inner node
         /*! \param v An inner node of a wavelet tree.
-         *  \return Return a pair of nodes (left child, right child).
+         *  \return Return an array of nodes (left child, right child).
          *  \pre !is_leaf(v)
          */
-        std::pair<node_type, node_type>
+        std::array<node_type, 2>
         expand(node_type&& v) const
         {
             node_type v_left;
@@ -854,7 +883,7 @@ class wt_int
             v.level  = v.level + 1;
             v.sym    = (v.sym<<1)|1;
 
-            return std::make_pair(std::move(v_left), v);
+            return {std::move(v_left), v};
         }
 
         //! Returns for each range its left and right child ranges
@@ -867,7 +896,7 @@ class wt_int
          *          range mapped to the right child of v.
          *  \pre !is_leaf(v) and s>=v_s and e<=v_e
          */
-        std::pair<range_vec_type, range_vec_type>
+        std::array<range_vec_type, 2>
         expand(const node_type& v,
                const range_vec_type& ranges) const
         {
@@ -885,7 +914,7 @@ class wt_int
          *          range mapped to the right child of v.
          *  \pre !is_leaf(v) and s>=v_s and e<=v_e
          */
-        std::pair<range_vec_type, range_vec_type>
+        std::array<range_vec_type, 2>
         expand(const node_type& v,
                range_vec_type&& ranges) const
         {
@@ -893,18 +922,18 @@ class wt_int
             range_vec_type res(ranges.size());
             size_t i = 0;
             for (auto& r : ranges) {
-                auto sp_rank    = m_tree_rank(v.offset + r.first);
-                auto right_size = m_tree_rank(v.offset + r.second + 1)
+                auto sp_rank    = m_tree_rank(v.offset + r[0]);
+                auto right_size = m_tree_rank(v.offset + r[1] + 1)
                                   - sp_rank;
-                auto left_size  = (r.second-r.first+1)-right_size;
+                auto left_size  = (r[1]-r[0]+1)-right_size;
 
                 auto right_sp = sp_rank - v_sp_rank;
-                auto left_sp  = r.first - right_sp;
+                auto left_sp  = r[0] - right_sp;
 
-                r = range_type(left_sp, left_sp + left_size - 1);
-                res[i++] = range_type(right_sp, right_sp + right_size - 1);
+                r = {left_sp, left_sp + left_size - 1};
+                res[i++] = {right_sp, right_sp + right_size - 1};
             }
-            return make_pair(ranges, std::move(res));
+            return {ranges, std::move(res)};
         }
 
         //! Returns for a range its left and right child ranges
@@ -917,26 +946,42 @@ class wt_int
          *          range mapped to the right child of v.
          *  \pre !is_leaf(v) and s>=v_s and e<=v_e
          */
-        std::pair<range_type, range_type>
+        std::array<range_type, 2>
         expand(const node_type& v, const range_type& r) const
         {
             auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
-            auto sp_rank    = m_tree_rank(v.offset + r.first);
-            auto right_size = m_tree_rank(v.offset + r.second + 1)
+            auto sp_rank    = m_tree_rank(v.offset + r[0]);
+            auto right_size = m_tree_rank(v.offset + r[1] + 1)
                               - sp_rank;
-            auto left_size  = (r.second-r.first+1)-right_size;
+            auto left_size  = (r[1]-r[0]+1)-right_size;
 
             auto right_sp = sp_rank - v_sp_rank;
-            auto left_sp  = r.first - right_sp;
+            auto left_sp  = r[0] - right_sp;
 
-            return make_pair(range_type(left_sp, left_sp + left_size - 1),
-                             range_type(right_sp, right_sp + right_size - 1));
+            return {{{left_sp, left_sp + left_size - 1},
+                    {right_sp, right_sp + right_size - 1}
+                }
+            };
         }
 
         //! return the path to the leaf for a given symbol
         std::pair<uint64_t,uint64_t> path(value_type c) const
         {
             return {m_max_level,c};
+        }
+
+    private:
+
+        //! Iterator to the begin of the bitvector of inner node v
+        auto begin(const node_type& v) const -> decltype(m_tree.begin() + v.offset)
+        {
+            return m_tree.begin() + v.offset;
+        }
+
+        //! Iterator to the begin of the bitvector of inner node v
+        auto end(const node_type& v) const -> decltype(m_tree.begin() + v.offset + v.size)
+        {
+            return m_tree.begin() + v.offset + v.size;
         }
 };
 
