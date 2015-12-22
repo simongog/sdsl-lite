@@ -29,7 +29,7 @@ sdsl::ram_fs_initializer::~ram_fs_initializer()
 namespace sdsl
 {
 
-ram_fs::ram_fs() {};
+ram_fs::ram_fs() {}
 
 void
 ram_fs::store(const std::string& name, content_type data)

@@ -121,7 +121,7 @@ quantile_freq(const t_wt& wt, typename t_wt::size_type lb,
         }
     }
     return {wt.sym(v), size(r)};
-};
+}
 
 
 template<class t_wt>
@@ -251,8 +251,7 @@ struct _interval_symbols_wt {
 
     static void call(const t_wt& wt, size_type i, size_type j, size_type& k,
                      std::vector<value_type>& cs, std::vector<size_type>& rank_c_i,
-                     std::vector<size_type>& rank_c_j)
-    {
+                     std::vector<size_type>& rank_c_j) {
         wt.interval_symbols(i,j,k,cs,rank_c_i,rank_c_j);
     }
 };
@@ -265,8 +264,7 @@ struct _interval_symbols_wt<t_wt, false> {
 
     static void call(const t_wt&, size_type, size_type, size_type&,
                      std::vector<value_type>&, std::vector<size_type>&,
-                     std::vector<size_type>&)
-    {
+                     std::vector<size_type>&) {
     }
 };
 
@@ -288,7 +286,7 @@ struct has_expand<t_wt, t_ret(t_args...)> {
 static constexpr std::false_type check(...) { return std::false_type();}
 typedef decltype(check<t_wt>(nullptr)) type;
 static constexpr bool value = type::value;
-            };
+};
 
 template<typename t_wt>
 struct has_range_search_2d {
@@ -418,14 +416,12 @@ struct _symbols_calls_wt {
     typedef typename t_wt::value_type value_type;
 
     static std::pair<bool, value_type>
-    call_symbol_gte(const t_wt& wt,value_type c)
-    {
+    call_symbol_gte(const t_wt& wt,value_type c) {
         return wt.symbol_gte(c);
     }
 
     static std::pair<bool,value_type>
-    call_symbol_lte(const t_wt& wt,value_type c)
-    {
+    call_symbol_lte(const t_wt& wt,value_type c) {
         return wt.symbol_lte(c);
     }
 };
@@ -436,14 +432,12 @@ struct _symbols_calls_wt<t_wt, false> {
     typedef typename t_wt::value_type value_type;
 
     static std::pair<bool,value_type>
-    call_symbol_gte(const t_wt& wt,value_type c)
-    {
+    call_symbol_gte(const t_wt& wt,value_type c) {
         return _symbol_gte(wt,c);
     }
 
     static std::pair<bool,value_type>
-    call_symbol_lte(const t_wt& wt,value_type c)
-    {
+    call_symbol_lte(const t_wt& wt,value_type c) {
         return _symbol_lte(wt,c);
     }
 };

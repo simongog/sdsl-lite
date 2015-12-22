@@ -53,8 +53,7 @@ class fibonacci
             //! Array contains precomputed values for the decoding of a number in the Fibonacci system.
             uint64_t fib2bin_0_95[(1<<12)*8];
 
-            impl()
-            {
+            impl() {
                 for (uint32_t x=0; x <= 0x1FFF; ++x) {
                     if (bits::cnt11(x)) {
                         fib2bin_shift[x] = bits::sel11(x, 1)+1;
@@ -137,10 +136,9 @@ class fibonacci
         static bool encode(const int_vector1& v, int_vector2& z);
 
         template<class int_vector>
-        static uint64_t* raw_data(int_vector& v)
-        {
+        static uint64_t* raw_data(int_vector& v) {
             return v.m_data;
-        };
+        }
 
         //! Encode one positive integer x to an int_vector at bit position start_idx.
         /*! \param x Positive integer to encode.
