@@ -44,6 +44,7 @@ class lcp_bitcompressed
         typedef ptrdiff_t                                       difference_type;
 
         typedef lcp_plain_tag                                   lcp_category;
+        typedef lcp_tag                                         index_category;
 
         enum { fast_access = 1,
                text_order  = 0,
@@ -67,7 +68,8 @@ class lcp_bitcompressed
         lcp_bitcompressed& operator=(lcp_bitcompressed&&) = default;
 
         //! Constructor taking a cache_config
-        lcp_bitcompressed(cache_config& config) {
+        lcp_bitcompressed(cache_config& config)
+        {
             std::string lcp_file = cache_file_name(conf::KEY_LCP, config);
             int_vector_buffer<> lcp_buf(lcp_file);
             m_lcp = int_vector<t_width>(lcp_buf.size(), 0, lcp_buf.width());
@@ -77,45 +79,53 @@ class lcp_bitcompressed
         }
 
         //! Number of elements in the instance.
-        size_type size()const {
+        size_type size()const
+        {
             return m_lcp.size();
         }
 
         //! Returns the largest size that lcp_bitcompressed can ever have.
-        static size_type max_size() {
+        static size_type max_size()
+        {
             return int_vector<t_width>::max_size();
         }
 
         //! Returns if the data structure is empty.
-        bool empty()const {
+        bool empty()const
+        {
             return m_lcp.empty();
         }
 
         //! Swap method for lcp_bitcompressed
-        void swap(lcp_bitcompressed& lcp_c) {
+        void swap(lcp_bitcompressed& lcp_c)
+        {
             m_lcp.swap(lcp_c.m_lcp);
         }
 
         //! Returns a const_iterator to the first element.
-        const_iterator begin()const {
+        const_iterator begin()const
+        {
             return const_iterator(this, 0);
         }
 
         //! Returns a const_iterator to the element after the last element.
-        const_iterator end()const {
+        const_iterator end()const
+        {
             return const_iterator(this, size());
         }
 
         //! Access operator
         /*! \param i Index of the value. \f$ i \in [0..size()-1]\f$.
          */
-        value_type operator[](size_type i)const {
+        value_type operator[](size_type i)const
+        {
             return m_lcp[i];
         }
 
         //! Serialize to a stream.
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
-                            std::string name="")const {
+                            std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name,
                                          util::class_name(*this));
             size_type written_bytes = 0;
@@ -125,7 +135,8 @@ class lcp_bitcompressed
         }
 
         //! Load from a stream.
-        void load(std::istream& in) {
+        void load(std::istream& in)
+        {
             m_lcp.load(in);
         }
 };

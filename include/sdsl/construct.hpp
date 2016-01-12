@@ -158,6 +158,70 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
     }
 }
 
+// Specialization for standalone LCPs
+template<class t_index, uint8_t t_width>
+void construct(t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes, lcp_tag)
+{
+    auto event = memory_monitor::event("construct compressed LCP");
+    const char* KEY_TEXT = key_text_trait<t_width>::KEY_TEXT;
+    typedef int_vector<t_width> text_type;
+    {
+        // (2) check, if the longest common prefix array is cached
+        auto event = memory_monitor::event("LCP");
+        if (!cache_file_exists(conf::KEY_LCP, config)) {
+            {
+                auto event = memory_monitor::event("parse input text");
+                // (1) check, if the text is cached
+                if (!cache_file_exists(KEY_TEXT, config)) {
+                    text_type text;
+                    load_vector_from_file(text, file, num_bytes);
+                    if (contains_no_zero_symbol(text, file)) {
+                        append_zero_symbol(text);
+                        store_to_cache(text,KEY_TEXT, config);
+                    }
+                }
+                register_cache_file(KEY_TEXT, config);
+            }
+            {
+                // (2) check, if the suffix array is cached
+                auto event = memory_monitor::event("SA");
+                if (!cache_file_exists(conf::KEY_SA, config)) {
+                    construct_sa<t_width>(config);
+                }
+                register_cache_file(conf::KEY_SA, config);
+            }
+            if (t_width==8) {
+                construct_lcp_semi_extern_PHI(config);
+            } else {
+                construct_lcp_PHI<t_width>(config);
+            }
+        }
+        register_cache_file(conf::KEY_LCP, config);
+    }
+    {
+        auto event = memory_monitor::event("compressed LCP");
+        t_index tmp(config);
+        tmp.swap(idx);
+    }
+    if (config.delete_files) {
+        auto event = memory_monitor::event("delete temporary files");
+        util::delete_all_files(config.file_map);
+    }
+}
+
+// Specialization for standalone LCPs
+template<class t_index>
+void construct(t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes, lcp_tag tag)
+{
+    if (1 == num_bytes) {
+        construct<t_index, 8>(idx, file, config, num_bytes, tag);
+    } else {
+        construct<t_index, 0>(idx, file, config, num_bytes, tag);
+    }
+}
+
+
+
 // Specialization for CSTs
 template<class t_index>
 void construct(t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes, cst_tag)
