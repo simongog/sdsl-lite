@@ -76,6 +76,8 @@ results/%: $(GM_EXECS) $(TC_COLLECTIONS) $(GM_PATTERNS) $(INDEX_SENTINELS)
 	@echo "# PATT_SAMPLE = $(PATTERN_ID)" >> $@
 	@echo "# ALGO = $(ALGO)" >> $@
 	$(MEASURE_CMD) build/gm_search-$(ALGO).x -c collections/$(TC_ID) -p collections/$(TC_ID)/patterns/regex.$(TC_ID).$(PATTERN_ID).$(NUM_SP).regex.txt -t $(IS_TEXT) >> $@
+	@tail -n 1 mem-mon-out.csv >> $@
+	@echo "" >> $@
 	mv mem-mon-out.csv $@.mem.csv
 	#Rscript memvis.R $@.mem.csv
 
