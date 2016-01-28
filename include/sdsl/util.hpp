@@ -32,14 +32,10 @@
 #include <string>
 #include <functional>  // for class_to_hash
 #include <string.h>    // for strlen and strdup
-#include <libgen.h>    // for basename
 #include <cstdlib>
-#include <unistd.h>    // for getpid, file_size, clock_gettime
 #include <sstream>     // for to_string method
 #include <stdexcept>   // for std::logic_error
 #include <typeinfo>    // for typeid
-#include <sys/time.h>  // for struct timeval
-#include <sys/resource.h> // for struct rusage
 #include <iomanip>
 #include <numeric>
 #include <random>
@@ -52,7 +48,17 @@
 #define SDSL_STR(x) #x
 #define SDSL_XSTR(s) SDSL_STR(s)
 
+#ifndef MSVC_COMPILER
 #define SDSL_UNUSED __attribute__ ((unused))
+#include <sys/time.h>  // for struct timeval
+#include <sys/resource.h> // for struct rusage
+#include <libgen.h>    // for basename
+#include <unistd.h>    // for getpid, file_size, clock_gettime
+#else
+#include <process.h>
+#include <iso646.h>
+#define SDSL_UNUSED
+#endif
 
 //! Namespace for the succinct data structure library.
 namespace sdsl
@@ -168,7 +174,7 @@ typename t_int_vec::size_type prev_bit(const t_int_vec& v, uint64_t idx);
 /*! \param file  Path to a file.
  *  \returns     Size of the specified file in bytes.
  */
-off_t file_size(const std::string& file);
+size_t file_size(const std::string& file);
 
 //! Returns the basename of a file
 /*! \param file  Path to a file.
@@ -225,12 +231,16 @@ std::string class_name(const T& t)
 //! Get the process id of the current process
 uint64_t pid();
 
+// convert an errno number to a readable msg
+char* str_from_errno();
+
 class _id_helper
 {
     private:
         static uint64_t id;
     public:
-        static uint64_t getId() {
+        static uint64_t getId()
+        {
             return id++;
         }
 };
@@ -313,14 +323,20 @@ void init_support(S& s, const X* x)
 class spin_lock
 {
     private:
-        std::atomic_flag m_slock = ATOMIC_FLAG_INIT;
+        std::atomic_flag m_slock;
     public:
-        void lock() {
+        spin_lock()
+        {
+            m_slock.clear();
+        }
+        void lock()
+        {
             while (m_slock.test_and_set(std::memory_order_acquire)) {
                 /* spin */
             }
         };
-        void unlock() {
+        void unlock()
+        {
             m_slock.clear(std::memory_order_release);
         };
 };
@@ -412,13 +428,15 @@ void util::expand_width(t_int_vec& v, uint8_t new_width)
 {
     uint8_t old_width = v.width();
     typename t_int_vec::size_type n = v.size();
-    if (new_width > old_width and n > 0) {
-        typename t_int_vec::size_type i, old_pos, new_pos;
-        new_pos = (n-1)*new_width;
-        old_pos = (n-1)*old_width;
-        v.bit_resize(v.size()*new_width);
-        for (i=0; i < n; ++i, new_pos-=new_width, old_pos-=old_width) {
-            v.set_int(new_pos, v.get_int(old_pos, old_width), new_width);
+    if (new_width > old_width) {
+        if (n > 0) {
+            typename t_int_vec::size_type i, old_pos, new_pos;
+            new_pos = (n-1)*new_width;
+            old_pos = (n-1)*old_width;
+            v.bit_resize(v.size()*new_width);
+            for (i=0; i < n; ++i, new_pos-=new_width, old_pos-=old_width) {
+                v.set_int(new_pos, v.get_int(old_pos, old_width), new_width);
+            }
         }
         v.width(new_width);
     }
