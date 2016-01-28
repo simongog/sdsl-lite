@@ -41,13 +41,11 @@ struct gapped_pattern {
         for (size_t i=0; i<raw_regexp.size(); i++) {
             sdsl_regexp[i] = raw_regexp[i];
         }
-        std::regex gap_regex(R"(\.\{[^,]*,[^,]*\})");
-        auto gaps_begin = std::sregex_iterator(raw_regexp.begin(),raw_regexp.end(),gap_regex);
-        auto gaps_end = std::sregex_iterator();
         int64_t last_gap_end = -1;
-        for (auto i = gaps_begin; i != gaps_end; ++i) {
-            std::smatch match = *i;
-            std::string gap_str = match.str();
+        size_t gap_pos;
+        while ((gap_pos = raw_regexp.find(".{", last_gap_end + 1)) != std::string::npos) {
+            auto gap_end =  raw_regexp.find("}", gap_pos);
+            std::string gap_str = raw_regexp.substr(gap_pos, gap_end - gap_pos + 1);
             gap_strs.push_back(gap_str);
             /* try parsing the gap  description */
             auto first_num_sep = gap_str.find(",");
@@ -60,14 +58,14 @@ struct gapped_pattern {
                 throw std::runtime_error("invalid gap description");
             }
             gaps.emplace_back(first_gap_num,second_gap_num);
-            auto gap_pos = match.position();
             auto subptrlen = gap_pos - (last_gap_end+1);
             auto subpattern = raw_regexp.substr(last_gap_end+1,subptrlen);
             subpatterns.push_back(parse_subpattern(subpattern));
-            last_gap_end = gap_pos + gap_str.size() - 1;
+            last_gap_end = gap_end;
         }
         auto last_subpattern = raw_regexp.substr(last_gap_end+1);
         subpatterns.push_back(parse_subpattern(last_subpattern));
+        
         LOG(INFO) << "PARSED('" << raw_regexp << "') -> GAPS = " << gaps << " SUBPATTERNS = " << subpatterns;
     };
 };
