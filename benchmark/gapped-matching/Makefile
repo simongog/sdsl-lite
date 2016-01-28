@@ -12,7 +12,7 @@ TMP_DIR = ../tmp
 .SECONDARY:
 
 TC_IDS:=$(call config_ids,test_case.config)
-TC_COLLECTIONS:=#$(foreach TC_ID,$(TC_IDS),collections/$(TC_ID)/text.TEXT)
+TC_COLLECTIONS:=$(foreach TC_ID,$(TC_IDS),collections/$(TC_ID)/text.TEXT)
 UNIQUE_DATA_FILES:=$(shell echo $(call config_column,test_case.config,2) | tr " " "\n" | uniq | tr "\n" " ")
 TEMP_DATA_FILE:=build/_tmp.raw
 
