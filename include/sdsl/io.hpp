@@ -177,7 +177,17 @@ template<class t_int_vec>
 bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_bytes=1, uint8_t max_int_width=64)
 {
     if ((uint8_t)0 == num_bytes) {  // if byte size is variable read int_vector<0> from file
-        return load_from_file(v, file);
+        if (t_int_vec::fixed_int_width==0) {
+            return load_from_file(v, file);
+        } else {
+            int_vector<t_int_vec::fixed_int_width-t_int_vec::fixed_int_width> v0;
+            bool success = load_from_file(v0, file);
+            v.resize(v0.size());
+            for (size_t i=0; i<v0.size(); ++i) {
+                v[i] = v0[i];
+            }
+            return success;
+        }
     } else if (num_bytes == 'd') {
         uint64_t x = 0, max_x = 0;
         isfstream in(file);
