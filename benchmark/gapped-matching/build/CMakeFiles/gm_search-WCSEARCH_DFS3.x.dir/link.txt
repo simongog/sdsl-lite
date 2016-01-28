@@ -1,1 +1,0 @@
-/software/gcc/4.9.0/bin/g++    -std=c++11 -Wall -Wextra  -O3 -DNDEBUG -msse4.2 -O3 -ffast-math -funroll-loops    CMakeFiles/gm_search-WCSEARCH_DFS3.x.dir/src/gm_search.cpp.o  -o gm_search-WCSEARCH_DFS3.x  -L/home/jbader/lib -rdynamic -lsdsl -ldivsufsort -ldivsufsort64 -lpthread -lboost_regex -Wl,-rpath,/home/jbader/lib 

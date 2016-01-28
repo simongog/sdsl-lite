@@ -1,7 +1,0 @@
-/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/create_collection.x.dir
-/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/gm_index-BSTREE.x.dir
-/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/gm_index-SASEARCH.x.dir
-/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/gm_index-WCSEARCH_DFS3.x.dir
-/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/gm_search-BSTREE.x.dir
-/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/gm_search-SASEARCH.x.dir
-/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/gm_search-WCSEARCH_DFS3.x.dir
