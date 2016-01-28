@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <utility>
+#include "wt_helper.hpp"
 
 namespace sdsl
 {
