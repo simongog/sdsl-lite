@@ -172,7 +172,7 @@ _interval_symbols(const t_wt& wt, typename t_wt::size_type i,
         k=1;
         return;
     } else if (j>i) {
-        _interval_symbols_rec(wt, {{i,j-1}}, k, cs,
+        _interval_symbols_rec(wt, range_type {{i,j-1}}, k, cs,
         rank_c_i, rank_c_j, wt.root());
     }
 }
