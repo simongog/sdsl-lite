@@ -1,0 +1,3 @@
+[submodule "benchmark/gapped-matching/external/easyloggingpp"]
+	path = benchmark/gapped-matching/external/easyloggingpp
+	url = https://github.com/easylogging/easyloggingpp.git
