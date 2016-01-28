@@ -1,7 +1,7 @@
 include ../Make.helper
 include ../Make.download
 
-MEASURE_ENERGY = 0 
+MEASURE_ENERGY =#write anything to activate
 MEASURE_CMD = $(if $(MEASURE_ENERGY), likwid-perfctr -C S0:0 -g ENERGY -m,)
 
 CXX_FLAGS = $(MY_CXX_FLAGS) # in compile_options.config
@@ -38,6 +38,14 @@ debug:
 	@echo $(NUM_SPS)
 
 inputs: $(GM_PATTERNS)
+indices: $(INDEX_SENTINELS)
+
+# Format: collections/[TC_ID].[ALGO].sentinel
+collections/%.sentinel: $(GM_EXECS) $(TC_COLLECTIONS)
+	$(eval TC_ID:=$(call dim,1,$*))
+	$(eval ALGO:=$(call dim,2,$*))
+	test -e $@ || build/gm_index-$(ALGO).x -c collections/$(TC_ID)
+	touch $@
 
 execs: $(GM_EXECS)
 
@@ -49,7 +57,7 @@ collections/%/text.TEXT: build/create_collection.x $(UNIQUE_DATA_FILES)
 	@echo "Creating collection $(TC_ID) from file $(SOURCE_FILE)"
 	$(if $(findstring -,$(PREFIX_BYTES)), , @head -c $(PREFIX_BYTES) $(SOURCE_FILE) > $(TEMP_DATA_FILE))
 	$(if $(findstring -,$(PREFIX_BYTES)), , $(eval SOURCE_FILE:=$(TEMP_DATA_FILE)))
-	@build/create_collection.x -i $(SOURCE_FILE) -n $(NUM_BYTES) -c collections/$(TC_ID)
+	@test -e $@ || build/create_collection.x -i $(SOURCE_FILE) -n $(NUM_BYTES) -c collections/$(TC_ID)
 	$(if $(findstring -,$(PREFIX_BYTES)), , @rm $(TEMP_DATA_FILE))
 
 timing: $(RES_FILES)
@@ -57,7 +65,7 @@ timing: $(RES_FILES)
 	@cd visualize; make	
 
 # Format: results/[ALGO].[PATTERN_ID].[NUM_SP].[TC_ID]
-results/%: $(GM_EXECS) $(TC_COLLECTIONS) $(GM_PATTERNS)
+results/%: $(GM_EXECS) $(TC_COLLECTIONS) $(GM_PATTERNS) $(INDEX_SENTINELS)
 	@mkdir -p results
 	$(eval ALGO:=$(call dim,1,$*))
 	$(eval PATTERN_ID:=$(call dim,2,$*))
@@ -67,8 +75,6 @@ results/%: $(GM_EXECS) $(TC_COLLECTIONS) $(GM_PATTERNS)
 	@echo "# COLL_ID = $(TC_ID)" > $@
 	@echo "# PATT_SAMPLE = $(PATTERN_ID)" >> $@
 	@echo "# ALGO = $(ALGO)" >> $@
-	$(eval SENTINEL:="collections/$(TC_ID).$(ALGO).sentinel")
-	@test -e $(SENTINEL) || { echo "Running build/gm_index-$(ALGO).x -c collections/$(TC_ID)"; ./build/gm_index-$(ALGO).x -c collections/$(TC_ID); touch $(SENTINEL); }
 	$(MEASURE_CMD) build/gm_search-$(ALGO).x -c collections/$(TC_ID) -p collections/$(TC_ID)/patterns/regex.$(TC_ID).$(PATTERN_ID).$(NUM_SP).regex.txt -t $(IS_TEXT) >> $@
 	mv mem-mon-out.csv $@.mem.csv
 	Rscript memvis.R $@.mem.csv
@@ -93,7 +99,7 @@ collections/%.regex.txt: $(GM_WORDS)
 	$(eval GAP:=$(call config_select,patterns.config,$(PATTERN_ID),3))
 	@echo "$(PATTERN_ID)"
 	@echo "Creating regex patterns with $(NUM_SP) words of length $(SP_LENGTH) from $(TC_ID) and a gap of $(GAP)..."
-	@cat collections/$(TC_ID)/patterns/words.$(TC_ID).$(SP_LENGTH).words.txt | xargs -n$(NUM_SP) | sed -e 's/ /.{$(GAP)}/g' | head -n $(NUM_SAMPLES) > $@
+	@cat collections/$(TC_ID)/patterns/words.$(TC_ID).$(SP_LENGTH).words.txt | sed -e 's/ /___/g' | xargs -n$(NUM_SP) | sed -e 's/ /.{$(GAP)}/g' | head -n $(NUM_SAMPLES) | sed -e 's/___/ /g' > $@
 
 build/%:
 	@mkdir -p build

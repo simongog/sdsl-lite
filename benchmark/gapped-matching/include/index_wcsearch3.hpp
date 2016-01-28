@@ -340,7 +340,7 @@ class wild_card_match_iterator3 : public std::iterator<std::forward_iterator_tag
             current = (result_type)-1;
         }
         wild_card_match_iterator3(const type_index& index,
-                                  vector<string_type>& s,
+                                  const vector<string_type>& s,
                                   size_t min_gap,
                                   size_t max_gap)
             : min_gap(min_gap), max_gap(max_gap), size3(s[s.size() - 1].size())
@@ -455,23 +455,17 @@ class index_wcsearch3
         search(const gapped_pattern& pat) const
         {
             gapped_search_result res;
-            vector<string_type> s;
             size_type min_gap;
             size_type max_gap;
 
             std::cerr << "REGEX ::: " << pat.raw_regexp << std::endl;
 
-            s.push_back(pat.subpatterns[0]);
-            s.push_back(pat.subpatterns[1]);
-            for (size_t i = 2; i < NUM_PATTERNS; ++i)
-                s.push_back(pat.subpatterns[1]);
-
-            min_gap = s[0].size() + pat.gaps[0].first;
-            max_gap = s[0].size() + pat.gaps[0].second;
+            min_gap = pat.subpatterns[0].size() + pat.gaps[0].first;
+            max_gap = pat.subpatterns[0].size() + pat.gaps[0].second;
 
             // smart scan
             auto container = sdsl::matching_container<wild_card_match_iterator3<index_type>>(
-                                 wild_card_match_iterator3<index_type>(index, s, min_gap, max_gap),
+                                 wild_card_match_iterator3<index_type>(index, pat.subpatterns, min_gap, max_gap),
                                  wild_card_match_iterator3<index_type>());
             for (auto hit : container) {
                 res.positions.push_back(hit);
