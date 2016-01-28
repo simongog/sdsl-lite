@@ -1,0 +1,312 @@
+The system is: Linux - 3.13.0-45-generic - x86_64
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: /software/gcc/4.9.0/bin/g++ 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+
+The CXX compiler identification is GNU, found in "/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/3.0.1/CompilerIdCXX/a.out"
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /software/gcc/4.9.0/bin/gcc 
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/3.0.1/CompilerIdC/a.out"
+
+Determining if the CXX compiler works passed with the following output:
+Change Dir: /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec2448420559/fast"
+make[1]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+/usr/bin/make -f CMakeFiles/cmTryCompileExec2448420559.dir/build.make CMakeFiles/cmTryCompileExec2448420559.dir/build
+make[2]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+/software/cmake-3.0.1/bin/cmake -E cmake_progress_report /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building CXX object CMakeFiles/cmTryCompileExec2448420559.dir/testCXXCompiler.cxx.o
+/software/gcc/4.9.0/bin/g++     -o CMakeFiles/cmTryCompileExec2448420559.dir/testCXXCompiler.cxx.o -c /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
+Linking CXX executable cmTryCompileExec2448420559
+/software/cmake-3.0.1/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec2448420559.dir/link.txt --verbose=1
+/software/gcc/4.9.0/bin/g++        CMakeFiles/cmTryCompileExec2448420559.dir/testCXXCompiler.cxx.o  -o cmTryCompileExec2448420559 -rdynamic 
+make[2]: Leaving directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+make[1]: Leaving directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+
+
+Detecting CXX compiler ABI info compiled with the following output:
+Change Dir: /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec2531629873/fast"
+make[1]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+/usr/bin/make -f CMakeFiles/cmTryCompileExec2531629873.dir/build.make CMakeFiles/cmTryCompileExec2531629873.dir/build
+make[2]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+/software/cmake-3.0.1/bin/cmake -E cmake_progress_report /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building CXX object CMakeFiles/cmTryCompileExec2531629873.dir/CMakeCXXCompilerABI.cpp.o
+/software/gcc/4.9.0/bin/g++     -o CMakeFiles/cmTryCompileExec2531629873.dir/CMakeCXXCompilerABI.cpp.o -c /software/cmake-3.0.1/share/cmake-3.0/Modules/CMakeCXXCompilerABI.cpp
+Linking CXX executable cmTryCompileExec2531629873
+/software/cmake-3.0.1/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec2531629873.dir/link.txt --verbose=1
+/software/gcc/4.9.0/bin/g++      -v CMakeFiles/cmTryCompileExec2531629873.dir/CMakeCXXCompilerABI.cpp.o  -o cmTryCompileExec2531629873 -rdynamic  
+Es werden eingebaute Spezifikationen verwendet.
+COLLECT_GCC=/software/gcc/4.9.0/bin/g++
+COLLECT_LTO_WRAPPER=/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/lto-wrapper
+Ziel: x86_64-unknown-linux-gnu
+Konfiguriert mit: ../configure --prefix=/software/gcc/4.9.0/ --enable-languages=c,c++,objc
+Thread-Modell: posix
+gcc-Version 4.9.0 (GCC) 
+COMPILER_PATH=/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/
+LIBRARY_PATH=/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../../lib64/:/lib/../lib64/:/lib/x86_64-linux-gnu/:/usr/lib/x86_64-linux-gnu/:./:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTryCompileExec2531629873' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/collect2 -plugin /software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/liblto_plugin.so -plugin-opt=/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/lto-wrapper -plugin-opt=-fresolution=/tmp/cc2x1UdM.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTryCompileExec2531629873 /usr/lib/x86_64-linux-gnu/crt1.o /usr/lib/x86_64-linux-gnu/crti.o /software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/crtbegin.o -L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0 -L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../../lib64 -L/lib/../lib64 -L/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -L. -L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../.. CMakeFiles/cmTryCompileExec2531629873.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/crtend.o /usr/lib/x86_64-linux-gnu/crtn.o
+make[2]: Leaving directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+make[1]: Leaving directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+
+
+Parsed CXX implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTryCompileExec2531629873/fast"]
+  ignore line: [make[1]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp']
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTryCompileExec2531629873.dir/build.make CMakeFiles/cmTryCompileExec2531629873.dir/build]
+  ignore line: [make[2]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp']
+  ignore line: [/software/cmake-3.0.1/bin/cmake -E cmake_progress_report /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp/CMakeFiles 1]
+  ignore line: [Building CXX object CMakeFiles/cmTryCompileExec2531629873.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [/software/gcc/4.9.0/bin/g++     -o CMakeFiles/cmTryCompileExec2531629873.dir/CMakeCXXCompilerABI.cpp.o -c /software/cmake-3.0.1/share/cmake-3.0/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: [Linking CXX executable cmTryCompileExec2531629873]
+  ignore line: [/software/cmake-3.0.1/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec2531629873.dir/link.txt --verbose=1]
+  ignore line: [/software/gcc/4.9.0/bin/g++      -v CMakeFiles/cmTryCompileExec2531629873.dir/CMakeCXXCompilerABI.cpp.o  -o cmTryCompileExec2531629873 -rdynamic  ]
+  ignore line: [Es werden eingebaute Spezifikationen verwendet.]
+  ignore line: [COLLECT_GCC=/software/gcc/4.9.0/bin/g++]
+  ignore line: [COLLECT_LTO_WRAPPER=/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/lto-wrapper]
+  ignore line: [Ziel: x86_64-unknown-linux-gnu]
+  ignore line: [Konfiguriert mit: ../configure --prefix=/software/gcc/4.9.0/ --enable-languages=c,c++,objc]
+  ignore line: [Thread-Modell: posix]
+  ignore line: [gcc-Version 4.9.0 (GCC) ]
+  ignore line: [COMPILER_PATH=/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/]
+  ignore line: [LIBRARY_PATH=/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../../lib64/:/lib/../lib64/:/lib/x86_64-linux-gnu/:/usr/lib/x86_64-linux-gnu/:./:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTryCompileExec2531629873' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/collect2 -plugin /software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/liblto_plugin.so -plugin-opt=/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/lto-wrapper -plugin-opt=-fresolution=/tmp/cc2x1UdM.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTryCompileExec2531629873 /usr/lib/x86_64-linux-gnu/crt1.o /usr/lib/x86_64-linux-gnu/crti.o /software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/crtbegin.o -L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0 -L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../../lib64 -L/lib/../lib64 -L/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -L. -L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../.. CMakeFiles/cmTryCompileExec2531629873.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/crtend.o /usr/lib/x86_64-linux-gnu/crtn.o]
+    arg [/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/collect2] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/cc2x1UdM.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTryCompileExec2531629873] ==> ignore
+    arg [/usr/lib/x86_64-linux-gnu/crt1.o] ==> ignore
+    arg [/usr/lib/x86_64-linux-gnu/crti.o] ==> ignore
+    arg [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/crtbegin.o] ==> ignore
+    arg [-L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0] ==> dir [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0]
+    arg [-L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../../lib64] ==> dir [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../../lib64]
+    arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+    arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
+    arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
+    arg [-L.] ==> ignore
+    arg [-L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../..] ==> dir [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../..]
+    arg [CMakeFiles/cmTryCompileExec2531629873.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [-lstdc++] ==> lib [stdc++]
+    arg [-lm] ==> lib [m]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lc] ==> lib [c]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/crtend.o] ==> ignore
+    arg [/usr/lib/x86_64-linux-gnu/crtn.o] ==> ignore
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  collapse library dir [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0] ==> [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0]
+  collapse library dir [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../../lib64] ==> [/software/gcc/4.9.0/lib64]
+  collapse library dir [/lib/../lib64] ==> [/lib64]
+  collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../..] ==> [/software/gcc/4.9.0/lib]
+  implicit libs: [stdc++;m;c]
+  implicit dirs: [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0;/software/gcc/4.9.0/lib64;/lib64;/lib/x86_64-linux-gnu;/usr/lib/x86_64-linux-gnu;/software/gcc/4.9.0/lib]
+  implicit fwks: []
+
+
+Determining if the C compiler works passed with the following output:
+Change Dir: /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec1031697052/fast"
+make[1]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+/usr/bin/make -f CMakeFiles/cmTryCompileExec1031697052.dir/build.make CMakeFiles/cmTryCompileExec1031697052.dir/build
+make[2]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+/software/cmake-3.0.1/bin/cmake -E cmake_progress_report /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec1031697052.dir/testCCompiler.c.o
+/software/gcc/4.9.0/bin/gcc    -o CMakeFiles/cmTryCompileExec1031697052.dir/testCCompiler.c.o   -c /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTryCompileExec1031697052
+/software/cmake-3.0.1/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec1031697052.dir/link.txt --verbose=1
+/software/gcc/4.9.0/bin/gcc       CMakeFiles/cmTryCompileExec1031697052.dir/testCCompiler.c.o  -o cmTryCompileExec1031697052 -rdynamic 
+make[2]: Leaving directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+make[1]: Leaving directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec97587005/fast"
+make[1]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+/usr/bin/make -f CMakeFiles/cmTryCompileExec97587005.dir/build.make CMakeFiles/cmTryCompileExec97587005.dir/build
+make[2]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+/software/cmake-3.0.1/bin/cmake -E cmake_progress_report /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec97587005.dir/CMakeCCompilerABI.c.o
+/software/gcc/4.9.0/bin/gcc    -o CMakeFiles/cmTryCompileExec97587005.dir/CMakeCCompilerABI.c.o   -c /software/cmake-3.0.1/share/cmake-3.0/Modules/CMakeCCompilerABI.c
+Linking C executable cmTryCompileExec97587005
+/software/cmake-3.0.1/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec97587005.dir/link.txt --verbose=1
+/software/gcc/4.9.0/bin/gcc     -v CMakeFiles/cmTryCompileExec97587005.dir/CMakeCCompilerABI.c.o  -o cmTryCompileExec97587005 -rdynamic  
+Es werden eingebaute Spezifikationen verwendet.
+COLLECT_GCC=/software/gcc/4.9.0/bin/gcc
+COLLECT_LTO_WRAPPER=/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/lto-wrapper
+Ziel: x86_64-unknown-linux-gnu
+Konfiguriert mit: ../configure --prefix=/software/gcc/4.9.0/ --enable-languages=c,c++,objc
+Thread-Modell: posix
+gcc-Version 4.9.0 (GCC) 
+COMPILER_PATH=/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/
+LIBRARY_PATH=/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../../lib64/:/lib/../lib64/:/lib/x86_64-linux-gnu/:/usr/lib/x86_64-linux-gnu/:./:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTryCompileExec97587005' '-rdynamic' '-mtune=generic' '-march=x86-64'
+ /software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/collect2 -plugin /software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/liblto_plugin.so -plugin-opt=/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/lto-wrapper -plugin-opt=-fresolution=/tmp/ccq6IWyV.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTryCompileExec97587005 /usr/lib/x86_64-linux-gnu/crt1.o /usr/lib/x86_64-linux-gnu/crti.o /software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/crtbegin.o -L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0 -L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../../lib64 -L/lib/../lib64 -L/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -L. -L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../.. CMakeFiles/cmTryCompileExec97587005.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/crtend.o /usr/lib/x86_64-linux-gnu/crtn.o
+make[2]: Leaving directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+make[1]: Leaving directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTryCompileExec97587005/fast"]
+  ignore line: [make[1]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp']
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTryCompileExec97587005.dir/build.make CMakeFiles/cmTryCompileExec97587005.dir/build]
+  ignore line: [make[2]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp']
+  ignore line: [/software/cmake-3.0.1/bin/cmake -E cmake_progress_report /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp/CMakeFiles 1]
+  ignore line: [Building C object CMakeFiles/cmTryCompileExec97587005.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/software/gcc/4.9.0/bin/gcc    -o CMakeFiles/cmTryCompileExec97587005.dir/CMakeCCompilerABI.c.o   -c /software/cmake-3.0.1/share/cmake-3.0/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTryCompileExec97587005]
+  ignore line: [/software/cmake-3.0.1/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec97587005.dir/link.txt --verbose=1]
+  ignore line: [/software/gcc/4.9.0/bin/gcc     -v CMakeFiles/cmTryCompileExec97587005.dir/CMakeCCompilerABI.c.o  -o cmTryCompileExec97587005 -rdynamic  ]
+  ignore line: [Es werden eingebaute Spezifikationen verwendet.]
+  ignore line: [COLLECT_GCC=/software/gcc/4.9.0/bin/gcc]
+  ignore line: [COLLECT_LTO_WRAPPER=/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/lto-wrapper]
+  ignore line: [Ziel: x86_64-unknown-linux-gnu]
+  ignore line: [Konfiguriert mit: ../configure --prefix=/software/gcc/4.9.0/ --enable-languages=c,c++,objc]
+  ignore line: [Thread-Modell: posix]
+  ignore line: [gcc-Version 4.9.0 (GCC) ]
+  ignore line: [COMPILER_PATH=/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/]
+  ignore line: [LIBRARY_PATH=/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../../lib64/:/lib/../lib64/:/lib/x86_64-linux-gnu/:/usr/lib/x86_64-linux-gnu/:./:/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTryCompileExec97587005' '-rdynamic' '-mtune=generic' '-march=x86-64']
+  link line: [ /software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/collect2 -plugin /software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/liblto_plugin.so -plugin-opt=/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/lto-wrapper -plugin-opt=-fresolution=/tmp/ccq6IWyV.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTryCompileExec97587005 /usr/lib/x86_64-linux-gnu/crt1.o /usr/lib/x86_64-linux-gnu/crti.o /software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/crtbegin.o -L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0 -L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../../lib64 -L/lib/../lib64 -L/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -L. -L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../.. CMakeFiles/cmTryCompileExec97587005.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/crtend.o /usr/lib/x86_64-linux-gnu/crtn.o]
+    arg [/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/collect2] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/software/gcc/4.9.0/libexec/gcc/x86_64-unknown-linux-gnu/4.9.0/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccq6IWyV.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTryCompileExec97587005] ==> ignore
+    arg [/usr/lib/x86_64-linux-gnu/crt1.o] ==> ignore
+    arg [/usr/lib/x86_64-linux-gnu/crti.o] ==> ignore
+    arg [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/crtbegin.o] ==> ignore
+    arg [-L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0] ==> dir [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0]
+    arg [-L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../../lib64] ==> dir [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../../lib64]
+    arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+    arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
+    arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
+    arg [-L.] ==> ignore
+    arg [-L/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../..] ==> dir [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../..]
+    arg [CMakeFiles/cmTryCompileExec97587005.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/crtend.o] ==> ignore
+    arg [/usr/lib/x86_64-linux-gnu/crtn.o] ==> ignore
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  collapse library dir [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0] ==> [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0]
+  collapse library dir [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../../../lib64] ==> [/software/gcc/4.9.0/lib64]
+  collapse library dir [/lib/../lib64] ==> [/lib64]
+  collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0/../../..] ==> [/software/gcc/4.9.0/lib]
+  implicit libs: [c]
+  implicit dirs: [/software/gcc/4.9.0/lib/gcc/x86_64-unknown-linux-gnu/4.9.0;/software/gcc/4.9.0/lib64;/lib64;/lib/x86_64-linux-gnu;/usr/lib/x86_64-linux-gnu;/software/gcc/4.9.0/lib]
+  implicit fwks: []
+
+
+Performing C++ SOURCE FILE Test HAVE_GCC_STD=C__11__WALL__WEXTRA_ succeded with the following output:
+Change Dir: /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec2960132285/fast"
+make[1]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+/usr/bin/make -f CMakeFiles/cmTryCompileExec2960132285.dir/build.make CMakeFiles/cmTryCompileExec2960132285.dir/build
+make[2]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+/software/cmake-3.0.1/bin/cmake -E cmake_progress_report /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building CXX object CMakeFiles/cmTryCompileExec2960132285.dir/src.cxx.o
+/software/gcc/4.9.0/bin/g++    -DHAVE_GCC_STD=C__11__WALL__WEXTRA_ -std=c++11 -Wall -Wextra   -o CMakeFiles/cmTryCompileExec2960132285.dir/src.cxx.o -c /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTryCompileExec2960132285
+/software/cmake-3.0.1/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec2960132285.dir/link.txt --verbose=1
+/software/gcc/4.9.0/bin/g++    -DHAVE_GCC_STD=C__11__WALL__WEXTRA_ -std=c++11 -Wall -Wextra    CMakeFiles/cmTryCompileExec2960132285.dir/src.cxx.o  -o cmTryCompileExec2960132285 -rdynamic 
+make[2]: Leaving directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+make[1]: Leaving directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAVE_GCC_MSSE4.2__O3__FFAST_MATH__FUNROLL_LOOPS succeded with the following output:
+Change Dir: /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec3871438993/fast"
+make[1]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+/usr/bin/make -f CMakeFiles/cmTryCompileExec3871438993.dir/build.make CMakeFiles/cmTryCompileExec3871438993.dir/build
+make[2]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+/software/cmake-3.0.1/bin/cmake -E cmake_progress_report /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building CXX object CMakeFiles/cmTryCompileExec3871438993.dir/src.cxx.o
+/software/gcc/4.9.0/bin/g++    -std=c++11 -Wall -Wextra  -DHAVE_GCC_MSSE4.2__O3__FFAST_MATH__FUNROLL_LOOPS -msse4.2 -O3 -ffast-math -funroll-loops   -o CMakeFiles/cmTryCompileExec3871438993.dir/src.cxx.o -c /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp/src.cxx
+<Kommandozeile>:0:15: Warnung: ISO-C99 erfordert Leerzeichen hinter Makroname
+Linking CXX executable cmTryCompileExec3871438993
+/software/cmake-3.0.1/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec3871438993.dir/link.txt --verbose=1
+/software/gcc/4.9.0/bin/g++    -std=c++11 -Wall -Wextra  -DHAVE_GCC_MSSE4.2__O3__FFAST_MATH__FUNROLL_LOOPS -msse4.2 -O3 -ffast-math -funroll-loops    CMakeFiles/cmTryCompileExec3871438993.dir/src.cxx.o  -o cmTryCompileExec3871438993 -rdynamic 
+make[2]: Leaving directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+make[1]: Leaving directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }

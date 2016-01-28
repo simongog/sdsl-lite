@@ -1,0 +1,3 @@
+NAME=REGEXP_ECMA_BOOST
+INDEX_TYPE=index_regexp_boost
+REGEXP_TYPE=std::regex::ECMAScript

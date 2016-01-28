@@ -1,0 +1,1 @@
+/software/gcc/4.9.0/bin/g++    -std=c++11 -Wall -Wextra  -O3 -DNDEBUG -msse4.2 -O3 -ffast-math -funroll-loops    CMakeFiles/create_collection.x.dir/src/create_collection.cpp.o  -o create_collection.x  -L/home/jbader/lib -rdynamic -lsdsl -ldivsufsort -ldivsufsort64 -lpthread -Wl,-rpath,/home/jbader/lib 

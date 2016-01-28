@@ -1,0 +1,3 @@
+NAME=WCSEARCH_BFS
+INDEX_TYPE=index_wcsearch_bfs
+REGEXP_TYPE=std::regex::ECMAScript

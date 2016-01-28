@@ -1,0 +1,3 @@
+NAME=WCSEARCH_FULL_DFS
+INDEX_TYPE=index_wcsearch_full
+REGEXP_TYPE=std::regex::ECMAScript

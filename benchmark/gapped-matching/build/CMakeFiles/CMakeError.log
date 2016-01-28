@@ -1,0 +1,23 @@
+Performing C++ SOURCE FILE Test HAVE_GCC_DLIKWID_PERFMON__L_.._LIB___I_.._INCLUDE___LLIKWID failed with the following output:
+Change Dir: /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec1724261138/fast"
+make[1]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+/usr/bin/make -f CMakeFiles/cmTryCompileExec1724261138.dir/build.make CMakeFiles/cmTryCompileExec1724261138.dir/build
+make[2]: Entering directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+/software/cmake-3.0.1/bin/cmake -E cmake_progress_report /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building CXX object CMakeFiles/cmTryCompileExec1724261138.dir/src.cxx.o
+/software/gcc/4.9.0/bin/g++    -DHAVE_GCC_DLIKWID_PERFMON__L_.._LIB___I_.._INCLUDE___LLIKWID -DLIKWID_PERFMON -L/../lib/ -I/../include/ -llikwid   -o CMakeFiles/cmTryCompileExec1724261138.dir/src.cxx.o -c /data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp/src.cxx
+<Kommandozeile>:0:29: Warnung: Leerzeichen hinter Makroname fehlt
+Linking CXX executable cmTryCompileExec1724261138
+/software/cmake-3.0.1/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec1724261138.dir/link.txt --verbose=1
+/software/gcc/4.9.0/bin/g++    -DHAVE_GCC_DLIKWID_PERFMON__L_.._LIB___I_.._INCLUDE___LLIKWID -DLIKWID_PERFMON -L/../lib/ -I/../include/ -llikwid    CMakeFiles/cmTryCompileExec1724261138.dir/src.cxx.o  -o cmTryCompileExec1724261138 -rdynamic 
+/usr/bin/ld: cannot find -llikwid
+collect2: Fehler: ld gab 1 als Ende-Status zurück
+make[2]: *** [cmTryCompileExec1724261138] Error 1
+make[2]: Leaving directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+make[1]: *** [cmTryCompileExec1724261138/fast] Error 2
+make[1]: Leaving directory `/data01/jbader/vlg_matching/benchmark/gapped-matching/build/CMakeFiles/CMakeTmp'
+
+Source file was:
+int main() { return 0; }

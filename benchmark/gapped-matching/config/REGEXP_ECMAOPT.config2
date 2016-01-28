@@ -1,0 +1,3 @@
+NAME=REGEXP_ECMAOPT
+INDEX_TYPE=index_regexp
+REGEXP_TYPE=std::regex::ECMAScript|std::regex::optimize

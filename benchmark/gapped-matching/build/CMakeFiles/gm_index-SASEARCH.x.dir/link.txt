@@ -1,0 +1,1 @@
+/software/gcc/4.9.0/bin/g++    -std=c++11 -Wall -Wextra  -O3 -DNDEBUG -msse4.2 -O3 -ffast-math -funroll-loops    CMakeFiles/gm_index-SASEARCH.x.dir/src/gm_index.cpp.o  -o gm_index-SASEARCH.x  -L/home/jbader/lib -rdynamic -lsdsl -ldivsufsort -ldivsufsort64 -lpthread -lboost_regex -Wl,-rpath,/home/jbader/lib 
