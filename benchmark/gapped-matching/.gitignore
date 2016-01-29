@@ -4,3 +4,4 @@ build/*
 *.sdsl
 *.csv
 *.swp
+*~

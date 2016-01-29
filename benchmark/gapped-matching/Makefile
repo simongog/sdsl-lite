@@ -1,8 +1,8 @@
 include ../Make.helper
 include ../Make.download
 
-MEASURE_ENERGY =#write anything to activate
-MEASURE_CMD = $(if $(MEASURE_ENERGY), likwid-perfctr -C S0:0 -g ENERGY -m,)
+MEASURE_ENERGY = 0
+MEASURE_CMD = $(if $(findstring 1,$(MEASURE_ENERGY)), likwid-perfctr -C S0:0 -g ENERGY -m,)
 
 CXX_FLAGS = $(MY_CXX_FLAGS) # in compile_options.config
 LIBS = -lsdsl 
@@ -111,10 +111,12 @@ clean-build:
 	@echo "Remove executables"
 	rm -rf build/*
 
-#clean:
-#	rm -f $(GM_PATTERNS)
-#	rm -f $(GM_WORDS)
-#	rm -f $(INDEX_SENTINELS)
+clean:
+	rm -rf build/*
+	rm -f $(GM_PATTERNS)
+	rm -f $(GM_WORDS)
+	rm -f $(INDEX_SENTINELS)
+	rm -f $(RES_FILES) 
 
 clean-results: 
 	rm -f $(RES_FILES) 
