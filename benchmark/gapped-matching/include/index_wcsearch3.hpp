@@ -1,118 +1,118 @@
 #pragma once
 
+#include <vector>
 #include "collection.hpp"
 #include "utils.hpp"
-#include "sdsl/matching.hpp"
 #include "sdsl/suffix_arrays.hpp"
 
 template<typename T>
-using st_ptr = __shared_ptr<T, __gnu_cxx::_S_single>;
+using st_ptr = std::__shared_ptr<T, __gnu_cxx::_S_single>;
 
 template<typename T, typename... Args>
-inline st_ptr<T> make_sh(Args&&... __args)
+inline st_ptr<T> make_sh(Args&& ... __args)
 {
-    return __make_shared<T, __gnu_cxx::_S_single>(std::forward<Args>(__args)...);
+    return std::__make_shared<T, __gnu_cxx::_S_single>(std::forward<Args>(__args)...);
 }
 
 template<class t_wt=sdsl::wt_int<
-    sdsl::bit_vector_il<>, 
-    sdsl::rank_support_il<>>,
-    class t_bv=sdsl::rrr_vector<>>
+             sdsl::bit_vector_il<>,
+             sdsl::rank_support_il<>>,
+         class t_bv=sdsl::rrr_vector<>>
 class matching_index
 {
-private:
-    typedef matching_index<t_wt, t_bv> index_type;
-public:
-    typedef t_wt                          wt_type;
-    typedef t_bv                          bv_type;
-    typedef typename bv_type::rank_1_type rank_type;
-    typedef typename wt_type::node_type   node_type;
-    typedef typename wt_type::size_type   size_type;
+    private:
+        typedef matching_index<t_wt, t_bv> index_type;
+    public:
+        typedef t_wt                          wt_type;
+        typedef t_bv                          bv_type;
+        typedef typename bv_type::rank_1_type rank_type;
+        typedef typename wt_type::node_type   node_type;
+        typedef typename wt_type::size_type   size_type;
 
-    typedef sdsl::int_vector<0>           text_type;
+        typedef sdsl::int_vector<0>           text_type;
 
 
     private:
-    text_type m_text;
-    wt_type   m_wt;
-    bv_type   m_dbs; // 1 marks the END of a document
-    rank_type m_dbs_rank;
+        text_type m_text;
+        wt_type   m_wt;
+        bv_type   m_dbs; // 1 marks the END of a document
+        rank_type m_dbs_rank;
 
     public:
-    const text_type& text = m_text;
-    const wt_type&   wt  = m_wt;
+        const text_type& text = m_text;
+        const wt_type&   wt  = m_wt;
 
-    //! Default constructor
-    matching_index() = default;
+        //! Default constructor
+        matching_index() = default;
 
-    //! Copy constructor
-    matching_index(const matching_index& idx)
-    : m_text(idx.m_text), m_wt(idx.m_wt), m_dbs(idx.m_dbs), m_dbs_rank(idx.m_dbs_rank)
-    {
-        m_dbs_rank.set_vector(&m_dbs);
-    }
-
-    //! Copy constructor
-    matching_index(matching_index&& idx)
-    {
-        *this = std::move(idx);
-    }
-
-    matching_index(text_type text, wt_type wt, bv_type dbs)
-    : m_text(text), m_wt(wt), m_dbs(dbs), m_dbs_rank(&m_dbs)
-    { }
-
-    //! Assignment move operator
-    matching_index& operator=(matching_index&& idx)
-    {
-        if (this != &idx) {
-            m_text     = std::move(idx.m_text);
-            m_wt       = std::move(idx.m_wt);
-            m_dbs      = std::move(idx.m_dbs);
-            m_dbs_rank = std::move(idx.m_dbs_rank);
+        //! Copy constructor
+        matching_index(const matching_index& idx)
+            : m_text(idx.m_text), m_wt(idx.m_wt), m_dbs(idx.m_dbs), m_dbs_rank(idx.m_dbs_rank)
+        {
             m_dbs_rank.set_vector(&m_dbs);
         }
-        return *this;
-    }
 
-    //! Swap operation
-    void swap(matching_index& idx)
-    {
-        if (this != &idx) {
-            m_text.swap(idx.m_text);
-            m_wt.swap(idx.m_wt);
-            m_dbs.swap(idx.m_dbs);
-            sdsl::util::swap_support(m_dbs_rank, idx.m_dbs_rank, &m_dbs, &(idx.m_dbs));
+        //! Copy constructor
+        matching_index(matching_index&& idx)
+        {
+            *this = std::move(idx);
         }
-    }
 
-    //! Serializes the data structure into the given ostream
-    size_type serialize(std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")const
-    {
-        sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, sdsl::util::class_name(*this));
-        size_type written_bytes = 0;
-        written_bytes += m_text.serialize(out, child, "text");
-        written_bytes += m_wt.serialize(out, child, "wt");
-        written_bytes += m_dbs.serialize(out, child, "dbs");
-        written_bytes += m_dbs_rank.serialize(out, child, "dbs_rank");
-        sdsl::structure_tree::add_size(child, written_bytes);
-        return written_bytes;
-    }
+        matching_index(text_type text, wt_type wt, bv_type dbs)
+            : m_text(text), m_wt(wt), m_dbs(dbs), m_dbs_rank(&m_dbs)
+        { }
 
-    //! Loads the data structure from the given istream.
-    void load(std::istream& in)
-    {
-        m_text.load(in);
-        m_wt.load(in);
-        m_dbs.load(in);
-        m_dbs_rank.load(in, &m_dbs);
-    }
+        //! Assignment move operator
+        matching_index& operator=(matching_index&& idx)
+        {
+            if (this != &idx) {
+                m_text     = std::move(idx.m_text);
+                m_wt       = std::move(idx.m_wt);
+                m_dbs      = std::move(idx.m_dbs);
+                m_dbs_rank = std::move(idx.m_dbs_rank);
+                m_dbs_rank.set_vector(&m_dbs);
+            }
+            return *this;
+        }
 
-    size_type get_document_index(size_type symbol_index) const
-    {
-        symbol_index = std::min(symbol_index, m_dbs.size());
-        return m_dbs_rank.rank(symbol_index);
-    }
+        //! Swap operation
+        void swap(matching_index& idx)
+        {
+            if (this != &idx) {
+                m_text.swap(idx.m_text);
+                m_wt.swap(idx.m_wt);
+                m_dbs.swap(idx.m_dbs);
+                sdsl::util::swap_support(m_dbs_rank, idx.m_dbs_rank, &m_dbs, &(idx.m_dbs));
+            }
+        }
+
+        //! Serializes the data structure into the given ostream
+        size_type serialize(std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")const
+        {
+            sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, sdsl::util::class_name(*this));
+            size_type written_bytes = 0;
+            written_bytes += m_text.serialize(out, child, "text");
+            written_bytes += m_wt.serialize(out, child, "wt");
+            written_bytes += m_dbs.serialize(out, child, "dbs");
+            written_bytes += m_dbs_rank.serialize(out, child, "dbs_rank");
+            sdsl::structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
+
+        //! Loads the data structure from the given istream.
+        void load(std::istream& in)
+        {
+            m_text.load(in);
+            m_wt.load(in);
+            m_dbs.load(in);
+            m_dbs_rank.load(in, &m_dbs);
+        }
+
+        size_type get_document_index(size_type symbol_index) const
+        {
+            symbol_index = std::min(symbol_index, m_dbs.size());
+            return m_dbs_rank.rank(symbol_index);
+        }
 };
 
 template<class t_wt, class t_bv>
@@ -139,7 +139,7 @@ void construct(matching_index<t_wt, t_bv>& idx, const std::string& file, sdsl::c
         //auto event = memory_monitor::event("dbs");
         sdsl::bit_vector dbs(text.size(), 0);
         for (size_t i = 0; i < dbs.size(); i++)
-                 dbs[i] = text[i] == '\n';
+            dbs[i] = text[i] == '\n';
 
         bv = std::move(t_bv(dbs));
     }
@@ -159,7 +159,7 @@ struct node_cache {
 
     const type_index& index;
     node_type node;
-    pair<st_ptr<node_cache>, st_ptr<node_cache>> children { nullptr, nullptr };
+    std::pair<st_ptr<node_cache>, st_ptr<node_cache>> children { nullptr, nullptr };
     size_type range_begin;
     size_type range_end;
     size_type range_begin_doc;
@@ -180,8 +180,8 @@ struct node_cache {
     {
         this->node = node;
         auto range = index.wt.value_range(node);
-        this->range_begin = get<0>(range);
-        this->range_end = get<1>(range);
+        this->range_begin = std::get<0>(range);
+        this->range_end = std::get<1>(range);
         this->range_begin_doc =
             range_begin_doc == nullptr ? index.get_document_index(range_begin) : *range_begin_doc;
         this->range_end_doc =
@@ -210,7 +210,7 @@ class wavelet_tree_range_walker
     private:
         typedef st_ptr<node_cache<type_index>> node_type;
         const type_index& index;
-        vector<pair<sdsl::range_type,node_type>> dfs_stack;
+        std::vector<std::pair<sdsl::range_type,node_type>> dfs_stack;
 
     public:
         typedef decltype(dfs_stack) state_type;
@@ -268,7 +268,7 @@ class wild_card_match_iterator3 : public std::iterator<std::forward_iterator_tag
         typedef typename type_index::size_type result_type;
 
         // (lex_range, node)
-        vector<wavelet_tree_range_walker<type_index>> lex_ranges;
+        std::vector<wavelet_tree_range_walker<type_index>> lex_ranges;
 
         size_t min_gap;
         size_t max_gap;
@@ -295,7 +295,7 @@ class wild_card_match_iterator3 : public std::iterator<std::forward_iterator_tag
                         if (!lex_ranges[i].has_more())
                             break;
                     }
-                }  
+                }
 
                 if (skip)
                     continue;
@@ -340,7 +340,7 @@ class wild_card_match_iterator3 : public std::iterator<std::forward_iterator_tag
             current = (result_type)-1;
         }
         wild_card_match_iterator3(const type_index& index,
-                                  const vector<string_type>& s,
+                                  const std::vector<string_type>& s,
                                   size_t min_gap,
                                   size_t max_gap)
             : min_gap(min_gap), max_gap(max_gap), size3(s[s.size() - 1].size())
@@ -402,7 +402,7 @@ class index_wcsearch3
     private:
         typedef matching_index<> index_type;
         index_type index;
-        
+
     public:
         typedef sdsl::int_vector<0>::size_type size_type;
         std::string name() const
@@ -464,11 +464,10 @@ class index_wcsearch3
             max_gap = pat.subpatterns[0].size() + pat.gaps[0].second;
 
             // smart scan
-            auto container = sdsl::matching_container<wild_card_match_iterator3<index_type>>(
-                                 wild_card_match_iterator3<index_type>(index, pat.subpatterns, min_gap, max_gap),
-                                 wild_card_match_iterator3<index_type>());
-            for (auto hit : container) {
-                res.positions.push_back(hit);
+            auto it = wild_card_match_iterator3<index_type>(index, pat.subpatterns, min_gap, max_gap);
+            auto ite = wild_card_match_iterator3<index_type>();
+            for (; it != ite; ++it) {
+                res.positions.push_back(*it);
             }
             return res;
         }

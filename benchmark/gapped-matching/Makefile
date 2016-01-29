@@ -16,7 +16,6 @@ NUM_SPS:=$(call config_ids,num_subpatterns.config)
 TC_IDS:=$(call config_ids,test_case.config)
 TC_COLLECTIONS:=$(foreach TC_ID,$(TC_IDS),collections/$(TC_ID)/text.TEXT)
 UNIQUE_DATA_FILES:=$(shell echo $(call config_column,test_case.config,2) | tr " " "\n" | uniq | tr "\n" " ")
-TEMP_DATA_FILE:=build/_tmp.raw
 
 PATTERN_IDS:=$(call config_ids,patterns.config)
 UNIQUE_SP_LENGTHS:=$(shell echo $(call config_column,patterns.config,2) | tr " " "\n" | uniq | tr "\n" " ")
@@ -54,6 +53,7 @@ collections/%/text.TEXT: build/create_collection.x $(UNIQUE_DATA_FILES)
 	$(eval SOURCE_FILE:=$(call config_select,test_case.config,$(TC_ID),2))
 	$(eval NUM_BYTES:=$(call config_select,test_case.config,$(TC_ID),5))
 	$(eval PREFIX_BYTES:=$(call config_select,test_case.config,$(TC_ID),6))
+	$(eval TEMP_DATA_FILE:=$(TC_ID).$(NUM_BYTES).$(PREFIX_BYTES).tmp)
 	@echo "Creating collection $(TC_ID) from file $(SOURCE_FILE)"
 	$(if $(findstring -,$(PREFIX_BYTES)), , @head -c $(PREFIX_BYTES) $(SOURCE_FILE) > $(TEMP_DATA_FILE))
 	$(if $(findstring -,$(PREFIX_BYTES)), , $(eval SOURCE_FILE:=$(TEMP_DATA_FILE)))

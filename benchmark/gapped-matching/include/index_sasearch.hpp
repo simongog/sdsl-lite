@@ -3,7 +3,6 @@
 #include "utils.hpp"
 #include "collection.hpp"
 #include "sdsl/suffix_arrays.hpp"
-#include "sdsl/matching.hpp"
 
 class index_sasearch
 {
@@ -60,7 +59,7 @@ class index_sasearch
         search(const gapped_pattern& pat) const
         {
             gapped_search_result res;
-            const vector<string_type>& s = pat.subpatterns;
+            const std::vector<string_type>& s = pat.subpatterns;
             size_type min_gap;
             size_type max_gap;
 
@@ -70,13 +69,13 @@ class index_sasearch
             max_gap = s[0].size() + pat.gaps[0].second;
 
             // get ranges
-            vector<vector<size_type>> ranges;
-            vector<vector<size_type>::iterator> its;
+            std::vector<std::vector<size_type>> ranges;
+            std::vector<std::vector<size_type>::iterator> its;
 
             for (auto sx : s) {
                 size_type sp, ep;
                 ranges.emplace_back(forward_search(m_text.begin(), m_text.end(), m_sa, 0, m_sa.size()-1, sx.begin(), sx.end(), sp, ep));
-                vector<size_type>& range = ranges[ranges.size() - 1];
+                std::vector<size_type>& range = ranges[ranges.size() - 1];
                 std::copy(m_sa.begin() + sp, m_sa.begin() + ep + 1, range.begin());
                 std::sort(range.begin(), range.end());
                 its.push_back(range.begin());

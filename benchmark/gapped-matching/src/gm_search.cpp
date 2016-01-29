@@ -47,7 +47,7 @@ cmdargs_t parse_args(int argc, const char* argv[])
                 args.pattern_file = optarg;
                 break;
             case 't':
-                args.string_patterns = string(optarg) == "1";
+                args.string_patterns = std::string(optarg) == "1";
                 break;
         }
     }
@@ -87,7 +87,7 @@ void bench_index(collection& col,const std::vector<gapped_pattern>& patterns)
     size_t npat = 1;
     timing_results t_prep;
     timing_results t;
-    string total_info = "";
+    std::string total_info = "";
     for (const auto& pat : patterns) {
         // give index a chance to output relevant
         // information about the upcoming query
