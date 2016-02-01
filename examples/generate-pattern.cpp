@@ -1,5 +1,6 @@
 #include <sdsl/suffix_trees.hpp>
 #include <iostream>
+#include <vector>
 
 using namespace sdsl;
 using namespace std;
@@ -98,16 +99,22 @@ int main(int argc, char** argv)
     }
 
     // fill
-    while (found.size() < count)
-        found.emplace(0, cst_type::string_type(length, 'x'));
+    vector<cst_type::string_type> resi;
+    while (!found.empty() && resi.size() < count) {
+        resi.push_back(found.top().second);
+        found.pop();
+    }
+    if (resi.size() == 0)
+        resi.push_back(cst_type::string_type(length, 'x'));
+    auto si = resi.size();
+    while (resi.size() < count)
+        resi.push_back(resi[resi.size() % si]);
 
     // output
-    while (!found.empty()) {
-        auto symbols = found.top().second;
+    for (auto symbols : resi) {
         if (human_readable)
             cout << string(symbols.begin(), symbols.end()) << endl;
         else
             cout << symbols << endl;
-        found.pop();
     }
 }

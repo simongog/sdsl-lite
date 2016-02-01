@@ -121,5 +121,8 @@ clean:
 clean-results: 
 	rm -f $(RES_FILES) 
 		
+clean-inputs:
+	rm -f $(GM_PATTERNS)
+	rm -f $(GM_WORDS)
 
 #cleanall: clean clean-results clean-build
