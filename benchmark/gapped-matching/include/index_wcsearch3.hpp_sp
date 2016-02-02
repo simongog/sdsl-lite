@@ -5,8 +5,80 @@
 #include "utils.hpp"
 #include "sdsl/suffix_arrays.hpp"
 
+#include "FSBAllocator.hh"
+#include "SmartPtr.hh"
+
+template<typename T>
+using st_ptr = std::__shared_ptr<T, __gnu_cxx::_S_single>;
+
+template<typename T, typename... Args>
+inline st_ptr<T> make_sh(Args&& ... __args)
+{
+    return std::__make_shared<T, __gnu_cxx::_S_single>(std::forward<Args>(__args)...);
+}
+
 template<class type_index>
 struct node_cache;
+
+template <typename index_type>
+class nc_allocator
+{
+        size_t alloc_count;
+        node_cache<index_type>* alloc_data;
+        uint64_t* alloc_map;
+
+    public:
+        nc_allocator() { }
+        nc_allocator(const index_type& index) {
+            auto height = 32; //log m_wt.size();
+            auto max_it = 32;
+            auto max_nodes = 2 * max_it * height * 10000;
+            max_nodes = (max_nodes + 63) / 64 * 64;
+            alloc_data = (node_cache<index_type>*)malloc(sizeof(node_cache<index_type>) * max_nodes);
+            alloc_map = new uint64_t[max_nodes / 64];
+            alloc_count = max_nodes;
+            for (size_t i = 0; i < alloc_count / 64; ++i)
+                alloc_map[i] = 0;
+        }
+
+        int first_free = 0;
+
+        node_cache<index_type>* nc_alloc() {
+            while (alloc_map[first_free] == 0xFFFFFFFFFFFFFFFFULL)
+                first_free++;
+            if (first_free >= alloc_count / 64)
+                std::cerr << "IT HAPPENED" << std::endl;
+            auto block = alloc_map[first_free];
+            int first_free_cell = 0;
+            while (((block >> first_free_cell) & 1) == 1)
+                first_free_cell++;
+            // update
+            block |= 1ULL << first_free_cell;
+            alloc_map[first_free] = block;
+            
+//std::cerr << "alloced " << (64 * first_free + first_free_cell) << std::endl;
+//for (int i = 0; i < alloc_count / 64; ++i) std::cerr << alloc_map[i]; std::cerr << std::endl;
+
+            return alloc_data + (64 * first_free + first_free_cell);
+        }
+        void nc_free(node_cache<index_type>* ptr) {
+            size_t diff = ptr - alloc_data;
+            std::cerr << "freed " << diff << std::endl;
+            alloc_map[diff / 64] &= ~(1ULL << (diff % 64));
+        }
+
+//std::vector<std::__weak_ptr<node_cache<index_type>, __gnu_cxx::_S_single>> _hist;
+        template<typename... Args>
+        inline st_ptr<node_cache<index_type>> create(Args&& ... __args) {
+            //return make_sh<node_cache<index_type>>(std::forward<Args>(__args)...);
+            node_cache<index_type>* inner = new (nc_alloc()) node_cache<index_type>(std::forward<Args>(__args)...);
+            auto ncfree = [&](node_cache<index_type>* p)->void { std::cerr << "FREE" << std::endl; nc_free(p); };
+            auto result = st_ptr<node_cache<index_type>>(inner, ncfree);
+//_hist.push_back(result);
+//for (auto _h : _hist) if(_h.use_count() == 0) std::cerr << _h.use_count();// std::cerr << std::endl;
+            return result;
+        }
+};
 
 template<class t_wt=sdsl::wt_int<
              sdsl::bit_vector_il<>,
@@ -124,7 +196,9 @@ struct node_cache {
     typedef typename type_index::size_type size_type;
 
     const type_index& index;
+    nc_allocator<type_index>& alloc;
     node_type node;
+    std::pair<st_ptr<node_cache>, st_ptr<node_cache>> children { nullptr, nullptr };
     size_type range_begin;
     size_type range_end;
     bool is_leaf;
@@ -134,10 +208,13 @@ struct node_cache {
         return range_end - range_begin + 1;
     }
 
+~node_cache() { std::cerr << "des" << std::endl;  }    
+
     node_cache(
         node_type node,
-        const type_index& index)
-        : index(index)
+        const type_index& index,
+        nc_allocator<type_index>& alloc)
+        : index(index), alloc(alloc)
     {
         this->node = node;
         auto range = index.wt.value_range(node);
@@ -145,13 +222,22 @@ struct node_cache {
         this->range_end = std::get<1>(range);
         this->is_leaf = index.wt.is_leaf(node);
     }
+
+    void ensure_children()
+    {
+        if (children.first == nullptr) {
+            auto children = index.wt.expand(node);
+            this->children = std::make_pair(alloc.create(children[0], index, alloc), alloc.create(children[1], index, alloc));
+        }
+    }
 };
 
 template<class type_index>
 class wavelet_tree_range_walker
 {
     private:
-        typedef node_cache<type_index> node_type;
+        typedef typename type_index::node_type node_type;
+        //typedef st_ptr<node_cache<type_index>> node_type;
         const type_index& index;
         std::vector<std::pair<sdsl::range_type,node_type>> dfs_stack;
 
@@ -183,21 +269,31 @@ class wavelet_tree_range_walker
         {
             auto top = dfs_stack.back(); dfs_stack.pop_back();
             auto& node = top.second;
-            auto children = index.wt.expand(node.node);
-            auto exp_range = index.wt.expand(node.node, top.first);
+            auto children = index.wt.expand(node);
+            auto exp_range = index.wt.expand(node, top.first);
             if (!sdsl::empty(exp_range[1]))
-                dfs_stack.emplace_back(exp_range[1], node_type(children[1], index));
+                dfs_stack.emplace_back(exp_range[1], children[1]);
             if (!sdsl::empty(exp_range[0]))
-                dfs_stack.emplace_back(exp_range[0], node_type(children[0], index));
-        }
+                dfs_stack.emplace_back(exp_range[0], children[0]);
+return;
+            
+          /*  auto top = dfs_stack.back(); dfs_stack.pop_back();
+            auto& node = top.second;
+            node->ensure_children();
+            auto exp_range = index.wt.expand(node->node, top.first);
+            if (!sdsl::empty(exp_range[1]))
+                dfs_stack.emplace_back(exp_range[1], node->children.second);
+            if (!sdsl::empty(exp_range[0]))
+                dfs_stack.emplace_back(exp_range[0], node->children.first);
+     */   }
 
-        inline bool move_next_leaf()
+        inline node_type next_leaf()
         {
-            if (has_more() && current_node().is_leaf)
+            if (has_more() && current_node()->is_leaf)
                 skip_subtree();
-            while (has_more() && !current_node().is_leaf)
+            while (has_more() && !current_node()->is_leaf)
                 expand();
-            return has_more();
+            return has_more() ? current_node() : nullptr;
         }
 };
 
@@ -220,39 +316,36 @@ class wild_card_match_iterator3 : public std::iterator<std::forward_iterator_tag
 
         result_type current;
 
-        bool relax() {
-            bool redo = true;
-            while (redo)
-            {
-                redo = false;
-                for (size_t i = 1; i < lex_ranges.size(); ++i) {
-                    if (lex_ranges[i - 1].current_node().range_end + max_gap < lex_ranges[i].current_node().range_begin) {
-                        lex_ranges[i - 1].skip_subtree();
-                        redo = true;
-                        if (!lex_ranges[i - 1].has_more())
-                            return false;
-                    }
-                    if (lex_ranges[i - 1].current_node().range_begin + min_gap > lex_ranges[i].current_node().range_end) {
-                        lex_ranges[i].skip_subtree();
-                        redo = true;
-                        if (!lex_ranges[i].has_more())
-                            return false;
-                    }
-                }
-            }
-            return true;
-        }
+        nc_allocator<type_index> alloc;
 
         bool next()
         {
-            //if (valid())
             // find next independent match
-            while (relax()) {
+            while (valid()) {
+                bool skip = false;
+                for (size_t i = 1; i < lex_ranges.size(); ++i) {
+                    if (lex_ranges[i - 1].current_node()->range_end + max_gap < lex_ranges[i].current_node()->range_begin) {
+                        lex_ranges[i - 1].skip_subtree();
+                        skip = true;
+                        if (!lex_ranges[i - 1].has_more())
+                            break;
+                    }
+                    if (lex_ranges[i - 1].current_node()->range_begin + min_gap > lex_ranges[i].current_node()->range_end) {
+                        lex_ranges[i].skip_subtree();
+                        skip = true;
+                        if (!lex_ranges[i].has_more())
+                            break;
+                    }
+                }
+
+                if (skip)
+                    continue;
+
                 size_t r = 1;
                 size_t j;
-                bool skip = false;
+                skip = false;
                 for (size_t i = 0; i < lex_ranges.size(); ++i) {
-                    auto lr = lex_ranges[i].current_node().range_size();
+                    auto lr = lex_ranges[i].current_node()->range_size();
                     if (lr > r) {
                         r = lr;
                         j = i;
@@ -263,16 +356,16 @@ class wild_card_match_iterator3 : public std::iterator<std::forward_iterator_tag
                 if (skip)
                     lex_ranges[j].expand();
                 else {
-                    current = lex_ranges[0].current_node().range_begin;
+                    current = lex_ranges[0].current_node()->range_begin;
                     //std::cerr << "HIT" << std::endl;
                     //for (size_t i = 0; i < lex_ranges.size(); ++i)
                     //    std::cerr << "\t" << lex_ranges[i].current_node()->range_begin << std::endl;
 
-                    auto x = lex_ranges[lex_ranges.size() - 1].current_node().range_begin;
+                    auto x = lex_ranges[lex_ranges.size() - 1].current_node()->range_begin;
 
                     // pull a forward
-                    while (lex_ranges[0].has_more() && lex_ranges[0].current_node().range_end <= x) lex_ranges[0].skip_subtree();
-                    while (lex_ranges[0].move_next_leaf() && lex_ranges[0].current_node().range_begin < x + size3) ;
+                    while (valid() && lex_ranges[0].current_node()->range_end <= x) lex_ranges[0].skip_subtree();
+                    while (lex_ranges[0].next_leaf() != nullptr && lex_ranges[0].current_node()->range_begin < x + size3) ;
 
                     return true;
                 }
@@ -291,10 +384,10 @@ class wild_card_match_iterator3 : public std::iterator<std::forward_iterator_tag
                                   const std::vector<string_type>& s,
                                   size_t min_gap,
                                   size_t max_gap)
-            : min_gap(min_gap), max_gap(max_gap), size3(s[s.size() - 1].size())
+            : min_gap(min_gap), max_gap(max_gap), size3(s[s.size() - 1].size()), alloc(index)
         {
             
-            auto root_node = node_cache<type_index>(index.wt.root(), index);
+            auto root_node = make_sh<node_cache<type_index>>(index.wt.root(), index, alloc);
             size_type sp = 1, ep = 0;
 
             for (auto sx : s) {
@@ -302,7 +395,7 @@ class wild_card_match_iterator3 : public std::iterator<std::forward_iterator_tag
                 lex_ranges.emplace_back(index, sdsl::range_type(sp, ep), root_node);
                 //std::cerr << std::string(sx.begin(), sx.end()) << ": " << sp << " " << ep << std::endl;
             }
-if (valid())
+
             next();
         }
 
