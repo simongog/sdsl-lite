@@ -61,7 +61,7 @@ collections/%/text.TEXT: build/create_collection.x $(UNIQUE_DATA_FILES)
 	$(if $(findstring -,$(PREFIX_BYTES)), , @rm $(TEMP_DATA_FILE))
 
 timing: $(RES_FILES)
-	cat $(RES_FILES) > $(RES_FILE)
+	tail -n +1 $(RES_FILES) > $(RES_FILE)
 	@cd visualize; make	
 
 # Format: results/[ALGO].[PATTERN_ID].[NUM_SP].[TC_ID]
@@ -72,14 +72,14 @@ results/%: $(GM_EXECS) $(TC_COLLECTIONS) $(GM_PATTERNS) $(INDEX_SENTINELS)
 	$(eval NUM_SP:=$(call dim,3,$*))
 	$(eval TC_ID:=$(call dim,4,$*))
 	$(eval IS_TEXT:=$(call config_select,test_case.config,$(TC_ID),7))
-	@echo "# COLL_ID = $(TC_ID)" > $@
-	@echo "# PATT_SAMPLE = $(PATTERN_ID)" >> $@
-	@echo "# ALGO = $(ALGO)" >> $@
-	$(MEASURE_CMD) build/gm_search-$(ALGO).x -c collections/$(TC_ID) -p collections/$(TC_ID)/patterns/regex.$(TC_ID).$(PATTERN_ID).$(NUM_SP).regex.txt -t $(IS_TEXT) >> $@
-	@tail -n 1 mem-mon-out.csv >> $@
-	@echo "" >> $@
-	mv mem-mon-out.csv $@.mem.csv
-	#Rscript memvis.R $@.mem.csv
+	@test -e $@ || echo "# COLL_ID = $(TC_ID)" > $@
+	@test -e $@ && echo "# PATT_SAMPLE = $(PATTERN_ID)" >> $@
+	@test -e $@ && echo "# ALGO = $(ALGO)" >> $@
+	test -e $@ && $(MEASURE_CMD) build/gm_search-$(ALGO).x -c collections/$(TC_ID) -p collections/$(TC_ID)/patterns/regex.$(TC_ID).$(PATTERN_ID).$(NUM_SP).regex.txt -t $(IS_TEXT) >> $@
+	@test -e $@ && tail -n 1 mem-mon-out.csv >> $@
+	@test -e $@ && echo "" >> $@
+	@test -e $@ && mv mem-mon-out.csv $@.mem.csv
+	#@test -e $@ && Rscript memvis.R $@.mem.csv
 
 ../../examples/generate-pattern.x:
 	@cd ../../examples; make generate-pattern.x
