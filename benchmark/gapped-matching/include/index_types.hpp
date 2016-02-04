@@ -9,4 +9,4 @@
 //#include "index_dbsearch.hpp"
 #include "index_sasearch.hpp"
 //#include "index_bstree.hpp"
-//#include "index_qgram_regexp.hpp"
+#include "index_qgram_regexp.hpp"

@@ -8,7 +8,11 @@
 #include "eliasfano_skip_list.hpp"
 #include "intersection.hpp"
 
-#include <regex>
+#include <boost/regex.hpp>
+//#include <regex>
+
+#define BOOSTD boost
+//#define BOOSTD std
 
 union qid_type {
     uint8_t u8id[8];
@@ -37,7 +41,7 @@ class index_qgram_regexp
             return "QGRAM-"+std::to_string(q)+"-"+index_name;
         }
     protected:
-        std::regex rx;
+        BOOSTD::regex rx;
         text_type m_text;
         std::unordered_map<uint64_t,uint64_t> m_qgram_lists;
         sdsl::bit_vector m_list_data;
@@ -136,10 +140,17 @@ class index_qgram_regexp
 
         std::string info(const gapped_pattern& pat) const { (void)pat; return ""; }
 
-        void prepare(const gapped_pattern& pat) 
-        { 
+        void prepare(const gapped_pattern& pat)
+        {
+            // inject lazines
+            std::vector<char> raw_lazy;
+            for (char c : pat.raw_regexp) {
+                raw_lazy.push_back(c);
+                if (c == '}') raw_lazy.push_back('?');
+            }
+
             /* (1) construct regexp */
-            rx = std::regex(pat.raw_regexp.begin(),pat.raw_regexp.end(),REGEXP_TYPE);
+            rx = BOOSTD::regex(raw_lazy.begin(),raw_lazy.end(),REGEXP_TYPE);
         }
 
         //! Search for the k documents which contain the search term most frequent
@@ -151,9 +162,9 @@ class index_qgram_regexp
 
             if (pat.subpatterns.size() == 1) {
                 // actually not a gapped pattern. SLOW FOR NOW!
-                auto matches_begin = std::sregex_iterator(m_text.begin(),m_text.end(),rx);
-                auto matches_end = std::sregex_iterator();
-                for (std::sregex_iterator it = matches_begin; it != matches_end; ++it) {
+                auto matches_begin = BOOSTD::sregex_iterator(m_text.begin(),m_text.end(),rx);
+                auto matches_end = BOOSTD::sregex_iterator();
+                for (BOOSTD::sregex_iterator it = matches_begin; it != matches_end; ++it) {
                     res.positions.push_back(it->position());
                 }
                 return res;
@@ -180,14 +191,14 @@ class index_qgram_regexp
                         } else {
                             auto list_offset = litr->second;
                             auto list = comp_list_type::materialize(m_list_strm,list_offset);
-                            if(list.size() <= small_thres) {
+                            if (list.size() <= small_thres) {
                                 //std::cerr << "found small list = " << list.size() << std::endl;
-                                if( !found_small_list || smallest_list.size() > list.size()) {
+                                if (!found_small_list || smallest_list.size() > list.size()) {
                                     found_small_list = true;
                                     smallest_list = std::move(list);
                                 }
                             }
-                            if(first || list.size() < total_smallest_list.size()) {
+                            if (first || list.size() < total_smallest_list.size()) {
                                 total_smallest_list = list;
                                 total_smallest_list_offset = smallest_qgram_pat_start_offset;
                                 first = false;
@@ -197,7 +208,7 @@ class index_qgram_regexp
                     smallest_qgram_pat_start_offset += subp.size();
                     if (j != pat.gaps.size()) smallest_qgram_pat_start_offset += pat.gaps[j].second;
                 }
-                if(found_small_list) {
+                if (found_small_list) {
                     auto itr = smallest_list.begin();
                     auto end = smallest_list.end();
                     while (itr != end) {
@@ -208,7 +219,7 @@ class index_qgram_regexp
                 max_pattern_len = smallest_qgram_pat_start_offset;
             }
 
-            if(potential_start_positions.size() == 0) {
+            if (potential_start_positions.size() == 0) {
                 size_t pat_start_offset = 0;
                 for (size_t j=0; j<pat.subpatterns.size(); j++) {
                     const auto& subp = pat.subpatterns[j];
@@ -220,7 +231,7 @@ class index_qgram_regexp
                         /* for each qgram get the list */
                         std::vector<typename comp_list_type::list_type> plists;
                         std::vector<offset_proxy_list<typename comp_list_type::list_type>> lists;
-                        for(size_t l=0;l<qids.size();) {
+                        for (size_t l=0; l<qids.size();) {
                             auto qid = qids[l];
                             //std::cerr << "qgram = " << l << std::endl;
                             auto litr = m_qgram_lists.find(qid);
@@ -233,7 +244,7 @@ class index_qgram_regexp
                                 lists.emplace_back(offset_proxy_list<typename comp_list_type::list_type>(plists.back(),l));
                             }
                             auto left = qids.size() - l;
-                            if(left >= q) {
+                            if (left >= q) {
                                 l += q;
                             } else {
                                 l++;
@@ -247,13 +258,13 @@ class index_qgram_regexp
                                     potential_start_positions.push_back(ires[l]-pat_start_offset);
                                 }
                             }
-                        } else { 
+                        } else {
                             // no intersection required if there is only list (=qids.size()==1)
-                            // if at the end we still dont have positions we just 
+                            // if at the end we still dont have positions we just
                             // select the smallest list
                         }
 
-                        if(potential_start_positions.size() <= small_thres) {
+                        if (potential_start_positions.size() <= small_thres) {
                             break; // have only a few pos
                         }
                     }
@@ -265,7 +276,7 @@ class index_qgram_regexp
 
             /* after all this we still haven't found stuff so we just take the
             // smallest qgram list */
-            if( potential_start_positions.size() == 0) {
+            if (potential_start_positions.size() == 0) {
                 auto itr = total_smallest_list.begin();
                 auto end = total_smallest_list.end();
                 while (itr != end) {
@@ -281,11 +292,11 @@ class index_qgram_regexp
             /* (2) find all matching pos */
             int64_t last_match_end = -1;
             if (potential_start_positions.empty()) { // case where we only have subpatterns smaller than q!
-                auto matches_begin = std::sregex_iterator(m_text.begin(),m_text.end(),rx);
-                auto matches_end = std::sregex_iterator();
-                for (std::sregex_iterator it = matches_begin; it != matches_end; ++it) {
+                auto matches_begin = BOOSTD::sregex_iterator(m_text.begin(),m_text.end(),rx);
+                auto matches_end = BOOSTD::sregex_iterator();
+                for (BOOSTD::sregex_iterator it = matches_begin; it != matches_end; ++it) {
                     int64_t pos = it->position();
-                    if(pos >= last_match_end) {
+                    if (pos >= last_match_end) {
                         res.positions.push_back(pos);
                         last_match_end = pos + it->length();
                     }
@@ -294,12 +305,12 @@ class index_qgram_regexp
                 for (int64_t start_pos : potential_start_positions) {
                     if (start_pos > (int64_t) m_text.size()) // bugfix by Johannes: start_pos seems to be a very very very large (= negative?) number sometimes => segfault in line below
                         continue;
-                    if(last_match_end > start_pos)
+                    if (last_match_end > start_pos)
                         continue;
 
-                    auto matches_begin = std::sregex_iterator(m_text.begin()+start_pos,m_text.begin()+start_pos+max_pattern_len,rx);
-                    auto matches_end = std::sregex_iterator();
-                    for (std::sregex_iterator it = matches_begin; it != matches_end; ++it) {
+                    auto matches_begin = BOOSTD::sregex_iterator(m_text.begin()+start_pos,m_text.begin()+start_pos+max_pattern_len,rx);
+                    auto matches_end = BOOSTD::sregex_iterator();
+                    for (BOOSTD::sregex_iterator it = matches_begin; it != matches_end; ++it) {
                         int64_t pos = start_pos+it->position();
                         res.positions.push_back(pos);
                         last_match_end = pos + it->length();
