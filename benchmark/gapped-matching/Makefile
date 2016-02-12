@@ -1,6 +1,7 @@
 include ../Make.helper
 include ../Make.download
 
+TIMEOUT = 2050s
 MEASURE_ENERGY = 0
 MEASURE_CMD = $(if $(findstring 1,$(MEASURE_ENERGY)), likwid-perfctr -C S0:0 -g ENERGY -m,)
 
@@ -76,7 +77,7 @@ results/%: $(GM_EXECS) $(TC_COLLECTIONS) $(GM_PATTERNS) $(INDEX_SENTINELS)
 	echo "# PATT_SAMPLE = $(PATTERN_ID)" >> $@ &&\
 	echo "# ALGO = $(ALGO)" >> $@ &&\
 	echo "gm_search-$(ALGO).x -c collections/$(TC_ID) -p collections/$(TC_ID)/patterns/regex.$(TC_ID).$(PATTERN_ID).$(NUM_SP).regex.txt -t $(IS_TEXT)" &&\
-	$(MEASURE_CMD) build/gm_search-$(ALGO).x -c collections/$(TC_ID) -p collections/$(TC_ID)/patterns/regex.$(TC_ID).$(PATTERN_ID).$(NUM_SP).regex.txt -t $(IS_TEXT) >> $@ &&\
+	(timeout $(TIMEOUT) $(MEASURE_CMD) build/gm_search-$(ALGO).x -c collections/$(TC_ID) -p collections/$(TC_ID)/patterns/regex.$(TC_ID).$(PATTERN_ID).$(NUM_SP).regex.txt -t $(IS_TEXT) >> $@ || echo TIMEOUT) &&\
 	tail -n 1 mem-mon-out.csv >> $@ &&\
 	echo "" >> $@ &&\
 	mv mem-mon-out.csv $@.mem.csv)
