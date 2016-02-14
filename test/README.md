@@ -3,7 +3,7 @@
 This directory contains test code for various data structures.
 We used the [googletest][GTEST] framework for testing.
 
-A call of `make test` in your cmake build directory will execute all tests.
+A call of `make test-sdsl` in your cmake build directory will execute all tests.
 If you only want to run a test of a specific component `X` then run
 `make X`,  where X should be in the following list:
 
@@ -26,7 +26,7 @@ If you only want to run a test of a specific component `X` then run
 Test inputs are downloaded as needed before the first execution of the test.
 See the [download.config](./download.config) files for details on the sources.
 
-Executing `make test` should take about 60 minutes on a recent machine.
+Executing `make test-sdsl` should take about 60 minutes on a recent machine.
 
 Please report, if a test fails. Thanks.
 
