@@ -165,11 +165,11 @@ The [test](./test) directory contains test code. We use [googletest][GTEST]
 framework and [make][MAKE] to run the tests. See the README file in the
 directory for details.
 
-To simply run all unit tests type
+To simply run all unit tests after installing the library type
 
 ```sh
-cd sdsl-lite/test
-make
+cd sdsl-lite/build
+make test-sdsl
 ```
 
 Note: Running the tests requires several sample files to be downloaded from the web
