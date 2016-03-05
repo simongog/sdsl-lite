@@ -49,7 +49,7 @@ matrix:
 
 before_script:
   - export CXX=$MYCXX
-  - export C
+  - export CC=$MYCC
   - $CXX --version
   - cmake --version
 
