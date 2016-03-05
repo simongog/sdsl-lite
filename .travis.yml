@@ -6,7 +6,7 @@ sudo: false
 
 matrix:
   include:
-    - env: CC="gcc-4.9" CXX="g++-4.9" 
+    - env: MYCC="gcc-4.9" MYCXX="g++-4.9" 
       os: linux
       addons: &gcc49
         apt:
@@ -17,7 +17,7 @@ matrix:
             - cmake
             - g++-4.9
 
-    - env: CC="gcc-5" CXX="g++-5" 
+    - env: MYCC="gcc-5" MYCXX="g++-5" 
       os: linux
       addons: &gcc5
         apt:
@@ -28,7 +28,7 @@ matrix:
             - cmake
             - g++-5
 
-    - env: CC="clang-3.7" CXX="clang++-3.7"
+    - env: MYCC="clang-3.7" MYCXX="clang++-3.7"
       os: linux
       addons: &clang37
         apt:
@@ -41,14 +41,15 @@ matrix:
             - clang-3.7
 
     # clang 3.7 on MacOSX without AddressSanitizer, Debug & Release
-    - env: CC="clang" CXX="clang++" 
+    - env: MYCC="clang" MYCXX="clang++" 
       os: osx
 
-    - env: CC="clang" CXX="clang++"
+    - env: MYCC="clang" MYCXX="clang++"
       os: osx
 
 before_script:
-
+  - export CXX=$MYCXX
+  - export C
   - $CXX --version
   - cmake --version
 
