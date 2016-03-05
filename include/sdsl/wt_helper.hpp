@@ -8,6 +8,7 @@
 #include <queue>
 #include <vector>
 #include <utility>
+#include <array>
 
 namespace sdsl
 {
