@@ -1,0 +1,56 @@
+# Travis-CI build script for sdsl-lite
+
+language: cpp
+
+sudo: false
+
+matrix:
+  include:
+    - env: CC="gcc-4.9" CXX="g++-4.9" 
+      os: linux
+      addons: &gcc49
+        apt:
+          sources:
+            - kalakris-cmake
+            - ubuntu-toolchain-r-test
+          packages:
+            - cmake
+            - g++-4.9
+
+    - env: CC="gcc-5" CXX="g++-5" 
+      os: linux
+      addons: &gcc5
+        apt:
+          sources:
+            - kalakris-cmake
+            - ubuntu-toolchain-r-test
+          packages:
+            - cmake
+            - g++-5
+
+    - env: CC="clang-3.7" CXX="clang++-3.7"
+      os: linux
+      addons: &clang37
+        apt:
+          sources:
+            - kalakris-cmake
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.7
+          packages:
+            - cmake
+            - clang-3.7
+
+    # clang 3.7 on MacOSX without AddressSanitizer, Debug & Release
+    - env: CC="clang" CXX="clang++" 
+      os: osx
+
+    - env: CC="clang" CXX="clang++"
+      os: osx
+
+before_script:
+
+  - $CXX --version
+  - cmake --version
+
+script:
+  - ./install.sh ..
