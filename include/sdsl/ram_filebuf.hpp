@@ -30,7 +30,7 @@ class ram_filebuf : public std::streambuf
 
         pos_type
         seekpos(pos_type sp,
-                std::ios_base::openmode which = std::ios_base::in | std::ios_base::out);
+                std::ios_base::openmode which = std::ios_base::in | std::ios_base::out) override;
 
         pos_type
         pubseekoff(off_type off, std::ios_base::seekdir way,
