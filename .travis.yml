@@ -40,10 +40,6 @@ matrix:
             - cmake
             - clang-3.7
 
-    # clang 3.7 on MacOSX without AddressSanitizer, Debug & Release
-    - env: MYCC="clang" MYCXX="clang++" 
-      os: osx
-
     - env: MYCC="clang" MYCXX="clang++"
       os: osx
 
