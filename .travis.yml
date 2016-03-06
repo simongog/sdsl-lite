@@ -55,3 +55,4 @@ before_script:
 
 script:
   - ./install.sh ..
+  - cd tutorial && make all
