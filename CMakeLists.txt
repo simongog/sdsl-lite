@@ -65,6 +65,11 @@ else()
 	endif()
 endif()
 
+message(STATUS "CMAKE_C_COMPILER={${CMAKE_C_COMPILER}}")
+message(STATUS "CMAKE_CXX_COMPILER={${CMAKE_CXX_COMPILER}}")
+message(STATUS "CMAKE_CXX_OPT_FLAGS={${CMAKE_CXX_OPT_FLAGS}}")
+message(STATUS "CMAKE_CXX_FLAGS={${CMAKE_CXX_FLAGS}}")
+
 try_compile(MODE_TI "${PROJECT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/check_mode_ti.cpp")
 if( MODE_TI )
   if(MSVC)
