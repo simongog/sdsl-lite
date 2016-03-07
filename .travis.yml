@@ -6,7 +6,7 @@ sudo: false
 
 matrix:
   include:
-    - env: MYCC="gcc-4.9" MYCXX="g++-4.9" 
+    - env: MYCC="gcc-4.9" MYCXX="g++-4.9" STDLIB=libstdc++
       os: linux
       addons: &gcc49
         apt:
@@ -17,7 +17,7 @@ matrix:
             - cmake
             - g++-4.9
 
-    - env: MYCC="gcc-5" MYCXX="g++-5" 
+    - env: MYCC="gcc-5" MYCXX="g++-5" STDLIB=libstdc++
       os: linux
       addons: &gcc5
         apt:
@@ -28,7 +28,7 @@ matrix:
             - cmake
             - g++-5
 
-    - env: MYCC="clang-3.7" MYCXX="clang++-3.7"
+    - env: MYCC="clang-3.7" MYCXX="clang++-3.7" STDLIB=libc++
       os: linux
       addons: &clang37
         apt:
@@ -38,11 +38,49 @@ matrix:
             - llvm-toolchain-precise-3.7
           packages:
             - cmake
-            - libc++-dev
             - clang-3.7
 
-    - env: MYCC="clang" MYCXX="clang++"
+    - env: MYCC="clang" MYCXX="clang++" STDLIB=libc++
       os: osx
+
+install:
+  ############################################################################
+  # All the dependencies are installed in ${TRAVIS_BUILD_DIR}/deps/
+  ############################################################################
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir ${DEPS_DIR} && cd ${DEPS_DIR}
+
+  ############################################################################
+  # Install libc++ and libc++abi (on Linux only; Xcode uses libc++ by default)
+  ############################################################################
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" && "${STDLIB}" != "libstdc++" ]]; then
+      if   [[ "${COMPILER}" == "clang++-3.5" ]]; then LLVM_VERSION="3.5.2"
+      elif [[ "${COMPILER}" == "clang++-3.6" ]]; then LLVM_VERSION="3.6.2";
+      elif [[ "${COMPILER}" == "clang++-3.7" ]]; then LLVM_VERSION="3.7.0";
+      else                                            LLVM_VERSION="trunk"; fi
+      if [[ "${LLVM_VERSION}" != "trunk" ]]; then
+        LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
+        LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
+        LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
+        TAR_FLAGS="-xJ"
+      else
+        LLVM_URL="https://github.com/llvm-mirror/llvm/archive/master.tar.gz"
+        LIBCXX_URL="https://github.com/llvm-mirror/libcxx/archive/master.tar.gz"
+        LIBCXXABI_URL="https://github.com/llvm-mirror/libcxxabi/archive/master.tar.gz"
+        TAR_FLAGS="-xz"
+      fi
+      mkdir -p llvm llvm/build llvm/projects/libcxx llvm/projects/libcxxabi
+      travis_retry wget --quiet -O - ${LLVM_URL} | tar --strip-components=1 ${TAR_FLAGS} -C llvm
+      travis_retry wget --quiet -O - ${LIBCXX_URL} | tar --strip-components=1 ${TAR_FLAGS} -C llvm/projects/libcxx
+      travis_retry wget --quiet -O - ${LIBCXXABI_URL} | tar --strip-components=1 ${TAR_FLAGS} -C llvm/projects/libcxxabi
+      (cd llvm/build && cmake .. -DCMAKE_INSTALL_PREFIX=${DEPS_DIR}/llvm/install -DCMAKE_CXX_COMPILER=clang++)
+      (cd llvm/build/projects/libcxx && make install -j2)
+      (cd llvm/build/projects/libcxxabi && make install -j2)
+      export CXXFLAGS="-isystem ${DEPS_DIR}/llvm/install/include/c++/v1"
+      export LDFLAGS="-L ${DEPS_DIR}/llvm/install/lib -l c++ -l c++abi"
+      export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${DEPS_DIR}/llvm/install/lib"
+    fi
 
 before_script:
   - export CXX=$MYCXX
