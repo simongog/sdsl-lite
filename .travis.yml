@@ -38,6 +38,7 @@ matrix:
             - llvm-toolchain-precise-3.7
           packages:
             - cmake
+            - libc++-dev
             - clang-3.7
 
     - env: MYCC="clang" MYCXX="clang++"
