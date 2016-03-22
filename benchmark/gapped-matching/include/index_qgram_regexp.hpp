@@ -243,7 +243,7 @@ class index_qgram_regexp
                                 plists.emplace_back(comp_list_type::materialize(m_list_strm,list_offset));
                                 lists.emplace_back(offset_proxy_list<typename comp_list_type::list_type>(plists.back(),l));
                             }
-                            auto left = qids.size() - l;
+                            auto left = qids.size() - (l+1);
                             if (left >= q) {
                                 l += q;
                             } else {
