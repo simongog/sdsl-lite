@@ -91,7 +91,7 @@ Requirements
 
 The SDSL library requires:
 
-* A modern, C++11 ready compiler such as `g++` version 4.7 or higher or `clang` version 3.2 or higher.
+* A modern, C++11 ready compiler such as `g++` version 4.9 or higher or `clang` version 3.2 or higher.
 * The [cmake][cmake] build system.
 * A 64-bit operating system. Either Mac OS X or Linux are currently supported.
 * For increased performance the processor of the system should support fast bit operations available in `SSE4.2`
