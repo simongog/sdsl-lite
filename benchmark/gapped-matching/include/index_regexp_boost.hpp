@@ -38,7 +38,11 @@ class index_regexp_boost
 
         void load(std::istream& ifs)
         {
-            m_text = text_type(std::istreambuf_iterator<char>(ifs), {});
+            ifs.seekg(0, std::ios::end);
+            auto length = ifs.tellg();
+            ifs.seekg(0, std::ios::beg);
+            m_text.resize(length);
+            ifs.read(&m_text[0], length);
         }
 
         void swap(index_regexp_boost& ir)
