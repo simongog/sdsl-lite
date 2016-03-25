@@ -90,6 +90,13 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake"
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/lib/structure_tree.cpp.cmake"
                "${CMAKE_CURRENT_SOURCE_DIR}/lib/structure_tree.cpp" @ONLY)
 
+find_package(Git)
+if(GIT_FOUND)
+    message("git found: ${GIT_EXECUTABLE}")
+else()      
+    message(WARNING "git not found. Cloning of submodules will not work.")
+endif()
+
 add_subdirectory(external)
 add_subdirectory(include)
 add_subdirectory(lib)
