@@ -24,8 +24,7 @@
 
 namespace sdsl
 {
-
-//! A stack which contains strictly increasing pointer to strictly increasing elements in an array.
+//! A stack which contains strictly increasing numbers in the range from \f$0\f$ to \f$n\f$.
 /*!
  *  \par Reference
  *  Johannes Fischer:
@@ -79,7 +78,7 @@ class sorted_stack_support
 
         /*! Push the index x of vector vec onto the stack.
          * \par x Index of the value in vec which should be pushed onto the stack.
-         * \pre top() < x
+         * \pre top() < x and x <= n
          */
         void push(size_type x);
 
@@ -104,11 +103,13 @@ inline sorted_stack_support::sorted_stack_support(size_type n):m_n(n), m_cnt(0),
 
 inline sorted_stack_support::size_type sorted_stack_support::top()const
 {
+    assert(empty() == false);
     return m_top-1;
 }
 
 inline void sorted_stack_support::push(size_type x)
 {
+    assert((empty() or top() < x) and x <= m_n);
     x += 1;
     ++m_cnt;	//< increment counter
     size_type bn = block_nr(x);
