@@ -93,7 +93,7 @@ TEST_F(sorted_stack_test, push_top_and_pop)
         std::uniform_int_distribution<uint64_t> distribution(0, i*i);
         auto dice = bind(distribution, rng);
         std::stack<uint64_t> exp;
-        sdsl::sorted_int_stack sis(1000000+i*i);
+        sdsl::sorted_int_stack sis(900000+i*i);
         ASSERT_TRUE(sis.empty());
         for (uint64_t k=0; k<1000000; ++k) {
             ASSERT_EQ(exp.size(), sis.size());
