@@ -1,20 +1,57 @@
+/* sdsl - succinct data structures library
+    Copyright (C) 2016 Simon Gog, Johannes Bader
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see http://www.gnu.org/licenses/ .
+*/
+/*! \file vlg_index.hpp
+    \brief vlg_index.hpp contains an index supporting count and locate queries
+            conaining gaps of variable length. This is an implementation of the
+            algorithm described in the SEA paper 
+            ,,Practical Variable Length Gap Pattern Matching using Wavelet Trees''
+            of Johannes Bader, Simon Gog and Matthias Petri.
+    \author Johannes Bader, Matthias Petri, Simon Gog
+*/
 #ifndef INCLUDED_SDSL_VLG_INDEX
 #define INCLUDED_SDSL_VLG_INDEX
 
 #include "suffix_arrays.hpp"
 #include <vector>
 
+//! Namespace for the succinct data structure library.
 namespace sdsl
 {
 
+//! Struct representing a query with variable length gaps.
+/*!
+ * \tparam alphabet_tag   Type of alphabet used by the query (and text to be searched within).
+ *
+ * This struct provides access to the individual subpatterns and gaps between them.
+ * Each gap is represented by its minimum and maximum length.
+ * The struct also provides functionality for parsing regex-style query strings.
+ */
 template<typename alphabet_tag>
-struct gapped_pattern {
+struct gapped_pattern_query {
     typedef int_vector<alphabet_tag::WIDTH> string_type;
-    
+
     std::vector<string_type> subpatterns;
     std::vector<std::pair<uint64_t,uint64_t>> gaps;
-    gapped_pattern() { }
-    gapped_pattern(const std::string& raw_regexp)
+
+    //! Default constructor
+    gapped_pattern_query() { }
+
+    //! Constructor parsing the provided regex query
+    gapped_pattern_query(const std::string& raw_regexp)
     {
         bool string_patterns = alphabet_tag::WIDTH == 8;
         auto parse_subpattern = [&](std::string s) {
@@ -69,9 +106,14 @@ struct gapped_pattern {
     };
 };
 
-template<typename type_index>
-struct node_cache;
-
+//! An index supporting variable length gap pattern matching.
+/*!
+ * \tparam alphabet_tag   Type of alphabet used by the indexed text and thus also the index.
+ * \tparam t_wt           Wavelet tree used for storing the suffix array.
+ *
+ * This class provides the datastructures required for variable length gap pattern matching.
+ * Specifically, it contains the original text as well as a wavelet tree over the suffix array.
+ */
 template<typename alphabet_tag=byte_alphabet_tag,
          typename t_wt=wt_int<
              bit_vector_il<>,
@@ -84,12 +126,13 @@ class vlg_index
     private:
         typedef vlg_index<alphabet_tag, t_wt>   index_type;
     public:
-        typedef alphabet_tag                    alphabet_category;
+        typedef alphabet_tag                  alphabet_category;
         typedef t_wt                          wt_type;
         typedef typename wt_type::node_type   node_type;
         typedef typename wt_type::size_type   size_type;
 
-        typedef int_vector<alphabet_tag::WIDTH>  text_type;
+        typedef int_vector<alphabet_tag::WIDTH>    text_type;
+        typedef gapped_pattern_query<alphabet_tag> query_type;
 
 
     private:
@@ -115,6 +158,7 @@ class vlg_index
             *this = std::move(idx);
         }
 
+        //! Constructor
         vlg_index(text_type text, wt_type wt)
             : m_text(text), m_wt(wt)
         { }
@@ -158,7 +202,7 @@ class vlg_index
 };
 
 template<typename type_index>
-struct node_cache {
+struct wt_node_cache {
     typedef typename type_index::node_type node_type;
     typedef typename type_index::size_type size_type;
 
@@ -173,7 +217,7 @@ struct node_cache {
         return range_end - range_begin + 1;
     }
 
-    node_cache(
+    wt_node_cache(
         node_type node,
         const type_index& index)
         : index(index)
@@ -190,7 +234,7 @@ template<typename type_index>
 class wavelet_tree_range_walker
 {
     private:
-        typedef node_cache<type_index> node_type;
+        typedef wt_node_cache<type_index> node_type;
         const type_index& index;
         std::vector<std::pair<range_type,node_type>> dfs_stack;
 
@@ -313,6 +357,13 @@ class vlg_iterator : public std::iterator<std::forward_iterator_tag, typename ty
             
             finished = true;
         }
+        bool valid() const
+        {
+            for (auto lr : lex_ranges)
+                if (!lr.has_more())
+                    return false;
+            return true;
+        }
 
     public:
         vlg_iterator()
@@ -320,28 +371,21 @@ class vlg_iterator : public std::iterator<std::forward_iterator_tag, typename ty
             finished = true;
         }
         vlg_iterator(const type_index& index,
-                     const gapped_pattern<typename type_index::alphabet_category>& pattern)
-            : gaps(pattern.gaps), last_subpattern_size(pattern.subpatterns[pattern.subpatterns.size() - 1].size())
+                     const typename type_index::query_type& query)
+            : gaps(query.gaps)
+            , last_subpattern_size(query.subpatterns[query.subpatterns.size() - 1].size())
         {
             finished = false;
             
-            auto root_node = node_cache<type_index>(index.wt.root(), index);
-            size_type sp = 1, ep = 0;
+            auto root_node = wt_node_cache<type_index>(index.wt.root(), index);
+            size_type sp, ep;
 
-            for (auto sx : pattern.subpatterns) {
+            for (auto sx : query.subpatterns) {
                 forward_search(index.text.begin(), index.text.end(), index.wt, 0, index.wt.size()-1, sx.begin(), sx.end(), sp, ep);
                 lex_ranges.emplace_back(index, range_type(sp, ep), root_node);
             }
             if (valid())
                 next();
-        }
-
-        bool valid() const
-        {
-            for (auto lr : lex_ranges)
-                if (!lr.has_more())
-                    return false;
-            return true;
         }
 
         size_t size() const
@@ -424,7 +468,7 @@ class container
 };
 
 template<typename type_index>
-container<vlg_iterator<type_index>> locate(type_index idx, std::string pattern) {
+container<vlg_iterator<type_index>> locate(type_index idx, typename type_index::query_type pattern) {
     return container<vlg_iterator<type_index>>(
         vlg_iterator<type_index>(idx, pattern),
         vlg_iterator<type_index>()
@@ -432,7 +476,7 @@ container<vlg_iterator<type_index>> locate(type_index idx, std::string pattern) 
 }
 
 template<typename type_index>
-typename type_index::size_type count(type_index idx, std::string pattern) {
+typename type_index::size_type count(type_index idx, typename type_index::query_type pattern) {
     typename type_index::size_type result = 0;
     auto cont = locate(idx, pattern);
     for (auto it = cont.begin(); it != cont.end(); ++it)
