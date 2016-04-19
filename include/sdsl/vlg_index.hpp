@@ -83,7 +83,6 @@ struct gapped_pattern_query {
             // extract gap
             auto gap_end = raw_regexp.find("}", gap_pos) + 1;
             std::string gap_str = raw_regexp.substr(gap_pos, gap_end - gap_pos);
-            /* try parsing the gap  description */
             auto first_num_sep = gap_str.find(",");
             auto first_num_str = gap_str.substr(2,first_num_sep-2);
             auto second_num_str = gap_str.substr(first_num_sep+1);
@@ -506,6 +505,7 @@ void construct(vlg_index<alphabet_tag, t_wt>& idx, const std::string& file, cach
     idx = std::move(vlg_index<alphabet_tag, t_wt>(text, wts));
 }
 
+// Retrieves a container representing all occurrences of the provided pattern.
 template<typename type_index>
 container<vlg_iterator<type_index>> locate(const type_index& idx, const typename type_index::query_type& pattern) {
     return container<vlg_iterator<type_index>>(
@@ -514,6 +514,7 @@ container<vlg_iterator<type_index>> locate(const type_index& idx, const typename
     );
 }
 
+// Retrieves the number of occurrences of the provided pattern.
 template<typename type_index>
 typename type_index::size_type count(const type_index& idx, const typename type_index::query_type& pattern) {
     typename type_index::size_type result = 0;
