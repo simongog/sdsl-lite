@@ -149,8 +149,7 @@ class vlg_index
         //! Copy constructor
         vlg_index(const vlg_index& idx)
             : m_text(idx.m_text), m_wt(idx.m_wt)
-        {
-        }
+        { }
 
         //! Copy constructor
         vlg_index(vlg_index&& idx)
@@ -201,89 +200,108 @@ class vlg_index
         }
 };
 
-template<typename type_index>
+//! Stores a wavelet tree node together with some precomputed properties.
+/*!
+ * \tparam wt_type   Type of wavelet tree this node is from.
+ */
+template<typename wt_type>
 struct wt_node_cache {
-    typedef typename type_index::node_type node_type;
-    typedef typename type_index::size_type size_type;
+    typedef typename wt_type::node_type node_type;
+    typedef typename wt_type::size_type size_type;
 
-    const type_index& index;
-    node_type node;
+    const node_type node;
     size_type range_begin;
     size_type range_end;
     bool is_leaf;
 
-    size_type range_size()
-    {
-        return range_end - range_begin + 1;
-    }
-
+    //! Constructor, precalculates frequently used values.
     wt_node_cache(
-        node_type node,
-        const type_index& index)
-        : index(index)
+        const node_type& node,
+        const wt_type& wt)
+            : node(node)
     {
-        this->node = node;
-        auto range = index.wt.value_range(node);
+        auto range = wt.value_range(node);
         this->range_begin = std::get<0>(range);
         this->range_end = std::get<1>(range);
-        this->is_leaf = index.wt.is_leaf(node);
+        this->is_leaf = wt.is_leaf(node);
     }
 };
 
-template<typename type_index>
-class wavelet_tree_range_walker
+//! Provides a convenient way of traversing a wavelet tree from left to right.
+/*!
+ * \tparam wt_type   Type of wavelet tree to traverse.
+ *
+ * This class keeps track of the state required to perform a depth-first traversal 
+ * of a wavelet tree. Furthermore it provides methods to traverse the tree in 
+ * various ways.
+ */
+template<typename wt_type>
+class wt_range_walker
 {
     private:
-        typedef wt_node_cache<type_index> node_type;
-        const type_index& index;
+        typedef wt_node_cache<wt_type> node_type;
+        const wt_type& wt;
         std::vector<std::pair<range_type,node_type>> dfs_stack;
 
     public:
-        typedef decltype(dfs_stack) state_type;
-        wavelet_tree_range_walker(const type_index& index, range_type initial_range, node_type root_node)
-            : index(index)
+        //! Constructor
+        wt_range_walker(const wt_type& wt, range_type initial_range, node_type root_node)
+            : wt(wt)
         {
-            dfs_stack.reserve(64);
+            dfs_stack.reserve(64); // TODO: magic number? or rather something with wt_type::size_type? or is there something like max_depth(wt)?
             dfs_stack.emplace_back(initial_range, root_node);
         }
 
+        //! Returns whether the traversal has not yet reached the end of the wavelet tree.
         inline bool has_more() const
         {
             return !dfs_stack.empty();
         }
 
+        //! Returns the wavelet tree node currently pointed at by the walker.
         inline node_type current_node() const
         {
             return dfs_stack.back().second;
         }
 
-        inline void skip_subtree()
+        //! Traverse to the next node, discarding any child nodes of the current node.
+        inline void next_right()
         {
             dfs_stack.pop_back();
         }
 
-        inline void expand()
+        //! Traverse to the first non-empty child node of the current node.
+        inline void next_down()
         {
             auto top = dfs_stack.back(); dfs_stack.pop_back();
             auto& node = top.second;
-            auto children = index.wt.expand(node.node);
-            auto exp_range = index.wt.expand(node.node, top.first);
+            auto children = wt.expand(node.node);
+            auto exp_range = wt.expand(node.node, top.first);
             if (!empty(exp_range[1]))
-                dfs_stack.emplace_back(exp_range[1], node_type(children[1], index));
+                dfs_stack.emplace_back(exp_range[1], node_type(children[1], wt));
             if (!empty(exp_range[0]))
-                dfs_stack.emplace_back(exp_range[0], node_type(children[0], index));
+                dfs_stack.emplace_back(exp_range[0], node_type(children[0], wt));
         }
 
-        inline bool move_next_leaf()
+        //! Traverse to the next leaf. Returns false if there is no more, i.e. the traversal has finished.
+        inline bool next_leaf()
         {
             if (has_more() && current_node().is_leaf)
-                skip_subtree();
+                next_right();
             while (has_more() && !current_node().is_leaf)
-                expand();
+                next_down();
             return has_more();
         }
 };
 
+//! An iterator implementing the variable length gap pattern search as described in the paper.
+/*!
+ * \tparam type_index   Type of index to use for the search.
+ *
+ * This class provides the variable length gap pattern search functionality in an on-demand fashion.
+ * As long as the iterator is valid (i.e. !is_end()), 
+ * it provides vector-like access to the subpattern positions of the current match.
+ */
 template<typename type_index>
 class vlg_iterator : public std::iterator<std::forward_iterator_tag, typename type_index::size_type>
 {
@@ -291,30 +309,31 @@ class vlg_iterator : public std::iterator<std::forward_iterator_tag, typename ty
         typedef typename type_index::node_type node_type;
         typedef typename type_index::size_type size_type;
         typedef typename type_index::wt_type   wt_type;
-        typedef typename type_index::size_type result_type;
 
-        // (lex_range, node)
-        std::vector<wavelet_tree_range_walker<type_index>> lex_ranges;
+        // current state of iteration
+        std::vector<wt_range_walker<wt_type>> lex_ranges;
+        bool finished = true;
 
-        std::vector<std::pair<uint64_t,uint64_t>> gaps;
-        size_type last_subpattern_size;
+        // required query information
+        const std::vector<std::pair<uint64_t,uint64_t>> gaps;
+        const size_type last_subpattern_size;
 
-        bool finished;
-
-        bool relax() {
+        // Conservatively enforces gap constraints.
+        // Returns false if the iteration has finished due to this operation.
+        bool relax()
+        {
             bool redo = true;
-            while (redo)
-            {
+            while (redo) {
                 redo = false;
                 for (size_t i = 1; i < size(); ++i) {
                     if (lex_ranges[i - 1].current_node().range_end + gaps[i - 1].second < lex_ranges[i].current_node().range_begin) {
-                        lex_ranges[i - 1].skip_subtree();
+                        lex_ranges[i - 1].next_right();
                         redo = true;
                         if (!lex_ranges[i - 1].has_more())
                             return false;
                     }
                     if (lex_ranges[i - 1].current_node().range_begin + gaps[i - 1].first > lex_ranges[i].current_node().range_end) {
-                        lex_ranges[i].skip_subtree();
+                        lex_ranges[i].next_right();
                         redo = true;
                         if (!lex_ranges[i].has_more())
                             return false;
@@ -324,87 +343,105 @@ class vlg_iterator : public std::iterator<std::forward_iterator_tag, typename ty
             return true;
         }
 
+        // Pulls first subpattern position behind last subpattern position.
+        // => enforces non-overlapping match semantics
+        // Returns false if the iteration has finished due to this operation.
         bool pull_forward()
         {
-            // pull a forward
-            auto x = lex_ranges[lex_ranges.size() - 1].current_node().range_begin;
+            auto last_pos = lex_ranges[lex_ranges.size() - 1].current_node().range_begin;
 
-            while (lex_ranges[0].has_more() && lex_ranges[0].current_node().range_end <= x) lex_ranges[0].skip_subtree();
-            while (lex_ranges[0].move_next_leaf() && lex_ranges[0].current_node().range_begin < x + last_subpattern_size) ;
-            
+            // skip entire subtrees as long as save
+            while (lex_ranges[0].has_more() and 
+                lex_ranges[0].current_node().range_end <= last_pos) lex_ranges[0].next_right();
+            // finds first leaf with required position
+            while (lex_ranges[0].next_leaf() and 
+                lex_ranges[0].current_node().range_begin < last_pos + last_subpattern_size) ;
             return lex_ranges[0].has_more();
         }
+
+        // Finds the next match of the query.
         void next()
         {
+            // While relaxation has not reached the end of the wavelet tree...
             while (relax()) {
+                // ...determine the largest wavelet tree node
                 size_t r = 1;
                 size_t j = 0;
-                bool skip = false;
+                bool found = false;
                 for (size_t i = 0; i < size(); ++i) {
-                    auto lr = lex_ranges[i].current_node().range_size();
+                    auto lr = lex_ranges[i].current_node().node.size;
                     if (lr > r) {
                         r = lr;
                         j = i;
-                        skip = true;
+                        found = true;
                     }
                 }
 
-                if (skip)
-                    lex_ranges[j].expand();
-                else
+                if (found) // if there is one, expand it
+                    lex_ranges[j].next_down();
+                else       // otherwise we found a match!
                     return;
             }
-            
+
             finished = true;
-        }
-        bool valid() const
-        {
-            for (auto lr : lex_ranges)
-                if (!lr.has_more())
-                    return false;
-            return true;
         }
 
     public:
+        // Type of subpattern positions pointed to by this iterator.
+        typedef typename type_index::size_type position_type;
+        
+        //! Default constructor.
         vlg_iterator()
-        {
-            finished = true;
-        }
+            : gaps()
+            , last_subpattern_size(0) { }
+
+        //! Constructor.
         vlg_iterator(const type_index& index,
                      const typename type_index::query_type& query)
             : gaps(query.gaps)
             , last_subpattern_size(query.subpatterns[query.subpatterns.size() - 1].size())
         {
-            finished = false;
-            
-            auto root_node = wt_node_cache<type_index>(index.wt.root(), index);
-            size_type sp, ep;
-
+            // initialize wavelet tree iterators using the SA range of each subpattern
+            auto root_node = wt_node_cache<wt_type>(index.wt.root(), index.wt);
             for (auto sx : query.subpatterns) {
+                size_type sp, ep;
                 forward_search(index.text.begin(), index.text.end(), index.wt, 0, index.wt.size()-1, sx.begin(), sx.end(), sp, ep);
-                lex_ranges.emplace_back(index, range_type(sp, ep), root_node);
+                lex_ranges.emplace_back(index.wt, range_type(sp, ep), root_node);
+
+                // shortcut on empty range
+                if (sp > ep) return;
             }
-            if (valid())
-                next();
+
+            // find first match
+            finished = false;
+            next();
         }
 
+        //! Returns whether this iterator has ended, i.e. does not point to a match anymore.
+        bool is_end() const
+        {
+            return finished;
+        }
+
+        //! Returns the number of subpattern positions this iterator points to.
         size_t size() const
         {
             return lex_ranges.size();
         }
-        result_type operator[](int subpattern_index) const
+
+        //! Returns a subpatterns text position of the current match.
+        position_type operator[](int subpattern_index) const
         {
             return lex_ranges[subpattern_index].current_node().range_begin;
         }
-        result_type const operator*() const
+
+        //! Returns the starting position of the current match (which is the first subpattern's position).
+        position_type const operator*() const
         {
             return this->operator[](0);
         }
-        result_type* operator->()
-        {
-            return &this->operator[](0);
-        }
 
+        //! Advances the iterator.
         vlg_iterator& operator++()
         {
             if (pull_forward())
@@ -414,18 +451,40 @@ class vlg_iterator : public std::iterator<std::forward_iterator_tag, typename ty
             return *this;
         }
 
+        //! Checks to iterators for equality (which only holds for two end-iterators).
         friend bool operator==(
             const vlg_iterator& a,
             const vlg_iterator& b)
         {
-            return a.finished && b.finished;
+            return a.is_end() && b.is_end();
         }
 
+        //! Compares to iterators for inequality .
         friend bool operator!=(
             const vlg_iterator& a,
             const vlg_iterator& b)
         {
             return !(a == b);
+        }
+};
+
+// Pseudo-container encapsulating begin and end iterator.
+template<typename iter>
+class container
+{
+    private:
+        const iter m_it_begin;
+        const iter m_it_end;
+
+    public:
+        container(const iter it_begin, const iter it_end)
+            : m_it_begin(it_begin), m_it_end(it_end) { }
+
+        iter begin() const {
+            return m_it_begin;
+        }
+        iter end() const {
+            return m_it_end;
         }
 };
 
@@ -448,27 +507,8 @@ void construct(vlg_index<alphabet_tag, t_wt>& idx, const std::string& file, cach
     idx = std::move(vlg_index<alphabet_tag, t_wt>(text, wts));
 }
 
-template<typename iter>
-class container
-{
-    private:
-        const iter m_it_begin;
-        const iter m_it_end;
-
-    public:
-        container(const iter it_begin, const iter it_end)
-            : m_it_begin(it_begin), m_it_end(it_end) { }
-
-        iter begin() const {
-            return m_it_begin;
-        }
-        iter end() const {
-            return m_it_end;
-        }
-};
-
 template<typename type_index>
-container<vlg_iterator<type_index>> locate(type_index idx, typename type_index::query_type pattern) {
+container<vlg_iterator<type_index>> locate(const type_index& idx, const typename type_index::query_type& pattern) {
     return container<vlg_iterator<type_index>>(
         vlg_iterator<type_index>(idx, pattern),
         vlg_iterator<type_index>()
@@ -476,7 +516,7 @@ container<vlg_iterator<type_index>> locate(type_index idx, typename type_index::
 }
 
 template<typename type_index>
-typename type_index::size_type count(type_index idx, typename type_index::query_type pattern) {
+typename type_index::size_type count(const type_index& idx, const typename type_index::query_type& pattern) {
     typename type_index::size_type result = 0;
     auto cont = locate(idx, pattern);
     for (auto it = cont.begin(); it != cont.end(); ++it)

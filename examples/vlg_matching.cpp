@@ -39,6 +39,8 @@ int main(int argc, char* argv[])
         }
         
         dump_query_results(idx, "ac.{2,5}?a.{4,8}?b");
+        dump_query_results(idx, "a.{0,10}?a.{0,10}?a");
+        dump_query_results(idx, "foo.{0,10}?bar");
     }
     
     // index with int alphabet
@@ -55,5 +57,7 @@ int main(int argc, char* argv[])
         }
         
         dump_query_results(idx, "97 99 .{2,5}? 97 .{4,8}? 98");
+        dump_query_results(idx, "97 .{0,10}? 97 .{0,10}? 97");
+        dump_query_results(idx, "1337 .{0,10}? 42");
     }
 }
