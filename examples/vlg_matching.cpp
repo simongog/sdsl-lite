@@ -1,5 +1,4 @@
-#include "../include/sdsl/vlg_index.hpp"
-//#include <sdsl/vlg_index.hpp>
+#include <sdsl/vlg_index.hpp>
 
 using namespace sdsl;
 using namespace std;

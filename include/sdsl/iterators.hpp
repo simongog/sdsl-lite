@@ -149,5 +149,25 @@ inline random_access_const_iterator<t_rac> operator+(typename random_access_cons
     return it+n;
 }
 
+// Pseudo-container encapsulating begin and end iterator.
+template<typename iter>
+class container
+{
+    private:
+        const iter m_it_begin;
+        const iter m_it_end;
+
+    public:
+        container(const iter it_begin, const iter it_end)
+            : m_it_begin(it_begin), m_it_end(it_end) { }
+
+        iter begin() const {
+            return m_it_begin;
+        }
+        iter end() const {
+            return m_it_end;
+        }
+};
+
 } // end namespace sdsl
 #endif

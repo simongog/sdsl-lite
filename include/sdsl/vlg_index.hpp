@@ -1,5 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2016 Simon Gog, Johannes Bader
+    Copyright (C) 2016 Simon Gog
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -199,100 +199,6 @@ class vlg_index
         }
 };
 
-//! Stores a wavelet tree node together with some precomputed properties.
-/*!
- * \tparam wt_type   Type of wavelet tree this node is from.
- */
-template<typename wt_type>
-struct wt_node_cache {
-    typedef typename wt_type::node_type node_type;
-    typedef typename wt_type::size_type size_type;
-
-    const node_type node;
-    size_type range_begin;
-    size_type range_end;
-    bool is_leaf;
-
-    //! Constructor, precalculates frequently used values.
-    wt_node_cache(
-        const node_type& node,
-        const wt_type& wt)
-            : node(node)
-    {
-        auto range = wt.value_range(node);
-        this->range_begin = std::get<0>(range);
-        this->range_end = std::get<1>(range);
-        this->is_leaf = wt.is_leaf(node);
-    }
-};
-
-//! Provides a convenient way of traversing a wavelet tree from left to right.
-/*!
- * \tparam wt_type   Type of wavelet tree to traverse.
- *
- * This class keeps track of the state required to perform a depth-first traversal 
- * of a wavelet tree. Furthermore it provides methods to traverse the tree in 
- * various ways.
- */
-template<typename wt_type>
-class wt_range_walker
-{
-    private:
-        typedef wt_node_cache<wt_type> node_type;
-        const wt_type& wt;
-        std::vector<std::pair<range_type,node_type>> dfs_stack;
-
-    public:
-        //! Constructor
-        wt_range_walker(const wt_type& wt, range_type initial_range, node_type root_node)
-            : wt(wt)
-        {
-            dfs_stack.reserve(64); // TODO: magic number? or rather something with wt_type::size_type? or is there something like max_depth(wt)?
-            dfs_stack.emplace_back(initial_range, root_node);
-        }
-
-        //! Returns whether the traversal has not yet reached the end of the wavelet tree.
-        inline bool has_more() const
-        {
-            return !dfs_stack.empty();
-        }
-
-        //! Returns the wavelet tree node currently pointed at by the walker.
-        inline node_type current_node() const
-        {
-            return dfs_stack.back().second;
-        }
-
-        //! Traverse to the next node, discarding any child nodes of the current node.
-        inline void next_right()
-        {
-            dfs_stack.pop_back();
-        }
-
-        //! Traverse to the first non-empty child node of the current node.
-        inline void next_down()
-        {
-            auto top = dfs_stack.back(); dfs_stack.pop_back();
-            auto& node = top.second;
-            auto children = wt.expand(node.node);
-            auto exp_range = wt.expand(node.node, top.first);
-            if (!empty(exp_range[1]))
-                dfs_stack.emplace_back(exp_range[1], node_type(children[1], wt));
-            if (!empty(exp_range[0]))
-                dfs_stack.emplace_back(exp_range[0], node_type(children[0], wt));
-        }
-
-        //! Traverse to the next leaf. Returns false if there is no more, i.e. the traversal has finished.
-        inline bool next_leaf()
-        {
-            if (has_more() and current_node().is_leaf)
-                next_right();
-            while (has_more() and !current_node().is_leaf)
-                next_down();
-            return has_more();
-        }
-};
-
 //! An iterator implementing the variable length gap pattern search as described in the paper.
 /*!
  * \tparam type_index   Type of index to use for the search.
@@ -464,26 +370,6 @@ class vlg_iterator : public std::iterator<std::forward_iterator_tag, typename ty
             const vlg_iterator& b)
         {
             return !(a == b);
-        }
-};
-
-// Pseudo-container encapsulating begin and end iterator.
-template<typename iter>
-class container
-{
-    private:
-        const iter m_it_begin;
-        const iter m_it_end;
-
-    public:
-        container(const iter it_begin, const iter it_end)
-            : m_it_begin(it_begin), m_it_end(it_end) { }
-
-        iter begin() const {
-            return m_it_begin;
-        }
-        iter end() const {
-            return m_it_end;
         }
 };
 
