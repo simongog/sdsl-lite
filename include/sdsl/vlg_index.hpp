@@ -386,7 +386,8 @@ class vlg_iterator : public std::iterator<std::forward_iterator_tag, typename ty
         }
 
     public:
-        // Type of subpattern positions pointed to by this itercr
+        // Type of subpattern positions pointed to by this iterator
+        typedef typename type_index::size_type position_type;
         
         //! Default constructor.
         vlg_iterator()
