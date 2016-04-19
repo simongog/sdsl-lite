@@ -1,3 +1,0 @@
-NAME=DBSEARCH
-INDEX_TYPE=index_dbsearch
-REGEXP_TYPE=std::regex::ECMAScript

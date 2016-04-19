@@ -1,3 +1,0 @@
-NAME=REGEXP_ECMA
-INDEX_TYPE=index_regexp
-REGEXP_TYPE=std::regex::ECMAScript

@@ -1,3 +1,0 @@
-NAME=BSTREE
-INDEX_TYPE=index_bstree
-REGEXP_TYPE=std::regex::ECMAScript
