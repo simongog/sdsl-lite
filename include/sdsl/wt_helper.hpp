@@ -634,6 +634,9 @@ struct int_tree {
  */
 template<typename wt_type>
 struct wt_node_cache {
+    static_assert(std::is_same<typename index_tag<wt_type>::type, wt_tag>::value,
+                  "First template argument has to be a wavelet tree.");
+
     typedef typename wt_type::node_type node_type;
     typedef typename wt_type::size_type size_type;
 
@@ -659,13 +662,16 @@ struct wt_node_cache {
 /*!
  * \tparam wt_type   Type of wavelet tree to traverse.
  *
- * This class keeps track of the state required to perform a depth-first traversal 
- * of a wavelet tree. Furthermore it provides methods to traverse the tree in 
+ * This class keeps track of the state required to perform a depth-first traversal
+ * of a wavelet tree. Furthermore it provides methods to traverse the tree in
  * various ways.
  */
 template<typename wt_type>
 class wt_range_walker
 {
+        static_assert(std::is_same<typename index_tag<wt_type>::type, wt_tag>::value,
+                      "First template argument has to be a wavelet tree.");
+
     private:
         typedef wt_node_cache<wt_type> node_type;
         const wt_type& wt;

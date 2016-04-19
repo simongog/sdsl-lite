@@ -164,6 +164,7 @@ class container
         iter begin() const {
             return m_it_begin;
         }
+
         iter end() const {
             return m_it_end;
         }

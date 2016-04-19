@@ -79,7 +79,7 @@ struct gapped_pattern_query {
             auto subpattern = raw_regexp.substr(last_gap_end+1,subptrlen);
             auto subptr = parse_subpattern(subpattern);
             subpatterns.push_back(subptr);
-            
+
             // extract gap
             auto gap_end = raw_regexp.find("}", gap_pos) + 1;
             std::string gap_str = raw_regexp.substr(gap_pos, gap_end - gap_pos);
@@ -121,7 +121,7 @@ class vlg_index
 {
         static_assert(std::is_same<typename index_tag<t_wt>::type, wt_tag>::value,
                       "Second template argument has to be a wavelet tree.");
-        
+
     private:
         typedef vlg_index<alphabet_tag, t_wt>   index_type;
     public:
@@ -133,11 +133,10 @@ class vlg_index
         typedef int_vector<alphabet_tag::WIDTH>    text_type;
         typedef gapped_pattern_query<alphabet_tag> query_type;
 
-
     private:
         text_type m_text;
         wt_type   m_wt;
-        
+
     public:
         const text_type& text = m_text;
         const wt_type&   wt  = m_wt;
@@ -256,10 +255,10 @@ class vlg_iterator : public std::iterator<std::forward_iterator_tag, typename ty
             auto last_pos = lex_ranges[lex_ranges.size() - 1].current_node().range_begin;
 
             // skip entire subtrees as long as save
-            while (lex_ranges[0].has_more() and 
+            while (lex_ranges[0].has_more() and
                 lex_ranges[0].current_node().range_end <= last_pos) lex_ranges[0].next_right();
             // finds first leaf with required position
-            while (lex_ranges[0].next_leaf() and 
+            while (lex_ranges[0].next_leaf() and
                 lex_ranges[0].current_node().range_begin < last_pos + last_subpattern_size) ;
             return lex_ranges[0].has_more();
         }
@@ -294,7 +293,7 @@ class vlg_iterator : public std::iterator<std::forward_iterator_tag, typename ty
     public:
         // Type of subpattern positions pointed to by this iterator
         typedef typename type_index::size_type position_type;
-        
+
         //! Default constructor.
         vlg_iterator()
             : gaps()
@@ -377,7 +376,7 @@ template<typename alphabet_tag, typename t_wt>
 void construct(vlg_index<alphabet_tag, t_wt>& idx, const std::string& file, cache_config& config, uint8_t num_bytes)
 {
     config = sdsl::cache_config(false,".","WCSEARCH_TMP"); // TODO: make better!!! keep in mind: wts needs SA!
-                    
+
     int_vector<alphabet_tag::WIDTH> text;
     load_vector_from_file(text, file, num_bytes);
 
