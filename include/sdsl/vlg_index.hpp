@@ -95,7 +95,7 @@ struct gapped_pattern_query {
             }
             gaps.emplace_back(first_gap_num + subptr.size(),second_gap_num + subptr.size());
             // validate lazy semantics
-            if (gap_end == raw_regexp.size() || raw_regexp[gap_end] != '?') {
+            if (gap_end == raw_regexp.size() or raw_regexp[gap_end] != '?') {
                 throw std::runtime_error("invalid gap description: expected '?' (lazy semantics)");
             }
             last_gap_end = gap_end;
@@ -286,9 +286,9 @@ class wt_range_walker
         //! Traverse to the next leaf. Returns false if there is no more, i.e. the traversal has finished.
         inline bool next_leaf()
         {
-            if (has_more() && current_node().is_leaf)
+            if (has_more() and current_node().is_leaf)
                 next_right();
-            while (has_more() && !current_node().is_leaf)
+            while (has_more() and !current_node().is_leaf)
                 next_down();
             return has_more();
         }
@@ -387,8 +387,7 @@ class vlg_iterator : public std::iterator<std::forward_iterator_tag, typename ty
         }
 
     public:
-        // Type of subpattern positions pointed to by this iterator.
-        typedef typename type_index::size_type position_type;
+        // Type of subpattern positions pointed to by this itercr
         
         //! Default constructor.
         vlg_iterator()
@@ -456,7 +455,7 @@ class vlg_iterator : public std::iterator<std::forward_iterator_tag, typename ty
             const vlg_iterator& a,
             const vlg_iterator& b)
         {
-            return a.is_end() && b.is_end();
+            return a.is_end() and b.is_end();
         }
 
         //! Compares to iterators for inequality .
