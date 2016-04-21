@@ -480,7 +480,7 @@ class wt_pc
                 v = m_tree.child(v, p&1);
             }
             return t_ret_type {i, smaller, greater};
-        };
+        }
 
         //! How many symbols are lexicographic smaller than c in [0..i-1].
         /*!
@@ -579,6 +579,26 @@ class wt_pc
             m_tree.load(in);
         }
 
+        //! Random access container to bitvector of node v
+        auto bit_vec(const node_type& v) const -> node_bv_container<t_bitvector> {
+            return node_bv_container<t_bitvector>(begin(v), end(v));
+        }
+
+        //! Random access container to sequence of node v
+        auto seq(const node_type& v) const -> random_access_container<std::function<value_type(size_type)>> {
+            return random_access_container<std::function<value_type(size_type)>>([&v, this](size_type i) {
+                node_type vv = v;
+                while (!is_leaf(vv)) {
+                    auto vs = expand(vv);
+                    auto rs = expand(vv, {0, i});
+                    bool bit = *(begin(vv)+i);
+                    i = std::get<1>(rs[bit]);
+                    vv = vs[bit];
+                }
+                return sym(vv);
+            }, size(v));
+        }
+
         //! Checks if the node is a leaf node
         bool is_leaf(const node_type& v) const
         {
@@ -591,9 +611,27 @@ class wt_pc
             return m_tree.bv_pos_rank(v);
         }
 
-        bool empty(const node_type&) const
-        {
-            return true;
+        //! Indicates if node v is empty
+        bool empty(const node_type& v) const {
+            return size(v)==0;
+        }
+
+        //! Return the size of node v
+        auto size(const node_type& v) const -> decltype(m_tree.size(v)) {
+            if (is_leaf(v)) {
+                if (v == root())
+                    return size();
+                else {
+                    auto parent = m_tree.parent(v);
+                    auto rs = expand(parent, {0, size(parent)-1});
+                    if (m_tree.child(parent, 0) == v)
+                        return std::get<1>(std::get<0>(rs))-std::get<0>((std::get<0>(rs)))+1;
+                    else
+                        return std::get<1>(std::get<1>(rs))-std::get<0>((std::get<1>(rs)))+1;
+                }
+            } else {
+                return m_tree.size(v);
+            }
         }
 
         //! Returns the root node
@@ -607,10 +645,9 @@ class wt_pc
          *  \return Return a pair of nodes (left child, right child).
          *  \pre !is_leaf(v)
          */
-        std::pair<node_type, node_type>
-        expand(const node_type& v) const
-        {
-            return std::make_pair(m_tree.child(v,0), m_tree.child(v,1));
+        std::array<node_type, 2>
+        expand(const node_type& v) const {
+            return {m_tree.child(v,0), m_tree.child(v,1)};
         }
 
         //! Returns for each range its left and right child ranges
@@ -623,7 +660,7 @@ class wt_pc
          *          range mapped to the right child of v.
          *  \pre !is_leaf(v) and s>=v_s and e<=v_e
          */
-        std::pair<range_vec_type, range_vec_type>
+        std::array<range_vec_type, 2>
         expand(const node_type& v,
                const range_vec_type& ranges) const
         {
@@ -641,7 +678,7 @@ class wt_pc
          *          range mapped to the right child of v.
          *  \pre !is_leaf(v) and s>=v_s and e<=v_e
          */
-        std::pair<range_vec_type, range_vec_type>
+        std::array<range_vec_type, 2>
         expand(const node_type& v,
                range_vec_type&& ranges) const
         {
@@ -649,18 +686,18 @@ class wt_pc
             range_vec_type res(ranges.size());
             size_t i = 0;
             for (auto& r : ranges) {
-                auto sp_rank    = m_bv_rank(m_tree.bv_pos(v) + r.first);
-                auto right_size = m_bv_rank(m_tree.bv_pos(v) + r.second + 1)
+                auto sp_rank    = m_bv_rank(m_tree.bv_pos(v) + r[0]);
+                auto right_size = m_bv_rank(m_tree.bv_pos(v) + r[1] + 1)
                                   - sp_rank;
-                auto left_size  = (r.second-r.first+1)-right_size;
+                auto left_size  = (r[1]-r[0]+1)-right_size;
 
                 auto right_sp = sp_rank - v_sp_rank;
-                auto left_sp  = r.first - right_sp;
+                auto left_sp  = r[0] - right_sp;
 
-                r = range_type(left_sp, left_sp + left_size - 1);
-                res[i++] = range_type(right_sp, right_sp + right_size - 1);
+                r = {left_sp, left_sp + left_size - 1};
+                res[i++] = {right_sp, right_sp + right_size - 1};
             }
-            return make_pair(ranges, std::move(res));
+            return {ranges, std::move(res)};
         }
 
         //! Returns for a range its left and right child ranges
@@ -673,20 +710,21 @@ class wt_pc
          *          range mapped to the right child of v.
          *  \pre !is_leaf(v) and s>=v_s and e<=v_e
          */
-        std::pair<range_type, range_type>
-        expand(const node_type& v, const range_type& r) const
-        {
+        std::array<range_type, 2>
+        expand(const node_type& v, const range_type& r) const {
             auto v_sp_rank = m_tree.bv_pos_rank(v);
-            auto sp_rank    = m_bv_rank(m_tree.bv_pos(v) + r.first);
-            auto right_size = m_bv_rank(m_tree.bv_pos(v) + r.second + 1)
+            auto sp_rank    = m_bv_rank(m_tree.bv_pos(v) + r[0]);
+            auto right_size = m_bv_rank(m_tree.bv_pos(v) + r[1] + 1)
                               - sp_rank;
-            auto left_size  = (r.second-r.first+1)-right_size;
+            auto left_size  = (r[1]-r[0]+1)-right_size;
 
             auto right_sp = sp_rank - v_sp_rank;
-            auto left_sp  = r.first - right_sp;
+            auto left_sp  = r[0] - right_sp;
 
-            return make_pair(range_type(left_sp, left_sp + left_size - 1),
-                             range_type(right_sp, right_sp + right_size - 1));
+            return {{{left_sp, left_sp + left_size - 1},
+                    {right_sp, right_sp + right_size - 1}
+                }
+            };
         }
 
         //! return the path to the leaf for a given symbol
@@ -720,6 +758,18 @@ class wt_pc
         std::pair<bool, value_type> symbol_lte(value_type c) const
         {
             return m_tree.symbol_lte(c);
+        }
+
+    private:
+
+        //! Iterator to the begin of the bitvector of inner node v
+        auto begin(const node_type& v) const -> decltype(m_bv.begin() + m_tree.bv_pos(v)) {
+            return m_bv.begin() + m_tree.bv_pos(v);
+        }
+
+        //! Iterator to the begin of the bitvector of inner node v
+        auto end(const node_type& v) const -> decltype(m_bv.begin() + m_tree.bv_pos(v) + m_tree.size(v)) {
+            return m_bv.begin() + m_tree.bv_pos(v) + m_tree.size(v);
         }
 };
 

@@ -80,7 +80,8 @@ class _lcp_support_tree2
         /*! \param config Cache configuration.
 
          */
-        _lcp_support_tree2(cache_config& config, const cst_type* cst = nullptr) {
+        _lcp_support_tree2(cache_config& config, const cst_type* cst = nullptr)
+        {
             m_cst = cst;
 
             int_vector_buffer<> lcp_buf(cache_file_name(conf::KEY_LCP, config));
@@ -101,34 +102,41 @@ class _lcp_support_tree2
             sdsl::remove(big_lcp_file);
         }
 
-        void set_cst(const cst_type* cst) {
+        void set_cst(const cst_type* cst)
+        {
             m_cst = cst;
         }
 
-        size_type size()const {
+        size_type size()const
+        {
             return m_cst->size();
         }
 
-        static size_type max_size() {
+        static size_type max_size()
+        {
             return int_vector<>::max_size();
         }
 
-        size_type empty()const {
+        size_type empty()const
+        {
             return m_small_lcp.empty();
         }
 
-        void swap(_lcp_support_tree2& lcp_c) {
+        void swap(_lcp_support_tree2& lcp_c)
+        {
             m_small_lcp.swap(lcp_c.m_small_lcp);
             m_big_lcp.swap(lcp_c.m_big_lcp);
         }
 
         //! Returns a const_iterator to the first element.
-        const_iterator begin()const {
+        const_iterator begin()const
+        {
             return const_iterator(this, 0);
         }
 
         //! Returns a const_iterator to the element after the last element.
-        const_iterator end()const {
+        const_iterator end()const
+        {
             return const_iterator(this, size());
         }
 
@@ -137,7 +145,8 @@ class _lcp_support_tree2
          * \par Time complexity
          *     \f$ \Order{t_{find\_close} + t_{rank}} \f$
          */
-        inline value_type operator[](size_type i)const {
+        inline value_type operator[](size_type i)const
+        {
             size_type idx, offset=0;
             uint8_t val;
 start:
@@ -155,7 +164,8 @@ start:
         }
 
         //! Serialize to a stream.
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += m_small_lcp.serialize(out, child, "small_lcp");
@@ -165,7 +175,8 @@ start:
         }
 
         //! Load from a stream.
-        void load(std::istream& in, const t_cst* cst=nullptr) {
+        void load(std::istream& in, const t_cst* cst=nullptr)
+        {
             m_small_lcp.load(in);
             m_big_lcp.load(in);
             m_cst = cst;
@@ -199,11 +210,11 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<>& lcp_buf,
     bwt_buf.buffersize(buf_len);
     size_type n = lcp_buf.size();
 
-    osfstream sml_lcp_out(small_lcp_file, std::ios::out | std::ios::trunc);
+    osfstream sml_lcp_out(small_lcp_file, std::ios::out | std::ios::trunc | std::ios::binary);
     uint64_t bit_size = 8*n;
     sml_lcp_out.write((char*) &bit_size, sizeof(bit_size));
 
-    osfstream big_lcp_out(big_lcp_file, std::ios::out | std::ios::trunc);
+    osfstream big_lcp_out(big_lcp_file, std::ios::out | std::ios::trunc | std::ios::binary);
 
     size_type fc_cnt = 0; // number of lcp values at the first child r
     size_type fc_cnt_big = 0; // number of lcp values at the first child which are big and not reducible
@@ -276,7 +287,7 @@ void construct_first_child_and_lf_lcp(int_vector_buffer<>& lcp_buf,
     sml_lcp_out.close();
 
     big_lcp_out.close();
-    isfstream big_lcp_in(big_lcp_file);
+    isfstream big_lcp_in(big_lcp_file, std::ios::in | std::ios::binary);
     big_lcp.width(bits::hi(max_lcp)+1);
     big_lcp.resize(fc_cnt_big);
 

@@ -96,8 +96,7 @@ char* str_from_errno()
 #else
     return strerror(errno);
 #endif
-};
-
+}
 
 uint64_t id()
 {
@@ -171,7 +170,7 @@ size_t file_size(const std::string& file)
         return ram_fs::file_size(file);
     } else {
         struct stat fs;
-        stat(file.c_str(), &fs );
+        stat(file.c_str(), &fs);
         return fs.st_size;
     }
 }

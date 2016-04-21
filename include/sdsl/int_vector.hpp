@@ -143,6 +143,16 @@ struct int_vector_trait {
     {
         return const_iterator(v, v->size()*v->width());
     }
+
+    static void set_width(uint8_t new_width, int_width_type& width)
+    {
+        if (t_width == 0) {
+            if (0 < new_width and new_width <= 64)
+                width = new_width;
+            else
+                width = 64;
+        }
+    }
 };
 
 template<>
@@ -171,6 +181,8 @@ struct int_vector_trait<64> {
     {
         return begin+size;
     }
+
+    static void set_width(uint8_t, int_width_type) {}
 };
 
 template<>
@@ -199,6 +211,8 @@ struct int_vector_trait<32> {
     {
         return ((uint32_t*)begin)+size;
     }
+
+    static void set_width(uint8_t, int_width_type) {}
 };
 
 template<>
@@ -227,6 +241,8 @@ struct int_vector_trait<16> {
     {
         return ((uint16_t*)begin)+size;
     }
+
+    static void set_width(uint8_t, int_width_type) {}
 };
 
 template<>
@@ -255,6 +271,8 @@ struct int_vector_trait<8> {
     {
         return ((uint8_t*)begin)+size;
     }
+
+    static void set_width(uint8_t, int_width_type) {}
 };
 
 //! A generic vector class for integers of width \f$w\in [1..64]\f$.
@@ -316,12 +334,17 @@ class int_vector
             \param int_width     The width of each integer.
             \sa resize, width
          */
-        int_vector(size_type size = 0, value_type default_value = 0,
+
+        int_vector(size_type size, value_type default_value,
                    uint8_t int_width = t_width);
 
+        //! Constructor to fix possible comparison with integeres issue.
+        explicit int_vector(size_type size = 0) : int_vector(size, static_cast<value_type>(0), t_width) {
+
+        }
         //! Constructor for initializer_list.
         template<class t_T>
-        int_vector(std::initializer_list<t_T> il) : int_vector()
+        int_vector(std::initializer_list<t_T> il) : int_vector(0,0)
         {
             resize(il.size());
             size_type idx = 0;
@@ -443,7 +466,10 @@ class int_vector
             \note This method has no effect if t_width is in the range [1..64].
               \sa width
         */
-        void width(uint8_t) { }
+        void width(uint8_t new_width)
+        {
+            int_vector_trait<t_width>::set_width(new_width, m_width);
+        }
 
         // Write data (without header) to a stream.
         size_type write_data(std::ostream& out) const;
@@ -547,6 +573,11 @@ class int_vector
         void flip()
         {
             static_assert(1 == t_width, "int_vector: flip() is available only for bit_vector.");
+            if (!empty()) {
+                for (uint64_t i=0; i<(capacity()>>6); ++i) {
+                    m_data[i] = ~m_data[i];
+                }
+            }
         }
 
         //! Read the size and int_width of a int_vector
@@ -586,12 +617,6 @@ class int_vector
 
         const raw_wrapper raw = raw_wrapper(*this);
 };
-
-template<>
-void int_vector<0>::width(const uint8_t);
-
-template<>
-void bit_vector::flip();
 
 //! A proxy class that acts as a reference to an integer of length \p len bits in a int_vector.
 /*! \tparam t_int_vector The specific int_vector class.
@@ -997,6 +1022,7 @@ class int_vector_iterator : public int_vector_iterator_base<t_int_vector>
         {
             return !(*this > it);
         }
+
         inline difference_type operator-(const int_vector_iterator& it) const
         {
             return (((m_word - it.m_word)<<6) + m_offset - it.m_offset) / m_len;

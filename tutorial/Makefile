@@ -9,7 +9,7 @@ all: $(EXECS)
 build-test: $(EXECS)
 	        
 %.x:%.cpp
-	$(MY_CXX) $(CXX_FLAGS) -o $@ $< $(CCLIB) 
+	$(MY_CXX) $(CXX_FLAGS) -o $@ $< $(CCLIB) $(LDFLAGS)
 
 clean:
 	rm -f $(EXECS)

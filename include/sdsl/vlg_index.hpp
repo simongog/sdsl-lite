@@ -310,7 +310,7 @@ class vlg_iterator : public std::iterator<std::forward_iterator_tag, typename ty
             for (auto sx : query.subpatterns) {
                 size_type sp, ep;
                 forward_search(index.text.begin(), index.text.end(), index.wt, 0, index.wt.size()-1, sx.begin(), sx.end(), sp, ep);
-                lex_ranges.emplace_back(index.wt, range_type(sp, ep), root_node);
+                lex_ranges.emplace_back(index.wt, range_type({sp, ep}), root_node);
 
                 // shortcut on empty range
                 if (sp > ep) return;

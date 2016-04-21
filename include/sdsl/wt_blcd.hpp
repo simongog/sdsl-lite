@@ -45,7 +45,7 @@ struct balanced_shape;
  *  Roberto Grossi, Ankur Gupta, Jeffrey Scott Vitter:
  *  High-order entropy-compressed text indexes.
  *  Proceedings of the 14th Annual ACM-SIAM Symposium on
- *  Discrete Algorithms (SODA 2013).
+ *  Discrete Algorithms (SODA 2003).
  *
  * @ingroup wt
  */

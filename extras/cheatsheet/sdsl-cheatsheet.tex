@@ -188,6 +188,7 @@ urlcolor=githublink           % color of external links
 \newcommand{\sdslwtint}{\code{wt\_int}}
 \newcommand{\sdslwmint}{\code{wm\_int}}
 \newcommand{\sdslwtgmr}{\code{wt\_gmr}}
+\newcommand{\sdslwtap}{\code{wt\_ap}}
 \newcommand{\sdslwtrlmn}{\code{wt\_rlmn}}
 %%%% CSAs
 \newcommand{\sdslcsabitcompressed}{\code{csa\_bitcompressed}}
@@ -217,6 +218,7 @@ urlcolor=githublink           % color of external links
 %%%% CSTs
 \newcommand{\sdslcstsada}{\code{cst\_sada}}
 \newcommand{\sdslcstsctIII}{\code{cst\_sct3}}
+\newcommand{\sdslcstfully}{\code{cst\_fully}}
 %%%% RMQs
 \newcommand{\sdslrmqsupportsparsetable}{\code{rmq\_support\_sparse\_table}}
 \newcommand{\sdslrmqsuccinctsada}{\code{rmq\_succint\_sada}}
@@ -308,7 +310,7 @@ Representations for a bitvector of length $n$ with $m$ set bits.
 \href{\sdslgitinc/int_vector.hpp}{\sdslbitvector} & 
 plain bitvector            & 64$\lceil n/64\!+\!1\rceil$ \\
 \href{\sdslgitinc/bit_vector_il.hpp}{\sdslbitvectoril} &
-interleaved  bitvector & $\approx n(1+K/64)$  \\
+interleaved  bitvector & $\approx n(1+64/K)$  \\
 \href{\sdslgitinc/rrr_vector.hpp}{\sdslrrrvector} & 
 $H_0$-compressed bitvector & $\approx \lceil \log {n\choose m} \rceil$ \\
 \href{\sdslgitinc/sd_vector.hpp}{\sdslsdvector}  & sparse bitvector
@@ -381,6 +383,7 @@ and the runtime is multiplied by a factor in $[H_0,\log\sigma]$.
                   &               &                     &  \textit{alphabet} &    able    \\
 \href{\sdslgitinc/wt_rlmn.hpp}{\sdslwtrlmn} & \multicolumn{3}{c}{underlying WT dependent}& \myNO \\
 \href{\sdslgitinc/wt_gmr.hpp}{\sdslwtgmr}   & \multicolumn{1}{c}{none}     & \myNO & integer & \myNO \\
+\href{\sdslgitinc/wt_ap.hpp}{\sdslwtap}   & \multicolumn{1}{c}{none}     & \myNO & integer & \myNO \\
 \href{\sdslgitinc/wt_huff.hpp}{\sdslwthuff} & Huffman & \myNO & byte    & \myYES \\
 \href{\sdslgitinc/wm_int.hpp}{\sdslwmint} & Balanced & \myNO  & integer & \myYES \\
 \href{\sdslgitinc/wt_blcd.hpp}{\sdslwtblcd} & Balanced & \myYES & byte  & \myYES \\
@@ -402,10 +405,11 @@ $v$ a node, and $r$ a range.\\
 \\
 Traversable WTs provide also: 
 \code{root()}, \code{is\_leaf($v$)},
-\code{empty($v$)}, \code{sym($v$)},
+\code{empty($v$)}, \code{size($v$)}, \code{sym($v$)},
 \code{expand($v$)},
 \code{expand($v$,$r$)},
-\code{expand($v$,std::vector<$r$>)}.\\
+\code{expand($v$,std::vector<$r$>)},
+\code{bit\_vec($v$)}, \code{seq($v$)}.\\
 \code{lex\_ordered} WTs provide also:
 \code{lex\_count($i$,$j$,$c$)} and 
 \code{lex\_smaller\_count($i$,$c$)}.    
@@ -500,7 +504,7 @@ Multi-level pioneer structure.\\
 Min-max-tree over excess sequence.\\
 \end{tabular}
 \textit{Public~methods:} \code{find\_open($i$)}, \code{find\_close($i$)},
-\code{enclode($i$)}, \code{double\_enclose($i$,$j$)}, \code{excess($i$)},
+\code{enclose($i$)}, \code{double\_enclose($i$,$j$)}, \code{excess($i$)},
 \code{rr\_enclose($i$,$j$)}, \code{rank($i$)}\footnote{For PBS the
 bits are counted in the prefix $[0..i]$.}, \code{select($i$)}.
 \\

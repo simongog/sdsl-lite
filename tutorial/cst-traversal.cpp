@@ -5,8 +5,12 @@
 using namespace sdsl;
 using namespace std;
 
-int main(int, char* argv[])
+int main(int argc, char* argv[])
 {
+    if (argc < 3) {
+        cout << "Usage: " << argv[0] << " file " << "int [max_depth]" << endl;
+        return 1;
+    }
     cst_sct3<> cst;
     construct(cst, argv[1], 1);
     uint64_t max_depth = stoull(argv[2]);

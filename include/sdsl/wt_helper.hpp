@@ -8,11 +8,12 @@
 #include <queue>
 #include <vector>
 #include <utility>
+#include <array>
 
 namespace sdsl
 {
 
-typedef std::pair<int_vector<>::size_type, int_vector<>::size_type> range_type;
+typedef std::array<int_vector<>::size_type, 2> range_type;
 typedef std::vector<range_type>         range_vec_type;
 
 //! Empty range check
@@ -80,12 +81,14 @@ struct _node {
 
     _node(uint64_t bv_pos=0, uint64_t bv_pos_rank=0, node_type parent=t_tree_strat_fat::undef,
           node_type child_left=t_tree_strat_fat::undef, node_type child_right=t_tree_strat_fat::undef):
-        bv_pos(bv_pos), bv_pos_rank(bv_pos_rank), parent(parent) {
+        bv_pos(bv_pos), bv_pos_rank(bv_pos_rank), parent(parent)
+    {
         child[0] = child_left;
         child[1] = child_right;
     }
 
-    _node& operator=(const _node& v) {
+    _node& operator=(const _node& v)
+    {
         if (this != &v) {
             bv_pos      = v.bv_pos;
             bv_pos_rank = v.bv_pos_rank;
@@ -96,7 +99,8 @@ struct _node {
         return *this;
     }
 
-    _node& operator=(const pc_node& v) {
+    _node& operator=(const pc_node& v)
+    {
         bv_pos      = v.freq;
         bv_pos_rank = v.sym;
         parent        = v.parent;
@@ -105,7 +109,8 @@ struct _node {
         return *this;
     }
 
-    size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+    size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+    {
         structure_tree_node* st_child = structure_tree::add_child(v, name, util::class_name(*this));
         uint64_t written_bytes = 0;
         written_bytes += write_member(bv_pos, out);
@@ -117,7 +122,8 @@ struct _node {
         return written_bytes;
     }
 
-    void load(std::istream& in) {
+    void load(std::istream& in)
+    {
         read_member(bv_pos, in);
         read_member(bv_pos_rank, in);
         read_member(parent, in);
@@ -150,7 +156,8 @@ struct _byte_tree {
     // 0..55 hold path information; bits 56..63 the length
     // of the path in binary representation
 
-    void copy(const _byte_tree& bt) {
+    void copy(const _byte_tree& bt)
+    {
         m_nodes = bt.m_nodes;
         for (uint32_t i=0; i<fixed_sigma; ++i)
             m_c_to_leaf[i] = bt.m_c_to_leaf[i];
@@ -160,7 +167,8 @@ struct _byte_tree {
 
     _byte_tree() {}
 
-    _byte_tree(const std::vector<pc_node>& temp_nodes, uint64_t& bv_size, const t_wt*) {
+    _byte_tree(const std::vector<pc_node>& temp_nodes, uint64_t& bv_size, const t_wt*)
+    {
         m_nodes.resize(temp_nodes.size());
         m_nodes[0] = temp_nodes.back(); // insert root at index 0
         bv_size = 0;
@@ -233,18 +241,21 @@ struct _byte_tree {
     }
 
     template<class t_rank_type>
-    void init_node_ranks(const t_rank_type& rank) {
+    void init_node_ranks(const t_rank_type& rank)
+    {
         for (uint64_t i=0; i<m_nodes.size(); ++i) {
             if (m_nodes[i].child[0] != undef)  // if node is not a leaf
                 m_nodes[i].bv_pos_rank = rank.rank(m_nodes[i].bv_pos);
         }
     }
 
-    _byte_tree(const _byte_tree& bt) {
+    _byte_tree(const _byte_tree& bt)
+    {
         copy(bt);
     }
 
-    void swap(_byte_tree& bt) {
+    void swap(_byte_tree& bt)
+    {
         std::swap(m_nodes, bt.m_nodes);
         for (uint32_t i=0; i<fixed_sigma; ++i) {
             std::swap(m_c_to_leaf[i], bt.m_c_to_leaf[i]);
@@ -252,7 +263,8 @@ struct _byte_tree {
         }
     }
 
-    _byte_tree& operator=(const _byte_tree& bt) {
+    _byte_tree& operator=(const _byte_tree& bt)
+    {
         if (this != &bt) {
             copy(bt);
         }
@@ -261,7 +273,8 @@ struct _byte_tree {
 
     //! Serializes the data structure into the given ostream
     uint64_t serialize(std::ostream& out, structure_tree_node* v=nullptr,
-                       std::string name="") const {
+                       std::string name="") const
+    {
         structure_tree_node* child = structure_tree::add_child(
                                          v, name, util::class_name(*this));
         uint64_t written_bytes = 0;
@@ -277,7 +290,8 @@ struct _byte_tree {
     }
 
     //! Loads the data structure from the given istream.
-    void load(std::istream& in) {
+    void load(std::istream& in)
+    {
         uint64_t m_nodes_size = 0;
         read_member(m_nodes_size, in);
         m_nodes = std::vector<data_node>(m_nodes_size);
@@ -287,58 +301,75 @@ struct _byte_tree {
     }
 
     //! Get corresponding leaf for symbol c.
-    inline node_type c_to_leaf(value_type c)const {
+    inline node_type c_to_leaf(value_type c)const
+    {
         return m_c_to_leaf[c];
     }
     //! Return the root node of the tree.
-    inline static node_type root() {
+    inline static node_type root()
+    {
         return 0;
     }
 
     //! Return the number of nodes in the tree.
-    uint64_t size() const {
+    uint64_t size() const
+    {
         return m_nodes.size();
     }
 
     //! Return the parent node of v.
-    inline node_type parent(node_type v)const {
+    inline node_type parent(node_type v)const
+    {
         return m_nodes[v].parent;
     }
     //! Return left (i=0) or right (i=1) child node of v.
-    inline node_type child(node_type v, uint8_t i)const {
+    inline node_type child(node_type v, uint8_t i)const
+    {
         return m_nodes[v].child[i];
     }
 
     //! Return if v is a leaf node.
-    inline bool is_leaf(node_type v)const {
+    inline bool is_leaf(node_type v)const
+    {
         return m_nodes[v].child[0] == undef;
     }
 
+    //! Return size of an inner node
+    inline uint64_t size(node_type v) const
+    {
+        auto next_v = t_dfs_shape ? m_nodes[v].child[0] : v+1;
+        return bv_pos(next_v) - bv_pos(v);
+    }
+
     //! Return the path as left/right bit sequence in a uint64_t
-    inline uint64_t bit_path(value_type c)const {
+    inline uint64_t bit_path(value_type c)const
+    {
         return m_path[c];
     }
 
     //! Return the start of the node in the WT's bit vector
-    inline uint64_t bv_pos(node_type v)const {
+    inline uint64_t bv_pos(node_type v)const
+    {
         return m_nodes[v].bv_pos;
     }
 
     //! Returns for node v the rank of 1's up to bv_pos(v)
-    inline uint64_t bv_pos_rank(node_type v)const {
+    inline uint64_t bv_pos_rank(node_type v)const
+    {
         return m_nodes[v].bv_pos_rank;
     }
 
     //! Return if the node is a valid node
-    inline bool is_valid(node_type v)const {
+    inline bool is_valid(node_type v)const
+    {
         return v != undef;
     }
 
     //! Return symbol c or the next larger symbol in the wt
     inline std::pair<bool,value_type> symbol_gte(value_type c) const
     {
-        for(uint32_t i=c;i<fixed_sigma;i++) {
-            if(m_c_to_leaf[i]!=undef) {
+        for (uint32_t i=c; i<fixed_sigma; i++) {
+            if (m_c_to_leaf[i]!=undef) {
                 return {true,i};
             }
         }
@@ -348,12 +379,12 @@ struct _byte_tree {
     //! Return symbol c or the next smaller symbol in the wt
     inline std::pair<bool,value_type> symbol_lte(value_type c) const
     {
-        for(uint32_t i=c;i>0;i--) {
-            if(m_c_to_leaf[i]!=undef) {
+        for (uint32_t i=c; i>0; i--) {
+            if (m_c_to_leaf[i]!=undef) {
                 return {true,i};
             }
         }
-        if(m_c_to_leaf[0]!=undef)
+        if (m_c_to_leaf[0]!=undef)
             return {true,0};
         return {false,0};
     }
@@ -386,7 +417,8 @@ struct _int_tree {
     // 0..55 hold path information; bits 56..63 the length
     // of the path in binary representation
 
-    void copy(const _int_tree& bt) {
+    void copy(const _int_tree& bt)
+    {
         m_nodes     = bt.m_nodes;
         m_c_to_leaf = bt.m_c_to_leaf;
         m_path      = bt.m_path;
@@ -394,7 +426,8 @@ struct _int_tree {
 
     _int_tree() {}
 
-    _int_tree(const std::vector<pc_node>& temp_nodes, uint64_t& bv_size, const t_wt*) {
+    _int_tree(const std::vector<pc_node>& temp_nodes, uint64_t& bv_size, const t_wt*)
+    {
         m_nodes.resize(temp_nodes.size());
         m_nodes[0] = temp_nodes.back(); // insert root at index 0
         bv_size = 0;
@@ -475,24 +508,28 @@ struct _int_tree {
     }
 
     template<class t_rank_type>
-    void init_node_ranks(const t_rank_type& rank) {
+    void init_node_ranks(const t_rank_type& rank)
+    {
         for (uint64_t i=0; i<m_nodes.size(); ++i) {
             if (m_nodes[i].child[0] != undef)  // if node is not a leaf
                 m_nodes[i].bv_pos_rank = rank.rank(m_nodes[i].bv_pos);
         }
     }
 
-    _int_tree(const _int_tree& bt) {
+    _int_tree(const _int_tree& bt)
+    {
         copy(bt);
     }
 
-    void swap(_int_tree& bt) {
+    void swap(_int_tree& bt)
+    {
         std::swap(m_nodes, bt.m_nodes);
         std::swap(m_c_to_leaf, bt.m_c_to_leaf);
         std::swap(m_path, bt.m_path);
     }
 
-    _int_tree& operator=(const _int_tree& bt) {
+    _int_tree& operator=(const _int_tree& bt)
+    {
         if (this != &bt) {
             copy(bt);
         }
@@ -501,7 +538,8 @@ struct _int_tree {
 
     //! Serializes the data structure into the given ostream
     uint64_t serialize(std::ostream& out, structure_tree_node* v=nullptr,
-                       std::string name="") const {
+                       std::string name="") const
+    {
         structure_tree_node* child = structure_tree::add_child(
                                          v, name, util::class_name(*this));
         uint64_t written_bytes = 0;
@@ -519,7 +557,8 @@ struct _int_tree {
     }
 
     //! Loads the data structure from the given istream.
-    void load(std::istream& in) {
+    void load(std::istream& in)
+    {
         uint64_t m_nodes_size = 0;
         read_member(m_nodes_size, in);
         m_nodes = std::vector<data_node>(m_nodes_size);
@@ -535,38 +574,52 @@ struct _int_tree {
     }
 
     //! Get corresponding leaf for symbol c.
-    inline node_type c_to_leaf(value_type c)const {
+    inline node_type c_to_leaf(value_type c)const
+    {
         if (c >= m_c_to_leaf.size())
             return undef;
         else
             return m_c_to_leaf[c];
     }
     //! Return the root node of the tree.
-    inline static node_type root() {
+    inline static node_type root()
+    {
         return 0;
     }
 
     //! Return the number of nodes in the tree.
-    uint64_t size() const {
+    uint64_t size() const
+    {
         return m_nodes.size();
     }
 
     //! Return the parent node of v.
-    inline node_type parent(node_type v)const {
+    inline node_type parent(node_type v)const
+    {
         return m_nodes[v].parent;
     }
     //! Return left (i=0) or right (i=1) child node of v.
-    inline node_type child(node_type v, uint8_t i)const {
+    inline node_type child(node_type v, uint8_t i)const
+    {
         return m_nodes[v].child[i];
     }
 
     //! Return if v is a leaf node.
-    inline bool is_leaf(node_type v)const {
+    inline bool is_leaf(node_type v)const
+    {
         return m_nodes[v].child[0] == undef;
     }
 
+    //! Return size of an inner node
+    inline uint64_t size(node_type v) const
+    {
+        auto next_v = t_dfs_shape ? m_nodes[v].child[0] : v+1;
+        return bv_pos(next_v) - bv_pos(v);
+    }
+
     //! Return the path as left/right bit sequence in a uint64_t
-    inline uint64_t bit_path(value_type c)const {
+    inline uint64_t bit_path(value_type c)const
+    {
         if (c >= m_path.size()) {
             return m_path.size()-1;
         }
@@ -574,28 +627,31 @@ struct _int_tree {
     }
 
     //! Return the start of the node in the WT's bit vector
-    inline uint64_t bv_pos(node_type v)const {
+    inline uint64_t bv_pos(node_type v)const
+    {
         return m_nodes[v].bv_pos;
     }
 
     //! Returns for node v the rank of 1's up to bv_pos(v)
-    inline uint64_t bv_pos_rank(node_type v)const {
+    inline uint64_t bv_pos_rank(node_type v)const
+    {
         return m_nodes[v].bv_pos_rank;
     }
 
     //! Return if the node is a valid node
-    inline bool is_valid(node_type v)const {
+    inline bool is_valid(node_type v)const
+    {
         return v != undef;
     }
 
     //! Return symbol c or the next larger symbol in the wt
     inline std::pair<bool,value_type> symbol_gte(value_type c) const
     {
-        if(c >= m_c_to_leaf.size()) {
+        if (c >= m_c_to_leaf.size()) {
             return {false,0};
         }
-        for(value_type i=c;i<m_c_to_leaf.size();i++) {
-            if(m_c_to_leaf[i]!=undef) {
+        for (value_type i=c; i<m_c_to_leaf.size(); i++) {
+            if (m_c_to_leaf[i]!=undef) {
                 return {true,i};
             }
         }
@@ -605,16 +661,16 @@ struct _int_tree {
     //! Return symbol c or the next smaller symbol in the wt
     inline std::pair<bool,value_type> symbol_lte(value_type c) const
     {
-        if(c >= m_c_to_leaf.size()) {
+        if (c >= m_c_to_leaf.size()) {
             // return the largest symbol
             c = m_c_to_leaf.size()-1;
         }
-        for(value_type i=c;i>0;i--) {
-            if(m_c_to_leaf[i]!=undef) {
+        for (value_type i=c; i>0; i--) {
+            if (m_c_to_leaf[i]!=undef) {
                 return {true,i};
             }
         }
-        if(m_c_to_leaf[0]!=undef)
+        if (m_c_to_leaf[0]!=undef)
             return {true,0};
         return {false,0};
     }
@@ -725,6 +781,54 @@ class wt_range_walker
             while (has_more() and !current_node().is_leaf)
                 next_down();
             return has_more();
+        }
+};
+
+template<typename t_bv>
+class node_bv_container
+{
+    public:
+        typedef typename t_bv::value_type value_type;
+        typedef typename t_bv::size_type size_type;
+        typedef typename t_bv::difference_type difference_type;
+        typedef typename t_bv::const_iterator iterator;
+    private:
+        iterator m_begin, m_end;
+    public:
+        node_bv_container(iterator b, iterator e) : m_begin(b), m_end(e) {}
+        value_type operator[](size_type i) const { return *(m_begin+i); }
+        size_type size() const { return m_end - m_begin; }
+        iterator begin() const
+        {
+            return m_begin;
+        }
+        iterator end() const
+        {
+            return m_end;
+        }
+};
+
+template<typename t_bv>
+class node_seq_container
+{
+    public:
+        typedef typename t_bv::value_type value_type;
+        typedef typename t_bv::size_type size_type;
+        typedef typename t_bv::difference_type difference_type;
+        typedef typename t_bv::const_iterator iterator;
+    private:
+        iterator m_begin, m_end;
+    public:
+        node_seq_container(iterator b, iterator e) : m_begin(b), m_end(e) {}
+        value_type operator[](size_type i) const { return *(m_begin+i); }
+        size_type size() const { return m_end - m_begin; }
+        iterator begin() const
+        {
+            return m_begin;
+        }
+        iterator end() const
+        {
+            return m_end;
         }
 };
 

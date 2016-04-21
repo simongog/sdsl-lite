@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="sdsl::int_vector&lt;0&gt;">
+    <DisplayString>{{ size={ m_size/m_width } width={ (int)m_width } }}</DisplayString>
+    <Expand>
+      <Item Name="size" ExcludeView="simple">m_size/m_width</Item>
+      <Item Name="width" ExcludeView="simple">(int)m_width</Item>
+      <ArrayItems Condition="m_width == 64">
+        <Size>m_size/m_width</Size>
+        <ValuePointer>(uint64_t*)m_data</ValuePointer>
+      </ArrayItems>
+      <ArrayItems Condition="m_width == 32">
+        <Size>m_size/m_width</Size>
+        <ValuePointer>(uint32_t*)m_data</ValuePointer>
+      </ArrayItems>
+      <ArrayItems Condition="m_width == 8">
+        <Size>m_size/m_width</Size>
+        <ValuePointer>(uint8_t*)m_data</ValuePointer>
+      </ArrayItems>
+  </Expand>
+  </Type>
+  <Type Name="sdsl::int_vector&lt;8&gt;">
+    <DisplayString>{{ size={ m_size/8 } } }}</DisplayString>
+    <Expand>
+      <Item Name="size" ExcludeView="simple">m_size/8</Item>
+      <ArrayItems>
+        <Size>m_size/8</Size>
+        <ValuePointer>(uint8_t*)m_data</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+</AutoVisualizer>

@@ -44,7 +44,7 @@ void insert_lcp_values(int_vector<>& partial_lcp, bit_vector& index_done, std::s
     sdsl::rename(tmp_lcp_file, lcp_file);
 }
 
-buffered_char_queue::buffered_char_queue():m_widx(0), m_ridx(0), m_sync(true), m_disk_buffered_blocks(0), m_c('?'),m_rb(0), m_wb(0) {};
+buffered_char_queue::buffered_char_queue():m_widx(0), m_ridx(0), m_sync(true), m_disk_buffered_blocks(0), m_c('?'),m_rb(0), m_wb(0) {}
 
 void buffered_char_queue::init(const std::string& dir, char c)
 {

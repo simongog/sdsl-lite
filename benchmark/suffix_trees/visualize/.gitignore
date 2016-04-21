@@ -1,0 +1,5 @@
+*.log
+*.aux
+*.tex
+*.pdf
+!suffix_trees.tex

@@ -75,7 +75,8 @@ struct _hutu_shape {
                 right(nullptr), parent(nullptr),
                 rank(0) { }
             //! Less then operator
-            bool operator< (const heap_node& other) {
+            bool operator< (const heap_node& other)
+            {
                 return *item < *(other.item);
             }
         };
@@ -89,7 +90,8 @@ struct _hutu_shape {
                 heap_node<t_element>* m_root;  // pointer to the root
 
                 // fixes node information after the deletion of elements
-                void fix_node(heap_node<t_element>* item) {
+                void fix_node(heap_node<t_element>* item)
+                {
                     if (item != nullptr) {
                         if (!item->left || !item->right) { // if node has only one child
                             // only go on fixing if the node information needs to be changed
@@ -108,7 +110,8 @@ struct _hutu_shape {
                 }
 
                 // helper function to remove the data structure from memory
-                void free_node(heap_node<t_element>* item) {
+                void free_node(heap_node<t_element>* item)
+                {
                     if (item->left) {
                         free_node(item->left);
                         delete item->left;
@@ -122,22 +125,26 @@ struct _hutu_shape {
                 }
 
                 // internal merge function
-                heap_node<t_element>* merge(heap_node<t_element>* h1, heap_node<t_element>* h2) {
+                heap_node<t_element>* merge(heap_node<t_element>* h1, heap_node<t_element>* h2)
+                {
                     if (!h1) return h2;
                     if (!h2) return h1;
                     if (*(h1->item) < *(h2->item))  return merge1(h1, h2);
                     else                            return merge1(h2, h1);
                 }
                 // internal merge function
-                heap_node<t_element>* merge1(heap_node<t_element>* h1, heap_node<t_element>* h2) {
+                heap_node<t_element>* merge1(heap_node<t_element>* h1, heap_node<t_element>* h2)
+                {
                     if (!h1->left) { // if h1 has no children, the merge is simple
                         h1->left = h2;
                         h2->parent = h1; // adjust the parent pointer
                     } else {
                         h1->right = merge(h1->right, h2);
-                        if (h1->right) h1->right->parent = h1;
+                        if (h1->right) {
+                            h1->right->parent = h1;
+                        }
 
-                        if (h1->left->rank < h1->right->rank) {
+                        if ((h1->left->rank) < (h1->right->rank)) {
                             heap_node<t_element>* tmp = h1->left;
                             h1->left = h1->right;
                             h1->right = tmp;
@@ -153,7 +160,8 @@ struct _hutu_shape {
                 l_heap() : m_root(nullptr) { }
 
                 //! Indicates if the heap is empty
-                bool empty() const {
+                bool empty() const
+                {
                     return (m_root==nullptr);
                 }
 
@@ -161,7 +169,8 @@ struct _hutu_shape {
                 /*! \return The smallest element in the heap
                  *          or nullptr if it does not exist.
                  */
-                heap_node<t_element>* find_min() const {
+                heap_node<t_element>* find_min() const
+                {
                     return m_root;
                 }
 
@@ -169,7 +178,8 @@ struct _hutu_shape {
                 /*! \return The second smallest element in the heap
                  *         or nullptr if it does not exist.
                  */
-                heap_node<t_element>* find_snd_min() const {
+                heap_node<t_element>* find_snd_min() const
+                {
                     if (m_root == nullptr) return nullptr;
                     if (m_root->left == nullptr) return m_root->right;
                     if (m_root->right == nullptr) return m_root->left;
@@ -182,7 +192,8 @@ struct _hutu_shape {
                 /*! \param  x Element that is inserted into the heap.
                  *  \return The new generated heap node.
                  */
-                heap_node<t_element>* insert(t_element* x) {
+                heap_node<t_element>* insert(t_element* x)
+                {
                     heap_node<t_element>* n = new heap_node<t_element>(x);
                     l_heap<t_element> lh;
                     lh.m_root = n;
@@ -191,7 +202,8 @@ struct _hutu_shape {
                 }
 
                 //! Delete the smallest element in the heap
-                void delete_min() {
+                void delete_min()
+                {
                     heap_node<t_element>* old_root = m_root;
                     m_root = merge(m_root->left, m_root->right);
                     if (m_root) m_root->parent = nullptr;
@@ -200,7 +212,8 @@ struct _hutu_shape {
 
                 // deletes an arbitrary element from the heap
                 // this function assumes, that item is an element of the heap
-                void delete_element(heap_node<t_element>* item) {
+                void delete_element(heap_node<t_element>* item)
+                {
                     if (item != nullptr) {
                         if (m_root == item) { // deleting the root is trivial
                             delete_min();
@@ -222,13 +235,15 @@ struct _hutu_shape {
                 }
 
                 // public merge function
-                void merge(l_heap<t_element>* rhs) {
+                void merge(l_heap<t_element>* rhs)
+                {
                     m_root = merge(m_root, rhs->m_root);
                     rhs->m_root = nullptr;
                 }
 
                 // removes the whole data structure from memory
-                void free_memory() {
+                void free_memory()
+                {
                     if (m_root != nullptr) {
                         free_node(m_root);
                         delete m_root;
@@ -256,7 +271,8 @@ struct _hutu_shape {
 
             m_node() : qel(0), myhpq(0), lt(0), rt(0) { }
 
-            bool operator<(const m_node other) {
+            bool operator<(const m_node other)
+            {
                 if (min_sum != other.min_sum) {
                     return min_sum < other.min_sum;
                 }
@@ -266,7 +282,8 @@ struct _hutu_shape {
                 return j < other.j;
             }
 
-            bool operator> (const m_node other) {
+            bool operator> (const m_node other)
+            {
                 return other < *this;
             }
         };
@@ -292,14 +309,16 @@ struct _hutu_shape {
             ht_node() : mpql(0), mpqr(0), ql(0), qr(0),
                 left(nullptr), right(nullptr) { }
 
-            bool operator< (const ht_node& other) {
+            bool operator< (const ht_node& other)
+            {
                 if (w != other.w) {
                     return w < other.w;
                 }
                 return pos < other.pos;
             }
 
-            bool operator> (const ht_node& other) {
+            bool operator> (const ht_node& other)
+            {
                 return other < *this;
             }
         };
@@ -307,7 +326,8 @@ struct _hutu_shape {
 
         template<class t_rac>
         static void
-        construct_tree(t_rac& C, std::vector<pc_node>& temp_nodes) {
+        construct_tree(t_rac& C, std::vector<pc_node>& temp_nodes)
+        {
             //create a leaf for every letter
             std::vector<ht_node> node_vector;
             for (size_t i = 0; i < C.size(); i++) {
@@ -540,10 +560,9 @@ struct _hutu_shape {
             assign_level(A[0], 0);
 
             // reconstruction phase using the stack algorithm
-            ht_node* stack[sigma];
+            std::vector<ht_node*> stack(sigma, nullptr);
 
             for (size_type i = 0; i < sigma; i++) {
-                stack[i] = nullptr;
                 temp_nodes.emplace_back(pc_node(T[i].w, (size_type)T[i].c));
                 T[i].pos = i;
             }
@@ -582,7 +601,8 @@ struct _hutu_shape {
             delete stack[0];
         }
 
-        static void assign_level(ht_node* n, int64_t lvl) {
+        static void assign_level(ht_node* n, int64_t lvl)
+        {
             if (n) {
                 n->level = lvl;
                 assign_level(n->left, lvl + 1);

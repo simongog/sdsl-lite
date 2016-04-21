@@ -8,30 +8,30 @@ namespace coder
 
 fibonacci::impl fibonacci::data;
 
-uint64_t fibonacci::decode_prefix_sum(const uint64_t* data, const size_type start_idx, size_type n)
+uint64_t fibonacci::decode_prefix_sum(const uint64_t* d, const size_type start_idx, size_type n)
 {
     if (n==0)
         return 0;
 //	return decode<true,false,int*>(data, start_idx, n);
-    data += (start_idx >> 6);
+    d += (start_idx >> 6);
     size_type i = 0;
     int32_t	bits_to_decode = 0;
     uint64_t w = 0, value = 0;
     int16_t buffered = 0, read = start_idx & 0x3F, shift = 0;
     uint16_t temp=0;
     uint64_t carry=0;
-    i = bits::cnt11(*data & ~bits::lo_set[read], carry);
+    i = bits::cnt11(*d & ~bits::lo_set[read], carry);
     if (i<n) {
         uint64_t oldcarry;
         w = 0;
         do {
             oldcarry = carry;
-            i += (temp = bits::cnt11(*(data+(++w)), carry));
+            i += (temp = bits::cnt11(*(d+(++w)), carry));
         } while (i<n);
-        bits_to_decode += ((w-1)<<6) + bits::sel11(*(data+w), n-(i-temp), oldcarry) + 65 - read;
+        bits_to_decode += ((w-1)<<6) + bits::sel11(*(d+w), n-(i-temp), oldcarry) + 65 - read;
         w = 0;
     } else { // i>=n
-        bits_to_decode = bits::sel11(*data >> read, n)+1;
+        bits_to_decode = bits::sel11(*d >> read, n)+1;
     }
     if (((size_type)bits_to_decode) == n<<1)
         return n;
@@ -41,9 +41,9 @@ uint64_t fibonacci::decode_prefix_sum(const uint64_t* data, const size_type star
 //	while( bits_to_decode > 0 or buffered > 0){// while not all values are decoded
     do {
         while (buffered < 64 and bits_to_decode > 0) {
-            w |= (((*data)>>read)<<buffered);
+            w |= (((*d)>>read)<<buffered);
             if (read >= buffered) {
-                ++data;
+                ++d;
                 buffered += 64-read;
                 bits_to_decode -= (64-read);
                 read = 0;
@@ -100,9 +100,9 @@ uint64_t fibonacci::decode_prefix_sum(const uint64_t* data, const size_type star
     return value;
 }
 
-uint64_t fibonacci::decode_prefix_sum(const uint64_t* data, const size_type start_idx, SDSL_UNUSED const size_type end_idx, size_type n)
+uint64_t fibonacci::decode_prefix_sum(const uint64_t* d, const size_type start_idx, SDSL_UNUSED const size_type end_idx, size_type n)
 {
-    return decode_prefix_sum(data, start_idx, n);
+    return decode_prefix_sum(d, start_idx, n);
 }
 
 } // end namespace coder

@@ -26,25 +26,30 @@ class cst_node_child_proxy_iterator : public std::iterator<std::forward_iterator
         node_type m_cur_node;
     public:
         cst_node_child_proxy_iterator() : m_cst(nullptr) {};
-        cst_node_child_proxy_iterator(const t_cst* cst,const node_type& v) : m_cst(cst) , m_cur_node(v) {}
+        cst_node_child_proxy_iterator(const t_cst* cst,node_type v) : m_cst(cst) , m_cur_node(v) {}
         cst_node_child_proxy_iterator(const iterator_type& it): m_cst(it.m_cst), m_cur_node(it.m_cur_node) {}
     public:
-        const_reference operator*() const {
+        const_reference operator*() const
+        {
             return m_cur_node;
         }
-        iterator_type& operator++() {
+        iterator_type& operator++()
+        {
             m_cur_node = m_cst->sibling(m_cur_node);
             return *this;
         }
-        iterator_type operator++(int) {
+        iterator_type operator++(int)
+        {
             iterator_type it = *this;
             ++(*this);
             return it;
         }
-        bool operator==(const iterator_type& it)const {
+        bool operator==(const iterator_type& it)const
+        {
             return it.m_cur_node == m_cur_node;
         }
-        bool operator!=(const iterator_type& it)const {
+        bool operator!=(const iterator_type& it)const
+        {
             return !(*this==it);
         }
 };
@@ -57,11 +62,11 @@ class cst_node_child_proxy
         using node_type = typename t_cst::node_type;
         using size_type = typename t_cst::size_type;
     private: // data
-        const node_type& m_parent;
+        node_type m_parent;
         const t_cst* m_cst;
     public: // constructors
         cst_node_child_proxy() = delete;
-        explicit cst_node_child_proxy(const t_cst* cst,const node_type& v) : m_parent(v) , m_cst(cst) {};
+        explicit cst_node_child_proxy(const t_cst* cst,node_type v) : m_parent(v) , m_cst(cst) {};
         cst_node_child_proxy(const cst_node_child_proxy& p) : m_parent(p.m_parent) , m_cst(p.m_cst) {};
     public: // methods
         node_type operator[](size_type i) const { return m_cst->select_child(m_parent,i+1); } // enumeration starts with 1 not 0
@@ -282,6 +287,49 @@ construct_supercartesian_tree_bp_succinct_and_first_child(int_vector_buffer<t_wi
     }
     return fc_cnt;
 }
+
+
+// Gets ISA[SA[idx]+d]
+// d = depth of the character 0 = first position
+template<class t_csa>
+typename t_csa::size_type get_char_pos(typename t_csa::size_type idx, typename t_csa::size_type d, const t_csa& csa)
+{
+    if (d == 0)
+        return idx;
+    // if we have to apply \f$\LF\f$ or \f$\Phi\f$ more
+    // than 2*d times to calc csa(csa[idx]+d), we opt to
+    // apply \f$ \Phi \f$ d times
+    if (csa.sa_sample_dens + csa.isa_sample_dens > 2*d+2) {
+        for (typename t_csa::size_type i=0; i < d; ++i)
+            idx = csa.psi[idx];
+        return idx;
+    }
+    return csa.isa[csa[idx] + d];
+}
+
+
+// has_id<X>::value is true if class X has
+// implement method id
+// Adapted solution from jrok's proposal:
+// http://stackoverflow.com/questions/87372/check-if-a-class-has-a-member-function-of-a-given-signature
+template<typename t_wt>
+struct has_id {
+    template<typename T>
+    static constexpr auto check(T*)
+    -> typename
+    std::is_same<
+    decltype(std::declval<T>().id(
+                 std::declval<typename T::node_type&>()
+             )),
+             typename T::size_type>::type {return std::true_type();}
+             template<typename>
+    static constexpr std::false_type check(...) {return std::false_type();}
+    typedef decltype(check<t_wt>(nullptr)) type;
+    static constexpr bool value = type::value;
+};
+
+
+
 
 }
 

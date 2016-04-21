@@ -464,9 +464,9 @@ class wm_int
             size_type cnt_answers = 0;
             point_vec_type point_vec;
             if (lb <= rb) {
-                size_type is[m_max_level+1];
-                size_type rank_off[m_max_level+1];
-                _range_search_2d(root(), range_type(lb, rb), vlb, vrb, 0, is,
+                std::vector<size_type> is(m_max_level+1);
+                std::vector<size_type> rank_off(m_max_level+1);
+                _range_search_2d(root(), {lb, rb}, vlb, vrb, 0, is,
                                  rank_off, point_vec, report, cnt_answers);
             }
             return make_pair(cnt_answers, point_vec);
@@ -474,8 +474,8 @@ class wm_int
 
         void
         _range_search_2d(node_type v, range_type r, value_type vlb,
-                         value_type vrb, size_type ilb, size_type is[],
-                         size_type rank_off[], point_vec_type& point_vec,
+                         value_type vrb, size_type ilb, std::vector<size_type>& is,
+                         std::vector<size_type>& rank_off, point_vec_type& point_vec,
                          bool report, size_type& cnt_answers)
         const
         {
@@ -612,20 +612,50 @@ class wm_int
             }
         };
 
+
         //! Checks if the node is a leaf node
         bool is_leaf(const node_type& v) const
         {
             return v.level == m_max_level;
         }
 
+        //! Symbol of leaf node v
         value_type sym(const node_type& v) const
         {
             return v.sym;
         }
 
+        //! Random access container to bitvector of node v
+        auto bit_vec(const node_type& v) const -> node_bv_container<t_bitvector> {
+            return node_bv_container<t_bitvector>(begin(v), end(v));
+        }
+
+        //! Random access container to sequence of node v
+        auto seq(const node_type& v) const -> random_access_container<std::function<value_type(size_type)>> {
+            return random_access_container<std::function<value_type(size_type)>>([&v, this](size_type i)
+            {
+                node_type vv = v;
+                while (!is_leaf(vv)) {
+                    auto vs = expand(vv);
+                    auto rs = expand(vv, {0, i});
+                    bool bit = *(begin(vv)+i);
+                    i = std::get<1>(rs[bit]);
+                    vv = vs[bit];
+                }
+                return sym(vv);
+            }, size(v));
+        }
+
+        //! Indicates if node v is empty
         bool empty(const node_type& v) const
         {
             return v.size == (size_type)0;
+        }
+
+        //! Return the size of node v
+        auto size(const node_type& v) const -> decltype(v.size)
+        {
+            return v.size;
         }
 
         //! Return the root node
@@ -708,16 +738,16 @@ class wm_int
             range_vec_type res(ranges.size());
             size_t i = 0;
             for (auto& r : ranges) {
-                auto sp_rank    = m_tree_rank(v.offset + r.first);
-                auto right_size = m_tree_rank(v.offset + r.second + 1)
+                auto sp_rank    = m_tree_rank(v.offset + r[0]);
+                auto right_size = m_tree_rank(v.offset + r[1] + 1)
                                   - sp_rank;
-                auto left_size  = (r.second-r.first+1)-right_size;
+                auto left_size  = (r[1]-r[0]+1)-right_size;
 
                 auto right_sp = sp_rank - v_sp_rank;
-                auto left_sp  = r.first - right_sp;
+                auto left_sp  = r[0] - right_sp;
 
-                r = range_type(left_sp, left_sp + left_size - 1);
-                res[i++] = range_type(right_sp, right_sp + right_size - 1);
+                r = {left_sp, left_sp + left_size - 1};
+                res[i++] = {right_sp, right_sp + right_size - 1};
             }
             return {ranges, std::move(res)};
         }
@@ -736,17 +766,18 @@ class wm_int
         expand(const node_type& v, const range_type& r) const
         {
             auto v_sp_rank = m_tree_rank(v.offset);  // this is already calculated in expand(v)
-            auto sp_rank    = m_tree_rank(v.offset + r.first);
-            auto right_size = m_tree_rank(v.offset + r.second + 1)
+            auto sp_rank    = m_tree_rank(v.offset + r[0]);
+            auto right_size = m_tree_rank(v.offset + r[1] + 1)
                               - sp_rank;
-            auto left_size  = (r.second-r.first+1)-right_size;
+            auto left_size  = (r[1]-r[0]+1)-right_size;
 
             auto right_sp = sp_rank - v_sp_rank;
-            auto left_sp  = r.first - right_sp;
+            auto left_sp  = r[0] - right_sp;
 
-            return {range_type(left_sp, left_sp + left_size - 1),
-                    range_type(right_sp, right_sp + right_size - 1)
-                   };
+            return {{{left_sp, left_sp + left_size - 1},
+                    {right_sp, right_sp + right_size - 1}
+                }
+            };
         }
 
         //! return the path to the leaf for a given symbol
@@ -763,7 +794,19 @@ class wm_int
             return {(v.sym<<(m_max_level-v.level)), (v.sym<<(m_max_level-v.level))+size-1};
         }
 
+    private:
 
+        //! Iterator to the begin of the bitvector of inner node v
+        auto begin(const node_type& v) const -> decltype(m_tree.begin() + v.offset)
+        {
+            return m_tree.begin() + v.offset;
+        }
+
+        //! Iterator to the begin of the bitvector of inner node v
+        auto end(const node_type& v) const -> decltype(m_tree.begin() + v.offset + v.size)
+        {
+            return m_tree.begin() + v.offset + v.size;
+        }
 };
 
 }// end namespace sdsl

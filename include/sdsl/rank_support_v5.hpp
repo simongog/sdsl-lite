@@ -37,10 +37,10 @@ struct rank_support_trait;
  * The superblock size is 2048. Each superblock is subdivided into
  * 2048/(6*64) = 5 blocks (with some bit remaining). So absolute counts for
  * the superblock add 64/2048 bits on top of each supported bit. Since the
- * first of the 6 relative count values is 0, we can fit the remaining 5 in
+ * first of the 6 relative count values is 0, we can fit the remaining 5
  * (each of width log(2048)=11) in a 64 bit word. The relative counts add
  * another 64/2048 bits bits on top of each supported bit. In total this
- * results is 128/2048= 6.25% overhead.
+ * results in 128/2048= 6.25% overhead.
  *
  * \tparam t_b       Bit pattern `0`,`1`,`10`,`01` which should be ranked.
  * \tparam t_pat_len Length of the bit pattern.
@@ -51,12 +51,13 @@ template<uint8_t t_b=1, uint8_t t_pat_len=1>
 class rank_support_v5 : public rank_support
 {
     private:
-        static_assert(t_b == 1u or t_b == 0u or t_b == 10u , "rank_support_v5: bit pattern must be `0`,`1`,`10` or `01`");
+        static_assert(t_b == 1u or t_b == 0u or t_b == 10u or t_b == 11u, "rank_support_v5: bit pattern must be `0`,`1`,`10` or `01` or `11`");
         static_assert(t_pat_len == 1u or t_pat_len == 2u , "rank_support_v5: bit pattern length must be 1 or 2");
     public:
         typedef bit_vector bit_vector_type;
         typedef rank_support_trait<t_b, t_pat_len>  trait_type;
         enum { bit_pat = t_b };
+        enum { bit_pat_len = t_pat_len };
     private:
 //      basic block for interleaved storage of superblockrank and blockrank
         int_vector<64> m_basic_block;

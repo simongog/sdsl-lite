@@ -22,7 +22,6 @@
 #define INCLUDED_SDSL_CST_SCT3
 
 #include "int_vector.hpp"
-#include "suffix_tree_helper.hpp"
 #include "iterators.hpp"
 #include "lcp.hpp"
 #include "bp_support.hpp"
@@ -32,6 +31,9 @@
 #include "select_support.hpp"
 #include "util.hpp"
 #include "sdsl_concepts.hpp"
+#include "construct.hpp"
+#include "suffix_tree_helper.hpp"
+#include "suffix_tree_algorithm.hpp"
 #include <iostream>
 #include <algorithm>
 #include <cassert>
@@ -811,7 +813,7 @@ class cst_sct3
 
         //! Get the child w of node v which edge label (v,w) starts with character c.
         // \sa child(node_type v, const char_type c, size_type &char_pos)
-        node_type child(const node_type& v, const char_type c)
+        node_type child(const node_type& v, const char_type c) const
         {
             size_type char_pos;
             return child(v, c, char_pos);
@@ -960,7 +962,7 @@ class cst_sct3
 
         //! Compute the Weiner link of node v and character c.
         /*!
-         * \param v A valid not of a cst_sct3.
+         * \param v A valid node of a cst_sct3.
          * \param c The character which should be prepended to the string of the current node.
          * \return  root() if the Weiner link of (v, c) does not exist,
          *          otherwise the Weiner link is returned.
@@ -1146,7 +1148,8 @@ cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::cst_sct3(cache_config
     {
         auto event = memory_monitor::event("bps-sct");
         int_vector_buffer<> lcp_buf(cache_file_name(conf::KEY_LCP, config));
-        m_nodes = construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child) + m_bp.size()/2;
+        m_nodes = construct_supercartesian_tree_bp_succinct_and_first_child(lcp_buf, m_bp, m_first_child);
+        m_nodes += m_bp.size()/2;
         if (m_bp.size() == 2) {  // handle special case, when the tree consists only of the root node
             m_nodes = 1;
         }
@@ -1194,10 +1197,8 @@ void cst_sct3<t_csa, t_lcp, t_bp_support, t_bv, t_rank, t_sel>::load(std::istrea
     m_bp.load(in);
     m_bp_support.load(in, &m_bp);
     m_first_child.load(in);
-    m_first_child_rank.load(in);
-    m_first_child_rank.set_vector(&m_first_child);
-    m_first_child_select.load(in);
-    m_first_child_select.set_vector(&m_first_child);
+    m_first_child_rank.load(in,&m_first_child);
+    m_first_child_select.load(in,&m_first_child);
     read_member(m_nodes, in);
 }
 

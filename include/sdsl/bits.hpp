@@ -28,6 +28,10 @@
 #include <xmmintrin.h>
 #endif
 
+#ifdef WIN32
+#include "iso646.h"
+#endif
+
 //! Namespace for the succinct data structure library.
 namespace sdsl
 {
@@ -50,7 +54,7 @@ namespace sdsl
 struct bits {
     bits() = delete;
     //! 64bit mask with all bits set to 1.
-    constexpr static int64_t  all_set {-1LL};
+    constexpr static uint64_t  all_set {-1ULL};
 
     //! This constant represents a de Bruijn sequence B(k,n) for k=2 and n=6.
     /*! Details for de Bruijn sequences see
@@ -157,7 +161,7 @@ struct bits {
     //! Map all 10 bit pairs to 01 or 1 if c=1 and the lsb=0. All other pairs are mapped to 00.
     static uint64_t map10(uint64_t x, uint64_t c=0);
 
-    //! Map all 01 bit pairs to 01 of 1 if c=1 and the lsb=0. All other pairs are mapped to 00.
+    //! Map all 01 bit pairs to 01 or 1 if c=1 and the lsb=0. All other pairs are mapped to 00.
     static uint64_t map01(uint64_t x, uint64_t c=1);
 
     //! Calculate the position of the i-th rightmost 1 bit in the 64bit integer x

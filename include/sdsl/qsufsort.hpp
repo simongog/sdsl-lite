@@ -73,14 +73,14 @@ void construct_sa(int_vector_type& sa, const char* file, uint8_t num_bytes)
 {
     sorter<int_vector_type> s;
     s.sort(sa, file, num_bytes);
-};
+}
 
 template<class int_vector_type, class t_vec>
 void construct_sa(int_vector_type& sa, t_vec& text)
 {
     sorter<int_vector_type> s;
     s.sort(sa, text);
-};
+}
 
 template<class int_vector_type>
 class sorter

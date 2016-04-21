@@ -125,7 +125,7 @@ class louds_tree
 
         //! Returns the number of nodes in the tree.
         size_type nodes()const {
-            return  m_bv.size()+1/2;
+            return  (m_bv.size()+1)/2;
         }
 
         //! Indicates if a node is a leaf.

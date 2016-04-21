@@ -562,6 +562,30 @@ typename t_csx::size_type count(
     return count(csx, pat.begin(), pat.end(), tag);
 }
 
+//! Returns the lexicographic interval of a pattern in the SA
+/*!
+ * \tparam t_csx      Type of CSA/CST.
+ * \tparam t_pat_iter Type of pattern iterator.
+ *
+ * \param csx         CSA or CST object.
+ * \param begin       Iterator to the begin of the pattern.
+ * \param end         Iterator to the end (exlusive) of the pattern.
+ *
+ * \return The interval in the SA in which all suffixes are prefixed
+ *         by the given pattern.
+ */
+template<typename t_csx, typename t_pat_iter>
+auto lex_interval(
+    const t_csx& csx,
+    t_pat_iter begin,
+    t_pat_iter end
+) -> std::array<typename t_csx::size_type, 2> {
+    std::array<typename t_csx::size_type, 2> res;
+    backward_search(csx, 0, csx.size()-1, begin, end, res[0], res[1]);
+    return res;
+}
+
+
 //! Calculates all occurrences of a pattern pat in a CSA.
 /*!
  * \tparam t_csa      CSA type.

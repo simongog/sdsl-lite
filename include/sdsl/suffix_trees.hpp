@@ -21,41 +21,6 @@
 #ifndef INCLUDED_SDSL_SUFFIX_TREES
 #define INCLUDED_SDSL_SUFFIX_TREES
 
-#include "sdsl_concepts.hpp"
-#include "suffix_arrays.hpp"
-#include "suffix_tree_algorithm.hpp"
-#include "construct.hpp"
-#include "util.hpp"
-#include <iostream>
-#include <cmath>
-#include <set>
-
-using std::cout;
-using std::endl;
-
-namespace sdsl
-{
-
-// Gets ISA[SA[idx]+d]
-// d = depth of the character 0 = first position
-template<class t_csa>
-typename t_csa::size_type get_char_pos(typename t_csa::size_type idx, typename t_csa::size_type d, const t_csa& csa)
-{
-    if (d == 0)
-        return idx;
-    // if we have to apply \f$\LF\f$ or \f$\Phi\f$ more
-    // than 2*d times to calc csa(csa[idx]+d), we opt to
-    // apply \f$ \Phi \f$ d times
-    if (csa.sa_sample_dens + csa.isa_sample_dens > 2*d+2) {
-        for (typename t_csa::size_type i=0; i < d; ++i)
-            idx = csa.psi[idx];
-        return idx;
-    }
-    return csa.isa[csa[idx] + d];
-}
-
-}
-
 /** \defgroup cst Compressed Suffix Trees (CST)
  *   This group contains data structures for compressed suffix trees. The following methods are supported:
  *    - root()
@@ -68,14 +33,8 @@ typename t_csa::size_type get_char_pos(typename t_csa::size_type idx, typename t
  *    - ..
  */
 
-#include "suffix_tree_helper.hpp"
 #include "cst_sct3.hpp"
 #include "cst_sada.hpp"
-
-#include "csa_bitcompressed.hpp"
-#include "int_vector.hpp"
-
-#include <iostream>
-#include <string>
+#include "cst_fully.hpp"
 
 #endif

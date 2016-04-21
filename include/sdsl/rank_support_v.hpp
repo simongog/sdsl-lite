@@ -35,7 +35,7 @@ namespace sdsl
  * The superblock size is 512. Each superblock is subdivided into 512/64 = 8
  * blocks. So absolute counts for the superblock add 64/512 bits on top of each
  * supported bit. Since the first of the 8 relative count values is 0, we can
- * fit the remaining 7 (each of width log(512)=9) in a 64bit word.  The relative
+ * fit the remaining 7 (each of width log(512)=9) in a 64bit word. The relative
  * counts add another 64/512 bits on top of each supported bit.
  * In total this results in 128/512=25% overhead.
  *
@@ -53,12 +53,13 @@ template<uint8_t t_b=1, uint8_t t_pat_len=1>
 class rank_support_v : public rank_support
 {
     private:
-        static_assert(t_b == 1u or t_b == 0u or t_b == 10u , "rank_support_v: bit pattern must be `0`,`1`,`10` or `01`");
+        static_assert(t_b == 1u or t_b == 0u or t_b == 10u or t_b == 11, "rank_support_v: bit pattern must be `0`,`1`,`10` or `01`");
         static_assert(t_pat_len == 1u or t_pat_len == 2u , "rank_support_v: bit pattern length must be 1 or 2");
     public:
         typedef bit_vector                          bit_vector_type;
         typedef rank_support_trait<t_b, t_pat_len>  trait_type;
         enum { bit_pat = t_b };
+        enum { bit_pat_len = t_pat_len };
     private:
         // basic block for interleaved storage of superblockrank and blockrank
         int_vector<64> m_basic_block;

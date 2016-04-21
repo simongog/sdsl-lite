@@ -688,7 +688,7 @@ class wt_gmr
                 if (m_max_symbol < input[i]) m_max_symbol = input[i];
             }
             ++m_max_symbol;
-            m_chunksize = (1 << (bits::hi(m_max_symbol-1)+1)); // In some cases this is better than m_max_smbol
+            m_chunksize = (1ULL << (bits::hi(m_max_symbol-1)+1)); // In some cases this is better than m_max_smbol
             m_chunks = (m_size+m_chunksize-1)/m_chunksize;
 
             // calc m_bv_blocks

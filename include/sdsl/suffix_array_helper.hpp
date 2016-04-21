@@ -37,7 +37,7 @@ namespace sdsl
  *    \f$ \Order{\log \sigma} \f$
  *  TODO: add hinted binary search? Two way binary search?
 */
-template <class t_csa>
+template <typename t_csa>
 typename t_csa::char_type first_row_symbol(const typename t_csa::size_type i, const t_csa& csa)
 {
     assert(i < csa.size());
@@ -64,7 +64,7 @@ typename t_csa::char_type first_row_symbol(const typename t_csa::size_type i, co
 }
 
 // psi[] trait
-template<class t_csa, bool t_direction>
+template<typename t_csa, bool t_direction>
 struct traverse_csa_psi_trait {
     typedef typename t_csa::value_type value_type;
     typedef typename t_csa::size_type size_type;
@@ -75,7 +75,7 @@ struct traverse_csa_psi_trait {
 };
 
 // lf[] trait
-template<class t_csa>
+template<typename t_csa>
 struct traverse_csa_psi_trait<t_csa,false> {
     typedef typename t_csa::value_type value_type;
     typedef typename t_csa::size_type size_type;
@@ -88,7 +88,7 @@ struct traverse_csa_psi_trait<t_csa,false> {
     }
 };
 
-template<class t_csa,bool t_direction>
+template<typename t_csa,bool t_direction>
 class traverse_csa_psi
 {
     public:
@@ -96,6 +96,8 @@ class traverse_csa_psi
         typedef typename t_csa::size_type                             size_type;
         typedef typename t_csa::difference_type                 difference_type;
         typedef random_access_const_iterator<traverse_csa_psi>   const_iterator;
+        typedef csa_member_tag                                         category;
+        typedef int_alphabet_tag                              alphabet_category;
 
     private:
         const t_csa& m_csa;
@@ -105,8 +107,8 @@ class traverse_csa_psi
         //! Copy constructor
         traverse_csa_psi(const traverse_csa_psi& tcsa) : m_csa(tcsa.m_csa) { }
 
-        //! Calculate the \f$\Psi\f$ or \f$\LF\f$ value at position i.
-        /*! \param i The index for which the \f$\Psi\f$ or \f$\LF\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
+        //! Calculate the \f$\Psi\f$ or \f$LF\f$ value at position i.
+        /*! \param i The index for which the \f$\Psi\f$ or \f$LF\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
          */
         value_type operator[](size_type i)const
         {
@@ -142,7 +144,7 @@ class traverse_csa_psi
 };
 
 // psi[] trait
-template<class t_csa,bool t_direction>
+template<typename t_csa,bool t_direction>
 struct traverse_csa_saisa_trait {
     typedef typename t_csa::value_type value_type;
     typedef typename t_csa::size_type size_type;
@@ -154,7 +156,7 @@ struct traverse_csa_saisa_trait {
 };
 
 // lf[] trait
-template<class t_csa>
+template<typename t_csa>
 struct traverse_csa_saisa_trait<t_csa,false> {
     typedef typename t_csa::value_type value_type;
     typedef typename t_csa::size_type size_type;
@@ -168,7 +170,7 @@ struct traverse_csa_saisa_trait<t_csa,false> {
 };
 
 //! A helper class for the \f$\Psi\f$ function for (compressed) suffix arrays which provide also the inverse suffix array values (like sdsl::csa_bitcompressed).
-template<class t_csa,bool t_direction>
+template<typename t_csa,bool t_direction>
 class traverse_csa_saisa
 {
     public:
@@ -176,6 +178,8 @@ class traverse_csa_saisa
         typedef typename t_csa::size_type size_type;
         typedef typename t_csa::difference_type	difference_type;
         typedef random_access_const_iterator<traverse_csa_saisa> const_iterator;// STL Container requirement
+        typedef csa_member_tag                                         category;
+        typedef int_alphabet_tag                              alphabet_category;
     private:
         const t_csa& m_csa;
     public:
@@ -228,7 +232,7 @@ class traverse_csa_saisa
 };
 
 //! A wrapper for the bwt of a compressed suffix array that is based on the \f$\psi\f$ function.
-template<class t_csa>
+template<typename t_csa>
 class bwt_of_csa_psi
 {
     public:
@@ -237,6 +241,8 @@ class bwt_of_csa_psi
         typedef typename t_csa::char_type char_type;
         typedef typename t_csa::difference_type difference_type;
         typedef random_access_const_iterator<bwt_of_csa_psi> const_iterator;
+        typedef csa_member_tag                               category;
+        typedef typename t_csa::alphabet_category            alphabet_category;
     private:
         const t_csa& m_csa; //<- pointer to the (compressed) suffix array that is based on the \f$\Psi\f$ function.
     public:
@@ -314,7 +320,7 @@ class bwt_of_csa_psi
 };
 
 // psi[] trait
-template<class t_csa,bool t_direction>
+template<typename t_csa,bool t_direction>
 struct traverse_csa_wt_traits {
     typedef typename t_csa::value_type value_type;
     typedef typename t_csa::char_type char_type;
@@ -327,7 +333,7 @@ struct traverse_csa_wt_traits {
 };
 
 // lf[] trait
-template<class t_csa>
+template<typename t_csa>
 struct traverse_csa_wt_traits<t_csa,false> {
     typedef typename t_csa::value_type value_type;
     typedef typename t_csa::char_type char_type;
@@ -344,7 +350,7 @@ struct traverse_csa_wt_traits<t_csa,false> {
 
 
 //! A wrapper class for the \f$\Psi\f$ and LF function for (compressed) suffix arrays that are based on a wavelet tree (like sdsl::csa_wt).
-template<class t_csa,bool t_direction>
+template<typename t_csa,bool t_direction>
 class traverse_csa_wt
 {
     public:
@@ -353,6 +359,8 @@ class traverse_csa_wt
         typedef typename t_csa::char_type char_type;
         typedef typename t_csa::difference_type difference_type;
         typedef random_access_const_iterator<traverse_csa_wt> const_iterator;
+        typedef csa_member_tag                                category;
+        typedef int_alphabet_tag                              alphabet_category;
     private:
         const t_csa& m_csa; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
         traverse_csa_wt() {};    // disable default constructor
@@ -392,7 +400,7 @@ class traverse_csa_wt
         }
 };
 
-template<class t_csa>
+template<typename t_csa>
 class bwt_of_csa_wt
 {
     public:
@@ -401,6 +409,8 @@ class bwt_of_csa_wt
         typedef typename t_csa::char_type char_type;
         typedef typename t_csa::difference_type difference_type;
         typedef random_access_const_iterator<bwt_of_csa_wt> const_iterator;
+        typedef csa_member_tag                              category;
+        typedef typename t_csa::alphabet_category           alphabet_category;
     private:
         const t_csa& m_csa; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
         bwt_of_csa_wt() {};    // disable default constructor
@@ -467,7 +477,7 @@ class bwt_of_csa_wt
         }
 };
 
-template<class t_csa>
+template<typename t_csa>
 class isa_of_csa_wt
 {
     public:
@@ -475,6 +485,8 @@ class isa_of_csa_wt
         typedef typename t_csa::size_type size_type;
         typedef typename t_csa::difference_type difference_type;
         typedef random_access_const_iterator<isa_of_csa_wt> const_iterator;
+        typedef csa_member_tag                              category;
+        typedef int_alphabet_tag                            alphabet_category;
     private:
         const t_csa& m_csa; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
         isa_of_csa_wt() {};    // disable default constructor
@@ -523,7 +535,7 @@ class isa_of_csa_wt
         }
 };
 
-template<class t_csa>
+template<typename t_csa>
 class isa_of_csa_psi
 {
     public:
@@ -531,6 +543,8 @@ class isa_of_csa_psi
         typedef typename t_csa::size_type size_type;
         typedef typename t_csa::difference_type difference_type;
         typedef random_access_const_iterator<isa_of_csa_psi> const_iterator;
+        typedef csa_member_tag                               category;
+        typedef int_alphabet_tag                             alphabet_category;
     private:
         const t_csa& m_csa; //<- pointer to the (compressed) suffix array that is based on a wavelet tree
         isa_of_csa_psi() {};    // disable default constructor
@@ -575,7 +589,7 @@ class isa_of_csa_psi
         }
 };
 
-template<class t_csa>
+template<typename t_csa>
 class first_row_of_csa
 {
     public:
@@ -583,13 +597,15 @@ class first_row_of_csa
         typedef typename t_csa::size_type size_type;
         typedef typename t_csa::difference_type difference_type;
         typedef random_access_const_iterator<first_row_of_csa> const_iterator;
+        typedef csa_member_tag                                 category;
+        typedef typename t_csa::alphabet_category              alphabet_category;
     private:
         const t_csa& m_csa;
     public:
         //! Constructor
         first_row_of_csa(const t_csa& csa) : m_csa(csa) {}
         //! Calculate F[i]
-        /*! \param i The index for which the \f$\F\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
+        /*! \param i The index for which the \f$F\f$ value should be calculated, \f$i\in [0..size()-1]\f$.
          *  \par Time complexity
          *      \f$ \Order{\log |\Sigma|} \f$
          */
@@ -621,7 +637,7 @@ class first_row_of_csa
 };
 
 
-template<class t_csa>
+template<typename t_csa>
 class text_of_csa
 {
     public:
@@ -629,6 +645,8 @@ class text_of_csa
         typedef typename t_csa::size_type size_type;
         typedef typename t_csa::difference_type difference_type;
         typedef random_access_const_iterator<text_of_csa> const_iterator;
+        typedef csa_member_tag                            category;
+        typedef typename t_csa::alphabet_category         alphabet_category;
     private:
         const t_csa& m_csa;
         text_of_csa() {}

@@ -22,6 +22,21 @@ bool store_to_file(const char* v, const std::string& file)
     return true;
 }
 
+bool store_to_file(const std::string& v, const std::string& file)
+{
+    osfstream out(file, std::ios::binary | std::ios::trunc | std::ios::out);
+    if (!out) {
+        if (util::verbose) {
+            std::cerr<<"ERROR: store_to_file(const std::string& v, const std::string&)"<<std::endl;
+            return false;
+        }
+    }
+    out.write(v.data(),v.size());
+    out.close();
+    return true;
+}
+
+
 bool store_to_checked_file(const char* v, const std::string& file)
 {
     std::string checkfile = file+"_check";
@@ -67,7 +82,7 @@ uint64_t _parse_number(std::string::const_iterator& c, const std::string::const_
     std::string::const_iterator s = c;
     while (c != end and isdigit(*c)) ++c;
     if (c > s) {
-        return stoull(std::string(s,c));
+        return std::stoull(std::string(s,c));
     } else {
         return 0;
     }
@@ -75,6 +90,9 @@ uint64_t _parse_number(std::string::const_iterator& c, const std::string::const_
 
 std::string cache_file_name(const std::string& key, const cache_config& config)
 {
+    if (config.file_map.count(key) != 0) {
+        return config.file_map.at(key);
+    }
     return config.dir+"/"+key+"_"+config.id+".sdsl";
 }
 

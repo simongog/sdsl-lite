@@ -1,3 +1,9 @@
 [submodule "benchmark/gapped-matching/external/easyloggingpp"]
 	path = benchmark/gapped-matching/external/easyloggingpp
 	url = https://github.com/easylogging/easyloggingpp.git
+[submodule "external/googletest"]
+	path = external/googletest
+	url = https://chromium.googlesource.com/external/googletest
+[submodule "external/libdivsufsort"]
+	path = external/libdivsufsort
+	url = https://github.com/simongog/libdivsufsort.git

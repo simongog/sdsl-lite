@@ -64,6 +64,7 @@ class bit_vector_il
         typedef size_type                                   value_type;
         typedef bit_vector::difference_type                 difference_type;
         typedef random_access_const_iterator<bit_vector_il> iterator;
+        typedef iterator                                    const_iterator;
         typedef bv_tag                                      index_category;
 
         friend class rank_support_il<1,t_bs>;
@@ -84,7 +85,8 @@ class bit_vector_il
         int_vector<64> m_rank_samples;//!< Space for additional rank samples
 
         // precondition: m_rank_samples.size() <= m_superblocks
-        void init_rank_samples() {
+        void init_rank_samples()
+        {
             uint32_t blockSize_U64 = bits::hi(t_bs>>6);
             size_type idx = 0;
             std::queue<size_type> lbs, rbs;
@@ -109,7 +111,8 @@ class bit_vector_il
         bit_vector_il& operator=(const bit_vector_il&) = default;
         bit_vector_il& operator=(bit_vector_il&&) = default;
 
-        bit_vector_il(const bit_vector& bv) {
+        bit_vector_il(const bit_vector& bv)
+        {
             m_size = bv.size();
             /* calculate the number of superblocks */
 //          each block of size > 0 gets suberblock in which we store the cumulative sum up to this block
@@ -156,7 +159,8 @@ class bit_vector_il
          *  \par Time complexity
          *     \f$ \Order{1} \f$
          */
-        value_type operator[](size_type i)const {
+        value_type operator[](size_type i)const
+        {
             assert(i < m_size);
             size_type bs = i >> m_block_shift;
             size_type block = bs + (i>>6) + 1;
@@ -171,7 +175,8 @@ class bit_vector_il
          *  \pre idx+len-1 in [0..size()-1]
          *  \pre len in [1..64]
          */
-        uint64_t get_int(size_type idx, uint8_t len=64)const {
+        uint64_t get_int(size_type idx, uint8_t len=64)const
+        {
             assert(idx+len-1 < m_size);
             size_type bs = idx >> m_block_shift;
             size_type b_block = bs + (idx>>6) + 1;
@@ -187,12 +192,14 @@ class bit_vector_il
         }
 
         //! Returns the size of the original bit vector.
-        size_type size()const {
+        size_type size()const
+        {
             return m_size;
         }
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             structure_tree_node* child = structure_tree::add_child(v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "size");
@@ -206,7 +213,8 @@ class bit_vector_il
         }
 
         //! Loads the data structure from the given istream.
-        void load(std::istream& in) {
+        void load(std::istream& in)
+        {
             read_member(m_size, in);
             read_member(m_block_num, in);
             read_member(m_superblocks, in);
@@ -215,7 +223,8 @@ class bit_vector_il
             m_rank_samples.load(in);
         }
 
-        void swap(bit_vector_il& bv) {
+        void swap(bit_vector_il& bv)
+        {
             if (this != &bv) {
                 std::swap(m_size, bv.m_size);
                 std::swap(m_block_num, bv.m_block_num);
@@ -226,11 +235,13 @@ class bit_vector_il
             }
         }
 
-        iterator begin() const {
+        iterator begin() const
+        {
             return iterator(this, 0);
         }
 
-        iterator end() const {
+        iterator end() const
+        {
             return iterator(this, size());
         }
 };
@@ -243,13 +254,15 @@ class rank_support_il
         typedef bit_vector::size_type size_type;
         typedef bit_vector_il<t_bs>   bit_vector_type;
         enum { bit_pat = t_b };
+        enum { bit_pat_len = (uint8_t)1 };
     private:
         const bit_vector_type* m_v;
         size_type m_block_shift;
         size_type m_block_mask;
         size_type m_block_size_U64;  //! Size of superblocks in 64-bit words
 
-        inline size_type rank1(size_type i) const {
+        inline size_type rank1(size_type i) const
+        {
             size_type SBlockNum = i >> m_block_shift;
             size_type SBlockPos = (SBlockNum << m_block_size_U64) + SBlockNum;
             uint64_t resp = m_v->m_data[SBlockPos];
@@ -265,7 +278,8 @@ class rank_support_il
         }
 
 
-        inline size_type rank0(size_type i) const {
+        inline size_type rank0(size_type i) const
+        {
             size_type SBlockNum = i >> m_block_shift;
             size_type SBlockPos = (SBlockNum << m_block_size_U64) + SBlockNum;
             uint64_t resp = (SBlockNum << m_block_shift) - m_v->m_data[SBlockPos];
@@ -282,7 +296,8 @@ class rank_support_il
 
     public:
 
-        rank_support_il(const bit_vector_type* v=nullptr) {
+        rank_support_il(const bit_vector_type* v=nullptr)
+        {
             set_vector(v);
             m_block_shift = bits::hi(t_bs);
             m_block_mask = t_bs - 1;
@@ -290,24 +305,29 @@ class rank_support_il
         }
 
         //! Returns the position of the i-th occurrence in the bit vector.
-        size_type rank(size_type i) const {
+        size_type rank(size_type i) const
+        {
             if (t_b) return rank1(i);
             return rank0(i);
         }
 
-        size_type operator()(size_type i)const {
+        size_type operator()(size_type i)const
+        {
             return rank(i);
         }
 
-        size_type size()const {
+        size_type size()const
+        {
             return m_v->size();
         }
 
-        void set_vector(const bit_vector_type* v=nullptr) {
+        void set_vector(const bit_vector_type* v=nullptr)
+        {
             m_v = v;
         }
 
-        rank_support_il& operator=(const rank_support_il& rs) {
+        rank_support_il& operator=(const rank_support_il& rs)
+        {
             if (this != &rs) {
                 set_vector(rs.m_v);
             }
@@ -316,11 +336,13 @@ class rank_support_il
 
         void swap(rank_support_il&) { }
 
-        void load(std::istream&, const bit_vector_type* v=nullptr) {
+        void load(std::istream&, const bit_vector_type* v=nullptr)
+        {
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             return serialize_empty_object(out, v, name, this);
         }
 };
@@ -334,6 +356,7 @@ class select_support_il
         typedef bit_vector::size_type size_type;
         typedef bit_vector_il<t_bs>   bit_vector_type;
         enum { bit_pat = t_b };
+        enum { bit_pat_len = (uint8_t)1 };
     private:
         const bit_vector_type* m_v;
         size_type m_superblocks;
@@ -341,7 +364,8 @@ class select_support_il
         size_type m_block_size_U64;
 
         //! Returns the position of the i-th occurrence in the bit vector.
-        size_type select1(size_type i) const {
+        size_type select1(size_type i) const
+        {
             size_type lb = 0, rb = m_v->m_superblocks; // search interval [lb..rb)
             size_type res = 0;
             size_type idx = 0; // index in m_rank_samples
@@ -390,7 +414,8 @@ class select_support_il
         }
 
         //! Returns the position of the i-th occurrence in the bit vector.
-        size_type select0(size_type i)const {
+        size_type select0(size_type i)const
+        {
             size_type lb = 0, rb = m_v->m_superblocks; // search interval [lb..rb)
             size_type res = 0;
             size_type idx = 0; // index in m_rank_samples
@@ -441,7 +466,8 @@ class select_support_il
 
     public:
 
-        select_support_il(const bit_vector_type* v=nullptr) {
+        select_support_il(const bit_vector_type* v=nullptr)
+        {
             set_vector(v);
             m_block_shift = bits::hi(t_bs);
             m_block_size_U64 = bits::hi(t_bs>>6);
@@ -449,24 +475,29 @@ class select_support_il
         }
 
         //! Returns the position of the i-th occurrence in the bit vector.
-        size_type select(size_type i) const {
+        size_type select(size_type i) const
+        {
             if (t_b) return select1(i);
             return select0(i);
         }
 
-        size_type operator()(size_type i)const {
+        size_type operator()(size_type i)const
+        {
             return select(i);
         }
 
-        size_type size()const {
+        size_type size()const
+        {
             return m_v->size();
         }
 
-        void set_vector(const bit_vector_type* v=nullptr) {
+        void set_vector(const bit_vector_type* v=nullptr)
+        {
             m_v = v;
         }
 
-        select_support_il& operator=(const select_support_il& rs) {
+        select_support_il& operator=(const select_support_il& rs)
+        {
             if (this != &rs) {
                 set_vector(rs.m_v);
             }
@@ -475,11 +506,13 @@ class select_support_il
 
         void swap(select_support_il&) { }
 
-        void load(std::istream&, const bit_vector_type* v=nullptr) {
+        void load(std::istream&, const bit_vector_type* v=nullptr)
+        {
             set_vector(v);
         }
 
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const {
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr, std::string name="")const
+        {
             return serialize_empty_object(out, v, name, this);
         }
 };

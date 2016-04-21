@@ -190,7 +190,7 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
         }
     } else if (num_bytes == 'd') {
         uint64_t x = 0, max_x = 0;
-        isfstream in(file);
+        isfstream in(file, std::ios::in | std::ios::binary);
         if (!in) {
             return false;
         } else {
@@ -216,7 +216,7 @@ bool load_vector_from_file(t_int_vec& v, const std::string& file, uint8_t num_by
                                    +"\" is not a multiple of "+util::to_string(num_bytes));
             return false;
         }
-        isfstream in(file);
+        isfstream in(file, std::ios::in | std::ios::binary);
         if (in) {
             v.width(std::min((int)8*num_bytes, (int)max_int_width));
             v.resize(file_size / num_bytes);
@@ -276,7 +276,7 @@ bool store_to_file(const int_vector<t_width>& v, const std::string& file, bool w
 template<class int_type, class t_int_vec>
 bool store_to_plain_array(t_int_vec& v, const std::string& file)
 {
-    osfstream out(file);
+    osfstream out(file, std::ios::out | std::ios::binary);
     if (out) {
         for (typename t_int_vec::size_type i=0; i<v.size(); ++i) {
             int_type x = v[i];
@@ -315,7 +315,8 @@ double size_in_mega_bytes(const T& t);
 
 struct nullstream : std::ostream {
     struct nullbuf: std::streambuf {
-        int overflow(int c) {
+        int overflow(int c)
+        {
             return traits_type::not_eof(c);
         }
         int xputc(int) { return 0; }
@@ -367,6 +368,7 @@ void load_vector(std::vector<T>& vec, std::istream& in)
     }
 }
 
+
 template<format_type F, typename X>
 void write_structure(const X& x, std::ostream& out)
 {
@@ -378,6 +380,13 @@ void write_structure(const X& x, std::ostream& out)
             sdsl::write_structure_tree<F>(child.second.get(), out);
         }
     }
+}
+
+template<format_type F, typename X>
+void write_structure(const X& x, std::string file)
+{
+    std::ofstream out(file);
+    write_structure<F>(x, out);
 }
 
 template<format_type F, typename... Xs>
@@ -408,14 +417,14 @@ template<class t_csa>
 const t_csa& _idx_csa(const t_csa& t, csa_tag)
 {
     return t;
-};
+}
 
 //! Internal function used by csXprintf
 template<class t_cst>
 const typename t_cst::csa_type& _idx_csa(const t_cst& t, cst_tag)
 {
     return t.csa;
-};
+}
 
 //! Internal function used by csXprintf
 template<class t_csa>
@@ -691,6 +700,8 @@ bool store_to_checked_file(const T& t, const std::string& file)
 
 bool store_to_file(const char* v, const std::string& file);
 
+bool store_to_file(const std::string& v, const std::string& file);
+
 template<uint8_t t_width>
 bool store_to_file(const int_vector<t_width>& v, const std::string& file, bool write_fixed_as_variable)
 {
@@ -768,8 +779,9 @@ bool load_from_checked_file(T& v, const std::string& file)
 
 template<class t_iv>
 inline typename std::enable_if<
-std::is_same<typename t_iv::index_category ,iv_tag>::value or
-std::is_same<typename t_iv::index_category ,csa_tag>::value
+std::is_same<typename t_iv::index_category, iv_tag>::value or
+std::is_same<typename t_iv::index_category, csa_tag>::value or
+std::is_same<typename t_iv::index_category, lcp_tag>::value
 , std::ostream&>::type
 operator<<(std::ostream& os, const t_iv& v)
 {
@@ -800,6 +812,17 @@ operator<<(std::ostream& os, const std::vector<t_int>& v)
     for (auto it=v.begin(), end = v.end(); it != end; ++it) {
         os << *it;
         if (it+1 != end) os << " ";
+    }
+    return os;
+}
+
+template<class t_iv>
+inline typename std::enable_if<std::is_same<typename t_iv::category ,csa_member_tag>::value, std::ostream&>::type
+operator<<(std::ostream& os, const t_iv& v)
+{
+    for (auto it=v.begin(), end = v.end(); it != end; ++it) {
+        os << *it;
+        if (it+1 != end and std::is_same<typename t_iv::alphabet_category,int_alphabet_tag>::value) os << " ";
     }
     return os;
 }

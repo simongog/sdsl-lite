@@ -4,4 +4,4 @@
 *.gcda
 *.swp
 *.swo
-CompileTest.hpp
+compile_test.cpp

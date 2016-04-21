@@ -223,7 +223,7 @@ void construct_lcp_go(cache_config& config)
                     // rmq query for lcp-values in the interval I=[prev_occ_in_bwt[BWT[i]]+1..i]
                     // rmq is linear in the stack size; can also be implemented with binary search on the stack
                     size_type x_pos = prev_occ_in_bwt[bwti]+2;
-                    size_type j = rmq_end-3;
+                    j = rmq_end-3;
                     while (x_pos <= rmq_stack[j]) j-=2;   //  search smallest value in the interval I
                     lcp_sml[lf] = rmq_stack[j+3] - (rmq_stack[j+3]==m+2); // if lcp-value equals m+1, we subtract 1
                 }
@@ -508,7 +508,7 @@ void construct_lcp_goPHI(cache_config& config)
                     // rmq query for lcp-values in the interval I=[prev_occ_in_bwt[BWT[i]]+1..i]
                     // rmq is linear in the stack size; can also be implemented with binary search on the stack
                     size_type x_pos = prev_occ_in_bwt[bwti]+2;
-                    size_type j = rmq_end-3;
+                    j = rmq_end-3;
                     while (x_pos <= rmq_stack[j]) j-=2;   //  search smallest value in the interval I
                     lcp_sml[lf] = rmq_stack[j+3] - (rmq_stack[j+3]==m+2); // if lcp-value equals m+1, we subtract 1
                 }
@@ -537,7 +537,6 @@ void construct_lcp_goPHI(cache_config& config)
             {
                 // initialize bit_vector todo
                 int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config)); // load lcp_sml
-                int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, config)); // load sa
                 for (size_type i=0; i < n; ++i) {
                     if (lcp_sml_buf[i] > m) {
                         todo[sa_buf[i]] = 1;
@@ -551,7 +550,6 @@ void construct_lcp_goPHI(cache_config& config)
             int_vector<> phi(nn, bot, bits::hi(n-1)+1); // phi
 
             int_vector_buffer<8> bwt_buf(cache_file_name(conf::KEY_BWT, config)); // load BWT
-            int_vector_buffer<> sa_buf(cache_file_name(conf::KEY_SA, config)); // load sa
             int_vector_buffer<8> lcp_sml_buf(cache_file_name("lcp_sml", config)); // load lcp_sml
             uint8_t b_1 = 0;
             for (size_type i=0,sai_1=0; i < n; ++i) { // initialize phi
@@ -816,7 +814,7 @@ void construct_lcp_bwt_based(cache_config& config)
             lcp_value_offset = lcp_value_max-1;
             size_type remaining_lcp_values = index_done.size()-ds_rank_support.rank(index_done.size());
 
-            uint8_t int_width_new = std::max(space_in_bit_for_lcp / remaining_lcp_values , (size_type)bits::hi(n-1)+1);
+            uint8_t int_width_new = std::min(space_in_bit_for_lcp / remaining_lcp_values , (size_type)bits::hi(n-1)+1);
             lcp_value_max = lcp_value_offset + (1ULL<<int_width_new);
 #ifdef STUDY_INFORMATIONS
             std::cout << "# l=" << remaining_lcp_values << " b=" << (int)int_width_new << " lcp_value_max=" << lcp_value_max << std::endl;
@@ -1044,7 +1042,7 @@ void construct_lcp_bwt_based2(cache_config& config)
 #ifdef STUDY_INFORMATIONS
             std::cout << "# number_of_values=" << number_of_values << " fill lcp_values with " << position_begin << " <= position <" << position_end << ", each lcp-value has " << (int)int_width << " bit, lcp_value_max=" << lcp_value << " n=" << n << std::endl;
 #endif
-            size_type lcp_value = 0;
+            lcp_value = 0;
             for (size_type i=0; i < n; ++i) {
                 size_type position = lcp_positions[i];
                 if (position>n) {

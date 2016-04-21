@@ -22,7 +22,6 @@
 #define INCLUDED_SDSL_CST_SADA
 
 #include "int_vector.hpp"
-#include "suffix_tree_helper.hpp"
 #include "iterators.hpp"
 #include "lcp_support_sada.hpp"
 #include "select_support_mcl.hpp"
@@ -30,7 +29,11 @@
 #include "bp_support_sada.hpp"
 #include "csa_sada.hpp" // for std initialization of cst_sada
 #include "cst_iterators.hpp"
-#include "cst_sct3.hpp" // this CST is used in the construction
+#include "cst_sct3.hpp"
+#include "sdsl_concepts.hpp"
+#include "construct.hpp"
+#include "suffix_tree_helper.hpp"
+#include "suffix_tree_algorithm.hpp"
 #include "util.hpp"
 #include <iostream>
 #include <algorithm>
@@ -159,11 +162,11 @@ class cst_sada
         {
             {
                 auto event = memory_monitor::event("bps-dfs");
-                cst_sct3<> temp_cst(config, true);
+                sdsl::cst_sct3<> temp_cst(config, true);
                 m_bp.resize(4*(temp_cst.bp.size()/2));
                 util::set_to_value(m_bp, 0);
                 size_type idx=0;
-                for (cst_sct3<>::const_iterator it=temp_cst.begin(), end=temp_cst.end(); it!=end; ++it) {
+                for (auto it=temp_cst.begin(), end=temp_cst.end(); it!=end; ++it) {
                     if (1 == it.visit())
                         m_bp[idx] = 1;
                     if (temp_cst.is_leaf(*it) and temp_cst.root()!= *it)
@@ -576,15 +579,15 @@ class cst_sada
             }
         }
 
-//! Get the child w of node v which edge label (v,w) starts with character c.
-// \sa child(node_type v, const char_type c, size_type &char_pos)
-        node_type child(node_type v, const char_type c)
+        //! Get the child w of node v which edge label (v,w) starts with character c.
+        // \sa child(node_type v, const char_type c, size_type &char_pos)
+        node_type child(node_type v, const char_type c) const
         {
             size_type char_pos;
             return child(v, c, char_pos);
         }
 
-//! Get the i-th child of a node v.
+        //! Get the i-th child of a node v.
         /*!
          * \param v A valid tree node of the cst.
          * \param i 1-based Index of the child which should be returned. \f$i \geq 1\f$.
@@ -684,9 +687,34 @@ class cst_sada
             return lca(left_leaf, right_leaf);
         }
 
+
+        //! Compute the suffix link of node v applied a number of times consecutively.
+        /*!
+         * \param v A valid node of a cst_sada
+         * \return The suffix link ^ i of node v.
+         * \par Time complexity
+         *   \f$ \Order{ i } \f$
+         */
+        node_type sl(node_type v, size_type i)const
+        {
+            if (v == root())
+                return root();
+            // get leftmost leaf in the tree rooted at v
+            size_type left        = m_bp_rank10(v);
+            if (is_leaf(v)) {
+                return select_leaf(get_char_pos(left, i, m_csa)+1);
+            }
+            // get the rightmost leaf in the tree rooted at v
+            size_type right         = m_bp_rank10(m_bp_support.find_close(v))-1;
+            assert(left < right);
+            node_type left_leaf = select_leaf(get_char_pos(left, i, m_csa)+1);
+            node_type right_leaf= select_leaf(get_char_pos(right, i, m_csa)+1);
+            return lca(left_leaf, right_leaf);
+        }
+
 //! Compute the Weiner link of node v and character c.
         /*
-         * \param v A valid not of a cst_sada.
+         * \param v A valid node of a cst_sada.
          * \param c The character which should be prepended to the string of the current node.
          *   \return root() if the Weiner link of (v, c) does not exist, otherwise the Weiner link is returned.
          * \par Time complexity
