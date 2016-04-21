@@ -877,7 +877,7 @@ struct has_symbols_wt {
 
 //! Returns for a symbol c the previous smaller or equal symbol in the WT.
 /*! \param c the symbol
- *  \return A pair. The first element of the pair indicates if
+ *  \return A pair. The first element of the pair constitues if
  *          a valid answer was found (true) or no valid answer (false)
  *          could be found. The second element contains the found symbol.
  */
@@ -886,14 +886,14 @@ std::pair<bool,typename t_wt::value_type>
 symbol_lte(const t_wt& wt, typename t_wt::value_type c)
 {
     static_assert(t_wt::lex_ordered, "symbols_lte requires a lex_ordered WT");
-    // check if wt has a built-in symbols_gte method
+    // check if wt has a built-in interval_symbols method
     constexpr bool has_own = has_symbols_wt<t_wt>::value;
     return _symbols_calls_wt<t_wt, has_own>::call_symbol_lte(wt,c);
 }
 
 //! Returns for a symbol c the next larger or equal symbol in the WT.
 /*! \param c the symbol
- *  \return A pair. The first element of the pair indicates if
+ *  \return A pair. The first element of the pair constitues if
  *          a valid answer was found (true) or no valid answer (false)
  *          could be found. The second element contains the found symbol.
  */
@@ -902,7 +902,7 @@ std::pair<bool,typename t_wt::value_type>
 symbol_gte(const t_wt& wt, typename t_wt::value_type c)
 {
     static_assert(t_wt::lex_ordered, "symbols_gte requires a lex_ordered WT");
-    // check if wt has a built-in symbol_gte_method
+    // check if wt has a built-in interval_symbols method
     constexpr bool has_own = has_symbols_wt<t_wt>::value;
     return _symbols_calls_wt<t_wt, has_own>::call_symbol_gte(wt,c);
 }

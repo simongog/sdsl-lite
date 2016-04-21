@@ -98,6 +98,7 @@ char* str_from_errno()
 #endif
 }
 
+
 uint64_t id()
 {
     return _id_helper::getId();
