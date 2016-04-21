@@ -165,7 +165,7 @@ class map_to_sorted_iterator
                         }
                     }
                 } else {
-                    m_ret = ret_type(m_wt->sym(v), range_type(std::get<0>(x_range)+lex_sml,std::get<1>(x_range)+lex_sml));
+                    m_ret = ret_type(m_wt->sym(v), range_type({std::get<0>(x_range)+lex_sml,std::get<1>(x_range)+lex_sml}));
                     m_valid = true;
                     break;
                 }
@@ -350,7 +350,7 @@ class yoff_iterator
         {
             if (m_wt->size() > 0) {
                 if (rb > lb) {
-                    m_stack.emplace(wt.root(), range_type(lb, rb-1), 0);
+                    m_stack.emplace(wt.root(), range_type({lb, rb-1}), 0);
                     ++(*this);
                 }
             }
