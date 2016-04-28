@@ -270,7 +270,8 @@ class bwt_of_csa_psi
          *  \par Time complexity
          *        \f$ \Order{\log n t_{\Psi}} \f$
          */
-        size_type rank(size_type i, const char_type c)const
+        template<typename t_char>
+        size_type rank(size_type i, const t_char c)const
         {
             return m_csa.rank_bwt(i,c);
         }

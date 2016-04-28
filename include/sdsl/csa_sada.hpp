@@ -140,6 +140,7 @@ class csa_sada
         const typename alphabet_type::comp2char_type& comp2char  = m_alphabet.comp2char;
         const typename alphabet_type::C_type&         C          = m_alphabet.C;
         const typename alphabet_type::sigma_type&     sigma      = m_alphabet.sigma;
+        const alphabet_type&                          alphabet   = m_alphabet;
         const psi_type&                               psi        = m_psi;
         const lf_type                                 lf         = lf_type(*this);
         const bwt_type                                bwt        = bwt_type(*this);
@@ -285,27 +286,21 @@ class csa_sada
             return t_dens;
         }
 
-    private:
-
-        // Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
+        // Calculates how many symbols cc are in the prefix [0..i-1] of the BWT of the original text.
         /*
-         *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
-         *  \param c The symbol to count the occurrences in the prefix.
-         *    \returns The number of occurrences of symbol c in the prefix [0..i-1] of the BWT.
+         *  \param i  The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
+         *  \param cc The compactified symbol to count in the prefix.
+         *  \returns The number of occurrences of the compactified symbol cc in the prefix [0..i-1].
          *  \par Time complexity
          *        \f$ \Order{\log n t_{\Psi}} \f$
          */
-        size_type rank_bwt(size_type i, const char_type c)const
+        template<typename t_char>
+        size_type rank_comp_bwt(size_type i, const t_char cc)const
         {
-            comp_char_type cc = char2comp[c];
-            if (cc==0 and c!=0)  // character is not in the text => return 0
-                return 0;
             if (i == 0)
                 return 0;
             assert(i <= size());
-
             size_type lower_b, upper_b; // lower_b inclusive, upper_b exclusive
-
             const size_type sd = m_psi.get_sample_dens();
             size_type lower_sb = (C[cc]+sd-1)/sd; // lower_sb inclusive
             size_type upper_sb = (C[cc+1]+sd-1)/sd; // upper_sb exclusive
@@ -367,6 +362,30 @@ finish:
             }
         }
 
+    private:
+
+        // Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
+        /*
+         *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
+         *  \param c The symbol to count in the prefix.
+         *    \returns The number of occurrences of symbol c in the prefix [0..i-1] of the BWT.
+         *  \par Time complexity
+         *        \f$ \Order{\log n t_{\Psi}} \f$
+         */
+        // replace const char_type c by const std::array<char_type, alphabet_type::C_depth>& c
+        template<typename t_char>
+        size_type rank_bwt(size_type i, const t_char c)const
+        {
+            auto cc = char2comp[c];
+            if (cc==0 and c!=0) // character is not in the text => return 0
+                return 0;
+            if (i == 0)
+                return 0;
+            return rank_comp_bwt(i, cc);
+        }
+
+
+
         // Calculates the position of the i-th c in the BWT of the original text.
         /*
          *  \param i The i-th occurrence. \f$i\in [1..rank_bwt(size(),c)]\f$.
@@ -402,7 +421,9 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
     size_type n = bwt_buf.size();
     {
         auto event = memory_monitor::event("construct csa-alpbabet");
-        alphabet_type tmp_alphabet(bwt_buf, n);
+//        alphabet_type tmp_alphabet(bwt_buf, n); // TODO: maybe it is possible to use _buf_buf again for multibyte!!
+        int_vector_buffer<alphabet_type::int_width> text_buf(cache_file_name(key_trait<alphabet_type::int_width>::KEY_TEXT,config));
+        alphabet_type tmp_alphabet(text_buf, n);
         m_alphabet.swap(tmp_alphabet);
     }
 
