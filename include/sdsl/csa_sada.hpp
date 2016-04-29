@@ -300,69 +300,68 @@ class csa_sada
             if (i == 0)
                 return 0;
             assert(i <= size());
-            size_type lower_b, upper_b; // lower_b inclusive, upper_b exclusive
-            const size_type sd = m_psi.get_sample_dens();
-            size_type lower_sb = (C[cc]+sd-1)/sd; // lower_sb inclusive
-            size_type upper_sb = (C[cc+1]+sd-1)/sd; // upper_sb exclusive
-            while (lower_sb+1 < upper_sb) {
-                size_type mid = (lower_sb+upper_sb)/2;
-                if (m_psi.sample(mid) >= i)
-                    upper_sb = mid;
-                else
-                    lower_sb = mid;
-            }
+            const auto cc_begin = C[cc];   // begin of interval of context cc (inclusive)
+            const auto cc_end   = C[cc+1]; // end of interval of context cc (exclusive)
+            const size_type sd  = m_psi.get_sample_dens();
+            size_type s_begin   = (cc_begin+sd)/sd; // first sample after cc_begin
+            size_type s_end     = (cc_end+sd-1)/sd;   // first sample at or after cc_end
 
-            if (lower_sb == upper_sb) { // the interval was smaller than sd
-                lower_b = C[cc]; upper_b = C[cc+1];
-            } else if (lower_sb > (C[cc]+sd-1)/sd) { // main case
-// TODO: don't use get_inter_sampled_values if t_dens is really
-//       large
-                lower_b = lower_sb*sd;
-                if (0 == m_psi_buf.size()) {
-                    upper_b = std::min(upper_sb*sd, C[cc+1]);
-                    goto finish;
-                }
-                uint64_t* p = m_psi_buf.data();
-                // extract the psi values between two samples
-                m_psi.get_inter_sampled_values(lower_sb, p);
-                p = m_psi_buf.data();
-                uint64_t smpl = m_psi.sample(lower_sb);
-                // handle border cases
-                if (lower_b + m_psi.get_sample_dens() >= C[cc+1])
-                    m_psi_buf[ C[cc+1]-lower_b ] = size()-smpl;
-                else
-                    m_psi_buf[ m_psi.get_sample_dens() ] = size()-smpl;
-                // search the result linear
-                while ((*p++)+smpl < i);
+            if (s_begin == s_end) {
+                // Case (1): No sample inside [cc_begin, cc_end)
+                //           => search in previous block (s_begin-1)
+            } else if (m_psi.sample(s_begin) >= i) {  // now s_begin < s_end
+                // Case (2): Some samples inside [cc_begin, cc_end)
+                //           and first sample already larger or equal to i
+                //           => search in previous block (s_begin-1)
+            } else { // still s_begin < s_end
+                // Case (3): Some samples inside [cc_begin, cc_end)
+                //           and first sample smaller than i
+                //           => binary search for first sample >= i
+                s_begin = upper_bound(s_begin, s_end, i-1);
+                //           => search in previous block (s_begin-1)
+            }
+            s_begin -= 1;
+            uint64_t* p = m_psi_buf.data();
+            // extract the psi values between two samples
+            m_psi.get_inter_sampled_values(s_begin, p);
+            p = m_psi_buf.data();
+            uint64_t smpl = m_psi.sample(s_begin);
 
-                return p-1-m_psi_buf.data() + lower_b - C[cc];
-            } else { // lower_b == (m_C[cc]+sd-1)/sd and lower_sb < upper_sb
-                if (m_psi.sample(lower_sb) >= i) {
-                    lower_b = C[cc];
-                    upper_b = lower_sb * sd + 1;
-                } else {
-                    lower_b = lower_sb * sd;
-                    upper_b = std::min(upper_sb*sd, C[cc+1]);
-                }
+            size_t abs_decode_begin = s_begin*sd;
+            size_t skip = 0;
+            if (abs_decode_begin < cc_begin) {
+                skip = cc_begin - abs_decode_begin;
             }
-finish:
-            // binary search the interval [C[cc]..C[cc+1]-1] for the result
-//            size_type lower_b = m_C[cc], upper_b = m_C[cc+1]; // lower_b inclusive, upper_b exclusive
-            while (lower_b+1 < upper_b) {
-                size_type mid = (lower_b+upper_b)/2;
-                if (m_psi[mid] >= i)
-                    upper_b = mid;
-                else
-                    lower_b = mid;
+            size_t res = abs_decode_begin + skip - cc_begin;
+
+            for (auto it = p + skip; (res < cc_end - cc_begin) and it < m_psi_buf.data()+sd; ++it) {
+                if ((*it)+smpl >= i)
+                    break;
+                ++res;
             }
-            if (lower_b > C[cc])
-                return lower_b - C[cc] + 1;
-            else { // lower_b == m_C[cc]
-                return m_psi[lower_b] < i;// 1 if m_psi[lower_b]<i, 0 otherwise
-            }
+            return res;
         }
 
     private:
+
+        template<typename V>
+        size_t upper_bound(size_t first, size_t last, V value) const
+        {
+            size_t mid;
+            size_t count, step;
+            count = last-first;
+
+            while (count > 0) {
+                mid = first;
+                step = count / 2;
+                mid += step;
+                if (!(value < m_psi.sample(mid))) {
+                    first = ++mid;
+                    count -= step + 1;
+                } else count = step;
+            }
+            return first;
+        }
 
         // Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
         /*
