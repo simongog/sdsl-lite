@@ -83,7 +83,19 @@ if( BUILTIN_POPCNT )
     endif()
 endif()
 
-#COMMENT REPLACED BY BIICODE
+# check for demangle support to get pretty C++ class names
+message("CXXFLAGS = $ENV{CXXFLAGS} ${CMAKE_CXX_OPT_FLAGS}")
+message("CMAKE_CXX_OPT_FLAGS = ${CMAKE_CXX_OPT_FLAGS}")
+message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
+include(FindCxaDemangle)
+if( HAVE_CXA_DEMANGLE )
+    message(STATUS "Compiler supports DEMANGLE.")
+    if( CMAKE_COMPILER_IS_GNUCXX )
+        append_cxx_compiler_flags("DHAVE_CXA_DEMANGLE" "GCC" CMAKE_CXX_OPT_FLAGS)
+    else()
+        append_cxx_compiler_flags("DHAVE_CXA_DEMANGLE" "CLANG" CMAKE_CXX_OPT_FLAGS)
+    endif()
+endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Make.helper.cmake"
 		       "${CMAKE_CURRENT_SOURCE_DIR}/Make.helper" @ONLY)

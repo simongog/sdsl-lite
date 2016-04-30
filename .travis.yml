@@ -34,6 +34,7 @@ matrix:
         apt:
           sources:
             - kalakris-cmake
+            - libc++abi-dev
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.7
           packages:
