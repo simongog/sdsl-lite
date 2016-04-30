@@ -34,11 +34,11 @@ matrix:
         apt:
           sources:
             - kalakris-cmake
+            - libc++abi-dev
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.7
           packages:
             - cmake
-            - libc++abi-dev
             - clang-3.7
 
     - env: MYCC="clang" MYCXX="clang++" STDLIB=libc++
