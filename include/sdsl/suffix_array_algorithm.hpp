@@ -309,8 +309,11 @@ uint64_t backward_search(
             r = csa.C[x+1] - 1;
 //            std::cout<<"initial step ["<<l<<","<< r<<"] "<<csa.C[x+1]<<" "<<static_cast<uint64_t>(x+1)<<std::endl;
         } else {
-            l = c_begin + csa.rank_comp_bwt(l, x); // count c in bwt[0..l-1]
-            r = c_begin + csa.rank_comp_bwt(r+1, x) - 1; // count c in bwt[0..r]
+            auto lr = csa.double_rank_comp_bwt(l, r+1, x);
+            l = c_begin + std::get<0>(lr);
+            r = c_begin + std::get<1>(lr)-1;
+//            l = c_begin + csa.rank_comp_bwt(l, x); // count c in bwt[0..l-1]
+//            r = c_begin + csa.rank_comp_bwt(r+1, x) - 1; // count c in bwt[0..r]
         }
 //        std::cout<<"bw_search debug ["<<l<<","<<r<<"] x="<<static_cast<uint64_t>(x)<<std::endl;
     }

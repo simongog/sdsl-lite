@@ -342,6 +342,72 @@ class csa_sada
             return res;
         }
 
+        template<typename t_char>
+        std::tuple<size_type,size_type> double_rank_comp_bwt(size_type i, size_type j, const t_char cc)const
+        {
+            if (i == 0)
+                return std::make_tuple(0, rank_comp_bwt(j,cc));
+            assert(i <= size());
+            const auto cc_begin = C[cc];   // begin of interval of context cc (inclusive)
+            const auto cc_end   = C[cc+1]; // end of interval of context cc (exclusive)
+            const size_type sd  = m_psi.get_sample_dens();
+            size_type s_begin   = (cc_begin+sd)/sd; // first sample after cc_begin
+            size_type s_end     = (cc_end+sd-1)/sd;   // first sample at or after cc_end
+            bool answer_j       = false;
+
+            if (s_begin == s_end) {
+                // Case (1): No sample inside [cc_begin, cc_end)
+                //           => search in previous block (s_begin-1)
+                answer_j = true;
+            } else if (m_psi.sample(s_begin) >= i) {  // now s_begin < s_end
+                // Case (2): Some samples inside [cc_begin, cc_end)
+                //           and first sample already larger or equal to i
+                //           => search in previous block (s_begin-1)
+                answer_j = (m_psi.sample(s_begin) >= j);
+            } else { // still s_begin < s_end
+                // Case (3): Some samples inside [cc_begin, cc_end)
+                //           and first sample smaller than i
+                //           => binary search for first sample >= i
+                s_begin = upper_bound(s_begin, s_end, i-1);
+                //           => search in previous block (s_begin-1)
+                answer_j = (s_begin == s_end) or m_psi.sample(s_begin>=j);
+            }
+            // TODO: add ALL ONES TRICK inside a block
+            s_begin -= 1;
+            uint64_t* p = m_psi_buf.data();
+            // extract the psi values between two samples
+            m_psi.get_inter_sampled_values(s_begin, p);
+            p = m_psi_buf.data();
+            uint64_t smpl = m_psi.sample(s_begin);
+
+            size_t abs_decode_begin = s_begin*sd;
+            size_t skip = 0;
+            if (abs_decode_begin < cc_begin) {
+                skip = cc_begin - abs_decode_begin;
+            }
+            size_t res = abs_decode_begin + skip - cc_begin;
+
+            auto it = p + skip;
+            for (; (res < cc_end - cc_begin) and it < m_psi_buf.data()+sd; ++it) {
+                if ((*it)+smpl >= i) {
+                    break;
+                }
+                ++res;
+            }
+
+            if (answer_j) {
+                size_t res2 = res;
+                for (; (res < cc_end - cc_begin) and it < m_psi_buf.data()+sd; ++it) {
+                    if ((*it)+smpl >= j) {
+                        break;
+                    }
+                    ++res2;
+                }
+                return std::make_tuple(res, res2);
+            }
+            return std::make_tuple(res, rank_comp_bwt(j, cc));
+        }
+
     private:
 
         template<typename V>
