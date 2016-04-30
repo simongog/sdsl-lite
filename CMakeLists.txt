@@ -46,7 +46,7 @@ if( CMAKE_COMPILER_IS_GNUCXX )
     if ( CODE_COVERAGE )
         append_cxx_compiler_flags("-g -fprofile-arcs -ftest-coverage -lgcov" "GCC" CMAKE_CXX_FLAGS)
     endif()
-      
+
 else()
     if( CMAKE_COMPILER_IS_CLANGXX )
 		append_cxx_compiler_flags("-std=c++11 -DNDEBUG" "CLANG" CMAKE_CXX_FLAGS)
@@ -60,7 +60,7 @@ else()
         foreach(var ${vars})
             string(REPLACE "/MD" "-MT" ${var} "${${var}}")
         endforeach(var)
-        
+
 		add_definitions("/DMSVC_COMPILER")
 	endif()
 endif()
@@ -88,9 +88,9 @@ include(FindCxaDemangle)
 if( HAVE_CXA_DEMANGLE )
     message(STATUS "Compiler supports DEMANGLE.")
     if( CMAKE_COMPILER_IS_GNUCXX )
-        append_cxx_compiler_flags("DHAVE_CXA_DEMANGLE" "GCC" CMAKE_CXX_OPT_FLAGS)
+        append_cxx_compiler_flags("-DHAVE_CXA_DEMANGLE" "GCC" CMAKE_CXX_OPT_FLAGS)
     else()
-        append_cxx_compiler_flags("DHAVE_CXA_DEMANGLE" "CLANG" CMAKE_CXX_OPT_FLAGS)
+        append_cxx_compiler_flags("-DHAVE_CXA_DEMANGLE" "CLANG" CMAKE_CXX_OPT_FLAGS)
     endif()
 endif()
 
@@ -102,7 +102,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/lib/structure_tree.cpp.cmake"
 find_package(Git)
 if(GIT_FOUND)
     message("git found: ${GIT_EXECUTABLE}")
-else()      
+else()
     message(WARNING "git not found. Cloning of submodules will not work.")
 endif()
 
