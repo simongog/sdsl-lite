@@ -84,6 +84,7 @@ if( BUILTIN_POPCNT )
 endif()
 
 # check for demangle support to get pretty C++ class names
+message("CXXFLAGS = ${CMAKE_CXX_OPT_FLAGS}")
 include(FindCxaDemangle)
 if( HAVE_CXA_DEMANGLE )
     message(STATUS "Compiler supports DEMANGLE.")
