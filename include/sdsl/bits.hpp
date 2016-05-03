@@ -76,7 +76,24 @@ struct bits {
     static const uint8_t lt_cnt[256];
 
     //! Lookup table for most significant set bit in a byte.
-    static const uint32_t lt_hi[256];
+    static constexpr uint32_t lt_hi[256] = {
+        0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
+        4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+        5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+        5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+        7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
+    };
 
     //! lo_set[i] is a 64-bit word with the i least significant bits set and the high bits not set.
     /*! lo_set[0] = 0ULL, lo_set[1]=1ULL, lo_set[2]=3ULL...
@@ -112,7 +129,33 @@ struct bits {
                 in `x` or 0 if x equals 0.
     	\sa sel, lo
     */
-    static uint32_t hi(uint64_t x);
+    static constexpr uint32_t hi(uint64_t x)
+    {
+#ifdef __SSE4_2__
+        // using built-in method or
+        if (x == 0)
+            return 0;
+        return 63 - __builtin_clzll(x);
+#else
+        // 64-bit version of 32-bit proposal of
+        // http://www-graphics.stanford.edu/~seander/bithacks.html
+
+        uint64_t t=0,tt=0; // temporaries
+        if ((tt = x >> 32)) { // hi >= 32
+            if ((t = tt >> 16)) { // hi >= 48
+                return (tt = t >> 8) ? 56 + lt_hi[tt] : 48 + lt_hi[t];
+            } else { // hi < 48
+                return (t = tt >> 8) ? 40 + lt_hi[t] : 32 + lt_hi[tt];
+            }
+        } else { // hi < 32
+            if ((t = x >> 16)) { // hi >= 16
+                return (tt = t >> 8) ? 24 + lt_hi[tt] : 16 + lt_hi[t];
+            } else { // hi < 16
+                return (tt = x >> 8) ?  8 + lt_hi[tt] : lt_hi[x];
+            }
+        }
+#endif
+    }
 
     //! Calculates the position of the rightmost 1-bit in the 64bit integer x if it exists
     /*! \param x 64 bit integer.
@@ -379,32 +422,6 @@ inline uint32_t bits::_sel(uint64_t x, uint32_t i)
     return 0;
 }
 
-// using built-in method or
-// 64-bit version of 32-bit proposal of
-// http://www-graphics.stanford.edu/~seander/bithacks.html
-inline uint32_t bits::hi(uint64_t x)
-{
-#ifdef __SSE4_2__
-    if (x == 0)
-        return 0;
-    return 63 - __builtin_clzll(x);
-#else
-    uint64_t t,tt; // temporaries
-    if ((tt = x >> 32)) { // hi >= 32
-        if ((t = tt >> 16)) { // hi >= 48
-            return (tt = t >> 8) ? 56 + lt_hi[tt] : 48 + lt_hi[t];
-        } else { // hi < 48
-            return (t = tt >> 8) ? 40 + lt_hi[t] : 32 + lt_hi[tt];
-        }
-    } else { // hi < 32
-        if ((t = x >> 16)) { // hi >= 16
-            return (tt = t >> 8) ? 24 + lt_hi[tt] : 16 + lt_hi[t];
-        } else { // hi < 16
-            return (tt = x >> 8) ?  8 + lt_hi[tt] : lt_hi[x];
-        }
-    }
-#endif
-}
 
 // details see: http://citeseer.ist.psu.edu/leiserson98using.html
 // or page 10, Knuth TAOCP Vol 4 F1A
