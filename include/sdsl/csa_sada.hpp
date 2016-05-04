@@ -463,7 +463,12 @@ class csa_sada
             return rank_comp_bwt(i, cc);
         }
 
-
+        template<typename t_char>
+        std::array<size_type,2>
+        rank_bwt(std::array<size_type,2> ij, const t_char c)const
+        {
+            return {rank_bwt(ij[0], c), rank_bwt(ij[1],c)};
+        }
 
         // Calculates the position of the i-th c in the BWT of the original text.
         /*

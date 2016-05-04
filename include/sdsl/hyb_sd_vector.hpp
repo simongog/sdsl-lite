@@ -31,9 +31,7 @@
 namespace sdsl
 {
 
-
-constexpr bool debug=false;
-size_t g_hi_size=0;
+//std::vector<uint64_t> g_range_stats;
 
 template <class t_itr>
 std::string print_vec(t_itr beg, t_itr end)
@@ -152,7 +150,6 @@ inline uint64_t sel0(const uint64_t* word, uint64_t idx, uint64_t i, uint64_t ma
     while (cnt + word_cnt < i) {
         cnt += word_cnt;
         if (considered > max_considered) {
-//             std::cout << "LOOP considered = " << considered << " max_considered = " << max_considered << std::endl;
             return std::numeric_limits<uint64_t>::max();
         }
         res = considered;
@@ -164,8 +161,6 @@ inline uint64_t sel0(const uint64_t* word, uint64_t idx, uint64_t i, uint64_t ma
     // add select (i-cnt) to res
     res += sdsl::bits::sel(w, i - cnt);
     if (res  > max_considered) {
-//        std::cout << "res = " << res << " i = " << i << std::endl;
-//        std::cout << "IF considered = " << considered << " max_considered = " << max_considered << std::endl;
         return std::numeric_limits<uint64_t>::max();
     }
     return res;
@@ -186,15 +181,11 @@ class hyb_sd_block_support_bv
         static size_type
         serialize(sdsl::bit_vector& bv, size_type offset, sdsl::int_vector<64>& data, size_type)
         {
-//        std::cout<<"write BV of size "<<data[t_block_size-1]+1<<std::endl;
             for (size_t i = 0; i < data[t_block_size - 1]+1; ++i)
                 bv[offset + i] = 0;
             for (size_type i = 0; i < t_block_size; ++i) {
                 bv[offset + data[i]] = 1;
             }
-//        std::cout<<"serialize bv: "<<data[t_block_size-1]+1<<std::endl;
-//        std::cout<<"bv="<<bv<<std::endl;
-//        std::cout<<"data="<<data<<std::endl;
             return data[t_block_size - 1] + 1;
         }
 
@@ -209,16 +200,6 @@ class hyb_sd_block_support_bv
             auto next_offset = block_start[block_id+1];
             if (i > next_offset-offset)
                 return t_block_size;
-            /*
-                    std::cout<<"offset="<<offset<<" i="<<i<<" block_id="<<block_id<<std::endl;
-                    size_t myrank=0;
-                    for(size_t j=offset; j<offset+i; ++j){
-                        myrank += bv[j];
-                    }
-                    std::cout<<"myrank="<<myrank<<std::endl;
-                    size_t rank = cnt<t_block_size>(bv.data(), offset, i);
-                    std::cout<<"rank="<<rank<<std::endl;
-            */
             return cnt<t_block_size>(bv.data(), offset, i);
         }
 };
@@ -286,7 +267,6 @@ class hyb_sd_block_support_ef
             if (logm == logu)
                 logm--;
             size_type width_low = logu - logm;
-//std::cout<<"offst="<<offset<<" u="<<u<<" data="<<data<<" width_low="<<width_low<<std::endl;
             /* write low */
             auto data_ptr = bv.data() + (offset / 64);
             uint8_t in_word_offset = offset % 64;
@@ -324,23 +304,6 @@ class hyb_sd_block_support_ef
                 logm--;
             size_type width_low = logu - logm;
             size_type hi_part_offset = offset + t_block_size * width_low;
-
-            if (debug) {
-                std::cout<<"i="<<i<<" u="<<u<<" logu="<<(int)logu<<" width_low="<<width_low<<" logm="<<(int)logm<<std::endl;
-
-                size_t num_one = 0;
-                size_t num_zero = 0;
-                for (size_t i=0; i<g_hi_size; i++) {
-                    std::cout << "hi["<<i<<"] = " << bv[hi_part_offset+i];
-                    if (bv[hi_part_offset+i]) {
-                        std::cout << "  one # " << ++num_one;
-                    } else {
-                        std::cout << " zero # " << ++num_zero;
-                    }
-                    std::cout << std::endl;
-                }
-                std::cout << "hi_size = " << g_hi_size<<std::endl;
-            }
             size_type low_part_offset = offset + i * width_low;
 
             auto low_part_data_ptr = bv.data() + (low_part_offset / 64);
@@ -348,9 +311,6 @@ class hyb_sd_block_support_ef
             auto low_part = sdsl::bits::read_int(low_part_data_ptr, low_part_in_word_offset, width_low);
 
             auto bucket = sel(bv.data(), hi_part_offset, i + 1) - hi_part_offset - i;
-            if (debug) {
-                std::cout<<"bucket="<<bucket<<" sel(bv.data(),"<<hi_part_offset<<","<<i+1<<")="<<sel(bv.data(),hi_part_offset,i+1) <<std::endl;
-            }
             return (bucket << width_low) | low_part;
         }
 
@@ -368,40 +328,20 @@ class hyb_sd_block_support_ef
             size_type hi_part_offset = offset + t_block_size * width_low;
             size_type hi_size = next_offset - hi_part_offset;
 
-//std::cout<<"i="<<i<<" u="<<u<<" logu="<<(int)logu<<" width_low="<<width_low<<" logm="<<(int)logm<<std::endl;
-//
-//size_t num_one = 0;
-// size_t num_zero = 0;
-// for(size_t i=0;i<hi_size;i++) {
-//     std::cout << "hi["<<i<<"] = " << bv[hi_part_offset+i];
-//     if(bv[hi_part_offset+i]) {
-//         std::cout << "  one # " << ++num_one;
-//     } else {
-//         std::cout << " zero # " << ++num_zero;
-//     }
-//     std::cout << std::endl;
-// }
-// std::cout << "hi_size = " << hi_size<<std::endl;
-
             size_type high_val = (i >> width_low);
             size_type local_sel = sel0(bv.data(), hi_part_offset, high_val + 1, hi_size);
             if (local_sel == std::numeric_limits<uint64_t>::max()) {
-//            std::cout<<high_val<<std::endl;
-//            std::cout<<"local_sel="<<local_sel<<std::endl;
                 return t_block_size;
             }
 
             size_type sel_high = local_sel;
             size_type rank_low = sel_high - high_val;
             if (0 == rank_low) {
-//            std::cout<<"bye"<<std::endl;
                 return 0;
             }
 
             size_type low_part_offset = offset + rank_low * width_low;
             size_type val_low = i & bits::lo_set[width_low];
-//std::cout << "RANK1-EF(i=" << i << ",u=" << u << ",wl=" << width_low << ",sel_high=" << sel_high << ",high_val=" << high_val << ",rank_low=" << rank_low << ",val_low=" << val_low << ")" << std::endl;
-
             auto low_part_data_ptr = bv.data() + (low_part_offset / 64);
             uint8_t low_part_in_word_offset = low_part_offset % 64;
 
@@ -413,11 +353,7 @@ class hyb_sd_block_support_ef
                 low_part_offset -= width_low;
                 low_part_data_ptr = bv.data() + (low_part_offset / 64);
                 low_part_in_word_offset = low_part_offset % 64;
-//std::cout << "cur_low ("<<rank_low<<") = " << sdsl::bits::read_int(low_part_data_ptr, low_part_in_word_offset, width_low) << std::endl;
             } while (bv[hi_part_offset + sel_high] and sdsl::bits::read_int(low_part_data_ptr, low_part_in_word_offset, width_low) >= val_low);
-
-//std::cout << "AFER SCAN RANK1-EF(i=" << i << ",u=" << u << ",wl=" << width_low << ",sel_high=" << sel_high << ",high_val=" << high_val << ",rank_low=" << rank_low << ",val_low=" << val_low << ")" << std::endl;
-
             return rank_low + 1;
         }
 };
@@ -680,7 +616,6 @@ class hyb_sd_vector
         //! Accessing the i-th element of the original bit_vector
         size_type select_1(size_type i) const
         {
-//debug = 23063 == i;
             i = i - 1;
             auto block_id = i / t_block_size;
             auto in_block_offset = i % t_block_size;
@@ -695,28 +630,14 @@ class hyb_sd_vector
             auto block_type = bt.first;
             size_type block_offset = m_block_start[block_id];
 
-            if (debug) {
-                std::cout<<"block_id = " << block_id << std::endl;
-                std::cout<<"block_offset = " << block_offset << std::endl;
-                std::cout<<"in_block_offset = " << in_block_offset << std::endl;
-                std::cout<<"res = " << res << std::endl;
-                std::cout<<"u = " << u << std::endl;
-            }
-
             switch (block_type) {
                 case hyb_sd_blocktype::BV:
-                    if (debug) std::cout << "BV" << std::endl;
                     res += hyb_sd_block_support_bv<t_block_size>::select_1(m_bottom, block_offset, in_block_offset, u);
                     break;
                 case hyb_sd_blocktype::EF:
-                    if (debug) {
-                        std::cout << "EF" << std::endl;
-                        g_hi_size = m_block_start[block_id+1]-m_block_start[block_id];
-                    }
                     res += hyb_sd_block_support_ef<t_block_size>::select_1(m_bottom, block_offset, in_block_offset, u);
                     break;
                 case hyb_sd_blocktype::FULL:
-                    if (debug) std::cout << "FULL" << std::endl;
                     res += hyb_sd_block_support_full<t_block_size>::select_1(m_bottom, block_offset, in_block_offset, u);
                     break;
             }
@@ -757,7 +678,71 @@ class hyb_sd_vector
                     res += hyb_sd_block_support_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     break;
             }
+            return res;
+        }
 
+        std::array<size_type,2>
+        rank_1(std::array<size_type,2> ij) const
+        {
+            if (ij[0] > ij[1]) {
+                return {rank_1(ij[0]),rank_1(ij[1])};
+            }
+            // no we know ij[0] <= ij[1]
+            if (ij[0] > m_size or m_num_ones == 0) {
+                return {m_num_ones, m_num_ones};
+            }
+            auto block_id = m_top_rank(ij[0]);
+            if (block_id == 0) {
+                size_type first_element = m_top_sel(1);
+                if (ij[1] <= first_element) {
+                    return {0,0};
+                }
+                return {0, rank_1(ij[1])}; // TODO: can still be optimized
+            }
+            block_id -= 1;
+            size_type r = block_id * t_block_size;
+            auto top_value = m_top_sel(block_id + 1);
+            size_type in_block_i = ij[0];
+            in_block_i -= top_value;
+            size_type in_block_j = ij[1];
+            in_block_j -= top_value;
+
+            if (in_block_i == 0) {
+                if (ij[0]==ij[1]) {
+                    return {r,r};
+                }
+                return {r, rank_1(ij[1])}; // TODO: can still be optimized
+            }
+
+            auto u = m_top_sel(block_id + 2) - top_value;
+            auto bt = determine_block_type(u);
+            auto block_type = bt.first;
+            size_type block_offset = m_block_start[block_id];
+            std::array<size_type, 2> res {r,r};
+
+            switch (block_type) {
+                case hyb_sd_blocktype::BV:
+                    res[0] += hyb_sd_block_support_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
+                    if (in_block_j < u) {
+                        res[1] += hyb_sd_block_support_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, u);
+                    }
+                    break;
+                case hyb_sd_blocktype::EF:
+                    res[0] += hyb_sd_block_support_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
+                    if (in_block_j < u) {
+                        res[1] += hyb_sd_block_support_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, u);
+                    }
+                    break;
+                case hyb_sd_blocktype::FULL:
+                    res[0] += hyb_sd_block_support_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
+                    if (in_block_j < u) {
+                        res[1] += hyb_sd_block_support_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, u);
+                    }
+                    break;
+            }
+            if (in_block_j >= u) {
+                res[1] = rank_1(ij[1]);
+            }
             return res;
         }
 
@@ -912,12 +897,14 @@ class rank_support_hyb_sd
             set_vector(v);
         }
 
-        size_type rank(size_type i) const
+        template<typename t_pos>
+        t_pos rank(t_pos i) const
         {
             return m_v->rank_1(i);
         }
 
-        size_type operator()(size_type i) const
+        template<typename t_pos>
+        t_pos operator()(t_pos i) const
         {
             return rank(i);
         }

@@ -140,6 +140,11 @@ class uef_psi_support
             return m_inc_seq_rank[cc](i);
         }
 
+        std::array<uint64_t,2> rank(std::array<uint64_t,2> ij, comp_char_type cc) const
+        {
+            return m_inc_seq_rank[cc](ij);
+        }
+
         uint64_t select(uint64_t i, comp_char_type cc) const
         {
             return m_inc_seq_sel[cc](i);
@@ -477,31 +482,11 @@ class csa_sada2
             m_alphabet.load(in);
         }
 
-        // Calculates how many symbols cc are in the prefix [0..i-1] of the BWT of the original text.
-        /*
-         *  \param i  The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
-         *  \param cc The compactified symbol to count in the prefix.
-         *  \returns The number of occurrences of the compactified symbol cc in the prefix [0..i-1].
-         *  \par Time complexity
-         *        \f$ \Order{\log n t_{\Psi}} \f$
-         */
-        template<typename t_char>
-        size_type rank_comp_bwt(size_type i, const t_char cc)const
-        {
-            return m_psi_support.rank(i, cc);
-        }
-
-        template<typename t_char>
-        std::tuple<size_type,size_type> double_rank_comp_bwt(size_type i, size_type j, const t_char cc)const
-        {
-//            return m_psi_support.rank({i, j}, cc);
-            return {rank_comp_bwt(i, cc), rank_comp_bwt(j, cc)};
-        }
-
     private:
 
         // Calculates how many symbols c are in the prefix [0..i-1] of the BWT of the original text.
         /*
+         *  \tpara Type of index. Should either be an unsigned integer or and std::array<,2> of unsigned integers
          *  \param i The exclusive index of the prefix range [0..i-1], so \f$i\in [0..size()]\f$.
          *  \param c The symbol to count in the prefix.
          *    \returns The number of occurrences of symbol c in the prefix [0..i-1] of the BWT.
@@ -509,17 +494,16 @@ class csa_sada2
          *        \f$ \Order{\log n t_{\Psi}} \f$
          */
         // replace const char_type c by const std::array<char_type, alphabet_type::C_depth>& c
-        template<typename t_char>
-        size_type rank_bwt(size_type i, const t_char c)const
+        template<typename t_pos , typename t_char>
+        t_pos rank_bwt(t_pos i, const t_char c)const
         {
             auto cc = char2comp[c];
             if (cc==0 and c!=0) // character is not in the text => return 0
-                return 0;
-            if (i == 0)
-                return 0;
-            return rank_comp_bwt(i, cc);
+                return t_pos {0};
+            if (i == t_pos {0})
+                return t_pos {0};
+            return m_psi_support.rank(i, cc);
         }
-
 
 
         // Calculates the position of the i-th c in the BWT of the original text.

@@ -302,6 +302,13 @@ class csa_bitcompressed
             }
         }
 
+        std::array<size_type,2>
+        rank_bwt(std::array<size_type,2> ij, const char_type c)const
+        {
+            return {rank_bwt(ij[0], c), rank_bwt(ij[1],c)};
+        }
+
+
         // Calculates the i-th occurrence of symbol c in the BWT of the original text.
         /*
          *  \param i The i-th occurrence. \f$i\in [1..rank(size(),c)]\f$.

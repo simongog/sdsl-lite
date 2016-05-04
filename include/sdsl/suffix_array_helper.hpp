@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <cstdlib>
 #include <cassert>
+#include <array>
 #include "iterators.hpp"
 
 namespace sdsl
@@ -273,7 +274,13 @@ class bwt_of_csa_psi
         template<typename t_char>
         size_type rank(size_type i, const t_char c)const
         {
-            return m_csa.rank_bwt(i,c);
+            return m_csa.rank_bwt(i, c);
+        }
+
+        template<typename t_char>
+        std::array<size_type,2> rank(std::array<size_type,2> ij, const t_char c)const
+        {
+            return m_csa.rank_bwt(ij, c);
         }
 
         //! Calculates the position of the i-th c.
@@ -445,6 +452,12 @@ class bwt_of_csa_wt
         size_type rank(size_type i, const char_type c)const
         {
             return m_csa.rank_bwt(i, c);
+        }
+
+        template<typename t_char>
+        std::array<size_type,2> rank(std::array<size_type,2> ij, const t_char c)const
+        {
+            return m_csa.rank_bwt(ij, c);
         }
 
         //! Calculates the position of the i-th c.
