@@ -22,6 +22,7 @@
 #define INCLUDED_SDSL_CSA_SADA
 
 #include "enc_vector.hpp"
+#include "enc_vector2.hpp"
 #include "int_vector.hpp"
 #include "iterators.hpp"
 #include "suffix_array_helper.hpp"
@@ -321,10 +322,6 @@ class csa_sada
                 //           => search in previous block (s_begin-1)
             }
             s_begin -= 1;
-            uint64_t* p = m_psi_buf.data();
-            // extract the psi values between two samples
-            m_psi.get_inter_sampled_values(s_begin, p);
-            p = m_psi_buf.data();
             uint64_t smpl = m_psi.sample(s_begin);
 
             size_t abs_decode_begin = s_begin*sd;
@@ -333,6 +330,15 @@ class csa_sada
                 skip = cc_begin - abs_decode_begin;
             }
             size_t res = abs_decode_begin + skip - cc_begin;
+
+            if ((s_begin+1)*sd < m_psi.size() and skip == 0 and smpl+sd == m_psi.sample(s_begin+1)) {
+                return res + (i - smpl);
+            }
+
+            uint64_t* p = m_psi_buf.data();
+            // extract the psi values between two samples
+            m_psi.get_inter_sampled_values(s_begin, p);
+            p = m_psi_buf.data();
 
             for (auto it = p + skip; (res < cc_end - cc_begin) and it < m_psi_buf.data()+sd; ++it) {
                 if ((*it)+smpl >= i)
@@ -370,14 +376,9 @@ class csa_sada
                 //           => binary search for first sample >= i
                 s_begin = upper_bound(s_begin, s_end, i-1);
                 //           => search in previous block (s_begin-1)
-                answer_j = (s_begin == s_end) or m_psi.sample(s_begin>=j);
+                answer_j = (s_begin == s_end) or (m_psi.sample(s_begin) >=j);
             }
-            // TODO: add ALL ONES TRICK inside a block
             s_begin -= 1;
-            uint64_t* p = m_psi_buf.data();
-            // extract the psi values between two samples
-            m_psi.get_inter_sampled_values(s_begin, p);
-            p = m_psi_buf.data();
             uint64_t smpl = m_psi.sample(s_begin);
 
             size_t abs_decode_begin = s_begin*sd;
@@ -387,6 +388,20 @@ class csa_sada
             }
             size_t res = abs_decode_begin + skip - cc_begin;
 
+            bool uniform_block = (s_begin+1)*sd < m_psi.size() and skip == 0 and smpl+sd == m_psi.sample(s_begin+1);
+            if (uniform_block) {
+                if (answer_j) {
+                    return std::make_tuple(res + (i - smpl), res + (j - smpl));
+                } else {
+                    return std::make_tuple(res + (i - smpl), rank_comp_bwt(j, cc));
+                }
+            }
+
+            uint64_t* p = m_psi_buf.data();
+            // extract the psi values between two samples
+            m_psi.get_inter_sampled_values(s_begin, p);
+            p = m_psi_buf.data();
+
             auto it = p + skip;
             for (; (res < cc_end - cc_begin) and it < m_psi_buf.data()+sd; ++it) {
                 if ((*it)+smpl >= i) {
@@ -394,10 +409,9 @@ class csa_sada
                 }
                 ++res;
             }
-
             if (answer_j) {
                 size_t res2 = res;
-                for (; (res < cc_end - cc_begin) and it < m_psi_buf.data()+sd; ++it) {
+                for (; (res2 < cc_end - cc_begin) and it < m_psi_buf.data()+sd; ++it) {
                     if ((*it)+smpl >= j) {
                         break;
                     }
@@ -514,6 +528,37 @@ csa_sada<t_enc_vec, t_dens, t_inv_dens, t_sa_sample_strat, t_isa, t_alphabet_str
         int_vector_buffer<> psi_buf(cache_file_name(conf::KEY_PSI, config));
         t_enc_vec tmp_psi(psi_buf);
         m_psi.swap(tmp_psi);
+        /*
+                enc_vector<coder::elias_delta, enc_vector_type::sample_dens> m_psi_check(psi_buf);
+                if ( m_psi_check.size() != m_psi.size() ){
+                    std::cout<<"m_psi.size()="<<m_psi.size()<<"!="<<m_psi_check.size()<<" m_psi_check.size()"<<std::endl;
+                } else {
+
+                    std::vector<uint64_t> buf1 = std::vector<uint64_t>(enc_vector_type::sample_dens+1);
+                    std::vector<uint64_t> buf2 = std::vector<uint64_t>(enc_vector_type::sample_dens+1);
+
+                    std::cout<<"m_psi.size()="<<m_psi.size()<<std::endl;
+                    for(size_t i=0; i<m_psi.size()/enc_vector_type::sample_dens; ++i){
+                        if ( m_psi.sample(i) != m_psi_check.sample(i) ) {
+                            std::cout<<"m_psi.sample(i) != m_psi_check.sample(i) for i="<<i<<" "<<m_psi.sample(i)<<"!="<<m_psi_check.sample(i)<<std::endl;
+                        }
+                        m_psi.get_inter_sampled_values(i, buf1.data());
+                        m_psi_check.get_inter_sampled_values(i, buf2.data());
+                        bool error = false;
+                        for(size_t j=0; j<enc_vector_type::sample_dens and i*enc_vector_type::sample_dens+j<m_psi.size(); ++j) {
+                            if ( buf1[j] != buf2[j] ) {
+                                std::cout<<"i="<<i<<" j="<<j<<" buf1[j]="<<buf1[j]<<" buf2[j]="<<buf2[j]<<std::endl;
+                                error = true;
+                            }
+                        }
+                        if (error) {
+                            std::cout<<" m_psi.sample(i)="<<m_psi.sample(i)<<std::endl;
+                            std::cout<<" m_psi.sample(i+1)="<<m_psi.sample(i+1)<<" m_psi_check.sample(i+1)="<<m_psi_check.sample(i+1)<<std::endl;
+                            throw std::logic_error("error");
+                        }
+                    }
+                }
+        */
     }
     {
         auto event = memory_monitor::event("sample SA");

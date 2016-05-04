@@ -306,6 +306,25 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_buffer<int_width>& v_
         v1 = v2;
     }
 
+    /*    {
+            double sd_size_in_megabytes = 0;
+            size_t begin = 0, end=0;
+            while( begin != n) {
+                begin = end;
+                while ( end+1 < n and v_buf[end]<v_buf[end+1] )
+                    ++end;
+                ++end;
+                size_t m = end-begin;
+                std::cout<<"m="<<m<<std::endl;
+                sd_vector_builder builder(n, m);
+                for(size_t i=begin; i<end; ++i)
+                    builder.set(v_buf[i]);
+                sd_size_in_megabytes += size_in_mega_bytes(sd_vector<>(builder));
+            }
+            std::cout<<"sd_size_in_megabytes = "<<sd_size_in_megabytes<<std::endl;
+        }
+    */
+
 //    (2) Write sample values and deltas
 //    (a) Initialize array for sample values and pointers
     if (max_sample_value > z_size+1)
@@ -335,6 +354,13 @@ enc_vector<t_coder, t_dens,t_width>::enc_vector(int_vector_buffer<int_width>& v_
         v1 = v2;
     }
     m_size = n;
+
+    {
+        sd_vector_builder builder(z_size, m_sample_vals_and_pointer.size()/2);
+        for (size_t i=0; 2*i+1<m_sample_vals_and_pointer.size(); ++i)
+            builder.set(m_sample_vals_and_pointer[2*i+1]);
+        std::cout<<"pointers in mb = " << size_in_mega_bytes(sd_vector<>(builder)) << std::endl;
+    }
 }
 
 template<class t_coder, uint32_t t_dens, uint8_t t_width>

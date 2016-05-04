@@ -1,6 +1,5 @@
 /* sdsl - succinct data structures library
-    Copyright (C) 2012-2014 Simon Gog
-    Copyright (C) 2015 Genome Research Ltd.
+    Copyright (C) 2016 Simon Gog, Matthias Petri
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,7 +17,7 @@
 /*!\file sd_vector.hpp
    \brief sd_vector.hpp contains the sdsl::sd_vector class, and
           classes which support rank and select for sd_vector.
-   \author Simon Gog, Jouni Siren
+   \author Simon Gog, Matthias Petri
 */
 #ifndef INCLUDED_SDSL_HYB_SD_VECTOR
 #define INCLUDED_SDSL_HYB_SD_VECTOR
@@ -31,6 +30,10 @@
 //! Namespace for the succinct data structure library
 namespace sdsl
 {
+
+
+constexpr bool debug=false;
+size_t g_hi_size=0;
 
 template <class t_itr>
 std::string print_vec(t_itr beg, t_itr end)
@@ -299,7 +302,7 @@ class hyb_sd_block_support_ef
                 uint64_t x = data[i];
                 size_type cur_high = x >> width_low;
                 size_type write_val = cur_high - last_high;
-                while (write_val > 64) {
+                while (write_val >= 64) {
                     sdsl::bits::write_int_and_move(data_ptr, 0ULL, in_word_offset, 64);
                     write_val -= 64;
                     written_bits += 64;
@@ -320,15 +323,34 @@ class hyb_sd_block_support_ef
             if (logm == logu)
                 logm--;
             size_type width_low = logu - logm;
+            size_type hi_part_offset = offset + t_block_size * width_low;
 
+            if (debug) {
+                std::cout<<"i="<<i<<" u="<<u<<" logu="<<(int)logu<<" width_low="<<width_low<<" logm="<<(int)logm<<std::endl;
+
+                size_t num_one = 0;
+                size_t num_zero = 0;
+                for (size_t i=0; i<g_hi_size; i++) {
+                    std::cout << "hi["<<i<<"] = " << bv[hi_part_offset+i];
+                    if (bv[hi_part_offset+i]) {
+                        std::cout << "  one # " << ++num_one;
+                    } else {
+                        std::cout << " zero # " << ++num_zero;
+                    }
+                    std::cout << std::endl;
+                }
+                std::cout << "hi_size = " << g_hi_size<<std::endl;
+            }
             size_type low_part_offset = offset + i * width_low;
 
             auto low_part_data_ptr = bv.data() + (low_part_offset / 64);
             uint8_t low_part_in_word_offset = low_part_offset % 64;
             auto low_part = sdsl::bits::read_int(low_part_data_ptr, low_part_in_word_offset, width_low);
 
-            size_type hi_part_offset = offset + t_block_size * width_low;
             auto bucket = sel(bv.data(), hi_part_offset, i + 1) - hi_part_offset - i;
+            if (debug) {
+                std::cout<<"bucket="<<bucket<<" sel(bv.data(),"<<hi_part_offset<<","<<i+1<<")="<<sel(bv.data(),hi_part_offset,i+1) <<std::endl;
+            }
             return (bucket << width_low) | low_part;
         }
 
@@ -432,6 +454,7 @@ class hyb_sd_vector
         sdsl::int_vector<> m_block_start;
         size_type m_size = 0;
         size_type m_num_ones = 0;
+
 
     public:
         static constexpr uint16_t block_size = t_block_size;
@@ -540,8 +563,9 @@ class hyb_sd_vector
                 one_found = 0;
                 while (one_found != t_block_size) {
                     if (j <= last_one) {
-                        if (bv[j] == 1)
+                        if (bv[j] == 1) {
                             tmp_data[one_found++] = j - value_offset;
+                        }
                     }
 //                else if ( j == last_one+1 ) {
 //                    tmp_data[one_found] = m_size - value_offset;
@@ -588,6 +612,7 @@ class hyb_sd_vector
             if (m_num_ones==0) {
                 return;
             }
+//std::cout<<"m_num_ones="<<m_num_ones<<std::endl;
             size_type num_full_blocks = m_num_ones / t_block_size;
             size_type num_blocks = num_full_blocks;
             size_type num_leftover = m_num_ones % t_block_size;
@@ -609,6 +634,7 @@ class hyb_sd_vector
 
             // (2) bottom level
             m_block_start.resize(num_blocks + 1);
+//std::cout<<"num_blocks="<<num_blocks<<std::endl;
             itr = begin;
             size_type value_offset = 0;
             size_type written_bits = 0;
@@ -642,6 +668,7 @@ class hyb_sd_vector
 
             // (4) bit compress pointers
             sdsl::util::bit_compress(m_block_start);
+//std::cout<<"bye hyb_sd"<<std::endl;
         }
 
 
@@ -653,6 +680,7 @@ class hyb_sd_vector
         //! Accessing the i-th element of the original bit_vector
         size_type select_1(size_type i) const
         {
+//debug = 23063 == i;
             i = i - 1;
             auto block_id = i / t_block_size;
             auto in_block_offset = i % t_block_size;
@@ -666,17 +694,29 @@ class hyb_sd_vector
             auto bt = determine_block_type(u);
             auto block_type = bt.first;
             size_type block_offset = m_block_start[block_id];
+
+            if (debug) {
+                std::cout<<"block_id = " << block_id << std::endl;
+                std::cout<<"block_offset = " << block_offset << std::endl;
+                std::cout<<"in_block_offset = " << in_block_offset << std::endl;
+                std::cout<<"res = " << res << std::endl;
+                std::cout<<"u = " << u << std::endl;
+            }
+
             switch (block_type) {
                 case hyb_sd_blocktype::BV:
-                    // std::cout << "BV" << std::endl;
+                    if (debug) std::cout << "BV" << std::endl;
                     res += hyb_sd_block_support_bv<t_block_size>::select_1(m_bottom, block_offset, in_block_offset, u);
                     break;
                 case hyb_sd_blocktype::EF:
-                    // std::cout << "EF" << std::endl;
+                    if (debug) {
+                        std::cout << "EF" << std::endl;
+                        g_hi_size = m_block_start[block_id+1]-m_block_start[block_id];
+                    }
                     res += hyb_sd_block_support_ef<t_block_size>::select_1(m_bottom, block_offset, in_block_offset, u);
                     break;
                 case hyb_sd_blocktype::FULL:
-                    // std::cout << "FULL" << std::endl;
+                    if (debug) std::cout << "FULL" << std::endl;
                     res += hyb_sd_block_support_full<t_block_size>::select_1(m_bottom, block_offset, in_block_offset, u);
                     break;
             }

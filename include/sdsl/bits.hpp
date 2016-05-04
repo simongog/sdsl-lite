@@ -154,6 +154,7 @@ struct bits {
                 return (tt = x >> 8) ?  8 + lt_hi[tt] : lt_hi[x];
             }
         }
+        return 0;
 #endif
     }
 
