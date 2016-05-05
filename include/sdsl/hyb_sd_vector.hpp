@@ -24,6 +24,7 @@
 
 #include "int_vector.hpp"
 #include "sd_vector.hpp"
+#include "coder.hpp"
 #include "util.hpp"
 #include "iterators.hpp"
 
@@ -32,6 +33,7 @@ namespace sdsl
 {
 
 //std::vector<uint64_t> g_range_stats;
+size_t g_saved_bits=0;
 
 template <class t_itr>
 std::string print_vec(t_itr beg, t_itr end)
@@ -49,9 +51,9 @@ std::string print_vec(t_itr beg, t_itr end)
 inline uint64_t next0(const uint64_t* word, uint64_t idx)
 {
     word += (idx >> 6);
-    auto masked_inverse_word = ~(*word | sdsl::bits::lo_set[(idx & 0x3F) + 1]);
+    auto masked_inverse_word = ~(*word | bits::lo_set[(idx & 0x3F) + 1]);
     if (masked_inverse_word) {
-        return (idx & ~((size_t)0x3F)) + sdsl::bits::lo(masked_inverse_word);
+        return (idx & ~((size_t)0x3F)) + bits::lo(masked_inverse_word);
     }
     idx = (idx & ~((size_t)0x3F)) + 64;
     ++word;
@@ -59,7 +61,7 @@ inline uint64_t next0(const uint64_t* word, uint64_t idx)
         idx += 64;
         ++word;
     }
-    return idx + sdsl::bits::lo(~(*word));
+    return idx + bits::lo(~(*word));
 }
 
 /*!
@@ -81,7 +83,7 @@ inline uint64_t cnt(const uint64_t* word, uint64_t idx, uint64_t i)
 //    std::cout<<"considered="<<considered<<std::endl;
     uint64_t res = 0;
     while (considered < i) {
-        res += sdsl::bits::cnt(w);
+        res += bits::cnt(w);
 //        std::cout<<"res="<<res<<" after "<<considered<<" bits"<<std::endl;
         if (res >= t_block_size) {
             return t_block_size;
@@ -94,12 +96,12 @@ inline uint64_t cnt(const uint64_t* word, uint64_t idx, uint64_t i)
 //std::cout<<"considered="<<considered<<std::endl;
     // considered \in [i+0..i+63]
     if (i == considered) {
-        return res + sdsl::bits::cnt(w);
+        return res + bits::cnt(w);
     }
 //std::cout<<"pre_considered="<<pre_considered<<std::endl;
     i = i-pre_considered;//i + 64 - considered;
-    w &= sdsl::bits::lo_set[i];
-    res += sdsl::bits::cnt(w);
+    w &= bits::lo_set[i];
+    res += bits::cnt(w);
     return res > t_block_size ? t_block_size : res; // TODO: is the space reduction large enough to justify this  ???
 }
 /*!
@@ -112,22 +114,22 @@ inline uint64_t sel(const uint64_t* word, uint64_t idx, uint64_t i)
 {
     --i;
     word += (idx >> 6);
-    auto masked_word = *word & ~sdsl::bits::lo_set[(idx & 0x3F) + 1];
-    auto one_cnt = sdsl::bits::cnt(masked_word);
+    auto masked_word = *word & ~bits::lo_set[(idx & 0x3F) + 1];
+    auto one_cnt = bits::cnt(masked_word);
     if (one_cnt >= i) {
-        return (idx & ~((size_t)0x3F)) + sdsl::bits::sel(masked_word, i);
+        return (idx & ~((size_t)0x3F)) + bits::sel(masked_word, i);
     }
     idx = (idx & ~((size_t)0x3F)) + 64;
     i -= one_cnt;
     ++word;
-    one_cnt = sdsl::bits::cnt(*word);
+    one_cnt = bits::cnt(*word);
     while (i > one_cnt) {
         ++word;
         idx += 64;
         i -= one_cnt;
-        one_cnt = sdsl::bits::cnt(*word);
+        one_cnt = bits::cnt(*word);
     }
-    return idx + sdsl::bits::sel(*word, i);
+    return idx + bits::sel(*word, i);
 }
 
 /*!
@@ -145,7 +147,7 @@ inline uint64_t sel0(const uint64_t* word, uint64_t idx, uint64_t i, uint64_t ma
     uint64_t considered = 64 - offset;
     uint64_t res = 0;
     uint64_t cnt = 0;
-    uint64_t word_cnt = sdsl::bits::cnt(w);
+    uint64_t word_cnt = bits::cnt(w);
 
     while (cnt + word_cnt < i) {
         cnt += word_cnt;
@@ -155,11 +157,11 @@ inline uint64_t sel0(const uint64_t* word, uint64_t idx, uint64_t i, uint64_t ma
         res = considered;
         considered += 64;
         w = (~(*(++word)));
-        word_cnt = sdsl::bits::cnt(w);
+        word_cnt = bits::cnt(w);
     }
     // cnt < i and cnt+word_cnt >= i
     // add select (i-cnt) to res
-    res += sdsl::bits::sel(w, i - cnt);
+    res += bits::sel(w, i - cnt);
     if (res  > max_considered) {
         return std::numeric_limits<uint64_t>::max();
     }
@@ -167,7 +169,7 @@ inline uint64_t sel0(const uint64_t* word, uint64_t idx, uint64_t i, uint64_t ma
 }
 
 template <uint64_t t_block_size>
-class hyb_sd_block_support_bv
+class hyb_sd_block_bv
 {
     public:
         typedef bit_vector::size_type size_type;
@@ -179,7 +181,7 @@ class hyb_sd_block_support_bv
             return u;
         }
         static size_type
-        serialize(sdsl::bit_vector& bv, size_type offset, sdsl::int_vector<64>& data, size_type)
+        serialize(bit_vector& bv, size_type offset, int_vector<64>& data, size_type)
         {
             for (size_t i = 0; i < data[t_block_size - 1]+1; ++i)
                 bv[offset + i] = 0;
@@ -189,12 +191,12 @@ class hyb_sd_block_support_bv
             return data[t_block_size - 1] + 1;
         }
 
-        static size_type select_1(const sdsl::bit_vector& bv, size_type offset, size_type i, size_type)
+        static size_type select_1(const bit_vector& bv, size_type offset, size_type i, size_type)
         {
             return sel(bv.data(), offset, i + 1) - offset;
         }
 
-        static size_type rank_1(const sdsl::bit_vector& bv, const int_vector<>& block_start, size_type block_id, size_type i, size_type)
+        static size_type rank_1(const bit_vector& bv, const int_vector<>& block_start, size_type block_id, size_type i, size_type)
         {
             auto offset = block_start[block_id];
             auto next_offset = block_start[block_id+1];
@@ -204,8 +206,211 @@ class hyb_sd_block_support_bv
         }
 };
 
+
+template <uint64_t t_block_size, typename t_coder=coder::elias_delta>
+class hyb_sd_block_rl
+{
+    public:
+        typedef bit_vector::size_type size_type;
+        typedef size_type value_type;
+
+    public:
+        static size_type encode(int_vector<64>& data, bit_vector* bv=nullptr, size_type offset=0)
+        {
+            uint64_t* data_ptr = nullptr;
+            uint8_t in_word_offset = offset % 64;
+            if (bv != nullptr) {
+                data_ptr = bv->data() + (offset / 64);
+            }
+            auto do_encode = [&](uint64_t x) {
+                if (data_ptr != nullptr) {
+                    t_coder::encode(x, data_ptr, in_word_offset);
+                }
+                return t_coder::encoding_length(x);
+            };
+
+            size_type rl_bits = 0;
+            size_t begin = 0, end = 1;
+            while (end < data.size()) {
+                uint64_t delta = data[end]-data[begin];
+                if (delta > end-begin) {
+                    if (end-begin == 1) {
+                        rl_bits += do_encode(delta);
+                    } else { // end-begin > 1
+                        rl_bits += do_encode(1);
+                        rl_bits += do_encode(end-1-begin);
+                        rl_bits += do_encode(data[end]-data[end-1]);
+                    }
+                    begin = end;
+                    ++end;
+                } else {
+                    ++end;
+                }
+            }
+            if (end-begin > 1) {
+//                rl_bits += do_encode(1);
+//                rl_bits += do_encode(end-1-begin);
+                if (bv != nullptr) {
+                    g_saved_bits += t_coder::encoding_length(1);
+                    g_saved_bits += t_coder::encoding_length(end-1-begin);
+                }
+            }
+
+            if (bv!=nullptr) {
+//                std::cout<<"Checking block "<<std::endl;
+//                std::cout<<"rl_bits="<<rl_bits<<std::endl;
+//                std::cout<<"data="<<data<<std::endl;
+                in_word_offset = offset % 64;
+                data_ptr = bv->data() + (offset / 64);
+                auto end_offset = offset + rl_bits;
+                auto temp = decode(data_ptr, in_word_offset, bv->data() + (end_offset/64), end_offset%64);
+                if (data.size() != temp.size()) {
+                    std::cout<<"Error in RL block; size is different!!!"<<std::endl;
+                    throw std::logic_error("error in RL block");
+                }
+                for (size_t i=0; i<data.size(); ++i) {
+                    if (data[i]!=temp[i]) {
+                        std::cout<<"Error in RL block; decoded value is different!!!"<<std::endl;
+                        std::cout<<"data["<<i<<"]="<< data[i] <<" != "<<temp[i]<<" = temp[i]"<<std::endl;
+                        throw std::logic_error("error in RL block");
+                    }
+                }
+            }
+            return rl_bits;
+        }
+
+        static int_vector<64> decode(const uint64_t* data_ptr, uint8_t offset, const uint64_t* data_ptr_end, uint8_t offset_end)
+        {
+            int_vector<64> data(t_block_size, 0);
+            size_t pos = 1; // data[0]=0, now decode for pos > 0
+            while (pos < t_block_size) {
+                if (data_ptr > data_ptr_end or (data_ptr == data_ptr_end and offset >= offset_end)) {
+//                    std::cout<<"entering corner case"<<std::endl;
+                    while (pos < t_block_size) {
+                        data[pos] = data[pos-1]+1;
+//                        std::cout<<"writing entry "<<pos<<" data[pos]="<<data[pos]<<std::endl;
+                        ++pos;
+                    }
+                    return data;
+                }
+                uint64_t delta = t_coder::decode(data_ptr,offset);
+                if (delta == 1) {   // encoded run of ones of length >= 1
+                    uint64_t len = t_coder::decode(data_ptr, offset);
+                    for (size_t i=0; i<len; ++i) {
+                        data[pos] = data[pos-1]+1;
+                        ++pos;
+                    }
+                } else { // single delta
+                    data[pos] = data[pos-1]+delta;
+                    ++pos;
+                }
+            }
+            return data;
+        }
+
+        static size_type estimate_size(size_type, int_vector<64>& data)
+        {
+            return encode(data);
+        }
+
+        static size_type
+        serialize(bit_vector& bv, size_type offset, int_vector<64>& data, size_type)
+        {
+            return encode(data, &bv, offset);
+        }
+
+//        static size_type select_1(const bit_vector& bv, size_type offset, size_type i, size_type)
+        static size_type
+        select_1(const bit_vector& bv, const int_vector<>& block_start, size_type block_id, size_type i, size_type)
+        {
+            auto offset_begin = block_start[block_id];
+            auto offset_end = block_start[block_id+1];
+            return decode(bv.data()+(offset_begin/64), offset_begin%64, bv.data()+(offset_end/64), offset_end%64)[i];
+        }
+
+        static size_type rank_1(const bit_vector& bv, const int_vector<>& block_start, size_type block_id, size_type i, size_type)
+        {
+
+            auto abs_offset = block_start[block_id];
+            auto data_ptr = bv.data()+(abs_offset/64);
+            uint8_t offset = abs_offset%64;
+            auto abs_offset_end = block_start[block_id+1];
+            auto data_ptr_end = bv.data()+(abs_offset_end/64);
+            uint8_t offset_end = abs_offset_end%64;
+
+            uint64_t data_res = 0;
+            size_t res = 0; // data[0]=0, now decode for pos > 0
+            while (res < t_block_size and i > data_res) {
+                if (data_ptr > data_ptr_end or (data_ptr == data_ptr_end and offset >= offset_end)) {
+                    uint64_t len = t_block_size - res;
+                    if (i > data_res + len) {
+                        data_res += len;
+                        res += len;
+                    } else { // i <= data_res + len and i > data_res
+                        uint64_t gap = i - data_res;
+                        data_res += gap;
+                        res += gap;
+                    }
+                } else {
+                    uint64_t delta = t_coder::decode(data_ptr,offset);
+                    if (delta == 1) {   // encoded run of ones of length >= 1
+                        uint64_t len = t_coder::decode(data_ptr, offset);
+                        if (i > data_res + len) {
+                            data_res += len;
+                            res += len;
+                        } else { // i <= data_res + len and i > data_res
+                            uint64_t gap = i - data_res;
+                            data_res += gap;
+                            res += gap;
+                        }
+                    } else { // single delta
+                        data_res += delta;
+                        ++res;
+                    }
+                }
+            }
+//            auto check_res = trivial_rank_1(bv, block_start, block_id, i, 0);
+//            if ( check_res != res ) {
+//                std::cout<<"block_id="<<block_id<<" res="<<res<<" check_res="<<check_res<<std::endl;
+//            }
+            return res;
+        }
+
+
+        static size_type
+        trivial_rank_1(const bit_vector& bv, const int_vector<>& block_start, size_type block_id, size_type i, size_type)
+//        rank_1(const bit_vector& bv, const int_vector<>& block_start, size_type block_id, size_type i, size_type)
+        {
+            auto offset_begin = block_start[block_id];
+            auto offset_end = block_start[block_id+1];
+            auto data = decode(bv.data()+(offset_begin/64), offset_begin%64, bv.data()+(offset_end/64), offset_end%64);
+            size_type res = 0;
+            while (res < data.size() and i > data[res])
+                ++res;
+            return res;
+        }
+
+        /*
+                static std::array<size_type,2>
+                rank_1(const bit_vector& bv, const int_vector<>& block_start, size_type block_id, const std::array<size_type,2>& ij, size_type)
+                {
+                    auto offset = block_start[block_id];
+                    auto data = decode(bv.data()+(offset/64), offset%64);
+                    std::array<size_type,2> res = {0,0};
+                    while ( res[0] < data.size() and ij[0] > data[res[0]] )
+                        ++res[0];
+                    res[1] = res[0];
+                    while ( res[1] < data.size() and ij[1] > data[res[1]] )
+                        ++res[1];
+                    return res;
+                }
+        */
+};
+
+
+
 template <uint64_t t_block_size>
-class hyb_sd_block_support_full
+class hyb_sd_block_full
 {
     public:
         typedef bit_vector::size_type size_type;
@@ -218,7 +423,7 @@ class hyb_sd_block_support_full
         }
 
         static size_type
-        serialize(sdsl::bit_vector&, size_type, sdsl::int_vector<64>&, size_type u)
+        serialize(bit_vector&, size_type, int_vector<64>&, size_type u)
         {
             if (t_block_size != u) {
                 std::cerr << "this should not happen!" << std::endl;
@@ -226,19 +431,19 @@ class hyb_sd_block_support_full
             return 0;
         }
 
-        static size_type select_1(const sdsl::bit_vector&, size_type, size_type i, size_type)
+        static size_type select_1(const bit_vector&, size_type, size_type i, size_type)
         {
             return i;
         }
 
-        static size_type rank_1(const sdsl::bit_vector&, const int_vector<>&, size_type, size_type i, size_type)
+        static size_type rank_1(const bit_vector&, const int_vector<>&, size_type, size_type i, size_type)
         {
-            return i;
+            return std::min(t_block_size, i);
         }
 };
 
 template <uint64_t t_block_size>
-class hyb_sd_block_support_ef
+class hyb_sd_block_ef
 {
     public:
         typedef bit_vector::size_type size_type;
@@ -250,8 +455,8 @@ class hyb_sd_block_support_ef
     public:
         static size_type estimate_size(size_type u)
         {
-            uint8_t logu = sdsl::bits::hi(u) + 1;
-            uint8_t logm = sdsl::bits::hi(t_block_size) + 1; // TODO constexpr for hi?
+            uint8_t logu = bits::hi(u) + 1;
+            uint8_t logm = bits::hi(t_block_size) + 1; // TODO constexpr for hi?
             if (logm == logu)
                 logm--;
             size_type width_low = logu - logm;
@@ -259,11 +464,11 @@ class hyb_sd_block_support_ef
             return size_in_bits;
         }
         static size_type
-        serialize(sdsl::bit_vector& bv, size_type offset, sdsl::int_vector<64>& data, size_type u)
+        serialize(bit_vector& bv, size_type offset, int_vector<64>& data, size_type u)
         {
             size_type written_bits = 0;
-            uint8_t logu = sdsl::bits::hi(u) + 1;
-            uint8_t logm = sdsl::bits::hi(t_block_size) + 1;
+            uint8_t logu = bits::hi(u) + 1;
+            uint8_t logm = bits::hi(t_block_size) + 1;
             if (logm == logu)
                 logm--;
             size_type width_low = logu - logm;
@@ -272,7 +477,7 @@ class hyb_sd_block_support_ef
             uint8_t in_word_offset = offset % 64;
             for (size_type i = 0; i < t_block_size; i++) {
                 uint64_t x = data[i];
-                sdsl::bits::write_int_and_move(data_ptr, x, in_word_offset, width_low);
+                bits::write_int_and_move(data_ptr, x, in_word_offset, width_low);
             }
             written_bits += width_low * t_block_size;
 
@@ -283,11 +488,11 @@ class hyb_sd_block_support_ef
                 size_type cur_high = x >> width_low;
                 size_type write_val = cur_high - last_high;
                 while (write_val >= 64) {
-                    sdsl::bits::write_int_and_move(data_ptr, 0ULL, in_word_offset, 64);
+                    bits::write_int_and_move(data_ptr, 0ULL, in_word_offset, 64);
                     write_val -= 64;
                     written_bits += 64;
                 }
-                sdsl::bits::write_int_and_move(data_ptr, 1ULL << write_val, in_word_offset, write_val + 1);
+                bits::write_int_and_move(data_ptr, 1ULL << write_val, in_word_offset, write_val + 1);
                 last_high = cur_high;
                 written_bits += write_val + 1;
             }
@@ -296,10 +501,10 @@ class hyb_sd_block_support_ef
             return written_bits;
         }
 
-        static size_type select_1(const sdsl::bit_vector& bv, size_type offset, size_type i, size_type u)
+        static size_type select_1(const bit_vector& bv, size_type offset, size_type i, size_type u)
         {
-            uint8_t logu = sdsl::bits::hi(u) + 1;
-            uint8_t logm = sdsl::bits::hi(t_block_size) + 1;
+            uint8_t logu = bits::hi(u) + 1;
+            uint8_t logm = bits::hi(t_block_size) + 1;
             if (logm == logu)
                 logm--;
             size_type width_low = logu - logm;
@@ -308,19 +513,19 @@ class hyb_sd_block_support_ef
 
             auto low_part_data_ptr = bv.data() + (low_part_offset / 64);
             uint8_t low_part_in_word_offset = low_part_offset % 64;
-            auto low_part = sdsl::bits::read_int(low_part_data_ptr, low_part_in_word_offset, width_low);
+            auto low_part = bits::read_int(low_part_data_ptr, low_part_in_word_offset, width_low);
 
             auto bucket = sel(bv.data(), hi_part_offset, i + 1) - hi_part_offset - i;
             return (bucket << width_low) | low_part;
         }
 
-        static size_type rank_1(const sdsl::bit_vector& bv, const int_vector<>& block_start, size_type block_id, size_type i, size_type u)
+        static size_type rank_1(const bit_vector& bv, const int_vector<>& block_start, size_type block_id, size_type i, size_type u)
         {
             auto offset = block_start[block_id];
             auto next_offset = block_start[block_id + 1];
 
-            uint8_t logu = sdsl::bits::hi(u) + 1;
-            uint8_t logm = sdsl::bits::hi(t_block_size) + 1;
+            uint8_t logu = bits::hi(u) + 1;
+            uint8_t logm = bits::hi(t_block_size) + 1;
             if (logm == logu)
                 logm--;
             size_type width_low = logu - logm;
@@ -353,7 +558,7 @@ class hyb_sd_block_support_ef
                 low_part_offset -= width_low;
                 low_part_data_ptr = bv.data() + (low_part_offset / 64);
                 low_part_in_word_offset = low_part_offset % 64;
-            } while (bv[hi_part_offset + sel_high] and sdsl::bits::read_int(low_part_data_ptr, low_part_in_word_offset, width_low) >= val_low);
+            } while (bv[hi_part_offset + sel_high] and bits::read_int(low_part_data_ptr, low_part_in_word_offset, width_low) >= val_low);
             return rank_low + 1;
         }
 };
@@ -386,8 +591,10 @@ class hyb_sd_vector
         sd_vector<> m_top;
         sd_vector<>::select_1_type m_top_sel;
         sd_vector<>::rank_1_type m_top_rank;
-        sdsl::bit_vector m_bottom;
-        sdsl::int_vector<> m_block_start;
+        bit_vector m_bottom;
+        int_vector<> m_block_start;
+        int_vector<2> m_block_type;
+
         size_type m_size = 0;
         size_type m_num_ones = 0;
 
@@ -396,50 +603,61 @@ class hyb_sd_vector
         static constexpr uint16_t block_size = t_block_size;
 
     private:
-        enum class hyb_sd_blocktype
+        enum class hyb_sd_blocktype : uint8_t
         {
-            EF,
-            BV,
-            FULL
+            EF=0,
+            BV=1,
+            FULL=2,
+            RL=3
         };
 
         std::pair<hyb_sd_blocktype, size_type>
-        determine_block_type(size_t u) const
+        determine_block_type(size_t u, int_vector<64>& data) const
         {
-            if (u == t_block_size)
+            if (u == t_block_size or data[t_block_size-1] == t_block_size-1)
                 return { hyb_sd_blocktype::FULL, 0 };
-            size_type ef_bits = hyb_sd_block_support_ef<t_block_size>::estimate_size(u);
-            size_type bv_bits = hyb_sd_block_support_bv<t_block_size>::estimate_size(u);
-            if (bv_bits < ef_bits)
-                return { hyb_sd_blocktype::BV, bv_bits };
-            return { hyb_sd_blocktype::EF, ef_bits };
+            std::vector<std::pair<size_type, hyb_sd_blocktype>> size_and_type;
+            size_and_type.push_back({hyb_sd_block_ef<t_block_size>::estimate_size(u), hyb_sd_blocktype::EF});
+            size_and_type.push_back({hyb_sd_block_bv<t_block_size>::estimate_size(u), hyb_sd_blocktype::BV});
+            size_and_type.push_back({hyb_sd_block_rl<t_block_size>::estimate_size(u, data), hyb_sd_blocktype::RL});
+            std::sort(size_and_type.begin(), size_and_type.end());
+
+            /*            auto mini = std::min_element(size_and_type.begin(), size_and_type.end());
+                        return { std::get<1>(*mini), std::get<0>(*mini) };
+            */
+            if (std::get<1>(size_and_type[0]) == hyb_sd_blocktype::RL) {
+                auto rl_size = std::get<0>(size_and_type[0]);
+                auto next_size = std::get<0>(size_and_type[1]);
+                if (2*rl_size > next_size) {
+                    std::swap(size_and_type[0], size_and_type[1]);
+                }
+            }
+            return {std::get<1>(size_and_type[0]), std::get<0>(size_and_type[0])};
         }
 
-        size_type compress_block(size_type offset, sdsl::int_vector<64>& data, size_t u)
+        size_type compress_block(size_type i, int_vector<64>& data, size_t u)
         {
+            size_type offset = m_block_start[i];
             size_type written_bits = 0;
-            auto bt = determine_block_type(u);
+            auto bt = determine_block_type(u, data);
             auto type = bt.first;
             auto size_in_bits = bt.second;
+            m_block_type[i] = static_cast<uint8_t>(type);
             if (m_bottom.size() < offset + size_in_bits) {
                 m_bottom.resize(m_bottom.size() * 2 + size_in_bits);
             }
-
-            for (size_t i=1; i<data.size(); i++) {
-                if (data[i] == data[i-1]) {
-                    std::cout << "error: equal data encoded i="<<i<< " d[i]="<<data[i]<< " d[i-1]="<<data[i-1] << std::endl;
-                }
-            }
-
             switch (type) {
                 case hyb_sd_blocktype::BV:
-                    written_bits = hyb_sd_block_support_bv<t_block_size>::serialize(m_bottom, offset, data, u);
+                    written_bits = hyb_sd_block_bv<t_block_size>::serialize(m_bottom, offset, data, u);
                     break;
                 case hyb_sd_blocktype::EF:
-                    written_bits = hyb_sd_block_support_ef<t_block_size>::serialize(m_bottom, offset, data, u);
+                    written_bits = hyb_sd_block_ef<t_block_size>::serialize(m_bottom, offset, data, u);
                     break;
                 case hyb_sd_blocktype::FULL:
                     /* nothing to store */
+                    break;
+                case hyb_sd_blocktype::RL:
+                    written_bits = hyb_sd_block_rl<t_block_size>::serialize(m_bottom, offset, data, u);
                     break;
             }
             return written_bits;
@@ -477,7 +695,7 @@ class hyb_sd_vector
                 if (bv[i] == 1) {
                     last_one = i;
                     if (++one_found == t_block_size) {
-                        top_lvl.push_back(i);
+                        top_lvl.push_back(i-t_block_size*top_lvl.size());
                         one_found = 0;
                     }
                 }
@@ -488,9 +706,10 @@ class hyb_sd_vector
 
             // (2) bottom level
             m_block_start.resize(num_blocks + 1);
+            m_block_type.resize(num_blocks);
             size_type value_offset = 0;
             size_type written_bits = 0;
-            sdsl::int_vector<64> tmp_data(t_block_size);
+            int_vector<64> tmp_data(t_block_size);
             size_t j = 0;
             for (size_type i = 0; i < num_blocks; i++) {
                 m_block_start[i] = written_bits;
@@ -502,21 +721,15 @@ class hyb_sd_vector
                         if (bv[j] == 1) {
                             tmp_data[one_found++] = j - value_offset;
                         }
-                    }
-//                else if ( j == last_one+1 ) {
-//                    tmp_data[one_found] = m_size - value_offset;
-//                    one_found++;
-//                }
-                    else {
+                    } else {
                         tmp_data[one_found] = std::max(m_size-value_offset, tmp_data[one_found - 1] + 1);
-//                    std::cout<<"pad "<<tmp_data[one_found]+value_offset<<std::endl;
                         one_found++;
                     }
                     ++j;
                 }
                 // (2b) compress block
                 size_type block_universe = top_lvl[i + 1] - top_lvl[i];
-                auto wb = compress_block(m_block_start[i], tmp_data, block_universe);
+                auto wb = compress_block(i, tmp_data, block_universe);
                 written_bits += wb;
             }
             m_block_start[num_blocks] = written_bits;
@@ -528,7 +741,7 @@ class hyb_sd_vector
             m_top_rank = decltype(m_top_rank)(&m_top);
 
             // (4) bit compress pointers
-            sdsl::util::bit_compress(m_block_start);
+            util::bit_compress(m_block_start);
         }
 //*/
 
@@ -570,11 +783,12 @@ class hyb_sd_vector
 
             // (2) bottom level
             m_block_start.resize(num_blocks + 1);
+            m_block_type.resize(num_blocks);
 //std::cout<<"num_blocks="<<num_blocks<<std::endl;
             itr = begin;
             size_type value_offset = 0;
             size_type written_bits = 0;
-            sdsl::int_vector<64> tmp_data(t_block_size);
+            int_vector<64> tmp_data(t_block_size);
             for (size_type i = 0; i < num_blocks; i++) {
                 m_block_start[i] = written_bits;
                 // (2a) compute block data
@@ -591,7 +805,7 @@ class hyb_sd_vector
                 // (2b) compress block
                 size_type block_universe = top_lvl[i + 1] - top_lvl[i];
                 // std::cout << "compress block " << i << std::endl;
-                auto wb = compress_block(m_block_start[i], tmp_data, block_universe);
+                auto wb = compress_block(i, tmp_data, block_universe);
                 written_bits += wb;
             }
             m_block_start[num_blocks] = written_bits;
@@ -603,7 +817,7 @@ class hyb_sd_vector
             m_top_rank = decltype(m_top_rank)(&m_top);
 
             // (4) bit compress pointers
-            sdsl::util::bit_compress(m_block_start);
+            util::bit_compress(m_block_start);
 //std::cout<<"bye hyb_sd"<<std::endl;
         }
 
@@ -626,19 +840,27 @@ class hyb_sd_vector
                 return res;
 
             auto u = m_top_sel(block_id + 2) - top_value;
+            /*
             auto bt = determine_block_type(u);
             auto block_type = bt.first;
+            */
+
+            auto block_type = static_cast<hyb_sd_blocktype>(m_block_type[block_id]);
             size_type block_offset = m_block_start[block_id];
 
             switch (block_type) {
                 case hyb_sd_blocktype::BV:
-                    res += hyb_sd_block_support_bv<t_block_size>::select_1(m_bottom, block_offset, in_block_offset, u);
+                    res += hyb_sd_block_bv<t_block_size>::select_1(m_bottom, block_offset, in_block_offset, u);
                     break;
                 case hyb_sd_blocktype::EF:
-                    res += hyb_sd_block_support_ef<t_block_size>::select_1(m_bottom, block_offset, in_block_offset, u);
+                    res += hyb_sd_block_ef<t_block_size>::select_1(m_bottom, block_offset, in_block_offset, u);
                     break;
                 case hyb_sd_blocktype::FULL:
-                    res += hyb_sd_block_support_full<t_block_size>::select_1(m_bottom, block_offset, in_block_offset, u);
+                    res += hyb_sd_block_full<t_block_size>::select_1(m_bottom, block_offset, in_block_offset, u);
+                    break;
+                case hyb_sd_blocktype::RL:
+                    res += hyb_sd_block_rl<t_block_size>::select_1(m_bottom, m_block_start, block_id, in_block_offset, u);
+//                    res += hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     break;
             }
             return res;
@@ -660,22 +882,32 @@ class hyb_sd_vector
             if (in_block_i == 0)
                 return res;
 
+            auto block_type = static_cast<hyb_sd_blocktype>(m_block_type[block_id]);
+            if (block_type == hyb_sd_blocktype::FULL) {
+                return res + hyb_sd_block_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, 0);
+            }
+
             auto u = m_top_sel(block_id + 2) - top_value;
-            auto bt = determine_block_type(u);
-            auto block_type = bt.first;
+//            auto bt = determine_block_type(u);
+//            auto block_type = bt.first;
             size_type block_offset = m_block_start[block_id];
+
             switch (block_type) {
                 case hyb_sd_blocktype::BV:
 //             std::cout << "BV" << std::endl;
-                    res += hyb_sd_block_support_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
+                    res += hyb_sd_block_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     break;
                 case hyb_sd_blocktype::EF:
 //             std::cout << "EF" << std::endl;
-                    res += hyb_sd_block_support_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
+                    res += hyb_sd_block_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     break;
                 case hyb_sd_blocktype::FULL:
 //             std::cout << "FULL" << std::endl;
-                    res += hyb_sd_block_support_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
+                    res += hyb_sd_block_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
+                    break;
+                case hyb_sd_blocktype::RL:
+//             std::cout << "RL" << std::endl;
+                    res += hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     break;
             }
             return res;
@@ -714,29 +946,47 @@ class hyb_sd_vector
                 return {r, rank_1(ij[1])}; // TODO: can still be optimized
             }
 
+            auto block_type = static_cast<hyb_sd_blocktype>(m_block_type[block_id]);
+            if (block_type == hyb_sd_blocktype::FULL and in_block_j < t_block_size) {
+                return {r+hyb_sd_block_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, 0),
+                        r+hyb_sd_block_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, 0)
+                       };
+            }
+
             auto u = m_top_sel(block_id + 2) - top_value;
-            auto bt = determine_block_type(u);
-            auto block_type = bt.first;
+//            auto bt = determine_block_type(u);
+//            auto block_type = bt.first;
             size_type block_offset = m_block_start[block_id];
             std::array<size_type, 2> res {r,r};
 
             switch (block_type) {
                 case hyb_sd_blocktype::BV:
-                    res[0] += hyb_sd_block_support_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
+                    res[0] += hyb_sd_block_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     if (in_block_j < u) {
-                        res[1] += hyb_sd_block_support_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, u);
+                        res[1] += hyb_sd_block_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, u);
                     }
                     break;
                 case hyb_sd_blocktype::EF:
-                    res[0] += hyb_sd_block_support_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
+                    res[0] += hyb_sd_block_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     if (in_block_j < u) {
-                        res[1] += hyb_sd_block_support_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, u);
+                        res[1] += hyb_sd_block_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, u);
                     }
                     break;
                 case hyb_sd_blocktype::FULL:
-                    res[0] += hyb_sd_block_support_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
+                    res[0] += hyb_sd_block_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     if (in_block_j < u) {
-                        res[1] += hyb_sd_block_support_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, u);
+                        res[1] += hyb_sd_block_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, u);
+                    }
+                    break;
+                case hyb_sd_blocktype::RL:
+                    if (in_block_j >= u) {
+                        res[0] += hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
+                    } else {
+                        res[0] += hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
+                        res[1] += hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, u);
+                        //    auto in_block_rank = hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, {in_block_i, in_block_j}, u);
+                        //    res[0] += in_block_rank[0];
+                        //    res[1] += in_block_rank[1];
                     }
                     break;
             }
@@ -772,8 +1022,24 @@ class hyb_sd_vector
             written_bytes += m_top.serialize(out, child, "top");
             written_bytes += m_top_sel.serialize(out, child, "top_sel");
             written_bytes += m_top_rank.serialize(out, child, "top_rank");
-            written_bytes += m_bottom.serialize(out, child, "bottom");
+            //written_bytes += m_bottom.serialize(out, nullptr, "bottom");
+            auto bottom_bytes = m_bottom.serialize(out, nullptr, "bottom");
+            {
+                structure_tree_node* bottom_child = structure_tree::add_child(child, "bottom", util::class_name(m_bottom));
+                std::array<size_type,4> written_bits = {0,0,0,0};
+                for (size_t i=1; i<m_block_start.size(); ++i) {
+                    written_bits[m_block_type[i-1]] += m_block_start[i]-m_block_start[i-1];
+                }
+                std::vector<std::string> names = {"EF","BV","FULL","RL"};
+                for (size_t i=0; i<written_bits.size(); ++i) {
+                    structure_tree_node* block_child = structure_tree::add_child(bottom_child, names[i], util::class_name(m_bottom));
+                    structure_tree::add_size(block_child, (written_bits[i]+7)/8);
+                }
+                structure_tree::add_size(bottom_child, bottom_bytes);
+            }
+            written_bytes += bottom_bytes;
             written_bytes += m_block_start.serialize(out, child, "block_start");
+            written_bytes += m_block_type.serialize(out, child, "block_type");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -790,6 +1056,7 @@ class hyb_sd_vector
             m_top_rank.set_vector(&m_top);
             m_bottom.load(in);
             m_block_start.load(in);
+            m_block_type.load(in);
         }
 
         void swap(hyb_sd_vector& v)
@@ -801,6 +1068,7 @@ class hyb_sd_vector
             util::swap_support(m_top_rank, v.m_top_rank, &m_top, &(v.m_top));
             m_bottom.swap(v.m_bottom);
             m_block_start.swap(v.m_block_start);
+            m_block_type.swap(v.m_block_type);
         }
 
         iterator begin() const

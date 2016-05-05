@@ -140,6 +140,18 @@ class elias_delta
         */
         static void encode(uint64_t x, uint64_t*& z, uint8_t& offset);
 
+
+        static uint64_t decode(const uint64_t*& z, uint8_t& offset)
+        {
+            size_type len_1_len;
+            len_1_len = bits::read_unary_and_move(z, offset); // read length of length of x
+            if (!len_1_len) {
+                return 1ULL;
+            }
+            size_type len   =  bits::read_int_and_move(z, offset, len_1_len) + (1ULL << len_1_len);
+            return bits::read_int_and_move(z, offset, len-1) + (len-1<64) * (1ULL << (len-1));
+        }
+
         template<class int_vector>
         static uint64_t* raw_data(int_vector& v)
         {

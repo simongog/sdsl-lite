@@ -84,6 +84,7 @@ class uef_psi_support
         uef_psi_support(int_vector_buffer<>& psi_buf, const t_csa* csa)
         {
 //            std::cout<<"Hello!!!!"<<std::endl;
+            g_saved_bits=0;
             set_vector(csa);
             const auto& C = m_csa->C;
 //            std::cout<<"C.size()="<<C.size()<<std::endl;
