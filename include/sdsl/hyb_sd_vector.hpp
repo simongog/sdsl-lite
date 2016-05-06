@@ -138,7 +138,7 @@ inline uint64_t sel(const uint64_t* word, uint64_t idx, uint64_t i)
  * \param i    i
  * \return The absolut position (in bits) of the i-th unset bit (\f$ i>0 \f$ from idx
  */
-inline uint64_t sel0(const uint64_t* word, uint64_t idx, uint64_t i, uint64_t max_considered)
+inline uint64_t sel0(const uint64_t* word, uint64_t idx, uint64_t i)
 {
     //    std::cout<<"cnt("<<idx<<", "<<i<<")"<<std::endl;
     word += (idx >> 6);
@@ -151,9 +151,6 @@ inline uint64_t sel0(const uint64_t* word, uint64_t idx, uint64_t i, uint64_t ma
 
     while (cnt + word_cnt < i) {
         cnt += word_cnt;
-        if (considered > max_considered) {
-            return std::numeric_limits<uint64_t>::max();
-        }
         res = considered;
         considered += 64;
         w = (~(*(++word)));
@@ -162,9 +159,6 @@ inline uint64_t sel0(const uint64_t* word, uint64_t idx, uint64_t i, uint64_t ma
     // cnt < i and cnt+word_cnt >= i
     // add select (i-cnt) to res
     res += bits::sel(w, i - cnt);
-    if (res  > max_considered) {
-        return std::numeric_limits<uint64_t>::max();
-    }
     return res;
 }
 
@@ -196,7 +190,8 @@ class hyb_sd_block_bv
             return sel(bv.data(), offset, i + 1) - offset;
         }
 
-        static size_type rank_1(const bit_vector& bv, const int_vector<>& block_start, size_type block_id, size_type i, size_type)
+        static size_type
+        rank_1(const bit_vector& bv, const int_vector<>& block_start, size_type block_id, size_type i, size_type)
         {
             auto offset = block_start[block_id];
             auto next_offset = block_start[block_id+1];
@@ -204,6 +199,22 @@ class hyb_sd_block_bv
                 return t_block_size;
             return cnt<t_block_size>(bv.data(), offset, i);
         }
+
+        static std::array<size_type,2>
+        rank_1(const bit_vector& bv, const int_vector<>& block_start, size_type block_id, const std::array<size_type,2>& ij, size_type)
+        {
+            auto offset = block_start[block_id];
+            auto next_offset = block_start[block_id+1];
+            if (ij[0] > next_offset-offset) {
+                return {t_block_size,t_block_size};
+            }
+            auto resi =  cnt<t_block_size>(bv.data(), offset, ij[0]);
+            if (ij[1] > next_offset-offset) {
+                return {resi, t_block_size};
+            }
+            return {resi, resi+cnt<t_block_size>(bv.data(), offset+ij[0], ij[1]-ij[0])};
+        }
+
 };
 
 
@@ -255,27 +266,28 @@ class hyb_sd_block_rl
                     g_saved_bits += t_coder::encoding_length(end-1-begin);
                 }
             }
-
-            if (bv!=nullptr) {
-//                std::cout<<"Checking block "<<std::endl;
-//                std::cout<<"rl_bits="<<rl_bits<<std::endl;
-//                std::cout<<"data="<<data<<std::endl;
-                in_word_offset = offset % 64;
-                data_ptr = bv->data() + (offset / 64);
-                auto end_offset = offset + rl_bits;
-                auto temp = decode(data_ptr, in_word_offset, bv->data() + (end_offset/64), end_offset%64);
-                if (data.size() != temp.size()) {
-                    std::cout<<"Error in RL block; size is different!!!"<<std::endl;
-                    throw std::logic_error("error in RL block");
-                }
-                for (size_t i=0; i<data.size(); ++i) {
-                    if (data[i]!=temp[i]) {
-                        std::cout<<"Error in RL block; decoded value is different!!!"<<std::endl;
-                        std::cout<<"data["<<i<<"]="<< data[i] <<" != "<<temp[i]<<" = temp[i]"<<std::endl;
-                        throw std::logic_error("error in RL block");
-                    }
-                }
-            }
+            /*
+                        if ( bv!=nullptr ) {
+            //                std::cout<<"Checking block "<<std::endl;
+            //                std::cout<<"rl_bits="<<rl_bits<<std::endl;
+            //                std::cout<<"data="<<data<<std::endl;
+                            in_word_offset = offset % 64;
+                            data_ptr = bv->data() + (offset / 64);
+                            auto end_offset = offset + rl_bits;
+                            auto temp = decode(data_ptr, in_word_offset, bv->data() + (end_offset/64), end_offset%64);
+                            if ( data.size() != temp.size() ){
+                                std::cout<<"Error in RL block; size is different!!!"<<std::endl;
+                                throw std::logic_error("error in RL block");
+                            }
+                            for(size_t i=0; i<data.size(); ++i){
+                                if(data[i]!=temp[i]) {
+                                    std::cout<<"Error in RL block; decoded value is different!!!"<<std::endl;
+                                    std::cout<<"data["<<i<<"]="<< data[i] <<" != "<<temp[i]<<" = temp[i]"<<std::endl;
+                                    throw std::logic_error("error in RL block");
+                                }
+                            }
+                        }
+            */
             return rl_bits;
         }
 
@@ -330,7 +342,6 @@ class hyb_sd_block_rl
 
         static size_type rank_1(const bit_vector& bv, const int_vector<>& block_start, size_type block_id, size_type i, size_type)
         {
-
             auto abs_offset = block_start[block_id];
             auto data_ptr = bv.data()+(abs_offset/64);
             uint8_t offset = abs_offset%64;
@@ -343,24 +354,22 @@ class hyb_sd_block_rl
             while (res < t_block_size and i > data_res) {
                 if (data_ptr > data_ptr_end or (data_ptr == data_ptr_end and offset >= offset_end)) {
                     uint64_t len = t_block_size - res;
-                    if (i > data_res + len) {
-                        data_res += len;
+                    data_res += len;
+                    if (i > data_res) {
                         res += len;
-                    } else { // i <= data_res + len and i > data_res
-                        uint64_t gap = i - data_res;
-                        data_res += gap;
+                    } else { // i <= data_res and i > data_res - len
+                        uint64_t gap = i - (data_res - len);
                         res += gap;
                     }
                 } else {
                     uint64_t delta = t_coder::decode(data_ptr,offset);
                     if (delta == 1) {   // encoded run of ones of length >= 1
                         uint64_t len = t_coder::decode(data_ptr, offset);
-                        if (i > data_res + len) {
-                            data_res += len;
+                        data_res += len;
+                        if (i > data_res) {
                             res += len;
-                        } else { // i <= data_res + len and i > data_res
-                            uint64_t gap = i - data_res;
-                            data_res += gap;
+                        } else { // i <= data_res and i > data_res - len
+                            uint64_t gap = i - (data_res - len);
                             res += gap;
                         }
                     } else { // single delta
@@ -375,6 +384,81 @@ class hyb_sd_block_rl
 //            }
             return res;
         }
+
+        static std::array<size_type,2>
+        rank_1(const bit_vector& bv, const int_vector<>& block_start, size_type block_id, const std::array<size_type,2>& ij, size_type)
+        {
+            auto abs_offset = block_start[block_id];
+            auto data_ptr = bv.data()+(abs_offset/64);
+            uint8_t offset = abs_offset%64;
+            auto abs_offset_end = block_start[block_id+1];
+            auto data_ptr_end = bv.data()+(abs_offset_end/64);
+            uint8_t offset_end = abs_offset_end%64;
+
+            uint64_t data_res = 0;
+            std::array<size_type,2> res = {0,0}; // data[0]=0, now decode for pos > 0
+            size_t k=0;
+            for (; k<2; ++k) {
+                while (res[k] < t_block_size and ij[k] > data_res) {
+                    if (data_ptr > data_ptr_end or (data_ptr == data_ptr_end and offset >= offset_end)) {
+                        uint64_t len = t_block_size - res[k];
+                        data_res += len;
+                        if (ij[k] > data_res) {
+                            res[k] += len;
+                        } else { // ij[k] <= data_res and i > data_res - len
+                            uint64_t gap = ij[k] - (data_res -len);
+                            res[k] += gap;
+                            if (k == 0) {
+                                if (ij[1] <= data_res) {
+                                    res[1] = res[0] + (ij[1]-ij[0]);
+                                    k = 3; break;
+                                } else {
+                                    res[1] = res[0] - gap + len;
+                                }
+                            }
+                        }
+                    } else {
+                        uint64_t delta = t_coder::decode(data_ptr,offset);
+                        if (delta == 1) {   // encoded run of ones of length >= 1
+                            uint64_t len = t_coder::decode(data_ptr, offset);
+                            data_res += len;
+                            if (ij[k] > data_res) {
+                                res[k] += len;
+                            } else { // ij[k] <= data_res and i > data_res-len
+                                uint64_t gap = ij[k] - (data_res-len);
+                                res[k] += gap;
+                                if (k == 0) {
+                                    if (ij[1] <= data_res) {
+                                        res[1] = res[0] + (ij[1]-ij[0]);
+                                        k = 3; break;
+                                    } else {
+                                        res[1] = res[0] - gap + len;
+                                    }
+                                }
+                            }
+                        } else { // single delta
+                            data_res += delta;
+                            ++res[k];
+                        }
+                    }
+                }
+                if (k==0) {
+                    res[1]= std::max(res[0], res[1]);
+                }
+            }
+            /*
+                        std::array<size_type,2> check = { rank_1(bv, block_start, block_id, ij[0], 0),
+                                                          rank_1(bv, block_start, block_id, ij[1], 0)};
+                        if ( res != check ){
+                            std::cerr<<"res!=check"<<std::endl;
+                            std::cout<<"res=["<<res[0]<<","<<res[1]<<"] != ["<<check[0]<<","<<check[1]<<"] k="<<k << std::endl;
+            //                throw std::logic_error("check failed");
+                            return check;
+                        }
+            */
+            return res;
+        }
+
 
 
         static size_type
@@ -534,10 +618,11 @@ class hyb_sd_block_ef
             size_type hi_size = next_offset - hi_part_offset;
 
             size_type high_val = (i >> width_low);
-            size_type local_sel = sel0(bv.data(), hi_part_offset, high_val + 1, hi_size);
-            if (local_sel == std::numeric_limits<uint64_t>::max()) {
+            size_type zeros_in_high = hi_size - t_block_size;
+            if (zeros_in_high < high_val+1) {
                 return t_block_size;
             }
+            size_type local_sel = sel0(bv.data(), hi_part_offset, high_val + 1);
 
             size_type sel_high = local_sel;
             size_type rank_low = sel_high - high_val;
@@ -560,6 +645,73 @@ class hyb_sd_block_ef
                 low_part_in_word_offset = low_part_offset % 64;
             } while (bv[hi_part_offset + sel_high] and bits::read_int(low_part_data_ptr, low_part_in_word_offset, width_low) >= val_low);
             return rank_low + 1;
+        }
+
+        static std::array<size_type,2>
+        rank_1(const bit_vector& bv, const int_vector<>& block_start, size_type block_id, std::array<size_type,2> ij, size_type u)
+        {
+            auto start_offset = block_start[block_id];
+            auto next_offset = block_start[block_id + 1];
+
+            uint8_t logu = bits::hi(u) + 1;
+            uint8_t logm = bits::hi(t_block_size) + 1;
+            if (logm == logu)
+                logm--;
+            size_type width_low = logu - logm;
+
+            size_type hi_part_offset = start_offset + t_block_size * width_low;
+            size_type hi_size = next_offset - hi_part_offset;
+
+            std::array<size_type,2> high_val = {(ij[0] >> width_low),(ij[1] >> width_low)};
+
+            size_type zeros_in_high = hi_size - t_block_size;
+            if (zeros_in_high < high_val[0]+1) {    // check if there is a zero to select
+                return {t_block_size, t_block_size};
+            }
+            std::array<size_type,2> res = {0,0};
+            std::array<size_type,2> local_sel;
+            local_sel[0]= sel0(bv.data(), hi_part_offset, high_val[0] + 1);
+            if (high_val[0] == high_val[1]) {
+                local_sel[1] = local_sel[0];
+            } else { // now high_val[0] < high_val[1]
+                if (zeros_in_high < high_val[1]+1) {
+                    res  = {0, t_block_size}; // initialized second result
+                } else {
+                    if (zeros_in_high < high_val[1]+1) {    // check if there is a zero to select
+                        res = {0, t_block_size};
+                    } else { // there is something to select ;)
+                        size_type skip = local_sel[0]+1;
+                        local_sel[1] = sel0(bv.data(), hi_part_offset+skip, high_val[1]-high_val[0]) + skip;
+                    }
+                }
+            }
+
+            bool done1 = (res[1]==t_block_size);
+            for (size_t k=1-done1, s=done1; s<2; ++s, --k) {
+                size_type sel_high = local_sel[k];
+                size_type rank_low = sel_high - high_val[k];
+                if (0 == rank_low) {
+                    return {0,res[1]};
+                }
+
+                size_type low_part_offset = start_offset + rank_low * width_low;
+                size_type val_low = ij[k] & bits::lo_set[width_low];
+                auto low_part_data_ptr = bv.data() + (low_part_offset / 64);
+                uint8_t low_part_in_word_offset = low_part_offset % 64;
+
+                do {
+                    if (!sel_high) {
+                        return {0, res[1]};
+                    }
+                    --rank_low;
+                    --sel_high;
+                    low_part_offset -= width_low;
+                    low_part_data_ptr = bv.data() + (low_part_offset / 64);
+                    low_part_in_word_offset = low_part_offset % 64;
+                } while (bv[hi_part_offset + sel_high] and bits::read_int(low_part_data_ptr, low_part_in_word_offset, width_low) >= val_low);
+                res[k] = rank_low+1;
+            }
+            return res;
         }
 };
 
@@ -860,7 +1012,6 @@ class hyb_sd_vector
                     break;
                 case hyb_sd_blocktype::RL:
                     res += hyb_sd_block_rl<t_block_size>::select_1(m_bottom, m_block_start, block_id, in_block_offset, u);
-//                    res += hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     break;
             }
             return res;
@@ -961,15 +1112,21 @@ class hyb_sd_vector
 
             switch (block_type) {
                 case hyb_sd_blocktype::BV:
-                    res[0] += hyb_sd_block_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
-                    if (in_block_j < u) {
-                        res[1] += hyb_sd_block_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, u);
+                    if (in_block_j >= u) {
+                        res[0] += hyb_sd_block_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
+                    } else {
+                        auto in_block_rank = hyb_sd_block_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, {in_block_i, in_block_j}, u);
+                        res[0] += in_block_rank[0];
+                        res[1] += in_block_rank[1];
                     }
                     break;
                 case hyb_sd_blocktype::EF:
-                    res[0] += hyb_sd_block_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
-                    if (in_block_j < u) {
-                        res[1] += hyb_sd_block_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, u);
+                    if (in_block_j >= u) {
+                        res[0] += hyb_sd_block_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
+                    } else {
+                        auto in_block_rank = hyb_sd_block_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, {in_block_i, in_block_j}, u);
+                        res[0] += in_block_rank[0];
+                        res[1] += in_block_rank[1];
                     }
                     break;
                 case hyb_sd_blocktype::FULL:
@@ -982,11 +1139,9 @@ class hyb_sd_vector
                     if (in_block_j >= u) {
                         res[0] += hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     } else {
-                        res[0] += hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
-                        res[1] += hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, u);
-                        //    auto in_block_rank = hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, {in_block_i, in_block_j}, u);
-                        //    res[0] += in_block_rank[0];
-                        //    res[1] += in_block_rank[1];
+                        auto in_block_rank = hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, {in_block_i, in_block_j}, u);
+                        res[0] += in_block_rank[0];
+                        res[1] += in_block_rank[1];
                     }
                     break;
             }
