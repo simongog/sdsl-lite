@@ -60,6 +60,10 @@ class uef_psi_support
         typedef ptrdiff_t                                     difference_type;
         typedef csa_member_tag                                category;
         typedef int_alphabet_tag                              alphabet_category;
+        typedef wt_huff_int<bit_vector,
+                rank_support_v,
+                select_support_scan<1>,
+                select_support_scan<0>>           sml_wt_type;
 
     private:
         std::vector<t_hyb_vec>                         m_inc_seq;
@@ -67,7 +71,7 @@ class uef_psi_support
         std::vector<typename t_hyb_vec::select_1_type> m_inc_seq_sel;
         bit_vector                                     m_sml;        // indicates if a context is small or large
         rank_support_v5<>                              m_sml_rank;   // rank for m_sml
-        wt_huff_int<>                                  m_sml_wt;     // wt to get rank to index into
+        sml_wt_type                                    m_sml_wt;     // wt to get rank to index into
         std::vector<int_vector<>>                      m_sml_inc_seq;// small sequences
 
         const t_csa*                                   m_csa;
