@@ -65,6 +65,11 @@ class uef_psi_support
         std::vector<t_hyb_vec>                         m_inc_seq;
         std::vector<typename t_hyb_vec::rank_1_type>   m_inc_seq_rank;
         std::vector<typename t_hyb_vec::select_1_type> m_inc_seq_sel;
+        bit_vector                                     m_sml;        // indicates if a context is small or large
+        rank_support_v5<>                              m_sml_rank;   // rank for m_sml
+        wt_huff_int<>                                  m_sml_wt;     // wt to get rank to index into
+        std::vector<int_vector<>>                      m_sml_inc_seq;// small sequences
+
         const t_csa*                                   m_csa;
 
         void set_vector()
@@ -87,24 +92,56 @@ class uef_psi_support
             g_saved_bits=0;
             set_vector(csa);
             const auto& C = m_csa->C;
-//            std::cout<<"C.size()="<<C.size()<<std::endl;
-            m_inc_seq.resize(C.size()-1);
-            m_inc_seq_rank.resize(C.size()-1);
-            m_inc_seq_sel.resize(C.size()-1);
+
+            m_sml = bit_vector(C.size()-1,0);
+            const auto threshold = t_hyb_vec::block_size;
+// (1)      Determine the number of small blocks
             for (size_t i=0; i<C.size()-1; ++i) {
+                m_sml[i] = (C[i+1]-C[i]) < threshold;
+            }
+            m_sml_rank = decltype(m_sml_rank)(&m_sml);
+            size_t sigma_small = m_sml_rank(C.size()-1);
+            size_t sigma_large = C.size()-1-sigma_small;
+            {
+                int_vector<> sml(sigma_small, 0, bits::hi(threshold)+1);
+
+// (2)          Create a vector containing only the small context sizes
+                for (size_t i=0, ii=0; i<C.size()-1; ++i) {
+                    if (m_sml[i] == 1) {
+                        sml[ii++] = C[i+1]-C[i];
+                    }
+                }
+// (3)          Greate WT over sml
+                construct_im(m_sml_wt, sml, 0);
+            }
+// (4)      Initialize m_sml_inc_seq
+            m_sml_inc_seq.resize(threshold);
+            for (uint64_t cs=1; cs<threshold; ++cs) {
+                auto size = cs * m_sml_wt.rank(m_sml_wt.size(), cs);
+                m_sml_inc_seq[cs] = int_vector<>(size, 0, bits::hi(m_csa->size())+1);
+            }
+
+// (5)      Initialize m_inc_seq (to store the larger contexts
+            m_inc_seq.resize(sigma_large);
+            m_inc_seq_rank.resize(sigma_large);
+            m_inc_seq_sel.resize(sigma_large);
+            for (size_t i=0,i0=0,i1=0; i<C.size()-1; ++i) {
                 int_vector<> v(C[i+1]-C[i]);
-                //bit_vector bv(size(), 0);
                 for (size_t j=C[i]; j<C[i+1]; ++j) {
                     v[j-C[i]] = psi_buf[j];
-                    //bv[psi_buf[j]]=1;
                 }
-//                std::cout<<v<<std::endl;
-                t_hyb_vec tmp(v.begin(), v.end());
-//                t_hyb_vec tmp(bv);
-                m_inc_seq[i].swap(tmp);
+                if (m_sml[i]) {
+                    auto rank = m_sml_wt.rank(i1++, v.size());
+                    auto start_pos = rank * v.size();
+                    for (size_t j=0; j<v.size(); ++j) {
+                        m_sml_inc_seq[v.size()][j+start_pos] = v[j];
+                    }
+                } else {
+                    t_hyb_vec tmp(v.begin(), v.end());
+                    m_inc_seq[i0++].swap(tmp);
+                }
             }
             set_vector();
-//            std::cout<<"World!!!!"<<std::endl;
         }
 
         uef_psi_support& operator=(const uef_psi_support& psi)
@@ -113,6 +150,11 @@ class uef_psi_support
                 m_inc_seq      = psi.m_inc_seq;
                 m_inc_seq_rank = psi.m_inc_seq_rank;
                 m_inc_seq_sel  = psi.m_inc_seq_sel;
+                m_sml          = psi.m_sml;
+                m_sml_rank     = psi.m_sml_rank;
+                m_sml_rank.set_vector(&m_sml);
+                m_sml_wt       = psi.m_sml_wt;
+                m_sml_inc_seq  = psi.m_sml_inc_seq;
                 set_vector();
                 set_vector(psi.m_csa);
             }
@@ -125,6 +167,11 @@ class uef_psi_support
                 m_inc_seq      = std::move(psi.m_inc_seq);
                 m_inc_seq_rank = std::move(psi.m_inc_seq_rank);
                 m_inc_seq_sel  = std::move(psi.m_inc_seq_sel);
+                m_sml          = std::move(psi.m_sml);
+                m_sml_rank     = std::move(psi.m_sml_rank);
+                m_sml_rank.set_vector(&m_sml);
+                m_sml_wt       = std::move(psi.m_sml_wt);
+                m_sml_inc_seq  = std::move(psi.m_sml_inc_seq);
                 set_vector();
                 set_vector(psi.m_csa);
             }
@@ -138,35 +185,70 @@ class uef_psi_support
 
         uint64_t rank(uint64_t i, comp_char_type cc) const
         {
-            return m_inc_seq_rank[cc](i);
+            if (m_sml[cc]) {
+                auto cc_sml  = m_sml_rank(cc);
+                size_type cs = m_csa->C[cc+1] - m_csa->C[cc]; // context size
+                auto rank = m_sml_wt.rank(cc_sml, cs);
+                size_type begin = rank*cs;
+                for (size_t j=0; j<cs; ++j) {
+                    if (m_sml_inc_seq[cs][begin+j] >= i)
+                        return j;
+                }
+                return cs;
+            } else {
+                size_type cc_large  = cc - m_sml_rank(cc);
+                return m_inc_seq_rank[cc_large](i);
+            }
         }
 
         std::array<uint64_t,2> rank(std::array<uint64_t,2> ij, comp_char_type cc) const
         {
-            return m_inc_seq_rank[cc](ij);
+            if (m_sml[cc]) {
+                auto cc_sml  = m_sml_rank(cc);
+                size_type cs = m_csa->C[cc+1] - m_csa->C[cc]; // context size
+                auto rank = m_sml_wt.rank(cc_sml, cs);
+                size_type begin = rank*cs;
+                std::array<uint64_t,2> res = {0,0};
+                size_t j=0;
+                for (size_t k=0; k<2; ++k) {
+                    while (j < cs and  m_sml_inc_seq[cs][begin+j] < ij[k]) {
+                        ++j;
+                    }
+                    res[k] = j;
+                }
+                return res;
+            } else {
+                size_type cc_large  = cc - m_sml_rank(cc);
+                return m_inc_seq_rank[cc_large](ij);
+            }
         }
 
         uint64_t select(uint64_t i, comp_char_type cc) const
         {
-            return m_inc_seq_sel[cc](i);
+            if (m_sml[cc]) {
+                auto cc_sml  = m_sml_rank(cc);
+                size_type cs = m_csa->C[cc+1] - m_csa->C[cc]; // context size
+                auto rank = m_sml_wt.rank(cc_sml, cs);
+                return m_sml_inc_seq[cs][rank*cs+(i-1)];
+            } else {
+                size_type cc_large  = cc - m_sml_rank(cc);
+                return m_inc_seq_sel[cc_large](i);
+            }
         }
 
         value_type operator[](const size_type i) const
         {
             size_t cc = std::upper_bound(m_csa->C.begin(), m_csa->C.end(),i) - m_csa->C.begin() - 1;
             size_t cum_sum = m_csa->C[cc];
-            /*            if (50929==i){
-                            std::cout<<std::endl;
-                            std::cout<<"cc="<<cc<<" m_csa->sigma="<<(size_t)m_csa->sigma<<std::endl;
-                            std::cout<<"cum_sum="<<cum_sum<<" i-cum_sum="<< i-cum_sum <<std::endl;
-                            if ( cc+1 < m_csa->C.size() ) {
-                                std::cout<<"["<<cum_sum<<","<<m_csa->C[cc+1]-1<<"] of size "<<m_csa->C[cc+1]-cum_sum<<std::endl;
-                                std::cout<<"psi[i-1]="<<m_inc_seq_sel[cc](i-cum_sum)<<std::endl;
-                                std::cout<<"m_inc_seq[cc][157445]="<<m_inc_seq[cc][157445]<<std::endl;
-                            }
-                        }
-            */
-            return m_inc_seq_sel[cc](i-cum_sum+1);
+            if (m_sml[cc]) {
+                auto cc_sml  = m_sml_rank(cc);
+                size_type cs = m_csa->C[cc+1] - cum_sum; // context size
+                auto rank = m_sml_wt.rank(cc_sml, cs);
+                return m_sml_inc_seq[cs][rank*cs+(i-cum_sum)];
+            } else {
+                size_type cc_large  = cc - m_sml_rank(cc);
+                return m_inc_seq_sel[cc_large](i-cum_sum+1);
+            }
         }
 
         size_type size() const
@@ -182,6 +264,10 @@ class uef_psi_support
             written_bytes += sdsl::serialize(m_inc_seq, out, child, "inc_seq");
             written_bytes += sdsl::serialize(m_inc_seq_rank, out, child, "inc_seq_rank");
             written_bytes += sdsl::serialize(m_inc_seq_sel, out, child, "inc_seq_rank");
+            written_bytes += sdsl::serialize(m_sml, out, child, "sml");
+            written_bytes += sdsl::serialize(m_sml_rank, out, child, "sml_rank");
+            written_bytes += sdsl::serialize(m_sml_wt, out, child, "sml_wt");
+            written_bytes += sdsl::serialize(m_sml_inc_seq, out, child, "sml_inc_seq");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -192,6 +278,11 @@ class uef_psi_support
             sdsl::load(m_inc_seq, in);
             sdsl::load(m_inc_seq_rank, in);
             sdsl::load(m_inc_seq_sel, in);
+            sdsl::load(m_sml, in);
+            sdsl::load(m_sml_rank, in);
+            m_sml_rank.set_vector(&m_sml);
+            sdsl::load(m_sml_wt, in);
+            sdsl::load(m_sml_inc_seq, in);
             set_vector();
             set_vector(csa);
         }
@@ -202,6 +293,10 @@ class uef_psi_support
             m_inc_seq.swap(v.m_inc_seq);
             m_inc_seq_rank.swap(v.m_inc_seq_rank);
             m_inc_seq_sel.swap(v.m_inc_seq_sel);
+            m_sml.swap(v.m_sml);
+            util::swap_support(m_sml_rank, v.m_sml_rank, &m_sml, &(v.m_sml));
+            m_sml_wt.swap(v.m_sml_wt);
+            m_sml_inc_seq.swap(v.m_sml_inc_seq);
             set_vector();
         }
 
