@@ -777,6 +777,33 @@ class wt_pc
             return {ranges, std::move(res)};
         }
 
+        size_type
+        node_rank1(const node_type & v, size_type i) const {
+          // Get starting position rank
+          size_type v_sp_pos  = m_tree.bv_pos(v);
+          size_type v_sp_rank = m_tree.bv_pos_rank(v);
+          // TODO: BOUND CHECK: get node size by getting parents left and right children start positions (if any)
+          return m_bv_rank(v_sp_pos + i) - v_sp_rank;
+        }
+
+        size_type node_rank0(const node_type & v, size_type i) const {
+          return i - node_rank1(v, i);
+        }
+
+        size_type node_select1(const node_type &v, size_type i) const {
+          auto v_sp_pos   = m_tree.bv_pos(v);
+          auto v_sp_rank1 = m_tree.bv_pos_rank(v);
+          // TODO: BOUND CHECK: get node size by getting parents left and right children start positions (if any)
+          return m_bv_select1(i + v_sp_rank1) - v_sp_pos;
+        }
+
+        size_type node_select0(const node_type &v, size_type i) const {
+          auto v_sp_pos   = m_tree.bv_pos(v);
+          auto v_sp_rank0 = v_sp_pos - m_tree.bv_pos_rank(v);
+          // TODO: BOUND CHECK: get node size by getting parents left and right children start positions (if any)
+          return m_bv_select0(i + v_sp_rank0) - v_sp_pos;
+        }
+
         //! Returns for a range its left and right child ranges
         /*! \param v An inner node of an wavelet tree.
          *  \param r A ranges [s,e], such that [s,e] is
