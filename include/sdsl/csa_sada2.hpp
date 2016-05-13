@@ -61,9 +61,9 @@ class uef_psi_support
         typedef csa_member_tag                                category;
         typedef int_alphabet_tag                              alphabet_category;
         typedef wt_huff_int<bit_vector,
-                rank_support_v,
+                rank_support_v<>,
                 select_support_scan<1>,
-                select_support_scan<0>>           sml_wt_type;
+                select_support_scan<0>>                sml_wt_type;
 
     private:
         std::vector<t_hyb_vec>                         m_inc_seq;
@@ -200,6 +200,7 @@ class uef_psi_support
                 }
                 return cs;
             } else {
+//                std::cout<<"single_rank: for i="<<i<<std::endl;
                 size_type cc_large  = cc - m_sml_rank(cc);
                 return m_inc_seq_rank[cc_large](i);
             }
@@ -210,8 +211,8 @@ class uef_psi_support
             if (m_sml[cc]) {
                 auto cc_sml  = m_sml_rank(cc);
                 size_type cs = m_csa->C[cc+1] - m_csa->C[cc]; // context size
-                auto rank = m_sml_wt.rank(cc_sml, cs);
-                size_type begin = rank*cs;
+                auto rnk = m_sml_wt.rank(cc_sml, cs);
+                size_type begin = rnk*cs;
                 std::array<uint64_t,2> res = {0,0};
                 size_t j=0;
                 for (size_t k=0; k<2; ++k) {
@@ -220,10 +221,21 @@ class uef_psi_support
                     }
                     res[k] = j;
                 }
+//                std::array<uint64_t,2> res2 = {rank(ij[0],cc),rank(ij[1],cc)};
+//                if ( res != res2 ){
+//                    std::cout<<"double rank: res=["<<res[0]<<","<<res[1]<<"] != ";
+//                    std::cout<<"["<<res2[0]<<","<<res2[1]<<"] for"<<
+//                        ij[0]<<" and "<<ij[1]<<std::endl;
+//                }
                 return res;
             } else {
                 size_type cc_large  = cc - m_sml_rank(cc);
-                return m_inc_seq_rank[cc_large](ij);
+                auto res = m_inc_seq_rank[cc_large](ij);
+//                std::array<uint64_t,2> res2 = {rank(ij[0],cc),rank(ij[1],cc)};
+//                std::cout<<"_double rank: res=["<<res[0]<<","<<res[1]<<"] != ";
+//                std::cout<<"["<<res2[0]<<","<<res2[1]<<"] for "<<
+//                    ij[0]<<" and "<<ij[1]<<std::endl;
+                return res;
             }
         }
 

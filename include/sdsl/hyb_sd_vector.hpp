@@ -605,6 +605,7 @@ class hyb_sd_block_ef
 
         static size_type rank_1(const bit_vector& bv, const int_vector<>& block_start, size_type block_id, size_type i, size_type u)
         {
+//std::cout<<">>>>>>>>rank_1("<<i<<")!!!"<<std::endl;
             auto offset = block_start[block_id];
             auto next_offset = block_start[block_id + 1];
 
@@ -635,6 +636,7 @@ class hyb_sd_block_ef
             auto low_part_data_ptr = bv.data() + (low_part_offset / 64);
             uint8_t low_part_in_word_offset = low_part_offset % 64;
 
+//std::cout<<"_sel_high="<<sel_high<<" rank_low="<<rank_low<<std::endl;
             do {
                 if (!sel_high)
                     return 0;
@@ -643,6 +645,12 @@ class hyb_sd_block_ef
                 low_part_offset -= width_low;
                 low_part_data_ptr = bv.data() + (low_part_offset / 64);
                 low_part_in_word_offset = low_part_offset % 64;
+//std::cout<<">>sel_high "<<bv[hi_part_offset+sel_high];
+//if ( bv[hi_part_offset+sel_high] ) {
+//    std::cout<<" i="<<i<<" "<< (bits::read_int(low_part_data_ptr, low_part_in_word_offset, width_low)|(high_val<<width_low))
+//             <<" rank_low="<<rank_low;
+//}
+//std::cout<<std::endl;
             } while (bv[hi_part_offset + sel_high] and bits::read_int(low_part_data_ptr, low_part_in_word_offset, width_low) >= val_low);
             return rank_low + 1;
         }
@@ -665,6 +673,10 @@ class hyb_sd_block_ef
             std::array<size_type,2> high_val = {(ij[0] >> width_low),(ij[1] >> width_low)};
 
             size_type zeros_in_high = hi_size - t_block_size;
+//std::cout<<"zeros_in_high="<<zeros_in_high<<std::endl;
+//std::cout<<"hi_size="<<hi_size<<std::endl;
+//std::cout<<"high_val[0]+1="<<high_val[0]+1<<std::endl;
+//std::cout<<"high_val[1]+1="<<high_val[1]+1<<std::endl;
             if (zeros_in_high < high_val[0]+1) {    // check if there is a zero to select
                 return {t_block_size, t_block_size};
             }
@@ -681,21 +693,25 @@ class hyb_sd_block_ef
                         res = {0, t_block_size};
                     } else { // there is something to select ;)
                         size_type skip = local_sel[0]+1;
+//std::cout<<"skip="<<skip<<std::endl;
                         local_sel[1] = sel0(bv.data(), hi_part_offset+skip, high_val[1]-high_val[0]) + skip;
                     }
                 }
             }
 
             bool done1 = (res[1]==t_block_size);
+//            std::cout<<"done1="<<done1<<std::endl;
             for (size_t k=1-done1, s=done1; s<2; ++s, --k) {
                 size_type sel_high = local_sel[k];
                 size_type rank_low = sel_high - high_val[k];
+//                std::cout<<"k="<<k<<" sel_high="<<sel_high<<" rank_low="<<rank_low<<std::endl;
                 if (0 == rank_low) {
                     return {0,res[1]};
                 }
 
                 size_type low_part_offset = start_offset + rank_low * width_low;
                 size_type val_low = ij[k] & bits::lo_set[width_low];
+//std::cout<<"val_low["<<k<<"]="<<val_low<<std::endl;
                 auto low_part_data_ptr = bv.data() + (low_part_offset / 64);
                 uint8_t low_part_in_word_offset = low_part_offset % 64;
 
@@ -708,8 +724,15 @@ class hyb_sd_block_ef
                     low_part_offset -= width_low;
                     low_part_data_ptr = bv.data() + (low_part_offset / 64);
                     low_part_in_word_offset = low_part_offset % 64;
+//std::cout<<"sel_high "<<bv[hi_part_offset+sel_high];
+//if ( bv[hi_part_offset+sel_high] ) {
+//    std::cout<<" ij[k]="<<ij[k]<<" "<< (bits::read_int(low_part_data_ptr, low_part_in_word_offset, width_low)|(high_val[k]<<width_low))
+//             <<" rank_low="<<rank_low;
+//}
+//std::cout<<std::endl;
                 } while (bv[hi_part_offset + sel_high] and bits::read_int(low_part_data_ptr, low_part_in_word_offset, width_low) >= val_low);
                 res[k] = rank_low+1;
+//std::cout<<"res["<<k<<"]="<<res[k]<<std::endl;
             }
             return res;
         }
@@ -1019,22 +1042,30 @@ class hyb_sd_vector
 
         size_type rank_1(size_type i) const
         {
+//std::cout<<"!!! rank_1("<<i<<")"<<std::endl;
             if (i > m_size or m_num_ones == 0) {
+//std::cout<<"!!! i > m_size "<<i<<" > "<<m_size<<std::endl;
                 return m_num_ones;
             }
             auto block_id = m_top_rank(i);
-            if (block_id == 0)
+            if (block_id == 0) {
+//std::cout<<"!!! block_id=0"<<std::endl;
                 return 0;
+            }
             block_id -= 1;
             size_type res = block_id * t_block_size;
             auto top_value = m_top_sel(block_id + 1);
             size_type in_block_i = i;
             in_block_i -= top_value;
-            if (in_block_i == 0)
+            if (in_block_i == 0) {
+//std::cout<<"!!! in_block_i=0"<<std::endl;
                 return res;
+            }
+// TODO: can we return res+in_block_i if top_value-i==in_block_i ???
 
             auto block_type = static_cast<hyb_sd_blocktype>(m_block_type[block_id]);
             if (block_type == hyb_sd_blocktype::FULL) {
+//std::cout<<"!!! hdb_sd_blocktype::FULL"<<std::endl;
                 return res + hyb_sd_block_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, 0);
             }
 
@@ -1045,19 +1076,19 @@ class hyb_sd_vector
 
             switch (block_type) {
                 case hyb_sd_blocktype::BV:
-//             std::cout << "BV" << std::endl;
+//             std::cout << "!!!BV" << std::endl;
                     res += hyb_sd_block_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     break;
                 case hyb_sd_blocktype::EF:
-//             std::cout << "EF" << std::endl;
+//                    std::cout << "!!!single EF in_block_i="<<in_block_i << std::endl;
                     res += hyb_sd_block_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     break;
                 case hyb_sd_blocktype::FULL:
-//             std::cout << "FULL" << std::endl;
+//             std::cout << "!!!FULL" << std::endl;
                     res += hyb_sd_block_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     break;
                 case hyb_sd_blocktype::RL:
-//             std::cout << "RL" << std::endl;
+//             std::cout << "!!!RL" << std::endl;
                     res += hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     break;
             }
@@ -1073,6 +1104,9 @@ class hyb_sd_vector
             // no we know ij[0] <= ij[1]
             if (ij[0] > m_size or m_num_ones == 0) {
                 return {m_num_ones, m_num_ones};
+            }
+            if (ij[1] > m_size or m_num_ones == 0) {
+                return {rank_1(ij[0]), m_num_ones};
             }
             auto block_id = m_top_rank(ij[0]);
             if (block_id == 0) {
@@ -1112,6 +1146,7 @@ class hyb_sd_vector
 
             switch (block_type) {
                 case hyb_sd_blocktype::BV:
+//                    std::cout<<"double rank_1 for BV"<<std::endl;
                     if (in_block_j >= u) {
                         res[0] += hyb_sd_block_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     } else {
@@ -1121,21 +1156,25 @@ class hyb_sd_vector
                     }
                     break;
                 case hyb_sd_blocktype::EF:
+//                    std::cout<<"double rank_1 for EF"<<std::endl;
                     if (in_block_j >= u) {
                         res[0] += hyb_sd_block_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     } else {
+//                        std::cout<<"call double"<<std::endl;
                         auto in_block_rank = hyb_sd_block_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, {in_block_i, in_block_j}, u);
                         res[0] += in_block_rank[0];
                         res[1] += in_block_rank[1];
                     }
                     break;
                 case hyb_sd_blocktype::FULL:
+//                    std::cout<<"double rank_1 for FULL"<<std::endl;
                     res[0] += hyb_sd_block_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     if (in_block_j < u) {
                         res[1] += hyb_sd_block_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_j, u);
                     }
                     break;
                 case hyb_sd_blocktype::RL:
+//                    std::cout<<"double rank_1 for RL"<<std::endl;
                     if (in_block_j >= u) {
                         res[0] += hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     } else {
