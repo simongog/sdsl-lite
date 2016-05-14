@@ -298,28 +298,42 @@ class csa_sada
         template<typename t_char>
         size_type rank_comp_bwt(size_type i, const t_char cc)const
         {
+//            std::cout<<"rank_comp_bwt("<<i<<" (cc="<<cc<<")"<<std::endl;
             if (i == 0)
                 return 0;
             assert(i <= size());
             const auto cc_begin = C[cc];   // begin of interval of context cc (inclusive)
             const auto cc_end   = C[cc+1]; // end of interval of context cc (exclusive)
             const size_type sd  = m_psi.get_sample_dens();
-            size_type s_begin   = (cc_begin+sd)/sd; // first sample after cc_begin
+            size_type s_begin   = (cc_begin+sd-1)/sd; // first sample at or after cc_begin
             size_type s_end     = (cc_end+sd-1)/sd;   // first sample at or after cc_end
+//            std::cout<<"cc_begin = "<<cc_begin<<" cc_end = "<<cc_end<<" cc_size="<<cc_end-cc_begin<<std::endl;
+//            std::cout<<"s_begin = "<<s_begin<<" s_end = "<<s_end<<std::endl;
+//            if(s_end - s_begin < 10){
+//                std::cout<<"samples in C range: ";
+//                for(size_t k=s_begin; k<s_end; ++k){
+//                    std::cout<<m_psi.sample(k)<<" (@ "<<s_begin*sd<<") ";
+//                }
+//                std::cout<<std::endl;
+//            }
 
             if (s_begin == s_end) {
                 // Case (1): No sample inside [cc_begin, cc_end)
                 //           => search in previous block (s_begin-1)
+//                std::cout<<"case (1)"<<std::endl;
             } else if (m_psi.sample(s_begin) >= i) {  // now s_begin < s_end
                 // Case (2): Some samples inside [cc_begin, cc_end)
                 //           and first sample already larger or equal to i
                 //           => search in previous block (s_begin-1)
+//                std::cout<<"case (2): "<<m_psi.sample(s_begin)<<" >= " << i << std::endl;
             } else { // still s_begin < s_end
                 // Case (3): Some samples inside [cc_begin, cc_end)
                 //           and first sample smaller than i
                 //           => binary search for first sample >= i
                 s_begin = upper_bound(s_begin, s_end, i-1);
                 //           => search in previous block (s_begin-1)
+//                std::cout<<"case (3): s_begin = " << s_begin << " (s_end=" << s_end <<" )"<< std::endl;
+//                std::cout<<">>>>> m_psi.sample(s_begin-1)="<<m_psi.sample(s_begin-1)<<std::endl;
             }
             s_begin -= 1;
             uint64_t smpl = m_psi.sample(s_begin);
@@ -332,6 +346,10 @@ class csa_sada
             size_t res = abs_decode_begin + skip - cc_begin;
 
             if ((s_begin+1)*sd < m_psi.size() and skip == 0 and smpl+sd == m_psi.sample(s_begin+1)) {
+//std::cout<<"!!!Special case"<<std::endl;
+//std::cout<<"s_begin="<<s_begin<<std::endl;
+//std::cout<<"abs_decode_begin="<<abs_decode_begin<<" cc_begin="<<cc_begin<<std::endl;
+//std::cout<<"RES="<<res + (i - smpl)<<" res="<<res<<" i="<<i<<" smpl="<<smpl<<std::endl;
                 return res + (i - smpl);
             }
 
@@ -351,6 +369,8 @@ class csa_sada
         template<typename t_char>
         std::tuple<size_type,size_type> double_rank_comp_bwt(size_type i, size_type j, const t_char cc)const
         {
+//            std::cout<<"double_rank_comp_bwt("<<i<<","<<j<<" (cc="<<cc<<")"<<std::endl;
+//            return std::make_tuple(rank_comp_bwt(i,cc), rank_comp_bwt(j,cc));
             if (i == 0)
                 return std::make_tuple(0, rank_comp_bwt(j,cc));
             assert(i <= size());
