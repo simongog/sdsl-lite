@@ -183,11 +183,11 @@ typename t_csa::size_type backward_search(
             l_res = c_begin;
             r_res = csa.C[cc+1] - 1;
         } else {
-            auto lr = csa.bwt.rank(std::array<typename t_csa::size_type,2> {l,r+1},c);
-            l_res = c_begin + lr[0];       // count c in bwt[0..l-1]
-            r_res = c_begin + lr[1] - 1;   // count c in bwt[0..r]
-//            l_res = c_begin + csa.bwt.rank(l, c); // count c in bwt[0..l-1]
-//            r_res = c_begin + csa.bwt.rank(r+1, c) - 1; // count c in bwt[0..r]
+//            auto lr = csa.bwt.rank(std::array<typename t_csa::size_type,2> {l,r+1},c);
+//            l_res = c_begin + lr[0];       // count c in bwt[0..l-1]
+//            r_res = c_begin + lr[1] - 1;   // count c in bwt[0..r]
+            l_res = c_begin + csa.bwt.rank(l, c); // count c in bwt[0..l-1]
+            r_res = c_begin + csa.bwt.rank(r+1, c) - 1; // count c in bwt[0..r]
         }
     }
     assert(r_res+1-l_res >= 0);
