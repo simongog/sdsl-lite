@@ -57,8 +57,7 @@ namespace sdsl
  */
 template<uint8_t  t_k,
          typename t_bv=bit_vector,
-         typename t_rank=typename t_bv::rank_1_type,
-         typename t_max_vec=dac_vector<>>
+         typename t_rank=typename t_bv::rank_1_type>
 class k2_treap
 {
         static_assert(t_k>1, "t_k has to be larger than 1.");
@@ -76,8 +75,7 @@ class k2_treap
         uint8_t                   m_t = 0;
         t_bv                      m_bp;
         t_rank                    m_bp_rank;
-        t_max_vec                 m_maxval;
-        std::vector<int_vector<>> m_coord;
+        std::vector<int_vector<>>   m_coord;
         int_vector<64>            m_level_idx;
 
         template<typename t_tv>
@@ -89,7 +87,7 @@ class k2_treap
             }
             using t_e = typename t_tv::value_type;
             auto tupmax = [](t_e a) {
-                return std::max(std::get<0>(a),std::get<1>(a));
+                return std::max(a.first,a.second);
             };
             auto max_it = std::max_element(std::begin(v), std::end(v), [&](t_e a, t_e b) {
                 return tupmax(a) < tupmax(b);
@@ -123,7 +121,6 @@ class k2_treap
                 m_bp = std::move(tr.m_bp);
                 m_bp_rank = std::move(tr.m_bp_rank);
                 m_bp_rank.set_vector(&m_bp);
-                m_maxval = std::move(tr.m_maxval);
                 m_coord = std::move(tr.m_coord);
                 m_level_idx = std::move(tr.m_level_idx);
             }
@@ -138,7 +135,6 @@ class k2_treap
                 m_bp = tr.m_bp;
                 m_bp_rank = tr.m_bp_rank;
                 m_bp_rank.set_vector(&m_bp);
-                m_maxval = tr.m_maxval;
                 m_coord = tr.m_coord;
                 m_level_idx = tr.m_level_idx;
             }
@@ -149,7 +145,12 @@ class k2_treap
         size_type
         size() const
         {
-            return m_maxval.size();
+            //FIXME: think about storing this separately
+            size_t size = 0;
+            for (uint i = 0; i < m_coord.size(); ++i) {
+                size += m_coord[i].size();
+            }
+            return size/2;
         }
 
         //! Swap operator
@@ -159,19 +160,17 @@ class k2_treap
                 std::swap(m_t, tr.m_t);
                 m_bp.swap(tr.m_bp);
                 util::swap_support(m_bp_rank, tr.m_bp_rank, &m_bp, &(tr.m_bp));
-                m_maxval.swap(tr.m_maxval);
                 m_coord.swap(tr.m_coord);
                 m_level_idx.swap(tr.m_level_idx);
             }
         }
 
         k2_treap(int_vector_buffer<>& buf_x,
-                 int_vector_buffer<>& buf_y,
-                 int_vector_buffer<>& buf_w)
+                 int_vector_buffer<>& buf_y)
         {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<>* t_buf_p;
-            std::vector<t_buf_p> bufs = {&buf_x, &buf_y, &buf_w};
+            std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
 
             auto max_element = [](int_vector_buffer<>& buf) {
                 uint64_t max_val = 0;
@@ -198,19 +197,19 @@ class k2_treap
             }
 
             if (precomp<t_k>::exp(res) <= std::numeric_limits<uint32_t>::max()) {
-                auto v = read<uint32_t,uint32_t,uint32_t>(bufs);
+                auto v = read<uint32_t,uint32_t>(bufs);
                 construct(v, buf_x.filename());
             } else {
-                auto v = read<uint64_t,uint64_t,uint64_t>(bufs);
+                auto v = read<uint64_t,uint64_t>(bufs);
                 construct(v, buf_x.filename());
             }
         }
 
-        template<typename t_x=uint64_t, typename t_y=uint64_t, typename t_w=uint64_t>
-        std::vector<std::tuple<t_x, t_y, t_w>>
+        template<typename t_x=uint64_t, typename t_y=uint64_t>
+        std::vector<std::pair<t_x, t_y>>
                                             read(std::vector<int_vector_buffer<>*>& bufs)
         {
-            typedef std::vector<std::tuple<t_x, t_y, t_w>> t_tuple_vec;
+            typedef std::vector<std::pair<t_x, t_y>> t_tuple_vec;
             t_tuple_vec v = t_tuple_vec(bufs[0]->size());
             for (uint64_t j=0; j<v.size(); ++j) {
                 std::get<0>(v[j]) = (*(bufs[0]))[j];
@@ -218,29 +217,27 @@ class k2_treap
             for (uint64_t j=0; j<v.size(); ++j) {
                 std::get<1>(v[j]) = (*(bufs[1]))[j];
             }
-            for (uint64_t j=0; j<v.size(); ++j) {
-                std::get<2>(v[j]) = (*(bufs[2]))[j];
-            }
+
             return v;
         }
 
 
-        template<typename t_x, typename t_y, typename t_w>
-        k2_treap(std::vector<std::tuple<t_x, t_y, t_w>>& v, std::string temp_file_prefix="")
+        template<typename t_x, typename t_y>
+        k2_treap(std::vector<std::pair<t_x, t_y>>& v, std::string temp_file_prefix="")
         {
             if (v.size() > 0) {
                 construct(v, temp_file_prefix);
             }
         }
 
-        template<typename t_x, typename t_y, typename t_w>
-        void construct(std::vector<std::tuple<t_x, t_y, t_w>>& v, std::string temp_file_prefix="")
+        template<typename t_x, typename t_y>
+        void construct(std::vector<std::pair<t_x, t_y>>& v, std::string temp_file_prefix="")
         {
             using namespace k2_treap_ns;
-            using t_e = std::tuple<t_x, t_y, t_w>;
+            using t_e = std::pair<t_x, t_y>;
             m_t = get_t(v);
             uint64_t M = precomp<t_k>::exp(t);
-            t_e MM = t_e(M,M,M);
+            t_e MM = t_e(M,M);
 
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
@@ -278,11 +275,12 @@ class k2_treap
                                       or precomp<t_k>::divexp(y1,l) != precomp<t_k>::divexp(y2,l);
                         });
                         auto max_it = std::max_element(sp, ep, [](t_e a, t_e b) {
-                            if (std::get<2>(a) != std::get<2>(b))
+                            /*if (std::get<2>(a) != std::get<2>(b))
                                 return std::get<2>(a) < std::get<2>(b);
-                            else if (std::get<0>(a) != std::get<0>(b))
-                                return std::get<0>(a) > std::get<0>(b);
-                            return std::get<1>(a) > std::get<1>(b);
+                            else */
+                            if (a.first != b.first)
+                                return a.first > b.first;
+                            return a.second > b.second;
                         });
                         if (l > 0) {
                             m_coord[l-1][2*cc]   = precomp<t_k>::modexp(std::get<0>(*max_it), l);
@@ -290,7 +288,8 @@ class k2_treap
                             ++cc;
                         }
 
-                        val_buf.push_back(std::get<2>(*max_it));
+                        //val_buf.push_back(std::get<2>(*max_it));
+                        //FIXME: whats going on here
                         *max_it = MM;
                         --ep;
                         std::swap(*max_it, *ep);
@@ -348,10 +347,6 @@ class k2_treap
                 }
             }
             {
-                int_vector_buffer<> val_r(val_file);
-                m_maxval = t_max_vec(val_r);
-            }
-            {
                 bit_vector _bp;
                 _bp.swap(bp);
                 m_bp = t_bv(_bp);
@@ -373,7 +368,6 @@ class k2_treap
             written_bytes += m_bp.serialize(out, child, "bp");
             written_bytes += m_bp_rank.serialize(out, child, "bp_rank");
             written_bytes += serialize_vector(m_coord, out, child, "coord");
-            written_bytes += m_maxval.serialize(out, child, "maxval");
             written_bytes += m_level_idx.serialize(out, child, "level_idx");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
@@ -388,14 +382,13 @@ class k2_treap
             m_bp_rank.set_vector(&m_bp);
             m_coord.resize(t);
             load_vector(m_coord, in);
-            m_maxval.load(in);
             m_level_idx.load(in);
         }
 
         node_type
         root() const
         {
-            return node_type(t, t_p(0,0), 0, m_maxval[0],
+            return node_type(t, t_p(0,0), 0,
                              t_p(m_coord[t-1][0], m_coord[t-1][1]));
         }
 
@@ -425,15 +418,13 @@ class k2_treap
                             auto _x = x + i*precomp<t_k>::exp(v.t-1);
                             auto _y = y + j*precomp<t_k>::exp(v.t-1);
 
-                            auto _max_v = v.max_v - m_maxval[rank];
                             auto _max_p = t_p(_x, _y);
                             if (v.t > 1) {
                                 auto y = rank-m_level_idx[v.t-1];
                                 _max_p = t_p(_x+m_coord[v.t-2][2*y],
                                              _y+m_coord[v.t-2][2*y+1]);
                             }
-                            res.emplace_back(v.t-1, t_p(_x,_y), rank*t_k*t_k,
-                                             _max_v, _max_p);
+                            res.emplace_back(v.t-1, t_p(_x,_y), rank*t_k*t_k, _max_p);
                         }
                     }
                 }

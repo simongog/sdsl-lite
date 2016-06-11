@@ -144,22 +144,18 @@ struct precomp<16> {
 template<uint8_t t_k>
 typename precomp<t_k>::impl precomp<t_k>::data;
 
-
-
 typedef std::complex<uint64_t> t_p;
 typedef t_p                    point_type;
-typedef t_p                    range_type;
 
 struct node_type {
     uint8_t  t;   // level; size of node 1<<t
     t_p      p;   // lower left corner
     uint64_t idx; // index in bp
-    uint64_t max_v; // maximal value
     t_p      max_p; // maximal point
 
     node_type() = default;
-    node_type(uint8_t _t, t_p _p, uint64_t _idx, uint64_t _max_v,
-              t_p _max_p) : t(_t), p(_p), idx(_idx), max_v(_max_v),
+    node_type(uint8_t _t, t_p _p, uint64_t _idx,
+              t_p _max_p) : t(_t), p(_p), idx(_idx),
         max_p(_max_p)
     {}
     node_type(node_type&&) = default;
@@ -169,9 +165,11 @@ struct node_type {
 
     bool operator<(const node_type& v) const
     {
+        //FIXME: check if this makes sense
+        /*
         if (max_v != v.max_v) {
             return max_v < v.max_v;
-        }
+        }*/
         if (real(max_p) != real(v.max_p)) {
             return real(max_p) > real(v.max_p);
         }
