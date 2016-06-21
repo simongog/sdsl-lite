@@ -4,6 +4,7 @@
 #include <chrono>
 
 using timer = std::chrono::high_resolution_clock;
+using namespace std;
 using namespace std::chrono;
 using namespace sdsl;
 
