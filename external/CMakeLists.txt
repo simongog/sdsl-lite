@@ -24,5 +24,6 @@ if(NOT EXISTS ${gtest_file})
 endif(NOT EXISTS ${gtest_file})
 
 add_subdirectory(googletest)
+add_subdirectory(stxxl)
 
    
