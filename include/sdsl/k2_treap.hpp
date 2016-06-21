@@ -21,10 +21,10 @@
 #ifndef INCLUDED_SDSL_K2_TREAP
 #define INCLUDED_SDSL_K2_TREAP
 
-#include "sdsl/vectors.hpp"
-#include "sdsl/bits.hpp"
-#include "sdsl/k2_treap_helper.hpp"
-#include "sdsl/k2_treap_algorithm.hpp"
+#include "vectors.hpp"
+#include "bits.hpp"
+#include "k2_treap_helper.hpp"
+#include "k2_treap_algorithm.hpp"
 #include <tuple>
 #include <algorithm>
 #include <climits>

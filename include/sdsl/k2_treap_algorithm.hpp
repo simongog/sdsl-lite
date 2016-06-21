@@ -21,9 +21,9 @@
 #ifndef INCLUDED_SDSL_K2_TREAP_ALGORITHM
 #define INCLUDED_SDSL_K2_TREAP_ALGORITHM
 
-#include "sdsl/vectors.hpp"
-#include "sdsl/bits.hpp"
-#include "sdsl/k2_treap_helper.hpp"
+#include "vectors.hpp"
+#include "bits.hpp"
+#include "k2_treap_helper.hpp"
 #include <tuple>
 #include <algorithm>
 #include <iterator>
