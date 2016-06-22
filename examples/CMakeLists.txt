@@ -11,9 +11,10 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/../include
         ${CMAKE_CURRENT_BINARY_DIR}/../external/libdivsufsort/include
         ${Boost_INCLUDE_DIRS}
         ${gtest_SOURCE_DIR}/include
+        ${STXXL_INCLUDE_DIRS}
         )
 
-LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64)
+LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64 stxxl)
 
 foreach(cppFile ${cppFiles}) # copy each file
     GET_FILENAME_COMPONENT(cpp_name_we ${cppFile} NAME_WE)
