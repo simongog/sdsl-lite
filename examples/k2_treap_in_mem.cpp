@@ -11,11 +11,11 @@ using namespace std;
 
 int main()
 {
-    typedef k2_treap<3,rrr_vector<63>> k2_rrr;
+    typedef k2_treap<2,rrr_vector<63>> k2_rrr;
     k2_rrr k2treap;
 
     // Initialize treap with a vector of (x,y,weight) elements
-    vector<pair<uint32_t, uint32_t>> coords = {{1,2},{2,2},{4,4},{3,3},{3,1}};
+    vector<pair<uint32_t, uint32_t>> coords = {{0,1},{1,2},{1,3},{1,4},{7,6}};
     construct_im(k2treap, coords);
 
     cout << "Points in the k2treap: " << k2treap.size() << endl;
