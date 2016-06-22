@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
 
         std::getline(fileStream, readBuffer);
         uint numberOfNodes = stoul(readBuffer);
-        vector <pair<uint64_t, uint64_t>> coordinates;
+        vector <pair<uint32_t, uint32_t>> coordinates;
 
         while (std::getline(fileStream, readBuffer)) {
             //tokenizer<escaped_list_separator<char> > tok(readBuffer);
