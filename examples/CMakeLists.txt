@@ -7,7 +7,7 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 
 find_package(Boost COMPONENTS system filesystem regex tokenizer)
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/../include
+INCLUDE_DIRECTORIES(
         ${CMAKE_CURRENT_BINARY_DIR}/../external/libdivsufsort/include
         ${Boost_INCLUDE_DIRS}
         ${gtest_SOURCE_DIR}/include
