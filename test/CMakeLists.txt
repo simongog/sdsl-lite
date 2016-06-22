@@ -29,8 +29,7 @@ CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/compile_test.cpp.cmake"
 
 FILE(GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/../include
-                    ${CMAKE_CURRENT_BINARY_DIR}/../external/libdivsufsort/include
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/../external/libdivsufsort/include
                     ${gtest_SOURCE_DIR}/include
 )
 
