@@ -6,6 +6,7 @@ include(CheckTypeSize)
 check_include_file_CXX(cstdio HAVE_STDIO)
 
 ## copy hpp files to the binary tree ##
+include_directories(/usr/local/include/c++/4.9.3)
 
 file(GLOB hppFiles RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp") # select all .hpp-files
 
