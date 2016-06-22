@@ -245,13 +245,10 @@ class k2_treap
             m_coord.resize(t);
             m_level_idx = int_vector<64>(1+t, 0);
 
-            std::string val_file =  temp_file_prefix + "_k2_treap_"
-                                    + id_part + ".sdsl";
             std::string bp_file  = temp_file_prefix + "_bp_" + id_part
                                    + ".sdsl";
 
             {
-                int_vector_buffer<> val_buf(val_file, std::ios::out);
                 int_vector_buffer<1> bp_buf(bp_file, std::ios::out);
 
                 auto end = std::end(v);
@@ -331,29 +328,12 @@ class k2_treap
             bit_vector bp;
             load_from_file(bp, bp_file);
             {
-                int_vector_buffer<> val_rw(val_file, std::ios::in | std::ios::out);
-                int_vector_buffer<> val_r(val_file, std::ios::in);
-                uint64_t bp_idx = bp.size();
-                uint64_t r_idx = m_level_idx[0];
-                uint64_t rw_idx = val_rw.size();
-                while (bp_idx > 0) {
-                    --r_idx;
-                    for (size_t i=0; i < t_k*t_k; ++i) {
-                        if (bp[--bp_idx]) {
-                            --rw_idx;
-                            val_rw[rw_idx] = val_r[r_idx] - val_rw[rw_idx];
-                        }
-                    }
-                }
-            }
-            {
                 bit_vector _bp;
                 _bp.swap(bp);
                 m_bp = t_bv(_bp);
             }
             util::init_support(m_bp_rank, &m_bp);
             sdsl::remove(bp_file);
-            sdsl::remove(val_file);
         }
 
 
