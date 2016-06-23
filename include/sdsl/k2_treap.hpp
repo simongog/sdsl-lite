@@ -29,10 +29,10 @@
 #include <algorithm>
 #include <climits>
 #include <vector>
+#include <iostream>
 
 //! Namespace for the succinct data structure library.
-namespace sdsl
-{
+namespace sdsl {
 
 //! A k^2-treap.
 /*! A k^2-treap is an indexing structure for a set of weighted points. The set
@@ -55,13 +55,12 @@ namespace sdsl
  *           ,,$K^2$-Treaps: Range Top-$k$ Queries in Compact Space,
  *           Proceedings of SPIRE 2014.
  */
-template<uint8_t  t_k,
-         typename t_bv=bit_vector,
-         typename t_rank=typename t_bv::rank_1_type>
-class k2_treap
-{
-        static_assert(t_k>1, "t_k has to be larger than 1.");
-        static_assert(t_k<=16, "t_k has to be smaller than 17.");
+    template<uint8_t t_k,
+            typename t_bv=bit_vector,
+            typename t_rank=typename t_bv::rank_1_type>
+    class k2_treap {
+        static_assert(t_k > 1, "t_k has to be larger than 1.");
+        static_assert(t_k <= 16, "t_k has to be smaller than 17.");
 
     public:
         typedef int_vector<>::size_type size_type;
@@ -69,25 +68,26 @@ class k2_treap
         using point_type = k2_treap_ns::point_type;
         using t_p = k2_treap_ns::t_p;
 
-        enum { k = t_k };
+        enum {
+            k = t_k
+        };
 
     private:
-        uint8_t                   m_t = 0;
-        t_bv                      m_bp;
-        t_rank                    m_bp_rank;
-        std::vector<int_vector<>>   m_coord;
-        int_vector<64>            m_level_idx;
+        uint8_t m_tree_height = 0;
+        t_bv m_bp;
+        t_rank m_bp_rank;
+        std::vector<int_vector<>> m_coord;
+        int_vector<64> m_level_idx;
 
         template<typename t_tv>
-        uint8_t get_t(const t_tv& v)
-        {
+        uint8_t get_tree_height(const t_tv &v) {
             using namespace k2_treap_ns;
             if (v.size() == 0) {
                 return 0;
             }
             using t_e = typename t_tv::value_type;
             auto tupmax = [](t_e a) {
-                return std::max(a.first,a.second);
+                return std::max(a.first, a.second);
             };
             auto max_it = std::max_element(std::begin(v), std::end(v), [&](t_e a, t_e b) {
                 return tupmax(a) < tupmax(b);
@@ -99,25 +99,22 @@ class k2_treap
         }
 
     public:
-        uint8_t& t = m_t;
+        uint8_t &t = m_tree_height;
 
         k2_treap() = default;
 
-        k2_treap(const k2_treap& tr)
-        {
+        k2_treap(const k2_treap &tr) {
             *this = tr;
         }
 
-        k2_treap(k2_treap&& tr)
-        {
+        k2_treap(k2_treap &&tr) {
             *this = std::move(tr);
         }
 
         //! Move assignment operator
-        k2_treap& operator=(k2_treap&& tr)
-        {
+        k2_treap &operator=(k2_treap &&tr) {
             if (this != &tr) {
-                m_t = tr.m_t;
+                m_tree_height = tr.m_tree_height;
                 m_bp = std::move(tr.m_bp);
                 m_bp_rank = std::move(tr.m_bp_rank);
                 m_bp_rank.set_vector(&m_bp);
@@ -128,10 +125,9 @@ class k2_treap
         }
 
         //! Assignment operator
-        k2_treap& operator=(k2_treap& tr)
-        {
+        k2_treap &operator=(k2_treap &tr) {
             if (this != &tr) {
-                m_t = tr.m_t;
+                m_tree_height = tr.m_tree_height;
                 m_bp = tr.m_bp;
                 m_bp_rank = tr.m_bp_rank;
                 m_bp_rank.set_vector(&m_bp);
@@ -143,21 +139,19 @@ class k2_treap
 
         //! Number of points in the 2^k treap
         size_type
-        size() const
-        {
+        size() const {
             //FIXME: think about storing this separately
             size_t size = 0;
             for (uint i = 0; i < m_coord.size(); ++i) {
                 size += m_coord[i].size();
             }
-            return size/2;
+            return size / 2;
         }
 
         //! Swap operator
-        void swap(k2_treap& tr)
-        {
+        void swap(k2_treap &tr) {
             if (this != &tr) {
-                std::swap(m_t, tr.m_t);
+                std::swap(m_tree_height, tr.m_tree_height);
                 m_bp.swap(tr.m_bp);
                 util::swap_support(m_bp_rank, tr.m_bp_rank, &m_bp, &(tr.m_bp));
                 m_coord.swap(tr.m_coord);
@@ -165,17 +159,16 @@ class k2_treap
             }
         }
 
-        k2_treap(int_vector_buffer<>& buf_x,
-                 int_vector_buffer<>& buf_y)
-        {
+        k2_treap(int_vector_buffer<> &buf_x,
+                 int_vector_buffer<> &buf_y) {
             using namespace k2_treap_ns;
-            typedef int_vector_buffer<>* t_buf_p;
+            typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
 
-            auto max_element = [](int_vector_buffer<>& buf) {
+            auto max_element = [](int_vector_buffer<> &buf) {
                 uint64_t max_val = 0;
                 for (auto val : buf) {
-                    max_val = std::max((uint64_t)val, max_val);
+                    max_val = std::max((uint64_t) val, max_val);
                 }
                 return max_val;
             };
@@ -197,24 +190,23 @@ class k2_treap
             }
 
             if (precomp<t_k>::exp(res) <= std::numeric_limits<uint32_t>::max()) {
-                auto v = read<uint32_t,uint32_t>(bufs);
+                auto v = read < uint32_t, uint32_t>(bufs);
                 construct(v, buf_x.filename());
             } else {
-                auto v = read<uint64_t,uint64_t>(bufs);
+                auto v = read < uint64_t, uint64_t>(bufs);
                 construct(v, buf_x.filename());
             }
         }
 
         template<typename t_x=uint64_t, typename t_y=uint64_t>
         std::vector<std::pair<t_x, t_y>>
-                                            read(std::vector<int_vector_buffer<>*>& bufs)
-        {
+        read(std::vector<int_vector_buffer<> *> &bufs) {
             typedef std::vector<std::pair<t_x, t_y>> t_tuple_vec;
             t_tuple_vec v = t_tuple_vec(bufs[0]->size());
-            for (uint64_t j=0; j<v.size(); ++j) {
+            for (uint64_t j = 0; j < v.size(); ++j) {
                 std::get<0>(v[j]) = (*(bufs[0]))[j];
             }
-            for (uint64_t j=0; j<v.size(); ++j) {
+            for (uint64_t j = 0; j < v.size(); ++j) {
                 std::get<1>(v[j]) = (*(bufs[1]))[j];
             }
 
@@ -223,92 +215,114 @@ class k2_treap
 
 
         template<typename t_x, typename t_y>
-        k2_treap(std::vector<std::pair<t_x, t_y>>& v, std::string temp_file_prefix="")
-        {
+        k2_treap(std::vector<std::pair<t_x, t_y>> &v, std::string temp_file_prefix = "") {
             if (v.size() > 0) {
                 construct(v, temp_file_prefix);
             }
         }
 
         template<typename t_x, typename t_y>
-        void construct(std::vector<std::pair<t_x, t_y>>& v, std::string temp_file_prefix="")
-        {
+        void construct(std::vector<std::pair<t_x, t_y>> &v, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
             using t_e = std::pair<t_x, t_y>;
-            m_t = get_t(v);
+
+            m_tree_height = get_tree_height(v);
             uint64_t M = precomp<t_k>::exp(t);
-            t_e MM = t_e(M,M);
+            t_e MM = t_e(M, M);
 
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
 
-            m_coord.resize(t);
-            m_level_idx = int_vector<64>(1+t, 0);
+            m_level_idx = int_vector<64>(1 + t, 0);
 
-            std::string bp_file  = temp_file_prefix + "_bp_" + id_part
-                                   + ".sdsl";
+            std::string bp_file = temp_file_prefix + "_bp_" + id_part
+                                  + ".sdsl";
 
             {
                 int_vector_buffer<1> bp_buf(bp_file, std::ios::out);
 
+                auto begin = std::begin(v);
                 auto end = std::end(v);
                 uint64_t last_level_nodes = 1;
-                uint64_t level_nodes;
-                for (uint64_t l=t, cc=0; l+1 > 0; --l) {
+                uint64_t level_nodes = 0;
+
+                //recursively partition that stuff
+                for (uint64_t l = t, cc = 0; l + 1 > 0; --l) {
+
                     if (l > 0) {
-                        m_level_idx[l-1] = m_level_idx[l] + last_level_nodes;
-                        m_coord[l-1] = int_vector<>(2*last_level_nodes,0, bits::hi(precomp<t_k>::exp(l))+1);
+                        //std::cout << "Setting: " << "m_level_idx[" << (l - 1) << "] = "
+                         //         << m_level_idx[l] + last_level_nodes << std::endl;
+                        m_level_idx[l - 1] = m_level_idx[l] + last_level_nodes;
                     }
-                    level_nodes = 0;
-                    cc = 0;
+
+                    //std::cout << "Processing Level " << l << std::endl;
+
                     auto sp = std::begin(v);
                     for (auto ep = sp; ep != end;) {
-                        ep = std::find_if(sp, end, [&sp,&l](const t_e& e) {
+
+                        //Iterator which only returns the nodes within a certain subtree
+                        ep = std::find_if(sp, end, [&sp, &l](const t_e &e) {
                             auto x1 = std::get<0>(*sp);
                             auto y1 = std::get<1>(*sp);
                             auto x2 = std::get<0>(e);
                             auto y2 = std::get<1>(e);
-                            return    precomp<t_k>::divexp(x1,l) != precomp<t_k>::divexp(x2,l)
-                                      or precomp<t_k>::divexp(y1,l) != precomp<t_k>::divexp(y2,l);
-                        });
-                        auto max_it = std::max_element(sp, ep, [](t_e a, t_e b) {
-                            /*if (std::get<2>(a) != std::get<2>(b))
-                                return std::get<2>(a) < std::get<2>(b);
-                            else */
-                            if (a.first != b.first)
-                                return a.first > b.first;
-                            return a.second > b.second;
-                        });
-                        if (l > 0) {
-                            m_coord[l-1][2*cc]   = precomp<t_k>::modexp(std::get<0>(*max_it), l);
-                            m_coord[l-1][2*cc+1] = precomp<t_k>::modexp(std::get<1>(*max_it), l);
-                            ++cc;
-                        }
+                            bool asd = precomp<t_k>::divexp(x1, l) != precomp<t_k>::divexp(x2, l)
+                                   or precomp<t_k>::divexp(y1, l) != precomp<t_k>::divexp(y2, l);
 
-                        //val_buf.push_back(std::get<2>(*max_it));
-                        //FIXME: whats going on here
-                        *max_it = MM;
-                        --ep;
-                        std::swap(*max_it, *ep);
+                            /*if (asd)
+                            {
+                                std::cout << "ep at " << e.first << "," << e.second << std::endl;
+                            }*/
+                            return asd;
+                        });
+
+
                         if (l > 0) {
                             auto _sp = sp;
 
-                            for (uint8_t i=0; i < t_k; ++i) {
+                            for (uint8_t i = 0; i < t_k; ++i) {
                                 auto _ep = ep;
-                                if (i+1 < t_k) {
-                                    _ep = std::partition(_sp, ep, [&i,&l](const t_e& e) {
-                                        return precomp<t_k>::divexp(std::get<0>(e),l-1)%t_k <= i;
+                                if (i + 1 < t_k) {  //partition t_k -1 times vertically (1 in the case of k=2)
+                                    _ep = std::partition(_sp, _ep, [&i, &l](const t_e &e) {
+                                        return precomp<t_k>::divexp(std::get<0>(e), l - 1) % t_k <= i;
                                     });
+                                    /*std::cout << "After partition 0: \t";
+                                    for (auto &pair: v) {
+                                        std::cout << pair.first << "," << pair.second << "\t";
+                                    }
+                                    std::cout << std::endl;
+
+                                    if (_ep < end) {
+                                        std::cout << "Split at " << _ep.operator*().first << ","
+                                                  << _ep.operator*().second << std::endl;
+                                    } else {
+                                        std::cout << "Split at end" << std::endl;
+                                    }
+                                    */
+
                                 }
                                 auto __sp = _sp;
-                                for (uint8_t j=0; j < t_k; ++j) {
+                                for (uint8_t j = 0;
+                                     j < t_k; ++j) { //partition the t_k vertical partitions t_k -1 times horizontally
                                     auto __ep = _ep;
-                                    if (j+1 < t_k) {
-                                        __ep = std::partition(__sp, _ep, [&j,&l](const t_e& e) {
-                                            return precomp<t_k>::divexp(std::get<1>(e),l-1)%t_k <= j;
+                                    if (j + 1 < t_k) {
+                                        __ep = std::partition(__sp, _ep, [&j, &l](const t_e &e) {
+                                            return precomp<t_k>::divexp(std::get<1>(e), l - 1) % t_k <= j;
                                         });
+                                        /*std::cout << "After partition 1: \t";
+                                        for (auto &pair: v) {
+                                            std::cout << pair.first << "," << pair.second << "\t";
+                                        }
+                                        std::cout << std::endl;
+                                        if (_ep < end) {
+                                            std::cout << "Split at " << __ep.operator*().first << ","
+                                                      << __ep.operator*().second << std::endl;
+                                        } else {
+                                            std::cout << "Split at end" << std::endl;
+                                        }*/
                                     }
                                     bool not_empty = __ep > __sp;
+                                    //std::cout << "Pushing " << not_empty << " to bp_buf" << std::endl;
                                     bp_buf.push_back(not_empty);
                                     level_nodes += not_empty;
                                     __sp = __ep;
@@ -316,15 +330,16 @@ class k2_treap
                                 _sp = _ep;
                             }
                         }
-                        ++ep;
-                        sp = ep;
+                        if (ep!= end){
+                            //++ep;
+                            sp = ep;
+                        }
                     }
-                    end = std::remove_if(begin(v), end, [&](t_e e) {
-                        return e == MM;
-                    });
                     last_level_nodes = level_nodes;
+                    //std::cout << "Last Level Nodes: " << last_level_nodes << std::endl;
                 }
             }
+
             bit_vector bp;
             load_from_file(bp, bp_file);
             {
@@ -332,19 +347,26 @@ class k2_treap
                 _bp.swap(bp);
                 m_bp = t_bv(_bp);
             }
+
+            /*std::cout << "m_bp";
+            for (int m = 0; m < m_bp.size(); ++m) {
+                std::cout << m_bp[m];
+            }
+            std::cout << std::endl;
+            */
+
             util::init_support(m_bp_rank, &m_bp);
             sdsl::remove(bp_file);
         }
 
 
         //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
-                            std::string name="")const
-        {
-            structure_tree_node* child = structure_tree::add_child(
-                                             v, name, util::class_name(*this));
+        size_type serialize(std::ostream &out, structure_tree_node *v = nullptr,
+                            std::string name = "") const {
+            structure_tree_node *child = structure_tree::add_child(
+                    v, name, util::class_name(*this));
             size_type written_bytes = 0;
-            written_bytes += write_member(m_t, out, child, "t");
+            written_bytes += write_member(m_tree_height, out, child, "t");
             written_bytes += m_bp.serialize(out, child, "bp");
             written_bytes += m_bp_rank.serialize(out, child, "bp_rank");
             written_bytes += serialize_vector(m_coord, out, child, "coord");
@@ -354,9 +376,8 @@ class k2_treap
         }
 
         //! Loads the data structure from the given istream.
-        void load(std::istream& in)
-        {
-            read_member(m_t, in);
+        void load(std::istream &in) {
+            read_member(m_tree_height, in);
             m_bp.load(in);
             m_bp_rank.load(in);
             m_bp_rank.set_vector(&m_bp);
@@ -366,21 +387,18 @@ class k2_treap
         }
 
         node_type
-        root() const
-        {
-            return node_type(t, t_p(0,0), 0,
-                             t_p(m_coord[t-1][0], m_coord[t-1][1]));
+        root() const {
+            return node_type(t, t_p(0, 0), 0,
+                             t_p(m_coord[t - 1][0], m_coord[t - 1][1]));
         }
 
         bool
-        is_leaf(const node_type& v) const
-        {
+        is_leaf(const node_type &v) const {
             return v.idx >= m_bp.size();
         }
 
         std::vector<node_type>
-        children(const node_type& v) const
-        {
+        children(const node_type &v) const {
             using namespace k2_treap_ns;
             std::vector<node_type> res;
             if (!is_leaf(v)) {
@@ -388,23 +406,23 @@ class k2_treap
                 auto x = std::real(v.p);
                 auto y = std::imag(v.p);
 
-                for (size_t i=0; i<t_k; ++i) {
-                    for (size_t j=0; j<t_k; ++j) {
+                for (size_t i = 0; i < t_k; ++i) {
+                    for (size_t j = 0; j < t_k; ++j) {
                         // get_int better for compressed bitvectors
                         // or introduce cache for bitvectors
-                        if (m_bp[v.idx+t_k*i+j]) {
+                        if (m_bp[v.idx + t_k * i + j]) {
                             ++rank;
 
-                            auto _x = x + i*precomp<t_k>::exp(v.t-1);
-                            auto _y = y + j*precomp<t_k>::exp(v.t-1);
+                            auto _x = x + i * precomp<t_k>::exp(v.t - 1);
+                            auto _y = y + j * precomp<t_k>::exp(v.t - 1);
 
                             auto _max_p = t_p(_x, _y);
                             if (v.t > 1) {
-                                auto y = rank-m_level_idx[v.t-1];
-                                _max_p = t_p(_x+m_coord[v.t-2][2*y],
-                                             _y+m_coord[v.t-2][2*y+1]);
+                                auto y = rank - m_level_idx[v.t - 1];
+                                _max_p = t_p(_x + m_coord[v.t - 2][2 * y],
+                                             _y + m_coord[v.t - 2][2 * y + 1]);
                             }
-                            res.emplace_back(v.t-1, t_p(_x,_y), rank*t_k*t_k, _max_p);
+                            res.emplace_back(v.t - 1, t_p(_x, _y), rank * t_k * t_k, _max_p);
                         }
                     }
                 }
@@ -412,7 +430,7 @@ class k2_treap
             return res;
         }
 
-};
+    };
 
 }
 #endif
