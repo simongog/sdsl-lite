@@ -250,12 +250,14 @@ namespace sdsl {
                 for (uint64_t l = t, cc = 0; l + 1 > 0; --l) {
 
                     if (l > 0) {
-                        //std::cout << "Setting: " << "m_level_idx[" << (l - 1) << "] = "
-                         //         << m_level_idx[l] + last_level_nodes << std::endl;
+                        std::cout << "Setting: " << "m_level_idx[" << (l - 1) << "] = "
+                                 << m_level_idx[l] + last_level_nodes << std::endl;
                         m_level_idx[l - 1] = m_level_idx[l] + last_level_nodes;
                     }
 
                     //std::cout << "Processing Level " << l << std::endl;
+
+                    level_nodes = 0;
 
                     auto sp = std::begin(v);
                     for (auto ep = sp; ep != end;) {
@@ -348,12 +350,12 @@ namespace sdsl {
                 m_bp = t_bv(_bp);
             }
 
-            /*std::cout << "m_bp";
+            std::cout << "m_bp";
             for (int m = 0; m < m_bp.size(); ++m) {
                 std::cout << m_bp[m];
             }
             std::cout << std::endl;
-            */
+
 
             util::init_support(m_bp_rank, &m_bp);
             sdsl::remove(bp_file);
