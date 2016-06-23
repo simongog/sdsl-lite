@@ -95,18 +95,25 @@ template<class t_index>
 void construct(t_index& idx, const std::string& file, cache_config& config, uint8_t num_bytes, wt_tag)
 {
     auto event = memory_monitor::event("construct wavelet tree");
-    int_vector<t_index::alphabet_category::WIDTH> text;
-    load_vector_from_file(text, file, num_bytes);
-    std::string tmp_key = util::to_string(util::pid())+"_"+util::to_string(util::id());
-    std::string tmp_file_name = cache_file_name(tmp_key, config);
-    store_to_file(text, tmp_file_name);
-    util::clear(text);
-    {
-        int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(tmp_file_name);
+    if ((t_index::alphabet_category::WIDTH==8 and num_bytes <= 1)
+        or (t_index::alphabet_category::WIDTH==0 and num_bytes != 'd')) {
+        int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(file, std::ios::in, 1024*1024, num_bytes*8, (bool)num_bytes);
         t_index tmp(text_buf, text_buf.size());
         idx.swap(tmp);
+    } else {
+        int_vector<t_index::alphabet_category::WIDTH> text;
+        load_vector_from_file(text, file, num_bytes);
+        std::string tmp_key = util::to_string(util::pid())+"_"+util::to_string(util::id());
+        std::string tmp_file_name = cache_file_name(tmp_key, config);
+        store_to_file(text, tmp_file_name);
+        util::clear(text);
+        {
+            int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(tmp_file_name);
+            t_index tmp(text_buf, text_buf.size());
+            idx.swap(tmp);
+        }
+        sdsl::remove(tmp_file_name);
     }
-    sdsl::remove(tmp_file_name);
 }
 
 // Specialization for CSAs

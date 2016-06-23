@@ -28,17 +28,17 @@ matrix:
             - cmake
             - g++-5
 
-    - env: MYCC="clang-3.7" MYCXX="clang++-3.7" STDLIB=libc++
-      os: linux
-      addons: &clang37
-        apt:
-          sources:
-            - kalakris-cmake
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.7
-          packages:
-            - cmake
-            - clang-3.7
+#    - env: MYCC="clang-3.7" MYCXX="clang++-3.7" STDLIB=libc++
+#      os: linux
+#      addons: &clang37
+#        apt:
+#          sources:
+#            - kalakris-cmake
+#            - ubuntu-toolchain-r-test
+#            - llvm-toolchain-precise-3.7
+#          packages:
+#            - cmake
+#            - clang-3.7
 
     - env: MYCC="clang" MYCXX="clang++" STDLIB=libc++
       os: osx
