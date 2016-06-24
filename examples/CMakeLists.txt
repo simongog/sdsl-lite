@@ -28,7 +28,7 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     # Update if necessary
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wall -std=c++11 -fsanitize=memory -ltbb -funroll-loops -Wno-long-long -pedantic -Wno-write-strings -flto=10 -g -pipe" )
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -fopenmp -Wall -ltbb -std=c++11 -Wno-long-long -pedantic -Wno-write-strings -g -pipe -D_GLIBCXX_USE_CXX11_ABI=0" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -fopenmp -Wall -std=c++11 -Wno-long-long -pedantic -Wno-write-strings -g -pipe -D_GLIBCXX_USE_CXX11_ABI=0" )
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops -O3 -flto=10 ")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -D_GLIBCXX_DEBUG -DDEBUG -ggdb -fsanitize=address") #great options for weird segfaults  -fsanitize=undefined
     # disable this by default
