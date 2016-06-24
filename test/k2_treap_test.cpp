@@ -55,46 +55,40 @@ TYPED_TEST(k2_treap_test, size)
 }
 
 template<class t_k2treap>
-void range3d_test(
+void direct_links_test(
     const t_k2treap& k2treap,
-    complex<uint64_t> min_xy,
-    complex<uint64_t> max_xy,
+    uint64_t source_id,
     const int_vector<>& x,
     const int_vector<>& y
     )
 {
-    auto res_it = range_3d(k2treap, {real(min_xy),imag(min_xy)},
-    {real(max_xy),imag(max_xy)});
+    std::vector<uint64_t> result;
+    k2treap.direct_links(source_id, result);
+
     typedef tuple<uint64_t, uint64_t> t_xy;
     vector<t_xy> vec;
     for (uint64_t i = 0; i < x.size(); ++i) {
-        if (x[i] >= real(min_xy) and x[i] <= real(max_xy)
-            and y[i] >= imag(min_xy) and y[i] <= imag(max_xy)) {
+        if (x[i] == source_id) {
             vec.emplace_back(x[i], y[i]);
         }
     }
     sort(vec.begin(), vec.end(), [](const t_xy& a, const t_xy& b) {
-        /*if (get<2>(a) != get<2>(b))
-            return get<2>(a) > get<2>(b);
-        else*/
         if (get<0>(a) != get<0>(b))
             return get<0>(a) < get<0>(b);
         return get<1>(a) < get<1>(b);
     });
 
     uint64_t cnt = 0;
-    while (res_it) {
+    std::vector<uint64_t>::iterator res_it = result.begin();
+    for (auto direct_link: result){
         ASSERT_TRUE(cnt < vec.size());
-        auto p = *res_it;
-        ASSERT_EQ(get<0>(vec[cnt]), real(p));
-        ASSERT_EQ(get<1>(vec[cnt]), imag(p));
+        ASSERT_EQ(get<1>(vec[cnt]), direct_link);
         ++res_it;
         ++cnt;
     }
-    ASSERT_FALSE(res_it);
 }
 
-TYPED_TEST(k2_treap_test, range_3d)
+TYPED_TEST(k2_treap_test, direct_links)
 {
     TypeParam k2treap;
     ASSERT_TRUE(load_from_file(k2treap, temp_file));
@@ -110,18 +104,12 @@ TYPED_TEST(k2_treap_test, range_3d)
         for (size_t i=0; i<20; ++i) {
             auto idx = dice();
             uint64_t xx = x[idx];
-            uint64_t yy = y[idx];
-            uint64_t dd = 20;
-            uint64_t minx=0, miny=0, maxx=xx+dd, maxy=yy+dd;
-            if (xx >= dd)
-                minx = xx - dd;
-            if (yy >= dd)
-                miny = yy - dd;
-            range3d_test(k2treap, {minx, miny}, {maxx,maxy}, x, y);
+            direct_links_test(k2treap, xx, x, y);
         }
     }
 }
 
+    /*
 template<class t_k2treap>
 void count_test(
     const t_k2treap& k2treap,
@@ -164,7 +152,7 @@ TYPED_TEST(k2_treap_test, count)
         }
     }
 }
-
+*/
 
 }  // namespace
 

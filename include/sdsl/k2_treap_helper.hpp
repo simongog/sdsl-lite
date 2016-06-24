@@ -149,32 +149,16 @@ typedef t_p                    point_type;
 
 struct node_type {
     uint8_t  t;   // level; size of node 1<<t
-    t_p      p;   // lower left corner
+    t_p      p;   // lower left corner; upper left in matrix!
     uint64_t idx; // index in bp
-    t_p      max_p; // maximal point
 
     node_type() = default;
-    node_type(uint8_t _t, t_p _p, uint64_t _idx,
-              t_p _max_p) : t(_t), p(_p), idx(_idx),
-        max_p(_max_p)
+    node_type(uint8_t _t, t_p _p, uint64_t _idx) : t(_t), p(_p), idx(_idx)
     {}
     node_type(node_type&&) = default;
     node_type(const node_type&) = default;
     node_type& operator=(node_type&&) = default;
     node_type& operator=(const node_type&) = default;
-
-    bool operator<(const node_type& v) const
-    {
-        //FIXME: check if this makes sense
-        /*
-        if (max_v != v.max_v) {
-            return max_v < v.max_v;
-        }*/
-        if (real(max_p) != real(v.max_p)) {
-            return real(max_p) > real(v.max_p);
-        }
-        return imag(max_p) > imag(v.max_p);
-    }
 };
 
 } // end namepsace k2_treap_ns

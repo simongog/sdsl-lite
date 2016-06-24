@@ -76,8 +76,8 @@ namespace sdsl {
         uint8_t m_tree_height = 0;
         t_bv m_bp;
         t_rank m_bp_rank;
-        std::vector<int_vector<>> m_coord;
-        int_vector<64> m_level_idx;
+        int_vector<64> m_level_begin_idx;
+        size_type m_size = 0;
 
         template<typename t_tv>
         uint8_t get_tree_height(const t_tv &v) {
@@ -115,11 +115,11 @@ namespace sdsl {
         k2_treap &operator=(k2_treap &&tr) {
             if (this != &tr) {
                 m_tree_height = tr.m_tree_height;
+                m_tree_height = tr.m_size;
                 m_bp = std::move(tr.m_bp);
                 m_bp_rank = std::move(tr.m_bp_rank);
                 m_bp_rank.set_vector(&m_bp);
-                m_coord = std::move(tr.m_coord);
-                m_level_idx = std::move(tr.m_level_idx);
+                m_level_begin_idx = std::move(tr.m_level_begin_idx);
             }
             return *this;
         }
@@ -128,11 +128,11 @@ namespace sdsl {
         k2_treap &operator=(k2_treap &tr) {
             if (this != &tr) {
                 m_tree_height = tr.m_tree_height;
+                m_tree_height = tr.m_size;
                 m_bp = tr.m_bp;
                 m_bp_rank = tr.m_bp_rank;
                 m_bp_rank.set_vector(&m_bp);
-                m_coord = tr.m_coord;
-                m_level_idx = tr.m_level_idx;
+                m_level_begin_idx = tr.m_level_begin_idx;
             }
             return *this;
         }
@@ -140,22 +140,17 @@ namespace sdsl {
         //! Number of points in the 2^k treap
         size_type
         size() const {
-            //FIXME: think about storing this separately
-            size_t size = 0;
-            for (uint i = 0; i < m_coord.size(); ++i) {
-                size += m_coord[i].size();
-            }
-            return size / 2;
+            return m_size;
         }
 
         //! Swap operator
         void swap(k2_treap &tr) {
             if (this != &tr) {
                 std::swap(m_tree_height, tr.m_tree_height);
+                std::swap(m_size, tr.m_size);
                 m_bp.swap(tr.m_bp);
                 util::swap_support(m_bp_rank, tr.m_bp_rank, &m_bp, &(tr.m_bp));
-                m_coord.swap(tr.m_coord);
-                m_level_idx.swap(tr.m_level_idx);
+                m_level_begin_idx.swap(tr.m_level_begin_idx);
             }
         }
 
@@ -226,6 +221,7 @@ namespace sdsl {
             using namespace k2_treap_ns;
             using t_e = std::pair<t_x, t_y>;
 
+            m_size = v.size();
             m_tree_height = get_tree_height(v);
             uint64_t M = precomp<t_k>::exp(t);
             t_e MM = t_e(M, M);
@@ -233,7 +229,7 @@ namespace sdsl {
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
 
-            m_level_idx = int_vector<64>(1 + t, 0);
+            m_level_begin_idx = int_vector<64>(1 + t, 0);
 
             std::string bp_file = temp_file_prefix + "_bp_" + id_part
                                   + ".sdsl";
@@ -243,21 +239,21 @@ namespace sdsl {
 
                 auto begin = std::begin(v);
                 auto end = std::end(v);
-                uint64_t last_level_nodes = 1;
-                uint64_t level_nodes = 0;
+                uint64_t last_level_bits = 0;
+                uint64_t level_bits = 0;
 
                 //recursively partition that stuff
-                for (uint64_t l = t, cc = 0; l + 1 > 0; --l) {
+                for (uint64_t l = t; l + 1 > 0; --l) {
 
                     if (l > 0) {
-                        std::cout << "Setting: " << "m_level_idx[" << (l - 1) << "] = "
-                                 << m_level_idx[l] + last_level_nodes << std::endl;
-                        m_level_idx[l - 1] = m_level_idx[l] + last_level_nodes;
+                        //std::cout << "Setting: " << "m_level_begin_idx[" << (l - 1) << "] = "
+                        //         << m_level_begin_idx[l] + last_level_bits << std::endl;
+                        m_level_begin_idx[l - 1] = m_level_begin_idx[l] + last_level_bits;
                     }
 
                     //std::cout << "Processing Level " << l << std::endl;
 
-                    level_nodes = 0;
+                    level_bits = 0;
 
                     auto sp = std::begin(v);
                     for (auto ep = sp; ep != end;) {
@@ -268,14 +264,14 @@ namespace sdsl {
                             auto y1 = std::get<1>(*sp);
                             auto x2 = std::get<0>(e);
                             auto y2 = std::get<1>(e);
-                            bool asd = precomp<t_k>::divexp(x1, l) != precomp<t_k>::divexp(x2, l)
+                            bool in_sub_tree = precomp<t_k>::divexp(x1, l) != precomp<t_k>::divexp(x2, l)
                                    or precomp<t_k>::divexp(y1, l) != precomp<t_k>::divexp(y2, l);
 
                             /*if (asd)
                             {
                                 std::cout << "ep at " << e.first << "," << e.second << std::endl;
                             }*/
-                            return asd;
+                            return in_sub_tree;
                         });
 
 
@@ -326,7 +322,7 @@ namespace sdsl {
                                     bool not_empty = __ep > __sp;
                                     //std::cout << "Pushing " << not_empty << " to bp_buf" << std::endl;
                                     bp_buf.push_back(not_empty);
-                                    level_nodes += not_empty;
+                                    level_bits++;
                                     __sp = __ep;
                                 }
                                 _sp = _ep;
@@ -337,7 +333,7 @@ namespace sdsl {
                             sp = ep;
                         }
                     }
-                    last_level_nodes = level_nodes;
+                    last_level_bits = level_bits;
                     //std::cout << "Last Level Nodes: " << last_level_nodes << std::endl;
                 }
             }
@@ -350,12 +346,13 @@ namespace sdsl {
                 m_bp = t_bv(_bp);
             }
 
+            /*
             std::cout << "m_bp";
-            for (int m = 0; m < m_bp.size(); ++m) {
+            for (size_t m = 0; m < m_bp.size(); ++m) {
                 std::cout << m_bp[m];
             }
             std::cout << std::endl;
-
+            */
 
             util::init_support(m_bp_rank, &m_bp);
             sdsl::remove(bp_file);
@@ -369,10 +366,9 @@ namespace sdsl {
                     v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_tree_height, out, child, "t");
+            written_bytes += write_member(m_size, out, child, "s");
             written_bytes += m_bp.serialize(out, child, "bp");
             written_bytes += m_bp_rank.serialize(out, child, "bp_rank");
-            written_bytes += serialize_vector(m_coord, out, child, "coord");
-            written_bytes += m_level_idx.serialize(out, child, "level_idx");
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -380,59 +376,112 @@ namespace sdsl {
         //! Loads the data structure from the given istream.
         void load(std::istream &in) {
             read_member(m_tree_height, in);
+            read_member(m_size, in);
             m_bp.load(in);
             m_bp_rank.load(in);
             m_bp_rank.set_vector(&m_bp);
-            m_coord.resize(t);
-            load_vector(m_coord, in);
-            m_level_idx.load(in);
-        }
-
-        node_type
-        root() const {
-            return node_type(t, t_p(0, 0), 0,
-                             t_p(m_coord[t - 1][0], m_coord[t - 1][1]));
         }
 
         bool
         is_leaf(const node_type &v) const {
-            return v.idx >= m_bp.size();
+            //FIXME: check if this works
+            return v.idx >= m_level_begin_idx[0];
         }
 
-        std::vector<node_type>
-        children(const node_type &v) const {
+        node_type root() const {
+            return node_type(t, t_p(0,0), 0);
+        }
+
+        template<typename t_x>
+        void direct_links(t_x source_id, std::vector<t_x>& result) const {
+            result.clear();
+            traverse_tree<t_x,DirectImpl>(this->root(), source_id, result);
+        }
+
+        template<typename t_x>
+        void inverse_links(t_x source_id, std::vector<t_x>& result) const {
+            result.clear();
+            traverse_tree<t_x,InverseImpl>(this->root(), source_id, result);
+        }
+
+        template<typename t_x, class Impl>
+        void traverse_tree(node_type root, t_x source_id, std::vector<t_x>& result) const{
             using namespace k2_treap_ns;
-            std::vector<node_type> res;
-            if (!is_leaf(v)) {
-                uint64_t rank = m_bp_rank(v.idx);
-                auto x = std::real(v.p);
-                auto y = std::imag(v.p);
+            if (!is_leaf(root)) {
+                uint64_t rank = m_bp_rank(root.idx);
+                auto x = std::real(root.p);
+                auto y = std::imag(root.p);
 
                 for (size_t i = 0; i < t_k; ++i) {
                     for (size_t j = 0; j < t_k; ++j) {
                         // get_int better for compressed bitvectors
                         // or introduce cache for bitvectors
-                        if (m_bp[v.idx + t_k * i + j]) {
+                        if (m_bp[root.idx + t_k * i + j]) { //if subtree present
                             ++rank;
+                            auto _x = x + i * precomp<t_k>::exp(root.t - 1);
+                            auto _y = y + j * precomp<t_k>::exp(root.t - 1);
 
-                            auto _x = x + i * precomp<t_k>::exp(v.t - 1);
-                            auto _y = y + j * precomp<t_k>::exp(v.t - 1);
-
-                            auto _max_p = t_p(_x, _y);
-                            if (v.t > 1) {
-                                auto y = rank - m_level_idx[v.t - 1];
-                                _max_p = t_p(_x + m_coord[v.t - 2][2 * y],
-                                             _y + m_coord[v.t - 2][2 * y + 1]);
+                            node_type subtree_root(root.t - 1, t_p(_x, _y), rank * t_k * t_k);
+                            if (Impl::is_relevant_subtree(source_id, subtree_root)) {
+                                traverse_tree<t_x, Impl>(subtree_root,source_id,result);
                             }
-                            res.emplace_back(v.t - 1, t_p(_x, _y), rank * t_k * t_k, _max_p);
+                        }
+                    }
+                }
+            } else {
+                //add corresponding values to result
+                auto x = std::real(root.p);
+                auto y = std::imag(root.p);
+
+                for (size_t i = 0; i < t_k; ++i) {
+                    auto _x = (x + i * precomp<t_k>::exp(root.t - 1));
+                    for (size_t j = 0; j < t_k; ++j) {
+                        if (m_bp[root.idx + t_k * i + j]){
+                            Impl::add_to_result_if_relevant(source_id, x, y, _x, i, j, root, result);
                         }
                     }
                 }
             }
-            return res;
         }
 
-    };
+        struct DirectImpl {
+            template<typename t_x>
+            inline static bool is_relevant_subtree(t_x row_id, node_type subtree_root) {
+                using namespace k2_treap_ns;
+                uint64_t d = precomp<t_k>::exp(subtree_root.t) - 1;
 
+                return row_id >= real(subtree_root.p) and row_id <= real(subtree_root.p) + d;
+            }
+
+            template<typename t_x>
+            inline static void add_to_result_if_relevant(t_x source_id, point_type::value_type x, point_type::value_type y, point_type::value_type _x, size_t i, size_t j, node_type root, std::vector<t_x>& result) {
+                using namespace k2_treap_ns;
+                 if (source_id == _x) { //if bit set and leaf part of correct row, add to result
+                    auto _y = y + j * precomp<t_k>::exp(root.t - 1);
+                    result.push_back(_y);
+                }
+            }
+        };
+
+        struct InverseImpl {
+            template<typename t_x>
+            inline static bool is_relevant_subtree(t_x column_id, node_type subtree_root) {
+                using namespace k2_treap_ns;
+                uint64_t d = precomp<t_k>::exp(subtree_root.t) - 1;
+
+                return column_id >= imag(subtree_root.p) and column_id <= imag(subtree_root.p) + d;
+            }
+
+            template<typename t_x>
+            inline static void add_to_result_if_relevant(t_x source_id, point_type::value_type x, point_type::value_type y, point_type::value_type _x, size_t i, size_t j, node_type root, std::vector<t_x>& result) {
+                using namespace k2_treap_ns;
+                auto _y = y + j * precomp<t_k>::exp(root.t - 1);
+                if (source_id == _y) { //if bit set and leaf part of correct row, add to result
+                    result.push_back(_x);
+                }
+            }
+        };
+
+    };
 }
 #endif

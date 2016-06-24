@@ -9,6 +9,14 @@
 using namespace sdsl;
 using namespace std;
 
+void print(std::vector<uint32_t>& to_print, uint32_t source_node){
+    std::cout << "Reachable nodes from " << source_node <<std::endl;
+    for (auto& link: to_print){
+        std::cout << link << "\t";
+    }
+    std::cout << std::endl;
+}
+
 int main()
 {
     typedef k2_treap<2,rrr_vector<63>> k2_rrr;
@@ -21,10 +29,20 @@ int main()
     cout << "Points in the k2treap: " << k2treap.size() << endl;
 
     cout << "Points in the rectangle from (2,1) to (3,3): " ;
-    cout << count(k2treap, {2,1}, {3,3}) << endl;
+    //cout << count(k2treap, {2,1}, {3,3}) << endl;
 
     cout << "Report all points in rectangle from (2,2) to (10,10)" << endl;
-    auto range_it = range_3d(k2treap, {2,2}, {10,10});
+    std::vector<uint32_t> result;
+
+    k2treap.inverse_links((uint32_t) 4, result);
+    print(result, 4);
+
+    for (uint32_t i = 0; i < 8; i++){
+        k2treap.inverse_links(i, result);
+        print(result, i);
+    }
+
+    /*auto range_it = range_3d(k2treap, {2,2}, {10,10});
     while (range_it) {
         auto p = *range_it;
         cout << real(p) <<" weight: "<< imag(p) << endl;
@@ -42,5 +60,5 @@ int main()
             cout << real(p) <<" weight: "<< imag(p) << endl;
             ++topk_it;
         }
-    }
+    }*/
 }
