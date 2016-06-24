@@ -237,7 +237,6 @@ namespace sdsl {
             {
                 int_vector_buffer<1> bp_buf(bp_file, std::ios::out);
 
-                auto begin = std::begin(v);
                 auto end = std::end(v);
                 uint64_t last_level_bits = 0;
                 uint64_t level_bits = 0;

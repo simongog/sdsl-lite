@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
 
         std::getline(fileStream, readBuffer);
         uint numberOfNodes = stoul(readBuffer);
-        vector <pair<uint32_t, uint32_t>> coordinates;
+        vector<pair<uint32_t, uint32_t>> coordinates;
 
         while (std::getline(fileStream, readBuffer)) {
             //tokenizer<escaped_list_separator<char> > tok(readBuffer);
@@ -88,9 +88,9 @@ int main(int argc, char *argv[]) {
 
         fileStream.close();
 
-        std::cerr << "Finished Reading File \n" << std::endl;
-
-        typedef k2_treap<3, rrr_vector<63>> k2_rrr;
+        std::cerr << "Finished Reading File " << std::endl;
+        std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
+        typedef k2_treap<4, rrr_vector<63>> k2_rrr;
         k2_rrr k2treap;
 
 
@@ -103,7 +103,10 @@ int main(int argc, char *argv[]) {
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds
 
+        coordinates.clear();
+
         fprintf(stderr, "Initialization time (ms): %f\n", t2);
+
 
         std::cerr << "Processing direct neighbour queries\n" << std::endl;
 
@@ -120,12 +123,10 @@ int main(int argc, char *argv[]) {
         double t = 0;
         start_clock();
         uint count = 0;
+        std::vector<uint32_t> result;
         for (auto query : queries){
-            auto range_it = range_3d(k2treap, {query,0}, {query,UINT_MAX});
-            while (range_it) {
-                ++range_it;
-                count++;
-            }
+            k2treap.direct_links(query, result);
+            count+= result.size();
         }
 
         t += stop_clock();
@@ -146,11 +147,8 @@ int main(int argc, char *argv[]) {
         start_clock();
         uint count2 = 0;
         for (auto query : queries){
-            auto range_it = range_3d(k2treap, {0,query}, {UINT_MAX,query});
-            while (range_it) {
-                ++range_it;
-                count2++;
-            }
+            k2treap.inverse_links(query, result);
+            count2 += result.size();
         }
 
         //uint count = 342045;
@@ -171,3 +169,4 @@ int main(int argc, char *argv[]) {
         throw "Could not load file";
     }
 }
+
