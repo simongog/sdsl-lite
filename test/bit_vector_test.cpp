@@ -29,7 +29,7 @@ rrr_vector<192>,
 rrr_vector<255>,
 rrr_vector<15>,
 rrr_vector<31>,
-rrr_vector
+rrr_vector<63>,
 rrr_vector<83>,
 rrr_vector<127>,
 rrr_vector<128>,
