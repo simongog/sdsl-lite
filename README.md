@@ -1,6 +1,10 @@
 SDSL - Succinct Data Structure Library
 =========
 
+Use bootstrap.sh to install dependencies from source (git with ssh support, cmake, gcc, htop, bzip2 headers)
+
+
+
 [![Build Status](https://travis-ci.org/simongog/sdsl-lite.svg?branch=master)](https://travis-ci.org/simongog/sdsl-lite)
 
 What is it?
