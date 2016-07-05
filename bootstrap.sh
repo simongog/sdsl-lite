@@ -67,12 +67,18 @@ cd build
 rm -rf CMake* && cmake -D CMAKE_BUILD_TYPE=Release ..
 make boost_external
 
-echo -e "username=d056848 \n
-export PATH=/local/\${username}/git-master/build/bin:\$PATH \n
-export PATH=/local/\${username}/cmake-3.5.2/build/bin:\$PATH \n
-export PATH=/local/\${username}/gcc-4.9.3/build/bin:\$PATH \n
-export PATH=/local/\${username}/htop-2.0.1/build/bin:\$PATH \n
-export LIBRARY_PATH=/local/\${username}/bzip2-1.0.6/build/lib:\$LIBRARY_PATH \n
-export PATH=/local/\${username}/bzip2-1.0.6/build/bin/:\$PATH \n
-export CPLUS_INCLUDE_PATH=/local/\${username}/bzip2-1.0.6/build/include/:\$CPLUS_INCLUDE_PATH \n"
+echo -e "username=d056848
+export PATH=/local/\${username}/git-master/build/bin:\$PATH
+export PATH=/local/\${username}/cmake-3.5.2/build/bin:\$PATH
+export PATH=/local/\${username}/gcc-4.9.3/build/bin:\$PATH
+export PATH=/local/\${username}/htop-2.0.1/build/bin:\$PATH
+export LIBRARY_PATH=/local/\${username}/bzip2-1.0.6/build/lib:\$LIBRARY_PATH
+export PATH=/local/\${username}/bzip2-1.0.6/build/bin/:\$PATH
+export CPLUS_INCLUDE_PATH=/local/\${username}/bzip2-1.0.6/build/include/:\$CPLUS_INCLUDE_PATH
+export CPLUS_INCLUDE_PATH=/local/\${username}/gcc-4.9.3/build/include/:\$CPLUS_INCLUDE_PATH
+export LIBRARY_PATH=/local/\${username}/gcc-4.9.3/build/lib:\$LIBRARY_PATH
+export LIBRARY_PATH=/local/\${username}/gcc-4.9.3/build/lib64:\$LIBRARY_PATH
+export LD_LIBRARY_PATH=/local/\${username}/gcc-4.9.3/build/lib:\$LIBRARY_PATH
+export LD_LIBRARY_PATH=/local/\${username}/gcc-4.9.3/build/lib64:\$LIBRARY_PATH
+"
 >> ~/.bashrc
