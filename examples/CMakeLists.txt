@@ -5,7 +5,9 @@ set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 
-find_package(Boost COMPONENTS system filesystem regex tokenizer)
+include(find_or_download_packages)
+
+find_or_download_package(Boost COMPONENTS system filesystem regex tokenizer)
 
 INCLUDE_DIRECTORIES(
         ${CMAKE_CURRENT_BINARY_DIR}/../external/libdivsufsort/include
