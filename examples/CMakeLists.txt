@@ -5,9 +5,10 @@ set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 
-include(find_or_download_packages)
+include(ExternalProject)
+include(find_or_download_package)
 
-find_or_download_package(Boost COMPONENTS system filesystem regex tokenizer)
+find_or_download_package(Boost Boost boost COMPONENTS system filesystem regex algorithm)
 
 INCLUDE_DIRECTORIES(
         ${CMAKE_CURRENT_BINARY_DIR}/../external/libdivsufsort/include
@@ -16,7 +17,7 @@ INCLUDE_DIRECTORIES(
         ${STXXL_INCLUDE_DIRS}
         )
 
-LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64 stxxl)
+LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64 stxxl boost)
 
 # Set compiler flags to show all warnings (MSVC and GCC)
 if(MSVC)
