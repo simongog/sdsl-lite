@@ -34,6 +34,127 @@
 //! Namespace for the succinct data structure library.
 namespace sdsl {
 
+
+    struct sort_by_z_order {
+        static const int MortonTable256[256];
+
+        uint inline interleaveLowerBits(short x, short y) {
+            unsigned int z;   // z gets the resulting 32-bit Morton Number.
+
+            z = MortonTable256[y >> 8] << 17 |
+                MortonTable256[x >> 8] << 16 |
+                MortonTable256[y & 0xFF] << 1 |
+                MortonTable256[x & 0xFF];
+
+            return z;
+        }
+
+        inline bool operator()(const std::pair<uint32_t, uint32_t> lhs, const std::pair<uint32_t, uint32_t> rhs) {
+            uint lhsInterleaved = interleaveLowerBits(lhs.second >> 16, lhs.first >> 16);
+            uint rhsInterleaved = interleaveLowerBits(rhs.second >> 16, rhs.first >> 16);
+
+            if (lhsInterleaved < rhsInterleaved) {
+                return true;
+            } else if (lhsInterleaved > rhsInterleaved) {
+                return false;
+            } else {
+                //interleaveLowerBits (shift away upper 16 Bits
+                lhsInterleaved = interleaveLowerBits((lhs.second << 16) >> 16, (lhs.first << 16) >> 16);
+                rhsInterleaved = interleaveLowerBits((rhs.second << 16) >> 16, (rhs.first << 16) >> 16);
+                if (lhsInterleaved < rhsInterleaved) {
+                    return true;
+                } else if (lhsInterleaved > rhsInterleaved) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        }
+
+        inline bool operator()(const std::pair<uint64_t, uint64_t>& lhs, const std::pair<uint64_t, uint64_t>& rhs) {
+            const uint64_t lhsFirst = lhs.first;
+            const uint64_t lhsSecond = lhs.second;
+            const uint64_t rhsFirst = rhs.first;
+            const uint64_t rhsSecond = rhs.second;
+            if (lhsFirst <= std::numeric_limits<uint32_t>::max() && lhsSecond <= std::numeric_limits<uint32_t>::max() && rhsFirst <= std::numeric_limits<uint32_t>::max() && rhsSecond <= std::numeric_limits<uint32_t>::max()){
+                return this->operator()((std::pair<uint32_t, uint32_t>) lhs, (std::pair<uint32_t, uint32_t>) rhs);
+            } else {
+                //can't call 32 bit as it returns true in the equal case for the upper 32 bit
+                uint32_t lhsFirst1 = (uint32_t)(lhsFirst >>32);
+                uint32_t rhsFirst1 = (uint32_t)(rhsFirst >>32);
+                uint32_t lhsSecond1 = (uint32_t)(lhsSecond >>32);
+                uint32_t rhsSecond1 = (uint32_t)(rhsSecond >>32);
+
+                if (!(lhsFirst1 == rhsFirst1 && lhsSecond1 == rhsSecond1)){
+                    return this->operator()(std::make_pair(lhsFirst1, lhsSecond1), std::make_pair(rhsFirst1, rhsSecond1));
+                } else {
+                    //implicit 32 bit conversion works for lower 32 bit of 64 bit integer
+                    return this->operator()((std::pair<uint32_t, uint32_t>) lhs, (std::pair<uint32_t, uint32_t>) rhs);
+                }
+            }
+
+            uint lhsInterleaved = interleaveLowerBits(lhs.second >> 16, lhs.first >> 16);
+            uint rhsInterleaved = interleaveLowerBits(rhs.second >> 16, rhs.first >> 16);
+
+            if (lhsInterleaved < rhsInterleaved) {
+                return true;
+            } else if (lhsInterleaved > rhsInterleaved) {
+                return false;
+            } else {
+                //interleaveLowerBits (shift away upper 16 Bits
+                lhsInterleaved = interleaveLowerBits((lhs.second << 16) >> 16, (lhs.first << 16) >> 16);
+                rhsInterleaved = interleaveLowerBits((rhs.second << 16) >> 16, (rhs.first << 16) >> 16);
+                if (lhsInterleaved < rhsInterleaved) {
+                    return true;
+                } else if (lhsInterleaved > rhsInterleaved) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        }
+
+    };
+
+    //TODO: add more preshifted Morton Tables
+    const int sort_by_z_order::MortonTable256[256] =
+            {
+                    0x0000, 0x0001, 0x0004, 0x0005, 0x0010, 0x0011, 0x0014, 0x0015,
+                    0x0040, 0x0041, 0x0044, 0x0045, 0x0050, 0x0051, 0x0054, 0x0055,
+                    0x0100, 0x0101, 0x0104, 0x0105, 0x0110, 0x0111, 0x0114, 0x0115,
+                    0x0140, 0x0141, 0x0144, 0x0145, 0x0150, 0x0151, 0x0154, 0x0155,
+                    0x0400, 0x0401, 0x0404, 0x0405, 0x0410, 0x0411, 0x0414, 0x0415,
+                    0x0440, 0x0441, 0x0444, 0x0445, 0x0450, 0x0451, 0x0454, 0x0455,
+                    0x0500, 0x0501, 0x0504, 0x0505, 0x0510, 0x0511, 0x0514, 0x0515,
+                    0x0540, 0x0541, 0x0544, 0x0545, 0x0550, 0x0551, 0x0554, 0x0555,
+                    0x1000, 0x1001, 0x1004, 0x1005, 0x1010, 0x1011, 0x1014, 0x1015,
+                    0x1040, 0x1041, 0x1044, 0x1045, 0x1050, 0x1051, 0x1054, 0x1055,
+                    0x1100, 0x1101, 0x1104, 0x1105, 0x1110, 0x1111, 0x1114, 0x1115,
+                    0x1140, 0x1141, 0x1144, 0x1145, 0x1150, 0x1151, 0x1154, 0x1155,
+                    0x1400, 0x1401, 0x1404, 0x1405, 0x1410, 0x1411, 0x1414, 0x1415,
+                    0x1440, 0x1441, 0x1444, 0x1445, 0x1450, 0x1451, 0x1454, 0x1455,
+                    0x1500, 0x1501, 0x1504, 0x1505, 0x1510, 0x1511, 0x1514, 0x1515,
+                    0x1540, 0x1541, 0x1544, 0x1545, 0x1550, 0x1551, 0x1554, 0x1555,
+                    0x4000, 0x4001, 0x4004, 0x4005, 0x4010, 0x4011, 0x4014, 0x4015,
+                    0x4040, 0x4041, 0x4044, 0x4045, 0x4050, 0x4051, 0x4054, 0x4055,
+                    0x4100, 0x4101, 0x4104, 0x4105, 0x4110, 0x4111, 0x4114, 0x4115,
+                    0x4140, 0x4141, 0x4144, 0x4145, 0x4150, 0x4151, 0x4154, 0x4155,
+                    0x4400, 0x4401, 0x4404, 0x4405, 0x4410, 0x4411, 0x4414, 0x4415,
+                    0x4440, 0x4441, 0x4444, 0x4445, 0x4450, 0x4451, 0x4454, 0x4455,
+                    0x4500, 0x4501, 0x4504, 0x4505, 0x4510, 0x4511, 0x4514, 0x4515,
+                    0x4540, 0x4541, 0x4544, 0x4545, 0x4550, 0x4551, 0x4554, 0x4555,
+                    0x5000, 0x5001, 0x5004, 0x5005, 0x5010, 0x5011, 0x5014, 0x5015,
+                    0x5040, 0x5041, 0x5044, 0x5045, 0x5050, 0x5051, 0x5054, 0x5055,
+                    0x5100, 0x5101, 0x5104, 0x5105, 0x5110, 0x5111, 0x5114, 0x5115,
+                    0x5140, 0x5141, 0x5144, 0x5145, 0x5150, 0x5151, 0x5154, 0x5155,
+                    0x5400, 0x5401, 0x5404, 0x5405, 0x5410, 0x5411, 0x5414, 0x5415,
+                    0x5440, 0x5441, 0x5444, 0x5445, 0x5450, 0x5451, 0x5454, 0x5455,
+                    0x5500, 0x5501, 0x5504, 0x5505, 0x5510, 0x5511, 0x5514, 0x5515,
+                    0x5540, 0x5541, 0x5544, 0x5545, 0x5550, 0x5551, 0x5554, 0x5555
+            };
+
+
+
 //! A k^2-treap.
 /*! A k^2-treap is an indexing structure for a set of weighted points. The set
  *  consists of triples (x,y,w), where the first two components x and y are
@@ -96,6 +217,49 @@ namespace sdsl {
             uint8_t res = 0;
             while (precomp<t_k>::exp(res) <= x) { ++res; }
             return res;
+        }
+
+
+        //maybe change to table lookup version and extract B,S
+        uint inline interleaveLowerBits2(uint x, uint y) {
+            static const unsigned int B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
+            static const unsigned int S[] = {1, 2, 4, 8};
+
+            // Interleave lower 16 bits of x and y, so the bits of x
+            // are in the even positions and bits from y in the odd;
+            unsigned int z; // z gets the resulting 32-bit Morton Number.
+            // x and y must initially be less than 65536.
+
+
+            x = (x | (x << S[3])) & B[3];
+            x = (x | (x << S[2])) & B[2];
+            x = (x | (x << S[1])) & B[1];
+            x = (x | (x << S[0])) & B[0];
+
+            y = (y | (y << S[3])) & B[3];
+            y = (y | (y << S[2])) & B[2];
+            y = (y | (y << S[1])) & B[1];
+            y = (y | (y << S[0])) & B[0];
+
+            z = x | (y << 1);
+
+            return z;
+        }
+
+        template<typename t_x, typename t_y>
+        uint calculate_subtree_distance(std::pair<t_x, t_y> previous_link, std::pair<t_x, t_y>& current_link, int level) {
+
+            if (previous_link == nullptr){
+                //get subtree number by interleaving the top k bits
+
+                subtree_distance = precomp<t_k>::divexp(std::get<1>(e), l - 1) % t_k <= j;
+            } else {
+                tree number on l of previous link - tree number on l of current link
+            }
+
+
+            //TODO
+            return 0;
         }
 
     public:
@@ -195,7 +359,7 @@ namespace sdsl {
 
         template<typename t_x=uint64_t, typename t_y=uint64_t>
         std::vector<std::pair<t_x, t_y>>
-        read(std::vector<int_vector_buffer<> *> &bufs) {
+        read(std::vector<int_vector_buffer<> * > &bufs) {
             typedef std::vector<std::pair<t_x, t_y>> t_tuple_vec;
             t_tuple_vec v = t_tuple_vec(bufs[0]->size());
             for (uint64_t j = 0; j < v.size(); ++j) {
@@ -264,7 +428,7 @@ namespace sdsl {
                             auto x2 = std::get<0>(e);
                             auto y2 = std::get<1>(e);
                             bool in_sub_tree = precomp<t_k>::divexp(x1, l) != precomp<t_k>::divexp(x2, l)
-                                   or precomp<t_k>::divexp(y1, l) != precomp<t_k>::divexp(y2, l);
+                                               or precomp<t_k>::divexp(y1, l) != precomp<t_k>::divexp(y2, l);
 
                             /*if (asd)
                             {
@@ -327,7 +491,7 @@ namespace sdsl {
                                 _sp = _ep;
                             }
                         }
-                        if (ep!= end){
+                        if (ep != end) {
                             //++ep;
                             sp = ep;
                         }
@@ -355,6 +519,73 @@ namespace sdsl {
 
             util::init_support(m_bp_rank, &m_bp);
             sdsl::remove(bp_file);
+        }
+
+        template<typename t_x, typename t_y>
+        void construct_bottom_up(std::vector<std::pair<t_x, t_y>> &links, std::string temp_file_prefix = "") {
+            using namespace k2_treap_ns;
+            using t_e = std::pair<t_x, t_y>;
+
+            std::vector<int_vector_buffer<1>> level_vectors;
+
+            m_size = links.size();
+            m_tree_height = get_tree_height(links);
+            uint64_t M = precomp<t_k>::exp(t);
+            t_e MM = t_e(M, M);
+
+            std::string id_part = util::to_string(util::pid())
+                                  + "_" + util::to_string(util::id());
+
+            m_level_begin_idx = int_vector<64>(1 + t, 0);
+
+            for (int i = 0; i < m_tree_height; i++) {
+                std::string bp_file = temp_file_prefix + "_bp_" + id_part + "_" + std::to_string(i) + ".sdsl";
+                level_vectors.push_back(int_vector_buffer<1>(bp_file, std::ios::out));
+            }
+
+            auto end = std::end(links);
+            uint64_t last_level_bits = 0;
+            uint64_t level_bits = 0;
+
+            std::sort(links.begin(), links.end(), sort_by_z_order());
+
+            std::pair<t_x,t_y> previous_link = nullptr;
+
+            uint subtree_distance;
+            for (auto& current_link: links) {
+                uint current_level = 0;
+                subtree_distance = calculate_subtree_distance(previous_link, current_link, current_level);
+
+                while (subtree_distance != 0){
+                    if (subtree_distance > 0){
+                        for (int j = 0; j < -1; ++j) {
+                            level_vectors[current_level].push_back(0);
+                        }
+
+                        level_vectors[current_level].push_back(1);
+                    }
+
+                    current_level++;
+                    if (current_level < level_vectors.size()){
+                        subtree_distance = calculate_subtree_distance(previous_link, current_link, current_level);
+                    } else {
+                        subtree_distance = 0;
+                    }
+                }
+            }
+
+            /*
+            bit_vector bp;
+            load_from_file(bp, bp_file);
+            {
+                bit_vector _bp;
+                _bp.swap(bp);
+                m_bp = t_bv(_bp);
+            }
+
+            util::init_support(m_bp_rank, &m_bp);
+            sdsl::remove(bp_file);
+             */
         }
 
 
@@ -388,23 +619,23 @@ namespace sdsl {
         }
 
         node_type root() const {
-            return node_type(t, t_p(0,0), 0);
+            return node_type(t, t_p(0, 0), 0);
         }
 
         template<typename t_x>
-        void direct_links(t_x source_id, std::vector<t_x>& result) const {
+        void direct_links(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
-            traverse_tree<t_x,DirectImpl>(this->root(), source_id, result);
+            traverse_tree<t_x, DirectImpl>(this->root(), source_id, result);
         }
 
         template<typename t_x>
-        void inverse_links(t_x source_id, std::vector<t_x>& result) const {
+        void inverse_links(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
-            traverse_tree<t_x,InverseImpl>(this->root(), source_id, result);
+            traverse_tree<t_x, InverseImpl>(this->root(), source_id, result);
         }
 
         template<typename t_x, class Impl>
-        void traverse_tree(node_type root, t_x source_id, std::vector<t_x>& result) const{
+        void traverse_tree(node_type root, t_x source_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
             if (!is_leaf(root)) {
                 uint64_t rank = m_bp_rank(root.idx);
@@ -422,7 +653,7 @@ namespace sdsl {
 
                             node_type subtree_root(root.t - 1, t_p(_x, _y), rank * t_k * t_k);
                             if (Impl::is_relevant_subtree(source_id, subtree_root)) {
-                                traverse_tree<t_x, Impl>(subtree_root,source_id,result);
+                                traverse_tree<t_x, Impl>(subtree_root, source_id, result);
                             }
                         }
                     }
@@ -435,7 +666,7 @@ namespace sdsl {
                 for (size_t i = 0; i < t_k; ++i) {
                     auto _x = (x + i * precomp<t_k>::exp(root.t - 1));
                     for (size_t j = 0; j < t_k; ++j) {
-                        if (m_bp[root.idx + t_k * i + j]){
+                        if (m_bp[root.idx + t_k * i + j]) {
                             Impl::add_to_result_if_relevant(source_id, x, y, _x, i, j, root, result);
                         }
                     }
@@ -453,9 +684,11 @@ namespace sdsl {
             }
 
             template<typename t_x>
-            inline static void add_to_result_if_relevant(t_x source_id, point_type::value_type x, point_type::value_type y, point_type::value_type _x, size_t i, size_t j, node_type root, std::vector<t_x>& result) {
+            inline static void add_to_result_if_relevant(t_x source_id, point_type::value_type x,
+                                                         point_type::value_type y, point_type::value_type _x, size_t i,
+                                                         size_t j, node_type root, std::vector<t_x> &result) {
                 using namespace k2_treap_ns;
-                 if (source_id == _x) { //if bit set and leaf part of correct row, add to result
+                if (source_id == _x) { //if bit set and leaf part of correct row, add to result
                     auto _y = y + j * precomp<t_k>::exp(root.t - 1);
                     result.push_back(_y);
                 }
@@ -472,7 +705,9 @@ namespace sdsl {
             }
 
             template<typename t_x>
-            inline static void add_to_result_if_relevant(t_x source_id, point_type::value_type x, point_type::value_type y, point_type::value_type _x, size_t i, size_t j, node_type root, std::vector<t_x>& result) {
+            inline static void add_to_result_if_relevant(t_x source_id, point_type::value_type x,
+                                                         point_type::value_type y, point_type::value_type _x, size_t i,
+                                                         size_t j, node_type root, std::vector<t_x> &result) {
                 using namespace k2_treap_ns;
                 auto _y = y + j * precomp<t_k>::exp(root.t - 1);
                 if (source_id == _y) { //if bit set and leaf part of correct row, add to result
