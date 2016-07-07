@@ -8,7 +8,9 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 include(ExternalProject)
 include(find_or_download_package)
 
-find_or_download_package(Boost Boost boost COMPONENTS system filesystem regex algorithm)
+message("Boost root set to: ${BOOST_ROOT}")
+
+find_or_download_package(Boost Boost boost COMPONENTS system filesystem regex)
 
 INCLUDE_DIRECTORIES(
         ${CMAKE_CURRENT_BINARY_DIR}/../external/libdivsufsort/include
