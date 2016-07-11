@@ -264,7 +264,19 @@ namespace sdsl {
     construct(k2_treap<t_k, t_bv, t_rank> &idx, std::string file) {
         int_vector_buffer<> buf_x(file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(file + ".y", std::ios::in);
-        k2_treap<t_k, t_bv, t_rank> tmp(buf_x, buf_y);
+        k2_treap<t_k, t_bv, t_rank> tmp(buf_x, buf_y, false);
+        tmp.swap(idx);
+    }
+
+    //! Specialized version of method ,,construct'' for k2_treaps.
+    template<uint8_t t_k,
+            typename t_bv,
+            typename t_rank>
+    void
+    construct_bottom_up(k2_treap<t_k, t_bv, t_rank> &idx, std::string file) {
+        int_vector_buffer<> buf_x(file + ".x", std::ios::in);
+        int_vector_buffer<> buf_y(file + ".y", std::ios::in);
+        k2_treap<t_k, t_bv, t_rank> tmp(buf_x, buf_y, true);
         tmp.swap(idx);
     }
 
@@ -279,7 +291,22 @@ namespace sdsl {
         for (auto x : data) {
             d.push_back(std::make_pair(x[0], x[1]));
         }
-        k2_treap<t_k, t_bv, t_rank> tmp(d, tmp_prefix);
+        k2_treap<t_k, t_bv, t_rank> tmp(d, tmp_prefix, false);
+        tmp.swap(idx);
+    }
+
+    //! Specialized version of method ,,construct_im'' for k2_treaps.
+    template<uint8_t t_k,
+            typename t_bv,
+            typename t_rank>
+    void
+    construct_im_bottom_up(k2_treap<t_k, t_bv, t_rank> &idx, std::vector<std::array<uint64_t, 2>> data) {
+        std::string tmp_prefix = ram_file_name("k2_treap_");
+        std::vector<std::pair<uint64_t, uint64_t>> d;
+        for (auto x : data) {
+            d.push_back(std::make_pair(x[0], x[1]));
+        }
+        k2_treap<t_k, t_bv, t_rank> tmp(d, tmp_prefix, true);
         tmp.swap(idx);
     }
 
@@ -290,7 +317,18 @@ namespace sdsl {
     void
     construct_im(k2_treap<t_k, t_bv, t_rank> &idx, std::vector<std::pair<uint32_t, uint32_t>> data) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_treap<t_k, t_bv, t_rank> tmp(data, tmp_prefix);
+        k2_treap<t_k, t_bv, t_rank> tmp(data, tmp_prefix, false);
+        tmp.swap(idx);
+    }
+
+    //! Specialized version of method ,,construct_im'' for k2_treaps.
+    template<uint8_t t_k,
+            typename t_bv,
+            typename t_rank>
+    void
+    construct_im_bottom_up(k2_treap<t_k, t_bv, t_rank> &idx, std::vector<std::pair<uint32_t, uint32_t>> data) {
+        std::string tmp_prefix = ram_file_name("k2_treap_");
+        k2_treap<t_k, t_bv, t_rank> tmp(data, tmp_prefix,true);
         tmp.swap(idx);
     }
 }

@@ -38,7 +38,7 @@ namespace sdsl {
     struct sort_by_z_order {
         static const int MortonTable256[256];
 
-        uint inline interleaveLowerBits(short x, short y) {
+        uint inline interleaveLowerBits(ushort x, ushort y) {
             unsigned int z;   // z gets the resulting 32-bit Morton Number.
 
             z = MortonTable256[y >> 8] << 17 |
@@ -85,14 +85,16 @@ namespace sdsl {
                 uint32_t lhsSecond1 = (uint32_t)(lhsSecond >>32);
                 uint32_t rhsSecond1 = (uint32_t)(rhsSecond >>32);
 
-                if (!(lhsFirst1 == rhsFirst1 && lhsSecond1 == rhsSecond1)){
-                    return this->operator()(std::make_pair(lhsFirst1, lhsSecond1), std::make_pair(rhsFirst1, rhsSecond1));
-                } else {
-                    //implicit 32 bit conversion works for lower 32 bit of 64 bit integer
+                if (lhsFirst1 == rhsFirst1 && lhsSecond1 == rhsSecond1){
+                    //if first 32 bit of each of the two numbers of each pair are the same
+                    //only look at lower 32 bit by implicit conversion of 64 bit integer to 32 bit
                     return this->operator()((std::pair<uint32_t, uint32_t>) lhs, (std::pair<uint32_t, uint32_t>) rhs);
+                } else {
+                    return this->operator()(std::make_pair(lhsFirst1, lhsSecond1), std::make_pair(rhsFirst1, rhsSecond1));
                 }
             }
 
+            /*
             uint lhsInterleaved = interleaveLowerBits(lhs.second >> 16, lhs.first >> 16);
             uint rhsInterleaved = interleaveLowerBits(rhs.second >> 16, rhs.first >> 16);
 
@@ -111,7 +113,7 @@ namespace sdsl {
                 } else {
                     return true;
                 }
-            }
+            }*/
         }
 
     };
@@ -246,22 +248,6 @@ namespace sdsl {
             return z;
         }
 
-        template<typename t_x, typename t_y>
-        uint calculate_subtree_distance(std::pair<t_x, t_y> previous_link, std::pair<t_x, t_y>& current_link, int level) {
-
-            if (previous_link == nullptr){
-                //get subtree number by interleaving the top k bits
-
-                subtree_distance = precomp<t_k>::divexp(std::get<1>(e), l - 1) % t_k <= j;
-            } else {
-                tree number on l of previous link - tree number on l of current link
-            }
-
-
-            //TODO
-            return 0;
-        }
-
     public:
         uint8_t &t = m_tree_height;
 
@@ -279,7 +265,7 @@ namespace sdsl {
         k2_treap &operator=(k2_treap &&tr) {
             if (this != &tr) {
                 m_tree_height = tr.m_tree_height;
-                m_tree_height = tr.m_size;
+                m_size = tr.m_size;
                 m_bp = std::move(tr.m_bp);
                 m_bp_rank = std::move(tr.m_bp_rank);
                 m_bp_rank.set_vector(&m_bp);
@@ -292,13 +278,36 @@ namespace sdsl {
         k2_treap &operator=(k2_treap &tr) {
             if (this != &tr) {
                 m_tree_height = tr.m_tree_height;
-                m_tree_height = tr.m_size;
+                m_size = tr.m_size;
                 m_bp = tr.m_bp;
                 m_bp_rank = tr.m_bp_rank;
                 m_bp_rank.set_vector(&m_bp);
                 m_level_begin_idx = tr.m_level_begin_idx;
             }
             return *this;
+        }
+
+        //! Assignment operator
+        bool operator==(const k2_treap &tr) const {
+            if (m_tree_height != tr.m_tree_height)
+                return false;
+            if (m_size != tr.m_size)
+                return false;
+            if (m_bp.size() != tr.m_bp.size())
+                return false;
+
+            for (uint i = 0; i < m_bp.size(); ++i) {
+                if (m_bp[i] != tr.m_bp[i]){
+                    std::cout << "m_bp vectors differ at " << i << std::endl;
+                    return false;
+                }
+
+            }
+
+            if (m_level_begin_idx != tr.m_level_begin_idx)
+                return false;
+
+            return true;
         }
 
         //! Number of points in the 2^k treap
@@ -319,7 +328,7 @@ namespace sdsl {
         }
 
         k2_treap(int_vector_buffer<> &buf_x,
-                 int_vector_buffer<> &buf_y) {
+                 int_vector_buffer<> &buf_y, bool bottom_up) {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
@@ -350,10 +359,19 @@ namespace sdsl {
 
             if (precomp<t_k>::exp(res) <= std::numeric_limits<uint32_t>::max()) {
                 auto v = read < uint32_t, uint32_t>(bufs);
-                construct(v, buf_x.filename());
+                if (bottom_up){
+                    construct_bottom_up(v, buf_x.filename());
+                } else  {
+                    construct(v, buf_x.filename());
+                }
+
             } else {
                 auto v = read < uint64_t, uint64_t>(bufs);
-                construct(v, buf_x.filename());
+                if (bottom_up){
+                    construct_bottom_up(v, buf_x.filename());
+                } else  {
+                    construct(v, buf_x.filename());
+                }
             }
         }
 
@@ -374,9 +392,13 @@ namespace sdsl {
 
 
         template<typename t_x, typename t_y>
-        k2_treap(std::vector<std::pair<t_x, t_y>> &v, std::string temp_file_prefix = "") {
+        k2_treap(std::vector<std::pair<t_x, t_y>> &v, std::string temp_file_prefix = "", bool bottom_up = false) {
             if (v.size() > 0) {
-                construct(v, temp_file_prefix);
+                if (bottom_up){
+                    construct_bottom_up(v, temp_file_prefix);
+                } else  {
+                    construct(v, temp_file_prefix);
+                }
             }
         }
 
@@ -409,8 +431,8 @@ namespace sdsl {
                 for (uint64_t l = t; l + 1 > 0; --l) {
 
                     if (l > 0) {
-                        //std::cout << "Setting: " << "m_level_begin_idx[" << (l - 1) << "] = "
-                        //         << m_level_begin_idx[l] + last_level_bits << std::endl;
+                        std::cout << "Setting: " << "m_level_begin_idx[" << (l - 1) << "] = "
+                                 << m_level_begin_idx[l] + last_level_bits << std::endl;
                         m_level_begin_idx[l - 1] = m_level_begin_idx[l] + last_level_bits;
                     }
 
@@ -521,12 +543,22 @@ namespace sdsl {
             sdsl::remove(bp_file);
         }
 
+
+        template<typename t_x, typename t_y>
+        uint inline calculate_subtree_number_and_new_relative_coordinates(std::pair<t_x, t_y>& link, int level) {
+            using namespace k2_treap_ns;
+            uint exponent = m_tree_height-level-1;
+            uint result = k*precomp<t_k>::divexp(link.first,exponent)+precomp<t_k>::divexp(link.second,exponent);
+            link.first = precomp<t_k>::modexp(link.first, exponent);
+            link.second = precomp<t_k>::modexp(link.second, exponent);
+
+            return result;
+        }
+
         template<typename t_x, typename t_y>
         void construct_bottom_up(std::vector<std::pair<t_x, t_y>> &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
             using t_e = std::pair<t_x, t_y>;
-
-            std::vector<int_vector_buffer<1>> level_vectors;
 
             m_size = links.size();
             m_tree_height = get_tree_height(links);
@@ -538,54 +570,122 @@ namespace sdsl {
 
             m_level_begin_idx = int_vector<64>(1 + t, 0);
 
-            for (int i = 0; i < m_tree_height; i++) {
-                std::string bp_file = temp_file_prefix + "_bp_" + id_part + "_" + std::to_string(i) + ".sdsl";
-                level_vectors.push_back(int_vector_buffer<1>(bp_file, std::ios::out));
-            }
-
-            auto end = std::end(links);
-            uint64_t last_level_bits = 0;
-            uint64_t level_bits = 0;
-
             std::sort(links.begin(), links.end(), sort_by_z_order());
 
-            std::pair<t_x,t_y> previous_link = nullptr;
 
-            uint subtree_distance;
-            for (auto& current_link: links) {
-                uint current_level = 0;
-                subtree_distance = calculate_subtree_distance(previous_link, current_link, current_level);
 
-                while (subtree_distance != 0){
-                    if (subtree_distance > 0){
-                        for (int j = 0; j < -1; ++j) {
-                            level_vectors[current_level].push_back(0);
+
+            std::vector<int> previous_subtree_number(m_tree_height,-1);
+            uint64_t total_size = 0;
+
+            {
+                int subtree_distance;
+                bool fill_to_k2_entries = false; //begin extra case!
+                std::vector<uint> gap_to_k2(m_tree_height,k*k);
+                bool firstLink = true;
+                uint current_subtree_number = 0;
+
+                std::vector<int_vector_buffer<1>> level_vectors;
+                for (int i = 0; i < m_tree_height; i++) {
+                    std::string bp_file = temp_file_prefix + "_bp_" + id_part + "_" + std::to_string(i) + ".sdsl";
+                    level_vectors.push_back(int_vector_buffer<1>(bp_file, std::ios::out));
+                }
+
+                std::pair<t_x,t_y> previous_link;
+                for (auto &current_link: links) {
+                    auto tmp = std::make_pair(current_link.first, current_link.second);
+                    for (int current_level = 0; current_level < m_tree_height; ++current_level) {
+                        current_subtree_number = calculate_subtree_number_and_new_relative_coordinates(current_link,
+                                                                                                       current_level);
+                        subtree_distance = current_subtree_number - previous_subtree_number[current_level];
+
+                        if (subtree_distance > 0) {
+                            //invalidate previous subtree numbers as new relative frame
+                            for (int i = current_level + 1; i < m_tree_height; ++i) {
+                                previous_subtree_number[i] = -1;
+                            }
+
+                            if (fill_to_k2_entries && current_level != 0) {
+                                for (uint j = 0; j < gap_to_k2[current_level]; ++j) {
+                                    level_vectors[current_level].push_back(0);
+                                }
+                                gap_to_k2[current_level] = k * k;
+                            }
+
+                            for (int j = 0; j < subtree_distance - 1; ++j) {
+                                level_vectors[current_level].push_back(0);
+                                gap_to_k2[current_level]--;
+                            }
+
+                            level_vectors[current_level].push_back(1);
+                            gap_to_k2[current_level]--;
+
+                            if (!firstLink)
+                                fill_to_k2_entries = true;
+                        } else if (subtree_distance == 0) {
+                            fill_to_k2_entries = false;
+                        } else {
+                            std::string error_message("negative subtree_distance after z_order sort is not possible, somethings wrong current_level="+
+                                                              std::to_string(current_level)+" subtree_distance="+std::to_string(subtree_distance)+
+                                                              " current_subtree_number="+std::to_string(current_subtree_number)+" previous_subtree_number[current_level]="+
+                                                              std::to_string(previous_subtree_number[current_level])+"current_link="+std::to_string(current_link.first)+","+std::to_string(current_link.second)+
+                                                              "previous_link="+std::to_string(previous_link.first)+","+std::to_string(previous_link.second));
+                            throw std::logic_error(error_message);
                         }
-
-                        level_vectors[current_level].push_back(1);
+                        //std::cout << "Setting previous_subtree_number[" << current_level << "] = "<< current_subtree_number << std::endl;
+                        previous_subtree_number[current_level] = current_subtree_number;
                     }
+                    //FIXME: special case treatment for last level (doesn't need to be sorted --> set corresponding bit, but don't append)
+                    firstLink = false;
+                    previous_link = tmp;
+                }
 
-                    current_level++;
-                    if (current_level < level_vectors.size()){
-                        subtree_distance = calculate_subtree_distance(previous_link, current_link, current_level);
-                    } else {
-                        subtree_distance = 0;
+                //fill rest with 0s
+                for (uint l = 0; l < gap_to_k2.size(); ++l) {
+                    for (uint i = 0; i < gap_to_k2[l]; ++i) {
+                        level_vectors[l].push_back(0);
                     }
+                }
+
+                for (int m = 0; m < level_vectors.size(); ++m) {
+                    total_size+= level_vectors[m].size();
                 }
             }
 
-            /*
-            bit_vector bp;
-            load_from_file(bp, bp_file);
+
+            bit_vector concat = bit_vector(total_size,0);
+
+            uint64_t level_begin_offset = 0;
+            for (uint i = 0; i < m_tree_height; i++) {
+                std::string bp_file = temp_file_prefix + "_bp_" + id_part + "_" + std::to_string(i) + ".sdsl";
+                //std::cout << "Reading from " << temp_file_prefix << "_bp_" << id_part << "_" << std::to_string(i) << ".sdsl" << std::endl;
+                {
+                    bit_vector bp;
+                    load_from_file(bp, bp_file);
+
+                    m_level_begin_idx[m_tree_height-i-1] = level_begin_offset;
+                    //copy values using old total length as offset
+                    //FIXME: Probably pre calculate vector size and/or introduce append for int_vectors in sdsl
+                    for (uint j = 0; j < bp.size(); ++j) {
+                        //std::cout << bp[j] << "\t";
+                        concat[j+level_begin_offset] = bp[j];
+                    }
+                    //std::cout << std::endl;
+                    level_begin_offset += bp.size();
+                    //std::cout << "Bp size" << bp.size() << std::endl;
+                }
+            }
             {
                 bit_vector _bp;
-                _bp.swap(bp);
+                _bp.swap(concat);
                 m_bp = t_bv(_bp);
             }
 
             util::init_support(m_bp_rank, &m_bp);
-            sdsl::remove(bp_file);
-             */
+            for (int i = 0; i < m_tree_height; i++) {
+                std::string bp_file = temp_file_prefix + "_bp_" + id_part + "_" + std::to_string(i) + ".sdsl";
+                sdsl::remove(bp_file);
+            }
         }
 
 

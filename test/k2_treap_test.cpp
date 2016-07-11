@@ -43,6 +43,15 @@ TYPED_TEST(k2_treap_test, CreateAndStoreTest)
     ASSERT_TRUE(store_to_file(k2treap, temp_file));
 }
 
+TYPED_TEST(k2_treap_test, ConstructCompareTest)
+{
+        TypeParam k2treap;
+        TypeParam k2treap2;
+        construct(k2treap, test_file);
+        construct_bottom_up(k2treap2, test_file);
+        ASSERT_EQ(k2treap,k2treap2);
+}
+
 TYPED_TEST(k2_treap_test, size)
 {
     TypeParam k2treap;
