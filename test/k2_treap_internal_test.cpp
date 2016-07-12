@@ -49,13 +49,19 @@ namespace {
 
         std::vector<pair<uint, uint>> points;
         int size = 8;
+        const int k = 2;
         for (int i = 0; i < size; i++){
             for (int j = 0; j < size; j++) {
                 points.push_back(std::make_pair(i,j));
             }
         }
 
-        std::sort(points.begin(), points.end(), sort_by_z_order());
+        k2_treap<2, bit_vector> tree;
+        tree.set_height(log(size)/log(k));
+
+        std::sort(points.begin(), points.end(), [&](const std::pair<uint32_t, uint32_t>& lhs, const std::pair<uint32_t, uint32_t>& rhs){
+            return tree.sort_by_z_order(lhs, rhs);
+        });
 
         vector<pair<uint32_t, uint32_t>> correct_order = {{0,0},{0,1},{1,0},{1,1},{0,2},{0,3},{1,2},{1,3},
                                                           {2,0},{2,1},{3,0},{3,1},{2,2},{2,3},{3,2},{3,3},
@@ -67,11 +73,82 @@ namespace {
                                                           {6,4},{6,5},{7,4},{7,5},{6,6},{6,7},{7,6},{7,7},
         };
 
+        std::cout << "#########Links##############"<< std::endl;
+        for (uint n = 0; n < points.size(); ++n) {
+            std::cout << "{"<< points[n].first << "," << points[n].second << "},";
+        }
+        std::cout << std::endl;
+
         ASSERT_EQ(points.size(),correct_order.size());
         std::cout << std::endl;
-        for (int k = 0; k < correct_order.size(); ++k) {
+        for (uint k = 0; k < correct_order.size(); ++k) {
             ASSERT_EQ(correct_order[k], points[k]);
         }
+    }
+
+    void makeZOrderK(uint& xinit, uint& yinit, uint& ctr, uint k, uint size, std::vector<pair<uint, uint>>& points){
+        for (uint x = xinit; x < xinit+k; ++x) {
+            for (uint y = yinit; y < yinit+k; ++y) {
+                std::cout << "checking" << x << "," << y << " at position " << ctr << std::endl;
+                ASSERT_EQ(std::make_pair(x, y), points[ctr]);
+                ctr++;
+            }
+        }
+    }
+
+    void recursivelyCreateMatrix(uint size, uint xinit, uint yinit, uint& ctr, std::vector<pair<uint, uint>>& points, uint k){
+        if (size == k) {
+            //std::cout << "Rec Base" << std::cout << std::endl;
+            makeZOrderK(xinit, yinit, ctr, k, size, points);
+        } else if (size < k) {
+            throw runtime_error("shouldn't happen, please choose a size that is an exponential of chosen k");
+        } else {
+            uint initialY = yinit;
+            for (uint i = 0; i < k; ++i) {
+                //first row
+                yinit = initialY;
+                for (uint j = 0; j < k; ++j) {
+                    //std::cout << "Rec Call" << std::cout << std::endl;
+                    recursivelyCreateMatrix(size / k, xinit, yinit, ctr, points, k);
+                    yinit += k;
+                }
+                xinit += k;
+
+            }
+        }
+    }
+
+    TEST(K2TreapInternalTest, testZOrderSort2) {
+
+        const int k = 3;
+        std::vector<pair<uint, uint>> points;
+        int size = 81;
+        for (int i = 0; i < size; i++){
+            for (int j = 0; j < size; j++) {
+                points.push_back(std::make_pair(i,j));
+            }
+        }
+
+        std::random_shuffle (points.begin(), points.end());
+
+        k2_treap<k, bit_vector> tree;
+        tree.set_height(log(size)/log(k));
+
+        std::sort(points.begin(), points.end(), [&](const std::pair<uint32_t, uint32_t>& lhs, const std::pair<uint32_t, uint32_t>& rhs){
+            return tree.sort_by_z_order(lhs, rhs);
+        });
+
+        uint ctr = 0;
+        vector<pair<uint32_t, uint32_t>> correct_order;
+        recursivelyCreateMatrix(size, 0, 0, ctr, points, k);
+
+        /*
+        std::cout << "Points" << std::endl;
+        for (int l = 0; l < points.size(); ++l) {
+            std::cout << points[l].first << "," << points[l].second << "\t";
+        }
+        std::cout << std::endl;
+        */
     }
 
     TEST(K2TreapInternalTest, testZOrder100) {
@@ -176,14 +253,14 @@ namespace {
                                                 {35222, 7964},
                                                 {34983, 3252},
                                                 {23070, 7096}};
-        int size = 8;
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                points.push_back(std::make_pair(i, j));
-            }
-        }
 
-        std::sort(points.begin(), points.end(), sort_by_z_order());
+        const int k = 3;
+        k2_treap<k, bit_vector> tree;
+        tree.set_height(ceil(log(65095)/log(k)));
+
+        std::sort(points.begin(), points.end(), [&](const std::pair<uint32_t, uint32_t>& lhs, const std::pair<uint32_t, uint32_t>& rhs){
+            return tree.sort_by_z_order(lhs, rhs);
+        });
 
 
         std::cout << "#########Links##############"<< std::endl;
