@@ -312,7 +312,7 @@ namespace sdsl {
                     }
 
                     //std::cout << "Processing Level " << l << std::endl;
-                }
+
                     level_bits = 0;
 
                     auto sp = std::begin(v);
