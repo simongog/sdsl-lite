@@ -49,6 +49,7 @@ TYPED_TEST(k2_treap_test, ConstructCompareTest)
         TypeParam k2treap2;
         construct(k2treap, test_file);
         construct_bottom_up(k2treap2, test_file);
+        std::cout << "Comparing Results" << std::endl;
         ASSERT_EQ(k2treap,k2treap2);
 }
 

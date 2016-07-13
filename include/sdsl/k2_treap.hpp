@@ -312,7 +312,7 @@ namespace sdsl {
                     }
 
                     //std::cout << "Processing Level " << l << std::endl;
-
+                }
                     level_bits = 0;
 
                     auto sp = std::begin(v);
@@ -327,10 +327,6 @@ namespace sdsl {
                             bool in_sub_tree = precomp<t_k>::divexp(x1, l) != precomp<t_k>::divexp(x2, l)
                                                or precomp<t_k>::divexp(y1, l) != precomp<t_k>::divexp(y2, l);
 
-                            /*if (asd)
-                            {
-                                std::cout << "ep at " << e.first << "," << e.second << std::endl;
-                            }*/
                             return in_sub_tree;
                         });
 
@@ -344,20 +340,6 @@ namespace sdsl {
                                     _ep = std::partition(_sp, _ep, [&i, &l](const t_e &e) {
                                         return precomp<t_k>::divexp(std::get<0>(e), l - 1) % t_k <= i;
                                     });
-                                    /*std::cout << "After partition 0: \t";
-                                    for (auto &pair: v) {
-                                        std::cout << pair.first << "," << pair.second << "\t";
-                                    }
-                                    std::cout << std::endl;
-
-                                    if (_ep < end) {
-                                        std::cout << "Split at " << _ep.operator*().first << ","
-                                                  << _ep.operator*().second << std::endl;
-                                    } else {
-                                        std::cout << "Split at end" << std::endl;
-                                    }
-                                    */
-
                                 }
                                 auto __sp = _sp;
                                 for (uint8_t j = 0;
@@ -367,20 +349,8 @@ namespace sdsl {
                                         __ep = std::partition(__sp, _ep, [&j, &l](const t_e &e) {
                                             return precomp<t_k>::divexp(std::get<1>(e), l - 1) % t_k <= j;
                                         });
-                                        /*std::cout << "After partition 1: \t";
-                                        for (auto &pair: v) {
-                                            std::cout << pair.first << "," << pair.second << "\t";
-                                        }
-                                        std::cout << std::endl;
-                                        if (_ep < end) {
-                                            std::cout << "Split at " << __ep.operator*().first << ","
-                                                      << __ep.operator*().second << std::endl;
-                                        } else {
-                                            std::cout << "Split at end" << std::endl;
-                                        }*/
                                     }
                                     bool not_empty = __ep > __sp;
-                                    //std::cout << "Pushing " << not_empty << " to bp_buf" << std::endl;
                                     bp_buf.push_back(not_empty);
                                     level_bits++;
                                     __sp = __ep;
@@ -394,7 +364,6 @@ namespace sdsl {
                         }
                     }
                     last_level_bits = level_bits;
-                    //std::cout << "Last Level Nodes: " << last_level_nodes << std::endl;
                 }
             }
 
@@ -405,14 +374,6 @@ namespace sdsl {
                 _bp.swap(bp);
                 m_bp = t_bv(_bp);
             }
-
-            /*
-            std::cout << "m_bp";
-            for (size_t m = 0; m < m_bp.size(); ++m) {
-                std::cout << m_bp[m];
-            }
-            std::cout << std::endl;
-            */
 
             util::init_support(m_bp_rank, &m_bp);
             sdsl::remove(bp_file);
@@ -435,7 +396,7 @@ namespace sdsl {
         struct sort_by_z_order {
             //static const int MortonTable256[256];
 
-            /*
+
             uint inline interleaveLowerBits(ushort x, ushort y) {
                 unsigned int z;   // z gets the resulting 32-bit Morton Number.
 
@@ -492,8 +453,6 @@ namespace sdsl {
                 t_x lhsSecond = lhs.second;
                 t_x rhsFirst = rhs.first;
                 t_x rhsSecond = rhs.second;
-
-                bool firstSmallerSecondBigger = true;
 
                 t_x lhsFirstDiv;
                 t_x lhsSecondDiv;
@@ -625,11 +584,12 @@ namespace sdsl {
 
             m_level_begin_idx = int_vector<64>(1 + t, 0);
 
-
+            std::cout << "Sorting By Z Order" << std::endl;
             std::sort(links.begin(), links.end(), [&](const std::pair<t_x, t_y>& lhs, const std::pair<t_x, t_y>& rhs){
                 return sort_by_z_order(lhs, rhs);
             });
 
+            std::cout << "Sorting Finished, Constructing Bitvectors" << std::endl;
             std::vector<int> previous_subtree_number(m_tree_height,-1);
             uint64_t total_size = 0;
 
@@ -667,7 +627,7 @@ namespace sdsl {
                                 gap_to_k2[current_level] = k * k;
                             }
 
-                            for (uint j = 0; j < subtree_distance - 1; ++j) {
+                            for (int j = 0; j < subtree_distance - 1; ++j) {
                                 level_vectors[current_level].push_back(0);
                                 gap_to_k2[current_level]--;
                             }
@@ -707,6 +667,7 @@ namespace sdsl {
                 }
             }
 
+            std::cout << "Construction finished, concatenating bit vectors" << std::endl;
 
             bit_vector concat = bit_vector(total_size,0);
 
@@ -730,17 +691,24 @@ namespace sdsl {
                     //std::cout << "Bp size" << bp.size() << std::endl;
                 }
             }
+
+            std::cout << "Concatenation Finished" << std::endl;
+
             {
                 bit_vector _bp;
                 _bp.swap(concat);
                 m_bp = t_bv(_bp);
             }
 
+            std::cout << "m_bp set" << std::endl;
+
             util::init_support(m_bp_rank, &m_bp);
             for (int i = 0; i < m_tree_height; i++) {
                 std::string bp_file = temp_file_prefix + "_bp_" + id_part + "_" + std::to_string(i) + ".sdsl";
                 sdsl::remove(bp_file);
             }
+
+            std::cout << "initialized rank support" << std::endl;
         }
 
 
@@ -822,7 +790,7 @@ namespace sdsl {
                     auto _x = (x + i * precomp<t_k>::exp(root.t - 1));
                     for (size_t j = 0; j < t_k; ++j) {
                         if (m_bp[root.idx + t_k * i + j]) {
-                            Impl::add_to_result_if_relevant(source_id, x, y, _x, i, j, root, result);
+                            Impl::add_to_result_if_relevant(source_id, y, _x, j, root, result);
                         }
                     }
                 }
@@ -839,8 +807,7 @@ namespace sdsl {
             }
 
             template<typename t_x>
-            inline static void add_to_result_if_relevant(t_x source_id, point_type::value_type x,
-                                                         point_type::value_type y, point_type::value_type _x, size_t i,
+            inline static void add_to_result_if_relevant(t_x source_id, point_type::value_type y, point_type::value_type _x,
                                                          size_t j, node_type root, std::vector<t_x> &result) {
                 using namespace k2_treap_ns;
                 if (source_id == _x) { //if bit set and leaf part of correct row, add to result
@@ -860,8 +827,7 @@ namespace sdsl {
             }
 
             template<typename t_x>
-            inline static void add_to_result_if_relevant(t_x source_id, point_type::value_type x,
-                                                         point_type::value_type y, point_type::value_type _x, size_t i,
+            inline static void add_to_result_if_relevant(t_x source_id, point_type::value_type y, point_type::value_type _x,
                                                          size_t j, node_type root, std::vector<t_x> &result) {
                 using namespace k2_treap_ns;
                 auto _y = y + j * precomp<t_k>::exp(root.t - 1);

@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 
         std::cerr << "Finished Reading File " << std::endl;
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
-        typedef k2_treap<4, rrr_vector<63>> k2_rrr;
+        typedef k2_treap<3, rrr_vector<63>> k2_rrr;
         k2_rrr k2treap;
 
 

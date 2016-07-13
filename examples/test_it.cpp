@@ -16,13 +16,19 @@ int main()
 
     std::vector<pair<uint, uint>> points;
     int size = 8;
+    const int k = 2;
     for (int i = 0; i < size; i++){
         for (int j = 0; j < size; j++) {
             points.push_back(std::make_pair(i,j));
         }
     }
 
-    std::sort(points.begin(), points.end(), sort_by_z_order<2>());
+    k2_treap<k, bit_vector> tree;
+    tree.set_height(log(size)/log(k));
+
+    std::sort(points.begin(), points.end(), [&](const std::pair<uint32_t, uint32_t>& lhs, const std::pair<uint32_t, uint32_t>& rhs){
+        return tree.sort_by_z_order(lhs, rhs);
+    });
 
     vector<pair<uint32_t, uint32_t>> correct_order = {{0,0},{0,1},{1,0},{1,1},{0,2},{0,3},{1,2},{1,3},
                                                       {2,0},{2,1},{3,0},{3,1},{2,2},{2,3},{3,2},{3,3},
@@ -44,7 +50,7 @@ int main()
     //std::sort(points.begin(), points.end(), sort_by_z_order());
 
     std::cout << "Sorted points" << std::endl;
-    for (int i = 0; i < points.size(); ++i) {
+    for (uint i = 0; i < points.size(); ++i) {
         std::cout << points[i].first << "," << points[i].second << "\t";
     }
 
