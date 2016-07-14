@@ -237,7 +237,7 @@ namespace sdsl {
             if (precomp<t_k>::exp(res) <= std::numeric_limits<uint32_t>::max()) {
                 auto v = read < uint32_t, uint32_t>(bufs);
                 if (bottom_up){
-                    construct_bottom_up(v, buf_x.filename());
+                    construct_counting_sort(v, buf_x.filename());
                 } else  {
                     construct(v, buf_x.filename());
                 }
@@ -245,7 +245,7 @@ namespace sdsl {
             } else {
                 auto v = read < uint64_t, uint64_t>(bufs);
                 if (bottom_up){
-                    construct_bottom_up(v, buf_x.filename());
+                    construct_counting_sort(v, buf_x.filename());
                 } else  {
                     construct(v, buf_x.filename());
                 }
@@ -272,7 +272,7 @@ namespace sdsl {
         k2_treap(std::vector<std::pair<t_x, t_y>> &v, std::string temp_file_prefix = "", bool bottom_up = false) {
             if (v.size() > 0) {
                 if (bottom_up){
-                    construct_bottom_up(v, temp_file_prefix);
+                    construct_counting_sort(v, temp_file_prefix);
                 } else  {
                     construct(v, temp_file_prefix);
                 }
@@ -309,6 +309,7 @@ namespace sdsl {
 
                     if (l > 0) {
                         m_level_begin_idx[l - 1] = m_level_begin_idx[l] + last_level_bits;
+                        std::cout << "Setring m_level_begin_idx["<<l-1<<"] =" << m_level_begin_idx[l] + last_level_bits << std::endl;
                     }
 
                     //std::cout << "Processing Level " << l << std::endl;
@@ -373,10 +374,240 @@ namespace sdsl {
                 bit_vector _bp;
                 _bp.swap(bp);
                 m_bp = t_bv(_bp);
+                /*std::cout << "m_bp: \t";
+                for (auto i = 0; i < m_bp.size(); ++i) {
+                    std::cout << m_bp[i];
+                }
+                std::cout << std::endl;*/
             }
 
             util::init_support(m_bp_rank, &m_bp);
             sdsl::remove(bp_file);
+        }
+
+        template<typename t_x, typename t_y>
+        void construct_counting_sort(std::vector<std::pair<t_x, t_y>> &links, std::string temp_file_prefix = "") {
+            using namespace k2_treap_ns;
+            using t_e = std::pair<t_x, t_y>;
+
+            m_size = links.size();
+            m_tree_height = get_tree_height(links);
+            uint64_t M = precomp<t_k>::exp(t);
+            t_e MM = t_e(M, M);
+
+            std::string id_part = util::to_string(util::pid())
+                                  + "_" + util::to_string(util::id());
+
+            m_level_begin_idx = int_vector<64>(1 + t, 0);
+
+            std::string bp_file = temp_file_prefix + "_bp_" + id_part
+                                  + ".sdsl";
+
+
+            {
+                int_vector_buffer<1> bp_buf(bp_file, std::ios::out);
+
+                //                  upper left          lower right                 interval in links   level
+                typedef std::tuple<std::pair<t_x,t_y>,std::pair<uint64_t,uint64_t>, std::pair<t_x,t_y>, uint> t_queue;
+                std::queue <t_queue> queue;
+
+                //partition recursively until reaching the leaves
+                uint64_t matrix_size = precomp<t_k>::exp(m_tree_height); //could be bigger than 32 bit although biggest value in links is 32 bit
+                queue.push(std::make_tuple(std::make_pair<t_x,t_y>(0,0), std::make_pair(matrix_size-1, matrix_size-1), std::make_pair<t_x,t_x>(0, links.size()),0));
+
+                uint64_t number_of_bits = 0; //for speed comparison purposes of different k
+
+                m_level_begin_idx[m_tree_height+1] = 0;
+                //std::cout << "Setring m_level_begin_idx["<<m_tree_height-1<<"] =" << 0 << std::endl;
+                while (!queue.empty()) {
+                    auto upper_left = std::get<0>(queue.front());
+                    auto lower_right = std::get<1>(queue.front());
+                    auto links_interval = std::get<2>(queue.front());
+                    auto current_level = std::get<3>(queue.front());
+
+                    queue.pop();
+
+                    auto submatrix_size =
+                            lower_right.first - upper_left.first + 1;//precomp<k>::exp(m_tree_height-level);
+                    std::vector<t_x> intervals(k * k + 1);
+
+                    //do counting sort
+                    auto x1 = upper_left.first;
+                    auto y1 = upper_left.second;
+                    for (uint64_t j = links_interval.first; j < links_interval.second; ++j) {
+                        auto x = links.at(j).first;
+                        auto y = links.at(j).second;
+                        auto p1 = floor((x - x1) / (submatrix_size / k));
+                        auto p2 = floor((y - y1) / (submatrix_size / k));
+                        uint corresponding_matrix = p1 * k + p2;
+                        try {
+                            intervals.at(corresponding_matrix +
+                                         1)++;//offset corresponding matrix by one to allow for more efficient in interval comparision
+                        } catch (const std::exception &e) {
+                            std::cout << "(Pokemon) Gotta catch them all" << std::endl;
+                        }
+
+                    }
+
+                    intervals[0] = 0;
+                    //append bits to level_vectors[level] based on result
+
+
+
+                    for (uint i = 1; i < intervals.size(); ++i) {
+                        if (intervals[i] > 0) {
+                            bp_buf.push_back(1);
+                            //std::cout << "1";
+                            number_of_bits++;
+                        } else {
+                            bp_buf.push_back(0);
+                            //std::cout << "0";
+                            number_of_bits++;
+                        }
+                        intervals[i] += intervals[i - 1]; //build prefix sum
+                    }
+
+
+                    if (submatrix_size > k) {
+
+                        //std::cout << std::endl;
+                        m_level_begin_idx[m_tree_height-current_level-2] = number_of_bits;
+                        //std::cout << "Setring m_level_begin_idx["<<m_tree_height-current_level-2<<"] =" << number_of_bits << std::endl;
+
+                        std::vector<t_x> offset(k * k);
+                        offset[0] = 0;
+                        for (size_t l = 1; l < offset.size(); ++l) {
+                            offset[l] = intervals[l] + 1;
+                        }
+
+                        std::vector<uint64_t> nearest_point_belonging_to_matrix(k * k, 0);
+                        auto begin = links.begin() + links_interval.first;
+                        auto it = begin;
+
+
+                        uint64_t index = 0;
+                        while (it != links.begin() + links_interval.second){
+                            auto x = (*it).first;
+                            auto y = (*it).second;
+                            uint corresponding_matrix =
+                                    floor((x - x1) / (submatrix_size / k)) * k + floor((y - y1) / (submatrix_size / k));
+
+                            if (index >= intervals[corresponding_matrix] &&
+                                index < intervals[corresponding_matrix + 1]) {
+                                //element is at correct position
+                                offset[corresponding_matrix]++;
+
+                                it++;
+                                index++;
+                            } else {
+                                //swap to correct position either swapping a match or a non match back
+                                //there are at most m swaps if all m elements are at the wrong position
+                                //every value is at most read twice
+                                std::iter_swap(it, begin+offset[corresponding_matrix]-1);
+                                offset[corresponding_matrix]++;
+                            }
+                        }
+
+
+                        /*
+                        //swap entries to the correct place based on prefix sum
+                        uint64_t index = 0;
+                        for (auto it = links.begin() + links_interval.first;
+                             it != links.begin() + links_interval.second; ++it) {
+                            auto x = (*it).first;
+                            auto y = (*it).second;
+                            uint corresponding_matrix =
+                                    floor((x - x1) / (submatrix_size / k)) * k + floor((y - y1) / (submatrix_size / k));
+
+                            if (index >= intervals[corresponding_matrix] &&
+                                index < intervals[corresponding_matrix + 1]) {
+                                //element is at correct position
+                                offset[corresponding_matrix]++;
+                            } else {
+                                //search for a matching swap
+
+                                uint submatrix_corresponding_to_index = 0;
+                                while (intervals[submatrix_corresponding_to_index] <= index) {
+                                    ++submatrix_corresponding_to_index;
+                                }
+                                submatrix_corresponding_to_index -= 1;
+
+                                //think about more efficient implementation
+                                if (nearest_point_belonging_to_matrix[corresponding_matrix] > index) {
+                                    auto it2 = links.begin() + links_interval.first +
+                                               nearest_point_belonging_to_matrix[corresponding_matrix];
+                                    std::iter_swap(it, it2);
+                                    offset[corresponding_matrix]++;
+                                    offset[submatrix_corresponding_to_index]++;
+                                } else {
+                                    uint64_t index2 = 0;
+                                    for (auto it2 = links.begin() + links_interval.first + index + 1;
+                                         it2 != links.begin() + links_interval.second; ++it2) {
+                                        auto x = (*it2).first;
+                                        auto y = (*it2).second;
+                                        uint corresponding_matrix2 = floor((x - x1) / (submatrix_size / k)) * k +
+                                                                     floor((y - y1) / (submatrix_size / k));
+
+                                        if (corresponding_matrix2 == submatrix_corresponding_to_index) {
+                                            std::iter_swap(it, it2);
+                                            offset[submatrix_corresponding_to_index]++;
+                                            break;
+                                        } else {
+                                            //buffer not set                                            or      invalid
+                                            if (nearest_point_belonging_to_matrix[corresponding_matrix] == 0 ||
+                                                nearest_point_belonging_to_matrix[corresponding_matrix] < index) {
+                                                nearest_point_belonging_to_matrix[corresponding_matrix] =
+                                                        index + 1 + index2;
+                                            }
+                                        }
+                                        index2++;
+                                    }
+                                }
+                            }
+                            index++;
+                        }*/
+                        auto new_submatrix_size = submatrix_size / k;
+                        for (uint x = 0; x < k; ++x) {
+                            for (uint y = 0; y < k; ++y) {
+                                auto new_interval = std::make_pair(intervals[x * k + y]+links_interval.first, intervals[x * k + y + 1]+links_interval.first);
+                                if (new_interval.first != new_interval.second) {
+                                    auto new_upper_left = std::make_pair<t_x, t_y>(x * new_submatrix_size  + upper_left.first,
+                                                                                   y * new_submatrix_size  + upper_left.second);
+                                    auto new_lower_right = std::make_pair<t_x, t_y>((x + 1) * new_submatrix_size - 1 + upper_left.first,
+                                                                                    (y + 1) * new_submatrix_size - 1 + upper_left.second);
+                                    queue.push(std::make_tuple(new_upper_left, new_lower_right, new_interval,current_level+1));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            bit_vector bp;
+            load_from_file(bp, bp_file);
+            {
+                bit_vector _bp;
+                _bp.swap(bp);
+                m_bp = t_bv(_bp);
+                /*std::cout << "m_bp: \t";
+                for (auto i = 0; i < m_bp.size(); ++i) {
+                    std::cout << m_bp[i];
+                }
+                std::cout << std::endl;*/
+            }
+
+            util::init_support(m_bp_rank, &m_bp);
+            sdsl::remove(bp_file);
+        }
+
+        template<typename t_x, typename t_y>
+        void recursively_partition_with_counting_sort(std::vector<std::pair<t_x, t_y>> &links, std::pair<t_x, t_y> upper_left,
+                                                      std::pair<t_x, t_y> lower_right, std::pair<t_x, t_x> corresponding_interval,
+                                                      std::vector<int_vector_buffer<>>& level_vectors, uint level) {
+            using namespace k2_treap_ns;
+            if (level == m_tree_height || corresponding_interval.first == corresponding_interval.second){ //think about m_tree_height
+                return;
+            }
         }
 
 
