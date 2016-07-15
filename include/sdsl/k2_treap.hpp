@@ -268,8 +268,10 @@ namespace sdsl {
         }
 
 
-        template<typename t_x, typename t_y>
-        k2_treap(std::vector<std::pair<t_x, t_y>> &v, std::string temp_file_prefix = "", bool bottom_up = false) {
+        template<typename t_x, typename t_y,
+                template<typename, typename> class t_pair,
+                template<typename...> class t_vector>
+        k2_treap(t_vector<t_pair<t_x,t_y>> &v, std::string temp_file_prefix = "", bool bottom_up = false) {
             if (v.size() > 0) {
                 if (bottom_up){
                     construct_counting_sort(v, temp_file_prefix);
@@ -279,8 +281,10 @@ namespace sdsl {
             }
         }
 
-        template<typename t_x, typename t_y>
-        void construct(std::vector<std::pair<t_x, t_y>> &v, std::string temp_file_prefix = "") {
+        template<typename t_x, typename t_y,
+        template<typename, typename> class t_pair,
+        template<typename...> class t_vector>
+        void construct(t_vector<t_pair<t_x,t_y>> &v, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
             using t_e = std::pair<t_x, t_y>;
 
@@ -385,8 +389,10 @@ namespace sdsl {
             sdsl::remove(bp_file);
         }
 
-        template<typename t_x, typename t_y>
-        void construct_counting_sort(std::vector<std::pair<t_x, t_y>> &links, std::string temp_file_prefix = "") {
+        template<typename t_x, typename t_y,
+                template<typename, typename> class t_pair,
+                template<typename...> class t_vector>
+        void construct_counting_sort(t_vector<t_pair<t_x,t_y>> &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
             using t_e = std::pair<t_x, t_y>;
 
@@ -533,17 +539,6 @@ namespace sdsl {
             util::init_support(m_bp_rank, &m_bp);
             sdsl::remove(bp_file);
         }
-
-        template<typename t_x, typename t_y>
-        void recursively_partition_with_counting_sort(std::vector<std::pair<t_x, t_y>> &links, std::pair<t_x, t_y> upper_left,
-                                                      std::pair<t_x, t_y> lower_right, std::pair<t_x, t_x> corresponding_interval,
-                                                      std::vector<int_vector_buffer<>>& level_vectors, uint level) {
-            using namespace k2_treap_ns;
-            if (level == m_tree_height || corresponding_interval.first == corresponding_interval.second){ //think about m_tree_height
-                return;
-            }
-        }
-
 
         template<typename t_x, typename t_y>
         uint inline calculate_subtree_number_and_new_relative_coordinates(std::pair<t_x, t_y>& link, int level) {
