@@ -497,65 +497,7 @@ namespace sdsl {
                                 offset[corresponding_matrix]++;
                             }
                         }
-
-
-                        /*
-                        //swap entries to the correct place based on prefix sum
-                        uint64_t index = 0;
-                        for (auto it = links.begin() + links_interval.first;
-                             it != links.begin() + links_interval.second; ++it) {
-                            auto x = (*it).first;
-                            auto y = (*it).second;
-                            uint corresponding_matrix =
-                                    floor((x - x1) / (submatrix_size / k)) * k + floor((y - y1) / (submatrix_size / k));
-
-                            if (index >= intervals[corresponding_matrix] &&
-                                index < intervals[corresponding_matrix + 1]) {
-                                //element is at correct position
-                                offset[corresponding_matrix]++;
-                            } else {
-                                //search for a matching swap
-
-                                uint submatrix_corresponding_to_index = 0;
-                                while (intervals[submatrix_corresponding_to_index] <= index) {
-                                    ++submatrix_corresponding_to_index;
-                                }
-                                submatrix_corresponding_to_index -= 1;
-
-                                //think about more efficient implementation
-                                if (nearest_point_belonging_to_matrix[corresponding_matrix] > index) {
-                                    auto it2 = links.begin() + links_interval.first +
-                                               nearest_point_belonging_to_matrix[corresponding_matrix];
-                                    std::iter_swap(it, it2);
-                                    offset[corresponding_matrix]++;
-                                    offset[submatrix_corresponding_to_index]++;
-                                } else {
-                                    uint64_t index2 = 0;
-                                    for (auto it2 = links.begin() + links_interval.first + index + 1;
-                                         it2 != links.begin() + links_interval.second; ++it2) {
-                                        auto x = (*it2).first;
-                                        auto y = (*it2).second;
-                                        uint corresponding_matrix2 = floor((x - x1) / (submatrix_size / k)) * k +
-                                                                     floor((y - y1) / (submatrix_size / k));
-
-                                        if (corresponding_matrix2 == submatrix_corresponding_to_index) {
-                                            std::iter_swap(it, it2);
-                                            offset[submatrix_corresponding_to_index]++;
-                                            break;
-                                        } else {
-                                            //buffer not set                                            or      invalid
-                                            if (nearest_point_belonging_to_matrix[corresponding_matrix] == 0 ||
-                                                nearest_point_belonging_to_matrix[corresponding_matrix] < index) {
-                                                nearest_point_belonging_to_matrix[corresponding_matrix] =
-                                                        index + 1 + index2;
-                                            }
-                                        }
-                                        index2++;
-                                    }
-                                }
-                            }
-                            index++;
-                        }*/
+                        
                         auto new_submatrix_size = submatrix_size / k;
                         for (uint x = 0; x < k; ++x) {
                             for (uint y = 0; y < k; ++y) {
