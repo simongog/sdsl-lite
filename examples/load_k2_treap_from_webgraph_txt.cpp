@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
         ticks = (double) sysconf(_SC_CLK_TCK);
         start_clock();
         // Initialize treap with a vector of (x,y,weight) elements
-        construct_im(k2treap, coordinates);
+        construct_im_bottom_up(k2treap, coordinates);
 
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds

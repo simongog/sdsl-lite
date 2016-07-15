@@ -438,8 +438,8 @@ namespace sdsl {
                     for (uint64_t j = links_interval.first; j < links_interval.second; ++j) {
                         auto x = links[j].first;
                         auto y = links[j].second;
-                        auto p1 = (x - x1) / subDivK;
-                        auto p2 = (y - y1) / subDivK;
+                        uint p1 = (x - x1) / subDivK;
+                        uint p2 = (y - y1) / subDivK;
                         uint corresponding_matrix = p1 * k + p2;
                             intervals[corresponding_matrix + 1]++;//offset corresponding matrix by one to allow for more efficient in interval comparision
                     }
@@ -480,11 +480,7 @@ namespace sdsl {
 
                         uint64_t index = 0;
                         while (it != links.begin() + links_interval.second){
-                            auto x = (*it).first;
-                            auto y = (*it).second;
-                            auto p1 = (x - x1) / subDivK;
-                            auto p2 = (y - y1) / subDivK;
-                            uint corresponding_matrix = p1 * k + p2;
+                            uint corresponding_matrix = (((*it).first - x1) / subDivK) * k + ((*it).second - y1) / subDivK;
 
                             if (index >= intervals[corresponding_matrix] &&
                                 index < intervals[corresponding_matrix + 1]) {
