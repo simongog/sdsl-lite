@@ -462,7 +462,7 @@ namespace sdsl {
                         intervals[i] += intervals[i - 1]; //build prefix sum
                     }
 
-
+                    //once leaves are reached reordering is not necessary anymore
                     if (submatrix_size > k) {
 
                         //std::cout << std::endl;
@@ -478,6 +478,7 @@ namespace sdsl {
                         auto begin = links.begin() + links_interval.first;
                         auto it = begin;
 
+                        //reorder links based on counting sort offsets
                         uint64_t index = 0;
                         while (it != links.begin() + links_interval.second){
                             uint corresponding_matrix = (((*it).first - x1) / subDivK) * k + ((*it).second - y1) / subDivK;
@@ -497,7 +498,8 @@ namespace sdsl {
                                 offset[corresponding_matrix]++;
                             }
                         }
-                        
+
+                        //enqueue submatrixes
                         auto new_submatrix_size = submatrix_size / k;
                         for (uint x = 0; x < k; ++x) {
                             for (uint y = 0; y < k; ++y) {
