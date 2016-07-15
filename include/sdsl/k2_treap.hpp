@@ -434,19 +434,14 @@ namespace sdsl {
                     //do counting sort
                     auto x1 = upper_left.first;
                     auto y1 = upper_left.second;
+                    auto subDivK = (submatrix_size / k);
                     for (uint64_t j = links_interval.first; j < links_interval.second; ++j) {
-                        auto x = links.at(j).first;
-                        auto y = links.at(j).second;
-                        auto p1 = floor((x - x1) / (submatrix_size / k));
-                        auto p2 = floor((y - y1) / (submatrix_size / k));
+                        auto x = links[j].first;
+                        auto y = links[j].second;
+                        auto p1 = (x - x1) / subDivK;
+                        auto p2 = (y - y1) / subDivK;
                         uint corresponding_matrix = p1 * k + p2;
-                        try {
-                            intervals.at(corresponding_matrix +
-                                         1)++;//offset corresponding matrix by one to allow for more efficient in interval comparision
-                        } catch (const std::exception &e) {
-                            std::cout << "(Pokemon) Gotta catch them all" << std::endl;
-                        }
-
+                            intervals[corresponding_matrix + 1]++;//offset corresponding matrix by one to allow for more efficient in interval comparision
                     }
 
                     intervals[0] = 0;
@@ -487,8 +482,9 @@ namespace sdsl {
                         while (it != links.begin() + links_interval.second){
                             auto x = (*it).first;
                             auto y = (*it).second;
-                            uint corresponding_matrix =
-                                    floor((x - x1) / (submatrix_size / k)) * k + floor((y - y1) / (submatrix_size / k));
+                            auto p1 = (x - x1) / subDivK;
+                            auto p2 = (y - y1) / subDivK;
+                            uint corresponding_matrix = p1 * k + p2;
 
                             if (index >= intervals[corresponding_matrix] &&
                                 index < intervals[corresponding_matrix + 1]) {
