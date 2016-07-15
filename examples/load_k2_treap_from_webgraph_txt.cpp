@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
 
         fprintf(stderr, "Initialization time (ms): %f\n", t2);
 
-
+/*
         std::cerr << "Processing direct neighbour queries\n" << std::endl;
 
         uint i;
@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
 
 
         store_to_file(k2treap,argv[2]);
-        write_structure<HTML_FORMAT>(k2treap,"structure.json");
+        write_structure<HTML_FORMAT>(k2treap,"structure.json");*/
     } else {
         throw "Could not load file";
     }

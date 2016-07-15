@@ -480,10 +480,8 @@ namespace sdsl {
                             offset[l] = intervals[l] + 1;
                         }
 
-                        std::vector<uint64_t> nearest_point_belonging_to_matrix(k * k, 0);
                         auto begin = links.begin() + links_interval.first;
                         auto it = begin;
-
 
                         uint64_t index = 0;
                         while (it != links.begin() + links_interval.second){
