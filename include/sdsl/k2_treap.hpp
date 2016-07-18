@@ -79,6 +79,7 @@ namespace sdsl {
         uint8_t m_tree_height = 0;
         t_bv m_bp;
         t_rank m_bp_rank;
+        //contains the begin position of each level in m_bp, [0] = 0, [1] equals the end of level 0/beginning of level 1
         int_vector<64> m_level_begin_idx;
         size_type m_size = 0;
         uint64_t m_max_element = 0;
