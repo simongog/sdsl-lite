@@ -264,7 +264,7 @@ namespace sdsl {
             }
 
             if (m_access_shortcut_size > 0){
-//                construct_access_shortcut();
+                construct_access_shortcut();
             }
         }
 
@@ -296,7 +296,7 @@ namespace sdsl {
                 }
 
                 if (m_access_shortcut_size > 0){
-             //       construct_access_shortcut();
+                    construct_access_shortcut();
                 }
             }
         }
@@ -999,7 +999,10 @@ namespace sdsl {
                 return false;
             }
 
-            //FIXME: height if k_L tree!
+            //FIXME: height if k_L tree!, it depends as we're not only targeting the last level anymore
+
+            //how to get corresponding subtree on level x of a point efficiently? (for k=2^x, interleave x-bitwise the top h bits
+            //implement subtree calculation in general and for 2^x special-cases manually, think about precomp in the case of k=3
 
             //z = interleaved first h-1 set bits of p,q
             uint z = interleaveFirstBits((ushort) q, (ushort) p, m_tree_height, real_size_of_max_node_id);
@@ -1042,7 +1045,13 @@ namespace sdsl {
          */
         void construct_access_shortcut() {
             using namespace k2_treap_ns;
-            uint k;
+
+            //maximal size of shortcut is tree height
+            if (m_access_shortcut_size > m_tree_height){
+                std::cout << "Reducing shortcut size to tree height" << std::endl;
+                m_access_shortcut_size = m_tree_height;
+            }
+
             //Use 1 to code empty trees in level height-1 and 01 to code non-empty trees, height has to be calculated with kL_ as height of hybrid tree is different
             //coresponds to the amount of non-empty trees in level h-1
             //amount of Zeros = actually existent number of trees --> (level_begin_idx[level+2] - level_begin_idx[level+1])/k² or rank l(evel_begin_idx[level], level_begin_idx[level+1])
@@ -1051,8 +1060,6 @@ namespace sdsl {
             uint64_t amountOfOnes = precomp<k*k>::exp(m_access_shortcut_size+1);
             m_access_shortcut(amountOfOnes+amountOfZeros,1);
             //BitArray<uint> B(amountOfOnes + amountOfZeros);
-
-            peformDFS();
             std::queue<uint> childrenAt;
             uint64_t posInB = 0;
             construct_access_shortcut_by_dfs(root(), 0, 0);
