@@ -30,6 +30,9 @@
 #include <climits>
 #include <vector>
 #include <iostream>
+#include <sdsl/bit_vectors.hpp>
+#include <sdsl/rank_support.hpp>
+#include <sdsl/rank_support_v.hpp>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl {
@@ -78,6 +81,14 @@ namespace sdsl {
         t_rank m_bp_rank;
         int_vector<64> m_level_begin_idx;
         size_type m_size = 0;
+        uint64_t m_max_element = 0;
+        uint m_access_shortcut_size;
+        //FIXME: make private
+        /** BitArray containing Gog's B vector. */
+        bit_vector m_acccess_shortcut;
+        //Rank support for pattern 01 and 1
+        rank_support_v<01,2> m_access_shortcut_rank_01_support;
+        bit_vector::select_1_type m_access_shortcut_select_1_support;
 
         template<typename t_tv>
         uint8_t get_tree_height(const t_tv &v) {
@@ -93,36 +104,10 @@ namespace sdsl {
                 return tupmax(a) < tupmax(b);
             });
             uint64_t x = tupmax(*max_it);
+            m_max_element = x;
             uint8_t res = 0;
             while (precomp<t_k>::exp(res) <= x) { ++res; }
             return res;
-        }
-
-
-        //maybe change to table lookup version and extract B,S
-        uint inline interleaveLowerBits2(uint x, uint y) {
-            static const unsigned int B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
-            static const unsigned int S[] = {1, 2, 4, 8};
-
-            // Interleave lower 16 bits of x and y, so the bits of x
-            // are in the even positions and bits from y in the odd;
-            unsigned int z; // z gets the resulting 32-bit Morton Number.
-            // x and y must initially be less than 65536.
-
-
-            x = (x | (x << S[3])) & B[3];
-            x = (x | (x << S[2])) & B[2];
-            x = (x | (x << S[1])) & B[1];
-            x = (x | (x << S[0])) & B[0];
-
-            y = (y | (y << S[3])) & B[3];
-            y = (y | (y << S[2])) & B[2];
-            y = (y | (y << S[1])) & B[1];
-            y = (y | (y << S[0])) & B[0];
-
-            z = x | (y << 1);
-
-            return z;
         }
 
     public:
@@ -147,6 +132,11 @@ namespace sdsl {
                 m_bp_rank = std::move(tr.m_bp_rank);
                 m_bp_rank.set_vector(&m_bp);
                 m_level_begin_idx = std::move(tr.m_level_begin_idx);
+                m_max_element = std::move(tr.m_max_element);
+                m_access_shortcut_size = std::move(tr.m_access_shortcut_size);
+                m_acccess_shortcut = std::move(tr.m_acccess_shortcut);
+                m_access_shortcut_rank_01_support = std::move(tr.m_access_shortcut_rank_01_support);
+                m_access_shortcut_select_1_support = std::move(tr.m_access_shortcut_select_1_support);
             }
             return *this;
         }
@@ -160,6 +150,11 @@ namespace sdsl {
                 m_bp_rank = tr.m_bp_rank;
                 m_bp_rank.set_vector(&m_bp);
                 m_level_begin_idx = tr.m_level_begin_idx;
+                m_max_element = tr.m_max_element;
+                m_access_shortcut_size = tr.m_access_shortcut_size;
+                m_acccess_shortcut = tr.m_acccess_shortcut;
+                m_access_shortcut_rank_01_support = tr.m_access_shortcut_rank_01_support;
+                m_access_shortcut_select_1_support = tr.m_access_shortcut_select_1_support;
             }
             return *this;
         }
@@ -181,6 +176,14 @@ namespace sdsl {
 
             }
 
+            if (m_access_shortcut_size != tr.m_access_shortcut_size)
+                return false;
+
+            //don't compare other access_shortcut vetors as they have to be the same when access_shortcut_size is the same
+
+            if (m_max_element != tr.m_max_element)
+                return false;
+
             if (m_level_begin_idx != tr.m_level_begin_idx)
                 return false;
 
@@ -201,14 +204,21 @@ namespace sdsl {
                 m_bp.swap(tr.m_bp);
                 util::swap_support(m_bp_rank, tr.m_bp_rank, &m_bp, &(tr.m_bp));
                 m_level_begin_idx.swap(tr.m_level_begin_idx);
+                std::swap(m_max_element, tr.m_max_element);
+                std::swap(m_access_shortcut_size, tr.m_access_shortcut_size);
+                std::swap(m_acccess_shortcut, tr.m_acccess_shortcut);
+                std::swap(m_access_shortcut_rank_01_support, tr.m_access_shortcut_rank_01_support);
+                std::swap(m_access_shortcut_select_1_support, tr.m_access_shortcut_select_1_support);
             }
         }
 
         k2_treap(int_vector_buffer<> &buf_x,
-                 int_vector_buffer<> &buf_y, bool bottom_up) {
+                 int_vector_buffer<> &buf_y, bool bottom_up, uint access_shortcut_size = 0) {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
+
+            m_access_shortcut_size = access_shortcut_size;
 
             auto max_element = [](int_vector_buffer<> &buf) {
                 uint64_t max_val = 0;
@@ -228,6 +238,7 @@ namespace sdsl {
             };
 
             uint64_t x = max_buf_element();
+            m_max_element = x;
             uint8_t res = 0;
             while (res <= 64 and precomp<t_k>::exp(res) <= x) { ++res; }
             if (res == 65) {
@@ -250,6 +261,10 @@ namespace sdsl {
                     construct(v, buf_x.filename());
                 }
             }
+
+            if (m_access_shortcut_size > 0){
+//                construct_access_shortcut();
+            }
         }
 
         template<typename t_x=uint64_t, typename t_y=uint64_t>
@@ -269,12 +284,18 @@ namespace sdsl {
 
 
         template<typename t_vector>
-        k2_treap(t_vector &v, std::string temp_file_prefix = "", bool bottom_up = false) {
+        k2_treap(t_vector &v, std::string temp_file_prefix = "", bool bottom_up = false, uint access_shortcut_size = 0) {
+            m_access_shortcut_size = access_shortcut_size;
             if (v.size() > 0) {
                 if (bottom_up){
                     construct_counting_sort(v, temp_file_prefix);
+                    //construct_bottom_up(v, temp_file_prefix);
                 } else  {
                     construct(v, temp_file_prefix);
+                }
+
+                if (m_access_shortcut_size > 0){
+             //       construct_access_shortcut();
                 }
             }
         }
@@ -294,7 +315,7 @@ namespace sdsl {
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
 
-            m_level_begin_idx = int_vector<64>(1 + t, 0);
+            m_level_begin_idx = int_vector<64>(t, 0);
 
             std::string bp_file = temp_file_prefix + "_bp_" + id_part
                                   + ".sdsl";
@@ -306,13 +327,9 @@ namespace sdsl {
                 uint64_t last_level_bits = 0;
                 uint64_t level_bits = 0;
 
+                m_level_begin_idx[0] = 0;
                 //recursively partition that stuff
                 for (uint64_t l = t; l + 1 > 0; --l) {
-
-                    if (l > 0) {
-                        m_level_begin_idx[l - 1] = m_level_begin_idx[l] + last_level_bits;
-                        std::cout << "Setring m_level_begin_idx["<<l-1<<"] =" << m_level_begin_idx[l] + last_level_bits << std::endl;
-                    }
 
                     //std::cout << "Processing Level " << l << std::endl;
 
@@ -367,6 +384,11 @@ namespace sdsl {
                         }
                     }
                     last_level_bits = level_bits;
+
+                    if (l > 1) {
+                        m_level_begin_idx[m_tree_height - l + 1] = m_level_begin_idx[m_tree_height-l] + last_level_bits;
+                        std::cout << "Setting m_level_begin_idx["<<m_tree_height - l +1 <<"] =" << m_level_begin_idx[m_tree_height - l] + last_level_bits << std::endl;
+                    }
                 }
             }
 
@@ -402,7 +424,7 @@ namespace sdsl {
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
 
-            m_level_begin_idx = int_vector<64>(1 + t, 0);
+            m_level_begin_idx = int_vector<64>(t, 0);
 
             std::string bp_file = temp_file_prefix + "_bp_" + id_part
                                   + ".sdsl";
@@ -421,7 +443,7 @@ namespace sdsl {
 
                 uint64_t number_of_bits = 0; //for speed comparison purposes of different k
 
-                m_level_begin_idx[m_tree_height+1] = 0;
+                m_level_begin_idx[0] = 0;
                 //std::cout << "Setring m_level_begin_idx["<<m_tree_height-1<<"] =" << 0 << std::endl;
                 while (!queue.empty()) {
                     auto upper_left = std::get<0>(queue.front());
@@ -470,8 +492,8 @@ namespace sdsl {
                     if (submatrix_size > k) {
 
                         //std::cout << std::endl;
-                        m_level_begin_idx[m_tree_height-current_level-2] = number_of_bits;
-                        //std::cout << "Setring m_level_begin_idx["<<m_tree_height-current_level-2<<"] =" << number_of_bits << std::endl;
+                        m_level_begin_idx[current_level+1] = number_of_bits;
+                        std::cout << "Setting m_level_begin_idx["<<current_level+1<<"] =" << number_of_bits << std::endl;
 
                         std::vector<t_x> offset(k * k);
                         offset[0] = 0;
@@ -685,48 +707,6 @@ namespace sdsl {
 
         };*/
 
-        /*
-        //TODO: add more preshifted Morton Tables
-        const int sort_by_z_order::MortonTable256[256] =
-                {
-                        0x0000, 0x0001, 0x0004, 0x0005, 0x0010, 0x0011, 0x0014, 0x0015,
-                        0x0040, 0x0041, 0x0044, 0x0045, 0x0050, 0x0051, 0x0054, 0x0055,
-                        0x0100, 0x0101, 0x0104, 0x0105, 0x0110, 0x0111, 0x0114, 0x0115,
-                        0x0140, 0x0141, 0x0144, 0x0145, 0x0150, 0x0151, 0x0154, 0x0155,
-                        0x0400, 0x0401, 0x0404, 0x0405, 0x0410, 0x0411, 0x0414, 0x0415,
-                        0x0440, 0x0441, 0x0444, 0x0445, 0x0450, 0x0451, 0x0454, 0x0455,
-                        0x0500, 0x0501, 0x0504, 0x0505, 0x0510, 0x0511, 0x0514, 0x0515,
-                        0x0540, 0x0541, 0x0544, 0x0545, 0x0550, 0x0551, 0x0554, 0x0555,
-                        0x1000, 0x1001, 0x1004, 0x1005, 0x1010, 0x1011, 0x1014, 0x1015,
-                        0x1040, 0x1041, 0x1044, 0x1045, 0x1050, 0x1051, 0x1054, 0x1055,
-                        0x1100, 0x1101, 0x1104, 0x1105, 0x1110, 0x1111, 0x1114, 0x1115,
-                        0x1140, 0x1141, 0x1144, 0x1145, 0x1150, 0x1151, 0x1154, 0x1155,
-                        0x1400, 0x1401, 0x1404, 0x1405, 0x1410, 0x1411, 0x1414, 0x1415,
-                        0x1440, 0x1441, 0x1444, 0x1445, 0x1450, 0x1451, 0x1454, 0x1455,
-                        0x1500, 0x1501, 0x1504, 0x1505, 0x1510, 0x1511, 0x1514, 0x1515,
-                        0x1540, 0x1541, 0x1544, 0x1545, 0x1550, 0x1551, 0x1554, 0x1555,
-                        0x4000, 0x4001, 0x4004, 0x4005, 0x4010, 0x4011, 0x4014, 0x4015,
-                        0x4040, 0x4041, 0x4044, 0x4045, 0x4050, 0x4051, 0x4054, 0x4055,
-                        0x4100, 0x4101, 0x4104, 0x4105, 0x4110, 0x4111, 0x4114, 0x4115,
-                        0x4140, 0x4141, 0x4144, 0x4145, 0x4150, 0x4151, 0x4154, 0x4155,
-                        0x4400, 0x4401, 0x4404, 0x4405, 0x4410, 0x4411, 0x4414, 0x4415,
-                        0x4440, 0x4441, 0x4444, 0x4445, 0x4450, 0x4451, 0x4454, 0x4455,
-                        0x4500, 0x4501, 0x4504, 0x4505, 0x4510, 0x4511, 0x4514, 0x4515,
-                        0x4540, 0x4541, 0x4544, 0x4545, 0x4550, 0x4551, 0x4554, 0x4555,
-                        0x5000, 0x5001, 0x5004, 0x5005, 0x5010, 0x5011, 0x5014, 0x5015,
-                        0x5040, 0x5041, 0x5044, 0x5045, 0x5050, 0x5051, 0x5054, 0x5055,
-                        0x5100, 0x5101, 0x5104, 0x5105, 0x5110, 0x5111, 0x5114, 0x5115,
-                        0x5140, 0x5141, 0x5144, 0x5145, 0x5150, 0x5151, 0x5154, 0x5155,
-                        0x5400, 0x5401, 0x5404, 0x5405, 0x5410, 0x5411, 0x5414, 0x5415,
-                        0x5440, 0x5441, 0x5444, 0x5445, 0x5450, 0x5451, 0x5454, 0x5455,
-                        0x5500, 0x5501, 0x5504, 0x5505, 0x5510, 0x5511, 0x5514, 0x5515,
-                        0x5540, 0x5541, 0x5544, 0x5545, 0x5550, 0x5551, 0x5554, 0x5555
-                };
-           */
-
-
-
-
         template<typename t_x, typename t_y>
         void construct_bottom_up(std::vector<std::pair<t_x, t_y>> &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
@@ -740,7 +720,8 @@ namespace sdsl {
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
 
-            m_level_begin_idx = int_vector<64>(1 + t, 0);
+            m_level_begin_idx = int_vector<64>(t, 0);
+            m_level_begin_idx[0] = 0;
 
             std::cout << "Sorting By Z Order" << std::endl;
             std::sort(links.begin(), links.end(), [&](const std::pair<t_x, t_y>& lhs, const std::pair<t_x, t_y>& rhs){
@@ -830,14 +811,13 @@ namespace sdsl {
             bit_vector concat = bit_vector(total_size,0);
 
             uint64_t level_begin_offset = 0;
-            for (uint i = 0; i < m_tree_height; i++) {
-                std::string bp_file = temp_file_prefix + "_bp_" + id_part + "_" + std::to_string(i) + ".sdsl";
+            for (uint current_level = 0; current_level < m_tree_height; current_level++) {
+                std::string bp_file = temp_file_prefix + "_bp_" + id_part + "_" + std::to_string(current_level) + ".sdsl";
                 //std::cout << "Reading from " << temp_file_prefix << "_bp_" << id_part << "_" << std::to_string(i) << ".sdsl" << std::endl;
                 {
                     bit_vector bp;
                     load_from_file(bp, bp_file);
 
-                    m_level_begin_idx[m_tree_height-i-1] = level_begin_offset;
                     //copy values using old total length as offset
                     //FIXME: Probably pre calculate vector size and/or introduce append for int_vectors in sdsl
                     for (uint j = 0; j < bp.size(); ++j) {
@@ -847,6 +827,11 @@ namespace sdsl {
                     //std::cout << std::endl;
                     level_begin_offset += bp.size();
                     //std::cout << "Bp size" << bp.size() << std::endl;
+
+                    if (current_level < m_tree_height -1){
+                        m_level_begin_idx[current_level+1] = level_begin_offset;
+                        std::cout << "Setting m_level_begin_idx["<<current_level+1<<"] =" << level_begin_offset << std::endl;
+                    }
                 }
             }
 
@@ -896,7 +881,7 @@ namespace sdsl {
         bool
         is_leaf(const node_type &v) const {
             //FIXME: check if this works
-            return v.idx >= m_level_begin_idx[0];
+            return v.idx >= m_level_begin_idx[m_tree_height-1];
         }
 
         node_type root() const {
@@ -994,6 +979,69 @@ namespace sdsl {
                 }
             }
         };
+
+
+        /**
+        * Checks if exist a link from object p to q.
+        *
+        * @param p Identifier of first object.
+        * @param q Identifier of second object.
+        *
+        * @return True if exists a link between the specified objects, false
+        * otherwise.
+        */
+        /*template<typename t_x, typename t_y>
+        uint64_t check_link_shortcut(t_x p, t_y q) const {
+            using namespace k2_treap_ns;
+            //guard clause can possibly be removed
+            if (p > m_max_element || q > m_max_element){
+                return false;
+            }
+
+            //FIXME: height if k_L tree!
+
+            //z = interleaved first h-1 set bits of p,q
+            uint z = interleaveFirstBits((ushort) q, (ushort) p, m_tree_height, real_size_of_max_node_id);
+            //y = zth 1 via rank on B_
+            uint y = m_access_shortcut_select_1_support(z+1);
+            //check if exists and if B_[y-1] == 0 otherwise no link
+            if (y < 0 || m_bp[y-1] == true){
+                return false;
+            }
+            //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
+            //directly get corresponding data from leaf array
+            uint numberOfPresentTreesSearchedValueIsIn = m_access_shortcut_rank_01_support(y);
+            uint offsetInTree = interleaveLastBits((ushort) q, (ushort) p, m_tree_height, real_size_of_max_node_id);
+            return L_.GetBit(numberOfPresentTreesSearchedValueIsIn*k*k+offsetInTree);
+        }
+
+        void construct_access_shortcut() {
+            using namespace k2_treap_ns;
+            uint k;
+
+
+            //Calculate B via depth first search in the tree
+
+
+            //Use 1 to code empty trees in level height-1 and 01 to code non-empty trees, height has to be calculated with kL_ as height of hybrid tree is different
+            //coresponds to the amount of non-empty trees in level h-1
+            //amount of Zeros = actually existent number of trees --> (level_begin_idx[level+2] - level_begin_idx[level+1])/k² or rank l(evel_begin_idx[level], level_begin_idx[level+1])
+            uint64_t amountOfZeros = (m_level_begin_idx[m_access_shortcut_size+2] - m_level_begin_idx[m_access_shortcut_size+1]) / (k*k);
+            //corresponds to the theoretical amount of trees in level m_access_shortcut_size (round up (in case not divisible by k^2)
+            uint64_t amountOfOnes = precomp<k*k>::exp(m_access_shortcut_size+1);
+            bit_vector B (amountOfOnes+amountOfZeros,0);/*
+            //BitArray<uint> B(amountOfOnes + amountOfZeros);
+            /*std::queue<uint> childrenAt;
+            uint64_t posInB = 0;
+            Depth_First_Traversal(root_, 0, posInB, B);
+
+
+
+
+
+            sdsl::util::init_support(m_access_shortcut_rank_01_support, &m_access_shortcut);
+            sdsl::util::init_support(m_access_shortcut_select_1_support, &m_access_shortcut);
+        }*/
 
         //use only for testing purposes
         void set_height(uint height){
