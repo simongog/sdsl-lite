@@ -86,7 +86,7 @@ namespace sdsl {
         uint m_access_shortcut_size;
         //FIXME: make private
         /** BitArray containing Gog's B vector. */
-        bit_vector m_acccess_shortcut;
+        bit_vector m_access_shortcut;
         //Rank support for pattern 01 and 1
         rank_support_v<01,2> m_access_shortcut_rank_01_support;
         bit_vector::select_1_type m_access_shortcut_select_1_support;
@@ -991,7 +991,7 @@ namespace sdsl {
         * @return True if exists a link between the specified objects, false
         * otherwise.
         */
-        /*template<typename t_x, typename t_y>
+        template<typename t_x, typename t_y>
         uint64_t check_link_shortcut(t_x p, t_y q) const {
             using namespace k2_treap_ns;
             //guard clause can possibly be removed
@@ -1016,33 +1016,81 @@ namespace sdsl {
             return L_.GetBit(numberOfPresentTreesSearchedValueIsIn*k*k+offsetInTree);
         }
 
+        /**
+         * Hier noch eine Idee um den k^2-tree zu beschleunigen: Um nicht erst durch h Levels zu navigieren kann man sich erst ein bit_vector B bauen, der aus 4^h Einsen und höchstens 4^h Nullen besteht. Für jeden der 4^h Teilbäume schreibt man eine Eins; für nichtleere Teilbäume zusätzlich eine Null vor der entsprechenden Eins.
+         *  Also für das Beispiel in Abb.1.3 (in Jans Bericht) mit h=2:
+         *
+         *       0 12 345678 901 2345
+         *  B = 010110111111011101111
+         *  P = 3 4  5      8   1
+         *                      2
+         *  Zum Teilbaum der Koordinate (x,y) kommt man indem man
+         *   (1) die oberen h Bits von x und y interleaved; nennen wir das z
+         *   (2) die Position p der (z+1)te Eins selektieren
+         *   (3) Falls p=0 oder B[p-1]=1 ist, so ist der Teilbaum leer. Andernfalls
+         *        ist der Teilbaum nicht leer und durch das Ergebnis r einer
+         *       rank Operation auf das Bitpattern ,01' in B[0,p]
+         *       adressieren wir einen Array P, der die Präfixsummer der
+         *       Subbaumgrößen enthält. Der Eintrag P[r] kann als Pointer auf die
+         *       k^2 Repräsentation des nichtleeren Subtrees dienen.
+         *
+         *  Das ist praktikabel für h=8. Der Bitvektor würde höchstens 16kBytes
+         *  benötigen und P im worst case 2MB. Da nur ein rank und ein select
+         *  gemacht werden sollte das deutlich schneller sein als die 8 ranks
+         *  in der vorherigen Implementierung.
+
+         */
         void construct_access_shortcut() {
             using namespace k2_treap_ns;
             uint k;
-
-
-            //Calculate B via depth first search in the tree
-
-
             //Use 1 to code empty trees in level height-1 and 01 to code non-empty trees, height has to be calculated with kL_ as height of hybrid tree is different
             //coresponds to the amount of non-empty trees in level h-1
             //amount of Zeros = actually existent number of trees --> (level_begin_idx[level+2] - level_begin_idx[level+1])/k² or rank l(evel_begin_idx[level], level_begin_idx[level+1])
             uint64_t amountOfZeros = (m_level_begin_idx[m_access_shortcut_size+2] - m_level_begin_idx[m_access_shortcut_size+1]) / (k*k);
             //corresponds to the theoretical amount of trees in level m_access_shortcut_size (round up (in case not divisible by k^2)
             uint64_t amountOfOnes = precomp<k*k>::exp(m_access_shortcut_size+1);
-            bit_vector B (amountOfOnes+amountOfZeros,0);/*
+            m_access_shortcut(amountOfOnes+amountOfZeros,1);
             //BitArray<uint> B(amountOfOnes + amountOfZeros);
-            /*std::queue<uint> childrenAt;
+
+            peformDFS();
+            std::queue<uint> childrenAt;
             uint64_t posInB = 0;
-            Depth_First_Traversal(root_, 0, posInB, B);
-
-
-
-
+            construct_access_shortcut_by_dfs(root(), 0, 0);
 
             sdsl::util::init_support(m_access_shortcut_rank_01_support, &m_access_shortcut);
             sdsl::util::init_support(m_access_shortcut_select_1_support, &m_access_shortcut);
-        }*/
+        }
+
+        void construct_access_shortcut_by_dfs(node_type root, uint current_level, uint& counter) {
+                uint64_t rank = m_bp_rank(root.idx);
+                auto x = std::real(root.p);
+                auto y = std::imag(root.p);
+
+                for (size_t i = 0; i < t_k; ++i) {
+                    for (size_t j = 0; j < t_k; ++j) {
+                        // get_int better for compressed bitvectors
+                        // or introduce cache for bitvectors
+                        if (current_level == m_access_shortcut_size){
+                            if (m_bp[root.idx + t_k * i + j]) { //if subtree present
+                                m_access_shortcut[counter] = 0;//save 01 at counter position (m_access_shortcut gets initialised with 1s)
+                                counter++;
+                            }
+                            counter++;
+
+
+                        } else { //continue dfs tree traversal
+                            if (m_bp[root.idx + t_k * i + j]) { //if subtree present
+                                ++rank;
+                                auto _x = x + i * precomp<t_k>::exp(root.t - 1);
+                                auto _y = y + j * precomp<t_k>::exp(root.t - 1);
+
+                                node_type subtree_root(root.t - 1, t_p(_x, _y), rank * t_k * t_k);
+                                traverse_tree<t_x, Impl>(subtree_root, source_id, result);
+                            }
+                        }
+                    }
+                }
+        }
 
         //use only for testing purposes
         void set_height(uint height){
