@@ -107,11 +107,9 @@ namespace sdsl {
     template<uint8_t t_k,
             typename t_bv,
             typename t_rank,
-            typename t_x, typename t_y,
-            template<typename, typename> class t_pair,
-            template<typename...> class t_vector>
+            typename t_vector>
     void
-    construct_im(k2_treap<t_k, t_bv, t_rank> &idx, t_vector<t_pair<t_x,t_y>> data, boolean use_64_bit) {
+    construct_im(k2_treap<t_k, t_bv, t_rank> &idx, t_vector data, boolean use_64_bit) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
         k2_treap<t_k, t_bv, t_rank> tmp(data, tmp_prefix,false);
         tmp.swap(idx);
@@ -121,11 +119,9 @@ namespace sdsl {
     template<uint8_t t_k,
             typename t_bv,
             typename t_rank,
-            typename t_x, typename t_y,
-            template<typename, typename> class t_pair,
-            template<typename...> class t_vector>
+            typename t_vector>
     void
-    construct_im_bottom_up(k2_treap<t_k, t_bv, t_rank> &idx, t_vector<t_pair<t_x,t_y>> data) {
+    construct_im_bottom_up(k2_treap<t_k, t_bv, t_rank> &idx, t_vector data) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
         k2_treap<t_k, t_bv, t_rank> tmp(data, tmp_prefix,true);
         tmp.swap(idx);

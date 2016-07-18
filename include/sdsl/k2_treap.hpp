@@ -268,10 +268,8 @@ namespace sdsl {
         }
 
 
-        template<typename t_x, typename t_y,
-                template<typename, typename> class t_pair,
-                template<typename...> class t_vector>
-        k2_treap(t_vector<t_pair<t_x,t_y>> &v, std::string temp_file_prefix = "", bool bottom_up = false) {
+        template<typename t_vector>
+        k2_treap(t_vector &v, std::string temp_file_prefix = "", bool bottom_up = false) {
             if (v.size() > 0) {
                 if (bottom_up){
                     construct_counting_sort(v, temp_file_prefix);
@@ -281,11 +279,11 @@ namespace sdsl {
             }
         }
 
-        template<typename t_x, typename t_y,
-        template<typename, typename> class t_pair,
-        template<typename...> class t_vector>
-        void construct(t_vector<t_pair<t_x,t_y>> &v, std::string temp_file_prefix = "") {
+        template<typename t_vector>
+        void construct(t_vector &v, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
+            typedef decltype(v[0].first) t_x;
+            typedef decltype(v[0].second) t_y;
             using t_e = std::pair<t_x, t_y>;
 
             m_size = v.size();
@@ -389,11 +387,11 @@ namespace sdsl {
             sdsl::remove(bp_file);
         }
 
-        template<typename t_x, typename t_y,
-                template<typename, typename> class t_pair,
-                template<typename...> class t_vector>
-        void construct_counting_sort(t_vector<t_pair<t_x,t_y>> &links, std::string temp_file_prefix = "") {
+        template<typename t_vector>
+        void construct_counting_sort(t_vector &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
+            typedef decltype(links[0].first) t_x;
+            typedef decltype(links[0].second) t_y;
             using t_e = std::pair<t_x, t_y>;
 
             m_size = links.size();
