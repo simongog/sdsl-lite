@@ -109,7 +109,7 @@ namespace sdsl {
             typename t_rank,
             typename t_vector>
     void
-    construct_im(k2_treap<t_k, t_bv, t_rank> &idx, t_vector data, boolean use_64_bit) {
+    construct_im(k2_treap<t_k, t_bv, t_rank> &idx, t_vector data) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
         k2_treap<t_k, t_bv, t_rank> tmp(data, tmp_prefix,false);
         tmp.swap(idx);
