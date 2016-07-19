@@ -1003,15 +1003,14 @@ namespace sdsl {
         * @param p Identifier of first object.
         * @param q Identifier of second object.
         *
-        * @return True if exists a link between the specified objects, false
-        * otherwise.
+        * @return Returns the subtree on level m_access_shortcut_size if present and nullptr otherwise
         */
         template<typename t_x, typename t_y>
-        uint64_t check_link_shortcut(t_x p, t_y q) const {
+        node_type *check_link_shortcut(t_x p, t_y q) const {
             using namespace k2_treap_ns;
             //guard clause can possibly be removed
             if (p > m_max_element || q > m_max_element){
-                return false;
+                return nullptr;
             }
 
             //FIXME: height if k_L tree!, it depends as we're not only targeting the last level anymore
@@ -1025,12 +1024,28 @@ namespace sdsl {
             uint y = m_access_shortcut_select_1_support(z+1);
             //check if exists and if B_[y-1] == 0 otherwise no link
             if (y < 0 || m_bp[y-1] == true){
-                return false;
+                return nullptr;
             }
             //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
             //directly get corresponding data from leaf array
-            uint numberOfPresentTreesSearchedValueIsIn = m_access_shortcut_rank_01_support(y);
-            return numberOfPresentTreesSearchedValueIsIn*k*k+m_level_begin_idx[m_access_shortcut_size];
+            uint number_of_present_trees_searched_value_is_in = m_access_shortcut_rank_01_support(y);
+
+            //hack to get corresponding coordinates, might not be necessary later on
+            uint field_size = precomp<t_k>::exp(m_tree_height - m_access_shortcut_size);
+            uint upper_left_corner_x = 0;
+            while (upper_left_corner_x <= p){
+                upper_left_corner_x += field_size;
+            }
+            upper_left_corner_x -= field_size;
+
+            uint upper_left_corner_y = 0;
+            while (upper_left_corner_y <= q){
+                upper_left_corner_y += field_size;
+            }
+            upper_left_corner_y -= field_size;
+
+            node_type result = node_type(m_access_shortcut_size, t_p(upper_left_corner_x, upper_left_corner_y), number_of_present_trees_searched_value_is_in+m_level_begin_idx[m_access_shortcut_size]);
+            return &result;
         }
 
         /**
@@ -1072,17 +1087,19 @@ namespace sdsl {
             uint64_t amountOfZeros = (m_level_begin_idx[m_access_shortcut_size+2] - m_level_begin_idx[m_access_shortcut_size+1]) / (k*k);
             //corresponds to the theoretical amount of trees in level m_access_shortcut_size (round up (in case not divisible by k^2)
             uint64_t amountOfOnes = precomp<k*k>::exp(m_access_shortcut_size+1);
-            m_access_shortcut(amountOfOnes+amountOfZeros,1);
+            bit_vector access_shortcut(amountOfOnes+amountOfZeros, 1);
+
+            m_access_shortcut.swap(access_shortcut);
             //BitArray<uint> B(amountOfOnes + amountOfZeros);
-            std::queue<uint> childrenAt;
-            uint64_t posInB = 0;
-            construct_access_shortcut_by_dfs(root(), 0, 0);
+            uint counter = 0;
+            construct_access_shortcut_by_dfs(access_shortcut, root(), 0, counter);
 
             sdsl::util::init_support(m_access_shortcut_rank_01_support, &m_access_shortcut);
             sdsl::util::init_support(m_access_shortcut_select_1_support, &m_access_shortcut);
         }
 
-        void construct_access_shortcut_by_dfs(node_type root, uint current_level, uint& counter) {
+        void construct_access_shortcut_by_dfs(bit_vector& access_shortcut, node_type root, uint current_level, uint& counter) {
+            using namespace k2_treap_ns;
                 uint64_t rank = m_bp_rank(root.idx);
                 auto x = std::real(root.p);
                 auto y = std::imag(root.p);
@@ -1093,7 +1110,7 @@ namespace sdsl {
                         // or introduce cache for bitvectors
                         if (current_level == m_access_shortcut_size){
                             if (m_bp[root.idx + t_k * i + j]) { //if subtree present
-                                m_access_shortcut[counter] = 0;//save 01 at counter position (m_access_shortcut gets initialised with 1s)
+                                access_shortcut[counter] = 0;//save 01 at counter position (m_access_shortcut gets initialised with 1s)
                                 counter++;
                             }
                             counter++;
@@ -1106,7 +1123,7 @@ namespace sdsl {
                                 auto _y = y + j * precomp<t_k>::exp(root.t - 1);
 
                                 node_type subtree_root(root.t - 1, t_p(_x, _y), rank * t_k * t_k);
-                                traverse_tree<t_x, Impl>(subtree_root, source_id, result);
+                                construct_access_shortcut_by_dfs(access_shortcut, subtree_root, current_level++, counter);
                             }
                         }
                     }

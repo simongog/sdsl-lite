@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
         const int k = 3;
         //attention need to adapt rank type below!!
-        k2_treap<3, rrr_vector<63>> k2treap;
+        k2_treap<k, rrr_vector<63>> k2treap;
 
 
         double t2 = 0;

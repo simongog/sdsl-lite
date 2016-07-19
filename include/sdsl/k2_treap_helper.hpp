@@ -253,7 +253,7 @@ struct node_type {
 
     template<>
     struct access_shortcut_helper<4> {
-        static const unsigned short MortonTable_2bitwise_256[256] =
+        static constexpr unsigned short MortonTable_2bitwise_256[256] =
                 {
                         0x0000, 0x0004, 0x0008, 0x000c, 0x0040, 0x0044, 0x0048, 0x004c, 0x0080, 0x0084, 0x0088, 0x008c, 0x00c0, 0x00c4, 0x00c8, 0x00cc,
                         0x0400, 0x0404, 0x0408, 0x040c, 0x0440, 0x0444, 0x0448, 0x044c, 0x0480, 0x0484, 0x0488, 0x048c, 0x04c0, 0x04c4, 0x04c8, 0x04cc,
@@ -347,14 +347,14 @@ struct node_type {
             x = x >> (l - h - 1);
             y = y >> (l - h - 1);
 
-            uint z = (y << 16) & 0xF0000000 |
-                     (x << 12) & 0x0F000000 |
-                     (y << 12) & 0x00F00000 |
-                     (x << 8) & 0x000F0000 |
-                     (y << 8) & 0x0000F000 |
-                     (x << 4) & 0x00000F00 |
-                     (y << 4) & 0x000000F0 |
-                     (x) & 0x0000000F;
+            uint z = ((y << 16) & 0xF0000000) |
+                    ((x << 12) & 0x0F000000) |
+                    ((y << 12) & 0x00F00000) |
+                    ((x << 8) & 0x000F0000) |
+                    ((y << 8) & 0x0000F000) |
+                    ((x << 4) & 0x00000F00) |
+                    ((y << 4) & 0x000000F0) |
+                    (x & 0x0000000F);
             return z;
         }
     };

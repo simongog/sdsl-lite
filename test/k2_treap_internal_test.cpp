@@ -22,7 +22,7 @@ namespace {
     template<uint8_t t_k,
             typename t_bv,
             typename t_rank>
-    void get_paper_k2_tree(k2_treap<t_k, t_bv, t_rank> &idx){
+    void get_paper_k2_tree(k2_treap<t_k, t_bv, t_rank> &idx, uint access_shortcut_size = 0){
         //This Matrix is the same as the 16x16 matrix in the paper, the rows containing only 0s are omitted
         /*
         * 0 1 0 0 | 0 0 0 0 | 0 0 0
@@ -41,7 +41,7 @@ namespace {
         */
         std::string tmp_prefix = ram_file_name("k2_treap_test");
         std::vector<std::pair<uint32_t, uint32_t>> coordinates = {{0,1},{1,2},{1,3},{1,4},{7,6},{8,6},{8,9},{9,6},{9,8},{9,10},{10,6},{10,9}};
-        k2_treap<t_k, t_bv, t_rank> tmp(coordinates, tmp_prefix);
+        k2_treap<t_k, t_bv, t_rank> tmp(coordinates, tmp_prefix, false, access_shortcut_size);
         tmp.swap(idx);
     }
 
@@ -264,7 +264,7 @@ namespace {
 
 
         std::cout << "#########Links##############"<< std::endl;
-        for (int n = 0; n < points.size(); ++n) {
+        for (uint n = 0; n < points.size(); ++n) {
             std::cout << "{"<< points[n].first << "," << points[n].second << "},";
         }
         std::cout << std::endl;
@@ -281,6 +281,20 @@ namespace {
         ASSERT_EQ(test_link.second,1);
         uint subtree_number_2 = tree.calculate_subtree_number_and_new_relative_coordinates(test_link,1);
         ASSERT_EQ(subtree_number_2,0);
+    }
+
+    TEST(K2TreapInternalTest, test_access_shortcut) {
+        using namespace k2_treap_ns;
+        uint access_shortcut_size = 3;
+        k2_treap<2, bit_vector> tree;
+        get_paper_k2_tree(tree, access_shortcut_size);
+
+        //crappy test with magic numbers ;-)
+        node_type* node = tree.check_link_shortcut((uint32_t)9, (uint32_t) 6);
+
+        ASSERT_EQ(node->p.real() ,8);
+        ASSERT_EQ(node->p.imag(), 6);
+        ASSERT_EQ(node->idx, 29);
     }
 }
 // namespace
