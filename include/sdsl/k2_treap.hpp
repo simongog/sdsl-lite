@@ -83,6 +83,7 @@ namespace sdsl {
         int_vector<64> m_level_begin_idx;
         size_type m_size = 0;
         uint64_t m_max_element = 0;
+        uint8_t m_real_size_of_max_element = 0;
         uint m_access_shortcut_size;
         //FIXME: make private
         /** BitArray containing Gog's B vector. */
@@ -106,6 +107,12 @@ namespace sdsl {
             });
             uint64_t x = tupmax(*max_it);
             m_max_element = x;
+
+            //
+            uint8_t real_size = 0;
+            while (precomp<2>::exp(real_size) <= x) { ++real_size; }
+            m_real_size_of_max_element = real_size;
+
             uint8_t res = 0;
             while (precomp<t_k>::exp(res) <= x) { ++res; }
             return res;
@@ -135,9 +142,10 @@ namespace sdsl {
                 m_level_begin_idx = std::move(tr.m_level_begin_idx);
                 m_max_element = std::move(tr.m_max_element);
                 m_access_shortcut_size = std::move(tr.m_access_shortcut_size);
-                m_acccess_shortcut = std::move(tr.m_acccess_shortcut);
+                m_access_shortcut = std::move(tr.m_access_shortcut);
                 m_access_shortcut_rank_01_support = std::move(tr.m_access_shortcut_rank_01_support);
                 m_access_shortcut_select_1_support = std::move(tr.m_access_shortcut_select_1_support);
+                m_real_size_of_max_element  = tr.m_real_size_of_max_element;
             }
             return *this;
         }
@@ -153,9 +161,10 @@ namespace sdsl {
                 m_level_begin_idx = tr.m_level_begin_idx;
                 m_max_element = tr.m_max_element;
                 m_access_shortcut_size = tr.m_access_shortcut_size;
-                m_acccess_shortcut = tr.m_acccess_shortcut;
+                m_access_shortcut = tr.m_access_shortcut;
                 m_access_shortcut_rank_01_support = tr.m_access_shortcut_rank_01_support;
                 m_access_shortcut_select_1_support = tr.m_access_shortcut_select_1_support;
+                m_real_size_of_max_element  = tr.m_real_size_of_max_element;
             }
             return *this;
         }
@@ -185,6 +194,9 @@ namespace sdsl {
             if (m_max_element != tr.m_max_element)
                 return false;
 
+            if (m_real_size_of_max_element  != tr.m_real_size_of_max_element)
+                return false;
+
             if (m_level_begin_idx != tr.m_level_begin_idx)
                 return false;
 
@@ -207,9 +219,12 @@ namespace sdsl {
                 m_level_begin_idx.swap(tr.m_level_begin_idx);
                 std::swap(m_max_element, tr.m_max_element);
                 std::swap(m_access_shortcut_size, tr.m_access_shortcut_size);
-                std::swap(m_acccess_shortcut, tr.m_acccess_shortcut);
-                std::swap(m_access_shortcut_rank_01_support, tr.m_access_shortcut_rank_01_support);
-                std::swap(m_access_shortcut_select_1_support, tr.m_access_shortcut_select_1_support);
+                m_access_shortcut.swap(tr.m_access_shortcut);
+                util::swap_support(m_access_shortcut_rank_01_support, tr.m_access_shortcut_rank_01_support,
+                                   &m_access_shortcut, &tr.m_access_shortcut);
+                util::swap_support(m_access_shortcut_select_1_support, tr.m_access_shortcut_select_1_support,
+                                   &m_access_shortcut, &tr.m_access_shortcut);
+                std::swap(m_real_size_of_max_element, tr.m_real_size_of_max_element);
             }
         }
 
@@ -1000,12 +1015,12 @@ namespace sdsl {
             }
 
             //FIXME: height if k_L tree!, it depends as we're not only targeting the last level anymore
-
+            //FIXME: check which points are in the same tree and only fetch once
             //how to get corresponding subtree on level x of a point efficiently? (for k=2^x, interleave x-bitwise the top h bits
             //implement subtree calculation in general and for 2^x special-cases manually, think about precomp in the case of k=3
 
             //z = interleaved first h-1 set bits of p,q
-            uint z = interleaveFirstBits((ushort) q, (ushort) p, m_tree_height, real_size_of_max_node_id);
+            uint z = access_shortcut_helper<t_k>::corresponding_subtree(p, q, m_real_size_of_max_element, m_access_shortcut_size);
             //y = zth 1 via rank on B_
             uint y = m_access_shortcut_select_1_support(z+1);
             //check if exists and if B_[y-1] == 0 otherwise no link
@@ -1015,8 +1030,7 @@ namespace sdsl {
             //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
             //directly get corresponding data from leaf array
             uint numberOfPresentTreesSearchedValueIsIn = m_access_shortcut_rank_01_support(y);
-            uint offsetInTree = interleaveLastBits((ushort) q, (ushort) p, m_tree_height, real_size_of_max_node_id);
-            return L_.GetBit(numberOfPresentTreesSearchedValueIsIn*k*k+offsetInTree);
+            return numberOfPresentTreesSearchedValueIsIn*k*k+m_level_begin_idx[m_access_shortcut_size];
         }
 
         /**
