@@ -199,29 +199,6 @@ namespace sdsl {
             return v;
         }
 
-        //! Serializes the data structure into the given ostream
-        size_type serialize(std::ostream &out, structure_tree_node *v = nullptr,
-                            std::string name = "") const {
-            structure_tree_node *child = structure_tree::add_child(
-                    v, name, util::class_name(*this));
-            size_type written_bytes = 0;
-            written_bytes += write_member(m_tree_height, out, child, "t");
-            written_bytes += write_member(m_size, out, child, "s");
-            written_bytes += m_bp.serialize(out, child, "bp");
-            written_bytes += m_bp_rank.serialize(out, child, "bp_rank");
-            structure_tree::add_size(child, written_bytes);
-            return written_bytes;
-        }
-
-        //! Loads the data structure from the given istream.
-        void load(std::istream &in) {
-            read_member(m_tree_height, in);
-            read_member(m_size, in);
-            m_bp.load(in);
-            m_bp_rank.load(in);
-            m_bp_rank.set_vector(&m_bp);
-        }
-
         template<typename t_x>
         void direct_links(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
@@ -334,6 +311,46 @@ namespace sdsl {
                                    &m_access_shortcut, &tr.m_access_shortcut);
                 std::swap(m_real_size_of_max_element, tr.m_real_size_of_max_element);
             }
+        }
+
+        //! Serializes the data structure into the given ostream
+        size_type serialize(std::ostream &out, structure_tree_node *v = nullptr,
+                            std::string name = "") const {
+            structure_tree_node *child = structure_tree::add_child(
+                    v, name, util::class_name(*this));
+            size_type written_bytes = 0;
+            written_bytes += write_member(m_tree_height, out, child, "t");
+            written_bytes += write_member(m_size, out, child, "s");
+            written_bytes += m_bp.serialize(out, child, "bp");
+            written_bytes += m_bp_rank.serialize(out, child, "bp_rank");
+            written_bytes += m_level_begin_idx.serialize(out, child, "begin_idx");
+            written_bytes += write_member(m_max_element, out, child, "max");
+            written_bytes += write_member(m_access_shortcut_size, out, child, "max");
+            written_bytes += m_access_shortcut.serialize(out, child, "access_shortcut");
+            written_bytes += m_access_shortcut_rank_01_support.serialize(out, child, "access_rank");
+            written_bytes += m_access_shortcut_select_1_support.serialize(out, child, "access_select");
+            written_bytes += write_member(m_real_size_of_max_element, out, child, "max_size");
+
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
+
+        //! Loads the data structure from the given istream.
+        void load(std::istream &in) {
+            read_member(m_tree_height, in);
+            read_member(m_size, in);
+            m_bp.load(in);
+            m_bp_rank.load(in);
+            m_bp_rank.set_vector(&m_bp);
+            m_level_begin_idx.load(in);
+            read_member( m_max_element, in);
+            read_member( m_access_shortcut_size, in);
+            m_access_shortcut.load(in);
+            m_access_shortcut_rank_01_support.load(in);
+            m_access_shortcut_rank_01_support.set_vector(&m_access_shortcut);
+            m_access_shortcut_select_1_support.load(in);
+            m_access_shortcut_select_1_support.set_vector(&m_access_shortcut);
+            read_member(m_real_size_of_max_element, in);
         }
 
     private:
