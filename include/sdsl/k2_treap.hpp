@@ -71,7 +71,7 @@ namespace sdsl {
         FRIEND_TEST(K2TreapInternalTest, testZOrder100);
         FRIEND_TEST(K2TreapInternalTest, test_calculate_subtree_number_and_new_relative_coordinates);
         FRIEND_TEST(K2TreapInternalTest, test_access_shortcut);
-        
+
     public:
         typedef int_vector<>::size_type size_type;
         using node_type = k2_treap_ns::node_type;
