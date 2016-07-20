@@ -211,11 +211,6 @@ namespace sdsl {
             traverse_tree<t_x, InverseImpl>(this->root(), source_id, result);
         }
 
-        //use only for testing purposes
-        void set_height(uint height){
-            m_tree_height = height;
-        }
-
         //! Move assignment operator
         k2_treap &operator=(k2_treap &&tr) {
             if (this != &tr) {
@@ -354,6 +349,10 @@ namespace sdsl {
         }
 
     private:
+        //use only for testing purposes (remove and use mock)
+        void set_height(uint height){
+            m_tree_height = height;
+        }
 
         template<typename t_vector>
         void construct(t_vector &v, std::string temp_file_prefix = "") {
