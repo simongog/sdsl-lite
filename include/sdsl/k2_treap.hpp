@@ -998,7 +998,7 @@ namespace sdsl {
 
 
         /**
-        * Checks if exist a link from object p to q.
+        * Checks if a link from object p to q exists
         *
         * @param p Identifier of first object.
         * @param q Identifier of second object.
