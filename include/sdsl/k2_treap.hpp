@@ -208,6 +208,43 @@ namespace sdsl {
             traverse_tree<t_x, InverseImpl>(this->root(), source_id, result);
         }
 
+        /**
+         * Checks whether link from p = link.first to q = link.second is present i.e. matrix entry a_pq = 1
+         */
+        template<typename t_x, typename t_y>
+        bool check_link(std::pair<t_x,t_y> link){
+            return check_link_internal(0, link.first, link.second,-1);
+        }
+
+        template<typename t_x, typename t_y>
+        bool check_link_internal(uint level, t_x p, t_y q, int64_t index){
+            using namespace k2_treap_ns;
+
+            uint current_submatrix_size = precomp<k>::exp(m_tree_height-level-1);
+
+            uint64_t child_index = get_child(0, index) + k * (p/current_submatrix_size) + (q/current_submatrix_size);
+            if (m_bp[child_index] == 1){
+                if (level == m_tree_height - 1){
+                    return true;
+                }
+
+                p = p % current_submatrix_size;
+                q = q % current_submatrix_size;
+
+                check_link_internal(++level, p, q, child_index);
+            } else {
+                return false;
+            }
+        }
+
+        /**
+         * gets the ith child of node x
+         */
+        inline uint64_t get_child(uint i, uint64_t x){
+            uint rank = m_bp_rank(x+1);
+            return rank*k*k+i;
+        }
+
         //! Move assignment operator
         k2_treap &operator=(k2_treap &&tr) {
             if (this != &tr) {
