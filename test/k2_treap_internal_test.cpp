@@ -8,18 +8,17 @@
 #include <algorithm> // for std::min. std::sort
 #include <random>
 
-namespace {
+namespace sdsl {
 
     using namespace sdsl;
     using namespace std;
 
     typedef int_vector<>::size_type size_type;
 
-    namespace sdsl{
         template<class T>
-        class k2_treap_internal_test : public ::testing::Test {
+        class K2TreapInternalTest : public ::testing::Test {
         };
-    }
+
 
     template<uint8_t t_k,
             typename t_bv,

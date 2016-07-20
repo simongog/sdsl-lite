@@ -201,74 +201,6 @@ namespace sdsl {
             return v;
         }
 
-        template<typename t_x, typename t_y>
-        bool sort_by_z_order(const std::pair<t_x, t_y> lhs, const std::pair<t_x, t_y> rhs) {
-            using namespace k2_treap_ns;
-            if (lhs.first <= rhs.first && lhs.second <= rhs.second) {
-                return true;
-            } else if (lhs.first >= rhs.first && lhs.second >= rhs.second) {
-                return false;
-            } else if (lhs.first < rhs.first && lhs.second > rhs.second) {
-
-                t_x lhsFirst = lhs.first;
-                t_x lhsSecond = lhs.second;
-                t_x rhsFirst = rhs.first;
-                t_x rhsSecond = rhs.second;
-
-
-                t_x lhsFirstDiv;
-                t_x lhsSecondDiv;
-
-                t_x rhsFirstDiv;
-                t_x rhsSecondDiv;
-
-                for (int i = m_tree_height; i > 0; --i) {
-                    lhsFirstDiv = precomp<k>::divexp(lhsFirst, i);
-                    lhsSecondDiv = precomp<k>::divexp(lhsSecond, i);
-                    rhsFirstDiv = precomp<k>::divexp(rhsFirst, i);
-                    rhsSecondDiv = precomp<k>::divexp(rhsSecond, i);
-
-                    if (lhsFirstDiv < rhsFirstDiv) {
-                        return true;
-                    } else if (lhsFirstDiv == rhsFirstDiv && lhsSecondDiv > rhsSecondDiv) {
-                        return false;
-                    }
-                }
-
-                return true;
-
-                //throw std::logic_error("Shouldn't be possible");//maybe true
-
-            } else { //lhs.first > rhs.first && lhs.second < rhs.second
-
-                t_x lhsFirst = lhs.first;
-                t_x lhsSecond = lhs.second;
-                t_x rhsFirst = rhs.first;
-                t_x rhsSecond = rhs.second;
-
-                t_x lhsFirstDiv;
-                t_x lhsSecondDiv;
-
-                t_x rhsFirstDiv;
-                t_x rhsSecondDiv;
-
-                for (int i = m_tree_height; i > 0; --i) {
-                    lhsFirstDiv = precomp<k>::divexp(lhsFirst, i);
-                    lhsSecondDiv = precomp<k>::divexp(lhsSecond, i);
-                    rhsFirstDiv = precomp<k>::divexp(rhsFirst, i);
-                    rhsSecondDiv = precomp<k>::divexp(rhsSecond, i);
-
-                    if (lhsFirstDiv > rhsFirstDiv) {
-                        return false;
-                    } else if (lhsFirstDiv == rhsFirstDiv && lhsSecondDiv < rhsSecondDiv) {
-                        return true;
-                    }
-                }
-                return false;
-                //throw std::logic_error("Shouldn't be possible");//maybe false
-            }
-        }
-
         //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream &out, structure_tree_node *v = nullptr,
                             std::string name = "") const {
@@ -307,57 +239,6 @@ namespace sdsl {
         //use only for testing purposes
         void set_height(uint height){
             m_tree_height = height;
-        }
-
-        /**
-        * Used for accelerating the check whether a certain link exists by skipping m_access_shortcut_size levels
-        *
-        * @param p Identifier of first object.
-        * @param q Identifier of second object.
-        *
-        * @return Returns the subtree on level m_access_shortcut_size if present and nullptr otherwise
-        */
-        template<typename t_x, typename t_y>
-        node_type *check_link_shortcut(t_x p, t_y q) const {
-            using namespace k2_treap_ns;
-            //guard clause can possibly be removed
-            if (p > m_max_element || q > m_max_element){
-                return nullptr;
-            }
-
-            //FIXME: height if k_L tree!, it depends as we're not only targeting the last level anymore
-            //FIXME: check which points are in the same tree and only fetch once
-            //how to get corresponding subtree on level x of a point efficiently? (for k=2^x, interleave x-bitwise the top h bits
-            //implement subtree calculation in general and for 2^x special-cases manually, think about precomp in the case of k=3
-
-            //z = interleaved first h-1 set bits of p,q
-            uint z = access_shortcut_helper<t_k>::corresponding_subtree(p, q, m_real_size_of_max_element, m_access_shortcut_size);
-            //y = zth 1 via rank on B_
-            uint y = m_access_shortcut_select_1_support(z+1);
-            //check if exists and if B_[y-1] == 0 otherwise no link
-            if (y < 0 || m_bp[y-1] == true){
-                return nullptr;
-            }
-            //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
-            //directly get corresponding data from leaf array
-            uint number_of_present_trees_searched_value_is_in = m_access_shortcut_rank_01_support(y);
-
-            //hack to get corresponding coordinates, might not be necessary later on
-            uint field_size = precomp<t_k>::exp(m_tree_height - m_access_shortcut_size);
-            uint upper_left_corner_x = 0;
-            while (upper_left_corner_x <= p){
-                upper_left_corner_x += field_size;
-            }
-            upper_left_corner_x -= field_size;
-
-            uint upper_left_corner_y = 0;
-            while (upper_left_corner_y <= q){
-                upper_left_corner_y += field_size;
-            }
-            upper_left_corner_y -= field_size;
-
-            node_type result = node_type(m_access_shortcut_size, t_p(upper_left_corner_x, upper_left_corner_y), number_of_present_trees_searched_value_is_in+m_level_begin_idx[m_access_shortcut_size]);
-            return &result;
         }
 
         //! Move assignment operator
@@ -720,6 +601,75 @@ namespace sdsl {
         }
 
         template<typename t_x, typename t_y>
+        bool sort_by_z_order(const std::pair<t_x, t_y> lhs, const std::pair<t_x, t_y> rhs) {
+            using namespace k2_treap_ns;
+            if (lhs.first <= rhs.first && lhs.second <= rhs.second) {
+                return true;
+            } else if (lhs.first >= rhs.first && lhs.second >= rhs.second) {
+                return false;
+            } else if (lhs.first < rhs.first && lhs.second > rhs.second) {
+
+                t_x lhsFirst = lhs.first;
+                t_x lhsSecond = lhs.second;
+                t_x rhsFirst = rhs.first;
+                t_x rhsSecond = rhs.second;
+
+
+                t_x lhsFirstDiv;
+                t_x lhsSecondDiv;
+
+                t_x rhsFirstDiv;
+                t_x rhsSecondDiv;
+
+                for (int i = m_tree_height; i > 0; --i) {
+                    lhsFirstDiv = precomp<k>::divexp(lhsFirst, i);
+                    lhsSecondDiv = precomp<k>::divexp(lhsSecond, i);
+                    rhsFirstDiv = precomp<k>::divexp(rhsFirst, i);
+                    rhsSecondDiv = precomp<k>::divexp(rhsSecond, i);
+
+                    if (lhsFirstDiv < rhsFirstDiv) {
+                        return true;
+                    } else if (lhsFirstDiv == rhsFirstDiv && lhsSecondDiv > rhsSecondDiv) {
+                        return false;
+                    }
+                }
+
+                return true;
+
+                //throw std::logic_error("Shouldn't be possible");//maybe true
+
+            } else { //lhs.first > rhs.first && lhs.second < rhs.second
+
+                t_x lhsFirst = lhs.first;
+                t_x lhsSecond = lhs.second;
+                t_x rhsFirst = rhs.first;
+                t_x rhsSecond = rhs.second;
+
+                t_x lhsFirstDiv;
+                t_x lhsSecondDiv;
+
+                t_x rhsFirstDiv;
+                t_x rhsSecondDiv;
+
+                for (int i = m_tree_height; i > 0; --i) {
+                    lhsFirstDiv = precomp<k>::divexp(lhsFirst, i);
+                    lhsSecondDiv = precomp<k>::divexp(lhsSecond, i);
+                    rhsFirstDiv = precomp<k>::divexp(rhsFirst, i);
+                    rhsSecondDiv = precomp<k>::divexp(rhsSecond, i);
+
+                    if (lhsFirstDiv > rhsFirstDiv) {
+                        return false;
+                    } else if (lhsFirstDiv == rhsFirstDiv && lhsSecondDiv < rhsSecondDiv) {
+                        return true;
+                    }
+                }
+                return false;
+                //throw std::logic_error("Shouldn't be possible");//maybe false
+            }
+        }
+
+
+        template<typename t_x, typename t_y>
         uint inline calculate_subtree_number_and_new_relative_coordinates(std::pair<t_x, t_y>& link, int level) {
             using namespace k2_treap_ns;
             t_x exponent = m_tree_height-level-1;
@@ -728,6 +678,57 @@ namespace sdsl {
             link.second = precomp<t_k>::modexp(link.second, exponent);
 
             return result;
+        }
+
+        /**
+        * Used for accelerating the check whether a certain link exists by skipping m_access_shortcut_size levels
+        *
+        * @param p Identifier of first object.
+        * @param q Identifier of second object.
+        *
+        * @return Returns the subtree on level m_access_shortcut_size if present and nullptr otherwise
+        */
+        template<typename t_x, typename t_y>
+        node_type *check_link_shortcut(t_x p, t_y q) const {
+            using namespace k2_treap_ns;
+            //guard clause can possibly be removed
+            if (p > m_max_element || q > m_max_element){
+                return nullptr;
+            }
+
+            //FIXME: height if k_L tree!, it depends as we're not only targeting the last level anymore
+            //FIXME: check which points are in the same tree and only fetch once
+            //how to get corresponding subtree on level x of a point efficiently? (for k=2^x, interleave x-bitwise the top h bits
+            //implement subtree calculation in general and for 2^x special-cases manually, think about precomp in the case of k=3
+
+            //z = interleaved first h-1 set bits of p,q
+            uint z = access_shortcut_helper<t_k>::corresponding_subtree(p, q, m_real_size_of_max_element, m_access_shortcut_size);
+            //y = zth 1 via rank on B_
+            uint y = m_access_shortcut_select_1_support(z+1);
+            //check if exists and if B_[y-1] == 0 otherwise no link
+            if (y < 0 || m_bp[y-1] == true){
+                return nullptr;
+            }
+            //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
+            //directly get corresponding data from leaf array
+            uint number_of_present_trees_searched_value_is_in = m_access_shortcut_rank_01_support(y);
+
+            //hack to get corresponding coordinates, might not be necessary later on
+            uint field_size = precomp<t_k>::exp(m_tree_height - m_access_shortcut_size);
+            uint upper_left_corner_x = 0;
+            while (upper_left_corner_x <= p){
+                upper_left_corner_x += field_size;
+            }
+            upper_left_corner_x -= field_size;
+
+            uint upper_left_corner_y = 0;
+            while (upper_left_corner_y <= q){
+                upper_left_corner_y += field_size;
+            }
+            upper_left_corner_y -= field_size;
+
+            node_type result = node_type(m_access_shortcut_size, t_p(upper_left_corner_x, upper_left_corner_y), number_of_present_trees_searched_value_is_in+m_level_begin_idx[m_access_shortcut_size]);
+            return &result;
         }
 
 
