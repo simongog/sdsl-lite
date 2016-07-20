@@ -212,12 +212,12 @@ namespace sdsl {
          * Checks whether link from p = link.first to q = link.second is present i.e. matrix entry a_pq = 1
          */
         template<typename t_x, typename t_y>
-        bool check_link(std::pair<t_x,t_y> link){
+        bool check_link(std::pair<t_x,t_y> link) const{
             return check_link_internal(0, link.first, link.second,-1);
         }
 
         template<typename t_x, typename t_y>
-        bool check_link_internal(uint level, t_x p, t_y q, int64_t index){
+        bool check_link_internal(uint level, t_x p, t_y q, int64_t index) const {
             using namespace k2_treap_ns;
 
             uint current_submatrix_size = precomp<k>::exp(m_tree_height-level-1);
@@ -240,7 +240,7 @@ namespace sdsl {
         /**
          * gets the ith child of node x
          */
-        inline uint64_t get_child(uint i, uint64_t x){
+        inline uint64_t get_child(uint i, uint64_t x) const{
             uint rank = m_bp_rank(x+1);
             return rank*k*k+i;
         }
