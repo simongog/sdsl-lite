@@ -15,9 +15,11 @@ namespace {
 
     typedef int_vector<>::size_type size_type;
 
-    template<class T>
-    class k2_treap_test : public ::testing::Test {
-    };
+    namespace sdsl{
+        template<class T>
+        class k2_treap_internal_test : public ::testing::Test {
+        };
+    }
 
     template<uint8_t t_k,
             typename t_bv,
@@ -256,7 +258,7 @@ namespace {
 
         const int k = 3;
         k2_treap<k, bit_vector> tree;
-        tree.set_height(ceil(log(65095)/log(k)));
+        tree.set_height(ceil(log(65095)/log(k)));  //FIXME: use gmock
 
         std::sort(points.begin(), points.end(), [&](const std::pair<uint32_t, uint32_t>& lhs, const std::pair<uint32_t, uint32_t>& rhs){
             return tree.sort_by_z_order(lhs, rhs);
@@ -276,11 +278,11 @@ namespace {
         //crappy test with magic numbers ;-)
         std::pair<uint, uint> test_link = std::make_pair(8,9);
         uint subtree_number = tree.calculate_subtree_number_and_new_relative_coordinates(test_link,0);
-        ASSERT_EQ(subtree_number,3);
-        ASSERT_EQ(test_link.first,0);
-        ASSERT_EQ(test_link.second,1);
+        ASSERT_EQ(subtree_number, (uint) 3);
+        ASSERT_EQ(test_link.first, (uint) 0);
+        ASSERT_EQ(test_link.second, (uint) 1);
         uint subtree_number_2 = tree.calculate_subtree_number_and_new_relative_coordinates(test_link,1);
-        ASSERT_EQ(subtree_number_2,0);
+        ASSERT_EQ(subtree_number_2, (uint) 0);
     }
 
     TEST(K2TreapInternalTest, test_access_shortcut) {
@@ -292,9 +294,9 @@ namespace {
         //crappy test with magic numbers ;-)
         node_type* node = tree.check_link_shortcut((uint32_t)9, (uint32_t) 6);
 
-        ASSERT_EQ(node->p.real() ,8);
-        ASSERT_EQ(node->p.imag(), 6);
-        ASSERT_EQ(node->idx, 29);
+        ASSERT_EQ(node->p.real() , (uint) 8);
+        ASSERT_EQ(node->p.imag(), (uint) 6);
+        ASSERT_EQ(node->idx, (uint) 29);
     }
 }
 // namespace
