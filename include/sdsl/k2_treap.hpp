@@ -89,8 +89,6 @@ namespace sdsl {
         //contains the begin position of each level in m_bp, [0] = 0, [1] equals the end of level 0/beginning of level 1
         int_vector<64> m_level_begin_idx;
         size_type m_size = 0;
-        uint64_t m_max_element = 0;
-        uint8_t m_real_size_of_max_element = 0;
         uint m_access_shortcut_size;
         //FIXME: make private
         /** BitArray containing Gog's B vector. */
@@ -155,7 +153,6 @@ namespace sdsl {
             };
 
             uint64_t x = max_buf_element();
-            m_max_element = x;
             uint8_t res = 0;
             while (res <= 64 and precomp<t_k>::exp(res) <= x) { ++res; }
             if (res == 65) {
@@ -220,12 +217,10 @@ namespace sdsl {
                 m_bp_rank = std::move(tr.m_bp_rank);
                 m_bp_rank.set_vector(&m_bp);
                 m_level_begin_idx = std::move(tr.m_level_begin_idx);
-                m_max_element = std::move(tr.m_max_element);
                 m_access_shortcut_size = std::move(tr.m_access_shortcut_size);
                 m_access_shortcut = std::move(tr.m_access_shortcut);
                 m_access_shortcut_rank_01_support = std::move(tr.m_access_shortcut_rank_01_support);
                 m_access_shortcut_select_1_support = std::move(tr.m_access_shortcut_select_1_support);
-                m_real_size_of_max_element  = tr.m_real_size_of_max_element;
             }
             return *this;
         }
@@ -239,12 +234,10 @@ namespace sdsl {
                 m_bp_rank = tr.m_bp_rank;
                 m_bp_rank.set_vector(&m_bp);
                 m_level_begin_idx = tr.m_level_begin_idx;
-                m_max_element = tr.m_max_element;
                 m_access_shortcut_size = tr.m_access_shortcut_size;
                 m_access_shortcut = tr.m_access_shortcut;
                 m_access_shortcut_rank_01_support = tr.m_access_shortcut_rank_01_support;
                 m_access_shortcut_select_1_support = tr.m_access_shortcut_select_1_support;
-                m_real_size_of_max_element  = tr.m_real_size_of_max_element;
             }
             return *this;
         }
@@ -271,12 +264,6 @@ namespace sdsl {
 
             //don't compare other access_shortcut vetors as they have to be the same when access_shortcut_size is the same
 
-            if (m_max_element != tr.m_max_element)
-                return false;
-
-            if (m_real_size_of_max_element  != tr.m_real_size_of_max_element)
-                return false;
-
             if (m_level_begin_idx != tr.m_level_begin_idx)
                 return false;
 
@@ -297,14 +284,12 @@ namespace sdsl {
                 m_bp.swap(tr.m_bp);
                 util::swap_support(m_bp_rank, tr.m_bp_rank, &m_bp, &(tr.m_bp));
                 m_level_begin_idx.swap(tr.m_level_begin_idx);
-                std::swap(m_max_element, tr.m_max_element);
                 std::swap(m_access_shortcut_size, tr.m_access_shortcut_size);
                 m_access_shortcut.swap(tr.m_access_shortcut);
                 util::swap_support(m_access_shortcut_rank_01_support, tr.m_access_shortcut_rank_01_support,
                                    &m_access_shortcut, &tr.m_access_shortcut);
                 util::swap_support(m_access_shortcut_select_1_support, tr.m_access_shortcut_select_1_support,
                                    &m_access_shortcut, &tr.m_access_shortcut);
-                std::swap(m_real_size_of_max_element, tr.m_real_size_of_max_element);
             }
         }
 
@@ -319,12 +304,10 @@ namespace sdsl {
             written_bytes += m_bp.serialize(out, child, "bp");
             written_bytes += m_bp_rank.serialize(out, child, "bp_rank");
             written_bytes += m_level_begin_idx.serialize(out, child, "begin_idx");
-            written_bytes += write_member(m_max_element, out, child, "max");
             written_bytes += write_member(m_access_shortcut_size, out, child, "max");
             written_bytes += m_access_shortcut.serialize(out, child, "access_shortcut");
             written_bytes += m_access_shortcut_rank_01_support.serialize(out, child, "access_rank");
             written_bytes += m_access_shortcut_select_1_support.serialize(out, child, "access_select");
-            written_bytes += write_member(m_real_size_of_max_element, out, child, "max_size");
 
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
@@ -338,14 +321,12 @@ namespace sdsl {
             m_bp_rank.load(in);
             m_bp_rank.set_vector(&m_bp);
             m_level_begin_idx.load(in);
-            read_member( m_max_element, in);
             read_member( m_access_shortcut_size, in);
             m_access_shortcut.load(in);
             m_access_shortcut_rank_01_support.load(in);
             m_access_shortcut_rank_01_support.set_vector(&m_access_shortcut);
             m_access_shortcut_select_1_support.load(in);
             m_access_shortcut_select_1_support.set_vector(&m_access_shortcut);
-            read_member(m_real_size_of_max_element, in);
         }
 
     private:
@@ -705,10 +686,6 @@ namespace sdsl {
         template<typename t_x, typename t_y>
         node_type *check_link_shortcut(t_x p, t_y q) const {
             using namespace k2_treap_ns;
-            //guard clause can possibly be removed
-            if (p > m_max_element || q > m_max_element){
-                return nullptr;
-            }
 
             //FIXME: height if k_L tree!, it depends as we're not only targeting the last level anymore
             //FIXME: check which points are in the same tree and only fetch once
@@ -716,7 +693,11 @@ namespace sdsl {
             //implement subtree calculation in general and for 2^x special-cases manually, think about precomp in the case of k=3
 
             //z = interleaved first h-1 set bits of p,q
-            uint z = access_shortcut_helper<t_k>::corresponding_subtree(p, q, m_real_size_of_max_element, m_access_shortcut_size);
+            uint max_element = precomp<k>::exp(m_tree_height);
+            uint8_t real_size = 0;
+            while (precomp<2>::exp(real_size) <= max_element) { ++real_size; }
+
+            uint z = access_shortcut_helper<t_k>::corresponding_subtree(p, q, real_size, m_access_shortcut_size);
             //y = zth 1 via rank on B_
             uint y = m_access_shortcut_select_1_support(z+1);
             //check if exists and if B_[y-1] == 0 otherwise no link
@@ -1064,12 +1045,6 @@ namespace sdsl {
                 return tupmax(a) < tupmax(b);
             });
             uint64_t x = tupmax(*max_it);
-            m_max_element = x;
-
-            //
-            uint8_t real_size = 0;
-            while (precomp<2>::exp(real_size) <= x) { ++real_size; }
-            m_real_size_of_max_element = real_size;
 
             uint8_t res = 0;
             while (precomp<t_k>::exp(res) <= x) { ++res; }
