@@ -111,13 +111,68 @@ TYPED_TEST(k2_treap_test, direct_links)
         std::mt19937_64 rng;
         std::uniform_int_distribution<uint64_t> distribution(0, x.size()-1);
         auto dice = bind(distribution, rng);
-        for (size_t i=0; i<20; ++i) {
+        for (size_t i=0; i<100; ++i) {
             auto idx = dice();
             uint64_t xx = x[idx];
             direct_links_test(k2treap, xx, x, y);
         }
     }
 }
+
+    template<class t_k2treap>
+    void check_link_test(
+             t_k2treap& k2treap,
+            uint64_t p,
+            uint64_t q,
+            const int_vector<>& x,
+            const int_vector<>& y
+    )
+    {
+        std::pair<uint64_t, uint64_t> asd = std::make_pair(p,q);
+        bool result = k2treap.check_link(asd);
+
+        bool actual = false;
+        for (uint64_t i = 0; i < x.size(); ++i) {
+            if (x[i] == p) {
+                if (y[i] == q){
+                    actual = true;
+                }
+            }
+        }
+        ASSERT_EQ(actual, result);
+    }
+
+    TYPED_TEST(k2_treap_test, check_link)
+    {
+        TypeParam k2treap;
+        ASSERT_TRUE(load_from_file(k2treap, temp_file));
+        int_vector<> x,y;
+        ASSERT_TRUE(load_from_file(x, test_file+".x"));
+        ASSERT_TRUE(load_from_file(y, test_file+".y"));
+        ASSERT_EQ(x.size(), y.size());
+        ASSERT_EQ(x.size(), k2treap.size());
+        if (x.size() > 0) {
+            std::mt19937_64 rng;
+            std::uniform_int_distribution<uint64_t> distribution(0, x.size()-1);
+            auto dice = bind(distribution, rng);
+            //mostly negative
+            for (size_t i=0; i<50; ++i) {
+                auto idx = dice();
+                uint64_t xx = x[idx];
+                auto idy = dice();
+                uint64_t yy = y[idy];
+                check_link_test(k2treap, xx, yy, x, y);
+            }
+
+            //postive
+            for (size_t i=0; i<50; ++i) {
+                auto idx = dice();
+                uint64_t xx = x[idx];
+                uint64_t yy = y[idx];
+                check_link_test(k2treap, xx, yy, x, y);
+            }
+        }
+    }
 
     /*
 template<class t_k2treap>
