@@ -66,14 +66,12 @@ namespace sdsl {
         static_assert(t_k > 1, "t_k has to be larger than 1.");
         static_assert(t_k <= 16, "t_k has to be smaller than 17.");
 
-        friend class k2_treap_internal_test;
         FRIEND_TEST(K2TreapInternalTest, testZOrderSort);
         FRIEND_TEST(K2TreapInternalTest, testZOrderSort2);
         FRIEND_TEST(K2TreapInternalTest, testZOrder100);
         FRIEND_TEST(K2TreapInternalTest, test_calculate_subtree_number_and_new_relative_coordinates);
         FRIEND_TEST(K2TreapInternalTest, test_access_shortcut);
-
-
+        
     public:
         typedef int_vector<>::size_type size_type;
         using node_type = k2_treap_ns::node_type;
