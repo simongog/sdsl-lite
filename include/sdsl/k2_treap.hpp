@@ -206,8 +206,9 @@ namespace sdsl {
         void direct_links2(t_x source_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
             result.clear();
-            uint64_t max_element = precomp<k>::exp(m_tree_height);
-            direct_links2_internal(max_element, source_id, (t_x) 0, -1, result);
+            //uint64_t max_element = precomp<k>::exp(m_tree_height);
+            //direct_links2_internal(max_element, source_id, (t_x) 0, -1, result);
+            direct_links2_internal_queue(source_id, result);
         }
 
         template<typename t_x>
@@ -220,8 +221,8 @@ namespace sdsl {
         void inverse_links2(t_x source_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
             result.clear();
-            uint64_t max_element = precomp<k>::exp(m_tree_height);
-            inverse_links2_internal(max_element, source_id, (t_x) 0, -1, result);
+            //uint64_t max_element = precomp<k>::exp(m_tree_height);
+            inverse_links2_internal_queue(source_id, result);
         }
 
         /**
@@ -381,6 +382,37 @@ namespace sdsl {
         }
 
         template<typename t_x>
+        void  direct_links2_internal_queue(uint source_id, std::vector<t_x> &result) const {
+            using namespace k2_treap_ns;
+            //n, source_id, column_offset, index
+            std::queue<std::tuple<uint64_t,t_x,t_x,int64_t>> queue;
+            uint64_t max_element = precomp<k>::exp(m_tree_height);
+            queue.push(std::make_tuple(max_element, source_id, (t_x) 0, -1));
+
+            while (!queue.empty()){
+                auto current_element = queue.front();
+                t_x n = std::get<0>(current_element);
+                t_x source_id = std::get<1>(current_element);
+                t_x column_offset = std::get<2>(current_element);
+                int64_t index = std::get<3>(current_element);
+                queue.pop();
+                if (index >= (int64_t) m_level_begin_idx[m_tree_height-1]){
+                    if (m_bp[index]==1){
+                        result.push_back(column_offset);
+                    }
+                } else { //internal node
+                    if (index == -1 || m_bp[index] == 1){
+                        uint submatrix_size = n/k;
+                        uint y = m_bp_rank(index+1)*k*k + k*(source_id/submatrix_size);
+                        for (int j = 0; j < k; ++j) {
+                            queue.push(std::make_tuple(submatrix_size, source_id % submatrix_size, column_offset + submatrix_size * j, y+j));
+                        }
+                    }
+                }
+            }
+        }
+
+        template<typename t_x>
         void inverse_links2_internal(uint64_t n, t_x source_id, t_x row_offset, int64_t index, std::vector<t_x> &result) const {
             if (index >= (int64_t) m_level_begin_idx[m_tree_height-1]){
                 if (m_bp[index]==1){
@@ -396,6 +428,40 @@ namespace sdsl {
                 }
             }
         }
+
+        template<typename t_x>
+        void inverse_links2_internal_queue(t_x source_id, std::vector<t_x> &result) const {
+            using namespace k2_treap_ns;
+            //n, source_id, column_offset, index
+            std::queue<std::tuple<uint64_t,t_x,t_x,int64_t>> queue;
+            uint64_t max_element = precomp<k>::exp(m_tree_height);
+            queue.push(std::make_tuple(max_element, source_id, (t_x) 0, -1));
+
+            while (!queue.empty()) {
+                auto current_element = queue.front();
+                t_x n = std::get<0>(current_element);
+                t_x source_id = std::get<1>(current_element);
+                t_x row_offset = std::get<2>(current_element);
+                int64_t index = std::get<3>(current_element);
+                queue.pop();
+
+                if (index >= (int64_t) m_level_begin_idx[m_tree_height - 1]) {
+                    if (m_bp[index] == 1) {
+                        result.push_back(row_offset);
+                    }
+                } else { //internal node
+                    if (index == -1 || m_bp[index] == 1) {
+                        uint submatrix_size = n / k;
+                        uint y = m_bp_rank(index + 1) * k * k + (source_id / submatrix_size);
+                        for (int j = 0; j < k; ++j) {
+                            queue.push(std::make_tuple(submatrix_size, source_id % submatrix_size,
+                                                    row_offset + submatrix_size * j, y + (j * k)));
+                        }
+                    }
+                }
+            }
+        }
+
 
         template<typename t_x, typename t_y>
         bool check_link_internal(uint level, t_x p, t_y q, int64_t index) const {
