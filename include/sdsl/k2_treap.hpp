@@ -221,7 +221,7 @@ namespace sdsl {
             using namespace k2_treap_ns;
             result.clear();
             uint64_t max_element = precomp<k>::exp(m_tree_height);
-            direct_links2_internal(max_element, source_id, (t_x) 0, -1, result);
+            inverse_links2_internal(max_element, source_id, (t_x) 0, -1, result);
         }
 
         /**
@@ -364,7 +364,7 @@ namespace sdsl {
     private:
 
         template<typename t_x>
-        void direct_links2_internal(uint64_t n, t_x source_id, t_x column_offset, int64_t index, std::vector<t_x> &result) const {
+        void  direct_links2_internal(uint64_t n, t_x source_id, t_x column_offset, int64_t index, std::vector<t_x> &result) const {
             if (index >= (int64_t) m_level_begin_idx[m_tree_height-1]){
                 if (m_bp[index]==1){
                     result.push_back(column_offset);
@@ -391,7 +391,7 @@ namespace sdsl {
                     uint submatrix_size = n/k;
                     uint y = m_bp_rank(index+1)*k*k + (source_id/submatrix_size);
                     for (int j = 0; j < k; ++j) {
-                        inverse_links2_internal(submatrix_size, source_id % submatrix_size, row_offset * j, y+ (j*k), result);
+                        inverse_links2_internal(submatrix_size, source_id % submatrix_size, row_offset + submatrix_size * j, y+ (j*k), result);
                     }
                 }
             }

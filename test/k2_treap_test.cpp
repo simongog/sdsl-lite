@@ -84,16 +84,6 @@ namespace {
             return get<1>(a) < get<1>(b);
         });
 
-        for (auto pair: vec){
-            std::cout << get<1>(pair) << "\t";
-        }
-
-        std::cout <<"\n";
-        for (auto res: result){
-            std::cout << res << "\t";
-        }
-        std::cout << std::endl;
-
         ASSERT_EQ(result.size(), vec.size());
 
         uint64_t cnt = 0;
@@ -138,6 +128,76 @@ namespace {
         TypeParam k2treap;
         perform_direct_links_test(k2treap, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
             k2treap.direct_links2(source_id, result);
+        });
+    }
+
+    template<typename Function>
+    void inverse_links_test(
+            uint64_t source_id,
+            const int_vector<> &x,
+            const int_vector<> &y,
+            Function inverse_links
+    ) {
+        std::vector<uint64_t> result;
+        inverse_links(source_id, result);
+
+        typedef tuple<uint64_t, uint64_t> t_xy;
+        vector<t_xy> vec;
+        for (uint64_t i = 0; i < x.size(); ++i) {
+            if (y[i] == source_id) {
+                vec.emplace_back(x[i], y[i]);
+            }
+        }
+        sort(vec.begin(), vec.end(), [](const t_xy &a, const t_xy &b) {
+            if (get<0>(a) != get<0>(b))
+                return get<0>(a) < get<0>(b);
+            return get<1>(a) < get<1>(b);
+        });
+
+        ASSERT_EQ(result.size(), vec.size());
+
+        uint64_t cnt = 0;
+        std::vector<uint64_t>::iterator res_it = result.begin();
+        for (auto link_source: result) {
+            ASSERT_TRUE(cnt < vec.size());
+            ASSERT_EQ(get<0>(vec[cnt]), link_source);
+            ++res_it;
+            ++cnt;
+        }
+    }
+
+    template<class t_k2treap, typename Function>
+    void perform_inverse_links_test(t_k2treap &k2treap, Function inverse_links) {
+
+        ASSERT_TRUE(load_from_file(k2treap, temp_file));
+        int_vector<> x, y;
+        ASSERT_TRUE(load_from_file(x, test_file + ".x"));
+        ASSERT_TRUE(load_from_file(y, test_file + ".y"));
+        ASSERT_EQ(x.size(), y.size());
+        ASSERT_EQ(x.size(), k2treap.size());
+        if (x.size() > 0) {
+            std::mt19937_64 rng;
+            std::uniform_int_distribution<uint64_t> distribution(0, x.size() - 1);
+            auto dice = bind(distribution, rng);
+            for (size_t i = 0; i < 100; ++i) {
+                auto idx = dice();
+                uint64_t xx = x[idx];
+                inverse_links_test(xx, x, y, inverse_links);
+            }
+        }
+    }
+
+    TYPED_TEST(k2_treap_test, inverse_links) {
+        TypeParam k2treap;
+        perform_inverse_links_test(k2treap, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
+            k2treap.inverse_links(source_id, result);
+        });
+    }
+
+    TYPED_TEST(k2_treap_test, inverse_links2) {
+        TypeParam k2treap;
+        perform_inverse_links_test(k2treap, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
+            k2treap.inverse_links2(source_id, result);
         });
     }
 
