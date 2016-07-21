@@ -7,12 +7,11 @@
 #include <tuple>
 #include <string>
 #include <complex>
-#include <sdsl/k2_treap.hpp>
+#include <sdsl/k2_tree.hpp>
 #include <sdsl/bit_vectors.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
 #include <sys/times.h>
-#include <stxxl/vector>
 
 using std::ifstream;
 using std::cout;
@@ -74,8 +73,7 @@ int main(int argc, char *argv[]) {
 
         std::getline(fileStream, readBuffer);
         uint numberOfNodes = stoul(readBuffer);
-        typedef stxxl::VECTOR_GENERATOR<pair<uint32_t, uint32_t>>::result stxxl_pair_vector;
-        stxxl_pair_vector coordinates;
+        vector<pair<uint32_t, uint32_t>> coordinates;
 
         while (std::getline(fileStream, readBuffer)) {
             //tokenizer<escaped_list_separator<char> > tok(readBuffer);
@@ -92,16 +90,15 @@ int main(int argc, char *argv[]) {
 
         std::cerr << "Finished Reading File " << std::endl;
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
-        const int k = 3;
-        //attention need to adapt rank type below!!
-        k2_treap<k, rrr_vector<63>> k2treap;
+        typedef k2_tree<4, rrr_vector<63>> k2_rrr;
+        k2_rrr k2treap;
 
 
         double t2 = 0;
         ticks = (double) sysconf(_SC_CLK_TCK);
         start_clock();
-        // Initialize treap with a vector of (x,y,weight) elements<uint8_t t_k,
-        construct_im_bottom_up(k2treap, coordinates);
+        // Initialize treap with a vector of (x,y,weight) elements
+        construct_im(k2treap, coordinates);
 
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds
@@ -110,7 +107,7 @@ int main(int argc, char *argv[]) {
 
         fprintf(stderr, "Initialization time (ms): %f\n", t2);
 
-/*
+
         std::cerr << "Processing direct neighbour queries\n" << std::endl;
 
         uint i;
@@ -128,7 +125,7 @@ int main(int argc, char *argv[]) {
         uint count = 0;
         std::vector<uint32_t> result;
         for (auto query : queries){
-            k2treap.direct_links(query, result);
+            k2treap.direct_links2(query, result);
             count+= result.size();
         }
 
@@ -150,7 +147,7 @@ int main(int argc, char *argv[]) {
         start_clock();
         uint count2 = 0;
         for (auto query : queries){
-            k2treap.inverse_links(query, result);
+            k2treap.inverse_links2(query, result);
             count2 += result.size();
         }
 
@@ -167,7 +164,7 @@ int main(int argc, char *argv[]) {
 
 
         store_to_file(k2treap,argv[2]);
-        write_structure<HTML_FORMAT>(k2treap,"structure.json");*/
+        write_structure<HTML_FORMAT>(k2treap,"structure.json");
     } else {
         throw "Could not load file";
     }

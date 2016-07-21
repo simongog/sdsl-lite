@@ -23,8 +23,8 @@
 
 #include "vectors.hpp"
 #include "bits.hpp"
-#include "k2_treap_helper.hpp"
-#include "k2_treap.hpp"
+#include "k2_tree_helper.hpp"
+#include "k2_tree.hpp"
 #include <tuple>
 #include <algorithm>
 #include <iterator>
@@ -76,7 +76,7 @@ namespace sdsl {
     template<uint8_t t_k,
             typename t_bv,
             typename t_rank>
-    class k2_treap;
+    class k2_tree;
 
 
 //! Specialized version of method ,,construct'' for k2_treaps.
@@ -84,10 +84,10 @@ namespace sdsl {
             typename t_bv,
             typename t_rank>
     void
-    construct(k2_treap<t_k, t_bv, t_rank> &idx, std::string file) {
+    construct(k2_tree<t_k, t_bv, t_rank> &idx, std::string file) {
         int_vector_buffer<> buf_x(file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(file + ".y", std::ios::in);
-        k2_treap<t_k, t_bv, t_rank> tmp(buf_x, buf_y, false);
+        k2_tree<t_k, t_bv, t_rank> tmp(buf_x, buf_y, false);
         tmp.swap(idx);
     }
 
@@ -96,10 +96,10 @@ namespace sdsl {
             typename t_bv,
             typename t_rank>
     void
-    construct_bottom_up(k2_treap<t_k, t_bv, t_rank> &idx, std::string file) {
+    construct_bottom_up(k2_tree<t_k, t_bv, t_rank> &idx, std::string file) {
         int_vector_buffer<> buf_x(file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(file + ".y", std::ios::in);
-        k2_treap<t_k, t_bv, t_rank> tmp(buf_x, buf_y, true);
+        k2_tree<t_k, t_bv, t_rank> tmp(buf_x, buf_y, true);
         tmp.swap(idx);
     }
 
@@ -109,9 +109,9 @@ namespace sdsl {
             typename t_rank,
             typename t_vector>
     void
-    construct_im(k2_treap<t_k, t_bv, t_rank> &idx, t_vector data) {
+    construct_im(k2_tree<t_k, t_bv, t_rank> &idx, t_vector data) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_treap<t_k, t_bv, t_rank> tmp(data, tmp_prefix,false);
+        k2_tree<t_k, t_bv, t_rank> tmp(data, tmp_prefix,false);
         tmp.swap(idx);
     }
 
@@ -121,9 +121,9 @@ namespace sdsl {
             typename t_rank,
             typename t_vector>
     void
-    construct_im_bottom_up(k2_treap<t_k, t_bv, t_rank> &idx, t_vector data) {
+    construct_im_bottom_up(k2_tree<t_k, t_bv, t_rank> &idx, t_vector data) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_treap<t_k, t_bv, t_rank> tmp(data, tmp_prefix,true);
+        k2_tree<t_k, t_bv, t_rank> tmp(data, tmp_prefix,true);
         tmp.swap(idx);
     }
 }

@@ -137,8 +137,8 @@ FOREACH(test_source ${test_sources})
                         COMMENT "Execute ${test_name_hy} on ${test_case_name}."        
                     )
                     LIST(APPEND test_targets ${test_target})
-#               Handle K2TreapTest    
-                ELSEIF("${test_name_we}" MATCHES "k2_treap_test")
+#               Handle K2TreeTest
+                ELSEIF("${test_name_we}" MATCHES "k2_tree_test")
                     SET(concat_config "")
 #                    STRING(CONCAT concat_config ${config_line})
                     FOREACH(item ${config_line})

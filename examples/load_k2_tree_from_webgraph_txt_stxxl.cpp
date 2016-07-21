@@ -7,11 +7,12 @@
 #include <tuple>
 #include <string>
 #include <complex>
-#include <sdsl/k2_treap.hpp>
+#include <sdsl/k2_tree.hpp>
 #include <sdsl/bit_vectors.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
 #include <sys/times.h>
+#include <stxxl/vector>
 
 using std::ifstream;
 using std::cout;
@@ -73,7 +74,8 @@ int main(int argc, char *argv[]) {
 
         std::getline(fileStream, readBuffer);
         uint numberOfNodes = stoul(readBuffer);
-        vector<pair<uint32_t, uint32_t>> coordinates;
+        typedef stxxl::VECTOR_GENERATOR<pair<uint32_t, uint32_t>>::result stxxl_pair_vector;
+        stxxl_pair_vector coordinates;
 
         while (std::getline(fileStream, readBuffer)) {
             //tokenizer<escaped_list_separator<char> > tok(readBuffer);
@@ -90,14 +92,15 @@ int main(int argc, char *argv[]) {
 
         std::cerr << "Finished Reading File " << std::endl;
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
-        typedef k2_treap<3, rrr_vector<63>> k2_rrr;
-        k2_rrr k2treap;
+        const int k = 3;
+        //attention need to adapt rank type below!!
+        k2_tree<k, rrr_vector<63>> k2treap;
 
 
         double t2 = 0;
         ticks = (double) sysconf(_SC_CLK_TCK);
         start_clock();
-        // Initialize treap with a vector of (x,y,weight) elements
+        // Initialize treap with a vector of (x,y,weight) elements<uint8_t t_k,
         construct_im_bottom_up(k2treap, coordinates);
 
         t2 += stop_clock();

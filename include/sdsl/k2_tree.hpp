@@ -14,8 +14,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/ .
 */
-/*! \file k2_treap.hpp
-    \brief k2_treap.hpp contains a compact k^2-treap.
+/*! \file k2_tree.hpp
+    \brief k2_tree.hpp contains a compact k^2-treap.
     \author Simon Gog
 */
 #ifndef INCLUDED_SDSL_K2_TREAP
@@ -23,8 +23,8 @@
 
 #include "vectors.hpp"
 #include "bits.hpp"
-#include "k2_treap_helper.hpp"
-#include "k2_treap_algorithm.hpp"
+#include "k2_tree_helper.hpp"
+#include "k2_tree_algorithm.hpp"
 #include <tuple>
 #include <algorithm>
 #include <climits>
@@ -62,15 +62,15 @@ namespace sdsl {
     template<uint8_t t_k,
             typename t_bv=bit_vector,
             typename t_rank=typename t_bv::rank_1_type>
-    class k2_treap {
+    class k2_tree {
         static_assert(t_k > 1, "t_k has to be larger than 1.");
         static_assert(t_k <= 16, "t_k has to be smaller than 17.");
 
-        FRIEND_TEST(K2TreapInternalTest, testZOrderSort);
-        FRIEND_TEST(K2TreapInternalTest, testZOrderSort2);
-        FRIEND_TEST(K2TreapInternalTest, testZOrder100);
-        FRIEND_TEST(K2TreapInternalTest, test_calculate_subtree_number_and_new_relative_coordinates);
-        FRIEND_TEST(K2TreapInternalTest, test_access_shortcut);
+        FRIEND_TEST(K2TreeInternalTest, testZOrderSort);
+        FRIEND_TEST(K2TreeInternalTest, testZOrderSort2);
+        FRIEND_TEST(K2TreeInternalTest, testZOrder100);
+        FRIEND_TEST(K2TreeInternalTest, test_calculate_subtree_number_and_new_relative_coordinates);
+        FRIEND_TEST(K2TreeInternalTest, test_access_shortcut);
 
     public:
         typedef int_vector<>::size_type size_type;
@@ -100,18 +100,18 @@ namespace sdsl {
     public:
         uint8_t &t = m_tree_height;
 
-        k2_treap() = default;
+        k2_tree() = default;
 
-        k2_treap(const k2_treap &tr) {
+        k2_tree(const k2_tree &tr) {
             *this = tr;
         }
 
-        k2_treap(k2_treap &&tr) {
+        k2_tree(k2_tree &&tr) {
             *this = std::move(tr);
         }
 
         template<typename t_vector>
-        k2_treap(t_vector &v, std::string temp_file_prefix = "", bool bottom_up = false, uint access_shortcut_size = 0) {
+        k2_tree(t_vector &v, std::string temp_file_prefix = "", bool bottom_up = false, uint access_shortcut_size = 0) {
             m_access_shortcut_size = access_shortcut_size;
             if (v.size() > 0) {
                 if (bottom_up){
@@ -127,7 +127,7 @@ namespace sdsl {
             }
         }
 
-        k2_treap(int_vector_buffer<> &buf_x,
+        k2_tree(int_vector_buffer<> &buf_x,
                  int_vector_buffer<> &buf_y, bool bottom_up, uint access_shortcut_size = 0) {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
@@ -242,7 +242,7 @@ namespace sdsl {
         }
 
         //! Move assignment operator
-        k2_treap &operator=(k2_treap &&tr) {
+        k2_tree &operator=(k2_tree &&tr) {
             if (this != &tr) {
                 m_tree_height = tr.m_tree_height;
                 m_size = tr.m_size;
@@ -259,7 +259,7 @@ namespace sdsl {
         }
 
         //! Assignment operator
-        k2_treap &operator=(k2_treap &tr) {
+        k2_tree &operator=(k2_tree &tr) {
             if (this != &tr) {
                 m_tree_height = tr.m_tree_height;
                 m_size = tr.m_size;
@@ -276,7 +276,7 @@ namespace sdsl {
         }
 
         //! Equals operator
-        bool operator==(const k2_treap &tr) const {
+        bool operator==(const k2_tree &tr) const {
             if (m_tree_height != tr.m_tree_height)
                 return false;
             if (m_size != tr.m_size)
@@ -310,7 +310,7 @@ namespace sdsl {
         }
 
         //! Swap operator
-        void swap(k2_treap &tr) {
+        void swap(k2_tree &tr) {
             if (this != &tr) {
                 std::swap(m_tree_height, tr.m_tree_height);
                 std::swap(m_size, tr.m_size);
@@ -600,6 +600,10 @@ namespace sdsl {
                 bit_vector _bp;
                 _bp.swap(bp);
                 m_bp = t_bv(_bp);
+                std::cout << "m_tree_height = " << m_tree_height << std::endl;
+                std::cout << "m_level_begin_idx["<<m_tree_height - 1 << "] - m_level_begin_idx["<<m_tree_height - 2 <<"] =" << m_level_begin_idx[m_tree_height - 1] - m_level_begin_idx[m_tree_height - 2] << std::endl;
+                std::cout << "m_bp.size() = " << m_bp.size() << std::endl;
+                std::cout << "m_bp.size() = " << m_bp.size() << std::endl;
                 /*std::cout << "m_bp: \t";
                 for (auto i = 0; i < m_bp.size(); ++i) {
                     std::cout << m_bp[i];

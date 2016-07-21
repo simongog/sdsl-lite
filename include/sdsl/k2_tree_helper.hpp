@@ -18,8 +18,8 @@
     \brief k2_treap_helper.hpp contains helper functions and definitions for a k^2-treap implementation.
     \author Simon Gog
 */
-#ifndef INCLUDED_SDSL_K2_TREAP_HELPER
-#define INCLUDED_SDSL_K2_TREAP_HELPER
+#ifndef INCLUDED_SDSL_K2_TREE_HELPER
+#define INCLUDED_SDSL_K2_TREE_HELPER
 
 #include "vectors.hpp"
 #include "bits.hpp"

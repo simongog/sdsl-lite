@@ -1,4 +1,4 @@
-#include "sdsl/k2_treap.hpp"
+#include "sdsl/k2_tree.hpp"
 #include "sdsl/bit_vectors.hpp"
 #include "gtest/gtest.h"
 #include "../../../../../usr/local/include/c++/4.9.3/iterator"
@@ -16,14 +16,14 @@ namespace sdsl {
     typedef int_vector<>::size_type size_type;
 
         template<class T>
-        class K2TreapInternalTest : public ::testing::Test {
+        class K2TreeInternalTest : public ::testing::Test {
         };
 
 
     template<uint8_t t_k,
             typename t_bv,
             typename t_rank>
-    void get_paper_k2_tree(k2_treap<t_k, t_bv, t_rank> &idx, uint access_shortcut_size = 0){
+    void get_paper_k2_tree(k2_tree<t_k, t_bv, t_rank> &idx, uint access_shortcut_size = 0){
         //This Matrix is the same as the 16x16 matrix in the paper, the rows containing only 0s are omitted
         /*
         * 0 1 0 0 | 0 0 0 0 | 0 0 0
@@ -40,13 +40,13 @@ namespace sdsl {
         * 0 0 0 0 | 0 0 1 0 | 1 0 1
         * 0 0 0 0 | 0 0 1 0 | 0 1 0
         */
-        std::string tmp_prefix = ram_file_name("k2_treap_test");
+        std::string tmp_prefix = ram_file_name("k2_tree_test");
         std::vector<std::pair<uint32_t, uint32_t>> coordinates = {{0,1},{1,2},{1,3},{1,4},{7,6},{8,6},{8,9},{9,6},{9,8},{9,10},{10,6},{10,9}};
-        k2_treap<t_k, t_bv, t_rank> tmp(coordinates, tmp_prefix, false, access_shortcut_size);
+        k2_tree<t_k, t_bv, t_rank> tmp(coordinates, tmp_prefix, false, access_shortcut_size);
         tmp.swap(idx);
     }
 
-    TEST(K2TreapInternalTest, testZOrderSort) {
+    TEST(K2TreeInternalTest, testZOrderSort) {
 
         std::vector<pair<uint, uint>> points;
         int size = 8;
@@ -57,7 +57,7 @@ namespace sdsl {
             }
         }
 
-        k2_treap<2, bit_vector> tree;
+        k2_tree<2, bit_vector> tree;
         tree.set_height(log(size)/log(k));
 
         std::sort(points.begin(), points.end(), [&](const std::pair<uint32_t, uint32_t>& lhs, const std::pair<uint32_t, uint32_t>& rhs){
@@ -119,7 +119,7 @@ namespace sdsl {
         }
     }
 
-    TEST(K2TreapInternalTest, testZOrderSort2) {
+    TEST(K2TreeInternalTest, testZOrderSort2) {
 
         const int k = 3;
         std::vector<pair<uint, uint>> points;
@@ -132,7 +132,7 @@ namespace sdsl {
 
         std::random_shuffle (points.begin(), points.end());
 
-        k2_treap<k, bit_vector> tree;
+        k2_tree<k, bit_vector> tree;
         tree.set_height(log(size)/log(k));
 
         std::sort(points.begin(), points.end(), [&](const std::pair<uint32_t, uint32_t>& lhs, const std::pair<uint32_t, uint32_t>& rhs){
@@ -152,7 +152,7 @@ namespace sdsl {
         */
     }
 
-    TEST(K2TreapInternalTest, testZOrder100) {
+    TEST(K2TreeInternalTest, testZOrder100) {
 
         std::vector<pair<uint, uint>> points = {{30286, 49131},
                                                 {62359, 18315},
@@ -256,7 +256,7 @@ namespace sdsl {
                                                 {23070, 7096}};
 
         const int k = 3;
-        k2_treap<k, bit_vector> tree;
+        k2_tree<k, bit_vector> tree;
         tree.set_height(ceil(log(65095)/log(k)));  //FIXME: use gmock
 
         std::sort(points.begin(), points.end(), [&](const std::pair<uint32_t, uint32_t>& lhs, const std::pair<uint32_t, uint32_t>& rhs){
@@ -271,8 +271,8 @@ namespace sdsl {
         std::cout << std::endl;
     }
 
-    TEST(K2TreapInternalTest, test_calculate_subtree_number_and_new_relative_coordinates) {
-        k2_treap<2, bit_vector> tree;
+    TEST(K2TreeInternalTest, test_calculate_subtree_number_and_new_relative_coordinates) {
+        k2_tree<2, bit_vector> tree;
         get_paper_k2_tree(tree);
         //crappy test with magic numbers ;-)
         std::pair<uint, uint> test_link = std::make_pair(8,9);
@@ -284,10 +284,10 @@ namespace sdsl {
         ASSERT_EQ(subtree_number_2, (uint) 0);
     }
 
-    TEST(K2TreapInternalTest, test_access_shortcut) {
+    TEST(K2TreeInternalTest, test_access_shortcut) {
         using namespace k2_treap_ns;
         uint access_shortcut_size = 3;
-        k2_treap<2, bit_vector> tree;
+        k2_tree<2, bit_vector> tree;
         get_paper_k2_tree(tree, access_shortcut_size);
 
         //crappy test with magic numbers ;-)
