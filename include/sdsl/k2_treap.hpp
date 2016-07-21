@@ -776,76 +776,8 @@ namespace sdsl {
             return &result;
         }
 
-
-        /*template <size_t k>
-        struct sort_by_z_order {
-            //static const int MortonTable256[256];
-
-
-            uint inline interleaveLowerBits(ushort x, ushort y) {
-                unsigned int z;   // z gets the resulting 32-bit Morton Number.
-
-                z = MortonTable256[y >> 8] << 17 |
-                    MortonTable256[x >> 8] << 16 |
-                    MortonTable256[y & 0xFF] << 1 |
-                    MortonTable256[x & 0xFF];
-
-                return z;
-            }*/
-
-
-
-        /*
-        inline bool operator()(const std::pair<uint32_t, uint32_t> lhs, const std::pair<uint32_t, uint32_t> rhs) {
-            uint lhsInterleaved = interleaveLowerBits(lhs.second >> 16, lhs.first >> 16);
-            uint rhsInterleaved = interleaveLowerBits(rhs.second >> 16, rhs.first >> 16);
-
-            if (lhsInterleaved < rhsInterleaved) {
-                return true;
-            } else if (lhsInterleaved > rhsInterleaved) {
-                return false;
-            } else {
-                //interleaveLowerBits (shift away upper 16 Bits
-                lhsInterleaved = interleaveLowerBits((lhs.second << 16) >> 16, (lhs.first << 16) >> 16);
-                rhsInterleaved = interleaveLowerBits((rhs.second << 16) >> 16, (rhs.first << 16) >> 16);
-                if (lhsInterleaved < rhsInterleaved) {
-                    return true;
-                } else if (lhsInterleaved > rhsInterleaved) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        }
-
-        inline bool operator()(const std::pair<uint64_t, uint64_t>& lhs, const std::pair<uint64_t, uint64_t>& rhs) {
-            const uint64_t lhsFirst = lhs.first;
-            const uint64_t lhsSecond = lhs.second;
-            const uint64_t rhsFirst = rhs.first;
-            const uint64_t rhsSecond = rhs.second;
-            if (lhsFirst <= std::numeric_limits<uint32_t>::max() && lhsSecond <= std::numeric_limits<uint32_t>::max() && rhsFirst <= std::numeric_limits<uint32_t>::max() && rhsSecond <= std::numeric_limits<uint32_t>::max()){
-                return this->operator()((std::pair<uint32_t, uint32_t>) lhs, (std::pair<uint32_t, uint32_t>) rhs);
-            } else {
-                //can't call 32 bit as it returns true in the equal case for the upper 32 bit
-                uint32_t lhsFirst1 = (uint32_t)(lhsFirst >>32);
-                uint32_t rhsFirst1 = (uint32_t)(rhsFirst >>32);
-                uint32_t lhsSecond1 = (uint32_t)(lhsSecond >>32);
-                uint32_t rhsSecond1 = (uint32_t)(rhsSecond >>32);
-
-                if (lhsFirst1 == rhsFirst1 && lhsSecond1 == rhsSecond1){
-                    //if first 32 bit of each of the two numbers of each pair are the same
-                    //only look at lower 32 bit by implicit conversion of 64 bit integer to 32 bit
-                    return this->operator()((std::pair<uint32_t, uint32_t>) lhs, (std::pair<uint32_t, uint32_t>) rhs);
-                } else {
-                    return this->operator()(std::make_pair(lhsFirst1, lhsSecond1), std::make_pair(rhsFirst1, rhsSecond1));
-                }
-            }
-        }
-
-    };*/
-
         template<typename t_x, typename t_y>
-        void construct_bottom_up(std::vector<std::pair<t_x, t_y>> &links, std::string temp_file_prefix = "") {
+        void construct_by_z_order_sort(std::vector<std::pair<t_x, t_y>> &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
             using t_e = std::pair<t_x, t_y>;
 
