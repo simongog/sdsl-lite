@@ -216,40 +216,6 @@ namespace sdsl {
             return check_link_internal(0, link.first, link.second,-1);
         }
 
-        template<typename t_x, typename t_y>
-        bool check_link_internal(uint level, t_x p, t_y q, int64_t index) const {
-            using namespace k2_treap_ns;
-
-            if (index > (int64_t) m_level_begin_idx[m_tree_height-1]){
-                return m_bp[index];
-            } else { //internal node
-                if (index == -1 || m_bp[index]){
-                    uint y = get_child(0, index);
-                    uint current_submatrix_size = precomp<k>::exp(m_tree_height-level-1);
-                    y = y + k * (p/current_submatrix_size) + (q/current_submatrix_size);
-                    return check_link_internal(++level, p % current_submatrix_size, q % current_submatrix_size, y);
-                } else {
-                    return false;
-                }
-            }
-
-            /*
-            uint current_submatrix_size = precomp<k>::exp(m_tree_height-level-1);
-            uint64_t child_index = get_child(0, index) + k * (p/current_submatrix_size) + (q/current_submatrix_size);
-            if (m_bp[child_index] == 1){
-                if (level == m_tree_height - 1){
-                    return true;
-                }
-
-                p = p % current_submatrix_size;
-                q = q % current_submatrix_size;
-
-                return check_link_internal(++level, p, q, child_index);
-            } else {
-                return false;
-            }*/
-        }
-
         /**
          * gets the ith child of node x
          */
@@ -380,6 +346,40 @@ namespace sdsl {
         }
 
     private:
+        template<typename t_x, typename t_y>
+        bool check_link_internal(uint level, t_x p, t_y q, int64_t index) const {
+            using namespace k2_treap_ns;
+
+            if (index > (int64_t) m_level_begin_idx[m_tree_height-1]){
+                return m_bp[index];
+            } else { //internal node
+                if (index == -1 || m_bp[index]){
+                    uint y = get_child(0, index);
+                    uint current_submatrix_size = precomp<k>::exp(m_tree_height-level-1);
+                    y = y + k * (p/current_submatrix_size) + (q/current_submatrix_size);
+                    return check_link_internal(++level, p % current_submatrix_size, q % current_submatrix_size, y);
+                } else {
+                    return false;
+                }
+            }
+
+            /*
+            uint current_submatrix_size = precomp<k>::exp(m_tree_height-level-1);
+            uint64_t child_index = get_child(0, index) + k * (p/current_submatrix_size) + (q/current_submatrix_size);
+            if (m_bp[child_index] == 1){
+                if (level == m_tree_height - 1){
+                    return true;
+                }
+
+                p = p % current_submatrix_size;
+                q = q % current_submatrix_size;
+
+                return check_link_internal(++level, p, q, child_index);
+            } else {
+                return false;
+            }*/
+        }
+
         //use only for testing purposes (remove and use mock)
         void set_height(uint height){
             m_tree_height = height;
