@@ -203,9 +203,25 @@ namespace sdsl {
         }
 
         template<typename t_x>
+        void direct_links2(t_x source_id, std::vector<t_x> &result) const {
+            using namespace k2_treap_ns;
+            result.clear();
+            uint64_t max_element = precomp<k>::exp(m_tree_height);
+            direct_links2_internal(max_element, source_id, (t_x) 0, -1, result);
+        }
+
+        template<typename t_x>
         void inverse_links(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
             traverse_tree<t_x, InverseImpl>(this->root(), source_id, result);
+        }
+
+        template<typename t_x>
+        void inverse_links2(t_x source_id, std::vector<t_x> &result) const {
+            using namespace k2_treap_ns;
+            result.clear();
+            uint64_t max_element = precomp<k>::exp(m_tree_height);
+            direct_links2_internal(max_element, source_id, (t_x) 0, -1, result);
         }
 
         /**
@@ -346,11 +362,46 @@ namespace sdsl {
         }
 
     private:
+
+        template<typename t_x>
+        void direct_links2_internal(uint64_t n, t_x source_id, t_x column_offset, int64_t index, std::vector<t_x> &result) const {
+            if (index >= (int64_t) m_level_begin_idx[m_tree_height-1]){
+                if (m_bp[index]==1){
+                    result.push_back(column_offset);
+                }
+            } else { //internal node
+                if (index == -1 || m_bp[index] == 1){
+                    uint submatrix_size = n/k;
+                    uint y = m_bp_rank(index+1)*k*k + k*(source_id/submatrix_size);
+                    for (int j = 0; j < k; ++j) {
+                        direct_links2_internal(submatrix_size, source_id % submatrix_size, column_offset + submatrix_size * j, y+j, result);
+                    }
+                }
+            }
+        }
+
+        template<typename t_x>
+        void inverse_links2_internal(uint64_t n, t_x source_id, t_x row_offset, int64_t index, std::vector<t_x> &result) const {
+            if (index >= (int64_t) m_level_begin_idx[m_tree_height-1]){
+                if (m_bp[index]==1){
+                    result.push_back(row_offset);
+                }
+            } else { //internal node
+                if (index == -1 || m_bp[index] == 1){
+                    uint submatrix_size = n/k;
+                    uint y = m_bp_rank(index+1)*k*k + (source_id/submatrix_size);
+                    for (int j = 0; j < k; ++j) {
+                        inverse_links2_internal(submatrix_size, source_id % submatrix_size, row_offset * j, y+ (j*k), result);
+                    }
+                }
+            }
+        }
+
         template<typename t_x, typename t_y>
         bool check_link_internal(uint level, t_x p, t_y q, int64_t index) const {
             using namespace k2_treap_ns;
 
-            if (index > (int64_t) m_level_begin_idx[m_tree_height-1]){
+            if (index >= (int64_t) m_level_begin_idx[m_tree_height-1]){
                 return m_bp[index];
             } else { //internal node
                 if (index == -1 || m_bp[index]){
