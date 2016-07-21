@@ -12,6 +12,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
 #include <sys/times.h>
+#include <sdsl/k2_tree_paritioned.hpp>
 
 using std::ifstream;
 using std::cout;
@@ -90,15 +91,15 @@ int main(int argc, char *argv[]) {
 
         std::cerr << "Finished Reading File " << std::endl;
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
-        typedef k2_tree<3, rrr_vector<63>> k2_rrr;
-        k2_rrr k2treap;
+        typedef k2_tree_partitioned<2,2, rrr_vector<63>> k2_part;
+
 
 
         double t2 = 0;
         ticks = (double) sysconf(_SC_CLK_TCK);
         start_clock();
         // Initialize treap with a vector of (x,y,weight) elements
-        construct_im(k2treap, coordinates);
+        k2_part k2tree_part(coordinates);
 
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds
@@ -125,7 +126,7 @@ int main(int argc, char *argv[]) {
         uint count = 0;
         std::vector<uint32_t> result;
         for (auto query : queries){
-            k2treap.direct_links(query, result);
+            k2tree_part.direct_links(query, result);
             count+= result.size();
         }
 
@@ -147,7 +148,7 @@ int main(int argc, char *argv[]) {
         start_clock();
         uint count2 = 0;
         for (auto query : queries){
-            k2treap.inverse_links2(query, result);
+            k2tree_part.inverse_links2(query, result);
             count2 += result.size();
         }
 
@@ -163,8 +164,8 @@ int main(int argc, char *argv[]) {
         fprintf(stderr,"Time per link: %f\n",t3/count2);
 
 
-        store_to_file(k2treap,argv[2]);
-        write_structure<HTML_FORMAT>(k2treap,"structure.json");
+        store_to_file(k2tree_part,argv[2]);
+        write_structure<HTML_FORMAT>(k2tree_part,"structure.json");
     } else {
         throw "Could not load file";
     }
