@@ -89,7 +89,7 @@ namespace sdsl {
         //contains the begin position of each level in m_bp, [0] = 0, [1] equals the end of level 0/beginning of level 1
         int_vector<64> m_level_begin_idx;
         size_type m_size = 0;
-        uint m_access_shortcut_size;
+        uint8_t m_access_shortcut_size;
         //FIXME: make private
         /** BitArray containing Gog's B vector. */
         bit_vector m_access_shortcut;
@@ -220,8 +220,21 @@ namespace sdsl {
         bool check_link_internal(uint level, t_x p, t_y q, int64_t index) const {
             using namespace k2_treap_ns;
 
-            uint current_submatrix_size = precomp<k>::exp(m_tree_height-level-1);
+            if (index > (int64_t) m_level_begin_idx[m_tree_height-1]){
+                return m_bp[index];
+            } else { //internal node
+                if (index == -1 || m_bp[index]){
+                    uint y = get_child(0, index);
+                    uint current_submatrix_size = precomp<k>::exp(m_tree_height-level-1);
+                    y = y + k * (p/current_submatrix_size) + (q/current_submatrix_size);
+                    return check_link_internal(++level, p % current_submatrix_size, q % current_submatrix_size, y);
+                } else {
+                    return false;
+                }
+            }
 
+            /*
+            uint current_submatrix_size = precomp<k>::exp(m_tree_height-level-1);
             uint64_t child_index = get_child(0, index) + k * (p/current_submatrix_size) + (q/current_submatrix_size);
             if (m_bp[child_index] == 1){
                 if (level == m_tree_height - 1){
@@ -231,10 +244,10 @@ namespace sdsl {
                 p = p % current_submatrix_size;
                 q = q % current_submatrix_size;
 
-                check_link_internal(++level, p, q, child_index);
+                return check_link_internal(++level, p, q, child_index);
             } else {
                 return false;
-            }
+            }*/
         }
 
         /**
@@ -1161,7 +1174,7 @@ namespace sdsl {
             //amount of Zeros = actually existent number of trees --> (level_begin_idx[level+2] - level_begin_idx[level+1])/k² or rank l(evel_begin_idx[level], level_begin_idx[level+1])
             uint64_t amountOfZeros = (m_level_begin_idx[m_access_shortcut_size+2] - m_level_begin_idx[m_access_shortcut_size+1]) / (k*k);
             //corresponds to the theoretical amount of trees in level m_access_shortcut_size (round up (in case not divisible by k^2)
-            uint64_t amountOfOnes = precomp<k*k>::exp(m_access_shortcut_size+1);
+            uint64_t amountOfOnes = precomp<k*k>::exp((uint8_t) (m_access_shortcut_size+1));
             bit_vector access_shortcut(amountOfOnes+amountOfZeros, 1);
 
             m_access_shortcut.swap(access_shortcut);
