@@ -18,8 +18,8 @@
     \brief k2_tree.hpp contains a compact k^2-treap.
     \author Simon Gog
 */
-#ifndef INCLUDED_SDSL_K2_TREAP
-#define INCLUDED_SDSL_K2_TREAP
+#ifndef INCLUDED_SDSL_K2_TREE
+#define INCLUDED_SDSL_K2_TREE
 
 #include "vectors.hpp"
 #include "bits.hpp"
@@ -601,9 +601,9 @@ namespace sdsl {
                 _bp.swap(bp);
                 m_bp = t_bv(_bp);
                 std::cout << "m_tree_height = " << m_tree_height << std::endl;
-                std::cout << "m_level_begin_idx["<<m_tree_height - 1 << "] - m_level_begin_idx["<<m_tree_height - 2 <<"] =" << m_level_begin_idx[m_tree_height - 1] - m_level_begin_idx[m_tree_height - 2] << std::endl;
+                std::cout << "m_level_begin_idx["<<m_tree_height -1 << "] - m_level_begin_idx["<<m_tree_height - 2 <<"] =" << m_level_begin_idx[m_tree_height - 1] - m_level_begin_idx[m_tree_height - 2] << std::endl;
                 std::cout << "m_bp.size() = " << m_bp.size() << std::endl;
-                std::cout << "m_bp.size() = " << m_bp.size() << std::endl;
+                std::cout << "m_bp.size() = " << m_bp.size() - m_level_begin_idx[m_tree_height - 1] << std::endl;
                 /*std::cout << "m_bp: \t";
                 for (auto i = 0; i < m_bp.size(); ++i) {
                     std::cout << m_bp[i];
@@ -612,6 +612,7 @@ namespace sdsl {
             }
 
             util::init_support(m_bp_rank, &m_bp);
+            std::cout << m_bp_rank(m_level_begin_idx[m_tree_height - 1]) - m_bp_rank(m_level_begin_idx[m_tree_height - 2]) << std::endl;
             sdsl::remove(bp_file);
         }
 
