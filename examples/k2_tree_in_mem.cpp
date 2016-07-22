@@ -19,7 +19,7 @@ void print(std::vector<uint32_t>& to_print, uint32_t source_node){
 
 int main()
 {
-    typedef k2_tree<2,rrr_vector<63>> k2_rrr;
+    typedef k2_tree<2, bit_vector, bit_vector> k2_rrr;
     k2_rrr k2treap;
 
     // Initialize treap with a vector of (x,y,weight) elements
@@ -33,8 +33,8 @@ int main()
 
     cout << "Report all points in rectangle from (2,2) to (10,10)" << endl;
     std::vector<uint32_t> result;
-/*
-    k2treap.check_link(std::make_pair(9,6));
+
+/*    k2treap.check_link(std::make_pair(9,6));
 
 
     std::pair<uint64_t, uint64_t> asd = std::make_pair(4,5);
@@ -53,7 +53,7 @@ int main()
 
 */
     for (uint32_t i = 0; i < 16; i++){
-        k2treap.direct_links2(i, result);
+        k2treap.direct_links(i, result);
         print(result, i);
     }
 

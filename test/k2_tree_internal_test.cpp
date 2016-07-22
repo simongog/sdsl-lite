@@ -1,7 +1,6 @@
 #include "sdsl/k2_tree.hpp"
 #include "sdsl/bit_vectors.hpp"
 #include "gtest/gtest.h"
-#include "../../../../../usr/local/include/c++/4.9.3/iterator"
 #include <vector>
 #include <tuple>
 #include <string>
@@ -152,6 +151,7 @@ namespace sdsl {
         */
     }
 
+    /*
     TEST(K2TreeInternalTest, testZOrder100) {
 
         std::vector<pair<uint, uint>> points = {{30286, 49131},
@@ -270,7 +270,7 @@ namespace sdsl {
         }
         std::cout << std::endl;
     }
-
+    */
     TEST(K2TreeInternalTest, test_calculate_subtree_number_and_new_relative_coordinates) {
         k2_tree<2, bit_vector> tree;
         get_paper_k2_tree(tree);
@@ -283,7 +283,7 @@ namespace sdsl {
         uint subtree_number_2 = tree.calculate_subtree_number_and_new_relative_coordinates(test_link,1);
         ASSERT_EQ(subtree_number_2, (uint) 0);
     }
-
+/*
     TEST(K2TreeInternalTest, test_access_shortcut) {
         using namespace k2_treap_ns;
         uint access_shortcut_size = 3;
@@ -296,7 +296,7 @@ namespace sdsl {
         ASSERT_EQ(node->p.real() , (uint) 8);
         ASSERT_EQ(node->p.imag(), (uint) 6);
         ASSERT_EQ(node->idx, (uint) 29);
-    }
+    }*/
 }
 // namespace
 

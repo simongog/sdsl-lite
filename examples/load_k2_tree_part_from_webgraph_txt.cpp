@@ -91,7 +91,8 @@ int main(int argc, char *argv[]) {
 
         std::cerr << "Finished Reading File " << std::endl;
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
-        typedef k2_tree_partitioned<2,2, rrr_vector<63>> k2_part;
+        typedef k2_tree<2,rrr_vector<63>> k2_part;
+        //typedef k2_tree_partitioned<2,2, rrr_vector<63>> k2_part;
 
 
 
