@@ -45,18 +45,85 @@ template<uint8_t k,
          typename t_rank=typename t_bv::rank_1_type>
 class k2_tree
 {
-    private:
-        //! Bit array to store all the bits of the tree, except those in the
-        //! last level.
-        t_bv    k_t;
-        //! Bit array to store the last level of the tree.
-        t_bv    k_l;
-
-        t_rank  k_t_rank;
-
     public:
         typedef k2_tree_ns::idx_type idx_type;
         typedef k2_tree_ns::size_type size_type;
+
+    private:
+        //! Bit array to store all the bits of the tree, except those in the
+        //! last level.
+        t_bv        k_t;
+        //! Bit array to store the last level of the tree.
+        t_bv        k_l;
+
+        t_rank      k_t_rank;
+
+        uint8_t     k_k;
+        uint16_t    k_height;
+
+    protected:
+
+        void build_from_matrix(const std::vector<std::vector <int>>& matrix)
+        {
+            // printf("k:: %d\n", k);
+            // printf("n: %d\n", matrix.size());
+            // printf("Height: %d\n", height);
+            // Makes the size a power of k.
+            int simulated_size = std::pow(k, k_height);
+            // printf("simulated_size: %d\n", simulated_size);
+            std::vector<std::deque<t_bv>> acc(k_height + 1);
+            // Check vectors have the same size
+            k2_tree_ns::_build_from_matrix<t_bv>(matrix, k, simulated_size,
+                                                 k_height, 1, 0, 0, acc);
+
+            size_type t_size = 0;
+            size_type l_size = 0;
+            for(int i = 1; i < k_height; i++)
+                for(auto it = acc[i].begin(); it != acc[i].end(); it++)
+                    t_size += (*it).size();
+
+            for(auto it = acc[k_height].begin(); it != acc[k_height].end(); it++)
+                l_size += (*it).size();
+
+            k_t = t_bv(t_size, 0);
+            k_l = t_bv(l_size, 0);
+
+            int n = 0;
+            for(int j = 1; j < k_height; j++)
+                for(auto it = acc[j].begin(); it != acc[j].end(); it++)
+                    // TODO erase
+                    for(unsigned i = 0; i < (*it).size(); i++) {
+                        k_t.set_int(n, (*it).get_int(i, 1), 1);
+                        n++;
+                    }
+            n = 0;
+            for(auto it = acc[k_height].begin(); it != acc[k_height].end(); it++)
+                // TODO erase
+                for(unsigned i = 0; i < (*it).size(); i++) {
+                    k_l.set_int(n * 1, (*it).get_int(i, 1), 1);
+                    n++;
+                }
+        }
+
+        void _neigh(size_type n, idx_type row, idx_type col, size_type level,
+                    std::vector<idx_type>& acc)
+        {
+            if(level >= k_t.size()) { // Leaf
+                if(k_l[level - k_t.size()] == 1)
+                    acc.push_back(col);
+                return;
+            }
+
+            if(k_t[level] == 1)
+            {
+                idx_type y = k_t_rank(level + 1) * std::pow(k_k, 2) +
+                        k_k * std::floor(row/static_cast<double>(n/k_k));
+                for(unsigned j = 0; j < k_k; j++)
+                    _neigh(n/k_k, row % (n/k_k), col + (n/k_k) * j, y + j, acc);
+            }
+        }
+
+    public:
 
         k2_tree() = default;
 
@@ -66,56 +133,18 @@ class k2_tree
         //! Constructor
         k2_tree(std::vector<std::vector <int>>& matrix)
         {
+            // TODO Assert matrix is an square matrix?
             std::vector<bit_vector> t;
+            k_k = k;
+            // height = log_k n
+            k_height = std::ceil(
+                    std::log(matrix.size())/static_cast<double>(std::log(k)));
+
             build_from_matrix(matrix);
 
             k_t_rank = t_rank(&k_t);
         }
 
-        void build_from_matrix(const std::vector<std::vector <int>>& matrix)
-        {
-            // height = log_k n
-            int height = std::ceil(
-                    std::log(matrix.size())/static_cast<double>(std::log(k)));
-            // printf("k:: %d\n", k);
-            // printf("n: %d\n", matrix.size());
-            // printf("Height: %d\n", height);
-            // Makes the size a power of k.
-            int simulated_size = std::pow(k, height);
-            // printf("simulated_size: %d\n", simulated_size);
-            std::vector<std::deque<t_bv>> acc(height + 1);
-            // Check vectors have the same size
-            k2_tree_ns::_build_from_matrix<t_bv>(matrix, k, simulated_size,
-                                                 height, 1, 0, 0, acc);
-
-            size_type t_size = 0;
-            size_type l_size = 0;
-            for(int i = 1; i < height; i++)
-                for(auto it = acc[i].begin(); it != acc[i].end(); it++)
-                    t_size += (*it).size();
-
-            for(auto it = acc[height].begin(); it != acc[height].end(); it++)
-                l_size += (*it).size();
-
-            k_t = t_bv(t_size, 0);
-            k_l = t_bv(l_size, 0);
-
-            int n = 0;
-            for(int j = 1; j < height; j++)
-                for(auto it = acc[j].begin(); it != acc[j].end(); it++)
-                    // TODO erase
-                    for(unsigned i = 0; i < (*it).size(); i++) {
-                        k_t.set_int(n, (*it).get_int(i, 1), 1);
-                        n++;
-                    }
-            n = 0;
-            for(auto it = acc[height].begin(); it != acc[height].end(); it++)
-                // TODO erase
-                for(unsigned i = 0; i < (*it).size(); i++) {
-                    k_l.set_int(n * 1, (*it).get_int(i, 1), 1);
-                    n++;
-                }
-        }
 
 
         k2_tree(const k2_tree& tr)
@@ -169,6 +198,34 @@ class k2_tree
         t_bv get_l()
         {
             return k_l;
+        }
+
+        //! Indicates wheter node j is adjacent to node i or not.
+        /*!
+         *  \param i Node i.
+         *  \param j Node j.
+         *  \returns true if there is an edge going from node i to node j,
+         *           false otherwise.
+         */
+        bool adj(idx_type i, idx_type j)
+        {
+            //TODO
+            return 0 == 1;
+        }
+
+        //! Returns a list of neighbors of node i.
+        /*!
+         *  \param i Node to get neighbors from.
+         *  \returns A list of neighbors of node i.
+         */
+        std::vector<idx_type>neigh(idx_type i)
+        {
+            std::vector<idx_type> acc{};
+            size_type n = std::pow(k_k, k_height);
+            idx_type y = k_k * std::floor(i/static_cast<double>(n/k_k));
+            for(unsigned j = 0; j < k_k; j++)
+                _neigh(n/k_k, i % (n/k_k), (n/k_k) * j, y + j, acc);
+            return acc;
         }
 
 };
