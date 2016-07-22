@@ -33,7 +33,6 @@
 #include <complex>
 #include <queue>
 #include <array>
-#include <jmorecfg.h>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl {

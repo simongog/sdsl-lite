@@ -12,7 +12,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
 #include <sys/times.h>
-#include <sdsl/k2_tree_paritioned.hpp>
+#include <sdsl/k2_tree_partitioned.hpp>
 
 using std::ifstream;
 using std::cout;

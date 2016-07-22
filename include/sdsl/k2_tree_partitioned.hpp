@@ -28,6 +28,7 @@ namespace sdsl {
     public:
 
         typedef int_vector<>::size_type size_type;
+        typedef k2_tree<t_k, t_bv, t_rank> subk2_tree;
 
         enum {
             k0 = t_k0
@@ -38,7 +39,7 @@ namespace sdsl {
 
     private:
         //typedef k2_tree<t_k,t_bv,t_rank> k2;
-        std::vector<k2_tree<t_k,t_bv,t_rank>> m_k2trees;
+        std::vector<subk2_tree> m_k2trees;
 
     public:
         k2_tree_partitioned() = default;
@@ -313,10 +314,10 @@ namespace sdsl {
                 }
             }
 
-            m_k2trees.resize(k0*k0);
+            //m_k2trees.resize(k0*k0);
             for (int l = 0; l < k0*k0; ++l) {
-                k2_tree<t_k, t_bv, t_rank> k2tree(buffers[l], temp_file_prefix, bottom_up, access_shortcut_size);
-                m_k2trees[l] = k2tree;
+                subk2_tree k2tree(buffers[l], temp_file_prefix, bottom_up, access_shortcut_size);
+                m_k2trees.push_back(k2tree);
             }
         }
     };
