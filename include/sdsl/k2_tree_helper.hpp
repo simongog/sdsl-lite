@@ -216,7 +216,7 @@ struct node_type {
     struct access_shortcut_helper<2> {
         static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level){
             if (level < 16){
-                return interleaveFirstBits(q >> 16, p >> 16, level, m_real_size_of_max_element);
+                return interleaveFirstBits(q, p, level, m_real_size_of_max_element);
             } else {
                 //FIXME: interleave top level+1 (more than 16 Bit), look at https://github.com/Forceflow/libmorton
                 throw new std::runtime_error("not yet implemented");
@@ -225,7 +225,7 @@ struct node_type {
 
         static uint corresponding_subtree(uint64_t q, uint64_t p, uint8_t m_real_size_of_max_element, uint level){
             if (level < 16){
-                return interleaveFirstBits(q >> 48, p >> 48, level, m_real_size_of_max_element);
+                return interleaveFirstBits(q, p, level, m_real_size_of_max_element);
             } else if (level < 32){
                 //FIXME: interleave top level+1 (more than 16 Bit)
                 throw new std::runtime_error("not yet implemented");
@@ -275,7 +275,7 @@ struct node_type {
 
         static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level){
             if (level < 16){
-                return interleaveFirstBits(q >> 16, p >> 16, level, m_real_size_of_max_element);
+                return interleaveFirstBits(q, p, level, m_real_size_of_max_element);
             } else {
                 //FIXME: interleave top level+1 (more than 16 Bit)
                 throw new std::runtime_error("not yet implemented");
@@ -284,7 +284,7 @@ struct node_type {
 
         static uint corresponding_subtree(uint64_t q, uint64_t p, uint8_t m_real_size_of_max_element, uint level){
             if (level < 16){
-                return interleaveFirstBits(q >> 48, p >> 48, level, m_real_size_of_max_element);
+                return interleaveFirstBits(q, p, level, m_real_size_of_max_element);
             } else if (level < 32){
                 //FIXME: interleave top level+1 (more than 16 Bit)
                 throw new std::runtime_error("not yet implemented");
@@ -321,7 +321,7 @@ struct node_type {
 
         static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level){
             if (level < 16){
-                return interleaveFirstBits(q >> 16, p >> 16, level, m_real_size_of_max_element);
+                return interleaveFirstBits(q, p, level, m_real_size_of_max_element);
             } else {
                 //FIXME: interleave top level+1 (more than 16 Bit)
                 throw new std::runtime_error("not yet implemented");
@@ -330,7 +330,7 @@ struct node_type {
 
         static uint corresponding_subtree(uint64_t q, uint64_t p, uint8_t m_real_size_of_max_element, uint level){
             if (level < 16){
-                return interleaveFirstBits(q >> 48, p >> 48, level, m_real_size_of_max_element);
+                return interleaveFirstBits(q, p, level, m_real_size_of_max_element);
             } else if (level < 32){
                 //FIXME: interleave top level+1 (more than 16 Bit)
                 throw new std::runtime_error("not yet implemented");

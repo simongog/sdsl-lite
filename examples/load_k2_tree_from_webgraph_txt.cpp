@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 
         std::cerr << "Finished Reading File " << std::endl;
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
-        typedef k2_tree<4, bit_vector, bit_vector> k2_rrr;
+        typedef k2_tree<4, bit_vector, rrr_vector<63>> k2_rrr;
         k2_rrr k2treap;
 
 
@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
         uint count = 0;
         std::vector<uint32_t> result;
         for (auto query : queries){
-            k2treap.direct_links(query, result);
+            k2treap.direct_links2(query, result);
             count+= result.size();
         }
 
