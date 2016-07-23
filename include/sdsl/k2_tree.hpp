@@ -858,8 +858,6 @@ namespace sdsl {
 
                 return true;
 
-                //throw std::logic_error("Shouldn't be possible");//maybe true
-
             } else { //lhs.first > rhs.first && lhs.second < rhs.second
 
                 t_x lhsFirst = lhs.first;
@@ -886,7 +884,6 @@ namespace sdsl {
                     }
                 }
                 return false;
-                //throw std::logic_error("Shouldn't be possible");//maybe false
             }
         }
 
