@@ -73,12 +73,6 @@ namespace sdsl {
                                                           {6,4},{6,5},{7,4},{7,5},{6,6},{6,7},{7,6},{7,7},
         };
 
-        std::cout << "#########Links##############"<< std::endl;
-        for (uint n = 0; n < points.size(); ++n) {
-            std::cout << "{"<< points[n].first << "," << points[n].second << "},";
-        }
-        std::cout << std::endl;
-
         ASSERT_EQ(points.size(),correct_order.size());
         std::cout << std::endl;
         for (uint k = 0; k < correct_order.size(); ++k) {
@@ -89,7 +83,6 @@ namespace sdsl {
     void makeZOrderK(uint& xinit, uint& yinit, uint& ctr, uint k, uint size, std::vector<pair<uint, uint>>& points){
         for (uint x = xinit; x < xinit+k; ++x) {
             for (uint y = yinit; y < yinit+k; ++y) {
-                std::cout << "checking" << x << "," << y << " at position " << ctr << std::endl;
                 ASSERT_EQ(std::make_pair(x, y), points[ctr]);
                 ctr++;
             }
@@ -110,9 +103,9 @@ namespace sdsl {
                 for (uint j = 0; j < k; ++j) {
                     //std::cout << "Rec Call" << std::cout << std::endl;
                     recursivelyCreateMatrix(size / k, xinit, yinit, ctr, points, k);
-                    yinit += k;
+                    yinit += size/k;
                 }
-                xinit += k;
+                xinit += size/k;
 
             }
         }
@@ -141,136 +134,8 @@ namespace sdsl {
         uint ctr = 0;
         vector<pair<uint32_t, uint32_t>> correct_order;
         recursivelyCreateMatrix(size, 0, 0, ctr, points, k);
-
-        /*
-        std::cout << "Points" << std::endl;
-        for (int l = 0; l < points.size(); ++l) {
-            std::cout << points[l].first << "," << points[l].second << "\t";
-        }
-        std::cout << std::endl;
-        */
     }
 
-    /*
-    TEST(K2TreeInternalTest, testZOrder100) {
-
-        std::vector<pair<uint, uint>> points = {{30286, 49131},
-                                                {62359, 18315},
-                                                {30605, 48934},
-                                                {2973,  38167},
-                                                {63409, 48393},
-                                                {49407, 19780},
-                                                {14211, 19800},
-                                                {33583, 2142},
-                                                {44435, 10393},
-                                                {35375, 59222},
-                                                {65095, 1657},
-                                                {58958, 56987},
-                                                {56664, 57987},
-                                                {1076,  20759},
-                                                {468,   47602},
-                                                {46582, 27220},
-                                                {43537, 42103},
-                                                {63839, 60066},
-                                                {48772, 60560},
-                                                {34521, 56903},
-                                                {52853, 30779},
-                                                {16605, 42713},
-                                                {23013, 45548},
-                                                {5812,  30437},
-                                                {45365, 40152},
-                                                {45916, 31791},
-                                                {26603, 64346},
-                                                {39982, 6616},
-                                                {8557,  1274},
-                                                {11990, 38348},
-                                                {2051,  42664},
-                                                {63997, 25805},
-                                                {5562,  54495},
-                                                {5700,  53280},
-                                                {37470, 60306},
-                                                {49416, 51532},
-                                                {8595,  25213},
-                                                {35894, 30012},
-                                                {34784, 53726},
-                                                {35926, 36810},
-                                                {9875,  9859},
-                                                {18353, 64753},
-                                                {36388, 53738},
-                                                {12072, 51156},
-                                                {15945, 35438},
-                                                {27097, 42045},
-                                                {37067, 40719},
-                                                {41221, 64392},
-                                                {19933, 15127},
-                                                {14572, 46869},
-                                                {15133, 33072},
-                                                {64546, 60344},
-                                                {58441, 30066},
-                                                {19512, 54802},
-                                                {18908, 1706},
-                                                {10694, 16841},
-                                                {5820,  28620},
-                                                {4337,  52281},
-                                                {12870, 31461},
-                                                {63761, 40465},
-                                                {49393, 1154},
-                                                {22513, 12605},
-                                                {10068, 39068},
-                                                {27097, 14940},
-                                                {48617, 59872},
-                                                {9458,  36990},
-                                                {54599, 16561},
-                                                {9385,  16459},
-                                                {40688, 4998},
-                                                {1748,  46513},
-                                                {52286, 59351},
-                                                {62820, 56632},
-                                                {7832,  42385},
-                                                {44134, 47311},
-                                                {24769, 13050},
-                                                {12919, 23618},
-                                                {26120, 31921},
-                                                {41343, 3623},
-                                                {28967, 23315},
-                                                {14419, 30449},
-                                                {38136, 18051},
-                                                {17793, 58364},
-                                                {29281, 36824},
-                                                {23175, 33272},
-                                                {64569, 54760},
-                                                {17632, 5750},
-                                                {27310, 20531},
-                                                {32301, 52174},
-                                                {38742, 44580},
-                                                {59689, 10151},
-                                                {53465, 1210},
-                                                {33412, 3113},
-                                                {42167, 44717},
-                                                {60541, 56972},
-                                                {64630, 35365},
-                                                {17528, 38430},
-                                                {45583, 51243},
-                                                {35222, 7964},
-                                                {34983, 3252},
-                                                {23070, 7096}};
-
-        const int k = 3;
-        k2_tree<k, bit_vector> tree;
-        tree.set_height(ceil(log(65095)/log(k)));  //FIXME: use gmock
-
-        std::sort(points.begin(), points.end(), [&](const std::pair<uint32_t, uint32_t>& lhs, const std::pair<uint32_t, uint32_t>& rhs){
-            return tree.sort_by_z_order(lhs, rhs);
-        });
-
-
-        std::cout << "#########Links##############"<< std::endl;
-        for (uint n = 0; n < points.size(); ++n) {
-            std::cout << "{"<< points[n].first << "," << points[n].second << "},";
-        }
-        std::cout << std::endl;
-    }
-    */
     TEST(K2TreeInternalTest, test_calculate_subtree_number_and_new_relative_coordinates) {
         k2_tree<2, bit_vector> tree;
         get_paper_k2_tree(tree);
