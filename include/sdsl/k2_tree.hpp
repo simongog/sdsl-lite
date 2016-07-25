@@ -232,14 +232,16 @@ class k2_tree
          */
         bool adj(idx_type i, idx_type j) const
         {
-            size_type n = std::pow(k_k, k_height);
+            size_type n = std::pow(k_k, k_height - 1);
             size_type k_2 = std::pow(k_k, 2);
             idx_type col, row;
 
-            row = std::floor(i/static_cast<double>(n/k_k));
-            col = std::floor(j/static_cast<double>(n/k_k));
-            i = i % (n/k_k);
-            j = j % (n/k_k);
+            // This is duplicated to avoid an extra if at the loop,
+            // as idx_type can not be negative and the first
+            row = std::floor(i/static_cast<double>(n));
+            col = std::floor(j/static_cast<double>(n));
+            i = i % n;
+            j = j % n;
             idx_type level = k_k * row + col;
             n = n/k_k;
             idx_type y;
@@ -247,10 +249,10 @@ class k2_tree
             while(level < k_t.size()) {
                 if(k_t[level] == 0)
                     return false;
-                row = std::floor(i/static_cast<double>(n/k_k));
-                col = std::floor(j/static_cast<double>(n/k_k));
-                i = i % (n/k_k);
-                j = j % (n/k_k);
+                row = std::floor(i/static_cast<double>(n));
+                col = std::floor(j/static_cast<double>(n));
+                i = i % n;
+                j = j % n;
                 level = k_t_rank(level + 1) * k_2 + k_k * row + col;
                 n = n/k_k;
             }
