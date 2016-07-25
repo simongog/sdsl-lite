@@ -18,11 +18,11 @@ namespace sdsl {
         class K2TreeInternalTest : public ::testing::Test {
         };
 
-
     template<uint8_t t_k,
-            typename t_bv,
-            typename t_rank>
-    void get_paper_k2_tree(k2_tree<t_k, t_bv, t_rank> &idx, uint access_shortcut_size = 0){
+            typename t_lev=bit_vector,
+            typename t_leaf=bit_vector,
+            typename t_rank=typename t_lev::rank_1_type>
+    void get_paper_k2_tree(k2_tree<t_k,t_lev,t_leaf,t_rank> &idx, uint access_shortcut_size = 0){
         //This Matrix is the same as the 16x16 matrix in the paper, the rows containing only 0s are omitted
         /*
         * 0 1 0 0 | 0 0 0 0 | 0 0 0
@@ -41,7 +41,7 @@ namespace sdsl {
         */
         std::string tmp_prefix = ram_file_name("k2_tree_test");
         std::vector<std::pair<uint32_t, uint32_t>> coordinates = {{0,1},{1,2},{1,3},{1,4},{7,6},{8,6},{8,9},{9,6},{9,8},{9,10},{10,6},{10,9}};
-        k2_tree<t_k, t_bv, t_rank> tmp(coordinates, tmp_prefix, false, access_shortcut_size);
+        k2_tree<t_k,t_lev,t_leaf,t_rank> tmp(tmp_prefix, false, access_shortcut_size,coordinates);
         tmp.swap(idx);
     }
 
@@ -56,7 +56,7 @@ namespace sdsl {
             }
         }
 
-        k2_tree<2, bit_vector> tree;
+        k2_tree<2> tree;
         tree.set_height(log(size)/log(k));
 
         std::sort(points.begin(), points.end(), [&](const std::pair<uint32_t, uint32_t>& lhs, const std::pair<uint32_t, uint32_t>& rhs){
@@ -80,7 +80,7 @@ namespace sdsl {
         }
     }
 
-    void makeZOrderK(uint& xinit, uint& yinit, uint& ctr, uint k, uint size, std::vector<pair<uint, uint>>& points){
+    void makeZOrderK(uint& xinit, uint& yinit, uint& ctr, uint k, std::vector<pair<uint, uint>>& points){
         for (uint x = xinit; x < xinit+k; ++x) {
             for (uint y = yinit; y < yinit+k; ++y) {
                 ASSERT_EQ(std::make_pair(x, y), points[ctr]);
@@ -92,7 +92,7 @@ namespace sdsl {
     void recursivelyCreateMatrix(uint size, uint xinit, uint yinit, uint& ctr, std::vector<pair<uint, uint>>& points, uint k){
         if (size == k) {
             //std::cout << "Rec Base" << std::cout << std::endl;
-            makeZOrderK(xinit, yinit, ctr, k, size, points);
+            makeZOrderK(xinit, yinit, ctr, k, points);
         } else if (size < k) {
             throw runtime_error("shouldn't happen, please choose a size that is an exponential of chosen k");
         } else {
@@ -137,7 +137,7 @@ namespace sdsl {
     }
 
     TEST(K2TreeInternalTest, test_calculate_subtree_number_and_new_relative_coordinates) {
-        k2_tree<2, bit_vector> tree;
+        k2_tree<2> tree;
         get_paper_k2_tree(tree);
         //crappy test with magic numbers ;-)
         std::pair<uint, uint> test_link = std::make_pair(8,9);
@@ -152,7 +152,7 @@ namespace sdsl {
     TEST(K2TreeInternalTest, test_access_shortcut) {
         using namespace k2_treap_ns;
         uint access_shortcut_size = 3;
-        k2_tree<2, bit_vector> tree;
+        k2_tree<2> tree;
         get_paper_k2_tree(tree, access_shortcut_size);
 
         //crappy test with magic numbers ;-)

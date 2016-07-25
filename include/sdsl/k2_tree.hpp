@@ -114,7 +114,7 @@ namespace sdsl {
         }
 
         template<typename t_vector>
-        k2_tree(t_vector &v, std::string temp_file_prefix = "", bool use_counting_sort = false, uint access_shortcut_size = 0) {
+        k2_tree(std::string temp_file_prefix, bool use_counting_sort, uint access_shortcut_size, t_vector &v) {
             m_access_shortcut_size = access_shortcut_size;
             if (v.size() > 0) {
                 if (use_counting_sort){
@@ -263,7 +263,7 @@ namespace sdsl {
         }
 
         //! Assignment operator
-        k2_tree &operator=(k2_tree &tr) {
+        k2_tree &operator=(const k2_tree &tr) {
             if (this != &tr) {
                 m_tree_height = tr.m_tree_height;
                 m_size = tr.m_size;
@@ -401,8 +401,8 @@ namespace sdsl {
                 }
             } else { //internal node
                 if (index == -1 || m_levels[index] == 1){
-                    uint submatrix_size = n/k;
-                    uint y = m_levels_rank(index+1)*k*k + k*(source_id/submatrix_size);
+                    uint64_t submatrix_size = n/k;
+                    int64_t y = m_levels_rank(index+1)*k*k + k*(source_id/submatrix_size);
                     for (int j = 0; j < k; ++j) {
                         direct_links2_internal(submatrix_size, source_id % submatrix_size, column_offset + submatrix_size * j, y+j, result);
                     }
@@ -416,7 +416,7 @@ namespace sdsl {
          * @param result
          */
         template<typename t_x>
-        void  direct_links2_internal_queue(uint source_id, std::vector<t_x> &result) const {
+        void  direct_links2_internal_queue(t_x source_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
             //n, source_id, column_offset, index
             std::queue<std::tuple<uint64_t,t_x,t_x,int64_t>> queue;
@@ -425,7 +425,7 @@ namespace sdsl {
 
             while (!queue.empty()){
                 auto current_element = queue.front();
-                t_x n = std::get<0>(current_element);
+                uint64_t n = std::get<0>(current_element);
                 t_x source_id = std::get<1>(current_element);
                 t_x column_offset = std::get<2>(current_element);
                 int64_t index = std::get<3>(current_element);
@@ -436,8 +436,8 @@ namespace sdsl {
                     }
                 } else { //internal node
                     if (index == -1 || m_levels[index] == 1){
-                        uint submatrix_size = n/k;
-                        uint y = m_levels_rank(index+1)*k*k + k*(source_id/submatrix_size);
+                        uint64_t submatrix_size = n/k;
+                        int64_t y = m_levels_rank(index+1)*k*k + k*(source_id/submatrix_size);
                         for (int j = 0; j < k; ++j) {
                             queue.push(std::make_tuple(submatrix_size, source_id % submatrix_size, column_offset + submatrix_size * j, y+j));
                         }
@@ -467,8 +467,8 @@ namespace sdsl {
                 }
             } else { //internal node
                 if (index == -1 || m_levels[index] == 1){
-                    uint submatrix_size = n/k;
-                    uint y = m_levels_rank(index+1)*k*k + (source_id/submatrix_size);
+                    uint64_t submatrix_size = n/k;
+                    int64_t y = m_levels_rank(index+1)*k*k + (source_id/submatrix_size);
                     for (int j = 0; j < k; ++j) {
                         inverse_links2_internal(submatrix_size, source_id % submatrix_size, row_offset + submatrix_size * j, y+ (j*k), result);
                     }
@@ -503,8 +503,8 @@ namespace sdsl {
                     }
                 } else { //internal node
                     if (index == -1 || m_levels[index] == 1) {
-                        uint submatrix_size = n / k;
-                        uint y = m_levels_rank(index + 1) * k * k + (source_id / submatrix_size);
+                        uint64_t submatrix_size = n / k;
+                        int64_t y = m_levels_rank(index + 1) * k * k + (source_id / submatrix_size);
                         for (int j = 0; j < k; ++j) {
                             queue.push(std::make_tuple(submatrix_size, source_id % submatrix_size,
                                                     row_offset + submatrix_size * j, y + (j * k)));
@@ -535,8 +535,8 @@ namespace sdsl {
                 return m_leafs[index - m_levels.size()];
             } else { //internal node
                 if (index == -1 || m_levels[index]){
-                    uint y = get_child(0, index);
-                    uint current_submatrix_size = precomp<k>::exp(m_tree_height-level-1);
+                    int64_t y = get_child(0, index);
+                    uint64_t current_submatrix_size = precomp<k>::exp(m_tree_height-level-1);
                     y = y + k * (p/current_submatrix_size) + (q/current_submatrix_size);
                     return check_link_internal(++level, p % current_submatrix_size, q % current_submatrix_size, y);
                 } else {

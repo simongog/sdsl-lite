@@ -114,7 +114,7 @@ namespace sdsl {
     void
     construct_im(k2_tree<t_k, t_lev, t_leaf, t_rank> &idx, t_vector data, uint access_shortcut_size = 0) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_tree<t_k, t_lev, t_leaf, t_rank> tmp(data, tmp_prefix,false,access_shortcut_size);
+        k2_tree<t_k, t_lev, t_leaf, t_rank> tmp(tmp_prefix,false,access_shortcut_size,data);
         tmp.swap(idx);
     }
 
@@ -127,7 +127,7 @@ namespace sdsl {
     void
     construct_im_bottom_up(k2_tree<t_k, t_lev, t_leaf, t_rank> &idx, t_vector data, uint access_shortcut_size = 0) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_tree<t_k, t_lev, t_leaf, t_rank> tmp(data, tmp_prefix,true,access_shortcut_size);
+        k2_tree<t_k, t_lev, t_leaf, t_rank> tmp(tmp_prefix,true,access_shortcut_size,data);
         tmp.swap(idx);
     }
 }
