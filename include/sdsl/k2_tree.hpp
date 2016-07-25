@@ -114,10 +114,10 @@ namespace sdsl {
         }
 
         template<typename t_vector>
-        k2_tree(t_vector &v, std::string temp_file_prefix = "", bool bottom_up = false, uint access_shortcut_size = 0) {
+        k2_tree(t_vector &v, std::string temp_file_prefix = "", bool use_counting_sort = false, uint access_shortcut_size = 0) {
             m_access_shortcut_size = access_shortcut_size;
             if (v.size() > 0) {
-                if (bottom_up){
+                if (use_counting_sort){
                     construct_counting_sort(v, temp_file_prefix);
                     //construct_bottom_up(v, temp_file_prefix);
                 } else  {
@@ -131,7 +131,7 @@ namespace sdsl {
         }
 
         k2_tree(int_vector_buffer<> &buf_x,
-                 int_vector_buffer<> &buf_y, bool bottom_up, uint access_shortcut_size = 0) {
+                 int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint access_shortcut_size = 0) {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
@@ -164,7 +164,7 @@ namespace sdsl {
 
             if (precomp<t_k>::exp(res) <= std::numeric_limits<uint32_t>::max()) {
                 auto v = read < uint32_t, uint32_t>(bufs);
-                if (bottom_up){
+                if (use_counting_sort){
                     construct_counting_sort(v, buf_x.filename());
                 } else  {
                     construct(v, buf_x.filename());
@@ -172,7 +172,7 @@ namespace sdsl {
 
             } else {
                 auto v = read < uint64_t, uint64_t>(bufs);
-                if (bottom_up){
+                if (use_counting_sort){
                     construct_counting_sort(v, buf_x.filename());
                 } else  {
                     construct(v, buf_x.filename());
@@ -380,6 +380,19 @@ namespace sdsl {
 
     private:
 
+        /**
+         * Recursive function for getting the successors of a certain node.
+         * Detailed in the "Compact representation of Web graphs with extended functionality" Paper
+         * @param n
+         *      current submatrix size/initially the maximal node id that is theoretically possible for a tree with k=t_k and height m_tree_height
+         * @param source_id
+         *      starting node for which the successors are searched
+         * @param column_offset
+         *      of the current submatrix
+         * @param index
+         *      of the upper left corner of the submatrix in the concatentation of m_levels and m_leafs vector, initially -1 (indicating the root)
+         * @param result
+         */
         template<typename t_x>
         void  direct_links2_internal(uint64_t n, t_x source_id, t_x column_offset, int64_t index, std::vector<t_x> &result) const {
             if (index >= (int64_t) m_level_begin_idx[m_tree_height-1]){
@@ -397,6 +410,11 @@ namespace sdsl {
             }
         }
 
+        /**
+         * Variant of direct_links2_internal using a queue
+         * @param source_id
+         * @param result
+         */
         template<typename t_x>
         void  direct_links2_internal_queue(uint source_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
@@ -428,6 +446,19 @@ namespace sdsl {
             }
         }
 
+        /**
+         * Recursive function for getting the predecessor of a certain node.
+         * Detailed in the "Compact representation of Web graphs with extended functionality" Paper
+         * @param n
+         *      current submatrix size/initially the maximal node id that is theoretically possible for a tree with k=t_k and height m_tree_height
+         * @param source_id
+         *      starting node for which the predecessor are searched
+         * @param column_offset
+         *      of the current submatrix
+         * @param index
+         *      of the upper left corner of the submatrix in the concatentation of m_levels and m_leafs vector, initially -1 (indicating the root)
+         * @param result
+         */
         template<typename t_x>
         void inverse_links2_internal(uint64_t n, t_x source_id, t_x row_offset, int64_t index, std::vector<t_x> &result) const {
             if (index >= (int64_t) m_level_begin_idx[m_tree_height-1]){
@@ -445,6 +476,11 @@ namespace sdsl {
             }
         }
 
+        /**
+         * Variant of inverse_links2_internal using a queue
+         * @param source_id
+         * @param result
+         */
         template<typename t_x>
         void inverse_links2_internal_queue(t_x source_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
@@ -479,6 +515,18 @@ namespace sdsl {
         }
 
 
+        /**
+         * Checks wether the edge p-->q exists recursively
+         * @param level
+         *  current level, initialy 0
+         * @param p
+         *  source_node
+         * @param q
+         *  target_node
+         * @param index
+         *  corresponding index in the m_levels || m_leafs vector, initially -1 (indicating the root)
+         * @return
+         */
         template<typename t_x, typename t_y>
         bool check_link_internal(uint level, t_x p, t_y q, int64_t index) const {
             using namespace k2_treap_ns;
@@ -502,15 +550,20 @@ namespace sdsl {
             m_tree_height = height;
         }
 
+        /**
+         * Constructs the tree corresponding to the points in the links vector by partitioning the input multiple times
+         * @param links
+         * @param temp_file_prefix
+         */
         template<typename t_vector>
-        void construct(t_vector &v, std::string temp_file_prefix = "") {
+        void construct(t_vector &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
-            typedef decltype(v[0].first) t_x;
-            typedef decltype(v[0].second) t_y;
+            typedef decltype(links[0].first) t_x;
+            typedef decltype(links[0].second) t_y;
             using t_e = std::pair<t_x, t_y>;
 
-            m_size = v.size();
-            m_tree_height = get_tree_height(v);
+            m_size = links.size();
+            m_tree_height = get_tree_height(links);
             uint64_t M = precomp<t_k>::exp(t);
             t_e MM = t_e(M, M);
 
@@ -529,7 +582,7 @@ namespace sdsl {
                 int_vector_buffer<1> levels_buf(levels_file, std::ios::out);
                 int_vector_buffer<1> leafs_buf(leafs_file, std::ios::out);
 
-                auto end = std::end(v);
+                auto end = std::end(links);
                 uint64_t last_level_bits = 0;
                 uint64_t level_bits = 0;
 
@@ -541,7 +594,7 @@ namespace sdsl {
 
                     level_bits = 0;
 
-                    auto sp = std::begin(v);
+                    auto sp = std::begin(links);
                     for (auto ep = sp; ep != end;) {
 
                         //Iterator which only returns the nodes within a certain subtree
@@ -646,6 +699,12 @@ namespace sdsl {
             sdsl::remove(leafs_file);
         }
 
+        /**
+         * Constructs the tree corresponding to the points in the links vector by using counting
+         * sort with k² buckets and rearranging the input on every level of the tree
+         * @param links
+         * @param temp_file_prefix
+         */
         template<typename t_vector>
         void construct_counting_sort(t_vector &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
@@ -822,136 +881,11 @@ namespace sdsl {
             sdsl::remove(leafs_file);
         }
 
-        template<typename t_x, typename t_y>
-        bool sort_by_z_order(const std::pair<t_x, t_y> lhs, const std::pair<t_x, t_y> rhs) {
-            using namespace k2_treap_ns;
-            if (lhs.first <= rhs.first && lhs.second <= rhs.second) {
-                return true;
-            } else if (lhs.first >= rhs.first && lhs.second >= rhs.second) {
-                return false;
-            } else if (lhs.first < rhs.first && lhs.second > rhs.second) {
-
-                t_x lhsFirst = lhs.first;
-                t_x lhsSecond = lhs.second;
-                t_x rhsFirst = rhs.first;
-                t_x rhsSecond = rhs.second;
-
-
-                t_x lhsFirstDiv;
-                t_x lhsSecondDiv;
-
-                t_x rhsFirstDiv;
-                t_x rhsSecondDiv;
-
-                for (int i = m_tree_height; i > 0; --i) {
-                    lhsFirstDiv = precomp<k>::divexp(lhsFirst, i);
-                    lhsSecondDiv = precomp<k>::divexp(lhsSecond, i);
-                    rhsFirstDiv = precomp<k>::divexp(rhsFirst, i);
-                    rhsSecondDiv = precomp<k>::divexp(rhsSecond, i);
-
-                    if (lhsFirstDiv < rhsFirstDiv) {
-                        return true;
-                    } else if (lhsFirstDiv == rhsFirstDiv && lhsSecondDiv > rhsSecondDiv) {
-                        return false;
-                    }
-                }
-
-                return true;
-
-            } else { //lhs.first > rhs.first && lhs.second < rhs.second
-
-                t_x lhsFirst = lhs.first;
-                t_x lhsSecond = lhs.second;
-                t_x rhsFirst = rhs.first;
-                t_x rhsSecond = rhs.second;
-
-                t_x lhsFirstDiv;
-                t_x lhsSecondDiv;
-
-                t_x rhsFirstDiv;
-                t_x rhsSecondDiv;
-
-                for (int i = m_tree_height; i > 0; --i) {
-                    lhsFirstDiv = precomp<k>::divexp(lhsFirst, i);
-                    lhsSecondDiv = precomp<k>::divexp(lhsSecond, i);
-                    rhsFirstDiv = precomp<k>::divexp(rhsFirst, i);
-                    rhsSecondDiv = precomp<k>::divexp(rhsSecond, i);
-
-                    if (lhsFirstDiv > rhsFirstDiv) {
-                        return false;
-                    } else if (lhsFirstDiv == rhsFirstDiv && lhsSecondDiv < rhsSecondDiv) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        }
-
-
-        template<typename t_x, typename t_y>
-        uint inline calculate_subtree_number_and_new_relative_coordinates(std::pair<t_x, t_y>& link, int level) {
-            using namespace k2_treap_ns;
-            t_x exponent = m_tree_height-level-1;
-            t_x result = k*precomp<t_k>::divexp(link.first,exponent)+precomp<t_k>::divexp(link.second,exponent);
-            link.first = precomp<t_k>::modexp(link.first, exponent);
-            link.second = precomp<t_k>::modexp(link.second, exponent);
-
-            return result;
-        }
-
-    public:
         /**
-        * Used for accelerating the check whether a certain link exists by skipping m_access_shortcut_size levels
-        *
-        * @param p Identifier of first object.
-        * @param q Identifier of second object.
-        *
-        * @return Returns the subtree on level m_access_shortcut_size if present and nullptr otherwise
-        */
-        template<typename t_x, typename t_y>
-        node_type *check_link_shortcut(t_x p, t_y q) const {
-            using namespace k2_treap_ns;
-
-            //FIXME: height if k_L tree!, it depends as we're not only targeting the last level anymore
-            //FIXME: check which points are in the same tree and only fetch once
-            //how to get corresponding subtree on level x of a point efficiently? (for k=2^x, interleave x-bitwise the top h bits
-            //implement subtree calculation in general and for 2^x special-cases manually, think about precomp in the case of k=3
-
-            //z = interleaved first h-1 set bits of p,q
-            uint max_element = precomp<k>::exp(m_tree_height) -1;
-            uint8_t real_size = 0;
-            while (precomp<2>::exp(real_size) <= max_element) { ++real_size; }
-
-            uint z = access_shortcut_helper<t_k>::corresponding_subtree(p, q, real_size, m_access_shortcut_size);
-            //y = zth 1 via rank on B_
-            uint y = m_access_shortcut_select_1_support(z+1);
-            //check if exists and if B_[y-1] == 0 otherwise no link
-            if (y < 0 || m_levels[y-1] == true){
-                return nullptr;
-            }
-            //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
-            //directly get corresponding data from leaf array
-            uint number_of_present_trees_searched_value_is_in = m_access_shortcut_rank_01_support(y);
-
-            //hack to get corresponding coordinates, might not be necessary later on
-            uint field_size = precomp<t_k>::exp(m_tree_height - m_access_shortcut_size -1);
-            uint upper_left_corner_x = 0;
-            while (upper_left_corner_x <= p){
-                upper_left_corner_x += field_size;
-            }
-            upper_left_corner_x -= field_size;
-
-            uint upper_left_corner_y = 0;
-            while (upper_left_corner_y <= q){
-                upper_left_corner_y += field_size;
-            }
-            upper_left_corner_y -= field_size;
-
-            uint index = number_of_present_trees_searched_value_is_in*k*k+m_level_begin_idx[m_access_shortcut_size+1];
-            node_type* result =  new node_type(m_access_shortcut_size, t_p(upper_left_corner_x, upper_left_corner_y), index);
-            return result;
-        }
-
+         * Constructs the tree corresponding to the points in the links vector inpace by performing a z order sort and subsequently constructing the tree top down
+         * @param links
+         * @param temp_file_prefix
+         */
         template<typename t_x, typename t_y>
         void construct_by_z_order_sort(std::vector<std::pair<t_x, t_y>> &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
@@ -1074,7 +1008,7 @@ namespace sdsl {
                     //std::cout << "levels size" << levels.size() << std::endl;
 
                     m_level_begin_idx[current_level+1] = level_begin_offset;
-                        //std::cout << "Setting m_level_begin_idx["<<current_level+1<<"] =" << level_begin_offset << std::endl;
+                    //std::cout << "Setting m_level_begin_idx["<<current_level+1<<"] =" << level_begin_offset << std::endl;
                 }
             }
 
@@ -1114,6 +1048,153 @@ namespace sdsl {
             std::cout << "Removed temporary files" << std::endl;
         }
 
+        /**
+         * Comparision function for z_order_sort.
+         * @param lhs
+         * @param rhs
+         * @return
+         * True if lhs is smaller in z order, false otherwise
+         */
+        template<typename t_x, typename t_y>
+        bool sort_by_z_order(const std::pair<t_x, t_y> lhs, const std::pair<t_x, t_y> rhs) {
+            using namespace k2_treap_ns;
+            if (lhs.first <= rhs.first && lhs.second <= rhs.second) {
+                return true;
+            } else if (lhs.first >= rhs.first && lhs.second >= rhs.second) {
+                return false;
+            } else if (lhs.first < rhs.first && lhs.second > rhs.second) {
+
+                t_x lhsFirst = lhs.first;
+                t_x lhsSecond = lhs.second;
+                t_x rhsFirst = rhs.first;
+                t_x rhsSecond = rhs.second;
+
+
+                t_x lhsFirstDiv;
+                t_x lhsSecondDiv;
+
+                t_x rhsFirstDiv;
+                t_x rhsSecondDiv;
+
+                for (int i = m_tree_height; i > 0; --i) {
+                    lhsFirstDiv = precomp<k>::divexp(lhsFirst, i);
+                    lhsSecondDiv = precomp<k>::divexp(lhsSecond, i);
+                    rhsFirstDiv = precomp<k>::divexp(rhsFirst, i);
+                    rhsSecondDiv = precomp<k>::divexp(rhsSecond, i);
+
+                    if (lhsFirstDiv < rhsFirstDiv) {
+                        return true;
+                    } else if (lhsFirstDiv == rhsFirstDiv && lhsSecondDiv > rhsSecondDiv) {
+                        return false;
+                    }
+                }
+
+                return true;
+
+            } else { //lhs.first > rhs.first && lhs.second < rhs.second
+
+                t_x lhsFirst = lhs.first;
+                t_x lhsSecond = lhs.second;
+                t_x rhsFirst = rhs.first;
+                t_x rhsSecond = rhs.second;
+
+                t_x lhsFirstDiv;
+                t_x lhsSecondDiv;
+
+                t_x rhsFirstDiv;
+                t_x rhsSecondDiv;
+
+                for (int i = m_tree_height; i > 0; --i) {
+                    lhsFirstDiv = precomp<k>::divexp(lhsFirst, i);
+                    lhsSecondDiv = precomp<k>::divexp(lhsSecond, i);
+                    rhsFirstDiv = precomp<k>::divexp(rhsFirst, i);
+                    rhsSecondDiv = precomp<k>::divexp(rhsSecond, i);
+
+                    if (lhsFirstDiv > rhsFirstDiv) {
+                        return false;
+                    } else if (lhsFirstDiv == rhsFirstDiv && lhsSecondDiv < rhsSecondDiv) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+
+        /**
+         * Calculates the corresponding subtree of link on a given level as well as
+         * the new relative coordinates (relative to the upper left corner of the corresponding submatrix)
+         * of link on the next level
+         *
+         * @param link
+         *      in:  current coordinates
+         *      out: relative coordinates on level "level"
+         * @param level
+         * @return
+         */
+        template<typename t_x, typename t_y>
+        uint inline calculate_subtree_number_and_new_relative_coordinates(std::pair<t_x, t_y>& link, int level) {
+            using namespace k2_treap_ns;
+            t_x exponent = m_tree_height-level-1;
+            t_x result = k*precomp<t_k>::divexp(link.first,exponent)+precomp<t_k>::divexp(link.second,exponent);
+            link.first = precomp<t_k>::modexp(link.first, exponent);
+            link.second = precomp<t_k>::modexp(link.second, exponent);
+
+            return result;
+        }
+
+        /**
+        * Used for accelerating the check whether a certain link exists by skipping m_access_shortcut_size levels
+        *
+        * @param p Identifier of first object.
+        * @param q Identifier of second object.
+        *
+        * @return Returns the subtree on level m_access_shortcut_size if present and nullptr otherwise
+        */
+        template<typename t_x, typename t_y>
+        node_type *check_link_shortcut(t_x p, t_y q) const {
+            using namespace k2_treap_ns;
+
+            //FIXME: height if k_L tree!, it depends as we're not only targeting the last level anymore
+            //FIXME: check which points are in the same tree and only fetch once
+            //how to get corresponding subtree on level x of a point efficiently? (for k=2^x, interleave x-bitwise the top h bits
+            //implement subtree calculation in general and for 2^x special-cases manually, think about precomp in the case of k=3
+
+            //z = interleaved first h-1 set bits of p,q
+            uint max_element = precomp<k>::exp(m_tree_height) -1;
+            uint8_t real_size = 0;
+            while (precomp<2>::exp(real_size) <= max_element) { ++real_size; }
+
+            uint z = access_shortcut_helper<t_k>::corresponding_subtree(p, q, real_size, m_access_shortcut_size);
+            //y = zth 1 via rank on B_
+            uint y = m_access_shortcut_select_1_support(z+1);
+            //check if exists and if B_[y-1] == 0 otherwise no link
+            if (y < 0 || m_levels[y-1] == true){
+                return nullptr;
+            }
+            //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
+            //directly get corresponding data from leaf array
+            uint number_of_present_trees_searched_value_is_in = m_access_shortcut_rank_01_support(y);
+
+            //hack to get corresponding coordinates, might not be necessary later on
+            uint field_size = precomp<t_k>::exp(m_tree_height - m_access_shortcut_size -1);
+            uint upper_left_corner_x = 0;
+            while (upper_left_corner_x <= p){
+                upper_left_corner_x += field_size;
+            }
+            upper_left_corner_x -= field_size;
+
+            uint upper_left_corner_y = 0;
+            while (upper_left_corner_y <= q){
+                upper_left_corner_y += field_size;
+            }
+            upper_left_corner_y -= field_size;
+
+            uint index = number_of_present_trees_searched_value_is_in*k*k+m_level_begin_idx[m_access_shortcut_size+1];
+            node_type* result =  new node_type(m_access_shortcut_size, t_p(upper_left_corner_x, upper_left_corner_y), index);
+            return result;
+        }
+
         bool
         is_leaf(const node_type &v) const {
             //FIXME: check if this works
@@ -1124,6 +1205,14 @@ namespace sdsl {
             return node_type(t, t_p(0, 0), 0);
         }
 
+        /**
+         * Recursive DFS tree traversal, which can be used to find successors and predecessor by
+         * providing the appropriate Impl functor
+         *
+         * @param root
+         * @param source_id
+         * @param result
+         */
         template<typename t_x, class Impl>
         void traverse_tree(node_type root, t_x source_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
@@ -1225,43 +1314,6 @@ namespace sdsl {
         }
 
         /**
-         * Constructs the bitvector m_access_shortcut
-         */
-        void construct_access_shortcut_by_dfs(bit_vector& access_shortcut, node_type root, uint current_level, uint& counter) {
-            using namespace k2_treap_ns;
-            uint64_t rank = m_levels_rank(root.idx);
-            auto x = std::real(root.p);
-            auto y = std::imag(root.p);
-
-            for (size_t i = 0; i < t_k; ++i) {
-                for (size_t j = 0; j < t_k; ++j) {
-                    // get_int better for compressed bitvectors
-                    // or introduce cache for bitvectors
-                    if (current_level == m_access_shortcut_size){
-                        if (m_levels[root.idx + t_k * i + j]) { //if subtree present
-                            access_shortcut[counter] = 0;//save 01 at counter position (m_access_shortcut gets initialised with 1s)
-                            counter++;
-                        }
-                        counter++;
-
-
-                    } else { //continue dfs tree traversal
-                        if (m_levels[root.idx + t_k * i + j]) { //if subtree present
-                            ++rank;
-                            auto _x = x + i * precomp<t_k>::exp(root.t - 1);
-                            auto _y = y + j * precomp<t_k>::exp(root.t - 1);
-
-                            node_type subtree_root(root.t - 1, t_p(_x, _y), rank * t_k * t_k);
-                            construct_access_shortcut_by_dfs(access_shortcut, subtree_root, current_level+1, counter);
-                        } else {
-                            counter += precomp<k>::exp(2 * (m_access_shortcut_size - current_level));
-                        }
-                    }
-                }
-            }
-        }
-
-        /**
          * Hier noch eine Idee um den k^2-tree zu beschleunigen: Um nicht erst durch h Levels zu navigieren kann man sich erst ein bit_vector B bauen, der aus 4^h Einsen und höchstens 4^h Nullen besteht. Für jeden der 4^h Teilbäume schreibt man eine Eins; für nichtleere Teilbäume zusätzlich eine Null vor der entsprechenden Eins.
          *  Also für das Beispiel in Abb.1.3 (in Jans Bericht) mit h=2:
          *
@@ -1319,6 +1371,42 @@ namespace sdsl {
             sdsl::util::init_support(m_access_shortcut_select_1_support, &m_access_shortcut);
         }
 
+        /**
+         * Constructs the bitvector m_access_shortcut used for speeding up tree traversal/link checks
+         */
+        void construct_access_shortcut_by_dfs(bit_vector& access_shortcut, node_type root, uint current_level, uint& counter) {
+            using namespace k2_treap_ns;
+            uint64_t rank = m_levels_rank(root.idx);
+            auto x = std::real(root.p);
+            auto y = std::imag(root.p);
+
+            for (size_t i = 0; i < t_k; ++i) {
+                for (size_t j = 0; j < t_k; ++j) {
+                    // get_int better for compressed bitvectors
+                    // or introduce cache for bitvectors
+                    if (current_level == m_access_shortcut_size){
+                        if (m_levels[root.idx + t_k * i + j]) { //if subtree present
+                            access_shortcut[counter] = 0;//save 01 at counter position (m_access_shortcut gets initialised with 1s)
+                            counter++;
+                        }
+                        counter++;
+
+
+                    } else { //continue dfs tree traversal
+                        if (m_levels[root.idx + t_k * i + j]) { //if subtree present
+                            ++rank;
+                            auto _x = x + i * precomp<t_k>::exp(root.t - 1);
+                            auto _y = y + j * precomp<t_k>::exp(root.t - 1);
+
+                            node_type subtree_root(root.t - 1, t_p(_x, _y), rank * t_k * t_k);
+                            construct_access_shortcut_by_dfs(access_shortcut, subtree_root, current_level+1, counter);
+                        } else {
+                            counter += precomp<k>::exp(2 * (m_access_shortcut_size - current_level));
+                        }
+                    }
+                }
+            }
+        }
     };
 }
 #endif
