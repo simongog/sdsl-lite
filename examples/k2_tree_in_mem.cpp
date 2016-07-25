@@ -1,10 +1,11 @@
 #include <iostream>
 #include <vector>
 #include <tuple>
-#include <string>
 #include <complex>
+#include <sdsl/k2_tree_partitioned.hpp>
 #include <sdsl/k2_tree.hpp>
 #include <sdsl/bit_vectors.hpp>
+//#include <sdsl/k2_tree_partitioned.hpp>
 
 using namespace sdsl;
 using namespace std;
@@ -19,12 +20,14 @@ void print(std::vector<uint32_t>& to_print, uint32_t source_node){
 
 int main()
 {
-    typedef k2_tree<2, bit_vector, bit_vector> k2_rrr;
-    k2_rrr k2treap;
+    //typedef k2_tree<2, bit_vector, rrr_vector<63>> k2_rrr;
+    typedef k2_tree_partitioned<16, 16, bit_vector, rrr_vector<63>> k2_rrr;
+
 
     // Initialize treap with a vector of (x,y,weight) elements
     vector<pair<uint32_t, uint32_t>> coords = {{0,0},{0,1},{1,2},{1,3},{1,4},{7,6},{8,6},{8,9},{9,6},{9,8},{9,10},{10,6},{10,9}};//{{0,0},{0,1},{1,4},{1,3},{7,6},{1,2}};
-    construct_im_bottom_up(k2treap, coords);
+    k2_rrr k2treap;
+    construct_im(k2treap, coords);
 
     cout << "Points in the k2treap: " << k2treap.size() << endl;
 
@@ -34,12 +37,12 @@ int main()
     cout << "Report all points in rectangle from (2,2) to (10,10)" << endl;
     std::vector<uint32_t> result;
 
-/*    k2treap.check_link(std::make_pair(9,6));
+    k2treap.check_link(std::make_pair(9,6));
 
 
     std::pair<uint64_t, uint64_t> asd = std::make_pair(4,5);
     bool asd2 = k2treap.check_link(asd);
-
+/*
     for (int i = 0; i < 15; ++i) {
         for (int j = 0; j < 15; ++j) {
             if (k2treap.check_link(std::make_pair(i,j))){

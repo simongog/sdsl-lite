@@ -202,6 +202,11 @@ namespace sdsl {
         template<typename t_x>
         void direct_links(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
+
+            if (m_levels.size() == 0 && m_leafs.size() == 0){
+                return;
+            }
+
             traverse_tree<t_x, DirectImpl>(this->root(), source_id, result);
         }
 
@@ -217,6 +222,11 @@ namespace sdsl {
         template<typename t_x>
         void inverse_links(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
+
+            if (m_levels.size() == 0 && m_leafs.size() == 0){
+                return;
+            }
+
             traverse_tree<t_x, InverseImpl>(this->root(), source_id, result);
         }
 
@@ -395,12 +405,17 @@ namespace sdsl {
          */
         template<typename t_x>
         void  direct_links2_internal(uint64_t n, t_x source_id, t_x column_offset, int64_t index, std::vector<t_x> &result) const {
+            //Patological case happening e.g. when using k2part
+            if (m_levels.size() == 0 && m_leafs.size() == 0){
+                return;
+            }
+
             if (index >= (int64_t) m_levels.size()){
                 if (m_leafs[index - m_levels.size()] == 1){
                     result.push_back(column_offset);
                 }
             } else { //internal node
-                if (index == -1 || m_levels[index] == 1){
+                if ((index == -1 && m_levels.size() > 0) || m_levels[index] == 1){
                     uint64_t submatrix_size = n/k;
                     int64_t y = m_levels_rank(index+1)*k*k + k*(source_id/submatrix_size);
                     for (int j = 0; j < k; ++j) {
@@ -418,6 +433,12 @@ namespace sdsl {
         template<typename t_x>
         void  direct_links2_internal_queue(t_x source_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
+
+            //Patological case happening e.g. when using k2part
+            if (m_levels.size() == 0 && m_leafs.size() == 0){
+                return;
+            }
+
             //n, source_id, column_offset, index
             std::queue<std::tuple<uint64_t,t_x,t_x,int64_t>> queue;
             uint64_t max_element = precomp<k>::exp(m_tree_height);
@@ -435,9 +456,10 @@ namespace sdsl {
                         result.push_back(column_offset);
                     }
                 } else { //internal node
-                    if (index == -1 || m_levels[index] == 1){
+                    if ((index == -1) || m_levels[index] == 1){
                         uint64_t submatrix_size = n/k;
-                        int64_t y = m_levels_rank(index+1)*k*k + k*(source_id/submatrix_size);
+                        uint64_t rank = m_levels_rank(index+1);
+                        int64_t y = rank*k*k + k*(source_id/submatrix_size);
                         for (int j = 0; j < k; ++j) {
                             queue.push(std::make_tuple(submatrix_size, source_id % submatrix_size, column_offset + submatrix_size * j, y+j));
                         }
@@ -461,6 +483,11 @@ namespace sdsl {
          */
         template<typename t_x>
         void inverse_links2_internal(uint64_t n, t_x source_id, t_x row_offset, int64_t index, std::vector<t_x> &result) const {
+            //Patological case happening e.g. when using k2part
+            if (m_levels.size() == 0 && m_leafs.size() == 0){
+                return;
+            }
+
             if (index >= (int64_t) m_levels.size()){
                 if (m_leafs[index - m_levels.size()] ==1){
                     result.push_back(row_offset);
@@ -484,6 +511,12 @@ namespace sdsl {
         template<typename t_x>
         void inverse_links2_internal_queue(t_x source_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
+
+            //Patological case happening e.g. when using k2part
+            if (m_levels.size() == 0 && m_leafs.size() == 0){
+                return;
+            }
+
             //n, source_id, column_offset, index
             std::queue<std::tuple<uint64_t,t_x,t_x,int64_t>> queue;
             uint64_t max_element = precomp<k>::exp(m_tree_height);
@@ -531,9 +564,17 @@ namespace sdsl {
         bool check_link_internal(uint level, t_x p, t_y q, int64_t index) const {
             using namespace k2_treap_ns;
 
+            std::cout << "in check link" << std::endl;
+            //Patological case happening e.g. when using k2part
+            if (m_levels.size() == 0 && m_leafs.size() == 0){
+                return false;
+            }
+
             if (index >= (int64_t) m_levels.size()){
+                std::cout << "accessing at " << index - m_levels.size() << " while leafs of size " << m_leafs.size() << std::endl;
                 return m_leafs[index - m_levels.size()];
             } else { //internal node
+                std::cout << "internal node" << std::endl;
                 if (index == -1 || m_levels[index]){
                     int64_t y = get_child(0, index);
                     uint64_t current_submatrix_size = precomp<k>::exp(m_tree_height-level-1);
@@ -682,19 +723,9 @@ namespace sdsl {
                 bit_vector _leafs;
                 _leafs.swap(leafs);
                 m_leafs = t_leaf(_leafs);
-                std::cout << "m_tree_height = " << std::to_string(m_tree_height) << std::endl;
-                std::cout << "m_level_begin_idx["<<m_tree_height -1 << "] - m_level_begin_idx["<<m_tree_height - 2 <<"] =" << m_level_begin_idx[m_tree_height - 1] - m_level_begin_idx[m_tree_height - 2] << std::endl;
-                std::cout << "m_levels.size() = " << m_levels.size() << std::endl;
-                std::cout << "m_leafs.size() = " << m_leafs.size() << std::endl;
-                /*std::cout << "m_levels: \t";
-                for (auto i = 0; i < m_levels.size(); ++i) {
-                    std::cout << m_levels[i];
-                }
-                std::cout << std::endl;*/
             }
 
             util::init_support(m_levels_rank, &m_levels);
-            std::cout << m_levels_rank(m_level_begin_idx[m_tree_height - 1]) - m_levels_rank(m_level_begin_idx[m_tree_height - 2]) << std::endl;
             sdsl::remove(levels_file);
             sdsl::remove(leafs_file);
         }

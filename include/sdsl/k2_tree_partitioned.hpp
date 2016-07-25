@@ -13,7 +13,7 @@
 #include <sdsl/rank_support.hpp>
 #include <sdsl/rank_support_v.hpp>
 #include <gtest/gtest_prod.h>
-#include <stxxl/vector>
+//#include <stxxl/vector>
 
 namespace sdsl {
 
@@ -54,8 +54,8 @@ namespace sdsl {
         }
 
         template<typename t_vector>
-        k2_tree_partitioned(t_vector &v, std::string temp_file_prefix = "", bool bottom_up = false,
-                            uint access_shortcut_size = 0) {
+        k2_tree_partitioned(std::string temp_file_prefix, bool bottom_up,
+                            uint access_shortcut_size, t_vector &v) {
             //FIXME: build multiple k trees
             //partition into k02 parts
             build_k2_trees(v, temp_file_prefix, bottom_up, access_shortcut_size);
@@ -118,13 +118,13 @@ namespace sdsl {
         template<typename t_x>
         void direct_links(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
-            uint y = source_id/k0;
+            uint y = source_id/(m_matrix_size/t_k0);
             //uint submatrix_size = m_matrix_size/k0;
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
-            for (int j = 0; j < k0; ++j) {
-                    m_k2trees[y*k0+j].direct_links(source_id, tmp_result);
+            for (int j = 0; j < t_k0; ++j) {
+                    m_k2trees[y*t_k0+j].direct_links(source_id, tmp_result);
                     result.insert(result.end(), tmp_result.begin(), tmp_result.end());
             }
         }
@@ -132,13 +132,13 @@ namespace sdsl {
         template<typename t_x>
         void direct_links2(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
-            uint y = source_id/k0;
+            uint y = source_id/(m_matrix_size/t_k0);
             //uint submatrix_size = m_matrix_size/k0;
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
-            for (int j = 0; j < k0; ++j) {
-                m_k2trees[y*k0+j].direct_links2(source_id, tmp_result);
+            for (int j = 0; j < t_k0; ++j) {
+                m_k2trees[y*t_k0+j].direct_links2(source_id, tmp_result);
                 result.insert(result.end(), tmp_result.begin(), tmp_result.end());
             }
         }
@@ -146,13 +146,13 @@ namespace sdsl {
         template<typename t_x>
         void inverse_links(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
-            uint x = source_id/k0;
+            uint x = source_id/(m_matrix_size/t_k0);
             //uint submatrix_size = m_matrix_size/k0;
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
-            for (int j = 0; j < k0; ++j) {
-                m_k2trees[j*k0+x].inverse_links(source_id, tmp_result);
+            for (int j = 0; j < t_k0; ++j) {
+                m_k2trees[j*t_k0+x].inverse_links(source_id, tmp_result);
                 result.insert(result.end(), tmp_result.begin(), tmp_result.end());
             }
         }
@@ -160,13 +160,13 @@ namespace sdsl {
         template<typename t_x>
         void inverse_links2(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
-            uint x = source_id/k0;
+            uint x = source_id/(m_matrix_size/t_k0);
             //uint submatrix_size = m_matrix_size/k0;
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
-            for (int j = 0; j < k0; ++j) {
-                m_k2trees[j*k0+x].inverse_links(source_id, tmp_result);
+            for (int j = 0; j < t_k0; ++j) {
+                m_k2trees[j*t_k0+x].inverse_links(source_id, tmp_result);
                 result.insert(result.end(), tmp_result.begin(), tmp_result.end());
             }
         }
@@ -176,10 +176,14 @@ namespace sdsl {
          */
         template<typename t_x, typename t_y>
         bool check_link(std::pair<t_x, t_y> link) const {
-            uint x = link.first/k0;
-            uint y = link.second/k0;
+            std::cout << "In check link"<< std::endl;
+            uint x = link.first/(m_matrix_size/t_k0);
+            uint y = link.second/(m_matrix_size/t_k0);
 
-            return m_k2trees[y*k0+x].check_link(link);
+            uint corresponding_tree = x*t_k0+y;
+
+            std::cout << "Checking tree: " << corresponding_tree << std::endl;
+            return m_k2trees[corresponding_tree].check_link(link);
         }
 
         //! Move assignment operator
@@ -187,6 +191,7 @@ namespace sdsl {
             if (this != &tr) {
                 m_size = tr.m_size;
                 m_k2trees = std::move(tr.m_k2trees);
+                m_matrix_size = std::move(tr.m_matrix_size);
             }
             return *this;
         }
@@ -196,6 +201,7 @@ namespace sdsl {
             if (this != &tr) {
                 m_size = tr.m_size;
                 m_k2trees = tr.m_k2trees;
+                m_matrix_size = tr.m_matrix_size;
             }
             return *this;
         }
@@ -206,6 +212,10 @@ namespace sdsl {
                 return false;
 
             if (m_k2trees != tr.m_k2trees){
+                return false;
+            }
+
+            if (m_matrix_size != tr.m_matrix_size){
                 return false;
             }
 
@@ -223,6 +233,7 @@ namespace sdsl {
             if (this != &tr) {
                 std::swap(m_size, tr.m_size);
                 std::swap(m_k2trees, tr.m_k2trees);
+                std::swap(m_matrix_size, tr.m_matrix_size);
             }
         }
 
@@ -234,6 +245,7 @@ namespace sdsl {
                     v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "s");
+            written_bytes += write_member(m_matrix_size, out, child, "matrix_size");
 
             for (uint j = 0; j < m_k2trees.size(); ++j) {
                 written_bytes += m_k2trees[j].serialize(out, child, "k2_tree_"+j);
@@ -246,8 +258,9 @@ namespace sdsl {
         //! Loads the data structure from the given istream.
         void load(std::istream &in) {
             read_member(m_size, in);
-            m_k2trees.resize(k0*k0);
-            for (uint j = 0; j < k0*k0; ++j) {
+            read_member(m_matrix_size, in);
+            m_k2trees.resize(t_k0*t_k0);
+            for (uint j = 0; j < t_k0*t_k0; ++j) {
                 m_k2trees[j].load(in);
             }
 
@@ -283,10 +296,11 @@ namespace sdsl {
 
             m_size = links.size();
 
-            typedef typename stxxl::VECTOR_GENERATOR<t_e>::result stxxl_pair_vector;
+            //typedef typename stxxl::VECTOR_GENERATOR<t_e>::result stxxl_pair_vector;
 
             //FIXME replace with stxxl vector
-            std::vector<stxxl_pair_vector> buffers(k0*k0);
+            std::vector<std::vector<t_e>> buffers;
+            buffers.resize(t_k0*t_k0);
 
             uint tree_height = get_tree_height(links);
             {
@@ -298,25 +312,25 @@ namespace sdsl {
 
                 auto submatrix_size =
                         lower_right.first - upper_left.first + 1;//precomp<k>::exp(m_tree_height-level);
-                std::vector<t_x> intervals(k0 * k0 + 1);
+                std::vector<t_x> intervals(t_k0 * t_k0 + 1);
 
                 //do counting sort
                 auto x1 = upper_left.first;
                 auto y1 = upper_left.second;
-                auto subDivK = (submatrix_size / k0);
+                auto subDivK = (submatrix_size / t_k0);
                 for (uint64_t j = links_interval.first; j < links_interval.second; ++j) {
                     auto x = links[j].first;
                     auto y = links[j].second;
                     uint p1 = (x - x1) / subDivK;
                     uint p2 = (y - y1) / subDivK;
-                    uint corresponding_matrix = p1 * k0 + p2;
+                    uint corresponding_matrix = p1 * t_k0 + p2;
                     intervals[corresponding_matrix + 1]++;//offset corresponding matrix by one to allow for more efficient in interval comparision
                     buffers[corresponding_matrix].push_back(links[j]);
                 }
             }
 
-            m_k2trees.resize(k0*k0);
-            for (int l = 0; l < k0*k0; ++l) {
+            m_k2trees.resize(t_k0*t_k0);
+            for (int l = 0; l < t_k0*t_k0; ++l) {
                 const subk2_tree k2tree(temp_file_prefix, bottom_up, access_shortcut_size, buffers[l]);
                 m_k2trees[l] = k2tree;//buffers[l]);//, temp_file_prefix, bottom_up, access_shortcut_size);
             }
