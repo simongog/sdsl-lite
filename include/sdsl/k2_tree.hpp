@@ -101,10 +101,20 @@ class k2_tree
                 }
         }
 
+        /*! Recursive function to retrieve list of neighbors.
+         *
+         *  \param n Size of the submatrix in the next recursive step.
+         *  \param row Row of interest in the current submatrix, this is the
+         *      row corresponding the node we are looking neighbors for.
+         *  \param col Column offset of the current submatrix in the global
+         *      matrix.
+         *  \param level Position in k_t:k_l (k_l appended to k_t) of the node
+         *      or leaf being processed at this step.
+         *  \param acc Accumulator to store the neighbors found.
+         */
         void _neigh(size_type n, idx_type row, idx_type col, size_type level,
                     std::vector<idx_type>& acc) const
         {
-            // TODO we are only using n/k_k fix this, there is a better way.
             if(level >= k_t.size()) { // Last level
                 if(k_l[level - k_t.size()] == 1)
                     acc.push_back(col);
@@ -113,12 +123,23 @@ class k2_tree
 
             if(k_t[level] == 1) {
                 idx_type y = k_t_rank(level + 1) * std::pow(k_k, 2) +
-                        k_k * std::floor(row/static_cast<double>(n/k_k));
+                        k_k * std::floor(row/static_cast<double>(n));
                 for(unsigned j = 0; j < k_k; j++)
-                    _neigh(n/k_k, row % (n/k_k), col + (n/k_k) * j, y + j, acc);
+                    _neigh(n/k_k, row % n, col + n * j, y + j, acc);
             }
         }
 
+        /*! Recursive function to retrieve list of reverse neighbors.
+         *
+         *  \param n Size of the submatrix in the next recursive step.
+         *  \param row Row offset of the current submatrix in the global matrix.
+         *  \param col Column of interest in the current submatrix, this is the
+         *      column corresponding the node we are looking reverse neighbors
+         *      for.
+         *  \param level Position in k_t:k_l (k_l appended to k_t) of the node
+         *      or leaf being processed at this step.
+         *  \param acc Accumulator to store the neighbors found.
+         */
         void _reverse_neigh(size_type n, idx_type row, idx_type col,
                             size_type level, std::vector<idx_type>& acc) const
         {
@@ -131,9 +152,9 @@ class k2_tree
 
             if(k_t[level] == 1) {
                 idx_type y = k_t_rank(level + 1) * std::pow(k_k, 2) +
-                        std::floor(col/static_cast<double>(n/k_k));
+                        std::floor(col/static_cast<double>(n));
                 for(unsigned j = 0; j < k_k; j++)
-                    _reverse_neigh(n/k_k, row + (n/k_k) * j, col % (n/k_k),
+                    _reverse_neigh(n/k_k, row + n * j, col % n,
                                    y + j * k_k, acc);
             }
         }
@@ -269,10 +290,11 @@ class k2_tree
         std::vector<idx_type>neigh(idx_type i) const
         {
             std::vector<idx_type> acc{};
-            size_type n = std::pow(k_k, k_height);
-            idx_type y = k_k * std::floor(i/static_cast<double>(n/k_k));
+            size_type n =
+                    static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
+            idx_type y = k_k * std::floor(i/static_cast<double>(n));
             for(unsigned j = 0; j < k_k; j++)
-                _neigh(n/k_k, i % (n/k_k), (n/k_k) * j, y + j, acc);
+                _neigh(n/k_k, i % n, n * j, y + j, acc);
             return acc;
         }
 
@@ -284,10 +306,11 @@ class k2_tree
         std::vector<idx_type> reverse_neigh(idx_type i) const
         {
             std::vector<idx_type> acc{};
-            size_type n = std::pow(k_k, k_height);
-            idx_type y = k_k * std::floor(i/static_cast<double>(n/k_k));
+            size_type n =
+                    static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
+            idx_type y = k_k * std::floor(i/static_cast<double>(n));
             for(unsigned j = 0; j < k_k; j++)
-                _reverse_neigh(n/k_k, (n/k_k) * j, i % (n/k), y + j * k_k, acc);
+                _reverse_neigh(n/k_k, n * j, i % n, y + j * k_k, acc);
 
             return acc;
         }
