@@ -236,8 +236,9 @@ class k2_tree
             size_type k_2 = std::pow(k_k, 2);
             idx_type col, row;
 
-            // This is duplicated to avoid an extra if at the loop,
-            // as idx_type can not be negative and the first
+            // This is duplicated to avoid an extra if at the loop. As idx_type
+            // is unsigned and rank has an offset of one, is not possible to run
+            // k_t_rank with zero as parameter at the first iteration.
             row = std::floor(i/static_cast<double>(n));
             col = std::floor(j/static_cast<double>(n));
             i = i % n;
