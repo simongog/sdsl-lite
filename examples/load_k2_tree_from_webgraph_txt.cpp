@@ -132,14 +132,12 @@ int main(int argc, char *argv[]) {
         t += stop_clock();
         t *= 1000; // to milliseconds
 
-        fprintf(stderr, "Total time(ms): %f\n", t);
-        fprintf(stderr,"Recovered Nodes: %lu\n",count);
-        fprintf(stderr,"Queries: %d\n",queryCount);
-        fprintf(stderr,"Total time(ms): %f",t);
-        fprintf(stderr,"Time per query: %f\n",t/queryCount);
-        fprintf(stderr,"Time per link: %f\n",t/count);
-
-
+        std::cerr << "Total time(ms): "<< t <<"\n";
+        std::cerr << "Recovered Nodes: "<< count << "\n";
+        std::cerr << "Queries: " << queryCount << "\n";
+        std::cerr << "Total time(ms): " << t << "\n";
+        std::cerr << "Time per query: " << t/queryCount << "\n";
+        std::cerr << "Time per link: " << t/count << "\n";
 
         std::cerr << "Processing reverse neighbour queries\n" << std::endl;
 
@@ -155,16 +153,15 @@ int main(int argc, char *argv[]) {
         t3 += stop_clock();
         t3 *= 1000; // to milliseconds
 
-        fprintf(stderr, "Total time(ms): %f\n", t3);
-        fprintf(stderr,"Recovered Nodes: %lu\n",count2);
-        fprintf(stderr,"Queries: %d\n",queryCount);
-        fprintf(stderr,"Total time(ms): %f",t3);
-        fprintf(stderr,"Time per query: %f\n",t3/queryCount);
-        fprintf(stderr,"Time per link: %f\n",t3/count2);
-
+        std::cerr << "Total time(ms): "<< t3 <<"\n";
+        std::cerr << "Recovered Nodes: "<< count2 << "\n";
+        std::cerr << "Queries: " << queryCount << "\n";
+        std::cerr << "Total time(ms): " << t3 << "\n";
+        std::cerr << "Time per query: " << t3/queryCount << "\n";
+        std::cerr << "Time per link: " << t3/count2 << "\n";
 
         store_to_file(k2treap,argv[2]);
-        write_structure<HTML_FORMAT>(k2treap,"structure.json");
+        write_structure<HTML_FORMAT>(k2treap,"structure.html");
     } else {
         throw "Could not load file";
     }
