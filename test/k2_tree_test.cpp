@@ -28,6 +28,8 @@ namespace k2_tree_test_nm
     void check_t_l(t_tree& tree, vector<unsigned> expected_t,
                    vector<unsigned> expected_l)
     {
+    ASSERT_EQ(expected_t.size(), tree.get_t().size());
+    ASSERT_EQ(expected_l.size(), tree.get_l().size());
     for(unsigned i = 0; i < expected_t.size(); i++)
         ASSERT_EQ(expected_t[i], tree.get_t().get_int(i, 1));
     for(unsigned i = 0; i < expected_l.size(); i++)
@@ -51,13 +53,26 @@ TYPED_TEST(k2_tree_test_k_2, build_from_matrix_test)
     vector<unsigned> expected_l = {1,1,0,1,1,1,1,0};
     k2_tree_test_nm::check_t_l(tree, {1, 0, 0 ,1}, expected_l);
 
+    mat = vector<vector <int>> ({{0, 0, 0, 0},
+                                 {0, 0, 0, 0},
+                                 {0, 0, 0, 0},
+                                 {0, 0, 0, 0}});
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_t_l(tree, {}, {});
+
     mat = vector<vector<int>>({{0, 0},
                                {0, 0}});
     tree = TypeParam(mat);
     ASSERT_TRUE(tree.get_t().empty());
     ASSERT_TRUE(tree.get_l().empty());
 
-    // Size is non a poker of k:
+    // Size is minor than k:
+    mat = vector<vector<int>>({{0}});
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_t_l(tree, {}, {});
+
+
+    // Size is non a power of k:
     mat = vector<vector<int>>({{0, 0, 1},
                                {0, 1, 0},
                                {0, 1, 0}});
@@ -120,8 +135,7 @@ TYPED_TEST(k2_tree_test_k_2, neighbors_test)
                                 {0, 1, 1}});
     tree = TypeParam(mat);
     neigh_0 = tree.neigh(0);
-    cout << "NEIGH0 " << neigh_0<<endl;
-    ASSERT_EQ(0, neigh_0.size());
+    ASSERT_EQ(0u, neigh_0.size());
 
     auto neigh_1 = tree.neigh(1);
     auto expected_neigh_1 = vector<unsigned>({0, 2});
@@ -130,244 +144,73 @@ TYPED_TEST(k2_tree_test_k_2, neighbors_test)
         ASSERT_EQ(expected_neigh_1[i], neigh_1[i]);
 
 
+    mat = vector<vector <int>>({{0, 0},
+                                {0, 0}});
+    tree = TypeParam(mat);
+    neigh_0 = tree.neigh(0);
+    ASSERT_EQ(0u, neigh_0.size());
 }
 
-// TYPED_TEST(k2_treap_test, CreateAndStoreTest)
-// {
-    // TypeParam k2treap;
-    // construct(k2treap, test_file);
-    // ASSERT_TRUE(store_to_file(k2treap, temp_file));
-// Q
-//
-// template<class t_k2treap>
-// void topk_test(
-//     const t_k2treap& k2treap,
-//     complex<uint64_t> min_xy,
-//     complex<uint64_t> max_xy,
-//     const int_vector<>& x,
-//     const int_vector<>& y,
-//     const int_vector<>& w)
-// {
-//     auto res_it = top_k(k2treap, {real(min_xy),imag(min_xy)}, {real(max_xy),imag(max_xy)});
-//     typedef tuple<uint64_t, uint64_t, uint64_t> t_xyw;
-//     vector<t_xyw> vec;
-//     for (uint64_t i = 0; i < x.size(); ++i) {
-//         if (x[i] >= real(min_xy) and x[i] <= real(max_xy)
-//             and y[i] >= imag(min_xy) and y[i] <= imag(max_xy)) {
-//             vec.emplace_back(x[i], y[i], w[i]);
-//         }
-//     }
-//     sort(vec.begin(), vec.end(), [](const t_xyw& a, const t_xyw& b) {
-//         if (get<2>(a) != get<2>(b))
-//             return get<2>(a) > get<2>(b);
-//         else if (get<0>(a) != get<0>(b))
-//             return get<0>(a) < get<0>(b);
-//         return get<1>(a) < get<1>(b);
-//     });
-//     uint64_t cnt = 0;
-//     while (res_it) {
-//         ASSERT_TRUE(cnt < vec.size());
-//         auto p = *res_it;
-//         ASSERT_EQ(get<2>(vec[cnt]), p.second);
-//         ASSERT_EQ(get<0>(vec[cnt]), real(p.first));
-//         ASSERT_EQ(get<1>(vec[cnt]), imag(p.first));
-//         ++res_it;
-//         ++cnt;
-//     }
-//     ASSERT_FALSE(res_it);
-// }
-//
-// TYPED_TEST(k2_treap_test, size_and_top_k)
-// {
-//     TypeParam k2treap;
-//     ASSERT_TRUE(load_from_file(k2treap, temp_file));
-//     int_vector<> x,y,w;
-//     ASSERT_TRUE(load_from_file(x, test_file+".x"));
-//     ASSERT_TRUE(load_from_file(y, test_file+".y"));
-//     ASSERT_EQ(x.size(), y.size());
-//     ASSERT_TRUE(load_from_file(w, test_file+".w"));
-//     ASSERT_EQ(x.size(), w.size());
-//     ASSERT_EQ(x.size(), k2treap.size());
-//     uint64_t maxx=0, maxy=0;
-//     if (x.size() > 0) {
-//         maxx =  *max_element(x.begin(), x.end());
-//         maxy =  *max_element(y.begin(), y.end());
-//     }
-//     uint64_t minx=0, miny=0;
-//     topk_test(k2treap, {minx,maxx}, {miny,maxy}, x, y, w);
-//
-//     if (x.size() > 0) {
-//         std::mt19937_64 rng;
-//         std::uniform_int_distribution<uint64_t> distribution(0, x.size()-1);
-//         auto dice = bind(distribution, rng);
-//         for (size_t i=0; i<20; ++i) {
-//             auto idx = dice();
-//             uint64_t xx = x[idx];
-//             uint64_t yy = y[idx];
-//             uint64_t dd = 20;
-//             uint64_t minx=0, miny=0, maxx=xx+dd, maxy=yy+dd;
-//             if (xx >= dd)
-//                 minx = xx - dd;
-//             if (yy >= dd)
-//                 miny = yy - dd;
-//             topk_test(k2treap, {minx, miny}, {maxx,maxy}, x, y, w);
-//         }
-//     }
-// }
-//
-// template<class t_k2treap>
-// void range3d_test(
-//     const t_k2treap& k2treap,
-//     complex<uint64_t> min_xy,
-//     complex<uint64_t> max_xy,
-//     complex<uint64_t> z,
-//     const int_vector<>& x,
-//     const int_vector<>& y,
-//     const int_vector<>& w)
-// {
-//     auto res_it = range_3d(k2treap, {real(min_xy),imag(min_xy)},
-//     {real(max_xy),imag(max_xy)},
-//     {real(z), imag(z)});
-//     typedef tuple<uint64_t, uint64_t, uint64_t> t_xyw;
-//     vector<t_xyw> vec;
-//     for (uint64_t i = 0; i < x.size(); ++i) {
-//         if (x[i] >= real(min_xy) and x[i] <= real(max_xy)
-//             and y[i] >= imag(min_xy) and y[i] <= imag(max_xy)) {
-//             vec.emplace_back(x[i], y[i], w[i]);
-//         }
-//     }
-//     sort(vec.begin(), vec.end(), [](const t_xyw& a, const t_xyw& b) {
-//         if (get<2>(a) != get<2>(b))
-//             return get<2>(a) > get<2>(b);
-//         else if (get<0>(a) != get<0>(b))
-//             return get<0>(a) < get<0>(b);
-//         return get<1>(a) < get<1>(b);
-//     });
-//     uint64_t cnt = 0;
-//     while (res_it) {
-//         ASSERT_TRUE(cnt < vec.size());
-//         auto p = *res_it;
-//         ASSERT_EQ(get<2>(vec[cnt]), p.second);
-//         ASSERT_EQ(get<0>(vec[cnt]), real(p.first));
-//         ASSERT_EQ(get<1>(vec[cnt]), imag(p.first));
-//         ++res_it;
-//         ++cnt;
-//     }
-//     ASSERT_FALSE(res_it);
-// }
-//
-// TYPED_TEST(k2_treap_test, range_3d)
-// {
-//     TypeParam k2treap;
-//     ASSERT_TRUE(load_from_file(k2treap, temp_file));
-//     int_vector<> x,y,w;
-//     ASSERT_TRUE(load_from_file(x, test_file+".x"));
-//     ASSERT_TRUE(load_from_file(y, test_file+".y"));
-//     ASSERT_EQ(x.size(), y.size());
-//     ASSERT_TRUE(load_from_file(w, test_file+".w"));
-//     ASSERT_EQ(x.size(), w.size());
-//     ASSERT_EQ(x.size(), k2treap.size());
-//     if (x.size() > 0) {
-//         std::mt19937_64 rng;
-//         std::uniform_int_distribution<uint64_t> distribution(0, x.size()-1);
-//         auto dice = bind(distribution, rng);
-//         for (size_t i=0; i<20; ++i) {
-//             auto idx = dice();
-//             uint64_t xx = x[idx];
-//             uint64_t yy = y[idx];
-//             uint64_t ww = w[idx];
-//             uint64_t dd = 20;
-//             uint64_t dw = 100;
-//             uint64_t minx=0, miny=0, maxx=xx+dd, maxy=yy+dd, minw=0, maxw=ww+dw;
-//             if (xx >= dd)
-//                 minx = xx - dd;
-//             if (yy >= dd)
-//                 miny = yy - dd;
-//             if (ww >= dw)
-//                 minw = ww - dw;
-//             range3d_test(k2treap, {minx, miny}, {maxx,maxy}, {minw,maxw}, x, y, w);
-//         }
-//     }
-// }
-//
-// template<class t_k2treap>
-// void count_test(
-//     const t_k2treap& k2treap,
-//     complex<uint64_t> min_xy,
-//     complex<uint64_t> max_xy,
-//     const int_vector<>& x,
-//     const int_vector<>& y)
-// {
-//     uint64_t cnt = 0;
-//     for (uint64_t i = 0; i < x.size(); ++i) {
-//         if (x[i] >= real(min_xy) and x[i] <= real(max_xy)
-//             and y[i] >= imag(min_xy) and y[i] <= imag(max_xy)) {
-//             ++cnt;
-//         }
-//     }
-//     ASSERT_EQ(cnt, count(k2treap, {real(min_xy),imag(min_xy)}, {real(max_xy),imag(max_xy)}));
-// }
-//
-// TYPED_TEST(k2_treap_test, count)
-// {
-//     TypeParam k2treap;
-//     ASSERT_TRUE(load_from_file(k2treap, temp_file));
-//     int_vector<> x,y;
-//     ASSERT_TRUE(load_from_file(x, test_file+".x"));
-//     ASSERT_TRUE(load_from_file(y, test_file+".y"));
-//     ASSERT_EQ(x.size(), y.size());
-//     ASSERT_EQ(x.size(), k2treap.size());
-//     if (x.size() > 0) {
-//         std::mt19937_64 rng;
-//         std::uniform_int_distribution<uint64_t> distribution(0, x.size()-1);
-//         auto dice = bind(distribution, rng);
-//         for (size_t i=0; i<3; ++i) {
-//             auto idx1 = dice();
-//             auto idx2 = dice();
-//             uint64_t x1 = x[idx1];
-//             uint64_t y1 = y[idx1];
-//             uint64_t x2 = x[idx2];
-//             uint64_t y2 = y[idx2];
-//             count_test(k2treap, {std::min(x1,x2), std::min(y1,y2)}, {std::max(x1,x2),std::max(y1,y2)}, x, y);
-//         }
-//     }
-// }
-//
-//
+TYPED_TEST(k2_tree_test_k_2, reverse_neighbors_test)
+{
+    vector<vector <int>> mat({{1, 0, 0, 0, 1},
+                              {0, 0, 0, 0, 0},
+                              {0, 0, 1, 1, 0},
+                              {0, 0, 0, 0, 0},
+                              {0, 0, 1, 0, 1}});
+
+    auto tree = TypeParam(mat);
+    auto r_neigh_0 = tree.reverse_neigh(0);
+    auto expected_r_neigh_0 = vector<unsigned>({0});
+    auto r_neigh_1 = tree.reverse_neigh(1);
+    auto r_neigh_2 = tree.reverse_neigh(2);
+    auto expected_r_neigh_2 = vector<unsigned>({2, 4});
+    ASSERT_EQ(expected_r_neigh_0.size(), r_neigh_0.size());
+    ASSERT_EQ(0u, r_neigh_1.size());
+    ASSERT_EQ(expected_r_neigh_2.size(), r_neigh_2.size());
+
+    for(unsigned i = 0; i < r_neigh_0.size(); i++)
+        ASSERT_EQ(expected_r_neigh_0[i], r_neigh_0[i]);
+
+    for(unsigned i = 0; i < r_neigh_2.size(); i++)
+        ASSERT_EQ(expected_r_neigh_2[i], r_neigh_2[i]);
+
+    mat = vector<vector <int>>({{0, 0},
+                                {0, 0}});
+    tree = TypeParam(mat);
+    r_neigh_0 = tree.reverse_neigh(0);
+    ASSERT_EQ(0u, r_neigh_0.size());
+}
+
+TYPED_TEST(k2_tree_test_k_2, adj_test)
+{
+    vector<vector <int>> mat({{1, 0, 0, 0, 1},
+                              {0, 0, 0, 0, 0},
+                              {0, 0, 1, 1, 0},
+                              {0, 0, 0, 0, 0},
+                              {0, 0, 1, 0, 1}});
+
+    auto tree = TypeParam(mat);
+    ASSERT_TRUE(tree.adj(0, 0));
+    ASSERT_TRUE(tree.adj(0, 4));
+    ASSERT_FALSE(tree.adj(4, 0));
+    ASSERT_FALSE(tree.adj(7, 7));
+    ASSERT_FALSE(tree.adj(1, 1));
+    ASSERT_TRUE(tree.adj(2, 2));
+    ASSERT_TRUE(tree.adj(2, 3));
+
+    mat = vector<vector <int>>({{0}});
+    tree = TypeParam(mat);
+    ASSERT_FALSE(tree.adj(0,0));
+    mat = vector<vector <int>>({{1}});
+    tree = TypeParam(mat);
+    ASSERT_TRUE(tree.adj(0,0));
+}
+
 }  // namespace
 
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    // cout << "K2: "<< argc<< argv[0]<< endl;
     return RUN_ALL_TESTS();
-    //
-    // if (argc < 3) {
-    //     // LCOV_EXCL_START
-    //     cout << "Usage: " << argv[0] << " file temp_file [in-memory]" << endl;
-    //     cout << " (1) Generates a k2-treap out of file.x, file.y, and file.w." << endl;
-    //     cout << "     Result is stored in temp_file." << endl;
-    //     cout << "     If `in-memory` is specified, the in-memory construction is tested." << endl;
-    //     cout << " (2) Performs tests." << endl;
-    //     cout << " (3) Deletes temp_file." << endl;
-    //     return 1;
-    //     // LCOV_EXCL_STOP
-    // }
-    // test_file    = argv[1];
-    // temp_file    = argv[2];
-    // in_memory    = argc > 3;
-    // if (in_memory) {
-    //     auto load_and_store_in_mem = [&](string suf) {
-    //         int_vector<> data;
-    //         string file = temp_file + suf;
-    //         load_vector_from_file(data,file);
-    //         string ram_file = ram_file_name(file);
-    //         store_to_file(data, ram_file);
-    //     };
-    //     load_and_store_in_mem("x");
-    //     load_and_store_in_mem("y");
-    //     load_and_store_in_mem("w");
-    //     temp_file = ram_file_name(temp_file);
-    // }
-    // return RUN_ALL_TESTS();
 }
