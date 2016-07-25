@@ -395,8 +395,8 @@ namespace sdsl {
          */
         template<typename t_x>
         void  direct_links2_internal(uint64_t n, t_x source_id, t_x column_offset, int64_t index, std::vector<t_x> &result) const {
-            if (index >= (int64_t) m_level_begin_idx[m_tree_height-1]){
-                if (m_leafs[index - m_level_begin_idx[m_tree_height-1]] ==1){
+            if (index >= (int64_t) m_levels.size()){
+                if (m_leafs[index - m_levels.size()] == 1){
                     result.push_back(column_offset);
                 }
             } else { //internal node
@@ -430,8 +430,8 @@ namespace sdsl {
                 t_x column_offset = std::get<2>(current_element);
                 int64_t index = std::get<3>(current_element);
                 queue.pop();
-                if (index >= (int64_t) m_level_begin_idx[m_tree_height-1]){
-                    if (m_leafs[index - m_level_begin_idx[m_tree_height -1]] ==1){
+                if (index >= (int64_t) m_levels.size()){
+                    if (m_leafs[index - m_levels.size()] ==1){
                         result.push_back(column_offset);
                     }
                 } else { //internal node
@@ -461,8 +461,8 @@ namespace sdsl {
          */
         template<typename t_x>
         void inverse_links2_internal(uint64_t n, t_x source_id, t_x row_offset, int64_t index, std::vector<t_x> &result) const {
-            if (index >= (int64_t) m_level_begin_idx[m_tree_height-1]){
-                if (m_leafs[index - m_level_begin_idx[m_tree_height -1]] ==1){
+            if (index >= (int64_t) m_levels.size()){
+                if (m_leafs[index - m_levels.size()] ==1){
                     result.push_back(row_offset);
                 }
             } else { //internal node
@@ -497,8 +497,8 @@ namespace sdsl {
                 int64_t index = std::get<3>(current_element);
                 queue.pop();
 
-                if (index >= (int64_t) m_level_begin_idx[m_tree_height - 1]) {
-                    if (m_leafs[index - m_level_begin_idx[m_tree_height -1]] ==1){
+                if (index >= (int64_t) m_levels.size()) {
+                    if (m_leafs[index - m_levels.size()] ==1){
                         result.push_back(row_offset);
                     }
                 } else { //internal node
@@ -531,8 +531,8 @@ namespace sdsl {
         bool check_link_internal(uint level, t_x p, t_y q, int64_t index) const {
             using namespace k2_treap_ns;
 
-            if (index >= (int64_t) m_level_begin_idx[m_tree_height-1]){
-                return m_leafs[index - m_level_begin_idx[m_tree_height -1]];
+            if (index >= (int64_t) m_levels.size()){
+                return m_leafs[index - m_levels.size()];
             } else { //internal node
                 if (index == -1 || m_levels[index]){
                     uint y = get_child(0, index);
@@ -1198,7 +1198,7 @@ namespace sdsl {
         bool
         is_leaf(const node_type &v) const {
             //FIXME: check if this works
-            return v.idx >= m_level_begin_idx[m_tree_height-1];
+            return v.idx >= m_levels.size();
         }
 
         node_type root() const {
@@ -1245,7 +1245,7 @@ namespace sdsl {
                 for (size_t i = 0; i < t_k; ++i) {
                     auto _x = (x + i * precomp<t_k>::exp(root.t - 1));
                     for (size_t j = 0; j < t_k; ++j) {
-                        if (m_leafs[root.idx + t_k * i + j - m_level_begin_idx[m_tree_height-1]]) {
+                        if (m_leafs[root.idx + t_k * i + j - m_levels.size()]) {
                             Impl::add_to_result_if_relevant(source_id, y, _x, j, root, result);
                         }
                     }
@@ -1354,10 +1354,10 @@ namespace sdsl {
             if (m_access_shortcut_size == m_tree_height -2){
                 endOfFollowingLevel = m_levels.size() + m_leafs.size();
             } else {
-                m_level_begin_idx[m_access_shortcut_size+2];
+                endOfFollowingLevel = m_level_begin_idx[m_access_shortcut_size+2];//FIXME: would also be possible to calculate with multiple rank queries --> no need for level_begin_idx
             }
 
-            uint64_t amountOfZeros = (endOfFollowingLevel - m_level_begin_idx[m_access_shortcut_size+1]) / (k*k);
+            uint64_t amountOfZeros = (endOfFollowingLevel - m_level_begin_idx[m_access_shortcut_size+1]) / (k*k); //FIXME: would also be possible to calculate with multiple rank queries --> no need for level_begin_idx
             //corresponds to the theoretical amount of trees in level m_access_shortcut_size (round up (in case not divisible by k^2)
             uint64_t amountOfOnes = precomp<k*k>::exp((uint8_t) (m_access_shortcut_size+1));
             bit_vector access_shortcut(amountOfOnes+amountOfZeros, 1);
