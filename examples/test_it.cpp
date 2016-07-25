@@ -1,16 +1,16 @@
-#include <iostream>
 #include <vector>
-#include <tuple>
-#include <string>
-#include <complex>
-#include <sdsl/bit_vectors.hpp>
-#include <c++/4.9.3/bitset>
-#include <sdsl/k2_tree.hpp>
+#include <stxxl/vector>
 
-using namespace sdsl;
 using namespace std;
 
 int main()
 {
+
+    typedef typename stxxl::VECTOR_GENERATOR<pair<uint,uint>>::result stxxl_pair_vector;
+    vector<stxxl_pair_vector> buffers;
+    buffers.resize(4);
+
+    buffers[1].push_back(make_pair<uint,uint>(2,2));
+
     return 0;
 }
