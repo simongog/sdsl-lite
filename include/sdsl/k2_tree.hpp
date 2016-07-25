@@ -65,14 +65,10 @@ class k2_tree
 
         void build_from_matrix(const std::vector<std::vector <int>>& matrix)
         {
-            // printf("k:: %d\n", k);
-            // printf("n: %d\n", matrix.size());
-            // printf("Height: %d\n", height);
             // Makes the size a power of k.
             int simulated_size = std::pow(k, k_height);
-            // printf("simulated_size: %d\n", simulated_size);
             std::vector<std::deque<t_bv>> acc(k_height + 1);
-            // Check vectors have the same size
+
             k2_tree_ns::_build_from_matrix<t_bv>(matrix, k, simulated_size,
                                                  k_height, 1, 0, 0, acc);
 
@@ -106,20 +102,39 @@ class k2_tree
         }
 
         void _neigh(size_type n, idx_type row, idx_type col, size_type level,
-                    std::vector<idx_type>& acc)
+                    std::vector<idx_type>& acc) const
         {
-            if(level >= k_t.size()) { // Leaf
+            // TODO we are only using n/k_k fix this, there is a better way.
+            if(level >= k_t.size()) { // Last level
                 if(k_l[level - k_t.size()] == 1)
                     acc.push_back(col);
                 return;
             }
 
-            if(k_t[level] == 1)
-            {
+            if(k_t[level] == 1) {
                 idx_type y = k_t_rank(level + 1) * std::pow(k_k, 2) +
                         k_k * std::floor(row/static_cast<double>(n/k_k));
                 for(unsigned j = 0; j < k_k; j++)
                     _neigh(n/k_k, row % (n/k_k), col + (n/k_k) * j, y + j, acc);
+            }
+        }
+
+        void _reverse_neigh(size_type n, idx_type row, idx_type col,
+                            size_type level, std::vector<idx_type>& acc) const
+        {
+            if(level >= k_t.size()) { // Last level
+                if(k_l[level - k_t.size()] == 1) {
+                    acc.push_back(row);
+                }
+                return;
+            }
+
+            if(k_t[level] == 1) {
+                idx_type y = k_t_rank(level + 1) * std::pow(k_k, 2) +
+                        std::floor(col/static_cast<double>(n/k_k));
+                for(unsigned j = 0; j < k_k; j++)
+                    _reverse_neigh(n/k_k, row + (n/k_k) * j, col % (n/k_k),
+                                   y + j * k_k, acc);
             }
         }
 
@@ -129,22 +144,30 @@ class k2_tree
 
         // TODO There is a build process proportional to the number of 1s in
         // the paper. Implement it!
-        // TODO just for testing purposes. Do not keep this constructor.
         //! Constructor
+        /*! This constructos takes the graph adjacency matrix.
+         *  The time complexity for this constructor is linear in the matrix
+         *  size
+         *  \param matrix Adjacency matrix of the graph. It must be a binary
+         *      square matrix.
+         */
         k2_tree(std::vector<std::vector <int>>& matrix)
         {
+            if(matrix.size() < 1) {
+                throw std::logic_error("Matrix has no elements");
+            }
             // TODO Assert matrix is an square matrix?
             std::vector<bit_vector> t;
             k_k = k;
-            // height = log_k n
-            k_height = std::ceil(
-                    std::log(matrix.size())/static_cast<double>(std::log(k)));
+            if(matrix.size() < k_k)
+                k_height = 1;
+            else // height = log_k n
+                k_height = std::ceil(std::log(matrix.size())/std::log(k));
 
             build_from_matrix(matrix);
 
             k_t_rank = t_rank(&k_t);
         }
-
 
 
         k2_tree(const k2_tree& tr)
@@ -207,10 +230,32 @@ class k2_tree
          *  \returns true if there is an edge going from node i to node j,
          *           false otherwise.
          */
-        bool adj(idx_type i, idx_type j)
+        bool adj(idx_type i, idx_type j) const
         {
-            //TODO
-            return 0 == 1;
+            size_type n = std::pow(k_k, k_height);
+            size_type k_2 = std::pow(k_k, 2);
+            idx_type col, row;
+
+            row = std::floor(i/static_cast<double>(n/k_k));
+            col = std::floor(j/static_cast<double>(n/k_k));
+            i = i % (n/k_k);
+            j = j % (n/k_k);
+            idx_type level = k_k * row + col;
+            n = n/k_k;
+            idx_type y;
+
+            while(level < k_t.size()) {
+                if(k_t[level] == 0)
+                    return false;
+                row = std::floor(i/static_cast<double>(n/k_k));
+                col = std::floor(j/static_cast<double>(n/k_k));
+                i = i % (n/k_k);
+                j = j % (n/k_k);
+                level = k_t_rank(level + 1) * k_2 + k_k * row + col;
+                n = n/k_k;
+            }
+
+            return k_l[level - k_t.size()] == 1;
         }
 
         //! Returns a list of neighbors of node i.
@@ -218,13 +263,29 @@ class k2_tree
          *  \param i Node to get neighbors from.
          *  \returns A list of neighbors of node i.
          */
-        std::vector<idx_type>neigh(idx_type i)
+        std::vector<idx_type>neigh(idx_type i) const
         {
             std::vector<idx_type> acc{};
             size_type n = std::pow(k_k, k_height);
             idx_type y = k_k * std::floor(i/static_cast<double>(n/k_k));
             for(unsigned j = 0; j < k_k; j++)
                 _neigh(n/k_k, i % (n/k_k), (n/k_k) * j, y + j, acc);
+            return acc;
+        }
+
+        //! Returns a list of reverse neighbors of node i.
+        /*!
+         *  \param i Node to get reverse neighbors from.
+         *  \returns A list of reverse neighbors of node i.
+         */
+        std::vector<idx_type> reverse_neigh(idx_type i) const
+        {
+            std::vector<idx_type> acc{};
+            size_type n = std::pow(k_k, k_height);
+            idx_type y = k_k * std::floor(i/static_cast<double>(n/k_k));
+            for(unsigned j = 0; j < k_k; j++)
+                _reverse_neigh(n/k_k, (n/k_k) * j, i % (n/k), y + j * k_k, acc);
+
             return acc;
         }
 
