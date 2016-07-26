@@ -212,6 +212,12 @@ namespace sdsl {
         void direct_links2(t_x source_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
             result.clear();
+
+            //Patological case happening e.g. when using k2part
+            if (m_levels[0].size() == 0 && m_leafs.size() == 0){
+                return;
+            }
+
             direct_links2_internal_queue(source_id, result);
         }
 
@@ -230,6 +236,11 @@ namespace sdsl {
         void inverse_links2(t_x source_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
             result.clear();
+
+            if (m_levels.size() == 0 && m_leafs.size() == 0){
+                return;
+            }
+
             inverse_links2_internal_queue(source_id, result);
         }
 
@@ -238,6 +249,12 @@ namespace sdsl {
          */
         template<typename t_x, typename t_y>
         bool check_link(std::pair<t_x,t_y> link) const{
+
+            //Patological case happening e.g. when using k2part
+            if (m_levels.size() == 0 && m_leafs.size() == 0){
+                return false;
+            }
+
             return check_link_internal(0, link.first, link.second,-1);
         }
 
@@ -473,12 +490,6 @@ namespace sdsl {
         template<typename t_x>
         void  direct_links2_internal_queue(t_x source_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
-
-            //Patological case happening e.g. when using k2part
-            if (m_levels[0].size() == 0 && m_leafs.size() == 0){
-                return;
-            }
-
             //n, level, source_id, column_offset, index
             std::queue<std::tuple<uint64_t, uint8_t, t_x,t_x,int64_t>> queue;
             queue.push(std::make_tuple(m_max_element, 0, source_id, (t_x) 0, -1));
@@ -553,12 +564,6 @@ namespace sdsl {
         template<typename t_x>
         void inverse_links2_internal_queue(t_x source_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
-
-            //Patological case happening e.g. when using k2part
-            if (m_levels.size() == 0 && m_leafs.size() == 0){
-                return;
-            }
-
             //n, level, source_id, column_offset, index
             std::queue<std::tuple<uint64_t,uint8_t,t_x,t_x,int64_t>> queue;
             queue.push(std::make_tuple(m_max_element, source_id, (t_x) 0, -1));
@@ -606,17 +611,9 @@ namespace sdsl {
         bool check_link_internal(uint level, t_x p, t_y q, int64_t index) const {
             using namespace k2_treap_ns;
 
-            std::cout << "in check link" << std::endl;
-            //Patological case happening e.g. when using k2part
-            if (m_levels.size() == 0 && m_leafs.size() == 0){
-                return false;
-            }
-
             if (is_leaf_level(level)){
-                std::cout << "accessing at " << index << " while leafs of size " << m_leafs.size() << std::endl;
                 return m_leafs[index];
             } else { //internal node
-                std::cout << "internal node" << std::endl;
                 if (index == -1 && m_levels[level].size() > 0) {
                     int64_t y = 0;
                     uint64_t current_submatrix_size = precomp<t_k>::exp(m_tree_height-level-1);

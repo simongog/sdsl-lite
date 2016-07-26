@@ -42,7 +42,7 @@ int main()
 
     std::pair<uint64_t, uint64_t> asd = std::make_pair(4,5);
     bool asd2 = k2treap.check_link(asd);
-/*
+
     for (int i = 0; i < 15; ++i) {
         for (int j = 0; j < 15; ++j) {
             if (k2treap.check_link(std::make_pair(i,j))){
@@ -54,7 +54,7 @@ int main()
         std::cout << "\r\n";
     }
 
-*/
+
     for (uint32_t i = 0; i < 16; i++){
         k2treap.direct_links(i, result);
         print(result, i);
