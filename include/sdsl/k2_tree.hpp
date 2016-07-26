@@ -59,13 +59,13 @@ namespace sdsl {
  *           ,,$K^2$-Treaps: Range Top-$k$ Queries in Compact Space,
  *           Proceedings of SPIRE 2014.
  */
-    template<typename get_k,
+    template<uint8_t t_k,
             typename t_lev=bit_vector,
             typename t_leaf=bit_vector,
             typename t_rank=typename t_lev::rank_1_type>
     class k2_tree {
-        //static_assert(t_k > 1, "t_k has to be larger than 1.");
-        //static_assert(t_k <= 16, "t_k has to be smaller than 17.");
+        static_assert(t_k > 1, "t_k has to be larger than 1.");
+        static_assert(t_k <= 16, "t_k has to be smaller than 17.");
 
         FRIEND_TEST(K2TreeInternalTest, testZOrderSort);
         FRIEND_TEST(K2TreeInternalTest, testZOrderSort2);
@@ -78,6 +78,10 @@ namespace sdsl {
         using node_type = k2_treap_ns::node_type;
         using point_type = k2_treap_ns::point_type;
         using t_p = k2_treap_ns::t_p;
+
+        enum {
+            k = t_k
+        };
 
     private:
         uint8_t m_tree_height = 0;
@@ -201,7 +205,7 @@ namespace sdsl {
                 return;
             }
 
-            traverse_tree<t_x, DirectImpl>(this->root(), source_id, result);
+            traverse_tree<t_x, DirectImpl>(this->root(), m_max_element, source_id, result);
         }
 
         template<typename t_x>
@@ -219,7 +223,7 @@ namespace sdsl {
                 return;
             }
 
-            traverse_tree<t_x, InverseImpl>(this->root(), source_id, result);
+            traverse_tree<t_x, InverseImpl>(this->root(), m_max_element, source_id, result);
         }
 
         template<typename t_x>
@@ -331,7 +335,7 @@ namespace sdsl {
                 uint tr_m_levels_size = tr.m_levels.size();
                 uint m_levels_size = m_levels.size();
 
-                uint biggerSize;
+                uint64_t biggerSize;
                 if (tr_m_levels_size > m_levels_size){
                     biggerSize = tr_m_levels_size;
                     m_levels.resize(biggerSize);
@@ -342,16 +346,17 @@ namespace sdsl {
                     tr.m_levels_rank.resize(biggerSize);
                 }
 
-                for (int j = 0; j < biggerSize; ++j) {
+                for (uint64_t j = 0; j < biggerSize; ++j) {
                     m_levels[j].swap(tr.m_levels[j]);
                 }
                 std::swap(tr_m_levels_size, m_levels_size);
+
+                for (uint64_t j = 0; j < biggerSize; ++j) {
+                    util::swap_support(m_levels_rank[j], tr.m_levels_rank[j], &m_levels[j], &(tr.m_levels[j]));
+                }
+
                 m_levels.resize(m_levels_size);
                 tr.m_levels.resize(tr_m_levels_size);
-
-                for (int j = 0; j < biggerSize; ++j) {
-                    util::swap_support(m_levels_rank[j], tr.m_levels_rank[j], &m_levels, &(tr.m_levels));
-                }
                 m_levels_rank.resize(m_levels_size);
                 tr.m_levels_rank.resize(tr_m_levels_size);
 
@@ -420,9 +425,9 @@ namespace sdsl {
         /**
          * gets the index of the ith child of node x
          */
-        inline uint64_t get_child_index(uint i, uint64_t x, uint8_t level) const{
+        inline uint64_t get_child_index(uint i, int64_t x, uint8_t level) const{
             uint rank = m_levels_rank[level](x);
-            return rank*get_k(level)*get_k(level)+i;
+            return rank*k*k+i;
         }
 
         /**
@@ -451,7 +456,6 @@ namespace sdsl {
                 }
             } else { //internal node
                 if ((index == -1 && m_levels[level].size() > 0) || m_levels[level][index] == 1){
-                    const uint8_t k = get_k(level);
                     uint64_t submatrix_size = n/k;
                     int64_t y = m_levels_rank[level](index)*k*k + k *(source_id/submatrix_size);
                     for (int j = 0; j < k; ++j) {
@@ -493,7 +497,6 @@ namespace sdsl {
                     }
                 } else { //internal node
                     if ((index == -1 && m_levels[level].size() > 0) || m_levels[level][index] == 1){
-                        const uint8_t k = get_k(level);
                         uint64_t submatrix_size = n/k;
                         uint64_t rank = m_levels_rank[level](index);
                         int64_t y = rank*k*k + k*(source_id/submatrix_size);
@@ -533,7 +536,6 @@ namespace sdsl {
                 }
             } else { //internal node
                 if ((index == -1 && m_levels[level].size() > 0) || m_levels[index] == 1){
-                    const uint8_t k = get_k(level);
                     uint64_t submatrix_size = n/k;
                     int64_t y = m_levels_rank[level](index)*k*k + (source_id/submatrix_size);
                     for (int j = 0; j < k; ++j) {
@@ -576,7 +578,6 @@ namespace sdsl {
                     }
                 } else { //internal node
                     if ((index == -1 && m_levels[level].size() > 0) || m_levels[index] == 1) {
-                        const uint8_t k = get_k(level);
                         uint64_t submatrix_size = n / k;
                         int64_t y = m_levels_rank[level](index) * k * k + (source_id / submatrix_size);
                         for (int j = 0; j < k; ++j) {
@@ -616,10 +617,14 @@ namespace sdsl {
                 return m_leafs[index];
             } else { //internal node
                 std::cout << "internal node" << std::endl;
-                if ((index == -1 && m_levels[level].size() > 0) || m_levels[level][index]){
-                    const uint8_t k = get_k(level);
+                if (index == -1 && m_levels[level].size() > 0) {
+                    int64_t y = 0;
+                    uint64_t current_submatrix_size = precomp<t_k>::exp(m_tree_height-level-1);
+                    y = y + k * (p/current_submatrix_size) + (q/current_submatrix_size);
+                    return check_link_internal(level+1, p % current_submatrix_size, q % current_submatrix_size, y);
+                } else if (m_levels[level][index]){
                     int64_t y = get_child_index(0, index, level);
-                    uint64_t current_submatrix_size = precomp<k>::exp(m_tree_height-level-1);
+                    uint64_t current_submatrix_size = precomp<t_k>::exp(m_tree_height-level-1);
                     y = y + k * (p/current_submatrix_size) + (q/current_submatrix_size);
                     return check_link_internal(level+1, p % current_submatrix_size, q % current_submatrix_size, y);
                 } else {
@@ -659,10 +664,9 @@ namespace sdsl {
                 uint64_t level_bits = 0;
 
                 //recursively partition that stuff
-                for (uint8_t l = m_tree_height; l + 1 > 0; --l) {
+                for (int l = m_tree_height; l + 1 > 0; --l) {
 
                     //std::cout << "Processing Level " << l << std::endl;
-                    constexpr uint8_t k = get_k(m_tree_height - l);
                     level_bits = 0;
 
                     auto sp = std::begin(links);
@@ -674,8 +678,8 @@ namespace sdsl {
                             auto y1 = std::get<1>(*sp);
                             auto x2 = std::get<0>(e);
                             auto y2 = std::get<1>(e);
-                            bool in_sub_tree = precomp<k>::divexp(x1, l) != precomp<k>::divexp(x2, l)
-                                               or precomp<k>::divexp(y1, l) != precomp<k>::divexp(y2, l);
+                            bool in_sub_tree = precomp<t_k>::divexp(x1, l) != precomp<t_k>::divexp(x2, l)
+                                               or precomp<t_k>::divexp(y1, l) != precomp<t_k>::divexp(y2, l);
 
                             return in_sub_tree;
                         });
@@ -688,7 +692,7 @@ namespace sdsl {
                                 auto _ep = ep;
                                 if (i + 1 < k) {  //partition t_k -1 times vertically (1 in the case of k=2)
                                     _ep = std::partition(_sp, _ep, [=, &i, &l](const t_e &e) {
-                                        return precomp<k>::divexp(std::get<0>(e), l - 1) % k <= i;
+                                        return precomp<t_k>::divexp(std::get<0>(e), l - 1) % k <= i;
                                     });
                                 }
                                 auto __sp = _sp;
@@ -697,7 +701,7 @@ namespace sdsl {
                                         auto __ep = _ep;
                                         if (j + 1 < k) {
                                             __ep = std::partition(__sp, _ep, [=, &j, &l](const t_e &e) {
-                                                return precomp<k>::divexp(std::get<1>(e), l - 1) % k <= j;
+                                                return precomp<t_k>::divexp(std::get<1>(e), l - 1) % k <= j;
                                             });
                                         }
                                         bool not_empty = __ep > __sp;
@@ -724,7 +728,7 @@ namespace sdsl {
         void load_vectors_from_file(const std::string &temp_file_prefix, const std::string &id_part) {
             {
                 std::vector<bit_vector> levels(m_tree_height - 1);
-                for (int i = 0; i < levels.size(); ++i) {
+                for (uint64_t i = 0; i < levels.size(); ++i) {
                     std::string levels_file = temp_file_prefix + "_level_" + std::to_string(i) + "_" + id_part
                                               + ".sdsl";
                     load_from_file(levels[i], levels_file);
@@ -732,7 +736,7 @@ namespace sdsl {
                 }
 
                 m_levels.resize(levels.size());
-                for (int i = 0; i < levels.size(); ++i) {
+                for (uint64_t i = 0; i < levels.size(); ++i) {
                     m_levels[i] = t_lev(levels[i]);
                 }
             }
@@ -749,7 +753,8 @@ namespace sdsl {
                 m_leafs = t_leaf(_leafs);
             }
 
-            for (int i = 0; i < m_levels.size(); ++i) {
+            m_levels_rank.resize(m_levels.size());
+            for (uint64_t i = 0; i < m_levels.size(); ++i) {
                 util::init_support(m_levels_rank[i], &m_levels[i]);
             }
         }
@@ -758,11 +763,11 @@ namespace sdsl {
         {
             std::vector<int_vector_buffer<1>> level_buffers(m_tree_height);
 
-            for (int i = 0; i < level_buffers.size(); ++i) {
+            for (uint64_t i = 0; i < level_buffers.size(); ++i) {
                 std::string levels_file = temp_file_prefix + "_level_" + std::to_string(i) + "_" + id_part
                                               + ".sdsl";
                 int_vector_buffer<1> level_buf(levels_file, std::ios::out);
-                level_buffers[i] = level_buf;
+                level_buffers[i].swap(level_buf);
             }
 
             return level_buffers;
@@ -790,11 +795,11 @@ namespace sdsl {
             {
                 std::vector<int_vector_buffer<1>> level_buffers = create_level_buffers(temp_file_prefix, id_part);
                 //                  upper left          lower right                 interval in links   level
-                typedef std::tuple<std::pair<t_x,t_y>,std::pair<uint64_t,uint64_t>, std::pair<t_x,t_y>, uint8_t> t_queue;
+                typedef std::tuple<std::pair<t_x,t_y>,std::pair<uint64_t,uint64_t>, t_e, uint8_t> t_queue;
                 std::queue <t_queue> queue;
 
                 //partition recursively until reaching the leaves
-                queue.push(t_queue(std::make_pair<t_x,t_y>(0,0), std::make_pair(m_max_element -1, m_max_element -1), std::make_pair<t_x,t_x>(0, links.size()),0));
+                queue.push(t_queue(std::make_pair<t_x,t_y>(0,0), std::make_pair(m_max_element -1, m_max_element -1), t_e(0, links.size()),0));
 
                 uint64_t number_of_bits = 0; //for speed comparison purposes of different k
 
@@ -805,12 +810,10 @@ namespace sdsl {
                     auto links_interval = std::get<2>(queue.front());
                     auto current_level = std::get<3>(queue.front());
 
-                    const uint8_t k = get_k(current_level);
-
                     queue.pop();
 
                     auto submatrix_size =
-                            lower_right.first - upper_left.first + 1;//precomp<k>::exp(m_tree_height-level);
+                            lower_right.first - upper_left.first + 1;//precomp<t_k>::exp(m_tree_height-level);
                     std::vector<t_x> intervals(k * k + 1);
 
                     //do counting sort
@@ -1092,10 +1095,10 @@ namespace sdsl {
                 t_x rhsSecondDiv;
 
                 for (int i = m_tree_height; i > 0; --i) {
-                    lhsFirstDiv = precomp<k>::divexp(lhsFirst, i);
-                    lhsSecondDiv = precomp<k>::divexp(lhsSecond, i);
-                    rhsFirstDiv = precomp<k>::divexp(rhsFirst, i);
-                    rhsSecondDiv = precomp<k>::divexp(rhsSecond, i);
+                    lhsFirstDiv = precomp<t_k>::divexp(lhsFirst, i);
+                    lhsSecondDiv = precomp<t_k>::divexp(lhsSecond, i);
+                    rhsFirstDiv = precomp<t_k>::divexp(rhsFirst, i);
+                    rhsSecondDiv = precomp<t_k>::divexp(rhsSecond, i);
 
                     if (lhsFirstDiv < rhsFirstDiv) {
                         return true;
@@ -1120,10 +1123,10 @@ namespace sdsl {
                 t_x rhsSecondDiv;
 
                 for (int i = m_tree_height; i > 0; --i) {
-                    lhsFirstDiv = precomp<k>::divexp(lhsFirst, i);
-                    lhsSecondDiv = precomp<k>::divexp(lhsSecond, i);
-                    rhsFirstDiv = precomp<k>::divexp(rhsFirst, i);
-                    rhsSecondDiv = precomp<k>::divexp(rhsSecond, i);
+                    lhsFirstDiv = precomp<t_k>::divexp(lhsFirst, i);
+                    lhsSecondDiv = precomp<t_k>::divexp(lhsSecond, i);
+                    rhsFirstDiv = precomp<t_k>::divexp(rhsFirst, i);
+                    rhsSecondDiv = precomp<t_k>::divexp(rhsSecond, i);
 
                     if (lhsFirstDiv > rhsFirstDiv) {
                         return false;
@@ -1151,10 +1154,9 @@ namespace sdsl {
         uint inline calculate_subtree_number_and_new_relative_coordinates(std::pair<t_x, t_y>& link, int level) {
             using namespace k2_treap_ns;
             t_x exponent = m_tree_height-level-1;
-            const uint8_t k = get_k(level);
-            t_x result = k*precomp<k>::divexp(link.first,exponent)+precomp<k>::divexp(link.second,exponent);
-            link.first = precomp<k>::modexp(link.first, exponent);
-            link.second = precomp<k>::modexp(link.second, exponent);
+            t_x result = k*precomp<t_k>::divexp(link.first,exponent)+precomp<t_k>::divexp(link.second,exponent);
+            link.first = precomp<t_k>::modexp(link.first, exponent);
+            link.second = precomp<t_k>::modexp(link.second, exponent);
 
             return result;
         }
@@ -1180,8 +1182,6 @@ namespace sdsl {
             uint8_t real_size = 0;
             while (precomp<2>::exp(real_size) <= m_max_element) { ++real_size; }
 
-            const uint8_t k = get_k(m_access_shortcut_size);
-
             uint z = access_shortcut_helper<k>::corresponding_subtree(p, q, real_size, m_access_shortcut_size);
             //y = zth 1 via rank on B_
             uint y = m_access_shortcut_select_1_support(z+1);
@@ -1194,7 +1194,7 @@ namespace sdsl {
             uint number_of_present_trees_searched_value_is_in = m_access_shortcut_rank_01_support(y);
 
             //hack to get corresponding coordinates, might not be necessary later on
-            uint field_size = precomp<k>::exp(m_tree_height - m_access_shortcut_size -1);
+            uint field_size = precomp<t_k>::exp(m_tree_height - m_access_shortcut_size -1);
             uint upper_left_corner_x = 0;
             while (upper_left_corner_x <= p){
                 upper_left_corner_x += field_size;
@@ -1228,7 +1228,6 @@ namespace sdsl {
         void traverse_tree(node_type root, uint64_t matrix_size, t_x source_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
 
-            const uint8_t k = get_k(root.t);
             if (!is_leaf_level(root.t)) {
                 uint64_t rank = m_levels_rank[root.t](root.idx);
                 auto x = std::real(root.p);
@@ -1238,10 +1237,10 @@ namespace sdsl {
                     for (size_t j = 0; j < k; ++j) {
                         // get_int better for compressed bitvectors
                         // or introduce cache for bitvectors
-                        if (m_levels[root.idx + k * i + j]) { //if subtree present
+                        if (m_levels[root.t][root.idx + k * i + j]) { //if subtree present
                             ++rank;
-                            auto _x = x + i * precomp<k>::exp(root.t - 1);
-                            auto _y = y + j * precomp<k>::exp(root.t - 1);
+                            auto _x = x + i * precomp<t_k>::exp(root.t - 1);
+                            auto _y = y + j * precomp<t_k>::exp(root.t - 1);
 
                             node_type subtree_root(root.t - 1, t_p(_x, _y), rank * k * k);
                             if (Impl::is_relevant_subtree(source_id, matrix_size, subtree_root)) {
@@ -1257,10 +1256,10 @@ namespace sdsl {
                 auto y = std::imag(root.p);
 
                 for (size_t i = 0; i < k; ++i) {
-                    auto _x = (x + i * precomp<k>::exp(root.t - 1));
+                    auto _x = (x + i * precomp<t_k>::exp(root.t - 1));
                     for (size_t j = 0; j < k; ++j) {
                         if (m_leafs[root.idx + k * i + j - m_levels.size()]) {
-                            Impl::add_to_result_if_relevant(source_id, y, _x, j, root, result);
+                            Impl::add_to_result_if_relevant(source_id, matrix_size, y, _x, j, result);
                         }
                     }
                 }
@@ -1277,7 +1276,7 @@ namespace sdsl {
 
             template<typename t_x>
             inline static void add_to_result_if_relevant(t_x source_id, uint64_t matrix_size, point_type::value_type y, point_type::value_type _x,
-                                                         size_t j, node_type root, std::vector<t_x> &result) {
+                                                         size_t j, std::vector<t_x> &result) {
                 using namespace k2_treap_ns;
                 if (source_id == _x) { //if bit set and leaf part of correct row, add to result
                     auto _y = y + j * (matrix_size -1);
@@ -1296,7 +1295,7 @@ namespace sdsl {
 
             template<typename t_x>
             inline static void add_to_result_if_relevant(t_x source_id, uint64_t matrix_size, point_type::value_type y, point_type::value_type _x,
-                                                         size_t j, node_type root, std::vector<t_x> &result) {
+                                                         size_t j, std::vector<t_x> &result) {
                 using namespace k2_treap_ns;
                 auto _y = y + j * (matrix_size - 1);
                 if (source_id == _y) { //if bit set and leaf part of correct row, add to result
@@ -1320,20 +1319,9 @@ namespace sdsl {
             });
             uint64_t max = tupmax(*max_it);
 
-            uint64_t tmp = 1;
             uint8_t res = 0;
-
-            if (max <= 1){
-                m_max_element = precomp<get_k(0)>::exp(2);
-                return 1;
-            } else {
-                while (tmp < max) {
-                    ++res;
-                    m_max_element = tmp;
-                    tmp *= precomp<get_k(res)>::exp(2);
-                }
-                return res;
-            }
+            while (precomp<t_k>::exp(res) <= max) { ++res; }
+            return res;
         }
 
         /**
@@ -1373,10 +1361,9 @@ namespace sdsl {
             //coresponds to the amount of non-empty trees in level h-1
             //amount of Zeros = actually existent number of trees --> (level_begin_idx[level+2] - level_begin_idx[level+1])/k² or rank l(evel_begin_idx[level], level_begin_idx[level+1])
 
-            const uint8_t k = get_k(m_access_shortcut_size);
             uint64_t amountOfZeros = m_levels[m_access_shortcut_size].size() / (k*k); //spares rank of comp. level
             //corresponds to the theoretical amount of trees in level m_access_shortcut_size (round up (in case not divisible by k^2)
-            uint64_t amountOfOnes = precomp<k*k>::exp((uint8_t) (m_access_shortcut_size-1));
+            uint64_t amountOfOnes = precomp<t_k*k>::exp((uint8_t) (m_access_shortcut_size-1));
             bit_vector access_shortcut(amountOfOnes+amountOfZeros, 1);
 
             //BitArray<uint> B(amountOfOnes + amountOfZeros);
@@ -1397,14 +1384,12 @@ namespace sdsl {
             auto x = std::real(root.p);
             auto y = std::imag(root.p);
 
-            const uint8_t k = get_k(current_level);
-
             for (size_t i = 0; i < k; ++i) {
                 for (size_t j = 0; j < k; ++j) {
                     // get_int better for compressed bitvectors
                     // or introduce cache for bitvectors
                     if (current_level == m_access_shortcut_size){
-                        if (m_levels[root.idx + k * i + j]) { //if subtree present
+                        if (m_levels[current_level][root.idx + k * i + j]) { //if subtree present
                             access_shortcut[counter] = 0;//save 01 at counter position (m_access_shortcut gets initialised with 1s)
                             counter++;
                         }
@@ -1412,15 +1397,15 @@ namespace sdsl {
 
 
                     } else { //continue dfs tree traversal
-                        if (m_levels[root.idx + k * i + j]) { //if subtree present
+                        if (m_levels[current_level][root.idx + k * i + j]) { //if subtree present
                             ++rank;
-                            auto _x = x + i * precomp<k>::exp(root.t - 1);
-                            auto _y = y + j * precomp<k>::exp(root.t - 1);
+                            auto _x = x + i * precomp<t_k>::exp(root.t - 1);
+                            auto _y = y + j * precomp<t_k>::exp(root.t - 1);
 
                             node_type subtree_root(root.t - 1, t_p(_x, _y), rank * k * k);
                             construct_access_shortcut_by_dfs(access_shortcut, subtree_root, current_level+1, counter);
                         } else {
-                            counter += precomp<k>::exp(2 * (m_access_shortcut_size - current_level));
+                            counter += precomp<t_k>::exp(2 * (m_access_shortcut_size - current_level));
                         }
                     }
                 }

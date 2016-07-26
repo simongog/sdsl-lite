@@ -18,14 +18,10 @@ void print(std::vector<uint32_t>& to_print, uint32_t source_node){
     std::cout << std::endl;
 }
 
-struct get_k {
-    constexpr uint8_t operator()(uint8_t current_level) const { return 2; }
-};
-
 int main()
 {
     //typedef k2_tree<2, bit_vector, rrr_vector<63>> k2_rrr;
-    typedef k2_tree<get_k, bit_vector, rrr_vector<63>> k2_rrr;
+    typedef k2_tree<2, bit_vector, rrr_vector<63>> k2_rrr;
 
 
     // Initialize treap with a vector of (x,y,weight) elements
