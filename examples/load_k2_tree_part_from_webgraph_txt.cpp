@@ -92,7 +92,9 @@ int main(int argc, char *argv[]) {
         std::cerr << "Finished Reading File " << std::endl;
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
         //typedef k2_tree<2,rrr_vector<63>> k2_part;
-        typedef k2_tree_partitioned<2,2, rrr_vector<63>> k2_part;
+        const uint8_t k0 = 2;
+        const uint8_t k = 2;
+        typedef k2_tree_partitioned<k0,k, bit_vector, rrr_vector<63>> k2_part;
 
 
 
@@ -163,8 +165,9 @@ int main(int argc, char *argv[]) {
         std::cerr << "Time per query: " << t3/queryCount << "\n";
         std::cerr << "Time per link: " << t3/count2 << "\n";
 
-        store_to_file(k2tree_part,argv[2]);
-        write_structure<HTML_FORMAT>(k2tree_part,"structure.json");
+        std::string output_file_name(argv[2]);
+        store_to_file(k2tree_part,output_file_name);
+        write_structure<HTML_FORMAT>(k2tree_part,output_file_name+"k0_"+std::to_string(k0)+"k_"+std::to_string(k)+".html");
     } else {
         throw "Could not load file";
     }
