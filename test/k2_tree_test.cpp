@@ -217,7 +217,6 @@ namespace {
             const int_vector<> &x,
             const int_vector<> &y
     ) {
-        std::cout << "in check link test" << std::endl;
         std::pair<uint64_t, uint64_t> asd = std::make_pair(p, q);
         bool result = k2treap.check_link(asd);
 
@@ -241,7 +240,6 @@ namespace {
         ASSERT_EQ(x.size(), y.size());
         ASSERT_EQ(x.size(), k2treap.size());
         if (x.size() > 0) {
-            std::cout << "a" << std::endl;
             std::mt19937_64 rng;
             std::uniform_int_distribution<uint64_t> distribution(0, x.size() - 1);
             auto dice = bind(distribution, rng);
@@ -251,14 +249,12 @@ namespace {
                 uint64_t xx = x[idx];
                 auto idy = dice();
                 uint64_t yy = y[idy];
-                std::cout << "b" << std::endl;
                 check_link_test(k2treap, xx, yy, x, y);
             }
 
             //postive
             for (size_t i = 0; i < 50; ++i) {
                 auto idx = dice();
-                std::cout << "c" << std::endl;
                 uint64_t xx = x[idx];
                 uint64_t yy = y[idx];
                 check_link_test(k2treap, xx, yy, x, y);

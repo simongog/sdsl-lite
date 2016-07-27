@@ -20,8 +20,8 @@ void print(std::vector<uint32_t>& to_print, uint32_t source_node){
 
 int main()
 {
-    //typedef k2_tree<2, bit_vector, rrr_vector<63>> k2_rrr;
-    typedef k2_tree<2, bit_vector, rrr_vector<63>> k2_rrr;
+    typedef k2_tree<16, bit_vector, rrr_vector<63>> k2_rrr;
+    //typedef k2_tree_partitioned<3, 2, bit_vector, rrr_vector<63>> k2_rrr;
 
 
     // Initialize treap with a vector of (x,y,weight) elements
@@ -31,18 +31,15 @@ int main()
 
     cout << "Points in the k2treap: " << k2treap.size() << endl;
 
-    cout << "Points in the rectangle from (2,1) to (3,3): " ;
-    //cout << count(k2treap, {2,1}, {3,3}) << endl;
-
-    cout << "Report all points in rectangle from (2,2) to (10,10)" << endl;
     std::vector<uint32_t> result;
 
-    k2treap.check_link(std::make_pair(9,6));
+    //k2treap.check_link(std::make_pair(9,6));
 
 
     std::pair<uint64_t, uint64_t> asd = std::make_pair(4,5);
-    bool asd2 = k2treap.check_link(asd);
+    //bool asd2 = k2treap.check_link(asd);
 
+    /*
     for (int i = 0; i < 15; ++i) {
         for (int j = 0; j < 15; ++j) {
             if (k2treap.check_link(std::make_pair(i,j))){
@@ -52,13 +49,21 @@ int main()
             }
         }
         std::cout << "\r\n";
-    }
+    }*/
 
+    k2treap.direct_links((uint32_t) 1, result);
 
     for (uint32_t i = 0; i < 16; i++){
-        k2treap.direct_links(i, result);
+        k2treap.direct_links2(i, result);
         print(result, i);
     }
+
+    store_to_file(k2treap, "tmp.tmp");
+
+    k2_rrr k2treap2;
+    load_from_file(k2treap2, "tmp.tmp");
+
+    sdsl::remove("tmp.tmp");
 
     /*auto range_it = range_3d(k2treap, {2,2}, {10,10});
     while (range_it) {

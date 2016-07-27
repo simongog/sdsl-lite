@@ -148,7 +148,7 @@ namespace sdsl {
         uint subtree_number_2 = tree.calculate_subtree_number_and_new_relative_coordinates(test_link,1);
         ASSERT_EQ(subtree_number_2, (uint) 0);
     }
-
+/*
     TEST(K2TreeInternalTest, test_access_shortcut) {
         using namespace k2_treap_ns;
         uint access_shortcut_size = 3;
@@ -161,7 +161,7 @@ namespace sdsl {
         ASSERT_EQ(node->p.real() , (uint) 8);
         ASSERT_EQ(node->p.imag(), (uint) 6);
         ASSERT_EQ(node->idx, (uint) 52);
-    }
+    }*/
 }
 // namespace
 

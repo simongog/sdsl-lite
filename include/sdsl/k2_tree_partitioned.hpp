@@ -176,13 +176,10 @@ namespace sdsl {
          */
         template<typename t_x, typename t_y>
         bool check_link(std::pair<t_x, t_y> link) const {
-            std::cout << "In check link"<< std::endl;
             uint x = link.first/(m_matrix_size/t_k0);
             uint y = link.second/(m_matrix_size/t_k0);
 
             uint corresponding_tree = x*t_k0+y;
-
-            std::cout << "Checking tree: " << corresponding_tree << std::endl;
             return m_k2trees[corresponding_tree].check_link(link);
         }
 

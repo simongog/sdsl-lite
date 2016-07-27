@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "Time per link: " << t3/count2 << "\n";
 
         store_to_file(k2treap,argv[2]);
-        write_structure<HTML_FORMAT>(k2treap,"structure.html");
+        write_structure<HTML_FORMAT>(k2treap,"structure_level_wise.html");
     } else {
         throw "Could not load file";
     }
