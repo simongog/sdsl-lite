@@ -101,7 +101,8 @@ int main(int argc, char *argv[]) {
         start_clock();
         // Initialize treap with a vector of (x,y,weight) elements
         k2_part k2tree_part;
-        construct_im(k2tree_part, coordinates);
+
+    	construct_im(k2tree_part, coordinates);
 
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds
