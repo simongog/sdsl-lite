@@ -155,7 +155,7 @@ namespace sdsl {
 
             uint64_t x = max_buf_element();
             uint8_t res = 0;
-            while (res <= 64 and precomp<2>::exp(res) <= x) { ++res; }
+            while (res <= 64 and precomp<t_k>::exp(res) <= x) { ++res; }
             if (res == 65) {
                 throw std::logic_error("Maximal element of input is too big.");
             }
