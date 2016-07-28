@@ -1,12 +1,5 @@
 #include "sdsl/k2_tree_algorithm.hpp"
-#include "sdsl/bit_vectors.hpp"
 #include "gtest/gtest.h"
-#include <vector>
-#include <tuple>
-#include <string>
-#include <algorithm> // for std::min. std::sort
-#include <random>
-#include <sdsl/k2_tree_partitioned.hpp>
 
 namespace {
 
@@ -38,8 +31,6 @@ namespace {
     typedef k2_tree<6, bit_vector> k6;
     typedef k2_tree<8, bit_vector> k8;
     typedef k2_tree<16, bit_vector> k16;
-
-
 
     typedef Types<
             k2,
