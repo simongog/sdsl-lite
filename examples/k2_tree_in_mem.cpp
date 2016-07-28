@@ -2,10 +2,7 @@
 #include <vector>
 #include <tuple>
 #include <complex>
-#include <sdsl/k2_tree_partitioned.hpp>
-#include <sdsl/k2_tree.hpp>
-#include <sdsl/bit_vectors.hpp>
-//#include <sdsl/k2_tree_partitioned.hpp>
+#include <sdsl/k2_tree_algorithm.hpp>
 
 using namespace sdsl;
 using namespace std;

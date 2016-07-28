@@ -3,7 +3,6 @@
 
 #include "vectors.hpp"
 #include "bits.hpp"
-#include "k2_tree.hpp"
 #include <tuple>
 #include <algorithm>
 #include <climits>
@@ -59,7 +58,7 @@ namespace sdsl {
         }
 
         k2_tree_partitioned(int_vector_buffer<> &buf_x,
-                            int_vector_buffer<> &buf_y, bool bottom_up, uint access_shortcut_size = 0) {
+                            int_vector_buffer<> &buf_y, bool bottom_up=false, uint access_shortcut_size = 0) {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};

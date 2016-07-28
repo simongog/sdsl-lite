@@ -5,14 +5,12 @@
 #include <iostream>
 #include <vector>
 #include <tuple>
-#include <string>
 #include <complex>
-#include <sdsl/k2_tree.hpp>
-#include <sdsl/bit_vectors.hpp>
+#include <sdsl/k2_tree_algorithm.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
 #include <sys/times.h>
-#include <sdsl/k2_tree_partitioned.hpp>
+#include <sdsl/hybrid_k2_tree.hpp>
 
 using std::ifstream;
 using std::cout;
@@ -94,7 +92,7 @@ int main(int argc, char *argv[]) {
         //typedef k2_tree<2,rrr_vector<63>> k2_part;
         const uint8_t k0 = 2;
         const uint8_t k = 2;
-        typedef k2_tree<4, 5, 2, 4, bit_vector, rrr_vector<63>> k2_rrr;
+        typedef hybrid_k2_tree<4, 5, 2, 4, bit_vector, rrr_vector<63>> k2_rrr;
         typedef k2_tree_partitioned<k0,k2_rrr> k2_part;
 
 

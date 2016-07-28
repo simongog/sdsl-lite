@@ -23,7 +23,9 @@
 
 #include "vectors.hpp"
 #include "bits.hpp"
-#include "k2_tree_helper.hpp"
+#include "k2_tree.hpp"
+#include "k2_tree_partitioned.hpp"
+#include "hybrid_k2_tree.hpp"
 #include <tuple>
 #include <algorithm>
 #include <iterator>
@@ -71,31 +73,35 @@ namespace sdsl {
         }
     }
 // forward declaration
-    template<uint8_t t_k,
+   template<uint8_t t_k,
             typename t_lev,
             typename t_leaf,
             typename t_rank>
     class k2_tree;
 
     // forward declaration
-    template<uint8_t t_0,
-            uint8_t t_k,
+    template<uint8_t t_k_l_1,
+            uint8_t t_k_l_1_size,
+            uint8_t t_k_l_2,
+            uint8_t t_k_leaves,
             typename t_lev,
             typename t_leaf,
             typename t_rank>
+    class hybrid_k2_tree;
+
+    // forward declaration
+    template<uint8_t t_k0,
+            typename subk2_tree>
     class k2_tree_partitioned;
 
-//! Specialized version of method ,,construct'' for k2_treaps.
-    template<uint8_t t_0,
-            uint8_t t_k,
-            typename t_lev=bit_vector,
-            typename t_leaf=bit_vector,
-            typename t_rank=typename t_lev::rank_1_type>
+
+    template<uint8_t t_k0,
+            typename subk2_tree>
     void
-    construct(k2_tree_partitioned<t_0, t_k, t_lev, t_leaf, t_rank> &idx, std::string file) {
+    construct(k2_tree_partitioned<t_k0, subk2_tree> &idx, std::string file) {
         int_vector_buffer<> buf_x(file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(file + ".y", std::ios::in);
-        k2_tree_partitioned<t_0, t_k, t_lev, t_leaf, t_rank> tmp(buf_x, buf_y, false);
+        k2_tree_partitioned<t_k0, subk2_tree> tmp(buf_x, buf_y, false);
         tmp.swap(idx);
     }
 
@@ -104,14 +110,28 @@ namespace sdsl {
             typename t_leaf=bit_vector,
             typename t_rank=typename t_lev::rank_1_type>
     void
-    construct(k2_tree<t_k, t_lev, t_leaf, t_rank> &idx, std::string file) {
+    construct(k2_tree <t_k, t_lev, t_leaf, t_rank> &idx, std::string file) {
         int_vector_buffer<> buf_x(file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(file + ".y", std::ios::in);
         k2_tree<t_k, t_lev, t_leaf, t_rank> tmp(buf_x, buf_y, false);
         tmp.swap(idx);
     }
 
-    //! Specialized version of method ,,construct'' for k2_treaps.
+    template<uint8_t t_k_l_1,
+            uint8_t t_k_l_1_size,
+            uint8_t t_k_l_2,
+            uint8_t t_k_leaves,
+            typename t_lev=bit_vector,
+            typename t_leaf=bit_vector,
+            typename t_rank=typename t_lev::rank_1_type>
+    void
+    construct(hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> &idx, std::string file) {
+        int_vector_buffer<> buf_x(file + ".x", std::ios::in);
+        int_vector_buffer<> buf_y(file + ".y", std::ios::in);
+        hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> tmp(buf_x, buf_y, false);
+        tmp.swap(idx);
+    }
+
     template<uint8_t t_k,
             typename t_lev=bit_vector,
             typename t_leaf=bit_vector,
@@ -124,21 +144,32 @@ namespace sdsl {
         tmp.swap(idx);
     }
 
-    //! Specialized version of method ,,construct'' for k2_treaps.
-    template<uint8_t t_0,
-            uint8_t t_k,
+    template<uint8_t t_k0,
+            typename subk2_tree>
+    void
+    construct_bottom_up(k2_tree_partitioned<t_k0, subk2_tree> &idx, std::string file) {
+        int_vector_buffer<> buf_x(file + ".x", std::ios::in);
+        int_vector_buffer<> buf_y(file + ".y", std::ios::in);
+        k2_tree_partitioned<t_k0, subk2_tree> tmp(buf_x, buf_y, true);
+        tmp.swap(idx);
+    }
+
+    template<uint8_t t_k_l_1,
+            uint8_t t_k_l_1_size,
+            uint8_t t_k_l_2,
+            uint8_t t_k_leaves,
             typename t_lev=bit_vector,
             typename t_leaf=bit_vector,
             typename t_rank=typename t_lev::rank_1_type>
     void
-    construct_bottom_up(k2_tree_partitioned<t_0, t_k, t_lev, t_leaf, t_rank> &idx, std::string file) {
+    construct_bottom_up(hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> &idx,
+                        std::string file) {
         int_vector_buffer<> buf_x(file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(file + ".y", std::ios::in);
-        k2_tree_partitioned<t_0, t_k, t_lev, t_leaf, t_rank> tmp(buf_x, buf_y, true);
+        hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> tmp(buf_x, buf_y, true);
         tmp.swap(idx);
     }
 
-//! Specialized version of method ,,construct_im'' for k2_treaps.
     template<uint8_t t_k,
             typename t_lev=bit_vector,
             typename t_leaf=bit_vector,
@@ -151,21 +182,31 @@ namespace sdsl {
         tmp.swap(idx);
     }
 
-    //! Specialized version of method ,,construct_im'' for k2_treaps.
-    template<uint8_t t_0,
-            uint8_t t_k,
+    template<uint8_t t_k0,
+            typename subk2_tree,
+            typename t_vector>
+    void
+    construct_im(k2_tree_partitioned<t_k0, subk2_tree> &idx, t_vector data, uint access_shortcut_size = 0) {
+        std::string tmp_prefix = ram_file_name("k2_treap_");
+        k2_tree_partitioned<t_k0, subk2_tree> tmp(tmp_prefix,false,access_shortcut_size,data);
+        tmp.swap(idx);
+    }
+
+    template<uint8_t t_k_l_1,
+            uint8_t t_k_l_1_size,
+            uint8_t t_k_l_2,
+            uint8_t t_k_leaves,
             typename t_lev=bit_vector,
             typename t_leaf=bit_vector,
             typename t_rank=typename t_lev::rank_1_type,
             typename t_vector>
     void
-    construct_im(k2_tree_partitioned<t_0, t_k, t_lev, t_leaf, t_rank> &idx, t_vector data, uint access_shortcut_size = 0) {
+    construct_im(hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> &idx, t_vector data, uint access_shortcut_size = 0) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_tree_partitioned<t_0, t_k, t_lev, t_leaf, t_rank> tmp(tmp_prefix,false,access_shortcut_size,data);
+        hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> tmp(tmp_prefix,false,access_shortcut_size,data);
         tmp.swap(idx);
     }
 
-    //! Specialized version of method ,,construct_im'' for k2_treaps.
     template<uint8_t t_k,
             typename t_lev=bit_vector,
             typename t_leaf=bit_vector,
@@ -178,17 +219,28 @@ namespace sdsl {
         tmp.swap(idx);
     }
 
-    //! Specialized version of method ,,construct_im'' for k2_treaps.
-    template<uint8_t t_0,
-            uint8_t t_k,
+    template<uint8_t t_k0,
+            typename subk2_tree,
+            typename t_vector>
+    void
+    construct_im_bottom_up(k2_tree_partitioned<t_k0, subk2_tree> &idx, t_vector data, uint access_shortcut_size = 0) {
+        std::string tmp_prefix = ram_file_name("k2_treap_");
+        k2_tree_partitioned<t_k0, subk2_tree> tmp(tmp_prefix,true,access_shortcut_size,data);
+        tmp.swap(idx);
+    }
+
+    template<uint8_t t_k_l_1,
+            uint8_t t_k_l_1_size,
+            uint8_t t_k_l_2,
+            uint8_t t_k_leaves,
             typename t_lev=bit_vector,
             typename t_leaf=bit_vector,
             typename t_rank=typename t_lev::rank_1_type,
             typename t_vector>
     void
-    construct_im_bottom_up(k2_tree_partitioned<t_0, t_k, t_lev, t_leaf, t_rank> &idx, t_vector data, uint access_shortcut_size = 0) {
+    construct_im_bottom_up(hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> &idx, t_vector data, uint access_shortcut_size = 0) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_tree_partitioned<t_0, t_k, t_lev, t_leaf, t_rank> tmp(tmp_prefix,true,access_shortcut_size,data);
+        hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> tmp(tmp_prefix,true,access_shortcut_size,data);
         tmp.swap(idx);
     }
 }

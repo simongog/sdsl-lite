@@ -1,4 +1,4 @@
-#include "sdsl/k2_tree.hpp"
+#include "sdsl/k2_tree_algorithm.hpp"
 #include "sdsl/bit_vectors.hpp"
 #include "gtest/gtest.h"
 #include <vector>
@@ -25,21 +25,48 @@ namespace {
 
     using testing::Types;
 
+    typedef hybrid_k2_tree<2, 2, 2, 2, bit_vector, rrr_vector<63>> hybrid_k2_2222_b_rrr;
+    typedef hybrid_k2_tree<4, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_4524_b_rrr;
+    typedef hybrid_k2_tree<2, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_2528_b_rrr;
+    typedef hybrid_k2_tree<16, 5, 2, 16, bit_vector, rrr_vector<63>> hybrid_k2_165216_b_rrr;
+    typedef hybrid_k2_tree<8, 5, 2, 3, bit_vector, rrr_vector<63>> hybrid_k2_8523_b_rrr;
+    typedef hybrid_k2_tree<3, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_3524_b_rrr;
+    typedef k2_tree<2, bit_vector> k2;
+    typedef k2_tree<2, rrr_vector<63>> k2rrr;
+    typedef k2_tree<3, bit_vector> k3;
+    typedef k2_tree<4, bit_vector> k4;
+    typedef k2_tree<6, bit_vector> k6;
+    typedef k2_tree<8, bit_vector> k8;
+    typedef k2_tree<16, bit_vector> k16;
+
+
+
     typedef Types<
-            k2_tree<2, bit_vector>,
-            k2_tree<2, rrr_vector<63>>,
-            k2_tree<3, bit_vector>,
-            k2_tree<4, rrr_vector<63>>,
-            k2_tree<5, rrr_vector<63>>,
-            k2_tree<6, rrr_vector<63>>,
-            k2_tree<16, rrr_vector<63>>,
-            k2_tree_partitioned<2, 2, bit_vector, rrr_vector<63>>,
-            k2_tree_partitioned<4, 2, bit_vector, rrr_vector<63>>,
-            k2_tree_partitioned<3, 4, bit_vector, rrr_vector<63>>,
-            k2_tree_partitioned<8, 4, bit_vector, bit_vector>,
-            k2_tree_partitioned<16,4, bit_vector, rrr_vector<63>>,
-            k2_tree_partitioned<16,6, bit_vector, bit_vector>,
-            k2_tree_partitioned<16,16, bit_vector, rrr_vector<63>>
+            k2,
+            k2rrr,
+            k3,
+            k4,
+            k6,
+            k8,
+            k16,
+            k2_tree_partitioned<2, k2>,
+            k2_tree_partitioned<4, k2rrr>,
+            k2_tree_partitioned<3, k3>,
+            k2_tree_partitioned<8, k4>,
+            k2_tree_partitioned<16,k6>,
+            k2_tree_partitioned<16,k8>,
+            k2_tree_partitioned<16,k16>,
+            hybrid_k2_2222_b_rrr,
+            hybrid_k2_4524_b_rrr,
+            hybrid_k2_2528_b_rrr,
+            hybrid_k2_165216_b_rrr,
+            hybrid_k2_8523_b_rrr,
+            hybrid_k2_3524_b_rrr,
+            k2_tree_partitioned<2,hybrid_k2_4524_b_rrr>,
+            k2_tree_partitioned<3,hybrid_k2_2528_b_rrr>,
+            k2_tree_partitioned<4,hybrid_k2_165216_b_rrr>,
+            k2_tree_partitioned<8,hybrid_k2_8523_b_rrr>,
+            k2_tree_partitioned<16,hybrid_k2_3524_b_rrr>
     > Implementations;
 
     TYPED_TEST_CASE(k2_tree_test, Implementations);
