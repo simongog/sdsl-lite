@@ -18,18 +18,14 @@
 namespace sdsl {
 
     template<uint8_t t_k0,
-            uint8_t t_k,
-            typename t_lev=bit_vector,
-            typename t_leaf=bit_vector,
-            typename t_rank=typename t_lev::rank_1_type>
+            typename subk2_tree>
     class k2_tree_partitioned {
-        static_assert(t_k > 1, "t_k has to be larger than 1.");
-        static_assert(t_k <= 16, "t_k has to be smaller than 17.");
+        static_assert(t_k0 > 1, "t_k has to be larger than 1.");
+        static_assert(t_k0 <= 16, "t_k has to be smaller than 17.");
 
     public:
 
         typedef int_vector<>::size_type size_type;
-        typedef k2_tree<t_k, t_lev, t_leaf, t_rank> subk2_tree;
 
         enum {
             k0 = t_k0

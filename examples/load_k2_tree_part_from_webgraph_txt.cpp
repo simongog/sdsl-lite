@@ -94,7 +94,8 @@ int main(int argc, char *argv[]) {
         //typedef k2_tree<2,rrr_vector<63>> k2_part;
         const uint8_t k0 = 2;
         const uint8_t k = 2;
-        typedef k2_tree_partitioned<k0,k, bit_vector, rrr_vector<63>> k2_part;
+        typedef k2_tree<4, 5, 2, 4, bit_vector, rrr_vector<63>> k2_rrr;
+        typedef k2_tree_partitioned<k0,k2_rrr> k2_part;
 
 
 
@@ -104,7 +105,7 @@ int main(int argc, char *argv[]) {
         // Initialize treap with a vector of (x,y,weight) elements
         k2_part k2tree_part;
 
-    	construct_im(k2tree_part, coordinates);
+    	construct_im_bottom_up(k2tree_part, coordinates);
 
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds
