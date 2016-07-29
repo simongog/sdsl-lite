@@ -269,10 +269,10 @@ namespace sdsl {
             size_type written_bytes = 0;
             written_bytes += write_member(m_tree_height, out, child, "t");
             written_bytes += write_member(m_size, out, child, "s");
-            written_bytes += write_member(m_max_element, out, child, "n_");
+            written_bytes += write_member(m_max_element, out, child, "max_element");
             if (m_tree_height > 0){
                 for (int i = 0; i < m_tree_height -1; ++i) {
-                    written_bytes += m_levels[i].serialize(out, child, "level"+i);
+                    written_bytes += m_levels[i].serialize(out, child, ("level"+std::to_string(i)));
                 }
                 for (int i = 0; i < m_tree_height -1; ++i) {
                     written_bytes += m_levels_rank[i].serialize(out, child, "levels_rank");
