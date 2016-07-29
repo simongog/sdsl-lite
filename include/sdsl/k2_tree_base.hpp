@@ -1,0 +1,796 @@
+#ifndef INCLUDED_SDSL_BASE_K2_TREE
+#define INCLUDED_SDSL_BASE_K2_TREE
+
+#include "vectors.hpp"
+#include "bits.hpp"
+#include "k2_tree_helper.hpp"
+#include <stxxl/vector>
+#include <tuple>
+#include <algorithm>
+#include <climits>
+#include <vector>
+#include <iostream>
+#include <sdsl/bit_vectors.hpp>
+#include <sdsl/rank_support.hpp>
+#include <sdsl/rank_support_v.hpp>
+#include <gtest/gtest_prod.h>
+
+//! Namespace for the succinct data structure library.
+namespace sdsl {
+
+/*! A base class for the k2 and hybrid k2 tree implementation
+ *  \par References
+ *       [1] Nieves R. Brisaboa, Susana Ladra, and Gonzalo Navarro:
+ *           Compact representation of Web graphs with extended functionality.
+ *           Inf. Syst. 39 (January 2014), 152-174. DOI=http://dx.doi.org/10.1016/j.is.2013.08.003
+ */
+
+
+
+    template<typename t_lev=bit_vector,
+            typename t_leaf=bit_vector,
+            typename t_rank=typename t_lev::rank_1_type>
+    class k2_tree_base {
+
+    public:
+        typedef int_vector<>::size_type size_type;
+        typedef stxxl::VECTOR_GENERATOR<std::pair<uint32_t, uint32_t>>::result stxxl_32bit_pair_vector;
+        typedef stxxl::VECTOR_GENERATOR<std::pair<uint64_t, uint64_t>>::result stxxl_64bit_pair_vector;
+
+        using node_type = k2_treap_ns::node_type;
+        using point_type = k2_treap_ns::point_type;
+        using t_p = k2_treap_ns::t_p;
+
+        k2_tree_base() = default;
+
+        k2_tree_base(const k2_tree_base &tr) {
+            *this = tr;
+        }
+
+        k2_tree_base(k2_tree_base &&tr) {
+            *this = std::move(tr);
+        }
+
+    protected:
+        uint8_t m_tree_height = 0;
+        uint64_t m_max_element;
+        std::vector<t_lev> m_levels;
+        std::vector<t_rank> m_levels_rank;
+
+        t_leaf m_leafs;
+        size_type m_size = 0;
+        uint8_t m_access_shortcut_size;
+        /** BitArray containing Gog's B vector. */
+        bit_vector m_access_shortcut;
+        //Rank support for pattern 01 and 1
+        rank_support_v<01,2> m_access_shortcut_rank_01_support;
+        bit_vector::select_1_type m_access_shortcut_select_1_support;
+
+        virtual uint8_t get_k(uint8_t) const = 0;
+
+
+    public :
+
+
+        /**
+         * Constructs the tree corresponding to the points in the links vector by partitioning the input multiple times
+         * @param links
+         * @param temp_file_prefix
+         */
+        virtual uint8_t get_tree_height(const std::vector<std::pair<uint32_t, uint32_t>>&) = 0;
+        virtual uint8_t get_tree_height(const std::vector<std::pair<uint64_t, uint64_t>>&) = 0;
+        virtual uint8_t get_tree_height(const stxxl_64bit_pair_vector&) = 0;
+        virtual uint8_t get_tree_height(const stxxl_32bit_pair_vector&) = 0;
+
+        template<typename t_x>
+        void direct_links(t_x source_id, std::vector<t_x> &result) const {
+            result.clear();
+
+            if (m_leafs.size() == 0){
+                return;
+            }
+
+            traverse_tree<t_x, DirectImpl>(this->root(), m_max_element, source_id, result);
+        }
+
+        template<typename t_x>
+        void direct_links2(t_x source_id, std::vector<t_x> &result) const {
+            using namespace k2_treap_ns;
+            result.clear();
+
+            //Patological case happening e.g. when using k2part
+            if (m_leafs.size() == 0){
+                return;
+            }
+
+            //direct_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result);
+            direct_links2_internal_queue(source_id, result);
+        }
+
+        template<typename t_x>
+        void inverse_links(t_x source_id, std::vector<t_x> &result) const {
+            result.clear();
+
+            if (m_leafs.size() == 0){
+                return;
+            }
+
+            traverse_tree<t_x, InverseImpl>(this->root(), m_max_element, source_id, result);
+        }
+
+        template<typename t_x>
+        void inverse_links2(t_x source_id, std::vector<t_x> &result) const {
+            using namespace k2_treap_ns;
+            result.clear();
+
+            if (m_leafs.size() == 0){
+                return;
+            }
+
+            //inverse_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result);
+            inverse_links2_internal_queue(source_id, result);
+        }
+
+        //! Move assignment operator
+        k2_tree_base &operator=(k2_tree_base &&tr) {
+            if (this != &tr) {
+                m_tree_height = tr.m_tree_height;
+                m_size = tr.m_size;
+                m_max_element = tr.m_max_element;
+                m_levels = std::move(tr.m_levels);
+                m_levels_rank = std::move(tr.m_levels_rank);
+                for (int i = 0; i < m_levels_rank.size(); ++i) {
+                    m_levels_rank[i].set_vector(&m_levels[i]);
+                }
+                m_leafs = std::move(tr.m_leafs);
+                m_access_shortcut_size = std::move(tr.m_access_shortcut_size);
+                m_access_shortcut = std::move(tr.m_access_shortcut);
+                m_access_shortcut_rank_01_support = std::move(tr.m_access_shortcut_rank_01_support);
+                m_access_shortcut_select_1_support = std::move(tr.m_access_shortcut_select_1_support);
+            }
+            return *this;
+        }
+
+        //! Assignment operator
+        k2_tree_base &operator=(const k2_tree_base &tr) {
+            if (this != &tr) {
+                m_tree_height = tr.m_tree_height;
+                m_size = tr.m_size;
+                m_max_element = tr.m_max_element;
+                m_levels = tr.m_levels;
+                m_levels_rank = tr.m_levels_rank;
+                for (uint64_t i = 0; i < m_levels_rank.size(); ++i) {
+                    m_levels_rank[i].set_vector(&m_levels[i]);
+                }
+                m_leafs = tr.m_leafs;
+                m_access_shortcut_size = tr.m_access_shortcut_size;
+                m_access_shortcut = tr.m_access_shortcut;
+                m_access_shortcut_rank_01_support = tr.m_access_shortcut_rank_01_support;
+                m_access_shortcut_select_1_support = tr.m_access_shortcut_select_1_support;
+            }
+            return *this;
+        }
+
+        //! Equals operator
+        bool operator==(const k2_tree_base &tr) const {
+            if (m_tree_height != tr.m_tree_height)
+                return false;
+            if (m_size != tr.m_size)
+                return false;
+
+            if (m_max_element != tr.m_max_element)
+                return false;
+
+            if (m_levels.size() != tr.m_levels.size()){
+                std::cout << "m_levels.size() differs" << std::endl;
+                return false;
+            }
+            for (uint i = 0; i < m_levels.size(); ++i) {
+                if (m_levels[i].size() != tr.m_levels[i].size()){
+                    std::cout << "m_levels["<<i<<"].size() differs" << std::endl;
+                    return false;
+                }
+                for (uint j = 0; j < m_levels[i].size(); ++j) {
+                    if (m_levels[i][j] != tr.m_levels[i][j]){
+                        std::cout << "m_levels vectors differ at " << i << std::endl;
+                        return false;
+                    }
+                }
+            }
+
+            if (m_leafs.size() != tr.m_leafs.size()){
+                std::cout << "m_leafs.size() differs" << std::endl;
+                return false;
+            }
+            for (uint i = 0; i < m_leafs.size(); ++i) {
+                if (m_leafs[i] != tr.m_leafs[i]){
+                    std::cout << "m_leafs vectors differ at " << i << std::endl;
+                    return false;
+                }
+
+            }
+
+            if (m_access_shortcut_size != tr.m_access_shortcut_size)
+                return false;
+
+            //don't compare other access_shortcut vetors as they have to be the same when access_shortcut_size is the same
+
+            return true;
+        }
+
+        //! Number of points in the 2^k treap
+        size_type
+        size() const {
+            return m_size;
+        }
+
+        //! Swap operator
+        void swap(k2_tree_base &tr) {
+            if (this != &tr) {
+                std::swap(m_tree_height, tr.m_tree_height);
+                std::swap(m_size, tr.m_size);
+                std::swap(m_max_element, tr.m_max_element);
+
+                uint tr_m_levels_size = tr.m_levels.size();
+                uint m_levels_size = m_levels.size();
+
+                uint64_t biggerSize;
+                if (tr_m_levels_size > m_levels_size){
+                    biggerSize = tr_m_levels_size;
+                    m_levels.resize(biggerSize);
+                    m_levels_rank.resize(biggerSize);
+                } else {
+                    biggerSize = m_levels_size;
+                    tr.m_levels.resize(biggerSize);
+                    tr.m_levels_rank.resize(biggerSize);
+                }
+
+                for (uint64_t j = 0; j < biggerSize; ++j) {
+                    m_levels[j].swap(tr.m_levels[j]);
+                }
+                std::swap(tr_m_levels_size, m_levels_size);
+
+                for (uint64_t j = 0; j < biggerSize; ++j) {
+                    util::swap_support(m_levels_rank[j], tr.m_levels_rank[j], &m_levels[j], &(tr.m_levels[j]));
+                }
+
+                m_levels.resize(m_levels_size);
+                tr.m_levels.resize(tr_m_levels_size);
+                m_levels_rank.resize(m_levels_size);
+                tr.m_levels_rank.resize(tr_m_levels_size);
+
+                m_leafs.swap(tr.m_leafs);
+                std::swap(m_access_shortcut_size, tr.m_access_shortcut_size);
+                m_access_shortcut.swap(tr.m_access_shortcut);
+                util::swap_support(m_access_shortcut_rank_01_support, tr.m_access_shortcut_rank_01_support,
+                                   &m_access_shortcut, &tr.m_access_shortcut);
+                util::swap_support(m_access_shortcut_select_1_support, tr.m_access_shortcut_select_1_support,
+                                   &m_access_shortcut, &tr.m_access_shortcut);
+            }
+        }
+
+        //! Serializes the data structure into the given ostream
+        size_type serialize(std::ostream &out, structure_tree_node *v = nullptr,
+                            std::string name = "") const {
+            structure_tree_node *child = structure_tree::add_child(
+                    v, name, util::class_name(*this));
+            size_type written_bytes = 0;
+            written_bytes += write_member(m_tree_height, out, child, "t");
+            written_bytes += write_member(m_size, out, child, "s");
+            written_bytes += write_member(m_max_element, out, child, "n_");
+            if (m_tree_height > 0){
+                for (int i = 0; i < m_tree_height -1; ++i) {
+                    written_bytes += m_levels[i].serialize(out, child, "level"+i);
+                }
+                for (int i = 0; i < m_tree_height -1; ++i) {
+                    written_bytes += m_levels_rank[i].serialize(out, child, "levels_rank");
+                }
+                written_bytes += m_leafs.serialize(out, child, "leafv");
+            }
+            written_bytes += write_member(m_access_shortcut_size, out, child, "max");
+            if (m_access_shortcut_size > 0){
+                written_bytes += m_access_shortcut.serialize(out, child, "access_shortcut");
+                written_bytes += m_access_shortcut_rank_01_support.serialize(out, child, "access_rank");
+                written_bytes += m_access_shortcut_select_1_support.serialize(out, child, "access_select");
+            }
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
+
+        //! Loads the data structure from the given istream.
+        void load(std::istream &in) {
+            read_member(m_tree_height, in);
+            read_member(m_size, in);
+            read_member(m_max_element, in);
+
+            if (m_tree_height > 0){
+                m_levels.resize(m_tree_height-1);
+                for (uint64_t i = 0; i < m_levels.size(); ++i) {
+                    m_levels[i].load(in);
+                }
+
+                m_levels_rank.resize(m_tree_height-1);
+                for (uint64_t i = 0; i < m_levels_rank.size(); ++i) {
+                    m_levels_rank[i].load(in);
+                    m_levels_rank[i].set_vector(&m_levels[i]);
+                }
+                m_leafs.load(in);
+            }
+            read_member( m_access_shortcut_size, in);
+            if (m_access_shortcut_size > 0){
+                m_access_shortcut.load(in);
+                m_access_shortcut_rank_01_support.load(in);
+                m_access_shortcut_rank_01_support.set_vector(&m_access_shortcut);
+                m_access_shortcut_select_1_support.load(in);
+                m_access_shortcut_select_1_support.set_vector(&m_access_shortcut);
+            }
+        }
+
+    protected:
+        /**
+        * gets the index of the ith child of node x
+        */
+        inline uint64_t get_child_index(uint i, int64_t x, uint8_t level) const{
+            uint rank = m_levels_rank[level](x);
+            return rank*get_k(level+1)*get_k(level+1)+i;
+        }
+
+        /**
+         * Recursive function for getting the successors of a certain node.
+         * Detailed in the "Compact representation of Web graphs with extended functionality" Paper
+         * @param n
+         *      current submatrix size/initially the maximal node id that is theoretically possible for a tree with k=t_k and height m_tree_height
+         * @param source_id
+         *      starting node for which the successors are searched
+         * @param column_offset
+         *      of the current submatrix
+         * @param index
+         *      of the upper left corner of the submatrix in the concatentation of m_levels and m_leafs vector
+         * @param result
+         */
+        template<typename t_x>
+        void  direct_links2_internal(uint64_t n, uint8_t level, t_x source_id, t_x column_offset, int64_t index, std::vector<t_x> &result) const {
+            const uint8_t k = get_k(level);
+            uint64_t submatrix_size = n/k;
+            int64_t y = index*k*k + k *(source_id/submatrix_size);
+
+            if (this->is_leaf_level(level)){
+                for (int j = 0; j < k; ++j) {
+                    if (m_leafs[y+j] == 1){
+                        result.push_back(column_offset+j);
+                    }
+                }
+            } else { //internal node
+                for (uint j = 0; j < k; ++j) {
+                    if (m_levels[level][y+j] == 1) {
+                        direct_links2_internal(submatrix_size, level + 1, t_x(source_id % submatrix_size),
+                                               t_x(column_offset + submatrix_size * j), m_levels_rank[level](y+j), result);
+                    }
+                }
+            }
+        }
+
+        /**
+         * Variant of direct_links2_internal using a queue
+         * @param source_id
+         * @param result
+         */
+        template<typename t_x>
+        void  direct_links2_internal_queue(t_x source_id, std::vector<t_x> &result) const {
+            using namespace k2_treap_ns;
+            //n, level, source_id, column_offset, index
+            std::queue<std::tuple<uint64_t, uint8_t, t_x,t_x,int64_t>> queue;
+            queue.push(std::make_tuple(m_max_element, 0, source_id, (t_x) 0, 0));
+
+            while (!queue.empty()){
+                auto current_element = queue.front();
+                uint64_t n = std::get<0>(current_element);
+                uint8_t level = std::get<1>(current_element);
+                t_x source_id = std::get<2>(current_element);
+                t_x column_offset = std::get<3>(current_element);
+                int64_t index = std::get<4>(current_element);
+                queue.pop();
+
+                const uint8_t k = get_k(level);
+
+                uint64_t submatrix_size = n/k;
+                int64_t y = index*k*k + k *(source_id/submatrix_size);
+
+                if (is_leaf_level(level)){
+                    for (int j = 0; j < k; ++j) {
+                        if (m_leafs[y+j] == 1){
+                            result.push_back(column_offset+j);
+                        }
+                    }
+                } else { //internal node
+                    for (uint j = 0; j < k; ++j) {
+                        if (m_levels[level][y+j] == 1) {
+                            queue.push(std::make_tuple(submatrix_size, level + 1, t_x(source_id % submatrix_size),
+                                                       t_x(column_offset + submatrix_size * j), m_levels_rank[level](y+j)));
+                        }
+                    }
+                }
+            }
+        }
+
+        bool is_leaf_level(int level) const { return level == m_tree_height - 1; }
+
+        /**
+         * Recursive function for getting the predecessor of a certain node.
+         * Detailed in the "Compact representation of Web graphs with extended functionality" Paper
+         * @param n
+         *      current submatrix size/initially the maximal node id that is theoretically possible for a tree with k=t_k and height m_tree_height
+         * @param source_id
+         *      starting node for which the predecessor are searched
+         * @param column_offset
+         *      of the current submatrix
+         * @param index
+         *      of the upper left corner of the submatrix in the concatentation of m_levels and m_leafs vector, initially 0
+         * @param result
+         */
+        template<typename t_x>
+        void inverse_links2_internal(uint64_t n, uint8_t level, t_x source_id, t_x row_offset, int64_t index,
+                                     std::vector<t_x> &result) const {
+
+            const uint8_t k = get_k(level);
+            uint64_t submatrix_size = n / k;
+            int64_t y = index * k * k + (source_id / submatrix_size);
+
+            if (is_leaf_level(level)) {
+                for (int j = 0; j < k; ++j) {
+                    if (m_leafs[y + j * k] == 1) {
+                        result.push_back(row_offset+j);
+                    }
+                }
+            } else { //internal node
+                for (int j = 0; j < k; ++j) {
+                    if (m_levels[level][y + (j * k)]){
+                        inverse_links2_internal(submatrix_size, level + 1, t_x(source_id % submatrix_size),
+                                                t_x(row_offset + submatrix_size * j), m_levels_rank[level](y + (j * k)), result);
+                    }
+                }
+            }
+        }
+
+        /**
+         * Variant of inverse_links2_internal using a queue
+         * @param source_id
+         * @param result
+         */
+        template<typename t_x>
+        void inverse_links2_internal_queue(t_x source_id, std::vector<t_x> &result) const {
+            using namespace k2_treap_ns;
+            //n, level, source_id, column_offset, index
+            std::queue<std::tuple<uint64_t,uint8_t,t_x,t_x,int64_t>> queue;
+            queue.push(std::make_tuple(m_max_element, 0, source_id, (t_x) 0, 0));
+
+            while (!queue.empty()) {
+                auto current_element = queue.front();
+                t_x n = std::get<0>(current_element);
+                uint8_t level = std::get<1>(current_element);
+                t_x source_id = std::get<2>(current_element);
+                t_x row_offset = std::get<3>(current_element);
+                int64_t index = std::get<4>(current_element);
+                queue.pop();
+
+                const uint8_t k = get_k(level);
+
+                uint64_t submatrix_size = n / k;
+                int64_t y = index * k * k + (source_id / submatrix_size);
+
+                if (is_leaf_level(level)) {
+                    for (int j = 0; j < k; ++j) {
+                        if (m_leafs[y + j * k] == 1) {
+                            result.push_back(row_offset+j);
+                        }
+                    }
+                } else { //internal node
+                    for (int j = 0; j < k; ++j) {
+                        if (m_levels[level][y + (j * k)]){
+                            queue.push(std::make_tuple(submatrix_size, level + 1, t_x(source_id % submatrix_size),
+                                                       t_x(row_offset + submatrix_size * j), m_levels_rank[level](y + (j * k))));
+                        }
+                    }
+                }
+            }
+        }
+
+
+        template<typename t_x=uint64_t, typename t_y=uint64_t>
+        std::vector<std::pair<t_x, t_y>>
+        read(std::vector<int_vector_buffer<> * > &bufs) {
+            typedef std::vector<std::pair<t_x, t_y>> t_tuple_vec;
+            t_tuple_vec v = t_tuple_vec(bufs[0]->size());
+            for (uint64_t j = 0; j < v.size(); ++j) {
+                std::get<0>(v[j]) = (*(bufs[0]))[j];
+            }
+            for (uint64_t j = 0; j < v.size(); ++j) {
+                std::get<1>(v[j]) = (*(bufs[1]))[j];
+            }
+
+            return v;
+        }
+
+        //use only for testing purposes (remove and use mock)
+        void set_height(uint height){
+            m_tree_height = height;
+        }
+
+        void load_vectors_from_file(const std::string &temp_file_prefix, const std::string &id_part) {
+            {
+                std::vector<bit_vector> levels(m_tree_height - 1);
+                for (uint64_t i = 0; i < levels.size(); ++i) {
+                    std::string levels_file = temp_file_prefix + "_level_" + std::to_string(i) + "_" + id_part
+                                              + ".sdsl";
+                    load_from_file(levels[i], levels_file);
+                    sdsl::remove(levels_file);
+                }
+
+                m_levels.resize(levels.size());
+                for (uint64_t i = 0; i < levels.size(); ++i) {
+                    m_levels[i] = t_lev(levels[i]);
+                }
+            }
+
+            {
+                bit_vector leafs;
+                std::string leafs_file = temp_file_prefix + "_level_" + std::to_string(m_tree_height -1) + "_" + id_part
+                                         + ".sdsl";
+                load_from_file(leafs, leafs_file);
+                remove(leafs_file);
+
+                bit_vector _leafs;
+                _leafs.swap(leafs);
+                m_leafs = t_leaf(_leafs);
+            }
+
+            m_levels_rank.resize(m_levels.size());
+            for (uint64_t i = 0; i < m_levels.size(); ++i) {
+                util::init_support(m_levels_rank[i], &m_levels[i]);
+            }
+        }
+
+        std::vector<int_vector_buffer<1>> create_level_buffers(const std::string temp_file_prefix, std::string &id_part) const
+        {
+            std::vector<int_vector_buffer<1>> level_buffers(m_tree_height);
+
+            for (uint64_t i = 0; i < level_buffers.size(); ++i) {
+                std::string levels_file = temp_file_prefix + "_level_" + std::to_string(i) + "_" + id_part
+                                          + ".sdsl";
+                int_vector_buffer<1> level_buf(levels_file, std::ios::out);
+                level_buffers[i].swap(level_buf);
+            }
+
+            return level_buffers;
+        }
+
+        /**
+        * Constructs the tree corresponding to the points in the links vector by using counting
+        * sort with k² buckets and rearranging the input on every level of the tree
+        * @param links
+        * @param temp_file_prefix
+        */
+        template<typename t_vector>
+        void construct_counting_sort(t_vector &links, std::string temp_file_prefix = "") {
+            using namespace k2_treap_ns;
+            typedef decltype(links[0].first) t_x;
+            typedef decltype(links[0].second) t_y;
+            using t_e = std::pair<t_x, t_y>;
+
+            m_size = links.size();
+            m_tree_height = get_tree_height(links);
+
+            std::string id_part = util::to_string(util::pid())
+                                  + "_" + util::to_string(util::id());
+
+            {
+                std::vector<int_vector_buffer<1>> level_buffers = create_level_buffers(temp_file_prefix, id_part);
+                //                  upper left          lower right                 interval in links   level
+                typedef std::tuple<std::pair<t_x,t_y>,std::pair<uint64_t,uint64_t>, t_e, uint8_t> t_queue;
+                std::queue <t_queue> queue;
+
+                //partition recursively until reaching the leaves
+                queue.push(t_queue(std::make_pair<t_x,t_y>(0,0), std::make_pair(m_max_element -1, m_max_element -1), t_e(0, links.size()),0));
+
+                uint64_t number_of_bits = 0; //for speed comparison purposes of different k
+
+                //std::cout << "Setring m_level_begin_idx["<<m_tree_height-1<<"] =" << 0 << std::endl;
+                while (!queue.empty()) {
+                    auto upper_left = std::get<0>(queue.front());
+                    auto lower_right = std::get<1>(queue.front());
+                    auto links_interval = std::get<2>(queue.front());
+                    auto current_level = std::get<3>(queue.front());
+
+                    const uint8_t k = get_k(current_level);
+
+                    auto submatrix_size =
+                            lower_right.first - upper_left.first + 1;
+                    std::vector<t_x> intervals(k * k + 1);
+
+                    queue.pop();
+
+
+                    //do counting sort
+                    auto x1 = upper_left.first;
+                    auto y1 = upper_left.second;
+                    auto subDivK = (submatrix_size / k);
+                    for (uint64_t j = links_interval.first; j < links_interval.second; ++j) {
+                        auto x = links[j].first;
+                        auto y = links[j].second;
+                        uint p1 = (x - x1) / subDivK;
+                        uint p2 = (y - y1) / subDivK;
+                        uint corresponding_matrix = p1 * k + p2;
+                        intervals[corresponding_matrix + 1]++;//offset corresponding matrix by one to allow for more efficient in interval comparision
+                    }
+
+                    intervals[0] = 0;
+
+
+                    //append bits to level_vectors[level] based on result
+                    for (uint i = 1; i < intervals.size(); ++i) {
+                        if (intervals[i] > 0) {
+                            level_buffers[current_level].push_back(1);
+                            //std::cout << "1";
+                            number_of_bits++;
+                        } else {
+                            level_buffers[current_level].push_back(0);
+                            //std::cout << "0";
+                            number_of_bits++;
+                        }
+                        intervals[i] += intervals[i - 1]; //build prefix sum
+                    }
+
+                    //leavs not reached yet --> append to level_vector & reorder
+                    if (submatrix_size > k) {
+                        std::vector<t_x> offset(k * k);
+                        offset[0] = 0;
+                        for (size_t l = 1; l < offset.size(); ++l) {
+                            offset[l] = intervals[l] + 1;
+                        }
+
+                        auto begin = links.begin() + links_interval.first;
+                        auto it = begin;
+
+                        //reorder links based on counting sort offsets
+                        uint64_t index = 0;
+                        while (it != links.begin() + links_interval.second) {
+                            uint corresponding_matrix =
+                                    (((*it).first - x1) / subDivK) * k + ((*it).second - y1) / subDivK;
+
+                            if (index >= intervals[corresponding_matrix] &&
+                                index < intervals[corresponding_matrix + 1]) {
+                                //element is at correct position
+                                offset[corresponding_matrix]++;
+
+                                it++;
+                                index++;
+                            } else {
+                                //swap to correct position either swapping a match or a non match back
+                                //there are at most m swaps if all m elements are at the wrong position
+                                //every value is at most read twice
+                                std::iter_swap(it, begin + offset[corresponding_matrix] - 1);
+                                offset[corresponding_matrix]++;
+                            }
+                        }
+
+                        //enqueue submatrixes
+                        auto new_submatrix_size = submatrix_size / k;
+                        for (uint x = 0; x < k; ++x) {
+                            for (uint y = 0; y < k; ++y) {
+                                auto new_interval = std::make_pair(intervals[x * k + y] + links_interval.first,
+                                                                   intervals[x * k + y + 1] + links_interval.first);
+                                if (new_interval.first != new_interval.second) {
+                                    auto new_upper_left = std::make_pair<t_x, t_y>(
+                                            x * new_submatrix_size + upper_left.first,
+                                            y * new_submatrix_size + upper_left.second);
+                                    auto new_lower_right = std::make_pair<t_x, t_y>(
+                                            (x + 1) * new_submatrix_size - 1 + upper_left.first,
+                                            (y + 1) * new_submatrix_size - 1 + upper_left.second);
+                                    queue.push(std::make_tuple(new_upper_left, new_lower_right, new_interval,
+                                                               current_level + 1));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            load_vectors_from_file(temp_file_prefix, id_part);
+        }
+
+        node_type root() const {
+            return node_type(0, t_p(0, 0), 0);
+        }
+
+        /**
+        * Recursive DFS tree traversal, which can be used to find successors and predecessor by
+        * providing the appropriate Impl functor
+        *
+        * @param root
+        * @param source_id
+        * @param result
+        */
+        template<typename t_x, class Impl>
+        void traverse_tree(node_type root, uint64_t matrix_size, t_x source_id, std::vector<t_x> &result) const {
+            using namespace k2_treap_ns;
+
+            auto x = std::real(root.p);
+            auto y = std::imag(root.p);
+            const uint8_t k = get_k(root.t);
+            auto submatrix_size = matrix_size / k;
+
+            if (!is_leaf_level(root.t)) {
+                uint64_t rank = m_levels_rank[root.t](root.idx);
+
+                for (size_t i = 0; i < k; ++i) {
+                    auto _x = x + i * submatrix_size;
+                    for (size_t j = 0; j < k; ++j) {
+                        // get_int better for compressed bitvectors
+                        // or introduce cache for bitvectors
+                        if (m_levels[root.t][root.idx + k * i + j]) { //if subtree present
+                            auto _y = y + j * submatrix_size;
+
+                            node_type subtree_root(root.t+1, t_p(_x, _y), rank * get_k(root.t+1) * get_k(root.t+1));
+                            ++rank;
+                            if (Impl::is_relevant_subtree(source_id, submatrix_size, subtree_root)) {
+                                traverse_tree<t_x, Impl>(subtree_root, submatrix_size, source_id, result);
+                            }
+                        }
+                    }
+
+                }
+            } else {
+                //add corresponding values to result
+                for (size_t i = 0; i < k; ++i) {
+                    auto _x = (x + i * submatrix_size);
+                    for (size_t j = 0; j < k; ++j) {
+                        if (m_leafs[root.idx + k * i + j]) {
+                            Impl::add_to_result_if_relevant(source_id, submatrix_size, y, _x, j, result);
+                        }
+                    }
+                }
+            }
+        }
+
+        struct DirectImpl {
+            template<typename t_x>
+            inline static bool is_relevant_subtree(t_x row_id, uint64_t matrix_size, node_type subtree_root) {
+                using namespace k2_treap_ns;
+
+                return row_id >= real(subtree_root.p) and row_id <= real(subtree_root.p) + matrix_size -1;
+            }
+
+            template<typename t_x>
+            inline static void add_to_result_if_relevant(t_x source_id, uint64_t matrix_size, point_type::value_type y, point_type::value_type _x,
+                                                         size_t j, std::vector<t_x> &result) {
+                using namespace k2_treap_ns;
+                if (source_id == _x) { //if bit set and leaf part of correct row, add to result
+                    auto _y = y + j * (matrix_size);
+                    result.push_back(_y);
+                }
+            }
+        };
+
+        struct InverseImpl {
+            template<typename t_x>
+            inline static bool is_relevant_subtree(t_x column_id, uint64_t matrix_size, node_type subtree_root) {
+                using namespace k2_treap_ns;
+
+                return column_id >= imag(subtree_root.p) and column_id <= imag(subtree_root.p) + matrix_size - 1;
+            }
+
+            template<typename t_x>
+            inline static void add_to_result_if_relevant(t_x source_id, uint64_t matrix_size, point_type::value_type y, point_type::value_type _x,
+                                                         size_t j, std::vector<t_x> &result) {
+                using namespace k2_treap_ns;
+                auto _y = y + j * (matrix_size);
+                if (source_id == _y) { //if bit set and leaf part of correct row, add to result
+                    result.push_back(_x);
+                }
+            }
+        };
+
+    };
+}
+
+#endif

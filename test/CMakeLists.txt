@@ -31,9 +31,10 @@ FILE(GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/../external/libdivsufsort/include
                     ${gtest_SOURCE_DIR}/include
+                    ${STXXL_INCLUDE_DIRS}
 )
 
-LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64)
+LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64 stxxl)
 
 ADD_EXECUTABLE(int_vector_generator EXCLUDE_FROM_ALL int_vector_generator.cpp)
 ADD_EXECUTABLE(bit_vector_generator EXCLUDE_FROM_ALL bit_vector_generator.cpp)
