@@ -51,6 +51,9 @@ namespace sdsl {
             *this = std::move(tr);
         }
 
+        //virtual ~k2_tree_base() = 0;
+        virtual ~k2_tree_base(){}
+
     protected:
         uint8_t m_tree_height = 0;
         uint64_t m_max_element = 0;
