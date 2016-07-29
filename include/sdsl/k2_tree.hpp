@@ -87,8 +87,10 @@ namespace sdsl {
         }*/
 
         template<typename t_vector>
-        k2_tree(std::string temp_file_prefix, bool use_counting_sort, uint access_shortcut_size, t_vector &v){
+        k2_tree(std::string temp_file_prefix, bool use_counting_sort, uint access_shortcut_size, t_vector &v, uint64_t max_hint=0){
             this->m_access_shortcut_size = access_shortcut_size;
+            this->m_tree_height = get_tree_height(v, max_hint);
+
             if (v.size() > 0) {
                 if (use_counting_sort){
                     k2_tree_base<t_lev,t_leaf,t_rank>::template construct_counting_sort(v, temp_file_prefix);
@@ -131,6 +133,9 @@ namespace sdsl {
                 throw std::logic_error("Maximal element of input is too big.");
             }
 
+            this->m_tree_height = res;
+            this->m_max_element = precomp<t_k>::exp(res);
+
             if (precomp<t_k>::exp(res) <= std::numeric_limits<uint32_t>::max()) {
                 auto v = k2_tree_base<t_lev,t_leaf,t_rank>::template read< uint32_t, uint32_t>(bufs);
                 if (use_counting_sort){
@@ -155,19 +160,6 @@ namespace sdsl {
 
         inline uint8_t get_k(uint8_t) const{
             return t_k;
-        }
-
-        uint8_t get_tree_height(const std::vector<std::pair<uint32_t, uint32_t>>& v){
-            return get_tree_height_internal(v);
-        }
-        uint8_t get_tree_height(const std::vector<std::pair<uint64_t, uint64_t>>& v){
-            return get_tree_height_internal(v);
-        }
-        uint8_t get_tree_height(const stxxl_64bit_pair_vector& v){
-            return get_tree_height_internal(v);
-        }
-        uint8_t get_tree_height(const stxxl_32bit_pair_vector& v){
-            return get_tree_height_internal(v);
         }
 
         /**
@@ -227,7 +219,6 @@ namespace sdsl {
             using t_e = std::pair<t_x, t_y>;
 
             this->m_size = links.size();
-            this->m_tree_height = get_tree_height(links);
 
             if (this->m_tree_height == 0){//might occur in k2part
                 return;
@@ -316,7 +307,6 @@ namespace sdsl {
             using t_e = std::pair<t_x, t_y>;
 
             this->m_size = links.size();
-            this->m_tree_height = get_tree_height(links);
 
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
@@ -546,19 +536,25 @@ namespace sdsl {
         }
 
         template<typename t_tv>
-        uint8_t get_tree_height_internal(const t_tv &v) {
+        uint8_t get_tree_height(const t_tv &v, uint64_t max_hint) {
             using namespace k2_treap_ns;
             if (v.size() == 0) {
                 return 0;
             }
-            using t_e = typename t_tv::value_type;
-            auto tupmax = [](t_e a) {
-                return std::max(a.first, a.second);
-            };
-            auto max_it = std::max_element(std::begin(v), std::end(v), [&](t_e a, t_e b) {
-                return tupmax(a) < tupmax(b);
-            });
-            uint64_t max = tupmax(*max_it);
+
+            uint64_t max;
+            if (max_hint != 0){
+                max = max_hint;
+            } else  {
+                using t_e = typename t_tv::value_type;
+                auto tupmax = [](t_e a) {
+                    return std::max(a.first, a.second);
+                };
+                auto max_it = std::max_element(std::begin(v), std::end(v), [&](t_e a, t_e b) {
+                    return tupmax(a) < tupmax(b);
+                });
+                max = tupmax(*max_it);
+            }
 
             uint8_t res = 0;
             while (precomp<t_k>::exp(res) <= max) { ++res; }

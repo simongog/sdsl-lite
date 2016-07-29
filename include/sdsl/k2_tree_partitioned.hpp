@@ -50,9 +50,11 @@ namespace sdsl {
 
         template<typename t_vector>
         k2_tree_partitioned(std::string temp_file_prefix, bool bottom_up,
-                            uint access_shortcut_size, t_vector &v) {
+                            uint access_shortcut_size, t_vector &v, uint64_t max_hint) {
             //FIXME: build multiple k trees
             //partition into k02 parts
+            using namespace k2_treap_ns;
+            m_matrix_size = precomp<t_k0>::exp(get_tree_height(v, max_hint));
             build_k2_trees(v, temp_file_prefix, bottom_up, access_shortcut_size);
             //build tree
         }
@@ -86,6 +88,7 @@ namespace sdsl {
             if (res == 65) {
                 throw std::logic_error("Maximal element of input is too big.");
             }
+            m_matrix_size = precomp<t_k0>::exp(res);
 
             if (precomp<t_k0>::exp(res) <= std::numeric_limits<uint32_t>::max()) {
                 auto v = read < uint32_t, uint32_t>(bufs);
@@ -260,22 +263,29 @@ namespace sdsl {
 
     private:
         template<typename t_tv>
-        uint8_t get_tree_height(const t_tv &v) {
+        uint8_t get_tree_height(const t_tv &v, uint64_t max_hint) {
             using namespace k2_treap_ns;
             if (v.size() == 0) {
                 return 0;
             }
-            using t_e = typename t_tv::value_type;
-            auto tupmax = [](t_e a) {
-                return std::max(a.first, a.second);
-            };
-            auto max_it = std::max_element(std::begin(v), std::end(v), [&](t_e a, t_e b) {
-                return tupmax(a) < tupmax(b);
-            });
-            uint64_t x = tupmax(*max_it);
+
+            uint64_t max;
+            if (max_hint != 0){
+                max = max_hint;
+            } else {
+                using t_e = typename t_tv::value_type;
+                auto tupmax = [](t_e a) {
+                    return std::max(a.first, a.second);
+                };
+                auto max_it = std::max_element(std::begin(v), std::end(v), [&](t_e a, t_e b) {
+                    return tupmax(a) < tupmax(b);
+                });
+                max = tupmax(*max_it);
+            }
+
 
             uint8_t res = 0;
-            while (precomp<t_k0>::exp(res) <= x) { ++res; }
+            while (precomp<t_k0>::exp(res) <= max) { ++res; }
             return res;
         }
 
@@ -294,10 +304,7 @@ namespace sdsl {
             std::vector<std::vector<t_e>> buffers;
             buffers.resize(t_k0*t_k0);
 
-            uint tree_height = get_tree_height(links);
             {
-                m_matrix_size = precomp<t_k0>::exp(tree_height); //could be bigger than 32 bit although biggest value in links is 32 bit
-
                 auto upper_left = t_e(0, 0);
                 auto lower_right = std::make_pair(m_matrix_size - 1, m_matrix_size - 1);
                 auto links_interval = std::make_pair<t_x, t_x>(0, links.size());

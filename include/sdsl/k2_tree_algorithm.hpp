@@ -176,9 +176,9 @@ namespace sdsl {
             typename t_rank=typename t_lev::rank_1_type,
             typename t_vector>
     void
-    construct_im(k2_tree<t_k, t_lev, t_leaf, t_rank> &idx, t_vector data, uint access_shortcut_size = 0) {
+    construct_im(k2_tree<t_k, t_lev, t_leaf, t_rank> &idx, t_vector data, uint64_t max_hint = 0, uint access_shortcut_size = 0) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_tree<t_k, t_lev, t_leaf, t_rank> tmp(tmp_prefix,false,access_shortcut_size,data);
+        k2_tree<t_k, t_lev, t_leaf, t_rank> tmp(tmp_prefix,false,access_shortcut_size,data, max_hint);
         tmp.swap(idx);
     }
 
@@ -186,9 +186,9 @@ namespace sdsl {
             typename subk2_tree,
             typename t_vector>
     void
-    construct_im(k2_tree_partitioned<t_k0, subk2_tree> &idx, t_vector data, uint access_shortcut_size = 0) {
+    construct_im(k2_tree_partitioned<t_k0, subk2_tree> &idx, t_vector data, uint64_t max_hint = 0, uint access_shortcut_size = 0) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_tree_partitioned<t_k0, subk2_tree> tmp(tmp_prefix,false,access_shortcut_size,data);
+        k2_tree_partitioned<t_k0, subk2_tree> tmp(tmp_prefix,false,access_shortcut_size,data, max_hint);
         tmp.swap(idx);
     }
 
@@ -201,7 +201,7 @@ namespace sdsl {
             typename t_rank=typename t_lev::rank_1_type,
             typename t_vector>
     void
-    construct_im(hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> &idx, t_vector data, uint access_shortcut_size = 0) {
+    construct_im(hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> &idx, t_vector data, uint64_t max_hint = 0, uint access_shortcut_size = 0) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
         hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> tmp(tmp_prefix,false,access_shortcut_size,data);
         tmp.swap(idx);
@@ -213,9 +213,9 @@ namespace sdsl {
             typename t_rank=typename t_lev::rank_1_type,
             typename t_vector>
     void
-    construct_im_bottom_up(k2_tree<t_k, t_lev, t_leaf, t_rank> &idx, t_vector data, uint access_shortcut_size = 0) {
+    construct_im_bottom_up(k2_tree<t_k, t_lev, t_leaf, t_rank> &idx, t_vector data, uint64_t max_hint = 0, uint access_shortcut_size = 0) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_tree<t_k, t_lev, t_leaf, t_rank> tmp(tmp_prefix,true,access_shortcut_size,data);
+        k2_tree<t_k, t_lev, t_leaf, t_rank> tmp(tmp_prefix,true,access_shortcut_size,data, max_hint);
         tmp.swap(idx);
     }
 
@@ -223,9 +223,9 @@ namespace sdsl {
             typename subk2_tree,
             typename t_vector>
     void
-    construct_im_bottom_up(k2_tree_partitioned<t_k0, subk2_tree> &idx, t_vector data, uint access_shortcut_size = 0) {
+    construct_im_bottom_up(k2_tree_partitioned<t_k0, subk2_tree> &idx, t_vector data, uint64_t max_hint = 0, uint access_shortcut_size = 0) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_tree_partitioned<t_k0, subk2_tree> tmp(tmp_prefix,true,access_shortcut_size,data);
+        k2_tree_partitioned<t_k0, subk2_tree> tmp(tmp_prefix,true,access_shortcut_size,data, max_hint);
         tmp.swap(idx);
     }
 
@@ -238,9 +238,9 @@ namespace sdsl {
             typename t_rank=typename t_lev::rank_1_type,
             typename t_vector>
     void
-    construct_im_bottom_up(hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> &idx, t_vector data, uint access_shortcut_size = 0) {
+    construct_im_bottom_up(hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> &idx, t_vector data, uint64_t max_hint = 0, uint access_shortcut_size = 0) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> tmp(tmp_prefix,true,access_shortcut_size,data);
+        hybrid_k2_tree<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> tmp(tmp_prefix,true,access_shortcut_size,data, max_hint);
         tmp.swap(idx);
     }
 }

@@ -78,61 +78,82 @@ namespace sdsl {
         }*/
 
         template<typename t_vector>
-        hybrid_k2_tree(std::string temp_file_prefix, bool use_counting_sort, uint access_shortcut_size, t_vector &v){
+        hybrid_k2_tree(std::string temp_file_prefix, bool use_counting_sort, uint access_shortcut_size, t_vector &v, uint64_t max_hint = 0){
             this->m_access_shortcut_size = access_shortcut_size;
-                if (v.size() > 0) {
-                    if (use_counting_sort){
-                        k2_tree_base<t_lev,t_leaf,t_rank>::template construct_counting_sort(v, temp_file_prefix);
-                        //construct_bottom_up(v, temp_file_prefix);
-                    } else  {
-                        construct(v, temp_file_prefix);
-                    }
+
+            this->m_tree_height = get_tree_height(v, max_hint);
+
+            if (v.size() > 0) {
+                if (use_counting_sort) {
+                    k2_tree_base<t_lev, t_leaf, t_rank>::template construct_counting_sort(v, temp_file_prefix);
+                    //construct_bottom_up(v, temp_file_prefix);
+                } else {
+                    construct(v, temp_file_prefix);
                 }
+            }
         }
 
         hybrid_k2_tree(int_vector_buffer<> &buf_x,
-                 int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint access_shortcut_size = 0) {
+                 int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint access_shortcut_size = 0, uint64_t max_hint = 0) {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
 
             this->m_access_shortcut_size = access_shortcut_size;
 
-            auto max_element = [](int_vector_buffer<> &buf) {
-                uint64_t max_val = 0;
-                for (auto val : buf) {
-                    max_val = std::max((uint64_t) val, max_val);
-                }
-                return max_val;
+            uint64_t max;
+            if (max_hint != 0){
+                max = max_hint;//temporarily set
+            } else{
+                auto max_element = [](int_vector_buffer<> &buf) {
+                    uint64_t max_val = 0;
+                    for (auto val : buf) {
+                        max_val = std::max((uint64_t) val, max_val);
+                    }
+                    return max_val;
+                };
+
+                auto max_buf_element = [&]() {
+                    uint64_t max_v = 0;
+                    for (auto buf : bufs) {
+                        uint64_t _max_v = max_element(*buf);
+                        max_v = std::max(max_v, _max_v);
+                    }
+                    return max_v;
+                };
+
+                max = max_buf_element();
             };
 
-            auto max_buf_element = [&]() {
-                uint64_t max_v = 0;
-                for (auto buf : bufs) {
-                    uint64_t _max_v = max_element(*buf);
-                    max_v = std::max(max_v, _max_v);
-                }
-                return max_v;
-            };
 
-            uint64_t max = max_buf_element();
-            uint8_t res = 0;
-
-            uint128_t tmp = 1;;
+            uint8_t res = 1;
             if (max <= 1){
                 this->m_max_element = get_k(0)*get_k(0);
             } else {
-                while (tmp < max && res <=64) {
-                    tmp = tmp * get_k(res)*get_k(res);
+
+                this->m_max_element = t_k_l_1;
+                while (this->m_max_element < max) {
+                    uint8_t k;
+                    if (res < t_k_l_1_size){
+                        k = t_k_l_1;
+                    } else if ( (uint) ceil((float) max/this->m_max_element) <= t_k_leaves){
+                        k = t_k_leaves;
+                    } else {
+                        k = t_k_l_2;
+                    }
+
+                    this->m_max_element = this->m_max_element * k;
                     ++res;
                 }
             }
+
+            this->m_tree_height = res;
 
             if (res == 65) {
                 throw std::logic_error("Maximal element of input is too big.");
             }
 
-            if (tmp <= std::numeric_limits<uint32_t>::max()) {
+            if (this->m_max_element <= std::numeric_limits<uint32_t>::max()) {
                 auto v = k2_tree_base<t_lev,t_leaf,t_rank>::template read< uint32_t, uint32_t>(bufs);
                 if (use_counting_sort){
                     k2_tree_base<t_lev,t_leaf,t_rank>::template construct_counting_sort(v, buf_x.filename());
@@ -152,19 +173,6 @@ namespace sdsl {
             if (this->m_access_shortcut_size > 0){
                 //construct_access_shortcut();
             }
-        }
-
-        uint8_t get_tree_height(const std::vector<std::pair<uint32_t, uint32_t>>& v){
-            return get_tree_height_internal(v);
-        }
-        uint8_t get_tree_height(const std::vector<std::pair<uint64_t, uint64_t>>& v){
-            return get_tree_height_internal(v);
-        }
-        uint8_t get_tree_height(const stxxl_64bit_pair_vector& v){
-            return get_tree_height_internal(v);
-        }
-        uint8_t get_tree_height(const stxxl_32bit_pair_vector& v){
-            return get_tree_height_internal(v);
         }
 
         inline uint8_t get_k(uint8_t level) const{
@@ -236,7 +244,6 @@ namespace sdsl {
             using t_e = std::pair<t_x, t_y>;
 
             this->m_size = links.size();
-            this->m_tree_height = get_tree_height(links);
 
             if (this->m_tree_height == 0){//might occur in k2part
                 return;
@@ -320,20 +327,27 @@ namespace sdsl {
         }
 
         template<typename t_tv>
-        uint8_t get_tree_height_internal(const t_tv &v) {
+        uint8_t get_tree_height(const t_tv &v, uint64_t max_seed = 0) {
             using namespace k2_treap_ns;
+            using t_e = typename t_tv::value_type;
+
             if (v.size() == 0) {
                 return 0;
             }
-            using t_e = typename t_tv::value_type;
-            auto tupmax = [](t_e a) {
-                return std::max(a.first, a.second);
-            };
-            auto max_it = std::max_element(std::begin(v), std::end(v), [&](t_e a, t_e b) {
-                return tupmax(a) < tupmax(b);
-            });
 
-            uint64_t max = tupmax(*max_it);
+            uint64_t max;
+            if (max_seed != 0){
+                max = max_seed;
+            } else {
+                auto tupmax = [](t_e a) {
+                    return std::max(a.first, a.second);
+                };
+                auto max_it = std::max_element(std::begin(v), std::end(v), [&](t_e a, t_e b) {
+                    return tupmax(a) < tupmax(b);
+                });
+
+                max = tupmax(*max_it);
+            }
 
             uint8_t res = 1;
             this->m_max_element = t_k_l_1;

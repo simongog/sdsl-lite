@@ -53,7 +53,7 @@ namespace sdsl {
 
     protected:
         uint8_t m_tree_height = 0;
-        uint64_t m_max_element;
+        uint64_t m_max_element = 0;
         std::vector<t_lev> m_levels;
         std::vector<t_rank> m_levels_rank;
 
@@ -70,17 +70,6 @@ namespace sdsl {
 
 
     public :
-
-
-        /**
-         * Constructs the tree corresponding to the points in the links vector by partitioning the input multiple times
-         * @param links
-         * @param temp_file_prefix
-         */
-        virtual uint8_t get_tree_height(const std::vector<std::pair<uint32_t, uint32_t>>&) = 0;
-        virtual uint8_t get_tree_height(const std::vector<std::pair<uint64_t, uint64_t>>&) = 0;
-        virtual uint8_t get_tree_height(const stxxl_64bit_pair_vector&) = 0;
-        virtual uint8_t get_tree_height(const stxxl_32bit_pair_vector&) = 0;
 
         template<typename t_x>
         void direct_links(t_x source_id, std::vector<t_x> &result) const {
@@ -578,7 +567,6 @@ namespace sdsl {
             using t_e = std::pair<t_x, t_y>;
 
             m_size = links.size();
-            m_tree_height = get_tree_height(links);
 
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
