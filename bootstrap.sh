@@ -78,7 +78,7 @@ export CPLUS_INCLUDE_PATH=/local/\${username}/bzip2-1.0.6/build/include/:\$CPLUS
 export CPLUS_INCLUDE_PATH=/local/\${username}/gcc-4.9.3/build/include/:\$CPLUS_INCLUDE_PATH
 export LIBRARY_PATH=/local/\${username}/gcc-4.9.3/build/lib:\$LIBRARY_PATH
 export LIBRARY_PATH=/local/\${username}/gcc-4.9.3/build/lib64:\$LIBRARY_PATH
-export LD_LIBRARY_PATH=/local/\${username}/gcc-4.9.3/build/lib:\$LIBRARY_PATH
-export LD_LIBRARY_PATH=/local/\${username}/gcc-4.9.3/build/lib64:\$LIBRARY_PATH
+export LD_LIBRARY_PATH=/local/\${username}/gcc-4.9.3/build/lib:\$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/local/\${username}/gcc-4.9.3/build/lib64:\$LD_LIBRARY_PATH
 "
 >> ~/.bashrc
