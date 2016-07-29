@@ -59,7 +59,11 @@ int main(int argc, char *argv[]) {
     }
 
     std::string fileName(argv[1]);
-    fileName.append(".graph-txt");
+    if(!boost::algorithm::ends_with(fileName, ".graph-txt"){
+        fileName.append(".graph-txt");
+        std::cout << "Appending .graph-txt to filename as file has to be in .graph-txt format" << std::endl;
+    }
+
     std::fstream fileStream(fileName, std::ios_base::in);
 
     //simple string dictionary
