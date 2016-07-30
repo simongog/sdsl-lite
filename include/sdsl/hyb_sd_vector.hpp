@@ -778,8 +778,7 @@ class hyb_sd_vector
         static constexpr uint16_t block_size = t_block_size;
 
     private:
-        enum class hyb_sd_blocktype : uint8_t
-        {
+        enum class hyb_sd_blocktype : uint8_t {
             EF=0,
             BV=1,
             FULL=2,
@@ -870,7 +869,8 @@ class hyb_sd_vector
                 if (bv[i] == 1) {
                     last_one = i;
                     if (++one_found == t_block_size) {
-                        top_lvl.push_back(i-t_block_size*top_lvl.size());
+                        top_lvl.push_back(i);
+                        //top_lvl.push_back(i-t_block_size*top_lvl.size());
                         one_found = 0;
                     }
                 }
@@ -999,7 +999,9 @@ class hyb_sd_vector
 
         value_type operator[](size_type i)const
         {
-            return rank_1(i+1) - rank_1(i);
+            auto ranks = rank_1({{i+1,i}});
+            return ranks[1]-ranks[0];
+//            return rank_1(i+1) - rank_1(i);
         }
 
         //! Accessing the i-th element of the original bit_vector
@@ -1042,6 +1044,10 @@ class hyb_sd_vector
 
         size_type rank_1(size_type i) const
         {
+//            bool debug = false;
+//            if ( i==2075 or i==2076) {
+//                debug = true;
+//            }
 //std::cout<<"!!! rank_1("<<i<<")"<<std::endl;
             if (i > m_size or m_num_ones == 0) {
 //std::cout<<"!!! i > m_size "<<i<<" > "<<m_size<<std::endl;
@@ -1064,8 +1070,12 @@ class hyb_sd_vector
 // TODO: can we return res+in_block_i if top_value-i==in_block_i ???
 
             auto block_type = static_cast<hyb_sd_blocktype>(m_block_type[block_id]);
+//if (debug) {
+//    std::cout<<"!!! i="<<i<<" block_id="<<block_id<<" res="<<res<<std::endl;
+//    std::cout<<"!!! hyb_sd_blocktype = "<< (int)block_type <<std::endl;
+//}
             if (block_type == hyb_sd_blocktype::FULL) {
-//std::cout<<"!!! hdb_sd_blocktype::FULL"<<std::endl;
+//if (debug) std::cout<<"!!! hyb_sd_blocktype::FULL"<<std::endl;
                 return res + hyb_sd_block_full<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, 0);
             }
 
@@ -1080,7 +1090,9 @@ class hyb_sd_vector
                     res += hyb_sd_block_bv<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     break;
                 case hyb_sd_blocktype::EF:
-//                    std::cout << "!!!single EF in_block_i="<<in_block_i << std::endl;
+//if (debug){
+//    std::cout << "!!!single EF in_block_i="<<in_block_i << std::endl;
+//}
                     res += hyb_sd_block_ef<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     break;
                 case hyb_sd_blocktype::FULL:
@@ -1092,6 +1104,9 @@ class hyb_sd_vector
                     res += hyb_sd_block_rl<t_block_size>::rank_1(m_bottom, m_block_start, block_id, in_block_i, u);
                     break;
             }
+//if (debug) {
+//    std::cout<<"!!!!  res="<<res<<std::endl;
+//}
             return res;
         }
 
