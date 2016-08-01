@@ -16,14 +16,14 @@ typedef struct sFTRep {
 	  uint * levelsIndex;
 	  uint * iniLevel;
 	  uint * rankLevels;
-	  bitRankW32Int * bS;	
+	  bitRankW32Int * bS;
 	  //uint * bits_bitmap;
 	  uint * base;
 	  ushort * base_bits;
 	  uint * tablebase;
 	  uint tamtablebase;
 
-  	
+
 } FTRep;
 
 
@@ -35,3 +35,4 @@ typedef struct sFTRep {
 	uint * decompressFT(FTRep * listRep, uint n);
 	FTRep* loadFT(FILE * flist);
 	void destroyFT(FTRep * listRep);
+    uint getListLength(FTRep *ftrep);

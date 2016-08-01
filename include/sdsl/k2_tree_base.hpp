@@ -33,7 +33,6 @@ namespace sdsl {
     class k2_tree_base {
 
     public:
-        typedef int_vector<>::size_type size_type;
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint32_t, uint32_t>>::result stxxl_32bit_pair_vector;
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint64_t, uint64_t>>::result stxxl_64bit_pair_vector;
 
@@ -60,7 +59,7 @@ namespace sdsl {
         std::vector<t_lev> m_levels;
         std::vector<t_rank> m_levels_rank;
 
-        t_leaf m_leafs;
+        t_leaf m_leaves;
         size_type m_size = 0;
         uint8_t m_access_shortcut_size;
         /** BitArray containing Gog's B vector. */
@@ -78,7 +77,7 @@ namespace sdsl {
         void direct_links(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
 
-            if (m_leafs.size() == 0){
+            if (m_leaves.size() == 0){
                 return;
             }
 
@@ -91,7 +90,7 @@ namespace sdsl {
             result.clear();
 
             //Patological case happening e.g. when using k2part
-            if (m_leafs.size() == 0){
+            if (m_leaves.size() == 0){
                 return;
             }
 
@@ -103,7 +102,7 @@ namespace sdsl {
         void inverse_links(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
 
-            if (m_leafs.size() == 0){
+            if (m_leaves.size() == 0){
                 return;
             }
 
@@ -115,7 +114,7 @@ namespace sdsl {
             using namespace k2_treap_ns;
             result.clear();
 
-            if (m_leafs.size() == 0){
+            if (m_leaves.size() == 0){
                 return;
             }
 
@@ -134,7 +133,7 @@ namespace sdsl {
                 for (int i = 0; i < m_levels_rank.size(); ++i) {
                     m_levels_rank[i].set_vector(&m_levels[i]);
                 }
-                m_leafs = std::move(tr.m_leafs);
+                m_leaves = std::move(tr.m_leaves);
                 m_access_shortcut_size = std::move(tr.m_access_shortcut_size);
                 m_access_shortcut = std::move(tr.m_access_shortcut);
                 m_access_shortcut_rank_01_support = std::move(tr.m_access_shortcut_rank_01_support);
@@ -154,7 +153,7 @@ namespace sdsl {
                 for (uint64_t i = 0; i < m_levels_rank.size(); ++i) {
                     m_levels_rank[i].set_vector(&m_levels[i]);
                 }
-                m_leafs = tr.m_leafs;
+                m_leaves = tr.m_leaves;
                 m_access_shortcut_size = tr.m_access_shortcut_size;
                 m_access_shortcut = tr.m_access_shortcut;
                 m_access_shortcut_rank_01_support = tr.m_access_shortcut_rank_01_support;
@@ -190,13 +189,13 @@ namespace sdsl {
                 }
             }
 
-            if (m_leafs.size() != tr.m_leafs.size()){
-                std::cout << "m_leafs.size() differs" << std::endl;
+            if (m_leaves.size() != tr.m_leaves.size()){
+                std::cout << "m_leaves.size() differs" << std::endl;
                 return false;
             }
-            for (uint i = 0; i < m_leafs.size(); ++i) {
-                if (m_leafs[i] != tr.m_leafs[i]){
-                    std::cout << "m_leafs vectors differ at " << i << std::endl;
+            for (uint i = 0; i < m_leaves.size(); ++i) {
+                if (m_leaves[i] != tr.m_leaves[i]){
+                    std::cout << "m_leaves vectors differ at " << i << std::endl;
                     return false;
                 }
 
@@ -251,7 +250,7 @@ namespace sdsl {
                 m_levels_rank.resize(m_levels_size);
                 tr.m_levels_rank.resize(tr_m_levels_size);
 
-                m_leafs.swap(tr.m_leafs);
+                m_leaves.swap(tr.m_leaves);
                 std::swap(m_access_shortcut_size, tr.m_access_shortcut_size);
                 m_access_shortcut.swap(tr.m_access_shortcut);
                 util::swap_support(m_access_shortcut_rank_01_support, tr.m_access_shortcut_rank_01_support,
@@ -261,7 +260,7 @@ namespace sdsl {
             }
         }
 
-        //! Serializes the data structure into the given ostream
+        virtual //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream &out, structure_tree_node *v = nullptr,
                             std::string name = "") const {
             structure_tree_node *child = structure_tree::add_child(
@@ -277,7 +276,7 @@ namespace sdsl {
                 for (int i = 0; i < m_tree_height -1; ++i) {
                     written_bytes += m_levels_rank[i].serialize(out, child, "levels_rank");
                 }
-                written_bytes += m_leafs.serialize(out, child, "leafv");
+                written_bytes += m_leaves.serialize(out, child, "leafv");
             }
             written_bytes += write_member(m_access_shortcut_size, out, child, "max");
             if (m_access_shortcut_size > 0){
@@ -289,7 +288,7 @@ namespace sdsl {
             return written_bytes;
         }
 
-        //! Loads the data structure from the given istream.
+        virtual //! Loads the data structure from the given istream.
         void load(std::istream &in) {
             read_member(m_tree_height, in);
             read_member(m_size, in);
@@ -306,7 +305,7 @@ namespace sdsl {
                     m_levels_rank[i].load(in);
                     m_levels_rank[i].set_vector(&m_levels[i]);
                 }
-                m_leafs.load(in);
+                m_leaves.load(in);
             }
             read_member( m_access_shortcut_size, in);
             if (m_access_shortcut_size > 0){
@@ -348,7 +347,7 @@ namespace sdsl {
 
             if (this->is_leaf_level(level)){
                 for (int j = 0; j < k; ++j) {
-                    if (m_leafs[y+j] == 1){
+                    if (m_leaves[y+j] == 1){
                         result.push_back(column_offset+j);
                     }
                 }
@@ -390,7 +389,7 @@ namespace sdsl {
 
                 if (is_leaf_level(level)){
                     for (int j = 0; j < k; ++j) {
-                        if (m_leafs[y+j] == 1){
+                        if (m_leaves[y+j] == 1){
                             result.push_back(column_offset+j);
                         }
                     }
@@ -430,7 +429,7 @@ namespace sdsl {
 
             if (is_leaf_level(level)) {
                 for (int j = 0; j < k; ++j) {
-                    if (m_leafs[y + j * k] == 1) {
+                    if (m_leaves[y + j * k] == 1) {
                         result.push_back(row_offset+j);
                     }
                 }
@@ -472,7 +471,7 @@ namespace sdsl {
 
                 if (is_leaf_level(level)) {
                     for (int j = 0; j < k; ++j) {
-                        if (m_leafs[y + j * k] == 1) {
+                        if (m_leaves[y + j * k] == 1) {
                             result.push_back(row_offset+j);
                         }
                     }
@@ -533,7 +532,7 @@ namespace sdsl {
 
                 bit_vector _leafs;
                 _leafs.swap(leafs);
-                m_leafs = t_leaf(_leafs);
+                m_leaves = t_leaf(_leafs);
             }
 
             m_levels_rank.resize(m_levels.size());
@@ -735,7 +734,7 @@ namespace sdsl {
                 for (size_t i = 0; i < k; ++i) {
                     auto _x = (x + i * submatrix_size);
                     for (size_t j = 0; j < k; ++j) {
-                        if (m_leafs[root.idx + k * i + j]) {
+                        if (m_leaves[root.idx + k * i + j]) {
                             Impl::add_to_result_if_relevant(source_id, submatrix_size, y, _x, j, result);
                         }
                     }

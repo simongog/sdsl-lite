@@ -169,7 +169,7 @@ namespace sdsl {
         bool check_link(std::pair<t_x,t_y> link) const{
 
             //Patological case happening e.g. when using k2part
-            if (this->m_leafs.size() == 0){
+            if (this->m_leaves.size() == 0){
                 return false;
             }
 
@@ -198,7 +198,7 @@ namespace sdsl {
             int64_t y = index + t_k * (p/current_submatrix_size) + (q/current_submatrix_size);
 
             if (this->is_leaf_level(level)){
-                return this->m_leafs[y];
+                return this->m_leaves[y];
             } else if (this->m_levels[level][y]) {
                 return check_link_internal(level+1, p % current_submatrix_size, q % current_submatrix_size, this->get_child_index(0, y, level));
             } else {

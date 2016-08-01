@@ -11,3 +11,5 @@ install(TARGETS dacs
   LIBRARY DESTINATION lib
   COMPONENT libraries
 )
+
+set(DACS_INCLUDE_DIR, ${DACS_SRC_FILES}/../include)

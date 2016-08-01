@@ -12,14 +12,18 @@ message("Boost root set to: ${BOOST_ROOT}")
 
 find_or_download_package(Boost Boost boost COMPONENTS system filesystem regex)
 
+message("DACS_INCLUDE_DIR: ${DACS_INCLUDE_DIR}")
+message("DACS_SRC_DIR: ${DACS_SRC_DIR}")
+
 INCLUDE_DIRECTORIES(
         ${CMAKE_CURRENT_BINARY_DIR}/../external/libdivsufsort/include
         ${Boost_INCLUDE_DIRS}
         ${gtest_SOURCE_DIR}/include
         ${STXXL_INCLUDE_DIRS}
+        ${DACS_INCLUDE_DIR}
         )
 
-LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64 stxxl boost)
+LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64 stxxl boost dacs)
 
 # Set compiler flags to show all warnings (MSVC and GCC)
 if(MSVC)

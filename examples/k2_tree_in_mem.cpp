@@ -26,7 +26,9 @@ int main()
     k2_rrr k2treap;
     construct_im_bottom_up(k2treap, coords);
 
-    cout << "Points in the k2treap: " << k2treap.size() << endl;
+    const shared_ptr<k2_tree_hybrid_compressed<4,2,2,2, bit_vector, rrr_vector<63>>> &compressed_tree = k2treap.compress_leaves();
+
+    cout << "Points in the k2treap: " << compressed_tree->size() << endl;
 
     std::vector<uint32_t> result;
 
@@ -36,28 +38,35 @@ int main()
     std::pair<uint64_t, uint64_t> asd = std::make_pair(4,5);
     //bool asd2 = k2treap.check_link(asd);
 
-    /*
+
     for (int i = 0; i < 15; ++i) {
         for (int j = 0; j < 15; ++j) {
-            if (k2treap.check_link(std::make_pair(i,j))){
+            if (compressed_tree->check_link(std::make_pair(i,j))){
                 std::cout << 1 << " ";
             } else {
                 std::cout << 0 << " ";
             }
         }
         std::cout << "\r\n";
-    }*/
+    }
 
     k2treap.direct_links((uint32_t) 1, result);
 
     for (uint32_t i = 0; i < 16; i++){
-        k2treap.direct_links2(i, result);
+        compressed_tree->direct_links2(i, result);
         print(result, i);
     }
 
-    store_to_file(k2treap, "tmp.tmp");
+    std::cout << "inverse links" << std::endl;
 
-    k2_rrr k2treap2;
+    for (uint32_t i = 0; i < 16; i++){
+        compressed_tree->inverse_links2(i, result);
+        print(result, i);
+    }
+
+    store_to_file(compressed_tree.get(), "tmp.tmp");
+
+    k2_tree_hybrid_compressed<4,2,2,2, bit_vector, rrr_vector<63>> k2treap2;
     load_from_file(k2treap2, "tmp.tmp");
 
     sdsl::remove("tmp.tmp");

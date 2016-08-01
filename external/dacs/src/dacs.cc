@@ -20,17 +20,17 @@ extern "C" {
  * Saves a value into an ofstream.
  */
 template <typename T>
-void SaveValue(std::ofstream *out, T val) {
-  out->write(reinterpret_cast<char *>(&val), sizeof(T));
+void SaveValue(std::ostream &out, T val) {
+  out.write(reinterpret_cast<char *>(&val), sizeof(T));
 }
 
 /* 
  * Loads a value from an istream.
  */
 template <typename T>
-T LoadValue(std::ifstream *in) {
+T LoadValue(std::istream& in) {
   T ret;
-  in->read(reinterpret_cast<char *>(&ret), sizeof(T));
+  in.read(reinterpret_cast<char *>(&ret), sizeof(T));
   return ret;
 }
 
@@ -38,23 +38,23 @@ T LoadValue(std::ifstream *in) {
  * Saves len values into an ofstream.
  */
 template <typename T>
-void SaveValue(std::ofstream *out, T *val, size_t length) {
-  out->write(reinterpret_cast<char *>(val), length * sizeof(T));
+void SaveValue(std::ostream& out, T *val, size_t length) {
+  out.write(reinterpret_cast<char *>(val), length * sizeof(T));
 }
 
 /* 
  * Loads len values from an istream.
  */
 template <typename T>
-T *LoadValue(std::ifstream *in, size_t length) {
+T *LoadValue(std::istream& in, size_t length) {
   T *ret = new T[length];
-  in->read(reinterpret_cast<char *>(ret), length * sizeof(T));
+  in.read(reinterpret_cast<char *>(ret), length * sizeof(T));
   return ret;
 }
 
 
 
-void save_bitrank(bitRankW32Int * br, std::ofstream *out) {
+void save_bitrank(bitRankW32Int * br, std::ostream& out) {
 	uint s,n;
 	s=br->s;
 	n=br->n;
@@ -64,7 +64,7 @@ void save_bitrank(bitRankW32Int * br, std::ofstream *out) {
   SaveValue(out, br->Rs, n/s+1);
 }
 
-void load_bitrank(bitRankW32Int * br, std::ifstream *in) {
+void load_bitrank(bitRankW32Int * br, std::istream& in) {
   br->n = LoadValue<uint>(in);
   br->b=32;    
   uint b=br->b;                      // b is a word
@@ -75,10 +75,10 @@ void load_bitrank(bitRankW32Int * br, std::ifstream *in) {
   br->integers = n/W;
   br->data= (uint *) malloc(sizeof( uint) *(n/W+1));
 
-  in->read(reinterpret_cast<char *>(br->data),sizeof(uint)*(br->n/W+1));
+  in.read(reinterpret_cast<char *>(br->data),sizeof(uint)*(br->n/W+1));
   br->owner = 1;
   br->Rs=(uint*)malloc(sizeof(uint)*(n/s+1));
-  in->read(reinterpret_cast<char *>(br->Rs),sizeof(uint)*(n/s+1));
+  in.read(reinterpret_cast<char *>(br->Rs),sizeof(uint)*(n/s+1));
 }
 
 bool equalsRank(bitRankW32Int *lhs, bitRankW32Int *rhs) {
@@ -96,6 +96,10 @@ bool equalsRank(bitRankW32Int *lhs, bitRankW32Int *rhs) {
       return false;
 
   return true;
+}
+
+uint getListLength(FTRep * ftrep){
+    return ftrep->listLength;
 }
 bool equalsFT(FTRep *lhs, FTRep *rhs) {
   if (lhs->listLength != rhs->listLength || lhs->nLevels != rhs->nLevels ||
@@ -124,7 +128,7 @@ bool equalsFT(FTRep *lhs, FTRep *rhs) {
   return equalsRank(lhs->bS, rhs->bS);
 }
 
-void SaveFT(std::ofstream *out, FTRep *rep) {
+void SaveFT(std::ostream& out, FTRep *rep) {
 	SaveValue(out, rep->listLength);
 	SaveValue(out, rep->nLevels);
 	SaveValue(out, rep->tamCode);
@@ -141,7 +145,7 @@ void SaveFT(std::ofstream *out, FTRep *rep) {
 	save_bitrank(rep->bS, out);
 }
 
-FTRep* LoadFT(std::ifstream *in) {
+FTRep* LoadFT(std::istream& in) {
 	FTRep * rep = (FTRep *) malloc(sizeof(struct sFTRep));
 	rep->listLength = LoadValue<uint>(in);
 	rep->nLevels = LoadValue<byte>(in);
@@ -149,27 +153,27 @@ FTRep* LoadFT(std::ifstream *in) {
 	
 	rep->tamtablebase = LoadValue<uint>(in);
 	rep->tablebase = (uint *) malloc(sizeof(uint)*rep->tamtablebase);
-	in->read(reinterpret_cast<char *>(rep->tablebase), sizeof(uint)*rep->tamtablebase);	
+	in.read(reinterpret_cast<char *>(rep->tablebase), sizeof(uint)*rep->tamtablebase);
 	
 	rep->base_bits = (ushort *) malloc(sizeof(ushort)*rep->nLevels);
-	in->read(reinterpret_cast<char *>(rep->base_bits),sizeof(ushort)*rep->nLevels);
+	in.read(reinterpret_cast<char *>(rep->base_bits),sizeof(ushort)*rep->nLevels);
 	
 	
 	rep->base = (uint *) malloc(sizeof(uint)*rep->nLevels);
-	in->read(reinterpret_cast<char *>(rep->base),sizeof(uint)*rep->nLevels);
+	in.read(reinterpret_cast<char *>(rep->base),sizeof(uint)*rep->nLevels);
 	
 	
 	rep->levelsIndex = (uint *) malloc(sizeof(uint)*(rep->nLevels+1));
-	in->read(reinterpret_cast<char *>(rep->levelsIndex),sizeof(uint)*(rep->nLevels+1));
+	in.read(reinterpret_cast<char *>(rep->levelsIndex),sizeof(uint)*(rep->nLevels+1));
 	
 	rep->iniLevel = (uint *) malloc(sizeof(uint)*rep->nLevels);
-	in->read(reinterpret_cast<char *>(rep->iniLevel),sizeof(uint)*rep->nLevels);
+	in.read(reinterpret_cast<char *>(rep->iniLevel),sizeof(uint)*rep->nLevels);
 
 	rep->rankLevels = (uint *) malloc(sizeof(uint)*(rep->nLevels));
-	in->read(reinterpret_cast<char *>(rep->rankLevels),sizeof(uint)*rep->nLevels);
+	in.read(reinterpret_cast<char *>(rep->rankLevels),sizeof(uint)*rep->nLevels);
 	
 	rep->levels = (uint *) malloc(sizeof(uint)*(rep->tamCode/W+1));	
-	in->read(reinterpret_cast<char *>(rep->levels),sizeof(uint)*(rep->tamCode/W+1));
+	in.read(reinterpret_cast<char *>(rep->levels),sizeof(uint)*(rep->tamCode/W+1));
 		
 	
 	rep->bS = (bitRankW32Int *) malloc(sizeof(struct sbitRankW32Int));

@@ -34,7 +34,7 @@ void destroyFT(FTRep * listRep);
  * @param out Output stream.
  * @param rep DAC representation.
  */
-void SaveFT(std::ofstream *out, FTRep *rep);
+void SaveFT(std::ostream& out, FTRep *rep);
 /**
  * Loads DAC from file
  *
@@ -42,6 +42,7 @@ void SaveFT(std::ofstream *out, FTRep *rep);
  * @return Pointer to representation. The caller must take the responsibility
  * to free the memory with destroyFT.
  */
-FTRep *LoadFT(std::ifstream *in);
+FTRep *LoadFT(std::istream& in);
 bool equalsFT(FTRep *lhs, FTRep *rhs);
+uint getListLength(FTRep *ftrep);
 #endif  // INCLUDE_DACS_H_
