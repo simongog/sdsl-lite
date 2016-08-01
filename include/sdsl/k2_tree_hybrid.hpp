@@ -52,7 +52,7 @@ namespace sdsl {
             typename t_lev=bit_vector,
             typename t_leaf=bit_vector,
             typename t_rank=typename t_lev::rank_1_type>
-    class hybrid_k2_tree : public k2_tree_base<t_lev,t_leaf,t_rank> {
+    class k2_tree_hybrid : public k2_tree_base<t_lev,t_leaf,t_rank> {
         static_assert(t_k_l_1 > 1, "t_k has to be larger than 1.");
         static_assert(t_k_l_1 <= 16, "t_k has to be smaller than 17.");
         static_assert(t_k_l_2 > 1, "t_k has to be larger than 1.");
@@ -67,18 +67,18 @@ namespace sdsl {
         using k2_tree_base<t_lev,t_leaf,t_rank>::operator=;
         using k2_tree_base<t_lev,t_leaf,t_rank>::operator==;
 
-        hybrid_k2_tree() = default;
+        k2_tree_hybrid() = default;
 
-        /*hybrid_k2_tree(const hybrid_k2_tree &tr) {
+        /*k2_tree_hybrid(const k2_tree_hybrid &tr) {
             *this = tr;
         }
 
-        hybrid_k2_tree(hybrid_k2_tree &&tr) {
+        k2_tree_hybrid(k2_tree_hybrid &&tr) {
             *this = std::move(tr);
         }*/
 
         template<typename t_vector>
-        hybrid_k2_tree(std::string temp_file_prefix, bool use_counting_sort, uint access_shortcut_size, t_vector &v, uint64_t max_hint = 0){
+        k2_tree_hybrid(std::string temp_file_prefix, bool use_counting_sort, uint access_shortcut_size, t_vector &v, uint64_t max_hint = 0){
             this->m_access_shortcut_size = access_shortcut_size;
 
             this->m_tree_height = get_tree_height(v, max_hint);
@@ -93,7 +93,7 @@ namespace sdsl {
             }
         }
 
-        hybrid_k2_tree(int_vector_buffer<> &buf_x,
+        k2_tree_hybrid(int_vector_buffer<> &buf_x,
                  int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint access_shortcut_size = 0, uint64_t max_hint = 0) {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;

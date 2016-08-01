@@ -10,7 +10,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
 #include <sys/times.h>
-#include <sdsl/hybrid_k2_tree.hpp>
+#include <sdsl/k2_tree_hybrid.hpp>
 
 using std::ifstream;
 using std::cout;

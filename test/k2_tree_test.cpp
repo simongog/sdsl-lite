@@ -18,12 +18,12 @@ namespace {
 
     using testing::Types;
 
-    typedef hybrid_k2_tree<2, 2, 2, 2, bit_vector, rrr_vector<63>> hybrid_k2_2222_b_rrr;
-    typedef hybrid_k2_tree<4, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_4524_b_rrr;
-    typedef hybrid_k2_tree<2, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_2528_b_rrr;
-    typedef hybrid_k2_tree<16, 5, 2, 16, bit_vector, rrr_vector<63>> hybrid_k2_165216_b_rrr;
-    typedef hybrid_k2_tree<8, 5, 2, 3, bit_vector, rrr_vector<63>> hybrid_k2_8523_b_rrr;
-    typedef hybrid_k2_tree<3, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_3524_b_rrr;
+    typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, rrr_vector<63>> hybrid_k2_2222_b_rrr;
+    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_4524_b_rrr;
+    typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_2528_b_rrr;
+    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, rrr_vector<63>> hybrid_k2_165216_b_rrr;
+    typedef k2_tree_hybrid<8, 5, 2, 3, bit_vector, rrr_vector<63>> hybrid_k2_8523_b_rrr;
+    typedef k2_tree_hybrid<3, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_3524_b_rrr;
     typedef k2_tree<2, bit_vector> k2;
     typedef k2_tree<2, rrr_vector<63>> k2rrr;
     typedef k2_tree<3, bit_vector> k3;
