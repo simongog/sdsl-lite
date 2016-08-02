@@ -227,7 +227,7 @@ namespace sdsl {
                 uchar *word = new uchar[size];
                 std::fill(word, word + size, 0);
 
-                uint k_leaf_squared = get_k(this->m_tree_height-1) * get_k(this->m_tree_height-1)
+                uint k_leaf_squared = get_k(this->m_tree_height-1) * get_k(this->m_tree_height-1);
                 for (uint j = 0; j < k_leaf_squared ; ++j, ++bit) {
                     if (this->m_leaves[bit])
                         word[j / kUcharBits] |= (uchar) (1 << (j % kUcharBits));

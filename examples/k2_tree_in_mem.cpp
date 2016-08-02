@@ -50,7 +50,7 @@ int main()
         std::cout << "\r\n";
     }
 
-    k2treap.direct_links((uint32_t) 1, result);
+  //  k2treap.direct_links((uint32_t) 1, result);
 
     for (uint32_t i = 0; i < 16; i++){
         compressed_tree->direct_links2(i, result);

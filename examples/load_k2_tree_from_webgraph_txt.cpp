@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "Finished Reading File " << std::endl;
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
         const uint8_t k = 4;
-        typedef k2_tree<k, bit_vector, rrr_vector<63>> k2_rrr;
+        typedef k2_tree_hybrid<k,k,k,k, bit_vector, rrr_vector<63>> k2_rrr;
         k2_rrr k2treap;
 
 
@@ -108,10 +108,19 @@ int main(int argc, char *argv[]) {
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds
 
-        coordinates.clear();
-
         fprintf(stderr, "Initialization time (ms): %f\n", t2);
 
+        coordinates.clear();
+
+
+        double t4 = 0;
+        ticks = (double) sysconf(_SC_CLK_TCK);
+        start_clock();
+        const std::shared_ptr<k2_tree_hybrid_compressed<4,4,4,4, bit_vector, rrr_vector<63>>> &compressed_tree = k2treap.compress_leaves();
+        t4 += stop_clock();
+        t4 *= 1000;
+
+        fprintf(stderr, "Initialization of compressed variant time (ms): %f\n", t4);
 
         std::cerr << "Processing direct neighbour queries\n" << std::endl;
 
@@ -166,8 +175,8 @@ int main(int argc, char *argv[]) {
         std::cerr << "Time per link: " << t3/count2 << "\n";
 
         std::string output_file_name(argv[2]);
-        store_to_file(k2treap,output_file_name);
-        write_structure<HTML_FORMAT>(k2treap,output_file_name+"k_"+std::to_string(k)+".html");
+        //store_to_file(k2treap,output_file_name);
+        //write_structure<HTML_FORMAT>(k2treap,output_file_name+"k_"+std::to_string(k)+".html");
     } else {
         throw "Could not load file";
     }

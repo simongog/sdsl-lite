@@ -40,7 +40,7 @@ else()
 endif()
 
 if( CMAKE_COMPILER_IS_GNUCXX )
-    append_cxx_compiler_flags("-std=c++11 -Wall -Wextra -DNDEBUG" "GCC" CMAKE_CXX_FLAGS)
+    append_cxx_compiler_flags("-std=c++11 -fopenmp -Wall -Wextra -DNDEBUG" "GCC" CMAKE_CXX_FLAGS)
     message(STATUS ${CMAKE_BUILD_TYPE})
     if (CMAKE_BUILD_TYPE MATCHES DEBUG)
         message(STATUS "######################Using GCC in debug mode######################")

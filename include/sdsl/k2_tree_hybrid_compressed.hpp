@@ -152,6 +152,33 @@ namespace sdsl {
             m_comp_leaves = LoadFT(in);
         }
 
+        template<typename t_x>
+        void direct_links2(t_x source_id, std::vector<t_x> &result) const {
+            using namespace k2_treap_ns;
+            result.clear();
+
+            //Patological case happening e.g. when using k2part
+            if (this->m_tree_height == 0){
+                return;
+            }
+
+            //direct_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result);
+            direct_links2_internal_queue(source_id, result);
+        }
+
+        template<typename t_x>
+        void inverse_links2(t_x source_id, std::vector<t_x> &result) const {
+            using namespace k2_treap_ns;
+            result.clear();
+
+            //Patological case happening e.g. when using k2part
+            if (this->m_tree_height == 0){
+                return;
+            }
+
+            //inverse_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result);
+            inverse_links2_internal_queue(source_id, result);
+        }
     private:
         /**
         * Returns word containing the bit at the given position
@@ -161,7 +188,9 @@ namespace sdsl {
         * @return Pointer to the first position of the word.
         */
         inline bool is_leaf_bit_set(uint64_t pos, uint8_t leafK) const {
-            uint iword = accessFT(m_comp_leaves, pos/(leafK*leafK));
+            uint64_t subtree_number = pos/(leafK*leafK);
+            uint iword = accessFT(m_comp_leaves, subtree_number);
+            pos = pos - (subtree_number*leafK*leafK);
             const uchar * word = m_vocabulary->get(iword);
             bool bitSet = ((word[pos/kUcharBits] >> (pos%kUcharBits)) & 1);
             return bitSet;
@@ -176,8 +205,10 @@ namespace sdsl {
         */
         template<typename t_x>
         inline void  check_leaf_bits_direct(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> & result) const {
-            uint iword = accessFT(m_comp_leaves, pos/(leafK*leafK));
+            uint64_t subtree_number = pos/(leafK*leafK);
+            uint iword = accessFT(m_comp_leaves, subtree_number);
             const uchar * word = m_vocabulary->get(iword);
+            pos = pos - (subtree_number*leafK*leafK);
             for (int i = 0; i < leafK; ++i) {
                 if ((word[(pos+i)/kUcharBits] >> ((pos+i)%kUcharBits)) & 1){
                     result.push_back(i+result_offset);
@@ -194,8 +225,10 @@ namespace sdsl {
         */
         template<typename t_x>
         inline void  check_leaf_bits_inverse(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> & result) const {
-            uint iword = accessFT(m_comp_leaves, pos/(leafK*leafK));
+            uint64_t subtree_number = pos/(leafK*leafK);
+            uint iword = accessFT(m_comp_leaves, subtree_number);
             const uchar * word = m_vocabulary->get(iword);
+            pos = pos - (subtree_number*leafK*leafK);
             for (int i = 0; i < get_k(leafK); ++i) {
                 if ((word[(pos+i*get_k(leafK))/kUcharBits] >> ((pos+i*leafK)%kUcharBits)) & 1){
                     result.push_back(i+result_offset);

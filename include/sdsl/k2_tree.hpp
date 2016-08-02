@@ -35,6 +35,7 @@
 #include <sdsl/rank_support.hpp>
 #include <sdsl/rank_support_v.hpp>
 #include <gtest/gtest_prod.h>
+#include <parallel/algorithm>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl {
@@ -312,7 +313,7 @@ namespace sdsl {
                                   + "_" + util::to_string(util::id());
 
             std::cout << "Sorting By Z Order" << std::endl;
-            std::sort(links.begin(), links.end(), [&](const t_e& lhs, const t_e& rhs){
+            __gnu_parallel::sort(links.begin(), links.end(), [&](const t_e& lhs, const t_e& rhs){
                 return sort_by_z_order(lhs, rhs);
             });
 

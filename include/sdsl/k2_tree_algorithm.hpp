@@ -203,7 +203,7 @@ namespace sdsl {
     void
     construct_im(k2_tree_hybrid<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> &idx, t_vector data, uint64_t max_hint = 0, uint access_shortcut_size = 0) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_tree_hybrid<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> tmp(tmp_prefix,false,access_shortcut_size,data);
+        k2_tree_hybrid<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank> tmp(tmp_prefix,false,access_shortcut_size,data, max_hint);
         tmp.swap(idx);
     }
 
