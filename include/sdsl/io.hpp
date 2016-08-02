@@ -92,15 +92,34 @@ size_t write_member(const T& t, std::ostream& out, sdsl::structure_tree_node* v=
     return written_bytes;
 }
 
+// Writes array-typed variable t of length length to stream out
+template<class T>
+size_t write_member(const T* t, size_t length, std::ostream& out, sdsl::structure_tree_node* v=nullptr, std::string name="")
+{
+    sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, util::class_name(t));
+    out.write((char *) t, length * sizeof(T));
+    size_t written_bytes = length * sizeof(t);
+    sdsl::structure_tree::add_size(child, written_bytes);
+    return written_bytes;
+}
+
 // Specialization for std::string
 template<>
 size_t write_member<std::string>(const std::string& t, std::ostream& out, sdsl::structure_tree_node* v, std::string name);
 
-// Writes primitive-typed variable t to stream out
+// Reads primitive-typed variable t from stream om
 template<class T>
 void read_member(T& t, std::istream& in)
 {
     in.read((char*)&t, sizeof(t));
+}
+
+    // Reads array-typed variable t of length length from stream in
+template<class T>
+ void read_member(T* t, size_t length, std::istream& in)
+{
+    t = new T[length];
+    in.read((char *) t, length * sizeof(T));
 }
 
 // Specialization for std::string

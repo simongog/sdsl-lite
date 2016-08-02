@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
             uint targetId = std::stoul(sourceNodeAndTargets[1].c_str()) / 10;//Strange 0 delimited format
             //cout << "adding " << sourceId << "," << targetId << endl;
             x_buffer.push_back(sourceId);
-            y_buffer.push_back(sourceId);
+            y_buffer.push_back(targetId);
         }
 
     } else {

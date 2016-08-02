@@ -20,10 +20,9 @@ INCLUDE_DIRECTORIES(
         ${Boost_INCLUDE_DIRS}
         ${gtest_SOURCE_DIR}/include
         ${STXXL_INCLUDE_DIRS}
-        ${DACS_INCLUDE_DIR}
         )
 
-LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64 stxxl boost dacs)
+LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64 stxxl boost)
 
 # Set compiler flags to show all warnings (MSVC and GCC)
 if(MSVC)

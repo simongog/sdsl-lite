@@ -25,6 +25,5 @@ endif(NOT EXISTS ${gtest_file})
 
 add_subdirectory(googletest)
 add_subdirectory(stxxl)
-add_subdirectory(dacs)
 
    

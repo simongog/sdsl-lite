@@ -35,11 +35,6 @@
 namespace sdsl
 {
     typedef int_vector<>::size_type size_type;
-    typedef unsigned char uchar;
-/** Number of bits in a byte */
-    const uint kByteBits = 8;
-/** Number of bits in an unsigned char */
-    const uint kUcharBits = kByteBits * sizeof(uchar);
 
 namespace k2_treap_ns
 {

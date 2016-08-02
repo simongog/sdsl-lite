@@ -10,7 +10,6 @@
 #ifndef INCLUDE_COMPRESSION_COMPRESSOR_H_
 #define INCLUDE_COMPRESSION_COMPRESSOR_H_
 
-#include "k2_tree_hybrid.hpp"
 #include <sdsl/k2_tree_hash_table.hpp>
 #include <vector>
 #include <algorithm>
@@ -22,7 +21,6 @@
 
 
 namespace sdsl {
-    using std::shared_ptr;
     using namespace k2_treap_ns;
 
 /**
@@ -75,11 +73,11 @@ void FreqVoc(const K2Tree &tree, Fun build) {
       return table[a].weight > table[b].weight;
     });
 
-    shared_ptr<Vocabulary> voc(new Vocabulary(diff_cnt, size));
+    Vocabulary voc(diff_cnt, size);
     for (uint i = 0; i < diff_cnt; ++i) {
       Nword &w = table[posInHash[i]];
       w.codeword = i;
-      voc->assign(i, w.word);
+      voc.assign(i, w.word);
     }
 
     build(table, voc);

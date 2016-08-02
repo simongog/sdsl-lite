@@ -16,20 +16,16 @@
 */
 /*! \file hybrid_k2_tree.hpp
     \brief hybrid_k2_tree.hpp contains a compact hybrid k^2-tree.
-    \author Jan Broß, based on the k2 treap code of Simon Gog
+    \author Jan Broß, based on the k2 treap code of Simon Gog, leaf compression is based on the libk2tree implemenetation which uses DACs impelemented by Brisaboa, Ladra et.al.
 */
 #ifndef INCLUDED_SDSL_HYBRID_K2_TREE
 #define INCLUDED_SDSL_HYBRID_K2_TREE
 
 #include "vectors.hpp"
 #include "bits.hpp"
-#include "k2_tree_helper.hpp"
 #include "k2_tree_base.hpp"
-#include "k2_tree_hybrid_compressed.hpp"
-#include "k2_tree_hash_table.hpp"
+#include "k2_tree_helper.hpp"
 #include "k2_tree_vocabulary.h"
-#include "../../external/dacs/include/dacs.h"
-#include "k2_tree_compressor.hpp"
 #include <tuple>
 #include <algorithm>
 #include <stxxl/vector>
@@ -56,8 +52,10 @@ namespace sdsl {
             uint8_t t_k_leaves,
             typename t_lev=bit_vector,
             typename t_leaf=bit_vector,
+            bool t_comp=false,
             typename t_rank=typename t_lev::rank_1_type>
-    class k2_tree_hybrid : public k2_tree_base<t_lev, t_leaf, t_rank> {
+
+    class k2_tree_hybrid : public k2_tree_base<t_lev, t_leaf, t_rank, t_comp> {
         static_assert(t_k_l_1 > 1, "t_k has to be larger than 1.");
         static_assert(t_k_l_1 <= 16, "t_k has to be smaller than 17.");
         static_assert(t_k_l_2 > 1, "t_k has to be larger than 1.");
@@ -69,8 +67,8 @@ namespace sdsl {
 
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint32_t, uint32_t>>::result stxxl_32bit_pair_vector;
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint64_t, uint64_t>>::result stxxl_64bit_pair_vector;
-        using k2_tree_base<t_lev, t_leaf, t_rank>::operator=;
-        using k2_tree_base<t_lev, t_leaf, t_rank>::operator==;
+        using k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::operator=;
+        using k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::operator==;
 
         k2_tree_hybrid() = default;
 
@@ -91,11 +89,15 @@ namespace sdsl {
 
             if (v.size() > 0) {
                 if (use_counting_sort) {
-                    k2_tree_base<t_lev, t_leaf, t_rank>::template construct_counting_sort(v, temp_file_prefix);
+                    k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template construct_counting_sort(v, temp_file_prefix);
                     //construct_bottom_up(v, temp_file_prefix);
                 } else {
                     construct(v, temp_file_prefix);
                 }
+            }
+
+            if (t_comp){
+                this->compress_leaves();
             }
         }
 
@@ -156,17 +158,17 @@ namespace sdsl {
             }
 
             if (this->m_max_element <= std::numeric_limits<uint32_t>::max()) {
-                auto v = k2_tree_base<t_lev, t_leaf, t_rank>::template read<uint32_t, uint32_t>(bufs);
+                auto v = k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template read<uint32_t, uint32_t>(bufs);
                 if (use_counting_sort) {
-                    k2_tree_base<t_lev, t_leaf, t_rank>::template construct_counting_sort(v, buf_x.filename());
+                    k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template construct_counting_sort(v, buf_x.filename());
                 } else {
                     construct(v, buf_x.filename());
                 }
 
             } else {
-                auto v = k2_tree_base<t_lev, t_leaf, t_rank>::template read<uint64_t, uint64_t>(bufs);
+                auto v = k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template read<uint64_t, uint64_t>(bufs);
                 if (use_counting_sort) {
-                    k2_tree_base<t_lev, t_leaf, t_rank>::template construct_counting_sort(v, buf_x.filename());
+                    k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template construct_counting_sort(v, buf_x.filename());
                 } else {
                     construct(v, buf_x.filename());
                 }
@@ -174,6 +176,10 @@ namespace sdsl {
 
             if (this->m_access_shortcut_size > 0) {
                 //construct_access_shortcut();
+            }
+
+            if (t_comp){
+                this->compress_leaves();
             }
         }
 
@@ -201,113 +207,7 @@ namespace sdsl {
             return check_link_internal(0, this->m_max_element, link.first, link.second, 0);
         }
 
-        std::shared_ptr<k2_tree_hybrid_compressed<t_k_l_1,t_k_l_1_size,t_k_l_2,t_k_leaves,t_lev,t_leaf,t_rank>> compress_leaves() const {
-            std::shared_ptr<k2_tree_hybrid_compressed<t_k_l_1,t_k_l_1_size,t_k_l_2,t_k_leaves,t_lev,t_leaf,t_rank>> t;
-
-            FreqVoc(*this, [&](const HashTable &table,
-                               std::shared_ptr<Vocabulary> voc) {
-                t = compress_leaves(table, voc);
-            });
-            return t;
-        }
-
-        /**
-        * Iterates over the words in the leaf level.
-        *
-        * @param fun Pointer to function, functor or lambda expecting a pointer to
-        * each word.
-        */
-        template<typename Function>
-        void words(Function fun) const {
-            size_t cnt = words_count();
-            uint size = word_size();
-
-            size_t bit = 0;
-            for (size_t i = 0; i < cnt; ++i) {
-                uchar *word = new uchar[size];
-                std::fill(word, word + size, 0);
-
-                uint k_leaf_squared = get_k(this->m_tree_height-1) * get_k(this->m_tree_height-1);
-                for (uint j = 0; j < k_leaf_squared ; ++j, ++bit) {
-                    if (this->m_leaves[bit])
-                        word[j / kUcharBits] |= (uchar) (1 << (j % kUcharBits));
-                }
-                fun(word);
-                delete[] word;
-            }
-        }
-
-        std::shared_ptr<k2_tree_hybrid_compressed<t_k_l_1,t_k_l_1_size,t_k_l_2,t_k_leaves,t_lev,t_leaf,t_rank>> compress_leaves(
-                const HashTable &table,
-                std::shared_ptr<Vocabulary> voc) const {
-            size_t cnt = words_count();
-            uint size = word_size();
-            uint *codewords;
-            try {
-                codewords = new uint[cnt];
-            } catch (std::bad_alloc ba) {
-                std::cerr << "[HybridK2Tree::CompressLeaves] Error: " << ba.what() << "\n";
-                exit(1);
-            }
-
-            size_t i = 0;
-
-            words([&] (const uchar *word) {
-                size_t addr;
-                if (!table.search(word, size, &addr)) {
-                    std::cerr << "[HybridK2Tree::CompressLeaves] Error: Word not found\n";
-                    exit(1);
-                }
-                codewords[i++] = table[addr].codeword;
-            });
-
-            FTRep *compressL;
-            try {
-                // TODO Port to 64-bits
-                compressL = createFT(codewords, cnt);
-            } catch (...) {
-                std::cerr << "[HybridK2Tree::CompressLeaves] Error: Could not create DAC\n";
-                exit(1);
-            }
-
-            delete[] codewords;
-
-            return std::shared_ptr<k2_tree_hybrid_compressed<t_k_l_1,t_k_l_1_size,t_k_l_2,t_k_leaves,t_lev,t_leaf,t_rank>>(
-                    new k2_tree_hybrid_compressed<t_k_l_1, t_k_l_1_size, t_k_l_2, t_k_leaves, t_lev, t_leaf, t_rank>(
-                            this->m_levels, this->m_levels_rank, compressL, voc,
-                            this->m_tree_height, this->m_max_element, this->m_size, this->m_access_shortcut_size,
-                            this->m_access_shortcut, this->m_access_shortcut_rank_01_support, this->m_access_shortcut_select_1_support)
-            );
-        }
-
-        /**
-        * Returns the number of words of \f$k_leaves^2\f$ bits in the leaf level.
-        *
-        * @return Number of words.
-        */
-        size_t words_count() const {
-            return this->m_leaves.size() / get_k(this->m_tree_height-1) / get_k(this->m_tree_height-1);
-        }
-
-        /**
-        * Return the number of bytes necessary to store a word.
-        *
-        * @return Size of a word.
-        */
-        uint word_size() const {
-            return div_ceil((uint) get_k(this->m_tree_height-1) * get_k(this->m_tree_height-1), kUcharBits);
-        }
-
     private:
-
-        /**
-        * Calculates the smalles integer gretear or equal to x/y
-        */
-        template<typename T>
-        inline T div_ceil(T x, T y) const {
-            static_assert(std::is_integral<T>::value, "Parameter is not integral type");
-            return (x % y) ? x / y + 1 : x / y;
-        }
 
         /**
          * Checks wether the edge p-->q exists recursively

@@ -49,8 +49,10 @@ namespace sdsl {
     template<uint8_t t_k,
             typename t_lev=bit_vector,
             typename t_leaf=bit_vector,
+            bool t_comp=false,
             typename t_rank=typename t_lev::rank_1_type>
-    class k2_tree : public k2_tree_base<t_lev,t_leaf,t_rank> {
+
+    class k2_tree : public k2_tree_base<t_lev, t_leaf, t_rank, t_comp> {
         static_assert(t_k > 1, "t_k has to be larger than 1.");
         static_assert(t_k <= 16, "t_k has to be smaller than 17.");
 
@@ -70,8 +72,8 @@ namespace sdsl {
         using point_type = k2_treap_ns::point_type;
         using t_p = k2_treap_ns::t_p;
 
-        using k2_tree_base<t_lev,t_leaf,t_rank>::operator=;
-        using k2_tree_base<t_lev,t_leaf,t_rank>::operator==;
+        using k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::operator=;
+        using k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::operator==;
 
         enum {
             k = t_k
@@ -94,11 +96,19 @@ namespace sdsl {
 
             if (v.size() > 0) {
                 if (use_counting_sort){
-                    k2_tree_base<t_lev,t_leaf,t_rank>::template construct_counting_sort(v, temp_file_prefix);
+                    k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template construct_counting_sort(v, temp_file_prefix);
                     //construct_bottom_up(v, temp_file_prefix);
                 } else  {
                     construct(v, temp_file_prefix);
                 }
+            }
+
+            if (this->m_access_shortcut_size > 0){
+                construct_access_shortcut();
+            }
+
+            if (t_comp){
+                this->compress_leaves();
             }
         }
 
@@ -138,17 +148,17 @@ namespace sdsl {
             this->m_max_element = precomp<t_k>::exp(res);
 
             if (precomp<t_k>::exp(res) <= std::numeric_limits<uint32_t>::max()) {
-                auto v = k2_tree_base<t_lev,t_leaf,t_rank>::template read< uint32_t, uint32_t>(bufs);
+                auto v = k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template read< uint32_t, uint32_t>(bufs);
                 if (use_counting_sort){
-                    k2_tree_base<t_lev,t_leaf,t_rank>::template construct_counting_sort<std::vector<std::pair<uint32_t, uint32_t>>>(v, buf_x.filename());
+                    k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template construct_counting_sort<std::vector<std::pair<uint32_t, uint32_t>>>(v, buf_x.filename());
                 } else  {
                     construct(v, buf_x.filename());
                 }
 
             } else {
-                auto v = k2_tree_base<t_lev,t_leaf,t_rank>::template read< uint64_t, uint64_t>(bufs);
+                auto v = k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template read< uint64_t, uint64_t>(bufs);
                 if (use_counting_sort){
-                    k2_tree_base<t_lev,t_leaf,t_rank>::template construct_counting_sort<std::vector<std::pair<uint64_t, uint64_t>>>(v, buf_x.filename());
+                    k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template construct_counting_sort<std::vector<std::pair<uint64_t, uint64_t>>>(v, buf_x.filename());
                 } else  {
                     construct(v, buf_x.filename());
                 }
@@ -156,6 +166,10 @@ namespace sdsl {
 
             if (this->m_access_shortcut_size > 0){
                 construct_access_shortcut();
+            }
+
+            if (t_comp){
+                this->compress_leaves();
             }
         }
 
