@@ -10,7 +10,7 @@
 #include "bits.hpp"
 #include "../../external/dacs/include/dacs.h"
 #include "../../external/dacs/src/basic.h"
-#include "k2_tree_vocabulary.h"
+#include "k2_tree_vocabulary.hpp"
 #include "k2_tree_helper.hpp"
 #include "k2_tree_hash_table.hpp"
 #include "k2_tree_compressor.hpp"

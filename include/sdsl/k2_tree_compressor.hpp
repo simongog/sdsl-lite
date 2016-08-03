@@ -17,7 +17,7 @@
 #include <iostream>
 #include <climits>
 #include "k2_tree_helper.hpp"
-#include "k2_tree_vocabulary.h"
+#include "k2_tree_vocabulary.hpp"
 
 
 namespace sdsl {

@@ -25,7 +25,7 @@
 #include "bits.hpp"
 #include "k2_tree_base.hpp"
 #include "k2_tree_helper.hpp"
-#include "k2_tree_vocabulary.h"
+#include "k2_tree_vocabulary.hpp"
 #include <tuple>
 #include <algorithm>
 #include <stxxl/vector>
