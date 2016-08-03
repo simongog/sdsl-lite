@@ -17,7 +17,7 @@ void print(std::vector<uint32_t>& to_print, uint32_t source_node){
 
 int main()
 {
-    typedef k2_tree_hybrid<4,2,2,2, bit_vector, rrr_vector<63>, true> k2_rrr;
+    typedef k2_tree_hybrid<4,1,2,2, bit_vector, rrr_vector<63>, true> k2_rrr;
     //typedef k2_tree_partitioned<3, 2, bit_vector, rrr_vector<63>> k2_rrr;
 
 

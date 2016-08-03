@@ -82,10 +82,12 @@ namespace sdsl {
             uint *cont;
             uint *contB;
 
-            ushort *kvalues;
+            ushort* kvalues;
             uint nkvalues;
 
+            m_listLength = listLength;
             register uint i;
+            int j, k;
             uint l;
             uint value, newvalue;
             uint bits_BS_len = 0;
@@ -93,174 +95,176 @@ namespace sdsl {
             //ushort kvalues[4] = {0,2,4,8};
             //uint nkvalues=4;
 
-            uint maxInt = 0;
+            uint maxInt=0;
 
-            for (i = 0; i < listLength; i++)
-                if (maxInt < list[i])
+            for(i=0; i < listLength; i++)
+                if(maxInt < list[i])
                     maxInt = list[i];
 
             //fprintf(stderr,"maxInt : %d\n",maxInt);
 
             maxInt++;
 
-            uint *weight = (uint *) malloc(sizeof(uint) * maxInt);
+            uint * weight = (uint *) malloc(sizeof(uint)*maxInt);
 
 
-            for (l = 0; l < maxInt; l++)
+            for(l=0; l<maxInt; l++)
                 weight[l] = 0;
 
-            for (i = 0; i < listLength; i++)
+            for(i=0;i<listLength;i++)
                 weight[list[i]]++;
 
 
-            uint *acumFreq = (uint *) malloc(sizeof(uint) * (maxInt + 1));
+            uint * acumFreq = (uint *) malloc(sizeof(uint)*(maxInt+1));
 
-            acumFreq[0] = 0;
-            for (i = 0; i < maxInt; i++)
-                acumFreq[i + 1] = acumFreq[i] + weight[i];
+            acumFreq[0]=0;
+            for(i=0;i<maxInt;i++)
+                acumFreq[i+1]=acumFreq[i]+weight[i];
 
             free(weight);
 
 
-            kvalues = optimizationk(acumFreq, maxInt, &nkvalues);
+            kvalues = optimizationk(acumFreq,maxInt,&nkvalues);
 
 
             free(acumFreq);
 
 
-            ushort kval;
-            uint oldval = 0;
-            uint newval = 0;
 
-            i = 0;
-            uint multval = 1;
-            do {
-                oldval = newval;
-                if (i >= nkvalues) {
-                    kval = 1 << (kvalues[nkvalues - 1]);
+            ushort kval;
+            uint oldval =0;
+            uint newval =0;
+
+            i=0;
+            uint multval=1;
+            do{
+                oldval=newval;
+                if(i>=nkvalues){
+                    kval = 1<<(kvalues[nkvalues-1]);
                 }
                 else
-                    kval = 1 << (kvalues[i]);
-                multval *= kval;
-                newval = oldval + multval;//mypow(kval,i);
+                    kval=1<<(kvalues[i]);
+                multval*=kval;
+                newval = oldval+multval;//mypow(kval,i);
                 i++;
             }
-            while (oldval < newval);
+            while(oldval<newval);
 
             m_tamtablebase = i;
-            m_tablebase = (uint *) malloc(sizeof(uint) * m_tamtablebase);
-            levelSizeAux = (uint *) malloc(sizeof(uint) * m_tamtablebase);
-            cont = (uint *) malloc(sizeof(uint) * m_tamtablebase);
-            contB = (uint *) malloc(sizeof(uint) * m_tamtablebase);
+            m_tablebase = (uint *) malloc(sizeof(uint)*m_tamtablebase);
+            levelSizeAux = (uint *) malloc(sizeof(uint)*m_tamtablebase);
+            cont = (uint *) malloc(sizeof(uint)*m_tamtablebase);
+            contB = (uint *) malloc(sizeof(uint)*m_tamtablebase);
 
-            oldval = 0;
-            newval = 0;
-            multval = 1;
-            for (i = 0; i < m_tamtablebase; i++) {
-                oldval = newval;
-                if (i >= nkvalues) {
-                    kval = 1 << (kvalues[nkvalues - 1]);
+            oldval =0;
+            newval =0;
+            multval=1;
+            for(i=0;i<m_tamtablebase;i++){
+                oldval=newval;
+                if(i>=nkvalues){
+                    kval = 1<<(kvalues[nkvalues-1]);
                 }
                 else
-                    kval = 1 << (kvalues[i]);
-                multval *= kval;
-                newval = oldval + multval;//mypow(kval,i);
-                m_tablebase[i] = oldval;
+                    kval=1<<(kvalues[i]);
+                multval*=kval;
+                newval = oldval+multval;//mypow(kval,i);
+                m_tablebase[i]=oldval;
             }
 
 
-            for (i = 0; i < m_tamtablebase; i++) {
-                levelSizeAux[i] = 0;
+            for(i=0;i<m_tamtablebase;i++){
+                levelSizeAux[i]=0;
 
             }
             //Reservando espacio para los niveles
 
-            for (i = 0; i < listLength; i++) {
+            for (i=0;i<listLength;i++){
                 value = list[i];
-                for (uint j = 0; j < m_tamtablebase; j++)
-                    if (value >= m_tablebase[j])
+                for(j=0;j<m_tamtablebase;j++)
+                    if(value>=m_tablebase[j])
                         levelSizeAux[j]++;
             }
             //
-            uint o = 0;
+            j=0;
             //	//Contadores
-            while ((o < m_tamtablebase) && (levelSizeAux[o] != 0)) {
-                o++;
+            while((j<m_tamtablebase)&&(levelSizeAux[j]!=0)){
+                j++;
             }
-            m_nLevels = o;
-            m_levelsIndex = (uint *) malloc(sizeof(uint) * (m_nLevels + 1));
-            bits_BS_len = 0;
+            m_nLevels = j;
+            m_levelsIndex = (uint *) malloc(sizeof(uint)*(m_nLevels+1));
+            bits_BS_len =0;
 
-            m_base = (uint *) malloc(sizeof(uint) * m_nLevels);
-            m_base_bits = (ushort *) malloc(sizeof(ushort) * m_nLevels);
+            m_base = (uint *)malloc(sizeof(uint)*m_nLevels);
+            m_base_bits = (ushort *)malloc(sizeof(ushort)*m_nLevels);
 
-            for (i = 0; i < m_nLevels; i++) {
-                if (i >= nkvalues) {
-                    m_base[i] = 1 << (kvalues[nkvalues - 1]);
-                    m_base_bits[i] = kvalues[nkvalues - 1];
+            for(i=0;i<m_nLevels;i++){
+                if(i>=nkvalues){
+                    m_base[i]=1<<(kvalues[nkvalues-1]);
+                    m_base_bits[i]=kvalues[nkvalues-1];
                 }
-                else {
-                    m_base[i] = 1 << (kvalues[i]);
-                    m_base_bits[i] = kvalues[i];
+                else{
+                    m_base[i]=1<<(kvalues[i]);
+                    m_base_bits[i]=kvalues[i];
                 }
             }
 
-            uint tamLevels = 0;
+            uint tamLevels =0;
 
 
-            tamLevels = 0;
-            for (i = 0; i < m_nLevels; i++)
-                tamLevels += m_base_bits[i] * levelSizeAux[i];
 
-            m_iniLevel = (uint *) malloc(sizeof(uint) * m_nLevels);
-            m_tamCode = tamLevels;
-            uint indexLevel = 0;
-            m_levelsIndex[0] = 0;
-            for (uint j = 0; j < m_nLevels; j++) {
-                m_levelsIndex[j + 1] = m_levelsIndex[j] + levelSizeAux[j];
+            tamLevels=0;
+            for(i=0;i<m_nLevels;i++)
+                tamLevels+=m_base_bits[i]*levelSizeAux[i];
+
+            m_iniLevel = (uint *)malloc(sizeof(uint)*m_nLevels);
+            m_tamCode=tamLevels;
+            uint indexLevel=0;
+            m_levelsIndex[0]=0;
+            for(j=0;j<m_nLevels;j++){
+                m_levelsIndex[j+1]=m_levelsIndex[j] + levelSizeAux[j];
                 //if(j>0){
                 m_iniLevel[j] = indexLevel;
-                cont[j] = m_iniLevel[j];
-                indexLevel += levelSizeAux[j] * m_base_bits[j];
+                cont[j]=m_iniLevel[j];
+                indexLevel+=levelSizeAux[j]*m_base_bits[j];
                 //}
-                contB[j] = m_levelsIndex[j];
+                contB[j]=m_levelsIndex[j];
 
             }
 
 
-            m_levels = (uint *) malloc(sizeof(uint) * (tamLevels / W + 1));
+            m_levels = (uint *) malloc(sizeof(uint)*(tamLevels/W+1));
             //fprintf(stderr,"tamaño de levels: %d\n",sizeof(uint)*(tamLevels/W+1));
-            bits_BS_len = m_levelsIndex[m_nLevels - 1] + 1;
+            bits_BS_len = m_levelsIndex[m_nLevels-1]+1;
             //Se pone el ultimo a 0 para ahorrarnos comparaciones despues en la descompresion
-            uint *bits_BS = (uint *) malloc(sizeof(uint) * (bits_BS_len / W + 1));
-            int j,k;
-            for (i = 0; i < ((bits_BS_len) / W + 1); i++)
-                bits_BS[i] = 0;
-            for (i = 0; i < listLength; i++) {
+            uint * bits_BS = (uint *) malloc(sizeof(uint)*(bits_BS_len/W+1));
+            for(i=0; i<((bits_BS_len)/W+1);i++)
+                bits_BS[i]=0;
+            for(i=0;i<listLength;i++){
                 value = list[i];
-                j = m_nLevels - 1;
+                j=m_nLevels-1;
 
-                while (j >= 0) {
-                    if (value >= m_tablebase[j]) {
+                while(j>=0){
+                    if(value >= m_tablebase[j]){
 
-                        newvalue = value - m_tablebase[j];
+                        newvalue = value- m_tablebase[j];
 
-                        for (k = 0; k < j; k++) {
+                        for(k=0;k<j;k++){
 
 
-                            k2_dac_helper::bitwrite(m_levels, cont[k], m_base_bits[k], newvalue % m_base[k]);
-                            cont[k] += m_base_bits[k];
+
+                            k2_dac_helper::bitwrite(m_levels,cont[k],m_base_bits[k],newvalue%m_base[k]);
+                            cont[k]+=m_base_bits[k];
                             contB[k]++;
-                            newvalue = newvalue / m_base[k];
+                            newvalue = newvalue/m_base[k];
                         }
-                        k = j;
+                        k=j;
 
 
-                        k2_dac_helper::bitwrite(m_levels, cont[j], m_base_bits[j], newvalue % m_base[j]);
-                        cont[j] += m_base_bits[j];
+                        k2_dac_helper::bitwrite(m_levels,cont[j],m_base_bits[j],newvalue%m_base[j]);
+                        cont[j]+=m_base_bits[j];
                         contB[j]++;
-                        if (j < m_nLevels - 1) {
-                            bitset(bits_BS, contB[j] - 1);
+                        if(j<m_nLevels-1){
+                            bitset(bits_BS,contB[j]-1);
                         }
 
                         break;
@@ -272,13 +276,16 @@ namespace sdsl {
             }
             //Para simular ultimo array:
 
-            bitset(bits_BS, bits_BS_len - 1);
+            bitset(bits_BS,bits_BS_len-1);
             //m_bits_bitmap = bits_BS;
-            m_bS = bit_rank_w32int(bits_BS, bits_BS_len, 1, 20);
+            m_bS = bit_rank_w32int(bits_BS, bits_BS_len , 1, 20);
 
-            m_rankLevels = (uint *) malloc(sizeof(uint) * m_nLevels);
-            for (i = 0; i < m_nLevels; i++)
-                m_rankLevels[i] = m_bS.rank(m_levelsIndex[i] - 1);
+
+
+
+            m_rankLevels = (uint *) malloc(sizeof(uint)*m_nLevels);
+            for(j=0;j<m_nLevels;j++)
+                m_rankLevels[j]= m_bS.rank(m_levelsIndex[j]-1);
 
 
             free(cont);
@@ -331,15 +338,7 @@ namespace sdsl {
         }
 
         ~DAC() {
-            free(m_levelsIndex);
-            free(m_iniLevel);
-            free(m_rankLevels);
-            free(m_tablebase);
-            free(m_levels);
-            //destroyBitmap(m_bS);
-            //free(m_bits_bitmap);
-            free(m_base);
-            free(m_base_bits);
+            //hack for copy operatros to continue working, TODO:c++11ify this class
         }
 
         //! Swap operator
@@ -355,7 +354,22 @@ namespace sdsl {
                 std::swap(m_iniLevel, dac.m_iniLevel);
                 std::swap(m_rankLevels, dac.m_rankLevels);
                 std::swap(m_levels, dac.m_levels);
+                m_bS.swap(dac.m_bS);
+                std::swap(m_tablebase, dac.m_tablebase);
             }
+        }
+
+        void destroy(){
+            free(m_levelsIndex);
+            free(m_iniLevel);
+            free(m_rankLevels);
+            free(m_tablebase);
+            free(m_levels);
+            //destroyBitmap(m_bS);
+            m_bS.destroy();
+            //free(m_bits_bitmap);
+            free(m_base);
+            free(m_base_bits);
         }
 
 /*-----------------------------------------------------------------
@@ -580,13 +594,15 @@ namespace sdsl {
             m_listLength = dac.m_listLength;
             m_nLevels = dac.m_nLevels;
             m_tamCode = dac.m_tamCode;
+            m_tablebase = dac.m_tablebase;
+            m_levels = dac.m_levels;
             m_tamtablebase = dac.m_tamtablebase;
             m_base_bits = dac.m_base_bits;
             m_base = dac.m_base;
             m_levelsIndex = dac.m_levelsIndex;
             m_iniLevel = dac.m_iniLevel;
             m_rankLevels = dac.m_rankLevels;
-            m_levels = dac.m_levels;
+            m_bS = dac.m_bS;
         }
 
     private:

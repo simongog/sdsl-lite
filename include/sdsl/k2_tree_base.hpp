@@ -63,7 +63,12 @@ namespace sdsl {
         }
 
         //virtual ~k2_tree_base() = 0;
-        virtual ~k2_tree_base(){}
+        virtual ~k2_tree_base(){
+            /*if (t_comp){
+                m_comp_leaves.destroy();
+                m_vocabulary.destroy();
+            }*/
+        }
 
     protected:
         uint8_t m_tree_height = 0;
@@ -156,11 +161,11 @@ namespace sdsl {
 
             //inverse_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result);
             if (t_comp){
-                direct_links2_internal_queue(source_id, result,[this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                inverse_links2_internal_queue(source_id, result,[this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                     check_leaf_bits_inverse_comp(pos, offset, leafK, result);
                 });
             } else {
-                direct_links2_internal_queue(source_id, result,[this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                inverse_links2_internal_queue(source_id, result,[this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                     check_leaf_bits_inverse_uncomp(pos, offset, leafK, result);
                 });
             }
@@ -479,7 +484,7 @@ namespace sdsl {
 
             delete[] codewords;
 
-            m_vocabulary.swap(voc);
+            m_vocabulary = voc;
 
             m_leaves.~t_leaf();
         }
@@ -941,8 +946,13 @@ namespace sdsl {
             return (x % y) ? x / y + 1 : x / y;
         }
 
-
+    protected:
         /*##################### Leaf access for uncompressed version#################################################**/
+        inline bool is_leaf_bit_set(uint64_t pos, uint8_t leafK) const {
+            return m_leaves[pos];
+        }
+
+    private:
         template<typename t_x>
         inline void  check_leaf_bits_direct_uncomp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> & result) const {
             for (int j = 0; j < leafK; ++j) {
@@ -963,7 +973,7 @@ namespace sdsl {
             }
         }
         /*##################### Leaf Access for compressed version###################################################**/
-
+    protected:
         /**
         * Returns word containing the bit at the given position
         * It access the corresponding word in the DAC.
@@ -979,6 +989,8 @@ namespace sdsl {
             bool bitSet = ((word[pos/kUcharBits] >> (pos%kUcharBits)) & 1);
             return bitSet;
         }
+
+    private:
 
         /**
         * Returns word containing the bit at the given position
@@ -1013,8 +1025,8 @@ namespace sdsl {
             uint iword = m_comp_leaves.accessFT(subtree_number);
             const uchar * word = m_vocabulary.get(iword);
             pos = pos - (subtree_number*leafK*leafK);
-            for (int i = 0; i < get_k(leafK); ++i) {
-                if ((word[(pos+i*get_k(leafK))/kUcharBits] >> ((pos+i*leafK)%kUcharBits)) & 1){
+            for (int i = 0; i < leafK; ++i) {
+                if ((word[(pos+i*leafK)/kUcharBits] >> ((pos+i*leafK)%kUcharBits)) & 1){
                     result.push_back(i+result_offset);
                 }
             }

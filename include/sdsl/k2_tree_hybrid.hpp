@@ -204,7 +204,16 @@ namespace sdsl {
                 return false;
             }
 
-            return check_link_internal(0, this->m_max_element, link.first, link.second, 0);
+            if (t_comp){
+                return check_link_internal(0, this->m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t leafK){
+                    return this->is_leaf_bit_set_comp(pos, leafK);
+                });
+            } else {
+                return check_link_internal(0, this->m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t leafK){
+                    return this->is_leaf_bit_set(pos, leafK);
+                });
+            }
+
         }
 
     private:
@@ -221,8 +230,8 @@ namespace sdsl {
          *  contains the index of the first child of the previous node, initially set to 0
          * @return
          */
-        template<typename t_x, typename t_y>
-        bool check_link_internal(uint8_t level, uint64_t n, t_x p, t_y q, int64_t index) const {
+        template<typename t_x, typename t_y, typename Function>
+        bool check_link_internal(uint8_t level, uint64_t n, t_x p, t_y q, int64_t index, Function check_leaf) const {
             using namespace k2_treap_ns;
 
             const uint8_t k = get_k(level);
@@ -231,10 +240,10 @@ namespace sdsl {
             int64_t y = index + k * (p / current_submatrix_size) + (q / current_submatrix_size);
 
             if (this->is_leaf_level(level)) {
-                return this->m_leaves[y];
+                return check_leaf(y,k);
             } else if (this->m_levels[level][y]) {
                 return check_link_internal(level + 1, current_submatrix_size, p % current_submatrix_size,
-                                           q % current_submatrix_size, this->get_child_index(0, y, level));
+                                           q % current_submatrix_size, this->get_child_index(0, y, level), check_leaf);
             } else {
                 return false;
             }
