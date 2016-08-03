@@ -80,16 +80,21 @@ namespace {
     TYPED_TEST_CASE(k2_tree_test, Implementations);
 
     TYPED_TEST(k2_tree_test, CreateAndStoreTest) {
-        TypeParam k2treap;
-        construct(k2treap, test_file);
+        int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
+        int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
+        TypeParam k2treap(buf_x, buf_y, false);
+        //construct(k2treap, test_file);
         ASSERT_TRUE(store_to_file(k2treap, temp_file));
     }
 
     TYPED_TEST(k2_tree_test, ConstructCompareTest) {
-        TypeParam k2treap;
-        TypeParam k2treap2;
-        construct(k2treap, test_file);
-        construct_bottom_up(k2treap2, test_file);
+        int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
+        int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
+        TypeParam k2treap(buf_x, buf_y, false);
+        //TypeParam k2treap;
+        TypeParam k2treap2(buf_x, buf_y, true);;
+        /*construct(k2treap, test_file);
+        construct_bottom_up(k2treap2, test_file);*/
         std::cout << "Comparing Results" << std::endl;
 
         if (!( k2treap == k2treap2)){
