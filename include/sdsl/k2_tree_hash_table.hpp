@@ -36,7 +36,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <cstdio>
 #include <vector>
 #include "k2_tree_helper.hpp"
-#include "k2_tree_dac_helper.hpp"
 
 // jump done when a collision appears
 #define JUMP 101

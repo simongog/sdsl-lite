@@ -243,7 +243,7 @@ namespace sdsl {
             written_bytes += write_member(m_matrix_size, out, child, "matrix_size");
 
             for (uint j = 0; j < m_k2trees.size(); ++j) {
-                written_bytes += m_k2trees[j].serialize(out, child, "k2_tree_"+j);
+                written_bytes += m_k2trees[j].serialize(out, child, "k2_tree_"+std::to_string(j));
             }
 
             structure_tree::add_size(child, written_bytes);

@@ -193,7 +193,7 @@ namespace sdsl {
                 });
             } else {
                 return check_link_internal(0, link.first, link.second, 0, [this](int64_t pos, uint8_t leafK){
-                    return this->is_leaf_bit_set(pos, leafK);
+                    return this->is_leaf_bit_set(pos);
                 });
             }
         }

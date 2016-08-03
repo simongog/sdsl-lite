@@ -67,6 +67,7 @@ namespace sdsl {
 
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint32_t, uint32_t>>::result stxxl_32bit_pair_vector;
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint64_t, uint64_t>>::result stxxl_64bit_pair_vector;
+        typedef int_vector<>::size_type size_type;
         using k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::operator=;
         using k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::operator==;
 
@@ -183,6 +184,10 @@ namespace sdsl {
             }
         }
 
+        virtual size_type serialize(std::ostream &out, structure_tree_node *v, std::string name) const override {
+            return k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::serialize(out, v, name);
+        }
+
         inline uint8_t get_k(uint8_t level) const {
             if (level < t_k_l_1_size) {
                 return t_k_l_1;
@@ -210,7 +215,7 @@ namespace sdsl {
                 });
             } else {
                 return check_link_internal(0, this->m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t leafK){
-                    return this->is_leaf_bit_set(pos, leafK);
+                    return this->is_leaf_bit_set(pos);
                 });
             }
 

@@ -24,6 +24,9 @@ namespace {
     typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, rrr_vector<63>> hybrid_k2_165216_b_rrr;
     typedef k2_tree_hybrid<8, 5, 2, 3, bit_vector, rrr_vector<63>> hybrid_k2_8523_b_rrr;
     typedef k2_tree_hybrid<3, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_3524_b_rrr;
+    typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, bit_vector, true> hybrid_k2_2222_b_comp;
+    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector, true> hybrid_k2_4524_b_comp;
+    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, rrr_vector<63>, true> hybrid_k2_165216_b_rrr_comp;
     typedef k2_tree<2, bit_vector> k2;
     typedef k2_tree<2, rrr_vector<63>> k2rrr;
     typedef k2_tree<3, bit_vector> k3;
@@ -31,8 +34,17 @@ namespace {
     typedef k2_tree<6, bit_vector> k6;
     typedef k2_tree<8, bit_vector> k8;
     typedef k2_tree<16, bit_vector> k16;
+    typedef k2_tree<2, bit_vector, bit_vector, true> k2comp;
+    typedef k2_tree<4, bit_vector, bit_vector, true> k4comp;
+    typedef k2_tree<8, bit_vector, bit_vector, true> k8comp;
+    typedef k2_tree<16, bit_vector, bit_vector, true> k16comp;
+
 
     typedef Types<
+            k8comp/*,
+            k2comp,
+            k4comp,
+            k16comp,
             k2,
             k2rrr,
             k3,
@@ -40,6 +52,9 @@ namespace {
             k6,
             k8,
             k16,
+            hybrid_k2_2222_b_comp,
+            hybrid_k2_4524_b_comp,
+            hybrid_k2_165216_b_rrr_comp,
             k2_tree_partitioned<2, k2>,
             k2_tree_partitioned<4, k2rrr>,
             k2_tree_partitioned<3, k3>,
@@ -47,6 +62,8 @@ namespace {
             k2_tree_partitioned<16,k6>,
             k2_tree_partitioned<16,k8>,
             k2_tree_partitioned<16,k16>,
+            k2_tree_partitioned<2, k2comp>,
+            k2_tree_partitioned<4, k8comp>,
             hybrid_k2_2222_b_rrr,
             hybrid_k2_4524_b_rrr,
             hybrid_k2_2528_b_rrr,
@@ -57,7 +74,7 @@ namespace {
             k2_tree_partitioned<3,hybrid_k2_2528_b_rrr>,
             k2_tree_partitioned<4,hybrid_k2_165216_b_rrr>,
             k2_tree_partitioned<8,hybrid_k2_8523_b_rrr>,
-            k2_tree_partitioned<16,hybrid_k2_3524_b_rrr>
+            k2_tree_partitioned<16,hybrid_k2_3524_b_rrr>*/
     > Implementations;
 
     TYPED_TEST_CASE(k2_tree_test, Implementations);
@@ -74,6 +91,11 @@ namespace {
         construct(k2treap, test_file);
         construct_bottom_up(k2treap2, test_file);
         std::cout << "Comparing Results" << std::endl;
+
+        if (!( k2treap == k2treap2)){
+            std::cout << "Results differ" << std::endl;
+        }
+
         ASSERT_EQ(k2treap, k2treap2);
     }
 
@@ -87,12 +109,13 @@ namespace {
         ASSERT_EQ(x.size(), k2treap.size());
     }
 
-    template<typename Function>
+    template<typename t_k2treap, typename Function>
     void direct_links_test(
             uint64_t source_id,
             const int_vector<> &x,
             const int_vector<> &y,
-            Function direct_links
+            Function direct_links,
+            t_k2treap &k2treap
     ) {
         std::vector<uint64_t> result;
         direct_links(source_id, result);
@@ -109,6 +132,28 @@ namespace {
                 return get<0>(a) < get<0>(b);
             return get<1>(a) < get<1>(b);
         });
+
+
+        if (result.size() != vec.size()){
+            std::cout << "Source_id: " << source_id << std::endl;
+            std::cout << "Result:" << std::endl;
+            for (auto asd : result){
+                std::cout << asd << std::endl;
+            }
+
+            std::cout << "Vec:" << std::endl;
+            for (auto asd : vec){
+                std::cout << get<1>(asd) << std::endl;
+            }
+/*
+            std::cout << "X, Y vectors" << std::endl;
+            for (uint64_t i = 0; i < x.size(); ++i) {
+                std::cout << x[i] << "," << y[i] << std::endl;
+            }
+*/
+            std::vector<uint64_t> result;
+            k2treap.direct_links2(source_id, result);
+        }
 
         ASSERT_EQ(result.size(), vec.size());
 
@@ -138,17 +183,18 @@ namespace {
             for (size_t i = 0; i < 100; ++i) {
                 auto idx = dice();
                 uint64_t xx = x[idx];
-                direct_links_test(xx, x, y, direct_links);
+                direct_links_test(xx, x, y, direct_links, k2treap);
             }
         }
     }
 
+    /*
     TYPED_TEST(k2_tree_test, direct_links) {
         TypeParam k2treap;
         perform_direct_links_test(k2treap, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
             k2treap.direct_links(source_id, result);
         });
-    }
+    }*/
 
     TYPED_TEST(k2_tree_test, direct_links_2) {
         TypeParam k2treap;
@@ -213,12 +259,13 @@ namespace {
         }
     }
 
+    /*
     TYPED_TEST(k2_tree_test, inverse_links) {
         TypeParam k2treap;
         perform_inverse_links_test(k2treap, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
             k2treap.inverse_links(source_id, result);
         });
-    }
+    }*/
 
     TYPED_TEST(k2_tree_test, inverse_links2) {
         TypeParam k2treap;
@@ -249,6 +296,7 @@ namespace {
         ASSERT_EQ(actual, result);
     }
 
+    /*
     TYPED_TEST(k2_tree_test, check_link) {
         TypeParam k2treap;
         ASSERT_TRUE(load_from_file(k2treap, temp_file));
@@ -278,7 +326,7 @@ namespace {
                 check_link_test(k2treap, xx, yy, x, y);
             }
         }
-    }
+    }*/
 
     /*
 template<class t_k2treap>
