@@ -100,7 +100,7 @@ namespace {
         std::cout << "Comparing Results" << std::endl;
 
         if (!( k2treap == k2treap2)){
-            std::cout << "Results diffedr" << std::endl;
+            std::cout << "Results differ" << std::endl;
         }
 
         ASSERT_EQ(k2treap, k2treap2);

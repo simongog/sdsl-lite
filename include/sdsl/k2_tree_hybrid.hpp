@@ -95,10 +95,10 @@ namespace sdsl {
                 } else {
                     construct(v, temp_file_prefix);
                 }
-            }
 
-            if (t_comp){
-                this->compress_leaves();
+                if (t_comp){
+                    this->compress_leaves();
+                }
             }
         }
 

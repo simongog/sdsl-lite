@@ -101,14 +101,14 @@ namespace sdsl {
                 } else  {
                     construct(v, temp_file_prefix);
                 }
+
+                if (t_comp){
+                    this->compress_leaves();
+                }
             }
 
             if (this->m_access_shortcut_size > 0){
                 construct_access_shortcut();
-            }
-
-            if (t_comp){
-                this->compress_leaves();
             }
         }
 
@@ -316,6 +316,11 @@ namespace sdsl {
 
             this->load_vectors_from_file(temp_file_prefix, id_part);
 
+            std::cout << "Fallen Leaves: " << std::endl;
+            for (uint i = 0; i < this->m_leaves.size(); i++){
+                std::cout << this->m_leaves[i];
+            }
+            std::cout << std::endl;
         }
 
         /**

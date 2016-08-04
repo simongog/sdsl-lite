@@ -429,7 +429,6 @@ FTRep* createFT(uint *list,uint listLength){
   for(j=0;j<rep->nLevels;j++)
     rep->rankLevels[j]= rank(rep->bS, rep->levelsIndex[j]-1);
 
-
   free(cont);
   free(contB);
   free(levelSizeAux);
