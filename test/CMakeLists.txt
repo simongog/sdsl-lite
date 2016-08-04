@@ -32,6 +32,7 @@ FILE(GLOB test_sources ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/../external/libdivsufsort/include
                     ${gtest_SOURCE_DIR}/include
                     ${STXXL_INCLUDE_DIRS}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../external/dacs/src
 )
 
 LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64 stxxl dacs)

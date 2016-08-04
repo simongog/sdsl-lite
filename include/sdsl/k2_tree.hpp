@@ -181,7 +181,7 @@ namespace sdsl {
          * Checks whether link from p = link.first to q = link.second is present i.e. matrix entry a_pq = 1
          */
         template<typename t_x, typename t_y>
-        bool check_link(std::pair<t_x,t_y> link) const{
+        bool check_link(std::pair<t_x,t_y> link) const {
 
             //Patological case happening e.g. when using k2part
             if (this->m_leaves.size() == 0){

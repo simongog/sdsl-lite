@@ -30,7 +30,7 @@
   Hash.c: Definition of a HashTable that uses linear hash
   ------------------------------------------------------------------------*/
 
-#include "directcodes.h"
+#include "../include/directcodes.h"
 
 //#define BASE 16
 //#define BASE_BITS 4
@@ -217,8 +217,6 @@ ushort * optimizationk(uint * acumFreqs,int maxInt, uint * nkvalues) {
   free (tableNLevels);
   return kvalues;
 }
-
-
 
 FTRep* createFT(uint *list,uint listLength){
   FTRep * rep = (FTRep *) malloc(sizeof(struct sFTRep));
@@ -531,6 +529,52 @@ uint accessFT(FTRep * listRep,uint param){
   return partialSum;
 
 }
+
+bool equalsRank(bitRankW32Int *lhs, bitRankW32Int *rhs) {
+  if (lhs->owner != rhs->owner || lhs->integers != rhs->integers ||
+      lhs->factor != rhs->factor || lhs->b != rhs->b ||
+      lhs->s != rhs->s || lhs->n != rhs->n)
+    return false;
+
+  uint i;
+  for (i = 0; i < lhs->n/W + 1; ++i)
+    if (lhs->data[i] != rhs->data[i])
+      return false;
+
+  for (i = 0; i < lhs->n/lhs->s + 1; ++i)
+    if (lhs->data[i] != rhs->data[i])
+      return false;
+
+  return true;
+}
+bool equalsFT(FTRep *lhs, FTRep *rhs) {
+  if (lhs->listLength != rhs->listLength || lhs->nLevels != rhs->nLevels ||
+      lhs->tamCode != rhs->tamCode || lhs->tamtablebase != rhs->tamtablebase)
+    return false;
+
+  uint i;
+  for (i = 0; i < lhs->nLevels; ++i) {
+    if (lhs->base_bits[i] != rhs->base_bits[i] ||
+        lhs->base[i] != rhs->base[i] ||
+        lhs->iniLevel[i] != rhs->iniLevel[i] ||
+        lhs->rankLevels[i] != rhs->rankLevels[i] ||
+        lhs->levelsIndex[i] != rhs->levelsIndex[i])
+      return false;
+  }
+
+  if (lhs->levelsIndex[lhs->nLevels] != rhs->levelsIndex[lhs->nLevels])
+    return false;
+
+  for (i = 0; i< lhs->tamtablebase; ++i)
+    if (lhs->tablebase[i] != rhs->tablebase[i])
+      return false;
+
+  for (i = 0; i < lhs->tamCode/W + 1; ++i)
+    if (lhs->levels[i] != rhs->levels[i])
+      return false;
+  return equalsRank(lhs->bS, rhs->bS);
+}
+
 
 
 /*-----------------------------------------------------------------

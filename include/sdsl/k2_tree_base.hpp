@@ -6,12 +6,9 @@
     \author Jan Broß, based on the k2 treap code of Simon Gog, leaf compression is based on the libk2tree implemenetation which uses DACs impelemented by Brisaboa, Ladra et.al.
 */
 
-#include "vectors.hpp"
-#include "bits.hpp"
-#include "../../external/dacs/include/dacs.h"
-#include "../../external/dacs/src/basic.h"
 #include "k2_tree_vocabulary.hpp"
 #include "k2_tree_helper.hpp"
+#include "k2_tree_dacs.hpp"
 #include "k2_tree_hash_table.hpp"
 #include "k2_tree_compressor.hpp"
 #include <stxxl/vector>
@@ -52,7 +49,7 @@ namespace sdsl {
         using node_type = k2_treap_ns::node_type;
         using point_type = k2_treap_ns::point_type;
         using t_p = k2_treap_ns::t_p;
-        sFTRep *m_comp_leaves;
+        DAC m_comp_leaves;
 
         k2_tree_base() = default;
 
@@ -261,16 +258,16 @@ namespace sdsl {
             }
 
             if(t_comp){
-                //FIXME compare leaves
-                if (!equalsFT(m_comp_leaves,tr.m_comp_leaves)){
+                if (!(m_comp_leaves == tr.m_comp_leaves)){
                     std::cout << "comp leaves differ" << std::endl;
                     return false;
                 }
 
 
-                /*if (!m_vocabulary.operator==(tr.m_vocabulary))
+                if (!m_vocabulary.operator==(tr.m_vocabulary)) {
                     std::cout << "vocabulary differs" << std::endl;
-                    return false;*/
+                    return false;
+                }
 
             } else {
                 if (m_leaves.size() != tr.m_leaves.size()){
@@ -344,7 +341,7 @@ namespace sdsl {
                                    &m_access_shortcut, &tr.m_access_shortcut);
 
                 std::swap(m_vocabulary, tr.m_vocabulary);
-                //m_comp_leaves.swap(tr.m_comp_leaves); //FIXME: correct swap behavior
+                m_comp_leaves.swap(tr.m_comp_leaves);
                 std::swap(m_comp_leaves,tr.m_comp_leaves);
             }
         }
@@ -369,10 +366,7 @@ namespace sdsl {
                 if (t_comp){
                     written_bytes += m_vocabulary.serialize(out, child, "voc");
                     written_bytes += write_member(name, out, child, "name");
-                    std::ofstream ofs;
-                    ofs.open (name+"tmp_ft.txt", std::ofstream::out | std::ofstream::app);
-                    SaveFT(&ofs,m_comp_leaves);
-                    ofs.close();
+                    written_bytes += m_comp_leaves.serialize(out, child, "comp_leafs");
                 } else {
                     written_bytes += m_leaves.serialize(out, child, "leafv");
                 }
@@ -407,14 +401,7 @@ namespace sdsl {
 
                 if (t_comp){
                     m_vocabulary.load(in);
-                    //m_comp_leaves.load(in);FIXME
-
-                    std::string name;
-                    read_member(name, in);
-                    std::ifstream ifs;
-                    ifs.open (name+"tmp_ft.txt", std::ifstream::in);
-                    m_comp_leaves = LoadFT(&ifs);
-                    ifs.close();
+                    m_comp_leaves.load(in);
                 } else {
                     m_leaves.load(in);
                 }
@@ -510,7 +497,7 @@ namespace sdsl {
 
             try {
                 // TODO Port to 64-bits
-                m_comp_leaves = createFT(codewords, cnt);
+                m_comp_leaves = DAC(codewords, cnt);
             } catch (...) {
                 std::cerr << "[HybridK2Tree::CompressLeaves] Error: Could not create DAC\n";
                 exit(1);
@@ -520,7 +507,7 @@ namespace sdsl {
 
             m_vocabulary = voc;
 
-            //m_leaves.~t_leaf();
+            m_leaves.~t_leaf();
         }
 
         /**
@@ -1017,7 +1004,7 @@ namespace sdsl {
         */
         inline bool is_leaf_bit_set_comp(uint64_t pos, uint8_t leafK) const {
             uint64_t subtree_number = pos/(leafK*leafK);
-            uint iword = accessFT(m_comp_leaves, subtree_number);
+            uint iword = m_comp_leaves.accessFT(subtree_number);
             pos = pos - (subtree_number*leafK*leafK);
             const uchar * word = m_vocabulary.get(iword);
             bool bitSet = ((word[pos/kUcharBits] >> (pos%kUcharBits)) & 1);
@@ -1036,7 +1023,7 @@ namespace sdsl {
         template<typename t_x>
         inline void  check_leaf_bits_direct_comp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> & result) const {
             uint64_t subtree_number = pos/(leafK*leafK);
-            uint iword = accessFT(m_comp_leaves, subtree_number);
+            uint iword = m_comp_leaves.accessFT(subtree_number);
             const uchar * word = m_vocabulary.get(iword);
             pos = pos - (subtree_number*leafK*leafK);
             for (int i = 0; i < leafK; ++i) {
@@ -1056,7 +1043,7 @@ namespace sdsl {
         template<typename t_x>
         inline void  check_leaf_bits_inverse_comp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> & result) const {
             uint64_t subtree_number = pos/(leafK*leafK);
-            uint iword = accessFT(m_comp_leaves, subtree_number);
+            uint iword = m_comp_leaves.accessFT(subtree_number);
             const uchar * word = m_vocabulary.get(iword);
             pos = pos - (subtree_number*leafK*leafK);
             for (int i = 0; i < leafK; ++i) {

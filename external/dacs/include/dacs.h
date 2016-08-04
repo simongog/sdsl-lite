@@ -43,5 +43,4 @@ void SaveFT(std::ofstream *out, FTRep *rep);
  * to free the memory with destroyFT.
  */
 FTRep *LoadFT(std::ifstream *in);
-bool equalsFT(FTRep *lhs, FTRep *rhs);
 #endif  // INCLUDE_DACS_H_

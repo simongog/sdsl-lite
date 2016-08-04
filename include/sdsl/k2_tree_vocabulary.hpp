@@ -18,6 +18,10 @@ namespace sdsl {
 
     class Vocabulary {
 
+    #ifndef uchar
+    #define uchar unsigned char
+    #endif
+
     public:
 
         Vocabulary() = default;

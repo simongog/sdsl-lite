@@ -21,6 +21,7 @@ INCLUDE_DIRECTORIES(
         ${gtest_SOURCE_DIR}/include
         ${STXXL_INCLUDE_DIRS}
         ${DACS_INCLUDE_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR}/../external/dacs/include
         )
 
 LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64 stxxl boost dacs)

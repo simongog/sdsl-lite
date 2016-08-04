@@ -12,7 +12,7 @@
  */
 
 extern "C" {
-  #include "directcodes.h"
+  #include "../include/directcodes.h"
 }
 #include <fstream>
 
@@ -79,49 +79,6 @@ void load_bitrank(bitRankW32Int * br, std::ifstream *in) {
   br->owner = 1;
   br->Rs=(uint*)malloc(sizeof(uint)*(n/s+1));
   in->read(reinterpret_cast<char *>(br->Rs),sizeof(uint)*(n/s+1));
-}
-
-bool equalsRank(bitRankW32Int *lhs, bitRankW32Int *rhs) {
-  if (lhs->owner != rhs->owner || lhs->integers != rhs->integers ||
-      lhs->factor != rhs->factor || lhs->b != rhs->b ||
-      lhs->s != rhs->s || lhs->n != rhs->n)
-    return false;
-
-  for (uint i = 0; i < lhs->n/W + 1; ++i)
-    if (lhs->data[i] != rhs->data[i])
-      return false;
-
-  for (uint i = 0; i < lhs->n/lhs->s + 1; ++i)
-    if (lhs->data[i] != rhs->data[i])
-      return false;
-
-  return true;
-}
-bool equalsFT(FTRep *lhs, FTRep *rhs) {
-  if (lhs->listLength != rhs->listLength || lhs->nLevels != rhs->nLevels ||
-      lhs->tamCode != rhs->tamCode || lhs->tamtablebase != rhs->tamtablebase)
-    return false;
-
-  for (uint i = 0; i < lhs->nLevels; ++i) {
-    if (lhs->base_bits[i] != rhs->base_bits[i] ||
-        lhs->base[i] != rhs->base[i] ||
-        lhs->iniLevel[i] != rhs->iniLevel[i] ||
-        lhs->rankLevels[i] != rhs->rankLevels[i] ||
-        lhs->levelsIndex[i] != rhs->levelsIndex[i])
-      return false;
-  }
-
-  if (lhs->levelsIndex[lhs->nLevels] != rhs->levelsIndex[lhs->nLevels])
-    return false;
-
-  for (uint i = 0; i< lhs->tamtablebase; ++i)
-    if (lhs->tablebase[i] != rhs->tablebase[i])
-      return false;
-
-  for (uint i = 0; i < lhs->tamCode/W + 1; ++i)
-    if (lhs->levels[i] != rhs->levels[i])
-      return false;
-  return equalsRank(lhs->bS, rhs->bS);
 }
 
 void SaveFT(std::ofstream *out, FTRep *rep) {

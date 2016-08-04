@@ -5,7 +5,8 @@
 #include <malloc.h>
 
 
-#include "basic.h"
+#include "../src/basic.h"
+#include "stdbool.h"
 #include "bitrankw32int.h"
 
 typedef struct sFTRep {
@@ -35,3 +36,4 @@ typedef struct sFTRep {
 	uint * decompressFT(FTRep * listRep, uint n);
 	FTRep* loadFT(FILE * flist);
 	void destroyFT(FTRep * listRep);
+	bool equalsFT(FTRep *lhs, FTRep *rhs);

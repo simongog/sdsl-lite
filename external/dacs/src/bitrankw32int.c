@@ -1,4 +1,4 @@
-#include "bitrankw32int.h"
+#include "../include/bitrankw32int.h"
 
 
 /////////////
