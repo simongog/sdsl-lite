@@ -6,8 +6,9 @@
 #ifndef INCLUDE_COMPRESSION_DACS_H_
 #define INCLUDE_COMPRESSION_DACS_H_
 
-#include "k2_tree_helper.hpp"
+#include "../../external/dacs/include/dacs.h"
 #include "../../external/dacs/include/bitrankw32int.h"
+#include "k2_tree_helper.hpp"
 #include "../../external/dacs/include/directcodes.h"
 
 
@@ -18,50 +19,43 @@ namespace sdsl {
     class DAC {
 
     private:
-        std::shared_ptr<FTRep> m_comp_leaves;
+        std::shared_ptr<sFTRep> m_comp_leaves;
     public:
         DAC() = default;
+
+        struct Deleter {
+            void operator()(sFTRep* p) const {
+                ::destroyFT(p);
+            }
+        };
 
         /**
          * @param cnt Number of words in the vocabulary
          * @param size Size of each word in bytes
          */
-        DAC(uint *list, uint listLength) : m_comp_leaves(::createFT(list, listLength)) {
+        DAC(uint *list, uint listLength) : m_comp_leaves(::createFT(list, listLength),Deleter()) {
         }
 
         //! Loads the data structure from the given istream.
         void load(std::istream &in) {
-            m_comp_leaves = std::shared_ptr<FTRep>((FTRep *) malloc(sizeof(struct sFTRep)));
+            m_comp_leaves = std::shared_ptr<sFTRep>((sFTRep *) malloc(sizeof(struct sFTRep)),Deleter());
 
             read_member(m_comp_leaves->listLength, in);
             read_member(m_comp_leaves->nLevels, in);
             read_member(m_comp_leaves->tamCode, in);
 
             read_member(m_comp_leaves->tamtablebase, in);
-            read_member(m_comp_leaves->base_bits, m_comp_leaves->nLevels, in);
-            read_member(m_comp_leaves->base, m_comp_leaves->nLevels, in);
-            read_member(m_comp_leaves->levelsIndex, m_comp_leaves->nLevels + 1, in);
-            read_member(m_comp_leaves->iniLevel, m_comp_leaves->nLevels, in);
-            read_member(m_comp_leaves->rankLevels, m_comp_leaves->nLevels, in);
-            read_member(m_comp_leaves->levels, m_comp_leaves->tamCode / W + 1, in);
+            read_member(&m_comp_leaves->tablebase, m_comp_leaves->tamtablebase, in);
+            //m_comp_leaves->base_bits = (ushort*) malloc(sizeof(ushort)*m_comp_leaves->nLevels);
+            read_member(&m_comp_leaves->base_bits, m_comp_leaves->nLevels, in);
+            read_member(&m_comp_leaves->base, m_comp_leaves->nLevels, in);
+            read_member(&m_comp_leaves->levelsIndex, m_comp_leaves->nLevels + 1, in);
+            read_member(&m_comp_leaves->iniLevel, m_comp_leaves->nLevels, in);
+            read_member(&m_comp_leaves->rankLevels, m_comp_leaves->nLevels, in);
+            read_member(&m_comp_leaves->levels, m_comp_leaves->tamCode / W + 1, in);
 
             load_bitrank(in);
-
-            //FIXME: bit rank is missing
-            //bS.load(in);
         }
-
-        void load_bitrank(std::istream &in) {
-            bitRankW32Int *bitRank = (bitRankW32Int *) malloc(sizeof(struct sbitRankW32Int));
-            read_member(bitRank->n, in);
-            read_member(bitRank->factor, in);
-            bitRank->s = bitRank->b * bitRank->factor;
-            bitRank->owner = 1;
-            read_member(bitRank->data, bitRank->n / W + 1, in);
-            read_member(bitRank->Rs, bitRank->n / bitRank->s + 1, in);
-            m_comp_leaves->bS = bitRank;
-        }
-
 
         //! Serializes the data structure into the given ostream
         size_type serialize(std::ostream &out, structure_tree_node *v = nullptr,
@@ -74,6 +68,7 @@ namespace sdsl {
             written_bytes += write_member(m_comp_leaves->nLevels, out, child, "nlevels");
             written_bytes += write_member(m_comp_leaves->tamCode, out, child, "tamcode");
             written_bytes += write_member(m_comp_leaves->tamtablebase, out, child, "tamtablebase");
+            written_bytes += write_member(m_comp_leaves->tablebase, m_comp_leaves->tamtablebase, out, child, "tablebase");
             written_bytes += write_member(m_comp_leaves->base_bits, m_comp_leaves->nLevels, out, child, "basebits");
             written_bytes += write_member(m_comp_leaves->base, m_comp_leaves->nLevels, out, child, "base");
             written_bytes += write_member(m_comp_leaves->levelsIndex, m_comp_leaves->nLevels + 1, out, child,
@@ -100,6 +95,19 @@ namespace sdsl {
 
             return written_bytes;
 
+        }
+
+        void load_bitrank(std::istream &in) {
+            bitRankW32Int *bitRank = (bitRankW32Int *) malloc(sizeof(struct sbitRankW32Int));
+            bitRank->b = 32;
+            read_member(bitRank->n, in);
+            bitRank->integers = bitRank->n/W;
+            read_member(bitRank->factor, in);
+            bitRank->s = bitRank->b * bitRank->factor;
+            bitRank->owner = 1;
+            read_member(&bitRank->data, bitRank->n / W + 1, in);
+            read_member(&bitRank->Rs, bitRank->n / bitRank->s + 1, in);
+            m_comp_leaves->bS = bitRank;
         }
 
         //! Swap operator

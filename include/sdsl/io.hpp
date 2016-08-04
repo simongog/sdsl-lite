@@ -116,10 +116,10 @@ void read_member(T& t, std::istream& in)
 
     // Reads array-typed variable t of length length from stream in
 template<class T>
- void read_member(T* t, size_t length, std::istream& in)
+ void read_member(T** t, size_t length, std::istream& in)
 {
-    t = new T[length];
-    in.read((char *) t, length * sizeof(T));
+    *t = (T*) malloc(sizeof(T)*length);
+    in.read((char *) *t, length * sizeof(T));
 }
 
 // Specialization for std::string

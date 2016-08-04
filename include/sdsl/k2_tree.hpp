@@ -184,7 +184,7 @@ namespace sdsl {
         bool check_link(std::pair<t_x,t_y> link) const {
 
             //Patological case happening e.g. when using k2part
-            if (this->m_leaves.size() == 0){
+            if (this->m_tree_height == 0){
                 return false;
             }
             if (t_comp){

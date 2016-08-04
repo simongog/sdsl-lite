@@ -97,14 +97,14 @@ int main(int argc, char *argv[]) {
         const uint8_t k = 4;
         //typedef k2_tree_hybrid<k,k,k,k, bit_vector, rrr_vector<63>,true> k2_rrr;
         typedef k2_tree<k, bit_vector, rrr_vector<63>,true> k2_rrr;
-        k2_rrr k2treap;
 
 
         double t2 = 0;
         ticks = (double) sysconf(_SC_CLK_TCK);
         start_clock();
         // Initialize treap with a vector of (x,y,weight) elements
-        construct_im(k2treap, coordinates, numberOfNodes - 1);
+        //construct_im(k2treap, coordinates, numberOfNodes - 1);
+        k2_rrr k2treap("", false, 0, coordinates, numberOfNodes-1);
 
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds
@@ -115,17 +115,6 @@ int main(int argc, char *argv[]) {
 
         std::cerr << "Processing direct neighbour queries\n" << std::endl;
 
-        std::vector<uint32_t> result;
-        while (true){
-            uint query;
-            cin >> query;
-            k2treap.direct_links2(query, result);
-            for (auto res: result){
-                std::cout << res << std::endl;
-            }
-            result.clear();
-        }
-        /*
         uint i;
 
         srand(0);
@@ -180,7 +169,7 @@ int main(int argc, char *argv[]) {
 
         std::string output_file_name(argv[2]);
         store_to_file(k2treap,output_file_name);
-        write_structure<HTML_FORMAT>(k2treap,output_file_name+"k_"+std::to_string(k)+".html");*/
+        write_structure<HTML_FORMAT>(k2treap,output_file_name+"k_"+std::to_string(k)+".html");
     } else {
         throw "Could not load file";
     }

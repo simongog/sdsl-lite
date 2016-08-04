@@ -342,7 +342,6 @@ namespace sdsl {
 
                 std::swap(m_vocabulary, tr.m_vocabulary);
                 m_comp_leaves.swap(tr.m_comp_leaves);
-                std::swap(m_comp_leaves,tr.m_comp_leaves);
             }
         }
 
@@ -365,13 +364,12 @@ namespace sdsl {
 
                 if (t_comp){
                     written_bytes += m_vocabulary.serialize(out, child, "voc");
-                    written_bytes += write_member(name, out, child, "name");
                     written_bytes += m_comp_leaves.serialize(out, child, "comp_leafs");
                 } else {
                     written_bytes += m_leaves.serialize(out, child, "leafv");
                 }
             }
-            written_bytes += write_member(m_access_shortcut_size, out, child, "max");
+            written_bytes += write_member(m_access_shortcut_size, out, child, "access_shortcut_size");
             if (m_access_shortcut_size > 0){
                 written_bytes += m_access_shortcut.serialize(out, child, "access_shortcut");
                 written_bytes += m_access_shortcut_rank_01_support.serialize(out, child, "access_rank");
@@ -507,7 +505,7 @@ namespace sdsl {
 
             m_vocabulary = voc;
 
-            m_leaves.~t_leaf();
+            m_leaves = t_leaf();
         }
 
         /**

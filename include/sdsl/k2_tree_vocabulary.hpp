@@ -55,7 +55,7 @@ namespace sdsl {
             read_member(cnt_, in);
             read_member(size_, in);
 
-            data_ = (new uchar[cnt_*size_]);
+            data_ = (uchar*) malloc(sizeof(uchar) *cnt_*size_);
 
             for (uint64_t i = 0; i < cnt_*size_; ++i) {
                     read_member(data_[i], in);

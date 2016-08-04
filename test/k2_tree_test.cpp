@@ -93,15 +93,14 @@ namespace {
     TYPED_TEST(k2_tree_test, ConstructCompareTest) {
         int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
-        TypeParam k2treap(buf_x, buf_y, false);
-        //TypeParam k2treap;
-        TypeParam k2treap2(buf_x, buf_y, true);;
-        /*construct(k2treap, test_file);
-        construct_bottom_up(k2treap2, test_file);*/
+        TypeParam k2treap;
+        TypeParam k2treap2;
+        construct(k2treap, test_file);
+        construct_bottom_up(k2treap2, test_file);
         std::cout << "Comparing Results" << std::endl;
 
         if (!( k2treap == k2treap2)){
-            std::cout << "Results differ" << std::endl;
+            std::cout << "Results diffedr" << std::endl;
         }
 
         ASSERT_EQ(k2treap, k2treap2);
@@ -311,10 +310,12 @@ namespace {
         ASSERT_EQ(actual, result);
     }
 
-    /*
     TYPED_TEST(k2_tree_test, check_link) {
-        TypeParam k2treap;
-        ASSERT_TRUE(load_from_file(k2treap, temp_file));
+        //TypeParam k2treap;
+        //ASSERT_TRUE(load_from_file(k2treap, temp_file));
+        int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
+        int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
+        TypeParam k2treap(buf_x, buf_y, false);
         int_vector<> x, y;
         ASSERT_TRUE(load_from_file(x, test_file + ".x"));
         ASSERT_TRUE(load_from_file(y, test_file + ".y"));
@@ -341,7 +342,7 @@ namespace {
                 check_link_test(k2treap, xx, yy, x, y);
             }
         }
-    }*/
+    }
 
     /*
 template<class t_k2treap>

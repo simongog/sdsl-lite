@@ -24,6 +24,8 @@ FTRep* createFT(uint *list, uint listLength);
 uint accessFT(FTRep * listRep, uint param);
 uint * decompressFT(FTRep * listRep, uint n);
 void destroyFT(FTRep * listRep);
+bool equalsFT(FTRep *lhs, FTRep *rhs);
+
 }
 #include <fstream>
 
