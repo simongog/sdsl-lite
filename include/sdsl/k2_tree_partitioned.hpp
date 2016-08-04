@@ -164,7 +164,7 @@ namespace sdsl {
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
             for (int j = 0; j < t_k0; ++j) {
-                m_k2trees[j*t_k0+x].inverse_links(source_id, tmp_result);
+                m_k2trees[j*t_k0+x].inverse_links2(source_id, tmp_result);
                 result.insert(result.end(), tmp_result.begin(), tmp_result.end());
             }
         }
