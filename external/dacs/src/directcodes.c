@@ -557,8 +557,10 @@ bool equalsFT(FTRep *lhs, FTRep *rhs) {
         lhs->base[i] != rhs->base[i] ||
         lhs->iniLevel[i] != rhs->iniLevel[i] ||
         lhs->rankLevels[i] != rhs->rankLevels[i] ||
-        lhs->levelsIndex[i] != rhs->levelsIndex[i])
-      return false;
+        lhs->levelsIndex[i] != rhs->levelsIndex[i]){
+        fprintf(stderr,"Mismatch at position %d\n",i);
+        return false;
+    }
   }
 
   if (lhs->levelsIndex[lhs->nLevels] != rhs->levelsIndex[lhs->nLevels])
@@ -568,9 +570,12 @@ bool equalsFT(FTRep *lhs, FTRep *rhs) {
     if (lhs->tablebase[i] != rhs->tablebase[i])
       return false;
 
-  for (i = 0; i < lhs->tamCode/W + 1; ++i)
-    if (lhs->levels[i] != rhs->levels[i])
-      return false;
+  for (i = 0; i < lhs->tamCode/W /*+ 1*/; ++i)
+    if (lhs->levels[i] != rhs->levels[i]) {
+        fprintf(stderr, "Mismatch at position %d\n", i);
+        fprintf(stderr, "Exected Length %d\n", lhs->tamCode/W+1);
+        return false;
+    }
   return equalsRank(lhs->bS, rhs->bS);
 }
 
