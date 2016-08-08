@@ -214,7 +214,7 @@ namespace sdsl {
                     return this->is_leaf_bit_set_comp(pos, leafK);
                 });
             } else {
-                return check_link_internal(0, this->m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t leafK){
+                return check_link_internal(0, this->m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t){
                     return this->is_leaf_bit_set(pos);
                 });
             }
