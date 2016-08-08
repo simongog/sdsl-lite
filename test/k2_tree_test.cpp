@@ -177,7 +177,7 @@ namespace {
     template<class t_k2treap, typename Function>
     void perform_direct_links_test(t_k2treap &k2treap, Function direct_links) {
 
-//        ASSERT_TRUE(load_from_file(k2treap, temp_file));
+        ASSERT_TRUE(load_from_file(k2treap, temp_file));
         int_vector<> x, y;
         ASSERT_TRUE(load_from_file(x, test_file + ".x"));
         ASSERT_TRUE(load_from_file(y, test_file + ".y"));
@@ -204,10 +204,7 @@ namespace {
     }*/
 
     TYPED_TEST(k2_tree_test, direct_links_2) {
-        //TypeParam k2treap;
-        int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
-        int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
-        TypeParam k2treap(buf_x, buf_y, false);
+        TypeParam k2treap;
         perform_direct_links_test(k2treap, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
             k2treap.direct_links2(source_id, result);
         });
@@ -251,7 +248,7 @@ namespace {
     template<class t_k2treap, typename Function>
     void perform_inverse_links_test(t_k2treap &k2treap, Function inverse_links) {
 
-//ASSERT_TRUE(load_from_file(k2treap, temp_file));
+        ASSERT_TRUE(load_from_file(k2treap, temp_file));
         int_vector<> x, y;
         ASSERT_TRUE(load_from_file(x, test_file + ".x"));
         ASSERT_TRUE(load_from_file(y, test_file + ".y"));
@@ -278,11 +275,7 @@ namespace {
     }*/
 
     TYPED_TEST(k2_tree_test, inverse_links2) {
-
-        int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
-        int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
-        TypeParam k2treap(buf_x, buf_y, false);
-        //TypeParam k2treap;
+        TypeParam k2treap;
         perform_inverse_links_test(k2treap, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
             k2treap.inverse_links2(source_id, result);
         });
@@ -311,11 +304,8 @@ namespace {
     }
 
     TYPED_TEST(k2_tree_test, check_link) {
-        //TypeParam k2treap;
-        //ASSERT_TRUE(load_from_file(k2treap, temp_file));
-        int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
-        int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
-        TypeParam k2treap(buf_x, buf_y, false);
+        TypeParam k2treap;
+        ASSERT_TRUE(load_from_file(k2treap, temp_file));
         int_vector<> x, y;
         ASSERT_TRUE(load_from_file(x, test_file + ".x"));
         ASSERT_TRUE(load_from_file(y, test_file + ".y"));
@@ -334,7 +324,7 @@ namespace {
                 check_link_test(k2treap, xx, yy, x, y);
             }
 
-            //postive
+            //positive
             for (size_t i = 0; i < 50; ++i) {
                 auto idx = dice();
                 uint64_t xx = x[idx];
