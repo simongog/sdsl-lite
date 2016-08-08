@@ -192,7 +192,7 @@ namespace sdsl {
                     return this->is_leaf_bit_set_comp(pos, leafK);
                 });
             } else {
-                return check_link_internal(0, link.first, link.second, 0, [this](int64_t pos, uint8_t leafK){
+                return check_link_internal(0, link.first, link.second, 0, [this](int64_t pos, uint8_t){
                     return this->is_leaf_bit_set(pos);
                 });
             }
@@ -315,12 +315,12 @@ namespace sdsl {
             }
 
             this->load_vectors_from_file(temp_file_prefix, id_part);
-
+/*
             std::cout << "Fallen Leaves: " << std::endl;
             for (uint i = 0; i < this->m_leaves.size(); i++){
                 std::cout << this->m_leaves[i];
             }
-            std::cout << std::endl;
+            std::cout << std::endl;*/
         }
 
         /**
