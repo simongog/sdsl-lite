@@ -417,7 +417,6 @@ int main(int argc, char **argv) {
         };
         load_and_store_in_mem("x");
         load_and_store_in_mem("y");
-        load_and_store_in_mem("w");
         temp_file = ram_file_name(temp_file);
     }
     return RUN_ALL_TESTS();
