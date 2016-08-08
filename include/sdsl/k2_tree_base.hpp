@@ -245,18 +245,6 @@ namespace sdsl {
                 }
             }
 
-            if (m_leaves.size() != tr.m_leaves.size()){
-                std::cout << "m_leaves.size() differs" << std::endl;
-                return false;
-            }
-            for (uint i = 0; i < m_leaves.size(); ++i) {
-                if (m_leaves[i] != tr.m_leaves[i]){
-                    std::cout << "m_leaves vectors differ at " << i << std::endl;
-                    return false;
-                }
-
-            }
-
             if(t_comp){
                 if (!(m_comp_leaves == tr.m_comp_leaves)){
                     std::cout << "comp leaves differ" << std::endl;
@@ -468,13 +456,14 @@ namespace sdsl {
             std::cout << "Words count " << words_count() << std::endl;
             std::cout << "Word size " << words_count() << std::endl;
 
+/*
             std::cout << "Words" << std::endl;
             size_t pos = 0;
             words([&] (const uchar *word) {
                 std::cout << std::to_string(*word) << "\t";
             });
             std::cout << std::endl;
-
+*/
             FreqVoc(*this, [&](const HashTable &table, Vocabulary& voc) {
                 compress_leaves(table, voc);
             });
@@ -505,13 +494,13 @@ namespace sdsl {
 
             try {
                 // TODO Port to 64-bits
-                std::cout << "CodeWords" << std::endl;
+                /*std::cout << "CodeWords" << std::endl;
                 for (int j = 0; j < cnt; ++j) {
                     std::cout << codewords[j] << "\t";
                 }
                 std::cout << std::endl;
 
-                std::cout << "Count" << cnt << std::endl;
+                std::cout << "Count" << cnt << std::endl;*/
                 m_comp_leaves = DAC(codewords, cnt);
             } catch (...) {
                 std::cerr << "[HybridK2Tree::CompressLeaves] Error: Could not create DAC\n";
@@ -879,11 +868,12 @@ namespace sdsl {
 
             load_vectors_from_file(temp_file_prefix, id_part);
 
+            /*
             std::cout << "Fallen Leaves: " << std::endl;
             for (uint i = 0; i < m_leaves.size(); i++){
                 std::cout << m_leaves[i];
             }
-            std::cout << std::endl;
+            std::cout << std::endl;*/
         }
 
         node_type root() const {
