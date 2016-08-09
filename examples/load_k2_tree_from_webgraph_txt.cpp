@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
         const uint8_t k = 4;
         //typedef k2_tree_hybrid<k,k,k,k, bit_vector, rrr_vector<63>,true> k2_rrr;
-        typedef k2_tree<k, bit_vector, rrr_vector<63>,true> k2_rrr;
+        typedef k2_tree<k, bit_vector, bit_vector,true> k2_rrr;
 
 
         double t2 = 0;
