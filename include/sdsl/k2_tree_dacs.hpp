@@ -34,12 +34,6 @@ namespace sdsl {
          * @param size Size of each word in bytes
          */
         DAC(uint *list, uint listLength) : m_comp_leaves(::createFT(list, listLength),Deleter()) {
-            std::cout << "After construction of DAC:" << std::endl;
-            for (int i = 0; i < m_comp_leaves->tamCode / W + 1; ++i) {
-                std::cout << m_comp_leaves->levels[i] << "\t";
-            }
-            std::cout << std::endl;
-            std::cout << "blub" << std::endl;
         }
 
         //! Loads the data structure from the given istream.
