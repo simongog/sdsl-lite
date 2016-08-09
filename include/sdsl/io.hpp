@@ -98,7 +98,7 @@ size_t write_member(const T* t, size_t length, std::ostream& out, sdsl::structur
 {
     sdsl::structure_tree_node* child = sdsl::structure_tree::add_child(v, name, util::class_name(t));
     out.write((char *) t, length * sizeof(T));
-    size_t written_bytes = length * sizeof(t);
+    size_t written_bytes = length * sizeof(T);
     sdsl::structure_tree::add_size(child, written_bytes);
     return written_bytes;
 }
