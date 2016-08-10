@@ -118,14 +118,6 @@ namespace sdsl {
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
 
-            auto max_element = [](int_vector_buffer<> &buf) {
-                uint64_t max_val = 0;
-                for (auto val : buf) {
-                    max_val = std::max((uint64_t) val, max_val);
-                }
-                return max_val;
-            };
-
             uint64_t max;
             if (max_hint != 0) {
                 max = max_hint;//temporarily set

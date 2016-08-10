@@ -13,56 +13,35 @@ namespace {
     bool in_memory;
 
     template<class T>
-    class k2_tree_test : public ::testing::Test {
+    class k2_tree_compression_test : public ::testing::Test {
     };
 
     using testing::Types;
 
-    typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, rrr_vector<63>> hybrid_k2_2222_b_rrr;
-    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_4524_b_rrr;
-    typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_2528_b_rrr;
-    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, rrr_vector<63>> hybrid_k2_165216_b_rrr;
-    typedef k2_tree_hybrid<8, 5, 2, 3, bit_vector, rrr_vector<63>> hybrid_k2_8523_b_rrr;
-    typedef k2_tree_hybrid<3, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_3524_b_rrr;
-    typedef k2_tree<2, bit_vector> k2;
-    typedef k2_tree<2, rrr_vector<63>> k2rrr;
-    typedef k2_tree<3, bit_vector> k3;
-    typedef k2_tree<4, bit_vector> k4;
-    typedef k2_tree<6, bit_vector> k6;
-    typedef k2_tree<8, bit_vector> k8;
-    typedef k2_tree<16, bit_vector> k16;
+    typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, bit_vector, true> hybrid_k2_2222_b_comp;
+    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector, true> hybrid_k2_4524_b_comp;
+    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, rrr_vector<63>, true> hybrid_k2_165216_b_rrr_comp;
+    typedef k2_tree<2, bit_vector, bit_vector, true> k2comp;
+    typedef k2_tree<4, bit_vector, bit_vector, true> k4comp;
+    typedef k2_tree<8, bit_vector, bit_vector, true> k8comp;
+    typedef k2_tree<16, bit_vector, bit_vector, true> k16comp;
+
 
     typedef Types<
-            k2,
-            k2rrr,
-            k3,
-            k4,
-            k6,
-            k8,
-            k16,
-            k2_tree_partitioned<2, k2>,
-            k2_tree_partitioned<4, k2rrr>,
-            k2_tree_partitioned<3, k3>,
-            k2_tree_partitioned<8, k4>,
-            k2_tree_partitioned<16,k6>,
-            k2_tree_partitioned<16,k8>,
-            k2_tree_partitioned<16,k16>,
-            hybrid_k2_2222_b_rrr,
-            hybrid_k2_4524_b_rrr,
-            hybrid_k2_2528_b_rrr,
-            hybrid_k2_165216_b_rrr,
-            hybrid_k2_8523_b_rrr,
-            hybrid_k2_3524_b_rrr,
-            k2_tree_partitioned<2,hybrid_k2_4524_b_rrr>,
-            k2_tree_partitioned<3,hybrid_k2_2528_b_rrr>,
-            k2_tree_partitioned<4,hybrid_k2_165216_b_rrr>,
-            k2_tree_partitioned<8,hybrid_k2_8523_b_rrr>,
-            k2_tree_partitioned<16,hybrid_k2_3524_b_rrr>
+            k8comp,
+            k2comp,
+            k4comp,
+            k16comp,
+            hybrid_k2_2222_b_comp,
+            hybrid_k2_4524_b_comp,
+            hybrid_k2_165216_b_rrr_comp,
+            k2_tree_partitioned<2, k2comp>,
+            k2_tree_partitioned<4, k8comp>,
     > Implementations;
 
-    TYPED_TEST_CASE(k2_tree_test, Implementations);
+    TYPED_TEST_CASE(k2_tree_compression_test, Implementations);
 
-    TYPED_TEST(k2_tree_test, CreateAndStoreTest) {
+    TYPED_TEST(k2_tree_compression_test, CreateAndStoreTest) {
         int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
         TypeParam k2treap(buf_x, buf_y, false);
@@ -73,7 +52,7 @@ namespace {
         ASSERT_EQ(k2treap, k2treap2);
     }
 
-    TYPED_TEST(k2_tree_test, ConstructCompareTest) {
+    TYPED_TEST(k2_tree_compression_test, ConstructCompareTest) {
         int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
         TypeParam k2treap;
@@ -89,7 +68,7 @@ namespace {
         ASSERT_EQ(k2treap, k2treap2);
     }
 
-    TYPED_TEST(k2_tree_test, size) {
+    TYPED_TEST(k2_tree_compression_test, size) {
         TypeParam k2treap;
         ASSERT_TRUE(load_from_file(k2treap, temp_file));
         int_vector<> x, y;
@@ -178,14 +157,15 @@ namespace {
         }
     }
 
-    TYPED_TEST(k2_tree_test, direct_links) {
+    /*
+    TYPED_TEST(k2_tree_compression_test, direct_links) {
         TypeParam k2treap;
         perform_direct_links_test(k2treap, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
             k2treap.direct_links(source_id, result);
         });
-    }
+    }*/
 
-    TYPED_TEST(k2_tree_test, direct_links_2) {
+    TYPED_TEST(k2_tree_compression_test, direct_links_2) {
         TypeParam k2treap;
         perform_direct_links_test(k2treap, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
             k2treap.direct_links2(source_id, result);
@@ -248,14 +228,15 @@ namespace {
         }
     }
 
-    TYPED_TEST(k2_tree_test, inverse_links) {
+    /*
+    TYPED_TEST(k2_tree_compression_test, inverse_links) {
         TypeParam k2treap;
         perform_inverse_links_test(k2treap, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
             k2treap.inverse_links(source_id, result);
         });
-    }
+    }*/
 
-    TYPED_TEST(k2_tree_test, inverse_links2) {
+    TYPED_TEST(k2_tree_compression_test, inverse_links2) {
         TypeParam k2treap;
         perform_inverse_links_test(k2treap, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
             k2treap.inverse_links2(source_id, result);
@@ -296,6 +277,7 @@ namespace {
         if (x.size() > 0) {
             std::mt19937_64 rng;
             std::uniform_int_distribution<uint64_t> distribution(0, x.size() - 1);
+            auto dice = bind(distribution, rng);
             if (x.size() > 0) {
                 std::mt19937_64 rng;
                 std::uniform_int_distribution<uint64_t> distribution(0, x.size() - 1);
@@ -320,13 +302,12 @@ namespace {
         }
     }
 
-    TYPED_TEST(k2_tree_test, check_link) {
+    TYPED_TEST(k2_tree_compression_test, check_link) {
         TypeParam k2treap;
         perform_check_link_test(k2treap, [&k2treap](std::pair<uint64_t, uint64_t> asd) {
             return k2treap.check_link(asd);
         });
     }
-
 
     /*
 template<class t_k2treap>

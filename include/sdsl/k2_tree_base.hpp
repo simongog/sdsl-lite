@@ -475,17 +475,21 @@ namespace sdsl {
             //calculate real bits used by m_max_element
             while (1ULL<< (real_size) < m_max_element) { ++real_size; }
 
-            uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(p, q, real_size, t_access_shortcut_size-1);
+            uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(q, p, real_size, t_access_shortcut_size);
             //y = zth 1 via rank on B_
             uint64_t y = this->m_access_shortcut_select_1_support(z+1);
             //check if exists and if B_[y-1] == 0 otherwise no link
-            if (y < 0 || this->m_access_shortcut[y-1] == true){
+            if (y <= 0 || this->m_access_shortcut[y-1] == true){
                 return false;
             }
             //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
             //directly get corresponding data from leaf array
 
-            uint64_t field_size = precomp<k0>::exp(this->m_tree_height - (t_access_shortcut_size));
+            uint64_t field_size = m_max_element;//height cannot be used when using hybrid k trees --> buffer this value in this case
+            for (int i = 0; i < t_access_shortcut_size; ++i) {
+                field_size/= get_k(i);
+            }
+
             uint64_t number_of_present_trees_searched_value_is_in = this->m_access_shortcut_rank_01_support(y);
             uint64_t index = number_of_present_trees_searched_value_is_in*k0*k0;
 
@@ -1069,7 +1073,6 @@ namespace sdsl {
 
             //maximal size of shortcut is tree height
             if (t_access_shortcut_size > this->m_tree_height -2) {
-                std::cout << "Reducing shortcut size to tree height -2" << std::endl;
                 throw std::runtime_error("shortcut size must be smaller than tree height -2");
             }
 
@@ -1077,8 +1080,9 @@ namespace sdsl {
             //coresponds to the amount of non-empty trees in level h-1
             //amount of Zeros = actually existent number of trees --> (level_begin_idx[level+2] - level_begin_idx[level+1])/k² or rank l(evel_begin_idx[level], level_begin_idx[level+1])
 
-            uint64_t amountOfZeros = this->m_levels[t_access_shortcut_size].size() / (k0*k0); //spares rank of comp. level
+            uint64_t amountOfZeros = this->m_levels[t_access_shortcut_size].size() / (get_k(t_access_shortcut_size)*get_k(t_access_shortcut_size)); //spares rank of comp. level
             //corresponds to the theoretical amount of trees in level t_access_shortcut_size (round up (in case not divisible by k^2)
+            std::cout << "k0" << std::to_string(k0) << std::endl;
             uint64_t amountOfOnes = precomp<k0*k0>::exp(t_access_shortcut_size);
             bit_vector access_shortcut(amountOfOnes+amountOfZeros, 1);
 
@@ -1086,6 +1090,12 @@ namespace sdsl {
             uint counter = 0;
             construct_access_shortcut_by_dfs(access_shortcut, this->root(), this->m_max_element, counter);
             this->m_access_shortcut.swap(access_shortcut);
+
+            std::cout << "Access shortcut: " << std::endl;
+            for (int i = 0; i < m_access_shortcut.size(); ++i) {
+                std::cout << m_access_shortcut[i];
+            }
+            std::cout << std::endl;
 
             sdsl::util::init_support(this->m_access_shortcut_rank_01_support, &this->m_access_shortcut);
             sdsl::util::init_support(this->m_access_shortcut_select_1_support, &this->m_access_shortcut);
