@@ -95,8 +95,8 @@ int main(int argc, char *argv[]) {
         std::cerr << "Finished Reading File " << std::endl;
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
         const uint8_t k = 4;
-        //typedef k2_tree_hybrid<k,k,k,k, bit_vector, rrr_vector<63>,true> k2_rrr;
-        typedef k2_tree<k, bit_vector, bit_vector,true> k2_rrr;
+        typedef k2_tree_hybrid<k,k,k,k, bit_vector, bit_vector,true> k2_rrr;
+        //typedef k2_tree<k, bit_vector, bit_vector,true> k2_rrr;
 
 
         double t2 = 0;
@@ -121,7 +121,14 @@ int main(int argc, char *argv[]) {
         std::vector<uint> queries;
         uint queryCount = 10000;
         for (i = 0; i < queryCount; i++) {
-            queries.push_back(rand() % 862664);
+            queries.push_back(rand() % (numberOfNodes-1));
+        }
+
+        srand(0);
+        std::vector<std::pair<uint,uint>> check_link_queries;
+        uint queryCount2 = 100000000;
+        for (i = 0; i < queryCount2; i++) {
+            check_link_queries.push_back(std::make_pair(rand() % (numberOfNodes-1), rand() % (numberOfNodes-1)));
         }
 
 
@@ -166,6 +173,23 @@ int main(int argc, char *argv[]) {
         std::cerr << "Total time(ms): " << t3 << "\n";
         std::cerr << "Time per query: " << t3/queryCount << "\n";
         std::cerr << "Time per link: " << t3/count2 << "\n";
+
+
+        std::cout << "Performing single link tests" << std::endl;
+        double t4 = 0;
+        start_clock();
+        for (auto pair: check_link_queries) {
+            k2treap.check_link(pair);
+        }
+
+        //uint count = 342045;
+        t4 += stop_clock();
+        t4 *= 1000; // to milliseconds
+
+        std::cerr << "Total time(ms): "<< t4 <<"\n";
+        std::cerr << "Queries: " << queryCount2 << "\n";
+        std::cerr << "Total time(ms): " << t4 << "\n";
+        std::cerr << "Time per link check: " << t4/queryCount2 << "\n";
 
         std::string output_file_name(argv[2]);
         store_to_file(k2treap,output_file_name);
