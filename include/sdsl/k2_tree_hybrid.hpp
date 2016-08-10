@@ -53,23 +53,26 @@ namespace sdsl {
             typename t_lev=bit_vector,
             typename t_leaf=bit_vector,
             bool t_comp=false,
+            uint8_t t_access_shortcut_size=0,
             typename t_rank=typename t_lev::rank_1_type>
 
-    class k2_tree_hybrid : public k2_tree_base<t_lev, t_leaf, t_rank, t_comp> {
+    class k2_tree_hybrid : public k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank> {
         static_assert(t_k_l_1 > 1, "t_k has to be larger than 1.");
         static_assert(t_k_l_1 <= 16, "t_k has to be smaller than 17.");
         static_assert(t_k_l_2 > 1, "t_k has to be larger than 1.");
         static_assert(t_k_l_2 <= 16, "t_k has to be smaller than 17.");
         static_assert(t_k_leaves > 1, "t_k has to be larger than 1.");
         static_assert(t_k_leaves <= 16, "t_k has to be smaller than 17.");
+        static_assert(t_access_shortcut_size == 0 || (t_access_shortcut_size > 0 && t_access_shortcut_size <= t_k_l_1_size), "when using the access shortcut, the the levels up to the access shortcut need to have the same k value");
+
 
     public:
 
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint32_t, uint32_t>>::result stxxl_32bit_pair_vector;
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint64_t, uint64_t>>::result stxxl_64bit_pair_vector;
         typedef int_vector<>::size_type size_type;
-        using k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::operator=;
-        using k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::operator==;
+        using k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::operator=;
+        using k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::operator==;
 
         k2_tree_hybrid() = default;
 
@@ -82,27 +85,21 @@ namespace sdsl {
         }*/
 
         template<typename t_vector>
-        k2_tree_hybrid(std::string temp_file_prefix, bool use_counting_sort, uint access_shortcut_size, t_vector &v,
-                       uint64_t max_hint = 0) {
-
-            if (access_shortcut_size > 0 && access_shortcut_size <= t_k_l_1_size){
-                throw std::runtime_error("when using the access shortcut, the the levels up to the access shortcut need to have the same k value");
-            }
-            this->m_access_shortcut_size = access_shortcut_size;
+        k2_tree_hybrid(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint = 0) {
 
             this->m_tree_height = get_tree_height(v, max_hint);
 
             if (v.size() > 0) {
                 if (use_counting_sort) {
-                    k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template construct_counting_sort(v, temp_file_prefix);
+                    k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort(v, temp_file_prefix);
                     //construct_bottom_up(v, temp_file_prefix);
                 } else {
                     construct(v, temp_file_prefix);
                 }
 
 
-                if (this->m_access_shortcut_size > 0) {
-                    //construct_access_shortcut();
+                if (t_access_shortcut_size > 0) {
+                    this->construct_access_shortcut();
                 }
 
                 if (t_comp){
@@ -112,18 +109,11 @@ namespace sdsl {
         }
 
         k2_tree_hybrid(int_vector_buffer<> &buf_x,
-                       int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint access_shortcut_size = 0,
-                       uint64_t max_hint = 0) {
+                       int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint64_t max_hint = 0) {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
 
-            if (access_shortcut_size > 0 && access_shortcut_size <= t_k_l_1_size){
-                throw std::runtime_error("when using the access shortcut, the the levels up to the access shortcut need to have the same k value");
-            }
-
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
-
-            this->m_access_shortcut_size = access_shortcut_size;
 
             uint64_t max;
             if (max_hint != 0) {
@@ -173,24 +163,24 @@ namespace sdsl {
             }
 
             if (this->m_max_element <= std::numeric_limits<uint32_t>::max()) {
-                auto v = k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template read<uint32_t, uint32_t>(bufs);
+                auto v = k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template read<uint32_t, uint32_t>(bufs);
                 if (use_counting_sort) {
-                    k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template construct_counting_sort(v, buf_x.filename());
+                    k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort(v, buf_x.filename());
                 } else {
                     construct(v, buf_x.filename());
                 }
 
             } else {
-                auto v = k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template read<uint64_t, uint64_t>(bufs);
+                auto v = k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template read<uint64_t, uint64_t>(bufs);
                 if (use_counting_sort) {
-                    k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::template construct_counting_sort(v, buf_x.filename());
+                    k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort(v, buf_x.filename());
                 } else {
                     construct(v, buf_x.filename());
                 }
             }
 
-            if (this->m_access_shortcut_size > 0) {
-                //construct_access_shortcut();
+            if (t_access_shortcut_size > 0) {
+                this->construct_access_shortcut();
             }
 
             if (t_comp){
@@ -199,7 +189,7 @@ namespace sdsl {
         }
 
         virtual size_type serialize(std::ostream &out, structure_tree_node *v, std::string name) const override {
-            return k2_tree_base<t_lev, t_leaf, t_rank, t_comp>::serialize(out, v, name);
+            return k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::serialize(out, v, name);
         }
 
         inline uint8_t get_k(uint8_t level) const {
@@ -212,61 +202,7 @@ namespace sdsl {
             }
         }
 
-        /**
-         * Checks whether link from p = link.first to q = link.second is present i.e. matrix entry a_pq = 1
-         */
-        template<typename t_x, typename t_y>
-        bool check_link(std::pair<t_x, t_y> link) const {
-
-            //Patological case happening e.g. when using k2part
-            if (this->m_tree_height == 0) {
-                return false;
-            }
-
-            if (t_comp){
-                return check_link_internal(0, this->m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t leafK){
-                    return this->is_leaf_bit_set_comp(pos, leafK);
-                });
-            } else {
-                return check_link_internal(0, this->m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t){
-                    return this->is_leaf_bit_set(pos);
-                });
-            }
-
-        }
-
     private:
-
-        /**
-         * Checks wether the edge p-->q exists recursively
-         * @param level
-         *  current level, initialy 0
-         * @param p
-         *  source_node
-         * @param q
-         *  target_node
-         * @param index
-         *  contains the index of the first child of the previous node, initially set to 0
-         * @return
-         */
-        template<typename t_x, typename t_y, typename Function>
-        bool check_link_internal(uint8_t level, uint64_t n, t_x p, t_y q, int64_t index, Function check_leaf) const {
-            using namespace k2_treap_ns;
-
-            const uint8_t k = get_k(level);
-
-            uint64_t current_submatrix_size = n / k;
-            int64_t y = index + k * (p / current_submatrix_size) + (q / current_submatrix_size);
-
-            if (this->is_leaf_level(level)) {
-                return check_leaf(y,k);
-            } else if (this->m_levels[level][y]) {
-                return check_link_internal(level + 1, current_submatrix_size, p % current_submatrix_size,
-                                           q % current_submatrix_size, this->get_child_index(0, y, level), check_leaf);
-            } else {
-                return false;
-            }
-        }
 
         /**
          * Constructs the tree corresponding to the points in the links vector by partitioning the input multiple times

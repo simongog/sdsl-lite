@@ -49,18 +49,17 @@ namespace sdsl {
         }
 
         template<typename t_vector>
-        k2_tree_partitioned(std::string temp_file_prefix, bool bottom_up,
-                            uint access_shortcut_size, t_vector &v, uint64_t max_hint) {
+        k2_tree_partitioned(std::string temp_file_prefix, bool bottom_up, t_vector &v, uint64_t max_hint) {
             //FIXME: build multiple k trees
             //partition into k02 parts
             using namespace k2_treap_ns;
             m_matrix_size = precomp<t_k0>::exp(get_tree_height(v, max_hint));
-            build_k2_trees(v, temp_file_prefix, bottom_up, access_shortcut_size);
+            build_k2_trees(v, temp_file_prefix, bottom_up);
             //build tree
         }
 
         k2_tree_partitioned(int_vector_buffer<> &buf_x,
-                            int_vector_buffer<> &buf_y, bool bottom_up=false, uint access_shortcut_size = 0) {
+                            int_vector_buffer<> &buf_y, bool bottom_up=false) {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
@@ -92,10 +91,10 @@ namespace sdsl {
 
             if (precomp<t_k0>::exp(res) <= std::numeric_limits<uint32_t>::max()) {
                 auto v = read < uint32_t, uint32_t>(bufs);
-                build_k2_trees(v, buf_x.filename(), bottom_up, access_shortcut_size);
+                build_k2_trees(v, buf_x.filename(), bottom_up);
             } else {
                 auto v = read < uint64_t, uint64_t>(bufs);
-                build_k2_trees(v, buf_x.filename(), bottom_up, access_shortcut_size);
+                build_k2_trees(v, buf_x.filename(), bottom_up);
             }
         }
 
@@ -290,7 +289,7 @@ namespace sdsl {
         }
 
         template<typename t_vector>
-        void build_k2_trees(t_vector &links, std::string temp_file_prefix = "", bool bottom_up = false, uint access_shortcut_size = 0) {
+        void build_k2_trees(t_vector &links, std::string temp_file_prefix = "", bool bottom_up = false) {
             using namespace k2_treap_ns;
             typedef decltype(links[0].first) t_x;
             typedef decltype(links[0].second) t_y;
@@ -330,7 +329,7 @@ namespace sdsl {
 
             m_k2trees.resize(t_k0*t_k0);
             for (int l = 0; l < t_k0*t_k0; ++l) {
-                const subk2_tree k2tree(temp_file_prefix, bottom_up, access_shortcut_size, buffers[l]);
+                const subk2_tree k2tree(temp_file_prefix, bottom_up, buffers[l]);
                 m_k2trees[l] = k2tree;//buffers[l]);//, temp_file_prefix, bottom_up, access_shortcut_size);
             }
         }

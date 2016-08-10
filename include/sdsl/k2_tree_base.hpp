@@ -36,10 +36,12 @@ namespace sdsl {
 
 
 
-    template<typename t_lev=bit_vector,
-            typename t_leaf=bit_vector,
-            typename t_rank=typename t_lev::rank_1_type,
-            bool t_comp=false>
+    template<uint8_t k0,
+            typename t_lev,
+            typename t_leaf,
+            bool t_comp,
+            uint8_t t_access_shortcut_size,
+            typename t_rank>
     class k2_tree_base {
 
     public:
@@ -77,7 +79,6 @@ namespace sdsl {
 
         t_leaf m_leaves;
         size_type m_size = 0;
-        uint8_t m_access_shortcut_size;
         /** BitArray containing Gog's B vector. */
         bit_vector m_access_shortcut;
         //Rank support for pattern 01 and 1
@@ -186,7 +187,6 @@ namespace sdsl {
                     m_levels_rank[i].set_vector(&m_levels[i]);
                 }
                 m_leaves = std::move(tr.m_leaves);
-                m_access_shortcut_size = std::move(tr.m_access_shortcut_size);
                 m_access_shortcut = std::move(tr.m_access_shortcut);
                 m_access_shortcut_rank_01_support = std::move(tr.m_access_shortcut_rank_01_support);
                 m_access_shortcut_select_1_support = std::move(tr.m_access_shortcut_select_1_support);
@@ -208,7 +208,6 @@ namespace sdsl {
                     m_levels_rank[i].set_vector(&m_levels[i]);
                 }
                 m_leaves = tr.m_leaves;
-                m_access_shortcut_size = tr.m_access_shortcut_size;
                 m_access_shortcut = tr.m_access_shortcut;
                 m_access_shortcut_rank_01_support = tr.m_access_shortcut_rank_01_support;
                 m_access_shortcut_select_1_support = tr.m_access_shortcut_select_1_support;
@@ -271,9 +270,6 @@ namespace sdsl {
                 }
             }
 
-            if (m_access_shortcut_size != tr.m_access_shortcut_size)
-                return false;
-
             //don't compare other access_shortcut vetors as they have to be the same when access_shortcut_size is the same
 
             return true;
@@ -321,7 +317,6 @@ namespace sdsl {
                 tr.m_levels_rank.resize(tr_m_levels_size);
 
                 m_leaves.swap(tr.m_leaves);
-                std::swap(m_access_shortcut_size, tr.m_access_shortcut_size);
                 m_access_shortcut.swap(tr.m_access_shortcut);
                 util::swap_support(m_access_shortcut_rank_01_support, tr.m_access_shortcut_rank_01_support,
                                    &m_access_shortcut, &tr.m_access_shortcut);
@@ -357,8 +352,8 @@ namespace sdsl {
                     written_bytes += m_leaves.serialize(out, child, "leafv");
                 }
             }
-            written_bytes += write_member(m_access_shortcut_size, out, child, "access_shortcut_size");
-            if (m_access_shortcut_size > 0){
+
+            if (t_access_shortcut_size > 0){
                 written_bytes += m_access_shortcut.serialize(out, child, "access_shortcut");
                 written_bytes += m_access_shortcut_rank_01_support.serialize(out, child, "access_rank");
                 written_bytes += m_access_shortcut_select_1_support.serialize(out, child, "access_select");
@@ -393,8 +388,8 @@ namespace sdsl {
                 }
 
             }
-            read_member( m_access_shortcut_size, in);
-            if (m_access_shortcut_size > 0){
+
+            if (t_access_shortcut_size > 0){
                 m_access_shortcut.load(in);
                 m_access_shortcut_rank_01_support.load(in);
                 m_access_shortcut_rank_01_support.set_vector(&m_access_shortcut);
@@ -448,6 +443,84 @@ namespace sdsl {
         */
         uint word_size() const {
             return div_ceil((uint) get_k(this->m_tree_height-1) * get_k(this->m_tree_height-1), kUcharBits);
+        }
+
+
+        /**
+        * Used for accelerating the check whether a certain link exists by skipping t_access_shortcut_size levels
+        *
+        * @param p Identifier of first object.
+        * @param q Identifier of second object.
+        *
+        * @return Returns true/false depending on wehter link is present or not
+        */
+        template<typename t_x, typename t_y>
+        bool check_link_shortcut(std::pair<t_x,t_y> link) const {
+            using namespace k2_treap_ns;
+
+            if (t_access_shortcut_size == 0){
+                throw std::runtime_error("Cannot use check_link_shortcut if t_access_shortcut_size == 0");
+            }
+
+            //FIXME: height if k_L tree!, it depends as we're not only targeting the last level anymore
+            //FIXME: check which points are in the same tree and only fetch once
+            //how to get corresponding subtree on level x of a point efficiently? (for k=2^x, interleave x-bitwise the top h bits
+            //implement subtree calculation in general and for 2^x special-cases manually, think about precomp in the case of k=3
+
+            auto p = link.first;
+            auto q = link.second;
+
+            //z = interleaved first h-1 set bits of p,q
+            uint8_t real_size = 0;
+            //calculate real bits used by m_max_element
+            while (1ULL<< (real_size) < m_max_element) { ++real_size; }
+
+            uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(p, q, real_size, t_access_shortcut_size-1);
+            //y = zth 1 via rank on B_
+            uint64_t y = this->m_access_shortcut_select_1_support(z+1);
+            //check if exists and if B_[y-1] == 0 otherwise no link
+            if (y < 0 || this->m_access_shortcut[y-1] == true){
+                return false;
+            }
+            //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
+            //directly get corresponding data from leaf array
+
+            uint64_t field_size = precomp<k0>::exp(this->m_tree_height - (t_access_shortcut_size));
+            uint64_t number_of_present_trees_searched_value_is_in = this->m_access_shortcut_rank_01_support(y);
+            uint64_t index = number_of_present_trees_searched_value_is_in*k0*k0;
+
+            //std::cout << "For " << p << "," << q << " the index is " << index << "and relative coordinates are " << p%field_size << "," << q%field_size << std::endl;
+
+            if (t_comp){
+                return check_link_internal(t_access_shortcut_size, field_size, p%field_size, q%field_size, index, [this](int64_t pos, uint8_t leafK){
+                    return this->is_leaf_bit_set_comp(pos, leafK);
+                });
+            } else {
+                return check_link_internal(t_access_shortcut_size, field_size, p%field_size, q%field_size, index, [this](int64_t pos, uint8_t){
+                    return this->is_leaf_bit_set(pos);
+                });
+            }
+        }
+
+        /**
+        * Checks whether link from p = link.first to q = link.second is present i.e. matrix entry a_pq = 1
+        */
+        template<typename t_x, typename t_y>
+        bool check_link(std::pair<t_x,t_y> link) const {
+
+            //Patological case happening e.g. when using k2part
+            if (this->m_tree_height == 0){
+                return false;
+            }
+            if (t_comp){
+                return check_link_internal(0, m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t leafK){
+                    return this->is_leaf_bit_set_comp(pos, leafK);
+                });
+            } else {
+                return check_link_internal(0, m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t){
+                    return this->is_leaf_bit_set(pos);
+                });
+            }
         }
 
     protected:
@@ -968,6 +1041,57 @@ namespace sdsl {
             }
         };
 
+        /**
+        * Hier noch eine Idee um den k^2-tree zu beschleunigen: Um nicht erst durch h Levels zu navigieren kann man sich erst ein bit_vector B bauen, der aus 4^h Einsen und höchstens 4^h Nullen besteht. Für jeden der 4^h Teilbäume schreibt man eine Eins; für nichtleere Teilbäume zusätzlich eine Null vor der entsprechenden Eins.
+        *  Also für das Beispiel in Abb.1.3 (in Jans Bericht) mit h=2:
+        *
+        *       0 12 345678 901 2345
+        *  B = 010110111111011101111
+        *  P = 3 4  5      8   1
+        *                      2
+        *  Zum Teilbaum der Koordinate (x,y) kommt man indem man
+        *   (1) die oberen h Bits von x und y interleaved; nennen wir das z
+        *   (2) die Position p der (z+1)te Eins selektieren
+        *   (3) Falls p=0 oder B[p-1]=1 ist, so ist der Teilbaum leer. Andernfalls
+        *        ist der Teilbaum nicht leer und durch das Ergebnis r einer
+        *       rank Operation auf das Bitpattern ,01' in B[0,p]
+        *       adressieren wir einen Array P, der die Präfixsummer der
+        *       Subbaumgrößen enthält. Der Eintrag P[r] kann als Pointer auf die
+        *       k^2 Repräsentation des nichtleeren Subtrees dienen.
+        *
+        *  Das ist praktikabel für h=8. Der Bitvektor würde höchstens 16kBytes
+        *  benötigen und P im worst case 2MB. Da nur ein rank und ein select
+        *  gemacht werden sollte das deutlich schneller sein als die 8 ranks
+        *  in der vorherigen Implementierung.
+         */
+        void construct_access_shortcut() {
+            using namespace k2_treap_ns;
+
+            //maximal size of shortcut is tree height
+            if (t_access_shortcut_size > this->m_tree_height -2) {
+                std::cout << "Reducing shortcut size to tree height -2" << std::endl;
+                throw std::runtime_error("shortcut size must be smaller than tree height -2");
+            }
+
+            //Use 1 to code empty trees in level height-1 and 01 to code non-empty trees, height has to be calculated with kL_ as height of hybrid tree is different
+            //coresponds to the amount of non-empty trees in level h-1
+            //amount of Zeros = actually existent number of trees --> (level_begin_idx[level+2] - level_begin_idx[level+1])/k² or rank l(evel_begin_idx[level], level_begin_idx[level+1])
+
+            uint64_t amountOfZeros = this->m_levels[t_access_shortcut_size].size() / (k0*k0); //spares rank of comp. level
+            //corresponds to the theoretical amount of trees in level t_access_shortcut_size (round up (in case not divisible by k^2)
+            uint64_t amountOfOnes = precomp<k0*k0>::exp(t_access_shortcut_size);
+            bit_vector access_shortcut(amountOfOnes+amountOfZeros, 1);
+
+            //BitArray<uint> B(amountOfOnes + amountOfZeros);
+            uint counter = 0;
+            construct_access_shortcut_by_dfs(access_shortcut, this->root(), this->m_max_element, counter);
+            this->m_access_shortcut.swap(access_shortcut);
+
+            sdsl::util::init_support(this->m_access_shortcut_rank_01_support, &this->m_access_shortcut);
+            sdsl::util::init_support(this->m_access_shortcut_select_1_support, &this->m_access_shortcut);
+        }
+
+
     private:
         /**
         * Calculates the smalles integer gretear or equal to x/y
@@ -1064,6 +1188,75 @@ namespace sdsl {
             }
         }
 
+        /**
+         * Constructs the bitvector m_access_shortcut used for speeding up tree traversal/link checks
+         */
+        void construct_access_shortcut_by_dfs(bit_vector& access_shortcut, node_type root, uint64_t matrix_size, uint& counter) {
+            using namespace k2_treap_ns;
+            uint64_t rank = this->m_levels_rank[root.t](root.idx);
+            auto x = std::real(root.p);
+            auto y = std::imag(root.p);
+            auto k = get_k(0);
+            auto submatrix_size = matrix_size / k;
+
+            for (size_t i = 0; i < k; ++i) {
+                auto _x = x + i * submatrix_size;
+                for (size_t j = 0; j < k; ++j) {
+                    // get_int better for compressed bitvectors
+                    // or introduce cache for bitvectors
+                    if (root.t == (t_access_shortcut_size-1)){
+                        if (this->m_levels[root.t][root.idx + k * i + j]) { //if subtree present
+                            access_shortcut[counter] = 0;//save 01 at counter position (m_access_shortcut gets initialised with 1s)
+                            counter++;
+                        }
+                        counter++;
+
+
+                    } else { //continue dfs tree traversal
+                        if (this->m_levels[root.t][root.idx + k * i + j]) { //if subtree present
+                            auto _y = y + j * submatrix_size;
+                            node_type subtree_root(root.t + 1, t_p(_x, _y), rank * k * k);
+                            ++rank;
+                            construct_access_shortcut_by_dfs(access_shortcut, subtree_root, submatrix_size, counter);
+                        } else {
+                            counter += ipow(k*k, ((t_access_shortcut_size-1) - root.t));
+                        }
+                    }
+                }
+            }
+        }
+
+
+        /**
+         * Checks wether the edge p-->q exists recursively
+         * @param level
+         *  current level, initialy 0
+         * @param p
+         *  source_node
+         * @param q
+         *  target_node
+         * @param index
+         *  contains the index of the first child of the previous node, initially set to 0
+         * @return
+         */
+        template<typename t_x, typename t_y, typename Function>
+        bool check_link_internal(uint8_t level, uint64_t n, t_x p, t_y q, int64_t index, Function check_leaf) const {
+            using namespace k2_treap_ns;
+
+            const uint8_t k = get_k(level);
+
+            uint64_t current_submatrix_size = n / k;
+            int64_t y = index + k * (p / current_submatrix_size) + (q / current_submatrix_size);
+
+            if (this->is_leaf_level(level)) {
+                return check_leaf(y,k);
+            } else if (this->m_levels[level][y]) {
+                return check_link_internal(level + 1, current_submatrix_size, p % current_submatrix_size,
+                                           q % current_submatrix_size, this->get_child_index(0, y, level), check_leaf);
+            } else {
+                return false;
+            }
+        }
     };
 }
 

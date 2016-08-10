@@ -95,16 +95,15 @@ int main(int argc, char *argv[]) {
         std::cerr << "Finished Reading File " << std::endl;
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
         const uint8_t k = 4;
-        typedef k2_tree_hybrid<k,k,k,k, bit_vector, bit_vector,true> k2_rrr;
-        //typedef k2_tree<k, bit_vector, bit_vector,true> k2_rrr;
-
+        //typedef k2_tree_hybrid<k,k,k,k, bit_vector, bit_vector,true> k2_rrr;
+        typedef k2_tree<k, bit_vector, bit_vector,true> k2_rrr;
 
         double t2 = 0;
         ticks = (double) sysconf(_SC_CLK_TCK);
         start_clock();
         // Initialize treap with a vector of (x,y,weight) elements
         //construct_im(k2treap, coordinates, numberOfNodes - 1);
-        k2_rrr k2treap("", false, 0, coordinates, numberOfNodes-1);
+        k2_rrr k2treap("", false, coordinates, numberOfNodes-1);
 
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds
