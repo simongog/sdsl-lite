@@ -85,7 +85,7 @@ namespace sdsl {
         k2_tree_hybrid(std::string temp_file_prefix, bool use_counting_sort, uint access_shortcut_size, t_vector &v,
                        uint64_t max_hint = 0) {
 
-            if (access_shortcut_size <= t_k_l_1_size){
+            if (access_shortcut_size > 0 && access_shortcut_size <= t_k_l_1_size){
                 throw std::runtime_error("when using the access shortcut, the the levels up to the access shortcut need to have the same k value");
             }
             this->m_access_shortcut_size = access_shortcut_size;
@@ -117,7 +117,7 @@ namespace sdsl {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
 
-            if (access_shortcut_size <= t_k_l_1_size){
+            if (access_shortcut_size > 0 && access_shortcut_size <= t_k_l_1_size){
                 throw std::runtime_error("when using the access shortcut, the the levels up to the access shortcut need to have the same k value");
             }
 
