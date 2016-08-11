@@ -21,6 +21,9 @@
 #ifndef INCLUDED_SDSL_K2_TREE
 #define INCLUDED_SDSL_K2_TREE
 
+#include <queue>
+#include <stdexcept>
+#include <tuple>
 #include <sdsl/bit_vectors.hpp>
 #include "sdsl/k2_tree_helper.hpp"
 
@@ -183,9 +186,39 @@ class k2_tree
             if(matrix.size() < k_k)
                 k_height = 1;
             else // height = log_k n
-                k_height = std::ceil(std::log(matrix.size())/std::log(k));
+                k_height = std::ceil(std::log(matrix.size())/std::log(k_k));
 
             build_from_matrix(matrix);
+
+            k_t_rank = t_rank(&k_t);
+        }
+
+        k2_tree(std::vector<std::tuple<idx_type, idx_type>> edges,
+                size_type size)
+        {
+            if(size < 1) {
+                throw std::logic_error("Matrix has no elements");
+            }
+            k_k = k;
+            k_height = std::ceil(std::log(size)/std::log(k_k));
+            size_type s = std::pow(k_k, k_height);
+            typedef std::tuple<idx_type, idx_type, size_type, idx_type,
+                               idx_type> t_part_tuple;
+
+            std::queue<t_part_tuple> q;
+            q.push(t_part_tuple(1, size, s/k_k, 0, 0));
+            t_bv(1 * std::pow(k, 2) * k_height, 0);
+            idx_type t;
+            t_part_tuple current_tuple;
+
+            while(!q.empty()) {
+               current_tuple = q.back();
+
+            }
+
+
+
+
 
             k_t_rank = t_rank(&k_t);
         }
