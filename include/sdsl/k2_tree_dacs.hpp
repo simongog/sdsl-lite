@@ -118,6 +118,14 @@ namespace sdsl {
         }
 
         bool operator==(const DAC &rhs) const {
+            if ((m_comp_leaves.get() == nullptr) && rhs.m_comp_leaves.get() == nullptr){
+                    return true;
+            }
+
+            if ((m_comp_leaves.get() == nullptr) || rhs.m_comp_leaves.get() == nullptr){
+                return false;
+            }
+
             return (equalsFT(m_comp_leaves.get(), rhs.m_comp_leaves.get()));
         }
 

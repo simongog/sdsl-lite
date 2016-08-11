@@ -127,6 +127,20 @@ namespace sdsl {
         }
 
         template<typename t_x>
+        void direct_links_shortcut(t_x source_id, std::vector<t_x> &result) const {
+            result.clear();
+            uint y = source_id/(m_matrix_size/t_k0);
+            //uint submatrix_size = m_matrix_size/k0;
+
+            //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
+            std::vector<t_x> tmp_result;
+            for (int j = 0; j < t_k0; ++j) {
+                m_k2trees[y*t_k0+j].direct_links_shortcut(source_id, tmp_result);
+                result.insert(result.end(), tmp_result.begin(), tmp_result.end());
+            }
+        }
+
+        template<typename t_x>
         void direct_links2(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
             uint y = source_id/(m_matrix_size/t_k0);
@@ -164,6 +178,20 @@ namespace sdsl {
             std::vector<t_x> tmp_result;
             for (int j = 0; j < t_k0; ++j) {
                 m_k2trees[j*t_k0+x].inverse_links2(source_id, tmp_result);
+                result.insert(result.end(), tmp_result.begin(), tmp_result.end());
+            }
+        }
+
+        template<typename t_x>
+        void inverse_links_shortcut(t_x source_id, std::vector<t_x> &result) const {
+            result.clear();
+            uint x = source_id/(m_matrix_size/t_k0);
+            //uint submatrix_size = m_matrix_size/k0;
+
+            //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
+            std::vector<t_x> tmp_result;
+            for (int j = 0; j < t_k0; ++j) {
+                m_k2trees[j*t_k0+x].inverse_links_shortcut(source_id, tmp_result);
                 result.insert(result.end(), tmp_result.begin(), tmp_result.end());
             }
         }

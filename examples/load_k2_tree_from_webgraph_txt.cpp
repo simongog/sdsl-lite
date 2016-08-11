@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
         const uint8_t k = 4;
         //typedef k2_tree_hybrid<k,k,k,k, bit_vector, bit_vector,true> k2_rrr;
-        typedef k2_tree<k, bit_vector, bit_vector,true> k2_rrr;
+        typedef k2_tree<k, bit_vector, bit_vector,true,4> k2_rrr;
 
         double t2 = 0;
         ticks = (double) sysconf(_SC_CLK_TCK);
@@ -136,9 +136,8 @@ int main(int argc, char *argv[]) {
         uint count = 0;
         std::vector<uint32_t> result;
 
-        k2treap.direct_links2((uint32_t) 3,result);
         for (auto query : queries){
-            k2treap.direct_links2(query, result);
+            k2treap.direct_links_shortcut(query, result);
             count+= result.size();
         }
 
@@ -178,7 +177,7 @@ int main(int argc, char *argv[]) {
         double t4 = 0;
         start_clock();
         for (auto pair: check_link_queries) {
-            k2treap.check_link(pair);
+            k2treap.check_link_shortcut(pair);
         }
 
         //uint count = 342045;

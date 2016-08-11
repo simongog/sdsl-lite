@@ -227,8 +227,12 @@ struct node_type {
     //corresponding_subtreeulate corresponding subtree on given level efficiently
     template<uint8_t t_k>
     struct access_shortcut_helper {
-        template<typename t_x, typename t_y>
-        static uint corresponding_subtree(t_x p, t_y q, uint8_t m_real_size_of_max_element, uint level){
+        static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level){
+            //FIXME: add generic implementation/think about it
+            throw new std::runtime_error("not yet implemented");
+        }
+
+        static uint64_t corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level){
             //FIXME: add generic implementation/think about it
             throw new std::runtime_error("not yet implemented");
         }
@@ -237,7 +241,7 @@ struct node_type {
     template<>
     struct access_shortcut_helper<2> {
         static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level){
-            if (level < 16){
+            if (level <= 16){
                 return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
             } else {
                 //FIXME: interleave top level+1 (more than 16 Bit), look at https://github.com/Forceflow/libmorton
@@ -245,8 +249,8 @@ struct node_type {
             }
         }
 
-        static uint corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level){
-            if (level < 16){
+        static uint64_t corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level){
+            if (level <= 16){
                 return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
             } else if (level < 32){
                 //FIXME: interleave top level+1 (more than 16 Bit)
@@ -260,11 +264,11 @@ struct node_type {
         /**
         * Interleaves the top h bits starting from bit l
         */
-        static inline uint interleaveFirstBits(ushort x, ushort y, int h, int l) {
+        static inline uint64_t interleaveFirstBits(uint64_t x, uint64_t y, int h, int l) {
             x = x >> (l - h);
             y = y >> (l - h);
 
-            uint z = MortonTable256[y >> 8] << 17 |
+            uint64_t z = MortonTable256[y >> 8] << 17 |
                      MortonTable256[x >> 8] << 16 |
                      MortonTable256[y & 0xFF] << 1 |
                      MortonTable256[x & 0xFF];
@@ -277,7 +281,7 @@ struct node_type {
     struct access_shortcut_helper<4> {
 
         static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level){
-            if (level < 16){
+            if (level <= 8){
                 return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
             } else {
                 //FIXME: interleave top level+1 (more than 16 Bit)
@@ -285,13 +289,10 @@ struct node_type {
             }
         }
 
-        static uint corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level){
-            if (level < 16){
-                return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
-            } else if (level < 32){
-                //FIXME: interleave top level+1 (more than 16 Bit)
-                throw new std::runtime_error("not yet implemented");
-            } else {
+        static uint64_t corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level){
+            if (level <= 8){
+                return (interleaveFirstBits(p, q, level, m_real_size_of_max_element));
+            }  else {
                 //FIXME: interleave top level+1 (more than 16 Bit)
                 throw new std::runtime_error("not yet implemented");
             }
@@ -300,11 +301,11 @@ struct node_type {
         /**
         * Interleaves the top h bits starting from bit l pairwise
         */
-        static inline uint interleaveFirstBits(ushort x, ushort y, int h, int l) {
+        static inline uint32_t interleaveFirstBits(uint64_t x, uint64_t y, int h, int l) {
             x = x >> (l - (h*2));
             y = y >> (l - (h*2));
 
-            uint z = MortonTable_2bitwise_256[y >> 8] << 16 |
+            uint64_t z = MortonTable_2bitwise_256[y >> 8] << 16 |
                      MortonTable_2bitwise_256[x >> 8] << 14 |
                      MortonTable_2bitwise_256[y & 0xFF] |
                      MortonTable_2bitwise_256[x & 0xFF] >> 2;
@@ -323,7 +324,7 @@ struct node_type {
     struct access_shortcut_helper<16> {
 
         static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level){
-            if (level < 16){
+            if (level <= 4){
                 return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
             } else {
                 //FIXME: interleave top level+1 (more than 16 Bit)
@@ -331,13 +332,10 @@ struct node_type {
             }
         }
 
-        static uint corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level){
-            if (level < 16){
+        static uint64_t corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level){
+            if (level <= 4){
                 return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
-            } else if (level < 32){
-                //FIXME: interleave top level+1 (more than 16 Bit)
-                throw new std::runtime_error("not yet implemented");
-            } else {
+             } else {
                 //FIXME: interleave top level+1 (more than 16 Bit)
                 throw new std::runtime_error("not yet implemented");
             }
@@ -346,11 +344,11 @@ struct node_type {
         /**
        * Interleaves the top h bits starting from bit l pairwise
        */
-        static inline uint interleaveFirstBits(ushort x, ushort y, int h, int l) {
+        static inline uint64_t interleaveFirstBits(uint64_t x, uint64_t y, int h, int l) {
             x = x >> (l - (h*4));
             y = y >> (l - (h*4));
 
-            uint z = ((y << 16) & 0xF0000000) |
+            uint64_t z = ((y << 16) & 0xF0000000) |
                     ((x << 12) & 0x0F000000) |
                     ((y << 12) & 0x00F00000) |
                     ((x << 8) & 0x000F0000) |
@@ -363,7 +361,7 @@ struct node_type {
     };
 
     //Efficient exponentiation by https://gist.github.com/orlp/3551590
-    int64_t ipow(int32_t base, uint8_t exp) {
+    int64_t ipow(int64_t base, uint8_t exp) {
         static const uint8_t highest_bit_set[] = {
                 0, 1, 2, 2, 3, 3, 3, 3,
                 4, 4, 4, 4, 4, 4, 4, 4,

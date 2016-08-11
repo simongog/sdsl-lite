@@ -1,5 +1,6 @@
 #include "sdsl/k2_tree_algorithm.hpp"
 #include "gtest/gtest.h"
+#include "k2_tree_test_helper.hpp"
 
 namespace {
 
@@ -34,9 +35,9 @@ namespace {
             hybrid_k2_4524_b_rrr,
             hybrid_k2_2528_b_rrr,
             hybrid_k2_165216_b_rrr,
-            k2_tree_partitioned<2,hybrid_k2_4524_b_rrr>,
-            k2_tree_partitioned<3,hybrid_k2_2528_b_rrr>,
-            k2_tree_partitioned<4,hybrid_k2_165216_b_rrr>
+            k2_tree_partitioned<2, hybrid_k2_4524_b_rrr>,
+            k2_tree_partitioned<3, hybrid_k2_2528_b_rrr>,
+            k2_tree_partitioned<4, hybrid_k2_165216_b_rrr>
     > Implementations;
 
     TYPED_TEST_CASE(k2_tree_access_shortcut_test, Implementations);
@@ -46,127 +47,37 @@ namespace {
         int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
         try {
             TypeParam k2treap(buf_x, buf_y, false);
-            //construct(k2treap, test_file);
+            //construct(k2treap,k test_file);
             ASSERT_TRUE(store_to_file(k2treap, temp_file));
             TypeParam k2treap2;
             ASSERT_TRUE(load_from_file(k2treap2, temp_file));
             ASSERT_EQ(k2treap, k2treap2);
 
-            perform_check_link_test(k2treap, [&k2treap](std::pair<uint64_t, uint64_t> asd) {
+            // a bit hacky because construction can fail during runtime, when access_shortcut_size > t_k_l_1 leading to temp_file not being present
+            perform_check_link_test(k2treap, temp_file, test_file, [&k2treap](std::pair<uint64_t, uint64_t> asd) {
                 return k2treap.check_link(asd);
             });
 
-            perform_check_link_test(k2treap, [&k2treap](std::pair<uint64_t, uint64_t> asd) {
+            perform_check_link_test(k2treap, temp_file, test_file, [&k2treap](std::pair<uint64_t, uint64_t> asd) {
                 return k2treap.check_link_shortcut(asd);
             });
-        } catch (std::runtime_error const& e){
+
+            perform_direct_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
+                k2treap.direct_links_shortcut(source_id, result);
+            });
+
+            perform_inverse_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
+                k2treap.inverse_links_shortcut(source_id, result);
+            });
+        } catch (std::runtime_error const &e) {
             std::cerr << "Exception occured " << e.what() << std::endl;
             //quite hacky comparing strings
-            if (strcmp(e.what(), "shortcut size must be smaller than tree height -2") != 0){
+            if (strcmp(e.what(), "shortcut size must be smaller than tree height -2") != 0) {
                 FAIL();
             }
         }
 
     }
-
-    template<typename Function>
-    void check_link_test(
-            uint64_t p,
-            uint64_t q,
-            const int_vector<> &x,
-            const int_vector<> &y,
-            Function check_link
-    ) {
-        std::pair<uint64_t, uint64_t> asd = std::make_pair(p, q);
-        bool result = check_link(asd);
-
-        bool actual = false;
-        for (uint64_t i = 0; i < x.size(); ++i) {
-            if (x[i] == p) {
-                if (y[i] == q) {
-                    actual = true;
-                }
-            }
-        }
-        ASSERT_EQ(actual, result);
-    }
-
-    template<class t_k2treap, typename Function>
-    void perform_check_link_test(t_k2treap &k2treap, Function check_link) {
-        int_vector<> x, y;
-        ASSERT_TRUE(load_from_file(x, test_file + ".x"));
-        ASSERT_TRUE(load_from_file(y, test_file + ".y"));
-        ASSERT_EQ(x.size(), y.size());
-        ASSERT_EQ(x.size(), k2treap.size());
-        if (x.size() > 0) {
-            std::mt19937_64 rng;
-            std::uniform_int_distribution<uint64_t> distribution(0, x.size() - 1);
-            auto dice = bind(distribution, rng);
-            //mostly negative
-            for (size_t i = 0; i < 100; ++i) {
-                auto idx = dice();
-                uint64_t xx = x[idx];
-                auto idy = dice();
-                uint64_t yy = y[idy];
-                check_link_test(xx, yy, x, y, check_link);
-            }
-
-            //positive
-            for (size_t i = 0; i < 100; ++i) {
-                auto idx = dice();
-                uint64_t xx = x[idx];
-                uint64_t yy = y[idx];
-                check_link_test(xx, yy, x, y, check_link);
-            }
-        }
-    }
-
-
-    /*
-template<class t_k2treap>
-void count_test(
-    const t_k2treap& k2treap,
-    complex<uint64_t> min_xy,
-    complex<uint64_t> max_xy,
-    const int_vector<>& x,
-    const int_vector<>& y)
-{
-    uint64_t cnt = 0;
-    for (uint64_t i = 0; i < x.size(); ++i) {
-        if (x[i] >= real(min_xy) and x[i] <= real(max_xy)
-            and y[i] >= imag(min_xy) and y[i] <= imag(max_xy)) {
-            ++cnt;
-        }
-    }
-    ASSERT_EQ(cnt, count(k2treap, {real(min_xy),imag(min_xy)}, {real(max_xy),imag(max_xy)}));
-}
-
-TYPED_TEST(k2_tree_test, count)
-{
-    TypeParam k2treap;
-    ASSERT_TRUE(load_from_file(k2treap, temp_file));
-    int_vector<> x,y;
-    ASSERT_TRUE(load_from_file(x, test_file+".x"));
-    ASSERT_TRUE(load_from_file(y, test_file+".y"));
-    ASSERT_EQ(x.size(), y.size());
-    ASSERT_EQ(x.size(), k2treap.size());
-    if (x.size() > 0) {
-        std::mt19937_64 rng;
-        std::uniform_int_distribution<uint64_t> distribution(0, x.size()-1);
-        auto dice = bind(distribution, rng);
-        for (size_t i=0; i<3; ++i) {
-            auto idx1 = dice();
-            auto idx2 = dice();
-            uint64_t x1 = x[idx1];
-            uint64_t y1 = y[idx1];
-            uint64_t x2 = x[idx2];
-            uint64_t y2 = y[idx2];
-            count_test(k2treap, {std::min(x1,x2), std::min(y1,y2)}, {std::max(x1,x2),std::max(y1,y2)}, x, y);
-        }
-    }
-}
-*/
-
 }  // namespace
 
 int main(int argc, char **argv) {
