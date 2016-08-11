@@ -30,7 +30,8 @@ int main()
 
     std::vector<uint32_t> result;
 
-    k2treap.check_link_shortcut(std::make_pair((uint) 0,(uint) 2));
+    k2treap.check_link(std::make_pair((uint) 0,(uint) 5));
+    k2treap.check_link_shortcut(std::make_pair((uint) 0,(uint) 5));
 
     for (uint i = 0; i < 15; ++i) {
         for (uint j = 0; j < 15; ++j) {

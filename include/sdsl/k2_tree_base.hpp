@@ -210,7 +210,9 @@ namespace sdsl {
                 m_leaves = tr.m_leaves;
                 m_access_shortcut = tr.m_access_shortcut;
                 m_access_shortcut_rank_01_support = tr.m_access_shortcut_rank_01_support;
+                m_access_shortcut_rank_01_support.set_vector(&m_access_shortcut);
                 m_access_shortcut_select_1_support = tr.m_access_shortcut_select_1_support;
+                m_access_shortcut_select_1_support.set_vector(&m_access_shortcut);
                 m_comp_leaves = tr.m_comp_leaves;
                 m_vocabulary = tr.m_vocabulary;
             }
@@ -458,6 +460,11 @@ namespace sdsl {
         bool check_link_shortcut(std::pair<t_x,t_y> link) const {
             using namespace k2_treap_ns;
 
+            //Patological case happening e.g. when using k2part
+            if (this->m_tree_height == 0){
+                return false;
+            }
+
             if (t_access_shortcut_size == 0){
                 throw std::runtime_error("Cannot use check_link_shortcut if t_access_shortcut_size == 0");
             }
@@ -491,7 +498,7 @@ namespace sdsl {
             }
 
             uint64_t number_of_present_trees_searched_value_is_in = this->m_access_shortcut_rank_01_support(y);
-            uint64_t index = number_of_present_trees_searched_value_is_in*k0*k0;
+            uint64_t index = number_of_present_trees_searched_value_is_in*get_k(t_access_shortcut_size)*get_k(t_access_shortcut_size);
 
             //std::cout << "For " << p << "," << q << " the index is " << index << "and relative coordinates are " << p%field_size << "," << q%field_size << std::endl;
 
@@ -1083,7 +1090,7 @@ namespace sdsl {
             uint64_t amountOfZeros = this->m_levels[t_access_shortcut_size].size() / (get_k(t_access_shortcut_size)*get_k(t_access_shortcut_size)); //spares rank of comp. level
             //corresponds to the theoretical amount of trees in level t_access_shortcut_size (round up (in case not divisible by k^2)
             std::cout << "k0" << std::to_string(k0) << std::endl;
-            uint64_t amountOfOnes = precomp<k0*k0>::exp(t_access_shortcut_size);
+            uint64_t amountOfOnes = ipow(k0*k0, t_access_shortcut_size);
             bit_vector access_shortcut(amountOfOnes+amountOfZeros, 1);
 
             //BitArray<uint> B(amountOfOnes + amountOfZeros);
@@ -1091,11 +1098,11 @@ namespace sdsl {
             construct_access_shortcut_by_dfs(access_shortcut, this->root(), this->m_max_element, counter);
             this->m_access_shortcut.swap(access_shortcut);
 
-            std::cout << "Access shortcut: " << std::endl;
+            /*std::cout << "Access shortcut: " << std::endl;
             for (int i = 0; i < m_access_shortcut.size(); ++i) {
                 std::cout << m_access_shortcut[i];
             }
-            std::cout << std::endl;
+            std::cout << std::endl;*/
 
             sdsl::util::init_support(this->m_access_shortcut_rank_01_support, &this->m_access_shortcut);
             sdsl::util::init_support(this->m_access_shortcut_select_1_support, &this->m_access_shortcut);

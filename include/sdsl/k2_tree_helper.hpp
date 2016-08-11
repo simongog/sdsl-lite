@@ -238,16 +238,16 @@ struct node_type {
     struct access_shortcut_helper<2> {
         static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level){
             if (level < 16){
-                return interleaveFirstBits(q, p, level, m_real_size_of_max_element);
+                return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
             } else {
                 //FIXME: interleave top level+1 (more than 16 Bit), look at https://github.com/Forceflow/libmorton
                 throw new std::runtime_error("not yet implemented");
             }
         }
 
-        static uint corresponding_subtree(uint64_t q, uint64_t p, uint8_t m_real_size_of_max_element, uint level){
+        static uint corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level){
             if (level < 16){
-                return interleaveFirstBits(q, p, level, m_real_size_of_max_element);
+                return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
             } else if (level < 32){
                 //FIXME: interleave top level+1 (more than 16 Bit)
                 throw new std::runtime_error("not yet implemented");
@@ -278,16 +278,16 @@ struct node_type {
 
         static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level){
             if (level < 16){
-                return interleaveFirstBits(q, p, level, m_real_size_of_max_element);
+                return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
             } else {
                 //FIXME: interleave top level+1 (more than 16 Bit)
                 throw new std::runtime_error("not yet implemented");
             }
         }
 
-        static uint corresponding_subtree(uint64_t q, uint64_t p, uint8_t m_real_size_of_max_element, uint level){
+        static uint corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level){
             if (level < 16){
-                return interleaveFirstBits(q, p, level, m_real_size_of_max_element);
+                return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
             } else if (level < 32){
                 //FIXME: interleave top level+1 (more than 16 Bit)
                 throw new std::runtime_error("not yet implemented");
@@ -301,8 +301,8 @@ struct node_type {
         * Interleaves the top h bits starting from bit l pairwise
         */
         static inline uint interleaveFirstBits(ushort x, ushort y, int h, int l) {
-            x = x >> (l - h);
-            y = y >> (l - h);
+            x = x >> (l - (h*2));
+            y = y >> (l - (h*2));
 
             uint z = MortonTable_2bitwise_256[y >> 8] << 16 |
                      MortonTable_2bitwise_256[x >> 8] << 14 |
@@ -324,16 +324,16 @@ struct node_type {
 
         static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level){
             if (level < 16){
-                return interleaveFirstBits(q, p, level, m_real_size_of_max_element);
+                return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
             } else {
                 //FIXME: interleave top level+1 (more than 16 Bit)
                 throw new std::runtime_error("not yet implemented");
             }
         }
 
-        static uint corresponding_subtree(uint64_t q, uint64_t p, uint8_t m_real_size_of_max_element, uint level){
+        static uint corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level){
             if (level < 16){
-                return interleaveFirstBits(q, p, level, m_real_size_of_max_element);
+                return interleaveFirstBits(p, q, level, m_real_size_of_max_element);
             } else if (level < 32){
                 //FIXME: interleave top level+1 (more than 16 Bit)
                 throw new std::runtime_error("not yet implemented");
@@ -347,8 +347,8 @@ struct node_type {
        * Interleaves the top h bits starting from bit l pairwise
        */
         static inline uint interleaveFirstBits(ushort x, ushort y, int h, int l) {
-            x = x >> (l - h);
-            y = y >> (l - h);
+            x = x >> (l - (h*4));
+            y = y >> (l - (h*4));
 
             uint z = ((y << 16) & 0xF0000000) |
                     ((x << 12) & 0x0F000000) |
