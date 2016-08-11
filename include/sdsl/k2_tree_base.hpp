@@ -127,11 +127,11 @@ namespace sdsl {
 
             //direct_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result);
             if (t_comp){
-                direct_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result, [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                direct_links2_internal_queue(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                     check_leaf_bits_direct_comp(pos, offset, leafK, result);
                 });
             } else {
-                direct_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result, [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                direct_links2_internal_queue(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                     check_leaf_bits_direct_uncomp(pos, offset, leafK, result);
                 });
             }
