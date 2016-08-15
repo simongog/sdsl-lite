@@ -271,14 +271,14 @@ namespace sdsl {
         }
 
         //! Move assignment operator
-        k2_tree_base &operator=(k2_tree_base &&tr) {
+        virtual k2_tree_base &operator=(k2_tree_base &&tr) {
             if (this != &tr) {
                 m_tree_height = tr.m_tree_height;
                 m_size = tr.m_size;
                 m_max_element = tr.m_max_element;
                 m_levels = std::move(tr.m_levels);
                 m_levels_rank = std::move(tr.m_levels_rank);
-                for (int i = 0; i < m_levels_rank.size(); ++i) {
+                for (uint i = 0; i < m_levels_rank.size(); ++i) {
                     m_levels_rank[i].set_vector(&m_levels[i]);
                 }
                 m_leaves = std::move(tr.m_leaves);
@@ -292,7 +292,7 @@ namespace sdsl {
         }
 
         //! Assignment operator
-        k2_tree_base &operator=(const k2_tree_base &tr) {
+        virtual k2_tree_base &operator=(const k2_tree_base &tr) {
             if (this != &tr) {
                 m_tree_height = tr.m_tree_height;
                 m_size = tr.m_size;
@@ -315,7 +315,7 @@ namespace sdsl {
         }
 
         //! Equals operator
-        bool operator==(const k2_tree_base &tr) const {
+        virtual bool operator==(const k2_tree_base &tr) const {
             if (m_tree_height != tr.m_tree_height)
                 return false;
             if (m_size != tr.m_size)
@@ -380,7 +380,7 @@ namespace sdsl {
         }
 
         //! Swap operator
-        void swap(k2_tree_base &tr) {
+        virtual void swap(k2_tree_base &tr) {
             if (this != &tr) {
                 std::swap(m_tree_height, tr.m_tree_height);
                 std::swap(m_size, tr.m_size);

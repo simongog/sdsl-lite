@@ -152,7 +152,7 @@ namespace sdsl {
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
             for (int j = 0; j < t_k0; ++j) {
-                    m_k2trees[y*t_k0+j].direct_links(source_id - y * m_part_matrix_size, tmp_result);
+                    m_k2trees[y*t_k0+j].direct_links( (t_x) (source_id - y * m_part_matrix_size), tmp_result);
                     for (auto item : tmp_result){
                         result.push_back(item + j*m_part_matrix_size);
                     }
@@ -170,7 +170,7 @@ namespace sdsl {
             if (t_comp){
                 for (int j = 0; j < t_k0; ++j) {
                     uint index = y*t_k0+j;
-                    m_k2trees[index].direct_links_shortcut_internal(source_id - y * m_part_matrix_size, tmp_result, [index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                    m_k2trees[index].direct_links_shortcut_internal((t_x) (source_id - y * m_part_matrix_size), tmp_result, [index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                         check_leaf_bits_direct_comp(index, pos, offset, leafK, result);
                     });
                     for (auto item : tmp_result){
@@ -179,7 +179,7 @@ namespace sdsl {
                 }
             } else {
                 for (int j = 0; j < t_k0; ++j) {
-                    m_k2trees[y*t_k0+j].direct_links_shortcut(source_id - y * m_part_matrix_size, tmp_result);
+                    m_k2trees[y*t_k0+j].direct_links_shortcut((t_x) (source_id - y * m_part_matrix_size), tmp_result);
                     for (auto item : tmp_result){
                         result.push_back(item + j*m_part_matrix_size);
                     }
@@ -198,7 +198,7 @@ namespace sdsl {
             if (t_comp){
                 for (int j = 0; j < t_k0; ++j) {
                     uint index = y*t_k0+j;
-                    m_k2trees[index].direct_links2_internal_queue(source_id - y * m_part_matrix_size, tmp_result, [index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                    m_k2trees[index].direct_links2_internal_queue((t_x) (source_id - y * m_part_matrix_size), tmp_result, [index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                         check_leaf_bits_direct_comp(index, pos, offset, leafK, result);
                     });
                     for (auto item : tmp_result){
@@ -207,7 +207,7 @@ namespace sdsl {
                 }
             } else {
                 for (int j = 0; j < t_k0; ++j) {
-                    m_k2trees[y*t_k0+j].direct_links2(source_id - y * m_part_matrix_size, tmp_result);
+                    m_k2trees[y*t_k0+j].direct_links2((t_x) (source_id - y * m_part_matrix_size), tmp_result);
                     for (auto item : tmp_result){
                         result.push_back(item + j*m_part_matrix_size);
                     }
@@ -230,7 +230,7 @@ namespace sdsl {
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
             for (int j = 0; j < t_k0; ++j) {
-                m_k2trees[j*t_k0+x].inverse_links(source_id - x * m_part_matrix_size, tmp_result);
+                m_k2trees[j*t_k0+x].inverse_links( (t_x) (source_id - x * m_part_matrix_size), tmp_result);
                 for (auto item : tmp_result){
                     result.push_back(item + j*m_part_matrix_size);
                 }
@@ -249,7 +249,7 @@ namespace sdsl {
             if (t_comp) {
                 for (int j = 0; j < t_k0; ++j) {
                     uint index = j * t_k0 + x;
-                    m_k2trees[index].inverse_links2_internal_queue(source_id - x * m_part_matrix_size, tmp_result,[index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                    m_k2trees[index].inverse_links2_internal_queue((t_x) (source_id - x * m_part_matrix_size), tmp_result,[index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                         check_leaf_bits_inverse_comp(index, pos, offset, leafK, result);
                     });
                     for (auto item : tmp_result) {
@@ -258,7 +258,7 @@ namespace sdsl {
                 }
             } else {
                 for (int j = 0; j < t_k0; ++j) {
-                    m_k2trees[j * t_k0 + x].inverse_links2(source_id - x * m_part_matrix_size, tmp_result);
+                    m_k2trees[j * t_k0 + x].inverse_links2( (t_x) (source_id - x * m_part_matrix_size), tmp_result);
                     for (auto item : tmp_result) {
                         result.push_back(item + j * m_part_matrix_size);
                     }
@@ -301,7 +301,7 @@ namespace sdsl {
             if (t_comp) {
                 for (int j = 0; j < t_k0; ++j) {
                     uint index = j * t_k0 + x;
-                    m_k2trees[index].inverse_links_shortcut_internal(source_id - x * m_part_matrix_size, tmp_result,[index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                    m_k2trees[index].inverse_links_shortcut_internal((t_x) (source_id - x * m_part_matrix_size), tmp_result,[index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                         check_leaf_bits_inverse_comp(index, pos, offset, leafK, result);
                     });
                     for (auto item : tmp_result) {
@@ -310,7 +310,7 @@ namespace sdsl {
                 }
             } else {
                 for (int j = 0; j < t_k0; ++j) {
-                    m_k2trees[j * t_k0 + x].inverse_links_shortcut(source_id - x * m_part_matrix_size, tmp_result);
+                    m_k2trees[j * t_k0 + x].inverse_links_shortcut((t_x) (source_id - x * m_part_matrix_size), tmp_result);
                     for (auto item : tmp_result) {
                         result.push_back(item + j * m_part_matrix_size);
                     }

@@ -74,18 +74,16 @@ namespace sdsl {
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint32_t, uint32_t>>::result stxxl_32bit_pair_vector;
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint64_t, uint64_t>>::result stxxl_64bit_pair_vector;
         typedef int_vector<>::size_type size_type;
-        using k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::operator=;
-        using k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::operator==;
 
         k2_tree_hybrid() = default;
 
-        /*k2_tree_hybrid(const k2_tree_hybrid &tr) {
+        k2_tree_hybrid(const k2_tree_hybrid &tr) {
             *this = tr;
         }
 
         k2_tree_hybrid(k2_tree_hybrid &&tr) {
             *this = std::move(tr);
-        }*/
+        }
 
         template<typename t_vector>
         k2_tree_hybrid(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint = 0) {
@@ -194,12 +192,45 @@ namespace sdsl {
                     m_k_for_level.push_back(t_k_l_1);
                 }
 
-                for (int j = t_k_l_1_size; j <= this->m_tree_height - 1; ++j) {
+                for (int j = t_k_l_1_size + 1; j <= (this->m_tree_height - 1); ++j) {
                     m_k_for_level.push_back(t_k_l_2);
                 }
 
                 m_k_for_level.push_back(t_k_leaves);
             }
+        }
+
+        k2_tree_hybrid &operator=(k2_tree_hybrid &&tr) {
+            k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::operator=(tr);
+            if (this != &tr) {
+                m_k_for_level = tr.m_k_for_level;
+            }
+            return *this;
+        }
+
+        k2_tree_hybrid &operator=(const k2_tree_hybrid &tr) {
+            k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::operator=(tr);
+            if (this != &tr) {
+                m_k_for_level = tr.m_k_for_level;
+            }
+            return *this;
+        }
+
+        bool operator==(const k2_tree_hybrid &tr) const {
+            if (!k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::operator==(tr)){
+                return false;
+            }
+
+            if (m_k_for_level.size() != tr.m_k_for_level.size()){//must be the same for the same template parameters and data
+                return false;
+            }
+
+            return true;
+        }
+
+        void swap(k2_tree_hybrid &tr) {
+            k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::swap(tr);
+            std::swap(m_k_for_level, tr.m_k_for_level);
         }
 
     private:
@@ -234,19 +265,23 @@ namespace sdsl {
 
                 //recursively partition that stuff
                 uint64_t submatrix_size = this->m_max_element;
-                for (int l = this->m_tree_height; l > 0; --l) {
+                for (int l = this->m_tree_height; l +1 > 0; --l) {
 
                     //std::cout << "Processing Level " << l << std::endl;
                     //level_bits = 0;
 
-                    const uint8_t k = get_k(this->m_tree_height - l);
-                    uint64_t current_submatrix_size = submatrix_size / k;
+                    uint8_t k = 0;
+                    uint64_t current_submatrix_size = 0;
+                    if (l> 0){
+                        k = get_k(this->m_tree_height - l);
+                        current_submatrix_size = submatrix_size / k;
+                    }
 
                     auto sp = std::begin(links);
                     for (auto ep = sp; ep != end;) {
 
                         //Iterator which only returns the nodes within a certain subtree
-                        ep = std::find_if(sp, end, [&submatrix_size, &k, &sp, &l](const t_e &e) {
+                        ep = std::find_if(sp, end, [&submatrix_size, &sp, &l](const t_e &e) {
                             auto x1 = std::get<0>(*sp);
                             auto y1 = std::get<1>(*sp);
                             auto x2 = std::get<0>(e);
@@ -341,7 +376,7 @@ namespace sdsl {
             }
 
             while (this->m_max_element < max) {
-                if ((uint) ceil((float) max / this->m_max_element) <= t_k_leaves) {
+                if ((this->m_max_element * t_k_leaves) >= max) {
                     this->m_max_element = this->m_max_element * t_k_leaves;
                     m_k_for_level.push_back(t_k_leaves);
                 } else if (res < t_k_l_1_size) {
