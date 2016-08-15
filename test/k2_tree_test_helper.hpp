@@ -16,13 +16,12 @@ using namespace std;
 typedef int_vector<>::size_type size_type;
 
 
-template<typename t_k2treap, typename Function>
+template<typename Function>
 void direct_links_test(
         uint64_t source_id,
         const int_vector<> &x,
         const int_vector<> &y,
-        Function direct_links,
-        t_k2treap &k2treap
+        Function direct_links
 ) {
     std::vector<uint64_t> result;
     direct_links(source_id, result);
@@ -59,7 +58,11 @@ void direct_links_test(
             }
 */
         std::vector<uint64_t> result;
-        k2treap.direct_links2(source_id, result);
+        direct_links(source_id, result);
+    }
+
+    if (result.size() != vec.size()){
+        std::cout << "blubb" << std::endl;
     }
 
     ASSERT_EQ(result.size(), vec.size());
@@ -90,7 +93,7 @@ void perform_direct_links_test(t_k2treap &k2treap, std::string temp_file, std::s
         for (size_t i = 0; i < 100; ++i) {
             auto idx = dice();
             uint64_t xx = x[idx];
-            direct_links_test(xx, x, y, direct_links, k2treap);
+            direct_links_test(xx, x, y, direct_links);
         }
     }
 }
