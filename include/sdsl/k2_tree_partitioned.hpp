@@ -59,31 +59,38 @@ namespace sdsl {
         }
 
         k2_tree_partitioned(int_vector_buffer<> &buf_x,
-                            int_vector_buffer<> &buf_y, bool bottom_up=false) {
+                            int_vector_buffer<> &buf_y, bool bottom_up=false, uint64_t max_hint = 0) {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
 
-            auto max_element = [](int_vector_buffer<> &buf) {
-                uint64_t max_val = 0;
-                for (auto val : buf) {
-                    max_val = std::max((uint64_t) val, max_val);
-                }
-                return max_val;
+
+            uint64_t max;
+            if (max_hint != 0) {
+                max = max_hint;//temporarily set
+            } else {
+                auto max_element = [](int_vector_buffer<> &buf) {
+                    uint64_t max_val = 0;
+                    for (auto val : buf) {
+                        max_val = std::max((uint64_t) val, max_val);
+                    }
+                    return max_val;
+                };
+
+                auto max_buf_element = [&]() {
+                    uint64_t max_v = 0;
+                    for (auto buf : bufs) {
+                        uint64_t _max_v = max_element(*buf);
+                        max_v = std::max(max_v, _max_v);
+                    }
+                    return max_v;
+                };
+
+                max = max_buf_element();
             };
 
-            auto max_buf_element = [&]() {
-                uint64_t max_v = 0;
-                for (auto buf : bufs) {
-                    uint64_t _max_v = max_element(*buf);
-                    max_v = std::max(max_v, _max_v);
-                }
-                return max_v;
-            };
-
-            uint64_t x = max_buf_element();
             uint8_t res = 0;
-            while (res <= 64 and precomp<t_k0>::exp(res) <= x) { ++res; }
+            while (res <= 64 and precomp<t_k0>::exp(res) <= max) { ++res; }
             if (res == 65) {
                 throw std::logic_error("Maximal element of input is too big.");
             }
