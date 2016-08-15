@@ -77,11 +77,11 @@ namespace sdsl {
 
         k2_tree_hybrid() = default;
 
-        k2_tree_hybrid(const k2_tree_hybrid &tr) {
+        k2_tree_hybrid(const k2_tree_hybrid &tr) : k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>(tr) {
             *this = tr;
         }
 
-        k2_tree_hybrid(k2_tree_hybrid &&tr) {
+        k2_tree_hybrid(k2_tree_hybrid &&tr) : k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>(tr) {
             *this = std::move(tr);
         }
 
