@@ -168,7 +168,7 @@ namespace sdsl {
             //calculate real bits used by m_max_element
             while (1ULL<< (real_size) < m_max_element) { ++real_size; }
 
-            uint64_t submatrix_in_row_count = m_max_element / precomp<k0>::exp(t_access_shortcut_size);//same as max_element/field_size
+            uint64_t submatrix_in_row_count = /*m_max_element / */precomp<k0>::exp(t_access_shortcut_size);//same as max_element/field_size
             for (uint j = 0; j < submatrix_in_row_count; ++j) {
                 t_x column_offset = j*field_size;
                 uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(column_offset, source_id, real_size, t_access_shortcut_size);
@@ -217,7 +217,7 @@ namespace sdsl {
             //calculate real bits used by m_max_element
             while (1ULL<< (real_size) < m_max_element) { ++real_size; }
 
-            uint64_t submatrix_in_row_count = m_max_element /  precomp<k0>::exp(t_access_shortcut_size);//same as max_element/field_size
+            uint64_t submatrix_in_row_count = /*m_max_element /  */precomp<k0>::exp(t_access_shortcut_size);//same as max_element/field_size
             for (uint j = 0; j < submatrix_in_row_count; ++j) {
                 t_x row_offset = j*field_size;
                 uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(target_id,row_offset, real_size, t_access_shortcut_size);
