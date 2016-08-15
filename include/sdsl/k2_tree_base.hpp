@@ -104,7 +104,7 @@ namespace sdsl {
             }
 
 
-            if (m_leaves.size() == 0){
+            if (m_tree_height == 0 || source_id > m_max_element){
                     return;
             }
 
@@ -117,7 +117,7 @@ namespace sdsl {
             result.clear();
 
             //Patological case happening e.g. when using k2part
-            if (m_tree_height == 0){
+            if (m_tree_height == 0 || source_id > m_max_element){
                 return;
             }
 
@@ -127,7 +127,7 @@ namespace sdsl {
                     check_leaf_bits_direct_comp(pos, offset, leafK, result);
                 });
             } else {
-                direct_links2_internal_queue(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                direct_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result, [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                     check_leaf_bits_direct_uncomp(pos, offset, leafK, result);
                 });
             }
@@ -154,7 +154,7 @@ namespace sdsl {
             result.clear();
 
             //Patological case happening e.g. when using k2part
-            if (m_tree_height == 0){
+            if (m_tree_height == 0 || source_id > m_max_element){
                 return;
             }
 
@@ -203,7 +203,7 @@ namespace sdsl {
             result.clear();
 
             //Patological case happening e.g. when using k2part
-            if (m_tree_height == 0){
+            if (m_tree_height == 0 || target_id > m_max_element){
                 return;
             }
 
@@ -234,7 +234,7 @@ namespace sdsl {
         }
 
         template<typename t_x>
-        void inverse_links(t_x source_id, std::vector<t_x> &result) const {
+        void inverse_links(t_x target_id, std::vector<t_x> &result) const {
             result.clear();
 
             if (t_comp){
@@ -242,29 +242,29 @@ namespace sdsl {
                 return;
             }
 
-            if (m_leaves.size() == 0){
+            if (m_tree_height == 0 || target_id > m_max_element){
                 return;
             }
 
-            traverse_tree<t_x, InverseImpl>(this->root(), m_max_element, source_id, result);
+            traverse_tree<t_x, InverseImpl>(this->root(), m_max_element, target_id, result);
         }
 
         template<typename t_x>
-        void inverse_links2(t_x source_id, std::vector<t_x> &result) const {
+        void inverse_links2(t_x target_id, std::vector<t_x> &result) const {
             using namespace k2_treap_ns;
             result.clear();
 
-            if (m_tree_height == 0){
+            if (m_tree_height == 0 || target_id > m_max_element){
                 return;
             }
 
             //inverse_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result);
             if (t_comp){
-                inverse_links2_internal_queue(source_id, result,[this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                inverse_links2_internal_queue(target_id, result,[this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                     check_leaf_bits_inverse_comp(pos, offset, leafK, result);
                 });
             } else {
-                inverse_links2_internal_queue(source_id, result,[this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                inverse_links2_internal_queue(target_id, result,[this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                     check_leaf_bits_inverse_uncomp(pos, offset, leafK, result);
                 });
             }
