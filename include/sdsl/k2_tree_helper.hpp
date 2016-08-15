@@ -39,6 +39,18 @@ namespace sdsl
 namespace k2_treap_ns
 {
 
+    /**
+    * Calculates the smalles integer gretear or equal to x/y
+    */
+    template<typename T>
+    inline T div_ceil(T x, T y) {
+        static_assert(std::is_integral<T>::value, "Parameter is not integral type");
+        return (x % y) ? x / y + 1 : x / y;
+    }
+
+    /** Number of bits in a byte */
+    static const uint kByteBits = 8; //FIXME: remove
+    static const uint kUcharBits = kByteBits*sizeof(unsigned char);
 
 // Precomputed value for fast k^2 treap operations
 template<uint8_t t_k>

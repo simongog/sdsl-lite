@@ -181,6 +181,15 @@ namespace sdsl {
             return t_k;
         }
 
+        uint word_size() const {
+            return div_ceil((uint) t_k*t_k, kUcharBits);
+        }
+
+        size_t words_count() const
+        {
+            return this->m_leaves.size() / t_k / t_k;
+        }
+
     private:
         /**
          * Constructs the tree corresponding to the points in the links vector by partitioning the input multiple times

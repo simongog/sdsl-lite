@@ -95,17 +95,19 @@ namespace sdsl {
 
     // forward declaration
     template<uint8_t t_k0,
-            typename subk2_tree>
+            typename subk2_tree,
+            bool t_comp>
     class k2_tree_partitioned;
 
 
     template<uint8_t t_k0,
-            typename subk2_tree>
+            typename subk2_tree,
+            bool t_comp>
     void
-    construct(k2_tree_partitioned<t_k0, subk2_tree> &idx, std::string file) {
+    construct(k2_tree_partitioned<t_k0, subk2_tree, t_comp> &idx, std::string file) {
         int_vector_buffer<> buf_x(file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(file + ".y", std::ios::in);
-        k2_tree_partitioned<t_k0, subk2_tree> tmp(buf_x, buf_y, false);
+        k2_tree_partitioned<t_k0, subk2_tree, t_comp> tmp(buf_x, buf_y, false);
         tmp.swap(idx);
     }
 
@@ -155,12 +157,13 @@ namespace sdsl {
     }
 
     template<uint8_t t_k0,
-            typename subk2_tree>
+            typename subk2_tree,
+            bool t_comp>
     void
-    construct_bottom_up(k2_tree_partitioned<t_k0, subk2_tree> &idx, std::string file) {
+    construct_bottom_up(k2_tree_partitioned<t_k0, subk2_tree, t_comp> &idx, std::string file) {
         int_vector_buffer<> buf_x(file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(file + ".y", std::ios::in);
-        k2_tree_partitioned<t_k0, subk2_tree> tmp(buf_x, buf_y, true);
+        k2_tree_partitioned<t_k0, subk2_tree, t_comp> tmp(buf_x, buf_y, true);
         tmp.swap(idx);
     }
 
@@ -198,11 +201,12 @@ namespace sdsl {
 
     template<uint8_t t_k0,
             typename subk2_tree,
+            bool t_comp,
             typename t_vector>
     void
-    construct_im(k2_tree_partitioned<t_k0, subk2_tree> &idx, t_vector data, uint64_t max_hint = 0) {
+    construct_im(k2_tree_partitioned<t_k0, subk2_tree, t_comp> &idx, t_vector data, uint64_t max_hint = 0) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_tree_partitioned<t_k0, subk2_tree> tmp(tmp_prefix,false,data, max_hint);
+        k2_tree_partitioned<t_k0, subk2_tree, t_comp> tmp(tmp_prefix,false,data, max_hint);
         tmp.swap(idx);
     }
 
@@ -241,11 +245,12 @@ namespace sdsl {
 
     template<uint8_t t_k0,
             typename subk2_tree,
+            bool t_comp,
             typename t_vector>
     void
-    construct_im_bottom_up(k2_tree_partitioned<t_k0, subk2_tree> &idx, t_vector data, uint64_t max_hint = 0) {
+    construct_im_bottom_up(k2_tree_partitioned<t_k0, subk2_tree, t_comp> &idx, t_vector data, uint64_t max_hint = 0) {
         std::string tmp_prefix = ram_file_name("k2_treap_");
-        k2_tree_partitioned<t_k0, subk2_tree> tmp(tmp_prefix,true,data, max_hint);
+        k2_tree_partitioned<t_k0, subk2_tree, t_comp> tmp(tmp_prefix,true,data, max_hint);
         tmp.swap(idx);
     }
 

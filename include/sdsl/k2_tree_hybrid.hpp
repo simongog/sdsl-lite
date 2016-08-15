@@ -62,11 +62,14 @@ namespace sdsl {
         static_assert(t_k_l_2 > 1, "t_k has to be larger than 1.");
         static_assert(t_k_l_2 <= 16, "t_k has to be smaller than 17.");
         static_assert(t_k_leaves > 1, "t_k has to be larger than 1.");
+        static_assert(t_k_leaves >= t_k_l_1, "t_k_leaves has to be larger than t_k_l_1,  otherwise this could lead to different word sizes and thus to a problem for the k2part approach"); //if smaller than t_k_l_1 it could be that t_k_leaves is not used
         static_assert(t_k_leaves <= 16, "t_k has to be smaller than 17.");
         static_assert(t_access_shortcut_size == 0 || (t_access_shortcut_size > 0 && t_access_shortcut_size <= t_k_l_1_size), "when using the access shortcut, the the levels up to the access shortcut need to have the same k value");
 
 
     public:
+
+        std::vector<uint8_t> m_k_for_level;
 
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint32_t, uint32_t>>::result stxxl_32bit_pair_vector;
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint64_t, uint64_t>>::result stxxl_64bit_pair_vector;
@@ -139,29 +142,7 @@ namespace sdsl {
                 max = max_buf_element();
             };
 
-
-            uint8_t res = 1;
-            this->m_max_element = t_k_l_1;
-            while (this->m_max_element < max) {
-                uint8_t k;
-                if (res < t_k_l_1_size) {
-                    k = t_k_l_1;
-                } else if ((uint) ceil((float) max / this->m_max_element) <= t_k_leaves) {
-                    k = t_k_leaves;
-                } else {
-                    k = t_k_l_2;
-                }
-
-                this->m_max_element = this->m_max_element * k;
-                ++res;
-            }
-
-            this->m_tree_height = res;
-
-            if (res == 65) {
-                throw std::logic_error("Maximal element of input is too big.");
-            }
-
+            this->m_tree_height = get_tree_height(max);
             if (this->m_max_element <= std::numeric_limits<uint32_t>::max()) {
                 auto v = k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template read<uint32_t, uint32_t>(bufs);
                 if (use_counting_sort) {
@@ -193,12 +174,31 @@ namespace sdsl {
         }
 
         inline uint8_t get_k(uint8_t level) const {
-            if (level < t_k_l_1_size) {
-                return t_k_l_1;
-            } else if (level < this->m_tree_height - 1) {
-                return t_k_l_2;
-            } else {
-                return t_k_leaves;
+            return m_k_for_level[level];
+        }
+
+        uint word_size() const {
+            return div_ceil((uint) t_k_leaves*t_k_leaves, kUcharBits);
+        }
+
+
+        size_t words_count() const
+        {
+            return this->m_leaves.size() / t_k_leaves / t_k_leaves;
+        }
+
+        void load(std::istream &in) override {
+            k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::load(in);
+            if (this->m_tree_height > 0){
+                for (int i = 1; i <= std::min(t_k_l_1_size, (uint8_t) (this->m_tree_height - 1)); ++i) {
+                    m_k_for_level.push_back(t_k_l_1);
+                }
+
+                for (int j = t_k_l_1_size; j <= this->m_tree_height - 1; ++j) {
+                    m_k_for_level.push_back(t_k_l_2);
+                }
+
+                m_k_for_level.push_back(t_k_leaves);
             }
         }
 
@@ -234,7 +234,7 @@ namespace sdsl {
 
                 //recursively partition that stuff
                 uint64_t submatrix_size = this->m_max_element;
-                for (int l = this->m_tree_height; l + 1 > 0; --l) {
+                for (int l = this->m_tree_height; l > 0; --l) {
 
                     //std::cout << "Processing Level " << l << std::endl;
                     //level_bits = 0;
@@ -326,25 +326,39 @@ namespace sdsl {
                 max = tupmax(*max_it);
             }
 
-            uint8_t res = 1;
-            this->m_max_element = t_k_l_1;
-            while (this->m_max_element < max) {
-                uint8_t k;
-                if (res < t_k_l_1_size) {
-                    k = t_k_l_1;
-                } else if ((uint) ceil((float) max / this->m_max_element) <= t_k_leaves) {
-                    k = t_k_leaves;
-                } else {
-                    k = t_k_l_2;
-                }
+            return get_tree_height(max);
+        }
 
-                this->m_max_element = this->m_max_element * k;
+        uint8_t get_tree_height(uint64_t max) {
+            uint8_t res = 1;
+            if (t_k_l_1 < max) {
+                this->m_max_element = t_k_l_1;
+                m_k_for_level.push_back(t_k_l_1);
+            } else {
+                //in case only one level use k_leaves (has to be higher than t_k_l_1 (compile time-checked)
+                this->m_max_element = t_k_leaves;
+                m_k_for_level.push_back(t_k_leaves);
+            }
+
+            while (this->m_max_element < max) {
+                if ((uint) ceil((float) max / this->m_max_element) <= t_k_leaves) {
+                    this->m_max_element = this->m_max_element * t_k_leaves;
+                    m_k_for_level.push_back(t_k_leaves);
+                } else if (res < t_k_l_1_size) {
+                    this->m_max_element = this->m_max_element * t_k_l_1;
+                    m_k_for_level.push_back(t_k_l_1);
+                } else {
+                    this->m_max_element = this->m_max_element * t_k_l_2;
+                    m_k_for_level.push_back(t_k_l_2);
+                }
                 ++res;
             }
 
+            m_k_for_level.resize(res);
             if (res <= t_k_l_1_size) {
+
                 std::cerr
-                        << "The tree height is smaller than t_k_l_1_size, ignoring t_k_l_2 and t_k_leaves"
+                        << "The tree height is smaller than t_k_l_1_size using t_k_l_1 up to m_tree_height-1 and then t_k_leaves"
                         << std::endl;
             } else if (res == t_k_l_1_size + 1) {
                 std::cerr << "The tree equals t_k_l_1_size+1, only using t_k_l_1 and t_k_leaves" << std::endl;
