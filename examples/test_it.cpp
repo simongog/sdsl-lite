@@ -6,13 +6,15 @@ using namespace std;
 int main()
 {
 
-    typedef typename stxxl::VECTOR_GENERATOR<pair<uint,uint>>::result stxxl_pair_vector;
-    vector<stxxl_pair_vector> buffers;
-    //buffers.reserve(4);
+    std::string asd = "21333213\t213213";
 
-    stxxl_pair_vector one;
-    one.push_back(make_pair<uint,uint>(2,2));
-    buffers.emplace_back(one);
+    istringstream ss(asd);
+
+    uint var1, var2;
+
+    ss >> var1 >> var2;
+
+    std::cout << "var1:" << var1 << " var2: " << var2;
 
     return 0;
 }

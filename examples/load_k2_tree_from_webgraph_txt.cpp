@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
         std::vector<uint32_t> result;
 
         for (auto query : queries){
-            k2treap.direct_links_shortcut(query, result);
+            k2treap.direct_links2(query, result);
             count+= result.size();
         }
 
