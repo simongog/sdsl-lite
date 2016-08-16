@@ -278,12 +278,25 @@ namespace sdsl {
             }
 
             this->load_vectors_from_file(temp_file_prefix, id_part);
-/*
+
+            /*
+            std::cout << "Fallen Levels: " << std::endl;
+            for (uint i = 0; i < this->m_levels.size(); i++){
+                std::cout << "Level " << i << "\n";
+                for (uint j = 0; j < this->m_levels[i].size(); j++){
+                    std::cout << this->m_levels[i][j];
+                }
+                std::cout << "\n";
+            }
+            std::cout << std::endl;
+
+
             std::cout << "Fallen Leaves: " << std::endl;
             for (uint i = 0; i < this->m_leaves.size(); i++){
                 std::cout << this->m_leaves[i];
             }
-            std::cout << std::endl;*/
+            std::cout << std::endl;
+            */
         }
 
         /**

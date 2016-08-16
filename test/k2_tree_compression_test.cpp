@@ -21,9 +21,12 @@ namespace {
 
     typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, bit_vector, true> hybrid_k2_2222_b_comp;
     typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector, true> hybrid_k2_4524_b_comp;
+    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector, false> hybrid_k2_4524_b;
     typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, rrr_vector<63>, true> hybrid_k2_165216_b_rrr_comp;
     typedef k2_tree<2, bit_vector, bit_vector, true> k2comp;
     typedef k2_tree<4, bit_vector, bit_vector, true> k4comp;
+    typedef k2_tree<2, bit_vector, bit_vector, false> k2;
+    typedef k2_tree<8, bit_vector, bit_vector, false> k8;
     typedef k2_tree<8, bit_vector, bit_vector, true> k8comp;
     typedef k2_tree<16, bit_vector, bit_vector, true> k16comp;
 
@@ -36,8 +39,9 @@ namespace {
             hybrid_k2_2222_b_comp,
             hybrid_k2_4524_b_comp,
             hybrid_k2_165216_b_rrr_comp,
-            k2_tree_partitioned<2, k2comp>,
-            k2_tree_partitioned<4, k8comp>
+            k2_tree_partitioned<2, k2, true>,
+            k2_tree_partitioned<4, k8, true>,
+            k2_tree_partitioned<4, hybrid_k2_4524_b, true>
     > Implementations;
 
     TYPED_TEST_CASE(k2_tree_compression_test, Implementations);

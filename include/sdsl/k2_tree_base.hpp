@@ -52,6 +52,8 @@ namespace sdsl {
         using point_type = k2_treap_ns::point_type;
         using t_p = k2_treap_ns::t_p;
         DAC m_comp_leaves;
+        uint64_t m_max_element = 0; //FIXME: this is an ugly hack for k2part
+        uint8_t m_tree_height = 0;
 
         k2_tree_base() = default;
 
@@ -72,8 +74,6 @@ namespace sdsl {
         }
 
     protected:
-        uint8_t m_tree_height = 0;
-        uint64_t m_max_element = 0;
         std::vector<t_lev> m_levels;
         std::vector<t_rank> m_levels_rank;
 
@@ -516,8 +516,11 @@ namespace sdsl {
 
                 uint k_leaf_squared = get_k(this->m_tree_height-1) * get_k(this->m_tree_height-1);
                 for (uint j = 0; j < k_leaf_squared ; ++j, ++bit) {
-                    if (this->m_leaves[bit])
-                        word[j / kUcharBits] |= (uchar) (1 << (j % kUcharBits));
+                    if (this->m_leaves[bit]){
+                        uchar tmp = (1 << (j % kUcharBits));
+                        word[j / kUcharBits] |= tmp;
+                    }
+
                 }
                 fun(word);
                 delete[] word;
@@ -615,11 +618,11 @@ namespace sdsl {
                 return false;
             }
             if (t_comp){
-                return check_link_internal(0, m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t leafK){
+                return check_link_internal_queue(link.first, link.second, [this](int64_t pos, uint8_t leafK){
                     return this->is_leaf_bit_set_comp(pos, leafK);
                 });
             } else {
-                return check_link_internal(0, m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t){
+                return check_link_internal_queue(link.first, link.second, [this](int64_t pos, uint8_t){
                     return this->is_leaf_bit_set(pos);
                 });
             }
@@ -845,6 +848,41 @@ namespace sdsl {
             }
         }
 
+        template<typename t_x, typename t_y, typename Function>
+        bool check_link_internal_queue(t_x p, t_y q, Function check_leaf) const {
+            using namespace k2_treap_ns;
+
+            if (p > m_max_element || q > m_max_element){
+                return false;
+            }
+            //n, level, p, q (relative pos), index
+            std::queue<std::tuple<uint64_t, uint8_t, t_x,t_y,int64_t>> queue;
+            queue.push(std::make_tuple(m_max_element, 0, p, q, 0));
+
+            while (!queue.empty()) {
+                auto current_element = queue.front();
+                uint64_t n = std::get<0>(current_element);
+                uint8_t level = std::get<1>(current_element);
+                t_x p_new = std::get<2>(current_element);
+                t_x q_new = std::get<3>(current_element);
+                int64_t index = std::get<4>(current_element);
+                queue.pop();
+
+                const uint8_t k = get_k(level);
+
+                uint64_t current_submatrix_size = n / k;
+                int64_t y = index + k * (p_new / current_submatrix_size) + (q_new / current_submatrix_size);
+
+                if (this->is_leaf_level(level)) {
+                    return check_leaf(y,k);
+                } else if (this->m_levels[level][y]) {
+                    queue.push(std::make_tuple(current_submatrix_size, level+1, p_new%current_submatrix_size, q_new % current_submatrix_size, this->get_child_index(0, y, level)));
+                } else {
+                    return false;
+                }
+            }
+        }
+
     protected:
         template<typename t_x=uint64_t, typename t_y=uint64_t>
         std::vector<std::pair<t_x, t_y>>
@@ -1045,13 +1083,6 @@ namespace sdsl {
             }
 
             load_vectors_from_file(temp_file_prefix, id_part);
-
-            /*
-            std::cout << "Fallen Leaves: " << std::endl;
-            for (uint i = 0; i < m_leaves.size(); i++){
-                std::cout << m_leaves[i];
-            }
-            std::cout << std::endl;*/
         }
 
         node_type root() const {

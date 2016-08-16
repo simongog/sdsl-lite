@@ -40,15 +40,15 @@ void direct_links_test(
     });
 
 
-    if (result.size() != vec.size()){
+    if (result.size() != vec.size()) {
         std::cout << "Source_id: " << source_id << std::endl;
         std::cout << "Result:" << std::endl;
-        for (auto asd : result){
+        for (auto asd : result) {
             std::cout << asd << std::endl;
         }
 
         std::cout << "Vec:" << std::endl;
-        for (auto asd : vec){
+        for (auto asd : vec) {
             std::cout << get<1>(asd) << std::endl;
         }
 /*
@@ -59,10 +59,10 @@ void direct_links_test(
 */
         std::vector<uint64_t> result;
         direct_links(source_id, result);
-    }
-
-    if (result.size() != vec.size()){
-        std::cout << "blubb" << std::endl;
+        std::cout << "Result after second try:" << std::endl;
+        for (auto asd : result) {
+            std::cout << asd << std::endl;
+        }
     }
 
     ASSERT_EQ(result.size(), vec.size());
@@ -117,6 +117,12 @@ void check_link_test(
             }
         }
     }
+
+    if (actual != result){
+        std::cout << "Actual: " << actual << std::endl;
+        check_link(asd);
+    }
+
     ASSERT_EQ(actual, result);
 }
 
