@@ -74,7 +74,7 @@ class HashTable {
    */
   size_t add(const uchar *aWord, uint len, size_t addr){
       if (addr == tam_hash_) {
-          printf("Not enough memory, vocabulary exceeds maximun size !\n");
+          printf("Not enough memory, vocabulary exceeds maximum size !\n");
           exit(1);
       }
 
@@ -135,7 +135,7 @@ class HashTable {
 
   /*------------------------------------------------------------------
    Modification of Zobel's bitwise function to have into account the 
-   lenght of the key explicetely 
+   length of the key explicitly
    ---------------------------------------------------------------- */
   size_t hashFunction(const uchar *aWord, uint len) const{
       uchar c;

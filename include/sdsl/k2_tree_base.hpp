@@ -644,6 +644,7 @@ namespace sdsl {
             });
             std::cout << std::endl;
 */
+            //uint64_t hash_size = 20000000;
             FreqVoc(*this, [&](const HashTable &table, Vocabulary& voc) {
                 compress_leaves(table, voc);
             });

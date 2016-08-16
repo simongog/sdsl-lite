@@ -29,7 +29,7 @@ namespace sdsl {
  * @param build 
  */
 template<class K2Tree, class Fun>
-void FreqVoc(const K2Tree &tree, Fun build) {
+void FreqVoc(const K2Tree &tree, Fun build, uint64_t hash_size = 0) {
   try {
     const size_t cnt = tree.words_count();
     uint size = tree.word_size();
@@ -55,7 +55,10 @@ void FreqVoc(const K2Tree &tree, Fun build) {
     uint diff_cnt = (uint) res;
 
     // Insert words in hash
-    HashTable table(diff_cnt);
+    if (hash_size == 0){
+      hash_size = diff_cnt;
+    }
+    HashTable table(hash_size);
     std::vector<size_t> posInHash;
     posInHash.reserve(diff_cnt);
     for (size_t i = 0; i < cnt; ++i) {
