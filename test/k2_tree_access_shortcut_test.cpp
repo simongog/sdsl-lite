@@ -23,13 +23,15 @@ namespace {
     typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, rrr_vector<63>, true, 4> hybrid_k2_4524_b_rrr;
     typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, rrr_vector<63>, false, 2> hybrid_k2_2528_b_rrr;
     typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, rrr_vector<63>, true, 2> hybrid_k2_165216_b_rrr;
-    typedef k2_tree<2, bit_vector, bit_vector, true, 2> k2;
+    typedef k2_tree<2, bit_vector, bit_vector, true, 2> k2comp;
+    typedef k2_tree<2, bit_vector, bit_vector, false, 2> k2;
     typedef k2_tree<2, bit_vector, rrr_vector<63>, false, 4> k2rrr;
 
     typedef Types<
-            k2,
+            k2comp,
             k2rrr,
             k2_tree_partitioned<3, k2>,
+            k2_tree_partitioned<4, k2, true>,
             k2_tree_partitioned<8, k2rrr>,
             hybrid_k2_2222_b_rrr,
             hybrid_k2_4524_b_rrr,

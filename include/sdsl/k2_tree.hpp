@@ -297,6 +297,7 @@ namespace sdsl {
             }
             std::cout << std::endl;
             */
+            //std::cout << "Leaves size" << this->m_leaves.size() << std::endl;
         }
 
         /**

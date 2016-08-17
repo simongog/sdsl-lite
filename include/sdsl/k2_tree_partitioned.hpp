@@ -308,11 +308,17 @@ namespace sdsl {
         }
 
         inline bool is_leaf_bit_set_comp(uint index, uint64_t pos, uint8_t leafK) const {
+            //std::cout << "Pos " << std::to_string(pos) << std::endl;
             uint64_t subtree_number = pos/(leafK*leafK);
-            uint iword = m_comp_leaves.accessFT(subtree_number+m_words_prefix_sum[index]);
+            uint64_t global_subtree_number = subtree_number+m_words_prefix_sum[index];
+            //std::cout << "Checking leaf bit of global subtree " << global_subtree_number << std::endl;
+            uint iword = m_comp_leaves.accessFT(global_subtree_number);
             pos = pos - (subtree_number*leafK*leafK);
             const uchar * word = m_vocabulary.get(iword);
+            //std::cout << "Word " << std::to_string(word[pos/kUcharBits]) << std::endl;
+            //std::cout << "RelPos " << std::to_string(pos) << std::endl;
             bool bitSet = ((word[pos/kUcharBits] >> (pos%kUcharBits)) & 1);
+            //std::cout << "Resultabab: " << bitSet << std::endl;
             return bitSet;
         }
 
@@ -325,6 +331,7 @@ namespace sdsl {
             if (t_comp) {
                 for (int j = 0; j < t_k0; ++j) {
                     uint index = j * t_k0 + x;
+                    tmp_result.clear();
                     m_k2trees[index].inverse_links_shortcut_internal((t_x) (source_id - x * m_part_matrix_size), tmp_result,[index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                         check_leaf_bits_inverse_comp(index, pos, offset, leafK, result);
                     });
@@ -356,9 +363,12 @@ namespace sdsl {
             uint index = x*t_k0+y;
             if (t_comp){
                 if (m_k2trees[index].m_tree_height > 0) {
-                    m_k2trees[index].check_link_internal_queue(x_offsetted, y_offsetted,[index,this](int64_t pos, uint8_t leafK){
-                        return is_leaf_bit_set_comp(index, pos, leafK);
+                    //std::cout << "Checking link in tree " << index << std::endl;
+                    return m_k2trees[index].check_link_internal_queue(x_offsetted, y_offsetted,[index,this](int64_t pos, uint8_t leafK){
+                        return is_leaf_bit_set_comp(index, pos, leafK);;
                     });
+                } else {
+                    return false;
                 }
             } else {
                 return m_k2trees[index].check_link(std::make_pair(x_offsetted, y_offsetted));
@@ -512,6 +522,7 @@ namespace sdsl {
             size_t words_count = 0;
             for (uint i = 0; i < m_k2trees.size(); ++i){
                 words_count += m_k2trees[i].words_count();
+                //std::cout << "Words in tree " << i << ": " <<m_k2trees[i].words_count() << std::endl;
             }
             return words_count;
         }
@@ -591,7 +602,7 @@ namespace sdsl {
 
         void compress_leaves() {
             //std::cout << "Words count " << words_count() << std::endl;
-            //std::cout << "Word size " << words_count() << std::endl;
+            //std::cout << "Word size " << word_size() << std::endl;
 
 
             /*std::cout << "Words" << std::endl;
@@ -644,7 +655,7 @@ namespace sdsl {
             m_words_prefix_sum.resize(t_k0*t_k0);
             m_words_prefix_sum[0] = 0;
             for (uint i = 1; i < m_k2trees.size(); ++i) {
-                uint8_t count = m_k2trees[i-1].words_count();
+                size_t count = m_k2trees[i-1].words_count();
                 m_words_prefix_sum[i] = m_words_prefix_sum[i-1] + count;
             }
             //util::bit_compress(m_words_prefix_sum);
@@ -660,6 +671,12 @@ namespace sdsl {
                 std::cout << std::to_string(*word) << "\t";
             }
             std::cout << std::endl;
+            */
+            /*
+            std::cout << "words_prefix_sum" << std::endl;
+            for (auto asd: m_words_prefix_sum){
+                std::cout << asd << std::endl;
+            }
             */
         }
 

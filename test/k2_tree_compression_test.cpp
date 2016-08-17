@@ -64,13 +64,20 @@ namespace {
         TypeParam k2treap2;
         construct(k2treap, test_file);
         construct_bottom_up(k2treap2, test_file);
+        TypeParam k2treap3(buf_x, buf_y, false);
         std::cout << "Comparing Results" << std::endl;
 
         if (!( k2treap == k2treap2)){
             std::cout << "Results differ" << std::endl;
         }
 
+
+        if (!( k2treap == k2treap3)){
+            std::cout << "Results differ" << std::endl;
+        }
+
         ASSERT_EQ(k2treap, k2treap2);
+        ASSERT_EQ(k2treap2, k2treap3);
     }
 
     TYPED_TEST(k2_tree_compression_test, size) {
