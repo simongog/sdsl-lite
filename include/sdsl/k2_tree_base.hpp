@@ -542,6 +542,20 @@ namespace sdsl {
         */
         virtual uint word_size() const = 0;
 
+        template<typename t_x, typename t_y>
+        bool check_link_shortcut(std::pair<t_x,t_y> link) const {
+            if (t_comp){
+                return check_link_shortcut_internal(link, [this](int64_t pos, uint8_t leafK){
+                    return this->is_leaf_bit_set_comp(pos, leafK);
+                });
+            } else {
+                return check_link_shortcut_internal(link, [this](int64_t pos, uint8_t){
+                    return this->is_leaf_bit_set(pos);
+                });
+            }
+        };
+
+
         /**
         * Used for accelerating the check whether a certain link exists by skipping t_access_shortcut_size levels
         *
@@ -550,8 +564,8 @@ namespace sdsl {
         *
         * @return Returns true/false depending on wehter link is present or not
         */
-        template<typename t_x, typename t_y>
-        bool check_link_shortcut(std::pair<t_x,t_y> link) const {
+        template<typename t_x, typename t_y, typename Function>
+        bool check_link_shortcut_internal(std::pair<t_x,t_y> link, Function check_leaf_bits) const {
             using namespace k2_treap_ns;
 
             //Patological case happening e.g. when using k2part
@@ -596,15 +610,7 @@ namespace sdsl {
 
             //std::cout << "For " << p << "," << q << " the index is " << index << "and relative coordinates are " << p%field_size << "," << q%field_size << std::endl;
 
-            if (t_comp){
-                return check_link_internal(t_access_shortcut_size, field_size, p%field_size, q%field_size, index, [this](int64_t pos, uint8_t leafK){
-                    return this->is_leaf_bit_set_comp(pos, leafK);
-                });
-            } else {
-                return check_link_internal(t_access_shortcut_size, field_size, p%field_size, q%field_size, index, [this](int64_t pos, uint8_t){
-                    return this->is_leaf_bit_set(pos);
-                });
-            }
+            return check_link_internal(t_access_shortcut_size, field_size, p%field_size, q%field_size, index, check_leaf_bits);
         }
 
         /**

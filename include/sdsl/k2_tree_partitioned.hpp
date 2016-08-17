@@ -384,8 +384,22 @@ namespace sdsl {
             uint x = link.first/m_part_matrix_size;
             uint y = link.second/m_part_matrix_size;
 
-            uint corresponding_tree = x*t_k0+y;
-            return m_k2trees[corresponding_tree].check_link_shortcut(std::make_pair<t_x,t_y>(link.first - x * m_part_matrix_size, link.second -y * m_part_matrix_size));
+            t_x x_offsetted = link.first - x * m_part_matrix_size;
+            t_y y_offsetted = link.second -y * m_part_matrix_size;
+
+            uint index = x*t_k0+y;
+            if (t_comp){
+                if (m_k2trees[index].m_tree_height > 0) {
+                    //std::cout << "Checking link in tree " << index << std::endl;
+                    return m_k2trees[index].check_link_shortcut_internal(std::make_pair(x_offsetted, y_offsetted),[index,this](int64_t pos, uint8_t leafK){
+                        return is_leaf_bit_set_comp(index, pos, leafK);;
+                    });
+                } else {
+                    return false;
+                }
+            } else {
+                return m_k2trees[index].check_link_shortcut(std::make_pair(x_offsetted, y_offsetted));
+            }
         }
 
         //! Move assignment operator
