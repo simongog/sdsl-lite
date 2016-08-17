@@ -42,9 +42,10 @@ int main(int argc, char* argv[]){
         //typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector> k2_rrr;
         //typedef k2_tree_partitioned<4, k2_rrr, true> k2_part;
 
-        typedef k2_tree<k, bit_vector, bit_vector, true, 4> k2_rrr;
+    typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector, false> k2_rrr;
+    typedef k2_tree_partitioned<4, k2_rrr, true> k2_part;
 
-    k2_rrr k2tree;
+    k2_part k2tree;
     std::string fileName = argv[1];
     load_from_file(k2tree, fileName);
 
