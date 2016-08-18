@@ -79,15 +79,17 @@ int main(int argc, char *argv[]) {
         uint numberOfNodes = stoul(readBuffer);
         vector<pair<uint32_t, uint32_t>> coordinates;
 
+        uint source_id, target_id;
+
         while (std::getline(fileStream, readBuffer)) {
             //tokenizer<escaped_list_separator<char> > tok(readBuffer);
-            vector <string> sourceNodeAndTargets;
-            boost::split(sourceNodeAndTargets, readBuffer, boost::is_any_of("\t"));
+            istringstream ss(readBuffer);
+            ss >> source_id >> target_id;
 
-            uint sourceId = std::stoul(sourceNodeAndTargets[0].c_str());
-            uint targetId = std::stoul(sourceNodeAndTargets[1].c_str()) / 10;//Strange 0 delimited format
+            target_id /= 10; //0 delimieted format
+
             //cout << "adding " << sourceId << "," << targetId << endl;
-            coordinates.push_back(make_pair(sourceId, targetId));
+            coordinates.push_back(make_pair(source_id, target_id));
         }
 
         fileStream.close();
