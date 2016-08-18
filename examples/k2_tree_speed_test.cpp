@@ -24,19 +24,19 @@ int main(int argc, char* argv[]){
 
     //char *filename = (char *)malloc(sizeof(char)*20);
 
-//    const uint8_t k = 4;
+    const uint8_t k = 4;
     //typedef k2_tree_hybrid<k,k,k,k, bit_vector, bit_vector,true> k2_rrr;
-//    typedef k2_tree<k, bit_vector, bit_vector, true, 4> k2_rrr;
-        const uint8_t k = 4;
+         typedef k2_tree<k, bit_vector, bit_vector, true, 4> k2_rrr;
+        //const uint8_t k = 4;
         //typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector> k2_rrr;
         //typedef k2_tree_partitioned<4, k2_rrr, true> k2_part;
 
-    typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector, false> k2_rrr;
-    typedef k2_tree_partitioned<4, k2_rrr, true> k2_part;
+//    typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector, false> k2_rrr;
+//    typedef k2_tree_partitioned<4, k2_rrr, true> k2_part;
 
     bool use_shortut = argc > 3;
 
-    k2_part k2tree;
+    k2_rrr k2tree;
     std::string fileName = argv[1];
     load_from_file(k2tree, fileName);
 
@@ -44,13 +44,12 @@ int main(int argc, char* argv[]){
     FILE * list_fp = fopen(list_file,"r");
     uint queries;
     fread(&queries, sizeof(uint), 1, list_fp);
-    ulong recovered = 0;
-    double t = 0;
     uint *qry = (uint *) malloc(sizeof(uint)*queries);
     fread(qry,sizeof(uint),queries,list_fp);
     fclose(list_fp);
     {
         uint i;
+        ulong recovered = 0;
         std::vector<uint32_t> result;
         if (use_shortut) {
             std::cout << "Direct with access shortcut" << std::endl;
@@ -60,19 +59,18 @@ int main(int argc, char* argv[]){
                 recovered += result.size();
             }
             auto stop = timer::now();
-            auto duration = stop - start;
-            duration *= 1000; // to milliseconds
 
-            fprintf(stderr, "Recovered Nodes: %lld\n", recovered);
-            fprintf(stderr, "Queries: %d\n", queries);
-            fprintf(stderr, "Total time(ms): %f", t);
-            fprintf(stderr, "Time per query: %f\n", duration / queries);
-            fprintf(stderr, "Time per link: %f\n", duration / recovered);
+            std::cout <<  "Recovered Nodes:" << recovered << "\n";
+            std::cout <<  "Queries:" << queries<< "\n";
+            std::cout << "Total time(ms): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
+            std::cout << "Time per query: "<< duration_cast<nanoseconds>(stop-start).count()/queries << "\n";
+            std::cout << "Time per link: "<< duration_cast<nanoseconds>(stop-start).count()/recovered << "\n";
         }
     }
 
     {
         uint i;
+        ulong recovered = 0;
         std::vector<uint32_t> result;
         if (use_shortut) {
             std::cout << "Direct without access shortcut" << std::endl;
@@ -82,19 +80,18 @@ int main(int argc, char* argv[]){
                 recovered += result.size();
             }
             auto stop = timer::now();
-            auto duration = stop - start;
-            duration *= 1000; // to milliseconds
 
-            fprintf(stderr, "Recovered Nodes: %lld\n", recovered);
-            fprintf(stderr, "Queries: %d\n", queries);
-            fprintf(stderr, "Total time(ms): %f", t);
-            fprintf(stderr, "Time per query: %f\n", duration / queries);
-            fprintf(stderr, "Time per link: %f\n", duration / recovered);
+            std::cout <<  "Recovered Nodes:" << recovered << "\n";
+            std::cout <<  "Queries:" << queries<< "\n";
+            std::cout << "Total time(ms): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
+            std::cout << "Time per query: "<< duration_cast<nanoseconds>(stop-start).count()/queries << "\n";
+            std::cout << "Time per link: "<< duration_cast<nanoseconds>(stop-start).count()/recovered << "\n";
         }
     }
 
     {
         uint i;
+        ulong recovered = 0;
         std::vector<uint32_t> result;
         if (use_shortut) {
             std::cout << "Inverse with access shortcut" << std::endl;
@@ -104,19 +101,18 @@ int main(int argc, char* argv[]){
                 recovered += result.size();
             }
             auto stop = timer::now();
-            auto duration = stop - start;
-            duration *= 1000; // to milliseconds
 
-            fprintf(stderr, "Recovered Nodes: %lld\n", recovered);
-            fprintf(stderr, "Queries: %d\n", queries);
-            fprintf(stderr, "Total time(ms): %f", t);
-            fprintf(stderr, "Time per query: %f\n", duration / queries);
-            fprintf(stderr, "Time per link: %f\n", duration / recovered);
+            std::cout <<  "Recovered Nodes:" << recovered << "\n";
+            std::cout <<  "Queries:" << queries<< "\n";
+            std::cout << "Total time(ms): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
+            std::cout << "Time per query: "<< duration_cast<nanoseconds>(stop-start).count()/queries << "\n";
+            std::cout << "Time per link: "<< duration_cast<nanoseconds>(stop-start).count()/recovered << "\n";
         }
     }
 
     {
         uint i;
+        ulong recovered = 0;
         std::vector<uint32_t> result;
         if (use_shortut) {
             std::cout << "Inverse without access shortcut" << std::endl;
@@ -126,14 +122,12 @@ int main(int argc, char* argv[]){
                 recovered += result.size();
             }
             auto stop = timer::now();
-            auto duration = stop - start;
-            duration *= 1000; // to milliseconds
 
-            fprintf(stderr, "Recovered Nodes: %lld\n", recovered);
-            fprintf(stderr, "Queries: %d\n", queries);
-            fprintf(stderr, "Total time(ms): %f", t);
-            fprintf(stderr, "Time per query: %f\n", duration / queries);
-            fprintf(stderr, "Time per link: %f\n", duration / recovered);
+            std::cout <<  "Recovered Nodes:" << recovered << "\n";
+            std::cout <<  "Queries:" << queries<< "\n";
+            std::cout << "Total time(ms): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
+            std::cout << "Time per query: "<< duration_cast<nanoseconds>(stop-start).count()/queries << "\n";
+            std::cout << "Time per link: "<< duration_cast<nanoseconds>(stop-start).count()/recovered << "\n";
         }
     }
 
