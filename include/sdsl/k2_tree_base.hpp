@@ -553,7 +553,7 @@ namespace sdsl {
                     return this->is_leaf_bit_set(pos);
                 });
             }
-        };
+        }
 
 
         /**
