@@ -197,6 +197,10 @@ namespace sdsl {
                 }
 
                 m_k_for_level.push_back(t_k_leaves);
+
+                if (t_access_shortcut_size >0){
+                    this->perform_access_shortcut_precomputations();
+                }
             }
         }
 

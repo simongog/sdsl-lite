@@ -17,8 +17,8 @@ void print(std::vector<uint32_t>& to_print, uint32_t source_node){
 
 int main()
 {
-    typedef k2_tree<2, bit_vector> k2;
-    typedef k2_tree_partitioned<2, k2, true> k2_rrr;
+    typedef k2_tree<2, bit_vector, bit_vector, false, 2> k2_rrr;
+    //typedef k2_tree_partitioned<2, k2, true> k2_rrr;
 
 
     // Initialize treap with a vector of (x,y,weight) elements
@@ -29,15 +29,16 @@ int main()
     cout << "Points in the k2treap: " << k2treap.size() << endl;
 
     std::vector<uint32_t> result;
-
+/*
     if (k2treap.check_link(std::make_pair((uint)0,(uint)0))){
         std::cout << "1" << std::endl;
     } else {
         std::cout << "0" << std::endl;
     }
+    */
     //k2treap.check_link_shortcut(std::make_pair((uint) 0,(uint) 5));
 
-
+/*
     for (uint i = 0; i < 15; ++i) {
         for (uint j = 0; j < 15; ++j) {
             if (k2treap.check_link(std::make_pair(i,j))){
@@ -48,20 +49,21 @@ int main()
         }
         std::cout << "\r\n";
     }
-
+*/
     //k2treap.direct_links((uint32_t) 4, result);
-    k2treap.direct_links2((uint32_t) 4, result);
+    k2treap.direct_links_shortcut((uint)1, result);
+    k2treap.direct_links_shortcut_2((uint)1, result);
 
 
     for (uint32_t i = 0; i < 16; i++){
-        k2treap.direct_links2(i, result);
+        k2treap.direct_links_shortcut_2(i, result);
         print(result, i);
     }
 
     std::cout << "inverse links" << std::endl;
 
     for (uint32_t i = 0; i < 16; i++){
-        k2treap.inverse_links2(i, result);
+        k2treap.inverse_links_shortcut(i, result);
         print(result, i);
     }
 

@@ -190,6 +190,15 @@ namespace sdsl {
             return this->m_leaves.size() / t_k / t_k;
         }
 
+        void load(std::istream &in) override {
+            k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::load(in);
+            if (this->m_tree_height > 0){
+                if (t_access_shortcut_size >0){
+                    this->perform_access_shortcut_precomputations();
+                }
+            }
+        }
+
     private:
         /**
          * Constructs the tree corresponding to the points in the links vector by partitioning the input multiple times

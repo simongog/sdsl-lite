@@ -20,19 +20,20 @@ bool in_memory;
 void performTest(){
     int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
     int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
-    typedef k2_tree<2, bit_vector, bit_vector, false> k2;
-    k2_tree_partitioned<2, k2, true> failingK(buf_x, buf_y, false);
+    //typedef k2_tree<2, bit_vector, bit_vector, false, 2> k2;
+    typedef k2_tree<2, bit_vector, rrr_vector<63>, false, 4> k2;
+    //k2_tree_partitioned<2, k2, true> failingK(buf_x, buf_y, false);
     k2 compare(buf_x, buf_y, false);
 
     std::vector<uint> result;
-    compare.direct_links2((uint) 20184, result);
+    compare.direct_links_shortcut((uint) 4587, result);
 
     std::cout << "results compare" << std::endl;
     for (auto res : result) {
         std::cout << res << "\t";
     }
     std::cout << std::endl;
-    failingK.direct_links2((uint) 20184, result);
+    compare.direct_links_shortcut_2((uint) 4587, result);
 
     std::cout << "results failing" << std::endl;
     for (auto res : result) {

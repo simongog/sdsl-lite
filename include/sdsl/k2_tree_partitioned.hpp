@@ -364,7 +364,7 @@ namespace sdsl {
             if (t_comp){
                 if (m_k2trees[index].m_tree_height > 0) {
                     //std::cout << "Checking link in tree " << index << std::endl;
-                    return m_k2trees[index].check_link_internal_queue(x_offsetted, y_offsetted,[index,this](int64_t pos, uint8_t leafK){
+                    return m_k2trees[index].check_link_internal(0, m_k2trees[index].m_max_element, x_offsetted, y_offsetted, 0, [index,this](int64_t pos, uint8_t leafK){
                         return is_leaf_bit_set_comp(index, pos, leafK);;
                     });
                 } else {

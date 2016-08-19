@@ -62,7 +62,7 @@ int main(int argc, char* argv[]){
 
             std::cout <<  "Recovered Nodes:" << recovered << "\n";
             std::cout <<  "Queries:" << queries<< "\n";
-            std::cout << "Total time(ms): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
+            std::cout << "Total time(ns): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
             std::cout << "Time per query: "<< duration_cast<nanoseconds>(stop-start).count()/queries << "\n";
             std::cout << "Time per link: "<< duration_cast<nanoseconds>(stop-start).count()/recovered << "\n";
         }
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]){
 
             std::cout <<  "Recovered Nodes:" << recovered << "\n";
             std::cout <<  "Queries:" << queries<< "\n";
-            std::cout << "Total time(ms): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
+            std::cout << "Total time(ns): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
             std::cout << "Time per query: "<< duration_cast<nanoseconds>(stop-start).count()/queries << "\n";
             std::cout << "Time per link: "<< duration_cast<nanoseconds>(stop-start).count()/recovered << "\n";
         }
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]){
 
             std::cout <<  "Recovered Nodes:" << recovered << "\n";
             std::cout <<  "Queries:" << queries<< "\n";
-            std::cout << "Total time(ms): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
+            std::cout << "Total time(ns): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
             std::cout << "Time per query: "<< duration_cast<nanoseconds>(stop-start).count()/queries << "\n";
             std::cout << "Time per link: "<< duration_cast<nanoseconds>(stop-start).count()/recovered << "\n";
         }
@@ -125,10 +125,45 @@ int main(int argc, char* argv[]){
 
             std::cout <<  "Recovered Nodes:" << recovered << "\n";
             std::cout <<  "Queries:" << queries<< "\n";
-            std::cout << "Total time(ms): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
+            std::cout << "Total time(ns): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
             std::cout << "Time per query: "<< duration_cast<nanoseconds>(stop-start).count()/queries << "\n";
             std::cout << "Time per link: "<< duration_cast<nanoseconds>(stop-start).count()/recovered << "\n";
         }
+    }
+
+    srand(0);
+    uint link_query_count = 1000000;
+    std::vector<std::pair<uint,uint>> check_link_queries(link_query_count);
+    for (uint i = 0; i < link_query_count ; i++) {
+        check_link_queries.push_back(std::make_pair(rand() % (k2tree.m_max_element-1), rand() % (k2tree.m_max_element-1)));
+    }
+
+    {
+        if (use_shortut){
+            std::cout << "Performing single link with shortcut" << std::endl;
+            auto start = timer::now();
+            for (auto pair: check_link_queries) {
+                k2tree.check_link_shortcut(pair);
+            }
+            auto stop = timer::now();
+
+            std::cout <<  "Queries:" << link_query_count<< "\n";
+            std::cout << "Total time(ns): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
+            std::cout << "Time per query: "<< duration_cast<nanoseconds>(stop-start).count()/link_query_count  << "\n";
+        }
+    }
+
+    {
+        std::cout << "Performing single link without shortcut" << std::endl;
+        auto start = timer::now();
+        for (auto pair: check_link_queries) {
+            k2tree.check_link(pair);
+        }
+        auto stop = timer::now();
+
+        std::cout <<  "Queries:" << link_query_count<< "\n";
+        std::cout << "Total time(ns): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
+        std::cout << "Time per query: "<< duration_cast<nanoseconds>(stop-start).count()/link_query_count  << "\n";
     }
 
 
