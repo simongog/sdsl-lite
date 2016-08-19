@@ -51,21 +51,21 @@ int main()
     }
 */
     //k2treap.direct_links((uint32_t) 4, result);
-    k2treap.direct_links_shortcut((uint)1, result);
-    k2treap.direct_links_shortcut_2((uint)1, result);
+   // k2treap.direct_links_shortcut((uint)7, result);
+   // k2treap.direct_links_shortcut_2((uint)7, result);
 
 
     for (uint32_t i = 0; i < 16; i++){
         k2treap.direct_links_shortcut_2(i, result);
         print(result, i);
     }
-
+/*
     std::cout << "inverse links" << std::endl;
 
     for (uint32_t i = 0; i < 16; i++){
         k2treap.inverse_links_shortcut(i, result);
         print(result, i);
-    }
+    }*/
 
     /*store_to_file(k2treap, "tmp.tmp");
 

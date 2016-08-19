@@ -73,6 +73,27 @@ int main(int argc, char* argv[]){
         ulong recovered = 0;
         std::vector<uint32_t> result;
         if (use_shortut) {
+            std::cout << "Direct with access shortcut" << std::endl;
+            auto start = timer::now();
+            for (i = 0; i < queries; i++) {
+                k2tree.direct_links_shortcut2(qry[i], result);
+                recovered += result.size();
+            }
+            auto stop = timer::now();
+
+            std::cout <<  "Recovered Nodes:" << recovered << "\n";
+            std::cout <<  "Queries:" << queries<< "\n";
+            std::cout << "Total time(ns): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
+            std::cout << "Time per query: "<< duration_cast<nanoseconds>(stop-start).count()/queries << "\n";
+            std::cout << "Time per link: "<< duration_cast<nanoseconds>(stop-start).count()/recovered << "\n";
+        }
+    }
+
+    {
+        uint i;
+        ulong recovered = 0;
+        std::vector<uint32_t> result;
+        if (use_shortut) {
             std::cout << "Direct without access shortcut" << std::endl;
             auto start = timer::now();
             for (i = 0; i < queries; i++) {
@@ -88,7 +109,7 @@ int main(int argc, char* argv[]){
             std::cout << "Time per link: "<< duration_cast<nanoseconds>(stop-start).count()/recovered << "\n";
         }
     }
-
+/*
     {
         uint i;
         ulong recovered = 0;
@@ -165,7 +186,7 @@ int main(int argc, char* argv[]){
         std::cout << "Total time(ns): "<<  duration_cast<nanoseconds>(stop-start).count() << "\n";
         std::cout << "Time per query: "<< duration_cast<nanoseconds>(stop-start).count()/link_query_count  << "\n";
     }
-
+*/
 
     return 0;
 }

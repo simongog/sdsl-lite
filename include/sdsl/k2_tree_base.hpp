@@ -82,7 +82,7 @@ namespace sdsl {
         /** BitArray containing Gog's B vector. */
         bit_vector m_access_shortcut;
         //Rank support for pattern 01 and 1
-        rank_support_v<01,2> m_access_shortcut_rank_01_support;
+        rank_support_v<10,2> m_access_shortcut_rank_01_support;
         bit_vector::select_1_type m_access_shortcut_select_1_support;
 
         /** For compressed version **/
@@ -182,15 +182,15 @@ namespace sdsl {
                 uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(column_offset, source_id, m_real_size_on_sl,
                                                                                t_access_shortcut_size);
                 uint64_t y = this->m_access_shortcut_select_1_support(z + 1);
-                std::cout << "Column offset: " << column_offset << std::endl;
-                std::cout << "z: " << z << std::endl;
+                //std::cout << "current y " << y <<std::endl;
+                //std::cout << "current column offset " << column_offset <<std::endl;
 
                 //check if exists and if B_[y-1] == 0 otherwise no link
-                if (!(y <= 0 || this->m_access_shortcut[y - 1] == true)) {
+                if (!(this->m_access_shortcut[y + 1] == true)) {
                     //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
                     //directly get corresponding data from leaf array
 
-                    uint64_t index = this->m_access_shortcut_rank_01_support(y);
+                    uint64_t index = this->m_access_shortcut_rank_01_support(y+1);
                     direct_links2_internal(m_field_size_on_sl, t_access_shortcut_size, t_x(source_id % m_field_size_on_sl),
                                            column_offset, index, result, check_leaf_bits);
                 }
@@ -207,26 +207,33 @@ namespace sdsl {
                 return;
             }
 
-            uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(0, source_id, m_real_size_on_sl, t_access_shortcut_size);
             t_x column_offset = 0;
             for (uint j = 0; j < m_submatrix_in_row_on_sl/k0; ++j) {
-                for (int i = 0; i < k0; ++i) {
-                    //dont use select support, but directly look in access_shortcut once position has been obtained
-                    uint64_t y = this->m_access_shortcut_select_1_support(z+i+1);
-                    std::cout << "current z " << (z+i) <<std::endl;
-                    std::cout << "current column offset " << column_offset <<std::endl;
-                    //check if exists and if B_[y-1] == 0 otherwise no link
-                    if (!(y <= 0 || this->m_access_shortcut[y - 1] == true)) {
-                        //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
-                        //directly get corresponding data from leaf array
+                uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(column_offset, source_id, m_real_size_on_sl,
+                                                                               t_access_shortcut_size);
+                uint64_t y = this->m_access_shortcut_select_1_support(z+1);
+                    //y--;
+                    for (int i = 0; i < k0; ++i) {
+                        //dont use select support, but directly look in access_shortcut once position has been obtained
 
-                        uint64_t index = this->m_access_shortcut_rank_01_support(y);
-                        direct_links2_internal(m_field_size_on_sl, t_access_shortcut_size,
-                                               t_x(source_id % m_field_size_on_sl), column_offset, index, result,
-                                               check_leaf_bits);
+                        //std::cout << "current y " << y <<std::endl;
+                        //std::cout << "current column offset " << column_offset <<std::endl;
+                        //check if exists and if B_[y-1] == 0 otherwise no link
+                        if (this->m_access_shortcut[y+1] == false) {
+                            //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
+                            //directly get corresponding data from leaf array
+
+                            uint64_t index = this->m_access_shortcut_rank_01_support(y+1);
+                            direct_links2_internal(m_field_size_on_sl, t_access_shortcut_size,
+                                                   t_x(source_id % m_field_size_on_sl), column_offset, index, result,
+                                                   check_leaf_bits);
+                            y+=2;
+                        } else {
+                            y+=1;
+                        }
+
+                        column_offset += m_field_size_on_sl;
                     }
-                    column_offset += m_field_size_on_sl;
-                }
                 z+=k0*k0;
             }
         }
@@ -1287,7 +1294,8 @@ namespace sdsl {
             construct_access_shortcut_by_dfs(access_shortcut, this->root(), this->m_max_element, counter);
             this->m_access_shortcut.swap(access_shortcut);
 
-            /*std::cout << "Access shortcut: " << std::endl;
+            /*
+            std::cout << "Access shortcut: " << std::endl;
             for (int i = 0; i < m_access_shortcut.size(); ++i) {
                 std::cout << m_access_shortcut[i];
             }
@@ -1403,8 +1411,8 @@ namespace sdsl {
                     // or introduce cache for bitvectors
                     if (root.t == (t_access_shortcut_size-1)){
                         if (this->m_levels[root.t][root.idx + k * i + j]) { //if subtree present
-                            access_shortcut[counter] = 0;//save 01 at counter position (m_access_shortcut gets initialised with 1s)
                             counter++;
+                            access_shortcut[counter] = 0;//save 01 at counter position (m_access_shortcut gets initialised with 1s)
                         }
                         counter++;
 
