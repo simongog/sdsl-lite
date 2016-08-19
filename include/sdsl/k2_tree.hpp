@@ -200,6 +200,8 @@ class k2_tree
                 throw std::logic_error("Matrix has no elements");
             }
             k_k = k;
+            size_type k_2 = std::pow(k_k, 2);
+
             k_height = std::ceil(std::log(size)/std::log(k_k));
             size_type s = std::pow(k_k, k_height);
             typedef std::tuple<idx_type, idx_type, size_type, idx_type,
@@ -209,10 +211,40 @@ class k2_tree
             q.push(t_part_tuple(1, size, s/k_k, 0, 0));
             t_bv(1 * std::pow(k, 2) * k_height, 0);
             idx_type t;
-            t_part_tuple current_tuple;
+            idx_type i, j, r_0, c_0, it, aux;
+            size_type l;
 
+			std::vector<idx_type> pos_by_chunk(k_2, 0);
             while(!q.empty()) {
-               current_tuple = q.back();
+				std::vector<idx_type> amount_by_chunk(k_2, 0);
+				std::tie(i, j, l, r_0, c_0) = q.front();
+				q.pop();
+				// TODO If l==1 ?
+				// Sorting
+				for(it = i; it < j; it++) {
+					amount_by_chunk[get_chunk_id(std::get<0>(edges[i]),
+												 std::get<1>(edges[i]),
+												 c_0, r_0, l, k_k)] += 1;
+				}
+
+				pos_by_chunk[0] = i;
+				for(it = 1; it < k_2; it++) {
+					pos_by_chunk[it] =
+							pos_by_chunk[it - 1] + amount_by_chunk[it - 1];
+				}
+
+				it_2 = 0;
+				for(it = i; it < j; it++) {
+					while(it_2 < j
+						  && pos_by_chunk[it_2] < pos_by_chunk[it_2 + 1]) {
+						chunk =
+					}
+
+
+				}
+
+
+
 
             }
 

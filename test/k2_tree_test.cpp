@@ -110,6 +110,17 @@ TYPED_TEST(k2_tree_test_k_2, build_from_matrix_test)
     k2_tree_test_nm::check_t_l(tree, expected_t, expected_l);
 }
 
+TYPED_TEST(k2_tree_test_k_2, build_from_edges_array)
+{
+    vector<std::tuple<typename TypeParam::idx_type, typename TypeParam::idx_type>> e({{1, 2}, {1, 3}});
+    TypeParam tree(e, 4);
+    // vector<unsigned> expected_l = {1,1,0,1,1,1,1,0};
+    // k2_tree_test_nm::check_t_l(tree, {1, 0, 0 ,1}, expected_l);
+
+    // mat = vector<vector <int>> ({{0, 0, 0, 0},
+                                 // {0, 0, 0, 0},
+}
+
 TYPED_TEST(k2_tree_test_k_2, neighbors_test)
 {
     vector<vector <int>> mat({{1, 1, 0, 0},
