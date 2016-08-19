@@ -82,7 +82,7 @@ namespace sdsl {
         /** BitArray containing Gog's B vector. */
         bit_vector m_access_shortcut;
         //Rank support for pattern 01 and 1
-        rank_support_v<10,2> m_access_shortcut_rank_01_support;
+        rank_support_v<10,2> m_access_shortcut_rank_10_support;
         bit_vector::select_1_type m_access_shortcut_select_1_support;
 
         /** For compressed version **/
@@ -190,7 +190,7 @@ namespace sdsl {
                     //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
                     //directly get corresponding data from leaf array
 
-                    uint64_t index = this->m_access_shortcut_rank_01_support(y+1);
+                    uint64_t index = this->m_access_shortcut_rank_10_support(y+1);
                     direct_links2_internal(m_field_size_on_sl, t_access_shortcut_size, t_x(source_id % m_field_size_on_sl),
                                            column_offset, index, result, check_leaf_bits);
                 }
@@ -223,7 +223,7 @@ namespace sdsl {
                             //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
                             //directly get corresponding data from leaf array
 
-                            uint64_t index = this->m_access_shortcut_rank_01_support(y+1);
+                            uint64_t index = this->m_access_shortcut_rank_10_support(y+1);
                             direct_links2_internal(m_field_size_on_sl, t_access_shortcut_size,
                                                    t_x(source_id % m_field_size_on_sl), column_offset, index, result,
                                                    check_leaf_bits);
@@ -266,11 +266,11 @@ namespace sdsl {
                 uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(target_id,row_offset, m_real_size_on_sl, t_access_shortcut_size);
                 uint64_t y = this->m_access_shortcut_select_1_support(z+1);
                 //check if exists and if B_[y-1] == 0 otherwise no link
-                if (!(y <= 0 || this->m_access_shortcut[y-1] == true)){
+                if (!(this->m_access_shortcut[y+1] == true)){
                     //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
                     //directly get corresponding data from leaf array
 
-                    uint64_t index = this->m_access_shortcut_rank_01_support(y);
+                    uint64_t index = this->m_access_shortcut_rank_10_support(y+1);
                     inverse_links2_internal(m_field_size_on_sl, t_access_shortcut_size, t_x (target_id%m_field_size_on_sl), row_offset, index, result, check_leaf_bits);
                 }
             }
@@ -326,7 +326,7 @@ namespace sdsl {
                 }
                 m_leaves = std::move(tr.m_leaves);
                 m_access_shortcut = std::move(tr.m_access_shortcut);
-                m_access_shortcut_rank_01_support = std::move(tr.m_access_shortcut_rank_01_support);
+                m_access_shortcut_rank_10_support = std::move(tr.m_access_shortcut_rank_10_support);
                 m_access_shortcut_select_1_support = std::move(tr.m_access_shortcut_select_1_support);
                 m_comp_leaves = tr.m_comp_leaves;
                 m_vocabulary = tr.m_vocabulary;
@@ -350,8 +350,8 @@ namespace sdsl {
                 }
                 m_leaves = tr.m_leaves;
                 m_access_shortcut = tr.m_access_shortcut;
-                m_access_shortcut_rank_01_support = tr.m_access_shortcut_rank_01_support;
-                m_access_shortcut_rank_01_support.set_vector(&m_access_shortcut);
+                m_access_shortcut_rank_10_support = tr.m_access_shortcut_rank_10_support;
+                m_access_shortcut_rank_10_support.set_vector(&m_access_shortcut);
                 m_access_shortcut_select_1_support = tr.m_access_shortcut_select_1_support;
                 m_access_shortcut_select_1_support.set_vector(&m_access_shortcut);
                 m_comp_leaves = tr.m_comp_leaves;
@@ -465,7 +465,7 @@ namespace sdsl {
 
                 m_leaves.swap(tr.m_leaves);
                 m_access_shortcut.swap(tr.m_access_shortcut);
-                util::swap_support(m_access_shortcut_rank_01_support, tr.m_access_shortcut_rank_01_support,
+                util::swap_support(m_access_shortcut_rank_10_support, tr.m_access_shortcut_rank_10_support,
                                    &m_access_shortcut, &tr.m_access_shortcut);
                 util::swap_support(m_access_shortcut_select_1_support, tr.m_access_shortcut_select_1_support,
                                    &m_access_shortcut, &tr.m_access_shortcut);
@@ -505,7 +505,7 @@ namespace sdsl {
 
             if (t_access_shortcut_size > 0){
                 written_bytes += m_access_shortcut.serialize(out, child, "access_shortcut");
-                written_bytes += m_access_shortcut_rank_01_support.serialize(out, child, "access_rank");
+                written_bytes += m_access_shortcut_rank_10_support.serialize(out, child, "access_rank");
                 written_bytes += m_access_shortcut_select_1_support.serialize(out, child, "access_select");
             }
             structure_tree::add_size(child, written_bytes);
@@ -541,8 +541,8 @@ namespace sdsl {
 
             if (t_access_shortcut_size > 0){
                 m_access_shortcut.load(in);
-                m_access_shortcut_rank_01_support.load(in);
-                m_access_shortcut_rank_01_support.set_vector(&m_access_shortcut);
+                m_access_shortcut_rank_10_support.load(in);
+                m_access_shortcut_rank_10_support.set_vector(&m_access_shortcut);
                 m_access_shortcut_select_1_support.load(in);
                 m_access_shortcut_select_1_support.set_vector(&m_access_shortcut);
             }
@@ -637,28 +637,22 @@ namespace sdsl {
             auto p = link.first;
             auto q = link.second;
 
-            uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(q, p, m_real_size_on_sl
-                    , t_access_shortcut_size);
+            uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(q, p, m_real_size_on_sl, t_access_shortcut_size);
             //y = zth 1 via rank on B_
             uint64_t y = this->m_access_shortcut_select_1_support(z+1);
             //check if exists and if B_[y-1] == 0 otherwise no link
-            if (y <= 0 || this->m_access_shortcut[y-1] == true){
+            if (this->m_access_shortcut[y+1] == true){
                 return false;
             }
             //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
             //directly get corresponding data from leaf array
 
-            uint64_t field_size = m_max_element;//height cannot be used when using hybrid k trees --> buffer this value in this case
-            for (int i = 0; i < t_access_shortcut_size; ++i) {
-                field_size/= get_k(i);
-            }
-
-            uint64_t number_of_present_trees_searched_value_is_in = this->m_access_shortcut_rank_01_support(y);
+            uint64_t number_of_present_trees_searched_value_is_in = this->m_access_shortcut_rank_10_support(y+1);
             uint64_t index = number_of_present_trees_searched_value_is_in*get_k(t_access_shortcut_size)*get_k(t_access_shortcut_size);
 
             //std::cout << "For " << p << "," << q << " the index is " << index << "and relative coordinates are " << p%field_size << "," << q%field_size << std::endl;
 
-            return check_link_internal(t_access_shortcut_size, field_size, p%field_size, q%field_size, index, check_leaf_bits);
+            return check_link_internal(t_access_shortcut_size, m_field_size_on_sl, p%m_field_size_on_sl, q%m_field_size_on_sl, index, check_leaf_bits);
         }
 
         /**
@@ -1301,7 +1295,7 @@ namespace sdsl {
             }
             std::cout << std::endl;*/
 
-            sdsl::util::init_support(this->m_access_shortcut_rank_01_support, &this->m_access_shortcut);
+            sdsl::util::init_support(this->m_access_shortcut_rank_10_support, &this->m_access_shortcut);
             sdsl::util::init_support(this->m_access_shortcut_select_1_support, &this->m_access_shortcut);
 
             perform_access_shortcut_precomputations();

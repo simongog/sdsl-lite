@@ -189,6 +189,35 @@ namespace sdsl {
         }
 
         template<typename t_x>
+        void direct_links_shortcut_2(t_x source_id, std::vector<t_x> &result) const {
+            result.clear();
+            uint y = source_id/m_part_matrix_size;
+            //uint submatrix_size = m_matrix_size/k0;
+
+            //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
+            std::vector<t_x> tmp_result;
+            if (t_comp){
+                for (int j = 0; j < t_k0; ++j) {
+                    uint index = y*t_k0+j;
+                    tmp_result.clear();
+                    m_k2trees[index].direct_links_shortcut_internal_2((t_x) (source_id - y * m_part_matrix_size), tmp_result, [index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                        check_leaf_bits_direct_comp(index, pos, offset, leafK, result);
+                    });
+                    for (auto item : tmp_result){
+                        result.push_back(item + j*m_part_matrix_size);
+                    }
+                }
+            } else {
+                for (int j = 0; j < t_k0; ++j) {
+                    m_k2trees[y*t_k0+j].direct_links_shortcut_2((t_x) (source_id - y * m_part_matrix_size), tmp_result);
+                    for (auto item : tmp_result){
+                        result.push_back(item + j*m_part_matrix_size);
+                    }
+                }
+            }
+        }
+
+        template<typename t_x>
         void direct_links2(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
             t_x y = source_id/m_part_matrix_size;

@@ -76,7 +76,7 @@ int main(int argc, char* argv[]){
             std::cout << "Direct with access shortcut" << std::endl;
             auto start = timer::now();
             for (i = 0; i < queries; i++) {
-                k2tree.direct_links_shortcut2(qry[i], result);
+                k2tree.direct_links_shortcut_2(qry[i], result);
                 recovered += result.size();
             }
             auto stop = timer::now();
