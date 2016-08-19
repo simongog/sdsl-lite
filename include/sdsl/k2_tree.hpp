@@ -221,28 +221,32 @@ class k2_tree
 				q.pop();
 				// TODO If l==1 ?
 				// Sorting
+				// Get size for each chunk
 				for(it = i; it < j; it++)
 					amount_by_chunk[k2_tree_ns::get_chunk_idx(
 					                                std::get<0>(edges[it]),
 												    std::get<1>(edges[it]),
 												    c_0, r_0, l, k_k)] += 1;
 
+                // Set starting position in the vector for each chunk
 				pos_by_chunk[0] = i;
 				for(it = 1; it < k_2; it++) {
 					pos_by_chunk[it] =
 							pos_by_chunk[it - 1] + amount_by_chunk[it - 1];
-					// If not empty chunk, set bit to 1
 				}
 				for(it = 1; it < k_2 - 1; it++) {
+					// If not empty chunk, set bit to 1
                     if(amount_by_chunk[it] != 0) {
                         r = it / k_k;
                         c = it % k_k;
                         k_t[t] = 1;
-                        q.push(t_part_tuple(pos_by_chunk[it],
-                                            pos_by_chunk[it + 1],
-                                            l/k_k,
-                                            r_0 + r * l,
-                                            c_0 + c * l));
+                        //TODO remove this
+                        if(l != 1)
+                            q.push(t_part_tuple(pos_by_chunk[it],
+                                                pos_by_chunk[it + 1],
+                                                l/k_k,
+                                                r_0 + r * l,
+                                                c_0 + c * l));
                     }
                     t++;
                 }
@@ -336,6 +340,8 @@ class k2_tree
          */
         bool adj(idx_type i, idx_type j) const
         {
+            if(k_t.size() == 0 && k_l.size() == 0)
+                return false;
             size_type n = std::pow(k_k, k_height - 1);
             size_type k_2 = std::pow(k_k, 2);
             idx_type col, row;
@@ -373,6 +379,8 @@ class k2_tree
         std::vector<idx_type>neigh(idx_type i) const
         {
             std::vector<idx_type> acc{};
+            if(k_l.size() == 0 && k_t.size() == 0)
+                return acc;
             size_type n =
                     static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
             idx_type y = k_k * std::floor(i/static_cast<double>(n));
@@ -389,6 +397,8 @@ class k2_tree
         std::vector<idx_type> reverse_neigh(idx_type i) const
         {
             std::vector<idx_type> acc{};
+            if(k_l.size() == 0 && k_t.size() == 0)
+                return acc;
             size_type n =
                     static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
             idx_type y = k_k * std::floor(i/static_cast<double>(n));

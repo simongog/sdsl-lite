@@ -76,8 +76,8 @@ int _build_from_matrix(const std::vector<std::vector <int>>& matrix,
 inline uint16_t get_chunk_idx(idx_type v, idx_type u, idx_type c_0,
 							  idx_type r_0, size_type l, uint8_t k)
 {
-	return (std::ceil(static_cast<double>(u - c_0) / l) - 1) * k +
-		   std::ceil(static_cast<double>(v - r_0) / l);
+    return std::floor(static_cast<double>(v - r_0) / l) * k +
+           std::floor(static_cast<double>(u - c_0) / l);
 }
 } // end namespace k2_tree_ns
 } // end namespace sdsl
