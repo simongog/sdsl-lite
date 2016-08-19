@@ -212,6 +212,7 @@ namespace sdsl {
                 uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(column_offset, source_id, m_real_size_on_sl,
                                                                                t_access_shortcut_size);
                 uint64_t y = this->m_access_shortcut_select_1_support(z+1);
+                uint64_t index = this->m_access_shortcut_rank_10_support(y+1);
                     //y--;
                     for (int i = 0; i < k0; ++i) {
                         //dont use select support, but directly look in access_shortcut once position has been obtained
@@ -223,10 +224,10 @@ namespace sdsl {
                             //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
                             //directly get corresponding data from leaf array
 
-                            uint64_t index = this->m_access_shortcut_rank_10_support(y+1);
                             direct_links2_internal(m_field_size_on_sl, t_access_shortcut_size,
                                                    t_x(source_id % m_field_size_on_sl), column_offset, index, result,
                                                    check_leaf_bits);
+                            index ++;
                             y+=2;
                         } else {
                             y+=1;
