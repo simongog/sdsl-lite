@@ -193,7 +193,7 @@ class k2_tree
             k_t_rank = t_rank(&k_t);
         }
 
-        k2_tree(std::vector<std::tuple<idx_type, idx_type>> edges,
+        k2_tree(std::vector<std::tuple<idx_type, idx_type>> &edges,
                 size_type size)
         {
             if(size < 1) {
@@ -208,10 +208,10 @@ class k2_tree
                                idx_type> t_part_tuple;
 
             std::queue<t_part_tuple> q;
-            q.push(t_part_tuple(1, size, s/k_k, 0, 0));
-            t_bv(1 * std::pow(k, 2) * k_height, 0);
-            idx_type t;
-            idx_type i, j, r_0, c_0, it, aux;
+            q.push(t_part_tuple(0, edges.size(), s/k_k, 0, 0));
+            k_t = t_bv(1 * std::pow(k, 2) * k_height, 0);
+            idx_type t = 0;
+            idx_type i, j, r_0, c_0, it, aux, c, r;
             size_type l;
 
 			std::vector<idx_type> pos_by_chunk(k_2, 0);
@@ -221,36 +221,54 @@ class k2_tree
 				q.pop();
 				// TODO If l==1 ?
 				// Sorting
-				for(it = i; it < j; it++) {
-					amount_by_chunk[get_chunk_id(std::get<0>(edges[i]),
-												 std::get<1>(edges[i]),
-												 c_0, r_0, l, k_k)] += 1;
-				}
+				for(it = i; it < j; it++)
+					amount_by_chunk[k2_tree_ns::get_chunk_idx(
+					                                std::get<0>(edges[it]),
+												    std::get<1>(edges[it]),
+												    c_0, r_0, l, k_k)] += 1;
 
 				pos_by_chunk[0] = i;
 				for(it = 1; it < k_2; it++) {
 					pos_by_chunk[it] =
 							pos_by_chunk[it - 1] + amount_by_chunk[it - 1];
+					// If not empty chunk, set bit to 1
 				}
+				for(it = 1; it < k_2 - 1; it++) {
+                    if(amount_by_chunk[it] != 0) {
+                        r = it / k_k;
+                        c = it % k_k;
+                        k_t[t] = 1;
+                        q.push(t_part_tuple(pos_by_chunk[it],
+                                            pos_by_chunk[it + 1],
+                                            l/k_k,
+                                            r_0 + r * l,
+                                            c_0 + c * l));
+                    }
+                    t++;
+                }
+                if(amount_by_chunk[k_2 - 1] != 0) {
+                    k_t[t] = 1;
+                    q.push(t_part_tuple(pos_by_chunk[it],
+                                        j,
+                                        l/k_k,
+                                        r_0 + (k_k - 1) * l,
+                                        c_0 + (k_k - 1) * l));
+                }
+                t++;
+                idx_type chunk;
 
-				it_2 = 0;
 				for(it = i; it < j; it++) {
-					while(it_2 < j
-						  && pos_by_chunk[it_2] < pos_by_chunk[it_2 + 1]) {
-						chunk =
-					}
-
-
+				    chunk = k2_tree_ns::get_chunk_idx(std::get<0>(edges[it]),
+				                                      std::get<1>(edges[it]),
+				                                      c_0, r_0, l, k_k);
+				    if(pos_by_chunk[chunk] != it) {
+                        std::iter_swap(edges.begin() + it,
+                                       edges.begin() + pos_by_chunk[chunk]);
+                        it--;
+                    }
+                    pos_by_chunk[chunk]++;
 				}
-
-
-
-
             }
-
-
-
-
 
             k_t_rank = t_rank(&k_t);
         }
