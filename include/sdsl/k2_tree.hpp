@@ -104,6 +104,7 @@ class k2_tree
                 }
         }
 
+
         /*! Recursive function to retrieve list of neighbors.
          *
          *  \param n Size of the submatrix in the next recursive step.
@@ -166,8 +167,6 @@ class k2_tree
 
         k2_tree() = default;
 
-        // TODO There is a build process proportional to the number of 1s in
-        // the paper. Implement it!
         //! Constructor
         /*! This constructos takes the graph adjacency matrix.
          *  The time complexity for this constructor is linear in the matrix
@@ -193,33 +192,42 @@ class k2_tree
             k_t_rank = t_rank(&k_t);
         }
 
+        //! Constructor
+        /*! This constructos takes a vector of edges describing the graph
+         *  and the graph size. And takes linear time over the amount of
+         *  edges to build the k_2 representation.
+         *  \param edges A vector with all the edges of the graph, it can
+         *               not be empty.
+         *  \param size Size of the graph, all the nodes in edges must be
+         *              within 0 and size ([0, size[).
+         */
         k2_tree(std::vector<std::tuple<idx_type, idx_type>> &edges,
-                size_type size)
+                const size_type size)
         {
-            if(size < 1) {
-                throw std::logic_error("Matrix has no elements");
-            }
-            k_k = k;
-            size_type k_2 = std::pow(k_k, 2);
-
-            k_height = std::ceil(std::log(size)/std::log(k_k));
-            size_type s = std::pow(k_k, k_height);
             typedef std::tuple<idx_type, idx_type, size_type, idx_type,
                                idx_type> t_part_tuple;
 
-            std::queue<t_part_tuple> q;
-            q.push(t_part_tuple(0, edges.size(), s/k_k, 0, 0));
-            k_t = t_bv(1 * std::pow(k, 2) * k_height, 0);
-            idx_type t = 0;
-            idx_type i, j, r_0, c_0, it, aux, c, r;
-            size_type l;
+            assert(size > 0);
+            assert(edges.size() > 0);
 
+            k_k = k;
+            k_height = std::ceil(std::log(size)/std::log(k_k));
+            size_type k_2 = std::pow(k_k, 2);
+            size_type s = std::pow(k_k, k_height);
+            k_t = t_bv(k_2 * k_height * edges.size(), 0);
+
+            std::queue<t_part_tuple> q;
+            idx_type t = 0, last_level = 0;
+            idx_type i, j, r_0, c_0, it, c, r;
+            size_type l;
 			std::vector<idx_type> pos_by_chunk(k_2, 0);
+
+            q.push(t_part_tuple(0, edges.size(), s/k_k, 0, 0));
+
             while(!q.empty()) {
 				std::vector<idx_type> amount_by_chunk(k_2, 0);
 				std::tie(i, j, l, r_0, c_0) = q.front();
 				q.pop();
-				// TODO If l==1 ?
 				// Sorting
 				// Get size for each chunk
 				for(it = i; it < j; it++)
@@ -227,6 +235,22 @@ class k2_tree
 					                                std::get<0>(edges[it]),
 												    std::get<1>(edges[it]),
 												    c_0, r_0, l, k_k)] += 1;
+				if(l == 1) {
+                    if(last_level == 0) {
+                        last_level = t;
+                        k_l = t_bv(k_t.size() - last_level, 0);
+                        k_t.resize(last_level);
+                        last_level = 1; // TODO if t was 0 ?
+                        t = 0;
+                    }
+                    for(it = 0; it < k_2; it++) {
+                        if(amount_by_chunk[it] != 0) {
+                            k_l[t] = 1;
+                        }
+                        t++;
+                    }
+                    continue;
+                }
 
                 // Set starting position in the vector for each chunk
 				pos_by_chunk[0] = i;
@@ -234,19 +258,17 @@ class k2_tree
 					pos_by_chunk[it] =
 							pos_by_chunk[it - 1] + amount_by_chunk[it - 1];
 				}
-				for(it = 1; it < k_2 - 1; it++) {
+				for(it = 0; it < k_2 - 1; it++) {
 					// If not empty chunk, set bit to 1
                     if(amount_by_chunk[it] != 0) {
                         r = it / k_k;
                         c = it % k_k;
                         k_t[t] = 1;
-                        //TODO remove this
-                        if(l != 1)
-                            q.push(t_part_tuple(pos_by_chunk[it],
-                                                pos_by_chunk[it + 1],
-                                                l/k_k,
-                                                r_0 + r * l,
-                                                c_0 + c * l));
+                        q.push(t_part_tuple(pos_by_chunk[it],
+                                            pos_by_chunk[it + 1],
+                                            l/k_k,
+                                            r_0 + r * l,
+                                            c_0 + c * l));
                     }
                     t++;
                 }
@@ -273,6 +295,7 @@ class k2_tree
                     pos_by_chunk[chunk]++;
 				}
             }
+            k_l.resize(t);
 
             k_t_rank = t_rank(&k_t);
         }
