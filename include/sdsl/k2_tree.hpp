@@ -212,6 +212,7 @@ class k2_tree
 
             k_k = k;
             k_height = std::ceil(std::log(size)/std::log(k_k));
+            k_height = k_height > 1 ? k_height : 1; // If size == 0
             size_type k_2 = std::pow(k_k, 2);
             size_type s = std::pow(k_k, k_height);
             k_t = t_bv(k_2 * k_height * edges.size(), 0);

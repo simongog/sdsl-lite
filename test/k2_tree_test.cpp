@@ -71,6 +71,10 @@ TYPED_TEST(k2_tree_test_k_2, build_from_matrix_test)
     tree = TypeParam(mat);
     k2_tree_test_nm::check_t_l(tree, {}, {});
 
+    mat = vector<vector<int>>({{1}});
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0});
+
 
     // Size is non a power of k:
     mat = vector<vector<int>>({{0, 0, 1},
@@ -131,6 +135,11 @@ TYPED_TEST(k2_tree_test_k_2, build_from_edges_array)
     e.push_back(t_tuple {1, 2});
     tree = TypeParam(e, 3);
     k2_tree_test_nm::check_t_l(tree, {0, 1, 0 ,0}, {0, 0, 1, 0});
+
+    e.clear();
+    e.push_back(t_tuple {0, 0});
+    tree = TypeParam(e, 1);
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0});
 }
 
 TYPED_TEST(k2_tree_test_k_2, neighbors_test)
@@ -153,6 +162,12 @@ TYPED_TEST(k2_tree_test_k_2, neighbors_test)
     for(unsigned i = 0; i < neigh_3.size(); i++)
         ASSERT_EQ(expected_neigh_3[i], neigh_3[i]);
 
+    mat = vector<vector <int>>({{1}});
+    tree = TypeParam(mat);
+    neigh_0 = tree.neigh(0);
+    ASSERT_EQ(0u, neigh_0[0]);
+    ASSERT_EQ(1u, neigh_0.size());
+
     mat = vector<vector <int>>({{0, 0, 0},
                                 {1, 0, 1},
                                 {0, 1, 1}});
@@ -165,7 +180,6 @@ TYPED_TEST(k2_tree_test_k_2, neighbors_test)
     ASSERT_EQ(expected_neigh_1.size(), neigh_1.size());
     for(unsigned i = 0; i < neigh_1.size(); i++)
         ASSERT_EQ(expected_neigh_1[i], neigh_1[i]);
-
 
     mat = vector<vector <int>>({{0, 0},
                                 {0, 0}});
