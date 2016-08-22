@@ -98,7 +98,7 @@ namespace sdsl {
                     construct(v, temp_file_prefix);
                 }
 
-
+                this->m_access_shortcut_size = t_access_shortcut_size;
                 if (t_access_shortcut_size > 0) {
                     this->construct_access_shortcut();
                 }
@@ -158,6 +158,7 @@ namespace sdsl {
                 }
             }
 
+            this->m_access_shortcut_size = t_access_shortcut_size;
             if (t_access_shortcut_size > 0) {
                 this->construct_access_shortcut();
             }

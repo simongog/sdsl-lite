@@ -54,6 +54,7 @@ namespace sdsl {
         DAC m_comp_leaves;
         uint64_t m_max_element = 0; //FIXME: this is an ugly hack for k2part
         uint8_t m_tree_height = 0;
+        uint8_t m_access_shortcut_size = 0;
 
         k2_tree_base() = default;
 
@@ -172,8 +173,8 @@ namespace sdsl {
             using namespace k2_treap_ns;
             result.clear();
 
-            if (t_access_shortcut_size == 0){
-                throw std::runtime_error("Cannot use check_link_shortcut if t_access_shortcut_size == 0");
+            if (m_access_shortcut_size == 0){
+                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
             }
 
             //Patological case happening e.g. when using k2part
@@ -184,7 +185,7 @@ namespace sdsl {
             for (uint j = 0; j < m_submatrix_in_row_on_sl; ++j) {
                 t_x column_offset = j * m_field_size_on_sl;
                 uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(column_offset, source_id, m_real_size_on_sl,
-                                                                               t_access_shortcut_size);
+                                                                               m_access_shortcut_size);
                 uint64_t y = this->m_access_shortcut_select_1_support(z + 1);
                 //std::cout << "current y " << y <<std::endl;
                 //std::cout << "current column offset " << column_offset <<std::endl;
@@ -195,7 +196,7 @@ namespace sdsl {
                     //directly get corresponding data from leaf array
 
                     uint64_t index = this->m_access_shortcut_rank_10_support(y+1);
-                    direct_links2_internal(m_field_size_on_sl, t_access_shortcut_size, t_x(source_id % m_field_size_on_sl),
+                    direct_links2_internal(m_field_size_on_sl, m_access_shortcut_size, t_x(source_id % m_field_size_on_sl),
                                            column_offset, index, result, check_leaf_bits);
                 }
             }
@@ -206,8 +207,8 @@ namespace sdsl {
             using namespace k2_treap_ns;
             result.clear();
 
-            if (t_access_shortcut_size == 0){
-                throw std::runtime_error("Cannot use check_link_shortcut if t_access_shortcut_size == 0");
+            if (m_access_shortcut_size == 0){
+                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
             }
 
             //Patological case happening e.g. when using k2part
@@ -218,7 +219,7 @@ namespace sdsl {
             t_x column_offset = 0;
             for (uint j = 0; j < m_submatrix_in_row_on_sl/k0; ++j) {
                 uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(column_offset, source_id, m_real_size_on_sl,
-                                                                               t_access_shortcut_size);
+                                                                               m_access_shortcut_size);
                 uint64_t y = this->m_access_shortcut_select_1_support(z+1);
                 uint64_t index = this->m_access_shortcut_rank_10_support(y+1);
                     //y--;
@@ -232,7 +233,7 @@ namespace sdsl {
                             //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
                             //directly get corresponding data from leaf array
 
-                            direct_links2_internal(m_field_size_on_sl, t_access_shortcut_size,
+                            direct_links2_internal(m_field_size_on_sl, m_access_shortcut_size,
                                                    t_x(source_id % m_field_size_on_sl), column_offset, index, result,
                                                    check_leaf_bits);
                             index ++;
@@ -263,8 +264,8 @@ namespace sdsl {
         template<typename t_x, typename Function>
         void inverse_links_shortcut_internal(t_x target_id, std::vector<t_x> &result, Function check_leaf_bits) const {
             using namespace k2_treap_ns;
-            if (t_access_shortcut_size == 0){
-                throw std::runtime_error("Cannot use check_link_shortcut if t_access_shortcut_size == 0");
+            if (m_access_shortcut_size == 0){
+                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
             }
 
             result.clear();
@@ -276,7 +277,7 @@ namespace sdsl {
 
             for (uint j = 0; j < m_submatrix_in_row_on_sl; ++j) {
                 t_x row_offset = j*m_field_size_on_sl;
-                uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(target_id,row_offset, m_real_size_on_sl, t_access_shortcut_size);
+                uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(target_id,row_offset, m_real_size_on_sl, m_access_shortcut_size);
                 uint64_t y = this->m_access_shortcut_select_1_support(z+1);
                 //check if exists and if B_[y-1] == 0 otherwise no link
                 if (!(this->m_access_shortcut[y+1] == true)){
@@ -284,7 +285,7 @@ namespace sdsl {
                     //directly get corresponding data from leaf array
 
                     uint64_t index = this->m_access_shortcut_rank_10_support(y+1);
-                    inverse_links2_internal(m_field_size_on_sl, t_access_shortcut_size, t_x (target_id%m_field_size_on_sl), row_offset, index, result, check_leaf_bits);
+                    inverse_links2_internal(m_field_size_on_sl, m_access_shortcut_size, t_x (target_id%m_field_size_on_sl), row_offset, index, result, check_leaf_bits);
                 }
             }
         }
@@ -338,6 +339,7 @@ namespace sdsl {
                     m_levels_rank[i].set_vector(&m_levels[i]);
                 }
                 m_leaves = std::move(tr.m_leaves);
+                m_access_shortcut_size = tr.m_access_shortcut_size;
                 m_access_shortcut = std::move(tr.m_access_shortcut);
                 m_access_shortcut_rank_10_support = std::move(tr.m_access_shortcut_rank_10_support);
                 m_access_shortcut_select_1_support = std::move(tr.m_access_shortcut_select_1_support);
@@ -362,6 +364,7 @@ namespace sdsl {
                     m_levels_rank[i].set_vector(&m_levels[i]);
                 }
                 m_leaves = tr.m_leaves;
+                m_access_shortcut_size = tr.m_access_shortcut_size;
                 m_access_shortcut = tr.m_access_shortcut;
                 m_access_shortcut_rank_10_support = tr.m_access_shortcut_rank_10_support;
                 m_access_shortcut_rank_10_support.set_vector(&m_access_shortcut);
@@ -430,6 +433,11 @@ namespace sdsl {
                     }
                 }
             }
+
+            if (m_access_shortcut_size != tr.m_access_shortcut_size){
+                std::cout << "Shortcut size differs" << std::endl;
+                return false;
+            }
             //don't compare other access_shortcut vetors as they have to be the same when access_shortcut_size is the same
 
             return true;
@@ -477,6 +485,7 @@ namespace sdsl {
                 tr.m_levels_rank.resize(tr_m_levels_size);
 
                 m_leaves.swap(tr.m_leaves);
+                std::swap(m_access_shortcut_size, tr.m_access_shortcut_size);
                 m_access_shortcut.swap(tr.m_access_shortcut);
                 util::swap_support(m_access_shortcut_rank_10_support, tr.m_access_shortcut_rank_10_support,
                                    &m_access_shortcut, &tr.m_access_shortcut);
@@ -516,7 +525,8 @@ namespace sdsl {
                 }
             }
 
-            if (t_access_shortcut_size > 0){
+            written_bytes += write_member(m_access_shortcut_size, out, child, "access_shortcut_size");
+            if (m_access_shortcut_size > 0){
                 written_bytes += m_access_shortcut.serialize(out, child, "access_shortcut");
                 written_bytes += m_access_shortcut_rank_10_support.serialize(out, child, "access_rank");
                 written_bytes += m_access_shortcut_select_1_support.serialize(out, child, "access_select");
@@ -552,7 +562,8 @@ namespace sdsl {
 
             }
 
-            if (t_access_shortcut_size > 0){
+            read_member(m_access_shortcut_size, in);
+            if (m_access_shortcut_size > 0){
                 m_access_shortcut.load(in);
                 m_access_shortcut_rank_10_support.load(in);
                 m_access_shortcut_rank_10_support.set_vector(&m_access_shortcut);
@@ -622,7 +633,7 @@ namespace sdsl {
 
 
         /**
-        * Used for accelerating the check whether a certain link exists by skipping t_access_shortcut_size levels
+        * Used for accelerating the check whether a certain link exists by skipping m_access_shortcut_size levels
         *
         * @param p Identifier of first object.
         * @param q Identifier of second object.
@@ -638,8 +649,8 @@ namespace sdsl {
                 return false;
             }
 
-            if (t_access_shortcut_size == 0){
-                throw std::runtime_error("Cannot use check_link_shortcut if t_access_shortcut_size == 0");
+            if (m_access_shortcut_size == 0){
+                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
             }
 
             //FIXME: height if k_L tree!, it depends as we're not only targeting the last level anymore
@@ -650,7 +661,7 @@ namespace sdsl {
             auto p = link.first;
             auto q = link.second;
 
-            uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(q, p, m_real_size_on_sl, t_access_shortcut_size);
+            uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(q, p, m_real_size_on_sl, m_access_shortcut_size);
             //y = zth 1 via rank on B_
             uint64_t y = this->m_access_shortcut_select_1_support(z+1);
             //check if exists and if B_[y-1] == 0 otherwise no link
@@ -661,11 +672,11 @@ namespace sdsl {
             //directly get corresponding data from leaf array
 
             uint64_t number_of_present_trees_searched_value_is_in = this->m_access_shortcut_rank_10_support(y+1);
-            uint64_t index = number_of_present_trees_searched_value_is_in*get_k(t_access_shortcut_size)*get_k(t_access_shortcut_size);
+            uint64_t index = number_of_present_trees_searched_value_is_in*get_k(m_access_shortcut_size)*get_k(m_access_shortcut_size);
 
             //std::cout << "For " << p << "," << q << " the index is " << index << "and relative coordinates are " << p%field_size << "," << q%field_size << std::endl;
 
-            return check_link_internal(t_access_shortcut_size, m_field_size_on_sl, p%m_field_size_on_sl, q%m_field_size_on_sl, index, check_leaf_bits);
+            return check_link_internal(m_access_shortcut_size, m_field_size_on_sl, p%m_field_size_on_sl, q%m_field_size_on_sl, index, check_leaf_bits);
         }
 
         /**
@@ -698,10 +709,10 @@ namespace sdsl {
 
 
         void perform_access_shortcut_precomputations(){
-            if (t_access_shortcut_size <= this->m_tree_height -2) {
+            if (m_access_shortcut_size <= this->m_tree_height -2) {
 
                 m_field_size_on_sl = m_max_element;//height cannot be used when using hybrid k trees --> buffer this value in this case
-                for (int i = 0; i < t_access_shortcut_size; ++i) {
+                for (int i = 0; i < m_access_shortcut_size; ++i) {
                     m_field_size_on_sl /= get_k(i);
                 }
 
@@ -710,7 +721,7 @@ namespace sdsl {
                 while (1ULL << (m_real_size_on_sl) < m_max_element) { ++m_real_size_on_sl; }
 
                 m_submatrix_in_row_on_sl = /*m_max_element / */precomp<k0>::exp(
-                        t_access_shortcut_size);//same as max_element/field_size
+                        m_access_shortcut_size);//same as max_element/field_size
             } else {
                 std::cerr << "Should crash earlier ;-)" << std::endl;
             }
@@ -1283,17 +1294,23 @@ namespace sdsl {
             using namespace k2_treap_ns;
 
             //maximal size of shortcut is tree height
-            if (t_access_shortcut_size > this->m_tree_height -2) {
-                throw std::runtime_error("shortcut size must be smaller than tree height -2");
+            if (m_access_shortcut_size > this->m_tree_height -2) {
+                std::cerr << "shortcut size must be smaller than tree height -2";
+                if (m_tree_height -2 > 0){
+                    m_access_shortcut_size = m_tree_height - 2;
+                } else {
+                    m_access_shortcut_size = 0;
+                    return;
+                }
             }
 
             //Use 1 to code empty trees in level height-1 and 01 to code non-empty trees, height has to be calculated with kL_ as height of hybrid tree is different
             //coresponds to the amount of non-empty trees in level h-1
             //amount of Zeros = actually existent number of trees --> (level_begin_idx[level+2] - level_begin_idx[level+1])/k² or rank l(evel_begin_idx[level], level_begin_idx[level+1])
 
-            uint64_t amountOfZeros = this->m_levels[t_access_shortcut_size].size() / (get_k(t_access_shortcut_size)*get_k(t_access_shortcut_size)); //spares rank of comp. level
-            //corresponds to the theoretical amount of trees in level t_access_shortcut_size (round up (in case not divisible by k^2)
-            uint64_t amountOfOnes = ipow(k0*k0, t_access_shortcut_size);
+            uint64_t amountOfZeros = this->m_levels[m_access_shortcut_size].size() / (get_k(m_access_shortcut_size)*get_k(m_access_shortcut_size)); //spares rank of comp. level
+            //corresponds to the theoretical amount of trees in level m_access_shortcut_size (round up (in case not divisible by k^2)
+            uint64_t amountOfOnes = ipow(k0*k0, m_access_shortcut_size);
             bit_vector access_shortcut(amountOfOnes+amountOfZeros, 1);
 
             //BitArray<uint> B(amountOfOnes + amountOfZeros);
@@ -1416,7 +1433,7 @@ namespace sdsl {
                 for (size_t j = 0; j < k; ++j) {
                     // get_int better for compressed bitvectors
                     // or introduce cache for bitvectors
-                    if (root.t == (t_access_shortcut_size-1)){
+                    if (root.t == (m_access_shortcut_size-1)){
                         if (this->m_levels[root.t][root.idx + k * i + j]) { //if subtree present
                             counter++;
                             access_shortcut[counter] = 0;//save 01 at counter position (m_access_shortcut gets initialised with 1s)
@@ -1431,7 +1448,7 @@ namespace sdsl {
                             ++rank;
                             construct_access_shortcut_by_dfs(access_shortcut, subtree_root, submatrix_size, counter);
                         } else {
-                            counter += ipow(k*k, ((t_access_shortcut_size-1) - root.t));
+                            counter += ipow(k*k, ((m_access_shortcut_size-1) - root.t));
                         }
                     }
                 }

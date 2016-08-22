@@ -83,7 +83,7 @@ namespace {
         } catch (std::runtime_error const &e) {
             std::cerr << "Exception occured " << e.what() << std::endl;
             //quite hacky comparing strings
-            if (strcmp(e.what(), "shortcut size must be smaller than tree height -2") != 0) {
+            if (strcmp(e.what(), "Cannot use check_link_shortcut if m_access_shortcut_size == 0") != 0) {
                 FAIL();
             }
         }
