@@ -172,6 +172,10 @@ namespace sdsl {
             using namespace k2_treap_ns;
             result.clear();
 
+            if (t_access_shortcut_size == 0){
+                throw std::runtime_error("Cannot use check_link_shortcut if t_access_shortcut_size == 0");
+            }
+
             //Patological case happening e.g. when using k2part
             if (m_tree_height == 0 || source_id > m_max_element){
                 return;
@@ -201,6 +205,10 @@ namespace sdsl {
         void direct_links_shortcut_internal_2(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits) const {
             using namespace k2_treap_ns;
             result.clear();
+
+            if (t_access_shortcut_size == 0){
+                throw std::runtime_error("Cannot use check_link_shortcut if t_access_shortcut_size == 0");
+            }
 
             //Patological case happening e.g. when using k2part
             if (m_tree_height == 0 || source_id > m_max_element){
@@ -255,6 +263,10 @@ namespace sdsl {
         template<typename t_x, typename Function>
         void inverse_links_shortcut_internal(t_x target_id, std::vector<t_x> &result, Function check_leaf_bits) const {
             using namespace k2_treap_ns;
+            if (t_access_shortcut_size == 0){
+                throw std::runtime_error("Cannot use check_link_shortcut if t_access_shortcut_size == 0");
+            }
+
             result.clear();
 
             //Patological case happening e.g. when using k2part
