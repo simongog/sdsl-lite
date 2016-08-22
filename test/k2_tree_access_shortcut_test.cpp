@@ -26,10 +26,14 @@ namespace {
     typedef k2_tree<2, bit_vector, bit_vector, true, 2> k2comp;
     typedef k2_tree<2, bit_vector, bit_vector, false, 2> k2;
     typedef k2_tree<2, bit_vector, rrr_vector<63>, false, 4> k2rrr;
+    typedef k2_tree<4, bit_vector, rrr_vector<63>, false, 4> k2_4;
+    typedef k2_tree<8, bit_vector, rrr_vector<63>, false, 4> k2_8;
 
     typedef Types<
             k2comp,
             k2rrr,
+            k2_4,
+            k2_8,
             k2_tree_partitioned<3, k2>,
             k2_tree_partitioned<4, k2, true>,
             k2_tree_partitioned<8, k2rrr>,

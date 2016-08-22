@@ -119,7 +119,9 @@ void check_link_test(
     }
 
     if (actual != result){
+        std::cout << "Result differs for: " << p <<"," << q << std::endl;
         std::cout << "Actual: " << actual << std::endl;
+        std::cout << "Result: " << result << std::endl;
         check_link(asd);
     }
 
