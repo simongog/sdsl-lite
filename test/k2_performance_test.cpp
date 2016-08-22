@@ -63,12 +63,20 @@ namespace {
 
     using testing::Types;
 
-    typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, rrr_vector<63>> hybrid_k2_2222_b_rrr;
-    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_4524_b_rrr;
-    typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_2528_b_rrr;
-    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, rrr_vector<63>> hybrid_k2_165216_b_rrr;
-    typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_8523_b_rrr;
-    typedef k2_tree_hybrid<3, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_3524_b_rrr;
+    typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, bit_vector, true> hybrid_k2_2222_b_comp;
+    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector, true> hybrid_k2_4524_b_comp;
+    typedef k2_tree_hybrid<4, 6, 2, 4, bit_vector, bit_vector, true> hybrid_k2_4624_b_comp;
+    typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, bit_vector, true> hybrid_k2_2528_b_comp;
+    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, bit_vector, true> hybrid_k2_165216_b_comp;
+    typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, bit_vector, true> hybrid_k2_8523_b_comp;
+    typedef k2_tree_hybrid<3, 5, 2, 4, bit_vector, bit_vector, true> hybrid_k2_3524_b_comp;
+    typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, bit_vector, false> hybrid_k2_2222_b;
+    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector, false> hybrid_k2_4524_b;
+    typedef k2_tree_hybrid<4, 6, 2, 4, bit_vector, bit_vector, false> hybrid_k2_4624_b;
+    typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, bit_vector, false> hybrid_k2_2528_b;
+    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, bit_vector, false> hybrid_k2_165216_b;
+    typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, bit_vector, false> hybrid_k2_8523_b;
+    typedef k2_tree_hybrid<3, 5, 2, 4, bit_vector, bit_vector, false> hybrid_k2_3524_b;
     typedef k2_tree<2, bit_vector> k2;
     typedef k2_tree<2, rrr_vector<63>> k2rrr;
     typedef k2_tree<3, bit_vector> k3;
@@ -76,6 +84,44 @@ namespace {
     typedef k2_tree<6, bit_vector> k6;
     typedef k2_tree<8, bit_vector> k8;
     typedef k2_tree<16, bit_vector> k16;
+
+    typedef k2_tree<2, bit_vector, bit_vector, true> k2_comp;
+    typedef k2_tree<3, bit_vector, bit_vector, true> k3_comp;
+    typedef k2_tree<4, bit_vector, bit_vector, true> k4_comp;
+    typedef k2_tree<6, bit_vector, bit_vector, true> k6_comp;
+    typedef k2_tree<8, bit_vector, bit_vector, true> k8_comp;
+    typedef k2_tree<16, bit_vector, bit_vector, true> k16_comp;
+
+    typedef k2_tree<2, bit_vector, bit_vector, true, 2> k2_comp_2;
+    typedef k2_tree<4, bit_vector, bit_vector, true, 2> k4_comp_2;
+    typedef k2_tree<8, bit_vector, bit_vector, true, 2> k8_comp_2;
+    typedef k2_tree<16, bit_vector, bit_vector, true, 2> k16_comp_2;
+
+    typedef k2_tree<2, bit_vector, bit_vector, true, 4> k2_comp_4;
+    typedef k2_tree<4, bit_vector, bit_vector, true, 4> k4_comp_4;
+    typedef k2_tree<8, bit_vector, bit_vector, true, 4> k8_comp_4;
+    typedef k2_tree<16, bit_vector, bit_vector, true, 4> k16_comp_4;
+
+
+    typedef k2_tree<8, bit_vector, bit_vector, true, 5> k8_comp_5;
+    typedef k2_tree<2, bit_vector, bit_vector, true, 8> k2_comp_8;
+    typedef k2_tree<4, bit_vector, bit_vector, true, 8> k4_comp_8;
+
+
+    typedef k2_tree<2, bit_vector, bit_vector, false, 2> k2_2;
+    typedef k2_tree<4, bit_vector, bit_vector, false, 2> k4_2;
+    typedef k2_tree<8, bit_vector, bit_vector, false, 2> k8_2;
+    typedef k2_tree<16, bit_vector, bit_vector, false, 2> k16_2;
+
+    typedef k2_tree<2, bit_vector, bit_vector, false, 4> k2_4;
+    typedef k2_tree<4, bit_vector, bit_vector, false, 4> k4_4;
+    typedef k2_tree<8, bit_vector, bit_vector, false, 4> k8_4;
+    typedef k2_tree<16, bit_vector, bit_vector, false, 4> k16_4;
+
+
+    typedef k2_tree<8, bit_vector, bit_vector, false, 5> k8_5;
+    typedef k2_tree<2, bit_vector, bit_vector, false, 8> k2_8;
+    typedef k2_tree<4, bit_vector, bit_vector, false, 8> k4_8;
 
     typedef Types<
             k2,
@@ -85,24 +131,105 @@ namespace {
             k6,
             k8,
             k16,
-            k2_tree_partitioned<2, k2>,
-            k2_tree_partitioned<4, k2rrr>,
-            k2_tree_partitioned<3, k3>,
-            k2_tree_partitioned<8, k4>,
-            k2_tree_partitioned<16, k6>,
-            k2_tree_partitioned<16, k8>,
-            k2_tree_partitioned<16, k16>,
-            hybrid_k2_2222_b_rrr,
-            hybrid_k2_4524_b_rrr,
-            hybrid_k2_2528_b_rrr,
-            hybrid_k2_165216_b_rrr,
-            hybrid_k2_8523_b_rrr,
-            hybrid_k2_3524_b_rrr,
-            k2_tree_partitioned<2, hybrid_k2_4524_b_rrr>,
-            k2_tree_partitioned<3, hybrid_k2_2528_b_rrr>,
-            k2_tree_partitioned<4, hybrid_k2_165216_b_rrr>,
-            k2_tree_partitioned<8, hybrid_k2_8523_b_rrr>,
-            k2_tree_partitioned<16, hybrid_k2_3524_b_rrr>
+            k2_comp,
+            k3_comp,
+            k4_comp,
+            k6_comp,
+            k8_comp,
+            k16_comp,
+            k2_comp_2,
+            k4_comp_2,
+            k8_comp_2,
+            k16_comp_2,
+            k2_comp_4,
+            k4_comp_4,
+            k8_comp_4,
+            k16_comp_4,
+            k8_comp_5,
+            k2_comp_8,
+            k2_comp_8,
+            k4_comp_8,
+            hybrid_k2_2222_b_comp,
+            hybrid_k2_4524_b_comp,
+            hybrid_k2_4624_b_comp,
+            hybrid_k2_2528_b_comp,
+            hybrid_k2_165216_b_comp,
+            hybrid_k2_8523_b_comp,
+            hybrid_k2_3524_b_comp,
+            k2_tree_partitioned<4,k2,true>,
+            k2_tree_partitioned<4,k3,true>,
+            k2_tree_partitioned<4,k4,true>,
+            k2_tree_partitioned<4,k6,true>,
+            k2_tree_partitioned<4,k8,true>,
+            k2_tree_partitioned<4,k16,true>,
+            k2_tree_partitioned<4,k2_4,true>,
+            k2_tree_partitioned<4,k4_4,true>,
+            k2_tree_partitioned<4,k8_4,true>,
+            k2_tree_partitioned<4,k16_4,true>,
+
+            k2_tree_partitioned<4,k2_4>/*,
+            k2_tree_partitioned<4,k4_4>,
+            k2_tree_partitioned<4,k8_4>,
+            k2_tree_partitioned<4,k16_4>,
+            k2_tree_partitioned<4,k8_5>,
+            k2_tree_partitioned<4,k2_8>,
+            k2_tree_partitioned<4,k2_8>,
+            k2_tree_partitioned<4,k4_8>,
+            k2_tree_partitioned<8,k2>,
+            k2_tree_partitioned<8,k3>,
+            k2_tree_partitioned<8,k4>,
+            k2_tree_partitioned<8,k6>,
+            k2_tree_partitioned<8,k8>,
+            k2_tree_partitioned<8,k16>,
+            k2_tree_partitioned<8,k2>,
+            k2_tree_partitioned<8,k3>,
+            k2_tree_partitioned<8,k4>,
+            k2_tree_partitioned<8,k6>,
+            k2_tree_partitioned<8,k8>,
+            k2_tree_partitioned<8,k16>,
+            k2_tree_partitioned<8,k2_2>,
+            k2_tree_partitioned<8,k4_2>,
+            k2_tree_partitioned<8,k8_2>,
+            k2_tree_partitioned<8,k16_2>,
+            k2_tree_partitioned<8,k2_4>,
+            k2_tree_partitioned<8,k4_4>,
+            k2_tree_partitioned<8,k8_4>,
+            k2_tree_partitioned<8,k16_4>,
+            k2_tree_partitioned<8,k8_5>,
+            k2_tree_partitioned<8,k2_8>,
+            k2_tree_partitioned<8,k2_8>,
+            k2_tree_partitioned<8,k4_8>,
+            k2_tree_partitioned<16,k2>,
+            k2_tree_partitioned<16,k3>,
+            k2_tree_partitioned<16,k4>,
+            k2_tree_partitioned<16,k6>,
+            k2_tree_partitioned<16,k8>,
+            k2_tree_partitioned<16,k16>,
+            k2_tree_partitioned<16,k2>,
+            k2_tree_partitioned<16,k3>,
+            k2_tree_partitioned<16,k4>,
+            k2_tree_partitioned<16,k6>,
+            k2_tree_partitioned<16,k8>,
+            k2_tree_partitioned<16,k16>,
+            k2_tree_partitioned<16,k2_2>,
+            k2_tree_partitioned<16,k4_2>,
+            k2_tree_partitioned<16,k8_2>,
+            k2_tree_partitioned<16,k16_2>,
+            k2_tree_partitioned<16,k2_4>,
+            k2_tree_partitioned<16,k4_4>,
+            k2_tree_partitioned<16,k8_4>,
+            k2_tree_partitioned<16,k16_4>,
+            k2_tree_partitioned<16,k8_5>,
+            k2_tree_partitioned<16,k2_8>,
+            k2_tree_partitioned<16,k2_8>,
+            k2_tree_partitioned<16,k4_8>,
+            k2_tree_partitioned<4,hybrid_k2_2222_b>,
+            k2_tree_partitioned<4,hybrid_k2_4524_b>,
+            k2_tree_partitioned<4,hybrid_k2_4624_b>,
+            k2_tree_partitioned<4,hybrid_k2_2528_b>,
+            k2_tree_partitioned<4,hybrid_k2_165216_b>,
+            k2_tree_partitioned<4,hybrid_k2_8523_b>,
+            k2_tree_partitioned<4,hybrid_k2_3524_b>*/
     > Implementations;
 
     TYPED_TEST_CASE(k2_performance_test, Implementations);
@@ -135,8 +262,6 @@ namespace {
             }
             fileStream.close();
 
-            std::cerr << "Finished Reading File " << std::endl;
-            std::cerr << "Amount of edges: " << coords.size() << std::endl;
             TypeParam k2tree("", false, coords, number_of_nodes - 1);
             coords.clear();
 
@@ -186,7 +311,6 @@ namespace {
                 auto stop = timer::now();
 
                 std::cout << "Recovered Nodes:" << recovered << "\n";
-                std::cout << "Queries:" << queryCount << "\n";
                 std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
                 std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queryCount
                           << "\n";
@@ -208,7 +332,6 @@ namespace {
                 auto stop = timer::now();
 
                 std::cout << "Recovered Nodes:" << recovered << "\n";
-                std::cout << "Queries:" << queryCount << "\n";
                 std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
                 std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queryCount
                           << "\n";
@@ -229,7 +352,6 @@ namespace {
             auto stop = timer::now();
 
             std::cout << "Recovered Nodes:" << recovered << "\n";
-            std::cout << "Queries:" << queryCount << "\n";
             std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
             std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queryCount << "\n";
             std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
@@ -249,7 +371,6 @@ namespace {
                 auto stop = timer::now();
 
                 std::cout << "Recovered Nodes:" << recovered << "\n";
-                std::cout << "Queries:" << queryCount << "\n";
                 std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
                 std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queryCount
                           << "\n";
@@ -270,14 +391,13 @@ namespace {
             auto stop = timer::now();
 
             std::cout << "Recovered Nodes:" << recovered << "\n";
-            std::cout << "Queries:" << queryCount << "\n";
             std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
             std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queryCount << "\n";
             std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
         }
 
         srand(0);
-        uint link_query_count = 1000000;
+        uint link_query_count = 100000;
         std::vector<std::pair<uint, uint>> check_link_queries(link_query_count);
         for (uint i = 0; i < link_query_count; i++) {
             check_link_queries.push_back(
