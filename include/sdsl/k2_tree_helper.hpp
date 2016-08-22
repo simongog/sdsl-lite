@@ -287,12 +287,12 @@ struct node_type {
     //corresponding_subtreeulate corresponding subtree on given level efficiently
     template<uint8_t t_k>
     struct access_shortcut_helper {
-        static uint corresponding_subtree(uint32_t p, uint32_t q, uint8_t m_real_size_of_max_element, uint level){
+        static uint corresponding_subtree(uint32_t, uint32_t, uint8_t, uint){
             //FIXME: add generic implementation/think about it
             throw new std::runtime_error("not yet implemented");
         }
 
-        static uint64_t corresponding_subtree(uint64_t p, uint64_t q, uint8_t m_real_size_of_max_element, uint level){
+        static uint64_t corresponding_subtree(uint64_t, uint64_t, uint8_t, uint){
             //FIXME: add generic implementation/think about it
             throw new std::runtime_error("not yet implemented");
         }
