@@ -36,6 +36,7 @@ namespace sdsl {
         };
 
         size_type m_size = 0;
+        uint64_t m_max_element;
         uint64_t m_part_matrix_size;
 
     private:
@@ -78,9 +79,8 @@ namespace sdsl {
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
 
 
-            uint64_t max;
             if (max_hint != 0) {
-                max = max_hint;//temporarily set
+                m_max_element = max_hint;//temporarily set
             } else {
                 auto max_element = [](int_vector_buffer<> &buf) {
                     uint64_t max_val = 0;
@@ -99,11 +99,11 @@ namespace sdsl {
                     return max_v;
                 };
 
-                max = max_buf_element();
+                m_max_element = max_buf_element();
             };
 
             uint8_t res = 0;
-            while (res <= 64 and precomp<t_k0>::exp(res) <= max) { ++res; }
+            while (res <= 64 and precomp<t_k0>::exp(res) <= m_max_element) { ++res; }
             if (res == 65) {
                 throw std::logic_error("Maximal element of input is too big.");
             }
@@ -435,6 +435,7 @@ namespace sdsl {
         k2_tree_partitioned &operator=(k2_tree_partitioned &&tr) {
             if (this != &tr) {
                 m_size = tr.m_size;
+                m_max_element = tr.m_max_element;
                 m_k2trees = std::move(tr.m_k2trees);
                 m_part_matrix_size = std::move(tr.m_part_matrix_size);
                 m_words_prefix_sum = std::move(m_words_prefix_sum);
@@ -446,6 +447,7 @@ namespace sdsl {
         k2_tree_partitioned &operator=(k2_tree_partitioned &tr) {
             if (this != &tr) {
                 m_size = tr.m_size;
+                m_max_element = tr.m_max_element;
                 m_k2trees = tr.m_k2trees;
                 m_part_matrix_size = tr.m_part_matrix_size;
                 m_comp_leaves = tr.m_comp_leaves;
@@ -465,6 +467,10 @@ namespace sdsl {
             }
 
             if (m_part_matrix_size != tr.m_part_matrix_size){
+                return false;
+            }
+
+            if (m_max_element != tr.m_max_element){
                 return false;
             }
 
@@ -499,6 +505,7 @@ namespace sdsl {
         void swap(k2_tree_partitioned &tr) {
             if (this != &tr) {
                 std::swap(m_size, tr.m_size);
+                std::swap(m_max_element, tr.m_max_element);
                 std::swap(m_k2trees, tr.m_k2trees);
                 std::swap(m_part_matrix_size, tr.m_part_matrix_size);
                 std::swap(m_vocabulary, tr.m_vocabulary);
@@ -516,6 +523,7 @@ namespace sdsl {
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "s");
             written_bytes += write_member(m_part_matrix_size, out, child, "matrix_size");
+            written_bytes += write_member(m_max_element, out, child, "m_max_element");
 
             for (uint j = 0; j < m_k2trees.size(); ++j) {
                 written_bytes += m_k2trees[j].serialize(out, child, "k2_tree_"+std::to_string(j));
@@ -535,6 +543,7 @@ namespace sdsl {
         void load(std::istream &in) {
             read_member(m_size, in);
             read_member(m_part_matrix_size, in);
+            read_member(m_max_element, in);
             m_k2trees.resize(t_k0*t_k0);
             for (uint j = 0; j < t_k0*t_k0; ++j) {
                 m_k2trees[j].load(in);
@@ -590,9 +599,8 @@ namespace sdsl {
                 return 0;
             }
 
-            uint64_t max;
             if (max_hint != 0){
-                max = max_hint;
+                m_max_element = max_hint;
             } else {
                 using t_e = typename t_tv::value_type;
                 auto tupmax = [](t_e a) {
@@ -601,12 +609,12 @@ namespace sdsl {
                 auto max_it = std::max_element(std::begin(v), std::end(v), [&](t_e a, t_e b) {
                     return tupmax(a) < tupmax(b);
                 });
-                max = tupmax(*max_it);
+                m_max_element = tupmax(*max_it);
             }
 
 
             uint8_t res = 0;
-            while (precomp<t_k0>::exp(res) <= max) { ++res; }
+            while (precomp<t_k0>::exp(res) <= m_max_element) { ++res; }
             return res;
         }
 
