@@ -1,10 +1,8 @@
 #include "sdsl/k2_tree.hpp"
 #include "gtest/gtest.h"
-// #include <vector>
-// #include <tuple>
-// #include <string>
-// #include <algorithm> // for std::min. std::sort
-// #include <random>
+
+#include <vector>
+#include <tuple>
 
 namespace
 {
@@ -18,7 +16,7 @@ template<class T>
 class k2_tree_test_k_2 : public ::testing::Test { };
 
 template<class T>
-class k2_tree_test_k_5 : public ::testing::Test { };
+class k2_tree_test_k_3 : public ::testing::Test { };
 
 using testing::Types;
 
@@ -39,6 +37,9 @@ namespace k2_tree_test_nm
 
 typedef Types<
     k2_tree<2, bit_vector, rank_support_v<>>> k_2_implementations;
+
+typedef Types<
+    k2_tree<3, bit_vector, rank_support_v<>>> k_3_implementations;
 
 TYPED_TEST_CASE(k2_tree_test_k_2, k_2_implementations);
 
@@ -118,7 +119,8 @@ TYPED_TEST(k2_tree_test_k_2, build_from_edges_array)
 {
     typedef std::tuple<typename TypeParam::idx_type,
                        typename TypeParam::idx_type> t_tuple;
-    vector<std::tuple<typename TypeParam::idx_type, typename TypeParam::idx_type>> e;
+    vector<std::tuple<typename TypeParam::idx_type,
+                      typename TypeParam::idx_type>> e;
 
     t_tuple a{0, 0};
     t_tuple b{0, 1};
@@ -140,7 +142,152 @@ TYPED_TEST(k2_tree_test_k_2, build_from_edges_array)
     e.push_back(t_tuple {0, 0});
     tree = TypeParam(e, 1);
     k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0});
+
+    e.push_back(t_tuple {0, 1});
+    e.push_back(t_tuple {1, 0});
+    e.push_back(t_tuple {1, 1});
+    tree = TypeParam(e, 2);
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 1, 1, 1});
+
+    e.push_back(t_tuple {2, 2});
+    tree = TypeParam(e, 3);
+    k2_tree_test_nm::check_t_l(tree, {1, 0, 0, 1}, {1, 1, 1, 1,  1, 0, 0, 0});
 }
+
+
+TYPED_TEST_CASE(k2_tree_test_k_3, k_3_implementations);
+
+TYPED_TEST(k2_tree_test_k_3, build_from_matrix_test)
+{
+    vector<vector <int>> mat({{1, 1, 0, 0, 1},
+                              {0, 1, 0, 0, 0},
+                              {0, 0, 1, 1, 0},
+                              {1, 1, 0, 1, 0},
+                              {0, 0, 1, 0, 0}});
+
+    TypeParam tree(mat);
+    vector<unsigned> expected_t = {1, 1, 0, 1, 1, 0, 0, 0, 0};
+    vector<unsigned> expected_l = {1, 1, 0, 0, 1, 0, 0, 0, 1,
+                                   0, 1, 0, 0, 0, 0, 1, 0, 0,
+                                   1, 1, 0, 0, 0, 1, 0, 0, 0,
+                                   1, 0, 0, 0, 0, 0, 0, 0, 0};
+    k2_tree_test_nm::check_t_l(tree, expected_t, expected_l);
+
+    mat = vector<vector<int>>({{1, 1, 1, 0},
+                               {1, 0, 0, 0},
+                               {0, 0, 0, 0},
+                               {1, 1, 0, 0}});
+
+    tree = TypeParam(mat);
+    expected_t = {1, 0, 0, 1, 0, 0, 0, 0, 0};
+    expected_l = {1, 1, 1, 1, 0, 0, 0, 0, 0,
+                  1, 1, 0, 0, 0, 0, 0, 0, 0};
+    k2_tree_test_nm::check_t_l(tree, expected_t, expected_l);
+
+    mat = vector<vector<int>>({{0, 0, 0},
+                               {0, 0, 0},
+                               {0, 0, 0}});
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_t_l(tree, {}, {});
+
+    // Size is minor than k:
+    mat = vector<vector<int>>({{0}});
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_t_l(tree, {}, {});
+
+    mat = vector<vector<int>>({{1}});
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0, 0, 0, 0, 0 ,0});
+
+    mat = vector<vector<int>>({{1, 0},
+                               {0, 1}});
+    tree = TypeParam(mat);
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0, 1, 0, 0, 0 ,0});
+
+    // Size is a power of k:
+    mat = vector<vector<int>>({{0, 0, 1, 0, 0, 0, 0, 0, 0},
+                               {1, 0, 0, 0, 0, 0, 0, 0, 0},
+                               {0, 1, 0, 0, 0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0, 0, 0, 0, 0},
+                               {0, 0, 1, 0, 0, 0, 0, 0, 0}});
+    tree = TypeParam(mat);
+    expected_t = {1, 0, 0, 0, 0, 0, 1, 0, 0};
+    expected_l = {0, 0, 1, 1, 0, 0, 0, 1, 0,
+                  0, 0, 0, 0, 0, 0, 0, 0, 1};
+    k2_tree_test_nm::check_t_l(tree, expected_t, expected_l);
+
+    mat = vector<vector<int>>({{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                               {0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},
+                               {0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0},
+                               {0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1},
+                               {0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0}});
+    tree = TypeParam(mat);
+    expected_t = {1, 1, 0, 1, 1, 0, 0, 0, 0,
+                  1, 1, 0, 0, 0, 0, 0, 0, 1,
+                  0, 0, 0, 0, 0, 0, 1, 0, 0,
+                  0, 0, 1, 0, 0, 0, 0, 0, 0,
+                  1, 0, 0, 0, 0, 0, 0, 0, 0};
+
+    expected_l = {0, 1, 0, 0, 0, 1, 0, 0, 0,
+                  0, 0, 0, 1, 1, 0, 0, 0, 0,
+                  0, 0, 0, 1, 0, 0, 1, 0, 0,
+                  0, 0, 0, 0, 0, 0, 1, 0, 0,
+                  1, 0, 1, 1, 0, 0, 0, 0, 0,
+                  0, 1, 0, 1, 0, 0, 0, 0, 0};
+    k2_tree_test_nm::check_t_l(tree, expected_t, expected_l);
+}
+/*
+TYPED_TEST(k2_tree_test_k_3, build_from_edges_array)
+{
+    typedef std::tuple<typename TypeParam::idx_type,
+                       typename TypeParam::idx_type> t_tuple;
+    vector<std::tuple<typename TypeParam::idx_type,
+                      typename TypeParam::idx_type>> e;
+
+    t_tuple a{0, 0};
+    t_tuple b{0, 1};
+    t_tuple c{1, 0};
+    t_tuple d{1, 1};
+    e.push_back(t_tuple {1, 2});
+    TypeParam tree(e, 4);
+
+    k2_tree_test_nm::check_t_l(tree, {0, 1, 0 ,0}, {0, 0, 1, 0});
+
+    tree = TypeParam(e, 3);
+    k2_tree_test_nm::check_t_l(tree, {0, 1, 0 ,0}, {0, 0, 1, 0});
+
+    e.push_back(t_tuple {1, 2});
+    tree = TypeParam(e, 3);
+    k2_tree_test_nm::check_t_l(tree, {0, 1, 0 ,0}, {0, 0, 1, 0});
+
+    e.clear();
+    e.push_back(t_tuple {0, 0});
+    tree = TypeParam(e, 1);
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0});
+
+    e.push_back(t_tuple {0, 1});
+    e.push_back(t_tuple {1, 0});
+    e.push_back(t_tuple {1, 1});
+    tree = TypeParam(e, 2);
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 1, 1, 1});
+
+    e.push_back(t_tuple {2, 2});
+    tree = TypeParam(e, 3);
+    k2_tree_test_nm::check_t_l(tree, {1, 0, 0, 1}, {1, 1, 1, 1,  1, 0, 0, 0});
+}
+*/
+
+
 
 TYPED_TEST(k2_tree_test_k_2, neighbors_test)
 {
