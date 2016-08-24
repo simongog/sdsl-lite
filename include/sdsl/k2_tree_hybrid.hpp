@@ -177,16 +177,6 @@ namespace sdsl {
             return m_k_for_level[level];
         }
 
-        uint word_size() const {
-            return div_ceil((uint) t_k_leaves*t_k_leaves, kUcharBits);
-        }
-
-
-        size_t words_count() const
-        {
-            return this->m_leaves.size() / t_k_leaves / t_k_leaves;
-        }
-
         void load(std::istream &in) override {
             k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank>::load(in);
             if (this->m_tree_height > 0){
@@ -372,7 +362,7 @@ namespace sdsl {
 
         uint8_t get_tree_height(uint64_t max) {
             uint8_t res = 1;
-            if (t_k_l_1 < max) {
+            if (t_k_l_1 <= max) {
                 this->m_max_element = t_k_l_1;
                 m_k_for_level.push_back(t_k_l_1);
             } else {
@@ -381,8 +371,8 @@ namespace sdsl {
                 m_k_for_level.push_back(t_k_leaves);
             }
 
-            while (this->m_max_element < max) {
-                if ((this->m_max_element * t_k_leaves) >= max) {
+            while (this->m_max_element <= max) {
+                if ((this->m_max_element * t_k_leaves) > max) {
                     this->m_max_element = this->m_max_element * t_k_leaves;
                     m_k_for_level.push_back(t_k_leaves);
                 } else if (res < t_k_l_1_size) {

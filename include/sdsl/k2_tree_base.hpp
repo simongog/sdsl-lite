@@ -100,9 +100,10 @@ namespace sdsl {
 
     private:
         //sl = shortcut_level
-        uint64_t m_field_size_on_sl;
-        uint8_t m_real_size_on_sl;
-        uint64_t m_submatrix_in_row_on_sl;
+        uint64_t m_field_size_on_sl = 0;
+        uint8_t m_real_size_on_sl = 0;
+        uint64_t m_submatrix_in_row_on_sl = 0;
+        std::vector<uint64_t> m_comp_level_offsets; //offset for words when compressing multiple levels into DAC m_comp_leaves
 
     public :
 
@@ -591,6 +592,25 @@ namespace sdsl {
         */
         template<typename Function>
         void words(Function fun) const {
+            if (t_add_comp_levels > 0) {
+                for (int i = t_add_comp_levels; i > 0; --i) {
+                    uint8_t level_number = (m_tree_height - 1 - i);
+                    words(level_number, fun);
+                }
+            } else {
+                words(m_tree_height-1, fun);
+            }
+        }
+
+    private:
+        /**
+        * Iterates over the words in the leaf level.
+        *
+        * @param fun Pointer to function, functor or lambda expecting a pointer to
+        * each word.
+        */
+        template<typename Function>
+        void words(uint8_t level, Function fun) const {
             size_t cnt = words_count();
             uint size = word_size();
 
@@ -601,31 +621,57 @@ namespace sdsl {
 
                 uint k_leaf_squared = get_k(this->m_tree_height-1) * get_k(this->m_tree_height-1);
                 for (uint j = 0; j < k_leaf_squared ; ++j, ++bit) {
-                    if (this->m_leaves[bit]){
-                        uchar tmp = (1 << (j % kUcharBits));
-                        word[j / kUcharBits] |= tmp;
+                    if (level < m_tree_height-1){
+                        if (this->m_levels[level][bit]){
+                            uchar tmp = (1 << (j % kUcharBits));
+                            word[j / kUcharBits] |= tmp;
+                        }
+                    } else {
+                        if (this->m_leaves[bit]){
+                            uchar tmp = (1 << (j % kUcharBits));
+                            word[j / kUcharBits] |= tmp;
+                        }
                     }
-
                 }
                 fun(word);
                 delete[] word;
             }
         }
 
-
+    public:
         /**
-        * Returns the number of words of \f$k_leaves^2\f$ bits in the leaf level.
+        * Returns the number of words of in the leaf level.
         *
         * @return Number of words.
         */
-        virtual size_t words_count() const = 0;
+        size_t words_count() const
+        {
+            if (t_add_comp_levels > 0) {
+                uint64_t count = 0;
+                uint8_t leafK = get_k(m_tree_height-1);
+
+                for (int i = t_add_comp_levels; i >= 0; --i) {
+                    uint8_t level_number = (this->m_tree_height - 1 - i);
+                    uint8_t k = get_k(level_number);
+                    assert(leafK == k);//FIXME: optimize out k fetch when working /always leafk
+                    this->m_levels[level_number].size() / k/k;
+                }
+
+                return count;
+            } else {
+                return this->m_leaves.size() / get_k(m_tree_height-1) / get_k(m_tree_height-1);
+            }
+        }
 
         /**
         * Return the number of bytes necessary to store a word.
         *
         * @return Size of a word.
         */
-        virtual uint word_size() const = 0;
+        uint word_size() const {
+            uint leafK = get_k(m_tree_height-1);
+            return div_ceil(leafK*leafK , kUcharBits);
+        }
 
         template<typename t_x, typename t_y>
         bool check_link_shortcut(std::pair<t_x,t_y> link) const {
@@ -743,6 +789,19 @@ namespace sdsl {
             FreqVoc(*this, [&](const HashTable &table, Vocabulary& voc) {
                 compress_leaves(table, voc);
             }, m_hash_size);
+
+            if (t_add_comp_levels > 0)
+                create_comp_offsets();
+        }
+
+        void create_comp_offsets(){
+            m_comp_level_offsets.reserve(t_add_comp_levels);
+            uint64_t prefix_sum;
+            for (int i = t_add_comp_levels; i > 0; --i) {
+                    uint8_t level_number = (m_tree_height - 1 - i);
+                    prefix_sum += this->m_levels[level_number].size() / get_k(m_tree_height-1) / get_k(m_tree_height-1);
+                    m_comp_level_offsets.push_back(prefix_sum);
+            }
         }
 
         void compress_leaves(const HashTable &table, Vocabulary& voc) {
