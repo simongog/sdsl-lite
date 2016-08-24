@@ -59,22 +59,28 @@ namespace sdsl {
         }
 
         template<typename t_vector>
-        k2_tree_partitioned(std::string temp_file_prefix, bool bottom_up, t_vector &v, uint64_t max_hint) {
+        k2_tree_partitioned(std::string temp_file_prefix, bool bottom_up, t_vector &v, uint64_t max_hint, uint64_t hash_size = 0) {
             //FIXME: build multiple k trees
             //partition into k02 parts
             using namespace k2_treap_ns;
             m_max_element = get_maximum(v, max_hint);
-            m_matrix_dimension = (m_max_element+t_k0) / t_k0; //round up also in the case divisiable as element ids start at 0
-            m_amount_of_submatrices = (m_max_element+ m_matrix_dimension) / m_matrix_dimension;
+            calculate_matrix_dimension_and_submatrix_count();
             build_k2_trees(v, temp_file_prefix, bottom_up);
 
             if (t_comp){
-                compress_leaves();
+                compress_leaves(hash_size);
             }
         }
 
+        void calculate_matrix_dimension_and_submatrix_count() {
+            m_matrix_dimension = (m_max_element + t_k0) / t_k0; //round up also in the case divisiable as element ids start at 0
+            std::cout << "Matrix dimension: " << m_matrix_dimension << std::endl;
+            m_amount_of_submatrices = (m_max_element + m_matrix_dimension) / m_matrix_dimension;
+            std::cout << "Submatrix amount: " << m_matrix_dimension << std::endl;
+        }
+
         k2_tree_partitioned(int_vector_buffer<> &buf_x,
-                            int_vector_buffer<> &buf_y, bool bottom_up=false, uint64_t max_hint = 0) {
+                            int_vector_buffer<> &buf_y, bool bottom_up=false, uint64_t max_hint = 0, uint64_t hash_size = 0) {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
@@ -103,8 +109,7 @@ namespace sdsl {
                 m_max_element = max_buf_element();
             };
 
-            m_matrix_dimension = (m_max_element+t_k0) / t_k0; //round up also in the case divisiable as element ids start at 0
-            m_amount_of_submatrices = (m_max_element+ m_matrix_dimension) / m_matrix_dimension;
+            calculate_matrix_dimension_and_submatrix_count();
 
             if (m_max_element <= std::numeric_limits<uint32_t>::max()) {
                 auto v = read < uint32_t, uint32_t>(bufs);
@@ -522,6 +527,87 @@ namespace sdsl {
             }
         }
 
+        void load_from_ladrabin(std::string fileName, uint64_t hash_size = 0, bool bottom_up = false, std::string temp_file_prefix = ""){
+            if(!has_ending(fileName, ".ladrabin")){
+                fileName.append(".ladrabin");
+                std::cout << "Appending .graph-txt to filename as file has to be in .ladrabin format" << std::endl;
+            }
+
+            std::fstream fileStream(fileName, std::ios_base::in);
+
+            if (fileStream.is_open()){
+                uint number_of_nodes;
+                ulong number_of_edges;
+
+                read_member(number_of_nodes, fileStream);
+                read_member(number_of_edges, fileStream);
+
+                m_max_element = number_of_nodes -1;
+                m_size = number_of_edges;
+                calculate_matrix_dimension_and_submatrix_count();
+
+                uint nodes_read = 0;
+                uint source_id;
+                int target_id;
+
+                std::vector<std::vector<std::pair<uint, uint>>> buffers;
+                buffers.resize(m_amount_of_submatrices); //build one row at a time
+                m_k2trees.resize(m_amount_of_submatrices*m_amount_of_submatrices);
+
+                uint current_matrix_row = 0;
+                for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
+                    read_member(target_id, fileStream);
+                    if (target_id < 0) {
+                        nodes_read++;
+                        uint corresponding_row = (nodes_read -1)/m_matrix_dimension;
+
+                        if (corresponding_row > current_matrix_row){
+
+                            for (uint j = 0; j < m_amount_of_submatrices; ++j) {
+                                const subk2_tree k2tree(temp_file_prefix, bottom_up, buffers[j]);
+                                m_k2trees[current_matrix_row*m_amount_of_submatrices+j] = k2tree;
+                                buffers[j].clear();
+                                std::cout << "Assigning tree " << current_matrix_row*m_amount_of_submatrices+j << std::endl;
+                            }
+
+                            //in case of a complete empty row
+
+                            for (uint k = 0; k < (corresponding_row - current_matrix_row - 1); ++k) {
+                                current_matrix_row++;
+                                std::cout << "Appending completely empty row: " << current_matrix_row << std::endl;
+                                for (uint j = 0; j < m_amount_of_submatrices; ++j) {
+                                    const subk2_tree k2tree(temp_file_prefix, bottom_up, buffers[j]);
+                                    m_k2trees[current_matrix_row*m_amount_of_submatrices+j] = k2tree;
+                                    std::cout << "Assigning tree " << current_matrix_row*m_amount_of_submatrices+j << std::endl;
+                                }
+                            }
+
+                            current_matrix_row = corresponding_row;
+
+                        }
+                    } else {
+                        source_id = nodes_read - 1;
+                        uint column_in_matrix = (target_id)/m_matrix_dimension;
+                        buffers[column_in_matrix].push_back(std::make_pair(source_id%m_matrix_dimension, (uint) target_id%m_matrix_dimension));
+                    }
+                }
+
+                //cover leftovers
+                for (uint j = 0; j < m_amount_of_submatrices; ++j) {
+                    const subk2_tree k2tree(temp_file_prefix, bottom_up, buffers[j]);
+                    m_k2trees[current_matrix_row*m_amount_of_submatrices+j] = k2tree;
+                    std::cout << "Assigning tree " << current_matrix_row*m_amount_of_submatrices+j << std::endl;
+                    buffers[j].clear();
+                }
+
+                if (t_comp){
+                    compress_leaves();
+                }
+            } else {
+                throw std::runtime_error("Could not open file to load ladrabin graph");
+            }
+        }
+
         /**
         * Return the number of bytes necessary to store a word.
         *
@@ -558,6 +644,14 @@ namespace sdsl {
         }
 
     private:
+        bool has_ending (std::string const &fullString, std::string const &ending) {
+            if (fullString.length() >= ending.length()) {
+                return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+            } else {
+                return false;
+            }
+        }
+
         template<typename t_tv>
         uint8_t get_maximum(const t_tv &v, uint64_t max_hint) {
             using namespace k2_treap_ns;
@@ -613,7 +707,7 @@ namespace sdsl {
             }
         }
 
-        void compress_leaves() {
+        void compress_leaves(uint64_t hash_size) {
             //std::cout << "Words count " << words_count() << std::endl;
             //std::cout << "Word size " << word_size() << std::endl;
 
@@ -625,9 +719,11 @@ namespace sdsl {
             std::cout << std::endl;
             */
 
+            std::cout << "Compressing Leaves" << std::endl;
+
             FreqVoc(*this, [&](const HashTable &table, Vocabulary& voc) {
                 compress_leaves(table, voc);
-            });
+            }, hash_size);
         }
 
         void compress_leaves(const HashTable &table, Vocabulary& voc) {
