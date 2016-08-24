@@ -229,6 +229,10 @@ namespace sdsl {
             std::swap(m_k_for_level, tr.m_k_for_level);
         }
 
+        uint word_size() const {
+            return div_ceil((uint) t_k_leaves*t_k_leaves, kUcharBits);
+        }
+
     private:
 
         /**

@@ -613,6 +613,10 @@ namespace sdsl {
         */
         size_t words_count() const
         {
+            if (m_tree_height == 0){
+                return 0;
+            }
+
             if (t_add_comp_levels > 0) {
                 uint64_t count = 0;
                 uint8_t leafK = get_k(m_tree_height-1);
@@ -632,13 +636,11 @@ namespace sdsl {
 
         /**
         * Return the number of bytes necessary to store a word.
-        *
+        * has to be virtual as calling get_k with m_tree_height-1 can fail if tree_height = 0 (part. k2)
+         * but every tree should be able to answer the query for word size
         * @return Size of a word.
         */
-        uint word_size() const {
-            uint leafK = get_k(m_tree_height-1);
-            return div_ceil(leafK*leafK , kUcharBits);
-        }
+        virtual uint word_size() const = 0;
 
         template<typename t_x, typename t_y>
         bool check_link_shortcut(std::pair<t_x,t_y> link) const {
