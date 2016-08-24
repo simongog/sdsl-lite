@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
         uint count = 0;
         std::vector<uint32_t> result;
         for (auto query : queries){
-            k2tree_part.direct_links(query, result);
+            k2tree_part.direct_links2(query, result);
             count+= result.size();
         }
 

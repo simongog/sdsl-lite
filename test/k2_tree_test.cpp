@@ -100,24 +100,10 @@ namespace {
         ASSERT_EQ(x.size(), k2treap.size());
     }
 
-    TYPED_TEST(k2_tree_test, direct_links) {
-        TypeParam k2treap;
-        perform_direct_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
-            k2treap.direct_links(source_id, result);
-        });
-    }
-
     TYPED_TEST(k2_tree_test, direct_links_2) {
         TypeParam k2treap;
         perform_direct_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
             k2treap.direct_links2(source_id, result);
-        });
-    }
-
-    TYPED_TEST(k2_tree_test, inverse_links) {
-        TypeParam k2treap;
-        perform_inverse_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
-            k2treap.inverse_links(source_id, result);
         });
     }
 

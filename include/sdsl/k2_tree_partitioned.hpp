@@ -138,28 +138,6 @@ namespace sdsl {
         }
 
         template<typename t_x>
-        void direct_links(t_x source_id, std::vector<t_x> &result) const {
-            result.clear();
-
-            if (t_comp){
-                std::cerr << "direct_links access method not implemented for compressed version, use direct_links2" << std::endl;
-                return;
-            }
-
-            uint y = source_id/m_part_matrix_size;
-            //uint submatrix_size = m_matrix_size/k0;
-
-            //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
-            std::vector<t_x> tmp_result;
-            for (int j = 0; j < t_k0; ++j) {
-                    m_k2trees[y*t_k0+j].direct_links( (t_x) (source_id - y * m_part_matrix_size), tmp_result);
-                    for (auto item : tmp_result){
-                        result.push_back(item + j*m_part_matrix_size);
-                    }
-            }
-        }
-
-        template<typename t_x>
         void direct_links_shortcut(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
             uint y = source_id/m_part_matrix_size;
@@ -245,28 +223,6 @@ namespace sdsl {
                     for (auto item : tmp_result){
                         result.push_back(item + j*m_part_matrix_size);
                     }
-                }
-            }
-        }
-
-        template<typename t_x>
-        void inverse_links(t_x source_id, std::vector<t_x> &result) const {
-            result.clear();
-
-            if (t_comp){
-                std::cerr << "inverse_links access method not implemented for compressed version, use inverse_links2" << std::endl;
-                return;
-            }
-
-            uint x = source_id/m_part_matrix_size;
-            //uint submatrix_size = m_matrix_size/k0;
-
-            //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
-            std::vector<t_x> tmp_result;
-            for (int j = 0; j < t_k0; ++j) {
-                m_k2trees[j*t_k0+x].inverse_links( (t_x) (source_id - x * m_part_matrix_size), tmp_result);
-                for (auto item : tmp_result){
-                    result.push_back(item + j*m_part_matrix_size);
                 }
             }
         }

@@ -105,24 +105,7 @@ namespace sdsl {
         uint64_t m_submatrix_in_row_on_sl = 0;
         std::vector<uint64_t> m_comp_level_offsets; //offset for words when compressing multiple levels into DAC m_comp_leaves
 
-    public :
-
-        template<typename t_x>
-        void direct_links(t_x source_id, std::vector<t_x> &result) const {
-            result.clear();
-
-            if (t_comp){
-                std::cerr << "direct_links access method not implemented for compressed version, use direct_links2" << std::endl;
-                return;
-            }
-
-
-            if (m_tree_height == 0 || source_id > m_max_element){
-                    return;
-            }
-
-            traverse_tree<t_x, DirectImpl>(this->root(), m_max_element, source_id, result);
-        }
+    public:
 
         template<typename t_x>
         void direct_links2(t_x source_id, std::vector<t_x> &result) const {
@@ -295,22 +278,6 @@ namespace sdsl {
                     inverse_links2_internal(m_field_size_on_sl, m_access_shortcut_size, t_x (target_id%m_field_size_on_sl), row_offset, index, result, check_leaf_bits);
                 }
             }
-        }
-
-        template<typename t_x>
-        void inverse_links(t_x target_id, std::vector<t_x> &result) const {
-            result.clear();
-
-            if (t_comp){
-                std::cerr << "inverse_links access method not implemented for compressed version, use inverse_links2" << std::endl;
-                return;
-            }
-
-            if (m_tree_height == 0 || target_id > m_max_element){
-                return;
-            }
-
-            traverse_tree<t_x, InverseImpl>(this->root(), m_max_element, target_id, result);
         }
 
         template<typename t_x>
@@ -1239,94 +1206,6 @@ namespace sdsl {
         node_type root() const {
             return node_type(0, t_p(0, 0), 0);
         }
-
-        /**
-        * Recursive DFS tree traversal, which can be used to find successors and predecessor by
-        * providing the appropriate Impl functor
-        *
-        * @param root
-        * @param source_id
-        * @param result
-        */
-        template<typename t_x, class Impl>
-        void traverse_tree(node_type root, uint64_t matrix_size, t_x source_id, std::vector<t_x> &result) const {
-            using namespace k2_treap_ns;
-
-            auto x = std::real(root.p);
-            auto y = std::imag(root.p);
-            const uint8_t k = get_k(root.t);
-            auto submatrix_size = matrix_size / k;
-
-            if (!is_leaf_level(root.t)) {
-                uint64_t rank = m_levels_rank[root.t](root.idx);
-
-                for (size_t i = 0; i < k; ++i) {
-                    auto _x = x + i * submatrix_size;
-                    for (size_t j = 0; j < k; ++j) {
-                        // get_int better for compressed bitvectors
-                        // or introduce cache for bitvectors
-                        if (m_levels[root.t][root.idx + k * i + j]) { //if subtree present
-                            auto _y = y + j * submatrix_size;
-
-                            node_type subtree_root(root.t+1, t_p(_x, _y), rank * get_k(root.t+1) * get_k(root.t+1));
-                            ++rank;
-                            if (Impl::is_relevant_subtree(source_id, submatrix_size, subtree_root)) {
-                                traverse_tree<t_x, Impl>(subtree_root, submatrix_size, source_id, result);
-                            }
-                        }
-                    }
-
-                }
-            } else {
-                //add corresponding values to result
-                for (size_t i = 0; i < k; ++i) {
-                    auto _x = (x + i * submatrix_size);
-                    for (size_t j = 0; j < k; ++j) {
-                        if (m_leaves[root.idx + k * i + j]) {
-                            Impl::add_to_result_if_relevant(source_id, submatrix_size, y, _x, j, result);
-                        }
-                    }
-                }
-            }
-        }
-
-        struct DirectImpl {
-            template<typename t_x>
-            inline static bool is_relevant_subtree(t_x row_id, uint64_t matrix_size, node_type subtree_root) {
-                using namespace k2_treap_ns;
-
-                return row_id >= real(subtree_root.p) and row_id <= real(subtree_root.p) + matrix_size -1;
-            }
-
-            template<typename t_x>
-            inline static void add_to_result_if_relevant(t_x source_id, uint64_t matrix_size, point_type::value_type y, point_type::value_type _x,
-                                                         size_t j, std::vector<t_x> &result) {
-                using namespace k2_treap_ns;
-                if (source_id == _x) { //if bit set and leaf part of correct row, add to result
-                    auto _y = y + j * (matrix_size);
-                    result.push_back(_y);
-                }
-            }
-        };
-
-        struct InverseImpl {
-            template<typename t_x>
-            inline static bool is_relevant_subtree(t_x column_id, uint64_t matrix_size, node_type subtree_root) {
-                using namespace k2_treap_ns;
-
-                return column_id >= imag(subtree_root.p) and column_id <= imag(subtree_root.p) + matrix_size - 1;
-            }
-
-            template<typename t_x>
-            inline static void add_to_result_if_relevant(t_x source_id, uint64_t matrix_size, point_type::value_type y, point_type::value_type _x,
-                                                         size_t j, std::vector<t_x> &result) {
-                using namespace k2_treap_ns;
-                auto _y = y + j * (matrix_size);
-                if (source_id == _y) { //if bit set and leaf part of correct row, add to result
-                    result.push_back(_x);
-                }
-            }
-        };
 
         /**
         * Hier noch eine Idee um den k^2-tree zu beschleunigen: Um nicht erst durch h Levels zu navigieren kann man sich erst ein bit_vector B bauen, der aus 4^h Einsen und höchstens 4^h Nullen besteht. Für jeden der 4^h Teilbäume schreibt man eine Eins; für nichtleere Teilbäume zusätzlich eine Null vor der entsprechenden Eins.
