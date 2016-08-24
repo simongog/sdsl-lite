@@ -41,8 +41,12 @@ namespace sdsl {
             typename t_leaf,
             bool t_comp,
             uint8_t t_access_shortcut_size,
+            uint8_t t_add_comp_levels, //additional compressed levels
             typename t_rank>
     class k2_tree_base {
+
+        //comp_level size is at least one if t_comp = true and 0 if t_comp = 0
+        static_assert(((t_comp == false) && (t_add_comp_levels ==0)) || ((t_comp == true)), "t_comp_level_size cannot be > 0 if t_comp = false");
 
     public:
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint32_t, uint32_t>>::result stxxl_32bit_pair_vector;
@@ -51,11 +55,10 @@ namespace sdsl {
         using node_type = k2_treap_ns::node_type;
         using point_type = k2_treap_ns::point_type;
         using t_p = k2_treap_ns::t_p;
-        DAC m_comp_leaves;
         uint64_t m_max_element = 0; //FIXME: this is an ugly hack for k2part
         uint8_t m_tree_height = 0;
         uint8_t m_access_shortcut_size = 0;
-        uint64_t m_hash_size  = 0;
+
 
         k2_tree_base() = default;
 
@@ -89,6 +92,8 @@ namespace sdsl {
 
         /** For compressed version **/
         Vocabulary m_vocabulary;
+        DAC m_comp_leaves;
+        uint64_t m_hash_size  = 0;
 
 
         virtual uint8_t get_k(uint8_t) const = 0;
@@ -349,6 +354,7 @@ namespace sdsl {
                 m_field_size_on_sl = tr.m_field_size_on_sl;
                 m_real_size_on_sl = tr.m_real_size_on_sl;
                 m_submatrix_in_row_on_sl = tr.m_submatrix_in_row_on_sl;
+                m_hash_size = tr.m_hash_size;
             }
             return *this;
         }
@@ -376,6 +382,7 @@ namespace sdsl {
                 m_field_size_on_sl = tr.m_field_size_on_sl;
                 m_real_size_on_sl = tr.m_real_size_on_sl;
                 m_submatrix_in_row_on_sl = tr.m_submatrix_in_row_on_sl;
+                m_hash_size = tr.m_hash_size;
             }
             return *this;
         }
@@ -498,6 +505,7 @@ namespace sdsl {
                 std::swap(m_field_size_on_sl, tr.m_field_size_on_sl);
                 std::swap(m_real_size_on_sl, tr.m_real_size_on_sl);
                 std::swap(m_submatrix_in_row_on_sl, tr.m_submatrix_in_row_on_sl);
+                std::swap(m_hash_size, tr.m_hash_size);
             }
         }
 

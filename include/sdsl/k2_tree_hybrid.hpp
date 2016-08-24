@@ -54,9 +54,10 @@ namespace sdsl {
             typename t_leaf=bit_vector,
             bool t_comp=false,
             uint8_t t_access_shortcut_size=0,
+            uint8_t t_add_comp_levels=0, //additional compressed levels, if set the leave k value t_k_leaves is expanded over 1+add_comp_levels in order to share the vocabulary
             typename t_rank=typename t_lev::rank_1_type>
 
-    class k2_tree_hybrid : public k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank> {
+    class k2_tree_hybrid : public k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank> {
         static_assert(t_k_l_1 > 1, "t_k has to be larger than 1.");
         static_assert(t_k_l_1 <= 16, "t_k has to be smaller than 17.");
         static_assert(t_k_l_2 > 1, "t_k has to be larger than 1.");
@@ -77,22 +78,22 @@ namespace sdsl {
 
         k2_tree_hybrid() = default;
 
-        k2_tree_hybrid(const k2_tree_hybrid &tr) : k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>(tr) {
+        k2_tree_hybrid(const k2_tree_hybrid &tr) : k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank>(tr) {
             *this = tr;
         }
 
-        k2_tree_hybrid(k2_tree_hybrid &&tr) : k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>(tr) {
+        k2_tree_hybrid(k2_tree_hybrid &&tr) : k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank>(tr) {
             *this = std::move(tr);
         }
 
         template<typename t_vector>
-        k2_tree_hybrid(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint = 0, uint64_t hash_size) {
+        k2_tree_hybrid(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint = 0, uint64_t hash_size = 0) {
             this->m_hash_size = hash_size;
             this->m_tree_height = get_tree_height(v, max_hint);
 
             if (v.size() > 0) {
                 if (use_counting_sort) {
-                    k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort(v, temp_file_prefix);
+                    k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank>::template construct_counting_sort(v, temp_file_prefix);
                     //construct_bottom_up(v, temp_file_prefix);
                 } else {
                     construct(v, temp_file_prefix);
@@ -110,7 +111,7 @@ namespace sdsl {
         }
 
         k2_tree_hybrid(int_vector_buffer<> &buf_x,
-                       int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint64_t max_hint = 0, uint64_t hash_size) {
+                       int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint64_t max_hint = 0, uint64_t hash_size = 0) {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             this->m_hash_size = hash_size;
@@ -142,17 +143,17 @@ namespace sdsl {
 
             this->m_tree_height = get_tree_height(max);
             if (this->m_max_element <= std::numeric_limits<uint32_t>::max()) {
-                auto v = k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template read<uint32_t, uint32_t>(bufs);
+                auto v = k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank>::template read<uint32_t, uint32_t>(bufs);
                 if (use_counting_sort) {
-                    k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort(v, buf_x.filename());
+                    k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank>::template construct_counting_sort(v, buf_x.filename());
                 } else {
                     construct(v, buf_x.filename());
                 }
 
             } else {
-                auto v = k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template read<uint64_t, uint64_t>(bufs);
+                auto v = k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank>::template read<uint64_t, uint64_t>(bufs);
                 if (use_counting_sort) {
-                    k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort(v, buf_x.filename());
+                    k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank>::template construct_counting_sort(v, buf_x.filename());
                 } else {
                     construct(v, buf_x.filename());
                 }
@@ -169,7 +170,7 @@ namespace sdsl {
         }
 
         virtual size_type serialize(std::ostream &out, structure_tree_node *v, std::string name) const override {
-            return k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::serialize(out, v, name);
+            return k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank>::serialize(out, v, name);
         }
 
         inline uint8_t get_k(uint8_t level) const {
@@ -187,7 +188,7 @@ namespace sdsl {
         }
 
         void load(std::istream &in) override {
-            k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::load(in);
+            k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank>::load(in);
             if (this->m_tree_height > 0){
                 for (int i = 1; i <= std::min(t_k_l_1_size, (uint8_t) (this->m_tree_height - 1)); ++i) {
                     m_k_for_level.push_back(t_k_l_1);
@@ -206,7 +207,7 @@ namespace sdsl {
         }
 
         k2_tree_hybrid &operator=(k2_tree_hybrid &&tr) {
-            k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::operator=(tr);
+            k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank>::operator=(tr);
             if (this != &tr) {
                 m_k_for_level = tr.m_k_for_level;
             }
@@ -214,7 +215,7 @@ namespace sdsl {
         }
 
         k2_tree_hybrid &operator=(const k2_tree_hybrid &tr) {
-            k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::operator=(tr);
+            k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank>::operator=(tr);
             if (this != &tr) {
                 m_k_for_level = tr.m_k_for_level;
             }
@@ -222,7 +223,7 @@ namespace sdsl {
         }
 
         bool operator==(const k2_tree_hybrid &tr) const {
-            if (!k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::operator==(tr)){
+            if (!k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank>::operator==(tr)){
                 return false;
             }
 
@@ -234,7 +235,7 @@ namespace sdsl {
         }
 
         void swap(k2_tree_hybrid &tr) {
-            k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::swap(tr);
+            k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_add_comp_levels, t_rank>::swap(tr);
             std::swap(m_k_for_level, tr.m_k_for_level);
         }
 
