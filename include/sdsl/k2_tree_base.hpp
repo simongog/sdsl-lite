@@ -55,6 +55,7 @@ namespace sdsl {
         uint64_t m_max_element = 0; //FIXME: this is an ugly hack for k2part
         uint8_t m_tree_height = 0;
         uint8_t m_access_shortcut_size = 0;
+        uint64_t m_hash_size  = 0;
 
         k2_tree_base() = default;
 
@@ -729,18 +730,11 @@ namespace sdsl {
 
 
         void compress_leaves() {
-/*
-            std::cout << "Words" << std::endl;
-            size_t pos = 0;
-            words([&] (const uchar *word) {
-                std::cout << std::to_string(*word) << "\t";
-            });
-            std::cout << std::endl;
-*/
-            //uint64_t hash_size = 20000000;
+
+            std::cout << "Compressing leaves" << std::endl;
             FreqVoc(*this, [&](const HashTable &table, Vocabulary& voc) {
                 compress_leaves(table, voc);
-            });
+            }, m_hash_size);
         }
 
         void compress_leaves(const HashTable &table, Vocabulary& voc) {

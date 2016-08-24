@@ -91,8 +91,9 @@ namespace sdsl {
         }*/
 
         template<typename t_vector>
-        k2_tree(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint=0){
+        k2_tree(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint=0, uint64_t hash_size = 0){
             this->m_tree_height = get_tree_height(v, max_hint);
+            this->m_hash_size = hash_size;
 
             if (v.size() > 0) {
                 if (use_counting_sort){
@@ -114,8 +115,10 @@ namespace sdsl {
         }
 
         k2_tree(int_vector_buffer<> &buf_x,
-                 int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint64_t max_hint = 0) {
+                 int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint64_t max_hint = 0, uint64_t hash_size = 0) {
             using namespace k2_treap_ns;
+            this->m_hash_size = hash_size;
+
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
 
