@@ -35,10 +35,6 @@ namespace sdsl {
             k0 = t_k0
         };
 
-        size_type m_size = 0;
-        uint64_t m_max_element;
-        uint64_t m_part_matrix_size;
-
     private:
         //typedef k2_tree<t_k,t_bv,t_rank> k2;
         std::vector<subk2_tree> m_k2trees;
@@ -46,6 +42,10 @@ namespace sdsl {
         DAC m_comp_leaves;
         /** For compressed version **/
         Vocabulary m_vocabulary;
+        size_type m_size = 0;
+        uint64_t m_max_element = 0;
+        uint64_t m_matrix_dimension = 0;
+        uint64_t m_amount_of_submatrices = 0;
 
     public:
         k2_tree_partitioned() = default;
@@ -63,8 +63,9 @@ namespace sdsl {
             //FIXME: build multiple k trees
             //partition into k02 parts
             using namespace k2_treap_ns;
-            uint64_t matrix_size = precomp<t_k0>::exp(get_tree_height(v, max_hint));
-            m_part_matrix_size = matrix_size / t_k0;
+            m_max_element = get_maximum(v, max_hint);
+            m_matrix_dimension = (m_max_element+t_k0) / t_k0; //round up also in the case divisiable as element ids start at 0
+            m_amount_of_submatrices = (m_max_element+ m_matrix_dimension) / m_matrix_dimension;
             build_k2_trees(v, temp_file_prefix, bottom_up);
 
             if (t_comp){
@@ -102,15 +103,10 @@ namespace sdsl {
                 m_max_element = max_buf_element();
             };
 
-            uint8_t res = 0;
-            while (res <= 64 and precomp<t_k0>::exp(res) <= m_max_element) { ++res; }
-            if (res == 65) {
-                throw std::logic_error("Maximal element of input is too big.");
-            }
-            uint64_t matrix_size = precomp<t_k0>::exp(res);
-            m_part_matrix_size = matrix_size / t_k0;
+            m_matrix_dimension = (m_max_element+t_k0) / t_k0; //round up also in the case divisiable as element ids start at 0
+            m_amount_of_submatrices = (m_max_element+ m_matrix_dimension) / m_matrix_dimension;
 
-            if (precomp<t_k0>::exp(res) <= std::numeric_limits<uint32_t>::max()) {
+            if (m_max_element <= std::numeric_limits<uint32_t>::max()) {
                 auto v = read < uint32_t, uint32_t>(bufs);
                 build_k2_trees(v, buf_x.filename(), bottom_up);
             } else {
@@ -140,27 +136,27 @@ namespace sdsl {
         template<typename t_x>
         void direct_links_shortcut(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
-            uint y = source_id/m_part_matrix_size;
+            uint y = source_id/m_matrix_dimension;
             //uint submatrix_size = m_matrix_size/k0;
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
             if (t_comp){
-                for (int j = 0; j < t_k0; ++j) {
-                    uint index = y*t_k0+j;
+                for (int j = 0; j < m_amount_of_submatrices; ++j) {
+                    uint index = y*m_amount_of_submatrices+j;
                     tmp_result.clear();
-                    m_k2trees[index].direct_links_shortcut_internal((t_x) (source_id - y * m_part_matrix_size), tmp_result, [index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                    m_k2trees[index].direct_links_shortcut_internal((t_x) (source_id - y * m_matrix_dimension), tmp_result, [index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                         check_leaf_bits_direct_comp(index, pos, offset, leafK, result);
                     });
                     for (auto item : tmp_result){
-                        result.push_back(item + j*m_part_matrix_size);
+                        result.push_back(item + j*m_matrix_dimension);
                     }
                 }
             } else {
-                for (int j = 0; j < t_k0; ++j) {
-                    m_k2trees[y*t_k0+j].direct_links_shortcut((t_x) (source_id - y * m_part_matrix_size), tmp_result);
+                for (int j = 0; j < m_amount_of_submatrices; ++j) {
+                    m_k2trees[y*m_amount_of_submatrices+j].direct_links_shortcut((t_x) (source_id - y * m_matrix_dimension), tmp_result);
                     for (auto item : tmp_result){
-                        result.push_back(item + j*m_part_matrix_size);
+                        result.push_back(item + j*m_matrix_dimension);
                     }
                 }
             }
@@ -169,27 +165,27 @@ namespace sdsl {
         template<typename t_x>
         void direct_links_shortcut_2(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
-            uint y = source_id/m_part_matrix_size;
+            uint y = source_id/m_matrix_dimension;
             //uint submatrix_size = m_matrix_size/k0;
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
             if (t_comp){
-                for (int j = 0; j < t_k0; ++j) {
-                    uint index = y*t_k0+j;
+                for (uint j = 0; j < m_amount_of_submatrices; ++j) {
+                    uint index = y*m_amount_of_submatrices+j;
                     tmp_result.clear();
-                    m_k2trees[index].direct_links_shortcut_internal_2((t_x) (source_id - y * m_part_matrix_size), tmp_result, [index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                    m_k2trees[index].direct_links_shortcut_internal_2((t_x) (source_id - y * m_matrix_dimension), tmp_result, [index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                         check_leaf_bits_direct_comp(index, pos, offset, leafK, result);
                     });
                     for (auto item : tmp_result){
-                        result.push_back(item + j*m_part_matrix_size);
+                        result.push_back(item + j*m_matrix_dimension);
                     }
                 }
             } else {
-                for (int j = 0; j < t_k0; ++j) {
-                    m_k2trees[y*t_k0+j].direct_links_shortcut_2((t_x) (source_id - y * m_part_matrix_size), tmp_result);
+                for (uint j = 0; j < m_amount_of_submatrices; ++j) {
+                    m_k2trees[y*m_amount_of_submatrices+j].direct_links_shortcut_2((t_x) (source_id - y * m_matrix_dimension), tmp_result);
                     for (auto item : tmp_result){
-                        result.push_back(item + j*m_part_matrix_size);
+                        result.push_back(item + j*m_matrix_dimension);
                     }
                 }
             }
@@ -198,30 +194,30 @@ namespace sdsl {
         template<typename t_x>
         void direct_links2(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
-            t_x y = source_id/m_part_matrix_size;
-            t_x y_offsetted = source_id - y * m_part_matrix_size;
+            t_x y = source_id/m_matrix_dimension;
+            t_x y_offsetted = source_id - y * m_matrix_dimension;
             //uint submatrix_size = m_matrix_size/k0;
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
             if (t_comp){
-                for (int j = 0; j < t_k0; ++j) {
-                    uint index = y*t_k0+j;
+                for (uint j = 0; j < m_amount_of_submatrices; ++j) {
+                    uint index = y*m_amount_of_submatrices+j;
                     if (m_k2trees[index].m_tree_height > 0 && m_k2trees[index].m_max_element >= y_offsetted){
                         tmp_result.clear();
                         m_k2trees[index].direct_links2_internal_queue(y_offsetted, tmp_result, [index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & asd_result){
                             check_leaf_bits_direct_comp(index, pos, offset, leafK, asd_result);
                         });
                         for (auto item : tmp_result){
-                            result.push_back(item + j*m_part_matrix_size);
+                            result.push_back(item + j*m_matrix_dimension);
                         }
                     }
                 }
             } else {
-                for (int j = 0; j < t_k0; ++j) {
-                    m_k2trees[y*t_k0+j].direct_links2(y_offsetted, tmp_result);
+                for (uint j = 0; j < m_amount_of_submatrices; ++j) {
+                    m_k2trees[y*m_amount_of_submatrices+j].direct_links2(y_offsetted, tmp_result);
                     for (auto item : tmp_result){
-                        result.push_back(item + j*m_part_matrix_size);
+                        result.push_back(item + j*m_matrix_dimension);
                     }
                 }
             }
@@ -230,16 +226,16 @@ namespace sdsl {
         template<typename t_x>
         void inverse_links2(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
-            t_x x = source_id/m_part_matrix_size;
-            t_x x_offsetted = source_id - x * m_part_matrix_size;
+            t_x x = source_id/m_matrix_dimension;
+            t_x x_offsetted = source_id - x * m_matrix_dimension;
             //uint submatrix_size = m_matrix_size/k0;
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
 
             if (t_comp) {
-                for (int j = 0; j < t_k0; ++j) {
-                    uint index = j * t_k0 + x;
+                for (uint j = 0; j < m_amount_of_submatrices; ++j) {
+                    uint index = j * m_amount_of_submatrices + x;
                     if (m_k2trees[index].m_max_element >= x_offsetted && m_k2trees[index].m_tree_height > 0) {
                         tmp_result.clear();
                         m_k2trees[index].inverse_links2_internal_queue(x_offsetted, tmp_result, [index, this](int64_t pos, t_x offset,
@@ -250,15 +246,15 @@ namespace sdsl {
                                                                                                         result);
                                                                        });
                         for (auto item : tmp_result) {
-                            result.push_back(item + j * m_part_matrix_size);
+                            result.push_back(item + j * m_matrix_dimension);
                         }
                     }
                 }
             } else {
-                for (int j = 0; j < t_k0; ++j) {
-                    m_k2trees[j * t_k0 + x].inverse_links2(x_offsetted, tmp_result);
+                for (uint j = 0; j < m_amount_of_submatrices; ++j) {
+                    m_k2trees[j * m_amount_of_submatrices + x].inverse_links2(x_offsetted, tmp_result);
                     for (auto item : tmp_result) {
-                        result.push_back(item + j * m_part_matrix_size);
+                        result.push_back(item + j * m_matrix_dimension);
                     }
                 }
             }
@@ -310,25 +306,25 @@ namespace sdsl {
         template<typename t_x>
         void inverse_links_shortcut(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
-            uint x = source_id/m_part_matrix_size;
+            uint x = source_id/m_matrix_dimension;
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
             if (t_comp) {
-                for (int j = 0; j < t_k0; ++j) {
-                    uint index = j * t_k0 + x;
+                for (int j = 0; j < m_amount_of_submatrices; ++j) {
+                    uint index = j * m_amount_of_submatrices + x;
                     tmp_result.clear();
-                    m_k2trees[index].inverse_links_shortcut_internal((t_x) (source_id - x * m_part_matrix_size), tmp_result,[index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                    m_k2trees[index].inverse_links_shortcut_internal((t_x) (source_id - x * m_matrix_dimension), tmp_result,[index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
                         check_leaf_bits_inverse_comp(index, pos, offset, leafK, result);
                     });
                     for (auto item : tmp_result) {
-                        result.push_back(item + j * m_part_matrix_size);
+                        result.push_back(item + j * m_matrix_dimension);
                     }
                 }
             } else {
-                for (int j = 0; j < t_k0; ++j) {
-                    m_k2trees[j * t_k0 + x].inverse_links_shortcut((t_x) (source_id - x * m_part_matrix_size), tmp_result);
+                for (int j = 0; j < m_amount_of_submatrices; ++j) {
+                    m_k2trees[j * m_amount_of_submatrices + x].inverse_links_shortcut((t_x) (source_id - x * m_matrix_dimension), tmp_result);
                     for (auto item : tmp_result) {
-                        result.push_back(item + j * m_part_matrix_size);
+                        result.push_back(item + j * m_matrix_dimension);
                     }
                 }
             }
@@ -339,13 +335,13 @@ namespace sdsl {
          */
         template<typename t_x, typename t_y>
         bool check_link(std::pair<t_x, t_y> link) const {
-            t_x x = link.first/m_part_matrix_size;
-            t_y y = link.second/m_part_matrix_size;
+            t_x x = link.first/m_matrix_dimension;
+            t_y y = link.second/m_matrix_dimension;
 
-            t_x x_offsetted = link.first - x * m_part_matrix_size;
-            t_y y_offsetted = link.second -y * m_part_matrix_size;
+            t_x x_offsetted = link.first - x * m_matrix_dimension;
+            t_y y_offsetted = link.second -y * m_matrix_dimension;
 
-            uint index = x*t_k0+y;
+            uint index = x*m_amount_of_submatrices+y;
             if (t_comp){
                 if (m_k2trees[index].m_tree_height > 0) {
                     //std::cout << "Checking link in tree " << index << std::endl;
@@ -366,13 +362,13 @@ namespace sdsl {
          */
         template<typename t_x, typename t_y>
         bool check_link_shortcut(std::pair<t_x, t_y> link) const {
-            uint x = link.first/m_part_matrix_size;
-            uint y = link.second/m_part_matrix_size;
+            uint x = link.first/m_matrix_dimension;
+            uint y = link.second/m_matrix_dimension;
 
-            t_x x_offsetted = link.first - x * m_part_matrix_size;
-            t_y y_offsetted = link.second -y * m_part_matrix_size;
+            t_x x_offsetted = link.first - x * m_matrix_dimension;
+            t_y y_offsetted = link.second -y * m_matrix_dimension;
 
-            uint index = x*t_k0+y;
+            uint index = x*m_amount_of_submatrices+y;
             if (t_comp){
                 if (m_k2trees[index].m_tree_height > 0) {
                     //std::cout << "Checking link in tree " << index << std::endl;
@@ -393,8 +389,9 @@ namespace sdsl {
                 m_size = tr.m_size;
                 m_max_element = tr.m_max_element;
                 m_k2trees = std::move(tr.m_k2trees);
-                m_part_matrix_size = std::move(tr.m_part_matrix_size);
-                m_words_prefix_sum = std::move(m_words_prefix_sum);
+                m_matrix_dimension = std::move(tr.m_matrix_dimension);
+                m_words_prefix_sum = std::move(tr.m_words_prefix_sum);
+                m_amount_of_submatrices = std::move(tr.m_amount_of_submatrices);
             }
             return *this;
         }
@@ -405,10 +402,11 @@ namespace sdsl {
                 m_size = tr.m_size;
                 m_max_element = tr.m_max_element;
                 m_k2trees = tr.m_k2trees;
-                m_part_matrix_size = tr.m_part_matrix_size;
+                m_matrix_dimension = tr.m_matrix_dimension;
                 m_comp_leaves = tr.m_comp_leaves;
                 m_vocabulary = tr.m_vocabulary;
                 m_words_prefix_sum = m_words_prefix_sum;
+                m_amount_of_submatrices = tr.m_amount_of_submatrices;
             }
             return *this;
         }
@@ -422,11 +420,15 @@ namespace sdsl {
                 return false;
             }
 
-            if (m_part_matrix_size != tr.m_part_matrix_size){
+            if (m_matrix_dimension != tr.m_matrix_dimension){
                 return false;
             }
 
             if (m_max_element != tr.m_max_element){
+                return false;
+            }
+
+            if (m_amount_of_submatrices != tr.m_amount_of_submatrices){
                 return false;
             }
 
@@ -463,8 +465,9 @@ namespace sdsl {
                 std::swap(m_size, tr.m_size);
                 std::swap(m_max_element, tr.m_max_element);
                 std::swap(m_k2trees, tr.m_k2trees);
-                std::swap(m_part_matrix_size, tr.m_part_matrix_size);
+                std::swap(m_matrix_dimension, tr.m_matrix_dimension);
                 std::swap(m_vocabulary, tr.m_vocabulary);
+                std::swap(m_amount_of_submatrices, tr.m_amount_of_submatrices);
                 m_comp_leaves.swap(tr.m_comp_leaves);
                 m_words_prefix_sum.swap(tr.m_words_prefix_sum);
             }
@@ -478,8 +481,13 @@ namespace sdsl {
                     v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_size, out, child, "s");
-            written_bytes += write_member(m_part_matrix_size, out, child, "matrix_size");
+            written_bytes += write_member(m_matrix_dimension, out, child, "matrix_size");
             written_bytes += write_member(m_max_element, out, child, "m_max_element");
+            written_bytes += write_member(m_amount_of_submatrices, out, child, "m_amount_of_submatrices");
+
+            if (! (m_amount_of_submatrices*m_amount_of_submatrices == m_k2trees.size())){
+                std::cout << "Melding away" << std::endl;
+            }
 
             for (uint j = 0; j < m_k2trees.size(); ++j) {
                 written_bytes += m_k2trees[j].serialize(out, child, "k2_tree_"+std::to_string(j));
@@ -498,10 +506,12 @@ namespace sdsl {
         //! Loads the data structure from the given istream.
         void load(std::istream &in) {
             read_member(m_size, in);
-            read_member(m_part_matrix_size, in);
+            read_member(m_matrix_dimension, in);
             read_member(m_max_element, in);
-            m_k2trees.resize(t_k0*t_k0);
-            for (uint j = 0; j < t_k0*t_k0; ++j) {
+            read_member(m_amount_of_submatrices, in);
+
+            m_k2trees.resize(m_amount_of_submatrices*m_amount_of_submatrices);
+            for (uint j = 0; j < m_amount_of_submatrices*m_amount_of_submatrices; ++j) {
                 m_k2trees[j].load(in);
             }
 
@@ -549,14 +559,14 @@ namespace sdsl {
 
     private:
         template<typename t_tv>
-        uint8_t get_tree_height(const t_tv &v, uint64_t max_hint) {
+        uint8_t get_maximum(const t_tv &v, uint64_t max_hint) {
             using namespace k2_treap_ns;
             if (v.size() == 0) {
                 return 0;
             }
 
             if (max_hint != 0){
-                m_max_element = max_hint;
+                return max_hint;
             } else {
                 using t_e = typename t_tv::value_type;
                 auto tupmax = [](t_e a) {
@@ -565,13 +575,8 @@ namespace sdsl {
                 auto max_it = std::max_element(std::begin(v), std::end(v), [&](t_e a, t_e b) {
                     return tupmax(a) < tupmax(b);
                 });
-                m_max_element = tupmax(*max_it);
+                return tupmax(*max_it);
             }
-
-
-            uint8_t res = 0;
-            while (precomp<t_k0>::exp(res) <= m_max_element) { ++res; }
-            return res;
         }
 
         template<typename t_vector>
@@ -587,21 +592,22 @@ namespace sdsl {
 
             //FIXME replace with stxxl vector
             std::vector<std::vector<t_e>> buffers;
-            buffers.resize(t_k0*t_k0);
+            buffers.resize(m_amount_of_submatrices*m_amount_of_submatrices);
 
             {
                 for (uint64_t j = 0; j < links.size(); ++j) {
                     auto x = links[j].first;
                     auto y = links[j].second;
-                    uint p1 = x / m_part_matrix_size;
-                    uint p2 = y / m_part_matrix_size;
-                    uint corresponding_matrix = p1 * t_k0 + p2;
-                    buffers[corresponding_matrix].push_back(t_e(links[j].first - p1 * m_part_matrix_size, links[j].second - p2 * m_part_matrix_size));
+                    uint p1 = x / m_matrix_dimension;
+                    uint p2 = y / m_matrix_dimension;
+                    uint corresponding_matrix = p1 * m_amount_of_submatrices + p2;
+                    buffers[corresponding_matrix].push_back(t_e(links[j].first - p1 * m_matrix_dimension, links[j].second - p2 * m_matrix_dimension));
                 }
             }
 
-            m_k2trees.resize(t_k0*t_k0);
-            for (int l = 0; l < t_k0*t_k0; ++l) {
+            uint64_t amount_of_trees = m_amount_of_submatrices*m_amount_of_submatrices;
+            m_k2trees.resize(amount_of_trees);
+            for (uint l = 0; l < m_k2trees.size(); ++l) {
                 const subk2_tree k2tree(temp_file_prefix, bottom_up, buffers[l]);
                 m_k2trees[l] = k2tree;//buffers[l]);//, temp_file_prefix, bottom_up, access_shortcut_size);
             }
@@ -659,7 +665,7 @@ namespace sdsl {
 
             m_vocabulary = voc;
 
-            m_words_prefix_sum.resize(t_k0*t_k0);
+            m_words_prefix_sum.resize(m_amount_of_submatrices*m_amount_of_submatrices);
             m_words_prefix_sum[0] = 0;
             for (uint i = 1; i < m_k2trees.size(); ++i) {
                 size_t count = m_k2trees[i-1].words_count();
@@ -686,7 +692,6 @@ namespace sdsl {
             }
             */
         }
-
     };
 }
 

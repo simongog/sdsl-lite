@@ -17,8 +17,8 @@ void print(std::vector<uint32_t>& to_print, uint32_t source_node){
 
 int main()
 {
-    typedef k2_tree<2, bit_vector, bit_vector, false, 2> k2_rrr;
-    //typedef k2_tree_partitioned<2, k2, true> k2_rrr;
+    typedef k2_tree<2, bit_vector, bit_vector, false, 2> k2;
+    typedef k2_tree_partitioned<2, k2, true> k2_rrr;
 
 
     // Initialize treap with a vector of (x,y,weight) elements

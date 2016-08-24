@@ -95,9 +95,9 @@ namespace sdsl {
 
     private:
         //sl = shortcut_level
-        uint64_t m_field_size_on_sl;
-        uint8_t m_real_size_on_sl;
-        uint64_t m_submatrix_in_row_on_sl;
+        uint64_t m_field_size_on_sl = 0;
+        uint8_t m_real_size_on_sl = 0;
+        uint64_t m_submatrix_in_row_on_sl = 0;
 
     public:
 
