@@ -41,12 +41,8 @@ namespace sdsl {
             typename t_leaf,
             bool t_comp,
             uint8_t t_access_shortcut_size,
-            uint8_t t_add_comp_levels, //additional compressed levels
             typename t_rank>
     class k2_tree_base {
-
-        //comp_level size is at least one if t_comp = true and 0 if t_comp = 0
-        static_assert(((t_comp == false) && (t_add_comp_levels ==0)) || ((t_comp == true)), "t_comp_level_size cannot be > 0 if t_comp = false");
 
     public:
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint32_t, uint32_t>>::result stxxl_32bit_pair_vector;
@@ -55,10 +51,11 @@ namespace sdsl {
         using node_type = k2_treap_ns::node_type;
         using point_type = k2_treap_ns::point_type;
         using t_p = k2_treap_ns::t_p;
+        DAC m_comp_leaves;
         uint64_t m_max_element = 0; //FIXME: this is an ugly hack for k2part
         uint8_t m_tree_height = 0;
         uint8_t m_access_shortcut_size = 0;
-
+        uint64_t m_hash_size  = 0;
 
         k2_tree_base() = default;
 
@@ -92,17 +89,15 @@ namespace sdsl {
 
         /** For compressed version **/
         Vocabulary m_vocabulary;
-        DAC m_comp_leaves;
-        uint64_t m_hash_size  = 0;
-        std::vector<uint64_t> m_comp_level_offsets; //offset for words when compressing multiple levels into DAC m_comp_leaves
+
 
         virtual uint8_t get_k(uint8_t) const = 0;
 
     private:
         //sl = shortcut_level
-        uint64_t m_field_size_on_sl = 0;
-        uint8_t m_real_size_on_sl = 0;
-        uint64_t m_submatrix_in_row_on_sl = 0;
+        uint64_t m_field_size_on_sl;
+        uint8_t m_real_size_on_sl;
+        uint64_t m_submatrix_in_row_on_sl;
 
     public:
 
@@ -321,8 +316,6 @@ namespace sdsl {
                 m_field_size_on_sl = tr.m_field_size_on_sl;
                 m_real_size_on_sl = tr.m_real_size_on_sl;
                 m_submatrix_in_row_on_sl = tr.m_submatrix_in_row_on_sl;
-                m_hash_size = tr.m_hash_size;
-                m_comp_level_offsets = std::move(tr.m_comp_level_offsets);
             }
             return *this;
         }
@@ -350,8 +343,6 @@ namespace sdsl {
                 m_field_size_on_sl = tr.m_field_size_on_sl;
                 m_real_size_on_sl = tr.m_real_size_on_sl;
                 m_submatrix_in_row_on_sl = tr.m_submatrix_in_row_on_sl;
-                m_hash_size = tr.m_hash_size;
-                m_comp_level_offsets = tr.m_comp_level_offsets;
             }
             return *this;
         }
@@ -394,13 +385,6 @@ namespace sdsl {
                     if (!m_vocabulary.operator==(tr.m_vocabulary)) {
                         std::cout << "vocabulary differs" << std::endl;
                         return false;
-                    }
-
-                    if (t_add_comp_levels > 0){
-                        if (m_comp_level_offsets != tr.m_comp_level_offsets){
-                            std::cout << "Comp level offsets differ" << std::endl;
-                            return false;
-                        }
                     }
 
                 } else {
@@ -481,8 +465,6 @@ namespace sdsl {
                 std::swap(m_field_size_on_sl, tr.m_field_size_on_sl);
                 std::swap(m_real_size_on_sl, tr.m_real_size_on_sl);
                 std::swap(m_submatrix_in_row_on_sl, tr.m_submatrix_in_row_on_sl);
-                std::swap(m_hash_size, tr.m_hash_size);
-                std::swap(m_comp_level_offsets, tr.m_comp_level_offsets);
             }
         }
 
@@ -496,35 +478,27 @@ namespace sdsl {
             written_bytes += write_member(m_size, out, child, "s");
             written_bytes += write_member(m_max_element, out, child, "max_element");
             if (m_tree_height > 0){
-                for (uint i = 0; i < m_levels.size(); ++i) {
+                for (int i = 0; i < m_tree_height -1; ++i) {
                     written_bytes += m_levels[i].serialize(out, child, ("level"+std::to_string(i)));
                 }
-                for (uint i = 0; i < m_levels.size(); ++i) {
+                for (int i = 0; i < m_tree_height -1; ++i) {
                     written_bytes += m_levels_rank[i].serialize(out, child, "levels_rank");
                 }
 
                 if (t_comp){
                     written_bytes += m_vocabulary.serialize(out, child, "voc");
                     written_bytes += m_comp_leaves.serialize(out, child, "comp_leafs");
-                    if (t_add_comp_levels > 0) {
-                        written_bytes += write_member(m_comp_level_offsets.size(), out, child,
-                                                      "comp_level_offset_size");
-                        for (uint j = 0; j < m_comp_level_offsets.size(); ++j) {
-                            written_bytes += write_member(m_comp_level_offsets[j], out, child, "comp_level_offset");
-                        }
-                    }
                 } else {
                     written_bytes += m_leaves.serialize(out, child, "leafv");
                 }
-
-                written_bytes += write_member(m_access_shortcut_size, out, child, "access_shortcut_size");
-                if (m_access_shortcut_size > 0) {
-                    written_bytes += m_access_shortcut.serialize(out, child, "access_shortcut");
-                    written_bytes += m_access_shortcut_rank_10_support.serialize(out, child, "access_rank");
-                    written_bytes += m_access_shortcut_select_1_support.serialize(out, child, "access_select");
-                }
             }
 
+            written_bytes += write_member(m_access_shortcut_size, out, child, "access_shortcut_size");
+            if (m_access_shortcut_size > 0){
+                written_bytes += m_access_shortcut.serialize(out, child, "access_shortcut");
+                written_bytes += m_access_shortcut_rank_10_support.serialize(out, child, "access_rank");
+                written_bytes += m_access_shortcut_select_1_support.serialize(out, child, "access_select");
+            }
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -550,29 +524,19 @@ namespace sdsl {
                 if (t_comp){
                     m_vocabulary.load(in);
                     m_comp_leaves.load(in);
-
-                    if (t_add_comp_levels > 0) {
-                        uint64_t comp_level_offset_size = 0;
-                        read_member(comp_level_offset_size, in);
-                        m_comp_level_offsets.resize(comp_level_offset_size);
-                        for (uint j = 0; j < comp_level_offset_size; ++j) {
-                            read_member(m_comp_level_offsets[j], in);
-                        }
-                    } else {
-                        m_comp_level_offsets.push_back(0);//first offset has to be set
-                    }
                 } else {
                     m_leaves.load(in);
                 }
 
-                read_member(m_access_shortcut_size, in);
-                if (m_access_shortcut_size > 0){
-                    m_access_shortcut.load(in);
-                    m_access_shortcut_rank_10_support.load(in);
-                    m_access_shortcut_rank_10_support.set_vector(&m_access_shortcut);
-                    m_access_shortcut_select_1_support.load(in);
-                    m_access_shortcut_select_1_support.set_vector(&m_access_shortcut);
-                }
+            }
+
+            read_member(m_access_shortcut_size, in);
+            if (m_access_shortcut_size > 0){
+                m_access_shortcut.load(in);
+                m_access_shortcut_rank_10_support.load(in);
+                m_access_shortcut_rank_10_support.set_vector(&m_access_shortcut);
+                m_access_shortcut_select_1_support.load(in);
+                m_access_shortcut_select_1_support.set_vector(&m_access_shortcut);
             }
         }
 
@@ -586,101 +550,38 @@ namespace sdsl {
         */
         template<typename Function>
         void words(Function fun) const {
-            if (m_tree_height == 0){
-                return;
-            }
-
-            if (t_add_comp_levels > 0) {
-                for (int i = t_add_comp_levels; i > 0; --i) {
-                    uint8_t level_number = (m_tree_height - 1 - i);
-                    words(level_number, fun);
-                }
-            }
-
-            words(m_tree_height-1, fun);
-        }
-
-    private:
-        /**
-        * Iterates over the words in the leaf level.
-        *
-        * @param fun Pointer to function, functor or lambda expecting a pointer to
-        * each word.
-        */
-        template<typename Function>
-        void words(uint8_t level, Function fun) const {
-            uint k_leaf_squared = get_k(this->m_tree_height-1) * get_k(this->m_tree_height-1);
-            size_t cnt = words_count(level);
+            size_t cnt = words_count();
             uint size = word_size();
 
             size_t bit = 0;
             for (size_t i = 0; i < cnt; ++i) {
                 uchar *word = new uchar[size];
                 std::fill(word, word + size, 0);
+
+                uint k_leaf_squared = get_k(this->m_tree_height-1) * get_k(this->m_tree_height-1);
                 for (uint j = 0; j < k_leaf_squared ; ++j, ++bit) {
-                    if (level < m_tree_height-1){
-                        if (this->m_levels[level][bit]){
-                            uchar tmp = (1 << (j % kUcharBits));
-                            word[j / kUcharBits] |= tmp;
-                        }
-                    } else {
-                        if (this->m_leaves[bit]){
-                            uchar tmp = (1 << (j % kUcharBits));
-                            word[j / kUcharBits] |= tmp;
-                        }
+                    if (this->m_leaves[bit]){
+                        uchar tmp = (1 << (j % kUcharBits));
+                        word[j / kUcharBits] |= tmp;
                     }
+
                 }
                 fun(word);
                 delete[] word;
             }
         }
 
+
         /**
-        * Returns the number of words of in the leaf level.
+        * Returns the number of words of \f$k_leaves^2\f$ bits in the leaf level.
         *
         * @return Number of words.
         */
-        size_t words_count(uint8_t level) const
-        {
-            uint k_squared = get_k(level)*get_k(level);
-            if (is_leaf_level(level)){
-                return this->m_leaves.size() / k_squared;
-            } else {
-                return this->m_levels[level].size() / k_squared;
-            }
-        }
-
-
-    public:
-        /**
-        * Returns the number of words of in the leaf level.
-        *
-        * @return Number of words.
-        */
-        size_t words_count() const
-        {
-            if (m_tree_height == 0){
-                return 0;
-            }
-
-            uint64_t count = 0;
-            if (t_add_comp_levels > 0) {
-                for (uint i = t_add_comp_levels; i > 0; --i) {
-                    uint8_t level_number = (this->m_tree_height - 1 - i);
-                    uint8_t k = get_k(level_number);
-                    assert(k == get_k(m_tree_height-1));
-                    count += this->m_levels[level_number].size() / k/k;
-                }
-            }
-
-            uint64_t last_level_count = this->m_leaves.size() / get_k(m_tree_height-1) / get_k(m_tree_height-1);
-            return count + last_level_count;
-        }
+        virtual size_t words_count() const = 0;
 
         /**
         * Return the number of bytes necessary to store a word.
-        * has to be virtual as calling get_k with m_tree_height-1 can fail if tree_height = 0 (part. k2)
-         * but every tree should be able to answer the query for word size
+        *
         * @return Size of a word.
         */
         virtual uint word_size() const = 0;
@@ -801,26 +702,6 @@ namespace sdsl {
             FreqVoc(*this, [&](const HashTable &table, Vocabulary& voc) {
                 compress_leaves(table, voc);
             }, m_hash_size);
-
-            if (t_add_comp_levels > 0){
-                create_comp_offsets();
-                //throw away superfluous levels
-                //m_levels.resize(m_tree_height-1-t_add_comp_levels);
-                //m_levels_rank.resize(m_tree_height-1-t_add_comp_levels);
-            } else {
-                m_comp_level_offsets.push_back(0);
-            }
-        }
-
-        void create_comp_offsets(){
-            m_comp_level_offsets.reserve(t_add_comp_levels+1);
-            uint64_t prefix_sum = 0;
-            m_comp_level_offsets.push_back(0);
-            for (int i = t_add_comp_levels; i > 0; --i) {
-                    uint8_t level_number = (t_add_comp_levels - i);
-                    prefix_sum += this->m_levels[m_tree_height - 2 - level_number].size() / get_k(m_tree_height-1) / get_k(m_tree_height-1);
-                    m_comp_level_offsets.push_back(prefix_sum);
-            }
         }
 
         void compress_leaves(const HashTable &table, Vocabulary& voc) {
@@ -897,23 +778,8 @@ namespace sdsl {
             uint64_t submatrix_size = n/k;
             uint64_t y = index *k*k+ k *(source_id/submatrix_size);
 
-
-            if (is_compressed_level(level)){//(is_compressed_level(level)){
-                if (is_leaf_level(level)) {
-                    check_leaf_bits_direct(y, column_offset, get_k(level), result);
-                } else {
-                    uint64_t subtree_number = y/(k*k);
-                    uint64_t global_subtree_number = subtree_number+m_comp_level_offsets[t_add_comp_levels - (m_tree_height-1-level)];
-                    uint iword = m_comp_leaves.accessFT(global_subtree_number);
-                    const uchar * word = m_vocabulary.get(iword);
-                    int64_t pos = y - (subtree_number*k*k);
-                    for (int j = 0; j < k; ++j) {
-                        if ((word[(pos+j)/kUcharBits] >> ((pos+j)%kUcharBits)) & 1){
-                            direct_links2_internal(submatrix_size, level + 1, t_x(source_id % submatrix_size),
-                                                   t_x(column_offset + submatrix_size * j), m_levels_rank[level](y+j), result, check_leaf_bits_direct);
-                        }
-                    }
-                }
+            if (this->is_leaf_level(level)){
+                check_leaf_bits_direct(y,column_offset,get_k(level),result);
             } else { //internal node
                 for (uint j = 0; j < k; ++j) {
                     if (m_levels[level][y+j] == 1) {
@@ -945,24 +811,8 @@ namespace sdsl {
             uint64_t current_submatrix_size = n / k;
             int64_t y = index + k * (p / current_submatrix_size) + (q / current_submatrix_size);
 
-            if (is_compressed_level(level)) {//(is_compressed_level(level)){
-                if (is_leaf_level(level)) {
-                    return check_leaf(y, k);
-                } else {
-                    uint64_t subtree_number = y / (k * k);
-                    uint64_t global_subtree_number =
-                            subtree_number + m_comp_level_offsets[t_add_comp_levels - (m_tree_height - 1 - level)];
-                    uint iword = m_comp_leaves.accessFT(global_subtree_number);
-                    const uchar *word = m_vocabulary.get(iword);
-                    int64_t pos = y - (subtree_number * k * k);
-                    if ((word[(pos) / kUcharBits] >> ((pos) % kUcharBits)) & 1) {
-                        return check_link_internal(level + 1, current_submatrix_size, p % current_submatrix_size,
-                                                   q % current_submatrix_size, this->get_child_index(0, y, level),
-                                                   check_leaf);
-                    } else {
-                        return false;
-                    }
-                }
+            if (this->is_leaf_level(level)) {
+                return check_leaf(y,k);
             } else if (this->m_levels[level][y]) {
                 return check_link_internal(level + 1, current_submatrix_size, p % current_submatrix_size,
                                            q % current_submatrix_size, this->get_child_index(0, y, level), check_leaf);
@@ -997,22 +847,8 @@ namespace sdsl {
                 uint64_t submatrix_size = n/k;
                 int64_t y = index*k*k + k *(source_id/submatrix_size);
 
-                if (is_compressed_level(level)){//(is_compressed_level(level)){
-                    if (is_leaf_level(level)) {
-                        check_leaf_bits_direct(y, column_offset, get_k(level), result);
-                    } else {
-                        uint64_t subtree_number = y/(k*k);
-                        uint64_t global_subtree_number = subtree_number+m_comp_level_offsets[t_add_comp_levels - (m_tree_height-1-level)];
-                        uint iword = m_comp_leaves.accessFT(global_subtree_number);
-                        const uchar * word = m_vocabulary.get(iword);
-                        int64_t pos = y - (subtree_number*k*k);
-                        for (int i = 0; i < k; ++i) {
-                            if ((word[(pos+i)/kUcharBits] >> ((pos+i)%kUcharBits)) & 1){
-                                queue.push(std::make_tuple(submatrix_size, level + 1, t_x(source_id % submatrix_size),
-                                                           t_x(column_offset + submatrix_size * i), m_levels_rank[level](y+i)));
-                            }
-                        }
-                    }
+                if (is_leaf_level(level)){
+                    check_leaf_bits_direct(y,column_offset,get_k(level),result);
                 } else { //internal node
                     for (uint j = 0; j < k; ++j) {
                         if (m_levels[level][y+j] == 1) {
@@ -1025,7 +861,6 @@ namespace sdsl {
         }
 
         bool is_leaf_level(int level) const { return level == m_tree_height - 1; }
-        bool is_compressed_level(int level) const { return level >= m_tree_height - 1 - t_add_comp_levels; }
 
         /**
          * Recursive function for getting the predecessor of a certain node.
@@ -1048,23 +883,8 @@ namespace sdsl {
             uint64_t submatrix_size = n / k;
             int64_t y = index * k * k + (source_id / submatrix_size);
 
-
-            if (is_compressed_level(level)){//(is_compressed_level(level)){
-                if (is_leaf_level(level)) {
-                    check_leaf_bits_inverse(y, row_offset,get_k(level),result);
-                } else {
-                    uint64_t subtree_number = y/(k*k);
-                    uint64_t global_subtree_number = subtree_number+m_comp_level_offsets[t_add_comp_levels - (m_tree_height-1-level)];
-                    uint iword = m_comp_leaves.accessFT(global_subtree_number);
-                    const uchar * word = m_vocabulary.get(iword);
-                    int64_t pos = y - (subtree_number*k*k);
-                    for (int j = 0; j < k; ++j) {
-                        if ((word[(pos+j*k)/kUcharBits] >> ((pos+j*k)%kUcharBits)) & 1){
-                            inverse_links2_internal(submatrix_size, level + 1, t_x(source_id % submatrix_size),
-                                                    t_x(row_offset + submatrix_size * j), m_levels_rank[level](y + (j * k)), result,check_leaf_bits_inverse);
-                        }
-                    }
-                }
+            if (is_leaf_level(level)) {
+                check_leaf_bits_inverse(y, row_offset,get_k(level),result);
             } else { //internal node
                 for (int j = 0; j < k; ++j) {
                     if (m_levels[level][y + (j * k)]){
@@ -1101,22 +921,8 @@ namespace sdsl {
                 uint64_t submatrix_size = n / k;
                 int64_t y = index * k * k + (source_id / submatrix_size);
 
-                if (is_compressed_level(level)){//(is_compressed_level(level)){
-                    if (is_leaf_level(level)) {
-                        check_leaf_bits_inverse(y, row_offset,get_k(level),result);
-                    } else {
-                        uint64_t subtree_number = y/(k*k);
-                        uint64_t global_subtree_number = subtree_number+m_comp_level_offsets[t_add_comp_levels - (m_tree_height-1-level)];
-                        uint iword = m_comp_leaves.accessFT(global_subtree_number);
-                        const uchar * word = m_vocabulary.get(iword);
-                        int64_t pos = y - (subtree_number*k*k);
-                        for (int j = 0; j < k; ++j) {
-                            if ((word[(pos+j*k)/kUcharBits] >> ((pos+j*k)%kUcharBits)) & 1){
-                                queue.push(std::make_tuple(submatrix_size, level + 1, t_x(source_id % submatrix_size),
-                                                           t_x(row_offset + submatrix_size * j), m_levels_rank[level](y + (j * k))));
-                            }
-                        }
-                    }
+                if (is_leaf_level(level)) {
+                    check_leaf_bits_inverse(y, row_offset,get_k(level),result);
                 } else { //internal node
                     for (int j = 0; j < k; ++j) {
                         if (m_levels[level][y + (j * k)]){
@@ -1435,8 +1241,7 @@ namespace sdsl {
         */
         inline bool is_leaf_bit_set_comp(uint64_t pos, uint8_t leafK) const {
             uint64_t subtree_number = pos/(leafK*leafK);
-            uint64_t global_subtree_number = m_comp_level_offsets[t_add_comp_levels] + subtree_number;
-            uint iword = m_comp_leaves.accessFT(global_subtree_number);
+            uint iword = m_comp_leaves.accessFT(subtree_number);
             pos = pos - (subtree_number*leafK*leafK);
             const uchar * word = m_vocabulary.get(iword);
             bool bitSet = ((word[pos/kUcharBits] >> (pos%kUcharBits)) & 1);
@@ -1455,8 +1260,7 @@ namespace sdsl {
         template<typename t_x>
         inline void  check_leaf_bits_direct_comp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> & result) const {
             uint64_t subtree_number = pos/(leafK*leafK);
-            uint64_t global_subtree_number = m_comp_level_offsets[t_add_comp_levels] + subtree_number;
-            uint iword = m_comp_leaves.accessFT(global_subtree_number);
+            uint iword = m_comp_leaves.accessFT(subtree_number);
             const uchar * word = m_vocabulary.get(iword);
             pos = pos - (subtree_number*leafK*leafK);
             for (int i = 0; i < leafK; ++i) {
@@ -1476,8 +1280,7 @@ namespace sdsl {
         template<typename t_x>
         inline void  check_leaf_bits_inverse_comp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> & result) const {
             uint64_t subtree_number = pos/(leafK*leafK);
-            uint64_t global_subtree_number = m_comp_level_offsets[t_add_comp_levels] + subtree_number;
-            uint iword = m_comp_leaves.accessFT(global_subtree_number);
+            uint iword = m_comp_leaves.accessFT(subtree_number);
             const uchar * word = m_vocabulary.get(iword);
             pos = pos - (subtree_number*leafK*leafK);
             for (int i = 0; i < leafK; ++i) {

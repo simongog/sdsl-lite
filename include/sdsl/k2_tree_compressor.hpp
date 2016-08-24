@@ -28,69 +28,70 @@ namespace sdsl {
  * @param tree
  * @param build 
  */
-    template<class K2Tree, class Fun>
-    void FreqVoc(const K2Tree &tree, Fun build, uint64_t hash_size = 0) {
-        try {
-            size_t cnt = tree.words_count();
-            uint size = tree.word_size();
+template<class K2Tree, class Fun>
+void FreqVoc(const K2Tree &tree, Fun build, uint64_t hash_size = 0) {
+  try {
+    const size_t cnt = tree.words_count();
+    uint size = tree.word_size();
 
-            Vocabulary words(cnt, size);
-            size_t pos = 0;
-            tree.words([&](const uchar *word) {
-                words.assign(pos, word);
-                ++pos;
-            });
+    Vocabulary words(cnt, size);
+
+    size_t pos = 0;
+    tree.words([&] (const uchar *word) {
+      words.assign(pos, word);
+      ++pos;
+    });
 
 
-            // Count number of different words
-            // We hope there are many repetead words. We need to encode each word in
-            // a 32-bit integer.
-            size_t res = words.sort();
-            if (res > INT_MAX) {
-                std::cerr << "[comperssion::FreqVoc] Too many different words ";
-                std::cerr << "in the vocabulary\n";
-                exit(1);
-            }
-            uint diff_cnt = (uint) res;
-
-            // Insert words in hash
-            if (hash_size == 0) {
-                hash_size = diff_cnt;
-            }
-            HashTable table(hash_size);
-            std::vector<size_t> posInHash;
-            posInHash.reserve(diff_cnt);
-            for (size_t i = 0; i < cnt; ++i) {
-                size_t addr;
-                if (!table.search(words[i], size, &addr)) {
-                    table.add(words[i], size, addr);
-                    posInHash.push_back(addr);
-                } else {
-                    table[addr].weight += 1;
-                }
-            }
-
-            // Sort words by frequency
-            std::sort(posInHash.begin(), posInHash.end(), [&](size_t a, size_t b) {
-                return table[a].weight > table[b].weight;
-            });
-
-            Vocabulary voc(diff_cnt, size);
-            for (uint i = 0; i < diff_cnt; ++i) {
-                Nword &w = table[posInHash[i]];
-                w.codeword = i;
-                voc.assign(i, w.word);
-            }
-
-            build(table, voc);
-        } catch (std::bad_alloc ba) {
-            std::cerr << "[comperssion::FreqVoc] Error:" << ba.what() << "\n";
-            exit(1);
-        } catch (...) {
-            std::cerr << "[comperssion::FreqVoc] Error: unexpected exception\n";
-            exit(1);
-        }
+    // Count number of different words
+    // We hope there are many repetead words. We need to encode each word in
+    // a 32-bit integer.
+    size_t res = words.sort();
+    if (res > INT_MAX) {
+      std::cerr << "[comperssion::FreqVoc] Too many different words ";
+      std::cerr << "in the vocabulary\n";
+      exit(1);
     }
+    uint diff_cnt = (uint) res;
+
+    // Insert words in hash
+    if (hash_size == 0){
+      hash_size = diff_cnt;
+    }
+    HashTable table(hash_size);
+    std::vector<size_t> posInHash;
+    posInHash.reserve(diff_cnt);
+    for (size_t i = 0; i < cnt; ++i) {
+      size_t addr;
+      if (!table.search(words[i], size, &addr)) {
+        table.add(words[i], size, addr);
+        posInHash.push_back(addr);
+      } else {
+        table[addr].weight += 1;
+      }
+    }
+
+    // Sort words by frequency
+    std::sort(posInHash.begin(), posInHash.end(), [&](size_t a, size_t b) {
+      return table[a].weight > table[b].weight;
+    });
+
+    Vocabulary voc(diff_cnt, size);
+    for (uint i = 0; i < diff_cnt; ++i) {
+      Nword &w = table[posInHash[i]];
+      w.codeword = i;
+      voc.assign(i, w.word);
+    }
+
+    build(table, voc);
+  } catch (std::bad_alloc ba) {
+    std::cerr << "[comperssion::FreqVoc] Error:" << ba.what() << "\n";
+    exit(1);
+  } catch (...) {
+    std::cerr << "[comperssion::FreqVoc] Error: unexpected exception\n";
+    exit(1);
+  }
+}
 
 }  // namespace sdsl
 #endif  // INCLUDE_COMPRESSION_COMPRESSOR_H_

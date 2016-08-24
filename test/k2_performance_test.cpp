@@ -92,9 +92,6 @@ namespace {
     typedef k2_tree<8, bit_vector, bit_vector, true> k8_comp;
     typedef k2_tree<16, bit_vector, bit_vector, true> k16_comp;
 
-    typedef k2_tree<4, bit_vector, bit_vector, true, 0, 1> k4_comp_1_comp;
-    typedef k2_tree<4, bit_vector, bit_vector, true, 0, 2> k4_comp_2_comp;
-
     typedef k2_tree<2, bit_vector, bit_vector, true, 2> k2_comp_2;
     typedef k2_tree<4, bit_vector, bit_vector, true, 2> k4_comp_2;
     typedef k2_tree<8, bit_vector, bit_vector, true, 2> k8_comp_2;
@@ -127,10 +124,7 @@ namespace {
     typedef k2_tree<4, bit_vector, bit_vector, false, 8> k4_8;
 
     typedef Types<
-            k4_comp,
-            k4_comp_1_comp,
-            k4_comp_2_comp
-            /*k2,
+            k2,
             k2rrr,
             k3,
             k4,
@@ -173,7 +167,7 @@ namespace {
             k2_tree_partitioned<4,k8_4,true>,
             k2_tree_partitioned<4,k16_4,true>,
 
-            k2_tree_partitioned<4,k2_4>,
+            k2_tree_partitioned<4,k2_4>/*,
             k2_tree_partitioned<4,k4_4>,
             k2_tree_partitioned<4,k8_4>,
             k2_tree_partitioned<4,k16_4>,

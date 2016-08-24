@@ -17,7 +17,7 @@ void print(std::vector<uint32_t>& to_print, uint32_t source_node){
 
 int main()
 {
-    typedef k2_tree<2, bit_vector, bit_vector, true, 2, 1> k2_rrr;
+    typedef k2_tree<2, bit_vector, bit_vector, false, 2> k2_rrr;
     //typedef k2_tree_partitioned<2, k2, true> k2_rrr;
 
 
@@ -54,10 +54,9 @@ int main()
    // k2treap.direct_links_shortcut((uint)7, result);
    // k2treap.direct_links_shortcut_2((uint)7, result);
 
-    k2treap.direct_links2((uint) 0, result);
 
     for (uint32_t i = 0; i < 16; i++){
-        k2treap.direct_links2(i, result);
+        k2treap.direct_links_shortcut_2(i, result);
         print(result, i);
     }
 /*
