@@ -104,8 +104,10 @@ namespace sdsl {
                     this->construct_access_shortcut();
                 }
 
-                if (t_comp){
+                if (t_comp) {
                     this->compress_leaves();
+                } else {
+                    this->m_comp_level_offsets.push_back(0);
                 }
             }
         }
@@ -159,13 +161,18 @@ namespace sdsl {
                 }
             }
 
-            this->m_access_shortcut_size = t_access_shortcut_size;
-            if (t_access_shortcut_size > 0) {
-                this->construct_access_shortcut();
-            }
 
-            if (t_comp){
-                this->compress_leaves();
+            if (this->m_tree_height > 0) {
+                this->m_access_shortcut_size = t_access_shortcut_size;
+                if (t_access_shortcut_size > 0) {
+                    this->construct_access_shortcut();
+                }
+
+                if (t_comp) {
+                    this->compress_leaves();
+                } else {
+                    this->m_comp_level_offsets.push_back(0);
+                }
             }
         }
 
