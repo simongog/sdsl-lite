@@ -52,11 +52,11 @@ int main()
 */
     //k2treap.direct_links((uint32_t) 4, result);
    // k2treap.direct_links_shortcut((uint)7, result);
-   // k2treap.direct_links_shortcut_2((uint)7, result);
+    k2treap.direct_links2((uint)6, result);
 
 
     for (uint32_t i = 0; i < 16; i++){
-        k2treap.direct_links_shortcut_2(i, result);
+        k2treap.direct_links2(i, result);
         print(result, i);
     }
 /*

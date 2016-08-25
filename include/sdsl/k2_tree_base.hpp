@@ -982,24 +982,6 @@ namespace sdsl {
             m_tree_height = height;
         }
 
-        template<typename t_tv>
-        uint8_t get_maximum(const t_tv &v) {
-            using namespace k2_treap_ns;
-            if (v.size() == 0) {
-                return 0;
-            }
-
-            using t_e = typename t_tv::value_type;
-            auto tupmax = [](t_e a) {
-                return std::max(a.first, a.second);
-            };
-            auto max_it = std::max_element(std::begin(v), std::end(v), [&](t_e a, t_e b) {
-                return tupmax(a) < tupmax(b);
-            });
-            return tupmax(*max_it);
-        }
-
-
         void load_vectors_from_file(const std::string &temp_file_prefix, const std::string &id_part) {
             {
                 std::vector<bit_vector> levels(m_tree_height - 1);

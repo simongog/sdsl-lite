@@ -49,8 +49,8 @@ namespace sdsl {
     template<uint8_t t_k,
             typename t_lev=bit_vector,
             typename t_leaf=bit_vector,
-            bool t_comp=false,
-            uint8_t t_access_shortcut_size=0,
+            bool t_comp = false,
+            uint8_t t_access_shortcut_size = 0,
             typename t_rank=typename t_lev::rank_1_type>
 
     class k2_tree : public k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank> {
@@ -58,9 +58,13 @@ namespace sdsl {
         static_assert(t_k <= 16, "t_k has to be smaller than 17.");
 
         FRIEND_TEST(K2TreeInternalTest, testZOrderSort);
+
         FRIEND_TEST(K2TreeInternalTest, testZOrderSort2);
+
         FRIEND_TEST(K2TreeInternalTest, testZOrder100);
+
         FRIEND_TEST(K2TreeInternalTest, test_calculate_subtree_number_and_new_relative_coordinates);
+
         FRIEND_TEST(K2TreeInternalTest, test_access_shortcut);
 
     public:
@@ -91,34 +95,42 @@ namespace sdsl {
         }*/
 
         template<typename t_vector>
-        k2_tree(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint=0, uint64_t hash_size = 0){
-            if (max_hint == 0){
-                max_hint = this->get_maximum(v);
-            }
-            this->m_tree_height = get_tree_height(max_hint);
-
+        k2_tree(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint = 0,
+                uint64_t hash_size = 0) {
+            using namespace k2_treap_ns;
             if (v.size() > 0) {
-                if (use_counting_sort){
-                    k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort(v, temp_file_prefix);
+                if (max_hint == 0) {
+                    max_hint = get_maximum(v);
+                }
+                this->m_tree_height = get_tree_height(max_hint);
+
+                if (use_counting_sort) {
+                    k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort(
+                            v, temp_file_prefix);
                     //construct_bottom_up(v, temp_file_prefix);
-                } else  {
+                } else {
                     construct(v, temp_file_prefix);
                 }
 
-                if (t_comp){
+                if (t_comp) {
                     this->compress_leaves(hash_size);
                 }
 
                 this->m_access_shortcut_size = t_access_shortcut_size;
-                if (t_access_shortcut_size > 0){
+                if (t_access_shortcut_size > 0) {
                     this->construct_access_shortcut();
                 }
             }
         }
 
         k2_tree(int_vector_buffer<> &buf_x,
-                 int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint64_t max_hint = 0, uint64_t hash_size = 0) {
+                int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint64_t max_hint = 0,
+                uint64_t hash_size = 0) {
             using namespace k2_treap_ns;
+
+            if (buf_x.size() == 0) {
+                return;
+            }
 
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
@@ -157,62 +169,66 @@ namespace sdsl {
             this->m_max_element = precomp<t_k>::exp(res);
 
             if (precomp<t_k>::exp(res) <= std::numeric_limits<uint32_t>::max()) {
-                auto v = k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template read< uint32_t, uint32_t>(bufs);
-                if (use_counting_sort){
-                    k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort<std::vector<std::pair<uint32_t, uint32_t>>>(v, buf_x.filename());
-                } else  {
+                auto v = k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template read<uint32_t, uint32_t>(
+                        bufs);
+                if (use_counting_sort) {
+                    k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort<std::vector<std::pair<uint32_t, uint32_t>>>(
+                            v, buf_x.filename());
+                } else {
                     construct(v, buf_x.filename());
                 }
 
             } else {
-                auto v = k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template read< uint64_t, uint64_t>(bufs);
-                if (use_counting_sort){
-                    k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort<std::vector<std::pair<uint64_t, uint64_t>>>(v, buf_x.filename());
-                } else  {
+                auto v = k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template read<uint64_t, uint64_t>(
+                        bufs);
+                if (use_counting_sort) {
+                    k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort<std::vector<std::pair<uint64_t, uint64_t>>>(
+                            v, buf_x.filename());
+                } else {
                     construct(v, buf_x.filename());
                 }
             }
 
-            if (this->m_tree_height > 0){
+            if (this->m_tree_height > 0) {
                 this->m_access_shortcut_size = t_access_shortcut_size;
-                if (t_access_shortcut_size > 0){
+                if (t_access_shortcut_size > 0) {
                     this->construct_access_shortcut();
                 }
 
-                if (t_comp){
+                if (t_comp) {
                     this->compress_leaves(hash_size);
                 }
             }
         }
 
-        inline uint8_t get_k(uint8_t) const{
+        inline uint8_t get_k(uint8_t) const {
             return t_k;
         }
 
         uint word_size() const {
-            return div_ceil((uint) t_k*t_k, kUcharBits);
+            return div_ceil((uint) t_k * t_k, kUcharBits);
         }
 
-        size_t words_count() const
-        {
-            if(this->m_tree_height == 0){
-		return 0;
-	    }
+        size_t words_count() const {
+            if (this->m_tree_height == 0) {
+                return 0;
+            }
 
-	    return this->m_leaves.size() / t_k / t_k;
+            return this->m_leaves.size() / t_k / t_k;
         }
 
         void load(std::istream &in) override {
             k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::load(in);
-            if (this->m_tree_height > 0){
-                if (t_access_shortcut_size >0){
+            if (this->m_tree_height > 0) {
+                if (t_access_shortcut_size > 0) {
                     this->perform_access_shortcut_precomputations();
                 }
             }
         }
 
         //hack a the moment, because construct cannot be virtual
-        void load_from_ladrabin(std::string fileName, uint64_t hash_size = 0, bool use_counting_sort = false, std::string temp_file_prefix = "") {
+        void load_from_ladrabin(std::string fileName, uint64_t hash_size = 0, bool use_counting_sort = false,
+                                std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
             if (!has_ending(fileName, ".ladrabin")) {
                 fileName.append(".ladrabin");
@@ -251,19 +267,20 @@ namespace sdsl {
                 fileStream.close();
 
                 if (coords.size() > 0) {
-                    if (use_counting_sort){
-                        k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort<std::vector<std::pair<uint32_t, uint32_t>>>(coords, temp_file_prefix);
+                    if (use_counting_sort) {
+                        k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort<std::vector<std::pair<uint32_t, uint32_t>>>(
+                                coords, temp_file_prefix);
                         //construct_bottom_up(v, temp_file_prefix);
-                    } else  {
+                    } else {
                         construct(coords, temp_file_prefix);
                     }
 
-                    if (t_comp){
+                    if (t_comp) {
                         this->compress_leaves(hash_size);
                     }
 
                     this->m_access_shortcut_size = t_access_shortcut_size;
-                    if (t_access_shortcut_size > 0){
+                    if (t_access_shortcut_size > 0) {
                         this->construct_access_shortcut();
                     }
                 }
@@ -288,7 +305,7 @@ namespace sdsl {
 
             this->m_size = links.size();
 
-            if (this->m_tree_height == 0){//might occur in k2part
+            if (this->m_tree_height == 0) {//might occur in k2part
                 return;
             }
 
@@ -336,17 +353,18 @@ namespace sdsl {
                                 }
                                 auto __sp = _sp;
 
-                                for (uint8_t j = 0; j < k; ++j) { //partition the t_k vertical partitions t_k -1 times horizontally
-                                        auto __ep = _ep;
-                                        if (j + 1 < k) {
-                                            __ep = std::partition(__sp, _ep, [=, &j, &l](const t_e &e) {
-                                                return precomp<t_k>::divexp(std::get<1>(e), l - 1) % k <= j;
-                                            });
-                                        }
-                                        bool not_empty = __ep > __sp;
-                                        level_buffers[this->m_tree_height - l].push_back(not_empty);
-                                        //level_bits++;
-                                        __sp = __ep;
+                                for (uint8_t j = 0;
+                                     j < k; ++j) { //partition the t_k vertical partitions t_k -1 times horizontally
+                                    auto __ep = _ep;
+                                    if (j + 1 < k) {
+                                        __ep = std::partition(__sp, _ep, [=, &j, &l](const t_e &e) {
+                                            return precomp<t_k>::divexp(std::get<1>(e), l - 1) % k <= j;
+                                        });
+                                    }
+                                    bool not_empty = __ep > __sp;
+                                    level_buffers[this->m_tree_height - l].push_back(not_empty);
+                                    //level_bits++;
+                                    __sp = __ep;
                                 }
                                 _sp = _ep;
                             }
@@ -389,7 +407,8 @@ namespace sdsl {
          * @param temp_file_prefix
          */
         template<typename t_x, typename t_y>
-        void construct_by_z_order_sort_internal(std::vector<std::pair<t_x, t_y>> &links, std::string temp_file_prefix = "") {
+        void
+        construct_by_z_order_sort_internal(std::vector<std::pair<t_x, t_y>> &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
             using t_e = std::pair<t_x, t_y>;
 
@@ -399,24 +418,24 @@ namespace sdsl {
                                   + "_" + util::to_string(util::id());
 
             std::cout << "Sorting By Z Order" << std::endl;
-            __gnu_parallel::sort(links.begin(), links.end(), [&](const t_e& lhs, const t_e& rhs){
+            __gnu_parallel::sort(links.begin(), links.end(), [&](const t_e &lhs, const t_e &rhs) {
                 return sort_by_z_order(lhs, rhs);
             });
 
             std::cout << "Sorting Finished, Constructing Bitvectors" << std::endl;
-            std::vector<int> previous_subtree_number(this->m_tree_height,-1);
+            std::vector<int> previous_subtree_number(this->m_tree_height, -1);
             uint64_t total_size = 0;
 
             {
                 int subtree_distance;
                 bool fill_to_k2_entries = false; //begin extra case!
-                std::vector<uint> gap_to_k2(this->m_tree_height,k*k);
+                std::vector<uint> gap_to_k2(this->m_tree_height, k * k);
                 bool firstLink = true;
                 uint current_subtree_number = 0;
 
                 std::vector<int_vector_buffer<1>> level_buffers = this->create_level_buffers(temp_file_prefix, id_part);
 
-                std::pair<t_x,t_y> previous_link;
+                std::pair<t_x, t_y> previous_link;
                 for (auto &current_link: links) {
                     auto tmp = std::make_pair(current_link.first, current_link.second);
                     for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
@@ -450,11 +469,16 @@ namespace sdsl {
                         } else if (subtree_distance == 0) {
                             fill_to_k2_entries = false;
                         } else {
-                            std::string error_message("negative subtree_distance after z_order sort is not possible, somethings wrong current_level="+
-                                                      std::to_string(current_level)+" subtree_distance="+std::to_string(subtree_distance)+
-                                                      " current_subtree_number="+std::to_string(current_subtree_number)+" previous_subtree_number[current_level]="+
-                                                      std::to_string(previous_subtree_number[current_level])+"current_link="+std::to_string(current_link.first)+","+std::to_string(current_link.second)+
-                                                      "previous_link="+std::to_string(previous_link.first)+","+std::to_string(previous_link.second));
+                            std::string error_message(
+                                    "negative subtree_distance after z_order sort is not possible, somethings wrong current_level=" +
+                                    std::to_string(current_level) + " subtree_distance=" +
+                                    std::to_string(subtree_distance) +
+                                    " current_subtree_number=" + std::to_string(current_subtree_number) +
+                                    " previous_subtree_number[current_level]=" +
+                                    std::to_string(previous_subtree_number[current_level]) + "current_link=" +
+                                    std::to_string(current_link.first) + "," + std::to_string(current_link.second) +
+                                    "previous_link=" + std::to_string(previous_link.first) + "," +
+                                    std::to_string(previous_link.second));
                             throw std::logic_error(error_message);
                         }
                         //std::cout << "Setting previous_subtree_number[" << current_level << "] = "<< current_subtree_number << std::endl;
@@ -561,10 +585,10 @@ namespace sdsl {
          * @return
          */
         template<typename t_x, typename t_y>
-        uint inline calculate_subtree_number_and_new_relative_coordinates(std::pair<t_x, t_y>& link, int level) {
+        uint inline calculate_subtree_number_and_new_relative_coordinates(std::pair<t_x, t_y> &link, int level) {
             using namespace k2_treap_ns;
-            t_x exponent = this->m_tree_height-level-1;
-            t_x result = k*precomp<t_k>::divexp(link.first,exponent)+precomp<t_k>::divexp(link.second,exponent);
+            t_x exponent = this->m_tree_height - level - 1;
+            t_x result = k * precomp<t_k>::divexp(link.first, exponent) + precomp<t_k>::divexp(link.second, exponent);
             link.first = precomp<t_k>::modexp(link.first, exponent);
             link.second = precomp<t_k>::modexp(link.second, exponent);
 
