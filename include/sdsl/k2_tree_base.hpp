@@ -984,17 +984,15 @@ namespace sdsl {
 
         void load_vectors_from_file(const std::string &temp_file_prefix, const std::string &id_part) {
             {
-                std::vector<bit_vector> levels(m_tree_height - 1);
-                for (uint64_t i = 0; i < levels.size(); ++i) {
+                std::vector<bit_vector> levels;
+                levels.resize(m_tree_height - 1);
+                m_levels.reserve(levels.size());
+                for (int i = 0; i < m_tree_height - 1; ++i) {
                     std::string levels_file = temp_file_prefix + "_level_" + std::to_string(i) + "_" + id_part
                                               + ".sdsl";
                     load_from_file(levels[i], levels_file);
+                    m_levels.emplace_back(levels[i]);
                     sdsl::remove(levels_file);
-                }
-
-                m_levels.resize(levels.size());
-                for (uint64_t i = 0; i < levels.size(); ++i) {
-                    m_levels[i] = t_lev(levels[i]);
                 }
             }
 
@@ -1006,9 +1004,7 @@ namespace sdsl {
                 load_from_file(leafs, leafs_file);
                 remove(leafs_file);
 
-                bit_vector _leafs;
-                _leafs.swap(leafs);
-                m_leaves = t_leaf(_leafs);
+                m_leaves = t_leaf(leafs);
             }
 
             m_levels_rank.resize(m_levels.size());
@@ -1019,13 +1015,13 @@ namespace sdsl {
 
         std::vector<int_vector_buffer<1>>
         create_level_buffers(const std::string temp_file_prefix, std::string &id_part) const {
-            std::vector<int_vector_buffer<1>> level_buffers(m_tree_height);
+            std::vector<int_vector_buffer<1>> level_buffers;
+            level_buffers.reserve(m_tree_height);
 
-            for (uint64_t i = 0; i < level_buffers.size(); ++i) {
+            for (uint64_t i = 0; i < m_tree_height; ++i) {
                 std::string levels_file = temp_file_prefix + "_level_" + std::to_string(i) + "_" + id_part
                                           + ".sdsl";
-                int_vector_buffer<1> level_buf(levels_file, std::ios::out);
-                level_buffers[i].swap(level_buf);
+                level_buffers.emplace_back(levels_file, std::ios::out);
             }
 
             return level_buffers;
@@ -1045,6 +1041,10 @@ namespace sdsl {
             using t_e = std::pair<t_x, t_y>;
 
             m_size = links.size();
+
+            if (m_size == 0){
+                return;
+            }
 
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());

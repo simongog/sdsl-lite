@@ -96,7 +96,6 @@ namespace sdsl {
 
             using namespace k2_treap_ns;
             if (v.size() > 0) {
-
                 if (max_hint == 0) {
                     max_hint = get_maximum(v);
                 }
@@ -254,7 +253,8 @@ namespace sdsl {
                 uint source_id;
                 int target_id;
 
-                std::vector<std::pair<uint, uint>> coords(number_of_edges);
+                std::vector<std::pair<uint, uint>> coords;
+                coords.reserve(number_of_edges);
                 /*typedef stxxl::VECTOR_GENERATOR<pair<uint32_t, uint32_t>>::result stxxl_pair_vector;
                 stxxl_pair_vector coords(number_of_nodes);*/
                 for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
@@ -276,6 +276,8 @@ namespace sdsl {
                     } else {
                         construct(coords, temp_file_prefix);
                     }
+
+                    std::cout << "Finished Construction" << std::endl;
 
                     if (t_comp) {
                         this->compress_leaves(hash_size);

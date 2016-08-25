@@ -573,7 +573,7 @@ namespace sdsl {
 
                 std::vector<std::vector<std::pair<uint, uint>>> buffers;
                 buffers.resize(t_k0); //build one row at a time
-                m_k2trees.resize(t_k0*t_k0);
+                m_k2trees.reserve(t_k0*t_k0);
 
                 uint current_matrix_row = 0;
                 for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
@@ -581,12 +581,10 @@ namespace sdsl {
                     if (target_id < 0) {
                         nodes_read++;
                         uint corresponding_row = (nodes_read -1)/m_matrix_dimension;
-
                         if (corresponding_row > current_matrix_row){
-
                             for (uint j = 0; j < t_k0; ++j) {
                                 const subk2_tree k2tree(temp_file_prefix, use_counting_sort, buffers[j]);
-                                m_k2trees[current_matrix_row*t_k0+j] = k2tree;
+                                m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[j]);
                                 buffers[j].clear();
                                 std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
                             }
@@ -597,8 +595,7 @@ namespace sdsl {
                                 current_matrix_row++;
                                 std::cout << "Appending completely empty row: " << current_matrix_row << std::endl;
                                 for (uint j = 0; j < t_k0; ++j) {
-                                    const subk2_tree k2tree(temp_file_prefix, use_counting_sort, buffers[j]);
-                                    m_k2trees[current_matrix_row*t_k0+j] = k2tree;
+                                    m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[j]);
                                     std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
                                 }
                             }
@@ -615,8 +612,7 @@ namespace sdsl {
 
                 //cover leftovers
                 for (uint j = 0; j < t_k0; ++j) {
-                    const subk2_tree k2tree(temp_file_prefix, use_counting_sort, buffers[j]);
-                    m_k2trees[current_matrix_row*t_k0+j] = k2tree;
+                    m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[j]);
                     std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
                     buffers[j].clear();
                 }
@@ -692,15 +688,15 @@ namespace sdsl {
             }
 
             uint64_t amount_of_trees = t_k0*t_k0;
-            m_k2trees.resize(amount_of_trees);
-            for (uint l = 0; l < m_k2trees.size(); ++l) {
-                const subk2_tree k2tree(temp_file_prefix, use_counting_sort, buffers[l]);
-                m_k2trees[l] = k2tree;//buffers[l]);//, temp_file_prefix, use_counting_sort, access_shortcut_size);
+            m_k2trees.reserve(amount_of_trees);
+            for (uint l = 0; l < amount_of_trees; ++l) {
+//                const subk2_tree k2tree(temp_file_prefix, use_counting_sort, buffers[l]);
+                m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[l]);//buffers[l]);//, temp_file_prefix, use_counting_sort, access_shortcut_size);
             }
         }
 
     public:
-        void compress_leaves(uint64_t hash_size) {
+        void compress_leaves(uint64_t hash_size = 0) {
             //std::cout << "Words count " << words_count() << std::endl;
             //std::cout << "Word size " << word_size() << std::endl;
 

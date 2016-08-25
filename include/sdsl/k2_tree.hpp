@@ -134,6 +134,10 @@ namespace sdsl {
             }
 
             typedef int_vector_buffer<> *t_buf_p;
+            if (buf_x.size() == 0) {
+                return;
+            }
+
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
 
             uint64_t max;

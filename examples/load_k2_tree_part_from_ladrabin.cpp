@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
     const uint8_t k = 4;
     //typedef k2_tree<k, bit_vector, bit_vector, true> k2_rrr;
     //typedef k2_tree_partitioned<8, k2_rrr, true> k2_part;
-    typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector, false> k2_rrr;
+    typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector, true> k2_rrr;
     // Initialize treap with a vector of (x,y,weight) elements
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
     k2_rrr k2;
