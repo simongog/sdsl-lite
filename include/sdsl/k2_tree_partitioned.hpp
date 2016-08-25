@@ -43,11 +43,12 @@ namespace sdsl {
         /** For compressed version **/
         Vocabulary m_vocabulary;
         size_type m_size = 0;
-        uint64_t m_max_element = 0;
+        //uint64_t m_max_element = 0;
         uint64_t m_matrix_dimension = 0;
 
     public:
         k2_tree_partitioned() = default;
+        uint64_t m_max_element = 0;
 
         k2_tree_partitioned(const k2_tree_partitioned &tr) {
             *this = tr;
@@ -586,7 +587,7 @@ namespace sdsl {
                                 const subk2_tree k2tree(temp_file_prefix, use_counting_sort, buffers[j]);
                                 m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[j]);
                                 buffers[j].clear();
-                                std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
+             //                   std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
                             }
 
                             //in case of a complete empty row
@@ -596,7 +597,7 @@ namespace sdsl {
                                 std::cout << "Appending completely empty row: " << current_matrix_row << std::endl;
                                 for (uint j = 0; j < t_k0; ++j) {
                                     m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[j]);
-                                    std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
+               //                     std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
                                 }
                             }
 
@@ -613,7 +614,7 @@ namespace sdsl {
                 //cover leftovers
                 for (uint j = 0; j < t_k0; ++j) {
                     m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[j]);
-                    std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
+                 //   std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
                     buffers[j].clear();
                 }
 

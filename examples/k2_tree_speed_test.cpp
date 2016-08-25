@@ -29,7 +29,8 @@ int main(int argc, char *argv[]) {
     //typedef k2_tree_hybrid<k,k,k,k, bit_vector, bit_vector,true> k2_rrr;
     //typedef k2_tree<k, bit_vector, bit_vector, true, 4> k2_rrr;
     //const uint8_t k = 4;
-    typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector> k2_rrr;
+    typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector,false> k2_rrr;
+    typedef k2_tree_partitioned<8, k2_rrr, true> tested_type;
     //typedef k2_tree_partitioned<4, k2_rrr, true> k2_part;
 
 //    typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector, false> k2_rrr;
@@ -45,7 +46,7 @@ int main(int argc, char *argv[]) {
 
     bool use_shortut = argc > 3;
 
-    k2_rrr k2tree;
+    tested_type k2tree;
     std::string fileName = argv[1];
     load_from_file(k2tree, fileName);
 

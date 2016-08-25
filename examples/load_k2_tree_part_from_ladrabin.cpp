@@ -70,8 +70,8 @@ int main(int argc, char *argv[]) {
     std::string file_name(argv[1]);
     const uint8_t k = 4;
     //typedef k2_tree<k, bit_vector, bit_vector, true> k2_rrr;
-    //typedef k2_tree_partitioned<8, k2_rrr, true> k2_part;
-    typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector, true> k2_rrr;
+    typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector,false> k2_rrr;
+    typedef k2_tree_partitioned<8, k2_rrr, true> tested_type;
     // Initialize treap with a vector of (x,y,weight) elements
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
 
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
     if (argc > 3){
         hash_size = stoull(argv[3]);
     }
-    k2_rrr k2;
+    tested_type k2;
     k2.load_from_ladrabin(file_name, hash_size, true);
 
     std::string output_file_name(argv[2]);
