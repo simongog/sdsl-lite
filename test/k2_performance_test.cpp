@@ -16,6 +16,8 @@ namespace {
     string query_file;
     uint queryCount;
     uint *queries;
+    uint construction_time = 0;
+    uint compressed_size = 0;
 
     template<class T>
     class k2_performance_test : public ::testing::Test {
@@ -259,7 +261,9 @@ namespace {
 
             std::cout << "Construction time: " << duration_cast<milliseconds>(stop - start).count() << "\n";
 
+            construction_time = duration_cast<milliseconds>(stop - start).count();
             std::cout << "Compressed size: " << get_file_size(temp_file) << std::endl;
+            compressed_size = get_file_size(temp_file);
         } else {
             throw "Could not load file";
         }
@@ -425,10 +429,10 @@ namespace {
 
         if (use_shortut){
             //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
-            std::cout << "Hereyougo:" << direct_short_time <<","<< direct_time <<","<< inverse_short_time <<","<< inverse_time <<","<< check_short_time <<","<< check_time << std::endl;
+            std::cout << "Hereyougo:" << construction_time << "," << compressed_size << "," << direct_short_time <<","<< direct_time <<","<< inverse_short_time <<","<< inverse_time <<","<< check_short_time <<","<< check_time << std::endl;
         } else {
             //Construction Time	Compressed Size (Byte)	Bpe	Direct (ns)	Inverse (ns)	Check (ns)
-            std::cout << "Hereyougo:" << direct_time <<"," << inverse_time <<"," << check_time << std::endl;
+            std::cout << "Hereyougo:" << construction_time << "," << compressed_size << "," << direct_time <<"," << inverse_time <<"," << check_time << std::endl;
         }
     }
 }  // namespace
