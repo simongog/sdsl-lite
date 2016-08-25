@@ -7,8 +7,6 @@
 #include <tuple>
 #include <complex>
 #include <sdsl/k2_tree_algorithm.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/tokenizer.hpp>
 #include <sys/times.h>
 #include <sdsl/k2_tree_hybrid.hpp>
 
@@ -20,7 +18,15 @@ using std::vector;
 using ::std::ofstream;
 using namespace sdsl;
 using namespace std;
-using namespace boost;
+
+bool hasEnding (std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -46,7 +52,7 @@ int main(int argc, char *argv[]) {
     }
 
     std::string fileName(argv[1]);
-    if(!boost::algorithm::ends_with(fileName, ".graph-txt")){
+    if(!hasEnding(fileName, ".graph-txt")){
         fileName.append(".graph-txt");
         std::cout << "Appending .graph-txt to filename as file has to be in .graph-txt format" << std::endl;
     }
@@ -69,16 +75,16 @@ int main(int argc, char *argv[]) {
         int_vector_buffer<32> x_buffer(output_file_name+".x", std::ios::out);
         int_vector_buffer<32> y_buffer(output_file_name+".y", std::ios::out);
 
+        uint source_id, target_id;
         while (std::getline(fileStream, readBuffer)) {
             //tokenizer<escaped_list_separator<char> > tok(readBuffer);
-            vector <string> sourceNodeAndTargets;
-            boost::split(sourceNodeAndTargets, readBuffer, boost::is_any_of("\t"));
+            stringstream ss(readBuffer);
+            ss >> source_id >> target_id;
 
-            uint sourceId = std::stoul(sourceNodeAndTargets[0].c_str());
-            uint targetId = std::stoul(sourceNodeAndTargets[1].c_str()) / 10;//Strange 0 delimited format
-            //cout << "adding " << sourceId << "," << targetId << endl;
-            x_buffer.push_back(sourceId);
-            y_buffer.push_back(targetId);
+            target_id /= 10; //0 delimieted format
+
+            x_buffer.push_back(source_id);
+            y_buffer.push_back(target_id);
         }
 
     } else {

@@ -10,8 +10,6 @@
 #include <sdsl/k2_tree.hpp>
 #include <sdsl/k2_tree_algorithm.hpp>
 #include <sdsl/bit_vectors.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/tokenizer.hpp>
 #include <sys/times.h>
 
 using std::ifstream;
@@ -22,7 +20,6 @@ using std::vector;
 using ::std::ofstream;
 using namespace sdsl;
 using namespace std;
-using namespace boost;
 
 /* Time meassuring */
 double ticks;
@@ -35,6 +32,14 @@ void start_clock() {
 double stop_clock() {
     times(&t2);
     return (t2.tms_utime - t1.tms_utime) / ticks;
+}
+
+bool hasEnding (std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -61,7 +66,7 @@ int main(int argc, char *argv[]) {
     }
 
     std::string fileName(argv[1]);
-    if(!boost::algorithm::ends_with(fileName, ".graph-txt")){
+    if(!hasEnding(fileName, ".graph-txt")){
         fileName.append(".graph-txt");
         std::cout << "Appending .graph-txt to filename as file has to be in .graph-txt format" << std::endl;
     }

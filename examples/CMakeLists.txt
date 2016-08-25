@@ -1,30 +1,19 @@
 file(GLOB cppFiles RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp") # select all .hpp-files
 
-
-set(Boost_USE_STATIC_LIBS OFF)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_USE_STATIC_RUNTIME OFF)
-
 include(ExternalProject)
-include(find_or_download_package)
-
-message("Boost root set to: ${BOOST_ROOT}")
-
-find_or_download_package(Boost Boost boost COMPONENTS system filesystem regex)
 
 message("DACS_INCLUDE_DIR: ${DACS_INCLUDE_DIR}")
 message("DACS_SRC_DIR: ${DACS_SRC_DIR}")
 
 INCLUDE_DIRECTORIES(
         ${CMAKE_CURRENT_BINARY_DIR}/../external/libdivsufsort/include
-        ${Boost_INCLUDE_DIRS}
         ${gtest_SOURCE_DIR}/include
         ${STXXL_INCLUDE_DIRS}
         ${DACS_INCLUDE_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}/../external/dacs/include
         )
 
-LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64 stxxl boost dacs)
+LINK_LIBRARIES(sdsl gtest divsufsort divsufsort64 stxxl dacs)
 
 # Set compiler flags to show all warnings (MSVC and GCC)
 if(MSVC)

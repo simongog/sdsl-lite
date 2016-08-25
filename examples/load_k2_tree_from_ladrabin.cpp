@@ -97,8 +97,10 @@ int main(int argc, char *argv[]) {
     std::string fileName(argv[1]);
     if(!hasEnding(fileName, ".ladrabin")){
         fileName.append(".ladrabin");
-        std::cout << "Appending .graph-txt to filename as file has to be in .ladrabin format" << std::endl;
+        std::cout << "Appending .ladrabin to filename as file has to be in .ladrabin format" << std::endl;
     }
+
+
     std::fstream fileStream(fileName, std::ios_base::in);
     if (fileStream.is_open()) {
 
@@ -145,12 +147,12 @@ int main(int argc, char *argv[]) {
 
         std::shared_ptr<k2_tree> k2 = get_k2_tree(k, shortcut_size, compress_leaves, coords, number_of_nodes-1);*/
         const uint8_t k = 4;
-        //typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector, false> k2_rrr;
+        typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector, false> k2_rrr;
         //typedef k2_tree_partitioned<4, k2_rrr, true> k2_part;
-        typedef k2_tree<k, bit_vector, bit_vector, true, 4> k2_rrr;
+        //typedef k2_tree<k, bit_vector, bit_vector, true> k2_rrr;
         // Initialize treap with a vector of (x,y,weight) elements
         //construct_im(k2treap, coordinates, numberOfNodes - 1);
-        k2_rrr k2tree("", false, coords, number_of_nodes - 1);
+        k2_rrr k2tree("", true, coords, number_of_nodes - 1);
         coords.clear();
 
         std::string output_file_name(argv[2]);

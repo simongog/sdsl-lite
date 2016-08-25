@@ -6,7 +6,6 @@
 #include <sdsl/k2_tree.hpp>
 #include <sdsl/k2_tree_algorithm.hpp>
 #include <sdsl/bit_vectors.hpp>
-#include <boost/algorithm/string.hpp>
 #include <chrono>
 #include <sys/times.h>
 

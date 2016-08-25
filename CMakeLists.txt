@@ -10,6 +10,10 @@ set(PROJECT_URL "https://github.com/simongog/sdsl-lite")
 set(PROJECT_DESCRIPTION "SDSL: Succinct Data Structure Library")
 #set(CMAKE_BUILD_TYPE "DEBUG")
 
+#for stxxl parallel support
+set(USE_OPENMP "1")
+set(USE_GNU_PARALLEL "1")
+
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" PROJECT_VERSION_FULL)
 string(REGEX REPLACE "[\n\r]" "" PROJECT_VERSION_FULL "${PROJECT_VERSION_FULL}")
 string(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]+$" "\\1" PROJECT_VERSION_MAJOR "${PROJECT_VERSION_FULL}")
@@ -39,8 +43,14 @@ else()
   message(STATUS "Compiler is recent enough to support C++11.")
 endif()
 
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
 if( CMAKE_COMPILER_IS_GNUCXX )
-    append_cxx_compiler_flags("-std=c++11 -fopenmp -Wall -Wextra -DNDEBUG" "GCC" CMAKE_CXX_FLAGS)
+    append_cxx_compiler_flags("-std=c++11 -Wall -Wextra -DNDEBUG" "GCC" CMAKE_CXX_FLAGS)
     message(STATUS ${CMAKE_BUILD_TYPE})
     if (CMAKE_BUILD_TYPE MATCHES DEBUG)
         message(STATUS "######################Using GCC in debug mode######################")
