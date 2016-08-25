@@ -18,6 +18,9 @@ class k2_tree_test_k_2 : public ::testing::Test { };
 template<class T>
 class k2_tree_test_k_3 : public ::testing::Test { };
 
+template<class T>
+class k2_tree_test : public ::testing::Test { };
+
 using testing::Types;
 
 namespace k2_tree_test_nm
@@ -36,10 +39,21 @@ namespace k2_tree_test_nm
 };
 
 typedef Types<
-    k2_tree<2, bit_vector, rank_support_v<>>> k_2_implementations;
+    k2_tree<2, bit_vector, rank_support_v<>>//,
+    //k2_tree<2, bit_vector>
+    > k_2_implementations;
 
 typedef Types<
-    k2_tree<3, bit_vector, rank_support_v<>>> k_3_implementations;
+    k2_tree<3, bit_vector, rank_support_v<>>//,
+    //k2_tree<3, bit_vector>
+    > k_3_implementations;
+
+typedef Types<
+    k2_tree<2, bit_vector>,
+    k2_tree<3, bit_vector>,
+    k2_tree<2, rrr_vector<63>>,
+    k2_tree<4, bit_vector, rank_support_v<>>
+    > Implementations;
 
 TYPED_TEST_CASE(k2_tree_test_k_2, k_2_implementations);
 
@@ -246,7 +260,8 @@ TYPED_TEST(k2_tree_test_k_3, build_from_matrix_test)
                   0, 1, 0, 1, 0, 0, 0, 0, 0};
     k2_tree_test_nm::check_t_l(tree, expected_t, expected_l);
 }
-/*
+
+
 TYPED_TEST(k2_tree_test_k_3, build_from_edges_array)
 {
     typedef std::tuple<typename TypeParam::idx_type,
@@ -285,8 +300,6 @@ TYPED_TEST(k2_tree_test_k_3, build_from_edges_array)
     tree = TypeParam(e, 3);
     k2_tree_test_nm::check_t_l(tree, {1, 0, 0, 1}, {1, 1, 1, 1,  1, 0, 0, 0});
 }
-*/
-
 
 
 TYPED_TEST(k2_tree_test_k_2, neighbors_test)
@@ -335,7 +348,9 @@ TYPED_TEST(k2_tree_test_k_2, neighbors_test)
     ASSERT_EQ(0u, neigh_0.size());
 }
 
-TYPED_TEST(k2_tree_test_k_2, reverse_neighbors_test)
+TYPED_TEST_CASE(k2_tree_test, Implementations);
+
+TYPED_TEST(k2_tree_test, reverse_neighbors_test)
 {
     vector<vector <int>> mat({{1, 0, 0, 0, 1},
                               {0, 0, 0, 0, 0},
