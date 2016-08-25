@@ -120,6 +120,7 @@ int main(int argc, char *argv[]) {
         std::vector<std::pair<uint, uint>> coords(number_of_edges);
         /*typedef stxxl::VECTOR_GENERATOR<pair<uint32_t, uint32_t>>::result stxxl_pair_vector;
         stxxl_pair_vector coords(number_of_nodes);*/
+        std::cout << "coords size:" << coords.size() << std::endl;
         for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
             _read_member(target_id, fileStream);
             if (target_id < 0) {
@@ -129,6 +130,7 @@ int main(int argc, char *argv[]) {
                 coords.push_back(std::make_pair(source_id, target_id));
             }
         }
+        std::cout << "coords size:" << coords.size() << std::endl;
 
         fileStream.close();
 

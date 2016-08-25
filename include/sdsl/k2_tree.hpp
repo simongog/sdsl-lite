@@ -97,6 +97,7 @@ namespace sdsl {
         template<typename t_vector>
         k2_tree(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint = 0,
                 uint64_t hash_size = 0) {
+
             using namespace k2_treap_ns;
             if (v.size() > 0) {
                 if (max_hint == 0) {
