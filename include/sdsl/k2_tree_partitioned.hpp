@@ -59,13 +59,13 @@ namespace sdsl {
         }
 
         template<typename t_vector>
-        k2_tree_partitioned(std::string temp_file_prefix, bool bottom_up, t_vector &v, uint64_t max_hint, uint64_t hash_size = 0) {
+        k2_tree_partitioned(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint, uint64_t hash_size = 0) {
             //FIXME: build multiple k trees
             //partition into k02 parts
             using namespace k2_treap_ns;
             m_max_element = get_maximum(v, max_hint);
             calculate_matrix_dimension_and_submatrix_count();
-            build_k2_trees(v, temp_file_prefix, bottom_up);
+            build_k2_trees(v, temp_file_prefix, use_counting_sort);
 
             if (t_comp){
                 compress_leaves(hash_size);
@@ -80,7 +80,7 @@ namespace sdsl {
         }
 
         k2_tree_partitioned(int_vector_buffer<> &buf_x,
-                            int_vector_buffer<> &buf_y, bool bottom_up=false, uint64_t max_hint = 0, uint64_t hash_size = 0) {
+                            int_vector_buffer<> &buf_y, bool use_counting_sort=false, uint64_t max_hint = 0, uint64_t hash_size = 0) {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
@@ -113,10 +113,10 @@ namespace sdsl {
 
             if (m_max_element <= std::numeric_limits<uint32_t>::max()) {
                 auto v = read < uint32_t, uint32_t>(bufs);
-                build_k2_trees(v, buf_x.filename(), bottom_up);
+                build_k2_trees(v, buf_x.filename(), use_counting_sort);
             } else {
                 auto v = read < uint64_t, uint64_t>(bufs);
-                build_k2_trees(v, buf_x.filename(), bottom_up);
+                build_k2_trees(v, buf_x.filename(), use_counting_sort);
             }
 
             if (t_comp){
@@ -527,16 +527,15 @@ namespace sdsl {
             }
         }
 
-        void load_from_ladrabin(std::string fileName, uint64_t hash_size = 0, bool bottom_up = false, std::string temp_file_prefix = ""){
+        void load_from_ladrabin(std::string fileName, uint64_t hash_size = 0, bool use_counting_sort = false, std::string temp_file_prefix = ""){
+            using namespace k2_treap_ns;
             if(!has_ending(fileName, ".ladrabin")){
                 fileName.append(".ladrabin");
                 std::cout << "Appending .graph-txt to filename as file has to be in .ladrabin format" << std::endl;
             }
 
             std::fstream fileStream(fileName, std::ios_base::in);
-		
-	    //FIXME: removr
-	    hash_size = 20000000;
+
             if (fileStream.is_open()){
                 uint number_of_nodes;
                 ulong number_of_edges;
@@ -566,7 +565,7 @@ namespace sdsl {
                         if (corresponding_row > current_matrix_row){
 
                             for (uint j = 0; j < m_amount_of_submatrices; ++j) {
-                                const subk2_tree k2tree(temp_file_prefix, bottom_up, buffers[j]);
+                                const subk2_tree k2tree(temp_file_prefix, use_counting_sort, buffers[j]);
                                 m_k2trees[current_matrix_row*m_amount_of_submatrices+j] = k2tree;
                                 buffers[j].clear();
                                 std::cout << "Assigning tree " << current_matrix_row*m_amount_of_submatrices+j << std::endl;
@@ -578,7 +577,7 @@ namespace sdsl {
                                 current_matrix_row++;
                                 std::cout << "Appending completely empty row: " << current_matrix_row << std::endl;
                                 for (uint j = 0; j < m_amount_of_submatrices; ++j) {
-                                    const subk2_tree k2tree(temp_file_prefix, bottom_up, buffers[j]);
+                                    const subk2_tree k2tree(temp_file_prefix, use_counting_sort, buffers[j]);
                                     m_k2trees[current_matrix_row*m_amount_of_submatrices+j] = k2tree;
                                     std::cout << "Assigning tree " << current_matrix_row*m_amount_of_submatrices+j << std::endl;
                                 }
@@ -596,7 +595,7 @@ namespace sdsl {
 
                 //cover leftovers
                 for (uint j = 0; j < m_amount_of_submatrices; ++j) {
-                    const subk2_tree k2tree(temp_file_prefix, bottom_up, buffers[j]);
+                    const subk2_tree k2tree(temp_file_prefix, use_counting_sort, buffers[j]);
                     m_k2trees[current_matrix_row*m_amount_of_submatrices+j] = k2tree;
                     std::cout << "Assigning tree " << current_matrix_row*m_amount_of_submatrices+j << std::endl;
                     buffers[j].clear();
@@ -646,14 +645,6 @@ namespace sdsl {
         }
 
     private:
-        bool has_ending (std::string const &fullString, std::string const &ending) {
-            if (fullString.length() >= ending.length()) {
-                return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-            } else {
-                return false;
-            }
-        }
-
         template<typename t_tv>
         uint8_t get_maximum(const t_tv &v, uint64_t max_hint) {
             using namespace k2_treap_ns;
@@ -676,7 +667,7 @@ namespace sdsl {
         }
 
         template<typename t_vector>
-        void build_k2_trees(t_vector &links, std::string temp_file_prefix = "", bool bottom_up = false) {
+        void build_k2_trees(t_vector &links, std::string temp_file_prefix = "", bool use_counting_sort = false) {
             using namespace k2_treap_ns;
             typedef decltype(links[0].first) t_x;
             typedef decltype(links[0].second) t_y;
@@ -704,11 +695,12 @@ namespace sdsl {
             uint64_t amount_of_trees = m_amount_of_submatrices*m_amount_of_submatrices;
             m_k2trees.resize(amount_of_trees);
             for (uint l = 0; l < m_k2trees.size(); ++l) {
-                const subk2_tree k2tree(temp_file_prefix, bottom_up, buffers[l]);
-                m_k2trees[l] = k2tree;//buffers[l]);//, temp_file_prefix, bottom_up, access_shortcut_size);
+                const subk2_tree k2tree(temp_file_prefix, use_counting_sort, buffers[l]);
+                m_k2trees[l] = k2tree;//buffers[l]);//, temp_file_prefix, use_counting_sort, access_shortcut_size);
             }
         }
 
+    public:
         void compress_leaves(uint64_t hash_size) {
             //std::cout << "Words count " << words_count() << std::endl;
             //std::cout << "Word size " << word_size() << std::endl;

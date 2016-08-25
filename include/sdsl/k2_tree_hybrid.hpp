@@ -87,8 +87,11 @@ namespace sdsl {
 
         template<typename t_vector>
         k2_tree_hybrid(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint = 0, uint64_t hash_size = 0) {
-            this->m_hash_size = hash_size;
-            this->m_tree_height = get_tree_height(v, max_hint);
+
+            if (max_hint == 0){
+                max_hint = this->get_maximum(v);
+            }
+            this->m_tree_height = get_tree_height(max_hint);
 
             if (v.size() > 0) {
                 if (use_counting_sort) {
@@ -104,7 +107,7 @@ namespace sdsl {
                 }
 
                 if (t_comp){
-                    this->compress_leaves();
+                    this->compress_leaves(hash_size);
                 }
             }
         }
@@ -113,7 +116,6 @@ namespace sdsl {
                        int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint64_t max_hint = 0, uint64_t hash_size = 0) {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
-            this->m_hash_size = hash_size;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
 
             uint64_t max;
@@ -158,13 +160,15 @@ namespace sdsl {
                 }
             }
 
-            this->m_access_shortcut_size = t_access_shortcut_size;
-            if (t_access_shortcut_size > 0) {
-                this->construct_access_shortcut();
-            }
+            if (this->m_tree_height > 0){
+                this->m_access_shortcut_size = t_access_shortcut_size;
+                if (t_access_shortcut_size > 0){
+                    this->construct_access_shortcut();
+                }
 
-            if (t_comp){
-                this->compress_leaves();
+                if (t_comp){
+                    this->compress_leaves(hash_size);
+                }
             }
         }
 
@@ -202,6 +206,67 @@ namespace sdsl {
                 if (t_access_shortcut_size >0){
                     this->perform_access_shortcut_precomputations();
                 }
+            }
+        }
+
+        //hack a the moment, because construct cannot be virtual
+        void load_from_ladrabin(std::string fileName, uint64_t hash_size = 0, bool use_counting_sort = false, std::string temp_file_prefix = "") {
+            using namespace k2_treap_ns;
+            if (!has_ending(fileName, ".ladrabin")) {
+                fileName.append(".ladrabin");
+                std::cout << "Appending .graph-txt to filename as file has to be in .ladrabin format" << std::endl;
+            }
+
+            std::fstream fileStream(fileName, std::ios_base::in);
+
+            if (fileStream.is_open()) {
+                uint number_of_nodes;
+                ulong number_of_edges;
+
+                read_member(number_of_nodes, fileStream);
+                read_member(number_of_edges, fileStream);
+
+                this->m_max_element = number_of_nodes - 1;
+                this->m_size = number_of_edges;
+                this->m_tree_height = get_tree_height(this->m_max_element);
+
+                uint nodes_read = 0;
+                uint source_id;
+                int target_id;
+
+                std::vector<std::pair<uint, uint>> coords(number_of_edges);
+                /*typedef stxxl::VECTOR_GENERATOR<pair<uint32_t, uint32_t>>::result stxxl_pair_vector;
+                stxxl_pair_vector coords(number_of_nodes);*/
+                for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
+                    read_member(target_id, fileStream);
+                    if (target_id < 0) {
+                        nodes_read++;
+                    } else {
+                        source_id = nodes_read - 1;
+                        coords.push_back(std::make_pair(source_id, target_id));
+                    }
+                }
+                fileStream.close();
+
+                if (coords.size() > 0) {
+                    if (use_counting_sort){
+                        k2_tree_base<t_k_l_1, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort(coords, temp_file_prefix);
+                        //construct_bottom_up(v, temp_file_prefix);
+                    } else  {
+                        construct(coords, temp_file_prefix);
+                    }
+
+                    if (t_comp){
+                        this->compress_leaves();
+                    }
+
+                    this->m_access_shortcut_size = t_access_shortcut_size;
+                    if (t_access_shortcut_size > 0){
+                        this->construct_access_shortcut(hash_size);
+                    }
+                }
+            } else {
+                throw std::runtime_error("Could not load ladrabin file");
             }
         }
 
@@ -343,33 +408,7 @@ namespace sdsl {
 
         }
 
-        template<typename t_tv>
-        uint8_t get_tree_height(const t_tv &v, uint64_t max_seed = 0) {
-            using namespace k2_treap_ns;
-            using t_e = typename t_tv::value_type;
-
-            if (v.size() == 0) {
-                return 0;
-            }
-
-            uint64_t max;
-            if (max_seed != 0) {
-                max = max_seed;
-            } else {
-                auto tupmax = [](t_e a) {
-                    return std::max(a.first, a.second);
-                };
-                auto max_it = std::max_element(std::begin(v), std::end(v), [&](t_e a, t_e b) {
-                    return tupmax(a) < tupmax(b);
-                });
-
-                max = tupmax(*max_it);
-            }
-
-            return get_tree_height(max);
-        }
-
-        uint8_t get_tree_height(uint64_t max) {
+        uint8_t get_tree_height(const uint64_t max) {
             uint8_t res = 1;
             if (t_k_l_1 <= max) {
                 this->m_max_element = t_k_l_1;

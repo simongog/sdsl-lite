@@ -55,7 +55,6 @@ namespace sdsl {
         uint64_t m_max_element = 0; //FIXME: this is an ugly hack for k2part
         uint8_t m_tree_height = 0;
         uint8_t m_access_shortcut_size = 0;
-        uint64_t m_hash_size  = 0;
 
         k2_tree_base() = default;
 
@@ -68,7 +67,7 @@ namespace sdsl {
         }
 
         //virtual ~k2_tree_base() = 0;
-        virtual ~k2_tree_base(){
+        virtual ~k2_tree_base() {
             /*if (t_comp){
                 m_comp_leaves.destroy();
                 m_vocabulary.destroy();
@@ -84,7 +83,7 @@ namespace sdsl {
         /** BitArray containing Gog's B vector. */
         bit_vector m_access_shortcut;
         //Rank support for pattern 01 and 1
-        rank_support_v<10,2> m_access_shortcut_rank_10_support;
+        rank_support_v<10, 2> m_access_shortcut_rank_10_support;
         bit_vector::select_1_type m_access_shortcut_select_1_support;
 
         /** For compressed version **/
@@ -92,6 +91,7 @@ namespace sdsl {
 
 
         virtual uint8_t get_k(uint8_t) const = 0;
+        virtual uint8_t get_tree_height(const uint64_t max) = 0;
 
     private:
         //sl = shortcut_level
@@ -107,19 +107,21 @@ namespace sdsl {
             result.clear();
 
             //Patological case happening e.g. when using k2part
-            if (m_tree_height == 0 || source_id > m_max_element){
+            if (m_tree_height == 0 || source_id > m_max_element) {
                 return;
             }
 
             //direct_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result);
-            if (t_comp){
-                direct_links2_internal_queue(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
-                    check_leaf_bits_direct_comp(pos, offset, leafK, result);
-                });
+            if (t_comp) {
+                direct_links2_internal_queue(source_id, result,
+                                             [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> &result) {
+                                                 check_leaf_bits_direct_comp(pos, offset, leafK, result);
+                                             });
             } else {
-                direct_links2_internal_queue(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
-                    check_leaf_bits_direct_uncomp(pos, offset, leafK, result);
-                });
+                direct_links2_internal_queue(source_id, result,
+                                             [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> &result) {
+                                                 check_leaf_bits_direct_uncomp(pos, offset, leafK, result);
+                                             });
             }
 
         }
@@ -127,11 +129,13 @@ namespace sdsl {
         template<typename t_x>
         void direct_links_shortcut(t_x source_id, std::vector<t_x> &result) const {
             if (t_comp) {
-                direct_links_shortcut_internal(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                direct_links_shortcut_internal(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                                         std::vector<t_x> &result) {
                     check_leaf_bits_direct_comp(pos, offset, leafK, result);
                 });
             } else {
-                direct_links_shortcut_internal(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                direct_links_shortcut_internal(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                                         std::vector<t_x> &result) {
                     check_leaf_bits_direct_uncomp(pos, offset, leafK, result);
                 });
             }
@@ -140,16 +144,17 @@ namespace sdsl {
         template<typename t_x>
         void direct_links_shortcut_2(t_x source_id, std::vector<t_x> &result) const {
             if (t_comp) {
-                direct_links_shortcut_internal_2(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                direct_links_shortcut_internal_2(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                                           std::vector<t_x> &result) {
                     check_leaf_bits_direct_comp(pos, offset, leafK, result);
                 });
             } else {
-                direct_links_shortcut_internal_2(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                direct_links_shortcut_internal_2(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                                           std::vector<t_x> &result) {
                     check_leaf_bits_direct_uncomp(pos, offset, leafK, result);
                 });
             }
         }
-
 
 
         template<typename t_x, typename Function>
@@ -157,18 +162,19 @@ namespace sdsl {
             using namespace k2_treap_ns;
             result.clear();
 
-            if (m_access_shortcut_size == 0){
+            if (m_access_shortcut_size == 0) {
                 throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
             }
 
             //Patological case happening e.g. when using k2part
-            if (m_tree_height == 0 || source_id > m_max_element){
+            if (m_tree_height == 0 || source_id > m_max_element) {
                 return;
             }
 
             for (uint j = 0; j < m_submatrix_in_row_on_sl; ++j) {
                 t_x column_offset = j * m_field_size_on_sl;
-                uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(column_offset, source_id, m_real_size_on_sl,
+                uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(column_offset, source_id,
+                                                                               m_real_size_on_sl,
                                                                                m_access_shortcut_size);
                 uint64_t y = this->m_access_shortcut_select_1_support(z + 1);
                 //std::cout << "current y " << y <<std::endl;
@@ -179,8 +185,9 @@ namespace sdsl {
                     //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
                     //directly get corresponding data from leaf array
 
-                    uint64_t index = this->m_access_shortcut_rank_10_support(y+1);
-                    direct_links2_internal(m_field_size_on_sl, m_access_shortcut_size, t_x(source_id % m_field_size_on_sl),
+                    uint64_t index = this->m_access_shortcut_rank_10_support(y + 1);
+                    direct_links2_internal(m_field_size_on_sl, m_access_shortcut_size,
+                                           t_x(source_id % m_field_size_on_sl),
                                            column_offset, index, result, check_leaf_bits);
                 }
             }
@@ -191,55 +198,58 @@ namespace sdsl {
             using namespace k2_treap_ns;
             result.clear();
 
-            if (m_access_shortcut_size == 0){
+            if (m_access_shortcut_size == 0) {
                 throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
             }
 
             //Patological case happening e.g. when using k2part
-            if (m_tree_height == 0 || source_id > m_max_element){
+            if (m_tree_height == 0 || source_id > m_max_element) {
                 return;
             }
 
             t_x column_offset = 0;
-            for (uint j = 0; j < m_submatrix_in_row_on_sl/k0; ++j) {
-                uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(column_offset, source_id, m_real_size_on_sl,
+            for (uint j = 0; j < m_submatrix_in_row_on_sl / k0; ++j) {
+                uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(column_offset, source_id,
+                                                                               m_real_size_on_sl,
                                                                                m_access_shortcut_size);
-                uint64_t y = this->m_access_shortcut_select_1_support(z+1);
-                uint64_t index = this->m_access_shortcut_rank_10_support(y+1);
-                    //y--;
-                    for (int i = 0; i < k0; ++i) {
-                        //dont use select support, but directly look in access_shortcut once position has been obtained
+                uint64_t y = this->m_access_shortcut_select_1_support(z + 1);
+                uint64_t index = this->m_access_shortcut_rank_10_support(y + 1);
+                //y--;
+                for (int i = 0; i < k0; ++i) {
+                    //dont use select support, but directly look in access_shortcut once position has been obtained
 
-                        //std::cout << "current y " << y <<std::endl;
-                        //std::cout << "current column offset " << column_offset <<std::endl;
-                        //check if exists and if B_[y-1] == 0 otherwise no link
-                        if (this->m_access_shortcut[y+1] == false) {
-                            //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
-                            //directly get corresponding data from leaf array
+                    //std::cout << "current y " << y <<std::endl;
+                    //std::cout << "current column offset " << column_offset <<std::endl;
+                    //check if exists and if B_[y-1] == 0 otherwise no link
+                    if (this->m_access_shortcut[y + 1] == false) {
+                        //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
+                        //directly get corresponding data from leaf array
 
-                            direct_links2_internal(m_field_size_on_sl, m_access_shortcut_size,
-                                                   t_x(source_id % m_field_size_on_sl), column_offset, index, result,
-                                                   check_leaf_bits);
-                            index ++;
-                            y+=2;
-                        } else {
-                            y+=1;
-                        }
-
-                        column_offset += m_field_size_on_sl;
+                        direct_links2_internal(m_field_size_on_sl, m_access_shortcut_size,
+                                               t_x(source_id % m_field_size_on_sl), column_offset, index, result,
+                                               check_leaf_bits);
+                        index++;
+                        y += 2;
+                    } else {
+                        y += 1;
                     }
-                z+=k0*k0;
+
+                    column_offset += m_field_size_on_sl;
+                }
+                z += k0 * k0;
             }
         }
 
         template<typename t_x>
         void inverse_links_shortcut(t_x target_id, std::vector<t_x> &result) const {
             if (t_comp) {
-                inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                                          std::vector<t_x> &result) {
                     check_leaf_bits_inverse_comp(pos, offset, leafK, result);
                 });
             } else {
-                inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
+                inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                                          std::vector<t_x> &result) {
                     check_leaf_bits_inverse_uncomp(pos, offset, leafK, result);
                 });
             }
@@ -248,28 +258,31 @@ namespace sdsl {
         template<typename t_x, typename Function>
         void inverse_links_shortcut_internal(t_x target_id, std::vector<t_x> &result, Function check_leaf_bits) const {
             using namespace k2_treap_ns;
-            if (m_access_shortcut_size == 0){
+            if (m_access_shortcut_size == 0) {
                 throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
             }
 
             result.clear();
 
             //Patological case happening e.g. when using k2part
-            if (m_tree_height == 0 || target_id > m_max_element){
+            if (m_tree_height == 0 || target_id > m_max_element) {
                 return;
             }
 
             for (uint j = 0; j < m_submatrix_in_row_on_sl; ++j) {
-                t_x row_offset = j*m_field_size_on_sl;
-                uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(target_id,row_offset, m_real_size_on_sl, m_access_shortcut_size);
-                uint64_t y = this->m_access_shortcut_select_1_support(z+1);
+                t_x row_offset = j * m_field_size_on_sl;
+                uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(target_id, row_offset, m_real_size_on_sl,
+                                                                               m_access_shortcut_size);
+                uint64_t y = this->m_access_shortcut_select_1_support(z + 1);
                 //check if exists and if B_[y-1] == 0 otherwise no link
-                if (!(this->m_access_shortcut[y+1] == true)){
+                if (!(this->m_access_shortcut[y + 1] == true)) {
                     //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
                     //directly get corresponding data from leaf array
 
-                    uint64_t index = this->m_access_shortcut_rank_10_support(y+1);
-                    inverse_links2_internal(m_field_size_on_sl, m_access_shortcut_size, t_x (target_id%m_field_size_on_sl), row_offset, index, result, check_leaf_bits);
+                    uint64_t index = this->m_access_shortcut_rank_10_support(y + 1);
+                    inverse_links2_internal(m_field_size_on_sl, m_access_shortcut_size,
+                                            t_x(target_id % m_field_size_on_sl), row_offset, index, result,
+                                            check_leaf_bits);
                 }
             }
         }
@@ -279,19 +292,21 @@ namespace sdsl {
             using namespace k2_treap_ns;
             result.clear();
 
-            if (m_tree_height == 0 || target_id > m_max_element){
+            if (m_tree_height == 0 || target_id > m_max_element) {
                 return;
             }
 
             //inverse_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result);
-            if (t_comp){
-                inverse_links2_internal_queue(target_id, result,[this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
-                    check_leaf_bits_inverse_comp(pos, offset, leafK, result);
-                });
+            if (t_comp) {
+                inverse_links2_internal_queue(target_id, result,
+                                              [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> &result) {
+                                                  check_leaf_bits_inverse_comp(pos, offset, leafK, result);
+                                              });
             } else {
-                inverse_links2_internal_queue(target_id, result,[this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
-                    check_leaf_bits_inverse_uncomp(pos, offset, leafK, result);
-                });
+                inverse_links2_internal_queue(target_id, result,
+                                              [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> &result) {
+                                                  check_leaf_bits_inverse_uncomp(pos, offset, leafK, result);
+                                              });
             }
         }
 
@@ -357,17 +372,17 @@ namespace sdsl {
             if (m_max_element != tr.m_max_element)
                 return false;
 
-            if (m_levels.size() != tr.m_levels.size()){
+            if (m_levels.size() != tr.m_levels.size()) {
                 std::cout << "m_levels.size() differs" << std::endl;
                 return false;
             }
             for (uint i = 0; i < m_levels.size(); ++i) {
-                if (m_levels[i].size() != tr.m_levels[i].size()){
-                    std::cout << "m_levels["<<i<<"].size() differs" << std::endl;
+                if (m_levels[i].size() != tr.m_levels[i].size()) {
+                    std::cout << "m_levels[" << i << "].size() differs" << std::endl;
                     return false;
                 }
                 for (uint j = 0; j < m_levels[i].size(); ++j) {
-                    if (m_levels[i][j] != tr.m_levels[i][j]){
+                    if (m_levels[i][j] != tr.m_levels[i][j]) {
                         std::cout << "m_levels vectors differ at " << i << std::endl;
                         return false;
                     }
@@ -402,7 +417,7 @@ namespace sdsl {
                 }
             }
 
-            if (m_access_shortcut_size != tr.m_access_shortcut_size){
+            if (m_access_shortcut_size != tr.m_access_shortcut_size) {
                 std::cout << "Shortcut size differs" << std::endl;
                 return false;
             }
@@ -428,7 +443,7 @@ namespace sdsl {
                 uint m_levels_size = m_levels.size();
 
                 uint64_t biggerSize;
-                if (tr_m_levels_size > m_levels_size){
+                if (tr_m_levels_size > m_levels_size) {
                     biggerSize = tr_m_levels_size;
                     m_levels.resize(biggerSize);
                     m_levels_rank.resize(biggerSize);
@@ -470,22 +485,22 @@ namespace sdsl {
 
         //! Serializes the data structure into the given ostream
         virtual size_type serialize(std::ostream &out, structure_tree_node *v = nullptr,
-                            std::string name = "") const {
+                                    std::string name = "") const {
             structure_tree_node *child = structure_tree::add_child(
                     v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_tree_height, out, child, "t");
             written_bytes += write_member(m_size, out, child, "s");
             written_bytes += write_member(m_max_element, out, child, "max_element");
-            if (m_tree_height > 0){
-                for (int i = 0; i < m_tree_height -1; ++i) {
-                    written_bytes += m_levels[i].serialize(out, child, ("level"+std::to_string(i)));
+            if (m_tree_height > 0) {
+                for (int i = 0; i < m_tree_height - 1; ++i) {
+                    written_bytes += m_levels[i].serialize(out, child, ("level" + std::to_string(i)));
                 }
-                for (int i = 0; i < m_tree_height -1; ++i) {
+                for (int i = 0; i < m_tree_height - 1; ++i) {
                     written_bytes += m_levels_rank[i].serialize(out, child, "levels_rank");
                 }
 
-                if (t_comp){
+                if (t_comp) {
                     written_bytes += m_vocabulary.serialize(out, child, "voc");
                     written_bytes += m_comp_leaves.serialize(out, child, "comp_leafs");
                 } else {
@@ -494,7 +509,7 @@ namespace sdsl {
             }
 
             written_bytes += write_member(m_access_shortcut_size, out, child, "access_shortcut_size");
-            if (m_access_shortcut_size > 0){
+            if (m_access_shortcut_size > 0) {
                 written_bytes += m_access_shortcut.serialize(out, child, "access_shortcut");
                 written_bytes += m_access_shortcut_rank_10_support.serialize(out, child, "access_rank");
                 written_bytes += m_access_shortcut_select_1_support.serialize(out, child, "access_select");
@@ -509,19 +524,19 @@ namespace sdsl {
             read_member(m_size, in);
             read_member(m_max_element, in);
 
-            if (m_tree_height > 0){
-                m_levels.resize(m_tree_height-1);
+            if (m_tree_height > 0) {
+                m_levels.resize(m_tree_height - 1);
                 for (uint64_t i = 0; i < m_levels.size(); ++i) {
                     m_levels[i].load(in);
                 }
 
-                m_levels_rank.resize(m_tree_height-1);
+                m_levels_rank.resize(m_tree_height - 1);
                 for (uint64_t i = 0; i < m_levels_rank.size(); ++i) {
                     m_levels_rank[i].load(in);
                     m_levels_rank[i].set_vector(&m_levels[i]);
                 }
 
-                if (t_comp){
+                if (t_comp) {
                     m_vocabulary.load(in);
                     m_comp_leaves.load(in);
                 } else {
@@ -531,7 +546,7 @@ namespace sdsl {
             }
 
             read_member(m_access_shortcut_size, in);
-            if (m_access_shortcut_size > 0){
+            if (m_access_shortcut_size > 0) {
                 m_access_shortcut.load(in);
                 m_access_shortcut_rank_10_support.load(in);
                 m_access_shortcut_rank_10_support.set_vector(&m_access_shortcut);
@@ -539,8 +554,6 @@ namespace sdsl {
                 m_access_shortcut_select_1_support.set_vector(&m_access_shortcut);
             }
         }
-
-
 
         /**
         * Iterates over the words in the leaf level.
@@ -550,11 +563,11 @@ namespace sdsl {
         */
         template<typename Function>
         void words(Function fun) const {
-            if (m_tree_height == 0){
-	    	return;
-  	    }
+            if (m_tree_height == 0) {
+                return;
+            }
 
-	    size_t cnt = words_count();
+            size_t cnt = words_count();
             uint size = word_size();
 
             size_t bit = 0;
@@ -562,9 +575,9 @@ namespace sdsl {
                 uchar *word = new uchar[size];
                 std::fill(word, word + size, 0);
 
-                uint k_leaf_squared = get_k(this->m_tree_height-1) * get_k(this->m_tree_height-1);
-                for (uint j = 0; j < k_leaf_squared ; ++j, ++bit) {
-                    if (this->m_leaves[bit]){
+                uint k_leaf_squared = get_k(this->m_tree_height - 1) * get_k(this->m_tree_height - 1);
+                for (uint j = 0; j < k_leaf_squared; ++j, ++bit) {
+                    if (this->m_leaves[bit]) {
                         uchar tmp = (1 << (j % kUcharBits));
                         word[j / kUcharBits] |= tmp;
                     }
@@ -591,13 +604,13 @@ namespace sdsl {
         virtual uint word_size() const = 0;
 
         template<typename t_x, typename t_y>
-        bool check_link_shortcut(std::pair<t_x,t_y> link) const {
-            if (t_comp){
-                return check_link_shortcut_internal(link, [this](int64_t pos, uint8_t leafK){
+        bool check_link_shortcut(std::pair<t_x, t_y> link) const {
+            if (t_comp) {
+                return check_link_shortcut_internal(link, [this](int64_t pos, uint8_t leafK) {
                     return this->is_leaf_bit_set_comp(pos, leafK);
                 });
             } else {
-                return check_link_shortcut_internal(link, [this](int64_t pos, uint8_t){
+                return check_link_shortcut_internal(link, [this](int64_t pos, uint8_t) {
                     return this->is_leaf_bit_set(pos);
                 });
             }
@@ -613,15 +626,15 @@ namespace sdsl {
         * @return Returns true/false depending on wehter link is present or not
         */
         template<typename t_x, typename t_y, typename Function>
-        bool check_link_shortcut_internal(std::pair<t_x,t_y> link, Function check_leaf_bits) const {
+        bool check_link_shortcut_internal(std::pair<t_x, t_y> link, Function check_leaf_bits) const {
             using namespace k2_treap_ns;
 
             //Patological case happening e.g. when using k2part
-            if (this->m_tree_height == 0){
+            if (this->m_tree_height == 0) {
                 return false;
             }
 
-            if (m_access_shortcut_size == 0){
+            if (m_access_shortcut_size == 0) {
                 throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
             }
 
@@ -633,55 +646,59 @@ namespace sdsl {
             auto p = link.first;
             auto q = link.second;
 
-            uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(q, p, m_real_size_on_sl, m_access_shortcut_size);
+            uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(q, p, m_real_size_on_sl,
+                                                                           m_access_shortcut_size);
             //y = zth 1 via rank on B_
-            uint64_t y = this->m_access_shortcut_select_1_support(z+1);
+            uint64_t y = this->m_access_shortcut_select_1_support(z + 1);
             //check if exists and if B_[y-1] == 0 otherwise no link
-            if (this->m_access_shortcut[y+1] == true){
+            if (this->m_access_shortcut[y + 1] == true) {
                 return false;
             }
             //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
             //directly get corresponding data from leaf array
 
-            uint64_t number_of_present_trees_searched_value_is_in = this->m_access_shortcut_rank_10_support(y+1);
-            uint64_t index = number_of_present_trees_searched_value_is_in*get_k(m_access_shortcut_size)*get_k(m_access_shortcut_size);
+            uint64_t number_of_present_trees_searched_value_is_in = this->m_access_shortcut_rank_10_support(y + 1);
+            uint64_t index = number_of_present_trees_searched_value_is_in * get_k(m_access_shortcut_size) *
+                             get_k(m_access_shortcut_size);
 
             //std::cout << "For " << p << "," << q << " the index is " << index << "and relative coordinates are " << p%field_size << "," << q%field_size << std::endl;
 
-            return check_link_internal(m_access_shortcut_size, m_field_size_on_sl, p%m_field_size_on_sl, q%m_field_size_on_sl, index, check_leaf_bits);
+            return check_link_internal(m_access_shortcut_size, m_field_size_on_sl, p % m_field_size_on_sl,
+                                       q % m_field_size_on_sl, index, check_leaf_bits);
         }
 
         /**
         * Checks whether link from p = link.first to q = link.second is present i.e. matrix entry a_pq = 1
         */
         template<typename t_x, typename t_y>
-        bool check_link(std::pair<t_x,t_y> link) const {
+        bool check_link(std::pair<t_x, t_y> link) const {
 
             //Patological case happening e.g. when using k2part
-            if (this->m_tree_height == 0){
+            if (this->m_tree_height == 0) {
                 return false;
             }
-            if (t_comp){
-                return check_link_internal(0, m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t leafK){
-                    return this->is_leaf_bit_set_comp(pos, leafK);
-                });
+            if (t_comp) {
+                return check_link_internal(0, m_max_element, link.first, link.second, 0,
+                                           [this](int64_t pos, uint8_t leafK) {
+                                               return this->is_leaf_bit_set_comp(pos, leafK);
+                                           });
             } else {
-                return check_link_internal(0, m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t){
+                return check_link_internal(0, m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t) {
                     return this->is_leaf_bit_set(pos);
                 });
             }
         }
 
         //WARNING: only to be used from within k2_tree_partition, FIXME: encapsulate this better
-        void clear_leaves(){
+        void clear_leaves() {
             m_leaves = t_leaf();
         }
 
     protected:
 
 
-        void perform_access_shortcut_precomputations(){
-            if (m_access_shortcut_size <= this->m_tree_height -2) {
+        void perform_access_shortcut_precomputations() {
+            if (m_access_shortcut_size <= this->m_tree_height - 2) {
 
                 m_field_size_on_sl = m_max_element;//height cannot be used when using hybrid k trees --> buffer this value in this case
                 for (int i = 0; i < m_access_shortcut_size; ++i) {
@@ -700,15 +717,15 @@ namespace sdsl {
         }
 
 
-        void compress_leaves() {
+        void compress_leaves(uint64_t hash_size = 0) {
 
             std::cout << "Compressing leaves" << std::endl;
-            FreqVoc(*this, [&](const HashTable &table, Vocabulary& voc) {
+            FreqVoc(*this, [&](const HashTable &table, Vocabulary &voc) {
                 compress_leaves(table, voc);
-            }, m_hash_size);
+            }, hash_size);
         }
 
-        void compress_leaves(const HashTable &table, Vocabulary& voc) {
+        void compress_leaves(const HashTable &table, Vocabulary &voc) {
             size_t cnt = words_count();
             uint size = word_size();
             uint *codewords;
@@ -721,7 +738,7 @@ namespace sdsl {
 
             size_t i = 0;
 
-            words([&] (const uchar *word) {
+            words([&](const uchar *word) {
                 size_t addr;
                 if (!table.search(word, size, &addr)) {
                     std::cerr << "[k2_tree_base::compress_leaves] Error: Word not found\n";
@@ -756,9 +773,9 @@ namespace sdsl {
         /**
         * gets the index of the ith child of node x
         */
-        inline uint64_t get_child_index(uint i, int64_t x, uint8_t level) const{
+        inline uint64_t get_child_index(uint i, int64_t x, uint8_t level) const {
             uint rank = m_levels_rank[level](x);
-            return rank*get_k(level+1)*get_k(level+1)+i;
+            return rank * get_k(level + 1) * get_k(level + 1) + i;
         }
 
     public:
@@ -775,20 +792,21 @@ namespace sdsl {
          *      of the upper left corner of the submatrix in the concatentation of m_levels and m_leafs vector
          * @param result
          */
-        template<typename t_x,typename Function>
-        void  direct_links2_internal(uint64_t n, uint8_t level, t_x source_id, t_x column_offset, int64_t index,
-                                     std::vector<t_x> &result, Function check_leaf_bits_direct) const {
-             const uint8_t k = get_k(level);
-            uint64_t submatrix_size = n/k;
-            uint64_t y = index *k*k+ k *(source_id/submatrix_size);
+        template<typename t_x, typename Function>
+        void direct_links2_internal(uint64_t n, uint8_t level, t_x source_id, t_x column_offset, int64_t index,
+                                    std::vector<t_x> &result, Function check_leaf_bits_direct) const {
+            const uint8_t k = get_k(level);
+            uint64_t submatrix_size = n / k;
+            uint64_t y = index * k * k + k * (source_id / submatrix_size);
 
-            if (this->is_leaf_level(level)){
-                check_leaf_bits_direct(y,column_offset,get_k(level),result);
+            if (this->is_leaf_level(level)) {
+                check_leaf_bits_direct(y, column_offset, get_k(level), result);
             } else { //internal node
                 for (uint j = 0; j < k; ++j) {
-                    if (m_levels[level][y+j] == 1) {
+                    if (m_levels[level][y + j] == 1) {
                         direct_links2_internal(submatrix_size, level + 1, t_x(source_id % submatrix_size),
-                                               t_x(column_offset + submatrix_size * j), m_levels_rank[level](y+j), result, check_leaf_bits_direct);
+                                               t_x(column_offset + submatrix_size * j), m_levels_rank[level](y + j),
+                                               result, check_leaf_bits_direct);
                     }
                 }
             }
@@ -816,7 +834,7 @@ namespace sdsl {
             int64_t y = index + k * (p / current_submatrix_size) + (q / current_submatrix_size);
 
             if (this->is_leaf_level(level)) {
-                return check_leaf(y,k);
+                return check_leaf(y, k);
             } else if (this->m_levels[level][y]) {
                 return check_link_internal(level + 1, current_submatrix_size, p % current_submatrix_size,
                                            q % current_submatrix_size, this->get_child_index(0, y, level), check_leaf);
@@ -830,14 +848,15 @@ namespace sdsl {
          * @param source_id
          * @param result
          */
-        template<typename t_x,typename Function>
-        void  direct_links2_internal_queue(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits_direct) const {
+        template<typename t_x, typename Function>
+        void
+        direct_links2_internal_queue(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits_direct) const {
             using namespace k2_treap_ns;
             //n, level, source_id, column_offset, index
-            std::queue<std::tuple<uint64_t, uint8_t, t_x,t_x,int64_t>> queue;
+            std::queue<std::tuple<uint64_t, uint8_t, t_x, t_x, int64_t>> queue;
             queue.push(std::make_tuple(m_max_element, 0, source_id, (t_x) 0, 0));
 
-            while (!queue.empty()){
+            while (!queue.empty()) {
                 auto current_element = queue.front();
                 uint64_t n = std::get<0>(current_element);
                 uint8_t level = std::get<1>(current_element);
@@ -848,16 +867,17 @@ namespace sdsl {
 
                 const uint8_t k = get_k(level);
 
-                uint64_t submatrix_size = n/k;
-                int64_t y = index*k*k + k *(source_id/submatrix_size);
+                uint64_t submatrix_size = n / k;
+                int64_t y = index * k * k + k * (source_id / submatrix_size);
 
-                if (is_leaf_level(level)){
-                    check_leaf_bits_direct(y,column_offset,get_k(level),result);
+                if (is_leaf_level(level)) {
+                    check_leaf_bits_direct(y, column_offset, get_k(level), result);
                 } else { //internal node
                     for (uint j = 0; j < k; ++j) {
-                        if (m_levels[level][y+j] == 1) {
+                        if (m_levels[level][y + j] == 1) {
                             queue.push(std::make_tuple(submatrix_size, level + 1, t_x(source_id % submatrix_size),
-                                                       t_x(column_offset + submatrix_size * j), m_levels_rank[level](y+j)));
+                                                       t_x(column_offset + submatrix_size * j),
+                                                       m_levels_rank[level](y + j)));
                         }
                     }
                 }
@@ -879,21 +899,22 @@ namespace sdsl {
          *      of the upper left corner of the submatrix in the concatentation of m_levels and m_leafs vector, initially 0
          * @param result
          */
-        template<typename t_x,typename Function>
+        template<typename t_x, typename Function>
         void inverse_links2_internal(uint64_t n, uint8_t level, t_x source_id, t_x row_offset, int64_t index,
-                                     std::vector<t_x> &result,Function check_leaf_bits_inverse) const {
+                                     std::vector<t_x> &result, Function check_leaf_bits_inverse) const {
 
             const uint8_t k = get_k(level);
             uint64_t submatrix_size = n / k;
             int64_t y = index * k * k + (source_id / submatrix_size);
 
             if (is_leaf_level(level)) {
-                check_leaf_bits_inverse(y, row_offset,get_k(level),result);
+                check_leaf_bits_inverse(y, row_offset, get_k(level), result);
             } else { //internal node
                 for (int j = 0; j < k; ++j) {
-                    if (m_levels[level][y + (j * k)]){
+                    if (m_levels[level][y + (j * k)]) {
                         inverse_links2_internal(submatrix_size, level + 1, t_x(source_id % submatrix_size),
-                                                t_x(row_offset + submatrix_size * j), m_levels_rank[level](y + (j * k)), result,check_leaf_bits_inverse);
+                                                t_x(row_offset + submatrix_size * j), m_levels_rank[level](y + (j * k)),
+                                                result, check_leaf_bits_inverse);
                     }
                 }
             }
@@ -905,10 +926,11 @@ namespace sdsl {
          * @param result
          */
         template<typename t_x, typename Function>
-        void inverse_links2_internal_queue(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits_inverse) const {
+        void
+        inverse_links2_internal_queue(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits_inverse) const {
             using namespace k2_treap_ns;
             //n, level, source_id, column_offset, index
-            std::queue<std::tuple<uint64_t,uint8_t,t_x,t_x,int64_t>> queue;
+            std::queue<std::tuple<uint64_t, uint8_t, t_x, t_x, int64_t>> queue;
             queue.push(std::make_tuple(m_max_element, 0, source_id, (t_x) 0, 0));
 
             while (!queue.empty()) {
@@ -926,12 +948,13 @@ namespace sdsl {
                 int64_t y = index * k * k + (source_id / submatrix_size);
 
                 if (is_leaf_level(level)) {
-                    check_leaf_bits_inverse(y, row_offset,get_k(level),result);
+                    check_leaf_bits_inverse(y, row_offset, get_k(level), result);
                 } else { //internal node
                     for (int j = 0; j < k; ++j) {
-                        if (m_levels[level][y + (j * k)]){
+                        if (m_levels[level][y + (j * k)]) {
                             queue.push(std::make_tuple(submatrix_size, level + 1, t_x(source_id % submatrix_size),
-                                                       t_x(row_offset + submatrix_size * j), m_levels_rank[level](y + (j * k))));
+                                                       t_x(row_offset + submatrix_size * j),
+                                                       m_levels_rank[level](y + (j * k))));
                         }
                     }
                 }
@@ -941,7 +964,7 @@ namespace sdsl {
     protected:
         template<typename t_x=uint64_t, typename t_y=uint64_t>
         std::vector<std::pair<t_x, t_y>>
-        read(std::vector<int_vector_buffer<> * > &bufs) {
+        read(std::vector<int_vector_buffer<> *> &bufs) {
             typedef std::vector<std::pair<t_x, t_y>> t_tuple_vec;
             t_tuple_vec v = t_tuple_vec(bufs[0]->size());
             for (uint64_t j = 0; j < v.size(); ++j) {
@@ -955,9 +978,27 @@ namespace sdsl {
         }
 
         //use only for testing purposes (remove and use mock)
-        void set_height(uint height){
+        void set_height(uint height) {
             m_tree_height = height;
         }
+
+        template<typename t_tv>
+        uint8_t get_maximum(const t_tv &v) {
+            using namespace k2_treap_ns;
+            if (v.size() == 0) {
+                return 0;
+            }
+
+            using t_e = typename t_tv::value_type;
+            auto tupmax = [](t_e a) {
+                return std::max(a.first, a.second);
+            };
+            auto max_it = std::max_element(std::begin(v), std::end(v), [&](t_e a, t_e b) {
+                return tupmax(a) < tupmax(b);
+            });
+            return tupmax(*max_it);
+        }
+
 
         void load_vectors_from_file(const std::string &temp_file_prefix, const std::string &id_part) {
             {
@@ -977,8 +1018,9 @@ namespace sdsl {
 
             {
                 bit_vector leafs;
-                std::string leafs_file = temp_file_prefix + "_level_" + std::to_string(m_tree_height -1) + "_" + id_part
-                                         + ".sdsl";
+                std::string leafs_file =
+                        temp_file_prefix + "_level_" + std::to_string(m_tree_height - 1) + "_" + id_part
+                        + ".sdsl";
                 load_from_file(leafs, leafs_file);
                 remove(leafs_file);
 
@@ -993,8 +1035,8 @@ namespace sdsl {
             }
         }
 
-        std::vector<int_vector_buffer<1>> create_level_buffers(const std::string temp_file_prefix, std::string &id_part) const
-        {
+        std::vector<int_vector_buffer<1>>
+        create_level_buffers(const std::string temp_file_prefix, std::string &id_part) const {
             std::vector<int_vector_buffer<1>> level_buffers(m_tree_height);
 
             for (uint64_t i = 0; i < level_buffers.size(); ++i) {
@@ -1028,11 +1070,12 @@ namespace sdsl {
             {
                 std::vector<int_vector_buffer<1>> level_buffers = create_level_buffers(temp_file_prefix, id_part);
                 //                  upper left          lower right                 interval in links   level
-                typedef std::tuple<std::pair<t_x,t_y>,std::pair<uint64_t,uint64_t>, t_e, uint8_t> t_queue;
-                std::queue <t_queue> queue;
+                typedef std::tuple<std::pair<t_x, t_y>, std::pair<uint64_t, uint64_t>, t_e, uint8_t> t_queue;
+                std::queue<t_queue> queue;
 
                 //partition recursively until reaching the leaves
-                queue.push(t_queue(std::make_pair<t_x,t_y>(0,0), std::make_pair(m_max_element -1, m_max_element -1), t_e(0, links.size()),0));
+                queue.push(t_queue(std::make_pair<t_x, t_y>(0, 0), std::make_pair(m_max_element - 1, m_max_element - 1),
+                                   t_e(0, links.size()), 0));
 
                 uint64_t number_of_bits = 0; //for speed comparison purposes of different k
 
@@ -1062,7 +1105,8 @@ namespace sdsl {
                         uint p1 = (x - x1) / subDivK;
                         uint p2 = (y - y1) / subDivK;
                         uint corresponding_matrix = p1 * k + p2;
-                        intervals[corresponding_matrix + 1]++;//offset corresponding matrix by one to allow for more efficient in interval comparision
+                        intervals[corresponding_matrix +
+                                  1]++;//offset corresponding matrix by one to allow for more efficient in interval comparision
                     }
 
                     intervals[0] = 0;
@@ -1171,9 +1215,9 @@ namespace sdsl {
             using namespace k2_treap_ns;
 
             //maximal size of shortcut is tree height
-            if (m_access_shortcut_size > this->m_tree_height -2) {
+            if (m_access_shortcut_size > this->m_tree_height - 2) {
                 std::cerr << "shortcut size must be smaller than tree height -2";
-                if (m_tree_height -2 > 0){
+                if (m_tree_height - 2 > 0) {
                     m_access_shortcut_size = m_tree_height - 2;
                 } else {
                     m_access_shortcut_size = 0;
@@ -1185,10 +1229,11 @@ namespace sdsl {
             //coresponds to the amount of non-empty trees in level h-1
             //amount of Zeros = actually existent number of trees --> (level_begin_idx[level+2] - level_begin_idx[level+1])/k² or rank l(evel_begin_idx[level], level_begin_idx[level+1])
 
-            uint64_t amountOfZeros = this->m_levels[m_access_shortcut_size].size() / (get_k(m_access_shortcut_size)*get_k(m_access_shortcut_size)); //spares rank of comp. level
+            uint64_t amountOfZeros = this->m_levels[m_access_shortcut_size].size() / (get_k(m_access_shortcut_size) *
+                                                                                      get_k(m_access_shortcut_size)); //spares rank of comp. level
             //corresponds to the theoretical amount of trees in level m_access_shortcut_size (round up (in case not divisible by k^2)
-            uint64_t amountOfOnes = ipow(k0*k0, m_access_shortcut_size);
-            bit_vector access_shortcut(amountOfOnes+amountOfZeros, 1);
+            uint64_t amountOfOnes = ipow(k0 * k0, m_access_shortcut_size);
+            bit_vector access_shortcut(amountOfOnes + amountOfZeros, 1);
 
             //BitArray<uint> B(amountOfOnes + amountOfZeros);
             uint counter = 0;
@@ -1216,21 +1261,22 @@ namespace sdsl {
 
     private:
         template<typename t_x>
-        inline void  check_leaf_bits_direct_uncomp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> & result) const {
+        inline void
+        check_leaf_bits_direct_uncomp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
             for (int j = 0; j < leafK; ++j) {
-                if (m_leaves[pos+j] == 1){
-                    result.push_back(result_offset+j);
+                if (m_leaves[pos + j] == 1) {
+                    result.push_back(result_offset + j);
                 }
             }
         }
 
 
-
         template<typename t_x>
-        inline void  check_leaf_bits_inverse_uncomp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> & result) const {
+        inline void
+        check_leaf_bits_inverse_uncomp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
             for (int j = 0; j < leafK; ++j) {
                 if (m_leaves[pos + j * leafK] == 1) {
-                    result.push_back(result_offset+j);
+                    result.push_back(result_offset + j);
                 }
             }
         }
@@ -1244,11 +1290,11 @@ namespace sdsl {
         * @return Pointer to the first position of the word.
         */
         inline bool is_leaf_bit_set_comp(uint64_t pos, uint8_t leafK) const {
-            uint64_t subtree_number = pos/(leafK*leafK);
+            uint64_t subtree_number = pos / (leafK * leafK);
             uint iword = m_comp_leaves.accessFT(subtree_number);
-            pos = pos - (subtree_number*leafK*leafK);
-            const uchar * word = m_vocabulary.get(iword);
-            bool bitSet = ((word[pos/kUcharBits] >> (pos%kUcharBits)) & 1);
+            pos = pos - (subtree_number * leafK * leafK);
+            const uchar *word = m_vocabulary.get(iword);
+            bool bitSet = ((word[pos / kUcharBits] >> (pos % kUcharBits)) & 1);
             return bitSet;
         }
 
@@ -1262,14 +1308,15 @@ namespace sdsl {
         * @return Pointer to the first position of the word.
         */
         template<typename t_x>
-        inline void  check_leaf_bits_direct_comp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> & result) const {
-            uint64_t subtree_number = pos/(leafK*leafK);
+        inline void
+        check_leaf_bits_direct_comp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
+            uint64_t subtree_number = pos / (leafK * leafK);
             uint iword = m_comp_leaves.accessFT(subtree_number);
-            const uchar * word = m_vocabulary.get(iword);
-            pos = pos - (subtree_number*leafK*leafK);
+            const uchar *word = m_vocabulary.get(iword);
+            pos = pos - (subtree_number * leafK * leafK);
             for (int i = 0; i < leafK; ++i) {
-                if ((word[(pos+i)/kUcharBits] >> ((pos+i)%kUcharBits)) & 1){
-                    result.push_back(i+result_offset);
+                if ((word[(pos + i) / kUcharBits] >> ((pos + i) % kUcharBits)) & 1) {
+                    result.push_back(i + result_offset);
                 }
             }
         }
@@ -1282,14 +1329,15 @@ namespace sdsl {
         * @return Pointer to the first position of the word.
         */
         template<typename t_x>
-        inline void  check_leaf_bits_inverse_comp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> & result) const {
-            uint64_t subtree_number = pos/(leafK*leafK);
+        inline void
+        check_leaf_bits_inverse_comp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
+            uint64_t subtree_number = pos / (leafK * leafK);
             uint iword = m_comp_leaves.accessFT(subtree_number);
-            const uchar * word = m_vocabulary.get(iword);
-            pos = pos - (subtree_number*leafK*leafK);
+            const uchar *word = m_vocabulary.get(iword);
+            pos = pos - (subtree_number * leafK * leafK);
             for (int i = 0; i < leafK; ++i) {
-                if ((word[(pos+i*leafK)/kUcharBits] >> ((pos+i*leafK)%kUcharBits)) & 1){
-                    result.push_back(i+result_offset);
+                if ((word[(pos + i * leafK) / kUcharBits] >> ((pos + i * leafK) % kUcharBits)) & 1) {
+                    result.push_back(i + result_offset);
                 }
             }
         }
@@ -1297,7 +1345,8 @@ namespace sdsl {
         /**
          * Constructs the bitvector m_access_shortcut used for speeding up tree traversal/link checks
          */
-        void construct_access_shortcut_by_dfs(bit_vector& access_shortcut, node_type root, uint64_t matrix_size, uint& counter) {
+        void construct_access_shortcut_by_dfs(bit_vector &access_shortcut, node_type root, uint64_t matrix_size,
+                                              uint &counter) {
             using namespace k2_treap_ns;
             uint64_t rank = this->m_levels_rank[root.t](root.idx);
             auto x = std::real(root.p);
@@ -1310,7 +1359,7 @@ namespace sdsl {
                 for (size_t j = 0; j < k; ++j) {
                     // get_int better for compressed bitvectors
                     // or introduce cache for bitvectors
-                    if (root.t == (m_access_shortcut_size-1)){
+                    if (root.t == (m_access_shortcut_size - 1)) {
                         if (this->m_levels[root.t][root.idx + k * i + j]) { //if subtree present
                             counter++;
                             access_shortcut[counter] = 0;//save 01 at counter position (m_access_shortcut gets initialised with 1s)
@@ -1325,7 +1374,7 @@ namespace sdsl {
                             ++rank;
                             construct_access_shortcut_by_dfs(access_shortcut, subtree_root, submatrix_size, counter);
                         } else {
-                            counter += ipow(k*k, ((m_access_shortcut_size-1) - root.t));
+                            counter += ipow(k * k, ((m_access_shortcut_size - 1) - root.t));
                         }
                     }
                 }
