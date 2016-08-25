@@ -65,6 +65,11 @@ namespace {
 
     typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, bit_vector, true> hybrid_k2_2222_b_comp;
     typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector, true> hybrid_k2_4524_b_comp;
+    typedef k2_tree_hybrid<8, 5, 2, 4, bit_vector, bit_vector, true> hybrid_k2_8524_b_comp;
+    typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, bit_vector, true> hybrid_k2_8528_b_comp;
+    typedef k2_tree_hybrid<8, 3, 2, 8, bit_vector, bit_vector, true> hybrid_k2_8328_b_comp;
+    typedef k2_tree_hybrid<8, 3, 2, 4, bit_vector, bit_vector, true> hybrid_k2_8324_b_comp;
+    typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector, true> hybrid_k2_4528_b_comp;
     typedef k2_tree_hybrid<4, 6, 2, 4, bit_vector, bit_vector, true> hybrid_k2_4624_b_comp;
     typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, bit_vector, true> hybrid_k2_2528_b_comp;
     typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, bit_vector, true> hybrid_k2_165216_b_comp;
@@ -124,13 +129,12 @@ namespace {
     typedef k2_tree<4, bit_vector, bit_vector, false, 8> k4_8;
 
     typedef Types<
-            k2,
-            k2rrr,
+            /*k2,
             k3,
             k4,
             k6,
             k8,
-            k16,
+            k16,*/
             k2_comp,
             k3_comp,
             k4_comp,
@@ -146,11 +150,12 @@ namespace {
             k8_comp_4,
             k16_comp_4,
             k8_comp_5,
-            k2_comp_8,
-            k2_comp_8,
-            k4_comp_8,
-            hybrid_k2_2222_b_comp,
             hybrid_k2_4524_b_comp,
+            hybrid_k2_4528_b_comp,
+            hybrid_k2_8524_b_comp,
+            hybrid_k2_8528_b_comp,
+            hybrid_k2_8324_b_comp,
+            hybrid_k2_8328_b_comp
             hybrid_k2_4624_b_comp,
             hybrid_k2_2528_b_comp,
             hybrid_k2_165216_b_comp,
@@ -162,74 +167,56 @@ namespace {
             k2_tree_partitioned<4,k6,true>,
             k2_tree_partitioned<4,k8,true>,
             k2_tree_partitioned<4,k16,true>,
-            k2_tree_partitioned<4,k2_4,true>,
-            k2_tree_partitioned<4,k4_4,true>,
-            k2_tree_partitioned<4,k8_4,true>,
-            k2_tree_partitioned<4,k16_4,true>,
+            k2_tree_partitioned<4,k2_2,true>,
+            k2_tree_partitioned<4,k4_2,true>,
+            k2_tree_partitioned<4,k8_2,true>,
+            k2_tree_partitioned<4,k16_2,true>,
 
-            k2_tree_partitioned<4,k2_4>/*,
-            k2_tree_partitioned<4,k4_4>,
-            k2_tree_partitioned<4,k8_4>,
-            k2_tree_partitioned<4,k16_4>,
-            k2_tree_partitioned<4,k8_5>,
-            k2_tree_partitioned<4,k2_8>,
-            k2_tree_partitioned<4,k2_8>,
-            k2_tree_partitioned<4,k4_8>,
-            k2_tree_partitioned<8,k2>,
-            k2_tree_partitioned<8,k3>,
-            k2_tree_partitioned<8,k4>,
-            k2_tree_partitioned<8,k6>,
-            k2_tree_partitioned<8,k8>,
-            k2_tree_partitioned<8,k16>,
-            k2_tree_partitioned<8,k2>,
-            k2_tree_partitioned<8,k3>,
-            k2_tree_partitioned<8,k4>,
-            k2_tree_partitioned<8,k6>,
-            k2_tree_partitioned<8,k8>,
-            k2_tree_partitioned<8,k16>,
-            k2_tree_partitioned<8,k2_2>,
-            k2_tree_partitioned<8,k4_2>,
-            k2_tree_partitioned<8,k8_2>,
-            k2_tree_partitioned<8,k16_2>,
-            k2_tree_partitioned<8,k2_4>,
-            k2_tree_partitioned<8,k4_4>,
-            k2_tree_partitioned<8,k8_4>,
-            k2_tree_partitioned<8,k16_4>,
-            k2_tree_partitioned<8,k8_5>,
-            k2_tree_partitioned<8,k2_8>,
-            k2_tree_partitioned<8,k2_8>,
-            k2_tree_partitioned<8,k4_8>,
-            k2_tree_partitioned<16,k2>,
-            k2_tree_partitioned<16,k3>,
-            k2_tree_partitioned<16,k4>,
-            k2_tree_partitioned<16,k6>,
-            k2_tree_partitioned<16,k8>,
-            k2_tree_partitioned<16,k16>,
-            k2_tree_partitioned<16,k2>,
-            k2_tree_partitioned<16,k3>,
-            k2_tree_partitioned<16,k4>,
-            k2_tree_partitioned<16,k6>,
-            k2_tree_partitioned<16,k8>,
-            k2_tree_partitioned<16,k16>,
-            k2_tree_partitioned<16,k2_2>,
-            k2_tree_partitioned<16,k4_2>,
-            k2_tree_partitioned<16,k8_2>,
-            k2_tree_partitioned<16,k16_2>,
-            k2_tree_partitioned<16,k2_4>,
-            k2_tree_partitioned<16,k4_4>,
-            k2_tree_partitioned<16,k8_4>,
-            k2_tree_partitioned<16,k16_4>,
-            k2_tree_partitioned<16,k8_5>,
-            k2_tree_partitioned<16,k2_8>,
-            k2_tree_partitioned<16,k2_8>,
-            k2_tree_partitioned<16,k4_8>,
-            k2_tree_partitioned<4,hybrid_k2_2222_b>,
+            k2_tree_partitioned<8,k2,true>,
+            k2_tree_partitioned<8,k3,true>,
+            k2_tree_partitioned<8,k4,true>,
+            k2_tree_partitioned<8,k6,true>,
+            k2_tree_partitioned<8,k8,true>,
+            k2_tree_partitioned<8,k16,true>,
+            k2_tree_partitioned<8,k2_2,true>,
+            k2_tree_partitioned<8,k4_2,true>,
+            k2_tree_partitioned<8,k8_2,true>,
+            k2_tree_partitioned<8,k16_2,true>,
+
+            k2_tree_partitioned<16,k2,true>,
+            k2_tree_partitioned<16,k3,true>,
+            k2_tree_partitioned<16,k4,true>,
+            k2_tree_partitioned<16,k6,true>,
+            k2_tree_partitioned<16,k8,true>,
+            k2_tree_partitioned<16,k16,true>,
+            k2_tree_partitioned<16,k2_2,true>,
+            k2_tree_partitioned<16,k4_2,true>,
+            k2_tree_partitioned<16,k8_2,true>,
+            k2_tree_partitioned<16,k16_2,true>,
+
             k2_tree_partitioned<4,hybrid_k2_4524_b>,
+            k2_tree_partitioned<4,hybrid_k2_4528_b_comp>,
+            k2_tree_partitioned<4,hybrid_k2_8524_b_comp>,
+            k2_tree_partitioned<4,hybrid_k2_8528_b_comp>,
+            k2_tree_partitioned<4,hybrid_k2_8324_b_comp>,
+            k2_tree_partitioned<4,hybrid_k2_8328_b_comp>,
             k2_tree_partitioned<4,hybrid_k2_4624_b>,
             k2_tree_partitioned<4,hybrid_k2_2528_b>,
             k2_tree_partitioned<4,hybrid_k2_165216_b>,
             k2_tree_partitioned<4,hybrid_k2_8523_b>,
-            k2_tree_partitioned<4,hybrid_k2_3524_b>*/
+            k2_tree_partitioned<4,hybrid_k2_3524_b>
+
+            k2_tree_partitioned<8,hybrid_k2_4524_b>,
+            k2_tree_partitioned<8,hybrid_k2_4528_b_comp>,
+            k2_tree_partitioned<8,hybrid_k2_8524_b_comp>,
+            k2_tree_partitioned<8,hybrid_k2_8528_b_comp>,
+            k2_tree_partitioned<8,hybrid_k2_8324_b_comp>,
+            k2_tree_partitioned<8,hybrid_k2_8328_b_comp>,
+            k2_tree_partitioned<8,hybrid_k2_4624_b>,
+            k2_tree_partitioned<8,hybrid_k2_2528_b>,
+            k2_tree_partitioned<8,hybrid_k2_165216_b>,
+            k2_tree_partitioned<8,hybrid_k2_8523_b>,
+            k2_tree_partitioned<8,hybrid_k2_3524_b>
     > Implementations;
 
     TYPED_TEST_CASE(k2_performance_test, Implementations);
@@ -289,41 +276,27 @@ namespace {
         TypeParam k2tree;
         load_from_file(k2tree, temp_file);
 
-        bool use_shortcut = true;
+        bool use_shortut = true;
+        auto direct_short_time = 0;
+        auto direct_time = 0;
+        auto inverse_short_time = 0;
+        auto inverse_time = 0;
+        auto check_short_time= 0;
+        auto check_time= 0;
+
         try {
             std::vector<uint32_t> result;
             k2tree.direct_links_shortcut((uint) 0, result);
         } catch (std::runtime_error const &e) {
-            use_shortcut = false;
+            use_shortut = false;
             std::cout << "Checking with shortcut deactivated, none present";
         }
         {
             uint i;
             ulong recovered = 0;
             std::vector<uint32_t> result;
-            if (use_shortcut) {
-                std::cout << "Direct with access shortcut" << std::endl;
-                auto start = timer::now();
-                for (i = 0; i < queryCount; i++) {
-                    k2tree.direct_links_shortcut(queries[i], result);
-                    recovered += result.size();
-                }
-                auto stop = timer::now();
-
-                std::cout << "Recovered Nodes:" << recovered << "\n";
-                std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
-                std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queryCount
-                          << "\n";
-                std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
-            }
-        }
-
-        {
-            uint i;
-            ulong recovered = 0;
-            std::vector<uint32_t> result;
-            if (use_shortcut) {
-                std::cout << "Direct with access shortcut 2" << std::endl;
+            if (use_shortut) {
+                std::cout << "Direct with access shortcut2" << std::endl;
                 auto start = timer::now();
                 for (i = 0; i < queryCount; i++) {
                     k2tree.direct_links_shortcut_2(queries[i], result);
@@ -332,10 +305,12 @@ namespace {
                 auto stop = timer::now();
 
                 std::cout << "Recovered Nodes:" << recovered << "\n";
+                std::cout << "Queries:" << queryCount << "\n";
                 std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
-                std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queryCount
-                          << "\n";
+                std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queryCount << "\n";
                 std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
+
+                direct_short_time = duration_cast<nanoseconds>(stop - start).count() /recovered;
             }
         }
 
@@ -352,16 +327,19 @@ namespace {
             auto stop = timer::now();
 
             std::cout << "Recovered Nodes:" << recovered << "\n";
+            std::cout << "Queries:" << queryCount << "\n";
             std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
             std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queryCount << "\n";
             std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
+
+            direct_time = duration_cast<nanoseconds>(stop - start).count() /recovered;
         }
 
         {
             uint i;
             ulong recovered = 0;
             std::vector<uint32_t> result;
-            if (use_shortcut) {
+            if (use_shortut) {
                 std::cout << "Inverse with access shortcut" << std::endl;
                 auto start = timer::now();
                 for (i = 0; i < queryCount; i++) {
@@ -371,10 +349,12 @@ namespace {
                 auto stop = timer::now();
 
                 std::cout << "Recovered Nodes:" << recovered << "\n";
+                std::cout << "Queries:" << queryCount << "\n";
                 std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
-                std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queryCount
-                          << "\n";
+                std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queryCount << "\n";
                 std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
+
+                inverse_short_time = duration_cast<nanoseconds>(stop - start).count() / recovered;
             }
         }
 
@@ -391,21 +371,24 @@ namespace {
             auto stop = timer::now();
 
             std::cout << "Recovered Nodes:" << recovered << "\n";
+            std::cout << "Queries:" << queryCount << "\n";
             std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
             std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queryCount << "\n";
             std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
+
+            inverse_time = duration_cast<nanoseconds>(stop - start).count() / recovered;
         }
 
         srand(0);
-        uint link_query_count = 100000;
+        uint link_query_count = 1000000;
         std::vector<std::pair<uint, uint>> check_link_queries(link_query_count);
         for (uint i = 0; i < link_query_count; i++) {
             check_link_queries.push_back(
-                    std::make_pair<uint, uint>(rand() % (k2tree.m_max_element - 1), rand() % (k2tree.m_max_element - 1)));
+                    std::make_pair(rand() % (k2tree.m_max_element - 1), rand() % (k2tree.m_max_element - 1)));
         }
 
         {
-            if (use_shortcut) {
+            if (use_shortut) {
                 std::cout << "Performing single link with shortcut" << std::endl;
                 auto start = timer::now();
                 for (auto pair: check_link_queries) {
@@ -417,6 +400,8 @@ namespace {
                 std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
                 std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / link_query_count
                           << "\n";
+
+                check_short_time = duration_cast<nanoseconds>(stop - start).count() / link_query_count;
             }
         }
 
@@ -430,8 +415,18 @@ namespace {
 
             std::cout << "Queries:" << link_query_count << "\n";
             std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
-            std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / link_query_count
-                      << "\n";
+            std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / link_query_count << "\n";
+
+            check_time = duration_cast<nanoseconds>(stop - start).count()/ link_query_count;
+        }
+
+
+        if (use_shortut){
+            //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
+            std::cout << "Hereyougo:" << direct_short_time <<","<< direct_time <<","<< inverse_short_time <<","<< inverse_time <<","<< check_short_time <<","<< check_time << std::endl;
+        } else {
+            //Construction Time	Compressed Size (Byte)	Bpe	Direct (ns)	Inverse (ns)	Check (ns)
+            std::cout << "Hereyougo:" << direct_time <<"," << inverse_time <<"," << check_time << std::endl;
         }
     }
 }  // namespace
