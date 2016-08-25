@@ -550,7 +550,11 @@ namespace sdsl {
         */
         template<typename Function>
         void words(Function fun) const {
-            size_t cnt = words_count();
+            if (m_tree_height == 0){
+	    	return;
+  	    }
+
+	    size_t cnt = words_count();
             uint size = word_size();
 
             size_t bit = 0;

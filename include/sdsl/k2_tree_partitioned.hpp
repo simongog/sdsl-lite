@@ -76,7 +76,7 @@ namespace sdsl {
             m_matrix_dimension = (m_max_element + t_k0) / t_k0; //round up also in the case divisiable as element ids start at 0
             std::cout << "Matrix dimension: " << m_matrix_dimension << std::endl;
             m_amount_of_submatrices = (m_max_element + m_matrix_dimension) / m_matrix_dimension;
-            std::cout << "Submatrix amount: " << m_matrix_dimension << std::endl;
+            std::cout << "Submatrix amount: " << m_amount_of_submatrices << std::endl;
         }
 
         k2_tree_partitioned(int_vector_buffer<> &buf_x,
@@ -534,7 +534,9 @@ namespace sdsl {
             }
 
             std::fstream fileStream(fileName, std::ios_base::in);
-
+		
+	    //FIXME: removr
+	    hash_size = 20000000;
             if (fileStream.is_open()){
                 uint number_of_nodes;
                 ulong number_of_edges;
@@ -601,7 +603,7 @@ namespace sdsl {
                 }
 
                 if (t_comp){
-                    compress_leaves();
+                    compress_leaves(hash_size);
                 }
             } else {
                 throw std::runtime_error("Could not open file to load ladrabin graph");
@@ -726,8 +728,9 @@ namespace sdsl {
             }, hash_size);
         }
 
-        void compress_leaves(const HashTable &table, Vocabulary& voc) {
-            size_t cnt = words_count();
+        void compress_leaves(const HashTable &table, Vocabulary& voc) { 
+            std::cout << "After FreqVoc" << std::endl;
+	    size_t cnt = words_count();
             uint size = word_size();
             uint *codewords;
             try {
@@ -748,7 +751,13 @@ namespace sdsl {
                 codewords[i++] = table[addr].codeword;
             });
 
+            std::cout << "Clearing Leaves" << std::endl;
+            //util::bit_compress(m_words_prefix_sum);
+            for (uint i = 0; i < m_k2trees.size(); ++i){
+                m_k2trees[i].clear_leaves();
+	    }
 
+            std::cout << "Before DAC Creation" << std::endl;
             try {
                 // TODO Port to 64-bits
                 m_comp_leaves = DAC(codewords, cnt);
@@ -761,15 +770,13 @@ namespace sdsl {
 
             m_vocabulary = voc;
 
+		
+            std::cout << "Before prefix sum calculation" << std::endl;
             m_words_prefix_sum.resize(m_amount_of_submatrices*m_amount_of_submatrices);
             m_words_prefix_sum[0] = 0;
             for (uint i = 1; i < m_k2trees.size(); ++i) {
                 size_t count = m_k2trees[i-1].words_count();
                 m_words_prefix_sum[i] = m_words_prefix_sum[i-1] + count;
-            }
-            //util::bit_compress(m_words_prefix_sum);
-            for (uint i = 0; i < m_k2trees.size(); ++i){
-                m_k2trees[i].clear_leaves();
             }
 
             /*

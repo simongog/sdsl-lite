@@ -192,7 +192,11 @@ namespace sdsl {
 
         size_t words_count() const
         {
-            return this->m_leaves.size() / t_k / t_k;
+            if(this->m_tree_height == 0){
+		return 0;
+	    }
+
+	    return this->m_leaves.size() / t_k / t_k;
         }
 
         void load(std::istream &in) override {
