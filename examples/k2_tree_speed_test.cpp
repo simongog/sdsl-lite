@@ -35,6 +35,14 @@ int main(int argc, char *argv[]) {
 //    typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector, false> k2_rrr;
 //    typedef k2_tree_partitioned<4, k2_rrr, true> k2_part;
 
+
+    auto direct_short_time;
+    auto direct_time;
+    auto inverse_short_time;
+    auto inverse_time;
+    auto check_short_time;
+    auto check_time;
+
     bool use_shortut = argc > 3;
 
     k2_rrr k2tree;
@@ -48,7 +56,7 @@ int main(int argc, char *argv[]) {
     uint *qry = (uint *) malloc(sizeof(uint) * queries);
     fread(qry, sizeof(uint), queries, list_fp);
     fclose(list_fp);
-    {
+    /*{
         uint i;
         ulong recovered = 0;
         std::vector<uint32_t> result;
@@ -66,8 +74,10 @@ int main(int argc, char *argv[]) {
             std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
             std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queries << "\n";
             std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
+
+            direct_short_time = duration_cast<nanoseconds>(stop - start).count();
         }
-    }
+    }*/
 
     {
         uint i;
@@ -87,6 +97,8 @@ int main(int argc, char *argv[]) {
             std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
             std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queries << "\n";
             std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
+
+            direct_short_time = duration_cast<nanoseconds>(stop - start).count() /recovered;
         }
     }
 
@@ -107,6 +119,8 @@ int main(int argc, char *argv[]) {
         std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
         std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queries << "\n";
         std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
+
+        direct_time = duration_cast<nanoseconds>(stop - start).count() /recovered;
     }
 
     {
@@ -127,6 +141,8 @@ int main(int argc, char *argv[]) {
             std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
             std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queries << "\n";
             std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
+
+            inverse_short_time = duration_cast<nanoseconds>(stop - start).count() / recovered;
         }
     }
 
@@ -147,6 +163,8 @@ int main(int argc, char *argv[]) {
         std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
         std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / queries << "\n";
         std::cout << "Time per link: " << duration_cast<nanoseconds>(stop - start).count() / recovered << "\n";
+
+        inverse_time = duration_cast<nanoseconds>(stop - start).count() / recovered;
     }
 
     srand(0);
@@ -170,6 +188,8 @@ int main(int argc, char *argv[]) {
             std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
             std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / link_query_count
                       << "\n";
+
+            check_short_time = duration_cast<nanoseconds>(stop - start).count() / link_query_count;
         }
     }
 
@@ -184,7 +204,20 @@ int main(int argc, char *argv[]) {
         std::cout << "Queries:" << link_query_count << "\n";
         std::cout << "Total time(ns): " << duration_cast<nanoseconds>(stop - start).count() << "\n";
         std::cout << "Time per query: " << duration_cast<nanoseconds>(stop - start).count() / link_query_count << "\n";
+
+        check_time = duration_cast<nanoseconds>(stop - start).count()/ link_query_count;
     }
+
+
+    if (use_shortut){
+        //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
+        std::cout << "Hereyougo:" << direct_short_time <<","<< direct_time <<","<< inverse_short_time <<","<< inverse_time <<","<< check_short_time <<","<< check_time << std::endl;
+    } else {
+        //Construction Time	Compressed Size (Byte)	Bpe	Direct (ns)	Inverse (ns)	Check (ns)
+        std::cout << "Hereyougo:" << direct_time <<"," << inverse_time <<"," << check_time << std::endl;
+    }
+
+
 
 
     return 0;
