@@ -66,14 +66,33 @@ class k2_tree
 
     protected:
 
+        void build_template_bitvector(bit_vector &k_t_,
+                                      bit_vector &k_l_,
+                                      bit_vector &k_t,
+                                      bit_vector &k_l)
+        {
+            k_t.swap(k_t_);
+            k_l.swap(k_l_);
+        }
+
+        void build_template_bitvector(const bit_vector &k_t_,
+                                      const bit_vector &k_l_,
+                                      t_bv &k_t,
+                                      t_bv &k_l)
+        {
+            k_t = t_bv(k_t_);
+            k_l = t_bv(k_l_);
+        }
+
         void build_from_matrix(const std::vector<std::vector <int>>& matrix)
         {
             // Makes the size a power of k.
             int simulated_size = std::pow(k, k_height);
-            std::vector<std::deque<t_bv>> acc(k_height + 1);
+            std::vector<std::deque<bit_vector>> acc(k_height + 1);
 
-            k2_tree_ns::_build_from_matrix<t_bv>(matrix, k, simulated_size,
-                                                 k_height, 1, 0, 0, acc);
+            k2_tree_ns::_build_from_matrix<bit_vector>(matrix, k,
+                                                       simulated_size, k_height,
+                                                       1, 0, 0, acc);
 
             size_type t_size = 0;
             size_type l_size = 0;
@@ -84,24 +103,26 @@ class k2_tree
             for(auto it = acc[k_height].begin(); it != acc[k_height].end(); it++)
                 l_size += (*it).size();
 
-            k_t = t_bv(t_size, 0);
-            k_l = t_bv(l_size, 0);
+            bit_vector k_t_(t_size, 0);
+            bit_vector k_l_(l_size, 0);
 
             int n = 0;
             for(int j = 1; j < k_height; j++)
                 for(auto it = acc[j].begin(); it != acc[j].end(); it++)
                     // TODO erase
                     for(unsigned i = 0; i < (*it).size(); i++) {
-                        k_t.set_int(n, (*it).get_int(i, 1), 1);
+                        k_t_.set_int(n, (*it).get_int(i, 1), 1);
                         n++;
                     }
             n = 0;
             for(auto it = acc[k_height].begin(); it != acc[k_height].end(); it++)
                 // TODO erase
                 for(unsigned i = 0; i < (*it).size(); i++) {
-                    k_l.set_int(n * 1, (*it).get_int(i, 1), 1);
+                    k_l_.set_int(n * 1, (*it).get_int(i, 1), 1);
                     n++;
                 }
+
+            build_template_bitvector(k_t_, k_l_, k_t, k_l);
         }
 
 
@@ -318,6 +339,8 @@ class k2_tree
             if(this != &tr) {
                 k_t = std::move(tr.k_t);
                 k_l = std::move(tr.k_l);
+                k_k = std::move(tr.k_k);
+                k_height = std::move(tr.k_height);
                 k_t_rank = std::move(tr.k_t_rank);
                 k_t_rank.set_vector(&k_t);
             }
@@ -423,9 +446,10 @@ class k2_tree
             std::vector<idx_type> acc{};
             if(k_l.size() == 0 && k_t.size() == 0)
                 return acc;
+            // Size of the first square division
             size_type n =
                     static_cast<size_type>(std::pow(k_k, k_height)) / k_k;
-            idx_type y = k_k * std::floor(i/static_cast<double>(n));
+            idx_type y = std::floor(i/static_cast<double>(n));
             for(unsigned j = 0; j < k_k; j++)
                 _reverse_neigh(n/k_k, n * j, i % n, y + j * k_k, acc);
 

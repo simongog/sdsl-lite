@@ -39,20 +39,21 @@ namespace k2_tree_test_nm
 };
 
 typedef Types<
-    k2_tree<2, bit_vector, rank_support_v<>>//,
-    //k2_tree<2, bit_vector>
+    k2_tree<2, bit_vector, rank_support_v<>>,
+    k2_tree<2, bit_vector>
     > k_2_implementations;
 
 typedef Types<
-    k2_tree<3, bit_vector, rank_support_v<>>//,
-    //k2_tree<3, bit_vector>
+    k2_tree<3, bit_vector, rank_support_v<>>,
+    k2_tree<3, bit_vector>
     > k_3_implementations;
 
 typedef Types<
     k2_tree<2, bit_vector>,
-    k2_tree<3, bit_vector>//,
-    // k2_tree<2, rrr_vector<63>>,
-    // k2_tree<4, bit_vector, rank_support_v<>>
+    k2_tree<3, bit_vector>,
+    k2_tree<2, rrr_vector<63>>,
+    k2_tree<5, bit_vector, rank_support_v<>>,
+    k2_tree<4, bit_vector, rank_support_v<>>
     > Implementations;
 
 TYPED_TEST_CASE(k2_tree_test_k_2, k_2_implementations);
@@ -269,10 +270,6 @@ TYPED_TEST(k2_tree_test_k_3, build_from_edges_array)
     vector<std::tuple<typename TypeParam::idx_type,
                       typename TypeParam::idx_type>> e;
 
-    t_tuple a{0, 0};
-    t_tuple b{0, 1};
-    t_tuple c{1, 0};
-    t_tuple d{1, 1};
     e.push_back(t_tuple {1, 2});
     TypeParam tree(e, 4);
 
@@ -380,7 +377,26 @@ TYPED_TEST(k2_tree_test, reverse_neighbors_test)
                                 {0, 0}});
     tree = TypeParam(mat);
     r_neigh_0 = tree.reverse_neigh(0);
+    r_neigh_1 = tree.reverse_neigh(1);
     ASSERT_EQ(0u, r_neigh_0.size());
+    ASSERT_EQ(0u, r_neigh_1.size());
+
+
+    mat = vector<vector <int>>({{0, 1},
+                                {1, 0}});
+    tree = TypeParam(mat);
+    r_neigh_0 = tree.reverse_neigh(0);
+    expected_r_neigh_0 = vector<unsigned>({1});
+    r_neigh_1 = tree.reverse_neigh(1);
+    auto expected_r_neigh_1 = vector<unsigned>({0});
+
+    ASSERT_EQ(expected_r_neigh_0.size(), r_neigh_0.size());
+    ASSERT_EQ(expected_r_neigh_1.size(), r_neigh_1.size());
+    for(unsigned i = 0; i < r_neigh_0.size(); i++)
+        ASSERT_EQ(expected_r_neigh_0[i], r_neigh_0[i]);
+
+    for(unsigned i = 0; i < r_neigh_1.size(); i++)
+        ASSERT_EQ(expected_r_neigh_1[i], r_neigh_1[i]);
 }
 
 TYPED_TEST(k2_tree_test_k_2, adj_test)
