@@ -50,9 +50,9 @@ typedef Types<
 
 typedef Types<
     k2_tree<2, bit_vector>,
-    k2_tree<3, bit_vector>,
-    k2_tree<2, rrr_vector<63>>,
-    k2_tree<4, bit_vector, rank_support_v<>>
+    k2_tree<3, bit_vector>//,
+    // k2_tree<2, rrr_vector<63>>,
+    // k2_tree<4, bit_vector, rank_support_v<>>
     > Implementations;
 
 TYPED_TEST_CASE(k2_tree_test_k_2, k_2_implementations);
@@ -276,29 +276,31 @@ TYPED_TEST(k2_tree_test_k_3, build_from_edges_array)
     e.push_back(t_tuple {1, 2});
     TypeParam tree(e, 4);
 
-    k2_tree_test_nm::check_t_l(tree, {0, 1, 0 ,0}, {0, 0, 1, 0});
+    k2_tree_test_nm::check_t_l(tree, {1, 0, 0, 0, 0, 0, 0, 0, 0},
+                                     {0, 0, 0, 0, 0, 1, 0, 0, 0});
 
     tree = TypeParam(e, 3);
-    k2_tree_test_nm::check_t_l(tree, {0, 1, 0 ,0}, {0, 0, 1, 0});
+    k2_tree_test_nm::check_t_l(tree, {}, {0, 0, 0, 0, 0, 1, 0, 0, 0});
 
     e.push_back(t_tuple {1, 2});
     tree = TypeParam(e, 3);
-    k2_tree_test_nm::check_t_l(tree, {0, 1, 0 ,0}, {0, 0, 1, 0});
+    k2_tree_test_nm::check_t_l(tree, {}, {0, 0, 0, 0, 0, 1, 0, 0, 0});
 
     e.clear();
     e.push_back(t_tuple {0, 0});
     tree = TypeParam(e, 1);
-    k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0});
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 0, 0, 0, 0, 0, 0, 0, 0});
 
     e.push_back(t_tuple {0, 1});
     e.push_back(t_tuple {1, 0});
     e.push_back(t_tuple {1, 1});
     tree = TypeParam(e, 2);
-    k2_tree_test_nm::check_t_l(tree, {}, {1, 1, 1, 1});
+    k2_tree_test_nm::check_t_l(tree, {}, {1, 1, 0, 1, 1, 0, 0, 0, 0});
 
+    e.clear();
     e.push_back(t_tuple {2, 2});
     tree = TypeParam(e, 3);
-    k2_tree_test_nm::check_t_l(tree, {1, 0, 0, 1}, {1, 1, 1, 1,  1, 0, 0, 0});
+    k2_tree_test_nm::check_t_l(tree, {}, {0, 0, 0, 0, 0, 0, 0, 0, 1});
 }
 
 
