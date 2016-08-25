@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
      0       630
     */
     if (argc < 3) {
-        fprintf(stderr, "USAGE: %s <GRAPH> <Output-File>\n <GRAPH> has to be in the .ladrabin format", argv[0]);
+        fprintf(stderr, "USAGE: %s <GRAPH> <Output-File> [Hash-Size]\n <GRAPH> has to be in the .ladrabin format", argv[0]);
         return (-1);
     }
 
@@ -74,8 +74,13 @@ int main(int argc, char *argv[]) {
     typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector, true> k2_rrr;
     // Initialize treap with a vector of (x,y,weight) elements
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
+
+    uint64_t hash_size = 0;
+    if (argc > 3){
+        hash_size = stoull(argv[3]);
+    }
     k2_rrr k2;
-    k2.load_from_ladrabin(file_name, 0, true);
+    k2.load_from_ladrabin(file_name, hash_size, true);
 
     std::string output_file_name(argv[2]);
     store_to_file(k2, output_file_name);
