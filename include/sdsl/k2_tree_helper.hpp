@@ -79,6 +79,25 @@ inline uint16_t get_chunk_idx(idx_type v, idx_type u, idx_type c_0,
     return std::floor(static_cast<double>(v - r_0) / l) * k +
            std::floor(static_cast<double>(u - c_0) / l);
 }
+
+template<typename t_bv=bit_vector> void build_template_vector(bit_vector &k_t_,
+                                                              bit_vector &k_l_,
+                                                              t_bv &k_t,
+                                                              t_bv &k_l)
+{
+    k_t = t_bv(k_t_);
+    k_l = t_bv(k_l_);
+}
+
+template<> void build_template_vector<bit_vector>(bit_vector &k_t_,
+                                                  bit_vector &k_l_,
+                                                  bit_vector &k_t,
+                                                  bit_vector &k_l)
+{
+    k_t.swap(k_t_);
+    k_l.swap(k_l_);
+}
+
 } // end namespace k2_tree_ns
 } // end namespace sdsl
 

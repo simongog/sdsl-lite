@@ -66,24 +66,6 @@ class k2_tree
 
     protected:
 
-        void build_template_bitvector(bit_vector &k_t_,
-                                      bit_vector &k_l_,
-                                      bit_vector &k_t,
-                                      bit_vector &k_l)
-        {
-            k_t.swap(k_t_);
-            k_l.swap(k_l_);
-        }
-
-        void build_template_bitvector(const bit_vector &k_t_,
-                                      const bit_vector &k_l_,
-                                      t_bv &k_t,
-                                      t_bv &k_l)
-        {
-            k_t = t_bv(k_t_);
-            k_l = t_bv(k_l_);
-        }
-
         void build_from_matrix(const std::vector<std::vector <int>>& matrix)
         {
             // Makes the size a power of k.
@@ -122,7 +104,7 @@ class k2_tree
                     n++;
                 }
 
-            build_template_bitvector(k_t_, k_l_, k_t, k_l);
+            k2_tree_ns::build_template_vector<t_bv>(k_t_, k_l_, k_t, k_l);
         }
 
 
