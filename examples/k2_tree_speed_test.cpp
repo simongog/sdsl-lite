@@ -36,12 +36,12 @@ int main(int argc, char *argv[]) {
 //    typedef k2_tree_partitioned<4, k2_rrr, true> k2_part;
 
 
-    auto direct_short_time;
-    auto direct_time;
-    auto inverse_short_time;
-    auto inverse_time;
-    auto check_short_time;
-    auto check_time;
+    auto direct_short_time = 0;
+    auto direct_time = 0;
+    auto inverse_short_time = 0;
+    auto inverse_time = 0;
+    auto check_short_time= 0;
+    auto check_time= 0;
 
     bool use_shortut = argc > 3;
 
