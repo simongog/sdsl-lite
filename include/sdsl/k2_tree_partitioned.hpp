@@ -25,7 +25,6 @@ namespace sdsl {
             bool t_comp = false>
     class k2_tree_partitioned {
         static_assert(t_k0 > 1, "t_k has to be larger than 1.");
-        static_assert(t_k0 <= 16, "t_k has to be smaller than 17.");
 
     public:
 
@@ -584,10 +583,9 @@ namespace sdsl {
                         uint corresponding_row = (nodes_read -1)/m_matrix_dimension;
                         if (corresponding_row > current_matrix_row){
                             for (uint j = 0; j < t_k0; ++j) {
-                                const subk2_tree k2tree(temp_file_prefix, use_counting_sort, buffers[j]);
                                 m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[j]);
                                 buffers[j].clear();
-             //                   std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
+                                std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
                             }
 
                             //in case of a complete empty row
@@ -597,7 +595,7 @@ namespace sdsl {
                                 std::cout << "Appending completely empty row: " << current_matrix_row << std::endl;
                                 for (uint j = 0; j < t_k0; ++j) {
                                     m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[j]);
-               //                     std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
+                                    std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
                                 }
                             }
 
@@ -614,7 +612,7 @@ namespace sdsl {
                 //cover leftovers
                 for (uint j = 0; j < t_k0; ++j) {
                     m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[j]);
-                 //   std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
+                    std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
                     buffers[j].clear();
                 }
 
