@@ -31,6 +31,7 @@
 #include <queue>
 #include <array>
 #include <bitset>
+#include "../../external/libmorton/libmorton/include/morton.h"
 
 //! Namespace for the succinct data structure library.
 namespace sdsl {
@@ -286,6 +287,20 @@ namespace sdsl {
                         0x71c2, 0x71c3, 0x71c4, 0x71c5, 0x71c6, 0x71c7
                 };
 
+
+        template<uint8_t t_k>
+        struct interleave{
+            static bool bits(const std::pair<uint, uint> lhs, const std::pair<uint, uint> rhs){
+                throw std::runtime_error("not yet implemented");
+            }
+        };
+
+        template<>
+        struct interleave<2>{
+            static bool bits(const std::pair<uint, uint> lhs, const std::pair<uint, uint> rhs){
+                return morton2D_64_encode(lhs.second, lhs.first) < morton2D_64_encode(rhs.second, rhs.first);
+            }
+        };
 
         //corresponding_subtreeulate corresponding subtree on given level efficiently
         template<uint8_t t_k>

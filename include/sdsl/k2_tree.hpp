@@ -237,7 +237,7 @@ namespace sdsl {
             using namespace k2_treap_ns;
             if (!has_ending(fileName, ".ladrabin")) {
                 fileName.append(".ladrabin");
-                std::cout << "Appending .graph-txt to filename as file has to be in .ladrabin format" << std::endl;
+                std::cout << "Appending .ladrabin to filename as file has to be in .ladrabin format" << std::endl;
             }
 
             std::fstream fileStream(fileName, std::ios_base::in);
@@ -257,9 +257,9 @@ namespace sdsl {
                 uint source_id;
                 int target_id;
 
-                std::vector<std::pair<uint, uint>> coords(number_of_edges);
-                /*typedef stxxl::VECTOR_GENERATOR<pair<uint32_t, uint32_t>>::result stxxl_pair_vector;
-                stxxl_pair_vector coords(number_of_nodes);*/
+                std::vector<std::pair<uint, uint>> coords;
+                //stxxl_32bit_pair_vector coords;
+                coords.reserve(number_of_edges);
                 for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
                     read_member(target_id, fileStream);
                     if (target_id < 0) {
@@ -272,13 +272,15 @@ namespace sdsl {
                 fileStream.close();
 
                 if (coords.size() > 0) {
-                    if (use_counting_sort) {
-                        k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort<std::vector<std::pair<uint32_t, uint32_t>>>(
+                    /*if (use_counting_sort) {
+                        k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort(
                                 coords, temp_file_prefix);
                         //construct_bottom_up(v, temp_file_prefix);
                     } else {
                         construct(coords, temp_file_prefix);
-                    }
+                    }*/
+
+                    construct_by_z_order_sort_internal(coords, temp_file_prefix);
 
                     if (t_comp) {
                         this->compress_leaves(hash_size);
@@ -424,10 +426,16 @@ namespace sdsl {
 
             std::cout << "Sorting By Z Order" << std::endl;
             __gnu_parallel::sort(links.begin(), links.end(), [&](const t_e &lhs, const t_e &rhs) {
-                return sort_by_z_order(lhs, rhs);
+                return interleave<k>::bits(lhs, rhs);
             });
 
             std::cout << "Sorting Finished, Constructing Bitvectors" << std::endl;
+
+            /*for (int m = 0; m < links.size(); ++m) {
+                std::cout << links[m].first << "," << links[m].second << std::endl;
+            }*/
+            
+            
             std::vector<int> previous_subtree_number(this->m_tree_height, -1);
             uint64_t total_size = 0;
 
@@ -504,79 +512,6 @@ namespace sdsl {
 
             this->load_vectors_from_file(temp_file_prefix, id_part);
         }
-
-        /**
-         * Comparision function for z_order_sort.
-         * @param lhs
-         * @param rhs
-         * @return
-         * True if lhs is smaller in z order, false otherwise
-         */
-        template<typename t_x, typename t_y>
-        bool sort_by_z_order(const std::pair<t_x, t_y> lhs, const std::pair<t_x, t_y> rhs) {
-            using namespace k2_treap_ns;
-            if (lhs.first <= rhs.first && lhs.second <= rhs.second) {
-                return true;
-            } else if (lhs.first >= rhs.first && lhs.second >= rhs.second) {
-                return false;
-            } else if (lhs.first < rhs.first && lhs.second > rhs.second) {
-
-                t_x lhsFirst = lhs.first;
-                t_x lhsSecond = lhs.second;
-                t_x rhsFirst = rhs.first;
-                t_x rhsSecond = rhs.second;
-
-
-                t_x lhsFirstDiv;
-                t_x lhsSecondDiv;
-
-                t_x rhsFirstDiv;
-                t_x rhsSecondDiv;
-
-                for (int i = this->m_tree_height; i > 0; --i) {
-                    lhsFirstDiv = precomp<t_k>::divexp(lhsFirst, i);
-                    lhsSecondDiv = precomp<t_k>::divexp(lhsSecond, i);
-                    rhsFirstDiv = precomp<t_k>::divexp(rhsFirst, i);
-                    rhsSecondDiv = precomp<t_k>::divexp(rhsSecond, i);
-
-                    if (lhsFirstDiv < rhsFirstDiv) {
-                        return true;
-                    } else if (lhsFirstDiv == rhsFirstDiv && lhsSecondDiv > rhsSecondDiv) {
-                        return false;
-                    }
-                }
-
-                return true;
-
-            } else { //lhs.first > rhs.first && lhs.second < rhs.second
-
-                t_x lhsFirst = lhs.first;
-                t_x lhsSecond = lhs.second;
-                t_x rhsFirst = rhs.first;
-                t_x rhsSecond = rhs.second;
-
-                t_x lhsFirstDiv;
-                t_x lhsSecondDiv;
-
-                t_x rhsFirstDiv;
-                t_x rhsSecondDiv;
-
-                for (int i = this->m_tree_height; i > 0; --i) {
-                    lhsFirstDiv = precomp<t_k>::divexp(lhsFirst, i);
-                    lhsSecondDiv = precomp<t_k>::divexp(lhsSecond, i);
-                    rhsFirstDiv = precomp<t_k>::divexp(rhsFirst, i);
-                    rhsSecondDiv = precomp<t_k>::divexp(rhsSecond, i);
-
-                    if (lhsFirstDiv > rhsFirstDiv) {
-                        return false;
-                    } else if (lhsFirstDiv == rhsFirstDiv && lhsSecondDiv < rhsSecondDiv) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        }
-
 
         /**
          * Calculates the corresponding subtree of link on a given level as well as

@@ -551,7 +551,7 @@ namespace sdsl {
             using namespace k2_treap_ns;
             if(!has_ending(fileName, ".ladrabin")){
                 fileName.append(".ladrabin");
-                std::cout << "Appending .graph-txt to filename as file has to be in .ladrabin format" << std::endl;
+                std::cout << "Appending .ladrabin to filename as file has to be in .ladrabin format" << std::endl;
             }
 
             std::fstream fileStream(fileName, std::ios_base::in);
@@ -582,21 +582,16 @@ namespace sdsl {
                         nodes_read++;
                         uint corresponding_row = (nodes_read -1)/m_matrix_dimension;
                         if (corresponding_row > current_matrix_row){
-                            for (uint j = 0; j < t_k0; ++j) {
-                                m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[j]);
-                                buffers[j].clear();
-                                std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
-                            }
+                            construct_trees_from_buffers(current_matrix_row, use_counting_sort, temp_file_prefix,
+                                                         buffers);
 
                             //in case of a complete empty row
 
                             for (uint k = 0; k < (corresponding_row - current_matrix_row - 1); ++k) {
                                 current_matrix_row++;
                                 std::cout << "Appending completely empty row: " << current_matrix_row << std::endl;
-                                for (uint j = 0; j < t_k0; ++j) {
-                                    m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[j]);
-                                    std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
-                                }
+                                construct_trees_from_buffers(current_matrix_row, use_counting_sort, temp_file_prefix,
+                                                             buffers);
                             }
 
                             current_matrix_row = corresponding_row;
@@ -610,17 +605,29 @@ namespace sdsl {
                 }
 
                 //cover leftovers
-                for (uint j = 0; j < t_k0; ++j) {
-                    m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[j]);
-                    std::cout << "Assigning tree " << current_matrix_row*t_k0+j << std::endl;
-                    buffers[j].clear();
-                }
+                construct_trees_from_buffers(current_matrix_row, use_counting_sort, temp_file_prefix,
+                                             buffers);
 
                 if (t_comp){
                     compress_leaves(hash_size);
                 }
             } else {
                 throw std::runtime_error("Could not open file to load ladrabin graph");
+            }
+        }
+
+        inline void
+        construct_trees_from_buffers(uint current_matrix_row, bool use_counting_sort, std::string &temp_file_prefix,
+                                     std::vector<std::vector<std::pair<uint, uint>>> &buffers) {
+            //#pragma omp parallel for
+            for (uint j = 0; j < t_k0; ++j) {
+                if (buffers[j].size() != 0) {
+                    std::cout << "Size of " << current_matrix_row * t_k0 + j << ": "
+                              << buffers[j].size() * 64 / 8 / 1024 << "kByte" << std::endl;
+                }
+                m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[j]);
+                buffers[j].clear();
+                //std::cout << "Assigning tree " << current_matrix_row * t_k0 + j << std::endl;
             }
         }
 
