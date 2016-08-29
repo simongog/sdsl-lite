@@ -33,7 +33,7 @@ namespace sdsl
 {
 
 //std::vector<uint64_t> g_range_stats;
-size_t g_saved_bits=0;
+extern size_t g_saved_bits;
 
 template <class t_itr>
 std::string print_vec(t_itr beg, t_itr end)
