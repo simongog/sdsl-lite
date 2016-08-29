@@ -7,3 +7,6 @@
 [submodule "external/stxxl"]
 	path = external/stxxl
 	url = http://github.com/stxxl/stxxl.git
+[submodule "external/uint256_t"]
+	path = external/uint256_t
+	url = https://github.com/calccrypto/uint256_t.git
