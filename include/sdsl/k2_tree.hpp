@@ -184,7 +184,6 @@ class k2_tree
             if(matrix.size() < 1) {
                 throw std::logic_error("Matrix has no elements");
             }
-            // TODO Assert matrix is an square matrix?
             std::vector<bit_vector> t;
             k_k = k;
             if(matrix.size() < k_k)
@@ -352,6 +351,23 @@ class k2_tree
             }
         }
 
+        //! Equal operator
+        bool operator==(const k2_tree& tr) const
+		{
+			// TODO check the rank support equality?
+			if(k_k != tr.k_k || k_height != tr.k_height)
+				return false;
+			if(k_t.size() != tr.k_t.size() || k_l.size() != tr.k_l.size())
+				return false;
+			for(unsigned i = 0; i < k_t.size(); i++)
+				if(k_t[i] != tr.k_t[i])
+					return false;
+			for(unsigned i = 0; i < k_l.size(); i++)
+				if(k_l[i] != tr.k_l[i])
+					return false;
+			return true;
+		}
+
         t_bv get_t()
         {
             return k_t;
@@ -473,8 +489,8 @@ class k2_tree
         {
             k_t.load(in);
             k_l.load(in);
-            k_t_rank.serialize(in);
-            k_t_rank.set_vector(&k_t_rank);
+            k_t_rank.load(in);
+            k_t_rank.set_vector(&k_t);
             read_member(k_k, in);
             read_member(k_height, in);
         }
