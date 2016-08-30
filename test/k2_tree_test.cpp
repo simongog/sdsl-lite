@@ -300,8 +300,9 @@ TYPED_TEST(k2_tree_test_k_3, build_from_edges_array)
     k2_tree_test_nm::check_t_l(tree, {}, {0, 0, 0, 0, 0, 0, 0, 0, 1});
 }
 
+TYPED_TEST_CASE(k2_tree_test, Implementations);
 
-TYPED_TEST(k2_tree_test_k_2, neighbors_test)
+TYPED_TEST(k2_tree_test, neighbors_test)
 {
     vector<vector <int>> mat({{1, 1, 0, 0},
                               {0, 1, 0, 0},
@@ -346,8 +347,6 @@ TYPED_TEST(k2_tree_test_k_2, neighbors_test)
     neigh_0 = tree.neigh(0);
     ASSERT_EQ(0u, neigh_0.size());
 }
-
-TYPED_TEST_CASE(k2_tree_test, Implementations);
 
 TYPED_TEST(k2_tree_test, reverse_neighbors_test)
 {
@@ -399,7 +398,7 @@ TYPED_TEST(k2_tree_test, reverse_neighbors_test)
         ASSERT_EQ(expected_r_neigh_1[i], r_neigh_1[i]);
 }
 
-TYPED_TEST(k2_tree_test_k_2, adj_test)
+TYPED_TEST(k2_tree_test, adj_test)
 {
     vector<vector <int>> mat({{1, 0, 0, 0, 1},
                               {0, 0, 0, 0, 0},
@@ -424,10 +423,30 @@ TYPED_TEST(k2_tree_test_k_2, adj_test)
     ASSERT_TRUE(tree.adj(0,0));
 }
 
+TYPED_TEST(k2_tree_test, serialize_test)
+{
+    vector<vector <int>> mat({{1, 0, 0, 0, 1},
+                              {0, 0, 0, 0, 0},
+                              {0, 0, 1, 1, 0},
+                              {0, 0, 0, 0, 0},
+                              {0, 0, 1, 0, 1}});
+
+    auto tree = TypeParam(mat);
+    vector<unsigned> expected_t = tree.get_t();
+    vector<unsigned> expected_l = tree.get_l();
+
+
+
+
+
+
+}
+
 }  // namespace
 
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
+
     return RUN_ALL_TESTS();
 }

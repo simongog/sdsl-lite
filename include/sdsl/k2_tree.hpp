@@ -93,6 +93,7 @@ class k2_tree
                 for(auto it = acc[j].begin(); it != acc[j].end(); it++)
                     // TODO erase
                     for(unsigned i = 0; i < (*it).size(); i++) {
+                        // TODO there should be a better way to do this
                         k_t_.set_int(n, (*it).get_int(i, 1), 1);
                         n++;
                     }
@@ -100,6 +101,7 @@ class k2_tree
             for(auto it = acc[k_height].begin(); it != acc[k_height].end(); it++)
                 // TODO erase
                 for(unsigned i = 0; i < (*it).size(); i++) {
+                    // TODO there should be a better way to do this
                     k_l_.set_int(n * 1, (*it).get_int(i, 1), 1);
                     n++;
                 }
@@ -436,6 +438,45 @@ class k2_tree
                 _reverse_neigh(n/k_k, n * j, i % n, y + j * k_k, acc);
 
             return acc;
+        }
+
+
+        //! Serialize to a stream
+        /*! Serialize the k2_tree data structure
+         *  \param out Outstream to write the k2_tree.
+         *  \param v
+         *  \param string_name
+         *  \returns The number of written bytes.
+         */
+        size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
+                            std::string name="")
+        {
+            structure_tree_node* child = structure_tree::add_child(
+                    v, name, util::class_name(*this));
+            size_type written_bytes = 0;
+
+            written_bytes += k_t.serialize(out, child, "t");
+            written_bytes += k_l.serialize(out, child, "l");
+            written_bytes += k_t_rank.serialize(out, child, "t_rank");
+            written_bytes += write_member(k_k, out, child, "k");
+            written_bytes += write_member(k_height, out, child, "height");
+            structure_tree::add_size(child, written_bytes);
+            return written_bytes;
+        }
+
+
+        //! Load from istream
+        /*! Serialize the k2_tree from the given istream.
+         *  \param istream Stream to load the k2_tree from.
+         */
+        void load(std::istream& in)
+        {
+            k_t.load(in);
+            k_l.load(in);
+            k_t_rank.serialize(in);
+            k_t_rank.set_vector(&k_t_rank);
+            read_member(k_k, in);
+            read_member(k_height, in);
         }
 
 };
