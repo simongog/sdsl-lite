@@ -1,8 +1,9 @@
 #include "sdsl/k2_tree.hpp"
 #include "gtest/gtest.h"
 
-#include <vector>
+#include <sstream>
 #include <tuple>
+#include <vector>
 
 namespace
 {
@@ -36,6 +37,16 @@ namespace k2_tree_test_nm
     for(unsigned i = 0; i < expected_l.size(); i++)
         ASSERT_EQ(expected_l[i], tree.get_l().get_int(i, 1));
     }
+
+    template<typename t_tree>
+    void check_serialize_load(t_tree &tree)
+	{
+		auto unserialized_tree = t_tree();
+		std::stringstream ss;
+		tree.serialize(ss);
+		unserialized_tree.load(ss);
+		ASSERT_EQ(tree, unserialized_tree);
+	}
 };
 
 typedef Types<
@@ -51,7 +62,9 @@ typedef Types<
 typedef Types<
     k2_tree<2, bit_vector>,
     k2_tree<3, bit_vector>,
+    k2_tree<7, bit_vector>,
     k2_tree<2, rrr_vector<63>>,
+    k2_tree<3, rrr_vector<63>>,
     k2_tree<5, bit_vector, rank_support_v<>>,
     k2_tree<4, bit_vector, rank_support_v<>>
     > Implementations;
@@ -410,7 +423,7 @@ TYPED_TEST(k2_tree_test, adj_test)
     ASSERT_TRUE(tree.adj(0, 0));
     ASSERT_TRUE(tree.adj(0, 4));
     ASSERT_FALSE(tree.adj(4, 0));
-    ASSERT_FALSE(tree.adj(7, 7));
+    ASSERT_TRUE(tree.adj(4, 4));
     ASSERT_FALSE(tree.adj(1, 1));
     ASSERT_TRUE(tree.adj(2, 2));
     ASSERT_TRUE(tree.adj(2, 3));
@@ -432,13 +445,24 @@ TYPED_TEST(k2_tree_test, serialize_test)
                               {0, 0, 1, 0, 1}});
 
     auto tree = TypeParam(mat);
-    vector<unsigned> expected_t = tree.get_t();
-    vector<unsigned> expected_l = tree.get_l();
+	k2_tree_test_nm::check_serialize_load(tree);
 
+	mat = vector<vector<int>>({{0}});
+    tree = TypeParam(mat);
+	k2_tree_test_nm::check_serialize_load(tree);
 
+	tree = TypeParam();
+	k2_tree_test_nm::check_serialize_load(tree);
 
+	mat = vector<vector<int>>({{0, 0},
+							   {0, 0}});
+    tree = TypeParam(mat);
+	k2_tree_test_nm::check_serialize_load(tree);
 
-
+	mat = vector<vector<int>>({{1, 1},
+							   {1, 1}});
+    tree = TypeParam(mat);
+	k2_tree_test_nm::check_serialize_load(tree);
 
 }
 
