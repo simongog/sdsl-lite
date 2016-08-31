@@ -46,53 +46,65 @@ int _build_from_matrix(const std::vector<std::vector <int>>& matrix,
     t_bv b(b_size, 0);
     bool is_leaf = (l == height);
 
-    if(is_leaf) {
-        for(i = 0; i < k; i++)
-            for(j = 0; j < k; j++)
-                if(p + i < matrix.size()
-                   && q + j < matrix.size()
-                   && matrix[p + i][q + j] == 1)
+    if (is_leaf) {
+        for (i = 0; i < k; i++)
+            for (j = 0; j < k; j++)
+                if (p + i < matrix.size()
+                    && q + j < matrix.size()
+                    && matrix[p + i][q + j] == 1)
                     b[i * k + j] = 1;
-    }
-    else { // Internal node
-        for(i = 0; i < k; i++)
-            for(j = 0; j < k; j++)
+    } else { // Internal node
+        for (i = 0; i < k; i++)
+            for (j = 0; j < k; j++)
                 b[i * k + j] = _build_from_matrix(matrix, k, n/k, height, l + 1,
                                                   p + i * (n/k), q + j * (n/k),
                                                   acc);
     }
 
     // TODO There must be a better way to check if there is a 1 at b.
-    for(i = 0; i < b_size; i++)
-        if(b[i] == 1)
+    for (i = 0; i < b_size; i++)
+        if (b[i] == 1)
             break;
-    if(i == b_size) // If there are not 1s at b.
+    if (i == b_size) // If there are not 1s at b.
         return 0;
 
     acc[l].push_back(std::move(b));
     return 1;
 }
 
+/*! Get the chunk index ([0, k^2[) of a submatrix point.
+ *
+ * Gets a point in the global matrix and returns its corresponding chunk
+ * in the submatrix specified.
+ *
+ * \param v Row of the point in the global matrix.
+ * \param u Column of the point in the global matrix.
+ * \param c_0 Column offset of the submatix in the global matrix.
+ * \param r_0 Row offset of the submatrix in the global matrix.
+ * \param l size of the chunk at the submatrix.
+ * \param k the k parameter from the k^2 tree.
+ * \returns the index of the chunk containing the point at the submatrix.
+ */
 inline uint16_t get_chunk_idx(idx_type v, idx_type u, idx_type c_0,
-							  idx_type r_0, size_type l, uint8_t k)
+                              idx_type r_0, size_type l, uint8_t k)
 {
     return std::floor(static_cast<double>(v - r_0) / l) * k +
            std::floor(static_cast<double>(u - c_0) / l);
 }
 
-template<typename t_bv=bit_vector> void build_template_vector(bit_vector &k_t_,
-                                                              bit_vector &k_l_,
-                                                              t_bv &k_t,
-                                                              t_bv &k_l)
+template<typename t_bv=bit_vector> void build_template_vector(bit_vector& k_t_,
+        bit_vector& k_l_,
+        t_bv& k_t,
+        t_bv& k_l)
 {
     k_t = t_bv(k_t_);
     k_l = t_bv(k_l_);
 }
 
-template<> void build_template_vector<bit_vector>(bit_vector &k_t_,
-                                                  bit_vector &k_l_,
-                                                  bit_vector &k_t,
-                                                  bit_vector &k_l)
+template<> void build_template_vector<bit_vector>(bit_vector& k_t_,
+        bit_vector& k_l_,
+        bit_vector& k_t,
+        bit_vector& k_l)
 {
     k_t.swap(k_t_);
     k_l.swap(k_l_);
