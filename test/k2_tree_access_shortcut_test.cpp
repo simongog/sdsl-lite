@@ -19,23 +19,20 @@ namespace {
 
     using testing::Types;
 
-    typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, rrr_vector<63>, false, 2> hybrid_k2_2222_b_rrr;
-    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, rrr_vector<63>, true, 4> hybrid_k2_4524_b_rrr;
-    typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, rrr_vector<63>, false, 2> hybrid_k2_2528_b_rrr;
-    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, rrr_vector<63>, true, 2> hybrid_k2_165216_b_rrr;
-    typedef k2_tree<2, bit_vector, bit_vector, true, 2> k2comp;
-    typedef k2_tree<2, bit_vector, bit_vector, false, 2> k2;
-    typedef k2_tree<2, bit_vector, rrr_vector<63>, false, 4> k2rrr;
-    typedef k2_tree<4, bit_vector, rrr_vector<63>, false, 4> k2_4;
-    typedef k2_tree<8, bit_vector, rrr_vector<63>, false, 4> k2_8;
+    typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, rrr_vector<63>> hybrid_k2_2222_b_rrr;
+    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_4524_b_rrr;
+    typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_2528_b_rrr;
+    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, rrr_vector<63>> hybrid_k2_165216_b_rrr;
+    typedef k2_tree<2, bit_vector, bit_vector> k2comp;
+    typedef k2_tree<2, bit_vector, bit_vector> k2;
+    typedef k2_tree<2, bit_vector, rrr_vector<63>> k2rrr;
 
     typedef Types<
             k2comp,
             k2rrr,
-            k2_4,
-            k2_8,
+            k2,
             k2_tree_partitioned<3, k2>,
-            k2_tree_partitioned<4, k2, true>,
+            k2_tree_partitioned<4, k2>,
             k2_tree_partitioned<8, k2rrr>,
             hybrid_k2_2222_b_rrr,
             hybrid_k2_4524_b_rrr,
@@ -59,27 +56,32 @@ namespace {
             ASSERT_TRUE(load_from_file(k2treap2, temp_file));
             ASSERT_EQ(k2treap, k2treap2);
 
-            // a bit hacky because construction can fail during runtime, when access_shortcut_size > t_k_l_1 leading to temp_file not being present
-            perform_check_link_test(k2treap, temp_file, test_file, [&k2treap](std::pair<uint64_t, uint64_t> asd) {
-                return k2treap.check_link(asd);
-            });
+            std::vector<uint> shortcut_sizes_to_test = {2,4,8,16};
 
-            perform_check_link_test(k2treap, temp_file, test_file, [&k2treap](std::pair<uint64_t, uint64_t> asd) {
-                return k2treap.check_link_shortcut(asd);
-            });
+            for (auto shortcut_size : shortcut_sizes_to_test) {
+                k2treap.construct_access_shortcut(shortcut_size);
+                // a bit hacky because construction can fail during runtime, when access_shortcut_size > t_k_l_1 leading to temp_file not being present
+                perform_check_link_test(k2treap, temp_file, test_file, [&k2treap](std::pair<uint64_t, uint64_t> asd) {
+                    return k2treap.check_link(asd);
+                });
 
-            perform_direct_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
-                k2treap.direct_links_shortcut_2(source_id, result);
-            });
+                perform_check_link_test(k2treap, temp_file, test_file, [&k2treap](std::pair<uint64_t, uint64_t> asd) {
+                    return k2treap.check_link_shortcut(asd);
+                });
 
-            perform_direct_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
-                k2treap.direct_links_shortcut(source_id, result);
-            });
+                perform_direct_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
+                    k2treap.direct_links_shortcut_2(source_id, result);
+                });
+
+                perform_direct_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
+                    k2treap.direct_links_shortcut(source_id, result);
+                });
 
 
-            perform_inverse_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
-                k2treap.inverse_links_shortcut(source_id, result);
-            });
+                perform_inverse_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
+                    k2treap.inverse_links_shortcut(source_id, result);
+                });
+            }
         } catch (std::runtime_error const &e) {
             std::cerr << "Exception occured " << e.what() << std::endl;
             //quite hacky comparing strings

@@ -102,7 +102,9 @@ int main(int argc, char *argv[]) {
 
         std::cerr << "Finished Reading File " << std::endl;
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
-        const int k = 3;
+        bool compress = false;
+        uint8_t access_shortcut_size = 0;
+        const uint8_t k = 4;
         //attention need to adapt rank type below!!
         k2_tree<k, rrr_vector<63>> k2treap;
 
@@ -111,7 +113,7 @@ int main(int argc, char *argv[]) {
         ticks = (double) sysconf(_SC_CLK_TCK);
         start_clock();
         // Initialize treap with a vector of (x,y,weight) elements<uint8_t t_k,
-        construct_im_bottom_up(k2treap, coordinates, numberOfNodes - 1);
+        construct_im_bottom_up(k2treap, coordinates, numberOfNodes - 1, access_shortcut_size, compress);
 
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds

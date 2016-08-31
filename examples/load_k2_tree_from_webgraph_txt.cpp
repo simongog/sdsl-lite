@@ -101,16 +101,18 @@ int main(int argc, char *argv[]) {
 
         std::cerr << "Finished Reading File " << std::endl;
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
+        bool compress = true;
+        uint8_t access_shortcut_size = 4;
         const uint8_t k = 4;
         //typedef k2_tree_hybrid<k,k,k,k, bit_vector, bit_vector,true> k2_rrr;
-        typedef k2_tree<k, bit_vector, bit_vector,true,4> k2_rrr;
+        typedef k2_tree<k, bit_vector, bit_vector> k2_rrr;
 
         double t2 = 0;
         ticks = (double) sysconf(_SC_CLK_TCK);
         start_clock();
         // Initialize treap with a vector of (x,y,weight) elements
         //construct_im(k2treap, coordinates, numberOfNodes - 1);
-        k2_rrr k2treap("", false, coordinates, numberOfNodes-1);
+        k2_rrr k2treap("", false, coordinates, numberOfNodes-1, access_shortcut_size, compress);
 
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds

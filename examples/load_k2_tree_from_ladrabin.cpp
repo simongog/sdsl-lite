@@ -148,13 +148,15 @@ int main(int argc, char *argv[]) {
         }
 
         std::shared_ptr<k2_tree> k2 = get_k2_tree(k, shortcut_size, compress_leaves, coords, number_of_nodes-1);*/
+        bool compress = false;
+        uint8_t access_shortcut_size = 0;
         const uint8_t k = 4;
-        typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector, false> k2_rrr;
+        typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector> k2_rrr;
         //typedef k2_tree_partitioned<4, k2_rrr, true> k2_part;
         //typedef k2_tree<k, bit_vector, bit_vector, true> k2_rrr;
         // Initialize treap with a vector of (x,y,weight) elements
         //construct_im(k2treap, coordinates, numberOfNodes - 1);
-        k2_rrr k2tree("", true, coords, number_of_nodes - 1);
+        k2_rrr k2tree("", true, coords, number_of_nodes - 1, access_shortcut_size, compress);
         coords.clear();
 
         std::string output_file_name(argv[2]);

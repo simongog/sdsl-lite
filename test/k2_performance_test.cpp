@@ -144,7 +144,7 @@ namespace {
             k6,
             k8,
             k16,*/
-            k2_comp,
+/*            k2_comp,
             k3_comp,
             k4_comp,
             k6_comp,
@@ -190,7 +190,7 @@ namespace {
             k2_tree_partitioned<16,k2_2,true>,
             k2_tree_partitioned<16,k4_2,true>,
             k2_tree_partitioned<16,k8_2,true>,
-            k2_tree_partitioned<16,k16_2,true>/*,
+            k2_tree_partitioned<16,k16_2,true>,*/
 
 
             hybrid_k2_4524_b_comp,
@@ -220,7 +220,7 @@ namespace {
             k2_tree_partitioned<8,hybrid_k2_4624_b>,
             k2_tree_partitioned<8,hybrid_k2_2528_b>,
             k2_tree_partitioned<8,hybrid_k2_165216_b>,
-            k2_tree_partitioned<8,hybrid_k2_8523_b>*/
+            k2_tree_partitioned<8,hybrid_k2_8523_b>
     > Implementations;
 
     TYPED_TEST_CASE(k2_performance_test, Implementations);
@@ -253,7 +253,7 @@ namespace {
             }
             fileStream.close();
 
-            TypeParam k2tree("", false, coords, number_of_nodes - 1);
+            TypeParam k2tree("", true, coords, number_of_nodes - 1);
             coords.clear();
 
             store_to_file(k2tree, temp_file);
