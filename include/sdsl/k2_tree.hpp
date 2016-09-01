@@ -272,15 +272,17 @@ namespace sdsl {
                 fileStream.close();
 
                 if (coords.size() > 0) {
-                    /*if (use_counting_sort) {
+                    if (use_counting_sort) {
                         k2_tree_base<t_k, t_lev, t_leaf, t_comp, t_access_shortcut_size, t_rank>::template construct_counting_sort(
                                 coords, temp_file_prefix);
                         //construct_bottom_up(v, temp_file_prefix);
                     } else {
                         construct(coords, temp_file_prefix);
-                    }*/
+                    }
 
-                    construct_by_z_order_sort_internal(coords, temp_file_prefix);
+                    coords.clear();
+
+                    //construct_by_z_order_sort_internal(coords, temp_file_prefix);
 
                     if (t_comp) {
                         this->compress_leaves(hash_size);

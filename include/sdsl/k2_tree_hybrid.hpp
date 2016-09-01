@@ -279,6 +279,8 @@ namespace sdsl {
 
                     std::cout << "Finished Construction" << std::endl;
 
+                    coords.clear();
+
                     if (t_comp) {
                         this->compress_leaves(hash_size);
                     }
