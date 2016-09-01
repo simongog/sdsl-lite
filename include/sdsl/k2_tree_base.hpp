@@ -3,7 +3,7 @@
 
 /*! \file k2_tree_base.hpp
     \brief k2_tree_base.hpp contains the common operations of k2trees and hybrid k2trees
-    \author Jan Broß, based on the k2 treap code of Simon Gog, leaf compression is based on the libk2tree implemenetation which uses DACs impelemented by Brisaboa, Ladra et.al.
+    \author Jan Broß, based on the k2 treap code of Simon Gog, leaf compression is based on the libk2tree implementation which uses DACs impelemented by Brisaboa, Ladra et.al.
 */
 
 #include "k2_tree_vocabulary.hpp"
@@ -39,8 +39,6 @@ namespace sdsl {
     template<uint8_t k0,
             typename t_lev,
             typename t_leaf,
-            bool t_comp,
-            uint8_t t_access_shortcut_size,
             typename t_rank>
     class k2_tree_base {
 
@@ -48,13 +46,12 @@ namespace sdsl {
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint32_t, uint32_t>>::result stxxl_32bit_pair_vector;
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint64_t, uint64_t>>::result stxxl_64bit_pair_vector;
 
+        uint64_t m_max_element = 0; //FIXME: this is an ugly hack for k2part, could also be figured out with tree height and k!
+        uint8_t m_tree_height = 0;
+
         using node_type = k2_treap_ns::node_type;
         using point_type = k2_treap_ns::point_type;
         using t_p = k2_treap_ns::t_p;
-        DAC m_comp_leaves;
-        uint64_t m_max_element = 0; //FIXME: this is an ugly hack for k2part
-        uint8_t m_tree_height = 0;
-        uint8_t m_access_shortcut_size = 0;
 
         k2_tree_base() = default;
 
@@ -64,6 +61,10 @@ namespace sdsl {
 
         k2_tree_base(k2_tree_base &&tr) {
             *this = std::move(tr);
+        }
+
+
+        k2_tree_base(uint8_t access_shortcut_size, bool dac_compress) : m_access_shortcut_size(access_shortcut_size), m_is_dac_comp(dac_compress) {
         }
 
         //virtual ~k2_tree_base() = 0;
@@ -85,6 +86,10 @@ namespace sdsl {
         //Rank support for pattern 01 and 1
         rank_support_v<10, 2> m_access_shortcut_rank_10_support;
         bit_vector::select_1_type m_access_shortcut_select_1_support;
+
+        DAC m_comp_leaves;
+        uint8_t m_access_shortcut_size = 0;
+        bool m_is_dac_comp = false;
 
         /** For compressed version **/
         Vocabulary m_vocabulary;
@@ -112,7 +117,7 @@ namespace sdsl {
             }
 
             //direct_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result);
-            if (t_comp) {
+            if (m_is_dac_comp) {
                 direct_links2_internal_queue(source_id, result,
                                              [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> &result) {
                                                  check_leaf_bits_direct_comp(pos, offset, leafK, result);
@@ -128,7 +133,7 @@ namespace sdsl {
 
         template<typename t_x>
         void direct_links_shortcut(t_x source_id, std::vector<t_x> &result) const {
-            if (t_comp) {
+            if (m_is_dac_comp) {
                 direct_links_shortcut_internal(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
                                                                          std::vector<t_x> &result) {
                     check_leaf_bits_direct_comp(pos, offset, leafK, result);
@@ -143,7 +148,7 @@ namespace sdsl {
 
         template<typename t_x>
         void direct_links_shortcut_2(t_x source_id, std::vector<t_x> &result) const {
-            if (t_comp) {
+            if (m_is_dac_comp) {
                 direct_links_shortcut_internal_2(source_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
                                                                            std::vector<t_x> &result) {
                     check_leaf_bits_direct_comp(pos, offset, leafK, result);
@@ -242,7 +247,7 @@ namespace sdsl {
 
         template<typename t_x>
         void inverse_links_shortcut(t_x target_id, std::vector<t_x> &result) const {
-            if (t_comp) {
+            if (m_is_dac_comp) {
                 inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
                                                                           std::vector<t_x> &result) {
                     check_leaf_bits_inverse_comp(pos, offset, leafK, result);
@@ -297,7 +302,7 @@ namespace sdsl {
             }
 
             //inverse_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result);
-            if (t_comp) {
+            if (m_is_dac_comp) {
                 inverse_links2_internal_queue(target_id, result,
                                               [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> &result) {
                                                   check_leaf_bits_inverse_comp(pos, offset, leafK, result);
@@ -311,7 +316,7 @@ namespace sdsl {
         }
 
         //! Move assignment operator
-        virtual k2_tree_base &operator=(k2_tree_base &&tr) {
+        virtual k2_tree_base &operator=(const k2_tree_base &&tr) {
             if (this != &tr) {
                 m_tree_height = tr.m_tree_height;
                 m_size = tr.m_size;
@@ -323,6 +328,7 @@ namespace sdsl {
                 }
                 m_leaves = std::move(tr.m_leaves);
                 m_access_shortcut_size = tr.m_access_shortcut_size;
+                m_is_dac_comp = tr.m_is_dac_comp;
                 m_access_shortcut = std::move(tr.m_access_shortcut);
                 m_access_shortcut_rank_10_support = std::move(tr.m_access_shortcut_rank_10_support);
                 m_access_shortcut_select_1_support = std::move(tr.m_access_shortcut_select_1_support);
@@ -348,6 +354,7 @@ namespace sdsl {
                 }
                 m_leaves = tr.m_leaves;
                 m_access_shortcut_size = tr.m_access_shortcut_size;
+                m_is_dac_comp = tr.m_is_dac_comp;
                 m_access_shortcut = tr.m_access_shortcut;
                 m_access_shortcut_rank_10_support = tr.m_access_shortcut_rank_10_support;
                 m_access_shortcut_rank_10_support.set_vector(&m_access_shortcut);
@@ -389,8 +396,13 @@ namespace sdsl {
                 }
             }
 
+            if (m_is_dac_comp != tr.m_is_dac_comp){
+                std::cout << "one is compressed, the other not" << std::endl;
+                return false;
+            }
+
             if (m_tree_height > 0) {
-                if (t_comp) {
+                if (m_is_dac_comp) {
                     if (!(m_comp_leaves == tr.m_comp_leaves)) {
                         std::cout << "comp leaves differ" << std::endl;
                         return false;
@@ -475,6 +487,7 @@ namespace sdsl {
                 util::swap_support(m_access_shortcut_select_1_support, tr.m_access_shortcut_select_1_support,
                                    &m_access_shortcut, &tr.m_access_shortcut);
 
+                std::swap(m_is_dac_comp, tr.m_is_dac_comp);
                 std::swap(m_vocabulary, tr.m_vocabulary);
                 m_comp_leaves.swap(tr.m_comp_leaves);
                 std::swap(m_field_size_on_sl, tr.m_field_size_on_sl);
@@ -500,7 +513,8 @@ namespace sdsl {
                     written_bytes += m_levels_rank[i].serialize(out, child, "levels_rank");
                 }
 
-                if (t_comp) {
+                written_bytes += write_member(m_is_dac_comp, out, child, "m_is_dac_comp");
+                if (m_is_dac_comp) {
                     written_bytes += m_vocabulary.serialize(out, child, "voc");
                     written_bytes += m_comp_leaves.serialize(out, child, "comp_leafs");
                 } else {
@@ -536,7 +550,8 @@ namespace sdsl {
                     m_levels_rank[i].set_vector(&m_levels[i]);
                 }
 
-                if (t_comp) {
+                read_member(m_is_dac_comp, in);
+                if (m_is_dac_comp) {
                     m_vocabulary.load(in);
                     m_comp_leaves.load(in);
                 } else {
@@ -581,7 +596,6 @@ namespace sdsl {
                         uchar tmp = (1 << (j % kUcharBits));
                         word[j / kUcharBits] |= tmp;
                     }
-
                 }
                 fun(word);
                 delete[] word;
@@ -605,7 +619,7 @@ namespace sdsl {
 
         template<typename t_x, typename t_y>
         bool check_link_shortcut(std::pair<t_x, t_y> link) const {
-            if (t_comp) {
+            if (m_is_dac_comp) {
                 return check_link_shortcut_internal(link, [this](int64_t pos, uint8_t leafK) {
                     return this->is_leaf_bit_set_comp(pos, leafK);
                 });
@@ -677,7 +691,7 @@ namespace sdsl {
             if (this->m_tree_height == 0) {
                 return false;
             }
-            if (t_comp) {
+            if (m_is_dac_comp) {
                 return check_link_internal(0, m_max_element, link.first, link.second, 0,
                                            [this](int64_t pos, uint8_t leafK) {
                                                return this->is_leaf_bit_set_comp(pos, leafK);
@@ -716,15 +730,6 @@ namespace sdsl {
             }
         }
 
-
-        void compress_leaves(uint64_t hash_size = 0) {
-
-            std::cout << "Compressing leaves" << std::endl;
-            FreqVoc(*this, [&](const HashTable &table, Vocabulary &voc) {
-                compress_leaves(table, voc);
-            }, hash_size);
-        }
-
         void compress_leaves(const HashTable &table, Vocabulary &voc) {
             size_t cnt = words_count();
             uint size = word_size();
@@ -747,6 +752,8 @@ namespace sdsl {
                 codewords[i++] = table[addr].codeword;
             });
 
+            m_leaves = t_leaf();
+            m_is_dac_comp = true;
 
             try {
                 // TODO Port to 64-bits
@@ -759,15 +766,12 @@ namespace sdsl {
                 std::cout << "Count" << cnt << std::endl;*/
                 m_comp_leaves = DAC(codewords, cnt);
             } catch (...) {
-                std::cerr << "[HybridK2Tree::CompressLeaves] Error: Could not create DAC\n";
+                std::cerr << "[k2_tree_base::compress_leaves] Error: Could not create DAC\n";
                 exit(1);
             }
 
             delete[] codewords;
-
             m_vocabulary = voc;
-
-            m_leaves = t_leaf();
         }
 
         /**
@@ -779,6 +783,14 @@ namespace sdsl {
         }
 
     public:
+        void compress_leaves(uint64_t hash_size = 0) {
+            m_is_dac_comp = true;
+            std::cout << "Compressing leaves" << std::endl;
+            FreqVoc(*this, [&](const HashTable &table, Vocabulary &voc) {
+                compress_leaves(table, voc);
+            }, hash_size);
+        }
+
         /**
          * Recursive function for getting the successors of a certain node.
          * Detailed in the "Compact representation of Web graphs with extended functionality" Paper
@@ -1108,7 +1120,7 @@ namespace sdsl {
                         intervals[i] += intervals[i - 1]; //build prefix sum
                     }
 
-                    //leavs not reached yet --> append to level_vector & reorder
+                    //leaves not reached yet --> append to level_vector & reorder
                     if (submatrix_size > k) {
                         std::vector<t_x> offset(k * k);
                         offset[0] = 0;
@@ -1170,6 +1182,8 @@ namespace sdsl {
             return node_type(0, t_p(0, 0), 0);
         }
 
+
+    public:
         /**
         * Hier noch eine Idee um den k^2-tree zu beschleunigen: Um nicht erst durch h Levels zu navigieren kann man sich erst ein bit_vector B bauen, der aus 4^h Einsen und höchstens 4^h Nullen besteht. Für jeden der 4^h Teilbäume schreibt man eine Eins; für nichtleere Teilbäume zusätzlich eine Null vor der entsprechenden Eins.
         *  Also für das Beispiel in Abb.1.3 (in Jans Bericht) mit h=2:
@@ -1193,9 +1207,10 @@ namespace sdsl {
         *  gemacht werden sollte das deutlich schneller sein als die 8 ranks
         *  in der vorherigen Implementierung.
          */
-        void construct_access_shortcut() {
+        virtual void construct_access_shortcut(uint8_t access_shortcut_size) {
             using namespace k2_treap_ns;
 
+            m_access_shortcut_size = access_shortcut_size;
             //maximal size of shortcut is tree height
             if (m_access_shortcut_size > this->m_tree_height - 2) {
                 std::cerr << "shortcut size must be smaller than tree height -2";
@@ -1278,6 +1293,18 @@ namespace sdsl {
             const uchar *word = m_vocabulary.get(iword);
             bool bitSet = ((word[pos / kUcharBits] >> (pos % kUcharBits)) & 1);
             return bitSet;
+        }
+
+
+        void postInit(uint64_t hash_size){
+            if (m_tree_height > 0) {
+                if (m_is_dac_comp) {
+                    compress_leaves(hash_size);
+                }
+                if (m_access_shortcut_size > 0) {
+                    construct_access_shortcut(m_access_shortcut_size);
+                }
+            }
         }
 
     private:

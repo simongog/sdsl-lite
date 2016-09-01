@@ -19,29 +19,27 @@ namespace {
 
     using testing::Types;
 
-    typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, bit_vector, true> hybrid_k2_2222_b_comp;
-    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector, true> hybrid_k2_4524_b_comp;
-    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector, false> hybrid_k2_4524_b;
-    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, rrr_vector<63>, true> hybrid_k2_165216_b_rrr_comp;
-    typedef k2_tree<2, bit_vector, bit_vector, true> k2comp;
-    typedef k2_tree<4, bit_vector, bit_vector, true> k4comp;
-    typedef k2_tree<2, bit_vector, bit_vector, false> k2;
-    typedef k2_tree<8, bit_vector, bit_vector, false> k8;
-    typedef k2_tree<8, bit_vector, bit_vector, true> k8comp;
-    typedef k2_tree<16, bit_vector, bit_vector, true> k16comp;
+    typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, bit_vector> hybrid_k2_2222_b_comp;
+    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector> hybrid_k2_4524_b_comp;
+    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector> hybrid_k2_4524_b;
+    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, rrr_vector<63>> hybrid_k2_165216_b_rrr_comp;
+    typedef k2_tree<2, bit_vector, bit_vector> k2;
+    typedef k2_tree<4, bit_vector, bit_vector> k4;
+    typedef k2_tree<8, bit_vector, bit_vector> k8;
+    typedef k2_tree<16, bit_vector, bit_vector> k16;
 
 
     typedef Types<
-            k8comp,
-            k2comp,
-            k4comp,
-            k16comp,
+            k8,
+            k2,
+            k4,
+            k16,
             hybrid_k2_2222_b_comp,
             hybrid_k2_4524_b_comp,
             hybrid_k2_165216_b_rrr_comp,
-            k2_tree_partitioned<2, k2, true>,
-            k2_tree_partitioned<4, k8, true>,
-            k2_tree_partitioned<4, hybrid_k2_4524_b, true>
+            k2_tree_partitioned<2, k2>,
+            k2_tree_partitioned<4, k8>,
+            k2_tree_partitioned<4, hybrid_k2_4524_b>
     > Implementations;
 
     TYPED_TEST_CASE(k2_tree_compression_test, Implementations);
@@ -49,7 +47,7 @@ namespace {
     TYPED_TEST(k2_tree_compression_test, CreateAndStoreTest) {
         int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
-        TypeParam k2treap(buf_x, buf_y, false);
+        TypeParam k2treap(buf_x, buf_y, false, 0, true);
         //construct(k2treap, test_file);
         ASSERT_TRUE(store_to_file(k2treap, temp_file));
         TypeParam k2treap2;
@@ -62,9 +60,9 @@ namespace {
         int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
         TypeParam k2treap;
         TypeParam k2treap2;
-        construct(k2treap, test_file);
-        construct_bottom_up(k2treap2, test_file);
-        TypeParam k2treap3(buf_x, buf_y, false);
+        construct(k2treap, test_file, 0, true);
+        construct_bottom_up(k2treap2, test_file, 0, true);
+        TypeParam k2treap3(buf_x, buf_y, false, 0, 0, true);
         std::cout << "Comparing Results" << std::endl;
 
         if (!( k2treap == k2treap2)){

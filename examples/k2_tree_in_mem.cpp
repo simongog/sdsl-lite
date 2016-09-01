@@ -17,14 +17,17 @@ void print(std::vector<uint32_t>& to_print, uint32_t source_node){
 
 int main()
 {
-    typedef k2_tree<2, bit_vector, bit_vector, false, 2> k2;
-    typedef k2_tree_partitioned<2, k2, true> k2_rrr;
+
+    bool compress = true;
+    uint8_t access_shortcut_size = 0;
+    typedef k2_tree<2, bit_vector, bit_vector> k2;
+    typedef k2_tree_partitioned<2, k2> k2_rrr;
 
 
     // Initialize treap with a vector of (x,y,weight) elements
     vector<pair<uint32_t, uint32_t>> coords = {{0,0},{0,1},{1,2},{1,3},{1,4},{7,6},{8,6},{8,9},{9,6},{9,8},{9,10},{10,6},{10,9}};//{{0,0},{0,1},{1,4},{1,3},{7,6},{1,2}};
     k2_rrr k2treap;
-    construct_im(k2treap, coords,10);
+    construct_im(k2treap, coords, 10, access_shortcut_size, compress);
 
     cout << "Points in the k2treap: " << k2treap.size() << endl;
 
