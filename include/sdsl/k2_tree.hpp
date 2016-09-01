@@ -437,7 +437,6 @@ namespace sdsl {
             
             
             std::vector<int> previous_subtree_number(this->m_tree_height, -1);
-            uint64_t total_size = 0;
 
             {
                 int subtree_distance;
