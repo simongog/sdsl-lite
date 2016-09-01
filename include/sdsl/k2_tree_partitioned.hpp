@@ -721,6 +721,10 @@ namespace sdsl {
                 compress_leaves(table, voc);
             }, hash_size);
         }
+
+        std::string get_type_string() const {
+            return "k2_tree_partitioned<"+std::to_string(t_k0)+","+m_k2trees[0].get_type_string()+">";
+        }
     private:
         void compress_leaves(const HashTable &table, Vocabulary& voc) { 
             std::cout << "After FreqVoc" << std::endl;

@@ -307,6 +307,10 @@ namespace sdsl {
             }
         }
 
+        std::string get_type_string() const {
+            return "k2_tree_hybrid<"+std::to_string(t_k_l_1)+","+std::to_string(t_k_l_1_size)+","+std::to_string(t_k_l_2)+","+std::to_string(t_k_leaves)+">";
+        }
+
     private:
 
         inline uint8_t get_k(uint8_t level) const {

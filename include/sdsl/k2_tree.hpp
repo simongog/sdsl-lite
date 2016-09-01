@@ -216,6 +216,10 @@ namespace sdsl {
             }
         }
 
+        std::string get_type_string() const {
+            return "k2_tree<"+std::to_string(t_k)+">";
+        }
+
         //hack a the moment, because construct cannot be virtual
         void load_from_ladrabin(std::string fileName, bool use_counting_sort = false, uint8_t access_shortcut_size = 0, bool dac_compress = false,
                                 uint64_t hash_size = 0, std::string temp_file_prefix = "") {

@@ -604,6 +604,11 @@ namespace sdsl {
 
 
         /**
+        * Returns the type as string
+        */
+        virtual std::string get_type_string() const = 0;
+
+        /**
         * Returns the number of words of \f$k_leaves^2\f$ bits in the leaf level.
         *
         * @return Number of words.

@@ -87,6 +87,6 @@ int main(int argc, char *argv[]) {
     std::string output_file_name(argv[2]);
     store_to_file(k2, output_file_name);
 
-    write_structure<HTML_FORMAT>(k2, output_file_name + "k_" + std::to_string(k) + ".html");
+    write_structure<HTML_FORMAT>(k2, output_file_name + "("+ k2.get_type_string()+ ")" + ".html");
 }
 
