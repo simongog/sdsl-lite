@@ -109,27 +109,6 @@ TYPED_TEST(bit_vector_test, swap)
     }
 }
 
-/*
-TEST(SD_VECTOR, IteratorConstructor)
-{
-    std::vector<uint64_t> pos;
-    bit_vector bv(100000);
-    std::mt19937_64 rng;
-    std::uniform_int_distribution<uint64_t> distribution(0, 9);
-    auto dice = bind(distribution, rng);
-    for (size_t i=0; i < bv.size(); ++i) {
-        if (0 == dice()) {
-            pos.emplace_back(i);
-            bv[i] = 1;
-        }
-    }
-    sd_vector<> sdv(pos.begin(),pos.end());
-    for (size_t i=0; i < bv.size(); ++i) {
-        ASSERT_EQ((bool)sdv[i],(bool)bv[i]);
-    }
-}
-*/
-
 }// end namespace
 
 int main(int argc, char* argv[])

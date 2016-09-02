@@ -275,8 +275,8 @@ class sd_vector
             m_wl = builder.m_wl;
             m_low.swap(builder.m_low);
             util::assign(m_high, builder.m_high);
-            util::init_support(m_high_1_select, this->m_high);
-            util::init_support(m_high_0_select, this->m_high);
+            util::init_support(m_high_1_select, &(this->m_high));
+            util::init_support(m_high_0_select, &(this->m_high));
 
             builder = sd_vector_builder();
         }

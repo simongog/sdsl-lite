@@ -74,7 +74,7 @@ struct wt_range_t {
     range_type r;
 
 size_t size() const {
-    return r.second - r.first + 1;
+    return r[1] - r[0] + 1;
 }
 
 bool operator<(const wt_range_t& x) const {
