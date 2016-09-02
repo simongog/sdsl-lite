@@ -11,6 +11,9 @@
 #include "k2_tree_dacs.hpp"
 #include "k2_tree_hash_table.hpp"
 #include "k2_tree_compressor.hpp"
+#include "wt_huff.hpp"
+#include "construct.hpp"
+#include "wavelet_trees.hpp"
 #include <stxxl/vector>
 #include <tuple>
 #include <algorithm>
@@ -94,6 +97,9 @@ namespace sdsl {
         /** For compressed version **/
         Vocabulary m_vocabulary;
 
+        bool m_is_wt_comp = false;
+        wt_huff_int<> m_leaves_wt;
+        static constexpr uint8_t m_wt_word_size = 8;
 
         virtual uint8_t get_k(uint8_t) const = 0;
         virtual uint8_t get_tree_height(const uint64_t max) = 0;
@@ -121,6 +127,11 @@ namespace sdsl {
                 direct_links2_internal_queue(source_id, result,
                                              [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> &result) {
                                                  check_leaf_bits_direct_comp(pos, offset, leafK, result);
+                                             });
+            } else if (m_is_wt_comp) {
+                direct_links2_internal_queue(source_id, result,
+                                             [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> &result) {
+                                                 check_leaf_bits_direct_wt(pos, offset, leafK, result);
                                              });
             } else {
                 direct_links2_internal_queue(source_id, result,
@@ -307,6 +318,11 @@ namespace sdsl {
                                               [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> &result) {
                                                   check_leaf_bits_inverse_comp(pos, offset, leafK, result);
                                               });
+            } else if (m_is_wt_comp) {
+                inverse_links2_internal_queue(target_id, result,
+                                              [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> &result) {
+                                                  //check_leaf_bits_inverse_wt(pos, offset, leafK, result);
+                                              });
             } else {
                 inverse_links2_internal_queue(target_id, result,
                                               [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> &result) {
@@ -337,6 +353,8 @@ namespace sdsl {
                 m_field_size_on_sl = tr.m_field_size_on_sl;
                 m_real_size_on_sl = tr.m_real_size_on_sl;
                 m_submatrix_in_row_on_sl = tr.m_submatrix_in_row_on_sl;
+                m_is_wt_comp =  tr.m_is_wt_comp;
+                m_leaves_wt = tr.m_leaves_wt;
             }
             return *this;
         }
@@ -365,6 +383,8 @@ namespace sdsl {
                 m_field_size_on_sl = tr.m_field_size_on_sl;
                 m_real_size_on_sl = tr.m_real_size_on_sl;
                 m_submatrix_in_row_on_sl = tr.m_submatrix_in_row_on_sl;
+                m_is_wt_comp =  tr.m_is_wt_comp;
+                m_leaves_wt = tr.m_leaves_wt;
             }
             return *this;
         }
@@ -401,6 +421,11 @@ namespace sdsl {
                 return false;
             }
 
+            if (m_is_wt_comp != tr.m_is_wt_comp){
+                std::cout << "one is compressed, the other not" << std::endl;
+                return false;
+            }
+
             if (m_tree_height > 0) {
                 if (m_is_dac_comp) {
                     if (!(m_comp_leaves == tr.m_comp_leaves)) {
@@ -414,6 +439,16 @@ namespace sdsl {
                         return false;
                     }
 
+                } else if (m_is_wt_comp != tr.m_is_wt_comp) {
+                    if (m_wt_word_size != tr.m_wt_word_size) {
+                        std::cout << "Wavelet Tree word size differs" << std::endl;
+                        return false;
+                    }
+
+                    /*
+                    if (m_leaves_wt != tr.m_leaves_wt) {
+                        return false;
+                    }*/
                 } else {
                     if (m_leaves.size() != tr.m_leaves.size()) {
                         std::cout << "m_leaves.size() differs" << std::endl;
@@ -490,6 +525,8 @@ namespace sdsl {
                 std::swap(m_is_dac_comp, tr.m_is_dac_comp);
                 std::swap(m_vocabulary, tr.m_vocabulary);
                 m_comp_leaves.swap(tr.m_comp_leaves);
+                std::swap(m_is_wt_comp, tr.m_is_wt_comp);
+                std::swap(m_leaves_wt, tr.m_leaves_wt);
                 std::swap(m_field_size_on_sl, tr.m_field_size_on_sl);
                 std::swap(m_real_size_on_sl, tr.m_real_size_on_sl);
                 std::swap(m_submatrix_in_row_on_sl, tr.m_submatrix_in_row_on_sl);
@@ -514,10 +551,13 @@ namespace sdsl {
                 }
 
                 written_bytes += write_member(m_is_dac_comp, out, child, "m_is_dac_comp");
+                written_bytes += write_member(m_is_wt_comp, out, child, "m_is_wt_comp");
                 if (m_is_dac_comp) {
                     written_bytes += m_vocabulary.serialize(out, child, "voc");
                     written_bytes += m_comp_leaves.serialize(out, child, "comp_leafs");
-                } else {
+                } else if (m_is_wt_comp) {
+                    written_bytes += m_leaves_wt.serialize(out, child, "wt_huff_int");
+                }else {
                     written_bytes += m_leaves.serialize(out, child, "leafv");
                 }
             }
@@ -551,9 +591,12 @@ namespace sdsl {
                 }
 
                 read_member(m_is_dac_comp, in);
+                read_member(m_is_wt_comp, in);
                 if (m_is_dac_comp) {
                     m_vocabulary.load(in);
                     m_comp_leaves.load(in);
+                } else if (m_is_wt_comp) {
+                    m_leaves_wt.load(in);
                 } else {
                     m_leaves.load(in);
                 }
@@ -585,12 +628,11 @@ namespace sdsl {
             size_t cnt = words_count();
             uint size = word_size();
 
+            uint k_leaf_squared = get_k(this->m_tree_height - 1) * get_k(this->m_tree_height - 1);
             size_t bit = 0;
             for (size_t i = 0; i < cnt; ++i) {
                 uchar *word = new uchar[size];
                 std::fill(word, word + size, 0);
-
-                uint k_leaf_squared = get_k(this->m_tree_height - 1) * get_k(this->m_tree_height - 1);
                 for (uint j = 0; j < k_leaf_squared; ++j, ++bit) {
                     if (this->m_leaves[bit]) {
                         uchar tmp = (1 << (j % kUcharBits));
@@ -827,6 +869,60 @@ namespace sdsl {
                     }
                 }
             }
+        }
+
+        void compress_leaves_huf_wt() {
+            if (m_tree_height == 0) {
+                return;
+            }
+
+            m_is_wt_comp = true;
+            uint8_t leafK = get_k(m_tree_height -1);
+
+            size_t cnt = words_count();
+            uint size = (leafK*leafK+m_wt_word_size-1)/(m_wt_word_size);
+            std::cout << "Size" << size << std::endl;
+            std::cout << "Word Count" << cnt*size << std::endl;
+            int_vector<m_wt_word_size> leafs(cnt*size);
+            uint64_t ctr = 0;
+
+            uint k_leaf_squared = get_k(this->m_tree_height - 1) * get_k(this->m_tree_height - 1);
+            size_t bit = 0;
+            for (size_t i = 0; i < cnt; ++i) {
+                uchar *word = new uchar[size];
+                std::fill(word, word + size, 0);
+                for (uint j = 0; j < k_leaf_squared; ++j, ++bit) {
+                    if (this->m_leaves[bit]) {
+                        uchar tmp = (1 << (j % kUcharBits));
+                        word[j / kUcharBits] |= tmp;
+                    }
+                }
+                std::cout << "Leafs: ";
+                for (uint l = 0; l < size; ++l) {
+                    leafs[ctr] = word[l];
+                    std::cout << std::bitset<8>(leafs[ctr]) << "\t";
+                    ctr++;
+                }
+                std::cout << std::endl;
+                delete[] word;
+            }
+
+            m_leaves = t_leaf();
+
+            std::cout << "Leafs2: ";
+            for (int m = 0; m < leafs.size(); ++m) {
+                std::cout << bitset<8>(leafs[m]) << "\t";
+            }
+            std::cout << std::endl;
+
+            construct_im(m_leaves_wt, leafs);
+
+            std::cout << "m_leaves_wt after construction: ";
+            for (int k = 0; k < m_leaves_wt.size(); ++k) {
+                std::cout << std::bitset<8>(m_leaves_wt[k]) << "\t";
+            }
+            std::cout << std::endl;
+
         }
 
         /**
@@ -1314,13 +1410,13 @@ namespace sdsl {
 
     private:
 
-        /**
-        * Returns word containing the bit at the given position
-        * It access the corresponding word in the DAC.
-        *
-        * @param pos Position in the complete sequence of bit of the last level.
-        * @return Pointer to the first position of the word.
-        */
+        /** Checks the leaf bits relevant for a direct neighbor query starting from leaf position pos.
+         *
+         * @param pos
+         * @param result_offset
+         * @param leafK
+         * @param result
+         */
         template<typename t_x>
         inline void
         check_leaf_bits_direct_comp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
@@ -1335,13 +1431,13 @@ namespace sdsl {
             }
         }
 
-        /**
-        * Returns word containing the bit at the given position
-        * It access the corresponding word in the DAC.
-        *
-        * @param pos Position in the complete sequence of bit of the last level.
-        * @return Pointer to the first position of the word.
-        */
+        /** Checks the leaf bits relevant for a inverse neighbor query starting from leaf position pos.
+         *
+         * @param pos
+         * @param result_offset
+         * @param leafK
+         * @param result
+         */
         template<typename t_x>
         inline void
         check_leaf_bits_inverse_comp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
@@ -1355,6 +1451,44 @@ namespace sdsl {
                 }
             }
         }
+
+
+        /** Checks the leaf bits relevant for a direct neighbor query starting from leaf position pos given
+         *  in case leaves are compressed using a huffman shaped wavelet tree.
+         *
+         * @param pos
+         * @param result_offset
+         * @param leafK
+         * @param result
+         */
+        template<typename t_x>
+        inline void
+        check_leaf_bits_direct_wt(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
+            std::cout << "Check posistion" << pos << std::endl;
+            uint leafKSquared = leafK * leafK;
+            uint64_t subtree_number = pos / (leafKSquared);
+            uint64_t word_number = subtree_number * word_size() + pos % (leafK * leafK);
+
+            uint words_per_leaf = (leafKSquared+m_wt_word_size-1)/(m_wt_word_size);
+            std::cout << "Words per leaf: " << words_per_leaf << std::endl;
+            uint amount_of_words_relevant = (words_per_leaf+leafK-1)/leafK;
+            std::cout << "Amount of words relevant: " << amount_of_words_relevant << std::endl;
+
+            uint bitCounter = leafKSquared-1;
+            for (int j = 0; j < amount_of_words_relevant; ++j) {
+                auto word = m_leaves_wt[word_number+j];
+                std::cout << "word at position " << word_number <<" =" << std::bitset<8>(word)  << std::endl;
+                for (int i = 0; i <= std::min(bitCounter, word_size()-1); ++i) {
+                    std::cout << "shifting " << (bitCounter % m_wt_word_size) << "and checking last bit" << std::endl;
+                    if(word >> (bitCounter % m_wt_word_size) & 1){
+                        std::cout << "hit" << std::endl;
+                        result.push_back(leafKSquared - 1 - bitCounter + result_offset);
+                    }
+                    bitCounter--;
+                }
+            }
+        }
+
 
         /**
          * Constructs the bitvector m_access_shortcut used for speeding up tree traversal/link checks

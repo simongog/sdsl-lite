@@ -1,38 +1,23 @@
-#include <vector>
-#include <stxxl/vector>
-#include <bitset>
-#include "sdsl/k2_tree_helper.hpp"
+#include <sdsl/wavelet_trees.hpp>
+#include <iostream>
 
 using namespace std;
+using namespace sdsl;
 
 int main()
 {
- /*   for (uint i = 0; i < 512; i++){
-        uint a = 0;
-        a = a | (i << (32-9) >> (32-3) << 12)
-              | (i << (32-6) >> (32-3) << 6)
-              | (i << (32-3) >> (32-3));
-        std::cout << "0x" << hex << a << ", \t";
-    }*/
+    /*wt_huff_int<> wt;
+    construct_im(wt, int_vector<>({1981, 1974, 1990, 1974, 2014, 1974}));
+    cout << "wt.sigma : " << wt.sigma << endl;
+    cout << wt << endl;
+    size_t idx = 5;
+    auto r_c = wt.inverse_select(idx);
+    cout << get<0>(r_c)+1 << " occurrence(s) of "
+         << get<1>(r_c) << " in [0.." << idx << "]" << endl;
 
-    using namespace sdsl;
-    using namespace k2_treap_ns;
-
-
-    uint q = 22576;
-    uint p = 51760;
-
-    std::cout << "q: " << bitset<32>(q) << std::endl;
-    std::cout << "p: " << bitset<32>(p) << std::endl;
-
-    uint64_t z = access_shortcut_helper<8>::corresponding_subtree(q, p, 16, 2);
-
-    std::cout << bitset<32>(z) << std::endl;
-
-    q = 51760;
-    p = 22576;
-    z = access_shortcut_helper<8>::corresponding_subtree(q, p, 16, 2);
-
-    std::cout << bitset<32>(z) << std::endl;
-    return 0;
+    for (size_t i=0; i < wt.size() and wt[i]!='\n'; ++i)
+        cout << wt[i] << "\t";
+    cout << endl;
+    cout << "number of lines  : " << wt.rank(wt.size(), '\n') << endl;
+    cout << "first '=' in line: " << wt.rank(wt.select(1, '='),'\n')+1 << endl;*/
 }
