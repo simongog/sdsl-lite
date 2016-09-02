@@ -26,9 +26,9 @@ int main(int argc, char *argv[]) {
     //char *filename = (char *)malloc(sizeof(char)*20);
     const uint8_t k = 4;
     //typedef k2_tree_hybrid<k,k,k,k, bit_vector, bit_vector,true> k2_rrr;
-    typedef k2_tree<k, bit_vector, bit_vector> k2_rrr;
+    //typedef k2_tree<k, bit_vector, bit_vector> tested_type;
     //const uint8_t k = 4;
-    //typedef k2_tree_hybrid<4,5,2,8, bit_vector, bit_vector,false> k2_rrr;
+    typedef k2_tree_hybrid<4,6,2,8, bit_vector, bit_vector> k2_rrr;
     typedef k2_tree_partitioned<8, k2_rrr> tested_type;
 
     //typedef k2_tree_partitioned<4, k2_rrr, true> k2_part;
@@ -43,9 +43,9 @@ int main(int argc, char *argv[]) {
     k2tree.compress_leaves();
 
     std::string output_file_name(argv[2]);
-    store_to_file(k2, output_file_name);
+    store_to_file(k2tree, output_file_name);
 
-    write_structure<HTML_FORMAT>(k2, output_file_name + + "("+ k2.get_type_string()+ ")" + ".html");
+    write_structure<HTML_FORMAT>(k2tree, output_file_name + + "("+ k2tree.get_type_string()+ ")" + ".html");
 
 
 
