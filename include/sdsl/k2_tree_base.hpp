@@ -98,7 +98,7 @@ namespace sdsl {
         Vocabulary m_vocabulary;
 
         bool m_is_wt_comp = false;
-        wt_huff<> m_leaves_wt;
+        wt_huff<rrr_vector<63>> m_leaves_wt;
         static constexpr uint8_t m_wt_word_size = 8;
 
         virtual uint8_t get_k(uint8_t) const = 0;
@@ -321,7 +321,7 @@ namespace sdsl {
             } else if (m_is_wt_comp) {
                 inverse_links2_internal_queue(target_id, result,
                                               [this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> &result) {
-                                                  //check_leaf_bits_inverse_wt(pos, offset, leafK, result);
+                                                  check_leaf_bits_inverse_wt(pos, offset, leafK, result);
                                               });
             } else {
                 inverse_links2_internal_queue(target_id, result,
@@ -742,6 +742,11 @@ namespace sdsl {
                 return check_link_internal(0, m_max_element, link.first, link.second, 0,
                                            [this](int64_t pos, uint8_t leafK) {
                                                return this->is_leaf_bit_set_comp(pos, leafK);
+                                           });
+            } else if (m_is_wt_comp) {
+                return check_link_internal(0, m_max_element, link.first, link.second, 0,
+                                           [this](int64_t pos, uint8_t leafK) {
+                                               return this->is_leaf_bit_set_wt_comp(pos, leafK);
                                            });
             } else {
                 return check_link_internal(0, m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t) {
@@ -1483,6 +1488,70 @@ namespace sdsl {
                     bitCounter++;
                 }
             }
+
+
+
+            /*
+             * simpler version:
+             *
+             *
+             *
+
+            auto word_number = pos / m_wt_word_size;
+            auto word = m_leaves_wt[word_number];
+            auto offset = 0;
+            for (int j = 0; j < leafK; ++j) {
+                auto current_word_number = (pos + j) / m_wt_word_size;
+                if (current_word_number > word_number) {
+                    word_number = current_word_number;
+                    word = m_leaves_wt[word_number];
+                }
+
+                offset = (pos + j) % m_wt_word_size;
+                if (word >> (offset) & 1) {
+                    result.push_back(j + result_offset);
+                }
+            }
+             *
+             */
+        }
+
+        /** Checks the leaf bits relevant for a direct neighbor query starting from leaf position pos given
+        *  in case leaves are compressed using a huffman shaped wavelet tree.
+        *
+        * @param pos
+        * @param result_offset
+        * @param leafK
+        * @param result
+        */
+        template<typename t_x>
+        inline void
+        check_leaf_bits_inverse_wt(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
+            //std::cout << "Checking posistion" << pos << std::endl;
+
+            auto word_number = pos / m_wt_word_size;
+            auto word = m_leaves_wt[word_number];
+            auto offset = 0;
+            for (int j = 0; j < leafK; ++j) {
+                auto current_word_number = (pos + j * leafK) / m_wt_word_size;
+                if (current_word_number > word_number) {
+                    word_number = current_word_number;
+                    word = m_leaves_wt[word_number];
+                }
+
+                offset = (pos + j * leafK) % m_wt_word_size;
+                if (word >> (offset) & 1) {
+                    result.push_back(j + result_offset);
+                }
+            }
+        }
+
+        /*##################### Leaf access for wt compressed version#################################################**/
+        inline bool is_leaf_bit_set_wt(uint64_t pos) const {
+            auto word_number = pos / m_wt_word_size;
+            auto word = m_leaves_wt[word_number];
+            auto offset = pos % m_wt_word_size;
+            return (word >> (offset) & 1);
         }
 
 
