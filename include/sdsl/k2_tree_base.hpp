@@ -98,7 +98,7 @@ namespace sdsl {
         Vocabulary m_vocabulary;
 
         bool m_is_wt_comp = false;
-        wt_huff_int<> m_leaves_wt;
+        wt_huff<> m_leaves_wt;
         static constexpr uint8_t m_wt_word_size = 8;
 
         virtual uint8_t get_k(uint8_t) const = 0;
@@ -877,52 +877,31 @@ namespace sdsl {
             }
 
             m_is_wt_comp = true;
-            uint8_t leafK = get_k(m_tree_height -1);
 
-            size_t cnt = words_count();
-            uint size = (leafK*leafK+m_wt_word_size-1)/(m_wt_word_size);
-            std::cout << "Size" << size << std::endl;
-            std::cout << "Word Count" << cnt*size << std::endl;
-            int_vector<m_wt_word_size> leafs(cnt*size);
+            uint64_t number_of_words = (m_leaves.size()+m_wt_word_size-1)/m_wt_word_size;
+            int_vector<m_wt_word_size> leafs(number_of_words);
             uint64_t ctr = 0;
-
-            uint k_leaf_squared = get_k(this->m_tree_height - 1) * get_k(this->m_tree_height - 1);
-            size_t bit = 0;
-            for (size_t i = 0; i < cnt; ++i) {
-                uchar *word = new uchar[size];
-                std::fill(word, word + size, 0);
-                for (uint j = 0; j < k_leaf_squared; ++j, ++bit) {
-                    if (this->m_leaves[bit]) {
-                        uchar tmp = (1 << (j % kUcharBits));
-                        word[j / kUcharBits] |= tmp;
-                    }
-                }
-                std::cout << "Leafs: ";
-                for (uint l = 0; l < size; ++l) {
-                    leafs[ctr] = word[l];
-                    std::cout << std::bitset<8>(leafs[ctr]) << "\t";
-                    ctr++;
-                }
-                std::cout << std::endl;
-                delete[] word;
+            for (uint i = 0; i < number_of_words; ++i, ++ctr) {
+                leafs[ctr] = m_leaves.get_int(i*m_wt_word_size, m_wt_word_size);
             }
 
             m_leaves = t_leaf();
 
+            /*
             std::cout << "Leafs2: ";
-            for (int m = 0; m < leafs.size(); ++m) {
-                std::cout << bitset<8>(leafs[m]) << "\t";
+            for (uint m = 0; m < leafs.size(); ++m) {
+                std::cout << std::to_string(leafs[m]) << "\t";
             }
             std::cout << std::endl;
-
+            */
             construct_im(m_leaves_wt, leafs);
-
+            /*
             std::cout << "m_leaves_wt after construction: ";
-            for (int k = 0; k < m_leaves_wt.size(); ++k) {
-                std::cout << std::bitset<8>(m_leaves_wt[k]) << "\t";
+            for (uint k = 0; k < m_leaves_wt.size(); ++k) {
+                std::cout << std::to_string(m_leaves_wt[k]) << "\t";
             }
             std::cout << std::endl;
-
+            */
         }
 
         /**
@@ -1464,27 +1443,44 @@ namespace sdsl {
         template<typename t_x>
         inline void
         check_leaf_bits_direct_wt(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
-            std::cout << "Check posistion" << pos << std::endl;
-            uint leafKSquared = leafK * leafK;
-            uint64_t subtree_number = pos / (leafKSquared);
-            uint64_t word_number = subtree_number * word_size() + pos % (leafK * leafK);
+            //std::cout << "Checking posistion" << pos << std::endl;
 
-            uint words_per_leaf = (leafKSquared+m_wt_word_size-1)/(m_wt_word_size);
-            std::cout << "Words per leaf: " << words_per_leaf << std::endl;
-            uint amount_of_words_relevant = (words_per_leaf+leafK-1)/leafK;
-            std::cout << "Amount of words relevant: " << amount_of_words_relevant << std::endl;
+            uint min_relevant_word = pos/m_wt_word_size;
+            uint min_offset = pos%m_wt_word_size;
+            uint max_relevant_word = (pos+leafK)/m_wt_word_size;
+            uint max_offset = (pos+leafK)%m_wt_word_size;
 
-            uint bitCounter = leafKSquared-1;
-            for (int j = 0; j < amount_of_words_relevant; ++j) {
-                auto word = m_leaves_wt[word_number+j];
-                std::cout << "word at position " << word_number <<" =" << std::bitset<8>(word)  << std::endl;
-                for (int i = 0; i <= std::min(bitCounter, word_size()-1); ++i) {
-                    std::cout << "shifting " << (bitCounter % m_wt_word_size) << "and checking last bit" << std::endl;
-                    if(word >> (bitCounter % m_wt_word_size) & 1){
-                        std::cout << "hit" << std::endl;
-                        result.push_back(leafKSquared - 1 - bitCounter + result_offset);
+            uint bitCounter = 0;
+            //check bits in first relevant word
+            auto word = m_leaves_wt[min_relevant_word];
+            for (uint k = min_offset; k < std::min(min_offset+leafK, (uint) m_wt_word_size); ++k) {
+                if(word >> (k) & 1){
+                    //std::cout << "hit" << std::endl;
+                    result.push_back(bitCounter + result_offset);
+                }
+                bitCounter++;
+            }
+
+            //interim words, that have to be checked fully
+            for (uint l = min_relevant_word+1; l < max_relevant_word; ++l) {
+                word = m_leaves_wt[l];
+                for (int i = 0; i < m_wt_word_size; ++i) {
+                    if(word >> (i) & 1){
+                        //std::cout << "hit" << std::endl;
+                        result.push_back(bitCounter + result_offset);
                     }
-                    bitCounter--;
+                    bitCounter++;
+                }
+            }
+
+            if (max_relevant_word > min_relevant_word) {
+                word = m_leaves_wt[max_relevant_word];
+                for (uint k = 0; k < max_offset; ++k) {
+                    if (word >> (k) & 1) {
+                        //std::cout << "hit" << std::endl;
+                        result.push_back(bitCounter + result_offset);
+                    }
+                    bitCounter++;
                 }
             }
         }

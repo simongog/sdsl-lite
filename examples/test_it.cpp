@@ -1,23 +1,36 @@
 #include <sdsl/wavelet_trees.hpp>
 #include <iostream>
+#include <bitset>
 
 using namespace std;
 using namespace sdsl;
 
 int main()
 {
-    /*wt_huff_int<> wt;
-    construct_im(wt, int_vector<>({1981, 1974, 1990, 1974, 2014, 1974}));
+    bit_vector vec = {0,1,1};
+    std::cout << std::bitset<8>(vec.get_int(0,8)) << std::endl;
+    /*std::cout << std::bitset<8>(vec.get_int(0,1)) << std::endl;
+    std::cout << std::bitset<8>(vec.get_int(1,2)) << std::endl;
+    std::cout << std::bitset<8>(vec.get_int(1,5)) << std::endl;
+
+    /*
+    wt_huff_int<> wt;
+    int_vector<8> vec = {3,12,4,4,5,1,6,4,2};
+    construct_im(wt, vec);
     cout << "wt.sigma : " << wt.sigma << endl;
     cout << wt << endl;
-    size_t idx = 5;
-    auto r_c = wt.inverse_select(idx);
-    cout << get<0>(r_c)+1 << " occurrence(s) of "
-         << get<1>(r_c) << " in [0.." << idx << "]" << endl;
 
+    /*
     for (size_t i=0; i < wt.size() and wt[i]!='\n'; ++i)
-        cout << wt[i] << "\t";
+        cout << std::to_string(wt[i]) << "\t";
     cout << endl;
-    cout << "number of lines  : " << wt.rank(wt.size(), '\n') << endl;
-    cout << "first '=' in line: " << wt.rank(wt.select(1, '='),'\n')+1 << endl;*/
+
+    int_vector<64> x_vec(6, 0);
+    util::set_to_id(x_vec);
+    cout << x_vec << endl;  // 0 1 2 3 4 5
+    wt_huff_int<rrr_vector<63>> wt;
+    construct_im(wt, x_vec.raw, 8);
+    cout << "wt.sigma : " << wt.sigma << endl;
+    cout << "wt.size : " << wt.size() << endl;
+    cout << wt << endl; // 0 1 2 3 4 5*/
 }
