@@ -29,7 +29,7 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -fopenmp -Wall -std=c++11 -Wno-long-long -pedantic -Wno-write-strings -g -pipe -D_GLIBCXX_USE_CXX11_ABI=0" )
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops -O3 -flto=10 ")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -D_GLIBCXX_DEBUG -DDEBUG -ggdb -fsanitize=address") #great options for weird segfaults  -fsanitize=undefined
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -DDEBUG -ggdb -fsanitize=undefined -fsanitize=address") #great options for weird segfaults  -D_GLIBCXX_DEBUG
     # disable this by default
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto=10" )
