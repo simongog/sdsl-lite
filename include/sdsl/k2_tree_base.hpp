@@ -96,8 +96,8 @@ namespace sdsl {
 
         /** For compressed version **/
         Vocabulary m_vocabulary;
-
-        bool m_is_wt_comp = false;
+        
+	bool m_is_wt_comp = false;
         wt_huff<rrr_vector<63>> m_leaves_wt;
         static constexpr uint8_t m_wt_word_size = 8;
 
@@ -1143,6 +1143,7 @@ namespace sdsl {
                 return;
             }
 
+	    std::cout <<"Using counting sort" << std::endl;
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
 
@@ -1597,3 +1598,4 @@ namespace sdsl {
 }
 
 #endif
+
