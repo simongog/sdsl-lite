@@ -72,6 +72,7 @@ int main(int argc, char *argv[]) {
         hash_size = stoull(argv[3]);
     }
     tested_type k2;
+
     k2.load_from_ladrabin(file_name, true, access_shortcut_size, compress, hash_size);
 /*
     auto start = timer::now();

@@ -1143,7 +1143,8 @@ namespace sdsl {
                 return;
             }
 
-	    std::cout <<"Using counting sort" << std::endl;
+	        std::cout <<"Using counting sort" << std::endl;
+
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
 

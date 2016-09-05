@@ -560,7 +560,7 @@ namespace sdsl {
                 std::vector<std::vector<std::pair<uint, uint>>> buffers;
                 std::vector<uint> maximum_in_buffer(t_k0, 0);
                 buffers.resize(t_k0); //build one row at a time
-                m_k2trees.reserve(t_k0*t_k0);
+                m_k2trees.resize(t_k0*t_k0);
 
                 uint current_matrix_row = 0;
                 for (uint64_t i = 0; i < number_of_nodes + number_of_edges; i++) {
@@ -726,7 +726,7 @@ namespace sdsl {
             return "k2_tree_partitioned<"+std::to_string(t_k0)+","+m_k2trees[0].get_type_string()+">";
         }
     private:
-        void compress_leaves(const HashTable &table, Vocabulary& voc) { 
+        void compress_leaves(const HashTable &table, Vocabulary& voc) {
             std::cout << "After FreqVoc" << std::endl;
 	    size_t cnt = words_count();
             uint size = word_size();
@@ -846,15 +846,17 @@ namespace sdsl {
         inline void
         construct_trees_from_buffers(uint current_matrix_row, bool use_counting_sort, std::string &temp_file_prefix,
                                      std::vector<std::vector<std::pair<uint, uint>>> &buffers, std::vector<uint>& maximum_in_buffer) {
-            //#pragma omp parallel for
+            #pragma omp parallel for
             for (uint j = 0; j < t_k0; ++j) {
                 if (buffers[j].size() != 0) {
                     std::cout << "Size of " << current_matrix_row * t_k0 + j << ": "
                               << buffers[j].size() * 64 / 8 / 1024 << "kByte" << std::endl;
                 }
                 uint64_t hash_size = 0; //for now
-                m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[j], maximum_in_buffer[j], m_access_shortcut_size, false, hash_size);
+                subk2_tree tree(temp_file_prefix, use_counting_sort, buffers[j], maximum_in_buffer[j], m_access_shortcut_size, false, hash_size);
+                m_k2trees[current_matrix_row*t_k0+j].swap(tree);
                 buffers[j].clear();
+                maximum_in_buffer[j] = 0;
                 //std::cout << "Assigning tree " << current_matrix_row * t_k0 + j << std::endl;
             }
         }

@@ -1,0 +1,2 @@
+./bench_script.sh: line 11: syntax error near unexpected token `echo'
+./bench_script.sh: line 11: `echo "Processing $j";'
