@@ -31,7 +31,6 @@
 #include <queue>
 #include <array>
 #include <bitset>
-#include "../../external/libmorton/libmorton/include/morton.h"
 
 //! Namespace for the succinct data structure library.
 namespace sdsl {
