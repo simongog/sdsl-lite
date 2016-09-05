@@ -745,8 +745,8 @@ namespace sdsl {
                                            });
             } else if (m_is_wt_comp) {
                 return check_link_internal(0, m_max_element, link.first, link.second, 0,
-                                           [this](int64_t pos, uint8_t leafK) {
-                                               return this->is_leaf_bit_set_wt_comp(pos, leafK);
+                                           [this](int64_t pos, uint8_t) {
+                                               return this->is_leaf_bit_set_wt(pos);
                                            });
             } else {
                 return check_link_internal(0, m_max_element, link.first, link.second, 0, [this](int64_t pos, uint8_t) {
