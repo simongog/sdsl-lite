@@ -330,6 +330,8 @@ class k2_tree
                 k_l = tr.k_l;
                 k_t_rank = tr.k_t_rank;
                 k_t_rank.set_vector(&k_t);
+                k_k = tr.k_k;
+                k_height = tr.k_height;
             }
             return *this;
         }
@@ -339,7 +341,10 @@ class k2_tree
         {
             if (this != &tr) {
                 std::swap(k_t, tr.k_t);
+				std::swap(k_l, tr.k_l);
                 util::swap_support(k_t_rank, tr.k_t_rank, &k_t, &(tr.k_t));
+				std::swap(k_k, tr.k_k);
+				std::swap(k_height, tr.k_height);
             }
         }
 
@@ -457,7 +462,7 @@ class k2_tree
          *  \returns The number of written bytes.
          */
         size_type serialize(std::ostream& out, structure_tree_node* v=nullptr,
-                            std::string name="")
+                            std::string name="") const
         {
             structure_tree_node* child = structure_tree::add_child(
                                              v, name, util::class_name(*this));
