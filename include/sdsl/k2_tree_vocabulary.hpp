@@ -43,9 +43,8 @@ namespace sdsl {
             written_bytes += write_member(cnt_, out, child, "cnt");
             written_bytes += write_member(size_, out, child, "size");
 
-            for (uint64_t i = 0; i < cnt_*size_; ++i) {
-                written_bytes += write_member(data_[i], out, child, "data");
-            }
+            written_bytes += write_member(data_, cnt_*size_, out, child, "data");
+
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -56,10 +55,7 @@ namespace sdsl {
             read_member(size_, in);
 
             data_ = (uchar*) malloc(sizeof(uchar) *cnt_*size_);
-
-            for (uint64_t i = 0; i < cnt_*size_; ++i) {
-                    read_member(data_[i], in);
-                }
+            read_member(&data_, cnt_*size_, in);
         }
 
         const uchar *operator[](size_t i) const {
