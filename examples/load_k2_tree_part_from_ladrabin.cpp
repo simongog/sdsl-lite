@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     auto start = timer::now();
     k2.compress_leaves_huf_wt();
     auto stop = timer::now();
-    std::cout << "Total time(ns): " << duration_cast<milliseconds>(stop - start).count() << endl;
+    std::cout << "Total time(ms): " << duration_cast<milliseconds>(stop - start).count() << endl;
 */
     std::string output_file_name(argv[2]);
     store_to_file(k2, output_file_name);
