@@ -98,7 +98,7 @@ namespace sdsl {
         Vocabulary m_vocabulary;
         
 	bool m_is_wt_comp = false;
-        wt_huff<rrr_vector<63>> m_leaves_wt;
+        wt_huff<hyb_vector<>> m_leaves_wt;
         static constexpr uint8_t m_wt_word_size = 8;
 
         virtual uint8_t get_k(uint8_t) const = 0;
@@ -1451,7 +1451,7 @@ namespace sdsl {
         inline void
         check_leaf_bits_direct_wt(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
             //std::cout << "Checking posistion" << pos << std::endl;
-
+            /*
             uint min_relevant_word = pos/m_wt_word_size;
             uint min_offset = pos%m_wt_word_size;
             uint max_relevant_word = (pos+leafK)/m_wt_word_size;
@@ -1489,7 +1489,7 @@ namespace sdsl {
                     }
                     bitCounter++;
                 }
-            }
+            }*/
 
 
 
@@ -1498,7 +1498,7 @@ namespace sdsl {
              *
              *
              *
-
+            */
             auto word_number = pos / m_wt_word_size;
             auto word = m_leaves_wt[word_number];
             auto offset = 0;
@@ -1514,8 +1514,6 @@ namespace sdsl {
                     result.push_back(j + result_offset);
                 }
             }
-             *
-             */
         }
 
         /** Checks the leaf bits relevant for a direct neighbor query starting from leaf position pos given
