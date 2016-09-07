@@ -40,7 +40,10 @@ int main(int argc, char *argv[]) {
     std::string fileName = argv[1];
     load_from_file(k2tree, fileName);
 
-    k2tree.compress_leaves();
+    uint hash_size = 4000000;
+    std::cout << "hash_size=" << hash_size << std::endl;
+
+    k2tree.compress_leaves(hash_size);
 
     std::string output_file_name(argv[2]);
     store_to_file(k2tree, output_file_name);
