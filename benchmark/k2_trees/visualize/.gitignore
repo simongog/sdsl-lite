@@ -1,6 +1,6 @@
 *
 !.gitignore
 !Makefile
-!wt-footer.tex
-!wt-header.tex
-!wt.R
+!k2-footer.tex
+!k2-header.tex
+!k2.R

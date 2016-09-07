@@ -1,55 +1,59 @@
 #include <iostream>
 #include <fstream>
-// #include <sdsl/suffix_arrays.hpp>
+#include <tuple>
+#include <sdsl/bit_vectors.hpp>
 #include <sdsl/k2_tree.hpp>
+#include <stdexcept>
 #include <string>
+#include <vector>
 
 using namespace sdsl;
+
+typedef K2_TYPE::idx_type idx_type;
+typedef K2_TYPE::size_type size_type;
+
+template<class k2_type>
+void load_edges_from_file(
+		const std::string &file_path,
+		std::vector<std::tuple<typename k2_type::idx_type,
+							   typename k2_type::idx_type>>&vec,
+		typename k2_type::idx_type &max)
+{
+	std::ifstream infile(file_path);
+	std::string line;
+	typedef std::tuple<typename k2_type::idx_type,
+					   typename k2_type::idx_type> t_tuple;
+	max = 0;
+
+	while(std::getline(infile, line)) {
+		std::istringstream iss(line);
+		idx_type v, u;
+		if(!(iss >> v >> u)) {
+			throw std::invalid_argument("Not expected line at construct");
+		}
+		if(v > max)
+			max = v;
+		if(u > max)
+			max = u;
+		vec.push_back(t_tuple {v, u});
+	}
+	max++;
+}
+
 int main(int argc, char* argv[])
 {
-	for(int i = 0; i < argc; i++)
-		std::cout << argv[i] << std::endl;
-	/*
-    if (argc == 6) {
-        uint8_t num_byte = argv[5][0]=='d' ? 'd' : argv[5][0]-'0';
-        if (strcmp(argv[4], "BWT")==0) {
-            std::cout<<"Calculate BWT of " << argv[1] << " and store it to " << argv[2] << std::endl;
-            cache_config cc(false, argv[3], "gen_bwt_");
-            if (1 == num_byte) {
-                {
-                    csa_wt<> wt;
-                    construct(wt, argv[1], cc, 1);
-                }
-                int_vector<8> bwt;
-                load_from_file(bwt, cache_file_name(conf::KEY_BWT, cc));
-                std::ofstream out(argv[2]);
-                out.write((char*)bwt.data(), bwt.size());
-                util::delete_all_files(cc.file_map);
-            } else {
-                {
-                    csa_wt<wt_int<>, 64, 64, sa_order_sa_sampling<>, isa_sampling<>, int_alphabet<>> wt;
-                    construct(wt, argv[1], cc, num_byte);
-                }
-                int_vector<> bwt;
-                load_from_file(bwt, cache_file_name(conf::KEY_BWT_INT, cc));
-                std::ofstream out(argv[2]);
-                if ('d' == num_byte) {
-                    if (bwt.size()) {
-                        out << bwt[0];
-                    }
-                    for (uint64_t i=1; i<bwt.size(); ++i) {
-                        out << " " << bwt[i];
-                    }
-                } else if (0 == num_byte) {
-                    store_to_file(bwt, argv[2]);
-                } else {
-                    out.write((char*)bwt.data(), num_byte*bwt.size());
-                }
-                util::delete_all_files(cc.file_map);
-            }
-        }
-    } else {
-        std::cout<<"Usage: input_file output_file temp_dir create_bwt num_byte" << std::endl;
-    }
-    */
+	if(argc < 3) {
+        std::cout<<"Usage: input_file output_file temp_dir" << std::endl;
+	}
+
+	std::vector<std::tuple<typename K2_TYPE::idx_type,
+						   typename K2_TYPE::idx_type>> v;
+	K2_TYPE::idx_type max;
+    load_edges_from_file<K2_TYPE>(argv[1], v, max);
+	K2_TYPE k2(v, max);
+
+	std::ofstream fs;
+	fs.open(argv[2]);
+	k2.serialize(fs);
+	fs.close();
 }

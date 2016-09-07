@@ -1,12 +1,12 @@
 require(tikzDevice)
 source("../../basic_functions.R")
 
-tex_file = "wt.tex"
+tex_file = "k2.tex"
 
-tc_config <- readConfig("../test_case.config",c("TC_ID","PATH","LATEX_NAME","URL","TC_TYPE"))
+tc_config <- readConfig("../test_case.config",c("TC_ID","PATH","LATEX_NAME","URL"))
 
 open_tikz <- function( file_name ){
-    tikz(file_name, width = 5.5, height = 7.5 , standAlone = F) 
+    tikz(file_name, width = 5.5, height = 7.5 , standAlone = F , sanitize = TRUE)
 }
 
 x_for_bar<-function(value){
@@ -14,7 +14,7 @@ x_for_bar<-function(value){
 }
 
 y_for_bar<-function(offset){
-	c(offset,offset+0.4,offset+0.4,offset)	
+	c(offset,offset+0.4,offset+0.4,offset)
 }
 
 #Method which plots the size figure
@@ -61,8 +61,8 @@ plot_time_figure <-function(data,heading,ylab=T,xlab=T,constructor=F,xmax=max(da
 
 	#label y-axis
 	if(ylab){
-		axis( 2, at =seq(0.3,(length(data)*0.5)+0.2,0.5), label=colnames(data),las=1)		
-	}	
+		axis( 2, at =seq(0.3,(length(data)*0.5)+0.2,0.5), label=colnames(data),las=1)
+	}
 	#label x-axis
 	axis(1)
     abline(v=c(axis(1),axis(1)+(axis(1)[2]-axis(1)[1])/2),col="gray")
@@ -85,9 +85,9 @@ plot_time_figure <-function(data,heading,ylab=T,xlab=T,constructor=F,xmax=max(da
 
 
 #read header
-tex_doc <- paste(readLines("wt-header.tex"),collapse="\n")
+tex_doc <- paste(readLines("k2-header.tex"),collapse="\n")
 
-tex_doc<-paste(tex_doc,"\\section{Result of the Wavelet Tree benchmark}")
+tex_doc<-paste(tex_doc,"\\section{Result of the K2 Tree benchmark}")
 
 
 maindata <- data_frame_from_key_value_pairs( "../results/all.txt" )
@@ -97,48 +97,33 @@ maindata <- data_frame_from_key_value_pairs( "../results/all.txt" )
 for(tc in unique(maindata$TC_ID)){
 
 	data<-maindata[maindata$TC_ID==tc,]
-	id <-data[['WT_TEX_NAME']]
-	xmax<-max(data[c('access_time','rank_time','select_time','inverse_select_time','lex_count_time','lex_smaller_count_time')])
+	id <-data[['K2_TEX_NAME']]
+	xmax<-max(data[c('adj_time','neighbors_time','reverse_neighbors_time')])
 
-	#first page start 
+	#first page start
 	fig_name <- paste("fig-page1-",tc,".tex",sep="")
 	tex_doc<-paste(tex_doc,"\\subsection{Test case: {\\sc ",data[['TC_TEX_NAME']],"}}")
 
 	open_tikz( fig_name )
 
-	layout(matrix(c(1,2,3,4,5,6), 3, 2, byrow = TRUE),
+	layout(matrix(c(1,2,3), 3, 2, byrow = TRUE),
 	   widths=c(1.35,1), heights=c(1,1,1))
 
-	#access-plot
-	a <-data['access_time']
+	#adj-plot
+	a <-data['adj_time']
 	rownames(a)<-id
-	plot_time_figure(t(a),"\\tt{access}",xlab=F,xmax=xmax)
+	plot_time_figure(t(a),"\\tt{adj}",xlab=F,xmax=xmax)
 
-	#rank-plot
-	rank <-data['rank_time']
-	rownames(rank)<-id
-	plot_time_figure(t(rank),"\\tt{rank}",ylab=F,xlab=F,xmax=xmax)
+	#neighbors-plot
+	neighbors <-data['neighbors_time']
+	rownames(neighbors)<-id
+	plot_time_figure(t(neighbors),"\\tt{neighbors}",ylab=F,xlab=F,xmax=xmax)
 
-	#select-plot
-	s <-data['select_time']
+	#reverse_neighbors-plot
+	s <-data['reverse_neighbors_time']
 	rownames(s)<-id
-	plot_time_figure(t(s),"\\tt{select}",xlab=F,xmax=xmax)
+	plot_time_figure(t(s),"\\tt{reverse_neighbors}",xlab=F,xmax=xmax)
 
-	#inverse-select-plot
-	is <-data['inverse_select_time']
-	rownames(is)<-id
-	plot_time_figure(t(is),"\\tt{inverse\\_select}",xlab=F,ylab=F,xmax=xmax)
-
-	#lex-count-plot
-	lc <-data['lex_count_time']
-	rownames(lc)<-id
-	plot_time_figure(t(lc),"\\tt{lex\\_count}",xmax=xmax)
-
-	#lex-smaller-count-plot
-	lsc <-data['lex_smaller_count_time']
-	rownames(lsc)<-id
-	plot_time_figure(t(lsc),"\\tt{lex\\_smaller\\_count}",ylab=F,xmax=xmax)
-	
 	old<-par()
 	dev.off()
 	tex_doc <- paste(tex_doc,"\\begin{figure}[H]
@@ -150,13 +135,8 @@ for(tc in unique(maindata$TC_ID)){
 	fig_name <- paste("fig-page2-",tc,".tex",sep="")
 	open_tikz( fig_name )
 
-	layout(matrix(c(1,2,3,4,5,6), 3, 2, byrow = TRUE),
+	layout(matrix(c(1,2,3), 3, 2, byrow = TRUE),
 	   widths=c(1.35,1), heights=c(1,1,1))
-
-	#interval-symbols-plot
-	ivs <-data['interval_symbols_time']
-	rownames(ivs)<-id
-	plot_time_figure(t(ivs),"\\tt{interval\\_symbols}",xmax=max(xmax,max(ivs)))
 
 	#constructor-plot
 	con <-data['constructs_time']
@@ -165,20 +145,20 @@ for(tc in unique(maindata$TC_ID)){
 
 	#construction-size-plot
 	tsize<-data[[1,'TC_SIZE']]
-	consize <-(data['constructs_space']/tsize)*100	
+	consize <-(data['constructs_space']/tsize)*100
 	rownames(consize)<-id
 
 	plot_size_figure(t(consize),"\\tt{construction space}",ylab=T)
 
 	#size-plot
 	tsize<-data[[1,'TC_SIZE']]
-	size <-(data['wt_size']/tsize)*100
+	size <-(data['k2_size']/tsize)*100
 	rownames(size)<-id
 
 	plot_size_figure(t(size),"\\tt{space}")
 
 	dev.off()
-	tex_doc <- paste(tex_doc,"\\begin{figure}[H]	
+	tex_doc <- paste(tex_doc,"\\begin{figure}[H]
 					 \\input{",fig_name,"}
 					 \\end{figure}")
 	#second page end
@@ -187,12 +167,12 @@ for(tc in unique(maindata$TC_ID)){
 #type identification table
 tex_doc<-paste(tex_doc,"\\begin{table}[b]
 						\\centering",
-						typeInfoTable("../wt.config",data[['WT_ID']], 1, 3, 2),
-						"\\caption{Wavelet tree identifier and corresponding sdsl-type.}
+						typeInfoTable("../k2tree.config",data[['K2_ID']], 1, 3, 2),
+						"\\caption{K2 tree identifier and corresponding sdsl-type.}
 						\\end{table}")
 
 #read footer+end
-tex_doc <- paste(tex_doc, readLines("wt-footer.tex"),collapse="\n")
+tex_doc <- paste(tex_doc, readLines("k2-footer.tex"),collapse="\n")
 sink(tex_file)
 cat(tex_doc)
 sink(NULL)
