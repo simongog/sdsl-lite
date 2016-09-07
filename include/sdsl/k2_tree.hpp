@@ -276,7 +276,7 @@ class k2_tree
 
                 // Sort edges' vector
                 for (unsigned ch = 0; ch < k_2; ch++) {
-                    idx_type be = ch == 0 ? 0 : pos_by_chunk[ch - 1];
+                    idx_type be = ch == 0 ? i : pos_by_chunk[ch - 1];
                     for (it = pos_by_chunk[ch]; it < be + amount_by_chunk[ch];) {
                         chunk = k2_tree_ns::get_chunk_idx(
                                     std::get<0>(edges[it]), std::get<1>(edges[it]),
@@ -341,10 +341,10 @@ class k2_tree
         {
             if (this != &tr) {
                 std::swap(k_t, tr.k_t);
-				std::swap(k_l, tr.k_l);
+                std::swap(k_l, tr.k_l);
                 util::swap_support(k_t_rank, tr.k_t_rank, &k_t, &(tr.k_t));
-				std::swap(k_k, tr.k_k);
-				std::swap(k_height, tr.k_height);
+                std::swap(k_k, tr.k_k);
+                std::swap(k_height, tr.k_height);
             }
         }
 
