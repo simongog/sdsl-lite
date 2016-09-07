@@ -57,6 +57,8 @@ struct Nword {
 
 class HashTable {
  public:
+    HashTable() = default;
+
     HashTable(size_t sizeVoc, double occup_hash = 1.5) : tam_hash_(NearestPrime((size_t) (occup_hash * sizeVoc))),
                                                          num_elem_(0),
                                                          hash_() {

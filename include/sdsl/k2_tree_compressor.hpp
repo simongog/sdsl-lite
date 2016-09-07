@@ -34,50 +34,56 @@ void FreqVoc(const K2Tree &tree, Fun build, uint64_t hash_size = 0) {
     const size_t cnt = tree.words_count();
     uint size = tree.word_size();
 
-    Vocabulary words(cnt, size);
+      // Insert words in hash
+      if (hash_size == 0) {
 
-    size_t pos = 0;
-    tree.words([&] (const uchar *word) {
-      words.assign(pos, word);
-      ++pos;
-    });
+          std::cerr << "[k2_tree_compressor::FreqVoc] Warning: Hash Size not specified, it will thus be automatically determined by amount of distinct values, which is really slow!" << std::endl;
 
+          Vocabulary words(cnt, size);
 
-    // Count number of different words
-    // We hope there are many repetead words. We need to encode each word in
-    // a 32-bit integer.
-    size_t res = words.sort();
-    if (res > INT_MAX) {
-      std::cerr << "[comperssion::FreqVoc] Too many different words ";
-      std::cerr << "in the vocabulary\n";
-      exit(1);
-    }
-    uint diff_cnt = (uint) res;
+          size_t pos = 0;
+          tree.words([&](const uchar *word) {
+              words.assign(pos, word);
+              ++pos;
+          });
 
-    // Insert words in hash
-    if (hash_size == 0){
-      hash_size = diff_cnt;
-    }
-    HashTable table(hash_size);
-    std::vector<size_t> posInHash;
-    posInHash.reserve(diff_cnt);
-    for (size_t i = 0; i < cnt; ++i) {
-      size_t addr;
-      if (!table.search(words[i], size, &addr)) {
-        table.add(words[i], size, addr);
-        posInHash.push_back(addr);
-      } else {
-        table[addr].weight += 1;
+          //FIXME: this seems to be pretty bad, either use a parallel sort or some other technique to find amount of uniqe values, the words dont have to be sorted later on
+          //the vocabulary is rebuild anyway
+          // Count number of different words
+          // We hope there are many repetead words. We need to encode each word in
+          // a 32-bit integer.
+          size_t res = words.sort();
+          if (res > INT_MAX) {
+              std::cerr << "[k2_tree_compressor::FreqVoc]  Too many different words ";
+              std::cerr << "in the vocabulary\n";
+              exit(1);
+          }
+          hash_size = (uint) res;
+
       }
-    }
+
+      std::cout << "Before putting words in hash" << std::endl;
+      HashTable table(hash_size);
+      std::vector<size_t> posInHash;
+      posInHash.reserve(hash_size);
+      size_t addr;
+      tree.words([&](const uchar *word) {
+          if (!table.search(word, size, &addr)) {
+              table.add(word, size, addr);
+              posInHash.push_back(addr);
+          } else {
+              table[addr].weight += 1;
+          }
+      });
+
 
     // Sort words by frequency
     std::sort(posInHash.begin(), posInHash.end(), [&](size_t a, size_t b) {
       return table[a].weight > table[b].weight;
     });
 
-    Vocabulary voc(diff_cnt, size);
-    for (uint i = 0; i < diff_cnt; ++i) {
+    Vocabulary voc(posInHash.size(), size);
+    for (uint i = 0; i < posInHash.size(); ++i) {
       Nword &w = table[posInHash[i]];
       w.codeword = i;
       voc.assign(i, w.word);

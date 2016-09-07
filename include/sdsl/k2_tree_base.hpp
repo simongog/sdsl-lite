@@ -67,7 +67,8 @@ namespace sdsl {
         }
 
 
-        k2_tree_base(uint8_t access_shortcut_size, bool dac_compress) : m_access_shortcut_size(access_shortcut_size), m_is_dac_comp(dac_compress) {
+        k2_tree_base(uint8_t access_shortcut_size, bool dac_compress) : m_access_shortcut_size(access_shortcut_size),
+                                                                        m_is_dac_comp(dac_compress) {
         }
 
         //virtual ~k2_tree_base() = 0;
@@ -96,12 +97,13 @@ namespace sdsl {
 
         /** For compressed version **/
         Vocabulary m_vocabulary;
-        
-	bool m_is_wt_comp = false;
+
+        bool m_is_wt_comp = false;
         wt_huff<hyb_vector<>> m_leaves_wt;
         static constexpr uint8_t m_wt_word_size = 8;
 
         virtual uint8_t get_k(uint8_t) const = 0;
+
         virtual uint8_t get_tree_height(const uint64_t max) = 0;
 
     private:
@@ -353,7 +355,7 @@ namespace sdsl {
                 m_field_size_on_sl = tr.m_field_size_on_sl;
                 m_real_size_on_sl = tr.m_real_size_on_sl;
                 m_submatrix_in_row_on_sl = tr.m_submatrix_in_row_on_sl;
-                m_is_wt_comp =  tr.m_is_wt_comp;
+                m_is_wt_comp = tr.m_is_wt_comp;
                 m_leaves_wt = tr.m_leaves_wt;
             }
             return *this;
@@ -383,7 +385,7 @@ namespace sdsl {
                 m_field_size_on_sl = tr.m_field_size_on_sl;
                 m_real_size_on_sl = tr.m_real_size_on_sl;
                 m_submatrix_in_row_on_sl = tr.m_submatrix_in_row_on_sl;
-                m_is_wt_comp =  tr.m_is_wt_comp;
+                m_is_wt_comp = tr.m_is_wt_comp;
                 m_leaves_wt = tr.m_leaves_wt;
             }
             return *this;
@@ -416,12 +418,12 @@ namespace sdsl {
                 }
             }
 
-            if (m_is_dac_comp != tr.m_is_dac_comp){
+            if (m_is_dac_comp != tr.m_is_dac_comp) {
                 std::cout << "one is compressed, the other not" << std::endl;
                 return false;
             }
 
-            if (m_is_wt_comp != tr.m_is_wt_comp){
+            if (m_is_wt_comp != tr.m_is_wt_comp) {
                 std::cout << "one is compressed, the other not" << std::endl;
                 return false;
             }
@@ -557,7 +559,7 @@ namespace sdsl {
                     written_bytes += m_comp_leaves.serialize(out, child, "comp_leafs");
                 } else if (m_is_wt_comp) {
                     written_bytes += m_leaves_wt.serialize(out, child, "wt_huff_int");
-                }else {
+                } else {
                     written_bytes += m_leaves.serialize(out, child, "leafv");
                 }
             }
@@ -627,20 +629,23 @@ namespace sdsl {
 
             size_t cnt = words_count();
             uint size = word_size();
-
             uint k_leaf_squared = get_k(this->m_tree_height - 1) * get_k(this->m_tree_height - 1);
-            size_t bit = 0;
-            for (size_t i = 0; i < cnt; ++i) {
+
+            //this can still be optimized e.g. for 64 bits
+            for (uint k = 0; k < cnt; ++k) {
                 uchar *word = new uchar[size];
                 std::fill(word, word + size, 0);
-                for (uint j = 0; j < k_leaf_squared; ++j, ++bit) {
-                    if (this->m_leaves[bit]) {
-                        uchar tmp = (1 << (j % kUcharBits));
-                        word[j / kUcharBits] |= tmp;
-                    }
+                for (uint i = 0; i < size-1; ++i) {
+                    word[i] = (this->m_leaves.get_int(k*k_leaf_squared+i*kUcharBits, kUcharBits));
                 }
+
+                if (k_leaf_squared%kUcharBits){
+                    word[size-1] = (this->m_leaves.get_int(k*k_leaf_squared+(size-1)*kUcharBits,k_leaf_squared%kUcharBits ));
+                } else {
+                    word[size-1] = (this->m_leaves.get_int(k*k_leaf_squared+(size-1)*kUcharBits, kUcharBits));
+                }
+
                 fun(word);
-                delete[] word;
             }
         }
 
@@ -883,11 +888,11 @@ namespace sdsl {
 
             m_is_wt_comp = true;
 
-            uint64_t number_of_words = (m_leaves.size()+m_wt_word_size-1)/m_wt_word_size;
+            uint64_t number_of_words = (m_leaves.size() + m_wt_word_size - 1) / m_wt_word_size;
             int_vector<m_wt_word_size> leafs(number_of_words);
             uint64_t ctr = 0;
             for (uint i = 0; i < number_of_words; ++i, ++ctr) {
-                leafs[ctr] = m_leaves.get_int(i*m_wt_word_size, m_wt_word_size);
+                leafs[ctr] = m_leaves.get_int(i * m_wt_word_size, m_wt_word_size);
             }
 
             m_leaves = t_leaf();
@@ -1139,11 +1144,11 @@ namespace sdsl {
 
             m_size = links.size();
 
-            if (m_size == 0){
+            if (m_size == 0) {
                 return;
             }
 
-	        std::cout <<"Using counting sort" << std::endl;
+            std::cout << "Using counting sort" << std::endl;
 
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
@@ -1159,6 +1164,9 @@ namespace sdsl {
                                    t_e(0, links.size()), 0));
 
                 uint64_t number_of_bits = 0; //for speed comparison purposes of different k
+
+                std::vector<std::vector<double>> utilization(m_tree_height);
+                std::vector<std::vector<int>> item_count(m_tree_height);
 
                 //std::cout << "Setring m_level_begin_idx["<<m_tree_height-1<<"] =" << 0 << std::endl;
                 while (!queue.empty()) {
@@ -1192,9 +1200,12 @@ namespace sdsl {
 
                     intervals[0] = 0;
 
-
                     //append bits to level_vectors[level] based on result
                     for (uint i = 1; i < intervals.size(); ++i) {
+                        item_count[current_level].push_back(intervals[i]);
+                        utilization[current_level].push_back(
+                                ((double) intervals[i]) / (submatrix_size * submatrix_size) * 100);
+
                         if (intervals[i] > 0) {
                             level_buffers[current_level].push_back(1);
                             //std::cout << "1";
@@ -1260,6 +1271,35 @@ namespace sdsl {
                         }
                     }
                 }
+
+                uint avg = 0;
+                for (uint m = 0; m < item_count.size(); ++m) {
+                    std::cout << "Level " << m << "\n";
+                    for (auto item: item_count[m]) {
+                        //std::cout << item << ",";
+                        avg += item;
+                    }
+                    std::cout << "\n";
+                    std::cout << "Level Size " << item_count[m].size() << std::endl;
+                    std::cout << "Average " << avg / item_count[m].size() << std::endl;
+                    avg = 0;
+                }
+
+                /*
+                double average_utilization = 0;
+                std::cout << "Utilization" << std::endl;
+                for (uint m = 0; m < 4; ++m) {
+                    //std::cout << "Level "<< m << "\n";
+                    for (auto item: utilization[m]) {
+                        std::cout << item << ",";
+                        average_utilization += item;
+                    }
+                    std::cout << "\n";
+                    //std::cout << "Average " << average_utiliztation/item_count[m].size() << std::endl;
+                    average_utilization = 0;
+                    //std::sort(utilization[m].begin(), utilization[m].end());
+
+                }*/
             }
 
             load_vectors_from_file(temp_file_prefix, id_part);
@@ -1383,7 +1423,7 @@ namespace sdsl {
         }
 
 
-        void postInit(uint64_t hash_size){
+        void postInit(uint64_t hash_size) {
             if (m_tree_height > 0) {
                 if (m_is_dac_comp) {
                     compress_leaves(hash_size);

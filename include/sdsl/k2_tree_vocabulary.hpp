@@ -180,7 +180,7 @@ namespace sdsl {
             i = j = k = left;
             while (k < right - 1) {
                 // We use the last element as pivot.
-                int cmp = strcmp((*this)[k], (*this)[right-1], size_);
+                int cmp = strcmp((*this)[k], (*this)[right-1]);
 
                 if (cmp == 0) {
                     swap(j, k);
@@ -204,9 +204,9 @@ namespace sdsl {
             return unique + 1;
         }
 
-        int strcmp(const uchar *w1, const uchar *w2, uint size) {
+        int strcmp(const uchar *w1, const uchar *w2) {
             uint i = 0;
-            while (i < size - 1 && *w1 == *w2) {
+            while (i < size_ - 1 && *w1 == *w2) {
                 ++w1;
                 ++w2;
                 ++i;

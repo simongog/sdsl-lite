@@ -726,7 +726,7 @@ namespace sdsl {
             return "k2_tree_partitioned<"+std::to_string(t_k0)+","+m_k2trees[0].get_type_string()+">";
         }
     private:
-        void compress_leaves(const HashTable &table, Vocabulary& voc) {
+        void compress_leaves(const HashTable table, Vocabulary& voc) {
             std::cout << "After FreqVoc" << std::endl;
 	    size_t cnt = words_count();
             uint size = word_size();
@@ -740,7 +740,7 @@ namespace sdsl {
 
             size_t i = 0;
 
-            words([&] (const uchar *word) {
+            words([&](const uchar* word) {
                 size_t addr;
                 if (!table.search(word, size, &addr)) {
                     std::cerr << "[k2_tree_base::compress_leaves] Error: Word not found\n";
@@ -846,8 +846,9 @@ namespace sdsl {
         inline void
         construct_trees_from_buffers(uint current_matrix_row, bool use_counting_sort, std::string &temp_file_prefix,
                                      std::vector<std::vector<std::pair<uint, uint>>> &buffers, std::vector<uint>& maximum_in_buffer) {
-            #pragma omp parallel for
+            //#pragma omp parallel for
             for (uint j = 0; j < t_k0; ++j) {
+                std::cout << "Constructing tree "<< current_matrix_row * t_k0 + j << std::endl;
                 if (buffers[j].size() != 0) {
                     std::cout << "Size of " << current_matrix_row * t_k0 + j << ": "
                               << buffers[j].size() * 64 / 8 / 1024 << "kByte" << std::endl;
