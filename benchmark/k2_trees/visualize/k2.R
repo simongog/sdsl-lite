@@ -34,7 +34,7 @@ plot_size_figure <-function(data,heading,ylab=F){
 	}
 	#label x-axis
 	axis(1)
-	mtext("Size relative to original file size", side=1, line=2)
+	mtext("Size relative to original file size (arc file)", side=1, line=2)
 
 	#draw bars
 	offset=0.1
@@ -106,8 +106,8 @@ for(tc in unique(maindata$TC_ID)){
 
 	open_tikz( fig_name )
 
-	layout(matrix(c(1,2,3), 3, 2, byrow = TRUE),
-	   widths=c(1.35,1), heights=c(1,1,1))
+	layout(matrix(c(1,2,3), nrow=3, ncol=1, byrow = TRUE),
+	   widths=c(1,1,1), heights=c(1))
 
 	#adj-plot
 	a <-data['adj_time']
@@ -117,12 +117,12 @@ for(tc in unique(maindata$TC_ID)){
 	#neighbors-plot
 	neighbors <-data['neighbors_time']
 	rownames(neighbors)<-id
-	plot_time_figure(t(neighbors),"\\tt{neighbors}",ylab=F,xlab=F,xmax=xmax)
+	plot_time_figure(t(neighbors),"\\tt{neighbors}",xlab=F,xmax=xmax)
 
 	#reverse_neighbors-plot
 	s <-data['reverse_neighbors_time']
 	rownames(s)<-id
-	plot_time_figure(t(s),"\\tt{reverse_neighbors}",xlab=F,xmax=xmax)
+	plot_time_figure(t(s),"\\tt{reverse_neighbors}",xmax=xmax)
 
 	old<-par()
 	dev.off()
@@ -135,27 +135,26 @@ for(tc in unique(maindata$TC_ID)){
 	fig_name <- paste("fig-page2-",tc,".tex",sep="")
 	open_tikz( fig_name )
 
-	layout(matrix(c(1,2,3), 3, 2, byrow = TRUE),
-	   widths=c(1.35,1), heights=c(1,1,1))
+	layout(matrix(c(1, 2, 3), 3, 1, byrow=TRUE),
+	   widths=c(1,1,1), heights=c(1))
 
 	#constructor-plot
 	con <-data['constructs_time']
 	rownames(con)<-id
-	plot_time_figure(t(con),"\\tt{construct}",ylab=F,xlab=F,constructor=T)
+	plot_time_figure(t(con),"\\tt{construct}",xlab=F,constructor=T)
 
 	#construction-size-plot
 	tsize<-data[[1,'TC_SIZE']]
 	consize <-(data['constructs_space']/tsize)*100
 	rownames(consize)<-id
 
-	plot_size_figure(t(consize),"\\tt{construction space}",ylab=T)
+	plot_size_figure(t(consize),"\\tt{construction space}", ylab=T)
 
 	#size-plot
 	tsize<-data[[1,'TC_SIZE']]
 	size <-(data['k2_size']/tsize)*100
 	rownames(size)<-id
-
-	plot_size_figure(t(size),"\\tt{space}")
+	plot_size_figure(t(size),"\\tt{space}", ylab=T)
 
 	dev.off()
 	tex_doc <- paste(tex_doc,"\\begin{figure}[H]
