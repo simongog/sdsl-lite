@@ -846,7 +846,7 @@ namespace sdsl {
         inline void
         construct_trees_from_buffers(uint current_matrix_row, bool use_counting_sort, std::string &temp_file_prefix,
                                      std::vector<std::vector<std::pair<uint, uint>>> &buffers, std::vector<uint>& maximum_in_buffer) {
-            //#pragma omp parallel for
+            #pragma omp parallel for
             for (uint j = 0; j < t_k0; ++j) {
                 std::cout << "Constructing tree "<< current_matrix_row * t_k0 + j << std::endl;
                 if (buffers[j].size() != 0) {

@@ -1165,8 +1165,8 @@ namespace sdsl {
 
                 uint64_t number_of_bits = 0; //for speed comparison purposes of different k
 
-                std::vector<std::vector<double>> utilization(m_tree_height);
-                std::vector<std::vector<int>> item_count(m_tree_height);
+//                std::vector<std::vector<double>> utilization(m_tree_height);
+//                std::vector<std::vector<int>> item_count(m_tree_height);
 
                 //std::cout << "Setring m_level_begin_idx["<<m_tree_height-1<<"] =" << 0 << std::endl;
                 while (!queue.empty()) {
@@ -1202,9 +1202,9 @@ namespace sdsl {
 
                     //append bits to level_vectors[level] based on result
                     for (uint i = 1; i < intervals.size(); ++i) {
-                        item_count[current_level].push_back(intervals[i]);
-                        utilization[current_level].push_back(
-                                ((double) intervals[i]) / (submatrix_size * submatrix_size) * 100);
+ //                       item_count[current_level].push_back(intervals[i]);
+ //                       utilization[current_level].push_back(
+//                                ((double) intervals[i]) / (submatrix_size * submatrix_size) * 100);
 
                         if (intervals[i] > 0) {
                             level_buffers[current_level].push_back(1);
@@ -1271,7 +1271,7 @@ namespace sdsl {
                         }
                     }
                 }
-
+/*
                 uint avg = 0;
                 for (uint m = 0; m < item_count.size(); ++m) {
                     std::cout << "Level " << m << "\n";
@@ -1284,7 +1284,7 @@ namespace sdsl {
                     std::cout << "Average " << avg / item_count[m].size() << std::endl;
                     avg = 0;
                 }
-
+*/
                 /*
                 double average_utilization = 0;
                 std::cout << "Utilization" << std::endl;
