@@ -28,24 +28,19 @@ namespace sdsl {
  * @param tree
  * @param build 
  */
-template<class K2Tree, class Fun>
-void FreqVoc(const K2Tree &tree, Fun build, uint64_t hash_size = 0) {
+template<class Fun>
+void FreqVoc(const std::vector<uchar>& leaf_words, const uint word_size, const size_t word_count, Fun build, uint64_t hash_size = 0) {
   try {
-    const size_t cnt = tree.words_count();
-    uint size = tree.word_size();
-
       // Insert words in hash
       if (hash_size == 0) {
 
           std::cerr << "[k2_tree_compressor::FreqVoc] Warning: Hash Size not specified, it will thus be automatically determined by amount of distinct values, which is really slow!" << std::endl;
 
-          Vocabulary words(cnt, size);
+          Vocabulary words(word_count, word_size);
 
-          size_t pos = 0;
-          tree.words([&](const uchar *word) {
-              words.assign(pos, word);
-              ++pos;
-          });
+          for (size_t i = 0; i < word_count; ++i) {
+              words.assign(i, leaf_words, i*word_size);
+          }
 
           //FIXME: this seems to be pretty bad, either use a parallel sort or some other technique to find amount of uniqe values, the words dont have to be sorted later on
           //the vocabulary is rebuild anyway
@@ -67,14 +62,14 @@ void FreqVoc(const K2Tree &tree, Fun build, uint64_t hash_size = 0) {
       std::vector<size_t> posInHash;
       posInHash.reserve(hash_size);
       size_t addr;
-      tree.words([&](const uchar *word) {
-          if (!table.search(word, size, &addr)) {
-              table.add(word, size, addr);
+      for (size_t i = 0; i < word_count; ++i) {
+          if (!table.search(&leaf_words[i*word_size], word_size, &addr)) {
+              table.add(&leaf_words[i*word_size], word_size, addr);
               posInHash.push_back(addr);
           } else {
               table[addr].weight += 1;
           }
-      });
+      }
 
 
     // Sort words by frequency
@@ -82,14 +77,14 @@ void FreqVoc(const K2Tree &tree, Fun build, uint64_t hash_size = 0) {
       return table[a].weight > table[b].weight;
     });
 
-    Vocabulary voc(posInHash.size(), size);
+    Vocabulary voc(posInHash.size(), word_size);
     for (uint i = 0; i < posInHash.size(); ++i) {
       Nword &w = table[posInHash[i]];
       w.codeword = i;
       voc.assign(i, w.word);
     }
 
-    build(table, voc);
+    build(table, voc, leaf_words);
   } catch (std::bad_alloc ba) {
     std::cerr << "[comperssion::FreqVoc] Error:" << ba.what() << "\n";
     exit(1);

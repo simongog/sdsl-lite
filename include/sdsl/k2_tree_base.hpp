@@ -650,6 +650,39 @@ namespace sdsl {
         }
 
 
+        void words(std::vector<uchar>& result, bool append = false) const {
+            if (m_tree_height == 0) {
+                return;
+            }
+
+
+            size_t cnt = words_count();
+            uint size = word_size();
+            uint64_t offset = 0;
+            if (!append){
+                result.clear();
+                result.resize(cnt*size);
+            } else {
+                offset = result.size();
+                result.resize(result.size()+cnt*size);
+            }
+
+
+            uint k_leaf_squared = get_k(this->m_tree_height - 1) * get_k(this->m_tree_height - 1);
+
+            //this can still be optimized e.g. for 64 bits
+            for (uint k = 0; k < cnt; ++k) {
+                for (uint i = 0; i < size-1; ++i) {
+                    result[offset+k*size + i] = (this->m_leaves.get_int(k*k_leaf_squared+i*kUcharBits, kUcharBits));
+                }
+
+                if (k_leaf_squared%kUcharBits){
+                    result[offset+k*size + size-1] = (this->m_leaves.get_int(k*k_leaf_squared+(size-1)*kUcharBits,k_leaf_squared%kUcharBits ));
+                } else {
+                    result[offset+k*size + size-1] = (this->m_leaves.get_int(k*k_leaf_squared+(size-1)*kUcharBits, kUcharBits));
+                }
+            }
+        }
         /**
         * Returns the type as string
         */
@@ -787,7 +820,7 @@ namespace sdsl {
             }
         }
 
-        void compress_leaves(const HashTable &table, Vocabulary &voc) {
+        void compress_leaves(const HashTable &table, Vocabulary &voc, const std::vector<uchar>& leaf_words) {
             size_t cnt = words_count();
             uint size = word_size();
             uint *codewords;
@@ -800,14 +833,15 @@ namespace sdsl {
 
             size_t i = 0;
 
-            words([&](const uchar *word) {
-                size_t addr;
-                if (!table.search(word, size, &addr)) {
+            size_t addr;
+            for (size_t i = 0; i < cnt; ++i) {
+                if (!table.search(&leaf_words[i*size], size, &addr)) {
                     std::cerr << "[k2_tree_base::compress_leaves] Error: Word not found\n";
                     exit(1);
+                } else {
+                    codewords[i++] = table[addr].codeword;
                 }
-                codewords[i++] = table[addr].codeword;
-            });
+            }
 
             m_leaves = t_leaf();
             m_is_dac_comp = true;
@@ -843,8 +877,11 @@ namespace sdsl {
         void compress_leaves(uint64_t hash_size = 0) {
             m_is_dac_comp = true;
             std::cout << "Compressing leaves" << std::endl;
-            FreqVoc(*this, [&](const HashTable &table, Vocabulary &voc) {
-                compress_leaves(table, voc);
+            std::vector<uchar> leaf_words;
+            words(leaf_words);
+
+            FreqVoc(leaf_words, word_size(), words_count(), [&](const HashTable &table, Vocabulary &voc, const std::vector<uchar>& leaf_words) {
+                compress_leaves(table, voc, leaf_words);
             }, hash_size);
         }
 

@@ -648,6 +648,15 @@ namespace sdsl {
             }
         }
 
+        void words(std::vector<uchar>& result) const {
+            result.clear();
+            result.reserve(words_count()*word_size());
+
+            for (uint i = 0; i < m_k2trees.size(); ++i){
+                m_k2trees[i].words(result, true);
+            }
+        }
+
         void construct_access_shortcut(uint8_t access_shortcut_size) {
             m_access_shortcut_size = access_shortcut_size;
             for (uint i = 0; i < m_k2trees.size(); ++i) {
@@ -717,8 +726,11 @@ namespace sdsl {
             m_is_dac_comp = true;
             std::cout << "Compressing Leaves" << std::endl;
 
-            FreqVoc(*this, [&](const HashTable &table, Vocabulary& voc) {
-                compress_leaves(table, voc);
+            std::vector<uchar> leaf_words;
+            words(leaf_words);
+
+            FreqVoc(leaf_words, word_size(), words_count(), [&](const HashTable &table, Vocabulary &voc, const std::vector<uchar>& leaf_words) {
+                compress_leaves(table, voc, leaf_words);
             }, hash_size);
         }
 
@@ -726,7 +738,7 @@ namespace sdsl {
             return "k2_tree_partitioned<"+std::to_string(t_k0)+","+m_k2trees[0].get_type_string()+">";
         }
     private:
-        void compress_leaves(const HashTable table, Vocabulary& voc) {
+        void compress_leaves(const HashTable table, Vocabulary& voc, const std::vector<uchar>& leaf_words) {
             std::cout << "After FreqVoc" << std::endl;
 	    size_t cnt = words_count();
             uint size = word_size();
@@ -734,21 +746,19 @@ namespace sdsl {
             try {
                 codewords = new uint[cnt];
             } catch (std::bad_alloc ba) {
-                std::cerr << "[k2_tree_base::compress_leaves] Error: " << ba.what() << "\n";
+                std::cerr << "[k2_tree_partitioned::compress_leaves] Error: " << ba.what() << "\n";
                 exit(1);
             }
 
-            size_t i = 0;
-
-            words([&](const uchar* word) {
-                size_t addr;
-                if (!table.search(word, size, &addr)) {
-                    std::cerr << "[k2_tree_base::compress_leaves] Error: Word not found\n";
+            size_t addr;
+            for (size_t i = 0; i < cnt; ++i) {
+                if (!table.search(&leaf_words[i*size], size, &addr)) {
+                    std::cerr << "[k2_tree_partitioned::compress_leaves] Error: Word not found\n";
                     exit(1);
+                } else {
+                    codewords[i++] = table[addr].codeword;
                 }
-                codewords[i++] = table[addr].codeword;
-            });
-
+            }
             std::cout << "Before prefix sum calculation" << std::endl;
             m_words_prefix_sum.resize(t_k0*t_k0);
             m_words_prefix_sum[0] = 0;
