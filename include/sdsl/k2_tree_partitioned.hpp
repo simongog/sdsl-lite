@@ -756,7 +756,7 @@ namespace sdsl {
                     std::cerr << "[k2_tree_partitioned::compress_leaves] Error: Word not found\n";
                     exit(1);
                 } else {
-                    codewords[i++] = table[addr].codeword;
+                    codewords[i] = table[addr].codeword;
                 }
             }
             std::cout << "Before prefix sum calculation" << std::endl;

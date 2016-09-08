@@ -831,15 +831,13 @@ namespace sdsl {
                 exit(1);
             }
 
-            size_t i = 0;
-
             size_t addr;
             for (size_t i = 0; i < cnt; ++i) {
                 if (!table.search(&leaf_words[i*size], size, &addr)) {
                     std::cerr << "[k2_tree_base::compress_leaves] Error: Word not found\n";
                     exit(1);
                 } else {
-                    std::cout << "Codeword: " << table[addr].codeword << std::endl;
+                    //std::cout << "Codeword: " << table[addr].codeword << std::endl;
                     codewords[i] = table[addr].codeword;
                 }
             }
@@ -1186,7 +1184,7 @@ namespace sdsl {
                 return;
             }
 
-            std::cout << "Using counting sort" << std::endl;
+            //std::cout << "Using counting sort" << std::endl;
 
             std::string id_part = util::to_string(util::pid())
                                   + "_" + util::to_string(util::id());
@@ -1203,8 +1201,8 @@ namespace sdsl {
 
                 uint64_t number_of_bits = 0; //for speed comparison purposes of different k
 
-//                std::vector<std::vector<double>> utilization(m_tree_height);
-//                std::vector<std::vector<int>> item_count(m_tree_height);
+                //std::vector<std::vector<double>> utilization(m_tree_height);
+                //std::vector<std::vector<int>> item_count(m_tree_height);
 
                 //std::cout << "Setring m_level_begin_idx["<<m_tree_height-1<<"] =" << 0 << std::endl;
                 while (!queue.empty()) {
@@ -1240,8 +1238,8 @@ namespace sdsl {
 
                     //append bits to level_vectors[level] based on result
                     for (uint i = 1; i < intervals.size(); ++i) {
- //                       item_count[current_level].push_back(intervals[i]);
- //                       utilization[current_level].push_back(
+//                        item_count[current_level].push_back(intervals[i])
+//                        utilization[current_level].push_back(
 //                                ((double) intervals[i]) / (submatrix_size * submatrix_size) * 100);
 
                         if (intervals[i] > 0) {
