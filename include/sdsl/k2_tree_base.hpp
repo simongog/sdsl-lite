@@ -839,7 +839,8 @@ namespace sdsl {
                     std::cerr << "[k2_tree_base::compress_leaves] Error: Word not found\n";
                     exit(1);
                 } else {
-                    codewords[i++] = table[addr].codeword;
+                    std::cout << "Codeword: " << table[addr].codeword << std::endl;
+                    codewords[i] = table[addr].codeword;
                 }
             }
 
