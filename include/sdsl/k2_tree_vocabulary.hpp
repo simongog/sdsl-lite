@@ -96,8 +96,12 @@ namespace sdsl {
          * @param p Position to store the word.
          * @param word Word to store.
          */
-        void assign(size_t p, const uchar *word){
-            std::copy(word, word + size_, data_ + p*size_);
+        void assign(size_t p, const std::vector<uchar>& words, uint starting_position){
+            std::copy(words.begin() + starting_position, words.begin() + starting_position + size_, data_ + p*size_);
+        }
+
+        void assign(size_t p, const uchar *word) {
+            std::copy(word, word + size_, data_ + p * size_);
         }
 
         /**
