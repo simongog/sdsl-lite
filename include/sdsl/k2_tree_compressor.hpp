@@ -17,6 +17,7 @@
 #include <iostream>
 #include <climits>
 #include "k2_tree_helper.hpp"
+#include <parallel/algorithm>
 #include "k2_tree_vocabulary.hpp"
 
 
@@ -72,8 +73,8 @@ void FreqVoc(const std::vector<uchar>& leaf_words, const uint word_size, const s
       }
 
 
-    // Sort words by frequency
-    std::sort(posInHash.begin(), posInHash.end(), [&](size_t a, size_t b) {
+      // Sort words by frequency
+      __gnu_parallel::sort(posInHash.begin(), posInHash.end(), [&](const size_t a, const size_t b) {
       return table[a].weight > table[b].weight;
     });
 
