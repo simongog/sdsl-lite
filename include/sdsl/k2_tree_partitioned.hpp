@@ -36,10 +36,8 @@ namespace sdsl {
     private:
         //typedef k2_tree<t_k,t_bv,t_rank> k2;
         std::vector<subk2_tree> m_k2trees;
-        int_vector<> m_words_prefix_sum; //FIXME: think about using an sdsl compressed vector!!!
-        DAC m_comp_leaves;
         /** For compressed version **/
-        Vocabulary m_vocabulary;
+        std::shared_ptr<Vocabulary> m_vocabulary;
         size_type m_size = 0;
         //uint64_t m_max_element = 0;
         uint64_t m_matrix_dimension = 0;
@@ -154,23 +152,10 @@ namespace sdsl {
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
-            if (m_is_dac_comp){
-                for (uint j = 0; j < t_k0; ++j) {
-                    uint index = y*t_k0+j;
-                    tmp_result.clear();
-                    m_k2trees[index].direct_links_shortcut_internal((t_x) (source_id - y * m_matrix_dimension), tmp_result, [index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
-                        check_leaf_bits_direct_comp(index, pos, offset, leafK, result);
-                    });
-                    for (auto item : tmp_result){
-                        result.push_back(item + j*m_matrix_dimension);
-                    }
-                }
-            } else {
-                for (uint j = 0; j < t_k0; ++j) {
-                    m_k2trees[y*t_k0+j].direct_links_shortcut((t_x) (source_id - y * m_matrix_dimension), tmp_result);
-                    for (auto item : tmp_result){
-                        result.push_back(item + j*m_matrix_dimension);
-                    }
+            for (uint j = 0; j < t_k0; ++j) {
+                m_k2trees[y * t_k0 + j].direct_links_shortcut((t_x) (source_id - y * m_matrix_dimension), tmp_result);
+                for (auto item : tmp_result) {
+                    result.push_back(item + j * m_matrix_dimension);
                 }
             }
         }
@@ -192,23 +177,10 @@ namespace sdsl {
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
-            if (m_is_dac_comp){
-                for (uint j = 0; j < t_k0; ++j) {
-                    uint index = y*t_k0+j;
-                    tmp_result.clear();
-                    m_k2trees[index].direct_links_shortcut_internal_2((t_x) (source_id - y * m_matrix_dimension), tmp_result, [index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
-                        check_leaf_bits_direct_comp(index, pos, offset, leafK, result);
-                    });
-                    for (auto item : tmp_result){
-                        result.push_back(item + j*m_matrix_dimension);
-                    }
-                }
-            } else {
-                for (uint j = 0; j < t_k0; ++j) {
-                    m_k2trees[y*t_k0+j].direct_links_shortcut_2((t_x) (source_id - y * m_matrix_dimension), tmp_result);
-                    for (auto item : tmp_result){
-                        result.push_back(item + j*m_matrix_dimension);
-                    }
+            for (uint j = 0; j < t_k0; ++j) {
+                m_k2trees[y * t_k0 + j].direct_links_shortcut_2((t_x) (source_id - y * m_matrix_dimension), tmp_result);
+                for (auto item : tmp_result) {
+                    result.push_back(item + j * m_matrix_dimension);
                 }
             }
         }
@@ -226,26 +198,11 @@ namespace sdsl {
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
-            if (m_is_dac_comp){
-                for (uint j = 0; j < t_k0; ++j) {
-                    uint index = y*t_k0+j;
-                    if (m_k2trees[index].m_tree_height > 0 && m_k2trees[index].m_max_element >= y_offsetted){
-                        tmp_result.clear();
-                        m_k2trees[index].direct_links2_internal_queue(y_offsetted, tmp_result, [index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & asd_result){
-                            check_leaf_bits_direct_comp(index, pos, offset, leafK, asd_result);
-                        });
-                        for (auto item : tmp_result){
-                            result.push_back(item + j*m_matrix_dimension);
-                        }
-                    }
-                }
-            } else {
-                for (uint j = 0; j < t_k0; ++j) {
+            for (uint j = 0; j < t_k0; ++j) {
                     m_k2trees[y*t_k0+j].direct_links2(y_offsetted, tmp_result);
                     for (auto item : tmp_result){
                         result.push_back(item + j*m_matrix_dimension);
                     }
-                }
             }
         }
 
@@ -262,31 +219,11 @@ namespace sdsl {
 
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
-
-            if (m_is_dac_comp) {
-                for (uint j = 0; j < t_k0; ++j) {
-                    uint index = j * t_k0 + x;
-                    if (m_k2trees[index].m_max_element >= x_offsetted && m_k2trees[index].m_tree_height > 0) {
-                        tmp_result.clear();
-                        m_k2trees[index].inverse_links2_internal_queue(x_offsetted, tmp_result, [index, this](int64_t pos, t_x offset,
-                                                                                     uint8_t leafK,
-                                                                                     std::vector<t_x> &result) {
-                                                                           check_leaf_bits_inverse_comp(index, pos,
-                                                                                                        offset, leafK,
-                                                                                                        result);
-                                                                       });
-                        for (auto item : tmp_result) {
-                            result.push_back(item + j * m_matrix_dimension);
-                        }
-                    }
-                }
-            } else {
-                for (uint j = 0; j < t_k0; ++j) {
+            for (uint j = 0; j < t_k0; ++j) {
                     m_k2trees[j * t_k0 + x].inverse_links2(x_offsetted, tmp_result);
                     for (auto item : tmp_result) {
                         result.push_back(item + j * m_matrix_dimension);
                     }
-                }
             }
         }
 
@@ -301,24 +238,11 @@ namespace sdsl {
             uint x = source_id/m_matrix_dimension;
             //TODO: might be slow to use extra vector as reference, maybe it's better to remove clear() in k2treap and add directly to endresult
             std::vector<t_x> tmp_result;
-            if (m_is_dac_comp) {
-                for (uint j = 0; j < t_k0; ++j) {
-                    uint index = j * t_k0 + x;
-                    tmp_result.clear();
-                    m_k2trees[index].inverse_links_shortcut_internal((t_x) (source_id - x * m_matrix_dimension), tmp_result,[index,this](int64_t pos, t_x offset, uint8_t leafK, std::vector<t_x> & result){
-                        check_leaf_bits_inverse_comp(index, pos, offset, leafK, result);
-                    });
-                    for (auto item : tmp_result) {
-                        result.push_back(item + j * m_matrix_dimension);
-                    }
-                }
-            } else {
-                for (uint j = 0; j < t_k0; ++j) {
+            for (uint j = 0; j < t_k0; ++j) {
                     m_k2trees[j * t_k0 + x].inverse_links_shortcut((t_x) (source_id - x * m_matrix_dimension), tmp_result);
                     for (auto item : tmp_result) {
                         result.push_back(item + j * m_matrix_dimension);
                     }
-                }
             }
         }
 
@@ -338,19 +262,7 @@ namespace sdsl {
             t_y y_offsetted = link.second -y * m_matrix_dimension;
 
             uint index = x*t_k0+y;
-            if (m_is_dac_comp){
-                if (m_k2trees[index].m_tree_height > 0) {
-                    //std::cout << "Checking link in tree " << index << std::endl;
-                    return m_k2trees[index].check_link_internal(0, m_k2trees[index].m_max_element, x_offsetted, y_offsetted, 0, [index,this](int64_t pos, uint8_t leafK){
-                        return is_leaf_bit_set_comp(index, pos, leafK);;
-                    });
-                } else {
-                    return false;
-                }
-            } else {
-                return m_k2trees[index].check_link(std::make_pair(x_offsetted, y_offsetted));
-            }
-
+            return m_k2trees[index].check_link(std::make_pair(x_offsetted, y_offsetted));
         }
 
         /**
@@ -369,18 +281,7 @@ namespace sdsl {
             t_y y_offsetted = link.second -y * m_matrix_dimension;
 
             uint index = x*t_k0+y;
-            if (m_is_dac_comp){
-                if (m_k2trees[index].m_tree_height > 0) {
-                    //std::cout << "Checking link in tree " << index << std::endl;
-                    return m_k2trees[index].check_link_shortcut_internal(std::make_pair(x_offsetted, y_offsetted),[index,this](int64_t pos, uint8_t leafK){
-                        return is_leaf_bit_set_comp(index, pos, leafK);;
-                    });
-                } else {
-                    return false;
-                }
-            } else {
-                return m_k2trees[index].check_link_shortcut(std::make_pair(x_offsetted, y_offsetted));
-            }
+            return m_k2trees[index].check_link_shortcut(std::make_pair(x_offsetted, y_offsetted));
         }
 
         //! Move assignment operator
@@ -392,7 +293,6 @@ namespace sdsl {
                 m_access_shortcut_size = tr.m_access_shortcut_size;
                 m_k2trees = std::move(tr.m_k2trees);
                 m_matrix_dimension = std::move(tr.m_matrix_dimension);
-                m_words_prefix_sum = std::move(tr.m_words_prefix_sum);
             }
             return *this;
         }
@@ -406,9 +306,7 @@ namespace sdsl {
                 m_access_shortcut_size = tr.m_access_shortcut_size;
                 m_k2trees = tr.m_k2trees;
                 m_matrix_dimension = tr.m_matrix_dimension;
-                m_comp_leaves = tr.m_comp_leaves;
                 m_vocabulary = tr.m_vocabulary;
-                m_words_prefix_sum = m_words_prefix_sum;
             }
             return *this;
         }
@@ -440,19 +338,8 @@ namespace sdsl {
             }
 
             if (m_is_dac_comp) {
-                if (!(m_comp_leaves == tr.m_comp_leaves)) {
-                    std::cout << "comp leaves differ" << std::endl;
-                    return false;
-                }
-
-
-                if (!m_vocabulary.operator==(tr.m_vocabulary)) {
+                if (!m_vocabulary.get()->operator==(*tr.m_vocabulary.get())) {
                     std::cout << "vocabulary differs" << std::endl;
-                    return false;
-                }
-
-                if (m_words_prefix_sum != m_words_prefix_sum){
-                    std::cout << "Prefix sum differs" << std::endl;
                     return false;
                 }
             }
@@ -476,8 +363,6 @@ namespace sdsl {
                 std::swap(m_k2trees, tr.m_k2trees);
                 std::swap(m_matrix_dimension, tr.m_matrix_dimension);
                 std::swap(m_vocabulary, tr.m_vocabulary);
-                m_comp_leaves.swap(tr.m_comp_leaves);
-                m_words_prefix_sum.swap(tr.m_words_prefix_sum);
             }
         }
 
@@ -499,9 +384,7 @@ namespace sdsl {
             }
 
             if (m_is_dac_comp){
-                written_bytes += m_vocabulary.serialize(out, child, "voc");
-                written_bytes += m_comp_leaves.serialize(out, child, "comp_leafs");
-                written_bytes += m_words_prefix_sum.serialize(out, child, "words_prefix_sum");
+                written_bytes += m_vocabulary->serialize(out, child, "voc");
             }
 
             structure_tree::add_size(child, written_bytes);
@@ -522,9 +405,12 @@ namespace sdsl {
             }
 
             if (m_is_dac_comp){
-                m_vocabulary.load(in);
-                m_comp_leaves.load(in);
-                m_words_prefix_sum.load(in);
+                m_vocabulary = std::shared_ptr<Vocabulary>(new Vocabulary());
+                m_vocabulary->load(in);
+            }
+
+            for (uint j = 0; j < t_k0*t_k0; ++j) {
+                m_k2trees[j].set_vocabulary(m_vocabulary);
             }
         }
 
@@ -637,7 +523,7 @@ namespace sdsl {
         }
         /**
         * Returns all the words on the leaf level in a vector, which has size word_size*word_count (word_size is the amount of byte-sized words needed per leaf)
-        * FIXME: should use 64 Bit words in future versions
+         * FIXME: should use 64 Bit words in future
         *
         */
 
@@ -722,8 +608,9 @@ namespace sdsl {
             std::vector<uchar> leaf_words;
             words(leaf_words);
 
-            FreqVoc(leaf_words, word_size(), words_count(), [&](const HashTable &table, Vocabulary &voc, const std::vector<uchar>& leaf_words) {
-                compress_leaves(table, voc, leaf_words);
+            FreqVoc(leaf_words, word_size(), words_count(), [&](const HashTable &table, std::shared_ptr<Vocabulary> voc, const std::vector<uchar>&) {
+                m_vocabulary = voc;
+                compress_leaves(table, voc);
             }, hash_size);
         }
 
@@ -731,69 +618,15 @@ namespace sdsl {
             return "k2_tree_partitioned<"+std::to_string(t_k0)+","+m_k2trees[0].get_type_string()+">";
         }
     private:
-        void compress_leaves(const HashTable table, Vocabulary& voc, const std::vector<uchar>& leaf_words) {
+        void compress_leaves(const HashTable table, std::shared_ptr<Vocabulary> voc) {
             std::cout << "After FreqVoc" << std::endl;
-	    size_t cnt = words_count();
-            uint size = word_size();
-            uint *codewords;
-            try {
-                codewords = new uint[cnt];
-            } catch (std::bad_alloc ba) {
-                std::cerr << "[k2_tree_partitioned::compress_leaves] Error: " << ba.what() << "\n";
-                exit(1);
-            }
-
-            size_t addr;
-            for (size_t i = 0; i < cnt; ++i) {
-                if (!table.search(&leaf_words[i*size], size, &addr)) {
-                    std::cerr << "[k2_tree_partitioned::compress_leaves] Error: Word not found\n";
-                    exit(1);
-                } else {
-                    codewords[i] = table[addr].codeword;
-                }
-            }
-            std::cout << "Before prefix sum calculation" << std::endl;
-            m_words_prefix_sum.resize(t_k0*t_k0);
-            m_words_prefix_sum[0] = 0;
-            for (uint i = 1; i < m_k2trees.size(); ++i) {
-                size_t count = m_k2trees[i-1].words_count();
-                m_words_prefix_sum[i] = m_words_prefix_sum[i-1] + count;
-            }
-
             std::cout << "Clearing Leaves" << std::endl;
             //util::bit_compress(m_words_prefix_sum);
+            #pragma omp parallel for
             for (uint i = 0; i < m_k2trees.size(); ++i){
+                m_k2trees[i].compress_leaves(table, voc);
                 m_k2trees[i].clear_leaves();
 	        }
-
-            std::cout << "Before DAC Creation" << std::endl;
-            try {
-                // TODO Port to 64-bits
-                m_comp_leaves = DAC(codewords, cnt);
-            } catch (...) {
-                std::cerr << "[HybridK2Tree::CompressLeaves] Error: Could not create DAC\n";
-                exit(1);
-            }
-
-            delete[] codewords;
-
-            m_vocabulary = voc;
-
-            /*
-            std::cout << "Words 2" << std::endl;
-            for(uint i = 0; i < 9; ++i){
-                uint iword = m_comp_leaves.accessFT(i);
-                const uchar * word = m_vocabulary.get(iword);
-                std::cout << std::to_string(*word) << "\t";
-            }
-            std::cout << std::endl;
-            */
-            /*
-            std::cout << "words_prefix_sum" << std::endl;
-            for (auto asd: m_words_prefix_sum){
-                std::cout << asd << std::endl;
-            }
-            */
         }
 
 
@@ -801,49 +634,6 @@ namespace sdsl {
             m_matrix_dimension = (m_max_element + t_k0) / t_k0; //round up also in the case divisiable as element ids start at 0
             std::cout << "Matrix dimension: " << m_matrix_dimension << std::endl;
             std::cout << "Submatrix amount per row: " << std::to_string(t_k0) << std::endl;
-        }
-
-        template<typename t_x>
-        inline void  check_leaf_bits_direct_comp(uint index, int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> & result) const {
-            uint64_t subtree_number = pos/(leafK*leafK);
-            uint64_t global_subtree_number = subtree_number+m_words_prefix_sum[index];
-            uint iword = m_comp_leaves.accessFT(global_subtree_number);
-            const uchar * word = m_vocabulary.get(iword);
-            pos = pos - (subtree_number*leafK*leafK);
-            for (int i = 0; i < leafK; ++i) {
-                if ((word[(pos+i)/kUcharBits] >> ((pos+i)%kUcharBits)) & 1){
-                    result.push_back(i+result_offset);
-                }
-            }
-        }
-
-        template<typename t_x>
-        void check_leaf_bits_inverse_comp(uint index, int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
-            uint64_t subtree_number = pos/(leafK*leafK);
-            uint64_t global_subtree_number = subtree_number+m_words_prefix_sum[index];
-            uint iword = m_comp_leaves.accessFT(global_subtree_number);
-            const uchar * word = m_vocabulary.get(iword);
-            pos = pos - (subtree_number*leafK*leafK);
-            for (int i = 0; i < leafK; ++i) {
-                if ((word[(pos+i*leafK)/kUcharBits] >> ((pos+i*leafK)%kUcharBits)) & 1){
-                    result.push_back(i+result_offset);
-                }
-            }
-        }
-
-        inline bool is_leaf_bit_set_comp(uint index, uint64_t pos, uint8_t leafK) const {
-            //std::cout << "Pos " << std::to_string(pos) << std::endl;
-            uint64_t subtree_number = pos/(leafK*leafK);
-            uint64_t global_subtree_number = subtree_number+m_words_prefix_sum[index];
-            //std::cout << "Checking leaf bit of global subtree " << global_subtree_number << std::endl;
-            uint iword = m_comp_leaves.accessFT(global_subtree_number);
-            pos = pos - (subtree_number*leafK*leafK);
-            const uchar * word = m_vocabulary.get(iword);
-            //std::cout << "Word " << std::to_string(word[pos/kUcharBits]) << std::endl;
-            //std::cout << "RelPos " << std::to_string(pos) << std::endl;
-            bool bitSet = ((word[pos/kUcharBits] >> (pos%kUcharBits)) & 1);
-            //std::cout << "Resultabab: " << bitSet << std::endl;
-            return bitSet;
         }
 
         inline void

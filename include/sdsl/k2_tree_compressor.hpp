@@ -74,16 +74,19 @@ void FreqVoc(const std::vector<uchar>& leaf_words, const uint word_size, const s
 
 
       // Sort words by frequency
-      __gnu_parallel::sort(posInHash.begin(), posInHash.end(), [&](const size_t a, const size_t b) {
+      std::sort(posInHash.begin(), posInHash.end(), [&](const size_t a, const size_t b) {
       return table[a].weight > table[b].weight;
     });
 
-    Vocabulary voc(posInHash.size(), word_size);
+    std::shared_ptr<Vocabulary> voc(new Vocabulary(posInHash.size(), word_size));
+
+    #pragma omp parallel for
     for (uint i = 0; i < posInHash.size(); ++i) {
       Nword &w = table[posInHash[i]];
       w.codeword = i;
-      voc.assign(i, w.word);
+      voc->assign(i, w.word);
     }
+
 
     build(table, voc, leaf_words);
   } catch (std::bad_alloc ba) {

@@ -96,7 +96,8 @@ namespace sdsl {
         bool m_is_dac_comp = false;
 
         /** For compressed version **/
-        Vocabulary m_vocabulary;
+        bool m_vocabulary_is_shared = false;
+        std::shared_ptr<Vocabulary> m_vocabulary;
 
         bool m_is_wt_comp = false;
         wt_huff<hyb_vector<>> m_leaves_wt;
@@ -351,6 +352,7 @@ namespace sdsl {
                 m_access_shortcut_rank_10_support = std::move(tr.m_access_shortcut_rank_10_support);
                 m_access_shortcut_select_1_support = std::move(tr.m_access_shortcut_select_1_support);
                 m_comp_leaves = tr.m_comp_leaves;
+                m_vocabulary_is_shared = tr.m_vocabulary_is_shared;
                 m_vocabulary = tr.m_vocabulary;
                 m_field_size_on_sl = tr.m_field_size_on_sl;
                 m_real_size_on_sl = tr.m_real_size_on_sl;
@@ -381,6 +383,7 @@ namespace sdsl {
                 m_access_shortcut_select_1_support = tr.m_access_shortcut_select_1_support;
                 m_access_shortcut_select_1_support.set_vector(&m_access_shortcut);
                 m_comp_leaves = tr.m_comp_leaves;
+                m_vocabulary_is_shared = tr.m_vocabulary_is_shared;
                 m_vocabulary = tr.m_vocabulary;
                 m_field_size_on_sl = tr.m_field_size_on_sl;
                 m_real_size_on_sl = tr.m_real_size_on_sl;
@@ -435,8 +438,13 @@ namespace sdsl {
                         return false;
                     }
 
+                    if (m_vocabulary_is_shared != tr.m_vocabulary_is_shared){
+                        std::cout << "One vocabulary shared, other not"<< std::endl;
+                        return false;
+                    }
 
-                    if (!m_vocabulary.operator==(tr.m_vocabulary)) {
+
+                    if (!m_vocabulary.get()->operator==(*tr.m_vocabulary.get())) {
                         std::cout << "vocabulary differs" << std::endl;
                         return false;
                     }
@@ -525,6 +533,7 @@ namespace sdsl {
                                    &m_access_shortcut, &tr.m_access_shortcut);
 
                 std::swap(m_is_dac_comp, tr.m_is_dac_comp);
+                std::swap(m_vocabulary_is_shared, tr.m_vocabulary_is_shared);
                 std::swap(m_vocabulary, tr.m_vocabulary);
                 m_comp_leaves.swap(tr.m_comp_leaves);
                 std::swap(m_is_wt_comp, tr.m_is_wt_comp);
@@ -555,7 +564,10 @@ namespace sdsl {
                 written_bytes += write_member(m_is_dac_comp, out, child, "m_is_dac_comp");
                 written_bytes += write_member(m_is_wt_comp, out, child, "m_is_wt_comp");
                 if (m_is_dac_comp) {
-                    written_bytes += m_vocabulary.serialize(out, child, "voc");
+                    written_bytes += write_member(m_vocabulary_is_shared, out, child, "m_voc_is_shared");
+                    if (!m_vocabulary_is_shared){
+                        written_bytes += m_vocabulary->serialize(out, child, "voc");
+                    }
                     written_bytes += m_comp_leaves.serialize(out, child, "comp_leafs");
                 } else if (m_is_wt_comp) {
                     written_bytes += m_leaves_wt.serialize(out, child, "wt_huff_int");
@@ -595,7 +607,11 @@ namespace sdsl {
                 read_member(m_is_dac_comp, in);
                 read_member(m_is_wt_comp, in);
                 if (m_is_dac_comp) {
-                    m_vocabulary.load(in);
+                    read_member(m_vocabulary_is_shared, in);
+                    if (!m_vocabulary_is_shared){
+                        m_vocabulary = std::shared_ptr<Vocabulary>(new Vocabulary());
+                        m_vocabulary->load(in);
+                    }
                     m_comp_leaves.load(in);
                 } else if (m_is_wt_comp) {
                     m_leaves_wt.load(in);
@@ -763,6 +779,22 @@ namespace sdsl {
             m_leaves = t_leaf();
         }
 
+        void compress_leaves(const HashTable &table, std::shared_ptr<Vocabulary> voc){
+            if (m_tree_height == 0){
+                return;
+            }
+            std::vector<uchar> leaf_words;
+            words(leaf_words);
+            compress_leaves(table, voc, leaf_words);
+            m_is_dac_comp = true;
+            m_vocabulary_is_shared = true;
+        }
+
+        void set_vocabulary(const std::shared_ptr<Vocabulary> vocabulary){
+            m_vocabulary_is_shared = true;
+            m_vocabulary = vocabulary;
+        }
+
     protected:
 
 
@@ -785,7 +817,7 @@ namespace sdsl {
             }
         }
 
-        void compress_leaves(const HashTable &table, Vocabulary &voc, const std::vector<uchar>& leaf_words) {
+        void compress_leaves(const HashTable &table, std::shared_ptr<Vocabulary> voc, const std::vector<uchar>& leaf_words) {
             size_t cnt = words_count();
             uint size = word_size();
             uint *codewords;
@@ -808,7 +840,6 @@ namespace sdsl {
             }
 
             m_leaves = t_leaf();
-            m_is_dac_comp = true;
 
             try {
                 // TODO Port to 64-bits
@@ -839,13 +870,17 @@ namespace sdsl {
 
     public:
         void compress_leaves(uint64_t hash_size = 0) {
-            m_is_dac_comp = true;
+            if (m_tree_height == 0){
+                return;
+            }
+
             std::cout << "Compressing leaves" << std::endl;
             std::vector<uchar> leaf_words;
             words(leaf_words);
 
-            FreqVoc(leaf_words, word_size(), words_count(), [&](const HashTable &table, Vocabulary &voc, const std::vector<uchar>& leaf_words) {
+            FreqVoc(leaf_words, word_size(), words_count(), [&](const HashTable &table, std::shared_ptr<Vocabulary> voc, const std::vector<uchar>& leaf_words) {
                 compress_leaves(table, voc, leaf_words);
+                m_is_dac_comp = true;
             }, hash_size);
         }
 
@@ -1418,7 +1453,7 @@ namespace sdsl {
             uint64_t subtree_number = pos / (leafK * leafK);
             uint iword = m_comp_leaves.accessFT(subtree_number);
             pos = pos - (subtree_number * leafK * leafK);
-            const uchar *word = m_vocabulary.get(iword);
+            const uchar *word = m_vocabulary->get(iword);
             bool bitSet = ((word[pos / kUcharBits] >> (pos % kUcharBits)) & 1);
             return bitSet;
         }
@@ -1449,7 +1484,7 @@ namespace sdsl {
         check_leaf_bits_direct_comp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
             uint64_t subtree_number = pos / (leafK * leafK);
             uint iword = m_comp_leaves.accessFT(subtree_number);
-            const uchar *word = m_vocabulary.get(iword);
+            const uchar *word = m_vocabulary->get(iword);
             pos = pos - (subtree_number * leafK * leafK);
             for (int i = 0; i < leafK; ++i) {
                 if ((word[(pos + i) / kUcharBits] >> ((pos + i) % kUcharBits)) & 1) {
@@ -1470,7 +1505,7 @@ namespace sdsl {
         check_leaf_bits_inverse_comp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
             uint64_t subtree_number = pos / (leafK * leafK);
             uint iword = m_comp_leaves.accessFT(subtree_number);
-            const uchar *word = m_vocabulary.get(iword);
+            const uchar *word = m_vocabulary->get(iword);
             pos = pos - (subtree_number * leafK * leafK);
             for (int i = 0; i < leafK; ++i) {
                 if ((word[(pos + i * leafK) / kUcharBits] >> ((pos + i * leafK) % kUcharBits)) & 1) {
@@ -1491,55 +1526,6 @@ namespace sdsl {
         template<typename t_x>
         inline void
         check_leaf_bits_direct_wt(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
-            //std::cout << "Checking posistion" << pos << std::endl;
-            /*
-            uint min_relevant_word = pos/m_wt_word_size;
-            uint min_offset = pos%m_wt_word_size;
-            uint max_relevant_word = (pos+leafK)/m_wt_word_size;
-            uint max_offset = (pos+leafK)%m_wt_word_size;
-
-            uint bitCounter = 0;
-            //check bits in first relevant word
-            auto word = m_leaves_wt[min_relevant_word];
-            for (uint k = min_offset; k < std::min(min_offset+leafK, (uint) m_wt_word_size); ++k) {
-                if(word >> (k) & 1){
-                    //std::cout << "hit" << std::endl;
-                    result.push_back(bitCounter + result_offset);
-                }
-                bitCounter++;
-            }
-
-            //interim words, that have to be checked fully
-            for (uint l = min_relevant_word+1; l < max_relevant_word; ++l) {
-                word = m_leaves_wt[l];
-                for (int i = 0; i < m_wt_word_size; ++i) {
-                    if(word >> (i) & 1){
-                        //std::cout << "hit" << std::endl;
-                        result.push_back(bitCounter + result_offset);
-                    }
-                    bitCounter++;
-                }
-            }
-
-            if (max_relevant_word > min_relevant_word) {
-                word = m_leaves_wt[max_relevant_word];
-                for (uint k = 0; k < max_offset; ++k) {
-                    if (word >> (k) & 1) {
-                        //std::cout << "hit" << std::endl;
-                        result.push_back(bitCounter + result_offset);
-                    }
-                    bitCounter++;
-                }
-            }*/
-
-
-
-            /*
-             * simpler version:
-             *
-             *
-             *
-            */
             auto word_number = pos / m_wt_word_size;
             auto word = m_leaves_wt[word_number];
             auto offset = 0;
