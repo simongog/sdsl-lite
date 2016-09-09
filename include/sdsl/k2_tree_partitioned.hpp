@@ -636,17 +636,10 @@ namespace sdsl {
             return words_count;
         }
         /**
-        * Iterates over the words in the leaf level.
+        * Returns all the words on the leaf level in a vector, which has size word_size*word_count (word_size is the amount of byte-sized words needed per leaf)
+        * FIXME: should use 64 Bit words in future versions
         *
-        * @param fun Pointer to function, functor or lambda expecting a pointer to
-        * each word.
         */
-        template<typename Function>
-        void words(Function fun) const {
-            for (uint i = 0; i < m_k2trees.size(); ++i){
-                m_k2trees[i].words(fun);
-            }
-        }
 
         void words(std::vector<uchar>& result) const {
             result.clear();

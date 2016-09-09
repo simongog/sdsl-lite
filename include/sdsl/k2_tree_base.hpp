@@ -615,41 +615,6 @@ namespace sdsl {
             }
         }
 
-        /**
-        * Iterates over the words in the leaf level.
-        *
-        * @param fun Pointer to function, functor or lambda expecting a pointer to
-        * each word.
-        */
-        template<typename Function>
-        void words(Function fun) const {
-            if (m_tree_height == 0) {
-                return;
-            }
-
-            size_t cnt = words_count();
-            uint size = word_size();
-            uint k_leaf_squared = get_k(this->m_tree_height - 1) * get_k(this->m_tree_height - 1);
-
-            //this can still be optimized e.g. for 64 bits
-            for (uint k = 0; k < cnt; ++k) {
-                uchar *word = new uchar[size];
-                std::fill(word, word + size, 0);
-                for (uint i = 0; i < size-1; ++i) {
-                    word[i] = (this->m_leaves.get_int(k*k_leaf_squared+i*kUcharBits, kUcharBits));
-                }
-
-                if (k_leaf_squared%kUcharBits){
-                    word[size-1] = (this->m_leaves.get_int(k*k_leaf_squared+(size-1)*kUcharBits,k_leaf_squared%kUcharBits ));
-                } else {
-                    word[size-1] = (this->m_leaves.get_int(k*k_leaf_squared+(size-1)*kUcharBits, kUcharBits));
-                }
-
-                fun(word);
-            }
-        }
-
-
         void words(std::vector<uchar>& result, bool append = false) const {
             if (m_tree_height == 0) {
                 return;
