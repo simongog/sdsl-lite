@@ -23,136 +23,4440 @@
 
 //! Namespace for the succinct data structure library.
 #include "k2_tree.hpp"
+#include "k2_tree_hybrid.hpp"
+#include "k2_tree_partitioned.hpp"
+
+/**
+ * this is hackyy (!) implementation of a factory, if time permits look at Object Factory in Modern C++ Design
+ */
 
 namespace sdsl {
-    template<typename t_vector>
-        std::shared_ptr<k2_tree<>> create_k_2_comp_tree(uint8_t access_shortcut_size, t_vector& coords, uint64_t max_hint) ;
-    template<typename t_vector>
-        std::shared_ptr<k2_tree<>> create_k_2_uncomp_tree(uint8_t access_shortcut_size, t_vector& coords, uint64_t max_hint) ;
-    template<typename t_vector>
-        std::shared_ptr<k2_tree<>> create_k_4_comp_tree(uint8_t access_shortcut_size, t_vector& coords, uint64_t max_hint) ;
-    template<typename t_vector>
-    std::shared_ptr<k2_tree<>> create_k_4_uncomp_tree(uint8_t access_shortcut_size, t_vector& coords, uint64_t max_hint) ;
-    template<typename t_vector>
-    std::shared_ptr<k2_tree<>> create_k_8_comp_tree(uint8_t access_shortcut_size, t_vector& coords, uint64_t max_hint) ;
-    template<typename t_vector>
-    std::shared_ptr<k2_tree<>> create_k_8_uncomp_tree(uint8_t access_shortcut_size, t_vector& coords, uint64_t max_hint) ;
 
-
-    template <typename t_vector>
-    std::shared_ptr<k2_tree> get_k2_tree(uint8_t k, uint8_t access_shortcut_size, bool compress_leaves, t_vector& coords, uint64_t max_hint = 0) {
+    template<typename t_vector>
+    std::shared_ptr<k2_tree> get_k2_tree(uint8_t k, bool use_counting_sort, t_vector &coords, uint64_t max_hint = 0) {
         switch (k) {
             case 2:
-                if (compress_leaves) {
-                    return create_k_2_comp_tree(access_shortcut_size, coords, max_hint);
-                }   else {
-                    return create_k_2_uncomp_tree(access_shortcut_size, coords, max_hint);
-                }
+                return std::shared_ptr(new k2_tree<2>("", use_counting_sort, coords, max_hint));
+            case 3:
+                return std::shared_ptr(new k2_tree<3>("", use_counting_sort, coords, max_hint));
             case 4:
-                if (compress_leaves) {
-                    return create_k_4_comp_tree(access_shortcut_size, coords, max_hint);
-                }   else {
-                    return create_k_4_uncomp_tree(access_shortcut_size, coords, max_hint);
-                }
+                return std::shared_ptr(new k2_tree<4>("", use_counting_sort, coords, max_hint));
+            case 5:
+                return std::shared_ptr(new k2_tree<5>("", use_counting_sort, coords, max_hint));
+            case 6:
+                return std::shared_ptr(new k2_tree<6>("", use_counting_sort, coords, max_hint));
+            case 7:
+                return std::shared_ptr(new k2_tree<7>("", use_counting_sort, coords, max_hint));
             case 8:
-                if (compress_leaves) {
-                    return create_k_8_comp_tree(access_shortcut_size, coords, max_hint);
-                }   else {
-                    return create_k_8_uncomp_tree(access_shortcut_size, coords, max_hint);
-                }
+                return std::shared_ptr(new k2_tree<8>("", use_counting_sort, coords, max_hint));
+            case 9:
+                return std::shared_ptr(new k2_tree<9>("", use_counting_sort, coords, max_hint));
+            case 10:
+                return std::shared_ptr(new k2_tree<10>("", use_counting_sort, coords, max_hint));
+            case 11:
+                return std::shared_ptr(new k2_tree<11>("", use_counting_sort, coords, max_hint));
+            case 12:
+                return std::shared_ptr(new k2_tree<12>("", use_counting_sort, coords, max_hint));
+            case 13:
+                return std::shared_ptr(new k2_tree<13>("", use_counting_sort, coords, max_hint));
+            case 14:
+                return std::shared_ptr(new k2_tree<14>("", use_counting_sort, coords, max_hint));
+            case 15:
+                return std::shared_ptr(new k2_tree<15>("", use_counting_sort, coords, max_hint));
+            case 16:
+                return std::shared_ptr(new k2_tree<16>("", use_counting_sort, coords, max_hint));
             default:
-                throw std::runtime_error("Currently only K=2, K=4 and K=8 are supported when using the factory");
+                throw std::runtime_error(
+                        "Currently only k = [2,16] is supported when using the factory, z order sort is only supported for k values being a power of two");
         }
     }
 
-    /*
-    template <typename t_vector>
-    std::shared_ptr<k2_tree> get_k2_tree_hybrid(uint8_t t_k_l_1, uint8_t t_k_l_1_size, uint8_t t_k_l_2, uint8_t access_shortcut_size, bool compress_leaves, t_vector& coords, uint64_t max_hint = 0) {
+    template<typename t_vector>
+    std::shared_ptr<k2_tree_hybrid>
+    get_k2_tree_hybrid(uint8_t t_k_l_1, uint8_t t_k_l_1_size, uint8_t t_k_l_2, uint8_t t_k_leaves,
+                       bool use_counting_sort, t_vector &coords, uint64_t max_hint = 0) {
         switch (t_k_l_1) {
-            case 2:
-                if (compress_leaves) {
-                    return create_hybrid_k_2_comp_tree(access_shortcut_size, coords, max_hint);
-                }   else {
-                    return create_hybrid_k_2_uncomp_tree(access_shortcut_size, coords, max_hint);
-                }
             case 4:
-                if (compress_leaves) {
-                    return create_hybrid_k_4_comp_tree(access_shortcut_size, coords, max_hint);
-                }   else {
-                    return create_hybrid_k_4_uncomp_tree(access_shortcut_size, coords, max_hint);
+                switch (t_k_l_1_size) {
+                    case 2:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 2, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 2, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 2, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 2, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 2, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 2, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 2, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 2, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 2, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 3:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 3, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 3, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 3, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 3, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 3, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 3, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 3, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 3, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 3, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 4:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 4, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 4, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 4, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 4, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 4, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 4, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 4, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 4, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 4, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 5:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 5, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 5, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 5, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 5, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 5, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 5, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 5, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 5, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 5, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 6:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 6, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 6, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 6, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 6, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 6, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 6, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 6, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 6, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 6, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 7:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 7, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 7, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 7, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 7, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 7, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 7, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 7, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 7, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 7, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 8:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 8, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 8, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 8, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 8, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 8, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 8, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 8, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 8, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 8, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 9:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 9, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 9, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 9, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 9, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 9, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 9, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 9, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<4, 9, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<4, 9, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+
+                    default:
+                        throw std::runtime_error("Currently only t_k_l_1_size = [2,9] is supported in factory");
                 }
+
             case 8:
-                if (compress_leaves) {
-                    return create_hybrid_k_8_comp_tree(access_shortcut_size, coords, max_hint);
-                }   else {
-                    return create_hybrid_k_8_uncomp_tree(access_shortcut_size, coords, max_hint);
+                switch (t_k_l_1_size) {
+                    case 2:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 2, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 2, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 2, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 2, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 2, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 2, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 2, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 2, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 2, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 3:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 3, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 3, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 3, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 3, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 3, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 3, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 3, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 3, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 3, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 4:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 4, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 4, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 4, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 4, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 4, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 4, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 4, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 4, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 4, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 5:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 5, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 5, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 5, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 5, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 5, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 5, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 5, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 5, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 5, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 6:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 6, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 6, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 6, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 6, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 6, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 6, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 6, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 6, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 6, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 7:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 7, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 7, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 7, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 7, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 7, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 7, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 7, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 7, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 7, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 8:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 8, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 8, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 8, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 8, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 8, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 8, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 8, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 8, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 8, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 9:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 9, 2, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 9, 2, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 9, 2, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 9, 4, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 9, 4, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 9, 4, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 9, 8, 4>("", use_counting_sort, coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(
+                                                new k2_tree_hybrid<8, 9, 8, 8>("", use_counting_sort, coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<8, 9, 8, 16>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
                 }
+
+            case 16:
+                switch (t_k_l_1_size) {
+                    case 2:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 2, 2, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 2, 2, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 2, 2, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 2, 4, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 2, 4, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 2, 4, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 2, 8, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 2, 8, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 2, 8, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 3:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 3, 2, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 3, 2, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 3, 2, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 3, 4, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 3, 4, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 3, 4, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 3, 8, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 3, 8, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 3, 8, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 4:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 4, 2, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 4, 2, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 4, 2, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 4, 4, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 4, 4, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 4, 4, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 4, 8, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 4, 8, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 4, 8, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 5:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 5, 2, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 5, 2, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 5, 2, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 5, 4, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 5, 4, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 5, 4, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 5, 8, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 5, 8, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 5, 8, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 6:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 6, 2, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 6, 2, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 6, 2, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 6, 4, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 6, 4, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 6, 4, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 6, 8, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 6, 8, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 6, 8, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 7:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 7, 2, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 7, 2, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 7, 2, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 7, 4, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 7, 4, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 7, 4, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 7, 8, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 7, 8, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 7, 8, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+                    case 8:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 8, 2, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 8, 2, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 8, 2, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 8, 4, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 8, 4, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 8, 4, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 8, 8, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 8, 8, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 8, 8, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4,8} is supported in factory");
+                        }
+                    case 9:
+                        switch (t_k_l_2) {
+                            case 2:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 9, 2, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 9, 2, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 9, 2, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+                            case 4:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 9, 4, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 9, 4, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 9, 4, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            case 8:
+                                switch (t_k_leaves) {
+                                    case 4:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 9, 8, 4>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 8:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 9, 8, 8>("", use_counting_sort,
+                                                                                               coords.max_hint));
+                                    case 16:
+                                        return std::shared_ptr(new k2_tree_hybrid<16, 9, 8, 16>("", use_counting_sort,
+                                                                                                coords.max_hint));
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                        }
+
+                    default:
+                        throw std::runtime_error(
+                                "Currently only K=4, K=8 and K=16 are supported in top level, when using the factory");
+                }
+        }
+
+    }
+
+    template<typename t_vector>
+    std::shared_ptr<k2_tree_partitioned>
+    get_k2_tree_partitioned(uint8_t t_k_0, uint8_t t_k, bool use_counting_sort, t_vector &coords, uint64_t max_hint = 0) {
+        switch (t_k_0){
+            case 2:
+                switch (t_k) {
+                    case 2:
+                        return std::shared_ptr(new k2_tree_partitioned<2, k2_tree<2>>("", use_counting_sort, coords, max_hint));
+                    case 3:
+                        return std::shared_ptr(new k2_tree_partitioned<2,k2_tree<3>>("", use_counting_sort, coords, max_hint));
+                    case 4:
+                        return std::shared_ptr(new k2_tree_partitioned<2,k2_tree<4>>("", use_counting_sort, coords, max_hint));
+                    case 5:
+                        return std::shared_ptr(new k2_tree_partitioned<2,k2_tree<5>>("", use_counting_sort, coords, max_hint));
+                    case 6:
+                        return std::shared_ptr(new k2_tree_partitioned<2,k2_tree<6>>("", use_counting_sort, coords, max_hint));
+                    case 7:
+                        return std::shared_ptr(new k2_tree_partitioned<2,k2_tree<7>>("", use_counting_sort, coords, max_hint));
+                    case 8:
+                        return std::shared_ptr(new k2_tree_partitioned<2,k2_tree<8>>("", use_counting_sort, coords, max_hint));
+                    case 9:
+                        return std::shared_ptr(new k2_tree_partitioned<2,k2_tree<9>>("", use_counting_sort, coords, max_hint));
+                    case 10:
+                        return std::shared_ptr(new k2_tree_partitioned<2,k2_tree<10>>("", use_counting_sort, coords, max_hint));
+                    case 11:
+                        return std::shared_ptr(new k2_tree_partitioned<2,k2_tree<11>>("", use_counting_sort, coords, max_hint));
+                    case 12:
+                        return std::shared_ptr(new k2_tree_partitioned<2,k2_tree<12>>("", use_counting_sort, coords, max_hint));
+                    case 13:
+                        return std::shared_ptr(new k2_tree_partitioned<2,k2_tree<13>>("", use_counting_sort, coords, max_hint));
+                    case 14:
+                        return std::shared_ptr(new k2_tree_partitioned<2,k2_tree<14>>("", use_counting_sort, coords, max_hint));
+                    case 15:
+                        return std::shared_ptr(new k2_tree_partitioned<2,k2_tree<15>>("", use_counting_sort, coords, max_hint));
+                    case 16:
+                        return std::shared_ptr(new k2_tree_partitioned<2,k2_tree<16>>("", use_counting_sort, coords, max_hint));
+                    default:
+                        throw std::runtime_error(
+                                "Currently only k = [2,16] is supported when using the factory, z order sort is only supported for k values being a power of two");
+                }
+
+            case 4:
+                switch (t_k) {
+                    case 2:
+                        return std::shared_ptr(new k2_tree_partitioned<4, k2_tree<2>>("", use_counting_sort, coords, max_hint));
+                    case 3:
+                        return std::shared_ptr(new k2_tree_partitioned<4,k2_tree<3>>("", use_counting_sort, coords, max_hint));
+                    case 4:
+                        return std::shared_ptr(new k2_tree_partitioned<4,k2_tree<4>>("", use_counting_sort, coords, max_hint));
+                    case 5:
+                        return std::shared_ptr(new k2_tree_partitioned<4,k2_tree<5>>("", use_counting_sort, coords, max_hint));
+                    case 6:
+                        return std::shared_ptr(new k2_tree_partitioned<4,k2_tree<6>>("", use_counting_sort, coords, max_hint));
+                    case 7:
+                        return std::shared_ptr(new k2_tree_partitioned<4,k2_tree<7>>("", use_counting_sort, coords, max_hint));
+                    case 8:
+                        return std::shared_ptr(new k2_tree_partitioned<4,k2_tree<8>>("", use_counting_sort, coords, max_hint));
+                    case 9:
+                        return std::shared_ptr(new k2_tree_partitioned<4,k2_tree<9>>("", use_counting_sort, coords, max_hint));
+                    case 10:
+                        return std::shared_ptr(new k2_tree_partitioned<4,k2_tree<10>>("", use_counting_sort, coords, max_hint));
+                    case 11:
+                        return std::shared_ptr(new k2_tree_partitioned<4,k2_tree<11>>("", use_counting_sort, coords, max_hint));
+                    case 12:
+                        return std::shared_ptr(new k2_tree_partitioned<4,k2_tree<12>>("", use_counting_sort, coords, max_hint));
+                    case 13:
+                        return std::shared_ptr(new k2_tree_partitioned<4,k2_tree<13>>("", use_counting_sort, coords, max_hint));
+                    case 14:
+                        return std::shared_ptr(new k2_tree_partitioned<4,k2_tree<14>>("", use_counting_sort, coords, max_hint));
+                    case 15:
+                        return std::shared_ptr(new k2_tree_partitioned<4,k2_tree<15>>("", use_counting_sort, coords, max_hint));
+                    case 16:
+                        return std::shared_ptr(new k2_tree_partitioned<4,k2_tree<16>>("", use_counting_sort, coords, max_hint));
+                    default:
+                        throw std::runtime_error(
+                                "Currently only k = [2,16] is supported when using the factory, z order sort is only supported for k values being a power of two");
+                }
+
+            case 8:
+                switch (t_k) {
+                    case 2:
+                        return std::shared_ptr(new k2_tree_partitioned<8, k2_tree<2>>("", use_counting_sort, coords, max_hint));
+                    case 3:
+                        return std::shared_ptr(new k2_tree_partitioned<8,k2_tree<3>>("", use_counting_sort, coords, max_hint));
+                    case 4:
+                        return std::shared_ptr(new k2_tree_partitioned<8,k2_tree<4>>("", use_counting_sort, coords, max_hint));
+                    case 5:
+                        return std::shared_ptr(new k2_tree_partitioned<8,k2_tree<5>>("", use_counting_sort, coords, max_hint));
+                    case 6:
+                        return std::shared_ptr(new k2_tree_partitioned<8,k2_tree<6>>("", use_counting_sort, coords, max_hint));
+                    case 7:
+                        return std::shared_ptr(new k2_tree_partitioned<8,k2_tree<7>>("", use_counting_sort, coords, max_hint));
+                    case 8:
+                        return std::shared_ptr(new k2_tree_partitioned<8,k2_tree<8>>("", use_counting_sort, coords, max_hint));
+                    case 9:
+                        return std::shared_ptr(new k2_tree_partitioned<8,k2_tree<9>>("", use_counting_sort, coords, max_hint));
+                    case 10:
+                        return std::shared_ptr(new k2_tree_partitioned<8,k2_tree<10>>("", use_counting_sort, coords, max_hint));
+                    case 11:
+                        return std::shared_ptr(new k2_tree_partitioned<8,k2_tree<11>>("", use_counting_sort, coords, max_hint));
+                    case 12:
+                        return std::shared_ptr(new k2_tree_partitioned<8,k2_tree<12>>("", use_counting_sort, coords, max_hint));
+                    case 13:
+                        return std::shared_ptr(new k2_tree_partitioned<8,k2_tree<13>>("", use_counting_sort, coords, max_hint));
+                    case 14:
+                        return std::shared_ptr(new k2_tree_partitioned<8,k2_tree<14>>("", use_counting_sort, coords, max_hint));
+                    case 15:
+                        return std::shared_ptr(new k2_tree_partitioned<8,k2_tree<15>>("", use_counting_sort, coords, max_hint));
+                    case 16:
+                        return std::shared_ptr(new k2_tree_partitioned<8,k2_tree<16>>("", use_counting_sort, coords, max_hint));
+                    default:
+                        throw std::runtime_error(
+                                "Currently only k = [2,16] is supported when using the factory, z order sort is only supported for k values being a power of two");
+                }
+
+            case 16:
+                switch (t_k) {
+                    case 2:
+                        return std::shared_ptr(new k2_tree_partitioned<16, k2_tree<2>>("", use_counting_sort, coords, max_hint));
+                    case 3:
+                        return std::shared_ptr(new k2_tree_partitioned<16,k2_tree<3>>("", use_counting_sort, coords, max_hint));
+                    case 4:
+                        return std::shared_ptr(new k2_tree_partitioned<16,k2_tree<4>>("", use_counting_sort, coords, max_hint));
+                    case 5:
+                        return std::shared_ptr(new k2_tree_partitioned<16,k2_tree<5>>("", use_counting_sort, coords, max_hint));
+                    case 6:
+                        return std::shared_ptr(new k2_tree_partitioned<16,k2_tree<6>>("", use_counting_sort, coords, max_hint));
+                    case 7:
+                        return std::shared_ptr(new k2_tree_partitioned<16,k2_tree<7>>("", use_counting_sort, coords, max_hint));
+                    case 8:
+                        return std::shared_ptr(new k2_tree_partitioned<16,k2_tree<8>>("", use_counting_sort, coords, max_hint));
+                    case 9:
+                        return std::shared_ptr(new k2_tree_partitioned<16,k2_tree<9>>("", use_counting_sort, coords, max_hint));
+                    case 10:
+                        return std::shared_ptr(new k2_tree_partitioned<16,k2_tree<10>>("", use_counting_sort, coords, max_hint));
+                    case 11:
+                        return std::shared_ptr(new k2_tree_partitioned<16,k2_tree<11>>("", use_counting_sort, coords, max_hint));
+                    case 12:
+                        return std::shared_ptr(new k2_tree_partitioned<16,k2_tree<12>>("", use_counting_sort, coords, max_hint));
+                    case 13:
+                        return std::shared_ptr(new k2_tree_partitioned<16,k2_tree<13>>("", use_counting_sort, coords, max_hint));
+                    case 14:
+                        return std::shared_ptr(new k2_tree_partitioned<16,k2_tree<14>>("", use_counting_sort, coords, max_hint));
+                    case 15:
+                        return std::shared_ptr(new k2_tree_partitioned<16,k2_tree<15>>("", use_counting_sort, coords, max_hint));
+                    case 16:
+                        return std::shared_ptr(new k2_tree_partitioned<16,k2_tree<16>>("", use_counting_sort, coords, max_hint));
+                    default:
+                        throw std::runtime_error(
+                                "Currently only k = [2,16] is supported when using the factory, z order sort is only supported for k values being a power of two");
+                }
+
+                throw std::runtime_error(
+                        "Currently only part-factor = {2,4,8,16} is supported when using the factory");
+        }
+    }
+
+    template<typename t_vector>
+    std::shared_ptr<k2_tree_partitioned>
+    get_k2_tree_partitioned(uint8_t t_k_0, uint8_t t_k_l_1, uint8_t t_k_l_1_size, uint8_t t_k_l_2, uint8_t t_k_leaves, bool use_counting_sort, t_vector &coords, uint64_t max_hint = 0) {
+        switch (t_k_0) {
+            case 4:
+                switch (t_k_l_1) {
+                    case 4:
+                        switch (t_k_l_1_size) {
+                            case 2:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 2, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 2, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 2, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 2, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 2, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 2, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 2, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 2, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 2, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 3:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 3, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 3, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 3, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 3, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 3, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 3, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 3, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 3, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 3, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 4:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 4, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 4, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 4, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 4, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 4, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 4, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 4, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 4, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 4, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 5:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 5, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 5, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 5, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 5, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 5, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 5, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 5, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 5, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 5, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 6:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 6, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 6, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 6, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 6, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 6, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 6, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 6, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 6, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 6, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 7:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 7, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 7, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 7, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 7, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 7, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 7, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 7, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 7, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 7, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 8:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 8, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 8, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 8, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 8, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 8, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 8, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 8, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 8, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 8, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 9:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 9, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 9, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 9, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 9, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 9, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 9, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 9, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<4, 9, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<4, 9, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_1_size = [2,9] is supported in factory");
+                        }
+
+                    case 8:
+                        switch (t_k_l_1_size) {
+                            case 2:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 2, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 2, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 2, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 2, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 2, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 2, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 2, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 2, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 2, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 3:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 3, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 3, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 3, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 3, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 3, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 3, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 3, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 3, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 3, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 4:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 4, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 4, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 4, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 4, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 4, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 4, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 4, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 4, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 4, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 5:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 5, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 5, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 5, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 5, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 5, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 5, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 5, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 5, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 5, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 6:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 6, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 6, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 6, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 6, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 6, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 6, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 6, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 6, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 6, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 7:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 7, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 7, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 7, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 7, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 7, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 7, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 7, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 7, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 7, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 8:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 8, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 8, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 8, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 8, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 8, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 8, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 8, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 8, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 8, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 9:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 9, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 9, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 9, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 9, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 9, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 9, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 9, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<4, k2_tree_hybrid<8, 9, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<8, 9, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                        }
+
+                    case 16:
+                        switch (t_k_l_1_size) {
+                            case 2:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 2, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 2, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 2, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 2, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 2, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 2, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 2, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 2, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 2, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 3:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 3, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 3, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 3, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 3, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 3, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 3, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 3, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 3, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 3, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 4:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 4, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 4, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 4, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 4, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 4, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 4, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 4, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 4, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 4, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 5:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 5, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 5, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 5, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 5, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 5, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 5, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 5, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 5, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 5, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 6:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 6, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 6, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 6, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 6, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 6, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 6, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 6, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 6, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 6, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 7:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 7, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 7, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 7, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 7, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 7, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 7, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 7, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 7, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 7, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 8:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 8, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 8, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 8, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 8, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 8, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 8, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 8, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 8, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 8, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4,8} is supported in factory");
+                                }
+                            case 9:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 9, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 9, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 9, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 9, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 9, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 9, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 9, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 9, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<4, k2_tree_hybrid<16, 9, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+
+                            default:
+                                throw std::runtime_error(
+                                        "Currently only K=4, K=8 and K=16 are supported in top level, when using the factory");
+                        }
+                }
+
+            case 8:
+                switch (t_k_l_1) {
+                    case 4:
+                        switch (t_k_l_1_size) {
+                            case 2:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 2, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 2, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 2, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 2, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 2, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 2, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 2, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 2, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 2, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 3:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 3, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 3, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 3, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 3, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 3, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 3, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 3, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 3, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 3, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 4:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 4, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 4, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 4, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 4, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 4, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 4, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 4, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 4, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 4, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 5:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 5, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 5, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 5, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 5, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 5, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 5, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 5, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 5, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 5, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 6:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 6, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 6, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 6, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 6, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 6, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 6, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 6, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 6, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 6, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 7:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 7, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 7, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 7, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 7, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 7, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 7, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 7, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 7, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 7, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 8:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 8, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 8, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 8, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 8, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 8, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 8, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 8, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 8, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 8, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 9:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 9, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 9, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 9, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 9, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 9, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 9, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 9, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<4, 9, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<4, 9, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_1_size = [2,9] is supported in factory");
+                        }
+
+                    case 8:
+                        switch (t_k_l_1_size) {
+                            case 2:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 2, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 2, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 2, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 2, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 2, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 2, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 2, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 2, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 2, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 3:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 3, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 3, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 3, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 3, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 3, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 3, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 3, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 3, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 3, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 4:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 4, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 4, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 4, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 4, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 4, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 4, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 4, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 4, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 4, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 5:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 5, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 5, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 5, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 5, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 5, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 5, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 5, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 5, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 5, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 6:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 6, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 6, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 6, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 6, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 6, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 6, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 6, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 6, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 6, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 7:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 7, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 7, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 7, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 7, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 7, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 7, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 7, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 7, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 7, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 8:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 8, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 8, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 8, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 8, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 8, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 8, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 8, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 8, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 8, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 9:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 9, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 9, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 9, 2, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 9, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 9, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 9, 4, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 9, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<8, k2_tree_hybrid<8, 9, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<8, 9, 8, 16>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                        }
+
+                    case 16:
+                        switch (t_k_l_1_size) {
+                            case 2:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 2, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 2, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 2, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 2, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 2, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 2, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 2, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 2, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 2, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 3:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 3, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 3, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 3, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 3, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 3, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 3, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 3, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 3, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 3, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 4:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 4, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 4, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 4, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 4, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 4, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 4, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 4, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 4, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 4, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 5:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 5, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 5, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 5, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 5, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 5, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 5, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 5, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 5, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 5, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 6:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 6, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 6, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 6, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 6, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 6, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 6, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 6, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 6, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 6, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 7:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 7, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 7, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 7, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 7, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 7, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 7, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 7, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 7, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 7, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 8:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 8, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 8, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 8, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 8, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 8, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 8, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 8, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 8, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 8, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4,8} is supported in factory");
+                                }
+                            case 9:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 9, 2, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 9, 2, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 9, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 9, 4, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 9, 4, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 9, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 9, 8, 4>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 9, 8, 8>>("", use_counting_sort,
+                                                                                                                               coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<8, k2_tree_hybrid<16, 9, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+
+                            default:
+                                throw std::runtime_error(
+                                        "Currently only K=4, K=8 and K=16 are supported in top level, when using the factory");
+                        }
+                }
+
+            case 16:
+                switch (t_k_l_1) {
+                    case 4:
+                        switch (t_k_l_1_size) {
+                            case 2:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 2, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 2, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 2, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 2, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 2, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 2, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 2, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 2, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 2, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 3:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 3, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 3, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 3, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 3, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 3, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 3, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 3, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 3, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 3, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 4:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 4, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 4, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 4, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 4, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 4, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 4, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 4, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 4, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 4, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 5:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 5, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 5, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 5, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 5, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 5, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 5, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 5, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 5, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 5, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 6:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 6, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 6, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 6, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 6, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 6, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 6, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 6, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 6, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 6, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 7:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 7, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 7, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 7, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 7, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 7, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 7, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 7, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 7, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 7, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 8:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 8, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 8, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 8, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 8, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 8, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 8, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 8, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 8, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 8, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 9:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 9, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 9, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 9, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 9, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 9, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 9, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 9, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<4, 9, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<4, 9, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+
+                            default:
+                                throw std::runtime_error("Currently only t_k_l_1_size = [2,9] is supported in factory");
+                        }
+
+                    case 8:
+                        switch (t_k_l_1_size) {
+                            case 2:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 2, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 2, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 2, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 2, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 2, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 2, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 2, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 2, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 2, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 3:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 3, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 3, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 3, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 3, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 3, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 3, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 3, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 3, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 3, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 4:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 4, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 4, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 4, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 4, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 4, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 4, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 4, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 4, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 4, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 5:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 5, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 5, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 5, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 5, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 5, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 5, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 5, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 5, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 5, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 6:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 6, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 6, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 6, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 6, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 6, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 6, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 6, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 6, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 6, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 7:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 7, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 7, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 7, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 7, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 7, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 7, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 7, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 7, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 7, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 8:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 8, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 8, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 8, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 8, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 8, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 8, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 8, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 8, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 8, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 9:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 9, 2, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 9, 2, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 9, 2, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 9, 4, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 9, 4, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 9, 4, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 9, 8, 4>>("", use_counting_sort, coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(
+                                                        new k2_tree_partitioned<16, k2_tree_hybrid<8, 9, 8, 8>>("", use_counting_sort, coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<8, 9, 8, 16>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                        }
+
+                    case 16:
+                        switch (t_k_l_1_size) {
+                            case 2:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 2, 2, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 2, 2, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 2, 2, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 2, 4, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 2, 4, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 2, 4, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 2, 8, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 2, 8, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 2, 8, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 3:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 3, 2, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 3, 2, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 3, 2, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 3, 4, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 3, 4, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 3, 4, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 3, 8, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 3, 8, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 3, 8, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 4:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 4, 2, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 4, 2, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 4, 2, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 4, 4, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 4, 4, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 4, 4, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 4, 8, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 4, 8, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 4, 8, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 5:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 5, 2, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 5, 2, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 5, 2, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 5, 4, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 5, 4, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 5, 4, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 5, 8, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 5, 8, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 5, 8, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 6:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 6, 2, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 6, 2, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 6, 2, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 6, 4, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 6, 4, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 6, 4, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 6, 8, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 6, 8, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 6, 8, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 7:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 7, 2, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 7, 2, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 7, 2, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 7, 4, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 7, 4, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 7, 4, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 7, 8, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 7, 8, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 7, 8, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+                            case 8:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 8, 2, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 8, 2, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 8, 2, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 8, 4, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 8, 4, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 8, 4, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 8, 8, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 8, 8, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 8, 8, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4,8} is supported in factory");
+                                }
+                            case 9:
+                                switch (t_k_l_2) {
+                                    case 2:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 9, 2, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 9, 2, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 9, 2, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+                                    case 4:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 9, 4, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 9, 4, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 9, 4, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    case 8:
+                                        switch (t_k_leaves) {
+                                            case 4:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 9, 8, 4>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 8:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 9, 8, 8>>("", use_counting_sort,
+                                                                                                                                coords.max_hint));
+                                            case 16:
+                                                return std::shared_ptr(new k2_tree_partitioned<16, k2_tree_hybrid<16, 9, 8, 16>>("", use_counting_sort,
+                                                                                                                                 coords.max_hint));
+                                        }
+
+                                    default:
+                                        throw std::runtime_error("Currently only t_k_l_2 = {2,4} is supported in factory");
+                                }
+
+                            default:
+                                throw std::runtime_error(
+                                        "Currently only K=4, K=8 and K=16 are supported in top level, when using the factory");
+                        }
+                }
+
             default:
-                throw std::runtime_error("Currently only K=2, K=4 and K=8 are supported when using the factory");
-        }
-    }*/
-
-    template<typename t_vector>
-    std::shared_ptr<k2_tree> create_k_2_comp_tree(uint8_t access_shortcut_size, t_vector& coords, uint64_t max_hint) {
-        switch (access_shortcut_size){
-            case 0: return std::shared_ptr(new k2_tree<2,bit_vector,bit_vector,true,0>("", false, coords, max_hint - 1));
-            case 2: return std::shared_ptr(new k2_tree<2,bit_vector,bit_vector,true,2>("", false, coords, max_hint - 1));
-            case 4: return std::shared_ptr(new k2_tree<2,bit_vector,bit_vector,true,4>("", false, coords, max_hint - 1));
-            case 16: return std::shared_ptr(new k2_tree<2,bit_vector,bit_vector,true,16>("", false, coords, max_hint - 1));
+                throw std::runtime_error("For partitioing only k0=4, k=8 and k0=16 are supported when using the factory with hybrid trees");
         }
     }
-
-    template<typename t_vector>
-    std::shared_ptr<k2_tree> create_k_2_uncomp_tree(uint8_t access_shortcut_size, t_vector& coords, uint64_t max_hint) {
-        switch (access_shortcut_size){
-            case 0: return std::shared_ptr(new k2_tree<2,bit_vector,bit_vector,false,0>("", false, coords, max_hint - 1));
-            case 2: return std::shared_ptr(new k2_tree<2,bit_vector,bit_vector,false,2>("", false, coords, max_hint - 1));
-            case 4: return std::shared_ptr(new k2_tree<2,bit_vector,bit_vector,false,4>("", false, coords, max_hint - 1));
-            case 16: return std::shared_ptr(new k2_tree<2,bit_vector,bit_vector,false,16>("", false, coords, max_hint - 1));
-        }
-    }
-
-    template<typename t_vector>
-    std::shared_ptr<k2_tree> create_k_4_comp_tree(uint8_t access_shortcut_size, t_vector& coords, uint64_t max_hint) {
-        switch (access_shortcut_size){
-            case 0: return std::shared_ptr(new k2_tree<4,bit_vector,bit_vector,true,0>("", false, coords, max_hint - 1));
-            case 2: return std::shared_ptr(new k2_tree<4,bit_vector,bit_vector,true,2>("", false, coords, max_hint - 1));
-            case 4: return std::shared_ptr(new k2_tree<4,bit_vector,bit_vector,true,4>("", false, coords, max_hint - 1));
-            case 16: return std::shared_ptr(new k2_tree<4,bit_vector,bit_vector,true,16>("", false, coords, max_hint - 1));
-        }
-    }
-
-    template<typename t_vector>
-    std::shared_ptr<k2_tree> create_k_4_uncomp_tree(uint8_t access_shortcut_size, t_vector& coords, uint64_t max_hint) {
-        switch (access_shortcut_size){
-            case 0: return std::shared_ptr(new k2_tree<4,bit_vector,bit_vector,false,0>("", false, coords, max_hint - 1));
-            case 2: return std::shared_ptr(new k2_tree<4,bit_vector,bit_vector,false,2>("", false, coords, max_hint - 1));
-            case 4: return std::shared_ptr(new k2_tree<4,bit_vector,bit_vector,false,4>("", false, coords, max_hint - 1));
-            case 16: return std::shared_ptr(new k2_tree<4,bit_vector,bit_vector,false,16>("", false, coords, max_hint - 1));
-        }
-    }
-
-    template<typename t_vector>
-    std::shared_ptr<k2_tree> create_k_8_comp_tree(uint8_t access_shortcut_size, t_vector& coords, uint64_t max_hint) {
-        switch (access_shortcut_size){
-            case 0: return std::shared_ptr(new k2_tree<8,bit_vector,bit_vector,true,0>("", false, coords, max_hint - 1));
-            case 2: return std::shared_ptr(new k2_tree<8,bit_vector,bit_vector,true,2>("", false, coords, max_hint - 1));
-            case 4: return std::shared_ptr(new k2_tree<8,bit_vector,bit_vector,true,4>("", false, coords, max_hint - 1));
-            case 16: return std::shared_ptr(new k2_tree<8,bit_vector,bit_vector,true,16>("", false, coords, max_hint - 1));
-        }
-    }
-
-    template<typename t_vector>
-    std::shared_ptr<k2_tree> create_k_8_uncomp_tree(uint8_t access_shortcut_size, t_vector& coords, uint64_t max_hint) {
-        switch (access_shortcut_size){
-            case 0: return std::shared_ptr(new k2_tree<8,bit_vector,bit_vector,false,0>("", false, coords, max_hint - 1));
-            case 2: return std::shared_ptr(new k2_tree<8,bit_vector,bit_vector,false,2>("", false, coords, max_hint - 1));
-            case 4: return std::shared_ptr(new k2_tree<8,bit_vector,bit_vector,false,4>("", false, coords, max_hint - 1));
-            case 16: return std::shared_ptr(new k2_tree<8,bit_vector,bit_vector,false,16>("", false, coords, max_hint - 1));
-        }
-    }
-
-
 }
 #endif
 
