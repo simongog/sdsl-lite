@@ -12,6 +12,7 @@
 #include <sdsl/rank_support.hpp>
 #include <sdsl/rank_support_v.hpp>
 #include <gtest/gtest_prod.h>
+#include "mem_monitor.hpp"
 
 namespace sdsl {
 
@@ -68,6 +69,7 @@ namespace sdsl {
             } else {
                 m_max_element = get_maximum(v);
             }
+
 
             calculate_matrix_dimension_and_submatrix_count();
             build_k2_trees(v, temp_file_prefix, use_counting_sort);
@@ -641,11 +643,11 @@ namespace sdsl {
                                      std::vector<std::vector<std::pair<uint, uint>>> &buffers, std::vector<uint>& maximum_in_buffer) {
             #pragma omp parallel for
             for (uint j = 0; j < t_k0; ++j) {
-                std::cout << "Constructing tree "<< current_matrix_row * t_k0 + j << std::endl;
-                if (buffers[j].size() != 0) {
+                //std::cout << "Constructing tree "<< current_matrix_row * t_k0 + j << std::endl;
+                /*if (buffers[j].size() != 0) {
                     std::cout << "Size of " << current_matrix_row * t_k0 + j << ": "
                               << buffers[j].size() * 64 / 8 / 1024 << "kByte" << std::endl;
-                }
+                }*/
                 uint64_t hash_size = 0; //for now
                 subk2_tree tree(temp_file_prefix, use_counting_sort, buffers[j], maximum_in_buffer[j], m_access_shortcut_size, false, hash_size);
                 m_k2trees[current_matrix_row*t_k0+j].swap(tree);
