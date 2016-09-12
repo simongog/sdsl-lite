@@ -11,6 +11,8 @@
 #include <sdsl/k2_tree_algorithm.hpp>
 #include <sdsl/bit_vectors.hpp>
 #include <sys/times.h>
+#include <sdsl/k2_tree_utility.hpp>
+#include "sdsl/k2_tree_utility.hpp"
 
 using std::ifstream;
 using std::cout;
@@ -58,8 +60,8 @@ int main(int argc, char *argv[]) {
     }
 
     std::string file_name(argv[1]);
-    bool compress = false;
-    uint8_t access_shortcut_size = 0;
+    std::string output_file_name(argv[2]);
+
     const uint8_t k = 4;
     //typedef k2_tree<k, bit_vector, bit_vector> tested_type;
     typedef k2_tree_hybrid<4,6,2,8, bit_vector, bit_vector> k2_rrr;
@@ -67,22 +69,9 @@ int main(int argc, char *argv[]) {
     // Initialize treap with a vector of (x,y,weight) elements
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
 
-    uint64_t hash_size = 0;
-    if (argc > 3){
-        hash_size = stoull(argv[3]);
-    }
-    tested_type k2;
+    tested_type k2tree;
 
-    k2.load_from_ladrabin(file_name, true, access_shortcut_size, compress, hash_size);
-/*
-    auto start = timer::now();
-    k2.compress_leaves_huf_wt();
-    auto stop = timer::now();
-    std::cout << "Total time(ms): " << duration_cast<milliseconds>(stop - start).count() << endl;
-*/
-    std::string output_file_name(argv[2]);
-    store_to_file(k2, output_file_name);
-
-    write_structure<HTML_FORMAT>(k2, output_file_name + "("+ k2.get_type_string()+ ")" + ".html");
+    k2tree.load_from_ladrabin(file_name, true);
+    store_to_file(output_file_name, k2tree);
 }
 
