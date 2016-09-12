@@ -779,13 +779,13 @@ namespace sdsl {
             m_leaves = t_leaf();
         }
 
-        void compress_leaves(const HashTable &table, std::shared_ptr<Vocabulary> voc){
+        void compress_leaves(const HashTable &table, std::shared_ptr<Vocabulary> voc, bool use_voc_size_for_dac){
             if (m_tree_height == 0){
                 return;
             }
             std::vector<uchar> leaf_words;
             words(leaf_words);
-            compress_leaves(table, voc, leaf_words);
+            compress_leaves(table, voc, leaf_words, use_voc_size_for_dac);
             m_is_dac_comp = true;
             m_vocabulary_is_shared = true;
         }
@@ -817,7 +817,7 @@ namespace sdsl {
             }
         }
 
-        void compress_leaves(const HashTable &table, std::shared_ptr<Vocabulary> voc, const std::vector<uchar>& leaf_words) {
+        void compress_leaves(const HashTable &table, std::shared_ptr<Vocabulary> voc, const std::vector<uchar>& leaf_words, bool use_voc_size_for_dac) {
             size_t cnt = words_count();
             uint size = word_size();
             uint *codewords;
@@ -850,7 +850,13 @@ namespace sdsl {
                 std::cout << std::endl;
 
                 std::cout << "Count" << cnt << std::endl;*/
-                m_comp_leaves = DAC(codewords, cnt);
+                //FIXME: to benchmark in the case of k2tree part
+                if (use_voc_size_for_dac){
+                    m_comp_leaves = DAC(codewords, cnt, voc->size());
+                } else {
+                    m_comp_leaves = DAC(codewords, cnt, 0);
+                }
+
             } catch (...) {
                 std::cerr << "[k2_tree_base::compress_leaves] Error: Could not create DAC\n";
                 exit(1);
@@ -879,7 +885,7 @@ namespace sdsl {
             words(leaf_words);
 
             FreqVoc(leaf_words, word_size(), words_count(), [&](const HashTable &table, std::shared_ptr<Vocabulary> voc, const std::vector<uchar>& leaf_words) {
-                compress_leaves(table, voc, leaf_words);
+                compress_leaves(table, voc, leaf_words, true);
                 m_is_dac_comp = true;
             }, hash_size);
         }

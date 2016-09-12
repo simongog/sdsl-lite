@@ -33,7 +33,7 @@ namespace sdsl {
          * @param cnt Number of words in the vocabulary
          * @param size Size of each word in bytes
          */
-        DAC(uint *list, uint listLength) : m_comp_leaves(::createFT(list, listLength),Deleter()) {
+        DAC(uint *list, uint listLength, uint vocabularySize) : m_comp_leaves(::createFT(list, listLength, vocabularySize),Deleter()) {
         }
 
         //! Loads the data structure from the given istream.

@@ -626,7 +626,7 @@ namespace sdsl {
             //util::bit_compress(m_words_prefix_sum);
             #pragma omp parallel for
             for (uint i = 0; i < m_k2trees.size(); ++i){
-                m_k2trees[i].compress_leaves(table, voc);
+                m_k2trees[i].compress_leaves(table, voc, false);
                 m_k2trees[i].clear_leaves();
 	        }
         }

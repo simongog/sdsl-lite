@@ -30,7 +30,7 @@ typedef struct sFTRep {
 
 
 // public:
-	FTRep* createFT(uint *list,uint listLength);
+	FTRep* createFT(uint *codewords,uint listLength, uint maxInt);
 	uint accessFT(FTRep * listRep,uint param);
 	void saveFT(FTRep * listRep, FILE * flist);
 	uint * decompressFT(FTRep * listRep, uint n);

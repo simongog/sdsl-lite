@@ -30,6 +30,7 @@
   Hash.c: Definition of a HashTable that uses linear hash
   ------------------------------------------------------------------------*/
 
+#include <stdint.h>
 #include "../include/directcodes.h"
 
 //#define BASE 16
@@ -92,9 +93,9 @@
 
 #define FACT_RANK 20
 
-uint mypow(uint base, uint exponente) {
+uint64_t mypow(uint base, uint exponente) {
   int i=0;
-  uint result=1;
+  uint64_t result=1;
   for (i=0; i < exponente; i++){
     result *= base;
   }
@@ -104,8 +105,7 @@ uint mypow(uint base, uint exponente) {
 
 
 
-ushort * optimizationk(uint * acumFreqs,int maxInt, uint * nkvalues) {
-  int sizeVoc = maxInt;
+ushort * optimizationk(uint * acumFreqs,const int sizeVoc, uint * nkvalues) {
 
   //uint listLength = acumFreqs[sizeVoc];	
   uint nBits = bits(sizeVoc);
@@ -218,7 +218,7 @@ ushort * optimizationk(uint * acumFreqs,int maxInt, uint * nkvalues) {
   return kvalues;
 }
 
-FTRep* createFT(uint *list,uint listLength){
+FTRep* createFT(uint *codewords,uint listLength, uint maxInt){
   FTRep * rep = (FTRep *) malloc(sizeof(struct sFTRep));
   uint *levelSizeAux;
   uint *cont;	
@@ -237,24 +237,24 @@ FTRep* createFT(uint *list,uint listLength){
   //ushort kvalues[4] = {0,2,4,8};
   //uint nkvalues=4;
 
-  uint maxInt=0;
+  if (maxInt == 0){
+    for(i=0; i < listLength; i++)
+    if(maxInt < codewords[i])
+      maxInt = codewords[i];
 
-  for(i=0; i < listLength; i++)
-    if(maxInt < list[i])
-      maxInt = list[i];
-
+  }
   //fprintf(stderr,"maxInt : %d\n",maxInt);
 
   maxInt++;
 
   uint * weight = (uint *) malloc(sizeof(uint)*maxInt);
 
-
+  //FIXME: could be precomputed when codewords vector is created!
   for(l=0; l<maxInt; l++)
     weight[l] = 0;
 
   for(i=0;i<listLength;i++)
-    weight[list[i]]++;
+    weight[codewords[i]]++;
 
 
   uint * acumFreq = (uint *) malloc(sizeof(uint)*(maxInt+1));
@@ -321,7 +321,7 @@ FTRep* createFT(uint *list,uint listLength){
   //Reservando espacio para los niveles
 
   for (i=0;i<listLength;i++){
-    value = list[i];
+    value = codewords[i];
     for(j=0;j<rep->tamtablebase;j++)
       if(value>=rep->tablebase[j])
         levelSizeAux[j]++;
@@ -382,7 +382,7 @@ FTRep* createFT(uint *list,uint listLength){
   for(i=0; i<((bits_BS_len)/W+1);i++)
     bits_BS[i]=0;
   for(i=0;i<listLength;i++){
-    value = list[i];
+    value = codewords[i];
     j=rep->nLevels-1;
 
     while(j>=0){
@@ -453,7 +453,6 @@ uint accessFT(FTRep * listRep,uint param){
   uint ini = param;
   //bitRankW32Int * bS = listRep->bS;
   //uint * bsData = listRep->bS->data;
-  uint nLevels=listRep->nLevels;
   //uint levelIndex;
   uint * level;
   uint readByte;
@@ -461,14 +460,12 @@ uint accessFT(FTRep * listRep,uint param){
 
 
   //	fprintf(stderr,"Queriendo leer la posicion: %d\n",ini);
-  partialSum=0;
   j=0;
   level=listRep->levels ;//+ (listRep->levelsIndex[j]>>1);
   //		fprintf(stderr,"primera posicion del array levels: %d %d\n",level[0],(byte)level[0]);
   //cont=ini+(listRep->levelsIndex[j]&0x1);
   pos=listRep->levelsIndex[j]+ini;
 
-  mult=0;
   //readByte = ((*(level+(cont>>1)))>>(BASE_BITS*(cont&0x1)))&0xF;
   cont = listRep->iniLevel[j]+ini*listRep->base_bits[j];
   //		fprintf(stderr,"leyendo los %d bits \n",listRep->base_bits[j]);
@@ -485,7 +482,7 @@ uint accessFT(FTRep * listRep,uint param){
   //fprintf(stderr,"readByte: %d... %d\n",readByte,(*(level[j]+(cont[j]>>1))));
   //	fprintf(stderr,"readByte: %d\n",readByte);
   //fprintf(stderr,"pos[%d]= %d\n",j,pos[j]);
-  if(nLevels == 1){
+  if(listRep->nLevels == 1){
     return readByte;
   }
   while((!bitget(listRep->bS->data,pos))){
@@ -513,7 +510,7 @@ uint accessFT(FTRep * listRep,uint param){
     //fprintf(stderr,"contenido del vector: %d readByte: %d con cont[%d]: %d\n",*(level[j]+(cont[j]>>1)),readByte,j,cont[j]);
 
     //fprintf(stderr,"readByte: %d... %d\n",readByte,(*(level+(cont>>1))));
-    if(j==nLevels-1){
+    if(j==listRep->nLevels-1){
       break;
     }
 

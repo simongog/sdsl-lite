@@ -20,7 +20,7 @@ typedef unsigned int uint;
 struct sFTRep;
 typedef struct sFTRep FTRep;
 
-FTRep* createFT(uint *list, uint listLength);
+FTRep* createFT(uint *codewords, uint listLength, uint maxInt);
 uint accessFT(FTRep * listRep, uint param);
 uint * decompressFT(FTRep * listRep, uint n);
 void destroyFT(FTRep * listRep);
