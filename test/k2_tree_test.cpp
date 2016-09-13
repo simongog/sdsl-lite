@@ -373,7 +373,6 @@ TYPED_TEST(k2_tree_test, edges_array_exhaustive)
     e.clear();
     e.push_back(t_tuple{0, 0});
     tree = TypeParam(e, 1);
-    cout << tree.neigh(0) << endl;
     ASSERT_EQ(1u, tree.neigh(0).size());
     ASSERT_EQ(0u, tree.neigh(0)[0]);
 }
