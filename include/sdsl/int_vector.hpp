@@ -1531,14 +1531,15 @@ typename int_vector<t_width>::size_type int_vector<t_width>::write_raw_data(std:
     size_type written_bytes = 0;
     uint64_t* p = m_data;
     size_type idx = 0;
-    while (idx+conf::SDSL_BLOCK_SIZE < size()/sizeof(value_type) ) {
+    const uint64_t elements = size()/sizeof(value_type);
+    while (idx+conf::SDSL_BLOCK_SIZE < elements ) {
         out.write((char*) p, conf::SDSL_BLOCK_SIZE*sizeof(value_type));
         written_bytes += conf::SDSL_BLOCK_SIZE*sizeof(value_type);
         p     += conf::SDSL_BLOCK_SIZE;
         idx    += conf::SDSL_BLOCK_SIZE;
     }
-    out.write((char*) p, ((size()/sizeof(value_type))-idx)*sizeof(value_type));
-    written_bytes += ((size()/sizeof(value_type))-idx)*sizeof(value_type);
+    out.write((char*) p, (elements-idx)*sizeof(value_type));
+    written_bytes += (elements-idx)*sizeof(value_type);
     return written_bytes;
 }
 
