@@ -1530,15 +1530,16 @@ typename int_vector<t_width>::size_type int_vector<t_width>::write_raw_data(std:
     typedef typename int_vector<t_width>::value_type value_type;
     size_type written_bytes = 0;
     uint64_t* p = m_data;
-    size_type idx = 0;
-    while (idx+conf::SDSL_BLOCK_SIZE < size()/sizeof(value_type) ) {
-        out.write((char*) p, conf::SDSL_BLOCK_SIZE*sizeof(value_type));
-        written_bytes += conf::SDSL_BLOCK_SIZE*sizeof(value_type);
+    size_type idx = 0; // uin64_t index
+    while (idx+conf::SDSL_BLOCK_SIZE < ((width()*size())>>6)) {
+        out.write((char*) p, conf::SDSL_BLOCK_SIZE*sizeof(uint64_t));
+        written_bytes += conf::SDSL_BLOCK_SIZE*sizeof(uint64_t);
         p     += conf::SDSL_BLOCK_SIZE;
         idx    += conf::SDSL_BLOCK_SIZE;
     }
-    out.write((char*) p, ((size()/sizeof(value_type))-idx)*sizeof(value_type));
-    written_bytes += ((size()/sizeof(value_type))-idx)*sizeof(value_type);
+    uint64_t remaining_elements = (width()*size())/(8*sizeof(value_type))-(idx/sizeof(value_type));
+    out.write((char*) p, remaining_elements*sizeof(value_type));
+    written_bytes += remaining_elements*sizeof(value_type);
     return written_bytes;
 }
 
