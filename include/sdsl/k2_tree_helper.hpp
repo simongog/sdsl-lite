@@ -88,14 +88,11 @@ int _build_from_matrix(const std::vector<std::vector <int>>& matrix,
 inline uint16_t get_chunk_idx(idx_type v, idx_type u, idx_type c_0,
                               idx_type r_0, size_type l, uint8_t k)
 {
-    return std::floor(static_cast<double>(v - r_0) / l) * k +
-           std::floor(static_cast<double>(u - c_0) / l);
+    return  ((v - r_0) / l) * k + (u - c_0) / l;
 }
 
 template<typename t_bv=bit_vector> void build_template_vector(bit_vector& k_t_,
-        bit_vector& k_l_,
-        t_bv& k_t,
-        t_bv& k_l)
+        bit_vector& k_l_, t_bv& k_t, t_bv& k_l)
 {
     k_t = t_bv(k_t_);
     k_l = t_bv(k_l_);
