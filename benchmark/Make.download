@@ -6,7 +6,7 @@
 	$(eval DEST_DIR:=$(shell dirname $@))
 	cd $(DEST_DIR); curl -O $(URL)
 	$(eval FILE:=$(DEST_DIR)/$(notdir $(URL)))
-	@$(if $(filter "%.gz",$(FILE)),\
+	@$(if $(filter %.gz,$(FILE)),\
 		echo "Extract file $(FILE) using gunzip";\
 		gunzip $(FILE))
 
