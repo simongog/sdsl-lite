@@ -98,7 +98,6 @@ for(tc in unique(maindata$TC_ID)){
 
 	data<-maindata[maindata$TC_ID==tc,]
 	id <-data[['K2_TEX_NAME']]
-	xmax<-max(data[c('adj_time','neighbors_time','reverse_neighbors_time')])
 
 	#first page start
 	fig_name <- paste("fig-page1-",tc,".tex",sep="")
@@ -109,26 +108,40 @@ for(tc in unique(maindata$TC_ID)){
 	layout(matrix(c(1,2,3), nrow=3, ncol=1, byrow = TRUE),
 	   widths=c(1,1,1), heights=c(1))
 
-	#adj-plot
+    xmax<-max(data[c('adj_time', 'neighbors_time','reverse_neighbors_time')])
 	a <-data['adj_time']
-	rownames(a)<-id
-	plot_time_figure(t(a),"\\tt{adj}",xlab=F,xmax=xmax)
+    neighbors <-data['neighbors_time']
+    reverse_neighbors <-data['reverse_neighbors_time']
+    rownames(a)<-id
+    rownames(neighbors)<-id
+    rownames(reverse_neighbors)<-id
+	if(xmax > 10000){
+	    xmax <- xmax/1000000
+        neighbors <-neighbors/1000000
+        reverse_neighbors = reverse_neighbors/1000000
+	    a <- a/1000000
+	    #adj-plot
+	    plot_time_figure(t(a),"\\tt{adj}", xlab=F)
+        #neighbors-plot
+        plot_time_figure(t(neighbors),"\\tt{neighborsa}", xlab=F, xmax=xmax)
+        #reverse_neighbors-plot
+        plot_time_figure(t(reverse_neighbors),"\\tt{reverse_neighborsa}",constructor=T, xlab=F, xmax=xmax)
+    }
+    else {
+	    #adj-plot
+	    plot_time_figure(t(a),"\\tt{adj}", xlab=F)
+        #neighbors-plot
+        plot_time_figure(t(neighbors),"\\tt{neighbors}", xlab=F, xmax=xmax)
+        #reverse_neighbors-plot
+        plot_time_figure(t(reverse_neighbors),"\\tt{reverse_neighbors}", xmax=xmax)
 
-	#neighbors-plot
-	neighbors <-data['neighbors_time']
-	rownames(neighbors)<-id
-	plot_time_figure(t(neighbors),"\\tt{neighbors}",xlab=F,xmax=xmax)
+    }
 
-	#reverse_neighbors-plot
-	s <-data['reverse_neighbors_time']
-	rownames(s)<-id
-	plot_time_figure(t(s),"\\tt{reverse_neighbors}",xmax=xmax)
-
-	old<-par()
-	dev.off()
-	tex_doc <- paste(tex_doc,"\\begin{figure}[H]
-					 \\input{",fig_name,"}
-					 \\end{figure}")
+    old<-par()
+    dev.off()
+    tex_doc <- paste(tex_doc,"\\begin{figure}[H]
+                    \\input{",fig_name,"}
+                    \\end{figure}")
 	#first page end
 
 	#second page start

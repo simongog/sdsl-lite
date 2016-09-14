@@ -56,4 +56,4 @@ Note that the benchmark will execute every combination of wavelet trees and test
 [K2CONFIG]: ./k2tree.config "k2tree.config"
 [TCCONF]: ./test_case.config "test_case.config"
 [CCONF]: ./compile_options.config "compile_options.config"
-[RES]: https://github.com/simongog/simongog.github.com/raw/master/assets/images/wt.pdf "wt.pdf"
+[RES]: https://users.dcc.uchile.cl/~fmontoto/static/k2.pdf "k2.pdf"
