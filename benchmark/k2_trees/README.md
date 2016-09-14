@@ -8,9 +8,25 @@ Explored dimensions:
   * test cases
   * methods (`adj`, `neighbors`, `reverse_neighbors`)
 
+## Data
+
+  * The data input for the benchmarking are arc files. An arc file is a text
+      file where each line represents a directed edge between two nodes, the
+      first column is the origin node and the second the target node.
+
+### Test cases
+
+  * EXAMPLE test case uses an small file with a little more than 100 nodes and
+      roughly the same number of edges from web data commons.
+  * HOSTGRAPH is a test case where the data comes from the Web Cropus released
+      by the Common Crawl Foundation in April 2014. The file aggregates the
+      page graph by subdomain/host. It has 123.660.351 edges.
+
 ## Directory structure
 
   * [bin](./bin): Contains the executables of the project.
+    * `build_*` generates the binary file with the graph from the arc files.
+    * `gen_*` executes the experiments.
   * [results](./results): Contains the results of the experiments.
   * [src](./src):  Contains the source code of the benchmark.
   * [visualize](./visualize): Contains a `R`-script which generates
