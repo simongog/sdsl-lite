@@ -81,6 +81,7 @@ include ../Make.download
 clean-build:
 	@echo "Remove executables"
 	rm -rf $(BIN_DIR)/build*
+	rm -rf $(BIN_DIR)/gen*
 
 clean-result:
 	@echo "Remove results"
