@@ -47,45 +47,12 @@ namespace {
     TYPED_TEST(k2_tree_compression_test, CreateAndStoreTest) {
         int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
-        TypeParam k2treap(buf_x, buf_y, false, 0, true);
+        TypeParam k2treap(buf_x, buf_y);
         //construct(k2treap, test_file);
         ASSERT_TRUE(store_to_file(k2treap, temp_file));
         TypeParam k2treap2;
         ASSERT_TRUE(load_from_file(k2treap2, temp_file));
         ASSERT_EQ(k2treap, k2treap2);
-    }
-
-    TYPED_TEST(k2_tree_compression_test, ConstructCompareTest) {
-        int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
-        int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
-        TypeParam k2treap;
-        TypeParam k2treap2;
-        construct(k2treap, test_file, 0, true);
-        construct_bottom_up(k2treap2, test_file, 0, true);
-        TypeParam k2treap3(buf_x, buf_y, false, 0, 0, true);
-        std::cout << "Comparing Results" << std::endl;
-
-        if (!( k2treap == k2treap2)){
-            std::cout << "Results differ" << std::endl;
-        }
-
-
-        if (!( k2treap == k2treap3)){
-            std::cout << "Results differ" << std::endl;
-        }
-
-        ASSERT_EQ(k2treap, k2treap2);
-        ASSERT_EQ(k2treap2, k2treap3);
-    }
-
-    TYPED_TEST(k2_tree_compression_test, size) {
-        TypeParam k2treap;
-        ASSERT_TRUE(load_from_file(k2treap, temp_file));
-        int_vector<> x, y;
-        ASSERT_TRUE(load_from_file(x, test_file + ".x"));
-        ASSERT_TRUE(load_from_file(y, test_file + ".y"));
-        ASSERT_EQ(x.size(), y.size());
-        ASSERT_EQ(x.size(), k2treap.size());
     }
 
     /*
@@ -96,12 +63,7 @@ namespace {
         });
     }*/
 
-    TYPED_TEST(k2_tree_compression_test, direct_links_2) {
-        TypeParam k2treap;
-        perform_direct_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
-            k2treap.direct_links2(source_id, result);
-        });
-    }
+
 
     /*
     TYPED_TEST(k2_tree_compression_test, inverse_links) {
@@ -110,19 +72,88 @@ namespace {
             k2treap.inverse_links(source_id, result);
         });
     }*/
+    TYPED_TEST(k2_tree_compression_test, direct_links_2_legacy_dac) {
+        TypeParam k2treap;
+        perform_direct_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
+            k2treap.direct_links2(source_id, result);
+        }, LEGACY_DAC);
+    }
 
-    TYPED_TEST(k2_tree_compression_test, inverse_links2) {
+    TYPED_TEST(k2_tree_compression_test, inverse_links2_legacy_dac) {
         TypeParam k2treap;
         perform_inverse_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
             k2treap.inverse_links2(source_id, result);
-        });
+        }, LEGACY_DAC);
     }
 
-    TYPED_TEST(k2_tree_compression_test, check_link) {
+    TYPED_TEST(k2_tree_compression_test, check_link_legacy_dac) {
         TypeParam k2treap;
         perform_check_link_test(k2treap, temp_file, test_file, [&k2treap](std::pair<uint64_t, uint64_t> asd) {
             return k2treap.check_link(asd);
-        });
+        }, DAC);
+    }
+
+    TYPED_TEST(k2_tree_compression_test, direct_links_2_dac) {
+        TypeParam k2treap;
+        perform_direct_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
+            k2treap.direct_links2(source_id, result);
+        }, DAC);
+    }
+
+    TYPED_TEST(k2_tree_compression_test, inverse_links2_dac) {
+        TypeParam k2treap;
+        perform_inverse_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
+            k2treap.inverse_links2(source_id, result);
+        }, LEGACY_DAC);
+    }
+
+    TYPED_TEST(k2_tree_compression_test, check_link_dac) {
+        TypeParam k2treap;
+        perform_check_link_test(k2treap, temp_file, test_file, [&k2treap](std::pair<uint64_t, uint64_t> asd) {
+            return k2treap.check_link(asd);
+        }, DAC);
+    }
+
+        TYPED_TEST(k2_tree_compression_test, direct_links_2_wt_int) {
+        TypeParam k2treap;
+        perform_direct_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
+            k2treap.direct_links2(source_id, result);
+        }, WT_INT);
+    }
+
+    TYPED_TEST(k2_tree_compression_test, inverse_links2_wt_int) {
+        TypeParam k2treap;
+        perform_inverse_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
+            k2treap.inverse_links2(source_id, result);
+        }, WT_INT);
+    }
+
+    TYPED_TEST(k2_tree_compression_test, check_link_wt_int) {
+        TypeParam k2treap;
+        perform_check_link_test(k2treap, temp_file, test_file, [&k2treap](std::pair<uint64_t, uint64_t> asd) {
+            return k2treap.check_link(asd);
+        }, WT_INT);
+    }
+
+    TYPED_TEST(k2_tree_compression_test, direct_links_2_wt_int_dict) {
+        TypeParam k2treap;
+        perform_direct_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
+            k2treap.direct_links2(source_id, result);
+        }, WT_INT_DICT);
+    }
+
+    TYPED_TEST(k2_tree_compression_test, inverse_links2_wt_int_dict) {
+        TypeParam k2treap;
+        perform_inverse_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
+            k2treap.inverse_links2(source_id, result);
+        }, WT_INT_DICT);
+    }
+
+    TYPED_TEST(k2_tree_compression_test, check_link_wt_int_dict) {
+        TypeParam k2treap;
+        perform_check_link_test(k2treap, temp_file, test_file, [&k2treap](std::pair<uint64_t, uint64_t> asd) {
+            return k2treap.check_link(asd);
+        }, WT_INT_DICT);
     }
 
     /*

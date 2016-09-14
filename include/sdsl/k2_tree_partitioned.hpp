@@ -39,10 +39,12 @@ namespace sdsl {
         std::vector<subk2_tree> m_k2trees;
         /** For compressed version **/
         std::shared_ptr<k2_tree_vocabulary> m_vocabulary;
+        /**For newer compression algos **/
+        std::shared_ptr<int_vector<>> m_dictionary;
         size_type m_size = 0;
         //uint64_t m_max_element = 0;
         uint64_t m_matrix_dimension = 0;
-        bool m_is_dac_comp = false;
+        leaf_compression_type  m_used_compression = UNCOMPRESSED;
         uint8_t m_access_shortcut_size = 0;
 
     public:
@@ -59,7 +61,7 @@ namespace sdsl {
         }*/
 
         template<typename t_vector>
-        k2_tree_partitioned(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint=0, uint8_t access_shortcut_size=0, bool dac_compress = false, uint64_t hash_size = 0) : m_is_dac_comp(dac_compress), m_access_shortcut_size(access_shortcut_size) {
+        k2_tree_partitioned(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint=0, uint8_t access_shortcut_size=0) : m_access_shortcut_size(access_shortcut_size) {
             //FIXME: build multiple k trees
             //partition into k02 parts
             using namespace k2_treap_ns;
@@ -73,14 +75,10 @@ namespace sdsl {
 
             calculate_matrix_dimension_and_submatrix_count();
             build_k2_trees(v, temp_file_prefix, use_counting_sort);
-
-            if (m_is_dac_comp){
-                compress_leaves(hash_size);
-            }
         }
 
         k2_tree_partitioned(int_vector_buffer<> &buf_x,
-                            int_vector_buffer<> &buf_y, bool use_counting_sort=false, uint64_t max_hint = 0, uint8_t access_shortcut_size=0, bool dac_compress = false, uint64_t hash_size = 0) : m_is_dac_comp(dac_compress), m_access_shortcut_size(access_shortcut_size){
+                            int_vector_buffer<> &buf_y, bool use_counting_sort=false, uint64_t max_hint = 0, uint8_t access_shortcut_size=0) : m_access_shortcut_size(access_shortcut_size){
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
@@ -118,24 +116,6 @@ namespace sdsl {
                 auto v = read < uint64_t, uint64_t>(bufs);
                 build_k2_trees(v, buf_x.filename(), use_counting_sort);
             }
-
-            if (m_is_dac_comp){
-                compress_leaves(hash_size);
-            }
-        }
-
-        template<typename t_x=uint64_t, typename t_y=uint64_t>
-        std::vector<std::pair<t_x, t_y>> read(std::vector<int_vector_buffer<> * > &bufs) {
-            typedef std::vector<std::pair<t_x, t_y>> t_tuple_vec;
-            t_tuple_vec v = t_tuple_vec(bufs[0]->size());
-            for (uint64_t j = 0; j < v.size(); ++j) {
-                std::get<0>(v[j]) = (*(bufs[0]))[j];
-            }
-            for (uint64_t j = 0; j < v.size(); ++j) {
-                std::get<1>(v[j]) = (*(bufs[1]))[j];
-            }
-
-            return v;
         }
 
         template<typename t_x>
@@ -291,7 +271,8 @@ namespace sdsl {
             if (this != &tr) {
                 m_size = tr.m_size;
                 m_max_element = tr.m_max_element;
-                m_is_dac_comp = tr.m_is_dac_comp;
+                m_used_compression = tr.m_used_compression;
+                m_dictionary = tr.m_dictionary;
                 m_access_shortcut_size = tr.m_access_shortcut_size;
                 m_k2trees = std::move(tr.m_k2trees);
                 m_matrix_dimension = std::move(tr.m_matrix_dimension);
@@ -304,7 +285,8 @@ namespace sdsl {
             if (this != &tr) {
                 m_size = tr.m_size;
                 m_max_element = tr.m_max_element;
-                m_is_dac_comp = tr.m_is_dac_comp;
+                m_used_compression = tr.m_used_compression;
+                m_dictionary = tr.m_dictionary;
                 m_access_shortcut_size = tr.m_access_shortcut_size;
                 m_k2trees = tr.m_k2trees;
                 m_matrix_dimension = tr.m_matrix_dimension;
@@ -335,13 +317,18 @@ namespace sdsl {
                 return false;
             }
 
-            if (m_is_dac_comp != tr.m_is_dac_comp){
-                std::cout << "one is compressed, the other not" << std::endl;
+            if (m_used_compression != tr.m_used_compression){
+                std::cout << "Used compression differs" << std::endl;
             }
 
-            if (m_is_dac_comp) {
+            if (m_used_compression == LEGACY_DAC) {
                 if (!m_vocabulary.get()->operator==(*tr.m_vocabulary.get())) {
                     std::cout << "vocabulary differs" << std::endl;
+                    return false;
+                }
+            } else if ((m_used_compression == DAC)|| m_used_compression == WT_INT_DICT){
+                if (! m_dictionary.get() == tr.m_dictionary.get()){
+                    std::cout << "Dictionary differs" << std::endl;
                     return false;
                 }
             }
@@ -360,7 +347,8 @@ namespace sdsl {
             if (this != &tr) {
                 std::swap(m_size, tr.m_size);
                 std::swap(m_max_element, tr.m_max_element);
-                std::swap(m_is_dac_comp, tr.m_is_dac_comp);
+                std::swap(m_used_compression, tr.m_used_compression);
+                std::swap(m_dictionary, tr.m_dictionary);
                 std::swap(m_access_shortcut_size, tr.m_access_shortcut_size);
                 std::swap(m_k2trees, tr.m_k2trees);
                 std::swap(m_matrix_dimension, tr.m_matrix_dimension);
@@ -378,15 +366,17 @@ namespace sdsl {
             written_bytes += write_member(m_size, out, child, "s");
             written_bytes += write_member(m_matrix_dimension, out, child, "matrix_size");
             written_bytes += write_member(m_max_element, out, child, "m_max_element");
-            written_bytes += write_member(m_is_dac_comp, out, child, "m_is_dac_comp");
             written_bytes += write_member(m_access_shortcut_size, out, child, "m_access_shortcut_size");
 
             for (uint j = 0; j < m_k2trees.size(); ++j) {
                 written_bytes += m_k2trees[j].serialize(out, child, "k2_tree_"+std::to_string(j));
             }
 
-            if (m_is_dac_comp){
+            written_bytes += write_member(m_used_compression, out, child, "used_compression");
+            if (m_used_compression == LEGACY_DAC){
                 written_bytes += m_vocabulary->serialize(out, child, "voc");
+            } else if ((m_used_compression == WT_INT_DICT) || (m_used_compression == DAC)){
+                written_bytes += m_dictionary->serialize(out, child, "dict");
             }
 
             structure_tree::add_size(child, written_bytes);
@@ -398,7 +388,6 @@ namespace sdsl {
             read_member(m_size, in);
             read_member(m_matrix_dimension, in);
             read_member(m_max_element, in);
-            read_member(m_is_dac_comp, in);
             read_member(m_access_shortcut_size, in);
 
             m_k2trees.resize(t_k0*t_k0);
@@ -406,25 +395,57 @@ namespace sdsl {
                 m_k2trees[j].load(in);
             }
 
-            if (m_is_dac_comp){
+            read_member(m_used_compression, in);
+            if (m_used_compression == LEGACY_DAC){
                 m_vocabulary = std::shared_ptr<k2_tree_vocabulary>(new k2_tree_vocabulary());
                 m_vocabulary->load(in);
-            }
 
-            for (uint j = 0; j < t_k0*t_k0; ++j) {
-                m_k2trees[j].set_vocabulary(m_vocabulary);
+                for (uint j = 0; j < t_k0*t_k0; ++j) {
+                    m_k2trees[j].set_vocabulary(m_vocabulary);
+                }
+            } else if ((m_used_compression == WT_INT_DICT) || (m_used_compression == DAC)){
+                m_dictionary = std::shared_ptr<int_vector<>>(new int_vector<>());
+                m_dictionary->load(in);
+
+                for (uint j = 0; j < t_k0*t_k0; ++j) {
+                    m_k2trees[j].set_dictionary(m_dictionary);
+                }
             }
         }
 
-        void load_from_ladrabin(std::string fileName, bool use_counting_sort = false, uint8_t access_shortcut_size = 0, bool dac_compress = false,
-                                uint64_t hash_size = 0, std::string temp_file_prefix = ""){
+        void compress_leaves(leaf_compression_type compression, uint64_t hash_size = 0){
+            switch (compression) {
+                case UNCOMPRESSED:
+                    break;
+
+                case DAC:
+                    dac_compress();
+                    break;
+
+                case LEGACY_DAC:
+                    legacy_dac_compress(hash_size);
+                    break;
+
+                case WT_INT_DICT:
+                    wt_huff_int_dict_compress();
+                    break;
+
+                case WT_INT:
+                    wt_huff_int_compress();
+                    break;
+
+                default:
+                    throw new std::runtime_error("invalid value for compression method");
+            }
+        }
+
+        void load_from_ladrabin(std::string fileName, bool use_counting_sort = false, uint8_t access_shortcut_size = 0, std::string temp_file_prefix = ""){
             using namespace k2_treap_ns;
             if(!has_ending(fileName, ".ladrabin")){
                 fileName.append(".ladrabin");
                 std::cout << "Appending .ladrabin to filename as file has to be in .ladrabin format" << std::endl;
             }
 
-            m_is_dac_comp = dac_compress;
             m_access_shortcut_size = access_shortcut_size;
 
             std::fstream fileStream(fileName, std::ios_base::in);
@@ -492,10 +513,6 @@ namespace sdsl {
                 //cover leftovers
                 construct_trees_from_buffers(current_matrix_row, use_counting_sort, temp_file_prefix,
                                              buffers, maximum_in_buffer);
-
-                if (m_is_dac_comp){
-                    compress_leaves(hash_size);
-                }
             } else {
                 throw std::runtime_error("Could not open file to load ladrabin graph");
             }
@@ -523,18 +540,120 @@ namespace sdsl {
             }
             return words_count;
         }
+
+        void dac_compress(){
+            if (is_compressed()){
+                return;
+            }
+
+            int_vector<> leaf_words;
+            words(leaf_words);
+            std::unordered_map<int_vector<>::value_type, uint> codeword_map; //maps word w to codeword c (the code word is chosen based on the frequency of word w ("huffman"))
+            frequency_encode(leaf_words, m_dictionary, codeword_map);
+
+            #pragma omp parallel for
+            for (uint i = 0; i < m_k2trees.size(); ++i){
+                m_k2trees[i].dac_compress(codeword_map, m_dictionary, false);//compress using shared vocabulary
+            }
+            m_used_compression = DAC;
+        }
+
+        void wt_huff_int_compress(bool per_tree=true){
+            if (is_compressed()){
+                return;
+            }
+
+            if (per_tree){
+                #pragma omp parallel for
+                for (uint i = 0; i < m_k2trees.size(); ++i){
+                    m_k2trees[i].wt_huff_int_compress();//compress using shared vocabulary
+                }
+            } else {
+
+                throw new std::runtime_error("not yet implemented, needs access operations and direct storage here");
+                /*const int_vector<> leaf_words;
+                words(leaf_words);
+                wt_huff_int_compress(leaf_words, m_leaves_wt);
+                m_is_wt_direct_comp = true;
+
+                #pragma omp parallel for
+                for (uint i = 0; i < m_k2trees.size(); ++i){
+                    m_k2trees[i].clear_leaves();//compress using shared vocabulary
+                }
+                */
+
+            }
+            m_used_compression = WT_INT;
+        }
+
+        void wt_huff_int_dict_compress(){
+            if (is_compressed()){
+                return;
+            }
+
+            int_vector<> leaf_words;
+            words(leaf_words);
+            std::unordered_map<int_vector<>::value_type, uint> codeword_map;
+            frequency_encode(leaf_words, m_dictionary, codeword_map);
+
+            #pragma omp parallel for
+            for (uint i = 0; i < m_k2trees.size(); ++i){
+                m_k2trees[i].wt_huff_int_dict_compress(codeword_map, m_dictionary);//compress using shared vocabulary
+            }
+
+            m_used_compression = WT_INT_DICT;
+        }
+
+
+        void legacy_dac_compress(uint64_t hash_size = 0) {
+            if (is_compressed()){
+                return;
+            }
+
+            std::cout << "Compressing leaves using legacy dac compression" << std::endl;
+
+            m_used_compression = LEGACY_DAC;
+            std::vector<uchar> leaf_words;
+            words(leaf_words);
+
+            HashTable codeword_map;
+            frequency_encode(leaf_words, word_size(), words_count(), m_vocabulary, codeword_map, hash_size);
+
+            std::cout << "Frequency encoding finished" << std::endl;
+
+            #pragma omp parallel for
+            for (uint i = 0; i < m_k2trees.size(); ++i){
+                m_k2trees[i].legacy_dac_compress(codeword_map, m_vocabulary, false);//compress using shared vocabulary
+            }
+        }
+
+        std::string get_type_string() const {
+            return "k2_tree_partitioned<"+std::to_string(t_k0)+","+get_compression_name(m_used_compression)+","+m_k2trees[0].get_type_string()+">";
+        }
+
+
+
         /**
         * Returns all the words on the leaf level in a vector, which has size word_size*word_count (word_size is the amount of byte-sized words needed per leaf)
-         * FIXME: should use 64 Bit words in future
-        *
         */
-
         void words(std::vector<uchar>& result) const {
             result.clear();
-            result.reserve(words_count()*word_size());
+            result.resize(words_count()*word_size());
 
+            uint64_t offset = 0;
             for (uint i = 0; i < m_k2trees.size(); ++i){
-                m_k2trees[i].words(result, true);
+                m_k2trees[i].words(result, offset);
+                offset += m_k2trees[i].words_count();
+            }
+        }
+
+        void words(int_vector<>& result) const {
+            result = int_vector<>(words_count(), 0, word_size()*8);
+
+            uint64_t offset = 0;
+            for (uint i = 0; i < m_k2trees.size(); ++i){
+                m_k2trees[i].words(result, offset);
+                offset += m_k2trees[i].words_count();
             }
         }
 
@@ -591,46 +710,15 @@ namespace sdsl {
             }
         }
 
-    public:
-        void compress_leaves(uint64_t hash_size = 0) {
-            //std::cout << "Words count " << words_count() << std::endl;
-            //std::cout << "Word size " << word_size() << std::endl;
-
-
-            /*std::cout << "Words" << std::endl;
-            words([&] (const uchar *word) {
-                std::cout << std::to_string(*word) << "\t";
-            });
-            std::cout << std::endl;
-            */
-
-            m_is_dac_comp = true;
-            std::cout << "Compressing Leaves" << std::endl;
-
-            std::vector<uchar> leaf_words;
-            words(leaf_words);
-
-            FreqVoc(leaf_words, word_size(), words_count(), [&](const HashTable &table, std::shared_ptr<k2_tree_vocabulary> voc, const std::vector<uchar>&) {
-                m_vocabulary = voc;
-                compress_leaves(table, voc);
-            }, hash_size);
-        }
-
-        std::string get_type_string() const {
-            return "k2_tree_partitioned<"+std::to_string(t_k0)+","+m_k2trees[0].get_type_string()+">";
-        }
     private:
-        void compress_leaves(const HashTable table, std::shared_ptr<k2_tree_vocabulary> voc) {
-            std::cout << "After FreqVoc" << std::endl;
-            std::cout << "Clearing Leaves" << std::endl;
-            //util::bit_compress(m_words_prefix_sum);
-            #pragma omp parallel for
-            for (uint i = 0; i < m_k2trees.size(); ++i){
-                m_k2trees[i].compress_leaves(table, voc, false);
-                m_k2trees[i].clear_leaves();
-	        }
-        }
+        inline bool is_compressed(){
+            if (m_used_compression == LEGACY_DAC || m_used_compression == DAC || m_used_compression == WT_INT|| m_used_compression == WT_INT_DICT){
+                std::cout << "Already compressed, aborting";
+                return true;
+            }
 
+            return false;
+        }
 
         void calculate_matrix_dimension_and_submatrix_count() {
             m_matrix_dimension = (m_max_element + t_k0) / t_k0; //round up also in the case divisiable as element ids start at 0
@@ -648,8 +736,7 @@ namespace sdsl {
                     std::cout << "Size of " << current_matrix_row * t_k0 + j << ": "
                               << buffers[j].size() * 64 / 8 / 1024 << "kByte" << std::endl;
                 }*/
-                uint64_t hash_size = 0; //for now
-                subk2_tree tree(temp_file_prefix, use_counting_sort, buffers[j], maximum_in_buffer[j], m_access_shortcut_size, false, hash_size);
+                subk2_tree tree(temp_file_prefix, use_counting_sort, buffers[j], maximum_in_buffer[j], m_access_shortcut_size);
                 m_k2trees[current_matrix_row*t_k0+j].swap(tree);
                 buffers[j].clear();
                 maximum_in_buffer[j] = 0;

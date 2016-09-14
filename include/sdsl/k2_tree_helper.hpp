@@ -38,6 +38,20 @@ namespace sdsl {
 
     namespace k2_treap_ns {
 
+        template<typename t_x=uint64_t, typename t_y=uint64_t>
+        std::vector<std::pair<t_x, t_y>> read(std::vector<int_vector_buffer<> * > &bufs) {
+            typedef std::vector<std::pair<t_x, t_y>> t_tuple_vec;
+            t_tuple_vec v = t_tuple_vec(bufs[0]->size());
+            for (uint64_t j = 0; j < v.size(); ++j) {
+                std::get<0>(v[j]) = (*(bufs[0]))[j];
+            }
+            for (uint64_t j = 0; j < v.size(); ++j) {
+                std::get<1>(v[j]) = (*(bufs[1]))[j];
+            }
+
+            return v;
+        }
+
         /**
         * Calculates the smalles integer gretear or equal to x/y
         */
@@ -51,7 +65,7 @@ namespace sdsl {
         static const uint kByteBits = 8; //FIXME: remove
         static const uint kUcharBits = kByteBits * sizeof(unsigned char);
 
-// Precomputed value for fast k^2 treap operations
+        // Precomputed value for fast k^2 treap operations
         template<uint8_t t_k>
         struct precomp {
             static struct impl {
