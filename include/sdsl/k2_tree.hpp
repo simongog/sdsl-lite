@@ -53,7 +53,7 @@ namespace sdsl {
 
     class k2_tree : public k2_tree_base<t_k, t_lev, t_leaf, t_rank> {
         static_assert(t_k > 1, "t_k has to be larger than 1.");
-        static_assert(t_k <= 16, "t_k has to be smaller than 17.");
+        static_assert(t_k <= 8, "t_k can at most be 8 because of the current dac compression implementation.");//int_vectors support only 64Bit
 
         FRIEND_TEST(K2TreeInternalTest, testZOrderSort);
 

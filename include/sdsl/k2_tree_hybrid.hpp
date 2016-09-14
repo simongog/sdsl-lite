@@ -62,7 +62,7 @@ namespace sdsl {
         static_assert(t_k_leaves > 1, "t_k has to be larger than 1.");
         static_assert(t_k_leaves >= t_k_l_1,
                       "t_k_leaves has to be larger than t_k_l_1,  otherwise this could lead to different word sizes and thus to a problem for the k2part approach"); //if smaller than t_k_l_1 it could be that t_k_leaves is not used
-        static_assert(t_k_leaves <= 16, "t_k has to be smaller than 17.");
+        static_assert(t_k_leaves <= 8, "t_k can at most be 8 because of the current dac compression implementation.");
 
     private:
 

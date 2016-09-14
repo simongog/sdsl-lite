@@ -38,7 +38,7 @@ namespace sdsl {
         //typedef k2_tree<t_k,t_bv,t_rank> k2;
         std::vector<subk2_tree> m_k2trees;
         /** For compressed version **/
-        std::shared_ptr<Vocabulary> m_vocabulary;
+        std::shared_ptr<k2_tree_vocabulary> m_vocabulary;
         size_type m_size = 0;
         //uint64_t m_max_element = 0;
         uint64_t m_matrix_dimension = 0;
@@ -407,7 +407,7 @@ namespace sdsl {
             }
 
             if (m_is_dac_comp){
-                m_vocabulary = std::shared_ptr<Vocabulary>(new Vocabulary());
+                m_vocabulary = std::shared_ptr<k2_tree_vocabulary>(new k2_tree_vocabulary());
                 m_vocabulary->load(in);
             }
 
@@ -610,7 +610,7 @@ namespace sdsl {
             std::vector<uchar> leaf_words;
             words(leaf_words);
 
-            FreqVoc(leaf_words, word_size(), words_count(), [&](const HashTable &table, std::shared_ptr<Vocabulary> voc, const std::vector<uchar>&) {
+            FreqVoc(leaf_words, word_size(), words_count(), [&](const HashTable &table, std::shared_ptr<k2_tree_vocabulary> voc, const std::vector<uchar>&) {
                 m_vocabulary = voc;
                 compress_leaves(table, voc);
             }, hash_size);
@@ -620,7 +620,7 @@ namespace sdsl {
             return "k2_tree_partitioned<"+std::to_string(t_k0)+","+m_k2trees[0].get_type_string()+">";
         }
     private:
-        void compress_leaves(const HashTable table, std::shared_ptr<Vocabulary> voc) {
+        void compress_leaves(const HashTable table, std::shared_ptr<k2_tree_vocabulary> voc) {
             std::cout << "After FreqVoc" << std::endl;
             std::cout << "Clearing Leaves" << std::endl;
             //util::bit_compress(m_words_prefix_sum);

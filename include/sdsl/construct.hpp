@@ -99,6 +99,10 @@ void construct(t_index& idx, const std::string& file, cache_config& config, uint
         or (t_index::alphabet_category::WIDTH==0 and num_bytes != 'd')) {
         int_vector_buffer<t_index::alphabet_category::WIDTH> text_buf(file, std::ios::in, 1024*1024, num_bytes*8, (bool)num_bytes);
         t_index tmp(text_buf, text_buf.size());
+        for (int i = 0; i < text_buf.size(); ++i) {
+            std::cout << text_buf[i] << "\t";
+        }
+        std::cout << std::endl;
         idx.swap(tmp);
     } else {
         int_vector<t_index::alphabet_category::WIDTH> text;

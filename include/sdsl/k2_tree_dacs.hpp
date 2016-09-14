@@ -32,8 +32,8 @@ namespace sdsl {
         /**
          * @param cnt Number of words in the vocabulary
          * @param size Size of each word in bytes
-         */
-        DAC(uint *list, uint listLength, uint vocabularySize) : m_comp_leaves(::createFT(list, listLength, vocabularySize),Deleter()) {
+         */                                                                                    //"convert" to c array: http://stackoverflow.com/questions/2923272/how-to-convert-vector-to-array-c
+        DAC(std::vector<uint> codewords, uint listLength, uint vocabularySize) : m_comp_leaves(::createFT(&codewords[0], listLength, vocabularySize),Deleter()) {
         }
 
         //! Loads the data structure from the given istream.

@@ -97,7 +97,7 @@ namespace sdsl {
 
         /** For compressed version **/
         bool m_vocabulary_is_shared = false;
-        std::shared_ptr<Vocabulary> m_vocabulary;
+        std::shared_ptr<k2_tree_vocabulary> m_vocabulary;
 
         bool m_is_wt_comp = false;
         wt_huff<hyb_vector<>> m_leaves_wt;
@@ -609,7 +609,7 @@ namespace sdsl {
                 if (m_is_dac_comp) {
                     read_member(m_vocabulary_is_shared, in);
                     if (!m_vocabulary_is_shared){
-                        m_vocabulary = std::shared_ptr<Vocabulary>(new Vocabulary());
+                        m_vocabulary = std::shared_ptr<k2_tree_vocabulary>(new k2_tree_vocabulary());
                         m_vocabulary->load(in);
                     }
                     m_comp_leaves.load(in);
@@ -779,7 +779,7 @@ namespace sdsl {
             m_leaves = t_leaf();
         }
 
-        void compress_leaves(const HashTable &table, std::shared_ptr<Vocabulary> voc, bool use_voc_size_for_dac){
+        void compress_leaves(const HashTable &table, std::shared_ptr<k2_tree_vocabulary> voc, bool use_voc_size_for_dac){
             if (m_tree_height == 0){
                 return;
             }
@@ -790,7 +790,7 @@ namespace sdsl {
             m_vocabulary_is_shared = true;
         }
 
-        void set_vocabulary(const std::shared_ptr<Vocabulary> vocabulary){
+        void set_vocabulary(const std::shared_ptr<k2_tree_vocabulary> vocabulary){
             m_vocabulary_is_shared = true;
             m_vocabulary = vocabulary;
         }
@@ -817,27 +817,12 @@ namespace sdsl {
             }
         }
 
-        void compress_leaves(const HashTable &table, std::shared_ptr<Vocabulary> voc, const std::vector<uchar>& leaf_words, bool use_voc_size_for_dac) {
-            size_t cnt = words_count();
-            uint size = word_size();
-            uint *codewords;
-            try {
-                codewords = new uint[cnt];
-            } catch (std::bad_alloc ba) {
-                std::cerr << "[k2_tree_base::compress_leaves] Error: " << ba.what() << "\n";
-                exit(1);
-            }
+        void compress_leaves(const HashTable &table, std::shared_ptr<k2_tree_vocabulary> voc, const std::vector<uchar>& leaf_words, bool use_voc_size_for_dac) {
+            size_t word_count = words_count();
+            size_t word_size = word_size();
 
-            size_t addr;
-            for (size_t i = 0; i < cnt; ++i) {
-                if (!table.search(&leaf_words[i*size], size, &addr)) {
-                    std::cerr << "[k2_tree_base::compress_leaves] Error: Word not found\n";
-                    exit(1);
-                } else {
-                    //std::cout << "Codeword: " << table[addr].codeword << std::endl;
-                    codewords[i] = table[addr].codeword;
-                }
-            }
+            std::vector<uint> codewords;
+            construct_codewords(leaf_words, word_count, word_size, table, codewords);
 
             m_leaves = t_leaf();
 
@@ -852,9 +837,9 @@ namespace sdsl {
                 std::cout << "Count" << cnt << std::endl;*/
                 //FIXME: to benchmark in the case of k2tree part
                 if (use_voc_size_for_dac){
-                    m_comp_leaves = DAC(codewords, cnt, voc->size());
+                    m_comp_leaves = DAC(codewords, word_count, voc->size());
                 } else {
-                    m_comp_leaves = DAC(codewords, cnt, 0);
+                    m_comp_leaves = DAC(codewords, word_count, 0);
                 }
 
             } catch (...) {
@@ -884,7 +869,7 @@ namespace sdsl {
             std::vector<uchar> leaf_words;
             words(leaf_words);
 
-            FreqVoc(leaf_words, word_size(), words_count(), [&](const HashTable &table, std::shared_ptr<Vocabulary> voc, const std::vector<uchar>& leaf_words) {
+            legacy_dac_encode(leaf_words, word_size(), words_count(), [&](const HashTable &table, std::shared_ptr<k2_tree_vocabulary> voc, const std::vector<uchar>& leaf_words) {
                 compress_leaves(table, voc, leaf_words, true);
                 m_is_dac_comp = true;
             }, hash_size);
@@ -923,12 +908,30 @@ namespace sdsl {
             }
         }
 
-        void compress_leaves_huf_wt() {
-            if (m_tree_height == 0) {
-                return;
+        void compress_leaves_huf_wt(const HashTable &table, std::shared_ptr<k2_tree_vocabulary> vocabulary,
+                            const std::vector<unsigned char> &leaf_words) {
+
+
+            std::vector<uint> codewords;
+            construct_codewords(leaf_words, table, codewords, vocabulary->size());
+
+            uint64_t max_codeword = vocabulary->size();
+            uint bits_needed = 0; // will be lg(max_codeword)
+            while (max_codeword >>= 1) // unroll for more speed...
+            {
+                bits_needed++;
             }
 
-            m_is_wt_comp = true;
+            if (bits_needed > 32){
+                //64bit int
+                int_vector<64> vec(codewords);
+            } else if (bits_needed > 16){
+                //32 bit int
+            } else if (bits_needed > 8){
+                //16 bit int
+            } else {
+                //8 bit int
+            }
 
             uint64_t number_of_words = (m_leaves.size() + m_wt_word_size - 1) / m_wt_word_size;
             int_vector<m_wt_word_size> leafs(number_of_words);
@@ -954,6 +957,20 @@ namespace sdsl {
             }
             std::cout << std::endl;
             */
+
+        }
+
+        void compress_leaves_huf_wt() {
+            if (m_tree_height == 0) {
+                return;
+            }
+
+            std::vector<uchar> leaf_words;
+            words(leaf_words);
+            FreqVoc(leaf_words, word_size(), words_count(), [&](const HashTable &table, std::shared_ptr<k2_tree_vocabulary> voc, const std::vector<uchar>& leaf_words) {
+                compress_leaves_huf_wt(table, voc, leaf_words);
+                m_is_wt_comp = true;
+            });
         }
 
         /**
