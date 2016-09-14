@@ -1,5 +1,5 @@
 include ../Make.helper
-CXX_FLAGS = $(MY_CXX_FLAGS) $(MY_CXX_OPT_FLAGS) -I$(INC_DIR) -L$(LIB_DIR)
+CXX_FLAGS = $(MY_CXX_FLAGS) $(MY_CXX_OPT_FLAGS) -I$(INC_DIR) -L$(LIB_DIR)  
 LIBS = -lsdsl -ldivsufsort -ldivsufsort64
 SRC_DIR = src
 TMP_DIR = ../tmp
@@ -83,52 +83,52 @@ timing: input indexes pattern $(TIME_FILES) $(TIME_FILES_INT) compression info
 
 # results/[TC_ID].[IDX_ID].[PAT_LEN].byte
 results/%.byte: $(BUILD_EXECS) $(QUERY_EXECS) $(INDEXES) $(PATTERNS)
-	$(eval TC_ID:=$(call dim,1,$*))
-	$(eval IDX_ID:=$(call dim,2,$*))
-	$(eval PAT_LEN:=$(call dim,3,$*))
+	$(eval TC_ID:=$(call dim,1,$*)) 
+	$(eval IDX_ID:=$(call dim,2,$*)) 
+	$(eval PAT_LEN:=$(call dim,3,$*)) 
 	$(eval TC_NAME:=$(call config_select,test_case.config,$(TC_ID),3))
 	@echo "# TC_ID = $(TC_ID)" > $@
 	@echo "# IDX_ID = $(IDX_ID)" >> $@
 	@echo "# test_case = $(TC_NAME)" >>  $@
 	@echo "Run timing for $(IDX_ID) on $(TC_ID) with patterns of length $(PAT_LEN)"
 	@$(BIN_DIR)/query_idx_$(IDX_ID) indexes/$(TC_ID).$(IDX_ID).byte \
-		     $(PAT_DIR)/$(TC_ID).$(PAT_LEN).pattern >> $@
+		     $(PAT_DIR)/$(TC_ID).$(PAT_LEN).pattern >> $@ 
 
 # results/[TC_ID].[IDX_ID].[PAT_LEN].byte
 results/%.int: $(BUILD_EXECS) $(QUERY_EXECS_INT) $(INDEXES_INT) $(PATTERNS_INT)
-	$(eval TC_ID:=$(call dim,1,$*))
-	$(eval IDX_ID:=$(call dim,2,$*))
-	$(eval PAT_LEN:=$(call dim,3,$*))
+	$(eval TC_ID:=$(call dim,1,$*)) 
+	$(eval IDX_ID:=$(call dim,2,$*)) 
+	$(eval PAT_LEN:=$(call dim,3,$*)) 
 	$(eval TC_NAME:=$(call config_select,test_case_int.config,$(TC_ID),3))
 	@echo "# TC_ID = $(TC_ID)" > $@
 	@echo "# IDX_ID = $(IDX_ID)" >> $@
 	@echo "# test_case = $(TC_NAME)" >>  $@
 	@echo "Run timing for $(IDX_ID) on $(TC_ID) with patterns of length $(PAT_LEN)"
 	@$(BIN_DIR)/query_int_idx_$(IDX_ID) indexes/$(TC_ID).$(IDX_ID).int \
-		     $(PAT_DIR)/$(TC_ID).$(PAT_LEN).pattern.int >> $@
-
-
+		     $(PAT_DIR)/$(TC_ID).$(PAT_LEN).pattern.int >> $@ 
+ 
+ 
 
 # indexes/[TC_ID].[IDX_ID].byte
 indexes/%.byte: $(BUILD_EXECS)
-	$(eval TC_ID:=$(call dim,1,$*))
-	$(eval IDX_ID:=$(call dim,2,$*))
+	$(eval TC_ID:=$(call dim,1,$*)) 
+	$(eval IDX_ID:=$(call dim,2,$*)) 
 	$(eval TC:=$(call config_select,test_case.config,$(TC_ID),2))
 	@echo "Building index $(IDX_ID) on $(TC)"
 	@$(BIN_DIR)/build_idx_$(IDX_ID) $(TC) $(TMP_DIR) $@
 
 # indexes/[TC_ID].[IDX_ID].int
 indexes/%.int: $(BUILD_EXECS_INT)
-	$(eval TC_ID:=$(call dim,1,$*))
-	$(eval IDX_ID:=$(call dim,2,$*))
+	$(eval TC_ID:=$(call dim,1,$*)) 
+	$(eval IDX_ID:=$(call dim,2,$*)) 
 	$(eval TC:=$(call config_select,test_case_int.config,$(TC_ID),2))
 	@echo "Building index $(IDX_ID) on $(TC)"
 	@$(BIN_DIR)/build_int_idx_$(IDX_ID) $(TC) $(TMP_DIR) $@
 
 # info/[TC_ID].[IDX_ID]
 info/%.size: $(INDEXES)
-	$(eval TC_ID:=$(call dim,1,$*))
-	$(eval IDX_ID:=$(call dim,2,$*))
+	$(eval TC_ID:=$(call dim,1,$*)) 
+	$(eval IDX_ID:=$(call dim,2,$*)) 
 	$(eval TC:=$(call config_select,test_case.config,$(TC_ID),2))
 	$(eval SIZE:=$(call file_size,$(TC)))
 	@echo "# TC_ID = $(TC_ID)" > $@
@@ -139,8 +139,8 @@ info/%.size: $(INDEXES)
 
 # info/[TC_ID].[IDX_ID]
 info/%.size.int: $(INDEXES_INT)
-	$(eval TC_ID:=$(call dim,1,$*))
-	$(eval IDX_ID:=$(call dim,2,$*))
+	$(eval TC_ID:=$(call dim,1,$*)) 
+	$(eval IDX_ID:=$(call dim,2,$*)) 
 	$(eval TC:=$(call config_select,test_case_int.config,$(TC_ID),2))
 	$(eval SIZE:=$(call file_size,$(TC)))
 	@echo "# TC_ID = $(TC_ID)" > $@
@@ -151,8 +151,8 @@ info/%.size.int: $(INDEXES_INT)
 
 # info/[TC_ID].[IDX_ID]
 info/%.byte.html: $(INDEXES)
-	$(eval TC_ID:=$(call dim,1,$*))
-	$(eval IDX_ID:=$(call dim,2,$*))
+	$(eval TC_ID:=$(call dim,1,$*)) 
+	$(eval IDX_ID:=$(call dim,2,$*)) 
 	$(eval TC:=$(call config_select,test_case.config,$(TC_ID),2))
 	$(eval SIZE:=$(call file_size,$(TC)))
 	@echo "# TC_ID = $(TC_ID)" > $@
@@ -163,8 +163,8 @@ info/%.byte.html: $(INDEXES)
 
 # info/[TC_ID].[IDX_ID]
 info/%.int.html: $(INDEXES)
-	$(eval TC_ID:=$(call dim,1,$*))
-	$(eval IDX_ID:=$(call dim,2,$*))
+	$(eval TC_ID:=$(call dim,1,$*)) 
+	$(eval IDX_ID:=$(call dim,2,$*)) 
 	$(eval TC:=$(call config_select,test_case_int.config,$(TC_ID),2))
 	$(eval SIZE:=$(call file_size,$(TC)))
 	@echo "# TC_ID = $(TC_ID)" > $@
@@ -178,18 +178,18 @@ info/%.int.html: $(INDEXES)
 # $(PAT_DIR)/[TC_ID].[PAT_LEN].pattern.int
 $(PAT_DIR)/%.pattern.int: $(BIN_DIR)/gen_pattern_int $(BIN_DIR)/word_pat2char_pat
 	@echo $*
-	$(eval TC_ID:=$(call dim,1,$*))
-	$(eval PAT_LEN:=$(call dim,2,$*))
+	$(eval TC_ID:=$(call dim,1,$*)) 
+	$(eval PAT_LEN:=$(call dim,2,$*)) 
 	$(eval TC:=$(call config_select,test_case_int.config,$(TC_ID),2))
 	$(BIN_DIR)/gen_pattern_int $(TC) $(TMP_DIR)/$(TC_ID).pat.csa $(TMP_DIR) $(PAT_LEN) 200 $@
 	$(eval DIC_PATH:=$(call config_select,dic.config,$(TC_ID),2))
 	$(BIN_DIR)/word_pat2char_pat $@ $(DIC_PATH) > $@.txt
 
-# $(PAT_DIR)/[TC_ID].[PAT_LEN].pattern
+# $(PAT_DIR)/[TC_ID].[PAT_LEN].pattern	
 $(PAT_DIR)/%.pattern: $(BIN_DIR)/gen_pattern
 	@echo $*
-	$(eval TC_ID:=$(call dim,1,$*))
-	$(eval PAT_LEN:=$(call dim,2,$*))
+	$(eval TC_ID:=$(call dim,1,$*)) 
+	$(eval PAT_LEN:=$(call dim,2,$*)) 
 	$(eval TC:=$(call config_select,test_case.config,$(TC_ID),2))
 	$(BIN_DIR)/gen_pattern $(TC) $(TMP_DIR)/$(TC_ID).pat.csa $(TMP_DIR) $(PAT_LEN) 200 $@
 
@@ -198,7 +198,7 @@ $(BIN_DIR)/gen_pattern: $(SRC_DIR)/gen_pattern.cpp
 	$(MY_CXX) $(CXX_FLAGS) $(SRC_DIR)/gen_pattern.cpp \
 				-L$(LIB_DIR) -I$(INC_DIR) -o $@ $(LIBS)
 
-$(BIN_DIR)/gen_pattern_int: $(SRC_DIR)/gen_pattern.cpp
+$(BIN_DIR)/gen_pattern_int: $(SRC_DIR)/gen_pattern.cpp 
 	@echo "Build pattern generation program"
 	$(MY_CXX) $(CXX_FLAGS) $(SRC_DIR)/gen_pattern.cpp \
 	          -DINT_ALPHABET \
@@ -237,7 +237,7 @@ $(BIN_DIR)/build_int_idx_%: $(SRC_DIR)/build_idx.cpp index_int.config
 					-I$(INC_DIR) -o $@ $(LIBS)
 
 # Targets for the count experiment. $(BIN_DIR)/query_idx_[IDX_ID]
-$(BIN_DIR)/query_idx_%: $(SRC_DIR)/query_idx.cpp index.config
+$(BIN_DIR)/query_idx_%: $(SRC_DIR)/query_idx.cpp index.config 
 	$(eval IDX_TYPE:=$(call config_select,index.config,$*,2))
 	@echo "Compiling query_idx_$*"
 	$(MY_CXX) $(CXX_FLAGS) \
@@ -246,7 +246,7 @@ $(BIN_DIR)/query_idx_%: $(SRC_DIR)/query_idx.cpp index.config
 					-I$(INC_DIR) -o $@ $(LIBS)
 
 # Targets for the count experiment. $(BIN_DIR)/query_idx_[IDX_ID]
-$(BIN_DIR)/query_int_idx_%: $(SRC_DIR)/query_idx.cpp index_int.config
+$(BIN_DIR)/query_int_idx_%: $(SRC_DIR)/query_idx.cpp index_int.config 
 	$(eval IDX_TYPE:=$(call config_select,index_int.config,$*,2))
 	@echo "Compiling query_int_idx_$*"
 	$(MY_CXX) $(CXX_FLAGS) \
@@ -258,11 +258,11 @@ $(BIN_DIR)/word_pat2char_pat: $(SRC_DIR)/word_pat2char_pat.cpp
 	@echo "Compiling word_pat2char_pat.cpp"
 	$(MY_CXX) $(CXX_FLAGS) \
 			  $(SRC_DIR)/word_pat2char_pat.cpp \
-			  -o $@
+			  -o $@ 
 
 
 
-dic/%:
+dic/%: 
 	$(eval URL:=$(call config_filter,dic.config,$@,4))
 	@$(if $(URL),,\
 		$(error "No download link for dictionary $@") )
@@ -274,7 +274,7 @@ dic/%:
 		echo "Extract file $(FILE) using gunzip";\
 		gunzip $(FILE))
 
-../data/%.int.sdsl:
+../data/%.int.sdsl: 
 	$(eval URL:=$(call config_filter,test_case_int.config,$@,4))
 	@$(if $(URL),,\
 		$(error "No download link nor generation program specified for test case $@") )
@@ -282,7 +282,7 @@ dic/%:
 	$(eval DEST_DIR:=$(shell dirname $@))
 	cd $(DEST_DIR); curl -O $(URL)
 	$(eval FILE:=$(DEST_DIR)/$(notdir $(URL)))
-	@$(if $(filter "%.gz",$(FILE)),\
+	@$(if $(filter-out ".gz",$(FILE)),\
 		echo "Extract file $(FILE) using gunzip";\
 		gunzip $(FILE))
 
@@ -299,7 +299,7 @@ clean: clean-build
 	@echo "Remove info files and indexes"
 	rm -f $(INDEXES) $(INDEXES_INT)
 
-cleanresults:
+cleanresults: 
 	@echo "Remove result files and pattern"
 	rm -f $(TIME_FILES) \
 		  $(RESULT_FILE) \
@@ -311,6 +311,6 @@ cleanresults:
 
 cleanall: clean cleanresults
 	@echo "Remove all generated files."
-	rm -f $(TMP_DIR)/*
+	rm -f $(TMP_DIR)/* 
 	rm -f $(PAT_DIR)/*
 	cd visualize; make clean
