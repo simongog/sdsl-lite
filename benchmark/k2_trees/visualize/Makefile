@@ -2,10 +2,10 @@ include ../../../Make.helper
 
 CONFIG_FILES= ../test_case.config
 
-all: k2t.pdf
+all: k2.pdf
 
-k2t.pdf: k2.tex
-	@echo "Use pdflatex to generate k2t.pdf"
+k2.pdf: k2.tex
+	@echo "Use pdflatex to generate k2.pdf"
 	@pdflatex k2.tex >> LaTeX.Log 2>&1
 
 k2.tex: ../results/all.txt ../../basic_functions.R k2.R $(CONFIG_FILES)
