@@ -50,9 +50,9 @@ Explored dimensions:
     runs the performance tests and generated a report located at
    `visualize/k2.pdf`. The raw numbers of the timings
    can be found in the `results/all.txt`. The default benchmark
-   took 28 minutes on my machine (MacBookPro Retina 2.6Ghz Intel
-   Code i7 16GB 1600 Mhz DDR3, SSD). Have a look at the
-   [generated report][RES].
+   took 75 minutes on my machine (MacBookPro Retina 2.6Ghz Intel
+   Core i5 16GB 1600 Mhz DDR3, SSD). Have a look at the
+   [complete report][RES].
  * All created binaries and test results can be deleted
    by calling `make cleanall`.
 
@@ -65,7 +65,7 @@ The project contains several configuration files:
                                 for the report, and download URL.
   * [compile_options.config][CCONF]: Specify compile options by option string.
 
-Note that the benchmark will execute every combination of wavelet trees and test cases.
+Note that the benchmark will execute every combination of k2 trees and test cases.
 
 [RPJ]: http://www.r-project.org/ "R"
 [LT]: http://www.tug.org/applications/pdftex/ "pdflatex"
