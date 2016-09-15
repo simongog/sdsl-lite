@@ -103,8 +103,6 @@ int main(int argc, char *argv[]) {
         std::cerr << "Finished Reading File " << std::endl;
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
         //typedef k2_tree<2,rrr_vector<63>> k2_part;
-        bool compress = false;
-        uint8_t access_shortcut_size = 0;
         const uint8_t k = 4;
         const uint8_t k0 = 8;
         typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, rrr_vector<63>> k2_rrr;
@@ -116,7 +114,7 @@ int main(int argc, char *argv[]) {
         // Initialize treap with a vector of (x,y,weight) elements
         k2_part k2tree_part;
 
-    	construct_im_bottom_up(k2tree_part, coordinates, numberOfNodes - 1, access_shortcut_size, compress);
+    	construct_im_bottom_up(k2tree_part, coordinates, numberOfNodes - 1);
 
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds
