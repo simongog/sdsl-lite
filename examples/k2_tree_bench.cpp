@@ -64,13 +64,13 @@ int main(int argc, char *argv[]) {
     std::string query_file_name(argv[2]);
     std::string output_file_name(argv[3]);
     uint64_t hash_size = 0;
-    if (argc > 3)
-        hash_size = stoull(argv[3]);
-
+    if (argc > 4)
+        hash_size = stoull(argv[4]);
+    
     const uint8_t k = 4;
-    //typedef k2_tree<k, bit_vector, bit_vector> tested_type;
-    typedef k2_tree_hybrid<4, 6, 2, 8, bit_vector, bit_vector> k2_rrr;
-    typedef k2_tree_partitioned<8, k2_rrr> tested_type;
+    typedef k2_tree<k, bit_vector, bit_vector> tested_type;
+    //typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> k2_rrr;
+    //typedef k2_tree_partitioned<8, k2_rrr> tested_type;
     // Initialize treap with a vector of (x,y,weight) elements
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
 
@@ -131,10 +131,10 @@ int main(int argc, char *argv[]) {
     std::cout << "Hereyougo:" << file_name << "\t" << k2tree.get_type_string() <<  "\t" << construction_time_comp << "\t" << peak_RSS_comp << "\t" << peak_VMEM_comp;
     if (use_shortcut){
         //Construction Time	Compressed Size (Byte)	Bpe	Direct Short (ns)	Direct (ns)	Inverse Short (ns)	Inverse (ns)	Check S (ns)	Check (ns)
-        std::cout << times_comp.direct_short_time <<"\t"<< times_comp.direct_time <<"\t"<< times_comp.inverse_short_time <<"\t"<< times_comp.inverse_time <<"\t"<< times_comp.check_short_time <<"\t"<< times_comp.check_time << std::endl;
+        std::cout << "\t" << times_comp.direct_short_time <<"\t"<< times_comp.direct_time <<"\t"<< times_comp.inverse_short_time <<"\t"<< times_comp.inverse_time <<"\t"<< times_comp.check_short_time <<"\t"<< times_comp.check_time << std::endl;
     } else {
         //Construction Time	Compressed Size (Byte)	Bpe	Direct (ns)	Inverse (ns)	Check (ns)
-        std::cout << times_comp.direct_time << "\t" << times_comp.inverse_time << "\t" << times_comp.check_time << std::endl;
+        std::cout << "\t" << times_comp.direct_time << "\t" << times_comp.inverse_time << "\t" << times_comp.check_time << std::endl;
     }
 
     store_to_file(output_file_name+"compressed", k2tree);
