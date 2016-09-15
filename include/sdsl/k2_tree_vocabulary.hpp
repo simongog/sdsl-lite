@@ -118,7 +118,7 @@ namespace sdsl {
          *
          * @return Size in bytes of the words.
          */
-        uint size() const {
+        uint word_size() const {
             return size_;
         }
 
@@ -127,7 +127,7 @@ namespace sdsl {
          *
          * @return Number of words in the vocabulary.
          */
-        size_t cnt() const {
+        size_t word_count() const {
             return cnt_;
         }
 

@@ -852,7 +852,7 @@ namespace sdsl {
                 std::cout << "Count" << cnt << std::endl;*/
                 //FIXME: to benchmark in the case of k2tree part
                 if (use_voc_size_for_dac){
-                    m_comp_leaves = DAC(codewords, cnt, voc->size());
+                    m_comp_leaves = DAC(codewords, cnt, voc->word_count());
                 } else {
                     m_comp_leaves = DAC(codewords, cnt, 0);
                 }
