@@ -61,7 +61,7 @@ namespace sdsl {
         }*/
 
         template<typename t_vector>
-        k2_tree_partitioned(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint=0, uint8_t access_shortcut_size=0) : m_access_shortcut_size(access_shortcut_size) {
+        k2_tree_partitioned(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint=0){
             //FIXME: build multiple k trees
             //partition into k02 parts
             using namespace k2_treap_ns;
@@ -78,7 +78,7 @@ namespace sdsl {
         }
 
         k2_tree_partitioned(int_vector_buffer<> &buf_x,
-                            int_vector_buffer<> &buf_y, bool use_counting_sort=false, uint64_t max_hint = 0, uint8_t access_shortcut_size=0) : m_access_shortcut_size(access_shortcut_size){
+                            int_vector_buffer<> &buf_y, bool use_counting_sort=false, uint64_t max_hint = 0){
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
@@ -736,7 +736,7 @@ namespace sdsl {
                     std::cout << "Size of " << current_matrix_row * t_k0 + j << ": "
                               << buffers[j].size() * 64 / 8 / 1024 << "kByte" << std::endl;
                 }*/
-                subk2_tree tree(temp_file_prefix, use_counting_sort, buffers[j], maximum_in_buffer[j], m_access_shortcut_size);
+                subk2_tree tree(temp_file_prefix, use_counting_sort, buffers[j], maximum_in_buffer[j]);
                 m_k2trees[current_matrix_row*t_k0+j].swap(tree);
                 buffers[j].clear();
                 maximum_in_buffer[j] = 0;

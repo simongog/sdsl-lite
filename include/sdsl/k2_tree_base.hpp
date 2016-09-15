@@ -66,10 +66,6 @@ namespace sdsl {
             *this = std::move(tr);
         }
 
-
-        k2_tree_base(uint8_t access_shortcut_size) : m_access_shortcut_size(access_shortcut_size) {
-        }
-
         //virtual ~k2_tree_base() = 0;
         virtual ~k2_tree_base() {
             /*if (t_comp){
@@ -957,7 +953,7 @@ namespace sdsl {
             words(leaf_words);
             m_leaves = t_leaf();
             if (use_voc_size_for_dac){
-                legacy_dac_compress_with_shared_vocabulary(table, leaf_words, word_size(), words_count(), voc->size(), m_comp_leaves);
+                legacy_dac_compress_with_shared_vocabulary(table, leaf_words, word_size(), words_count(), voc->word_count(), m_comp_leaves);
             } else {
                 legacy_dac_compress_with_shared_vocabulary(table, leaf_words, word_size(), words_count(), 0, m_comp_leaves);
             }

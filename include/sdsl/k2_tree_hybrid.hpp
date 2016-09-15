@@ -73,7 +73,7 @@ namespace sdsl {
         }
 
         template<typename t_vector>
-        k2_tree_hybrid(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint = 0, uint8_t access_shortcut_size = 0) : k2_tree_base<t_k_l_1, t_lev, t_leaf, t_rank>(access_shortcut_size) {
+        k2_tree_hybrid(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint = 0) {
 
             using namespace k2_treap_ns;
             if (v.size() > 0) {
@@ -95,7 +95,7 @@ namespace sdsl {
         }
 
         k2_tree_hybrid(int_vector_buffer<> &buf_x,
-                       int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint64_t max_hint = 0, uint8_t access_shortcut_size = 0) : k2_tree_base<t_k_l_1, t_lev, t_leaf, t_rank>(access_shortcut_size) {
+                       int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint64_t max_hint = 0)  {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
 
