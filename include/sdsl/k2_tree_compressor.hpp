@@ -42,7 +42,7 @@ namespace sdsl {
     }
 
     void
-    frequency_encode(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>> &dictionary,
+    frequency_encode(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>> dictionary,
                      std::unordered_map<int_vector<>::value_type, uint> &codeword_map);
 
     void frequency_encode(const std::vector<uchar> &leaf_words, const uint word_size, const size_t word_count, std::shared_ptr<k2_tree_vocabulary> voc, HashTable& table, uint64_t hash_size);
@@ -56,7 +56,7 @@ namespace sdsl {
 
     inline void construct_legacy_dac(std::vector<uint>& codewords, size_t word_count,  uint64_t voc_size, k2_tree_dac& comp_leaves);
 
-    void dac_compress(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>> &dictionary, dac_vector<> &compressed_leaves) {
+    void dac_compress(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>> dictionary, dac_vector<> &compressed_leaves) {
         std::unordered_map<int_vector<>::value_type, uint> codeword_map;
         frequency_encode(leaf_words, dictionary, codeword_map);
         int_vector<> codewords; //size is known: bits:hi for hashmap.size()? or distinct_values.size()
@@ -72,7 +72,7 @@ namespace sdsl {
         tmp.swap(compressed_leaves);
     }
 
-    void wt_huff_int_dict_compress(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>> &dictionary,
+    void wt_huff_int_dict_compress(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>> dictionary,
                                    wt_huff_int<> &compressed_leaves) {
         std::unordered_map<int_vector<>::value_type, uint> codeword_map;
         frequency_encode(leaf_words, dictionary, codeword_map);
@@ -89,13 +89,6 @@ namespace sdsl {
         construct_codewords(leaf_words, codeword_map, codewords);
         wt_huff_int<> tmp;
         construct_im(tmp, codewords);
-        tmp.swap(compressed_leaves);
-    }
-
-    void
-    wt_huff_int_compress(const int_vector<> &leaf_words, wt_huff_int<> &compressed_leaves) {
-        wt_huff_int<> tmp;
-        construct_im(tmp, leaf_words);
         tmp.swap(compressed_leaves);
     }
 
@@ -133,9 +126,8 @@ namespace sdsl {
     * @param tree
     * @param build
     */
-    template<class Fun>
     void
-    frequency_encode(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>> &dictionary,
+    frequency_encode(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>> dictionary,
                      std::unordered_map<int_vector<>::value_type, uint> &codeword_map) {
 
         std::cout << "Before putting words in hash" << std::endl;
@@ -153,7 +145,7 @@ namespace sdsl {
         }
 
         dictionary_buffer.close();
-        load_from_file(dictionary, tmp_file);
+        load_from_file(*dictionary.get(), tmp_file);
         remove(tmp_file);
         /* alternative implementation instead of distinct values buffer */
         /*std::vector<std::pair<unsigned long, uint>> pairs;

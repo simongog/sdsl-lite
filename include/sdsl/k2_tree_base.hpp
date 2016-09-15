@@ -342,11 +342,6 @@ namespace sdsl {
                 return;
             }
 
-            if (m_access_shortcut_size == 0) {
-                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
-            }
-
-
             switch (m_used_compression) {
             case UNCOMPRESSED:
                 inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
@@ -909,7 +904,7 @@ namespace sdsl {
             int_vector<> leaf_words;
             words(leaf_words);
             m_leaves = t_leaf();
-            wt_huff_int_compress(leaf_words, m_leaves_wt);
+            construct_im(m_leaves_wt, leaf_words);
             m_used_compression = WT_INT;
             m_vocabulary_is_shared = false;
         }

@@ -21,21 +21,8 @@
 #ifndef INCLUDED_SDSL_K2_TREE
 #define INCLUDED_SDSL_K2_TREE
 
-#include "vectors.hpp"
-#include "bits.hpp"
-#include "k2_tree_helper.hpp"
 #include "k2_tree_base.hpp"
-#include <stxxl/vector>
-#include <tuple>
-#include <algorithm>
-#include <climits>
-#include <vector>
-#include <iostream>
-#include <sdsl/bit_vectors.hpp>
-#include <sdsl/rank_support.hpp>
-#include <sdsl/rank_support_v.hpp>
 #include <gtest/gtest_prod.h>
-#include <parallel/algorithm>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl {

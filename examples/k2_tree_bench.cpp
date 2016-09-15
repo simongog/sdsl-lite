@@ -6,10 +6,7 @@
 #include <vector>
 #include <tuple>
 #include <string>
-#include <complex>
-#include <sdsl/k2_tree.hpp>
 #include <sdsl/k2_tree_algorithm.hpp>
-#include <sdsl/bit_vectors.hpp>
 #include <sys/times.h>
 #include "sdsl/k2_tree_utility.hpp"
 
@@ -68,9 +65,9 @@ int main(int argc, char *argv[]) {
         hash_size = stoull(argv[4]);
     
     const uint8_t k = 4;
-    typedef k2_tree<k, bit_vector, bit_vector> tested_type;
-    //typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> k2_rrr;
-    //typedef k2_tree_partitioned<8, k2_rrr> tested_type;
+//    typedef k2_tree<k, bit_vector, bit_vector> tested_type;
+    typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> k2_rrr;
+    typedef k2_tree_partitioned<8, k2_rrr> tested_type;
     // Initialize treap with a vector of (x,y,weight) elements
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
 
@@ -115,7 +112,7 @@ int main(int argc, char *argv[]) {
     {
         mem_monitor mem_monitor1("comp_mem");
         auto start = timer::now();
-        k2tree.compress_leaves(hash_size);
+        k2tree.compress_leaves(LEGACY_DAC);
         auto stop = timer::now();
         auto status = mem_monitor1.get_current_stats();
         peak_RSS_comp = status.VmHWM;

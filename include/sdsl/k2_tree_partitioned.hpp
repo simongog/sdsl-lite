@@ -553,7 +553,7 @@ namespace sdsl {
 
             #pragma omp parallel for
             for (uint i = 0; i < m_k2trees.size(); ++i){
-                m_k2trees[i].dac_compress(codeword_map, m_dictionary, false);//compress using shared vocabulary
+                m_k2trees[i].dac_compress(codeword_map, m_dictionary);//compress using shared vocabulary
             }
             m_used_compression = DAC;
         }
