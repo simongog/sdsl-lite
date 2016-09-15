@@ -97,7 +97,7 @@ namespace sdsl {
         frequency_encode(leaf_words, word_size, word_count, voc, hashtable, hash_size);
         std::vector<uint> codewords;
         construct_codewords(leaf_words, word_size, word_count, hashtable, codewords);
-        construct_legacy_dac(codewords, word_count, voc->size(), compressed_leafs);
+        construct_legacy_dac(codewords, word_count, voc->word_count(), compressed_leafs);
     }
 
     void legacy_dac_compress_with_shared_vocabulary(const HashTable hashtable,
