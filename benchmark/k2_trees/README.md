@@ -30,7 +30,7 @@ Explored dimensions:
   * [results](./results): Contains the results of the experiments.
   * [src](./src):  Contains the source code of the benchmark.
   * [visualize](./visualize): Contains a `R`-script which generates
-							  a report in LaTeX format.
+    a report in LaTeX format.
 
 ## Prerequisites
 
@@ -38,9 +38,9 @@ Explored dimensions:
     - [R][RPJ] with package `tikzDevice`. You can install the
       package by calling
       `install.packages("filehash", repos="http://cran.r-project.org")`
-	  and
-	  `install.packages("tikzDevice", repos="http://R-Forge.R-project.org")`
-	  in `R`.
+      and
+      `install.packages("tikzDevice", repos="http://R-Forge.R-project.org")`
+      in `R`.
     - [pdflatex][LT] to generate the pdf reports.
 
 ## Usage
