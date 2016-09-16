@@ -475,9 +475,10 @@ namespace sdsl {
                     break;
 
                 case DAC:
-                    return check_link_shortcut_internal(link, [this](int64_t pos, uint8_t leafK) {
-                        return this->is_leaf_bit_set_dac(pos, leafK);
-                    });
+                    return check_link_internal(0, m_max_element, link.first, link.second, 0,
+                                               [this](int64_t pos, uint8_t leafK) {
+                                                   return this->is_leaf_bit_set_dac(pos, leafK);
+                                               });
                     break;
 
                 case LEGACY_DAC:
@@ -488,9 +489,10 @@ namespace sdsl {
                     break;
 
                 case WT_INT_DICT:
-                    return check_link_shortcut_internal(link, [this](int64_t pos, uint8_t leafK) {
-                        return this->is_leaf_bit_set_wt_int_dict(pos, leafK);
-                    });
+                    return check_link_internal(0, m_max_element, link.first, link.second, 0,
+                                               [this](int64_t pos, uint8_t leafK) {
+                                                   return this->is_leaf_bit_set_wt_int_dict(pos, leafK);
+                                               });
                     break;
 
                 case WT_INT:
@@ -852,6 +854,10 @@ namespace sdsl {
          * used to indicate that offset should be used otherwise 0 is ambiguous for offset (-1 could be used, but leads to an additional if in k2 tree partitioned construction)
          */
         void words(int_vector<>& result, bool use_offset = false, uint64_t offset = 0) const {
+            if (m_tree_height == 0) {
+                return;
+            }
+
             uint bits_per_leaf = get_k(this->m_tree_height - 1) * get_k(this->m_tree_height - 1);;
 
             auto word_count = words_count();
@@ -1584,7 +1590,7 @@ namespace sdsl {
 
         /*##################### Leaf access for dac (sdsl) compressed version ########################################**/
         inline bool is_leaf_bit_set_dac(uint64_t pos, uint8_t leafK) const {
-            auto key = m_dac_compressed_leaves[pos];
+            auto key = m_dac_compressed_leaves[pos/leafK/leafK];
             auto word = m_dictionary->operator[](key);
             auto offset = pos % leafK*leafK;
             return (word >> (offset) & 1);
