@@ -139,7 +139,7 @@ class int_vector_buffer
          *                    If true the file will be interpreted as plain array with t_width bits per integer.
          *                    In second case (is_plain==true), t_width must be 8, 16, 32 or 64.
          */
-        int_vector_buffer(const std::string filename, std::ios::openmode mode=std::ios::in, const uint64_t buffer_size=1024*1024, const uint8_t int_width=t_width, const bool is_plain=false)
+           int_vector_buffer(const std::string filename, std::ios::openmode mode=std::ios::in, const uint64_t buffer_size=1024*1024, const uint8_t int_width=t_width, const bool is_plain=false)
         {
             m_filename = filename;
             assert(!(mode&std::ios::app));

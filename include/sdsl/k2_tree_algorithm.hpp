@@ -22,10 +22,9 @@
 #define INCLUDED_SDSL_K2_TREAP_ALGORITHM
 
 #include "vectors.hpp"
-#include "bits.hpp"
 #include "k2_tree.hpp"
-#include "k2_tree_partitioned.hpp"
 #include "k2_tree_hybrid.hpp"
+#include "k2_tree_partitioned.hpp"
 #include <tuple>
 #include <algorithm>
 #include <iterator>

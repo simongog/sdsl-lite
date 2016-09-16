@@ -640,9 +640,9 @@ namespace sdsl {
             result.clear();
             result.resize(words_count()*word_size());
 
-            uint64_t offset = 0;
+            int64_t offset = 0;
             for (uint i = 0; i < m_k2trees.size(); ++i){
-                m_k2trees[i].words(result, offset);
+                m_k2trees[i].words(result, true, offset);
                 offset += m_k2trees[i].words_count();
             }
         }
@@ -652,7 +652,7 @@ namespace sdsl {
 
             uint64_t offset = 0;
             for (uint i = 0; i < m_k2trees.size(); ++i){
-                m_k2trees[i].words(result, offset);
+                m_k2trees[i].words(result, true, offset);
                 offset += m_k2trees[i].words_count();
             }
         }
@@ -701,11 +701,10 @@ namespace sdsl {
                 }
             }
 
-            uint64_t hash_size = 0;//for now
             m_k2trees.reserve(buffers.size());
             for (uint l = 0; l < buffers.size(); ++l) {
 //                const subk2_tree k2tree(temp_file_prefix, use_counting_sort, buffers[l]);
-                m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[l], maximum_in_buffer[l], m_access_shortcut_size, false, hash_size);
+                m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[l], maximum_in_buffer[l]);
                 buffers[l].clear();
             }
         }

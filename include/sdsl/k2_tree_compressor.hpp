@@ -9,9 +9,7 @@
 #include <memory>
 #include <iostream>
 #include <climits>
-#include "k2_tree_helper.hpp"
 #include <parallel/algorithm>
-#include "k2_tree_vocabulary.hpp"
 #include "construct.hpp"
 #include "wavelet_trees.hpp"
 
@@ -42,21 +40,22 @@ namespace sdsl {
     }
 
     void
-    frequency_encode(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>> dictionary,
+    frequency_encode(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
                      std::unordered_map<int_vector<>::value_type, uint> &codeword_map);
 
-    void frequency_encode(const std::vector<uchar> &leaf_words, const uint word_size, const size_t word_count, std::shared_ptr<k2_tree_vocabulary> voc, HashTable& table, uint64_t hash_size);
+    void frequency_encode(const std::vector<uchar> &leaf_words, const uint word_size, const size_t word_count, std::shared_ptr<k2_tree_vocabulary>& voc, HashTable& table, uint64_t hash_size);
 
     void
     construct_codewords(const int_vector<> &leaf_vector,
-                        std::unordered_map<int_vector<>::value_type, uint> codeword_map,
+                        std::unordered_map<int_vector<>::value_type, uint>& codeword_map,
                         int_vector<> &codewords);
 
     void construct_codewords(const std::vector<uchar>& leaf_words, const size_t word_size, const size_t words_count, const HashTable& table, std::vector<uint>& codewords);
 
     inline void construct_legacy_dac(std::vector<uint>& codewords, size_t word_count,  uint64_t voc_size, k2_tree_dac& comp_leaves);
 
-    void dac_compress(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>> dictionary, dac_vector<> &compressed_leaves) {
+    void perform_dac_compression(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
+                                 dac_vector<> &compressed_leaves) {
         std::unordered_map<int_vector<>::value_type, uint> codeword_map;
         frequency_encode(leaf_words, dictionary, codeword_map);
         int_vector<> codewords; //size is known: bits:hi for hashmap.size()? or distinct_values.size()
@@ -65,15 +64,17 @@ namespace sdsl {
         tmp.swap(compressed_leaves);
     }
 
-    void dac_compress_with_shared_vocabulary(const int_vector<> &leaf_words, std::unordered_map<int_vector<>::value_type, uint> codeword_map, dac_vector<> &compressed_leaves) {
+    void perform_dac_compression_with_shared_vocabulary(const int_vector<> &leaf_words,
+                                                        std::unordered_map<int_vector<>::value_type, uint>& codeword_map,
+                                                        dac_vector<> &compressed_leaves) {
         int_vector<> codewords; //size is known: bits:hi for hashmap.size()? or distinct_values.size()
         construct_codewords(leaf_words, codeword_map, codewords);
         dac_vector<> tmp(codewords);
         tmp.swap(compressed_leaves);
     }
 
-    void wt_huff_int_dict_compress(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>> dictionary,
-                                   wt_huff_int<> &compressed_leaves) {
+    void perform_wt_huff_int_dict_compression(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
+                                              wt_huff_int<> &compressed_leaves) {
         std::unordered_map<int_vector<>::value_type, uint> codeword_map;
         frequency_encode(leaf_words, dictionary, codeword_map);
         int_vector<> codewords; //size is known: bits:hi for hashmap.size()? or distinct_values.size()
@@ -83,8 +84,9 @@ namespace sdsl {
         tmp.swap(compressed_leaves);
     }
 
-    void wt_huff_int_shared_dict_compress(const int_vector<> &leaf_words, std::unordered_map<int_vector<>::value_type, uint> codeword_map,
-                                   wt_huff_int<> &compressed_leaves) {
+    void perform_wt_huff_int_shared_voc_dict_compression(const int_vector<>& leaf_words,
+                                                         std::unordered_map<int_vector<>::value_type, uint>& codeword_map,
+                                                         wt_huff_int<> &compressed_leaves) {
         int_vector<> codewords; //size is known: bits:hi for hashmap.size()? or distinct_values.size()
         construct_codewords(leaf_words, codeword_map, codewords);
         wt_huff_int<> tmp;
@@ -92,7 +94,9 @@ namespace sdsl {
         tmp.swap(compressed_leaves);
     }
 
-    void legacy_dac_compress(const std::vector<uchar> &leaf_words, const uint word_size, const size_t word_count, std::shared_ptr<k2_tree_vocabulary> voc, k2_tree_dac& compressed_leafs, uint64_t hash_size = 0) {
+    void perfrom_legacy_dac_compression(const std::vector<uchar> &leaf_words, const uint word_size,
+                                        const size_t word_count, std::shared_ptr<k2_tree_vocabulary>& voc,
+                                        k2_tree_dac &compressed_leafs, uint64_t hash_size = 0) {
         HashTable hashtable;
         frequency_encode(leaf_words, word_size, word_count, voc, hashtable, hash_size);
         std::vector<uint> codewords;
@@ -100,11 +104,11 @@ namespace sdsl {
         construct_legacy_dac(codewords, word_count, voc->word_count(), compressed_leafs);
     }
 
-    void legacy_dac_compress_with_shared_vocabulary(const HashTable hashtable,
-                                                    const std::vector<uchar> &leaf_words,
-                                                    const uint word_size, const size_t word_count,
-                                                    size_t voc_size,
-                                                    k2_tree_dac &compressed_leafs) {
+    void perfdorm_legacy_dac_compress_with_shared_vocabulary(const HashTable& hashtable,
+                                                             const std::vector<uchar>& leaf_words,
+                                                             const uint word_size, const size_t word_count,
+                                                             size_t voc_size,
+                                                             k2_tree_dac &compressed_leafs) {
         std::vector<uint> codewords;
         construct_codewords(leaf_words, word_size,  word_count, hashtable, codewords);
         construct_legacy_dac(codewords, word_count, voc_size, compressed_leafs);
@@ -127,26 +131,27 @@ namespace sdsl {
     * @param build
     */
     void
-    frequency_encode(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>> dictionary,
+    frequency_encode(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
                      std::unordered_map<int_vector<>::value_type, uint> &codeword_map) {
 
-        std::cout << "Before putting words in hash" << std::endl;
-
         std::string tmp_file = ram_file_name(util::to_string(util::pid()) + "_" + util::to_string(util::id()));
-        int_vector_buffer<> dictionary_buffer;
+        int_vector_buffer<> dictionary_buffer(tmp_file, std::ios::out);
         for (size_t i = 0; i < leaf_words.size(); ++i) {
             auto it = codeword_map.find(leaf_words[i]);
             if (it != codeword_map.end()) {
                 it->second += 1;
-                dictionary_buffer.push_back(leaf_words[i]);
             } else {
                 codeword_map.insert(std::make_pair(leaf_words[i], (uint) 1));//consider using sparsehash
+                dictionary_buffer.push_back(leaf_words[i]);
             }
         }
 
         dictionary_buffer.close();
-        load_from_file(*dictionary.get(), tmp_file);
+        int_vector<>* tmp = new int_vector<>();
+        load_from_file(*tmp, tmp_file);
+        dictionary = std::shared_ptr<int_vector<>>(tmp);
         remove(tmp_file);
+
         /* alternative implementation instead of distinct values buffer */
         /*std::vector<std::pair<unsigned long, uint>> pairs;
         for (auto itr = hashmap.begin(); itr != hashmap.end(); ++itr)
@@ -157,7 +162,8 @@ namespace sdsl {
              return a.second < b.second;
          }
         );
-        */
+         */
+
         // Sort words by frequency
         __gnu_parallel::sort(dictionary->begin(), dictionary->end(),
                              [&](const int_vector<>::value_type a, const int_vector<>::value_type b) {
@@ -170,9 +176,9 @@ namespace sdsl {
                       << std::endl;
         }
 
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (size_t i = 0; i < dictionary->size(); ++i) {
-            auto it = codeword_map.find(dictionary->get_int(i));
+            auto it = codeword_map.find(dictionary->operator[](i));
             it->second = i;
         }
     }
@@ -187,7 +193,7 @@ namespace sdsl {
     * ----------------------------------------------------------------------------
     */
 
-    void frequency_encode(const std::vector<uchar> &leaf_words, const uint word_size, const size_t word_count, std::shared_ptr<k2_tree_vocabulary> voc, HashTable& table, uint64_t hash_size = 0){
+    void frequency_encode(const std::vector<uchar> &leaf_words, const uint word_size, const size_t word_count, std::shared_ptr<k2_tree_vocabulary>& voc, HashTable& table, uint64_t hash_size = 0){
         try {
             // Insert words in hash
             if (hash_size == 0) {
@@ -258,8 +264,8 @@ namespace sdsl {
     }
 
     void
-    construct_codewords(const int_vector<> &leaf_vector,
-                        std::unordered_map<int_vector<>::value_type, uint> codeword_map,
+    construct_codewords(const int_vector<>& leaf_vector,
+                        std::unordered_map<int_vector<>::value_type, uint>& codeword_map,
                         int_vector<> &codewords) {
         codewords.resize(leaf_vector.size());
 
@@ -276,7 +282,7 @@ namespace sdsl {
     }
 
     void construct_codewords(const std::vector<uchar>& leaf_words, const size_t word_size, const size_t words_count, const HashTable& table, std::vector<uint>& codewords) {
-        codewords.reserve(words_count);
+        codewords.resize(words_count);
         size_t addr;
         for (size_t i = 0; i < words_count; ++i) {
             if (!table.search(&leaf_words[i*word_size], word_size, &addr)) {

@@ -24,14 +24,13 @@ int main()
 
     // Initialize treap with a vector of (x,y,weight) elements
     vector<pair<uint32_t, uint32_t>> coords = {{0,0},{0,1},{1,2},{1,3},{1,4},{7,6},{8,6},{8,9},{9,6},{9,8},{9,10},{10,6},{10,9}};//{{0,0},{0,1},{1,4},{1,3},{7,6},{1,2}};
-    k2 k2treap;
-    construct_im(k2treap, coords, 10);
+    k2 k2treap("", false, coords, (uint64_t) 15);
 
     cout << "Points in the k2treap: " << k2treap.size() << endl;
 
     std::vector<uint32_t> result;
 
-    k2treap.compress_leaves(WT_INT);
+    k2treap.compress_leaves(WT_INT_DICT);
 /*
     if (k2treap.check_link(std::make_pair((uint)0,(uint)0))){
         std::cout << "1" << std::endl;

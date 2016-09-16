@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
     {
         mem_monitor mem_monitor1("comp_mem");
         auto start = timer::now();
-        k2tree.compress_leaves(LEGACY_DAC);
+        k2tree.compress_leaves(DAC);
         auto stop = timer::now();
         auto status = mem_monitor1.get_current_stats();
         peak_RSS_comp = status.VmHWM;
