@@ -154,17 +154,17 @@ namespace sdsl {
             this->postInit();
         }
 
-        virtual size_type serialize(std::ostream &out, structure_tree_node *v, std::string name) const override {
+        size_type serialize(std::ostream &out, structure_tree_node *v, std::string name) const override {
             return k2_tree_base<t_k_l_1, t_lev, t_leaf, t_rank>::serialize(out, v,
                                                                                                            name);
         }
 
-        uint word_size() const {
+        uint word_size() const override {
             return div_ceil((uint) t_k_leaves * t_k_leaves, kUcharBits);
         }
 
 
-        size_t words_count() const {
+        size_t words_count() const override {
             return this->m_leaves.size() / t_k_leaves / t_k_leaves;
         }
 

@@ -73,23 +73,25 @@ namespace sdsl {
         tmp.swap(compressed_leaves);
     }
 
+    template<typename wt>
     void perform_wt_huff_int_dict_compression(const int_vector<> &leaf_words, std::shared_ptr<int_vector<>>& dictionary,
-                                              wt_huff_int<> &compressed_leaves) {
+                                              wt &compressed_leaves) {
         std::unordered_map<int_vector<>::value_type, uint> codeword_map;
         frequency_encode(leaf_words, dictionary, codeword_map);
         int_vector<> codewords; //size is known: bits:hi for hashmap.size()? or distinct_values.size()
         construct_codewords(leaf_words, codeword_map, codewords);
-        wt_huff_int<> tmp;
+        wt tmp;
         construct_im(tmp, codewords);
         tmp.swap(compressed_leaves);
     }
 
+    template<typename wt>
     void perform_wt_huff_int_shared_voc_dict_compression(const int_vector<>& leaf_words,
                                                          std::unordered_map<int_vector<>::value_type, uint>& codeword_map,
-                                                         wt_huff_int<> &compressed_leaves) {
+                                                         wt &compressed_leaves) {
         int_vector<> codewords; //size is known: bits:hi for hashmap.size()? or distinct_values.size()
         construct_codewords(leaf_words, codeword_map, codewords);
-        wt_huff_int<> tmp;
+        wt tmp;
         construct_im(tmp, codewords);
         tmp.swap(compressed_leaves);
     }

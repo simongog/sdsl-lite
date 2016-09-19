@@ -88,7 +88,7 @@ namespace sdsl {
 
         k2_tree_dac m_comp_leaves;
         dac_vector<> m_dac_compressed_leaves;
-        wt_huff_int<> m_leaves_wt;//probably hyb_vector
+        wt_huff_int<hyb_vector<>> m_leaves_wt;//probably hyb_vector
         std::shared_ptr<int_vector<>> m_dictionary;
         uint8_t m_access_shortcut_size = 0;
         leaf_compression_type m_used_compression = UNCOMPRESSED;
@@ -1027,12 +1027,13 @@ namespace sdsl {
 
             std::vector<uchar> leaf_words;
             words(leaf_words);
+            auto word_count = words_count();
             m_leaves = t_leaf();
             if (use_voc_size_for_dac){
-                perfdorm_legacy_dac_compress_with_shared_vocabulary(table, leaf_words, word_size(), words_count(),
+                perfdorm_legacy_dac_compress_with_shared_vocabulary(table, leaf_words, word_size(), word_count,
                                                                     voc->word_count(), m_comp_leaves);
             } else {
-                perfdorm_legacy_dac_compress_with_shared_vocabulary(table, leaf_words, word_size(), words_count(), 0,
+                perfdorm_legacy_dac_compress_with_shared_vocabulary(table, leaf_words, word_size(), word_count, 0,
                                                                     m_comp_leaves);
             }
 

@@ -523,7 +523,7 @@ namespace sdsl {
         *
         * @return Size of a word.
         */
-        uint word_size() const {
+        virtual inline uint word_size() const {
             return m_k2trees[0].word_size();
         }
 
@@ -532,7 +532,7 @@ namespace sdsl {
         *
         * @return Number of words.
         */
-        size_t words_count() const{
+        virtual inline size_t words_count() const{
             size_t words_count = 0;
             for (uint i = 0; i < m_k2trees.size(); ++i){
                 words_count += m_k2trees[i].words_count();
@@ -621,7 +621,7 @@ namespace sdsl {
 
             std::cout << "Frequency encoding finished" << std::endl;
 
-            #pragma omp parallel for
+            //#pragma omp parallel for
             for (uint i = 0; i < m_k2trees.size(); ++i){
                 m_k2trees[i].legacy_dac_compress(codeword_map, m_vocabulary, false);//compress using shared vocabulary
             }
