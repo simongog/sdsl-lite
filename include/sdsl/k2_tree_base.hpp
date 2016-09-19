@@ -1483,7 +1483,7 @@ namespace sdsl {
 
         /*##################### Leaf access for wt compressed version#################################################**/
         inline bool is_leaf_bit_set_wt(uint64_t pos, uint8_t leafK) const {
-            auto word = m_leaves_wt[pos];
+            auto word = m_leaves_wt[pos/leafK/leafK];
             auto offset = pos % leafK*leafK;
             return (word >> (offset) & 1);
         }
