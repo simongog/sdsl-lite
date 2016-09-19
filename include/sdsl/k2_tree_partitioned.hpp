@@ -327,7 +327,7 @@ namespace sdsl {
                     return false;
                 }
             } else if ((m_used_compression == DAC)|| m_used_compression == WT_INT_DICT){
-                if (! m_dictionary.get() == tr.m_dictionary.get()){
+                if (!m_dictionary.get()->operator==(*tr.m_dictionary.get())){
                     std::cout << "Dictionary differs" << std::endl;
                     return false;
                 }

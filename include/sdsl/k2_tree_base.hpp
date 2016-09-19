@@ -88,7 +88,7 @@ namespace sdsl {
 
         k2_tree_dac m_comp_leaves;
         dac_vector<> m_dac_compressed_leaves;
-        wt_huff_int<hyb_vector<>> m_leaves_wt;//probably hyb_vector
+        wt_huff_int<> m_leaves_wt;//probably hyb_vector
         std::shared_ptr<int_vector<>> m_dictionary;
         uint8_t m_access_shortcut_size = 0;
         leaf_compression_type m_used_compression = UNCOMPRESSED;
@@ -643,7 +643,7 @@ namespace sdsl {
                     }*/
 
                     if (!m_vocabulary_is_shared){
-                        if (m_dictionary.get() != tr.m_dictionary.get()){
+                        if (!m_dictionary.get()->operator==(*tr.m_dictionary.get())){
                             std::cout << "dictionary differs" << std::endl;
                             return false;
                         }
@@ -1536,7 +1536,7 @@ namespace sdsl {
 
         /*##################### Leaf access for wt compressed version with dictionary ###############################**/
         inline bool is_leaf_bit_set_wt_int_dict(uint64_t pos, uint8_t leafK) const {
-            auto key = m_leaves_wt[pos];
+            auto key = m_leaves_wt[pos/leafK/leafK];
             auto word = m_dictionary->operator[](key);
             auto offset = pos % leafK*leafK;
             return (word >> (offset) & 1);
