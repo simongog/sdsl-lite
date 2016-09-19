@@ -22,11 +22,11 @@ namespace {
     typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, bit_vector> hybrid_k2_2222_b_comp;
     typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector> hybrid_k2_4524_b_comp;
     typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector> hybrid_k2_4524_b;
-    typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_8528_b_rrr_comp;
+    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_8528_b_rrr_comp;
     typedef k2_tree<2, bit_vector, bit_vector> k2;
     typedef k2_tree<4, bit_vector, bit_vector> k4;
-    typedef k2_tree<8, bit_vector, bit_vector> k8;
-    typedef k2_tree<8, bit_vector, bit_vector> k16;
+    typedef k2_tree<4, bit_vector, bit_vector> k8;
+    typedef k2_tree<4, bit_vector, bit_vector> k16;
 
 
     typedef Types<
