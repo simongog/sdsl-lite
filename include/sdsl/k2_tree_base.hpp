@@ -1485,7 +1485,7 @@ namespace sdsl {
         /*##################### Leaf access for wt compressed version#################################################**/
         inline bool is_leaf_bit_set_wt(uint64_t pos, uint8_t leafK) const {
             auto word = m_leaves_wt[pos/leafK/leafK];
-            auto offset = pos % leafK*leafK;
+            auto offset = pos % (leafK*leafK);
             return (word >> (offset) & 1);
         }
 
@@ -1538,7 +1538,7 @@ namespace sdsl {
         inline bool is_leaf_bit_set_wt_int_dict(uint64_t pos, uint8_t leafK) const {
             auto key = m_leaves_wt[pos/leafK/leafK];
             auto word = m_dictionary->operator[](key);
-            auto offset = pos % leafK*leafK;
+            auto offset = pos % (leafK*leafK);
             return (word >> (offset) & 1);
         }
 
@@ -1593,7 +1593,7 @@ namespace sdsl {
         inline bool is_leaf_bit_set_dac(uint64_t pos, uint8_t leafK) const {
             auto key = m_dac_compressed_leaves[pos/leafK/leafK];
             auto word = m_dictionary->operator[](key);
-            auto offset = pos % leafK*leafK;
+            auto offset = pos % (leafK*leafK);
             return (word >> (offset) & 1);
         }
 
