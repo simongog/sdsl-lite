@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     
     const uint8_t k = 4;
     typedef k2_tree<k, bit_vector, bit_vector> tested_type;
-    //typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> k2_rrr;
+    //typedef k2_tree_hybrid<4, 6, 2, 8, bit_vector, bit_vector> k2_rrr;
     //typedef k2_tree_partitioned<8, k2_rrr> tested_type;
     // Initialize treap with a vector of (x,y,weight) elements
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
@@ -118,8 +118,8 @@ int main(int argc, char *argv[]) {
         k2tree.compress_leaves(hash_size);
         auto stop = timer::now();
         auto status = mem_monitor1.get_current_stats();
-        peak_RSS_comp = status.VmHWM;
-        peak_VMEM_comp = status.VmPeak;
+        peak_RSS_comp = mem_monitor1.max_seen_rss;
+        peak_VMEM_comp = mem_monitor1.max_seen_vmem;
         construction_time_comp = duration_cast<milliseconds>(stop - start).count();
     }
 

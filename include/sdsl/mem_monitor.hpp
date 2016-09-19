@@ -58,6 +58,10 @@ private:
     uint64_t                             m_memory_limit_mb = MEM_MON_MEM_LIMIT_MB;
     bool                                                           m_write_header;
 
+public:
+    uint64_t 							    max_seen_vmem = 0;
+    uint64_t 							     max_seen_rss = 0;
+
 private:
     void monitor() {
         while (m_run) {
@@ -185,12 +189,16 @@ public:
                 }
                 if (key == "VmSize") {
                     stat.VmSize = extract_number(line, value_start_pos, true);
+		    if (stat.VmSize > max_seen_vmem)
+			max_seen_vmem = stat.VmSize;
                 }
                 if (key == "VmHWM") {
                     stat.VmHWM = extract_number(line, value_start_pos, true);
                 }
                 if (key == "VmRSS") {
                     stat.VmRSS = extract_number(line, value_start_pos, true);
+		    if (stat.VmRSS > max_seen_rss)
+			max_seen_rss = stat.VmRSS;
                 }
                 if (key == "VmData") {
                     stat.VmData = extract_number(line, value_start_pos, true);
