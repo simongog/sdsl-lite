@@ -134,7 +134,7 @@ namespace {
             return k2treap.check_link(asd);
         }, WT_INT);
     }
-
+/*
     TYPED_TEST(k2_tree_compression_test, direct_links_2_wt_int_dict) {
         TypeParam k2treap;
         perform_direct_links_test(k2treap, temp_file, test_file, [&k2treap](uint64_t source_id, std::vector<uint64_t> &result) {
@@ -155,7 +155,7 @@ namespace {
             return k2treap.check_link(asd);
         }, WT_INT_DICT);
     }
-
+*/
     /*
 template<class t_k2treap>
 void count_test(

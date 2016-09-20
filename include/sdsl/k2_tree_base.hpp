@@ -975,6 +975,8 @@ namespace sdsl {
             int_vector<> leaf_words;
             words(leaf_words);
             m_leaves = t_leaf();
+//            std::cout << leaf_words[0] << std::endl;
+//            std::cout << leaf_words.get_int(0, 64) << std::endl;
             construct_im(m_leaves_wt, leaf_words);
             m_used_compression = WT_INT;
             m_vocabulary_is_shared = false;
