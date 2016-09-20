@@ -33,6 +33,10 @@ namespace  sdsl {
 
     template <typename k2tree>
     access_times perform_speed_test(std::string query_file, k2tree& tree, bool use_shortcut = false){
+        if(!has_ending(query_file, ".queries")){
+            query_file.append(".queries");
+            std::cout << "Appending .queries to filename as file has to be in .queries format (binary format uint n number of queries followed by n uints representing the node id to query" << std::endl;
+        }
         FILE *list_fp = fopen(query_file.c_str(), "r");
         uint queries;
         fread(&queries, sizeof(uint), 1, list_fp);
