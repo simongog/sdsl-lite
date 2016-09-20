@@ -643,7 +643,7 @@ namespace sdsl {
             int64_t offset = 0;
             for (uint i = 0; i < m_k2trees.size(); ++i){
                 m_k2trees[i].words(result, true, offset);
-                offset += m_k2trees[i].words_count();
+                offset += m_k2trees[i].words_count()*word_size();
             }
         }
 
