@@ -631,7 +631,7 @@ namespace sdsl {
             }
         }
 
-        void words(std::vector<uchar>& result, bool append = false) const {
+        void words(std::vector<uchar>& result, bool use_offset = false, uint64_t offset = 0) const {
             if (m_tree_height == 0) {
                 return;
             }
@@ -639,15 +639,12 @@ namespace sdsl {
 
             size_t cnt = words_count();
             uint size = word_size();
-            uint64_t offset = 0;
-            if (!append){
+
+            if (!use_offset){
                 result.clear();
                 result.resize(cnt*size);
-            } else {
-                offset = result.size();
-                result.resize(result.size()+cnt*size);
+                offset = 0;
             }
-
 
             uint k_leaf_squared = get_k(this->m_tree_height - 1) * get_k(this->m_tree_height - 1);
 
@@ -1178,7 +1175,7 @@ namespace sdsl {
         * @param temp_file_prefix
         */
         template<typename t_vector>
-        void construct_counting_sort(t_vector &links, std::string temp_file_prefix = "") {
+        void construct_counting_sort(t_vector &links, std::string temp_file_prefix) {
             using namespace k2_treap_ns;
             typedef decltype(links[0].first) t_x;
             typedef decltype(links[0].second) t_y;
@@ -1196,7 +1193,6 @@ namespace sdsl {
                                   + "_" + util::to_string(util::id());
 
             {
-                std::vector<int_vector_buffer<1>> level_buffers = create_level_buffers(temp_file_prefix, id_part);
                 //                  upper left          lower right                 interval in links   level
                 typedef std::tuple<std::pair<t_x, t_y>, std::pair<uint64_t, uint64_t>, t_e, uint8_t> t_queue;
                 std::queue<t_queue> queue;
@@ -1211,6 +1207,11 @@ namespace sdsl {
                 //std::vector<std::vector<int>> item_count(m_tree_height);
 
                 //std::cout << "Setring m_level_begin_idx["<<m_tree_height-1<<"] =" << 0 << std::endl;
+                uint8_t previous_level = 0;
+                uint64_t ctr = 0;
+                uint64_t set_bits_in_level = 0;
+                bit_vector buffer(get_k(0) * get_k(0));
+                m_levels.resize(m_tree_height-1);
                 while (!queue.empty()) {
                     auto upper_left = std::get<0>(queue.front());
                     auto lower_right = std::get<1>(queue.front());
@@ -1218,6 +1219,14 @@ namespace sdsl {
                     auto current_level = std::get<3>(queue.front());
 
                     const uint8_t k = get_k(current_level);
+                    if (current_level > previous_level) {
+                        previous_level = current_level;
+                        m_levels[current_level-1] = buffer;
+                        bit_vector tmp(set_bits_in_level*k*k);
+                        tmp.swap(buffer);
+                        ctr = 0;
+                        set_bits_in_level = 0;
+                    }
 
                     auto submatrix_size =
                             lower_right.first - upper_left.first + 1;
@@ -1249,14 +1258,14 @@ namespace sdsl {
 //                                ((double) intervals[i]) / (submatrix_size * submatrix_size) * 100);
 
                         if (intervals[i] > 0) {
-                            level_buffers[current_level].push_back(1);
+                            buffer[ctr] = 1;
                             //std::cout << "1";
-                            number_of_bits++;
-                        } else {
-                            level_buffers[current_level].push_back(0);
-                            //std::cout << "0";
-                            number_of_bits++;
-                        }
+                            set_bits_in_level++;
+                        } /*else {
+                            buffer[ctr] = 0;
+                        }*/
+                        number_of_bits++;
+                        ctr++;
                         intervals[i] += intervals[i - 1]; //build prefix sum
                     }
 
@@ -1313,6 +1322,13 @@ namespace sdsl {
                         }
                     }
                 }
+
+                m_leaves = t_leaf(buffer);
+
+                m_levels_rank.resize(m_levels.size());
+                for (uint64_t i = 0; i < m_levels.size(); ++i) {
+                    util::init_support(m_levels_rank[i], &m_levels[i]);
+                }
 /*
                 uint avg = 0;
                 for (uint m = 0; m < item_count.size(); ++m) {
@@ -1343,8 +1359,6 @@ namespace sdsl {
 
                 }*/
             }
-
-            load_vectors_from_file(temp_file_prefix, id_part);
         }
 
         node_type root() const {
