@@ -478,12 +478,12 @@ namespace sdsl {
                         uint column_in_matrix = (target_id)/m_matrix_dimension;
                         auto target_id_offsetted = target_id%m_matrix_dimension;
 
-                        if (source_id_offsetted > maximum_in_buffer[column_in_matrix]){
+                        /*if (source_id_offsetted > maximum_in_buffer[column_in_matrix]){
                             maximum_in_buffer[column_in_matrix] = source_id_offsetted;
                         }
                         if (target_id_offsetted > maximum_in_buffer[column_in_matrix]){
                             maximum_in_buffer[column_in_matrix] = target_id_offsetted;
-                        }
+                        }*/
 
                         buffers[column_in_matrix].push_back(std::make_pair(source_id_offsetted, target_id_offsetted));
                     }
@@ -651,11 +651,18 @@ namespace sdsl {
                               << buffers[j].size() * 64 / 8 / 1024 << "kByte" << std::endl;
                 }*/
                 uint64_t hash_size = 0; //for now
-                subk2_tree tree(temp_file_prefix, use_counting_sort, buffers[j], maximum_in_buffer[j], m_access_shortcut_size, false, hash_size);
+                subk2_tree tree(temp_file_prefix, use_counting_sort, buffers[j], 0/*maximum_in_buffer[j]*/, m_access_shortcut_size, false, hash_size);
                 m_k2trees[current_matrix_row*t_k0+j].swap(tree);
+                /*std::vector<std::pair<uint, uint>> tmp;
+                buffers[j].swap(tmp);*/
                 buffers[j].clear();
-                maximum_in_buffer[j] = 0;
+                //maximum_in_buffer[j] = 0;
                 //std::cout << "Assigning tree " << current_matrix_row * t_k0 + j << std::endl;
+            }
+
+            //little hack: swap buffers along the diagonal to save memory allocation as most of the data is along the diagonal, it is best to the same vector along the diagonal
+            if (current_matrix_row < (t_k0-1)){
+                std::swap(buffers[current_matrix_row], buffers[current_matrix_row+1]);
             }
         }
 
