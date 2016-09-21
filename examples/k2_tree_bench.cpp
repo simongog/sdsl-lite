@@ -68,9 +68,9 @@ int main(int argc, char *argv[]) {
         hash_size = stoull(argv[4]);
     
     const uint8_t k = 4;
-    typedef k2_tree<k, bit_vector, bit_vector> tested_type;
-    //typedef k2_tree_hybrid<4, 6, 2, 8, bit_vector, bit_vector> k2_rrr;
-    //typedef k2_tree_partitioned<8, k2_rrr> tested_type;
+    //typedef k2_tree<k, bit_vector, bit_vector> tested_type;
+    typedef k2_tree_hybrid<4, 6, 2, 8, bit_vector, bit_vector> k2_rrr;
+    typedef k2_tree_partitioned<8, k2_rrr> tested_type;
     // Initialize treap with a vector of (x,y,weight) elements
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
 
@@ -82,10 +82,17 @@ int main(int argc, char *argv[]) {
     uint64_t construction_time;
     {
         mem_monitor mem_monitor1("bench_script_mem");
+        memory_monitor::start();
         auto start = timer::now();
         k2tree.load_from_ladrabin(file_name, counting_sort);
         auto stop = timer::now();
+        memory_monitor::stop();
         auto status = mem_monitor1.get_current_stats();
+        std::cout << "peak usage = " << memory_monitor::peak() / (1024*1024) << " MB" << std::endl;
+        std::ofstream cstofs("cst-construction.html");
+        cout << "writing memory usage visualization to cst-construction.html\n";
+        memory_monitor::write_memory_log<HTML_FORMAT>(cstofs);
+        cstofs.close();
         peak_RSS = status.VmHWM;
         peak_VMEM = status.VmPeak;
         construction_time = duration_cast<milliseconds>(stop - start).count();
