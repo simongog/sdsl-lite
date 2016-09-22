@@ -733,9 +733,9 @@ namespace sdsl {
                     v, name, util::class_name(*this));
             size_type written_bytes = 0;
             written_bytes += write_member(m_tree_height, out, child, "t");
-            written_bytes += write_member(m_size, out, child, "s");
-            written_bytes += write_member(m_max_element, out, child, "max_element");
             if (m_tree_height > 0) {
+                written_bytes += write_member(m_size, out, child, "s");
+                written_bytes += write_member(m_max_element, out, child, "max_element");
                 for (int i = 0; i < m_tree_height - 1; ++i) {
                     written_bytes += m_levels[i].serialize(out, child, ("level" + std::to_string(i)));
                 }
@@ -766,14 +766,15 @@ namespace sdsl {
                 } else {
                     written_bytes += m_leaves.serialize(out, child, "leafv");
                 }
+
+                written_bytes += write_member(m_access_shortcut_size, out, child, "access_shortcut_size");
+                if (m_access_shortcut_size > 0) {
+                    written_bytes += m_access_shortcut.serialize(out, child, "access_shortcut");
+                    written_bytes += m_access_shortcut_rank_10_support.serialize(out, child, "access_rank");
+                    written_bytes += m_access_shortcut_select_1_support.serialize(out, child, "access_select");
+                }
             }
 
-            written_bytes += write_member(m_access_shortcut_size, out, child, "access_shortcut_size");
-            if (m_access_shortcut_size > 0) {
-                written_bytes += m_access_shortcut.serialize(out, child, "access_shortcut");
-                written_bytes += m_access_shortcut_rank_10_support.serialize(out, child, "access_rank");
-                written_bytes += m_access_shortcut_select_1_support.serialize(out, child, "access_select");
-            }
             structure_tree::add_size(child, written_bytes);
             return written_bytes;
         }
@@ -781,10 +782,10 @@ namespace sdsl {
         //! Loads the data structure from the given istream.
         virtual void load(std::istream &in) {
             read_member(m_tree_height, in);
-            read_member(m_size, in);
-            read_member(m_max_element, in);
 
             if (m_tree_height > 0) {
+                read_member(m_size, in);
+                read_member(m_max_element, in);
                 m_levels.resize(m_tree_height - 1);
                 for (uint64_t i = 0; i < m_levels.size(); ++i) {
                     m_levels[i].load(in);
@@ -801,7 +802,7 @@ namespace sdsl {
                 read_member(m_vocabulary_is_shared, in);
 
                 if (m_used_compression == LEGACY_DAC) {
-                    if (!m_vocabulary_is_shared){
+                    if (!m_vocabulary_is_shared) {
                         m_vocabulary = std::shared_ptr<k2_tree_vocabulary>(new k2_tree_vocabulary());
                         m_vocabulary->load(in);
                     }
@@ -814,7 +815,7 @@ namespace sdsl {
                         m_dictionary->load(in);
                     }
                     m_leaves_wt.load(in);
-                } else if (m_used_compression == DAC){
+                } else if (m_used_compression == DAC) {
                     if (!m_vocabulary_is_shared) {
                         m_dictionary = std::shared_ptr<int_vector<>>(new int_vector<>());
                         m_dictionary->load(in);
@@ -823,15 +824,15 @@ namespace sdsl {
                 } else {
                     m_leaves.load(in);
                 }
-            }
 
-            read_member(m_access_shortcut_size, in);
-            if (m_access_shortcut_size > 0) {
-                m_access_shortcut.load(in);
-                m_access_shortcut_rank_10_support.load(in);
-                m_access_shortcut_rank_10_support.set_vector(&m_access_shortcut);
-                m_access_shortcut_select_1_support.load(in);
-                m_access_shortcut_select_1_support.set_vector(&m_access_shortcut);
+                read_member(m_access_shortcut_size, in);
+                if (m_access_shortcut_size > 0) {
+                    m_access_shortcut.load(in);
+                    m_access_shortcut_rank_10_support.load(in);
+                    m_access_shortcut_rank_10_support.set_vector(&m_access_shortcut);
+                    m_access_shortcut_select_1_support.load(in);
+                    m_access_shortcut_select_1_support.set_vector(&m_access_shortcut);
+                }
             }
         }
 
