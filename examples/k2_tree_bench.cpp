@@ -6,10 +6,7 @@
 #include <vector>
 #include <tuple>
 #include <string>
-#include <complex>
-#include <sdsl/k2_tree.hpp>
 #include <sdsl/k2_tree_algorithm.hpp>
-#include <sdsl/bit_vectors.hpp>
 #include <sys/times.h>
 #include "sdsl/k2_tree_utility.hpp"
 
@@ -122,7 +119,7 @@ int main(int argc, char *argv[]) {
     {
         mem_monitor mem_monitor1("comp_mem");
         auto start = timer::now();
-        k2tree.compress_leaves(hash_size);
+        k2tree.compress_leaves(LEGACY_DAC, hash_size);
         auto stop = timer::now();
         auto status = mem_monitor1.get_current_stats();
         peak_RSS_comp = mem_monitor1.max_seen_rss;

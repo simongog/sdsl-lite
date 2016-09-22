@@ -16,12 +16,12 @@ namespace sdsl {
 
     using namespace k2_treap_ns;
 
-    class DAC {
+    class k2_tree_dac {
 
     private:
         std::shared_ptr<sFTRep> m_comp_leaves;
     public:
-        DAC() = default;
+        k2_tree_dac() = default;
 
         struct Deleter {
             void operator()(sFTRep* p) const {
@@ -32,8 +32,8 @@ namespace sdsl {
         /**
          * @param cnt Number of words in the vocabulary
          * @param size Size of each word in bytes
-         */
-        DAC(uint *list, uint listLength, uint vocabularySize) : m_comp_leaves(::createFT(list, listLength, vocabularySize),Deleter()) {
+         */                                                                                    //"convert" to c array: http://stackoverflow.com/questions/2923272/how-to-convert-vector-to-array-c
+        k2_tree_dac(std::vector<uint> codewords, uint listLength, uint vocabularySize) : m_comp_leaves(::createFT(&codewords[0], listLength, vocabularySize),Deleter()) {
         }
 
         //! Loads the data structure from the given istream.
@@ -111,13 +111,13 @@ namespace sdsl {
         }
 
         //! Swap operator
-        void swap(DAC &dac) {
+        void swap(k2_tree_dac &dac) {
             if (this != &dac) {
                 std::swap(m_comp_leaves, dac.m_comp_leaves);
             }
         }
 
-        bool operator==(const DAC &rhs) const {
+        bool operator==(const k2_tree_dac &rhs) const {
             if ((m_comp_leaves.get() == nullptr) && rhs.m_comp_leaves.get() == nullptr){
                     return true;
             }
@@ -129,7 +129,7 @@ namespace sdsl {
             return (equalsFT(m_comp_leaves.get(), rhs.m_comp_leaves.get()));
         }
 
-        void operator=(const DAC &dac) {
+        void operator=(const k2_tree_dac &dac) {
             m_comp_leaves = dac.m_comp_leaves;
         }
 

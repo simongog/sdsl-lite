@@ -16,7 +16,7 @@
 
 namespace sdsl {
 
-    class Vocabulary {
+    class k2_tree_vocabulary {
 
     #ifndef uchar
     #define uchar unsigned char
@@ -24,13 +24,13 @@ namespace sdsl {
 
     public:
 
-        Vocabulary() = default;
+        k2_tree_vocabulary() = default;
 
         /**
          * @param cnt Number of words in the vocabulary
          * @param size Size of each word in bytes
          */
-        Vocabulary(size_t cnt, uint size)    : cnt_(cnt),
+        k2_tree_vocabulary(size_t cnt, uint64_t size)    : cnt_(cnt),
                                                size_(size),
                                                data_(new uchar[cnt*size_]) {}
 
@@ -118,7 +118,7 @@ namespace sdsl {
          *
          * @return Size in bytes of the words.
          */
-        uint word_size() const {
+        uint64_t word_size() const {
             return size_;
         }
 
@@ -131,14 +131,14 @@ namespace sdsl {
             return cnt_;
         }
 
-        ~Vocabulary(){
+        ~k2_tree_vocabulary(){
         }
 
         void destroy(){
             delete [] data_;
         }
 
-        bool operator==(const Vocabulary &rhs) const{
+        bool operator==(const k2_tree_vocabulary &rhs) const{
             if (cnt_ != rhs.cnt_ && size_ != rhs.size_)
                 return false;
             for (size_t i = 0; i < cnt_*size_; ++i)
@@ -148,7 +148,7 @@ namespace sdsl {
         }
 
         //! Swap operator
-        /*void swap(Vocabulary &voc) {
+        /*void swap(k2_tree_vocabulary &voc) {
             if (this != &voc) {
                 std::swap(cnt_, voc.cnt_);
                 std::swap(size_, voc.size_);
@@ -221,7 +221,7 @@ namespace sdsl {
         /** Number of words in the vocabulary*/
         size_t cnt_;
         /** Size in bytes of each word*/
-        uint size_;
+        uint64_t size_;
         /** Array storing words*/
         uchar *data_;
     };

@@ -78,10 +78,15 @@ void direct_links_test(
 }
 
 template<class t_k2treap, typename Function>
-void perform_direct_links_test(t_k2treap &k2treap, std::string temp_file, std::string test_file, Function direct_links) {
+void perform_direct_links_test(t_k2treap &k2treap, std::string temp_file, std::string test_file, Function direct_links, leaf_compression_type compression=UNCOMPRESSED) {
 
     ASSERT_TRUE(load_from_file(k2treap, temp_file));
     int_vector<> x, y;
+
+    if (compression != UNCOMPRESSED){
+        k2treap.compress_leaves(compression);
+    }
+
     ASSERT_TRUE(load_from_file(x, test_file + ".x"));
     ASSERT_TRUE(load_from_file(y, test_file + ".y"));
     ASSERT_EQ(x.size(), y.size());
@@ -129,8 +134,11 @@ void check_link_test(
 }
 
 template<class t_k2treap, typename Function>
-void perform_check_link_test(t_k2treap &k2treap, std::string temp_file, std::string test_file, Function check_link) {
+void perform_check_link_test(t_k2treap &k2treap, std::string temp_file, std::string test_file, Function check_link, leaf_compression_type compression=UNCOMPRESSED) {
     ASSERT_TRUE(load_from_file(k2treap, temp_file));
+    if (compression != UNCOMPRESSED){
+        k2treap.compress_leaves(compression);
+    }
     int_vector<> x, y;
     ASSERT_TRUE(load_from_file(x, test_file + ".x"));
     ASSERT_TRUE(load_from_file(y, test_file + ".y"));
@@ -196,9 +204,11 @@ void inverse_links_test(
 }
 
 template<class t_k2treap, typename Function>
-void perform_inverse_links_test(t_k2treap &k2treap, std::string temp_file, std::string test_file, Function inverse_links) {
-
+void perform_inverse_links_test(t_k2treap &k2treap, std::string temp_file, std::string test_file, Function inverse_links, leaf_compression_type compression=UNCOMPRESSED) {
     ASSERT_TRUE(load_from_file(k2treap, temp_file));
+    if (compression != UNCOMPRESSED){
+        k2treap.compress_leaves(compression);
+    }
     int_vector<> x, y;
     ASSERT_TRUE(load_from_file(x, test_file + ".x"));
     ASSERT_TRUE(load_from_file(y, test_file + ".y"));

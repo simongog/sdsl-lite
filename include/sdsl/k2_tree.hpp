@@ -21,21 +21,8 @@
 #ifndef INCLUDED_SDSL_K2_TREE
 #define INCLUDED_SDSL_K2_TREE
 
-#include "vectors.hpp"
-#include "bits.hpp"
-#include "k2_tree_helper.hpp"
 #include "k2_tree_base.hpp"
-#include <stxxl/vector>
-#include <tuple>
-#include <algorithm>
-#include <climits>
-#include <vector>
-#include <iostream>
-#include <sdsl/bit_vectors.hpp>
-#include <sdsl/rank_support.hpp>
-#include <sdsl/rank_support_v.hpp>
 #include <gtest/gtest_prod.h>
-#include <parallel/algorithm>
 
 //! Namespace for the succinct data structure library.
 namespace sdsl {
@@ -53,7 +40,7 @@ namespace sdsl {
 
     class k2_tree : public k2_tree_base<t_k, t_lev, t_leaf, t_rank> {
         static_assert(t_k > 1, "t_k has to be larger than 1.");
-        static_assert(t_k <= 16, "t_k has to be smaller than 17.");
+        static_assert(t_k <= 8, "t_k can at most be 8 because of the current dac compression implementation.");//int_vectors support only 64Bit
 
         FRIEND_TEST(K2TreeInternalTest, testZOrderSort);
 
@@ -96,8 +83,7 @@ namespace sdsl {
         }*/
 
         template<typename t_vector>
-        k2_tree(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint = 0, uint8_t access_shortcut_size = 0, bool dac_compress = false,
-                uint64_t hash_size = 0) : k2_tree_base<t_k, t_lev, t_leaf, t_rank>(access_shortcut_size, dac_compress){
+        k2_tree(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint = 0) {
 
             using namespace k2_treap_ns;
             if (v.size() > 0) {
@@ -114,13 +100,12 @@ namespace sdsl {
                     construct(v, temp_file_prefix);
                 }
 
-                this->postInit(hash_size);
+                this->postInit();
             }
         }
 
         k2_tree(int_vector_buffer<> &buf_x,
-                int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint64_t max_hint = 0, uint8_t access_shortcut_size = 0, bool dac_compress = false,
-                uint64_t hash_size = 0) : k2_tree_base<t_k, t_lev, t_leaf, t_rank>(access_shortcut_size, dac_compress) {
+                int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint64_t max_hint = 0) {
             using namespace k2_treap_ns;
 
             if (buf_x.size() == 0) {
@@ -168,7 +153,7 @@ namespace sdsl {
             this->m_max_element = precomp<t_k>::exp(res);
 
             if (precomp<t_k>::exp(res) <= std::numeric_limits<uint32_t>::max()) {
-                auto v = k2_tree_base<t_k, t_lev, t_leaf, t_rank>::template read<uint32_t, uint32_t>(
+                auto v = read<uint32_t, uint32_t>(
                         bufs);
                 if (use_counting_sort) {
                     k2_tree_base<t_k, t_lev, t_leaf, t_rank>::template construct_counting_sort<std::vector<std::pair<uint32_t, uint32_t>>>(
@@ -178,7 +163,7 @@ namespace sdsl {
                 }
 
             } else {
-                auto v = k2_tree_base<t_k, t_lev, t_leaf, t_rank>::template read<uint64_t, uint64_t>(
+                auto v = read<uint64_t, uint64_t>(
                         bufs);
                 if (use_counting_sort) {
                     k2_tree_base<t_k, t_lev, t_leaf, t_rank>::template construct_counting_sort<std::vector<std::pair<uint64_t, uint64_t>>>(
@@ -188,18 +173,18 @@ namespace sdsl {
                 }
             }
 
-            this->postInit(hash_size);
+            this->postInit();
         }
 
         inline uint8_t get_k(uint8_t) const {
             return t_k;
         }
 
-        uint word_size() const {
+        uint word_size() const override  {
             return div_ceil((uint) t_k * t_k, kUcharBits);
         }
 
-        size_t words_count() const {
+        size_t words_count() const override {
             if (this->m_tree_height == 0) {
                 return 0;
             }
@@ -216,13 +201,16 @@ namespace sdsl {
             }
         }
 
-        std::string get_type_string() const {
+        std::string get_type_string_without_compression() const {
             return "k2_tree<"+std::to_string(t_k)+">";
         }
 
+        std::string get_type_string() const {
+            return "k2_tree<"+std::to_string(t_k)+","+get_compression_name(this->m_used_compression)+">";
+        }
+
         //hack a the moment, because construct cannot be virtual
-        void load_from_ladrabin(std::string fileName, bool use_counting_sort = false, uint8_t access_shortcut_size = 0, bool dac_compress = false,
-                                uint64_t hash_size = 0, std::string temp_file_prefix = "") {
+        void load_from_ladrabin(std::string fileName, bool use_counting_sort = false, uint8_t access_shortcut_size = 0, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
             if (!has_ending(fileName, ".ladrabin")) {
                 fileName.append(".ladrabin");
@@ -275,9 +263,8 @@ namespace sdsl {
 
                     coords.clear();
 
-                    this->m_is_dac_comp = dac_compress;
                     this->m_access_shortcut_size = access_shortcut_size;
-                    this->postInit(hash_size);
+                    this->postInit();
                 }
             } else {
                 throw std::runtime_error("Could not load ladrabin file");
