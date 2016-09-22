@@ -7,6 +7,11 @@ using namespace sdsl;
 
 int main()
 {
+    std::cout << bits::hi(2) << endl;
+    std::cout << bits::hi(4) << endl;
+    std::cout << bits::hi(8) << endl;
+    std::cout << bits::hi(16) << endl;
+    /*
     int_vector<> asd = {1,3,4,11,111};
     for (size_t i = 0; i < asd.size(); ++i) {
         std::cout << "in asd: " << asd.get_int(i*64) << std::endl;
@@ -35,7 +40,7 @@ int main()
     std::cout << "Dicitonary size: " << dictionary->size() << std::endl;
     for (size_t i = 0; i < dictionary->size(); ++i) {
         std::cout << "in dict: " << dictionary->operator[](i) << std::endl;
-    }
+    }*/
 
 /*    wt_huff_int<> wt;
     int_vector<> vec = int_vector<>(9, 0, 64);

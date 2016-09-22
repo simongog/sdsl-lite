@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
         hash_size = stoull(argv[4]);
     
     const uint8_t k = 4;
-    //typedef k2_tree<k, bit_vector, bit_vector> tested_type;
+//    typedef k2_tree<k, bit_vector, bit_vector> tested_type;
     typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> k2_rrr;
     typedef k2_tree_partitioned<20, k2_rrr> tested_type;
     // Initialize treap with a vector of (x,y,weight) elements

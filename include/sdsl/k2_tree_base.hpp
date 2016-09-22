@@ -1326,7 +1326,6 @@ namespace sdsl {
             return node_type(0, t_p(0, 0), 0);
         }
 
-
     public:
         /**
         * Hier noch eine Idee um den k^2-tree zu beschleunigen: Um nicht erst durch h Levels zu navigieren kann man sich erst ein bit_vector B bauen, der aus 4^h Einsen und höchstens 4^h Nullen besteht. Für jeden der 4^h Teilbäume schreibt man eine Eins; für nichtleere Teilbäume zusätzlich eine Null vor der entsprechenden Eins.
@@ -1423,7 +1422,7 @@ namespace sdsl {
         }
 
     protected:
-        void postInit() {
+        void post_init() {
             if (m_tree_height > 0) {
                 if (m_access_shortcut_size > 0) {
                     construct_access_shortcut(m_access_shortcut_size);

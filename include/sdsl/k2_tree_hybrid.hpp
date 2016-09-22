@@ -42,11 +42,9 @@ namespace sdsl {
             typename t_rank=typename t_lev::rank_1_type>
 
     class k2_tree_hybrid : public k2_tree_base<t_k_l_1, t_lev, t_leaf, t_rank> {
-        static_assert(t_k_l_1 > 1, "t_k has to be larger than 1.");
-        static_assert(t_k_l_1 <= 16, "t_k has to be smaller than 17.");
-        static_assert(t_k_l_2 > 1, "t_k has to be larger than 1.");
-        static_assert(t_k_l_2 <= 16, "t_k has to be smaller than 17.");
-        static_assert(t_k_leaves > 1, "t_k has to be larger than 1.");
+        static_assert(t_k_l_1 == 2    || t_k_l_1 == 4    || t_k_l_1 == 8    || t_k_l_1 == 16,    "t_k_l_1 has to one of 2,4,8,16");
+        static_assert(t_k_l_2 == 2    || t_k_l_2 == 4    || t_k_l_2 == 8    || t_k_l_2 == 16,    "t_k_l_2 has to one of 2,4,8,16");
+        static_assert(t_k_leaves == 2 || t_k_leaves == 4 || t_k_leaves == 8 || t_k_leaves == 16, "t_k_leaves has to one of 2,4,8,16");
         static_assert(t_k_leaves >= t_k_l_1,
                       "t_k_leaves has to be larger than t_k_l_1,  otherwise this could lead to different word sizes and thus to a problem for the k2part approach"); //if smaller than t_k_l_1 it could be that t_k_leaves is not used
         static_assert(t_k_leaves <= 8, "t_k can at most be 8 because of the current dac compression implementation.");
@@ -54,6 +52,7 @@ namespace sdsl {
     private:
 
         std::vector<uint8_t> m_k_for_level;
+        std::vector<uint8_t> m_shift_table; //for fast div and mod operations by submatrix size
 
     public:
         typedef stxxl::VECTOR_GENERATOR<std::pair<uint32_t, uint32_t>>::result stxxl_32bit_pair_vector;
@@ -81,16 +80,17 @@ namespace sdsl {
                     max_hint = get_maximum(v);
                 }
                 this->m_tree_height = get_tree_height(max_hint);
+                initialize_shift_table();
 
                 if (use_counting_sort) {
                     k2_tree_base<t_k_l_1, t_lev, t_leaf, t_rank>::template construct_counting_sort(
                             v, temp_file_prefix);
                     //construct_bottom_up(v, temp_file_prefix);
                 } else {
-                    construct(v, temp_file_prefix);
+                    this->construct(v, temp_file_prefix);
                 }
 
-                this->postInit();
+                this->post_init();
             }
         }
 
@@ -130,6 +130,8 @@ namespace sdsl {
             };
 
             this->m_tree_height = get_tree_height(max);
+            initialize_shift_table();
+
             if (this->m_max_element <= std::numeric_limits<uint32_t>::max()) {
                 auto v = read<uint32_t, uint32_t>(
                         bufs);
@@ -137,7 +139,7 @@ namespace sdsl {
                     k2_tree_base<t_k_l_1, t_lev, t_leaf, t_rank>::template construct_counting_sort(
                             v, buf_x.filename());
                 } else {
-                    construct(v, buf_x.filename());
+                    this->construct(v, buf_x.filename());
                 }
 
             } else {
@@ -147,16 +149,15 @@ namespace sdsl {
                     k2_tree_base<t_k_l_1, t_lev, t_leaf, t_rank>::template construct_counting_sort(
                             v, buf_x.filename());
                 } else {
-                    construct(v, buf_x.filename());
+                    this->construct(v, buf_x.filename());
                 }
             }
 
-            this->postInit();
+            this->post_init();
         }
 
         size_type serialize(std::ostream &out, structure_tree_node *v, std::string name) const override {
-            return k2_tree_base<t_k_l_1, t_lev, t_leaf, t_rank>::serialize(out, v,
-                                                                                                           name);
+            return k2_tree_base<t_k_l_1, t_lev, t_leaf, t_rank>::serialize(out, v, name);
         }
 
         uint word_size() const override {
@@ -180,6 +181,8 @@ namespace sdsl {
                 }
 
                 m_k_for_level.push_back(t_k_leaves);
+
+                initialize_shift_table();
 
                 if (this->m_access_shortcut_size > 0) {
                     this->perform_access_shortcut_precomputations();
@@ -207,6 +210,7 @@ namespace sdsl {
                 this->m_max_element = number_of_nodes - 1;
                 this->m_size = number_of_edges;
                 this->m_tree_height = get_tree_height(this->m_max_element);
+                initialize_shift_table();
 
                 uint nodes_read = 0;
                 uint source_id;
@@ -233,7 +237,7 @@ namespace sdsl {
                                 coords, temp_file_prefix);
                         //construct_bottom_up(v, temp_file_prefix);
                     } else {
-                        construct(coords, temp_file_prefix);
+                        this->construct(coords, temp_file_prefix);
                     }
 
                     std::cout << "Finished Construction" << std::endl;
@@ -241,7 +245,7 @@ namespace sdsl {
                     coords.clear();
 
                     this->m_access_shortcut_size = access_shortcut_size;
-                    this->postInit();
+                    this->post_init();
                 }
             } else {
                 throw std::runtime_error("Could not load ladrabin file");
@@ -252,6 +256,7 @@ namespace sdsl {
             k2_tree_base<t_k_l_1, t_lev, t_leaf, t_rank>::operator=(tr);
             if (this != &tr) {
                 m_k_for_level = tr.m_k_for_level;
+                m_shift_table = tr.m_shift_table;
             }
             return *this;
         }
@@ -260,6 +265,7 @@ namespace sdsl {
             k2_tree_base<t_k_l_1, t_lev, t_leaf, t_rank>::operator=(tr);
             if (this != &tr) {
                 m_k_for_level = tr.m_k_for_level;
+                m_shift_table = tr.m_shift_table;
             }
             return *this;
         }
@@ -274,12 +280,18 @@ namespace sdsl {
                 return false;
             }
 
+            if (m_shift_table.size() !=
+                tr.m_shift_table.size()) {//must be the same for the same template parameters and data
+                return false;
+            }
+
             return true;
         }
 
         void swap(k2_tree_hybrid &tr) {
             k2_tree_base<t_k_l_1, t_lev, t_leaf, t_rank>::swap(tr);
             std::swap(m_k_for_level, tr.m_k_for_level);
+            std::swap(m_shift_table, tr.m_shift_table);
         }
 
         virtual void construct_access_shortcut(uint8_t access_shortcut_size) override {
@@ -300,15 +312,11 @@ namespace sdsl {
 
     private:
 
-        inline uint8_t get_k(uint8_t level) const {
-            return m_k_for_level[level];
-        }
-
         /**
-         * Constructs the tree corresponding to the points in the links vector by partitioning the input multiple times
-         * @param links
-         * @param temp_file_prefix
-         */
+        * Constructs the tree corresponding to the points in the links vector by partitioning the input multiple times
+        * @param links
+        * @param temp_file_prefix
+        */
         template<typename t_vector>
         void construct(t_vector &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
@@ -333,34 +341,31 @@ namespace sdsl {
                 //uint64_t level_bits = 0;
 
                 //recursively partition that stuff
-                uint64_t submatrix_size = this->m_max_element;
                 for (int l = this->m_tree_height; l + 1 > 0; --l) {
 
                     //std::cout << "Processing Level " << l << std::endl;
                     //level_bits = 0;
 
                     uint8_t k = 0;
-                    uint64_t current_submatrix_size = 0;
                     if (l > 0) {
                         k = get_k(this->m_tree_height - l);
-                        current_submatrix_size = submatrix_size / k;
                     }
 
                     auto sp = std::begin(links);
                     for (auto ep = sp; ep != end;) {
 
                         //Iterator which only returns the nodes within a certain subtree
-                        ep = std::find_if(sp, end, [&submatrix_size, &sp, &l](const t_e &e) {
+                        ep = std::find_if(sp, end, [=, &sp, &l](const t_e &e) {
                             auto x1 = std::get<0>(*sp);
                             auto y1 = std::get<1>(*sp);
                             auto x2 = std::get<0>(e);
                             auto y2 = std::get<1>(e);
-
-                            bool in_sub_tree = (x1 / submatrix_size) != (x2 / submatrix_size)
-                                               or (y1 / submatrix_size) != (y2 / submatrix_size);
+                            bool in_sub_tree = divexp(x1, l) != divexp(x2, l)
+                                               or divexp(y1, l) != divexp(y2, l);
 
                             return in_sub_tree;
                         });
+
 
                         if (l > 0) {
                             auto _sp = sp;
@@ -368,10 +373,9 @@ namespace sdsl {
                             for (uint8_t i = 0; i < k; ++i) {
                                 auto _ep = ep;
                                 if (i + 1 < k) {  //partition t_k -1 times vertically (1 in the case of k=2)
-                                    _ep = std::partition(_sp, _ep,
-                                                         [& current_submatrix_size, &k, &i, &l](const t_e &e) {
-                                                             return (std::get<0>(e) / current_submatrix_size) % k <= i;
-                                                         });
+                                    _ep = std::partition(_sp, _ep, [=, &i, &l](const t_e &e) {
+                                        return divexp(std::get<0>(e), l - 1) % k <= i;
+                                    });
                                 }
                                 auto __sp = _sp;
 
@@ -379,11 +383,9 @@ namespace sdsl {
                                      j < k; ++j) { //partition the t_k vertical partitions t_k -1 times horizontally
                                     auto __ep = _ep;
                                     if (j + 1 < k) {
-                                        __ep = std::partition(__sp, _ep,
-                                                              [& current_submatrix_size, &k, &j, &l](const t_e &e) {
-                                                                  return (std::get<1>(e) / current_submatrix_size) %
-                                                                         k <= j;
-                                                              });
+                                        __ep = std::partition(__sp, _ep, [=, &j, &l](const t_e &e) {
+                                            return divexp(std::get<1>(e), l - 1) % k <= j;
+                                        });
                                     }
                                     bool not_empty = __ep > __sp;
                                     level_buffers[this->m_tree_height - l].push_back(not_empty);
@@ -399,12 +401,57 @@ namespace sdsl {
                         }
                     }
                     //last_level_bits = level_bits;
-                    submatrix_size = current_submatrix_size;
                 }
             }
-
             this->load_vectors_from_file(temp_file_prefix, id_part);
 
+            /*
+            std::cout << "Fallen Levels: " << std::endl;
+            for (uint i = 0; i < this->m_levels.size(); i++){
+                std::cout << "Level " << i << "\n";
+                for (uint j = 0; j < this->m_levels[i].size(); j++){
+                    std::cout << this->m_levels[i][j];
+                }
+                std::cout << "\n";
+            }
+            std::cout << std::endl;
+
+
+            std::cout << "Fallen Leaves: " << std::endl;
+            for (uint i = 0; i < this->m_leaves.size(); i++){
+                std::cout << this->m_leaves[i];
+            }
+            std::cout << std::endl;
+            */
+            //std::cout << "Leaves size" << this->m_leaves.size() << std::endl;
+        }
+
+        inline uint64_t exp(uint8_t l) {
+            assert(l >= 0 && l <= m_tree_height);
+            return 1Ull << m_shift_table[l];
+        }
+
+        inline uint64_t divexp(uint64_t x, uint8_t l) {
+            assert(l >= 0 && l <= m_tree_height);
+            return x >> m_shift_table[l];
+        }
+
+        inline uint64_t modexp(uint64_t x, uint8_t l) {
+            assert(l >= 0 && l <= m_tree_height);
+            return x & bits::lo_set[m_shift_table[l]];
+        }
+
+        void initialize_shift_table() {
+            m_shift_table.resize(this->m_tree_height + 1);
+
+            m_shift_table[0] = 0;
+            for (uint i = 0; i < m_k_for_level.size(); ++i) {
+                m_shift_table[i + 1] = m_shift_table[i] + bits::hi(m_k_for_level[i]);
+            }
+        }
+
+        inline uint8_t get_k(uint8_t level) const {
+            return m_k_for_level[level];
         }
 
         uint8_t get_tree_height(const uint64_t max) {

@@ -39,17 +39,13 @@ namespace sdsl {
             typename t_rank=typename t_lev::rank_1_type>
 
     class k2_tree : public k2_tree_base<t_k, t_lev, t_leaf, t_rank> {
-        static_assert(t_k > 1, "t_k has to be larger than 1.");
         static_assert(t_k <= 8, "t_k can at most be 8 because of the current dac compression implementation.");//int_vectors support only 64Bit
+        static_assert(t_k == 2 || t_k == 4 || t_k == 8 || t_k == 16, "t_k_l_1 has to one of 2,4,8,16");
 
         FRIEND_TEST(K2TreeInternalTest, testZOrderSort);
-
         FRIEND_TEST(K2TreeInternalTest, testZOrderSort2);
-
         FRIEND_TEST(K2TreeInternalTest, testZOrder100);
-
         FRIEND_TEST(K2TreeInternalTest, test_calculate_subtree_number_and_new_relative_coordinates);
-
         FRIEND_TEST(K2TreeInternalTest, test_access_shortcut);
 
     public:
@@ -97,10 +93,10 @@ namespace sdsl {
                             v, temp_file_prefix);
                     //construct_bottom_up(v, temp_file_prefix);
                 } else {
-                    construct(v, temp_file_prefix);
+                    this->construct(v, temp_file_prefix);
                 }
 
-                this->postInit();
+                this->post_init();
             }
         }
 
@@ -159,7 +155,7 @@ namespace sdsl {
                     k2_tree_base<t_k, t_lev, t_leaf, t_rank>::template construct_counting_sort<std::vector<std::pair<uint32_t, uint32_t>>>(
                             v, buf_x.filename());
                 } else {
-                    construct(v, buf_x.filename());
+                    this->construct(v, buf_x.filename());
                 }
 
             } else {
@@ -169,11 +165,11 @@ namespace sdsl {
                     k2_tree_base<t_k, t_lev, t_leaf, t_rank>::template construct_counting_sort<std::vector<std::pair<uint64_t, uint64_t>>>(
                             v, buf_x.filename());
                 } else {
-                    construct(v, buf_x.filename());
+                    this->construct(v, buf_x.filename());
                 }
             }
 
-            this->postInit();
+            this->post_init();
         }
 
         inline uint8_t get_k(uint8_t) const {
@@ -249,35 +245,36 @@ namespace sdsl {
                 fileStream.close();
 
                 if (coords.size() > 0) {
-                    /*if (use_counting_sort) {
+                    if (use_counting_sort) {
                         k2_tree_base<t_k, t_lev, t_leaf, t_rank>::template construct_counting_sort(
                                 coords, temp_file_prefix);
                         //construct_bottom_up(v, temp_file_prefix);
                     } else {
-                        construct(coords, temp_file_prefix);
+                        this->construct(coords, temp_file_prefix);
                     }
 
-                    */
 
-                    construct_by_z_order_sort_internal(coords, temp_file_prefix);
+
+                    //construct_by_z_order_sort_internal(coords, temp_file_prefix);
 
                     coords.clear();
 
                     this->m_access_shortcut_size = access_shortcut_size;
-                    this->postInit();
+                    this->post_init();
                 }
             } else {
                 throw std::runtime_error("Could not load ladrabin file");
             }
         }
 
-
     private:
+
+
         /**
-         * Constructs the tree corresponding to the points in the links vector by partitioning the input multiple times
-         * @param links
-         * @param temp_file_prefix
-         */
+        * Constructs the tree corresponding to the points in the links vector by partitioning the input multiple times
+        * @param links
+        * @param temp_file_prefix
+        */
         template<typename t_vector>
         void construct(t_vector &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
@@ -306,6 +303,11 @@ namespace sdsl {
 
                     //std::cout << "Processing Level " << l << std::endl;
                     //level_bits = 0;
+
+                    uint8_t k = 0;
+                    if (l > 0) {
+                        k = get_k(this->m_tree_height - l);
+                    }
 
                     auto sp = std::begin(links);
                     for (auto ep = sp; ep != end;) {
@@ -382,6 +384,9 @@ namespace sdsl {
             */
             //std::cout << "Leaves size" << this->m_leaves.size() << std::endl;
         }
+
+
+
 
         /**
          * Constructs the tree corresponding to the points in the links vector inpace by performing a z order sort and subsequently constructing the tree top down
@@ -519,4 +524,3 @@ namespace sdsl {
     };
 }
 #endif
-
