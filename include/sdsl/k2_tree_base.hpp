@@ -1169,7 +1169,7 @@ namespace sdsl {
                 //std::vector<std::vector<double>> utilization(m_tree_height);
                 //std::vector<std::vector<int>> item_count(m_tree_height);
 
-                //std::cout << "Setring m_level_begin_idx["<<m_tree_height-1<<"] =" << 0 << std::endl;
+                //std::cout << "Setting m_level_begin_idx["<<m_tree_height-1<<"] =" << 0 << std::endl;
                 uint8_t previous_level = 0;
                 uint64_t ctr = 0;
                 uint64_t set_bits_in_level = 0;
