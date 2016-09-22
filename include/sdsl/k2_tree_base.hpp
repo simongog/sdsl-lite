@@ -36,9 +36,6 @@ namespace sdsl {
  *
  *
  */
-
-
-
     template<uint8_t k0,
             typename t_lev,
             typename t_leaf,
@@ -196,13 +193,13 @@ namespace sdsl {
         void direct_links_shortcut(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
 
+            if (m_access_shortcut_size == 0) {
+                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
+            }
+
             //Patological case happening e.g. when using k2part
             if (m_tree_height == 0 || source_id > m_max_element) {
                 return;
-            }
-
-            if (m_access_shortcut_size == 0) {
-                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
             }
 
             switch (m_used_compression) {
@@ -256,13 +253,13 @@ namespace sdsl {
         void direct_links_shortcut_2(t_x source_id, std::vector<t_x> &result) const {
             result.clear();
 
+            if (m_access_shortcut_size == 0) {
+                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
+            }
+
             //Patological case happening e.g. when using k2part
             if (m_tree_height == 0 || source_id > m_max_element) {
                 return;
-            }
-
-            if (m_access_shortcut_size == 0) {
-                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
             }
 
             switch (m_used_compression) {
@@ -316,13 +313,13 @@ namespace sdsl {
         void inverse_links_shortcut(t_x target_id, std::vector<t_x> &result) const {
             result.clear();
 
+            if (m_access_shortcut_size == 0) {
+                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
+            }
+
             //Patological case happening e.g. when using k2part
             if (m_tree_height == 0 || target_id > m_max_element) {
                 return;
-            }
-
-            if (m_access_shortcut_size == 0) {
-                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
             }
 
             switch (m_used_compression) {
