@@ -1230,32 +1230,55 @@ namespace sdsl {
 
                     auto submatrix_size =
                             lower_right.first - upper_left.first + 1;
-                    std::vector<t_x> intervals(k * k + 1);
+
 
                     queue.pop();
 
+                    //FIXME: just assume that k's are always a power of two in order to optimize corresponding matrix calculation!
+
+                    // number of threads and number of elements to use
+                    std::vector<std::vector<t_x>> thread_counter;
+                    std::vector<t_x> intervals(k*k+1, 0);
 
                     //do counting sort
                     auto x1 = upper_left.first;
                     auto y1 = upper_left.second;
                     auto subDivK = (submatrix_size / k);
-                    for (uint64_t j = links_interval.first; j < links_interval.second; ++j) {
-                        auto x = links[j].first;
-                        auto y = links[j].second;
-                        uint p1 = (x - x1) / subDivK;
-                        uint p2 = (y - y1) / subDivK;
-                        uint corresponding_matrix = p1 * k + p2;
-                        intervals[corresponding_matrix +
-                                  1]++;//offset corresponding matrix by one to allow for more efficient in interval comparision
-                    }
 
-                    intervals[0] = 0;
+                    #pragma omp parallel
+                    {
+                        #pragma omp single
+                        {
+                            int num_threads = omp_get_num_threads();
+                            thread_counter.resize(num_threads);
+                        }
+
+                        int thread_num = omp_get_thread_num();
+                        thread_counter[thread_num].resize(k * k + 1);
+
+                        #pragma omp for
+                        for (uint64_t j = links_interval.first; j < links_interval.second; ++j) {
+                            auto x = links[j].first;
+                            auto y = links[j].second;
+                            uint p1 = (x - x1) / subDivK;
+                            uint p2 = (y - y1) / subDivK;
+                            uint corresponding_matrix = p1 * k + p2;
+                            thread_counter[thread_num][corresponding_matrix +
+                                      1]++;//offset corresponding matrix by one to allow for more efficient in interval comparision
+                        }
+
+                        thread_counter[thread_num][0] = 0;
+                    }
 
                     //append bits to level_vectors[level] based on result
                     for (uint i = 1; i < intervals.size(); ++i) {
 //                        item_count[current_level].push_back(intervals[i])
 //                        utilization[current_level].push_back(
 //                                ((double) intervals[i]) / (submatrix_size * submatrix_size) * 100);
+                        for (int j = 0; j < thread_counter.size(); j++)
+                        {
+                            intervals[i] += thread_counter[j][i];
+                        }
 
                         if (intervals[i] > 0) {
                             buffer[ctr] = 1;
