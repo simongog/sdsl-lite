@@ -595,17 +595,6 @@ namespace sdsl {
 
     public:
         void compress_leaves(uint64_t hash_size = 0) {
-            //std::cout << "Words count " << words_count() << std::endl;
-            //std::cout << "Word size " << word_size() << std::endl;
-
-
-            /*std::cout << "Words" << std::endl;
-            words([&] (const uchar *word) {
-                std::cout << std::to_string(*word) << "\t";
-            });
-            std::cout << std::endl;
-            */
-
             m_is_dac_comp = true;
             std::cout << "Compressing Leaves" << std::endl;
 
