@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
 
     tested_type k2tree;
-    bool counting_sort = true; //should be determined by type automatically
+    bool counting_sort = false; //should be determined by type automatically
     bool use_shortcut = false;
     uint64_t peak_RSS;
     uint64_t peak_VMEM;

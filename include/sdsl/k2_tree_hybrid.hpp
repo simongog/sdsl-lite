@@ -437,7 +437,6 @@ namespace sdsl {
 
         inline uint64_t divexp(uint64_t x, uint8_t l) {
             assert(l >= 0 && l <= m_tree_height);
-            std::cout << "Shifting by " << std::to_string(m_shift_table[l]) << std::endl;
             return x >> m_shift_table[l];
         }
 
