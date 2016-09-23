@@ -1430,6 +1430,131 @@ namespace sdsl {
             }
         }
 
+        virtual inline uint64_t exp(uint8_t l) = 0;
+        virtual inline uint64_t divexp(uint64_t x, uint8_t l) = 0;
+        virtual inline uint64_t modexp(uint64_t x, uint8_t l) = 0;
+
+
+
+        /**
+        * Constructs the tree corresponding to the points in the links vector by partitioning the input multiple times
+        * @param links
+        * @param temp_file_prefix
+        */
+        template<typename t_vector>
+        void construct(t_vector &links, std::string temp_file_prefix = "") {
+            using namespace k2_treap_ns;
+            typedef decltype(links[0].first) t_x;
+            typedef decltype(links[0].second) t_y;
+            using t_e = std::pair<t_x, t_y>;
+
+            this->m_size = links.size();
+
+            if (this->m_tree_height == 0) {//might occur in k2part
+                return;
+            }
+
+            std::string id_part = util::to_string(util::pid())
+                                  + "_" + util::to_string(util::id());
+
+            {
+                std::vector<int_vector_buffer<1>> level_buffers = this->create_level_buffers(temp_file_prefix, id_part);
+
+                auto end = std::end(links);
+                //uint64_t last_level_bits = 0;
+                //uint64_t level_bits = 0;
+
+                //recursively partition that stuff
+                uint64_t submatrix_size = this->m_max_element;
+                for (int l = this->m_tree_height; l + 1 > 0; --l) {
+
+                    //std::cout << "Processing Level " << l << std::endl;
+                    //level_bits = 0;
+
+                    uint8_t k = 0;
+                    uint64_t current_submatrix_size = 0;
+                    if (l > 0) {
+                        k = get_k(this->m_tree_height - l);
+                        current_submatrix_size = submatrix_size / k;
+                    }
+
+                    auto sp = std::begin(links);
+                    for (auto ep = sp; ep != end;) {
+
+                        //Iterator which only returns the nodes within a certain subtree
+                        ep = std::find_if(sp, end, [=, &sp, &l](const t_e &e) {
+                            auto x1 = std::get<0>(*sp);
+                            auto y1 = std::get<1>(*sp);
+                            auto x2 = std::get<0>(e);
+                            auto y2 = std::get<1>(e);
+                            bool in_sub_tree = divexp(x1, l) != divexp(x2, l)
+                                               or divexp(y1, l) != divexp(y2, l);
+
+                            return in_sub_tree;
+                        });
+
+
+                        if (l > 0) {
+                            auto _sp = sp;
+
+                            for (uint8_t i = 0; i < k; ++i) {
+                                auto _ep = ep;
+                                if (i + 1 < k) {  //partition t_k -1 times vertically (1 in the case of k=2)
+                                    _ep = std::partition(_sp, _ep, [=, &i, &l](const t_e &e) {
+                                        return (divexp(std::get<0>(e), l - 1) & (k-1))<= i;
+                                    });
+                                }
+                                auto __sp = _sp;
+
+                                for (uint8_t j = 0;
+                                     j < k; ++j) { //partition the t_k vertical partitions t_k -1 times horizontally
+                                    auto __ep = _ep;
+                                    if (j + 1 < k) {
+                                        __ep = std::partition(__sp, _ep, [=, &j, &l](const t_e &e) {
+                                            return (divexp(std::get<1>(e), l - 1) & (k-1)) <= j;
+                                        });
+                                    }
+                                    bool not_empty = __ep > __sp;
+                                    level_buffers[this->m_tree_height - l].push_back(not_empty);
+                                    //level_bits++;
+                                    __sp = __ep;
+                                }
+                                _sp = _ep;
+                            }
+                        }
+                        if (ep != end) {
+                            //++ep;
+                            sp = ep;
+                        }
+                    }
+                    //last_level_bits = level_bits;
+                    submatrix_size = current_submatrix_size;
+                }
+            }
+            this->load_vectors_from_file(temp_file_prefix, id_part);
+
+            /*
+            std::cout << "Fallen Levels: " << std::endl;
+            for (uint i = 0; i < this->m_levels.size(); i++){
+                std::cout << "Level " << i << "\n";
+                for (uint j = 0; j < this->m_levels[i].size(); j++){
+                    std::cout << this->m_levels[i][j];
+                }
+                std::cout << "\n";
+            }
+            std::cout << std::endl;
+
+
+            std::cout << "Fallen Leaves: " << std::endl;
+            for (uint i = 0; i < this->m_leaves.size(); i++){
+                std::cout << this->m_leaves[i];
+            }
+            std::cout << std::endl;
+            */
+            //std::cout << "Leaves size" << this->m_leaves.size() << std::endl;
+        }
+
+
     private:
 
         /*##################### Leaf Access for legacy dac compressed version #######################################**/
