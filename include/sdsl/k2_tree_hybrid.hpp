@@ -341,14 +341,17 @@ namespace sdsl {
                 //uint64_t level_bits = 0;
 
                 //recursively partition that stuff
+                uint64_t submatrix_size = this->m_max_element;
                 for (int l = this->m_tree_height; l + 1 > 0; --l) {
 
                     //std::cout << "Processing Level " << l << std::endl;
                     //level_bits = 0;
 
                     uint8_t k = 0;
+                    uint64_t current_submatrix_size = 0;
                     if (l > 0) {
                         k = get_k(this->m_tree_height - l);
+                            current_submatrix_size = submatrix_size / k;
                     }
 
                     auto sp = std::begin(links);
@@ -374,7 +377,7 @@ namespace sdsl {
                                 auto _ep = ep;
                                 if (i + 1 < k) {  //partition t_k -1 times vertically (1 in the case of k=2)
                                     _ep = std::partition(_sp, _ep, [=, &i, &l](const t_e &e) {
-                                        return divexp(std::get<0>(e), l - 1) % k <= i;
+                                        return (divexp(std::get<0>(e), l - 1) & (k-1))<= i;
                                     });
                                 }
                                 auto __sp = _sp;
@@ -384,7 +387,7 @@ namespace sdsl {
                                     auto __ep = _ep;
                                     if (j + 1 < k) {
                                         __ep = std::partition(__sp, _ep, [=, &j, &l](const t_e &e) {
-                                            return divexp(std::get<1>(e), l - 1) % k <= j;
+                                            return (divexp(std::get<1>(e), l - 1) & (k-1)) <= j;
                                         });
                                     }
                                     bool not_empty = __ep > __sp;
@@ -401,6 +404,7 @@ namespace sdsl {
                         }
                     }
                     //last_level_bits = level_bits;
+                    submatrix_size = current_submatrix_size;
                 }
             }
             this->load_vectors_from_file(temp_file_prefix, id_part);
@@ -433,6 +437,7 @@ namespace sdsl {
 
         inline uint64_t divexp(uint64_t x, uint8_t l) {
             assert(l >= 0 && l <= m_tree_height);
+            std::cout << "Shifting by " << std::to_string(m_shift_table[l]) << std::endl;
             return x >> m_shift_table[l];
         }
 
@@ -446,7 +451,7 @@ namespace sdsl {
 
             m_shift_table[0] = 0;
             for (uint i = 0; i < m_k_for_level.size(); ++i) {
-                m_shift_table[i + 1] = m_shift_table[i] + bits::hi(m_k_for_level[i]);
+                m_shift_table[i + 1] = m_shift_table[i] + bits::hi(m_k_for_level[this->m_tree_height-i-1]);
             }
         }
 
