@@ -25,8 +25,9 @@
 #include <queue>
 #include <stdexcept>
 #include <tuple>
-#include <sdsl/bit_vectors.hpp>
+#include "sdsl/bit_vectors.hpp"
 #include "sdsl/k2_tree_helper.hpp"
+#include "sdsl/int_vector_buffer.hpp"
 
 
 //! Namespace for the succint data structure library
@@ -167,36 +168,8 @@ class k2_tree
             }
         }
 
-    public:
-
-        k2_tree() = default;
-
-        //! Constructor
-        /*! This constructos takes the graph adjacency matrix.
-         *  The time complexity for this constructor is linear in the matrix
-         *  size
-         *  \param matrix Adjacency matrix of the graph. It must be a binary
-         *      square matrix.
-         */
-        k2_tree(std::vector<std::vector <int>>& matrix)
-        {
-            if (matrix.size() < 1) {
-                throw std::logic_error("Matrix has no elements");
-            }
-            std::vector<bit_vector> t;
-            k_k = k;
-            if (matrix.size() < k_k)
-                k_height = 1;
-            else // height = log_k n
-                k_height = std::ceil(std::log(matrix.size())/std::log(k_k));
-
-            build_from_matrix(matrix);
-
-            k_t_rank = t_rank(&k_t);
-        }
-
-        //! Constructor
-        /*! This constructos takes a vector of edges describing the graph
+        //! Build a tree from an edges collection
+        /*! This method takes a vector of edges describing the graph
          *  and the graph size. And takes linear time over the amount of
          *  edges to build the k_2 representation.
          *  \param edges A vector with all the edges of the graph, it can
@@ -204,14 +177,12 @@ class k2_tree
          *  \param size Size of the graph, all the nodes in edges must be
          *              within 0 and size ([0, size[).
          */
-        k2_tree(std::vector<std::tuple<idx_type, idx_type>>& edges,
-                const size_type size)
-        {
+        void build_from_edges(std::vector<std::tuple<idx_type, idx_type>>& edges,
+							  const size_type size)
+		{
+
             typedef std::tuple<idx_type, idx_type, size_type, idx_type,
                     idx_type> t_part_tuple;
-
-            assert(size > 0);
-            assert(edges.size() > 0);
 
             k_k = k;
             k_height = std::ceil(std::log(size)/std::log(k_k));
@@ -295,7 +266,94 @@ class k2_tree
             k2_tree_ns::build_template_vector<t_bv>(k_t_, k_l_, k_t, k_l);
 
             k_t_rank = t_rank(&k_t);
+
+		}
+
+    public:
+
+        k2_tree() = default;
+
+        //! Constructor
+        /*! This constructos takes the graph adjacency matrix.
+         *  The time complexity for this constructor is linear in the matrix
+         *  size
+         *  \param matrix Adjacency matrix of the graph. It must be a binary
+         *      square matrix.
+         */
+        k2_tree(std::vector<std::vector <int>>& matrix)
+        {
+            if (matrix.size() < 1) {
+                throw std::logic_error("Matrix has no elements");
+            }
+            std::vector<bit_vector> t;
+            k_k = k;
+            if (matrix.size() < k_k)
+                k_height = 1;
+            else // height = log_k n
+                k_height = std::ceil(std::log(matrix.size())/std::log(k_k));
+
+            build_from_matrix(matrix);
+
+            k_t_rank = t_rank(&k_t);
         }
+
+        //! Constructor
+        /*! This constructos takes a vector of edges describing the graph
+         *  and the graph size. And takes linear time over the amount of
+         *  edges to build the k_2 representation.
+         *  \param edges A vector with all the edges of the graph, it can
+         *               not be empty.
+         *  \param size Size of the graph, all the nodes in edges must be
+         *              within 0 and size ([0, size[).
+         */
+        k2_tree(std::vector<std::tuple<idx_type, idx_type>>& edges,
+                const size_type size)
+        {
+            assert(size > 0);
+            assert(edges.size() > 0);
+
+            build_from_edges(edges, size);
+        }
+
+        //! Constructor
+        /*! This constructos expects a filename prefix. Two serialized
+         *  int_vectors have to be present at filename.x and filename.y.
+         *  Each pair x,y describes an edge of the graph, from the node x
+         *  to the node y.
+         *  \param filename String with the prefix of the files filename.x,
+         *					filename.y each of them containing a serialized
+         *					int_vector<>.
+         *  \param size Size of the graph, all the nodes in the edges defined
+         *				by the files must be within 0 and size ([0, size[). If
+         *				size==0, the size will be taken as the max node
+         *				in the edges.
+         */
+        k2_tree(std::string filename, size_type size=0)
+        {
+			int_vector_buffer<> buf_x(filename + ".x", std::ios::in);
+			int_vector_buffer<> buf_y(filename + ".y", std::ios::in);
+
+			assert(buf_x.size() == buf_y.size());
+			assert(buf_x.size() > 0);
+
+			std::vector<std::tuple<idx_type, idx_type>>edges;
+			edges.reserve(buf_x.size());
+
+			if(size==0) {
+				size_type max = 0;
+				for(auto v : buf_x)
+					max = std::max(static_cast<size_type>(v), max);
+				for(auto v : buf_y)
+					max = std::max(static_cast<size_type>(v), max);
+				size = max + 1;
+			}
+
+			for(uint64_t i = 0; i < buf_x.size(); i++)
+				edges.push_back(
+						std::tuple<idx_type, idx_type> {buf_x[i], buf_y[i]});
+
+			build_from_edges(edges, size);
+		}
 
 
         k2_tree(const k2_tree& tr)

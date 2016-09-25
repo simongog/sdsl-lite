@@ -42,7 +42,7 @@ timing: execs $(RES_FILES)
 	$(eval K2_ID:=$(call dim,2,$*))
 	$(eval TC_PATH:=$(call config_select,test_case.config,$(TC_ID),2))
 	$(eval NUM_BYTE:=$(call config_select,test_case.config,$(TC_ID),5))
-	@$(BIN_DIR)/gen_k2_$(K2_ID) $(TC_PATH) "../tmp/K2T.$(TC_ID).$(K2_ID)"
+	@$(BIN_DIR)/gen_k2_$(K2_ID) $(TC_PATH) "../tmp/K2T.$(TC_ID).VECTOR" "../tmp/K2T.$(TC_ID).$(K2_ID)"
 
 # Execute $(BIN_DIR)/build_[K2_ID] and write result
 results/%: test_case.config $(DL) $(DL_K2T) execs
