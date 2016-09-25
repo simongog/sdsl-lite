@@ -123,9 +123,9 @@ for(tc in unique(maindata$TC_ID)){
 	    #adj-plot
 	    plot_time_figure(t(a),"\\tt{adj}", xlab=F)
         #neighbors-plot
-        plot_time_figure(t(neighbors),"\\tt{neighborsa}", xlab=F, xmax=xmax)
+        plot_time_figure(t(neighbors),"\\tt{neighbors}", xlab=F, xmax=xmax)
         #reverse_neighbors-plot
-        plot_time_figure(t(reverse_neighbors),"\\tt{reverse_neighborsa}",constructor=T, xlab=F, xmax=xmax)
+        plot_time_figure(t(reverse_neighbors),"\\tt{reverse_neighbors}",constructor=T, xlab=F, xmax=xmax)
     }
     else {
 	    #adj-plot
