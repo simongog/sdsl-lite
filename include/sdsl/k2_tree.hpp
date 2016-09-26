@@ -38,7 +38,7 @@ namespace sdsl {
             typename t_leaf=bit_vector,
             typename t_rank=typename t_lev::rank_1_type>
 
-    class k2_tree : public k2_tree_base<t_k, t_lev, t_leaf, t_rank> {
+    class k2_tree : public k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank> {
         static_assert(t_k <= 8, "t_k can at most be 8 because of the current dac compression implementation.");//int_vectors support only 64Bit
         static_assert(t_k == 2 || t_k == 4 || t_k == 8 || t_k == 16, "t_k_l_1 has to one of 2,4,8,16");
 
@@ -58,8 +58,8 @@ namespace sdsl {
         using point_type = k2_treap_ns::point_type;
         using t_p = k2_treap_ns::t_p;
 
-        using k2_tree_base<t_k, t_lev, t_leaf, t_rank>::operator=;
-        using k2_tree_base<t_k, t_lev, t_leaf, t_rank>::operator==;
+        using k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>::operator=;
+        using k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>::operator==;
 
         enum {
             k = t_k
@@ -69,12 +69,12 @@ namespace sdsl {
 
         /*
         k2_tree(const k2_tree &tr)
-                : k2_tree_base<t_k, t_lev, t_leaf, t_rank>(tr) {
+                : k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>(tr) {
             *this = tr;
         }
 
         k2_tree(k2_tree &&tr)
-        : k2_tree_base<t_k, t_lev, t_leaf, t_rank>(tr) {
+        : k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>(tr) {
                 *this = std::move(tr);
         }*/
 
@@ -89,8 +89,7 @@ namespace sdsl {
                 this->m_tree_height = get_tree_height(max_hint);
 
                 if (use_counting_sort) {
-                    construct_counting_sort(
-                            v, temp_file_prefix);
+                    construct_counting_sort(v);
                     //construct_bottom_up(v, temp_file_prefix);
                 } else {
                     this->construct(v, temp_file_prefix);
@@ -162,8 +161,7 @@ namespace sdsl {
                 auto v = read<uint64_t, uint64_t>(
                         bufs);
                 if (use_counting_sort) {
-                    construct_counting_sort<std::vector<std::pair<uint64_t, uint64_t>>>(
-                            v, buf_x.filename());
+                    construct_counting_sort<std::vector<std::pair<uint64_t, uint64_t>>>(v);
                 } else {
                     this->construct(v, buf_x.filename());
                 }
@@ -189,7 +187,7 @@ namespace sdsl {
         }
 
         void load(std::istream &in) override {
-            k2_tree_base<t_k, t_lev, t_leaf, t_rank>::load(in);
+            k2_tree_base<t_k, t_k, t_lev, t_leaf, t_rank>::load(in);
             if (this->m_tree_height > 0) {
                 if (this->m_access_shortcut_size > 0) {
                     this->perform_access_shortcut_precomputations();
@@ -246,7 +244,7 @@ namespace sdsl {
 
                 if (coords.size() > 0) {
                     if (use_counting_sort) {
-                        construct_counting_sort(coords, temp_file_prefix);
+                        construct_counting_sort(coords);
                         //construct_bottom_up(v, temp_file_prefix);
                     } else {
                         this->construct(coords, temp_file_prefix);
@@ -269,8 +267,8 @@ namespace sdsl {
     private:
 
         template<typename t_vector>
-        void construct_counting_sort(t_vector &links, std::string temp_file_prefix = "") {
-            this->construct_counting_sort_internal(links, &precomp<t_k>::divexp, &precomp<t_k>::exp, temp_file_prefix);
+        void construct_counting_sort(t_vector &links) {
+            this->construct_counting_sort_internal(links, &precomp<t_k>::divexp, &precomp<t_k>::exp);
         }
 
         template<typename t_vector>

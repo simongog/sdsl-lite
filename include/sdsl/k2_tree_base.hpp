@@ -36,7 +36,8 @@ namespace sdsl {
  *
  *
  */
-    template<uint8_t k0,
+    template<uint8_t t_k0,
+            uint8_t t_k_leaf, //k value used vor leaves, in case of the simple k2 tree the same as t_k0
             typename t_lev,
             typename t_leaf,
             typename t_rank>
@@ -145,42 +146,37 @@ namespace sdsl {
             switch (m_used_compression) {
                 case UNCOMPRESSED:
                     direct_links2_internal_queue(source_id, result,
-                                                 [this](int64_t pos, t_x offset, uint8_t leafK,
-                                                        std::vector<t_x> &result) {
-                                                     check_leaf_bits_direct_uncomp(pos, offset, leafK, result);
+                                                 [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
+                                                     check_leaf_bits_direct_uncomp(pos, offset, result);
                                                  });
 
                     break;
 
                 case LEGACY_DAC:
                     direct_links2_internal_queue(source_id, result,
-                                                 [this](int64_t pos, t_x offset, uint8_t leafK,
-                                                        std::vector<t_x> &result) {
-                                                     check_leaf_bits_direct_legacy_dac(pos, offset, leafK, result);
+                                                 [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
+                                                     check_leaf_bits_direct_legacy_dac(pos, offset, result);
                                                  });
                     break;
 
                 case DAC:
                     direct_links2_internal_queue(source_id, result,
-                                                     [this](int64_t pos, t_x offset, uint8_t leafK,
-                                                            std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_dac(pos, offset, leafK, result);
+                                                     [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
+                                                         check_leaf_bits_direct_dac(pos, offset, result);
                                                      });
                     break;
 
                 case WT_INT_DICT:
                     direct_links2_internal_queue(source_id, result,
-                                                     [this](int64_t pos, t_x offset, uint8_t leafK,
-                                                            std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_wt_int_dict(pos, offset, leafK, result);
+                                                     [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
+                                                         check_leaf_bits_direct_wt_int_dict(pos, offset, result);
                                                      });
                     break;
 
                 case WT_INT:
                     direct_links2_internal_queue(source_id, result,
-                                                 [this](int64_t pos, t_x offset, uint8_t leafK,
-                                                        std::vector<t_x> &result) {
-                                                     check_leaf_bits_direct_wt(pos, offset, leafK, result);
+                                                 [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
+                                                     check_leaf_bits_direct_wt(pos, offset, result);
                                                  });
                     break;
 
@@ -205,42 +201,41 @@ namespace sdsl {
             switch (m_used_compression) {
                 case UNCOMPRESSED:
                     direct_links_shortcut_internal(source_id, result,
-                                                   [this](int64_t pos, t_x offset, uint8_t leafK,
-                                                          std::vector<t_x> &result) {
-                                                       check_leaf_bits_direct_uncomp(pos, offset, leafK, result);
+                                                   [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
+                                                       check_leaf_bits_direct_uncomp(pos, offset, result);
                                                    });
 
                     break;
 
                 case LEGACY_DAC:
                     direct_links_shortcut_internal(source_id, result,
-                                                   [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                   [this](int64_t pos, t_x offset,
                                                           std::vector<t_x> &result) {
-                                                       check_leaf_bits_direct_legacy_dac(pos, offset, leafK, result);
+                                                       check_leaf_bits_direct_legacy_dac(pos, offset, result);
                                                    });
                     break;
 
                 case DAC:
                     direct_links_shortcut_internal(source_id, result,
-                                                     [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                     [this](int64_t pos, t_x offset,
                                                             std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_dac(pos, offset, leafK, result);
+                                                         check_leaf_bits_direct_dac(pos, offset, result);
                                                      });
                     break;
 
                 case WT_INT_DICT:
                     direct_links_shortcut_internal(source_id, result,
-                                                     [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                     [this](int64_t pos, t_x offset,
                                                             std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_wt_int_dict(pos, offset, leafK, result);
+                                                         check_leaf_bits_direct_wt_int_dict(pos, offset, result);
                                                      });
                     break;
 
                 case WT_INT:
                     direct_links_shortcut_internal(source_id, result,
-                                                   [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                   [this](int64_t pos, t_x offset,
                                                           std::vector<t_x> &result) {
-                                                       check_leaf_bits_direct_wt(pos, offset, leafK, result);
+                                                       check_leaf_bits_direct_wt(pos, offset, result);
                                                    });
                     break;
 
@@ -265,42 +260,42 @@ namespace sdsl {
             switch (m_used_compression) {
                 case UNCOMPRESSED:
                     direct_links_shortcut_internal_2(source_id, result,
-                                                     [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                     [this](int64_t pos, t_x offset,
                                                             std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_uncomp(pos, offset, leafK, result);
+                                                         check_leaf_bits_direct_uncomp(pos, offset, result);
                                                      });
 
                     break;
 
                 case LEGACY_DAC:
                     direct_links_shortcut_internal_2(source_id, result,
-                                                     [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                     [this](int64_t pos, t_x offset,
                                                             std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_legacy_dac(pos, offset, leafK, result);
+                                                         check_leaf_bits_direct_legacy_dac(pos, offset, result);
                                                      });
                     break;
 
                 case DAC:
                     direct_links_shortcut_internal_2(source_id, result,
-                                                     [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                     [this](int64_t pos, t_x offset,
                                                             std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_dac(pos, offset, leafK, result);
+                                                         check_leaf_bits_direct_dac(pos, offset, result);
                                                      });
                     break;
 
                 case WT_INT_DICT:
                     direct_links_shortcut_internal_2(source_id, result,
-                                                     [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                     [this](int64_t pos, t_x offset,
                                                             std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_wt_int_dict(pos, offset, leafK, result);
+                                                         check_leaf_bits_direct_wt_int_dict(pos, offset, result);
                                                      });
                     break;
 
                 case WT_INT:
                     direct_links_shortcut_internal_2(source_id, result,
-                                                     [this](int64_t pos, t_x offset, uint8_t leafK,
+                                                     [this](int64_t pos, t_x offset,
                                                             std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_wt(pos, offset, leafK, result);
+                                                         check_leaf_bits_direct_wt(pos, offset, result);
                                                      });
                     break;
 
@@ -324,38 +319,38 @@ namespace sdsl {
 
             switch (m_used_compression) {
                 case UNCOMPRESSED:
-                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
                                                                               std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_uncomp(pos, offset, leafK, result);
+                        check_leaf_bits_inverse_uncomp(pos, offset, result);
                     });
 
                     break;
 
                 case LEGACY_DAC:
-                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
                                                                               std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_legacy_dac(pos, offset, leafK, result);
+                        check_leaf_bits_inverse_legacy_dac(pos, offset, result);
                     });
                     break;
 
                 case DAC:
-                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
                                                                               std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_dac(pos, offset, leafK, result);
+                        check_leaf_bits_inverse_dac(pos, offset, result);
                     });
                     break;
 
                 case WT_INT_DICT:
-                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
                                                                               std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_wt_int_dict(pos, offset, leafK, result);
+                        check_leaf_bits_inverse_wt_int_dict(pos, offset, result);
                     });
                     break;
 
                 case WT_INT:
-                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
                                                                               std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_wt(pos, offset, leafK, result);
+                        check_leaf_bits_inverse_wt(pos, offset, result);
                     });
                     break;
 
@@ -375,38 +370,38 @@ namespace sdsl {
 
             switch (m_used_compression) {
                 case UNCOMPRESSED:
-                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
                                                                             std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_uncomp(pos, offset, leafK, result);
+                        check_leaf_bits_inverse_uncomp(pos, offset, result);
                     });
 
                     break;
 
                 case LEGACY_DAC:
-                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
                                                                             std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_legacy_dac(pos, offset, leafK, result);
+                        check_leaf_bits_inverse_legacy_dac(pos, offset, result);
                     });
                     break;
 
                 case DAC:
-                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
                                                                               std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_dac(pos, offset, leafK, result);
+                        check_leaf_bits_inverse_dac(pos, offset, result);
                     });
                     break;
 
                 case WT_INT_DICT:
-                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
                                                                               std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_wt_int_dict(pos, offset, leafK, result);
+                        check_leaf_bits_inverse_wt_int_dict(pos, offset, result);
                     });
                     break;
 
                 case WT_INT:
-                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset, uint8_t leafK,
+                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
                                                                             std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_wt(pos, offset, leafK, result);
+                        check_leaf_bits_inverse_wt(pos, offset, result);
                     });
                     break;
 
@@ -419,28 +414,28 @@ namespace sdsl {
         bool check_link_shortcut(std::pair<t_x, t_y> link) const {
             switch (m_used_compression) {
                 case UNCOMPRESSED:
-                    return check_link_shortcut_internal(link, [this](int64_t pos, uint8_t) {
+                    return check_link_shortcut_internal(link, [this](int64_t pos) {
                         return this->is_leaf_bit_set(pos);
                     });
 
                 case LEGACY_DAC:
-                    return check_link_shortcut_internal(link, [this](int64_t pos, uint8_t leafK) {
-                        return this->is_leaf_bit_set_legacy_dac(pos, leafK);
+                    return check_link_shortcut_internal(link, [this](int64_t pos) {
+                        return this->is_leaf_bit_set_legacy_dac(pos);
                     });
 
                 case DAC:
-                    return check_link_shortcut_internal(link, [this](int64_t pos, uint8_t leafK) {
-                        return this->is_leaf_bit_set_dac(pos, leafK);
+                    return check_link_shortcut_internal(link, [this](int64_t pos) {
+                        return this->is_leaf_bit_set_dac(pos);
                     });
 
                 case WT_INT_DICT:
-                    return check_link_shortcut_internal(link, [this](int64_t pos, uint8_t leafK) {
-                        return this->is_leaf_bit_set_wt_int_dict(pos, leafK);
+                    return check_link_shortcut_internal(link, [this](int64_t pos) {
+                        return this->is_leaf_bit_set_wt_int_dict(pos);
                     });
 
                 case WT_INT:
-                    return check_link_shortcut_internal(link, [this](int64_t pos, uint8_t leafK) {
-                        return this->is_leaf_bit_set_wt(pos, leafK);
+                    return check_link_shortcut_internal(link, [this](int64_t pos) {
+                        return this->is_leaf_bit_set_wt(pos);
                     });
 
                 default:
@@ -462,32 +457,32 @@ namespace sdsl {
             switch (m_used_compression) {
                 case UNCOMPRESSED:
                     return check_link_internal(0, m_max_element, link.first, link.second, 0,
-                                               [this](int64_t pos, uint8_t) {
+                                               [this](int64_t pos) {
                                                    return this->is_leaf_bit_set(pos);
                                                });
 
                 case LEGACY_DAC:
                     return check_link_internal(0, m_max_element, link.first, link.second, 0,
-                                               [this](int64_t pos, uint8_t leafK) {
-                                                   return this->is_leaf_bit_set_legacy_dac(pos, leafK);
+                                               [this](int64_t pos) {
+                                                   return this->is_leaf_bit_set_legacy_dac(pos);
                                                });
 
                 case DAC:
                     return check_link_internal(0, m_max_element, link.first, link.second, 0,
-                                               [this](int64_t pos, uint8_t leafK) {
-                                                   return this->is_leaf_bit_set_dac(pos, leafK);
+                                               [this](int64_t pos) {
+                                                   return this->is_leaf_bit_set_dac(pos);
                                                });
 
                 case WT_INT_DICT:
                     return check_link_internal(0, m_max_element, link.first, link.second, 0,
-                                               [this](int64_t pos, uint8_t leafK) {
-                                                   return this->is_leaf_bit_set_wt_int_dict(pos, leafK);
+                                               [this](int64_t pos) {
+                                                   return this->is_leaf_bit_set_wt_int_dict(pos);
                                                });
 
                 case WT_INT:
                     return check_link_internal(0, m_max_element, link.first, link.second, 0,
-                                               [this](int64_t pos, uint8_t leafK) {
-                                                   return this->is_leaf_bit_set_wt(pos, leafK);
+                                               [this](int64_t pos) {
+                                                   return this->is_leaf_bit_set_wt(pos);
                                                });
 
                 default:
@@ -1060,7 +1055,7 @@ namespace sdsl {
                 //calculate real bits used by m_max_element
                 while (1ULL << (m_real_size_on_sl) < m_max_element) { ++m_real_size_on_sl; }
 
-                m_submatrix_in_row_on_sl = /*m_max_element / */precomp<k0>::exp(
+                m_submatrix_in_row_on_sl = /*m_max_element / */precomp<t_k0>::exp(
                         m_access_shortcut_size);//same as max_element/field_size
             } else {
                 std::cerr << "Should crash earlier ;-)" << std::endl;
@@ -1179,7 +1174,7 @@ namespace sdsl {
             uint64_t amountOfZeros = this->m_levels[m_access_shortcut_size].size() / (get_k(m_access_shortcut_size) *
                                                                                       get_k(m_access_shortcut_size)); //spares rank of comp. level
             //corresponds to the theoretical amount of trees in level m_access_shortcut_size (round up (in case not divisible by k^2)
-            uint64_t amountOfOnes = ipow(k0 * k0, m_access_shortcut_size);
+            uint64_t amountOfOnes = ipow(t_k0 * t_k0, m_access_shortcut_size);
             bit_vector access_shortcut(amountOfOnes + amountOfZeros, 1);
 
             //BitArray<uint> B(amountOfOnes + amountOfZeros);
@@ -1209,8 +1204,8 @@ namespace sdsl {
     private:
         template<typename t_x>
         inline void
-        check_leaf_bits_direct_uncomp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
-            for (int j = 0; j < leafK; ++j) {
+        check_leaf_bits_direct_uncomp(int64_t pos, t_x result_offset, std::vector<t_x> &result) const {
+            for (int j = 0; j < t_k_leaf; ++j) {
                 if (m_leaves[pos + j] == 1) {
                     result.push_back(result_offset + j);
                 }
@@ -1220,9 +1215,9 @@ namespace sdsl {
 
         template<typename t_x>
         inline void
-        check_leaf_bits_inverse_uncomp(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
-            for (int j = 0; j < leafK; ++j) {
-                if (m_leaves[pos + j * leafK] == 1) {
+        check_leaf_bits_inverse_uncomp(int64_t pos, t_x result_offset, std::vector<t_x> &result) const {
+            for (int j = 0; j < t_k_leaf; ++j) {
+                if (m_leaves[pos + j * t_k_leaf] == 1) {
                     result.push_back(result_offset + j);
                 }
             }
@@ -1251,7 +1246,7 @@ namespace sdsl {
         * @param temp_file_prefix
         */
         template<typename t_vector, typename Fun, typename Fun2>
-        void construct_counting_sort_internal(t_vector &links, Fun divexp, Fun2 exp, std::string temp_file_prefix = "") {
+        void construct_counting_sort_internal(t_vector &links, Fun divexp, Fun2 exp) {
             using namespace k2_treap_ns;
             typedef decltype(links[0].first) t_x;
             typedef decltype(links[0].second) t_y;
@@ -1269,13 +1264,12 @@ namespace sdsl {
                                   + "_" + util::to_string(util::id());
 
             {
-                //                  upper left          lower right                 interval in links   level
-                typedef std::tuple<std::pair<t_x, t_y>, std::pair<uint64_t, uint64_t>, t_e, uint8_t> t_queue;
+                //                  upper left          interval in links   level
+                typedef std::tuple<std::pair<t_x, t_y>, t_e, uint8_t> t_queue;
                 std::queue<t_queue> queue;
 
                 //partition recursively until reaching the leaves
                 queue.push(t_queue(std::make_pair<t_x, t_y>(0, 0),
-                                   std::make_pair(this->m_max_element - 1, this->m_max_element - 1),
                                    t_e(0, links.size()), 0));
 
                 uint64_t number_of_bits = 0; //for speed comparison purposes of different k
@@ -1286,9 +1280,8 @@ namespace sdsl {
                 this->m_levels.resize(this->m_tree_height - 1);
                 while (!queue.empty()) {
                     auto upper_left = std::get<0>(queue.front());
-                    auto lower_right = std::get<1>(queue.front());
-                    auto links_interval = std::get<2>(queue.front());
-                    auto current_level = std::get<3>(queue.front());
+                    auto links_interval = std::get<1>(queue.front());
+                    auto current_level = std::get<2>(queue.front());
                     auto inv_level = this->m_tree_height - current_level - 1; //inverse level for accessing precomps
 
                     const uint8_t k = get_k(current_level);
@@ -1384,10 +1377,7 @@ namespace sdsl {
                                     auto new_upper_left = std::make_pair<t_x, t_y>(
                                             x * new_submatrix_size + upper_left.first,
                                             y * new_submatrix_size + upper_left.second);
-                                    auto new_lower_right = std::make_pair<t_x, t_y>(
-                                            (x + 1) * new_submatrix_size - 1 + upper_left.first,
-                                            (y + 1) * new_submatrix_size - 1 + upper_left.second);
-                                    queue.push(std::make_tuple(new_upper_left, new_lower_right, new_interval,
+                                    queue.push(std::make_tuple(new_upper_left, new_interval,
                                                                current_level + 1));
                                 }
                             }
@@ -1519,10 +1509,10 @@ namespace sdsl {
         * @param pos Position in the complete sequence of bit of the last level.
         * @return Pointer to the first position of the word.
         */
-        inline bool is_leaf_bit_set_legacy_dac(uint64_t pos, uint8_t leafK) const {
-            uint64_t subtree_number = pos / (leafK * leafK);
+        inline bool is_leaf_bit_set_legacy_dac(uint64_t pos) const {
+            uint64_t subtree_number = pos / (t_k_leaf * t_k_leaf);
             uint iword = m_comp_leaves.accessFT(subtree_number);
-            pos = pos - (subtree_number * leafK * leafK);
+            pos = pos - (subtree_number * t_k_leaf * t_k_leaf);
             const uchar *word = m_vocabulary->get(iword);
             bool bitSet = ((word[pos / kUcharBits] >> (pos % kUcharBits)) & 1);
             return bitSet;
@@ -1532,17 +1522,16 @@ namespace sdsl {
          *
          * @param pos
          * @param result_offset
-         * @param leafK
          * @param result
          */
         template<typename t_x>
         inline void
-        check_leaf_bits_direct_legacy_dac(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
-            uint64_t subtree_number = pos / (leafK * leafK);
+        check_leaf_bits_direct_legacy_dac(int64_t pos, t_x result_offset, std::vector<t_x> &result) const {
+            uint64_t subtree_number = pos / (t_k_leaf * t_k_leaf);
             uint iword = m_comp_leaves.accessFT(subtree_number);
             const uchar *word = m_vocabulary->get(iword);
-            pos = pos - (subtree_number * leafK * leafK);
-            for (int i = 0; i < leafK; ++i) {
+            pos = pos - (subtree_number * t_k_leaf * t_k_leaf);
+            for (int i = 0; i < t_k_leaf; ++i) {
                 if ((word[(pos + i) / kUcharBits] >> ((pos + i) % kUcharBits)) & 1) {
                     result.push_back(i + result_offset);
                 }
@@ -1553,27 +1542,26 @@ namespace sdsl {
          *
          * @param pos
          * @param result_offset
-         * @param leafK
          * @param result
          */
         template<typename t_x>
         inline void
-        check_leaf_bits_inverse_legacy_dac(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
-            uint64_t subtree_number = pos / (leafK * leafK);
+        check_leaf_bits_inverse_legacy_dac(int64_t pos, t_x result_offset, std::vector<t_x> &result) const {
+            uint64_t subtree_number = pos / (t_k_leaf * t_k_leaf);
             uint iword = m_comp_leaves.accessFT(subtree_number);
             const uchar *word = m_vocabulary->get(iword);
-            pos = pos - (subtree_number * leafK * leafK);
-            for (int i = 0; i < leafK; ++i) {
-                if ((word[(pos + i * leafK) / kUcharBits] >> ((pos + i * leafK) % kUcharBits)) & 1) {
+            pos = pos - (subtree_number * t_k_leaf * t_k_leaf);
+            for (int i = 0; i < t_k_leaf; ++i) {
+                if ((word[(pos + i * t_k_leaf) / kUcharBits] >> ((pos + i * t_k_leaf) % kUcharBits)) & 1) {
                     result.push_back(i + result_offset);
                 }
             }
         }
 
         /*##################### Leaf access for wt compressed version#################################################**/
-        inline bool is_leaf_bit_set_wt(uint64_t pos, uint8_t leafK) const {
-            auto word = m_leaves_wt[pos/leafK/leafK];
-            auto offset = pos % (leafK*leafK);
+        inline bool is_leaf_bit_set_wt(uint64_t pos) const {
+            auto word = m_leaves_wt[pos/t_k_leaf/t_k_leaf];
+            auto offset = pos % (t_k_leaf*t_k_leaf);
             return (word >> (offset) & 1);
         }
 
@@ -1584,15 +1572,14 @@ namespace sdsl {
          *
          * @param pos
          * @param result_offset
-         * @param leafK
          * @param result
          */
         template<typename t_x>
         inline void
-        check_leaf_bits_direct_wt(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
-            auto word = m_leaves_wt[pos/leafK/leafK];
-            auto offset = (pos) % (leafK*leafK);
-            for (int j = 0; j < leafK; ++j) {
+        check_leaf_bits_direct_wt(int64_t pos, t_x result_offset, std::vector<t_x> &result) const {
+            auto word = m_leaves_wt[pos/t_k_leaf/t_k_leaf];
+            auto offset = (pos) % (t_k_leaf*t_k_leaf);
+            for (int j = 0; j < t_k_leaf; ++j) {
                 if (word >> (offset) & 1) {
                     result.push_back(j + result_offset);
                 }
@@ -1605,17 +1592,16 @@ namespace sdsl {
         *
         * @param pos
         * @param result_offset
-        * @param leafK
         * @param result
         */
         template<typename t_x>
         inline void
-        check_leaf_bits_inverse_wt(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
+        check_leaf_bits_inverse_wt(int64_t pos, t_x result_offset, std::vector<t_x> &result) const {
             //std::cout << "Checking posistion" << pos << std::endl;
-            auto word = m_leaves_wt[pos/leafK/leafK];
+            auto word = m_leaves_wt[pos/t_k_leaf/t_k_leaf];
             auto offset = 0;
-            for (int j = 0; j < leafK; ++j) {
-                offset = (pos + j * leafK) % (leafK*leafK);
+            for (int j = 0; j < t_k_leaf; ++j) {
+                offset = (pos + j * t_k_leaf) % (t_k_leaf*t_k_leaf);
                 if (word >> (offset) & 1) {
                     result.push_back(j + result_offset);
                 }
@@ -1623,10 +1609,10 @@ namespace sdsl {
         }
 
         /*##################### Leaf access for wt compressed version with dictionary ###############################**/
-        inline bool is_leaf_bit_set_wt_int_dict(uint64_t pos, uint8_t leafK) const {
-            auto key = m_leaves_wt[pos/leafK/leafK];
+        inline bool is_leaf_bit_set_wt_int_dict(uint64_t pos) const {
+            auto key = m_leaves_wt[pos/t_k_leaf/t_k_leaf];
             auto word = m_dictionary->operator[](key);
-            auto offset = pos % (leafK*leafK);
+            auto offset = pos % (t_k_leaf*t_k_leaf);
             return (word >> (offset) & 1);
         }
 
@@ -1637,16 +1623,15 @@ namespace sdsl {
          *
          * @param pos
          * @param result_offset
-         * @param leafK
          * @param result
          */
         template<typename t_x>
         inline void
-        check_leaf_bits_direct_wt_int_dict(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
-            auto key = m_leaves_wt[pos/leafK/leafK];
+        check_leaf_bits_direct_wt_int_dict(int64_t pos, t_x result_offset, std::vector<t_x> &result) const {
+            auto key = m_leaves_wt[pos/t_k_leaf/t_k_leaf];
             auto word = m_dictionary->operator[](key);
-            auto offset = (pos) % (leafK*leafK);
-            for (int j = 0; j < leafK; ++j) {
+            auto offset = (pos) % (t_k_leaf*t_k_leaf);
+            for (int j = 0; j < t_k_leaf; ++j) {
                 if (word >> (offset) & 1) {
                     result.push_back(j + result_offset);
                 }
@@ -1659,18 +1644,17 @@ namespace sdsl {
         *
         * @param pos
         * @param result_offset
-        * @param leafK
         * @param result
         */
         template<typename t_x>
         inline void
-        check_leaf_bits_inverse_wt_int_dict(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
+        check_leaf_bits_inverse_wt_int_dict(int64_t pos, t_x result_offset, std::vector<t_x> &result) const {
             //std::cout << "Checking position" << pos << std::endl;
-            auto key = m_leaves_wt[pos/leafK/leafK];
+            auto key = m_leaves_wt[pos/t_k_leaf/t_k_leaf];
             auto word = m_dictionary->operator[](key);
             auto offset = 0;
-            for (int j = 0; j < leafK; ++j) {
-                offset = (pos + j * leafK) % (leafK*leafK);
+            for (int j = 0; j < t_k_leaf; ++j) {
+                offset = (pos + j * t_k_leaf) % (t_k_leaf*t_k_leaf);
                 if (word >> (offset) & 1) {
                     result.push_back(j + result_offset);
                 }
@@ -1678,10 +1662,10 @@ namespace sdsl {
         }
 
         /*##################### Leaf access for dac (sdsl) compressed version ########################################**/
-        inline bool is_leaf_bit_set_dac(uint64_t pos, uint8_t leafK) const {
-            auto key = m_dac_compressed_leaves[pos/leafK/leafK];
+        inline bool is_leaf_bit_set_dac(uint64_t pos) const {
+            auto key = m_dac_compressed_leaves[pos/t_k_leaf/t_k_leaf];
             auto word = m_dictionary->operator[](key);
-            auto offset = pos % (leafK*leafK);
+            auto offset = pos % (t_k_leaf*t_k_leaf);
             return (word >> (offset) & 1);
         }
 
@@ -1692,16 +1676,15 @@ namespace sdsl {
          *
          * @param pos
          * @param result_offset
-         * @param leafK
          * @param result
          */
         template<typename t_x>
         inline void
-        check_leaf_bits_direct_dac(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
-            auto key = m_dac_compressed_leaves[pos/leafK/leafK];
+        check_leaf_bits_direct_dac(int64_t pos, t_x result_offset, std::vector<t_x> &result) const {
+            auto key = m_dac_compressed_leaves[pos/t_k_leaf/t_k_leaf];
             auto word = m_dictionary->operator[](key);
-            auto offset = (pos) % (leafK*leafK);
-            for (int j = 0; j < leafK; ++j) {
+            auto offset = (pos) % (t_k_leaf*t_k_leaf);
+            for (int j = 0; j < t_k_leaf; ++j) {
                 if (word >> (offset) & 1) {
                     result.push_back(j + result_offset);
                 }
@@ -1714,18 +1697,17 @@ namespace sdsl {
         *
         * @param pos
         * @param result_offset
-        * @param leafK
         * @param result
         */
         template<typename t_x>
         inline void
-        check_leaf_bits_inverse_dac(int64_t pos, t_x result_offset, uint8_t leafK, std::vector<t_x> &result) const {
+        check_leaf_bits_inverse_dac(int64_t pos, t_x result_offset, std::vector<t_x> &result) const {
             //std::cout << "Checking position" << pos << std::endl;
-            auto key = m_dac_compressed_leaves[pos/leafK/leafK];
+            auto key = m_dac_compressed_leaves[pos/t_k_leaf/t_k_leaf];
             auto word = m_dictionary->operator[](key);
             auto offset = 0;
-            for (int j = 0; j < leafK; ++j) {
-                offset = (pos + j * leafK) % (leafK*leafK);
+            for (int j = 0; j < t_k_leaf; ++j) {
+                offset = (pos + j * t_k_leaf) % (t_k_leaf*t_k_leaf);
                 if (word >> (offset) & 1) {
                     result.push_back(j + result_offset);
                 }
@@ -1777,7 +1759,7 @@ namespace sdsl {
             using namespace k2_treap_ns;
             for (uint j = 0; j < m_submatrix_in_row_on_sl; ++j) {
                 t_x row_offset = j * m_field_size_on_sl;
-                uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(target_id, row_offset, m_real_size_on_sl,
+                uint64_t z = access_shortcut_helper<t_k0>::corresponding_subtree(target_id, row_offset, m_real_size_on_sl,
                                                                                m_access_shortcut_size);
                 uint64_t y = this->m_access_shortcut_select_1_support(z + 1);
                 //check if exists and if B_[y-1] == 0 otherwise no link
@@ -1799,14 +1781,14 @@ namespace sdsl {
             using namespace k2_treap_ns;
 
             t_x column_offset = 0;
-            for (uint j = 0; j < m_submatrix_in_row_on_sl / k0; ++j) {
-                uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(column_offset, source_id,
+            for (uint j = 0; j < m_submatrix_in_row_on_sl / t_k0; ++j) {
+                uint64_t z = access_shortcut_helper<t_k0>::corresponding_subtree(column_offset, source_id,
                                                                                m_real_size_on_sl,
                                                                                m_access_shortcut_size);
                 uint64_t y = this->m_access_shortcut_select_1_support(z + 1);
                 uint64_t index = this->m_access_shortcut_rank_10_support(y + 1);
                 //y--;
-                for (int i = 0; i < k0; ++i) {
+                for (int i = 0; i < t_k0; ++i) {
                     //dont use select support, but directly look in access_shortcut once position has been obtained
 
                     //std::cout << "current y " << y <<std::endl;
@@ -1827,7 +1809,7 @@ namespace sdsl {
 
                     column_offset += m_field_size_on_sl;
                 }
-                z += k0 * k0;
+                z += t_k0 * t_k0;
             }
         }
 
@@ -1854,7 +1836,7 @@ namespace sdsl {
             int64_t y = index * k * k + (source_id / submatrix_size);
 
             if (is_leaf_level(level)) {
-                check_leaf_bits_inverse(y, row_offset, get_k(level), result);
+                check_leaf_bits_inverse(y, row_offset, result);
             } else { //internal node
                 for (int j = 0; j < k; ++j) {
                     if (m_levels[level][y + (j * k)]) {
@@ -1874,7 +1856,7 @@ namespace sdsl {
 
             for (uint j = 0; j < m_submatrix_in_row_on_sl; ++j) {
                 t_x column_offset = j * m_field_size_on_sl;
-                uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(column_offset, source_id,
+                uint64_t z = access_shortcut_helper<t_k0>::corresponding_subtree(column_offset, source_id,
                                                                                m_real_size_on_sl,
                                                                                m_access_shortcut_size);
                 uint64_t y = this->m_access_shortcut_select_1_support(z + 1);
@@ -1923,7 +1905,7 @@ namespace sdsl {
             auto p = link.first;
             auto q = link.second;
 
-            uint64_t z = access_shortcut_helper<k0>::corresponding_subtree(q, p, m_real_size_on_sl,
+            uint64_t z = access_shortcut_helper<t_k0>::corresponding_subtree(q, p, m_real_size_on_sl,
                                                                            m_access_shortcut_size);
             //y = zth 1 via rank on B_
             uint64_t y = this->m_access_shortcut_select_1_support(z + 1);
@@ -1966,7 +1948,7 @@ namespace sdsl {
             uint64_t y = index * k * k + k * (source_id / submatrix_size);
 
             if (this->is_leaf_level(level)) {
-                check_leaf_bits_direct(y, column_offset, get_k(level), result);
+                check_leaf_bits_direct(y, column_offset, result);
             } else { //internal node
                 for (uint j = 0; j < k; ++j) {
                     if (m_levels[level][y + j] == 1) {
@@ -2000,7 +1982,7 @@ namespace sdsl {
             int64_t y = index + k * (p / current_submatrix_size) + (q / current_submatrix_size);
 
             if (this->is_leaf_level(level)) {
-                return check_leaf(y, k);
+                return check_leaf(y);
             } else if (this->m_levels[level][y]) {
                 return check_link_internal(level + 1, current_submatrix_size, p % current_submatrix_size,
                                            q % current_submatrix_size, this->get_child_index(0, y, level), check_leaf);
@@ -2037,7 +2019,7 @@ namespace sdsl {
                 int64_t y = index * k * k + k * (source_id / submatrix_size);
 
                 if (is_leaf_level(level)) {
-                    check_leaf_bits_direct(y, column_offset, get_k(level), result);
+                    check_leaf_bits_direct(y, column_offset, result);
                 } else { //internal node
                     for (uint j = 0; j < k; ++j) {
                         if (m_levels[level][y + j] == 1) {
@@ -2078,7 +2060,7 @@ namespace sdsl {
                 int64_t y = index * k * k + (source_id / submatrix_size);
 
                 if (is_leaf_level(level)) {
-                    check_leaf_bits_inverse(y, row_offset, get_k(level), result);
+                    check_leaf_bits_inverse(y, row_offset, result);
                 } else { //internal node
                     for (int j = 0; j < k; ++j) {
                         if (m_levels[level][y + (j * k)]) {
