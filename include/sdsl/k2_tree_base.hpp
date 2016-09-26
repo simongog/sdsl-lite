@@ -1241,7 +1241,10 @@ namespace sdsl {
         * sort with k² buckets and rearranging the input on every level of the tree
         *
         * Uses template functions for faster /k^l and k^l operations, virtual methods providing the functionality would be
-        * a cleaner, but much slower way
+        * a cleaner, but much slower way. I also tried passing functions to the constructor, which are safed as members, but then
+        * the compiler can also not optimize away the function calls --> using template functions for now
+        *
+        *
         *
         * @param links
         * @param temp_file_prefix
@@ -1404,7 +1407,8 @@ namespace sdsl {
         * Constructs the tree corresponding to the points in the links vector by partitioning the input multiple times
         *
         * Uses template functions for faster /k^l and k^l operations, virtual methods providing the functionality would be
-        * a cleaner, but much slower way
+        * a cleaner, but much slower way. I also tried passing functions to the constructor, which are safed as members, but then
+        * the compiler can also not optimize away the function calls --> using template functions for now
         *
         * @param links
         * @param temp_file_prefix
