@@ -89,6 +89,10 @@ namespace sdsl {
             static uint64_t modexp(uint64_t x, uint8_t l) {
                 return x % data.exp[l];
             }
+
+            static uint64_t multexp(uint64_t x, uint8_t l) {
+                return x * data.exp[l];
+            }
         };
 
         template<>
@@ -103,6 +107,10 @@ namespace sdsl {
 
             static uint64_t modexp(uint64_t x, uint8_t l) {
                 return x & bits::lo_set[l];
+            }
+
+            static uint64_t multexp(uint64_t x, uint8_t l) {
+                return x << l;
             }
         };
 
@@ -119,6 +127,10 @@ namespace sdsl {
             static uint64_t modexp(uint64_t x, uint8_t l) {
                 return x & bits::lo_set[2 * l];
             }
+
+            static uint64_t multexp(uint64_t x, uint8_t l) {
+                return x << (2*l);
+            }
         };
 
         template<>
@@ -134,6 +146,10 @@ namespace sdsl {
             static uint64_t modexp(uint64_t x, uint8_t l) {
                 return x & bits::lo_set[3 * l];
             }
+
+            static uint64_t multexp(uint64_t x, uint8_t l) {
+                return x << (3*l);
+            }
         };
 
         template<>
@@ -148,6 +164,10 @@ namespace sdsl {
 
             static uint64_t modexp(uint64_t x, uint8_t l) {
                 return x & bits::lo_set[4 * l];
+            }
+
+            static uint64_t multexp(uint64_t x, uint8_t l) {
+                return x << (4*l);
             }
         };
 

@@ -153,6 +153,89 @@ namespace sdsl {
             this->post_init();
         }
 
+        /* Accesor methods for links, duplicated because no virtual template funtions possible */
+        bool check_link(std::pair<uint, uint> link) const override {
+            return this->check_link_internal(link,
+                                      [&](uint64_t x, uint8_t l){return divexp(x,l);},
+                                      [&](uint64_t x, uint8_t l){return modexp(x, l);});
+        }
+        bool check_link_shortcut(std::pair<uint, uint> link) const override {
+            return this->check_link_shortcut_internal(link,
+                                               [&](uint x, uint8_t l){return divexp(x,l);},
+                                               [&](uint x, uint8_t l){return modexp(x, l);});
+        }
+        void inverse_links2(uint target_id, std::vector<uint> &result) const override {
+            this->inverse_links2_internal(target_id, result,
+                                          [&](uint x, uint8_t l){return divexp(x,l);},
+                                          [&](uint x, uint8_t l){return modexp(x, l);},
+                                          [&](uint x, uint8_t l){return multexp(x, l);});
+        }
+        void inverse_links_shortcut(uint target_id, std::vector<uint> &result) const override {
+            this->inverse_links_shortcut_internal(target_id, result,
+                                                  [&](uint x, uint8_t l){return divexp(x,l);},
+                                                  [&](uint x, uint8_t l){return modexp(x, l);},
+                                                  [&](uint x, uint8_t l){return multexp(x, l);});
+        }
+        void direct_links_shortcut_2(uint source_id, std::vector<uint> &result) const override {
+            this->direct_links_shortcut_2_internal(source_id, result,
+                                                   [&](uint x, uint8_t l){return divexp(x,l);},
+                                                   [&](uint x, uint8_t l){return modexp(x, l);},
+                                                   [&](uint x, uint8_t l){return multexp(x, l);});
+        }
+        void direct_links_shortcut(uint source_id, std::vector<uint> &result) const override {
+            this->direct_links_shortcut_internal(source_id, result,
+                                                 [&](uint x, uint8_t l){return divexp(x,l);},
+                                                 [&](uint x, uint8_t l){return modexp(x, l);},
+                                                 [&](uint x, uint8_t l){return multexp(x, l);});
+        }
+        void direct_links2(uint source_id, std::vector<uint> &result) const override {
+            this->direct_links2_internal(source_id, result,
+                                         [&](uint x, uint8_t l){return divexp(x,l);},
+                                         [&](uint x, uint8_t l){return modexp(x, l);},
+                                         [&](uint x, uint8_t l){return multexp(x, l);});
+        }
+
+        bool check_link(std::pair<uint64_t, uint64_t> link) const override {
+            return this->check_link_internal(link,
+                                      [&](uint64_t x, uint8_t l){return divexp(x,l);},
+                                      [&](uint64_t x, uint8_t l){return modexp(x, l);});
+        }
+        bool check_link_shortcut(std::pair<uint64_t, uint64_t> link) const override {
+            return this->check_link_shortcut_internal(link,
+                                               [&](uint64_t x, uint8_t l){return divexp(x,l);},
+                                               [&](uint64_t x, uint8_t l){return modexp(x, l);});
+        }
+        void inverse_links2(uint64_t target_id, std::vector<uint64_t> &result) const override {
+            this->inverse_links2_internal(target_id, result,
+                                          [&](uint64_t x, uint8_t l){return divexp(x,l);},
+                                          [&](uint64_t x, uint8_t l){return modexp(x, l);},
+                                          [&](uint64_t x, uint8_t l){return multexp(x, l);});
+        }
+        void inverse_links_shortcut(uint64_t target_id, std::vector<uint64_t> &result) const override {
+            this->inverse_links_shortcut_internal(target_id, result,
+                                                  [&](uint64_t x, uint8_t l){return divexp(x,l);},
+                                                  [&](uint64_t x, uint8_t l){return modexp(x, l);},
+                                                  [&](uint64_t x, uint8_t l){return multexp(x, l);});
+        }
+        void direct_links_shortcut_2(uint64_t source_id, std::vector<uint64_t> &result) const override {
+            this->direct_links_shortcut_2_internal(source_id, result,
+                                                   [&](uint64_t x, uint8_t l){return divexp(x,l);},
+                                                   [&](uint64_t x, uint8_t l){return modexp(x, l);},
+                                                   [&](uint64_t x, uint8_t l){return multexp(x, l);});
+        }
+        void direct_links_shortcut(uint64_t source_id, std::vector<uint64_t> &result) const override {
+            this->direct_links_shortcut_internal(source_id, result,
+                                                 [&](uint64_t x, uint8_t l){return divexp(x,l);},
+                                                 [&](uint64_t x, uint8_t l){return modexp(x, l);},
+                                                 [&](uint64_t x, uint8_t l){return multexp(x, l);});
+        }
+        void direct_links2(uint64_t source_id, std::vector<uint64_t> &result) const override {
+            this->direct_links2_internal(source_id, result,
+                                         [&](uint64_t x, uint8_t l){return divexp(x,l);},
+                                         [&](uint64_t x, uint8_t l){return modexp(x, l);},
+                                         [&](uint64_t x, uint8_t l){return multexp(x, l);});
+        }
+
         size_type serialize(std::ostream &out, structure_tree_node *v, std::string name) const override {
             return k2_tree_base<t_k_l_1, t_k_leaves, t_lev, t_leaf, t_rank>::serialize(out, v, name);
         }
@@ -230,7 +313,7 @@ namespace sdsl {
 
                 if (coords.size() > 0) {
                     if (use_counting_sort) {
-                        construct_counting_sort(coords, temp_file_prefix);
+                        construct_counting_sort(coords);
                         //construct_bottom_up(v, temp_file_prefix);
                     } else {
                         this->construct(coords, temp_file_prefix);
@@ -261,7 +344,6 @@ namespace sdsl {
             k2_tree_base<t_k_l_1, t_k_leaves, t_lev, t_leaf, t_rank>::operator=(tr);
             if (this != &tr) {
                 m_k_for_level = tr.m_k_for_level;
-                m_shift_table = tr.m_shift_table;
             }
             return *this;
         }
@@ -317,26 +399,35 @@ namespace sdsl {
             this->construct_internal(links, [&](uint64_t x, uint8_t l){return divexp(x,l);}, temp_file_prefix);
         }
 
-        inline uint64_t exp(uint8_t l) {
+        inline uint64_t exp(uint8_t l) const {
             assert(l >= 0 && l <= m_tree_height);
             return 1Ull << m_shift_table[l];
         }
 
-        inline uint64_t divexp(uint64_t x, uint8_t l) {
+        template<typename t_x>
+        inline t_x divexp(t_x x, uint8_t l) const {
             assert(l >= 0 && l <= m_tree_height);
             return x >> m_shift_table[l];
         }
 
-        inline uint64_t modexp(uint64_t x, uint8_t l) {
+        template<typename t_x>
+        inline t_x modexp(t_x x, uint8_t l) const {
             assert(l >= 0 && l <= m_tree_height);
             return x & bits::lo_set[m_shift_table[l]];
         }
+
+        template<typename t_x>
+        inline t_x multexp(t_x x, uint8_t l) const {
+            assert(l >= 0 && l <= m_tree_height);
+            return x << m_shift_table[l];
+        }
+
 
         void initialize_shift_table() {
             m_shift_table.resize(this->m_tree_height + 1);
 
             m_shift_table[0] = 0;
-            for (uint i = 0; i < m_k_for_level.size(); ++i) {
+            for (uint i = 0; i < this->m_tree_height; ++i) {
                 m_shift_table[i + 1] = m_shift_table[i] + bits::hi(m_k_for_level[this->m_tree_height-i-1]);
             }
         }

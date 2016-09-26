@@ -151,8 +151,7 @@ namespace sdsl {
                 auto v = read<uint32_t, uint32_t>(
                         bufs);
                 if (use_counting_sort) {
-                    construct_counting_sort<std::vector<std::pair<uint32_t, uint32_t>>>(
-                            v, buf_x.filename());
+                    construct_counting_sort<std::vector<std::pair<uint32_t, uint32_t>>>(v);
                 } else {
                     this->construct(v, buf_x.filename());
                 }
@@ -169,6 +168,51 @@ namespace sdsl {
 
             this->post_init();
         }
+        /* Accesor methods for links, duplicated because no virtual template funtions possible */
+        bool check_link(std::pair<uint, uint> link) const override {
+            return this->check_link_internal(link, &precomp<t_k>::divexp, &precomp<t_k>::modexp);
+        }
+        bool check_link_shortcut(std::pair<uint, uint> link) const override {
+            return this->check_link_shortcut_internal(link, &precomp<t_k>::divexp, &precomp<t_k>::modexp);
+        }
+        void inverse_links2(uint target_id, std::vector<uint> &result) const override {
+            this->inverse_links2_internal(target_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
+        }
+        void inverse_links_shortcut(uint target_id, std::vector<uint> &result) const override {
+            this->inverse_links_shortcut_internal(target_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
+        }
+        void direct_links_shortcut_2(uint source_id, std::vector<uint> &result) const override {
+            this->direct_links_shortcut_2_internal(source_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
+        }
+        void direct_links_shortcut(uint source_id, std::vector<uint> &result) const override {
+            this->direct_links_shortcut_internal(source_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
+        }
+        void direct_links2(uint source_id, std::vector<uint> &result) const override {
+            this->direct_links2_internal(source_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
+        }
+
+        bool check_link(std::pair<uint64_t, uint64_t> link) const override {
+            return this->check_link_internal(link, &precomp<t_k>::divexp, &precomp<t_k>::modexp);
+        }
+        bool check_link_shortcut(std::pair<uint64_t, uint64_t> link) const override {
+            return this->check_link_shortcut_internal(link, &precomp<t_k>::divexp, &precomp<t_k>::modexp);
+        }
+        void inverse_links2(uint64_t target_id, std::vector<uint64_t> &result) const override {
+            this->inverse_links2_internal(target_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
+        }
+        void inverse_links_shortcut(uint64_t target_id, std::vector<uint64_t> &result) const override {
+            this->inverse_links_shortcut_internal(target_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
+        }
+        void direct_links_shortcut_2(uint64_t source_id, std::vector<uint64_t> &result) const override {
+            this->direct_links_shortcut_2_internal(source_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
+        }
+        void direct_links_shortcut(uint64_t source_id, std::vector<uint64_t> &result) const override {
+            this->direct_links_shortcut_internal(source_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
+        }
+        void direct_links2(uint64_t source_id, std::vector<uint64_t> &result) const override {
+            this->direct_links2_internal(source_id, result, &precomp<t_k>::divexp, &precomp<t_k>::modexp, &precomp<t_k>::multexp);
+        }
+
 
         inline uint8_t get_k(uint8_t) const {
             return t_k;

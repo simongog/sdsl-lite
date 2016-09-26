@@ -107,6 +107,23 @@ namespace sdsl {
 
     public:
 
+        /* Accessor methods for links */
+        virtual bool check_link(std::pair<uint, uint> link) const = 0;
+        virtual bool check_link(std::pair<uint64_t, uint64_t> link) const = 0;
+        virtual bool check_link_shortcut(std::pair<uint, uint> link) const = 0;
+        virtual bool check_link_shortcut(std::pair<uint64_t, uint64_t> link) const = 0;
+        virtual void inverse_links2(uint target_id, std::vector<uint> &result) const = 0;
+        virtual void inverse_links2(uint64_t target_id, std::vector<uint64_t> &result) const = 0;
+        virtual void inverse_links_shortcut(uint target_id, std::vector<uint> &result) const = 0;
+        virtual void inverse_links_shortcut(uint64_t target_id, std::vector<uint64_t> &result) const = 0;
+        virtual void direct_links_shortcut_2(uint source_id, std::vector<uint> &result) const = 0;
+        virtual void direct_links_shortcut_2(uint64_t source_id, std::vector<uint64_t> &result) const = 0;
+        virtual void direct_links_shortcut(uint source_id, std::vector<uint> &result) const = 0;
+        virtual void direct_links_shortcut(uint64_t source_id, std::vector<uint64_t> &result) const = 0;
+        virtual void direct_links2(uint source_id, std::vector<uint> &result) const  = 0;
+        virtual void direct_links2(uint64_t source_id, std::vector<uint64_t> &result) const  = 0;
+
+
         void compress_leaves(leaf_compression_type compression, uint64_t hash_size = 0){
             switch (compression) {
                 case UNCOMPRESSED:
@@ -130,363 +147,6 @@ namespace sdsl {
 
                 default:
                     throw new std::runtime_error("invalid value for compression method");
-            }
-        }
-
-        template<typename t_x>
-        void direct_links2(t_x source_id, std::vector<t_x> &result) const {
-            result.clear();
-
-            //Patological case happening e.g. when using k2part
-            if (m_tree_height == 0 || source_id > m_max_element) {
-                return;
-            }
-
-            //direct_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result);
-            switch (m_used_compression) {
-                case UNCOMPRESSED:
-                    direct_links2_internal_queue(source_id, result,
-                                                 [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
-                                                     check_leaf_bits_direct_uncomp(pos, offset, result);
-                                                 });
-
-                    break;
-
-                case LEGACY_DAC:
-                    direct_links2_internal_queue(source_id, result,
-                                                 [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
-                                                     check_leaf_bits_direct_legacy_dac(pos, offset, result);
-                                                 });
-                    break;
-
-                case DAC:
-                    direct_links2_internal_queue(source_id, result,
-                                                     [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_dac(pos, offset, result);
-                                                     });
-                    break;
-
-                case WT_INT_DICT:
-                    direct_links2_internal_queue(source_id, result,
-                                                     [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_wt_int_dict(pos, offset, result);
-                                                     });
-                    break;
-
-                case WT_INT:
-                    direct_links2_internal_queue(source_id, result,
-                                                 [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
-                                                     check_leaf_bits_direct_wt(pos, offset, result);
-                                                 });
-                    break;
-
-                default:
-                    throw new std::runtime_error("invalid value for m_used_compression");
-            }
-        }
-
-        template<typename t_x>
-        void direct_links_shortcut(t_x source_id, std::vector<t_x> &result) const {
-            result.clear();
-
-            if (m_access_shortcut_size == 0) {
-                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
-            }
-
-            //Patological case happening e.g. when using k2part
-            if (m_tree_height == 0 || source_id > m_max_element) {
-                return;
-            }
-
-            switch (m_used_compression) {
-                case UNCOMPRESSED:
-                    direct_links_shortcut_internal(source_id, result,
-                                                   [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
-                                                       check_leaf_bits_direct_uncomp(pos, offset, result);
-                                                   });
-
-                    break;
-
-                case LEGACY_DAC:
-                    direct_links_shortcut_internal(source_id, result,
-                                                   [this](int64_t pos, t_x offset,
-                                                          std::vector<t_x> &result) {
-                                                       check_leaf_bits_direct_legacy_dac(pos, offset, result);
-                                                   });
-                    break;
-
-                case DAC:
-                    direct_links_shortcut_internal(source_id, result,
-                                                     [this](int64_t pos, t_x offset,
-                                                            std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_dac(pos, offset, result);
-                                                     });
-                    break;
-
-                case WT_INT_DICT:
-                    direct_links_shortcut_internal(source_id, result,
-                                                     [this](int64_t pos, t_x offset,
-                                                            std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_wt_int_dict(pos, offset, result);
-                                                     });
-                    break;
-
-                case WT_INT:
-                    direct_links_shortcut_internal(source_id, result,
-                                                   [this](int64_t pos, t_x offset,
-                                                          std::vector<t_x> &result) {
-                                                       check_leaf_bits_direct_wt(pos, offset, result);
-                                                   });
-                    break;
-
-                default:
-                    throw new std::runtime_error("invalid value for m_used_compression");
-            }
-        }
-
-        template<typename t_x>
-        void direct_links_shortcut_2(t_x source_id, std::vector<t_x> &result) const {
-            result.clear();
-
-            if (m_access_shortcut_size == 0) {
-                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
-            }
-
-            //Patological case happening e.g. when using k2part
-            if (m_tree_height == 0 || source_id > m_max_element) {
-                return;
-            }
-
-            switch (m_used_compression) {
-                case UNCOMPRESSED:
-                    direct_links_shortcut_internal_2(source_id, result,
-                                                     [this](int64_t pos, t_x offset,
-                                                            std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_uncomp(pos, offset, result);
-                                                     });
-
-                    break;
-
-                case LEGACY_DAC:
-                    direct_links_shortcut_internal_2(source_id, result,
-                                                     [this](int64_t pos, t_x offset,
-                                                            std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_legacy_dac(pos, offset, result);
-                                                     });
-                    break;
-
-                case DAC:
-                    direct_links_shortcut_internal_2(source_id, result,
-                                                     [this](int64_t pos, t_x offset,
-                                                            std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_dac(pos, offset, result);
-                                                     });
-                    break;
-
-                case WT_INT_DICT:
-                    direct_links_shortcut_internal_2(source_id, result,
-                                                     [this](int64_t pos, t_x offset,
-                                                            std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_wt_int_dict(pos, offset, result);
-                                                     });
-                    break;
-
-                case WT_INT:
-                    direct_links_shortcut_internal_2(source_id, result,
-                                                     [this](int64_t pos, t_x offset,
-                                                            std::vector<t_x> &result) {
-                                                         check_leaf_bits_direct_wt(pos, offset, result);
-                                                     });
-                    break;
-
-                default:
-                    throw new std::runtime_error("invalid value for m_used_compression");
-            }
-        }
-
-        template<typename t_x>
-        void inverse_links_shortcut(t_x target_id, std::vector<t_x> &result) const {
-            result.clear();
-
-            if (m_access_shortcut_size == 0) {
-                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
-            }
-
-            //Patological case happening e.g. when using k2part
-            if (m_tree_height == 0 || target_id > m_max_element) {
-                return;
-            }
-
-            switch (m_used_compression) {
-                case UNCOMPRESSED:
-                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
-                                                                              std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_uncomp(pos, offset, result);
-                    });
-
-                    break;
-
-                case LEGACY_DAC:
-                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
-                                                                              std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_legacy_dac(pos, offset, result);
-                    });
-                    break;
-
-                case DAC:
-                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
-                                                                              std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_dac(pos, offset, result);
-                    });
-                    break;
-
-                case WT_INT_DICT:
-                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
-                                                                              std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_wt_int_dict(pos, offset, result);
-                    });
-                    break;
-
-                case WT_INT:
-                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
-                                                                              std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_wt(pos, offset, result);
-                    });
-                    break;
-
-                default:
-                    throw new std::runtime_error("invalid value for m_used_compression");
-            }
-        }
-
-        template<typename t_x>
-        void inverse_links2(t_x target_id, std::vector<t_x> &result) const {
-            result.clear();
-
-            //Patological case happening e.g. when using k2part
-            if (m_tree_height == 0 || target_id > m_max_element) {
-                return;
-            }
-
-            switch (m_used_compression) {
-                case UNCOMPRESSED:
-                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
-                                                                            std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_uncomp(pos, offset, result);
-                    });
-
-                    break;
-
-                case LEGACY_DAC:
-                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
-                                                                            std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_legacy_dac(pos, offset, result);
-                    });
-                    break;
-
-                case DAC:
-                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
-                                                                              std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_dac(pos, offset, result);
-                    });
-                    break;
-
-                case WT_INT_DICT:
-                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
-                                                                              std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_wt_int_dict(pos, offset, result);
-                    });
-                    break;
-
-                case WT_INT:
-                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
-                                                                            std::vector<t_x> &result) {
-                        check_leaf_bits_inverse_wt(pos, offset, result);
-                    });
-                    break;
-
-                default:
-                    throw new std::runtime_error("invalid value for m_used_compression");
-            }
-        }
-
-        template<typename t_x, typename t_y>
-        bool check_link_shortcut(std::pair<t_x, t_y> link) const {
-            switch (m_used_compression) {
-                case UNCOMPRESSED:
-                    return check_link_shortcut_internal(link, [this](int64_t pos) {
-                        return this->is_leaf_bit_set(pos);
-                    });
-
-                case LEGACY_DAC:
-                    return check_link_shortcut_internal(link, [this](int64_t pos) {
-                        return this->is_leaf_bit_set_legacy_dac(pos);
-                    });
-
-                case DAC:
-                    return check_link_shortcut_internal(link, [this](int64_t pos) {
-                        return this->is_leaf_bit_set_dac(pos);
-                    });
-
-                case WT_INT_DICT:
-                    return check_link_shortcut_internal(link, [this](int64_t pos) {
-                        return this->is_leaf_bit_set_wt_int_dict(pos);
-                    });
-
-                case WT_INT:
-                    return check_link_shortcut_internal(link, [this](int64_t pos) {
-                        return this->is_leaf_bit_set_wt(pos);
-                    });
-
-                default:
-                    throw new std::runtime_error("invalid value for m_used_compression");
-            }
-        }
-
-        /**
-        * Checks whether link from p = link.first to q = link.second is present i.e. matrix entry a_pq = 1
-        */
-        template<typename t_x, typename t_y>
-        bool check_link(std::pair<t_x, t_y> link) const {
-
-            //Patological case happening e.g. when using k2part
-            if (this->m_tree_height == 0) {
-                return false;
-            }
-
-            switch (m_used_compression) {
-                case UNCOMPRESSED:
-                    return check_link_internal(0, m_max_element, link.first, link.second, 0,
-                                               [this](int64_t pos) {
-                                                   return this->is_leaf_bit_set(pos);
-                                               });
-
-                case LEGACY_DAC:
-                    return check_link_internal(0, m_max_element, link.first, link.second, 0,
-                                               [this](int64_t pos) {
-                                                   return this->is_leaf_bit_set_legacy_dac(pos);
-                                               });
-
-                case DAC:
-                    return check_link_internal(0, m_max_element, link.first, link.second, 0,
-                                               [this](int64_t pos) {
-                                                   return this->is_leaf_bit_set_dac(pos);
-                                               });
-
-                case WT_INT_DICT:
-                    return check_link_internal(0, m_max_element, link.first, link.second, 0,
-                                               [this](int64_t pos) {
-                                                   return this->is_leaf_bit_set_wt_int_dict(pos);
-                                               });
-
-                case WT_INT:
-                    return check_link_internal(0, m_max_element, link.first, link.second, 0,
-                                               [this](int64_t pos) {
-                                                   return this->is_leaf_bit_set_wt(pos);
-                                               });
-
-                default:
-                    throw new std::runtime_error("invalid value for m_used_compression");
             }
         }
 
@@ -1041,6 +701,363 @@ namespace sdsl {
         }
 
     protected:
+
+        template<typename t_x,  typename Function2, typename Function3, typename Function4>
+        void direct_links2_internal(t_x source_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp, Function4 multexp) const {
+            result.clear();
+
+            //Patological case happening e.g. when using k2part
+            if (m_tree_height == 0 || source_id > m_max_element) {
+                return;
+            }
+
+            //direct_links2_internal(m_max_element, 0, source_id, t_x(0), 0, result);
+            switch (m_used_compression) {
+                case UNCOMPRESSED:
+                    direct_links2_internal_queue(source_id, result,
+                                                 [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
+                                                     check_leaf_bits_direct_uncomp(pos, offset, result);
+                                                 }, divexp, modexp, multexp);
+
+                    break;
+
+                case LEGACY_DAC:
+                    direct_links2_internal_queue(source_id, result,
+                                                 [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
+                                                     check_leaf_bits_direct_legacy_dac(pos, offset, result);
+                                                 }, divexp, modexp, multexp);
+                    break;
+
+                case DAC:
+                    direct_links2_internal_queue(source_id, result,
+                                                 [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
+                                                     check_leaf_bits_direct_dac(pos, offset, result);
+                                                 }, divexp, modexp, multexp);
+                    break;
+
+                case WT_INT_DICT:
+                    direct_links2_internal_queue(source_id, result,
+                                                 [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
+                                                     check_leaf_bits_direct_wt_int_dict(pos, offset, result);
+                                                 }, divexp, modexp, multexp);
+                    break;
+
+                case WT_INT:
+                    direct_links2_internal_queue(source_id, result,
+                                                 [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
+                                                     check_leaf_bits_direct_wt(pos, offset, result);
+                                                 }, divexp, modexp, multexp);
+                    break;
+
+                default:
+                    throw new std::runtime_error("invalid value for m_used_compression");
+            }
+        }
+
+        template<typename t_x,  typename Function2, typename Function3, typename Function4>
+        void direct_links_shortcut_internal(t_x source_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp, Function4 multexp) const {
+            result.clear();
+
+            if (m_access_shortcut_size == 0) {
+                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
+            }
+
+            //Patological case happening e.g. when using k2part
+            if (m_tree_height == 0 || source_id > m_max_element) {
+                return;
+            }
+
+            switch (m_used_compression) {
+                case UNCOMPRESSED:
+                    direct_links_shortcut_internal(source_id, result,
+                                                   [this](int64_t pos, t_x offset, std::vector<t_x> &result) {
+                                                       check_leaf_bits_direct_uncomp(pos, offset, result);
+                                                   }, divexp, modexp, multexp);
+
+                    break;
+
+                case LEGACY_DAC:
+                    direct_links_shortcut_internal(source_id, result,
+                                                   [this](int64_t pos, t_x offset,
+                                                          std::vector<t_x> &result) {
+                                                       check_leaf_bits_direct_legacy_dac(pos, offset, result);
+                                                   }, divexp, modexp, multexp);
+                    break;
+
+                case DAC:
+                    direct_links_shortcut_internal(source_id, result,
+                                                   [this](int64_t pos, t_x offset,
+                                                          std::vector<t_x> &result) {
+                                                       check_leaf_bits_direct_dac(pos, offset, result);
+                                                   }, divexp, modexp, multexp);
+                    break;
+
+                case WT_INT_DICT:
+                    direct_links_shortcut_internal(source_id, result,
+                                                   [this](int64_t pos, t_x offset,
+                                                          std::vector<t_x> &result) {
+                                                       check_leaf_bits_direct_wt_int_dict(pos, offset, result);
+                                                   }, divexp, modexp, multexp);
+                    break;
+
+                case WT_INT:
+                    direct_links_shortcut_internal(source_id, result,
+                                                   [this](int64_t pos, t_x offset,
+                                                          std::vector<t_x> &result) {
+                                                       check_leaf_bits_direct_wt(pos, offset, result);
+                                                   }, divexp, modexp, multexp);
+                    break;
+
+                default:
+                    throw new std::runtime_error("invalid value for m_used_compression");
+            }
+        }
+
+        template<typename t_x,  typename Function2, typename Function3, typename Function4>
+        void direct_links_shortcut_2_internal(t_x source_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp, Function4 multexp) const {
+            result.clear();
+
+            if (m_access_shortcut_size == 0) {
+                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
+            }
+
+            //Patological case happening e.g. when using k2part
+            if (m_tree_height == 0 || source_id > m_max_element) {
+                return;
+            }
+
+            switch (m_used_compression) {
+                case UNCOMPRESSED:
+                    direct_links_shortcut_internal_2(source_id, result,
+                                                     [this](int64_t pos, t_x offset,
+                                                            std::vector<t_x> &result) {
+                                                         check_leaf_bits_direct_uncomp(pos, offset, result);
+                                                     }, divexp, modexp, multexp);
+
+                    break;
+
+                case LEGACY_DAC:
+                    direct_links_shortcut_internal_2(source_id, result,
+                                                     [this](int64_t pos, t_x offset,
+                                                            std::vector<t_x> &result) {
+                                                         check_leaf_bits_direct_legacy_dac(pos, offset, result);
+                                                     }, divexp, modexp, multexp);
+                    break;
+
+                case DAC:
+                    direct_links_shortcut_internal_2(source_id, result,
+                                                     [this](int64_t pos, t_x offset,
+                                                            std::vector<t_x> &result) {
+                                                         check_leaf_bits_direct_dac(pos, offset, result);
+                                                     }, divexp, modexp, multexp);
+                    break;
+
+                case WT_INT_DICT:
+                    direct_links_shortcut_internal_2(source_id, result,
+                                                     [this](int64_t pos, t_x offset,
+                                                            std::vector<t_x> &result) {
+                                                         check_leaf_bits_direct_wt_int_dict(pos, offset, result);
+                                                     }, divexp, modexp, multexp);
+                    break;
+
+                case WT_INT:
+                    direct_links_shortcut_internal_2(source_id, result,
+                                                     [this](int64_t pos, t_x offset,
+                                                            std::vector<t_x> &result) {
+                                                         check_leaf_bits_direct_wt(pos, offset, result);
+                                                     }, divexp, modexp, multexp);
+                    break;
+
+                default:
+                    throw new std::runtime_error("invalid value for m_used_compression");
+            }
+        }
+
+        template<typename t_x,  typename Function2, typename Function3, typename Function4>
+        void inverse_links_shortcut_internal(t_x target_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp, Function4 multexp) const {
+            result.clear();
+
+            if (m_access_shortcut_size == 0) {
+                throw std::runtime_error("Cannot use check_link_shortcut if m_access_shortcut_size == 0");
+            }
+
+            //Patological case happening e.g. when using k2part
+            if (m_tree_height == 0 || target_id > m_max_element) {
+                return;
+            }
+
+            switch (m_used_compression) {
+                case UNCOMPRESSED:
+                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
+                                                                              std::vector<t_x> &result) {
+                        check_leaf_bits_inverse_uncomp(pos, offset, result);
+                    }, divexp, modexp, multexp);
+
+                    break;
+
+                case LEGACY_DAC:
+                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
+                                                                              std::vector<t_x> &result) {
+                        check_leaf_bits_inverse_legacy_dac(pos, offset, result);
+                    }, divexp, modexp, multexp);
+                    break;
+
+                case DAC:
+                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
+                                                                              std::vector<t_x> &result) {
+                        check_leaf_bits_inverse_dac(pos, offset, result);
+                    }, divexp, modexp, multexp);
+                    break;
+
+                case WT_INT_DICT:
+                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
+                                                                              std::vector<t_x> &result) {
+                        check_leaf_bits_inverse_wt_int_dict(pos, offset, result);
+                    }, divexp, modexp, multexp);
+                    break;
+
+                case WT_INT:
+                    inverse_links_shortcut_internal(target_id, result, [this](int64_t pos, t_x offset,
+                                                                              std::vector<t_x> &result) {
+                        check_leaf_bits_inverse_wt(pos, offset, result);
+                    }, divexp, modexp, multexp);
+                    break;
+
+                default:
+                    throw new std::runtime_error("invalid value for m_used_compression");
+            }
+        }
+
+        template<typename t_x,  typename Function2, typename Function3, typename Function4>
+        void inverse_links2_internal(t_x target_id, std::vector<t_x> &result, Function2 divexp, Function3 modexp, Function4 multexp) const {
+            result.clear();
+
+            //Patological case happening e.g. when using k2part
+            if (m_tree_height == 0 || target_id > m_max_element) {
+                return;
+            }
+
+            switch (m_used_compression) {
+                case UNCOMPRESSED:
+                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
+                                                                            std::vector<t_x> &result) {
+                        check_leaf_bits_inverse_uncomp(pos, offset, result);
+                    }, divexp, modexp, multexp);
+
+                    break;
+
+                case LEGACY_DAC:
+                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
+                                                                            std::vector<t_x> &result) {
+                        check_leaf_bits_inverse_legacy_dac(pos, offset, result);
+                    }, divexp, modexp, multexp);
+                    break;
+
+                case DAC:
+                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
+                                                                            std::vector<t_x> &result) {
+                        check_leaf_bits_inverse_dac(pos, offset, result);
+                    }, divexp, modexp, multexp);
+                    break;
+
+                case WT_INT_DICT:
+                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
+                                                                            std::vector<t_x> &result) {
+                        check_leaf_bits_inverse_wt_int_dict(pos, offset, result);
+                    }, divexp, modexp, multexp);
+                    break;
+
+                case WT_INT:
+                    inverse_links2_internal_queue(target_id, result, [this](int64_t pos, t_x offset,
+                                                                            std::vector<t_x> &result) {
+                        check_leaf_bits_inverse_wt(pos, offset, result);
+                    }, divexp, modexp, multexp);
+                    break;
+
+                default:
+                    throw new std::runtime_error("invalid value for m_used_compression");
+            }
+        }
+
+        template<typename t_x, typename t_y,  typename Function2, typename Function3>
+        bool check_link_shortcut_internal(std::pair<t_x, t_y> link, Function2 divexp, Function3 modexp) const {
+            switch (m_used_compression) {
+                case UNCOMPRESSED:
+                    return check_link_shortcut_internal(link, [this](int64_t pos) {
+                        return this->is_leaf_bit_set(pos);
+                    }, divexp, modexp);
+
+                case LEGACY_DAC:
+                    return check_link_shortcut_internal(link, [this](int64_t pos) {
+                        return this->is_leaf_bit_set_legacy_dac(pos);
+                    }, divexp, modexp);
+
+                case DAC:
+                    return check_link_shortcut_internal(link, [this](int64_t pos) {
+                        return this->is_leaf_bit_set_dac(pos);
+                    }, divexp, modexp);
+
+                case WT_INT_DICT:
+                    return check_link_shortcut_internal(link, [this](int64_t pos) {
+                        return this->is_leaf_bit_set_wt_int_dict(pos);
+                    }, divexp, modexp);
+
+                case WT_INT:
+                    return check_link_shortcut_internal(link, [this](int64_t pos) {
+                        return this->is_leaf_bit_set_wt(pos);
+                    }, divexp, modexp);
+
+                default:
+                    throw new std::runtime_error("invalid value for m_used_compression");
+            }
+        }
+
+        /**
+        * Checks whether link from p = link.first to q = link.second is present i.e. matrix entry a_pq = 1
+        */
+        template<typename t_x, typename t_y,  typename Function2, typename Function3>
+        bool check_link_internal(std::pair<t_x, t_y> link, Function2 divexp, Function3 modexp) const {
+
+            //Patological case happening e.g. when using k2part
+            if (this->m_tree_height == 0) {
+                return false;
+            }
+
+            switch (m_used_compression) {
+                case UNCOMPRESSED:
+                    return check_link_internal(0, link.first, link.second, 0,
+                                               [this](int64_t pos) {
+                                                   return this->is_leaf_bit_set(pos);
+                                               }, divexp, modexp);
+
+                case LEGACY_DAC:
+                    return check_link_internal(0, link.first, link.second, 0,
+                                               [this](int64_t pos) {
+                                                   return this->is_leaf_bit_set_legacy_dac(pos);
+                                               }, divexp, modexp);
+
+                case DAC:
+                    return check_link_internal(0, link.first, link.second, 0,
+                                               [this](int64_t pos) {
+                                                   return this->is_leaf_bit_set_dac(pos);
+                                               }, divexp, modexp);
+
+                case WT_INT_DICT:
+                    return check_link_internal(0, link.first, link.second, 0,
+                                               [this](int64_t pos) {
+                                                   return this->is_leaf_bit_set_wt_int_dict(pos);
+                                               }, divexp, modexp);
+
+                case WT_INT:
+                    return check_link_internal(0, link.first, link.second, 0,
+                                               [this](int64_t pos) {
+                                                   return this->is_leaf_bit_set_wt(pos);
+                                               }, divexp, modexp);
+
+                default:
+                    throw new std::runtime_error("invalid value for m_used_compression");
+            }
+        }
 
 
         void perform_access_shortcut_precomputations() {
@@ -1754,8 +1771,8 @@ namespace sdsl {
         }
 
 
-        template<typename t_x, typename Function>
-        void inverse_links_shortcut_internal(t_x target_id, std::vector<t_x> &result, Function check_leaf_bits) const {
+        template<typename t_x, typename Function, typename Function2, typename Function3, typename Function4>
+        void inverse_links_shortcut_internal(t_x target_id, std::vector<t_x> &result, Function check_leaf_bits, Function2 divexp, Function3 modexp, Function4 multexp) const {
             using namespace k2_treap_ns;
             for (uint j = 0; j < m_submatrix_in_row_on_sl; ++j) {
                 t_x row_offset = j * m_field_size_on_sl;
@@ -1768,16 +1785,16 @@ namespace sdsl {
                     //directly get corresponding data from leaf array
 
                     uint64_t index = this->m_access_shortcut_rank_10_support(y + 1);
-                    inverse_links2_internal(m_field_size_on_sl, m_access_shortcut_size,
+                    inverse_links2_internal(m_access_shortcut_size,
                                             t_x(target_id % m_field_size_on_sl), row_offset, index, result,
-                                            check_leaf_bits);
+                                            check_leaf_bits, divexp, modexp, multexp);
                 }
             }
         }
 
 
-        template<typename t_x, typename Function>
-        void direct_links_shortcut_internal_2(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits) const {
+        template<typename t_x, typename Function, typename Function2, typename Function3, typename Function4>
+        void direct_links_shortcut_internal_2(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits, Function2 divexp, Function3 modexp, Function4 multexp) const {
             using namespace k2_treap_ns;
 
             t_x column_offset = 0;
@@ -1798,9 +1815,9 @@ namespace sdsl {
                         //rank 01 pattern on B[0,p] to find out how many non-empty trees are there until p
                         //directly get corresponding data from leaf array
 
-                        direct_links2_internal(m_field_size_on_sl, m_access_shortcut_size,
+                        direct_links2_internal(m_access_shortcut_size,
                                                t_x(source_id % m_field_size_on_sl), column_offset, index, result,
-                                               check_leaf_bits);
+                                               check_leaf_bits, divexp, modexp, multexp);
                         index++;
                         y += 2;
                     } else {
@@ -1827,22 +1844,22 @@ namespace sdsl {
          *      of the upper left corner of the submatrix in the concatentation of m_levels and m_leafs vector, initially 0
          * @param result
          */
-        template<typename t_x, typename Function>
-        void inverse_links2_internal(uint64_t n, uint8_t level, t_x source_id, t_x row_offset, int64_t index,
-                                     std::vector<t_x> &result, Function check_leaf_bits_inverse) const {
+        template<typename t_x, typename Function, typename Function2, typename Function3, typename Function4>
+        void inverse_links2_internal(uint8_t level, t_x source_id, t_x row_offset, int64_t index,
+                                     std::vector<t_x> &result, Function check_leaf_bits_inverse, Function2 divexp, Function3 modexp, Function4 multexp) const {
 
             const uint8_t k = get_k(level);
-            uint64_t submatrix_size = n / k;
-            int64_t y = index * k * k + (source_id / submatrix_size);
+            uint8_t invlevel = m_tree_height - level -1;
+            int64_t y = index * k * k + divexp(source_id, invlevel);
 
             if (is_leaf_level(level)) {
                 check_leaf_bits_inverse(y, row_offset, result);
             } else { //internal node
                 for (int j = 0; j < k; ++j) {
                     if (m_levels[level][y + (j * k)]) {
-                        inverse_links2_internal(submatrix_size, level + 1, t_x(source_id % submatrix_size),
-                                                t_x(row_offset + submatrix_size * j), m_levels_rank[level](y + (j * k)),
-                                                result, check_leaf_bits_inverse);
+                        inverse_links2_internal(level + 1, t_x(modexp(source_id, invlevel)),
+                                                t_x(row_offset + multexp(j,invlevel)), m_levels_rank[level](y + (j * k)),
+                                                result, check_leaf_bits_inverse, divexp, modexp, multexp);
                     }
                 }
             }
@@ -1850,8 +1867,8 @@ namespace sdsl {
 
 
 
-        template<typename t_x, typename Function>
-        void direct_links_shortcut_internal(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits) const {
+        template<typename t_x, typename Function, typename Function2, typename Function3, typename  Function4>
+        void direct_links_shortcut_internal(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits, Function2 divexp, Function3 modexp, Function4 multexp) const {
             using namespace k2_treap_ns;
 
             for (uint j = 0; j < m_submatrix_in_row_on_sl; ++j) {
@@ -1869,9 +1886,9 @@ namespace sdsl {
                     //directly get corresponding data from leaf array
 
                     uint64_t index = this->m_access_shortcut_rank_10_support(y + 1);
-                    direct_links2_internal(m_field_size_on_sl, m_access_shortcut_size,
+                    direct_links2_internal(m_access_shortcut_size,
                                            t_x(source_id % m_field_size_on_sl),
-                                           column_offset, index, result, check_leaf_bits);
+                                           column_offset, index, result, check_leaf_bits, divexp, modexp, multexp);
                 }
             }
         }
@@ -1884,8 +1901,8 @@ namespace sdsl {
         *
         * @return Returns true/false depending on wehter link is present or not
         */
-        template<typename t_x, typename t_y, typename Function>
-        bool check_link_shortcut_internal(std::pair<t_x, t_y> link, Function check_leaf_bits) const {
+        template<typename t_x, typename t_y, typename Function, typename Function2, typename Function3>
+        bool check_link_shortcut_internal(std::pair<t_x, t_y> link, Function check_leaf_bits, Function2 divexp, Function3 modexp) const {
             using namespace k2_treap_ns;
 
             //Patological case happening e.g. when using k2part
@@ -1922,8 +1939,8 @@ namespace sdsl {
 
             //std::cout << "For " << p << "," << q << " the index is " << index << "and relative coordinates are " << p%field_size << "," << q%field_size << std::endl;
 
-            return check_link_internal(m_access_shortcut_size, m_field_size_on_sl, p % m_field_size_on_sl,
-                                       q % m_field_size_on_sl, index, check_leaf_bits);
+            return check_link_internal(m_access_shortcut_size, p % m_field_size_on_sl,
+                                       q % m_field_size_on_sl, index, check_leaf_bits, divexp, modexp);
         }
 
 
@@ -1940,21 +1957,21 @@ namespace sdsl {
          *      of the upper left corner of the submatrix in the concatentation of m_levels and m_leafs vector
          * @param result
          */
-        template<typename t_x, typename Function>
-        void direct_links2_internal(uint64_t n, uint8_t level, t_x source_id, t_x column_offset, int64_t index,
-                                    std::vector<t_x> &result, Function check_leaf_bits_direct) const {
+        template<typename t_x, typename Function, typename Function2, typename Function3, typename Function4>
+        void direct_links2_internal(uint8_t level, t_x source_id, t_x column_offset, int64_t index,
+                                    std::vector<t_x> &result, Function check_leaf_bits_direct, Function2 divexp, Function3 modexp, Function4 multexp) const {
             const uint8_t k = get_k(level);
-            uint64_t submatrix_size = n / k;
-            uint64_t y = index * k * k + k * (source_id / submatrix_size);
+            uint8_t invlevel = m_tree_height - level -1;
+            uint64_t y = index * k * k + k * divexp(source_id, invlevel);
 
             if (this->is_leaf_level(level)) {
                 check_leaf_bits_direct(y, column_offset, result);
             } else { //internal node
                 for (uint j = 0; j < k; ++j) {
                     if (m_levels[level][y + j] == 1) {
-                        direct_links2_internal(submatrix_size, level + 1, t_x(source_id % submatrix_size),
-                                               t_x(column_offset + submatrix_size * j), m_levels_rank[level](y + j),
-                                               result, check_leaf_bits_direct);
+                        direct_links2_internal(level + 1, t_x(modexp(source_id, invlevel)),
+                                               t_x(column_offset + multexp(j,invlevel)), m_levels_rank[level](y + j),
+                                               result, check_leaf_bits_direct, divexp, modexp, multexp);
                     }
                 }
             }
@@ -1972,20 +1989,20 @@ namespace sdsl {
          *  contains the index of the first child of the previous node, initially set to 0
          * @return
          */
-        template<typename t_x, typename t_y, typename Function>
-        bool check_link_internal(uint8_t level, uint64_t n, t_x p, t_y q, int64_t index, Function check_leaf) const {
+        template<typename t_x, typename t_y, typename Function, typename Function2, typename Function3>
+        bool check_link_internal(uint8_t level, t_x p, t_y q, int64_t index, Function check_leaf, Function2 divexp, Function3 modexp) const {
             using namespace k2_treap_ns;
 
             const uint8_t k = get_k(level);
+            uint8_t invlevel = m_tree_height - level -1;
+            int64_t y = index + k * divexp(p, invlevel) + divexp(q, invlevel);
 
-            uint64_t current_submatrix_size = n / k;
-            int64_t y = index + k * (p / current_submatrix_size) + (q / current_submatrix_size);
 
             if (this->is_leaf_level(level)) {
                 return check_leaf(y);
             } else if (this->m_levels[level][y]) {
-                return check_link_internal(level + 1, current_submatrix_size, p % current_submatrix_size,
-                                           q % current_submatrix_size, this->get_child_index(0, y, level), check_leaf);
+                return check_link_internal(level + 1, modexp(p, invlevel),
+                                           modexp(q, invlevel), this->get_child_index(0, y, level), check_leaf, divexp, modexp);
             } else {
                 return false;
             }
@@ -1996,35 +2013,33 @@ namespace sdsl {
          * @param source_id
          * @param result
          */
-        template<typename t_x, typename Function>
+        template<typename t_x, typename Function, typename Function2, typename Function3, typename Function4>
         void
-        direct_links2_internal_queue(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits_direct) const {
+        direct_links2_internal_queue(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits_direct, Function2 divexp, Function3 modexp, Function4 multexp) const {
             using namespace k2_treap_ns;
-            //n, level, source_id, column_offset, index
-            std::queue<std::tuple<uint64_t, uint8_t, t_x, t_x, int64_t>> queue;
-            queue.push(std::make_tuple(m_max_element, 0, source_id, (t_x) 0, 0));
+            //level, source_id, column_offset, index
+            std::queue<std::tuple<uint8_t, t_x, t_x, int64_t>> queue;
+            queue.push(std::make_tuple(0, source_id, (t_x) 0, 0));
 
             while (!queue.empty()) {
                 auto current_element = queue.front();
-                uint64_t n = std::get<0>(current_element);
-                uint8_t level = std::get<1>(current_element);
-                t_x source_id = std::get<2>(current_element);
-                t_x column_offset = std::get<3>(current_element);
-                int64_t index = std::get<4>(current_element);
+                uint8_t level = std::get<0>(current_element);
+                t_x source_id = std::get<1>(current_element);
+                t_x column_offset = std::get<2>(current_element);
+                int64_t index = std::get<3>(current_element);
                 queue.pop();
 
+                uint8_t invlevel = m_tree_height - level -1;
                 const uint8_t k = get_k(level);
-
-                uint64_t submatrix_size = n / k;
-                int64_t y = index * k * k + k * (source_id / submatrix_size);
+                int64_t y = index * k * k + k * divexp(source_id, invlevel);
 
                 if (is_leaf_level(level)) {
                     check_leaf_bits_direct(y, column_offset, result);
                 } else { //internal node
                     for (uint j = 0; j < k; ++j) {
                         if (m_levels[level][y + j] == 1) {
-                            queue.push(std::make_tuple(submatrix_size, level + 1, t_x(source_id % submatrix_size),
-                                                       t_x(column_offset + submatrix_size * j),
+                            queue.push(std::make_tuple(level + 1, t_x(modexp(source_id,invlevel)),
+                                                       t_x(column_offset + multexp(j,invlevel)),
                                                        m_levels_rank[level](y + j)));
                         }
                     }
@@ -2037,35 +2052,34 @@ namespace sdsl {
          * @param source_id
          * @param result
          */
-        template<typename t_x, typename Function>
+        template<typename t_x, typename Function, typename Function2, typename Function3, typename Function4>
         void
-        inverse_links2_internal_queue(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits_inverse) const {
+        inverse_links2_internal_queue(t_x source_id, std::vector<t_x> &result, Function check_leaf_bits_inverse, Function2 divexp, Function3 modexp, Function4 multexp) const {
             using namespace k2_treap_ns;
-            //n, level, source_id, column_offset, index
-            std::queue<std::tuple<uint64_t, uint8_t, t_x, t_x, int64_t>> queue;
-            queue.push(std::make_tuple(m_max_element, 0, source_id, (t_x) 0, 0));
+            //level, source_id, column_offset, index
+            std::queue<std::tuple<uint8_t, t_x, t_x, int64_t>> queue;
+            queue.push(std::make_tuple(0, source_id, (t_x) 0, 0));
 
             while (!queue.empty()) {
                 auto current_element = queue.front();
-                t_x n = std::get<0>(current_element);
-                uint8_t level = std::get<1>(current_element);
-                t_x source_id = std::get<2>(current_element);
-                t_x row_offset = std::get<3>(current_element);
-                int64_t index = std::get<4>(current_element);
+                uint8_t level = std::get<0>(current_element);
+                t_x source_id = std::get<1>(current_element);
+                t_x row_offset = std::get<2>(current_element);
+                int64_t index = std::get<3>(current_element);
                 queue.pop();
 
-                const uint8_t k = get_k(level);
+                uint8_t invlevel = m_tree_height - level -1;
 
-                uint64_t submatrix_size = n / k;
-                int64_t y = index * k * k + (source_id / submatrix_size);
+                const uint8_t k = get_k(level);
+                int64_t y = index * k * k + divexp(source_id, invlevel);
 
                 if (is_leaf_level(level)) {
                     check_leaf_bits_inverse(y, row_offset, result);
                 } else { //internal node
                     for (int j = 0; j < k; ++j) {
                         if (m_levels[level][y + (j * k)]) {
-                            queue.push(std::make_tuple(submatrix_size, level + 1, t_x(source_id % submatrix_size),
-                                                       t_x(row_offset + submatrix_size * j),
+                            queue.push(std::make_tuple(level + 1, t_x(modexp(source_id, invlevel)),
+                                                       t_x(row_offset + multexp(j, invlevel)),
                                                        m_levels_rank[level](y + (j * k))));
                         }
                     }
