@@ -61,9 +61,8 @@ namespace sdsl {
             return (x % y) ? x / y + 1 : x / y;
         }
 
-        /** Number of bits in a byte */
-        static const uint kByteBits = 8; //FIXME: remove
-        static const uint kUcharBits = kByteBits * sizeof(unsigned char);
+        //FIXME: assumes one Byte has 8 Bits, which is not always the case according to c++ standard
+        static const uint kUcharBits = 8 * sizeof(unsigned char);
 
         // Precomputed value for fast k^2 treap operations
         template<uint8_t t_k>

@@ -883,6 +883,7 @@ namespace sdsl {
                     result[offset+k*size + i] = (this->m_leaves.get_int(k*k_leaf_squared+i*kUcharBits, kUcharBits));
                 }
 
+                //if bits_per_leaf is not evenly divisible by kUcharBits, get only the remainder k_leaf_squared%kUcharBits instead of kUcharBits
                 if (k_leaf_squared%kUcharBits){
                     result[offset+k*size + size-1] = (this->m_leaves.get_int(k*k_leaf_squared+(size-1)*kUcharBits,k_leaf_squared%kUcharBits ));
                 } else {
