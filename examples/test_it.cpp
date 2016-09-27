@@ -5,8 +5,21 @@
 using namespace std;
 using namespace sdsl;
 
+template <typename t_x>
+t_x createBitmask(t_x start, t_x end){
+    t_x result = 0;
+    for (auto i = start; i <= end ; ++i) {
+        result |= (1 << i);
+    }
+    return result;
+}
+
 int main()
 {
+
+    int asd = createBitmask(5,20);
+    std::cout << bitset<32>(asd) << endl;
+    /*
     std::cout << bits::hi(2) << endl;
     std::cout << bits::hi(4) << endl;
     std::cout << bits::hi(8) << endl;

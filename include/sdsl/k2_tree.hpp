@@ -348,14 +348,14 @@ namespace sdsl {
             }*/
             
             
-            std::vector<int> previous_subtree_number(this->m_tree_height, -1);
+            std::vector<t_x> previous_subtree_number(this->m_tree_height, -1);
 
             {
-                int subtree_distance;
+                t_x subtree_distance;
                 bool fill_to_k2_entries = false; //begin extra case!
                 std::vector<uint> gap_to_k2(this->m_tree_height, k * k);
                 bool firstLink = true;
-                uint current_subtree_number = 0;
+                t_x current_subtree_number = 0;
 
                 std::vector<int_vector_buffer<1>> level_buffers = this->create_level_buffers(temp_file_prefix, id_part);
 
@@ -436,7 +436,7 @@ namespace sdsl {
          * @return
          */
         template<typename t_x, typename t_y>
-        uint inline calculate_subtree_number_and_new_relative_coordinates(std::pair<t_x, t_y> &link, int level) {
+        t_x inline calculate_subtree_number_and_new_relative_coordinates(std::pair<t_x, t_y> &link, int level) {
             using namespace k2_treap_ns;
             t_x exponent = this->m_tree_height - level - 1;
             t_x result = k * precomp<t_k>::divexp(link.first, exponent) + precomp<t_k>::divexp(link.second, exponent);

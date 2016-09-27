@@ -312,12 +312,13 @@ namespace sdsl {
                 fileStream.close();
 
                 if (coords.size() > 0) {
-                    if (use_counting_sort) {
+                    /*if (use_counting_sort) {
                         construct_counting_sort(coords);
                         //construct_bottom_up(v, temp_file_prefix);
                     } else {
                         this->construct(coords, temp_file_prefix);
-                    }
+                    }*/
+                    construct_by_z_order_sort_internal(coords, temp_file_prefix);
 
                     std::cout << "Finished Construction" << std::endl;
 
@@ -388,7 +389,190 @@ namespace sdsl {
             return "k2_tree_hybrid<"+std::to_string(t_k_l_1)+","+std::to_string(t_k_l_1_size)+","+std::to_string(t_k_l_2)+","+std::to_string(t_k_leaves)+","+get_compression_name(this->m_used_compression)+">";
         }
 
+
+        /**
+         * Constructs the tree corresponding to the points in the links vector inpace by performing a z order sort and subsequently constructing the tree top down
+         * @param links
+         * @param temp_file_prefix
+         */
+        template<typename t_x, typename t_y>
+        void
+        construct_by_z_order_sort_internal(std::vector<std::pair<t_x, t_y>> &links, std::string temp_file_prefix = "") {
+            using namespace k2_treap_ns;
+            using t_e = std::pair<t_x, t_y>;
+
+            this->m_size = links.size();
+
+            if (this->m_size == 0) {
+                return;
+            }
+
+            std::string id_part = util::to_string(util::pid())
+                                  + "_" + util::to_string(util::id());
+
+            /*amount of levels with a k value of t_k_l_1 might differ from t_k_l_1_size as
+             * it is enforced that the leaf level has k=t_k_leaves therefore if
+             * m_tree_height <= t_k_l_1_size, the actual amount of levels with k=t_k_l_1
+             * is smaller than t_k_l_1_size
+             * for details look at get_tree_height, which in case of a hybrid tree calculates the tree height
+             * considering above constraints
+             * */
+            uint8_t levels_with_k1 = 0;
+            uint8_t levels_with_k2 = 0;
+            uint8_t levels_with_k_leaves = 1;
+
+            int ctr = 0;
+            while (ctr <this->m_tree_height){
+                auto k = get_k(ctr);
+                if (k == t_k_l_1){
+                    levels_with_k1++;
+                } else if (k = t_k_l_2) {
+                    levels_with_k2++;
+                }
+                ctr++;
+            }
+
+            const t_x bitsToInterleaveForK1 = bits::hi(t_k_l_1) * levels_with_k1;
+            const t_x bitsToInterleaveForK2 = bits::hi(t_k_l_2) * levels_with_k2;
+            const t_x bitsToInterleaveForKLeaves = bits::hi(t_k_leaves) * levels_with_k_leaves;
+
+            //bitsOfMaximalValue might be < 8*max(sizeof(t_x),sizeof(t_y))
+            t_x bitsOfMaximalValue = bitsToInterleaveForK1+bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
+            const int bits = bitsOfMaximalValue <= 32 ? 32 : 64;
+
+            auto rK1 = bitsOfMaximalValue-bitsToInterleaveForK1;
+            auto lK1 = 2*bitsOfMaximalValue-2*bitsToInterleaveForK1;
+
+            //set to one between 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves) and 2*bitsOfMaximalValue
+            t_x k1_bitmask = createBitmask(2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves), 2*bitsOfMaximalValue);
+            t_x k2_bitmask = createBitmask(2*(bitsToInterleaveForKLeaves), 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves));
+            t_x k_leaves_bitmask = createBitmask(0, 2*(bitsToInterleaveForKLeaves));
+
+            std::cout << "Sorting By Z Order" << std::endl;
+            __gnu_parallel::sort(links.begin(), links.end(), [&](const t_e &lhs, const t_e &rhs) {
+
+                return (interleave<t_k_l_1>::bits(lhs>>rK1, rhs>>rK1) << lK1 )|| interleave<t_k_l_2>::bits(lhs, rhs) || interleave<t_k_leaves>::bits(lhs, rhs);
+            });
+
+            std::cout << "Sorting Finished, Constructing Bitvectors" << std::endl;
+
+            /*for (int m = 0; m < links.size(); ++m) {
+                std::cout << links[m].first << "," << links[m].second << std::endl;
+            }*/
+
+
+            std::vector<t_x> previous_subtree_number(this->m_tree_height, -1);
+
+            {
+                t_x subtree_distance;
+                bool fill_to_k2_entries = false; //begin extra case!
+                std::vector<uint> gap_to_k2(this->m_tree_height);
+                for (int i = 0; i < gap_to_k2.size(); ++i) {
+                    gap_to_k2[i] = get_k(i) * get_k(i);
+                }
+                bool firstLink = true;
+                uint current_subtree_number = 0;
+
+                std::vector<int_vector_buffer<1>> level_buffers = this->create_level_buffers(temp_file_prefix, id_part);
+
+                std::pair<t_x, t_y> previous_link;
+                for (auto &current_link: links) {
+                    auto tmp = std::make_pair(current_link.first, current_link.second);
+                    for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
+                        current_subtree_number = calculate_subtree_number_and_new_relative_coordinates(current_link,
+                                                                                                       current_level);
+                        subtree_distance = current_subtree_number - previous_subtree_number[current_level];
+
+                        if (subtree_distance > 0) {
+                            //invalidate previous subtree numbers as new relative frame
+                            for (uint i = current_level + 1; i < this->m_tree_height; ++i) {
+                                previous_subtree_number[i] = -1;
+                            }
+
+                            if (fill_to_k2_entries && current_level != 0) {
+                                for (uint j = 0; j < gap_to_k2[current_level]; ++j) {
+                                    level_buffers[current_level].push_back(0);
+                                }
+                                gap_to_k2[current_level] = get_k(current_level), get_k(current_level);
+                            }
+
+                            for (int j = 0; j < subtree_distance - 1; ++j) {
+                                level_buffers[current_level].push_back(0);
+                                gap_to_k2[current_level]--;
+                            }
+
+                            level_buffers[current_level].push_back(1);
+                            gap_to_k2[current_level]--;
+
+                            if (!firstLink)
+                                fill_to_k2_entries = true;
+                        } else if (subtree_distance == 0) {
+                            fill_to_k2_entries = false;
+                        } else {
+                            std::string error_message(
+                                    "negative subtree_distance after z_order sort is not possible, somethings wrong current_level=" +
+                                    std::to_string(current_level) + " subtree_distance=" +
+                                    std::to_string(subtree_distance) +
+                                    " current_subtree_number=" + std::to_string(current_subtree_number) +
+                                    " previous_subtree_number[current_level]=" +
+                                    std::to_string(previous_subtree_number[current_level]) + "current_link=" +
+                                    std::to_string(current_link.first) + "," + std::to_string(current_link.second) +
+                                    "previous_link=" + std::to_string(previous_link.first) + "," +
+                                    std::to_string(previous_link.second));
+                            throw std::logic_error(error_message);
+                        }
+                        //std::cout << "Setting previous_subtree_number[" << current_level << "] = "<< current_subtree_number << std::endl;
+                        previous_subtree_number[current_level] = current_subtree_number;
+                    }
+                    //FIXME: special case treatment for last level (doesn't need to be sorted --> set corresponding bit, but don't append)
+                    firstLink = false;
+                    previous_link = tmp;
+                }
+
+                //fill rest with 0s
+                for (uint l = 0; l < gap_to_k2.size(); ++l) {
+                    for (uint i = 0; i < gap_to_k2[l]; ++i) {
+                        level_buffers[l].push_back(0);
+                    }
+                }
+            }
+
+            this->load_vectors_from_file(temp_file_prefix, id_part);
+        }
+
     private:
+        /**
+        * Calculates the corresponding subtree of link on a given level as well as
+        * the new relative coordinates (relative to the upper left corner of the corresponding submatrix)
+        * of link on the next level
+        *
+        * @param link
+        *      in:  current coordinates
+        *      out: relative coordinates on level "level"
+        * @param level
+        * @return
+        */
+        template<typename t_x, typename t_y>
+        t_x inline calculate_subtree_number_and_new_relative_coordinates(std::pair<t_x, t_y> &link, int level) {
+            using namespace k2_treap_ns;
+            t_x exponent = this->m_tree_height - level - 1;
+            auto k = get_k(level);
+            t_x result = k * divexp(link.first, exponent) + divexp(link.second, exponent);
+            link.first = modexp(link.first, exponent);
+            link.second = modexp(link.second, exponent);
+
+            return result;
+        }
+
+        template <typename t_x>
+        t_x createBitmask(t_x start, t_x end){
+            t_x result = 0;
+            for (auto i = start; i < end ; ++i) {
+                result |= (1 << i);
+            }
+            return result;
+        }
+
         template<typename t_vector>
         void construct_counting_sort(t_vector &links) {
             this->construct_counting_sort_internal(links, [&](uint64_t x, uint8_t l){return divexp(x,l);}, [&](uint8_t l){return exp(l);});
