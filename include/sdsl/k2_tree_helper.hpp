@@ -489,28 +489,28 @@ namespace sdsl {
 
         template<uint8_t t_k>
         struct interleave{
-            static bool bits(const std::pair<uint, uint> point){
+            static uint64_t bits(const std::pair<uint, uint> point){
                 throw std::runtime_error("not yet implemented");
             }
         };
 
         template<>
         struct interleave<2>{
-            static bool inline bits(const std::pair<uint32_t, uint32_t> point){
+            static uint64_t inline bits(const std::pair<uint32_t, uint32_t> point){
                 return interleave_bitwise<uint64_t, uint32_t>(point.second, point.first);
             }
         };
 
         template<>
         struct interleave<4>{
-            static bool inline bits(const std::pair<uint32_t, uint32_t> point){
+            static uint64_t inline bits(const std::pair<uint32_t, uint32_t> point){
                 return interleave_2_bitwise<uint64_t, uint32_t>(point.second, point.first);
             }
         };
 
         template<>
         struct interleave<8>{
-            static bool inline bits(const std::pair<uint32_t, uint32_t> point){
+            static uint64_t inline bits(const std::pair<uint32_t, uint32_t> point){
                 return interleave_3_bitwise<uint64_t, uint32_t>(point.second, point.first);
             }
         };

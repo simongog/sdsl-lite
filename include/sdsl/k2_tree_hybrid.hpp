@@ -402,7 +402,7 @@ namespace sdsl {
             uint8_t levels_with_k_leaves = 1;
 
             int ctr = 0;
-            while (ctr <this->m_tree_height){
+            while (ctr < (this->m_tree_height-1)){
                 auto k = get_k(ctr);
                 if (k == t_k_l_1){
                     levels_with_k1++;
@@ -416,22 +416,18 @@ namespace sdsl {
             const t_x bitsToInterleaveForK2 = bits::hi(t_k_l_2) * levels_with_k2;
             const t_x bitsToInterleaveForKLeaves = bits::hi(t_k_leaves) * levels_with_k_leaves;
 
-            //bitsOfMaximalValue might be < 8*max(sizeof(t_x),sizeof(t_y))
             t_x bitsOfMaximalValue = bitsToInterleaveForK1+bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
-            /*const int bits = bitsOfMaximalValue <= 32 ? 32 : 64;
-
-            auto rK1 = bitsOfMaximalValue-bitsToInterleaveForK1;
-            auto lK1 = 2*bitsOfMaximalValue-2*bitsToInterleaveForK1;*/
 
             //set to one between 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves) and 2*bitsOfMaximalValue
             t_x k1_bitmask = createBitmask(2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves), 2*bitsOfMaximalValue);
             t_x k2_bitmask = createBitmask(2*(bitsToInterleaveForKLeaves), 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves));
             t_x k_leaves_bitmask = createBitmask(t_x(0), 2*(bitsToInterleaveForKLeaves));
-
+            
             std::cout << "Sorting By Z Order" << std::endl;
             __gnu_parallel::sort(links.begin(), links.end(), [&](const t_e &lhs, const t_e &rhs) {
-                return ((interleave<t_k_l_1>::bits(lhs) & k1_bitmask) | (interleave<t_k_l_2>::bits(lhs) & k2_bitmask) | (interleave<t_k_leaves>::bits(lhs) & k_leaves_bitmask))
-                        < ((interleave<t_k_l_1>::bits(rhs) & k1_bitmask) | (interleave<t_k_l_2>::bits(rhs) & k2_bitmask) | (interleave<t_k_leaves>::bits(rhs) & k_leaves_bitmask));
+                auto lhs_interleaved = ((interleave<t_k_l_1>::bits(lhs) & k1_bitmask) | (interleave<t_k_l_2>::bits(lhs) & k2_bitmask) | (interleave<t_k_leaves>::bits(lhs) & k_leaves_bitmask));
+                auto rhs_interleaved = ((interleave<t_k_l_1>::bits(rhs) & k1_bitmask) | (interleave<t_k_l_2>::bits(rhs) & k2_bitmask) | (interleave<t_k_leaves>::bits(rhs) & k_leaves_bitmask));
+                return lhs_interleaved < rhs_interleaved;
                 //return (t_k_leaves * divexp(lhs.first, 0) + divexp(lhs.second, 0) < (t_k_leaves * divexp(rhs.first, 0) + divexp(rhs.second, 0)));
             });
 
@@ -442,10 +438,10 @@ namespace sdsl {
             }*/
 
 
-            std::vector<t_x> previous_subtree_number(this->m_tree_height, -1);
+            std::vector<int64_t> previous_subtree_number(this->m_tree_height, -1);
 
             {
-                t_x subtree_distance;
+                int64_t subtree_distance;
                 bool fill_to_k2_entries = false; //begin extra case!
                 std::vector<uint> gap_to_k2(this->m_tree_height);
                 for (uint i = 0; i < gap_to_k2.size(); ++i) {
@@ -475,7 +471,7 @@ namespace sdsl {
                                 for (uint j = 0; j < gap_to_k2[current_level]; ++j) {
                                     level_buffers[current_level].push_back(0);
                                 }
-                                gap_to_k2[current_level] = get_k(current_level), get_k(current_level);
+                                gap_to_k2[current_level] = get_k(current_level) * get_k(current_level);
                             }
 
                             for (uint j = 0; j < subtree_distance - 1; ++j) {

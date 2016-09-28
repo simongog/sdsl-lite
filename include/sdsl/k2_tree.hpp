@@ -330,7 +330,7 @@ namespace sdsl {
 
             std::cout << "Sorting By Z Order" << std::endl;
             __gnu_parallel::sort(links.begin(), links.end(), [&](const t_e &lhs, const t_e &rhs) {
-                return interleave<k>::bits(lhs) < interleave<k>::bits(rhs);
+                return interleave<t_k>::bits(lhs) < interleave<t_k>::bits(rhs);
             });
 
             std::cout << "Sorting Finished, Constructing Bitvectors" << std::endl;
@@ -338,16 +338,16 @@ namespace sdsl {
             /*for (int m = 0; m < links.size(); ++m) {
                 std::cout << links[m].first << "," << links[m].second << std::endl;
             }*/
-            
-            
-            std::vector<t_x> previous_subtree_number(this->m_tree_height, -1);
+
+
+            std::vector<int64_t> previous_subtree_number(this->m_tree_height, -1);
 
             {
-                t_x subtree_distance;
+                int64_t subtree_distance;
                 bool fill_to_k2_entries = false; //begin extra case!
                 std::vector<uint> gap_to_k2(this->m_tree_height, k * k);
                 bool firstLink = true;
-                t_x current_subtree_number = 0;
+                int64_t current_subtree_number = 0;
 
                 std::vector<int_vector_buffer<1>> level_buffers = this->create_level_buffers(temp_file_prefix, id_part);
 
