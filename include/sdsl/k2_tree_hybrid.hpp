@@ -82,7 +82,7 @@ namespace sdsl {
                 this->m_tree_height = get_tree_height(max_hint);
                 initialize_shift_table();
 
-                choose_construction_algorithm(v, construction_algo, temp_file_prefix);
+                contruct(v, construction_algo, temp_file_prefix);
 
                 this->post_init();
             }
@@ -128,10 +128,10 @@ namespace sdsl {
 
             if (this->m_max_element <= std::numeric_limits<uint32_t>::max()) {
                 auto v = read<uint32_t, uint32_t>(bufs);
-                choose_construction_algorithm(v, construction_algo, buf_x.filename());
+                contruct(v, construction_algo, buf_x.filename());
             } else {
                 auto v = read<uint64_t, uint64_t>(bufs);
-                choose_construction_algorithm(v, construction_algo, buf_x.filename());
+                contruct(v, construction_algo, buf_x.filename());
             }
 
             this->post_init();
@@ -296,7 +296,7 @@ namespace sdsl {
                 fileStream.close();
 
                 if (coords.size() > 0) {
-                    choose_construction_algorithm(coords, construction_algo, temp_file_prefix);
+                    contruct(coords, construction_algo, temp_file_prefix);
 
                     std::cout << "Finished Construction" << std::endl;
 
@@ -525,7 +525,8 @@ namespace sdsl {
     private:
         //FIXME: declared here and in k2_tree as a workaround, because virtual template methods are not possible
         template<typename t_vector>
-        void choose_construction_algorithm(t_vector &v, const construction_algorithm construction_algo, const std::string &temp_file_prefix = 0) {
+        void contruct(t_vector &v, const construction_algorithm construction_algo,
+                      const std::string &temp_file_prefix = 0) {
             std::cout << "Constructing using " << get_construction_name(construction_algo) << std::endl;
             switch (construction_algo){
                 case COUNTING_SORT:
