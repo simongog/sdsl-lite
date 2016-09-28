@@ -416,22 +416,27 @@ namespace sdsl {
             const t_x bitsToInterleaveForK2 = bits::hi(t_k_l_2) * levels_with_k2;
             const t_x bitsToInterleaveForKLeaves = bits::hi(t_k_leaves) * levels_with_k_leaves;
 
+            //bitsOfMaximalValue might be < 8*max(sizeof(t_x),sizeof(t_y))
             t_x bitsOfMaximalValue = bitsToInterleaveForK1+bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
+            const int bits = 32; //FIXME: only 32 bit for now
+
+            auto rK1 = bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
+            auto lK1 = 2*rK1;
+
+            auto lK2_f = bits - bitsToInterleaveForK2 - bitsToInterleaveForKLeaves;
+            auto rK2_f = bits - bitsToInterleaveForK2;
+            auto lK2   = 2*bitsToInterleaveForKLeaves;
 
             //set to one between 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves) and 2*bitsOfMaximalValue
-            t_x k1_bitmask = createBitmask(2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves), 2*bitsOfMaximalValue);
-            t_x k2_bitmask = createBitmask(2*(bitsToInterleaveForKLeaves), 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves));
-            t_x k_leaves_bitmask = createBitmask(t_x(0), 2*(bitsToInterleaveForKLeaves));
-            
-            std::cout << "Sorting By Z Order" << std::endl;
+            uint64_t k_leaves_bitmask = createBitmask(t_x(0), 2*(bitsToInterleaveForKLeaves));
+            uint64_t k_leaves_pre_bitmask = createBitmask(t_x(0), bitsToInterleaveForKLeaves);
+
             __gnu_parallel::sort(links.begin(), links.end(), [&](const t_e &lhs, const t_e &rhs) {
-                auto lhs_interleaved = ((interleave<t_k_l_1>::bits(lhs) & k1_bitmask) | (interleave<t_k_l_2>::bits(lhs) & k2_bitmask) | (interleave<t_k_leaves>::bits(lhs) & k_leaves_bitmask));
-                auto rhs_interleaved = ((interleave<t_k_l_1>::bits(rhs) & k1_bitmask) | (interleave<t_k_l_2>::bits(rhs) & k2_bitmask) | (interleave<t_k_leaves>::bits(rhs) & k_leaves_bitmask));
+                auto lhs_interleaved = ((interleave<t_k_l_1>::bits(lhs.first >> rK1, lhs.second >> rK1) << lK1) | (interleave<t_k_l_2>::bits((lhs.first << lK2_f) >> rK2_f, (lhs.second << lK2_f) >> rK2_f) << lK2) | (interleave<t_k_leaves>::bits(lhs.first & k_leaves_pre_bitmask, lhs.second & k_leaves_pre_bitmask) & k_leaves_bitmask));
+                auto rhs_interleaved = ((interleave<t_k_l_1>::bits(rhs.first >> rK1, rhs.second >> rK1) << lK1) | (interleave<t_k_l_2>::bits((rhs.first << lK2_f) >> rK2_f, (rhs.second << lK2_f) >> rK2_f) << lK2) | (interleave<t_k_leaves>::bits(rhs.first & k_leaves_pre_bitmask, rhs.second & k_leaves_pre_bitmask) & k_leaves_bitmask));
                 return lhs_interleaved < rhs_interleaved;
                 //return (t_k_leaves * divexp(lhs.first, 0) + divexp(lhs.second, 0) < (t_k_leaves * divexp(rhs.first, 0) + divexp(rhs.second, 0)));
             });
-
-            std::cout << "Sorting Finished, Constructing Bitvectors" << std::endl;
 
             /*for (int m = 0; m < links.size(); ++m) {
                 std::cout << links[m].first << "," << links[m].second << std::endl;
@@ -523,7 +528,6 @@ namespace sdsl {
         template<typename t_vector>
         void contruct(t_vector &v, const construction_algorithm construction_algo,
                       const std::string &temp_file_prefix = 0) {
-            std::cout << "Constructing using " << get_construction_name(construction_algo) << std::endl;
             switch (construction_algo){
                 case COUNTING_SORT:
                     this->construct_counting_sort(v);
@@ -531,7 +535,7 @@ namespace sdsl {
                 case PARTITIONBASED:
                     this->construct(v, temp_file_prefix);
                     break;
-                case ZORDERSORT:
+                case ZORDER_SORT:
                     construct_by_z_order_sort_internal(v, temp_file_prefix);
                     break;
             }
@@ -560,11 +564,10 @@ namespace sdsl {
             return result;
         }
 
-        template <typename t_x>
-        t_x createBitmask(t_x start, t_x end){
-            t_x result = 0;
+        uint64_t createBitmask(int64_t start, int64_t end){
+            uint64_t result = 0;
             for (auto i = start; i < end ; ++i) {
-                result |= (1 << i);
+                result |= (1ULL<< i);
             }
             return result;
         }

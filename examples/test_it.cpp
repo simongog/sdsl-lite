@@ -1,9 +1,11 @@
 #include <sdsl/wavelet_trees.hpp>
 #include <iostream>
 #include <bitset>
+#include <sdsl/k2_tree_helper.hpp>
 
 using namespace std;
 using namespace sdsl;
+using namespace k2_treap_ns;
 
 template <typename t_x>
 t_x createBitmask(t_x start, t_x end){
@@ -14,11 +16,102 @@ t_x createBitmask(t_x start, t_x end){
     return result;
 }
 
+uint64_t createBitmask(int64_t start, int64_t end){
+    uint64_t result = 0;
+    for (auto i = start; i < end ; ++i) {
+        result |= (1ULL<< i);
+    }
+    return result;
+}
+
+uint64_t test(const std::pair<uint, uint> &lhs) {
+    const uint bitsToInterleaveForK1 = bits::hi(2) * 2;
+    const uint bitsToInterleaveForK2 = bits::hi(2) * 0;
+    const uint bitsToInterleaveForKLeaves = bits::hi(4) * 1;
+
+    //bitsOfMaximalValue might be < 8*max(sizeof(t_x),sizeof(t_y))
+    uint bitsOfMaximalValue = bitsToInterleaveForK1+bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
+    const int bits = 32; //FIXME: only 32 bit for now
+
+    auto rK1 = bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
+    auto lK1 = 2*rK1;
+
+    auto lK2_f = bits - bitsToInterleaveForK2 - bitsToInterleaveForKLeaves;
+    auto rK2_f = bits - bitsToInterleaveForK2;
+    auto lK2   = 2*bitsToInterleaveForKLeaves;
+
+    cout << "lK2_f " << lK2_f << endl;
+    cout << "rK2_f " << rK2_f << endl;
+    cout << "lK2 " << lK2 << endl;
+
+    //set to one between 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves) and 2*bitsOfMaximalValue
+    uint64_t k1_bitmask = createBitmask(2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves), 2*bitsOfMaximalValue);
+    uint64_t k2_bitmask = createBitmask(2*(bitsToInterleaveForKLeaves), 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves));
+    uint64_t k_leaves_bitmask = createBitmask(0, 2*(bitsToInterleaveForKLeaves));
+
+    uint64_t k1_pre_bitmask = createBitmask(bitsToInterleaveForK2+bitsToInterleaveForKLeaves, bitsOfMaximalValue);
+    uint64_t k2_pre_bitmask = createBitmask(bitsToInterleaveForKLeaves, bitsToInterleaveForK2+bitsToInterleaveForKLeaves);
+    uint64_t k_leaves_pre_bitmask = createBitmask(0, bitsToInterleaveForKLeaves);
+/*
+    std::cout << "k1_bitmask " << std::bitset<40>(k1_bitmask) << std::endl;
+    std::cout << "k2_bitmask " << std::bitset<40>(k2_bitmask) << std::endl;
+    std::cout << "kl_bitmask " << std::bitset<40>(k_leaves_bitmask) << std::endl;
+
+    std::cout << "k1_pre_bitmask " << std::bitset<40>(k1_pre_bitmask) << std::endl;
+    std::cout << "k2_pre_bitmask " << std::bitset<40>(k2_pre_bitmask) << std::endl;
+    std::cout << "kl_pre_bitmask " << std::bitset<40>(k_leaves_pre_bitmask) << std::endl;
+*/
+
+    auto first = (interleave<2>::bits(lhs.first >> rK1, lhs.second >> rK1) << lK1);
+    auto second = (interleave<2>::bits((lhs.first << lK2_f) >> rK2_f, (lhs.second << lK2_f) >> rK2_f) << lK2);
+    auto third = (interleave<4>::bits(lhs.first & k_leaves_pre_bitmask, lhs.second & k_leaves_pre_bitmask) & k_leaves_bitmask);
+
+    std::cout << "1: "<< bitset<8>(first) << endl;
+    std::cout << "2: " << bitset<8>(second) << endl;
+    std::cout << "3: " << bitset<8>(third) << endl;
+
+    return first | second | third;
+
+
+
+
+    /*uint64_t k1_bitmask = 17179852800;
+    uint64_t k2_bitmask = 16320;
+    uint k_leaves_bitmask = 63;
+    uint k1_pre_bitmask = 130944;
+    uint k2_pre_bitmask = 120;
+    uint k_leaves_pre_bitmask = 63;
+
+    auto first = interleave<4>::bits(lhs.first >> 7, lhs.second >> 7) << 14;
+    auto second = interleave<2>::bits((lhs.first << 25) >> 29, (lhs.second << 25) >> 29) << 6;
+    auto third = interleave<8>::bits(lhs.first & k_leaves_pre_bitmask, lhs.second & k_leaves_pre_bitmask);
+
+    std::cout << "first "<< bitset<34>(first) << endl;
+    std::cout << "second " << bitset<34>(second) << endl;
+    std::cout << "third " << bitset<34>(third) << endl;
+
+    first  = first & k1_bitmask;
+    second = second & k2_bitmask;
+    third  = third & k_leaves_bitmask;
+
+    std::cout << "first "<< bitset<34>(first) << endl;
+    std::cout << "second " << bitset<34>(second) << endl;
+    std::cout << "third " << bitset<34>(third) << endl;
+
+    return first | second | third;*/
+}
 int main()
 {
+    std::cout << bitset<32>(64) << " " << bitset<32>(43) << std::endl;
+    std::cout << bitset<32>(95) << " " << bitset<32>(155) << std::endl;
 
+    std::cout << test(make_pair((uint)1,(uint)2)) << std::endl;
+    std::cout << test(make_pair((uint)1,(uint)4)) << std::endl;
+
+
+    /*
     int asd = createBitmask(5,20);
-    std::cout << bitset<32>(asd) << endl;
+    std::cout << bitset<32>(asd) << endl;*/
     /*
     std::cout << bits::hi(2) << endl;
     std::cout << bits::hi(4) << endl;

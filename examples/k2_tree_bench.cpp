@@ -68,14 +68,14 @@ int main(int argc, char *argv[]) {
     
     const uint8_t k = 4;
 //    typedef k2_tree<k, bit_vector, bit_vector> tested_type;
-    typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> k2_rrr;
-    typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> tested_type;
-    //typedef k2_tree_partitioned<17, k2_rrr> tested_type;
+    typedef k2_tree_hybrid<4, 6, 2, 8, bit_vector, bit_vector> k2_rrr;
+    //typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> tested_type;
+    typedef k2_tree_partitioned<23, k2_rrr> tested_type;
     // Initialize treap with a vector of (x,y,weight) elements
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
 
     tested_type k2tree;
-    construction_algorithm construction = COUNTING_SORT; //should be determined by type automatically
+    construction_algorithm construction = ZORDER_SORT; //should be determined by type automatically
     bool use_shortcut = false;
     uint64_t peak_RSS;
     uint64_t peak_VMEM;

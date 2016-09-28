@@ -22,7 +22,7 @@ int main()
     typedef k2_tree_hybrid<2, 1, 2, 4> k2;
     //typedef k2_tree<2, bit_vector, bit_vector> k2;
     //typedef k2_tree_partitioned<2, k2> k2_rrr;
-    construction_algorithm  construction = ZORDERSORT;
+    construction_algorithm  construction = ZORDER_SORT;
 
     // Initialize treap with a vector of (x,y,weight) elements
     vector<pair<uint32_t, uint32_t>> coords = {{0,0},{0,1},{1,2},{1,3},{1,4},{7,6},{8,6},{8,9},{9,6},{9,8},{9,10},{10,6},{10,9}};//{{0,0},{0,1},{1,4},{1,3},{7,6},{1,2}};

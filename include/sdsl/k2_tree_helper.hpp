@@ -36,7 +36,7 @@
 namespace sdsl {
     typedef int_vector<>::size_type size_type;
 
-    enum construction_algorithm {COUNTING_SORT, PARTITIONBASED, ZORDERSORT};
+    enum construction_algorithm {COUNTING_SORT, PARTITIONBASED, ZORDER_SORT};
 
     std::string get_construction_name(construction_algorithm used_construction) {
         switch (used_construction) {
@@ -44,7 +44,7 @@ namespace sdsl {
                 return "Counting Sort";
             case PARTITIONBASED:
                 return "Partition Based";
-            case ZORDERSORT:
+            case ZORDER_SORT:
                 return "Z order sort";
             default:
                 return "unknown";
@@ -489,29 +489,29 @@ namespace sdsl {
 
         template<uint8_t t_k>
         struct interleave{
-            static uint64_t bits(const std::pair<uint, uint> point){
+            static uint64_t bits(const uint x, const uint y){
                 throw std::runtime_error("not yet implemented");
             }
         };
 
         template<>
         struct interleave<2>{
-            static uint64_t inline bits(const std::pair<uint32_t, uint32_t> point){
-                return interleave_bitwise<uint64_t, uint32_t>(point.second, point.first);
+            static uint64_t inline bits(const uint x, const uint y){
+                return interleave_bitwise<uint64_t, uint32_t>(y,x);
             }
         };
 
         template<>
         struct interleave<4>{
-            static uint64_t inline bits(const std::pair<uint32_t, uint32_t> point){
-                return interleave_2_bitwise<uint64_t, uint32_t>(point.second, point.first);
+            static uint64_t inline bits(const uint x, uint y){
+                return interleave_2_bitwise<uint64_t, uint32_t>(y,x);
             }
         };
 
         template<>
         struct interleave<8>{
-            static uint64_t inline bits(const std::pair<uint32_t, uint32_t> point){
-                return interleave_3_bitwise<uint64_t, uint32_t>(point.second, point.first);
+            static uint64_t inline bits(const uint x, uint y){
+                return interleave_3_bitwise<uint64_t, uint32_t>(y,x);
             }
         };
 

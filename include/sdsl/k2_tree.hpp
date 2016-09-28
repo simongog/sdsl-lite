@@ -293,7 +293,7 @@ namespace sdsl {
                 case PARTITIONBASED:
                     this->construct(v, temp_file_prefix);
                     break;
-                case ZORDERSORT:
+                case ZORDER_SORT:
                     construct_by_z_order_sort_internal(v, temp_file_prefix);
                     break;
             }
@@ -330,7 +330,7 @@ namespace sdsl {
 
             std::cout << "Sorting By Z Order" << std::endl;
             __gnu_parallel::sort(links.begin(), links.end(), [&](const t_e &lhs, const t_e &rhs) {
-                return interleave<t_k>::bits(lhs) < interleave<t_k>::bits(rhs);
+                return interleave<t_k>::bits(lhs.first, lhs.second) < interleave<t_k>::bits(lhs.first, lhs.second);
             });
 
             std::cout << "Sorting Finished, Constructing Bitvectors" << std::endl;
