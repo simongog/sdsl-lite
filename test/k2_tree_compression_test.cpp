@@ -1,4 +1,6 @@
-#include "sdsl/k2_tree_algorithm.hpp"
+#include <sdsl/k2_tree.hpp>
+#include <sdsl/k2_tree_hybrid.hpp>
+#include <sdsl/k2_tree_partitioned.hpp>
 #include "gtest/gtest.h"
 #include "k2_tree_test_helper.hpp"
 
@@ -37,9 +39,9 @@ namespace {
             hybrid_k2_2222_b_comp,
             hybrid_k2_4524_b_comp,
             hybrid_k2_8528_b_rrr_comp,
-            k2_tree_partitioned<2, k2>,
-            k2_tree_partitioned<4, k8>,
-            k2_tree_partitioned<4, hybrid_k2_4524_b>
+            k2_tree_partitioned<18, k2>,
+            k2_tree_partitioned<18, k8>,
+            k2_tree_partitioned<18, hybrid_k2_4524_b>
     > Implementations;
 
     TYPED_TEST_CASE(k2_tree_compression_test, Implementations);
@@ -47,7 +49,7 @@ namespace {
     TYPED_TEST(k2_tree_compression_test, CreateAndStoreTest) {
         int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
-        TypeParam k2treap(buf_x, buf_y);
+        TypeParam k2treap(buf_x, buf_y, COUNTING_SORT);
         //construct(k2treap, test_file);
         ASSERT_TRUE(store_to_file(k2treap, temp_file));
         TypeParam k2treap2;

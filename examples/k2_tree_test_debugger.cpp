@@ -6,10 +6,12 @@
 #include <ios>
 #include <iostream>
 #include <vector>
+#include <sdsl/k2_tree_algorithm.hpp>
 #include <sdsl/vectors.hpp>
 #include <sdsl/k2_tree.hpp>
 #include <sdsl/k2_tree_partitioned.hpp>
 #include <sdsl/k2_tree_hybrid.hpp>
+
 
 using namespace std;
 using namespace sdsl;
@@ -19,14 +21,13 @@ string temp_file;
 bool in_memory;
 
 void performTest(){
-    int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
-    int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
-    //typedef k2_tree<2, bit_vector, bit_vector, false, 2> k2;
+    //typedef k2_tree<2, bit_vector, bit_vector, false, 2k2> k2;
     //typedef k2_tree<2, bit_vector, rrr_vector<63>, false, 4> k2;
 
     typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, rrr_vector<63>> k2;
     //k2_tree_partitioned<2, k2, true> failingK(buf_x, buf_y, false);
-    k2 compare(buf_x, buf_y, false);
+    k2 compare;
+    construct(compare, test_file);
 
     std::vector<uint> result;
     compare.direct_links_shortcut((uint) 39066, result);

@@ -1,5 +1,8 @@
 #include <chrono>
-#include "sdsl/k2_tree_algorithm.hpp"
+#include <sdsl/int_vector.hpp>
+#include <sdsl/k2_tree_hybrid.hpp>
+#include <sdsl/k2_tree.hpp>
+#include <sdsl/k2_tree_partitioned.hpp>
 #include "gtest/gtest.h"
 
 namespace {
@@ -65,30 +68,30 @@ namespace {
 
     using testing::Types;
 
-    typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, bit_vector, true> hybrid_k2_2222_b_comp;
-    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector, true> hybrid_k2_4524_b_comp;
+    typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, bit_vector> hybrid_k2_2222_b_comp;
+    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector> hybrid_k2_4524_b_comp;
     //typedef k2_tree_hybrid<8, 5, 2, 4, bit_vector, bit_vector, true> hybrid_k2_8524_b_comp;
-    typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, bit_vector, true> hybrid_k2_8528_b_comp;
-    typedef k2_tree_hybrid<8, 3, 2, 8, bit_vector, bit_vector, true> hybrid_k2_8328_b_comp;
+    typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, bit_vector> hybrid_k2_8528_b_comp;
+    typedef k2_tree_hybrid<8, 3, 2, 8, bit_vector, bit_vector> hybrid_k2_8328_b_comp;
     //typedef k2_tree_hybrid<8, 3, 2, 4, bit_vector, bit_vector, true> hybrid_k2_8324_b_comp;
-    typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector, true> hybrid_k2_4528_b_comp;
-    typedef k2_tree_hybrid<4, 6, 2, 4, bit_vector, bit_vector, true> hybrid_k2_4624_b_comp;
-    typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, bit_vector, true> hybrid_k2_2528_b_comp;
-    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, bit_vector, true> hybrid_k2_165216_b_comp;
+    typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> hybrid_k2_4528_b_comp;
+    typedef k2_tree_hybrid<4, 6, 2, 4, bit_vector, bit_vector> hybrid_k2_4624_b_comp;
+    typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, bit_vector> hybrid_k2_2528_b_comp;
+    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, bit_vector> hybrid_k2_165216_b_comp;
     //typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, bit_vector, true> hybrid_k2_8523_b_comp;
-    typedef k2_tree_hybrid<3, 5, 2, 4, bit_vector, bit_vector, true> hybrid_k2_3524_b_comp;
+    typedef k2_tree_hybrid<3, 5, 2, 4, bit_vector, bit_vector> hybrid_k2_3524_b_comp;
     //typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, bit_vector, false> hybrid_k2_2222_b;
-    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector, false> hybrid_k2_4524_b;
-    typedef k2_tree_hybrid<4, 6, 2, 4, bit_vector, bit_vector, false> hybrid_k2_4624_b;
-    typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, bit_vector, false> hybrid_k2_2528_b;
-    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, bit_vector, false> hybrid_k2_165216_b;
-    typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, bit_vector, false> hybrid_k2_8523_b;
+    typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, bit_vector> hybrid_k2_4524_b;
+    typedef k2_tree_hybrid<4, 6, 2, 4, bit_vector, bit_vector> hybrid_k2_4624_b;
+    typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, bit_vector> hybrid_k2_2528_b;
+    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, bit_vector> hybrid_k2_165216_b;
+    typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, bit_vector> hybrid_k2_8523_b;
     //typedef k2_tree_hybrid<3, 5, 2, 4, bit_vector, bit_vector, false> hybrid_k2_3524_b;
     //typedef k2_tree_hybrid<8, 5, 2, 4, bit_vector, bit_vector, false> hybrid_k2_8524_b;
-    typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, bit_vector, false> hybrid_k2_8528_b;
-    typedef k2_tree_hybrid<8, 3, 2, 8, bit_vector, bit_vector, false> hybrid_k2_8328_b;
+    typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, bit_vector> hybrid_k2_8528_b;
+    typedef k2_tree_hybrid<8, 3, 2, 8, bit_vector, bit_vector> hybrid_k2_8328_b;
     //typedef k2_tree_hybrid<8, 3, 2, 4, bit_vector, bit_vector, false> hybrid_k2_8324_b;
-    typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector, false> hybrid_k2_4528_b;
+    typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> hybrid_k2_4528_b;
 
 
     typedef k2_tree<2, bit_vector> k2;
@@ -99,42 +102,42 @@ namespace {
     typedef k2_tree<8, bit_vector> k8;
     typedef k2_tree<16, bit_vector> k16;
 
-    typedef k2_tree<2, bit_vector, bit_vector, true> k2_comp;
-    typedef k2_tree<3, bit_vector, bit_vector, true> k3_comp;
-    typedef k2_tree<4, bit_vector, bit_vector, true> k4_comp;
-    typedef k2_tree<6, bit_vector, bit_vector, true> k6_comp;
-    typedef k2_tree<8, bit_vector, bit_vector, true> k8_comp;
-    typedef k2_tree<16, bit_vector, bit_vector, true> k16_comp;
+    typedef k2_tree<2, bit_vector, bit_vector> k2_comp;
+    typedef k2_tree<3, bit_vector, bit_vector> k3_comp;
+    typedef k2_tree<4, bit_vector, bit_vector> k4_comp;
+    typedef k2_tree<6, bit_vector, bit_vector> k6_comp;
+    typedef k2_tree<8, bit_vector, bit_vector> k8_comp;
+    typedef k2_tree<16, bit_vector, bit_vector> k16_comp;
 
-    typedef k2_tree<2, bit_vector, bit_vector, true, 2> k2_comp_2;
-    typedef k2_tree<4, bit_vector, bit_vector, true, 2> k4_comp_2;
-    typedef k2_tree<8, bit_vector, bit_vector, true, 2> k8_comp_2;
-    typedef k2_tree<16, bit_vector, bit_vector, true, 2> k16_comp_2;
+    typedef k2_tree<2, bit_vector, bit_vector> k2_comp_2;
+    typedef k2_tree<4, bit_vector, bit_vector> k4_comp_2;
+    typedef k2_tree<8, bit_vector, bit_vector> k8_comp_2;
+    typedef k2_tree<16, bit_vector, bit_vector> k16_comp_2;
 
-    typedef k2_tree<2, bit_vector, bit_vector, true, 4> k2_comp_4;
-    typedef k2_tree<4, bit_vector, bit_vector, true, 4> k4_comp_4;
-    typedef k2_tree<8, bit_vector, bit_vector, true, 4> k8_comp_4;
-    typedef k2_tree<16, bit_vector, bit_vector, true, 4> k16_comp_4;
+    typedef k2_tree<2, bit_vector, bit_vector> k2_comp_4;
+    typedef k2_tree<4, bit_vector, bit_vector> k4_comp_4;
+    typedef k2_tree<8, bit_vector, bit_vector> k8_comp_4;
+    typedef k2_tree<16, bit_vector, bit_vector> k16_comp_4;
 
 
-    typedef k2_tree<8, bit_vector, bit_vector, true, 5> k8_comp_5;
+    typedef k2_tree<8, bit_vector, bit_vector> k8_comp_5;
     //typedef k2_tree<2, bit_vector, bit_vector, true, 8> k2_comp_8;
     //typedef k2_tree<4, bit_vector, bit_vector, true, 8> k4_comp_8;
 
 
-    typedef k2_tree<2, bit_vector, bit_vector, false, 2> k2_2;
-    typedef k2_tree<4, bit_vector, bit_vector, false, 2> k4_2;
-    typedef k2_tree<8, bit_vector, bit_vector, false, 2> k8_2;
-    typedef k2_tree<16, bit_vector, bit_vector, false, 2> k16_2;
+    typedef k2_tree<2, bit_vector, bit_vector> k2_2;
+    typedef k2_tree<4, bit_vector, bit_vector> k4_2;
+    typedef k2_tree<8, bit_vector, bit_vector> k8_2;
+    typedef k2_tree<16, bit_vector, bit_vector> k16_2;
 
-    typedef k2_tree<2, bit_vector, bit_vector, false, 4> k2_4;
+    typedef k2_tree<2, bit_vector, bit_vector> k2_4;
     //typedef k2_tree<4, bit_vector, bit_vector, false, 4> k4_4;
     //typedef k2_tree<8, bit_vector, bit_vector, false, 4> k8_4;
     //typedef k2_tree<16, bit_vector, bit_vector, false, 4> k16_4;
 
 
     //typedef k2_tree<8, bit_vector, bit_vector, false, 5> k8_5;
-    typedef k2_tree<2, bit_vector, bit_vector, false, 8> k2_8;
+    typedef k2_tree<2, bit_vector, bit_vector> k2_8;
     //typedef k2_tree<4, bit_vector, bit_vector, false, 8> k4_8;
 
     typedef Types<
@@ -204,19 +207,19 @@ namespace {
             //hybrid_k2_8523_b_comp,
             hybrid_k2_3524_b_comp,
 
-            k2_tree_partitioned<4,hybrid_k2_4524_b,true>,
-            k2_tree_partitioned<4,hybrid_k2_4528_b,true>,
-            k2_tree_partitioned<4,hybrid_k2_8528_b,true>,
-            k2_tree_partitioned<4,hybrid_k2_8328_b,true>,
-            k2_tree_partitioned<4,hybrid_k2_4624_b,true>,
-            k2_tree_partitioned<4,hybrid_k2_2528_b,true>,
-            k2_tree_partitioned<4,hybrid_k2_165216_b,true>,
-            k2_tree_partitioned<4,hybrid_k2_8523_b,true>,
+            k2_tree_partitioned<4,hybrid_k2_4524_b>,
+            k2_tree_partitioned<4,hybrid_k2_4528_b>,
+            k2_tree_partitioned<4,hybrid_k2_8528_b>,
+            k2_tree_partitioned<4,hybrid_k2_8328_b>,
+            k2_tree_partitioned<4,hybrid_k2_4624_b>,
+            k2_tree_partitioned<4,hybrid_k2_2528_b>,
+            k2_tree_partitioned<4,hybrid_k2_165216_b>,
+            k2_tree_partitioned<4,hybrid_k2_8523_b>,
 
-            k2_tree_partitioned<8,hybrid_k2_4524_b,true>,
-            k2_tree_partitioned<8,hybrid_k2_4528_b,true>,
-            k2_tree_partitioned<8,hybrid_k2_8528_b,true>,
-            k2_tree_partitioned<8,hybrid_k2_8328_b,true>,
+            k2_tree_partitioned<8,hybrid_k2_4524_b>,
+            k2_tree_partitioned<8,hybrid_k2_4528_b>,
+            k2_tree_partitioned<8,hybrid_k2_8528_b>,
+            k2_tree_partitioned<8,hybrid_k2_8328_b>,
             k2_tree_partitioned<8,hybrid_k2_4624_b>,
             k2_tree_partitioned<8,hybrid_k2_2528_b>,
             k2_tree_partitioned<8,hybrid_k2_165216_b>,

@@ -8,7 +8,6 @@
 #include <string>
 #include <complex>
 #include <sdsl/k2_tree.hpp>
-#include <sdsl/k2_tree_algorithm.hpp>
 #include <sdsl/bit_vectors.hpp>
 #include <sys/times.h>
 
@@ -110,7 +109,7 @@ int main(int argc, char *argv[]) {
         start_clock();
         // Initialize treap with a vector of (x,y,weight) elements
         //construct_im(k2treap, coordinates, numberOfNodes - 1);
-        k2_rrr k2treap("", false, coordinates, numberOfNodes-1);
+        k2_rrr k2treap(coordinates, COUNTING_SORT, numberOfNodes-1);
 
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds

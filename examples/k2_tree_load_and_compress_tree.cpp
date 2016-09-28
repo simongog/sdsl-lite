@@ -4,10 +4,11 @@
 #include <string>
 #include <complex>
 #include <sdsl/k2_tree.hpp>
-#include <sdsl/k2_tree_algorithm.hpp>
 #include <sdsl/bit_vectors.hpp>
 #include <chrono>
 #include <sys/times.h>
+#include <sdsl/k2_tree_hybrid.hpp>
+#include <sdsl/k2_tree_partitioned.hpp>
 
 using namespace std::chrono;
 using timer = std::chrono::high_resolution_clock;
@@ -48,7 +49,7 @@ int main(int argc, char *argv[]) {
     std::string output_file_name(argv[2]);
     store_to_file(k2tree, output_file_name);
 
-    write_structure<HTML_FORMAT>(k2tree, output_file_name + + "("+ k2tree.get_type_string()+ ")" + ".html");
+    write_structure<HTML_FORMAT>(k2tree, output_file_name + "("+ k2tree.get_type_string()+ ")" + ".html");
 
 
 

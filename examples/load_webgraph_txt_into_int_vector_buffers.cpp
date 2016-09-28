@@ -6,7 +6,6 @@
 #include <vector>
 #include <tuple>
 #include <complex>
-#include <sdsl/k2_tree_algorithm.hpp>
 #include <sys/times.h>
 #include <sdsl/k2_tree_hybrid.hpp>
 

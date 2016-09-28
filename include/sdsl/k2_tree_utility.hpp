@@ -31,6 +31,14 @@ namespace  sdsl {
         write_structure<HTML_FORMAT>(tree, file_name + "(" + tree.get_type_string() + ")" + ".html");
     }
 
+    bool has_ending(std::string const &fullString, std::string const &ending) {
+        if (fullString.length() >= ending.length()) {
+            return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
+        } else {
+            return false;
+        }
+    }
+
     template <typename k2tree>
     access_times perform_speed_test(std::string query_file, k2tree& tree, bool use_shortcut = false){
         if(!has_ending(query_file, ".queries")){

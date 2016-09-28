@@ -6,7 +6,6 @@
 #define INCLUDED_SDSL_K2_TREE_TEST_HELPER
 
 #include "gtest/gtest.h"
-#include "sdsl/k2_tree_algorithm.hpp"
 #include "sdsl/vectors.hpp"
 #include "sdsl/io.hpp"
 

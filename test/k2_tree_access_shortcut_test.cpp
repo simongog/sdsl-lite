@@ -1,4 +1,7 @@
-#include "sdsl/k2_tree_algorithm.hpp"
+#include <sdsl/rrr_vector.hpp>
+#include <sdsl/k2_tree_hybrid.hpp>
+#include <sdsl/k2_tree.hpp>
+#include <sdsl/k2_tree_partitioned.hpp>
 #include "gtest/gtest.h"
 #include "k2_tree_test_helper.hpp"
 
@@ -22,7 +25,7 @@ namespace {
     typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, rrr_vector<63>> hybrid_k2_2222_b_rrr;
     typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_4524_b_rrr;
     typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_2528_b_rrr;
-    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, rrr_vector<63>> hybrid_k2_165216_b_rrr;
+    typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_8528_b_rrr;
     typedef k2_tree<2, bit_vector, bit_vector> k2comp;
     typedef k2_tree<2, bit_vector, bit_vector> k2;
     typedef k2_tree<2, bit_vector, rrr_vector<63>> k2rrr;
@@ -37,10 +40,10 @@ namespace {
             hybrid_k2_2222_b_rrr,
             hybrid_k2_4524_b_rrr,
             hybrid_k2_2528_b_rrr,
-            hybrid_k2_165216_b_rrr,
-            k2_tree_partitioned<2, hybrid_k2_4524_b_rrr>,
-            k2_tree_partitioned<3, hybrid_k2_2528_b_rrr>,
-            k2_tree_partitioned<4, hybrid_k2_165216_b_rrr>
+            hybrid_k2_8528_b_rrr,
+            k2_tree_partitioned<18, hybrid_k2_4524_b_rrr>,
+            k2_tree_partitioned<18, hybrid_k2_2528_b_rrr>,
+            k2_tree_partitioned<18, hybrid_k2_8528_b_rrr>
     > Implementations;
 
     TYPED_TEST_CASE(k2_tree_access_shortcut_test, Implementations);
@@ -49,7 +52,7 @@ namespace {
         int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
         try {
-            TypeParam k2treap(buf_x, buf_y, false);
+            TypeParam k2treap(buf_x, buf_y, COUNTING_SORT);
             //construct(k2treap,k test_file);
             ASSERT_TRUE(store_to_file(k2treap, temp_file));
             TypeParam k2treap2;

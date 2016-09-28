@@ -7,9 +7,9 @@
 #include <tuple>
 #include <complex>
 #include <sdsl/k2_tree_hybrid.hpp>
-#include <sdsl/k2_tree_algorithm.hpp>
 #include <sys/times.h>
 #include <sdsl/k2_tree_hybrid.hpp>
+#include <sdsl/k2_tree_partitioned.hpp>
 
 
 using std::ifstream;
@@ -112,9 +112,8 @@ int main(int argc, char *argv[]) {
         ticks = (double) sysconf(_SC_CLK_TCK);
         start_clock();
         // Initialize treap with a vector of (x,y,weight) elements
-        k2_part k2tree_part;
 
-    	construct_im_bottom_up(k2tree_part, coordinates, numberOfNodes - 1);
+    	k2_part k2tree_part(coordinates, COUNTING_SORT, numberOfNodes - 1);
 
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds

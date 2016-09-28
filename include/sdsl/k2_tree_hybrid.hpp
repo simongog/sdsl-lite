@@ -72,7 +72,7 @@ namespace sdsl {
         }
 
         template<typename t_vector>
-        k2_tree_hybrid(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint = 0) {
+        k2_tree_hybrid(t_vector &v, construction_algorithm construction_algo, uint64_t max_hint = 0, std::string temp_file_prefix = "") {
 
             using namespace k2_treap_ns;
             if (v.size() > 0) {
@@ -82,19 +82,14 @@ namespace sdsl {
                 this->m_tree_height = get_tree_height(max_hint);
                 initialize_shift_table();
 
-                if (use_counting_sort) {
-                    construct_counting_sort(v);
-                    //construct_bottom_up(v, temp_file_prefix);
-                } else {
-                    this->construct(v, temp_file_prefix);
-                }
+                choose_construction_algorithm(v, construction_algo, temp_file_prefix);
 
                 this->post_init();
             }
         }
 
         k2_tree_hybrid(int_vector_buffer<> &buf_x,
-                       int_vector_buffer<> &buf_y, bool use_counting_sort = false, uint64_t max_hint = 0)  {
+                       int_vector_buffer<> &buf_y, construction_algorithm construction_algo, uint64_t max_hint = 0)  {
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
 
@@ -132,22 +127,11 @@ namespace sdsl {
             initialize_shift_table();
 
             if (this->m_max_element <= std::numeric_limits<uint32_t>::max()) {
-                auto v = read<uint32_t, uint32_t>(
-                        bufs);
-                if (use_counting_sort) {
-                    construct_counting_sort(v);
-                } else {
-                    this->construct(v, buf_x.filename());
-                }
-
+                auto v = read<uint32_t, uint32_t>(bufs);
+                choose_construction_algorithm(v, construction_algo, buf_x.filename());
             } else {
-                auto v = read<uint64_t, uint64_t>(
-                        bufs);
-                if (use_counting_sort) {
-                    construct_counting_sort(v);
-                } else {
-                    this->construct(v, buf_x.filename());
-                }
+                auto v = read<uint64_t, uint64_t>(bufs);
+                choose_construction_algorithm(v, construction_algo, buf_x.filename());
             }
 
             this->post_init();
@@ -271,7 +255,7 @@ namespace sdsl {
         }
 
         //hack a the moment, because construct cannot be virtual
-        void load_from_ladrabin(std::string fileName, bool use_counting_sort = false, uint8_t access_shortcut_size = 0, std::string temp_file_prefix = "") {
+        void load_from_ladrabin(std::string fileName, construction_algorithm construction_algo = COUNTING_SORT, uint8_t access_shortcut_size = 0, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
             if (!has_ending(fileName, ".ladrabin")) {
                 fileName.append(".ladrabin");
@@ -312,13 +296,7 @@ namespace sdsl {
                 fileStream.close();
 
                 if (coords.size() > 0) {
-                    /*if (use_counting_sort) {
-                        construct_counting_sort(coords);
-                        //construct_bottom_up(v, temp_file_prefix);
-                    } else {
-                        this->construct(coords, temp_file_prefix);
-                    }*/
-                    construct_by_z_order_sort_internal(coords, temp_file_prefix);
+                    choose_construction_algorithm(coords, construction_algo, temp_file_prefix);
 
                     std::cout << "Finished Construction" << std::endl;
 
@@ -395,10 +373,12 @@ namespace sdsl {
          * @param links
          * @param temp_file_prefix
          */
-        template<typename t_x, typename t_y>
+        template<typename t_vector>
         void
-        construct_by_z_order_sort_internal(std::vector<std::pair<t_x, t_y>> &links, std::string temp_file_prefix = "") {
+        construct_by_z_order_sort_internal(t_vector &links, std::string temp_file_prefix = "") {
             using namespace k2_treap_ns;
+            typedef decltype(links[0].first) t_x;
+            typedef decltype(links[0].second) t_y;
             using t_e = std::pair<t_x, t_y>;
 
             this->m_size = links.size();
@@ -426,7 +406,7 @@ namespace sdsl {
                 auto k = get_k(ctr);
                 if (k == t_k_l_1){
                     levels_with_k1++;
-                } else if (k = t_k_l_2) {
+                } else if (k == t_k_l_2) {
                     levels_with_k2++;
                 }
                 ctr++;
@@ -438,20 +418,21 @@ namespace sdsl {
 
             //bitsOfMaximalValue might be < 8*max(sizeof(t_x),sizeof(t_y))
             t_x bitsOfMaximalValue = bitsToInterleaveForK1+bitsToInterleaveForK2+bitsToInterleaveForKLeaves;
-            const int bits = bitsOfMaximalValue <= 32 ? 32 : 64;
+            /*const int bits = bitsOfMaximalValue <= 32 ? 32 : 64;
 
             auto rK1 = bitsOfMaximalValue-bitsToInterleaveForK1;
-            auto lK1 = 2*bitsOfMaximalValue-2*bitsToInterleaveForK1;
+            auto lK1 = 2*bitsOfMaximalValue-2*bitsToInterleaveForK1;*/
 
             //set to one between 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves) and 2*bitsOfMaximalValue
             t_x k1_bitmask = createBitmask(2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves), 2*bitsOfMaximalValue);
             t_x k2_bitmask = createBitmask(2*(bitsToInterleaveForKLeaves), 2*(bitsToInterleaveForK2+bitsToInterleaveForKLeaves));
-            t_x k_leaves_bitmask = createBitmask(0, 2*(bitsToInterleaveForKLeaves));
+            t_x k_leaves_bitmask = createBitmask(t_x(0), 2*(bitsToInterleaveForKLeaves));
 
             std::cout << "Sorting By Z Order" << std::endl;
             __gnu_parallel::sort(links.begin(), links.end(), [&](const t_e &lhs, const t_e &rhs) {
-
-                return (interleave<t_k_l_1>::bits(lhs>>rK1, rhs>>rK1) << lK1 )|| interleave<t_k_l_2>::bits(lhs, rhs) || interleave<t_k_leaves>::bits(lhs, rhs);
+                return ((interleave<t_k_l_1>::bits(lhs) & k1_bitmask) | (interleave<t_k_l_2>::bits(lhs) & k2_bitmask) | (interleave<t_k_leaves>::bits(lhs) & k_leaves_bitmask))
+                        < ((interleave<t_k_l_1>::bits(rhs) & k1_bitmask) | (interleave<t_k_l_2>::bits(rhs) & k2_bitmask) | (interleave<t_k_leaves>::bits(rhs) & k_leaves_bitmask));
+                //return (t_k_leaves * divexp(lhs.first, 0) + divexp(lhs.second, 0) < (t_k_leaves * divexp(rhs.first, 0) + divexp(rhs.second, 0)));
             });
 
             std::cout << "Sorting Finished, Constructing Bitvectors" << std::endl;
@@ -467,7 +448,7 @@ namespace sdsl {
                 t_x subtree_distance;
                 bool fill_to_k2_entries = false; //begin extra case!
                 std::vector<uint> gap_to_k2(this->m_tree_height);
-                for (int i = 0; i < gap_to_k2.size(); ++i) {
+                for (uint i = 0; i < gap_to_k2.size(); ++i) {
                     gap_to_k2[i] = get_k(i) * get_k(i);
                 }
                 bool firstLink = true;
@@ -478,6 +459,7 @@ namespace sdsl {
                 std::pair<t_x, t_y> previous_link;
                 for (auto &current_link: links) {
                     auto tmp = std::make_pair(current_link.first, current_link.second);
+
                     for (uint current_level = 0; current_level < this->m_tree_height; ++current_level) {
                         current_subtree_number = calculate_subtree_number_and_new_relative_coordinates(current_link,
                                                                                                        current_level);
@@ -496,7 +478,7 @@ namespace sdsl {
                                 gap_to_k2[current_level] = get_k(current_level), get_k(current_level);
                             }
 
-                            for (int j = 0; j < subtree_distance - 1; ++j) {
+                            for (uint j = 0; j < subtree_distance - 1; ++j) {
                                 level_buffers[current_level].push_back(0);
                                 gap_to_k2[current_level]--;
                             }
@@ -541,6 +523,23 @@ namespace sdsl {
         }
 
     private:
+        //FIXME: declared here and in k2_tree as a workaround, because virtual template methods are not possible
+        template<typename t_vector>
+        void choose_construction_algorithm(t_vector &v, const construction_algorithm construction_algo, const std::string &temp_file_prefix = 0) {
+            std::cout << "Constructing using " << get_construction_name(construction_algo);
+            switch (construction_algo){
+                case COUNTING_SORT:
+                    this->construct_counting_sort(v);
+                    break;
+                case PARTITIONBASED:
+                    this->construct(v, temp_file_prefix);
+                    break;
+                case ZORDERSORT:
+                    construct_by_z_order_sort_internal(v, temp_file_prefix);
+                    break;
+            }
+        }
+
         /**
         * Calculates the corresponding subtree of link on a given level as well as
         * the new relative coordinates (relative to the upper left corner of the corresponding submatrix)

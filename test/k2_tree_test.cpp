@@ -22,16 +22,11 @@ namespace {
     typedef k2_tree_hybrid<2, 2, 2, 2, bit_vector, rrr_vector<63>> hybrid_k2_2222_b_rrr;
     typedef k2_tree_hybrid<4, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_4524_b_rrr;
     typedef k2_tree_hybrid<2, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_2528_b_rrr;
-    typedef k2_tree_hybrid<16, 5, 2, 16, bit_vector, rrr_vector<63>> hybrid_k2_165216_b_rrr;
     typedef k2_tree_hybrid<8, 5, 2, 8, bit_vector, rrr_vector<63>> hybrid_k2_8523_b_rrr;
-    typedef k2_tree_hybrid<3, 5, 2, 4, bit_vector, rrr_vector<63>> hybrid_k2_3524_b_rrr;
     typedef k2_tree<2, bit_vector> k2;
     typedef k2_tree<2, rrr_vector<63>> k2rrr;
-    typedef k2_tree<3, bit_vector> k3;
     typedef k2_tree<4, bit_vector> k4;
-    typedef k2_tree<6, bit_vector> k6;
     typedef k2_tree<8, bit_vector> k8;
-    typedef k2_tree<16, bit_vector> k16;
 
     typedef Types<
             /*k2,
@@ -41,24 +36,19 @@ namespace {
             k6,
             k8,
             k16,*/
-            k2_tree_partitioned<2, k2>,
-            k2_tree_partitioned<4, k2rrr>,
-            k2_tree_partitioned<3, k3>,
-            k2_tree_partitioned<8, k4>,
-            k2_tree_partitioned<16,k6>,
-            k2_tree_partitioned<16,k8>,
-            k2_tree_partitioned<16,k16>,/*
+            k2_tree_partitioned<18, k2>,
+            k2_tree_partitioned<18, k2rrr>,
+            k2_tree_partitioned<18, k4>,
+            k2_tree_partitioned<16,k8>,/*
             hybrid_k2_2222_b_rrr,
             hybrid_k2_4524_b_rrr,
             hybrid_k2_2528_b_rrr,
             hybrid_k2_165216_b_rrr,
             hybrid_k2_8523_b_rrr,
             hybrid_k2_3524_b_rrr,*/
-            k2_tree_partitioned<2,hybrid_k2_4524_b_rrr>,
-            k2_tree_partitioned<3,hybrid_k2_2528_b_rrr>,
-            k2_tree_partitioned<4,hybrid_k2_165216_b_rrr>,
-            k2_tree_partitioned<8,hybrid_k2_8523_b_rrr>,
-            k2_tree_partitioned<16,hybrid_k2_3524_b_rrr>
+            k2_tree_partitioned<18,hybrid_k2_4524_b_rrr>,
+            k2_tree_partitioned<16,hybrid_k2_2528_b_rrr>,
+            k2_tree_partitioned<18,hybrid_k2_8523_b_rrr>
     > Implementations;
 
     TYPED_TEST_CASE(k2_tree_test, Implementations);
@@ -66,7 +56,7 @@ namespace {
     TYPED_TEST(k2_tree_test, CreateAndStoreTest) {
         int_vector_buffer<> buf_x(test_file + ".x", std::ios::in);
         int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
-        TypeParam k2treap(buf_x, buf_y, false);
+        TypeParam k2treap(buf_x, buf_y, PARTITIONBASED);
         //construct(k2treap, test_file);
         ASSERT_TRUE(store_to_file(k2treap, temp_file));
         TypeParam k2treap2;
@@ -79,8 +69,8 @@ namespace {
         int_vector_buffer<> buf_y(test_file + ".y", std::ios::in);
         TypeParam k2treap;
         TypeParam k2treap2;
-        construct(k2treap, test_file);
-        construct_bottom_up(k2treap2, test_file);
+        construct(k2treap, test_file, PARTITIONBASED);
+        construct(k2treap2, test_file, COUNTING_SORT);
         std::cout << "Comparing Results" << std::endl;
 
         if (!( k2treap == k2treap2)){

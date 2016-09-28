@@ -6,9 +6,11 @@
 #include <vector>
 #include <tuple>
 #include <string>
-#include <sdsl/k2_tree_algorithm.hpp>
 #include <sys/times.h>
-#include "sdsl/k2_tree_utility.hpp"
+#include <sdsl/k2_tree_utility.hpp>
+#include "sdsl/k2_tree_hybrid.hpp"
+#include "sdsl/k2_tree_partitioned.hpp"
+#include "sdsl/k2_tree.hpp"
 
 using std::ifstream;
 using std::cout;
@@ -67,12 +69,13 @@ int main(int argc, char *argv[]) {
     const uint8_t k = 4;
 //    typedef k2_tree<k, bit_vector, bit_vector> tested_type;
     typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> k2_rrr;
-    typedef k2_tree_partitioned<17, k2_rrr> tested_type;
+    typedef k2_tree_hybrid<4, 5, 2, 8, bit_vector, bit_vector> tested_type;
+    //typedef k2_tree_partitioned<17, k2_rrr> tested_type;
     // Initialize treap with a vector of (x,y,weight) elements
     //construct_im(k2treap, coordinates, numberOfNodes - 1);
 
     tested_type k2tree;
-    bool counting_sort = true; //should be determined by type automatically
+    construction_algorithm construction = COUNTING_SORT; //should be determined by type automatically
     bool use_shortcut = false;
     uint64_t peak_RSS;
     uint64_t peak_VMEM;
@@ -81,7 +84,7 @@ int main(int argc, char *argv[]) {
         mem_monitor mem_monitor1("bench_script_mem");
         memory_monitor::start();
         auto start = timer::now();
-        k2tree.load_from_ladrabin(file_name, counting_sort);
+        k2tree.load_from_ladrabin(file_name, construction);
         auto stop = timer::now();
         memory_monitor::stop();
         auto status = mem_monitor1.get_current_stats();

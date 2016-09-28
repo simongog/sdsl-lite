@@ -2,6 +2,7 @@
 #define INCLUDED_SDSL_K2_TREE_PARTITONED
 
 #include "vectors.hpp"
+#include "k2_tree_utility.hpp"
 #include "bits.hpp"
 #include <tuple>
 #include <algorithm>
@@ -58,7 +59,7 @@ namespace sdsl {
         }*/
 
         template<typename t_vector>
-        k2_tree_partitioned(std::string temp_file_prefix, bool use_counting_sort, t_vector &v, uint64_t max_hint=0){
+        k2_tree_partitioned(t_vector &v, construction_algorithm construction_algo, uint64_t max_hint=0, std::string temp_file_prefix = ""){
             //FIXME: build multiple k trees
             //partition into k02 parts
             using namespace k2_treap_ns;
@@ -71,11 +72,11 @@ namespace sdsl {
 
 
             calculate_matrix_dimension_and_submatrix_count();
-            build_k2_trees(v, temp_file_prefix, use_counting_sort);
+            build_k2_trees(v, temp_file_prefix, construction_algo);
         }
 
         k2_tree_partitioned(int_vector_buffer<> &buf_x,
-                            int_vector_buffer<> &buf_y, bool use_counting_sort=false, uint64_t max_hint = 0){
+                            int_vector_buffer<> &buf_y, construction_algorithm construction_algo, uint64_t max_hint = 0){
             using namespace k2_treap_ns;
             typedef int_vector_buffer<> *t_buf_p;
             std::vector<t_buf_p> bufs = {&buf_x, &buf_y};
@@ -108,10 +109,10 @@ namespace sdsl {
 
             if (m_max_element <= std::numeric_limits<uint32_t>::max()) {
                 auto v = read < uint32_t, uint32_t>(bufs);
-                build_k2_trees(v, buf_x.filename(), use_counting_sort);
+                build_k2_trees(v, buf_x.filename(), construction_algo);
             } else {
                 auto v = read < uint64_t, uint64_t>(bufs);
-                build_k2_trees(v, buf_x.filename(), use_counting_sort);
+                build_k2_trees(v, buf_x.filename(), construction_algo);
             }
         }
 
@@ -448,7 +449,7 @@ namespace sdsl {
             }
         }
 
-        void load_from_ladrabin(std::string fileName, bool use_counting_sort = false, uint8_t access_shortcut_size = 0, std::string temp_file_prefix = ""){
+        void load_from_ladrabin(std::string fileName, construction_algorithm  construction_algo = COUNTING_SORT, uint8_t access_shortcut_size = 0, std::string temp_file_prefix = ""){
             using namespace k2_treap_ns;
             if(!has_ending(fileName, ".ladrabin")){
                 fileName.append(".ladrabin");
@@ -489,7 +490,7 @@ namespace sdsl {
                         uint corresponding_row = nodes_read >> t_S;
                         source_id_offsetted = source_id - (corresponding_row << t_S); //same as source_id % m_matrix_dimension/ source_id % (1Ull << t_S)
                         if (corresponding_row > current_matrix_row){
-                            construct_trees_from_buffers(current_matrix_row, use_counting_sort, temp_file_prefix,
+                            construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
                                                          buffers, maximum_in_buffer);
 
                             //in case of a complete empty row
@@ -497,7 +498,7 @@ namespace sdsl {
                             for (uint k = 0; k < (corresponding_row - current_matrix_row - 1); ++k) {
                                 current_matrix_row++;
                                 std::cout << "Appending completely empty row: " << current_matrix_row << std::endl;
-                                construct_trees_from_buffers(current_matrix_row, use_counting_sort, temp_file_prefix,
+                                construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
                                                              buffers, maximum_in_buffer);
                             }
 
@@ -521,7 +522,7 @@ namespace sdsl {
                 }
 
                 //cover leftovers
-                construct_trees_from_buffers(current_matrix_row, use_counting_sort, temp_file_prefix,
+                construct_trees_from_buffers(current_matrix_row, construction_algo, temp_file_prefix,
                                              buffers, maximum_in_buffer);
             } else {
                 throw std::runtime_error("Could not open file to load ladrabin graph");
@@ -673,7 +674,7 @@ namespace sdsl {
 
     private:
         template<typename t_vector>
-        void build_k2_trees(t_vector &links, std::string temp_file_prefix = "", bool use_counting_sort = false) {
+        void build_k2_trees(t_vector &links, std::string temp_file_prefix = "", construction_algorithm construction_algo = COUNTING_SORT) {
             using namespace k2_treap_ns;
             typedef decltype(links[0].first) t_x;
             typedef decltype(links[0].second) t_y;
@@ -711,7 +712,7 @@ namespace sdsl {
             m_k2trees.reserve(buffers.size());
             for (uint l = 0; l < buffers.size(); ++l) {
 //                const subk2_tree k2tree(temp_file_prefix, use_counting_sort, buffers[l]);
-                m_k2trees.emplace_back(temp_file_prefix, use_counting_sort, buffers[l], maximum_in_buffer[l]);
+                m_k2trees.emplace_back(buffers[l], construction_algo, maximum_in_buffer[l], temp_file_prefix);
                 buffers[l].clear();
             }
         }
@@ -731,15 +732,15 @@ namespace sdsl {
             m_submatrix_per_dim_count = (m_max_element+m_matrix_dimension-1) >> t_S;
             std::cout << "Matrix dimension: " << m_matrix_dimension << std::endl;
             if (m_submatrix_per_dim_count == 0){
-                std::cout << "Please choose a smaller Partition size as " << t_S << std::endl;
+                std::cout << "Please choose a smaller Partition size as " << std::to_string(t_S) << std::endl;
                 std::cout << "t_S leads to only one partition as the maximum element is " << m_max_element << std::endl;
-                exit(1);
+                m_submatrix_per_dim_count = 1;
             }
             std::cout << "Submatrix amount per row: " << std::to_string(m_submatrix_per_dim_count ) << std::endl;
         }
 
         inline void
-        construct_trees_from_buffers(uint current_matrix_row, bool use_counting_sort, std::string &temp_file_prefix,
+        construct_trees_from_buffers(uint current_matrix_row, construction_algorithm construction_algo, std::string &temp_file_prefix,
                                      std::vector<std::vector<std::pair<uint, uint>>> &buffers, std::vector<uint>& maximum_in_buffer) {
             //#pragma omp parallel for
             for (uint j = 0; j < m_submatrix_per_dim_count; ++j) {
@@ -748,7 +749,7 @@ namespace sdsl {
                     std::cout << "Size of " << current_matrix_row * m_submatrix_per_dim_count + j << ": "
                               << buffers[j].size() * 64 / 8 / 1024 << "kByte" << std::endl;
                 }*/
-                subk2_tree tree(temp_file_prefix, use_counting_sort, buffers[j], maximum_in_buffer[j]);
+                subk2_tree tree(buffers[j], construction_algo, maximum_in_buffer[j], temp_file_prefix);
                 m_k2trees[current_matrix_row*m_submatrix_per_dim_count+j].swap(tree);
                 buffers[j].clear();
                 //maximum_in_buffer[j] = 0;

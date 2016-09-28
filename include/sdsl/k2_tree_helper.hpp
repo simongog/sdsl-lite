@@ -36,6 +36,21 @@
 namespace sdsl {
     typedef int_vector<>::size_type size_type;
 
+    enum construction_algorithm {COUNTING_SORT, PARTITIONBASED, ZORDERSORT};
+
+    std::string get_construction_name(construction_algorithm used_construction) {
+        switch (used_construction) {
+            case COUNTING_SORT:
+                return "Counting Sort";
+            case PARTITIONBASED:
+                return "Partition Based";
+            case ZORDERSORT:
+                return "Z order sort";
+            default:
+                return "unknown";
+        }
+    }
+
     namespace k2_treap_ns {
 
         template<typename t_x=uint64_t, typename t_y=uint64_t>
@@ -474,29 +489,29 @@ namespace sdsl {
 
         template<uint8_t t_k>
         struct interleave{
-            static bool bits(const std::pair<uint, uint> lhs, const std::pair<uint, uint> rhs){
+            static bool bits(const std::pair<uint, uint> point){
                 throw std::runtime_error("not yet implemented");
             }
         };
 
         template<>
         struct interleave<2>{
-            static bool inline bits(const std::pair<uint32_t, uint32_t> lhs, const std::pair<uint32_t, uint32_t> rhs){
-                return interleave_bitwise<uint64_t, uint32_t>(lhs.second, lhs.first) < interleave_bitwise<uint64_t, uint32_t>(rhs.second, rhs.first);
+            static bool inline bits(const std::pair<uint32_t, uint32_t> point){
+                return interleave_bitwise<uint64_t, uint32_t>(point.second, point.first);
             }
         };
 
         template<>
         struct interleave<4>{
-            static bool inline bits(const std::pair<uint32_t, uint32_t> lhs, const std::pair<uint32_t, uint32_t> rhs){
-                return interleave_2_bitwise<uint64_t, uint32_t>(lhs.second, lhs.first) < interleave_2_bitwise<uint64_t, uint32_t>(rhs.second, rhs.first);
+            static bool inline bits(const std::pair<uint32_t, uint32_t> point){
+                return interleave_2_bitwise<uint64_t, uint32_t>(point.second, point.first);
             }
         };
 
         template<>
         struct interleave<8>{
-            static bool inline bits(const std::pair<uint32_t, uint32_t> lhs, const std::pair<uint32_t, uint32_t> rhs){
-                return interleave_3_bitwise<uint64_t, uint32_t>(lhs.second, lhs.first) < interleave_3_bitwise<uint64_t, uint32_t>(rhs.second, rhs.first);
+            static bool inline bits(const std::pair<uint32_t, uint32_t> point){
+                return interleave_3_bitwise<uint64_t, uint32_t>(point.second, point.first);
             }
         };
 
@@ -750,14 +765,6 @@ namespace sdsl {
                     if (exp & 1) result *= base;
                 default:
                     return result;
-            }
-        }
-
-        bool has_ending(std::string const &fullString, std::string const &ending) {
-            if (fullString.length() >= ending.length()) {
-                return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
-            } else {
-                return false;
             }
         }
 

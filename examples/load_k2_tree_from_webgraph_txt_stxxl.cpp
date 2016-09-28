@@ -7,7 +7,6 @@
 #include <tuple>
 #include <string>
 #include <complex>
-#include <sdsl/k2_tree_algorithm.hpp>
 #include <sdsl/k2_tree.hpp>
 #include <sdsl/bit_vectors.hpp>
 #include <sys/times.h>
@@ -104,14 +103,14 @@ int main(int argc, char *argv[]) {
         std::cerr << "Amount of edges: " << coordinates.size() << std::endl;
         const uint8_t k = 4;
         //attention need to adapt rank type below!!
-        k2_tree<k, rrr_vector<63>> k2treap;
+        typedef k2_tree<k, rrr_vector<63>> k2;
 
 
         double t2 = 0;
         ticks = (double) sysconf(_SC_CLK_TCK);
         start_clock();
         // Initialize treap with a vector of (x,y,weight) elements<uint8_t t_k,
-        construct_im_bottom_up(k2treap, coordinates, numberOfNodes - 1);
+        k2 k2treap(coordinates, COUNTING_SORT, numberOfNodes - 1);
 
         t2 += stop_clock();
         t2 *= 1000; // to milliseconds

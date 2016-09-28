@@ -24,6 +24,7 @@
 #include <sdsl/rank_support.hpp>
 #include <sdsl/rank_support_v.hpp>
 #include <gtest/gtest_prod.h>
+#include "k2_tree_utility.hpp"
 
 //! Namespace for the succinct data structure library.
 namespace sdsl {

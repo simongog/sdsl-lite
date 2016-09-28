@@ -3,8 +3,8 @@
 #include <tuple>
 #include <string>
 #include <complex>
-#include <sdsl/k2_tree.hpp>
-#include <sdsl/k2_tree_algorithm.hpp>
+#include "sdsl/k2_tree.hpp"
+#include "sdsl/k2_tree_algorithm.hpp"
 #include <sdsl/bit_vectors.hpp>
 #include <chrono>
 #include <sys/times.h>

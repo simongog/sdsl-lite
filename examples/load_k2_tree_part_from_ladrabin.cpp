@@ -8,7 +8,6 @@
 #include <string>
 #include <complex>
 #include <sdsl/k2_tree.hpp>
-#include <sdsl/k2_tree_algorithm.hpp>
 #include <sdsl/bit_vectors.hpp>
 #include <sys/times.h>
 #include <sdsl/k2_tree_utility.hpp>
@@ -71,7 +70,7 @@ int main(int argc, char *argv[]) {
 
     tested_type k2tree;
 
-    k2tree.load_from_ladrabin(file_name, true);
+    k2tree.load_from_ladrabin(file_name);
     store_to_file(output_file_name, k2tree);
 }
 
